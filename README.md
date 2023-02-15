@@ -28,3 +28,7 @@ Simulation size:
 - Unknown at the moment
 - No motion blur: aiming for 1 million atoms
 - Motion blur: aiming for 100,000 atoms
+
+OpenMM version:
+- 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed, or:
+- 8.1 pre-release with optimized OpenCL backend
