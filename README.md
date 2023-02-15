@@ -24,3 +24,7 @@ Display:
 - This is a tentative metric; I will need to see how real-world performance actually fares.
 - The bottleneck should be vertex stage not fragment stage, so window size shouldn't be an issue. Or maybe it will be problematic with motion blur.
 
+Simulation size:
+- Unknown at the moment
+- No motion blur: aiming for 1 million atoms
+- Motion blur: aiming for 100,000 atoms
