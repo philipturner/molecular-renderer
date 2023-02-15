@@ -2,11 +2,15 @@
 
 Scriptable Mac application for running OpenMM simulations and visualizing them at 120 Hz.
 
-TODO:
+TODO (performance):
 - Query GPU cores via OpenCL and calibrate compute power to reference machine, display TFLOPS in advanced debug overlay.
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
 - Gather data at sub-frame resolution and incorporate motion blur (only for smaller simulations).
 - Use MetalFX temporal upscaling to reduce GPU load? (Spatial on AMD)
+- Buffer up frames to perform an acceleration structure compact pass, gauge overhead, usefulness of the operation to query compacted size (or make custom metric).
+- Perform rendering for this frame, upscaling for the previous, and refitting for the next frame concurrently.
+
+TODO (user interface):
 - Separate Swift files for ported forcefields (oxDNA, AIREBO, etc.), unless they need separate plugins.
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
 - Video exporting tool, demo video of a rod-logic mechanical computer.
