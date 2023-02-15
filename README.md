@@ -3,6 +3,7 @@
 Scriptable Mac application for running OpenMM simulations and visualizing them at 120 Hz.
 
 TODO:
+- Query GPU cores via OpenCL and calibrate compute power to reference machine.
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
 - Gather data at sub-frame resolution and incorporate motion blur (only for smaller simulations).
 - Separate Swift files for ported forcefields (oxDNA, AIREBO, etc.), unless they need separate plugins.
