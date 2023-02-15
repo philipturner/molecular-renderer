@@ -27,7 +27,9 @@ Dependencies:
 
 Memory:
 - At least 8 GB of RAM
-- SSD with at least 350 MB/s bandwidth
+- Hard drive with at least 350 MB/s bandwidth
+- On x86, the memory and disk bandwidth costs will double, unless you use slightly lower resolutions
+- However, x86 often has 60 Hz instead of 120 Hz, which should balance this out
 
 JIT simulation:
 - No bounds on simulation length, does not store frame data for replaying later
@@ -51,21 +53,23 @@ AOT rendering:
 - Expect 300 MB per second of playback, but pages longer visualizations to the SSD (also pages for JIT rendering)
 
 Display:
-- Monitor with at least 1024x1024 pixels - this application minimizes the image size to maximize framerate. The window size is adjustable, but the application is optimized for 1 million pixels.
-- This is a tentative metric; I will need to see how real-world performance actually fares.
-- The bottleneck should be vertex stage not fragment stage, so window size shouldn't be an issue. Or maybe it will be problematic with motion blur.
+- Monitor with at least 1024x1024 pixels
+- The window size is adjustable, but the application is optimized for 1 million pixels.
+- 512x512 -> 1024x1024 upscaled - requires MetalFX temporal upscaling, only M1
+- 512x512 -> 768x768 upscaled - requires MetalFX spatial upscaling, both M1 and x86
+- 768x768 -> 1024x1024 upscaled - higher-overhead alternative for x86 users to reach same resolution
 
 Simulation size:
 - Requirements for real-time visualization currently unknown
 - JIT, no motion blur: aiming for 1 million atoms
 - JIT, motion blur: aiming for 100,000 atoms
-- Up to 256 atom types, set to periodic table by default
+- Up to 256 atom types, colors and radii match periodic table by default
 
 ## Future Steps
 
-This currently runs on macOS with Metal 3. However, it would be possible to port to Windows with Vulkan and FidelityFX.
+This currently runs on macOS with Metal 3. However, it can be ported to Windows with Vulkan and FidelityFX.
 
-This application currently supports only space-filling spheres. It could be extended to visualize cylindrical covalent bonds, or coarse-grained DNA nanotechnology.
+This application currently renders only space-filling spheres. It could be extended to visualize cylindrical covalent bonds, or coarse-grained DNA nanotechnology.
 
 ## References
 
