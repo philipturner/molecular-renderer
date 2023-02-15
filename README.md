@@ -6,7 +6,7 @@ TODO:
 - Query GPU cores via OpenCL and calibrate compute power to reference machine.
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
 - Gather data at sub-frame resolution and incorporate motion blur (only for smaller simulations).
-- Use MetalFX temporal upscaling to reduce GPU load?
+- Use MetalFX temporal upscaling to reduce GPU load? (Spatial on AMD)
 - Separate Swift files for ported forcefields (oxDNA, AIREBO, etc.), unless they need separate plugins.
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
 - Video exporting tool, demo video of a rod-logic mechanical computer.
@@ -18,7 +18,7 @@ TODO:
 Assumes you have the following ratio of compute power:
 - 7 M1 GPU cores per 60 Hz of display refresh rate
 - 14 M1 GPU cores per 120 Hz of display refresh rate
-- AMD GPUs have built-in support, but are not tested or optimized
+- AMD GPUs have built-in support, but are not tested
 - On devices with more GPU compute ratio, this application may add more keyframes to motion blur.
 
 Display:
