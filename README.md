@@ -17,7 +17,7 @@ TODO:
 Assumes you have the following ratio of compute power:
 - 7 M1 GPU cores per 60 Hz of display refresh rate
 - 14 M1 GPU cores per 120 Hz of display refresh rate
-- AMD GPUs should work, but are not tested or optimized
+- AMD GPUs have built-in support, but are not tested or optimized
 - On devices with more GPU compute ratio, this application may add more keyframes to motion blur.
 
 Display:
