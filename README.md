@@ -5,10 +5,9 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 TODO (performance):
 - Query GPU cores via OpenCL and calibrate compute power to reference machine, display TFLOPS in advanced debug overlay.
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
-- Gather data at sub-frame resolution and incorporate motion blur (only for smaller simulations).
-- Use MetalFX temporal upscaling to reduce GPU load? (Spatial on AMD)
+- How well does MetalFX spatial or temporal upscaling mesh with motion blur?
 - Buffer up frames to perform an acceleration structure compact pass, gauge overhead, usefulness of the operation to query compacted size (or make custom metric).
-- Perform rendering for this frame, upscaling for the previous, and refitting for the next frame concurrently.
+- Perform rendering, upscaling, and refitting for different frames concurrently.
 
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
