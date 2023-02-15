@@ -34,3 +34,7 @@ Simulation size:
 OpenMM version:
 - 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed, or:
 - 8.1 pre-release with optimized OpenCL backend
+
+## References
+
+https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
