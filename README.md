@@ -29,6 +29,12 @@ Memory:
 - At least 8 GB of RAM
 - SSD with at least 350 MB/s bandwidth
 
+JIT simulation:
+- No bounds on simulation length, does not store frame data for replaying later
+- Best for very small simulations (<10,000 atoms, <10 ps/s playback)
+- Expect a short but noticeable lag between interaction and it affecting the visualization
+- May use OpenMM CPU instead of GPU backend
+
 JIT rendering:
 - Stores a simulation's geometry data, renders dynamically at runtime
 - Best suited for small simulations - <210,000 atoms (no motion blur), <70,000 atoms (motion blur)
