@@ -33,7 +33,7 @@ Memory:
 JIT simulation:
 - No bounds on simulation length, does not store frame data for replaying later
 - Best suited for very small simulations (<10,000 atoms, <10 ps/s playback)
-- Expect a short but noticeable lag between interaction and it affecting the visualization
+- Expect a noticeable lag between interaction and it affecting the visualization
 - May use OpenMM CPU instead of GPU backend
 
 JIT rendering:
