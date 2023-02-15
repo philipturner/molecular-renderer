@@ -12,6 +12,7 @@ TODO:
 - Video exporting tool, demo video of a rod-logic mechanical computer.
 - Limited interactivity with the visualization.
 - Serialization format to save an in-progress simulation.
+- Interactive mechanism to adjust aspect ratio while maintaining 1 million pixels.
 
 ## Requirements
 
