@@ -48,7 +48,7 @@ AOT rendering:
 - Deletes a simulation's geometry data and instead stores compressed 512x512 frames
 - Best suited for large simulations, motion blur, or Intel iGPUs
 - Camera position is static or has scripted trajectory
-- Expect 300 MB per second of playback, but pages longer visualizations from the SSD (also pages for JIT rendering)
+- Expect 300 MB per second of playback, but pages longer visualizations to the SSD (also pages for JIT rendering)
 
 Display:
 - Monitor with at least 1024x1024 pixels - this application minimizes the image size to maximize framerate. The window size is adjustable, but the application is optimized for 1 million pixels.
