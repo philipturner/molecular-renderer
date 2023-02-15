@@ -3,7 +3,7 @@
 Scriptable Mac application for running OpenMM simulations and visualizing them at 120 Hz.
 
 TODO:
-- Query GPU cores via OpenCL and calibrate compute power to reference machine.
+- Query GPU cores via OpenCL and calibrate compute power to reference machine, display TFLOPS in advanced debug overlay.
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
 - Gather data at sub-frame resolution and incorporate motion blur (only for smaller simulations).
 - Use MetalFX temporal upscaling to reduce GPU load? (Spatial on AMD)
