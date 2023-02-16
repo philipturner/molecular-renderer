@@ -82,7 +82,7 @@ rgb8e8 = velocity with shared exponent, int8_t component magnitudes (last keyfra
 Images, per pixel (AOT rendering)
 10 bits, 10 bits, 10 bits = color
 14 bits = normalized depth, inverted to make dynamic range suited for quantization
-10 bits, 10 bits = half-precision representation with lower 6 bits truncated
+10 bits, 10 bits = velocity in pixels/frame, FP16 with lower 6 bits truncated
 - 8 B
 ```
 
