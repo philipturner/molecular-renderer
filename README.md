@@ -26,7 +26,7 @@ Dependencies:
 
 Memory:
 - At least 8 GB of RAM
-- Hard drive with at least 350 MB/s bandwidth
+- Hard drive with at least 250 MB/s bandwidth
 - On x86, the memory and disk bandwidth costs will double, unless you use slightly lower resolutions
 - However, x86 often has 60 Hz instead of 120 Hz, which should balance this out
 
@@ -49,7 +49,7 @@ AOT rendering:
 - Deletes a simulation's geometry data and instead stores compressed 512x512 frames
 - Best suited for large simulations, motion blur, or Intel iGPUs
 - Camera position is static or has scripted trajectory
-- Expect <300 MB per second of playback, but pages longer visualizations to the SSD (also pages for JIT rendering)
+- Expect <240 MB per second of playback, but pages longer visualizations to the SSD (also pages for JIT rendering)
 
 Display:
 - Monitor with at least 1024x1024 pixels
@@ -63,6 +63,28 @@ Simulation size:
 - JIT, no motion blur: aiming for 1 million atoms
 - JIT, motion blur: aiming for 100,000 atoms
 - Up to 256 atom types, colors and radii match periodic table by default
+
+## Technical Details
+
+All geometry data and pre-rendered frames use the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) compression algorithm. Before serialization, data are also stored in an efficient format:
+
+```
+Geometry, per atom (no motion blur)
+3 x (4 B = coordinate position)
+rgb8e8 = velocity with shared exponent, int8_t component magnitudes
+- 16 B
+
+Geometry, per atom (motion blur)
+3 x (4 B = coordinate minimum, 2 B = distance to maximum, 1+1+1+1 B = quantized keyframes)
+rgb8e8 = velocity with shared exponent, int8_t component magnitudes (last keyframe only)
+- 42 B
+
+Images, per pixel (AOT rendering)
+10 bits, 10 bits, 10 bits = color
+14 bits = normalized depth, inverted to make dynamic range suited for quantization
+10 bits, 10 bits = normalized, signed velocity in units of 0.25 pixels, clamped - max 64 pixels/frame
+- 8 B
+```
 
 ## Future Steps
 
