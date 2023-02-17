@@ -25,7 +25,7 @@ Dependencies:
 - OpenMM 8.1 pre-release with optimized OpenCL backend
 
 Memory:
-- At least 8 GB of RAM
+- At least 8 GB of RAM - this application will cache 4 GB of compressed data in memory
 - Hard drive with at least 250 MB/s bandwidth
 
 <!--
