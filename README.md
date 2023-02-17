@@ -16,6 +16,7 @@ TODO (user interface):
 - Basic interactivity with the visualization.
 - Serialization format to save an in-progress simulation.
 - Interactive mechanism to adjust aspect ratio while maintaining 1 million pixels.
+- Mode to visualize the molecule's initial state before rendering, or select any frame from JIT rendering.
 
 ## Requirements
 
@@ -47,7 +48,7 @@ JIT rendering:
 - Before compression: 140 MB (no motion blur), 350 MB (motion blur) per 100,000 atoms per second of playback
 
 AOT rendering:
-- Deletes a simulation's geometry data and instead stores compressed 512x512 frames
+- Deletes a simulation's geometry data (optionally) and instead stores compressed 512x512 frames
 - Best suited for large simulations, motion blur, or Intel iGPUs
 - Camera position is static or has scripted trajectory
 - Before compression: 240 MB per second of playback
