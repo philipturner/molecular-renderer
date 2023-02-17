@@ -3,7 +3,7 @@
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback and motion blur to amplify the perceived framerate.
 
 TODO (performance):
-- Query GPU cores via OpenCL and calibrate compute power to reference machine, display TFLOPS in advanced debug overlay.
+- Query GPU cores via OpenCL, display TFLOPS in advanced debug overlay, display recommended TFLOPS for configuration.
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
 - How well does MetalFX spatial or temporal upscaling mesh with motion blur?
 - Buffer up frames to perform an acceleration structure compact pass, gauge overhead, usefulness of the operation to query compacted size (or make custom metric).
