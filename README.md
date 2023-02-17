@@ -8,7 +8,8 @@ TODO (performance):
 - How well does MetalFX spatial or temporal upscaling mesh with motion blur?
 - Buffer up frames to perform an acceleration structure compact pass, gauge overhead, usefulness of the operation to query compacted size (or make custom metric).
 - Perform decompression, refitting, rendering, and upscaling for 4 different frames concurrently.
-- Delay rendering by 16 frames (64 MB) to absorb stream interruptions
+- Delay presentation by 4-32 frames (16-128 MB) to absorb stream interruptions
+- Use Metal lossless compression to reduce bandwidth of delayed frames, but ensure they miss the SLC?
 
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
