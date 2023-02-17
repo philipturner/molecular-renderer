@@ -64,7 +64,7 @@ Simulation size:
 - Requirements for real-time visualization currently unknown
 - JIT, no motion blur: aiming for 1 million atoms
 - JIT, motion blur: aiming for 100,000 atoms
-- Up to 256 atom types, colors and radii match periodic table by default
+- Up to 255 atom types, colors and radii match periodic table by default
 
 ## Technical Details
 
