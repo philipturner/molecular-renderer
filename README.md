@@ -7,7 +7,8 @@ TODO (performance):
 - Are massive-LOD spheres or virtualized ray-traced geometry faster?
 - How well does MetalFX spatial or temporal upscaling mesh with motion blur?
 - Buffer up frames to perform an acceleration structure compact pass, gauge overhead, usefulness of the operation to query compacted size (or make custom metric).
-- Perform rendering, upscaling, and refitting for different frames concurrently.
+- Perform decompression, refitting, rendering, and upscaling for 4 different frames concurrently.
+- Delay rendering by 16 frames (64 MB) to absorb stream interruptions
 
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
