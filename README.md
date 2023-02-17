@@ -14,7 +14,7 @@ TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
 - Video exporting tool, demo video of a rod-logic mechanical computer.
 - Basic interactivity with the visualization.
-- Serialization format to save an in-progress simulation.
+- Serialization format to auto-save an in-progress simulation, halting progress at specified GB limit.
 - Interactive mechanism to adjust aspect ratio while maintaining 1 million pixels.
 - Mode to visualize the molecule's initial state before rendering, or select any frame from JIT rendering.
 
