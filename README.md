@@ -68,7 +68,7 @@ Simulation size:
 
 ## Technical Details
 
-All geometry data and pre-rendered frames use the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) compression algorithm. Before serialization, data are also compacted into an efficient format. The velocity is computed using positions between frame timestamps, rather than the actual atomic velocity. This is more appropriate for MetalFX temporal upscaling.
+All geometry data and pre-rendered frames use the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm. Before serialization, data are also compacted into an efficient format. The velocity is computed using positions between frame timestamps, rather than the actual atomic velocity. This is more appropriate for MetalFX temporal upscaling.
 
 ```
 JIT: per atom (no motion blur)
