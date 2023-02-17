@@ -103,3 +103,5 @@ This application currently renders only space-filling spheres. It could be exten
 ## References
 
 https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
+
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
