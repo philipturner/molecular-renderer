@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 2,000-500,000 atoms.
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 5,000-1,000,000 atoms.
 
 TODO (performance):
 - Use triple-buffering, compact the acceleration structure every 3 frames.
@@ -18,6 +18,8 @@ TODO (user interface):
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters.
 - Way to adjust aspect ratio while maintaining 1 million pixels.
 - Support replaying at integer multiples of the sample rate, exporting 24 Hz video.
+- Support replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
+- Support 1 fs, 2 fs, 4 fs time step modes.
 
 ## Requirements
 
@@ -54,4 +56,4 @@ https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-gr
 
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
 
-http://eprints.internano.org/76/1/Productive_Nanosystems_07.pdf
+https://pubmed.ncbi.nlm.nih.gov/17080857/
