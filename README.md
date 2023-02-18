@@ -1,12 +1,12 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing. This is optimized for simulations with 2,000-500,000 atoms.
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing. This is optimized for researching behavior of nanomechanical devices with 2,000-500,000 atoms.
 
 TODO (performance):
 - Use quadruple-buffering instead of triple-buffering, compact the acceleration structure every 4 frames.
 - Use Metal 3 fast resource loading to fetch geometry data from disk, 4 frames ahead.
 - Use Metal lossless compression to reduce bandwidth of delayed frames.
-- Store previous frame's transform data to re-project intersection position onto screen, generate screen-space motion vector.
+- Store previous frame's transform data to re-project the intersection position onto the screen, generating a screen-space motion vector.
 
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
