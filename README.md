@@ -50,3 +50,5 @@ Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s.
 https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
 
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
+
+http://eprints.internano.org/76/1/Productive_Nanosystems_07.pdf
