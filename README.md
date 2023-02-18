@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing. This is optimized for researching behavior of nanomechanical devices with 2,000-500,000 atoms.
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing. This application is optimized for researching behavior of nanomechanical devices with 2,000-500,000 atoms.
 
 TODO (performance):
 - Use quadruple-buffering instead of triple-buffering, compact the acceleration structure every 4 frames.
