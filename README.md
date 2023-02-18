@@ -3,9 +3,8 @@
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing.
 
 TODO (performance):
-- Perform decompression, refitting, rendering, and upscaling for 4 frames concurrently.
-- Compact the acceleration structure every 4 frames.
-- Delay presentation by another 4 frames (16 MB) to absorb stream interruptions.
+- Use quadruple-buffering instead of triple-buffering, compact the acceleration structure every 4 frames.
+- Use Metal 3 fast resource loading to fetch geometry data from disk, 4 frames ahead.
 - Use Metal lossless compression to reduce bandwidth of delayed frames.
 - Store previous frame's transform data to re-project intersection position onto screen, generate screen-space motion vector.
 
@@ -25,8 +24,8 @@ Dependencies:
 - Xcode 14 installed
 - OpenMM 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed
 
-Memory:
-- At least 8 GB of RAM - this application will cache 4 GB of compressed data in memory
+Memory/Disk:
+- At least 8 GB of RAM
 - Before compression: 140 MB data per second of playback per 100,000 atoms
 - Solid-state drive or high-bandwidth HDD, over 10 GB of free disk space
 
@@ -40,7 +39,7 @@ Display:
 
 This application currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second\*. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, MetalFX spatial upscaling would let it run on Intel Macs. One could also port it to Windows through Vulkan and FidelityFX.
 
-> \*When targeting a 60 Hz display or exporting 24 Hz video, the frames are simply downsampled.
+> \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.
 
 Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. The velocity is computed using positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocity. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm.
 
