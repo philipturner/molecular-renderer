@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing.
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with real-time ray tracing. This is optimized for simulations with 2,000-500,000 atoms.
 
 TODO (performance):
 - Use quadruple-buffering instead of triple-buffering, compact the acceleration structure every 4 frames.
@@ -41,7 +41,7 @@ This application currently requires an Apple M1 chip running Metal 3. It is opti
 
 > \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.
 
-Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. The velocity is computed using positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocity. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm.
+Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. Shaders compute velocity from positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocities on disk. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm. While running an OpenMM simulation, the application auto-saves each batch of 4 consecutive frames into one file.
 
 Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s. Replaying at exactly 0.48 ps/s would cause a significant bottleneck; OpenMM would halt the GPU command stream every step. To prevent this bottleneck, try to replay at something over 10 ps/s. Also check how quickly OpenMM is simulating, to gauge how long you'll wait before visualizing. OpenMM would generate 1.2 ps/s of data when simulating 100 ns/day, something achievable with the M1 Max and ~100,000 atoms.
 
