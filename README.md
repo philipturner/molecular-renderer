@@ -21,6 +21,10 @@ TODO (user interface):
 - Support replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
 - Support 1 fs, 2 fs, 4 fs time step modes.
 
+TODO (presentation):
+- Appealing fade-in effect for starting replay of a simulation, hides the startup latency
+- Minecraft-like font presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.)
+
 ## Requirements
 
 Dependencies:
