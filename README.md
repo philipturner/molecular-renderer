@@ -2,7 +2,7 @@
 
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 5,000-1,000,000 atoms.
 
-TODO: Explain motivation, what I'm studying, why it's important
+TODO: Explain motivation, what I'm studying, why it's important.
 
 TODO (performance):
 - Use triple-buffering, compact the acceleration structure every 3 frames.
@@ -24,8 +24,8 @@ TODO (user interface):
 - Support 1 fs, 2 fs, 4 fs time step modes.
 
 TODO (presentation):
-- Appealing fade-in effect for starting replay of a simulation, hides the startup latency
-- Minecraft-like font presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.)
+- Appealing fade-in effect for starting replay of a simulation, hides the startup latency.
+- Minecraft-like font presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.).
 
 ## Requirements
 
