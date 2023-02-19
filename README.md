@@ -17,7 +17,7 @@ TODO (user interface):
 - Way to move camera position using mouse.
 - Display OpenMM ps/s, OpenMM ns/day, rendering ps/s, GPU load.
 - Serialization format to save the simulation's starting parameters.
-- Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters.
+- Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
 - Way to adjust aspect ratio while maintaining 1 million pixels.
 - Support replaying at integer multiples of the sample rate, exporting 24 Hz video.
 - Support replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
