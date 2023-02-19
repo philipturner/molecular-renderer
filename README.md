@@ -2,6 +2,8 @@
 
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 5,000-1,000,000 atoms.
 
+TODO: Explain motivation, what I'm studying, why it's important
+
 TODO (performance):
 - Use triple-buffering, compact the acceleration structure every 3 frames.
 - Use Metal 3 fast resource loading to fetch geometry data from disk, 3 frames ahead.
