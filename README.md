@@ -24,8 +24,10 @@ TODO (user interface):
 - Support 1 fs, 2 fs, 4 fs time step modes.
 
 TODO (presentation):
+<!--
 - Appealing fade-in effect for starting replay of a simulation, hides the startup latency.
 - Fade-in reveals center before edges, receding shadow matches silhouette of simulation.
+-->
 - Minecraft-like font presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.).
 
 ## Requirements
