@@ -16,6 +16,7 @@ TODO (performance):
 -->
 
 TODO (user interface):
+- Instructions to copy this repository's code into an Xcode project.
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
 - Way to move camera position using mouse.
 - Display OpenMM ps/s, OpenMM ns/day, rendering ps/s, GPU load.
