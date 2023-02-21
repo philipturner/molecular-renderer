@@ -6,11 +6,16 @@ TODO: Explain motivation, what I'm studying, why it's important.
 
 TODO (performance):
 - Use triple-buffering, compact the acceleration structure every 3 frames.
+- Test 1024x1024 rendering first without MetalFX temporal upscaling, consider upscaling 1024x1024 -> 2048x2048.
 - Use Metal 3 fast resource loading to fetch geometry data from disk, 3 frames ahead.
 - Use Metal lossless compression for double-buffered intermediate textures.
-- Profile tile-based hybrid rasterization against full ray tracing, may solve divergence problems. Optimize for very complex scenes.
 - Determine whether to use ray query API.
 - Store previous frame's transform data to re-project the intersection position onto the screen, generating a screen-space motion vector.
+
+<!--
+- Profile tile-based hybrid rasterization against full ray tracing, may solve divergence problems. Optimize for very complex scenes.
+- Ray tracing is simpler in general. Less time invested in a possibly incorrect approach to rendering imposter rectangles.
+-->
 
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
