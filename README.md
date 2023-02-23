@@ -101,3 +101,5 @@ https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-gr
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
 
 https://pubmed.ncbi.nlm.nih.gov/17080857/
+
+http://litherum.blogspot.com/2021/05/understanding-cvdisplaylink.html
