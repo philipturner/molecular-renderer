@@ -30,31 +30,32 @@ struct MetalView: NSViewRepresentable {
   func makeCoordinator() -> Coordinator { coordinator }
   
   func makeNSView(context: Context) -> MTKView { context.coordinator.view }
-  func updateNSView(_ nsView: MTKView, context: Context) { }
+  func updateNSView(_ nsView: MTKView, context: Context) {
+    let size = nsView.drawableSize
+    if size.width != 1024 || size.height != 1024 {
+      fatalError("Size cannot change.")
+    }
+  }
 }
 
 class Coordinator: NSObject, ObservableObject, MTKViewDelegate {
   var view: MTKView
-  
-  // Need to update this every interval, in case the visualization switches
-  // displays.
-  var currentRefreshRate: Int
+  var renderer: Renderer
   
   override init() {
-    view = MTKView()
-    view.drawableSize = .init(width: 4, height: 4)
+    self.view = MTKView()
+    view.drawableSize = .init(width: 1024, height: 1024)
     // If drawable changes, results are undefined.
     view.autoResizeDrawable = false
-    
-    currentRefreshRate = NSScreen.main!.maximumFramesPerSecond
     
     let castedLayer = view.layer as! CAMetalLayer
     castedLayer.framebufferOnly = false
     castedLayer.allowsNextDrawableTimeout = false
-    view.preferredFramesPerSecond = self.currentRefreshRate
-    
+    view.preferredFramesPerSecond = 120
     view.device = MTLCreateSystemDefaultDevice()!
     view.colorPixelFormat = .rgb10a2Unorm
+    
+    self.renderer = Renderer(view: view)
     
     super.init()
     view.delegate = self
@@ -70,7 +71,6 @@ class Coordinator: NSObject, ObservableObject, MTKViewDelegate {
   
   func draw(in view: MTKView) {
     precondition(view == self.view)
-    currentRefreshRate = NSScreen.main!.maximumFramesPerSecond
-    print(currentRefreshRate)
+    renderer.update()
   }
 }

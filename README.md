@@ -2,6 +2,42 @@
 
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms.
 
+## Usage
+
+Do not switch the window to a different display after starting the app. This will break some of the rendering code.
+
+You can set a custom aspect ratio, instead of 1024x1024. Just remember to make it divisible by 2, and stay under ~2 million pixels. Below are common video resolutions.
+
+```
+1:1
+- 720x720: 0.518M pixels
+- 1080x1080: 1.166M pixels
+- 1440x1440: 2.074M pixels
+
+4:3
+- 800x600: 0.480M pixels
+- 1280x960: 1.229M pixels
+- 1600x1200: 1.920M pixels
+
+16:9
+- 960x540: 0.518M pixels
+- 1280x720: 0.922M pixels
+- 1920x1080: 2.074M pixels
+```
+
+The FOV adapts to the aspect ratio according to the heuristic below. The base FOV is 90 degrees by default, but you can customize it.
+
+```
+let characteristicLength = sqrt(width * height)
+let scaleX = width / characteristicLength
+let scaleY = height / characteristicLength
+
+let baseFOV = 90 // degrees
+let baseSlope = tan(baseFOV / 2)
+let fovX = 2 * arctan(scaleX * baseSlope)
+let fovY = 2 * arctan(scaleY * baseSlope)
+```
+
 TODO (performance):
 - Use triple-buffering, compact the acceleration structure every 3 frames.
 - Test 1024x1024 rendering first without MetalFX temporal upscaling, consider upscaling 1024x1024 -> 2048x2048.
@@ -16,23 +52,18 @@ TODO (performance):
 -->
 
 TODO (user interface):
-- Instructions to copy this repository's code into an Xcode project.
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
 - Way to move camera position using mouse.
-- Display OpenMM ps/s, OpenMM ns/day, rendering ps/s, GPU load.
+- Display OpenMM ps/s, OpenMM ns/day, rendering ps/s in the command line.
+- Test out Metal HUD, document how to enable it.
 - Serialization format to save the simulation's starting parameters.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
-- Way to adjust aspect ratio while maintaining 1 million pixels.
-- Support replaying at integer multiples of the sample rate, exporting 24 Hz video.
-- Support replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
-- Support 1 fs, 2 fs, 4 fs time step modes.
+- API for replaying at integer multiples of the sample rate, exporting 24 Hz video.
+- API for replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
+- API for 1 fs, 2 fs, 4 fs time step modes.
 
 TODO (miscellaneous):
-<!--
-- Appealing fade-in effect for starting replay of a simulation, hides the startup latency.
-- Fade-in reveals center before edges, receding shadow matches silhouette of simulation.
--->
-- Minecraft-like font presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.).
+- [Minecraft-like font](https://github.com/IdreesInc/Monocraft) presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.).
 - If extracting data through the OpenMM Python layer becomes a bottleneck, make OpenMM Clang module for C bindings (part of Xcode project).
 
 ## Requirements
@@ -50,9 +81,8 @@ Memory/Disk:
 
 Display:
 - 512x512 -> 1024x1024 upscaled with MetalFX temporal upscaling
-- Need monitor with at least 1024x1024 pixels
-- Only 60 Hz and 120 Hz supported
-- Window aspect ratio is adjustable, but will resize to stay at 1 million pixels
+- Monitor needs at least 1024x1024 pixels for the default resolution
+- 30 Hz, 60 Hz, and 120 Hz supported
 
 ## Technical Details
 
