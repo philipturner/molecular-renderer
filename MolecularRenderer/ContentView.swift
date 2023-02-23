@@ -20,7 +20,7 @@ struct ContentView: View {
           x: 512 / NSScreen.main!.backingScaleFactor,
           y: 512 / NSScreen.main!.backingScaleFactor)
     }
-    .padding()
+    .padding(.zero)
   }
 }
 

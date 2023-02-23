@@ -4,7 +4,7 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 
 ## Usage
 
-Do not switch the window to a different display after starting the app. This will break some of the rendering code.
+After clicking the "start" button for rendering, do not switch the window to a different display. Doing so will break the rendering code.
 
 You can set a custom aspect ratio, instead of 1024x1024. Just remember to make it divisible by 2, and stay under ~2 million pixels. Below are common video resolutions.
 
