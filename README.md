@@ -1,5 +1,7 @@
 # Molecular Renderer
 
+> A lot of these goals are also being addressed by the [MSEP](https://astera.org/molecular-systems/), which is currently in development (February 2023). Consider waiting until it's released, then merging a compression algorithm into the MSEP code base. It could also be a plugin for exporting simulations in a format replayable outside the editor. I have very limited free time and unique skills that may be better spent enhancing other projects.
+
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms.
 
 ## Usage
