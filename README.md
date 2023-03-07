@@ -1,8 +1,20 @@
 # Molecular Renderer
 
-> A lot of these goals are also being addressed by the [MSEP](https://astera.org/molecular-systems/), which is currently in development (February 2023). Consider waiting until it's released, then merging a compression algorithm into the MSEP code base. It could also be a plugin for exporting simulations in a format replayable outside the editor. I have very limited free time and unique skills that may be better spent enhancing other projects.
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time.
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms.
+> A lot of these goals are also being addressed by the [MSEP](https://astera.org/molecular-systems/), which is currently in development (February 2023). Consider waiting until it's released, then merging a compression algorithm into the MSEP code base. It could also be a plugin for exporting simulations in a format replayable outside the editor. I have very limited free time and unique skills that may be better spent enhancing other projects.
+>
+> However, it is likely that MSEP will [use PyMOL exclusively](https://youtu.be/HjgjtAk-lws?t=1083) for graphics. The library uses [multicore CPU exclusively](https://www.mail-archive.com/pymol-users@lists.sourceforge.net/msg15181.html) for ray tracing (as of 2018) and uses the GPU only for lower-quality graphics. I will have to see whether Drexler's team attempts using Godot for the higher-quality graphics. v4.0 uses [signed distance fields](https://godotengine.org/article/godot-4-0-sets-sail/#highly-improved-lighting--shadows). He said there were "issues with shaders and various things", meaning Godot's SDFGI probably won't be used. MSEP would have to create a ray tracer from scratch if they wanted ray tracing, which seems unlikely. In short, this repository will likely be salvaged, maybe as an MSEP plugin, but I must wait for the platform's release to know for sure.
+>
+> I may end up creating multiple plugins for MSEP. I don't want to be doing something, then have another person make a plugin with the exact same capabilities. That would make my work redundant. I would rather collaborate with multiple researchers to standardize, enhance, and maintain these plugins. This means acting fast to propose a centralized effort soon after MSEP is released.
+> - Molecular Renderer, which records and replays simulations with maximum rendering performance.
+> - OpenMM plugin, which runs time-evolution simulations 10x faster than LAMMPS. Likely FP32 only unless I find enough time to finish FP64 emulation. So far, I've only found a need for double precision in the following use cases. Drexler himself said that MD is relatively insensitive to small changes in energy - a green light for single precision.
+>   - Measuring thermodynamic efficiency
+>   - Measuring drag in rotating bearings
+>   - Measuring material stiffness
+>   - Quantum chemistry
+>   - All can be accomplished by measuring a single component, not the entire system. The use cases have a common theme: measuring material properties, not testing complex system dynamics. In such cases, the precision of such measurement would be prioritized. GPU mixed FP32/FP64 is >1 order of magnitude less precise than CPU FP64. Even if implemented, GPU FP64 emulation would probably not be used much anyway. Scientists would use CPU FP64 regardless.
+> - Porting various forcefields to OpenMM, such as oxDNA, Tersoff, and AIREBO. This will be both a plugin for OpenMM and included with the OpenMM plugin for MSEP. It will use OpenCL exclusively - no CUDA!
 
 ## Usage
 
@@ -29,7 +41,7 @@ You can set a custom aspect ratio, instead of 1024x1024. Just remember to make i
 
 The FOV adapts to the aspect ratio according to the heuristic below. The base FOV is 90 degrees by default, but you can customize it.
 
-```
+```swift
 let characteristicLength = sqrt(width * height)
 let scaleX = width / characteristicLength
 let scaleY = height / characteristicLength
