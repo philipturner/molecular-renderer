@@ -8,6 +8,7 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 >
 > I may end up creating multiple plugins for MSEP. I don't want to be doing something, then have another person make a plugin with the exact same capabilities. That would make my work redundant. I would rather collaborate with multiple researchers to standardize, enhance, and maintain these plugins. This means acting fast to propose a centralized effort soon after MSEP is released.
 > - Molecular Renderer, which records and replays simulations with maximum rendering performance.
+> - Plugin to optimize quantum chemistry simulations for the Apple AMX.
 > - OpenMM plugin, which runs time-evolution simulations 10x faster than LAMMPS. Likely FP32 only unless I find enough time to finish FP64 emulation. So far, I've only found a need for double precision in the following use cases. Drexler himself said that MD is relatively insensitive to small changes in energy - a green light for single precision.
 >   - Measuring thermodynamic efficiency
 >   - Measuring drag in rotating bearings
