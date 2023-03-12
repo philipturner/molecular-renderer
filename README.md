@@ -11,7 +11,7 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 > - Plugin to optimize quantum chemistry simulations for the Apple AMX.
 > - OpenMM plugin, which runs time-evolution simulations 10x faster than LAMMPS. Likely FP32 only unless I find enough time to finish FP64 emulation. So far, I've only found a need for double precision in the following use cases. Drexler himself said that MD is relatively insensitive to small changes in energy - a green light for single precision.
 >   - Measuring thermodynamic efficiency
->   - Measuring drag in rotating bearings
+>   - Measuring drag in rotating bearings (TODO: this was probably possible with FP32)
 >   - Measuring material stiffness
 >   - Quantum chemistry
 >   - All can be accomplished by measuring a single component, not the entire system. The use cases have a common theme: measuring material properties, not testing complex system dynamics. In such cases, the precision of such measurement would be prioritized. GPU mixed FP32/FP64 is >1 order of magnitude less precise than CPU FP64. Even if implemented, GPU FP64 emulation would probably not be used much anyway. Scientists would use CPU FP64 regardless.
