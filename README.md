@@ -2,6 +2,11 @@
 
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time.
 
+> Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as an interactive environment to help the author learn computational chemistry. In addition to atomistic rendering, it should incorporate electronic structure visualization with wave functions that vary in real-time. Both interactive and pre-recorded data may be used.
+
+<details>
+<summary>Previous note</summary>
+
 > A lot of these goals are also being addressed by the [MSEP](https://astera.org/molecular-systems/), which is currently in development (February 2023). Consider waiting until it's released, then merging a compression algorithm into the MSEP code base. It could also be a plugin for exporting simulations in a format replayable outside the editor. I have very limited free time and unique skills that may be better spent enhancing other projects.
 >
 > However, it is likely that MSEP will [use PyMOL exclusively](https://youtu.be/HjgjtAk-lws?t=1083) for graphics. The library uses [multicore CPU exclusively](https://www.mail-archive.com/pymol-users@lists.sourceforge.net/msg15181.html) for ray tracing (as of 2018) and uses the GPU only for lower-quality graphics. I will have to see whether Drexler's team attempts using Godot for the higher-quality graphics. v4.0 uses [signed distance fields](https://godotengine.org/article/godot-4-0-sets-sail/#highly-improved-lighting--shadows). He said there were "issues with shaders and various things", meaning Godot's SDFGI probably won't be used. MSEP would have to create a ray tracer from scratch if they wanted ray tracing, which seems unlikely. In short, this repository will likely be salvaged, maybe as an MSEP plugin, but I must wait for the platform's release to know for sure.
@@ -16,6 +21,8 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 >   - Quantum chemistry
 >   - All can be accomplished by measuring a single component, not the entire system. The use cases have a common theme: measuring material properties, not testing complex system dynamics. In such cases, the precision of such measurement would be prioritized. GPU mixed FP32/FP64 is >1 order of magnitude less precise than CPU FP64. Even if implemented, GPU FP64 emulation would probably not be used much anyway. Scientists would use CPU FP64 regardless.
 > - Porting various forcefields to OpenMM, such as oxDNA, Tersoff, and AIREBO. This will be both a plugin for OpenMM and included with the OpenMM plugin for MSEP. It will use OpenCL exclusively - no CUDA!
+
+</details>
 
 ## Usage
 
