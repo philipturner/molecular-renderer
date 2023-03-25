@@ -4,8 +4,13 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 
 > Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as an interactive environment to help the author learn computational chemistry. In addition to atomistic rendering, it should incorporate electronic structure visualization with wave functions that vary in real-time. Both interactive and pre-recorded data may be used.
 
-<details>
-<summary>Previous note</summary>
+This should also become a future platform for the author to conduct computational nanotechnology research (the real nanotechnology, not nanomaterials science). For example, it could host code for first-principles quantum chemistry that is GPU-accelerated. It should not try to compete with MSEP; it offers a unique approach of _accessible (meaning FP32)\*_ GPU acceleration. MSEP presumably uses CPU for everything, including rendering.
+
+> \* ...that runs on consumer GPUs and furthermore, not just exclusively Nvidia consumer GPUs. Long-term, there is no need for this library to remain restricted to Apple silicon either.
+
+<img width="515" alt="Screenshot 2023-03-24 at 9 26 46 PM" src="https://user-images.githubusercontent.com/71743241/227678193-efe03cda-6f49-4c5e-b92b-c953da32b926.png">
+
+<!--
 
 > A lot of these goals are also being addressed by the [MSEP](https://astera.org/molecular-systems/), which is currently in development (February 2023). Consider waiting until it's released, then merging a compression algorithm into the MSEP code base. It could also be a plugin for exporting simulations in a format replayable outside the editor. I have very limited free time and unique skills that may be better spent enhancing other projects.
 >
@@ -22,7 +27,7 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 >   - All can be accomplished by measuring a single component, not the entire system. The use cases have a common theme: measuring material properties, not testing complex system dynamics. In such cases, the precision of such measurement would be prioritized. GPU mixed FP32/FP64 is >1 order of magnitude less precise than CPU FP64. Even if implemented, GPU FP64 emulation would probably not be used much anyway. Scientists would use CPU FP64 regardless.
 > - Porting various forcefields to OpenMM, such as oxDNA, Tersoff, and AIREBO. This will be both a plugin for OpenMM and included with the OpenMM plugin for MSEP. It will use OpenCL exclusively - no CUDA!
 
-</details>
+-->
 
 ## Usage
 
