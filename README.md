@@ -6,7 +6,7 @@ Scriptable application for running OpenMM simulations and visualizing at high fr
 
 This should also become a future platform for the author to conduct computational nanotechnology research (the real nanotechnology, not nanomaterials science). For example, it could host code for first-principles quantum chemistry that is GPU-accelerated. It should not try to compete with MSEP; it offers a unique approach of _accessible (meaning FP32)\*_ GPU acceleration. MSEP presumably uses CPU for everything, including rendering.
 
-> \* ...that runs on consumer GPUs and furthermore, not just exclusively Nvidia consumer GPUs. Long-term, there is no need for this library to remain restricted to Apple silicon either.
+> \* ...that runs on consumer GPUs and, furthermore, not just exclusively Nvidia consumer GPUs. Long-term, there is no need for this library to remain restricted to Apple silicon either.
 
 <img width="515" alt="Screenshot 2023-03-24 at 9 26 46 PM" src="https://user-images.githubusercontent.com/71743241/227678193-efe03cda-6f49-4c5e-b92b-c953da32b926.png">
 
