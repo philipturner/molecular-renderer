@@ -2,9 +2,9 @@
 
 Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time.
 
-> Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as an interactive environment to help the author learn computational chemistry. In addition to atomistic rendering, it should incorporate electronic structure visualization with wave functions that vary in real-time. Both interactive and pre-recorded data may be used.
+> Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as a simpler environment to help the author learn computational chemistry. In addition to atomistic rendering, it should incorporate electronic structure visualization with wave functions that vary in real-time. Both interactive and pre-recorded data may be used.
 
-This should also become a future platform for the author to conduct computational nanotechnology research (the real nanotechnology, not nanomaterials science). For example, it could host code for first-principles quantum chemistry that is GPU-accelerated. It should not try to compete with MSEP; it offers a unique approach of _accessible (meaning FP32)\*_ GPU acceleration. MSEP presumably uses CPU for everything, including rendering.
+This should also become a future platform for the author to conduct computational nanotechnology research (the real nanotechnology, not nanomaterials science). For example, it could host code for GPU-accelerated first-principles quantum chemistry. It should not try to compete with MSEP; it offers a unique approach of _accessible (meaning FP32)\*_ GPU acceleration. MSEP presumably uses CPU for everything, including rendering.
 
 > \* ...that runs on consumer GPUs and, furthermore, not just exclusively Nvidia consumer GPUs. Long-term, there is no need for this library to remain restricted to Apple silicon either.
 
