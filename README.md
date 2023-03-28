@@ -85,7 +85,7 @@ TODO (user interface):
 - Test out Metal HUD, document how to enable it.
 - Serialization format to save the simulation's starting parameters.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
-- API for replaying at integer multiples of the sample rate, exporting 24 Hz video (with motion blur?).
+- API for replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
 - API for replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
 - API for 1 fs, 2 fs, 4 fs time step modes.
 
