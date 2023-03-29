@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing MNT in <i>Radical Abundance</i> (2013).
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing [MNT](https://en.wikipedia.org/wiki/Molecular_nanotechnology) in <i>Radical Abundance</i> (2013).
 
 > Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as a simpler environment to help the author learn computational chemistry. In addition to atomistic rendering, it should incorporate electronic structure visualization with wave functions that vary in real-time. Both interactive and pre-recorded data may be used.
 
@@ -96,7 +96,7 @@ TODO (AR app):
 - AR companion app: loading a serialized pre-recorded simulation for viewing (opt. ~1,000-100,000 atoms)
 - AR companion app: port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) (opt. ~200-2,000 atoms)
 - AR companion app: train ML model for much better 3D hand detection, suitable for manipulating atoms
-- AR companion app: reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app, without violating copyrights. Or, port AMD FidelityFX for only the screen pixels that contain atoms. Maybe a custom FidelityFX-based denoiser that only processes the active pixels, fine-tuned for low overhead and rendering MNT.
+- AR companion app: custom FidelityFX-based denoiser that only processes the active pixels, fine-tuned for rendering MNT in VR
 
 ## Requirements
 
