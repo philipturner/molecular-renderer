@@ -96,7 +96,7 @@ TODO (AR app):
 - AR companion app: loading a serialized pre-recorded simulation for viewing (opt. ~1,000-100,000 atoms)
 - AR companion app: port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) (opt. ~200-2,000 atoms)
 - AR companion app: train ML model for much better 3D hand detection, suitable for manipulating atoms
-- AR companion app: custom FidelityFX-based denoiser that only processes the active pixels, fine-tuned for rendering MNT in VR
+- AR companion app: incorporate frame interpolation into ARHeadsetKit and utilize AMD FSR 3, achieving 120 Hz
 
 ## Requirements
 
