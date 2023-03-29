@@ -72,6 +72,8 @@ TODO (performance):
 - Use Metal lossless compression for double-buffered intermediate textures.
 - Determine whether to use ray query API.
 - Store previous frame's transform data to re-project the intersection position onto the screen, generating a screen-space motion vector.
+- Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
+- OpenMM Clang module for C/C++ bindings instead of Python (part of Xcode project).
 
 <!--
 - Profile tile-based hybrid rasterization against full ray tracing, may solve divergence problems. Optimize for very complex scenes.
@@ -89,14 +91,12 @@ TODO (user interface):
 - API for replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
 - API for 1 fs, 2 fs, 4 fs time step modes.
 
-TODO (miscellaneous):
-- [Minecraft-like font](https://github.com/IdreesInc/Monocraft) presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.).
-- If extracting data through the OpenMM Python layer becomes a bottleneck, make OpenMM Clang module for C/C++ bindings (part of Xcode project).
-- Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
-- Methods for user interaction like MSEP, beyond changing perspective (interacting with molecules in small CPU mode) 
-- AR companion app: low-latency connection to Mac for real-time small CPU simulation - WiFi, lightning, or Bluetooth LE? Maybe port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) for lower power.
-- AR companion app: loading a serialized GPU simulation for interactive rendering
-- AR companion app: port AMD FidelityFX to Metal because Apple prohibits MetalFX on iOS. Or, just reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app.
+TODO (AR app):
+- Real-time user interaction like MSEP
+- AR companion app: loading a serialized pre-recorded simulation for viewing (opt. ~1,000-100,000 atoms)
+- AR companion app: port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) (opt. ~200-2,000 atoms)
+- AR companion app: train ML model for much better 3D hand detection, suitable for manipulating atoms
+- AR companion app: reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app, without violating copyrights. Or, port AMD FidelityFX for only the screen pixels that contain atoms
 
 ## Requirements
 
