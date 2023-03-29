@@ -96,7 +96,7 @@ TODO (AR app):
 - AR companion app: loading a serialized pre-recorded simulation for viewing (opt. ~1,000-100,000 atoms)
 - AR companion app: port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) (opt. ~200-2,000 atoms)
 - AR companion app: train ML model for much better 3D hand detection, suitable for manipulating atoms
-- AR companion app: reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app, without violating copyrights. Or, port AMD FidelityFX for only the screen pixels that contain atoms
+- AR companion app: reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app, without violating copyrights. Or, port AMD FidelityFX for only the screen pixels that contain atoms. Maybe a custom FidelityFX-based denoiser that only processes the active pixels, fine-tuned for low overhead and rendering MNT.
 
 ## Requirements
 
