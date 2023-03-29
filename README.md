@@ -94,7 +94,7 @@ TODO (miscellaneous):
 - If extracting data through the OpenMM Python layer becomes a bottleneck, make OpenMM Clang module for C/C++ bindings (part of Xcode project).
 - Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
 - Methods for user interaction like MSEP, beyond changing perspective (interacting with molecules in small CPU mode) 
-- AR companion app: low-latency connection to Mac for real-time small CPU simulation
+- AR companion app: low-latency connection to Mac for real-time small CPU simulation - WiFi, lightning, or Bluetooth LE? Maybe port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) for lower power.
 - AR companion app: loading a serialized GPU simulation for interactive rendering
 - AR companion app: port AMD FidelityFX to Metal because Apple prohibits MetalFX on iOS. Or, just reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app.
 
