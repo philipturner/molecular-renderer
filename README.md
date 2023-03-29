@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time.
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing MNT in <i>Radical Abundance</i> (2013).
 
 > Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as a simpler environment to help the author learn computational chemistry. In addition to atomistic rendering, it should incorporate electronic structure visualization with wave functions that vary in real-time. Both interactive and pre-recorded data may be used.
 
@@ -91,7 +91,12 @@ TODO (user interface):
 
 TODO (miscellaneous):
 - [Minecraft-like font](https://github.com/IdreesInc/Monocraft) presenting: simulation hours, number of atoms (rounded to small s.f.), simulation name, factor of time amplification for slow-motion (rounded to small s.f.).
-- If extracting data through the OpenMM Python layer becomes a bottleneck, make OpenMM Clang module for C bindings (part of Xcode project).
+- If extracting data through the OpenMM Python layer becomes a bottleneck, make OpenMM Clang module for C/C++ bindings (part of Xcode project).
+- Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
+- Methods for user interaction like MSEP, beyond changing perspective (interacting with molecules in small CPU mode) 
+- AR companion app: low-latency connection to Mac for real-time small CPU simulation
+- AR companion app: loading a serialized GPU simulation for interactive rendering
+- AR companion app: port AMD FidelityFX to Metal because Apple prohibits MetalFX on iOS. Or, just reverse-engineer MetalFX and copy the Mac `default.metallib` into the iOS app.
 
 ## Requirements
 
