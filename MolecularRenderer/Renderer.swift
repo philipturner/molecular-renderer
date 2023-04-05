@@ -5,42 +5,46 @@
 //  Created by Philip Turner on 2/22/23.
 //
 
-import MetalKit
+import Metal
+import AppKit
 
 // TODO: Establish 90-degree FOV until window resizing is allowed. Afterward,
 // FOV in each direction changes to match the number of pixels. This might be
 // able to be hard-coded into the shader.
 
+func checkCVDisplayError(
+  _ error: CVReturn,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  if _slowPath(error != kCVReturnSuccess) {
+    let message = "Encountered CVDisplay error '\(error)' at \(file):\(line)"
+    print(message)
+    fatalError(message, file: file, line: line)
+  }
+}
+
 class Renderer {
-  var view: MTKView
+  var view: NSView
   var startTimestamp: CFTimeInterval?
   var previousTimestamp: CFTimeInterval?
   
   var refreshRate: Int
   var frameID: Int = 0
-  var previousScreen: NSScreen
-  var displayLink: CVDisplayLink!
+//  var previousScreen: NSScreen
+//  var displayLink: CVDisplayLink!
   
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var rayTracingPipeline: MTLComputePipelineState
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
   
-  init(view: MTKView) {
+  init(device: MTLDevice, view: NSView) {
     self.view = view
     self.refreshRate =  NSScreen.main!.maximumFramesPerSecond
-    
-    // Set up the display link.
-    CVDisplayLinkCreateWithActiveCGDisplays(&self.displayLink)
-    self.previousScreen = NSScreen.main!
-    CVDisplayLinkSetCurrentCGDisplay(displayLink, previousScreen.screenNumber)
-    // (CVDisplayLink, UnsafePointer<CVTimeStamp>, UnsafePointer<CVTimeStamp>, CVOptionFlags, UnsafeMutablePointer<CVOptionFlags>) -> CVReturn
-    CVDisplayLinkSetOutputHandler(displayLink) {
-      // TODO: Resume progress here.
-    }
-    
+
     // Initialize Metal resources.
-    self.device = MTLCreateSystemDefaultDevice()!
+    self.device = device
     self.commandQueue = device.makeCommandQueue()!
     
     // Initialize resolution and aspect ratio for rendering.
@@ -69,7 +73,7 @@ extension NSScreen {
 }
 
 extension Renderer {
-  func update() {
+  func renderToMetalLayer(_ metalLayer: CAMetalLayer) {
     renderSemaphore.wait()
     
     // Check whether a frame was skipped.
@@ -99,7 +103,7 @@ extension Renderer {
     encoder.setBytes(&time2, length: 4, index: 1)
     
     // Acquire reference to the drawable.
-    let drawable = view.currentDrawable!
+    let drawable = metalLayer.nextDrawable()!
     precondition(drawable.texture.width == 1024)
     precondition(drawable.texture.height == 1024)
     encoder.setTexture(drawable.texture, index: 0)
