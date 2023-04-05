@@ -7,6 +7,7 @@
 
 import Metal
 import AppKit
+import Atomics
 
 // TODO: Establish 90-degree FOV until window resizing is allowed. Afterward,
 // FOV in each direction changes to match the number of pixels. This might be
@@ -25,26 +26,28 @@ func checkCVDisplayError(
 }
 
 class Renderer {
-  var view: NSView
-  var startTimestamp: CFTimeInterval?
-  var previousTimestamp: CFTimeInterval?
+  var view: CustomMetalView
+  var layer: CAMetalLayer
+  var startTimeStamp: CVTimeStamp?
+  var previousTimeStamp: CVTimeStamp?
   
-  var refreshRate: Int
+  var currentRefreshRate: ManagedAtomic<Int> = .init(0)
   var frameID: Int = 0
-//  var previousScreen: NSScreen
-//  var displayLink: CVDisplayLink!
+  var adjustedFrameID: Int = -1
   
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var rayTracingPipeline: MTLComputePipelineState
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
   
-  init(device: MTLDevice, view: NSView) {
+  init(view: CustomMetalView) {
     self.view = view
-    self.refreshRate =  NSScreen.main!.maximumFramesPerSecond
+    self.layer = view.layer as! CAMetalLayer
+    self.currentRefreshRate.store(
+      NSScreen.main!.maximumFramesPerSecond, ordering: .relaxed)
 
     // Initialize Metal resources.
-    self.device = device
+    self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
     
     // Initialize resolution and aspect ratio for rendering.
@@ -73,37 +76,124 @@ extension NSScreen {
 }
 
 extension Renderer {
-  func renderToMetalLayer(_ metalLayer: CAMetalLayer) {
-    renderSemaphore.wait()
-    
-    // Check whether a frame was skipped.
-    let currentTimestamp = CACurrentMediaTime()
-    if let previousTimestamp = previousTimestamp {
-      let deltaFrames = (currentTimestamp - previousTimestamp) * Double(refreshRate)
-      if deltaFrames > 1.5 {
+  // Called at the beginning of each screen refresh.
+  func vsyncHandler(
+    _ displayLink: CVDisplayLink,
+    _ now: UnsafePointer<CVTimeStamp>,
+    _ outputTime: UnsafePointer<CVTimeStamp>,
+    _ flagsIn: CVOptionFlags,
+    _ flagsOut: UnsafeMutablePointer<CVOptionFlags>
+  ) -> Int32 {
+    // `now` is not really helpful, except for detecting stutters.
+    // `output` is what you aim to render.
+    let currentTimeStamp = outputTime.pointee
+    if let previousTimeStamp = previousTimeStamp {
+      let deltaFrames = frames(start: previousTimeStamp, end: currentTimeStamp)
+      let threshold = Double(frameStep()) * 1.5
+      if deltaFrames > threshold {
         print("Frame stutter @ \(Date()): \(String(format: "%.2f", deltaFrames))")
       }
     }
-    previousTimestamp = currentTimestamp
-
+    previousTimeStamp = currentTimeStamp
     
-    frameID += 1
-    if startTimestamp == nil {
-      self.startTimestamp = CACurrentMediaTime()
+    if startTimeStamp == nil {
+      self.startTimeStamp = currentTimeStamp
     }
+    
+    self.update()
+    return kCVReturnSuccess
+  }
+  
+  func frames(start: CVTimeStamp, end: CVTimeStamp) -> Double {
+    #if arch(arm64)
+    let ticksPerSecond: Int = 24 * 1000 * 1000
+    let ticksPerFrame = ticksPerSecond / 120
+    #else
+    #error("This does not work on x86.")
+    #endif
+    
+    let deltaTicks = end.hostTime - start.hostTime
+    return Double(deltaTicks) / Double(ticksPerFrame)
+  }
+  
+  func seconds(start: CVTimeStamp, end: CVTimeStamp) -> Double {
+    #if arch(arm64)
+    let ticksPerSecond: Int = 24 * 1000 * 1000
+    #else
+    #error("This does not work on x86.")
+    #endif
+    
+    let deltaTicks = end.hostTime - start.hostTime
+    return Double(deltaTicks) / Double(ticksPerSecond)
+  }
+  
+  // Time per frame in multiples of 120 Hz.
+  func frameStep() -> Int {
+    120 / currentRefreshRate.load(ordering: .relaxed)
+  }
+  
+  func update() {
+    renderSemaphore.wait()
+    frameID += 1
+    
+    let previousAdjustedFrameID = adjustedFrameID
+    
+    // If there's a stutter, the actual frame ID will just much farther ahead.
+    let actualAdjustedFrameID = Int(
+      frames(start: startTimeStamp!, end: previousTimeStamp!))
+    
+    // We don't want to jump too far head, in case the previous one was actually
+    // slightly overshooting (due to rounding error).
+    let step = frameStep()
+    if actualAdjustedFrameID - step > adjustedFrameID {
+      print("Correcting stutter")
+      if step == 1 {
+        adjustedFrameID = actualAdjustedFrameID
+      } else {
+        adjustedFrameID = actualAdjustedFrameID - step
+        
+        // TODO: This still doesn't handle 60 Hz displays very well.
+        print("First:", actualAdjustedFrameID - adjustedFrameID)
+        while (adjustedFrameID - previousAdjustedFrameID) % step != 0 {
+          //        print("Correction type 1")
+          adjustedFrameID += 1
+        }
+        print("Second:", actualAdjustedFrameID - adjustedFrameID)
+        if adjustedFrameID - step > actualAdjustedFrameID {
+          print("Correction type 2")
+          adjustedFrameID -= step
+        }
+        if adjustedFrameID < previousAdjustedFrameID + step {
+          print("Correction type 3")
+          adjustedFrameID = previousAdjustedFrameID + step
+        }
+      }
+    } else {
+      adjustedFrameID += step
+    }
+    
+    if actualAdjustedFrameID < adjustedFrameID - 2 * step {
+      // Something very bad just happened.
+      print("Correction type 4")
+      adjustedFrameID -= step
+    } else {
+      precondition(adjustedFrameID > previousAdjustedFrameID, "Frame IDs not monotonically increasing.")
+      precondition(actualAdjustedFrameID - adjustedFrameID < 10, "Frame IDs not monotonically increasing.")
+    }
+    print(adjustedFrameID - previousAdjustedFrameID, actualAdjustedFrameID - adjustedFrameID, view.window!.screen!.maximumFramesPerSecond)
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
     
     // Set the time to determine synchronization.
-    var time1 = Float(frameID) / Float(refreshRate)
-    var time2 = Float(CACurrentMediaTime() - self.startTimestamp!)
+    var time1 = Float(adjustedFrameID) / Float(120)
+    var time2 = Float(seconds(start: startTimeStamp!, end: previousTimeStamp!))
     encoder.setBytes(&time1, length: 4, index: 0)
     encoder.setBytes(&time2, length: 4, index: 1)
     
     // Acquire reference to the drawable.
-    let drawable = metalLayer.nextDrawable()!
+    let drawable = view.metalLayer.nextDrawable()!
     precondition(drawable.texture.width == 1024)
     precondition(drawable.texture.height == 1024)
     encoder.setTexture(drawable.texture, index: 0)
