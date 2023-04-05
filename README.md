@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing [MNT](https://en.wikipedia.org/wiki/Molecular_nanotechnology) in <i>Radical Abundance</i> (2013).
+Scriptable application for running OpenMM simulations and visualizing at high framerates. Provides up to 120 Hz uninterrupted playback with RTAO. This application is optimized for simulations with 10,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. <!-- It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing [MNT](https://en.wikipedia.org/wiki/Molecular_nanotechnology) in <i>Radical Abundance</i> (2013). -->
 
 This should also become a future platform for the author to conduct computational nanotechnology research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes in energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
@@ -91,12 +91,16 @@ TODO (user interface):
 - API for replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
 - API for 1 fs, 2 fs, 4 fs time step modes.
 
+<!--
+
 TODO (AR app):
 - Real-time user interaction like MSEP
 - AR companion app: loading a serialized pre-recorded simulation for viewing (opt. ~1,000-100,000 atoms)
 - AR companion app: port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) (opt. ~200-2,000 atoms)
 - AR companion app: train ML model for much better 3D hand detection, suitable for manipulating atoms
 - AR companion app: incorporate frame interpolation into ARHeadsetKit and utilize AMD FSR 3, achieving 120 Hz
+
+-->
 
 ## Requirements
 
