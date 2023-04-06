@@ -12,6 +12,47 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant float FOV_90_SPAN_RECIPROCAL [[function_constant(2)]];
 
+struct SphereIntersection {
+  float distance;
+  bool accept;
+};
+
+struct Ray {
+  float3 origin;
+  float3 direction;
+};
+
+struct Sphere {
+  float3 origin;
+  float radiusSquared;
+};
+
+SphereIntersection sphereIntersectionFunction(Ray ray, Sphere sphere) {
+  float3 oc = ray.origin - sphere.origin;
+  float a = dot(ray.direction, ray.direction);
+  float b = 2 * dot(oc,ray.direction);
+  float c = dot(oc, oc) - sphere.radiusSquared;
+  float disc = b * b - 4 * a * c;
+  
+  SphereIntersection ret;
+  
+  if (disc <= 0.0f) {
+    // If the ray missed the sphere, return false.
+    ret.accept = false;
+  }
+  else {
+    // Otherwise, compute the intersection distance.
+    ret.distance = (-b - sqrt(disc)) / (2 * a);
+    
+    // The intersection function must also check whether the intersection distance is
+    // within the acceptable range. Intersection functions do not run in any particular order,
+    // so the maximum distance may be different from the one passed into the ray intersector.
+    ret.accept = ret.distance >= 0 && ret.distance <= MAXFLOAT;
+  }
+  
+  return ret;
+}
+
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
 // This shader will rearrange simds across 8x2 to 8x8 chunks (depending on the
 // GPU architecture).
@@ -53,10 +94,48 @@ kernel void renderMain
   rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
   rayDirection.y = -rayDirection.y;
   rayDirection.xy *= FOV_90_SPAN_RECIPROCAL;
+  rayDirection = normalize(rayDirection);
   
-  half3 color = { 0, 0, 0 };
-  color.r = saturate(abs(rayDirection.x) / 0.9);
-  color.b = saturate(abs(rayDirection.y) / 0.9);
+  float3 worldOrigin = float3(0);
+  Ray ray { worldOrigin, rayDirection };
+  
+  // Background to show the ray direction.
+  half3 background = half3(saturate(abs(rayDirection) / 1.0));
+  half3 color = background;
+  
+  // Hard-code a sphere into the shader.
+  float radius = 0.5;
+  Sphere sphere { float3(0, 0, -1), radius * radius };
+  auto intersect = sphereIntersectionFunction(ray, sphere);
+  
+  if (intersect.accept) {
+    // Base color of the sphere.
+    half3 diffuseColor = half3(0.7, 0.5, 0.0);
+    float shininess = 16.0;
+    float lightPower = 40.0;
+    
+    // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
+    float3 intersectionPoint = ray.origin + ray.direction * intersect.distance;
+    float3 normal = normalize(intersectionPoint - sphere.origin);
+    float3 lightDirection = worldOrigin - intersectionPoint;
+    float lightDistance = length(lightDirection);
+    lightDirection /= lightDistance;
+    
+    float lambertian = max(dot(lightDirection, normal), 0.0);
+    float specular = 0;
+    if (lambertian > 0.0) {
+      // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
+//      float3 halfDirection = lightDirection;
+      float specAngle = lambertian;
+      specular = pow(specAngle, shininess);
+    }
+    
+    float scaledLightPower = smoothstep(0, 1, lightPower / lightDistance);
+    half3 finalColor = diffuseColor * lambertian * scaledLightPower;
+    finalColor += half(specular * scaledLightPower);
+    
+    color = saturate(finalColor);
+  }
   
   outputTexture.write(half4(color, 1), pixelCoords);
 }
