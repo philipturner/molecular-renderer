@@ -38,7 +38,6 @@ class Coordinator: NSObject, ObservableObject {
   var view: CustomMetalView!
   var renderer: Renderer!
   var displayLink: CVDisplayLink!
-  var displaySource: DispatchSourceUserDataAdd!
   
   override init() {
     super.init()
@@ -63,22 +62,16 @@ class Coordinator: NSObject, ObservableObject {
   }
   
   func setupCVDisplayLink(screen: NSScreen) {
-    // Initialize something that can legally fetch data from the UI.
-    displaySource = DispatchSource.makeUserDataAddSource(queue: .main)
-    displaySource.setEventHandler(handler: {
-      // Prevents the renderer from updating the frame index erratically if you
-      // switch to a 60 Hz or 30 Hz screen.
-      let refreshRate = self.view.window!.screen!.maximumFramesPerSecond
-      self.renderer.currentRefreshRate.store(
-        refreshRate, ordering: .relaxed)
-    })
-    displaySource.resume()
-    
     // Set up the display link.
     checkCVDisplayError(
       CVDisplayLinkCreateWithActiveCGDisplays(&self.displayLink))
     checkCVDisplayError(CVDisplayLinkSetOutputHandler(displayLink) {
-      self.displaySource.add(data: 1)
+      // Must access the UI from the main thread.
+      DispatchQueue.main.async {
+        let refreshRate = self.view.window!.screen!.maximumFramesPerSecond
+        self.renderer.currentRefreshRate.store(
+          refreshRate, ordering: .relaxed)
+      }
       return self.renderer.vsyncHandler($0, $1, $2, $3, $4)
     })
     checkCVDisplayError(

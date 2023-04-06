@@ -34,6 +34,10 @@ class Renderer {
   var currentRefreshRate: ManagedAtomic<Int> = .init(0)
   var frameID: Int = 0
   var adjustedFrameID: Int = -1
+  var sustainedMisalignment: Int = 0
+  var sustainedMisalignmentDuration: Int = 0
+  var sustainedAlignmentDuration: Int = 0
+  static let checkingFrameRate = false
   
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
@@ -52,17 +56,25 @@ class Renderer {
     
     // Initialize resolution and aspect ratio for rendering.
     let constants = MTLFunctionConstantValues()
+    
+    // Actual texture width.
     var screenWidth: UInt32 = 1024
-    var screenHeight: UInt32 = 1024
-    var fov90Span: UInt32 = 1024
     constants.setConstantValue(&screenWidth, type: .uint, index: 0)
+    
+    // Actual texture height.
+    var screenHeight: UInt32 = 1024
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
-    constants.setConstantValue(&fov90Span, type: .uint, index: 2)
+    
+    // How many pixels are covered in either direction @ FOV=90?
+    let fov90Span: UInt32 = 1024 / 2
+    var fov90SpanReciprocal = 1 / Float(fov90Span)
+    constants.setConstantValue(&fov90SpanReciprocal, type: .float, index: 2)
     
     // Initialize the compute pipeline.
     let library = device.makeDefaultLibrary()!
+    let name = Self.checkingFrameRate ? "checkFrameRate" : "renderMain"
     let function = try! library.makeFunction(
-      name: "renderScene", constantValues: constants)
+      name: name, constantValues: constants)
     self.rayTracingPipeline = try! device
       .makeComputePipelineState(function: function)
   }
@@ -112,7 +124,7 @@ extension Renderer {
     #error("This does not work on x86.")
     #endif
     
-    let deltaTicks = end.hostTime - start.hostTime
+    let deltaTicks = max(0, Int(end.hostTime) - Int(start.hostTime))
     return Double(deltaTicks) / Double(ticksPerFrame)
   }
   
@@ -123,7 +135,7 @@ extension Renderer {
     #error("This does not work on x86.")
     #endif
     
-    let deltaTicks = end.hostTime - start.hostTime
+    let deltaTicks = max(0, Int(end.hostTime) - Int(start.hostTime))
     return Double(deltaTicks) / Double(ticksPerSecond)
   }
   
@@ -136,51 +148,54 @@ extension Renderer {
     renderSemaphore.wait()
     frameID += 1
     
-    let previousAdjustedFrameID = adjustedFrameID
-    
-    // If there's a stutter, the actual frame ID will just much farther ahead.
-    let actualAdjustedFrameID = Int(
-      frames(start: startTimeStamp!, end: previousTimeStamp!))
-    
-    // We don't want to jump too far head, in case the previous one was actually
-    // slightly overshooting (due to rounding error).
+    let previousFrameID = adjustedFrameID
+    var nextFrameID = previousFrameID
+    var targetFrameID = Int(rint(
+      frames(start: startTimeStamp!, end: previousTimeStamp!)))
     let step = frameStep()
-    if actualAdjustedFrameID - step > adjustedFrameID {
-      print("Correcting stutter")
-      if step == 1 {
-        adjustedFrameID = actualAdjustedFrameID
+    
+    // TODO: This is still much less robust on 60 Hz than on 120 Hz.
+    // Eventually, allow someone to set a custom basis besides 120 Hz. Then,
+    // scale geometry loading operations by 120 / basis.
+    while nextFrameID % step > 0 {
+      nextFrameID -= 1
+    }
+    while targetFrameID % step > 0 {
+      targetFrameID -= 1
+    }
+    nextFrameID += step
+    
+    if abs(targetFrameID - nextFrameID) >= 2 * step {
+      // Exponentially gravitate toward the correct position.
+      // This may become unstable in certain ill-conditioned situations.
+      print("Correcting misalignment by / 2")
+      nextFrameID += (targetFrameID - nextFrameID) / 2
+    } else if abs(targetFrameID - nextFrameID) == step {
+      // Wait a while to smooth out noise.
+      if sustainedMisalignmentDuration >= 10 ||
+         sustainedAlignmentDuration >= 10 {
+        print("Correcting misalignment by +/- 1")
+        nextFrameID = targetFrameID
+      }
+    }
+    
+    if targetFrameID != nextFrameID {
+      sustainedAlignmentDuration = 0
+      let delta = targetFrameID - nextFrameID
+      if delta == sustainedMisalignment {
+        sustainedMisalignmentDuration += 1
       } else {
-        adjustedFrameID = actualAdjustedFrameID - step
-        
-        // TODO: This still doesn't handle 60 Hz displays very well.
-        print("First:", actualAdjustedFrameID - adjustedFrameID)
-        while (adjustedFrameID - previousAdjustedFrameID) % step != 0 {
-          //        print("Correction type 1")
-          adjustedFrameID += 1
-        }
-        print("Second:", actualAdjustedFrameID - adjustedFrameID)
-        if adjustedFrameID - step > actualAdjustedFrameID {
-          print("Correction type 2")
-          adjustedFrameID -= step
-        }
-        if adjustedFrameID < previousAdjustedFrameID + step {
-          print("Correction type 3")
-          adjustedFrameID = previousAdjustedFrameID + step
-        }
+        sustainedMisalignment = delta
+        sustainedMisalignmentDuration = 0
       }
     } else {
-      adjustedFrameID += step
+      sustainedMisalignment = 0
+      sustainedMisalignmentDuration = 0
+      sustainedAlignmentDuration += 1
     }
+    adjustedFrameID = nextFrameID
     
-    if actualAdjustedFrameID < adjustedFrameID - 2 * step {
-      // Something very bad just happened.
-      print("Correction type 4")
-      adjustedFrameID -= step
-    } else {
-      precondition(adjustedFrameID > previousAdjustedFrameID, "Frame IDs not monotonically increasing.")
-      precondition(actualAdjustedFrameID - adjustedFrameID < 10, "Frame IDs not monotonically increasing.")
-    }
-    print(adjustedFrameID - previousAdjustedFrameID, actualAdjustedFrameID - adjustedFrameID, view.window!.screen!.maximumFramesPerSecond)
+    print(nextFrameID - previousFrameID, targetFrameID - nextFrameID, sustainedMisalignment, sustainedMisalignmentDuration, sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!

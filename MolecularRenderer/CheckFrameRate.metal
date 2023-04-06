@@ -1,5 +1,5 @@
 //
-//  Kernels.metal
+//  CheckFrameRate.metal
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 2/22/23.
@@ -10,10 +10,10 @@ using namespace metal;
 
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
-constant uint FOV_90_SPAN [[function_constant(2)]];
+constant float FOV_90_SPAN_RECIPROCAL [[function_constant(2)]];
 
 // https://en.wikipedia.org/wiki/HSL_and_HSV#Color_conversion_formulae
-half3 convert_hsl_to_rgb(half hue, half saturation, half lightness) {
+inline half3 convert_hsl_to_rgb(half hue, half saturation, half lightness) {
   half3 k = half3(0, 8, 4) + hue / half(30);
   k -= select(half3(0), half3(12), k >= 12);
   half a = saturation * min(lightness, 1 - lightness);
@@ -22,14 +22,16 @@ half3 convert_hsl_to_rgb(half hue, half saturation, half lightness) {
 
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
 // This shader will rearrange simds across 8x2 to 8x8 chunks.
-kernel void renderScene(texture2d<half, access::write> outputTexture [[texture(0)]],
-                        
-                        // Time in seconds.
-                        constant float &time1 [[buffer(0)]],
-                        constant float &time2 [[buffer(1)]],
-                        ushort2 tid [[thread_position_in_grid]],
-                        ushort2 tgid [[threadgroup_position_in_grid]],
-                        ushort2 local_id [[thread_position_in_threadgroup]])
+kernel void checkFrameRate
+ (
+  texture2d<half, access::write> outputTexture [[texture(0)]],
+  
+  // Time in seconds.
+  constant float &time1 [[buffer(0)]],
+  constant float &time2 [[buffer(1)]],
+  ushort2 tid [[thread_position_in_grid]],
+  ushort2 tgid [[threadgroup_position_in_grid]],
+  ushort2 local_id [[thread_position_in_threadgroup]])
 {
   ushort2 new_local_id = local_id;
   new_local_id.y *= 2;
