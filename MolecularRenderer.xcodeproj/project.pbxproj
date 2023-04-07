@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		98122D6F29DFBC14006200D1 /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98122D6E29DFBC14006200D1 /* Geometry.swift */; };
+		98122D7129DFBDE6006200D1 /* AtomStatistics.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* AtomStatistics.metal */; };
 		986ED88829A6CB0400E0653B /* RenderMain.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88729A6CB0400E0653B /* RenderMain.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		986ED88F29A71C1C00E0653B /* PythonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED88E29A71C1C00E0653B /* PythonKit */; };
@@ -19,6 +21,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		98122D6E29DFBC14006200D1 /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
+		98122D7029DFBDE6006200D1 /* AtomStatistics.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AtomStatistics.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRenderer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRenderer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,6 +74,8 @@
 				986ED88729A6CB0400E0653B /* RenderMain.metal */,
 				986ED88929A6CF3600E0653B /* Renderer.swift */,
 				98F3B30229DE60E6003B9AD7 /* CheckFrameRate.metal */,
+				98122D6E29DFBC14006200D1 /* Geometry.swift */,
+				98122D7029DFBDE6006200D1 /* AtomStatistics.metal */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";
@@ -160,7 +166,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98122D7129DFBDE6006200D1 /* AtomStatistics.metal in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98122D6F29DFBC14006200D1 /* Geometry.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* ContentView.swift in Sources */,
 				98F3B30329DE60E6003B9AD7 /* CheckFrameRate.metal in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,

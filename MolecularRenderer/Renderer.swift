@@ -9,10 +9,6 @@ import Metal
 import AppKit
 import Atomics
 
-// TODO: Establish 90-degree FOV until window resizing is allowed. Afterward,
-// FOV in each direction changes to match the number of pixels. This might be
-// able to be hard-coded into the shader.
-
 func checkCVDisplayError(
   _ error: CVReturn,
   file: StaticString = #file,
@@ -26,11 +22,13 @@ func checkCVDisplayError(
 }
 
 class Renderer {
+  // Connection to Vsync.
   var view: CustomMetalView
   var layer: CAMetalLayer
   var startTimeStamp: CVTimeStamp?
   var previousTimeStamp: CVTimeStamp?
   
+  // Data for robustly synchronizing with the refresh rate.
   var currentRefreshRate: ManagedAtomic<Int> = .init(0)
   var frameID: Int = 0
   var adjustedFrameID: Int = -1
@@ -39,10 +37,15 @@ class Renderer {
   var sustainedAlignmentDuration: Int = 0
   static let checkingFrameRate = false
   
+  // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var rayTracingPipeline: MTLComputePipelineState
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
+  
+  // Memory objects for rendering.
+  var accelerationStructure: MTLAccelerationStructure
+  var boundingBoxBuffer: MTLBuffer
   
   init(view: CustomMetalView) {
     self.view = view
@@ -77,6 +80,25 @@ class Renderer {
       name: name, constantValues: constants)
     self.rayTracingPipeline = try! device
       .makeComputePipelineState(function: function)
+    
+    // Hard-code all the geometry (for now).
+    let spheres: [SpherePrototype] = [
+      .init(origin: SIMD3(0, 0, -1), element: 6)
+    ]
+    
+    // Create the acceleration structure.
+    
+    let boundingBoxSize = MemoryLayout<BoundingBox>.stride
+    let boundingBoxBufferSize = spheres.count * boundingBoxSize
+    precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
+    self.boundingBoxBuffer = device.makeBuffer(length: boundingBoxBufferSize)!
+    
+    let geometryDesc = MTLAccelerationStructureBoundingBoxGeometryDescriptor()
+    geometryDesc.boundingBoxCount = spheres.count
+    geometryDesc.boundingBoxStride = boundingBoxSize
+    geometryDesc.boundingBoxBufferOffset = 0
+    geometryDesc.boundingBoxBuffer = boundingBoxBuffer
+    
   }
 }
 

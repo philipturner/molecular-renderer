@@ -6,6 +6,7 @@
 //
 
 #include <metal_stdlib>
+#include "AtomStatistics.metal"
 using namespace metal;
 
 constant uint SCREEN_WIDTH [[function_constant(0)]];
@@ -23,7 +24,7 @@ struct Ray {
 };
 
 struct Sphere {
-  float3 origin;
+  packed_float3 origin;
   float radiusSquared;
 };
 
