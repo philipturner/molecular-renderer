@@ -3,30 +3,12 @@
 Flexible application for running and visualizing nanotech simulations, with RTAO and up to 120 Hz uninterrupted playback. This application is optimized for simulations with 1,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. <!-- It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing [MNT](https://en.wikipedia.org/wiki/Molecular_nanotechnology) in <i>Radical Abundance</i> (2013). -->
 
 This should also become a future platform for the author to conduct computational nanotechnology research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes in energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
-
+<!--
 > Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as a simpler environment to help the author learn computational chemistry. It may be much faster and more robust when handling massive molecular machine systems. It should not try to compete with MSEP; it offers a unique approach of _accessible (meaning FP32)\*_ GPU acceleration. MSEP presumably uses CPU for everything, including rendering.
 >
-> \* ...that runs on consumer GPUs and, furthermore, not just exclusively Nvidia consumer GPUs. <!-- Long-term, there is no need for this library to remain restricted to Apple silicon either. -->
+> \* ...that runs on consumer GPUs and, furthermore, not just exclusively Nvidia consumer GPUs.
 
 <img width="515" alt="Screenshot 2023-03-24 at 9 26 46 PM" src="https://user-images.githubusercontent.com/71743241/227678193-efe03cda-6f49-4c5e-b92b-c953da32b926.png">
-
-<!--
-
-> A lot of these goals are also being addressed by the [MSEP](https://astera.org/molecular-systems/), which is currently in development (February 2023). Consider waiting until it's released, then merging a compression algorithm into the MSEP code base. It could also be a plugin for exporting simulations in a format replayable outside the editor. I have very limited free time and unique skills that may be better spent enhancing other projects.
->
-> However, it is likely that MSEP will [use PyMOL exclusively](https://youtu.be/HjgjtAk-lws?t=1083) for graphics. The library uses [multicore CPU exclusively](https://www.mail-archive.com/pymol-users@lists.sourceforge.net/msg15181.html) for ray tracing (as of 2018) and uses the GPU only for lower-quality graphics. I will have to see whether Drexler's team attempts using Godot for the higher-quality graphics. v4.0 uses [signed distance fields](https://godotengine.org/article/godot-4-0-sets-sail/#highly-improved-lighting--shadows). He said there were "issues with shaders and various things", meaning Godot's SDFGI probably won't be used. MSEP would have to create a ray tracer from scratch if they wanted ray tracing, which seems unlikely. In short, this repository will likely be salvaged, maybe as an MSEP plugin, but I must wait for the platform's release to know for sure.
->
-> I may end up creating multiple plugins for MSEP. I don't want to be doing something, then have another person make a plugin with the exact same capabilities. That would make my work redundant. I would rather collaborate with multiple researchers to standardize, enhance, and maintain these plugins. This may mean proposing a centralized effort soon after MSEP is released.
-> - Molecular Renderer, which records and replays simulations with maximum rendering performance.
-> - Plugin to optimize quantum chemistry simulations for the Apple AMX.
-> - OpenMM plugin, which runs time-evolution simulations 10x faster than LAMMPS. Likely FP32 only unless I find enough time to finish FP64 emulation. So far, I've only found a need for double precision in the following use cases. Drexler himself said that MD is relatively insensitive to small changes in energy - a green light for single precision.
->   - Measuring thermodynamic efficiency
->   - Measuring drag in rotating bearings (TODO: this was probably possible with FP32)
->   - Measuring material stiffness
->   - Quantum chemistry
->   - All can be accomplished by measuring a single component, not the entire system. The use cases have a common theme: measuring material properties, not testing complex system dynamics. In such cases, the precision of such measurement would be prioritized. GPU mixed FP32/FP64 is >1 order of magnitude less precise than CPU FP64. Even if implemented, GPU FP64 emulation would probably not be used much anyway. Scientists would use CPU FP64 regardless.
-> - Porting various forcefields to OpenMM, such as oxDNA, Tersoff, and AIREBO. This will be both a plugin for OpenMM and included with the OpenMM plugin for MSEP. It will use OpenCL exclusively - no CUDA!
-
 -->
 
 ## Usage
