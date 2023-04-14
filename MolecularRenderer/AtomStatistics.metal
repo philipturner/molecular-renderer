@@ -8,29 +8,50 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// (R, G, B, radius_squared)
-constexpr constant uint ATOM_DATA_INDEX_OFFSET = 10;
-constant half4 neutronData [[function_constant(ATOM_DATA_INDEX_OFFSET + 0)]];
-constant half4 hydrogenData [[function_constant(ATOM_DATA_INDEX_OFFSET + 1)]];
-constant half4 carbonData [[function_constant(ATOM_DATA_INDEX_OFFSET + 6)]];
-
 struct AtomStatistics {
   // Color in RGB color space.
   packed_half3 color;
 
-  // Radius squared in nm^2. We don't even know this metric to 11 bits of
-  // precision, so Float16 is fine.
+  // Radius in nm. We don't know the actual radius to 11 bits of precision, so
+  // Float16 is fine.
+  half radius;
+};
+
+struct BoundingBox {
+  packed_float3 min;
+  packed_float3 max;
+};
+
+struct Atom {
+  packed_float3 origin;
   half radiusSquared;
+  ushort element;
+  
+  Atom(float3 origin, ushort element, constant AtomStatistics* atomData) {
+    this->origin = origin;
+    this->element = element;
+    
+    half radius = this->getRadius(atomData);
+    this->radiusSquared = radius * radius;
+  }
+  
+  half getRadius(constant AtomStatistics* atomData) {
+    return atomData[element].radius;
+  }
+  
+  half3 getColor(constant AtomStatistics* atomData) {
+    return atomData[element].color;
+  }
+  
+  BoundingBox getBoundingBox(constant AtomStatistics* atomData) {
+    half radius = this->getRadius(atomData);
+    auto min = origin - float(radius);
+    auto max = origin + float(radius);
+    return BoundingBox {
+      packed_float3(min),
+      packed_float3(max)
+    };
+  }
 };
 
-#define ATOM_STATISTICS_MAKE(x) reinterpret_cast<constant AtomStatistics&>(x)  \
 
-constant AtomStatistics ATOM_DATA[118] = {
-  ATOM_STATISTICS_MAKE(neutronData), // 0
-  ATOM_STATISTICS_MAKE(hydrogenData), // 1
-  ATOM_STATISTICS_MAKE(neutronData), // 2
-  ATOM_STATISTICS_MAKE(neutronData), // 3
-  ATOM_STATISTICS_MAKE(neutronData), // 4
-  ATOM_STATISTICS_MAKE(neutronData), // 5
-  ATOM_STATISTICS_MAKE(carbonData), // 6
-};

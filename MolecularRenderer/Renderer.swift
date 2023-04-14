@@ -44,8 +44,10 @@ class Renderer {
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
   
   // Memory objects for rendering.
-  var accelerationStructure: MTLAccelerationStructure
+  var atomData: MTLBuffer
+  var atomBuffer: MTLBuffer
   var boundingBoxBuffer: MTLBuffer
+//  var accelerationStructure: MTLAccelerationStructure
   
   init(view: CustomMetalView) {
     self.view = view
@@ -81,24 +83,51 @@ class Renderer {
     self.rayTracingPipeline = try! device
       .makeComputePipelineState(function: function)
     
-    // Hard-code all the geometry (for now).
-    let spheres: [SpherePrototype] = [
-      .init(origin: SIMD3(0, 0, -1), element: 6)
-    ]
+    // Initialize the atom statistics.
+    let atomStatisticsSize = MemoryLayout<AtomStatistics>.stride
+    let atomDataBufferSize = atomRadii.count * atomStatisticsSize
+    precondition(atomStatisticsSize == 8, "Unexpected atom statistics size.")
+    precondition(
+      atomRadii.count == atomColors.count,
+      "Atom statistics arrays have different sizes.")
+    self.atomData = device.makeBuffer(length: atomDataBufferSize)!
+    
+    do {
+      let atomDataPointer = atomData.contents()
+        .assumingMemoryBound(to: AtomStatistics.self)
+      for (index, (radius, color)) in zip(atomRadii, atomColors).enumerated() {
+        atomDataPointer[index] = AtomStatistics(color: color, radius: radius)
+      }
+    }
     
     // Create the acceleration structure.
     
+    // Hard-code all the geometry (for now).
+    let atoms: [Atom] = [
+      .init(origin: SIMD3(0, 0, -1), element: 6)
+    ]
+    
+    let atomSize = MemoryLayout<Atom>.stride
+    let atomBufferSize = atoms.count * atomSize
+    precondition(atomSize == 16, "Unexpected atom size.")
+    self.atomBuffer = device.makeBuffer(length: atomSize)!
+    
     let boundingBoxSize = MemoryLayout<BoundingBox>.stride
-    let boundingBoxBufferSize = spheres.count * boundingBoxSize
+    let boundingBoxBufferSize = atoms.count * boundingBoxSize
     precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
     self.boundingBoxBuffer = device.makeBuffer(length: boundingBoxBufferSize)!
     
     let geometryDesc = MTLAccelerationStructureBoundingBoxGeometryDescriptor()
-    geometryDesc.boundingBoxCount = spheres.count
+    geometryDesc.primitiveDataBuffer = atomBuffer
+    geometryDesc.primitiveDataStride = atomSize
+    geometryDesc.primitiveDataBufferOffset = 0
+    geometryDesc.primitiveDataElementSize = atomSize
+    geometryDesc.boundingBoxCount = atoms.count
     geometryDesc.boundingBoxStride = boundingBoxSize
     geometryDesc.boundingBoxBufferOffset = 0
     geometryDesc.boundingBoxBuffer = boundingBoxBuffer
     
+    // TODO: Make the acceleration structure.
   }
 }
 
@@ -223,11 +252,16 @@ extension Renderer {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
     
-    // Set the time to determine synchronization.
-    var time1 = Float(adjustedFrameID) / Float(120)
-    var time2 = Float(seconds(start: startTimeStamp!, end: previousTimeStamp!))
-    encoder.setBytes(&time1, length: 4, index: 0)
-    encoder.setBytes(&time2, length: 4, index: 1)
+    if Self.checkingFrameRate {
+      // Set the time to determine synchronization.
+      var time1 = Float(adjustedFrameID) / Float(120)
+      var time2 = Float(
+        seconds(start: startTimeStamp!, end: previousTimeStamp!))
+      encoder.setBytes(&time1, length: 4, index: 0)
+      encoder.setBytes(&time2, length: 4, index: 1)
+    } else {
+      encoder.setBuffer(atomData, offset: 0, index: 0)
+    }
     
     // Acquire reference to the drawable.
     let drawable = view.metalLayer.nextDrawable()!
