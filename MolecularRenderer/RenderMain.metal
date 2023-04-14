@@ -7,47 +7,12 @@
 
 #include <metal_stdlib>
 #include "AtomStatistics.metal"
+#include "RayTracing.metal"
 using namespace metal;
 
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant float FOV_90_SPAN_RECIPROCAL [[function_constant(2)]];
-
-struct AtomIntersection {
-  float distance;
-  bool accept;
-};
-
-struct Ray {
-  float3 origin;
-  float3 direction;
-};
-
-AtomIntersection atomIntersectionFunction(Ray ray, Atom atom) {
-  float3 oc = ray.origin - atom.origin;
-  float a = dot(ray.direction, ray.direction);
-  float b = 2 * dot(oc,ray.direction);
-  float c = dot(oc, oc) - atom.radiusSquared;
-  float disc = b * b - 4 * a * c;
-  AtomIntersection ret;
-  
-  if (disc <= 0.0f) {
-    // If the ray missed the sphere, return false.
-    ret.accept = false;
-  }
-  else {
-    // Otherwise, compute the intersection distance.
-    ret.distance = (-b - sqrt(disc)) / (2 * a);
-    
-    // The intersection function must also check whether the intersection
-    // distance is within the acceptable range. Intersection functions do not
-    // run in any particular order, so the maximum distance may be different
-    // from the one passed into the ray intersector.
-    ret.accept = ret.distance >= 0 && ret.distance <= MAXFLOAT;
-  }
-  
-  return ret;
-}
 
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
 // This shader will rearrange simds across 8x2 to 8x8 chunks (depending on the
@@ -57,6 +22,7 @@ kernel void renderMain
   texture2d<half, access::write> outputTexture [[texture(0)]],
   
   constant AtomStatistics *atomData [[buffer(0)]],
+  device Atom *atoms [[buffer(1)]],
   ushort2 tid [[thread_position_in_grid]],
   ushort2 tgid [[threadgroup_position_in_grid]],
   ushort2 local_id [[thread_position_in_threadgroup]])
@@ -91,15 +57,14 @@ kernel void renderMain
   rayDirection = normalize(rayDirection);
   
   float3 worldOrigin = float3(0);
-  Ray ray { worldOrigin, rayDirection };
+  ray ray { worldOrigin, rayDirection };
   
   // Background to show the ray direction.
   half3 background = half3(saturate(abs(rayDirection) / 1.0));
   half3 color = background;
   
-  // Hard-code an atom into the shader.
-  Atom atom(float3(0, 0, -1), 1, atomData);
-  auto intersect = atomIntersectionFunction(ray, atom);
+  Atom atom = atoms[0];
+  auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
   
   if (intersect.accept) {
     // Base color of the sphere.

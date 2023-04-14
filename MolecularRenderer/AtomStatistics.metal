@@ -5,6 +5,9 @@
 //  Created by Philip Turner on 4/6/23.
 //
 
+#ifndef ATOM_STATISTICS_H
+#define ATOM_STATISTICS_H
+
 #include <metal_stdlib>
 using namespace metal;
 
@@ -26,6 +29,10 @@ struct Atom {
   packed_float3 origin;
   half radiusSquared;
   ushort element;
+  
+  Atom() {
+    
+  }
   
   Atom(float3 origin, ushort element, constant AtomStatistics* atomData) {
     this->origin = origin;
@@ -54,4 +61,4 @@ struct Atom {
   }
 };
 
-
+#endif

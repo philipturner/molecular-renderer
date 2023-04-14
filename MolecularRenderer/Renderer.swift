@@ -102,15 +102,23 @@ class Renderer {
     
     // Create the acceleration structure.
     
-    // Hard-code all the geometry (for now).
     let atoms: [Atom] = [
-      .init(origin: SIMD3(0, 0, -1), element: 6)
+      .init(origin: SIMD3(-0.25, 0, -1), element: 1),
+      .init(origin: SIMD3(+0.25, 0, -1), element: 6),
     ]
     
     let atomSize = MemoryLayout<Atom>.stride
     let atomBufferSize = atoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
-    self.atomBuffer = device.makeBuffer(length: atomSize)!
+    self.atomBuffer = device.makeBuffer(length: atomBufferSize)!
+    
+    do {
+      let atomsPointer = atomBuffer.contents()
+        .assumingMemoryBound(to: Atom.self)
+      for (index, atom) in atoms.enumerated() {
+        atomsPointer[index] = atom
+      }
+    }
     
     let boundingBoxSize = MemoryLayout<BoundingBox>.stride
     let boundingBoxBufferSize = atoms.count * boundingBoxSize
@@ -261,6 +269,7 @@ extension Renderer {
       encoder.setBytes(&time2, length: 4, index: 1)
     } else {
       encoder.setBuffer(atomData, offset: 0, index: 0)
+      encoder.setBuffer(atomBuffer, offset: 0, index: 1)
     }
     
     // Acquire reference to the drawable.

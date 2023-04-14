@@ -13,6 +13,7 @@
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		986ED88F29A71C1C00E0653B /* PythonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED88E29A71C1C00E0653B /* PythonKit */; };
 		986ED89229A71C2B00E0653B /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED89129A71C2B00E0653B /* Atomics */; };
+		987C5CE529EA05AB00CE5EB7 /* RayTracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 987C5CE329EA051400CE5EB7 /* RayTracing.metal */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* ContentView.swift */; };
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
@@ -25,6 +26,7 @@
 		98122D7029DFBDE6006200D1 /* AtomStatistics.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AtomStatistics.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRenderer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRenderer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
 		9898382729A6C08F00B4AA98 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -76,6 +78,7 @@
 				98F3B30229DE60E6003B9AD7 /* CheckFrameRate.metal */,
 				98122D6E29DFBC14006200D1 /* AtomStatistics.swift */,
 				98122D7029DFBDE6006200D1 /* AtomStatistics.metal */,
+				987C5CE329EA051400CE5EB7 /* RayTracing.metal */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";
@@ -171,6 +174,7 @@
 				98122D6F29DFBC14006200D1 /* AtomStatistics.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* ContentView.swift in Sources */,
 				98F3B30329DE60E6003B9AD7 /* CheckFrameRate.metal in Sources */,
+				987C5CE529EA05AB00CE5EB7 /* RayTracing.metal in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 				986ED88829A6CB0400E0653B /* RenderMain.metal in Sources */,
 			);
