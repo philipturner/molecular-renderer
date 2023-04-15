@@ -16,7 +16,7 @@ struct MolecularRendererApp: App {
     }
     .windowResizability(.contentSize)
     .defaultSize(
-      width: 1024 / NSScreen.main!.backingScaleFactor,
-      height: 1024 / NSScreen.main!.backingScaleFactor)
+      width: ContentView.size / NSScreen.main!.backingScaleFactor,
+      height: ContentView.size / NSScreen.main!.backingScaleFactor)
   }
 }

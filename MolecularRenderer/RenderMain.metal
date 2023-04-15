@@ -9,6 +9,7 @@
 #include "AtomStatistics.metal"
 #include "RayTracing.metal"
 using namespace metal;
+using namespace raytracing;
 
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
@@ -23,6 +24,8 @@ kernel void renderMain
   
   constant AtomStatistics *atomData [[buffer(0)]],
   device Atom *atoms [[buffer(1)]],
+  primitive_acceleration_structure accelerationStructure [[buffer(2)]],
+  
   ushort2 tid [[thread_position_in_grid]],
   ushort2 tgid [[threadgroup_position_in_grid]],
   ushort2 local_id [[thread_position_in_threadgroup]])
@@ -59,22 +62,25 @@ kernel void renderMain
   float3 worldOrigin = float3(0);
   ray ray { worldOrigin, rayDirection };
   
-  // Background to show the ray direction.
-  half3 background = half3(saturate(abs(rayDirection) / 1.0));
-  half3 color = background;
+//  // Background to show the ray direction.
+//  half3 background = half3(saturate(abs(rayDirection) / 1.0));
+//  half3 color = background;
+  half3 color = { 0.707, 0.707, 0.707 };
   
-  Atom atom = atoms[0];
-  auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
+//  Atom atom = atoms[0];
+//  auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
+  auto intersect = RayTracing::traverseAccelerationStructure(
+    ray, accelerationStructure);
   
   if (intersect.accept) {
     // Base color of the sphere.
-    half3 diffuseColor = atom.getColor(atomData);
+    half3 diffuseColor = intersect.atom.getColor(atomData);
     float shininess = 16.0;
     float lightPower = 40.0;
     
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 intersectionPoint = ray.origin + ray.direction * intersect.distance;
-    float3 normal = normalize(intersectionPoint - atom.origin);
+    float3 normal = normalize(intersectionPoint - intersect.atom.origin);
     float3 lightDirection = worldOrigin - intersectionPoint;
     float lightDistance = length(lightDirection);
     lightDirection /= lightDistance;
@@ -91,10 +97,9 @@ kernel void renderMain
     // TODO: Make a cutoff so that no atom is completely in the dark.
     // Need to look at PyMOL's rendering code to find the heuristic.
     float scaledLightPower = smoothstep(0, 1, lightPower / lightDistance);
-    half3 finalColor = diffuseColor * lambertian * scaledLightPower;
-    finalColor += half(specular * scaledLightPower);
-    
-    color = saturate(finalColor);
+    color = diffuseColor * lambertian * scaledLightPower;
+    color += half(specular * scaledLightPower);
+    color = saturate(color);
   }
   
   outputTexture.write(half4(color, 1), pixelCoords);

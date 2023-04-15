@@ -10,16 +10,18 @@ import SwiftUI
 // Credit: Partially sourced from https://developer.apple.com/documentation/metal/onscreen_presentation/creating_a_custom_metal_view
 
 struct ContentView: View {
+  static let size: CGFloat = 1536
+  
   var body: some View {
     VStack {
       MetalView(coordinator: Coordinator())
         .disabled(false)
         .frame(
-          width: 1024 / NSScreen.main!.backingScaleFactor,
-          height: 1024 / NSScreen.main!.backingScaleFactor)
+          width: ContentView.size / NSScreen.main!.backingScaleFactor,
+          height: ContentView.size / NSScreen.main!.backingScaleFactor)
         .position(
-          x: 512 / NSScreen.main!.backingScaleFactor,
-          y: 512 / NSScreen.main!.backingScaleFactor)
+          x: ContentView.size / 2 / NSScreen.main!.backingScaleFactor,
+          y: ContentView.size / 2 / NSScreen.main!.backingScaleFactor)
     }
     .padding(.zero)
   }
@@ -56,7 +58,7 @@ class Coordinator: NSObject, ObservableObject {
   // This function would adapt to user-specific sizes, but for now we disallow
   // resizing.
   func drawableResize(_ size: CGSize) {
-    if size.width != 1024 || size.height != 1024 {
+    if size.width != ContentView.size || size.height != ContentView.size {
       fatalError("Size cannot change.")
     }
   }
@@ -116,14 +118,15 @@ final class CustomMetalView: NSView, CALayerDelegate {
     self.wantsLayer = true
     self.layerContentsRedrawPolicy = .duringViewResize
     self.metalLayer = (self.layer as! CAMetalLayer)
-    metalLayer.drawableSize = CGSize(width: 1024, height: 1024)
+    metalLayer.drawableSize = CGSize(
+      width: ContentView.size, height: ContentView.size)
     
     self.bounds.size = CGSize(
-      width: 1024 / NSScreen.main!.backingScaleFactor,
-      height: 1024 / NSScreen.main!.backingScaleFactor)
+      width: ContentView.size / NSScreen.main!.backingScaleFactor,
+      height: ContentView.size / NSScreen.main!.backingScaleFactor)
     self.frame.size = CGSize(
-      width: 1024 / NSScreen.main!.backingScaleFactor,
-      height: 1024 / NSScreen.main!.backingScaleFactor)
+      width: ContentView.size / NSScreen.main!.backingScaleFactor,
+      height: ContentView.size / NSScreen.main!.backingScaleFactor)
     self.layer!.delegate = self
   }
   
@@ -150,7 +153,7 @@ final class CustomMetalView: NSView, CALayerDelegate {
     var size = self.bounds.size
     size.width *= scaleFactor
     size.height *= scaleFactor
-    if size.width != 1024 || size.height != 1024 {
+    if size.width != ContentView.size || size.height != ContentView.size {
       if size.width != 0 || size.height != 0 {
         fatalError("Size cannot change.")
       }

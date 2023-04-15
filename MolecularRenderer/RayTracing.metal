@@ -84,10 +84,10 @@ public:
       Atom atom = *(const device Atom*)rawPointer;
       
       AtomIntersection bb = atomIntersectionFunction(ray, atom);
-      
+
       // Accept the candidate intersection, making it the new committed
       // intersection.
-      if (bb.accept) {
+      if (bb.accept && bb.distance < i.get_committed_distance()) {
         i.commit_bounding_box_intersection(bb.distance);
       }
     }
@@ -95,7 +95,7 @@ public:
     IntersectionResult intersection;
     
     // Return all the information about the committed intersection.
-    auto primitive_data = i.get_candidate_primitive_data();
+    auto primitive_data = i.get_committed_primitive_data();
     intersection.distance = i.get_committed_distance();
     intersection.accept =
       i.get_committed_intersection_type() == intersection_type::bounding_box;

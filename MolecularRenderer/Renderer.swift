@@ -47,7 +47,7 @@ class Renderer {
   var atomData: MTLBuffer
   var atomBuffer: MTLBuffer
   var boundingBoxBuffer: MTLBuffer
-//  var accelerationStructure: MTLAccelerationStructure
+  var accelerationStructure: MTLAccelerationStructure
   
   init(view: CustomMetalView) {
     self.view = view
@@ -63,15 +63,15 @@ class Renderer {
     let constants = MTLFunctionConstantValues()
     
     // Actual texture width.
-    var screenWidth: UInt32 = 1024
+    var screenWidth: UInt32 = .init(ContentView.size)
     constants.setConstantValue(&screenWidth, type: .uint, index: 0)
     
     // Actual texture height.
-    var screenHeight: UInt32 = 1024
+    var screenHeight: UInt32 = .init(ContentView.size)
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
     // How many pixels are covered in either direction @ FOV=90?
-    let fov90Span: UInt32 = 1024 / 2
+    let fov90Span: UInt32 = .init(ContentView.size) / 2
     var fov90SpanReciprocal = 1 / Float(fov90Span)
     constants.setConstantValue(&fov90SpanReciprocal, type: .float, index: 2)
     
@@ -102,10 +102,28 @@ class Renderer {
     
     // Create the acceleration structure.
     
-    let atoms: [Atom] = [
-      .init(origin: SIMD3(-0.25, 0, -1), element: 1),
-      .init(origin: SIMD3(+0.25, 0, -1), element: 6),
+    let z_offset: Float = -2
+    
+    let h_offset_x: Float = 0.50
+    let h_offset_y: Float = 0.25
+    let hydrogen_origins: [SIMD3<Float>] = [
+      SIMD3(-h_offset_x, -h_offset_y, z_offset),
+      SIMD3(-h_offset_x, +h_offset_y, z_offset),
+      SIMD3(+h_offset_x, -h_offset_y, z_offset),
+      SIMD3(+h_offset_x, +h_offset_y, z_offset),
     ]
+    
+    let c_offset_x: Float = 0.20
+    let carbon_origins: [SIMD3<Float>] = [
+      SIMD3(-c_offset_x, 0, z_offset),
+      SIMD3(+c_offset_x, 0, z_offset),
+    ]
+    
+    let atoms: [Atom] = hydrogen_origins.map {
+      Atom(origin: $0, element: 1)
+    } + carbon_origins.map {
+      Atom(origin: $0, element: 6)
+    }
     
     let atomSize = MemoryLayout<Atom>.stride
     let atomBufferSize = atoms.count * atomSize
@@ -135,7 +153,69 @@ class Renderer {
     geometryDesc.boundingBoxBufferOffset = 0
     geometryDesc.boundingBoxBuffer = boundingBoxBuffer
     
-    // TODO: Make the acceleration structure.
+    let accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
+    accelDesc.geometryDescriptors = [geometryDesc]
+    do {
+      // Copied from Apple's ray tracing sample code:
+      // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
+      
+      // Query for the sizes needed to store and build the acceleration
+      // structure.
+      let accelSizes = device.accelerationStructureSizes(descriptor: accelDesc)
+      
+      // Allocate an acceleration structure large enough for this descriptor.
+      // This method doesn't actually build the acceleration structure, but
+      // rather allocates memory.
+      let structure = device.makeAccelerationStructure(
+        size: accelSizes.accelerationStructureSize)!
+      
+      // Allocate scratch space Metal uses to build the acceleration structure.
+      let scratchBuffer = device.makeBuffer(
+        length: 32 + accelSizes.buildScratchBufferSize)!
+      
+      // Create a command buffer that performs the acceleration structure build.
+      var commandBuffer = commandQueue.makeCommandBuffer()!
+      
+      // Create an acceleration structure command encoder.
+      var encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
+      
+      // Schedule the actual acceleration structure build.
+      encoder.build(
+        accelerationStructure: structure, descriptor: accelDesc,
+        scratchBuffer: scratchBuffer, scratchBufferOffset: 32)
+      
+      // Compute and write the compacted acceleration structure size into the
+      // buffer.
+      encoder.writeCompactedSize(
+        accelerationStructure: structure, buffer: scratchBuffer, offset: 0,
+        sizeDataType: .uint)
+      
+      // End encoding, and commit the command buffer so the GPU can start
+      // building the acceleration structure.
+      encoder.endEncoding()
+      
+      commandBuffer.commit()
+      commandBuffer.waitUntilCompleted()
+      
+      let compactedSize = scratchBuffer.contents()
+        .assumingMemoryBound(to: UInt32.self).pointee
+      let compactedStructure = device
+        .makeAccelerationStructure(size: Int(compactedSize))!
+      
+      commandBuffer = commandQueue.makeCommandBuffer()!
+      encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
+      
+      // Encode the command to copy and compact the acceleration structure into
+      // the smaller acceleration structure.
+      encoder.copyAndCompact(
+        sourceAccelerationStructure: structure,
+        destinationAccelerationStructure: compactedStructure)
+      
+      encoder.endEncoding()
+      commandBuffer.commit()
+      
+      self.accelerationStructure = compactedStructure
+    }
   }
 }
 
@@ -270,17 +350,18 @@ extension Renderer {
     } else {
       encoder.setBuffer(atomData, offset: 0, index: 0)
       encoder.setBuffer(atomBuffer, offset: 0, index: 1)
+      encoder.setAccelerationStructure(accelerationStructure, bufferIndex: 2)
     }
     
     // Acquire reference to the drawable.
     let drawable = view.metalLayer.nextDrawable()!
-    precondition(drawable.texture.width == 1024)
-    precondition(drawable.texture.height == 1024)
+    precondition(drawable.texture.width == Int(ContentView.size))
+    precondition(drawable.texture.height == Int(ContentView.size))
     encoder.setTexture(drawable.texture, index: 0)
     
     // Dispatch even number of threads (the shader will rearrange them).
-    let numThreadgroupsX = (1024 + 15) / 16
-    let numThreadgroupsY = (1024 + 15) / 16
+    let numThreadgroupsX = (Int(ContentView.size) + 15) / 16
+    let numThreadgroupsY = (Int(ContentView.size) + 15) / 16
     encoder.dispatchThreadgroups(
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(16, 16, 1))

@@ -15,7 +15,7 @@ let atomRadii: [Float16] = [
   0, // 3
   0, // 4
   0, // 5
-  0.5, // 6
+  0.40, // 6
 ]
 
 let atomColors: [SIMD3<Float16>] = [
