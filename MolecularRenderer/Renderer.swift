@@ -23,7 +23,7 @@ func checkCVDisplayError(
 
 class Renderer {
   // Connection to Vsync.
-  var view: CustomMetalView
+  var view: RendererView
   var layer: CAMetalLayer
   var startTimeStamp: CVTimeStamp?
   var previousTimeStamp: CVTimeStamp?
@@ -53,7 +53,7 @@ class Renderer {
   var boundingBoxBuffer: MTLBuffer
   var accelerationStructure: MTLAccelerationStructure
   
-  init(view: CustomMetalView) {
+  init(view: RendererView) {
     self.view = view
     self.layer = view.layer as! CAMetalLayer
     self.currentRefreshRate.store(

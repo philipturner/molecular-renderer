@@ -17,6 +17,9 @@ class EventTracker {
   var keyboardAPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardSPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardDPressed: ManagedAtomic<Bool> = .init(false)
+  
+  // TODO: Minecraft-like sprinting or elytra controls, physics-based
+  // collisions with the nanostructure
   var keyboardSpacebarPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardShiftPressed: ManagedAtomic<Bool> = .init(false)
   
@@ -57,8 +60,9 @@ class EventTracker {
       keyboardSpacebarPressed.store(value, ordering: .relaxed)
     case .keyboardLeftShift:
       keyboardShiftPressed.store(value, ordering: .relaxed)
-//    case .keyboardEscape:
-//      crosshairActive.toggle
+    case .keyboardEscape:
+      // Key down toggles the value, key up does nothing.
+      _ = crosshairActive.loadThenLogicalXor(with: value, ordering: .relaxed)
     default:
       break
     }
@@ -78,6 +82,8 @@ class EventTracker {
       return keyboardSpacebarPressed.load(ordering: .relaxed)
     case .keyboardLeftShift:
       return keyboardShiftPressed.load(ordering: .relaxed)
+    case .keyboardEscape:
+      return crosshairActive.load(ordering: .relaxed)
     default:
       fatalError("Unsupported key \(key)")
     }
@@ -85,10 +91,6 @@ class EventTracker {
 }
 
 extension Coordinator {
-  // TODO: Halt all movement when this window enters the background.
-  
-  // TODO: Add mouse and crosshair
-  
   // A method to handle key events
   override func keyDown(with event: NSEvent) {
     super.keyDown(with: event)
@@ -130,7 +132,7 @@ extension Coordinator {
     // Get the modifier flags of the event
     let flags = event.modifierFlags.deviceIndependentOnly
     
-    //  Check if the shift flag is set and if it is left shift using KeyCodes.UIKeyboardHIDUsage enum
+    // Check if the shift flag is set and if it is left shift
     //
     // There is no way to detect which shift is left or right, but there is
     // also no enum case for a direction-independent shift. So I name all shifts
@@ -193,6 +195,10 @@ extension EventTracker {
     if read(key: .keyboardLeftShift) == true {
       pressedKeys.append("LSHIFT")
       playerPosition.y -= positionDelta
+    }
+    
+    if read(key: .keyboardEscape) == true {
+      pressedKeys.append("ESC")
     }
     
     if !pressedKeys.isEmpty {
