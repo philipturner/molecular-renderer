@@ -36,10 +36,11 @@ struct MetalView: NSViewRepresentable {
   func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
-class Coordinator: NSObject, ObservableObject {
+class Coordinator: NSResponder, ObservableObject {
   var view: CustomMetalView!
   var renderer: Renderer!
   var displayLink: CVDisplayLink!
+  var eventTracker: EventTracker!
   
   override init() {
     super.init()
@@ -53,6 +54,12 @@ class Coordinator: NSObject, ObservableObject {
     
     self.renderer = Renderer(view: view)
     view.metalLayer.device = renderer.device
+    
+    self.eventTracker = EventTracker()
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
   }
   
   // This function would adapt to user-specific sizes, but for now we disallow
@@ -69,10 +76,16 @@ class Coordinator: NSObject, ObservableObject {
       CVDisplayLinkCreateWithActiveCGDisplays(&self.displayLink))
     checkCVDisplayError(CVDisplayLinkSetOutputHandler(displayLink) {
       // Must access the UI from the main thread.
-      DispatchQueue.main.async {
-        let refreshRate = self.view.window!.screen!.maximumFramesPerSecond
-        self.renderer.currentRefreshRate.store(
+      DispatchQueue.main.async { [self] in
+        let refreshRate = view.window!.screen!.maximumFramesPerSecond
+        renderer.currentRefreshRate.store(
           refreshRate, ordering: .relaxed)
+        
+        let succeeded = view.window!.makeFirstResponder(self)
+        if !succeeded {
+          print("Could not become first responder. Exiting the app.")
+          eventTracker.closeApp(coordinator: self)
+        }
       }
       return self.renderer.vsyncHandler($0, $1, $2, $3, $4)
     })
@@ -142,7 +155,7 @@ final class CustomMetalView: NSView, CALayerDelegate {
       // disk here. Exit to prevent Xcode from having numerous background apps
       // that won't close on their own.
       print("Exiting the app.")
-      exit(0)
+      coordinator.eventTracker.closeApp(coordinator: coordinator)
     } else {
       coordinator.setupCVDisplayLink(screen: self.window!.screen!)
       resizeDrawable(self.window!.screen!.backingScaleFactor)

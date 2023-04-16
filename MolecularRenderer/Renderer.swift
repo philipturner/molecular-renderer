@@ -102,28 +102,7 @@ class Renderer {
     
     // Create the acceleration structure.
     
-    let z_offset: Float = -2
-    
-    let h_offset_x: Float = 0.50
-    let h_offset_y: Float = 0.25
-    let hydrogen_origins: [SIMD3<Float>] = [
-      SIMD3(-h_offset_x, -h_offset_y, z_offset),
-      SIMD3(-h_offset_x, +h_offset_y, z_offset),
-      SIMD3(+h_offset_x, -h_offset_y, z_offset),
-      SIMD3(+h_offset_x, +h_offset_y, z_offset),
-    ]
-    
-    let c_offset_x: Float = 0.20
-    let carbon_origins: [SIMD3<Float>] = [
-      SIMD3(-c_offset_x, 0, z_offset),
-      SIMD3(+c_offset_x, 0, z_offset),
-    ]
-    
-    let atoms: [Atom] = hydrogen_origins.map {
-      Atom(origin: $0, element: 1)
-    } + carbon_origins.map {
-      Atom(origin: $0, element: 6)
-    }
+    let atoms: [Atom] = ExampleMolecules.ethylene
     
     let atomSize = MemoryLayout<Atom>.stride
     let atomBufferSize = atoms.count * atomSize
@@ -284,6 +263,10 @@ extension Renderer {
   }
   
   func update() {
+    // Process application state changes immediately.
+    view.coordinator.eventTracker.update()
+    
+    // Start rendering when possible.
     renderSemaphore.wait()
     frameID += 1
     
@@ -334,7 +317,7 @@ extension Renderer {
     }
     adjustedFrameID = nextFrameID
     
-    print(nextFrameID - previousFrameID, targetFrameID - nextFrameID, sustainedMisalignment, sustainedMisalignmentDuration, sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
+//    print(nextFrameID - previousFrameID, targetFrameID - nextFrameID, sustainedMisalignment, sustainedMisalignmentDuration, sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!

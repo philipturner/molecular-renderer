@@ -1,15 +1,8 @@
 # Molecular Renderer
 
-Flexible application for running and visualizing nanotech simulations, with RTAO and up to 120 Hz uninterrupted playback. This application is optimized for simulations with 1,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time. <!-- It may eventually gain an [AR](https://github.com/philipturner/arheadsetkit) companion app, replicating Drexler's method of visualizing [MNT](https://en.wikipedia.org/wiki/Molecular_nanotechnology) in <i>Radical Abundance</i> (2013). -->
+Flexible application for running and visualizing nanotech simulations, with RTAO and up to 120 Hz uninterrupted playback. This application is optimized for simulations with 1,000-1,000,000 atoms. The rendering quality and feature-completeness may initially underperform PyMOL, but the gap should close over time.
 
 This should also become a future platform for the author to conduct computational nanotechnology research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes in energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
-<!--
-> Note: [MSEP](https://astera.org/molecular-systems/) is planning to accomplish a similar task. However, molecular-renderer serves as a simpler environment to help the author learn computational chemistry. It may be much faster and more robust when handling massive molecular machine systems. It should not try to compete with MSEP; it offers a unique approach of _accessible (meaning FP32)\*_ GPU acceleration. MSEP presumably uses CPU for everything, including rendering.
->
-> \* ...that runs on consumer GPUs and, furthermore, not just exclusively Nvidia consumer GPUs.
-
-<img width="515" alt="Screenshot 2023-03-24 at 9 26 46 PM" src="https://user-images.githubusercontent.com/71743241/227678193-efe03cda-6f49-4c5e-b92b-c953da32b926.png">
--->
 
 ## Usage
 
@@ -57,11 +50,6 @@ TODO (performance):
 - Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
 - OpenMM Clang module for C/C++ bindings instead of Python (part of Xcode project).
 
-<!--
-- Profile tile-based hybrid rasterization against full ray tracing, may solve divergence problems. Optimize for very complex scenes.
-- Ray tracing is simpler in general. Less time invested in a possibly incorrect approach to rendering imposter rectangles.
--->
-
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
 - Way to move camera position using mouse.
@@ -72,17 +60,6 @@ TODO (user interface):
 - API for replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
 - API for replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
 - API for 1 fs, 2 fs, 4 fs time step modes.
-
-<!--
-
-TODO (AR app):
-- Real-time user interaction like MSEP
-- AR companion app: loading a serialized pre-recorded simulation for viewing (opt. ~1,000-100,000 atoms)
-- AR companion app: port OpenMM to Metal and simulate on A15 GPU (1.7 TFLOPS) (opt. ~200-2,000 atoms)
-- AR companion app: train ML model for much better 3D hand detection, suitable for manipulating atoms
-- AR companion app: incorporate frame interpolation into ARHeadsetKit and utilize AMD FSR 3, achieving 120 Hz
-
--->
 
 ## Requirements
 

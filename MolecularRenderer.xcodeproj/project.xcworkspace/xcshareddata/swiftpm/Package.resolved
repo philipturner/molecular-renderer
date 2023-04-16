@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "keycodes",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ChimeHQ/KeyCodes",
+      "state" : {
+        "revision" : "90f1d748200bda88c592537fd04163b36c2c57e6",
+        "version" : "0.1.1"
+      }
+    },
+    {
       "identity" : "pythonkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pvieito/PythonKit.git",
