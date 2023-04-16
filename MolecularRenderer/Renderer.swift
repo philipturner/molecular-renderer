@@ -27,6 +27,9 @@ class Renderer {
   var layer: CAMetalLayer
   var startTimeStamp: CVTimeStamp?
   var previousTimeStamp: CVTimeStamp?
+  var eventTracker: EventTracker {
+    view.coordinator.eventTracker
+  }
   
   // Data for robustly synchronizing with the refresh rate.
   var currentRefreshRate: ManagedAtomic<Int> = .init(0)
@@ -36,6 +39,7 @@ class Renderer {
   var sustainedMisalignmentDuration: Int = 0
   var sustainedAlignmentDuration: Int = 0
   static let checkingFrameRate = false
+  static let debuggingFrameRate = false
   
   // Main rendering resources.
   var device: MTLDevice
@@ -121,6 +125,15 @@ class Renderer {
     let boundingBoxBufferSize = atoms.count * boundingBoxSize
     precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
     self.boundingBoxBuffer = device.makeBuffer(length: boundingBoxBufferSize)!
+    
+    do {
+      let boundingBoxesPointer = boundingBoxBuffer.contents()
+        .assumingMemoryBound(to: BoundingBox.self)
+      for (index, atom) in atoms.enumerated() {
+        let boundingBox = atom.boundingBox
+        boundingBoxesPointer[index] = boundingBox
+      }
+    }
     
     let geometryDesc = MTLAccelerationStructureBoundingBoxGeometryDescriptor()
     geometryDesc.primitiveDataBuffer = atomBuffer
@@ -263,10 +276,6 @@ extension Renderer {
   }
   
   func update() {
-    // Process application state changes immediately.
-    view.coordinator.eventTracker.update()
-    
-    // Start rendering when possible.
     renderSemaphore.wait()
     frameID += 1
     
@@ -290,13 +299,17 @@ extension Renderer {
     if abs(targetFrameID - nextFrameID) >= 2 * step {
       // Exponentially gravitate toward the correct position.
       // This may become unstable in certain ill-conditioned situations.
-      print("Correcting misalignment by / 2")
+      if Self.debuggingFrameRate {
+        print("Correcting misalignment by / 2")
+      }
       nextFrameID += (targetFrameID - nextFrameID) / 2
     } else if abs(targetFrameID - nextFrameID) == step {
       // Wait a while to smooth out noise.
       if sustainedMisalignmentDuration >= 10 ||
          sustainedAlignmentDuration >= 10 {
-        print("Correcting misalignment by +/- 1")
+        if Self.debuggingFrameRate {
+          print("Correcting misalignment by +/- 1")
+        }
         nextFrameID = targetFrameID
       }
     }
@@ -317,7 +330,15 @@ extension Renderer {
     }
     adjustedFrameID = nextFrameID
     
-//    print(nextFrameID - previousFrameID, targetFrameID - nextFrameID, sustainedMisalignment, sustainedMisalignmentDuration, sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
+    let frameDelta = nextFrameID - previousFrameID
+    self.eventTracker.update(frameDelta: frameDelta)
+    
+    if Self.debuggingFrameRate {
+      print(
+        nextFrameID - previousFrameID, targetFrameID - nextFrameID,
+        sustainedMisalignment, sustainedMisalignmentDuration,
+        sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
+    }
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -331,8 +352,13 @@ extension Renderer {
       encoder.setBytes(&time1, length: 4, index: 0)
       encoder.setBytes(&time2, length: 4, index: 1)
     } else {
-      encoder.setBuffer(atomData, offset: 0, index: 0)
-      encoder.setBuffer(atomBuffer, offset: 0, index: 1)
+      struct Arguments {
+        var position: SIMD3<Float>
+      }
+      var args = Arguments(position: self.eventTracker.playerPosition)
+      let argsLength = MemoryLayout<Arguments>.stride
+      encoder.setBytes(&args, length: argsLength, index: 0)
+      encoder.setBuffer(atomData, offset: 0, index: 1)
       encoder.setAccelerationStructure(accelerationStructure, bufferIndex: 2)
     }
     

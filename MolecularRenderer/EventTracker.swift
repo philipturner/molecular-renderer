@@ -20,8 +20,25 @@ class EventTracker {
   var keyboardSpacebarPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardShiftPressed: ManagedAtomic<Bool> = .init(false)
   
+  // Don't move the player if the window is in the background. Often, the
+  // player will move uncontrollably in one direction, even through you aren't
+  // pressing any key.
+  //
+  // TODO: Also turn off any active keys (I think Minecraft does this).
+  var windowInForeground: ManagedAtomic<Bool> = ManagedAtomic(true)
+  
+  var playerPosition: SIMD3<Float> = SIMD3(repeating: 0)
+  
   init() {
+    NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
+      self.windowInForeground.store(false, ordering: .relaxed)
+      return event
+    }
     
+    NSEvent.addLocalMonitorForEvents(matching: .mouseEntered) { event in
+      self.windowInForeground.store(true, ordering: .relaxed)
+      return event
+    }
   }
   
   func change(key: KeyboardHIDUsage, value: Bool) {
@@ -64,6 +81,10 @@ class EventTracker {
 }
 
 extension Coordinator {
+  // TODO: Halt all movement when this window enters the background.
+  
+  // TODO: Add mouse and crosshair
+  
   // A method to handle key events
   override func keyDown(with event: NSEvent) {
     super.keyDown(with: event)
@@ -121,47 +142,53 @@ extension Coordinator {
 }
 
 extension EventTracker {
-  func update() {
+  func update(frameDelta: Int) {
+    if !windowInForeground.load(ordering: .relaxed) {
+      // Do not move the player right now.
+      return
+    }
+    
     var pressedKeys: [String] = []
     
+    // Define a constant for the movement speed
+    // 1.0 nanometers per second
+    let speed: Float = 1.0
+    let positionDelta = speed * Float(frameDelta) / 120
     
-     // Define a constant for the movement speed
-//     let speed: Float = 0.5
-
-     // Check if W is pressed and move forward along the z-axis
-     if read(key: .keyboardW) == true {
-       pressedKeys.append("W")
-//         playerNode.position.z -= speed
-     }
-
-     // Check if S is pressed and move backward along the z-axis
-     if read(key: .keyboardS) == true {
-       pressedKeys.append("S")
-//         playerNode.position.z += speed
-     }
-
-     // Check if A is pressed and move left along the x-axis
-     if read(key: .keyboardA) == true {
-       pressedKeys.append("A")
-//         playerNode.position.x -= speed
-     }
-
-     // Check if D is pressed and move right along the x-axis
-     if read(key: .keyboardD) == true {
-       pressedKeys.append("D")
-//         playerNode.position.x += speed
-     }
-
+    // Check if W is pressed and move forward along the z-axis
+    if read(key: .keyboardW) == true {
+      pressedKeys.append("W")
+      playerPosition.z -= positionDelta
+    }
+    
+    // Check if S is pressed and move backward along the z-axis
+    if read(key: .keyboardS) == true {
+      pressedKeys.append("S")
+      playerPosition.z += positionDelta
+    }
+    
+    // Check if A is pressed and move left along the x-axis
+    if read(key: .keyboardA) == true {
+      pressedKeys.append("A")
+      playerPosition.x -= positionDelta
+    }
+    
+    // Check if D is pressed and move right along the x-axis
+    if read(key: .keyboardD) == true {
+      pressedKeys.append("D")
+      playerPosition.x += positionDelta
+    }
+    
     // Check if spacebar is pressed and move up along the y-axis
     if read(key: .keyboardSpacebar) == true {
       pressedKeys.append("SPACE")
-//        playerNode.position.y += speed
+      playerPosition.y += positionDelta
     }
-
+    
     // Check if left shift is pressed and move down along the y-axis
     if read(key: .keyboardLeftShift) == true {
       pressedKeys.append("LSHIFT")
-//        playerNode.position.y -= speed
+      playerPosition.y -= positionDelta
     }
     
     if !pressedKeys.isEmpty {

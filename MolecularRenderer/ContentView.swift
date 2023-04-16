@@ -119,12 +119,30 @@ final class CustomMetalView: NSView, CALayerDelegate {
   
   override init(frame: CGRect) {
     super.init(frame: frame)
+    
+//    let notificationCenter = NotificationCenter.default
+//    notificationCenter.addObserver(
+//      self, selector: #selector(appMovedToBackground),
+//      name: NSApplication.willResignActiveNotification, object: nil)
+//    notificationCenter.addObserver(
+//      self, selector: #selector(appMovedToForeground),
+//      name: NSApplication.didBecomeActiveNotification, object: nil)
   }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
+//  @objc func appMovedToBackground() {
+//      print("App moved to background!")
+//    coordinator.eventTracker.windowInForeground.store(false, ordering: .relaxed)
+//  }
+//
+//  @objc func appMovedToForeground() {
+//      print("App moved to foreground!")
+//    coordinator.eventTracker.windowInForeground.store(true, ordering: .relaxed)
+//  }
+
   // Bypass the inability to change how it initializes.
   func initializeResources(coordinator: Coordinator) {
     self.coordinator = coordinator

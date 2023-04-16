@@ -45,14 +45,12 @@ TODO (performance):
 - Test 1024x1024 rendering first without MetalFX temporal upscaling, consider upscaling 1024x1024 -> 2048x2048.
 - Use Metal 3 fast resource loading to fetch geometry data from disk, 3 frames ahead.
 - Use Metal lossless compression for double-buffered intermediate textures.
-- Determine whether to use ray query API.
 - Store previous frame's transform data to re-project the intersection position onto the screen, generating a screen-space motion vector.
 - Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
 - OpenMM Clang module for C/C++ bindings instead of Python (part of Xcode project).
 
 TODO (user interface):
 - Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
-- Way to move camera position using mouse.
 - Display OpenMM ps/s, OpenMM ns/day, rendering ps/s in the command line.
 - Test out Metal HUD, document how to enable it.
 - Serialization format to save the simulation's starting parameters.

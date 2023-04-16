@@ -15,6 +15,10 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant float FOV_90_SPAN_RECIPROCAL [[function_constant(2)]];
 
+struct Arguments {
+  float3 position;
+};
+
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
 // This shader will rearrange simds across 8x2 to 8x8 chunks (depending on the
 // GPU architecture).
@@ -22,8 +26,8 @@ kernel void renderMain
  (
   texture2d<half, access::write> outputTexture [[texture(0)]],
   
-  constant AtomStatistics *atomData [[buffer(0)]],
-  device Atom *atoms [[buffer(1)]],
+  constant Arguments &args [[buffer(0)]],
+  constant AtomStatistics *atomData [[buffer(1)]],
   primitive_acceleration_structure accelerationStructure [[buffer(2)]],
   
   ushort2 tid [[thread_position_in_grid]],
@@ -59,7 +63,7 @@ kernel void renderMain
   rayDirection.xy *= FOV_90_SPAN_RECIPROCAL;
   rayDirection = normalize(rayDirection);
   
-  float3 worldOrigin = float3(0);
+  float3 worldOrigin = args.position;
   ray ray { worldOrigin, rayDirection };
   
 //  // Background to show the ray direction.
@@ -67,8 +71,6 @@ kernel void renderMain
 //  half3 color = background;
   half3 color = { 0.707, 0.707, 0.707 };
   
-//  Atom atom = atoms[0];
-//  auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
   auto intersect = RayTracing::traverseAccelerationStructure(
     ray, accelerationStructure);
   
