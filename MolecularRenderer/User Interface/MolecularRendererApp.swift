@@ -41,7 +41,7 @@ struct ContentView: View {
       
       // A conditional view to show or hide the crosshair
       if coordinator.showCrosshair {
-        CrosshairView()
+        CrosshairView(coordinator: coordinator)
       }
     }
     .padding(.zero)

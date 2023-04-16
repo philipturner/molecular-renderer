@@ -27,6 +27,7 @@ class EventTracker {
   // player will move uncontrollably in one direction, even through you aren't
   // pressing any key.
   var windowInForeground: ManagedAtomic<Bool> = ManagedAtomic(true)
+  var mouseInWindow: ManagedAtomic<Bool> = ManagedAtomic(true)
   
   var playerPosition: SIMD3<Float> = SIMD3(repeating: 0)
   
@@ -36,12 +37,12 @@ class EventTracker {
   
   init() {
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
-      self.windowInForeground.store(false, ordering: .relaxed)
+      self.mouseInWindow.store(false, ordering: .relaxed)
       return event
     }
     
     NSEvent.addLocalMonitorForEvents(matching: .mouseEntered) { event in
-      self.windowInForeground.store(true, ordering: .relaxed)
+      self.mouseInWindow.store(true, ordering: .relaxed)
       return event
     }
   }
@@ -145,11 +146,14 @@ extension Coordinator {
       eventTracker.change(key: .keyboardLeftShift, value: false)
     }
   }
+  
+  // TODO: Will need to lock the mouse pointer inside the Window, like Minecraft.
 }
 
 extension EventTracker {
   func update(frameDelta: Int) {
-    if !windowInForeground.load(ordering: .relaxed) {
+    if !windowInForeground.load(ordering: .relaxed) ||
+        !mouseInWindow.load(ordering: .relaxed) {
       // Do not move the player right now.
       return
     }
@@ -198,13 +202,13 @@ extension EventTracker {
     }
     
     if read(key: .keyboardEscape) == true {
-      pressedKeys.append("ESC")
+//      pressedKeys.append("ESC")
     }
     
-    if !pressedKeys.isEmpty {
-      let message = String(pressedKeys.joined(separator: " "))
-      print(message)
-    }
+//    if !pressedKeys.isEmpty {
+//      let message = String(pressedKeys.joined(separator: " "))
+//      print(message)
+//    }
   }
 }
 
