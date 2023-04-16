@@ -23,11 +23,12 @@ class EventTracker {
   // Don't move the player if the window is in the background. Often, the
   // player will move uncontrollably in one direction, even through you aren't
   // pressing any key.
-  //
-  // TODO: Also turn off any active keys (I think Minecraft does this).
   var windowInForeground: ManagedAtomic<Bool> = ManagedAtomic(true)
   
   var playerPosition: SIMD3<Float> = SIMD3(repeating: 0)
+  
+  // TODO: When the crosshairs is inactive, disallow WASD and mouse. We don't
+  // want the user to mess with a predefined player position accidentally.
   
   init() {
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
