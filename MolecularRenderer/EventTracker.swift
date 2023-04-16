@@ -27,8 +27,9 @@ class EventTracker {
   
   var playerPosition: SIMD3<Float> = SIMD3(repeating: 0)
   
-  // TODO: When the crosshairs is inactive, disallow WASD and mouse. We don't
+  // TODO: When the crosshair is inactive, disallow WASD and mouse. We don't
   // want the user to mess with a predefined player position accidentally.
+  var crosshairActive: ManagedAtomic<Bool> = ManagedAtomic(false)
   
   init() {
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
@@ -56,6 +57,8 @@ class EventTracker {
       keyboardSpacebarPressed.store(value, ordering: .relaxed)
     case .keyboardLeftShift:
       keyboardShiftPressed.store(value, ordering: .relaxed)
+//    case .keyboardEscape:
+//      crosshairActive.toggle
     default:
       break
     }
