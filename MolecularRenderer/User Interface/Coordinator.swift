@@ -116,41 +116,41 @@ extension Coordinator {
     precondition(
       eventTracker.hideCursorCount < 2, "Invalid hide cursor count.")
     if crosshairActive != (eventTracker.hideCursorCount == 1) {
-      let windowFrame = self.view.window!.frame
-      let windowScreen = self.view.window!.screen!
-      
-      // WARNING: The X and Y hacks only work on the MacBook's display. For any
-      // other display, I cannot think of a workaround. The cursor will not be
-      // repositioned on such displays.
-      if windowScreen == NSScreen.screens[0] {
-        let backingScaleFactor = self.view.backingScaleFactor
-        let originX = windowFrame.origin.x * backingScaleFactor
-        var cursorNewX = originX / view.backingScaleFactor
-        cursorNewX += view.window!.frame.width / 2
-        
-        // Y is offset in a wierd way. Take the bottom of the screen, move up
-        // `view.window!.frame.height` units. Now you are at the window's origin
-        // in global display space.
-        var cursorNewY = windowScreen.frame.height - windowFrame.height
-        cursorNewY -= windowFrame.origin.y
-        cursorNewY += windowFrame.width / 2
-        
-        // Account for the extra bar at the top of the window.
-        cursorNewY += windowFrame.height - windowFrame.width
-        let cursorPoint = CGPoint(x: cursorNewX, y: cursorNewY)
-        let error = CGWarpMouseCursorPosition(cursorPoint)
-        guard error == CGError.success else {
-          preconditionFailure("""
-            Could not move cursor position. Got error code '\(error.rawValue)'.
-            """)
-        }
-      }
-      
       if crosshairActive {
         CGDisplayHideCursor(CGMainDisplayID())
         CGAssociateMouseAndMouseCursorPosition(boolean_t(0))
         eventTracker.hideCursorCount += 1
       } else {
+        let windowFrame = self.view.window!.frame
+        let windowScreen = self.view.window!.screen!
+        
+        // WARNING: The X and Y hacks only work on the MacBook's display. For any
+        // other display, I cannot think of a workaround. The cursor will not be
+        // repositioned on such displays.
+        if windowScreen == NSScreen.screens[0] {
+          let backingScaleFactor = self.view.backingScaleFactor
+          let originX = windowFrame.origin.x * backingScaleFactor
+          var cursorNewX = originX / view.backingScaleFactor
+          cursorNewX += view.window!.frame.width / 2
+          
+          // Y is offset in a wierd way. Take the bottom of the screen, move up
+          // `view.window!.frame.height` units. Now you are at the window's origin
+          // in global display space.
+          var cursorNewY = windowScreen.frame.height - windowFrame.height
+          cursorNewY -= windowFrame.origin.y
+          cursorNewY += windowFrame.width / 2
+          
+          // Account for the extra bar at the top of the window.
+          cursorNewY += windowFrame.height - windowFrame.width
+          let cursorPoint = CGPoint(x: cursorNewX, y: cursorNewY)
+          let error = CGWarpMouseCursorPosition(cursorPoint)
+          guard error == CGError.success else {
+            preconditionFailure("""
+              Could not move cursor position. Got error code '\(error.rawValue)'.
+              """)
+          }
+        }
+        
         CGDisplayShowCursor(CGMainDisplayID())
         CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
         eventTracker.hideCursorCount -= 1

@@ -8,6 +8,7 @@
 import Atomics
 import AppKit
 import KeyCodes
+import simd
 
 struct PlayerState {
   // Player position in nanometers.
@@ -18,6 +19,43 @@ struct PlayerState {
 
   // The zenith angle of the camera or the player in radians
   var zenithAngle: CGFloat = .pi / 2
+  
+  func makeRotationMatrix() -> simd_float3x3 {
+    // Assume that the world space axes are x, y, z and the camera space axes
+    // are u, v, w
+    // Assume that the azimuth angle is a and the zenith angle is b
+    // Assume that the ray direction in world space is r = (rx, ry, rz) and in
+    // camera space is s = (su, sv, sw)
+
+    // The transformation matrix can be obtained by multiplying two rotation
+    // matrices: one for azimuth and one for zenith
+    // The azimuth rotation matrix rotates the world space axes around the
+    // y-axis by -a radians
+    // The zenith rotation matrix rotates the camera space axes around the
+    // u-axis by -b radians
+    
+    let a = Float(azimuthAngle)
+    let b = Float.pi / 2 - Float(zenithAngle)
+
+    // The azimuth rotation matrix is:
+    let M_a = simd_float3x3(SIMD3(cos(-a), 0, sin(-a)),
+                            SIMD3(0, 1, 0),
+                            SIMD3(-sin(-a), 0, cos(-a)))
+      .transpose // simd and Metal use the column-major format
+
+    // The zenith rotation matrix is:
+    let M_b = simd_float3x3(SIMD3(1, 0, 0),
+                            SIMD3(0, cos(-b), -sin(-b)),
+                            SIMD3(0, sin(-b), cos(-b)))
+      .transpose // simd and Metal use the column-major format
+    
+//    // The transformation matrix is:
+//    return M_b * M_a
+    
+    // Switch the order of rotation, and you get the correct rotation from
+    // Minecraft.
+    return M_a * M_b
+  }
 }
 
 // Stores the events that occurred this frame, performs certain actions based on
@@ -27,7 +65,17 @@ class EventTracker {
   var playerState = PlayerState()
   
   // The sensitivity of the mouse movement
-  var sensitivity: CGFloat = 0.01
+  // Measured my trackpad as (816, 428). In Minecraft, two sweeps up the
+  // trackpad's Y direction rotated exactly 180 degrees. The settings were also
+  // at "mouse sensitivity = 100%".
+  var sensitivity: CGFloat = Double.pi / 2 / 428
+  
+  // TODO: Smooth out the very shaky movements - they might be causing a little
+  // bit of nausea. In Minecraft, it definitely feels delayed and/or smoothed,
+  // although it always arrives at the same precise position.
+  //
+  // This might have been fixed by decreasing the sensitivity (0.01 -> 0.0036).
+  // But leave the notice here; nausea is a very bad user experience problem.
   
   // Use atomics to bypass the crash when the main thread tries to access this.
   var keyboardWPressed: ManagedAtomic<Bool> = .init(false)
@@ -46,9 +94,8 @@ class EventTracker {
   var windowInForeground: ManagedAtomic<Bool> = ManagedAtomic(true)
   var mouseInWindow: ManagedAtomic<Bool> = ManagedAtomic(true)
   
-  // TODO: When the crosshair is inactive, disallow WASD and mouse. We don't
+  // When the crosshair is inactive, we disallow WASD and the mouse. We don't
   // want the user to mess with a predefined player position accidentally.
-  // TODO: When the crosshair is active, prevent the mouse from leaving the window.
   var crosshairActive: ManagedAtomic<Bool> = ManagedAtomic(false)
   var hideCursorCount: Int = 0
   
@@ -83,7 +130,6 @@ class EventTracker {
             ordering: .sequentiallyConsistent)
           
           if exchanged {
-//            print("Accumulated delta \(delta) \(next).")
             break
           } else {
             numTries += 1
@@ -236,28 +282,37 @@ extension EventTracker {
     let speed: Float = 1.0
     let positionDelta = speed * Float(frameDelta) / 120
     
+    // In Minecraft, WASD only affects horizontal position, even when flying.
+    let a = Float(playerState.azimuthAngle)
+    let M_a = simd_float3x3(SIMD3(cos(-a), 0, sin(-a)),
+                            SIMD3(0, 1, 0),
+                            SIMD3(-sin(-a), 0, cos(-a)))
+      .transpose // simd and Metal use the column-major format
+    let basisVectorX = M_a * SIMD3(1, 0, 0)
+    let basisVectorZ = M_a * SIMD3(0, 0, 1)
+    
     // Check if W is pressed and move forward along the z-axis
     if read(key: .keyboardW) == true {
       pressedKeys.append("W")
-      playerState.position.z -= positionDelta
+      playerState.position -= basisVectorZ * positionDelta
     }
     
     // Check if S is pressed and move backward along the z-axis
     if read(key: .keyboardS) == true {
       pressedKeys.append("S")
-      playerState.position.z += positionDelta
+      playerState.position += basisVectorZ * positionDelta
     }
     
     // Check if A is pressed and move left along the x-axis
     if read(key: .keyboardA) == true {
       pressedKeys.append("A")
-      playerState.position.x -= positionDelta
+      playerState.position -= basisVectorX * positionDelta
     }
     
     // Check if D is pressed and move right along the x-axis
     if read(key: .keyboardD) == true {
       pressedKeys.append("D")
-      playerState.position.x += positionDelta
+      playerState.position += basisVectorX * positionDelta
     }
     
     // Check if spacebar is pressed and move up along the y-axis
@@ -301,12 +356,6 @@ extension EventTracker {
   }
   
   func updateMouse() {
-    
-//    guard read(key: .keyboardEscape) == false else {
-//      return
-//    }
-//      print("Accepting delta: \(self.accumulatedMouseDelta)")
-    
     // Interpret the accumulated mouse delta as the translation.
     let translation = self.accumulatedMouseDelta
     
@@ -322,6 +371,6 @@ extension EventTracker {
     // flipping
     playerState.zenithAngle = max(0, min(.pi, playerState.zenithAngle))
     
-    print("Angles: \(playerState.azimuthAngle / .pi), \(playerState.zenithAngle / .pi)")
+    print("Angles: \(playerState.azimuthAngle / .pi), \(playerState.zenithAngle / .pi), Translation: \(translation)")
   }
 }

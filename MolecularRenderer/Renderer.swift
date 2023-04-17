@@ -5,9 +5,10 @@
 //  Created by Philip Turner on 2/22/23.
 //
 
-import Metal
 import AppKit
 import Atomics
+import Metal
+import simd
 
 func checkCVDisplayError(
   _ error: CVReturn,
@@ -354,8 +355,11 @@ extension Renderer {
     } else {
       struct Arguments {
         var position: SIMD3<Float>
+        var rotation: simd_float3x3
       }
-      var args = Arguments(position: self.eventTracker.playerState.position)
+      var args = Arguments(
+        position: self.eventTracker.playerState.position,
+        rotation: self.eventTracker.playerState.makeRotationMatrix())
       let argsLength = MemoryLayout<Arguments>.stride
       encoder.setBytes(&args, length: argsLength, index: 0)
       encoder.setBuffer(atomData, offset: 0, index: 1)

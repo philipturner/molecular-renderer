@@ -17,6 +17,7 @@ constant float FOV_90_SPAN_RECIPROCAL [[function_constant(2)]];
 
 struct Arguments {
   float3 position;
+  float3x3 rotation;
 };
 
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
@@ -62,6 +63,7 @@ kernel void renderMain
   rayDirection.y = -rayDirection.y;
   rayDirection.xy *= FOV_90_SPAN_RECIPROCAL;
   rayDirection = normalize(rayDirection);
+  rayDirection = args.rotation * rayDirection;
   
   float3 worldOrigin = args.position;
   ray ray { worldOrigin, rayDirection };
