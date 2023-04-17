@@ -9,9 +9,26 @@ import Atomics
 import AppKit
 import KeyCodes
 
+struct PlayerState {
+  // Player position in nanometers.
+  var position: SIMD3<Float> = SIMD3(repeating: 0)
+  
+  // The azimuth angle of the camera or the player in radians
+  var azimuthAngle: CGFloat = 0
+
+  // The zenith angle of the camera or the player in radians
+  var zenithAngle: CGFloat = .pi / 2
+}
+
 // Stores the events that occurred this frame, performs certain actions based on
 // each event, then clears the list of events when necessary.
 class EventTracker {
+  // State of the player in 3D.
+  var playerState = PlayerState()
+  
+  // The sensitivity of the mouse movement
+  var sensitivity: CGFloat = 0.01
+  
   // Use atomics to bypass the crash when the main thread tries to access this.
   var keyboardWPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardAPressed: ManagedAtomic<Bool> = .init(false)
@@ -29,11 +46,16 @@ class EventTracker {
   var windowInForeground: ManagedAtomic<Bool> = ManagedAtomic(true)
   var mouseInWindow: ManagedAtomic<Bool> = ManagedAtomic(true)
   
-  var playerPosition: SIMD3<Float> = SIMD3(repeating: 0)
-  
   // TODO: When the crosshair is inactive, disallow WASD and mouse. We don't
   // want the user to mess with a predefined player position accidentally.
+  // TODO: When the crosshair is active, prevent the mouse from leaving the window.
   var crosshairActive: ManagedAtomic<Bool> = ManagedAtomic(false)
+  var hideCursorCount: Int = 0
+  
+  // Buffer up the movements while waiting for the other thread to respond. This
+  // should be auto-cleared if it is not used.
+  var accumulatedMouseDeltaX: ManagedAtomic<UInt64> = ManagedAtomic(0)
+  var accumulatedMouseDeltaY: ManagedAtomic<UInt64> = ManagedAtomic(0)
   
   init() {
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
@@ -45,8 +67,62 @@ class EventTracker {
       self.mouseInWindow.store(true, ordering: .relaxed)
       return event
     }
+    
+    NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { event in
+      for (atomic, delta) in [(self.accumulatedMouseDeltaX, event.deltaX),
+                              (self.accumulatedMouseDeltaY, event.deltaY)] {
+        let maxTries = 10
+        var numTries = 0
+        var original = atomic.load(ordering: .sequentiallyConsistent)
+        
+        while numTries < maxTries {
+          let next = (Double(bitPattern: original) + delta).bitPattern
+          var exchanged: Bool
+          (exchanged, original) = atomic.compareExchange(
+            expected: original, desired: next,
+            ordering: .sequentiallyConsistent)
+          
+          if exchanged {
+//            print("Accumulated delta \(delta) \(next).")
+            break
+          } else {
+            numTries += 1
+          }
+        }
+        if numTries >= maxTries {
+          print("Failed to update mouse position: too many tries.")
+        }
+      }
+      return event
+    }
   }
   
+  func update(frameDelta: Int) {
+    // Check that the user is looking at the application.
+    // Proceed if the user is not in the game menu (analogy from Minecraft).
+    if windowInForeground.load(ordering: .relaxed),
+       mouseInWindow.load(ordering: .relaxed),
+       read(key: .keyboardEscape) == false {
+      // Update keyboard first.
+      self.updateKeyboard(frameDelta: frameDelta)
+      
+      // Update mouse second, so it can respond to the ESC key immediately.
+      self.updateMouse()
+    } else {
+      // Do not move the player right now.
+    }
+    
+    // Prevent previous mouse events from affecting future frames.
+    self.accumulatedMouseDelta = SIMD2(repeating: 0)
+  }
+  
+  // Perform any necessary cleanup, then close the app.
+  func closeApp(coordinator: Coordinator) {
+    exit(0)
+  }
+}
+
+extension EventTracker {
   func change(key: KeyboardHIDUsage, value: Bool) {
     switch key {
     case .keyboardW:
@@ -84,13 +160,16 @@ class EventTracker {
     case .keyboardLeftShift:
       return keyboardShiftPressed.load(ordering: .relaxed)
     case .keyboardEscape:
-      return crosshairActive.load(ordering: .relaxed)
+      // `true` means the crosshair is NOT active. This is analogous to
+      // Minecraft, where ESC opens the game menu.
+      return !crosshairActive.load(ordering: .relaxed)
     default:
       fatalError("Unsupported key \(key)")
     }
   }
 }
 
+// Handle keyboard events.
 extension Coordinator {
   // A method to handle key events
   override func keyDown(with event: NSEvent) {
@@ -146,18 +225,10 @@ extension Coordinator {
       eventTracker.change(key: .keyboardLeftShift, value: false)
     }
   }
-  
-  // TODO: Will need to lock the mouse pointer inside the Window, like Minecraft.
 }
 
 extension EventTracker {
-  func update(frameDelta: Int) {
-    if !windowInForeground.load(ordering: .relaxed) ||
-        !mouseInWindow.load(ordering: .relaxed) {
-      // Do not move the player right now.
-      return
-    }
-    
+  func updateKeyboard(frameDelta: Int) {
     var pressedKeys: [String] = []
     
     // Define a constant for the movement speed
@@ -168,41 +239,37 @@ extension EventTracker {
     // Check if W is pressed and move forward along the z-axis
     if read(key: .keyboardW) == true {
       pressedKeys.append("W")
-      playerPosition.z -= positionDelta
+      playerState.position.z -= positionDelta
     }
     
     // Check if S is pressed and move backward along the z-axis
     if read(key: .keyboardS) == true {
       pressedKeys.append("S")
-      playerPosition.z += positionDelta
+      playerState.position.z += positionDelta
     }
     
     // Check if A is pressed and move left along the x-axis
     if read(key: .keyboardA) == true {
       pressedKeys.append("A")
-      playerPosition.x -= positionDelta
+      playerState.position.x -= positionDelta
     }
     
     // Check if D is pressed and move right along the x-axis
     if read(key: .keyboardD) == true {
       pressedKeys.append("D")
-      playerPosition.x += positionDelta
+      playerState.position.x += positionDelta
     }
     
     // Check if spacebar is pressed and move up along the y-axis
     if read(key: .keyboardSpacebar) == true {
       pressedKeys.append("SPACE")
-      playerPosition.y += positionDelta
+      playerState.position.y += positionDelta
     }
     
     // Check if left shift is pressed and move down along the y-axis
     if read(key: .keyboardLeftShift) == true {
       pressedKeys.append("LSHIFT")
-      playerPosition.y -= positionDelta
-    }
-    
-    if read(key: .keyboardEscape) == true {
-//      pressedKeys.append("ESC")
+      playerState.position.y -= positionDelta
     }
     
 //    if !pressedKeys.isEmpty {
@@ -212,9 +279,49 @@ extension EventTracker {
   }
 }
 
+// Handle mouse events.
 extension EventTracker {
-  // Perform any necessary cleanup, then close the app.
-  func closeApp(coordinator: Coordinator) {
-    exit(0)
+  // Reference:
+  // https://stackoverflow.com/questions/50357135/swift-keep-mouse-pointer-from-leaving-window
+  
+  var accumulatedMouseDelta: SIMD2<Double> {
+    get {
+      return SIMD2(
+        .init(bitPattern: accumulatedMouseDeltaX.load(
+          ordering: .sequentiallyConsistent)),
+        .init(bitPattern: accumulatedMouseDeltaY.load(
+          ordering: .sequentiallyConsistent)))
+    }
+    set {
+      accumulatedMouseDeltaX.store(
+        newValue.x.bitPattern, ordering: .sequentiallyConsistent)
+      accumulatedMouseDeltaY.store(
+        newValue.y.bitPattern, ordering: .sequentiallyConsistent)
+    }
+  }
+  
+  func updateMouse() {
+    
+//    guard read(key: .keyboardEscape) == false else {
+//      return
+//    }
+//      print("Accepting delta: \(self.accumulatedMouseDelta)")
+    
+    // Interpret the accumulated mouse delta as the translation.
+    let translation = self.accumulatedMouseDelta
+    
+    // Update the azimuth angle by adding the horizontal translation
+    // multiplied by the sensitivity
+    playerState.azimuthAngle += translation.x * sensitivity
+
+    // Update the zenith angle by subtracting the vertical translation
+    // multiplied by the sensitivity
+    playerState.zenithAngle -= translation.y * sensitivity
+
+    // Limit the zenith angle to a range between 0 and pi radians to prevent
+    // flipping
+    playerState.zenithAngle = max(0, min(.pi, playerState.zenithAngle))
+    
+    print("Angles: \(playerState.azimuthAngle / .pi), \(playerState.zenithAngle / .pi)")
   }
 }

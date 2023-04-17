@@ -355,7 +355,7 @@ extension Renderer {
       struct Arguments {
         var position: SIMD3<Float>
       }
-      var args = Arguments(position: self.eventTracker.playerPosition)
+      var args = Arguments(position: self.eventTracker.playerState.position)
       let argsLength = MemoryLayout<Arguments>.stride
       encoder.setBytes(&args, length: argsLength, index: 0)
       encoder.setBuffer(atomData, offset: 0, index: 1)
