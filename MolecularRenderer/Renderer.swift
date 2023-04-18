@@ -107,7 +107,7 @@ class Renderer {
     
     // Create the acceleration structure.
     
-    let atoms: [Atom] = ExampleMolecules.ethylene
+    let atoms: [Atom] = ExampleMolecules.taggedEthylene
     
     let atomSize = MemoryLayout<Atom>.stride
     let atomBufferSize = atoms.count * atomSize

@@ -28,15 +28,18 @@ struct BoundingBox {
 struct Atom {
   packed_float3 origin;
   half radiusSquared;
-  ushort element;
+  uchar element;
+  uchar flags;
   
   Atom() {
     
   }
   
-  Atom(float3 origin, ushort element, constant AtomStatistics* atomData) {
+  Atom(constant AtomStatistics* atomData,
+       float3 origin, uchar element, uchar flags = 0) {
     this->origin = origin;
     this->element = element;
+    this->flags = flags;
     
     half radius = this->getRadius(atomData);
     this->radiusSquared = radius * radius;

@@ -78,12 +78,69 @@ kernel void renderMain
   
   if (intersect.accept) {
     // Base color of the sphere.
-    half3 diffuseColor = intersect.atom.getColor(atomData);
+    Atom atom = intersect.atom;
+    half3 diffuseColor = atom.getColor(atomData);
     float shininess = 16.0;
     float lightPower = 40.0;
     
-    // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 intersectionPoint = ray.origin + ray.direction * intersect.distance;
+    
+    // Apply checkerboard to tagged atoms.
+    if (atom.flags & 0x1) {
+      float3 delta = intersectionPoint - atom.origin;
+      bool3 axes_pos = delta > 0;
+      bool is_magenta = axes_pos.x ^ axes_pos.y ^ axes_pos.z;
+      
+//      // Rotate pi/4 radians around any axis (column-major).
+//      const float CHANGE = M_SQRT1_2_F * 1.500;
+//      const float2x2 cc_rotation(float2(CHANGE, CHANGE),
+//                                 float2(-CHANGE, CHANGE));
+//
+//      float3 normalized_delta = normalize(delta);
+//
+//      float3 vec = abs(normalized_delta);
+//      vec.yz = cc_rotation * vec.yz; // X
+//      vec.xy = cc_rotation * vec.xy; // Z
+//      bool exceeds_xz = any(vec.xy < 0);
+//
+//      vec = abs(normalized_delta);
+//      vec.zx = cc_rotation * vec.zx; // Y
+//      vec.yz = cc_rotation * vec.yz; // X
+//      bool exceeds_yx = any(vec.yx < 0);
+//
+//      vec = abs(normalized_delta);
+//      vec.xy = cc_rotation * vec.xy; // Z
+//      vec.zx = cc_rotation * vec.zx; // Y
+//      bool exceeds_zy = any(vec.zy < 0);
+//
+//      bool exceeds = exceeds_xz | exceeds_yx | exceeds_zy;
+//      //      bool exceeds = exceeds_zy;//all(abs(delta) > 0.1);
+      
+      float3 n_delta = normalize(abs(delta));
+      float center_dsq = distance_squared(n_delta, float3(0.57735));
+      float x_dsq = distance_squared(n_delta, float3(1, 0, 0));
+      float y_dsq = distance_squared(n_delta, float3(0, 1, 0));
+      float z_dsq = distance_squared(n_delta, float3(0, 0, 1));
+      
+      bool3 exceeds_raw = float3(x_dsq, y_dsq, z_dsq) < 1.700 * center_dsq;
+      bool exceeds = any(exceeds_raw);
+      
+      // Potential source of help:
+      // https://www.shadertoy.com/view/cllGzr
+      
+      // TODO: Each circle is defined by a plane: the 1/2 point between each
+      // pair of axes, and a constant direction of curvature. Make a formula
+      // that tests whether the point is over/under that plane, then fine-tune
+      // the slope. Also select the closest axes, so this test only needs
+      // to happen once (if that will improve performance or simplify code).
+      
+      // If it exceeds the bounds for the center tile, flip the color.
+      is_magenta = is_magenta ^ exceeds;
+      half3 magenta(223.0 / 255, 48.0 / 255, 235.0 / 255);
+      diffuseColor = is_magenta ? magenta : diffuseColor;
+    }
+    
+    // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 normal = normalize(intersectionPoint - intersect.atom.origin);
     float3 lightDirection = worldOrigin - intersectionPoint;
     float lightDistance = length(lightDirection);
@@ -93,7 +150,6 @@ kernel void renderMain
     float specular = 0;
     if (lambertian > 0.0) {
       // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
-//      float3 halfDirection = lightDirection;
       float specAngle = lambertian;
       specular = pow(specAngle, shininess);
     }

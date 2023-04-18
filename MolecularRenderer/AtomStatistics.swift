@@ -47,13 +47,15 @@ struct Atom {
   var y: Float
   var z: Float
   var radiusSquared: Float16
-  var element: UInt16
+  var element: UInt8
+  var flags: UInt8
   
-  init(origin: SIMD3<Float>, element: UInt16) {
+  init(origin: SIMD3<Float>, element: UInt8, flags: UInt8 = 0) {
     self.x = origin.x
     self.y = origin.y
     self.z = origin.z
     self.element = element
+    self.flags = flags
     
     let radius = atomRadii[Int(element)]
     self.radiusSquared = radius * radius
