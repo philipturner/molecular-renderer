@@ -10,15 +10,49 @@ import AppKit
 import KeyCodes
 import simd
 
+// Takes the average of the last N positions, to smooth out sudden jolts caused
+// by imperfect sampling. This decreases nausea and perceived stuttering. The
+// motion lag is (N - 1)/2 and the noise scales with rsqrt(N). However, the
+// reference system has only required a sample period of 2 to smooth out noise.
+struct RingBuffer<Scalar: FloatingPoint> {
+  private var history: [Scalar]
+  private var index: Int = 0
+  var last: Scalar
+  
+  init(repeating value: Scalar, count: Int) {
+    self.history = .init(repeating: value, count: count)
+    self.last = value
+  }
+  
+  mutating func store(_ value: Scalar) {
+    defer {
+      index = (index + 1) % history.count
+    }
+    
+    self.history[index] = value
+    self.last = value
+  }
+  
+  func load() -> Scalar {
+    history.reduce(0, +) / Scalar(exactly: history.count)!
+  }
+}
+
 struct PlayerState {
+  static let historyLength: Int = 3
+  
   // Player position in nanometers.
   var position: SIMD3<Float> = SIMD3(repeating: 0)
   
   // The azimuth angle of the camera or the player in radians
-  var azimuthAngle: CGFloat = 0
+  var azimuthAngle: CGFloat { azimuthHistory.load() }
+  var azimuthHistory: RingBuffer<CGFloat> = RingBuffer(
+    repeating: 0, count: historyLength)
 
   // The zenith angle of the camera or the player in radians
-  var zenithAngle: CGFloat = .pi / 2
+  var zenithAngle: CGFloat { zenithHistory.load() }
+  var zenithHistory: RingBuffer<CGFloat> = RingBuffer(
+    repeating: .pi / 2, count: historyLength)
   
   func makeRotationMatrix() -> simd_float3x3 {
     // Assume that the world space axes are x, y, z and the camera space axes
@@ -65,17 +99,11 @@ class EventTracker {
   var playerState = PlayerState()
   
   // The sensitivity of the mouse movement
+  //
   // Measured my trackpad as (816, 428). In Minecraft, two sweeps up the
   // trackpad's Y direction rotated exactly 180 degrees. The settings were also
   // at "mouse sensitivity = 100%".
   var sensitivity: CGFloat = Double.pi / 2 / 428
-  
-  // TODO: Smooth out the very shaky movements - they might be causing a little
-  // bit of nausea. In Minecraft, it definitely feels delayed and/or smoothed,
-  // although it always arrives at the same precise position.
-  //
-  // This might have been fixed by decreasing the sensitivity (0.01 -> 0.0036).
-  // But leave the notice here; nausea is a very bad user experience problem.
   
   // Use atomics to bypass the crash when the main thread tries to access this.
   var keyboardWPressed: ManagedAtomic<Bool> = .init(false)
@@ -361,15 +389,19 @@ extension EventTracker {
     
     // Update the azimuth angle by adding the horizontal translation
     // multiplied by the sensitivity
-    playerState.azimuthAngle += translation.x * sensitivity
+    var azimuthAngle = playerState.azimuthHistory.last
+    azimuthAngle += translation.x * sensitivity
+    playerState.azimuthHistory.store(azimuthAngle)
 
     // Update the zenith angle by subtracting the vertical translation
     // multiplied by the sensitivity
-    playerState.zenithAngle -= translation.y * sensitivity
-
+    var zenithAngle = playerState.zenithHistory.last
+    zenithAngle -= translation.y * sensitivity
+    
     // Limit the zenith angle to a range between 0 and pi radians to prevent
     // flipping
-    playerState.zenithAngle = max(0, min(.pi, playerState.zenithAngle))
+    zenithAngle = max(0, min(.pi, zenithAngle))
+    playerState.zenithHistory.store(zenithAngle)
     
     print("Angles: \(playerState.azimuthAngle / .pi), \(playerState.zenithAngle / .pi), Translation: \(translation)")
   }
