@@ -72,6 +72,9 @@ extension Coordinator {
   }
   
   @objc func windowWillClose(notification: NSNotification) {
+    // Prevent the mouse from staying trapped after the app closes.
+    CGDisplayShowCursor(CGMainDisplayID())
+    CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
     if (notification.object! as AnyObject) === view.window! {
       checkCVDisplayError(CVDisplayLinkStop(self.displayLink))
     }
