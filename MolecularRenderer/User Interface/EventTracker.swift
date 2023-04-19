@@ -10,87 +10,6 @@ import AppKit
 import KeyCodes
 import simd
 
-// Takes the average of the last N positions, to smooth out sudden jolts caused
-// by imperfect sampling. This decreases nausea and perceived stuttering. The
-// motion lag is (N - 1)/2 and the noise scales with rsqrt(N). However, the
-// reference system has only required a sample period of 2 to smooth out noise.
-struct RingBuffer<Scalar: FloatingPoint> {
-  private var history: [Scalar]
-  private var index: Int = 0
-  var last: Scalar
-  
-  init(repeating value: Scalar, count: Int) {
-    self.history = .init(repeating: value, count: count)
-    self.last = value
-  }
-  
-  mutating func store(_ value: Scalar) {
-    defer {
-      index = (index + 1) % history.count
-    }
-    
-    self.history[index] = value
-    self.last = value
-  }
-  
-  func load() -> Scalar {
-    history.reduce(0, +) / Scalar(exactly: history.count)!
-  }
-}
-
-struct PlayerState {
-  static let historyLength: Int = 3
-  
-  // Player position in nanometers.
-  var position: SIMD3<Float> = SIMD3(repeating: 0)
-  
-  // The azimuth angle of the camera or the player in radians
-  var azimuthAngle: CGFloat { azimuthHistory.load() }
-  var azimuthHistory: RingBuffer<CGFloat> = RingBuffer(
-    repeating: 0, count: historyLength)
-
-  // The zenith angle of the camera or the player in radians
-  var zenithAngle: CGFloat { zenithHistory.load() }
-  var zenithHistory: RingBuffer<CGFloat> = RingBuffer(
-    repeating: .pi / 2, count: historyLength)
-  
-  func makeRotationMatrix() -> simd_float3x3 {
-    // Assume that the world space axes are x, y, z and the camera space axes
-    // are u, v, w
-    // Assume that the azimuth angle is a and the zenith angle is b
-    // Assume that the ray direction in world space is r = (rx, ry, rz) and in
-    // camera space is s = (su, sv, sw)
-
-    // The transformation matrix can be obtained by multiplying two rotation
-    // matrices: one for azimuth and one for zenith
-    // The azimuth rotation matrix rotates the world space axes around the
-    // y-axis by -a radians
-    // The zenith rotation matrix rotates the camera space axes around the
-    // u-axis by -b radians
-    
-    let a = Float(azimuthAngle)
-    let b = Float.pi / 2 - Float(zenithAngle)
-
-    // The azimuth rotation matrix is:
-    let M_a = simd_float3x3(SIMD3(cos(-a), 0, sin(-a)),
-                            SIMD3(0, 1, 0),
-                            SIMD3(-sin(-a), 0, cos(-a)))
-      .transpose // simd and Metal use the column-major format
-
-    // The zenith rotation matrix is:
-    let M_b = simd_float3x3(SIMD3(1, 0, 0),
-                            SIMD3(0, cos(-b), -sin(-b)),
-                            SIMD3(0, sin(-b), cos(-b)))
-      .transpose // simd and Metal use the column-major format
-    
-//    // The transformation matrix is:
-//    return M_b * M_a
-    
-    // Switch the order of rotation, and you get the correct rotation from
-    // Minecraft.
-    return M_a * M_b
-  }
-}
 
 // Stores the events that occurred this frame, performs certain actions based on
 // each event, then clears the list of events when necessary.
@@ -100,19 +19,20 @@ class EventTracker {
   
   // The sensitivity of the mouse movement
   //
-  // Measured my trackpad as (816, 428). In Minecraft, two sweeps up the
+  // I measured my trackpad as (816, 428). In Minecraft, two sweeps up the
   // trackpad's Y direction rotated exactly 180 degrees. The settings were also
-  // at "mouse sensitivity = 100%".
-  var sensitivity: CGFloat = Double.pi / 2 / 428
+  // at "mouse sensitivity = 100%". You have to drag slowly, because mouse
+  // acceleration can make it rotate more.
+  var sensitivity: CGFloat = Double(0.5) / 2 / 428
+  
+  // TODO: Incorporate sprinting while flying, and allow the FOV to change
+  // dynamically in the shader (eases in/out).
   
   // Use atomics to bypass the crash when the main thread tries to access this.
   var keyboardWPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardAPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardSPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardDPressed: ManagedAtomic<Bool> = .init(false)
-  
-  // TODO: Minecraft-like sprinting or elytra controls, physics-based
-  // collisions with the nanostructure
   var keyboardSpacebarPressed: ManagedAtomic<Bool> = .init(false)
   var keyboardShiftPressed: ManagedAtomic<Bool> = .init(false)
   
@@ -190,9 +110,15 @@ class EventTracker {
     self.accumulatedMouseDelta = SIMD2(repeating: 0)
   }
   
-  // Perform any necessary cleanup, then close the app.
-  func closeApp(coordinator: Coordinator) {
-    exit(0)
+  // Perform any necessary cleanup before closing the app.
+  func closeApp(coordinator: Coordinator, forceExit: Bool) {
+    // Prevent the mouse from staying trapped after the app closes.
+    CGDisplayShowCursor(CGMainDisplayID())
+    CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
+    
+    if forceExit {
+      exit(0)
+    }
   }
 }
 
@@ -303,62 +229,45 @@ extension Coordinator {
 
 extension EventTracker {
   func updateKeyboard(frameDelta: Int) {
-    var pressedKeys: [String] = []
-    
-    // Define a constant for the movement speed
-    // 1.0 nanometers per second
+    // Define a constant for the movement speed: 1.0 nanometers per second
+    // TODO: Smoothstep the speed along with FOV when sprinting.
     let speed: Float = 1.0
     let positionDelta = speed * Float(frameDelta) / 120
     
     // In Minecraft, WASD only affects horizontal position, even when flying.
-    let a = Float(playerState.azimuthAngle)
-    let M_a = simd_float3x3(SIMD3(cos(-a), 0, sin(-a)),
-                            SIMD3(0, 1, 0),
-                            SIMD3(-sin(-a), 0, cos(-a)))
-      .transpose // simd and Metal use the column-major format
-    let basisVectorX = M_a * SIMD3(1, 0, 0)
-    let basisVectorZ = M_a * SIMD3(0, 0, 1)
+    let azimuth = playerState.rotations.azimuth
+    let basisVectorX = azimuth * SIMD3(1, 0, 0)
+    let basisVectorZ = azimuth * SIMD3(0, 0, 1)
     
     // Check if W is pressed and move forward along the z-axis
     if read(key: .keyboardW) == true {
-      pressedKeys.append("W")
       playerState.position -= basisVectorZ * positionDelta
     }
     
     // Check if S is pressed and move backward along the z-axis
     if read(key: .keyboardS) == true {
-      pressedKeys.append("S")
       playerState.position += basisVectorZ * positionDelta
     }
     
     // Check if A is pressed and move left along the x-axis
     if read(key: .keyboardA) == true {
-      pressedKeys.append("A")
       playerState.position -= basisVectorX * positionDelta
     }
     
     // Check if D is pressed and move right along the x-axis
     if read(key: .keyboardD) == true {
-      pressedKeys.append("D")
       playerState.position += basisVectorX * positionDelta
     }
     
     // Check if spacebar is pressed and move up along the y-axis
     if read(key: .keyboardSpacebar) == true {
-      pressedKeys.append("SPACE")
       playerState.position.y += positionDelta
     }
     
     // Check if left shift is pressed and move down along the y-axis
     if read(key: .keyboardLeftShift) == true {
-      pressedKeys.append("LSHIFT")
       playerState.position.y -= positionDelta
     }
-    
-//    if !pressedKeys.isEmpty {
-//      let message = String(pressedKeys.joined(separator: " "))
-//      print(message)
-//    }
   }
 }
 
@@ -389,20 +298,15 @@ extension EventTracker {
     
     // Update the azimuth angle by adding the horizontal translation
     // multiplied by the sensitivity
-    var azimuthAngle = playerState.azimuthHistory.last
-    azimuthAngle += translation.x * sensitivity
-    playerState.azimuthHistory.store(azimuthAngle)
+    let azimuthDelta = translation.x * sensitivity
 
     // Update the zenith angle by subtracting the vertical translation
     // multiplied by the sensitivity
-    var zenithAngle = playerState.zenithHistory.last
-    zenithAngle -= translation.y * sensitivity
+    let zenithDelta = translation.y * -sensitivity
     
-    // Limit the zenith angle to a range between 0 and pi radians to prevent
-    // flipping
-    zenithAngle = max(0, min(.pi, zenithAngle))
-    playerState.zenithHistory.store(zenithAngle)
-    
-    print("Angles: \(playerState.azimuthAngle / .pi), \(playerState.zenithAngle / .pi), Translation: \(translation)")
+    // Fetch the current orientation, then add to it.
+    var orientation = playerState.orientationHistory.last
+    orientation.add(azimuth: azimuthDelta, zenith: zenithDelta)
+    playerState.orientationHistory.store(orientation)
   }
 }

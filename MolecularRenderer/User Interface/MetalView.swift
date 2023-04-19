@@ -77,7 +77,8 @@ final class RendererView: NSView, CALayerDelegate {
       // disk here. Exit to prevent Xcode from having numerous background apps
       // that won't close on their own.
       print("Exiting the app.")
-      coordinator.eventTracker.closeApp(coordinator: coordinator)
+      coordinator.eventTracker.closeApp(
+        coordinator: coordinator, forceExit: true)
     } else {
       coordinator.setupCVDisplayLink(screen: self.window!.screen!)
       resizeDrawable(self.window!.screen!.backingScaleFactor)

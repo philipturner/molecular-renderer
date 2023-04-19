@@ -72,12 +72,10 @@ extension Coordinator {
   }
   
   @objc func windowWillClose(notification: NSNotification) {
-    // Prevent the mouse from staying trapped after the app closes.
-    CGDisplayShowCursor(CGMainDisplayID())
-    CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
     if (notification.object! as AnyObject) === view.window! {
       checkCVDisplayError(CVDisplayLinkStop(self.displayLink))
     }
+    eventTracker.closeApp(coordinator: self, forceExit: false)
   }
   
   func updateUI() {
@@ -106,7 +104,7 @@ extension Coordinator {
     let succeeded = view.window!.makeFirstResponder(self)
     if !succeeded {
       print("Could not become first responder. Exiting the app.")
-      eventTracker.closeApp(coordinator: self)
+      eventTracker.closeApp(coordinator: self, forceExit: true)
     }
     
     let crosshairActive = eventTracker.crosshairActive.load(ordering: .relaxed)

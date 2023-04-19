@@ -357,9 +357,11 @@ extension Renderer {
         var position: SIMD3<Float>
         var rotation: simd_float3x3
       }
+      let (azimuth, zenith) = eventTracker.playerState.rotations
       var args = Arguments(
         position: self.eventTracker.playerState.position,
-        rotation: self.eventTracker.playerState.makeRotationMatrix())
+        rotation: azimuth * zenith)
+      
       let argsLength = MemoryLayout<Arguments>.stride
       encoder.setBytes(&args, length: argsLength, index: 0)
       encoder.setBuffer(atomData, offset: 0, index: 1)
