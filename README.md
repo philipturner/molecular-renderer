@@ -89,12 +89,12 @@ Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s.
 
 ## References
 
-https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
+Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
 
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
+Visualizing molecules in stereoscopic AR/VR: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
 
-https://pubmed.ncbi.nlm.nih.gov/17080857/
+Impostors algorithm for approximate AO: https://pubmed.ncbi.nlm.nih.gov/17080857/
 
-http://litherum.blogspot.com/2021/05/understanding-cvdisplaylink.html
+Thesis on ambient occlusion and shadows, specifically for molecules: https://core.ac.uk/download/pdf/20053956.pdf
 
-https://core.ac.uk/download/pdf/20053956.pdf
+Nanite algorithm for vastly complex geometry: https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf
