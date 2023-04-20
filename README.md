@@ -96,3 +96,5 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
 https://pubmed.ncbi.nlm.nih.gov/17080857/
 
 http://litherum.blogspot.com/2021/05/understanding-cvdisplaylink.html
+
+https://core.ac.uk/download/pdf/20053956.pdf
