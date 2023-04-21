@@ -25,8 +25,11 @@ class EventTracker {
   // acceleration can make it rotate more.
   var sensitivity: CGFloat = Double(0.5) / 2 / 428
   
-  // TODO: Incorporate sprinting while flying, and allow the FOV to change
-  // dynamically in the shader (eases in/out).
+  // The first frame sometimes contains a sudden, buggy jump to an astronomical
+  // mouse position.
+  var remainingQuarantineFrames: Int = 2
+  
+  // TODO: Incorporate sprinting while flying, ease in/out the FOV.
   
   // Use atomics to bypass the crash when the main thread tries to access this.
   var keyboardWPressed: ManagedAtomic<Bool> = .init(false)
@@ -53,12 +56,19 @@ class EventTracker {
   var accumulatedMouseDeltaY: ManagedAtomic<UInt64> = ManagedAtomic(0)
   
   init() {
+    // TODO: Find another workaround. Since we pinned the mouse inside the
+    // window, and we can't receive key up events anymore, there's now a glitch
+    // where the player moves in one direction after you let go. This occurs
+    // when pressing F3.
+    
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
+      print("Mouse exited window.")
       self.mouseInWindow.store(false, ordering: .relaxed)
       return event
     }
     
     NSEvent.addLocalMonitorForEvents(matching: .mouseEntered) { event in
+      print("Mouse entered window.")
       self.mouseInWindow.store(true, ordering: .relaxed)
       return event
     }
@@ -91,12 +101,16 @@ class EventTracker {
     }
   }
   
+  // Check that the user is looking at the application.
+  var shouldAcceptInput: Bool {
+    var accept = windowInForeground.load(ordering: .relaxed)
+    accept = accept && mouseInWindow.load(ordering: .relaxed)
+    return accept
+  }
+  
   func update(frameDelta: Int) {
-    // Check that the user is looking at the application.
     // Proceed if the user is not in the game menu (analogy from Minecraft).
-    if windowInForeground.load(ordering: .relaxed),
-       mouseInWindow.load(ordering: .relaxed),
-       read(key: .keyboardEscape) == false {
+    if shouldAcceptInput, read(key: .keyboardEscape) == false {
       // Update keyboard first.
       self.updateKeyboard(frameDelta: frameDelta)
       
@@ -104,6 +118,12 @@ class EventTracker {
       self.updateMouse()
     } else {
       // Do not move the player right now.
+      self.change(key: .keyboardW, value: false)
+      self.change(key: .keyboardA, value: false)
+      self.change(key: .keyboardS, value: false)
+      self.change(key: .keyboardD, value: false)
+      self.change(key: .keyboardSpacebar, value: false)
+      self.change(key: .keyboardLeftShift, value: false)
     }
     
     // Prevent previous mouse events from affecting future frames.
@@ -175,6 +195,12 @@ extension Coordinator {
   override func keyDown(with event: NSEvent) {
     super.keyDown(with: event)
     
+    guard eventTracker.shouldAcceptInput else {
+      // Do not accept keyboard input. Doing so leads to a bug where the
+      // keyboard is disabled, even though the crosshair is active.
+      return
+    }
+    
     // Get the event type
     let type = event.type
     
@@ -192,6 +218,12 @@ extension Coordinator {
   override func keyUp(with event: NSEvent) {
     super.keyUp(with: event)
     
+    guard eventTracker.shouldAcceptInput else {
+      // Do not accept keyboard input. Doing so leads to a bug where the
+      // keyboard is disabled, even though the crosshair is active.
+      return
+    }
+    
     // Get the event type
     let type = event.type
     
@@ -208,6 +240,12 @@ extension Coordinator {
   // A method to handle modifier flags change events
   override func flagsChanged(with event: NSEvent) {
     super.flagsChanged(with: event)
+    
+    guard eventTracker.shouldAcceptInput else {
+      // Do not accept keyboard input. Doing so leads to a bug where the
+      // keyboard is disabled, even though the crosshair is active.
+      return
+    }
 
     // Get the modifier flags of the event
     let flags = event.modifierFlags.deviceIndependentOnly
@@ -295,6 +333,12 @@ extension EventTracker {
   func updateMouse() {
     // Interpret the accumulated mouse delta as the translation.
     let translation = self.accumulatedMouseDelta
+    if translation != .zero {
+      if remainingQuarantineFrames > 0 {
+        remainingQuarantineFrames -= 1
+        return
+      }
+    }
     
     // Update the azimuth angle by adding the horizontal translation
     // multiplied by the sensitivity

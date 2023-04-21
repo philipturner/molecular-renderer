@@ -31,7 +31,6 @@ class Renderer {
   var eventTracker: EventTracker {
     view.coordinator.eventTracker
   }
-  
   // Data for robustly synchronizing with the refresh rate.
   var currentRefreshRate: ManagedAtomic<Int> = .init(0)
   var frameID: Int = 0
@@ -54,6 +53,15 @@ class Renderer {
   var boundingBoxBuffer: MTLBuffer
   var accelerationStructure: MTLAccelerationStructure
   
+  // Data for MetalFX upscaling.
+  struct Arguments {
+    var fov90Span: Float
+    var fov90SpanReciprocal: Float
+    var position: SIMD3<Float>
+    var rotation: simd_float3x3
+  }
+  var previousArguments: Arguments?
+  
   init(view: RendererView) {
     self.view = view
     self.layer = view.layer as! CAMetalLayer
@@ -74,11 +82,6 @@ class Renderer {
     // Actual texture height.
     var screenHeight: UInt32 = .init(ContentView.size)
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
-    
-    // How many pixels are covered in either direction @ FOV=90?
-    let fov90Span: UInt32 = .init(ContentView.size) / 2
-    var fov90SpanReciprocal = 1 / Float(fov90Span)
-    constants.setConstantValue(&fov90SpanReciprocal, type: .float, index: 2)
     
     // Initialize the compute pipeline.
     let library = device.makeDefaultLibrary()!
@@ -353,17 +356,31 @@ extension Renderer {
       encoder.setBytes(&time1, length: 4, index: 0)
       encoder.setBytes(&time2, length: 4, index: 1)
     } else {
-      struct Arguments {
-        var position: SIMD3<Float>
-        var rotation: simd_float3x3
+      withUnsafeTemporaryAllocation(
+        of: Arguments.self, capacity: 2
+      ) { bufferPointer in
+        let fov90Span = Double(ContentView.size / 2)
+        let fov90SpanReciprocal = simd_precise_recip(fov90Span)
+        let (azimuth, zenith) = eventTracker.playerState.rotations
+        let args = Arguments(
+          fov90Span: Float(fov90Span),
+          fov90SpanReciprocal: Float(fov90SpanReciprocal),
+          position: self.eventTracker.playerState.position,
+          rotation: azimuth * zenith)
+        
+        bufferPointer[0] = args
+        if let previousArguments = self.previousArguments {
+          bufferPointer[1] = previousArguments
+        } else {
+          bufferPointer[1] = args
+        }
+        self.previousArguments = args
+        
+        let argsLength = 2 * MemoryLayout<Arguments>.stride
+        let baseAddress = bufferPointer.baseAddress!
+        encoder.setBytes(baseAddress, length: argsLength, index: 0)
       }
-      let (azimuth, zenith) = eventTracker.playerState.rotations
-      var args = Arguments(
-        position: self.eventTracker.playerState.position,
-        rotation: azimuth * zenith)
       
-      let argsLength = MemoryLayout<Arguments>.stride
-      encoder.setBytes(&args, length: argsLength, index: 0)
       encoder.setBuffer(atomData, offset: 0, index: 1)
       encoder.setAccelerationStructure(accelerationStructure, bufferIndex: 2)
     }
