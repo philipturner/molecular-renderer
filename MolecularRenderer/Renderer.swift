@@ -31,6 +31,7 @@ class Renderer {
   var eventTracker: EventTracker {
     view.coordinator.eventTracker
   }
+  
   // Data for robustly synchronizing with the refresh rate.
   var currentRefreshRate: ManagedAtomic<Int> = .init(0)
   var frameID: Int = 0
@@ -53,7 +54,7 @@ class Renderer {
   var boundingBoxBuffer: MTLBuffer
   var accelerationStructure: MTLAccelerationStructure
   
-  // Data for MetalFX upscaling.
+  // Cache previous arguments to generate motion vectors.
   struct Arguments {
     var fov90Span: Float
     var fov90SpanReciprocal: Float
