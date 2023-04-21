@@ -28,9 +28,9 @@ You can set a custom aspect ratio, instead of 1536x1536. Just make it divisible 
 The FOV adapts to the aspect ratio according to the heuristic below. The base FOV is 90 degrees by default, but you can customize it.
 
 ```swift
-let characteristicLength = sqrt(width * height)
-let scaleX = width / characteristicLength
-let scaleY = height / characteristicLength
+let geometricMeanLength = sqrt(width * height)
+let scaleX = width / geometricMeanLength
+let scaleY = height / geometricMeanLength
 
 let baseFOV = 90 // degrees
 let baseSlope = tan(baseFOV / 2)
@@ -39,14 +39,17 @@ let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
 TODO (performance):
-- Use triple-buffering, compact the acceleration structure every 3 frames.
-- Use Metal 3 fast resource loading to fetch geometry data from disk, 3 frames ahead.
-- Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
-- OpenMM Clang module for C/C++ bindings instead of Python (part of Xcode project).
+- Add optional MetalFX temporal antialiasing.
+- Use a RTAO-based renderer.
+- Use OpenMM CPU backend with the real-time simulation mode, port Drexler-MM2 forcefield.
+- Use OpenMM C++ bindings, extract atom tiles from GPU backend.
+- Use Metal 3 fast resource loading to stream geometry data from disk, several frames ahead.
+- Multiple tiers ray tracing algorithms, tradeoff between O(n) accel building cost and O(1) rendering cost.
 
 TODO (user interface):
-- HUD when crosshair is active: OpenMM ps/s, OpenMM ns/day, rendering ps/s, using Monocraft font.
-- Serialization format to save the simulation's starting parameters.
+- Sprinting like Minecraft for flying around at different speeds.
+- HUD when crosshair is active: OpenMM ps/s, OpenMM ns/day, rendering ps/s, using Monocraft font + SwiftUI.
+- Scripting API to reproduce any simulation.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
 - Enable replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
 
