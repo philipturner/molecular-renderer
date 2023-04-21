@@ -177,6 +177,8 @@ kernel void renderMain
       float magnitude = length(motionVector);
       if (magnitude > 0.25) {
         magnitude = log2(magnitude) + 2;
+      } else {
+        magnitude = 0;
       }
       half3 colors[1 + 5] = {
         half3(0.000, 0.000, 0.000), // 0

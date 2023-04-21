@@ -6,9 +6,7 @@ This is a platform for the author to conduct computational nanotechnology resear
 
 ## Usage
 
-After clicking the "start" button for rendering, do not switch the window to a different display. Doing so will break the rendering code.
-
-You can set a custom aspect ratio, instead of 1024x1024. Just remember to make it divisible by 2, and stay under ~2 million pixels. Below are common video resolutions.
+You can set a custom aspect ratio, instead of 1536x1536. Just make it divisible by 2 and stay under ~2 million pixels. Below are some   common video resolutions.
 
 ```
 1:1
@@ -42,27 +40,20 @@ let fovY = 2 * arctan(scaleY * baseSlope)
 
 TODO (performance):
 - Use triple-buffering, compact the acceleration structure every 3 frames.
-- Test 1024x1024 rendering first without MetalFX temporal upscaling, consider upscaling 1024x1024 -> 2048x2048.
 - Use Metal 3 fast resource loading to fetch geometry data from disk, 3 frames ahead.
-- Use Metal lossless compression for double-buffered intermediate textures.
-- Store previous frame's transform data to re-project the intersection position onto the screen, generating a screen-space motion vector.
 - Real-time simulation mode using OpenMM CPU backend, only viable for very small simulations.
 - OpenMM Clang module for C/C++ bindings instead of Python (part of Xcode project).
 
 TODO (user interface):
-- Modular mechanism to plug in different scripts, so I can save my research in a separate repo.
-- Display OpenMM ps/s, OpenMM ns/day, rendering ps/s in the command line.
-- Test out Metal HUD, document how to enable it.
+- HUD when crosshair is active: OpenMM ps/s, OpenMM ns/day, rendering ps/s, using Monocraft font.
 - Serialization format to save the simulation's starting parameters.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
-- API for replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
-- API for replaying at 1/2, 1/4, 1/8 the speed by decreasing the display refresh rate.
-- API for 1 fs, 2 fs, 4 fs time step modes.
+- Enable replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
 
 ## Requirements
 
 Dependencies:
-- macOS Ventura, Apple M1 chip
+- macOS Ventura, Apple silicon chip
 - Xcode 14 installed
 - OpenMM 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed
 
@@ -73,8 +64,8 @@ Memory/Disk:
 - Before compression: 9 MB per second of playback when under 6,000 atoms
 
 Display:
-- 512x512 -> 1024x1024 upscaled with MetalFX temporal upscaling
-- Monitor needs at least 1024x1024 pixels for the default resolution
+- 768x768 -> 1536x1536 upscaled with MetalFX temporal upscaling
+- Monitor needs at least 1536x1536 pixels for the default resolution
 - 30 Hz, 60 Hz, and 120 Hz supported
 
 ## Technical Details
