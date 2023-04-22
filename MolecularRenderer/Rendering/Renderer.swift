@@ -81,15 +81,23 @@ class Renderer {
     
     // Actual texture width.
     var screenWidth: UInt32 = .init(ContentView.size)
+    if Upscaler.doingUpscaling { screenWidth /= 2 }
     constants.setConstantValue(&screenWidth, type: .uint, index: 0)
     
     // Actual texture height.
     var screenHeight: UInt32 = .init(ContentView.size)
+    if Upscaler.doingUpscaling { screenHeight /= 2 }
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
-    // Whether to do antialiasing/upscaling.
-    var useMetalFX: Bool = Upscaler.doingUpscaling
-    constants.setConstantValue(&useMetalFX, type: .bool, index: 2)
+    if Renderer.checkingFrameRate {
+      let fov90Span = Double(ContentView.size / 2)
+      var fov90SpanReciprocal = simd_precise_recip(fov90Span)
+      constants.setConstantValue(&fov90SpanReciprocal, type: .float, index: 2)
+    } else {
+      // Whether to do antialiasing/upscaling.
+      var useMetalFX: Bool = Upscaler.doingUpscaling
+      constants.setConstantValue(&useMetalFX, type: .bool, index: 2)
+    }
     
     // Initialize the compute pipeline.
     let library = device.makeDefaultLibrary()!
@@ -288,7 +296,13 @@ extension Renderer {
     let drawable = view.metalLayer.nextDrawable()!
     precondition(drawable.texture.width == Int(ContentView.size))
     precondition(drawable.texture.height == Int(ContentView.size))
-    encoder.setTexture(drawable.texture, index: 0)
+    if Upscaler.doingUpscaling {
+      let textures = upscaler.currentTextures
+      encoder.setTextures(
+        [textures.color, textures.depth, textures.motion], range: 0..<3)
+    } else {
+      encoder.setTexture(drawable.texture, index: 0)
+    }
     
     // Dispatch even number of threads (the shader will rearrange them).
     let numThreadgroupsX = (Int(ContentView.size) + 15) / 16
@@ -297,6 +311,11 @@ extension Renderer {
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(16, 16, 1))
     encoder.endEncoding()
+    
+    if Upscaler.doingUpscaling {
+      upscaler.upscale(
+        commandBuffer: commandBuffer, drawableTexture: drawable.texture)
+    }
     
     // Present drawable and signal the semaphore.
     commandBuffer.present(drawable)
@@ -310,22 +329,24 @@ extension Renderer {
     withUnsafeTemporaryAllocation(
       of: Arguments.self, capacity: 2
     ) { bufferPointer in
-      let fov90Span = Double(ContentView.size / 2)
+      if Renderer.debuggingJitter {
+        // Log the jitter to the console.
+        print(upscaler.jitterOffsets)
+        
+        // Make the jitter clearly visible in the image.
+        upscaler.jitterOffsets *= 50
+      }
+      
+      var fov90Span = Double(ContentView.size / 2)
+      if Upscaler.doingUpscaling { fov90Span /= 2 }
       let fov90SpanReciprocal = simd_precise_recip(fov90Span)
       let (azimuth, zenith) = eventTracker.playerState.rotations
-      var args = Arguments(
+      let args = Arguments(
         fov90Span: Float(fov90Span),
         fov90SpanReciprocal: Float(fov90SpanReciprocal),
         jitter: upscaler.jitterOffsets,
         position: self.eventTracker.playerState.position,
         rotation: azimuth * zenith)
-      if Renderer.debuggingJitter {
-        // Log the jitter to the console.
-        print(args.jitter)
-        
-        // Make the jitter clearly visible in the image.
-        args.jitter *= 50
-      }
       
       bufferPointer[0] = args
       if let previousArguments = self.previousArguments {

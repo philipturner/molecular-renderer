@@ -39,7 +39,6 @@ let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
 TODO (performance):
-- Add optional MetalFX temporal antialiasing.
 - Use a RTAO-based renderer.
 - Use OpenMM CPU backend with the real-time simulation mode, port Drexler-MM2 forcefield.
 - Use OpenMM C++ bindings, extract atom tiles from GPU backend.

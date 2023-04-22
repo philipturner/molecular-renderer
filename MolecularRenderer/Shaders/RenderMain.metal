@@ -19,6 +19,7 @@ constant bool USE_METALFX [[function_constant(2)]];
 
 #define DEBUG_MOTION_VECTORS 0
 #define DEBUG_MOTION_VECTORS_USING_ORIENTATION 0
+#define DEBUG_DEPTH 0
 
 struct Arguments {
   // How many pixels are covered in either direction @ FOV=90?
@@ -40,11 +41,13 @@ struct Arguments {
 // structures.
 kernel void renderMain
  (
-  texture2d<half, access::write> outputTexture [[texture(0)]],
-  
   constant Arguments *args [[buffer(0)]],
   constant AtomStatistics *atomData [[buffer(1)]],
   primitive_acceleration_structure accelerationStructure [[buffer(2)]],
+  
+  texture2d<half, access::write> colorTexture [[texture(0)]],
+  texture2d<float, access::write> depthTexture [[texture(1), function_constant(USE_METALFX)]],
+  texture2d<half, access::write> motionTexture [[texture(2), function_constant(USE_METALFX)]],
   
   ushort2 tid [[thread_position_in_grid]],
   ushort2 tgid [[threadgroup_position_in_grid]],
@@ -89,6 +92,7 @@ kernel void renderMain
   rayDirection.y = -rayDirection.y;
   rayDirection.xy *= args->fov90SpanReciprocal;
   rayDirection = normalize(rayDirection);
+  float rayDirectionZ = rayDirection.z;
   rayDirection = args->rotation * rayDirection;
   
   float3 worldOrigin = args->position;
@@ -98,7 +102,7 @@ kernel void renderMain
   
   half3 color = { 0.707, 0.707, 0.707 };
   half2 motionVector = 0;
-  float depth = FLT_MAX;
+  float depth = -FLT_MAX;
   
   // Shade in the color.
   if (intersect.accept) {
@@ -150,9 +154,6 @@ kernel void renderMain
     color = half3(saturate(out));
     
     if (DEBUG_MOTION_VECTORS || USE_METALFX) {
-      // Write the depth as the intersection point's Z coordinate.
-      depth = intersectionPoint.z;
-      
       float3 direction = normalize(intersectionPoint - args[1].position);
       direction = transpose(args[1].rotation) * direction;
       direction *= args[1].fov90Span / direction.z;
@@ -163,6 +164,9 @@ kernel void renderMain
         color.g = direction.y;
         color.b = direction.z;
       } else {
+        // Write the depth as the intersection point's Z coordinate.
+        depth = rayDirectionZ * intersect.distance;
+        
         // I have no idea why, but the X coordinate is flipped here.
         float2 prevCoords = direction.xy;
         prevCoords.x = -prevCoords.x;
@@ -209,15 +213,18 @@ kernel void renderMain
   }
   
   // Write the output color.
-  outputTexture.write(half4(color, 1), pixelCoords);
+  if (DEBUG_DEPTH && !USE_METALFX) {
+    color = 1 / float(1 - depth);
+  }
+  colorTexture.write(half4(color, 1), pixelCoords);
   
   if (USE_METALFX) {
     // Write the output depth.
     depth = 1 / float(1 - depth); // map (0, -infty) to (1, 0)
-    // TODO: Write to texture.
+    depthTexture.write(float4{ depth }, pixelCoords);
     
     // Write the output motion vectors.
     motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
-    // TODO: Write to texture
+    motionTexture.write(half4{ motionVector.x, motionVector.y }, pixelCoords);
   }
 }
