@@ -12,6 +12,8 @@
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
+		98298F5A29F353E90008E248 /* Upscaler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98298F5929F353E90008E248 /* Upscaler.swift */; };
+		98298F5C29F357E70008E248 /* AccelerationStructureBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E87E29EB6EA600D0E779 /* KeyCodes in Frameworks */ = {isa = PBXBuildFile; productRef = 9852E87D29EB6EA600D0E779 /* KeyCodes */; };
@@ -35,6 +37,8 @@
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
 		981FCFF129ECAF24009904A2 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		981FCFF329EF52E9009904A2 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		98298F5929F353E90008E248 /* Upscaler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Upscaler.swift; sourceTree = "<group>"; };
+		98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccelerationStructureBuilder.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88029EB8CC100D0E779 /* how-to-create-the-ui.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = "how-to-create-the-ui.md"; sourceTree = "<group>"; };
@@ -89,6 +93,18 @@
 			path = "User Interface";
 			sourceTree = "<group>";
 		};
+		98298F5829F353D30008E248 /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				986ED88929A6CF3600E0653B /* Renderer.swift */,
+				98122D6E29DFBC14006200D1 /* AtomStatistics.swift */,
+				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
+				98298F5929F353E90008E248 /* Upscaler.swift */,
+				98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */,
+			);
+			path = Rendering;
+			sourceTree = "<group>";
+		};
 		9852E87F29EB8CA700D0E779 /* GPT-4 */ = {
 			isa = PBXGroup;
 			children = (
@@ -118,14 +134,12 @@
 		9898382429A6C08F00B4AA98 /* MolecularRenderer */ = {
 			isa = PBXGroup;
 			children = (
+				98298F5829F353D30008E248 /* Rendering */,
 				981FCFEE29ECAE0E009904A2 /* User Interface */,
 				981FCFED29ECADF5009904A2 /* Shaders */,
 				9898382929A6C09000B4AA98 /* Assets.xcassets */,
 				9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */,
 				9898382B29A6C09000B4AA98 /* Preview Content */,
-				986ED88929A6CF3600E0653B /* Renderer.swift */,
-				98122D6E29DFBC14006200D1 /* AtomStatistics.swift */,
-				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";
@@ -228,7 +242,9 @@
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98F3B30329DE60E6003B9AD7 /* CheckFrameRate.metal in Sources */,
+				98298F5A29F353E90008E248 /* Upscaler.swift in Sources */,
 				987C5CE529EA05AB00CE5EB7 /* RayTracing.metal in Sources */,
+				98298F5C29F357E70008E248 /* AccelerationStructureBuilder.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,

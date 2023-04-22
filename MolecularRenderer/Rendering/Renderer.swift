@@ -50,9 +50,9 @@ class Renderer {
   
   // Memory objects for rendering.
   var atomData: MTLBuffer
-  var atomBuffer: MTLBuffer
-  var boundingBoxBuffer: MTLBuffer
-  var accelerationStructure: MTLAccelerationStructure
+//  var atomBuffer: MTLBuffer
+//  var boundingBoxBuffer: MTLBuffer
+//  var accelerationStructure: MTLAccelerationStructure
   
   // Cache previous arguments to generate motion vectors.
   struct Arguments {
@@ -62,6 +62,10 @@ class Renderer {
     var rotation: simd_float3x3
   }
   var previousArguments: Arguments?
+  
+  // Objects to encapsulate complex operations.
+  var accelBuilder: AccelerationStructureBuilder!
+  var upscaler: Upscaler!
   
   init(view: RendererView) {
     self.view = view
@@ -111,108 +115,14 @@ class Renderer {
     
     // Create the acceleration structure.
     
-    let atoms: [Atom] = ExampleMolecules.taggedEthylene
     
-    let atomSize = MemoryLayout<Atom>.stride
-    let atomBufferSize = atoms.count * atomSize
-    precondition(atomSize == 16, "Unexpected atom size.")
-    self.atomBuffer = device.makeBuffer(length: atomBufferSize)!
     
-    do {
-      let atomsPointer = atomBuffer.contents()
-        .assumingMemoryBound(to: Atom.self)
-      for (index, atom) in atoms.enumerated() {
-        atomsPointer[index] = atom
-      }
-    }
     
-    let boundingBoxSize = MemoryLayout<BoundingBox>.stride
-    let boundingBoxBufferSize = atoms.count * boundingBoxSize
-    precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
-    self.boundingBoxBuffer = device.makeBuffer(length: boundingBoxBufferSize)!
     
-    do {
-      let boundingBoxesPointer = boundingBoxBuffer.contents()
-        .assumingMemoryBound(to: BoundingBox.self)
-      for (index, atom) in atoms.enumerated() {
-        let boundingBox = atom.boundingBox
-        boundingBoxesPointer[index] = boundingBox
-      }
-    }
     
-    let geometryDesc = MTLAccelerationStructureBoundingBoxGeometryDescriptor()
-    geometryDesc.primitiveDataBuffer = atomBuffer
-    geometryDesc.primitiveDataStride = atomSize
-    geometryDesc.primitiveDataBufferOffset = 0
-    geometryDesc.primitiveDataElementSize = atomSize
-    geometryDesc.boundingBoxCount = atoms.count
-    geometryDesc.boundingBoxStride = boundingBoxSize
-    geometryDesc.boundingBoxBufferOffset = 0
-    geometryDesc.boundingBoxBuffer = boundingBoxBuffer
     
-    let accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
-    accelDesc.geometryDescriptors = [geometryDesc]
-    do {
-      // Copied from Apple's ray tracing sample code:
-      // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
-      
-      // Query for the sizes needed to store and build the acceleration
-      // structure.
-      let accelSizes = device.accelerationStructureSizes(descriptor: accelDesc)
-      
-      // Allocate an acceleration structure large enough for this descriptor.
-      // This method doesn't actually build the acceleration structure, but
-      // rather allocates memory.
-      let structure = device.makeAccelerationStructure(
-        size: accelSizes.accelerationStructureSize)!
-      
-      // Allocate scratch space Metal uses to build the acceleration structure.
-      let scratchBuffer = device.makeBuffer(
-        length: 32 + accelSizes.buildScratchBufferSize)!
-      
-      // Create a command buffer that performs the acceleration structure build.
-      var commandBuffer = commandQueue.makeCommandBuffer()!
-      
-      // Create an acceleration structure command encoder.
-      var encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
-      
-      // Schedule the actual acceleration structure build.
-      encoder.build(
-        accelerationStructure: structure, descriptor: accelDesc,
-        scratchBuffer: scratchBuffer, scratchBufferOffset: 32)
-      
-      // Compute and write the compacted acceleration structure size into the
-      // buffer.
-      encoder.writeCompactedSize(
-        accelerationStructure: structure, buffer: scratchBuffer, offset: 0,
-        sizeDataType: .uint)
-      
-      // End encoding, and commit the command buffer so the GPU can start
-      // building the acceleration structure.
-      encoder.endEncoding()
-      
-      commandBuffer.commit()
-      commandBuffer.waitUntilCompleted()
-      
-      let compactedSize = scratchBuffer.contents()
-        .assumingMemoryBound(to: UInt32.self).pointee
-      let compactedStructure = device
-        .makeAccelerationStructure(size: Int(compactedSize))!
-      
-      commandBuffer = commandQueue.makeCommandBuffer()!
-      encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
-      
-      // Encode the command to copy and compact the acceleration structure into
-      // the smaller acceleration structure.
-      encoder.copyAndCompact(
-        sourceAccelerationStructure: structure,
-        destinationAccelerationStructure: compactedStructure)
-      
-      encoder.endEncoding()
-      commandBuffer.commit()
-      
-      self.accelerationStructure = compactedStructure
-    }
+    self.accelBuilder = AccelerationStructureBuilder(renderer: self)
+    self.upscaler = Upscaler(renderer: self)
   }
 }
 
@@ -223,6 +133,7 @@ extension NSScreen {
   }
 }
 
+// Code for handling the frame rate.
 extension Renderer {
   // Called at the beginning of each screen refresh.
   func vsyncHandler(
@@ -253,23 +164,23 @@ extension Renderer {
   }
   
   func frames(start: CVTimeStamp, end: CVTimeStamp) -> Double {
-    #if arch(arm64)
+#if arch(arm64)
     let ticksPerSecond: Int = 24 * 1000 * 1000
     let ticksPerFrame = ticksPerSecond / 120
-    #else
-    #error("This does not work on x86.")
-    #endif
+#else
+#error("This does not work on x86.")
+#endif
     
     let deltaTicks = max(0, Int(end.hostTime) - Int(start.hostTime))
     return Double(deltaTicks) / Double(ticksPerFrame)
   }
   
   func seconds(start: CVTimeStamp, end: CVTimeStamp) -> Double {
-    #if arch(arm64)
+#if arch(arm64)
     let ticksPerSecond: Int = 24 * 1000 * 1000
-    #else
-    #error("This does not work on x86.")
-    #endif
+#else
+#error("This does not work on x86.")
+#endif
     
     let deltaTicks = max(0, Int(end.hostTime) - Int(start.hostTime))
     return Double(deltaTicks) / Double(ticksPerSecond)
@@ -280,8 +191,7 @@ extension Renderer {
     120 / currentRefreshRate.load(ordering: .relaxed)
   }
   
-  func update() {
-    renderSemaphore.wait()
+  func updateFrameID() {
     frameID += 1
     
     let previousFrameID = adjustedFrameID
@@ -338,18 +248,31 @@ extension Renderer {
     let frameDelta = nextFrameID - previousFrameID
     self.eventTracker.update(frameDelta: frameDelta)
     
-    if Self.debuggingFrameRate {
+    if Renderer.debuggingFrameRate {
       print(
         nextFrameID - previousFrameID, targetFrameID - nextFrameID,
         sustainedMisalignment, sustainedMisalignmentDuration,
         sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
+    }
+  }
+}
+
+// Code for sending commands to the GPU.
+extension Renderer {
+  func update() {
+    self.renderSemaphore.wait()
+    self.updateFrameID()
+    
+    if Renderer.checkingFrameRate == false {
+      let atoms: [Atom] = ExampleMolecules.taggedEthylene
+      self.accelBuilder.build(atoms: atoms)
     }
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
     
-    if Self.checkingFrameRate {
+    if Renderer.checkingFrameRate {
       // Set the time to determine synchronization.
       var time1 = Float(adjustedFrameID) / Float(120)
       var time2 = Float(
@@ -357,33 +280,9 @@ extension Renderer {
       encoder.setBytes(&time1, length: 4, index: 0)
       encoder.setBytes(&time2, length: 4, index: 1)
     } else {
-      withUnsafeTemporaryAllocation(
-        of: Arguments.self, capacity: 2
-      ) { bufferPointer in
-        let fov90Span = Double(ContentView.size / 2)
-        let fov90SpanReciprocal = simd_precise_recip(fov90Span)
-        let (azimuth, zenith) = eventTracker.playerState.rotations
-        let args = Arguments(
-          fov90Span: Float(fov90Span),
-          fov90SpanReciprocal: Float(fov90SpanReciprocal),
-          position: self.eventTracker.playerState.position,
-          rotation: azimuth * zenith)
-        
-        bufferPointer[0] = args
-        if let previousArguments = self.previousArguments {
-          bufferPointer[1] = previousArguments
-        } else {
-          bufferPointer[1] = args
-        }
-        self.previousArguments = args
-        
-        let argsLength = 2 * MemoryLayout<Arguments>.stride
-        let baseAddress = bufferPointer.baseAddress!
-        encoder.setBytes(baseAddress, length: argsLength, index: 0)
-      }
-      
+      encodeArguments(encoder: encoder)
       encoder.setBuffer(atomData, offset: 0, index: 1)
-      encoder.setAccelerationStructure(accelerationStructure, bufferIndex: 2)
+      encoder.setAccelerationStructure(accelBuilder.accel, bufferIndex: 2)
     }
     
     // Acquire reference to the drawable.
@@ -406,5 +305,32 @@ extension Renderer {
       renderSemaphore.signal()
     }
     commandBuffer.commit()
+  }
+  
+  func encodeArguments(encoder: MTLComputeCommandEncoder) {
+    withUnsafeTemporaryAllocation(
+      of: Arguments.self, capacity: 2
+    ) { bufferPointer in
+      let fov90Span = Double(ContentView.size / 2)
+      let fov90SpanReciprocal = simd_precise_recip(fov90Span)
+      let (azimuth, zenith) = eventTracker.playerState.rotations
+      let args = Arguments(
+        fov90Span: Float(fov90Span),
+        fov90SpanReciprocal: Float(fov90SpanReciprocal),
+        position: self.eventTracker.playerState.position,
+        rotation: azimuth * zenith)
+      
+      bufferPointer[0] = args
+      if let previousArguments = self.previousArguments {
+        bufferPointer[1] = previousArguments
+      } else {
+        bufferPointer[1] = args
+      }
+      self.previousArguments = args
+      
+      let argsLength = 2 * MemoryLayout<Arguments>.stride
+      let baseAddress = bufferPointer.baseAddress!
+      encoder.setBytes(baseAddress, length: argsLength, index: 0)
+    }
   }
 }

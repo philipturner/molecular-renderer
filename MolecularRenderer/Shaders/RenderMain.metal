@@ -16,13 +16,16 @@ using namespace raytracing;
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
-#define DEBUG_MOTION_VECTORS 1
+#define DEBUG_MOTION_VECTORS 0
 #define DEBUG_MOTION_VECTORS_USING_ORIENTATION 0
 
 struct Arguments {
   // How many pixels are covered in either direction @ FOV=90?
   float fov90Span;
   float fov90SpanReciprocal;
+  
+//  // The jitter to apply to the pixel.
+//  float2 jitter;
   
   // This frame's position and orientation.
   float3 position;
