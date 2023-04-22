@@ -263,9 +263,10 @@ extension Renderer {
     self.renderSemaphore.wait()
     self.updateFrameID()
     
+    var accel: MTLAccelerationStructure?
     if Renderer.checkingFrameRate == false {
       let atoms: [Atom] = ExampleMolecules.taggedEthylene
-      self.accelBuilder.build(atoms: atoms)
+      accel = self.accelBuilder.build(atoms: atoms)
     }
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -282,7 +283,7 @@ extension Renderer {
     } else {
       encodeArguments(encoder: encoder)
       encoder.setBuffer(atomData, offset: 0, index: 1)
-      encoder.setAccelerationStructure(accelBuilder.accel, bufferIndex: 2)
+      encoder.setAccelerationStructure(accel!, bufferIndex: 2)
     }
     
     // Acquire reference to the drawable.
