@@ -11,7 +11,10 @@ import Metal
 // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
 
 struct AccelerationStructureBuilder {
-  static let doingCompaction = true
+  // Compaction saves a lot of memory, but doesn't really change whether it is
+  // aligned along cache lines. If anything, it only increases the memory
+  // because we now have two scratch buffers.
+  static let doingCompaction = false
   
   // Main rendering resources.
   var device: MTLDevice
@@ -50,7 +53,8 @@ extension AccelerationStructureBuilder {
     from buffers: inout [MTLBuffer?],
     index: inout Int,
     currentSize: inout Int,
-    desiredSize: Int
+    desiredSize: Int,
+    name: String
   ) -> MTLBuffer {
     var resource = fetch(from: buffers, size: desiredSize, index: index)
     if resource == nil {
@@ -58,6 +62,7 @@ extension AccelerationStructureBuilder {
         currentSize: &currentSize, desiredSize: desiredSize, {
           $0.makeBuffer(length: $1)
         })
+      resource!.label = name
     }
     guard let resource else { fatalError("This should never happen.") }
     append(resource, to: &buffers, index: &index)
@@ -104,7 +109,7 @@ extension AccelerationStructureBuilder {
 }
 
 extension AccelerationStructureBuilder {
-  mutating func build(atoms: [Atom]) -> MTLAccelerationStructure {
+  mutating func build(atoms: [Atom], commandBuffer: MTLCommandBuffer) -> MTLAccelerationStructure {
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<Atom>.stride
     let atomBufferSize = atoms.count * atomSize
@@ -113,7 +118,8 @@ extension AccelerationStructureBuilder {
       from: &atomBuffers,
       index: &atomBufferIndex,
       currentSize: &maxAtomBufferSize,
-      desiredSize: atomBufferSize)
+      desiredSize: atomBufferSize,
+      name: "Atoms")
     
     // Write the buffer's contents.
     do {
@@ -132,7 +138,8 @@ extension AccelerationStructureBuilder {
       from: &boundingBoxBuffers,
       index: &boundingBoxBufferIndex,
       currentSize: &maxBoundingBoxBufferSize,
-      desiredSize: boundingBoxBufferSize)
+      desiredSize: boundingBoxBufferSize,
+      name: "Bounding Boxes")
     
     // Write the buffer's contents.
     do {
@@ -154,6 +161,14 @@ extension AccelerationStructureBuilder {
     geometryDesc.boundingBoxBufferOffset = 0
     geometryDesc.boundingBoxBuffer = boundingBoxBuffer
     
+    // The intersection function is going to be extremely expensive. Set this
+    // flag even before we migrate to tile-based intersections, to see the
+    // performance impact.
+    // TODO: Measure how much this impacts the accel construction pass and the
+    // render pass. If rendering doesn't require many intersections, this may
+    // harm performance.
+    geometryDesc.allowDuplicateIntersectionFunctionInvocation = false
+    
     let accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
     accelDesc.geometryDescriptors = [geometryDesc]
     
@@ -165,7 +180,8 @@ extension AccelerationStructureBuilder {
       from: &scratchBuffers,
       index: &scratchBufferIndex,
       currentSize: &maxScratchBufferSize,
-      desiredSize: 32 + accelSizes.buildScratchBufferSize)
+      desiredSize: 32 + accelSizes.buildScratchBufferSize,
+      name: "Scratch Space")
     
     // Allocate an acceleration structure large enough for this descriptor. This
     // method doesn't actually build the acceleration structure, but rather
@@ -177,12 +193,10 @@ extension AccelerationStructureBuilder {
         currentSize: &maxAccelSize, desiredSize: desiredSize, {
           $0.makeAccelerationStructure(size: $1)
         })
+      accel!.label = "Molecule"
     }
     guard var accel else { fatalError("This should never happen.") }
     append(accel, to: &accels, index: &accelIndex)
-    
-    // Create a command buffer that performs the acceleration structure build.
-    let commandBuffer = commandQueue.makeCommandBuffer()!
     
     // Create an acceleration structure command encoder.
     let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
@@ -200,7 +214,6 @@ extension AccelerationStructureBuilder {
     // End encoding, and commit the command buffer so the GPU can start building
     // the acceleration structure.
     encoder.endEncoding()
-    commandBuffer.commit()
     
     // Return the acceleration structure.
     return accel
@@ -219,6 +232,7 @@ extension AccelerationStructureBuilder {
         currentSize: &maxAccelSize, desiredSize: desiredSize, {
           $0.makeAccelerationStructure(size: $1)
         })
+      compactedAccel!.label = "Molecule (Compacted)"
     }
     guard let compactedAccel else { fatalError("This should never happen.") }
     

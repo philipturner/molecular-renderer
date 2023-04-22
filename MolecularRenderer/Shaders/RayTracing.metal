@@ -30,7 +30,7 @@ public:
   static AtomIntersection atomIntersectionFunction(ray ray, Atom atom) {
     float3 oc = ray.origin - atom.origin;
     float a = dot(ray.direction, ray.direction);
-    float b = 2 * dot(oc,ray.direction);
+    float b = 2 * dot(oc, ray.direction);
     float c = dot(oc, oc) - atom.radiusSquared;
     float disc = b * b - 4 * a * c;
     AtomIntersection ret;

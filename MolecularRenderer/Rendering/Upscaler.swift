@@ -48,6 +48,15 @@ struct Upscaler {
     self.intermediateSize = Int(ContentView.size / 2)
     self.upscaledSize = Int(ContentView.size)
     
+    guard Upscaler.doingUpscaling else {
+      // Do not create the upscaler object or intermediate textures.
+      return
+    }
+    
+    // Ensure the textures use lossless compression.
+    let commandBuffer = commandQueue.makeCommandBuffer()!
+    let encoder = commandBuffer.makeBlitCommandEncoder()!
+    
     for _ in 0..<2 {
       let desc = MTLTextureDescriptor()
       desc.width = intermediateSize
@@ -57,26 +66,32 @@ struct Upscaler {
       
       desc.pixelFormat = .rgb10a2Unorm
       let color = device.makeTexture(descriptor: desc)!
+      color.label = "Intermediate Color"
       
       desc.pixelFormat = .r32Float
       let depth = device.makeTexture(descriptor: desc)!
+      depth.label = "Intermediate Depth"
       
       desc.pixelFormat = .rg16Float
       let motion = device.makeTexture(descriptor: desc)!
+      motion.label = "Intermediate Motion"
       
       desc.pixelFormat = .rgb10a2Unorm
       desc.width = upscaledSize
       desc.height = upscaledSize
       let upscaled = device.makeTexture(descriptor: desc)!
+      upscaled.label = "Upscaled Color"
       
       textures.append(IntermediateTextures(
         color: color, depth: depth, motion: motion, upscaled: upscaled))
+      
+      for texture in [color, depth, motion, upscaled] {
+        encoder.optimizeContentsForGPUAccess(texture: texture)
+      }
     }
     
-    guard Upscaler.doingUpscaling else {
-      // Do not create the upscaler object.
-      return
-    }
+    encoder.endEncoding()
+    commandBuffer.commit()
     
     let desc = MTLFXTemporalScalerDescriptor()
     desc.inputWidth = intermediateSize
@@ -110,14 +125,7 @@ extension Upscaler {
   mutating func updateResources() {
     self.jitterFrameID += 1
     self.jitterOffsets = makeJitterOffsets()
-    self.textureIndex = (self.textureIndex + 1) % textures.count
-    
-    guard Upscaler.doingUpscaling else {
-      // Not using intermediate textures.
-      return
-    }
-    
-    // Do something with the intermediate textures?
+    self.textureIndex = (self.textureIndex + 1) % 2
   }
   
   private func makeJitterOffsets() -> SIMD2<Float> {

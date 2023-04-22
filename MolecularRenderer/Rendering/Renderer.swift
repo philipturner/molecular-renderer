@@ -267,15 +267,17 @@ extension Renderer {
   func update() {
     self.renderSemaphore.wait()
     self.updateFrameID()
+    self.upscaler.updateResources()
+    
+    // Command buffer shared between the geometry and rendering passes.
+    let commandBuffer = commandQueue.makeCommandBuffer()!
     
     var accel: MTLAccelerationStructure?
     if Renderer.checkingFrameRate == false {
       let atoms: [Atom] = ExampleMolecules.taggedEthylene
-      accel = self.accelBuilder.build(atoms: atoms)
+      accel = accelBuilder.build(atoms: atoms, commandBuffer: commandBuffer)
     }
-    self.upscaler.updateResources()
     
-    let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
     
