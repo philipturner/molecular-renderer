@@ -7,12 +7,17 @@
 
 import Metal
 
-// Credit: Partially sourced from
+// Partially sourced from:
 // https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
 
 struct Upscaler {
   var jitterFrameID: Int = 0
+  var jitterOffsets: SIMD2<Float> = .zero
   static let doingUpscaling = true
+  
+  // Double-buffer the textures to remove resource dependency.
+  // TODO: The textures
+  // TODO: The texture index is simply [jitterFrameID % 2]
   
   init(renderer: Renderer) {
     
@@ -20,11 +25,20 @@ struct Upscaler {
 }
 
 extension Upscaler {
-  mutating func makeJitterOffsets() -> SIMD2<Float> {
-    defer {
-      self.jitterFrameID += 1
+  mutating func updateResources() {
+    self.jitterFrameID += 1
+    self.jitterOffsets = makeJitterOffsets()
+    
+    guard Upscaler.doingUpscaling else {
+      // Not using intermediate textures.
+      return
     }
-    if !Upscaler.doingUpscaling {
+    
+    // Swap out the textures for rendering...
+  }
+  
+  private func makeJitterOffsets() -> SIMD2<Float> {
+    if Upscaler.doingUpscaling == false {
       return SIMD2.zero
     }
     
@@ -53,6 +67,10 @@ extension Upscaler {
     // We're not sampling textures or working with multiple coordinate spaces.
     // No need to flip the Y coordinate to match another coordinate space.
     return SIMD2(x, y)
+  }
+  
+  func upscale() {
+    
   }
 }
 

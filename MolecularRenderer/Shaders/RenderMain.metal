@@ -15,6 +15,7 @@ using namespace raytracing;
 // MetalFX upscaling.
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
+constant bool USE_METALFX [[function_constant(2)]];
 
 #define DEBUG_MOTION_VECTORS 0
 #define DEBUG_MOTION_VECTORS_USING_ORIENTATION 0
@@ -24,8 +25,8 @@ struct Arguments {
   float fov90Span;
   float fov90SpanReciprocal;
   
-//  // The jitter to apply to the pixel.
-//  float2 jitter;
+  // The jitter to apply to the pixel.
+  float2 jitter;
   
   // This frame's position and orientation.
   float3 position;
@@ -81,6 +82,9 @@ kernel void renderMain
   }
   
   float3 rayDirection(float2(pixelCoords) + 0.5, -1);
+  if (USE_METALFX) {
+    rayDirection.xy += args->jitter;
+  }
   rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
   rayDirection.y = -rayDirection.y;
   rayDirection.xy *= args->fov90SpanReciprocal;
@@ -94,7 +98,9 @@ kernel void renderMain
   
   half3 color = { 0.707, 0.707, 0.707 };
   half2 motionVector = 0;
+  float depth = FLT_MAX;
   
+  // Shade in the color.
   if (intersect.accept) {
     Atom atom = intersect.atom;
     float shininess = 16.0;
@@ -136,7 +142,6 @@ kernel void renderMain
       specular = pow(specAngle, shininess);
     }
     
-    // TODO: Make a cutoff so that no atom is completely in the dark.
     // TODO: The specular part looks very strange for colors besides gray.
     // Using the PyMOL rendering algorithm should fix this.
     float scaledLightPower = smoothstep(0, 1, lightPower / lightDistance);
@@ -144,15 +149,15 @@ kernel void renderMain
     out += specular * scaledLightPower;
     color = half3(saturate(out));
     
-    // TODO: Initialize the motion vector variable outside the loop, incorporate
-    // sampling offset into the shader arguments. Make sure the image looks
-    // jittery.
-    if (DEBUG_MOTION_VECTORS) {
+    if (DEBUG_MOTION_VECTORS || USE_METALFX) {
+      // Write the depth as the intersection point's Z coordinate.
+      depth = intersectionPoint.z;
+      
       float3 direction = normalize(intersectionPoint - args[1].position);
       direction = transpose(args[1].rotation) * direction;
       direction *= args[1].fov90Span / direction.z;
       
-      if (DEBUG_MOTION_VECTORS_USING_ORIENTATION) {
+      if (DEBUG_MOTION_VECTORS_USING_ORIENTATION && !USE_METALFX) {
         direction /= 40;
         color.r = direction.x;
         color.g = direction.y;
@@ -175,7 +180,7 @@ kernel void renderMain
     }
   }
   
-  if (DEBUG_MOTION_VECTORS) {
+  if (DEBUG_MOTION_VECTORS && !USE_METALFX) {
     if (!DEBUG_MOTION_VECTORS_USING_ORIENTATION) {
       float magnitude = length(motionVector);
       if (magnitude > 0.25) {
@@ -200,12 +205,19 @@ kernel void renderMain
       } else {
         color = colors[5];
       }
-      
-//      color = length(motionVector);
     }
   }
   
-  motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
+  // Write the output color.
   outputTexture.write(half4(color, 1), pixelCoords);
-  // write motion vector
+  
+  if (USE_METALFX) {
+    // Write the output depth.
+    depth = 1 / float(1 - depth); // map (0, -infty) to (1, 0)
+    // TODO: Write to texture.
+    
+    // Write the output motion vectors.
+    motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
+    // TODO: Write to texture
+  }
 }

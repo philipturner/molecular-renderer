@@ -7,6 +7,9 @@
 
 import Metal
 
+// Partially sourced from:
+// https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
+
 struct AccelerationStructureBuilder {
   static let doingCompaction = true
   
@@ -14,11 +17,14 @@ struct AccelerationStructureBuilder {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   
-  // Memory objects for rendering.
+  // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
   var boundingBoxBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
-  var scratchBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
-  var accels: [MTLAccelerationStructure?] = Array(repeating: nil, count: 3)
+  
+  // Double buffer the accels to remove dependencies between frames.
+  // If compaction is enabled, some dependencies will not be removed.
+  var scratchBuffers: [MTLBuffer?] = Array(repeating: nil, count: 2)
+  var accels: [MTLAccelerationStructure?] = Array(repeating: nil, count: 2)
   
   // Keep track of memory sizes for exponential expansion.
   var maxAtomBufferSize: Int = 1 << 10
@@ -29,8 +35,8 @@ struct AccelerationStructureBuilder {
   // Indices into ring buffers of memory objects.
   var atomBufferIndex: Int = 0 // modulo 3
   var boundingBoxBufferIndex: Int = 0 // modulo 3
-  var scratchBufferIndex: Int = 0 // modulo 3, sometimes skips one each frame
-  var accelIndex: Int = 0 // modulo 3, sometimes skips one each frame
+  var scratchBufferIndex: Int = 0 // modulo 2
+  var accelIndex: Int = 0 // modulo 2
   
   init(renderer: Renderer) {
     self.device = renderer.device
@@ -93,7 +99,7 @@ extension AccelerationStructureBuilder {
     index: inout Int
   ) {
     buffers[index] = object
-    index = (index + 1) % 3
+    index = (index + 1) % buffers.count
   }
 }
 
@@ -150,68 +156,63 @@ extension AccelerationStructureBuilder {
     
     let accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
     accelDesc.geometryDescriptors = [geometryDesc]
-    do {
-      // Copied from Apple's ray tracing sample code:
-      // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
-      
-      // Query for the sizes needed to store and build the acceleration
-      // structure.
-      let accelSizes = device.accelerationStructureSizes(descriptor: accelDesc)
-      
-      // Allocate scratch space Metal uses to build the acceleration structure.
-      let scratchBuffer = cycle(
-        from: &scratchBuffers,
-        index: &scratchBufferIndex,
-        currentSize: &maxScratchBufferSize,
-        desiredSize: 32 + accelSizes.buildScratchBufferSize)
-      
-      // Allocate an acceleration structure large enough for this descriptor.
-      // This method doesn't actually build the acceleration structure, but
-      // rather allocates memory.
-      let desiredSize = accelSizes.accelerationStructureSize
-      var accel = fetch(from: accels, size: desiredSize, index: accelIndex)
-      if accel == nil {
-        accel = create(
-          currentSize: &maxAccelSize, desiredSize: desiredSize, {
-            $0.makeAccelerationStructure(size: $1)
-          })
-      }
-      guard var accel else { fatalError("This should never happen.") }
-      append(accel, to: &accels, index: &accelIndex)
-      
-      // Create a command buffer that performs the acceleration structure build.
-      let commandBuffer = commandQueue.makeCommandBuffer()!
-      
-      // Create an acceleration structure command encoder.
-      let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
-      
-      // Schedule the actual acceleration structure build.
-      encoder.build(
-        accelerationStructure: accel, descriptor: accelDesc,
-        scratchBuffer: scratchBuffer, scratchBufferOffset: 32)
-      
-      // Compute and write the compacted acceleration structure size into the
-      // buffer.
-      if AccelerationStructureBuilder.doingCompaction {
-        encoder.writeCompactedSize(
-          accelerationStructure: accel, buffer: scratchBuffer, offset: 0,
-          sizeDataType: .uint)
-      }
-      
-      // End encoding, and commit the command buffer so the GPU can start
-      // building the acceleration structure.
-      encoder.endEncoding()
-      commandBuffer.commit()
-      
-      if AccelerationStructureBuilder.doingCompaction {
-        commandBuffer.waitUntilCompleted()
-        accel = self.compact(
-          scratchBuffer: scratchBuffer, accel: accel, descriptor: accelDesc)
-      }
-      
-      // Return the acceleration structure.
-      return accel
+    
+    // Query for the sizes needed to store and build the acceleration structure.
+    let accelSizes = device.accelerationStructureSizes(descriptor: accelDesc)
+    
+    // Allocate scratch space Metal uses to build the acceleration structure.
+    let scratchBuffer = cycle(
+      from: &scratchBuffers,
+      index: &scratchBufferIndex,
+      currentSize: &maxScratchBufferSize,
+      desiredSize: 32 + accelSizes.buildScratchBufferSize)
+    
+    // Allocate an acceleration structure large enough for this descriptor. This
+    // method doesn't actually build the acceleration structure, but rather
+    // allocates memory.
+    let desiredSize = accelSizes.accelerationStructureSize
+    var accel = fetch(from: accels, size: desiredSize, index: accelIndex)
+    if accel == nil {
+      accel = create(
+        currentSize: &maxAccelSize, desiredSize: desiredSize, {
+          $0.makeAccelerationStructure(size: $1)
+        })
     }
+    guard var accel else { fatalError("This should never happen.") }
+    append(accel, to: &accels, index: &accelIndex)
+    
+    // Create a command buffer that performs the acceleration structure build.
+    let commandBuffer = commandQueue.makeCommandBuffer()!
+    
+    // Create an acceleration structure command encoder.
+    let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
+    
+    // Schedule the actual acceleration structure build.
+    encoder.build(
+      accelerationStructure: accel, descriptor: accelDesc,
+      scratchBuffer: scratchBuffer, scratchBufferOffset: 32)
+    
+    // Compute and write the compacted acceleration structure size into the
+    // buffer.
+    if AccelerationStructureBuilder.doingCompaction {
+      encoder.writeCompactedSize(
+        accelerationStructure: accel, buffer: scratchBuffer, offset: 0,
+        sizeDataType: .uint)
+    }
+    
+    // End encoding, and commit the command buffer so the GPU can start building
+    // the acceleration structure.
+    encoder.endEncoding()
+    commandBuffer.commit()
+    
+    if AccelerationStructureBuilder.doingCompaction {
+      commandBuffer.waitUntilCompleted()
+      accel = self.compact(
+        scratchBuffer: scratchBuffer, accel: accel, descriptor: accelDesc)
+    }
+    
+    // Return the acceleration structure.
+    return accel
   }
   
   mutating func compact(

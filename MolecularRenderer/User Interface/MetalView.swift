@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// Credit: Partially sourced from
+// Partially sourced from:
 // https://developer.apple.com/documentation/metal/onscreen_presentation/creating_a_custom_metal_view
 
 struct MetalView: NSViewRepresentable {

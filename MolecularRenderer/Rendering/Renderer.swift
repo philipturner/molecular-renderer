@@ -41,6 +41,7 @@ class Renderer {
   var sustainedAlignmentDuration: Int = 0
   static let checkingFrameRate = false
   static let debuggingFrameRate = false
+  static let debuggingJitter = false
   
   // Main rendering resources.
   var device: MTLDevice
@@ -50,14 +51,12 @@ class Renderer {
   
   // Memory objects for rendering.
   var atomData: MTLBuffer
-//  var atomBuffer: MTLBuffer
-//  var boundingBoxBuffer: MTLBuffer
-//  var accelerationStructure: MTLAccelerationStructure
   
   // Cache previous arguments to generate motion vectors.
   struct Arguments {
     var fov90Span: Float
     var fov90SpanReciprocal: Float
+    var jitter: SIMD2<Float>
     var position: SIMD3<Float>
     var rotation: simd_float3x3
   }
@@ -88,9 +87,13 @@ class Renderer {
     var screenHeight: UInt32 = .init(ContentView.size)
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
+    // Whether to do antialiasing/upscaling.
+    var useMetalFX: Bool = Upscaler.doingUpscaling
+    constants.setConstantValue(&useMetalFX, type: .bool, index: 2)
+    
     // Initialize the compute pipeline.
     let library = device.makeDefaultLibrary()!
-    let name = Self.checkingFrameRate ? "checkFrameRate" : "renderMain"
+    let name = Renderer.checkingFrameRate ? "checkFrameRate" : "renderMain"
     let function = try! library.makeFunction(
       name: name, constantValues: constants)
     self.rayTracingPipeline = try! device
@@ -105,6 +108,7 @@ class Renderer {
       "Atom statistics arrays have different sizes.")
     self.atomData = device.makeBuffer(length: atomDataBufferSize)!
     
+    // Write to the atom data buffer.
     do {
       let atomDataPointer = atomData.contents()
         .assumingMemoryBound(to: AtomStatistics.self)
@@ -113,14 +117,7 @@ class Renderer {
       }
     }
     
-    // Create the acceleration structure.
-    
-    
-    
-    
-    
-    
-    
+    // Create delegate objects.
     self.accelBuilder = AccelerationStructureBuilder(renderer: self)
     self.upscaler = Upscaler(renderer: self)
   }
@@ -214,7 +211,7 @@ extension Renderer {
     if abs(targetFrameID - nextFrameID) >= 2 * step {
       // Exponentially gravitate toward the correct position.
       // This may become unstable in certain ill-conditioned situations.
-      if Self.debuggingFrameRate {
+      if Renderer.debuggingFrameRate {
         print("Correcting misalignment by / 2")
       }
       nextFrameID += (targetFrameID - nextFrameID) / 2
@@ -222,7 +219,7 @@ extension Renderer {
       // Wait a while to smooth out noise.
       if sustainedMisalignmentDuration >= 10 ||
          sustainedAlignmentDuration >= 10 {
-        if Self.debuggingFrameRate {
+        if Renderer.debuggingFrameRate {
           print("Correcting misalignment by +/- 1")
         }
         nextFrameID = targetFrameID
@@ -268,6 +265,7 @@ extension Renderer {
       let atoms: [Atom] = ExampleMolecules.taggedEthylene
       accel = self.accelBuilder.build(atoms: atoms)
     }
+    self.upscaler.updateResources()
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -315,11 +313,19 @@ extension Renderer {
       let fov90Span = Double(ContentView.size / 2)
       let fov90SpanReciprocal = simd_precise_recip(fov90Span)
       let (azimuth, zenith) = eventTracker.playerState.rotations
-      let args = Arguments(
+      var args = Arguments(
         fov90Span: Float(fov90Span),
         fov90SpanReciprocal: Float(fov90SpanReciprocal),
+        jitter: upscaler.jitterOffsets,
         position: self.eventTracker.playerState.position,
         rotation: azimuth * zenith)
+      if Renderer.debuggingJitter {
+        // Log the jitter to the console.
+        print(args.jitter)
+        
+        // Make the jitter clearly visible in the image.
+        args.jitter *= 50
+      }
       
       bufferPointer[0] = args
       if let previousArguments = self.previousArguments {
