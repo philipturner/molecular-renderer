@@ -2,7 +2,7 @@
 
 Flexible application for running and visualizing nanotech simulations, with RTAO and up to 120 Hz uninterrupted playback. This application is designed to work with up to 1,000,000 atoms in real-time.
 
-This is a platform for the author to conduct computational nanotechnology research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes in energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
+This is a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes in energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
 ## Usage
 
@@ -44,10 +44,10 @@ TODO (performance):
 - Use OpenMM CPU backend with the real-time simulation mode, port Drexler-MM2 forcefield.
 - Use OpenMM C++ bindings, extract atom tiles from GPU backend.
 - Use Metal 3 fast resource loading to stream geometry data from disk, several frames ahead.
-- Multiple tiers ray tracing algorithms, tradeoff between O(n) accel building cost and O(1) rendering cost.
+- Multiple tiers of ray tracing algorithms, tradeoffs between O(n) accel building cost and O(1) rendering cost.
 
 TODO (user interface):
-- Sprinting like Minecraft for flying around at different speeds.
+- Minecraft-like sprinting for flying around at different speeds.
 - HUD when crosshair is active: OpenMM ps/s, OpenMM ns/day, rendering ps/s, using Monocraft font + SwiftUI.
 - Scripting API to reproduce any simulation.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
