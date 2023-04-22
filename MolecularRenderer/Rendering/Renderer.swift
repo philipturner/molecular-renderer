@@ -305,8 +305,12 @@ extension Renderer {
     }
     
     // Dispatch even number of threads (the shader will rearrange them).
-    let numThreadgroupsX = (Int(ContentView.size) + 15) / 16
-    let numThreadgroupsY = (Int(ContentView.size) + 15) / 16
+    var viewSize = Int(ContentView.size)
+    if Upscaler.doingUpscaling {
+      viewSize /= 2
+    }
+    let numThreadgroupsX = (viewSize + 15) / 16
+    let numThreadgroupsY = (viewSize + 15) / 16
     encoder.dispatchThreadgroups(
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(16, 16, 1))

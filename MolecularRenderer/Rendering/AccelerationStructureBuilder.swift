@@ -192,12 +192,9 @@ extension AccelerationStructureBuilder {
       accelerationStructure: accel, descriptor: accelDesc,
       scratchBuffer: scratchBuffer, scratchBufferOffset: 32)
     
-    // Compute and write the compacted acceleration structure size into the
-    // buffer.
     if AccelerationStructureBuilder.doingCompaction {
-      encoder.writeCompactedSize(
-        accelerationStructure: accel, buffer: scratchBuffer, offset: 0,
-        sizeDataType: .uint)
+      accel = self.compact(
+        encoder: encoder, accel: accel, descriptor: accelDesc)
     }
     
     // End encoding, and commit the command buffer so the GPU can start building
@@ -205,40 +202,34 @@ extension AccelerationStructureBuilder {
     encoder.endEncoding()
     commandBuffer.commit()
     
-    if AccelerationStructureBuilder.doingCompaction {
-      commandBuffer.waitUntilCompleted()
-      accel = self.compact(
-        scratchBuffer: scratchBuffer, accel: accel, descriptor: accelDesc)
-    }
-    
     // Return the acceleration structure.
     return accel
   }
   
   mutating func compact(
-    scratchBuffer: MTLBuffer,
+    encoder: MTLAccelerationStructureCommandEncoder,
     accel: MTLAccelerationStructure,
     descriptor: MTLAccelerationStructureDescriptor
   ) -> MTLAccelerationStructure {
-    let compactedSize = scratchBuffer.contents()
-      .assumingMemoryBound(to: UInt32.self).pointee
-    let compactedStructure = device
-      .makeAccelerationStructure(size: Int(compactedSize))!
-    
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
+    let desiredSize = accel.size
+    var compactedAccel = fetch(
+      from: accels, size: desiredSize, index: accelIndex)
+    if compactedAccel == nil {
+      compactedAccel = create(
+        currentSize: &maxAccelSize, desiredSize: desiredSize, {
+          $0.makeAccelerationStructure(size: $1)
+        })
+    }
+    guard let compactedAccel else { fatalError("This should never happen.") }
     
     // Encode the command to copy and compact the acceleration structure into
     // the smaller acceleration structure.
     encoder.copyAndCompact(
       sourceAccelerationStructure: accel,
-      destinationAccelerationStructure: compactedStructure)
-    
-    encoder.endEncoding()
-    commandBuffer.commit()
+      destinationAccelerationStructure: compactedAccel)
     
     // Re-assign the current acceleration structure to the compacted one.
-    append(compactedStructure, to: &accels, index: &accelIndex)
-    return compactedStructure
+    append(compactedAccel, to: &accels, index: &accelIndex)
+    return compactedAccel
   }
 }
