@@ -88,6 +88,10 @@ Visualizing molecules in stereoscopic AR/VR: https://www.ncbi.nlm.nih.gov/pmc/ar
 
 Impostors algorithm for approximate AO: https://pubmed.ncbi.nlm.nih.gov/17080857/
 
+Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion-rtao/
+
+Working example of RTAO with source code: https://github.com/nvpro-samples/gl_vk_raytrace_interop
+
 Thesis on ambient occlusion and shadows, specifically for molecules: https://core.ac.uk/download/pdf/20053956.pdf
 
 Nanite algorithm for vastly complex geometry: https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf

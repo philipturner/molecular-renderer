@@ -22,6 +22,10 @@ constant bool USE_METALFX [[function_constant(2)]];
 #define DEBUG_DEPTH 0
 
 struct Arguments {
+  // This frame's position and orientation.
+  float3 position;
+  float3x3 rotation;
+  
   // How many pixels are covered in either direction @ FOV=90?
   float fov90Span;
   float fov90SpanReciprocal;
@@ -29,9 +33,8 @@ struct Arguments {
   // The jitter to apply to the pixel.
   float2 jitter;
   
-  // This frame's position and orientation.
-  float3 position;
-  float3x3 rotation;
+  // Frame ID for generating random numbers.
+  uint frameNumber;
 };
 
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.

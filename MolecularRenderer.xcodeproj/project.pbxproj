@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		98122D6F29DFBC14006200D1 /* AtomStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98122D6E29DFBC14006200D1 /* AtomStatistics.swift */; };
 		98122D7129DFBDE6006200D1 /* AtomStatistics.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* AtomStatistics.metal */; };
+		981E8F4729F4C99A00F7BA21 /* Sampling.metal in Sources */ = {isa = PBXBuildFile; fileRef = 981E8F4629F4C99A00F7BA21 /* Sampling.metal */; };
+		981E8F4929F4CA5B00F7BA21 /* RayGeneration.metal in Sources */ = {isa = PBXBuildFile; fileRef = 981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */; };
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
@@ -34,6 +36,8 @@
 /* Begin PBXFileReference section */
 		98122D6E29DFBC14006200D1 /* AtomStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtomStatistics.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* AtomStatistics.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AtomStatistics.metal; sourceTree = "<group>"; };
+		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
+		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
 		981FCFF129ECAF24009904A2 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		981FCFF329EF52E9009904A2 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
@@ -76,6 +80,8 @@
 				98F3B30229DE60E6003B9AD7 /* CheckFrameRate.metal */,
 				98122D7029DFBDE6006200D1 /* AtomStatistics.metal */,
 				987C5CE329EA051400CE5EB7 /* RayTracing.metal */,
+				981E8F4629F4C99A00F7BA21 /* Sampling.metal */,
+				981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */,
 			);
 			path = Shaders;
 			sourceTree = "<group>";
@@ -242,8 +248,10 @@
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98F3B30329DE60E6003B9AD7 /* CheckFrameRate.metal in Sources */,
+				981E8F4929F4CA5B00F7BA21 /* RayGeneration.metal in Sources */,
 				98298F5A29F353E90008E248 /* Upscaler.swift in Sources */,
 				987C5CE529EA05AB00CE5EB7 /* RayTracing.metal in Sources */,
+				981E8F4729F4C99A00F7BA21 /* Sampling.metal in Sources */,
 				98298F5C29F357E70008E248 /* AccelerationStructureBuilder.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,

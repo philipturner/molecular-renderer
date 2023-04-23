@@ -54,11 +54,12 @@ class Renderer {
   
   // Cache previous arguments to generate motion vectors.
   struct Arguments {
+    var position: SIMD3<Float>
+    var rotation: simd_float3x3
     var fov90Span: Float
     var fov90SpanReciprocal: Float
     var jitter: SIMD2<Float>
-    var position: SIMD3<Float>
-    var rotation: simd_float3x3
+    var frameNumber: UInt32
   }
   var previousArguments: Arguments?
   
@@ -348,11 +349,12 @@ extension Renderer {
       let fov90SpanReciprocal = simd_precise_recip(fov90Span)
       let (azimuth, zenith) = eventTracker.playerState.rotations
       let args = Arguments(
+        position: self.eventTracker.playerState.position,
+        rotation: azimuth * zenith,
         fov90Span: Float(fov90Span),
         fov90SpanReciprocal: Float(fov90SpanReciprocal),
         jitter: upscaler.jitterOffsets,
-        position: self.eventTracker.playerState.position,
-        rotation: azimuth * zenith)
+        frameNumber: UInt32(clamping: adjustedFrameID))
       
       bufferPointer[0] = args
       if let previousArguments = self.previousArguments {
