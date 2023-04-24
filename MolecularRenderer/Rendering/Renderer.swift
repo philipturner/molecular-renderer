@@ -196,7 +196,8 @@ extension Renderer {
   
   // Time per frame in multiples of 120 Hz.
   func frameStep() -> Int {
-    Renderer.frameRateBasis / currentRefreshRate.load(ordering: .relaxed)
+    let current = currentRefreshRate.load(ordering: .relaxed)
+    return max(Renderer.frameRateBasis / current, 1)
   }
   
   func updateFrameID() {
