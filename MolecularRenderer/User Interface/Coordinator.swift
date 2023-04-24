@@ -67,6 +67,9 @@ extension Coordinator {
         displayLink, view.window!.screen!.screenNumber))
     checkCVDisplayError(CVDisplayLinkStart(displayLink))
     
+    // Set the frame rate range using the basis.
+//    Unable to do this right now.
+    
     let notificationCenter = NotificationCenter.default
     notificationCenter.addObserver(
       self, selector: #selector(windowWillClose),

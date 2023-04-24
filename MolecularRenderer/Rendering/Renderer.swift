@@ -43,6 +43,7 @@ class Renderer {
   static let checkingFrameRate = false
   static let debuggingFrameRate = false
   static let debuggingJitter = false
+  static let frameRateBasis: Int = 120
   
   // Main rendering resources.
   var device: MTLDevice
@@ -173,7 +174,7 @@ extension Renderer {
   func frames(start: CVTimeStamp, end: CVTimeStamp) -> Double {
 #if arch(arm64)
     let ticksPerSecond: Int = 24 * 1000 * 1000
-    let ticksPerFrame = ticksPerSecond / 120
+    let ticksPerFrame = ticksPerSecond / Renderer.frameRateBasis
 #else
 #error("This does not work on x86.")
 #endif
@@ -195,7 +196,7 @@ extension Renderer {
   
   // Time per frame in multiples of 120 Hz.
   func frameStep() -> Int {
-    120 / currentRefreshRate.load(ordering: .relaxed)
+    Renderer.frameRateBasis / currentRefreshRate.load(ordering: .relaxed)
   }
   
   func updateFrameID() {
@@ -286,7 +287,7 @@ extension Renderer {
     
     if Renderer.checkingFrameRate {
       // Set the time to determine synchronization.
-      var time1 = Float(adjustedFrameID) / Float(120)
+      var time1 = Float(adjustedFrameID) / Float(Renderer.frameRateBasis)
       var time2 = Float(
         seconds(start: startTimeStamp!, end: previousTimeStamp!))
       encoder.setBytes(&time1, length: 4, index: 0)

@@ -274,7 +274,8 @@ extension EventTracker {
     // Define a constant for the movement speed: 1.0 nanometers per second
     // TODO: Smoothstep the speed along with FOV when sprinting.
     let speed: Float = 1.0
-    let positionDelta = speed * Float(frameDelta) / 120
+    let positionDelta = speed * Float(frameDelta) / Float(
+      Renderer.frameRateBasis)
     
     // In Minecraft, WASD only affects horizontal position, even when flying.
     let azimuth = playerState.rotations.azimuth
