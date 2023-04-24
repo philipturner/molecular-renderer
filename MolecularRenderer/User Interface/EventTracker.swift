@@ -47,7 +47,8 @@ class EventTracker {
   
   // When the crosshair is inactive, we disallow WASD and the mouse. We don't
   // want the user to mess with a predefined player position accidentally.
-  var crosshairActive: ManagedAtomic<Bool> = ManagedAtomic(false)
+  var crosshairActive: ManagedAtomic<Bool> = ManagedAtomic(
+    Coordinator.initiallyShowCrosshair)
   var hideCursorCount: Int = 0
   
   // Buffer up the movements while waiting for the other thread to respond. This

@@ -34,6 +34,7 @@ class Renderer {
   
   // Data for robustly synchronizing with the refresh rate.
   var currentRefreshRate: ManagedAtomic<Int> = .init(0)
+  var uniqueFrameID: Int = 0 // for random numbers
   var frameID: Int = 0
   var adjustedFrameID: Int = -1
   var sustainedMisalignment: Int = 0
@@ -198,6 +199,7 @@ extension Renderer {
   }
   
   func updateFrameID() {
+    uniqueFrameID += 1
     frameID += 1
     
     let previousFrameID = adjustedFrameID
@@ -354,7 +356,7 @@ extension Renderer {
         fov90Span: Float(fov90Span),
         fov90SpanReciprocal: Float(fov90SpanReciprocal),
         jitter: upscaler.jitterOffsets,
-        frameNumber: UInt32(clamping: adjustedFrameID))
+        frameNumber: UInt32(clamping: uniqueFrameID))
       
       bufferPointer[0] = args
       if let previousArguments = self.previousArguments {

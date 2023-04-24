@@ -19,7 +19,9 @@ class Coordinator: NSResponder, ObservableObject {
   var view: RendererView!
   
   // A state variable to control the visibility of the crosshair
-  @Published var showCrosshair = false
+  @Published var showCrosshair = Coordinator.initiallyShowCrosshair
+  
+  static let initiallyShowCrosshair = true
   
   override init() {
     super.init()
