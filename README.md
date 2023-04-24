@@ -32,7 +32,7 @@ let geometricMeanLength = sqrt(width * height)
 let scaleX = width / geometricMeanLength
 let scaleY = height / geometricMeanLength
 
-let baseFOV = 90 // degrees
+let baseFOV = degreesToRadians(90)
 let baseSlope = tan(baseFOV / 2)
 let fovX = 2 * arctan(scaleX * baseSlope)
 let fovY = 2 * arctan(scaleY * baseSlope)
