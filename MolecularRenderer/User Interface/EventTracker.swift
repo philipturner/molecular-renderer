@@ -51,6 +51,9 @@ class EventTracker {
     Coordinator.initiallyShowCrosshair)
   var hideCursorCount: Int = 0
   
+  // TODO: Smooth out mouse movements across frame drops; real-world performance
+  // is now at ~115 FPS and the stuttering is nauseating.
+  
   // Buffer up the movements while waiting for the other thread to respond. This
   // should be auto-cleared if it is not used.
   var accumulatedMouseDeltaX: ManagedAtomic<UInt64> = ManagedAtomic(0)
