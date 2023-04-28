@@ -92,6 +92,8 @@ Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion
 
 Working example of RTAO with source code: https://github.com/nvpro-samples/gl_vk_raytrace_interop
 
+Thesis about RTAO quality and performance, including accel rebuilds: http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A1574351&dswid=2559
+
 Thesis on ambient occlusion and shadows, specifically for molecules: https://core.ac.uk/download/pdf/20053956.pdf
 
 Nanite algorithm for vastly complex geometry: https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf
