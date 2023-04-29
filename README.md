@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Flexible application for running and visualizing nanotech simulations, with RTAO and up to 120 Hz uninterrupted playback. This application is designed to work with up to 1,000,000 atoms in real-time.
+Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to handle 1,000,000 atoms in real-time.
 
 This is a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes in energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
@@ -97,3 +97,5 @@ Thesis about RTAO quality and performance, including accel rebuilds: http://www.
 Thesis on ambient occlusion and shadows, specifically for molecules: https://core.ac.uk/download/pdf/20053956.pdf
 
 Nanite algorithm for vastly complex geometry: https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf
+
+Metropolis light transport algorithm: https://dl.acm.org/doi/10.1145/258734.258775
