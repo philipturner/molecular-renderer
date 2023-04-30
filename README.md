@@ -6,7 +6,7 @@ This is a platform for the author to conduct [computational nanotechnology](http
 
 ## Usage
 
-You can set a custom aspect ratio, instead of 1536x1536. Just make it divisible by 2 and stay under ~2 million pixels. Below are some   common video resolutions.
+You can set a custom aspect ratio, instead of 1024x1024. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
 
 ```
 1:1
@@ -39,11 +39,13 @@ let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
 TODO (performance):
+- Import official atomic radii and colors.
 - Use a RTAO-based renderer.
 - Use OpenMM CPU backend with the real-time simulation mode, port Drexler-MM2 forcefield.
 - Use OpenMM C++ bindings, extract atom tiles from GPU backend.
 - Use Metal 3 fast resource loading to stream geometry data from disk, several frames ahead.
-- Multiple tiers of ray tracing algorithms, tradeoffs between O(n) accel building cost and O(1) rendering cost.
+- Process clusters of atoms to efficiently handle supermassive molecules.
+- Use an MLT-based renderer.
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
@@ -51,6 +53,15 @@ TODO (user interface):
 - Scripting API to reproduce any simulation.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
 - Enable replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
+
+TODO (simulation)
+- Real-time energy graph.
+- Background process for uninterrupted real-time CPU simulations.
+- Rigid boundary, thermostat, etc. for the custom simulator written in CPU assembly.
+- Port the Drexler-MM2 forcefield.
+
+TODO (theory):
+- Does MLT replace or complement AO?
 
 ## Requirements
 
@@ -66,7 +77,7 @@ Memory/Disk:
 - Before compression: 9 MB per second of playback when under 6,000 atoms
 
 Display:
-- 768x768 -> 1536x1536 upscaled with MetalFX temporal upscaling
+- 512x512 -> 1024x1024 upscaled with MetalFX temporal upscaling
 - Monitor needs at least 1536x1536 pixels for the default resolution
 - 30 Hz, 60 Hz, and 120 Hz supported
 
@@ -82,20 +93,18 @@ Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s.
 
 ## References
 
-Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
+  ✅ = I have read entirely and fully understand
+  
+  ❌ = I still need to read or fully understand 
 
-Visualizing molecules in stereoscopic AR/VR: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5063251/
+Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/ ✅
 
-Impostors algorithm for approximate AO: https://pubmed.ncbi.nlm.nih.gov/17080857/
+Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion-rtao/ ✅
 
-Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion-rtao/
+Working example of RTAO with source code: https://github.com/nvpro-samples/gl_vk_raytrace_interop ❌ (currently implementing)
 
-Working example of RTAO with source code: https://github.com/nvpro-samples/gl_vk_raytrace_interop
+Thesis on ambient occlusion and shadows, specifically for molecules: https://core.ac.uk/download/pdf/20053956.pdf ✅
 
-Thesis about RTAO quality and performance, including accel rebuilds: http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A1574351&dswid=2559
+Thesis about RTAO quality and performance, including accel rebuilds: http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A1574351&dswid=2559 ✅
 
-Thesis on ambient occlusion and shadows, specifically for molecules: https://core.ac.uk/download/pdf/20053956.pdf
-
-Nanite algorithm for vastly complex geometry: https://advances.realtimerendering.com/s2021/Karis_Nanite_SIGGRAPH_Advances_2021_final.pdf
-
-Metropolis light transport algorithm: https://dl.acm.org/doi/10.1145/258734.258775
+Thesis on bidirectional path tracing: https://graphics.stanford.edu/papers/veach_thesis/thesis.pdf ❌ (chapter 1)
