@@ -43,10 +43,11 @@ TODO (rendering):
 - Implement RTAO for studying high-frequency motion.
   - 768x768 -> 1536x1536 spatial upscaling
   - 120 Hz native
+  - Builds accels at runtime
 - Implement MLT for studying complex geometry.
   - 640x640 -> 1280x1280 spatial upscaling
   - 60 Hz -> 120 Hz temporal upscaling
-- Use Metal 3 fast resource loading to stream pre-computed accels from SSD.
+  - Streams pre-computed accels from SSD
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
