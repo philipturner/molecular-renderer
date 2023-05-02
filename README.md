@@ -6,7 +6,7 @@ This is a platform for the author to conduct [computational nanotechnology](http
 
 ## Usage
 
-You can set a custom aspect ratio, instead of 1024x1024. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
+You can set a custom aspect ratio, instead of 1536x1536. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
 
 ```
 1:1
@@ -38,14 +38,15 @@ let fovX = 2 * arctan(scaleX * baseSlope)
 let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
-TODO (performance):
+TODO (rendering):
 - Import official atomic radii and colors.
-- Use a RTAO-based renderer.
-- Use OpenMM CPU backend with the real-time simulation mode, port Drexler-MM2 forcefield.
-- Use OpenMM C++ bindings, extract atom tiles from GPU backend.
-- Use Metal 3 fast resource loading to stream geometry data from disk, several frames ahead.
-- Process clusters of atoms to efficiently handle supermassive molecules.
-- Use an MLT-based renderer.
+- Implement RTAO for studying high-frequency motion.
+  - 768x768 -> 1536x1536 spatial upscaling
+  - 120 Hz native
+- Implement MLT for studying complex geometry.
+  - 640x640 -> 1280x1280 spatial upscaling
+  - 60 Hz -> 120 Hz temporal upscaling
+- Use Metal 3 fast resource loading to stream pre-computed accels from SSD.
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
@@ -59,9 +60,6 @@ TODO (simulation)
 - Background process for uninterrupted real-time CPU simulations.
 - Rigid boundary, thermostat, etc. for the custom simulator written in CPU assembly.
 - Port the Drexler-MM2 forcefield.
-
-TODO (theory):
-- Does MLT replace or complement AO?
 
 ## Requirements
 
@@ -77,9 +75,9 @@ Memory/Disk:
 - Before compression: 9 MB per second of playback when under 6,000 atoms
 
 Display:
-- 512x512 -> 1024x1024 upscaled with MetalFX temporal upscaling
+- 768x768 -> 1536x1536 upscaled with MetalFX temporal upscaling
 - Monitor needs at least 1536x1536 pixels for the default resolution
-- 30 Hz, 60 Hz, and 120 Hz supported
+- 60 Hz and 120 Hz supported
 
 ## Technical Details
 
