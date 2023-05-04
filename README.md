@@ -60,6 +60,7 @@ TODO (simulation)
 - Real-time energy graph.
 - Multithreaded background process for real-time CPU simulations.
 - Port the Drexler-MM2 forcefield using ARM assembly.
+- Port the [Brenner forcefield](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.42.9458).
 
 ## Requirements
 
