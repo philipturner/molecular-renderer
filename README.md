@@ -47,7 +47,7 @@ TODO (rendering):
 - Implement MLT for studying complex geometry.
   - 640x640 -> 1280x1280 upscaling
   - 60 Hz -> 120 Hz frame interpolation
-  - Streams pre-computed accels from SSD (&gt; 1K atoms)
+  - Streams pre-computed accels from SSD (&gt;1K atoms)
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
