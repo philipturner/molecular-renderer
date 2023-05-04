@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to handle 1,000,000 atoms in real-time.
+Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to simulate 1,000 atoms or render 10,000,000 atoms in real-time.
 
 This is a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
@@ -41,13 +41,13 @@ let fovY = 2 * arctan(scaleY * baseSlope)
 TODO (rendering):
 - Import official atomic radii and colors.
 - Implement RTAO for studying high-frequency motion.
-  - 768x768 -> 1536x1536 spatial upscaling
+  - 768x768 -> 1536x1536 upscaling
   - 120 Hz native
-  - Builds accels at runtime
+  - Builds accels at runtime (&lt;10K atoms)
 - Implement MLT for studying complex geometry.
-  - 640x640 -> 1280x1280 spatial upscaling
-  - 60 Hz -> 120 Hz temporal upscaling
-  - Streams pre-computed accels from SSD
+  - 640x640 -> 1280x1280 upscaling
+  - 60 Hz -> 120 Hz frame interpolation
+  - Streams pre-computed accels from SSD (&gt; 1K atoms)
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
@@ -58,9 +58,8 @@ TODO (user interface):
 
 TODO (simulation)
 - Real-time energy graph.
-- Background process for uninterrupted real-time CPU simulations.
-- Rigid boundary, thermostat, etc. for the custom simulator written in CPU assembly.
-- Port the Drexler-MM2 forcefield.
+- Multithreaded background process for real-time CPU simulations.
+- Port the Drexler-MM2 forcefield using ARM assembly.
 
 ## Requirements
 
