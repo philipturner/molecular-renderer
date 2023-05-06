@@ -69,10 +69,10 @@ class Renderer {
   var accelBuilder: AccelerationStructureBuilder!
   var upscaler: Upscaler!
   var simulator: NobleGasSimulator!
-  static let logSimulationSpeed: Bool = false
+  static let logSimulationSpeed: Bool = true
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
-  static let simulationID: Int = 0 // 0-2
-  static let simulationSpeed: Double = 10e-12 // ps/s
+  static let simulationID: Int = 3 // 0-2
+  static let simulationSpeed: Double = 20e-12 // ps/s
   
   init(view: RendererView) {
     let eventTracker = view.coordinator.eventTracker!
@@ -115,8 +115,12 @@ class Renderer {
     let name = Renderer.checkingFrameRate ? "checkFrameRate" : "renderMain"
     let function = try! library.makeFunction(
       name: name, constantValues: constants)
+    
+    let desc = MTLComputePipelineDescriptor()
+    desc.computeFunction = function
+    desc.maxCallStackDepth = 5
     self.rayTracingPipeline = try! device
-      .makeComputePipelineState(function: function)
+      .makeComputePipelineState(descriptor: desc, options: [], reflection: nil)
     
     // Initialize the atom statistics.
     let atomStatisticsSize = MemoryLayout<AtomStatistics>.stride

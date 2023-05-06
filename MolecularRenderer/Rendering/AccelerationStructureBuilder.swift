@@ -180,7 +180,7 @@ extension AccelerationStructureBuilder {
       from: &scratchBuffers,
       index: &scratchBufferIndex,
       currentSize: &maxScratchBufferSize,
-      desiredSize: 32 + accelSizes.buildScratchBufferSize,
+      desiredSize: 1024 + accelSizes.buildScratchBufferSize,
       name: "Scratch Space")
     
     // Allocate an acceleration structure large enough for this descriptor. This
@@ -204,7 +204,7 @@ extension AccelerationStructureBuilder {
     // Schedule the actual acceleration structure build.
     encoder.build(
       accelerationStructure: accel, descriptor: accelDesc,
-      scratchBuffer: scratchBuffer, scratchBufferOffset: 32)
+      scratchBuffer: scratchBuffer, scratchBufferOffset: 1024)
     
     if AccelerationStructureBuilder.doingCompaction {
       accel = self.compact(

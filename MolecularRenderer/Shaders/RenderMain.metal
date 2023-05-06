@@ -86,7 +86,7 @@ kernel void renderMain
       return;
     }
   }
-  
+
   float3 rayDirection(float2(pixelCoords) + 0.5, -1);
   if (USE_METALFX) {
     rayDirection.xy += args->jitter;

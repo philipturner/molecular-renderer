@@ -92,19 +92,91 @@ class NobleGasSimulator {
     
     // MARK: - Configuration
     
-    let firstAtomsType: UInt8 = simulationID <= 1 ? 10 : 18
-    let secondAtomsType: UInt8 = simulationID <= 0 ? 10 : 18
-    let systemAtoms = debuggingLJ ? 2 : 4
-    self.system = System(atoms: systemAtoms, ljParameters: parametersMatrix)
-    
-    // Set atom types.
-    let rangeFirst = debuggingLJ ? 0..<1 : 0..<2
-    for i in rangeFirst {
-      system.setType(firstAtomsType, index: i)
-    }
-    let rangeSecond = debuggingLJ ? 1..<2 : 2..<4
-    for i in rangeSecond {
-      system.setType(secondAtomsType, index: i)
+    // The first 3 systems are ones from the research paper.
+    if (0..<3).contains(simulationID) {
+      let p_magnitude: Real = 0.3
+      let v_magnitude: Real = 0.03
+      
+      let firstAtomsType: UInt8 = simulationID <= 1 ? 10 : 18
+      let secondAtomsType: UInt8 = simulationID <= 0 ? 10 : 18
+      let systemAtoms = debuggingLJ ? 2 : 4
+      self.system = System(atoms: systemAtoms, ljParameters: parametersMatrix)
+      
+      // Set atom types.
+      let rangeFirst = debuggingLJ ? 0..<1 : 0..<2
+      for i in rangeFirst {
+        system.setType(firstAtomsType, index: i)
+      }
+      let rangeSecond = debuggingLJ ? 1..<2 : 2..<4
+      for i in rangeSecond {
+        system.setType(secondAtomsType, index: i)
+      }
+      
+      if debuggingLJ {
+        system.setPosition(SIMD3(-p_magnitude, 0, 0), index: 0)
+        system.setPosition(SIMD3( p_magnitude, 0, 0), index: 1)
+        system.setVelocity(SIMD3( v_magnitude, 0, 0), index: 0)
+        system.setVelocity(SIMD3(-v_magnitude, 0, 0), index: 1)
+      } else {
+        // Make the atoms move in a spiral.
+        let angle = Real.pi * 0.04 // counterclockwise
+        let rotationMatrixCol1 = SIMD3<Real>( cos(angle), sin(angle), 0)
+        let rotationMatrixCol2 = SIMD3<Real>(-sin(angle), cos(angle), 0)
+        let rotationMatrixCol3 = SIMD3<Real>(0, 0, 1)
+        
+        // Set atom positions and velocities.
+        // Avoiding any motion in the Z plane for now.
+        for i in 0..<4 {
+          let signX: Real = (i % 2 == 0) ? 1 : -1
+          let signY: Real = (i / 2 == 0) ? 1 : -1
+          
+          let distanceScale: Real = p_magnitude // nm
+          let position = SIMD3<Real>(
+            distanceScale * signX, distanceScale * signY, 0)
+          
+          let velocityScale: Real = -v_magnitude // nm/ps
+          var velocity = SIMD3<Real>(
+            velocityScale * signX, velocityScale * signY, 0)
+          
+          // Rotate the velocity.
+          velocity =
+          rotationMatrixCol1 * velocity.x +
+          rotationMatrixCol2 * velocity.y +
+          rotationMatrixCol3 * velocity.z
+          
+          system.setPosition(position, index: i)
+          system.setVelocity(velocity, index: i)
+        }
+      }
+    } else if simulationID == 3 {
+      let p_magnitude: Real = 0.4
+      let v_magnitude: Real = 0.02
+      
+      self.system = System(atoms: 26, ljParameters: parametersMatrix)
+      
+      // Checkerboard pattern of neon and argon.
+      var atomID: Int = 0
+      for x in -1...1 {
+        for y in -1...1 {
+          for z in -1...1 {
+            if x == 0 && y == 0 && z == 0 {
+              continue
+            }
+            defer { atomID += 1 }
+            
+            // Neon on faces and corners, argon on edges.
+            let isNeon = (x + y + z) % 2 != 0
+            system.setType(isNeon ? 10 : 18, index: atomID)
+
+            let position = SIMD3(Real(x), Real(y), Real(z)) * p_magnitude
+            let velocity = SIMD3(Real(x), Real(y), Real(z)) * -v_magnitude
+            system.setPosition(position, index: atomID)
+            system.setVelocity(velocity, index: atomID)
+          }
+        }
+      }
+    } else {
+      fatalError("Unrecognized simulation ID.")
     }
     
     let femtoseconds: Double = 0.8
@@ -116,46 +188,7 @@ class NobleGasSimulator {
 //    var kineticEnergies: [Double] = []
 //    var potentialEnergies: [Double] = []
     
-    let p_magnitude: Real = 0.3
-    let v_magnitude: Real = 0.03
-    
-    if debuggingLJ {
-      system.setPosition(SIMD3(-p_magnitude, 0, 0), index: 0)
-      system.setPosition(SIMD3( p_magnitude, 0, 0), index: 1)
-      system.setVelocity(SIMD3( v_magnitude, 0, 0), index: 0)
-      system.setVelocity(SIMD3(-v_magnitude, 0, 0), index: 1)
-    } else {
-      // Make the atoms move in a spiral.
-      let angle = Real.pi * 0.04 // counterclockwise
-      let rotationMatrixCol1 = SIMD3<Real>( cos(angle), sin(angle), 0)
-      let rotationMatrixCol2 = SIMD3<Real>(-sin(angle), cos(angle), 0)
-      let rotationMatrixCol3 = SIMD3<Real>(0, 0, 1)
-      
-      // Set atom positions and velocities.
-      // Avoiding any motion in the Z plane for now.
-      for i in 0..<4 {
-        let signX: Real = (i % 2 == 0) ? 1 : -1
-        let signY: Real = (i / 2 == 0) ? 1 : -1
-        
-        let distanceScale: Real = p_magnitude // nm
-        let position = SIMD3<Real>(
-          distanceScale * signX, distanceScale * signY, 0)
-        
-        let velocityScale: Real = -v_magnitude // nm/ps
-        var velocity = SIMD3<Real>(
-          velocityScale * signX, velocityScale * signY, 0)
-        
-        // Rotate the velocity.
-        velocity =
-        rotationMatrixCol1 * velocity.x +
-        rotationMatrixCol2 * velocity.y +
-        rotationMatrixCol3 * velocity.z
-        
-        system.setPosition(position, index: i)
-        system.setVelocity(velocity, index: i)
-      }
-    }
-    system.initializeAccelerations()
+    self.system.initializeAccelerations()
   }
 }
 
@@ -177,9 +210,6 @@ extension NobleGasSimulator {
       simulatedTime = nextSimulatedTime
       stepsToSimulate += 1
     }
-    
-    
-//    system.evolve(timeStep: timeStep, steps: stepsPerSample)
     
     let start = CACurrentMediaTime()
     system.evolve(timeStep: timeStep, steps: stepsToSimulate)
