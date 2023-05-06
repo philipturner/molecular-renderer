@@ -161,13 +161,13 @@ class NobleGasSimulator {
 
 extension NobleGasSimulator {
   // timeScale - simulated seconds per IRL second
-  // Returns ns/day
+  // Returns (ns/day, time taken)
   @discardableResult
-  func evolve(frameDelta: Int, timeScale: Double) -> Double {
+  func evolve(frameDelta: Int, timeScale: Double) -> (Double, Double) {
     self.absoluteTimeRaw += Double(frameDelta) * timeScale
     
     let absoluteTime = absoluteTimeRaw / Double(self.frameRate)
-    var framesToSimulate: Int = 0
+    var stepsToSimulate: Int = 0
     var nextSimulatedTime = simulatedTime
     while true {
       nextSimulatedTime += timeStep
@@ -175,20 +175,36 @@ extension NobleGasSimulator {
         break
       }
       simulatedTime = nextSimulatedTime
-      framesToSimulate += 1
+      stepsToSimulate += 1
     }
     
+    
+//    system.evolve(timeStep: timeStep, steps: stepsPerSample)
+    
     let start = CACurrentMediaTime()
-    // Print just to test reliability of timekeeping.
-    let nanoseconds = Double(framesToSimulate) * timeStep / 1e-9
-    print("frame delta: \(frameDelta), ps: \(Float(nanoseconds / 1e-3))")
+    system.evolve(timeStep: timeStep, steps: stepsToSimulate)
+    
+//    // Print just to test reliability of timekeeping.
+//    do {
+//      let nanoseconds = Double(stepsToSimulate) * timeStep / 1e-9
+//      print("frame delta: \(frameDelta), ps: \(Float(nanoseconds / 1e-3))")
+//    }
     let end = CACurrentMediaTime()
     
+    let nanoseconds = Double(stepsToSimulate) * timeStep / 1e-9
     let nsPerDay = nanoseconds * 86400 / (end - start)
-    return nsPerDay
+    return (nsPerDay, end - start)
   }
   
   // TODO: Fetch the atom data at this timestep.
+  func getAtoms() -> [Atom] {
+    return (0..<system.atoms).map { i in
+      // Position is already converted to nm.
+      let position = SIMD3<Float>(system.getPosition(index: i))
+      let element = system.getType(index: i)
+      return Atom(origin: position, element: element)
+    }
+  }
 }
 
 // MARK: - Parameters Matrix

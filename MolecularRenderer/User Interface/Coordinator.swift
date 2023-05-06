@@ -33,10 +33,10 @@ class Coordinator: NSResponder, ObservableObject {
     view.metalLayer.allowsNextDrawableTimeout = false
     view.metalLayer.pixelFormat = .rgb10a2Unorm
     
+    self.eventTracker = EventTracker()
+    
     self.renderer = Renderer(view: view)
     view.metalLayer.device = renderer.device
-    
-    self.eventTracker = EventTracker()
   }
   
   required init?(coder: NSCoder) {

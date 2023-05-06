@@ -69,9 +69,15 @@ class Renderer {
   var accelBuilder: AccelerationStructureBuilder!
   var upscaler: Upscaler!
   var simulator: NobleGasSimulator!
-  static let logSimulationSpeed: Bool = true
+  static let logSimulationSpeed: Bool = false
+  static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
+  static let simulationID: Int = 0 // 0-2
+  static let simulationSpeed: Double = 10e-12 // ps/s
   
   init(view: RendererView) {
+    let eventTracker = view.coordinator.eventTracker!
+    eventTracker.playerState.position = Self.initialPlayerPosition
+    
     self.view = view
     self.layer = view.layer as! CAMetalLayer
     self.currentRefreshRate.store(
@@ -115,6 +121,7 @@ class Renderer {
     // Initialize the atom statistics.
     let atomStatisticsSize = MemoryLayout<AtomStatistics>.stride
     let atomDataBufferSize = atomRadii.count * atomStatisticsSize
+    precondition(MemoryLayout<Atom>.stride == 16, "Unexpected atom size.")
     precondition(atomStatisticsSize == 8, "Unexpected atom statistics size.")
     precondition(
       atomRadii.count == atomColors.count,
@@ -134,7 +141,7 @@ class Renderer {
     self.accelBuilder = AccelerationStructureBuilder(renderer: self)
     self.upscaler = Upscaler(renderer: self)
     self.simulator = NobleGasSimulator(
-      simulationID: 0, frameRate: Self.frameRateBasis)
+      simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
   }
 }
 
@@ -279,11 +286,20 @@ extension Renderer {
     self.renderSemaphore.wait()
     let frameDelta = self.updateFrameID()
     
-    // Run the simulator synchronously.
-    let nsPerDay = self.simulator.evolve(
-      frameDelta: frameDelta, timeScale: 1e-12)
-    if Self.logSimulationSpeed {
-      print("\(Float(nsPerDay)) ns/day")
+    do {
+      // Do not simulate while the crosshair is active.
+      let eventTracker = self.view.coordinator.eventTracker!
+      if !eventTracker.crosshairActive.load(ordering: .relaxed) {
+        // Run the simulator synchronously.
+        let (nsPerDay, timeTaken) = self.simulator.evolve(
+          frameDelta: frameDelta, timeScale: Self.simulationSpeed)
+        if Self.logSimulationSpeed {
+          let nsRepr = String(format: "%.1f", nsPerDay)
+          let ms = timeTaken / 1e-3
+          let msRepr = String(format: "%.3f", ms)
+          print("\(nsRepr) ns/day, \(msRepr) ms/frame")
+        }
+      }
     }
     
     // Update MetalFX upscaler.
@@ -294,7 +310,8 @@ extension Renderer {
     
     var accel: MTLAccelerationStructure?
     if Renderer.checkingFrameRate == false {
-      let atoms: [Atom] = ExampleMolecules.taggedEthylene
+//      let atoms: [Atom] = ExampleMolecules.taggedEthylene
+      let atoms: [Atom] = simulator.getAtoms()
       accel = accelBuilder.build(atoms: atoms, commandBuffer: commandBuffer)
     }
     

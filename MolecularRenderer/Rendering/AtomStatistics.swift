@@ -77,11 +77,18 @@ struct BoundingBox {
 
 // Stores the origin, radius squared, and atom type.
 struct Atom {
+  // Position in nm.
   var x: Float
   var y: Float
   var z: Float
+  
+  // Radius in nm.
   var radiusSquared: Float16
+  
+  // Atomic number.
   var element: UInt8
+  
+  // Flags to modify how the atom is rendered.
   var flags: UInt8
   
   init(origin: SIMD3<Float>, element: UInt8, flags: UInt8 = 0) {

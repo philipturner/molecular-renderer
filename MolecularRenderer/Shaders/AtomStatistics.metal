@@ -26,9 +26,16 @@ struct BoundingBox {
 };
 
 struct Atom {
+  // Position in nm.
   packed_float3 origin;
+  
+  // Radius in nm.
   half radiusSquared;
+  
+  // Atomic number.
   uchar element;
+  
+  // Flags to modify how the atom is rendered.
   uchar flags;
   
   Atom() {
