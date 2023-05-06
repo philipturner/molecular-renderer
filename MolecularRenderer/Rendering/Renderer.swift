@@ -68,6 +68,8 @@ class Renderer {
   // Objects to encapsulate complex operations.
   var accelBuilder: AccelerationStructureBuilder!
   var upscaler: Upscaler!
+  var simulator: NobleGasSimulator!
+  static let logSimulationSpeed: Bool = true
   
   init(view: RendererView) {
     self.view = view
@@ -131,6 +133,8 @@ class Renderer {
     // Create delegate objects.
     self.accelBuilder = AccelerationStructureBuilder(renderer: self)
     self.upscaler = Upscaler(renderer: self)
+    self.simulator = NobleGasSimulator(
+      simulationID: 0, frameRate: Self.frameRateBasis)
   }
 }
 
@@ -200,7 +204,8 @@ extension Renderer {
     return max(Renderer.frameRateBasis / current, 1)
   }
   
-  func updateFrameID() {
+  // Returns frame delta.
+  func updateFrameID() -> Int {
     uniqueFrameID += 1
     frameID += 1
     
@@ -264,6 +269,7 @@ extension Renderer {
         sustainedMisalignment, sustainedMisalignmentDuration,
         sustainedAlignmentDuration, currentRefreshRate.load(ordering: .relaxed))
     }
+    return frameDelta
   }
 }
 
@@ -271,7 +277,16 @@ extension Renderer {
 extension Renderer {
   func update() {
     self.renderSemaphore.wait()
-    self.updateFrameID()
+    let frameDelta = self.updateFrameID()
+    
+    // Run the simulator synchronously.
+    let nsPerDay = self.simulator.evolve(
+      frameDelta: frameDelta, timeScale: 1e-12)
+    if Self.logSimulationSpeed {
+      print("\(Float(nsPerDay)) ns/day")
+    }
+    
+    // Update MetalFX upscaler.
     self.upscaler.updateResources()
     
     // Command buffer shared between the geometry and rendering passes.

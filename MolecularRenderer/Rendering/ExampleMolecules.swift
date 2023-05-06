@@ -11,7 +11,7 @@ struct ExampleMolecules {
   // Structure sourced from:
   // https://commons.wikimedia.org/wiki/File:Ethylene-CRC-MW-dimensions-2D-Vector.svg
   static let ethylene: [Atom] = {
-    let z_offset: Float = -2 // -2
+    let z_offset: Float = -1 // -2
     let c_offset_x: Float = 0.1339 / 2 // 0.20
     let carbon_origins: [SIMD3<Float>] = [
       SIMD3(-c_offset_x, 0, z_offset),
