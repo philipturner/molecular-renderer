@@ -9,7 +9,7 @@ import Foundation
 import QuartzCore
 import simd
 
-// Single-core CPU simulator that only supports LJ forces, FP64, and runs
+// Single-core CPU simulator that only supports LJ forces and runs
 // synchronously. A more parallel simulator will be developed for Drexler-MM2.
 
 // MARK: - Declaration of Simulator Class
@@ -179,7 +179,7 @@ class NobleGasSimulator {
       fatalError("Unrecognized simulation ID.")
     }
     
-    let femtoseconds: Double = 0.8
+    let femtoseconds: Double = 1.0 // 0.8
     self.timeStep = 1e-15 * femtoseconds
 //    let stepsPerSample: Int = 10
 //    let maxTimeSteps: Int = Int(200_000 / femtoseconds)
@@ -241,7 +241,7 @@ extension NobleGasSimulator {
 
 // Run the molecular dynamics simulation in FP64 because I don't yet have a
 // thermostat set up.
-fileprivate typealias Real = Float64
+fileprivate typealias Real = Float32
 
 // Lennard-Jones parameters in nm and zJ. These will be down-casted to FP32
 // when running the molecular dynamics simulation.
@@ -339,14 +339,14 @@ fileprivate class LJPotentialParametersMatrix {
 fileprivate struct System {
   // The amount of data to store in registers while traversing down the matrix
   // of atom pairs.
-  typealias Block = SIMD4<Real>
-  typealias WideBlock = SIMD4<Double>
+  typealias Block = SIMD8<Real>
+  typealias WideBlock = SIMD8<Double>
   
   // The type used for the self-interaction mask during the inner loop. Use the
   // smallest value possible that fits the required number of atoms.
   typealias Index = UInt16
-  typealias IndexBlock = SIMD4<Index>
-  typealias AtomicNumberBlock = SIMD4<UInt8>
+  typealias IndexBlock = SIMD8<Index>
+  typealias AtomicNumberBlock = SIMD8<UInt8>
   
   // Simulation parameters
   var atoms: Int
@@ -779,7 +779,7 @@ extension System {
         // Swift won't let me do this the easy way! Use Int32 + FP32 in the
         // future, instead of Int16 + FP32.
         let upcasted = Block.MaskStorage(truncatingIfNeeded: indexInList)
-        r2.replace(with: .zero, where: upcasted .== Int64(j))
+        r2.replace(with: .zero, where: upcasted .== Int32(j))
 //        r2 = (indexInList == j) ? 0 : r2
         
         // nm^-6: 1e54
