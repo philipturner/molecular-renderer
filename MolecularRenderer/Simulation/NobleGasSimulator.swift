@@ -179,15 +179,8 @@ class NobleGasSimulator {
       fatalError("Unrecognized simulation ID.")
     }
     
-    let femtoseconds: Double = 1.0 // 0.8
+    let femtoseconds: Double = 1.0
     self.timeStep = 1e-15 * femtoseconds
-//    let stepsPerSample: Int = 10
-//    let maxTimeSteps: Int = Int(200_000 / femtoseconds)
-//    var positions1: [[SIMD3<Real>]] = Array(repeating: [], count: system.atoms)
-//    var velocities1: [[SIMD3<Real>]] = Array(repeating: [], count: system.atoms)
-//    var kineticEnergies: [Double] = []
-//    var potentialEnergies: [Double] = []
-    
     self.system.initializeAccelerations()
   }
 }
@@ -213,12 +206,6 @@ extension NobleGasSimulator {
     
     let start = CACurrentMediaTime()
     system.evolve(timeStep: timeStep, steps: stepsToSimulate)
-    
-//    // Print just to test reliability of timekeeping.
-//    do {
-//      let nanoseconds = Double(stepsToSimulate) * timeStep / 1e-9
-//      print("frame delta: \(frameDelta), ps: \(Float(nanoseconds / 1e-3))")
-//    }
     let end = CACurrentMediaTime()
     
     let nanoseconds = Double(stepsToSimulate) * timeStep / 1e-9
@@ -226,7 +213,6 @@ extension NobleGasSimulator {
     return (nsPerDay, end - start)
   }
   
-  // TODO: Fetch the atom data at this timestep.
   func getAtoms() -> [Atom] {
     return (0..<system.atoms).map { i in
       // Position is already converted to nm.
@@ -239,8 +225,8 @@ extension NobleGasSimulator {
 
 // MARK: - Parameters Matrix
 
-// Run the molecular dynamics simulation in FP64 because I don't yet have a
-// thermostat set up.
+// Run the molecular dynamics simulation in FP32 because energy drift is not a
+// major issue yet.
 fileprivate typealias Real = Float32
 
 // Lennard-Jones parameters in nm and zJ. These will be down-casted to FP32
@@ -332,13 +318,14 @@ fileprivate class LJPotentialParametersMatrix {
 // A very small MD simulation that will not benefit from cutoffs or modern
 // optimization algorithms. Computational complexity is O(n^2).
 //
-// Stores the intermediate data in range-reduced single precision for force
-// calculations, but expands to double precision (SI units) for integration.
+// Stores the intermediate data in range-reduced single precision for nonbonded
+// force calculations, but expands to double precision (SI units) elsewhere.
 //
 // WARNING: Make sure to avoid copy-on-write semantics!
 fileprivate struct System {
   // The amount of data to store in registers while traversing down the matrix
   // of atom pairs.
+  // TODO: Allow differently sized blocks for bonded forces and/or integration.
   typealias Block = SIMD8<Real>
   typealias WideBlock = SIMD8<Double>
   
@@ -581,7 +568,6 @@ extension System {
       // Generate a coordinate vector of indices.
       var indexInList: IndexBlock = .zero
       for k in 0..<Block.scalarCount {
-//        indexInList = Index(i + k)
         indexInList[k] = Index(i + k)
       }
       
@@ -601,7 +587,6 @@ extension System {
         // kg: 1e0
         var mass: WideBlock = .zero
         id.forEachElement { i, element in
-//          mass = self.masses.getMass(atomicNumber: element)
           mass[i] = self.masses.getMass(atomicNumber: element)
         }
         
@@ -649,7 +634,7 @@ extension System {
           var v2 = v_x_next * v_x_next
           v2.addProduct(v_y_next, v_y_next)
           v2.addProduct(v_z_next, v_z_next)
-//          kineticEnergy!.pointee.addProduct(0.5, mass * v2)
+          
           let kineticProduct = 0.5 * mass * v2
           var kineticSum: Double = 0
           for k in 0..<min(Block.scalarCount, atoms - i) {
@@ -660,25 +645,26 @@ extension System {
           // aJ: 1e-18
           let aJ___J: Double = 1e-18
           
-          // This doesn't make any sense, but apparently the potential energy is
-          // attributed to a pair of particles, but the force is applied twice -
-          // once of particle i, another time to particle j. That means the
+          // This doesn't make any sense - apparently the potential energy is
+          // attributed to a pair of particles. But, the force is applied twice
+          // - once to particle i, another time to particle j. That means the
           // force (derivative of U) is applied twice:
           //
           // F = -delta U / delta r
           // F = F_i = -F_j
-          // new U = U - F_i * delta r - -F_j * delta -r
+          // new U = U - F_i * delta r - (-F_j) * delta (-r)
+          //
+          // assume both particles are the same and |F_i| = |F_j|
           // new U = U - 2 * F * delta r
           // new U = U + 2 * delta U
           // new U - U = 2 * delta U
           // delta U = 2 * delta U
           //
-          // ?????????????????????????
+          // U = 2U ?????????????????????????
           //
           // For some reason, this formula works, even though the math doesn't
           // seem to work out.
           let multiplier = aJ___J / 12 / 2
-//          potentialEnergy!.pointee.addProduct(multiplier, Double(u_next))
           let potentialProduct = multiplier * WideBlock(u_next)
           var potentialSum: Double = 0
           for k in 0..<min(Block.scalarCount, atoms - i) {
@@ -704,8 +690,6 @@ extension System {
       
       var parameterIndexBase: IndexBlock = .zero
       id.forEachElement { i, element in
-//        parameterIndexBase = Index(
-//          self.ljParameters.index(row: Int(element), column: 0))
         parameterIndexBase[i] = Index(
           self.ljParameters.index(row: Int(element), column: 0))
       }
@@ -723,7 +707,7 @@ extension System {
         // aJ * nm^6: 1e-72
         var c6: Block = .zero
         
-        // NOTE: If simulation only one element, you can elide the parameter
+        // NOTE: If simulating only one element, you can elide the parameter
         // query, leading to a significant speedup.
         let matrixIndex = parameterIndexBase &+ Index(id_j)
         for k in 0..<Block.scalarCount {
@@ -734,11 +718,10 @@ extension System {
           c6[k] = parameters.c6
         }
         
-        
         // TODO: Maybe store positions in both split and interleaved formats to
-        // reduce the number of memory instructions here? All three memory
+        // reduce the number of memory instructions here. All three memory
         // accesses can be issued in a single cycle, so the optimization might
-        // complicate things more than it helps performance.
+        // complicate things and backfire.
         let x_j = self.x.getElement(index: Int(j))
         let y_j = self.y.getElement(index: Int(j))
         let z_j = self.z.getElement(index: Int(j))
@@ -772,15 +755,10 @@ extension System {
         r2.addProduct(y_delta, y_delta)
         r2.addProduct(z_delta, z_delta)
         r2 = simd_fast_recip(r2)
-//        r2 = simd_precise_recip(r2)
         
         // Check whether j == index. If so, skip the iteration.
-        //
-        // Swift won't let me do this the easy way! Use Int32 + FP32 in the
-        // future, instead of Int16 + FP32.
         let upcasted = Block.MaskStorage(truncatingIfNeeded: indexInList)
-        r2.replace(with: .zero, where: upcasted .== Int32(j))
-//        r2 = (indexInList == j) ? 0 : r2
+        r2.replace(with: .zero, where: upcasted .== Real.SIMDMaskScalar(j))
         
         // nm^-6: 1e54
         let r6 = r2 * r2 * r2
