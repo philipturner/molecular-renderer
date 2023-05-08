@@ -488,29 +488,29 @@ extension System {
     potentialEnergy: UnsafeMutablePointer<Double>? = nil
   ) {
     let loopWidth = Block.scalarCount
-    var i = 0
-    while i < atoms {
-      defer { i += loopWidth }
+    var i1 = 0 // initial i; do not modify this later
+    while i1 < atoms {
+      defer { i1 += loopWidth }
       
       // Some numbers are stored in SI units, while others values are
       // range-reduced to fit single precision. Any range-reduced numbers should
       // be explicitly labeled.
       
       // nm: 1e-9
-      let x_curr = x.getElement(type: Block.self, actualIndex: i)
-      let y_curr = y.getElement(type: Block.self, actualIndex: i)
-      let z_curr = z.getElement(type: Block.self, actualIndex: i)
+      let x_curr = x.getElement(type: Block.self, actualIndex: i1)
+      let y_curr = y.getElement(type: Block.self, actualIndex: i1)
+      let z_curr = z.getElement(type: Block.self, actualIndex: i1)
       
       // nm/ps: 1e3
-      let v_x_curr = v_x.getElement(type: Block.self, actualIndex: i)
-      let v_y_curr = v_y.getElement(type: Block.self, actualIndex: i)
-      let v_z_curr = v_z.getElement(type: Block.self, actualIndex: i)
+      let v_x_curr = v_x.getElement(type: Block.self, actualIndex: i1)
+      let v_y_curr = v_y.getElement(type: Block.self, actualIndex: i1)
+      let v_z_curr = v_z.getElement(type: Block.self, actualIndex: i1)
       
       // nm/ps/s: 1e3
       // NOTE: nm/ps/s could be very off. I may need a larger/smaller unit.
-      let a_x_curr = a_x.getElement(type: Block.self, actualIndex: i)
-      let a_y_curr = a_y.getElement(type: Block.self, actualIndex: i)
-      let a_z_curr = a_z.getElement(type: Block.self, actualIndex: i)
+      let a_x_curr = a_x.getElement(type: Block.self, actualIndex: i1)
+      let a_y_curr = a_y.getElement(type: Block.self, actualIndex: i1)
+      let a_z_curr = a_z.getElement(type: Block.self, actualIndex: i1)
       
       // Apply velocity Verlet integrator.
       
@@ -539,251 +539,271 @@ extension System {
       
       // Update the positions *before* calculating forces.
       if !queryEnergy && !onlyUpdatingAcceleration {
-        self.x.setElement(x_i, type: Block.self, actualIndex: i)
-        self.y.setElement(y_i, type: Block.self, actualIndex: i)
-        self.z.setElement(z_i, type: Block.self, actualIndex: i)
+        self.x.setElement(x_i, type: Block.self, actualIndex: i1)
+        self.y.setElement(y_i, type: Block.self, actualIndex: i1)
+        self.z.setElement(z_i, type: Block.self, actualIndex: i1)
       }
     }
     
-    i = 0
-    while i < atoms {
-      defer { i += loopWidth }
-      
-      // nm: 1e-9
-      let x_i = x.getElement(type: Block.self, actualIndex: i)
-      let y_i = y.getElement(type: Block.self, actualIndex: i)
-      let z_i = z.getElement(type: Block.self, actualIndex: i)
-      
-      // nm/ps: 1e3
-      let v_x_curr = v_x.getElement(type: Block.self, actualIndex: i)
-      let v_y_curr = v_y.getElement(type: Block.self, actualIndex: i)
-      let v_z_curr = v_z.getElement(type: Block.self, actualIndex: i)
-      
-      // nm/ps/s: 1e3
-      // NOTE: nm/ps/s could be very off. I may need a different OoM for FP32.
-      let a_x_curr = a_x.getElement(type: Block.self, actualIndex: i)
-      let a_y_curr = a_y.getElement(type: Block.self, actualIndex: i)
-      let a_z_curr = a_z.getElement(type: Block.self, actualIndex: i)
-      
-      // Generate a coordinate vector of indices.
-      var indexInList: IndexBlock = .zero
-      for k in 0..<Block.scalarCount {
-        indexInList[k] = Index(i + k)
-      }
-      
-      // Atomic number
-      let id = element.getElement(type: AtomicNumberBlock.self, actualIndex: i)
-      
-      // nN: 1e-9
-      var f_x_next: Block = .zero
-      var f_y_next: Block = .zero
-      var f_z_next: Block = .zero
-      
-      // aJ: 1e-18, but needs to be scaled by 1/12
-      var u_next: Block = .zero
-      
-      // Find new acceleration and update velocities.
-      defer {
-        // kg: 1e0
-        var mass: WideBlock = .zero
-        id.forEachElement { i, element in
-          mass[i] = self.masses.getMass(atomicNumber: element)
-        }
+    // TODO: Add autotuning functionality so it chooses the optimal number of
+    // cores automatically, but without sacrificing performance for extremely
+    // small simulations.
+    let numCores = 1
+    
+    func execute(coreID: Int) {
+      var i2 = loopWidth * coreID
+      while i2 < atoms {
+        defer { i2 += loopWidth * numCores }
         
-        // kg^-1: 1e0
-        let inverseMass = simd_precise_recip(mass)
+        // nm: 1e-9
+        let x_i = x.getElement(type: Block.self, actualIndex: i2)
+        let y_i = y.getElement(type: Block.self, actualIndex: i2)
+        let z_i = z.getElement(type: Block.self, actualIndex: i2)
         
-        // m/s^2: 1e0
-        let nm_s2___m_s2: Double = 1e-9
-        let a_x_next = nm_s2___m_s2 * inverseMass * WideBlock(f_x_next)
-        let a_y_next = nm_s2___m_s2 * inverseMass * WideBlock(f_y_next)
-        let a_z_next = nm_s2___m_s2 * inverseMass * WideBlock(f_z_next)
-        
-        // Store the next accelerations.
-        if !queryEnergy {
-          // nm/ps/s: 1e3
-          let m_s2___nm_ps_s: Double = 1e-3
-          let _a_x_next = Block(a_x_next * m_s2___nm_ps_s)
-          let _a_y_next = Block(a_y_next * m_s2___nm_ps_s)
-          let _a_z_next = Block(a_z_next * m_s2___nm_ps_s)
-          self.a_x.setElement(_a_x_next, type: Block.self, actualIndex: i)
-          self.a_y.setElement(_a_y_next, type: Block.self, actualIndex: i)
-          self.a_z.setElement(_a_z_next, type: Block.self, actualIndex: i)
-        }
-        
-        // Average the accelerations.
-        // The current value is twice the average acceleration. A later line of
-        // code will correct for the factor of 2.
-        let nm_ps_s___m_s2: Double = 1e3
-        let a_x_sum = a_x_next + nm_ps_s___m_s2 * WideBlock(a_x_curr)
-        let a_y_sum = a_y_next + nm_ps_s___m_s2 * WideBlock(a_y_curr)
-        let a_z_sum = a_z_next + nm_ps_s___m_s2 * WideBlock(a_z_curr)
-          
         // nm/ps: 1e3
-        let nm_ps___m_s: Double = 1e3
-        var v_x_next = nm_ps___m_s * WideBlock(v_x_curr)
-        var v_y_next = nm_ps___m_s * WideBlock(v_y_curr)
-        var v_z_next = nm_ps___m_s * WideBlock(v_z_curr)
+        let v_x_curr = v_x.getElement(type: Block.self, actualIndex: i2)
+        let v_y_curr = v_y.getElement(type: Block.self, actualIndex: i2)
+        let v_z_curr = v_z.getElement(type: Block.self, actualIndex: i2)
         
-        let multiplier: Double = 0.5 * h
-        v_x_next += multiplier * a_x_sum
-        v_y_next += multiplier * a_y_sum
-        v_z_next += multiplier * a_z_sum
+        // nm/ps/s: 1e3
+        let a_x_curr = a_x.getElement(type: Block.self, actualIndex: i2)
+        let a_y_curr = a_y.getElement(type: Block.self, actualIndex: i2)
+        let a_z_curr = a_z.getElement(type: Block.self, actualIndex: i2)
         
-        if queryEnergy {
-          var v2 = v_x_next * v_x_next
-          v2.addProduct(v_y_next, v_y_next)
-          v2.addProduct(v_z_next, v_z_next)
-          
-          let kineticProduct = 0.5 * mass * v2
-          var kineticSum: Double = 0
-          for k in 0..<min(Block.scalarCount, atoms - i) {
-            kineticSum += kineticProduct[k]
-          }
-          kineticEnergy!.pointee += kineticSum
-          
-          // aJ: 1e-18
-          let aJ___J: Double = 1e-18
-          
-          // This doesn't make any sense - apparently the potential energy is
-          // attributed to a pair of particles. But, the force is applied twice
-          // - once to particle i, another time to particle j. That means the
-          // force (derivative of U) is applied twice:
-          //
-          // F = -delta U / delta r
-          // F = F_i = -F_j
-          // new U = U - F_i * delta r - (-F_j) * delta (-r)
-          //
-          // assume both particles are the same and |F_i| = |F_j|
-          // new U = U - 2 * F * delta r
-          // new U = U + 2 * delta U
-          // new U - U = 2 * delta U
-          // delta U = 2 * delta U
-          //
-          // U = 2U ?????????????????????????
-          //
-          // For some reason, this formula works, even though the math doesn't
-          // seem to work out.
-          let multiplier = aJ___J / 12 / 2
-          let potentialProduct = multiplier * WideBlock(u_next)
-          var potentialSum: Double = 0
-          for k in 0..<min(Block.scalarCount, atoms - i) {
-            potentialSum += potentialProduct[k]
-          }
-          potentialEnergy!.pointee += potentialSum
+        // Generate a coordinate vector of indices.
+        var indexInList: IndexBlock = .zero
+        for k in 0..<Block.scalarCount {
+          indexInList[k] = Index(i2 + k)
         }
         
-        if !queryEnergy && !onlyUpdatingAcceleration {
-          // TODO: Implement a good thermostat. Modify the velocities before
-          // the next time step, so they remain at the right temperature.
+        // Atomic number
+        let id = element.getElement(
+          type: AtomicNumberBlock.self, actualIndex: i2)
+        
+        // nN: 1e-9
+        var f_x_next: Block = .zero
+        var f_y_next: Block = .zero
+        var f_z_next: Block = .zero
+        
+        // aJ: 1e-18, but needs to be scaled by 1/12
+        var u_next: Block = .zero
+        
+        // Find new acceleration and update velocities.
+        defer {
+          // kg: 1e0
+          var mass: WideBlock = .zero
+          id.forEachElement { i, element in
+            mass[i] = self.masses.getMass(atomicNumber: element)
+          }
+          
+          // kg^-1: 1e0
+          let inverseMass = simd_precise_recip(mass)
+          
+          // m/s^2: 1e0
+          let nm_s2___m_s2: Double = 1e-9
+          let a_x_next = nm_s2___m_s2 * inverseMass * WideBlock(f_x_next)
+          let a_y_next = nm_s2___m_s2 * inverseMass * WideBlock(f_y_next)
+          let a_z_next = nm_s2___m_s2 * inverseMass * WideBlock(f_z_next)
+          
+          // Store the next accelerations.
+          if !queryEnergy {
+            // nm/ps/s: 1e3
+            let m_s2___nm_ps_s: Double = 1e-3
+            let _a_x_next = Block(a_x_next * m_s2___nm_ps_s)
+            let _a_y_next = Block(a_y_next * m_s2___nm_ps_s)
+            let _a_z_next = Block(a_z_next * m_s2___nm_ps_s)
+            self.a_x.setElement(_a_x_next, type: Block.self, actualIndex: i2)
+            self.a_y.setElement(_a_y_next, type: Block.self, actualIndex: i2)
+            self.a_z.setElement(_a_z_next, type: Block.self, actualIndex: i2)
+          }
+          
+          // Average the accelerations.
+          // The current value is twice the average acceleration. A later line of
+          // code will correct for the factor of 2.
+          let nm_ps_s___m_s2: Double = 1e3
+          let a_x_sum = a_x_next + nm_ps_s___m_s2 * WideBlock(a_x_curr)
+          let a_y_sum = a_y_next + nm_ps_s___m_s2 * WideBlock(a_y_curr)
+          let a_z_sum = a_z_next + nm_ps_s___m_s2 * WideBlock(a_z_curr)
           
           // nm/ps: 1e3
-          let m_s___nm_ps: Double = 1e-3
-          let _v_x_next = Block(v_x_next * m_s___nm_ps)
-          let _v_y_next = Block(v_y_next * m_s___nm_ps)
-          let _v_z_next = Block(v_z_next * m_s___nm_ps)
-          self.v_x.setElement(_v_x_next, type: Block.self, actualIndex: i)
-          self.v_y.setElement(_v_y_next, type: Block.self, actualIndex: i)
-          self.v_z.setElement(_v_z_next, type: Block.self, actualIndex: i)
+          let nm_ps___m_s: Double = 1e3
+          var v_x_next = nm_ps___m_s * WideBlock(v_x_curr)
+          var v_y_next = nm_ps___m_s * WideBlock(v_y_curr)
+          var v_z_next = nm_ps___m_s * WideBlock(v_z_curr)
+          
+          let multiplier: Double = 0.5 * h
+          v_x_next += multiplier * a_x_sum
+          v_y_next += multiplier * a_y_sum
+          v_z_next += multiplier * a_z_sum
+          
+          if queryEnergy {
+            var v2 = v_x_next * v_x_next
+            v2.addProduct(v_y_next, v_y_next)
+            v2.addProduct(v_z_next, v_z_next)
+            
+            let kineticProduct = 0.5 * mass * v2
+            var kineticSum: Double = 0
+            for k in 0..<min(Block.scalarCount, atoms - i2) {
+              kineticSum += kineticProduct[k]
+            }
+            kineticEnergy!.pointee += kineticSum
+            
+            // aJ: 1e-18
+            let aJ___J: Double = 1e-18
+            
+            // This doesn't make any sense - apparently the potential energy is
+            // attributed to a pair of particles. But, the force is applied twice
+            // - once to particle i, another time to particle j. That means the
+            // force (derivative of U) is applied twice:
+            //
+            // F = -delta U / delta r
+            // F = F_i = -F_j
+            // new U = U - F_i * delta r - (-F_j) * delta (-r)
+            //
+            // assume both particles are the same and |F_i| = |F_j|
+            // new U = U - 2 * F * delta r
+            // new U = U + 2 * delta U
+            // new U - U = 2 * delta U
+            // delta U = 2 * delta U
+            //
+            // U = 2U ?????????????????????????
+            //
+            // For some reason, this formula works, even though the math doesn't
+            // seem to work out.
+            let multiplier = aJ___J / 12 / 2
+            let potentialProduct = multiplier * WideBlock(u_next)
+            var potentialSum: Double = 0
+            for k in 0..<min(Block.scalarCount, atoms - i2) {
+              potentialSum += potentialProduct[k]
+            }
+            potentialEnergy!.pointee += potentialSum
+          }
+          
+          if !queryEnergy && !onlyUpdatingAcceleration {
+            // TODO: Implement a good thermostat. Modify the velocities before
+            // the next time step, so they remain at the right temperature.
+            
+            // nm/ps: 1e3
+            let m_s___nm_ps: Double = 1e-3
+            let _v_x_next = Block(v_x_next * m_s___nm_ps)
+            let _v_y_next = Block(v_y_next * m_s___nm_ps)
+            let _v_z_next = Block(v_z_next * m_s___nm_ps)
+            self.v_x.setElement(_v_x_next, type: Block.self, actualIndex: i2)
+            self.v_y.setElement(_v_y_next, type: Block.self, actualIndex: i2)
+            self.v_z.setElement(_v_z_next, type: Block.self, actualIndex: i2)
+          }
+        }
+        
+        var parameterIndexBase: IndexBlock = .zero
+        id.forEachElement { i, element in
+          parameterIndexBase[i] = Index(
+            self.ljParameters.index(row: Int(element), column: 0))
+        }
+        
+        // Calculate nonbonded forces.
+        for j in 0..<Index(atoms) {
+          let id_j = element.getElement(index: Int(j))
+          
+          // C12 = 48 * epsilon * sigma^12
+          // C6 = -24 * epsilon * sigma^6
+          
+          // aJ * nm^12: 1e-126
+          var c12: Block = .zero
+          
+          // aJ * nm^6: 1e-72
+          var c6: Block = .zero
+          
+          // NOTE: If simulating only one element, you can elide the parameter
+          // query, leading to a significant speedup.
+          let matrixIndex = parameterIndexBase &+ Index(id_j)
+          for k in 0..<Block.scalarCount {
+            let index = matrixIndex[k]
+            let parameters = self.ljParameters.getElement(
+              index: Int(index), row: Int(id[k]), column: Int(id_j))
+            c12[k] = parameters.c12
+            c6[k] = parameters.c6
+          }
+          
+          // TODO: Maybe store positions in both split and interleaved formats to
+          // reduce the number of memory instructions here. All three memory
+          // accesses can be issued in a single cycle, so the optimization might
+          // complicate things and backfire.
+          let x_j = self.x.getElement(index: Int(j))
+          let y_j = self.y.getElement(index: Int(j))
+          let z_j = self.z.getElement(index: Int(j))
+          
+          // Order of subtraction: if LJ force is positive, we should push the
+          // Particles away from each other. Take particle i's position, and
+          // subtract particle j's position. Then, normalize the delta. This is
+          // the direction where the force acts. The quantity F/r normalizes for
+          // you while making the force calculation cheaper.
+          //
+          // Also note that by Newton's third law, the force will be duplicated.
+          // From particle j's point of view, particle i is pushed with double the
+          // acceleration derived from -dU/dr. This can be explained by the
+          // following:
+          //
+          // Each particle has its own potential energy, independent from the
+          // other interacting particle. The PES curves happen to look the same,
+          // but they're two separate potential energies for two separate
+          // particles. -dU/dr for particle i is coming out of U_i. -dU/dr for
+          // particle j is coming out of U_j. If they came out of the same
+          // potential energy function, then you'd be correct that the potential
+          // energy delta is being duplicated.
+          //
+          // nm: 1e-9
+          let x_delta = x_i - x_j
+          let y_delta = y_i - y_j
+          let z_delta = z_i - z_j
+          
+          // nm^-2: 1e18
+          var r2 = x_delta * x_delta
+          r2.addProduct(y_delta, y_delta)
+          r2.addProduct(z_delta, z_delta)
+          r2 = simd_fast_recip(r2)
+          
+          // Check whether j == index. If so, skip the iteration.
+          let upcasted = Block.MaskStorage(truncatingIfNeeded: indexInList)
+          r2.replace(with: .zero, where: upcasted .== Real.SIMDMaskScalar(j))
+          
+          // nm^-6: 1e54
+          let r6 = r2 * r2 * r2
+          
+          // nm^-12: 1e108
+          let r12 = r6 * r6
+          
+          // aJ: 1e-18
+          var temp1 = c6 * r6
+          if queryEnergy {
+            u_next.addProduct(temp1, 2)
+            u_next.addProduct(c12, r12)
+          }
+          temp1.addProduct(c12, r12)
+          
+          // aJ * nm^-2: 1e0
+          // 10^-18 * (kg * m^2/s^2) * nm^-2
+          // 10^-18 * (kg/s^2) * 10^18
+          let temp2 = temp1 * r2
+          
+          // aJ/nm: 1e-9
+          // nano-Newtons
+          f_x_next.addProduct(temp2, x_delta)
+          f_y_next.addProduct(temp2, y_delta)
+          f_z_next.addProduct(temp2, z_delta)
         }
       }
-      
-      var parameterIndexBase: IndexBlock = .zero
-      id.forEachElement { i, element in
-        parameterIndexBase[i] = Index(
-          self.ljParameters.index(row: Int(element), column: 0))
-      }
-      
-      // Calculate nonbonded forces.
-      for j in 0..<Index(atoms) {
-        let id_j = element.getElement(index: Int(j))
-        
-        // C12 = 48 * epsilon * sigma^12
-        // C6 = -24 * epsilon * sigma^6
-        
-        // aJ * nm^12: 1e-126
-        var c12: Block = .zero
-        
-        // aJ * nm^6: 1e-72
-        var c6: Block = .zero
-        
-        // NOTE: If simulating only one element, you can elide the parameter
-        // query, leading to a significant speedup.
-        let matrixIndex = parameterIndexBase &+ Index(id_j)
-        for k in 0..<Block.scalarCount {
-          let index = matrixIndex[k]
-          let parameters = self.ljParameters.getElement(
-            index: Int(index), row: Int(id[k]), column: Int(id_j))
-          c12[k] = parameters.c12
-          c6[k] = parameters.c6
-        }
-        
-        // TODO: Maybe store positions in both split and interleaved formats to
-        // reduce the number of memory instructions here. All three memory
-        // accesses can be issued in a single cycle, so the optimization might
-        // complicate things and backfire.
-        let x_j = self.x.getElement(index: Int(j))
-        let y_j = self.y.getElement(index: Int(j))
-        let z_j = self.z.getElement(index: Int(j))
-        
-        // Order of subtraction: if LJ force is positive, we should push the
-        // Particles away from each other. Take particle i's position, and
-        // subtract particle j's position. Then, normalize the delta. This is
-        // the direction where the force acts. The quantity F/r normalizes for
-        // you while making the force calculation cheaper.
-        //
-        // Also note that by Newton's third law, the force will be duplicated.
-        // From particle j's point of view, particle i is pushed with double the
-        // acceleration derived from -dU/dr. This can be explained by the
-        // following:
-        //
-        // Each particle has its own potential energy, independent from the
-        // other interacting particle. The PES curves happen to look the same,
-        // but they're two separate potential energies for two separate
-        // particles. -dU/dr for particle i is coming out of U_i. -dU/dr for
-        // particle j is coming out of U_j. If they came out of the same
-        // potential energy function, then you'd be correct that the potential
-        // energy delta is being duplicated.
-        //
-        // nm: 1e-9
-        let x_delta = x_i - x_j
-        let y_delta = y_i - y_j
-        let z_delta = z_i - z_j
-        
-        // nm^-2: 1e18
-        var r2 = x_delta * x_delta
-        r2.addProduct(y_delta, y_delta)
-        r2.addProduct(z_delta, z_delta)
-        r2 = simd_fast_recip(r2)
-        
-        // Check whether j == index. If so, skip the iteration.
-        let upcasted = Block.MaskStorage(truncatingIfNeeded: indexInList)
-        r2.replace(with: .zero, where: upcasted .== Real.SIMDMaskScalar(j))
-        
-        // nm^-6: 1e54
-        let r6 = r2 * r2 * r2
-        
-        // nm^-12: 1e108
-        let r12 = r6 * r6
-        
-        // aJ: 1e-18
-        var temp1 = c6 * r6
-        if queryEnergy {
-          u_next.addProduct(temp1, 2)
-          u_next.addProduct(c12, r12)
-        }
-        temp1.addProduct(c12, r12)
-        
-        // aJ * nm^-2: 1e0
-        // 10^-18 * (kg * m^2/s^2) * nm^-2
-        // 10^-18 * (kg/s^2) * 10^18
-        let temp2 = temp1 * r2
-        
-        // aJ/nm: 1e-9
-        // nano-Newtons
-        f_x_next.addProduct(temp2, x_delta)
-        f_y_next.addProduct(temp2, y_delta)
-        f_z_next.addProduct(temp2, z_delta)
+    }
+    
+    if numCores == 1 {
+      execute(coreID: 0)
+    } else {
+      // Profile CPU synchronization latency.
+      let loggingLatency = false
+      let start = loggingLatency ? CACurrentMediaTime() : 0
+      DispatchQueue.concurrentPerform(iterations: numCores, execute: execute)
+      let end = loggingLatency ? CACurrentMediaTime() : 0
+      if loggingLatency {
+        print("\((end - start) / 1e-6) us")
       }
     }
   }

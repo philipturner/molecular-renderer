@@ -71,8 +71,8 @@ class Renderer {
   var simulator: NobleGasSimulator!
   static let logSimulationSpeed: Bool = true
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
-  static let simulationID: Int = 2 // 0-2
-  static let simulationSpeed: Double = 20e-12 // ps/s
+  static let simulationID: Int = 0 // 0-2
+  static let simulationSpeed: Double = 5e-12 // ps/s
   
   init(view: RendererView) {
     let eventTracker = view.coordinator.eventTracker!
