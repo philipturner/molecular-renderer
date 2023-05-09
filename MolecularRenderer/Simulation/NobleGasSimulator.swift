@@ -9,8 +9,7 @@ import Foundation
 import QuartzCore
 import simd
 
-// Single-core CPU simulator that only supports LJ forces and runs
-// synchronously. A more parallel simulator will be developed for Drexler-MM2.
+// Synchronous single-core CPU simulator that only supports LJ forces.
 
 // MARK: - Declaration of Simulator Class
 

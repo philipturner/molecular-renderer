@@ -14,6 +14,7 @@
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
+		9829755A2A0AB6E300BA200F /* AsyncSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982975592A0AB6E300BA200F /* AsyncSimulator.swift */; };
 		98298F5A29F353E90008E248 /* Upscaler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98298F5929F353E90008E248 /* Upscaler.swift */; };
 		98298F5C29F357E70008E248 /* AccelerationStructureBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */; };
 		9846B9022A069798006E4924 /* NobleGasSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846B9012A069798006E4924 /* NobleGasSimulator.swift */; };
@@ -44,6 +45,7 @@
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
 		981FCFF129ECAF24009904A2 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		981FCFF329EF52E9009904A2 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		982975592A0AB6E300BA200F /* AsyncSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSimulator.swift; sourceTree = "<group>"; };
 		98298F5929F353E90008E248 /* Upscaler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Upscaler.swift; sourceTree = "<group>"; };
 		98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccelerationStructureBuilder.swift; sourceTree = "<group>"; };
 		9846B9012A069798006E4924 /* NobleGasSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobleGasSimulator.swift; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 				9846B9012A069798006E4924 /* NobleGasSimulator.swift */,
 				9846B9032A0698D3006E4924 /* Vector.swift */,
 				9846B9052A069D21006E4924 /* MM2Simulator.swift */,
+				982975592A0AB6E300BA200F /* AsyncSimulator.swift */,
 			);
 			path = Simulation;
 			sourceTree = "<group>";
@@ -262,6 +265,7 @@
 				98122D7129DFBDE6006200D1 /* AtomStatistics.metal in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98122D6F29DFBC14006200D1 /* AtomStatistics.swift in Sources */,
+				9829755A2A0AB6E300BA200F /* AsyncSimulator.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98F3B30329DE60E6003B9AD7 /* CheckFrameRate.metal in Sources */,

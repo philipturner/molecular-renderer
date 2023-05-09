@@ -39,7 +39,6 @@ let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
 TODO (rendering):
-- Import official atomic radii and colors.
 - Implement RTAO for studying high-frequency motion.
   - 768x768 -> 1536x1536 upscaling
   - 120 Hz native
@@ -51,15 +50,15 @@ TODO (rendering):
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
-- HUD when crosshair is active: OpenMM ps/s, OpenMM ns/day, rendering ps/s, using Monocraft font + SwiftUI.
+- Key binding "p" to take a picture, "v" to record a video.
 - Scripting API to reproduce any simulation.
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
-- Enable replaying at integer multiples of the sample rate, exporting 24 Hz H.264 video (with motion blur?).
+- Allow replaying at integer multiples of the sample rate.
 
 TODO (simulation)
-- Real-time energy graph.
-- Multithreaded background process for real-time CPU simulations.
-- Port the Drexler-MM2 forcefield using ARM assembly.
+- Asynchronous background process for real-time simulations.
+- Real-time graph of energy and temperature, reflecting AOT-generated frames.
+- Port the Drexler-MM2 forcefield using no-cutoff OpenMM GPU.
 - Port the [Brenner forcefield](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.42.9458).
 
 ## Requirements
