@@ -68,7 +68,7 @@ TODO (user interface):
 TODO (simulation):
 - Separate command queue for real-time simulation.
   - Stays numerous frames ahead, maintains a cushion for frame drops
-  - Catches up from frame drops, but resets if too long (&gt;0.5 s)
+  - Catches up from frame drops, but resets if drop exceeds cushion
   - Non-real-time mode to benchmark performance (ns/day)
 - Real-time graph of energy, temperature, and simulator progress.
 - Port the Drexler-MM2 forcefield using Metal compute shaders.
