@@ -65,7 +65,7 @@ TODO (user interface):
 - Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
 - Allow replaying at integer multiples of the sample rate.
 
-TODO (simulation)
+TODO (simulation):
 - Separate command queue for real-time simulation.
   - Stays numerous frames ahead, maintains a cushion for frame drops
   - Catches up from frame drops, but resets if too long (&gt;0.5 s)
