@@ -38,15 +38,25 @@ let fovX = 2 * arctan(scaleX * baseSlope)
 let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
-TODO (rendering):
-- Implement RTAO for studying high-frequency motion.
+Simulation modes:
+- 4 fs (NVT): QSHAKE, mass repartitoning, improved velocity rescaling thermostat, entirely FP32
+- 1 fs (NVE): first mode to be implemented, sums groups of 4 nonbonded forces in FP32 and switches to eFP64 for larger sums
+- 0.25 fs (NVE): identical to 1 fs, except the smaller timestep permits measuring energies smaller than the Landauer limit
+
+Rendering modes:
+- Low-quality mode for studying high-frequency motion.
+  - Runs concurrently to a small $O(n^2)$ Metal simulation
   - 768x768 -> 1536x1536 upscaling
   - 120 Hz native
-  - Builds accels at runtime (&lt;10K atoms)
-- Implement MLT for studying complex geometry.
+  - Builds accels at runtime, requires &lt;10K atoms
+- High-quality mode for studying complex geometry.
+  - Runs after a large, overnight OpenMM simulation finishes
   - 640x640 -> 1280x1280 upscaling
   - 60 Hz -> 120 Hz frame interpolation
-  - Streams pre-computed accels from SSD (&gt;1K atoms)
+  - Streams pre-computed accels from the SSD
+
+TODO (rendering):
+- Implement the Metropolis light transport algorithm.
 
 TODO (user interface):
 - Minecraft-like sprinting for flying around at different speeds.
@@ -56,10 +66,12 @@ TODO (user interface):
 - Allow replaying at integer multiples of the sample rate.
 
 TODO (simulation)
-- Asynchronous background process for real-time simulations.
-- Real-time graph of energy and temperature, reflecting AOT-generated frames.
-- Port the Drexler-MM2 forcefield using no-cutoff OpenMM GPU.
-- Port the [Brenner forcefield](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.42.9458).
+- Separate command queue for real-time simulation.
+  - Stays numerous frames ahead, maintains a cushion for frame drops
+  - Catches up from frame drops, but resets if too long (&gt;0.5 s)
+  - Non-real-time mode to benchmark performance (ns/day)
+- Real-time graph of energy, temperature, and simulator progress.
+- Port the Drexler-MM2 forcefield using Metal compute shaders.
 
 ## Requirements
 
