@@ -68,11 +68,34 @@ class Renderer {
   // Objects to encapsulate complex operations.
   var accelBuilder: AccelerationStructureBuilder!
   var upscaler: Upscaler!
+  
+  enum RenderingMode {
+    // Generated procedurally at runtime.
+    case procedural
+    
+    // Visualize the time evolution of an MD simulation.
+    case realTimeSimulation
+    
+    // Static or animated nanostructure generated externally.
+    case file
+  }
+  static let renderingMode: RenderingMode = .file
+  
+  // Variables for controlling procedural generation.
+  static let generateProcedural: () -> [Atom] = {
+    return ExampleMolecules.taggedEthylene
+  }
+  
+  // Variables for controlling a real-time MD simulation.
   var simulator: NobleGasSimulator!
   static let logSimulationSpeed: Bool = true
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
   static let simulationID: Int = 0 // 0-2
   static let simulationSpeed: Double = 5e-12 // ps/s
+  
+  // Variables for rendering geometry from a file.
+  var parser: NanoEngineerParser!
+  static let fileName = "MarkIII[k] Planetary Gear Box"
   
   init(view: RendererView) {
     let eventTracker = view.coordinator.eventTracker!
@@ -144,8 +167,17 @@ class Renderer {
     // Create delegate objects.
     self.accelBuilder = AccelerationStructureBuilder(renderer: self)
     self.upscaler = Upscaler(renderer: self)
-    self.simulator = NobleGasSimulator(
-      simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
+    
+    switch Self.renderingMode {
+    case .procedural:
+      // Do nothing.
+      break
+    case .realTimeSimulation:
+      self.simulator = NobleGasSimulator(
+        simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
+    case .file:
+      self.parser = NanoEngineerParser(fileName: Self.fileName)
+    }
   }
 }
 
@@ -293,7 +325,8 @@ extension Renderer {
     do {
       // Do not simulate while the crosshair is active.
       let eventTracker = self.view.coordinator.eventTracker!
-      if !eventTracker.crosshairActive.load(ordering: .relaxed) {
+      if !eventTracker.crosshairActive.load(ordering: .relaxed),
+         Self.renderingMode == .realTimeSimulation {
         // Run the simulator synchronously.
         let (nsPerDay, timeTaken) = self.simulator.evolve(
           frameDelta: frameDelta, timeScale: Self.simulationSpeed)
@@ -314,8 +347,15 @@ extension Renderer {
     
     var accel: MTLAccelerationStructure?
     if Renderer.checkingFrameRate == false {
-//      let atoms: [Atom] = ExampleMolecules.taggedEthylene
-      let atoms: [Atom] = simulator.getAtoms()
+      let atoms: [Atom]
+      switch Self.renderingMode {
+      case .procedural:
+        atoms = Self.generateProcedural()
+      case .realTimeSimulation:
+        atoms = self.simulator.getAtoms()
+      case .file:
+        atoms = parser.atoms
+      }
       accel = accelBuilder.build(atoms: atoms, commandBuffer: commandBuffer)
     }
     

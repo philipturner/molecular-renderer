@@ -27,6 +27,7 @@
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98570CF22A0C6EF50078E023 /* NobleGasSimulation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98570CF12A0C6EF50078E023 /* NobleGasSimulation.metal */; };
 		98570CF52A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp in Resources */ = {isa = PBXBuildFile; fileRef = 98570CF42A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp */; };
+		98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */; };
 		986ED88829A6CB0400E0653B /* RenderMain.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88729A6CB0400E0653B /* RenderMain.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		986ED88F29A71C1C00E0653B /* PythonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED88E29A71C1C00E0653B /* PythonKit */; };
@@ -59,6 +60,7 @@
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98570CF12A0C6EF50078E023 /* NobleGasSimulation.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NobleGasSimulation.metal; sourceTree = "<group>"; };
 		98570CF42A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "MarkIII[k] Planetary Gear Box.mmp"; sourceTree = "<group>"; };
+		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
 				98298F5929F353E90008E248 /* Upscaler.swift */,
 				98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */,
+				98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -285,6 +288,7 @@
 			files = (
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
+				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
 				98122D7129DFBDE6006200D1 /* AtomStatistics.metal in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98122D6F29DFBC14006200D1 /* AtomStatistics.swift in Sources */,
