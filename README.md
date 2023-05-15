@@ -43,27 +43,17 @@ Simulation modes:
 - 1 fs (NVE): first mode to be implemented, sums groups of 4 nonbonded forces in FP32 and switches to eFP64 for larger sums
 - 0.25 fs (NVE): identical to 1 fs, except the smaller timestep permits measuring energies smaller than the Landauer limit
 
-Rendering modes:
-- Low-quality mode for studying high-frequency motion.
-  - Runs concurrently to a small $O(n^2)$ Metal simulation
+TODO (rendering):
+- Finish implementing ambient occlusion.
+  - Runs concurrently to a small $O(n^2)$ MD simulation
   - 768x768 -> 1536x1536 upscaling
   - 120 Hz native
-  - Builds accels at runtime, requires &lt;10K atoms
-- High-quality mode for studying complex geometry.
-  - Runs after a large, overnight OpenMM simulation finishes
-  - 640x640 -> 1280x1280 upscaling
-  - 60 Hz -> 120 Hz frame interpolation
-  - Streams pre-computed accels from the SSD
-
-TODO (rendering):
-- Implement the Metropolis light transport algorithm.
+  - Builds accels at runtime (&lt;10K atoms) or streams from SSD
 
 TODO (user interface):
-- Minecraft-like sprinting for flying around at different speeds.
 - Key binding "p" to take a picture, "v" to record a video.
-- Scripting API to reproduce any simulation.
-- Automatically halt progress at specified GB limit, estimate average and maximum size from simulation parameters, show remaining disk space.
 - Allow replaying at integer multiples of the sample rate.
+- Minecraft-like sprinting for flying around at different speeds.
 
 TODO (simulation):
 - Separate command queue for real-time simulation.
@@ -71,7 +61,6 @@ TODO (simulation):
   - Catches up from frame drops, but resets if drop exceeds cushion
   - Non-real-time mode to benchmark performance (ns/day)
 - Real-time graph of energy, temperature, and simulator progress.
-- Port the Drexler-MM2 forcefield using Metal compute shaders.
 
 ## Requirements
 
