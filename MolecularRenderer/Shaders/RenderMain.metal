@@ -8,6 +8,7 @@
 #include <metal_stdlib>
 #include "AtomStatistics.metal"
 #include "RayTracing.metal"
+#include "RayGeneration.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -17,6 +18,7 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant bool USE_METALFX [[function_constant(2)]];
 
+#define USE_RTAO 1
 #define DEBUG_MOTION_VECTORS 0
 #define DEBUG_MOTION_VECTORS_USING_ORIENTATION 0
 #define DEBUG_DEPTH 0
@@ -110,8 +112,8 @@ kernel void renderMain
   // Shade in the color.
   if (intersect.accept) {
     Atom atom = intersect.atom;
-    float shininess = 16.0;
-    float lightPower = 40.0;
+    constexpr float shininess = 16.0;
+    constexpr float lightPower = 40.0;
     
     // Base color of the sphere.
     half3 diffuseColor;
@@ -154,6 +156,14 @@ kernel void renderMain
     float scaledLightPower = smoothstep(0, 1, lightPower / lightDistance);
     float3 out = float3(diffuseColor) * lambertian * scaledLightPower;
     out += specular * scaledLightPower;
+    if (USE_RTAO) {
+      // TODO: Do you apply occlusion before or after the specular part?
+      float occlusion = RayGeneration::queryOcclusion
+       (
+        intersectionPoint, atom, pixelCoords, args->frameNumber,
+        accelerationStructure);
+      out *= occlusion;
+    }
     color = half3(saturate(out));
     
     if (DEBUG_MOTION_VECTORS || USE_METALFX) {
