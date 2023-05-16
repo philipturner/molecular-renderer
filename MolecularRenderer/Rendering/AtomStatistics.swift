@@ -76,7 +76,7 @@ struct BoundingBox {
 }
 
 // Stores the origin, radius squared, and atom type.
-struct Atom {
+struct Atom: Equatable {
   // Position in nm.
   var x: Float
   var y: Float

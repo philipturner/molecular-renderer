@@ -11,14 +11,15 @@ import Metal
 // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
 
 struct AccelerationStructureBuilder {
-  // Compaction saves a lot of memory, but doesn't really change whether it is
-  // aligned along cache lines. If anything, it only increases the memory
-  // because we now have two scratch buffers.
-  static let doingCompaction = false
-  
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
+  
+  // Cache the atoms and don't rebuild if the current frame matches the previous
+  // one. This should be a very dynamic way to optimize the renderer - it
+  // automatically detects frames without motion, and you don't have to
+  // explicitly mark frames as static.
+  var cachedAtoms: [Atom] = []
   
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
@@ -109,7 +110,18 @@ extension AccelerationStructureBuilder {
 }
 
 extension AccelerationStructureBuilder {
-  mutating func build(atoms: [Atom], commandBuffer: MTLCommandBuffer) -> MTLAccelerationStructure {
+  mutating func build(
+    atoms: [Atom],
+    commandBuffer: MTLCommandBuffer,
+    shouldCompact: Bool
+  ) -> MTLAccelerationStructure {
+    guard self.cachedAtoms != atoms else {
+      print("Using cached.")
+      return self.accels[accelIndex]!
+    }
+    print("Not using cached.")
+    self.cachedAtoms = atoms
+    
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<Atom>.stride
     let atomBufferSize = atoms.count * atomSize
@@ -206,7 +218,7 @@ extension AccelerationStructureBuilder {
       accelerationStructure: accel, descriptor: accelDesc,
       scratchBuffer: scratchBuffer, scratchBufferOffset: 1024)
     
-    if AccelerationStructureBuilder.doingCompaction {
+    if shouldCompact {
       accel = self.compact(
         encoder: encoder, accel: accel, descriptor: accelDesc)
     }
@@ -219,6 +231,9 @@ extension AccelerationStructureBuilder {
     return accel
   }
   
+  // Compaction saves a lot of memory, but doesn't really change whether it is
+  // aligned along cache lines. If anything, it only increases the memory
+  // because we now have two scratch buffers.
   mutating func compact(
     encoder: MTLAccelerationStructureCommandEncoder,
     accel: MTLAccelerationStructure,

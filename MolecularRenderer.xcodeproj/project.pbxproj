@@ -37,6 +37,8 @@
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
 		9898382D29A6C09000B4AA98 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */; };
+		98CDEB892A1263620025C0EC /* AmbientOcclusion.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98CDEB882A1263620025C0EC /* AmbientOcclusion.metal */; };
+		98F250052A130A7C009AABDE /* AmbientOcclusion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F250042A130A7C009AABDE /* AmbientOcclusion.swift */; };
 		98F3B30329DE60E6003B9AD7 /* CheckFrameRate.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F3B30229DE60E6003B9AD7 /* CheckFrameRate.metal */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +72,9 @@
 		9898382929A6C09000B4AA98 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MolecularRenderer.entitlements; sourceTree = "<group>"; };
+		98CDEB882A1263620025C0EC /* AmbientOcclusion.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AmbientOcclusion.metal; sourceTree = "<group>"; };
+		98F250042A130A7C009AABDE /* AmbientOcclusion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmbientOcclusion.swift; sourceTree = "<group>"; };
+		98F250062A131681009AABDE /* how-to-create-the-ao-sampler.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "how-to-create-the-ao-sampler.md"; sourceTree = "<group>"; };
 		98F3B30229DE60E6003B9AD7 /* CheckFrameRate.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CheckFrameRate.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -96,6 +101,7 @@
 				987C5CE329EA051400CE5EB7 /* RayTracing.metal */,
 				981E8F4629F4C99A00F7BA21 /* Sampling.metal */,
 				981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */,
+				98CDEB882A1263620025C0EC /* AmbientOcclusion.metal */,
 			);
 			path = Shaders;
 			sourceTree = "<group>";
@@ -122,6 +128,7 @@
 				98298F5929F353E90008E248 /* Upscaler.swift */,
 				98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */,
 				98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */,
+				98F250042A130A7C009AABDE /* AmbientOcclusion.swift */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -142,6 +149,7 @@
 			isa = PBXGroup;
 			children = (
 				9852E88029EB8CC100D0E779 /* how-to-create-the-ui.md */,
+				98F250062A131681009AABDE /* how-to-create-the-ao-sampler.md */,
 			);
 			path = "GPT-4";
 			sourceTree = "<group>";
@@ -183,7 +191,7 @@
 		9898382429A6C08F00B4AA98 /* MolecularRenderer */ = {
 			isa = PBXGroup;
 			children = (
-				98570CF32A116A200078E023 /* NanoEngineer */,
+				98F250032A130A65009AABDE /* External */,
 				9846B9002A069785006E4924 /* Simulation */,
 				98298F5829F353D30008E248 /* Rendering */,
 				981FCFEE29ECAE0E009904A2 /* User Interface */,
@@ -201,6 +209,14 @@
 				9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		98F250032A130A65009AABDE /* External */ = {
+			isa = PBXGroup;
+			children = (
+				98570CF32A116A200078E023 /* NanoEngineer */,
+			);
+			path = External;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -290,6 +306,7 @@
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
 				98122D7129DFBDE6006200D1 /* AtomStatistics.metal in Sources */,
+				98F250052A130A7C009AABDE /* AmbientOcclusion.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98122D6F29DFBC14006200D1 /* AtomStatistics.swift in Sources */,
 				9829755A2A0AB6E300BA200F /* AsyncSimulator.swift in Sources */,
@@ -300,6 +317,7 @@
 				981E8F4929F4CA5B00F7BA21 /* RayGeneration.metal in Sources */,
 				9846B9062A069D21006E4924 /* MM2Simulator.swift in Sources */,
 				98298F5A29F353E90008E248 /* Upscaler.swift in Sources */,
+				98CDEB892A1263620025C0EC /* AmbientOcclusion.metal in Sources */,
 				987C5CE529EA05AB00CE5EB7 /* RayTracing.metal in Sources */,
 				981E8F4729F4C99A00F7BA21 /* Sampling.metal in Sources */,
 				98298F5C29F357E70008E248 /* AccelerationStructureBuilder.swift in Sources */,

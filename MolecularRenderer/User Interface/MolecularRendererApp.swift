@@ -24,7 +24,7 @@ struct MolecularRendererApp: App {
 struct ContentView: View {
   @ObservedObject var coordinator: Coordinator
   
-  static let size: CGFloat = 1536
+  static let size: CGFloat = 1280
   
   var body: some View {
     // A ZStack to overlay the crosshair over the scene view

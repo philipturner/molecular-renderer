@@ -27,6 +27,7 @@ struct IntersectionResult {
 // Use C++ class to bypass AIR symbol duplication error.
 class RayTracing {
 public:
+  // Do not walk inside an atom; doing so will produce corrupted graphics.
   static AtomIntersection atomIntersectionFunction(ray ray, Atom atom) {
     float3 oc = ray.origin - atom.origin;
     float a = dot(ray.direction, ray.direction);

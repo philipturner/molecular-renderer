@@ -35,8 +35,8 @@ struct Arguments {
   // The jitter to apply to the pixel.
   float2 jitter;
   
-  // Frame ID for generating random numbers.
-  uint frameNumber;
+  // Seed for generating random numbers.
+  uint frameSeed;
 };
 
 // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
@@ -160,7 +160,7 @@ kernel void renderMain
       // TODO: Do you apply occlusion before or after the specular part?
       float occlusion = RayGeneration::queryOcclusion
        (
-        intersectionPoint, atom, pixelCoords, args->frameNumber,
+        intersectionPoint, atom, pixelCoords, args->frameSeed,
         accelerationStructure);
       out *= occlusion;
     }

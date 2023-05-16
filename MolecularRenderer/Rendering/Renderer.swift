@@ -61,7 +61,7 @@ class Renderer {
     var fov90Span: Float
     var fov90SpanReciprocal: Float
     var jitter: SIMD2<Float>
-    var frameNumber: UInt32
+    var frameSeed: UInt32
   }
   var previousArguments: Arguments?
   
@@ -69,17 +69,21 @@ class Renderer {
   var accelBuilder: AccelerationStructureBuilder!
   var upscaler: Upscaler!
   
-  enum RenderingMode {
+  // A boolean parameter specifies whether it is animated. Some need to generate
+  // an accel every frame, while others can recycle the same one for multiple
+  // frames, or try more advanced techniques like incremental updates. You could
+  // even try hijacking Metal and serializing the accel's raw data to the disk.
+  enum RenderingMode: Equatable {
     // Generated procedurally at runtime.
-    case procedural
+    case procedural(Bool)
     
     // Visualize the time evolution of an MD simulation.
     case realTimeSimulation
     
     // Static or animated nanostructure generated externally.
-    case file
+    case file(Bool)
   }
-  static let renderingMode: RenderingMode = .file
+  static let renderingMode: RenderingMode = .file(false)
   
   // Variables for controlling procedural generation.
   static let generateProcedural: () -> [Atom] = {
@@ -347,16 +351,29 @@ extension Renderer {
     
     var accel: MTLAccelerationStructure?
     if Renderer.checkingFrameRate == false {
+      // The accelBuilder automatically caches acceleration structures, but
+      // explicitly marking them as static allows it to compress the structures.
+      var shouldCompact: Bool
+      
       let atoms: [Atom]
       switch Self.renderingMode {
-      case .procedural:
+      case .procedural(let animated):
         atoms = Self.generateProcedural()
+        shouldCompact = !animated
       case .realTimeSimulation:
         atoms = self.simulator.getAtoms()
-      case .file:
+        shouldCompact = false
+      case .file(let animated):
         atoms = parser.atoms
+        
+        // Animated should try to serialize the accel to the disk beforehand and
+        // then stream, or try to build a hierarchy of acceleration structures.
+        shouldCompact = !animated
       }
-      accel = accelBuilder.build(atoms: atoms, commandBuffer: commandBuffer)
+      accel = accelBuilder.build(
+        atoms: atoms,
+        commandBuffer: commandBuffer,
+        shouldCompact: shouldCompact)
     }
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -434,7 +451,7 @@ extension Renderer {
         fov90Span: Float(fov90Span),
         fov90SpanReciprocal: Float(fov90SpanReciprocal),
         jitter: upscaler.jitterOffsets,
-        frameNumber: UInt32(clamping: uniqueFrameID))
+        frameSeed: UInt32.random(in: 0...UInt32.max))
       
       bufferPointer[0] = args
       if let previousArguments = self.previousArguments {
