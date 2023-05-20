@@ -17,10 +17,7 @@ using namespace raytracing;
 // Better implementation at:
 // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12Raytracing/src/D3D12RaytracingRealTimeDenoisedAmbientOcclusion/RTAO
 
-// TODO: Try using Metal function calls instead of ray query; perhaps it will
-// sort rays and avoid the 2.5x divergence.
-
-constant int rtao_samples = 1; // 64
+constant int rtao_samples = 2; // 64
 constant float rtao_radius = 0.5; // 5.0
 constant float rtao_power = 2.0;
 constant uint random_group_dim = 8;
@@ -61,24 +58,16 @@ public:
     float3 x, y, z;
     float occlusion = 0.0;
     compute_default_basis(normal, x, y, z);
-    
-    ushort2 groupCoords = pixelCoords / random_group_dim;
-    uint seed = Sampling::tea(as_type<uint>(groupCoords), frameSeed);
-    ushort2 offsetCoords = pixelCoords - random_group_dim * groupCoords;
-    seed += offsetCoords.y * random_group_dim + offsetCoords.x;
+    uint seed = Sampling::tea(as_type<uint>(pixelCoords), frameSeed);
     
     for (int i = 0; i < rtao_samples; ++i) {
-      float r1 = Sampling::radinv5(seed);
-      float r2 = Sampling::radinv7(seed);
+      float r1 = Sampling::radinv2(seed);
+      float r2 = Sampling::radinv3(seed);
       float sq = sqrt(1.0 - r2);
       
       float3 direction(cos(2 * PI * r1) * sq, sin(2 * PI * r1) * sq, sqrt(r2));
-      direction      = direction.x * x + direction.y * y + direction.z * z;
-      
-      constexpr uint increment {
-        random_group_dim * random_group_dim //+ (random_group_dim - 1)
-      };
-      seed += increment;
+      direction = direction.x * x + direction.y * y + direction.z * z;
+      seed += 1;
       
       ray ray;
       ray.origin = origin;
@@ -96,4 +85,3 @@ public:
     return occlusion;
   }
 };
-

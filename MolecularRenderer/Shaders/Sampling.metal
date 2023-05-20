@@ -25,7 +25,7 @@ public:
     uint v1 = val1;
     uint s0 = 0;
     
-    for(uint n = 0; n < 8; n++)
+    for(uint n = 0; n < 10; n++)
     {
       s0 += 0x9e3779b9;
       v0 += ((v1 << 4) + 0xa341316c) ^ (v1 + s0) ^ ((v1 >> 5) + 0xc8013ea4);
@@ -87,7 +87,7 @@ public:
     while (n_copy > 0) {
       uint nDiv = n_copy / 7;
       uint d_i = n_copy - nDiv * 7;
-      d_i = (5 * d_i) % 7;
+      d_i = (3 * d_i) % 7;
       n_copy = nDiv;
       
       val += float(d_i) * invBi;
