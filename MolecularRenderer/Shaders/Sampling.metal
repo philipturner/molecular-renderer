@@ -14,9 +14,6 @@ using namespace metal;
 // Partially sourced from:
 // https://github.com/nvpro-samples/gl_vk_raytrace_interop/blob/master/shaders/sampling.h
 
-// Better implementation at:
-// https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12Raytracing/src/D3D12RaytracingRealTimeDenoisedAmbientOcclusion/RTAO
-
 class Sampling {
 public:
   static uint tea(uint val0, uint val1)

@@ -8,10 +8,12 @@
 import Foundation
 import GameplayKit
 
+// Unfinished attempt to make a sampler optimized for 1 spp.
+//
+// Made using 'GPT-4/how-to-create-the-ao-sampler'
+//
 // Partially sourced from:
 // https://github.com/microsoft/DirectX-Graphics-Samples/blob/master/Samples/Desktop/D3D12Raytracing/src/D3D12RaytracingRealTimeDenoisedAmbientOcclusion/RTAO/Sampler.h
-
-// TODO: Reference the GPT-4 output used to make this.
 
 class Sampler {
   typealias UnitSquareSample2D = SIMD2<Float>

@@ -10,6 +10,7 @@
 
 #include <metal_stdlib>
 #include "AtomStatistics.metal"
+#include "Constants.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -54,9 +55,8 @@ public:
     return ret;
   }
   
-  static IntersectionResult traverseAccelerationStructure
-   (
-    ray ray, primitive_acceleration_structure accelerationStructure)
+  // Traverse the acceleration structure.
+  static IntersectionResult traverse(ray ray, accel accel)
   {
     // Parameters used to configure the intersection query.
     intersection_params params;
@@ -69,7 +69,7 @@ public:
     // the geometry in the scene.  The `intersection_query` object tracks the
     // current state of the acceleration structure traversal.
     intersection_query<> i;
-    i.reset(ray, accelerationStructure, params);
+    i.reset(ray, accel, params);
     
     // Otherwise, we will need to handle bounding box intersections as they are
     // found. Call `next()` in a loop until it returns `false`, indicating that

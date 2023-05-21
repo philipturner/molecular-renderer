@@ -38,9 +38,9 @@ class NanoEngineerParser {
       let remainderSlice = line[remainderIndex...]
       leftParenthesisIndex = remainderSlice.firstIndex(of: "(")!
       rightParenthesisIndex = remainderSlice.firstIndex(of: ")")!
-      var positionIndex = remainderSlice.index(after: leftParenthesisIndex)
-      var positionRange = positionIndex..<rightParenthesisIndex
-      var positionSlice = remainderSlice[positionRange]
+      let positionIndex = remainderSlice.index(after: leftParenthesisIndex)
+      let positionRange = positionIndex..<rightParenthesisIndex
+      let positionSlice = remainderSlice[positionRange]
       
       // Extract the quantized position.
       var positionInt: SIMD3<Int64> = .zero
