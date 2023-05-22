@@ -6,7 +6,6 @@
 //
 
 #include <metal_stdlib>
-#include "AtomStatistics.metal"
 #include "Constants.metal"
 #include "Lighting.metal"
 #include "RayTracing.metal"
@@ -33,118 +32,52 @@ kernel void renderMain
   if ((SCREEN_WIDTH % 16 != 0) && (pixelCoords.x >= SCREEN_WIDTH)) return;
   if ((SCREEN_HEIGHT % 16 != 0) && (pixelCoords.y >= SCREEN_HEIGHT)) return;
 
-  // Cast initial ray.
-  ray ray = RayGeneration::primaryRay(pixelCoords, args);
-  auto intersect = RayTracing::traverse(ray, accel);
-  
-  // Create a default color for the background.
-  auto colorCtx = ColorContext();
-//  half3 color = { 0.707, 0.707, 0.707 };
-//  half2 motionVector = 0;
-//  float depth = -FLT_MAX;
+  // Cast the primary ray.
+  ray ray1 = RayGeneration::primaryRay(pixelCoords, args);
+  auto intersect1 = RayTracing::traverse(ray1, accel);
   
   // Calculate specular, diffuse, and ambient occlusion.
-  if (intersect.accept) {
-    Atom atom = intersect.atom;
-//    constexpr float shininess = 16.0;
-//    constexpr float lightPower = 40.0;
-//
-//    // Base color of the sphere.
-//    half3 diffuseColor;
-//    if (atom.flags & 0x2) {
-//      // Replace the diffuse color with black.
-//      diffuseColor = { 0.000, 0.000, 0.000 };
-//    } else {
-//      diffuseColor = atom.getColor(atomData);
-//    }
+  auto colorCtx = ColorContext(args, atomData, pixelCoords);
+  if (intersect1.accept) {
+    float3 hitPoint = ray1.origin + ray1.direction * intersect1.distance;
+    float3 normal = normalize(hitPoint - intersect1.atom.origin);
     
-    // TODO: Rename to 'hitPoint'.
-    float3 intersectionPoint = ray.origin + ray.direction * intersect.distance;
-    colorCtx.setIntersection(atom, intersectionPoint);
-    colorCtx.setDiffuse(atomData);
-    colorCtx.setLightContributions(args);
-    
-//    // Apply checkerboard to tagged atoms.
-//    if (atom.flags & 0x1) {
-//      // Determine whether the axes are positive.
-//      float3 delta = intersectionPoint - atom.origin;
-//      bool3 axes_pos = delta > 0;
-//      bool is_magenta = axes_pos.x ^ axes_pos.y ^ axes_pos.z;
-//
-//      half3 magenta(252.0 / 255, 0.0 / 255, 255.0 / 255);
-//      diffuseColor = is_magenta ? magenta : diffuseColor;
-//    }
-//
-//    // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
-//    float3 normal = normalize(intersectionPoint - intersect.atom.origin);
-//    float3 lightDirection = args->position - intersectionPoint;
-//    float lightDistance = length(lightDirection);
-//    lightDirection /= lightDistance;
-    
-//    float lambertian = max(dot(lightDirection, normal), 0.0);
-//    float specular = 0;
-//    if (lambertian > 0.0) {
-//      // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
-//      float specAngle = lambertian;
-//      specular = pow(specAngle, shininess);
-//    }
-//
-//    // TODO: The specular part looks very strange for colors besides gray.
-//    // Determine what QuteMol does to fix this.
-//    float scaledLightPower = smoothstep(0, 1, lightPower / lightDistance);
-//    float3 out = float3(diffuseColor) * lambertian * scaledLightPower;
-//    out += specular * scaledLightPower;
-    float occlusion = 0;
     if (USE_RTAO) {
-//       TODO: Do you apply occlusion before or after the specular part?
-      occlusion = RayGeneration::queryOcclusion
-       (
-        intersectionPoint, atom, pixelCoords, args->frameSeed,
-        accel);
-//      out *= occlusion;
+      // Move origin slightly away from the surface to avoid self-occlusion.
+      float3 origin = hitPoint + normal * float(0.001);
+      float3x3 basis = RayGeneration::makeBasis(normal);
+      uint pixelSeed = as_type<uint>(pixelCoords);
+      uint seed = Sampling::tea(pixelSeed, args->frameSeed);
+      
+      for (ushort i = 0; i < RTAO_SAMPLES; ++i) {
+        // Create a random ray from the cosine distribution.
+        ray ray2 = RayGeneration::secondaryRay(origin, seed, basis);
+        seed += 1;
+        
+        // TODO: Exponential falloff radius.
+        ray2.max_distance = RTAO_RADIUS;
+        
+        // Cast the secondary ray.
+        auto intersect2 = RayTracing::traverse(ray2, accel);
+        
+        if (intersect2.accept) {
+          // TODO: Add interreflection emulation from DX sample.
+          colorCtx.addOcclusion(1);
+        }
+      }
     }
-    colorCtx.setOcclusion(occlusion);
-    colorCtx.applyContributions();
-//    color = half3(saturate(out));
+    
+    colorCtx.setDiffuseColor(intersect1.atom, normal);
+    colorCtx.setLightContributions(hitPoint, normal);
+    colorCtx.applyLightContributions();
     
     if (USE_METALFX) {
-//      float3 direction = normalize(intersectionPoint - args[1].position);
-//      direction = transpose(args[1].rotation) * direction;
-//      direction *= args[1].fov90Span / direction.z;
-//
       // Write the depth as the intersection point's Z coordinate.
-      float depth = ray.direction.z * intersect.distance;
+      float depth = ray1.direction.z * intersect1.distance;
       colorCtx.setDepth(depth);
-      colorCtx.generateMotionVector(args, pixelCoords);
-//
-//      // I have no idea why, but the X coordinate is flipped here.
-//      float2 prevCoords = direction.xy;
-//      prevCoords.x = -prevCoords.x;
-//
-//      // Recompute the current pixel coordinates (do not waste registers).
-//      float2 currCoords = float2(pixelCoords) + 0.5;
-//      currCoords.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
-//
-//      // Generate the motion vector from pixel coordinates.
-//      motionVector = half2(currCoords - prevCoords);
-//
-//      // I have no idea why, but the Y coordinate is flipped here.
-//      motionVector.y = -motionVector.y;
+      colorCtx.generateMotionVector(hitPoint);
     }
   }
   
-  colorCtx.write(colorTexture, depthTexture, motionTexture, pixelCoords);
-  
-//  // Write the output color.
-//  colorTexture.write(half4(color, 1), pixelCoords);
-//
-//  if (USE_METALFX) {
-//    // Write the output depth.
-//    depth = 1 / float(1 - depth); // map (0, -infty) to (1, 0)
-//    depthTexture.write(float4{ depth }, pixelCoords);
-//
-//    // Write the output motion vectors.
-//    motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
-//    motionTexture.write(half4{ motionVector.x, motionVector.y }, pixelCoords);
-//  }
+  colorCtx.write(colorTexture, depthTexture, motionTexture);
 }

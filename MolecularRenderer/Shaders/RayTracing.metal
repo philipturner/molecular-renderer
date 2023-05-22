@@ -9,7 +9,6 @@
 #define RAY_TRACING_H
 
 #include <metal_stdlib>
-#include "AtomStatistics.metal"
 #include "Constants.metal"
 using namespace metal;
 using namespace raytracing;
@@ -25,7 +24,6 @@ struct IntersectionResult {
   Atom atom;
 };
 
-// Use C++ class to bypass AIR symbol duplication error.
 class RayTracing {
 public:
   // Do not walk inside an atom; doing so will produce corrupted graphics.

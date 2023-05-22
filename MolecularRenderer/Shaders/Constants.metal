@@ -9,7 +9,10 @@
 #define Constants_h
 
 #include <metal_stdlib>
+#include "AtomStatistics.metal"
 using namespace metal;
+
+// MARK: - Constants
 
 // This does not need to become dynamic. Changing the resolution will mess up
 // MetalFX upscaling.
@@ -17,9 +20,15 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant bool USE_METALFX [[function_constant(2)]];
 
-typedef raytracing::primitive_acceleration_structure accel;
+// Constants for ray-traced ambient occlusion.
+constant bool USE_RTAO = true;
+constant ushort RTAO_SAMPLES = 3; // 64
+constant float RTAO_RADIUS = 0.5; // 5.0
+constant float RTAO_POWER = 2.0;
 
-#define USE_RTAO 1
+// MARK: - Definitions
+
+typedef raytracing::primitive_acceleration_structure accel;
 
 struct Arguments {
   // This frame's position and orientation.
@@ -35,6 +44,9 @@ struct Arguments {
   
   // Seed for generating random numbers.
   uint frameSeed;
+  
+  // Constants for ray-traced ambient occlusion.
+//  float maxAOrayHitTime;
 };
 
 #endif

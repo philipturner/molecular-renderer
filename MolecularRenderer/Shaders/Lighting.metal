@@ -6,7 +6,6 @@
 //
 
 #include <metal_stdlib>
-#include "AtomStatistics.metal"
 #include "Constants.metal"
 #include "RayTracing.metal"
 using namespace metal;
@@ -14,6 +13,10 @@ using namespace metal;
 // Handle specular and diffuse color, and transform raw AO hits into
 // meaningful color contributions.
 class ColorContext {
+  constant Arguments* args;
+  constant AtomStatistics* atomData;
+  
+  ushort2 pixelCoords;
   half3 color;
   half2 motionVector;
   float depth;
@@ -25,26 +28,22 @@ class ColorContext {
   float lightPower;
   
 public:
-  // Store the atom and intersection here, to keep them public.
-  // TODO: Make them private once the code is sufficiently refactored.
-  Atom atom;
-  float3 hitPoint;
-  float3 normal; // TODO: Convert to half precision to reduce register pressure.
-  
-  ColorContext() {
+  ColorContext(constant Arguments* args,
+               constant AtomStatistics* atomData, ushort2 pixelCoords) {
+    this->args = args;
+    this->atomData = atomData;
+    this->pixelCoords = pixelCoords;
+    
     // Create a default color for the background.
     this->color = half3(0.707, 0.707, 0.707);
     this->motionVector = half2(0);
     this->depth = -FLT_MAX;
+    
+    // Initialize the accumulator for ambient occlusion.
+    this->occlusion = 0;
   }
   
-  void setIntersection(Atom atom, float3 hitPoint) {
-    this->atom = atom;
-    this->hitPoint = hitPoint;
-    this->normal = normalize(hitPoint - atom.origin);
-  }
-  
-  void setDiffuse(constant AtomStatistics* atomData) {
+  void setDiffuseColor(Atom atom, float3 normal) {
     if (atom.flags & 0x2) {
       // Replace the diffuse color with black.
       diffuseColor = { 0.000, 0.000, 0.000 };
@@ -55,7 +54,7 @@ public:
     // Apply checkerboard to tagged atoms.
     if (atom.flags & 0x1) {
       // Determine whether the axes are positive.
-      bool3 axes_pos(this->normal > 0);
+      bool3 axes_pos(normal > 0);
       bool is_magenta = axes_pos.x ^ axes_pos.y ^ axes_pos.z;
       
       half3 magenta(252.0 / 255, 0.0 / 255, 255.0 / 255);
@@ -63,16 +62,16 @@ public:
     }
   }
   
-  // TODO: Calculate AO before initializing color to reduce register pressure.
-  void setOcclusion(float occlusion) {
-    this->occlusion = occlusion;
+  void addOcclusion(float contribution) {
+    // TODO: Add exponential falloff from DX sample.
+    this->occlusion += contribution;
   }
   
   void setDepth(float depth) {
     this->depth = depth;
   }
   
-  void setLightContributions(constant Arguments* args) {
+  void setLightContributions(float3 hitPoint, float3 normal) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 lightDirection = args->position - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
@@ -94,16 +93,22 @@ public:
     this->lightPower = smoothstep(0, 1, lightPower * rsqrtLightDst);
   }
   
-  void applyContributions() {
-    float3 out = float3(diffuseColor) * lambertian * lightPower;
-    out += specular * lightPower;
+  void applyLightContributions() {
+    // Store color in single precision while calculating.
+    float3 newColor = float3(diffuseColor) * lambertian * lightPower;
+    newColor += specular * lightPower;
     
     // TODO: Do you apply occlusion before or after the specular part?
-    out *= this->occlusion;
-    this->color = half3(saturate(out));
+    if (USE_RTAO) {
+      float occlusion = this->occlusion;
+      occlusion = 1 - (occlusion / float(RTAO_SAMPLES));
+      occlusion = pow(saturate(occlusion), RTAO_POWER);
+      newColor *= occlusion;
+    }
+    this->color = half3(saturate(newColor));
   }
   
-  void generateMotionVector(constant Arguments* args, ushort2 pixelCoords) {
+  void generateMotionVector(float3 hitPoint) {
     float3 direction = normalize(hitPoint - args[1].position);
     direction = transpose(args[1].rotation) * direction;
     direction *= args[1].fov90Span / direction.z;
@@ -125,20 +130,23 @@ public:
   
   void write(texture2d<half, access::write> colorTexture,
              texture2d<float, access::write> depthTexture,
-             texture2d<half, access::write> motionTexture,
-             ushort2 pixelCoords)
+             texture2d<half, access::write> motionTexture)
   {
     // Write the output color.
-    colorTexture.write(half4(color, 1), pixelCoords);
+    half4 writtenColor(color, 1);
+    colorTexture.write(writtenColor, pixelCoords);
     
     if (USE_METALFX) {
-      // Write the output depth.
-      depth = 1 / float(1 - depth); // map (0, -infty) to (1, 0)
-      depthTexture.write(float4{ depth }, pixelCoords);
+      this->depth = 1 / float(1 - depth); // map (0, -infty) to (1, 0)
+      this->motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
       
-      // Write the output motion vectors.
-      motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
-      motionTexture.write(half4{ motionVector.x, motionVector.y }, pixelCoords);
+      // Write the output depth.
+      float4 writtenDepth{ depth };
+      depthTexture.write(writtenDepth, pixelCoords);
+      
+      // Write the output motion vector.
+      half4 writtenMotionVector{ motionVector.x, motionVector.y };
+      motionTexture.write(writtenMotionVector, pixelCoords);
     }
   }
 };
