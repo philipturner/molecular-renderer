@@ -62,6 +62,12 @@ class Renderer {
     var fov90SpanReciprocal: Float
     var jitter: SIMD2<Float>
     var frameSeed: UInt32
+    
+    var maxAORayHitTime: Float
+    var maxTheoreticalAORayHitTime: Float
+    var exponentialFalloffDecayConstant: Float
+    var minimumAmbientIllumination: Float
+    var diffuseReflectanceScale: Float
   }
   var previousArguments: Arguments?
   
@@ -445,13 +451,46 @@ extension Renderer {
       if Upscaler.doingUpscaling { fov90Span /= 2 }
       let fov90SpanReciprocal = simd_precise_recip(fov90Span)
       let (azimuth, zenith) = eventTracker.playerState.rotations
+      
+      let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
+      let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
+      let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
+      let decayConstant: Float = 2.0 // range(0...20, 0.25)
+      let minOcclusionCutoff: Float = 0.4 // range(0...1, 0.05)
+      
+      // Calculate a theoretical max ray distance to be used in occlusion factor
+      // computation. Occlusion factor of a ray hit is computed based of its ray
+      // hit time, falloff exponent and a max ray hit time. By specifying a min
+      // occlusion factor of a ray, we can skip tracing rays that would have an
+      // occlusion factor less than the cutoff to save a bit of performance
+      // (generally 1-10% perf win without visible AO result impact). Therefore
+      // the sample discerns between true maxRayHitTime, used in TraceRay, and a
+      // theoretical one used in calculating the occlusion factor on a hit.
+      let occlusionCutoff = minOcclusionCutoff
+      let lambda = decayConstant
+      
+      // Invert occlusionFactor = exp(-lambda * t * t), where t is tHit/tMax.
+      var t = sqrt(logf(occlusionCutoff) / -lambda)
+      
+      // The cutoff seems to make visual quality worse.
+      t = Float(1)
+      let maxAORayHitTime = t * maxRayHitTime
+      let maxTheoreticalAORayHitTime = maxRayHitTime
+      print("Actual time \(maxAORayHitTime), theoretical \(maxTheoreticalAORayHitTime)")
+      
       let args = Arguments(
         position: self.eventTracker.playerState.position,
         rotation: azimuth * zenith,
         fov90Span: Float(fov90Span),
         fov90SpanReciprocal: Float(fov90SpanReciprocal),
         jitter: upscaler.jitterOffsets,
-        frameSeed: UInt32.random(in: 0...UInt32.max))
+        frameSeed: UInt32.random(in: 0...UInt32.max),
+        
+        maxAORayHitTime: maxAORayHitTime,
+        maxTheoreticalAORayHitTime: maxTheoreticalAORayHitTime,
+        exponentialFalloffDecayConstant: decayConstant,
+        minimumAmbientIllumination: minimumAmbientIllumination,
+        diffuseReflectanceScale: diffuseReflectanceScale)
       
       bufferPointer[0] = args
       if let previousArguments = self.previousArguments {

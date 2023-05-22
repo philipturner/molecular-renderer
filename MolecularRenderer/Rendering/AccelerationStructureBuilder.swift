@@ -116,10 +116,8 @@ extension AccelerationStructureBuilder {
     shouldCompact: Bool
   ) -> MTLAccelerationStructure {
     guard self.cachedAtoms != atoms else {
-      print("Using cached.")
       return self.accels[accelIndex]!
     }
-    print("Not using cached.")
     self.cachedAtoms = atoms
     
     // Generate or fetch a buffer.

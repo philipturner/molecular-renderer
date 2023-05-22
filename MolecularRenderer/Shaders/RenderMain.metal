@@ -41,9 +41,12 @@ kernel void renderMain
   if (intersect1.accept) {
     float3 hitPoint = ray1.origin + ray1.direction * intersect1.distance;
     float3 normal = normalize(hitPoint - intersect1.atom.origin);
+    colorCtx.setDiffuseColor(intersect1.atom, normal);
     
     if (USE_RTAO) {
       // Move origin slightly away from the surface to avoid self-occlusion.
+      // Switching to a uniform grid acceleration structure should make it
+      // possible to ignore this parameter.
       float3 origin = hitPoint + normal * float(0.001);
       float3x3 basis = RayGeneration::makeBasis(normal);
       uint pixelSeed = as_type<uint>(pixelCoords);
@@ -52,22 +55,43 @@ kernel void renderMain
       for (ushort i = 0; i < RTAO_SAMPLES; ++i) {
         // Create a random ray from the cosine distribution.
         ray ray2 = RayGeneration::secondaryRay(origin, seed, basis);
+        ray2.max_distance = args->maxAORayHitTime;
         seed += 1;
-        
-        // TODO: Exponential falloff radius.
-        ray2.max_distance = RTAO_RADIUS;
         
         // Cast the secondary ray.
         auto intersect2 = RayTracing::traverse(ray2, accel);
         
+        float ambientCoef = 1;
         if (intersect2.accept) {
-          // TODO: Add interreflection emulation from DX sample.
-          colorCtx.addOcclusion(1);
+          float theoreticalTMax = args->maxTheoreticalAORayHitTime;
+          float t = intersect2.distance / theoreticalTMax;
+          float lambda = args->exponentialFalloffDecayConstant;
+          float occlusionCoef = exp(-lambda * t * t);
+          ambientCoef -= (1 - args->minimumAmbientIllumination) * occlusionCoef;
         }
+        
+        constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
+        float luminance = dot(colorCtx.getDiffuseColor(), gamut);
+        {
+#if 0
+          // Account for color of occluding atom.
+          half3 neighborColor = intersect2.atom.getColor(atomData);
+          float neighborLuminance;
+          if (intersect2.atom.element <= 200) {
+            neighborLuminance = dot(neighborColor, gamut);
+          } else {
+            // Some kind of bug is corrupting the memory.
+            neighborLuminance = INFINITY;
+          }
+          luminance = mix(luminance, neighborLuminance, 0.00000001);
+#endif
+        }
+        float kA = ambientCoef;
+        float rho = args->diffuseReflectanceScale * luminance;
+        ambientCoef = kA / (1 - rho * (1 - kA));
+        colorCtx.addAmbientContribution(ambientCoef);
       }
     }
-    
-    colorCtx.setDiffuseColor(intersect1.atom, normal);
     colorCtx.setLightContributions(hitPoint, normal);
     colorCtx.applyLightContributions();
     

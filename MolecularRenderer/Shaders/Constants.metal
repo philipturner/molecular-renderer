@@ -23,8 +23,8 @@ constant bool USE_METALFX [[function_constant(2)]];
 // Constants for ray-traced ambient occlusion.
 constant bool USE_RTAO = true;
 constant ushort RTAO_SAMPLES = 3; // 64
-constant float RTAO_RADIUS = 0.5; // 5.0
-constant float RTAO_POWER = 2.0;
+//constant float RTAO_RADIUS = 0.5; // 5.0
+//constant float RTAO_POWER = 2.0;
 
 // MARK: - Definitions
 
@@ -46,7 +46,11 @@ struct Arguments {
   uint frameSeed;
   
   // Constants for ray-traced ambient occlusion.
-//  float maxAOrayHitTime;
+  float maxAORayHitTime;
+  float maxTheoreticalAORayHitTime;
+  float exponentialFalloffDecayConstant;
+  float minimumAmbientIllumination;
+  float diffuseReflectanceScale;
 };
 
 #endif

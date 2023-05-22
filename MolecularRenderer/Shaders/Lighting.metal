@@ -24,7 +24,7 @@ class ColorContext {
   half3 diffuseColor;
   float lambertian;
   float specular;
-  float occlusion;
+  float ambient;
   float lightPower;
   
 public:
@@ -40,7 +40,7 @@ public:
     this->depth = -FLT_MAX;
     
     // Initialize the accumulator for ambient occlusion.
-    this->occlusion = 0;
+    this->ambient = 0;
   }
   
   void setDiffuseColor(Atom atom, float3 normal) {
@@ -62,9 +62,13 @@ public:
     }
   }
   
-  void addOcclusion(float contribution) {
+  half3 getDiffuseColor() const {
+    return this->diffuseColor;
+  }
+  
+  void addAmbientContribution(float contribution) {
     // TODO: Add exponential falloff from DX sample.
-    this->occlusion += contribution;
+    this->ambient += contribution;
   }
   
   void setDepth(float depth) {
@@ -100,10 +104,9 @@ public:
     
     // TODO: Do you apply occlusion before or after the specular part?
     if (USE_RTAO) {
-      float occlusion = this->occlusion;
-      occlusion = 1 - (occlusion / float(RTAO_SAMPLES));
-      occlusion = pow(saturate(occlusion), RTAO_POWER);
-      newColor *= occlusion;
+      float ambient = this->ambient / float(RTAO_SAMPLES);
+//      ambient = pow(saturate(ambient), RTAO_POWER);
+      newColor *= ambient;
     }
     this->color = half3(saturate(newColor));
   }
