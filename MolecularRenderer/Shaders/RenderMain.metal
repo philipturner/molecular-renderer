@@ -83,6 +83,8 @@ kernel void renderMain
             // Some kind of bug is corrupting the memory.
             neighborLuminance = INFINITY;
           }
+          
+          // After the bug is fixed, use a geometric mean.
           luminance = mix(luminance, neighborLuminance, 0.00000001);
 #endif
         }
