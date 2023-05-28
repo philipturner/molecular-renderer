@@ -49,7 +49,9 @@ public:
       uint d_i = n_copy - nDiv * 3;
       n_copy = nDiv;
       
-      val += float(d_i) * invBi;
+      // Ensure this doesn't go out-of-bounds (saturating the result of FADD or
+      // FFMA is zero-cost on Apple GPUs).
+      val = saturate(val + float(d_i) * invBi);
       invBi *= invBase;
     }
     return val;
@@ -68,7 +70,9 @@ public:
       d_i = (3 * d_i) % 5;
       n_copy = nDiv;
       
-      val += float(d_i) * invBi;
+      // Ensure this doesn't go out-of-bounds (saturating the result of FADD or
+      // FFMA is zero-cost on Apple GPUs).
+      val = saturate(val + float(d_i) * invBi);
       invBi *= invBase;
     }
     return val;
@@ -87,7 +91,9 @@ public:
       d_i = (3 * d_i) % 7;
       n_copy = nDiv;
       
-      val += float(d_i) * invBi;
+      // Ensure this doesn't go out-of-bounds (saturating the result of FADD or
+      // FFMA is zero-cost on Apple GPUs).
+      val = saturate(val + float(d_i) * invBi);
       invBi *= invBase;
     }
     return val;

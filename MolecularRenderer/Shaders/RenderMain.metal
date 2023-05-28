@@ -55,7 +55,7 @@ kernel void renderMain
       for (ushort i = 0; i < RTAO_SAMPLES; ++i) {
         // Create a random ray from the cosine distribution.
         ray ray2 = RayGeneration::secondaryRay(origin, seed, basis);
-        ray2.max_distance = args->maxAORayHitTime;
+        ray2.max_distance = args->maxRayHitTime;
         seed += 1;
         
         // Cast the secondary ray.
@@ -63,8 +63,7 @@ kernel void renderMain
         
         float ambientCoef = 1;
         if (intersect2.accept) {
-          float theoreticalTMax = args->maxTheoreticalAORayHitTime;
-          float t = intersect2.distance / theoreticalTMax;
+          float t = intersect2.distance / args->maxRayHitTime;
           float lambda = args->exponentialFalloffDecayConstant;
           float occlusionCoef = exp(-lambda * t * t);
           ambientCoef -= (1 - args->minimumAmbientIllumination) * occlusionCoef;

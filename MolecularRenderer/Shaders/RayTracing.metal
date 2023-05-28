@@ -29,19 +29,18 @@ public:
   // Do not walk inside an atom; doing so will produce corrupted graphics.
   static AtomIntersection atomIntersectionFunction(ray ray, Atom atom) {
     float3 oc = ray.origin - atom.origin;
-    float a = dot(ray.direction, ray.direction);
-    float b = 2 * dot(oc, ray.direction);
+    float b2 = dot(oc, ray.direction);
     float c = dot(oc, oc) - atom.radiusSquared;
-    float disc = b * b - 4 * a * c;
+    float disc4 = b2 * b2 - c;
     AtomIntersection ret;
     
-    if (disc <= 0.0f) {
+    if (disc4 <= 0.0f) {
       // If the ray missed the sphere, return false.
       ret.accept = false;
     }
     else {
       // Otherwise, compute the intersection distance.
-      ret.distance = (-b - sqrt(disc)) / (2 * a);
+      ret.distance = -b2 - sqrt(disc4);
       
       // The intersection function must also check whether the intersection
       // distance is within the acceptable range. Intersection functions do not

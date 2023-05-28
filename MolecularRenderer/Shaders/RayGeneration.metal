@@ -77,13 +77,27 @@ public:
   
   static ray secondaryRay(float3 origin, uint seed, float3x3 basis) {
     // Generate a random number and increment the seed.
-    float r1 = Sampling::radinv2(seed);
-    float r2 = Sampling::radinv3(seed);
+    float random1 = Sampling::radinv2(seed);
+    float random2 = Sampling::radinv3(seed);
     
-    // Transform the uniform distribution into the cosine distribution.
-    float sq = sqrt(1.0 - r2);
-    float3 direction(cos(2 * M_PI_F * r1) * sq,
-                     sin(2 * M_PI_F * r1) * sq, sqrt(r2));
+    // Transform the uniform distribution into the cosine distribution. This
+    // creates a direction vector that's already normalized.
+#if OPTIMIZED_RT_INTERSECT
+    float phi = 2 * M_PI_F * random1;
+    float cosThetaSquared = random2;
+    float sinTheta = sqrt(1.0 - cosThetaSquared);
+    float3 direction(cos(phi) * sinTheta,
+                     sin(phi) * sinTheta, sqrt(cosThetaSquared));
+    
+//    float len_sq = sinTheta * sinTheta + cosThetaSquared;
+//    direction = direction * rsqrt(len_sq);
+#else
+    float sq = sqrt(1.0 - random2);
+    float3 direction(cos(2 * M_PI_F * random1) * sq,
+                     sin(2 * M_PI_F * random1) * sq, sqrt(random2));
+    direction = normalize(direction);
+#endif
+    
     
     // Apply the basis as a linear transformation.
     direction = basis * direction;
