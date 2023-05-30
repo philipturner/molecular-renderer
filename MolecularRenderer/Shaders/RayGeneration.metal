@@ -82,22 +82,11 @@ public:
     
     // Transform the uniform distribution into the cosine distribution. This
     // creates a direction vector that's already normalized.
-#if OPTIMIZED_RT_INTERSECT
     float phi = 2 * M_PI_F * random1;
     float cosThetaSquared = random2;
     float sinTheta = sqrt(1.0 - cosThetaSquared);
     float3 direction(cos(phi) * sinTheta,
                      sin(phi) * sinTheta, sqrt(cosThetaSquared));
-    
-//    float len_sq = sinTheta * sinTheta + cosThetaSquared;
-//    direction = direction * rsqrt(len_sq);
-#else
-    float sq = sqrt(1.0 - random2);
-    float3 direction(cos(2 * M_PI_F * random1) * sq,
-                     sin(2 * M_PI_F * random1) * sq, sqrt(random2));
-    direction = normalize(direction);
-#endif
-    
     
     // Apply the basis as a linear transformation.
     direction = basis * direction;

@@ -76,7 +76,7 @@ kernel void renderMain
           // makes the effect vary around the atom's surface.
           half3 neighborColor = intersect2.atom.getColor(atomData);
           float neighborLuminance = dot(neighborColor, gamut);
-          
+
           // Use the arithmetic mean. There is no perceivable difference from
           // the (presumably more accurate) geometric mean.
           luminance = (luminance + neighborLuminance) / 2;

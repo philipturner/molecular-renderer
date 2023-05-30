@@ -8,6 +8,6 @@
 import Foundation
 import simd
 
-// Synchronous GPU simulator evolved from the Drexler-MM2 forcefield from
+// GPU-accelerated simulator evolved from the Drexler-MM2 forcefield used in
 // Nanosystems (1992). Only applies to sp3 hydrocarbons, but achieves hundreds
 // of ps/s. Eventually it can be extended to a few more elements.
