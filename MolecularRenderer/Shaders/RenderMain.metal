@@ -67,29 +67,25 @@ kernel void renderMain
           float lambda = args->exponentialFalloffDecayConstant;
           float occlusionCoef = exp(-lambda * t * t);
           ambientCoef -= (1 - args->minimumAmbientIllumination) * occlusionCoef;
+          
+          constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
+          float luminance = dot(colorCtx.getDiffuseColor(), gamut);
+          
+          // Account for the color of the occluding atom. This decreases the
+          // contrast between differing elements placed near each other. It also
+          // makes the effect vary around the atom's surface.
+          half3 neighborColor = intersect2.atom.getColor(atomData);
+          float neighborLuminance = dot(neighborColor, gamut);
+          
+          // Use the arithmetic mean. There is no perceivable difference from
+          // the (presumably more accurate) geometric mean.
+          luminance = (luminance + neighborLuminance) / 2;
+          
+          float kA = ambientCoef;
+          float rho = args->diffuseReflectanceScale * luminance;
+          ambientCoef = kA / (1 - rho * (1 - kA));
         }
         
-        constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
-        float luminance = dot(colorCtx.getDiffuseColor(), gamut);
-        {
-#if 0
-          // Account for color of occluding atom.
-          half3 neighborColor = intersect2.atom.getColor(atomData);
-          float neighborLuminance;
-          if (intersect2.atom.element <= 200) {
-            neighborLuminance = dot(neighborColor, gamut);
-          } else {
-            // Some kind of bug is corrupting the memory.
-            neighborLuminance = INFINITY;
-          }
-          
-          // After the bug is fixed, use a geometric mean.
-          luminance = mix(luminance, neighborLuminance, 0.00000001);
-#endif
-        }
-        float kA = ambientCoef;
-        float rho = args->diffuseReflectanceScale * luminance;
-        ambientCoef = kA / (1 - rho * (1 - kA));
         colorCtx.addAmbientContribution(ambientCoef);
       }
     }

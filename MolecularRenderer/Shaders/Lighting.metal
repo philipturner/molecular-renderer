@@ -105,7 +105,6 @@ public:
     // TODO: Do you apply occlusion before or after the specular part?
     if (USE_RTAO) {
       float ambient = this->ambient / float(RTAO_SAMPLES);
-//      ambient = pow(saturate(ambient), RTAO_POWER);
       newColor *= ambient;
     }
     this->color = half3(saturate(newColor));
