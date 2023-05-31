@@ -24,6 +24,9 @@ constant bool USE_METALFX [[function_constant(2)]];
 constant bool USE_RTAO = true;
 constant ushort RTAO_SAMPLES = 3; // 64
 
+// Whether to suppress the specular term in occluded areas.
+constant bool SUPPRESS_SPECULAR = true;
+
 // MARK: - Definitions
 
 typedef raytracing::primitive_acceleration_structure accel;
@@ -31,7 +34,7 @@ typedef raytracing::primitive_acceleration_structure accel;
 struct Arguments {
   // This frame's position and orientation.
   float3 position;
-  float3x3 rotation;
+  float3x3 cameraToWorldRotation;
   
   // How many pixels are covered in either direction @ FOV=90?
   float fov90Span;

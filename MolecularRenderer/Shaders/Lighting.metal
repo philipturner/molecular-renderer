@@ -24,7 +24,8 @@ class ColorContext {
   half3 diffuseColor;
   float lambertian;
   float specular;
-  float ambient;
+  float diffuseAmbient;
+  float specularAmbient;
   float lightPower;
   
 public:
@@ -40,7 +41,8 @@ public:
     this->depth = -FLT_MAX;
     
     // Initialize the accumulator for ambient occlusion.
-    this->ambient = 0;
+    this->diffuseAmbient = 0;
+    this->specularAmbient = 0;
   }
   
   void setDiffuseColor(Atom atom, float3 normal) {
@@ -66,9 +68,9 @@ public:
     return this->diffuseColor;
   }
   
-  void addAmbientContribution(float contribution) {
-    // TODO: Add exponential falloff from DX sample.
-    this->ambient += contribution;
+  void addAmbientContribution(float diffuse, float specular) {
+    this->diffuseAmbient += diffuse;
+    this->specularAmbient += specular;
   }
   
   void setDepth(float depth) {
@@ -84,35 +86,67 @@ public:
     this->lambertian = max(dot(lightDirection, normal), 0.0);
     this->specular = 0;
     if (lambertian > 0.0) {
-      constexpr float shininess = 16.0;
+      // QuteMol preset 3 seemed most appropriate in a side-by-side comparison
+      // between all three presets:
+      // https://github.com/zulman/qutemol/blob/master/src/presets/qutemol3.preset
+      constexpr float specContribution = 0.5;
+      constexpr float shininess = 64;
       
       // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
       float specAngle = lambertian;
-      specular = pow(specAngle, shininess);
+      specular = specContribution * pow(specAngle, shininess);
     }
     
-    // TODO: The specular part looks very strange for colors besides gray.
-    // Determine what QuteMol does to fix this.
     this->lightPower = 40.0;
     this->lightPower = smoothstep(0, 1, lightPower * rsqrtLightDst);
   }
   
   void applyLightContributions() {
-    // Store color in single precision while calculating.
-    float3 newColor = float3(diffuseColor) * lambertian * lightPower;
-    newColor += specular * lightPower;
-    
-    // TODO: Do you apply occlusion before or after the specular part?
+    // Combining using heuristics from:
+    // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
+    float ambientOcclusion = 1;
+    float specularOcclusion = 1;
     if (USE_RTAO) {
-      float ambient = this->ambient / float(RTAO_SAMPLES);
-      newColor *= ambient;
+      float diffuseAmbient = this->diffuseAmbient / float(RTAO_SAMPLES);
+      float specularAmbient = this->specularAmbient / float(RTAO_SAMPLES);
+      ambientOcclusion = diffuseAmbient;
+      
+      // This seems to only be applied to a "specular ambient" term, not the
+      // "specular direct" term. We are applying it to the latter. However, it
+      // seems to produce results we desire: avoid multiplication of the AO
+      // term with the specular term, without making the specular term stand out
+      // in low-light areas.
+      //
+      // SO = saturate((lambertian + ambient)^2 - 1 + ambient)
+      //
+      // SO      | AO = 0.9 | AO = 0.7 | AO = 0.5 | AO = 0.3 | AO = 0.1 |
+      // ------- | -------- | -------- | -------- | -------- | -------- |
+      // L = 0.9 | 1        | 1        | 1        | 0.74     | 0.1      |
+      // L = 0.7 | 1        | 1        | 0.94     | 0.30     | 0        |
+      // L = 0.5 | 1        | 1        | 0.50     | 0.14     | 0        |
+      // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
+      // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
+      
+      if (SUPPRESS_SPECULAR) {
+        specularOcclusion = specularAmbient;
+      } else {
+        specularOcclusion = lambertian + specularAmbient;
+        specularOcclusion = specularOcclusion * specularOcclusion;
+        specularOcclusion += specularAmbient - 1;
+        specularOcclusion = saturate(specularOcclusion);
+      }
     }
+    
+    // Store color in single precision while calculating.
+    float3 newColor = float3(diffuseColor) * lambertian * ambientOcclusion;
+    newColor += specular * specularOcclusion;
+    newColor *= lightPower;
     this->color = half3(saturate(newColor));
   }
   
   void generateMotionVector(float3 hitPoint) {
     float3 direction = normalize(hitPoint - args[1].position);
-    direction = transpose(args[1].rotation) * direction;
+    direction = transpose(args[1].cameraToWorldRotation) * direction;
     direction *= args[1].fov90Span / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.

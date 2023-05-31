@@ -18,6 +18,15 @@ using namespace raytracing;
 
 class RayGeneration {
 public:
+  struct Basis {
+    // Basis for the coordinate system around the normal vector.
+    float3x3 axes;
+
+    // Uniformly distributed random numbers for determining angles.
+    float random1;
+    float random2;
+  };
+  
   // Dispatch threadgroups across 16x16 chunks, not rounded to image size.
   // The shader will rearrange simds across 8x4 chunks, then subdivide further
   // into 2x2 (quads) and 4x4 (half-simds). The thread arrangement should
@@ -69,27 +78,23 @@ public:
     rayDirection.y = -rayDirection.y;
     rayDirection.xy *= args->fov90SpanReciprocal;
     rayDirection = normalize(rayDirection);
-    rayDirection = args->rotation * rayDirection;
+    rayDirection = args->cameraToWorldRotation * rayDirection;
     
     float3 worldOrigin = args->position;
     return { worldOrigin, rayDirection };
   }
   
-  static ray secondaryRay(float3 origin, uint seed, float3x3 basis) {
-    // Generate a random number and increment the seed.
-    float random1 = Sampling::radinv2(seed);
-    float random2 = Sampling::radinv3(seed);
-    
+  static ray secondaryRay(float3 origin, Basis basis) {
     // Transform the uniform distribution into the cosine distribution. This
     // creates a direction vector that's already normalized.
-    float phi = 2 * M_PI_F * random1;
-    float cosThetaSquared = random2;
+    float phi = 2 * M_PI_F * basis.random1;
+    float cosThetaSquared = basis.random2;
     float sinTheta = sqrt(1.0 - cosThetaSquared);
     float3 direction(cos(phi) * sinTheta,
                      sin(phi) * sinTheta, sqrt(cosThetaSquared));
     
     // Apply the basis as a linear transformation.
-    direction = basis * direction;
+    direction = basis.axes * direction;
     
     ray ray;
     ray.origin = origin;
