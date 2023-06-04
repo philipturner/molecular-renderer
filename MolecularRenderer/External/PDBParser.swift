@@ -69,7 +69,7 @@ final class PDBParser: ParserProtocol {
       // Determine the color to present.
       var element: UInt8
       var flags: UInt8
-      if Z <= 18 {
+      if Z <= 36 {
         element = UInt8(Z)
         flags = 0
       } else {

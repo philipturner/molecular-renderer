@@ -103,8 +103,8 @@ class Renderer {
   static let simulationSpeed: Double = 5e-12 // ps/s
   
   // Variables for rendering geometry from a file.
-  static let parserType: ParserProtocol.Type = NanoEngineerParser.self//PDBParser.self
-  static let fileURL: URL = markIIIPlanetaryGearURL//adamantaneHabToolURL
+  static let parserType: ParserProtocol.Type = PDBParser.self
+  static let fileURL: URL = adamantaneHabToolURL
   var parser: (any ParserProtocol)!
   
   init(view: RendererView) {

@@ -22,10 +22,12 @@ constant bool USE_METALFX [[function_constant(2)]];
 
 // Constants for Blinn-Phong shading.
 constant float LIGHT_POWER = 50.0;
+// Use 50.0 for the QuteMol color scheme from the ART file.
+// Use 40.0 for the colors QuteMol fills into the table by default.
 
 // Constants for ray-traced ambient occlusion.
 constant bool USE_RTAO = true;
-constant ushort RTAO_SAMPLES = 3; // 64
+constant ushort RTAO_SAMPLES = 16; // 64
 
 // Whether to suppress the specular term in occluded areas.
 constant bool SUPPRESS_SPECULAR = true;
