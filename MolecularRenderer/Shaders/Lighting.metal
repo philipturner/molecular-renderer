@@ -97,7 +97,7 @@ public:
       specular = specContribution * pow(specAngle, shininess);
     }
     
-    this->lightPower = 40.0;
+    this->lightPower = LIGHT_POWER;
     this->lightPower = smoothstep(0, 1, lightPower * rsqrtLightDst);
   }
   

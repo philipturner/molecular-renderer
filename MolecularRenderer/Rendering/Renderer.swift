@@ -103,8 +103,9 @@ class Renderer {
   static let simulationSpeed: Double = 5e-12 // ps/s
   
   // Variables for rendering geometry from a file.
-  var parser: NanoEngineerParser!
-  static let fileName = "MarkIII[k] Planetary Gear Box"
+  static let parserType: ParserProtocol.Type = NanoEngineerParser.self//PDBParser.self
+  static let fileURL: URL = markIIIPlanetaryGearURL//adamantaneHabToolURL
+  var parser: (any ParserProtocol)!
   
   init(view: RendererView) {
     let eventTracker = view.coordinator.eventTracker!
@@ -185,7 +186,7 @@ class Renderer {
       self.simulator = NobleGasSimulator(
         simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
     case .file:
-      self.parser = NanoEngineerParser(fileName: Self.fileName)
+      self.parser = Renderer.parserType.init(url: Self.fileURL)
     }
   }
 }

@@ -12,11 +12,10 @@ import Foundation
 //
 // File format specification at:
 // https://github.com/kanzure/nanoengineer/blob/master/cad/doc/old_doc/mmpformat
-class NanoEngineerParser {
+final class NanoEngineerParser: ParserProtocol {
   var atoms: [Atom]
   
-  init(fileName: String) {
-    let url = Bundle.main.url(forResource: fileName, withExtension: "mmp")!
+  init(url: URL) {
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
     let lines = string.split(separator: "\n").filter {

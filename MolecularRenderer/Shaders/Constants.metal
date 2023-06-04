@@ -20,6 +20,9 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant bool USE_METALFX [[function_constant(2)]];
 
+// Constants for Blinn-Phong shading.
+constant float LIGHT_POWER = 50.0;
+
 // Constants for ray-traced ambient occlusion.
 constant bool USE_RTAO = true;
 constant ushort RTAO_SAMPLES = 3; // 64
