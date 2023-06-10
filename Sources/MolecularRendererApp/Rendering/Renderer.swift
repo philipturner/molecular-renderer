@@ -69,9 +69,10 @@ class Renderer {
     // TODO: Allow 'sampleCount' to dynamically scale, matching a target FPS.
     // Aim to make the compute command last 4-6 ms, but allow manual overrides.
     // Only sample every few frames, so that most commands can occur in a single
-    // command buffer.
+    // command buffer. The range should be capped between 3 and 16 by default.
+    // However, you can extend the range as part of the overriding ability.
     //
-    // TODO: Does the AGX dynamic frequently scaling make this not viable?
+    // TODO: Does the AGX dynamic frequency scaling make this not viable?
     var lightPower: Float16
     var sampleCount: UInt16
     var maxRayHitTime: Float
@@ -98,8 +99,8 @@ class Renderer {
   var staticProvider: (any MRStaticAtomProvider)!
   static func createStaticProvider() -> any MRStaticAtomProvider {
 //    ExampleMolecules.TaggedEthylene()
-    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
-//    PDBParser(url: adamantaneHabToolURL)
+//    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
+    PDBParser(url: adamantaneHabToolURL)
   }
   
   // NOTE: You need to give the app permission to view this file.

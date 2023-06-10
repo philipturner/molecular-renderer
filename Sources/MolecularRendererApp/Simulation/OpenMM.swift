@@ -7,5 +7,5 @@
 
 import Foundation
 
-// TODO: An OpenMM module for prototyping MD algorithms, before rewriting them
-// from scratch in Metal code.
+// An OpenMM module for prototyping MD algorithms and developing the
+// serialization format for MolecularRenderer.

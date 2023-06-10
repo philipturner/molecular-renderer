@@ -67,22 +67,17 @@ final class PDBParser: MRStaticAtomProvider {
       precondition(
         symbol == extractExcluding(" ", from: &line), "Unexpected formatting.")
       
-      // Determine the color to present.
-      var element: UInt8
-      var flags: UInt8
-      if Z <= 36 {
-        element = UInt8(Z)
-        flags = 0
-      } else {
-        // Treat unrecognized elements as chlorine with checkerboard color.
-        element = 17
-        flags = 0x1 | 0x2
-      }
-      
+      // Determine the color to present.      
+      let range = GlobalStyleProvider.global.atomicNumbers
       let styles = GlobalStyleProvider.global.styles
       let origin = SIMD3<Float>(SIMD3(x, y, z) / 10)
-      return MRAtom(
-        styles: styles, origin: origin, element: element, flags: flags)
+      if range.contains(UInt8(Z)) {
+        return MRAtom(
+          styles: styles, origin: origin, element: UInt8(Z))
+      } else {
+        return MRAtom(
+          styles: styles, origin: origin, element: 0, flags: 0x1 | 0x2)
+      }
     }
     
     for atom in atoms {

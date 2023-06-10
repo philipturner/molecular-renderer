@@ -70,8 +70,9 @@ final class NanoEngineerParser: MRStaticAtomProvider {
       let metersToNanometers: Float = 1e9
       let scaleFactor = metersToNanometers * quantizedToMeters
       
+      let range = GlobalStyleProvider.global.atomicNumbers
       let styles = GlobalStyleProvider.global.styles
-      if number >= 1 && number <= 36 {
+      if range.contains(UInt8(number)) {
         return MRAtom(
           styles: styles,
           origin: scaleFactor * SIMD3<Float>(positionInt),

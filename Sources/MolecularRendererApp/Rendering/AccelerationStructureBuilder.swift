@@ -185,13 +185,6 @@ extension AccelerationStructureBuilder {
     geometryDesc.boundingBoxStride = boundingBoxSize
     geometryDesc.boundingBoxBufferOffset = 0
     geometryDesc.boundingBoxBuffer = boundingBoxBuffer
-    
-    // The intersection function is going to be extremely expensive. Set this
-    // flag even before we migrate to tile-based intersections, to see the
-    // performance impact.
-    // TODO: Measure how much this impacts the accel construction pass and the
-    // render pass. If rendering doesn't require many intersections, this may
-    // harm performance.
     geometryDesc.allowDuplicateIntersectionFunctionInvocation = false
     
     let accelDesc = MTLPrimitiveAccelerationStructureDescriptor()

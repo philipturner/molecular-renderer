@@ -32,11 +32,20 @@ public protocol MRStaticStyleProvider {
   var lightPower: Float { get }
   
   // The range of atomic numbers (inclusive). Anything outside this range uses
-  // value in `radii` at index 0 and a black/magenta checkerboard pattern. The
-  // range's start index must always be 1.
-  //
-  // TODO: Use this range instead of hard-coding the number 36 into the parsers.
+  // the value in `radii` at index 0 and a black/magenta checkerboard pattern.
+  // The range's start index must always be 1.
   var atomicNumbers: ClosedRange<Int> { get }
 }
 
-
+// TODO: Create a DynamicAtomProvider API. The structure has to be different
+// than MRStaticAtomProvider, because it may be loading data in real-time. We
+// can't expect the data to materialize when we access the object every frame.
+//
+// Rather, we create two functions. The first prepared the data, either by
+// creating GPU commands for molecular simulation, or issuing a Metal IO command
+// buffer. The second function is called 3 frames later, and expects the data to
+// be materialized. We will need to enter a monotonically increasing frame ID to
+// incorporate time into the arguments.
+//
+// Another challenge is deciding how to handle frame stutters, which could cause
+// a 3-frame freeze if we did it the naive way.

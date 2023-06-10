@@ -51,20 +51,12 @@ class EventTracker {
     Coordinator.initiallyShowCrosshair)
   var hideCursorCount: Int = 0
   
-  // TODO: Smooth out mouse movements across frame drops; real-world performance
-  // is now at ~115 FPS and the stuttering is nauseating.
-  
   // Buffer up the movements while waiting for the other thread to respond. This
   // should be auto-cleared if it is not used.
   var accumulatedMouseDeltaX: ManagedAtomic<UInt64> = ManagedAtomic(0)
   var accumulatedMouseDeltaY: ManagedAtomic<UInt64> = ManagedAtomic(0)
   
   init() {
-    // TODO: Find another workaround. Since we pinned the mouse inside the
-    // window, and we can't receive key up events anymore, there's now a glitch
-    // where the player moves in one direction after you let go. This occurs
-    // when pressing F3.
-    
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
       print("Mouse exited window.")
       self.mouseInWindow.store(false, ordering: .relaxed)
