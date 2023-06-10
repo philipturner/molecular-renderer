@@ -6,14 +6,15 @@
 //
 
 import Foundation
+import MolecularRenderer
 
 // Inputs a file name from the bundle's resources, and outputs an array of
 // `Atom` data structures.
 //
 // File format specification at:
 // https://github.com/kanzure/nanoengineer/blob/master/cad/doc/old_doc/mmpformat
-final class NanoEngineerParser: StaticAtomProvider {
-  var atoms: [Atom]
+final class NanoEngineerParser: MRStaticAtomProvider {
+  var atoms: [MRAtom]
   
   // You can omit the ".mmp" extension.
   // Example: "gears/MarkIII[k] Planetary Gear Box"
@@ -69,15 +70,15 @@ final class NanoEngineerParser: StaticAtomProvider {
       let metersToNanometers: Float = 1e9
       let scaleFactor = metersToNanometers * quantizedToMeters
       
-      let atomData = GlobalStyleProvider.global.atomData
+      let styles = GlobalStyleProvider.global.styles
       if number >= 1 && number <= 36 {
-        return Atom(
-          atomData: atomData,
+        return MRAtom(
+          styles: styles,
           origin: scaleFactor * SIMD3<Float>(positionInt),
           element: UInt8(number))
       } else {
-        return Atom(
-          atomData: atomData,
+        return MRAtom(
+          styles: styles,
           origin: scaleFactor * SIMD3<Float>(positionInt),
           element: UInt8(0), flags: 0x1 | 0x2)
       }

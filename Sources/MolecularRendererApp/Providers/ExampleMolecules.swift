@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import MolecularRenderer
 
 struct ExampleMolecules {
   // Structure sourced from:
   // https://commons.wikimedia.org/wiki/File:Ethylene-CRC-MW-dimensions-2D-Vector.svg
-  struct Ethylene: StaticAtomProvider {
-    var atoms: [Atom]
+  struct Ethylene: MRStaticAtomProvider {
+    var atoms: [MRAtom]
     
     init() {
       let z_offset: Float = -1 // -2
@@ -31,18 +32,18 @@ struct ExampleMolecules {
         SIMD3(+h_offset_x, +h_offset_y, z_offset),
       ]
       
-      let atomData = GlobalStyleProvider.global.atomData
+      let styles = GlobalStyleProvider.global.styles
       self.atoms = hydrogen_origins.map {
-        Atom(atomData: atomData, origin: $0, element: 1)
+        MRAtom(styles: styles, origin: $0, element: 1)
       }
       self.atoms += carbon_origins.map {
-        Atom(atomData: atomData, origin: $0, element: 6)
+        MRAtom(styles: styles, origin: $0, element: 6)
       }
     }
   }
   
-  struct TaggedEthylene: StaticAtomProvider {
-    var atoms: [Atom]
+  struct TaggedEthylene: MRStaticAtomProvider {
+    var atoms: [MRAtom]
     
     init() {
       let ethylene = Ethylene()

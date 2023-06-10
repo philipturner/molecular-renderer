@@ -11,9 +11,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// TODO: Rename this file to "Atom".
-
-struct MRAtomStatistics {
+struct __attribute__((aligned(8)))
+MRAtomStyle {
   // Color in RGB color space.
   packed_half3 color;
 
@@ -22,12 +21,14 @@ struct MRAtomStatistics {
   half radius;
 };
 
-struct MRBoundingBox {
+struct __attribute__((aligned(8)))
+MRBoundingBox {
   packed_float3 min;
   packed_float3 max;
 };
 
-struct MRAtom {
+struct __attribute__((aligned(16)))
+MRAtom {
   // Position in nm.
   packed_float3 origin;
   
@@ -44,26 +45,26 @@ struct MRAtom {
     
   }
   
-  MRAtom(constant MRAtomStatistics* atomData,
+  MRAtom(constant MRAtomStyle* styles,
        float3 origin, uchar element, uchar flags = 0) {
     this->origin = origin;
     this->element = element;
     this->flags = flags;
     
-    half radius = this->getRadius(atomData);
+    half radius = this->getRadius(styles);
     this->radiusSquared = radius * radius;
   }
   
-  half getRadius(constant MRAtomStatistics* atomData) {
-    return atomData[element].radius;
+  half getRadius(constant MRAtomStyle* styles) {
+    return styles[element].radius;
   }
   
-  half3 getColor(constant MRAtomStatistics* atomData) {
-    return atomData[element].color;
+  half3 getColor(constant MRAtomStyle* styles) {
+    return styles[element].color;
   }
   
-  MRBoundingBox getBoundingBox(constant MRAtomStatistics* atomData) {
-    half radius = this->getRadius(atomData);
+  MRBoundingBox getBoundingBox(constant MRAtomStyle* styles) {
+    half radius = this->getRadius(styles);
     auto min = origin - float(radius);
     auto max = origin + float(radius);
     return MRBoundingBox {

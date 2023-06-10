@@ -6,6 +6,7 @@
 //
 
 import Metal
+import MolecularRenderer
 
 // Partially sourced from:
 // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
@@ -21,11 +22,13 @@ struct AccelerationStructureBuilder {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   
+  let what: Bool = { MRTestFunction() }()
+  
   // Cache the atoms and don't rebuild if the current frame matches the previous
   // one. This should be a very dynamic way to optimize the renderer - it
   // automatically detects frames without motion, and you don't have to
   // explicitly mark frames as static.
-  var cachedAtoms: [Atom] = []
+  var cachedAtoms: [MolecularRenderer.MRAtom] = []
   
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
@@ -117,7 +120,7 @@ extension AccelerationStructureBuilder {
 
 extension AccelerationStructureBuilder {
   mutating func build(
-    atoms: [Atom],
+    atoms: [MRAtom],
     commandBuffer: MTLCommandBuffer,
     shouldCompact: Bool
   ) -> MTLAccelerationStructure {
@@ -132,7 +135,7 @@ extension AccelerationStructureBuilder {
     self.cachedAtoms = atoms
     
     // Generate or fetch a buffer.
-    let atomSize = MemoryLayout<Atom>.stride
+    let atomSize = MemoryLayout<MRAtom>.stride
     let atomBufferSize = atoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
     let atomBuffer = cycle(
@@ -145,14 +148,14 @@ extension AccelerationStructureBuilder {
     // Write the buffer's contents.
     do {
       let atomsPointer = atomBuffer.contents()
-        .assumingMemoryBound(to: Atom.self)
+        .assumingMemoryBound(to: MRAtom.self)
       for (index, atom) in atoms.enumerated() {
         atomsPointer[index] = atom
       }
     }
     
     // Generate or fetch a buffer.
-    let boundingBoxSize = MemoryLayout<BoundingBox>.stride
+    let boundingBoxSize = MemoryLayout<MRBoundingBox>.stride
     let boundingBoxBufferSize = atoms.count * boundingBoxSize
     precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
     let boundingBoxBuffer = cycle(
@@ -164,11 +167,11 @@ extension AccelerationStructureBuilder {
     
     // Write the buffer's contents.
     do {
-      let atomData = GlobalStyleProvider.global.atomData
+      let styles = GlobalStyleProvider.global.styles
       let boundingBoxesPointer = boundingBoxBuffer.contents()
-        .assumingMemoryBound(to: BoundingBox.self)
+        .assumingMemoryBound(to: MRBoundingBox.self)
       for (index, atom) in atoms.enumerated() {
-        let boundingBox = atom.getBoundingBox(atomData: atomData)
+        let boundingBox = atom.getBoundingBox(styles: styles)
         boundingBoxesPointer[index] = boundingBox
       }
     }
@@ -272,3 +275,7 @@ extension AccelerationStructureBuilder {
     return compactedAccel
   }
 }
+
+
+
+

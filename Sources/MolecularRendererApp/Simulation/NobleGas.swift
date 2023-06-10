@@ -8,6 +8,7 @@
 import Foundation
 import QuartzCore
 import simd
+import MolecularRenderer
 
 // Synchronous single-core CPU simulator that only supports LJ forces. GPU
 // implementation is located at:
@@ -214,13 +215,13 @@ extension NobleGasSimulator {
     return (nsPerDay, end - start)
   }
   
-  func getAtoms() -> [Atom] {
-    let atomData = GlobalStyleProvider.global.atomData
+  func getAtoms() -> [MRAtom] {
+    let styles = GlobalStyleProvider.global.styles
     return (0..<system.atoms).map { i in
       // Position is already converted to nm.
       let position = SIMD3<Float>(system.getPosition(index: i))
       let element = system.getType(index: i)
-      return Atom(atomData: atomData, origin: position, element: element)
+      return MRAtom(styles: styles, origin: position, element: element)
     }
   }
 }

@@ -10,7 +10,7 @@
 
 #include <metal_stdlib>
 #include "Constants.metal"
-#include "Atom.metal"
+#include "MRAtom.metal"
 using namespace metal;
 using namespace raytracing;
 

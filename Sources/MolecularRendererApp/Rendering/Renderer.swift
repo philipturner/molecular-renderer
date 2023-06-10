@@ -55,7 +55,7 @@ class Renderer {
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
   
   // Memory objects for rendering.
-  var atomData: MTLBuffer
+  var styles: MTLBuffer
   
   // Cache previous arguments to generate motion vectors.
   struct Arguments {
@@ -95,8 +95,8 @@ class Renderer {
   static let renderingMode: RenderingMode = .static
   
   // Variables for loading static geometry.
-  var staticProvider: (any StaticAtomProvider)!
-  static func createStaticProvider() -> any StaticAtomProvider {
+  var staticProvider: (any MRStaticAtomProvider)!
+  static func createStaticProvider() -> any MRStaticAtomProvider {
 //    ExampleMolecules.TaggedEthylene()
     NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
 //    PDBParser(url: adamantaneHabToolURL)
@@ -163,21 +163,21 @@ class Renderer {
     let atomColors = GlobalStyleProvider.global.atomColors
     
     // Initialize the atom statistics.
-    let atomStatisticsSize = MemoryLayout<AtomStatistics>.stride
-    let atomDataBufferSize = atomRadii.count * atomStatisticsSize
-    precondition(MemoryLayout<Atom>.stride == 16, "Unexpected atom size.")
+    let atomStatisticsSize = MemoryLayout<MRAtomStyle>.stride
+    let stylesBufferSize = atomRadii.count * atomStatisticsSize
+    precondition(MemoryLayout<MRAtom>.stride == 16, "Unexpected atom size.")
     precondition(atomStatisticsSize == 8, "Unexpected atom statistics size.")
     precondition(
       atomRadii.count == atomColors.count,
       "Atom statistics arrays have different sizes.")
-    self.atomData = device.makeBuffer(length: atomDataBufferSize)!
+    self.styles = device.makeBuffer(length: stylesBufferSize)!
     
     // Write to the atom data buffer.
     do {
-      let atomDataPointer = atomData.contents()
-        .assumingMemoryBound(to: AtomStatistics.self)
+      let stylesPointer = styles.contents()
+        .assumingMemoryBound(to: MRAtomStyle.self)
       for (index, (radius, color)) in zip(atomRadii, atomColors).enumerated() {
-        atomDataPointer[index] = AtomStatistics(color: color, radius: radius)
+        stylesPointer[index] = MRAtomStyle(color: color, radius: radius)
       }
     }
     
@@ -369,7 +369,7 @@ extension Renderer {
       // explicitly marking them as static allows it to compress the structures.
       var shouldCompact: Bool
       
-      let atoms: [Atom]
+      let atoms: [MRAtom]
       switch Self.renderingMode {
       case .static:
         atoms = staticProvider.atoms
@@ -387,7 +387,7 @@ extension Renderer {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
     encodeArguments(encoder: encoder)
-    encoder.setBuffer(atomData, offset: 0, index: 1)
+    encoder.setBuffer(styles, offset: 0, index: 1)
     encoder.setAccelerationStructure(accel!, bufferIndex: 2)
     
     // Acquire reference to the drawable.

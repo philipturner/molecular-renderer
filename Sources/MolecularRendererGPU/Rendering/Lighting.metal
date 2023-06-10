@@ -14,7 +14,7 @@ using namespace metal;
 // meaningful color contributions.
 class ColorContext {
   constant Arguments* args;
-  constant MRAtomStatistics* atomData;
+  constant MRAtomStyle* styles;
   
   ushort2 pixelCoords;
   half3 color;
@@ -30,9 +30,9 @@ class ColorContext {
   
 public:
   ColorContext(constant Arguments* args,
-               constant MRAtomStatistics* atomData, ushort2 pixelCoords) {
+               constant MRAtomStyle* styles, ushort2 pixelCoords) {
     this->args = args;
-    this->atomData = atomData;
+    this->styles = styles;
     this->pixelCoords = pixelCoords;
     
     // Create a default color for the background.
@@ -50,7 +50,7 @@ public:
       // Replace the diffuse color with black.
       diffuseColor = { 0.000, 0.000, 0.000 };
     } else {
-      diffuseColor = atom.getColor(atomData);
+      diffuseColor = atom.getColor(styles);
     }
     
     // Apply checkerboard to tagged atoms.

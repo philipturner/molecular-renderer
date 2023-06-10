@@ -7,9 +7,10 @@
 
 import Foundation
 
-// TODO: Prefix everything in this library with "MR".
-
 // TODO: Provide programmatic control over the camera position.
+//
+// WARNING: When you add a new file to the Swift package, you typically have to
+// delete and regenerate the dependency. Otherwise, there are compiler errors.
 
 public func MRTestFunction() -> Bool {
   return true

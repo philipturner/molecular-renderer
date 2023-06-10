@@ -16,7 +16,7 @@ using namespace raytracing;
 kernel void renderMain
  (
   constant Arguments *args [[buffer(0)]],
-  constant MRAtomStatistics *atomData [[buffer(1)]],
+  constant MRAtomStyle *styles [[buffer(1)]],
   accel accel [[buffer(2)]],
   
   texture2d<half, access::write> colorTexture [[texture(0)]],
@@ -37,7 +37,7 @@ kernel void renderMain
   auto intersect1 = RayTracing::traverse(ray1, accel);
   
   // Calculate specular, diffuse, and ambient occlusion.
-  auto colorCtx = ColorContext(args, atomData, pixelCoords);
+  auto colorCtx = ColorContext(args, styles, pixelCoords);
   if (intersect1.accept) {
     float3 hitPoint = ray1.origin + ray1.direction * intersect1.distance;
     float3 normal = normalize(hitPoint - intersect1.atom.origin);
@@ -97,7 +97,7 @@ kernel void renderMain
           // Account for the color of the occluding atom. This decreases the
           // contrast between differing elements placed near each other. It also
           // makes the effect vary around the atom's surface.
-          half3 neighborColor = intersect2.atom.getColor(atomData);
+          half3 neighborColor = intersect2.atom.getColor(styles);
           float neighborLuminance = dot(neighborColor, gamut);
 
           // Use the arithmetic mean. There is no perceivable difference from

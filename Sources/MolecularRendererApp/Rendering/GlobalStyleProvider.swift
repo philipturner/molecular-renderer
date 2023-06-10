@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MolecularRenderer
 
 // This is a quick API hack to get the code refactored, but we need a more
 // well thought-out solution in the long run. Ideally, recycle the
@@ -24,7 +25,7 @@ struct GlobalStyleProvider {
   
   var atomicNumbers: ClosedRange<UInt8>
   
-  var atomData: [AtomStatistics]
+  var styles: [MRAtomStyle]
   
   init() {
     let provider = ExampleStyles.NanoStuff()
@@ -36,8 +37,8 @@ struct GlobalStyleProvider {
     let upperBound = UInt8(provider.atomicNumbers.upperBound)
     self.atomicNumbers = lowerBound...upperBound
     
-    self.atomData = zip(atomColors, atomRadii).map {
-      AtomStatistics(color: $0, radius: $1)
+    self.styles = zip(atomColors, atomRadii).map {
+      MRAtomStyle(color: $0, radius: $1)
     }
   }
 }

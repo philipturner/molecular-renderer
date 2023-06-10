@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import MolecularRenderer
 
-final class PDBParser: StaticAtomProvider {
-  var atoms: [Atom]
+final class PDBParser: MRStaticAtomProvider {
+  var atoms: [MRAtom]
   
   init(url: URL) {
     let data = try! Data(contentsOf: url)
@@ -78,10 +79,10 @@ final class PDBParser: StaticAtomProvider {
         flags = 0x1 | 0x2
       }
       
-      let atomData = GlobalStyleProvider.global.atomData
+      let styles = GlobalStyleProvider.global.styles
       let origin = SIMD3<Float>(SIMD3(x, y, z) / 10)
-      return Atom(
-        atomData: atomData, origin: origin, element: element, flags: flags)
+      return MRAtom(
+        styles: styles, origin: origin, element: element, flags: flags)
     }
     
     for atom in atoms {

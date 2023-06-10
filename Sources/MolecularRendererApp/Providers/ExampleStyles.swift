@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MolecularRenderer
 
 // Room for improvement: provider that takes an ART file as the input URL.
 struct ExampleStyles {
@@ -24,7 +25,7 @@ struct ExampleStyles {
   // https://jmol.sourceforge.net/jscolors/#color_C
   // Also used by QuteMol:
   // https://github.com/zulman/qutemol/blob/master/src/AtomColor.cpp#L54
-  struct QuteMolDefault: StaticStyleProvider {
+  struct QuteMolDefault: MRStaticStyleProvider {
     let radii: [Float] = [
       0.00, // 0
       1.20, // 1
@@ -103,7 +104,7 @@ struct ExampleStyles {
   //
   // The file also reappears here:
   // https://github.com/zulman/qutemol/blob/a7ca8add0683cd311cbcdbed5c7e49cb1681fb61/src/sample/nanostuff.art#L4
-  struct NanoStuff: StaticStyleProvider {
+  struct NanoStuff: MRStaticStyleProvider {
     let radii: [Float] = [
       0.853, // 0
       0.930, // 1
