@@ -121,9 +121,14 @@ extension AccelerationStructureBuilder {
     commandBuffer: MTLCommandBuffer,
     shouldCompact: Bool
   ) -> MTLAccelerationStructure {
-    guard self.cachedAtoms != atoms else {
-      return self.accels[accelIndex]!
+    if self.cachedAtoms == atoms,
+       let accel = self.accels[accelIndex] {
+      // Do not generate a new accel when you built a usable one last frame.
+      return accel
     }
+//    guard self.cachedAtoms != atoms else {
+//      return self.accels[accelIndex]!
+//    }
     self.cachedAtoms = atoms
     
     // Generate or fetch a buffer.

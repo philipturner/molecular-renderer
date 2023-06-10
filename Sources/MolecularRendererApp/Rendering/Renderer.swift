@@ -67,7 +67,12 @@ class Renderer {
     var frameSeed: UInt32
     
     // TODO: Allow 'sampleCount' to dynamically scale, matching a target FPS.
-    var lightPower: Float16 // TODO: Ensure this matches the style provider.
+    // Aim to make the compute command last 4-6 ms, but allow manual overrides.
+    // Only sample every few frames, so that most commands can occur in a single
+    // command buffer.
+    //
+    // TODO: Does the AGX dynamic frequently scaling make this not viable?
+    var lightPower: Float16
     var sampleCount: UInt16
     var maxRayHitTime: Float
     var exponentialFalloffDecayConstant: Float
@@ -80,40 +85,38 @@ class Renderer {
   var accelBuilder: AccelerationStructureBuilder!
   var upscaler: Upscaler!
   
-  // A boolean parameter specifies whether it is animated. Some need to generate
-  // an accel every frame, while others can recycle the same one for multiple
-  // frames, or try more advanced techniques like incremental updates. You could
-  // even try hijacking Metal and serializing the accel's raw data to the disk.
   enum RenderingMode: Equatable {
-    // Generated procedurally at runtime.
-    // TODO: Merge this and 'file' into '.static'.
-    case procedural(Bool)
+    // Generated procedurally or read from a file.
+    case `static`
     
-    // Visualize the time evolution of an MD simulation.
-    // TODO: Rename to '.molecularSimulation'.
-    case realTimeSimulation
-    
-    // Static or animated nanostructure generated externally.
-    case file(Bool)
+    // Visualize an MD simulation running in real-time.
+    case molecularSimulation
   }
-  static let renderingMode: RenderingMode = .file(false)
+  static let renderingMode: RenderingMode = .molecularSimulation
   
   // Variables for loading static geometry.
-  // TODO: Transform ExampleMolecules into a static provider.
-  static let generateProcedural: () -> [Atom] = {
-    return ExampleMolecules.taggedEthylene
-  }
   var staticProvider: (any StaticAtomProvider)!
   static func createStaticProvider() -> any StaticAtomProvider {
+//    ExampleMolecules.TaggedEthylene()
 //    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
     PDBParser(url: adamantaneHabToolURL)
   }
   
+  // NOTE: You need to give the app permission to view this file.
+  static let adamantaneHabToolURL: URL = {
+    let fileName = "adamantane-thiol-Hab-tool.pdb"
+    let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"
+    return URL(filePath: folder + "/" + fileName)
+  }()
+
+  
   // Variables for controlling a real-time MD simulation.
+  // TODO: Extract of these parameters into the setup of a noble gas simulator.
+  // TODO: Warn that you must switch to Swift release mode to run this.
   var simulator: NobleGasSimulator!
   static let logSimulationSpeed: Bool = true
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
-  static let simulationID: Int = 0 // 0-2
+  static let simulationID: Int = 3 // 0-2
   static let simulationSpeed: Double = 5e-12 // ps/s
   
   init(view: RendererView) {
@@ -156,6 +159,9 @@ class Renderer {
     self.rayTracingPipeline = try! device
       .makeComputePipelineState(descriptor: desc, options: [], reflection: nil)
     
+    let atomRadii = GlobalStyleProvider.global.atomRadii
+    let atomColors = GlobalStyleProvider.global.atomColors
+    
     // Initialize the atom statistics.
     let atomStatisticsSize = MemoryLayout<AtomStatistics>.stride
     let atomDataBufferSize = atomRadii.count * atomStatisticsSize
@@ -180,14 +186,12 @@ class Renderer {
     self.upscaler = Upscaler(renderer: self)
     
     switch Self.renderingMode {
-    case .procedural:
-      // Do nothing.
-      break
-    case .realTimeSimulation:
+    case .static:
+      self.staticProvider = Renderer.createStaticProvider()
+    case .molecularSimulation:
       self.simulator = NobleGasSimulator(
         simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
-    case .file:
-      self.staticProvider = Renderer.createStaticProvider()
+    
     }
   }
 }
@@ -340,7 +344,7 @@ extension Renderer {
       // Do not simulate while the crosshair is active.
       let eventTracker = self.view.coordinator.eventTracker!
       if !eventTracker.crosshairActive.load(ordering: .relaxed),
-         Self.renderingMode == .realTimeSimulation {
+         Self.renderingMode == .molecularSimulation {
         // Run the simulator synchronously.
         let (nsPerDay, timeTaken) = self.simulator.evolve(
           frameDelta: frameDelta, timeScale: Self.simulationSpeed)
@@ -367,18 +371,12 @@ extension Renderer {
       
       let atoms: [Atom]
       switch Self.renderingMode {
-      case .procedural(let animated):
-        atoms = Self.generateProcedural()
-        shouldCompact = !animated
-      case .realTimeSimulation:
+      case .static:
+        atoms = staticProvider.atoms
+        shouldCompact = true
+      case .molecularSimulation:
         atoms = self.simulator.getAtoms()
         shouldCompact = false
-      case .file(let animated):
-        atoms = staticProvider.atoms
-        
-        // Animated should try to serialize the accel to the disk beforehand and
-        // then stream, or try to build a hierarchy of acceleration structures.
-        shouldCompact = !animated
       }
       accel = accelBuilder.build(
         atoms: atoms,
@@ -388,19 +386,9 @@ extension Renderer {
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
-    
-    if false {
-      // Set the time to determine synchronization.
-      var time1 = Float(adjustedFrameID) / Float(Renderer.frameRateBasis)
-      var time2 = Float(
-        seconds(start: startTimeStamp!, end: previousTimeStamp!))
-      encoder.setBytes(&time1, length: 4, index: 0)
-      encoder.setBytes(&time2, length: 4, index: 1)
-    } else {
-      encodeArguments(encoder: encoder)
-      encoder.setBuffer(atomData, offset: 0, index: 1)
-      encoder.setAccelerationStructure(accel!, bufferIndex: 2)
-    }
+    encodeArguments(encoder: encoder)
+    encoder.setBuffer(atomData, offset: 0, index: 1)
+    encoder.setAccelerationStructure(accel!, bufferIndex: 2)
     
     // Acquire reference to the drawable.
     let drawable = view.metalLayer.nextDrawable()!
@@ -458,7 +446,7 @@ extension Renderer {
         jitter: upscaler.jitterOffsets,
         frameSeed: UInt32.random(in: 0...UInt32.max),
         
-        lightPower: 50.0,
+        lightPower: GlobalStyleProvider.global.lightPower,
         sampleCount: 16,
         maxRayHitTime: maxRayHitTime,
         exponentialFalloffDecayConstant: decayConstant,
