@@ -14,29 +14,15 @@ using namespace metal;
 
 // MARK: - Constants
 
-// This does not need to become dynamic. Changing the resolution will mess up
-// MetalFX upscaling.
+// The MetalFX upscaler is currently configured with a static resolution.
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
-constant bool USE_METALFX [[function_constant(2)]];
 
-// Constants for Blinn-Phong shading.
-// TODO: Make this an argument determined at runtime by the style provider.
-constant float LIGHT_POWER = 50.0;
-// Use 50.0 for the QuteMol color scheme from the ART file.
-
-// TODO: Remove the old color scheme and a lot of unused code; move it to docs.
-// Use 40.0 for the colors QuteMol fills into the table by default.
-
-// Constants for ray-traced ambient occlusion.
-constant bool USE_RTAO = true;
-
-// TODO: Make this an argument determined at runtime.
-// TODO: Allow this to dynamically scale, matching a target framerate.
-constant ushort RTAO_SAMPLES = 3; // 64
-
-// Whether to suppress the specular term in occluded areas.
-constant bool SUPPRESS_SPECULAR = true;
+// Whether to treat the specular term the same as the diffuse term when
+// factoring in ambient occlusion. This suppresses the specular part in occluded
+// areas. It is technically incorrect, but is sometimes preferable. The default
+// setting is to not suppress the specular term.
+constant bool SUPPRESS_SPECULAR [[function_constant(2)]];
 
 // MARK: - Definitions
 
@@ -57,7 +43,11 @@ struct Arguments {
   // Seed for generating random numbers.
   uint frameSeed;
   
+  // Constants for Blinn-Phong shading.
+  half lightPower;
+  
   // Constants for ray-traced ambient occlusion.
+  ushort sampleCount;
   float maxRayHitTime;
   float exponentialFalloffDecayConstant;
   float minimumAmbientIllumination;

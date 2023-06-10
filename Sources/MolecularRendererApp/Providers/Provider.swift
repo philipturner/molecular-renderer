@@ -19,12 +19,19 @@ protocol StaticAtomProvider {
   init(url: URL?)
 }
 
+// Eventually, we might want to import styles through ART files.
 protocol StaticStyleProvider {
   // Return all data in meters and Float32. The receiver will then range-reduce
   // to nanometers and cast to Float16.
   var radii: [Float] { get }
   
+  // RGB color for each atom, ranging from 0 to 1 for each component.
   var colors: [SIMD3<Float>] { get }
+  
+  // Intensity of the camera-centered light for Blinn-Phong shading.
+  // Example: 50.0 for the QuteMol color scheme from the ART file.
+  // Example: 40.0 for the colors hard-coded into QuteMol's source code.
+  var lightPower: Float { get }
   
   // Optional URL, if this must access the internet or file system.
   init(url: URL?)

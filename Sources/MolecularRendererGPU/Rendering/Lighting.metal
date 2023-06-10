@@ -97,7 +97,7 @@ public:
       specular = specContribution * pow(specAngle, shininess);
     }
     
-    this->lightPower = LIGHT_POWER;
+    this->lightPower = float(args->lightPower);
     this->lightPower = smoothstep(0, 1, lightPower * rsqrtLightDst);
   }
   
@@ -106,9 +106,10 @@ public:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
     float specularOcclusion = 1;
-    if (USE_RTAO) {
-      float diffuseAmbient = this->diffuseAmbient / float(RTAO_SAMPLES);
-      float specularAmbient = this->specularAmbient / float(RTAO_SAMPLES);
+    if (args->sampleCount > 0) {
+      float sampleCountRecip = fast::divide(1, args->sampleCount);
+      float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
+      float specularAmbient = this->specularAmbient * sampleCountRecip;
       ambientOcclusion = diffuseAmbient;
       
       // This seems to only be applied to a "specular ambient" term, not the
@@ -172,17 +173,16 @@ public:
     half4 writtenColor(color, 1);
     colorTexture.write(writtenColor, pixelCoords);
     
-    if (USE_METALFX) {
-      this->depth = 1 / float(1 - depth); // map (0, -infty) to (1, 0)
-      this->motionVector = clamp(motionVector, -HALF_MAX, HALF_MAX);
-      
-      // Write the output depth.
-      float4 writtenDepth{ depth };
-      depthTexture.write(writtenDepth, pixelCoords);
-      
-      // Write the output motion vector.
-      half4 writtenMotionVector{ motionVector.x, motionVector.y };
-      motionTexture.write(writtenMotionVector, pixelCoords);
-    }
+    // Adjust the depth and motion vector.
+    auto depth = 1 / float(1 - this->depth); // map (0, -infty) to (1, 0)
+    auto motionVector = clamp(this->motionVector, -HALF_MAX, HALF_MAX);
+    
+    // Write the output depth.
+    float4 writtenDepth{ depth };
+    depthTexture.write(writtenDepth, pixelCoords);
+    
+    // Write the output motion vector.
+    half4 writtenMotionVector{ motionVector.x, motionVector.y };
+    motionTexture.write(writtenMotionVector, pixelCoords);
   }
 };

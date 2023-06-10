@@ -19,7 +19,6 @@
 		9852E87E29EB6EA600D0E779 /* KeyCodes in Frameworks */ = {isa = PBXBuildFile; productRef = 9852E87D29EB6EA600D0E779 /* KeyCodes */; };
 		9852E88129EB8CC100D0E779 /* how-to-create-the-ui.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88029EB8CC100D0E779 /* how-to-create-the-ui.md */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
-		98570CF52A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp in Resources */ = {isa = PBXBuildFile; fileRef = 98570CF42A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp */; };
 		98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		986ED88F29A71C1C00E0653B /* PythonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED88E29A71C1C00E0653B /* PythonKit */; };
@@ -69,7 +68,6 @@
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88029EB8CC100D0E779 /* how-to-create-the-ui.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = "how-to-create-the-ui.md"; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		98570CF42A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "MarkIII[k] Planetary Gear Box.mmp"; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
@@ -142,7 +140,6 @@
 			children = (
 				986ED88929A6CF3600E0653B /* Renderer.swift */,
 				98122D6E29DFBC14006200D1 /* AtomStatistics.swift */,
-				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
 				98298F5929F353E90008E248 /* Upscaler.swift */,
 				98298F5B29F357E70008E248 /* AccelerationStructureBuilder.swift */,
 			);
@@ -166,22 +163,6 @@
 				98F250042A130A7C009AABDE /* AmbientOcclusion.swift */,
 			);
 			path = "GPT-4";
-			sourceTree = "<group>";
-		};
-		98570CF32A116A200078E023 /* NanoEngineer */ = {
-			isa = PBXGroup;
-			children = (
-				98570CF62A116A370078E023 /* gears */,
-			);
-			path = NanoEngineer;
-			sourceTree = "<group>";
-		};
-		98570CF62A116A370078E023 /* gears */ = {
-			isa = PBXGroup;
-			children = (
-				98570CF42A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp */,
-			);
-			path = gears;
 			sourceTree = "<group>";
 		};
 		9898381929A6C08F00B4AA98 = {
@@ -225,11 +206,11 @@
 		98F250032A130A65009AABDE /* Providers */ = {
 			isa = PBXGroup;
 			children = (
+				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
 				98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */,
 				98A07C262A2CC11B00729897 /* ParsingUtilities.swift */,
 				98A07C242A2CBFCF00729897 /* PDBParser.swift */,
 				98F638BC2A34B0C600F51E95 /* Provider.swift */,
-				98570CF32A116A200078E023 /* NanoEngineer */,
 			);
 			path = Providers;
 			sourceTree = "<group>";
@@ -392,7 +373,6 @@
 				9898382D29A6C09000B4AA98 /* Preview Assets.xcassets in Resources */,
 				9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */,
 				9852E88329EB8CFA00D0E779 /* README.md in Resources */,
-				98570CF52A116A300078E023 /* MarkIII[k] Planetary Gear Box.mmp in Resources */,
 				9852E88129EB8CC100D0E779 /* how-to-create-the-ui.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

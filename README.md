@@ -6,6 +6,14 @@ This is a platform for the author to conduct [computational nanotechnology](http
 
 ## Usage
 
+### MolecularRenderer Library
+
+A C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into other CAD applications.
+
+### MolecularRenderer App
+
+> TODO: Update this documentation with more modern information.
+
 You can set a custom aspect ratio, instead of 1536x1536. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
 
 ```

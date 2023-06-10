@@ -12,9 +12,6 @@ import Foundation
 //
 // File format specification at:
 // https://github.com/kanzure/nanoengineer/blob/master/cad/doc/old_doc/mmpformat
-//
-// TODO: Download the MarkIII[k] planetary gear from the internet at runtime,
-// remove the file from the source tree.
 final class NanoEngineerParser: StaticAtomProvider {
   var atoms: [Atom]
   

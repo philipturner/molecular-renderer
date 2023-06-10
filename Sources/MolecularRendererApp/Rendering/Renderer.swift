@@ -23,6 +23,8 @@ func checkCVDisplayError(
   }
 }
 
+// TODO: Split the renderer into several files. I'm not sure how much can be
+// moved into the "MolecularRenderer" library though.
 class Renderer {
   // Connection to Vsync.
   var view: RendererView
@@ -64,6 +66,9 @@ class Renderer {
     var jitter: SIMD2<Float>
     var frameSeed: UInt32
     
+    // TODO: Allow 'sampleCount' to dynamically scale, matching a target FPS.
+    var lightPower: Float16 // TODO: Ensure this matches the style provider.
+    var sampleCount: UInt16
     var maxRayHitTime: Float
     var exponentialFalloffDecayConstant: Float
     var minimumAmbientIllumination: Float
@@ -100,7 +105,8 @@ class Renderer {
   }
   var staticProvider: (any StaticAtomProvider)!
   static func createStaticProvider() -> any StaticAtomProvider {
-    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
+//    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
+    PDBParser(url: adamantaneHabToolURL)
   }
   
   // Variables for controlling a real-time MD simulation.
@@ -109,7 +115,6 @@ class Renderer {
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
   static let simulationID: Int = 0 // 0-2
   static let simulationSpeed: Double = 5e-12 // ps/s
-  
   
   init(view: RendererView) {
     let eventTracker = view.coordinator.eventTracker!
@@ -128,18 +133,15 @@ class Renderer {
     let constants = MTLFunctionConstantValues()
     
     // Actual texture width.
-    var screenWidth: UInt32 = .init(ContentView.size)
-    if Upscaler.doingUpscaling { screenWidth /= 2 }
+    var screenWidth: UInt32 = .init(ContentView.size / 2)
     constants.setConstantValue(&screenWidth, type: .uint, index: 0)
     
     // Actual texture height.
-    var screenHeight: UInt32 = .init(ContentView.size)
-    if Upscaler.doingUpscaling { screenHeight /= 2 }
+    var screenHeight: UInt32 = .init(ContentView.size / 2)
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
-    // Whether to do antialiasing/upscaling.
-    var useMetalFX: Bool = Upscaler.doingUpscaling
-    constants.setConstantValue(&useMetalFX, type: .bool, index: 2)
+    var suppressSpecular: Bool = false
+    constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
     
     // Initialize the compute pipeline.
     let url = Bundle.main.url(
@@ -186,7 +188,6 @@ class Renderer {
         simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
     case .file:
       self.staticProvider = Renderer.createStaticProvider()
-//      self.parser = Renderer.parserType.init(url: Self.fileURL)
     }
   }
 }
@@ -405,30 +406,20 @@ extension Renderer {
     let drawable = view.metalLayer.nextDrawable()!
     precondition(drawable.texture.width == Int(ContentView.size))
     precondition(drawable.texture.height == Int(ContentView.size))
-    if Upscaler.doingUpscaling {
-      let textures = upscaler.currentTextures
-      encoder.setTextures(
-        [textures.color, textures.depth, textures.motion], range: 0..<3)
-    } else {
-      encoder.setTexture(drawable.texture, index: 0)
-    }
+    let textures = upscaler.currentTextures
+    encoder.setTextures(
+      [textures.color, textures.depth, textures.motion], range: 0..<3)
     
-    // Dispatch even number of threads (the shader will rearrange them).
-    var viewSize = Int(ContentView.size)
-    if Upscaler.doingUpscaling {
-      viewSize /= 2
-    }
+    // Dispatch an even number of threads (the shader will rearrange them).
+    let viewSize = Int(ContentView.size / 2)
     let numThreadgroupsX = (viewSize + 15) / 16
     let numThreadgroupsY = (viewSize + 15) / 16
     encoder.dispatchThreadgroups(
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(16, 16, 1))
     encoder.endEncoding()
-    
-    if Upscaler.doingUpscaling {
-      upscaler.upscale(
-        commandBuffer: commandBuffer, drawableTexture: drawable.texture)
-    }
+    upscaler.upscale(
+      commandBuffer: commandBuffer, drawableTexture: drawable.texture)
     
     // Present drawable and signal the semaphore.
     commandBuffer.present(drawable)
@@ -450,8 +441,7 @@ extension Renderer {
         upscaler.jitterOffsets *= 50
       }
       
-      var fov90Span = Double(ContentView.size / 2)
-      if Upscaler.doingUpscaling { fov90Span /= 2 }
+      let fov90Span = 0.5 * Double(ContentView.size / 2)
       let fov90SpanReciprocal = simd_precise_recip(fov90Span)
       let (azimuth, zenith) = eventTracker.playerState.rotations
       
@@ -468,6 +458,8 @@ extension Renderer {
         jitter: upscaler.jitterOffsets,
         frameSeed: UInt32.random(in: 0...UInt32.max),
         
+        lightPower: 50.0,
+        sampleCount: 16,
         maxRayHitTime: maxRayHitTime,
         exponentialFalloffDecayConstant: decayConstant,
         minimumAmbientIllumination: minimumAmbientIllumination,

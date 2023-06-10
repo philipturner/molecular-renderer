@@ -18,7 +18,6 @@ struct Upscaler {
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
   var resetScaler = true
-  static let doingUpscaling = true
   
   // Main rendering resources.
   var device: MTLDevice
@@ -47,11 +46,6 @@ struct Upscaler {
     
     self.intermediateSize = Int(ContentView.size / 2)
     self.upscaledSize = Int(ContentView.size)
-    
-    guard Upscaler.doingUpscaling else {
-      // Do not create the upscaler object or intermediate textures.
-      return
-    }
     
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -129,9 +123,6 @@ extension Upscaler {
   }
   
   private func makeJitterOffsets() -> SIMD2<Float> {
-    if Upscaler.doingUpscaling == false {
-      return SIMD2.zero
-    }
     
     func halton(index: UInt32, base: UInt32) -> Float {
       var result: Float = 0.0

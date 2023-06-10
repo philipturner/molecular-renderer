@@ -12,7 +12,7 @@ import Metal
 
 // TODO: Rename to "MRAccelBuilder".
 //
-// TODO: Support for multiple acceleration structure formats:
+// TODO: Support multiple acceleration structure formats:
 // - BVH
 // - Dense Grid
 // - Sparse Grid

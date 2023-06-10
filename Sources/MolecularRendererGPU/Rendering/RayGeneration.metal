@@ -71,9 +71,7 @@ public:
   
   static ray primaryRay(ushort2 pixelCoords, constant Arguments* args) {
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
-    if (USE_METALFX) {
-      rayDirection.xy += args->jitter;
-    }
+    rayDirection.xy += args->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     rayDirection.y = -rayDirection.y;
     rayDirection.xy *= args->fov90SpanReciprocal;
