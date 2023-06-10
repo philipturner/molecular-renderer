@@ -7,6 +7,8 @@
 
 import Foundation
 
+// TODO: Convert these to 'StaticAtomProvider' instances.
+
 struct ExampleMolecules {
   // Structure sourced from:
   // https://commons.wikimedia.org/wiki/File:Ethylene-CRC-MW-dimensions-2D-Vector.svg

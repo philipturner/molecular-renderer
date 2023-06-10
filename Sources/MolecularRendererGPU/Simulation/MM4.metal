@@ -1,12 +1,12 @@
 //
-//  MM4Simulator.swift
-//  MolecularRenderer
+//  MM4.metal
+//  MolecularRendererApp
 //
-//  Created by Philip Turner on 5/6/23.
+//  Created by Philip Turner on 6/10/23.
 //
 
-import Foundation
-import simd
+#include <metal_stdlib>
+using namespace metal;
 
 // GPU-accelerated simulator evolved from the Drexler-MM2 forcefield used in
 // Nanosystems (1992). Only applies to sp3 hydrocarbons, but achieves hundreds

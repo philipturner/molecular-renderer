@@ -8,6 +8,10 @@
 import Metal
 import simd
 
+// TODO: Rename this file to "Atom".
+
+// TODO: Transform these into static style providers.
+
 // Bondi (1964) convention expanded to more elements in 2009. Hydrogen and
 // lithium values are not lowered to (1.20 -> 1.10, 1.82 -> 1.81) because that
 // makes ethylene look wierd.

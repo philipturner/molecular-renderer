@@ -18,7 +18,7 @@ struct Upscaler {
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
   var resetScaler = true
-  static let doingUpscaling = true && !Renderer.checkingFrameRate
+  static let doingUpscaling = true
   
   // Main rendering resources.
   var device: MTLDevice

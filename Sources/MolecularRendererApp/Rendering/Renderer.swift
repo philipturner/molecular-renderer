@@ -9,6 +9,7 @@ import AppKit
 import Atomics
 import Metal
 import simd
+import MolecularRenderer
 
 func checkCVDisplayError(
   _ error: CVReturn,
@@ -40,9 +41,9 @@ class Renderer {
   var sustainedMisalignment: Int = 0
   var sustainedMisalignmentDuration: Int = 0
   var sustainedAlignmentDuration: Int = 0
-  static let checkingFrameRate = false
   static let debuggingFrameRate = false
   static let debuggingJitter = false
+  static let logFrameStutters = false
   static let frameRateBasis: Int = 120
   
   // Main rendering resources.
@@ -80,9 +81,11 @@ class Renderer {
   // even try hijacking Metal and serializing the accel's raw data to the disk.
   enum RenderingMode: Equatable {
     // Generated procedurally at runtime.
+    // TODO: Merge this and 'file' into '.static'.
     case procedural(Bool)
     
     // Visualize the time evolution of an MD simulation.
+    // TODO: Rename to '.molecularSimulation'.
     case realTimeSimulation
     
     // Static or animated nanostructure generated externally.
@@ -90,9 +93,14 @@ class Renderer {
   }
   static let renderingMode: RenderingMode = .file(false)
   
-  // Variables for controlling procedural generation.
+  // Variables for loading static geometry.
+  // TODO: Transform ExampleMolecules into a static provider.
   static let generateProcedural: () -> [Atom] = {
     return ExampleMolecules.taggedEthylene
+  }
+  var staticProvider: (any StaticAtomProvider)!
+  static func createStaticProvider() -> any StaticAtomProvider {
+    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
   }
   
   // Variables for controlling a real-time MD simulation.
@@ -102,10 +110,6 @@ class Renderer {
   static let simulationID: Int = 0 // 0-2
   static let simulationSpeed: Double = 5e-12 // ps/s
   
-  // Variables for rendering geometry from a file.
-  static let parserType: ParserProtocol.Type = PDBParser.self
-  static let fileURL: URL = adamantaneHabToolURL
-  var parser: (any ParserProtocol)!
   
   init(view: RendererView) {
     let eventTracker = view.coordinator.eventTracker!
@@ -133,22 +137,17 @@ class Renderer {
     if Upscaler.doingUpscaling { screenHeight /= 2 }
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
-    if Renderer.checkingFrameRate {
-      let fov90Span = Double(ContentView.size / 2)
-      var fov90SpanReciprocal = simd_precise_recip(fov90Span)
-      constants.setConstantValue(&fov90SpanReciprocal, type: .float, index: 2)
-    } else {
-      // Whether to do antialiasing/upscaling.
-      var useMetalFX: Bool = Upscaler.doingUpscaling
-      constants.setConstantValue(&useMetalFX, type: .bool, index: 2)
-    }
+    // Whether to do antialiasing/upscaling.
+    var useMetalFX: Bool = Upscaler.doingUpscaling
+    constants.setConstantValue(&useMetalFX, type: .bool, index: 2)
     
     // Initialize the compute pipeline.
-    let library = device.makeDefaultLibrary()!
-    let name = Renderer.checkingFrameRate ? "checkFrameRate" : "renderMain"
-    let function = try! library.makeFunction(
-      name: name, constantValues: constants)
+    let url = Bundle.main.url(
+      forResource: "MolecularRendererGPU", withExtension: "metallib")!
+    let library = try! device.makeLibrary(URL: url)
     
+    let function = try! library.makeFunction(
+      name: "renderMain", constantValues: constants)
     let desc = MTLComputePipelineDescriptor()
     desc.computeFunction = function
     desc.maxCallStackDepth = 5
@@ -186,7 +185,8 @@ class Renderer {
       self.simulator = NobleGasSimulator(
         simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
     case .file:
-      self.parser = Renderer.parserType.init(url: Self.fileURL)
+      self.staticProvider = Renderer.createStaticProvider()
+//      self.parser = Renderer.parserType.init(url: Self.fileURL)
     }
   }
 }
@@ -215,7 +215,10 @@ extension Renderer {
       let deltaFrames = frames(start: previousTimeStamp, end: currentTimeStamp)
       let threshold = Double(frameStep()) * 1.5
       if deltaFrames > threshold {
-        print("Frame stutter @ \(Date()): \(String(format: "%.2f", deltaFrames))")
+        if Renderer.logFrameStutters {
+          print(
+            "Frame stutter @ \(Date()): \(String(format: "%.2f", deltaFrames))")
+        }
       }
     }
     previousTimeStamp = currentTimeStamp
@@ -356,7 +359,7 @@ extension Renderer {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     
     var accel: MTLAccelerationStructure?
-    if Renderer.checkingFrameRate == false {
+    if true {
       // The accelBuilder automatically caches acceleration structures, but
       // explicitly marking them as static allows it to compress the structures.
       var shouldCompact: Bool
@@ -370,7 +373,7 @@ extension Renderer {
         atoms = self.simulator.getAtoms()
         shouldCompact = false
       case .file(let animated):
-        atoms = parser.atoms
+        atoms = staticProvider.atoms
         
         // Animated should try to serialize the accel to the disk beforehand and
         // then stream, or try to build a hierarchy of acceleration structures.
@@ -385,7 +388,7 @@ extension Renderer {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
     
-    if Renderer.checkingFrameRate {
+    if false {
       // Set the time to determine synchronization.
       var time1 = Float(adjustedFrameID) / Float(Renderer.frameRateBasis)
       var time2 = Float(

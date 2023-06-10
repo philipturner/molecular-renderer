@@ -12,12 +12,34 @@ import Foundation
 //
 // File format specification at:
 // https://github.com/kanzure/nanoengineer/blob/master/cad/doc/old_doc/mmpformat
-final class NanoEngineerParser: ParserProtocol {
+//
+// TODO: Download the MarkIII[k] planetary gear from the internet at runtime,
+// remove the file from the source tree.
+final class NanoEngineerParser: StaticAtomProvider {
   var atoms: [Atom]
   
-  init(url: URL) {
-    let data = try! Data(contentsOf: url)
-    let string = String(data: data, encoding: .utf8)!
+  // You can omit the ".mmp" extension.
+  // Example: "gears/MarkIII[k] Planetary Gear Box"
+  convenience init(partLibPath: String) {
+    let site = "https://raw.githubusercontent.com/kanzure/nanoengineer"
+    let folder = "master/cad/partlib"
+    
+    var fullPath = "\(site)/\(folder)/\(partLibPath)"
+    if fullPath.suffix(4) != ".mmp" {
+      fullPath.append(".mmp")
+    }
+    self.init(url: URL(string: fullPath)!)
+  }
+  
+  init(url: URL?) {
+    guard let url else {
+      fatalError("Must enter URL.")
+    }
+    
+    let downloader = try! StaticDownloader(url: url)
+    downloader.logLatency()
+    let string = downloader.string
+    
     let lines = string.split(separator: "\n").filter {
       $0.starts(with: "atom ")
     }
@@ -53,9 +75,16 @@ final class NanoEngineerParser: ParserProtocol {
       let quantizedToMeters: Float = 1e-13
       let metersToNanometers: Float = 1e9
       let scaleFactor = metersToNanometers * quantizedToMeters
-      return Atom(
-        origin: scaleFactor * SIMD3<Float>(positionInt),
-        element: UInt8(number))
+      
+      if number >= 1 && number <= 36 {
+        return Atom(
+          origin: scaleFactor * SIMD3<Float>(positionInt),
+          element: UInt8(number))
+      } else {
+        return Atom(
+          origin: scaleFactor * SIMD3<Float>(positionInt),
+          element: UInt8(0), flags: 0x1 | 0x2)
+      }
     }
   }
 }

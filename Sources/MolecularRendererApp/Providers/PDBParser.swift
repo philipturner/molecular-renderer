@@ -7,10 +7,14 @@
 
 import Foundation
 
-final class PDBParser: ParserProtocol {
+final class PDBParser: StaticAtomProvider {
   var atoms: [Atom]
   
-  init(url: URL) {
+  init(url: URL?) {
+    guard let url else {
+      fatalError("Must enter URL.")
+    }
+    
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
     let lines = string.split(separator: "\r\n").filter {

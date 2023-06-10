@@ -10,6 +10,12 @@ import Metal
 // Partially sourced from:
 // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
 
+// TODO: Rename to "MRAccelBuilder".
+//
+// TODO: Support for multiple acceleration structure formats:
+// - BVH
+// - Dense Grid
+// - Sparse Grid
 struct AccelerationStructureBuilder {
   // Main rendering resources.
   var device: MTLDevice

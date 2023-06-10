@@ -7,27 +7,6 @@
 
 import Foundation
 
-let markIIIPlanetaryGearURL: URL = {
-  let fileName = "MarkIII[k] Planetary Gear Box"
-  let url = Bundle.main.url(forResource: fileName, withExtension: "mmp")!
-  return url
-}()
-
-// NOTE: You need to give the app permission to view this file.
-let adamantaneHabToolURL: URL = {
-  let fileName = "adamantane-thiol-Hab-tool.pdb"
-  let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"
-  return URL(filePath: folder + "/" + fileName)
-}()
-
-protocol ParserProtocol {
-  var atoms: [Atom] { get }
-  
-  init(url: URL)
-}
-
-// MARK: - String Parsing Utilities
-
 func startError(
   _ start: any StringProtocol,
   _ sequence: any StringProtocol,

@@ -11,6 +11,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
+// TODO: Rename this file to "Atom".
+
 struct AtomStatistics {
   // Color in RGB color space.
   packed_half3 color;
