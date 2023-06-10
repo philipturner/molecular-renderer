@@ -8,12 +8,11 @@
 import Foundation
 import QuartzCore
 
-// TODO: Make this the first file moved to the Swift package, 'Atom' the second.
+// TODO: Move 'Atom.swift' and this file into the Swift package. Atom must now
+// have a reference to an AtomStatistics* while initializing.
 
 // NOTE: These protocols cannot be part of the C API. Rather, create a
 // `StaticStyleProvider` struct with pointers to lists.
-
-// TODO: Remove the requirement for an initializer that accepts a URL.
 
 // A 'DynamicAtomProvider' would change its contents in real-time, streaming
 // a pre-recorded simulation directly from the disk. A real-time molecular
@@ -21,9 +20,6 @@ import QuartzCore
 // part of MolecularRenderer.
 /*public*/ protocol /*MR*/StaticAtomProvider {
   var atoms: [/*MR*/Atom] { get }
-  
-  // Optional URL, if this must access the internet or file system.
-//  init(url: URL?)
 }
 
 // This must be set before adding any atoms via 'StaticAtomProvider'.
@@ -46,9 +42,6 @@ import QuartzCore
   //
   // TODO: Use this range instead of hard-coding the number 36 into the parsers.
   var atomicNumbers: ClosedRange<Int> { get }
-  
-  // Optional URL, if this must access the internet or file system.
-//  init(url: URL?)
 }
 
 // A 'DynamicDownloader' would issue a Metal fast resource loading command,

@@ -13,7 +13,7 @@ using namespace metal;
 
 // TODO: Rename this file to "Atom".
 
-struct AtomStatistics {
+struct MRAtomStatistics {
   // Color in RGB color space.
   packed_half3 color;
 
@@ -22,12 +22,12 @@ struct AtomStatistics {
   half radius;
 };
 
-struct BoundingBox {
+struct MRBoundingBox {
   packed_float3 min;
   packed_float3 max;
 };
 
-struct Atom {
+struct MRAtom {
   // Position in nm.
   packed_float3 origin;
   
@@ -40,11 +40,11 @@ struct Atom {
   // Flags to modify how the atom is rendered.
   uchar flags;
   
-  Atom() {
+  MRAtom() {
     
   }
   
-  Atom(constant AtomStatistics* atomData,
+  MRAtom(constant MRAtomStatistics* atomData,
        float3 origin, uchar element, uchar flags = 0) {
     this->origin = origin;
     this->element = element;
@@ -54,19 +54,19 @@ struct Atom {
     this->radiusSquared = radius * radius;
   }
   
-  half getRadius(constant AtomStatistics* atomData) {
+  half getRadius(constant MRAtomStatistics* atomData) {
     return atomData[element].radius;
   }
   
-  half3 getColor(constant AtomStatistics* atomData) {
+  half3 getColor(constant MRAtomStatistics* atomData) {
     return atomData[element].color;
   }
   
-  BoundingBox getBoundingBox(constant AtomStatistics* atomData) {
+  MRBoundingBox getBoundingBox(constant MRAtomStatistics* atomData) {
     half radius = this->getRadius(atomData);
     auto min = origin - float(radius);
     auto max = origin + float(radius);
-    return BoundingBox {
+    return MRBoundingBox {
       packed_float3(min),
       packed_float3(max)
     };

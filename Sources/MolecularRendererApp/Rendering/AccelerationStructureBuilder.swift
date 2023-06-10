@@ -164,10 +164,11 @@ extension AccelerationStructureBuilder {
     
     // Write the buffer's contents.
     do {
+      let atomData = GlobalStyleProvider.global.atomData
       let boundingBoxesPointer = boundingBoxBuffer.contents()
         .assumingMemoryBound(to: BoundingBox.self)
       for (index, atom) in atoms.enumerated() {
-        let boundingBox = atom.boundingBox
+        let boundingBox = atom.getBoundingBox(atomData: atomData)
         boundingBoxesPointer[index] = boundingBox
       }
     }

@@ -31,11 +31,12 @@ struct ExampleMolecules {
         SIMD3(+h_offset_x, +h_offset_y, z_offset),
       ]
       
+      let atomData = GlobalStyleProvider.global.atomData
       self.atoms = hydrogen_origins.map {
-        Atom(origin: $0, element: 1)
+        Atom(atomData: atomData, origin: $0, element: 1)
       }
       self.atoms += carbon_origins.map {
-        Atom(origin: $0, element: 6)
+        Atom(atomData: atomData, origin: $0, element: 6)
       }
     }
   }

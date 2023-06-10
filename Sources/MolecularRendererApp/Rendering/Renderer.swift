@@ -92,14 +92,14 @@ class Renderer {
     // Visualize an MD simulation running in real-time.
     case molecularSimulation
   }
-  static let renderingMode: RenderingMode = .molecularSimulation
+  static let renderingMode: RenderingMode = .static
   
   // Variables for loading static geometry.
   var staticProvider: (any StaticAtomProvider)!
   static func createStaticProvider() -> any StaticAtomProvider {
 //    ExampleMolecules.TaggedEthylene()
-//    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
-    PDBParser(url: adamantaneHabToolURL)
+    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
+//    PDBParser(url: adamantaneHabToolURL)
   }
   
   // NOTE: You need to give the app permission to view this file.
@@ -447,7 +447,7 @@ extension Renderer {
         frameSeed: UInt32.random(in: 0...UInt32.max),
         
         lightPower: GlobalStyleProvider.global.lightPower,
-        sampleCount: 16,
+        sampleCount: 3,
         maxRayHitTime: maxRayHitTime,
         exponentialFalloffDecayConstant: decayConstant,
         minimumAmbientIllumination: minimumAmbientIllumination,

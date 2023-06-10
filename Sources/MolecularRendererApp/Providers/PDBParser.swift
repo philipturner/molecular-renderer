@@ -10,11 +10,7 @@ import Foundation
 final class PDBParser: StaticAtomProvider {
   var atoms: [Atom]
   
-  init(url: URL?) {
-    guard let url else {
-      fatalError("Must enter URL.")
-    }
-    
+  init(url: URL) {
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
     let lines = string.split(separator: "\r\n").filter {
@@ -82,9 +78,10 @@ final class PDBParser: StaticAtomProvider {
         flags = 0x1 | 0x2
       }
       
+      let atomData = GlobalStyleProvider.global.atomData
       let origin = SIMD3<Float>(SIMD3(x, y, z) / 10)
       return Atom(
-        origin: origin, element: element, flags: flags)
+        atomData: atomData, origin: origin, element: element, flags: flags)
     }
     
     for atom in atoms {

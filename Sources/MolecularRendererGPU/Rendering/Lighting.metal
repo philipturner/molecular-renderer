@@ -14,7 +14,7 @@ using namespace metal;
 // meaningful color contributions.
 class ColorContext {
   constant Arguments* args;
-  constant AtomStatistics* atomData;
+  constant MRAtomStatistics* atomData;
   
   ushort2 pixelCoords;
   half3 color;
@@ -30,7 +30,7 @@ class ColorContext {
   
 public:
   ColorContext(constant Arguments* args,
-               constant AtomStatistics* atomData, ushort2 pixelCoords) {
+               constant MRAtomStatistics* atomData, ushort2 pixelCoords) {
     this->args = args;
     this->atomData = atomData;
     this->pixelCoords = pixelCoords;
@@ -45,7 +45,7 @@ public:
     this->specularAmbient = 0;
   }
   
-  void setDiffuseColor(Atom atom, float3 normal) {
+  void setDiffuseColor(MRAtom atom, float3 normal) {
     if (atom.flags & 0x2) {
       // Replace the diffuse color with black.
       diffuseColor = { 0.000, 0.000, 0.000 };

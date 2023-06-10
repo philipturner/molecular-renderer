@@ -8,42 +8,25 @@
 import Metal
 import simd
 
-// TODO: Rename this file to "Atom".
+// TODO: Prefix everything with 'MR' and move to the Swift package.
 
 struct AtomStatistics {
+  // TODO: Try making an inlined function in the C header, which unpacks the
+  // data into the color and radius? Not sure the best way to approach this.
+  //
+  // TODO: Define each component separately and force an 8-byte alignment in the
+  // Swift and Clang compilers.
   private var data: SIMD4<Float16>
+  
+  // Color in RGB color space.
+  var color: SIMD3<Float16> { .init(data.x, data.y, data.z) }
+  
+  // Radius in nm. We don't know the actual radius to 11 bits of precision, so
+  // Float16 is fine.
+  var radius: Float16 { data.w }
   
   init(color: SIMD3<Float16>, radius: Float16) {
     self.data = SIMD4(color, radius)
-  }
-}
-
-// This is a quick API hack to get the code refactored, but we need a more
-// well thought-out solution in the long run. Ideally, recycle the
-// 'AtomStatistics' paradigm from the GPU and use it for the CPU.
-//
-// TODO: In the C API, create a function that fills in the radii and flags of a
-// massive batch of atoms.
-struct GlobalStyleProvider {
-  static let global = Self()
-  
-  var atomRadii: [Float16]
-  
-  var atomColors: [SIMD3<Float16>]
-  
-  var lightPower: Float16
-  
-  var atomicNumbers: ClosedRange<UInt8>
-  
-  init() {
-    let provider = ExampleStyles.QuteMolDefault()
-    self.atomRadii = provider.radii.map(Float16.init)
-    self.atomColors = provider.colors.map(SIMD3.init)
-    self.lightPower = Float16(provider.lightPower)
-    
-    let lowerBound = UInt8(provider.atomicNumbers.lowerBound)
-    let upperBound = UInt8(provider.atomicNumbers.upperBound)
-    self.atomicNumbers = lowerBound...upperBound
   }
 }
 
@@ -68,14 +51,19 @@ struct Atom: Equatable {
   // Flags to modify how the atom is rendered.
   var flags: UInt8
   
-  init(origin: SIMD3<Float>, element: UInt8, flags: UInt8 = 0) {
+  init(
+    atomData: UnsafePointer<AtomStatistics>,
+    origin: SIMD3<Float>,
+    element: UInt8,
+    flags: UInt8 = 0
+  ) {
     self.x = origin.x
     self.y = origin.y
     self.z = origin.z
     self.element = element
     self.flags = flags
     
-    let radius = GlobalStyleProvider.global.atomRadii[Int(element)]
+    let radius = atomData[Int(element)].radius
     self.radiusSquared = radius * radius
   }
   
@@ -88,15 +76,16 @@ struct Atom: Equatable {
     }
   }
   
-  var radius: Float16 {
-    GlobalStyleProvider.global.atomRadii[Int(element)]
+  func getRadius(atomData: UnsafePointer<AtomStatistics>) -> Float16 {
+    atomData[Int(element)].radius
   }
   
-  var color: SIMD3<Float16> {
-    GlobalStyleProvider.global.atomColors[Int(element)]
+  func getColor(atomData: UnsafePointer<AtomStatistics>) -> SIMD3<Float16> {
+    atomData[Int(element)].color
   }
   
-  var boundingBox: BoundingBox {
+  func getBoundingBox(atomData: UnsafePointer<AtomStatistics>) -> BoundingBox {
+    let radius = getRadius(atomData: atomData)
     let min = origin - Float(radius)
     let max = origin + Float(radius)
     return BoundingBox(

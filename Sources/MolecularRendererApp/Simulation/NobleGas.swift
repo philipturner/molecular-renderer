@@ -215,11 +215,12 @@ extension NobleGasSimulator {
   }
   
   func getAtoms() -> [Atom] {
+    let atomData = GlobalStyleProvider.global.atomData
     return (0..<system.atoms).map { i in
       // Position is already converted to nm.
       let position = SIMD3<Float>(system.getPosition(index: i))
       let element = system.getType(index: i)
-      return Atom(origin: position, element: element)
+      return Atom(atomData: atomData, origin: position, element: element)
     }
   }
 }

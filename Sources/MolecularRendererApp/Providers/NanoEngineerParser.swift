@@ -28,11 +28,7 @@ final class NanoEngineerParser: StaticAtomProvider {
     self.init(url: URL(string: fullPath)!)
   }
   
-  init(url: URL?) {
-    guard let url else {
-      fatalError("Must enter URL.")
-    }
-    
+  init(url: URL) {
     let downloader = try! StaticDownloader(url: url)
     downloader.logLatency()
     let string = downloader.string
@@ -73,12 +69,15 @@ final class NanoEngineerParser: StaticAtomProvider {
       let metersToNanometers: Float = 1e9
       let scaleFactor = metersToNanometers * quantizedToMeters
       
+      let atomData = GlobalStyleProvider.global.atomData
       if number >= 1 && number <= 36 {
         return Atom(
+          atomData: atomData,
           origin: scaleFactor * SIMD3<Float>(positionInt),
           element: UInt8(number))
       } else {
         return Atom(
+          atomData: atomData,
           origin: scaleFactor * SIMD3<Float>(positionInt),
           element: UInt8(0), flags: 0x1 | 0x2)
       }

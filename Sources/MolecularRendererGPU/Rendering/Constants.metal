@@ -9,7 +9,6 @@
 #define Constants_h
 
 #include <metal_stdlib>
-#include "AtomStatistics.metal"
 using namespace metal;
 
 // MARK: - Constants

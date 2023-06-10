@@ -16,7 +16,7 @@ using namespace raytracing;
 kernel void renderMain
  (
   constant Arguments *args [[buffer(0)]],
-  constant AtomStatistics *atomData [[buffer(1)]],
+  constant MRAtomStatistics *atomData [[buffer(1)]],
   accel accel [[buffer(2)]],
   
   texture2d<half, access::write> colorTexture [[texture(0)]],

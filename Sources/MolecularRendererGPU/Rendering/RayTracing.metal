@@ -10,6 +10,7 @@
 
 #include <metal_stdlib>
 #include "Constants.metal"
+#include "Atom.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -21,13 +22,13 @@ struct AtomIntersection {
 struct IntersectionResult {
   float distance;
   bool accept;
-  Atom atom;
+  MRAtom atom;
 };
 
 class RayTracing {
 public:
   // Do not walk inside an atom; doing so will produce corrupted graphics.
-  static AtomIntersection atomIntersectionFunction(ray ray, Atom atom) {
+  static AtomIntersection atomIntersectionFunction(ray ray, MRAtom atom) {
     float3 oc = ray.origin - atom.origin;
     float b2 = dot(oc, ray.direction);
     float c = dot(oc, oc) - atom.radiusSquared;
@@ -79,7 +80,7 @@ public:
       // intersection function to determine whether to accept the candidate
       // intersection.
       auto rawPointer = i.get_candidate_primitive_data();
-      Atom atom = *(const device Atom*)rawPointer;
+      MRAtom atom = *(const device MRAtom*)rawPointer;
       
       AtomIntersection bb = atomIntersectionFunction(ray, atom);
 
@@ -98,7 +99,7 @@ public:
     intersection.accept =
       i.get_committed_intersection_type() == intersection_type::bounding_box;
     if (intersection.accept) {
-      intersection.atom = *(const device Atom*)primitive_data;
+      intersection.atom = *(const device MRAtom*)primitive_data;
     }
     
     return intersection;
