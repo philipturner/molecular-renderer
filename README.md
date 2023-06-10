@@ -1,4 +1,4 @@
-# Molecular Renderer
+# MolecularRenderer
 
 Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to simulate 1,000 atoms or render 10,000,000 atoms in real-time.
 
