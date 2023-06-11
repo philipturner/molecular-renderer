@@ -58,11 +58,6 @@ TODO (rendering):
   - 120 Hz native
   - Builds accels at runtime (&lt;10K atoms) or streams from SSD
 
-TODO (user interface):
-- Key binding "p" to take a picture, "v" to record a video.
-- Allow replaying at integer multiples of the sample rate.
-- Minecraft-like sprinting for flying around at different speeds.
-
 TODO (simulation):
 - Separate command queue for real-time simulation.
   - Stays numerous frames ahead, maintains a cushion for frame drops
