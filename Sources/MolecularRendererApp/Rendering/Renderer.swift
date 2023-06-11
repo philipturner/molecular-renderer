@@ -58,11 +58,13 @@ class Renderer {
   var styles: MTLBuffer
   
   // Cache previous arguments to generate motion vectors.
+  @_alignment(16)
   struct Arguments {
-    var position: SIMD3<Float>
+    var fovMultiplier: Float
+    var positionX: Float
+    var positionY: Float
+    var positionZ: Float
     var rotation: simd_float3x3
-    var fov90Span: Float
-    var fov90SpanReciprocal: Float
     var jitter: SIMD2<Float>
     var frameSeed: UInt32
     
@@ -430,8 +432,63 @@ extension Renderer {
         upscaler.jitterOffsets *= 50
       }
       
-      let fov90Span = 0.5 * Double(ContentView.size / 2)
-      let fov90SpanReciprocal = simd_precise_recip(fov90Span)
+      // NOTE: This currently assumes the image is square. We eventually need to
+      // support rectangular image sizes for e.g. 1920x1080 video.
+      
+      // Image width before upscaling.
+      let imageWidth = ContentView.size / 2
+      
+      // How many pixels exist in either direction.
+      let fov90Span = 0.5 * Double(imageWidth)
+      
+      // Larger FOV means the same ray will reach an angle farther away from the
+      // center. 1 / fovSpan is larger, so fovSpan is smaller. The difference
+      // should be the ratio between the tangents of the two half-angles. And
+      // one side of the ratio is tan(90 / 2) = 1.0.
+      let fovPhase = 2 * Double.pi * Double(frameID) / 120
+      let fovDegrees: Double = 90 + 10 * max(0, sin(fovPhase))
+      let fovRadians: Double = fovDegrees * .pi / 180
+      let halfAngleTangent = tan(fovRadians / 2)
+      let halfAngleTangentRatio = halfAngleTangent / 1.0
+      
+      // Let A = fov90Span
+      // Let B = pixels covered by the 45° boundary in either direction.
+      // Ray = ((pixelsRight, pixelsUp) * fovMultiplier, -1)
+      //
+      // FOV / 2 < 45°
+      // - edge of image is ray (<1, <1, -1)
+      // - A = 100 pixels
+      // - B = 120 pixels (off-screen)
+      // - fovMultiplier = 1 / 120 = 1 / B
+      // FOV / 2 = 45°
+      // - edge of image is ray (1, 1, -1)
+      // - fovMultiplier = unable to determine
+      // FOV / 2 > 45°
+      // - edge of image is ray (>1, >1, -1)
+      // - A = 100 pixels
+      // - B = 80 pixels (well within screen bounds)
+      // - fovMultiplier = 1 / 80 = 1 / B
+      
+      // Next: what is B as a function of fov90Span and halfAngleTangentRatio?
+      // FOV / 2 < 45°
+      // - A = 100 pixels
+      // - B = 120 pixels (off-screen)
+      // - halfAngleTangentRatio = 0.8
+      // - formula: B = A / halfAngleTangentRatio
+      // FOV / 2 = 45°
+      // - A = 100 pixels
+      // - B = 100 pixels
+      // - formula: cannot be determined
+      // FOV / 2 > 45°
+      // - edge of image is ray (>1, >1, -1)
+      // - A = 100 pixels
+      // - B = 80 pixels (well within screen bounds)
+      // - halfAngleTangentRatio = 1.2
+      // - formula: B = A / halfAngleTangentRatio
+      //
+      // fovMultiplier = 1 / B = 1 / (A / halfAngleTangentRatio)
+      // fovMultiplier = halfAngleTangentRatio / fov90Span
+      let fovMultiplier = halfAngleTangentRatio / fov90Span
       let (azimuth, zenith) = eventTracker.playerState.rotations
       
       let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
@@ -439,11 +496,13 @@ extension Renderer {
       let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
       let decayConstant: Float = 2.0 // range(0...20, 0.25)
       
+      let position = self.eventTracker.playerState.position
       let args = Arguments(
-        position: self.eventTracker.playerState.position,
+        fovMultiplier: Float(fovMultiplier),
+        positionX: position.x,
+        positionY: position.y,
+        positionZ: position.z,
         rotation: azimuth * zenith,
-        fov90Span: Float(fov90Span),
-        fov90SpanReciprocal: Float(fov90SpanReciprocal),
         jitter: upscaler.jitterOffsets,
         frameSeed: UInt32.random(in: 0...UInt32.max),
         

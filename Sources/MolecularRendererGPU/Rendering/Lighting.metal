@@ -146,9 +146,13 @@ public:
   }
   
   void generateMotionVector(float3 hitPoint) {
+    // fovMultiplier = halfAngleTangentRatio / fov90Span
+    // 1 / fovMultiplier = fov90Span / halfAngleTangentRatio
+    // - 90°: simply transform direction vector back into pixel location
+    // - 110°: halfAngleTangentRatio > 1; end result closer to center
     float3 direction = normalize(hitPoint - args[1].position);
     direction = transpose(args[1].cameraToWorldRotation) * direction;
-    direction *= args[1].fov90Span / direction.z;
+    direction *= 1 / args[1].fovMultiplier / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.
     float2 prevCoords = direction.xy;

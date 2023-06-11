@@ -74,7 +74,7 @@ public:
     rayDirection.xy += args->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     rayDirection.y = -rayDirection.y;
-    rayDirection.xy *= args->fov90SpanReciprocal;
+    rayDirection.xy *= args->fovMultiplier;
     rayDirection = normalize(rayDirection);
     rayDirection = args->cameraToWorldRotation * rayDirection;
     

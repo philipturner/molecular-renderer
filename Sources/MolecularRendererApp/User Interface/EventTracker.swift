@@ -30,6 +30,48 @@ class EventTracker {
   var remainingQuarantineFrames: Int = 2
   
   // TODO: Incorporate sprinting while flying, ease in/out the FOV.
+  //
+  // TODO: MetalFX motion vectors have to account for differences in FOV from
+  // the last frame.
+  //
+  // === Speeds in Minecraft ===
+  //
+  // We are emulating flying, where sprinting exactly doubles the FOV.
+  //
+  //                   Walking | 4.30 m/s <- exact value is 4.32 m/s
+  //   Walking while sprinting | 5.56 m/s
+  //                    Flying | 10.7 m/s <- exact value is 10.8 m/s
+  //    Flying while sprinting | 21.1 m/s
+  //
+  // === FOV in Minecraft ===
+  //
+  // Typical FOV is 70 degrees
+  // - Often quoted increase is +20 absolute (+28.57%)
+  // - That is "way too high"
+  // - +10% increase while flying is less than for sprinting
+  // - Use +20% as the FOV change
+  //
+  // However, we're not going from:
+  //   (walking no sprint) -> (walking sprint)
+  // Or:
+  //   (walking no sprint) -> (flying sprint)
+  // We're going from:
+  //   (flying no sprint) -> (flying sprint)
+  // Stick with the initial estimate of 10%, like we're going up a hierarchy:
+  //   (walking no sprint) +0% (x1.00)
+  //     (flying no sprint) +10% (x1.10)
+  //      (walking sprint) +10-20% (x1.10-1.20)
+  //       (flying sprint)    ?????? (x1.20-1.21)
+  //
+  // TODO: Exactly how fast does the transition between FOVs last? I know it's
+  // a smooth polynomial; the exact equation doesn't matter. Here's the Metal
+  // Standard Library's `smoothstep` function:
+  //
+  // float smoothstep(float edge0, float edge1, float x)
+  // {
+  //   float t = clamp((x - edge0) / (edge1 - edge0), float(0), float(1));
+  //   return t * t * (float(3) - float(2) * t);
+  // }
   
   // Use atomics to bypass the crash when the main thread tries to access this.
   var keyboardWPressed: ManagedAtomic<Bool> = .init(false)

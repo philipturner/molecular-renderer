@@ -27,14 +27,14 @@ constant bool SUPPRESS_SPECULAR [[function_constant(2)]];
 
 typedef raytracing::primitive_acceleration_structure accel;
 
-struct Arguments {
-  // This frame's position and orientation.
-  float3 position;
-  float3x3 cameraToWorldRotation;
+struct __attribute__((aligned(16)))
+Arguments {
+  // Transforms a pixel location on the screen into a ray direction vector.
+  float fovMultiplier;
   
-  // How many pixels are covered in either direction @ FOV=90?
-  float fov90Span;
-  float fov90SpanReciprocal;
+  // This frame's position and orientation.
+  packed_float3 position;
+  float3x3 cameraToWorldRotation;
   
   // The jitter to apply to the pixel.
   float2 jitter;
