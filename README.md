@@ -14,7 +14,7 @@ A C-compatible Swift package that extracts the core functionality of MolecularRe
 
 > TODO: Update this documentation with more modern information.
 
-You can set a custom aspect ratio, instead of 1536x1536. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
+You can set a custom aspect ratio, instead of 1280x1280. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
 
 ```
 1:1
@@ -54,7 +54,7 @@ Simulation modes:
 TODO (rendering):
 - Finish implementing ambient occlusion.
   - Runs concurrently to a small $O(n^2)$ MD simulation
-  - 768x768 -> 1536x1536 upscaling
+  - 640x640 -> 1280x1280 upscaling
   - 120 Hz native
   - Builds accels at runtime (&lt;10K atoms) or streams from SSD
 
@@ -79,8 +79,8 @@ Memory/Disk:
 - Before compression: 9 MB per second of playback when under 6,000 atoms
 
 Display:
-- 768x768 -> 1536x1536 upscaled with MetalFX temporal upscaling
-- Monitor needs at least 1536x1536 pixels for the default resolution
+- 640x640 -> 1280x1280 upscaled with MetalFX temporal upscaling
+- Monitor needs at least 1280x1280 pixels for the default resolution
 - 60 Hz and 120 Hz supported
 
 ## Technical Details
