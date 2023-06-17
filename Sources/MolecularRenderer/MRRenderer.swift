@@ -50,9 +50,9 @@ public class MRRenderer {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var upscaler: MTLFXTemporalScaler!
+  var accelBuilder: MRAccelBuilder!
   var rayTracingPipeline: MTLComputePipelineState!
-//  var stylesBuffer: MTLBuffer
+  var upscaler: MTLFXTemporalScaler!
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -75,23 +75,16 @@ public class MRRenderer {
   var currentArguments: Arguments?
   var shouldCompact: Bool = false
   
-  // TODO: Eventually, the caller shouldn't need to specify a MTLDevice in the
-  // initializer.
-  //
-  // TODO: Change so this takes the GPU metallib URL as an input.
-  //
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
   public init(
-    device: MTLDevice,
-    commandQueue: MTLCommandQueue,
+    metallibURL: URL,
     width: Int,
-    height: Int,
-    atomRadii: [Float16],
-    atomColors: [SIMD3<Float16>]
+    height: Int
   ) {
-    self.device = device
-    self.commandQueue = commandQueue
+    // Initialize Metal resources.
+    self.device = MTLCreateSystemDefaultDevice()!
+    self.commandQueue = device.makeCommandQueue()!
     
     guard width % 2 == 0, height % 2 == 0 else {
       fatalError("MRRenderer only accepts even image sizes.")
@@ -138,11 +131,18 @@ public class MRRenderer {
     encoder.endEncoding()
     commandBuffer.commit()
     
-    self.initRayTracingPipeline()
+    self.initAccelBuilder()
+    self.initRayTracingPipeline(url: metallibURL)
     self.initUpscaler()
   }
   
-  func initRayTracingPipeline() {
+  
+  func initAccelBuilder() {
+    self.accelBuilder = MRAccelBuilder(
+      device: device, commandQueue: commandQueue)
+  }
+  
+  func initRayTracingPipeline(url: URL) {
     // Initialize resolution and aspect ratio for rendering.
     let constants = MTLFunctionConstantValues()
     
@@ -158,12 +158,10 @@ public class MRRenderer {
     constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
     
     // Initialize the compute pipeline.
-    let url = Bundle.main.url(
-      forResource: "MolecularRendererGPU", withExtension: "metallib")!
     let library = try! device.makeLibrary(URL: url)
-    
     let function = try! library.makeFunction(
       name: "renderMain", constantValues: constants)
+    
     let desc = MTLComputePipelineDescriptor()
     desc.computeFunction = function
     desc.maxCallStackDepth = 5
@@ -282,8 +280,7 @@ extension MRRenderer {
   public func setStaticGeometry(
     atomProvider: MRStaticAtomProvider,
     styleProvider: MRStaticStyleProvider,
-    shouldCompact: Bool,
-    accelBuilder: MRAccelBuilder
+    shouldCompact: Bool
   ) {
     let atomRadii = styleProvider.radii.map(Float16.init)
     #if arch(x86_64)
@@ -337,7 +334,6 @@ extension MRRenderer {
   // display drawable. This option will require a callback, which is called
   // after the output's memory is written to.
   public func render(
-    accelBuilder: MRAccelBuilder,
     layer: CAMetalLayer,
     handler: @escaping MTLCommandBufferHandler
   ) {

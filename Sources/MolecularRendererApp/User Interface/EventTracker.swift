@@ -17,6 +17,8 @@ class EventTracker {
   // State of the player in 3D.
   var playerState = PlayerState()
   
+  static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
+  
   // The sensitivity of the mouse movement
   //
   // I measured my trackpad as (816, 428). In Minecraft, two sweeps up the
@@ -99,6 +101,8 @@ class EventTracker {
   var accumulatedMouseDeltaY: ManagedAtomic<UInt64> = ManagedAtomic(0)
   
   init() {
+    self.playerState.position = Self.initialPlayerPosition
+    
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
       print("Mouse exited window.")
       self.mouseInWindow.store(false, ordering: .relaxed)

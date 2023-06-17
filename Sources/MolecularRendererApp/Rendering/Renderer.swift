@@ -11,24 +11,14 @@ import Metal
 import MolecularRenderer
 import simd
 
-func checkCVDisplayError(
-  _ error: CVReturn,
-  file: StaticString = #file,
-  line: UInt = #line
-) {
-  if _slowPath(error != kCVReturnSuccess) {
-    let message = "Encountered CVDisplay error '\(error)' at \(file):\(line)"
-    print(message)
-    fatalError(message, file: file, line: line)
-  }
-}
-
-// TODO: Split the renderer into several files. I'm not sure how much can be
-// moved into the "MolecularRenderer" library though.
 class Renderer {
   // Connection to Vsync.
   var view: RendererView
   var layer: CAMetalLayer
+  var renderSemaphore: DispatchSemaphore = .init(value: 3)
+  
+  var renderer: MRRenderer!
+  
   var startTimeStamp: CVTimeStamp?
   var previousTimeStamp: CVTimeStamp?
   var eventTracker: EventTracker {
@@ -47,32 +37,22 @@ class Renderer {
   static let logFrameStutters = false
   static let frameRateBasis: Int = 120
   
-  // Main rendering resources.
-  var device: MTLDevice
-  var commandQueue: MTLCommandQueue
-  var renderSemaphore: DispatchSemaphore = .init(value: 3)
-  
-  // Objects to encapsulate complex operations.
-  var accelBuilder: MRAccelBuilder!
-  var renderer: MRRenderer!
-  
+  // Both modes currently use the `StaticAtomProvider` API. Once we start using
+  // OpenMM in real-time, we should create the `DynamicAtomProvider` API. We can
+  // develop the API beforehand using `NobleGasSimulator`.
   enum RenderingMode: Equatable {
     // Generated procedurally or read from a file.
     case `static`
     
-    // Visualize an MD simulation running in real-time.
+    // Visualize a noble gas simulation running in real-time.
     case molecularSimulation
   }
   static let renderingMode: RenderingMode = .static
   
-  // Variables for loading static geometry.
-  var staticAtomProvider: (any MRStaticAtomProvider)!
-  var staticStyleProvider = ExampleStyles.NanoStuff()
-  static func createStaticAtomProvider() -> any MRStaticAtomProvider {
-//    ExampleMolecules.TaggedEthylene()
-//    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
-    PDBParser(url: adamantaneHabToolURL)
-  }
+  // Geometry providers.
+  var staticAtomProvider: MRStaticAtomProvider!
+  var staticStyleProvider: MRStaticStyleProvider!
+  var nobleGasSimulator: NobleGasSimulator!
   
   // NOTE: You need to give the app permission to view this file.
   static let adamantaneHabToolURL: URL = {
@@ -80,45 +60,27 @@ class Renderer {
     let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"
     return URL(filePath: folder + "/" + fileName)
   }()
-  
-  // Variables for controlling a real-time MD simulation.
-  // TODO: Extract of these parameters into the setup of a noble gas simulator.
-  // TODO: Warn that you must switch to Swift release mode to run this.
-  var simulator: NobleGasSimulator!
-  static let logSimulationSpeed: Bool = true
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
-  static let simulationID: Int = 3 // 0-2
-  static let simulationSpeed: Double = 5e-12 // ps/s
   
   init(view: RendererView) {
-    let eventTracker = view.coordinator.eventTracker!
-    eventTracker.playerState.position = Self.initialPlayerPosition
-    
     self.view = view
     self.layer = view.layer as! CAMetalLayer
     self.currentRefreshRate.store(
       NSScreen.main!.maximumFramesPerSecond, ordering: .relaxed)
-
-    // Initialize Metal resources.
-    self.device = MTLCreateSystemDefaultDevice()!
-    self.commandQueue = device.makeCommandQueue()!
     
-    // Create delegate objects.
-    self.accelBuilder = MRAccelBuilder(
-      device: device, commandQueue: commandQueue)
-    
-    let provider = GlobalStyleProvider.global
+    let url =  Bundle.main.url(
+      forResource: "MolecularRendererGPU", withExtension: "metallib")!
+    let width = Int(ContentView.size)
+    let height = Int(ContentView.size)
     self.renderer = MRRenderer(
-      device: device, commandQueue: commandQueue,
-      width: Int(ContentView.size), height: Int(ContentView.size),
-      atomRadii: provider.atomRadii, atomColors: provider.atomColors)
+      metallibURL: url, width: width, height: height)
     
+    self.staticStyleProvider = ExampleStyles.NanoStuff()
     switch Self.renderingMode {
     case .static:
-      self.staticAtomProvider = Renderer.createStaticAtomProvider()
+      self.staticAtomProvider = ExampleProviders.adamantaneHabTool()
     case .molecularSimulation:
-      self.simulator = NobleGasSimulator(
-        simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
+      self.nobleGasSimulator = NobleGasSimulator(frameRate: Self.frameRateBasis)
     }
   }
 }
@@ -192,7 +154,7 @@ extension Renderer {
     return max(Renderer.frameRateBasis / current, 1)
   }
   
-  // Returns frame delta.
+  // Returns the frame delta.
   func updateFrameID() -> Int {
     uniqueFrameID += 1
     frameID += 1
@@ -203,9 +165,8 @@ extension Renderer {
       frames(start: startTimeStamp!, end: previousTimeStamp!)))
     let step = frameStep()
     
-    // TODO: This is still much less robust on 60 Hz than on 120 Hz.
-    // Eventually, allow someone to set a custom basis besides 120 Hz. Then,
-    // scale geometry loading operations by 120 / basis.
+    // Despite my best efforts, this is still much less robust on 60 Hz than on
+    // 120 Hz. Porting to lower refresh-rate monitors is not a priority.
     while nextFrameID % step > 0 {
       nextFrameID -= 1
     }
@@ -266,21 +227,13 @@ extension Renderer {
   func update() {
     self.renderSemaphore.wait()
     let frameDelta = self.updateFrameID()
-    
     do {
       // Do not simulate while the crosshair is active.
       let eventTracker = self.view.coordinator.eventTracker!
       if !eventTracker.crosshairActive.load(ordering: .relaxed),
          Self.renderingMode == .molecularSimulation {
         // Run the simulator synchronously.
-        let (nsPerDay, timeTaken) = self.simulator.evolve(
-          frameDelta: frameDelta, timeScale: Self.simulationSpeed)
-        if Self.logSimulationSpeed {
-          let nsRepr = String(format: "%.1f", nsPerDay)
-          let ms = timeTaken / 1e-3
-          let msRepr = String(format: "%.3f", ms)
-          print("\(nsRepr) ns/day, \(msRepr) ms/frame")
-        }
+        self.nobleGasSimulator.updateResources(frameDelta: frameDelta)
       }
     }
     
@@ -295,20 +248,17 @@ extension Renderer {
         atoms = staticAtomProvider.atoms
         shouldCompact = true
       case .molecularSimulation:
-        atoms = self.simulator.getAtoms()
+        atoms = self.nobleGasSimulator.getAtoms()
         shouldCompact = false
       }
       
       struct TempAtomProvider: MRStaticAtomProvider {
         var atoms: [MRAtom]
       }
-      
-      // TODO: Remove the accelBuilder from 'Renderer' and put it in 'MRRenderer'.
       renderer.setStaticGeometry(
         atomProvider: TempAtomProvider(atoms: atoms),
         styleProvider: staticStyleProvider,
-        shouldCompact: shouldCompact,
-        accelBuilder: accelBuilder)
+        shouldCompact: shouldCompact)
     }
     
     do {
@@ -325,10 +275,7 @@ extension Renderer {
         rotation: azimuth * zenith,
         lightPower: GlobalStyleProvider.global.lightPower)
     }
-    renderer.render(
-      accelBuilder: accelBuilder,
-      layer: view.metalLayer
-    ) { [self] _ in
+    renderer.render(layer: view.metalLayer) { [self] _ in
       renderSemaphore.signal()
     }
   }

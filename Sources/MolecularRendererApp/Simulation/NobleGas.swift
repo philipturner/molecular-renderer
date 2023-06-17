@@ -14,9 +14,16 @@ import MolecularRenderer
 // implementation is located at:
 // https://github.com/philipturner/noble-gas-md-simulation
 
+// NOTE: This is an old fork of the code currently in the URL above. It is only
+// maintained here to prototype the OpenMM simulator.
+
 // MARK: - Declaration of Simulator Class
 
 class NobleGasSimulator {
+  static var logSimulationSpeed: Bool = true
+  static let simulationID: Int = 3 // 0-2
+  static let simulationSpeed: Double = 5e-12 // ps/s
+  
   fileprivate var ljParametersMap: [Int: LJParameters]
   
   fileprivate var ljParametersPairMap: [AtomPair: LJParameters]
@@ -36,8 +43,13 @@ class NobleGasSimulator {
   // The rounded-down time due to discrete time steps, in seconds.
   fileprivate var simulatedTime: Double = 0
   
-  init(simulationID: Int, frameRate: Int, debuggingLJ: Bool = false) {
+  init(frameRate: Int, debuggingLJ: Bool = false) {
     self.frameRate = frameRate
+    
+    #if DEBUG
+    print("You must be in Swift release mode to run the simulator.")
+    Self.logSimulationSpeed = false
+    #endif
     
     self.ljParametersMap = [
       2: LJParameters(sigma: 0.2411, epsilon: 0.732),
@@ -95,12 +107,12 @@ class NobleGasSimulator {
     // MARK: - Configuration
     
     // The first 3 systems are ones from the research paper.
-    if (0..<3).contains(simulationID) {
+    if (0..<3).contains(Self.simulationID) {
       let p_magnitude: Real = 0.3
       let v_magnitude: Real = 0.03
       
-      let firstAtomsType: UInt8 = simulationID <= 1 ? 10 : 18
-      let secondAtomsType: UInt8 = simulationID <= 0 ? 10 : 18
+      let firstAtomsType: UInt8 = Self.simulationID <= 1 ? 10 : 18
+      let secondAtomsType: UInt8 = Self.simulationID <= 0 ? 10 : 18
       let systemAtoms = debuggingLJ ? 2 : 4
       self.system = System(atoms: systemAtoms, ljParameters: parametersMatrix)
       
@@ -150,7 +162,7 @@ class NobleGasSimulator {
           system.setVelocity(velocity, index: i)
         }
       }
-    } else if simulationID == 3 {
+    } else if Self.simulationID == 3 {
       let p_magnitude: Real = 0.4
       let v_magnitude: Real = 0.02
       
@@ -188,6 +200,17 @@ class NobleGasSimulator {
 }
 
 extension NobleGasSimulator {
+  func updateResources(frameDelta: Int) {
+    let (nsPerDay, timeTaken) = self.evolve(
+      frameDelta: frameDelta, timeScale: Self.simulationSpeed)
+    if Self.logSimulationSpeed {
+      let nsRepr = String(format: "%.1f", nsPerDay)
+      let ms = timeTaken / 1e-3
+      let msRepr = String(format: "%.3f", ms)
+      print("\(nsRepr) ns/day, \(msRepr) ms/frame")
+    }
+  }
+  
   // timeScale - simulated seconds per IRL second
   // Returns (ns/day, time taken)
   @discardableResult

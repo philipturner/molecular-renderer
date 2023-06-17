@@ -36,7 +36,7 @@ class Coordinator: NSResponder, ObservableObject {
     self.eventTracker = EventTracker()
     
     self.renderer = Renderer(view: view)
-    view.metalLayer.device = renderer.device
+    view.metalLayer.device = MTLCreateSystemDefaultDevice()!
   }
   
   required init?(coder: NSCoder) {
@@ -49,6 +49,18 @@ class Coordinator: NSResponder, ObservableObject {
     if size.width != ContentView.size || size.height != ContentView.size {
       fatalError("Size cannot change.")
     }
+  }
+}
+
+fileprivate func checkCVDisplayError(
+  _ error: CVReturn,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  if _slowPath(error != kCVReturnSuccess) {
+    let message = "Encountered CVDisplay error '\(error)' at \(file):\(line)"
+    print(message)
+    fatalError(message, file: file, line: line)
   }
 }
 
