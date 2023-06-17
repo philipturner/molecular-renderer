@@ -1,19 +1,47 @@
 //
-//  Upscaler.swift
+//  MRRenderer.swift
 //  MolecularRenderer
 //
-//  Created by Philip Turner on 4/21/23.
+//  Created by Philip Turner on 6/17/23.
 //
 
+import AppKit
 import Metal
 import MetalFX
+import QuartzCore
+import simd
 
 // Partially sourced from:
 // https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
 
-struct Upscaler {
-  var intermediateSize: Int
-  var upscaledSize: Int
+@_alignment(16)
+internal struct Arguments {
+  var fovMultiplier: Float
+  var positionX: Float
+  var positionY: Float
+  var positionZ: Float
+  var rotation: simd_float3x3
+  var jitter: SIMD2<Float>
+  var frameSeed: UInt32
+  
+  // TODO: Allow 'sampleCount' to dynamically scale, matching a target FPS.
+  // Aim to make the compute command last 4-6 ms, but allow manual overrides.
+  // Only sample every few frames, so that most commands can occur in a single
+  // command buffer. The range should be capped between 3 and 16 by default.
+  // However, you can extend the range as part of the overriding ability.
+  //
+  // TODO: Does the AGX dynamic frequency scaling make this not viable?
+  var lightPower: Float16
+  var sampleCount: UInt16
+  var maxRayHitTime: Float
+  var exponentialFalloffDecayConstant: Float
+  var minimumAmbientIllumination: Float
+  var diffuseReflectanceScale: Float
+}
+
+public class MRRenderer {
+  var upscaledSize: SIMD2<Int>
+  var intermediateSize: SIMD2<Int>
   var jitterFrameID: Int = 0
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
@@ -22,7 +50,7 @@ struct Upscaler {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var upscaler: MTLFXTemporalScaler?
+  var upscaler: MTLFXTemporalScaler
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -40,12 +68,25 @@ struct Upscaler {
     self.textures[jitterFrameID % 2]
   }
   
-  init(renderer: Renderer) {
-    self.device = renderer.device
-    self.commandQueue = renderer.commandQueue
+  // TODO: Eventually, the caller shouldn't need to specify a MTLDevice in the
+  // initializer.
+  //
+  // Enter the width and height of the texture to present, not the resolution
+  // you expect the internal GPU shader to write to.
+  public init(
+    device: MTLDevice,
+    commandQueue: MTLCommandQueue,
+    width: Int,
+    height: Int
+  ) {
+    self.device = device
+    self.commandQueue = commandQueue
     
-    self.intermediateSize = Int(ContentView.size / 2)
-    self.upscaledSize = Int(ContentView.size)
+    guard width % 2 == 0, height % 2 == 0 else {
+      fatalError("MRRenderer only accepts even image sizes.")
+    }
+    self.upscaledSize = SIMD2(width, height)
+    self.intermediateSize = SIMD2(width / 2, height / 2)
     
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -53,8 +94,8 @@ struct Upscaler {
     
     for _ in 0..<2 {
       let desc = MTLTextureDescriptor()
-      desc.width = intermediateSize
-      desc.height = intermediateSize
+      desc.width = intermediateSize.x
+      desc.height = intermediateSize.y
       desc.storageMode = .private
       desc.usage = [ .shaderWrite, .shaderRead ]
       
@@ -71,8 +112,8 @@ struct Upscaler {
       motion.label = "Intermediate Motion"
       
       desc.pixelFormat = .rgb10a2Unorm
-      desc.width = upscaledSize
-      desc.height = upscaledSize
+      desc.width = upscaledSize.x
+      desc.height = upscaledSize.y
       let upscaled = device.makeTexture(descriptor: desc)!
       upscaled.label = "Upscaled Color"
       
@@ -83,15 +124,14 @@ struct Upscaler {
         encoder.optimizeContentsForGPUAccess(texture: texture)
       }
     }
-    
     encoder.endEncoding()
     commandBuffer.commit()
     
     let desc = MTLFXTemporalScalerDescriptor()
-    desc.inputWidth = intermediateSize
-    desc.inputHeight = intermediateSize
-    desc.outputWidth = upscaledSize
-    desc.outputHeight = upscaledSize
+    desc.inputWidth = intermediateSize.x
+    desc.inputHeight = intermediateSize.y
+    desc.outputWidth = upscaledSize.x
+    desc.outputHeight = upscaledSize.y
     desc.colorTextureFormat = textures[0].color.pixelFormat
     desc.depthTextureFormat = textures[0].depth.pixelFormat
     desc.motionTextureFormat = textures[0].motion.pixelFormat
@@ -115,8 +155,11 @@ struct Upscaler {
   }
 }
 
-extension Upscaler {
-  mutating func updateResources() {
+extension MRRenderer {
+  // Perform any updating work that happens before encoding the rendering work.
+  // This should be called as early as possible each frame, to hide any latency
+  // between now and when it can encode the rendering work.
+  public func updateResources() {
     self.jitterFrameID += 1
     self.jitterOffsets = makeJitterOffsets()
     self.textureIndex = (self.textureIndex + 1) % 2
@@ -150,14 +193,10 @@ extension Upscaler {
     return SIMD2(x, y)
   }
   
-  mutating func upscale(
+  private func upscale(
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
   ) {
-    guard let upscaler else {
-      fatalError("Upscaling is disabled.")
-    }
-    
     // If the frame has just begun, the upscaler needs to recognize that a
     // history of samples doesn't exist yet.
     upscaler.reset = self.resetScaler
@@ -177,5 +216,44 @@ extension Upscaler {
     let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
     blitEncoder.copy(from: currentTextures.upscaled, to: drawableTexture)
     blitEncoder.endEncoding()
+  }
+}
+
+extension MRRenderer {
+  // Encoder rendering work into the command buffer.
+  // TODO: Hide the command buffer from the public API.
+  public func render(commandBuffer: MTLCommandBuffer) {
+    
+  }
+  
+  // TODO: Hide this once the code is transferred over.
+  public func getJitterOffsets() -> SIMD2<Float> {
+    return self.jitterOffsets
+  }
+  
+  // Eventually, we will allow presenting to a raw C pointer, instead of to a
+  // display drawable. This option will require a callback, which is called
+  // after the output's memory is written to.
+  // TODO: Hide the command buffer from the public API.
+  public func present(
+    encoder: MTLComputeCommandEncoder,
+    commandBuffer: MTLCommandBuffer,
+    drawable: CAMetalDrawable
+  ) {
+    precondition(drawable.texture.width == upscaledSize.x)
+    precondition(drawable.texture.height == upscaledSize.y)
+    
+    let textures = self.currentTextures
+    encoder.setTextures(
+      [textures.color, textures.depth, textures.motion], range: 0..<3)
+    
+    // Dispatch an even number of threads (the shader will rearrange them).
+    let numThreadgroupsX = (upscaledSize.x + 15) / 16
+    let numThreadgroupsY = (upscaledSize.y + 15) / 16
+    encoder.dispatchThreadgroups(
+      MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
+      threadsPerThreadgroup: MTLSizeMake(16, 16, 1))
+    encoder.endEncoding()
+    upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
   }
 }

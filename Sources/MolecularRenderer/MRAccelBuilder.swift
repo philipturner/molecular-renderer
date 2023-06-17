@@ -1,34 +1,30 @@
 //
-//  AccelerationStructureBuilder.swift
+//  MRAccelBuilder.swift
 //  MolecularRenderer
 //
-//  Created by Philip Turner on 4/21/23.
+//  Created by Philip Turner on 6/17/23.
 //
 
 import Metal
-import MolecularRenderer
 
 // Partially sourced from:
 // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
 
-// TODO: Rename to "MRAccelBuilder".
-//
 // TODO: Support multiple acceleration structure formats:
 // - BVH
 // - Dense Grid
 // - Sparse Grid
-struct AccelerationStructureBuilder {
+public class MRAccelBuilder {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  
-  let what: Bool = { MRTestFunction() }()
   
   // Cache the atoms and don't rebuild if the current frame matches the previous
   // one. This should be a very dynamic way to optimize the renderer - it
   // automatically detects frames without motion, and you don't have to
   // explicitly mark frames as static.
-  var cachedAtoms: [MolecularRenderer.MRAtom] = []
+  var cachedAtoms: [MRAtom] = []
+  var cachedStyles: [MRAtomStyle] = []
   
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
@@ -51,13 +47,13 @@ struct AccelerationStructureBuilder {
   var scratchBufferIndex: Int = 0 // modulo 2
   var accelIndex: Int = 0 // modulo 2
   
-  init(renderer: Renderer) {
-    self.device = renderer.device
-    self.commandQueue = renderer.commandQueue
+  public init(device: MTLDevice, commandQueue: MTLCommandQueue) {
+    self.device = device
+    self.commandQueue = commandQueue
   }
 }
 
-extension AccelerationStructureBuilder {
+extension MRAccelBuilder {
   // The entire process of fetching, resizing, and nil-coalescing.
   func cycle(
     from buffers: inout [MTLBuffer?],
@@ -118,21 +114,21 @@ extension AccelerationStructureBuilder {
   }
 }
 
-extension AccelerationStructureBuilder {
-  mutating func build(
+extension MRAccelBuilder {
+  public func build(
     atoms: [MRAtom],
+    styles: [MRAtomStyle],
     commandBuffer: MTLCommandBuffer,
     shouldCompact: Bool
   ) -> MTLAccelerationStructure {
     if self.cachedAtoms == atoms,
+       self.cachedStyles == cachedStyles,
        let accel = self.accels[accelIndex] {
       // Do not generate a new accel when you built a usable one last frame.
       return accel
     }
-//    guard self.cachedAtoms != atoms else {
-//      return self.accels[accelIndex]!
-//    }
     self.cachedAtoms = atoms
+    self.cachedStyles = styles
     
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
@@ -167,7 +163,6 @@ extension AccelerationStructureBuilder {
     
     // Write the buffer's contents.
     do {
-      let styles = GlobalStyleProvider.global.styles
       let boundingBoxesPointer = boundingBoxBuffer.contents()
         .assumingMemoryBound(to: MRBoundingBox.self)
       for (index, atom) in atoms.enumerated() {
@@ -240,7 +235,7 @@ extension AccelerationStructureBuilder {
   // Compaction saves a lot of memory, but doesn't really change whether it is
   // aligned along cache lines. If anything, it only increases the memory
   // because we now have two scratch buffers.
-  mutating func compact(
+  private func compact(
     encoder: MTLAccelerationStructureCommandEncoder,
     accel: MTLAccelerationStructure,
     descriptor: MTLAccelerationStructureDescriptor
@@ -268,7 +263,3 @@ extension AccelerationStructureBuilder {
     return compactedAccel
   }
 }
-
-
-
-

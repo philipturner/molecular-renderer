@@ -8,8 +8,8 @@
 import AppKit
 import Atomics
 import Metal
-import simd
 import MolecularRenderer
+import simd
 
 func checkCVDisplayError(
   _ error: CVReturn,
@@ -44,7 +44,6 @@ class Renderer {
   var sustainedMisalignmentDuration: Int = 0
   var sustainedAlignmentDuration: Int = 0
   static let debuggingFrameRate = false
-  static let debuggingJitter = false
   static let logFrameStutters = false
   static let frameRateBasis: Int = 120
   
@@ -85,8 +84,8 @@ class Renderer {
   var previousArguments: Arguments?
   
   // Objects to encapsulate complex operations.
-  var accelBuilder: AccelerationStructureBuilder!
-  var upscaler: Upscaler!
+  var accelBuilder: MRAccelBuilder!
+  var renderer: MRRenderer!
   
   enum RenderingMode: Equatable {
     // Generated procedurally or read from a file.
@@ -185,8 +184,11 @@ class Renderer {
     }
     
     // Create delegate objects.
-    self.accelBuilder = AccelerationStructureBuilder(renderer: self)
-    self.upscaler = Upscaler(renderer: self)
+    self.accelBuilder = MRAccelBuilder(
+      device: device, commandQueue: commandQueue)
+    self.renderer = MRRenderer(
+      device: device, commandQueue: commandQueue,
+      width: Int(ContentView.size), height: Int(ContentView.size))
     
     switch Self.renderingMode {
     case .static:
@@ -361,7 +363,7 @@ extension Renderer {
     }
     
     // Update MetalFX upscaler.
-    self.upscaler.updateResources()
+    self.renderer.updateResources()
     
     // Command buffer shared between the geometry and rendering passes.
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -383,6 +385,7 @@ extension Renderer {
       }
       accel = accelBuilder.build(
         atoms: atoms,
+        styles: GlobalStyleProvider.global.styles,
         commandBuffer: commandBuffer,
         shouldCompact: shouldCompact)
     }
@@ -395,22 +398,8 @@ extension Renderer {
     
     // Acquire reference to the drawable.
     let drawable = view.metalLayer.nextDrawable()!
-    precondition(drawable.texture.width == Int(ContentView.size))
-    precondition(drawable.texture.height == Int(ContentView.size))
-    let textures = upscaler.currentTextures
-    encoder.setTextures(
-      [textures.color, textures.depth, textures.motion], range: 0..<3)
-    
-    // Dispatch an even number of threads (the shader will rearrange them).
-    let viewSize = Int(ContentView.size / 2)
-    let numThreadgroupsX = (viewSize + 15) / 16
-    let numThreadgroupsY = (viewSize + 15) / 16
-    encoder.dispatchThreadgroups(
-      MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
-      threadsPerThreadgroup: MTLSizeMake(16, 16, 1))
-    encoder.endEncoding()
-    upscaler.upscale(
-      commandBuffer: commandBuffer, drawableTexture: drawable.texture)
+    renderer.present(
+      encoder: encoder, commandBuffer: commandBuffer, drawable: drawable)
     
     // Present drawable and signal the semaphore.
     commandBuffer.present(drawable)
@@ -424,14 +413,6 @@ extension Renderer {
     withUnsafeTemporaryAllocation(
       of: Arguments.self, capacity: 2
     ) { bufferPointer in
-      if Renderer.debuggingJitter {
-        // Log the jitter to the console.
-        print(upscaler.jitterOffsets)
-        
-        // Make the jitter clearly visible in the image.
-        upscaler.jitterOffsets *= 50
-      }
-      
       // NOTE: This currently assumes the image is square. We eventually need to
       // support rectangular image sizes for e.g. 1920x1080 video.
       
@@ -503,7 +484,7 @@ extension Renderer {
         positionY: position.y,
         positionZ: position.z,
         rotation: azimuth * zenith,
-        jitter: upscaler.jitterOffsets,
+        jitter: renderer.getJitterOffsets(),
         frameSeed: UInt32.random(in: 0...UInt32.max),
         
         lightPower: GlobalStyleProvider.global.lightPower,

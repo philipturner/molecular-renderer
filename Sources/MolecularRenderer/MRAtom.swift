@@ -16,7 +16,7 @@ public typealias Float16 = UInt16
 #endif
 
 @_alignment(8)
-public struct MRAtomStyle {
+public struct MRAtomStyle: Equatable {
   // Color in RGB color space.
   public var r: Float16
   public var g: Float16
