@@ -20,9 +20,9 @@ public class MRAccelBuilder {
   var commandQueue: MTLCommandQueue
   
   // Cache the atoms and don't rebuild if the current frame matches the previous
-  // one. This should be a very dynamic way to optimize the renderer - it
-  // automatically detects frames without motion, and you don't have to
-  // explicitly mark frames as static.
+  // one. This is a very dynamic way to optimize the renderer - it automatically
+  // detects frames without motion, and you don't have to explicitly mark frames
+  // as static.
   var previousAtoms: [MRAtom] = []
   var previousStyles: [MRAtomStyle] = []
   var currentAtoms: [MRAtom] = []
