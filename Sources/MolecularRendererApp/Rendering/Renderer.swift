@@ -50,38 +50,7 @@ class Renderer {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var rayTracingPipeline: MTLComputePipelineState
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
-  
-  // Memory objects for rendering.
-  var styles: MTLBuffer
-  
-  // Cache previous arguments to generate motion vectors.
-  @_alignment(16)
-  struct Arguments {
-    var fovMultiplier: Float
-    var positionX: Float
-    var positionY: Float
-    var positionZ: Float
-    var rotation: simd_float3x3
-    var jitter: SIMD2<Float>
-    var frameSeed: UInt32
-    
-    // TODO: Allow 'sampleCount' to dynamically scale, matching a target FPS.
-    // Aim to make the compute command last 4-6 ms, but allow manual overrides.
-    // Only sample every few frames, so that most commands can occur in a single
-    // command buffer. The range should be capped between 3 and 16 by default.
-    // However, you can extend the range as part of the overriding ability.
-    //
-    // TODO: Does the AGX dynamic frequency scaling make this not viable?
-    var lightPower: Float16
-    var sampleCount: UInt16
-    var maxRayHitTime: Float
-    var exponentialFalloffDecayConstant: Float
-    var minimumAmbientIllumination: Float
-    var diffuseReflectanceScale: Float
-  }
-  var previousArguments: Arguments?
   
   // Objects to encapsulate complex operations.
   var accelBuilder: MRAccelBuilder!
@@ -97,8 +66,9 @@ class Renderer {
   static let renderingMode: RenderingMode = .static
   
   // Variables for loading static geometry.
-  var staticProvider: (any MRStaticAtomProvider)!
-  static func createStaticProvider() -> any MRStaticAtomProvider {
+  var staticAtomProvider: (any MRStaticAtomProvider)!
+  var staticStyleProvider = ExampleStyles.NanoStuff()
+  static func createStaticAtomProvider() -> any MRStaticAtomProvider {
 //    ExampleMolecules.TaggedEthylene()
 //    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
     PDBParser(url: adamantaneHabToolURL)
@@ -110,7 +80,6 @@ class Renderer {
     let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"
     return URL(filePath: folder + "/" + fileName)
   }()
-
   
   // Variables for controlling a real-time MD simulation.
   // TODO: Extract of these parameters into the setup of a noble gas simulator.
@@ -134,55 +103,6 @@ class Renderer {
     self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
     
-    // Initialize resolution and aspect ratio for rendering.
-    let constants = MTLFunctionConstantValues()
-    
-    // Actual texture width.
-    var screenWidth: UInt32 = .init(ContentView.size / 2)
-    constants.setConstantValue(&screenWidth, type: .uint, index: 0)
-    
-    // Actual texture height.
-    var screenHeight: UInt32 = .init(ContentView.size / 2)
-    constants.setConstantValue(&screenHeight, type: .uint, index: 1)
-    
-    var suppressSpecular: Bool = false
-    constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
-    
-    // Initialize the compute pipeline.
-    let url = Bundle.main.url(
-      forResource: "MolecularRendererGPU", withExtension: "metallib")!
-    let library = try! device.makeLibrary(URL: url)
-    
-    let function = try! library.makeFunction(
-      name: "renderMain", constantValues: constants)
-    let desc = MTLComputePipelineDescriptor()
-    desc.computeFunction = function
-    desc.maxCallStackDepth = 5
-    self.rayTracingPipeline = try! device
-      .makeComputePipelineState(descriptor: desc, options: [], reflection: nil)
-    
-    let atomRadii = GlobalStyleProvider.global.atomRadii
-    let atomColors = GlobalStyleProvider.global.atomColors
-    
-    // Initialize the atom statistics.
-    let atomStatisticsSize = MemoryLayout<MRAtomStyle>.stride
-    let stylesBufferSize = atomRadii.count * atomStatisticsSize
-    precondition(MemoryLayout<MRAtom>.stride == 16, "Unexpected atom size.")
-    precondition(atomStatisticsSize == 8, "Unexpected atom statistics size.")
-    precondition(
-      atomRadii.count == atomColors.count,
-      "Atom statistics arrays have different sizes.")
-    self.styles = device.makeBuffer(length: stylesBufferSize)!
-    
-    // Write to the atom data buffer.
-    do {
-      let stylesPointer = styles.contents()
-        .assumingMemoryBound(to: MRAtomStyle.self)
-      for (index, (radius, color)) in zip(atomRadii, atomColors).enumerated() {
-        stylesPointer[index] = MRAtomStyle(color: color, radius: radius)
-      }
-    }
-    
     // Create delegate objects.
     self.accelBuilder = MRAccelBuilder(
       device: device, commandQueue: commandQueue)
@@ -195,11 +115,10 @@ class Renderer {
     
     switch Self.renderingMode {
     case .static:
-      self.staticProvider = Renderer.createStaticProvider()
+      self.staticAtomProvider = Renderer.createStaticAtomProvider()
     case .molecularSimulation:
       self.simulator = NobleGasSimulator(
         simulationID: Self.simulationID, frameRate: Self.frameRateBasis)
-    
     }
   }
 }
@@ -365,13 +284,6 @@ extension Renderer {
       }
     }
     
-    // Update MetalFX upscaler.
-    self.renderer.updateResources()
-    
-    // Command buffer shared between the geometry and rendering passes.
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    var accel: MTLAccelerationStructure?
     if true {
       // The accelBuilder automatically caches acceleration structures, but
       // explicitly marking them as static allows it to compress the structures.
@@ -380,17 +292,23 @@ extension Renderer {
       let atoms: [MRAtom]
       switch Self.renderingMode {
       case .static:
-        atoms = staticProvider.atoms
+        atoms = staticAtomProvider.atoms
         shouldCompact = true
       case .molecularSimulation:
         atoms = self.simulator.getAtoms()
         shouldCompact = false
       }
-      accel = accelBuilder.build(
-        atoms: atoms,
-        styles: GlobalStyleProvider.global.styles,
-        commandBuffer: commandBuffer,
-        shouldCompact: shouldCompact)
+      
+      struct TempAtomProvider: MRStaticAtomProvider {
+        var atoms: [MRAtom]
+      }
+      
+      // TODO: Remove the accelBuilder from 'Renderer' and put it in 'MRRenderer'.
+      renderer.setStaticGeometry(
+        atomProvider: TempAtomProvider(atoms: atoms),
+        styleProvider: staticStyleProvider,
+        shouldCompact: shouldCompact,
+        accelBuilder: accelBuilder)
     }
     
     do {
@@ -407,17 +325,11 @@ extension Renderer {
         rotation: azimuth * zenith,
         lightPower: GlobalStyleProvider.global.lightPower)
     }
-    
-    // Acquire reference to the drawable.
-    let drawable = view.metalLayer.nextDrawable()!
     renderer.render(
-      commandBuffer: commandBuffer, accel: accel!, drawable: drawable)
-    
-    // Present drawable and signal the semaphore.
-    commandBuffer.present(drawable)
-    commandBuffer.addCompletedHandler { [self] _ in
+      accelBuilder: accelBuilder,
+      layer: view.metalLayer
+    ) { [self] _ in
       renderSemaphore.signal()
     }
-    commandBuffer.commit()
   }
 }

@@ -52,7 +52,7 @@ public class MRRenderer {
   var commandQueue: MTLCommandQueue
   var upscaler: MTLFXTemporalScaler!
   var rayTracingPipeline: MTLComputePipelineState!
-  var stylesBuffer: MTLBuffer
+//  var stylesBuffer: MTLBuffer
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -73,9 +73,12 @@ public class MRRenderer {
   // Cache previous arguments to generate motion vectors.
   var previousArguments: Arguments?
   var currentArguments: Arguments?
+  var shouldCompact: Bool = false
   
   // TODO: Eventually, the caller shouldn't need to specify a MTLDevice in the
   // initializer.
+  //
+  // TODO: Change so this takes the GPU metallib URL as an input.
   //
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
@@ -134,25 +137,6 @@ public class MRRenderer {
     }
     encoder.endEncoding()
     commandBuffer.commit()
-    
-    // Initialize the atom statistics.
-    let atomStatisticsSize = MemoryLayout<MRAtomStyle>.stride
-    let stylesBufferSize = atomRadii.count * atomStatisticsSize
-    precondition(MemoryLayout<MRAtom>.stride == 16, "Unexpected atom size.")
-    precondition(atomStatisticsSize == 8, "Unexpected atom statistics size.")
-    precondition(
-      atomRadii.count == atomColors.count,
-      "Atom statistics arrays have different sizes.")
-    self.stylesBuffer = device.makeBuffer(length: stylesBufferSize)!
-    
-    // Write to the atom data buffer.
-    do {
-      let stylesPointer = stylesBuffer.contents()
-        .assumingMemoryBound(to: MRAtomStyle.self)
-      for (index, (radius, color)) in zip(atomRadii, atomColors).enumerated() {
-        stylesPointer[index] = MRAtomStyle(color: color, radius: radius)
-      }
-    }
     
     self.initRayTracingPipeline()
     self.initUpscaler()
@@ -220,7 +204,7 @@ extension MRRenderer {
   // Perform any updating work that happens before encoding the rendering work.
   // This should be called as early as possible each frame, to hide any latency
   // between now and when it can encode the rendering work.
-  public func updateResources() {
+  private func updateResources() {
     self.jitterFrameID += 1
     self.jitterOffsets = makeJitterOffsets()
     self.textureIndex = (self.textureIndex + 1) % 2
@@ -281,6 +265,40 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
+  // If the atoms and styles were the same as last frame, the renderer recycles
+  // the previous acceleration structure. Therefore, static scenes are somewhat
+  // more efficient than dynamic scenes.
+  //
+  // If you're rendering from a dynamic scene, there is a different API with a
+  // different C function. The dynamic API should be used when loading geometry
+  // is resource-intensive or high-latency and therefore requires Metal IO
+  // command buffers. Otherwise, the static API is sufficient to render dynamic
+  // geometry.
+  //
+  // TODO: Instead of providing `shouldCompact` through an API, have the accel
+  // builder automatically compact after it's been constant for 3 frames. You
+  // don't need to store a third copy though - just a boolean of whether it was
+  // the same last frame.
+  public func setStaticGeometry(
+    atomProvider: MRStaticAtomProvider,
+    styleProvider: MRStaticStyleProvider,
+    shouldCompact: Bool,
+    accelBuilder: MRAccelBuilder
+  ) {
+    let atomRadii = styleProvider.radii.map(Float16.init)
+    #if arch(x86_64)
+    let atomColors: [SIMD3<Float16>] = []
+    #else
+    let atomColors = styleProvider.colors.map(SIMD3<Float16>.init)
+    #endif
+    
+    accelBuilder.currentAtoms = atomProvider.atoms
+    accelBuilder.currentStyles = zip(atomColors, atomRadii).map {
+      MRAtomStyle(color: $0, radius: $1)
+    }
+    self.shouldCompact = shouldCompact
+  }
+  
   // TODO: Encapsulate the generation of the FOV multipler inside this Swift
   // package. The user only needs to specify the angle in degrees.
   
@@ -318,16 +336,27 @@ extension MRRenderer {
   // Eventually, we will allow presenting to a raw C pointer, instead of to a
   // display drawable. This option will require a callback, which is called
   // after the output's memory is written to.
-  // TODO: Hide the command buffer and accel from the public API.
   public func render(
-    commandBuffer: MTLCommandBuffer,
-    accel: MTLAccelerationStructure,
-    drawable: CAMetalDrawable
+    accelBuilder: MRAccelBuilder,
+    layer: CAMetalLayer,
+    handler: @escaping MTLCommandBufferHandler
   ) {
+    self.updateResources()
+    
+    // Command buffer shared between the geometry and rendering passes.
+    let commandBuffer = commandQueue.makeCommandBuffer()!
+    
+    // Encode the accel creation pass, if necessary.
+    let accel = accelBuilder.build(
+      commandBuffer: commandBuffer,
+      shouldCompact: shouldCompact)
+    
+    // Acquire a reference to the drawable.
+    let drawable = layer.nextDrawable()!
     precondition(drawable.texture.width == upscaledSize.x)
     precondition(drawable.texture.height == upscaledSize.y)
     
-    // Encoder the geometry data.
+    // Encode the geometry data.
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(rayTracingPipeline)
   
@@ -345,7 +374,10 @@ extension MRRenderer {
       let baseAddress = bufferPointer.baseAddress!
       encoder.setBytes(baseAddress, length: argsLength, index: 0)
     }
-    encoder.setBuffer(stylesBuffer, offset: 0, index: 1)
+    accelBuilder.currentStyles.withUnsafeBufferPointer {
+      let length = $0.count * MemoryLayout<MRAtomStyle>.stride
+      encoder.setBytes($0.baseAddress!, length: length, index: 1)
+    }
     encoder.setAccelerationStructure(accel, bufferIndex: 2)
 
     // Encode the output textures.
@@ -363,5 +395,10 @@ extension MRRenderer {
     
     // Encode the upscaling pass.
     upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
+    
+    // Present drawable and signal the semaphore.
+    commandBuffer.present(drawable)
+    commandBuffer.addCompletedHandler(handler)
+    commandBuffer.commit()
   }
 }

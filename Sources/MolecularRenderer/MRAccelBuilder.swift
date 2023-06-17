@@ -23,8 +23,10 @@ public class MRAccelBuilder {
   // one. This should be a very dynamic way to optimize the renderer - it
   // automatically detects frames without motion, and you don't have to
   // explicitly mark frames as static.
-  var cachedAtoms: [MRAtom] = []
-  var cachedStyles: [MRAtomStyle] = []
+  var previousAtoms: [MRAtom] = []
+  var previousStyles: [MRAtomStyle] = []
+  var currentAtoms: [MRAtom] = []
+  var currentStyles: [MRAtomStyle] = []
   
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
@@ -115,24 +117,23 @@ extension MRAccelBuilder {
 }
 
 extension MRAccelBuilder {
-  public func build(
-    atoms: [MRAtom],
-    styles: [MRAtomStyle],
+  // Only call this once per frame.
+  internal func build(
     commandBuffer: MTLCommandBuffer,
     shouldCompact: Bool
   ) -> MTLAccelerationStructure {
-    if self.cachedAtoms == atoms,
-       self.cachedStyles == cachedStyles,
+    if previousAtoms == currentAtoms,
+       previousStyles == currentStyles,
        let accel = self.accels[accelIndex] {
       // Do not generate a new accel when you built a usable one last frame.
       return accel
     }
-    self.cachedAtoms = atoms
-    self.cachedStyles = styles
+    self.previousAtoms = currentAtoms
+    self.previousStyles = currentStyles
     
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
-    let atomBufferSize = atoms.count * atomSize
+    let atomBufferSize = currentAtoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
     let atomBuffer = cycle(
       from: &atomBuffers,
@@ -145,14 +146,14 @@ extension MRAccelBuilder {
     do {
       let atomsPointer = atomBuffer.contents()
         .assumingMemoryBound(to: MRAtom.self)
-      for (index, atom) in atoms.enumerated() {
+      for (index, atom) in currentAtoms.enumerated() {
         atomsPointer[index] = atom
       }
     }
     
     // Generate or fetch a buffer.
     let boundingBoxSize = MemoryLayout<MRBoundingBox>.stride
-    let boundingBoxBufferSize = atoms.count * boundingBoxSize
+    let boundingBoxBufferSize = currentAtoms.count * boundingBoxSize
     precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
     let boundingBoxBuffer = cycle(
       from: &boundingBoxBuffers,
@@ -165,8 +166,8 @@ extension MRAccelBuilder {
     do {
       let boundingBoxesPointer = boundingBoxBuffer.contents()
         .assumingMemoryBound(to: MRBoundingBox.self)
-      for (index, atom) in atoms.enumerated() {
-        let boundingBox = atom.getBoundingBox(styles: styles)
+      for (index, atom) in currentAtoms.enumerated() {
+        let boundingBox = atom.getBoundingBox(styles: currentStyles)
         boundingBoxesPointer[index] = boundingBox
       }
     }
@@ -176,7 +177,7 @@ extension MRAccelBuilder {
     geometryDesc.primitiveDataStride = atomSize
     geometryDesc.primitiveDataBufferOffset = 0
     geometryDesc.primitiveDataElementSize = atomSize
-    geometryDesc.boundingBoxCount = atoms.count
+    geometryDesc.boundingBoxCount = currentAtoms.count
     geometryDesc.boundingBoxStride = boundingBoxSize
     geometryDesc.boundingBoxBufferOffset = 0
     geometryDesc.boundingBoxBuffer = boundingBoxBuffer

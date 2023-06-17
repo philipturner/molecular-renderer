@@ -79,10 +79,6 @@ final class PDBParser: MRStaticAtomProvider {
           styles: styles, origin: origin, element: 0, flags: 0x1 | 0x2)
       }
     }
-    
-    for atom in atoms {
-      print(atom)
-    }
   }
   
   static let recognizedSymbols: [String: Int] = [
