@@ -29,6 +29,8 @@ public protocol MRStaticStyleProvider {
   var colors: [SIMD3<Float>] { get }
   
   // Intensity of the camera-centered light for Blinn-Phong shading.
+  // TODO: Remove this from the atom provider, and handle the switching of light
+  // powers in the application code.
   var lightPower: Float { get }
   
   // The range of atomic numbers (inclusive). Anything outside this range uses

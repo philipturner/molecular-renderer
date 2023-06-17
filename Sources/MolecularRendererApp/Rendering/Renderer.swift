@@ -186,9 +186,12 @@ class Renderer {
     // Create delegate objects.
     self.accelBuilder = MRAccelBuilder(
       device: device, commandQueue: commandQueue)
+    
+    let provider = GlobalStyleProvider.global
     self.renderer = MRRenderer(
       device: device, commandQueue: commandQueue,
-      width: Int(ContentView.size), height: Int(ContentView.size))
+      width: Int(ContentView.size), height: Int(ContentView.size),
+      atomRadii: provider.atomRadii, atomColors: provider.atomColors)
     
     switch Self.renderingMode {
     case .static:
@@ -390,16 +393,25 @@ extension Renderer {
         shouldCompact: shouldCompact)
     }
     
-    let encoder = commandBuffer.makeComputeCommandEncoder()!
-    encoder.setComputePipelineState(rayTracingPipeline)
-    encodeArguments(encoder: encoder)
-    encoder.setBuffer(styles, offset: 0, index: 1)
-    encoder.setAccelerationStructure(accel!, bufferIndex: 2)
+    do {
+      // Image width before upscaling.
+      let imageWidth = ContentView.size / 2
+      let playerState = self.eventTracker.playerState
+      
+      let fovMultiplier = playerState.fovMultiplier(
+        imageWidth: Int(imageWidth), frameID: frameID)
+      let (azimuth, zenith) = playerState.rotations
+      renderer.setCamera(
+        fovMultiplier: Float(fovMultiplier),
+        position: playerState.position,
+        rotation: azimuth * zenith,
+        lightPower: GlobalStyleProvider.global.lightPower)
+    }
     
     // Acquire reference to the drawable.
     let drawable = view.metalLayer.nextDrawable()!
-    renderer.present(
-      encoder: encoder, commandBuffer: commandBuffer, drawable: drawable)
+    renderer.render(
+      commandBuffer: commandBuffer, accel: accel!, drawable: drawable)
     
     // Present drawable and signal the semaphore.
     commandBuffer.present(drawable)
@@ -407,104 +419,5 @@ extension Renderer {
       renderSemaphore.signal()
     }
     commandBuffer.commit()
-  }
-  
-  func encodeArguments(encoder: MTLComputeCommandEncoder) {
-    withUnsafeTemporaryAllocation(
-      of: Arguments.self, capacity: 2
-    ) { bufferPointer in
-      // NOTE: This currently assumes the image is square. We eventually need to
-      // support rectangular image sizes for e.g. 1920x1080 video.
-      
-      // Image width before upscaling.
-      let imageWidth = ContentView.size / 2
-      
-      // How many pixels exist in either direction.
-      let fov90Span = 0.5 * Double(imageWidth)
-      
-      // Larger FOV means the same ray will reach an angle farther away from the
-      // center. 1 / fovSpan is larger, so fovSpan is smaller. The difference
-      // should be the ratio between the tangents of the two half-angles. And
-      // one side of the ratio is tan(90 / 2) = 1.0.
-      let fovPhase = 2 * Double.pi * Double(frameID) / 120
-      let fovDegrees: Double = 90 + 10 * max(0, sin(fovPhase))
-      let fovRadians: Double = fovDegrees * .pi / 180
-      let halfAngleTangent = tan(fovRadians / 2)
-      let halfAngleTangentRatio = halfAngleTangent / 1.0
-      
-      // Let A = fov90Span
-      // Let B = pixels covered by the 45° boundary in either direction.
-      // Ray = ((pixelsRight, pixelsUp) * fovMultiplier, -1)
-      //
-      // FOV / 2 < 45°
-      // - edge of image is ray (<1, <1, -1)
-      // - A = 100 pixels
-      // - B = 120 pixels (off-screen)
-      // - fovMultiplier = 1 / 120 = 1 / B
-      // FOV / 2 = 45°
-      // - edge of image is ray (1, 1, -1)
-      // - fovMultiplier = unable to determine
-      // FOV / 2 > 45°
-      // - edge of image is ray (>1, >1, -1)
-      // - A = 100 pixels
-      // - B = 80 pixels (well within screen bounds)
-      // - fovMultiplier = 1 / 80 = 1 / B
-      
-      // Next: what is B as a function of fov90Span and halfAngleTangentRatio?
-      // FOV / 2 < 45°
-      // - A = 100 pixels
-      // - B = 120 pixels (off-screen)
-      // - halfAngleTangentRatio = 0.8
-      // - formula: B = A / halfAngleTangentRatio
-      // FOV / 2 = 45°
-      // - A = 100 pixels
-      // - B = 100 pixels
-      // - formula: cannot be determined
-      // FOV / 2 > 45°
-      // - edge of image is ray (>1, >1, -1)
-      // - A = 100 pixels
-      // - B = 80 pixels (well within screen bounds)
-      // - halfAngleTangentRatio = 1.2
-      // - formula: B = A / halfAngleTangentRatio
-      //
-      // fovMultiplier = 1 / B = 1 / (A / halfAngleTangentRatio)
-      // fovMultiplier = halfAngleTangentRatio / fov90Span
-      let fovMultiplier = halfAngleTangentRatio / fov90Span
-      let (azimuth, zenith) = eventTracker.playerState.rotations
-      
-      let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
-      let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
-      let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
-      let decayConstant: Float = 2.0 // range(0...20, 0.25)
-      
-      let position = self.eventTracker.playerState.position
-      let args = Arguments(
-        fovMultiplier: Float(fovMultiplier),
-        positionX: position.x,
-        positionY: position.y,
-        positionZ: position.z,
-        rotation: azimuth * zenith,
-        jitter: renderer.getJitterOffsets(),
-        frameSeed: UInt32.random(in: 0...UInt32.max),
-        
-        lightPower: GlobalStyleProvider.global.lightPower,
-        sampleCount: 3,
-        maxRayHitTime: maxRayHitTime,
-        exponentialFalloffDecayConstant: decayConstant,
-        minimumAmbientIllumination: minimumAmbientIllumination,
-        diffuseReflectanceScale: diffuseReflectanceScale)
-      
-      bufferPointer[0] = args
-      if let previousArguments = self.previousArguments {
-        bufferPointer[1] = previousArguments
-      } else {
-        bufferPointer[1] = args
-      }
-      self.previousArguments = args
-      
-      let argsLength = 2 * MemoryLayout<Arguments>.stride
-      let baseAddress = bufferPointer.baseAddress!
-      encoder.setBytes(baseAddress, length: argsLength, index: 0)
-    }
   }
 }

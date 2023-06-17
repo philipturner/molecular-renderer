@@ -50,7 +50,9 @@ public class MRRenderer {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var upscaler: MTLFXTemporalScaler
+  var upscaler: MTLFXTemporalScaler!
+  var rayTracingPipeline: MTLComputePipelineState!
+  var stylesBuffer: MTLBuffer
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -68,6 +70,10 @@ public class MRRenderer {
     self.textures[jitterFrameID % 2]
   }
   
+  // Cache previous arguments to generate motion vectors.
+  var previousArguments: Arguments?
+  var currentArguments: Arguments?
+  
   // TODO: Eventually, the caller shouldn't need to specify a MTLDevice in the
   // initializer.
   //
@@ -77,7 +83,9 @@ public class MRRenderer {
     device: MTLDevice,
     commandQueue: MTLCommandQueue,
     width: Int,
-    height: Int
+    height: Int,
+    atomRadii: [Float16],
+    atomColors: [SIMD3<Float16>]
   ) {
     self.device = device
     self.commandQueue = commandQueue
@@ -127,6 +135,59 @@ public class MRRenderer {
     encoder.endEncoding()
     commandBuffer.commit()
     
+    // Initialize the atom statistics.
+    let atomStatisticsSize = MemoryLayout<MRAtomStyle>.stride
+    let stylesBufferSize = atomRadii.count * atomStatisticsSize
+    precondition(MemoryLayout<MRAtom>.stride == 16, "Unexpected atom size.")
+    precondition(atomStatisticsSize == 8, "Unexpected atom statistics size.")
+    precondition(
+      atomRadii.count == atomColors.count,
+      "Atom statistics arrays have different sizes.")
+    self.stylesBuffer = device.makeBuffer(length: stylesBufferSize)!
+    
+    // Write to the atom data buffer.
+    do {
+      let stylesPointer = stylesBuffer.contents()
+        .assumingMemoryBound(to: MRAtomStyle.self)
+      for (index, (radius, color)) in zip(atomRadii, atomColors).enumerated() {
+        stylesPointer[index] = MRAtomStyle(color: color, radius: radius)
+      }
+    }
+    
+    self.initRayTracingPipeline()
+    self.initUpscaler()
+  }
+  
+  func initRayTracingPipeline() {
+    // Initialize resolution and aspect ratio for rendering.
+    let constants = MTLFunctionConstantValues()
+    
+    // Actual texture width.
+    var screenWidth: UInt32 = .init(intermediateSize.x)
+    constants.setConstantValue(&screenWidth, type: .uint, index: 0)
+    
+    // Actual texture height.
+    var screenHeight: UInt32 = .init(intermediateSize.y)
+    constants.setConstantValue(&screenHeight, type: .uint, index: 1)
+    
+    var suppressSpecular: Bool = false
+    constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
+    
+    // Initialize the compute pipeline.
+    let url = Bundle.main.url(
+      forResource: "MolecularRendererGPU", withExtension: "metallib")!
+    let library = try! device.makeLibrary(URL: url)
+    
+    let function = try! library.makeFunction(
+      name: "renderMain", constantValues: constants)
+    let desc = MTLComputePipelineDescriptor()
+    desc.computeFunction = function
+    desc.maxCallStackDepth = 5
+    self.rayTracingPipeline = try! device
+      .makeComputePipelineState(descriptor: desc, options: [], reflection: nil)
+  }
+  
+  func initUpscaler() {
     let desc = MTLFXTemporalScalerDescriptor()
     desc.inputWidth = intermediateSize.x
     desc.inputHeight = intermediateSize.y
@@ -220,29 +281,74 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  // Encoder rendering work into the command buffer.
-  // TODO: Hide the command buffer from the public API.
-  public func render(commandBuffer: MTLCommandBuffer) {
-    
-  }
+  // TODO: Encapsulate the generation of the FOV multipler inside this Swift
+  // package. The user only needs to specify the angle in degrees.
   
-  // TODO: Hide this once the code is transferred over.
-  public func getJitterOffsets() -> SIMD2<Float> {
-    return self.jitterOffsets
+  // Only call this once per frame.
+  public func setCamera(
+    fovMultiplier: Float,
+    position: SIMD3<Float>,
+    rotation: simd_float3x3,
+    lightPower: Float16
+  ) {
+    self.previousArguments = currentArguments
+    
+    let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
+    let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
+    let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
+    let decayConstant: Float = 2.0 // range(0...20, 0.25)
+    
+    self.currentArguments = Arguments(
+      fovMultiplier: fovMultiplier,
+      positionX: position.x,
+      positionY: position.y,
+      positionZ: position.z,
+      rotation: rotation,
+      jitter: jitterOffsets,
+      frameSeed: UInt32.random(in: 0...UInt32.max),
+      
+      lightPower: lightPower,
+      sampleCount: 3,
+      maxRayHitTime: maxRayHitTime,
+      exponentialFalloffDecayConstant: decayConstant,
+      minimumAmbientIllumination: minimumAmbientIllumination,
+      diffuseReflectanceScale: diffuseReflectanceScale)
   }
   
   // Eventually, we will allow presenting to a raw C pointer, instead of to a
   // display drawable. This option will require a callback, which is called
   // after the output's memory is written to.
-  // TODO: Hide the command buffer from the public API.
-  public func present(
-    encoder: MTLComputeCommandEncoder,
+  // TODO: Hide the command buffer and accel from the public API.
+  public func render(
     commandBuffer: MTLCommandBuffer,
+    accel: MTLAccelerationStructure,
     drawable: CAMetalDrawable
   ) {
     precondition(drawable.texture.width == upscaledSize.x)
     precondition(drawable.texture.height == upscaledSize.y)
     
+    // Encoder the geometry data.
+    let encoder = commandBuffer.makeComputeCommandEncoder()!
+    encoder.setComputePipelineState(rayTracingPipeline)
+  
+    withUnsafeTemporaryAllocation(
+      of: Arguments.self, capacity: 2
+    ) { bufferPointer in
+      bufferPointer[0] = self.currentArguments!
+      if let previousArguments = self.previousArguments {
+        bufferPointer[1] = previousArguments
+      } else {
+        bufferPointer[1] = bufferPointer[0]
+      }
+      
+      let argsLength = 2 * MemoryLayout<Arguments>.stride
+      let baseAddress = bufferPointer.baseAddress!
+      encoder.setBytes(baseAddress, length: argsLength, index: 0)
+    }
+    encoder.setBuffer(stylesBuffer, offset: 0, index: 1)
+    encoder.setAccelerationStructure(accel, bufferIndex: 2)
+
+    // Encode the output textures.
     let textures = self.currentTextures
     encoder.setTextures(
       [textures.color, textures.depth, textures.motion], range: 0..<3)
@@ -254,6 +360,8 @@ extension MRRenderer {
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(16, 16, 1))
     encoder.endEncoding()
+    
+    // Encode the upscaling pass.
     upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
   }
 }
