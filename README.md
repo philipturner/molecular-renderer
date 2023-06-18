@@ -21,6 +21,8 @@ module OpenMM {
 }
 ```
 
+<!--
+
 > TODO: Update this documentation with more modern information.
 
 You can set a custom aspect ratio, instead of 1280x1280. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
@@ -55,7 +57,9 @@ let fovX = 2 * arctan(scaleX * baseSlope)
 let fovY = 2 * arctan(scaleY * baseSlope)
 ```
 
-Simulation modes:
+-->
+
+TODO (simulation modes):
 - 4 fs (NVT): QSHAKE, mass repartitoning, improved velocity rescaling thermostat, entirely FP32
 - 1 fs (NVE): first mode to be implemented, sums groups of 4 nonbonded forces in FP32 and switches to eFP64 for larger sums
 - 0.25 fs (NVE): identical to 1 fs, except the smaller timestep permits measuring energies smaller than the Landauer limit
