@@ -31,6 +31,9 @@ class EventTracker {
   // mouse position.
   var remainingQuarantineFrames: Int = 2
   
+  // Time to apply to the timeout counter for motion keys.
+  var lastTime: Double?
+  
   // TODO: Incorporate sprinting while flying, ease in/out the FOV.
   //
   // TODO: MetalFX motion vectors have to account for differences in FOV from
@@ -75,13 +78,107 @@ class EventTracker {
   //   return t * t * (float(3) - float(2) * t);
   // }
   
-  // Use atomics to bypass the crash when the main thread tries to access this.
-  var keyboardWPressed: ManagedAtomic<Bool> = .init(false)
-  var keyboardAPressed: ManagedAtomic<Bool> = .init(false)
-  var keyboardSPressed: ManagedAtomic<Bool> = .init(false)
-  var keyboardDPressed: ManagedAtomic<Bool> = .init(false)
-  var keyboardSpacebarPressed: ManagedAtomic<Bool> = .init(false)
-  var keyboardShiftPressed: ManagedAtomic<Bool> = .init(false)
+  class MotionKey {
+    // Use atomics to bypass the crash when the main thread accesses this.
+    private var active: ManagedAtomic<Bool> = ManagedAtomic(false)
+    private var sprinting: ManagedAtomic<Bool> = ManagedAtomic(false)
+    
+    // This number keeps decreasing to negative infinity each frame. Whenever
+    // the key is pressed, it is manually reset to the timeout. This allows it
+    // to detect a double-press for sprinting.
+    private var timeoutBitPattern: ManagedAtomic<UInt64> =
+      .init(Double(-1).bitPattern)
+    
+    private var timeoutLock: ManagedAtomic<Bool> = ManagedAtomic(false)
+    
+    private func acquireLock() {
+      while true {
+        let result = timeoutLock.compareExchange(
+          expected: false, desired: true, ordering: .sequentiallyConsistent)
+        if result.exchanged {
+          return
+        }
+      }
+    }
+    
+    private func releaseLock() {
+      while true {
+        let result = timeoutLock.compareExchange(
+          expected: true, desired: false, ordering: .sequentiallyConsistent)
+        if result.exchanged {
+          return
+        }
+      }
+    }
+    
+    func withLock<T>(_ closure: () -> T) -> T {
+      acquireLock()
+      let output = closure()
+      releaseLock()
+      return output
+    }
+    
+    // Decrement the timeout by the delta between now and when you last entered
+    // whatever code calls this.
+    func _unsafe_decrementTimeout(elapsedTime: Double) {
+      var bitPattern = timeoutBitPattern.load(ordering: .sequentiallyConsistent)
+      var value = Double(bitPattern: bitPattern)
+      value -= elapsedTime
+      bitPattern = value.bitPattern
+      timeoutBitPattern.store(bitPattern, ordering: .sequentiallyConsistent)
+    }
+    
+    func _unsafe_timeoutExists() -> Bool {
+      let bitPattern = timeoutBitPattern.load(ordering: .sequentiallyConsistent)
+      return bitPattern > 0
+    }
+    
+    func _unsafe_activate() {
+      if active.load(ordering: .sequentiallyConsistent) {
+        return
+      }
+      active.store(true, ordering: .sequentiallyConsistent)
+      
+      // Do not restart an existing timeout.
+      var bitPattern = timeoutBitPattern.load(ordering: .sequentiallyConsistent)
+      if Double(bitPattern: bitPattern) > 0 {
+        precondition(!sprinting.load(ordering: .sequentiallyConsistent))
+        sprinting.store(true, ordering: .sequentiallyConsistent)
+      } else {
+        // 1 second timeout for now.
+        let bitPattern = Double(1).bitPattern
+        timeoutBitPattern.store(bitPattern, ordering: .sequentiallyConsistent)
+      }
+    }
+    
+    func _unsafe_deactivate() {
+      // If it recognized a sprint now, you must double-tap all over again for
+      // it to detect another sprint.
+      if sprinting.load(ordering: .sequentiallyConsistent) {
+        let bitPattern = Double(-1).bitPattern
+        timeoutBitPattern.store(bitPattern, ordering: .sequentiallyConsistent)
+      }
+      
+      active.store(false, ordering: .sequentiallyConsistent)
+      sprinting.store(false, ordering: .sequentiallyConsistent)
+    }
+    
+    func _unsafe_isSinglePressed() -> Bool {
+      active.load(ordering: .sequentiallyConsistent)
+    }
+    
+    func _unsafe_isDoublePressed() -> Bool {
+      sprinting.load(ordering: .sequentiallyConsistent)
+    }
+  }
+  
+  // Use atomics to bypass the crash when the main thread accesses this.
+  var keyboardWPressed = MotionKey()
+  var keyboardAPressed = MotionKey()
+  var keyboardSPressed = MotionKey()
+  var keyboardDPressed = MotionKey()
+  var keyboardSpacebarPressed = MotionKey()
+  var keyboardShiftPressed = MotionKey()
   
   // Don't move the player if the window is in the background. Often, the
   // player will move uncontrollably in one direction, even through you aren't
@@ -152,7 +249,7 @@ class EventTracker {
   
   func update(frameDelta: Int) {
     // Proceed if the user is not in the game menu (analogy from Minecraft).
-    if shouldAcceptInput, read(key: .keyboardEscape) == false {
+    if shouldAcceptInput, !read(key: .keyboardEscape).isSinglePressed {
       // Update keyboard first.
       self.updateKeyboard(frameDelta: frameDelta)
       
@@ -186,47 +283,75 @@ class EventTracker {
 
 extension EventTracker {
   func change(key: KeyboardHIDUsage, value: Bool) {
-    switch key {
-    case .keyboardW:
-      keyboardWPressed.store(value, ordering: .relaxed)
-    case .keyboardA:
-      keyboardAPressed.store(value, ordering: .relaxed)
-    case .keyboardS:
-      keyboardSPressed.store(value, ordering: .relaxed)
-    case .keyboardD:
-      keyboardDPressed.store(value, ordering: .relaxed)
-    case .keyboardSpacebar:
-      keyboardSpacebarPressed.store(value, ordering: .relaxed)
-    case .keyboardLeftShift:
-      keyboardShiftPressed.store(value, ordering: .relaxed)
-    case .keyboardEscape:
+    if key == .keyboardEscape {
       // Key down toggles the value, key up does nothing.
       _ = crosshairActive.loadThenLogicalXor(with: value, ordering: .relaxed)
+    }
+    
+    var motionKey: MotionKey
+    switch key {
+    case .keyboardW:
+      motionKey = keyboardWPressed
+    case .keyboardA:
+      motionKey = keyboardAPressed
+    case .keyboardS:
+      motionKey = keyboardSPressed
+    case .keyboardD:
+      motionKey = keyboardDPressed
+    case .keyboardSpacebar:
+      motionKey = keyboardSpacebarPressed
+    case .keyboardLeftShift:
+      motionKey = keyboardShiftPressed
     default:
-      break
+      return
+    }
+    motionKey.withLock {
+      if value == true {
+        motionKey._unsafe_activate()
+      } else {
+        motionKey._unsafe_deactivate()
+      }
     }
   }
   
-  func read(key: KeyboardHIDUsage) -> Bool {
-    switch key {
-    case .keyboardW:
-      return keyboardWPressed.load(ordering: .relaxed)
-    case .keyboardA:
-      return keyboardAPressed.load(ordering: .relaxed)
-    case .keyboardS:
-      return keyboardSPressed.load(ordering: .relaxed)
-    case .keyboardD:
-      return keyboardDPressed.load(ordering: .relaxed)
-    case .keyboardSpacebar:
-      return keyboardSpacebarPressed.load(ordering: .relaxed)
-    case .keyboardLeftShift:
-      return keyboardShiftPressed.load(ordering: .relaxed)
-    case .keyboardEscape:
+  struct KeyReading {
+    var motionKey: MotionKey?
+    var isSinglePressed: Bool
+    var isDoublePressed: Bool = false
+    var timeoutExists: Bool = false
+  }
+  
+  func read(key: KeyboardHIDUsage) -> KeyReading {
+    if key == .keyboardEscape {
       // `true` means the crosshair is NOT active. This is analogous to
       // Minecraft, where ESC opens the game menu.
-      return !crosshairActive.load(ordering: .relaxed)
+      let active = !crosshairActive.load(ordering: .relaxed)
+      return KeyReading(isSinglePressed: active)
+    }
+    
+    var motionKey: MotionKey
+    switch key {
+    case .keyboardW:
+      motionKey = keyboardWPressed
+    case .keyboardA:
+      motionKey = keyboardAPressed
+    case .keyboardS:
+      motionKey = keyboardSPressed
+    case .keyboardD:
+      motionKey = keyboardDPressed
+    case .keyboardSpacebar:
+      motionKey = keyboardSpacebarPressed
+    case .keyboardLeftShift:
+      motionKey = keyboardShiftPressed
     default:
       fatalError("Unsupported key \(key)")
+    }
+    return motionKey.withLock {
+      KeyReading(
+        motionKey: motionKey,
+        isSinglePressed: motionKey._unsafe_isSinglePressed(),
+        isDoublePressed: motionKey._unsafe_isDoublePressed(),
+        timeoutExists: motionKey._unsafe_timeoutExists())
     }
   }
 }
@@ -320,33 +445,59 @@ extension EventTracker {
     let basisVectorX = azimuth * SIMD3(1, 0, 0)
     let basisVectorZ = azimuth * SIMD3(0, 0, 1)
     
+    let readingW = read(key: .keyboardW)
+    let readingS = read(key: .keyboardS)
+    let readingA = read(key: .keyboardA)
+    let readingD = read(key: .keyboardD)
+    let readingSpacebar = read(key: .keyboardSpacebar)
+    let readingLeftShift = read(key: .keyboardLeftShift)
+    
+    let currentTime = CACurrentMediaTime()
+    if let lastTime {
+      var readings = [readingW, readingS, readingA, readingD]
+      readings += [readingSpacebar, readingLeftShift]
+      for reading in readings where reading.timeoutExists {
+        let delta = currentTime - lastTime
+        let motionKey = reading.motionKey!
+        motionKey.withLock {
+          motionKey._unsafe_decrementTimeout(elapsedTime: delta)
+        }
+      }
+    }
+    lastTime = currentTime
+    
     // Check if W is pressed and move forward along the z-axis
-    if read(key: .keyboardW) == true {
+    if readingW.isSinglePressed {
       playerState.position -= basisVectorZ * positionDelta
+      if readingW.isDoublePressed {
+        print("Sprinting W")
+      } else {
+        print("Walking W")
+      }
     }
     
     // Check if S is pressed and move backward along the z-axis
-    if read(key: .keyboardS) == true {
+    if readingS.isSinglePressed {
       playerState.position += basisVectorZ * positionDelta
     }
     
     // Check if A is pressed and move left along the x-axis
-    if read(key: .keyboardA) == true {
+    if readingA.isSinglePressed {
       playerState.position -= basisVectorX * positionDelta
     }
     
     // Check if D is pressed and move right along the x-axis
-    if read(key: .keyboardD) == true {
+    if readingD.isSinglePressed {
       playerState.position += basisVectorX * positionDelta
     }
     
     // Check if spacebar is pressed and move up along the y-axis
-    if read(key: .keyboardSpacebar) == true {
+    if readingSpacebar.isSinglePressed {
       playerState.position.y += positionDelta
     }
     
     // Check if left shift is pressed and move down along the y-axis
-    if read(key: .keyboardLeftShift) == true {
+    if readingLeftShift.isSinglePressed {
       playerState.position.y -= positionDelta
     }
   }

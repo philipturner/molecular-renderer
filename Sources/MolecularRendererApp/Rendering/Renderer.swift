@@ -222,7 +222,6 @@ extension Renderer {
   }
 }
 
-// Code for sending commands to the GPU.
 extension Renderer {
   func update() {
     self.renderSemaphore.wait()
@@ -237,44 +236,28 @@ extension Renderer {
       }
     }
     
-    if true {
-      // The accelBuilder automatically caches acceleration structures, but
-      // explicitly marking them as static allows it to compress the structures.
-      var shouldCompact: Bool
-      
-      let atoms: [MRAtom]
-      switch Self.renderingMode {
-      case .static:
-        atoms = staticAtomProvider.atoms
-        shouldCompact = true
-      case .molecularSimulation:
-        atoms = self.nobleGasSimulator.getAtoms()
-        shouldCompact = false
-      }
-      
-      struct TempAtomProvider: MRStaticAtomProvider {
-        var atoms: [MRAtom]
-      }
-      renderer.setStaticGeometry(
-        atomProvider: TempAtomProvider(atoms: atoms),
-        styleProvider: staticStyleProvider,
-        shouldCompact: shouldCompact)
+    let atoms: [MRAtom]
+    switch Self.renderingMode {
+    case .static:
+      atoms = staticAtomProvider.atoms
+    case .molecularSimulation:
+      atoms = self.nobleGasSimulator.getAtoms()
     }
+    struct TempAtomProvider: MRStaticAtomProvider {
+      var atoms: [MRAtom]
+    }
+    renderer.setStaticGeometry(
+      atomProvider: TempAtomProvider(atoms: atoms),
+      styleProvider: staticStyleProvider)
     
-    do {
-      // Image width before upscaling.
-      let imageWidth = ContentView.size / 2
-      let playerState = self.eventTracker.playerState
-      
-      let fovMultiplier = playerState.fovMultiplier(
-        imageWidth: Int(imageWidth), frameID: frameID)
-      let (azimuth, zenith) = playerState.rotations
-      renderer.setCamera(
-        fovMultiplier: Float(fovMultiplier),
-        position: playerState.position,
-        rotation: azimuth * zenith,
-        lightPower: GlobalStyleProvider.global.lightPower)
-    }
+    let playerState = self.eventTracker.playerState
+    let (azimuth, zenith) = playerState.rotations
+    renderer.setCamera(
+      fovDegrees: playerState.fovDegrees(frameID: frameID),
+      position: playerState.position,
+      rotation: azimuth * zenith,
+      lightPower: GlobalStyleProvider.global.lightPower)
+    
     renderer.render(layer: view.metalLayer) { [self] _ in
       renderSemaphore.signal()
     }

@@ -279,29 +279,24 @@ extension MRRenderer {
   // the same last frame.
   public func setStaticGeometry(
     atomProvider: MRStaticAtomProvider,
-    styleProvider: MRStaticStyleProvider,
-    shouldCompact: Bool
+    styleProvider: MRStaticStyleProvider
   ) {
     let atomRadii = styleProvider.radii.map(Float16.init)
-    #if arch(x86_64)
+#if arch(x86_64)
     let atomColors: [SIMD3<Float16>] = []
-    #else
+#else
     let atomColors = styleProvider.colors.map(SIMD3<Float16>.init)
-    #endif
+#endif
     
     accelBuilder.currentAtoms = atomProvider.atoms
     accelBuilder.currentStyles = zip(atomColors, atomRadii).map {
       MRAtomStyle(color: $0, radius: $1)
     }
-    self.shouldCompact = shouldCompact
   }
-  
-  // TODO: Encapsulate the generation of the FOV multipler inside this Swift
-  // package. The user only needs to specify the angle in degrees.
   
   // Only call this once per frame.
   public func setCamera(
-    fovMultiplier: Float,
+    fovDegrees: Float,
     position: SIMD3<Float>,
     rotation: simd_float3x3,
     lightPower: Float16
@@ -314,7 +309,7 @@ extension MRRenderer {
     let decayConstant: Float = 2.0 // range(0...20, 0.25)
     
     self.currentArguments = Arguments(
-      fovMultiplier: fovMultiplier,
+      fovMultiplier: self.fovMultiplier(fovDegrees: fovDegrees),
       positionX: position.x,
       positionY: position.y,
       positionZ: position.z,
@@ -330,6 +325,63 @@ extension MRRenderer {
       diffuseReflectanceScale: diffuseReflectanceScale)
   }
   
+  private func fovMultiplier(fovDegrees: Float) -> Float {
+    // NOTE: This currently assumes the image is square. We eventually need to
+    // support rectangular image sizes for e.g. 1920x1080 video.
+    
+    // How many pixels exist in either direction.
+    let fov90Span = 0.5 * Float(intermediateSize.x)
+    
+    // Larger FOV means the same ray will reach an angle farther away from the
+    // center. 1 / fovSpan is larger, so fovSpan is smaller. The difference
+    // should be the ratio between the tangents of the two half-angles. And
+    // one side of the ratio is tan(90 / 2) = 1.0.
+    let fovRadians: Float = fovDegrees * .pi / 180
+    let halfAngleTangent = tan(fovRadians / 2)
+    let halfAngleTangentRatio = halfAngleTangent / 1.0
+    
+    // Let A = fov90Span
+    // Let B = pixels covered by the 45° boundary in either direction.
+    // Ray = ((pixelsRight, pixelsUp) * fovMultiplier, -1)
+    //
+    // FOV / 2 < 45°
+    // - edge of image is ray (<1, <1, -1)
+    // - A = 100 pixels
+    // - B = 120 pixels (off-screen)
+    // - fovMultiplier = 1 / 120 = 1 / B
+    // FOV / 2 = 45°
+    // - edge of image is ray (1, 1, -1)
+    // - fovMultiplier = unable to determine
+    // FOV / 2 > 45°
+    // - edge of image is ray (>1, >1, -1)
+    // - A = 100 pixels
+    // - B = 80 pixels (well within screen bounds)
+    // - fovMultiplier = 1 / 80 = 1 / B
+    
+    // Next: what is B as a function of fov90Span and halfAngleTangentRatio?
+    // FOV / 2 < 45°
+    // - A = 100 pixels
+    // - B = 120 pixels (off-screen)
+    // - halfAngleTangentRatio = 0.8
+    // - formula: B = A / halfAngleTangentRatio
+    // FOV / 2 = 45°
+    // - A = 100 pixels
+    // - B = 100 pixels
+    // - formula: cannot be determined
+    // FOV / 2 > 45°
+    // - edge of image is ray (>1, >1, -1)
+    // - A = 100 pixels
+    // - B = 80 pixels (well within screen bounds)
+    // - halfAngleTangentRatio = 1.2
+    // - formula: B = A / halfAngleTangentRatio
+    //
+    // fovMultiplier = 1 / B = 1 / (A / halfAngleTangentRatio)
+    // fovMultiplier = halfAngleTangentRatio / fov90Span
+    return halfAngleTangentRatio / fov90Span
+  }
+}
+
+extension MRRenderer {
   // Eventually, we will allow presenting to a raw C pointer, instead of to a
   // display drawable. This option will require a callback, which is called
   // after the output's memory is written to.
@@ -344,8 +396,7 @@ extension MRRenderer {
     
     // Encode the accel creation pass, if necessary.
     let accel = accelBuilder.build(
-      commandBuffer: commandBuffer,
-      shouldCompact: shouldCompact)
+      commandBuffer: commandBuffer)
     
     // Acquire a reference to the drawable.
     let drawable = layer.nextDrawable()!

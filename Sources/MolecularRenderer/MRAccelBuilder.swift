@@ -28,6 +28,13 @@ public class MRAccelBuilder {
   var currentAtoms: [MRAtom] = []
   var currentStyles: [MRAtomStyle] = []
   
+  // Data for compacting the frame after it's been constant for long enough. Do
+  // not hold a reference to the accel descriptor for too long, as it retains
+  // references to atoms buffers you might want to release.
+  var numDuplicateFrames: Int = 0
+  var didCompactDuplicateFrame: Bool = false
+  var accelDesc: MTLPrimitiveAccelerationStructureDescriptor!
+  
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
   var boundingBoxBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
@@ -119,17 +126,34 @@ extension MRAccelBuilder {
 extension MRAccelBuilder {
   // Only call this once per frame.
   internal func build(
-    commandBuffer: MTLCommandBuffer,
-    shouldCompact: Bool
+    commandBuffer: MTLCommandBuffer
   ) -> MTLAccelerationStructure {
+    defer {
+      self.previousAtoms = currentAtoms
+      self.previousStyles = currentStyles
+    }
+    
+    // Do not generate a new accel when you built a usable one last frame.
     if previousAtoms == currentAtoms,
        previousStyles == currentStyles,
        let accel = self.accels[accelIndex] {
-      // Do not generate a new accel when you built a usable one last frame.
-      return accel
+      self.numDuplicateFrames += 1
+      if numDuplicateFrames >= 3 && !didCompactDuplicateFrame {
+        let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
+        let output = self.compact(
+          encoder: encoder, accel: accel, descriptor: accelDesc)
+        encoder.endEncoding()
+        
+        self.didCompactDuplicateFrame = true
+        self.accelDesc = nil
+        return output
+      } else {
+        return accel
+      }
     }
-    self.previousAtoms = currentAtoms
-    self.previousStyles = currentStyles
+    self.numDuplicateFrames = 0
+    self.didCompactDuplicateFrame = false
+    self.accelDesc = nil
     
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
@@ -183,8 +207,8 @@ extension MRAccelBuilder {
     geometryDesc.boundingBoxBuffer = boundingBoxBuffer
     geometryDesc.allowDuplicateIntersectionFunctionInvocation = false
     
-    let accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
-    accelDesc.geometryDescriptors = [geometryDesc]
+    self.accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
+    self.accelDesc.geometryDescriptors = [geometryDesc]
     
     // Query for the sizes needed to store and build the acceleration structure.
     let accelSizes = device.accelerationStructureSizes(descriptor: accelDesc)
@@ -219,11 +243,6 @@ extension MRAccelBuilder {
     encoder.build(
       accelerationStructure: accel, descriptor: accelDesc,
       scratchBuffer: scratchBuffer, scratchBufferOffset: 1024)
-    
-    if shouldCompact {
-      accel = self.compact(
-        encoder: encoder, accel: accel, descriptor: accelDesc)
-    }
     
     // End encoding, and commit the command buffer so the GPU can start building
     // the acceleration structure.
