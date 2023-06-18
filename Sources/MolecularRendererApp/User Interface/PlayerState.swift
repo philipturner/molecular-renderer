@@ -159,13 +159,75 @@ struct PlayerState {
   }
   
   // FOV dilation due to sprinting.
-  func fovDegrees(frameID: Int) -> Float {
+  func fovDegrees(progress: Float) -> Float {
     // TODO: Velocity history (need to match whatever heuristic Minecraft uses).
     // We recognized double-press events. We just need to connect them to
     // physical motions and FOV dilations, and fine-tune the timeout.
     
 //    let fovPhase = 2 * Float.pi * Float(frameID) / 120
 //    return 90 + 10 * max(0, sin(fovPhase))
-    return 90
+    return simd_mix(90, 90 * 1.20, progress)
+  }
+}
+
+// Keeps track of how long you have been sprinting for. Used to determine how to
+// dilate the FOV.
+struct SprintingHistory {
+  // Each sample gets retained for a fixed period of time, determined using the
+  // timestamp.
+  private var samples: [(timestamp: Double, sprinting: Bool)] = []
+  
+  private static let timeout: Double = 0.1
+  
+  private var currentTimestamp: Double = -.infinity
+  
+  mutating func update(timestamp: Double, sprinting: Bool) {
+    currentTimestamp = timestamp
+    if samples.count > 0 {
+      while samples.first!.timestamp < currentTimestamp - Self.timeout {
+        samples.removeFirst()
+      }
+    }
+    samples.append((timestamp, sprinting))
+  }
+  
+  private func rawProgress() -> Float {
+    if samples.count == 0 {
+      return 0
+    }
+    var trueSamples: Int = 0
+    for sample in samples where sample.sprinting {
+      trueSamples += 1
+    }
+    var t = Float(trueSamples) / Float(samples.count)
+    
+    // This heuristic might fail if the framerate is too jumpy.
+    var amountFilled = currentTimestamp - samples.first!.timestamp
+    amountFilled /= Self.timeout
+    
+    let fillCutoff: Double = 0.5
+    if amountFilled < fillCutoff {
+      t *= Float(amountFilled / fillCutoff)
+    }
+    return t
+  }
+
+  // Progress between the standard FOV and the target FOV.
+  //
+  // TODO: Exactly how fast does the transition between FOVs last in Minecraft?
+  // I know it's a smooth polynomial; the exact equation doesn't matter. Here's
+  // the Metal Standard Library's `smoothstep` function:
+  //
+  // float smoothstep(float edge0, float edge1, float x)
+  // {
+  //   float t = clamp((x - edge0) / (edge1 - edge0), float(0), float(1));
+  //   return t * t * (float(3) - float(2) * t);
+  // }
+  func smoothedProgress() -> Float {
+    func smoothstep(edge0: Float, edge1: Float, x: Float) -> Float {
+      let t = simd_clamp((x - edge0) / (edge1 - edge0), Float(0), Float(1))
+      return t * t * (Float(3) - Float(2) * t)
+    }
+    return 2 * smoothstep(edge0: 0, edge1: 1, x: rawProgress() / 2)
   }
 }

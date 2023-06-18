@@ -5,11 +5,11 @@
 //  Created by Philip Turner on 6/17/23.
 //
 
-import AppKit
 import Metal
 import MetalFX
-import QuartzCore
-import simd
+import func QuartzCore.CACurrentMediaTime
+import class QuartzCore.CAMetalLayer
+import struct simd.simd_float3x3
 
 // Partially sourced from:
 // https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
@@ -299,7 +299,8 @@ extension MRRenderer {
     fovDegrees: Float,
     position: SIMD3<Float>,
     rotation: simd_float3x3,
-    lightPower: Float16
+    lightPower: Float16,
+    raySampleCount: Int
   ) {
     self.previousArguments = currentArguments
     
@@ -318,7 +319,7 @@ extension MRRenderer {
       frameSeed: UInt32.random(in: 0...UInt32.max),
       
       lightPower: lightPower,
-      sampleCount: 3,
+      sampleCount: UInt16(raySampleCount),
       maxRayHitTime: maxRayHitTime,
       exponentialFalloffDecayConstant: decayConstant,
       minimumAmbientIllumination: minimumAmbientIllumination,

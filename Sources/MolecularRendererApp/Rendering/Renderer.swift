@@ -252,11 +252,13 @@ extension Renderer {
     
     let playerState = self.eventTracker.playerState
     let (azimuth, zenith) = playerState.rotations
+    let progress = self.eventTracker.sprintingHistory.smoothedProgress()
     renderer.setCamera(
-      fovDegrees: playerState.fovDegrees(frameID: frameID),
+      fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
       rotation: azimuth * zenith,
-      lightPower: GlobalStyleProvider.global.lightPower)
+      lightPower: GlobalStyleProvider.global.lightPower,
+      raySampleCount: 8)
     
     renderer.render(layer: view.metalLayer) { [self] _ in
       renderSemaphore.signal()

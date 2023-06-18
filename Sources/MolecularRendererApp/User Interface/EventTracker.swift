@@ -34,14 +34,9 @@ class EventTracker {
   // Time to apply to the timeout counter for motion keys.
   var lastTime: Double?
   
-  // TODO: Incorporate sprinting while flying, ease in/out the FOV.
-  //
-  // TODO: MetalFX motion vectors have to account for differences in FOV from
-  // the last frame.
-  //
   // === Speeds in Minecraft ===
   //
-  // We are emulating flying, where sprinting exactly doubles the FOV.
+  // We are emulating flying, where sprinting exactly doubles the speed.
   //
   //                   Walking | 4.30 m/s <- exact value is 4.32 m/s
   //   Walking while sprinting | 5.56 m/s
@@ -62,26 +57,22 @@ class EventTracker {
   //   (walking no sprint) -> (flying sprint)
   // We're going from:
   //   (flying no sprint) -> (flying sprint)
+  //
   // Stick with the initial estimate of 10%, like we're going up a hierarchy:
   //   (walking no sprint) +0% (x1.00)
   //     (flying no sprint) +10% (x1.10)
   //      (walking sprint) +10-20% (x1.10-1.20)
   //       (flying sprint)    ?????? (x1.20-1.21)
   //
-  // TODO: Exactly how fast does the transition between FOVs last? I know it's
-  // a smooth polynomial; the exact equation doesn't matter. Here's the Metal
-  // Standard Library's `smoothstep` function:
-  //
-  // float smoothstep(float edge0, float edge1, float x)
-  // {
-  //   float t = clamp((x - edge0) / (edge1 - edge0), float(0), float(1));
-  //   return t * t * (float(3) - float(2) * t);
-  // }
   
   class MotionKey {
     // Use atomics to bypass the crash when the main thread accesses this.
     private var active: ManagedAtomic<Bool> = ManagedAtomic(false)
     private var sprinting: ManagedAtomic<Bool> = ManagedAtomic(false)
+    
+    // The paired key. If you are currently sprinting, you should suppress the
+    // sprinting on this key.
+    unowned var pairedKey: MotionKey?
     
     // This number keeps decreasing to negative infinity each frame. Whenever
     // the key is pressed, it is manually reset to the timeout. This allows it
@@ -134,29 +125,37 @@ class EventTracker {
     }
     
     func _unsafe_activate() {
+      pairedKey!.withLock {
+        pairedKey!._unsafe_suppressSprinting()
+      }
+      
       if active.load(ordering: .sequentiallyConsistent) {
         return
       }
       active.store(true, ordering: .sequentiallyConsistent)
       
       // Do not restart an existing timeout.
-      var bitPattern = timeoutBitPattern.load(ordering: .sequentiallyConsistent)
+      let bitPattern = timeoutBitPattern.load(ordering: .sequentiallyConsistent)
       if Double(bitPattern: bitPattern) > 0 {
         precondition(!sprinting.load(ordering: .sequentiallyConsistent))
         sprinting.store(true, ordering: .sequentiallyConsistent)
       } else {
-        // 1 second timeout for now.
-        let bitPattern = Double(1).bitPattern
+        // 0.3 second timeout for now.
+        let bitPattern = Double(0.3   ).bitPattern
         timeoutBitPattern.store(bitPattern, ordering: .sequentiallyConsistent)
       }
+    }
+    
+    func _unsafe_suppressSprinting() {
+      let bitPattern = Double(-1).bitPattern
+      timeoutBitPattern.store(bitPattern, ordering: .sequentiallyConsistent)
     }
     
     func _unsafe_deactivate() {
       // If it recognized a sprint now, you must double-tap all over again for
       // it to detect another sprint.
       if sprinting.load(ordering: .sequentiallyConsistent) {
-        let bitPattern = Double(-1).bitPattern
-        timeoutBitPattern.store(bitPattern, ordering: .sequentiallyConsistent)
+        _unsafe_suppressSprinting()
       }
       
       active.store(false, ordering: .sequentiallyConsistent)
@@ -197,8 +196,17 @@ class EventTracker {
   var accumulatedMouseDeltaX: ManagedAtomic<UInt64> = ManagedAtomic(0)
   var accumulatedMouseDeltaY: ManagedAtomic<UInt64> = ManagedAtomic(0)
   
+  var sprintingHistory = SprintingHistory()
+  
   init() {
     self.playerState.position = Self.initialPlayerPosition
+    
+    keyboardWPressed.pairedKey = keyboardSPressed
+    keyboardSPressed.pairedKey = keyboardWPressed
+    keyboardAPressed.pairedKey = keyboardDPressed
+    keyboardDPressed.pairedKey = keyboardAPressed
+    keyboardSpacebarPressed.pairedKey = keyboardShiftPressed
+    keyboardShiftPressed.pairedKey = keyboardSpacebarPressed
     
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
       print("Mouse exited window.")
@@ -263,6 +271,9 @@ class EventTracker {
       self.change(key: .keyboardD, value: false)
       self.change(key: .keyboardSpacebar, value: false)
       self.change(key: .keyboardLeftShift, value: false)
+      
+      // Sprinting FOV should decrease even when the user is inactive.
+      sprintingHistory.update(timestamp: CACurrentMediaTime(), sprinting: false)
     }
     
     // Prevent previous mouse events from affecting future frames.
@@ -454,8 +465,8 @@ extension EventTracker {
     
     let currentTime = CACurrentMediaTime()
     if let lastTime {
-      var readings = [readingW, readingS, readingA, readingD]
-      readings += [readingSpacebar, readingLeftShift]
+      // Only do FOV changes for directions you look directly at.
+      let readings = [readingW, readingSpacebar, readingLeftShift]
       for reading in readings where reading.timeoutExists {
         let delta = currentTime - lastTime
         let motionKey = reading.motionKey!
@@ -463,42 +474,51 @@ extension EventTracker {
           motionKey._unsafe_decrementTimeout(elapsedTime: delta)
         }
       }
+      
+      let sprinting = readings.contains(where: \.isDoublePressed)
+      sprintingHistory.update(timestamp: currentTime, sprinting: sprinting)
     }
     lastTime = currentTime
     
+    // Call this to use two different speeds for keys that can sprint.
+    func delta(reading: KeyReading) -> Float {
+      if reading.isDoublePressed {
+        print("Sprinting @ \(CACurrentMediaTime())")
+        return 2 * positionDelta
+        
+      } else {
+        return positionDelta
+      }
+    }
+    
     // Check if W is pressed and move forward along the z-axis
     if readingW.isSinglePressed {
-      playerState.position -= basisVectorZ * positionDelta
-      if readingW.isDoublePressed {
-        print("Sprinting W")
-      } else {
-        print("Walking W")
-      }
+      playerState.position -= basisVectorZ * delta(reading: readingW)
     }
     
     // Check if S is pressed and move backward along the z-axis
     if readingS.isSinglePressed {
-      playerState.position += basisVectorZ * positionDelta
+      playerState.position += basisVectorZ * delta(reading: readingS)
     }
     
     // Check if A is pressed and move left along the x-axis
     if readingA.isSinglePressed {
-      playerState.position -= basisVectorX * positionDelta
+      playerState.position -= basisVectorX * delta(reading: readingA)
     }
     
     // Check if D is pressed and move right along the x-axis
     if readingD.isSinglePressed {
-      playerState.position += basisVectorX * positionDelta
+      playerState.position += basisVectorX * delta(reading: readingD)
     }
     
     // Check if spacebar is pressed and move up along the y-axis
     if readingSpacebar.isSinglePressed {
-      playerState.position.y += positionDelta
+      playerState.position.y += delta(reading: readingSpacebar)
     }
     
     // Check if left shift is pressed and move down along the y-axis
     if readingLeftShift.isSinglePressed {
-      playerState.position.y -= positionDelta
+      playerState.position.y -= delta(reading: readingLeftShift)
     }
   }
 }
