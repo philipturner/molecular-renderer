@@ -1,0 +1,14 @@
+//
+//  module.modulemap
+//  MolecularRenderer
+//
+//  Created by Philip Turner on 6/18/23.
+//
+
+module OpenMM {
+  // TODO: Find a more general way for people besides myself to use OpenMM with
+  // MolecularRenderer. In the meantime, when you see the Xcode error at this
+  // line in the '.modulemap', replace "philipturner" with your username.
+  header "/Users/philipturner/miniforge3/include/OpenMMCWrapper.h"
+  export *
+}

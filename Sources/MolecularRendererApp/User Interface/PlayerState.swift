@@ -160,12 +160,6 @@ struct PlayerState {
   
   // FOV dilation due to sprinting.
   func fovDegrees(progress: Float) -> Float {
-    // TODO: Velocity history (need to match whatever heuristic Minecraft uses).
-    // We recognized double-press events. We just need to connect them to
-    // physical motions and FOV dilations, and fine-tune the timeout.
-    
-//    let fovPhase = 2 * Float.pi * Float(frameID) / 120
-//    return 90 + 10 * max(0, sin(fovPhase))
     return simd_mix(90, 90 * 1.20, progress)
   }
 }
@@ -186,6 +180,9 @@ struct SprintingHistory {
     if samples.count > 0 {
       while samples.first!.timestamp < currentTimestamp - Self.timeout {
         samples.removeFirst()
+        if samples.count == 0 {
+          break
+        }
       }
     }
     samples.append((timestamp, sprinting))
