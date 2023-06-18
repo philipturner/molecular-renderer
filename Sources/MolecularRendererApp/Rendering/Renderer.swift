@@ -63,6 +63,8 @@ class Renderer {
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
   
   init(view: RendererView) {
+    initOpenMM()
+    
     self.view = view
     self.layer = view.layer as! CAMetalLayer
     self.currentRefreshRate.store(

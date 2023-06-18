@@ -14,11 +14,8 @@ A C-compatible Swift package that extracts the core functionality of MolecularRe
 
 At `Sources/OpenMM/include/module.modulemap` within the source tree, there is a file with the following contents. Replace `philipturner` with your username to compile the app.
 
-```modulemap
+```
 module OpenMM {
-  // TODO: Find a more general way for people besides myself to use OpenMM with
-  // MolecularRenderer. In the meantime, when you see the Xcode error at this
-  // line in the '.modulemap', replace "philipturner" with your username.
   header "/Users/philipturner/miniforge3/include/OpenMMCWrapper.h"
   export *
 }
