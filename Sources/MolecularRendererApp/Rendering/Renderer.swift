@@ -65,6 +65,8 @@ class Renderer {
   init(view: RendererView) {
     initOpenMM()
     
+    exit(0)
+    
     self.view = view
     self.layer = view.layer as! CAMetalLayer
     self.currentRefreshRate.store(

@@ -6,6 +6,10 @@ This is a platform for the author to conduct [computational nanotechnology](http
 
 ## Usage
 
+### OpenMM Swift Bindings
+
+An ergonomic wrapper around the C API, for using OpenMM in Swift code.
+
 ### MolecularRenderer Library
 
 A C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into other CAD applications.

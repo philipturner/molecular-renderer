@@ -30,6 +30,7 @@
 		98B3E4EF2A3F6F5C00B02349 /* libOpenMM.8.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4EB2A3F6F2200B02349 /* libOpenMM.8.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98B3E4F72A3F700400B02349 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */; };
 		98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CC35822A3E48B3007B96DF /* ExampleProviders.swift */; };
 		98DA27C92A3F69E800AFE8B7 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 98DA27C82A3F69E800AFE8B7 /* MolecularRenderer */; };
 		98DA27CB2A3F69E800AFE8B7 /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98DA27CA2A3F69E800AFE8B7 /* OpenMM */; };
@@ -105,6 +106,7 @@
 		98B3E4EB2A3F6F2200B02349 /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../../../miniforge3/lib/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
 		98B3E4F12A3F6F9D00B02349 /* libc++.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.0.dylib"; path = "../../../miniforge3/lib/libc++.1.0.dylib"; sourceTree = "<group>"; };
 		98B3E4F62A3F700400B02349 /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../bypass_dependencies/libc++.1.dylib"; sourceTree = "<group>"; };
+		98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloArgonInSwift.swift; sourceTree = "<group>"; };
 		98CC35822A3E48B3007B96DF /* ExampleProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleProviders.swift; sourceTree = "<group>"; };
 		98DA27C22A3F687500AFE8B7 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		98DA27C62A3F69C800AFE8B7 /* shim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shim.c; sourceTree = "<group>"; };
@@ -237,6 +239,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		98B3E4FB2A3F84FA00B02349 /* Tutorials */ = {
+			isa = PBXGroup;
+			children = (
+				98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */,
+			);
+			path = Tutorials;
+			sourceTree = "<group>";
+		};
 		98DA27C02A3F685B00AFE8B7 /* OpenMM */ = {
 			isa = PBXGroup;
 			children = (
@@ -289,6 +299,7 @@
 		98F638962A349D6A00F51E95 /* MolecularRendererApp */ = {
 			isa = PBXGroup;
 			children = (
+				98B3E4FB2A3F84FA00B02349 /* Tutorials */,
 				98F250032A130A65009AABDE /* Providers */,
 				98298F5829F353D30008E248 /* Rendering */,
 				9846B9002A069785006E4924 /* Simulation */,
@@ -467,6 +478,7 @@
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* ExampleStyles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
+				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98F638B92A34AAE800F51E95 /* MM4.metal in Sources */,

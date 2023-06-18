@@ -34,4 +34,28 @@ func initOpenMM() {
     message += String(cString: repr)
     print(message)
   }
+  OpenMM_PsPerFs
 }
+
+// TODO: Extract this into the Swift module, rename the current "OpenMM" as
+// "COpenMM", and call the wrappers the new "OpenMM".
+class OpenMM_Object {
+  var pointer: OpaquePointer
+  private var retain: Bool
+  
+  init(_ pointer: OpaquePointer?, retain: Bool = false) {
+    guard let pointer else {
+      fatalError("OpenMM object pointer was null.")
+    }
+    self.pointer = pointer
+    self.retain = retain
+  }
+  
+  class func destroy(_ pointer: OpaquePointer) {
+    fatalError("'destroy' not implemented.")
+  }
+}
+
+//class OpenMM_Vec3Array {
+//  var pointer: OpaquePointer
+//}
