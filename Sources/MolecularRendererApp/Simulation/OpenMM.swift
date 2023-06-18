@@ -12,33 +12,25 @@ import OpenMM
 // format for MolecularRenderer.
 
 func initOpenMM() {
-  let directory = OpenMM_Platform_getDefaultPluginsDirectory()
-  guard let directory else {
-    fatalError("No directory.")
-  }
+  let directory = OpenMM_Platform.defaultPluginsDirectory!
   print("OpenMM plugins directory: \(directory)")
   
-  let plugins = OpenMM_Platform_loadPluginsFromDirectory(directory)
-  guard let plugins else {
-    fatalError("No plugins.")
-  }
-  defer { OpenMM_StringArray_destroy(plugins) }
+  let plugins = OpenMM_Platform.loadPlugins(directory: directory)!
   print("Found plugins!")
   
-  let numPlugins = OpenMM_StringArray_getSize(plugins)
+  let numPlugins = plugins.size
   print("Number of plugins: \(numPlugins)")
   
   for i in 0..<numPlugins {
-    var message = "Plugin \(i + 1): "
-    let repr = OpenMM_StringArray_get(plugins, i)!
-    message += String(cString: repr)
-    print(message)
+    print("Plugin \(i + 1): \(plugins[i])")
   }
-  OpenMM_PsPerFs
 }
+
+// MARK: - OpenMM Swift Bindings
 
 // TODO: Extract this into the Swift module, rename the current "OpenMM" as
 // "COpenMM", and call the wrappers the new "OpenMM".
+
 class OpenMM_Object {
   var pointer: OpaquePointer
   private var retain: Bool
@@ -54,8 +46,57 @@ class OpenMM_Object {
   class func destroy(_ pointer: OpaquePointer) {
     fatalError("'destroy' not implemented.")
   }
+  
+  deinit {
+    if retain {
+      Self.destroy(pointer)
+    }
+  }
 }
 
-//class OpenMM_Vec3Array {
-//  var pointer: OpaquePointer
-//}
+// MARK: - OpenMM Constants
+
+// Probably need something like @_exported import OpenMM_PsPerFs
+
+// MARK: - OpenMM Classes
+
+class OpenMM_Platform: OpenMM_Object {
+  override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_Platform_destroy(pointer)
+  }
+  
+  static var defaultPluginsDirectory: String? {
+    let _directory = OpenMM_Platform_getDefaultPluginsDirectory()
+    guard let _directory else {
+      return nil
+    }
+    return String(cString: _directory)
+  }
+  
+  static func loadPlugins(directory: String) -> OpenMM_StringArray? {
+    let _plugins = OpenMM_Platform_loadPluginsFromDirectory(directory)
+    guard let _plugins else {
+      return nil
+    }
+    return OpenMM_StringArray(_plugins, retain: true)
+  }
+}
+
+class OpenMM_StringArray: OpenMM_Object {
+  override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_StringArray_destroy(pointer)
+  }
+  
+  var size: Int {
+    let _size = OpenMM_StringArray_getSize(pointer)
+    return Int(_size)
+  }
+  
+  subscript(index: Int) -> String {
+    let _element = OpenMM_StringArray_get(pointer, Int32(index))
+    guard let _element else {
+      fatalError("Index out of bounds.")
+    }
+    return String(cString: _element)
+  }
+}
