@@ -12,6 +12,9 @@ import OpenMM
 // format for MolecularRenderer.
 
 func initOpenMM() {
+  // Disable the nearest neighbor list because we run very small simulations.
+  setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "0", 1)
+  
   let directory = OpenMM_Platform.defaultPluginsDirectory!
   print("OpenMM plugins directory: \(directory)")
   
