@@ -52,7 +52,7 @@ class Renderer {
   // Geometry providers.
   var staticAtomProvider: MRStaticAtomProvider!
   var staticStyleProvider: MRStaticStyleProvider!
-//  var nobleGasSimulator: NobleGasSimulator!
+  var nobleGasSimulator: NobleGasSimulator!
   var dynamicAtomProvider: OpenMM_DynamicAtomProvider!
   
   // NOTE: You need to give the app permission to view this file.
@@ -82,17 +82,12 @@ class Renderer {
       self.staticAtomProvider = ExampleProviders.adamantaneHabTool(
         styleProvider: staticStyleProvider)
     case .molecularSimulation:
-      self.dynamicAtomProvider = OpenMM_DynamicAtomProvider(
-        psPerStep: 0.004, stepsPerFrame: 10, styles: staticStyleProvider.styles,
-        elements: [18, 18, 18])
-      
       initOpenMM()
-      simulateArgon(provider: dynamicAtomProvider)
-      
+      self.dynamicAtomProvider = simulateArgon(
+        styleProvider: staticStyleProvider)
       self.dynamicAtomProvider.reset()
       self.dynamicAtomProvider.logReplaySpeed(
         framesPerSecond: Renderer.frameRateBasis)
-//      exit(0)
     }
   }
 }
@@ -239,7 +234,6 @@ extension Renderer {
     self.renderSemaphore.wait()
     
     let frameDelta = self.updateFrameID()
-    var _shouldUpdateOpenMMProvider = false
     do {
       // Do not simulate while the crosshair is active.
       let eventTracker = self.view.coordinator.eventTracker!
@@ -248,31 +242,24 @@ extension Renderer {
         // Run the simulator synchronously.
         #if false
         self.nobleGasSimulator.updateResources(frameDelta: frameDelta)
-        #else
-        _shouldUpdateOpenMMProvider = true
         #endif
       }
     }
     #if true
     var shouldUpdateOpenMMProvider = false
+    var shouldResetOpenMMProvider = false
     do {
       let eventTracker = self.view.coordinator.eventTracker!
-      do {
-        let atomic = eventTracker.keyboardPPressed
-        atomic.withLock {
-          if atomic._unsafe_isSinglePressed() {
-            shouldUpdateOpenMMProvider = true
-          }
+      let atomicP = eventTracker.keyboardPPressed
+      atomicP.withLock {
+        if atomicP._unsafe_isSinglePressed() {
+          shouldUpdateOpenMMProvider = true
         }
       }
-      
-      var shouldResetOpenMMProvider = false
-      do {
-        let atomic = eventTracker.keyboardRPressed
-        atomic.withLock {
-          if atomic._unsafe_isSinglePressed() {
-            shouldResetOpenMMProvider = true
-          }
+      let atomicR = eventTracker.keyboardRPressed
+      atomicR.withLock {
+        if atomicR._unsafe_isSinglePressed() {
+          shouldResetOpenMMProvider = true
         }
       }
       if shouldResetOpenMMProvider {

@@ -7,8 +7,19 @@
 
 import Foundation
 import OpenMM
+import MolecularRenderer
 
-func simulateArgon(provider: OpenMM_DynamicAtomProvider? = nil) {
+func simulateArgon(
+  styleProvider: MRStaticStyleProvider
+) -> OpenMM_DynamicAtomProvider {
+  let provider = OpenMM_DynamicAtomProvider(
+    psPerStep: 0.004, stepsPerFrame: 10, styles: styleProvider.styles,
+    elements: [18, 18, 18])
+  _simulateArgon(atomProvider: provider)
+  return provider
+}
+
+func _simulateArgon(atomProvider: OpenMM_DynamicAtomProvider? = nil) {
   OpenMM_Platform.loadPlugins(
     directory: OpenMM_Platform.defaultPluginsDirectory!)
   
@@ -27,7 +38,7 @@ func simulateArgon(provider: OpenMM_DynamicAtomProvider? = nil) {
   let integrator = OpenMM_VerletIntegrator(stepSize: 0.004)
   
   let context = OpenMM_Context(system: system, integrator: integrator)
-  if provider == nil { startPdb(platform: context.platform) }
+  if atomProvider == nil { startPdb(platform: context.platform) }
   context.positions = initPosInNm
   
   var frameNum = 1
@@ -36,8 +47,8 @@ func simulateArgon(provider: OpenMM_DynamicAtomProvider? = nil) {
     
     let state = context.state(
       types: OpenMM_State_Positions, enforcePeriodicBox: false)
-    if let provider {
-      provider.append(state: state, steps: frameNum == 1 ? 0 : 10)
+    if let atomProvider {
+      atomProvider.append(state: state, steps: frameNum == 1 ? 0 : 10)
     } else {
       writePdbFrame(frameNum: frameNum, state: state)
     }
