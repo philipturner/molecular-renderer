@@ -38,6 +38,67 @@ func initOpenMM() {
 // TODO: Extract this into a Swift module, rename the current "OpenMM" as
 // "COpenMM", and call the wrappers the new "OpenMM".
 
+@inline(__always)
+fileprivate func _openmm_create(
+  _ closure: @convention(c) () -> OpaquePointer?
+) -> OpaquePointer {
+  guard let result = closure() else {
+    fatalError("Could not initialize.")
+  }
+  return result
+}
+
+@inline(__always)
+fileprivate func _openmm_create<T>(
+  _ argument1: T,
+  _ closure: (T) -> OpaquePointer?
+) -> OpaquePointer {
+  guard let result = closure(argument1) else {
+    fatalError("Could not initialize.")
+  }
+  return result
+}
+
+@inline(__always)
+fileprivate func _openmm_create<T, U>(
+  _ argument1: T,
+  _ argument2: U,
+  _ closure: (T, U) -> OpaquePointer?
+) -> OpaquePointer {
+  guard let result = closure(argument1, argument2) else {
+    fatalError("Could not initialize.")
+  }
+  return result
+}
+
+@inline(__always)
+fileprivate func _openmm_get<S>(
+  _ caller: OpaquePointer,
+  _ closure: (OpaquePointer?) -> S?,
+  function: StaticString = #function
+) -> S {
+  guard let result = closure(caller) else {
+    fatalError("Could not retrieve property '\(function)'.")
+  }
+  return result
+}
+
+@inline(__always)
+fileprivate func _openmm_index_get<S>(
+  _ caller: OpaquePointer,
+  _ index: Int,
+  _ closure: (OpaquePointer?, Int32) -> S?,
+  function: StaticString = #function
+) -> S {
+  let _index = Int32(truncatingIfNeeded: index)
+  guard let result = closure(caller, _index) else {
+    fatalError("Index out of bounds.")
+  }
+  return result
+}
+
+// _openmm_index_set
+
 class OpenMM_Object {
   var pointer: OpaquePointer
   internal var _retain: Bool
@@ -89,18 +150,37 @@ class OpenMM_Object {
 
 // MARK: - OpenMM Classes
 
+class OpenMM_Context: OpenMM_Object {
+  convenience init(system: OpenMM_System, integrator: OpenMM_Integrator) {
+    self.init(_openmm_create(
+      system.pointer, integrator.pointer, OpenMM_Context_create))
+    self.retain()
+  }
+  
+  override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_Context_destroy(pointer)
+  }
+  
+  var platform: OpenMM_Platform {
+    .init(_openmm_get(pointer, OpenMM_Context_getPlatform))
+  }
+}
+
 class OpenMM_Force: OpenMM_Object {
   override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_Force_destroy(pointer)
   }
 }
 
+class OpenMM_Integrator: OpenMM_Object {
+  override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_Integrator_destroy(pointer)
+  }
+}
+
 class OpenMM_NonbondedForce: OpenMM_Force {
   override init() {
-    guard let pointer = OpenMM_NonbondedForce_create() else {
-      fatalError("Could not initialize.")
-    }
-    super.init(pointer)
+    super.init(_openmm_create(OpenMM_NonbondedForce_create))
     self.retain()
   }
   
@@ -138,6 +218,10 @@ class OpenMM_Platform: OpenMM_Object {
     plugins.retain()
     return plugins
   }
+  
+  var name: String {
+    .init(cString: _openmm_get(pointer, OpenMM_Platform_getName))
+  }
 }
 
 class OpenMM_State: OpenMM_Object {
@@ -146,10 +230,7 @@ class OpenMM_State: OpenMM_Object {
   }
   
   var positions: OpenMM_Vec3Array {
-    guard let _positions = OpenMM_State_getPositions(pointer) else {
-      fatalError("No positions.")
-    }
-    return OpenMM_Vec3Array(_positions)
+    .init(_openmm_get(pointer, OpenMM_State_getPositions))
   }
 }
 
@@ -165,11 +246,7 @@ class OpenMM_StringArray: OpenMM_Object {
   
   subscript(index: Int) -> String {
     get {
-      let _element = OpenMM_StringArray_get(pointer, Int32(index))
-      guard let _element else {
-        fatalError("Index out of bounds.")
-      }
-      return String(cString: _element)
+      .init(cString: _openmm_index_get(pointer, index, OpenMM_StringArray_get))
     }
     // `set` not supported yet.
   }
@@ -177,10 +254,7 @@ class OpenMM_StringArray: OpenMM_Object {
 
 class OpenMM_System: OpenMM_Object {
   override init() {
-    guard let pointer = OpenMM_System_create() else {
-      fatalError("Could not initialize.")
-    }
-    super.init(pointer)
+    super.init(_openmm_create(OpenMM_System_create))
     self.retain()
   }
   
@@ -204,10 +278,7 @@ class OpenMM_System: OpenMM_Object {
 
 class OpenMM_Vec3Array: OpenMM_Object {
   convenience init(size: Int) {
-    guard let pointer = OpenMM_Vec3Array_create(Int32(size)) else {
-      fatalError("Could not initialize.")
-    }
-    self.init(pointer)
+    self.init(_openmm_create(Int32(size), OpenMM_Vec3Array_create))
     self.retain()
   }
   
@@ -222,10 +293,7 @@ class OpenMM_Vec3Array: OpenMM_Object {
   
   subscript(index: Int) -> SIMD3<Double> {
     get {
-      let _element = OpenMM_Vec3Array_get(pointer, Int32(index))
-      guard let _element else {
-        fatalError("Index out of bounds.")
-      }
+      let _element = _openmm_index_get(pointer, index, OpenMM_Vec3Array_get)
       
       // Cannot assume this is aligned to 4 x 8 bytes, so read each element
       // separately. If this part becomes a bottleneck in the CPU code, we know
@@ -237,5 +305,12 @@ class OpenMM_Vec3Array: OpenMM_Object {
       let _vector = OpenMM_Vec3(x: newValue.x, y: newValue.y, z: newValue.z)
       OpenMM_Vec3Array_set(pointer, Int32(index), _vector)
     }
+  }
+}
+
+class OpenMM_VerletIntegrator: OpenMM_Integrator {
+  convenience init(stepSize: Double) {
+    self.init(_openmm_create(stepSize, OpenMM_VerletIntegrator_create))
+    self.retain()
   }
 }

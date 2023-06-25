@@ -8,8 +8,6 @@
 import Foundation
 import OpenMM
 
-// TODO: Output the results of this simulation to a Swift array, so you can view
-// it in the molecular renderer.
 func simulateArgon() {
   let pluginList = OpenMM_Platform.loadPlugins(
     directory: OpenMM_Platform.defaultPluginsDirectory!)
@@ -29,9 +27,15 @@ func simulateArgon() {
     nonbond.addParticle(charge: 0.0, sigma: 0.3350, epsilon: 0.996)
   }
   
+  let integrator = OpenMM_VerletIntegrator(stepSize: 0.004)
+  
+  let context = OpenMM_Context(system: system, integrator: integrator)
+  let platform = context.platform
   
 }
 
+// TODO: Output the results of this simulation to a Swift array, so you can view
+// it in the molecular renderer.
 func writePdbFrame(frameNum: Int, state: OpenMM_State) {
   let posInNm = state.positions
   
