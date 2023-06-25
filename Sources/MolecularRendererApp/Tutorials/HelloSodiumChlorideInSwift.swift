@@ -21,8 +21,12 @@ fileprivate struct SimulationConstants {
   static let simulationTimeInPs: Double = 100
   static let wantEnergy: Bool = true
   
-  static let sodium: MyAtomInfo = .init(element: 11, mass: 22.99, charge: 1, vdwRadiusInAng: 1.8680, vdwEnergyInKcal: 0.00277, gbsaRadiusInAng: 1.992, gbsaScaleFactor: 0.8)
-  static let chlorine: MyAtomInfo = .init(element: 17, mass: 35.45, charge: -1, vdwRadiusInAng: 2.4700, vdwEnergyInKcal: 0.1000, gbsaRadiusInAng: 1.735, gbsaScaleFactor: 0.8)
+  static let sodium: MyAtomInfo = .init(
+    element: 11, mass: 22.99, charge: 1, vdwRadiusInAng: 1.8680,
+    vdwEnergyInKcal: 0.00277, gbsaRadiusInAng: 1.992, gbsaScaleFactor: 0.8)
+  static let chlorine: MyAtomInfo = .init(
+    element: 17, mass: 35.45, charge: -1, vdwRadiusInAng: 2.4700,
+    vdwEnergyInKcal: 0.1000, gbsaRadiusInAng: 1.735, gbsaScaleFactor: 0.8)
   
   static let atoms: [MyAtomInfo] = [
     sodium.withInitPos([8, 0, 0]),
@@ -56,7 +60,7 @@ extension SimulationConstants {
     Int(reportIntervalInFs / stepSizeInFs + 0.5)
   }
   static func omm(platformName: inout String) -> MyOpenMMData {
-    myInitializeOpenMM(
+    MyOpenMMData(
       atoms: atoms, temperature: temperature, frictionInPerPs: frictionInPerPs,
       solventDielectric: solventDielectric, soluteDielectric: soluteDielectric,
       stepSizeInFs: stepSizeInFs, platformName: &platformName)
@@ -87,24 +91,34 @@ func simulateSodiumChloride(
   return omm.provider
 }
 
-fileprivate struct MyOpenMMData {
+fileprivate class MyOpenMMData {
   var system: OpenMM_System
   var context: OpenMM_Context
   var integrator: OpenMM_Integrator
   var provider: OpenMM_DynamicAtomProvider
-}
-
-fileprivate func myInitializeOpenMM(
-  atoms: [MyAtomInfo],
-  temperature: Double,
-  frictionInPerPs: Double,
-  solventDielectric: Double,
-  soluteDielectric: Double,
-  stepSizeInFs: Double,
-  platformName: inout String
-) -> MyOpenMMData {
-  // TODO
-  fatalError()
+  
+  init(
+    atoms: [MyAtomInfo],
+    temperature: Double,
+    frictionInPerPs: Double,
+    solventDielectric: Double,
+    soluteDielectric: Double,
+    stepSizeInFs: Double,
+    platformName: inout String
+  ) {
+    OpenMM_Platform.loadPlugins(
+      directory: OpenMM_Platform.defaultPluginsDirectory!)
+    
+    let system = OpenMM_System()
+    let nonbond = OpenMM_NonbondedForce()
+    let gbsa = OpenMM_GBSAOBCForce()
+    nonbond.transfer()
+    system.addForce(nonbond)
+    gbsa.transfer()
+    system.addForce(gbsa)
+    
+    fatalError()
+  }
 }
 
 fileprivate func myStepWithOpenMM(_ omm: MyOpenMMData, numSteps: Int) {

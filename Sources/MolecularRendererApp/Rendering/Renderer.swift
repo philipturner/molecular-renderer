@@ -9,6 +9,7 @@ import AppKit
 import Atomics
 import Metal
 import MolecularRenderer
+import OpenMM
 import simd
 
 class Renderer {
