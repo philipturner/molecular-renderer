@@ -22,7 +22,7 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
   private(set) var elements: [UInt8]
   private(set) var states: [[MRAtom]] = []
   
-  private(set) var replayingFrameID: Int = -1
+  private(set) var replayingFrameID: Int = 0
   
   // Specify each atom's atomic number beforehand; OpenMM doesn't provide that.
   init(
@@ -69,12 +69,11 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
     print("Replaying at \(replaySpeed) ps/s.")
   }
   
-  // Reset the replaying. It initially -1 so the first frame will resolve to 0.
   func reset() {
-    self.replayingFrameID = -1
+    self.replayingFrameID = 0
   }
   
-  // Move to the next frame. Call this right before accessing the states.
+  // Move to the next frame. Call this **after** reading from the states.
   func nextFrame() {
     self.replayingFrameID += 1
     

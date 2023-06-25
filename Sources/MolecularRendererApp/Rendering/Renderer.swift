@@ -35,7 +35,7 @@ class Renderer {
   var sustainedAlignmentDuration: Int = 0
   static let debuggingFrameRate = false
   static let logFrameStutters = false
-  static let frameRateBasis: Int = 120
+  static let frameRateBasis: Int = 120 // 60 for screencasting, 120 otherwise
   
   // Both modes currently use the `StaticAtomProvider` API. Once we start using
   // OpenMM in real-time, we should create the `DynamicAtomProvider` API. We can
@@ -89,12 +89,11 @@ class Renderer {
       initOpenMM()
       simulateArgon(provider: dynamicAtomProvider)
       
+      self.dynamicAtomProvider.reset()
       self.dynamicAtomProvider.logReplaySpeed(
         framesPerSecond: Renderer.frameRateBasis)
-      exit(0)
+//      exit(0)
     }
-    
-    
   }
 }
 
@@ -238,26 +237,60 @@ extension Renderer {
 extension Renderer {
   func update() {
     self.renderSemaphore.wait()
-//    let frameDelta = self.updateFrameID()
-    _ = self.updateFrameID()
+    
+    let frameDelta = self.updateFrameID()
+    var _shouldUpdateOpenMMProvider = false
     do {
       // Do not simulate while the crosshair is active.
       let eventTracker = self.view.coordinator.eventTracker!
       if !eventTracker.crosshairActive.load(ordering: .relaxed),
          Self.renderingMode == .molecularSimulation {
         // Run the simulator synchronously.
-//        self.nobleGasSimulator.updateResources(frameDelta: frameDelta)
-        self.dynamicAtomProvider.nextFrame()
+        #if false
+        self.nobleGasSimulator.updateResources(frameDelta: frameDelta)
+        #else
+        _shouldUpdateOpenMMProvider = true
+        #endif
       }
     }
+    #if true
+    var shouldUpdateOpenMMProvider = false
+    do {
+      let eventTracker = self.view.coordinator.eventTracker!
+      do {
+        let atomic = eventTracker.keyboardPPressed
+        atomic.withLock {
+          if atomic._unsafe_isSinglePressed() {
+            shouldUpdateOpenMMProvider = true
+          }
+        }
+      }
+      
+      var shouldResetOpenMMProvider = false
+      do {
+        let atomic = eventTracker.keyboardRPressed
+        atomic.withLock {
+          if atomic._unsafe_isSinglePressed() {
+            shouldResetOpenMMProvider = true
+          }
+        }
+      }
+      if shouldResetOpenMMProvider {
+        dynamicAtomProvider.reset()
+      }
+    }
+    #endif
     
     let atoms: [MRAtom]
     switch Self.renderingMode {
     case .static:
       atoms = staticAtomProvider.atoms
     case .molecularSimulation:
-//      atoms = self.nobleGasSimulator.getAtoms()
+      #if false
+      atoms = self.nobleGasSimulator.getAtoms()
+      #else
       atoms = dynamicAtomProvider.atoms
+      #endif
     }
     struct TempAtomProvider: MRStaticAtomProvider {
       var atoms: [MRAtom]
@@ -265,6 +298,13 @@ extension Renderer {
     renderer.setStaticGeometry(
       atomProvider: TempAtomProvider(atoms: atoms),
       styleProvider: staticStyleProvider)
+    #if false
+    // pass
+    #else
+    if shouldUpdateOpenMMProvider {
+      dynamicAtomProvider.nextFrame()
+    }
+    #endif
     
     let playerState = self.eventTracker.playerState
     let (azimuth, zenith) = playerState.rotations

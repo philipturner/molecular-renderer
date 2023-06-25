@@ -179,6 +179,12 @@ class EventTracker {
   var keyboardSpacebarPressed = MotionKey()
   var keyboardShiftPressed = MotionKey()
   
+  // P is for playing the simulation.
+  var keyboardPPressed = MotionKey()
+  
+  // R is for resetting the simulation.
+  var keyboardRPressed = MotionKey()
+  
   // Don't move the player if the window is in the background. Often, the
   // player will move uncontrollably in one direction, even through you aren't
   // pressing any key.
@@ -207,6 +213,8 @@ class EventTracker {
     keyboardDPressed.pairedKey = keyboardAPressed
     keyboardSpacebarPressed.pairedKey = keyboardShiftPressed
     keyboardShiftPressed.pairedKey = keyboardSpacebarPressed
+    keyboardPPressed.pairedKey = keyboardRPressed
+    keyboardRPressed.pairedKey = keyboardPPressed
     
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
       print("Mouse exited window.")
@@ -309,6 +317,10 @@ extension EventTracker {
       motionKey = keyboardSPressed
     case .keyboardD:
       motionKey = keyboardDPressed
+    case .keyboardP:
+      motionKey = keyboardPPressed
+    case .keyboardR:
+      motionKey = keyboardRPressed
     case .keyboardSpacebar:
       motionKey = keyboardSpacebarPressed
     case .keyboardLeftShift:
@@ -350,6 +362,10 @@ extension EventTracker {
       motionKey = keyboardSPressed
     case .keyboardD:
       motionKey = keyboardDPressed
+    case .keyboardP:
+      motionKey = keyboardPPressed
+    case .keyboardR:
+      motionKey = keyboardRPressed
     case .keyboardSpacebar:
       motionKey = keyboardSpacebarPressed
     case .keyboardLeftShift:
