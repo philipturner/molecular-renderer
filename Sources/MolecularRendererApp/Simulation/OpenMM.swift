@@ -107,6 +107,13 @@ class OpenMM_NonbondedForce: OpenMM_Force {
   override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_NonbondedForce_destroy(pointer)
   }
+  
+  @discardableResult
+  func addParticle(charge: Double, sigma: Double, epsilon: Double) -> Int {
+    let index = OpenMM_NonbondedForce_addParticle(
+      pointer, charge, sigma, epsilon)
+    return Int(index)
+  }
 }
 
 class OpenMM_Platform: OpenMM_Object {
@@ -136,6 +143,13 @@ class OpenMM_Platform: OpenMM_Object {
 class OpenMM_State: OpenMM_Object {
   override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_State_destroy(pointer)
+  }
+  
+  var positions: OpenMM_Vec3Array {
+    guard let _positions = OpenMM_State_getPositions(pointer) else {
+      fatalError("No positions.")
+    }
+    return OpenMM_Vec3Array(_positions)
   }
 }
 
@@ -170,15 +184,33 @@ class OpenMM_System: OpenMM_Object {
     self.retain()
   }
   
-  /// Transfer ownership of the `OpenMM_Force` to OpenMM before calling this.
-  // TODO: Function that adds the force.
-  
   override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_System_destroy(pointer)
+  }
+  
+  /// Transfer ownership of the `OpenMM_Force` to OpenMM before calling this.
+  @discardableResult
+  func addForce(_ force: OpenMM_Force) -> Int {
+    let index = OpenMM_System_addForce(pointer, force.pointer)
+    return Int(index)
+  }
+  
+  @discardableResult
+  func addParticle(mass: Double) -> Int {
+    let index = OpenMM_System_addParticle(pointer, mass)
+    return Int(index)
   }
 }
 
 class OpenMM_Vec3Array: OpenMM_Object {
+  convenience init(size: Int) {
+    guard let pointer = OpenMM_Vec3Array_create(Int32(size)) else {
+      fatalError("Could not initialize.")
+    }
+    self.init(pointer)
+    self.retain()
+  }
+  
   override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_Vec3Array_destroy(pointer)
   }
