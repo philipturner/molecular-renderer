@@ -20,6 +20,7 @@
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		986ED88F29A71C1C00E0653B /* PythonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED88E29A71C1C00E0653B /* PythonKit */; };
 		986ED89229A71C2B00E0653B /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED89129A71C2B00E0653B /* Atomics */; };
+		987B7A1E2A48975500AB4D14 /* OpenMM_Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987B7A1D2A48975500AB4D14 /* OpenMM_Provider.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
@@ -92,6 +93,7 @@
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		987B7A1D2A48975500AB4D14 /* OpenMM_Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMM_Provider.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
@@ -185,6 +187,7 @@
 				98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */,
 				9846B9012A069798006E4924 /* NobleGas.swift */,
 				98F638B52A34AA5900F51E95 /* OpenMM.swift */,
+				987B7A1D2A48975500AB4D14 /* OpenMM_Provider.swift */,
 			);
 			path = Simulation;
 			sourceTree = "<group>";
@@ -408,7 +411,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1420;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					9898382129A6C08F00B4AA98 = {
 						CreatedOnToolsVersion = 14.2;
@@ -485,6 +488,7 @@
 				98F638B62A34AA5900F51E95 /* OpenMM.swift in Sources */,
 				98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
+				987B7A1E2A48975500AB4D14 /* OpenMM_Provider.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				98F638C12A34F1D200F51E95 /* GlobalStyleProvider.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
@@ -554,6 +558,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -615,6 +620,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

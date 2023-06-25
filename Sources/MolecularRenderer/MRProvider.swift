@@ -39,6 +39,20 @@ public protocol MRStaticStyleProvider {
   var atomicNumbers: ClosedRange<Int> { get }
 }
 
+extension MRStaticStyleProvider {
+  public var styles: [MRAtomStyle] {
+    let atomRadii = self.radii.map(Float16.init)
+#if arch(x86_64)
+    let atomColors: [SIMD3<Float16>] = []
+#else
+    let atomColors = self.colors.map(SIMD3<Float16>.init)
+#endif
+    return zip(atomColors, atomRadii).map {
+      MRAtomStyle(color: $0, radius: $1)
+    }
+  }
+}
+
 // TODO: Create a DynamicAtomProvider API. The structure has to be different
 // than MRStaticAtomProvider, because it may be loading data in real-time. We
 // can't expect the data to materialize when we access the object every frame.

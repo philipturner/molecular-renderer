@@ -97,6 +97,42 @@ fileprivate func _openmm_index_get<S>(
   return result
 }
 
+@inline(__always)
+fileprivate func _openmm_get<S, T, U>(
+  _ caller: OpaquePointer,
+  _ argument1: T,
+  _ argument2: U,
+  _ closure: (OpaquePointer?, T, U) -> S?,
+  function: StaticString = #function
+) -> S {
+  guard let result = closure(caller, argument1, argument2) else {
+    fatalError("Could not retrieve property '\(function)'.")
+  }
+  return result
+}
+
+@inline(__always)
+fileprivate func _openmm_get<S, T, U, V>(
+  _ caller: OpaquePointer,
+  _ argument1: T,
+  _ argument2: U,
+  _ argument3: V,
+  _ closure: (OpaquePointer?, T, U, V) -> S?,
+  function: StaticString = #function
+) -> S {
+  guard let result = closure(caller, argument1, argument2, argument3) else {
+    fatalError("Could not retrieve property '\(function)'.")
+  }
+  return result
+}
+
+@inline(never)
+fileprivate func _openmm_no_getter(
+  function: StaticString = #function
+) -> Never {
+  fatalError("The property '\(function)' has no getter.")
+}
+
 // _openmm_index_set
 
 class OpenMM_Object {
@@ -164,6 +200,34 @@ class OpenMM_Context: OpenMM_Object {
   var platform: OpenMM_Platform {
     .init(_openmm_get(pointer, OpenMM_Context_getPlatform))
   }
+  
+  var positions: OpenMM_Vec3Array {
+     get {
+      _openmm_no_getter()
+    }
+    set {
+      OpenMM_Context_setPositions(pointer, newValue.pointer)
+    }
+  }
+  
+  func state(
+    types: OpenMM_State_DataType, enforcePeriodicBox: Bool, groups: Int? = nil
+  ) -> OpenMM_State {
+    var _state: OpaquePointer
+    if let groups {
+      _state = _openmm_get(
+        pointer, Int32(truncatingIfNeeded: types.rawValue),
+        enforcePeriodicBox ? 1 : 0, Int32(groups), OpenMM_Context_getState_2)
+    } else {
+      _state = _openmm_get(
+        pointer, Int32(truncatingIfNeeded: types.rawValue),
+        enforcePeriodicBox ? 1 : 0, OpenMM_Context_getState)
+    }
+    
+    let state = OpenMM_State(_state)
+    state.retain()
+    return state
+  }
 }
 
 class OpenMM_Force: OpenMM_Object {
@@ -175,6 +239,10 @@ class OpenMM_Force: OpenMM_Object {
 class OpenMM_Integrator: OpenMM_Object {
   override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_Integrator_destroy(pointer)
+  }
+  
+  func step(_ steps: Int) {
+    OpenMM_Integrator_step(pointer, Int32(steps))
   }
 }
 
@@ -209,6 +277,7 @@ class OpenMM_Platform: OpenMM_Object {
     return String(cString: _directory)
   }
   
+  @discardableResult
   static func loadPlugins(directory: String) -> OpenMM_StringArray? {
     let _plugins = OpenMM_Platform_loadPluginsFromDirectory(directory)
     guard let _plugins else {
@@ -231,6 +300,10 @@ class OpenMM_State: OpenMM_Object {
   
   var positions: OpenMM_Vec3Array {
     .init(_openmm_get(pointer, OpenMM_State_getPositions))
+  }
+  
+  var time: Double {
+    _openmm_get(pointer, OpenMM_State_getTime)
   }
 }
 

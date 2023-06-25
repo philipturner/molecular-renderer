@@ -238,8 +238,8 @@ extension NobleGasSimulator {
     return (nsPerDay, end - start)
   }
   
-  func getAtoms() -> [MRAtom] {
-    let styles = GlobalStyleProvider.global.styles
+  func getAtoms(styleProvider: MRStaticStyleProvider) -> [MRAtom] {
+    let styles = styleProvider.styles
     return (0..<system.atoms).map { i in
       // Position is already converted to nm.
       let position = SIMD3<Float>(system.getPosition(index: i))

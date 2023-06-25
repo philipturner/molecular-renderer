@@ -14,7 +14,7 @@ struct ExampleMolecules {
   struct Ethylene: MRStaticAtomProvider {
     var atoms: [MRAtom]
     
-    init() {
+    init(styleProvider: MRStaticStyleProvider) {
       let z_offset: Float = -1 // -2
       let c_offset_x: Float = 0.1339 / 2 // 0.20
       let carbon_origins: [SIMD3<Float>] = [
@@ -32,7 +32,7 @@ struct ExampleMolecules {
         SIMD3(+h_offset_x, +h_offset_y, z_offset),
       ]
       
-      let styles = GlobalStyleProvider.global.styles
+      let styles = styleProvider.styles
       self.atoms = hydrogen_origins.map {
         MRAtom(styles: styles, origin: $0, element: 1)
       }
@@ -45,8 +45,8 @@ struct ExampleMolecules {
   struct TaggedEthylene: MRStaticAtomProvider {
     var atoms: [MRAtom]
     
-    init() {
-      let ethylene = Ethylene()
+    init(styleProvider: MRStaticStyleProvider) {
+      let ethylene = Ethylene(styleProvider: styleProvider)
       self.atoms = ethylene.atoms
       
       let firstHydrogen = atoms.firstIndex(where: { $0.element == 1 })!

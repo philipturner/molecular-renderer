@@ -9,20 +9,28 @@ import Foundation
 import MolecularRenderer
 
 struct ExampleProviders {
-  static func taggedEthylene() -> MRStaticAtomProvider {
-    ExampleMolecules.TaggedEthylene()
+  static func taggedEthylene(
+    styleProvider: MRStaticStyleProvider
+  ) -> MRStaticAtomProvider {
+    ExampleMolecules.TaggedEthylene(styleProvider: styleProvider)
   }
   
-  static func planetaryGearBox() -> MRStaticAtomProvider {
-    NanoEngineerParser(partLibPath: "gears/MarkIII[k] Planetary Gear Box")
+  static func planetaryGearBox(
+    styleProvider: MRStaticStyleProvider
+  ) -> MRStaticAtomProvider {
+    NanoEngineerParser(
+      styleProvider: styleProvider,
+      partLibPath: "gears/MarkIII[k] Planetary Gear Box")
   }
   
-  static func adamantaneHabTool() -> MRStaticAtomProvider {
+  static func adamantaneHabTool(
+    styleProvider: MRStaticStyleProvider
+  ) -> MRStaticAtomProvider {
     let adamantaneHabToolURL: URL = {
       let fileName = "adamantane-thiol-Hab-tool.pdb"
       let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"
       return URL(filePath: folder + "/" + fileName)
     }()
-    return PDBParser(url: adamantaneHabToolURL)
+    return PDBParser(styleProvider: styleProvider, url: adamantaneHabToolURL)
   }
 }

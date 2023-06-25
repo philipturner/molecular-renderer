@@ -47,12 +47,13 @@ class Renderer {
     // Visualize a noble gas simulation running in real-time.
     case molecularSimulation
   }
-  static let renderingMode: RenderingMode = .static
+  static let renderingMode: RenderingMode = .molecularSimulation
   
   // Geometry providers.
   var staticAtomProvider: MRStaticAtomProvider!
   var staticStyleProvider: MRStaticStyleProvider!
-  var nobleGasSimulator: NobleGasSimulator!
+//  var nobleGasSimulator: NobleGasSimulator!
+  var dynamicAtomProvider: OpenMM_DynamicAtomProvider!
   
   // NOTE: You need to give the app permission to view this file.
   static let adamantaneHabToolURL: URL = {
@@ -63,10 +64,6 @@ class Renderer {
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
   
   init(view: RendererView) {
-    initOpenMM()
-    
-    exit(0)
-    
     self.view = view
     self.layer = view.layer as! CAMetalLayer
     self.currentRefreshRate.store(
@@ -82,10 +79,22 @@ class Renderer {
     self.staticStyleProvider = ExampleStyles.NanoStuff()
     switch Self.renderingMode {
     case .static:
-      self.staticAtomProvider = ExampleProviders.adamantaneHabTool()
+      self.staticAtomProvider = ExampleProviders.adamantaneHabTool(
+        styleProvider: staticStyleProvider)
     case .molecularSimulation:
-      self.nobleGasSimulator = NobleGasSimulator(frameRate: Self.frameRateBasis)
+      self.dynamicAtomProvider = OpenMM_DynamicAtomProvider(
+        psPerStep: 0.004, stepsPerFrame: 10, styles: staticStyleProvider.styles,
+        elements: [18, 18, 18])
+      
+      initOpenMM()
+      simulateArgon(provider: dynamicAtomProvider)
+      
+      self.dynamicAtomProvider.logReplaySpeed(
+        framesPerSecond: Renderer.frameRateBasis)
+      exit(0)
     }
+    
+    
   }
 }
 
@@ -229,14 +238,16 @@ extension Renderer {
 extension Renderer {
   func update() {
     self.renderSemaphore.wait()
-    let frameDelta = self.updateFrameID()
+//    let frameDelta = self.updateFrameID()
+    _ = self.updateFrameID()
     do {
       // Do not simulate while the crosshair is active.
       let eventTracker = self.view.coordinator.eventTracker!
       if !eventTracker.crosshairActive.load(ordering: .relaxed),
          Self.renderingMode == .molecularSimulation {
         // Run the simulator synchronously.
-        self.nobleGasSimulator.updateResources(frameDelta: frameDelta)
+//        self.nobleGasSimulator.updateResources(frameDelta: frameDelta)
+        self.dynamicAtomProvider.nextFrame()
       }
     }
     
@@ -245,7 +256,8 @@ extension Renderer {
     case .static:
       atoms = staticAtomProvider.atoms
     case .molecularSimulation:
-      atoms = self.nobleGasSimulator.getAtoms()
+//      atoms = self.nobleGasSimulator.getAtoms()
+      atoms = dynamicAtomProvider.atoms
     }
     struct TempAtomProvider: MRStaticAtomProvider {
       var atoms: [MRAtom]
@@ -261,7 +273,7 @@ extension Renderer {
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
       rotation: azimuth * zenith,
-      lightPower: GlobalStyleProvider.global.lightPower,
+      lightPower: Float16(staticStyleProvider.lightPower),
       raySampleCount: 8)
     
     renderer.render(layer: view.metalLayer) { [self] _ in

@@ -11,7 +11,7 @@ import MolecularRenderer
 final class PDBParser: MRStaticAtomProvider {
   var atoms: [MRAtom]
   
-  init(url: URL) {
+  init(styleProvider: MRStaticStyleProvider, url: URL) {
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
     let lines = string.split(separator: "\r\n").filter {
@@ -68,10 +68,10 @@ final class PDBParser: MRStaticAtomProvider {
         symbol == extractExcluding(" ", from: &line), "Unexpected formatting.")
       
       // Determine the color to present.      
-      let range = GlobalStyleProvider.global.atomicNumbers
-      let styles = GlobalStyleProvider.global.styles
+      let range = styleProvider.atomicNumbers
+      let styles = styleProvider.styles
       let origin = SIMD3<Float>(SIMD3(x, y, z) / 10)
-      if range.contains(UInt8(Z)) {
+      if range.contains(Int(UInt8(Z))) {
         return MRAtom(
           styles: styles, origin: origin, element: UInt8(Z))
       } else {

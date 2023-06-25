@@ -18,7 +18,7 @@ final class NanoEngineerParser: MRStaticAtomProvider {
   
   // You can omit the ".mmp" extension.
   // Example: "gears/MarkIII[k] Planetary Gear Box"
-  convenience init(partLibPath: String) {
+  convenience init(styleProvider: MRStaticStyleProvider, partLibPath: String) {
     let site = "https://raw.githubusercontent.com/kanzure/nanoengineer"
     let folder = "master/cad/partlib"
     
@@ -26,10 +26,10 @@ final class NanoEngineerParser: MRStaticAtomProvider {
     if fullPath.suffix(4) != ".mmp" {
       fullPath.append(".mmp")
     }
-    self.init(url: URL(string: fullPath)!)
+    self.init(styleProvider: styleProvider, url: URL(string: fullPath)!)
   }
   
-  init(url: URL) {
+  init(styleProvider: MRStaticStyleProvider, url: URL) {
     let downloader = try! StaticDownloader(url: url)
     downloader.logLatency()
     let string = downloader.string
@@ -70,9 +70,9 @@ final class NanoEngineerParser: MRStaticAtomProvider {
       let metersToNanometers: Float = 1e9
       let scaleFactor = metersToNanometers * quantizedToMeters
       
-      let range = GlobalStyleProvider.global.atomicNumbers
-      let styles = GlobalStyleProvider.global.styles
-      if range.contains(UInt8(number)) {
+      let range = styleProvider.atomicNumbers
+      let styles = styleProvider.styles
+      if range.contains(Int(UInt8(number))) {
         return MRAtom(
           styles: styles,
           origin: scaleFactor * SIMD3<Float>(positionInt),

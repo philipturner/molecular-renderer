@@ -8,8 +8,8 @@
 import Foundation
 import OpenMM
 
-func simulateArgon() {
-  let pluginList = OpenMM_Platform.loadPlugins(
+func simulateArgon(provider: OpenMM_DynamicAtomProvider? = nil) {
+  OpenMM_Platform.loadPlugins(
     directory: OpenMM_Platform.defaultPluginsDirectory!)
   
   let system = OpenMM_System()
@@ -19,23 +19,38 @@ func simulateArgon() {
   
   let initPosInNm = OpenMM_Vec3Array(size: 3)
   for a in 0..<3 {
-    let posNm = SIMD3<Double>(0.5 * Double(a), 0, 0)
-    initPosInNm[a] = posNm
-    
+    initPosInNm[a] = SIMD3<Double>(0.5 * Double(a), 0, 0)
     system.addParticle(mass: 39.95)
-    
     nonbond.addParticle(charge: 0.0, sigma: 0.3350, epsilon: 0.996)
   }
   
   let integrator = OpenMM_VerletIntegrator(stepSize: 0.004)
   
   let context = OpenMM_Context(system: system, integrator: integrator)
-  let platform = context.platform
+  if provider == nil { startPdb(platform: context.platform) }
+  context.positions = initPosInNm
   
+  var frameNum = 1
+  while true {
+    defer { frameNum += 1 }
+    
+    let state = context.state(
+      types: OpenMM_State_Positions, enforcePeriodicBox: false)
+    if let provider {
+      provider.append(state: state, steps: frameNum == 1 ? 0 : 10)
+    } else {
+      writePdbFrame(frameNum: frameNum, state: state)
+    }
+    
+    if state.time >= 10 { break }
+    integrator.step(10)
+  }
 }
 
-// TODO: Output the results of this simulation to a Swift array, so you can view
-// it in the molecular renderer.
+func startPdb(platform: OpenMM_Platform) {
+  print("REMARK  Using OpenMM platform \(platform.name)")
+}
+
 func writePdbFrame(frameNum: Int, state: OpenMM_State) {
   let posInNm = state.positions
   
@@ -44,7 +59,7 @@ func writePdbFrame(frameNum: Int, state: OpenMM_State) {
     let posInAng = posInNm[a] * 10
     var message = String(format: "ATOM  %5d  AR   AR     1    ", a + 1)
     message += String(
-      format: "%8.3f%8.3f%8.3f  1.00  0.00\n",
+      format: "%8.3f%8.3f%8.3f  1.00  0.00",
       posInAng.x, posInAng.y, posInAng.z)
     print(message)
   }

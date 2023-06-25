@@ -281,17 +281,8 @@ extension MRRenderer {
     atomProvider: MRStaticAtomProvider,
     styleProvider: MRStaticStyleProvider
   ) {
-    let atomRadii = styleProvider.radii.map(Float16.init)
-#if arch(x86_64)
-    let atomColors: [SIMD3<Float16>] = []
-#else
-    let atomColors = styleProvider.colors.map(SIMD3<Float16>.init)
-#endif
-    
     accelBuilder.currentAtoms = atomProvider.atoms
-    accelBuilder.currentStyles = zip(atomColors, atomRadii).map {
-      MRAtomStyle(color: $0, radius: $1)
-    }
+    accelBuilder.currentStyles = styleProvider.styles
   }
   
   // Only call this once per frame.
