@@ -151,6 +151,13 @@ fileprivate class MyOpenMMData {
   }
 }
 
+fileprivate func myGetOpenMMState(
+  _ omm: MyOpenMMData, wantEnergy: Bool, timeInPs: inout Double,
+  atoms: [MyAtomInfo]
+) {
+  
+}
+
 fileprivate func myStepWithOpenMM(_ omm: MyOpenMMData, numSteps: Int) {
   // TODO
 }
@@ -162,13 +169,6 @@ fileprivate func myStepWithOpenMM(_ omm: MyOpenMMData, numSteps: Int) {
 fileprivate func myWriteMRFrame(
   _ omm: MyOpenMMData,
   frameNum: Int
-) {
-  
-}
-
-fileprivate func myGetOpenMMState(
-  _ omm: MyOpenMMData, wantEnergy: Bool, timeInPs: inout Double,
-  atoms: [MyAtomInfo]
 ) {
   
 }
