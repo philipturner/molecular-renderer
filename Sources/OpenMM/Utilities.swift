@@ -41,6 +41,19 @@ func _openmm_create<T, U>(
 }
 
 @inline(__always)
+func _openmm_create<T, U, V>(
+  _ argument1: T,
+  _ argument2: U,
+  _ argument3: V,
+  _ closure: (T, U, V) -> OpaquePointer?
+) -> OpaquePointer {
+  guard let result = closure(argument1, argument2, argument3) else {
+    fatalError("Could not initialize.")
+  }
+  return result
+}
+
+@inline(__always)
 func _openmm_get<S>(
   _ caller: OpaquePointer,
   _ closure: (OpaquePointer?) -> S?,

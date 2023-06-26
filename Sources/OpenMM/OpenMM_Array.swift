@@ -35,6 +35,11 @@ public class OpenMM_Vec3Array: OpenMM_Object {
     OpenMM_Vec3Array_destroy(pointer)
   }
   
+  public func append(_ vec: SIMD3<Double>) {
+    let _vector = OpenMM_Vec3(x: vec.x, y: vec.y, z: vec.z)
+    OpenMM_Vec3Array_append(pointer, _vector)
+  }
+  
   public var size: Int {
     let _size = OpenMM_Vec3Array_getSize(pointer)
     return Int(_size)

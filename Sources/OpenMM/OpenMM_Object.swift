@@ -41,6 +41,8 @@ public class OpenMM_Object {
     _retain = false
   }
   
+  /// Every subclass must declare a unique override to this function, including
+  /// subclasses of subclasses.
   public class func destroy(_ pointer: OpaquePointer) {
     fatalError("\(#function) not implemented.")
   }

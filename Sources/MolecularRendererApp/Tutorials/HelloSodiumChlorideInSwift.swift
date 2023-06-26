@@ -59,11 +59,14 @@ extension SimulationConstants {
   static var numSilentSteps: Int {
     Int(reportIntervalInFs / stepSizeInFs + 0.5)
   }
-  static func omm(platformName: inout String) -> MyOpenMMData {
+  static func omm(
+    provider: MRStaticStyleProvider, platformName: inout String
+  ) -> MyOpenMMData {
     MyOpenMMData(
-      atoms: atoms, temperature: temperature, frictionInPerPs: frictionInPerPs,
-      solventDielectric: solventDielectric, soluteDielectric: soluteDielectric,
-      stepSizeInFs: stepSizeInFs, platformName: &platformName)
+      atoms: atoms, styles: provider.styles, temperature: temperature,
+      frictionInPerPs: frictionInPerPs, solventDielectric: solventDielectric,
+      soluteDielectric: soluteDielectric, stepSizeInFs: stepSizeInFs,
+      platformName: &platformName)
   }
 }
 
@@ -72,7 +75,8 @@ func simulateSodiumChloride(
 ) -> OpenMM_DynamicAtomProvider {
   var time: Double = 0
   var platformName: String = ""
-  let omm = SimulationConstants.omm(platformName: &platformName)
+  let omm = SimulationConstants.omm(
+    provider: styleProvider, platformName: &platformName)
   myGetOpenMMState(
     omm, wantEnergy: SimulationConstants.wantEnergy, timeInPs: &time,
     atoms: SimulationConstants.atoms)
@@ -99,6 +103,7 @@ fileprivate class MyOpenMMData {
   
   init(
     atoms: [MyAtomInfo],
+    styles: [MRAtomStyle],
     temperature: Double,
     frictionInPerPs: Double,
     solventDielectric: Double,
@@ -108,16 +113,41 @@ fileprivate class MyOpenMMData {
   ) {
     OpenMM_Platform.loadPlugins(
       directory: OpenMM_Platform.defaultPluginsDirectory!)
+    self.system = OpenMM_System()
     
-    let system = OpenMM_System()
     let nonbond = OpenMM_NonbondedForce()
     let gbsa = OpenMM_GBSAOBCForce()
     nonbond.transfer()
-    system.addForce(nonbond)
+    self.system.addForce(nonbond)
     gbsa.transfer()
-    system.addForce(gbsa)
+    self.system.addForce(gbsa)
     
-    fatalError()
+    gbsa.solventDielectric = solventDielectric
+    gbsa.soluteDielectric = soluteDielectric
+    
+    let initialPosInNm = OpenMM_Vec3Array(size: 0)
+    for atom in atoms {
+      system.addParticle(mass: atom.mass)
+      nonbond.addParticle(
+        charge: atom.charge,
+        sigma: atom
+          .vdwRadiusInAng * OpenMM_NmPerAngstrom * OpenMM_SigmaPerVdwRadius,
+        epsilon: atom.vdwEnergyInKcal * OpenMM_KJPerKcal)
+      gbsa.addParticle(
+        charge: atom.charge,
+        radius: atom.gbsaRadiusInAng * OpenMM_NmPerAngstrom,
+        scalingFactor: atom.gbsaScaleFactor)
+      initialPosInNm.append(atom.initPosInAng * OpenMM_NmPerAngstrom)
+    }
+    
+    self.integrator = OpenMM_LangevinMiddleIntegrator(
+      temperature: temperature, frictionCoeff: frictionInPerPs,
+      stepSize: stepSizeInFs * OpenMM_PsPerFs)
+    self.context = OpenMM_Context(system: system, integrator: integrator)
+    context.positions = initialPosInNm
+    platformName = context.platform.name
+    
+    self.provider = OpenMM_DynamicAtomProvider(psPerStep: stepSizeInFs * OpenMM_PsPerFs, stepsPerFrame: SimulationConstants.numSilentSteps, styles: styles, elements: atoms.map(\.element))
   }
 }
 
