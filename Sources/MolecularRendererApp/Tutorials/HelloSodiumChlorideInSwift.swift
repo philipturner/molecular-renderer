@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import OpenMM
 import MolecularRenderer
+import OpenMM
 
 // Scope all the constants as `fileprivate`.
 fileprivate struct SimulationConstants {

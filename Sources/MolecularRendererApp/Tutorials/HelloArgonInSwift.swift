@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import OpenMM
 import MolecularRenderer
+import OpenMM
 
 func simulateArgon(
   styleProvider: MRStaticStyleProvider
