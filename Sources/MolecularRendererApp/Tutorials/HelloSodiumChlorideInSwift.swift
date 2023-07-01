@@ -177,13 +177,14 @@ fileprivate func myGetOpenMMState(
     atoms[n].posInAng = posArrayInNm[n] * OpenMM_AngstromsPerNm
   }
   
+  let timeRepr = String(format: "%.1f", timeInPs)
   energyInKT = 0
   if wantEnergy {
     let ktPerKJ: Double = 2.479
     energyInKT = (state.potentialEnergy + state.kineticEnergy) * ktPerKJ
-    
-    let timeRepr = String(format: "%.1f", timeInPs)
     print("time: \(timeRepr) ps, energy: \(energyInKT) kT")
+  } else {
+    print("time: \(timeRepr) ps")
   }
 }
 

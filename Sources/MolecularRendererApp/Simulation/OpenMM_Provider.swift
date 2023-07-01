@@ -23,6 +23,7 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
   private(set) var states: [[MRAtom]] = []
   
   private(set) var replayingFrameID: Int = 0
+  static let frameDelta: Int = 1 // 2 for screencasting, 1 otherwise
   
   // Specify each atom's atomic number beforehand; OpenMM doesn't provide that.
   init(
@@ -65,7 +66,8 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
   
   func logReplaySpeed(framesPerSecond: Int) {
     let psPerFrame = psPerStep * Double(stepsPerFrame)
-    let replaySpeed = Float(psPerFrame * Double(framesPerSecond))
+    var replaySpeed = Float(psPerFrame * Double(framesPerSecond))
+    replaySpeed *= Float(Self.frameDelta)
     print("Replaying at \(replaySpeed) ps/s.")
   }
   
@@ -75,11 +77,12 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
   
   // Move to the next frame. Call this **after** reading from the states.
   func nextFrame() {
-    self.replayingFrameID += 1
+    self.replayingFrameID += Self.frameDelta
     
     // If you reach the end, don't make forward progress.
-    if replayingFrameID >= states.count {
-      self.replayingFrameID -= 1
+    while replayingFrameID >= states.count {
+      self.replayingFrameID -= Self.frameDelta
+      self.replayingFrameID = max(self.replayingFrameID, 0)
     }
   }
 }
