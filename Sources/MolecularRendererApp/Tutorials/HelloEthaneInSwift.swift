@@ -11,8 +11,6 @@ import OpenMM
 
 // Scope all the constants as `fileprivate`.
 fileprivate struct SimulationConstants {
-  // TODO: Use `rint` when dividing by floating point numbers for time, to make
-  // sure they divide as if they were integers.
   static let useConstraints: Bool = false
   static let stepSizeInFs: Double = 2
   static let reportIntervalInFs: Double = 10
@@ -68,11 +66,13 @@ fileprivate struct TorsionType {
   ]
 }
 
+fileprivate typealias Atom = (
+  type: String, initPosInAng: SIMD3<Double>, posInAng: SIMD3<Double>
+)
+
 extension SimulationConstants {
   // Atoms are `var` for convenience, as we modify them frequently.
-  static var atoms: [(
-    type: String, initPosInAng: SIMD3<Double>, posInAng: SIMD3<Double>
-  )] = [
+  static var atoms: [Atom] = [
     ("C", [-0.7605,   0,   0   ], .zero),
     ("C", [ 0.7605,   0,   0   ], .zero),
     ("H", [-1.135,  1.03,  0   ], .zero), // bonded to C1
@@ -101,4 +101,32 @@ extension SimulationConstants {
     ("HCCH", [3, 0, 1, 5]), ("HCCH", [3, 0, 1, 6]), ("HCCH", [3, 0, 1, 7]),
     ("HCCH", [4, 0, 1, 5]), ("HCCH", [4, 0, 1, 6]), ("HCCH", [4, 0, 1, 7]),
   ]
+}
+
+fileprivate class MyOpenMMData {
+  var system: OpenMM_System
+  var integrator: OpenMM_Integrator
+  var context: OpenMM_Context
+  var provider: OpenMM_DynamicAtomProvider
+  
+  init(atoms: [Atom], stepSizeInFs: Double, platformName: inout String) {
+    let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory!
+    OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
+    self.system = OpenMM_System()
+    
+    let nonbond = OpenMM_NonbondedForce()
+    let bondStretch = OpenMM_HarmonicBondForce()
+    let bondBend = OpenMM_HarmonicAngleForce()
+    let bondTorsion = OpenMM_PeriodicTorsionForce()
+    nonbond.transfer()
+    bondStretch.transfer()
+    bondBend.transfer()
+    bondTorsion.transfer()
+    system.addForce(nonbond)
+    system.addForce(bondStretch)
+    system.addForce(bondBend)
+    system.addForce(bondTorsion)
+    
+    fatalError()
+  }
 }

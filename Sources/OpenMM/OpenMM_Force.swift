@@ -51,6 +51,28 @@ public class OpenMM_GBSAOBCForce: OpenMM_Force {
   }
 }
 
+public class OpenMM_HarmonicAngleForce: OpenMM_Force {
+  public override init() {
+    super.init(_openmm_create(OpenMM_HarmonicAngleForce_create))
+    self.retain()
+  }
+  
+  public override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_HarmonicAngleForce_destroy(pointer)
+  }
+}
+
+public class OpenMM_HarmonicBondForce: OpenMM_Force {
+  public override init() {
+    super.init(_openmm_create(OpenMM_HarmonicBondForce_create))
+    self.retain()
+  }
+  
+  public override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_HarmonicBondForce_destroy(pointer)
+  }
+}
+
 public class OpenMM_NonbondedForce: OpenMM_Force {
   public override init() {
     super.init(_openmm_create(OpenMM_NonbondedForce_create))
@@ -66,5 +88,16 @@ public class OpenMM_NonbondedForce: OpenMM_Force {
     let index = OpenMM_NonbondedForce_addParticle(
       pointer, charge, sigma, epsilon)
     return Int(index)
+  }
+}
+
+public class OpenMM_PeriodicTorsionForce: OpenMM_Force {
+  public override init() {
+    super.init(_openmm_create(OpenMM_PeriodicTorsionForce_create))
+    self.retain()
+  }
+  
+  public override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_PeriodicTorsionForce_destroy(pointer)
   }
 }
