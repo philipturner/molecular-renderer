@@ -84,7 +84,7 @@ class Renderer {
         styleProvider: staticStyleProvider)
     case .molecularSimulation:
       initOpenMM()
-      self.dynamicAtomProvider = simulateArgon(
+      self.dynamicAtomProvider = simulateSodiumChloride(
         styleProvider: staticStyleProvider)
       self.dynamicAtomProvider.reset()
       self.dynamicAtomProvider.logReplaySpeed(

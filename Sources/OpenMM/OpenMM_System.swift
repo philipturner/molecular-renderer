@@ -12,8 +12,16 @@ public class OpenMM_State: OpenMM_Object {
     OpenMM_State_destroy(pointer)
   }
   
+  public var kineticEnergy: Double {
+    _openmm_get(pointer, OpenMM_State_getKineticEnergy)
+  }
+  
   public var positions: OpenMM_Vec3Array {
     .init(_openmm_get(pointer, OpenMM_State_getPositions))
+  }
+  
+  public var potentialEnergy: Double {
+    _openmm_get(pointer, OpenMM_State_getPotentialEnergy)
   }
   
   public var time: Double {

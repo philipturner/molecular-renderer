@@ -73,20 +73,24 @@ extension SimulationConstants {
 func simulateSodiumChloride(
   styleProvider: MRStaticStyleProvider
 ) -> OpenMM_DynamicAtomProvider {
-  var time: Double = 0
   var platformName: String = ""
   let omm = SimulationConstants.omm(
     provider: styleProvider, platformName: &platformName)
+  
+  var atoms = SimulationConstants.atoms
+  var time: Double = 0
+  var energyInKT: Double = 0
+  
   myGetOpenMMState(
     omm, wantEnergy: SimulationConstants.wantEnergy, timeInPs: &time,
-    atoms: SimulationConstants.atoms)
+    energyInKT: &energyInKT, atoms: &atoms)
   myWriteMRFrame(omm, frameNum: 1)
   
   for frame in 2...SimulationConstants.numReports {
     myStepWithOpenMM(omm, numSteps: SimulationConstants.numSilentSteps)
     myGetOpenMMState(
       omm, wantEnergy: SimulationConstants.wantEnergy, timeInPs: &time,
-      atoms: SimulationConstants.atoms)
+      energyInKT: &energyInKT, atoms: &atoms)
     myWriteMRFrame(omm, frameNum: frame)
   }
   
@@ -147,19 +151,44 @@ fileprivate class MyOpenMMData {
     context.positions = initialPosInNm
     platformName = context.platform.name
     
-    self.provider = OpenMM_DynamicAtomProvider(psPerStep: stepSizeInFs * OpenMM_PsPerFs, stepsPerFrame: SimulationConstants.numSilentSteps, styles: styles, elements: atoms.map(\.element))
+    self.provider = OpenMM_DynamicAtomProvider(
+      psPerStep: stepSizeInFs * OpenMM_PsPerFs,
+      stepsPerFrame: SimulationConstants.numSilentSteps,
+      styles: styles, elements: atoms.map(\.element))
   }
 }
 
 fileprivate func myGetOpenMMState(
   _ omm: MyOpenMMData, wantEnergy: Bool, timeInPs: inout Double,
-  atoms: [MyAtomInfo]
+  energyInKT: inout Double, atoms: inout [MyAtomInfo]
 ) {
+  var infoMask = OpenMM_State_Positions.rawValue
+  if wantEnergy {
+    infoMask |= OpenMM_State_Velocities.rawValue
+    infoMask |= OpenMM_State_Energy.rawValue
+  }
   
+  let state = omm.context.state(
+    types: .init(rawValue: infoMask), enforcePeriodicBox: false)
+  timeInPs = state.time
+  
+  let posArrayInNm = state.positions
+  for n in 0..<atoms.count {
+    atoms[n].posInAng = posArrayInNm[n] * OpenMM_AngstromsPerNm
+  }
+  
+  energyInKT = 0
+  if wantEnergy {
+    let ktPerKJ: Double = 2.479
+    energyInKT = (state.potentialEnergy + state.kineticEnergy) * ktPerKJ
+    
+    let timeRepr = String(format: "%.1f", timeInPs)
+    print("time: \(timeRepr) ps, energy: \(energyInKT) kT")
+  }
 }
 
 fileprivate func myStepWithOpenMM(_ omm: MyOpenMMData, numSteps: Int) {
-  // TODO
+  omm.integrator.step(numSteps)
 }
 
 // Do not write to PDB; immediately render to DynamicAtomProvider. And instead
@@ -170,5 +199,13 @@ fileprivate func myWriteMRFrame(
   _ omm: MyOpenMMData,
   frameNum: Int
 ) {
-  
+  var numSteps: Int
+  if frameNum == 1 {
+    numSteps = 0
+  } else {
+    numSteps = SimulationConstants.numSilentSteps
+  }
+  let state = omm.context.state(
+    types: OpenMM_State_Positions, enforcePeriodicBox: false)
+  omm.provider.append(state: state, steps: numSteps)
 }

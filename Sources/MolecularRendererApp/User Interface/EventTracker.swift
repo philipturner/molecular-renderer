@@ -499,7 +499,6 @@ extension EventTracker {
     // Call this to use two different speeds for keys that can sprint.
     func delta(reading: KeyReading) -> Float {
       if reading.isDoublePressed {
-        print("Sprinting @ \(CACurrentMediaTime())")
         return 2 * positionDelta
         
       } else {
