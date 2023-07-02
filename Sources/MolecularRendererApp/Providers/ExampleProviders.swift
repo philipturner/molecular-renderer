@@ -26,6 +26,7 @@ struct ExampleProviders {
   static func adamantaneHabTool(
     styleProvider: MRStaticStyleProvider
   ) -> MRStaticAtomProvider {
+    // NOTE: You need to give the app permission to view this file.
     let adamantaneHabToolURL: URL = {
       let fileName = "adamantane-thiol-Hab-tool.pdb"
       let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"

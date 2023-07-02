@@ -104,6 +104,78 @@ public:
     
     return intersection;
   }
+  
+  typedef texture3d<ushort, access::read_write> uniform_grid;
+  
+  // Prototype of a function for uniform grid ray tracing. Instead of marking a
+  // cell in the cube texture, it will eventually perform an intersection test.
+  //
+  // Source: https://ieeexplore.ieee.org/document/7349894
+  static void traverse(ray ray, uniform_grid uniform_grid)
+  {
+    // The grid dimensions must be divisible by 2.
+    ushort3 grid_bounds(uniform_grid.get_width(),
+                        uniform_grid.get_height(),
+                        uniform_grid.get_depth());
+    float3 _stop = float3(grid_bounds);
+    _stop *= select(float3(0.5), float3(-0.5), ray.direction > 0);
+    float3 _dt = precise::divide(1, abs(ray.direction));
+    float3 _step = ray.direction / max3(abs(ray.direction.x),
+                                        abs(ray.direction.y),
+                                        abs(ray.direction.z));
+    
+    float3 dda_position = ray.origin - float3(grid_bounds) / 2;
+    float3 progress = 0;
+    while (true) {
+      uniform_grid.write(ushort4{ 1 }, ushort3(progress));
+      
+      // TODO: Abstract all of the code below, as well as all of the setup, into
+      // a differential_analyer class. That will let the `traverse` function be
+      // inlined into the main shader for profiling.
+      float i;
+      float t;
+      float step;
+      float dt;
+      float i_stop;
+      if (progress.x < progress.y && progress.x < progress.z) {
+        i = dda_position.x;
+        t = progress.x;
+        step = _step.x;
+        dt = _dt.x;
+        i_stop = _stop.x;
+      } else {
+        i = (progress.y < progress.z) ? dda_position.y : dda_position.z;
+        t = (progress.y < progress.z) ? progress.y : progress.z;
+        step = (progress.y < progress.z) ? _step.y : _step.z;
+        dt = (progress.y < progress.z) ? _dt.y : _dt.z;
+        i_stop = (progress.y < progress.z) ? _stop.y : _stop.z;
+      }
+      
+      float i_old_rounded = rint(i);
+      i += step;
+      t += dt;
+      float i_new_rounded = rint(i);
+      while (i_new_rounded == i_old_rounded) {
+        i += step;
+        t += dt;
+        i_new_rounded = rint(i);
+      }
+      
+      if (progress.x < progress.y && progress.x < progress.z) {
+        dda_position.x = i;
+        progress.x = t;
+      } else if (progress.y < progress.z) {
+        dda_position.y = i;
+        progress.y = t;
+      } else {
+        dda_position.z = i;
+        progress.z = t;
+      }
+      if (i_new_rounded == i_stop) {
+        break;
+      }
+    }
+  }
 };
 
 #endif

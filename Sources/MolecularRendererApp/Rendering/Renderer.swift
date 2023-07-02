@@ -48,7 +48,7 @@ class Renderer {
     // Visualize a noble gas simulation running in real-time.
     case molecularSimulation
   }
-  static let renderingMode: RenderingMode = .molecularSimulation
+  static let renderingMode: RenderingMode = .static
   
   // Geometry providers.
   var staticAtomProvider: MRStaticAtomProvider!
@@ -56,12 +56,6 @@ class Renderer {
   var nobleGasSimulator: NobleGasSimulator!
   var dynamicAtomProvider: OpenMM_DynamicAtomProvider!
   
-  // NOTE: You need to give the app permission to view this file.
-  static let adamantaneHabToolURL: URL = {
-    let fileName = "adamantane-thiol-Hab-tool.pdb"
-    let folder = "/Users/philipturner/Documents/OpenMM/Renders/Imports"
-    return URL(filePath: folder + "/" + fileName)
-  }()
   static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
   
   init(view: RendererView) {
@@ -80,7 +74,7 @@ class Renderer {
     self.staticStyleProvider = ExampleStyles.NanoStuff()
     switch Self.renderingMode {
     case .static:
-      self.staticAtomProvider = ExampleProviders.adamantaneHabTool(
+      self.staticAtomProvider = ExampleProviders.planetaryGearBox(
         styleProvider: staticStyleProvider)
     case .molecularSimulation:
       initOpenMM()
@@ -302,7 +296,7 @@ extension Renderer {
       position: playerState.position,
       rotation: azimuth * zenith,
       lightPower: Float16(staticStyleProvider.lightPower),
-      raySampleCount: 8)
+      raySampleCount: 3)
     
     renderer.render(layer: view.metalLayer) { [self] _ in
       renderSemaphore.signal()
