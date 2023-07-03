@@ -46,17 +46,14 @@ public:
 
 // MARK: - Pass 1
 
-// Set the global counter for pass 2 exactly after the last (padded) cell of the
-// grid, so they all zero out in a single call.
+constant uint pattern4 [[function_constant(0)]];
+
 kernel void memset_pattern4
 (
- device void *b [[buffer(0)]],
- constant void *pattern4 [[buffer(1)]],
+ device uint *b [[buffer(0)]],
  uint tid [[thread_position_in_grid]])
 {
-  auto _b = (device uint*)b;
-  auto _pattern4 = (constant uint*)pattern4;
-  _b[tid] = _pattern4[0];
+  b[tid] = pattern4;
 }
 
 kernel void dense_grid_pass1
