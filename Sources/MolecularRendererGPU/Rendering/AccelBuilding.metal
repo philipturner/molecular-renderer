@@ -9,6 +9,9 @@
 #include "MRAtom.metal"
 using namespace metal;
 
+// Cell width in nm.
+constant float cell_width = 0.5;
+
 struct uniform_grid_arguments {
   ushort grid_width;
 };
@@ -43,10 +46,7 @@ public:
 
 // MARK: - Pass 1
 
-// Cell width in nm.
-constant float cell_width = 0.5;
-
-// Set the global atomic for pass 2 exactly after the last (padded) cell of the
+// Set the global counter for pass 2 exactly after the last (padded) cell of the
 // grid, so they all zero out in a single call.
 kernel void memset_pattern4
 (
@@ -151,8 +151,6 @@ kernel void dense_grid_pass2
 
 // MARK: - Pass 3
 
-// Stores a copy of the atoms even though that's not strictly necessary. It is a
-// preparation for sparse grids.
 kernel void dense_grid_pass3
 (
  constant uniform_grid_arguments &args [[buffer(0)]],
@@ -160,8 +158,7 @@ kernel void dense_grid_pass3
  device MRAtom *atoms [[buffer(2)]],
  
  device atomic_uint *dense_grid_counters [[buffer(4)]],
- device MRAtom *dense_grid_atoms [[buffer(6)]],
- device ushort *references [[buffer(7)]],
+ device ushort *references [[buffer(6)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -173,8 +170,6 @@ kernel void dense_grid_pass3
   DenseGrid grid(args.grid_width);
   grid.apply_offset(box.min);
   grid.apply_offset(box.max);
-  
-  dense_grid_atoms[tid] = atom;
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   for (float x = floor(box.min.x); x < box.max.x; ++x) {

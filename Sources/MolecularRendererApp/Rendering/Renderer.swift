@@ -56,8 +56,6 @@ class Renderer {
   var nobleGasSimulator: NobleGasSimulator!
   var dynamicAtomProvider: OpenMM_DynamicAtomProvider!
   
-  static let initialPlayerPosition: SIMD3<Float> = [0, 0, 1]
-  
   init(view: RendererView) {
     self.view = view
     self.layer = view.layer as! CAMetalLayer

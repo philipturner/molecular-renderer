@@ -131,18 +131,19 @@ public class MRRenderer {
     encoder.endEncoding()
     commandBuffer.commit()
     
-    self.initAccelBuilder()
-    self.initRayTracingPipeline(url: metallibURL)
+    let library = try! device.makeLibrary(URL: metallibURL)
+    self.initAccelBuilder(library: library)
+    self.initRayTracingPipeline(library: library)
     self.initUpscaler()
   }
   
   
-  func initAccelBuilder() {
+  func initAccelBuilder(library: MTLLibrary) {
     self.accelBuilder = MRAccelBuilder(
-      device: device, commandQueue: commandQueue)
+      device: device, commandQueue: commandQueue, library: library)
   }
   
-  func initRayTracingPipeline(url: URL) {
+  func initRayTracingPipeline(library: MTLLibrary) {
     // Initialize resolution and aspect ratio for rendering.
     let constants = MTLFunctionConstantValues()
     
@@ -158,10 +159,8 @@ public class MRRenderer {
     constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
     
     // Initialize the compute pipeline.
-    let library = try! device.makeLibrary(URL: url)
     let function = try! library.makeFunction(
       name: "renderMain", constantValues: constants)
-    
     let desc = MTLComputePipelineDescriptor()
     desc.computeFunction = function
     desc.maxCallStackDepth = 5
@@ -397,6 +396,7 @@ extension MRRenderer {
     
     // Encode the geometry data.
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    accelBuilder.buildDenseGrid(encoder: encoder)
     encoder.setComputePipelineState(rayTracingPipeline)
   
     withUnsafeTemporaryAllocation(

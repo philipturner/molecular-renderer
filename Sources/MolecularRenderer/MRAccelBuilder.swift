@@ -6,6 +6,7 @@
 //
 
 import Metal
+import simd
 
 // Partially sourced from:
 // https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
@@ -44,11 +45,28 @@ public class MRAccelBuilder {
   var scratchBuffers: [MTLBuffer?] = Array(repeating: nil, count: 2)
   var accels: [MTLAccelerationStructure?] = Array(repeating: nil, count: 2)
   
+  // Data for uniform grids.
+  var denseGridAtoms: MTLBuffer?
+  var denseGridData: MTLBuffer?
+  var denseGridCounters: MTLBuffer?
+  var denseGridReferences: MTLBuffer?
+  var globalCounterBuffer: MTLBuffer
+  
+  // Pipeline state objects.
+  var memsetPipeline: MTLComputePipelineState
+  var densePass1Pipeline: MTLComputePipelineState
+  var densePass2Pipeline: MTLComputePipelineState
+  var densePass3Pipeline: MTLComputePipelineState
+  
   // Keep track of memory sizes for exponential expansion.
   var maxAtomBufferSize: Int = 1 << 10
   var maxBoundingBoxBufferSize: Int = 1 << 10
   var maxScratchBufferSize: Int = 1 << 10
   var maxAccelSize: Int = 1 << 10
+  var maxAtoms: Int = 1 << 1
+  var maxGridSlots: Int = 1 << 1
+  var maxGridCells: Int = 1 << 1
+  var maxGridReferences: Int = 1 << 1
   
   // Indices into ring buffers of memory objects.
   var atomBufferIndex: Int = 0 // modulo 3
@@ -56,9 +74,31 @@ public class MRAccelBuilder {
   var scratchBufferIndex: Int = 0 // modulo 2
   var accelIndex: Int = 0 // modulo 2
   
-  public init(device: MTLDevice, commandQueue: MTLCommandQueue) {
+  public init(
+    device: MTLDevice,
+    commandQueue: MTLCommandQueue,
+    library: MTLLibrary
+  ) {
     self.device = device
     self.commandQueue = commandQueue
+    
+    let memsetFunction = library.makeFunction(name: "memset_pattern4")!
+    self.memsetPipeline = try! device
+      .makeComputePipelineState(function: memsetFunction)
+    
+    let densePass1Function = library.makeFunction(name: "dense_grid_pass1")!
+    self.densePass1Pipeline = try! device
+      .makeComputePipelineState(function: densePass1Function)
+    
+    let densePass2Function = library.makeFunction(name: "dense_grid_pass2")!
+    self.densePass2Pipeline = try! device
+      .makeComputePipelineState(function: densePass2Function)
+    
+    let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
+    self.densePass3Pipeline = try! device
+      .makeComputePipelineState(function: densePass3Function)
+    
+    self.globalCounterBuffer = device.makeBuffer(length: 4)!
   }
 }
 
@@ -281,5 +321,130 @@ extension MRAccelBuilder {
     // Re-assign the current acceleration structure to the compacted one.
     append(compactedAccel, to: &accels, index: &accelIndex)
     return compactedAccel
+  }
+}
+
+extension MRAccelBuilder {
+  // Utility for exponentially expanding memory allocations.
+  private func allocate(
+    _ buffer: inout MTLBuffer?,
+    currentMaxElements: inout Int,
+    desiredElements: Int,
+    bytesPerElement: Int
+  ) -> MTLBuffer {
+    if let buffer, currentMaxElements >= desiredElements {
+      return buffer
+    }
+    while currentMaxElements < desiredElements {
+      currentMaxElements = currentMaxElements << 1
+    }
+    
+    let bufferSize = currentMaxElements * bytesPerElement
+    let newBuffer = device.makeBuffer(length: bufferSize)!
+    buffer = newBuffer
+    return newBuffer
+  }
+  
+  internal func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
+    // Find the grid size.
+    var elementInstances: [Int] = .init(
+      repeating: 0, count: currentStyles.count)
+    var minCoordinates: SIMD3<Float> = .zero
+    var maxCoordinates: SIMD3<Float> = .zero
+    for atom in currentAtoms {
+      elementInstances[Int(atom.element)] += 1
+      
+      let radius = atom.getRadius(styles: currentStyles)
+      minCoordinates = min(atom.origin - Float(radius), minCoordinates)
+      maxCoordinates = min(atom.origin + Float(radius), maxCoordinates)
+    }
+    let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
+    
+    let cellWidth: Float = 0.5
+    let gridWidth = Int(2 * ceil(maxMagnitude / 0.5))
+    let totalCells = gridWidth * gridWidth * gridWidth
+    
+    // Find the number of references.
+    var numReferences = 0
+    for (index, numAtoms) in elementInstances.enumerated() {
+      // Doesn't support checkerboard-patterned atoms yet.
+      let radius = Float(currentStyles[index].radius)
+      
+      let epsilon: Float = 0.001
+      var diameterCellSpan = (2 * radius + epsilon) / cellWidth
+      diameterCellSpan = ceil(diameterCellSpan)
+      let maxCells = diameterCellSpan * diameterCellSpan * diameterCellSpan
+      numReferences += numAtoms * Int(maxCells)
+    }
+    
+    // Allocate new memory.
+    let numAtoms = currentAtoms.count
+    let atomsBuffer = allocate(
+      &denseGridAtoms,
+      currentMaxElements: &maxAtoms,
+      desiredElements: numAtoms,
+      bytesPerElement: 16)
+    
+    let paddedCells = (totalCells + 127) / 128 * 128
+    let numSlots = paddedCells + 1 // include global counter
+    let dataBuffer = allocate(
+      &denseGridData,
+      currentMaxElements: &maxGridSlots,
+      desiredElements: numSlots,
+      bytesPerElement: 4)
+    let countersBuffer = allocate(
+      &denseGridCounters,
+      currentMaxElements: &maxGridCells,
+      desiredElements: totalCells,
+      bytesPerElement: 4)
+    
+    let referencesBuffer = allocate(
+      &denseGridReferences,
+      currentMaxElements: &maxGridReferences,
+      desiredElements: numReferences,
+      bytesPerElement: 2)
+    
+    encoder.setComputePipelineState(memsetPipeline)
+    encoder.setBuffer(dataBuffer, offset: 0, index: 0)
+    var pattern4: UInt32 = 0
+    encoder.setBytes(&pattern4, length: 4, index: 1)
+    encoder.dispatchThreads(
+      MTLSizeMake(paddedCells, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
+    
+    // For some reason, Metal Frame Capture fails when we merge the atomic and
+    // the grid into the same buffer.
+    encoder.setBuffer(globalCounterBuffer, offset: 0, index: 0)
+    encoder.dispatchThreads(
+      MTLSizeMake(1, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(32, 1, 1))
+    
+    var constants: UInt16 = UInt16(gridWidth)
+    encoder.setBytes(&constants, length: 2, index: 0)
+    currentStyles.withUnsafeBufferPointer {
+      let length = $0.count * MemoryLayout<MRAtomStyle>.stride
+      encoder.setBytes($0.baseAddress!, length: length, index: 1)
+    }
+    encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(dataBuffer, offset: 0, index: 3)
+    encoder.setBuffer(countersBuffer, offset: 0, index: 4)
+//    encoder.setBuffer(dataBuffer, offset: paddedCells * 4, index: 5)
+    encoder.setBuffer(globalCounterBuffer, offset: 0, index: 5)
+    encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
+    
+    encoder.setComputePipelineState(densePass1Pipeline)
+    encoder.dispatchThreads(
+      MTLSizeMake(numAtoms, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(64, 1, 1))
+    
+    encoder.setComputePipelineState(densePass2Pipeline)
+    encoder.dispatchThreadgroups(
+      MTLSizeMake(paddedCells / 128, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    
+    encoder.setComputePipelineState(densePass3Pipeline)
+    encoder.dispatchThreads(
+      MTLSizeMake(numAtoms, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(64, 1, 1))
   }
 }
