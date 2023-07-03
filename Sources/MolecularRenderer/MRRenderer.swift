@@ -425,8 +425,8 @@ extension MRRenderer {
       [textures.color, textures.depth, textures.motion], range: 0..<3)
     
     // Dispatch an even number of threads (the shader will rearrange them).
-    let numThreadgroupsX = (upscaledSize.x + 15) / 16
-    let numThreadgroupsY = (upscaledSize.y + 15) / 16
+    let numThreadgroupsX = (intermediateSize.x + 15) / 16
+    let numThreadgroupsY = (intermediateSize.y + 15) / 16
     encoder.dispatchThreadgroups(
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(16, 16, 1))
