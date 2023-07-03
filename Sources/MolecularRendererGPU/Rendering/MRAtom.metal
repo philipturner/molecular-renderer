@@ -46,7 +46,7 @@ MRAtom {
   }
   
   MRAtom(constant MRAtomStyle* styles,
-       float3 origin, uchar element, uchar flags = 0) {
+         float3 origin, uchar element, uchar flags = 0) {
     this->origin = origin;
     this->element = element;
     this->flags = flags;
