@@ -10,7 +10,6 @@ import AppKit
 import KeyCodes
 import simd
 
-
 // Stores the events that occurred this frame, performs certain actions based on
 // each event, then clears the list of events when necessary.
 class EventTracker {
