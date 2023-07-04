@@ -51,6 +51,9 @@ Arguments {
   float exponentialFalloffDecayConstant;
   float minimumAmbientIllumination;
   float diffuseReflectanceScale;
+  
+  // Uniform grid arguments.
+  ushort grid_width;
 };
 
 #endif

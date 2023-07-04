@@ -67,6 +67,7 @@ public class MRAccelBuilder {
   var maxGridSlots: Int = 1 << 1
   var maxGridCells: Int = 1 << 1
   var maxGridReferences: Int = 1 << 1
+  var gridWidth: Int = 0
   
   // Indices into ring buffers of memory objects.
   var atomBufferIndex: Int = 0 // modulo 3
@@ -451,7 +452,7 @@ extension MRAccelBuilder {
     let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
 
     let cellWidth: Float = 0.5
-    let gridWidth = Int(2 * ceil(maxMagnitude / cellWidth))
+    self.gridWidth = max(Int(2 * ceil(maxMagnitude / cellWidth)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
     let numReferences = statistics.references
     
@@ -518,5 +519,17 @@ extension MRAccelBuilder {
     encoder.dispatchThreads(
       MTLSizeMake(numAtoms, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+  }
+  
+  // Call this after encoding the grid construction.
+  internal func setGridWidth(arguments: inout Arguments) {
+    precondition(gridWidth > 0, "Forgot to encode the grid construction.")
+    arguments.gridWidth = UInt16(self.gridWidth)
+  }
+  
+  internal func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
+    encoder.setBuffer(denseGridAtoms!, offset: 0, index: 3)
+    encoder.setBuffer(denseGridData!, offset: 0, index: 4)
+    encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
   }
 }

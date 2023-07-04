@@ -37,6 +37,8 @@ internal struct Arguments {
   var exponentialFalloffDecayConstant: Float
   var minimumAmbientIllumination: Float
   var diffuseReflectanceScale: Float
+  
+  var gridWidth: UInt16
 }
 
 public class MRRenderer {
@@ -313,7 +315,9 @@ extension MRRenderer {
       maxRayHitTime: maxRayHitTime,
       exponentialFalloffDecayConstant: decayConstant,
       minimumAmbientIllumination: minimumAmbientIllumination,
-      diffuseReflectanceScale: diffuseReflectanceScale)
+      diffuseReflectanceScale: diffuseReflectanceScale,
+    
+      gridWidth: 0)
   }
   
   private func fovMultiplier(fovDegrees: Float) -> Float {
@@ -397,8 +401,10 @@ extension MRRenderer {
     // Encode the geometry data.
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     accelBuilder.buildDenseGrid(encoder: encoder)
+    
     encoder.setComputePipelineState(rayTracingPipeline)
-  
+    accelBuilder.encodeGridArguments(encoder: encoder)
+    accelBuilder.setGridWidth(arguments: &currentArguments!)
     withUnsafeTemporaryAllocation(
       of: Arguments.self, capacity: 2
     ) { bufferPointer in

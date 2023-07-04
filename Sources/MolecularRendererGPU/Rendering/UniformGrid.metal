@@ -5,6 +5,9 @@
 //  Created by Philip Turner on 7/4/23.
 //
 
+#ifndef UNIFORM_GRID_H
+#define UNIFORM_GRID_H
+
 #include <metal_stdlib>
 using namespace metal;
 using namespace raytracing;
@@ -23,7 +26,8 @@ constant uint cell_offset_mask = 0x000FFFFF;
 constant uint cell_count_mask = 0xFFF00000;
 
 class DenseGrid {
-  // TODO: Store this in half-precision and upcast to FP32 before using.
+  // TODO: Store this in half-precision and upcast to FP32 before using. Once we
+  // implement sparse grids, it should be a function constant.
   float grid_width; // up to 128 (64 nm)
   // total voxels up to 2^21
   
@@ -143,3 +147,5 @@ public:
 };
 
 #pragma clang diagnostic pop
+
+#endif

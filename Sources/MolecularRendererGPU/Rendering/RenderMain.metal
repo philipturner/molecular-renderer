@@ -10,6 +10,7 @@
 #include "Lighting.metal"
 #include "RayTracing.metal"
 #include "RayGeneration.metal"
+#include "UniformGrid.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -19,9 +20,13 @@ kernel void renderMain
   constant MRAtomStyle *styles [[buffer(1)]],
   accel accel [[buffer(2)]],
   
-  texture2d<half, access::write> colorTexture [[texture(0)]],
-  texture2d<float, access::write> depthTexture [[texture(1)]],
-  texture2d<half, access::write> motionTexture [[texture(2)]],
+  device MRAtom *atoms [[buffer(3)]],
+  device uint *dense_grid_data [[buffer(4)]],
+  device ushort *dense_grid_references [[buffer(5)]],
+  
+  texture2d<half, access::write> color_texture [[texture(0)]],
+  texture2d<float, access::write> depth_texture [[texture(1)]],
+  texture2d<half, access::write> motion_texture [[texture(2)]],
   
   ushort2 tid [[thread_position_in_grid]],
   ushort2 tgid [[threadgroup_position_in_grid]],
@@ -121,5 +126,5 @@ kernel void renderMain
     colorCtx.generateMotionVector(hitPoint);
   }
   
-  colorCtx.write(colorTexture, depthTexture, motionTexture);
+  colorCtx.write(color_texture, depth_texture, motion_texture);
 }
