@@ -79,7 +79,7 @@ MRAtom {
                   as_type<uint>(origin.z));
     uint hash32 = upper12[0] ^ upper12[1] ^ upper12[2];
     
-    // Breaks associativity among elements of the vector.
+    // Breaks commutativity among elements of the vector.
     constexpr float multiplier_1 = 2.548385;
     constexpr float multiplier_2 = 3.379348;
     float fhash = fma(origin.y, multiplier_2, origin.z);

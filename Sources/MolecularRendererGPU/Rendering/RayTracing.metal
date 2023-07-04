@@ -11,6 +11,7 @@
 #include <metal_stdlib>
 #include "Constants.metal"
 #include "MRAtom.metal"
+#include "UniformGrid.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -117,63 +118,78 @@ public:
     ushort3 grid_bounds(uniform_grid.get_width(),
                         uniform_grid.get_height(),
                         uniform_grid.get_depth());
-    float3 _stop = float3(grid_bounds);
-    _stop *= select(float3(0.5), float3(-0.5), ray.direction > 0);
-    float3 _dt = precise::divide(1, abs(ray.direction));
-    float3 _step = ray.direction / max3(abs(ray.direction.x),
-                                        abs(ray.direction.y),
-                                        abs(ray.direction.z));
     
-    float3 dda_position = ray.origin - float3(grid_bounds) / 2;
+    float min_dt = precise::divide(1, max3(ray.direction.x,
+                                           ray.direction.y,
+                                           ray.direction.z));
+    float grid_width = float(uniform_grid.get_width());
+    
+    float3 dda_position = ray.origin + float3(grid_bounds) / 2;
+    half3 dda_rounded = half3(rint(dda_position));
     float3 progress = 0;
-    while (true) {
-      uniform_grid.write(ushort4{ 1 }, ushort3(progress));
+    
+    uint current_mask = 0;
+    uint finished_mask = as_type<uint>(ushort2(1, 1));
+    while (current_mask != finished_mask) {
+      uniform_grid.write(ushort4{ 1 }, ushort3(dda_rounded));
       
-      // TODO: Abstract all of the code below, as well as all of the setup, into
-      // a differential_analyer class. That will let the `traverse` function be
-      // inlined into the main shader for profiling.
       float i;
-      float t;
-      float step;
-      float dt;
-      float i_stop;
-      if (progress.x < progress.y && progress.x < progress.z) {
+      half i_r;
+      float t; // change to half-precision number containing the # of steps
+      float dir;
+      
+      ushort is_x = (progress.x < progress.y && progress.x < progress.z);
+      if (is_x) {
         i = dda_position.x;
+        i_r = dda_rounded.x;
         t = progress.x;
-        step = _step.x;
-        dt = _dt.x;
-        i_stop = _stop.x;
+        dir = ray.direction.x;
       } else {
         i = (progress.y < progress.z) ? dda_position.y : dda_position.z;
+        i_r = (progress.y < progress.z) ? dda_rounded.y : dda_rounded.z;
         t = (progress.y < progress.z) ? progress.y : progress.z;
-        step = (progress.y < progress.z) ? _step.y : _step.z;
-        dt = (progress.y < progress.z) ? _dt.y : _dt.z;
-        i_stop = (progress.y < progress.z) ? _stop.y : _stop.z;
+        dir = (progress.y < progress.z) ? ray.direction.y : ray.direction.z;
       }
       
-      float i_old_rounded = rint(i);
-      i += step;
+      // This is numerically unstable for very small T. At that point, the
+      // direction with zero motion wouldn't generate any deltas (we can
+      // effectively clamp it to zero).
+      //
+      // TODO: Set `progress` to FLT_MAX for such numbers, set the DDA position
+      // to the center of the pixel, and mutate `ray.direction` to something
+      // very small, but still processed correctly by fast math.
+      float dt = fast::divide(1, abs(dir));
+      i = fma(dir, min_dt, i);
       t += dt;
-      float i_new_rounded = rint(i);
-      while (i_new_rounded == i_old_rounded) {
-        i += step;
+      
+      // Eliminate this while loop because adversarial slopes cause infinite
+      // iterations.
+      while (abs(i - i_r) < 0.5) {
+        i = fma(dir, min_dt, i);
         t += dt;
-        i_new_rounded = rint(i);
+        
+        // Modify a different `t_contrib` that is FMA'ed during the divergent
+        // store part.
       }
       
-      if (progress.x < progress.y && progress.x < progress.z) {
+      float i_new_rounded = rint(i);
+      if (is_x) {
         dda_position.x = i;
+        dda_rounded.x = half(i_new_rounded);
         progress.x = t;
       } else if (progress.y < progress.z) {
         dda_position.y = i;
+        dda_rounded.y = half(i_new_rounded);
         progress.y = t;
       } else {
         dda_position.z = i;
+        dda_rounded.z = half(i_new_rounded);
         progress.z = t;
       }
-      if (i_new_rounded == i_stop) {
-        break;
-      }
+      
+      ushort cond1 = (i_new_rounded >= 0) ? 1 : 0;
+      ushort cond2 = (i_new_rounded < grid_width) ? 1 : 0;
+      current_mask = as_type<uint>(ushort2(cond1, cond2));
     }
   }
 };

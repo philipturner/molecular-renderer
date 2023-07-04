@@ -84,7 +84,7 @@ public class MRAccelBuilder {
     
     let constants = MTLFunctionConstantValues()
     var pattern4: UInt32 = 0
-    constants.setConstantValue(&pattern4, type: .uint, index: 0)
+    constants.setConstantValue(&pattern4, type: .uint, index: 10)
     
     let memsetFunction = try! library.makeFunction(
       name: "memset_pattern4", constantValues: constants)

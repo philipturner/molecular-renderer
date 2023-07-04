@@ -7,46 +7,16 @@
 
 #include <metal_stdlib>
 #include "MRAtom.metal"
+#include "UniformGrid.metal"
 using namespace metal;
-
-// Cell width in nm.
-constant float cell_width = 0.5;
 
 struct uniform_grid_arguments {
   ushort grid_width;
 };
 
-class DenseGrid {
-  float grid_width; // up to 128 (64 nm)
-  // total voxels up to 2^21
-  
-public:
-  DenseGrid(ushort grid_width) {
-    this->grid_width = float(grid_width);
-  }
-  
-  float3 apply_offset(float3 position) {
-    return position + grid_width * 0.5;
-  }
-  
-  float address(float3 coords) {
-    float output = fma(coords.y, grid_width, coords.x);
-    return fma(coords.z, grid_width * grid_width, output);
-  }
-  
-  uint read(device uint* data, float3 coords) {
-    return data[uint(address(coords))];
-  }
-  
-  uint increment(device atomic_uint* data, float3 coords) {
-    auto object = data + uint(address(coords));
-    return atomic_fetch_add_explicit(object, 1, memory_order_relaxed);
-  }
-};
-
 // MARK: - Pass 1
 
-constant uint pattern4 [[function_constant(0)]];
+constant uint pattern4 [[function_constant(10)]];
 
 kernel void memset_pattern4
 (
@@ -86,13 +56,6 @@ kernel void dense_grid_pass1
 }
 
 // MARK: - Pass 2
-
-// Max 1 million atoms/dense grid, including duplicated references.
-// Max 65536 atoms/dense grid, excluding duplicated references.
-constant uint cell_offset_mask = 0x000FFFFF;
-
-// Max 4096 atoms/cell. This is stored in opposite-endian order to the offset.
-constant uint cell_count_mask = 0xFFF00000;
 
 kernel void dense_grid_pass2
 (
