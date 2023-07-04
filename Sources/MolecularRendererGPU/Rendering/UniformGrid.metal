@@ -51,8 +51,10 @@ public:
   
 private:
   float address(float3 coords) const {
-    float output = fma(coords.y, grid_width, coords.x);
-    return fma(coords.z, grid_width * grid_width, output);
+//    float output = fma(coords.y, grid_width, coords.x);
+//    return fma(coords.z, grid_width * grid_width, output);
+    
+    return uint(rint(coords.z)) * uint(grid_width) * uint(grid_width) + uint(rint(coords.y)) * uint(grid_width) + uint(rint(coords.x));
   }
   
 public:
@@ -85,7 +87,7 @@ public:
     this->references = references;
   }
   
-  void set_iterator(half3 coords, thread ushort *error_code) {
+  void set_iterator(float3 coords, thread ushort *error_code) {
     uint raw_data = read(data, float3(coords));
     
     if (*error_code == 0) {
@@ -122,20 +124,21 @@ public:
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
 class DifferentialAnalyzer {
+  typedef float real;
+  
   float3 dt;
-  half3 position;
-  half3 step;
-  half3 stop;
+  vec<real, 3> position;
+  vec<real, 3> step;
+  vec<real, 3> stop;
   float3 t;
   bool continue_loop;
   
 public:
   DifferentialAnalyzer(ray ray, DenseGrid grid) {
-    half grid_width = grid.get_width();
+    real grid_width = grid.get_width();
     float tmin = 0;
     float tmax = INFINITY;
     
-    // TODO: Follow the paper literally when making `dt`.
     dt = precise::divide(1, ray.direction);
     
     // The grid's coordinate space is in half-nanometers.
@@ -161,15 +164,15 @@ public:
     for (int i = 0; i < 3; ++i) {
       float direction = ray.direction[i];
       float origin = ray.origin[i];
-      position[i] = (direction > 0) ? floor(origin) : ceil(origin);
-      step[i] = (direction > 0) ? 1 : -1;
-      stop[i] = (direction > 0) ? grid_width : -1;
+      position[i] = (direction >= 0) ? floor(origin) : ceil(origin);
+      step[i] = (direction >= 0) ? 1 : -1;
+      stop[i] = (direction >= 0) ? grid_width : -1;
       
       // `t` is actually the future `t`. When incrementing each dimension's `t`,
       // which one will produce the smallest `t`? This dimension gets the
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
-      t[i] = float(position[i] - origin) * dt[i] + abs(dt[i]);
+      t[i] = -abs(float(position[i] - origin)) * abs(dt[i]) ;//+ abs(dt[i]);
     }
   }
   
@@ -184,7 +187,7 @@ public:
   }
   
   // This value is undefined when the loop should be stopped.
-  half3 get_position() const {
+  vec<real, 3> get_position() const {
     return position;
   }
   
@@ -196,11 +199,11 @@ public:
     uint desired = as_type<uint>(ushort2(1, 1));
     
 //    if (as_type<uint>(cond_mask) == desired) {
-    if (t.x < t.y && t.x < t.z) {
+    if (t.x + abs(dt.x) < t.y + abs(dt.y) && t.x + abs(dt.x) < t.z + abs(dt.z)) {
       position.x += step.x;
       t.x += abs(dt.x);
       continue_loop = (position.x != stop.x);
-    } else if (t.y < t.z) {
+    } else if (t.y + abs(dt.y) < t.z + abs(dt.z)) {
       position.y += step.y;
       t.y += abs(dt.y);
       continue_loop = (position.y != stop.y);
