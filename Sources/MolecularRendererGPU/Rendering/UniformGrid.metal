@@ -23,6 +23,7 @@ constant uint cell_offset_mask = 0x000FFFFF;
 constant uint cell_count_mask = 0xFFF00000;
 
 class DenseGrid {
+  // TODO: Store this in half-precision and upcast to FP32 before using.
   float grid_width; // up to 128 (64 nm)
   // total voxels up to 2^21
   
@@ -58,27 +59,86 @@ public:
   }
 };
 
+// Sources:
+// - https://tavianator.com/2022/ray_box_boundary.html
+// - https://ieeexplore.ieee.org/document/7349894
 class DifferentialAnalyzer {
-  DenseGrid grid;
-  float3 xyz;
-  float3 xyz_t;
-  float grid_width;
-  float min_dt;
+  float3 dt;
+  half3 position;
+  half3 step;
+  half3 stop;
+  float3 t;
+  bool continue_loop;
   
 public:
-  // Need to adjust the ray's origin, so it starts inside the box. This probably
-  // requires a ray-box intersection test.
   DifferentialAnalyzer(ray ray, DenseGrid grid) {
-    this->grid = grid;
-    this->xyz = grid.apply_offset(ray.origin);
-    this->xyz_t = float3(0);
+    half grid_width = grid.get_width();
+    float tmin = 0;
+    float tmax = INFINITY;
+    dt = precise::divide(1, ray.direction);
     
-    // When implementing sparse grids, the width and multiplier will be function
-    // constants.
-    this->grid_width = grid.get_width();
-    this->min_dt = precise::divide(1, max3(ray.direction.x,
-                                           ray.direction.y,
-                                           ray.direction.z));
+    // Dense grids start at an offset from the origin.
+    ray.origin += grid_width * 0.5;
+    
+    // Perform a ray-box intersection test.
+#pragma clang loop unroll(full)
+    for (int i = 0; i < 3; ++i) {
+      float t1 = (0 - ray.origin[i]) * dt[i];
+      float t2 = (grid_width - ray.origin[i]) * dt[1];
+      tmin = max(tmin, min(min(t1, t2), tmax));
+      tmax = min(tmax, max(max(t1, t2), tmin));
+    }
+    
+    // Adjust the origin so it starts in the grid.
+    continue_loop = (tmin < tmax);
+    ray.origin += tmin * ray.direction;
+    
+#pragma clang loop unroll(full)
+    for (int i = 0; i < 3; ++i) {
+      float direction = ray.direction[i];
+      float origin = ray.origin[i];
+      position[i] = (direction > 0) ? floor(origin) : ceil(origin);
+      step[i] = (direction > 0) ? 1 : -1;
+      stop[i] = (direction > 0) ? grid_width : -1;
+      
+      // `t` is actually the future `t`. When incrementing each dimension's `t`,
+      // which one will produce the smallest `t`? This dimension gets the
+      // increment because we want to intersect the closest voxel, which hasn't
+      // been tested yet.
+      t[i] = float(position[i] - origin) * dt[i] + abs(dt[i]);
+    }
+  }
+  
+  // Call this just before running the intersection test.
+  bool get_continue_loop() const {
+    return continue_loop;
+  }
+  
+  // This value is undefined when the loop should be stopped.
+  half3 get_position() const {
+    return position;
+  }
+  
+  // Call this after, not before, running the intersection test.
+  void update_position() {
+    ushort2 cond_mask;
+    cond_mask[0] = (t.x < t.y) ? 1 : 0;
+    cond_mask[1] = (t.x < t.z) ? 1 : 0;
+    uint desired = as_type<uint>(ushort2(1, 1));
+    
+    if (as_type<uint>(cond_mask) == desired) {
+      position.x += step.x;
+      t.x += abs(t.x);
+      continue_loop = (position.x != stop.x);
+    } else if (t.y < t.z) {
+      position.y += step.y;
+      t.y += abs(t.y);
+      continue_loop = (position.y != stop.y);
+    } else {
+      position.z += step.z;
+      t.z += abs(t.z);
+      continue_loop = (position.z != stop.z);
+    }
   }
 };
 
