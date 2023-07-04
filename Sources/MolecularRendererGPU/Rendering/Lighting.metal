@@ -171,8 +171,31 @@ public:
   
   void write(texture2d<half, access::write> colorTexture,
              texture2d<float, access::write> depthTexture,
-             texture2d<half, access::write> motionTexture)
+             texture2d<half, access::write> motionTexture,
+             ushort error_code)
   {
+    if (error_code == 0) {
+      // do nothing
+    } else if (error_code == 1) {
+      // red
+      color = half3(1, 0, 0);
+    } else if (error_code == 2) {
+      // orange
+      color = half3(0.707, 0.707, 0);
+    } else if (error_code == 3) {
+      // green
+      color = half3(0, 1, 0);
+    } else if (error_code == 4) {
+      // cyan
+      color = half3(0, 0.707, 0.707);
+    } else if (error_code == 5) {
+      // blue
+      color = half3(0, 0, 1);
+    } else if (error_code == 6) {
+      // magenta
+      color = half3(0.707, 0, 0.707);
+    }
+    
     // Write the output color.
     half4 writtenColor(color, 1);
     colorTexture.write(writtenColor, pixelCoords);

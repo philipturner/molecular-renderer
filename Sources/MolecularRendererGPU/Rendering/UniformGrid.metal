@@ -85,12 +85,25 @@ public:
     this->references = references;
   }
   
-  void set_iterator(half3 coords) {
+  void set_iterator(half3 coords, thread ushort *error_code) {
     uint raw_data = read(data, float3(coords));
-    uint cell_count = reverse_bits(raw_data) & cell_count_mask;
+    
+    if (*error_code == 0) {
+      if (raw_data == 0) {
+        *error_code = 1; // never happens
+      } else if ((raw_data & cell_offset_mask) == 0) {
+        *error_code = 2; // happens in a small chunk of cells (maybe 1 cell)
+      } else if ((raw_data & cell_count_mask) == 0) {
+//        *error_code = 3; // not relevant; this is perfectly fine
+      } else {
+        *error_code = 4; // quite often: hit the grid but didn't hit atoms
+      }
+    }
+    
+    uint cell_count = reverse_bits(raw_data & cell_count_mask);
     uint cell_offset = raw_data & cell_offset_mask;
     uint cell_end = cell_offset + cell_count;
-    iterator = int(cell_offset - 1);
+    iterator = int(cell_offset) - 1;
     iterator_end = int(cell_end);
   }
   
@@ -121,6 +134,8 @@ public:
     half grid_width = grid.get_width();
     float tmin = 0;
     float tmax = INFINITY;
+    
+    // TODO: Follow the paper literally when making `dt`.
     dt = precise::divide(1, ray.direction);
     
     // The grid's coordinate space is in half-nanometers.
@@ -133,7 +148,7 @@ public:
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float t1 = (0 - ray.origin[i]) * dt[i];
-      float t2 = (grid_width - ray.origin[i]) * dt[1];
+      float t2 = (grid_width - ray.origin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
@@ -180,17 +195,18 @@ public:
     cond_mask[1] = (t.x < t.z) ? 1 : 0;
     uint desired = as_type<uint>(ushort2(1, 1));
     
-    if (as_type<uint>(cond_mask) == desired) {
+//    if (as_type<uint>(cond_mask) == desired) {
+    if (t.x < t.y && t.x < t.z) {
       position.x += step.x;
-      t.x += abs(t.x);
+      t.x += abs(dt.x);
       continue_loop = (position.x != stop.x);
     } else if (t.y < t.z) {
       position.y += step.y;
-      t.y += abs(t.y);
+      t.y += abs(dt.y);
       continue_loop = (position.y != stop.y);
     } else {
       position.z += step.z;
-      t.z += abs(t.z);
+      t.z += abs(dt.z);
       continue_loop = (position.z != stop.z);
     }
   }

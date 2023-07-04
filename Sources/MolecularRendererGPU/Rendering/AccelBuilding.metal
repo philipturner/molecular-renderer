@@ -41,8 +41,8 @@ kernel void dense_grid_pass1
   box.max /= cell_width;
   
   DenseGrid grid(args.grid_width);
-  grid.apply_offset(box.min);
-  grid.apply_offset(box.max);
+  box.min = grid.apply_offset(box.min);
+  box.max = grid.apply_offset(box.max);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   for (float x = floor(box.min.x); x < box.max.x; ++x) {
@@ -128,8 +128,8 @@ kernel void dense_grid_pass3
   box.max /= cell_width;
   
   DenseGrid grid(args.grid_width);
-  grid.apply_offset(box.min);
-  grid.apply_offset(box.max);
+  box.min = grid.apply_offset(box.min);
+  box.max = grid.apply_offset(box.max);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   for (float x = floor(box.min.x); x < box.max.x; ++x) {

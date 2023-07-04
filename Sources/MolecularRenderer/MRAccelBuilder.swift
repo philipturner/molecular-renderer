@@ -46,7 +46,8 @@ public class MRAccelBuilder {
   var accels: [MTLAccelerationStructure?] = Array(repeating: nil, count: 2)
   
   // Data for uniform grids.
-  var denseGridAtoms: MTLBuffer?
+  var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
+  var ringIndex: Int = 0
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
@@ -461,11 +462,13 @@ extension MRAccelBuilder {
     
     // Allocate new memory.
     let numAtoms = currentAtoms.count
+    ringIndex = (ringIndex + 1) % 3
     let atomsBuffer = allocate(
-      &denseGridAtoms,
+      &denseGridAtoms[ringIndex],
       currentMaxElements: &maxAtoms,
       desiredElements: numAtoms,
       bytesPerElement: 16)
+    memcpy(denseGridAtoms[ringIndex]!.contents(), currentAtoms, numAtoms * 16)
     
     let paddedCells = (totalCells + 127) / 128 * 128
     let numSlots = paddedCells
@@ -531,7 +534,7 @@ extension MRAccelBuilder {
   }
   
   internal func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(denseGridAtoms!, offset: 0, index: 3)
+    encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
     encoder.setBuffer(denseGridData!, offset: 0, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
   }

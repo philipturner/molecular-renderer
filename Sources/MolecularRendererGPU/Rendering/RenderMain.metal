@@ -50,8 +50,9 @@ kernel void renderMain
   // Cast the primary ray.
   ray ray1 = RayGeneration::primaryRay(pixelCoords, args);
   IntersectionResult intersect1;
+  ushort error_code = 0;
   if (args->use_uniform_grid && pixelCoords.x >= 320) {
-    
+    intersect1 = RayTracing::traverse_dense_grid(ray1, grid, &error_code);
   } else {
     intersect1 = RayTracing::traverse(ray1, accel);
   }
@@ -99,7 +100,7 @@ kernel void renderMain
         // Cast the secondary ray.
         IntersectionResult intersect2;
         if (args->use_uniform_grid && pixelCoords.x >= 320) {
-          
+          intersect2 = RayTracing::traverse_dense_grid(ray2, grid, &error_code);
         } else {
           intersect2 = RayTracing::traverse(ray2, accel);
         }
@@ -146,41 +147,56 @@ kernel void renderMain
     colorCtx.generateMotionVector(hitPoint);
   }
   
-  colorCtx.write(color_texture, depth_texture, motion_texture);
+  colorCtx.write(color_texture, depth_texture, motion_texture, error_code);
 }
 
 // MARK: - Temporary Implementation of RayTracing::traverse_dense_grid
 
 IntersectionResult RayTracing::traverse_dense_grid
 (
- const ray ray, const DenseGrid const_grid)
+ const ray ray, const DenseGrid const_grid, thread ushort *error_code)
 {
   DenseGrid grid = const_grid;
   DifferentialAnalyzer dda(ray, grid);
   IntersectionResult result { MAXFLOAT, false };
   
+  // Error codes:
+  // 1 - red
+  // 2 - orange
+  // 3 - green
+  // 4 - cyan
+  // 5 - blue
+  // 6 - magenta
+  // 7 - force 'no error'
+  
+  // TODO: To reduce divergence, fast forward through empty cells.
   int fault_counter1 = 0;
   while (dda.get_continue_loop()) {
     fault_counter1 += 1;
     if (fault_counter1 > 100) {
+      *error_code = 5;
       return result;
     }
     
     half3 position = dda.get_position();
-    grid.set_iterator(position);
-    
+    grid.set_iterator(position, error_code);
     int fault_counter2 = 0;
     while (grid.next()) {
       fault_counter2 += 1;
       if (fault_counter2 > 300) {
+        *error_code = 6;
         return result;
       }
       
       MRAtom atom = grid.get_current_atom();
       auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
       if (intersect.accept) {
+        *error_code = 7;
         result.accept = true;
-        result.distance = min(intersect.distance, result.distance);
+        if (intersect.distance < result.distance) {
+          result.distance = intersect.distance;
+          result.atom = atom;
+        }
       }
     }
     
