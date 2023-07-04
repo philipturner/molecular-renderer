@@ -9,6 +9,7 @@
 #define UNIFORM_GRID_H
 
 #include <metal_stdlib>
+#include "MRAtom.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -48,18 +49,59 @@ public:
     return position + grid_width * 0.5;
   }
   
+private:
   float address(float3 coords) const {
     float output = fma(coords.y, grid_width, coords.x);
     return fma(coords.z, grid_width * grid_width, output);
   }
   
+public:
   uint read(device uint* data, float3 coords) const {
     return data[uint(address(coords))];
   }
   
-  uint increment(device atomic_uint* data, float3 coords) {
+  uint increment(device atomic_uint* data, float3 coords) const {
     auto object = data + uint(address(coords));
     return atomic_fetch_add_explicit(object, 1, memory_order_relaxed);
+  }
+  
+private:
+  device MRAtom *atoms;
+  device uint *data;
+  device ushort *references;
+  int iterator;
+  int iterator_end;
+  
+public:
+  void set_atoms(device MRAtom *atoms) {
+    this->atoms = atoms;
+  }
+  
+  void set_data(device uint *data) {
+    this->data = data;
+  }
+  
+  void set_references(device ushort *references) {
+    this->references = references;
+  }
+  
+  void set_iterator(half3 coords) {
+    uint raw_data = read(data, float3(coords));
+    uint cell_count = reverse_bits(raw_data) & cell_count_mask;
+    uint cell_offset = raw_data & cell_offset_mask;
+    uint cell_end = cell_offset + cell_count;
+    iterator = int(cell_offset - 1);
+    iterator_end = int(cell_end);
+  }
+  
+  bool next() {
+    iterator += 1;
+    return iterator < iterator_end;
+  }
+  
+  MRAtom get_current_atom() const {
+    ushort reference = references[iterator];
+    return atoms[reference];
   }
 };
 
@@ -80,6 +122,9 @@ public:
     float tmin = 0;
     float tmax = INFINITY;
     dt = precise::divide(1, ray.direction);
+    
+    // The grid's coordinate space is in half-nanometers.
+    ray.origin /= cell_width;
     
     // Dense grids start at an offset from the origin.
     ray.origin += grid_width * 0.5;
@@ -116,6 +161,11 @@ public:
   // Call this just before running the intersection test.
   bool get_continue_loop() const {
     return continue_loop;
+  }
+  
+  // Call this if you tested every sphere in the voxel, and got a hit.
+  void register_intersection() {
+    continue_loop = false;
   }
   
   // This value is undefined when the loop should be stopped.

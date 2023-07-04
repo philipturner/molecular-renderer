@@ -36,10 +36,25 @@ kernel void renderMain
   ushort2 pixelCoords = RayGeneration::makePixelID(tgid, lid);
   if ((SCREEN_WIDTH % 16 != 0) && (pixelCoords.x >= SCREEN_WIDTH)) return;
   if ((SCREEN_HEIGHT % 16 != 0) && (pixelCoords.y >= SCREEN_HEIGHT)) return;
+  
+  // Initialize the uniform grid.
+  //
+  // TODO: Create a temporary shader argument, and eventually a macro, that
+  // chooses which accel to read from. Make the screen's left and right halves
+  // use a different accel type.
+  DenseGrid grid(args->grid_width);
+  grid.set_atoms(atoms);
+  grid.set_data(dense_grid_data);
+  grid.set_references(dense_grid_references);
 
   // Cast the primary ray.
   ray ray1 = RayGeneration::primaryRay(pixelCoords, args);
-  auto intersect1 = RayTracing::traverse(ray1, accel);
+  IntersectionResult intersect1;
+  if (args->use_uniform_grid && pixelCoords.x >= 320) {
+    
+  } else {
+    intersect1 = RayTracing::traverse(ray1, accel);
+  }
   
   // Calculate specular, diffuse, and ambient occlusion.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
@@ -82,7 +97,12 @@ kernel void renderMain
         ray2.max_distance = args->maxRayHitTime;
         
         // Cast the secondary ray.
-        auto intersect2 = RayTracing::traverse(ray2, accel);
+        IntersectionResult intersect2;
+        if (args->use_uniform_grid && pixelCoords.x >= 320) {
+          
+        } else {
+          intersect2 = RayTracing::traverse(ray2, accel);
+        }
         
         float diffuseAmbient = 1;
         float specularAmbient = 1;
@@ -127,4 +147,48 @@ kernel void renderMain
   }
   
   colorCtx.write(color_texture, depth_texture, motion_texture);
+}
+
+// MARK: - Temporary Implementation of RayTracing::traverse_dense_grid
+
+IntersectionResult RayTracing::traverse_dense_grid
+(
+ const ray ray, const DenseGrid const_grid)
+{
+  DenseGrid grid = const_grid;
+  DifferentialAnalyzer dda(ray, grid);
+  IntersectionResult result { MAXFLOAT, false };
+  
+  int fault_counter1 = 0;
+  while (dda.get_continue_loop()) {
+    fault_counter1 += 1;
+    if (fault_counter1 > 100) {
+      return result;
+    }
+    
+    half3 position = dda.get_position();
+    grid.set_iterator(position);
+    
+    int fault_counter2 = 0;
+    while (grid.next()) {
+      fault_counter2 += 1;
+      if (fault_counter2 > 300) {
+        return result;
+      }
+      
+      MRAtom atom = grid.get_current_atom();
+      auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
+      if (intersect.accept) {
+        result.accept = true;
+        result.distance = min(intersect.distance, result.distance);
+      }
+    }
+    
+    if (result.accept) {
+      dda.register_intersection();
+    } else {
+      dda.update_position();
+    }
+  }
+  return result;
 }

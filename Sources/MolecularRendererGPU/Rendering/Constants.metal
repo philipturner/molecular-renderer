@@ -54,6 +54,7 @@ Arguments {
   
   // Uniform grid arguments.
   ushort grid_width;
+  ushort use_uniform_grid;
 };
 
 #endif

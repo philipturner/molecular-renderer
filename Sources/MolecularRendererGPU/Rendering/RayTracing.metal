@@ -106,8 +106,9 @@ public:
     return intersection;
   }
   
-  // TODO: Function to traverse a dense grid. After debugging, extract it into
-  // `RenderMain`, so it can be profiled.
+  static IntersectionResult traverse_dense_grid
+  (
+   const ray ray, const DenseGrid const_grid);
 };
 
 #endif

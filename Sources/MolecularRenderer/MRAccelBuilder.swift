@@ -440,6 +440,9 @@ extension MRAccelBuilder {
   }
   
   internal func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
+    precondition(
+      currentAtoms.count < UInt16.max, "Too many atoms for a dense grid.")
+    
     let statistics = denseGridStatistics(
       atoms: currentAtoms, styles: currentStyles)
     

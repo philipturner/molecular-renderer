@@ -39,6 +39,7 @@ internal struct Arguments {
   var diffuseReflectanceScale: Float
   
   var gridWidth: UInt16
+  var useUniformGrid: UInt16 = 1
 }
 
 public class MRRenderer {
