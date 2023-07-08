@@ -50,6 +50,7 @@ public:
   }
   
 private:
+  // TODO: Have thie always pre-computed beforehand.
   float address(float3 coords) const {
 //    float output = fma(coords.y, grid_width, coords.x);
 //    return fma(coords.z, grid_width * grid_width, output);
@@ -124,7 +125,7 @@ public:
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
 class DifferentialAnalyzer {
-  typedef float real;
+  typedef half real;
   
   float3 dt;
   vec<real, 3> position;
@@ -159,13 +160,14 @@ public:
     // Adjust the origin so it starts in the grid.
     continue_loop = (tmin < tmax);
     ray.origin += tmin * ray.direction;
+    ray.origin = clamp(ray.origin, float(0), float(grid_width));
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float direction = ray.direction[i];
       float origin = ray.origin[i];
       if (direction < 0) {
-        dt = abs(dt);
+        dt[i] = -dt[i];
         negative[i] = 1;
         origin = grid_width - origin;
       } else {
@@ -178,7 +180,8 @@ public:
       // which one will produce the smallest `t`? This dimension gets the
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
-      t[i] = (position[i] - origin) * dt[i];//+ dt[i];
+//      t[i] = (ceil(origin) - origin) * dt[i];
+      t[i] = -(origin - position[i]) * dt[i] + dt[i];
     }
     
     stop = grid_width - 1;
@@ -196,31 +199,26 @@ public:
   
   // This value is undefined when the loop should be stopped.
   vec<real, 3> get_position() const {
-    auto _position = position;
-#pragma clang loop unroll(full)
-    for (int i = 0; i < 3; ++i) {
-      // TODO: Transform this into an explicit CMPSEL.
-      if (negative[i]) {
-        _position[i] = stop - position[i];
-      }
-    }
-    return _position;
+    auto neg_position = stop - position;
+    return {
+      negative[0] ? neg_position[0] : position[0],
+      negative[1] ? neg_position[1] : position[1],
+      negative[2] ? neg_position[2] : position[2],
+    };
   }
   
   // Call this after, not before, running the intersection test.
   void update_position() {
-//    ushort2 cond_mask;
-//    cond_mask[0] = (t.x < t.y) ? 1 : 0;
-//    cond_mask[1] = (t.x < t.z) ? 1 : 0;
-//    uint desired = as_type<uint>(ushort2(1, 1));
-//    
-//    if (as_type<uint>(cond_mask) == desired) {
-    if (t.x + dt.x < t.y + dt.y &&
-        t.x + dt.x < t.z + dt.z) {
+    ushort2 cond_mask;
+    cond_mask[0] = (t.x < t.y) ? 1 : 0;
+    cond_mask[1] = (t.x < t.z) ? 1 : 0;
+    uint desired = as_type<uint>(ushort2(1, 1));
+    
+    if (as_type<uint>(cond_mask) == desired) {
       position.x += 1;
       t.x += dt.x;
       continue_loop = (position.x <= stop);
-    } else if (t.y + dt.y < t.z + dt.z) {
+    } else if (t.y + 0 * dt.y < t.z + 0 * dt.z) {
       position.y += 1;
       t.y += dt.y;
       continue_loop = (position.y <= stop);

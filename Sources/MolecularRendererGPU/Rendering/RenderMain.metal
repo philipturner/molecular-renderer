@@ -178,7 +178,7 @@ IntersectionResult RayTracing::traverse_dense_grid
       return result;
     }
     
-    auto position = dda.get_position();
+    auto position = rint(dda.get_position());
     grid.set_iterator(float3(position), error_code);
     int fault_counter2 = 0;
     while (grid.next()) {

@@ -512,7 +512,8 @@ extension EventTracker {
     
     // Check if S is pressed and move backward along the z-axis
     if readingS.isSinglePressed {
-      playerState.position += basisVectorZ * delta(reading: readingS)
+      // delta(reading: readingS)
+      playerState.position += basisVectorZ * positionDelta
     }
     
     // Check if A is pressed and move left along the x-axis
