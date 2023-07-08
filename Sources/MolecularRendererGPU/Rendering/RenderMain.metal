@@ -38,14 +38,8 @@ kernel void renderMain
   if ((SCREEN_HEIGHT % 16 != 0) && (pixelCoords.y >= SCREEN_HEIGHT)) return;
   
   // Initialize the uniform grid.
-  //
-  // TODO: Create a temporary shader argument, and eventually a macro, that
-  // chooses which accel to read from. Make the screen's left and right halves
-  // use a different accel type.
-  DenseGrid grid(args->grid_width);
-  grid.set_atoms(atoms);
-  grid.set_data(dense_grid_data);
-  grid.set_references(dense_grid_references);
+  DenseGrid grid(args->grid_width, dense_grid_data,
+                 dense_grid_references, atoms);
 
   // Cast the primary ray.
   ray ray1 = RayGeneration::primaryRay(pixelCoords, args);
@@ -81,6 +75,8 @@ kernel void renderMain
       uint seed = Sampling::tea(pixelSeed, args->frameSeed);
       
       for (ushort i = 0; i < args->sampleCount; ++i) {
+        // TODO: Move the ray generation logic into another file.
+        
         // Generate a random number and increment the seed.
         float random1 = Sampling::radinv3(seed);
         float random2 = Sampling::radinv2(seed);
@@ -108,6 +104,7 @@ kernel void renderMain
         float diffuseAmbient = 1;
         float specularAmbient = 1;
         if (intersect2.accept) {
+          // TODO: Move the light adjustment logic into another file.
           float t = intersect2.distance / args->maxRayHitTime;
           float lambda = args->exponentialFalloffDecayConstant;
           float occlusion = exp(-lambda * t * t);
@@ -158,7 +155,8 @@ IntersectionResult RayTracing::traverse_dense_grid
 {
   DenseGrid grid = const_grid;
   DifferentialAnalyzer dda(ray, grid);
-  IntersectionResult result { MAXFLOAT, false };
+  float result_distance = MAXFLOAT;
+  ushort result_atom = 65535;
   
   // Error codes:
   // 1 - red
@@ -169,42 +167,49 @@ IntersectionResult RayTracing::traverse_dense_grid
   // 6 - magenta
   // 7 - force 'no error'
   
-  // TODO: To reduce divergence, fast forward through empty cells.
   int fault_counter1 = 0;
-  while (dda.get_continue_loop()) {
-    fault_counter1 += 1;
-    if (fault_counter1 > 100) {
-      *error_code = 5;
-      return result;
+  while (dda.continue_loop) {
+    // To reduce divergence, fast forward through empty voxels.
+    uint voxel_data = 0;
+    bool continue_fast_forward = true;
+    while (continue_fast_forward) {
+      fault_counter1 += 1; if (fault_counter1 > 100) { *error_code = 5; return { MAXFLOAT, false }; }
+      voxel_data = grid.data[dda.address];
+      dda.increment_position();
+      
+      if ((voxel_data & voxel_count_mask) == 0) {
+        continue_fast_forward = dda.continue_loop;
+      } else {
+        continue_fast_forward = false;
+      }
     }
     
-    auto position = rint(dda.get_position());
-    grid.set_iterator(float3(position), error_code);
+    uint count = reverse_bits(voxel_data & voxel_count_mask);
+    uint offset = voxel_data & voxel_offset_mask;
+    
+    // TODO: Try delaying the acceptance of a result. Maybe the closest object
+    // doesn't appear in the closest voxel?
     int fault_counter2 = 0;
-    while (grid.next()) {
-      fault_counter2 += 1;
-      if (fault_counter2 > 300) {
-        *error_code = 6;
-        return result;
-      }
+    for (ushort i = 0; i < count; ++i) {
+      fault_counter2 += 1; if (fault_counter2 > 300) { *error_code = 6; return { MAXFLOAT, false }; }
+      ushort reference = grid.references[offset + i];
+      MRAtom atom = grid.atoms[reference];
       
-      MRAtom atom = grid.get_current_atom();
       auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
       if (intersect.accept) {
-        *error_code = 7;
-        result.accept = true;
-        if (intersect.distance < result.distance) {
-          result.distance = intersect.distance;
-          result.atom = atom;
-        }
+        result_atom = (intersect.distance < result_distance)
+        ? reference : result_atom;
+        result_distance = min(intersect.distance, result_distance);
       }
     }
-    
-    if (result.accept) {
-      dda.register_intersection();
-    } else {
-      dda.update_position();
+    if (result_distance < MAXFLOAT) {
+      dda.continue_loop = false;
     }
+  }
+  
+  IntersectionResult result { result_distance, result_distance < MAXFLOAT };
+  if (result_distance < MAXFLOAT) {
+    result.atom = grid.atoms[result_atom];
   }
   return result;
 }

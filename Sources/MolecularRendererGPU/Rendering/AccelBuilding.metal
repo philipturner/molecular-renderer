@@ -10,6 +10,18 @@
 #include "UniformGrid.metal"
 using namespace metal;
 
+#define ATOMIC_INCREMENT(OBJECT) \
+atomic_fetch_add_explicit(OBJECT, 1, memory_order_relaxed);
+
+#define BOX_GENERATE(EXTREMUM) \
+box.EXTREMUM /= voxel_width; \
+box.EXTREMUM += h_grid_width * 0.5; \
+ushort3 box_##EXTREMUM = ushort3(box.EXTREMUM); \
+box.EXTREMUM = clamp(box.EXTREMUM, float(0), h_grid_width); \
+
+#define BOX_LOOP(COORD) \
+for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
+
 struct uniform_grid_arguments {
   ushort grid_width;
 };
@@ -37,21 +49,24 @@ kernel void dense_grid_pass1
 {
   MRAtom atom = atoms[tid];
   MRBoundingBox box = atom.getBoundingBox(styles);
-  box.min /= cell_width;
-  box.max /= cell_width;
-  
-  DenseGrid grid(args.grid_width);
-  box.min = grid.apply_offset(box.min);
-  box.max = grid.apply_offset(box.max);
+  ushort grid_width = args.grid_width;
+  half h_grid_width = args.grid_width;
+  BOX_GENERATE(min)
+  BOX_GENERATE(max)
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
-  for (float x = floor(box.min.x); x < box.max.x; ++x) {
-    for (float y = floor(box.min.y); y < box.max.y; ++y) {
-      for (float z = floor(box.min.z); z < box.max.z; ++z) {
-        float3 coords(x, y, z);
-        grid.increment(dense_grid_data, coords);
+  uint address_z = VoxelAddress::generate(grid_width, box_min);
+  BOX_LOOP(z) {
+    uint address_y = address_z;
+    BOX_LOOP(y) {
+      uint address_x = address_y;
+      BOX_LOOP(x) {
+        ATOMIC_INCREMENT(dense_grid_data + address_x);
+        address_x += VoxelAddress::increment_x(grid_width);
       }
+      address_y += VoxelAddress::increment_y(grid_width);
     }
+    address_z += VoxelAddress::increment_z(grid_width);
   }
 }
 
@@ -103,8 +118,8 @@ kernel void dense_grid_pass2
   
   // Overwrite contents of the grid.
   prefix_sum_results += group_results[sidx];
-  uint count_part = reverse_bits(cell_count) & cell_count_mask;
-  uint offset_part = prefix_sum_results & cell_offset_mask;
+  uint count_part = reverse_bits(cell_count) & voxel_count_mask;
+  uint offset_part = prefix_sum_results & voxel_offset_mask;
   dense_grid_data[tid] = count_part | offset_part;
   dense_grid_counters[tid] = prefix_sum_results;
 }
@@ -124,21 +139,24 @@ kernel void dense_grid_pass3
 {
   MRAtom atom = atoms[tid];
   MRBoundingBox box = atom.getBoundingBox(styles);
-  box.min /= cell_width;
-  box.max /= cell_width;
-  
-  DenseGrid grid(args.grid_width);
-  box.min = grid.apply_offset(box.min);
-  box.max = grid.apply_offset(box.max);
+  ushort grid_width = args.grid_width;
+  half h_grid_width = args.grid_width;
+  BOX_GENERATE(min)
+  BOX_GENERATE(max)
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
-  for (float x = floor(box.min.x); x < box.max.x; ++x) {
-    for (float y = floor(box.min.y); y < box.max.y; ++y) {
-      for (float z = floor(box.min.z); z < box.max.z; ++z) {
-        float3 coords(x, y, z);
-        uint offset = grid.increment(dense_grid_counters, coords);
+  uint address_z = VoxelAddress::generate(grid_width, box_min);
+  BOX_LOOP(z) {
+    uint address_y = address_z;
+    BOX_LOOP(y) {
+      uint address_x = address_y;
+      BOX_LOOP(x) {
+        uint offset = ATOMIC_INCREMENT(dense_grid_counters + address_x);
         references[offset] = ushort(tid);
+        address_x += VoxelAddress::increment_x(grid_width);
       }
+      address_y += VoxelAddress::increment_y(grid_width);
     }
+    address_z += VoxelAddress::increment_z(grid_width);
   }
 }
