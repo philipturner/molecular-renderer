@@ -100,3 +100,51 @@ public:
     return ray;
   }
 };
+
+class GenerationContext {
+  constant Arguments* args;
+  
+  float3 origin;
+  float3x3 axes;
+  uint seed;
+  
+public:
+  GenerationContext(constant Arguments* args,
+                    ushort2 pixelCoords, float3 hitPoint, float3 normal) {
+    this->args = args;
+    
+    // Move origin slightly away from the surface to avoid self-occlusion.
+    // Switching to a uniform grid acceleration structure should make it
+    // possible to ignore this parameter.
+    this->origin = hitPoint + normal * float(0.001);
+    
+    // Align the atoms' coordinate systems with each other, to minimize
+    // divergence. Here is a primitive method that achieves that by aligning
+    // the X and Y dimensions to a common coordinate space.
+    float3 modNormal = transpose(args->cameraToWorldRotation) * normal;
+    this->axes = RayGeneration::makeBasis(modNormal);
+    this->axes = args->cameraToWorldRotation * axes;
+    
+    uint pixelSeed = as_type<uint>(pixelCoords);
+    this->seed = Sampling::tea(pixelSeed, args->frameSeed);
+  }
+  
+  ray generate(ushort i) {
+    // Generate a random number and increment the seed.
+    float random1 = Sampling::radinv3(seed);
+    float random2 = Sampling::radinv2(seed);
+    seed += 1;
+   
+    float sampleCountRecip = fast::divide(1, float(args->sampleCount));
+    float minimum = float(i) * sampleCountRecip;
+    float maximum = minimum + sampleCountRecip;
+    maximum = (i == args->sampleCount - 1) ? 1 : maximum;
+    random1 = mix(minimum, maximum, random1);
+    
+    // Create a random ray from the cosine distribution.
+    RayGeneration::Basis basis { axes, random1, random2 };
+    ray ray = RayGeneration::secondaryRay(origin, basis);
+    ray.max_distance = args->maxRayHitTime;
+    return ray;
+  }
+};
