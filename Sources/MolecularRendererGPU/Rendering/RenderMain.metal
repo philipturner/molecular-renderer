@@ -101,38 +101,38 @@ kernel void renderMain
           intersect2 = RayTracing::traverse(ray2, accel);
         }
         
-        float diffuseAmbient = 1;
-        float specularAmbient = 1;
-        if (intersect2.accept) {
-          // TODO: Move the light adjustment logic into another file.
-          float t = intersect2.distance / args->maxRayHitTime;
-          float lambda = args->exponentialFalloffDecayConstant;
-          float occlusion = exp(-lambda * t * t);
-          diffuseAmbient -= (1 - args->minimumAmbientIllumination) * occlusion;
-          
-          // Diffuse interreflectance should affect the final diffuse term, but
-          // not the final specular term.
-          specularAmbient = diffuseAmbient;
-          
-          constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
-          float luminance = dot(colorCtx.getDiffuseColor(), gamut);
-          
-          // Account for the color of the occluding atom. This decreases the
-          // contrast between differing elements placed near each other. It also
-          // makes the effect vary around the atom's surface.
-          half3 neighborColor = intersect2.atom.getColor(styles);
-          float neighborLuminance = dot(neighborColor, gamut);
-
-          // Use the arithmetic mean. There is no perceivable difference from
-          // the (presumably more accurate) geometric mean.
-          luminance = (luminance + neighborLuminance) / 2;
-          
-          float kA = diffuseAmbient;
-          float rho = args->diffuseReflectanceScale * luminance;
-          diffuseAmbient = kA / (1 - rho * (1 - kA));
-        }
+//        float diffuseAmbient = 1;
+//        float specularAmbient = 1;
+//        if (intersect2.accept) {
+//          // TODO: Move the light adjustment logic into another file.
+//          float t = intersect2.distance / args->maxRayHitTime;
+//          float lambda = args->exponentialFalloffDecayConstant;
+//          float occlusion = exp(-lambda * t * t);
+//          diffuseAmbient -= (1 - args->minimumAmbientIllumination) * occlusion;
+//          
+//          // Diffuse interreflectance should affect the final diffuse term, but
+//          // not the final specular term.
+//          specularAmbient = diffuseAmbient;
+//          
+//          constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
+//          float luminance = dot(colorCtx.getDiffuseColor(), gamut);
+//          
+//          // Account for the color of the occluding atom. This decreases the
+//          // contrast between differing elements placed near each other. It also
+//          // makes the effect vary around the atom's surface.
+//          half3 neighborColor = intersect2.atom.getColor(styles);
+//          float neighborLuminance = dot(neighborColor, gamut);
+//
+//          // Use the arithmetic mean. There is no perceivable difference from
+//          // the (presumably more accurate) geometric mean.
+//          luminance = (luminance + neighborLuminance) / 2;
+//          
+//          float kA = diffuseAmbient;
+//          float rho = args->diffuseReflectanceScale * luminance;
+//          diffuseAmbient = kA / (1 - rho * (1 - kA));
+//        }
         
-        colorCtx.addAmbientContribution(diffuseAmbient, specularAmbient);
+        colorCtx.addAmbientContribution(intersect2);//diffuseAmbient, specularAmbient);
       }
     }
     colorCtx.setLightContributions(hitPoint, normal);
@@ -167,13 +167,17 @@ IntersectionResult RayTracing::traverse_dense_grid
   // 6 - magenta
   // 7 - force 'no error'
   
+#if FAULT_COUNTERS_ENABLE
   int fault_counter1 = 0;
+#endif
   while (dda.continue_loop) {
     // To reduce divergence, fast forward through empty voxels.
     uint voxel_data = 0;
     bool continue_fast_forward = true;
     while (continue_fast_forward) {
+#if FAULT_COUNTERS_ENABLE
       fault_counter1 += 1; if (fault_counter1 > 100) { *error_code = 5; return { MAXFLOAT, false }; }
+#endif
       voxel_data = grid.data[dda.address];
       dda.increment_position();
       
@@ -187,19 +191,23 @@ IntersectionResult RayTracing::traverse_dense_grid
     uint count = reverse_bits(voxel_data & voxel_count_mask);
     uint offset = voxel_data & voxel_offset_mask;
     
-    // TODO: Try delaying the acceptance of a result. Maybe the closest object
-    // doesn't appear in the closest voxel?
+#if FAULT_COUNTERS_ENABLE
     int fault_counter2 = 0;
+#endif
     for (ushort i = 0; i < count; ++i) {
+#if FAULT_COUNTERS_ENABLE
       fault_counter2 += 1; if (fault_counter2 > 300) { *error_code = 6; return { MAXFLOAT, false }; }
+#endif
       ushort reference = grid.references[offset + i];
       MRAtom atom = grid.atoms[reference];
       
       auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
       if (intersect.accept) {
-        result_atom = (intersect.distance < result_distance)
-        ? reference : result_atom;
-        result_distance = min(intersect.distance, result_distance);
+        float target_distance = min(result_distance, dda.get_max_accepted_t());
+        if (intersect.distance < target_distance) {
+          result_distance = intersect.distance;
+          result_atom = reference;
+        }
       }
     }
     if (result_distance < MAXFLOAT) {

@@ -16,8 +16,12 @@ atomic_fetch_add_explicit(OBJECT, 1, memory_order_relaxed);
 #define BOX_GENERATE(EXTREMUM) \
 box.EXTREMUM /= voxel_width; \
 box.EXTREMUM += h_grid_width * 0.5; \
-ushort3 box_##EXTREMUM = ushort3(box.EXTREMUM); \
-box.EXTREMUM = clamp(box.EXTREMUM, float(0), h_grid_width); \
+ushort3 box_##EXTREMUM; \
+{\
+short3 s_##EXTREMUM = short3(box.EXTREMUM); \
+s_##EXTREMUM = clamp(s_##EXTREMUM, 0, grid_width); \
+box_##EXTREMUM = ushort3(s_##EXTREMUM); \
+}\
 
 #define BOX_LOOP(COORD) \
 for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
@@ -38,6 +42,11 @@ kernel void memset_pattern4
   b[tid] = pattern4;
 }
 
+struct Box {
+  float3 min;
+  float3 max;
+};
+
 kernel void dense_grid_pass1
 (
  constant uniform_grid_arguments &args [[buffer(0)]],
@@ -48,6 +57,7 @@ kernel void dense_grid_pass1
  uint tid [[thread_position_in_grid]])
 {
   MRAtom atom = atoms[tid];
+//  Box box { atom.origin - 0.24, atom.origin + 0.24 };
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;
@@ -138,6 +148,7 @@ kernel void dense_grid_pass3
  uint tid [[thread_position_in_grid]])
 {
   MRAtom atom = atoms[tid];
+//  Box box { atom.origin - 0.24, atom.origin + 0.24 };
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;

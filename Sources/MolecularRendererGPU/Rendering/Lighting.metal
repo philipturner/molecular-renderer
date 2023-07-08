@@ -64,13 +64,50 @@ public:
     }
   }
   
+  // TODO: Remove this function.
   half3 getDiffuseColor() const {
     return this->diffuseColor;
   }
   
-  void addAmbientContribution(float diffuse, float specular) {
-    this->diffuseAmbient += diffuse;
-    this->specularAmbient += specular;
+//  void addAmbientContribution(float diffuse, float specular) {
+//    this->diffuseAmbient += diffuse;
+//    this->specularAmbient += specular;
+//  }
+  
+  void addAmbientContribution(IntersectionResult intersect) {
+    float diffuseAmbient = 1;
+    float specularAmbient = 1;
+    
+    if (intersect.accept) {
+      float t = intersect.distance / args->maxRayHitTime;
+      float lambda = args->exponentialFalloffDecayConstant;
+      float occlusion = exp(-lambda * t * t);
+      diffuseAmbient -= (1 - args->minimumAmbientIllumination) * occlusion;
+      
+      // Diffuse interreflectance should affect the final diffuse term, but
+      // not the final specular term.
+      specularAmbient = diffuseAmbient;
+      
+      constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
+      float luminance = dot(diffuseColor, gamut);
+      
+      // Account for the color of the occluding atom. This decreases the
+      // contrast between differing elements placed near each other. It also
+      // makes the effect vary around the atom's surface.
+      half3 neighborColor = intersect.atom.getColor(styles);
+      float neighborLuminance = dot(neighborColor, gamut);
+      
+      // Use the arithmetic mean. There is no perceivable difference from
+      // the (presumably more accurate) geometric mean.
+      luminance = (luminance + neighborLuminance) / 2;
+      
+      float kA = diffuseAmbient;
+      float rho = args->diffuseReflectanceScale * luminance;
+      diffuseAmbient = kA / (1 - rho * (1 - kA));
+    }
+    
+    this->diffuseAmbient += diffuseAmbient;
+    this->specularAmbient += specularAmbient;
   }
   
   void setDepth(float depth) {

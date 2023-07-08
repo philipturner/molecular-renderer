@@ -23,6 +23,9 @@ constant uint SCREEN_HEIGHT [[function_constant(1)]];
 // setting is to not suppress the specular term.
 constant bool SUPPRESS_SPECULAR [[function_constant(2)]];
 
+// Safeguard against infinite loops. Disable this for profiling.
+#define FAULT_COUNTERS_ENABLE 1
+
 // MARK: - Definitions
 
 typedef raytracing::primitive_acceleration_structure accel;

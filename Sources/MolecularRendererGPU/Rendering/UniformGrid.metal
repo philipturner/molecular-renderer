@@ -76,6 +76,11 @@ class DifferentialAnalyzer {
   float3 t;
   ushort3 position;
   
+  // Progress of the adjusted ray w.r.t. the original ray. This ensures closest
+  // hits are recognized in the correct order.
+  float tmin; // in the original coordinate space
+  float voxel_tmax; // in the relative coordinate space
+  
 public:
   ushort grid_width;
   uint address;
@@ -90,9 +95,11 @@ public:
     dt = precise::divide(1, ray.direction);
     
     // The grid's coordinate space is in half-nanometers.
+    // NOTE: This scales `t` by a factor of 0.5/2.
     ray.origin /= voxel_width;
     
     // Dense grids start at an offset from the origin.
+    // NOTE: This does not change `t`.
     ray.origin += h_grid_width * 0.5;
     
     // Perform a ray-box intersection test.
@@ -105,9 +112,11 @@ public:
     }
     
     // Adjust the origin so it starts in the grid.
+    // NOTE: This translates `t` by an offset of `tmin`.
     continue_loop = (tmin < tmax);
     ray.origin += tmin * ray.direction;
     ray.origin = clamp(ray.origin, float(0), h_grid_width);
+    this->tmin = tmin * 0.5;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
@@ -131,6 +140,10 @@ public:
     address = VoxelAddress::generate(grid_width, actual_position);
   }
   
+  float get_max_accepted_t() {
+    return tmin + voxel_tmax * 0.5;
+  }
+  
   void increment_position() {
     ushort2 cond_mask;
     cond_mask[0] = (t.x < t.y) ? 1 : 0;
@@ -138,18 +151,21 @@ public:
     uint desired = as_type<uint>(ushort2(1, 1));
     
     if (as_type<uint>(cond_mask) == desired) {
+      voxel_tmax = t.x; // actually t + dt
       address += VoxelAddress::increment_x(grid_width, dt.x < 0);
-      t.x += abs(dt.x);
+      t.x += abs(dt.x); // actually t + dt + dt
       
       position.x += 1;
       continue_loop = (position.x < grid_width);
     } else if (t.y < t.z) {
+      voxel_tmax = t.y;
       address += VoxelAddress::increment_y(grid_width, dt.y < 0);
       t.y += abs(dt.y);
       
       position.y += 1;
       continue_loop = (position.y < grid_width);
     } else {
+      voxel_tmax = t.z;
       address += VoxelAddress::increment_z(grid_width, dt.z < 0);
       t.z += abs(dt.z);
       
