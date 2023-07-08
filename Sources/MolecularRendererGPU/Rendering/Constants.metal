@@ -24,7 +24,7 @@ constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant bool SUPPRESS_SPECULAR [[function_constant(2)]];
 
 // Safeguard against infinite loops. Disable this for profiling.
-#define FAULT_COUNTERS_ENABLE 1
+#define FAULT_COUNTERS_ENABLE 0
 
 // MARK: - Definitions
 

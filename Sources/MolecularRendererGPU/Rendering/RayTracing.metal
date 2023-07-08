@@ -108,7 +108,7 @@ public:
   
   static IntersectionResult traverse_dense_grid
   (
-   const ray ray, const DenseGrid const_grid, thread ushort *error_code);
+   const ray ray, const DenseGrid const_grid);
 };
 
 #endif

@@ -42,21 +42,20 @@ kernel void renderMain
                  dense_grid_references, atoms);
 
   // Cast the primary ray.
-  ray ray1 = RayGeneration::primaryRay(pixelCoords, args);
-  IntersectionResult intersect1;
-  ushort error_code = 0;
-  if (args->use_uniform_grid && pixelCoords.x >= 320) {
-    intersect1 = RayTracing::traverse_dense_grid(ray1, grid, &error_code);
-  } else {
-    intersect1 = RayTracing::traverse(ray1, accel);
-  }
+  ray ray = RayGeneration::primaryRay(pixelCoords, args);
+  IntersectionResult intersect;
+//  if (args->use_uniform_grid && pixelCoords.x >= 320) {
+    intersect = RayTracing::traverse_dense_grid(ray, grid);
+//  } else {
+//    intersect = RayTracing::traverse(ray, accel);
+//  }
   
   // Calculate specular, diffuse, and ambient occlusion.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
-  if (intersect1.accept) {
-    float3 hitPoint = ray1.origin + ray1.direction * intersect1.distance;
-    float3 normal = normalize(hitPoint - intersect1.atom.origin);
-    colorCtx.setDiffuseColor(intersect1.atom, normal);
+  if (intersect.accept) {
+    float3 hitPoint = ray.origin + ray.direction * intersect.distance;
+    float3 normal = normalize(hitPoint - intersect.atom.origin);
+    colorCtx.setDiffuseColor(intersect.atom, normal);
     
     if (args->sampleCount > 0) {
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
@@ -64,11 +63,12 @@ kernel void renderMain
         // Cast the secondary ray.
         auto ray = genCtx.generate(i);
         IntersectionResult intersect;
-        if (args->use_uniform_grid && pixelCoords.x >= 320) {
-          intersect = RayTracing::traverse_dense_grid(ray, grid, &error_code);
-        } else {
-          intersect = RayTracing::traverse(ray, accel);
-        }
+        
+//        if (args->use_uniform_grid && pixelCoords.x >= 320) {
+          intersect = RayTracing::traverse_dense_grid(ray, grid);
+//        } else {
+//          intersect = RayTracing::traverse(ray, accel);
+//        }
         colorCtx.addAmbientContribution(intersect);
       }
     }
@@ -76,19 +76,19 @@ kernel void renderMain
     colorCtx.applyLightContributions();
     
     // Write the depth as the intersection point's Z coordinate.
-    float depth = ray1.direction.z * intersect1.distance;
+    float depth = ray.direction.z * intersect.distance;
     colorCtx.setDepth(depth);
     colorCtx.generateMotionVector(hitPoint);
   }
   
-  colorCtx.write(color_texture, depth_texture, motion_texture, error_code);
+  colorCtx.write(color_texture, depth_texture, motion_texture);
 }
 
 // MARK: - Temporary Implementation of RayTracing::traverse_dense_grid
 
 IntersectionResult RayTracing::traverse_dense_grid
 (
- const ray ray, const DenseGrid const_grid, thread ushort *error_code)
+ const ray ray, const DenseGrid const_grid)
 {
   DenseGrid grid = const_grid;
   DifferentialAnalyzer dda(ray, grid);
@@ -113,7 +113,7 @@ IntersectionResult RayTracing::traverse_dense_grid
     bool continue_fast_forward = true;
     while (continue_fast_forward) {
 #if FAULT_COUNTERS_ENABLE
-      fault_counter1 += 1; if (fault_counter1 > 100) { *error_code = 5; return { MAXFLOAT, false }; }
+      fault_counter1 += 1; if (fault_counter1 > 100) { return { MAXFLOAT, false }; }
 #endif
       voxel_data = grid.data[dda.address];
       dda.increment_position();
@@ -133,13 +133,16 @@ IntersectionResult RayTracing::traverse_dense_grid
 #endif
     for (ushort i = 0; i < count; ++i) {
 #if FAULT_COUNTERS_ENABLE
-      fault_counter2 += 1; if (fault_counter2 > 300) { *error_code = 6; return { MAXFLOAT, false }; }
+      fault_counter2 += 1; if (fault_counter2 > 300) { return { MAXFLOAT, false }; }
 #endif
+      // TODO: Force references to be aligned to multiples of 2, even if you duplicate references.
+      // The atom with offset COUNT-1 will write to the end of the region.
       ushort reference = grid.references[offset + i];
       MRAtom atom = grid.atoms[reference];
       
       auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
       if (intersect.accept) {
+        // TODO: Extract `t` to outside the loop, optimize this a little more.
         float target_distance = min(result_distance, dda.get_max_accepted_t());
         if (intersect.distance < target_distance) {
           result_distance = intersect.distance;
