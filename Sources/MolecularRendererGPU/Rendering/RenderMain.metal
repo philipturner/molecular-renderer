@@ -92,17 +92,8 @@ IntersectionResult RayTracing::traverse_dense_grid
 {
   DenseGrid grid = const_grid;
   DifferentialAnalyzer dda(ray, grid);
-  float result_distance = MAXFLOAT;
-  ushort result_atom = 65535;
-  
-  // Error codes:
-  // 1 - red
-  // 2 - orange
-  // 3 - green
-  // 4 - cyan
-  // 5 - blue
-  // 6 - magenta
-  // 7 - force 'no error'
+  IntersectionResult result { MAXFLOAT, false };
+  ushort result_atom;
   
 #if FAULT_COUNTERS_ENABLE
   int fault_counter1 = 0;
@@ -128,6 +119,9 @@ IntersectionResult RayTracing::traverse_dense_grid
     uint count = reverse_bits(voxel_data & voxel_count_mask);
     uint offset = voxel_data & voxel_offset_mask;
     
+    float target_distance = dda.get_max_accepted_t();
+    result.distance = target_distance;
+    
 #if FAULT_COUNTERS_ENABLE
     int fault_counter2 = 0;
 #endif
@@ -140,23 +134,33 @@ IntersectionResult RayTracing::traverse_dense_grid
       ushort reference = grid.references[offset + i];
       MRAtom atom = grid.atoms[reference];
       
-      auto intersect = RayTracing::atomIntersectionFunction(ray, atom);
-      if (intersect.accept) {
-        // TODO: Extract `t` to outside the loop, optimize this a little more.
-        float target_distance = min(result_distance, dda.get_max_accepted_t());
-        if (intersect.distance < target_distance) {
-          result_distance = intersect.distance;
+      // Do not walk inside an atom; doing so will produce corrupted graphics.
+      float3 oc = ray.origin - atom.origin;
+      float b2 = dot(oc, ray.direction);
+      float c = dot(oc, oc) - atom.radiusSquared;
+      float disc4 = b2 * b2 - c;
+      
+      if (disc4 > 0) {
+        // If the ray hit the sphere, compute the intersection distance.
+        float distance = -b2 - sqrt(disc4);
+        
+        // The intersection function must also check whether the intersection
+        // distance is within the acceptable range. Intersection functions do not
+        // run in any particular order, so the maximum distance may be different
+        // from the one passed into the ray intersector.
+        if (distance >= 0 && distance < result.distance) {
+          result.distance = distance;
           result_atom = reference;
         }
       }
     }
-    if (result_distance < MAXFLOAT) {
+    if (result.distance < target_distance) {
+      result.accept = true;
       dda.continue_loop = false;
     }
   }
   
-  IntersectionResult result { result_distance, result_distance < MAXFLOAT };
-  if (result_distance < MAXFLOAT) {
+  if (result.accept) {
     result.atom = grid.atoms[result_atom];
   }
   return result;
