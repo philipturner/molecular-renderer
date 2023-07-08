@@ -128,8 +128,8 @@ class DifferentialAnalyzer {
   
   float3 dt;
   vec<real, 3> position;
-  vec<real, 3> step;
-  vec<real, 3> stop;
+  ushort3 negative;
+  half stop;
   float3 t;
   bool continue_loop;
   
@@ -164,16 +164,24 @@ public:
     for (int i = 0; i < 3; ++i) {
       float direction = ray.direction[i];
       float origin = ray.origin[i];
-      position[i] = (direction >= 0) ? floor(origin) : ceil(origin);
-      step[i] = (direction >= 0) ? 1 : -1;
-      stop[i] = (direction >= 0) ? grid_width : -1;
+      if (direction < 0) {
+        dt = abs(dt);
+        negative[i] = 1;
+        origin = grid_width - origin;
+      } else {
+        negative[i] = 0;
+      }
+      
+      position[i] = floor(origin);
       
       // `t` is actually the future `t`. When incrementing each dimension's `t`,
       // which one will produce the smallest `t`? This dimension gets the
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
-      t[i] = -abs(float(position[i] - origin)) * abs(dt[i]) ;//+ abs(dt[i]);
+      t[i] = (position[i] - origin) * dt[i];//+ dt[i];
     }
+    
+    stop = grid_width - 1;
   }
   
   // Call this just before running the intersection test.
@@ -188,29 +196,38 @@ public:
   
   // This value is undefined when the loop should be stopped.
   vec<real, 3> get_position() const {
-    return position;
+    auto _position = position;
+#pragma clang loop unroll(full)
+    for (int i = 0; i < 3; ++i) {
+      // TODO: Transform this into an explicit CMPSEL.
+      if (negative[i]) {
+        _position[i] = stop - position[i];
+      }
+    }
+    return _position;
   }
   
   // Call this after, not before, running the intersection test.
   void update_position() {
-    ushort2 cond_mask;
-    cond_mask[0] = (t.x < t.y) ? 1 : 0;
-    cond_mask[1] = (t.x < t.z) ? 1 : 0;
-    uint desired = as_type<uint>(ushort2(1, 1));
-    
+//    ushort2 cond_mask;
+//    cond_mask[0] = (t.x < t.y) ? 1 : 0;
+//    cond_mask[1] = (t.x < t.z) ? 1 : 0;
+//    uint desired = as_type<uint>(ushort2(1, 1));
+//    
 //    if (as_type<uint>(cond_mask) == desired) {
-    if (t.x + abs(dt.x) < t.y + abs(dt.y) && t.x + abs(dt.x) < t.z + abs(dt.z)) {
-      position.x += step.x;
-      t.x += abs(dt.x);
-      continue_loop = (position.x != stop.x);
-    } else if (t.y + abs(dt.y) < t.z + abs(dt.z)) {
-      position.y += step.y;
-      t.y += abs(dt.y);
-      continue_loop = (position.y != stop.y);
+    if (t.x + dt.x < t.y + dt.y &&
+        t.x + dt.x < t.z + dt.z) {
+      position.x += 1;
+      t.x += dt.x;
+      continue_loop = (position.x <= stop);
+    } else if (t.y + dt.y < t.z + dt.z) {
+      position.y += 1;
+      t.y += dt.y;
+      continue_loop = (position.y <= stop);
     } else {
-      position.z += step.z;
-      t.z += abs(dt.z);
-      continue_loop = (position.z != stop.z);
+      position.z += 1;
+      t.z += dt.z;
+      continue_loop = (position.z <= stop);
     }
   }
 };
@@ -218,3 +235,4 @@ public:
 #pragma clang diagnostic pop
 
 #endif
+

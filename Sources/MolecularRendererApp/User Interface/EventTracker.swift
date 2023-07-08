@@ -517,12 +517,14 @@ extension EventTracker {
     
     // Check if A is pressed and move left along the x-axis
     if readingA.isSinglePressed {
-      playerState.position -= basisVectorX * delta(reading: readingA)
+      // * delta(reading: readingA)
+      playerState.position -= basisVectorX * positionDelta
     }
     
     // Check if D is pressed and move right along the x-axis
     if readingD.isSinglePressed {
-      playerState.position += basisVectorX * delta(reading: readingD)
+      // * delta(reading: readingD)
+      playerState.position += basisVectorX * positionDelta
     }
     
     // Check if spacebar is pressed and move up along the y-axis
