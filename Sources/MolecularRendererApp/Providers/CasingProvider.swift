@@ -62,20 +62,6 @@ class Casing_DynamicAtomProvider: MRStaticAtomProvider {
       default:
         fatalError()
       }
-//      translation *= 0
-      
-      // Rotate once every two seconds.
-//      let rotation = simd_quatf(angle: t * .pi, axis: [0, 0, 1])
-//      var atoms = atomsDict[key]!
-//      for i in 0..<atoms.count {
-//        var atom = atoms[i]
-//        var pos = SIMD3<Float>(atom.origin)
-//        pos = simd_act(rotation, pos)
-//        pos += translation
-//        atom.origin = pos
-//        atoms[i] = atom
-//      }
-//      currentAtomsDict[key] = atoms
       
       currentAtomsDict[key] = transformAtomDict(
         atomsDict, key: key, t: t, translation: translation)
@@ -88,6 +74,7 @@ fileprivate func transformAtomDict(
   _ atomsDict: [String: [MRAtom]], key: String,
   t: Float, translation: SIMD3<Float>
 ) -> [MRAtom] {
+  // Rotate once every two seconds.
     let rotation = simd_quatf(angle: t * .pi, axis: [0, 0, 1])
     var atoms = atomsDict[key]!
     for i in 0..<atoms.count {
