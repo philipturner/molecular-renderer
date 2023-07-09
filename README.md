@@ -86,11 +86,11 @@ Display:
 - Monitor needs at least 1280x1280 pixels for the default resolution
 - 60 Hz and 120 Hz supported
 
-<!--## Technical Details-->
-<!---->
-<!--This application currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second\*. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, MetalFX spatial upscaling would let it run on Intel Macs. One could also port it to Windows through Vulkan and FidelityFX.-->
-<!---->
-<!--> \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.-->
+## Technical Details
+
+This application currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second\*. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, one could port it to Windows through Vulkan and FidelityFX.
+
+<!-- \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.-->
 <!---->
 <!--Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. Shaders compute velocity from positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocities on disk. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm. While running an OpenMM simulation, the application auto-saves each batch of 12 consecutive frames into one file. The end of the batch contains atomic velocities for resuming the simulation.-->
 <!---->
