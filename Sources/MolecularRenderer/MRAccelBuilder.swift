@@ -8,42 +8,16 @@
 import Metal
 import simd
 
-// Partially sourced from:
-// https://developer.apple.com/documentation/metal/metal_sample_code_library/control_the_ray_tracing_process_using_intersection_queries
-
-// TODO: Support multiple acceleration structure formats:
-// - BVH
-// - Dense Grid
-// - Sparse Grid
 public class MRAccelBuilder {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   
-  // Cache the atoms and don't rebuild if the current frame matches the previous
-  // one. This is a very dynamic way to optimize the renderer - it automatically
-  // detects frames without motion, and you don't have to explicitly mark frames
-  // as static.
-  var previousAtoms: [MRAtom] = []
-  var previousStyles: [MRAtomStyle] = []
   var currentAtoms: [MRAtom] = []
   var currentStyles: [MRAtomStyle] = []
   
-  // Data for compacting the frame after it's been constant for long enough. Do
-  // not hold a reference to the accel descriptor for too long, as it retains
-  // references to atoms buffers you might want to release.
-  var numDuplicateFrames: Int = 0
-  var didCompactDuplicateFrame: Bool = false
-  var accelDesc: MTLPrimitiveAccelerationStructureDescriptor!
-  
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
-  var boundingBoxBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
-  
-  // Double buffer the accels to remove dependencies between frames.
-  // If compaction is enabled, some dependencies will not be removed.
-  var scratchBuffers: [MTLBuffer?] = Array(repeating: nil, count: 2)
-  var accels: [MTLAccelerationStructure?] = Array(repeating: nil, count: 2)
   
   // Data for uniform grids.
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
@@ -61,9 +35,6 @@ public class MRAccelBuilder {
   
   // Keep track of memory sizes for exponential expansion.
   var maxAtomBufferSize: Int = 1 << 10
-  var maxBoundingBoxBufferSize: Int = 1 << 10
-  var maxScratchBufferSize: Int = 1 << 10
-  var maxAccelSize: Int = 1 << 10
   var maxAtoms: Int = 1 << 1
   var maxGridSlots: Int = 1 << 1
   var maxGridCells: Int = 1 << 1
@@ -72,9 +43,6 @@ public class MRAccelBuilder {
   
   // Indices into ring buffers of memory objects.
   var atomBufferIndex: Int = 0 // modulo 3
-  var boundingBoxBufferIndex: Int = 0 // modulo 3
-  var scratchBufferIndex: Int = 0 // modulo 2
-  var accelIndex: Int = 0 // modulo 2
   
   public init(
     device: MTLDevice,
@@ -172,36 +140,7 @@ extension MRAccelBuilder {
 
 extension MRAccelBuilder {
   // Only call this once per frame.
-  internal func build(
-    commandBuffer: MTLCommandBuffer
-  ) -> MTLAccelerationStructure {
-    defer {
-      self.previousAtoms = currentAtoms
-      self.previousStyles = currentStyles
-    }
-    
-    // Do not generate a new accel when you built a usable one last frame.
-    if previousAtoms == currentAtoms,
-       previousStyles == currentStyles,
-       let accel = self.accels[accelIndex] {
-      self.numDuplicateFrames += 1
-      if numDuplicateFrames >= 3 && !didCompactDuplicateFrame {
-        let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
-        let output = self.compact(
-          encoder: encoder, accel: accel, descriptor: accelDesc)
-        encoder.endEncoding()
-        
-        self.didCompactDuplicateFrame = true
-        self.accelDesc = nil
-        return output
-      } else {
-        return accel
-      }
-    }
-    self.numDuplicateFrames = 0
-    self.didCompactDuplicateFrame = false
-    self.accelDesc = nil
-    
+  internal func build() {
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
     let atomBufferSize = currentAtoms.count * atomSize
@@ -221,113 +160,6 @@ extension MRAccelBuilder {
         atomsPointer[index] = atom
       }
     }
-    
-    // Generate or fetch a buffer.
-    let boundingBoxSize = MemoryLayout<MRBoundingBox>.stride
-    let boundingBoxBufferSize = currentAtoms.count * boundingBoxSize
-    precondition(boundingBoxSize == 24, "Unexpected bounding box size.")
-    let boundingBoxBuffer = cycle(
-      from: &boundingBoxBuffers,
-      index: &boundingBoxBufferIndex,
-      currentSize: &maxBoundingBoxBufferSize,
-      desiredSize: boundingBoxBufferSize,
-      name: "Bounding Boxes")
-    
-    // Write the buffer's contents.
-    do {
-      let boundingBoxesPointer = boundingBoxBuffer.contents()
-        .assumingMemoryBound(to: MRBoundingBox.self)
-      for (index, atom) in currentAtoms.enumerated() {
-        let boundingBox = atom.getBoundingBox(styles: currentStyles)
-        boundingBoxesPointer[index] = boundingBox
-      }
-    }
-    
-    let geometryDesc = MTLAccelerationStructureBoundingBoxGeometryDescriptor()
-    geometryDesc.primitiveDataBuffer = atomBuffer
-    geometryDesc.primitiveDataStride = atomSize
-    geometryDesc.primitiveDataBufferOffset = 0
-    geometryDesc.primitiveDataElementSize = atomSize
-    geometryDesc.boundingBoxCount = currentAtoms.count
-    geometryDesc.boundingBoxStride = boundingBoxSize
-    geometryDesc.boundingBoxBufferOffset = 0
-    geometryDesc.boundingBoxBuffer = boundingBoxBuffer
-    geometryDesc.allowDuplicateIntersectionFunctionInvocation = false
-    
-    self.accelDesc = MTLPrimitiveAccelerationStructureDescriptor()
-    self.accelDesc.geometryDescriptors = [geometryDesc]
-    
-    // Query for the sizes needed to store and build the acceleration structure.
-    let accelSizes = device.accelerationStructureSizes(descriptor: accelDesc)
-    
-    // Allocate scratch space Metal uses to build the acceleration structure.
-    let scratchBuffer = cycle(
-      from: &scratchBuffers,
-      index: &scratchBufferIndex,
-      currentSize: &maxScratchBufferSize,
-      desiredSize: 1024 + accelSizes.buildScratchBufferSize,
-      name: "Scratch Space")
-    
-    // Allocate an acceleration structure large enough for this descriptor. This
-    // method doesn't actually build the acceleration structure, but rather
-    // allocates memory.
-    let desiredSize = accelSizes.accelerationStructureSize
-    var accel = fetch(from: accels, size: desiredSize, index: accelIndex)
-    if accel == nil {
-      accel = create(
-        currentSize: &maxAccelSize, desiredSize: desiredSize, {
-          $0.makeAccelerationStructure(size: $1)
-        })
-      accel!.label = "Molecule"
-    }
-    guard var accel else { fatalError("This should never happen.") }
-    append(accel, to: &accels, index: &accelIndex)
-    
-    // Create an acceleration structure command encoder.
-    let encoder = commandBuffer.makeAccelerationStructureCommandEncoder()!
-    
-    // Schedule the actual acceleration structure build.
-    encoder.build(
-      accelerationStructure: accel, descriptor: accelDesc,
-      scratchBuffer: scratchBuffer, scratchBufferOffset: 1024)
-    
-    // End encoding, and commit the command buffer so the GPU can start building
-    // the acceleration structure.
-    encoder.endEncoding()
-    
-    // Return the acceleration structure.
-    return accel
-  }
-  
-  // Compaction saves a lot of memory, but doesn't really change whether it is
-  // aligned along cache lines. If anything, it only increases the memory
-  // because we now have two scratch buffers.
-  private func compact(
-    encoder: MTLAccelerationStructureCommandEncoder,
-    accel: MTLAccelerationStructure,
-    descriptor: MTLAccelerationStructureDescriptor
-  ) -> MTLAccelerationStructure {
-    let desiredSize = accel.size
-    var compactedAccel = fetch(
-      from: accels, size: desiredSize, index: accelIndex)
-    if compactedAccel == nil {
-      compactedAccel = create(
-        currentSize: &maxAccelSize, desiredSize: desiredSize, {
-          $0.makeAccelerationStructure(size: $1)
-        })
-      compactedAccel!.label = "Molecule (Compacted)"
-    }
-    guard let compactedAccel else { fatalError("This should never happen.") }
-    
-    // Encode the command to copy and compact the acceleration structure into
-    // the smaller acceleration structure.
-    encoder.copyAndCompact(
-      sourceAccelerationStructure: accel,
-      destinationAccelerationStructure: compactedAccel)
-    
-    // Re-assign the current acceleration structure to the compacted one.
-    append(compactedAccel, to: &accels, index: &accelIndex)
-    return compactedAccel
   }
 }
 
@@ -494,6 +326,9 @@ extension MRAccelBuilder {
     encoder.dispatchThreads(
       MTLSizeMake(paddedCells, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
+    
+    // TODO: Fix this now that we removed the dependency on Metal ray tracing,
+    // the source of the Metal Frame Capture bug.
     encoder.setBuffer(globalCounterBuffer, offset: 0, index: 0)
     encoder.dispatchThreads(
       MTLSizeMake(1, 1, 1),

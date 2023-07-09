@@ -10,7 +10,6 @@
 #include "RayTracing.metal"
 #include "Sampling.metal"
 using namespace metal;
-using namespace raytracing;
 
 // Partially sourced from:
 // https://github.com/nvpro-samples/gl_vk_raytrace_interop/blob/master/shaders/raygen.rgen
@@ -69,7 +68,7 @@ public:
     return float3x3(x, y, z);
   }
   
-  static ray primaryRay(ushort2 pixelCoords, constant Arguments* args) {
+  static Ray primaryRay(ushort2 pixelCoords, constant Arguments* args) {
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
     rayDirection.xy += args->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
@@ -82,7 +81,7 @@ public:
     return { worldOrigin, rayDirection };
   }
   
-  static ray secondaryRay(float3 origin, Basis basis) {
+  static Ray secondaryRay(float3 origin, Basis basis) {
     // Transform the uniform distribution into the cosine distribution. This
     // creates a direction vector that's already normalized.
     float phi = 2 * M_PI_F * basis.random1;
@@ -93,11 +92,7 @@ public:
     
     // Apply the basis as a linear transformation.
     direction = basis.axes * direction;
-    
-    ray ray;
-    ray.origin = origin;
-    ray.direction = direction;
-    return ray;
+    return { origin, direction };
   }
 };
 
@@ -129,7 +124,7 @@ public:
     this->seed = Sampling::tea(pixelSeed, args->frameSeed);
   }
   
-  ray generate(ushort i) {
+  Ray generate(ushort i) {
     // Generate a random number and increment the seed.
     float random1 = Sampling::radinv3(seed);
     float random2 = Sampling::radinv2(seed);
@@ -143,8 +138,6 @@ public:
     
     // Create a random ray from the cosine distribution.
     RayGeneration::Basis basis { axes, random1, random2 };
-    ray ray = RayGeneration::secondaryRay(origin, basis);
-    ray.max_distance = args->maxRayHitTime;
-    return ray;
+    return RayGeneration::secondaryRay(origin, basis);
   }
 };

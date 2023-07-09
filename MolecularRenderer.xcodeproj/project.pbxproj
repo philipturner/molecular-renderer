@@ -17,6 +17,7 @@
 		9852E88129EB8CC100D0E779 /* how-to-create-the-ui.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88029EB8CC100D0E779 /* how-to-create-the-ui.md */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */; };
+		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		986ED88F29A71C1C00E0653B /* PythonKit in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED88E29A71C1C00E0653B /* PythonKit */; };
 		986ED89229A71C2B00E0653B /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED89129A71C2B00E0653B /* Atomics */; };
@@ -96,6 +97,7 @@
 		9852E88029EB8CC100D0E779 /* how-to-create-the-ui.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = "how-to-create-the-ui.md"; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
+		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
@@ -171,6 +173,7 @@
 				988B257D2A1AC482007F18C1 /* Constants.metal */,
 				988B25812A1AD3D3007F18C1 /* Lighting.metal */,
 				98122D7029DFBDE6006200D1 /* MRAtom.metal */,
+				986BBDDC2A5A5D20006F847B /* Ray.metal */,
 				981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */,
 				987C5CE329EA051400CE5EB7 /* RayTracing.metal */,
 				986ED88729A6CB0400E0653B /* RenderMain.metal */,
@@ -549,6 +552,7 @@
 			files = (
 				98F638AF2A34A33400F51E95 /* RayTracing.metal in Sources */,
 				98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */,
+				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
 				98082B032A52F2F00018F171 /* AccelBuilding.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,

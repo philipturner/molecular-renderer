@@ -10,6 +10,7 @@
 
 #include <metal_stdlib>
 #include "MRAtom.metal"
+#include "Ray.metal"
 using namespace metal;
 using namespace raytracing;
 
@@ -87,7 +88,7 @@ public:
   uint address;
   bool continue_loop;
   
-  DifferentialAnalyzer(ray ray, DenseGrid grid) {
+  DifferentialAnalyzer(Ray ray, DenseGrid grid) {
     half h_grid_width(grid.width);
     grid_width = grid.width;
     

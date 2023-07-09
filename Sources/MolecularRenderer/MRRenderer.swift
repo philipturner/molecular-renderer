@@ -386,13 +386,10 @@ extension MRRenderer {
     handler: @escaping MTLCommandBufferHandler
   ) {
     self.updateResources()
+    accelBuilder.build()
     
     // Command buffer shared between the geometry and rendering passes.
     let commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    // Encode the accel creation pass, if necessary.
-    let accel = accelBuilder.build(
-      commandBuffer: commandBuffer)
     
     // Acquire a reference to the drawable.
     let drawable = layer.nextDrawable()!
@@ -424,7 +421,6 @@ extension MRRenderer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
-    encoder.setAccelerationStructure(accel, bufferIndex: 2)
 
     // Encode the output textures.
     let textures = self.currentTextures
