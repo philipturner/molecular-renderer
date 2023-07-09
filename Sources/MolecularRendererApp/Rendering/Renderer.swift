@@ -294,7 +294,7 @@ extension Renderer {
       position: playerState.position,
       rotation: azimuth * zenith,
       lightPower: Float16(staticStyleProvider.lightPower),
-      raySampleCount: 3)
+      raySampleCount: 7)
     
     renderer.render(layer: view.metalLayer) { [self] _ in
       renderSemaphore.signal()
