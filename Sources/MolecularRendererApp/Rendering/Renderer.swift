@@ -75,10 +75,10 @@ class Renderer {
 //      self.staticAtomProvider = ExampleProviders.planetaryGearBox(
 //        styleProvider: staticStyleProvider)
       
-//      self.staticAtomProvider = NanoEngineerParser(styleProvider: staticStyleProvider, partLibPath: "casings/Pump Casing")
+      self.staticAtomProvider = NanoEngineerParser(styleProvider: staticStyleProvider, partLibPath: "others/Fine Motion Controller")
       
-      self.staticAtomProvider = Casing_DynamicAtomProvider(
-        styleProvider: staticStyleProvider)
+//      self.staticAtomProvider = Casing_DynamicAtomProvider(
+//        styleProvider: staticStyleProvider)
     case .molecularSimulation:
       initOpenMM()
       self.dynamicAtomProvider = simulateSodiumChloride(
@@ -269,8 +269,8 @@ extension Renderer {
     let atoms: [MRAtom]
     switch Self.renderingMode {
     case .static:
-      let casingProvider = staticAtomProvider as! Casing_DynamicAtomProvider
-      casingProvider.nextFrame()
+//      let casingProvider = staticAtomProvider as! Casing_DynamicAtomProvider
+//      casingProvider.nextFrame()
       atoms = staticAtomProvider.atoms
     case .molecularSimulation:
       #if false

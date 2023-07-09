@@ -239,7 +239,7 @@ fileprivate func denseGridStatistics(
   maxRadius += epsilon
   minCoordinates -= maxRadius
   maxCoordinates += maxRadius
-  print(references)
+  print(references, atoms.count)
   
   free(elementInstances)
   free(atomsPadded_raw)
