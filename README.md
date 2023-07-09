@@ -1,6 +1,6 @@
 # Molecular Renderer
 
-Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to simulate 1,000 atoms or render 10,000,000 atoms in real-time.
+Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to simulate 1,000 atoms or render 100,000,000 atoms in real-time.
 
 This is a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
@@ -68,47 +68,33 @@ TODO (simulation modes):
 - 1 fs (NVE): first mode to be implemented, sums groups of 4 nonbonded forces in FP32 and switches to eFP64 for larger sums
 - 0.25 fs (NVE): identical to 1 fs, except the smaller timestep permits measuring energies smaller than the Landauer limit
 
-TODO (rendering):
-- Finish implementing ambient occlusion.
-  - Runs concurrently to a small $O(n^2)$ MD simulation
-  - 640x640 -> 1280x1280 upscaling
-  - 120 Hz native
-  - Builds accels at runtime (&lt;10K atoms) or streams from SSD
-
-TODO (simulation):
-- Separate command queue for real-time simulation.
-  - Stays numerous frames ahead, maintains a cushion for frame drops
-  - Catches up from frame drops, but resets if drop exceeds cushion
-  - Non-real-time mode to benchmark performance (ns/day)
-- Real-time graph of energy, temperature, and simulator progress.
-
 ## Requirements
 
 Dependencies:
-- macOS Ventura, Apple silicon chip
-- Xcode 14 installed
+- macOS Sonoma, Apple silicon chip
+- Xcode 15 installed
 - OpenMM 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed
 
-Memory/Disk:
-- At least 8 GB of RAM
-- Solid-state drive or high-bandwidth HDD, several GB of free disk space
-- Before compression: 156 MB per second of playback per 100,000 atoms
-- Before compression: 9 MB per second of playback when under 6,000 atoms
+<!--Memory/Disk:-->
+<!--- At least 8 GB of RAM-->
+<!--- Solid-state drive or high-bandwidth HDD, several GB of free disk space-->
+<!--- Before compression: 156 MB per second of playback per 100,000 atoms-->
+<!--- Before compression: 9 MB per second of playback when under 6,000 atoms-->
 
 Display:
 - 640x640 -> 1280x1280 upscaled with MetalFX temporal upscaling
 - Monitor needs at least 1280x1280 pixels for the default resolution
 - 60 Hz and 120 Hz supported
 
-## Technical Details
-
-This application currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second\*. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, MetalFX spatial upscaling would let it run on Intel Macs. One could also port it to Windows through Vulkan and FidelityFX.
-
-> \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.
-
-Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. Shaders compute velocity from positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocities on disk. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm. While running an OpenMM simulation, the application auto-saves each batch of 12 consecutive frames into one file. The end of the batch contains atomic velocities for resuming the simulation.
-
-Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s. Replaying at exactly 0.48 ps/s would cause a significant bottleneck; OpenMM would halt the GPU command stream every step. To prevent this bottleneck, try to replay at something over 10 ps/s. Also check how quickly OpenMM is simulating, to gauge how long you'll wait before visualizing. OpenMM would generate 1.2 ps/s of data when simulating 100 ns/day, something achievable with the M1 Max and ~100,000 atoms.
+<!--## Technical Details-->
+<!---->
+<!--This application currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second\*. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, MetalFX spatial upscaling would let it run on Intel Macs. One could also port it to Windows through Vulkan and FidelityFX.-->
+<!---->
+<!--> \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.-->
+<!---->
+<!--Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. Shaders compute velocity from positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocities on disk. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm. While running an OpenMM simulation, the application auto-saves each batch of 12 consecutive frames into one file. The end of the batch contains atomic velocities for resuming the simulation.-->
+<!---->
+<!--Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s. Replaying at exactly 0.48 ps/s would cause a significant bottleneck; OpenMM would halt the GPU command stream every step. To prevent this bottleneck, try to replay at something over 10 ps/s. Also check how quickly OpenMM is simulating, to gauge how long you'll wait before visualizing. OpenMM would generate 1.2 ps/s of data when simulating 100 ns/day, something achievable with the M1 Max and ~100,000 atoms.-->
 
 ## References
 
