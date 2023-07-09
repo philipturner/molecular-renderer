@@ -16,7 +16,7 @@ class EventTracker {
   // State of the player in 3D.
   var playerState = PlayerState()
   
-  static let initialPlayerPosition: SIMD3<Float> = [0, 0, 5]
+  static let initialPlayerPosition: SIMD3<Float> = [0, 0, 0]
   
   // The sensitivity of the mouse movement
   //
