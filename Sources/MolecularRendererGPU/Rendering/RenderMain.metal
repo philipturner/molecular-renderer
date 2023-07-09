@@ -129,15 +129,13 @@ IntersectionResult RayTracing::traverse_dense_grid
 #if FAULT_COUNTERS_ENABLE
       fault_counter2 += 1; if (fault_counter2 > 300) { return { MAXFLOAT, false }; }
 #endif
-      // TODO: Force references to be aligned to multiples of 2, even if you duplicate references.
-      // The atom with offset COUNT-1 will write to the end of the region.
       ushort reference = grid.references[offset + i];
-      MRAtom atom = grid.atoms[reference];
+      float4 data = ((device float4*)grid.atoms)[reference];
       
       // Do not walk inside an atom; doing so will produce corrupted graphics.
-      float3 oc = ray.origin - atom.origin;
+      float3 oc = ray.origin - data.xyz;
       float b2 = dot(oc, ray.direction);
-      float c = dot(oc, oc) - atom.radiusSquared;
+      float c = dot(oc, oc) - as_type<half2>(data.w)[0];
       float disc4 = b2 * b2 - c;
       
       if (disc4 > 0) {
@@ -161,6 +159,7 @@ IntersectionResult RayTracing::traverse_dense_grid
   }
   
   if (result.accept) {
+    // TODO: Apply the memory coalescing optimization here.
     result.atom = grid.atoms[result_atom];
   }
   return result;

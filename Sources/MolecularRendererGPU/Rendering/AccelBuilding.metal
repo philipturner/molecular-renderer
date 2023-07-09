@@ -57,7 +57,6 @@ kernel void dense_grid_pass1
  uint tid [[thread_position_in_grid]])
 {
   MRAtom atom = atoms[tid];
-//  Box box { atom.origin - 0.24, atom.origin + 0.24 };
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;
@@ -96,29 +95,29 @@ kernel void dense_grid_pass2
 {
   // Allocate extra cells if the total number isn't divisible by 128. The first
   // pass should zero them out.
-  uint cell_count = dense_grid_data[tid];
-  uint prefix_sum_results = simd_prefix_exclusive_sum(cell_count);
+  uint voxel_count = dense_grid_data[tid];
+  uint prefix_sum_results = simd_prefix_exclusive_sum(voxel_count);
   
   threadgroup uint group_results[4];
   if (lane_id == 31) {
-    group_results[sidx] = prefix_sum_results + cell_count;
+    group_results[sidx] = prefix_sum_results + voxel_count;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Prefix sum across simds.
   if (sidx == 0 && lane_id < 4) {
-    uint cell_count = group_results[lane_id];
-    uint prefix_sum_results = quad_prefix_exclusive_sum(cell_count);
+    uint voxel_count = group_results[lane_id];
+    uint prefix_sum_results = quad_prefix_exclusive_sum(voxel_count);
     
     // Increment device atomic.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wuninitialized"
     uint group_offset;
     if (lane_id == 3) {
-      uint total_cell_count = prefix_sum_results + cell_count;
+      uint total_voxel_count = prefix_sum_results + voxel_count;
       group_offset = atomic_fetch_add_explicit
       (
-       global_counter, total_cell_count, memory_order_relaxed);
+       global_counter, total_voxel_count, memory_order_relaxed);
     }
     prefix_sum_results += quad_broadcast(group_offset, 3);
 #pragma clang diagnostic pop
@@ -128,7 +127,7 @@ kernel void dense_grid_pass2
   
   // Overwrite contents of the grid.
   prefix_sum_results += group_results[sidx];
-  uint count_part = reverse_bits(cell_count) & voxel_count_mask;
+  uint count_part = reverse_bits(voxel_count) & voxel_count_mask;
   uint offset_part = prefix_sum_results & voxel_offset_mask;
   dense_grid_data[tid] = count_part | offset_part;
   dense_grid_counters[tid] = prefix_sum_results;
@@ -142,13 +141,13 @@ kernel void dense_grid_pass3
  constant MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
+ device uint *dense_grid_data [[buffer(3)]],
  device atomic_uint *dense_grid_counters [[buffer(4)]],
  device ushort *references [[buffer(6)]],
  
  uint tid [[thread_position_in_grid]])
 {
   MRAtom atom = atoms[tid];
-//  Box box { atom.origin - 0.24, atom.origin + 0.24 };
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;
