@@ -34,8 +34,13 @@ final class NanoEngineerParser: MRStaticAtomProvider {
     downloader.logLatency()
     let string = downloader.string
     
-    let lines = string.split(separator: "\n").filter {
+    var lines = string.split(separator: "\n").filter {
       $0.starts(with: "atom ")
+    }
+    if lines.count == 0 {
+      lines = string.split(separator: "\r\n").filter {
+        $0.starts(with: "atom ")
+      }
     }
     self.atoms = lines.map { lineOriginal in
       var line = lineOriginal

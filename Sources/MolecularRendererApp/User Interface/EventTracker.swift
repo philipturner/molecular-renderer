@@ -498,7 +498,7 @@ extension EventTracker {
     // Call this to use two different speeds for keys that can sprint.
     func delta(reading: KeyReading) -> Float {
       if reading.isDoublePressed {
-        return 2 * positionDelta
+        return 5 * positionDelta
         
       } else {
         return positionDelta
@@ -513,19 +513,19 @@ extension EventTracker {
     // Check if S is pressed and move backward along the z-axis
     if readingS.isSinglePressed {
       // delta(reading: readingS)
-      playerState.position += basisVectorZ * positionDelta
+      playerState.position += basisVectorZ * delta(reading: readingS) // positionDelta
     }
     
     // Check if A is pressed and move left along the x-axis
     if readingA.isSinglePressed {
       // * delta(reading: readingA)
-      playerState.position -= basisVectorX * positionDelta
+      playerState.position -= basisVectorX * delta(reading: readingA) // positionDelta
     }
     
     // Check if D is pressed and move right along the x-axis
     if readingD.isSinglePressed {
       // * delta(reading: readingD)
-      playerState.position += basisVectorX * positionDelta
+      playerState.position += basisVectorX * delta(reading: readingD) // positionDelta
     }
     
     // Check if spacebar is pressed and move up along the y-axis

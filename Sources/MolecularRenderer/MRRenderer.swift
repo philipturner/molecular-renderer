@@ -184,8 +184,8 @@ public class MRRenderer {
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = 2.0
-    desc.inputContentMaxScale = 2.0
+    desc.inputContentMinScale = 2
+    desc.inputContentMaxScale = 2
     
     guard let upscaler = desc.makeTemporalScaler(device: device) else {
       fatalError("The temporal scaler effect is not usable!")

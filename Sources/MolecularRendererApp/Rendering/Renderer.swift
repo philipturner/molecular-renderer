@@ -72,7 +72,12 @@ class Renderer {
     self.staticStyleProvider = ExampleStyles.NanoStuff()
     switch Self.renderingMode {
     case .static:
-      self.staticAtomProvider = ExampleProviders.planetaryGearBox(
+//      self.staticAtomProvider = ExampleProviders.planetaryGearBox(
+//        styleProvider: staticStyleProvider)
+      
+//      self.staticAtomProvider = NanoEngineerParser(styleProvider: staticStyleProvider, partLibPath: "casings/Pump Casing")
+      
+      self.staticAtomProvider = Casing_DynamicAtomProvider(
         styleProvider: staticStyleProvider)
     case .molecularSimulation:
       initOpenMM()
@@ -264,6 +269,8 @@ extension Renderer {
     let atoms: [MRAtom]
     switch Self.renderingMode {
     case .static:
+      let casingProvider = staticAtomProvider as! Casing_DynamicAtomProvider
+      casingProvider.nextFrame()
       atoms = staticAtomProvider.atoms
     case .molecularSimulation:
       #if false

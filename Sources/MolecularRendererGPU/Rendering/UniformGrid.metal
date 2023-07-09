@@ -23,10 +23,10 @@ constant float voxel_width_denom = 9;
 
 // Max 1 million atoms/dense grid, including duplicated references.
 // Max 65536 atoms/dense grid, excluding duplicated references.
-constant uint voxel_offset_mask = 0x000FFFFF;
+constant uint voxel_offset_mask = 0x0000FFFF;
 
 // Max 4096 atoms/voxel. This is stored in opposite-endian order to the offset.
-constant uint voxel_count_mask = 0xFFF00000;
+constant uint voxel_count_mask = 0xFFFF0000;
 
 // Behavior is undefined when the position goes out-of-bounds.
 class VoxelAddress {

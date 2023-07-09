@@ -227,7 +227,7 @@ fileprivate func denseGridStatistics(
   var maxRadius: Float = 0
   for i in 0..<styles.count {
     let radius = Float(styles[i].radius)
-    let cellSpan = ceil((2 * radius + epsilon) / cellWidth)
+    let cellSpan = 1 + ceil((2 * radius + epsilon) / cellWidth)
     let cellCube = cellSpan * cellSpan * cellSpan
     
     let instances = elementInstances[i]
@@ -239,6 +239,7 @@ fileprivate func denseGridStatistics(
   maxRadius += epsilon
   minCoordinates -= maxRadius
   maxCoordinates += maxRadius
+  print(references)
   
   free(elementInstances)
   free(atomsPadded_raw)
