@@ -14,7 +14,7 @@ using namespace metal;
 atomic_fetch_add_explicit(OBJECT, 1, memory_order_relaxed);
 
 #define BOX_GENERATE(EXTREMUM) \
-box.EXTREMUM /= voxel_width; \
+box.EXTREMUM *= voxel_width_denom / voxel_width_numer; \
 box.EXTREMUM += h_grid_width * 0.5; \
 ushort3 box_##EXTREMUM; \
 {\
@@ -56,7 +56,7 @@ kernel void dense_grid_pass1
  
  uint tid [[thread_position_in_grid]])
 {
-  MRAtom atom = atoms[tid];
+  MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;
@@ -147,7 +147,7 @@ kernel void dense_grid_pass3
  
  uint tid [[thread_position_in_grid]])
 {
-  MRAtom atom = atoms[tid];
+  MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;

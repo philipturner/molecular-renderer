@@ -389,7 +389,7 @@ fileprivate func denseGridStatistics(
     maxCoordinates = simd_max(max1234, maxCoordinates)
   }
   
-  let cellWidth: Float = 0.5
+  let cellWidth: Float = 4.0 / 9
   let epsilon: Float = 1e-4
   var references: Int = 0
   var maxRadius: Float = 0
@@ -455,7 +455,7 @@ extension MRAccelBuilder {
                                statistics.boundingBox.max.z)
     let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
 
-    let cellWidth: Float = 0.5
+    let cellWidth: Float = 4.0 / 9
     self.gridWidth = max(Int(2 * ceil(maxMagnitude / cellWidth)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
     let numReferences = statistics.references

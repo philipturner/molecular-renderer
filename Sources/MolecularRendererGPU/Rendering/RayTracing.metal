@@ -81,7 +81,7 @@ public:
       // intersection function to determine whether to accept the candidate
       // intersection.
       auto rawPointer = i.get_candidate_primitive_data();
-      MRAtom atom = *(const device MRAtom*)rawPointer;
+      MRAtom atom((device MRAtom*)rawPointer);
       
       AtomIntersection bb = atomIntersectionFunction(ray, atom);
 
@@ -100,15 +100,13 @@ public:
     intersection.accept =
       i.get_committed_intersection_type() == intersection_type::bounding_box;
     if (intersection.accept) {
-      intersection.atom = *(const device MRAtom*)primitive_data;
+      intersection.atom = MRAtom((device MRAtom*)primitive_data);
     }
     
     return intersection;
   }
   
-  static IntersectionResult traverse_dense_grid
-  (
-   const ray ray, const DenseGrid const_grid);
+  static IntersectionResult traverse_dense_grid(ray ray, DenseGrid grid);
 };
 
 #endif

@@ -17,7 +17,8 @@ using namespace raytracing;
 #pragma clang diagnostic ignored "-Wunused"
 
 // Voxel width in nm.
-constant float voxel_width = 0.5;
+constant float voxel_width_numer = 4;
+constant float voxel_width_denom = 9;
 
 // Max 1 million atoms/dense grid, including duplicated references.
 // Max 65536 atoms/dense grid, excluding duplicated references.
@@ -95,8 +96,8 @@ public:
     dt = precise::divide(1, ray.direction);
     
     // The grid's coordinate space is in half-nanometers.
-    // NOTE: This scales `t` by a factor of 0.5/2.
-    ray.origin /= voxel_width;
+    // NOTE: This scales `t` by a factor of 0.444/2.25.
+    ray.origin *= voxel_width_denom / voxel_width_numer;
     
     // Dense grids start at an offset from the origin.
     // NOTE: This does not change `t`.
@@ -116,7 +117,7 @@ public:
     continue_loop = (tmin < tmax);
     ray.origin += tmin * ray.direction;
     ray.origin = clamp(ray.origin, float(0), h_grid_width);
-    this->tmin = tmin * 0.5;
+    this->tmin = tmin * voxel_width_numer / voxel_width_denom;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
@@ -141,7 +142,7 @@ public:
   }
   
   float get_max_accepted_t() {
-    return tmin + voxel_tmax * 0.5;
+    return tmin + voxel_tmax * voxel_width_numer / voxel_width_denom;
   }
   
   void increment_position() {

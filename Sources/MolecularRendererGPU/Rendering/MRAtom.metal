@@ -35,32 +35,52 @@ MRAtom {
   // Radius in nm.
   half radiusSquared;
   
+private:
+  ushort tailStorage;
+  
+public:
+  
   // Atomic number.
-  uchar element;
+  uchar get_element() {
+    return tailStorage % 256;
+  }
   
   // Flags to modify how the atom is rendered.
-  uchar flags;
+  ushort get_flags() {
+    return tailStorage;
+  }
   
   MRAtom() {
     
   }
   
+  // Bypass an issue where the Metal compiler doesn't actually align the read.
+  MRAtom(const device MRAtom* address) {
+    float4 data = *(const device float4*)address;
+    this->origin = data.xyz;
+    this->radiusSquared = as_type<half2>(data.w)[0];
+    this->tailStorage = as_type<ushort2>(data.w)[1];
+  }
+  
   MRAtom(constant MRAtomStyle* styles,
          float3 origin, uchar element, uchar flags = 0) {
     this->origin = origin;
-    this->element = element;
-    this->flags = flags;
-    
+    this->tailStorage = as_type<ushort>(uchar2(element, flags));
+//    this->element = element;
+//    this->flags = flags;
+//    
     half radius = this->getRadius(styles);
     this->radiusSquared = radius * radius;
   }
   
   half getRadius(constant MRAtomStyle* styles) {
-    return styles[element].radius;
+    auto styles_ptr = (constant half4*)(styles + get_element());
+    return styles_ptr[0].w;
   }
   
   half3 getColor(constant MRAtomStyle* styles) {
-    return styles[element].color;
+    auto styles_ptr = (constant half4*)(styles + get_element());
+    return styles_ptr[0].xyz;
   }
   
   MRBoundingBox getBoundingBox(constant MRAtomStyle* styles) {

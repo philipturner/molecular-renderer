@@ -86,14 +86,13 @@ kernel void renderMain
 
 // MARK: - Temporary Implementation of RayTracing::traverse_dense_grid
 
-IntersectionResult RayTracing::traverse_dense_grid
-(
- const ray ray, const DenseGrid const_grid)
+IntersectionResult RayTracing::traverse_dense_grid(ray ray, DenseGrid grid)
 {
-  DenseGrid grid = const_grid;
   DifferentialAnalyzer dda(ray, grid);
   IntersectionResult result { MAXFLOAT, false };
   ushort result_atom;
+  
+//  ray.direction *= voxel_width_denom / voxel_width_numer;
   
 #if FAULT_COUNTERS_ENABLE
   int fault_counter1 = 0;
@@ -159,8 +158,7 @@ IntersectionResult RayTracing::traverse_dense_grid
   }
   
   if (result.accept) {
-    // TODO: Apply the memory coalescing optimization here.
-    result.atom = grid.atoms[result_atom];
+    result.atom = MRAtom(grid.atoms + result_atom);
   }
   return result;
 }
