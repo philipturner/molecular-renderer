@@ -63,4 +63,28 @@ struct ExampleMolecules {
       return _atoms
     }
   }
+  
+  struct GoldSurface: MRAtomProvider {
+    var _atoms: [MRAtom]
+    
+    init(styleProvider: MRAtomStyleProvider) {
+      let origins: [SIMD3<Float>] = [
+        SIMD3(0, 0, 0),
+        SIMD3(0.5, 0, 0.5),
+        SIMD3(0.5, 0, -0.5),
+        SIMD3(-0.5, 0, 0.5),
+        SIMD3(-0.5, 0, -0.5),
+      ]
+      
+      // TODO: Support the atom style for gold, and actually render gold.
+      let styles = styleProvider.styles
+      _atoms = origins.map {
+        MRAtom(styles: styles, origin: $0, element: 6)
+      }
+    }
+    
+    func atoms(time: MRTimeContext) -> [MRAtom] {
+      return _atoms
+    }
+  }
 }

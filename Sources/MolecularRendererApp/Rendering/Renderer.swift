@@ -42,6 +42,11 @@ class Renderer {
     self.atomProvider = NanoEngineerParser(
       styleProvider: styleProvider,
       partLibPath: "others/Fine Motion Controller")
+    
+    // Not sure why, but the FPS gets very glitchy when I run these.
+//    self.atomProvider = ExampleMolecules
+//      .GoldSurface(styleProvider: styleProvider)
+//    self.atomProvider = ExampleProviders.taggedEthylene(styleProvider: styleProvider)
   }
 }
 

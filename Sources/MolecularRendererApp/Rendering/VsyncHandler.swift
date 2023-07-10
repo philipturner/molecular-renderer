@@ -40,12 +40,12 @@ class VsyncHandler {
     
     CVDisplayLinkSetOutputHandler(displayLink) { [self] in
       // Prevent oversubscription of the main thread.
-      mainThreadSemaphore.wait()
+//      mainThreadSemaphore.wait()
       
       // Must access the UI from the main thread.
       DispatchQueue.main.async { [self] in
         coordinator.updateUI()
-        mainThreadSemaphore.signal()
+//        mainThreadSemaphore.signal()W
       }
       
       let currentTimeStamp = $2.pointee
