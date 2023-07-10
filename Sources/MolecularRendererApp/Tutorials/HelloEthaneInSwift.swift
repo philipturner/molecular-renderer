@@ -107,7 +107,7 @@ fileprivate class MyOpenMMData {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
   var context: OpenMM_Context
-  var provider: OpenMM_DynamicAtomProvider
+  var provider: OpenMM_AtomProvider
   
   init(atoms: [Atom], stepSizeInFs: Double, platformName: inout String) {
     let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory!

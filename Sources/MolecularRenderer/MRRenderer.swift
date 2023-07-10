@@ -14,6 +14,15 @@ import struct simd.simd_float3x3
 // Partially sourced from:
 // https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
 
+// TODO: Multiple rendering modes.
+// - Interactive: accounts for latency, synchronized with display
+// - Hybrid: writes a saveable frame, and the recording can be started/stopped
+// - Headless: removes stutters, suitable for production
+
+// TODO: Options for storing recorded frames.
+// - Async handler: pointer in memory
+// - File: uses built-in image/video encoder, stores to a pre-defined URL
+
 @_alignment(16)
 internal struct Arguments {
   var fovMultiplier: Float
@@ -24,13 +33,6 @@ internal struct Arguments {
   var jitter: SIMD2<Float>
   var frameSeed: UInt32
   
-  // TODO: Allow 'sampleCount' to dynamically scale, matching a target FPS.
-  // Aim to make the compute command last 4-6 ms, but allow manual overrides.
-  // Only sample every few frames, so that most commands can occur in a single
-  // command buffer. The range should be capped between 3 and 16 by default.
-  // However, you can extend the range as part of the overriding ability.
-  //
-  // TODO: Does the AGX dynamic frequency scaling make this not viable?
   var lightPower: Float16
   var sampleCount: UInt16
   var maxRayHitTime: Float
@@ -49,6 +51,9 @@ public class MRRenderer {
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
   var resetScaler = true
+  
+  // The time of this frame.
+  var time: MRTimeContext!
   
   // Main rendering resources.
   var device: MTLDevice
@@ -244,7 +249,7 @@ extension MRRenderer {
   ) {
     // If the frame has just begun, the upscaler needs to recognize that a
     // history of samples doesn't exist yet.
-    upscaler.reset = self.resetScaler
+    upscaler.reset = resetScaler || (time.absolute.frames == 0)
     self.resetScaler = false
     
     // Bind the intermediate textures.
@@ -265,34 +270,30 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  // If the atoms and styles were the same as last frame, the renderer recycles
-  // the previous acceleration structure. Therefore, static scenes are somewhat
-  // more efficient than dynamic scenes.
+  // TODO: Integrate with modern graphics APIs' asynchronous SSD loading.
   //
   // If you're rendering from a dynamic scene, there is a different API with a
   // different C function. The dynamic API should be used when loading geometry
   // is resource-intensive or high-latency and therefore requires Metal IO
   // command buffers. Otherwise, the static API is sufficient to render dynamic
   // geometry.
-  //
-  // TODO: Instead of providing `shouldCompact` through an API, have the accel
-  // builder automatically compact after it's been constant for 3 frames. You
-  // don't need to store a third copy though - just a boolean of whether it was
-  // the same last frame.
-  public func setStaticGeometry(
-    atomProvider: MRStaticAtomProvider,
-    styleProvider: MRStaticStyleProvider
+  public func setGeometry(
+    time: MRTimeContext,
+    atoms: [MRAtom],
+    styles: [MRAtomStyle]
   ) {
-    accelBuilder.currentAtoms = atomProvider.atoms
-    accelBuilder.currentStyles = styleProvider.styles
+    self.time = time
+    self.accelBuilder.atoms = atoms
+    self.accelBuilder.styles = styles
   }
   
   // Only call this once per frame.
+  // - lightPower: Intensity of the camera-centered light for Blinn-Phong shading.
   public func setCamera(
     fovDegrees: Float,
     position: SIMD3<Float>,
     rotation: simd_float3x3,
-    lightPower: Float16,
+    lightPower: Float,
     raySampleCount: Int
   ) {
     self.previousArguments = currentArguments
@@ -311,7 +312,7 @@ extension MRRenderer {
       jitter: jitterOffsets,
       frameSeed: UInt32.random(in: 0...UInt32.max),
       
-      lightPower: lightPower,
+      lightPower: Float16(lightPower),
       sampleCount: UInt16(raySampleCount),
       maxRayHitTime: maxRayHitTime,
       exponentialFalloffDecayConstant: decayConstant,
@@ -385,6 +386,10 @@ extension MRRenderer {
     layer: CAMetalLayer,
     handler: @escaping MTLCommandBufferHandler
   ) {
+    defer {
+      // Invalidate the time.
+      self.time = nil
+    }
     self.updateResources()
     accelBuilder.build()
     
@@ -417,7 +422,7 @@ extension MRRenderer {
       let baseAddress = bufferPointer.baseAddress!
       encoder.setBytes(baseAddress, length: argsLength, index: 0)
     }
-    accelBuilder.currentStyles.withUnsafeBufferPointer {
+    accelBuilder.styles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }

@@ -10,16 +10,16 @@ import MolecularRenderer
 import OpenMM
 
 func simulateArgon(
-  styleProvider: MRStaticStyleProvider
-) -> OpenMM_DynamicAtomProvider {
-  let provider = OpenMM_DynamicAtomProvider(
+  styleProvider: MRAtomStyleProvider
+) -> OpenMM_AtomProvider {
+  let provider = OpenMM_AtomProvider(
     psPerStep: 0.004, stepsPerFrame: 10, styles: styleProvider.styles,
     elements: [18, 18, 18])
   _simulateArgon(atomProvider: provider)
   return provider
 }
 
-func _simulateArgon(atomProvider: OpenMM_DynamicAtomProvider? = nil) {
+func _simulateArgon(atomProvider: OpenMM_AtomProvider? = nil) {
   OpenMM_Platform.loadPlugins(
     directory: OpenMM_Platform.defaultPluginsDirectory!)
   

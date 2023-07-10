@@ -79,11 +79,14 @@ final class RendererView: NSView, CALayerDelegate {
       // disk here. Exit to prevent Xcode from having numerous background apps
       // that won't close on their own.
       print("Exiting the app.")
-      coordinator.eventTracker.closeApp(
-        coordinator: coordinator, forceExit: true)
+      CGDisplayShowCursor(CGMainDisplayID())
+      CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
+      exit(0)
     } else {
-      coordinator.setupCVDisplayLink(screen: self.window!.screen!)
-      resizeDrawable(self.window!.screen!.backingScaleFactor)
+      let screen = self.window!.screen!
+      coordinator.vsyncHandler = VsyncHandler(
+        coordinator: coordinator, screen: screen)
+      resizeDrawable(screen.backingScaleFactor)
     }
   }
   

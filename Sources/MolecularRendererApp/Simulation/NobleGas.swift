@@ -238,7 +238,7 @@ extension NobleGasSimulator {
     return (nsPerDay, end - start)
   }
   
-  func getAtoms(styleProvider: MRStaticStyleProvider) -> [MRAtom] {
+  func getAtoms(styleProvider: MRAtomStyleProvider) -> [MRAtom] {
     let styles = styleProvider.styles
     return (0..<system.atoms).map { i in
       // Position is already converted to nm.

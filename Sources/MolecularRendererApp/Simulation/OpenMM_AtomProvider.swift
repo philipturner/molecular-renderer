@@ -15,15 +15,12 @@ import MolecularRenderer
 // Create a number of steps per frame; to add another frame, it validates the
 // number of steps equals what you set. Also check that the number of atoms
 // equals the number of atomic numbers.
-class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
+class OpenMM_AtomProvider: MRAtomProvider {
   private(set) var psPerStep: Double
   private(set) var stepsPerFrame: Int
   private(set) var styles: [MRAtomStyle]
   private(set) var elements: [UInt8]
   private(set) var states: [[MRAtom]] = []
-  
-  private(set) var replayingFrameID: Int = 0
-  static let frameDelta: Int = 1 // 2 for screencasting, 1 otherwise
   
   // Specify each atom's atomic number beforehand; OpenMM doesn't provide that.
   init(
@@ -36,10 +33,6 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
     self.stepsPerFrame = stepsPerFrame
     self.styles = styles
     self.elements = elements
-  }
-  
-  var atoms: [MolecularRenderer.MRAtom] {
-    states[replayingFrameID]
   }
   
   func append(state: OpenMM_State, steps: Int) {
@@ -64,25 +57,14 @@ class OpenMM_DynamicAtomProvider: MRStaticAtomProvider {
     self.states.append(atoms)
   }
   
-  func logReplaySpeed(framesPerSecond: Int) {
-    let psPerFrame = psPerStep * Double(stepsPerFrame)
-    var replaySpeed = Float(psPerFrame * Double(framesPerSecond))
-    replaySpeed *= Float(Self.frameDelta)
-    print("Replaying at \(replaySpeed) ps/s.")
-  }
-  
-  func reset() {
-    self.replayingFrameID = 0
-  }
-  
   // Move to the next frame. Call this **after** reading from the states.
-  func nextFrame() {
-    self.replayingFrameID += Self.frameDelta
+  func atoms(time: MRTimeContext) -> [MRAtom] {
+    let fps = MRGetFrameRate()
+    precondition(120 % fps == 0)
+    let frameAmplificationFactor = 120 / fps
     
-    // If you reach the end, don't make forward progress.
-    while replayingFrameID >= states.count {
-      self.replayingFrameID -= Self.frameDelta
-      self.replayingFrameID = max(self.replayingFrameID, 0)
-    }
+    var frameID = time.absolute.frames * frameAmplificationFactor
+    frameID = min(frameID, states.count - 1)
+    return states[frameID]
   }
 }

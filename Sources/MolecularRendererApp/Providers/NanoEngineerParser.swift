@@ -13,12 +13,16 @@ import MolecularRenderer
 //
 // File format specification at:
 // https://github.com/kanzure/nanoengineer/blob/master/cad/doc/old_doc/mmpformat
-final class NanoEngineerParser: MRStaticAtomProvider {
-  var atoms: [MRAtom]
+final class NanoEngineerParser: MRAtomProvider {
+  var _atoms: [MRAtom]
+  
+  func atoms(time: MRTimeContext) -> [MRAtom] {
+    return _atoms
+  }
   
   // You can omit the ".mmp" extension.
   // Example: "gears/MarkIII[k] Planetary Gear Box"
-  convenience init(styleProvider: MRStaticStyleProvider, partLibPath: String) {
+  convenience init(styleProvider: MRAtomStyleProvider, partLibPath: String) {
     let site = "https://raw.githubusercontent.com/kanzure/nanoengineer"
     let folder = "master/cad/partlib"
     
@@ -29,8 +33,8 @@ final class NanoEngineerParser: MRStaticAtomProvider {
     self.init(styleProvider: styleProvider, url: URL(string: fullPath)!)
   }
   
-  init(styleProvider: MRStaticStyleProvider, url: URL) {
-    let downloader = try! StaticDownloader(url: url)
+  init(styleProvider: MRAtomStyleProvider, url: URL) {
+    let downloader = try! Downloader(url: url)
     downloader.logLatency()
     let string = downloader.string
     
@@ -42,7 +46,7 @@ final class NanoEngineerParser: MRStaticAtomProvider {
         $0.starts(with: "atom ")
       }
     }
-    self.atoms = lines.map { lineOriginal in
+    self._atoms = lines.map { lineOriginal in
       var line = lineOriginal
       line.removeFirst("atom ".count)
       
@@ -51,7 +55,7 @@ final class NanoEngineerParser: MRStaticAtomProvider {
       var rightParenthesisIndex = line.firstIndex(of: ")")!
       let numberIndex = line.index(after: leftParenthesisIndex)
       let numberRange = numberIndex..<rightParenthesisIndex
-      let number = Int(line[numberRange])!
+      let atomicNumber = Int(line[numberRange])!
       
       // Parse the position text.
       let remainderIndex = line.index(after: rightParenthesisIndex)
@@ -75,13 +79,12 @@ final class NanoEngineerParser: MRStaticAtomProvider {
       let metersToNanometers: Float = 1e9
       let scaleFactor = metersToNanometers * quantizedToMeters
       
-      let range = styleProvider.atomicNumbers
       let styles = styleProvider.styles
-      if range.contains(Int(UInt8(number))) {
+      if styleProvider.available[atomicNumber] {
         return MRAtom(
           styles: styles,
           origin: scaleFactor * SIMD3<Float>(positionInt),
-          element: UInt8(number))
+          element: UInt8(atomicNumber))
       } else {
         return MRAtom(
           styles: styles,

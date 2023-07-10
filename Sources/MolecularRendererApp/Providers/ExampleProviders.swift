@@ -10,22 +10,22 @@ import MolecularRenderer
 
 struct ExampleProviders {
   static func taggedEthylene(
-    styleProvider: MRStaticStyleProvider
-  ) -> MRStaticAtomProvider {
+    styleProvider: MRAtomStyleProvider
+  ) -> MRAtomProvider {
     ExampleMolecules.TaggedEthylene(styleProvider: styleProvider)
   }
   
   static func planetaryGearBox(
-    styleProvider: MRStaticStyleProvider
-  ) -> MRStaticAtomProvider {
+    styleProvider: MRAtomStyleProvider
+  ) -> MRAtomProvider {
     NanoEngineerParser(
       styleProvider: styleProvider,
       partLibPath: "gears/MarkIII[k] Planetary Gear Box")
   }
   
   static func adamantaneHabTool(
-    styleProvider: MRStaticStyleProvider
-  ) -> MRStaticAtomProvider {
+    styleProvider: MRAtomStyleProvider
+  ) -> MRAtomProvider {
     // NOTE: You need to give the app permission to view this file.
     let adamantaneHabToolURL: URL = {
       let fileName = "adamantane-thiol-Hab-tool.pdb"

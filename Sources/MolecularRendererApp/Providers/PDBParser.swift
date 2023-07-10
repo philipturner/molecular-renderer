@@ -8,17 +8,21 @@
 import Foundation
 import MolecularRenderer
 
-final class PDBParser: MRStaticAtomProvider {
-  var atoms: [MRAtom]
+final class PDBParser: MRAtomProvider {
+  var _atoms: [MRAtom]
   
-  init(styleProvider: MRStaticStyleProvider, url: URL) {
+  func atoms(time: MRTimeContext) -> [MRAtom] {
+    return _atoms
+  }
+  
+  init(styleProvider: MRAtomStyleProvider, url: URL) {
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
     let lines = string.split(separator: "\r\n").filter {
       $0.starts(with: "HETATM")
     }
     
-    self.atoms = lines.map { lineOriginal in
+    self._atoms = lines.map { lineOriginal in
       var line = lineOriginal
       // Remove the "HETATM" header.
       removeExpectedPrefix("HETATM", from: &line)
@@ -67,11 +71,10 @@ final class PDBParser: MRStaticAtomProvider {
       precondition(
         symbol == extractExcluding(" ", from: &line), "Unexpected formatting.")
       
-      // Determine the color to present.      
-      let range = styleProvider.atomicNumbers
+      // Determine the color to present.
       let styles = styleProvider.styles
       let origin = SIMD3<Float>(SIMD3(x, y, z) / 10)
-      if range.contains(Int(UInt8(Z))) {
+      if styleProvider.available[Z] {
         return MRAtom(
           styles: styles, origin: origin, element: UInt8(Z))
       } else {

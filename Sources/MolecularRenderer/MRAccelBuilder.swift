@@ -12,9 +12,8 @@ public class MRAccelBuilder {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  
-  var currentAtoms: [MRAtom] = []
-  var currentStyles: [MRAtomStyle] = []
+  var atoms: [MRAtom] = []
+  var styles: [MRAtomStyle] = []
   
   // Triple buffer because the CPU writes to these.
   var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
@@ -143,7 +142,7 @@ extension MRAccelBuilder {
   internal func build() {
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
-    let atomBufferSize = currentAtoms.count * atomSize
+    let atomBufferSize = atoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
     let atomBuffer = cycle(
       from: &atomBuffers,
@@ -156,14 +155,13 @@ extension MRAccelBuilder {
     do {
       let atomsPointer = atomBuffer.contents()
         .assumingMemoryBound(to: MRAtom.self)
-      for (index, atom) in currentAtoms.enumerated() {
+      for (index, atom) in atoms.enumerated() {
         atomsPointer[index] = atom
       }
     }
   }
 }
 
-@inline(never) @_optimize(speed)
 fileprivate func denseGridStatistics(
   atoms: [MRAtom],
   styles: [MRAtomStyle]
@@ -239,7 +237,6 @@ fileprivate func denseGridStatistics(
   maxRadius += epsilon
   minCoordinates -= maxRadius
   maxCoordinates += maxRadius
-  print(references, atoms.count)
   
   free(elementInstances)
   free(atomsPadded_raw)
@@ -274,11 +271,9 @@ extension MRAccelBuilder {
   }
   
   internal func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
-    precondition(
-      currentAtoms.count < UInt16.max, "Too many atoms for a dense grid.")
+    precondition(atoms.count < 65536, "Too many atoms for a dense grid.")
     
-    let statistics = denseGridStatistics(
-      atoms: currentAtoms, styles: currentStyles)
+    let statistics = denseGridStatistics(atoms: atoms, styles: styles)
     
     let minCoordinates = SIMD3(statistics.boundingBox.min.x,
                                statistics.boundingBox.min.y,
@@ -291,17 +286,18 @@ extension MRAccelBuilder {
     let cellWidth: Float = 4.0 / 9
     self.gridWidth = max(Int(2 * ceil(maxMagnitude / cellWidth)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
-    let numReferences = statistics.references
+    guard statistics.references < 1024 * 1024 else {
+      fatalError("Too many references for a dense grid.")
+    }
     
     // Allocate new memory.
-    let numAtoms = currentAtoms.count
     ringIndex = (ringIndex + 1) % 3
     let atomsBuffer = allocate(
       &denseGridAtoms[ringIndex],
       currentMaxElements: &maxAtoms,
-      desiredElements: numAtoms,
+      desiredElements: atoms.count,
       bytesPerElement: 16)
-    memcpy(denseGridAtoms[ringIndex]!.contents(), currentAtoms, numAtoms * 16)
+    memcpy(denseGridAtoms[ringIndex]!.contents(), atoms, atoms.count * 16)
     
     let paddedCells = (totalCells + 127) / 128 * 128
     let numSlots = paddedCells
@@ -319,7 +315,7 @@ extension MRAccelBuilder {
     let referencesBuffer = allocate(
       &denseGridReferences,
       currentMaxElements: &maxGridReferences,
-      desiredElements: numReferences,
+      desiredElements: statistics.references,
       bytesPerElement: 2)
     
     encoder.setComputePipelineState(memsetPipeline)
@@ -337,7 +333,7 @@ extension MRAccelBuilder {
     
     var constants: UInt16 = UInt16(gridWidth)
     encoder.setBytes(&constants, length: 2, index: 0)
-    currentStyles.withUnsafeBufferPointer {
+    styles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
@@ -349,7 +345,7 @@ extension MRAccelBuilder {
     
     encoder.setComputePipelineState(densePass1Pipeline)
     encoder.dispatchThreads(
-      MTLSizeMake(numAtoms, 1, 1),
+      MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
     
     encoder.setComputePipelineState(densePass2Pipeline)
@@ -359,7 +355,7 @@ extension MRAccelBuilder {
     
     encoder.setComputePipelineState(densePass3Pipeline)
     encoder.dispatchThreads(
-      MTLSizeMake(numAtoms, 1, 1),
+      MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   

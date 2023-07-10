@@ -9,59 +9,50 @@ import Foundation
 
 // NOTE: These protocols cannot be part of the C API. Rather, create a C struct
 // with pointers to lists. The Swift package will internally create an object
-// conforming to `MRStaticStyleProvider`, which wraps the data imported from C.
+// conforming to `MR*Provider`, which wraps the data imported from C.
 
-// A 'DynamicAtomProvider' would change its contents in real-time, streaming
-// a pre-recorded simulation directly from the disk. A real-time molecular
-// dynamics simulation does not count as an external provider, because it is
-// part of MolecularRenderer.
-public protocol MRStaticAtomProvider {
-  var atoms: [MRAtom] { get }
+// A finite-state machine that changes state based on time.
+public protocol MRAtomProvider {
+  func atoms(time: MRTimeContext) -> [MRAtom]
 }
 
-// This must be set before adding any atoms via 'StaticAtomProvider'.
-public protocol MRStaticStyleProvider {
-  // Return all data in meters and Float32. The receiver will then range-reduce
-  // to nanometers and cast to Float16.
-  var radii: [Float] { get }
-  
-  // RGB color for each atom, ranging from 0 to 1 for each component.
-  var colors: [SIMD3<Float>] { get }
-  
-  // Intensity of the camera-centered light for Blinn-Phong shading.
-  // TODO: Remove this from the atom provider, and handle the switching of light
-  // powers in the application code.
-  var lightPower: Float { get }
-  
-  // The range of atomic numbers (inclusive). Anything outside this range uses
-  // the value in `radii` at index 0 and a black/magenta checkerboard pattern.
-  // The range's start index must always be 1.
-  var atomicNumbers: ClosedRange<Int> { get }
+// C API: Each array must contain 250 elements, corresponding to Z=0-249. Unused
+// array slots can be empty.
+//
+// Swift API: Each array must contain enough elements to correspond to the
+// filled slots in `available`.
+public protocol MRAtomStyleProvider {
+  var styles: [MRAtomStyle] { get }
+  var available: [Bool] { get }
 }
 
-extension MRStaticStyleProvider {
-  public var styles: [MRAtomStyle] {
-    let atomRadii = self.radii.map(Float16.init)
+// colors:
+//   RGB color for each atom, ranging from 0 to 1 for each component.
+// radii:
+//   Enter all data in meters and Float32. They will be range-reduced to
+//   nanometers and converted to Float16.
+// available:
+//   Whether each element has a style. Anything without a style uses `radii[0]`
+//   and a black/magenta checkerboard pattern.
+//
+// TODO: C API using a function underscored on the Swift side, requires that you
+// deallocate the return value.
+//   @_cdecl("MRMakeAtomStyles")
+public func MRMakeAtomStyles(
+  colors: [SIMD3<Float>],
+  radii: [Float],
+  available: [Bool]
+) -> [MRAtomStyle] {
 #if arch(x86_64)
     let atomColors: [SIMD3<Float16>] = []
 #else
-    let atomColors = self.colors.map(SIMD3<Float16>.init)
+    let atomColors = colors.map(SIMD3<Float16>.init)
 #endif
-    return zip(atomColors, atomRadii).map {
-      MRAtomStyle(color: $0, radius: $1)
+    let atomRadii = radii.map { $0 * 1e9 }.map(Float16.init)
+    
+    precondition(available.count == 250)
+    return available.indices.map { i in
+      let index = available[i] ? i : 0
+      return MRAtomStyle(color: atomColors[index], radius: atomRadii[index])
     }
-  }
 }
-
-// TODO: Create a DynamicAtomProvider API. The structure has to be different
-// than MRStaticAtomProvider, because it may be loading data in real-time. We
-// can't expect the data to materialize when we access the object every frame.
-//
-// Rather, we create two functions. The first prepared the data, either by
-// creating GPU commands for molecular simulation, or issuing a Metal IO command
-// buffer. The second function is called 3 frames later, and expects the data to
-// be materialized. We will need to enter a monotonically increasing frame ID to
-// incorporate time into the arguments.
-//
-// Another challenge is deciding how to handle frame stutters, which could cause
-// a 3-frame freeze if we did it the naive way.

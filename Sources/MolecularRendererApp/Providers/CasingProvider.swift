@@ -9,16 +9,10 @@ import Foundation
 import MolecularRenderer
 import simd
 
-class Casing_DynamicAtomProvider: MRStaticAtomProvider {
+class CasingAtomProvider: MRAtomProvider {
   private let atomsDict: [String: [MRAtom]]
-  private var currentAtomsDict: [String: [MRAtom]] = [:]
-  private var frameID: Int = -1
   
-  var atoms: [MRAtom] {
-    currentAtomsDict.values.flatMap { $0 }
-  }
-  
-  init(styleProvider: MRStaticStyleProvider) {
+  init(styleProvider: MRAtomStyleProvider) {
     let urls = [
       "casings/Embedded Bushing in SiC with Shaft",
       "casings/Pump Casing",
@@ -30,19 +24,16 @@ class Casing_DynamicAtomProvider: MRStaticAtomProvider {
     for url in urls {
       let parser = NanoEngineerParser(
         styleProvider: styleProvider, partLibPath: url)
-      let atoms = parser.atoms
-      selfAtomsDict[url] = atoms
+      selfAtomsDict[url] = parser._atoms
     }
     self.atomsDict = selfAtomsDict
   }
   
-  @_optimize(speed)
-  func nextFrame() {
-    self.frameID += 1
-    let t = Float(frameID) / 120
+  func atoms(time: MRTimeContext) -> [MRAtom] {
+    let t = Float(time.absolute.seconds)
     
+    var currentAtomsDict: [String: [MRAtom]] = [:]
     for key in atomsDict.keys {
-//      var transform: simd_float4x4 = simd_float4x4(diagonal: .one)
       var translation: SIMD3<Float>
       
       // TODO: Use quaternions to fix the rotation of the parts.
@@ -63,27 +54,19 @@ class Casing_DynamicAtomProvider: MRStaticAtomProvider {
         fatalError()
       }
       
-      currentAtomsDict[key] = transformAtomDict(
-        atomsDict, key: key, t: t, translation: translation)
+      // Rotate once every two seconds.
+      let rotation = simd_quatf(angle: t * .pi, axis: [0, 0, 1])
+      var atoms = atomsDict[key]!
+      for i in 0..<atoms.count {
+        var atom = atoms[i]
+        var pos = SIMD3<Float>(atom.origin)
+        pos = simd_act(rotation, pos)
+        pos += translation
+        atom.origin = pos
+        atoms[i] = atom
+      }
+      currentAtomsDict[key] = atoms
     }
+    return currentAtomsDict.values.flatMap { $0 }
   }
-}
-
-@inline(never) @_optimize(speed)
-fileprivate func transformAtomDict(
-  _ atomsDict: [String: [MRAtom]], key: String,
-  t: Float, translation: SIMD3<Float>
-) -> [MRAtom] {
-  // Rotate once every two seconds.
-    let rotation = simd_quatf(angle: t * .pi, axis: [0, 0, 1])
-    var atoms = atomsDict[key]!
-    for i in 0..<atoms.count {
-      var atom = atoms[i]
-      var pos = SIMD3<Float>(atom.origin)
-      pos = simd_act(rotation, pos)
-      pos += translation
-      atom.origin = pos
-      atoms[i] = atom
-    }
-    return atoms
 }

@@ -11,10 +11,10 @@ import MolecularRenderer
 struct ExampleMolecules {
   // Structure sourced from:
   // https://commons.wikimedia.org/wiki/File:Ethylene-CRC-MW-dimensions-2D-Vector.svg
-  struct Ethylene: MRStaticAtomProvider {
-    var atoms: [MRAtom]
+  struct Ethylene: MRAtomProvider {
+    var _atoms: [MRAtom]
     
-    init(styleProvider: MRStaticStyleProvider) {
+    init(styleProvider: MRAtomStyleProvider) {
       let z_offset: Float = -1 // -2
       let c_offset_x: Float = 0.1339 / 2 // 0.20
       let carbon_origins: [SIMD3<Float>] = [
@@ -33,26 +33,34 @@ struct ExampleMolecules {
       ]
       
       let styles = styleProvider.styles
-      self.atoms = hydrogen_origins.map {
+      self._atoms = hydrogen_origins.map {
         MRAtom(styles: styles, origin: $0, element: 1)
       }
-      self.atoms += carbon_origins.map {
+      self._atoms += carbon_origins.map {
         MRAtom(styles: styles, origin: $0, element: 6)
       }
     }
+    
+    func atoms(time: MRTimeContext) -> [MRAtom] {
+      return _atoms
+    }
   }
   
-  struct TaggedEthylene: MRStaticAtomProvider {
-    var atoms: [MRAtom]
+  struct TaggedEthylene: MRAtomProvider {
+    var _atoms: [MRAtom]
     
-    init(styleProvider: MRStaticStyleProvider) {
+    init(styleProvider: MRAtomStyleProvider) {
       let ethylene = Ethylene(styleProvider: styleProvider)
-      self.atoms = ethylene.atoms
+      self._atoms = ethylene._atoms
       
-      let firstHydrogen = atoms.firstIndex(where: { $0.element == 1 })!
-      let firstCarbon = atoms.firstIndex(where: { $0.element == 6 })!
-      atoms[firstHydrogen].flags = 0x1 | 0x2
-      atoms[firstCarbon].flags = 0x1 | 0x2
+      let firstHydrogen = _atoms.firstIndex(where: { $0.element == 1 })!
+      let firstCarbon = _atoms.firstIndex(where: { $0.element == 6 })!
+      _atoms[firstHydrogen].flags = 0x1 | 0x2
+      _atoms[firstCarbon].flags = 0x1 | 0x2
+    }
+    
+    func atoms(time: MRTimeContext) -> [MRAtom] {
+      return _atoms
     }
   }
 }

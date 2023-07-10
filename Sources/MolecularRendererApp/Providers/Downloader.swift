@@ -8,9 +8,9 @@
 import Foundation
 import QuartzCore
 
-// A 'DynamicDownloader' would issue a Metal fast resource loading command,
-// which asynchronously returns the data just in time for rendering.
-struct StaticDownloader {
+fileprivate let logDownloadLatency = false
+
+struct Downloader {
   private var url: URL
   private(set) var latency: Double
   private(set) var data: Data
@@ -28,9 +28,9 @@ struct StaticDownloader {
   }
   
   func logLatency() {
-    // TODO: Query a global variable that determines whether events like this
-    // are logged.
-    print("Downloaded in \(latencyRepr(latency))")
-    print("- path: \(url)")
+    if logDownloadLatency {
+      print("Downloaded in \(latencyRepr(latency))")
+      print("- path: \(url)")
+    }
   }
 }

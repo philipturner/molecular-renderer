@@ -1,18 +1,14 @@
 # Molecular Renderer
 
-Flexible application for running and visualizing nanotech simulations, with ray tracing and 120 Hz uninterrupted playback. This application is designed to simulate 1,000 atoms or render 100,000,000 atoms in real-time.
-
-This is a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). It processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
+CAD framework for simulating nanotechnology, with ray-traced 120 Hz visualization. Designed to handle millions of atoms in real-time.
 
 ## Usage
 
-### OpenMM Swift Bindings
-
-An ergonomic wrapper around the C API, for using OpenMM in Swift code.
+Molecular Renderer is a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). Instead of a traditional UI, the CAD functionality is achieved entirely through scripting. It natively supports Swift and Metal Shading Language. Some core functionality has C bindings, bringing indirect support for C++, Rust, etc.
 
 ### MolecularRenderer Library
 
-A C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into other CAD applications.
+A C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into traditional CAD applications.
 
 ### MolecularRenderer App
 
@@ -25,43 +21,9 @@ module OpenMM {
 }
 ```
 
-<!--
+### OpenMM Swift Bindings
 
-> TODO: Update this documentation with more modern information.
-
-You can set a custom aspect ratio, instead of 1280x1280. Just make it divisible by 2 and stay under ~2 million pixels. Below are some common video resolutions.
-
-```
-1:1
-- 720x720: 0.518M pixels
-- 1080x1080: 1.166M pixels
-- 1440x1440: 2.074M pixels
-
-4:3
-- 800x600: 0.480M pixels
-- 1280x960: 1.229M pixels
-- 1600x1200: 1.920M pixels
-
-16:9
-- 960x540: 0.518M pixels
-- 1280x720: 0.922M pixels
-- 1920x1080: 2.074M pixels
-```
-
-The FOV adapts to the aspect ratio according to the heuristic below. The base FOV is 90 degrees by default, but you can customize it.
-
-```swift
-let geometricMeanLength = sqrt(width * height)
-let scaleX = width / geometricMeanLength
-let scaleY = height / geometricMeanLength
-
-let baseFOV = degreesToRadians(90)
-let baseSlope = tan(baseFOV / 2)
-let fovX = 2 * arctan(scaleX * baseSlope)
-let fovY = 2 * arctan(scaleY * baseSlope)
-```
-
--->
+An ergonomic wrapper around the C API, for using OpenMM in Swift code.
 
 TODO (simulation modes):
 - 4 fs (NVT): QSHAKE, mass repartitoning, improved velocity rescaling thermostat, entirely FP32
@@ -75,12 +37,6 @@ Dependencies:
 - Xcode 15 installed
 - OpenMM 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed
 
-<!--Memory/Disk:-->
-<!--- At least 8 GB of RAM-->
-<!--- Solid-state drive or high-bandwidth HDD, several GB of free disk space-->
-<!--- Before compression: 156 MB per second of playback per 100,000 atoms-->
-<!--- Before compression: 9 MB per second of playback when under 6,000 atoms-->
-
 Display:
 - 640x640 -> 1280x1280 upscaled with MetalFX temporal upscaling
 - Monitor needs at least 1280x1280 pixels for the default resolution
@@ -90,11 +46,7 @@ Display:
 
 This application currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, one could port it to Windows through Vulkan and FidelityFX.
 
-<!-- \*When targeting a 60 Hz display or exporting 24 Hz video, it simply renders every n-th frame.-->
-<!---->
-<!--Before serialization, geometry data packs into an efficient format - three `float` numbers per atom, with a stride of 12 B. Shaders compute velocity from positions between frame timestamps, rather than the actual atomic velocities. This is more appropriate for MetalFX temporal upscaling and removes the need to store velocities on disk. Finally, the geometry data is archived using the [LZBITMAP](https://developer.apple.com/documentation/compression/compression_lzbitmap) lossless compression algorithm. While running an OpenMM simulation, the application auto-saves each batch of 12 consecutive frames into one file. The end of the batch contains atomic velocities for resuming the simulation.-->
-<!---->
-<!--Asuming 4 fs time step @ 120 Hz, playback speed must be a multiple of 0.48 ps/s. Replaying at exactly 0.48 ps/s would cause a significant bottleneck; OpenMM would halt the GPU command stream every step. To prevent this bottleneck, try to replay at something over 10 ps/s. Also check how quickly OpenMM is simulating, to gauge how long you'll wait before visualizing. OpenMM would generate 1.2 ps/s of data when simulating 100 ns/day, something achievable with the M1 Max and ~100,000 atoms.-->
+The simulator processes geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
 ## References
 

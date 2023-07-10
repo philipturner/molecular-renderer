@@ -60,7 +60,7 @@ extension SimulationConstants {
     Int(reportIntervalInFs / stepSizeInFs + 0.5)
   }
   static func omm(
-    provider: MRStaticStyleProvider, platformName: inout String
+    provider: MRAtomStyleProvider, platformName: inout String
   ) -> MyOpenMMData {
     MyOpenMMData(
       atoms: atoms, styles: provider.styles, temperature: temperature,
@@ -71,8 +71,8 @@ extension SimulationConstants {
 }
 
 func simulateSodiumChloride(
-  styleProvider: MRStaticStyleProvider
-) -> OpenMM_DynamicAtomProvider {
+  styleProvider: MRAtomStyleProvider
+) -> OpenMM_AtomProvider {
   var platformName: String = ""
   let omm = SimulationConstants.omm(
     provider: styleProvider, platformName: &platformName)
@@ -103,7 +103,7 @@ fileprivate class MyOpenMMData {
   var system: OpenMM_System
   var context: OpenMM_Context
   var integrator: OpenMM_Integrator
-  var provider: OpenMM_DynamicAtomProvider
+  var provider: OpenMM_AtomProvider
   
   init(
     atoms: [MyAtomInfo],
@@ -151,7 +151,7 @@ fileprivate class MyOpenMMData {
     context.positions = initialPosInNm
     platformName = context.platform.name
     
-    self.provider = OpenMM_DynamicAtomProvider(
+    self.provider = OpenMM_AtomProvider(
       psPerStep: stepSizeInFs * OpenMM_PsPerFs,
       stepsPerFrame: SimulationConstants.numSilentSteps,
       styles: styles, elements: atoms.map(\.element))
