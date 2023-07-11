@@ -154,7 +154,7 @@ fileprivate class MyOpenMMData {
     self.provider = OpenMM_AtomProvider(
       psPerStep: stepSizeInFs * OpenMM_PsPerFs,
       stepsPerFrame: SimulationConstants.numSilentSteps,
-      styles: styles, elements: atoms.map(\.element))
+      elements: atoms.map(\.element))
   }
 }
 

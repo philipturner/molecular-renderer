@@ -12,7 +12,7 @@ import simd
 class CasingAtomProvider: MRAtomProvider {
   private let atomsDict: [String: [MRAtom]]
   
-  init(styleProvider: MRAtomStyleProvider) {
+  init() {
     let urls = [
       "casings/Embedded Bushing in SiC with Shaft",
       "casings/Pump Casing",
@@ -22,8 +22,7 @@ class CasingAtomProvider: MRAtomProvider {
     
     var selfAtomsDict: [String: [MRAtom]] = [:]
     for url in urls {
-      let parser = NanoEngineerParser(
-        styleProvider: styleProvider, partLibPath: url)
+      let parser = NanoEngineerParser(partLibPath: url)
       selfAtomsDict[url] = parser._atoms
     }
     self.atomsDict = selfAtomsDict

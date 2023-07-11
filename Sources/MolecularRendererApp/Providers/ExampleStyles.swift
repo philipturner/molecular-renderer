@@ -16,7 +16,7 @@ protocol LightPowerProvider {
 struct ExampleStyles {
   // Bondi (1964) convention expanded to more elements in 2009. Hydrogen and
   // lithium values are not lowered to (1.20 -> 1.10, 1.82 -> 1.81) because that
-  // makes ethylene look wierd.
+  // makes ethylene look weird.
   // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3658832
   // Larger than QuteMol:
   // https://github.com/zulman/qutemol/blob/master/src/AtomColor.cpp#L28
@@ -33,7 +33,7 @@ struct ExampleStyles {
     var available: [Bool]
     
     init() {
-      let radii: [Float] = Array<Float>([
+      var radii: [Float] = [
         1.00, // 0
         1.10, // 1
         1.40, // 2
@@ -77,7 +77,9 @@ struct ExampleStyles {
         
         3.03, // 37
         2.49, // 38
-      ] + Array(repeating: 0, count: 46 - 38 - 1) + [
+      ]
+      radii += Array(repeating: 0, count: 46 - 38 - 1)
+      radii += [
         1.63, // 46
         1.72, // 47
         1.58, // 48
@@ -90,12 +92,15 @@ struct ExampleStyles {
         
         3.43, // 55
         2.68, // 56
-      ] + Array(repeating: 0, count: 78 - 56 - 1) + [
+      ]
+      radii += Array(repeating: 0, count: 78 - 56 - 1)
+      radii += [
         1.75, // 78
         1.66, // 79
-      ]).map { 0.850 * $0 * 1e-10 }
+      ]
+      radii = radii.map { 0.850 * $0 * 1e-10 }
       
-      let colors: [SIMD3<Float>] = [
+      var colors: [SIMD3<Float>] = [
         SIMD3(  0,   0,   0), // 0
         SIMD3(255, 255, 255), // 1
         SIMD3(217, 255, 255), // 2
@@ -136,14 +141,18 @@ struct ExampleStyles {
         SIMD3(255, 161,   0), // 34
         SIMD3(166,  41,  41), // 35
         SIMD3( 92, 184, 209), // 36
-        
-        // TODO: Support gold in colors.
-      ].map { $0 / 255 }
+      ]
+      colors += Array(repeating: .zero, count: 79 - 36 - 1)
+      colors += [
+        SIMD3(255, 209,  35), // 79
+      ]
+      colors = colors.map { $0 / 255 }
       
       self.available = .init(repeating: false, count: 250)
       for i in 1...18 {
         self.available[i] = true
       }
+      self.available[79] = true
       
       self.styles = MRMakeAtomStyles(
         colors: colors, radii: radii, available: available)
@@ -164,7 +173,8 @@ struct ExampleStyles {
     var available: [Bool]
     
     init() {
-      let radii: [Float] = [
+      // These might be (loosely) based on mean separations in crystal form.
+      var radii: [Float] = [
         0.853, // 0
         0.930, // 1
         1.085, // 2
@@ -205,11 +215,17 @@ struct ExampleStyles {
         1.628, // 34
         1.550, // 35
         1.472, // 36
-        
-        // TODO: Support gold in radii.
-      ].map { $0 * 1e-10 }
+      ]
+      radii += Array(repeating: 0, count: 79 - 36 - 1)
+      radii += [
+        // Extrapolating copper -> gold crystal spacing.
+        // 2.56 (Cu) -> 2.89 (Au)
+        // 2.325 (Cu) * 2.89/2.56 = 2.625 (Au)
+        2.625, // 79
+      ]
+      radii = radii.map { $0 * 1e-10 }
       
-      let colors: [SIMD3<Float>] = [
+      var colors: [SIMD3<Float>] = [
         SIMD3(204,   0,   0), // 0
         SIMD3(199, 199, 199), // 1
         SIMD3(107, 115, 140), // 2
@@ -250,14 +266,22 @@ struct ExampleStyles {
         SIMD3(199,  79,   0), // 34
         SIMD3(  0, 102,  77), // 35
         SIMD3(107, 115, 140), // 36
-        
-        // TODO: Support gold in colors.
-      ].map { $0 / 255 }
+      ]
+      colors += Array(repeating: .zero, count: 79 - 36 - 1)
+      colors += [
+        // Since we don't have a reference in QuteMol, use the exact definition
+        // for the color "metallic gold". This is a physically correct
+        // simulation of the pure metal's color.
+        // https://en.wikipedia.org/wiki/Gold_(color)
+        SIMD3(212, 175, 55), // 79
+      ]
+      colors = colors.map { $0 / 255 }
       
       self.available = .init(repeating: false, count: 250)
       for i in 1...36 {
         self.available[i] = true
       }
+      self.available[79] = true
       
       self.styles = MRMakeAtomStyles(
         colors: colors, radii: radii, available: available)

@@ -13,8 +13,7 @@ func simulateArgon(
   styleProvider: MRAtomStyleProvider
 ) -> OpenMM_AtomProvider {
   let provider = OpenMM_AtomProvider(
-    psPerStep: 0.004, stepsPerFrame: 10, styles: styleProvider.styles,
-    elements: [18, 18, 18])
+    psPerStep: 0.004, stepsPerFrame: 10, elements: [18, 18, 18])
   _simulateArgon(atomProvider: provider)
   return provider
 }

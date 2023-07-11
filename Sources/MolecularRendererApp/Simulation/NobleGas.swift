@@ -199,7 +199,7 @@ class NobleGasSimulator {
   }
 }
 
-extension NobleGasSimulator {
+extension NobleGasSimulator: MRAtomProvider {
   func updateResources(frameDelta: Int) {
     let (nsPerDay, timeTaken) = self.evolve(
       frameDelta: frameDelta, timeScale: Self.simulationSpeed)
@@ -238,13 +238,12 @@ extension NobleGasSimulator {
     return (nsPerDay, end - start)
   }
   
-  func getAtoms(styleProvider: MRAtomStyleProvider) -> [MRAtom] {
-    let styles = styleProvider.styles
+  func atoms(time: MRTimeContext) -> [MRAtom] {
     return (0..<system.atoms).map { i in
       // Position is already converted to nm.
       let position = SIMD3<Float>(system.getPosition(index: i))
       let element = system.getType(index: i)
-      return MRAtom(styles: styles, origin: position, element: element)
+      return MRAtom(origin: position, element: element)
     }
   }
 }

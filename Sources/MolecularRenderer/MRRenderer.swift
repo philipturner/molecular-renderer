@@ -270,7 +270,8 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  // TODO: Integrate with modern graphics APIs' asynchronous SSD loading.
+  // TODO: Integrate with modern graphics APIs' asynchronous SSD loading. Allow
+  // computationally demanding simulations to run ahead-of-time.
   //
   // If you're rendering from a dynamic scene, there is a different API with a
   // different C function. The dynamic API should be used when loading geometry
@@ -278,10 +279,29 @@ extension MRRenderer {
   // command buffers. Otherwise, the static API is sufficient to render dynamic
   // geometry.
   public func setGeometry(
+    // TODO: Consider removing the dependency on frame rate.
     time: MRTimeContext,
-    atoms: [MRAtom],
-    styles: [MRAtomStyle]
+    atomProvider: inout MRAtomProvider,
+    styleProvider: MRAtomStyleProvider
   ) {
+    var atoms = atomProvider.atoms(time: time)
+    let styles = styleProvider.styles
+    let available = styleProvider.available
+    
+    for i in atoms.indices {
+      let element = Int(atoms[i].element)
+      if available[element] {
+        let radius = styles[element].radius
+        atoms[i].radiusSquared = radius * radius
+        atoms[i].flags = 0
+      } else {
+        let radius = styles[0].radius
+        atoms[i].element = 0
+        atoms[i].radiusSquared = radius * radius
+        atoms[i].flags = 0x1 | 0x2
+      }
+    }
+    
     self.time = time
     self.accelBuilder.atoms = atoms
     self.accelBuilder.styles = styles

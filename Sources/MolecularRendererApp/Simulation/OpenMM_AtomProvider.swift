@@ -18,7 +18,6 @@ import MolecularRenderer
 class OpenMM_AtomProvider: MRAtomProvider {
   private(set) var psPerStep: Double
   private(set) var stepsPerFrame: Int
-  private(set) var styles: [MRAtomStyle]
   private(set) var elements: [UInt8]
   private(set) var states: [[MRAtom]] = []
   
@@ -26,12 +25,10 @@ class OpenMM_AtomProvider: MRAtomProvider {
   init(
     psPerStep: Double,
     stepsPerFrame: Int,
-    styles: [MRAtomStyle],
     elements: [UInt8]
   ) {
     self.psPerStep = psPerStep
     self.stepsPerFrame = stepsPerFrame
-    self.styles = styles
     self.elements = elements
   }
   
@@ -49,7 +46,7 @@ class OpenMM_AtomProvider: MRAtomProvider {
     ) { buffer, count in
       for i in 0..<elements.count {
         let posInNm = SIMD3<Float>(positions[i])
-        let atom = MRAtom(styles: styles, origin: posInNm, element: elements[i])
+        let atom = MRAtom(origin: posInNm, element: elements[i])
         buffer[i] = atom
       }
       count = elements.count

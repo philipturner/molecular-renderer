@@ -14,7 +14,7 @@ struct ExampleMolecules {
   struct Ethylene: MRAtomProvider {
     var _atoms: [MRAtom]
     
-    init(styleProvider: MRAtomStyleProvider) {
+    init() {
       let z_offset: Float = -1 // -2
       let c_offset_x: Float = 0.1339 / 2 // 0.20
       let carbon_origins: [SIMD3<Float>] = [
@@ -32,12 +32,11 @@ struct ExampleMolecules {
         SIMD3(+h_offset_x, +h_offset_y, z_offset),
       ]
       
-      let styles = styleProvider.styles
       self._atoms = hydrogen_origins.map {
-        MRAtom(styles: styles, origin: $0, element: 1)
+        MRAtom(origin: $0, element: 1)
       }
       self._atoms += carbon_origins.map {
-        MRAtom(styles: styles, origin: $0, element: 6)
+        MRAtom(origin: $0, element: 6)
       }
     }
     
@@ -49,14 +48,14 @@ struct ExampleMolecules {
   struct TaggedEthylene: MRAtomProvider {
     var _atoms: [MRAtom]
     
-    init(styleProvider: MRAtomStyleProvider) {
-      let ethylene = Ethylene(styleProvider: styleProvider)
+    init() {
+      let ethylene = Ethylene()
       self._atoms = ethylene._atoms
       
       let firstHydrogen = _atoms.firstIndex(where: { $0.element == 1 })!
       let firstCarbon = _atoms.firstIndex(where: { $0.element == 6 })!
-      _atoms[firstHydrogen].flags = 0x1 | 0x2
-      _atoms[firstCarbon].flags = 0x1 | 0x2
+      _atoms[firstHydrogen].element = 0
+      _atoms[firstCarbon].element = 220
     }
     
     func atoms(time: MRTimeContext) -> [MRAtom] {
@@ -67,19 +66,36 @@ struct ExampleMolecules {
   struct GoldSurface: MRAtomProvider {
     var _atoms: [MRAtom]
     
-    init(styleProvider: MRAtomStyleProvider) {
-      let origins: [SIMD3<Float>] = [
-        SIMD3(0, 0, 0),
-        SIMD3(0.5, 0, 0.5),
-        SIMD3(0.5, 0, -0.5),
-        SIMD3(-0.5, 0, 0.5),
-        SIMD3(-0.5, 0, -0.5),
-      ]
+    init() {
+      var origins: [SIMD3<Float>] = []
       
-      // TODO: Support the atom style for gold, and actually render gold.
-      let styles = styleProvider.styles
+      let size = 2
+      let separation: Float = 0.50
+      for x in -size...size {
+        for y in -size...size {
+          for z in -size...size {
+            let coords = SIMD3<Int>(x, y, z)
+            origins.append(separation * SIMD3<Float>(coords))
+          }
+        }
+      }
+      
       _atoms = origins.map {
-        MRAtom(styles: styles, origin: $0, element: 6)
+        MRAtom(origin: $0, element: 79)
+      }
+      
+      // Sulfur atoms are interspersed. Although this is not a realistic
+      // substance, it ensures the renderer provides enough contrast between the
+      // colors for S and Au.
+      _atoms += origins.map {
+        let origin = $0 + SIMD3(repeating: separation / 2)
+        return MRAtom(origin: origin, element: 16)
+      }
+      
+      let pdbAtoms = ExampleProviders.adamantaneHabTool()._atoms
+      _atoms += pdbAtoms.map {
+        let origin = $0.origin + [0, 2, 0]
+        return MRAtom(origin: origin, element: $0.element)
       }
     }
     

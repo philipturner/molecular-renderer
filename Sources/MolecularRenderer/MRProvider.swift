@@ -13,7 +13,7 @@ import Foundation
 
 // A finite-state machine that changes state based on time.
 public protocol MRAtomProvider {
-  func atoms(time: MRTimeContext) -> [MRAtom]
+  mutating func atoms(time: MRTimeContext) -> [MRAtom]
 }
 
 // C API: Each array must contain 250 elements, corresponding to Z=0-249. Unused

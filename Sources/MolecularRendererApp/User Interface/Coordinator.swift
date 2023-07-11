@@ -132,7 +132,7 @@ extension Coordinator {
       var cursorNewX = originX / view.backingScaleFactor
       cursorNewX += view.window!.frame.width / 2
       
-      // Y is offset in a wierd way. Take the bottom of the screen, move up
+      // Y is offset in a weird way. Take the bottom of the screen, move up
       // `view.window!.frame.height` units. Now you are at the window's origin
       // in global display space.
       var cursorNewY = windowScreen.frame.height - windowFrame.height

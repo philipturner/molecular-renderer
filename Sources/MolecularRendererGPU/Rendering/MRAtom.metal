@@ -62,15 +62,14 @@ public:
     this->tailStorage = as_type<ushort2>(data.w)[1];
   }
   
-  MRAtom(constant MRAtomStyle* styles,
-         float3 origin, uchar element, uchar flags = 0) {
+  MRAtom(float3 origin,
+         half radius,
+         uchar element,
+         uchar flags = 0)
+  {
     this->origin = origin;
-    this->tailStorage = as_type<ushort>(uchar2(element, flags));
-//    this->element = element;
-//    this->flags = flags;
-//    
-    half radius = this->getRadius(styles);
     this->radiusSquared = radius * radius;
+    this->tailStorage = as_type<ushort>(uchar2(element, flags));
   }
   
   half getRadius(constant MRAtomStyle* styles) {

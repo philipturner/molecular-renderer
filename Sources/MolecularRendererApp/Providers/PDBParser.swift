@@ -15,11 +15,16 @@ final class PDBParser: MRAtomProvider {
     return _atoms
   }
   
-  init(styleProvider: MRAtomStyleProvider, url: URL) {
+  init(url: URL) {
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
-    let lines = string.split(separator: "\r\n").filter {
+    var lines = string.split(separator: "\r\n").filter {
       $0.starts(with: "HETATM")
+    }
+    if lines.count == 0 {
+      lines = string.split(separator: "\n").filter {
+        $0.starts(with: "HETATM")
+      }
     }
     
     self._atoms = lines.map { lineOriginal in
@@ -72,15 +77,8 @@ final class PDBParser: MRAtomProvider {
         symbol == extractExcluding(" ", from: &line), "Unexpected formatting.")
       
       // Determine the color to present.
-      let styles = styleProvider.styles
       let origin = SIMD3<Float>(SIMD3(x, y, z) / 10)
-      if styleProvider.available[Z] {
-        return MRAtom(
-          styles: styles, origin: origin, element: UInt8(Z))
-      } else {
-        return MRAtom(
-          styles: styles, origin: origin, element: 0, flags: 0x1 | 0x2)
-      }
+      return MRAtom(origin: origin, element: UInt8(Z))
     }
   }
   

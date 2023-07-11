@@ -65,30 +65,26 @@ public struct MRAtom: Equatable {
   public var y: Float
   public var z: Float
   
-  // Radius in nm.
-  public var radiusSquared: Float16
+  // Radius in nm. This will be set internally to the MRRenderer.
+  public var radiusSquared: Float16 = 0
   
   // Atomic number.
   public var element: UInt8
   
   // Flags to modify how the atom is rendered.
-  public var flags: UInt8
+  // TODO: Allow the user to enter ion charge as a flag, and change the atom's
+  // radius based on a table of ionic radii (in MRAtomStyle) if it exists.
+  public var flags: UInt8 = 0
   
   @inlinable @inline(__always)
   public init(
-    styles: UnsafePointer<MRAtomStyle>,
     origin: SIMD3<Float>,
-    element: UInt8,
-    flags: UInt8 = 0
+    element: UInt8
   ) {
     self.x = origin.x
     self.y = origin.y
     self.z = origin.z
     self.element = element
-    self.flags = flags
-    
-    let radius = styles[Int(element)].radius
-    self.radiusSquared = radius * radius
   }
   
   @inlinable @inline(__always)

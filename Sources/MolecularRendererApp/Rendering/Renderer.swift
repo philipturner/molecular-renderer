@@ -39,14 +39,14 @@ class Renderer {
     MRSetFrameRate(120)
     
     self.styleProvider = ExampleStyles.NanoStuff()
-    self.atomProvider = NanoEngineerParser(
-      styleProvider: styleProvider,
-      partLibPath: "others/Fine Motion Controller")
+//    self.atomProvider = NanoEngineerParser(
+//      partLibPath: "others/Fine Motion Controller")
     
     // Not sure why, but the FPS gets very glitchy when I run these.
-//    self.atomProvider = ExampleMolecules
-//      .GoldSurface(styleProvider: styleProvider)
-//    self.atomProvider = ExampleProviders.taggedEthylene(styleProvider: styleProvider)
+//    self.atomProvider = ExampleProviders.adamantaneHabTool()
+    self.atomProvider = ExampleMolecules.GoldSurface()
+//    self.atomProvider = ExampleProviders.planetaryGearBox()
+//    self.atomProvider = ExampleProviders.taggedEthylene()
   }
 }
 
@@ -73,9 +73,10 @@ extension Renderer {
     let animationTime = MRTimeContext(
       absolute: animationFrameID, relative: animationDelta)
     
-    let atoms = atomProvider.atoms(time: animationTime)
     renderingEngine.setGeometry(
-      time: animationTime, atoms: atoms, styles: styleProvider.styles)
+      time: animationTime,
+      atomProvider: &atomProvider,
+      styleProvider: styleProvider)
     
     let progress = self.eventTracker.fovHistory.progress
     let playerState = self.eventTracker.playerState
