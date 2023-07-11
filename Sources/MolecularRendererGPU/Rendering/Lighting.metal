@@ -155,14 +155,10 @@ public:
       // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
       // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
       
-      if (SUPPRESS_SPECULAR) {
-        specularOcclusion = specularAmbient;
-      } else {
-        specularOcclusion = lambertian + specularAmbient;
-        specularOcclusion = specularOcclusion * specularOcclusion;
-        specularOcclusion += specularAmbient - 1;
-        specularOcclusion = saturate(specularOcclusion);
-      }
+      specularOcclusion = lambertian + specularAmbient;
+      specularOcclusion = specularOcclusion * specularOcclusion;
+      specularOcclusion += specularAmbient - 1;
+      specularOcclusion = saturate(specularOcclusion);
     }
     
     // Store color in single precision while calculating.

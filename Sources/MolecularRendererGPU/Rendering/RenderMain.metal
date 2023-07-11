@@ -41,7 +41,8 @@ kernel void renderMain
 
   // Cast the primary ray.
   auto ray = RayGeneration::primaryRay(pixelCoords, args);
-  auto intersect = RayTracing::traverseDenseGrid(ray, grid);
+  auto intersect = RayTracing::
+  traverseDenseGrid(ray, grid, { false, MAXFLOAT, false });
   
   // Calculate specular, diffuse, and ambient occlusion.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
@@ -50,15 +51,28 @@ kernel void renderMain
     float3 normal = normalize(hitPoint - intersect.atom.origin);
     colorCtx.setDiffuseColor(intersect.atom, normal);
     
+    // TODO: Support analytical occlusion as a cheaper, but lower-quality option
+    // on smaller GPUs. It should be combined with a reduced but nonzero number
+    // of long-distance ray samples, making it "hybrid ray tracing" (maybe).
+    //
+    // Create a second uniform grid storing non-duplicated references to the
+    // centers of spheres. It should have 2x linear/8x spatial resolution. Poll
+    // all the voxels within a certain radius, rejecting spheres that fall
+    // outside the radius.
     if (args->sampleCount > 0) {
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
       for (ushort i = 0; i < args->sampleCount; ++i) {
         // Cast the secondary ray.
         auto ray = genCtx.generate(i);
-        auto intersect = RayTracing::traverseDenseGrid(ray, grid);
+        auto intersect = RayTracing::
+        traverseDenseGrid(ray, grid, { true, args->maxRayHitTime, false });
         colorCtx.addAmbientContribution(intersect);
       }
     }
+    
+    // TODO: Apply contributions from multiple lights here. Add a baked-in
+    // option to use the main camera as your light source, avoiding the need for
+    // any shadow rays.
     colorCtx.setLightContributions(hitPoint, normal);
     colorCtx.applyLightContributions();
     

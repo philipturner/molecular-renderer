@@ -17,18 +17,10 @@ using namespace metal;
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
-// Whether to treat the specular term the same as the diffuse term when
-// factoring in ambient occlusion. This suppresses the specular part in occluded
-// areas. It is technically incorrect, but is sometimes preferable. The default
-// setting is to not suppress the specular term.
-constant bool SUPPRESS_SPECULAR [[function_constant(2)]];
-
 // Safeguard against infinite loops. Disable this for profiling.
 #define FAULT_COUNTERS_ENABLE 0
 
 // MARK: - Definitions
-
-typedef raytracing::primitive_acceleration_structure accel;
 
 struct __attribute__((aligned(16)))
 Arguments {
