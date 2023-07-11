@@ -29,7 +29,7 @@ struct IntersectionParams {
 
 class RayTracing {
 public:
-  static IntersectionResult traverseDenseGrid
+  static IntersectionResult traverse
   (
    Ray ray, DenseGrid grid, IntersectionParams params)
   {
@@ -70,6 +70,9 @@ public:
       if (params.isAORay && target_distance > params.maxRayHitTime) {
         dda.continue_loop = false;
       } else {
+        if (params.isShadowRay) {
+          target_distance = MAXFLOAT;
+        }
         result.distance = target_distance;
         
 #if FAULT_COUNTERS_ENABLE
@@ -102,7 +105,7 @@ public:
             }
           }
         }
-        if (result.distance < target_distance || params.isShadowRay) {
+        if (result.distance < target_distance) {
           result.accept = true;
           dda.continue_loop = false;
         }

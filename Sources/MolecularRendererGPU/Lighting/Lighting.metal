@@ -30,7 +30,6 @@ class ColorContext {
   float diffuseAmbient;
   float specularAmbient;
   
-  
 public:
   ColorContext(constant Arguments* args,
                constant MRAtomStyle* styles, ushort2 pixelCoords) {
@@ -42,12 +41,6 @@ public:
     this->color = half3(0.707, 0.707, 0.707);
     this->motionVector = half2(0);
     this->depth = -FLT_MAX;
-    
-    // Initialize the accumulator for shadows.
-    this->globalPower = args->lightPower;
-    this->totalRelativePower = 0;
-    this->lambertian = 0;
-    this->specular = 0;
     
     // Initialize the accumulator for ambient occlusion.
     this->diffuseAmbient = 0;
@@ -71,6 +64,14 @@ public:
       half3 magenta(252.0 / 255, 0.0 / 255, 255.0 / 255);
       diffuseColor = is_magenta ? magenta : diffuseColor;
     }
+  }
+  
+  void setLightingConditions(constant Arguments* args) {
+    // Initialize the accumulator for shadows.
+    this->globalPower = args->lightPower;
+    this->totalRelativePower = 0;
+    this->lambertian = 0;
+    this->specular = 0;
   }
   
   void addAmbientContribution(IntersectionResult intersect) {
@@ -113,12 +114,18 @@ public:
     this->depth = depth;
   }
   
-  void addLightContribution(float3 hitPoint, float3 normal, MRLight light) {
+  void addLightContribution(float3 hitPoint,
+                            float3 normal,
+                            MRLight light) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 lightDirection = light.origin - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
-    this->totalRelativePower += light.relativePower * rsqrtLightDst;
+    if ((light.flags & 0x2) != 0) {
+      this->totalRelativePower += light.relativePower * rsqrtLightDst;
+    } else {
+      this->totalRelativePower += light.relativePower;
+    }
     
     float lambertian = max(dot(lightDirection, normal), 0.0);
     this->lambertian += lambertian;

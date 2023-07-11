@@ -42,8 +42,8 @@ kernel void renderMain
 
   // Cast the primary ray.
   auto ray = RayGeneration::primaryRay(pixelCoords, args);
-  auto intersect = RayTracing::
-  traverseDenseGrid(ray, grid, { false, MAXFLOAT, false });
+  IntersectionParams params { false, MAXFLOAT, false };
+  auto intersect = RayTracing::traverse(ray, grid, params);
   
   // Calculate specular, diffuse, and ambient occlusion.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
@@ -60,27 +60,53 @@ kernel void renderMain
     // centers of spheres. It should have 2x linear/8x spatial resolution. Poll
     // all the voxels within a certain radius, rejecting spheres that fall
     // outside the radius.
-    //
-    // TODO: Increase the sample count for atoms that are highly occluded
-    // (determine via analytical occlusion), only if the scene generally doesn't
-    // have many such atoms. This will be a global image statistic that you
-    // update over time.
     if (args->sampleCount > 0) {
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
       for (ushort i = 0; i < args->sampleCount; ++i) {
         // Cast the secondary ray.
         auto ray = genCtx.generate(i);
-        auto intersect = RayTracing::
-        traverseDenseGrid(ray, grid, { true, args->maxRayHitTime, false });
+        IntersectionParams params { true, args->maxRayHitTime, false };
+        auto intersect = RayTracing::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);
       }
     }
     
-    // TODO: Apply contributions from multiple lights here. Add a baked-in
-    // option to use the main camera as your light source, avoiding the need for
-    // any shadow rays.
-    MRLight light(args->position, 1);
-    colorCtx.addLightContribution(hitPoint, normal, light);
+    colorCtx.setLightingConditions(args);
+    if (ALLOW_NON_CAMERA_LIGHTS) {
+      for (ushort i = 0; i < args->numLights; ++i) {
+        MRLight light(lights + i);
+        bool shadow = false;
+        if (light.flags & 0x1) {
+          // This is a camera light.
+        } else {
+          // Cast a shadow ray.
+          float3 direction = normalize(light.origin - hitPoint);
+          Ray ray { hitPoint + 0.001 * direction, direction };
+          IntersectionParams params { false, MAXFLOAT, true };
+          
+          if (light.flags & 0x2) {
+            params.isShadowRay = false;
+            params.maxRayHitTime = distance(light.origin, hitPoint);
+          }
+          auto intersect = RayTracing::traverse(ray, grid, params);
+          if (intersect.accept) {
+            shadow = true;
+            if (light.flags & 0x2) {
+              float maxRayHitTime = distance(light.origin, hitPoint);
+              if (intersect.distance > maxRayHitTime) {
+                shadow = false;
+              }
+            }
+          }
+        }
+        if (!shadow) {
+          colorCtx.addLightContribution(hitPoint, normal, light);
+        }
+      }
+    } else {
+      MRLight light(args->position, 1);
+      colorCtx.addLightContribution(hitPoint, normal, light);
+    }
     colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.

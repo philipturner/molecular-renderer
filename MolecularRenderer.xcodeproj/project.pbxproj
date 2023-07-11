@@ -58,6 +58,7 @@
 		98FB90782A5B444A00685E5C /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98FB90772A5B444A00685E5C /* OpenMM */; };
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
+		98FB90812A5D115200685E5C /* GoldSurfaceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90802A5D115200685E5C /* GoldSurfaceProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -150,6 +151,7 @@
 		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
 		98FB90792A5B6FC600685E5C /* VsyncHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VsyncHandler.swift; sourceTree = "<group>"; };
 		98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
+		98FB90802A5D115200685E5C /* GoldSurfaceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldSurfaceProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -320,6 +322,7 @@
 				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
 				98CC35822A3E48B3007B96DF /* ExampleProviders.swift */,
 				98F638BE2A34DC5800F51E95 /* ExampleStyles.swift */,
+				98FB90802A5D115200685E5C /* GoldSurfaceProvider.swift */,
 				98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */,
 				98A07C262A2CC11B00729897 /* ParsingUtilities.swift */,
 				98A07C242A2CBFCF00729897 /* PDBParser.swift */,
@@ -533,6 +536,7 @@
 			files = (
 				98F638CD2A34F97300F51E95 /* Downloader.swift in Sources */,
 				98C48C652A48FA250047C078 /* initOpenMM.swift in Sources */,
+				98FB90812A5D115200685E5C /* GoldSurfaceProvider.swift in Sources */,
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */,

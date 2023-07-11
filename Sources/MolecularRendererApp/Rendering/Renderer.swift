@@ -78,14 +78,20 @@ extension Renderer {
     let playerState = self.eventTracker.playerState
     let (azimuth, zenith) = playerState.rotations
     
-    let cameraLight = MRLight(origin: playerState.position, relativePower: 1.0)
+    let rotation = azimuth * zenith
+    let offset = rotation * [0.05, 0.05, 0]
+    let lightPosition = playerState.position + offset
+    var cameraLight = MRLight(origin: lightPosition, relativePower: 1)
+    cameraLight.flags = 0x2
+    cameraLight.origin = playerState.position
+    
     renderingEngine.setCamera(
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
-      rotation: azimuth * zenith,
+      rotation: rotation,
       lightPower: styleProvider.lightPower,
       lights: [cameraLight],
-      raySampleCount: 7)
+      raySampleCount: 3)
     
     let layer = coordinator.view.metalLayer!
     renderingEngine.render(layer: layer) { [self] _ in

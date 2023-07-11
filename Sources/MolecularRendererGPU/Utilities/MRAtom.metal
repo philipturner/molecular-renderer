@@ -128,15 +128,14 @@ MRLight {
   // Flags, such as whether the light is the camera.
   ushort flags;
   
-  // TODO: Remove this temporary initializer after debugging.
   MRLight(float3 origin, half relativePower) {
     this->origin = origin;
     this->relativePower = relativePower;
   }
   
   // Bypass an issue where the Metal compiler doesn't actually align the read.
-  MRLight(const device MRLight* address) {
-    float4 data = *(const device float4*)address;
+  MRLight(constant MRLight* address) {
+    float4 data = *(constant float4*)address;
     this->origin = data.xyz;
     this->relativePower = as_type<half2>(data.w)[0];
     this->flags = as_type<ushort2>(data.w)[1];

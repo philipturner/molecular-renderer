@@ -35,8 +35,7 @@ internal struct Arguments {
   var frameSeed: UInt32
   
   var lightPower: Float16
-  var cameraIsLight: Bool
-  var nonCameraLights: UInt16
+  var numLights: UInt16
   
   var sampleCount: UInt16
   var maxRayHitTime: Float
@@ -335,13 +334,13 @@ extension MRRenderer {
     let decayConstant: Float = 2.0 // range(0...20, 0.25)
     
     precondition(lights.count < UInt16.max, "Too many lights.")
-    var nonCameraLights = lights
-    var cameraIsLight = false
+    self.lights = lights
+    
     if let cameraIndex = lights.firstIndex(where: {
       distance_squared($0.origin, position) < 1e-3 * 1e-3
     }) {
-      nonCameraLights.remove(at: cameraIndex)
-      cameraIsLight = true
+      self.lights[cameraIndex].flags |= 0x1;
+      precondition(self.lights[cameraIndex].flags == 0x3);
     }
     
     self.currentArguments = Arguments(
@@ -354,8 +353,7 @@ extension MRRenderer {
       frameSeed: UInt32.random(in: 0...UInt32.max),
       
       lightPower: Float16(lightPower),
-      cameraIsLight: cameraIsLight,
-      nonCameraLights: UInt16(nonCameraLights.count),
+      numLights: UInt16(lights.count),
       
       sampleCount: UInt16(raySampleCount),
       maxRayHitTime: maxRayHitTime,
@@ -365,8 +363,13 @@ extension MRRenderer {
     
       gridWidth: 0)
     
-    self.lights = nonCameraLights
-    let desiredSize = 3 * nonCameraLights.count * MemoryLayout<MRLight>.stride
+    let totalRelativePower = lights.reduce(0) { $0 + $1.relativePower }
+    let relativePowerInv = 1 / totalRelativePower
+    for i in 0..<lights.count {
+      self.lights[i].relativePower *= relativePowerInv
+    }
+    
+    let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
     if lightsBuffer.length < desiredSize {
       var newLength = lightsBuffer.length
       while newLength < desiredSize {
