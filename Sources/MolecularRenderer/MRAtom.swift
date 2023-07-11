@@ -133,8 +133,19 @@ public struct MRLight: Equatable {
   // Flags, such as whether the light is the camera.
   public var flags: UInt16 = 0
   
-  init(origin: SIMD3<Float>, relativePower: Float16) {
+  @inlinable @inline(__always)
+  public init(origin: SIMD3<Float>, relativePower: Float16) {
     (x, y, z) = (origin.x, origin.y, origin.z)
     self.relativePower = relativePower
+  }
+  
+  @inlinable @inline(__always)
+  public var origin: SIMD3<Float> {
+    get { SIMD3(x, y, z) }
+    set {
+      x = newValue.x
+      y = newValue.y
+      z = newValue.z
+    }
   }
 }

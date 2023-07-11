@@ -17,6 +17,7 @@ kernel void renderMain
  (
   constant Arguments *args [[buffer(0)]],
   constant MRAtomStyle *styles [[buffer(1)]],
+  constant MRLight *lights [[buffer(2)]],
   
   device MRAtom *atoms [[buffer(3)]],
   device uint *dense_grid_data [[buffer(4)]],
@@ -59,6 +60,11 @@ kernel void renderMain
     // centers of spheres. It should have 2x linear/8x spatial resolution. Poll
     // all the voxels within a certain radius, rejecting spheres that fall
     // outside the radius.
+    //
+    // TODO: Increase the sample count for atoms that are highly occluded
+    // (determine via analytical occlusion), only if the scene generally doesn't
+    // have many such atoms. This will be a global image statistic that you
+    // update over time.
     if (args->sampleCount > 0) {
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
       for (ushort i = 0; i < args->sampleCount; ++i) {
@@ -73,8 +79,9 @@ kernel void renderMain
     // TODO: Apply contributions from multiple lights here. Add a baked-in
     // option to use the main camera as your light source, avoiding the need for
     // any shadow rays.
-    colorCtx.setLightContributions(hitPoint, normal);
-    colorCtx.applyLightContributions();
+    MRLight light(args->position, 1);
+    colorCtx.addLightContribution(hitPoint, normal, light);
+    colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.
     float depth = ray.direction.z * intersect.distance;

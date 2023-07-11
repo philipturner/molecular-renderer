@@ -10,6 +10,7 @@ import MetalFX
 import func QuartzCore.CACurrentMediaTime
 import class QuartzCore.CAMetalLayer
 import struct simd.simd_float3x3
+import func simd.distance_squared
 
 // Partially sourced from:
 // https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
@@ -34,6 +35,9 @@ internal struct Arguments {
   var frameSeed: UInt32
   
   var lightPower: Float16
+  var cameraIsLight: Bool
+  var nonCameraLights: UInt16
+  
   var sampleCount: UInt16
   var maxRayHitTime: Float
   var exponentialFalloffDecayConstant: Float
@@ -41,7 +45,6 @@ internal struct Arguments {
   var diffuseReflectanceScale: Float
   
   var gridWidth: UInt16
-  var useUniformGrid: UInt16 = 1
 }
 
 public class MRRenderer {
@@ -54,6 +57,7 @@ public class MRRenderer {
   
   // The time of this frame.
   var time: MRTimeContext!
+  var renderIndex: Int = 0
   
   // Main rendering resources.
   var device: MTLDevice
@@ -81,7 +85,8 @@ public class MRRenderer {
   // Cache previous arguments to generate motion vectors.
   var previousArguments: Arguments?
   var currentArguments: Arguments?
-  var shouldCompact: Bool = false
+  var lights: [MRLight] = []
+  var lightsBuffer: MTLBuffer
   
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
@@ -138,6 +143,10 @@ public class MRRenderer {
     }
     encoder.endEncoding()
     commandBuffer.commit()
+    
+    let lightsBufferLength = 3 * 8 * MemoryLayout<MRLight>.stride
+    precondition(MemoryLayout<MRLight>.stride == 16)
+    self.lightsBuffer = device.makeBuffer(length: lightsBufferLength)!
     
     let library = try! device.makeLibrary(URL: metallibURL)
     self.initAccelBuilder(library: library)
@@ -213,6 +222,7 @@ extension MRRenderer {
     self.jitterFrameID += 1
     self.jitterOffsets = makeJitterOffsets()
     self.textureIndex = (self.textureIndex + 1) % 2
+    self.renderIndex = (self.renderIndex + 1) % 3
   }
   
   private func makeJitterOffsets() -> SIMD2<Float> {
@@ -314,6 +324,7 @@ extension MRRenderer {
     position: SIMD3<Float>,
     rotation: simd_float3x3,
     lightPower: Float,
+    lights: [MRLight],
     raySampleCount: Int
   ) {
     self.previousArguments = currentArguments
@@ -322,6 +333,16 @@ extension MRRenderer {
     let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
     let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
     let decayConstant: Float = 2.0 // range(0...20, 0.25)
+    
+    precondition(lights.count < UInt16.max, "Too many lights.")
+    var nonCameraLights = lights
+    var cameraIsLight = false
+    if let cameraIndex = lights.firstIndex(where: {
+      distance_squared($0.origin, position) < 1e-3 * 1e-3
+    }) {
+      nonCameraLights.remove(at: cameraIndex)
+      cameraIsLight = true
+    }
     
     self.currentArguments = Arguments(
       fovMultiplier: self.fovMultiplier(fovDegrees: fovDegrees),
@@ -333,6 +354,9 @@ extension MRRenderer {
       frameSeed: UInt32.random(in: 0...UInt32.max),
       
       lightPower: Float16(lightPower),
+      cameraIsLight: cameraIsLight,
+      nonCameraLights: UInt16(nonCameraLights.count),
+      
       sampleCount: UInt16(raySampleCount),
       maxRayHitTime: maxRayHitTime,
       exponentialFalloffDecayConstant: decayConstant,
@@ -340,6 +364,16 @@ extension MRRenderer {
       diffuseReflectanceScale: diffuseReflectanceScale,
     
       gridWidth: 0)
+    
+    self.lights = nonCameraLights
+    let desiredSize = 3 * nonCameraLights.count * MemoryLayout<MRLight>.stride
+    if lightsBuffer.length < desiredSize {
+      var newLength = lightsBuffer.length
+      while newLength < desiredSize {
+        newLength = newLength << 1
+      }
+      lightsBuffer = device.makeBuffer(length: newLength)!
+    }
   }
   
   private func fovMultiplier(fovDegrees: Float) -> Float {
@@ -428,6 +462,8 @@ extension MRRenderer {
     encoder.setComputePipelineState(rayTracingPipeline)
     accelBuilder.encodeGridArguments(encoder: encoder)
     accelBuilder.setGridWidth(arguments: &currentArguments!)
+    
+    // Encode the arguments.
     withUnsafeTemporaryAllocation(
       of: Arguments.self, capacity: 2
     ) { bufferPointer in
@@ -446,6 +482,15 @@ extension MRRenderer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
+    
+    // Encode the lights.
+    let lightsBufferOffset = renderIndex * (lightsBuffer.length / 3)
+    let lightsRawPointer = lightsBuffer.contents() + lightsBufferOffset
+    let lightsPointer = lightsRawPointer.assumingMemoryBound(to: MRLight.self)
+    for i in 0..<lights.count {
+      lightsPointer[i] = lights[i]
+    }
+    encoder.setBuffer(lightsBuffer, offset: lightsBufferOffset, index: 2)
 
     // Encode the output textures.
     let textures = self.currentTextures

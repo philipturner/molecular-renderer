@@ -22,11 +22,14 @@ class ColorContext {
   float depth;
   
   half3 diffuseColor;
+  half globalPower;
+  float totalRelativePower;
   float lambertian;
   float specular;
+  
   float diffuseAmbient;
   float specularAmbient;
-  float lightPower;
+  
   
 public:
   ColorContext(constant Arguments* args,
@@ -41,6 +44,10 @@ public:
     this->depth = -FLT_MAX;
     
     // Initialize the accumulator for shadows.
+    this->globalPower = args->lightPower;
+    this->totalRelativePower = 0;
+    this->lambertian = 0;
+    this->specular = 0;
     
     // Initialize the accumulator for ambient occlusion.
     this->diffuseAmbient = 0;
@@ -106,14 +113,16 @@ public:
     this->depth = depth;
   }
   
-  void setLightContributions(float3 hitPoint, float3 normal) {
+  void addLightContribution(float3 hitPoint, float3 normal, MRLight light) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
-    float3 lightDirection = args->position - hitPoint;
+    float3 lightDirection = light.origin - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
+    this->totalRelativePower += light.relativePower * rsqrtLightDst;
     
-    this->lambertian = max(dot(lightDirection, normal), 0.0);
-    this->specular = 0;
+    float lambertian = max(dot(lightDirection, normal), 0.0);
+    this->lambertian += lambertian;
+    
     if (lambertian > 0.0) {
       // QuteMol preset 3 seemed most appropriate in a side-by-side comparison
       // between all three presets:
@@ -123,14 +132,11 @@ public:
       
       // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
       float specAngle = lambertian;
-      specular = specContribution * pow(specAngle, shininess);
+      this->specular += specContribution * pow(specAngle, shininess);
     }
-    
-    this->lightPower = float(args->lightPower);
-    this->lightPower = smoothstep(0, 1, lightPower * rsqrtLightDst);
   }
   
-  void applyLightContributions() {
+  void applyContributions() {
     // Combining using heuristics from:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
@@ -164,10 +170,10 @@ public:
     }
     
     // Store color in single precision while calculating.
-    float3 newColor = float3(diffuseColor) * lambertian * ambientOcclusion;
-    newColor += specular * specularOcclusion;
-    newColor *= lightPower;
-    this->color = half3(saturate(newColor));
+    float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
+    color += specular * specularOcclusion;
+    color *= smoothstep(0.1, 1, globalPower * totalRelativePower);
+    this->color = half3(saturate(color));
   }
   
   void generateMotionVector(float3 hitPoint) {

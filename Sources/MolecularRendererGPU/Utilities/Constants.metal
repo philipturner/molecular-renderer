@@ -37,8 +37,10 @@ Arguments {
   // Seed for generating random numbers.
   uint frameSeed;
 
-  // Light power for Blinn-Phong shading.
+  // Constants for Blinn-Phong shading.
   half lightPower;
+  bool cameraIsLight;
+  ushort nonCameraLights;
   
   // Constants for ray-traced ambient occlusion.
   ushort sampleCount;
@@ -49,7 +51,6 @@ Arguments {
   
   // Uniform grid arguments.
   ushort grid_width;
-  ushort use_uniform_grid;
 };
 
 #endif
