@@ -121,10 +121,11 @@ public:
     float3 lightDirection = light.origin - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
+    
     if ((light.flags & 0x2) != 0) {
-      this->totalRelativePower += light.relativePower * rsqrtLightDst;
+      this->totalRelativePower += smoothstep(0, 1, globalPower * light.relativePower * rsqrtLightDst);
     } else {
-      this->totalRelativePower += light.relativePower;
+      this->totalRelativePower += globalPower * light.relativePower;
     }
     
     float lambertian = max(dot(lightDirection, normal), 0.0);
@@ -179,7 +180,7 @@ public:
     // Store color in single precision while calculating.
     float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
     color += specular * specularOcclusion;
-    color *= smoothstep(0.1, 1, globalPower * totalRelativePower);
+    color *= saturate(totalRelativePower); // smoothstep(0, 1, globalPower * totalRelativePower);
     this->color = half3(saturate(color));
   }
   

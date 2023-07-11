@@ -42,7 +42,9 @@ class Renderer {
 //    self.atomProvider = NanoEngineerParser(
 //      partLibPath: "others/Fine Motion Controller")
     
-    self.atomProvider = ExampleProviders.planetaryGearBox()
+//    self.atomProvider = ExampleProviders.planetaryGearBox()
+    
+    self.atomProvider = APMBootstrapper()
   }
 }
 
@@ -79,19 +81,24 @@ extension Renderer {
     let (azimuth, zenith) = playerState.rotations
     
     let rotation = azimuth * zenith
+    
     let offset = rotation * [0.05, 0.05, 0]
     let lightPosition = playerState.position + offset
     var cameraLight = MRLight(origin: lightPosition, relativePower: 1)
     cameraLight.flags = 0x2
     cameraLight.origin = playerState.position
+//    let lights = [cameraLight]
+    
+    let sunLight = MRLight(origin: [400, 1000, 400], relativePower: 100)
+    let lights = [sunLight]//, cameraLight]
     
     renderingEngine.setCamera(
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
       rotation: rotation,
       lightPower: styleProvider.lightPower,
-      lights: [cameraLight],
-      raySampleCount: 3)
+      lights: lights,
+      raySampleCount: 7)
     
     let layer = coordinator.view.metalLayer!
     renderingEngine.render(layer: layer) { [self] _ in
