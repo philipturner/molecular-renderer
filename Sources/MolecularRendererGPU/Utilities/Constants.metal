@@ -20,9 +20,6 @@ using namespace metal;
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
-// This harms performance and is generally not recommended for real-time.
-constant bool ALLOW_NON_CAMERA_LIGHTS = true;
-
 // Safeguard against infinite loops. Disable this for profiling.
 #define FAULT_COUNTERS_ENABLE 0
 

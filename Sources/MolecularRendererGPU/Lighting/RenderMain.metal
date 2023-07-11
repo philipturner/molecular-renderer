@@ -39,7 +39,7 @@ kernel void renderMain
   // Initialize the uniform grid.
   DenseGrid grid(args->grid_width, dense_grid_data,
                  dense_grid_references, atoms);
-
+  
   // Cast the primary ray.
   auto ray = RayGeneration::primaryRay(pixelCoords, args);
   IntersectionParams params { false, MAXFLOAT, false };
@@ -72,40 +72,30 @@ kernel void renderMain
     }
     
     colorCtx.setLightingConditions(args);
-    if (ALLOW_NON_CAMERA_LIGHTS) {
-      for (ushort i = 0; i < args->numLights; ++i) {
-        MRLight light(lights + i);
-        bool shadow = false;
-        if (light.flags & 0x1) {
-          // This is a camera light.
-        } else {
-          // Cast a shadow ray.
-          float3 direction = normalize(light.origin - hitPoint);
-          Ray ray { hitPoint + 0.001 * direction, direction };
-          IntersectionParams params { false, MAXFLOAT, true };
-          
-          if (light.flags & 0x2) {
-            params.isShadowRay = false;
-            params.maxRayHitTime = distance(light.origin, hitPoint);
-          }
-          auto intersect = RayTracing::traverse(ray, grid, params);
-          if (intersect.accept) {
-            shadow = true;
-            if (light.flags & 0x2) {
-              float maxRayHitTime = distance(light.origin, hitPoint);
-              if (intersect.distance > maxRayHitTime) {
-                shadow = false;
-              }
-            }
-          }
-        }
-        if (!shadow) {
-          colorCtx.addLightContribution(hitPoint, normal, light);
+    for (ushort i = 0; i < args->numLights; ++i) {
+      MRLight light(lights + i);
+      bool shadow = false;
+      if (light.flags & 0x1) {
+        // This is a camera light.
+      } else {
+        // Cast a shadow ray.
+        float3 direction = light.origin - hitPoint;
+        float distance_sq = length_squared(direction);
+        direction *= rsqrt(distance_sq);
+        
+        Ray ray { hitPoint + 0.001 * direction, direction };
+        IntersectionParams params { false, sqrt(distance_sq), true };
+        
+        auto intersect = RayTracing::traverse(ray, grid, params);
+        if (intersect.accept) {
+          shadow = true;
         }
       }
-    } else {
-      MRLight light(args->position, 1);
-      colorCtx.addLightContribution(hitPoint, normal, light);
+      if (!shadow) {
+        // TODO: Avoid adding specular contributions from this light. However,
+        // we shouldn't entirely suppress the diffuse contributions.
+        colorCtx.addLightContribution(hitPoint, normal, light);
+      }
     }
     colorCtx.applyContributions();
     

@@ -29,7 +29,7 @@ struct IntersectionParams {
 
 class RayTracing {
 public:
-  static IntersectionResult traverse
+  METAL_FUNC static IntersectionResult traverse
   (
    Ray ray, DenseGrid grid, IntersectionParams params)
   {
@@ -37,9 +37,10 @@ public:
     IntersectionResult result { MAXFLOAT, false };
     ushort result_atom;
     
-    if (params.isAORay) {
+    float maxTargetDistance;
+    if (params.isAORay || params.isShadowRay) {
       const float voxel_size = voxel_width_numer / voxel_width_denom;
-      params.maxRayHitTime += sqrt(float(3)) * voxel_size;
+      maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * voxel_size;
     }
     
   #if FAULT_COUNTERS_ENABLE
@@ -67,11 +68,12 @@ public:
       uint offset = voxel_data & voxel_offset_mask;
       
       float target_distance = dda.get_max_accepted_t();
-      if (params.isAORay && target_distance > params.maxRayHitTime) {
+      if ((params.isAORay || params.isShadowRay) &&
+          (target_distance > maxTargetDistance)) {
         dda.continue_loop = false;
       } else {
         if (params.isShadowRay) {
-          target_distance = MAXFLOAT;
+          target_distance = min(target_distance, params.maxRayHitTime);
         }
         result.distance = target_distance;
         
