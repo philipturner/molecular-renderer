@@ -34,7 +34,6 @@ internal struct Arguments {
   var jitter: SIMD2<Float>
   var frameSeed: UInt32
   
-  var lightPower: Float16
   var numLights: UInt16
   
   var sampleCount: UInt16
@@ -98,15 +97,16 @@ public class MRRenderer {
     self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
     
-    guard width % 2 == 0, height % 2 == 0 else {
+    guard width % 3 == 0, height % 3 == 0 else {
       fatalError("MRRenderer only accepts even image sizes.")
     }
     self.upscaledSize = SIMD2(width, height)
-    self.intermediateSize = SIMD2(width / 2, height / 2)
+    self.intermediateSize = SIMD2(width / 3, height / 3)
     
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeBlitCommandEncoder()!
+    print(MemoryLayout<Arguments>.stride)
     
     for _ in 0..<2 {
       let desc = MTLTextureDescriptor()
@@ -197,8 +197,8 @@ public class MRRenderer {
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = 2
-    desc.inputContentMaxScale = 2
+    desc.inputContentMinScale = 3
+    desc.inputContentMaxScale = 3
     
     guard let upscaler = desc.makeTemporalScaler(device: device) else {
       fatalError("The temporal scaler effect is not usable!")
@@ -322,7 +322,6 @@ extension MRRenderer {
     fovDegrees: Float,
     position: SIMD3<Float>,
     rotation: simd_float3x3,
-    lightPower: Float,
     lights: [MRLight],
     raySampleCount: Int
   ) {
@@ -334,14 +333,33 @@ extension MRRenderer {
     let decayConstant: Float = 2.0 // range(0...20, 0.25)
     
     precondition(lights.count < UInt16.max, "Too many lights.")
-    self.lights = lights
     
-    if let cameraIndex = lights.firstIndex(where: {
-      distance_squared($0.origin, position) < 1e-3 * 1e-3
-    }) {
-      self.lights[cameraIndex].flags |= 0x1;
-      precondition(self.lights[cameraIndex].flags == 0x3);
+    var totalDiffuse: Float = 0
+    var totalSpecular: Float = 0
+    for light in lights {
+      totalDiffuse += Float(light.diffusePower)
+      totalSpecular += Float(light.specularPower)
     }
+    self.lights = (lights.map { _light in
+      var light = _light
+      
+      // Normalize so nothing causes oversaturation.
+      let diffuse = Float(light.diffusePower) / totalDiffuse
+      let specular = Float(light.specularPower) / totalSpecular
+      light.diffusePower = Float16(diffuse)
+      light.specularPower = Float16(specular)
+      light.resetMask()
+      
+      // Mark camera-centered lights as something to render more efficiently.
+      if sqrt(distance_squared(light.origin, position)) < 1e-3 {
+        #if arch(arm64)
+        var diffuseMask = light.diffusePower.bitPattern
+        diffuseMask |= 0x1
+        light.diffusePower = Float16(bitPattern: diffuseMask)
+        #endif
+      }
+      return light
+    })
     
     self.currentArguments = Arguments(
       fovMultiplier: self.fovMultiplier(fovDegrees: fovDegrees),
@@ -352,7 +370,6 @@ extension MRRenderer {
       jitter: jitterOffsets,
       frameSeed: UInt32.random(in: 0...UInt32.max),
       
-      lightPower: Float16(lightPower),
       numLights: UInt16(lights.count),
       
       sampleCount: UInt16(raySampleCount),
@@ -362,12 +379,6 @@ extension MRRenderer {
       diffuseReflectanceScale: diffuseReflectanceScale,
     
       gridWidth: 0)
-    
-    let totalRelativePower = lights.reduce(0) { $0 + $1.relativePower }
-    let relativePowerInv = 1 / totalRelativePower
-    for i in 0..<lights.count {
-      self.lights[i].relativePower *= relativePowerInv
-    }
     
     let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
     if lightsBuffer.length < desiredSize {
@@ -467,24 +478,41 @@ extension MRRenderer {
     accelBuilder.setGridWidth(arguments: &currentArguments!)
     
     // Encode the arguments.
-    withUnsafeTemporaryAllocation(
-      of: Arguments.self, capacity: 2
-    ) { bufferPointer in
-      bufferPointer[0] = self.currentArguments!
-      if let previousArguments = self.previousArguments {
-        bufferPointer[1] = previousArguments
-      } else {
-        bufferPointer[1] = bufferPointer[0]
-      }
-      
-      let argsLength = 2 * MemoryLayout<Arguments>.stride
-      let baseAddress = bufferPointer.baseAddress!
-      encoder.setBytes(baseAddress, length: argsLength, index: 0)
+    let tempAllocation = malloc(256)!
+    if previousArguments == nil {
+      previousArguments = currentArguments
     }
+    memcpy(tempAllocation, &currentArguments!, 112)
+    memcpy(tempAllocation + 128, &previousArguments!, 112)
+    encoder.setBytes(tempAllocation, length: 256, index: 0)
+    free(tempAllocation)
+    
+//    withUnsafeTemporaryAllocation(
+//      of: Arguments.self, capacity: 2
+//    ) { bufferPointer in
+//      bufferPointer[0] = self.currentArguments!
+//      if let previousArguments = self.previousArguments {
+//        bufferPointer[1] = previousArguments
+//      } else {
+//        bufferPointer[1] = bufferPointer[0]
+//      }
+//      
+//      let argsLength = 2 * MemoryLayout<Arguments>.stride
+//      let baseAddress = bufferPointer.baseAddress!
+//      encoder.setBytes(baseAddress, length: argsLength, index: 0)
+//    }
     accelBuilder.styles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
+    
+    var jitter = SIMD4<Float>(
+      currentArguments!.jitter.x,
+      currentArguments!.jitter.y,
+      previousArguments!.jitter.x,
+      previousArguments!.jitter.y
+    )
+    encoder.setBytes(&jitter, length: 16, index: 6)
     
     // Encode the lights.
     let lightsBufferOffset = renderIndex * (lightsBuffer.length / 3)

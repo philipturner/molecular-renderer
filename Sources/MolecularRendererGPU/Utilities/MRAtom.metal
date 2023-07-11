@@ -122,23 +122,16 @@ MRLight {
   // Position in nm.
   packed_float3 origin;
   
-  // Weight for Blinn-Phong shading, separate from global light power.
-  half relativePower;
- 
-  // Flags, such as whether the light is the camera.
-  ushort flags;
-  
-  MRLight(float3 origin, half relativePower) {
-    this->origin = origin;
-    this->relativePower = relativePower;
-  }
+  // Parameters for Blinn-Phong shading, typically 1.
+  half diffusePower;
+  half specularPower;
   
   // Bypass an issue where the Metal compiler doesn't actually align the read.
   MRLight(constant MRLight* address) {
     float4 data = *(constant float4*)address;
     this->origin = data.xyz;
-    this->relativePower = as_type<half2>(data.w)[0];
-    this->flags = as_type<ushort2>(data.w)[1];
+    this->diffusePower = as_type<half2>(data.w)[0];
+    this->specularPower = as_type<half2>(data.w)[1];
   }
 };
 

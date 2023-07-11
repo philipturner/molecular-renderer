@@ -127,16 +127,35 @@ public struct MRLight: Equatable {
   public var y: Float
   public var z: Float
   
-  // Weight for Blinn-Phong shading, separate from global light power.
-  public var relativePower: Float16
-  
-  // Flags, such as whether the light is the camera.
-  public var flags: UInt16 = 0
+  // Parameters for Blinn-Phong shading, typically 1.
+  public var diffusePower: Float16
+  public var specularPower: Float16
   
   @inlinable @inline(__always)
-  public init(origin: SIMD3<Float>, relativePower: Float16) {
+  public init(
+    origin: SIMD3<Float>,
+    diffusePower: Float16,
+    specularPower: Float16
+  ) {
     (x, y, z) = (origin.x, origin.y, origin.z)
-    self.relativePower = relativePower
+    self.diffusePower = diffusePower
+    self.specularPower = specularPower
+  }
+  
+  @inlinable @inline(__always)
+  public mutating func resetMask() {
+    #if arch(arm64)
+    // Reserve 4 bits for flags.
+    var diffuseMask = diffusePower.bitPattern
+    var specularMask = specularPower.bitPattern
+    diffuseMask &= ~0x3
+    specularMask &= ~0x3
+    self.diffusePower = Float16(bitPattern: diffuseMask)
+    self.specularPower = Float16(bitPattern: specularMask)
+    #else
+    self.diffusePower = 0
+    self.specularPower = 0
+    #endif
   }
   
   @inlinable @inline(__always)
@@ -149,3 +168,4 @@ public struct MRLight: Equatable {
     }
   }
 }
+

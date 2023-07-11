@@ -8,11 +8,6 @@
 import Foundation
 import MolecularRenderer
 
-protocol LightPowerProvider {
-  // Intensity of the camera-centered light for Blinn-Phong shading.
-  var lightPower: Float { get }
-}
-
 struct ExampleStyles {
   // Bondi (1964) convention expanded to more elements in 2009. Hydrogen and
   // lithium values are not lowered to (1.20 -> 1.10, 1.82 -> 1.81) because that
@@ -25,9 +20,7 @@ struct ExampleStyles {
   // https://jmol.sourceforge.net/jscolors/#color_C
   // Also used by QuteMol:
   // https://github.com/zulman/qutemol/blob/master/src/AtomColor.cpp#L54
-  struct QuteMolDefault: MRAtomStyleProvider, LightPowerProvider {
-    let lightPower: Float = 40.0
-    
+  struct QuteMolDefault: MRAtomStyleProvider {
     var styles: [MRAtomStyle]
     
     var available: [Bool]
@@ -165,9 +158,7 @@ struct ExampleStyles {
   //
   // The file also reappears here:
   // https://github.com/zulman/qutemol/blob/a7ca8add0683cd311cbcdbed5c7e49cb1681fb61/src/sample/nanostuff.art#L4
-  struct NanoStuff: MRAtomStyleProvider, LightPowerProvider {
-    let lightPower: Float = 50.0
-    
+  struct NanoStuff: MRAtomStyleProvider {
     var styles: [MRAtomStyle]
     
     var available: [Bool]

@@ -22,13 +22,10 @@ class ColorContext {
   float depth;
   
   half3 diffuseColor;
-  half globalPower;
-  float totalRelativePower;
-  float lambertian;
-  float specular;
-  
   float diffuseAmbient;
   float specularAmbient;
+  float lambertian;
+  float specular;
   
 public:
   ColorContext(constant Arguments* args,
@@ -42,9 +39,11 @@ public:
     this->motionVector = half2(0);
     this->depth = -FLT_MAX;
     
-    // Initialize the accumulator for ambient occlusion.
+    // Initialize the accumulators for lighting.
     this->diffuseAmbient = 0;
     this->specularAmbient = 0;
+    this->lambertian = 0;
+    this->specular = 0;
   }
   
   void setDiffuseColor(MRAtom atom, float3 normal) {
@@ -64,14 +63,6 @@ public:
       half3 magenta(252.0 / 255, 0.0 / 255, 255.0 / 255);
       diffuseColor = is_magenta ? magenta : diffuseColor;
     }
-  }
-  
-  void setLightingConditions(constant Arguments* args) {
-    // Initialize the accumulator for shadows.
-    this->globalPower = args->lightPower;
-    this->totalRelativePower = 0;
-    this->lambertian = 0;
-    this->specular = 0;
   }
   
   void addAmbientContribution(IntersectionResult intersect) {
@@ -122,14 +113,8 @@ public:
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
     
-    if ((light.flags & 0x2) != 0) {
-      this->totalRelativePower += smoothstep(0, 1, globalPower * light.relativePower * rsqrtLightDst);
-    } else {
-      this->totalRelativePower += globalPower * light.relativePower;
-    }
-    
     float lambertian = max(dot(lightDirection, normal), 0.0);
-    this->lambertian += lambertian;
+    this->lambertian += light.diffusePower * lambertian;
     
     if (lambertian > 0.0) {
       // QuteMol preset 3 seemed most appropriate in a side-by-side comparison
@@ -140,7 +125,8 @@ public:
       
       // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
       float specAngle = lambertian;
-      this->specular += specContribution * pow(specAngle, shininess);
+      float contribution = light.specularPower * specContribution;
+      this->specular += contribution * pow(specAngle, shininess);
     }
   }
   
@@ -149,49 +135,51 @@ public:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
     float specularOcclusion = 1;
-    if (args->sampleCount > 0) {
-      float sampleCountRecip = fast::divide(1, args->sampleCount);
-      float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
-      float specularAmbient = this->specularAmbient * sampleCountRecip;
-      ambientOcclusion = diffuseAmbient;
-      
-      // This seems to only be applied to a "specular ambient" term, not the
-      // "specular direct" term. We are applying it to the latter. However, it
-      // seems to produce results we desire: avoid multiplication of the AO
-      // term with the specular term, without making the specular term stand out
-      // in low-light areas.
-      //
-      // SO = saturate((lambertian + ambient)^2 - 1 + ambient)
-      //
-      // SO      | AO = 0.9 | AO = 0.7 | AO = 0.5 | AO = 0.3 | AO = 0.1 |
-      // ------- | -------- | -------- | -------- | -------- | -------- |
-      // L = 0.9 | 1        | 1        | 1        | 0.74     | 0.1      |
-      // L = 0.7 | 1        | 1        | 0.94     | 0.30     | 0        |
-      // L = 0.5 | 1        | 1        | 0.50     | 0.14     | 0        |
-      // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
-      // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
-      
-      specularOcclusion = lambertian + specularAmbient;
-      specularOcclusion = specularOcclusion * specularOcclusion;
-      specularOcclusion += specularAmbient - 1;
-      specularOcclusion = saturate(specularOcclusion);
-    }
+//    if (args->sampleCount > 0) {
+//      float sampleCountRecip = fast::divide(1, args->sampleCount);
+//      float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
+//      float specularAmbient = this->specularAmbient * sampleCountRecip;
+//      ambientOcclusion = diffuseAmbient;
+//      specularOcclusion = specularAmbient;
+//      
+//      // This seems to only be applied to a "specular ambient" term, not the
+//      // "specular direct" term. We are applying it to the latter. However, it
+//      // seems to produce results we desire: avoid multiplication of the AO
+//      // term with the specular term, without making the specular term stand out
+//      // in low-light areas.
+//      //
+//      // SO = saturate((lambertian + ambient)^2 - 1 + ambient)
+//      //
+//      // SO      | AO = 0.9 | AO = 0.7 | AO = 0.5 | AO = 0.3 | AO = 0.1 |
+//      // ------- | -------- | -------- | -------- | -------- | -------- |
+//      // L = 0.9 | 1        | 1        | 1        | 0.74     | 0.1      |
+//      // L = 0.7 | 1        | 1        | 0.94     | 0.30     | 0        |
+//      // L = 0.5 | 1        | 1        | 0.50     | 0.14     | 0        |
+//      // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
+//      // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
+//      
+//      specularOcclusion = lambertian + specularAmbient;
+//      specularOcclusion = specularOcclusion * specularOcclusion;
+//      specularOcclusion += specularAmbient - 1;
+//      specularOcclusion = saturate(specularOcclusion);
+//    }
     
     // Store color in single precision while calculating.
     float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
     color += specular * specularOcclusion;
-    color *= saturate(totalRelativePower); // smoothstep(0, 1, globalPower * totalRelativePower);
     this->color = half3(saturate(color));
   }
   
   void generateMotionVector(float3 hitPoint) {
+    auto arg1 = (constant Arguments*)((constant uchar*)args + 128);
+    
     // fovMultiplier = halfAngleTangentRatio / fov90Span
     // 1 / fovMultiplier = fov90Span / halfAngleTangentRatio
     // - 90°: simply transform direction vector back into pixel location
     // - 110°: halfAngleTangentRatio > 1; end result closer to center
-    float3 direction = normalize(hitPoint - args[1].position);
-    direction = transpose(args[1].cameraToWorldRotation) * direction;
-    direction *= 1 / args[1].fovMultiplier / direction.z;
+    float3 direction = normalize(hitPoint - arg1->position);
+    direction = transpose(arg1->cameraToWorldRotation) * direction;
+    direction *= 1 / arg1->fovMultiplier / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.
     float2 prevCoords = direction.xy;
@@ -205,7 +193,10 @@ public:
     motionVector = half2(currCoords - prevCoords);
     
     // I have no idea why, but the Y coordinate is flipped here.
+    // TODO: This might be the fix.
     motionVector.y = -motionVector.y;
+    
+//    motionVector = 0;
   }
   
   void write(texture2d<half, access::write> colorTexture,

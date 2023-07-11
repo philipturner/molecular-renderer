@@ -23,6 +23,8 @@ kernel void renderMain
   device uint *dense_grid_data [[buffer(4)]],
   device ushort *dense_grid_references [[buffer(5)]],
   
+  constant float2 *jitter [[buffer(6)]],
+  
   texture2d<half, access::write> color_texture [[texture(0)]],
   texture2d<float, access::write> depth_texture [[texture(1)]],
   texture2d<half, access::write> motion_texture [[texture(2)]],
@@ -41,7 +43,7 @@ kernel void renderMain
                  dense_grid_references, atoms);
   
   // Cast the primary ray.
-  auto ray = RayGeneration::primaryRay(pixelCoords, args);
+  auto ray = RayGeneration::primaryRay(pixelCoords, args, jitter);
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayTracing::traverse(ray, grid, params);
   
@@ -71,11 +73,12 @@ kernel void renderMain
       }
     }
     
-    colorCtx.setLightingConditions(args);
     for (ushort i = 0; i < args->numLights; ++i) {
       MRLight light(lights + i);
       bool shadow = false;
-      if (light.flags & 0x1) {
+      static_assert(sizeof(Arguments) == 112, "");
+      ushort cameraFlag = as_type<ushort>(light.diffusePower) & 0x1;
+      if (cameraFlag) {
         // This is a camera light.
       } else {
         // Cast a shadow ray.
@@ -83,7 +86,7 @@ kernel void renderMain
         float distance_sq = length_squared(direction);
         direction *= rsqrt(distance_sq);
         
-        Ray ray { hitPoint + 0.001 * direction, direction };
+        Ray ray { hitPoint + 0.0001 * normal, direction };
         IntersectionParams params { false, sqrt(distance_sq), true };
         
         auto intersect = RayTracing::traverse(ray, grid, params);
@@ -92,8 +95,6 @@ kernel void renderMain
         }
       }
       if (!shadow) {
-        // TODO: Avoid adding specular contributions from this light. However,
-        // we shouldn't entirely suppress the diffuse contributions.
         colorCtx.addLightContribution(hitPoint, normal, light);
       }
     }

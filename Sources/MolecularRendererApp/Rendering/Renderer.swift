@@ -23,7 +23,7 @@ class Renderer {
   
   // Geometry providers.
   var atomProvider: MRAtomProvider
-  var styleProvider: MRAtomStyleProvider & LightPowerProvider
+  var styleProvider: MRAtomStyleProvider
   var animationFrameID: Int = 0
   
   init(coordinator: Coordinator) {
@@ -39,12 +39,14 @@ class Renderer {
     MRSetFrameRate(120)
     
     self.styleProvider = ExampleStyles.NanoStuff()
+//    self.styleProvider = ExampleStyles.QuteMolDefault()
+    
 //    self.atomProvider = NanoEngineerParser(
 //      partLibPath: "others/Fine Motion Controller")
     
-    self.atomProvider = ExampleProviders.planetaryGearBox()
+//    self.atomProvider = ExampleProviders.planetaryGearBox()
     
-//    self.atomProvider = APMBootstrapper()
+    self.atomProvider = APMBootstrapper()
   }
 }
 
@@ -81,23 +83,30 @@ extension Renderer {
     let (azimuth, zenith) = playerState.rotations
     
     let rotation = azimuth * zenith
+    var lights: [MRLight] = []
     
-    let offsetXY: Float = 0.05
-    let offsetZ: Float = 0.05
+    #if true
+    let offsetXY: Float = 0.00
+    let offsetZ: Float = 0.00
     let offset = rotation * [offsetXY, offsetXY, -offsetZ]
     let lightPosition = playerState.position + offset
+    let cameraLight = MRLight(
+      origin: lightPosition, diffusePower: 1, specularPower: 1)
+    lights.append(cameraLight)
+    #else
+    let cameraLight = MRLight(
+      origin: playerState.position, diffusePower: 0.2, specularPower: 0.1)
+    lights.append(cameraLight)
     
-    let cameraLight = MRLight(origin: lightPosition, relativePower: 1)
-    let lights = [cameraLight]
-    
-//    let sunLight = MRLight(origin: [400, 1000, 400], relativePower: 100)
-//    lights.append(sunLight)
+    let sunLight = MRLight(
+      origin: [400, 1000, 400], diffusePower: 1, specularPower: 1)
+    lights.append(sunLight)
+    #endif
     
     renderingEngine.setCamera(
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
       rotation: rotation,
-      lightPower: styleProvider.lightPower,
       lights: lights,
       raySampleCount: 7)
     

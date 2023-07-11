@@ -41,7 +41,6 @@ Arguments {
   uint frameSeed;
 
   // Constants for Blinn-Phong shading.
-  half lightPower;
   ushort numLights;
   
   // Constants for ray-traced ambient occlusion.
