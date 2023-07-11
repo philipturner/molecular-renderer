@@ -9,10 +9,10 @@
 #define RAY_TRACING_H
 
 #include <metal_stdlib>
-#include "Constants.metal"
-#include "MRAtom.metal"
+#include "../Utilities/Constants.metal"
+#include "../Utilities/MRAtom.metal"
 #include "Ray.metal"
-#include "UniformGrid.metal"
+#include "../Uniform Grids/UniformGrid.metal"
 using namespace metal;
 
 struct IntersectionResult {

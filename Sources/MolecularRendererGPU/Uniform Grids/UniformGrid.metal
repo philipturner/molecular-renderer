@@ -9,8 +9,8 @@
 #define UNIFORM_GRID_H
 
 #include <metal_stdlib>
-#include "MRAtom.metal"
-#include "Ray.metal"
+#include "../Utilities/MRAtom.metal"
+#include "../Ray Tracing/Ray.metal"
 using namespace metal;
 using namespace raytracing;
 

@@ -6,7 +6,7 @@
 //
 
 #include <metal_stdlib>
-#include "MRAtom.metal"
+#include "../Utilities/MRAtom.metal"
 #include "UniformGrid.metal"
 using namespace metal;
 

@@ -6,7 +6,7 @@
 //
 
 #include <metal_stdlib>
-#include "Constants.metal"
+#include "../Utilities/Constants.metal"
 #include "RayTracing.metal"
 #include "Sampling.metal"
 using namespace metal;

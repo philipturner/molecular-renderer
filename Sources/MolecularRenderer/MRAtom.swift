@@ -119,3 +119,22 @@ public struct MRAtom: Equatable {
       max: MTLPackedFloat3Make(max.x, max.y, max.z))
   }
 }
+
+@_alignment(16)
+public struct MRLight: Equatable {
+  // Position in nm.
+  public var x: Float
+  public var y: Float
+  public var z: Float
+  
+  // Weight for Blinn-Phong shading, separate from global light power.
+  public var relativePower: Float16
+  
+  // Flags, such as whether the light is the camera.
+  public var flags: UInt16 = 0
+  
+  init(origin: SIMD3<Float>, relativePower: Float16) {
+    (x, y, z) = (origin.x, origin.y, origin.z)
+    self.relativePower = relativePower
+  }
+}

@@ -117,4 +117,24 @@ public:
   }
 };
 
+struct __attribute__((aligned(16)))
+MRLight {
+  // Position in nm.
+  packed_float3 origin;
+  
+  // Weight for Blinn-Phong shading, separate from global light power.
+  half relativePower;
+ 
+  // Flags, such as whether the light is the camera.
+  ushort flags;
+  
+  // Bypass an issue where the Metal compiler doesn't actually align the read.
+  MRLight(const device MRLight* address) {
+    float4 data = *(const device float4*)address;
+    this->origin = data.xyz;
+    this->relativePower = as_type<half2>(data.w)[0];
+    this->flags = as_type<ushort2>(data.w)[1];
+  }
+};
+
 #endif

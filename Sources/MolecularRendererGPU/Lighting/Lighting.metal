@@ -6,8 +6,8 @@
 //
 
 #include <metal_stdlib>
-#include "Constants.metal"
-#include "RayTracing.metal"
+#include "../Utilities/Constants.metal"
+#include "../Ray Tracing/RayTracing.metal"
 using namespace metal;
 
 // Handle specular and diffuse color, and transform raw AO hits into
@@ -39,6 +39,8 @@ public:
     this->color = half3(0.707, 0.707, 0.707);
     this->motionVector = half2(0);
     this->depth = -FLT_MAX;
+    
+    // Initialize the accumulator for shadows.
     
     // Initialize the accumulator for ambient occlusion.
     this->diffuseAmbient = 0;

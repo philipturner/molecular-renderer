@@ -6,11 +6,11 @@
 //
 
 #include <metal_stdlib>
-#include "Constants.metal"
-#include "Lighting.metal"
-#include "RayTracing.metal"
-#include "RayGeneration.metal"
-#include "UniformGrid.metal"
+#include "../Utilities/Constants.metal"
+#include "../Lighting/Lighting.metal"
+#include "../Ray Tracing/RayTracing.metal"
+#include "../Ray Tracing/RayGeneration.metal"
+#include "../Uniform Grids/UniformGrid.metal"
 using namespace metal;
 
 kernel void renderMain
