@@ -15,7 +15,7 @@ final class PDBParser: MRAtomProvider {
     return _atoms
   }
   
-  init(url: URL) {
+  init(url: URL, hasA1: Bool) {
     let data = try! Data(contentsOf: url)
     let string = String(data: data, encoding: .utf8)!
     var lines = string.split(separator: "\r\n").filter {
@@ -47,7 +47,7 @@ final class PDBParser: MRAtomProvider {
       removeIncluding(" ", from: &line)
       
       // Remove the "A" and "1" text.
-      do {
+      if hasA1 {
         let A = extractExcluding(" ", from: &line)
         precondition(A == "A", "Unexpected formatting.")
         removeIncluding(" ", from: &line)
@@ -69,8 +69,10 @@ final class PDBParser: MRAtomProvider {
       let x = extractNumber()
       let y = extractNumber()
       let z = extractNumber()
-      precondition(extractNumber() == 1.00, "Unexpected formatting.")
-      precondition(extractNumber() == 0.00, "Unexpected formatting.")
+      if hasA1 {
+        precondition(extractNumber() == 1.00, "Unexpected formatting.")
+        precondition(extractNumber() == 0.00, "Unexpected formatting.")
+      }
       
       // Ensure it ends with the same symbol it starts with.
       precondition(
@@ -85,7 +87,10 @@ final class PDBParser: MRAtomProvider {
   static let recognizedSymbols: [String: Int] = [
     "H" : 1,
     "C" : 6,
+    "N" : 7,
+    "Si": 14,
     "S" : 16,
+    "Ge": 34,
     "Br": 35
   ]
 }

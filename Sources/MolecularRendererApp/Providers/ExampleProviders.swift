@@ -18,6 +18,6 @@ struct ExampleProviders {
     let adamantaneHabToolURL: URL = {
       return URL(string: "https://gist.githubusercontent.com/philipturner/6405518fadaf902492b1498b5d50e170/raw/d660f82a0d6bc5c84c0ec1cdd3ff9140cd7fa9f2/adamantane-thiol-Hab-tool.pdb")!
     }()
-    return PDBParser(url: adamantaneHabToolURL)
+    return PDBParser(url: adamantaneHabToolURL, hasA1: true)
   }
 }

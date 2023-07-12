@@ -317,12 +317,12 @@
 		98F250032A130A65009AABDE /* Providers */ = {
 			isa = PBXGroup;
 			children = (
+				98FB90802A5D115200685E5C /* APMBootstrapper.swift */,
 				98FB906D2A5A8BD300685E5C /* CasingProvider.swift */,
 				98F638CC2A34F97300F51E95 /* Downloader.swift */,
 				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
 				98CC35822A3E48B3007B96DF /* ExampleProviders.swift */,
 				98F638BE2A34DC5800F51E95 /* ExampleStyles.swift */,
-				98FB90802A5D115200685E5C /* APMBootstrapper.swift */,
 				98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */,
 				98A07C262A2CC11B00729897 /* ParsingUtilities.swift */,
 				98A07C242A2CBFCF00729897 /* PDBParser.swift */,

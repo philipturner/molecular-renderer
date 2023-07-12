@@ -271,7 +271,7 @@ extension MRAccelBuilder {
   }
   
   internal func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
-    precondition(atoms.count < 65536, "Too many atoms for a dense grid.")
+    precondition(atoms.count < 1024 * 1024, "Too many atoms for a dense grid.")
     
     let statistics = denseGridStatistics(atoms: atoms, styles: styles)
     
@@ -286,7 +286,7 @@ extension MRAccelBuilder {
     let cellWidth: Float = 4.0 / 9
     self.gridWidth = max(Int(2 * ceil(maxMagnitude / cellWidth)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
-    guard statistics.references < 1024 * 1024 else {
+    guard statistics.references < 8 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
     

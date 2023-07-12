@@ -125,8 +125,14 @@ kernel void dense_grid_pass2
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // Overwrite contents of the grid.
   prefix_sum_results += group_results[sidx];
+  prefix_sum_results = min(prefix_sum_results, dense_grid_reference_capacity);
+  
+  uint next_offset = prefix_sum_results + voxel_count;
+  next_offset = min(next_offset, dense_grid_reference_capacity);
+  voxel_count = next_offset - prefix_sum_results;
+  
+  // Overwrite contents of the grid.
   uint count_part = reverse_bits(voxel_count) & voxel_count_mask;
   uint offset_part = prefix_sum_results & voxel_offset_mask;
   dense_grid_data[tid] = count_part | offset_part;
@@ -162,7 +168,9 @@ kernel void dense_grid_pass3
       uint address_x = address_y;
       BOX_LOOP(x) {
         uint offset = ATOMIC_INCREMENT(dense_grid_counters + address_x);
-        references[offset] = ushort(tid);
+        if (offset < dense_grid_reference_capacity) {
+          references[offset] = ushort(tid);
+        }
         address_x += VoxelAddress::increment_x(grid_width);
       }
       address_y += VoxelAddress::increment_y(grid_width);

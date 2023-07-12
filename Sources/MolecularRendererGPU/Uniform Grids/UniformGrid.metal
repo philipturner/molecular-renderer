@@ -21,12 +21,16 @@ using namespace raytracing;
 constant float voxel_width_numer = 4;
 constant float voxel_width_denom = 9;
 
-// Max 1 million atoms/dense grid, including duplicated references.
-// Max 65536 atoms/dense grid, excluding duplicated references.
-constant uint voxel_offset_mask = 0x000FFFFF;
+// Max 8 million atoms/dense grid, including duplicated references.
+// Max 1 million atoms/dense grid, excluding duplicated references.
+// Max 512 references/voxel.
+constant uint dense_grid_reference_capacity = 8 * 1024 * 1024;
+constant uint dense_grid_atom_capacity = 1024 * 1024;
+constant uint voxel_reference_capacity = 512;
 
-// Max 4096 atoms/voxel. This is stored in opposite-endian order to the offset.
-constant uint voxel_count_mask = 0xFFF00000;
+// Count is stored in opposite-endian order to the offset.
+constant uint voxel_offset_mask = 0x007FFFFF;
+constant uint voxel_count_mask = 0xFF800000;
 
 // Behavior is undefined when the position goes out-of-bounds.
 class VoxelAddress {
