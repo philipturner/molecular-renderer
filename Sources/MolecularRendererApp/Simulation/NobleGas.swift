@@ -10,6 +10,8 @@ import QuartzCore
 import simd
 import MolecularRenderer
 
+#if false
+
 // Synchronous single-core CPU simulator that only supports LJ forces. GPU
 // implementation is located at:
 // https://github.com/philipturner/noble-gas-md-simulation
@@ -1025,3 +1027,5 @@ struct Vector<T> {
     return castedAddress.pointee
   }
 }
+
+#endif

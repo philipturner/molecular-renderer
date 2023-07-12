@@ -7,6 +7,8 @@
 
 import Foundation
 
+#if false
+
 // MARK: - Force Field Statistics
 
 class AtomicMasses {
@@ -29,3 +31,5 @@ class AtomicMasses {
     self.elements.getElement(index: Int(atomicNumber))
   }
 }
+
+#endif

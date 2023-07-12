@@ -20,4 +20,9 @@ struct ExampleProviders {
     }()
     return PDBParser(url: adamantaneHabToolURL, hasA1: true)
   }
+  
+  static func fineMotionController() -> NanoEngineerParser {
+    NanoEngineerParser(
+      partLibPath: "others/Fine Motion Controller")
+  }
 }

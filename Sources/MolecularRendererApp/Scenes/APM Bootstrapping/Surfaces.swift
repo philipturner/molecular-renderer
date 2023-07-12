@@ -15,8 +15,8 @@ struct GoldSurface {
   init() {
     let spacing: Float = 0.40782
     let size = Int(16 / spacing)
-    let cuboid = FCCCrystalCuboid(
-      latticeConstant: spacing, element: 79, plane: .plane100(size, 3, size))
+    let cuboid = GoldCuboid(
+      latticeConstant: spacing, plane: .fcc100(size, 3, size))
     self.atoms = cuboid.atoms
     
     for i in 0..<atoms.count {

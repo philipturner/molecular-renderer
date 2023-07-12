@@ -8,6 +8,6 @@
 import Foundation
 
 enum CrystalPlane {
-  case plane100(Int, Int, Int)
-  case plane111(Int, Int, Int)
+  case fcc100(Int, Int, Int)
+  case fcc111(Int, Int, Int)
 }

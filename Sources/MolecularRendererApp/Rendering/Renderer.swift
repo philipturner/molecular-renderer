@@ -38,15 +38,11 @@ class Renderer {
       height: Int(ContentView.size))
     MRSetFrameRate(120)
     
-    self.styleProvider = ExampleStyles.NanoStuff()
-//    self.styleProvider = ExampleStyles.QuteMolDefault()
+    self.styleProvider = NanoStuff()
+//    self.atomProvider = PlanetaryGearBox()
+//    self.atomProvider = ExampleProviders.fineMotionController()
+    self.atomProvider = MassiveDiamond()
     
-//    self.atomProvider = NanoEngineerParser(
-//      partLibPath: "others/Fine Motion Controller")
-    
-//    self.atomProvider = ExampleProviders.planetaryGearBox()
-    
-    self.atomProvider = APMBootstrapper()
   }
 }
 
