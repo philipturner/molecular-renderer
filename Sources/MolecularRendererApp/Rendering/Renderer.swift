@@ -108,7 +108,7 @@ extension Renderer {
       position: playerState.position,
       rotation: rotation,
       lights: lights,
-      raySampleCount: 7)
+      raySampleCount: 0)
     
     let layer = coordinator.view.metalLayer!
     renderingEngine.render(layer: layer) { [self] _ in

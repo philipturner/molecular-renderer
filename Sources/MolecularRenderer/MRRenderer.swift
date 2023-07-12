@@ -97,11 +97,11 @@ public class MRRenderer {
     self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
     
-    guard width % 3 == 0, height % 3 == 0 else {
+    guard width % 2 == 0, height % 2 == 0 else {
       fatalError("MRRenderer only accepts even image sizes.")
     }
     self.upscaledSize = SIMD2(width, height)
-    self.intermediateSize = SIMD2(width / 3, height / 3)
+    self.intermediateSize = SIMD2(width / 2, height / 2)
     
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -197,8 +197,8 @@ public class MRRenderer {
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = 3
-    desc.inputContentMaxScale = 3
+    desc.inputContentMinScale = 2
+    desc.inputContentMaxScale = 2
     
     guard let upscaler = desc.makeTemporalScaler(device: device) else {
       fatalError("The temporal scaler effect is not usable!")
@@ -258,7 +258,7 @@ extension MRRenderer {
   ) {
     // If the frame has just begun, the upscaler needs to recognize that a
     // history of samples doesn't exist yet.
-    upscaler.reset = resetScaler || (time.absolute.frames == 0)
+    upscaler.reset = false         //|| (time.absolute.frames == 0)
     self.resetScaler = false
     
     // Bind the intermediate textures.
