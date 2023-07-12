@@ -173,9 +173,9 @@ struct DiamondCuboid {
     ]
     
     let center: SIMD3<Float> = [
-       Float(width) / 2 + 0.5,
-       Float(height) / 2 + 0.5,
-       Float(depth) / 2 + 0.5,
+      Float(width) / 2 + 0.5,
+      Float(height) / 2 + 0.5,
+      Float(depth) / 2 + 0.5,
     ]
     var minCoords: SIMD3<Float> = center
     var maxCoords: SIMD3<Float> = center
@@ -215,12 +215,28 @@ struct DiamondCuboid {
                   direction[component] = +1
                 }
               }
-              
               hydrogens.append(
                 Hydrogen(origin: coords, direction: direction))
             }
             
-            // TODO: Also add hydrogens to the occluded inside.
+            var addInnerHydrogen = false
+            if any(coords .== minCoords) || any(coords .== maxCoords) {
+              if all((coords .>= minCoords) .| (coords .>= maxCoords)) {
+                addInnerHydrogen = true
+              }
+            }
+            if addInnerHydrogen {
+              var direction: SIMD3<Float> = .zero
+              for component in 0..<3 {
+                if coords[component] == minCoords[component] {
+                  direction[component] = +1
+                } else if coords[component] == maxCoords[component] {
+                  direction[component] = -1
+                }
+              }
+              hydrogens.append(
+                Hydrogen(origin: coords, direction: direction))
+            }
           }
         }
       }
