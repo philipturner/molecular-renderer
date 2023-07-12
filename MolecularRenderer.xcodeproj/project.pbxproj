@@ -438,10 +438,10 @@
 		98F638A52A34A24E00F51E95 /* MolecularRendererGPU */ = {
 			isa = PBXGroup;
 			children = (
-				98FB907F2A5CF94F00685E5C /* Utilities */,
-				98FB907E2A5CF91A00685E5C /* Uniform Grids */,
-				98FB907D2A5CF8FD00685E5C /* Ray Tracing */,
 				981FCFED29ECADF5009904A2 /* Lighting */,
+				98FB907D2A5CF8FD00685E5C /* Ray Tracing */,
+				98FB907E2A5CF91A00685E5C /* Uniform Grids */,
+				98FB907F2A5CF94F00685E5C /* Utilities */,
 			);
 			path = MolecularRendererGPU;
 			sourceTree = "<group>";

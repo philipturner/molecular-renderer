@@ -149,7 +149,7 @@ kernel void dense_grid_pass3
  
  device uint *dense_grid_data [[buffer(3)]],
  device atomic_uint *dense_grid_counters [[buffer(4)]],
- device ushort *references [[buffer(6)]],
+ device REFERENCE *references [[buffer(6)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -169,7 +169,7 @@ kernel void dense_grid_pass3
       BOX_LOOP(x) {
         uint offset = ATOMIC_INCREMENT(dense_grid_counters + address_x);
         if (offset < dense_grid_reference_capacity) {
-          references[offset] = ushort(tid);
+          references[offset] = REFERENCE(tid);
         }
         address_x += VoxelAddress::increment_x(grid_width);
       }

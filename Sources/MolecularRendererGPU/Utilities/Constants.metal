@@ -23,6 +23,8 @@ constant uint SCREEN_HEIGHT [[function_constant(1)]];
 // Safeguard against infinite loops. Disable this for profiling.
 #define FAULT_COUNTERS_ENABLE 0
 
+#define HIGH_QUALITY_LARGE_SCENES 1
+
 // MARK: - Definitions
 
 struct __attribute__((aligned(16)))

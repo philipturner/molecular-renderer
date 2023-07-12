@@ -65,7 +65,7 @@ public:
     }
   }
   
-  void addAmbientContribution(IntersectionResult intersect) {
+  void addAmbientContribution(IntersectionResult intersect, half progress) {
     float diffuseAmbient = 1;
     float specularAmbient = 1;
     
@@ -97,6 +97,8 @@ public:
       diffuseAmbient = kA / (1 - rho * (1 - kA));
     }
     
+    diffuseAmbient = mix(diffuseAmbient, 1, float(progress));
+    specularAmbient = mix(specularAmbient, 1, float(progress));
     this->diffuseAmbient += diffuseAmbient;
     this->specularAmbient += specularAmbient;
   }
@@ -132,17 +134,20 @@ public:
     }
   }
   
+  void finishAmbientContributions(ushort effectiveSamples) {
+    float sampleCountRecip = fast::divide(1, effectiveSamples);
+    this->diffuseAmbient *= sampleCountRecip;
+    this->specularAmbient *= sampleCountRecip;
+  }
+  
   void applyContributions() {
     // Combining using heuristics from:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
     float specularOcclusion = 1;
     if (args->sampleCount > 0) {
-      float sampleCountRecip = fast::divide(1, args->sampleCount);
-      float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
-      float specularAmbient = this->specularAmbient * sampleCountRecip;
-      ambientOcclusion = diffuseAmbient;
-      specularOcclusion = specularAmbient;
+      ambientOcclusion = this->diffuseAmbient;
+      specularOcclusion = this->specularAmbient;
       
       // This seems to only be applied to a "specular ambient" term, not the
       // "specular direct" term. We are applying it to the latter. However, it

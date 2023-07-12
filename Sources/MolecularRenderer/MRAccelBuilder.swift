@@ -316,7 +316,7 @@ extension MRAccelBuilder {
       &denseGridReferences,
       currentMaxElements: &maxGridReferences,
       desiredElements: statistics.references,
-      bytesPerElement: 2)
+      bytesPerElement: 4) // 2
     
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)

@@ -124,17 +124,19 @@ public:
     this->seed = Sampling::tea(pixelSeed, args->frameSeed);
   }
   
-  Ray generate(ushort i) {
+  Ray generate(ushort i, ushort samples) {
     // Generate a random number and increment the seed.
     float random1 = Sampling::radinv3(seed);
     float random2 = Sampling::radinv2(seed);
     seed += 1;
    
-    float sampleCountRecip = fast::divide(1, float(args->sampleCount));
-    float minimum = float(i) * sampleCountRecip;
-    float maximum = minimum + sampleCountRecip;
-    maximum = (i == args->sampleCount - 1) ? 1 : maximum;
-    random1 = mix(minimum, maximum, random1);
+    if (samples >= 3) {
+      float sampleCountRecip = fast::divide(1, float(samples));
+      float minimum = float(i) * sampleCountRecip;
+      float maximum = minimum + sampleCountRecip;
+      maximum = (i == args->sampleCount - 1) ? 1 : maximum;
+      random1 = mix(minimum, maximum, random1);
+    }
     
     // Create a random ray from the cosine distribution.
     RayGeneration::Basis basis { axes, random1, random2 };

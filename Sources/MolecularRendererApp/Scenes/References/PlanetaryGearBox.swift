@@ -9,6 +9,9 @@ import Foundation
 import MolecularRenderer
 
 // Test case used for evaluating performance of the ray tracer.
+// - Benchmarked quality: 3 samples/pixel
+// - Benchmarked position: ~0.5-1.0 nm above origin, looking at +Z
+// - 16-bit references
 struct PlanetaryGearBox: MRAtomProvider {
   var _atoms: [MRAtom]
   
