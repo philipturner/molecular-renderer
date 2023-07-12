@@ -85,7 +85,7 @@ extension Renderer {
     let rotation = azimuth * zenith
     var lights: [MRLight] = []
     
-    #if false
+    #if true
     let offsetXY: Float = 0.00
     let offsetZ: Float = 0.00
     let offset = rotation * [offsetXY, offsetXY, -offsetZ]
@@ -95,7 +95,7 @@ extension Renderer {
     lights.append(cameraLight)
     #else
     let cameraLight = MRLight(
-      origin: playerState.position, diffusePower: 0.3, specularPower: 0.1)
+      origin: playerState.position, diffusePower: 0.3, specularPower: 0.3)
     lights.append(cameraLight)
     
     let sunLight = MRLight(
@@ -108,7 +108,7 @@ extension Renderer {
       position: playerState.position,
       rotation: rotation,
       lights: lights,
-      raySampleCount: 0)
+      raySampleCount: 7)
     
     let layer = coordinator.view.metalLayer!
     renderingEngine.render(layer: layer) { [self] _ in

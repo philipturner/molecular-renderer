@@ -120,7 +120,9 @@ public:
       // QuteMol preset 3 seemed most appropriate in a side-by-side comparison
       // between all three presets:
       // https://github.com/zulman/qutemol/blob/master/src/presets/qutemol3.preset
-      constexpr float specContribution = 0.5;
+      //
+      // Changing the 0.5 specular contribution to 0.25.
+      constexpr float specContribution = 0.25;
       constexpr float shininess = 64;
       
       // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
@@ -135,7 +137,7 @@ public:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
     float specularOcclusion = 1;
-    if (args->sampleCount > 0 && pixelCoords.x >= 320) {
+    if (args->sampleCount > 0) {
       float sampleCountRecip = fast::divide(1, args->sampleCount);
       float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
       float specularAmbient = this->specularAmbient * sampleCountRecip;
