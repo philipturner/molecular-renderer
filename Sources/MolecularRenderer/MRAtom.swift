@@ -88,6 +88,17 @@ public struct MRAtom: Equatable {
   }
   
   @inlinable @inline(__always)
+  public init(
+    origin: SIMD3<Float>,
+    element: Int
+  ) {
+    self.x = origin.x
+    self.y = origin.y
+    self.z = origin.z
+    self.element = UInt8(element)
+  }
+  
+  @inlinable @inline(__always)
   public var origin: SIMD3<Float> {
     get { SIMD3(x, y, z) }
     set {

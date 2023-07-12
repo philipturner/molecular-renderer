@@ -12,6 +12,7 @@
 		980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701A2A5E51DB0051797F /* Feedstocks.swift */; };
 		980E701D2A5E520F0051797F /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701C2A5E520F0051797F /* Surfaces.swift */; };
 		980E701F2A5E52920051797F /* FCCCrystal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701E2A5E52920051797F /* FCCCrystal.swift */; };
+		980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70202A5E57E10051797F /* CrystalPlane.swift */; };
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
@@ -98,6 +99,7 @@
 		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
 		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
 		980E701E2A5E52920051797F /* FCCCrystal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCCCrystal.swift; sourceTree = "<group>"; };
+		980E70202A5E57E10051797F /* CrystalPlane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrystalPlane.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
@@ -187,6 +189,7 @@
 			isa = PBXGroup;
 			children = (
 				980E701E2A5E52920051797F /* FCCCrystal.swift */,
+				980E70202A5E57E10051797F /* CrystalPlane.swift */,
 			);
 			path = "Procedural Geometry";
 			sourceTree = "<group>";
@@ -586,6 +589,7 @@
 				98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
+				980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */,
 				98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */,
 				9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
