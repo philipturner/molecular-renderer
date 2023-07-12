@@ -40,12 +40,10 @@ final class RendererView: NSView, CALayerDelegate {
   }
   
   @objc func appMovedToBackground() {
-    print("Entered background.")
     coordinator.eventTracker.windowInForeground.store(false, ordering: .relaxed)
   }
   
   @objc func appMovedToForeground() {
-    print("Entered foreground.")
     coordinator.eventTracker.windowInForeground.store(true, ordering: .relaxed)
   }
   

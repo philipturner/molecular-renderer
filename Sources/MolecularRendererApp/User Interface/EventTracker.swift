@@ -114,13 +114,11 @@ class EventTracker {
     keyboardR = Key(nil, opposite: .keyboardP)
     
     NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { event in
-      print("Mouse exited window.")
       self.mouseInWindow.store(false, ordering: .relaxed)
       return event
     }
     
     NSEvent.addLocalMonitorForEvents(matching: .mouseEntered) { event in
-      print("Mouse entered window.")
       self.mouseInWindow.store(true, ordering: .relaxed)
       return event
     }

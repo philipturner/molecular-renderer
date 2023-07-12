@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		98082B032A52F2F00018F171 /* AccelBuilding.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98082B022A52F2F00018F171 /* AccelBuilding.metal */; };
+		980E70192A5E51D20051797F /* Tooltips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70182A5E51D20051797F /* Tooltips.swift */; };
+		980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701A2A5E51DB0051797F /* Feedstocks.swift */; };
+		980E701D2A5E520F0051797F /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701C2A5E520F0051797F /* Surfaces.swift */; };
+		980E701F2A5E52920051797F /* FCCCrystal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701E2A5E52920051797F /* FCCCrystal.swift */; };
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
@@ -90,6 +94,10 @@
 		980140E52A3E1F78009408BE /* MRRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRenderer.swift; sourceTree = "<group>"; };
 		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
 		98082B022A52F2F00018F171 /* AccelBuilding.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AccelBuilding.metal; sourceTree = "<group>"; };
+		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
+		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
+		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
+		980E701E2A5E52920051797F /* FCCCrystal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FCCCrystal.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
@@ -175,6 +183,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		980E70152A5E51AC0051797F /* Procedural Geometry */ = {
+			isa = PBXGroup;
+			children = (
+				980E701E2A5E52920051797F /* FCCCrystal.swift */,
+			);
+			path = "Procedural Geometry";
+			sourceTree = "<group>";
+		};
+		980E70162A5E51B60051797F /* APM Bootstrapping */ = {
+			isa = PBXGroup;
+			children = (
+				98FB90802A5D115200685E5C /* APMBootstrapper.swift */,
+				980E701A2A5E51DB0051797F /* Feedstocks.swift */,
+				980E701C2A5E520F0051797F /* Surfaces.swift */,
+				980E70182A5E51D20051797F /* Tooltips.swift */,
+			);
+			path = "APM Bootstrapping";
+			sourceTree = "<group>";
+		};
 		981FCFED29ECADF5009904A2 /* Lighting */ = {
 			isa = PBXGroup;
 			children = (
@@ -317,7 +344,6 @@
 		98F250032A130A65009AABDE /* Providers */ = {
 			isa = PBXGroup;
 			children = (
-				98FB90802A5D115200685E5C /* APMBootstrapper.swift */,
 				98FB906D2A5A8BD300685E5C /* CasingProvider.swift */,
 				98F638CC2A34F97300F51E95 /* Downloader.swift */,
 				9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */,
@@ -333,6 +359,8 @@
 		98F638962A349D6A00F51E95 /* MolecularRendererApp */ = {
 			isa = PBXGroup;
 			children = (
+				980E70162A5E51B60051797F /* APM Bootstrapping */,
+				980E70152A5E51AC0051797F /* Procedural Geometry */,
 				98B3E4FB2A3F84FA00B02349 /* Tutorials */,
 				98F250032A130A65009AABDE /* Providers */,
 				98298F5829F353D30008E248 /* Rendering */,
@@ -535,6 +563,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				98F638CD2A34F97300F51E95 /* Downloader.swift in Sources */,
+				980E701F2A5E52920051797F /* FCCCrystal.swift in Sources */,
 				98C48C652A48FA250047C078 /* initOpenMM.swift in Sources */,
 				98FB90812A5D115200685E5C /* APMBootstrapper.swift in Sources */,
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
@@ -542,13 +571,16 @@
 				98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
+				980E70192A5E51D20051797F /* Tooltips.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* ExampleStyles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
+				980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */,
 				98C48C472A48E0440047C078 /* HelloSodiumChlorideInSwift.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
+				980E701D2A5E520F0051797F /* Surfaces.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */,
