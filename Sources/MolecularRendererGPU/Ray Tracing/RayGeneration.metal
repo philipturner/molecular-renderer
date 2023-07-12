@@ -68,10 +68,9 @@ public:
     return float3x3(x, y, z);
   }
   
-  static Ray primaryRay(ushort2 pixelCoords, constant Arguments* args, constant float2 *jitter) {
+  static Ray primaryRay(ushort2 pixelCoords, constant Arguments* args) {
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
-//    rayDirection.xy += args->jitter * 5;
-    rayDirection.xy += jitter[0];
+    rayDirection.xy += args->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     rayDirection.y = -rayDirection.y;
     rayDirection.xy *= args->fovMultiplier;

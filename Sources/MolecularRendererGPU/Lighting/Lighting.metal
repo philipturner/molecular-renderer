@@ -135,34 +135,34 @@ public:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
     float specularOcclusion = 1;
-//    if (args->sampleCount > 0) {
-//      float sampleCountRecip = fast::divide(1, args->sampleCount);
-//      float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
-//      float specularAmbient = this->specularAmbient * sampleCountRecip;
-//      ambientOcclusion = diffuseAmbient;
-//      specularOcclusion = specularAmbient;
-//      
-//      // This seems to only be applied to a "specular ambient" term, not the
-//      // "specular direct" term. We are applying it to the latter. However, it
-//      // seems to produce results we desire: avoid multiplication of the AO
-//      // term with the specular term, without making the specular term stand out
-//      // in low-light areas.
-//      //
-//      // SO = saturate((lambertian + ambient)^2 - 1 + ambient)
-//      //
-//      // SO      | AO = 0.9 | AO = 0.7 | AO = 0.5 | AO = 0.3 | AO = 0.1 |
-//      // ------- | -------- | -------- | -------- | -------- | -------- |
-//      // L = 0.9 | 1        | 1        | 1        | 0.74     | 0.1      |
-//      // L = 0.7 | 1        | 1        | 0.94     | 0.30     | 0        |
-//      // L = 0.5 | 1        | 1        | 0.50     | 0.14     | 0        |
-//      // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
-//      // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
-//      
-//      specularOcclusion = lambertian + specularAmbient;
-//      specularOcclusion = specularOcclusion * specularOcclusion;
-//      specularOcclusion += specularAmbient - 1;
-//      specularOcclusion = saturate(specularOcclusion);
-//    }
+    if (args->sampleCount > 0 && pixelCoords.x >= 320) {
+      float sampleCountRecip = fast::divide(1, args->sampleCount);
+      float diffuseAmbient = this->diffuseAmbient * sampleCountRecip;
+      float specularAmbient = this->specularAmbient * sampleCountRecip;
+      ambientOcclusion = diffuseAmbient;
+      specularOcclusion = specularAmbient;
+      
+      // This seems to only be applied to a "specular ambient" term, not the
+      // "specular direct" term. We are applying it to the latter. However, it
+      // seems to produce results we desire: avoid multiplication of the AO
+      // term with the specular term, without making the specular term stand out
+      // in low-light areas.
+      //
+      // SO = saturate((lambertian + ambient)^2 - 1 + ambient)
+      //
+      // SO      | AO = 0.9 | AO = 0.7 | AO = 0.5 | AO = 0.3 | AO = 0.1 |
+      // ------- | -------- | -------- | -------- | -------- | -------- |
+      // L = 0.9 | 1        | 1        | 1        | 0.74     | 0.1      |
+      // L = 0.7 | 1        | 1        | 0.94     | 0.30     | 0        |
+      // L = 0.5 | 1        | 1        | 0.50     | 0.14     | 0        |
+      // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
+      // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
+      
+      specularOcclusion = lambertian + specularAmbient;
+      specularOcclusion = specularOcclusion * specularOcclusion;
+      specularOcclusion += specularAmbient - 1;
+      specularOcclusion = saturate(specularOcclusion);
+    }
     
     // Store color in single precision while calculating.
     float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
@@ -192,11 +192,9 @@ public:
     // Generate the motion vector from pixel coordinates.
     motionVector = half2(currCoords - prevCoords);
     
-    // I have no idea why, but the Y coordinate is flipped here.
-    // TODO: This might be the fix.
+    // I have no idea why, but the coordinates are flipped here.
     motionVector.y = -motionVector.y;
-    
-//    motionVector = 0;
+    motionVector.x = -motionVector.x;
   }
   
   void write(texture2d<half, access::write> colorTexture,

@@ -51,7 +51,6 @@ public class MRRenderer {
   var jitterFrameID: Int = 0
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
-  var resetScaler = true
   
   // The time of this frame.
   var time: MRTimeContext!
@@ -106,7 +105,6 @@ public class MRRenderer {
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeBlitCommandEncoder()!
-    print(MemoryLayout<Arguments>.stride)
     
     for _ in 0..<2 {
       let desc = MTLTextureDescriptor()
@@ -256,13 +254,9 @@ extension MRRenderer {
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
   ) {
-    // If the frame has just begun, the upscaler needs to recognize that a
-    // history of samples doesn't exist yet.
-    upscaler.reset = false         //|| (time.absolute.frames == 0)
-    self.resetScaler = false
-    
     // Bind the intermediate textures.
     let currentTextures = self.currentTextures
+    upscaler.reset = false
     upscaler.colorTexture = currentTextures.color
     upscaler.depthTexture = currentTextures.depth
     upscaler.motionTexture = currentTextures.motion
@@ -487,32 +481,10 @@ extension MRRenderer {
     encoder.setBytes(tempAllocation, length: 256, index: 0)
     free(tempAllocation)
     
-//    withUnsafeTemporaryAllocation(
-//      of: Arguments.self, capacity: 2
-//    ) { bufferPointer in
-//      bufferPointer[0] = self.currentArguments!
-//      if let previousArguments = self.previousArguments {
-//        bufferPointer[1] = previousArguments
-//      } else {
-//        bufferPointer[1] = bufferPointer[0]
-//      }
-//      
-//      let argsLength = 2 * MemoryLayout<Arguments>.stride
-//      let baseAddress = bufferPointer.baseAddress!
-//      encoder.setBytes(baseAddress, length: argsLength, index: 0)
-//    }
     accelBuilder.styles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
-    
-    var jitter = SIMD4<Float>(
-      currentArguments!.jitter.x,
-      currentArguments!.jitter.y,
-      previousArguments!.jitter.x,
-      previousArguments!.jitter.y
-    )
-    encoder.setBytes(&jitter, length: 16, index: 6)
     
     // Encode the lights.
     let lightsBufferOffset = renderIndex * (lightsBuffer.length / 3)

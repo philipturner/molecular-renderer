@@ -23,8 +23,6 @@ kernel void renderMain
   device uint *dense_grid_data [[buffer(4)]],
   device ushort *dense_grid_references [[buffer(5)]],
   
-  constant float2 *jitter [[buffer(6)]],
-  
   texture2d<half, access::write> color_texture [[texture(0)]],
   texture2d<float, access::write> depth_texture [[texture(1)]],
   texture2d<half, access::write> motion_texture [[texture(2)]],
@@ -43,7 +41,7 @@ kernel void renderMain
                  dense_grid_references, atoms);
   
   // Cast the primary ray.
-  auto ray = RayGeneration::primaryRay(pixelCoords, args, jitter);
+  auto ray = RayGeneration::primaryRay(pixelCoords, args);
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayTracing::traverse(ray, grid, params);
   
@@ -54,14 +52,6 @@ kernel void renderMain
     float3 normal = normalize(hitPoint - intersect.atom.origin);
     colorCtx.setDiffuseColor(intersect.atom, normal);
     
-    // TODO: Support analytical occlusion as a cheaper, but lower-quality option
-    // on smaller GPUs. It should be combined with a reduced but nonzero number
-    // of long-distance ray samples, making it "hybrid ray tracing" (maybe).
-    //
-    // Create a second uniform grid storing non-duplicated references to the
-    // centers of spheres. It should have 2x linear/8x spatial resolution. Poll
-    // all the voxels within a certain radius, rejecting spheres that fall
-    // outside the radius.
     if (args->sampleCount > 0) {
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
       for (ushort i = 0; i < args->sampleCount; ++i) {
@@ -76,7 +66,7 @@ kernel void renderMain
     for (ushort i = 0; i < args->numLights; ++i) {
       MRLight light(lights + i);
       bool shadow = false;
-      static_assert(sizeof(Arguments) == 112, "");
+      
       ushort cameraFlag = as_type<ushort>(light.diffusePower) & 0x1;
       if (cameraFlag) {
         // This is a camera light.
