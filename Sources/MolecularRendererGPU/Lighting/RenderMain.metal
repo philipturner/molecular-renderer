@@ -43,7 +43,11 @@ public:
         voxel_data = grid.data[dda.address];
         dda.increment_position();
         
-        // TODO: Quit early if you exceed the max target distance.
+        float target_distance = dda.get_max_accepted_t();
+        if ((params.isAORay || params.isShadowRay) &&
+            (target_distance > maxTargetDistance)) {
+          dda.continue_loop = false;
+        }
         
         if ((voxel_data & voxel_count_mask) == 0) {
           continue_fast_forward = dda.continue_loop;
