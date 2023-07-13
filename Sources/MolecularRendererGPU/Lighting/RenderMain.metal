@@ -145,7 +145,7 @@ kernel void renderMain
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayTracing::traverse(ray, grid, params);
   
-  // Calculate specular, diffuse, and ambient occlusion.
+  // Calculate ambient occlusion, diffuse, and specular terms.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
   if (intersect.accept) {
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
@@ -154,89 +154,22 @@ kernel void renderMain
     
     // Cast the secondary rays.
     if (args->sampleCount > 0) {
-      ushort samples = args->sampleCount;
-      ushort effectiveSamples = args->sampleCount;
-      half interpolationProgress = 0;
-      
-      // TODO: Move the docs, code, and mathematical proof into "GenerationContext".
-      //
-      // If you're very far away from the user, there's little benefit to
-      // getting high-quality AO samples. This is also where AO rays become
-      // heavily divergent (very expensive).
-      constexpr float coefficient = 30;
-#if HIGH_QUALITY_LARGE_SCENES
-      constexpr ushort effectiveSamplesCutoff = 3;
-#else
-      constexpr ushort effectiveSamplesCutoff = 4;
-#endif
-      float distanceCutoff = coefficient / float(args->sampleCount);
-      
+      half samples = args->sampleCount;
+      float distanceCutoff = 30 / args->sampleCount;
       if (intersect.distance > distanceCutoff) {
-        float proportion = distanceCutoff / intersect.distance;
-        float newSamples = float(samples) * proportion;
-        
-#if HIGH_QUALITY_LARGE_SCENES
-        newSamples = max(float(3), newSamples);
-#else
-        constexpr float linearizationCutoff = 3;
-        if (newSamples <= linearizationCutoff) {
-          // samples = 0;
-          effectiveSamples = effectiveSamplesCutoff;
-          
-          // Linearize so this quickly reaches zero.
-          //
-          // coefficient = distanceCutoff * sampleCount;
-          // f(x) = coefficient / x
-          // d/dx (coefficient / x) = -coefficient / x^2
-          //
-          // f'(coefficient / 2) = -coefficient / (coefficient / 2)^2
-          // f'(coefficient / 2) = -4 / coefficient
-          //
-          // L(f) = f(coeff / 2) + f'(coeff / 2) * (x - coeff / 2)
-          // L(f) = 2 - 4 / coeff * (x - coeff / 2)
-          //
-          //     L(x') = 0
-          //     L(x') = 2 - 4 / coeff * (x' - coeff / 2) = 0
-          //         2 = 4 / coeff * (x' - coeff / 2)
-          // coeff / 2 = x - coeff / 2
-          //     coeff = x
-          //
-          float coeff = coefficient;
-          float cutoff = linearizationCutoff;
-          float L_f = intersect.distance - coeff / cutoff;
-          L_f *= cutoff * cutoff / coeff;
-          L_f = cutoff - L_f;
-          newSamples = max(float(0), L_f);
-        }
-#endif
-        
-        float roundedSamples = ceil(newSamples);
-        samples = ushort(roundedSamples);
-        samples = min(samples, args->sampleCount);
-        
-        if (samples <= effectiveSamplesCutoff) {
-          interpolationProgress = roundedSamples - newSamples;
-          effectiveSamples = effectiveSamplesCutoff;
-        } else {
-          interpolationProgress = 0;
-          effectiveSamples = samples;
-        }
+        half proportion = distanceCutoff / intersect.distance;
+        half newSamples = max(min(half(3), samples), samples * proportion);
+        samples = min(ceil(newSamples), args->sampleCount);
       }
       
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
-      for (ushort i = 0; i < samples; ++i) {
+      for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples);
         IntersectionParams params { true, args->maxRayHitTime, false };
         auto intersect = RayTracing::traverse(ray, grid, params);
-        
-        half progress = (i == samples - 1) ? interpolationProgress : 0;
-        colorCtx.addAmbientContribution(intersect, progress);
+        colorCtx.addAmbientContribution(intersect);
       }
-      for (ushort i = samples; i < effectiveSamples; ++i) {
-        IntersectionResult intersect { MAXFLOAT, false };
-        colorCtx.addAmbientContribution(intersect, 0);
-      }
-      colorCtx.finishAmbientContributions(effectiveSamples);
+      colorCtx.finishAmbientContributions(samples);
     }
     
     for (ushort i = 0; i < args->numLights; ++i) {
@@ -271,6 +204,5 @@ kernel void renderMain
     colorCtx.setDepth(depth);
     colorCtx.generateMotionVector(hitPoint);
   }
-  
   colorCtx.write(color_texture, depth_texture, motion_texture);
 }

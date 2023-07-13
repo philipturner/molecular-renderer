@@ -41,7 +41,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
 //    self.atomProvider = PlanetaryGearBox()
 //    self.atomProvider = ExampleProviders.fineMotionController()
-    self.atomProvider = MassiveDiamond(outerSize: 10, thickness: 1)
+    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
     
   }
 }

@@ -36,7 +36,7 @@ internal struct Arguments {
   
   var numLights: UInt16
   
-  var sampleCount: UInt16
+  var sampleCount: Float16
   var maxRayHitTime: Float
   var exponentialFalloffDecayConstant: Float
   var minimumAmbientIllumination: Float
@@ -366,7 +366,7 @@ extension MRRenderer {
       
       numLights: UInt16(lights.count),
       
-      sampleCount: UInt16(raySampleCount),
+      sampleCount: Float16(raySampleCount),
       maxRayHitTime: maxRayHitTime,
       exponentialFalloffDecayConstant: decayConstant,
       minimumAmbientIllumination: minimumAmbientIllumination,

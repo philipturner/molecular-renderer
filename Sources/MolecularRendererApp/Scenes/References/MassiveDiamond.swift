@@ -12,32 +12,33 @@ import MolecularRenderer
 // are needed.
 // - Benchmarked quality: 7 samples/pixel
 // - Benchmarked position: [0, 1.5, 0], looking at -Y with camera space up = +X
-// - outerSize = 10, thickness 1
-//   - 44705 atoms
-//   - 16-bit references are fastest for rendering
-// - outerSize = 100, thickness 2
-//   - 947968 atoms
-//   - 32-bit references are the only available type (for now)
+// - outerSize = 10, thickness 1: 44705 atoms
+// - outerSize = 100, thickness 2: 947968 atoms
 //
 // Geometry stage:
 //
-// outerSize = 10 -> good case
-// - 16-bit references: 619 µs
-// - 32-bit references: 586 µs
-// outerSize = 100 -> stressing the limits
-// - w/ efficient render: 3489 µs, 3114 µs min
-// - w/ high quality render: 3784 µs typical, 3282 µs min
+// outerSize = 10
+// - 16-bit sparse: TODO
+// - 32-bit sparse: TODO
+// - 16-bit dense: 612 µs
+// - 32-bit dense: 562 µs
+// outerSize = 100
+// - 16-bit sparse: TODO
+// - 32-bit sparse: TODO
+// - 32-bit dense: 3128 µs
 //
 // Render stage:
 //
-// outerSize = 10 -> adversarial case
-// - efficient: 27.64 ms
-// - high quality: 27.57 ms
-// TODO: In this case, how much % execution time is spent on the DDA?
+// outerSize = 10
+// - 16-bit sparse: TODO
+// - 32-bit sparse: TODO
+// - 16-bit dense: 9.05 ms
+// - 32-bit dense: 9.50 ms
 //
-// outerSize = 100 -> good case
-// - efficient: 0.91 ms
-// - high quality: 19.12 ms typical, 18.00 ms min
+// outerSize = 100
+// - 16-bit sparse: TODO
+// - 32-bit sparse: TODO
+// - 32-bit dense: 4.58 ms
 struct MassiveDiamond: MRAtomProvider {
   var _atoms: [MRAtom]
   

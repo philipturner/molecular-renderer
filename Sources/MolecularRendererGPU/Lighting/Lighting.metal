@@ -65,7 +65,7 @@ public:
     }
   }
   
-  void addAmbientContribution(IntersectionResult intersect, half progress) {
+  void addAmbientContribution(IntersectionResult intersect) {
     float diffuseAmbient = 1;
     float specularAmbient = 1;
     
@@ -97,10 +97,14 @@ public:
       diffuseAmbient = kA / (1 - rho * (1 - kA));
     }
     
-    diffuseAmbient = mix(diffuseAmbient, 1, float(progress));
-    specularAmbient = mix(specularAmbient, 1, float(progress));
     this->diffuseAmbient += diffuseAmbient;
     this->specularAmbient += specularAmbient;
+  }
+  
+  void finishAmbientContributions(half samples) {
+    float sampleCountRecip = 1 / float(samples);
+    this->diffuseAmbient *= sampleCountRecip;
+    this->specularAmbient *= sampleCountRecip;
   }
   
   void setDepth(float depth) {
@@ -132,12 +136,6 @@ public:
       float contribution = light.specularPower * specContribution;
       this->specular += contribution * pow(specAngle, shininess);
     }
-  }
-  
-  void finishAmbientContributions(ushort effectiveSamples) {
-    float sampleCountRecip = fast::divide(1, effectiveSamples);
-    this->diffuseAmbient *= sampleCountRecip;
-    this->specularAmbient *= sampleCountRecip;
   }
   
   void applyContributions() {
