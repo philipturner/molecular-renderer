@@ -173,9 +173,9 @@ struct DiamondCuboid {
     ]
     
     let center: SIMD3<Float> = [
-      Float(width) / 2 + 0.5,
-      Float(height) / 2 + 0.5,
-      Float(depth) / 2 + 0.5,
+      Float(width) / 2,
+      Float(height) / 2,
+      Float(depth) / 2,
     ]
     var minCoords: SIMD3<Float> = center
     var maxCoords: SIMD3<Float> = center

@@ -43,6 +43,8 @@ public:
         voxel_data = grid.data[dda.address];
         dda.increment_position();
         
+        // TODO: Quit early if you exceed the max target distance.
+        
         if ((voxel_data & voxel_count_mask) == 0) {
           continue_fast_forward = dda.continue_loop;
         } else {

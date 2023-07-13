@@ -11,37 +11,40 @@ import MolecularRenderer
 // Adversarial test case to find where dense grids break down, and sparse grids
 // are needed.
 // - Benchmarked quality: 7 samples/pixel
-// - Benchmarked position: [0, 1.5, 0], looking at -Y
-// - outerSize = 10 -> 16-bit references
-// - outerSize = 100 -> 32-bit references (16-bit for sparse)
+// - Benchmarked position: [0, 1.5, 0], looking at -Y with camera space up = +X
+// - outerSize = 10, thickness 1
+//   - 44705 atoms
+//   - 16-bit references are fastest for rendering
+// - outerSize = 100, thickness 2
+//   - 947968 atoms
+//   - 32-bit references are the only available type (for now)
 //
 // Geometry stage:
 //
-// outerSize = 10
-// - efficient render: ??? ms
-// - high quality render: ??? ms
-// outerSize = 100
-// - efficient render: ??? ms
-// - high quality render: ??? ms
+// outerSize = 10 -> good case
+// - 16-bit references: 619 µs
+// - 32-bit references: 586 µs
+// outerSize = 100 -> stressing the limits
+// - w/ efficient render: 3489 µs, 3114 µs min
+// - w/ high quality render: 3784 µs typical, 3282 µs min
 //
-// Rendering stage:
+// Render stage:
 //
 // outerSize = 10 -> adversarial case
-// - efficient: ??? ms
-// - high quality: ??? ms
+// - efficient: 27.64 ms
+// - high quality: 27.57 ms
+// TODO: In this case, how much % execution time is spent on the DDA?
 //
 // outerSize = 100 -> good case
-// - efficient: ??? ms
-// - high quality: ??? ms
+// - efficient: 0.91 ms
+// - high quality: 19.12 ms typical, 18.00 ms min
 struct MassiveDiamond: MRAtomProvider {
   var _atoms: [MRAtom]
   
-  init(outerSize: Int) {
-    let outerSize: Int = 10
+  init(outerSize: Int, thickness: Int? = nil) {
     let extraDepth: Int = 100
     let dimensions: SIMD3<Int> = [outerSize, outerSize + extraDepth, outerSize]
     
-    let thickness: Int? = 1
     let axesOpenLower: SIMD3<Int> = [0, 0, 0]
     let axesOpenUpper: SIMD3<Int> = [0, 1, 0]
     let plane = CrystalPlane.fcc100(outerSize, extraDepth, outerSize)

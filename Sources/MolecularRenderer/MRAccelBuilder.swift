@@ -271,8 +271,6 @@ extension MRAccelBuilder {
   }
   
   internal func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
-    precondition(atoms.count < 1024 * 1024, "Too many atoms for a dense grid.")
-    
     let statistics = denseGridStatistics(atoms: atoms, styles: styles)
     
     let minCoordinates = SIMD3(statistics.boundingBox.min.x,

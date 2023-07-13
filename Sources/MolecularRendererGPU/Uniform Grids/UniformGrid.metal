@@ -25,15 +25,14 @@ constant float voxel_width_denom = 9;
 // Max 1 million atoms/dense grid, excluding duplicated references.
 // Max 512 references/voxel.
 constant uint dense_grid_reference_capacity = 8 * 1024 * 1024;
-constant uint dense_grid_atom_capacity = 1024 * 1024;
 constant uint voxel_reference_capacity = 512;
 
 // Count is stored in opposite-endian order to the offset.
 constant uint voxel_offset_mask = dense_grid_reference_capacity - 1;
 constant uint voxel_count_mask = 0xFFFFFFFF - voxel_offset_mask;
 
-// When we have sparse grids, the references can be `ushort.
-typedef uint REFERENCE;
+// When we have sparse grids, the references can be `ushort`.
+typedef ushort REFERENCE;
 
 // Behavior is undefined when the position goes out-of-bounds.
 class VoxelAddress {
