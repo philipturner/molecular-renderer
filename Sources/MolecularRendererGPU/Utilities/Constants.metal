@@ -19,8 +19,6 @@ using namespace metal;
 // The MetalFX upscaler is currently configured with a static resolution.
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
-constant float SCREEN_MAGNITUDE = sqrt(float(SCREEN_WIDTH * SCREEN_HEIGHT));
-constant float SCREEN_RELATIVE_MAGNITUDE = 640 * SCREEN_MAGNITUDE;
 
 // Safeguard against infinite loops. Disable this for profiling.
 #define FAULT_COUNTERS_ENABLE 0
@@ -63,7 +61,10 @@ Arguments {
   ushort numLights;
   
   // Constants for ray-traced ambient occlusion.
-  half sampleCount;
+  half minSamples;
+  half maxSamples;
+  half qualityCoefficient; // 30
+  
   float maxRayHitTime;
   float exponentialFalloffDecayConstant;
   float minimumAmbientIllumination;

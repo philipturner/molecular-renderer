@@ -206,6 +206,8 @@ extension EventTracker {
         if newState.sprinting {
           anyKeySprinting = true
         }
+        
+        // TODO: Add ultra sprinting mode at 25 nm/s for triple-taps.
         let speed: Float = simd_mix(1, 5, newState.history.progress)
         let delta = speed * Float(time.relative.seconds)
         let worldSpaceDirection = azimuth * cameraSpaceDirection

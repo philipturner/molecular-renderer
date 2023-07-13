@@ -19,6 +19,7 @@ class RayGeneration {
 public:
   struct Basis {
     // Basis for the coordinate system around the normal vector.
+    // TODO: Store axes in half3x3
     float3x3 axes;
 
     // Uniformly distributed random numbers for determining angles.
@@ -99,6 +100,7 @@ public:
 class GenerationContext {
   constant Arguments* args;
   
+  // TODO: Store axes in half3x3
   float3 origin;
   float3x3 axes;
   uint seed;
@@ -129,15 +131,13 @@ public:
     float random1 = Sampling::radinv3(seed);
     float random2 = Sampling::radinv2(seed);
     seed += 1;
-   
-    if (samples >= 3) {
-      float sampleCountRecip = fast::divide(1, float(samples));
-      float minimum = float(i) * sampleCountRecip;
-      float maximum = minimum + sampleCountRecip;
-      maximum = (i == args->sampleCount - 1) ? 1 : maximum;
-      random1 = mix(minimum, maximum, random1);
-    }
     
+    float sampleCountRecip = fast::divide(1, float(samples));
+    float minimum = float(i) * sampleCountRecip;
+    float maximum = minimum + sampleCountRecip;
+    maximum = (i == samples - 1) ? 1 : maximum;
+    random1 = mix(minimum, maximum, random1);
+     
     // Create a random ray from the cosine distribution.
     RayGeneration::Basis basis { axes, random1, random2 };
     return RayGeneration::secondaryRay(origin, basis);

@@ -99,12 +99,14 @@ extension Renderer {
     lights.append(sunLight)
     #endif
     
+    let quality = MRQuality(
+      minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
       rotation: rotation,
       lights: lights,
-      raySampleCount: 7)
+      quality: quality)
     
     let layer = coordinator.view.metalLayer!
     renderingEngine.render(layer: layer) { [self] _ in

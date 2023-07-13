@@ -33,10 +33,12 @@ internal struct Arguments {
   var rotation: simd_float3x3
   var jitter: SIMD2<Float>
   var frameSeed: UInt32
-  
   var numLights: UInt16
   
-  var sampleCount: Float16
+  var minSamples: Float16
+  var maxSamples: Float16
+  var qualityCoefficient: Float16
+  
   var maxRayHitTime: Float
   var exponentialFalloffDecayConstant: Float
   var minimumAmbientIllumination: Float
@@ -150,7 +152,6 @@ public class MRRenderer {
     self.initRayTracingPipeline(library: library)
     self.initUpscaler()
   }
-  
   
   func initAccelBuilder(library: MTLLibrary) {
     self.accelBuilder = MRAccelBuilder(
@@ -317,7 +318,7 @@ extension MRRenderer {
     position: SIMD3<Float>,
     rotation: simd_float3x3,
     lights: [MRLight],
-    raySampleCount: Int
+    quality: MRQuality
   ) {
     self.previousArguments = currentArguments
     
@@ -355,6 +356,11 @@ extension MRRenderer {
       return light
     })
     
+    // Quality coefficients are calibrated against 640x640 -> 1280x1280 resolution.
+    var screenMagnitude = Float(upscaledSize.x * upscaledSize.y)
+    screenMagnitude = sqrt(screenMagnitude) / 1280
+    let qualityCoefficient = quality.qualityCoefficient * screenMagnitude
+    
     self.currentArguments = Arguments(
       fovMultiplier: self.fovMultiplier(fovDegrees: fovDegrees),
       positionX: position.x,
@@ -363,10 +369,12 @@ extension MRRenderer {
       rotation: rotation,
       jitter: jitterOffsets,
       frameSeed: UInt32.random(in: 0...UInt32.max),
-      
       numLights: UInt16(lights.count),
       
-      sampleCount: Float16(raySampleCount),
+      minSamples: Float16(quality.minSamples),
+      maxSamples: Float16(quality.maxSamples),
+      qualityCoefficient: Float16(qualityCoefficient),
+      
       maxRayHitTime: maxRayHitTime,
       exponentialFalloffDecayConstant: decayConstant,
       minimumAmbientIllumination: minimumAmbientIllumination,

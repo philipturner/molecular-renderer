@@ -153,15 +153,16 @@ kernel void renderMain
     colorCtx.setDiffuseColor(intersect.atom, normal);
     
     // Cast the secondary rays.
-    if (args->sampleCount > 0) {
-      half samples = args->sampleCount;
-      float distanceCutoff = 30 * SCREEN_RELATIVE_MAGNITUDE / args->sampleCount;
+    if (args->maxSamples > 0) {
+      half samples = args->maxSamples;
+      float distanceCutoff = args->qualityCoefficient / args->maxSamples;
       if (intersect.distance > distanceCutoff) {
         half proportion = distanceCutoff / intersect.distance;
-        half newSamples = max(min(half(3), samples), samples * proportion);
-        samples = min(ceil(newSamples), args->sampleCount);
+        half newSamples = max(args->minSamples, samples * proportion);
+        samples = clamp(ceil(newSamples), args->minSamples, args->maxSamples);
       }
       
+      // TODO: Page `genCtx` to a threadgroup stack, reducing register pressure.
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
       for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples);

@@ -143,7 +143,7 @@ public:
     // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
     float ambientOcclusion = 1;
     float specularOcclusion = 1;
-    if (args->sampleCount > 0) {
+    if (args->maxSamples > 0) {
       ambientOcclusion = this->diffuseAmbient;
       specularOcclusion = this->specularAmbient;
       
