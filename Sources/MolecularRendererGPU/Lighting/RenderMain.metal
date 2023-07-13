@@ -155,7 +155,7 @@ kernel void renderMain
     // Cast the secondary rays.
     if (args->sampleCount > 0) {
       half samples = args->sampleCount;
-      float distanceCutoff = 30 / args->sampleCount;
+      float distanceCutoff = 30 * SCREEN_RELATIVE_MAGNITUDE / args->sampleCount;
       if (intersect.distance > distanceCutoff) {
         half proportion = distanceCutoff / intersect.distance;
         half newSamples = max(min(half(3), samples), samples * proportion);
