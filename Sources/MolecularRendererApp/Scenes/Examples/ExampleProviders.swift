@@ -25,4 +25,8 @@ struct ExampleProviders {
     NanoEngineerParser(
       partLibPath: "others/Fine Motion Controller")
   }
+  
+  // https://raw.githubusercontent.com/eudoxia0/MNT/master/gears/nanotube-worm-drive.mmp
+  // https://raw.githubusercontent.com/eudoxia0/MNT/master/transport/fullerene-conveyor-cart.mmp
+  // https://raw.githubusercontent.com/eudoxia0/MNT/master/transport/gantry.mmp
 }

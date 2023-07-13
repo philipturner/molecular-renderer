@@ -22,7 +22,7 @@ final class NanoEngineerParser: MRAtomProvider {
   
   // You can omit the ".mmp" extension.
   // Example: "gears/MarkIII[k] Planetary Gear Box"
-  init(partLibPath: String) {
+  convenience init(partLibPath: String) {
     let site = "https://raw.githubusercontent.com/kanzure/nanoengineer"
     let folder = "master/cad/partlib"
     
@@ -30,8 +30,11 @@ final class NanoEngineerParser: MRAtomProvider {
     if fullPath.suffix(4) != ".mmp" {
       fullPath.append(".mmp")
     }
-    
-    let url = URL(string: fullPath)!
+    self.init(path: fullPath)
+  }
+  
+  init(path: String) {
+    let url = URL(string: path)!
     let downloader = try! Downloader(url: url)
     downloader.logLatency()
     let string = downloader.string
