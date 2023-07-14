@@ -178,7 +178,6 @@ public class MRRenderer {
       name: "renderMain", constantValues: constants)
     let desc = MTLComputePipelineDescriptor()
     desc.computeFunction = function
-    desc.maxCallStackDepth = 5
     self.rayTracingPipeline = try! device
       .makeComputePipelineState(descriptor: desc, options: [], reflection: nil)
   }

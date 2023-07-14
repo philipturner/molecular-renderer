@@ -153,9 +153,9 @@ kernel void renderMain
         samples = clamp(ceil(newSamples), args->minSamples, args->maxSamples);
       }
       
-      auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
+      auto genCtx = GenerationContext(args, pixelCoords);
       for (half i = 0; i < samples; ++i) {
-        auto ray = genCtx.generate(i, samples);
+        auto ray = genCtx.generate(i, samples, hitPoint, normal);
         IntersectionParams params { true, args->maxRayHitTime, false };
         auto intersect = RayTracing::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);

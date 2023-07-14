@@ -91,37 +91,20 @@ public:
 
 class GenerationContext {
   constant Arguments* args;
-  
-  float3 origin;
-  half3x3 axes;
   uchar seed;
   
 public:
-  GenerationContext(constant Arguments* args,
-                    ushort2 pixelCoords, float3 hitPoint, half3 normal) {
+  GenerationContext(constant Arguments* args, ushort2 pixelCoords) {
     this->args = args;
-    
-    // Move origin slightly away from the surface to avoid self-occlusion.
-    // Switching to a uniform grid acceleration structure should make it
-    // possible to ignore this parameter.
-    this->origin = hitPoint + 0.0001 * float3(normal);
-    
-    // Align the atoms' coordinate systems with each other, to minimize
-    // divergence. Here is a primitive method that achieves that by aligning
-    // the X and Y dimensions to a common coordinate space.
-    float3 modNormal = transpose(args->rotation) * float3(normal);
-    float3x3 axes = RayGeneration::makeBasis(modNormal);
-    this->axes = half3x3(args->rotation * axes);
     
     uint pixelSeed = as_type<uint>(pixelCoords);
     uint seed1 = Sampling::tea(pixelSeed, args->frameSeed);
     ushort seed2 = as_type<ushort2>(seed1)[0];
     seed2 ^= as_type<ushort2>(seed1)[1];
     this->seed = seed2 ^ (seed2 / 256);
-    
   }
   
-  Ray<half> generate(ushort i, ushort samples) {
+  Ray<half> generate(ushort i, ushort samples, float3 hitPoint, half3 normal) {
     // Generate a random number and increment the seed.
     float random1 = Sampling::radinv3(seed);
     float random2 = Sampling::radinv2(seed);
@@ -134,6 +117,18 @@ public:
       maximum = (i == samples - 1) ? 1 : maximum;
       random1 = mix(minimum, maximum, random1);
     }
+    
+    // Move origin slightly away from the surface to avoid self-occlusion.
+    // Switching to a uniform grid acceleration structure should make it
+    // possible to ignore this parameter.
+    float3 origin = hitPoint + 0.0001 * float3(normal);
+    
+    // Align the atoms' coordinate systems with each other, to minimize
+    // divergence. Here is a primitive method that achieves that by aligning
+    // the X and Y dimensions to a common coordinate space.
+    float3 modNormal = transpose(args->rotation) * float3(normal);
+    float3x3 _axes = RayGeneration::makeBasis(modNormal);
+    half3x3 axes = half3x3(args->rotation * _axes);
     
     // Create a random ray from the cosine distribution.
     RayGeneration::Basis basis { axes, random1, random2 };
