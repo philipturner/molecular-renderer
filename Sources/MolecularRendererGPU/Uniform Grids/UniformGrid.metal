@@ -84,7 +84,7 @@ public:
     
     float tmin = 0;
     float tmax = INFINITY;
-    dt = precise::divide(1, ray.direction);
+    dt = precise::divide(1, float3(ray.direction));
     
     // The grid's coordinate space is in half-nanometers.
     // NOTE: This scales `t` by a factor of 0.444/2.25.
@@ -106,7 +106,7 @@ public:
     // Adjust the origin so it starts in the grid.
     // NOTE: This translates `t` by an offset of `tmin`.
     continue_loop = (tmin < tmax);
-    ray.origin += tmin * ray.direction;
+    ray.origin += tmin * float3(ray.direction);
     ray.origin = clamp(ray.origin, float(0), h_grid_width);
     this->tmin = tmin * voxel_width_numer / voxel_width_denom;
     

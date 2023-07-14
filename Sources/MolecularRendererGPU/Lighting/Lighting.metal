@@ -46,7 +46,7 @@ public:
     this->specular = 0;
   }
   
-  void setDiffuseColor(MRAtom atom, float3 normal) {
+  void setDiffuseColor(MRAtom atom, half3 normal) {
     if (atom.get_flags() & 0x200) {
       // Replace the diffuse color with black.
       diffuseColor = { 0.000, 0.000, 0.000 };
@@ -112,14 +112,14 @@ public:
   }
   
   void addLightContribution(float3 hitPoint,
-                            float3 normal,
+                            half3 normal,
                             MRLight light) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 lightDirection = light.origin - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
     
-    float lambertian = max(dot(lightDirection, normal), 0.0);
+    float lambertian = max(dot(lightDirection, float3(normal)), 0.0);
     this->lambertian += light.diffusePower * lambertian;
     
     if (lambertian > 0.0) {
@@ -183,7 +183,7 @@ public:
     // - 90°: simply transform direction vector back into pixel location
     // - 110°: halfAngleTangentRatio > 1; end result closer to center
     float3 direction = normalize(hitPoint - arg1->position);
-    direction = transpose(arg1->cameraToWorldRotation) * direction;
+    direction = transpose(arg1->rotation) * direction;
     direction *= 1 / arg1->fovMultiplier / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.

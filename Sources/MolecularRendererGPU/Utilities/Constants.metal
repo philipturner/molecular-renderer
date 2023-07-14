@@ -49,7 +49,7 @@ Arguments {
   
   // This frame's position and orientation.
   packed_float3 position;
-  float3x3 cameraToWorldRotation;
+  float3x3 rotation;
   
   // The jitter to apply to the pixel.
   float2 jitter;

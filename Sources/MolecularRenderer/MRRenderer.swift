@@ -484,8 +484,10 @@ extension MRRenderer {
     if previousArguments == nil {
       previousArguments = currentArguments
     }
-    memcpy(tempAllocation, &currentArguments!, 112)
-    memcpy(tempAllocation + 128, &previousArguments!, 112)
+    let stride = MemoryLayout<Arguments>.stride
+    precondition(stride <= 128)
+    memcpy(tempAllocation, &currentArguments!, stride)
+    memcpy(tempAllocation + 128, &previousArguments!, stride)
     encoder.setBytes(tempAllocation, length: 256, index: 0)
     free(tempAllocation)
     

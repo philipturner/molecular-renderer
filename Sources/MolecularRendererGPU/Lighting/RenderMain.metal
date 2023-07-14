@@ -139,7 +139,7 @@ kernel void renderMain
     // NOTE: `hitPoint` and `normal` can be paged to a stack.
     // NOTE: `normal` can be stored in half-precision.
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
-    float3 normal = normalize(hitPoint - intersect.atom.origin);
+    half3 normal = half3(normalize(hitPoint - intersect.atom.origin));
     colorCtx.setDiffuseColor(intersect.atom, normal);
     
     // Cast the secondary rays.
@@ -176,7 +176,7 @@ kernel void renderMain
         float distance_sq = length_squared(direction);
         direction *= rsqrt(distance_sq);
         
-        Ray ray { hitPoint + 0.0001 * normal, direction };
+        Ray ray { hitPoint + 0.0001 * float3(normal), direction };
         IntersectionParams params { false, sqrt(distance_sq), true };
         
         auto intersect = RayTracing::traverse(ray, grid, params);

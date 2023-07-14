@@ -19,8 +19,7 @@ class RayGeneration {
 public:
   struct Basis {
     // Basis for the coordinate system around the normal vector.
-    // TODO: Store axes in half3x3
-    float3x3 axes;
+    half3x3 axes;
 
     // Uniformly distributed random numbers for determining angles.
     float random1;
@@ -49,7 +48,7 @@ public:
   }
   
   static float3x3 makeBasis(const float3 normal) {
-    // ZAP's default coordinate system for compatibility
+    // ZAP's default coordinate system for compatibility.
     float3 z = normal;
     const float yz = -z.y * z.z;
     float3 y = normalize
@@ -69,7 +68,7 @@ public:
     rayDirection.y = -rayDirection.y;
     rayDirection.xy *= args->fovMultiplier;
     rayDirection = normalize(rayDirection);
-    rayDirection = args->cameraToWorldRotation * rayDirection;
+    rayDirection = args->rotation * rayDirection;
     
     float3 worldOrigin = args->position;
     return { worldOrigin, rayDirection };
@@ -85,7 +84,7 @@ public:
                      sin(phi) * sinTheta, sqrt(cosThetaSquared));
     
     // Apply the basis as a linear transformation.
-    direction = basis.axes * direction;
+    direction = float3x3(basis.axes) * direction;
     return { origin, direction };
   }
 };
@@ -93,27 +92,26 @@ public:
 class GenerationContext {
   constant Arguments* args;
   
-  // TODO: Store axes in half3x3
   float3 origin;
-  float3x3 axes;
+  half3x3 axes;
   uchar seed;
   
 public:
   GenerationContext(constant Arguments* args,
-                    ushort2 pixelCoords, float3 hitPoint, float3 normal) {
+                    ushort2 pixelCoords, float3 hitPoint, half3 normal) {
     this->args = args;
     
     // Move origin slightly away from the surface to avoid self-occlusion.
     // Switching to a uniform grid acceleration structure should make it
     // possible to ignore this parameter.
-    this->origin = hitPoint + normal * float(0.0001);
+    this->origin = hitPoint + 0.0001 * float3(normal);
     
     // Align the atoms' coordinate systems with each other, to minimize
     // divergence. Here is a primitive method that achieves that by aligning
     // the X and Y dimensions to a common coordinate space.
-    float3 modNormal = transpose(args->cameraToWorldRotation) * normal;
-    this->axes = RayGeneration::makeBasis(modNormal);
-    this->axes = args->cameraToWorldRotation * axes;
+    float3 modNormal = transpose(args->rotation) * float3(normal);
+    float3x3 axes = RayGeneration::makeBasis(modNormal);
+    this->axes = half3x3(args->rotation * axes);
     
     uint pixelSeed = as_type<uint>(pixelCoords);
     uint seed1 = Sampling::tea(pixelSeed, args->frameSeed);

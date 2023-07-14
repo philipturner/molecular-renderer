@@ -100,7 +100,7 @@ extension Renderer {
     #endif
     
     let quality = MRQuality(
-      minSamples: 3, maxSamples: 3, qualityCoefficient: 30)
+      minSamples: 7, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,
