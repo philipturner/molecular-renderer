@@ -47,6 +47,22 @@ internal struct Arguments {
   var gridWidth: UInt16
 }
 
+// Track when to reset the MetalFX upscaler.
+internal struct ResetTracker {
+  var currentFrameID: Int = -1
+  var resetUpscaler: Bool = false
+  
+  mutating func update(time: MRTimeContext) {
+    let nextFrameID = time.absolute.frames
+    if nextFrameID == 0 && nextFrameID != currentFrameID {
+      resetUpscaler = true
+    } else {
+      resetUpscaler = false
+    }
+    currentFrameID = nextFrameID
+  }
+}
+
 public class MRRenderer {
   var upscaledSize: SIMD2<Int>
   var intermediateSize: SIMD2<Int>
@@ -57,6 +73,7 @@ public class MRRenderer {
   // The time of this frame.
   var time: MRTimeContext!
   var renderIndex: Int = 0
+  var tracker: ResetTracker = .init()
   
   // Main rendering resources.
   var device: MTLDevice
@@ -254,9 +271,11 @@ extension MRRenderer {
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
   ) {
+    tracker.update(time: time)
+    
     // Bind the intermediate textures.
     let currentTextures = self.currentTextures
-    upscaler.reset = false
+    upscaler.reset = tracker.resetUpscaler
     upscaler.colorTexture = currentTextures.color
     upscaler.depthTexture = currentTextures.depth
     upscaler.motionTexture = currentTextures.motion
@@ -282,7 +301,8 @@ extension MRRenderer {
   // command buffers. Otherwise, the static API is sufficient to render dynamic
   // geometry.
   public func setGeometry(
-    // TODO: Consider removing the dependency on frame rate.
+    // TODO: Consider removing the dependency on frame rate. Do this by making
+    // frame rate an input argument to initialize an MRTimeContext.
     time: MRTimeContext,
     atomProvider: inout MRAtomProvider,
     styleProvider: MRAtomStyleProvider
