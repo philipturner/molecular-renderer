@@ -11,9 +11,10 @@
 #include <metal_stdlib>
 using namespace metal;
 
+template <typename T>
 struct Ray {
   float3 origin;
-  float3 direction;
+  vec<T, 3> direction;
 };
 
 #endif

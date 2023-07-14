@@ -63,6 +63,7 @@ public:
 // Sources:
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
+template <typename T>
 class DifferentialAnalyzer {
   float3 dt;
   float3 t;
@@ -78,7 +79,7 @@ public:
   uint address;
   bool continue_loop;
   
-  DifferentialAnalyzer(Ray ray, DenseGrid grid) {
+  DifferentialAnalyzer(Ray<T> ray, DenseGrid grid) {
     half h_grid_width(grid.width);
     grid_width = grid.width;
     

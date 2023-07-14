@@ -22,10 +22,10 @@ class ColorContext {
   float depth;
   
   half3 diffuseColor;
-  float diffuseAmbient;
-  float specularAmbient;
-  float lambertian;
-  float specular;
+  half diffuseAmbient;
+  half specularAmbient;
+  half lambertian;
+  half specular;
   
 public:
   ColorContext(constant Arguments* args,
@@ -42,8 +42,6 @@ public:
     // Initialize the accumulators for lighting.
     this->diffuseAmbient = 0;
     this->specularAmbient = 0;
-    this->lambertian = 0;
-    this->specular = 0;
   }
   
   void setDiffuseColor(MRAtom atom, half3 normal) {
@@ -107,8 +105,9 @@ public:
     this->specularAmbient *= sampleCountRecip;
   }
   
-  void setDepth(float depth) {
-    this->depth = depth;
+  void startLightContributions() {
+    this->lambertian = 0;
+    this->specular = 0;
   }
   
   void addLightContribution(float3 hitPoint,
@@ -173,6 +172,10 @@ public:
     float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
     color += specular * specularOcclusion;
     this->color = half3(saturate(color));
+  }
+  
+  void setDepth(float depth) {
+    this->depth = depth;
   }
   
   void generateMotionVector(float3 hitPoint) {

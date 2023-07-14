@@ -61,7 +61,7 @@ public:
     return float3x3(x, y, z);
   }
   
-  static Ray primaryRay(ushort2 pixelCoords, constant Arguments* args) {
+  static Ray<float> primaryRay(ushort2 pixelCoords, constant Arguments* args) {
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
     rayDirection.xy += args->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
@@ -74,7 +74,7 @@ public:
     return { worldOrigin, rayDirection };
   }
   
-  static Ray secondaryRay(float3 origin, Basis basis) {
+  static Ray<half> secondaryRay(float3 origin, Basis basis) {
     // Transform the uniform distribution into the cosine distribution. This
     // creates a direction vector that's already normalized.
     float phi = 2 * M_PI_F * basis.random1;
@@ -85,7 +85,7 @@ public:
     
     // Apply the basis as a linear transformation.
     direction = float3x3(basis.axes) * direction;
-    return { origin, direction };
+    return { origin, half3(direction) };
   }
 };
 
@@ -121,7 +121,7 @@ public:
     
   }
   
-  Ray generate(ushort i, ushort samples) {
+  Ray<half> generate(ushort i, ushort samples) {
     // Generate a random number and increment the seed.
     float random1 = Sampling::radinv3(seed);
     float random2 = Sampling::radinv2(seed);

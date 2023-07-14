@@ -15,11 +15,12 @@ using namespace metal;
 
 class RayTracing {
 public:
+  template <typename T>
   METAL_FUNC static IntersectionResult traverse
   (
-   Ray ray, DenseGrid grid, IntersectionParams params)
+   Ray<T> ray, DenseGrid grid, IntersectionParams params)
   {
-    DifferentialAnalyzer dda(ray, grid);
+    DifferentialAnalyzer<T> dda(ray, grid);
     IntersectionResult result { MAXFLOAT, false };
     REFERENCE result_atom;
     
@@ -69,7 +70,7 @@ public:
           
           // Do not walk inside an atom; doing so will produce corrupted graphics.
           float3 oc = ray.origin - data.xyz;
-          float b2 = dot(oc, ray.direction);
+          float b2 = dot(oc, float3(ray.direction));
           float c = dot(oc, oc) - as_type<half2>(data.w)[0];
           float disc4 = b2 * b2 - c;
           
@@ -152,7 +153,6 @@ kernel void renderMain
         samples = clamp(ceil(newSamples), args->minSamples, args->maxSamples);
       }
       
-      // TODO: Page `genCtx` to a threadgroup stack, reducing register pressure.
       auto genCtx = GenerationContext(args, pixelCoords, hitPoint, normal);
       for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples);
@@ -163,6 +163,7 @@ kernel void renderMain
       colorCtx.finishAmbientContributions(samples);
     }
     
+    colorCtx.startLightContributions();
     for (ushort i = 0; i < args->numLights; ++i) {
       MRLight light(lights + i);
       bool shadow = false;
@@ -176,7 +177,7 @@ kernel void renderMain
         float distance_sq = length_squared(direction);
         direction *= rsqrt(distance_sq);
         
-        Ray ray { hitPoint + 0.0001 * float3(normal), direction };
+        Ray<float> ray { hitPoint + 0.0001 * float3(normal), direction };
         IntersectionParams params { false, sqrt(distance_sq), true };
         
         auto intersect = RayTracing::traverse(ray, grid, params);
