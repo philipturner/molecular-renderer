@@ -148,6 +148,8 @@ kernel void renderMain
   // Calculate ambient occlusion, diffuse, and specular terms.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
   if (intersect.accept) {
+    // NOTE: `hitPoint` and `normal` can be paged to a stack.
+    // NOTE: `normal` can be stored in half-precision.
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
     float3 normal = normalize(hitPoint - intersect.atom.origin);
     colorCtx.setDiffuseColor(intersect.atom, normal);

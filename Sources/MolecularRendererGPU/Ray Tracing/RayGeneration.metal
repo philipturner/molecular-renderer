@@ -103,7 +103,7 @@ class GenerationContext {
   // TODO: Store axes in half3x3
   float3 origin;
   float3x3 axes;
-  uint seed;
+  uchar seed;
   
 public:
   GenerationContext(constant Arguments* args,
@@ -113,7 +113,7 @@ public:
     // Move origin slightly away from the surface to avoid self-occlusion.
     // Switching to a uniform grid acceleration structure should make it
     // possible to ignore this parameter.
-    this->origin = hitPoint + normal * float(0.001);
+    this->origin = hitPoint + normal * float(0.0001);
     
     // Align the atoms' coordinate systems with each other, to minimize
     // divergence. Here is a primitive method that achieves that by aligning
@@ -123,7 +123,11 @@ public:
     this->axes = args->cameraToWorldRotation * axes;
     
     uint pixelSeed = as_type<uint>(pixelCoords);
-    this->seed = Sampling::tea(pixelSeed, args->frameSeed);
+    uint seed1 = Sampling::tea(pixelSeed, args->frameSeed);
+    ushort seed2 = as_type<ushort2>(seed1)[0];
+    seed2 ^= as_type<ushort2>(seed1)[1];
+    this->seed = seed2 ^ (seed2 / 256);
+    
   }
   
   Ray generate(ushort i, ushort samples) {
@@ -132,12 +136,14 @@ public:
     float random2 = Sampling::radinv2(seed);
     seed += 1;
     
-    float sampleCountRecip = fast::divide(1, float(samples));
-    float minimum = float(i) * sampleCountRecip;
-    float maximum = minimum + sampleCountRecip;
-    maximum = (i == samples - 1) ? 1 : maximum;
-    random1 = mix(minimum, maximum, random1);
-     
+    if (samples >= 3) {
+      float sampleCountRecip = fast::divide(1, float(samples));
+      float minimum = float(i) * sampleCountRecip;
+      float maximum = minimum + sampleCountRecip;
+      maximum = (i == samples - 1) ? 1 : maximum;
+      random1 = mix(minimum, maximum, random1);
+    }
+    
     // Create a random ray from the cosine distribution.
     RayGeneration::Basis basis { axes, random1, random2 };
     return RayGeneration::secondaryRay(origin, basis);
