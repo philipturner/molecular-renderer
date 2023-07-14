@@ -29,17 +29,11 @@ public:
       maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * voxel_size;
     }
     
-  #if FAULT_COUNTERS_ENABLE
-    int fault_counter1 = 0;
-  #endif
     while (dda.continue_loop) {
       // To reduce divergence, fast forward through empty voxels.
       uint voxel_data = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
-#if FAULT_COUNTERS_ENABLE
-        fault_counter1 += 1; if (fault_counter1 > 100) { return { MAXFLOAT, false }; }
-#endif
         voxel_data = grid.data[dda.address];
         dda.increment_position();
         
@@ -56,9 +50,6 @@ public:
         }
       }
       
-      uint count = reverse_bits(voxel_data & voxel_count_mask);
-      uint offset = voxel_data & voxel_offset_mask;
-      
       float target_distance = dda.get_max_accepted_t();
       if ((params.isAORay || params.isShadowRay) &&
           (target_distance > maxTargetDistance)) {
@@ -69,14 +60,11 @@ public:
         }
         result.distance = target_distance;
         
-#if FAULT_COUNTERS_ENABLE
-        int fault_counter2 = 0;
-#endif
-        for (ushort i = 0; i < count; ++i) {
-#if FAULT_COUNTERS_ENABLE
-          fault_counter2 += 1; if (fault_counter2 > 300) { return { MAXFLOAT, false }; }
-#endif
-          REFERENCE reference = grid.references[offset + i];
+        uint count = reverse_bits(voxel_data & voxel_count_mask);
+        uint offset = voxel_data & voxel_offset_mask;
+        uint upper_bound = offset + count;
+        for (; offset < upper_bound; ++offset) {
+          REFERENCE reference = grid.references[offset];
           float4 data = ((device float4*)grid.atoms)[reference];
           
           // Do not walk inside an atom; doing so will produce corrupted graphics.
