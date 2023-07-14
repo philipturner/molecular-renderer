@@ -39,9 +39,9 @@ class Renderer {
     MRSetFrameRate(120)
     
     self.styleProvider = NanoStuff()
-    self.atomProvider = PlanetaryGearBox()
+//    self.atomProvider = PlanetaryGearBox()
 //    self.atomProvider = ExampleProviders.fineMotionController()
-//    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
+    self.atomProvider = MassiveDiamond(outerSize: 10, thickness: 1)
     
   }
 }
@@ -100,7 +100,7 @@ extension Renderer {
     #endif
     
     let quality = MRQuality(
-      minSamples: 3, maxSamples: 3, qualityCoefficient: 30)
+      minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
       fovDegrees: playerState.fovDegrees(progress: progress),
       position: playerState.position,

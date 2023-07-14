@@ -32,13 +32,13 @@ import MolecularRenderer
 // outerSize = 10
 // - 16-bit sparse: TODO
 // - 32-bit sparse: TODO
-// - 16-bit dense: 9.05 ms
-// - 32-bit dense: 9.50 ms
+// - 16-bit dense: 9.05 ms (failing right now)
+// - 32-bit dense: 8.31 ms
 //
 // outerSize = 100
 // - 16-bit sparse: TODO
 // - 32-bit sparse: TODO
-// - 32-bit dense: 4.58 ms
+// - 32-bit dense: 4.11 ms
 struct MassiveDiamond: MRAtomProvider {
   var _atoms: [MRAtom]
   

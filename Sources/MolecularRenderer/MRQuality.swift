@@ -36,6 +36,3 @@ public struct MRQuality {
     self.qualityCoefficient = qualityCoefficient
   }
 }
-
-
-

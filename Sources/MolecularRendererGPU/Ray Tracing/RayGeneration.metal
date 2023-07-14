@@ -27,24 +27,15 @@ public:
   };
   
   static ushort2 makePixelID(ushort2 tgid, ushort2 lid) {
-    // Rearrange 16x8 into a hierarchy of levels to minimize divergence during
-    // ray tracing.
-    // - 16x8 (four simds)
-    // - 8x8 (two simds)
-    // - 8x4 (simd)
-    // - 4x4 (half-simd)
-    // - 4x2 (quarter-simd)
-    // - 2x2 (quad)
-    ushort local_linear_id = lid.y * 16 + lid.x;
-    ushort new_x = (local_linear_id >= 64) ? 8 : 0;
+    ushort local_linear_id = lid.y * 8 + lid.x;
     ushort new_y = (local_linear_id % 64 >= 32) ? 4 : 0;
-    new_x += (local_linear_id % 32 >= 16) ? 4 : 0;
+    ushort new_x = (local_linear_id % 32 >= 16) ? 4 : 0;
     new_y += (local_linear_id % 16 >= 8) ? 2 : 0;
     new_x += (local_linear_id % 8 >= 4) ? 2 : 0;
     new_y += (local_linear_id % 4 >= 2) ? 1 : 0;
     new_x += local_linear_id % 2 >= 1;
     
-    return tgid * ushort2(16, 8) + ushort2(new_x, new_y);
+    return tgid * ushort2(8, 8) + ushort2(new_x, new_y);
   }
   
   static float3x3 makeBasis(const float3 normal) {
