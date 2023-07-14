@@ -140,7 +140,7 @@ struct QuteMolDefault: MRAtomStyleProvider {
     ]
     colors = colors.map { $0 / 255 }
     
-    self.available = .init(repeating: false, count: 250)
+    self.available = .init(repeating: false, count: 127)
     for i in 1...18 {
       self.available[i] = true
     }
@@ -267,7 +267,7 @@ struct NanoStuff: MRAtomStyleProvider {
     ]
     colors = colors.map { $0 / 255 }
     
-    self.available = .init(repeating: false, count: 250)
+    self.available = .init(repeating: false, count: 127)
     for i in 1...36 {
       self.available[i] = true
     }

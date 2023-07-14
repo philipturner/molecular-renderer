@@ -16,7 +16,7 @@ public protocol MRAtomProvider {
   mutating func atoms(time: MRTimeContext) -> [MRAtom]
 }
 
-// C API: Each array must contain 250 elements, corresponding to Z=0-249. Unused
+// C API: Each array must contain 127 elements, corresponding to Z=0-126. Unused
 // array slots can be empty.
 //
 // Swift API: Each array must contain enough elements to correspond to the
@@ -50,7 +50,7 @@ public func MRMakeAtomStyles(
 #endif
     let atomRadii = radii.map { $0 * 1e9 }.map(Float16.init)
     
-    precondition(available.count == 250)
+    precondition(available.count == 127)
     return available.indices.map { i in
       let index = available[i] ? i : 0
       return MRAtomStyle(color: atomColors[index], radius: atomRadii[index])
