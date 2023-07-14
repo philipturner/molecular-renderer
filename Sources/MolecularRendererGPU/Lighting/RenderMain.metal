@@ -71,12 +71,14 @@ public:
           // Do not walk inside an atom; doing so will produce corrupted graphics.
           float3 oc = ray.origin - data.xyz;
           float b2 = dot(oc, float3(ray.direction));
-          float c = dot(oc, oc) - as_type<half2>(data.w)[0];
-          float disc4 = b2 * b2 - c;
+          float c = fma(oc.x, oc.x, float(-as_type<half2>(data.w)[0]));
+          c = fma(oc.y, oc.y, c);
+          c = fma(oc.z, oc.z, c);
           
+          float disc4 = b2 * b2 - c;
           if (disc4 > 0) {
             // If the ray hit the sphere, compute the intersection distance.
-            float distance = -b2 - sqrt(disc4);
+            float distance = fma(-disc4, rsqrt(disc4), -b2);
             
             // The intersection function must also check whether the intersection
             // distance is within the acceptable range. Intersection functions do not
