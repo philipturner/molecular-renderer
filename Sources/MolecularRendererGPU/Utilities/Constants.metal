@@ -68,6 +68,7 @@ Arguments {
   half maxSamples;
   half qualityCoefficient; // 30
   
+  // TODO: Change these to half precision?
   float maxRayHitTime;
   float exponentialFalloffDecayConstant;
   float minimumAmbientIllumination;

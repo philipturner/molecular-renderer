@@ -38,7 +38,7 @@ struct DenseGridArguments {
 kernel void dense_grid_pass1
 (
  constant DenseGridArguments &args [[buffer(0)]],
- constant MRAtomStyle *styles [[buffer(1)]],
+ device MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  device atomic_uint *dense_grid_data [[buffer(3)]],
  
@@ -132,7 +132,7 @@ kernel void dense_grid_pass2
 kernel void dense_grid_pass3
 (
  constant DenseGridArguments &args [[buffer(0)]],
- constant MRAtomStyle *styles [[buffer(1)]],
+ device MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
  device uint *dense_grid_data [[buffer(3)]],

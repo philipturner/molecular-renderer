@@ -41,10 +41,10 @@ class Renderer {
     self.styleProvider = NanoStuff()
 //    self.styleProvider = QuteMolDefault()
     
-//    self.atomProvider = PlanetaryGearBox()
+    self.atomProvider = PlanetaryGearBox()
 //    self.atomProvider = APMBootstrapper()
 //    self.atomProvider = ExampleProviders.fineMotionController()
-    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
+//    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
     
   }
 }

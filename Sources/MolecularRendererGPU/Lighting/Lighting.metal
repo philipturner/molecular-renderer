@@ -13,8 +13,8 @@ using namespace metal;
 // Handle specular and diffuse color, and transform raw AO hits into
 // meaningful color contributions.
 class ColorContext {
-  constant Arguments* args;
-  constant MRAtomStyle* styles;
+  device Arguments* args;
+  device MRAtomStyle* styles;
   
   ushort2 pixelCoords;
   half3 color;
@@ -28,8 +28,8 @@ class ColorContext {
   half specular;
   
 public:
-  ColorContext(constant Arguments* args,
-               constant MRAtomStyle* styles, ushort2 pixelCoords) {
+  ColorContext(device Arguments* args,
+               device MRAtomStyle* styles, ushort2 pixelCoords) {
     this->args = args;
     this->styles = styles;
     this->pixelCoords = pixelCoords;
@@ -179,7 +179,7 @@ public:
   }
   
   void generateMotionVector(float3 hitPoint) {
-    auto arg1 = (constant Arguments*)((constant uchar*)args + 128);
+    auto arg1 = (device Arguments*)((device uchar*)args + 128);
     
     // fovMultiplier = halfAngleTangentRatio / fov90Span
     // 1 / fovMultiplier = fov90Span / halfAngleTangentRatio

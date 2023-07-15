@@ -112,15 +112,18 @@ class MRProfiler {
 //    let denominators: [Float] = [12, 13, 14, 15, 16, 17, 18]
 //    let denominators: [Float] = [10, 12, 14, 16, 18, 20, 22, 24]
 //    let denominators: [Float] = [14, 16, 18, 20, 22]
-    let denominators: [Float] = [8, 9, 10, 11, 12, 13]
+//    let denominators: [Float] = [8, 9, 10, 11, 12, 13]
+    let denominators: [Float] = [9]
     for var denominator in denominators {
       constants.setConstantValue(&denominator, type: .float, index: 11)
       
       // Initialize the compute pipeline.
       let function = try! library.makeFunction(
         name: "renderMain", constantValues: constants)
+      
       let desc = MTLComputePipelineDescriptor()
       desc.computeFunction = function
+      desc.maxTotalThreadsPerThreadgroup = 1024
       let rayTracingPipeline = try! renderer.device
         .makeComputePipelineState(
           descriptor: desc, options: [], reflection: nil)
@@ -133,7 +136,7 @@ class MRProfiler {
     }
     self.pipelines = pipelines
     
-    self.timesHistoryLength = 2 // 240 / pipelines.count
+    self.timesHistoryLength = 2
     self.times = [:]
     for i in 0..<pipelines.count {
       self.times[i] = []

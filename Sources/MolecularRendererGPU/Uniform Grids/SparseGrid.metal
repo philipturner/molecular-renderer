@@ -45,7 +45,7 @@ struct SparseGridArguments {
 kernel void sparse_grid_pass1
 (
  constant SparseGridArguments &args [[buffer(0)]],
- constant MRAtomStyle *styles [[buffer(1)]],
+ device MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
  device atomic_uint *total_upper_voxels [[buffer(3)]], // start at 2
@@ -154,9 +154,9 @@ constant bool is_high_res [[function_constant(10001)]];
 kernel void sparse_grid_pass2
 (
  constant SparseGridArguments &args [[buffer(0)]],
- constant MRAtomStyle *styles [[buffer(1)]],
+ device MRAtomStyle *styles [[buffer(1)]],
  
- device atomic_uint *upper_voxel_offsets [[buffer(4)]],
+ device uint *upper_voxel_offsets [[buffer(4)]],
  device MRAtom *upper_voxel_atoms [[buffer(5)]],
  device ushort3 *low_res_coords [[buffer(6)]],
  device ushort3 *high_res_coords [[buffer(7)]],

@@ -82,17 +82,17 @@ public:
     this->tailStorage = as_type<ushort>(uchar2(element, flags));
   }
   
-  half getRadius(constant MRAtomStyle* styles) {
-    auto styles_ptr = (constant half4*)(styles + get_element());
+  half getRadius(device MRAtomStyle* styles) {
+    auto styles_ptr = (device half4*)(styles + get_element());
     return styles_ptr[0].w;
   }
   
-  half3 getColor(constant MRAtomStyle* styles) {
-    auto styles_ptr = (constant half4*)(styles + get_element());
+  half3 getColor(device MRAtomStyle* styles) {
+    auto styles_ptr = (device half4*)(styles + get_element());
     return styles_ptr[0].xyz;
   }
   
-  MRBoundingBox getBoundingBox(constant MRAtomStyle* styles) {
+  MRBoundingBox getBoundingBox(device MRAtomStyle* styles) {
     half radius = this->getRadius(styles);
     auto min = origin - float(radius);
     auto max = origin + float(radius);
@@ -137,8 +137,8 @@ MRLight {
   half specularPower;
   
   // Bypass an issue where the Metal compiler doesn't actually align the read.
-  MRLight(constant MRLight* address) {
-    float4 data = *(constant float4*)address;
+  MRLight(device MRLight* address) {
+    float4 data = *(device float4*)address;
     this->origin = data.xyz;
     this->diffusePower = as_type<half2>(data.w)[0];
     this->specularPower = as_type<half2>(data.w)[1];

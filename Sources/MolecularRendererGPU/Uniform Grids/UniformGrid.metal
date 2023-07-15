@@ -79,9 +79,9 @@ public:
   uint address;
   bool continue_loop;
   
-  DifferentialAnalyzer(Ray<T> ray, DenseGrid grid) {
-    half h_grid_width(grid.width);
-    grid_width = grid.width;
+  DifferentialAnalyzer(Ray<T> ray, ushort grid_width) {
+    half h_grid_width(grid_width);
+    this->grid_width = grid_width;
     
     float tmin = 0;
     float tmax = INFINITY;

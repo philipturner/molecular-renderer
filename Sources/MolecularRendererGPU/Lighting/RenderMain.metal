@@ -20,7 +20,7 @@ public:
   (
    Ray<T> ray, DenseGrid grid, IntersectionParams params)
   {
-    DifferentialAnalyzer<T> dda(ray, grid);
+    DifferentialAnalyzer<T> dda(ray, grid.width);
     IntersectionResult result { MAXFLOAT, false };
     REFERENCE result_atom;
     
@@ -105,24 +105,24 @@ public:
 };
 
 kernel void renderMain
- (
-  constant Arguments *args [[buffer(0)]],
-  constant MRAtomStyle *styles [[buffer(1)]],
-  constant MRLight *lights [[buffer(2)]],
-  
-  device MRAtom *atoms [[buffer(3)]],
-  device uint *dense_grid_data [[buffer(4)]],
-  device REFERENCE *dense_grid_references [[buffer(5)]],
-  
-  device float *profiling_samples [[buffer(6)]],
-  
-  texture2d<half, access::write> color_texture [[texture(0)]],
-  texture2d<float, access::write> depth_texture [[texture(1)]],
-  texture2d<half, access::write> motion_texture [[texture(2)]],
-  
-  ushort2 tid [[thread_position_in_grid]],
-  ushort2 tgid [[threadgroup_position_in_grid]],
-  ushort2 lid [[thread_position_in_threadgroup]])
+(
+ device Arguments *args [[buffer(0)]],
+ device MRAtomStyle *styles [[buffer(1)]],
+ device MRLight *lights [[buffer(2)]],
+ 
+ device MRAtom *atoms [[buffer(3)]],
+ device uint *dense_grid_data [[buffer(4)]],
+ device REFERENCE *dense_grid_references [[buffer(5)]],
+ 
+ device float *profiling_samples [[buffer(6)]],
+ 
+ texture2d<half, access::write> color_texture [[texture(0)]],
+ texture2d<float, access::write> depth_texture [[texture(1)]],
+ texture2d<half, access::write> motion_texture [[texture(2)]],
+ 
+ ushort2 tid [[thread_position_in_grid]],
+ ushort2 tgid [[threadgroup_position_in_grid]],
+ ushort2 lid [[thread_position_in_threadgroup]])
 {
   // Return early if outside bounds.
   ushort2 pixelCoords = RayGeneration::makePixelID(tgid, lid);
@@ -153,13 +153,15 @@ kernel void renderMain
     colorCtx.setDiffuseColor(intersect.atom, normal);
     
     // Cast the secondary rays.
-    if (args->maxSamples > 0) {
+    half minSamples = args->minSamples;
+    half maxSamples = args->maxSamples;
+    if (maxSamples > 0) {
       half samples = args->maxSamples;
-      float distanceCutoff = args->qualityCoefficient / args->maxSamples;
+      float distanceCutoff = args->qualityCoefficient / maxSamples;
       if (intersect.distance > distanceCutoff) {
         half proportion = distanceCutoff / intersect.distance;
-        half newSamples = max(args->minSamples, samples * proportion);
-        samples = clamp(ceil(newSamples), args->minSamples, args->maxSamples);
+        half newSamples = max(minSamples, samples * proportion);
+        samples = clamp(ceil(newSamples), minSamples, maxSamples);
       }
       
       auto genCtx = GenerationContext(args, pixelCoords);
@@ -183,7 +185,8 @@ kernel void renderMain
     }
     
     colorCtx.startLightContributions();
-    for (ushort i = 0; i < args->numLights; ++i) {
+    ushort numLights = args->numLights;
+    for (ushort i = 0; i < numLights; ++i) {
       MRLight light(lights + i);
       half hitAtomRadiusSquared = 0;
       
@@ -198,7 +201,6 @@ kernel void renderMain
         
         Ray<float> ray { hitPoint + 0.0001 * float3(normal), direction };
         IntersectionParams params { false, sqrt(distance_sq), true };
-        
         auto intersect = RayTracing::traverse(ray, grid, params);
         if (intersect.accept) {
           hitAtomRadiusSquared = intersect.atom.radiusSquared;
