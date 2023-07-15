@@ -1,19 +1,18 @@
 //
-//  AccelBuilding.metal
+//  DenseGrid.metal
 //  MolecularRendererGPU
 //
-//  Created by Philip Turner on 7/3/23.
+//  Created by Philip Turner on 7/15/23.
 //
 
 #include <metal_stdlib>
-#include "../Utilities/MRAtom.metal"
 #include "UniformGrid.metal"
 using namespace metal;
 
 #define ATOMIC_INCREMENT(OBJECT) \
 atomic_fetch_add_explicit(OBJECT, 1, memory_order_relaxed);
 
-#define BOX_GENERATE(EXTREMUM) \
+#define DENSE_BOX_GENERATE(EXTREMUM) \
 box.EXTREMUM *= args.world_to_voxel_transform; \
 box.EXTREMUM += h_grid_width * 0.5; \
 ushort3 box_##EXTREMUM; \
@@ -26,31 +25,21 @@ box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 #define BOX_LOOP(COORD) \
 for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
 
-struct UniformGridArguments {
+struct Box {
+  float3 min;
+  float3 max;
+};
+
+struct DenseGridArguments {
   ushort grid_width;
   float world_to_voxel_transform;
 };
 
 // MARK: - Pass 1
 
-constant uint pattern4 [[function_constant(1000)]];
-
-kernel void memset_pattern4
-(
- device uint *b [[buffer(0)]],
- uint tid [[thread_position_in_grid]])
-{
-  b[tid] = pattern4;
-}
-
-struct Box {
-  float3 min;
-  float3 max;
-};
-
 kernel void dense_grid_pass1
 (
- constant UniformGridArguments &args [[buffer(0)]],
+ constant DenseGridArguments &args [[buffer(0)]],
  constant MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  device atomic_uint *dense_grid_data [[buffer(3)]],
@@ -61,8 +50,8 @@ kernel void dense_grid_pass1
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;
-  BOX_GENERATE(min)
-  BOX_GENERATE(max)
+  DENSE_BOX_GENERATE(min)
+  DENSE_BOX_GENERATE(max)
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_width, box_min);
@@ -84,7 +73,7 @@ kernel void dense_grid_pass1
 
 kernel void dense_grid_pass2
 (
- constant UniformGridArguments &args [[buffer(0)]],
+ constant DenseGridArguments &args [[buffer(0)]],
  device uint *dense_grid_data [[buffer(3)]],
  device uint *dense_grid_counters [[buffer(4)]],
  device atomic_uint *global_counter [[buffer(5)]],
@@ -144,7 +133,7 @@ kernel void dense_grid_pass2
 
 kernel void dense_grid_pass3
 (
- constant UniformGridArguments &args [[buffer(0)]],
+ constant DenseGridArguments &args [[buffer(0)]],
  constant MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
@@ -158,8 +147,8 @@ kernel void dense_grid_pass3
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort grid_width = args.grid_width;
   half h_grid_width = args.grid_width;
-  BOX_GENERATE(min)
-  BOX_GENERATE(max)
+  DENSE_BOX_GENERATE(min)
+  DENSE_BOX_GENERATE(max)
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_width, box_min);
@@ -179,3 +168,4 @@ kernel void dense_grid_pass3
     address_z += VoxelAddress::increment_z(grid_width);
   }
 }
+

@@ -98,6 +98,10 @@ class MRProfiler {
     // size for geometry building (far away). Then use mixed block sizes once
     // the grid is sparse.
     //
+    // Use atomics to generate a grid at 1/2 the spatial resolution as the ideal
+    // rendering size (using threadgroup memory atomics). Then, use something
+    // compute-intensive to upscale to the full resolution.
+    //
     // 0.262 -> 12...15
     // 0.235 -> 11...15
     // 0.162 -> 14...18, 24

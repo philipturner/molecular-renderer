@@ -21,7 +21,10 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
 // Safeguard against infinite loops. Disable this for profiling.
-#define FAULT_COUNTERS_ENABLE 0
+#define FAULT_COUNTERS_ENABLE 1
+
+// Whether to render using dense or sparse grids.
+#define GRID_TYPE_SPARSE 0
 
 // Voxel width in nm.
 constant float voxel_width_numer [[function_constant(10)]];
@@ -77,3 +80,4 @@ Arguments {
 #pragma clang diagnostic pop
 
 #endif
+

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		98082B032A52F2F00018F171 /* AccelBuilding.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98082B022A52F2F00018F171 /* AccelBuilding.metal */; };
 		980E70192A5E51D20051797F /* Tooltips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70182A5E51D20051797F /* Tooltips.swift */; };
 		980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701A2A5E51DB0051797F /* Feedstocks.swift */; };
 		980E701D2A5E520F0051797F /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701C2A5E520F0051797F /* Surfaces.swift */; };
@@ -20,6 +19,10 @@
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
+		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
+		98537EB12A62EA470037C392 /* SparseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB02A62EA470037C392 /* SparseGrid.metal */; };
+		98537EB32A62EA940037C392 /* Memory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB22A62EA940037C392 /* Memory.metal */; };
+		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -96,7 +99,6 @@
 /* Begin PBXFileReference section */
 		980140E52A3E1F78009408BE /* MRRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRenderer.swift; sourceTree = "<group>"; };
 		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
-		98082B022A52F2F00018F171 /* AccelBuilding.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AccelBuilding.metal; sourceTree = "<group>"; };
 		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
 		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
 		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
@@ -113,6 +115,10 @@
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98537EAE2A62EA3D0037C392 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
+		98537EB02A62EA470037C392 /* SparseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SparseGrid.metal; sourceTree = "<group>"; };
+		98537EB22A62EA940037C392 /* Memory.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Memory.metal; sourceTree = "<group>"; };
+		98537EB42A62FD230037C392 /* FaultCounter.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FaultCounter.metal; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderMain.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderMain.metal; sourceTree = "<group>"; };
@@ -464,7 +470,8 @@
 		98FB907E2A5CF91A00685E5C /* Uniform Grids */ = {
 			isa = PBXGroup;
 			children = (
-				98082B022A52F2F00018F171 /* AccelBuilding.metal */,
+				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
+				98537EB02A62EA470037C392 /* SparseGrid.metal */,
 				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
 			);
 			path = "Uniform Grids";
@@ -474,7 +481,9 @@
 			isa = PBXGroup;
 			children = (
 				988B257D2A1AC482007F18C1 /* Constants.metal */,
+				98537EB22A62EA940037C392 /* Memory.metal */,
 				98122D7029DFBDE6006200D1 /* MRAtom.metal */,
+				98537EB42A62FD230037C392 /* FaultCounter.metal */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -645,7 +654,10 @@
 				98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */,
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
-				98082B032A52F2F00018F171 /* AccelBuilding.metal in Sources */,
+				98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */,
+				98537EB12A62EA470037C392 /* SparseGrid.metal in Sources */,
+				98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */,
+				98537EB32A62EA940037C392 /* Memory.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
 				98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */,

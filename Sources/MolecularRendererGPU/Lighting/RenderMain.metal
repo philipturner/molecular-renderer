@@ -114,7 +114,7 @@ kernel void renderMain
   device uint *dense_grid_data [[buffer(4)]],
   device REFERENCE *dense_grid_references [[buffer(5)]],
   
-  device float *profilingSamples [[buffer(6)]],
+  device float *profiling_samples [[buffer(6)]],
   
   texture2d<half, access::write> color_texture [[texture(0)]],
   texture2d<float, access::write> depth_texture [[texture(1)]],
@@ -234,9 +234,9 @@ kernel void renderMain
     ushort sampleRows = (SCREEN_WIDTH + 7) / 8;
     ushort sampleCols = (SCREEN_HEIGHT + 3) / 4;
     uint valueIndex = uint(coords.y * sampleRows) + coords.x;
-    profilingSamples[valueIndex] = sample[0];
+    profiling_samples[valueIndex] = sample[0];
     
     uint countIndex = valueIndex + uint(sampleRows * sampleCols);
-    profilingSamples[countIndex] = sample[1];
+    profiling_samples[countIndex] = sample[1];
   }
 }
