@@ -9,41 +9,7 @@ import Accelerate
 import Metal
 import simd
 
-fileprivate let voxel_width_numer: Float = 4
-fileprivate let voxel_width_denom: Float = 9
-
-struct ProfilingTracker {
-  var queuedSemaphores: [DispatchSemaphore] = [
-    DispatchSemaphore(value: 1),
-    DispatchSemaphore(value: 1),
-    DispatchSemaphore(value: 1)
-  ]
-  var queuedExecutionTimes: SIMD3<Double> = SIMD3(-1, -1, -1)
-  var queuedRmsAtomRadii: SIMD3<Float> = SIMD3(-1, -1, -1)
-  var queuedValues: SIMD3<Float> = SIMD3(-1, -1, -1)
-  var queuedCounts: SIMD3<Float> = SIMD3(-1, -1, -1)
-  
-  var timesHistory: [Double] = []
-  var timesHistoryLength: Int = 60
-  var minTime: Double = 0
-  
-  mutating func update(ringIndex: Int) {
-    let time = queuedExecutionTimes[ringIndex]
-    if time != -1 {
-      timesHistory.append(time)
-    }
-    while timesHistory.count > timesHistoryLength {
-      timesHistory.removeFirst()
-    }
-    if timesHistory.count > 0 {
-      minTime = timesHistory.reduce(1, min)
-    } else {
-      minTime = 1
-    }
-  }
-}
-
-public class MRAccelBuilder {
+class MRAccelBuilder {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
@@ -56,10 +22,6 @@ public class MRAccelBuilder {
   var sampleBuffers: [MTLBuffer] = []
   var totalSamples: Int = 0
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
-  
-  // Data for profiling.
-  var tracker: ProfilingTracker = .init()
-  var profileThisFrame: Bool = true
   
   // Data for uniform grids.
   var ringIndex: Int = 0
@@ -92,7 +54,7 @@ public class MRAccelBuilder {
     
     let constants = MTLFunctionConstantValues()
     var pattern4: UInt32 = 0
-    constants.setConstantValue(&pattern4, type: .uint, index: 10)
+    constants.setConstantValue(&pattern4, type: .uint, index: 1000)
     
     let memsetFunction = try! library.makeFunction(
       name: "memset_pattern4", constantValues: constants)
@@ -189,16 +151,10 @@ extension MRAccelBuilder {
 // Only call these methods once per frame.
 extension MRAccelBuilder {
   func updateResources() {
+    
     ringIndex = (ringIndex + 1) % 3
     
-    if profileThisFrame {
-      tracker.queuedSemaphores[ringIndex].wait()
-      tracker.update(ringIndex: ringIndex)
-      
-      let executionTime = tracker.minTime
-      let rmsAtomRadius = tracker.queuedRmsAtomRadii[ringIndex]
-//      print("\(Int(executionTime * 1e6)) µs, \(rmsAtomRadius) nm")
-    }
+    renderer.profiler.tracker.queuedSemaphores[ringIndex].wait()
     
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
@@ -222,7 +178,9 @@ extension MRAccelBuilder {
 
 fileprivate func denseGridStatistics(
   atoms: [MRAtom],
-  styles: [MRAtomStyle]
+  styles: [MRAtomStyle],
+  voxel_width_numer: Float,
+  voxel_width_denom: Float
 ) -> (boundingBox: MRBoundingBox, references: Int) {
   precondition(atoms.count > 0, "Not enough atoms.")
   precondition(styles.count > 0, "Not enough styles.")
@@ -328,8 +286,17 @@ extension MRAccelBuilder {
     return newBuffer
   }
   
-  func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
-    let statistics = denseGridStatistics(atoms: atoms, styles: styles)
+  func buildDenseGrid(
+    encoder: MTLComputeCommandEncoder,
+    pipelineConfig: PipelineConfig
+  ) {
+    let voxel_width_numer = pipelineConfig.voxelWidthNumer
+    let voxel_width_denom = pipelineConfig.voxelWidthDenom
+    let statistics = denseGridStatistics(
+      atoms: atoms,
+      styles: styles,
+      voxel_width_numer: voxel_width_numer,
+      voxel_width_denom: voxel_width_denom)
     
     let minCoordinates = SIMD3(statistics.boundingBox.min.x,
                                statistics.boundingBox.min.y,
@@ -386,8 +353,17 @@ extension MRAccelBuilder {
       MTLSizeMake(1, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(32, 1, 1))
     
-    var constants: UInt16 = UInt16(gridWidth)
-    encoder.setBytes(&constants, length: 2, index: 0)
+    struct UniformGridArguments {
+      var gridWidth: UInt16
+      var worldToVoxelTransform: Float
+    }
+    
+    var arguments: UniformGridArguments = .init(
+      gridWidth: UInt16(gridWidth),
+      worldToVoxelTransform: voxel_width_denom / voxel_width_numer)
+    let argumentsStride = MemoryLayout<UniformGridArguments>.stride
+    encoder.setBytes(&arguments, length: argumentsStride, index: 0)
+    
     styles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
@@ -414,14 +390,15 @@ extension MRAccelBuilder {
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  func addSamplingHandler(commandBuffer: MTLCommandBuffer) {
+  func addSamplingHandler(id: Int, commandBuffer: MTLCommandBuffer) {
     let sampleBuffer = sampleBuffers[ringIndex]
     let ringIndex = self.ringIndex
     let totalSamples = self.totalSamples
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let time = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-      tracker.queuedExecutionTimes[ringIndex] = time
+      renderer.profiler.tracker.queuedIDs[ringIndex] = id
+      renderer.profiler.tracker.queuedExecutionTimes[ringIndex] = time
       
       let contents = sampleBuffer.contents()
       let values = contents.assumingMemoryBound(to: Float.self)
@@ -433,12 +410,12 @@ extension MRAccelBuilder {
       }
       let valuesSum = sumBuffer(values)
       let countsSum = sumBuffer(counts)
-      let rmsAtomicRadius = sqrt(valuesSum / countsSum)
-      tracker.queuedValues[ringIndex] = valuesSum
-      tracker.queuedCounts[ringIndex] = countsSum
-      tracker.queuedRmsAtomRadii[ringIndex] = rmsAtomicRadius
+      let radius = sqrt(valuesSum / countsSum)
+      renderer.profiler.tracker.queuedValues[ringIndex] = valuesSum
+      renderer.profiler.tracker.queuedCounts[ringIndex] = countsSum
+      renderer.profiler.tracker.queuedRmsAtomRadii[ringIndex] = radius
       
-      tracker.queuedSemaphores[ringIndex].signal()
+      renderer.profiler.tracker.queuedSemaphores[ringIndex].signal()
     }
   }
   

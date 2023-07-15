@@ -14,7 +14,7 @@ using namespace metal;
 atomic_fetch_add_explicit(OBJECT, 1, memory_order_relaxed);
 
 #define BOX_GENERATE(EXTREMUM) \
-box.EXTREMUM *= voxel_width_denom / voxel_width_numer; \
+box.EXTREMUM *= args.world_to_voxel_transform; \
 box.EXTREMUM += h_grid_width * 0.5; \
 ushort3 box_##EXTREMUM; \
 {\
@@ -26,13 +26,14 @@ box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 #define BOX_LOOP(COORD) \
 for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
 
-struct uniform_grid_arguments {
+struct UniformGridArguments {
   ushort grid_width;
+  float world_to_voxel_transform;
 };
 
 // MARK: - Pass 1
 
-constant uint pattern4 [[function_constant(10)]];
+constant uint pattern4 [[function_constant(1000)]];
 
 kernel void memset_pattern4
 (
@@ -49,7 +50,7 @@ struct Box {
 
 kernel void dense_grid_pass1
 (
- constant uniform_grid_arguments &args [[buffer(0)]],
+ constant UniformGridArguments &args [[buffer(0)]],
  constant MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  device atomic_uint *dense_grid_data [[buffer(3)]],
@@ -83,7 +84,7 @@ kernel void dense_grid_pass1
 
 kernel void dense_grid_pass2
 (
- constant uniform_grid_arguments &args [[buffer(0)]],
+ constant UniformGridArguments &args [[buffer(0)]],
  device uint *dense_grid_data [[buffer(3)]],
  device uint *dense_grid_counters [[buffer(4)]],
  device atomic_uint *global_counter [[buffer(5)]],
@@ -143,7 +144,7 @@ kernel void dense_grid_pass2
 
 kernel void dense_grid_pass3
 (
- constant uniform_grid_arguments &args [[buffer(0)]],
+ constant UniformGridArguments &args [[buffer(0)]],
  constant MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  

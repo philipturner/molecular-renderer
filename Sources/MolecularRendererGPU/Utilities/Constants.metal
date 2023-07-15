@@ -24,8 +24,8 @@ constant uint SCREEN_HEIGHT [[function_constant(1)]];
 #define FAULT_COUNTERS_ENABLE 0
 
 // Voxel width in nm.
-constant float voxel_width_numer = 4;
-constant float voxel_width_denom = 9;
+constant float voxel_width_numer [[function_constant(10)]];
+constant float voxel_width_denom [[function_constant(11)]];
 
 // Max 8 million atoms/dense grid, including duplicated references.
 // Max 1 million atoms/dense grid, excluding duplicated references.

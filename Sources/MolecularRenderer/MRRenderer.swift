@@ -73,15 +73,13 @@ public class MRRenderer {
   // The time of this frame.
   var time: MRTimeContext!
   var renderIndex: Int = 0
-  var tracker: ResetTracker = .init()
+  var resetTracker: ResetTracker = .init()
+  var profiler: MRProfiler!
   
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
-  
-  // TODO: Create several ray tracing pipelines, one for each cell size.
-  var rayTracingPipeline: MTLComputePipelineState!
   var upscaler: MTLFXTemporalScaler!
   
   struct IntermediateTextures {
@@ -168,32 +166,8 @@ public class MRRenderer {
     
     let library = try! device.makeLibrary(URL: metallibURL)
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
-    self.initRayTracingPipeline(library: library)
+    self.profiler = MRProfiler(renderer: self, library: library)
     self.initUpscaler()
-  }
-  
-  func initRayTracingPipeline(library: MTLLibrary) {
-    // Initialize resolution and aspect ratio for rendering.
-    let constants = MTLFunctionConstantValues()
-    
-    // Actual texture width.
-    var screenWidth: UInt32 = .init(intermediateSize.x)
-    constants.setConstantValue(&screenWidth, type: .uint, index: 0)
-    
-    // Actual texture height.
-    var screenHeight: UInt32 = .init(intermediateSize.y)
-    constants.setConstantValue(&screenHeight, type: .uint, index: 1)
-    
-    var suppressSpecular: Bool = false
-    constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
-    
-    // Initialize the compute pipeline.
-    let function = try! library.makeFunction(
-      name: "renderMain", constantValues: constants)
-    let desc = MTLComputePipelineDescriptor()
-    desc.computeFunction = function
-    self.rayTracingPipeline = try! device
-      .makeComputePipelineState(descriptor: desc, options: [], reflection: nil)
   }
   
   func initUpscaler() {
@@ -268,11 +242,11 @@ extension MRRenderer {
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
   ) {
-    tracker.update(time: time)
+    resetTracker.update(time: time)
     
     // Bind the intermediate textures.
     let currentTextures = self.currentTextures
-    upscaler.reset = tracker.resetUpscaler
+    upscaler.reset = resetTracker.resetUpscaler
     upscaler.colorTexture = currentTextures.color
     upscaler.depthTexture = currentTextures.depth
     upscaler.motionTexture = currentTextures.motion
@@ -478,15 +452,17 @@ extension MRRenderer {
     }
     self.updateResources()
     self.accelBuilder.updateResources()
+    self.profiler.update(ringIndex: accelBuilder.ringIndex)
     
     // Command buffer shared between the geometry and rendering passes.
     var commandBuffer = commandQueue.makeCommandBuffer()!
     
     // Encode the geometry data.
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    accelBuilder.buildDenseGrid(encoder: encoder)
+    let pipeline = profiler.currentPipeline()
+    accelBuilder.buildDenseGrid(encoder: encoder, pipelineConfig: pipeline)
     
-    encoder.setComputePipelineState(rayTracingPipeline)
+    encoder.setComputePipelineState(pipeline.pipeline)
     accelBuilder.encodeGridArguments(encoder: encoder)
     accelBuilder.setGridWidth(arguments: &currentArguments!)
     
@@ -529,11 +505,10 @@ extension MRRenderer {
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
     encoder.endEncoding()
     
-    if accelBuilder.profileThisFrame {
-      accelBuilder.addSamplingHandler(commandBuffer: commandBuffer)
-      commandBuffer.commit()
-      commandBuffer = commandQueue.makeCommandBuffer()!
-    }
+    accelBuilder.addSamplingHandler(
+      id: profiler.currentID(), commandBuffer: commandBuffer)
+    commandBuffer.commit()
+    commandBuffer = commandQueue.makeCommandBuffer()!
     
     // Acquire a reference to the drawable.
     let drawable = layer.nextDrawable()!
