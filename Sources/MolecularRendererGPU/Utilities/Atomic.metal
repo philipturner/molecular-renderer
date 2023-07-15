@@ -17,4 +17,7 @@ atomic_compare_exchange_weak_explicit(OBJECT, EXPECTED, DESIRED, memory_order_re
 #define atomic_fetch_add(OBJECT, OPERAND) \
 atomic_fetch_add_explicit(OBJECT, OPERAND, memory_order_relaxed) \
 
+#define atomic_load(OBJECT) \
+atomic_load_explicit(OBJECT, memory_order_relaxed) \
+
 #endif

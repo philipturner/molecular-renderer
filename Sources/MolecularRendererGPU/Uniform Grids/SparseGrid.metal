@@ -34,11 +34,13 @@ struct SparseGridArguments {
   uint max_upper_voxels;
   uint max_references;
   ushort3 upper_dimensions;
+  ushort plane_size;
   
   // Lower voxel size before 2x upscaling.
   ushort lower_width;
   ushort high_res_lower_width;
 };
+
 
 kernel void sparse_grid_pass1
 (
@@ -46,10 +48,11 @@ kernel void sparse_grid_pass1
  constant MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
- device atomic_uint *upper_grid_size [[buffer(3)]], // start at 2
- device uint *upper_voxel_offsets [[buffer(4)]],
- device atomic_uint *upper_voxel_sizes [[buffer(5)]],
- device MRAtom *upper_voxel_atoms [[buffer(6)]],
+ device atomic_uint *total_upper_voxels [[buffer(3)]], // start at 2
+ device atomic_uint *upper_voxel_offsets [[buffer(4)]],
+ device MRAtom *upper_voxel_atoms [[buffer(5)]],
+ device ushort3 *low_res_coords [[buffer(6)]],
+ device ushort3 *high_res_coords [[buffer(7)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -75,9 +78,8 @@ kernel void sparse_grid_pass1
   ushort3 box_coords = box_min;
   while (permutation_id < 8) {
     uint address = box_coords.x + uint(args.upper_dimensions[0] * box_coords.y);
-    uint plane_size = args.upper_dimensions[0] * args.upper_dimensions[1];
-    address += plane_size * box_coords.z;
-    uint upper_voxel_id = upper_voxel_offsets[address];
+    address += args.plane_size * box_coords.z;
+    uint upper_voxel_id = atomic_load(upper_voxel_offsets + address);
     
     short3 camera_delta = short3(args.camera_upper_voxel - box_coords);
     int camera_distance_sq = camera_delta.x * camera_delta.x;
@@ -85,7 +87,7 @@ kernel void sparse_grid_pass1
     camera_distance_sq += camera_delta.z * camera_delta.z;
     
     bool is_close = uint(camera_distance_sq) < args.high_res_distance_sq;
-    ushort upper_voxel_duplicates = is_close ? 2 : 1;
+    ushort duplicates = is_close ? 2 : 1;
     
     FaultCounter counter(1000);
     auto object = (device atomic_uint*)(upper_voxel_offsets + address);
@@ -95,7 +97,19 @@ kernel void sparse_grid_pass1
       uint expected = 0;
       uint desired = 1;
       if (atomic_compare_exchange(object, &expected, desired)) {
-        address = atomic_fetch_add(upper_grid_size, upper_voxel_duplicates);
+        upper_voxel_id = atomic_fetch_add(total_upper_voxels, duplicates);
+        
+        // Increment the 'MTLDispatchThreadgroupsIndirectArguments' for the
+        // first command after this one.
+        uint low_res_tgid = atomic_fetch_add(total_upper_voxels + 4, 1);
+        low_res_coords[low_res_tgid] = box_coords;
+        
+        // Increment the 'MTLDispatchThreadgroupsIndirectArguments' for the
+        // second command after this one.
+        if (duplicates == 2) {
+          uint high_res_tgid = atomic_fetch_add(total_upper_voxels + 8, 1);
+          high_res_coords[high_res_tgid] = box_coords;
+        }
         
         FaultCounter counter(10);
         uint expected = 1;
@@ -115,7 +129,7 @@ kernel void sparse_grid_pass1
       atom_id >>= upper_voxel_id_bits;
       atom_id += uint(1 << upper_voxel_id_bits) * upper_voxel_id;
       
-      for (ushort i = 0; i < upper_voxel_duplicates; ++i) {
+      for (ushort i = 0; i < duplicates; ++i) {
         float scale = (i == 0) ? args.lower_width : args.high_res_lower_width;
         MRAtom scaled = atom;
         scaled.origin *= scale;
@@ -135,6 +149,36 @@ kernel void sparse_grid_pass1
   }
 }
 
-// TODO: In this shader, a loop with two iterations. The first does the default
-// spatial resolution. The second takes the higher resolution, if it exists and
-// you're close to the user.
+constant bool is_high_res [[function_constant(10001)]];
+
+kernel void sparse_grid_pass2
+(
+ constant SparseGridArguments &args [[buffer(0)]],
+ constant MRAtomStyle *styles [[buffer(1)]],
+ 
+ device atomic_uint *upper_voxel_offsets [[buffer(4)]],
+ device MRAtom *upper_voxel_atoms [[buffer(5)]],
+ device ushort3 *low_res_coords [[buffer(6)]],
+ device ushort3 *high_res_coords [[buffer(7)]],
+ 
+ threadgroup uint *threadgroup_block [[threadgroup(0)]],
+ uint tgid [[threadgroup_position_in_grid]],
+ ushort tg_size [[threads_per_threadgroup]],
+ ushort sidx [[simdgroup_index_in_threadgroup]],
+ ushort lid [[thread_position_in_threadgroup]])
+{
+  ushort3 voxel_coords;
+  if (is_high_res) {
+    voxel_coords = high_res_coords[tgid];
+  } else {
+    voxel_coords = low_res_coords[tgid];
+  }
+  ushort row_size = args.upper_dimensions[0];
+  uint address = voxel_coords.x + uint(row_size * voxel_coords.y);
+  address += args.plane_size * voxel_coords.z;
+  
+  
+}
+ 
+ 
+
