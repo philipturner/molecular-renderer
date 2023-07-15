@@ -85,6 +85,7 @@ class MRProfiler {
     //
     // - log the extended history, then another line, showing which were chosen
     // - also show the results (render time resulting from the choices)
+    // - able to turn off the autotuning (and just use 4/9) to benchmark in MFC.
     //
     // 0.262 -> 12...15
     // 0.235 -> 11...15
@@ -94,7 +95,8 @@ class MRProfiler {
 //    let denominators: [Float] = [8, 10, 12, 14, 16, 18, 20, 22]
 //    let denominators: [Float] = [8, 9, 10, 11, 12, 13, 14, 15, 16]
 //    let denominators: [Float] = [12, 13, 14, 15, 16, 17, 18]
-    let denominators: [Float] = [12, 14, 16, 18, 20, 22, 24]
+//    let denominators: [Float] = [10, 12, 14, 16, 18, 20, 22, 24]
+    let denominators: [Float] = [14, 16, 18, 20, 22]
     for var denominator in denominators {
       constants.setConstantValue(&denominator, type: .float, index: 11)
       
