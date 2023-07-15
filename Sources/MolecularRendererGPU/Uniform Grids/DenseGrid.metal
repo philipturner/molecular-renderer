@@ -6,11 +6,9 @@
 //
 
 #include <metal_stdlib>
+#include "../Utilities/Atomic.metal"
 #include "UniformGrid.metal"
 using namespace metal;
-
-#define ATOMIC_INCREMENT(OBJECT) \
-atomic_fetch_add_explicit(OBJECT, 1, memory_order_relaxed);
 
 #define DENSE_BOX_GENERATE(EXTREMUM) \
 box.EXTREMUM *= args.world_to_voxel_transform; \
@@ -60,7 +58,7 @@ kernel void dense_grid_pass1
     BOX_LOOP(y) {
       uint address_x = address_y;
       BOX_LOOP(x) {
-        ATOMIC_INCREMENT(dense_grid_data + address_x);
+        atomic_fetch_add(dense_grid_data + address_x, 1);
         address_x += VoxelAddress::increment_x(grid_width);
       }
       address_y += VoxelAddress::increment_y(grid_width);
@@ -157,7 +155,7 @@ kernel void dense_grid_pass3
     BOX_LOOP(y) {
       uint address_x = address_y;
       BOX_LOOP(x) {
-        uint offset = ATOMIC_INCREMENT(dense_grid_counters + address_x);
+        uint offset = atomic_fetch_add(dense_grid_counters + address_x, 1);
         if (offset < dense_grid_reference_capacity) {
           references[offset] = REFERENCE(tid);
         }

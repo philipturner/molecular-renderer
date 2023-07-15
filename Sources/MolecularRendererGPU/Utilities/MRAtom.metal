@@ -62,6 +62,16 @@ public:
     this->tailStorage = as_type<ushort2>(data.w)[1];
   }
   
+  void store(device MRAtom* address) {
+    float4 data {
+      origin.x,
+      origin.y,
+      origin.z,
+      as_type<float>(half2(radiusSquared, as_type<half>(tailStorage)))
+    };
+    *((device float4*)address) = data;
+  }
+  
   MRAtom(float3 origin,
          half radius,
          uchar element,
