@@ -114,6 +114,8 @@ kernel void renderMain
   device uint *dense_grid_data [[buffer(4)]],
   device REFERENCE *dense_grid_references [[buffer(5)]],
   
+  device float *profilingSamples [[buffer(6)]],
+  
   texture2d<half, access::write> color_texture [[texture(0)]],
   texture2d<float, access::write> depth_texture [[texture(1)]],
   texture2d<half, access::write> motion_texture [[texture(2)]],
@@ -136,11 +138,16 @@ kernel void renderMain
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayTracing::traverse(ray, grid, params);
   
+  // Initialize the profiling sample.
+  half sampleValue = 0;
+  half sampleSize = 0;
+  
   // Calculate ambient occlusion, diffuse, and specular terms.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
   if (intersect.accept) {
-    // NOTE: `hitPoint` and `normal` can be paged to a stack.
-    // NOTE: `normal` can be stored in half-precision.
+    sampleValue = quad_max(float(intersect.atom.radiusSquared));
+    sampleSize = 1;
+    
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
     half3 normal = half3(normalize(hitPoint - intersect.atom.origin));
     colorCtx.setDiffuseColor(intersect.atom, normal);
@@ -161,6 +168,16 @@ kernel void renderMain
         IntersectionParams params { true, args->maxRayHitTime, false };
         auto intersect = RayTracing::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);
+        
+        float atomRsq = 0;
+        if (intersect.accept) {
+          atomRsq = float(intersect.atom.radiusSquared);
+        }
+        atomRsq = quad_max(atomRsq);
+        if (atomRsq > 0) {
+          sampleValue += atomRsq;
+          sampleSize += 1;
+        }
       }
       colorCtx.finishAmbientContributions(samples);
     }
@@ -168,7 +185,7 @@ kernel void renderMain
     colorCtx.startLightContributions();
     for (ushort i = 0; i < args->numLights; ++i) {
       MRLight light(lights + i);
-      bool shadow = false;
+      half hitAtomRadiusSquared = 0;
       
       ushort cameraFlag = as_type<ushort>(light.diffusePower) & 0x1;
       if (cameraFlag) {
@@ -184,11 +201,17 @@ kernel void renderMain
         
         auto intersect = RayTracing::traverse(ray, grid, params);
         if (intersect.accept) {
-          shadow = true;
+          hitAtomRadiusSquared = intersect.atom.radiusSquared;
         }
       }
-      if (!shadow) {
+      if (hitAtomRadiusSquared == 0) {
         colorCtx.addLightContribution(hitPoint, normal, light);
+      }
+      
+      float atomRsq = quad_max(float(hitAtomRadiusSquared));
+      if (atomRsq > 0) {
+        sampleValue += atomRsq;
+        sampleSize += 1;
       }
     }
     colorCtx.applyContributions();
@@ -199,4 +222,21 @@ kernel void renderMain
     colorCtx.generateMotionVector(hitPoint);
   }
   colorCtx.write(color_texture, depth_texture, motion_texture);
+  
+  // Store the profiling sample.
+  float2 sample(sampleValue, sampleSize);
+  sample += simd_shuffle_xor(sample, 4);
+  sample += simd_shuffle_xor(sample, 8);
+  sample += simd_shuffle_xor(sample, 16);
+  
+  if (simd_is_first()) {
+    ushort2 coords = pixelCoords / ushort2(8, 4);
+    ushort sampleRows = (SCREEN_WIDTH + 7) / 8;
+    ushort sampleCols = (SCREEN_HEIGHT + 3) / 4;
+    uint valueIndex = uint(coords.y * sampleRows) + coords.x;
+    profilingSamples[valueIndex] = sample[0];
+    
+    uint countIndex = valueIndex + uint(sampleRows * sampleCols);
+    profilingSamples[countIndex] = sample[1];
+  }
 }

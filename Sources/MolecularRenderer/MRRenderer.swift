@@ -25,7 +25,7 @@ import func simd.distance_squared
 // - File: uses built-in image/video encoder, stores to a pre-defined URL
 
 @_alignment(16)
-internal struct Arguments {
+struct Arguments {
   var fovMultiplier: Float
   var positionX: Float
   var positionY: Float
@@ -48,7 +48,7 @@ internal struct Arguments {
 }
 
 // Track when to reset the MetalFX upscaler.
-internal struct ResetTracker {
+struct ResetTracker {
   var currentFrameID: Int = -1
   var resetUpscaler: Bool = false
   
@@ -79,6 +79,8 @@ public class MRRenderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
+  
+  // TODO: Create several ray tracing pipelines, one for each cell size.
   var rayTracingPipeline: MTLComputePipelineState!
   var upscaler: MTLFXTemporalScaler!
   
@@ -165,14 +167,9 @@ public class MRRenderer {
     self.lightsBuffer = device.makeBuffer(length: lightsBufferLength)!
     
     let library = try! device.makeLibrary(URL: metallibURL)
-    self.initAccelBuilder(library: library)
+    self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     self.initRayTracingPipeline(library: library)
     self.initUpscaler()
-  }
-  
-  func initAccelBuilder(library: MTLLibrary) {
-    self.accelBuilder = MRAccelBuilder(
-      device: device, commandQueue: commandQueue, library: library)
   }
   
   func initRayTracingPipeline(library: MTLLibrary) {
@@ -480,15 +477,10 @@ extension MRRenderer {
       self.time = nil
     }
     self.updateResources()
-    accelBuilder.build()
+    self.accelBuilder.updateResources()
     
     // Command buffer shared between the geometry and rendering passes.
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    // Acquire a reference to the drawable.
-    let drawable = layer.nextDrawable()!
-    precondition(drawable.texture.width == upscaledSize.x)
-    precondition(drawable.texture.height == upscaledSize.y)
+    var commandBuffer = commandQueue.makeCommandBuffer()!
     
     // Encode the geometry data.
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -537,10 +529,21 @@ extension MRRenderer {
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
     encoder.endEncoding()
     
+    if accelBuilder.profileThisFrame {
+      accelBuilder.addSamplingHandler(commandBuffer: commandBuffer)
+      commandBuffer.commit()
+      commandBuffer = commandQueue.makeCommandBuffer()!
+    }
+    
+    // Acquire a reference to the drawable.
+    let drawable = layer.nextDrawable()!
+    precondition(drawable.texture.width == upscaledSize.x)
+    precondition(drawable.texture.height == upscaledSize.y)
+    
     // Encode the upscaling pass.
     upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
     
-    // Present drawable and signal the semaphore.
+    // Present the drawable and signal the semaphore.
     commandBuffer.present(drawable)
     commandBuffer.addCompletedHandler(handler)
     commandBuffer.commit()

@@ -5,21 +5,63 @@
 //  Created by Philip Turner on 6/17/23.
 //
 
+import Accelerate
 import Metal
 import simd
+
+fileprivate let voxel_width_numer: Float = 4
+fileprivate let voxel_width_denom: Float = 9
+
+struct ProfilingTracker {
+  var queuedSemaphores: [DispatchSemaphore] = [
+    DispatchSemaphore(value: 1),
+    DispatchSemaphore(value: 1),
+    DispatchSemaphore(value: 1)
+  ]
+  var queuedExecutionTimes: SIMD3<Double> = SIMD3(-1, -1, -1)
+  var queuedRmsAtomRadii: SIMD3<Float> = SIMD3(-1, -1, -1)
+  var queuedValues: SIMD3<Float> = SIMD3(-1, -1, -1)
+  var queuedCounts: SIMD3<Float> = SIMD3(-1, -1, -1)
+  
+  var timesHistory: [Double] = []
+  var timesHistoryLength: Int = 60
+  var minTime: Double = 0
+  
+  mutating func update(ringIndex: Int) {
+    let time = queuedExecutionTimes[ringIndex]
+    if time != -1 {
+      timesHistory.append(time)
+    }
+    while timesHistory.count > timesHistoryLength {
+      timesHistory.removeFirst()
+    }
+    if timesHistory.count > 0 {
+      minTime = timesHistory.reduce(1, min)
+    } else {
+      minTime = 1
+    }
+  }
+}
 
 public class MRAccelBuilder {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
+  unowned var renderer: MRRenderer
   var atoms: [MRAtom] = []
   var styles: [MRAtomStyle] = []
   
-  // Triple buffer because the CPU writes to these.
-  var atomBuffers: [MTLBuffer?] = Array(repeating: nil, count: 3)
+  // Triple-buffer because the CPU accesses these.
+  var atomBuffers: [MTLBuffer?] = [nil, nil, nil]
+  var sampleBuffers: [MTLBuffer] = []
+  var totalSamples: Int = 0
+  var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
+  
+  // Data for profiling.
+  var tracker: ProfilingTracker = .init()
+  var profileThisFrame: Bool = true
   
   // Data for uniform grids.
-  var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
   var ringIndex: Int = 0
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
@@ -40,16 +82,13 @@ public class MRAccelBuilder {
   var maxGridReferences: Int = 1 << 1
   var gridWidth: Int = 0
   
-  // Indices into ring buffers of memory objects.
-  var atomBufferIndex: Int = 0 // modulo 3
-  
   public init(
-    device: MTLDevice,
-    commandQueue: MTLCommandQueue,
+    renderer: MRRenderer,
     library: MTLLibrary
   ) {
-    self.device = device
-    self.commandQueue = commandQueue
+    self.device = renderer.device
+    self.commandQueue = renderer.commandQueue
+    self.renderer = renderer
     
     let constants = MTLFunctionConstantValues()
     var pattern4: UInt32 = 0
@@ -73,6 +112,17 @@ public class MRAccelBuilder {
       .makeComputePipelineState(function: densePass3Function)
     
     self.globalCounterBuffer = device.makeBuffer(length: 4)!
+    
+    // The intermediate resolution never changes.
+    for _ in 0..<3 {
+      let numSimdsX = (renderer.intermediateSize.x + 7) / 8
+      let numSimdsY = (renderer.intermediateSize.y + 3) / 4
+      totalSamples = numSimdsX * numSimdsY
+      
+      let sampleBufferBytes = numSimdsX * numSimdsY * 8
+      let sampleBuffer = device.makeBuffer(length: sampleBufferBytes)!
+      sampleBuffers.append(sampleBuffer)
+    }
   }
 }
 
@@ -80,7 +130,7 @@ extension MRAccelBuilder {
   // The entire process of fetching, resizing, and nil-coalescing.
   func cycle(
     from buffers: inout [MTLBuffer?],
-    index: inout Int,
+    index: Int,
     currentSize: inout Int,
     desiredSize: Int,
     name: String
@@ -94,7 +144,7 @@ extension MRAccelBuilder {
       resource!.label = name
     }
     guard let resource else { fatalError("This should never happen.") }
-    append(resource, to: &buffers, index: &index)
+    append(resource, to: &buffers, index: index)
     return resource
   }
   
@@ -130,34 +180,42 @@ extension MRAccelBuilder {
   func append<T: MTLResource>(
     _ object: T,
     to buffers: inout [T?],
-    index: inout Int
+    index: Int
   ) {
     buffers[index] = object
-    index = (index + 1) % buffers.count
   }
 }
 
+// Only call these methods once per frame.
 extension MRAccelBuilder {
-  // Only call this once per frame.
-  internal func build() {
+  func updateResources() {
+    ringIndex = (ringIndex + 1) % 3
+    
+    if profileThisFrame {
+      tracker.queuedSemaphores[ringIndex].wait()
+      tracker.update(ringIndex: ringIndex)
+      
+      let executionTime = tracker.minTime
+      let rmsAtomRadius = tracker.queuedRmsAtomRadii[ringIndex]
+//      print("\(Int(executionTime * 1e6)) µs, \(rmsAtomRadius) nm")
+    }
+    
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
     let atomBufferSize = atoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
     let atomBuffer = cycle(
       from: &atomBuffers,
-      index: &atomBufferIndex,
+      index: ringIndex,
       currentSize: &maxAtomBufferSize,
       desiredSize: atomBufferSize,
       name: "Atoms")
     
     // Write the buffer's contents.
-    do {
-      let atomsPointer = atomBuffer.contents()
-        .assumingMemoryBound(to: MRAtom.self)
-      for (index, atom) in atoms.enumerated() {
-        atomsPointer[index] = atom
-      }
+    let atomsPointer = atomBuffer.contents()
+      .assumingMemoryBound(to: MRAtom.self)
+    for (index, atom) in atoms.enumerated() {
+      atomsPointer[index] = atom
     }
   }
 }
@@ -219,13 +277,13 @@ fileprivate func denseGridStatistics(
     maxCoordinates = simd_max(max1234, maxCoordinates)
   }
   
-  let cellWidth: Float = 4.0 / 9
   let epsilon: Float = 1e-4
   var references: Int = 0
   var maxRadius: Float = 0
   for i in 0..<styles.count {
     let radius = Float(styles[i].radius)
-    let cellSpan = 1 + ceil((2 * radius + epsilon) / cellWidth)
+    let cellSpan = 1 + ceil(
+      (2 * radius + epsilon) * voxel_width_denom / voxel_width_numer)
     let cellCube = cellSpan * cellSpan * cellSpan
     
     let instances = elementInstances[i]
@@ -270,7 +328,7 @@ extension MRAccelBuilder {
     return newBuffer
   }
   
-  internal func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
+  func buildDenseGrid(encoder: MTLComputeCommandEncoder) {
     let statistics = denseGridStatistics(atoms: atoms, styles: styles)
     
     let minCoordinates = SIMD3(statistics.boundingBox.min.x,
@@ -281,15 +339,14 @@ extension MRAccelBuilder {
                                statistics.boundingBox.max.z)
     let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
 
-    let cellWidth: Float = 4.0 / 9
-    self.gridWidth = max(Int(2 * ceil(maxMagnitude / cellWidth)), gridWidth)
+    self.gridWidth = max(Int(2 * ceil(
+      maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
     guard statistics.references < 8 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
     
     // Allocate new memory.
-    ringIndex = (ringIndex + 1) % 3
     let atomsBuffer = allocate(
       &denseGridAtoms[ringIndex],
       currentMaxElements: &maxAtoms,
@@ -357,15 +414,44 @@ extension MRAccelBuilder {
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
+  func addSamplingHandler(commandBuffer: MTLCommandBuffer) {
+    let sampleBuffer = sampleBuffers[ringIndex]
+    let ringIndex = self.ringIndex
+    let totalSamples = self.totalSamples
+    
+    commandBuffer.addCompletedHandler { [self] commandBuffer in
+      let time = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+      tracker.queuedExecutionTimes[ringIndex] = time
+      
+      let contents = sampleBuffer.contents()
+      let values = contents.assumingMemoryBound(to: Float.self)
+      let counts = values + totalSamples
+      
+      func sumBuffer(_ pointer: UnsafeMutablePointer<Float>) -> Float {
+        let buffer = UnsafeBufferPointer(start: pointer, count: totalSamples)
+        return vDSP.sum(buffer)
+      }
+      let valuesSum = sumBuffer(values)
+      let countsSum = sumBuffer(counts)
+      let rmsAtomicRadius = sqrt(valuesSum / countsSum)
+      tracker.queuedValues[ringIndex] = valuesSum
+      tracker.queuedCounts[ringIndex] = countsSum
+      tracker.queuedRmsAtomRadii[ringIndex] = rmsAtomicRadius
+      
+      tracker.queuedSemaphores[ringIndex].signal()
+    }
+  }
+  
   // Call this after encoding the grid construction.
-  internal func setGridWidth(arguments: inout Arguments) {
+  func setGridWidth(arguments: inout Arguments) {
     precondition(gridWidth > 0, "Forgot to encode the grid construction.")
     arguments.gridWidth = UInt16(self.gridWidth)
   }
   
-  internal func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
+  func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
     encoder.setBuffer(denseGridData!, offset: 0, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
+    encoder.setBuffer(sampleBuffers[ringIndex], offset: 0, index: 6)
   }
 }

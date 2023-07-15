@@ -28,7 +28,7 @@ public:
   
   static ushort2 makePixelID(ushort2 tgid, ushort2 lid) {
     ushort local_linear_id = lid.y * 8 + lid.x;
-    ushort new_y = (local_linear_id % 64 >= 32) ? 4 : 0;
+    ushort new_y = (local_linear_id >= 32) ? 4 : 0;
     ushort new_x = (local_linear_id % 32 >= 16) ? 4 : 0;
     new_y += (local_linear_id % 16 >= 8) ? 2 : 0;
     new_x += (local_linear_id % 8 >= 4) ? 2 : 0;
