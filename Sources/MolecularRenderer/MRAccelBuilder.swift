@@ -151,10 +151,9 @@ extension MRAccelBuilder {
 // Only call these methods once per frame.
 extension MRAccelBuilder {
   func updateResources() {
-    
     ringIndex = (ringIndex + 1) % 3
-    
-    renderer.profiler.tracker.queuedSemaphores[ringIndex].wait()
+    renderer.profiler.tracker.geometrySemaphores[ringIndex].wait()
+    renderer.profiler.tracker.renderSemaphores[ringIndex].wait()
     
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
@@ -390,7 +389,17 @@ extension MRAccelBuilder {
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  func addSamplingHandler(id: Int, commandBuffer: MTLCommandBuffer) {
+  func addGeometryHandler(commandBuffer: MTLCommandBuffer) {
+    let ringIndex = self.ringIndex
+    
+    commandBuffer.addCompletedHandler { [self] commandBuffer in
+      let time = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+      renderer.profiler.tracker.queuedGeometryTimes[ringIndex] = time
+      renderer.profiler.tracker.geometrySemaphores[ringIndex].signal()
+    }
+  }
+  
+  func addRenderHandler(id: Int, commandBuffer: MTLCommandBuffer) {
     let sampleBuffer = sampleBuffers[ringIndex]
     let ringIndex = self.ringIndex
     let totalSamples = self.totalSamples
@@ -398,7 +407,7 @@ extension MRAccelBuilder {
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let time = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
       renderer.profiler.tracker.queuedIDs[ringIndex] = id
-      renderer.profiler.tracker.queuedExecutionTimes[ringIndex] = time
+      renderer.profiler.tracker.queuedRenderTimes[ringIndex] = time
       
       let contents = sampleBuffer.contents()
       let values = contents.assumingMemoryBound(to: Float.self)
@@ -415,7 +424,7 @@ extension MRAccelBuilder {
       renderer.profiler.tracker.queuedCounts[ringIndex] = countsSum
       renderer.profiler.tracker.queuedRmsAtomRadii[ringIndex] = radius
       
-      renderer.profiler.tracker.queuedSemaphores[ringIndex].signal()
+      renderer.profiler.tracker.renderSemaphores[ringIndex].signal()
     }
   }
   

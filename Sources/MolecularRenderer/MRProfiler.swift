@@ -14,13 +14,19 @@ struct PipelineConfig {
 }
 
 struct ProfilingTracker {
-  var queuedSemaphores: [DispatchSemaphore] = [
+  var geometrySemaphores: [DispatchSemaphore] = [
+    DispatchSemaphore(value: 1),
+    DispatchSemaphore(value: 1),
+    DispatchSemaphore(value: 1),
+  ]
+  var renderSemaphores: [DispatchSemaphore] = [
     DispatchSemaphore(value: 1),
     DispatchSemaphore(value: 1),
     DispatchSemaphore(value: 1),
   ]
   var queuedIDs: SIMD3<Int> = SIMD3(repeating: -1)
-  var queuedExecutionTimes: SIMD3<Double> = SIMD3(repeating: -1)
+  var queuedGeometryTimes: SIMD3<Double> = SIMD3(repeating: -1)
+  var queuedRenderTimes: SIMD3<Double> = SIMD3(repeating: -1)
   var queuedRmsAtomRadii: SIMD3<Float> = SIMD3(repeating: -1)
   var queuedValues: SIMD3<Float> = SIMD3(repeating: -1)
   var queuedCounts: SIMD3<Float> = SIMD3(repeating: -1)
@@ -32,7 +38,7 @@ class MRProfiler {
   var tracker: ProfilingTracker
   
   var timesHistoryLength: Int
-  var times: [Int: [Double]]
+  var times: [Int: [SIMD2<Double>]]
   var radiiHistoryLength: Int
   var radii: [Float]
   
@@ -87,6 +93,11 @@ class MRProfiler {
     // - also show the results (render time resulting from the choices)
     // - able to turn off the autotuning (and just use 4/9) to benchmark in MFC.
     //
+    // Independently track speed of the geometry and render stages. Find a
+    // balance between the fastest size for rendering (up close) and the fastest
+    // size for geometry building (far away). Then use mixed block sizes once
+    // the grid is sparse.
+    //
     // 0.262 -> 12...15
     // 0.235 -> 11...15
     // 0.162 -> 14...18, 24
@@ -96,7 +107,8 @@ class MRProfiler {
 //    let denominators: [Float] = [8, 9, 10, 11, 12, 13, 14, 15, 16]
 //    let denominators: [Float] = [12, 13, 14, 15, 16, 17, 18]
 //    let denominators: [Float] = [10, 12, 14, 16, 18, 20, 22, 24]
-    let denominators: [Float] = [14, 16, 18, 20, 22]
+//    let denominators: [Float] = [14, 16, 18, 20, 22]
+    let denominators: [Float] = [8, 9, 10, 11, 12, 13]
     for var denominator in denominators {
       constants.setConstantValue(&denominator, type: .float, index: 11)
       
@@ -140,7 +152,9 @@ class MRProfiler {
     let count = tracker.queuedCounts[ringIndex]
     if id != -1 && count > 1 {
       var array = times[id]!
-      array.append(tracker.queuedExecutionTimes[ringIndex])
+      array.append(SIMD2(
+        tracker.queuedGeometryTimes[ringIndex],
+        tracker.queuedRenderTimes[ringIndex]))
       while array.count > timesHistoryLength {
         array.removeFirst()
       }
@@ -156,19 +170,23 @@ class MRProfiler {
   }
   
   func summary() -> String {
-    var minTimes = [Int](repeating: -1, count: pipelines.count)
+    var minTimes = [SIMD2<Int>](repeating: [-1, -1], count: pipelines.count)
     for i in 0..<pipelines.count {
       if let array = times[i] {
-        let minSeconds = array.reduce(1, min)
-        let minMicroseconds = Int(minSeconds * 1e6)
+        let minSeconds = array.reduce(SIMD2<Double>(1, 1)) {
+          return SIMD2(
+            min($0[0], $1[0]),
+            min($0[1], $1[1]))
+        }
+        let minMicroseconds = SIMD2<Int>(minSeconds * 1e6)
         minTimes[i] = minMicroseconds
       }
     }
-    if minTimes.contains(-1) || radii.count == 0 {
+    if minTimes.contains(SIMD2(-1, -1)) || radii.count == 0 {
       return ""
     } else {
       var reprs = minTimes.map {
-        String("\($0) µs")
+        String("\($0[0]) / \($0[1]) µs")
       }
       let averageRadius = radii.reduce(0, +) / Float(radii.count)
       reprs.append(String(format: "%.3f", averageRadius))

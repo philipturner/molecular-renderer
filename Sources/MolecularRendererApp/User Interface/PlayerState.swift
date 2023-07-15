@@ -8,8 +8,8 @@
 import Foundation
 import simd
 
-//fileprivate let defaultPlayerPosition: SIMD3<Float> = [0, 1.5, 0]
-fileprivate let defaultPlayerPosition: SIMD3<Float> = [0, 0, 0]
+fileprivate let defaultPlayerPosition: SIMD3<Float> = [0, 1.5, 0]
+//fileprivate let defaultPlayerPosition: SIMD3<Float> = [0, 0, 0]
 
 struct PlayerState {
   static let historyLength: Int = 3

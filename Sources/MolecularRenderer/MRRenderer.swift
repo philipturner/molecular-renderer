@@ -454,14 +454,18 @@ extension MRRenderer {
     self.accelBuilder.updateResources()
     self.profiler.update(ringIndex: accelBuilder.ringIndex)
     
-    // Command buffer shared between the geometry and rendering passes.
     var commandBuffer = commandQueue.makeCommandBuffer()!
     
-    // Encode the geometry data.
-    let encoder = commandBuffer.makeComputeCommandEncoder()!
+    var encoder = commandBuffer.makeComputeCommandEncoder()!
     let pipeline = profiler.currentPipeline()
     accelBuilder.buildDenseGrid(encoder: encoder, pipelineConfig: pipeline)
+    encoder.endEncoding()
     
+    accelBuilder.addGeometryHandler(commandBuffer: commandBuffer)
+    commandBuffer.commit()
+    commandBuffer = commandQueue.makeCommandBuffer()!
+    
+    encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(pipeline.pipeline)
     accelBuilder.encodeGridArguments(encoder: encoder)
     accelBuilder.setGridWidth(arguments: &currentArguments!)
@@ -505,7 +509,7 @@ extension MRRenderer {
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
     encoder.endEncoding()
     
-    accelBuilder.addSamplingHandler(
+    accelBuilder.addRenderHandler(
       id: profiler.currentID(), commandBuffer: commandBuffer)
     commandBuffer.commit()
     commandBuffer = commandQueue.makeCommandBuffer()!
