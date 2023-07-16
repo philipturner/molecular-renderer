@@ -232,8 +232,10 @@ kernel void sparse_grid_pass2
  device atom_reference *temp_references [[buffer(9)]],
  device atom_reference *final_references [[buffer(10)]],
  
- device vec<ushort, 8> *lower_voxel_scratch [[buffer(11)]],
- device uint *final_voxel_offsets [[buffer(12)]],
+ // Stored linearly at the 2x2x2 granularity, cubically at 1x1x1.
+ device uint *lower_cache_offsets [[buffer(11)]],
+ device vec<ushort, 8> *final_voxel_counts [[buffer(12)]],
+ device vec<uint, 8> *final_voxel_offsets [[buffer(13)]],
  
  uint tgid [[threadgroup_position_in_grid]],
  ushort sidx [[simdgroup_index_in_threadgroup]],
@@ -323,6 +325,7 @@ kernel void sparse_grid_pass2
     }
   }
   
+  // Clear the first counter.
   threadgroup_barrier(mem_flags::mem_threadgroup);
   if (sidx == 0) {
     uint group_offset = *counters;
@@ -423,37 +426,21 @@ kernel void sparse_grid_pass2
         next_offset = offset_mask & scratch[next_slot];
       }
       
-      uint is_occupied = (next_offset > offset);
-      uint reduced = simd_prefix_exclusive_sum(is_occupied);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuninitialized"
-      uint threadgroup_offset;
-      if (lane_id == 31) {
-        uint sum = reduced + is_occupied;
-        threadgroup_offset = atomic_fetch_add_(counters + 0, sum);
+      ushort sub_voxel_counts[2][2][2];
+#pragma clang loop unroll(full)
+      for (ushort i = 0; i < 2; ++i) {
+#pragma clang loop unroll(full)
+        for (ushort j = 0; j < 2; ++j) {
+#pragma clang loop unroll(full)
+          for (ushort k = 0; k < 2; ++k) {
+            sub_voxel_counts[i][j][k] = 0;
+          }
+        }
       }
-      reduced += simd_broadcast(threadgroup_offset, 31);
-#pragma clang diagnostic pop
       
       if (next_offset > offset) {
         offset += device_offset;
         next_offset += device_offset;
-        
-        reduced = 1 + ((reduced / 15) << 4);
-        uint operand = slot_id << offset_bits;
-        atomic_fetch_or_(scratch + reduced, operand);
-        
-        ushort sub_voxel_counts[2][2][2];
-#pragma clang loop unroll(full)
-        for (ushort i = 0; i < 2; ++i) {
-#pragma clang loop unroll(full)
-          for (ushort j = 0; j < 2; ++j) {
-#pragma clang loop unroll(full)
-            for (ushort k = 0; k < 2; ++k) {
-              sub_voxel_counts[i][j][k] = 0;
-            }
-          }
-        }
         
         for (; offset < next_offset; ++offset) {
           uint atom_id = voxel_offset + temp_references[offset];
@@ -488,20 +475,61 @@ kernel void sparse_grid_pass2
             }
           }
         }
-        
-        vec<ushort, 8> out;
+      }
+      
+      vec<ushort, 8> out;
 #pragma clang loop unroll(full)
-        for (ushort i = 0; i < 2; ++i) {
+      for (ushort i = 0; i < 2; ++i) {
 #pragma clang loop unroll(full)
-          for (ushort j = 0; j < 2; ++j) {
+        for (ushort j = 0; j < 2; ++j) {
 #pragma clang loop unroll(full)
-            for (ushort k = 0; k < 2; ++k) {
-              out[i * 4 + j * 2 + k] = sub_voxel_counts[i][j][k];
-            }
+          for (ushort k = 0; k < 2; ++k) {
+            out[i * 4 + j * 2 + k] = sub_voxel_counts[i][j][k];
           }
         }
+      }
+      
+      uint _out_sum;
+      {
+        uint2 temp(out[0], out[1]);
+        temp += uint2(out[2], out[3]);
+        temp += uint2(out[4], out[5]);
+        temp += uint2(out[6], out[7]);
+        _out_sum = temp[0] + temp[1];
+      }
+      
+      // WARNING: The code for the next 3 constant expressions is duplicated.
+      constexpr uint elements_per_cache_line = 128 / sizeof(atom_reference);
+      uint out_cache_lines = _out_sum + (elements_per_cache_line - 1);
+      out_cache_lines /= elements_per_cache_line;
+      
+      constexpr uint address_bits = 13;
+      constexpr uint address_mask = (1 << address_bits) - 1;
+      uint is_occupied = out_cache_lines > 0;
+      uint word = (out_cache_lines << address_bits) + is_occupied;
+      uint compacted_word = simd_prefix_exclusive_sum(word);
+      
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wuninitialized"
+      uint threadgroup_compacted;
+      if (lane_id == 31) {
+        uint sum = compacted_word + word;
+        threadgroup_compacted = atomic_fetch_add_(counters + 0, sum);
+      }
+      compacted_word += simd_broadcast(threadgroup_compacted, 31);
+#pragma clang diagnostic pop
+      
+      if (is_occupied) {
+        uint compacted_address = compacted_word & address_mask;
+        compacted_address = 1 + ((compacted_address / 15) << 4);
+        uint operand = slot_id << offset_bits;
+        atomic_fetch_or_(scratch + compacted_address, operand);
         
-        // Store the sub-voxel counts to memory as one giant 16-byte word.
+        // if the sum of `out_sum` is nonzero, write to memory.
+        uint cache_offset = compacted_word >> address_bits;
+        uint offset_offset = lower_offset_offset + slot_id;
+        lower_cache_offsets[offset_offset] = cache_offset;
+        final_voxel_counts[offset_offset] = out;
       }
     }
   }
@@ -529,6 +557,8 @@ kernel void sparse_grid_pass2
   // Generate the references, using an expensive atom-cell intersection test.
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   uint occupied_voxels = 1 + ((counters[0] / 15) << 4);
+  // TODO: Fetch extract "device_cache_offset" from counters[0].
+  // TODO: Add the group cache offset to the device cache offset.
   {
 //    ushort address = 15 * ((slot_id - 1) / 16);
 //    ushort plane_size = lower_width * lower_width;
