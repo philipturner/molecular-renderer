@@ -94,6 +94,9 @@ class MRProfiler {
     // affects the BVH construction cost less severely, and is also the one that
     // changes most rapidly (with the lowest-quality information).
     //
+    // TODO: Gather statistics about how many sector comparisons succeeded,
+    // don't vary the low-res size if the scene hasn't changed much.
+    //
     // 0.262 -> 12...15
     // 0.235 -> 11...15
     // 0.162 -> 14...18, 24

@@ -40,7 +40,7 @@ MRAtom {
   
   // Atomic number.
   uchar get_element() {
-    return tailStorage % 256;
+    return tailStorage % 128;
   }
   
   MRAtom() {

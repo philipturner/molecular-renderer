@@ -88,7 +88,7 @@ kernel void sparse_grid_pass1
  
  device atomic_uint *total_voxels [[buffer(3)]],
  device atomic_uint *upper_voxel_offsets [[buffer(4)]],
- device MRAtom *upper_voxel_atoms [[buffer(5)]],
+ device uint *upper_references [[buffer(5)]],
  device ushort4 *upper_voxel_coords [[buffer(6)]],
  device uint *lower_offset_offsets [[buffer(7)]],
  
@@ -165,22 +165,15 @@ kernel void sparse_grid_pass1
       atom_id >>= upper_voxel_id_bits;
       atom_id += upper_voxel_max_atoms * upper_voxel_id;
       
-#pragma clang loop unroll(full)
-      for (ushort i = 0; i < 2; ++i) {
-        if ((i == 0) || (i == 1 && duplicates == 2)) {
-          half scale = args.get_lower_scale(i == 1);
-          float3 origin = atom.origin * scale;
-          
-          // Store the radius for now; it will become the square radius later.
-          half worldSpaceRadius = atom.getRadius(styles);
-          half radius = float(worldSpaceRadius) * scale;
-          MRAtom scaled(origin, /*radiusSquared=*/radius, atom.tailStorage);
-          
-          if (i == 1) {
-            atom_id += upper_voxel_max_atoms;
-          }
-          scaled.store(upper_voxel_atoms + atom_id);
-        }
+      // TODO: Check whether the sector's resolution matches that of the
+      // current frame. Right now, we have no mechanism to check this.
+      //
+      // TODO: Compare against a sequence of 8-byte hashes, used as a direct
+      // substitute for equality checking. Right now, the map doesn't exist,
+      // so the flag is always off.
+      upper_references[atom_id] = tid;
+      if (duplicates == 2) {
+        upper_references[atom_id + upper_voxel_max_atoms] = tid;
       }
     }
     
@@ -218,29 +211,50 @@ _address_y += VoxelAddress::increment_y(WIDTH); \
 _address_z += VoxelAddress::increment_z(WIDTH); \
 } \
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wuninitialized"
 kernel void sparse_grid_pass2
 (
  constant SparseGridArguments &args [[buffer(0)]],
  device MRAtomStyle *styles [[buffer(1)]],
+ device MRAtom *atoms [[buffer(2)]],
  
  device uint *upper_voxel_offsets [[buffer(4)]],
- device MRAtom *upper_voxel_atoms [[buffer(5)]],
+ device uint *upper_references [[buffer(5)]],
  device ushort4 *upper_voxel_coords [[buffer(6)]],
  device uint *lower_offset_offsets [[buffer(7)]],
  
- device atomic_uint *total_references [[buffer(8)]],
- device atom_reference *temp_references [[buffer(9)]],
- device atom_reference *final_references [[buffer(10)]],
+ device MRAtom *upper_voxel_atoms [[buffer(8)]],
+ device atomic_uint *total_references [[buffer(9)]],
+ device atom_reference *lower_references [[buffer(10)]],
+ device atom_reference *final_references [[buffer(11)]],
  
- // Stored linearly at the 2x2x2 granularity, cubically at 1x1x1.
- device uint *lower_cache_offsets [[buffer(11)]],
- device vec<ushort, 8> *final_voxel_counts [[buffer(12)]],
- device vec<uint, 8> *final_voxel_offsets [[buffer(13)]],
+ // Stored linearly at a 2x2x2 granularity.
+ device uint *lower_cache_offsets [[buffer(12)]],
+ device vec<ushort, 8> *final_voxel_counts [[buffer(13)]],
+ device vec<uint, 8> *final_voxel_offsets [[buffer(14)]],
  
  uint tgid [[threadgroup_position_in_grid]],
  ushort sidx [[simdgroup_index_in_threadgroup]],
- ushort lid [[thread_position_in_threadgroup]])
+ ushort lid [[thread_position_in_threadgroup]],
+ ushort lane_id [[thread_index_in_simdgroup]])
 {
+  // TODO: Use persistent threadgroups, redistribute the work among them using
+  // device atomics. Keep the full-resolution atoms in a temporary cache, but
+  // store half-precision versions for rendering. Store the element ID
+  // separately for rendering.
+  
+  // Reserve the first bank for counters accessed very often.
+  // First zone: ceil_divide(roundup(width * width * width + 1, 32), 15) * 16
+  // Second zone: 17 counters
+  // Third zone: 47 slots of padding
+  constexpr ushort tg_size = 384;
+  constexpr ushort simds_per_group = tg_size / 32;
+  threadgroup uint _scratch[32768 / 4];
+  threadgroup uint* scratch = _scratch + tgid % 47;
+  ushort virtual_lid = 1 + (lid / 15) * 16;
+  ushort virtual_group_size = (tg_size / 15) * 16;
+  
   ushort4 raw_coords = upper_voxel_coords[2 + tgid];
   ushort3 voxel_coords = raw_coords.xyz;
   ushort row_size = args.upper_dimensions[0];
@@ -260,21 +274,11 @@ kernel void sparse_grid_pass2
   }
   voxel_offset *= upper_voxel_max_atoms;
   
-  // Reserve the first bank for counters accessed very often.
-  // First zone: ceil_divide(roundup(width * width * width + 1, 32), 15) * 16
-  // Second zone: 17 counters
-  // Third zone: 47 slots of padding
-  constexpr ushort tg_size = 384;
-  constexpr ushort simds_per_group = tg_size / 32;
-  threadgroup uint _scratch[32768 / 4];
-  threadgroup uint* scratch = _scratch + tgid % 47;
-  
-  ushort virtual_lid = 1 + (lid / 15) * 16;
-  ushort virtual_group_size = (tg_size / 15) * 16;
-  
   constexpr ushort NUM_MISC_SLOTS = 3;
   ushort lower_width = args.get_lower_width(is_high_res);
+  ushort max_coords = lower_width - 1;
   ushort num_voxel_slots = args.get_num_voxel_slots(is_high_res);
+  half scale = args.get_lower_scale(is_high_res);
   {
     ushort num_slots = num_voxel_slots + NUM_MISC_SLOTS;
     for (ushort i = 0; i < num_slots; i += tg_size) {
@@ -282,23 +286,37 @@ kernel void sparse_grid_pass2
     }
   }
   
+  // Check whether the equality succeeded.
+  {
+    
+  }
+  
   // Count the number of downscaled references.
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  {
-    uint atom_id = voxel_offset + lid;
+  if (false) {
+    // If equality succeeded, copy all the data from the last frame.
+    return;
+  } else {
+    // If not, perform scattered 16-byte memory transactions.
+    uint atom_offset = voxel_offset + lid;
     uint atom_end = voxel_offset + atom_count;
-    ushort max_coords = lower_width - 1;
+    float3 lower_voxel_origin = float(lower_width) * float3(voxel_coords);
     
-    for (; atom_id < atom_end; atom_id += tg_size) {
-      MRAtom atom(upper_voxel_atoms + atom_id);
-      half radius = atom.radiusSquared;
+    for (; atom_offset < atom_end; atom_offset += tg_size) {
+      uint atom_id = upper_references[atom_offset];
+      MRAtom atom(atoms + atom_id);
+      atom.origin = scale * atom.origin - lower_voxel_origin;
+      half radius = scale * atom.getRadius(styles);
       MRBoundingBox box { atom.origin - radius, atom.origin + radius };
       SPARSE_BOX_GENERATE
       
-      // TODO: Reorder loop iterations to reduce divergence.
       SPARSE_BOX_LOOP_START(lower_width);
       atomic_fetch_add_(scratch + slot_address, 1);
       SPARSE_BOX_LOOP_END(lower_width);
+      
+      atom.radiusSquared = 4 * radius * radius;
+      atom.origin *= 2;
+      atom.store(upper_voxel_atoms + atom_id);
     }
   }
   
@@ -307,20 +325,17 @@ kernel void sparse_grid_pass2
   auto counters = scratch + num_voxel_slots;
   threadgroup_barrier(mem_flags::mem_threadgroup);
   {
-    ushort lane_id = lid % 32;
     ushort slot_id = virtual_lid;
     for (; slot_id < num_voxel_slots; slot_id += virtual_group_size) {
       uint count = scratch[slot_id];
       uint reduced = simd_prefix_exclusive_sum(count);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuninitialized"
+
       uint threadgroup_offset;
       if (lane_id == 31) {
         uint sum = reduced + count;
-        threadgroup_offset = atomic_fetch_add_(counters + 0, sum);
+        threadgroup_offset = atomic_fetch_add_(counters + 16, sum);
       }
       reduced += simd_broadcast(threadgroup_offset, 31);
-#pragma clang diagnostic pop
       scratch[slot_id] = (count << offset_bits) | (reduced & offset_mask);
     }
   }
@@ -328,36 +343,39 @@ kernel void sparse_grid_pass2
   // Clear the first counter.
   threadgroup_barrier(mem_flags::mem_threadgroup);
   if (sidx == 0) {
-    uint group_offset = *counters;
-    uint device_offset = atomic_fetch_add(total_references + 0, group_offset);
-    ushort lane_id = lid % 32;
-    if (lane_id <= simds_per_group) {
-      counters[lane_id] = (lane_id == 0) ? 0 : device_offset;
+    uint group_offset = counters[16];
+    uint device_offset;
+    if (simd_is_first()) {
+      device_offset = atomic_fetch_add(total_references + 0, group_offset);
+    }
+    device_offset = simd_broadcast_first(device_offset);
+    if (lane_id < simds_per_group) {
+      counters[lane_id] = device_offset;
     }
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  uint device_offset = counters[1 + sidx];
+  uint device_offset = counters[sidx];
   {
     uint atom_id = voxel_offset + lid;
     uint atom_end = voxel_offset + atom_count;
-    ushort max_coords = lower_width - 1;
-    
     for (; atom_id < atom_end; atom_id += tg_size) {
       MRAtom atom(upper_voxel_atoms + atom_id);
-      half radius = atom.radiusSquared;
+      atom.origin /= 2;
+      half radius = atom.getRadius(styles);
       MRBoundingBox box { atom.origin - radius, atom.origin + radius };
       SPARSE_BOX_GENERATE
       
-      // TODO: Reorder loop iterations to reduce divergence.
       SPARSE_BOX_LOOP_START(lower_width);
       uint offset = atomic_fetch_add_(scratch + slot_address, 1);
       offset = offset & offset_mask;
       offset += device_offset;
       
       ushort value = atom_id & (upper_voxel_max_atoms - 1);
-      temp_references[offset] = value;
+      lower_references[offset] = value;
       SPARSE_BOX_LOOP_END(lower_width);
+      
+      // TODO: Write to a hash map.
     }
   }
   
@@ -372,25 +390,16 @@ kernel void sparse_grid_pass2
     }
   }
   
-  // TODO: -
-  //
-  // Perform a cheaper version of the upscaling pass, just to allocate memory
-  // for the respective voxels. Don't write any references or redistribute any
-  // work yet.
-  //
-  // Find the bounding box, then mark which cells it overlaps. Clamp the atom's
-  // bounding box to the 2x2x2 box covered by the current cell.
-  
   // Estimate the number of upscaled references.
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  constexpr uint elements_per_cache_line = 128 / sizeof(atom_reference);
+  constexpr uint address_bits = 13;
+  constexpr uint address_mask = (1 << address_bits) - 1;
   uint lower_offset_offset = lower_offset_offsets[2 + tgid];
   {
     ushort plane_size = lower_width * lower_width;
-    float3 lower_voxel_origin = 2 * float(lower_width) * float3(voxel_coords);
-    
     constexpr ushort3 block_span(4, 4, 2);
     ushort3 block_count = (lower_width + (block_span - 1)) / block_span;
-    ushort lane_id = lid % 32;
     ushort3 id_in_block(lane_id % 4, (lane_id % 16) / 4, lane_id / 16);
     
     ushort3 block_id(sidx, 0, 0);
@@ -437,23 +446,20 @@ kernel void sparse_grid_pass2
           }
         }
       }
-      
       if (next_offset > offset) {
         offset += device_offset;
         next_offset += device_offset;
         
         for (; offset < next_offset; ++offset) {
-          uint atom_id = voxel_offset + temp_references[offset];
+          uint atom_id = voxel_offset + lower_references[offset];
           MRAtom atom(upper_voxel_atoms + atom_id);
-          atom.origin = atom.origin * 2 - lower_voxel_origin;
-          
-          half radius = 2 * atom.radiusSquared;
+          half radius = 2 * scale * atom.getRadius(styles);
           MRBoundingBox box { atom.origin - radius, atom.origin + radius };
+          
           short3 s_min = short3(box.min) - short3(coords);
           short3 s_max = short3(box.max) - short3(coords);
           ushort3 box_min = ushort3(clamp(s_min, 0, 1));
           ushort3 box_max = ushort3(clamp(s_max, 0, 1));
-          
           if (box_min.z == 0) {
             if (box_min.y == 0) {
               if (box_min.x == 0) { sub_voxel_counts[0][0][0] += 1; }
@@ -488,7 +494,6 @@ kernel void sparse_grid_pass2
           }
         }
       }
-      
       uint _out_sum;
       {
         uint2 temp(out[0], out[1]);
@@ -498,26 +503,18 @@ kernel void sparse_grid_pass2
         _out_sum = temp[0] + temp[1];
       }
       
-      // WARNING: The code for the next 3 constant expressions is duplicated.
-      constexpr uint elements_per_cache_line = 128 / sizeof(atom_reference);
       uint out_cache_lines = _out_sum + (elements_per_cache_line - 1);
       out_cache_lines /= elements_per_cache_line;
-      
-      constexpr uint address_bits = 13;
-      constexpr uint address_mask = (1 << address_bits) - 1;
       uint is_occupied = out_cache_lines > 0;
       uint word = (out_cache_lines << address_bits) + is_occupied;
       uint compacted_word = simd_prefix_exclusive_sum(word);
       
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuninitialized"
       uint threadgroup_compacted;
       if (lane_id == 31) {
         uint sum = compacted_word + word;
-        threadgroup_compacted = atomic_fetch_add_(counters + 0, sum);
+        threadgroup_compacted = atomic_fetch_add_(counters + 16, sum);
       }
       compacted_word += simd_broadcast(threadgroup_compacted, 31);
-#pragma clang diagnostic pop
       
       if (is_occupied) {
         uint compacted_address = compacted_word & address_mask;
@@ -525,7 +522,6 @@ kernel void sparse_grid_pass2
         uint operand = slot_id << offset_bits;
         atomic_fetch_or_(scratch + compacted_address, operand);
         
-        // if the sum of `out_sum` is nonzero, write to memory.
         uint cache_offset = compacted_word >> address_bits;
         uint offset_offset = lower_offset_offset + slot_id;
         lower_cache_offsets[offset_offset] = cache_offset;
@@ -534,42 +530,37 @@ kernel void sparse_grid_pass2
     }
   }
   
-  // Transform the radii into square radii.
-  threadgroup_barrier(mem_flags::mem_device);
-  {
-    uint atom_id = voxel_offset + lid;
-    uint atom_end = voxel_offset + atom_count;
-    half scale = 2 * args.get_lower_scale(is_high_res);
-    
-    for (; atom_id < atom_end; atom_id += tg_size) {
-      MRAtom atom(upper_voxel_atoms + atom_id);
-      atom.origin = atom.origin * 2;
-      uint element = atom.get_element();
-      
-      auto style_base = (device half4*)(styles + element);
-      half actualRadius = style_base->w;
-      float radius = float(actualRadius) * float(scale);
-      atom.radiusSquared = radius * radius;
-      atom.store(upper_voxel_atoms + atom_id);
+  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  if (sidx == 0) {
+    uint compacted_word = counters[16];
+    uint group_offset = compacted_word >> address_bits;
+    uint device_offset;
+    if (simd_is_first()) {
+      device_offset = atomic_fetch_add(total_references + 4, group_offset);
+    }
+    device_offset = simd_broadcast_first(device_offset);
+    if (lane_id < simds_per_group) {
+      counters[lane_id] = device_offset;
     }
   }
   
   // Generate the references, using an expensive atom-cell intersection test.
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
-  uint occupied_voxels = 1 + ((counters[0] / 15) << 4);
+  uint occupied_voxels = counters[sidx] & address_mask;
   // TODO: Fetch extract "device_cache_offset" from counters[0].
   // TODO: Add the group cache offset to the device cache offset.
   {
-//    ushort address = 15 * ((slot_id - 1) / 16);
-//    ushort plane_size = lower_width * lower_width;
-//    ushort plane_id = address / plane_size;
-//    ushort remainder = address - plane_id * plane_size;
-//    ushort row_id = remainder / lower_width;
-//    ushort column_id = remainder - row_id * lower_width;
-//    float3 coords(column_id, row_id, plane_id);
-//    coords = coords * 2;
+    //    ushort address = 15 * ((slot_id - 1) / 16);
+    //    ushort plane_size = lower_width * lower_width;
+    //    ushort plane_id = address / plane_size;
+    //    ushort remainder = address - plane_id * plane_size;
+    //    ushort row_id = remainder / lower_width;
+    //    ushort column_id = remainder - row_id * lower_width;
+    //    float3 coords(column_id, row_id, plane_id);
+    //    coords = coords * 2;
     
     // https://stackoverflow.com/questions/4578967/c
     // TODO: Store cube in sphere-space, pre-compute S - C.
   }
 }
+#pragma clang diagnostic pop
