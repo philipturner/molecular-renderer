@@ -198,20 +198,31 @@ ushort _address_z = VoxelAddress::generate(WIDTH, box_min); \
 SPARSE_BOX_LOOP(z) { \
 ushort _address_y = _address_z; \
 SPARSE_BOX_LOOP(y) { \
-ushort _address_x = 1 + (ushort(_address_y / 15) << 4); \
+ushort _address_x = expand_15_16(_address_y); \
 SPARSE_BOX_LOOP(x) { \
 ushort slot_address = _address_x \
 
 #define SPARSE_BOX_LOOP_END(WIDTH) \
-_address_x += 1; \
-if (_address_x % 16 == 0) { \
-_address_x += 1; \
-}\
+_address_x = increment_15_16(_address_x); \
 } \
 _address_y += VoxelAddress::increment_y(WIDTH); \
 } \
 _address_z += VoxelAddress::increment_z(WIDTH); \
 } \
+
+METAL_FUNC ushort expand_15_16(ushort input) {
+  ushort quotient = input / 15;
+  ushort remainder = input - quotient * 15;
+  return 1 + remainder + (quotient << 4);
+}
+
+METAL_FUNC ushort increment_15_16(ushort input) {
+  uint next = input + 1;
+  if (next % 16 == 0) {
+    next += 1;
+  }
+  return next;
+}
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wuninitialized"
@@ -231,10 +242,10 @@ kernel void sparse_grid_pass2
  device atom_reference *lower_references [[buffer(10)]],
  device atom_reference *final_references [[buffer(11)]],
  
- // Stored linearly at a 2x2x2 granularity.
- device uint *lower_cache_offsets [[buffer(12)]],
- device vec<ushort, 8> *final_voxel_counts [[buffer(13)]],
- device vec<uint, 8> *final_voxel_offsets [[buffer(14)]],
+ device uint *upper_reference_offsets [[buffer(12)]],
+ device uint *lower_cache_offsets [[buffer(13)]],
+ device vec<ushort, 8> *final_prefix_counts [[buffer(14)]],
+ device uint *final_voxel_offsets [[buffer(15)]],
  
  uint tgid [[threadgroup_position_in_grid]],
  ushort sidx [[simdgroup_index_in_threadgroup]],
@@ -297,7 +308,7 @@ kernel void sparse_grid_pass2
   }
   
   // Reserve the first bank for counters accessed very often.
-  auto scratch = counters + 17;
+  auto scratch = counters + 15;
   ushort virtual_lid = 1 + (lid / 15) * 16;
   ushort virtual_group_size = (tg_size / 15) * 16;
   
@@ -350,17 +361,16 @@ kernel void sparse_grid_pass2
       uint threadgroup_offset;
       if (lane_id == 31) {
         uint sum = reduced + count;
-        threadgroup_offset = atomic_fetch_add_(counters + 16, sum);
+        threadgroup_offset = atomic_fetch_add_(counters + 15, sum);
       }
       reduced += simd_broadcast(threadgroup_offset, 31);
       scratch[slot_id] = (count << offset_bits) | (reduced & offset_mask);
     }
   }
   
-  // Clear the first counter.
   threadgroup_barrier(mem_flags::mem_threadgroup);
   if (sidx == 0) {
-    uint group_offset = counters[16];
+    uint group_offset = counters[15];
     uint device_offset;
     if (simd_is_first()) {
       device_offset = atomic_fetch_add(total_references + 0, group_offset);
@@ -369,11 +379,11 @@ kernel void sparse_grid_pass2
     if (lane_id < simds_per_group) {
       counters[lane_id] = device_offset;
     }
-    counters[16] = 0;
+    counters[15] = 0;
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  uint device_offset = counters[sidx];
+  uint device_lower_offset = counters[sidx];
   {
     uint atom_id = voxel_offset + lid;
     uint atom_end = voxel_offset + atom_count;
@@ -387,7 +397,7 @@ kernel void sparse_grid_pass2
       SPARSE_BOX_LOOP_START(lower_width);
       uint offset = atomic_fetch_add_(scratch + slot_address, 1);
       offset = offset & offset_mask;
-      offset += device_offset;
+      offset += device_lower_offset;
       
       ushort value = atom_id & (upper_voxel_max_atoms - 1);
       lower_references[offset] = value;
@@ -440,7 +450,7 @@ kernel void sparse_grid_pass2
       ushort3 coords = block_id * block_count + id_in_block;
       ushort address = coords.x + coords.y * lower_width;
       address += coords.z * plane_size;
-      ushort slot_id = 1 + ((address / 15) << 4);
+      ushort slot_id = expand_15_16(address);
       
       uint offset = 0;
       uint next_offset = 0;
@@ -465,8 +475,8 @@ kernel void sparse_grid_pass2
         }
       }
       if (next_offset > offset) {
-        offset += device_offset;
-        next_offset += device_offset;
+        offset += device_lower_offset;
+        next_offset += device_lower_offset;
         
         for (; offset < next_offset; ++offset) {
           uint atom_id = voxel_offset + lower_references[offset];
@@ -514,11 +524,20 @@ kernel void sparse_grid_pass2
       }
       uint _out_sum;
       {
-        uint2 temp(out[0], out[1]);
-        temp += uint2(out[2], out[3]);
-        temp += uint2(out[4], out[5]);
-        temp += uint2(out[6], out[7]);
-        _out_sum = temp[0] + temp[1];
+  #pragma clang loop unroll(full)
+        for (ushort i = 0; i < 8; i += 2) {
+          out[i + 1] += out[i];
+        }
+#pragma clang loop unroll(full)
+        for (ushort i = 0; i < 8; i += 4) {
+          out[i + 2] += out[i];
+          out[i + 3] += out[i];
+        }
+#pragma clang loop unroll(full)
+        for (ushort i = 4; i < 8; i += 1) {
+          out[i] += out[0];
+        }
+        _out_sum = out[7];
       }
       
       uint out_cache_lines = _out_sum + (elements_per_cache_line - 1);
@@ -530,55 +549,118 @@ kernel void sparse_grid_pass2
       uint threadgroup_compacted;
       if (lane_id == 31) {
         uint sum = compacted_word + word;
-        threadgroup_compacted = atomic_fetch_add_(counters + 16, sum);
+        threadgroup_compacted = atomic_fetch_add_(counters + 15, sum);
       }
       compacted_word += simd_broadcast(threadgroup_compacted, 31);
       
       if (is_occupied) {
         uint compacted_address = compacted_word & address_mask;
-        compacted_address = 1 + ((compacted_address / 15) << 4);
+        compacted_address = expand_15_16(compacted_address);
         uint operand = slot_id << offset_bits;
         atomic_fetch_or_(scratch + compacted_address, operand);
         
         uint cache_offset = compacted_word >> address_bits;
         uint offset_offset = lower_offset_offset + slot_id;
         lower_cache_offsets[offset_offset] = cache_offset;
-        final_voxel_counts[offset_offset] = out;
+        final_prefix_counts[offset_offset] = out;
       }
     }
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
   if (sidx == 0) {
-    uint compacted_word = counters[16];
+    uint compacted_word = counters[15];
     uint group_offset = compacted_word >> address_bits;
     uint device_offset;
     if (simd_is_first()) {
       device_offset = atomic_fetch_add(total_references + 4, group_offset);
     }
     device_offset = simd_broadcast_first(device_offset);
+    uint ref_offset = device_offset * elements_per_cache_line;
+    upper_reference_offsets[2 + tgid] = ref_offset;
+    
+    group_offset = group_offset & address_mask;
+    group_offset |= (device_offset << address_bits);
     if (lane_id < simds_per_group) {
-      counters[lane_id] = device_offset;
+      counters[lane_id] = group_offset;
     }
   }
   
   // Generate the references, using an expensive atom-cell intersection test.
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  uint counter_value = counters[sidx];
   uint occupied_voxels = counters[sidx] & address_mask;
-  // TODO: Fetch extract "device_cache_offset" from counters[0].
-  // TODO: Add the group cache offset to the device cache offset.
+  uint device_cache_offset = counter_value >> address_bits;
   {
-    //    ushort address = 15 * ((slot_id - 1) / 16);
-    //    ushort plane_size = lower_width * lower_width;
-    //    ushort plane_id = address / plane_size;
-    //    ushort remainder = address - plane_id * plane_size;
-    //    ushort row_id = remainder / lower_width;
-    //    ushort column_id = remainder - row_id * lower_width;
-    //    float3 coords(column_id, row_id, plane_id);
-    //    coords = coords * 2;
-    
-    // https://stackoverflow.com/questions/4578967/c
-    // TODO: Store cube in sphere-space, pre-compute S - C.
+    ushort lower_voxel_id = lid;
+    for (; lower_voxel_id < occupied_voxels; ++lower_voxel_id) {
+      uint ref_slot_value = scratch[expand_15_16(lower_voxel_id)];
+      uint slot_address = ref_slot_value >> offset_bits;
+      uint slot_id = expand_15_16(slot_address);
+      
+      // Recover the final offset.
+      uint offset_offset = lower_offset_offset + slot_id;
+      uint cache_offset = lower_cache_offsets[offset_offset];
+      cache_offset += device_cache_offset;
+      uint final_refs_offset = cache_offset * elements_per_cache_line;
+      
+      // Recover the lower offset.
+      uint lower_offset = scratch[slot_id];
+      uint next_lower_offset = scratch[increment_15_16(slot_id + 1)];
+      lower_offset &= offset_mask;
+      next_lower_offset &= offset_mask;
+      lower_offset += device_lower_offset;
+      next_lower_offset += device_lower_offset;
+      
+      // Recover the coordinates.
+      ushort address = 15 * ((slot_id - 1) / 16);
+      ushort plane_size = lower_width * lower_width;
+      ushort plane_id = address / plane_size;
+      ushort remainder = address - plane_id * plane_size;
+      ushort row_id = remainder / lower_width;
+      ushort column_id = remainder - row_id * lower_width;
+      ushort3 i_coords(column_id, row_id, plane_id);
+      i_coords *= 2;
+      float3 f_coords = float3(i_coords);
+      
+      // Each time something tests positive, increment the cursor.
+      auto allocated = final_prefix_counts[offset_offset];
+      ushort first = allocated[0];
+#pragma clang loop unroll(full)
+      for (ushort i = 0; i < 8; i += 2) {
+        allocated[i] -= first;
+      }
+      auto final_offsets = final_refs_offset + vec<uint, 8>(allocated);
+      auto cursors = final_offsets;
+      
+      for (; lower_offset < next_lower_offset; ++lower_offset) {
+        uint atom_id = voxel_offset + lower_references[lower_offset];
+        
+        // https://stackoverflow.com/questions/4578967/c
+        // TODO: Store cube in sphere-space, pre-compute S - C.
+      }
+      
+      vec<uint, 8> counts = cursors - final_offsets;
+      final_offsets -= device_cache_offset * elements_per_cache_line;
+      final_offsets &= voxel_offset_mask;
+      final_offsets |= vec<uint, 8>(counts) * dense_grid_reference_capacity;
+      
+      uint base_offset_offset = lower_offset_offset * 8;
+#pragma clang loop unroll(full)
+      for (uint z = 0; z < 2; ++z) {
+#pragma clang loop unroll(full)
+        for (uint y = 0; y < 2; ++y) {
+#pragma clang loop unroll(full)
+          for (uint x = 0; x < 2; ++x) {
+            ushort3 coords = i_coords + ushort3(x, y, z);
+            uint address = VoxelAddress::generate(2 * lower_width, coords);
+            uint final_offset_offset = base_offset_offset + address;
+            uint final_offset = final_offsets[z * 4 + y * 2 + x];
+            final_voxel_offsets[final_offset_offset] = final_offset;
+          }
+        }
+      }
+    }
   }
 }
 #pragma clang diagnostic pop
