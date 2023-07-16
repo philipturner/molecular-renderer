@@ -484,9 +484,9 @@
 			children = (
 				98537EB62A63107F0037C392 /* Atomic.metal */,
 				988B257D2A1AC482007F18C1 /* Constants.metal */,
+				98537EB42A62FD230037C392 /* FaultCounter.metal */,
 				98537EB22A62EA940037C392 /* Memory.metal */,
 				98122D7029DFBDE6006200D1 /* MRAtom.metal */,
-				98537EB42A62FD230037C392 /* FaultCounter.metal */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
