@@ -35,19 +35,12 @@ MRAtom {
   // Radius in nm.
   half radiusSquared;
   
-private:
+  // Flags to modify how the atom is rendered.
   ushort tailStorage;
-  
-public:
   
   // Atomic number.
   uchar get_element() {
     return tailStorage % 256;
-  }
-  
-  // Flags to modify how the atom is rendered.
-  ushort get_flags() {
-    return tailStorage;
   }
   
   MRAtom() {
@@ -80,6 +73,15 @@ public:
     this->origin = origin;
     this->radiusSquared = radius * radius;
     this->tailStorage = as_type<ushort>(uchar2(element, flags));
+  }
+  
+  MRAtom(float3 origin,
+         half radiusSquared,
+         ushort tailStorage)
+  {
+    this->origin = origin;
+    this->radiusSquared = radiusSquared;
+    this->tailStorage = tailStorage;
   }
   
   half getRadius(device MRAtomStyle* styles) {

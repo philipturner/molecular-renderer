@@ -89,18 +89,10 @@ class MRProfiler {
     //   - if a cell size has the maximum in the most recent plane of the
     //     history, it cannot be a "best"
     //
-    // - log the extended history, then another line, showing which were chosen
-    // - also show the results (render time resulting from the choices)
-    // - able to turn off the autotuning (and just use 4/9) to benchmark in MFC.
-    //
-    // Independently track speed of the geometry and render stages. Find a
-    // balance between the fastest size for rendering (up close) and the fastest
-    // size for geometry building (far away). Then use mixed block sizes once
-    // the grid is sparse.
-    //
-    // Use atomics to generate a grid at 1/2 the spatial resolution as the ideal
-    // rendering size (using threadgroup memory atomics). Then, use something
-    // compute-intensive to upscale to the full resolution.
+    // Track a global variable for the low-res cell size, which affects areas
+    // that aren't quite as volatile to user movement. The high-res cell size
+    // affects the BVH construction cost less severely, and is also the one that
+    // changes most rapidly (with the lowest-quality information).
     //
     // 0.262 -> 12...15
     // 0.235 -> 11...15

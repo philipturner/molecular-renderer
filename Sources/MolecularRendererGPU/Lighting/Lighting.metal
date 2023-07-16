@@ -45,7 +45,7 @@ public:
   }
   
   void setDiffuseColor(MRAtom atom, half3 normal) {
-    if (atom.get_flags() & 0x200) {
+    if (atom.tailStorage & 0x200) {
       // Replace the diffuse color with black.
       diffuseColor = { 0.000, 0.000, 0.000 };
     } else {
@@ -53,7 +53,7 @@ public:
     }
     
     // Apply checkerboard to tagged atoms.
-    if (atom.get_flags() & 0x100) {
+    if (atom.tailStorage & 0x100) {
       // Determine whether the axes are positive.
       bool3 axes_pos(normal > 0);
       bool is_magenta = axes_pos.x ^ axes_pos.y ^ axes_pos.z;

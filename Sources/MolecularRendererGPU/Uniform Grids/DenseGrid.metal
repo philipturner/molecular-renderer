@@ -20,7 +20,7 @@ s_##EXTREMUM = clamp(s_##EXTREMUM, 0, grid_width); \
 box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 }\
 
-#define BOX_LOOP(COORD) \
+#define DENSE_BOX_LOOP(COORD) \
 for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
 
 struct Box {
@@ -53,11 +53,11 @@ kernel void dense_grid_pass1
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_width, box_min);
-  BOX_LOOP(z) {
+  DENSE_BOX_LOOP(z) {
     uint address_y = address_z;
-    BOX_LOOP(y) {
+    DENSE_BOX_LOOP(y) {
       uint address_x = address_y;
-      BOX_LOOP(x) {
+      DENSE_BOX_LOOP(x) {
         atomic_fetch_add(dense_grid_data + address_x, 1);
         address_x += VoxelAddress::increment_x(grid_width);
       }
@@ -150,11 +150,11 @@ kernel void dense_grid_pass3
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_width, box_min);
-  BOX_LOOP(z) {
+  DENSE_BOX_LOOP(z) {
     uint address_y = address_z;
-    BOX_LOOP(y) {
+    DENSE_BOX_LOOP(y) {
       uint address_x = address_y;
-      BOX_LOOP(x) {
+      DENSE_BOX_LOOP(x) {
         uint offset = atomic_fetch_add(dense_grid_counters + address_x, 1);
         if (offset < dense_grid_reference_capacity) {
           references[offset] = REFERENCE(tid);
