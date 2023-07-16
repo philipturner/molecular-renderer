@@ -25,6 +25,7 @@ constant uint upper_voxel_atoms_bits = 14;
 constant uint upper_voxel_id_bits = 32 - upper_voxel_atoms_bits;
 constant uint upper_voxel_id_mask = (1 << upper_voxel_id_bits) - 1;
 constant uint upper_voxel_max_atoms = 1 << upper_voxel_atoms_bits;
+constant uint equality_mask = 0x80000000;
 
 // TODO: Profile whether 16-bit or 32-bit is faster.
 typedef ushort atom_reference;
@@ -171,9 +172,10 @@ kernel void sparse_grid_pass1
       // TODO: Compare against a sequence of 8-byte hashes, used as a direct
       // substitute for equality checking. Right now, the map doesn't exist,
       // so the flag is always off.
-      upper_references[atom_id] = tid;
+      uint reference = tid | (false ? equality_mask : 0);
+      upper_references[atom_id] = reference;
       if (duplicates == 2) {
-        upper_references[atom_id + upper_voxel_max_atoms] = tid;
+        upper_references[atom_id + upper_voxel_max_atoms] = reference;
       }
     }
     
@@ -239,21 +241,9 @@ kernel void sparse_grid_pass2
  ushort lid [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]])
 {
-  // TODO: Use persistent threadgroups, redistribute the work among them using
-  // device atomics. Keep the full-resolution atoms in a temporary cache, but
-  // store half-precision versions for rendering. Store the element ID
-  // separately for rendering.
-  
-  // Reserve the first bank for counters accessed very often.
-  // First zone: ceil_divide(roundup(width * width * width + 1, 32), 15) * 16
-  // Second zone: 17 counters
-  // Third zone: 47 slots of padding
   constexpr ushort tg_size = 384;
   constexpr ushort simds_per_group = tg_size / 32;
   threadgroup uint _scratch[32768 / 4];
-  threadgroup uint* scratch = _scratch + tgid % 47;
-  ushort virtual_lid = 1 + (lid / 15) * 16;
-  ushort virtual_group_size = (tg_size / 15) * 16;
   
   ushort4 raw_coords = upper_voxel_coords[2 + tgid];
   ushort3 voxel_coords = raw_coords.xyz;
@@ -274,11 +264,48 @@ kernel void sparse_grid_pass2
   }
   voxel_offset *= upper_voxel_max_atoms;
   
+  // Check whether the equality succeeded.
+  auto counters = _scratch + tgid % 47;
+  {
+    uint atom_offset = voxel_offset + lid;
+    uint atom_end = voxel_offset + atom_count;
+    uint references_mask = 0xFFFFFFFF;
+    
+    for (; atom_offset < atom_end; atom_offset += tg_size) {
+      references_mask &= upper_references[atom_offset];
+    }
+    counters[sidx] = simd_and(references_mask);
+  }
+  
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  if (sidx == 0 && lane_id < simds_per_group) {
+    uint references_mask = counters[lane_id];
+    references_mask = simd_and(references_mask);
+    uint succeeded = (references_mask >= equality_mask) ? 1 : 0;
+    counters[lane_id] = succeeded;
+  }
+  
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  uint equality_succeeded = counters[sidx];
+  if (equality_succeeded) {
+    uint atom_offset = voxel_offset + lid;
+    uint atom_end = voxel_offset + atom_count;
+    for (; atom_offset < atom_end; atom_offset += tg_size) {
+      // Copy the data from last frame.
+    }
+    return;
+  }
+  
+  // Reserve the first bank for counters accessed very often.
+  auto scratch = counters + 17;
+  ushort virtual_lid = 1 + (lid / 15) * 16;
+  ushort virtual_group_size = (tg_size / 15) * 16;
+  
   constexpr ushort NUM_MISC_SLOTS = 3;
   ushort lower_width = args.get_lower_width(is_high_res);
   ushort max_coords = lower_width - 1;
-  ushort num_voxel_slots = args.get_num_voxel_slots(is_high_res);
   half scale = args.get_lower_scale(is_high_res);
+  ushort num_voxel_slots = args.get_num_voxel_slots(is_high_res);
   {
     ushort num_slots = num_voxel_slots + NUM_MISC_SLOTS;
     for (ushort i = 0; i < num_slots; i += tg_size) {
@@ -286,18 +313,9 @@ kernel void sparse_grid_pass2
     }
   }
   
-  // Check whether the equality succeeded.
-  {
-    
-  }
-  
   // Count the number of downscaled references.
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  if (false) {
-    // If equality succeeded, copy all the data from the last frame.
-    return;
-  } else {
-    // If not, perform scattered 16-byte memory transactions.
+  {
     uint atom_offset = voxel_offset + lid;
     uint atom_end = voxel_offset + atom_count;
     float3 lower_voxel_origin = float(lower_width) * float3(voxel_coords);
@@ -322,7 +340,6 @@ kernel void sparse_grid_pass2
   
   constexpr uint offset_bits = 4 + upper_voxel_atoms_bits;
   constexpr uint offset_mask = (1 << offset_bits) - 1;
-  auto counters = scratch + num_voxel_slots;
   threadgroup_barrier(mem_flags::mem_threadgroup);
   {
     ushort slot_id = virtual_lid;
@@ -352,6 +369,7 @@ kernel void sparse_grid_pass2
     if (lane_id < simds_per_group) {
       counters[lane_id] = device_offset;
     }
+    counters[16] = 0;
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -530,7 +548,7 @@ kernel void sparse_grid_pass2
     }
   }
   
-  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   if (sidx == 0) {
     uint compacted_word = counters[16];
     uint group_offset = compacted_word >> address_bits;
