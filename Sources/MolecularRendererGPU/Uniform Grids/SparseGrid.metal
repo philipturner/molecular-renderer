@@ -535,9 +535,15 @@ kernel void sparse_grid_pass2
         }
 #pragma clang loop unroll(full)
         for (ushort i = 4; i < 8; i += 1) {
-          out[i] += out[0];
+          out[i] += out[4];
         }
         _out_sum = out[7];
+        
+        ushort out_0 = out[0];
+#pragma clang loop unroll(full)
+        for (ushort i = 0; i < 8; i += 1) {
+          out[i] -= out_0;
+        }
       }
       
       uint out_cache_lines = _out_sum + (elements_per_cache_line - 1);
@@ -598,11 +604,16 @@ kernel void sparse_grid_pass2
       uint slot_address = ref_slot_value >> offset_bits;
       uint slot_id = expand_15_16(slot_address);
       
-      // Recover the final offset.
-      uint offset_offset = lower_offset_offset + slot_id;
-      uint cache_offset = lower_cache_offsets[offset_offset];
-      cache_offset += device_cache_offset;
-      uint final_refs_offset = cache_offset * elements_per_cache_line;
+      // Recover the coordinates.
+      ushort address = 15 * ((slot_id - 1) / 16);
+      ushort plane_size = lower_width * lower_width;
+      ushort plane_id = address / plane_size;
+      ushort remainder = address - plane_id * plane_size;
+      ushort row_id = remainder / lower_width;
+      ushort column_id = remainder - row_id * lower_width;
+      ushort3 coords(column_id, row_id, plane_id);
+      coords *= 2;
+      half3 box_min = half3(coords);
       
       // Recover the lower offset.
       uint lower_offset = scratch[slot_id];
@@ -612,35 +623,97 @@ kernel void sparse_grid_pass2
       lower_offset += device_lower_offset;
       next_lower_offset += device_lower_offset;
       
-      // Recover the coordinates.
-      ushort address = 15 * ((slot_id - 1) / 16);
-      ushort plane_size = lower_width * lower_width;
-      ushort plane_id = address / plane_size;
-      ushort remainder = address - plane_id * plane_size;
-      ushort row_id = remainder / lower_width;
-      ushort column_id = remainder - row_id * lower_width;
-      ushort3 i_coords(column_id, row_id, plane_id);
-      i_coords *= 2;
-      float3 f_coords = float3(i_coords);
+      // Recover the final offset.
+      uint offset_offset = lower_offset_offset + slot_id;
+      uint cache_offset = lower_cache_offsets[offset_offset];
+      cache_offset += device_cache_offset;
+      uint final_refs_offset = cache_offset * elements_per_cache_line;
+      auto prefix1 = final_prefix_counts[offset_offset];
+      auto cursors = final_refs_offset + vec<uint, 8>(prefix1);
       
-      // Each time something tests positive, increment the cursor.
-      auto allocated = final_prefix_counts[offset_offset];
-      ushort first = allocated[0];
-#pragma clang loop unroll(full)
-      for (ushort i = 0; i < 8; i += 2) {
-        allocated[i] -= first;
-      }
-      auto final_offsets = final_refs_offset + vec<uint, 8>(allocated);
-      auto cursors = final_offsets;
-      
+      // https://stackoverflow.com/questions/4578967/c
       for (; lower_offset < next_lower_offset; ++lower_offset) {
-        uint atom_id = voxel_offset + lower_references[lower_offset];
+        atom_reference reference = lower_references[lower_offset];
+        MRAtom atom(upper_voxel_atoms + voxel_offset + reference);
         
-        // https://stackoverflow.com/questions/4578967/c
-        // TODO: Store cube in sphere-space, pre-compute S - C.
+        float2 c[3];
+#pragma clang loop unroll(full)
+        for (ushort dim = 0; dim < 3; ++dim) {
+          float c1 = atom.origin[dim] - float(box_min[dim]);
+          float c2 = c1 + 1;
+          float c3 = c1 + 2;
+          
+          c[dim] = 0;
+          if (c1 < 0) {
+            c[dim][0] = c1;
+          } else if (c2 > 0) {
+            c[dim][0] = c2;
+          }
+          if (c2 < 0) {
+            c[dim][1] = c2;
+          } else if (c3 > 0) {
+            c[dim][1] = c3;
+          }
+        }
+        
+        float dist_squared[2][2][2];
+#pragma clang loop unroll(full)
+        for (ushort z = 0; z < 2; ++z) {
+#pragma clang loop unroll(full)
+          for (ushort y = 0; y < 2; ++y) {
+#pragma clang loop unroll(full)
+            for (ushort x = 0; x < 2; ++x) {
+              dist_squared[z][y][x] = atom.radiusSquared;
+            }
+          }
+        }
+        
+#pragma clang loop unroll(full)
+        for (ushort x = 0; x < 2; ++x) {
+          float c_x = c[0][x];
+          dist_squared[0][0][x] -= c_x * c_x;
+          dist_squared[0][1][x] -= c_x * c_x;
+          dist_squared[1][0][x] -= c_x * c_x;
+          dist_squared[1][1][x] -= c_x * c_x;
+        }
+#pragma clang loop unroll(full)
+        for (ushort y = 0; y < 2; ++y) {
+          float c_y = c[1][y];
+          dist_squared[0][y][0] -= c_y * c_y;
+          dist_squared[0][y][1] -= c_y * c_y;
+          dist_squared[1][y][0] -= c_y * c_y;
+          dist_squared[1][y][1] -= c_y * c_y;
+        }
+#pragma clang loop unroll(full)
+        for (ushort z = 0; z < 2; ++z) {
+          float c_z = c[2][z];
+          dist_squared[z][0][0] -= c_z * c_z;
+          dist_squared[z][0][1] -= c_z * c_z;
+          dist_squared[z][1][0] -= c_z * c_z;
+          dist_squared[z][1][1] -= c_z * c_z;
+        }
+        
+#pragma clang loop unroll(full)
+        for (ushort z = 0; z < 2; ++z) {
+#pragma clang loop unroll(full)
+          for (ushort y = 0; y < 2; ++y) {
+#pragma clang loop unroll(full)
+            for (ushort x = 0; x < 2; ++x) {
+              float dist = dist_squared[z][y][x];
+              if (dist > 0) {
+                ushort cursor_id = z * 4 + y * 2 + x;
+                final_references[cursors[cursor_id]] = reference;
+                cursors[cursor_id] += 1;
+              }
+            }
+          }
+        }
       }
       
-      vec<uint, 8> counts = cursors - final_offsets;
+      auto prefix2 = final_prefix_counts[offset_offset];
+      auto final_offsets = final_refs_offset + vec<uint, 8>(prefix2);
+      auto counts = vec<ushort, 8>(cursors - final_offsets);
+      
       final_offsets -= device_cache_offset * elements_per_cache_line;
       final_offsets &= voxel_offset_mask;
       final_offsets |= vec<uint, 8>(counts) * dense_grid_reference_capacity;
@@ -652,7 +725,7 @@ kernel void sparse_grid_pass2
         for (uint y = 0; y < 2; ++y) {
 #pragma clang loop unroll(full)
           for (uint x = 0; x < 2; ++x) {
-            ushort3 coords = i_coords + ushort3(x, y, z);
+            ushort3 coords = coords + ushort3(x, y, z);
             uint address = VoxelAddress::generate(2 * lower_width, coords);
             uint final_offset_offset = base_offset_offset + address;
             uint final_offset = final_offsets[z * 4 + y * 2 + x];
