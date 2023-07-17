@@ -44,7 +44,10 @@ struct Arguments {
   var minimumAmbientIllumination: Float
   var diffuseReflectanceScale: Float
   
-  var gridWidth: UInt16
+  var denseWidth: UInt16
+  var upperWidth: UInt16
+  var lowerWidth: UInt16
+  var supportsHighRes: UInt16
 }
 
 // Track when to reset the MetalFX upscaler.
@@ -275,6 +278,10 @@ extension MRRenderer {
     // TODO: Consider removing the dependency on frame rate. Do this by making
     // frame rate an input argument to initialize an MRTimeContext.
     time: MRTimeContext,
+    
+    // TODO: Alternative high-performance API: the user to enters a pointer that
+    // will persist for 3 frames, operate in-place on the atoms. Don't force
+    // this requirement for every use case though.
     atomProvider: inout MRAtomProvider,
     styleProvider: MRAtomStyleProvider
   ) {
@@ -370,7 +377,10 @@ extension MRRenderer {
       minimumAmbientIllumination: minimumAmbientIllumination,
       diffuseReflectanceScale: diffuseReflectanceScale,
     
-      gridWidth: 0)
+      denseWidth: 0,
+      upperWidth: 0,
+      lowerWidth: 0,
+      supportsHighRes: 0)
     
     let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
     if lightsBuffer.length < desiredSize {

@@ -40,7 +40,7 @@ kernel void renderMain
   
   // Initialize the uniform grid.
   DenseGrid grid {
-    args->grid_width,
+    args->dense_width,
     dense_grid_data,
     dense_grid_references,
     atoms

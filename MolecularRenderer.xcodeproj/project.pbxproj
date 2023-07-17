@@ -20,7 +20,7 @@
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
-		98537EB12A62EA470037C392 /* SparseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB02A62EA470037C392 /* SparseGrid.metal */; };
+		98537EB12A62EA470037C392 /* OldSparseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB02A62EA470037C392 /* OldSparseGrid.metal */; };
 		98537EB32A62EA940037C392 /* Memory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB22A62EA940037C392 /* Memory.metal */; };
 		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
@@ -117,7 +117,7 @@
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98537EAE2A62EA3D0037C392 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
-		98537EB02A62EA470037C392 /* SparseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SparseGrid.metal; sourceTree = "<group>"; };
+		98537EB02A62EA470037C392 /* OldSparseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = OldSparseGrid.metal; sourceTree = "<group>"; };
 		98537EB22A62EA940037C392 /* Memory.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Memory.metal; sourceTree = "<group>"; };
 		98537EB42A62FD230037C392 /* FaultCounter.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FaultCounter.metal; sourceTree = "<group>"; };
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
@@ -473,7 +473,7 @@
 			isa = PBXGroup;
 			children = (
 				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
-				98537EB02A62EA470037C392 /* SparseGrid.metal */,
+				98537EB02A62EA470037C392 /* OldSparseGrid.metal */,
 				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
 			);
 			path = "Uniform Grids";
@@ -658,7 +658,7 @@
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
 				98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */,
-				98537EB12A62EA470037C392 /* SparseGrid.metal in Sources */,
+				98537EB12A62EA470037C392 /* OldSparseGrid.metal in Sources */,
 				98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */,
 				98537EB32A62EA940037C392 /* Memory.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,

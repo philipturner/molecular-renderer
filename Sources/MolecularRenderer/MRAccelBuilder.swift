@@ -431,7 +431,7 @@ extension MRAccelBuilder {
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
     precondition(gridWidth > 0, "Forgot to encode the grid construction.")
-    arguments.gridWidth = UInt16(self.gridWidth)
+    arguments.denseWidth = UInt16(self.gridWidth)
   }
   
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {

@@ -135,8 +135,11 @@ public:
     }
     return out;
   }
-  
-  // TODO: Add camera position and cutoff distance to params.
+};
+
+namespace old_sparse_grids_draft {
+  // TODO: In the new draft, don't require camera position and cutoff distance
+  // to be part of params.
   template <typename T>
   METAL_FUNC static IntersectionResult traverse
   (
