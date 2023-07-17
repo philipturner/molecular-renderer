@@ -212,6 +212,7 @@ public:
   uint lower_address;
   bool continue_upper_loop;
   bool continue_lower_loop;
+  bool upper_voxel_empty;
   
   uint upper_id;
   uint cursor;
@@ -294,17 +295,19 @@ public:
     uint upper_offset = grid.upper_voxel_offsets[upper_address];
     uint upper_count = upper_offset >> upper_voxel_id_bits;
     
+    ushort3 position = lower_position;
+    ushort3 neg_position = lower_width - 1 - position;
+    ushort3 actual_position = select(position, neg_position, dt < 0);
+    lower_address = VoxelAddress::generate(lower_width, actual_position);
+    
+    continue_upper_loop = true;
+    cursor = 0;
+    loop_end = 0;
+    
     if (upper_count == 0) {
-      continue_lower_loop = false;
+      upper_voxel_empty = true;
     } else {
-      continue_upper_loop = true;
-      cursor = 0;
-      loop_end = 0;
-      
-      ushort3 position = lower_position;
-      ushort3 neg_position = lower_width - 1 - position;
-      ushort3 actual_position = select(position, neg_position, dt < 0);
-      lower_address = VoxelAddress::generate(lower_width, actual_position);
+      upper_voxel_empty = false;
       
       upper_id = upper_offset & upper_voxel_id_mask;
       if (is_high_res) {

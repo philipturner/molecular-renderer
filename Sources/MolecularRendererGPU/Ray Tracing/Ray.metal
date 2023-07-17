@@ -15,6 +15,16 @@ template <typename T>
 struct Ray {
   float3 origin;
   vec<T, 3> direction;
+  
+  Ray get_sparse_ray() const {
+    Ray out = *this;
+    out.origin /= 4;
+    return out;
+  }
+  
+  bool get_is_high_res(/*camera position, cutoff*/) const {
+    return false;
+  }
 };
 
 #endif

@@ -136,13 +136,18 @@ public:
     return out;
   }
   
+  // TODO: Add camera position and cutoff distance to params.
   template <typename T>
   METAL_FUNC static IntersectionResult traverse
   (
-   Ray<T> ray, SparseGrid grid, IntersectionParams params, bool is_high_res)
+   Ray<T> ray, SparseGrid grid, IntersectionParams params)
   {
-    // TODO: In the ray generator, scale the ray/time into world space and
-    // choose whether to use high resolution.
+    ray = ray.get_sparse_ray();
+    bool is_high_res = false;
+    if (params.isAORay) {
+      is_high_res = ray.get_is_high_res();
+    }
+    
     SparseDDA<T> dda(ray, grid, is_high_res);
     _IntersectionResult<atom_reference> result { MAXFLOAT, false };
     uint atom_offset = 0;
@@ -162,7 +167,9 @@ public:
         bool previous_continue_lower = dda.continue_lower_loop;
         while (dda.cursor == dda.loop_end) {
           previous_continue_lower = dda.continue_lower_loop;
-          dda.start_lower_iteration();
+          if (!dda.upper_voxel_empty) {
+            dda.start_lower_iteration();
+          }
           dda.increment_position();
           if (!dda.continue_lower_loop) {
             break;
@@ -189,7 +196,6 @@ public:
       }
     }
     
-    // Adjust the atom's origin based on the new scale, regenerate the radius.
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
       float scale = 4 / float(dda.lower_width);

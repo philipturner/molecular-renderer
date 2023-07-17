@@ -25,6 +25,7 @@ struct SparseGridArguments {
   ushort3 upper_dimensions;
   ushort upper_plane_size;
   
+  bool supports_high_res;
 private:
   ushort4 low_res_stats;
   ushort4 high_res_stats;
@@ -99,13 +100,17 @@ kernel void sparse_grid_pass1
 #define object (upper_voxel_offsets + address)
     uint upper_voxel_id = atomic_load(object);
     
-    short3 camera_delta = short3(args.camera_upper_voxel - box_coords);
-    int camera_distance_sq = camera_delta.x * camera_delta.x;
-    camera_distance_sq += camera_delta.y * camera_delta.y;
-    camera_distance_sq += camera_delta.z * camera_delta.z;
-    
-    // TODO: Cull voxels outside the view frustum, and extend the cutoff.
-    bool is_close = uint(camera_distance_sq) < args.high_res_distance_sq;
+    bool is_close = args.supports_high_res;
+    if (is_close) {
+      
+      short3 camera_delta = short3(args.camera_upper_voxel - box_coords);
+      int camera_distance_sq = camera_delta.x * camera_delta.x;
+      camera_distance_sq += camera_delta.y * camera_delta.y;
+      camera_distance_sq += camera_delta.z * camera_delta.z;
+      
+      // TODO: Cull voxels outside the view frustum, and extend the cutoff.
+      is_close = uint(camera_distance_sq) < args.high_res_distance_sq;
+    }
     ushort duplicates = is_close ? 2 : 1;
     
     FaultCounter counter(1000);
