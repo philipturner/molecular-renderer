@@ -13,71 +13,6 @@
 #include "../Uniform Grids/UniformGrid.metal"
 using namespace metal;
 
-template <typename T>
-METAL_FUNC static IntersectionResult traverse
-(
- Ray<T> ray, DenseGrid grid, IntersectionParams params)
-{
-  DifferentialAnalyzer<T> dda(ray, grid.width);
-  _IntersectionResult result { MAXFLOAT, false };
-  
-  float maxTargetDistance;
-  if (params.get_has_max_time()) {
-    const float voxel_size = voxel_width_numer / voxel_width_denom;
-    maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * voxel_size;
-  }
-  
-  while (dda.continue_loop) {
-    // To reduce divergence, fast forward through empty voxels.
-    uint voxel_data = 0;
-    bool continue_fast_forward = true;
-    while (continue_fast_forward) {
-      voxel_data = grid.data[dda.address];
-      dda.increment_position();
-      
-      float target_distance = dda.get_max_accepted_t();
-      if (params.get_has_max_time() && target_distance > maxTargetDistance) {
-        dda.continue_loop = false;
-      }
-      
-      if ((voxel_data & voxel_count_mask) == 0) {
-        continue_fast_forward = dda.continue_loop;
-      } else {
-        continue_fast_forward = false;
-      }
-    }
-    
-    float target_distance = dda.get_max_accepted_t();
-    if (params.get_has_max_time() && target_distance > maxTargetDistance) {
-      dda.continue_loop = false;
-    } else {
-      if (params.isShadowRay) {
-        target_distance = min(target_distance, params.maxRayHitTime);
-      }
-      result.distance = target_distance;
-      
-      uint count = reverse_bits(voxel_data & voxel_count_mask);
-      uint offset = voxel_data & voxel_offset_mask;
-      uint upper_bound = offset + count;
-      for (; offset < upper_bound; ++offset) {
-        REFERENCE reference = grid.references[offset];
-        float4 sphere = ((device float4*)grid.atoms)[reference];
-        RayIntersector::intersect(&result, ray, sphere, reference);
-      }
-      if (result.distance < target_distance) {
-        result.accept = true;
-        dda.continue_loop = false;
-      }
-    }
-  }
-  
-  IntersectionResult out { result.distance, result.accept };
-  if (out.accept) {
-    out.atom = MRAtom(grid.atoms + result.atom);
-  }
-  return out;
-}
-
 kernel void renderMain
 (
  device Arguments *args [[buffer(0)]],
@@ -104,13 +39,17 @@ kernel void renderMain
   if ((SCREEN_HEIGHT % 16 != 0) && (pixelCoords.y >= SCREEN_HEIGHT)) return;
   
   // Initialize the uniform grid.
-  DenseGrid grid(args->grid_width, dense_grid_data,
-                 dense_grid_references, atoms);
+  DenseGrid grid {
+    args->grid_width,
+    dense_grid_data,
+    dense_grid_references,
+    atoms
+  };
   
   // Cast the primary ray.
   auto ray = RayGeneration::primaryRay(pixelCoords, args);
   IntersectionParams params { false, MAXFLOAT, false };
-  auto intersect = traverse(ray, grid, params);
+  auto intersect = RayIntersector::traverse(ray, grid, params);
   
   // Initialize the profiling sample.
   half sampleValue = 0;
@@ -142,7 +81,7 @@ kernel void renderMain
       for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples, hitPoint, normal);
         IntersectionParams params { true, args->maxRayHitTime, false };
-        auto intersect = traverse(ray, grid, params);
+        auto intersect = RayIntersector::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);
         
         float atomRsq = 0;
@@ -175,7 +114,7 @@ kernel void renderMain
         
         Ray<float> ray { hitPoint + 0.0001 * float3(normal), direction };
         IntersectionParams params { false, sqrt(distance_sq), true };
-        auto intersect = traverse(ray, grid, params);
+        auto intersect = RayIntersector::traverse(ray, grid, params);
         if (intersect.accept) {
           hitAtomRadiusSquared = intersect.atom.radiusSquared;
         }

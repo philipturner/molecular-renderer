@@ -11,24 +11,7 @@
 #include "UniformGrid.metal"
 using namespace metal;
 
-// The highest atom density is 176 atoms/nm^3 with diamond. An superdense carbon
-// allotrope is theorized with 354 atoms/nm^3 (1), but the greatest superdense
-// ones actually built are ~1-3% denser (2). 256 atoms/nm^3 is a close upper
-// limit. It provides just enough room for overlapping atoms from nearby voxels
-// (216-250 atoms/nm^3).
-//
-// (1) https://pubs.aip.org/aip/jcp/article-abstract/130/19/194512/296270/Structural-transformations-in-carbon-under-extreme?redirectedFrom=fulltext
-// (2) https://www.newscientist.com/article/dn20551-new-super-dense-forms-of-carbon-outshine-diamond/
-
-// 4x4x4 nm^3 voxels, 16384 atoms/voxel, <256 atoms/nm^3
-constant uint upper_voxel_atoms_bits = 14;
-constant uint upper_voxel_id_bits = 32 - upper_voxel_atoms_bits;
-constant uint upper_voxel_id_mask = (1 << upper_voxel_id_bits) - 1;
-constant uint upper_voxel_max_atoms = 1 << upper_voxel_atoms_bits;
 constant uint equality_mask = 0x80000000;
-
-// TODO: Profile whether 16-bit or 32-bit is faster.
-typedef ushort atom_reference;
 
 struct SparseGridArguments {
   // Grid position in world space and camera space.
