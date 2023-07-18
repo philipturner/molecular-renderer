@@ -12,6 +12,11 @@
 using namespace metal;
 
 namespace old_sparse_grids_draft {
+  constant uint upper_voxel_atoms_bits = 14;
+  constant uint upper_voxel_id_bits = 32 - upper_voxel_atoms_bits;
+  constant uint upper_voxel_id_mask = (1 << upper_voxel_id_bits) - 1;
+  constant uint upper_voxel_max_atoms = 1 << upper_voxel_atoms_bits;
+  
   struct SparseCPUInputs {
     uint num_atoms;
     float3 camera_position;
@@ -33,9 +38,10 @@ namespace old_sparse_grids_draft {
     
   };
   
-  // 384 KB
+  // 512 KB
   struct UpperVoxel {
     MRAtom atoms[16384]; // persistent even if a fault occurs
+    ushort4 atom_hashes[16384];
     uint final_voxels[30 * 30 * 30];
     uint pages[256];
     ushort resolution; // don't recompute at the current resolution, unless close
@@ -93,6 +99,10 @@ namespace old_sparse_grids_draft {
       }
     }
   };
+  
+  // TODO: If the bounds change but the total required memory doesn't, adapt and
+  // delete existing voxels from 'upper_voxels_bounds'. This prevents it from
+  // allocating vast regions of empty space that are only touched once.
   
   // Prepare for pass 2, such as by combining CPU inputs (camera position) with
   // the last frame's decision for grid bounds. Encode commands for pass 2. CPU
@@ -217,7 +227,8 @@ namespace old_sparse_grids_draft {
         // substitute for equality checking. Right now, the map doesn't exist,
         // so the flag is always off.
         //
-        // Use the final voxels as the hash map!
+        // Use the final voxels as the hash map.
+        constexpr uint equality_mask = 0x80000000;
         uint reference = tid | (false ? equality_mask : 0);
         upper_references[atom_id] = reference;
         if (duplicates == 2) {
@@ -310,8 +321,8 @@ _address_z += VoxelAddress::increment_z(WIDTH); \
    
    device MRAtom *upper_voxel_atoms [[buffer(8)]],
    device atomic_uint *total_references [[buffer(9)]],
-   device atom_reference *lower_references [[buffer(10)]],
-   device atom_reference *final_references [[buffer(11)]],
+   device ushort *lower_references [[buffer(10)]],
+   device ushort *final_references [[buffer(11)]],
    
    device uint *upper_reference_offsets [[buffer(12)]],
    device uint *lower_cache_offsets [[buffer(13)]],
@@ -364,7 +375,7 @@ _address_z += VoxelAddress::increment_z(WIDTH); \
     if (sidx == 0 && lane_id < simds_per_group) {
       uint references_mask = counters[lane_id];
       references_mask = simd_and(references_mask);
-      uint succeeded = (references_mask >= equality_mask) ? 1 : 0;
+      uint succeeded = (references_mask >= 0x80000000) ? 1 : 0;
       counters[lane_id] = succeeded;
     }
     
@@ -497,7 +508,7 @@ _address_z += VoxelAddress::increment_z(WIDTH); \
     
     // Estimate the number of upscaled references.
     threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
-    constexpr uint elements_per_cache_line = 128 / sizeof(atom_reference);
+    constexpr uint elements_per_cache_line = 128 / sizeof(ushort);
     constexpr uint address_bits = 13;
     constexpr uint address_mask = (1 << address_bits) - 1;
     uint lower_offset_offset = lower_offset_offsets[2 + tgid];
@@ -710,7 +721,7 @@ _address_z += VoxelAddress::increment_z(WIDTH); \
         
         // https://stackoverflow.com/questions/4578967/c
         for (; lower_offset < next_lower_offset; ++lower_offset) {
-          atom_reference reference = lower_references[lower_offset];
+          ushort reference = lower_references[lower_offset];
           MRAtom atom(upper_voxel_atoms + voxel_offset + reference);
           
           float2 c[3];

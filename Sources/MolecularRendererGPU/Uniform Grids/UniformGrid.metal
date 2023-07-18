@@ -18,26 +18,6 @@ using namespace raytracing;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
 
-// The highest atom density is 176 atoms/nm^3 with diamond. An superdense carbon
-// allotrope is theorized with 354 atoms/nm^3 (1), but the greatest superdense
-// ones actually built are ~1-3% denser (2). 256 atoms/nm^3 is a close upper
-// limit. It provides just enough room for overlapping atoms from nearby voxels
-// (216-250 atoms/nm^3).
-//
-// (1) https://pubs.aip.org/aip/jcp/article-abstract/130/19/194512/296270/Structural-transformations-in-carbon-under-extreme?redirectedFrom=fulltext
-// (2) https://www.newscientist.com/article/dn20551-new-super-dense-forms-of-carbon-outshine-diamond/
-
-// 4x4x4 nm^3 voxels, 16384 atoms/voxel, <256 atoms/nm^3
-constant uint upper_voxel_atoms_bits = 14;
-constant uint upper_voxel_id_bits = 32 - upper_voxel_atoms_bits;
-constant uint upper_voxel_id_mask = (1 << upper_voxel_id_bits) - 1;
-constant uint upper_voxel_max_atoms = 1 << upper_voxel_atoms_bits;
-
-constant uint equality_mask = 0x80000000;
-
-// TODO: Profile whether 16-bit or 32-bit is faster.
-typedef ushort atom_reference;
-
 // Behavior is undefined when the position goes out-of-bounds.
 class VoxelAddress {
 public:
@@ -69,18 +49,20 @@ public:
   device MRAtom *atoms;
 };
 
-class SparseGrid {
-public:
-  ushort upper_width;
-  ushort low_res_width;
-  ushort high_res_width;
-  
-  device uint *upper_voxel_offsets;
-  device uint *lower_offset_offsets;
-  device MRAtom *upper_voxel_atoms;
-  device atom_reference *final_references;
-  device uint *upper_reference_offsets;
-  device uint *final_voxel_offsets;
+namespace old_sparse_grids_draft {
+  class SparseGrid {
+  public:
+    ushort upper_width;
+    ushort low_res_width;
+    ushort high_res_width;
+    
+    device uint *upper_voxel_offsets;
+    device uint *lower_offset_offsets;
+    device MRAtom *upper_voxel_atoms;
+    device ushort *final_references;
+    device uint *upper_reference_offsets;
+    device uint *final_voxel_offsets;
+  };
 };
 
 // Sources:
@@ -206,7 +188,7 @@ namespace old_sparse_grids_draft {
     bool is_high_res;
     
     device MRAtom *atoms;
-    device atom_reference *references;
+    device ushort *references;
     uint final_offset_offset;
     
   public:
@@ -289,6 +271,11 @@ namespace old_sparse_grids_draft {
       } else {
         continue_upper_loop = true;
       }
+      
+      constexpr uint upper_voxel_atoms_bits = 14;
+      constexpr uint upper_voxel_id_bits = 32 - upper_voxel_atoms_bits;
+      constexpr uint upper_voxel_id_mask = (1 << upper_voxel_id_bits) - 1;
+      constexpr uint upper_voxel_max_atoms = 1 << upper_voxel_atoms_bits;
       
       {
         ushort3 position = upper_position;

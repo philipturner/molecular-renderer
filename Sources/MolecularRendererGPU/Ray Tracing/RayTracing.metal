@@ -152,7 +152,7 @@ namespace old_sparse_grids_draft {
     }
     
     SparseDDA<T> dda(ray, grid, is_high_res);
-    _IntersectionResult<atom_reference> result { MAXFLOAT, false };
+    _IntersectionResult<ushort> result { MAXFLOAT, false };
     uint atom_offset = 0;
     
     float maxTargetDistance;

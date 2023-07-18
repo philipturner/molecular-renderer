@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		980070F22A66078D0097D21F /* NewRayTracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 980070F12A66078D0097D21F /* NewRayTracing.metal */; };
+		980070F42A6607950097D21F /* NewSparseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 980070F32A6607950097D21F /* NewSparseGrid.metal */; };
 		980E70192A5E51D20051797F /* Tooltips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70182A5E51D20051797F /* Tooltips.swift */; };
 		980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701A2A5E51DB0051797F /* Feedstocks.swift */; };
 		980E701D2A5E520F0051797F /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701C2A5E520F0051797F /* Surfaces.swift */; };
@@ -98,6 +100,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		980070F12A66078D0097D21F /* NewRayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NewRayTracing.metal; sourceTree = "<group>"; };
+		980070F32A6607950097D21F /* NewSparseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NewSparseGrid.metal; sourceTree = "<group>"; };
 		980140E52A3E1F78009408BE /* MRRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRenderer.swift; sourceTree = "<group>"; };
 		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
 		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
@@ -465,6 +469,7 @@
 				981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */,
 				987C5CE329EA051400CE5EB7 /* RayTracing.metal */,
 				981E8F4629F4C99A00F7BA21 /* Sampling.metal */,
+				980070F12A66078D0097D21F /* NewRayTracing.metal */,
 			);
 			path = "Ray Tracing";
 			sourceTree = "<group>";
@@ -475,6 +480,7 @@
 				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
 				98537EB02A62EA470037C392 /* OldSparseGrid.metal */,
 				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
+				980070F32A6607950097D21F /* NewSparseGrid.metal */,
 			);
 			path = "Uniform Grids";
 			sourceTree = "<group>";
@@ -655,6 +661,7 @@
 			files = (
 				98F638AF2A34A33400F51E95 /* RayTracing.metal in Sources */,
 				98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */,
+				980070F42A6607950097D21F /* NewSparseGrid.metal in Sources */,
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
 				98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */,
@@ -667,6 +674,7 @@
 				98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderMain.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
+				980070F22A66078D0097D21F /* NewRayTracing.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
