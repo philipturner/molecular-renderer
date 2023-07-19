@@ -29,6 +29,7 @@ class MRAccelBuilder {
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
   var globalCounterBuffer: MTLBuffer
+  var globalCounter2Buffer: MTLBuffer
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
@@ -73,7 +74,8 @@ class MRAccelBuilder {
     self.densePass3Pipeline = try! device
       .makeComputePipelineState(function: densePass3Function)
     
-    self.globalCounterBuffer = device.makeBuffer(length: 4)!
+    self.globalCounterBuffer = device.makeBuffer(length: 12)!
+    self.globalCounter2Buffer = device.makeBuffer(length: 12)!
     
     // The intermediate resolution never changes.
     for _ in 0..<3 {
@@ -347,18 +349,39 @@ extension MRAccelBuilder {
     
     // TODO: Fix this now that we removed the dependency on Metal ray tracing,
     // the source of the Metal Frame Capture bug.
-    encoder.setBuffer(globalCounterBuffer, offset: 0, index: 0)
+    encoder.setBuffer(globalCounterBuffer, offset: ringIndex * 4, index: 0)
+    encoder.dispatchThreads(
+      MTLSizeMake(1, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(32, 1, 1))
+    
+    encoder.setBuffer(globalCounter2Buffer, offset: ringIndex * 4, index: 0)
     encoder.dispatchThreads(
       MTLSizeMake(1, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(32, 1, 1))
     
     struct UniformGridArguments {
       var gridWidth: UInt16
+      var cellSphereTest: UInt16
       var worldToVoxelTransform: Float
+    }
+    do {
+      let p0 = globalCounterBuffer.contents() + ringIndex * 4
+      let p02 = p0.assumingMemoryBound(to: UInt32.self)
+      
+      let pointer = globalCounter2Buffer.contents() + ringIndex * 4
+      let pointer2 = pointer.assumingMemoryBound(to: UInt32.self)
+      let denom = pipelineConfig.voxelWidthDenom
+      let test = pipelineConfig.cellSphereTest
+      
+      let ratio = Double(p02.pointee) / Double(pointer2.pointee)
+      let repr = String(format: "%.1f", ratio)
+      print(
+        "\(repr) - \(p02.pointee) - \(pointer2.pointee)")
     }
     
     var arguments: UniformGridArguments = .init(
       gridWidth: UInt16(gridWidth),
+      cellSphereTest: pipelineConfig.cellSphereTest ? 1 : 0,
       worldToVoxelTransform: voxel_width_denom / voxel_width_numer)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
@@ -370,8 +393,9 @@ extension MRAccelBuilder {
     encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
     encoder.setBuffer(dataBuffer, offset: 0, index: 3)
     encoder.setBuffer(countersBuffer, offset: 0, index: 4)
-    encoder.setBuffer(globalCounterBuffer, offset: 0, index: 5)
+    encoder.setBuffer(globalCounterBuffer, offset: ringIndex * 4, index: 5)
     encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
+    encoder.setBuffer(globalCounter2Buffer, offset: ringIndex * 4, index: 7)
     
     encoder.setComputePipelineState(densePass1Pipeline)
     encoder.dispatchThreads(

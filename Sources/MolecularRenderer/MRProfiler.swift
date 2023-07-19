@@ -10,6 +10,7 @@ import Metal
 struct PipelineConfig {
   var voxelWidthNumer: Float
   var voxelWidthDenom: Float
+  var cellSphereTest: Bool
   var pipeline: MTLComputePipelineState
 }
 
@@ -108,8 +109,23 @@ class MRProfiler {
 //    let denominators: [Float] = [10, 12, 14, 16, 18, 20, 22, 24]
 //    let denominators: [Float] = [14, 16, 18, 20, 22]
 //    let denominators: [Float] = [8, 9, 10, 11, 12, 13]
-    let denominators: [Float] = [9]
-    for var denominator in denominators {
+//    let denominators: [Float] = [8, 16]//, 24, 32]
+    let configs: [(Float, Bool)] = [
+      (8, false),
+      (8, true),
+      (10, false),
+      (10, true),
+      (12, false),
+      (12, true),
+      (14, false),
+      (14, true),
+      (16, false),
+      (16, true),
+//      (24, false),
+//      (24, true),
+    ]
+    for var config in configs {
+      var denominator = config.0
       constants.setConstantValue(&denominator, type: .float, index: 11)
       
       // Initialize the compute pipeline.
@@ -126,12 +142,13 @@ class MRProfiler {
       let pipeline = PipelineConfig(
         voxelWidthNumer: numerator,
         voxelWidthDenom: denominator,
+        cellSphereTest: config.1,
         pipeline: rayTracingPipeline)
       pipelines.append(pipeline)
     }
     self.pipelines = pipelines
     
-    self.timesHistoryLength = 2
+    self.timesHistoryLength = 30 / configs.count
     self.times = [:]
     for i in 0..<pipelines.count {
       self.times[i] = []
@@ -161,6 +178,8 @@ class MRProfiler {
         array.removeFirst()
       }
       times[id] = array
+//      print("\(id):")
+//      print(" - \(array.map { Int($0[0] * 1e6) })")
       
       let radius = tracker.queuedRmsAtomRadii[ringIndex]
       radii.append(radius)
