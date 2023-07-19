@@ -111,20 +111,16 @@ class MRProfiler {
 //    let denominators: [Float] = [8, 9, 10, 11, 12, 13]
 //    let denominators: [Float] = [8, 16]//, 24, 32]
     let configs: [(Float, Bool)] = [
-      (8, false),
-      (8, true),
-      (10, false),
-      (10, true),
-      (12, false),
-      (12, true),
-      (14, false),
-      (14, true),
-      (16, false),
-      (16, true),
+//      (8, false),
+//      (8, true),
+      (9, false),
+//      (9, true),
+//      (16, false),
+//      (16, true),
 //      (24, false),
 //      (24, true),
     ]
-    for var config in configs {
+    for config in configs {
       var denominator = config.0
       constants.setConstantValue(&denominator, type: .float, index: 11)
       
@@ -178,8 +174,8 @@ class MRProfiler {
         array.removeFirst()
       }
       times[id] = array
-//      print("\(id):")
-//      print(" - \(array.map { Int($0[0] * 1e6) })")
+      print("\(id):")
+      print(" - \(array.map { Int($0[1] * 1e6) })")
       
       let radius = tracker.queuedRmsAtomRadii[ringIndex]
       radii.append(radius)

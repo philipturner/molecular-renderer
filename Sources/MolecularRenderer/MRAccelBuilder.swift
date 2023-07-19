@@ -313,6 +313,7 @@ extension MRAccelBuilder {
     guard statistics.references < 8 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
+    print("Width: \(self.gridWidth)")
     
     // Allocate new memory.
     let atomsBuffer = allocate(
