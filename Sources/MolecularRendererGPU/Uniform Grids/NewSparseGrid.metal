@@ -6,6 +6,8 @@
 //
 
 #include <metal_stdlib>
+#include "../Utilities/Atomic.metal"
+#include "../Utilities/FaultCounter.metal"
 #include "../Utilities/MRAtom.metal"
 using namespace metal;
 using namespace raytracing;
@@ -28,30 +30,19 @@ namespace metal {
   namespace raytracing {
     class context;
     
-    class heap;
-    
     template <typename T>
     class allocation;
     
-    template <typename T>
-    class range;
-    
-    class grid;
+    class lower_voxel;
     
     class upper_voxel;
     
-    class reference_page;
+    class grid;
+    
+    class chunk;
+    
+    class heap;
   };
-};
-
-class metal::raytracing::heap {
-public:
-  device grid *previous_grid;
-  device grid *current_grid;
-  
-  // 256 KB pages, each containing an occupancy flag
-  device void *heap;
-  uint heap_capacity;
 };
 
 template <typename T>
@@ -61,32 +52,23 @@ class metal::raytracing::allocation {
 public:
   allocation(uint offset): _offset(offset) {}
   
+  // If the offset is zero, the pointer is null.
   device T* get_pointer(device void *heap) {
     return (device T*)((device uchar*)heap + _offset * 256 * 1024);
   }
 };
 
-template <typename T>
-class metal::raytracing::range {
-  uint _mask;
-  
+class metal::raytracing::lower_voxel {
 public:
-  range(uint mask): _mask(mask) {}
+  ushort data[32];
   
-  uint get_offset(constant uint &address_bits) {
-    return _mask & ((1 << address_bits) - 1);
+  ushort get_count() const {
+    return data[31];
   }
   
-  ushort get_count(constant uint &address_bits) {
-    return _mask >> address_bits;
+  void set_count(ushort count) {
+    data[31] = count;
   }
-};
-
-class metal::raytracing::grid {
-public:
-  short3 origin;
-  ushort3 bounds;
-  allocation<upper_voxel> upper_voxels;
 };
 
 class metal::raytracing::upper_voxel {
@@ -97,46 +79,118 @@ public:
   static constant uint max_atoms = 1 << atoms_bits;
   
   // 256 KB
-  // - 16383 x 16 B
-  // - 16 B for flag
+  // - 16384 x 16 B
   class atoms {
   public:
     MRAtom atoms[max_atoms];
   };
   
   // 256 KB
-  // - 16384 x 8 B
-  // - 27000 x 4 B
-  // - 23072 B for other data
-  class data {
+  // - 4096 x 64 B
+  class references {
   public:
-    ushort4 hashes[max_atoms];
-    range<ushort> lower_voxels[30 * 30 * 30];
-    allocation<reference_page> reference_pages[8];
+    lower_voxel voxels[16 * 16 * 16];
+  };
+  
+  // 256 KB
+  // - 16384 x 4 B
+  // - 192 KB for other data
+  class other {
+  public:
+    uint atom_ids[max_atoms];
+    uint num_atoms;
   };
   
   allocation<atoms> atoms;
-  allocation<data> data;
+  allocation<references> references;
+  allocation<other> other;
 };
 
-// 256 KB
-// - 32 x 7.98 KB
-// - 16 B for flag
-//
-// Final resolution tiers:
-// 4/ 8-10 nm -> 2x2x2/nm^3
-// 4/12-14 nm -> 3x3x3/nm^3
-// 4/16-18 nm -> 4x4x4/nm^3
-// 4/20-22 nm -> 5x5x5/nm^3
-// 4/24-30 nm -> 6x6x6/nm^3
-//
-// 2x2x4 - 8.0 KB, ~256 refs/lower voxel
-// 3x3x4 - 7.9 KB, ~113 refs/lower voxel
-// 4x4x4 - 8.0 KB, ~64 refs/lower voxel
-// 5x5x4 - 7.5 KB, ~40 refs/lower voxel
-// 6x6x4 - 7.8 KB, ~28 refs/lower voxel
-class metal::raytracing::reference_page {
+class metal::raytracing::grid {
 public:
+  // 64 MB
+  // - 2^24 * 4 B
+  allocation<upper_voxel> voxels[256 * 256 * 256];
+};
+
+class metal::raytracing::chunk {
+public:
+  static constant uint byte_alignment = 512 * 4;
+  static constant uint num_pages = 256;
+  
+  uint pages[num_pages];
+  ushort free_indices[num_pages];
+  uint local_free_index;
+  uint global_free_index;
+  uint num_free_indices;
+  
+  ushort get_free_index() device {
+    uint slot = atomic_fetch_add(&local_free_index, 1);
+    return free_indices[slot];
+  }
+};
+
+class metal::raytracing::heap {
+public:
+  device uint *metadata;
+  device void *pages;
+  device void *chunks;
+  
+  uint get_num_chunks() const {
+    return metadata[0];
+  }
+  
+  uint get_free_capacity() const {
+    return metadata[1];
+  }
+  
+  uint get_free_used() const {
+    return atomic_load(metadata + 2);
+  }
+  
+  uint increment_free_used() {
+    return atomic_fetch_add(metadata + 2, 1);
+  }
+  
+  device chunk* get_chunk(uint chunk_id) {
+    auto chunks_bytes = (device uchar*)chunks;
+    chunks_bytes += chunk_id * chunk::byte_alignment;
+    return (device chunk*)chunks_bytes;
+  }
+  
+  uint malloc() {
+    uint free_page_id = increment_free_used();
+    if (free_page_id >= get_free_capacity()) {
+      return 0;
+    }
+    uint actual_page_id = 0;
+    
+    // Basic algorithm from:
+    // https://en.wikipedia.org/wiki/Binary_search_algorithm
+    uint left = 0;
+    uint right = get_num_chunks() - 1;
+    FaultCounter counter(1000);
+    while (left <= right) {
+      if (counter.quit()) {
+        return 0;
+      }
+      
+      uint middle = (left + right) / 2;
+      auto chunk = get_chunk(middle);
+      uint base_index = chunk->global_free_index;
+      uint ceil_index = base_index + chunk->num_free_indices;
+      
+      if (base_index <= free_page_id && free_page_id < ceil_index) {
+        actual_page_id = chunk->get_free_index();
+        break;
+      } else if (base_index <= free_page_id) {
+        left = middle + 1;
+      } else {
+        right = middle - 1;
+      }
+    }
+    return actual_page_id;
+  }
 };
 
 #pragma clang diagnostic pop
