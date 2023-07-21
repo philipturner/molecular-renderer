@@ -113,7 +113,7 @@ class MRProfiler {
     let configs: [(Float, Bool)] = [
 //      (8, false),
 //      (8, true),
-      (9, false),
+      (16, true),
 //      (9, true),
 //      (16, false),
 //      (16, true),
@@ -174,8 +174,8 @@ class MRProfiler {
         array.removeFirst()
       }
       times[id] = array
-      print("\(id):")
-      print(" - \(array.map { Int($0[1] * 1e6) })")
+//      print("\(id):")
+//      print(" - \(array.map { Int($0[1] * 1e6) })")
       
       let radius = tracker.queuedRmsAtomRadii[ringIndex]
       radii.append(radius)
@@ -183,7 +183,7 @@ class MRProfiler {
         radii.removeFirst()
       }
     }
-    print(summary())
+//    print(summary())
   }
   
   func summary() -> String {

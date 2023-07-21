@@ -313,7 +313,7 @@ extension MRAccelBuilder {
     guard statistics.references < 8 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
-    print("Width: \(self.gridWidth)")
+//    print("Width: \(self.gridWidth)")
     
     // Allocate new memory.
     let atomsBuffer = allocate(
@@ -365,20 +365,20 @@ extension MRAccelBuilder {
       var cellSphereTest: UInt16
       var worldToVoxelTransform: Float
     }
-    do {
-      let p0 = globalCounterBuffer.contents() + ringIndex * 4
-      let p02 = p0.assumingMemoryBound(to: UInt32.self)
-      
-      let pointer = globalCounter2Buffer.contents() + ringIndex * 4
-      let pointer2 = pointer.assumingMemoryBound(to: UInt32.self)
-      let denom = pipelineConfig.voxelWidthDenom
-      let test = pipelineConfig.cellSphereTest
-      
-      let ratio = Double(p02.pointee) / Double(pointer2.pointee)
-      let repr = String(format: "%.1f", ratio)
-      print(
-        "\(repr) - \(p02.pointee) - \(pointer2.pointee)")
-    }
+//    do {
+//      let p0 = globalCounterBuffer.contents() + ringIndex * 4
+//      let p02 = p0.assumingMemoryBound(to: UInt32.self)
+//      
+//      let pointer = globalCounter2Buffer.contents() + ringIndex * 4
+//      let pointer2 = pointer.assumingMemoryBound(to: UInt32.self)
+//      let denom = pipelineConfig.voxelWidthDenom
+//      let test = pipelineConfig.cellSphereTest
+//      
+//      let ratio = Double(p02.pointee) / Double(pointer2.pointee)
+//      let repr = String(format: "%.1f", ratio)
+//      print(
+//        "\(repr) - \(p02.pointee) - \(pointer2.pointee)")
+//    }
     
     var arguments: UniformGridArguments = .init(
       gridWidth: UInt16(gridWidth),
