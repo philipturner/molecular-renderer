@@ -18,17 +18,29 @@ extension Nanosystems.Chapter9 {
     init() {
       let ccBondLength: Float = 0.154
       
-      var carbonCenters: [SIMD3<Float>] = [.zero]
-      for i in 0..<6 {
-        var delta: SIMD3<Float>
-        if i % 2 == 0 {
-          delta = sp3Delta(start: [0, -ccBondLength, 0], axis: [0, 0, +1])
-        } else {
-          delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [0, 0, -1])
+      var carbonCenters: [SIMD3<Float>] = []
+      func addLevel(
+        transform: (SIMD3<Float>) -> SIMD3<Float>
+      ) {
+        var output: [SIMD3<Float>] = [.zero]
+        for i in 0..<6 {
+          var delta: SIMD3<Float>
+          if i % 2 == 0 {
+            delta = sp3Delta(start: [0, -ccBondLength, 0], axis: [0, 0, +1])
+          } else {
+            delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [0, 0, -1])
+          }
+          
+          let center = output.last! + delta
+          output.append(center)
         }
-        
-        let center = carbonCenters.last! + delta
-        carbonCenters.append(center)
+        for i in output.indices {
+          output[i] = transform(output[i])
+        }
+        carbonCenters.append(contentsOf: output)
+      }
+      addLevel {
+        return $0
       }
       self.a = Diamondoid(carbonCenters: carbonCenters)
       
@@ -38,46 +50,20 @@ extension Nanosystems.Chapter9 {
       secondLevelOrigin += sp3Delta(
         start: [0, -ccBondLength, 0], axis: [0, 0, -1])
       
-      var thirdLevelOrigin = carbonCenters[1]
-      thirdLevelOrigin += sp3Delta(
-        start: [0, -ccBondLength, 0], axis: [+1, 0, 0])
-      thirdLevelOrigin += sp3Delta(
-        start: [0, -ccBondLength, 0], axis: [0, 0, -1])
-      
-      // The orientation is currently ignored.
-      func addLevel(
-        origin: SIMD3<Float>,
-        transform: ((SIMD3<Float>) -> SIMD3<Float>)? = nil
-      ) {
-        var output: [SIMD3<Float>] = [origin]
-        for i in 0..<6 {
-          var delta: SIMD3<Float>
-          if i % 2 == 0 {
-            delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [0, 0, -1])
-          } else {
-            delta = sp3Delta(start: [0, -ccBondLength, 0], axis: [0, 0, +1])
-          }
-          
-          let center = output.last! + delta
-          output.append(center)
-        }
-        if let transform {
-          for i in output.indices {
-            output[i] = transform(output[i])
-          }
-        }
-        carbonCenters.append(contentsOf: output)
+      addLevel {
+        var center = $0
+        center.y = -center.y
+        center += secondLevelOrigin
+        return center
       }
-      
-      addLevel(origin: secondLevelOrigin)
       self.b = Diamondoid(carbonCenters: carbonCenters)
       carbonCenters.removeLast(7)
       
       func rotateThirdLevel(
-        _ origin: SIMD3<Float>, degrees: Float
+        _ center: SIMD3<Float>, degrees: Float
       ) -> SIMD3<Float> {
         let firstCenter = carbonCenters.first!
-        var delta = origin - firstCenter
+        var delta = center - firstCenter
         let translation = SIMD3(delta.x, 0, 0)
         delta.x = 0
         
@@ -86,11 +72,18 @@ extension Nanosystems.Chapter9 {
         return firstCenter + delta + translation
       }
       
-      addLevel(origin: secondLevelOrigin) { origin in
-        rotateThirdLevel(origin, degrees: +10)
+      addLevel {
+        var center = $0
+        center.y = -center.y
+        center += secondLevelOrigin
+        return rotateThirdLevel(center, degrees: +10)
       }
-      addLevel(origin: thirdLevelOrigin) { origin in
-        rotateThirdLevel(origin, degrees: -10)
+      addLevel {
+        var center = $0
+        center.y = -center.y
+        center += secondLevelOrigin
+        center.z = -center.z
+        return rotateThirdLevel(center, degrees: -10)
       }
       self.c = Diamondoid(carbonCenters: carbonCenters)
     }
