@@ -11,69 +11,78 @@ import simd
 
 extension Nanosystems.Chapter9 {
   struct Figure2 {
-    // A polyethylene chain with seven monomers.
     var a: [MRAtom] = []
     
     init() {
       let ccBondLength: Float = 0.154
       let chBondLength: Float = 0.109
-      let sp3BondAngle: Float = 109.5 * .pi / 180
       
-      do {
-        let centerCarbon = MRAtom(origin: .zero, element: 6)
-        a.append(centerCarbon)
-        
-        let hydrogenXRotation = simd_quatf(
-          angle: sp3BondAngle / 2, axis: [1, 0, 0])
-        let hydrogenDelta = simd_act(hydrogenXRotation, [0, -chBondLength, 0])
-        a.append(MRAtom(
-          origin: centerCarbon.origin + hydrogenDelta, element: 1))
-        a.append(MRAtom(
-          origin: centerCarbon.origin + __tg_copysign(
-            hydrogenDelta, [0, -1, +1]), element: 1))
-        
-        let carbonZRotation = simd_quatf(
-          angle: -sp3BondAngle / 2, axis: [0, 0, 1])
-        let carbonDelta = simd_act(carbonZRotation, [0, ccBondLength, 0])
-        
-        @discardableResult
-        func appendMonomer(
-          to carbon: MRAtom, direction: SIMD3<Float>
-        ) -> MRAtom {
-          let nextCarbon = MRAtom(
-            origin: carbon.origin + __tg_copysign(
-              carbonDelta, direction), element: 6)
-          a.append(nextCarbon)
-          
-          a.append(MRAtom(
-            origin: nextCarbon.origin + __tg_copysign(
-              hydrogenDelta, [0, direction.y, +1]), element: 1))
-          a.append(MRAtom(
-            origin: nextCarbon.origin + __tg_copysign(
-              hydrogenDelta, [0, direction.y, -1]), element: 1))
-          return nextCarbon
-        }
-        for side in 0..<2 {
-          var currentCarbon = centerCarbon
-          for index in 0..<3 {
-            let xPositive = side == 0
-            let yPositive = (index % 2) == 0
-            let direction: SIMD3<Float> = [
-              xPositive ? 1 : -1,
-              yPositive ? 1 : -1,
-              0
-            ]
-            currentCarbon = appendMonomer(
-              to: currentCarbon, direction: direction)
-          }
-        }
+      func sp3Delta(
+        start: SIMD3<Float>, axis: SIMD3<Float>
+      ) -> SIMD3<Float> {
+        let sp3BondAngle: Float = 109.5 * .pi / 180
+        let rotation = simd_quatf(angle: sp3BondAngle / 2, axis: axis)
+        return simd_act(rotation, start)
       }
       
-      // Need a data structure that's a linked list of carbon atoms. It will
-      // automatically find missing orbitals and fill them with hydrogens.
-      
-      // Rewrite code to generate (a) using the nicer Diamondoid API, ensure it
-      // produces the same structure.
+      do {
+        var centerCarbon = Diamondoid.CarbonCenter(origin: .zero)
+        centerCarbon.addHydrogenBond(
+          sp3Delta(start: [0, -chBondLength, 0], axis: [+1, 0, 0]))
+        centerCarbon.addHydrogenBond(
+          sp3Delta(start: [0, -chBondLength, 0], axis: [-1, 0, 0]))
+        var carbons = [centerCarbon]
+        
+        for side in 0..<2 {
+          var previousCarbonIndex = 0
+          for index in 0..<3 {
+            var carbonChainDelta: SIMD3<Float>
+            if side == 0 {
+              if index % 2 == 0 {
+                carbonChainDelta = sp3Delta(
+                  start: [0, +ccBondLength, 0], axis: [0, 0, -1])
+              } else {
+                carbonChainDelta = sp3Delta(
+                  start: [0, -ccBondLength, 0], axis: [0, 0, +1])
+              }
+            } else {
+              if index % 2 == 0 {
+                carbonChainDelta = sp3Delta(
+                  start: [0, +ccBondLength, 0], axis: [0, 0, +1])
+              } else {
+                carbonChainDelta = sp3Delta(
+                  start: [0, -ccBondLength, 0], axis: [0, 0, -1])
+              }
+            }
+            carbons[previousCarbonIndex].addCarbonBond(carbonChainDelta)
+            
+            let previousOrigin = carbons[previousCarbonIndex].origin
+            var carbon = Diamondoid.CarbonCenter(
+              origin: previousOrigin + carbonChainDelta)
+            carbon.addCarbonBond(-carbonChainDelta)
+            
+            var hydrogenBondsStart: SIMD3<Float>
+            if index % 2 == 0 {
+              hydrogenBondsStart = [0, +chBondLength, 0]
+            } else {
+              hydrogenBondsStart = [0, -chBondLength, 0]
+            }
+            carbon.addHydrogenBond(
+              sp3Delta(start: hydrogenBondsStart, axis: [+1, 0, 0]))
+            carbon.addHydrogenBond(
+              sp3Delta(start: hydrogenBondsStart, axis: [-1, 0, 0]))
+            
+            previousCarbonIndex = carbons.count
+            carbons.append(carbon)
+          }
+        }
+        
+        var diamondoid = Diamondoid()
+        for carbon in carbons {
+          diamondoid.addCarbon(carbon)
+        }
+        self.a = diamondoid.makeAtoms()
+      }
     }
   }
 }

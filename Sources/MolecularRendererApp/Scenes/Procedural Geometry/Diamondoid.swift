@@ -34,6 +34,14 @@ struct Diamondoid {
       bondFlags[currentBondIndex] = type.rawValue
       currentBondIndex += 1
     }
+    
+    mutating func addCarbonBond(_ delta: SIMD3<Float>) {
+      addBond(delta, type: .cc)
+    }
+    
+    mutating func addHydrogenBond(_ delta: SIMD3<Float>) {
+      addBond(delta, type: .ch)
+    }
   }
   
   private(set) var carbons: [CarbonCenter] = []
@@ -43,8 +51,11 @@ struct Diamondoid {
   }
   
   mutating func addCarbon(_ carbon: CarbonCenter) {
-    precondition(carbon.currentBondIndex == 4, "Bonds not fully specified.")
-    carbons.append(carbon)
+    var copy = carbon
+    for vacantIndex in carbon.currentBondIndex..<4 {
+      copy.bondFlags[vacantIndex] = BondType.vacant.rawValue
+    }
+    carbons.append(copy)
   }
   
   func makeAtoms() -> [MRAtom] {
@@ -53,10 +64,10 @@ struct Diamondoid {
       var matchedIndices = SIMD4<Int32>(repeating: -1)
       
       for j in carbons.indices where i != j {
-        let origin = carbons[j].origin
         var distances: SIMD4<Float> = SIMD4(repeating: .infinity)
         for k in 0..<4 {
-          distances[k] = distance_squared(carbon.bondDeltas[k], origin)
+          let target = carbon.origin + carbon.bondDeltas[k]
+          distances[k] = distance_squared(target, carbons[j].origin)
         }
         distances = __tg_sqrt(distances)
         matchedIndices.replace(with: Int32(j), where: distances .< 0.001)
