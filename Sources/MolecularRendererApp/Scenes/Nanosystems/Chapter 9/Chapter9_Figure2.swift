@@ -10,8 +10,9 @@ import MolecularRenderer
 import simd
 
 extension Nanosystems.Chapter9 {
-  struct Figure2 {
+  struct Figure2/*: Figure3D*/ {
     var a: [MRAtom] = []
+    // var a: Diamondoid
     
     init() {
       let ccBondLength: Float = 0.154
@@ -84,5 +85,13 @@ extension Nanosystems.Chapter9 {
         self.a = diamondoid.makeAtoms()
       }
     }
+  }
+  
+  struct Figure5/*: Figure3D*/ {
+    
+  }
+  
+  struct Figure6/*: Figure3D*/ {
+    
   }
 }

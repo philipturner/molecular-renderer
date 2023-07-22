@@ -6,7 +6,14 @@
 //
 
 import Foundation
+import MolecularRenderer
 
 enum Nanosystems {
+  
+}
+
+// TODO: Figure2D using Matplotlib.
+
+protocol Figure3D: MRAtomProvider {
   
 }
