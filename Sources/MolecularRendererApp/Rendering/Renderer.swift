@@ -40,7 +40,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     
     let figure = Nanosystems.Chapter9.Figure2()
-    self.atomProvider = ArrayAtomProvider(figure.a)
+    self.atomProvider = figure
   }
 }
 

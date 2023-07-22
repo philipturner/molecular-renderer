@@ -10,124 +10,16 @@ import MolecularRenderer
 import simd
 
 struct Diamondoid {
-  enum BondType: UInt8 {
-    case cc = 1
-    case ch = 2
-    case vacant = 3
-  }
-  
-  struct CarbonCenter {
-    var origin: SIMD3<Float>
-    var currentBondIndex: Int = 0
-    var bondDeltas: simd_float4x3
-    var bondFlags: SIMD4<UInt8>
-    
-    init(origin: SIMD3<Float>) {
-      self.origin = origin
-      self.bondDeltas = .init(.zero, .zero, .zero, .zero)
-      self.bondFlags = .zero
-    }
-    
-    mutating func addBond(_ delta: SIMD3<Float>, type: BondType) {
-      precondition(currentBondIndex < 4, "Too many bonds.")
-      bondDeltas[currentBondIndex] = delta
-      bondFlags[currentBondIndex] = type.rawValue
-      currentBondIndex += 1
-    }
-    
-    mutating func addCarbonBond(_ delta: SIMD3<Float>) {
-      addBond(delta, type: .cc)
-    }
-    
-    mutating func addHydrogenBond(_ delta: SIMD3<Float>) {
-      addBond(delta, type: .ch)
-    }
-  }
-  
-  private(set) var carbons: [CarbonCenter] = []
-  
-  init() {
-    
-  }
-  
-  mutating func addCarbon(_ carbon: CarbonCenter) {
-    var copy = carbon
-    for vacantIndex in carbon.currentBondIndex..<4 {
-      copy.bondFlags[vacantIndex] = BondType.vacant.rawValue
-    }
-    carbons.append(copy)
-  }
-  
-  func makeAtoms() -> [MRAtom] {
-    let bondIndices: [SIMD4<Int32>] = carbons.indices.map { i in
-      let carbon = carbons[i]
-      var matchedIndices = SIMD4<Int32>(repeating: -1)
-      
-      for j in carbons.indices where i != j {
-        var distances: SIMD4<Float> = SIMD4(repeating: .infinity)
-        for k in 0..<4 {
-          let target = carbon.origin + carbon.bondDeltas[k]
-          distances[k] = distance_squared(target, carbons[j].origin)
-        }
-        distances = __tg_sqrt(distances)
-        matchedIndices.replace(with: Int32(j), where: distances .< 0.001)
-      }
-      
-      for k in 0..<4 {
-        switch BondType(rawValue: carbon.bondFlags[k])! {
-        case .cc:
-          if matchedIndices[k] == -1 {
-            fatalError("Did not find matching carbon (index \(i), bond \(k)).")
-          }
-        case .ch:
-          matchedIndices[k] = -2
-        case .vacant:
-          matchedIndices[k] = -3
-        }
-      }
-      return matchedIndices
-    }
-    
-    for i in carbons.indices {
-      for k in 0..<4 {
-        let index = Int(bondIndices[i][k])
-        precondition(index < carbons.count, "Invalid bond index.")
-        if index >= 0 {
-          let partnerIndices = bondIndices[index]
-          guard any(partnerIndices .== Int32(i)) else {
-            fatalError("Bond pair not bidirectional.")
-          }
-        }
-      }
-    }
-    
-    var atoms: [MRAtom] = []
-    for carbon in carbons {
-      atoms.append(MRAtom(origin: carbon.origin, element: 6))
-      for k in 0..<4 {
-        switch BondType(rawValue: carbon.bondFlags[k])! {
-        case .cc:
-          break
-        case .ch:
-          let origin = carbon.origin + carbon.bondDeltas[k]
-          atoms.append(MRAtom(origin: origin, element: 1))
-        case .vacant:
-          break
-        }
-      }
-    }
-    
-    return atoms
-  }
-}
-
-// Rewriting the old Diamondoid API. We can do things like OpenMM minimizations
-// on this data structure now.
-struct _Diamondoid: MRAtomProvider {
-  var _atoms: [MRAtom]
+  var atoms: [MRAtom]
   var bonds: [SIMD2<Int32>]
   
+  // A bounding box that will never be exceeded during a simulation.
+  var boundingBox: simd_float2x3
+  
   init(carbonCenters: [SIMD3<Float>]) {
+    let ccBondLengthMax: Float = 0.170
+    let chBondLength: Float = 0.109
+    let sp3BondAngle: Float = 109.5 * .pi / 180
     precondition(carbonCenters.count > 0, "Not enough carbons.")
     
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
@@ -136,10 +28,13 @@ struct _Diamondoid: MRAtomProvider {
       minPosition = min(center, minPosition)
       maxPosition = max(center, maxPosition)
     }
+    self.boundingBox = simd_float2x3(
+      minPosition - ccBondLengthMax,
+      maxPosition + ccBondLengthMax)
     
     // Build a uniform grid to search for neighbors in O(n) time.
     let cellSpaceMin = floor(minPosition * 4)
-    let cellSpaceMax = floor(maxPosition * 4)
+    let cellSpaceMax = floor(maxPosition * 4) + 1
     let coordsOrigin = SIMD3<Int32>(cellSpaceMin)
     let boundingBox = SIMD3<Int32>(cellSpaceMax) &- coordsOrigin
     
@@ -150,7 +45,7 @@ struct _Diamondoid: MRAtomProvider {
     
     for (i, center) in carbonCenters.enumerated() {
       let cellSpaceFloor = floor(center * 4)
-      let coords = SIMD3<Int32>(cellSpaceFloor)
+      let coords = SIMD3<Int32>(cellSpaceFloor) &- coordsOrigin
       var address = coords.x
       address += boundingBox.x * coords.y
       address += boundingBox.x * boundingBox.y * coords.z
@@ -168,13 +63,9 @@ struct _Diamondoid: MRAtomProvider {
       grid[Int(address)] = previous
     }
     
-    
     // Primary (1), secondary (2), tertiary (3), or quaternary (4).
     var carbonTypes: [Int] = []
     var carbonNeighbors: [SIMD4<Int32>] = []
-    let ccBondLengthMax: Float = 0.170
-    let chBondLength: Float = 0.109
-    let sp3BondAngle: Float = 109.5 * .pi / 180
     
     for i in carbonCenters.indices {
       let center = carbonCenters[i]
@@ -226,10 +117,10 @@ struct _Diamondoid: MRAtomProvider {
       carbonNeighbors.append(output)
     }
     
-    _atoms = []
+    atoms = []
     bonds = []
     for i in carbonCenters.indices {
-      _atoms.append(MRAtom(origin: carbonCenters[i], element: 6))
+      atoms.append(MRAtom(origin: carbonCenters[i], element: 6))
       
       var neighborTypes: [Int] = []
       var neighborCenters: [SIMD3<Float>] = []
@@ -247,7 +138,7 @@ struct _Diamondoid: MRAtomProvider {
       
       func addHydrogen(direction: SIMD3<Float>) {
         let hydrogenCenter = carbonCenters[i] + chBondLength * direction
-        _atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
+        atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
         bonds.append(SIMD2(
           Int32(truncatingIfNeeded: i),
           Int32(truncatingIfNeeded: bonds.count)))
@@ -267,7 +158,7 @@ struct _Diamondoid: MRAtomProvider {
         }
         addHydrogen(direction: normal)
       case 2:
-        let midPoint = neighborCenters[1] - neighborCenters[0]
+        let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
         guard distance(midPoint, carbonCenters[i]) > 0.001 else {
           fatalError("sp3 carbons are too close to 180 degrees.")
         }
@@ -285,7 +176,17 @@ struct _Diamondoid: MRAtomProvider {
         }
         
         let j = Int(carbonNeighbors[i][0])
-        let referenceIndex = Int(carbonNeighbors[j][0])
+        var referenceIndex: Int?
+        for k in 0..<neighborTypes[0] {
+          let index = Int(carbonNeighbors[j][k])
+          if i != index {
+            referenceIndex = index
+            break
+          }
+        }
+        guard let referenceIndex else {
+          fatalError("Could not find valid neighbor index.")
+        }
         let referenceCenter = carbonCenters[referenceIndex]
         let normal = normalize(carbonCenters[i] - carbonCenters[j])
         
@@ -314,9 +215,5 @@ struct _Diamondoid: MRAtomProvider {
         fatalError("This should never happen.")
       }
     }
-  }
-  
-  func atoms(time: MRTimeContext) -> [MRAtom] {
-    return _atoms
   }
 }
