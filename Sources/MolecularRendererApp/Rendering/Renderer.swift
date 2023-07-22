@@ -37,14 +37,10 @@ class Renderer {
       width: Int(ContentView.size),
       height: Int(ContentView.size))
     MRSetFrameRate(120)
-    
     self.styleProvider = NanoStuff()
-//    self.styleProvider = QuteMolDefault()
     
-//    self.atomProvider = PlanetaryGearBox()
-    self.atomProvider = APMBootstrapper()
-//    self.atomProvider = ExampleProviders.fineMotionController()
-//    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
+    let figure = Nanosystems.Chapter9.Figure2()
+    self.atomProvider = ArrayAtomProvider(figure.a)
   }
 }
 

@@ -35,7 +35,6 @@ class CasingAtomProvider: MRAtomProvider {
     for key in atomsDict.keys {
       var translation: SIMD3<Float>
       
-      // TODO: Use quaternions to fix the rotation of the parts.
       switch key {
       case "casings/Embedded Bushing in SiC with Shaft":
         translation = [-3, 0, -3]

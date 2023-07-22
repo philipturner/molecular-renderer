@@ -66,59 +66,8 @@ class MRProfiler {
     constants.setConstantValue(&numerator, type: .float, index: 10)
     
     var pipelines: [PipelineConfig] = []
-    
-    // Good range of denominators:
-    // [10, 32] exclusive
-    //
-    // Is the atom radius a good indicator of an optimal cell size?
-    // -  8 -> 0.250
-    // - 10 -> 0.200
-    // - 12 -> 0.167
-    // - 14 -> 0.143
-    // - 16 -> 0.125
-    // - 18 -> 0.111
-    // - 22 -> 0.091
-    // - 26 -> 0.077
-    //
-    // Start at 4/10.
-    // min(4/8, rint(radius)), loop through this and the next 4 numbers afterward
-    // - only use increments of numerator 2 @ denominator 4
-    // - use whichever sample in the (very small) history has the minimum
-    //   - history has 2 planes (2 samples/cell)
-    // - every 1/3 frame: measurement
-    // - every 2/3 frames: alternate between the two best cell sizes
-    //   - if a cell size has the maximum in the most recent plane of the
-    //     history, it cannot be a "best"
-    //
-    // Track a global variable for the low-res cell size, which affects areas
-    // that aren't quite as volatile to user movement. The high-res cell size
-    // affects the BVH construction cost less severely, and is also the one that
-    // changes most rapidly (with the lowest-quality information).
-    //
-    // TODO: Gather statistics about how many sector comparisons succeeded,
-    // don't vary the low-res size if the scene hasn't changed much.
-    //
-    // 0.262 -> 12...15
-    // 0.235 -> 11...15
-    // 0.162 -> 14...18, 24
-    // 0.137 -> 16...20+
-    // 0.131 -> 14...22
-//    let denominators: [Float] = [8, 10, 12, 14, 16, 18, 20, 22]
-//    let denominators: [Float] = [8, 9, 10, 11, 12, 13, 14, 15, 16]
-//    let denominators: [Float] = [12, 13, 14, 15, 16, 17, 18]
-//    let denominators: [Float] = [10, 12, 14, 16, 18, 20, 22, 24]
-//    let denominators: [Float] = [14, 16, 18, 20, 22]
-//    let denominators: [Float] = [8, 9, 10, 11, 12, 13]
-//    let denominators: [Float] = [8, 16]//, 24, 32]
     let configs: [(Float, Bool)] = [
-//      (8, false),
-//      (8, true),
       (16, true),
-//      (9, true),
-//      (16, false),
-//      (16, true),
-//      (24, false),
-//      (24, true),
     ]
     for config in configs {
       var denominator = config.0
@@ -174,8 +123,6 @@ class MRProfiler {
         array.removeFirst()
       }
       times[id] = array
-//      print("\(id):")
-//      print(" - \(array.map { Int($0[1] * 1e6) })")
       
       let radius = tracker.queuedRmsAtomRadii[ringIndex]
       radii.append(radius)
@@ -183,7 +130,6 @@ class MRProfiler {
         radii.removeFirst()
       }
     }
-//    print(summary())
   }
   
   func summary() -> String {

@@ -29,4 +29,9 @@ struct ExampleProviders {
   // https://raw.githubusercontent.com/eudoxia0/MNT/master/gears/nanotube-worm-drive.mmp
   // https://raw.githubusercontent.com/eudoxia0/MNT/master/transport/fullerene-conveyor-cart.mmp
   // https://raw.githubusercontent.com/eudoxia0/MNT/master/transport/gantry.mmp
+  
+  //    self.atomProvider = PlanetaryGearBox()
+  //    self.atomProvider = APMBootstrapper()
+  //    self.atomProvider = ExampleProviders.fineMotionController()
+  //    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
 }
