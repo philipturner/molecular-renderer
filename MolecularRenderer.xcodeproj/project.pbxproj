@@ -23,6 +23,7 @@
 		98325C562A6B512900A4D7BB /* ArrayAtomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C552A6B512900A4D7BB /* ArrayAtomProvider.swift */; };
 		98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C572A6C1A3800A4D7BB /* Diamondoid.swift */; };
 		98325C5A2A6C617500A4D7BB /* Figure3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C592A6C617500A4D7BB /* Figure3D.swift */; };
+		98325C5C2A6C6C9A00A4D7BB /* MathUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C5B2A6C6C9A00A4D7BB /* MathUtilities.swift */; };
 		9846B9022A069798006E4924 /* NobleGas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846B9012A069798006E4924 /* NobleGas.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
@@ -127,6 +128,7 @@
 		98325C552A6B512900A4D7BB /* ArrayAtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayAtomProvider.swift; sourceTree = "<group>"; };
 		98325C572A6C1A3800A4D7BB /* Diamondoid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diamondoid.swift; sourceTree = "<group>"; };
 		98325C592A6C617500A4D7BB /* Figure3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Figure3D.swift; sourceTree = "<group>"; };
+		98325C5B2A6C6C9A00A4D7BB /* MathUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathUtilities.swift; sourceTree = "<group>"; };
 		9846B9012A069798006E4924 /* NobleGas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobleGas.swift; sourceTree = "<group>"; };
 		98499AFD2A621B2E0057E808 /* MRProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProfiler.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 				980E70202A5E57E10051797F /* CrystalPlane.swift */,
 				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
 				980E701E2A5E52920051797F /* FCC.swift */,
+				98325C5B2A6C6C9A00A4D7BB /* MathUtilities.swift */,
 			);
 			path = "Procedural Geometry";
 			sourceTree = "<group>";
@@ -657,6 +660,7 @@
 				980E701F2A5E52920051797F /* FCC.swift in Sources */,
 				98C48C652A48FA250047C078 /* initOpenMM.swift in Sources */,
 				98325C562A6B512900A4D7BB /* ArrayAtomProvider.swift in Sources */,
+				98325C5C2A6C6C9A00A4D7BB /* MathUtilities.swift in Sources */,
 				98FB90812A5D115200685E5C /* APMBootstrapper.swift in Sources */,
 				98325C542A6B501700A4D7BB /* Chapter9_Figure2.swift in Sources */,
 				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,

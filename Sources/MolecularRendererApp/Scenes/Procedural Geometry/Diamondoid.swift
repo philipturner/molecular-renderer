@@ -153,7 +153,7 @@ struct Diamondoid {
         var normal = normalize(cross(sideAB, sideAC))
         
         let deltaA = carbonCenters[i] - neighborCenters[0]
-        if dot(normal, deltaA) > 0 {
+        if dot(normal, deltaA) < 0 {
           normal = -normal
         }
         addHydrogen(direction: normal)
