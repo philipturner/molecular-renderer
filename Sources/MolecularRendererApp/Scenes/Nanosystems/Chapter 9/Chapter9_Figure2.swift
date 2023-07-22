@@ -68,6 +68,12 @@ extension Nanosystems.Chapter9 {
           }
         }
       }
+      
+      // Need a data structure that's a linked list of carbon atoms. It will
+      // automatically find missing orbitals and fill them with hydrogens.
+      
+      // Rewrite code to generate (a) using the nicer Diamondoid API, ensure it
+      // produces the same structure.
     }
   }
 }

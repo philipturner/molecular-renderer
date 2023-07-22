@@ -21,6 +21,7 @@
 		98325C522A6B4FDE00A4D7BB /* Chapter9.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C512A6B4FDE00A4D7BB /* Chapter9.swift */; };
 		98325C542A6B501700A4D7BB /* Chapter9_Figure2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C532A6B501700A4D7BB /* Chapter9_Figure2.swift */; };
 		98325C562A6B512900A4D7BB /* ArrayAtomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C552A6B512900A4D7BB /* ArrayAtomProvider.swift */; };
+		98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C572A6C1A3800A4D7BB /* Diamondoid.swift */; };
 		9846B9022A069798006E4924 /* NobleGas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846B9012A069798006E4924 /* NobleGas.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
@@ -123,6 +124,7 @@
 		98325C512A6B4FDE00A4D7BB /* Chapter9.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9.swift; sourceTree = "<group>"; };
 		98325C532A6B501700A4D7BB /* Chapter9_Figure2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9_Figure2.swift; sourceTree = "<group>"; };
 		98325C552A6B512900A4D7BB /* ArrayAtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayAtomProvider.swift; sourceTree = "<group>"; };
+		98325C572A6C1A3800A4D7BB /* Diamondoid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diamondoid.swift; sourceTree = "<group>"; };
 		9846B9012A069798006E4924 /* NobleGas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobleGas.swift; sourceTree = "<group>"; };
 		98499AFD2A621B2E0057E808 /* MRProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProfiler.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
@@ -214,8 +216,9 @@
 		980E70152A5E51AC0051797F /* Procedural Geometry */ = {
 			isa = PBXGroup;
 			children = (
-				980E701E2A5E52920051797F /* FCC.swift */,
 				980E70202A5E57E10051797F /* CrystalPlane.swift */,
+				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
+				980E701E2A5E52920051797F /* FCC.swift */,
 			);
 			path = "Procedural Geometry";
 			sourceTree = "<group>";
@@ -678,6 +681,7 @@
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */,
 				98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */,
+				98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */,
 				98F2F5D22A5F2E7B006216F4 /* MassiveDiamond.swift in Sources */,
 				9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
