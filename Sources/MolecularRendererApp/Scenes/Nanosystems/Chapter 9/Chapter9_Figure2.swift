@@ -14,52 +14,46 @@ extension Nanosystems.Chapter9 {
     var a: Diamondoid
     var b: Diamondoid
     var c: Diamondoid
+    var d: Diamondoid
+    var e: Diamondoid
+    var f: Diamondoid
     
     init() {
       let ccBondLength: Float = 0.154
       
-      var carbonCenters: [SIMD3<Float>] = []
-      func addLevel(
-        transform: (SIMD3<Float>) -> SIMD3<Float>
-      ) {
-        var output: [SIMD3<Float>] = [.zero]
-        for i in 0..<6 {
-          var delta: SIMD3<Float>
-          if i % 2 == 0 {
-            delta = sp3Delta(start: [0, -ccBondLength, 0], axis: [0, 0, +1])
-          } else {
-            delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [0, 0, -1])
-          }
-          
-          let center = output.last! + delta
-          output.append(center)
+      var baseLayer: [SIMD3<Float>] = [.zero]
+      for i in 0..<6 {
+        var delta: SIMD3<Float>
+        if i % 2 == 0 {
+          delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [0, 0, -1])
+        } else {
+          delta = sp3Delta(start: [0, -ccBondLength, 0], axis: [0, 0, +1])
         }
-        for i in output.indices {
-          output[i] = transform(output[i])
-        }
-        carbonCenters.append(contentsOf: output)
+        
+        let center = baseLayer.last! + delta
+        baseLayer.append(center)
       }
-      addLevel {
-        return $0
+      
+      var carbonCenters: [SIMD3<Float>] = []
+      carbonCenters += baseLayer.map {
+        var center = $0
+        center.y = -center.y
+        return center
       }
       self.a = Diamondoid(carbonCenters: carbonCenters)
       
-      var secondLevelOrigin = carbonCenters[1]
-      secondLevelOrigin += sp3Delta(
+      var secondFigureOrigin = carbonCenters[1]
+      secondFigureOrigin += sp3Delta(
         start: [0, -ccBondLength, 0], axis: [-1, 0, 0])
-      secondLevelOrigin += sp3Delta(
+      secondFigureOrigin += sp3Delta(
         start: [0, -ccBondLength, 0], axis: [0, 0, -1])
       
-      addLevel {
-        var center = $0
-        center.y = -center.y
-        center += secondLevelOrigin
-        return center
+      carbonCenters += baseLayer.map {
+        return secondFigureOrigin + $0
       }
       self.b = Diamondoid(carbonCenters: carbonCenters)
-      carbonCenters.removeLast(7)
       
-      func rotateThirdLevel(
+      func rotateThirdFigureLayer(
         _ center: SIMD3<Float>, degrees: Float
       ) -> SIMD3<Float> {
         let firstCenter = carbonCenters.first!
@@ -72,28 +66,80 @@ extension Nanosystems.Chapter9 {
         return firstCenter + delta + translation
       }
       
-      addLevel {
-        var center = $0
-        center.y = -center.y
-        center += secondLevelOrigin
-        return rotateThirdLevel(center, degrees: +10)
+      carbonCenters.removeLast(7)
+      carbonCenters += baseLayer.map {
+        let center = secondFigureOrigin + $0
+        return rotateThirdFigureLayer(center, degrees: +10)
       }
-      addLevel {
-        var center = $0
-        center.y = -center.y
-        center += secondLevelOrigin
+      carbonCenters += baseLayer.map {
+        var center = secondFigureOrigin + $0
         center.z = -center.z
-        return rotateThirdLevel(center, degrees: -10)
+        return rotateThirdFigureLayer(center, degrees: -10)
       }
       self.c = Diamondoid(carbonCenters: carbonCenters)
+      
+      func layer(positiveSteps: Int, negativeSteps: Int) -> [SIMD3<Float>] {
+        var output: [SIMD3<Float>] = baseLayer
+        var flipped = false
+        
+        func moveZ(positive: Bool) {
+          var delta: SIMD3<Float>
+          if positive {
+            delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [+1, 0, 0])
+          } else {
+            delta = sp3Delta(start: [0, +ccBondLength, 0], axis: [-1, 0, 0])
+          }
+          output = output.map { $0 + delta }
+          
+          var rotationCenter: SIMD3<Float>
+          if flipped {
+            rotationCenter = output[0]
+          } else {
+            rotationCenter = output[1]
+          }
+          rotationCenter.x = 0
+          
+          let rotation = simd_quatf(angle: .pi, axis: [+1, 0, 0])
+          output = output.map {
+            var delta = $0 - rotationCenter
+            delta = simd_act(rotation, delta)
+            return rotationCenter + delta
+          }
+          flipped = !flipped
+        }
+        
+        for _ in 0..<positiveSteps {
+          moveZ(positive: true)
+        }
+        for _ in 0..<negativeSteps {
+          moveZ(positive: false)
+        }
+        return output
+      }
+      
+      carbonCenters.removeAll()
+      carbonCenters += baseLayer
+      carbonCenters += layer(positiveSteps: 1, negativeSteps: 0)
+      carbonCenters += layer(positiveSteps: 0, negativeSteps: 1)
+      carbonCenters += layer(positiveSteps: 1, negativeSteps: 1)
+      self.d = Diamondoid(carbonCenters: carbonCenters)
+      
+      carbonCenters += layer(positiveSteps: 2, negativeSteps: 0)
+      carbonCenters += layer(positiveSteps: 2, negativeSteps: 1)
+      self.e = Diamondoid(carbonCenters: carbonCenters)
+      
+      carbonCenters += layer(positiveSteps: 0, negativeSteps: 2)
+      carbonCenters += layer(positiveSteps: 1, negativeSteps: 2)
+      carbonCenters += layer(positiveSteps: 2, negativeSteps: 2)
+      self.f = Diamondoid(carbonCenters: carbonCenters)
     }
     
     var structures: [WritableKeyPath<Self, Diamondoid>] {
-      [\.a, \.b, \.c]
+      [\.a, \.b, \.c, \.d, \.e, \.f]
     }
     
     var stackingDirection: SIMD3<Float> {
-      SIMD3(0, 1, 0)
+      SIMD3(0, -1, 0)
     }
   }
   
