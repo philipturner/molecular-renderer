@@ -41,7 +41,6 @@ extension Nanosystems.Chapter9 {
       }
       
       var cnDelta: SIMD3<Float>
-      var nnDelta: SIMD3<Float>
       do {
         let adjacent = thickness / 2
         let hypotenuse = nnBondLength / 2
@@ -54,13 +53,12 @@ extension Nanosystems.Chapter9 {
         precondition(adjacent2 > 0.001, "Adjacent too small.")
         
         cnDelta = SIMD3(0, -opposite2, adjacent2)
-        nnDelta = SIMD3(adjacent, -opposite, 0)
       }
       atoms.append(MRAtom(
         origin: atoms.last!.origin + cnDelta, element: 7))
       
       let rotationCenter: SIMD3<Float> = SIMD3(thickness / 2, 0, 0)
-      var rotation = simd_quatf(angle: .pi, axis: [0, 0, +1])
+      let rotation = simd_quatf(angle: .pi, axis: [0, 0, +1])
       
       func reflect(_ atom: MRAtom) -> MRAtom {
         var copy = atom
@@ -145,3 +143,4 @@ extension Nanosystems.Chapter9 {
     }
   }
 }
+

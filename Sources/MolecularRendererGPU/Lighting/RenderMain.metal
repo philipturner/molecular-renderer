@@ -76,7 +76,7 @@ public:
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
-      float direction = ray.direction[i];
+//      float direction = ray.direction[i];
       float origin = ray.origin[i];
       
       if (ray.direction[i] < 0) {

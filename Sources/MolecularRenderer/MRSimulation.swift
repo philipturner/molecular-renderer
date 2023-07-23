@@ -103,13 +103,13 @@ public class MRSimulation {
     
     let path = url.absoluteURL.path
     context = MTLIOCreateCompressionContext(path, .lzBitmap, 65536)!
-    defer {
-      let status = MTLIOFlushAndDestroyCompressionContext(context!)
-      guard status == .complete else {
-        fatalError("Could not flush and destroy compression context.")
-      }
-      context = nil
-    }
+//    defer {
+//      let status = MTLIOFlushAndDestroyCompressionContext(context!)
+//      guard status == .complete else {
+//        fatalError("Could not flush and destroy compression context.")
+//      }
+//      context = nil
+//    }
   }
   
   func synchronize() {

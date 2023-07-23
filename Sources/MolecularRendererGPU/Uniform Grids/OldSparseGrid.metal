@@ -142,10 +142,10 @@ namespace old_sparse_grids_draft {
   {
     MRAtom atom(atoms + tid);
     atom.origin = (atom.origin - args.upper_origin) / 4;
-    MRBoundingBox box = atom.getBoundingBox(styles);
+//    MRBoundingBox box = atom.getBoundingBox(styles);
     
     // TODO: Don't write to upper cells if you're out of bounds.
-    short3 max_coords = short3(args.upper_dimensions - 1);
+//    short3 max_coords = short3(args.upper_dimensions - 1);
     //  SPARSE_BOX_GENERATE
     ushort3 box_min = 0;
     ushort3 box_max = 0;
