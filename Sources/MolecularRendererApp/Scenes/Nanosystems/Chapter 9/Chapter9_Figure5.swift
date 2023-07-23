@@ -35,7 +35,7 @@ extension Nanosystems.Chapter9 {
         baseLayer.append(baseLayer.last! + delta)
       }
       
-      func makeRod(n_bond: Int) -> Diamondoid {
+      func makeRod(n_bonds: Int) -> Diamondoid {
         var centers: [SIMD3<Float>] = []
         var delta: SIMD3<Float> = .zero
         delta += sp2Delta(
@@ -45,11 +45,11 @@ extension Nanosystems.Chapter9 {
         
         var currentLayer: [SIMD3<Float>] = baseLayer
         centers.append(contentsOf: baseLayer)
-        for _ in 1..<n_bond {
+        for _ in 1..<n_bonds {
           currentLayer = currentLayer.map { $0 + delta }
           centers.append(contentsOf: currentLayer)
         }
-        let originalCircumference = Float(n_bond) * length(delta)
+        let originalCircumference = Float(n_bonds) * length(delta)
         var currentRadius = originalCircumference / (2 * .pi)
         
         func makeOutput() -> [SIMD3<Float>] {
@@ -82,7 +82,6 @@ extension Nanosystems.Chapter9 {
           return newOpposite / originalOpposite
         }
         let scaleFactor = getScaleFactor(makeOutput())
-        print("Scaling radius by: \(scaleFactor)")
         
         currentRadius *= scaleFactor
         let output = makeOutput()
@@ -94,9 +93,9 @@ extension Nanosystems.Chapter9 {
         return Diamondoid(carbonCenters: output)
       }
       
-      self.a = makeRod(n_bond: 2)
-      self.b = makeRod(n_bond: 3)
-      self.c = makeRod(n_bond: 4)
+      self.a = makeRod(n_bonds: 2)
+      self.b = makeRod(n_bonds: 3)
+      self.c = makeRod(n_bonds: 4)
     }
     
     var structures: [WritableKeyPath<Self, Diamondoid>] {

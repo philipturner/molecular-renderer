@@ -19,8 +19,6 @@ extension Nanosystems.Chapter9 {
     var f: Diamondoid
     
     init() {
-      let ccBondLength: Float = 0.154
-      
       var baseLayer: [SIMD3<Float>] = [.zero]
       for i in 0..<6 {
         var delta: SIMD3<Float>

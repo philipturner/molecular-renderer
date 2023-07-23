@@ -21,9 +21,6 @@ struct Diamondoid {
   // distance based on the length of bonds between the two elements being
   // compared.
   init(carbonCenters: [SIMD3<Float>]) {
-    let ccBondLengthMax: Float = 0.170
-    let chBondLength: Float = 0.109
-    let sp3BondAngle: Float = 109.5 * .pi / 180
     precondition(carbonCenters.count > 0, "Not enough carbons.")
     
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
@@ -160,6 +157,16 @@ struct Diamondoid {
         if dot(normal, deltaA) < 0 {
           normal = -normal
         }
+        
+//        var midPoint = neighborCenters[0] + neighborCenters[1]
+//        midPoint += neighborCenters[2]
+//        midPoint /= 3
+//        let midpointNormal = normalize(carbonCenters[i] - midPoint)
+//        var midpointRotation = simd_quatf(from: normal, to: midpointNormal)
+//        let rotation = simd_quatf(
+//          angle: midpointRotation.angle / 1, axis: midpointRotation.axis)
+//        normal = simd_act(midpointRotation, normal)
+        
         addHydrogen(direction: normal)
       case 2:
         let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
