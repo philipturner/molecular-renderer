@@ -8,6 +8,14 @@
 import Foundation
 import simd
 
+func sp2Delta(
+  start: SIMD3<Float>, axis: SIMD3<Float>
+) -> SIMD3<Float> {
+  let sp2BondAngle: Float = 120 * .pi / 180
+  let rotation = simd_quatf(angle: sp2BondAngle / 2, axis: axis)
+  return simd_act(rotation, start)
+}
+
 func sp3Delta(
   start: SIMD3<Float>, axis: SIMD3<Float>
 ) -> SIMD3<Float> {

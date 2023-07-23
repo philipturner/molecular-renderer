@@ -39,7 +39,7 @@ class Renderer {
     MRSetFrameRate(120)
     self.styleProvider = NanoStuff()
     
-    let figure = Nanosystems.Chapter9.Figure2()
+    let figure = Nanosystems.Chapter9.Figure5()
     self.atomProvider = figure
   }
 }

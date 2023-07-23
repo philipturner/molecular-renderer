@@ -142,12 +142,4 @@ extension Nanosystems.Chapter9 {
       SIMD3(0, -1, 0)
     }
   }
-  
-  struct Figure5/*: Figure3D*/ {
-    
-  }
-  
-  struct Figure6/*: Figure3D*/ {
-    
-  }
 }

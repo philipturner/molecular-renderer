@@ -16,6 +16,10 @@ struct Diamondoid {
   // A bounding box that will never be exceeded during a simulation.
   var boundingBox: simd_float2x3
   
+  // TODO: Support N and O by accepting 'MRAtom' structures instead of position
+  // vectors. When searching for neighbors, you'll need to adjust the accepted
+  // distance based on the length of bonds between the two elements being
+  // compared.
   init(carbonCenters: [SIMD3<Float>]) {
     let ccBondLengthMax: Float = 0.170
     let chBondLength: Float = 0.109
