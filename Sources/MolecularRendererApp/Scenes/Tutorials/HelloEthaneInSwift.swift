@@ -14,7 +14,7 @@ fileprivate struct SimulationConstants {
   static let useConstraints: Bool = false
   static let stepSizeInFs: Double = 2
   static let reportIntervalInFs: Double = 10
-  static let simulationTimeInPs: Double = 100
+  static let simulationTimeInPs: Double = 10
   static let wantEnergy: Bool = true
   
   static let coulomb14Scale: Double = 0.5

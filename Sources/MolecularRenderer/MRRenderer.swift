@@ -84,6 +84,7 @@ public class MRRenderer {
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
   var upscaler: MTLFXTemporalScaler!
+  var serializer: MRSerializer!
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -171,6 +172,7 @@ public class MRRenderer {
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     self.profiler = MRProfiler(renderer: self, library: library)
     self.initUpscaler()
+    self.serializer = MRSerializer(renderer: self, library: library)
   }
   
   func initUpscaler() {

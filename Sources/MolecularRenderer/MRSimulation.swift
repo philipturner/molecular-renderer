@@ -15,61 +15,63 @@ import Metal
 public class MRSimulation {
   // Summary of serialization pipeline:
   // - Original format
-  //   - packed/unpacked by the library user (and eventually the GPU)
+  //   - packed/unpacked by the library user
   //   - a batch of [MRAtom]
-  // - Intermediate format:
+  // - Intermediate format
   //   - packed/unpacked by the GPU
   //   - rearranges data to maximize compression efficiency
   //   - de-interleaves, quantizes components of [MRAtom]
   //   - interleaves data among instances within the batch
-  // - Final format:
+  // - Final format
   //   - packed/unpacked by the CPU
   //   - LZBITMAP compression using Metal fast resource loading
   //
   // Serialization:
-  // MRAtom -> GPU Intermediate -> LZBITMAP
+  //   MRAtom -> GPU Intermediate -> LZBITMAP
   // Deserialization:
-  // LZBITMAP -> GPU Intermediate -> MRAtom
+  //   LZBITMAP -> GPU Intermediate -> MRAtom
   struct SimulationHeader {
     var frameCount: Int
     var frameTimeInFs: Double
     var maxFrameMetadataSize: Int
     var batchCount: Int
-    var atomsPerBatch: SIMD32<Int>
   }
   
-  // After storing the header, round up to a 64 KB boundary.
+  // After storing the header, store an array of 64-bit integers stating the
+  // max number of atoms in each batch. Round up to a 64 KB boundary.
   
   struct FrameHeader {
     // For each frame, store its frame ID explicitly, to help recover from
     // corrupted simulations.
     public var frameID: Int
-    public var batchActiveMask: SIMD32<UInt8>
   }
   
-  // After the header, concatenate the metadata for every active batch. Pad with
+  // After the frame ID, store an 8-bit boolean mask of whether each frame is
+  // active. Then, concatenate the metadata for every active batch. Pad with
   // zeroes until reaching the inactive batch size. Round to a 64B boundary.
   //
   // Repeat that process with the concatenated X mantissas, X exponents,
   // Y/Z mantissas/exponents, and 16-bit masks combining the element IDs
-  // with flags. Across batch instances, pad the number of atoms to 4.
+  // with flags. Across batch instances, zero-pad the number of atoms to a
+  // multiple of 4. Round to 64B boundaries between components.
   //
   // After serializing the entire frame, round up to a 64 KB boundary.
   
-  public var frameTimeInFs: Double
-  public var maxFrameMetadataSize: Int
-  public var batchCount: Int = 0
-  public var frames: [MRFrame] = []
+  public internal(set) var frameTimeInFs: Double
+  public internal(set) var maxFrameMetadataSize: Int = 0
+  public internal(set) var maxAtomsPerBatch: [Int] = []
+  public internal(set) var frames: [MRFrame] = []
   
-  init(
-    frameTimeInFs: Double,
-    maxFrameMetadataSize: Int
-  ) {
+  var fileHandle: MTLIOFileHandle?
+  var context: MTLIOCompressionContext?
+  var lastCommandBuffer: (Int, MTLCommandBuffer)?
+  var semaphore: DispatchSemaphore = .init(value: 8)
+  
+  init(frameTimeInFs: Double) {
     self.frameTimeInFs = frameTimeInFs
-    self.maxFrameMetadataSize = maxFrameMetadataSize
   }
   
-  init(url: URL) throws {
+  init(renderer: MRRenderer, url: URL) throws {
     // First, synchronously load the header, to determine how large each frame
     // is.
     
@@ -80,24 +82,123 @@ public class MRSimulation {
   }
   
   func append(_ frame: MRFrame) {
-    // Increase the batch count if needed.
-    
-    // Quantize atom positions to 1/1024 nm precision, rounding to the nearest
-    // even integer. Store 16-bit "mantissa" parts separately from 16-bit
-    // "exponent" parts.
+    var index = 0
+    for (atoms, metadata) in zip(frame.atoms, frame.metadata) {
+      maxFrameMetadataSize = max(metadata.count, maxFrameMetadataSize)
+      if index >= maxAtomsPerBatch.count {
+        maxAtomsPerBatch.append(atoms.count)
+      } else {
+        maxAtomsPerBatch[index] = max(maxAtomsPerBatch[index], atoms.count)
+      }
+      index += 1
+    }
+    frames.append(frame)
   }
   
-  // TODO: Store the X, Y, Z, and element/flags components separately. Do not
-  // store the square radii. The element IDs and flags are allowed to change
-  // each frame.
-  func store(url: URL) throws {
+  func store(renderer: MRRenderer, url: URL) throws {
+    let handle = try! renderer.device.makeIOHandle(
+      url: url, compressionMethod: .lzBitmap)
+    precondition(
+      context == nil, "Saved twice without destroying the context.")
+    
+    let path = url.absoluteURL.path
+    context = MTLIOCreateCompressionContext(path, .lzBitmap, 65536)!
+    defer {
+      let status = MTLIOFlushAndDestroyCompressionContext(context!)
+      guard status == .complete else {
+        fatalError("Could not flush and destroy compression context.")
+      }
+      context = nil
+    }
+  }
+  
+  func synchronize() {
     
   }
 }
 
 public struct MRFrame {
-  public var timeInFs: Double
-  public var batchActiveMask: SIMD32<UInt8>
   public var atoms: [[MRAtom]]
   public var metadata: [[Data]]
+}
+
+class MRSerializer {
+  var device: MTLDevice
+  var commandQueue: MTLCommandQueue
+  var ioCommandQueue: MTLIOCommandQueue
+ 
+  var serializePipeline: MTLComputePipelineState
+  var deserializePipeline: MTLComputePipelineState
+  var framesQueue: DispatchQueue = .init(
+    label: "com.philipturner.molecular-renderer.MRSerializer.framesQueue")
+  
+  init(renderer: MRRenderer, library: MTLLibrary) {
+    self.device = renderer.device
+    self.commandQueue = renderer.commandQueue
+    
+    let desc = MTLIOCommandQueueDescriptor()
+    desc.type = .concurrent
+    self.ioCommandQueue = try! device.makeIOCommandQueue(descriptor: desc)
+    
+    let serializeFunction = library.makeFunction(name: "serialize")!
+    let deserializeFunction = library.makeFunction(name: "deserialize")!
+    serializePipeline = try! device.makeComputePipelineState(
+      function: serializeFunction)
+    deserializePipeline = try! device.makeComputePipelineState(
+      function: deserializeFunction)
+  }
+  
+  func storeHeader(simulation: inout MRSimulation) {
+    let bytes = malloc(65536)!
+    memset(bytes, 0, 65536)
+    defer { bytes.deallocate() }
+    var cursor = bytes
+    
+    let headerPointer = cursor.assumingMemoryBound(
+      to: MRSimulation.SimulationHeader.self)
+    headerPointer.pointee = .init(
+      frameCount: simulation.frames.count,
+      frameTimeInFs: simulation.frameTimeInFs,
+      maxFrameMetadataSize: simulation.maxFrameMetadataSize,
+      batchCount: simulation.maxAtomsPerBatch.count)
+    cursor += MemoryLayout<MRSimulation.SimulationHeader>.stride
+    
+    let maxAtomsPointer = cursor.assumingMemoryBound(to: Int.self)
+    let batchCount = simulation.maxAtomsPerBatch.count
+    for i in 0..<batchCount {
+      maxAtomsPointer[i] = simulation.maxAtomsPerBatch[i]
+    }
+    cursor += 8 * batchCount
+    
+    MTLIOCompressionContextAppendData(
+      simulation.context!, bytes, cursor - bytes)
+  }
+  
+  func loadHeader(simulation: inout MRSimulation) {
+    let bytes = malloc(65536)!
+    memset(bytes, 0, 65536)
+    defer { bytes.deallocate() }
+    var cursor = bytes
+    
+    let ioCommandBuffer = ioCommandQueue.makeCommandBuffer()
+    ioCommandBuffer.loadBytes(bytes, size: 65536, sourceHandle: simulation.fileHandle!, sourceHandleOffset: 0)
+    ioCommandBuffer.commit()
+    ioCommandBuffer.waitUntilCompleted()
+    
+    let headerPointer = cursor.assumingMemoryBound(
+      to: MRSimulation.SimulationHeader.self)
+    let header = headerPointer.pointee
+    cursor += MemoryLayout<MRSimulation.SimulationHeader>.stride
+    
+    simulation.frames = Array(
+      repeating: MRFrame(atoms: [], metadata: []), count: header.frameCount)
+  }
+  
+  func storeFrameAsync(simulation: inout MRSimulation, frameID: Int) {
+    let frame = simulation.frames[frameID]
+  }
+  
+  func loadFrameAsync(simulation: inout MRSimulation, frameID: Int) {
+    simulation.frames.append(MRFrame(atoms: [], metadata: []))
+  }
 }
