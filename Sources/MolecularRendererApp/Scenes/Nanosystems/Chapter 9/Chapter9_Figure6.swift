@@ -17,6 +17,8 @@ extension Nanosystems.Chapter9 {
     var d: Diamondoid
     
     init() {
+      let ccBondLength = Constants.bondLengths[[6, 6]]!.average
+      
       func makeRod(n_bonds: Int, crossRingBondAngle: Float) -> Diamondoid {
         var baseInnerRing: [SIMD3<Float>] = [.zero]
         var ringDelta: SIMD3<Float> = [0, 0, +ccBondLength]

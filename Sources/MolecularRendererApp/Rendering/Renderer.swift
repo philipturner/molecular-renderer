@@ -39,8 +39,13 @@ class Renderer {
     MRSetFrameRate(120)
     self.styleProvider = NanoStuff()
     
-//    self.atomProvider = Nanosystems.Chapter9.Figure6()
-    self.atomProvider = simulateEthane()
+    // TODO: See whether this structure is still valid with the minimum
+    // restriction on CC neighbor distance.
+    self.atomProvider = Nanosystems.Chapter9.Figure6()
+//    self.atomProvider = simulateEthane()
+//    self.atomProvider = NanoEngineerParser(
+//      partLibPath: "couplings/Universal Joint.mmp")
+//    self.atomProvider = PlanetaryGearBox()
   }
 }
 

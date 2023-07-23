@@ -32,6 +32,7 @@
 		98325C6B2A6D7BA300A4D7BB /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98325C6A2A6D7BA300A4D7BB /* OpenMM */; };
 		98325C6E2A6D86AA00A4D7BB /* Serialization.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98325C6D2A6D86AA00A4D7BB /* Serialization.metal */; };
 		98325C702A6D88DE00A4D7BB /* MM3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C6F2A6D88DE00A4D7BB /* MM3.swift */; };
+		98325C722A6DC84400A4D7BB /* Chapter9_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C712A6DC84400A4D7BB /* Chapter9_Figure3.swift */; };
 		9846B9022A069798006E4924 /* NobleGas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846B9012A069798006E4924 /* NobleGas.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
@@ -142,6 +143,7 @@
 		98325C632A6D7B8800A4D7BB /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
 		98325C6D2A6D86AA00A4D7BB /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		98325C6F2A6D88DE00A4D7BB /* MM3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM3.swift; sourceTree = "<group>"; };
+		98325C712A6DC84400A4D7BB /* Chapter9_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9_Figure3.swift; sourceTree = "<group>"; };
 		9846B9012A069798006E4924 /* NobleGas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobleGas.swift; sourceTree = "<group>"; };
 		98499AFD2A621B2E0057E808 /* MRProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProfiler.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
@@ -303,6 +305,7 @@
 			children = (
 				98325C512A6B4FDE00A4D7BB /* Chapter9.swift */,
 				98325C532A6B501700A4D7BB /* Chapter9_Figure2.swift */,
+				98325C712A6DC84400A4D7BB /* Chapter9_Figure3.swift */,
 				98325C5D2A6CA28F00A4D7BB /* Chapter9_Figure5.swift */,
 				98325C5F2A6CA2A300A4D7BB /* Chapter9_Figure6.swift */,
 			);
@@ -721,6 +724,7 @@
 				98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98325C602A6CA2A300A4D7BB /* Chapter9_Figure6.swift in Sources */,
+				98325C722A6DC84400A4D7BB /* Chapter9_Figure3.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */,
 				98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */,
