@@ -59,23 +59,17 @@ extension SimulationConstants {
   static var numSilentSteps: Int {
     Int(reportIntervalInFs / stepSizeInFs + 0.5)
   }
-  static func omm(
-    provider: MRAtomStyleProvider, platformName: inout String
-  ) -> MyOpenMMData {
+  static func omm(platformName: inout String) -> MyOpenMMData {
     MyOpenMMData(
-      atoms: atoms, styles: provider.styles, temperature: temperature,
-      frictionInPerPs: frictionInPerPs, solventDielectric: solventDielectric,
-      soluteDielectric: soluteDielectric, stepSizeInFs: stepSizeInFs,
-      platformName: &platformName)
+      atoms: atoms, temperature: temperature, frictionInPerPs: frictionInPerPs,
+      solventDielectric: solventDielectric, soluteDielectric: soluteDielectric,
+      stepSizeInFs: stepSizeInFs, platformName: &platformName)
   }
 }
 
-func simulateSodiumChloride(
-  styleProvider: MRAtomStyleProvider
-) -> OpenMM_AtomProvider {
+func simulateSodiumChloride() -> OpenMM_AtomProvider {
   var platformName: String = ""
-  let omm = SimulationConstants.omm(
-    provider: styleProvider, platformName: &platformName)
+  let omm = SimulationConstants.omm(platformName: &platformName)
   
   var atoms = SimulationConstants.atoms
   var time: Double = 0
@@ -107,7 +101,6 @@ fileprivate class MyOpenMMData {
   
   init(
     atoms: [MyAtomInfo],
-    styles: [MRAtomStyle],
     temperature: Double,
     frictionInPerPs: Double,
     solventDielectric: Double,
@@ -168,8 +161,7 @@ fileprivate func myGetOpenMMState(
     infoMask |= OpenMM_State_Energy.rawValue
   }
   
-  let state = omm.context.state(
-    types: .init(rawValue: infoMask), enforcePeriodicBox: false)
+  let state = omm.context.state(types: .init(rawValue: infoMask))
   timeInPs = state.time
   
   let posArrayInNm = state.positions
@@ -206,7 +198,6 @@ fileprivate func myWriteMRFrame(
   } else {
     numSteps = SimulationConstants.numSilentSteps
   }
-  let state = omm.context.state(
-    types: OpenMM_State_Positions, enforcePeriodicBox: false)
+  let state = omm.context.state(types: OpenMM_State_Positions)
   omm.provider.append(state: state, steps: numSteps)
 }

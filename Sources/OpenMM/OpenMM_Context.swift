@@ -34,7 +34,9 @@ public class OpenMM_Context: OpenMM_Object {
   }
   
   public func state(
-    types: OpenMM_State_DataType, enforcePeriodicBox: Bool, groups: Int? = nil
+    types: OpenMM_State_DataType,
+    enforcePeriodicBox: Bool = false,
+    groups: Int? = nil
   ) -> OpenMM_State {
     var _state: OpaquePointer
     if let groups {

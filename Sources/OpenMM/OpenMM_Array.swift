@@ -7,6 +7,26 @@
 
 import COpenMM
 
+public class OpenMM_BondArray: OpenMM_Object {
+  public convenience init(size: Int) {
+    self.init(_openmm_create(Int32(size), OpenMM_BondArray_create))
+    self.retain()
+  }
+  
+  public override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_BondArray_destroy(pointer)
+  }
+  
+  public func append(_ particles: SIMD2<Int>) {
+    OpenMM_BondArray_append(pointer, Int32(particles[0]), Int32(particles[1]))
+  }
+  
+  public var size: Int {
+    let _size = OpenMM_BondArray_getSize(pointer)
+    return Int(_size)
+  }
+}
+
 public class OpenMM_StringArray: OpenMM_Object {
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_StringArray_destroy(pointer)

@@ -39,6 +39,15 @@ public class OpenMM_System: OpenMM_Object {
     OpenMM_System_destroy(pointer)
   }
   
+  @discardableResult
+  public func addConstraint(
+    particles: SIMD2<Int>, distance: Double
+  ) -> Int {
+    let index = OpenMM_System_addConstraint(
+      pointer, Int32(particles[0]), Int32(particles[1]), distance)
+    return Int(index)
+  }
+  
   /// Transfer ownership of the `OpenMM_Force` to OpenMM before calling this.
   @discardableResult
   public func addForce(_ force: OpenMM_Force) -> Int {

@@ -60,6 +60,16 @@ public class OpenMM_HarmonicAngleForce: OpenMM_Force {
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_HarmonicAngleForce_destroy(pointer)
   }
+  
+  @discardableResult
+  public func addAngle(
+    particles: SIMD3<Int>, angle: Double, k: Double
+  ) -> Int {
+    let index = OpenMM_HarmonicAngleForce_addAngle(
+      pointer, Int32(particles[0]), Int32(particles[1]),
+      Int32(particles[2]), angle, k)
+    return Int(index)
+  }
 }
 
 public class OpenMM_HarmonicBondForce: OpenMM_Force {
@@ -70,6 +80,15 @@ public class OpenMM_HarmonicBondForce: OpenMM_Force {
   
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_HarmonicBondForce_destroy(pointer)
+  }
+  
+  @discardableResult
+  public func addBond(
+    particles: SIMD2<Int>, length: Double, k: Double
+  ) -> Int {
+    let index = OpenMM_HarmonicBondForce_addBond(
+      pointer, Int32(particles[0]), Int32(particles[1]), length, k)
+    return Int(index)
   }
 }
 
@@ -84,10 +103,19 @@ public class OpenMM_NonbondedForce: OpenMM_Force {
   }
   
   @discardableResult
-  public func addParticle(charge: Double, sigma: Double, epsilon: Double) -> Int {
+  public func addParticle(
+    charge: Double, sigma: Double, epsilon: Double
+  ) -> Int {
     let index = OpenMM_NonbondedForce_addParticle(
       pointer, charge, sigma, epsilon)
     return Int(index)
+  }
+  
+  public func createExceptionsFromBonds(
+    _ bonds: OpenMM_BondArray, coulomb14Scale: Double, lj14Scale: Double
+  ) {
+    OpenMM_NonbondedForce_createExceptionsFromBonds(
+      pointer, bonds.pointer, coulomb14Scale, lj14Scale)
   }
 }
 
@@ -99,5 +127,15 @@ public class OpenMM_PeriodicTorsionForce: OpenMM_Force {
   
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_PeriodicTorsionForce_destroy(pointer)
+  }
+  
+  @discardableResult
+  public func addTorsion(
+    particles: SIMD4<Int>, periodicity: Int, phase: Double, k: Double
+  ) -> Int {
+    let index = OpenMM_PeriodicTorsionForce_addTorsion(
+      pointer, Int32(particles[0]), Int32(particles[1]), Int32(particles[2]),
+      Int32(particles[3]), Int32(periodicity), phase, k)
+    return Int(index)
   }
 }
