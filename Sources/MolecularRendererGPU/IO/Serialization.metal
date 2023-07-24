@@ -78,8 +78,8 @@ kernel void deserialize
     cursor += batch_stride;
   }
   flags = *(device TRANSACTION*)(input + cursor);
-  cursor -= 6 * batch_stride;
   
+  cursor = SERIALIZATION_MEMORY_COALESCING * tid;
 #pragma clang loop unroll(full)
   for (ushort i = 0; i < SERIALIZATION_MEMORY_COALESCING; ++i) {
     MRAtom atom;
