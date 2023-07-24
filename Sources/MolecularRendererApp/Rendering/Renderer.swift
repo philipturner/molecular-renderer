@@ -35,7 +35,8 @@ class Renderer {
     self.renderingEngine = MRRenderer(
       metallibURL: url,
       width: Int(ContentView.size),
-      height: Int(ContentView.size))
+      height: Int(ContentView.size),
+      upscaleFactor: ContentView.upscaleFactor)
     MRSetFrameRate(120)
     self.styleProvider = NanoStuff()
     

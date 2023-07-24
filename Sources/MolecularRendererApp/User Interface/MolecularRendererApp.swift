@@ -24,7 +24,15 @@ struct MolecularRendererApp: App {
 struct ContentView: View {
   @ObservedObject var coordinator: Coordinator
   
-  static let size: CGFloat = 1920 // 960 for screencasting, 1280 otherwise
+  static let upscaleFactor: Int = {
+    if #available(macOS 14, iOS 17, tvOS 17, *) {
+      return 3
+    } else {
+      return 2
+    }
+  }()
+  
+  static let size: CGFloat = 640 * CGFloat(upscaleFactor)
   
   var body: some View {
     // A ZStack to overlay the crosshair over the scene view

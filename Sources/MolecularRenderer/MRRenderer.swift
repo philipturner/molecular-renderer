@@ -113,17 +113,19 @@ public class MRRenderer {
   public init(
     metallibURL: URL,
     width: Int,
-    height: Int
+    height: Int,
+    upscaleFactor: Int
   ) {
     // Initialize Metal resources.
     self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
     
-    guard width % 3 == 0, height % 3 == 0 else {
+    guard width % upscaleFactor == 0, height % upscaleFactor == 0 else {
       fatalError("MRRenderer only accepts even image sizes.")
     }
     self.upscaledSize = SIMD2(width, height)
-    self.intermediateSize = SIMD2(width / 3, height / 3)
+    self.intermediateSize = SIMD2(
+      width / upscaleFactor, height / upscaleFactor)
     
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -188,8 +190,8 @@ public class MRRenderer {
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = 3
-    desc.inputContentMaxScale = 3
+    desc.inputContentMinScale = Float(upscaledSize.x / intermediateSize.x)
+    desc.inputContentMaxScale = Float(upscaledSize.y / intermediateSize.y)
     
     guard let upscaler = desc.makeTemporalScaler(device: device) else {
       fatalError("The temporal scaler effect is not usable!")
