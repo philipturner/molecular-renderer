@@ -101,7 +101,6 @@ public class MRSimulation {
   
   var framesInFlight: [Bool] = []
   var semaphores: [DispatchSemaphore] = []
-  var ioCommandBuffers: [MTLIOCommandBuffer?] = []
   var frameBuffers: [MTLBuffer] = []
   var atomsBuffers: [MTLBuffer] = []
   var cumulativeSumBuffer: MTLBuffer?
@@ -184,7 +183,6 @@ public class MRSimulation {
     
     framesInFlight = Array(repeating: false, count: 8)
     semaphores = Array(repeating: DispatchSemaphore(value: 0), count: 8)
-    ioCommandBuffers = Array(repeating: nil, count: 8)
     frameBuffers = []
     atomsBuffers = []
     frameID = 0
@@ -219,23 +217,20 @@ public class MRSimulation {
   }
   
   func stream(_ closure: () -> Void) {
-    func maybeWait() {
+    while frameID < frames.count {
       if framesInFlight[frameID % 8] {
-        ioCommandBuffers[frameID % 8]!.waitUntilCompleted()
-        ioCommandBuffers[frameID % 8] = nil
         semaphores[frameID % 8].wait()
       }
-    }
-    
-    while frameID < frames.count {
-      maybeWait()
       closure()
       
       framesInFlight[frameID % 8] = true
       frameID += 1
     }
+    
     while frameID < frames.count + 8 {
-      maybeWait()
+      if framesInFlight[frameID % 8] {
+        semaphores[frameID % 8].wait()
+      }
       frameID += 1
     }
   }
@@ -259,20 +254,21 @@ class MRSerializer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var ioCommandQueue: MTLIOCommandQueue
- 
+  
   var serializePipeline: MTLComputePipelineState
   var deserializePipeline: MTLComputePipelineState
   var framesQueue: DispatchQueue = .init(
     label: "com.philipturner.molecular-renderer.MRSerializer.framesQueue")
+  var asyncQueue: DispatchQueue = .init(
+    label: "com.philipturner.molecular-renderer.MRSerializer.asyncQueue",
+    attributes: .concurrent)
   
   init(renderer: MRRenderer, library: MTLLibrary) {
     self.device = renderer.device
     self.commandQueue = renderer.commandQueue
     
     let desc = MTLIOCommandQueueDescriptor()
-    desc.type = .concurrent
-    desc.maxCommandsInFlight = 8
-    desc.maxCommandBufferCount = 8
+    desc.type = .serial
     self.ioCommandQueue = try! device.makeIOCommandQueue(descriptor: desc)
     
     let serializeFunction = library.makeFunction(name: "serialize")!
@@ -308,8 +304,8 @@ class MRSerializer {
     
     simulation.context!.0
       .append(contentsOf: Data(bytes: bytes, count: 65536))
-//    MTLIOCompressionContextAppendData(
-//      simulation.context!, bytes, cursor - bytes)
+    //    MTLIOCompressionContextAppendData(
+    //      simulation.context!, bytes, cursor - bytes)
   }
   
   private func alignCursor(
@@ -451,10 +447,8 @@ class MRSerializer {
       cursor += numAtoms * MemoryLayout<UInt32>.stride
     }
     encoder.endEncoding()
-//    commandBuffer.commit()
-//    commandBuffer.waitUntilCompleted()
     
-    commandBuffer.addCompletedHandler { [self, simulation] _ in
+    let workItem = { [self, simulation] in
       var succeeded = false
       while !succeeded {
         framesQueue.sync {
@@ -469,11 +463,11 @@ class MRSerializer {
           simulation.finishedFrameID += 1
           
           precondition(frameBuffer.length == simulation.frameStride!)
-//          memset(frameBuffer.contents() + 4, 0, frameBuffer.length - 4)
-//          MTLIOCompressionContextAppendData(
-//            simulation.context!,
-//            frameBuffer.contents(),
-//            simulation.frameStride!)
+          //          memset(frameBuffer.contents() + 4, 0, frameBuffer.length - 4)
+          //          MTLIOCompressionContextAppendData(
+          //            simulation.context!,
+          //            frameBuffer.contents(),
+          //            simulation.frameStride!)
           
           simulation.context!.0
             .append(contentsOf: Data(
@@ -485,6 +479,9 @@ class MRSerializer {
           usleep(50)
         }
       }
+    }
+    commandBuffer.addCompletedHandler { _ in
+      self.asyncQueue.async(execute: workItem)
     }
     commandBuffer.commit()
   }
@@ -500,9 +497,7 @@ class MRSerializer {
       sourceHandle: simulation.fileHandle!,
       sourceHandleOffset: 65536 + frameID * simulation.frameStride!)
     
-    
-    
-    ioCommandBuffer.addCompletedHandler { [self, simulation] _ in
+    let workItem = { [self, simulation] in
       print("Finished MTLIOCommandBuffer \(frameID)")
       var cursor = frameBuffer.contents()
       
@@ -576,10 +571,8 @@ class MRSerializer {
         cursor += numAtoms * MemoryLayout<UInt32>.stride
       }
       encoder.endEncoding()
-//    commandBuffer!.commit()
-//    commandBuffer!.waitUntilCompleted()
-    
-      commandBuffer!.addCompletedHandler { [self, simulation] _ in
+      
+      let workItem = { [self, simulation] in
         print("Finished MTLCommandBuffer \(frameID)")
         var atoms: [[MRAtom]] = []
         atomsCursor = atomsBuffer.contents()
@@ -605,24 +598,20 @@ class MRSerializer {
         }
         simulation.semaphores[frameID % 8].signal()
       }
+      commandBuffer!.addCompletedHandler { _ in
+        self.asyncQueue.async(execute: workItem)
+      }
+      
+      print("Started MTLCommandBuffer \(frameID)")
       commandBuffer!.commit()
-      print("Committed MTLCommandBuffer \(frameID)")
+    }
+    ioCommandBuffer.addCompletedHandler { _ in
+      self.asyncQueue.async(execute: workItem)
     }
     
+    print("Started MTLIOCommandBuffer \(frameID)")
     ioCommandBuffer.commit()
-    
-    // TODO: Stagger so you explicitly wait on the IO command buffer on the CPU,
-    // four frames behind the Metal command buffer.
-    //
-    // Try that as a last resort. Before doing so, try just sending the
-    // completion handler to an asynchronous queue. The queue will be of type
-    // "concurrent" and managed by the MRSerializer.
-    ioCommandBuffer.waitUntilCompleted()
-    simulation.ioCommandBuffers[frameID % 8] = ioCommandBuffer
-//    ioCommandBuffer.waitUntilCompleted()
-    
-//    ioCommandBuffer.commit()
-//    print("Committed MTLIOCommandBuffer \(frameID)")
   }
 }
+
 
