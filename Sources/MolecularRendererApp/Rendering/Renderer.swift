@@ -22,8 +22,8 @@ class Renderer {
   var renderingEngine: MRRenderer!
   
   // Geometry providers.
-  var atomProvider: MRAtomProvider
-  var styleProvider: MRAtomStyleProvider
+  var atomProvider: MRAtomProvider!
+  var styleProvider: MRAtomStyleProvider!
   var animationFrameID: Int = 0
   var serializer: Serializer!
   
@@ -41,12 +41,20 @@ class Renderer {
     MRSetFrameRate(120)
     
     self.styleProvider = NanoStuff()
-    self.atomProvider = simulateEthane()
     self.serializer = Serializer(
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-    // TODO: Test whether the serializer will encode/decode the simulation.
+    #if false
+    self.atomProvider = simulateEthane()
+    serializer.save(
+      fileName: "HelloEthane",
+      provider: atomProvider as! OpenMM_AtomProvider)
+    #else
+    let simulation = serializer.load(fileName: "HelloEthane")
+    self.atomProvider = SimulationAtomProvider(
+      simulation: simulation, batchIndex: 0)
+    #endif
   }
 }
 

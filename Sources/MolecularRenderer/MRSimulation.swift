@@ -93,12 +93,15 @@ public class MRSimulation {
   public internal(set) var frames: [MRFrame] = []
   
   var fileHandle: MTLIOFileHandle?
-  var context: MTLIOCompressionContext?
+  var method: MTLIOCompressionMethod?
+//  var context: MTLIOCompressionContext?
+  var context: (Data, URL)?
   var frameStride: Int?
   var atomsStride: Int?
   
   var framesInFlight: [Bool] = []
   var semaphores: [DispatchSemaphore] = []
+  var ioCommandBuffers: [MTLIOCommandBuffer?] = []
   var frameBuffers: [MTLBuffer] = []
   var atomsBuffers: [MTLBuffer] = []
   var cumulativeSumBuffer: MTLBuffer?
@@ -111,7 +114,8 @@ public class MRSimulation {
   }
   
   public init(renderer: MRRenderer, url: URL, method: MRCompressionMethod) {
-    initializeFile(renderer: renderer, url: url, method: method)
+    initializeFile(
+      renderer: renderer, url: url, method: method, serializing: false)
     renderer.serializer.loadHeader(simulation: self)
     initializeFrameBuffers(renderer: renderer)
     
@@ -122,6 +126,7 @@ public class MRSimulation {
   
   public func append(_ frame: MRFrame) {
     var index = 0
+    precondition(frame.atoms.count == frame.metadata.count)
     for (atoms, metadata) in zip(frame.atoms, frame.metadata) {
       maxFrameMetadataSize = max(metadata.count, maxFrameMetadataSize)
       if index >= maxAtomsPerBatch.count {
@@ -138,15 +143,19 @@ public class MRSimulation {
     renderer: MRRenderer, url: URL, method: MRCompressionMethod
   ) {
     initializeFrameBuffers(renderer: renderer)
-    initializeFile(renderer: renderer, url: url, method: method)
+    initializeFile(
+      renderer: renderer, url: url, method: method, serializing: true)
     
     let path = url.absoluteURL.path
-    context = MTLIOCreateCompressionContext(path, .lzBitmap, 65536)!
+//    context = MTLIOCreateCompressionContext(path, self.method!, 65536)!
+    context = (Data(count: 0), URL(filePath: path))
     defer {
-      let status = MTLIOFlushAndDestroyCompressionContext(context!)
-      guard status == .complete else {
-        fatalError("Could not flush and destroy compression context.")
-      }
+//      let status = MTLIOFlushAndDestroyCompressionContext(context!)
+//      guard status == .complete else {
+//        fatalError("Could not flush and destroy compression context.")
+//      }
+      let (data, url) = context!
+      try! data.write(to: url, options: .atomic)
       context = nil
     }
     renderer.serializer.storeHeader(simulation: self)
@@ -175,6 +184,7 @@ public class MRSimulation {
     
     framesInFlight = Array(repeating: false, count: 8)
     semaphores = Array(repeating: DispatchSemaphore(value: 0), count: 8)
+    ioCommandBuffers = Array(repeating: nil, count: 8)
     frameBuffers = []
     atomsBuffers = []
     frameID = 0
@@ -191,31 +201,41 @@ public class MRSimulation {
   func initializeFile(
     renderer: MRRenderer,
     url: URL,
-    method: MRCompressionMethod
+    method: MRCompressionMethod,
+    serializing: Bool
   ) {
     var ioMethod: MTLIOCompressionMethod
     switch method {
     case .lzBitmap:
       ioMethod = .lzBitmap
+//      ioMethod = .none
     }
-    fileHandle = try! renderer.device.makeIOHandle(
-      url: url, compressionMethod: ioMethod)
+    self.method = ioMethod
+    
+    if !serializing {
+      fileHandle = try! renderer.device.makeIOHandle(
+        url: url)//, compressionMethod: ioMethod)
+    }
   }
   
   func stream(_ closure: () -> Void) {
-    while frameID < frames.count {
+    func maybeWait() {
       if framesInFlight[frameID % 8] {
+        ioCommandBuffers[frameID % 8]!.waitUntilCompleted()
+        ioCommandBuffers[frameID % 8] = nil
         semaphores[frameID % 8].wait()
       }
+    }
+    
+    while frameID < frames.count {
+      maybeWait()
       closure()
       
       framesInFlight[frameID % 8] = true
       frameID += 1
     }
     while frameID < frames.count + 8 {
-      if framesInFlight[frameID % 8] {
-        semaphores[frameID % 8].wait()
-      }
+      maybeWait()
       frameID += 1
     }
   }
@@ -251,6 +271,8 @@ class MRSerializer {
     
     let desc = MTLIOCommandQueueDescriptor()
     desc.type = .concurrent
+    desc.maxCommandsInFlight = 8
+    desc.maxCommandBufferCount = 8
     self.ioCommandQueue = try! device.makeIOCommandQueue(descriptor: desc)
     
     let serializeFunction = library.makeFunction(name: "serialize")!
@@ -284,8 +306,10 @@ class MRSerializer {
     }
     cursor += batchCount * MemoryLayout<Int>.stride
     
-    MTLIOCompressionContextAppendData(
-      simulation.context!, bytes, cursor - bytes)
+    simulation.context!.0
+      .append(contentsOf: Data(bytes: bytes, count: 65536))
+//    MTLIOCompressionContextAppendData(
+//      simulation.context!, bytes, cursor - bytes)
   }
   
   private func alignCursor(
@@ -355,8 +379,8 @@ class MRSerializer {
     precondition(frame.atoms.count == simulation.maxAtomsPerBatch.count)
     precondition(frame.metadata.count == simulation.maxAtomsPerBatch.count)
     
-    let frameBuffer = simulation.frameBuffers[frameID]
-    let atomsBuffer = simulation.atomsBuffers[frameID]
+    let frameBuffer = simulation.frameBuffers[frameID % 8]
+    let atomsBuffer = simulation.atomsBuffers[frameID % 8]
     var cursor = frameBuffer.contents()
     
     let header = cursor.assumingMemoryBound(to: MRSimulation.FrameHeader.self)
@@ -387,7 +411,7 @@ class MRSerializer {
       }
       
       let metadata = frame.metadata[i]
-      precondition(metadata.count < simulation.maxFrameMetadataSize)
+      precondition(metadata.count <= simulation.maxFrameMetadataSize)
       guard metadata.count > 0 else {
         continue
       }
@@ -427,11 +451,14 @@ class MRSerializer {
       cursor += numAtoms * MemoryLayout<UInt32>.stride
     }
     encoder.endEncoding()
+//    commandBuffer.commit()
+//    commandBuffer.waitUntilCompleted()
+    
     commandBuffer.addCompletedHandler { [self, simulation] _ in
       var succeeded = false
       while !succeeded {
         framesQueue.sync {
-          let currentFrameID = simulation.frames.count
+          let currentFrameID = simulation.finishedFrameID
           if currentFrameID > frameID {
             fatalError("This should never happen.")
           }
@@ -439,11 +466,18 @@ class MRSerializer {
             return
           }
           succeeded = true
+          simulation.finishedFrameID += 1
           
-          MTLIOCompressionContextAppendData(
-            simulation.context!,
-            frameBuffer.contents(),
-            simulation.frameStride!)
+          precondition(frameBuffer.length == simulation.frameStride!)
+//          memset(frameBuffer.contents() + 4, 0, frameBuffer.length - 4)
+//          MTLIOCompressionContextAppendData(
+//            simulation.context!,
+//            frameBuffer.contents(),
+//            simulation.frameStride!)
+          
+          simulation.context!.0
+            .append(contentsOf: Data(
+              bytes: frameBuffer.contents(), count: simulation.frameStride!))
           
           simulation.semaphores[frameID % 8].signal()
         }
@@ -457,8 +491,8 @@ class MRSerializer {
   
   func loadFrameAsync(simulation: MRSimulation) {
     let frameID = simulation.frameID
-    let frameBuffer = simulation.frameBuffers[frameID]
-    let atomsBuffer = simulation.atomsBuffers[frameID]
+    let frameBuffer = simulation.frameBuffers[frameID % 8]
+    let atomsBuffer = simulation.atomsBuffers[frameID % 8]
     
     let ioCommandBuffer = ioCommandQueue.makeCommandBuffer()
     ioCommandBuffer.loadBytes(
@@ -466,7 +500,10 @@ class MRSerializer {
       sourceHandle: simulation.fileHandle!,
       sourceHandleOffset: 65536 + frameID * simulation.frameStride!)
     
+    
+    
     ioCommandBuffer.addCompletedHandler { [self, simulation] _ in
+      print("Finished MTLIOCommandBuffer \(frameID)")
       var cursor = frameBuffer.contents()
       
       let header = cursor.assumingMemoryBound(to: MRSimulation.FrameHeader.self)
@@ -494,7 +531,7 @@ class MRSerializer {
       var succeeded = false
       while !succeeded {
         framesQueue.sync {
-          let currentFrameID = simulation.frames.count
+          let currentFrameID = simulation.finishedFrameID
           if currentFrameID > frameID {
             fatalError("This should never happen.")
           }
@@ -502,6 +539,7 @@ class MRSerializer {
             return
           }
           succeeded = true
+          simulation.finishedFrameID += 1
           
           commandBuffer = commandQueue.makeCommandBuffer()
           commandBuffer!.enqueue()
@@ -538,9 +576,13 @@ class MRSerializer {
         cursor += numAtoms * MemoryLayout<UInt32>.stride
       }
       encoder.endEncoding()
+//    commandBuffer!.commit()
+//    commandBuffer!.waitUntilCompleted()
+    
       commandBuffer!.addCompletedHandler { [self, simulation] _ in
+        print("Finished MTLCommandBuffer \(frameID)")
         var atoms: [[MRAtom]] = []
-        var atomsCursor = atomsBuffer.contents()
+        atomsCursor = atomsBuffer.contents()
         for i in 0..<batchSize {
           let numAtoms = simulation.maxAtomsPerBatch[i]
           defer {
@@ -564,8 +606,19 @@ class MRSerializer {
         simulation.semaphores[frameID % 8].signal()
       }
       commandBuffer!.commit()
+      print("Committed MTLCommandBuffer \(frameID)")
     }
+    
     ioCommandBuffer.commit()
+    
+    // TODO: Stagger to you explicitly wait on the IO command buffer on the CPU,
+    // four frames behind the Metal command buffer.
+    ioCommandBuffer.waitUntilCompleted()
+    simulation.ioCommandBuffers[frameID % 8] = ioCommandBuffer
+//    ioCommandBuffer.waitUntilCompleted()
+    
+//    ioCommandBuffer.commit()
+//    print("Committed MTLIOCommandBuffer \(frameID)")
   }
 }
 

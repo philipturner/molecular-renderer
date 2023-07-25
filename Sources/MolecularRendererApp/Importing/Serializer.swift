@@ -34,7 +34,7 @@ class Serializer {
       resolutionInApproxPm: 2)
     
     for state in provider.states {
-      let frame = MRFrame(atoms: [state], metadata: [])
+      let frame = MRFrame(atoms: [state], metadata: [Data()])
       simulation.append(frame)
     }
     
@@ -42,5 +42,29 @@ class Serializer {
     let url = URL(filePath: path)
     simulation.serialize(
       renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
+  }
+}
+
+struct SimulationAtomProvider: MRAtomProvider {
+  var frameTimeInFs: Double
+  var frames: [[MRAtom]] = []
+  
+  init(simulation: MRSimulation, batchIndex: Int) {
+    self.frameTimeInFs = simulation.frameTimeInFs
+    for frame in simulation.frames {
+      self.frames.append(frame.atoms[batchIndex])
+    }
+    
+    let ps = (frameTimeInFs * 120) / 1000
+    print()
+    print("Replaying at \(ps) ps/s.")
+  }
+  
+  func atoms(time: MRTimeContext) -> [MRAtom] {
+    let frameID = min(time.absolute.frames, frames.count - 1)
+    let ps = 1 / 1000 * Double(frameID) * frameTimeInFs
+    print("Replaying frame: \(ps) ps")
+    
+    return frames[frameID]
   }
 }
