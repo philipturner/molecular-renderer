@@ -39,6 +39,9 @@ kernel void serialize
  uint tid [[thread_position_in_grid]])
 {
   MRAtom atom(atoms + tid);
+  atom.store((device MRAtom*)components + tid);
+  return;
+  
   uint4 sum = cumulativeSum[tid];
   
 #pragma clang loop unroll(full)
@@ -68,6 +71,10 @@ kernel void deserialize
  
  uint tid [[thread_position_in_grid]])
 {
+  MRAtom atom_((device MRAtom*)components + tid);
+  atom_.store(atoms + tid);
+  return;
+  
   uint4 sum = cumulativeSum[tid];
   uint4 raw_components;
 #pragma clang loop unroll(full)

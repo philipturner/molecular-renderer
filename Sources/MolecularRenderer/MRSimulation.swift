@@ -129,6 +129,7 @@ public class MRSimulation {
     for (atoms, metadata) in zip(frame.atoms, frame.metadata) {
       maxFrameMetadataSize = max(metadata.count, maxFrameMetadataSize)
       if index >= maxAtomsPerBatch.count {
+        
         maxAtomsPerBatch.append(atoms.count)
       } else {
         maxAtomsPerBatch[index] = max(maxAtomsPerBatch[index], atoms.count)
@@ -268,7 +269,7 @@ class MRSerializer {
     self.commandQueue = renderer.commandQueue
     
     let desc = MTLIOCommandQueueDescriptor()
-    desc.type = .serial
+    desc.type = .concurrent
     self.ioCommandQueue = try! device.makeIOCommandQueue(descriptor: desc)
     
     let serializeFunction = library.makeFunction(name: "serialize")!
@@ -335,7 +336,7 @@ class MRSerializer {
     
     simulation.frameTimeInFs = header.frameTimeInFs
     simulation.maxFrameMetadataSize = header.maxFrameMetadataSize
-    simulation.maxAtomsPerBatch = Array(repeating: 0, count: header.frameCount)
+    simulation.maxAtomsPerBatch = Array(repeating: 0, count: header.batchCount)
     simulation.frames = Array(
       repeating: MRFrame(atoms: [], metadata: []), count: header.frameCount)
     
@@ -415,14 +416,16 @@ class MRSerializer {
       metadata.copyBytes(
         to: cursor.assumingMemoryBound(to: UInt8.self), count: metadata.count)
     }
+    
     memset(cursor, 0, missingDataBytes)
+    
     alignCursor(&cursor, frameBuffer: frameBuffer)
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = startEncoder(commandBuffer, simulation: simulation)
     encoder.setComputePipelineState(serializePipeline)
-    encoder.setBuffer(frameBuffer, offset: 0, index: 0)
     encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(frameBuffer, offset: 0, index: 3)
     
     var atomsCursor = atomsBuffer.contents()
     let cursorStart = frameBuffer.contents()
@@ -437,9 +440,9 @@ class MRSerializer {
       }
       memcpy(atomsCursor, frame.atoms[i], numAtoms * 16)
       
-      encoder.setBufferOffset(cursor - cursorStart, index: 0)
       encoder.setBufferOffset(atomsCursor - atomsStart, index: 1)
       encoder.setBufferOffset(atomsCursor - atomsStart, index: 2)
+      encoder.setBufferOffset(cursor - cursorStart, index: 3)
       encoder.dispatchThreads(
         MTLSizeMake(numAtoms, 1, 1),
         threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
@@ -468,6 +471,8 @@ class MRSerializer {
           //            simulation.context!,
           //            frameBuffer.contents(),
           //            simulation.frameStride!)
+          
+          let bytes = frameBuffer.contents().assumingMemoryBound(to: UInt8.self)
           
           simulation.context!.0
             .append(contentsOf: Data(
@@ -520,7 +525,10 @@ class MRSerializer {
           cursor += simulation.maxFrameMetadataSize
         }
       }
+      
       alignCursor(&cursor, frameBuffer: frameBuffer)
+      
+      
       
       var commandBuffer: MTLCommandBuffer?
       var succeeded = false
@@ -546,8 +554,8 @@ class MRSerializer {
       
       let encoder = startEncoder(commandBuffer!, simulation: simulation)
       encoder.setComputePipelineState(deserializePipeline)
-      encoder.setBuffer(frameBuffer, offset: 0, index: 0)
       encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
+      encoder.setBuffer(frameBuffer, offset: 0, index: 3)
       
       var atomsCursor = atomsBuffer.contents()
       let cursorStart = frameBuffer.contents()
@@ -561,9 +569,9 @@ class MRSerializer {
           continue
         }
         
-        encoder.setBufferOffset(cursor - cursorStart, index: 0)
         encoder.setBufferOffset(atomsCursor - atomsStart, index: 1)
         encoder.setBufferOffset(atomsCursor - atomsStart, index: 2)
+        encoder.setBufferOffset(cursor - cursorStart, index: 3)
         encoder.dispatchThreads(
           MTLSizeMake(numAtoms, 1, 1),
           threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
@@ -576,6 +584,8 @@ class MRSerializer {
         print("Finished MTLCommandBuffer \(frameID)")
         var atoms: [[MRAtom]] = []
         atomsCursor = atomsBuffer.contents()
+        
+        
         for i in 0..<batchSize {
           let numAtoms = simulation.maxAtomsPerBatch[i]
           defer {
