@@ -7,8 +7,11 @@
 
 import Metal
 
-// High-performance codec for recording and replaying molecular simulations.
-//
+// ========================================================================== //
+//                                MRSimulation                                //
+//  high-performance codec for recording and replaying molecular simulations  //
+// ========================================================================== //
+
 // Right now, this loads the entire simulation into RAM before the app starts
 // up. Eventually, we can extend it, so it happens in real-time. Doing so may
 // require the sparse grid because that's entirely GPU-driven.
@@ -71,6 +74,7 @@ public class MRSimulation {
   var semaphores: [DispatchSemaphore] = []
   var frameBuffers: [MTLBuffer] = []
   var atomsBuffers: [MTLBuffer] = []
+  var cumulativeSumBuffer: MTLBuffer?
   var frameID: Int = 0
   
   init(frameTimeInFs: Double) {
@@ -116,7 +120,11 @@ public class MRSimulation {
     
     for _ in 0..<8 {
       frameBuffers.append(renderer.device.makeBuffer(length: stride)!)
-      atomsBuffers.append(renderer.device.makeBuffer(length: totalAtoms * 16)!)
+      
+      let atomBufferLength = totalAtoms * 16
+      let device = renderer.device
+      atomsBuffers.append(device.makeBuffer(length: atomBufferLength)!)
+      cumulativeSumBuffer = device.makeBuffer(length: atomBufferLength)!
     }
   }
   
@@ -172,15 +180,11 @@ public class MRSimulation {
       renderer.serializer.storeFrameAsync(simulation: self)
     }
   }
-  
-  func synchronize() {
-    
-  }
 }
 
 public struct MRFrame {
   public var atoms: [[MRAtom]]
-  public var metadata: [[Data]]
+  public var metadata: [Data]
 }
 
 class MRSerializer {
@@ -233,6 +237,15 @@ class MRSerializer {
     
     MTLIOCompressionContextAppendData(
       simulation.context!, bytes, cursor - bytes)
+  }
+  
+  private func alignCursor(
+    _ cursor: inout UnsafeMutableRawPointer, frameBuffer: MTLBuffer
+  ) {
+    let newCursor = frameBuffer.contents()
+    var cursorDistance = cursor - newCursor
+    cursorDistance = (cursorDistance + 63) / 64 * 64
+    cursor = newCursor + cursorDistance
   }
   
   func loadHeader(simulation: MRSimulation) {
@@ -288,6 +301,7 @@ class MRSerializer {
         precondition(count == simulation.maxAtomsPerBatch[i])
         mask.pointee = 1
       }
+      cursor += 1
     }
     
     var missingDataBytes: Int = 0
@@ -307,11 +321,11 @@ class MRSerializer {
         continue
       }
       
-      metadata.withUnsafeBufferPointer { bufferPointer in
-        _ = memcpy(cursor, bufferPointer.baseAddress!, bufferPointer.count)
-      }
+      metadata.copyBytes(
+        to: cursor.assumingMemoryBound(to: UInt8.self), count: metadata.count)
     }
-    cursor += missingDataBytes
+    memset(cursor, 0, missingDataBytes)
+    alignCursor(&cursor, frameBuffer: frameBuffer)
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder(
@@ -333,6 +347,9 @@ class MRSerializer {
       defer {
         atomsCursor += numAtoms * 16
       }
+      guard frame.atoms[i].count > 0 else {
+        continue
+      }
       memcpy(atomsCursor, frame.atoms[i], numAtoms * 16)
       
       encoder.setBufferOffset(atomsCursor - atomsStart, index: 0)
@@ -353,8 +370,6 @@ class MRSerializer {
             fatalError("This should never happen.")
           }
           if currentFrameID < frameID {
-            // The other way around, this won't be necessary, because each array
-            // will already have a slot for the current frame ID.
             return
           }
           
@@ -374,6 +389,101 @@ class MRSerializer {
   }
   
   func loadFrameAsync(simulation: MRSimulation) {
+    let frameID = simulation.frameID
+    let frameBuffer = simulation.frameBuffers[frameID]
+    let atomsBuffer = simulation.atomsBuffers[frameID]
     
+    let ioCommandBuffer = ioCommandQueue.makeCommandBuffer()
+    ioCommandBuffer.loadBytes(
+      frameBuffer.contents(), size: simulation.frameStride!,
+      sourceHandle: simulation.fileHandle!,
+      sourceHandleOffset: 65536 + frameID * simulation.frameStride!)
+    
+    ioCommandBuffer.addCompletedHandler { [self, simulation] _ in
+      var cursor = frameBuffer.contents()
+      
+      let header = cursor.assumingMemoryBound(to: MRSimulation.FrameHeader.self)
+      precondition(header.pointee.frameID == frameID)
+      cursor += 8
+      
+      let batchSize = simulation.maxAtomsPerBatch.count
+      var mask = [UInt8](repeating: 0, count: batchSize)
+      memcpy(&mask, cursor, batchSize)
+      cursor += batchSize
+      
+      var metadata: [Data] = []
+      for i in 0..<batchSize {
+        if mask[i] == 0 {
+          metadata.append(Data())
+        } else {
+          let data = Data(bytes: cursor, count: simulation.maxFrameMetadataSize)
+          metadata.append(data)
+        }
+      }
+      alignCursor(&cursor, frameBuffer: frameBuffer)
+      
+      let commandBuffer = commandQueue.makeCommandBuffer()!
+      let encoder = commandBuffer.makeComputeCommandEncoder(
+        dispatchType: .concurrent)!
+      encoder.setComputePipelineState(deserializePipeline)
+      encoder.setBuffer(atomsBuffer, offset: 0, index: 0)
+      encoder.setBuffer(frameBuffer, offset: 0, index: 1)
+      
+      var atomsStride = simulation.atomsStride!
+      var atomsCursor = atomsBuffer.contents()
+      encoder.setBytes(&atomsStride, length: 4, index: 2)
+      
+      let cursorStart = frameBuffer.contents()
+      let atomsStart = atomsBuffer.contents()
+      for i in 0..<batchSize {
+        var numAtoms = simulation.maxAtomsPerBatch[i]
+        let numAtomThreads = (numAtoms + 1) / 2
+        numAtoms = (numAtoms + 63) / 64 * 64
+        defer {
+          atomsCursor += numAtoms * 16
+        }
+        guard mask[i] > 0 else {
+          continue
+        }
+        
+        encoder.setBufferOffset(atomsCursor - atomsStart, index: 0)
+        encoder.setBufferOffset(cursor - cursorStart, index: 1)
+        encoder.dispatchThreads(
+          MTLSizeMake(numAtomThreads, 1, 1),
+          threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+        
+        cursor += numAtoms * MemoryLayout<UInt16>.stride
+      }
+      encoder.endEncoding()
+      commandBuffer.addCompletedHandler { [self, simulation] _ in
+        var atoms: [[MRAtom]] = []
+        var atomsCursor = atomsBuffer.contents()
+        for i in 0..<batchSize {
+          var numAtoms = simulation.maxAtomsPerBatch[i]
+          defer {
+            numAtoms = (numAtoms + 63) / 64 * 64
+            atomsCursor += numAtoms * 16
+          }
+          
+          if mask[i] == 0 {
+            atoms.append([])
+          } else {
+            var array = [MRAtom](
+              repeating: MRAtom(origin: .zero, element: 0), count: numAtoms)
+            memcpy(&array, cursor, numAtoms * 16)
+            atoms.append(array)
+          }
+        }
+        
+        let frame = MRFrame(atoms: atoms, metadata: metadata)
+        framesQueue.sync {
+          simulation.frames[frameID] = frame
+        }
+        simulation.semaphores[frameID % 8].signal()
+      }
+      commandBuffer.commit()
+    }
+    ioCommandBuffer.commit()
   }
 }
+
