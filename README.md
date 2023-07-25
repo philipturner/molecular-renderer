@@ -38,8 +38,8 @@ Dependencies:
 - OpenMM 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed
 
 Display:
-- 640x640 -> 1280x1280 upscaled with MetalFX temporal upscaling
-- Monitor needs at least 1280x1280 pixels for the default resolution
+- 640x640 -> 1920x1920 upscaled with MetalFX temporal upscaling
+- Monitor needs at least 1920x1920 pixels for the default resolution
 - 60 Hz and 120 Hz supported
 
 ## Technical Details

@@ -611,8 +611,12 @@ class MRSerializer {
     
     ioCommandBuffer.commit()
     
-    // TODO: Stagger to you explicitly wait on the IO command buffer on the CPU,
+    // TODO: Stagger so you explicitly wait on the IO command buffer on the CPU,
     // four frames behind the Metal command buffer.
+    //
+    // Try that as a last resort. Before doing so, try just sending the
+    // completion handler to an asynchronous queue. The queue will be of type
+    // "concurrent" and managed by the MRSerializer.
     ioCommandBuffer.waitUntilCompleted()
     simulation.ioCommandBuffers[frameID % 8] = ioCommandBuffer
 //    ioCommandBuffer.waitUntilCompleted()
