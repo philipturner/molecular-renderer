@@ -68,17 +68,12 @@ public class MRSimulation {
   // After serializing the entire frame, round up to a 64 KB boundary.
   
   // Data can be compressed with higher efficiency by dropping several bits off
-  // the mantissa. If an atom moves 0.25 nm/frame, here are bits/position
-  // component at specific precisions:
-  // - 9 bits: 1 pm
-  // - 8 bits: 2 pm
-  // - 7 bits: 4 pm
-  // - 6 bits: 8 pm
-  // - 5 bits: 16 pm
-  // - 4 bits: 33 pm
-  // - 3 bits: 63 pm
-  // - 2 bits: 125 pm
-  // - 1 bit:  250 pm
+  // the mantissa. If an atom moves 0.008 nm/frame, here are bits/position
+  // component at reasonable precisions:
+  // - 6 bits: 0.25 pm
+  // - 5 bits: 0.5 pm
+  // - 4 bits: 1 pm (recommended default)
+  // - 3 bits: 2 pm
   //
   // TODO: Save a checkpoint every N frames for recovery from corruption and
   // replaying from the middle of the recording. The distance between each
@@ -335,6 +330,7 @@ class MRSerializer {
     cursor += MemoryLayout<MRSimulation.SimulationHeader>.stride
     
     simulation.frameTimeInFs = header.frameTimeInFs
+    simulation.resolutionInApproxPm = header.resolutionInApproxPm
     simulation.maxFrameMetadataSize = header.maxFrameMetadataSize
     simulation.maxAtomsPerBatch = Array(repeating: 0, count: header.batchCount)
     simulation.frames = Array(

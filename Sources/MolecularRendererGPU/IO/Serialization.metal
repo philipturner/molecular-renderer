@@ -39,21 +39,22 @@ kernel void serialize
  uint tid [[thread_position_in_grid]])
 {
   MRAtom atom(atoms + tid);
-  atom.store((device MRAtom*)components + tid);
-  return;
-  
   uint4 sum = cumulativeSum[tid];
   
 #pragma clang loop unroll(full)
   for (ushort dim = 0; dim < 3; ++dim) {
     float quantized_f = rint(atom.origin[dim] * args.scale_factor);
-    uint quantized_i = uint(abs(quantized_f)) << 1;
-    quantized_i |= (quantized_f < 0) ? 1 : 0;
+
+//    uint quantized_i = uint(abs(quantized_f)) << 1;
+//    quantized_i |= (quantized_f < 0) ? 1 : 0;
+    
+    uint quantized_i = as_type<uint>(quantized_f);
+//    quantized_i = as_type<uint>(atom.origin[dim]);
     
     atom.origin[dim] = as_type<float>(quantized_i);
-    sum[dim] = encode_difference(quantized_i, sum[dim]);
+    sum[dim] = quantized_i;//encode_difference(quantized_i, sum[dim]);
   }
-  sum[3] = encode_difference(atom.tailStorage, sum[3]);
+  sum[3] = atom.tailStorage;//encode_difference(atom.tailStorage, sum[3]);
   
   atom.store((device MRAtom*)(cumulativeSum + tid));
 #pragma clang loop unroll(full)
@@ -71,26 +72,26 @@ kernel void deserialize
  
  uint tid [[thread_position_in_grid]])
 {
-  MRAtom atom_((device MRAtom*)components + tid);
-  atom_.store(atoms + tid);
-  return;
-  
   uint4 sum = cumulativeSum[tid];
   uint4 raw_components;
 #pragma clang loop unroll(full)
   for (ushort i = 0; i < 4; ++i) {
     raw_components[i] = components[tid + i * args.batch_stride];
-    raw_components[i] = decode_difference(sum[i], raw_components[i]);
+//    raw_components[i] = decode_difference(sum[i], raw_components[i]);
   }
   
   MRAtom atom;
 #pragma clang loop unroll(full)
   for (ushort dim = 0; dim < 3; ++dim) {
     uint dequantized_i = raw_components[dim] >> 1;
-    ushort sign = raw_components[dim] & 1;
+//    ushort sign = raw_components[dim] & 1;
+//    
+//    float dequantized_f = float(dequantized_i) * args.inverse_scale_factor;
+//    dequantized_f = select(dequantized_f, -dequantized_f, sign);
     
-    float dequantized_f = float(dequantized_i) * args.inverse_scale_factor;
-    dequantized_f = select(dequantized_f, -dequantized_f, sign);
+    float dequantized_f = as_type<float>(raw_components[dim]);
+    dequantized_f *= args.inverse_scale_factor;
+    
     atom.origin[dim] = dequantized_f;
   }
   atom.tailStorage = raw_components[3];

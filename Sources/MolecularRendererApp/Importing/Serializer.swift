@@ -31,7 +31,7 @@ class Serializer {
     frameTimeInFs *= Double(provider.stepsPerFrame)
     let simulation = MRSimulation(
       frameTimeInFs: frameTimeInFs,
-      resolutionInApproxPm: 2)
+      resolutionInApproxPm: 1)
     
     for state in provider.states {
       let frame = MRFrame(atoms: [state], metadata: [Data()])
