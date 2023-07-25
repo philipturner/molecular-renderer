@@ -25,6 +25,7 @@ class Renderer {
   var atomProvider: MRAtomProvider
   var styleProvider: MRAtomStyleProvider
   var animationFrameID: Int = 0
+  var serializer: Serializer!
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -38,9 +39,14 @@ class Renderer {
       height: Int(ContentView.size),
       upscaleFactor: ContentView.upscaleFactor)
     MRSetFrameRate(120)
-    self.styleProvider = NanoStuff()
     
-    self.atomProvider = Nanosystems.Chapter9.Figure3()
+    self.styleProvider = NanoStuff()
+    self.atomProvider = simulateEthane()
+    self.serializer = Serializer(
+      renderer: self,
+      path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
+    
+    // TODO: Test whether the serializer will encode/decode the simulation.
   }
 }
 

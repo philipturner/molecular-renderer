@@ -110,6 +110,16 @@ public class MRSimulation {
     self.resolutionInApproxPm = resolutionInApproxPm
   }
   
+  public init(renderer: MRRenderer, url: URL, method: MRCompressionMethod) {
+    initializeFile(renderer: renderer, url: url, method: method)
+    renderer.serializer.loadHeader(simulation: self)
+    initializeFrameBuffers(renderer: renderer)
+    
+    stream {
+      renderer.serializer.loadFrameAsync(simulation: self)
+    }
+  }
+  
   public func append(_ frame: MRFrame) {
     var index = 0
     for (atoms, metadata) in zip(frame.atoms, frame.metadata) {
@@ -122,6 +132,28 @@ public class MRSimulation {
       index += 1
     }
     frames.append(frame)
+  }
+  
+  public func serialize(
+    renderer: MRRenderer, url: URL, method: MRCompressionMethod
+  ) {
+    initializeFrameBuffers(renderer: renderer)
+    initializeFile(renderer: renderer, url: url, method: method)
+    
+    let path = url.absoluteURL.path
+    context = MTLIOCreateCompressionContext(path, .lzBitmap, 65536)!
+    defer {
+      let status = MTLIOFlushAndDestroyCompressionContext(context!)
+      guard status == .complete else {
+        fatalError("Could not flush and destroy compression context.")
+      }
+      context = nil
+    }
+    renderer.serializer.storeHeader(simulation: self)
+    
+    stream {
+      renderer.serializer.storeFrameAsync(simulation: self)
+    }
   }
   
   func initializeFrameBuffers(renderer: MRRenderer) {
@@ -187,43 +219,16 @@ public class MRSimulation {
       frameID += 1
     }
   }
-  
-  public init(renderer: MRRenderer, url: URL, method: MRCompressionMethod) {
-    initializeFile(renderer: renderer, url: url, method: method)
-    renderer.serializer.loadHeader(simulation: self)
-    initializeFrameBuffers(renderer: renderer)
-    
-    stream {
-      renderer.serializer.loadFrameAsync(simulation: self)
-    }
-  }
-  
-  public func store(
-    renderer: MRRenderer, url: URL, method: MRCompressionMethod
-  ) {
-    initializeFrameBuffers(renderer: renderer)
-    initializeFile(renderer: renderer, url: url, method: method)
-    
-    let path = url.absoluteURL.path
-    context = MTLIOCreateCompressionContext(path, .lzBitmap, 65536)!
-    defer {
-      let status = MTLIOFlushAndDestroyCompressionContext(context!)
-      guard status == .complete else {
-        fatalError("Could not flush and destroy compression context.")
-      }
-      context = nil
-    }
-    renderer.serializer.storeHeader(simulation: self)
-    
-    stream {
-      renderer.serializer.storeFrameAsync(simulation: self)
-    }
-  }
 }
 
 public struct MRFrame {
   public var atoms: [[MRAtom]]
   public var metadata: [Data]
+  
+  public init(atoms: [[MRAtom]], metadata: [Data]) {
+    self.atoms = atoms
+    self.metadata = metadata
+  }
 }
 
 public enum MRCompressionMethod {

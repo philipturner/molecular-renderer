@@ -8,24 +8,39 @@
 import Metal
 import MolecularRenderer
 
-struct Serializer {
-  static var parentDirectory: URL?
+class Serializer {
+  unowned let renderer: Renderer
+  var path: String
   
-  
-  
-  init(initialFrame: MRFrame) {
-    
+  init(renderer: Renderer, path: String) {
+    self.renderer = renderer
+    self.path = path
   }
   
-  init(file: String) throws {
-    // Load with Metal decompression algorithms.
+  func load(fileName: String) -> MRSimulation {
+    let path = self.path + "/" + fileName + ".mrsimulation"
+    let url = URL(filePath: path)
+    return MRSimulation(
+      renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
   }
   
-  func append(_ frame: MRFrame) {
-    
-  }
+  // TODO: Method to save a Nanosystems Figure3D
   
-  func store(file: String) throws {
+  func save(fileName: String, provider: OpenMM_AtomProvider) {
+    var frameTimeInFs = rint(1000 * provider.psPerStep)
+    frameTimeInFs *= Double(provider.stepsPerFrame)
+    let simulation = MRSimulation(
+      frameTimeInFs: frameTimeInFs,
+      resolutionInApproxPm: 2)
     
+    for state in provider.states {
+      let frame = MRFrame(atoms: [state], metadata: [])
+      simulation.append(frame)
+    }
+    
+    let path = self.path + "/" + fileName + ".mrsimulation"
+    let url = URL(filePath: path)
+    simulation.serialize(
+      renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
   }
 }
