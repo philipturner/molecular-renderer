@@ -84,6 +84,8 @@ public class MRRenderer {
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
   var upscaler: MTLFXTemporalScaler!
+  var encodePipeline: MTLComputePipelineState!
+  var decodePipeline: MTLComputePipelineState!
   var serializer: MRSerializer!
   
   struct IntermediateTextures {
@@ -174,6 +176,8 @@ public class MRRenderer {
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     self.profiler = MRProfiler(renderer: self, library: library)
     self.initUpscaler()
+    self.initSerializer(library: library)
+    
     self.serializer = MRSerializer(renderer: self, library: library)
   }
   
@@ -203,6 +207,23 @@ public class MRRenderer {
     upscaler.motionVectorScaleX = 1
     upscaler.motionVectorScaleY = 1
     upscaler.isDepthReversed = true
+  }
+  
+  func initSerializer(library: MTLLibrary) {
+    let constants = MTLFunctionConstantValues()
+    let configs: [
+      (Bool, ReferenceWritableKeyPath<MRRenderer, MTLComputePipelineState>)
+    ] = [(true, \.encodePipeline), (false, \.decodePipeline)]
+    
+    for (encode, keyPath) in configs {
+      var encodeCopy = encode
+      constants.setConstantValue(&encodeCopy, type: .bool, index: 300)
+      
+      let function = try! library.makeFunction(
+        name: "process_atoms", constantValues: constants)
+      let pipeline = try! device.makeComputePipelineState(function: function)
+      self[keyPath: keyPath] = pipeline
+    }
   }
 }
 
@@ -542,3 +563,6 @@ extension MRRenderer {
     commandBuffer.commit()
   }
 }
+
+
+
