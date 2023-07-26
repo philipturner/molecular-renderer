@@ -71,35 +71,117 @@ public struct NewMRFrame {
 public class NewMRSimulation {
   var renderer: MRRenderer
   
+  // Data can be compressed with higher efficiency by dropping several bits off
+  // the mantissa. If an atom moves 0.008 nm/frame, here are bits/position
+  // component at reasonable precisions:
+  // - 6 bits: 0.25 pm (recommended default)
+  // - 5 bits: 0.5 pm
+  // - 4 bits: 1 pm
+  // - 3 bits: 2 pm
   public internal(set) var frameTimeInFs: Double
   public internal(set) var resolutionInApproxPm: Double
-  var clusterCompressedOffsets: [SIMD4<Int>] = []
-  var staticMetadata: [UInt8] = []
+  var clusterSize: Int
+  var method: NewMRCompressionMethod
   var usesCheckpoints: Bool = false
   
-  fileprivate var compressedBuffer: ExpandingBuffer
-  var compressedBytes: Int = 0
-  var encodingCursor: Int = 0
-  var url: URL?
-  var method: NewMRCompressionMethod?
+  var clusterCompressedOffsets: [SIMD4<Int>] = []
+  var staticMetadata: [UInt8] = []
+  var frameCount: Int = 0
+  var clusterCursor: Int = -1
   
+  fileprivate var compressedBuffer: ExpandingBuffer
   fileprivate var swapchain: Swapchain
   fileprivate var activeCluster: Cluster
   
   public init(
     renderer: MRRenderer,
     frameTimeInFs: Double,
-    resolutionInApproxPm: Double
+    resolutionInApproxPm: Double,
+    clusterSize: Int,
+    method: NewMRCompressionMethod
   ) {
     self.renderer = renderer
     self.frameTimeInFs = frameTimeInFs
     self.resolutionInApproxPm = resolutionInApproxPm
-    self.clusterCompressedOffsets = []
+    self.clusterSize = clusterSize
+    self.method = method
     
     let device = renderer.device
     self.compressedBuffer = ExpandingBuffer(device: device)
     self.swapchain = Swapchain(device: device)
     self.activeCluster = Cluster(device: device)
+  }
+  
+  func append(_ frame: NewMRFrame) {
+    if clusterCursor != frameCount / clusterSize {
+      fatalError(
+        "MRSimulation doesn't support simultaneous reading and writing yet.")
+    }
+    
+    frameCount += 1
+    if frameCount % clusterSize == 0 {
+      // TODO: Flush the previous frame, use GPU to encode
+    }
+    
+    // TODO: Add to the materialized cluster
+  }
+  
+  func frame(id: Int) -> NewMRFrame {
+    fatalError("Decoding not supported yet.")
+  }
+  
+  func save(url: URL) {
+    // TODO: Prepend the header to the compressed data.
+  }
+  
+  func processAtoms(encode: Bool) {
+    let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
+    let encoder = commandBuffer.makeComputeCommandEncoder()!
+    if encode {
+      encoder.setComputePipelineState(renderer.encodePipeline)
+    } else {
+      encoder.setComputePipelineState(renderer.decodePipeline)
+    }
+    
+    struct ProcessAtomsArguments {
+      var clusterSize: UInt16
+      var scaleFactor: Float
+      var inverseScaleFactor: Float
+    }
+    let resolution = 1024 / Float(resolutionInApproxPm)
+    var args = ProcessAtomsArguments(clusterSize: UInt16(clusterSize), scaleFactor: resolution, inverseScaleFactor: 1 / resolution)
+    let argsBytes = MemoryLayout<ProcessAtomsArguments>.stride
+    encoder.setBytes(&args, length: argsBytes, index: 0)
+    
+    let atomsCounts = activeCluster.atomsCounts
+    let atomsOffsets = activeCluster.atomsOffsets
+    var frameRanges: [SIMD2<UInt32>] = zip(atomsOffsets, atomsCounts).map {
+      return SIMD2($0, $1)
+    }
+    let frameRangesBytes = frameRanges.count * 8
+    encoder.setBytes(frameRanges, length: frameRangesBytes, index: 1)
+    
+    encoder.setBuffer(activeCluster.atoms.buffer, offset: 0, index: 2)
+    encoder.setBuffer(
+      activeCluster.compressedMetadata.uncompressed.buffer,
+      offset: Int(activeCluster.metadataOffsets.last!), index: 3)
+    encoder.setBuffer(
+      activeCluster.compressedX.uncompressed.buffer, offset: 0, index: 4)
+    encoder.setBuffer(
+      activeCluster.compressedY.uncompressed.buffer, offset: 0, index: 5)
+    encoder.setBuffer(
+      activeCluster.compressedZ.uncompressed.buffer, offset: 0, index: 6)
+    
+    let numThreads = Int(atomsCounts.max(by: <)!)
+    encoder.dispatchThreads(
+      MTLSizeMake(numThreads, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    
+    encoder.endEncoding()
+    commandBuffer.commit()
+    
+    // Massive CPU-side stall, makes this unusable in real-time (for now).
+    commandBuffer.waitUntilCompleted()
   }
 }
 
@@ -162,10 +244,6 @@ fileprivate class Component {
   func reset() {
     compressed.cursor = 0
     uncompressed.cursor = 0
-  }
-  
-  func serialize() {
-    // TODO
   }
 }
 
@@ -251,7 +329,12 @@ fileprivate class Cluster {
   }
   
   // TODO: Allow the cluster to be encoded/decoded without stalling on the GPU.
-  // Right now, GPU acceleration makes it slower than CPU-only.
+  // Right now, GPU acceleration makes it slower than CPU-only. This also has
+  // the unfortunate side effect that we must materialize all the frames in RAM,
+  // if we want to use them in real-time.
+  //
+  // Once the uniform grid is entirely GPU-driven, we can remove the need for
+  // the CPU to see the atoms present this frame.
   func makeFrame(frameID: Int) -> NewMRFrame {
     precondition(frameID - frameStart < frameCount)
     
@@ -278,14 +361,6 @@ fileprivate class Cluster {
     }
     
     return NewMRFrame(atoms: frameAtoms, metadata: frameMetadata)
-  }
-  
-  func encode(renderer: MRRenderer) {
-    // TODO
-  }
-  
-  func decode(renderer: MRRenderer) {
-    // TODO
   }
 }
 
