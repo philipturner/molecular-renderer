@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		980070F22A66078D0097D21F /* NewRayTracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 980070F12A66078D0097D21F /* NewRayTracing.metal */; };
 		980070F42A6607950097D21F /* NewSparseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 980070F32A6607950097D21F /* NewSparseGrid.metal */; };
+		9802CB302A71AA76004AFD03 /* NewSerialization.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9802CB2F2A71AA76004AFD03 /* NewSerialization.metal */; };
 		980E70192A5E51D20051797F /* Tooltips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70182A5E51D20051797F /* Tooltips.swift */; };
 		980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701A2A5E51DB0051797F /* Feedstocks.swift */; };
 		980E701D2A5E520F0051797F /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701C2A5E520F0051797F /* Surfaces.swift */; };
@@ -120,6 +121,8 @@
 		980070F32A6607950097D21F /* NewSparseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NewSparseGrid.metal; sourceTree = "<group>"; };
 		980140E52A3E1F78009408BE /* MRRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRenderer.swift; sourceTree = "<group>"; };
 		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
+		9802CB2F2A71AA76004AFD03 /* NewSerialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NewSerialization.metal; sourceTree = "<group>"; };
+		9802CB312A71AA85004AFD03 /* NewMRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMRSimulation.swift; sourceTree = "<group>"; };
 		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
 		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
 		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
@@ -319,6 +322,7 @@
 			isa = PBXGroup;
 			children = (
 				98325C6D2A6D86AA00A4D7BB /* Serialization.metal */,
+				9802CB2F2A71AA76004AFD03 /* NewSerialization.metal */,
 			);
 			path = IO;
 			sourceTree = "<group>";
@@ -502,6 +506,7 @@
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				98325C632A6D7B8800A4D7BB /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
+				9802CB312A71AA85004AFD03 /* NewMRSimulation.swift */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";
@@ -762,6 +767,7 @@
 				98537EB72A63107F0037C392 /* Atomic.metal in Sources */,
 				98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderMain.metal in Sources */,
+				9802CB302A71AA76004AFD03 /* NewSerialization.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
 				980070F22A66078D0097D21F /* NewRayTracing.metal in Sources */,
 			);

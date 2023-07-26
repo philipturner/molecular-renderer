@@ -9,6 +9,8 @@
 #include "../Utilities/MRAtom.metal"
 using namespace metal;
 
+#if 0
+
 struct serialization_arguments {
   uint batch_stride;
   float scale_factor;
@@ -98,4 +100,4 @@ kernel void deserialize
   cumulativeSum[tid] = raw_components;
 }
 
-
+#endif

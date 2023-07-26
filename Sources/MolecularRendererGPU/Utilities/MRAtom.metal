@@ -76,6 +76,13 @@ MRAtom {
   }
   
   MRAtom(float3 origin,
+         ushort tailStorage)
+  {
+    this->origin = origin;
+    this->tailStorage = tailStorage;
+  }
+  
+  MRAtom(float3 origin,
          half radiusSquared,
          ushort tailStorage)
   {
