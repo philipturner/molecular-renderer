@@ -25,9 +25,9 @@ import Metal
 //   - packed/unpacked by 4 CPU cores
 //   - LZBITMAP lossless compression
 //
-// Serialization:
+// Encoding:
 //   MRAtom -> GPU Intermediate -> LZBITMAP
-// Deserialization:
+// Decoding:
 //   LZBITMAP -> GPU Intermediate -> MRAtom
 
 /// Rounds an integer up to the nearest power of 2.
@@ -74,7 +74,7 @@ public class NewMRSimulation {
   // Data can be compressed with higher efficiency by dropping several bits off
   // the mantissa. If an atom moves 0.008 nm/frame, here are bits/position
   // component at reasonable precisions:
-  // - 6 bits: 0.25 pm (recommended default)
+  // - 6 bits: 0.25 pm
   // - 5 bits: 0.5 pm
   // - 4 bits: 1 pm
   // - 3 bits: 2 pm
@@ -95,10 +95,10 @@ public class NewMRSimulation {
   
   public init(
     renderer: MRRenderer,
+    method: NewMRCompressionMethod,
     frameTimeInFs: Double,
-    resolutionInApproxPm: Double,
-    clusterSize: Int,
-    method: NewMRCompressionMethod
+    resolutionInApproxPm: Double = 0.25,
+    clusterSize: Int = 30
   ) {
     self.renderer = renderer
     self.frameTimeInFs = frameTimeInFs
@@ -109,7 +109,7 @@ public class NewMRSimulation {
     let device = renderer.device
     self.compressedBuffer = ExpandingBuffer(device: device)
     self.swapchain = Swapchain(device: device)
-    self.activeCluster = Cluster(device: device)
+    self.activeCluster = swapchain.newCluster(frameStart: 0)
   }
   
   func append(_ frame: NewMRFrame) {
@@ -120,7 +120,8 @@ public class NewMRSimulation {
     
     frameCount += 1
     if frameCount % clusterSize == 0 {
-      // TODO: Flush the previous frame, use GPU to encode
+      encodeActiveCluster()
+      activeCluster = swapchain.newCluster(frameStart: frameCount)
     }
     
     // TODO: Add to the materialized cluster
@@ -131,7 +132,90 @@ public class NewMRSimulation {
   }
   
   func save(url: URL) {
-    // TODO: Prepend the header to the compressed data.
+    encodeActiveCluster()
+    
+    // TODO: Prepend the simulation header to the compressed data.
+  }
+  
+  func encodeActiveCluster() {
+    let totalAtoms = Int(activeCluster.atomsOffsets.last!)
+    do {
+      let component = activeCluster.compressedMetadata
+      let uncompressed = component.uncompressed
+      precondition(uncompressed.cursor == 0)
+      
+      let size = activeCluster.compressedTailStart + totalAtoms * 2
+      uncompressed.reserve(size)
+    }
+    for component in [
+      activeCluster.compressedX,
+      activeCluster.compressedY,
+      activeCluster.compressedZ
+    ] {
+      let uncompressed = component.uncompressed
+      precondition(uncompressed.cursor == 0)
+      
+      let size = totalAtoms * 4
+      uncompressed.reserve(size)
+    }
+    processAtoms(encode: true)
+    
+    DispatchQueue.concurrentPerform(iterations: 4) { [self] z in
+      var stream = withUnsafeTemporaryAllocation(
+        of: compression_stream.self, capacity: 1
+      ) {
+        return $0[0]
+      }
+      
+      let status = compression_stream_init(
+        &stream, COMPRESSION_STREAM_ENCODE, method.compressionAlgorithm)
+      precondition(status == COMPRESSION_STATUS_OK)
+      
+      var component: Component
+      switch z {
+      case 0: component = activeCluster.compressedMetadata
+      case 1: component = activeCluster.compressedX
+      case 2: component = activeCluster.compressedY
+      case 3: component = activeCluster.compressedZ
+      default: fatalError()
+      }
+      
+      let uncompressed = component.uncompressed
+      var bytesToWrite: Int
+      if z == 0 {
+        let frameCount = activeCluster.frameCount
+        uncompressed.write(frameCount * 4, source: activeCluster.atomsCounts)
+        uncompressed.write(frameCount * 4, source: activeCluster.metadataCounts)
+        
+        let metadataSize = Int(activeCluster.metadataOffsets.last!)
+        let metadataSource = activeCluster.metadata.buffer.contents()
+        uncompressed.write(metadataSize, source: metadataSource)
+        precondition(activeCluster.metadata.cursor == metadataSize)
+        
+        precondition(uncompressed.cursor == activeCluster.compressedTailStart)
+        bytesToWrite = uncompressed.cursor + totalAtoms * 2
+        uncompressed.cursor = 0
+      } else {
+        bytesToWrite = totalAtoms * 4
+      }
+      stream.src_ptr = .init(OpaquePointer(uncompressed.buffer.contents()))
+      stream.src_size = bytesToWrite
+      stream.dst_ptr = .init(OpaquePointer(component.scratch.contents()))
+      stream.dst_size = component.blockSize
+      
+      // TODO: Every iteration, increase the compressed buffer's cursor.
+      let compressed = component.compressed
+      precondition(compressed.cursor == 0)
+      var compressedPointer = compressed.buffer.contents()
+      
+      
+      
+      // TODO: Don't forget to deinit the compression context.
+    }
+  }
+  
+  func decodeActiveCluster() {
+    
   }
   
   func processAtoms(encode: Bool) {
@@ -155,16 +239,22 @@ public class NewMRSimulation {
     
     let atomsCounts = activeCluster.atomsCounts
     let atomsOffsets = activeCluster.atomsOffsets
-    var frameRanges: [SIMD2<UInt32>] = zip(atomsOffsets, atomsCounts).map {
-      return SIMD2($0, $1)
+    withUnsafeTemporaryAllocation(
+      of: SIMD2<UInt32>.self, capacity: activeCluster.frameCount
+    ) { bufferPointer in
+      for i in 0..<bufferPointer.count {
+        bufferPointer[i] = SIMD2(atomsCounts[0], atomsCounts[1])
+      }
+      
+      let frameRangesBytes = bufferPointer.count * 8
+      encoder.setBytes(
+        bufferPointer.baseAddress!, length: frameRangesBytes, index: 1)
     }
-    let frameRangesBytes = frameRanges.count * 8
-    encoder.setBytes(frameRanges, length: frameRangesBytes, index: 1)
     
     encoder.setBuffer(activeCluster.atoms.buffer, offset: 0, index: 2)
     encoder.setBuffer(
       activeCluster.compressedMetadata.uncompressed.buffer,
-      offset: Int(activeCluster.metadataOffsets.last!), index: 3)
+      offset: activeCluster.compressedTailStart, index: 3)
     encoder.setBuffer(
       activeCluster.compressedX.uncompressed.buffer, offset: 0, index: 4)
     encoder.setBuffer(
@@ -247,12 +337,14 @@ fileprivate class Component {
   }
 }
 
-// Each cluster has an uncompressed header that stores:
-// (a) the frame start and end, inclusive
-// (b) the number of atoms in each frame
-// (c) the metadata size for each frame
-// (d) the offset of each component
-// That's all you need to decode it. Don't round to cache boundaries.
+// First-level, uncompressed header stores:
+// (a) frame start and end, inclusive
+// (b) offset of each component
+//
+// Second-level, compressed header stores:
+// (a) number of atoms in each frame
+// (b) metadata size for each frame
+// (c) metadata for each frame
 fileprivate class Cluster {
   var frameStart: Int
   var frameCount: Int
@@ -262,6 +354,9 @@ fileprivate class Cluster {
   var metadataOffsets: [UInt32]
   
   var compressedMetadata: Component
+  var compressedTailStart: Int {
+    frameCount * 8 + Int(metadataOffsets.last!)
+  }
   var compressedX: Component
   var compressedY: Component
   var compressedZ: Component
@@ -317,6 +412,12 @@ fileprivate class Cluster {
     metadata.reserve(metadataCount)
     metadata.write(metadataCount, source: frame.metadata)
     metadataOffsets.append(metadataOffsets.last! + UInt32(metadataCount))
+    
+    frameCount += 1
+    precondition(frameCount == atomsCounts.count)
+    precondition(frameCount == atomsOffsets.count)
+    precondition(frameCount == metadataCounts.count)
+    precondition(frameCount == metadataOffsets.count)
   }
   
   // Whether the frame is ready to be encoded and reset.
@@ -334,7 +435,7 @@ fileprivate class Cluster {
   // if we want to use them in real-time.
   //
   // Once the uniform grid is entirely GPU-driven, we can remove the need for
-  // the CPU to see the atoms present this frame.
+  // the CPU to see this frame's atoms.
   func makeFrame(frameID: Int) -> NewMRFrame {
     precondition(frameID - frameStart < frameCount)
     
@@ -364,6 +465,7 @@ fileprivate class Cluster {
   }
 }
 
+// Preparation for when the serializer actually becomes GPU-accelerated.
 fileprivate class Swapchain {
   var clusters: [Cluster]
   var index: Int
@@ -382,3 +484,4 @@ fileprivate class Swapchain {
     return cluster
   }
 }
+
