@@ -24,14 +24,12 @@ class Serializer {
       renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
   }
   
-  // TODO: Method to save a Nanosystems Figure3D
-  
   func save(fileName: String, provider: OpenMM_AtomProvider) {
     var frameTimeInFs = rint(1000 * provider.psPerStep)
     frameTimeInFs *= Double(provider.stepsPerFrame)
     let simulation = MRSimulation(
       frameTimeInFs: frameTimeInFs,
-      resolutionInApproxPm: 1)
+      resolutionInApproxPm: 0.25)
     
     for state in provider.states {
       let frame = MRFrame(atoms: [state], metadata: [Data()])

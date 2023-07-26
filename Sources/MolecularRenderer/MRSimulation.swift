@@ -5,7 +5,9 @@
 //  Created by Philip Turner on 7/23/23.
 //
 
+import Compression
 import Metal
+import System
 
 // ========================================================================== //
 //                                MRSimulation                                //
@@ -72,7 +74,7 @@ public class MRSimulation {
   // component at reasonable precisions:
   // - 6 bits: 0.25 pm
   // - 5 bits: 0.5 pm
-  // - 4 bits: 1 pm (recommended default)
+  // - 4 bits: 1 pm
   // - 3 bits: 2 pm
   //
   // TODO: Save a checkpoint every N frames for recovery from corruption and
@@ -88,9 +90,7 @@ public class MRSimulation {
   public internal(set) var frames: [MRFrame] = []
   
   var fileHandle: MTLIOFileHandle?
-  var method: MTLIOCompressionMethod?
-//  var context: MTLIOCompressionContext?
-  var context: (Data, URL)?
+  var context: MRCompressionContext?
   var frameStride: Int?
   var atomsStride: Int?
   
@@ -108,8 +108,8 @@ public class MRSimulation {
   }
   
   public init(renderer: MRRenderer, url: URL, method: MRCompressionMethod) {
-    initializeFile(
-      renderer: renderer, url: url, method: method, serializing: false)
+    fileHandle = try! renderer.device.makeIOHandle(
+      url: url, compressionMethod: method.ioMethod)
     renderer.serializer.loadHeader(simulation: self)
     initializeFrameBuffers(renderer: renderer)
     
@@ -138,19 +138,10 @@ public class MRSimulation {
     renderer: MRRenderer, url: URL, method: MRCompressionMethod
   ) {
     initializeFrameBuffers(renderer: renderer)
-    initializeFile(
-      renderer: renderer, url: url, method: method, serializing: true)
     
-    let path = url.absoluteURL.path
-//    context = MTLIOCreateCompressionContext(path, self.method!, 65536)!
-    context = (Data(count: 0), URL(filePath: path))
+    context = MRCompressionContext(url: url, method: method)
     defer {
-//      let status = MTLIOFlushAndDestroyCompressionContext(context!)
-//      guard status == .complete else {
-//        fatalError("Could not flush and destroy compression context.")
-//      }
-      let (data, url) = context!
-      try! data.write(to: url, options: .atomic)
+      context!.destroy()
       context = nil
     }
     renderer.serializer.storeHeader(simulation: self)
@@ -192,26 +183,6 @@ public class MRSimulation {
     }
   }
   
-  func initializeFile(
-    renderer: MRRenderer,
-    url: URL,
-    method: MRCompressionMethod,
-    serializing: Bool
-  ) {
-    var ioMethod: MTLIOCompressionMethod
-    switch method {
-    case .lzBitmap:
-      ioMethod = .lzBitmap
-//      ioMethod = .none
-    }
-    self.method = ioMethod
-    
-    if !serializing {
-      fileHandle = try! renderer.device.makeIOHandle(
-        url: url)//, compressionMethod: ioMethod)
-    }
-  }
-  
   func stream(_ closure: () -> Void) {
     while frameID < frames.count {
       if framesInFlight[frameID % 8] {
@@ -244,6 +215,21 @@ public struct MRFrame {
 
 public enum MRCompressionMethod {
   case lzBitmap
+  
+  var ioMethod: MTLIOCompressionMethod {
+    switch self {
+    case .lzBitmap:
+      // TODO: Actually use LZBITMAP.
+      return .zlib
+    }
+  }
+  
+  var compressionAlgorithm: compression_algorithm {
+    switch self {
+    case .lzBitmap:
+      return COMPRESSION_ZLIB
+    }
+  }
 }
 
 class MRSerializer {
@@ -298,10 +284,7 @@ class MRSerializer {
     }
     cursor += batchCount * MemoryLayout<Int>.stride
     
-    simulation.context!.0
-      .append(contentsOf: Data(bytes: bytes, count: 65536))
-    //    MTLIOCompressionContextAppendData(
-    //      simulation.context!, bytes, cursor - bytes)
+    simulation.context!.append(header: bytes)
   }
   
   private func alignCursor(
@@ -320,14 +303,24 @@ class MRSerializer {
     var cursor = bytes
     
     let ioCommandBuffer = ioCommandQueue.makeCommandBuffer()
-    ioCommandBuffer.loadBytes(bytes, size: 65536, sourceHandle: simulation.fileHandle!, sourceHandleOffset: 0)
+    let buf = device.makeBuffer(length: 65536)!
+    ioCommandBuffer.load(buf, offset: 0, size: 65536, sourceHandle: simulation.fileHandle!, sourceHandleOffset: 0)
+//    ioCommandBuffer.loadBytes(bytes, size: 65536, sourceHandle: simulation.fileHandle!, sourceHandleOffset: 0)
     ioCommandBuffer.commit()
     ioCommandBuffer.waitUntilCompleted()
+    print(ioCommandBuffer.status == .error)
+    print(ioCommandBuffer.status == .cancelled)
+    print(ioCommandBuffer.status == .complete)
+    print(ioCommandBuffer.status == .pending)
+    
+    cursor = buf.contents()
     
     let headerPointer = cursor.assumingMemoryBound(
       to: MRSimulation.SimulationHeader.self)
     let header = headerPointer.pointee
     cursor += MemoryLayout<MRSimulation.SimulationHeader>.stride
+    
+    print(headerPointer.pointee)
     
     simulation.frameTimeInFs = header.frameTimeInFs
     simulation.resolutionInApproxPm = header.resolutionInApproxPm
@@ -463,16 +456,14 @@ class MRSerializer {
           
           precondition(frameBuffer.length == simulation.frameStride!)
           //          memset(frameBuffer.contents() + 4, 0, frameBuffer.length - 4)
-          //          MTLIOCompressionContextAppendData(
-          //            simulation.context!,
-          //            frameBuffer.contents(),
-          //            simulation.frameStride!)
+//          MTLIOCompressionContextAppendData(
+//            simulation.context!,
+//            frameBuffer.contents(),
+//            simulation.frameStride!)
           
-          let bytes = frameBuffer.contents().assumingMemoryBound(to: UInt8.self)
-          
-          simulation.context!.0
-            .append(contentsOf: Data(
-              bytes: frameBuffer.contents(), count: simulation.frameStride!))
+//          simulation.context!.0
+//            .append(contentsOf: Data(
+//              bytes: frameBuffer.contents(), count: simulation.frameStride!))
           
           simulation.semaphores[frameID % 8].signal()
         }
@@ -484,7 +475,18 @@ class MRSerializer {
     commandBuffer.addCompletedHandler { _ in
       self.asyncQueue.async(execute: workItem)
     }
+//    commandBuffer.addCompletedHandler { _ in
+//      simulation.semaphores[frameID % 8].signal()
+//    }
     commandBuffer.commit()
+    
+    do {
+      // This is a short-term fix to avoid a race condition. Eventually, we should
+      // either buffer up a large amount of data in RAM and move through the SSD
+      // in chunks, or use Apple's "Compression" library directly.
+      commandBuffer.waitUntilCompleted()
+      simulation.context!.append(buffer: frameBuffer)
+    }
   }
   
   func loadFrameAsync(simulation: MRSimulation) {
@@ -619,5 +621,173 @@ class MRSerializer {
     ioCommandBuffer.commit()
   }
 }
+
+/// Rounds an integer up to the nearest power of 2.
+fileprivate func roundUpToPowerOf2(_ input: Int) -> Int {
+  1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
+}
+
+/// Rounds an integer down to the nearest power of 2.
+fileprivate func roundDownToPowerOf2(_ input: Int) -> Int {
+  1 << (Int.bitWidth - 1 - input.leadingZeroBitCount)
+}
+
+// TODO: Metal fast resource loading is bugged out right now. Use
+// 'compression_context' for all loading operations, and eventually use a custom
+// resource loader instead of Metal's one.
+class MRCompressionContext {
+  var compressedData: UnsafeMutableBufferPointer<UInt8>
+  var uncompressedBytes: Int = 0
+  var cursor: Int = 0
+  var url: URL
+  var method: MRCompressionMethod
+  
+  var stream: compression_stream
+  var blockSize: Int
+  var scratchBuffer: UnsafeMutableBufferPointer<UInt8>
+  
+  init(url: URL, method: MRCompressionMethod) {
+    self.compressedData = .allocate(capacity: 0)
+    self.url = url
+    self.method = method
+    self.stream = withUnsafeTemporaryAllocation(
+      of: compression_stream.self, capacity: 1
+    ) {
+      return $0[0]
+    }
+    
+    let status = compression_stream_init(
+      &stream, COMPRESSION_STREAM_ENCODE, method.compressionAlgorithm)
+    precondition(status == COMPRESSION_STATUS_OK)
+    self.blockSize = 1024 * 1024
+    self.scratchBuffer = .allocate(capacity: blockSize)
+  }
+  
+  deinit {
+    compressedData.deallocate()
+    scratchBuffer.deallocate()
+  }
+  
+  func append(header: UnsafeMutableRawPointer) {
+    append(UnsafeRawPointer(header), count: 65536)
+  }
+  
+  func append(buffer: MTLBuffer) {
+    append(buffer.contents(), count: buffer.length)
+  }
+  
+  // Returns whether you should keep copying more data.
+  private func copyScratchBuffer() -> Bool {
+    let writtenBytes = blockSize - stream.dst_size
+    guard writtenBytes > 0 else {
+      return false
+    }
+    
+    var nextCount = cursor + writtenBytes
+    if compressedData.count < nextCount {
+      let previous = compressedData
+      nextCount = roundUpToPowerOf2(nextCount)
+      compressedData = .allocate(capacity: nextCount)
+      memcpy(
+        compressedData.baseAddress!,
+        previous.baseAddress!, cursor)
+    }
+    
+    precondition(compressedData.count >= nextCount)
+    memcpy(
+      compressedData.baseAddress! + cursor,
+      scratchBuffer.baseAddress!, writtenBytes)
+    cursor += writtenBytes
+    
+    if writtenBytes < blockSize {
+      return false
+    } else {
+      return true
+    }
+  }
+  
+  private func append(_ pointer: UnsafeRawPointer, count: Int) {
+    uncompressedBytes += count
+    stream.src_ptr = pointer.assumingMemoryBound(to: UInt8.self)
+    stream.src_size = count
+    
+    while true {
+      stream.dst_ptr = scratchBuffer.baseAddress!
+      stream.dst_size = scratchBuffer.count
+      
+      let status = compression_stream_process(&stream, 0)
+      precondition(status == COMPRESSION_STATUS_OK)
+      guard copyScratchBuffer() else {
+        break
+      }
+    }
+  }
+  
+  func destroy() {
+    do {
+      stream.dst_ptr = scratchBuffer.baseAddress!
+      stream.dst_size = scratchBuffer.count
+      
+      let finalizeFlag = Int32(COMPRESSION_STREAM_FINALIZE.rawValue)
+      let status = compression_stream_process(&stream, finalizeFlag)
+      precondition(status == COMPRESSION_STATUS_END)
+      
+      // The assumption that FINALIZE bytes < block size may be incorrect.
+      precondition(copyScratchBuffer() == false)
+    }
+    compression_stream_destroy(&stream)
+    
+    let ratio = Float(cursor) / Float(uncompressedBytes)
+    let ratioRepr = String(format: "%.1f", 100 * ratio)
+    print("Compressed bytes:", compressedData.count)
+    print("Compression ratio: \(ratioRepr)% (lower is better)")
+    
+    let context = MTLIOCreateCompressionContext(
+      url.path, method.ioMethod, 65536)!
+    let status = compression_stream_init(
+      &stream, COMPRESSION_STREAM_DECODE, method.compressionAlgorithm)
+    precondition(status == COMPRESSION_STATUS_OK)
+    defer {
+      compression_stream_destroy(&stream)
+    }
+    
+    do {
+      stream.src_ptr = .init(compressedData.baseAddress!)
+      stream.src_size = cursor
+      
+      var offset = 0
+      while true {
+        let scratch = scratchBuffer.baseAddress!
+        stream.dst_ptr = scratch
+        stream.dst_size = scratchBuffer.count
+        
+        let status = compression_stream_process(&stream, 0)
+        precondition(status == COMPRESSION_STATUS_OK)
+        let readBytes = blockSize - stream.dst_size
+        guard readBytes > 0 else {
+          break
+        }
+        
+        if offset == 0 {
+          let rawPointer = UnsafeMutableRawPointer(scratch)
+          let headerPointer = rawPointer.assumingMemoryBound(
+            to: MRSimulation.SimulationHeader.self)
+          print(headerPointer.pointee)
+          
+        }
+        offset += readBytes
+        
+        MTLIOCompressionContextAppendData(context, scratch, readBytes)
+        if readBytes < blockSize {
+          break
+        }
+      }
+    }
+    
+    let ioStatus = MTLIOFlushAndDestroyCompressionContext(context)
+    precondition(ioStatus == .complete, "Error destroying IO context.")
+  }
+}
+
 
 
