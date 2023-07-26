@@ -635,6 +635,11 @@ fileprivate func roundDownToPowerOf2(_ input: Int) -> Int {
 // TODO: Metal fast resource loading is bugged out right now. Use
 // 'compression_context' for all loading operations, and eventually use a custom
 // resource loader instead of Metal's one.
+//
+// TODO: Measure disk memory consumption in FP32, UInt32, and then finally
+// cumulative-summed.
+//
+// TODO: Test the difference in memory consumption with different precisions.
 class MRCompressionContext {
   var compressedData: UnsafeMutableBufferPointer<UInt8>
   var uncompressedBytes: Int = 0
