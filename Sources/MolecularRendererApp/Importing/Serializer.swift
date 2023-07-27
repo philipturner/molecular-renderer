@@ -18,11 +18,10 @@ class Serializer {
   }
   
   func load(fileName: String) -> NewMRSimulation {
-    fatalError("Not implemented.")
-//    let path = self.path + "/" + fileName + ".mrsimulation"
-//    let url = URL(filePath: path)
-//    return NewMRSimulation(
-//      renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
+    let path = self.path + "/" + fileName + ".mrsimulation"
+    let url = URL(filePath: path)
+    return NewMRSimulation(
+      renderer: renderer.renderingEngine, url: url)
   }
   
   func save(fileName: String, provider: OpenMM_AtomProvider) {

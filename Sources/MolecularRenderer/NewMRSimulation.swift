@@ -82,8 +82,6 @@ public struct NewMRFrame {
 }
 
 public class NewMRSimulation {
-  var renderer: MRRenderer
-  
   public internal(set) var frameTimeInFs: Double
   
   // Data can be compressed with higher efficiency by dropping several bits off
@@ -104,6 +102,7 @@ public class NewMRSimulation {
   public var clustersTotalSize: Int { compressedData.cursor }
   public internal(set) var staticMetadata: [UInt8] = []
   
+  var renderer: MRRenderer
   fileprivate var compressedData: ExpandingBuffer
   fileprivate var swapchain: Swapchain
   fileprivate var activeCluster: Cluster
@@ -156,20 +155,23 @@ public class NewMRSimulation {
     
     // frameTimeInFs, resolutionInApproxPm
     do {
-      headerWords.append(UInt64(frameTimeInFs.bitPattern))
-      headerWords.append(UInt64(resolutionInApproxPm.bitPattern))
+      headerWords.append(frameTimeInFs.bitPattern)
+      headerWords.append(resolutionInApproxPm.bitPattern)
       appendHeaderWords()
     }
     
     // algorithm
     do {
       header.reserve(128)
-      memset(header.buffer.contents(), 0, 128)
+      memset(header.buffer.contents() + header.cursor, 0, 128)
       
       let nextCursor = header.cursor + 128
       algorithm.name.withUTF8Buffer {
         header.write($0.count, source: $0.baseAddress!)
       }
+      let pointer = OpaquePointer(header.buffer.contents() + nextCursor - 128)
+      print(String(cString: UnsafePointer<CChar>(pointer)))
+      
       header.cursor = nextCursor
     }
     
@@ -219,7 +221,7 @@ public class NewMRSimulation {
     let padding = paddedSize - header.cursor
     if padding > 0 {
       header.reserve(padding)
-      memset(header.buffer.contents(), 0, padding)
+      memset(header.buffer.contents() + header.cursor, 0, padding)
       header.cursor += padding
     }
     
@@ -231,6 +233,112 @@ public class NewMRSimulation {
     precondition(
       FileManager.default.createFile(atPath: url.path, contents: data),
       "Could not write to the file.")
+  }
+  
+  public init(renderer: MRRenderer, url: URL) {
+    guard let contents = FileManager.default.contents(atPath: url.path) else {
+      fatalError("Could not open file at path: '\(url.path)'")
+    }
+    let contentsPointer = contents.withUnsafeBytes {
+      let pointer = malloc($0.count)
+      memcpy(pointer, $0.baseAddress!, $0.count)
+      return UnsafeRawBufferPointer(start: pointer, count: $0.count)
+    }
+    defer { contentsPointer.deallocate() }
+    
+    var cursor = contentsPointer.baseAddress!
+    func checkCapacity(_ bytesToRead: Int) {
+      let pointer = cursor + bytesToRead - contentsPointer.baseAddress!
+      precondition(pointer <= contentsPointer.count)
+    }
+    func extractHeaderWords(_ expectedCount: Int) -> [UInt64] {
+      checkCapacity(expectedCount * 8)
+      var output: [UInt64] = .init(repeating: 0, count: expectedCount)
+      memcpy(&output, cursor, expectedCount * 8)
+      cursor += expectedCount * 8
+      return output
+    }
+    
+    // frameTimeInFs, resolutionInApproxPm
+    do {
+      let headerWords = extractHeaderWords(2)
+      frameTimeInFs = Double(bitPattern: headerWords[0])
+      resolutionInApproxPm = Double(bitPattern: headerWords[1])
+    }
+    
+    // algorithm
+    do {
+      checkCapacity(128)
+      let name = String(
+        cString: UnsafePointer<CChar>(OpaquePointer(cursor)))
+      algorithm = .init(name: name)
+      cursor += 128
+    }
+    
+    // blockSize, usesCheckpoints, frameCount, clusterBlockSize
+    do {
+      let headerWords = extractHeaderWords(4)
+      clusterBlockSize = Int(headerWords[0])
+      precondition(headerWords[1] <= 1)
+      usesCheckpoints = headerWords[1] > 0
+      frameCount = Int(headerWords[2])
+      clusterSize = Int(headerWords[3])
+      
+      print("Decoded frame count: \(frameCount)")
+    }
+    
+    // clusterCompressedOffsets, clustersTotalSize, staticMetadata.count
+    var clustersTotalSize: Int
+    var staticMetadataCount: Int
+    do {
+      let clusterCount = (frameCount + clusterSize - 1) / clusterSize
+      let headerWords = extractHeaderWords(clusterCount + 2)
+      clusterCompressedOffsets = headerWords[..<clusterCount].map(Int.init)
+      clustersTotalSize = Int(headerWords[clusterCount])
+      staticMetadataCount = Int(headerWords[clusterCount + 1])
+    }
+    
+    // compressed staticMetadata count, staticMetadata
+    if staticMetadataCount > 0 {
+      let headerWords = extractHeaderWords(1)
+      let compressedCount = Int(headerWords[0])
+      precondition(compressedCount > 0)
+      
+      checkCapacity(compressedCount)
+      var dst = UnsafeMutablePointer<UInt8>
+        .allocate(capacity: staticMetadataCount)
+      defer { dst.deallocate() }
+      
+      let uncompressedBytes = compression_decode_buffer(
+        dst, staticMetadataCount,
+        cursor, compressedCount,
+        nil, algorithm.compressionAlgorithm)
+      guard uncompressedBytes == staticMetadataCount else {
+        fatalError("Error occurred while decoding.")
+      }
+      cursor += compressedCount
+      
+      staticMetadata = Array(unsafeUninitializedCapacity: staticMetadataCount) {
+        $1 = staticMetadataCount
+        memcpy($0.baseAddress!, dst, staticMetadataCount)
+      }
+    } else {
+      staticMetadata = []
+    }
+    
+    var cursorDelta = cursor - contentsPointer.baseAddress!
+    cursorDelta = (cursorDelta + 127) / 128 * 128
+    precondition(cursorDelta + clustersTotalSize == contentsPointer.count)
+    cursor = contentsPointer.baseAddress! + cursorDelta
+    
+    let device = renderer.device
+    self.renderer = renderer
+    self.compressedData = ExpandingBuffer(device: device)
+    self.swapchain = Swapchain(device: device)
+    self.activeCluster = swapchain.newCluster(frameStart: 0)
+    
+    compressedData.reserve(clustersTotalSize)
+    compressedData.write(clustersTotalSize, source: cursor)
   }
   
   func encodeActiveCluster() {
