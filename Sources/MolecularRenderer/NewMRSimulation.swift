@@ -99,13 +99,14 @@ public class NewMRSimulation {
   public internal(set) var frameCount: Int = 0
   public internal(set) var clusterSize: Int
   public internal(set) var clusterCompressedOffsets: [Int] = []
-  public var clustersTotalSize: Int { compressedData.cursor }
+  public var clustersTotalSize: Int = 0
   public internal(set) var staticMetadata: [UInt8] = []
   
   var renderer: MRRenderer
   fileprivate var compressedData: ExpandingBuffer
   fileprivate var swapchain: Swapchain
   fileprivate var activeCluster: Cluster
+  var activeClusterIndex: Int = -1
   
   // NOTE: The C API will not have default arguments, so LZBITMAP won't
   // automatically become the default on non-Apple platforms.
@@ -138,7 +139,12 @@ public class NewMRSimulation {
   }
   
   public func frame(id: Int) -> NewMRFrame {
-    fatalError("Decoding not supported yet.")
+    let desiredClusterIndex = id / clusterSize
+    if desiredClusterIndex != activeClusterIndex {
+      activeCluster = swapchain.newCluster(frameStart: frameCount)
+      decodeActiveCluster()
+    }
+    return activeCluster.makeFrame(frameID: id)
   }
   
   public func save(url: URL) {
@@ -288,7 +294,6 @@ public class NewMRSimulation {
     }
     
     // clusterCompressedOffsets, clustersTotalSize, staticMetadata.count
-    var clustersTotalSize: Int
     var staticMetadataCount: Int
     do {
       let clusterCount = (frameCount + clusterSize - 1) / clusterSize
@@ -406,7 +411,7 @@ public class NewMRSimulation {
       while src_size > 0 {
         let compressed = component.compressed
         compressed.reserve(65536)
-        let dst_ptr = compressed.buffer.contents() + compressed.cursor
+        let dst_ptr = 2 + compressed.buffer.contents() + compressed.cursor
         
         let compressedBytes = compression_encode_buffer(
           .init(OpaquePointer(dst_ptr)), 65536,
@@ -416,6 +421,8 @@ public class NewMRSimulation {
           fatalError("Error occurred during encoding.")
         }
         
+        var header = UInt16(compressedBytes - 1)
+        compressed.write(2, source: &header)
         compressed.cursor += compressedBytes
         src_ptr += 65536
         src_size -= 65536
@@ -432,7 +439,6 @@ public class NewMRSimulation {
       activeCluster.frameStart + Int(UInt(activeCluster.frameCount - 1)),
     ]
     var totalBytes = 0
-    header.append(totalBytes)
     totalBytes += metadata.cursor
     header.append(totalBytes)
     totalBytes += x.cursor
@@ -440,8 +446,11 @@ public class NewMRSimulation {
     totalBytes += y.cursor
     header.append(totalBytes)
     totalBytes += z.cursor
+    header.append(totalBytes)
     
     clusterCompressedOffsets.append(compressedData.cursor)
+    clustersTotalSize = compressedData.cursor
+    
     compressedData.reserve(header.count * 8)
     compressedData.write(header.count * 8, source: header)
     
@@ -453,7 +462,105 @@ public class NewMRSimulation {
   }
   
   func decodeActiveCluster() {
+    let compressedOffset = clusterCompressedOffsets[activeClusterIndex]
+    compressedData.cursor = compressedOffset
     
+    func extractHeaderWords(_ expectedCount: Int) -> [UInt64] {
+      var output: [UInt64] = .init(repeating: 0, count: expectedCount)
+      let readBytes = compressedData.read(
+        expectedCount * 8, destination: &output)
+      precondition(readBytes == expectedCount * 8)
+      return output
+    }
+    
+    let headerWords = extractHeaderWords(6)
+    let frameStart = Int(headerWords[0])
+    let frameEnd = Int(headerWords[1])
+    precondition(frameStart == activeClusterIndex * clusterSize)
+    
+    let expectedEnd = min(frameStart + clusterSize, frameCount)
+    precondition(frameEnd == expectedEnd)
+    
+    let metadataCeil = Int(headerWords[2])
+    let xCeil = Int(headerWords[3])
+    let yCeil = Int(headerWords[4])
+    let zCeil = Int(headerWords[5])
+    
+    let metadataRange = 0..<metadataCeil
+    let xRange = metadataCeil..<xCeil
+    let yRange = xCeil..<yCeil
+    let zRange = yCeil..<zCeil
+    
+    func reserve(_ component: Component, _ range: Range<Int>) {
+      component.uncompressed.reserve(range.upperBound - range.lowerBound)
+    }
+    reserve(activeCluster.compressedMetadata, metadataRange)
+    reserve(activeCluster.compressedX, xRange)
+    reserve(activeCluster.compressedY, yRange)
+    reserve(activeCluster.compressedZ, zRange)
+    
+    DispatchQueue.concurrentPerform(iterations: 4) { [self] z in
+      var component: Component
+      switch z {
+      case 0: component = activeCluster.compressedMetadata
+      case 1: component = activeCluster.compressedX
+      case 2: component = activeCluster.compressedY
+      case 3: component = activeCluster.compressedZ
+      default: fatalError()
+      }
+      precondition(component.compressed.cursor == 0)
+      precondition(component.uncompressed.cursor == 0)
+      precondition(component.scratch.cursor == 0)
+      
+      var src = compressedData.buffer.contents() + compressedOffset
+      var range: Range<Int>
+      switch z {
+      case 0: range = metadataRange
+      case 1: range = xRange
+      case 2: range = yRange
+      case 3: range = zRange
+      default: fatalError()
+      }
+      src += range.lowerBound
+      
+      let compressed = component.compressed
+      var src_size = range.upperBound - range.lowerBound
+      compressed.write(src_size, source: src)
+      
+      let scratchSize = compression_decode_scratch_buffer_size(
+        algorithm.compressionAlgorithm)
+      component.scratch.reserve(scratchSize)
+      let scratch_ptr = component.scratch.buffer.contents()
+      
+      while src_size > 0 {
+        let uncompressed = component.uncompressed
+        uncompressed.reserve(65536)
+        
+        var header: UInt16 = 0
+        let readBytes = compressed.read(2, destination: &header)
+        precondition(readBytes == 2)
+        
+        let compressedBytes = Int(header) + 1
+        let src_ptr = compressed.buffer.contents() + compressed.cursor
+        let dst_ptr = uncompressed.buffer.contents() + uncompressed.cursor
+        
+        let uncompressedBytes = compression_decode_buffer(
+          .init(OpaquePointer(dst_ptr)), 65536,
+          .init(OpaquePointer(src_ptr)), compressedBytes,
+          scratch_ptr, algorithm.compressionAlgorithm)
+        guard uncompressedBytes > 0 else {
+          fatalError("Error occurred during encoding.")
+        }
+        
+        compressed.cursor += compressedBytes
+        uncompressed.cursor += uncompressedBytes
+        src_size = range.upperBound - range.lowerBound
+        src_size -= compressed.cursor
+      }
+    }
+    
+    // TODO: After decompressing on 4 threads, parse the compressed header.
+    // Then, decode on the GPU.
   }
   
   func processAtoms(encode: Bool) {

@@ -45,7 +45,7 @@ class Renderer {
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-    #if false
+    #if true
     self.atomProvider = simulateEthane()
     serializer.save(
       fileName: "HelloEthane",
