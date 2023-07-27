@@ -86,7 +86,6 @@ public class MRRenderer {
   var upscaler: MTLFXTemporalScaler!
   var encodePipeline: MTLComputePipelineState!
   var decodePipeline: MTLComputePipelineState!
-  var serializer: MRSerializer!
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -177,8 +176,6 @@ public class MRRenderer {
     self.profiler = MRProfiler(renderer: self, library: library)
     self.initUpscaler()
     self.initSerializer(library: library)
-    
-    self.serializer = MRSerializer(renderer: self, library: library)
   }
   
   func initUpscaler() {
@@ -212,7 +209,7 @@ public class MRRenderer {
   func initSerializer(library: MTLLibrary) {
     let constants = MTLFunctionConstantValues()
     let configs: [
-      (Bool, ReferenceWritableKeyPath<MRRenderer, MTLComputePipelineState>)
+      (Bool, ReferenceWritableKeyPath<MRRenderer, MTLComputePipelineState?>)
     ] = [(true, \.encodePipeline), (false, \.decodePipeline)]
     
     for (encode, keyPath) in configs {

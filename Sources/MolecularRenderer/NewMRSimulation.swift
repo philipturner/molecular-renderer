@@ -68,15 +68,15 @@ public enum NewMRCompressionAlgorithm {
 }
 
 public struct NewMRFrame {
-  var atoms: [MRAtom]
-  var metadata: [UInt8]
+  public var atoms: [MRAtom]
+  public var metadata: [UInt8]
   
-  init(atoms: [MRAtom], metadata: [UInt8]) {
+  public init(atoms: [MRAtom], metadata: [UInt8]) {
     self.atoms = atoms
     self.metadata = metadata
   }
   
-  init(atoms: [MRAtom]) {
+  public init(atoms: [MRAtom]) {
     self.init(atoms: atoms, metadata: [])
   }
 }
@@ -104,7 +104,6 @@ public class NewMRSimulation {
   public var clustersTotalSize: Int { compressedData.cursor }
   public internal(set) var staticMetadata: [UInt8] = []
   
-  var clusterCount: Int = 0
   fileprivate var compressedData: ExpandingBuffer
   fileprivate var swapchain: Swapchain
   fileprivate var activeCluster: Cluster
@@ -130,7 +129,7 @@ public class NewMRSimulation {
     self.activeCluster = swapchain.newCluster(frameStart: 0)
   }
   
-  func append(_ frame: NewMRFrame) {
+  public func append(_ frame: NewMRFrame) {
     frameCount += 1
     if frameCount % clusterSize == 0 {
       encodeActiveCluster()
@@ -139,11 +138,11 @@ public class NewMRSimulation {
     activeCluster.append(frame)
   }
   
-  func frame(id: Int) -> NewMRFrame {
+  public func frame(id: Int) -> NewMRFrame {
     fatalError("Decoding not supported yet.")
   }
   
-  func save(url: URL) {
+  public func save(url: URL) {
     encodeActiveCluster()
     
     // Decoding will use a similar method, which generates words upon each call.
@@ -176,11 +175,8 @@ public class NewMRSimulation {
     
     // blockSize, usesCheckpoints, frameCount, clusterBlockSize
     do {
-      var _clusterCount = frameCount + clusterSize - 1
-      _clusterCount /= clusterSize
-      _clusterCount *= clusterSize
+      let clusterCount = (frameCount + clusterSize - 1) / clusterSize
       precondition(clusterCount == clusterCompressedOffsets.count)
-      precondition(clusterCount == _clusterCount)
       
       headerWords.append(UInt64(clusterBlockSize))
       headerWords.append(usesCheckpoints ? 1 : 0)
@@ -227,12 +223,14 @@ public class NewMRSimulation {
       header.cursor += padding
     }
     
-    // clusters
-    do {
-      let source = compressedData.buffer.contents()
-      header.reserve(compressedData.cursor)
-      header.write(compressedData.cursor, source: source)
-    }
+    var data = Data(
+      bytes: header.buffer.contents(), count: header.cursor)
+    data += Data(
+      bytes: compressedData.buffer.contents(), count: compressedData.cursor)
+    
+    precondition(
+      FileManager.default.createFile(atPath: url.path, contents: data),
+      "Could not write to the file.")
   }
   
   func encodeActiveCluster() {
@@ -546,9 +544,9 @@ fileprivate class Cluster {
     
     frameCount += 1
     precondition(frameCount == atomsCounts.count)
-    precondition(frameCount == atomsOffsets.count)
+    precondition(frameCount + 1 == atomsOffsets.count)
     precondition(frameCount == metadataCounts.count)
-    precondition(frameCount == metadataOffsets.count)
+    precondition(frameCount + 1 == metadataOffsets.count)
   }
   
   // Whether the frame is ready to be encoded and reset.

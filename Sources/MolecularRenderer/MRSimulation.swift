@@ -108,14 +108,15 @@ public class MRSimulation {
   }
   
   public init(renderer: MRRenderer, url: URL, method: MRCompressionMethod) {
-    fileHandle = try! renderer.device.makeIOHandle(
-      url: url, compressionMethod: method.ioMethod)
-    renderer.serializer.loadHeader(simulation: self)
-    initializeFrameBuffers(renderer: renderer)
-    
-    stream {
-      renderer.serializer.loadFrameAsync(simulation: self)
-    }
+    fatalError()
+//    fileHandle = try! renderer.device.makeIOHandle(
+//      url: url, compressionMethod: method.ioMethod)
+//    renderer.serializer.loadHeader(simulation: self)
+//    initializeFrameBuffers(renderer: renderer)
+//    
+//    stream {
+//      renderer.serializer.loadFrameAsync(simulation: self)
+//    }
   }
   
   public func append(_ frame: MRFrame) {
@@ -137,18 +138,19 @@ public class MRSimulation {
   public func serialize(
     renderer: MRRenderer, url: URL, method: MRCompressionMethod
   ) {
-    initializeFrameBuffers(renderer: renderer)
-    
-    context = MRCompressionContext(url: url, method: method)
-    defer {
-      context!.destroy()
-      context = nil
-    }
-    renderer.serializer.storeHeader(simulation: self)
-    
-    stream {
-      renderer.serializer.storeFrameAsync(simulation: self)
-    }
+    fatalError()
+//    initializeFrameBuffers(renderer: renderer)
+//    
+//    context = MRCompressionContext(url: url, method: method)
+//    defer {
+//      context!.destroy()
+//      context = nil
+//    }
+//    renderer.serializer.storeHeader(simulation: self)
+//    
+//    stream {
+//      renderer.serializer.storeFrameAsync(simulation: self)
+//    }
   }
   
   func initializeFrameBuffers(renderer: MRRenderer) {

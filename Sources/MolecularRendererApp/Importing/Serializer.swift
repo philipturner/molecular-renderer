@@ -17,29 +17,29 @@ class Serializer {
     self.path = path
   }
   
-  func load(fileName: String) -> MRSimulation {
-    let path = self.path + "/" + fileName + ".mrsimulation"
-    let url = URL(filePath: path)
-    return MRSimulation(
-      renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
+  func load(fileName: String) -> NewMRSimulation {
+    fatalError("Not implemented.")
+//    let path = self.path + "/" + fileName + ".mrsimulation"
+//    let url = URL(filePath: path)
+//    return NewMRSimulation(
+//      renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
   }
   
   func save(fileName: String, provider: OpenMM_AtomProvider) {
     var frameTimeInFs = rint(1000 * provider.psPerStep)
     frameTimeInFs *= Double(provider.stepsPerFrame)
-    let simulation = MRSimulation(
-      frameTimeInFs: frameTimeInFs,
-      resolutionInApproxPm: 0.25)
+    let simulation = NewMRSimulation(
+      renderer: renderer.renderingEngine,
+      frameTimeInFs: frameTimeInFs)
     
     for state in provider.states {
-      let frame = MRFrame(atoms: [state], metadata: [Data()])
+      let frame = NewMRFrame(atoms: state)
       simulation.append(frame)
     }
     
     let path = self.path + "/" + fileName + ".mrsimulation"
     let url = URL(filePath: path)
-    simulation.serialize(
-      renderer: renderer.renderingEngine, url: url, method: .lzBitmap)
+    simulation.save(url: url)
   }
 }
 
@@ -47,10 +47,11 @@ struct SimulationAtomProvider: MRAtomProvider {
   var frameTimeInFs: Double
   var frames: [[MRAtom]] = []
   
-  init(simulation: MRSimulation, batchIndex: Int) {
+  init(simulation: NewMRSimulation, batchIndex: Int) {
     self.frameTimeInFs = simulation.frameTimeInFs
-    for frame in simulation.frames {
-      self.frames.append(frame.atoms[batchIndex])
+    for frameID in 0..<simulation.frameCount {
+      let frame = simulation.frame(id: frameID)
+      frames.append(frame.atoms)
     }
     
     let ps = (frameTimeInFs * 120) / 1000
