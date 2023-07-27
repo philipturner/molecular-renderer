@@ -40,14 +40,29 @@ fileprivate func roundDownToPowerOf2(_ input: Int) -> Int {
   1 << (Int.bitWidth - 1 - input.leadingZeroBitCount)
 }
 
-public enum NewMRCompressionMethod {
+public enum NewMRCompressionAlgorithm {
   // LZBITMAP compression with block size 65536.
   case lzBitmap
+  
+  init<T: StringProtocol>(name: T) {
+    if name == "LZBITMAP" {
+      self = .lzBitmap
+    } else {
+      fatalError("Unrecognized algorithm: \(name)")
+    }
+  }
   
   var compressionAlgorithm: compression_algorithm {
     switch self {
     case .lzBitmap:
       return COMPRESSION_LZBITMAP
+    }
+  }
+  
+  var name: StaticString {
+    switch self {
+    case .lzBitmap:
+      return StaticString("LZBITMAP")
     }
   }
 }
@@ -69,6 +84,8 @@ public struct NewMRFrame {
 public class NewMRSimulation {
   var renderer: MRRenderer
   
+  public internal(set) var frameTimeInFs: Double
+  
   // Data can be compressed with higher efficiency by dropping several bits off
   // the mantissa. If an atom moves 0.008 nm/frame, here are bits/position
   // component at reasonable precisions:
@@ -76,17 +93,18 @@ public class NewMRSimulation {
   // - 5 bits: 0.5 pm
   // - 4 bits: 1 pm
   // - 3 bits: 2 pm
-  public internal(set) var frameTimeInFs: Double
   public internal(set) var resolutionInApproxPm: Double
-  var clusterSize: Int
-  var method: NewMRCompressionMethod
-  var usesCheckpoints: Bool = false
+  public internal(set) var algorithm: NewMRCompressionAlgorithm
+  public internal(set) var clusterBlockSize: Int = 65536
+  public internal(set) var usesCheckpoints: Bool = false
   
-  var clusterCompressedOffsets: [Int] = []
-  var staticMetadata: [UInt8] = []
-  var frameCount: Int = 0
-  var clusterCursor: Int = -1
+  public internal(set) var frameCount: Int = 0
+  public internal(set) var clusterSize: Int
+  public internal(set) var clusterCompressedOffsets: [Int] = []
+  public var clustersTotalSize: Int { compressedData.cursor }
+  public internal(set) var staticMetadata: [UInt8] = []
   
+  var clusterCount: Int = 0
   fileprivate var compressedData: ExpandingBuffer
   fileprivate var swapchain: Swapchain
   fileprivate var activeCluster: Cluster
@@ -98,13 +116,13 @@ public class NewMRSimulation {
     frameTimeInFs: Double,
     resolutionInApproxPm: Double = 0.25,
     clusterSize: Int = 30,
-    method: NewMRCompressionMethod = .lzBitmap
+    algorithm: NewMRCompressionAlgorithm = .lzBitmap
   ) {
     self.renderer = renderer
     self.frameTimeInFs = frameTimeInFs
     self.resolutionInApproxPm = resolutionInApproxPm
     self.clusterSize = clusterSize
-    self.method = method
+    self.algorithm = algorithm
     
     let device = renderer.device
     self.compressedData = ExpandingBuffer(device: device)
@@ -113,18 +131,12 @@ public class NewMRSimulation {
   }
   
   func append(_ frame: NewMRFrame) {
-    if clusterCursor != frameCount / clusterSize {
-      fatalError(
-        "MRSimulation doesn't support simultaneous reading and writing yet.")
-    }
-    
     frameCount += 1
     if frameCount % clusterSize == 0 {
       encodeActiveCluster()
       activeCluster = swapchain.newCluster(frameStart: frameCount)
     }
-    
-    // TODO: Add to the materialized cluster
+    activeCluster.append(frame)
   }
   
   func frame(id: Int) -> NewMRFrame {
@@ -134,7 +146,93 @@ public class NewMRSimulation {
   func save(url: URL) {
     encodeActiveCluster()
     
-    // TODO: Prepend the simulation header to the compressed data.
+    // Decoding will use a similar method, which generates words upon each call.
+    var header = ExpandingBuffer(device: renderer.device)
+    var headerWords: [UInt64] = []
+    func appendHeaderWords() {
+      header.reserve(headerWords.count * 8)
+      header.write(headerWords.count * 8, source: headerWords)
+      headerWords.removeAll(keepingCapacity: true)
+    }
+    
+    // frameTimeInFs, resolutionInApproxPm
+    do {
+      headerWords.append(UInt64(frameTimeInFs.bitPattern))
+      headerWords.append(UInt64(resolutionInApproxPm.bitPattern))
+      appendHeaderWords()
+    }
+    
+    // algorithm
+    do {
+      header.reserve(128)
+      memset(header.buffer.contents(), 0, 128)
+      
+      let nextCursor = header.cursor + 128
+      algorithm.name.withUTF8Buffer {
+        header.write($0.count, source: $0.baseAddress!)
+      }
+      header.cursor = nextCursor
+    }
+    
+    // blockSize, usesCheckpoints, frameCount, clusterBlockSize
+    do {
+      var _clusterCount = frameCount + clusterSize - 1
+      _clusterCount /= clusterSize
+      _clusterCount *= clusterSize
+      precondition(clusterCount == clusterCompressedOffsets.count)
+      precondition(clusterCount == _clusterCount)
+      
+      headerWords.append(UInt64(clusterBlockSize))
+      headerWords.append(usesCheckpoints ? 1 : 0)
+      headerWords.append(UInt64(frameCount))
+      headerWords.append(UInt64(clusterSize))
+      appendHeaderWords()
+    }
+    
+    // clusterCompressedOffsets, clustersTotalSize, staticMetadata.count
+    do {
+      headerWords = clusterCompressedOffsets.map(UInt64.init)
+      headerWords.append(UInt64(clustersTotalSize))
+      headerWords.append(UInt64(staticMetadata.count))
+      appendHeaderWords()
+    }
+    
+    // compressed staticMetadata count, staticMetadata
+    if staticMetadata.count > 0 {
+      var dst = UnsafeMutablePointer<UInt8>
+        .allocate(capacity: staticMetadata.count)
+      defer { dst.deallocate() }
+      
+      let compressedBytes = compression_encode_buffer(
+        dst, staticMetadata.count,
+        staticMetadata, staticMetadata.count,
+        nil, algorithm.compressionAlgorithm)
+      guard compressedBytes > 0 else {
+        fatalError("Error occurred during encoding.")
+      }
+      
+      headerWords.append(UInt64(compressedBytes))
+      appendHeaderWords()
+      
+      header.reserve(compressedBytes)
+      header.write(compressedBytes, source: dst)
+    }
+    
+    // padding
+    let paddedSize = (header.cursor + 127) / 128 * 128
+    let padding = paddedSize - header.cursor
+    if padding > 0 {
+      header.reserve(padding)
+      memset(header.buffer.contents(), 0, padding)
+      header.cursor += padding
+    }
+    
+    // clusters
+    do {
+      let source = compressedData.buffer.contents()
+      header.reserve(compressedData.cursor)
+      header.write(compressedData.cursor, source: source)
+    }
   }
   
   func encodeActiveCluster() {
@@ -195,7 +293,7 @@ public class NewMRSimulation {
       precondition(component.compressed.cursor == 0)
       precondition(component.scratch.cursor == 0)
       let scratchSize = compression_encode_scratch_buffer_size(
-        method.compressionAlgorithm)
+        algorithm.compressionAlgorithm)
       component.scratch.reserve(scratchSize)
       let scratch_ptr = component.scratch.buffer.contents()
       
@@ -207,7 +305,7 @@ public class NewMRSimulation {
         let compressedBytes = compression_encode_buffer(
           .init(OpaquePointer(dst_ptr)), 65536,
           .init(OpaquePointer(src_ptr)), min(src_size, 65536),
-          scratch_ptr, method.compressionAlgorithm)
+          scratch_ptr, algorithm.compressionAlgorithm)
         guard compressedBytes > 0 else {
           fatalError("Error occurred during encoding.")
         }
