@@ -339,7 +339,6 @@ public class NewMRSimulation {
     self.activeCluster = swapchain.newCluster(frameStart: 0)
     
     compressedData.reserve(clustersTotalSize)
-    
     compressedData.write(clustersTotalSize, source: cursor)
     
   }
@@ -650,17 +649,23 @@ public class NewMRSimulation {
       var inverseScaleFactor: Float
     }
     let resolution = 1024 / Float(resolutionInApproxPm)
-    var args = ProcessAtomsArguments(clusterSize: UInt16(clusterSize), scaleFactor: resolution, inverseScaleFactor: 1 / resolution)
+    var args = ProcessAtomsArguments(
+      clusterSize: UInt16(clusterSize),
+      scaleFactor: resolution,
+      inverseScaleFactor: 1 / resolution)
     let argsBytes = MemoryLayout<ProcessAtomsArguments>.stride
     encoder.setBytes(&args, length: argsBytes, index: 0)
     
     let atomsCounts = activeCluster.atomsCounts
     let atomsOffsets = activeCluster.atomsOffsets
     withUnsafeTemporaryAllocation(
-      of: SIMD2<UInt32>.self, capacity: activeCluster.frameCount
+      of: SIMD2<UInt32>.self, capacity: clusterSize
     ) { bufferPointer in
-      for i in 0..<bufferPointer.count {
-        bufferPointer[i] = SIMD2(atomsCounts[0], atomsCounts[1])
+      for i in 0..<activeCluster.frameCount {
+        bufferPointer[i] = SIMD2(atomsOffsets[i], atomsCounts[i])
+      }
+      for i in activeCluster.frameCount..<clusterSize {
+        bufferPointer[i] = SIMD2(atomsOffsets.last!, 0)
       }
       
       let frameRangesBytes = bufferPointer.count * 8
@@ -817,7 +822,7 @@ fileprivate class Cluster {
   func append(_ frame: NewMRFrame) {
     let atomCount = frame.atoms.count
     atomsCounts.append(UInt32(atomCount))
-    atoms.cursor = Int(atomsCounts.last!)
+    atoms.cursor = Int(atomsOffsets.last!) * 16
     atoms.reserve(atomCount * 16)
     atoms.write(atomCount * 16, source: frame.atoms)
     atomsOffsets.append(atomsOffsets.last! + UInt32(atomCount))
@@ -857,7 +862,7 @@ fileprivate class Cluster {
     
     let atomCount = Int(atomsCounts[frameID - frameStart])
     let atomOffset = Int(atomsOffsets[frameID - frameStart])
-    atoms.cursor = atomOffset
+    atoms.cursor = atomOffset * 16
     let frameAtoms: [MRAtom] = .init(
       unsafeUninitializedCapacity: atomCount
     ) {

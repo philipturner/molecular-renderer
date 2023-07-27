@@ -34,42 +34,49 @@ kernel void process_atoms
 {
   for (uint frame = 0; frame < args.cluster_size; ++frame) {
     uint2 range = frame_ranges[frame];
-    uint atoms_cursor = range[0] + tid;
-    uint components_cursor = tid * args.cluster_size + frame;
+    uint cursor = range[0] + tid;
     
     if (encode) {
-      MRAtom atom;
-      if (tid < range[1]) {
-        atom = MRAtom(atoms + atoms_cursor);
-      } else {
-        atom = MRAtom(float3(0), ushort(0));
-      }
+      MRAtom atom(atoms + cursor);
       
-      float3 xyz = rint(atom.origin * args.scale_factor);
-      uint3 xyz_quantized = uint3(abs(xyz)) << 1;
-      xyz_quantized |= select(uint3(0), uint3(1), xyz < 0);
+//      if (tid < range[1]) {
+//        atom = MRAtom(atoms + atoms_cursor);
+//      } else {
+//        atom = MRAtom(float3(0), ushort(0));
+//      }
+//      
+//      float3 xyz = rint(atom.origin * args.scale_factor);
+//      uint3 xyz_quantized = uint3(abs(xyz)) << 1;
+//      xyz_quantized |= select(uint3(0), uint3(1), xyz < 0);
       
-      x_components[components_cursor] = xyz_quantized.x;
-      y_components[components_cursor] = xyz_quantized.y;
-      z_components[components_cursor] = xyz_quantized.z;
-      tail_components[components_cursor] = atom.tailStorage;
+      x_components[cursor] = as_type<uint>(atom.origin.x); //xyz_quantized.x;
+      y_components[cursor] = as_type<uint>(atom.origin.y); //xyz_quantized.y;
+      z_components[cursor] = as_type<uint>(atom.origin.z); //xyz_quantized.z;
+      tail_components[cursor] = ushort(atom.get_element());//atom.tailStorage;
     } else {
-      if (tid >= range[1]) {
-        continue;
-      }
+//      if (tid >= range[1]) {
+//        continue;
+//      }
       
-      uint3 xyz_quantized(x_components[components_cursor],
-                          y_components[components_cursor],
-                          z_components[components_cursor]);
-      ushort3 xyz_signs = ushort3(xyz_quantized & 1);
-      xyz_quantized >>= 1;
+//      uint3 xyz_quantized(x_components[components_cursor],
+//                          y_components[components_cursor],
+//                          z_components[components_cursor]);
+//      ushort3 xyz_signs = ushort3(xyz_quantized & 1);
+//      xyz_quantized >>= 1;
+//      
+//      float3 xyz = float3(xyz_quantized) * args.inverse_scale_factor;
+//      xyz = select(xyz, -xyz, bool3(xyz_signs));
       
-      float3 xyz = float3(xyz_quantized) * args.inverse_scale_factor;
-      xyz = select(xyz, -xyz, bool3(xyz_signs));
+      float3 origin(as_type<float>(x_components[cursor]),
+                    as_type<float>(y_components[cursor]),
+                    as_type<float>(z_components[cursor]));
       
-      ushort tail = tail_components[components_cursor];
-      MRAtom atom(xyz, tail);
-      atom.store(atoms + atoms_cursor);
+      ushort tail = tail_components[cursor];
+//      MRAtom atom(xyz, tail);
+//      atom.origin = float3(tid % 2, tid % 3, tid % 4);
+//      atom.tailStorage = as_type<ushort>(uchar2(6, 0));
+      MRAtom atom(origin, tail);
+      atom.store(atoms + cursor);
     }
   }
 }
