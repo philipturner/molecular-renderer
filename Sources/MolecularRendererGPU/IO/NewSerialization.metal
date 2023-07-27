@@ -19,6 +19,44 @@ struct process_atoms_arguments {
 // Store the bulk of the data as deltas from the nearest checkpoint.
 constant bool encode [[function_constant(300)]];
 
+inline uint encode_position(int position, thread int *cumulative) {
+  int delta = position - *cumulative;
+  *cumulative = position;
+  
+  uint quantized = uint(abs(delta)) << 1;
+  quantized |= select(uint(0), uint(1), delta < 0);
+  return quantized;
+}
+
+inline int decode_position(uint delta, thread int *cumulative) {
+  ushort sign = delta & 1;
+  delta >>= 1;
+  
+  int output = select(int(delta), -int(delta), sign);
+  *cumulative += output;
+  return *cumulative;
+}
+
+inline ushort encode_tail(ushort tail, thread ushort *cumulative) {
+  tail = as_type<ushort>(as_type<uchar2>(tail).yx);
+  tail &= 0x7FFF;
+  short delta = short(tail) - short(*cumulative);
+  *cumulative = tail;
+  
+  ushort quantized = ushort(abs(delta)) << 1;
+  quantized |= select(ushort(0), ushort(1), delta < 0);
+  return quantized;
+}
+
+inline ushort decode_tail(ushort delta, thread ushort *cumulative) {
+  ushort sign = delta & 1;
+  delta >>= 1;
+  
+  short output = select(int(delta), -int(delta), sign);
+  *cumulative += output;
+  return as_type<ushort>(as_type<uchar2>(*cumulative).yx);
+}
+
 kernel void process_atoms
 (
  constant process_atoms_arguments &args [[buffer(0)]],
@@ -32,11 +70,13 @@ kernel void process_atoms
  
  uint tid [[thread_position_in_grid]])
 {
+  int xyz_cumulative[3] = { 0, 0, 0 };
+  ushort tail_cumulative = 0;
+  
   for (uint frame = 0; frame < args.cluster_size; ++frame) {
     uint2 range = frame_ranges[frame];
     uint cursor = range[0] + tid;
     
-    // TODO: Try storing deltas from the first atom in the cluster now.
     if (encode) {
       MRAtom atom;
       if (tid < range[1]) {
@@ -45,29 +85,34 @@ kernel void process_atoms
         atom = MRAtom(float3(0), ushort(0));
       }
       
-      float3 xyz = rint(atom.origin * args.scale_factor);
-      uint3 xyz_quantized = uint3(abs(xyz)) << 1;
-      xyz_quantized |= select(uint3(0), uint3(1), xyz < 0);
       
-      x_components[cursor] = xyz_quantized.x;
-      y_components[cursor] = xyz_quantized.y;
-      z_components[cursor] = xyz_quantized.z;
-      tail_components[cursor] = atom.tailStorage;
+//      x_components[cursor] = as_type<uint>(atom.origin.x);
+//      y_components[cursor] = as_type<uint>(atom.origin.y);
+//      z_components[cursor] = as_type<uint>(atom.origin.z);
+//      tail_components[cursor] = atom.tailStorage;
+      
+//      x_components[cursor] = as_type<uint>(rint(atom.origin.x * args.scale_factor));
+//      y_components[cursor] = as_type<uint>(rint(atom.origin.y * args.scale_factor));
+//      z_components[cursor] = as_type<uint>(rint(atom.origin.z * args.scale_factor));
+//      tail_components[cursor] = atom.tailStorage;
+//      
+      
+      int3 xyz = int3(rint(atom.origin * args.scale_factor));
+      x_components[cursor] = encode_position(xyz.x, xyz_cumulative + 0);
+      y_components[cursor] = encode_position(xyz.y, xyz_cumulative + 1);
+      z_components[cursor] = encode_position(xyz.z, xyz_cumulative + 2);
+      tail_components[cursor] = encode_tail(atom.tailStorage, &tail_cumulative);
     } else {
       if (tid >= range[1]) {
         continue;
       }
       
-      uint3 xyz_quantized(x_components[cursor],
-                          y_components[cursor],
-                          z_components[cursor]);
-      ushort3 xyz_signs = ushort3(xyz_quantized & 1);
-      xyz_quantized >>= 1;
+      int x = decode_position(x_components[cursor], xyz_cumulative + 0);
+      int y = decode_position(y_components[cursor], xyz_cumulative + 1);
+      int z = decode_position(z_components[cursor], xyz_cumulative + 2);
+      ushort tail = decode_tail(tail_components[cursor], &tail_cumulative);
       
-      float3 xyz = float3(xyz_quantized) * args.inverse_scale_factor;
-      xyz = select(xyz, -xyz, bool3(xyz_signs));
-      
-      ushort tail = tail_components[cursor];
+      float3 xyz = float3(x, y, z) * args.inverse_scale_factor;
       MRAtom atom(xyz, tail);
       atom.store(atoms + cursor);
     }

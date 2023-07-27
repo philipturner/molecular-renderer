@@ -148,7 +148,9 @@ public class NewMRSimulation {
   }
   
   public func save(url: URL) {
-    encodeActiveCluster()
+    if activeCluster.frameCount > 0 {
+      encodeActiveCluster()
+    }
     
     // Decoding will use a similar method, which generates words upon each call.
     var header = ExpandingBuffer(device: renderer.device)
@@ -532,7 +534,6 @@ public class NewMRSimulation {
       let compressed = component.compressed
       var src_size = range.upperBound - range.lowerBound
       precondition(compressed.cursor == 0)
-      print(compressedOffset)
       
       compressed.write(src_size, source: src)
       compressed.cursor = 0
@@ -839,15 +840,6 @@ fileprivate class Cluster {
     precondition(frameCount + 1 == atomsOffsets.count)
     precondition(frameCount == metadataCounts.count)
     precondition(frameCount + 1 == metadataOffsets.count)
-  }
-  
-  // Whether the frame is ready to be encoded and reset.
-  func full(clusterSize: Int) -> Bool {
-    if frameCount > clusterSize {
-      fatalError("Waited too long to encode.")
-    } else {
-      return frameCount == clusterSize
-    }
   }
   
   // TODO: Allow the cluster to be encoded/decoded without stalling on the GPU.
