@@ -25,10 +25,9 @@ module OpenMM {
 
 An ergonomic wrapper around the C API, for using OpenMM in Swift code.
 
-TODO (simulation modes):
-- 4 fs (NVT): QSHAKE, mass repartitoning, improved velocity rescaling thermostat, entirely FP32
-- 1 fs (NVE): first mode to be implemented, sums groups of 4 nonbonded forces in FP32 and switches to eFP64 for larger sums
-- 0.25 fs (NVE): identical to 1 fs, except the smaller timestep permits measuring energies smaller than the Landauer limit
+### MRSimulation Codec
+
+A high-performance 3D video codec for recording and replaying molecular simulations. This scales well into the thousand-atom range, becoming resource-intensive at the million-atom range.
 
 ## Requirements
 
