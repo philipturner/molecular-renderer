@@ -34,58 +34,66 @@ class MM4 {
     self.system = OpenMM_System()
     
     var nonbond: OpenMM_CustomNonbondedForce
-    var chNonbond: OpenMM_CustomNonbondedForce
+    var nonbond14: OpenMM_CustomBondForce
     do {
       let energy = """
-        epsilon * (
+        dispersionFactor * epsilon * (
           -2.25 * (length / r)^6 +
           1.84e5 * exp(-12.00 * (r / length))
         );
         """
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
-        length = radius1 + radius2;
-        epsilon = sqrt(epsilon1 * epsilon2);
+        length = select(is_ch, length_ch, radius1 + radius2);
+        epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
+        is_ch = (min(element1, element2) == 1) && (max(element1, element2) == 6);
         """)
       nonbond.addPerParticleParameter(name: "radius")
       nonbond.addPerParticleParameter(name: "epsilon")
       
       let chLengthInNm: Double = 3.440 * OpenMM_NmPerAngstrom
       let chEpsilonInKJ: Double = 0.024 * OpenMM_KJPerKcal
-      chNonbond = OpenMM_CustomNonbondedForce(energy: energy)
-      nonbond.addGlobalParameter(name: "length", defaultValue: chLengthInNm)
-      nonbond.addGlobalParameter(name: "epsilon", defaultValue: chEpsilonInKJ)
+      nonbond.addGlobalParameter(name: "dispersionFactor", defaultValue: 1)
+      nonbond.addGlobalParameter(name: "length_ch", defaultValue: chLengthInNm)
+      nonbond.addGlobalParameter(name: "epsilon_ch", defaultValue: chEpsilonInKJ)
+      
+      // NOTE: This force handles both the CC/HH and CH cases.
+      nonbond14 = OpenMM_CustomBondForce(energy: energy)
+      nonbond14.addGlobalParameter(
+        name: "dispersionFactor", defaultValue: 0.550)
+      nonbond14.addPerBondParameter(name: "length")
+      nonbond14.addPerBondParameter(name: "epsilon")
     }
     nonbond.transfer()
-    chNonbond.transfer()
     system.addForce(nonbond)
-    system.addForce(chNonbond)
+    
+    var nonbondParameters: [UInt8: OpenMM_DoubleArray] = [:]
+    do {
+      let hydrogenParameters = OpenMM_DoubleArray(size: 2)
+      hydrogenParameters[0] = 1.640 * OpenMM_NmPerAngstrom
+      hydrogenParameters[1] = 0.017 * OpenMM_KJPerKcal
+      nonbondParameters[1] = hydrogenParameters
+      
+      let carbonParameters = OpenMM_DoubleArray(size: 2)
+      carbonParameters[0] = 1.960 * OpenMM_NmPerAngstrom
+      carbonParameters[1] = 0.037 * OpenMM_KJPerKcal
+      nonbondParameters[6] = carbonParameters
+    }
     
     for atom in atoms {
       switch atom.element {
       case 1:
-        break
+        system.addParticle(mass: 1.008)
       case 6:
         // Don't give any special treatment to cyclobutane and cyclopentane
-        // carbons yet.
+        // carbons. Instead, replace the cubane test with adamantane.
+        system.addParticle(mass: 12.011)
         break
       default:
         fatalError("Unsupported element: \(atom.element)")
       }
       
-      guard atom.element == 6 || atom.element == 1 else {
-        fatalError("Unsupported element: \(atom.element)")
-      }
-      
-      if atom.element == 1 {
-        
-      } else {
-        
-      }
+      nonbond.addParticle(parameters: nonbondParameters[atom.element]!)
     }
-    
-    // TODO: Add exclusions for C-H bonds to the first nonbonded force.
-    // TODO: Use interaction groups for the second nonbonded force.
-    // TODO: Add 1-3 exclusions to both nonbonded forces.
     
     // Don't include bend-bend and bend-stretch terms yet.
     let bondStretch = OpenMM_HarmonicBondForce()
