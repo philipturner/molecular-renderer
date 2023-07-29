@@ -61,6 +61,13 @@ public class OpenMM_CustomNonbondedForce: OpenMM_Force {
     OpenMM_CustomNonbondedForce_destroy(pointer)
   }
   
+  public func createExclusionsFromBonds(
+    _ bonds: OpenMM_BondArray, bondCutoff: Int
+  ) {
+    OpenMM_CustomNonbondedForce_createExclusionsFromBonds(
+      pointer, bonds.pointer, Int32(bondCutoff))
+  }
+  
   @discardableResult
   public func addGlobalParameter(
     name: String, defaultValue: Double

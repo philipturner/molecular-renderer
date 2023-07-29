@@ -49,14 +49,15 @@ class MM4 {
         """)
       nonbond.addPerParticleParameter(name: "radius")
       nonbond.addPerParticleParameter(name: "epsilon")
+      nonbond.addPerParticleParameter(name: "element")
       
       let chLengthInNm: Double = 3.440 * OpenMM_NmPerAngstrom
       let chEpsilonInKJ: Double = 0.024 * OpenMM_KJPerKcal
       nonbond.addGlobalParameter(name: "dispersionFactor", defaultValue: 1)
       nonbond.addGlobalParameter(name: "length_ch", defaultValue: chLengthInNm)
-      nonbond.addGlobalParameter(name: "epsilon_ch", defaultValue: chEpsilonInKJ)
+      nonbond.addGlobalParameter(
+        name: "epsilon_ch", defaultValue: chEpsilonInKJ)
       
-      // NOTE: This force handles both the CC/HH and CH cases.
       nonbond14 = OpenMM_CustomBondForce(energy: energy)
       nonbond14.addGlobalParameter(
         name: "dispersionFactor", defaultValue: 0.550)
@@ -64,18 +65,22 @@ class MM4 {
       nonbond14.addPerBondParameter(name: "epsilon")
     }
     nonbond.transfer()
+    nonbond14.transfer()
     system.addForce(nonbond)
+    system.addForce(nonbond14)
     
     var nonbondParameters: [UInt8: OpenMM_DoubleArray] = [:]
     do {
-      let hydrogenParameters = OpenMM_DoubleArray(size: 2)
+      let hydrogenParameters = OpenMM_DoubleArray(size: 3)
       hydrogenParameters[0] = 1.640 * OpenMM_NmPerAngstrom
       hydrogenParameters[1] = 0.017 * OpenMM_KJPerKcal
+      hydrogenParameters[2] = 1
       nonbondParameters[1] = hydrogenParameters
       
-      let carbonParameters = OpenMM_DoubleArray(size: 2)
+      let carbonParameters = OpenMM_DoubleArray(size: 3)
       carbonParameters[0] = 1.960 * OpenMM_NmPerAngstrom
       carbonParameters[1] = 0.037 * OpenMM_KJPerKcal
+      carbonParameters[2] = 6
       nonbondParameters[6] = carbonParameters
     }
     
@@ -95,10 +100,113 @@ class MM4 {
       nonbond.addParticle(parameters: nonbondParameters[atom.element]!)
     }
     
-    // Don't include bend-bend and bend-stretch terms yet.
+    let bondPairs = OpenMM_BondArray(size: bonds.count)
+    var atomsToBondsMap: [SIMD4<Int32>] = Array(
+      repeating: SIMD4(repeating: -1), count: atoms.count)
+    for (bondIndex, bond) in bonds.enumerated() {
+      bondPairs[bondIndex] = SIMD2(truncatingIfNeeded: bond)
+      for i in 0..<2 {
+        let atomIndex = Int(bond[i])
+        var previous = atomsToBondsMap[atomIndex]
+        for i in 0..<5 {
+          if i == 4 {
+            fatalError("More than four bonds on an atom.")
+          }
+          if previous[i] == -1 {
+            previous[i] = Int32(truncatingIfNeeded: bondIndex)
+            break
+          }
+        }
+        atomsToBondsMap[atomIndex] = previous
+      }
+    }
+    nonbond.createExclusionsFromBonds(bondPairs, bondCutoff: 3)
+    
+    var bonds13: [SIMD2<Int32>: Bool] = [:]
+    var bonds14: [SIMD2<Int32>: Bool] = [:]
+    func traverse(originalID: Int, currentID: Int, recursionLevel: Int) {
+      let bondMap = atomsToBondsMap[currentID]
+      for i in 0..<4 {
+        let bondIndex = Int(bondMap[i])
+        guard bondIndex > -1 else {
+          break
+        }
+        let bond = bonds[bondIndex]
+        
+        var partnerID: Int
+        if bond[0] == currentID {
+          partnerID = Int(bond[1])
+        } else if bond[1] == currentID {
+          partnerID = Int(bond[0])
+        } else {
+          fatalError("Bond did not contain this atom index.")
+        }
+        if partnerID <= originalID {
+          continue
+        }
+        
+        let newBond = SIMD2(
+          Int32(truncatingIfNeeded: originalID),
+          Int32(truncatingIfNeeded: partnerID))
+        if recursionLevel == 2 {
+          bonds13[newBond] = true
+        } else if recursionLevel == 3 {
+          bonds14[newBond] = true
+        }
+        if recursionLevel < 3 {
+          traverse(
+            originalID: originalID, currentID: partnerID,
+            recursionLevel: recursionLevel + 1)
+        }
+      }
+    }
+    
+    for atomID in atoms.indices {
+      traverse(originalID: atomID, currentID: atomID, recursionLevel: 1)
+    }
+    for bond12 in bonds {
+      bonds13[bond12] = nil
+      bonds14[bond12] = nil
+    }
+    for bond13 in bonds13.keys {
+      bonds14[bond13] = nil
+    }
+    
+    do {
+      var bondParameters: [SIMD2<UInt8>: OpenMM_DoubleArray] = [:]
+      
+      let hhParameters = OpenMM_DoubleArray(size: 2)
+      hhParameters[0] = 2 * 1.640 * OpenMM_NmPerAngstrom
+      hhParameters[1] = 0.017 * OpenMM_KJPerKcal
+      bondParameters[[1, 1]] = hhParameters
+      
+      let chParameters = OpenMM_DoubleArray(size: 2)
+      chParameters[0] = 3.440 * OpenMM_NmPerAngstrom
+      chParameters[1] = 0.024 * OpenMM_KJPerKcal
+      bondParameters[[1, 6]] = chParameters
+      
+      let ccParameters = OpenMM_DoubleArray(size: 2)
+      ccParameters[0] = 2 * 1.960 * OpenMM_NmPerAngstrom
+      ccParameters[1] = 0.037 * OpenMM_KJPerKcal
+      bondParameters[[6, 6]] = ccParameters
+      
+      for bond in bonds14.keys {
+        let atom1 = atoms[Int(bond[0])]
+        let atom2 = atoms[Int(bond[1])]
+        let element1 = min(atom1.element, atom2.element)
+        let element2 = max(atom1.element, atom2.element)
+        
+        let parameters = bondParameters[SIMD2(element1, element2)]!
+        nonbond14.addBond(
+          particles: SIMD2(truncatingIfNeeded: bond), parameters: parameters)
+      }
+    }
+    
     let bondStretch = OpenMM_HarmonicBondForce()
     let bondBend = OpenMM_HarmonicAngleForce()
     let bondTorsion = OpenMM_PeriodicTorsionForce()
+    // bondBendBend
+    // bondStretchBend
     bondStretch.transfer()
     bondBend.transfer()
     bondTorsion.transfer()

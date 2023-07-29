@@ -25,6 +25,22 @@ public class OpenMM_BondArray: OpenMM_Object {
     let _size = OpenMM_BondArray_getSize(pointer)
     return Int(_size)
   }
+  
+  public subscript(index: Int) -> SIMD2<Int> {
+    get {
+      var particle1: Int32 = -1
+      var particle2: Int32 = -1
+      OpenMM_BondArray_get(pointer, Int32(index), &particle1, &particle2)
+      precondition(particle1 > -1 && particle2 > -1, "Invalid indices.")
+      
+      return SIMD2(Int(particle1), Int(particle2))
+    }
+    set {
+      let particle1 = Int32(newValue[0])
+      let particle2 = Int32(newValue[1])
+      OpenMM_BondArray_set(pointer, Int32(index), particle1, particle2)
+    }
+  }
 }
 
 public class OpenMM_DoubleArray: OpenMM_Object {
