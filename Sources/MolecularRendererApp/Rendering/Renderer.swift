@@ -30,6 +30,8 @@ class Renderer {
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
+    MRSetFrameRate(120)
+    initOpenMM()
     
     let url =  Bundle.main.url(
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
@@ -38,19 +40,16 @@ class Renderer {
       width: Int(ContentView.size),
       height: Int(ContentView.size),
       upscaleFactor: ContentView.upscaleFactor)
-    MRSetFrameRate(120)
     
     self.styleProvider = NanoStuff()
     self.serializer = Serializer(
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-    
-    
     let figure = Nanosystems.Chapter4.Figure3()
     self.atomProvider = figure
     
-//    #if false
+//    #if true
 //    self.atomProvider = simulateEthane()
 //    serializer.save(
 //      fileName: "HelloEthane",

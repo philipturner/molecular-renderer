@@ -13,6 +13,35 @@ public class OpenMM_Force: OpenMM_Object {
   }
 }
 
+public class OpenMM_CustomNonbondedForce: OpenMM_Force {
+  public init(energy: String) {
+    super.init(_openmm_create(energy, OpenMM_CustomNonbondedForce_create))
+    self.retain()
+  }
+  
+  public override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_CustomNonbondedForce_destroy(pointer)
+  }
+  
+  @discardableResult
+  public func addGlobalParameter(
+    name: String, defaultValue: Double
+  ) -> Int {
+    let index = OpenMM_CustomNonbondedForce_addGlobalParameter(
+      pointer, name, defaultValue)
+    return Int(index)
+  }
+  
+  @discardableResult
+  public func addPerParticleParameter(
+    name: String
+  ) -> Int {
+    let index = OpenMM_CustomNonbondedForce_addPerParticleParameter(
+      pointer, name)
+    return Int(index)
+  }
+}
+
 public class OpenMM_GBSAOBCForce: OpenMM_Force {
   public override init() {
     super.init(_openmm_create(OpenMM_GBSAOBCForce_create))

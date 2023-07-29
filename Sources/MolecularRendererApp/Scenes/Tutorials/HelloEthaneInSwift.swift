@@ -103,7 +103,7 @@ extension SimulationConstants {
     ("HCCH", [4, 0, 1, 5]), ("HCCH", [4, 0, 1, 6]), ("HCCH", [4, 0, 1, 7]),
   ]
 }
-
+//
 fileprivate class MyOpenMMData {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
