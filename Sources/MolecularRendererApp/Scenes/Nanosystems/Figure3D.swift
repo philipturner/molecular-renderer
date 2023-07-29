@@ -15,6 +15,10 @@ protocol Figure3D: MRAtomProvider {
 }
 
 extension Figure3D {
+  var stackingDirection: SIMD3<Float> {
+    SIMD3(0, -1, 0)
+  }
+  
   func atoms(time: MRTimeContext) -> [MRAtom] {
     // These origins can be used directly to restore atom positions after a
     // batched OpenMM simulation. We can set up the simulation so atoms in

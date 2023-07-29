@@ -117,9 +117,5 @@ extension Nanosystems.Chapter9 {
     var structures: [WritableKeyPath<Self, Diamondoid>] {
       [\.a, \.b, \.c, \.d]
     }
-    
-    var stackingDirection: SIMD3<Float> {
-      SIMD3(0, -1, 0)
-    }
   }
 }
