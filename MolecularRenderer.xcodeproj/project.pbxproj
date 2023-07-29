@@ -36,6 +36,8 @@
 		98325C722A6DC84400A4D7BB /* Chapter9_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C712A6DC84400A4D7BB /* Chapter9_Figure3.swift */; };
 		9846B9022A069798006E4924 /* NobleGas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846B9012A069798006E4924 /* NobleGas.swift */; };
 		984F72192A6E130A00C15D4A /* Chapter9_Figure8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984F72182A6E130A00C15D4A /* Chapter9_Figure8.swift */; };
+		98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE22A74A6BD00CAD919 /* Chapter4.swift */; };
+		98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
@@ -153,6 +155,8 @@
 		9846B9012A069798006E4924 /* NobleGas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobleGas.swift; sourceTree = "<group>"; };
 		98499AFD2A621B2E0057E808 /* MRProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProfiler.swift; sourceTree = "<group>"; };
 		984F72182A6E130A00C15D4A /* Chapter9_Figure8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9_Figure8.swift; sourceTree = "<group>"; };
+		98518AE22A74A6BD00CAD919 /* Chapter4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4.swift; sourceTree = "<group>"; };
+		98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure3.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -308,6 +312,7 @@
 			children = (
 				98325C592A6C617500A4D7BB /* Figure3D.swift */,
 				98325C4F2A6B4FD100A4D7BB /* Nanosystems.swift */,
+				98518AE12A74A6B200CAD919 /* Chapter 4 */,
 				98325C4E2A6B4FBF00A4D7BB /* Chapter 9 */,
 			);
 			path = Nanosystems;
@@ -344,6 +349,15 @@
 				987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */,
 			);
 			path = Simulation;
+			sourceTree = "<group>";
+		};
+		98518AE12A74A6B200CAD919 /* Chapter 4 */ = {
+			isa = PBXGroup;
+			children = (
+				98518AE22A74A6BD00CAD919 /* Chapter4.swift */,
+				98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */,
+			);
+			path = "Chapter 4";
 			sourceTree = "<group>";
 		};
 		9898381929A6C08F00B4AA98 = {
@@ -723,6 +737,7 @@
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */,
+				98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
 				98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */,
@@ -731,6 +746,7 @@
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* Styles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
+				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Chapter9_Figure5.swift in Sources */,
 				980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */,

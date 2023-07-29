@@ -45,16 +45,19 @@ class Renderer {
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-    #if false
-    self.atomProvider = simulateEthane()
-    serializer.save(
-      fileName: "HelloEthane",
-      provider: atomProvider as! OpenMM_AtomProvider)
-    #else
-    let simulation = serializer.load(fileName: "HelloEthane")
-    self.atomProvider = SimulationAtomProvider(
-      simulation: simulation, batchIndex: 0)
-    #endif
+    let figure = Nanosystems.Chapter4.Figure3()
+    self.atomProvider = figure
+    
+//    #if false
+//    self.atomProvider = simulateEthane()
+//    serializer.save(
+//      fileName: "HelloEthane",
+//      provider: atomProvider as! OpenMM_AtomProvider)
+//    #else
+//    let simulation = serializer.load(fileName: "HelloEthane")
+//    self.atomProvider = SimulationAtomProvider(
+//      simulation: simulation, batchIndex: 0)
+//    #endif
   }
 }
 
