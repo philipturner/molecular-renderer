@@ -32,13 +32,14 @@
 		98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C612A6D76E500A4D7BB /* Serializer.swift */; };
 		98325C672A6D7BA300A4D7BB /* COpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98325C662A6D7BA300A4D7BB /* COpenMM */; };
 		98325C6B2A6D7BA300A4D7BB /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98325C6A2A6D7BA300A4D7BB /* OpenMM */; };
-		98325C702A6D88DE00A4D7BB /* MM3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C6F2A6D88DE00A4D7BB /* MM3.swift */; };
 		98325C722A6DC84400A4D7BB /* Chapter9_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C712A6DC84400A4D7BB /* Chapter9_Figure3.swift */; };
 		9846B9022A069798006E4924 /* NobleGas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9846B9012A069798006E4924 /* NobleGas.swift */; };
 		984F72192A6E130A00C15D4A /* Chapter9_Figure8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984F72182A6E130A00C15D4A /* Chapter9_Figure8.swift */; };
 		98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE22A74A6BD00CAD919 /* Chapter4.swift */; };
 		98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */; };
 		98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */; };
+		98518AF72A75845600CAD919 /* MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* MM4.swift */; };
+		98518AF92A75845D00CAD919 /* MM4_Parameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF82A75845D00CAD919 /* MM4_Parameters.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
@@ -151,7 +152,6 @@
 		98325C5D2A6CA28F00A4D7BB /* Chapter9_Figure5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9_Figure5.swift; sourceTree = "<group>"; };
 		98325C5F2A6CA2A300A4D7BB /* Chapter9_Figure6.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9_Figure6.swift; sourceTree = "<group>"; };
 		98325C612A6D76E500A4D7BB /* Serializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Serializer.swift; sourceTree = "<group>"; };
-		98325C6F2A6D88DE00A4D7BB /* MM3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM3.swift; sourceTree = "<group>"; };
 		98325C712A6DC84400A4D7BB /* Chapter9_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9_Figure3.swift; sourceTree = "<group>"; };
 		9846B9012A069798006E4924 /* NobleGas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NobleGas.swift; sourceTree = "<group>"; };
 		98499AFD2A621B2E0057E808 /* MRProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProfiler.swift; sourceTree = "<group>"; };
@@ -159,6 +159,8 @@
 		98518AE22A74A6BD00CAD919 /* Chapter4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4.swift; sourceTree = "<group>"; };
 		98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure3.swift; sourceTree = "<group>"; };
 		98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure4.swift; sourceTree = "<group>"; };
+		98518AF62A75845600CAD919 /* MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4.swift; sourceTree = "<group>"; };
+		98518AF82A75845D00CAD919 /* MM4_Parameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4_Parameters.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -344,9 +346,9 @@
 		9846B9002A069785006E4924 /* Simulation */ = {
 			isa = PBXGroup;
 			children = (
+				98518AF52A7577A200CAD919 /* MM4 */,
 				98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */,
 				98C48C642A48FA250047C078 /* initOpenMM.swift */,
-				98325C6F2A6D88DE00A4D7BB /* MM3.swift */,
 				9846B9012A069798006E4924 /* NobleGas.swift */,
 				987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */,
 			);
@@ -361,6 +363,15 @@
 				98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */,
 			);
 			path = "Chapter 4";
+			sourceTree = "<group>";
+		};
+		98518AF52A7577A200CAD919 /* MM4 */ = {
+			isa = PBXGroup;
+			children = (
+				98518AF62A75845600CAD919 /* MM4.swift */,
+				98518AF82A75845D00CAD919 /* MM4_Parameters.swift */,
+			);
+			path = MM4;
 			sourceTree = "<group>";
 		};
 		9898381929A6C08F00B4AA98 = {
@@ -748,6 +759,8 @@
 				98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98518AF92A75845D00CAD919 /* MM4_Parameters.swift in Sources */,
+				98518AF72A75845600CAD919 /* MM4.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* Styles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
 				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
@@ -757,7 +770,6 @@
 				98C48C472A48E0440047C078 /* HelloSodiumChlorideInSwift.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				980E701D2A5E520F0051797F /* Surfaces.swift in Sources */,
-				98325C702A6D88DE00A4D7BB /* MM3.swift in Sources */,
 				98325C522A6B4FDE00A4D7BB /* Chapter9.swift in Sources */,
 				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,

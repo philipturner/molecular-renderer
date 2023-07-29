@@ -45,6 +45,8 @@ class Renderer {
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
+    
+    
     let figure = Nanosystems.Chapter4.Figure3()
     self.atomProvider = figure
     
