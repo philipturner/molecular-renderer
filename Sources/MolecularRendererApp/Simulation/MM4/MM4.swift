@@ -147,21 +147,25 @@ class MM4 {
         } else {
           fatalError("Bond did not contain this atom index.")
         }
-        if partnerID <= stack[recursionLevel - 1] {
+        precondition(partnerID != currentID)
+        if any(stack .== partnerID) {
           continue
         }
-        stack[recursionLevel] = partnerID
-        
-        let newBond = SIMD2(stack[0], partnerID)
-        if recursionLevel == 2 {
-          let newAngle = SIMD3(stack[0], stack[1], stack[2])
-          bonds13[newBond] = true
-          bonds123[newAngle] = true
-        } else if recursionLevel == 3 {
-          bonds14[newBond] = true
-          bonds1234[stack] = true
+        if stack[0] < partnerID {
+          let newBond = SIMD2(stack[0], partnerID)
+          if recursionLevel == 2 {
+            let newAngle = SIMD3(stack[0], stack[1], stack[2])
+            precondition(bonds123[newAngle] == nil)
+            bonds13[newBond] = true
+            bonds123[newAngle] = true
+          } else if recursionLevel == 3 {
+            precondition(bonds1234[stack] == nil)
+            bonds14[newBond] = true
+            bonds1234[stack] = true
+          }
         }
         if recursionLevel < 3 {
+          stack[recursionLevel] = partnerID
           traverse(
             stack: &stack, currentID: partnerID,
             recursionLevel: recursionLevel + 1)
@@ -269,8 +273,124 @@ class MM4 {
     do {
       // Need to convert output from aJ to kJ/mol
       let energy = """
-      
+      1.5226e-4 * stiffness * delta_theta^2 * (1
+        - 1.4 * scale
+        + 5.6e-1 * scale^2
+        - 7.0e-1 * scale^3
+        + 9.0e-2 * scale^4
+      );
+      scale = 0.01 * delta_theta;
+      delta_theta = theta - angle;
       """
+      bondBend = OpenMM_CustomAngleForce(energy: energy)
+      bondBend.addPerAngleParameter(name: "stiffness")
+      bondBend.addPerAngleParameter(name: "angle")
+      
+      struct BondBend {
+        var parameters: [OpenMM_DoubleArray] = []
+        
+        init(
+          stiffness: Double,
+          degrees1: Double,
+          degrees2: Double,
+          degrees3: Double
+        ) {
+          for i in 0..<3 {
+            var degrees: Double
+            switch i {
+            case 0: degrees = degrees1
+            case 1: degrees = degrees2
+            case 2: degrees = degrees3
+            default: fatalError()
+            }
+            
+            let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
+            let _parameters = OpenMM_DoubleArray(size: 2)
+            _parameters[0] = stiffness * kjPerMolPerAJ
+            _parameters[1] = degrees * OpenMM_RadiansPerDegree
+            parameters.append(_parameters)
+          }
+        }
+      }
+      var bondParameters: [SIMD3<UInt8>: BondBend] = [:]
+      bondParameters[[1, 6, 1]] = BondBend(
+        stiffness: 0.54 * 100,
+        degrees1: 107.70,
+        degrees2: 107.80,
+        degrees3: 107.70)
+      bondParameters[[1, 6, 6]] = BondBend(
+        stiffness: 0.59 * 100,
+        degrees1: 108.90,
+        degrees2: 109.47,
+        degrees3: 110.80)
+      bondParameters[[6, 6, 6]] = BondBend(
+        stiffness: 0.74 * 100,
+        degrees1: 109.50,
+        degrees2: 110.40,
+        degrees3: 111.80)
+      
+      for bond in bonds123.keys {
+        let centralID = Int(bond[1])
+        let centralBonds = atomsToBondsMap[centralID]
+        var totalNeighbors = 0
+        var neighborList: SIMD2<Int32> = .init(repeating: -1)
+        for i in 0..<4 {
+          guard centralBonds[i] > -1 else {
+            continue
+          }
+          let bond12 = bonds[Int(centralBonds[i])]
+          
+          var partnerID: Int32
+          if bond12[0] == centralID {
+            partnerID = bond12[1]
+          } else if bond12[1] == centralID {
+            partnerID = bond12[0]
+          } else {
+            fatalError("Bond did not contain this atom index.")
+          }
+          precondition(partnerID != centralID)
+          
+          if any(bond .== partnerID) {
+            continue
+          }
+          guard totalNeighbors < 2 else {
+            fatalError("Too many neighbors.")
+          }
+          neighborList[totalNeighbors] = partnerID
+          totalNeighbors += 1
+        }
+        
+        var neighborHydrogens: Int = 0
+        var neighborCarbons: Int = 0
+        for i in 0..<totalNeighbors {
+          let atomID = neighborList[i]
+          let element = atoms[Int(atomID)].element
+          switch element {
+          case 1: neighborHydrogens += 1
+          case 6: neighborCarbons += 1
+          default: fatalError("Unsupported element: \(element)")
+          }
+        }
+        
+        let atom1 = atoms[Int(bond[0])]
+        let atom2 = atoms[Int(bond[1])]
+        let atom3 = atoms[Int(bond[2])]
+        let element1 = min(atom1.element, atom3.element)
+        let element2 = atom2.element
+        let element3 = max(atom1.element, atom3.element)
+        
+        let parameters = bondParameters[SIMD3(element1, element2, element3)]!
+        var _parameters: OpenMM_DoubleArray
+        switch (neighborHydrogens, neighborCarbons) {
+        case (0, 2): _parameters = parameters.parameters[0]
+        case (1, 1): _parameters = parameters.parameters[1]
+        case (2, 0): _parameters = parameters.parameters[2]
+        default: fatalError(
+          "Invalid neighbor count: \((neighborHydrogens, neighborCarbons))")
+        }
+        bondBend.addAngle(
+          particles: SIMD3(truncatingIfNeeded: bond), parameters: _parameters)
+      }
     }
     do {
       
@@ -283,12 +403,12 @@ class MM4 {
     }
     
     bondStretch.transfer()
-//    bondBend.transfer()
+    bondBend.transfer()
 //    bondTorsion.transfer()
 //    bondBendBend.transfer()
 //    bondStretchBend.transfer()
     system.addForce(bondStretch)
-//    system.addForce(bondBend)
+    system.addForce(bondBend)
 //    system.addForce(bondTorsion)
 //    system.addForce(bondBendBend)
 //    system.addForce(bondStretchBend)
