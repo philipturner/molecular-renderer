@@ -40,6 +40,8 @@ import simd
 //
 // Eventually, sp2 carbon, which requires more changes than the other elements.
 
+fileprivate let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
+
 class MM4 {
   var system: OpenMM_System
   
@@ -136,6 +138,19 @@ class MM4 {
     }
     nonbond.createExclusionsFromBonds(bondPairs, bondCutoff: 3)
     
+    func getNot(id: Int32, from list: SIMD2<Int32>) -> Int32 {
+      var output: Int32
+      if list[0] == id {
+        output = list[1]
+      } else if list[1] == id {
+        output = list[0]
+      } else {
+        fatalError("Bond did not contain this atom index.")
+      }
+      precondition(output != id)
+      return output
+    }
+    
     var bonds13: [SIMD2<Int32>: Bool] = [:]
     var bonds123: [SIMD3<Int32>: Bool] = [:]
     var bonds14: [SIMD2<Int32>: Bool] = [:]
@@ -153,14 +168,7 @@ class MM4 {
         }
         let bond = bonds[bondIndex]
         
-        var partnerID: Int32
-        if bond[0] == currentID {
-          partnerID = bond[1]
-        } else if bond[1] == currentID {
-          partnerID = bond[0]
-        } else {
-          fatalError("Bond did not contain this atom index.")
-        }
+        let partnerID = getNot(id: currentID, from: bond)
         precondition(partnerID != currentID)
         if any(stack .== partnerID) {
           continue
@@ -256,8 +264,6 @@ class MM4 {
       bondStretch.addPerBondParameter(name: "fifth_power_term")
       bondStretch.addPerBondParameter(name: "sixth_power_term")
       
-      let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
-      
       let chParameters = OpenMM_DoubleArray(size: 5)
       chParameters[0] = 474 * kjPerMolPerAJ
       chParameters[1] = 1.1120 * OpenMM_NmPerAngstrom
@@ -299,7 +305,6 @@ class MM4 {
         lengths: SIMD2<Double>
       ) {
         for i in 0..<3 {
-          let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
           let _parameters = OpenMM_DoubleArray(size: 5)
           _parameters[0] = bendStiffness * kjPerMolPerAJ
           _parameters[1] = stretchBendStiffness * kjPerMolPerAJ
@@ -311,6 +316,7 @@ class MM4 {
       }
     }
     var bendParameters: [SIMD3<UInt8>: BondBend] = [:]
+    var angleTypes: [SIMD3<Int32>: Int] = [:]
     var bondBend: OpenMM_CustomCompoundBondForce
     
     do {
@@ -363,7 +369,6 @@ class MM4 {
         ])
       
       let particleArray = OpenMM_IntArray(size: 3)
-      var angleTypes: [SIMD3<Int32>: Int] = [:]
       for bond in bonds123.keys {
         let centralID = Int(bond[1])
         let centralBonds = atomsToBondsMap[centralID]
@@ -375,16 +380,7 @@ class MM4 {
           }
           let bond12 = bonds[Int(centralBonds[i])]
           
-          var partnerID: Int32
-          if bond12[0] == centralID {
-            partnerID = bond12[1]
-          } else if bond12[1] == centralID {
-            partnerID = bond12[0]
-          } else {
-            fatalError("Bond did not contain this atom index.")
-          }
-          precondition(partnerID != centralID)
-          
+          let partnerID = getNot(id: Int32(centralID), from: bond12)
           if any(bond .== partnerID) {
             continue
           }
@@ -455,10 +451,10 @@ class MM4 {
       bondBendBend.addPerBondParameter(name: "equilibrium_angle1")
       bondBendBend.addPerBondParameter(name: "equilibrium_angle2")
       
-      var stiffnesses: [SIMD3<UInt8>: Double] = [:]
-      stiffnesses[[1, 6, 1]] = 0.000
-      stiffnesses[[1, 6, 6]] = 0.350
-      stiffnesses[[6, 6, 6]] = 0.204
+      var bendBendParameters: [SIMD3<UInt8>: Double] = [:]
+      bendBendParameters[[1, 6, 1]] = 0.000
+      bendBendParameters[[1, 6, 6]] = 0.350
+      bendBendParameters[[6, 6, 6]] = 0.204
       
       var relativePairsDict: [SIMD3<UInt8>: Bool] = [:]
       for j in 0..<4 {
@@ -486,6 +482,8 @@ class MM4 {
       let relativePairs: Array = relativePairsDict.keys.map { $0 }
       precondition(relativePairs.count == 4 * 3)
       
+      let anglePairParticles = OpenMM_IntArray(size: 4)
+      let anglePairParameters = OpenMM_DoubleArray(size: 3)
       for i in atoms.indices {
         if atoms[i].element == 1 {
           continue
@@ -493,9 +491,58 @@ class MM4 {
         let bondMap = atomsToBondsMap[Int(i)]
         precondition(!any(bondMap .== -1), "Carbon did not have 4 bonds.")
         
-        // Take the product of two values, then scale by 100, then convert to KJ.
+        var atomMap: SIMD4<Int32> = .init(repeating: -1)
+        for j in 0..<4 {
+          let bond = bonds[Int(bondMap[j])]
+          atomMap[j] = getNot(id: Int32(i), from: bond)
+        }
+        
+        for pair in relativePairs {
+          var particles: SIMD4<Int32> = .init(repeating: -1)
+          particles[0] = atomMap[Int(pair[0])]
+          particles[1] = Int32(i)
+          particles[2] = atomMap[Int(pair[1])]
+          particles[3] = atomMap[Int(pair[2])]
+          
+          var stiffnesses: SIMD2<Double> = .init(repeating: -1)
+          var angles: SIMD2<Double> = .init(repeating: -1)
+          for j in 0..<2 {
+            var atom1 = particles[0]
+            let atom2 = particles[1]
+            var atom3 = particles[2]
+            if !(atom1 < atom3) {
+              swap(&atom1, &atom3)
+            }
+            let type = angleTypes[SIMD3(atom1, atom2, atom3)]!
+            
+            var element1 = atoms[Int(atom1)].element
+            let element2 = atoms[Int(atom2)].element
+            var element3 = atoms[Int(atom3)].element
+            if !(element1 < element3) {
+              swap(&element1, &element3)
+            }
+            let bendKey = SIMD3<UInt8>(element1, element2, element3)
+            let bendParams = bendParameters[bendKey]!.parameters[type - 1]
+            let bendBendParams = bendBendParameters[bendKey]!
+            angles[j] = bendParams[2]
+            stiffnesses[j] = bendBendParams
+          }
+          var stiffness = stiffnesses[0] * stiffnesses[1]
+          stiffness *= 100 * kjPerMolPerAJ
+          
+          for j in 0..<4 {
+            anglePairParticles[j] = Int(particles[j])
+          }
+          anglePairParameters[0] = stiffness
+          anglePairParameters[1] = angles[0]
+          anglePairParameters[2] = angles[1]
+          
+          bondBendBend.addBond(
+            particles: anglePairParticles, parameters: anglePairParameters)
+        }
       }
     }
+    
     do {
       // torsion
     }
