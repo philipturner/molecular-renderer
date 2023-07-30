@@ -143,6 +143,8 @@ struct Diamondoid {
       centerNeighbors.append(output)
     }
     
+    var hydrogensIndex = atoms.count
+    var hydrogenAtoms: [MRAtom] = []
     self.atoms = []
     self.bonds = []
     for i in atoms.indices {
@@ -156,6 +158,7 @@ struct Diamondoid {
         neighborCenters.append(atoms[index].origin)
         
         if i < index {
+          
           bonds.append(SIMD2(
             Int32(truncatingIfNeeded: i),
             Int32(truncatingIfNeeded: index)))
@@ -177,10 +180,11 @@ struct Diamondoid {
         
         let bondLength = Constants.bondLengths[[1, atoms[i].element]]!.average
         let hydrogenCenter = atoms[i].origin + bondLength * direction
-        self.atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
+        hydrogenAtoms.append(MRAtom(origin: hydrogenCenter, element: 1))
         self.bonds.append(SIMD2(
           Int32(truncatingIfNeeded: i),
-          Int32(truncatingIfNeeded: bonds.count)))
+          Int32(truncatingIfNeeded: hydrogensIndex)))
+        hydrogensIndex += 1
       }
       
       switch centerTypes[i] {
@@ -255,5 +259,29 @@ struct Diamondoid {
         fatalError("This should never happen.")
       }
     }
+    self.atoms.append(contentsOf: hydrogenAtoms)
+  }
+  
+  mutating func center() {
+    var totalMass: Float = 0
+    var centerOfMass: SIMD3<Float> = .zero
+    for atom in atoms {
+      // Rough estimate of atomic mass.
+      let mass = 2 * Float(atom.element)
+      totalMass += mass
+      centerOfMass += atom.origin * mass
+    }
+    centerOfMass /= totalMass
+    
+    let explosionFactor: Float = 1.01
+    for i in 0..<atoms.count {
+      atoms[i].origin -= centerOfMass
+      atoms[i].origin *= explosionFactor
+    }
+    
+    boundingBox[0] -= centerOfMass
+    boundingBox[1] -= centerOfMass
+    boundingBox[0] *= explosionFactor
+    boundingBox[1] *= explosionFactor
   }
 }

@@ -46,23 +46,21 @@ struct SimulationAtomProvider: MRAtomProvider {
   var frameTimeInFs: Double
   var frames: [[MRAtom]] = []
   
-  init(simulation: MRSimulation, batchIndex: Int) {
+  init(simulation: MRSimulation) {
     self.frameTimeInFs = simulation.frameTimeInFs
     for frameID in 0..<simulation.frameCount {
       let frame = simulation.frame(id: frameID)
       frames.append(frame.atoms)
     }
     
-//    let ps = (frameTimeInFs * 120) / 1000
-//    print()
-//    print("Replaying at \(ps) ps/s.")
+    let ps = (frameTimeInFs * 120) / 1000
+    print()
+    print("Replaying at \(ps) ps/s.")
   }
   
   func atoms(time: MRTimeContext) -> [MRAtom] {
     let frameID = min(time.absolute.frames, frames.count - 1)
-//    let ps = 1 / 1000 * Double(frameID) * frameTimeInFs
-//    print("Replaying frame: \(ps) ps")
-    
+    let ps = 1 / 1000 * Double(frameID) * frameTimeInFs
     return frames[frameID]
   }
 }

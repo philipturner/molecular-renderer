@@ -39,6 +39,7 @@
 		98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */; };
 		98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */; };
 		98518AF72A75845600CAD919 /* MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* MM4.swift */; };
+		98518AFB2A77239700CAD919 /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AFA2A77239700CAD919 /* Motion.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
@@ -159,6 +160,7 @@
 		98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure3.swift; sourceTree = "<group>"; };
 		98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure4.swift; sourceTree = "<group>"; };
 		98518AF62A75845600CAD919 /* MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4.swift; sourceTree = "<group>"; };
+		98518AFA2A77239700CAD919 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 				980E70202A5E57E10051797F /* CrystalPlane.swift */,
 				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
 				980E701E2A5E52920051797F /* FCC.swift */,
+				98518AFA2A77239700CAD919 /* Motion.swift */,
 				98325C5B2A6C6C9A00A4D7BB /* StructureUtilities.swift */,
 			);
 			path = "Procedural Geometry";
@@ -770,6 +773,7 @@
 				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
+				98518AFB2A77239700CAD919 /* Motion.swift in Sources */,
 				98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98325C602A6CA2A300A4D7BB /* Chapter9_Figure6.swift in Sources */,

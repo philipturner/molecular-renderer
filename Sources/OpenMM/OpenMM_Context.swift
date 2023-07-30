@@ -33,6 +33,15 @@ public class OpenMM_Context: OpenMM_Object {
     }
   }
   
+  public var velocities: OpenMM_Vec3Array {
+     get {
+      _openmm_no_getter()
+    }
+    set {
+      OpenMM_Context_setVelocities(pointer, newValue.pointer)
+    }
+  }
+  
   public func state(
     types: OpenMM_State_DataType,
     enforcePeriodicBox: Bool = false,

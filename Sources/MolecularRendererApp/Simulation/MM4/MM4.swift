@@ -53,14 +53,14 @@ class MM4 {
   }
   
   // 1.2 ps/s for now. Eventually, drive that up to 12 ps/s.
-  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], fsPerFrame: Int = 10) {
+  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], fsPerFrame: Int = 2) {
     self.system = OpenMM_System()
     
     var nonbond: OpenMM_CustomNonbondedForce
     var nonbond14: OpenMM_CustomBondForce
     do {
       let energy = """
-        dispersionFactor * epsilon * (
+        epsilon * (
           -2.25 * (length / r)^6 +
           1.84e5 * exp(-12.00 * (r / length))
         );
@@ -68,7 +68,11 @@ class MM4 {
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
         epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
-        is_ch = (min(element1, element2) == 1) && (max(element1, element2) == 6);
+        is_ch = is_min_h * is_max_c;
+        is_min_h = select(min_element - 1, 0, 1);
+        is_max_c = select(max_element - 1, 0, 1);
+        min_element = min(element1, element2);
+        max_element = max(element1, element2);
         """)
       nonbond.addPerParticleParameter(name: "radius")
       nonbond.addPerParticleParameter(name: "epsilon")
@@ -76,14 +80,11 @@ class MM4 {
       
       let chLengthInNm: Double = 3.440 * OpenMM_NmPerAngstrom
       let chEpsilonInKJ: Double = 0.024 * OpenMM_KJPerKcal
-      nonbond.addGlobalParameter(name: "dispersionFactor", defaultValue: 1)
       nonbond.addGlobalParameter(name: "length_ch", defaultValue: chLengthInNm)
       nonbond.addGlobalParameter(
         name: "epsilon_ch", defaultValue: chEpsilonInKJ)
       
-      nonbond14 = OpenMM_CustomBondForce(energy: energy)
-      nonbond14.addGlobalParameter(
-        name: "dispersionFactor", defaultValue: 0.550)
+      nonbond14 = OpenMM_CustomBondForce(energy: "0.550 * " + energy)
       nonbond14.addPerBondParameter(name: "length")
       nonbond14.addPerBondParameter(name: "epsilon")
     }
@@ -181,25 +182,37 @@ class MM4 {
         if any(stack .== partnerID) {
           continue
         }
+        
+        stack[recursionLevel] = partnerID
         if stack[0] < partnerID {
           let newBond = SIMD2(stack[0], partnerID)
           if recursionLevel == 2 {
+            precondition(stack[0] != -1)
+            precondition(stack[1] != -1)
+            precondition(stack[2] != -1)
+            precondition(stack[3] == -1)
+            
             let newAngle = SIMD3(stack[0], stack[1], stack[2])
             precondition(bonds123[newAngle] == nil)
             bonds13[newBond] = true
             bonds123[newAngle] = true
           } else if recursionLevel == 3 {
+            precondition(stack[0] != -1)
+            precondition(stack[1] != -1)
+            precondition(stack[2] != -1)
+            precondition(stack[3] != -1)
+            
             precondition(bonds1234[stack] == nil)
             bonds14[newBond] = true
             bonds1234[stack] = true
           }
         }
         if recursionLevel < 3 {
-          stack[recursionLevel] = partnerID
           traverse(
             stack: &stack, currentID: partnerID,
             recursionLevel: recursionLevel + 1)
         }
+        stack[recursionLevel] = -1
       }
     }
     
@@ -254,7 +267,8 @@ class MM4 {
     
     do {
       let energy = """
-        0.5 * stiffness / cubic_stretch^2 * (
+        10^2 *
+        71.94 * stiffness / cubic_stretch^2 * (
           scale^2
           - scale^3
           + (7.0 / 12) * scale^4
@@ -272,7 +286,7 @@ class MM4 {
       bondStretch.addPerBondParameter(name: "sixth_power_term")
       
       let chParameters = OpenMM_DoubleArray(size: 5)
-      chParameters[0] = 474 * kjPerMolPerAJ
+      chParameters[0] = 474 * 0.01 * OpenMM_KJPerKcal //kjPerMolPerAJ
       chParameters[1] = 1.1120 * OpenMM_NmPerAngstrom
       chParameters[2] = 2.20
       chParameters[3] = 1.0 / 4
@@ -280,7 +294,7 @@ class MM4 {
       stretchParameters[[1, 6]] = chParameters
       
       let ccParameters = OpenMM_DoubleArray(size: 5)
-      ccParameters[0] = 455 * kjPerMolPerAJ
+      ccParameters[0] = 455 * 0.01 * OpenMM_KJPerKcal // * kjPerMolPerAJ
       ccParameters[1] = 1.5270 * OpenMM_NmPerAngstrom
       ccParameters[2] = 3.00
       ccParameters[3] = 0.03
@@ -313,7 +327,10 @@ class MM4 {
       ) {
         for i in 0..<3 {
           let _parameters = OpenMM_DoubleArray(size: 5)
-          _parameters[0] = bendStiffness * kjPerMolPerAJ
+          // WARNING: This is in an inconsistent unit system; very likely to
+          // cause bugs.
+          _parameters[0] = bendStiffness * OpenMM_KJPerKcal    //kjPerMolPerAJ
+//          _parameters[0] = bendStiffness * kjPerMolPerAJ
           _parameters[1] = stretchBendStiffness * kjPerMolPerAJ
           _parameters[2] = degrees[i] * OpenMM_RadiansPerDegree
           _parameters[3] = lengths[0]
@@ -327,6 +344,7 @@ class MM4 {
     var bondBend: OpenMM_CustomCompoundBondForce
     
     do {
+      #if false
       let energy = """
       bend + stretch_bend;
       bend = 1.5226 * bend_stiffness * (
@@ -336,11 +354,24 @@ class MM4 {
         - 7.0e-1 * bend_scale^5
         + 9.0e-2 * bend_scale^6
       );
-      stretch_bend = 1.7447 * stretch_bend_stiffness * (
+      stretch_bend = 1.7447e-9 * stretch_bend_stiffness * (
         distance(p1, p2) - length1 +
         distance(p2, p3) - length2
       ) * bend_scale;
       bend_scale = 0.01 * delta_theta;
+      delta_theta = angle(p1, p2, p3) - equilibrium_angle;
+      """
+      #endif
+      
+      let energy = """
+      (180 / 3.141592)^2 *
+      0.021914 * bend_stiffness * (
+        delta_theta^2
+        - 0.014 * delta_theta^3
+        + 5.6e-5 * delta_theta^4
+        - 7.0e-7 * delta_theta^5
+        + 9.0e-10 * delta_theta^6
+      );
       delta_theta = angle(p1, p2, p3) - equilibrium_angle;
       """
       bondBend = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: energy)
@@ -351,7 +382,7 @@ class MM4 {
       bondBend.addPerBondParameter(name: "length2")
       
       bendParameters[[1, 6, 1]] = BondBend(
-        bendStiffness: 0.540 * 100,
+        bendStiffness: 0.540,
         stretchBendStiffness: 0.00 * 100,
         degrees: [107.70, 107.80, 107.70],
         lengths: [
@@ -359,7 +390,7 @@ class MM4 {
           stretchParameters[[1, 6]]![1],
         ])
       bendParameters[[1, 6, 6]] = BondBend(
-        bendStiffness: 0.590 * 100,
+        bendStiffness: 0.590,
         stretchBendStiffness: 0.100 * 100,
         degrees: [108.90, 109.47, 110.80],
         lengths: [
@@ -367,7 +398,7 @@ class MM4 {
           stretchParameters[[6, 6]]![1],
         ])
       bendParameters[[6, 6, 6]] = BondBend(
-        bendStiffness: 0.740 * 100,
+        bendStiffness: 0.740,
         stretchBendStiffness: 0.140 * 100,
         degrees: [109.50, 110.40, 111.80],
         lengths: [
@@ -446,7 +477,7 @@ class MM4 {
     
     do {
       let energy = """
-      -1.5226 * stiffness * (
+      -1.5226e-4 * stiffness * (
         angle(p1, p2, p3) - equilibrium_angle1
       ) * (
         angle(p1, p2, p4) - equilibrium_angle2
@@ -535,7 +566,7 @@ class MM4 {
             stiffnesses[j] = bendBendParams
           }
           var stiffness = stiffnesses[0] * stiffnesses[1]
-          stiffness *= 100 * kjPerMolPerAJ
+          stiffness *= /*100 * */kjPerMolPerAJ
           
           for j in 0..<4 {
             anglePairParticles[j] = Int(particles[j])
@@ -629,17 +660,20 @@ class MM4 {
     
     // Debug the more complex forces one-by-one after vdW is working.
     
-//    bondStretch.transfer()
-//    bondBend.transfer()
+    bondStretch.transfer()
+    bondBend.transfer()
 //    bondBendBend.transfer()
 //    bondTorsion.transfer()
     
-//    system.addForce(bondStretch)
-//    system.addForce(bondBend)
+    system.addForce(bondStretch)
+    system.addForce(bondBend)
 //    system.addForce(bondBendBend)
 //    system.addForce(bondTorsion)
     
-    self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
+    // self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
+    self.integrator = OpenMM_LangevinMiddleIntegrator(
+      temperature: 298, frictionCoeff: 91,
+      stepSize: 2 * OpenMM_PsPerFs)
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
     let positions = OpenMM_Vec3Array(size: atoms.count)
@@ -647,11 +681,27 @@ class MM4 {
       positions[i] = SIMD3(atoms[i].origin)
     }
     self.context.positions = positions
+    precondition(context.platform.name == "HIP")
     
     self.provider = OpenMM_AtomProvider(
       psPerStep: 2 * OpenMM_PsPerFs,
       stepsPerFrame: fsPerFrame / 2,
       elements: atoms.map(\.element))
+  }
+  
+  typealias VectorVield = (Int, SIMD3<Float>) -> SIMD3<Float>
+  
+  func velocityVectorField(_ closure: VectorVield) {
+    let state = context.state(types: OpenMM_State_Positions)
+    let positions = state.positions
+    let velocities = OpenMM_Vec3Array(size: positions.size)
+    
+    for i in 0..<positions.size {
+      let position = SIMD3<Float>(positions[i])
+      let velocity = closure(i, position)
+      velocities[i] = SIMD3(velocity)
+    }
+    context.velocities = velocities
   }
   
   func simulate(ps: Double) {
@@ -670,6 +720,9 @@ class MM4 {
       print("t = \(String(format: "%.3f", timestamp)) ps")
       
       integrator.step(provider.stepsPerFrame)
+      
+      let state = context.state(types: OpenMM_State_Positions)
+      provider.append(state: state, steps: provider.stepsPerFrame)
     }
   }
 }
