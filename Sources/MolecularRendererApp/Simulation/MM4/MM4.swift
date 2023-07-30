@@ -27,6 +27,19 @@ import simd
 //
 // https://github.com/TinkerTools/tinker/blob/b6a58df90c5a66eceab92cc821d12b4dd27ca096/params/mm3.prm
 
+// Elements to port:
+//
+// Chlorine:
+// https://onlinelibrary.wiley.com/doi/epdf/10.1002/%28SICI%291099-1395%28199701%2910%3A1%3C3%3A%3AAID-POC851%3E3.0.CO%3B2-A
+//
+// Silicon:
+// https://onlinelibrary.wiley.com/doi/pdf/10.1002/(SICI)1099-1395(199709)10:9%3C697::AID-POC905%3E3.0.CO;2-3
+//
+// Nitrogen:
+// https://onlinelibrary.wiley.com/doi/full/10.1002/jcc.20737
+//
+// Eventually, sp2 carbon, which requires more changes than the other elements.
+
 class MM4 {
   var system: OpenMM_System
   
@@ -261,6 +274,9 @@ class MM4 {
       ccParameters[4] = 0.17
       stretchParameters[[6, 6]] = ccParameters
       
+      // TODO: For bonds ported from MM3, retain the old 2.55 cubic scaling
+      // constant. Set 'fifth_power_term' and 'sixth_power_term' to zero.
+      
       for bond in bonds {
         let atom1 = atoms[Int(bond[0])]
         let atom2 = atoms[Int(bond[1])]
@@ -414,7 +430,7 @@ class MM4 {
           swap(&atomID1, &atomID3)
         }
         particleArray[0] = atomID1
-        particleArray[1] = Int(bond[1])
+        particleArray[1] = centralID
         particleArray[2] = atomID3
         
         let parameters = bendParameters[SIMD3(element1, element2, element3)]!
@@ -422,8 +438,63 @@ class MM4 {
         bondBend.addBond(particles: particleArray, parameters: _parameters)
       }
     }
+    
+    var bondBendBend: OpenMM_CustomCompoundBondForce
+    
     do {
-      // bend-bend interaction, excluding non-adjacent angles
+      let energy = """
+      -1.5226 * stiffness * (
+        angle(p1, p2, p3) - equilibrium_angle1
+      ) * (
+        angle(p1, p2, p4) - equilibrium_angle2
+      );
+      """
+      bondBendBend = OpenMM_CustomCompoundBondForce(
+        numParticles: 4, energy: energy)
+      bondBendBend.addPerBondParameter(name: "stiffness")
+      bondBendBend.addPerBondParameter(name: "equilibrium_angle1")
+      bondBendBend.addPerBondParameter(name: "equilibrium_angle2")
+      
+      var stiffnesses: [SIMD3<UInt8>: Double] = [:]
+      stiffnesses[[1, 6, 1]] = 0.000
+      stiffnesses[[1, 6, 6]] = 0.350
+      stiffnesses[[6, 6, 6]] = 0.204
+      
+      var relativePairsDict: [SIMD3<UInt8>: Bool] = [:]
+      for j in 0..<4 {
+        let atom1 = j
+        for k in 0..<4 where j != k {
+          var atom3: Int?
+          var atom4: Int?
+          for l in 0..<4 where j != l && k != l {
+            if atom3 == nil {
+              atom3 = l
+            } else if atom4 == nil {
+              atom4 = l
+            } else {
+              fatalError("This should never happen.")
+            }
+          }
+          
+          guard let atom3, let atom4 else {
+            fatalError("This should never happen.")
+          }
+          let indices = SIMD3(atom1, atom3, atom4)
+          relativePairsDict[SIMD3(truncatingIfNeeded: indices)] = true
+        }
+      }
+      let relativePairs: Array = relativePairsDict.keys.map { $0 }
+      precondition(relativePairs.count == 4 * 3)
+      
+      for i in atoms.indices {
+        if atoms[i].element == 1 {
+          continue
+        }
+        let bondMap = atomsToBondsMap[Int(i)]
+        precondition(!any(bondMap .== -1), "Carbon did not have 4 bonds.")
+        
+        // Take the product of two values, then scale by 100, then convert to KJ.
+      }
     }
     do {
       // torsion
@@ -431,13 +502,12 @@ class MM4 {
    
     bondStretch.transfer()
     bondBend.transfer()
-
-//    bondBendBend.transfer()
+    bondBendBend.transfer()
     //    bondTorsion.transfer()
+    
     system.addForce(bondStretch)
     system.addForce(bondBend)
-
-//    system.addForce(bondBendBend)
+    system.addForce(bondBendBend)
     //    system.addForce(bondTorsion)
   }
 }
