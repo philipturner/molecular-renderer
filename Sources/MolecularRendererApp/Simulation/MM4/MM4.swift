@@ -212,10 +212,11 @@ class MM4 {
     }
     
     var bondStretch: OpenMM_CustomBondForce
-    // bondBend
+    var bondBend: OpenMM_CustomAngleForce
     // bondTorsion
     // bondBendBend
     // bondStretchBend
+    // bondTorsionStretch
     
     do {
       let energy = """
@@ -266,7 +267,10 @@ class MM4 {
       }
     }
     do {
+      // Need to convert output from aJ to kJ/mol
+      let energy = """
       
+      """
     }
     do {
       
