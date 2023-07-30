@@ -123,9 +123,15 @@ class MM4 {
     nonbond.createExclusionsFromBonds(bondPairs, bondCutoff: 3)
     
     var bonds13: [SIMD2<Int32>: Bool] = [:]
+    var bonds123: [SIMD3<Int32>: Bool] = [:]
     var bonds14: [SIMD2<Int32>: Bool] = [:]
-    func traverse(originalID: Int, currentID: Int, recursionLevel: Int) {
-      let bondMap = atomsToBondsMap[currentID]
+    var bonds1234: [SIMD4<Int32>: Bool] = [:]
+    func traverse(
+      stack: inout SIMD4<Int32>,
+      currentID: Int32,
+      recursionLevel: Int
+    ) {
+      let bondMap = atomsToBondsMap[Int(currentID)]
       for i in 0..<4 {
         let bondIndex = Int(bondMap[i])
         guard bondIndex > -1 else {
@@ -133,36 +139,39 @@ class MM4 {
         }
         let bond = bonds[bondIndex]
         
-        var partnerID: Int
+        var partnerID: Int32
         if bond[0] == currentID {
-          partnerID = Int(bond[1])
+          partnerID = bond[1]
         } else if bond[1] == currentID {
-          partnerID = Int(bond[0])
+          partnerID = bond[0]
         } else {
           fatalError("Bond did not contain this atom index.")
         }
-        if partnerID <= originalID {
+        if partnerID <= stack[recursionLevel - 1] {
           continue
         }
+        stack[recursionLevel] = partnerID
         
-        let newBond = SIMD2(
-          Int32(truncatingIfNeeded: originalID),
-          Int32(truncatingIfNeeded: partnerID))
+        let newBond = SIMD2(stack[0], partnerID)
         if recursionLevel == 2 {
+          let newAngle = SIMD3(stack[0], stack[1], stack[2])
           bonds13[newBond] = true
+          bonds123[newAngle] = true
         } else if recursionLevel == 3 {
           bonds14[newBond] = true
+          bonds1234[stack] = true
         }
         if recursionLevel < 3 {
           traverse(
-            originalID: originalID, currentID: partnerID,
+            stack: &stack, currentID: partnerID,
             recursionLevel: recursionLevel + 1)
         }
       }
     }
     
     for atomID in atoms.indices {
-      traverse(originalID: atomID, currentID: atomID, recursionLevel: 1)
+      var stack = SIMD4<Int32>(Int32(atomID), -1, -1, -1)
+      traverse(stack: &stack, currentID: Int32(atomID), recursionLevel: 1)
     }
     for bond12 in bonds {
       bonds13[bond12] = nil
@@ -202,16 +211,82 @@ class MM4 {
       }
     }
     
-    let bondStretch = OpenMM_HarmonicBondForce()
-    let bondBend = OpenMM_HarmonicAngleForce()
-    let bondTorsion = OpenMM_PeriodicTorsionForce()
+    var bondStretch: OpenMM_CustomBondForce
+    // bondBend
+    // bondTorsion
     // bondBendBend
     // bondStretchBend
+    
+    do {
+      let energy = """
+        0.5 * stiffness * delta_l^2 * (1
+          - scale
+          + (7.0 / 12) * scale^2
+          - fifth_power_term * scale^3
+          + sixth_power_term * scale^4
+        );
+        scale = cubic_stretch * delta_l;
+        delta_l = r - length;
+        """
+      bondStretch = OpenMM_CustomBondForce(energy: energy)
+      bondStretch.addPerBondParameter(name: "stiffness")
+      bondStretch.addPerBondParameter(name: "length")
+      bondStretch.addPerBondParameter(name: "cubic_stretch")
+      bondStretch.addPerBondParameter(name: "fifth_power_term")
+      bondStretch.addPerBondParameter(name: "sixth_power_term")
+      
+      var bondParameters: [SIMD2<UInt8>: OpenMM_DoubleArray] = [:]
+      let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
+      
+      let chParameters = OpenMM_DoubleArray(size: 5)
+      chParameters[0] = 474 * kjPerMolPerAJ
+      chParameters[1] = 1.1120 * OpenMM_NmPerAngstrom
+      chParameters[2] = 2.20
+      chParameters[3] = 1.0 / 4
+      chParameters[4] = 31.0 / 360
+      bondParameters[[1, 6]] = chParameters
+      
+      let ccParameters = OpenMM_DoubleArray(size: 5)
+      ccParameters[0] = 455 * kjPerMolPerAJ
+      ccParameters[1] = 1.5270 * OpenMM_NmPerAngstrom
+      ccParameters[2] = 3.00
+      ccParameters[3] = 0.03
+      ccParameters[4] = 0.17
+      bondParameters[[6, 6]] = ccParameters
+      
+      for bond in bonds {
+        let atom1 = atoms[Int(bond[0])]
+        let atom2 = atoms[Int(bond[1])]
+        let element1 = min(atom1.element, atom2.element)
+        let element2 = max(atom1.element, atom2.element)
+        
+        let parameters = bondParameters[SIMD2(element1, element2)]!
+        bondStretch.addBond(
+          particles: SIMD2(truncatingIfNeeded: bond), parameters: parameters)
+      }
+    }
+    do {
+      
+    }
+    do {
+      
+    }
+    do {
+      
+    }
+    do {
+      
+    }
+    
     bondStretch.transfer()
-    bondBend.transfer()
-    bondTorsion.transfer()
+//    bondBend.transfer()
+//    bondTorsion.transfer()
+//    bondBendBend.transfer()
+//    bondStretchBend.transfer()
     system.addForce(bondStretch)
-    system.addForce(bondBend)
-    system.addForce(bondTorsion)
+//    system.addForce(bondBend)
+//    system.addForce(bondTorsion)
+//    system.addForce(bondBendBend)
+//    system.addForce(bondStretchBend)
   }
 }
