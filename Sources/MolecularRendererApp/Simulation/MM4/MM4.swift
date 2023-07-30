@@ -27,7 +27,7 @@ import simd
 //
 // https://github.com/TinkerTools/tinker/blob/b6a58df90c5a66eceab92cc821d12b4dd27ca096/params/mm3.prm
 
-// Elements to port:
+// Elements to port (in order of easiness):
 //
 // Chlorine:
 // https://onlinelibrary.wiley.com/doi/epdf/10.1002/%28SICI%291099-1395%28199701%2910%3A1%3C3%3A%3AAID-POC851%3E3.0.CO%3B2-A
@@ -241,8 +241,7 @@ class MM4 {
     var bondStretch: OpenMM_CustomBondForce
     
     // bondTorsion - needs to be a separate force
-    // bondBendBend - needs to be a separate force
-    // bondStretchBend - fusable with bondBend
+    // bondBendTorsionBend
     // bondTorsionStretch - fusable with bondTorsion
     
     do {
@@ -543,18 +542,93 @@ class MM4 {
       }
     }
     
+    var torsionParameters: [SIMD4<UInt8>: SIMD4<Double>] = [:]
+    var bondTorsion: OpenMM_CustomCompoundBondForce
+    
     do {
-      // torsion
+      let energy = """
+      torsion + torsion_stretch;
+      torsion = 0.5 * (
+        V1 * (1 + cos(omega)) +
+        V2 * (1 - cos(V2_scale * omega)) +
+        V3 * term3
+      );
+      torsion_stretch = 0.5 * (1.0 / 12) * stiffness * (
+        distance(p2, p3) - length
+      ) * term3;
+      term3 = 1 + cos(3 * omega);
+      omega = dihedral(p1, p2, p3, p4);
+      """
+      bondTorsion = OpenMM_CustomCompoundBondForce(
+        numParticles: 4, energy: energy)
+      bondTorsion.addPerBondParameter(name: "V1")
+      bondTorsion.addPerBondParameter(name: "V2")
+      bondTorsion.addPerBondParameter(name: "V3")
+      bondTorsion.addPerBondParameter(name: "V2_scale")
+      bondTorsion.addPerBondParameter(name: "length")
+      
+      // Hard-code the fact that all torsions are between carbons. When we
+      // support other atoms that can form >1 bonds, this needs to change.
+      bondTorsion.addGlobalParameter(
+        name: "stiffness", defaultValue: 0.660 * kjPerMolPerAJ)
+      
+      torsionParameters[[1, 6, 6, 1]] = [
+        0.000 * OpenMM_KJPerKcal,
+        0.008 * OpenMM_KJPerKcal,
+        0.260 * OpenMM_KJPerKcal,
+        6,
+      ]
+      torsionParameters[[1, 6, 6, 6]] = [
+        0.000 * OpenMM_KJPerKcal,
+        0.000 * OpenMM_KJPerKcal,
+        0.290 * OpenMM_KJPerKcal,
+        2,
+      ]
+      torsionParameters[[6, 6, 6, 6]] = [
+        0.239 * OpenMM_KJPerKcal,
+        0.024 * OpenMM_KJPerKcal,
+        0.637 * OpenMM_KJPerKcal,
+        2,
+      ]
+      
+      let particleArray = OpenMM_IntArray(size: 4)
+      let parametersArray = OpenMM_DoubleArray(size: 5)
+      for bond in bonds1234.keys {
+        var elements: SIMD4<UInt8> = .zero
+        for i in 0..<4 {
+          elements[i] = atoms[Int(bond[i])].element
+        }
+        precondition(elements[1] == elements[2])
+        if !(elements[0] < elements[3]) {
+          elements = SIMD4(
+            elements[3], elements[2], elements[1], elements[0])
+        }
+        let stretchParams = stretchParameters[SIMD2(elements[1], elements[2])]!
+        
+        let torsionParams = torsionParameters[elements]!
+        for i in 0..<4 {
+          particleArray[i] = Int(bond[i])
+        }
+        for i in 0..<4 {
+          parametersArray[i] = torsionParams[i]
+        }
+        parametersArray[4] = stretchParams[1]
+        
+        bondTorsion.addBond(
+          particles: particleArray, parameters: parametersArray)
+      }
     }
-   
+    
+    // Debug the more complex forces after vdW and bond-stretch are working.
+    
     bondStretch.transfer()
-    bondBend.transfer()
-    bondBendBend.transfer()
-    //    bondTorsion.transfer()
+//    bondBend.transfer()
+//    bondBendBend.transfer()
+//    bondTorsion.transfer()
     
     system.addForce(bondStretch)
-    system.addForce(bondBend)
-    system.addForce(bondBendBend)
-    //    system.addForce(bondTorsion)
+//    system.addForce(bondBend)
+//    system.addForce(bondBendBend)
+//    system.addForce(bondTorsion)
   }
 }
