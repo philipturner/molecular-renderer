@@ -72,6 +72,35 @@ public class OpenMM_DoubleArray: OpenMM_Object {
   }
 }
 
+public class OpenMM_IntArray: OpenMM_Object {
+  public convenience init(size: Int) {
+    self.init(_openmm_create(Int32(size), OpenMM_IntArray_create))
+    self.retain()
+  }
+  
+  public override class func destroy(_ pointer: OpaquePointer) {
+    OpenMM_IntArray_destroy(pointer)
+  }
+  
+  public func append(_ value: Int) {
+    OpenMM_IntArray_append(pointer, Int32(value))
+  }
+  
+  public var size: Int {
+    let _size = OpenMM_IntArray_getSize(pointer)
+    return Int(_size)
+  }
+  
+  public subscript(index: Int) -> Int {
+    get {
+      Int(_openmm_index_get(pointer, index, OpenMM_IntArray_get))
+    }
+    set {
+      OpenMM_IntArray_set(pointer, Int32(index), Int32(newValue))
+    }
+  }
+}
+
 public class OpenMM_StringArray: OpenMM_Object {
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_StringArray_destroy(pointer)

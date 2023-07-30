@@ -90,7 +90,8 @@ class MM4 {
         system.addParticle(mass: 1.008)
       case 6:
         // Don't give any special treatment to cyclobutane and cyclopentane
-        // carbons. Instead, replace the cubane test with adamantane.
+        // carbons. Instead, restrict designs to only those based on a diamond
+        // lattice.
         system.addParticle(mass: 12.011)
         break
       default:
@@ -215,20 +216,22 @@ class MM4 {
       }
     }
     
+    var stretchParameters: [SIMD2<UInt8>: OpenMM_DoubleArray] = [:]
     var bondStretch: OpenMM_CustomBondForce
-    var bondBend: OpenMM_CustomAngleForce
-    // bondTorsion
-    // bondBendBend
-    // bondStretchBend
-    // bondTorsionStretch
+    
+    // bondTorsion - needs to be a separate force
+    // bondBendBend - needs to be a separate force
+    // bondStretchBend - fusable with bondBend
+    // bondTorsionStretch - fusable with bondTorsion
     
     do {
       let energy = """
-        0.5 * stiffness * delta_l^2 * (1
-          - scale
-          + (7.0 / 12) * scale^2
-          - fifth_power_term * scale^3
-          + sixth_power_term * scale^4
+        0.5 * stiffness / cubic_stretch^2 * (
+          scale^2
+          - scale^3
+          + (7.0 / 12) * scale^4
+          - fifth_power_term * scale^5
+          + sixth_power_term * scale^6
         );
         scale = cubic_stretch * delta_l;
         delta_l = r - length;
@@ -240,7 +243,6 @@ class MM4 {
       bondStretch.addPerBondParameter(name: "fifth_power_term")
       bondStretch.addPerBondParameter(name: "sixth_power_term")
       
-      var bondParameters: [SIMD2<UInt8>: OpenMM_DoubleArray] = [:]
       let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
       
       let chParameters = OpenMM_DoubleArray(size: 5)
@@ -249,7 +251,7 @@ class MM4 {
       chParameters[2] = 2.20
       chParameters[3] = 1.0 / 4
       chParameters[4] = 31.0 / 360
-      bondParameters[[1, 6]] = chParameters
+      stretchParameters[[1, 6]] = chParameters
       
       let ccParameters = OpenMM_DoubleArray(size: 5)
       ccParameters[0] = 455 * kjPerMolPerAJ
@@ -257,7 +259,7 @@ class MM4 {
       ccParameters[2] = 3.00
       ccParameters[3] = 0.03
       ccParameters[4] = 0.17
-      bondParameters[[6, 6]] = ccParameters
+      stretchParameters[[6, 6]] = ccParameters
       
       for bond in bonds {
         let atom1 = atoms[Int(bond[0])]
@@ -265,70 +267,87 @@ class MM4 {
         let element1 = min(atom1.element, atom2.element)
         let element2 = max(atom1.element, atom2.element)
         
-        let parameters = bondParameters[SIMD2(element1, element2)]!
+        let parameters = stretchParameters[SIMD2(element1, element2)]!
         bondStretch.addBond(
           particles: SIMD2(truncatingIfNeeded: bond), parameters: parameters)
       }
     }
-    do {
-      // Need to convert output from aJ to kJ/mol
-      let energy = """
-      1.5226e-4 * stiffness * delta_theta^2 * (1
-        - 1.4 * scale
-        + 5.6e-1 * scale^2
-        - 7.0e-1 * scale^3
-        + 9.0e-2 * scale^4
-      );
-      scale = 0.01 * delta_theta;
-      delta_theta = theta - angle;
-      """
-      bondBend = OpenMM_CustomAngleForce(energy: energy)
-      bondBend.addPerAngleParameter(name: "stiffness")
-      bondBend.addPerAngleParameter(name: "angle")
+    
+    struct BondBend {
+      var parameters: [OpenMM_DoubleArray] = []
       
-      struct BondBend {
-        var parameters: [OpenMM_DoubleArray] = []
-        
-        init(
-          stiffness: Double,
-          degrees1: Double,
-          degrees2: Double,
-          degrees3: Double
-        ) {
-          for i in 0..<3 {
-            var degrees: Double
-            switch i {
-            case 0: degrees = degrees1
-            case 1: degrees = degrees2
-            case 2: degrees = degrees3
-            default: fatalError()
-            }
-            
-            let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
-            let _parameters = OpenMM_DoubleArray(size: 2)
-            _parameters[0] = stiffness * kjPerMolPerAJ
-            _parameters[1] = degrees * OpenMM_RadiansPerDegree
-            parameters.append(_parameters)
-          }
+      init(
+        bendStiffness: Double,
+        stretchBendStiffness: Double,
+        degrees: SIMD3<Double>,
+        lengths: SIMD2<Double>
+      ) {
+        for i in 0..<3 {
+          let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
+          let _parameters = OpenMM_DoubleArray(size: 5)
+          _parameters[0] = bendStiffness * kjPerMolPerAJ
+          _parameters[1] = stretchBendStiffness * kjPerMolPerAJ
+          _parameters[2] = degrees[i] * OpenMM_RadiansPerDegree
+          _parameters[3] = lengths[0]
+          _parameters[4] = lengths[1]
+          parameters.append(_parameters)
         }
       }
-      var bondParameters: [SIMD3<UInt8>: BondBend] = [:]
-      bondParameters[[1, 6, 1]] = BondBend(
-        stiffness: 0.54 * 100,
-        degrees1: 107.70,
-        degrees2: 107.80,
-        degrees3: 107.70)
-      bondParameters[[1, 6, 6]] = BondBend(
-        stiffness: 0.59 * 100,
-        degrees1: 108.90,
-        degrees2: 109.47,
-        degrees3: 110.80)
-      bondParameters[[6, 6, 6]] = BondBend(
-        stiffness: 0.74 * 100,
-        degrees1: 109.50,
-        degrees2: 110.40,
-        degrees3: 111.80)
+    }
+    var bendParameters: [SIMD3<UInt8>: BondBend] = [:]
+    var bondBend: OpenMM_CustomCompoundBondForce
+    
+    do {
+      let energy = """
+      bend + stretch_bend;
+      bend = 1.5226 * bend_stiffness * (
+        bend_scale^2
+        - 1.4 * bend_scale^3
+        + 5.6e-1 * bend_scale^4
+        - 7.0e-1 * bend_scale^5
+        + 9.0e-2 * bend_scale^6
+      );
+      stretch_bend = 1.7447 * stretch_bend_stiffness * (
+        distance(p1, p2) - length1 +
+        distance(p2, p3) - length2
+      ) * bend_scale;
+      bend_scale = 0.01 * delta_theta;
+      delta_theta = angle(p1, p2, p3) - equilibrium_angle;
+      """
+      bondBend = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: energy)
+      bondBend.addPerBondParameter(name: "bend_stiffness")
+      bondBend.addPerBondParameter(name: "stretch_bend_stiffness")
+      bondBend.addPerBondParameter(name: "equilibrium_angle")
+      bondBend.addPerBondParameter(name: "length1")
+      bondBend.addPerBondParameter(name: "length2")
       
+      bendParameters[[1, 6, 1]] = BondBend(
+        bendStiffness: 0.540 * 100,
+        stretchBendStiffness: 0.00 * 100,
+        degrees: [107.70, 107.80, 107.70],
+        lengths: [
+          stretchParameters[[1, 6]]![1],
+          stretchParameters[[1, 6]]![1],
+        ])
+      bendParameters[[1, 6, 6]] = BondBend(
+        bendStiffness: 0.590 * 100,
+        stretchBendStiffness: 0.100 * 100,
+        degrees: [108.90, 109.47, 110.80],
+        lengths: [
+          stretchParameters[[1, 6]]![1],
+          stretchParameters[[6, 6]]![1],
+        ])
+      bendParameters[[6, 6, 6]] = BondBend(
+        bendStiffness: 0.740 * 100,
+        stretchBendStiffness: 0.140 * 100,
+        degrees: [109.50, 110.40, 111.80],
+        lengths: [
+          stretchParameters[[6, 6]]![1],
+          stretchParameters[[6, 6]]![1],
+        ])
+      
+      let particleArray = OpenMM_IntArray(size: 3)
+      var angleTypes: [SIMD3<Int32>: Int] = [:]
       for bond in bonds123.keys {
         let centralID = Int(bond[1])
         let centralBonds = atomsToBondsMap[centralID]
@@ -379,38 +398,46 @@ class MM4 {
         let element2 = atom2.element
         let element3 = max(atom1.element, atom3.element)
         
-        let parameters = bondParameters[SIMD3(element1, element2, element3)]!
-        var _parameters: OpenMM_DoubleArray
+        var type: Int
         switch (neighborHydrogens, neighborCarbons) {
-        case (0, 2): _parameters = parameters.parameters[0]
-        case (1, 1): _parameters = parameters.parameters[1]
-        case (2, 0): _parameters = parameters.parameters[2]
+        case (0, 2): type = 1
+        case (1, 1): type = 2
+        case (2, 0): type = 3
         default: fatalError(
           "Invalid neighbor count: \((neighborHydrogens, neighborCarbons))")
         }
-        bondBend.addAngle(
-          particles: SIMD3(truncatingIfNeeded: bond), parameters: _parameters)
+        angleTypes[bond] = type // WARNING: Don't forget this is off by 1.
+        
+        var atomID1 = Int(bond[0])
+        var atomID3 = Int(bond[2])
+        if !(atom1.element < atom3.element) {
+          swap(&atomID1, &atomID3)
+        }
+        particleArray[0] = atomID1
+        particleArray[1] = Int(bond[1])
+        particleArray[2] = atomID3
+        
+        let parameters = bendParameters[SIMD3(element1, element2, element3)]!
+        let _parameters = parameters.parameters[type - 1]
+        bondBend.addBond(particles: particleArray, parameters: _parameters)
       }
     }
     do {
-      
+      // bend-bend interaction, excluding non-adjacent angles
     }
     do {
-      
+      // torsion
     }
-    do {
-      
-    }
-    
+   
     bondStretch.transfer()
     bondBend.transfer()
-//    bondTorsion.transfer()
+
 //    bondBendBend.transfer()
-//    bondStretchBend.transfer()
+    //    bondTorsion.transfer()
     system.addForce(bondStretch)
     system.addForce(bondBend)
-//    system.addForce(bondTorsion)
+
 //    system.addForce(bondBendBend)
-//    system.addForce(bondStretchBend)
+    //    system.addForce(bondTorsion)
   }
 }
