@@ -44,8 +44,16 @@ fileprivate let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
 
 class MM4 {
   var system: OpenMM_System
+  var integrator: OpenMM_Integrator
+  var context: OpenMM_Context
+  var provider: OpenMM_AtomProvider
   
-  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], stepSizeInFs: Double) {
+  convenience init(diamondoid: Diamondoid) {
+    self.init(atoms: diamondoid.atoms, bonds: diamondoid.bonds)
+  }
+  
+  // 1.2 ps/s for now. Eventually, drive that up to 12 ps/s.
+  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], fsPerFrame: Int = 10) {
     self.system = OpenMM_System()
     
     var nonbond: OpenMM_CustomNonbondedForce
@@ -619,16 +627,49 @@ class MM4 {
       }
     }
     
-    // Debug the more complex forces after vdW and bond-stretch are working.
+    // Debug the more complex forces one-by-one after vdW is working.
     
-    bondStretch.transfer()
+//    bondStretch.transfer()
 //    bondBend.transfer()
 //    bondBendBend.transfer()
 //    bondTorsion.transfer()
     
-    system.addForce(bondStretch)
+//    system.addForce(bondStretch)
 //    system.addForce(bondBend)
 //    system.addForce(bondBendBend)
 //    system.addForce(bondTorsion)
+    
+    self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
+    self.context = OpenMM_Context(system: system, integrator: integrator)
+    
+    let positions = OpenMM_Vec3Array(size: atoms.count)
+    for i in 0..<atoms.count {
+      positions[i] = SIMD3(atoms[i].origin)
+    }
+    self.context.positions = positions
+    
+    self.provider = OpenMM_AtomProvider(
+      psPerStep: 2 * OpenMM_PsPerFs,
+      stepsPerFrame: fsPerFrame / 2,
+      elements: atoms.map(\.element))
+  }
+  
+  func simulate(ps: Double) {
+    let numFemtoseconds = Int(rint(ps * 1000))
+    let numSteps = numFemtoseconds / 2
+    let numFrames = numSteps / provider.stepsPerFrame
+    precondition(
+      numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
+    
+    print("t = 0.000 ps")
+    let state = context.state(types: OpenMM_State_Positions)
+    provider.append(state: state, steps: 0)
+    
+    for t in 1...numFrames {
+      let timestamp = Double(t * provider.stepsPerFrame * 2) / 1000
+      print("t = \(String(format: "%.3f", timestamp)) ps")
+      
+      integrator.step(provider.stepsPerFrame)
+    }
   }
 }
