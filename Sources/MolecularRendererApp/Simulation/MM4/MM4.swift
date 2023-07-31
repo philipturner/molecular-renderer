@@ -49,8 +49,11 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  convenience init(diamondoid: Diamondoid) {
-    self.init(atoms: diamondoid.atoms, bonds: diamondoid.bonds)
+  convenience init(diamondoid: Diamondoid, fsPerFrame: Int = 10) {
+    self.init(
+      atoms: diamondoid.atoms,
+      bonds: diamondoid.bonds,
+      fsPerFrame: fsPerFrame)
   }
   
   // 1.2 ps/s for now. Eventually, drive that up to 12 ps/s.

@@ -30,7 +30,7 @@ class Renderer {
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
-    MRSetFrameRate(120)
+    MRSetFrameRate(ContentView.frameRate)
     initOpenMM()
     
     let url =  Bundle.main.url(
@@ -50,7 +50,7 @@ class Renderer {
     var diamondoid = figure.a
     diamondoid.center()
     
-    #if false
+    #if true
     self.atomProvider = DiamondoidCollision().provider
     serializer.save(
       fileName: "DiamondoidCollision",

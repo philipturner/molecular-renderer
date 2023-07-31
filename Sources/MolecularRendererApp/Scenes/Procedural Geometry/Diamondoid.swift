@@ -158,7 +158,6 @@ struct Diamondoid {
         neighborCenters.append(atoms[index].origin)
         
         if i < index {
-          
           bonds.append(SIMD2(
             Int32(truncatingIfNeeded: i),
             Int32(truncatingIfNeeded: index)))

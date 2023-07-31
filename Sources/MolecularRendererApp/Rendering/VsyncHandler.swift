@@ -30,8 +30,8 @@ class VsyncHandler {
   init(coordinator: Coordinator, screen: NSScreen) {
     self.coordinator = coordinator
     
-    MRSetFrameRate(120)
-    currentRefreshRate = .init(120)
+    MRSetFrameRate(ContentView.frameRate)
+    currentRefreshRate = .init(ContentView.frameRate)
     
     // Set up the display link.
     var _displayLink: CVDisplayLink?
