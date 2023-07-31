@@ -51,31 +51,14 @@ class Renderer {
     diamondoid.center()
     
     #if true
-    // TODO: Test the point where torsions and/or angles forces start to break
-    // the stability of the simulation.
+    // TODO: Spin the octane molecule very fast, try to break it.
+    // TODO: Slam two polymer chains into each other. Create a utility
+    // function to do this for you.
     let simulator = MM4(diamondoid: diamondoid)
     do {
       let field = rotationVectorField(
         angularSpeedInRadPerPs: 0, origin: .zero, axis: [0, 1, 0])
       simulator.velocityVectorField(field)
-      
-//      // TODO: Extract this into a utility function.
-//      let angularSpeedInRadPerPs: Float = 1
-//      let center: SIMD3<Float> = .zero
-//      
-//      // TODO: Try rotation around the Y axis for octane.
-//      let axis: SIMD3<Float> = [0, 0, 1]
-//      let rotation = simd_quatf(angle: .pi / 4, axis: axis)
-//      
-//      simulator.velocityVectorField { _, position in
-//        let delta = position - center
-//        let radius = length(delta)
-//        var direction = normalize(delta)
-//        direction = simd_act(rotation, direction)
-//        
-//        let speed = angularSpeedInRadPerPs * radius
-//        return direction * speed
-//      }
     }
     simulator.simulate(ps: 10)
     

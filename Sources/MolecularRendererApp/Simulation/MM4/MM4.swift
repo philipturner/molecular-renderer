@@ -85,6 +85,9 @@ class MM4 {
       nonbond.addGlobalParameter(
         name: "epsilon_ch", defaultValue: chEpsilonInKJ)
       
+      // TODO: When supporting non-carbon and non-hydrogen atoms, reduce the
+      // value of 1-4 nonbonded interactions by 0.94x.
+      
       nonbond14 = OpenMM_CustomBondForce(energy: "0.550 * " + energy)
       nonbond14.addPerBondParameter(name: "length")
       nonbond14.addPerBondParameter(name: "epsilon")
@@ -568,14 +571,20 @@ class MM4 {
     do {
       // TODO: Add bend-torsion-bend, but as a separate force because it's so
       // costly.
+      
+      // Hard-code the fact that all torsions are between carbons. When we
+      // support other atoms that can form >1 bonds, this needs to change.
+      let torsionStretchStiffness: Double = 0.660
+      
       let energy = """
-      torsion + torsion_stretch;
+      \(OpenMM_KJPerKcal) * (torsion + torsion_stretch);
       torsion = 0.5 * (
         V1 * (1 + cos(omega)) +
-        V2 * (1 - cos(V2_scale * omega)) +
+        V2 * (1 - cos(V2_frequency * omega)) +
         V3 * term3
       );
-      torsion_stretch = 0.5 * (1.0 / 12) * stiffness * (
+      torsion_stretch = 10 *
+      0.5 * 11.995 * \(torsionStretchStiffness) * (
         distance(p2, p3) - length
       ) * term3;
       term3 = 1 + cos(3 * omega);
@@ -586,31 +595,17 @@ class MM4 {
       bondTorsion.addPerBondParameter(name: "V1")
       bondTorsion.addPerBondParameter(name: "V2")
       bondTorsion.addPerBondParameter(name: "V3")
-      bondTorsion.addPerBondParameter(name: "V2_scale")
+      bondTorsion.addPerBondParameter(name: "V2_frequency")
       bondTorsion.addPerBondParameter(name: "length")
       
-      // Hard-code the fact that all torsions are between carbons. When we
-      // support other atoms that can form >1 bonds, this needs to change.
-      bondTorsion.addGlobalParameter(
-        name: "stiffness", defaultValue: 0.660 * kjPerMolPerAJ)
-      
       torsionParameters[[1, 6, 6, 1]] = [
-        0.000 * OpenMM_KJPerKcal,
-        0.008 * OpenMM_KJPerKcal,
-        0.260 * OpenMM_KJPerKcal,
-        6,
+        0.000, 0.008, 0.260, 6
       ]
       torsionParameters[[1, 6, 6, 6]] = [
-        0.000 * OpenMM_KJPerKcal,
-        0.000 * OpenMM_KJPerKcal,
-        0.290 * OpenMM_KJPerKcal,
-        2,
+        0.000, 0.000, 0.290, 2
       ]
       torsionParameters[[6, 6, 6, 6]] = [
-        0.239 * OpenMM_KJPerKcal,
-        0.024 * OpenMM_KJPerKcal,
-        0.637 * OpenMM_KJPerKcal,
-        2,
+        0.239, 0.024, 0.637, 2
       ]
       
       let particleArray = OpenMM_IntArray(size: 4)
@@ -641,17 +636,15 @@ class MM4 {
       }
     }
     
-    // Debug the more complex forces one-by-one after vdW is working.
-    
     bondStretch.transfer()
     bondBend.transfer()
     bondBendBend.transfer()
-//    bondTorsion.transfer()
+    bondTorsion.transfer()
     
     system.addForce(bondStretch)
     system.addForce(bondBend)
     system.addForce(bondBendBend)
-//    system.addForce(bondTorsion)
+    system.addForce(bondTorsion)
     
     // self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
     self.integrator = OpenMM_LangevinMiddleIntegrator(
