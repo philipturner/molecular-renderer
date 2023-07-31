@@ -14,7 +14,7 @@ func rotationVectorField(
   origin: SIMD3<Float>,
   axis: SIMD3<Float>
 ) -> MM4.VectorVield {
-  let rotation = simd_quatf(angle: .pi / 4, axis: axis)
+  let rotation = simd_quatf(angle: .pi / 2, axis: axis)
   return { _, position in
     let delta = position - origin
     let radius = length(delta)

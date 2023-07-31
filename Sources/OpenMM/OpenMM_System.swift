@@ -27,6 +27,10 @@ public class OpenMM_State: OpenMM_Object {
   public var time: Double {
     _openmm_get(pointer, OpenMM_State_getTime)
   }
+  
+  public var velocities: OpenMM_Vec3Array {
+    .init(_openmm_get(pointer, OpenMM_State_getVelocities))
+  }
 }
 
 public class OpenMM_System: OpenMM_Object {

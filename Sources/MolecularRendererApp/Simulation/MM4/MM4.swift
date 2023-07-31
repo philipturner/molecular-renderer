@@ -54,7 +54,7 @@ class MM4 {
   }
   
   // 1.2 ps/s for now. Eventually, drive that up to 12 ps/s.
-  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], fsPerFrame: Int = 2) {
+  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], fsPerFrame: Int = 10) {
     self.system = OpenMM_System()
     
     var nonbond: OpenMM_CustomNonbondedForce
@@ -112,20 +112,23 @@ class MM4 {
       nonbondParameters[6] = carbonParameters
     }
     
+    var masses: [Double] = []
     for atom in atoms {
+      var mass: Double
       switch atom.element {
       case 1:
-        system.addParticle(mass: 1.008)
+        mass = 1.008
       case 6:
         // Don't give any special treatment to cyclobutane and cyclopentane
         // carbons. Instead, restrict designs to only those based on a diamond
         // lattice.
-        system.addParticle(mass: 12.011)
-        break
+        mass = 12.011
       default:
         fatalError("Unsupported element: \(atom.element)")
       }
       
+      masses.append(mass)
+      system.addParticle(mass: mass)
       nonbond.addParticle(parameters: nonbondParameters[atom.element]!)
     }
     
@@ -567,16 +570,14 @@ class MM4 {
     
     var torsionParameters: [SIMD4<UInt8>: SIMD4<Double>] = [:]
     var bondTorsion: OpenMM_CustomCompoundBondForce
+    var bondBendTorsionBend: OpenMM_CustomCompoundBondForce
     
     do {
-      // TODO: Add bend-torsion-bend, but as a separate force because it's so
-      // costly.
-      
       // Hard-code the fact that all torsions are between carbons. When we
       // support other atoms that can form >1 bonds, this needs to change.
       let torsionStretchStiffness: Double = 0.660
       
-      let energy = """
+      var energy = """
       \(OpenMM_KJPerKcal) * (torsion + torsion_stretch);
       torsion = 0.5 * (
         V1 * (1 + cos(omega)) +
@@ -598,6 +599,21 @@ class MM4 {
       bondTorsion.addPerBondParameter(name: "V2_frequency")
       bondTorsion.addPerBondParameter(name: "length")
       
+      energy = """
+      \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
+      0.043828 * stiffness * (
+        angle(p1, p2, p3) - angle1
+      ) * cos(omega) * (
+        angle(p2, p3, p4) - angle2
+      );
+      omega = dihedral(p1, p2, p3, p4)
+      """
+      bondBendTorsionBend = OpenMM_CustomCompoundBondForce(
+        numParticles: 4, energy: energy)
+      bondBendTorsionBend.addPerBondParameter(name: "stiffness")
+      bondBendTorsionBend.addPerBondParameter(name: "angle1")
+      bondBendTorsionBend.addPerBondParameter(name: "angle2")
+      
       torsionParameters[[1, 6, 6, 1]] = [
         0.000, 0.008, 0.260, 6
       ]
@@ -610,6 +626,7 @@ class MM4 {
       
       let particleArray = OpenMM_IntArray(size: 4)
       let parametersArray = OpenMM_DoubleArray(size: 5)
+      let btbParametersArray = OpenMM_DoubleArray(size: 3)
       for bond in bonds1234.keys {
         var elements: SIMD4<UInt8> = .zero
         for i in 0..<4 {
@@ -633,6 +650,37 @@ class MM4 {
         
         bondTorsion.addBond(
           particles: particleArray, parameters: parametersArray)
+        
+        if elements[0] == 1 {
+          if elements[3] == 1 {
+            btbParametersArray[0] = -0.090
+          } else {
+            btbParametersArray[0] = -0.060
+          }
+          for j in 0..<2 {
+            var atomID1 = bond[j + 0]
+            let atomID2 = bond[j + 1]
+            var atomID3 = bond[j + 2]
+            if !(atomID1 < atomID3) {
+              swap(&atomID1, &atomID3)
+            }
+            let type = angleTypes[SIMD3(atomID1, atomID2, atomID3)]!
+            
+            var element1 = elements[j + 0]
+            let element2 = elements[j + 1]
+            var element3 = elements[j + 2]
+            if !(element1 < element3) {
+              swap(&element1, &element3)
+            }
+            
+            let elements = SIMD3(element1, element2, element3)
+            let params = bendParameters[elements]!.parameters[type - 1]
+            btbParametersArray[1 + j] = params[2]
+          }
+          
+          bondBendTorsionBend.addBond(
+            particles: particleArray, parameters: btbParametersArray)
+        }
       }
     }
     
@@ -640,16 +688,18 @@ class MM4 {
     bondBend.transfer()
     bondBendBend.transfer()
     bondTorsion.transfer()
+    bondBendTorsionBend.transfer()
     
     system.addForce(bondStretch)
     system.addForce(bondBend)
     system.addForce(bondBendBend)
     system.addForce(bondTorsion)
+    system.addForce(bondBendTorsionBend)
     
-    // self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
-    self.integrator = OpenMM_LangevinMiddleIntegrator(
-      temperature: 298, frictionCoeff: 91,
-      stepSize: 2 * OpenMM_PsPerFs)
+//    let integrator = OpenMM_LangevinMiddleIntegrator(
+//      temperature: 298, frictionCoeff: 91,
+//      stepSize: 2 * OpenMM_PsPerFs)
+    self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
     let positions = OpenMM_Vec3Array(size: atoms.count)
@@ -658,6 +708,38 @@ class MM4 {
     }
     self.context.positions = positions
     precondition(context.platform.name == "HIP")
+    
+    #if true
+    do {
+      context.setVelocitiesToTemperature(298)
+      
+      // Conserve momentum after the velocities are randomly initialized.
+      // TODO: Make this conserve angular momentum, while respecting the angular
+      // momentum of each rigid body individually.
+      let state = context.state(types: .init(rawValue:
+          OpenMM_State_Positions.rawValue | OpenMM_State_Velocities.rawValue))
+      let velocities = state.velocities
+      var totalMass: Double = 0
+      var totalMomentum: SIMD3<Double> = .zero
+      var centerOfMass: SIMD3<Double> = .zero
+      
+      for i in 0..<atoms.count {
+        let mass = masses[i]
+        let position = positions[i]
+        let velocity = velocities[i]
+        totalMass += mass
+        totalMomentum += mass * velocity
+        centerOfMass += mass * position
+      }
+      centerOfMass /= totalMass
+      
+      let correction = -totalMomentum / totalMass
+      for i in 0..<atoms.count {
+        velocities[i] += correction
+      }
+      self.context.velocities = state.velocities
+    }
+    #endif
     
     self.provider = OpenMM_AtomProvider(
       psPerStep: 2 * OpenMM_PsPerFs,
@@ -668,19 +750,26 @@ class MM4 {
   typealias VectorVield = (Int, SIMD3<Float>) -> SIMD3<Float>
   
   func velocityVectorField(_ closure: VectorVield) {
-    let state = context.state(types: OpenMM_State_Positions)
+    let state = context.state(types: .init(rawValue:
+        OpenMM_State_Positions.rawValue | OpenMM_State_Velocities.rawValue))
     let positions = state.positions
-    let velocities = OpenMM_Vec3Array(size: positions.size)
+    let velocities = state.velocities
     
     for i in 0..<positions.size {
       let position = SIMD3<Float>(positions[i])
-      let velocity = closure(i, position)
+      let velocity = closure(i, position) + SIMD3(velocities[i])
       velocities[i] = SIMD3(velocity)
     }
     context.velocities = velocities
   }
   
   func simulate(ps: Double) {
+    simulate(ps: ps, context: self.context, integrator: self.integrator)
+  }
+  
+  private func simulate(
+    ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
+  ) {
     let numFemtoseconds = Int(rint(ps * 1000))
     let numSteps = numFemtoseconds / 2
     let numFrames = numSteps / provider.stepsPerFrame

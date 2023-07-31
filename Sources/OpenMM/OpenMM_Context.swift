@@ -33,13 +33,12 @@ public class OpenMM_Context: OpenMM_Object {
     }
   }
   
-  public var velocities: OpenMM_Vec3Array {
-     get {
-      _openmm_no_getter()
-    }
-    set {
-      OpenMM_Context_setVelocities(pointer, newValue.pointer)
-    }
+  public func setVelocitiesToTemperature(
+    _ temperature: Double,
+    _ randomSeed: Int = .random(in: 0...Int.max)
+  ) {
+    OpenMM_Context_setVelocitiesToTemperature(
+      pointer, temperature, Int32(randomSeed % (Int(Int32.max) + 1)))
   }
   
   public func state(
@@ -61,6 +60,15 @@ public class OpenMM_Context: OpenMM_Object {
     let state = OpenMM_State(_state)
     state.retain()
     return state
+  }
+  
+  public var velocities: OpenMM_Vec3Array {
+     get {
+      _openmm_no_getter()
+    }
+    set {
+      OpenMM_Context_setVelocities(pointer, newValue.pointer)
+    }
   }
 }
 

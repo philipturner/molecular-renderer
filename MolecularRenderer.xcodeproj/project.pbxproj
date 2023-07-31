@@ -40,6 +40,7 @@
 		98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */; };
 		98518AF72A75845600CAD919 /* MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* MM4.swift */; };
 		98518AFB2A77239700CAD919 /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AFA2A77239700CAD919 /* Motion.swift */; };
+		98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
@@ -161,6 +162,7 @@
 		98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure4.swift; sourceTree = "<group>"; };
 		98518AF62A75845600CAD919 /* MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4.swift; sourceTree = "<group>"; };
 		98518AFA2A77239700CAD919 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
+		98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondoidCollision.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -498,6 +500,7 @@
 		98F2F5D02A5F2E6B006216F4 /* References */ = {
 			isa = PBXGroup;
 			children = (
+				98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */,
 				98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */,
 				98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */,
 			);
@@ -747,6 +750,7 @@
 				98FB90812A5D115200685E5C /* APMBootstrapper.swift in Sources */,
 				98325C542A6B501700A4D7BB /* Chapter9_Figure2.swift in Sources */,
 				986348F82A73310F0053E714 /* Amplifier.swift in Sources */,
+				98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */,
 				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,

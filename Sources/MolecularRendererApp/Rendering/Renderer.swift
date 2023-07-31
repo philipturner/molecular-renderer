@@ -50,24 +50,13 @@ class Renderer {
     var diamondoid = figure.a
     diamondoid.center()
     
-    #if true
-    // TODO: Spin the octane molecule very fast, try to break it.
-    // TODO: Slam two polymer chains into each other. Create a utility
-    // function to do this for you.
-    let simulator = MM4(diamondoid: diamondoid)
-    do {
-      let field = rotationVectorField(
-        angularSpeedInRadPerPs: 0, origin: .zero, axis: [0, 1, 0])
-      simulator.velocityVectorField(field)
-    }
-    simulator.simulate(ps: 10)
-    
-    self.atomProvider = simulator.provider
+    #if false
+    self.atomProvider = DiamondoidCollision().provider
     serializer.save(
-      fileName: "Octane",
+      fileName: "DiamondoidCollision",
       provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "Octane")
+    let simulation = serializer.load(fileName: "DiamondoidCollision")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     #endif
   }
