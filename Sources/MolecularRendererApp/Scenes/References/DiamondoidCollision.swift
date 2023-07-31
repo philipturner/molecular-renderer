@@ -15,7 +15,7 @@ struct DiamondoidCollision {
   init() {
     let horizontalSpacing: Float = 3 // nm
     let verticalSpacing: Float = 3 // nm
-    let approachSpeed: Float = 5 // nm/ps, v2 - v1
+    let approachSpeed: Float = 4 // nm/ps, v2 - v1
     var blockVelocities: [SIMD3<Float>] = []
     
     func centerAtOrigin(_ atoms: [MRAtom]) -> [MRAtom] {
@@ -183,11 +183,11 @@ struct DiamondoidCollision {
       
       switch i {
       case -1:
-        translation = [-horizontalSpacing / 2, 0, 0]
+        translation = [0, -verticalSpacing / 2, 0]
         rotation = simd_quatf(angle: 0 * .pi / 2, axis: [0, 0, +1])
         velocity = [approachSpeed / 2, -approachSpeed / 20, 0]
       case 1:
-        translation = [+horizontalSpacing / 2, 0, 0]
+        translation = [0, +verticalSpacing / 2, 0]
         rotation = simd_quatf(angle: 0 * .pi / 2, axis: [0, -1, 0])
         velocity = [-approachSpeed / 2, -approachSpeed / 20, 0]
       default:
@@ -207,7 +207,7 @@ struct DiamondoidCollision {
     for i in [1, 2] {
       atoms += atoms.map {
         var copy = $0
-        copy.origin += SIMD3(0, verticalSpacing * Float(i), 0)
+        copy.origin += SIMD3(horizontalSpacing * Float(i), 0, 0)
         return copy
       }
     }
@@ -216,7 +216,7 @@ struct DiamondoidCollision {
     let diamondoid = Diamondoid(atoms: atoms)
     print("Atom count: \(diamondoid.atoms.count)")
     
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 2)
+    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 10)
     simulator.velocityVectorField { i, _ in
       let numCarbons = 8 * baseAtoms.count
       var instance: Int
@@ -231,15 +231,15 @@ struct DiamondoidCollision {
       
       var output: SIMD3<Float> = .zero
       if instance % 2 == 0 {
-        output[0] = 1
+        output[1] = 1
       } else {
-        output[0] = -1
+        output[1] = -1
       }
       switch instance / 2 {
-      case 0: output[1] = 2
-      case 1: output[1] = 1
-      case 2: output[1] = -1
-      case 3: output[1] = -2
+      case 0: output[0] = 2
+      case 1: output[0] = 1
+      case 2: output[0] = -1
+      case 3: output[0] = -2
       default: fatalError()
       }
       output = normalize(output)
