@@ -261,21 +261,16 @@ class MM4 {
     var stretchParameters: [SIMD2<UInt8>: OpenMM_DoubleArray] = [:]
     var bondStretch: OpenMM_CustomBondForce
     
-    // bondTorsion - needs to be a separate force
-    // bondBendTorsionBend
-    // bondTorsionStretch - fusable with bondTorsion
-    
     do {
       let energy = """
-        10^2 *
-        71.94 * stiffness / cubic_stretch^2 * (
-          scale^2
-          - scale^3
-          + (7.0 / 12) * scale^4
-          - fifth_power_term * scale^5
-          + sixth_power_term * scale^6
+        \(OpenMM_KJPerKcal) * 10^2 *
+        71.94 * stiffness * (
+                                                 delta_l^2
+          -                    cubic_stretch   * delta_l^3
+          + (7.0 / 12)       * cubic_stretch^2 * delta_l^4
+          - fifth_power_term * cubic_stretch^3 * delta_l^5
+          + sixth_power_term * cubic_stretch^4 * delta_l^6
         );
-        scale = cubic_stretch * delta_l;
         delta_l = r - length;
         """
       bondStretch = OpenMM_CustomBondForce(energy: energy)
@@ -286,7 +281,7 @@ class MM4 {
       bondStretch.addPerBondParameter(name: "sixth_power_term")
       
       let chParameters = OpenMM_DoubleArray(size: 5)
-      chParameters[0] = 474 * 0.01 * OpenMM_KJPerKcal //kjPerMolPerAJ
+      chParameters[0] = 4.74
       chParameters[1] = 1.1120 * OpenMM_NmPerAngstrom
       chParameters[2] = 2.20
       chParameters[3] = 1.0 / 4
@@ -294,7 +289,7 @@ class MM4 {
       stretchParameters[[1, 6]] = chParameters
       
       let ccParameters = OpenMM_DoubleArray(size: 5)
-      ccParameters[0] = 455 * 0.01 * OpenMM_KJPerKcal // * kjPerMolPerAJ
+      ccParameters[0] = 4.55
       ccParameters[1] = 1.5270 * OpenMM_NmPerAngstrom
       ccParameters[2] = 3.00
       ccParameters[3] = 0.03
@@ -327,11 +322,8 @@ class MM4 {
       ) {
         for i in 0..<3 {
           let _parameters = OpenMM_DoubleArray(size: 5)
-          // WARNING: This is in an inconsistent unit system; very likely to
-          // cause bugs.
-          _parameters[0] = bendStiffness * OpenMM_KJPerKcal    //kjPerMolPerAJ
-//          _parameters[0] = bendStiffness * kjPerMolPerAJ
-          _parameters[1] = stretchBendStiffness * kjPerMolPerAJ
+          _parameters[0] = bendStiffness
+          _parameters[1] = stretchBendStiffness
           _parameters[2] = degrees[i] * OpenMM_RadiansPerDegree
           _parameters[3] = lengths[0]
           _parameters[4] = lengths[1]
@@ -344,34 +336,21 @@ class MM4 {
     var bondBend: OpenMM_CustomCompoundBondForce
     
     do {
-      #if false
       let energy = """
-      bend + stretch_bend;
-      bend = 1.5226 * bend_stiffness * (
-        bend_scale^2
-        - 1.4 * bend_scale^3
-        + 5.6e-1 * bend_scale^4
-        - 7.0e-1 * bend_scale^5
-        + 9.0e-2 * bend_scale^6
-      );
-      stretch_bend = 1.7447e-9 * stretch_bend_stiffness * (
-        distance(p1, p2) - length1 +
-        distance(p2, p3) - length2
-      ) * bend_scale;
-      bend_scale = 0.01 * delta_theta;
-      delta_theta = angle(p1, p2, p3) - equilibrium_angle;
-      """
-      #endif
-      
-      let energy = """
-      (180 / 3.141592)^2 *
+      \(OpenMM_KJPerKcal) * (bend + stretch_bend);
+      bend = (180 / 3.141592)^2 *
       0.021914 * bend_stiffness * (
-        delta_theta^2
-        - 0.014 * delta_theta^3
-        + 5.6e-5 * delta_theta^4
-        - 7.0e-7 * delta_theta^5
+                    delta_theta^2
+        - 0.014   * delta_theta^3
+        + 5.6e-5  * delta_theta^4
+        - 7.0e-7  * delta_theta^5
         + 9.0e-10 * delta_theta^6
       );
+      stretch_bend = 10 * (180 / 3.141592) *
+      2.51118 * stretch_bend_stiffness * (
+        distance(p1, p2) - length1 +
+        distance(p2, p3) - length2
+      ) * delta_theta;
       delta_theta = angle(p1, p2, p3) - equilibrium_angle;
       """
       bondBend = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: energy)
@@ -383,7 +362,7 @@ class MM4 {
       
       bendParameters[[1, 6, 1]] = BondBend(
         bendStiffness: 0.540,
-        stretchBendStiffness: 0.00 * 100,
+        stretchBendStiffness: 0.00,
         degrees: [107.70, 107.80, 107.70],
         lengths: [
           stretchParameters[[1, 6]]![1],
@@ -391,7 +370,7 @@ class MM4 {
         ])
       bendParameters[[1, 6, 6]] = BondBend(
         bendStiffness: 0.590,
-        stretchBendStiffness: 0.100 * 100,
+        stretchBendStiffness: 0.100,
         degrees: [108.90, 109.47, 110.80],
         lengths: [
           stretchParameters[[1, 6]]![1],
@@ -399,7 +378,7 @@ class MM4 {
         ])
       bendParameters[[6, 6, 6]] = BondBend(
         bendStiffness: 0.740,
-        stretchBendStiffness: 0.140 * 100,
+        stretchBendStiffness: 0.140,
         degrees: [109.50, 110.40, 111.80],
         lengths: [
           stretchParameters[[6, 6]]![1],
@@ -585,6 +564,8 @@ class MM4 {
     var bondTorsion: OpenMM_CustomCompoundBondForce
     
     do {
+      // TODO: Add bend-torsion-bend, but as a separate force because it's so
+      // costly.
       let energy = """
       torsion + torsion_stretch;
       torsion = 0.5 * (
