@@ -40,6 +40,7 @@ import simd
 //
 // Eventually, sp2 carbon, which requires more changes than the other elements.
 
+// TODO: Remove this constant once the entire forcefield is fixed.
 fileprivate let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
 
 class MM4 {
@@ -435,7 +436,9 @@ class MM4 {
         default: fatalError(
           "Invalid neighbor count: \((neighborHydrogens, neighborCarbons))")
         }
-        angleTypes[bond] = type // WARNING: Don't forget this is off by 1.
+        
+        // WARNING: Don't forget this is off by 1.
+        angleTypes[bond] = type
         
         var atomID1 = Int(bond[0])
         var atomID3 = Int(bond[2])
@@ -456,7 +459,8 @@ class MM4 {
     
     do {
       let energy = """
-      -1.5226e-4 * stiffness * (
+      \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
+      -0.021914 * stiffness * (
         angle(p1, p2, p3) - equilibrium_angle1
       ) * (
         angle(p1, p2, p4) - equilibrium_angle2
@@ -544,13 +548,11 @@ class MM4 {
             angles[j] = bendParams[2]
             stiffnesses[j] = bendBendParams
           }
-          var stiffness = stiffnesses[0] * stiffnesses[1]
-          stiffness *= /*100 * */kjPerMolPerAJ
           
           for j in 0..<4 {
             anglePairParticles[j] = Int(particles[j])
           }
-          anglePairParameters[0] = stiffness
+          anglePairParameters[0] = stiffnesses[0] * stiffnesses[1]
           anglePairParameters[1] = angles[0]
           anglePairParameters[2] = angles[1]
           
@@ -643,12 +645,12 @@ class MM4 {
     
     bondStretch.transfer()
     bondBend.transfer()
-//    bondBendBend.transfer()
+    bondBendBend.transfer()
 //    bondTorsion.transfer()
     
     system.addForce(bondStretch)
     system.addForce(bondBend)
-//    system.addForce(bondBendBend)
+    system.addForce(bondBendBend)
 //    system.addForce(bondTorsion)
     
     // self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
