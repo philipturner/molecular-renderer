@@ -40,24 +40,29 @@ import simd
 //
 // Eventually, sp2 carbon, which requires more changes than the other elements.
 
-// TODO: Remove this constant once the entire forcefield is fixed.
-fileprivate let kjPerMolPerAJ: Double = 1e-18 / (1000 / 6.022e23)
-
 class MM4 {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  convenience init(diamondoid: Diamondoid, fsPerFrame: Int = 10) {
+  convenience init(
+    diamondoid: Diamondoid,
+    fsPerFrame: Int = 10
+  ) {
     self.init(
       atoms: diamondoid.atoms,
       bonds: diamondoid.bonds,
+      velocities: diamondoid.velocities,
       fsPerFrame: fsPerFrame)
   }
   
-  // 1.2 ps/s for now. Eventually, drive that up to 12 ps/s.
-  init(atoms: [MRAtom], bonds: [SIMD2<Int32>], fsPerFrame: Int = 10) {
+  init(
+    atoms: [MRAtom],
+    bonds: [SIMD2<Int32>],
+    velocities: [SIMD3<Float>]? = nil,
+    fsPerFrame: Int = 10
+  ) {
     self.system = OpenMM_System()
     
     var nonbond: OpenMM_CustomNonbondedForce
@@ -721,7 +726,7 @@ class MM4 {
       // momentum of each rigid body individually.
       let state = context.state(types: .init(rawValue:
           OpenMM_State_Positions.rawValue | OpenMM_State_Velocities.rawValue))
-      let velocities = state.velocities
+      let stateVelocities = state.velocities
       var totalMass: Double = 0
       var totalMomentum: SIMD3<Double> = .zero
       var centerOfMass: SIMD3<Double> = .zero
@@ -729,7 +734,7 @@ class MM4 {
       for i in 0..<atoms.count {
         let mass = masses[i]
         let position = positions[i]
-        let velocity = velocities[i]
+        let velocity = stateVelocities[i]
         totalMass += mass
         totalMomentum += mass * velocity
         centerOfMass += mass * position
@@ -738,7 +743,7 @@ class MM4 {
       
       let correction = -totalMomentum / totalMass
       for i in 0..<atoms.count {
-        velocities[i] += correction
+        stateVelocities[i] += correction + SIMD3(velocities?[i] ?? .zero)
       }
       self.context.velocities = state.velocities
     }
@@ -748,22 +753,6 @@ class MM4 {
       psPerStep: 2 * OpenMM_PsPerFs,
       stepsPerFrame: fsPerFrame / 2,
       elements: atoms.map(\.element))
-  }
-  
-  typealias VectorVield = (Int, SIMD3<Float>) -> SIMD3<Float>
-  
-  func velocityVectorField(_ closure: VectorVield) {
-    let state = context.state(types: .init(rawValue:
-        OpenMM_State_Positions.rawValue | OpenMM_State_Velocities.rawValue))
-    let positions = state.positions
-    let velocities = state.velocities
-    
-    for i in 0..<positions.size {
-      let position = SIMD3<Float>(positions[i])
-      let velocity = closure(i, position) + SIMD3(velocities[i])
-      velocities[i] = SIMD3(velocity)
-    }
-    context.velocities = velocities
   }
   
   func simulate(ps: Double) {

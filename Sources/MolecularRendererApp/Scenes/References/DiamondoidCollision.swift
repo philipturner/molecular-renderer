@@ -13,8 +13,7 @@ struct DiamondoidCollision {
   var provider: OpenMM_AtomProvider
   
   init() {
-    let horizontalSpacing: Float = 3 // nm
-    let verticalSpacing: Float = 3 // nm
+    let horizontalSpacing: Float = 6 // nm
     let approachSpeed: Float = 4 // nm/ps, v2 - v1
     var blockVelocities: [SIMD3<Float>] = []
     
@@ -38,7 +37,7 @@ struct DiamondoidCollision {
     var baseAtoms: [MRAtom]
     
     do {
-      let layerWidth: Int = 10
+      let layerWidth: Int = 100
       let ccBondLength = Constants.bondLengths[[6, 6]]!.average
       
       var baseLayer: [SIMD3<Float>] = [.zero]
@@ -183,13 +182,13 @@ struct DiamondoidCollision {
       
       switch i {
       case -1:
-        translation = [0, -verticalSpacing / 2, 0]
-        rotation = simd_quatf(angle: 0 * .pi / 2, axis: [0, 0, +1])
-        velocity = [approachSpeed / 2, -approachSpeed / 20, 0]
+        translation = [-horizontalSpacing / 2, 0, 0]
+        rotation = simd_quatf(angle: .pi / 2, axis: [0, 0, +1])
+        velocity = [approachSpeed / 2, 0, 0]
       case 1:
-        translation = [0, +verticalSpacing / 2, 0]
-        rotation = simd_quatf(angle: 0 * .pi / 2, axis: [0, -1, 0])
-        velocity = [-approachSpeed / 2, -approachSpeed / 20, 0]
+        translation = [+horizontalSpacing / 2, 0, 0]
+        rotation = simd_quatf(angle: .pi / 2, axis: [0, -1, 0])
+        velocity = [-approachSpeed / 2, 0, 0]
       default:
         fatalError("This should never happen.")
       }
@@ -203,56 +202,18 @@ struct DiamondoidCollision {
       }
     }
     
-    #if true
-    for i in [1, 2] {
-      atoms += atoms.map {
-        var copy = $0
-        copy.origin += SIMD3(horizontalSpacing * Float(i), 0, 0)
-        return copy
+    let velocities = atoms.indices.map { i in
+      if i % (2 * baseAtoms.count) < baseAtoms.count {
+        return blockVelocities[0]
+      } else {
+        return blockVelocities[1]
       }
     }
-    #endif
-    
-    let diamondoid = Diamondoid(atoms: atoms)
+    precondition(!velocities.contains(where: { length($0) < 0.01 }))
+    let diamondoid = Diamondoid(atoms: atoms, velocities: velocities)
     print("Atom count: \(diamondoid.atoms.count)")
     
     let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 10)
-    simulator.velocityVectorField { i, _ in
-      let numCarbons = 8 * baseAtoms.count
-      var instance: Int
-      if i < numCarbons {
-        precondition(diamondoid.atoms[i].element == 6)
-        instance = i / baseAtoms.count
-      } else {
-        precondition(diamondoid.atoms[i].element == 1)
-        instance = (i - numCarbons) / (
-          (diamondoid.atoms.count - numCarbons) / 8)
-      }
-      
-      var output: SIMD3<Float> = .zero
-      if instance % 2 == 0 {
-        output[1] = 1
-      } else {
-        output[1] = -1
-      }
-      switch instance / 2 {
-      case 0: output[0] = 2
-      case 1: output[0] = 1
-      case 2: output[0] = -1
-      case 3: output[0] = -2
-      default: fatalError()
-      }
-      output = normalize(output)
-      output *= approachSpeed / 2
-      return output
-    }
-//    simulator.velocityVectorField { i, _ in
-//      if i % (2 * baseAtoms.count) < baseAtoms.count {
-//        return blockVelocities[0]
-//      } else {
-//        return blockVelocities[1]
-//      }
-//    }
     simulator.simulate(ps: 10)
     provider = simulator.provider
   }

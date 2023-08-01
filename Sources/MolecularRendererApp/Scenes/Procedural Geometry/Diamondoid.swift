@@ -8,10 +8,12 @@
 import Foundation
 import MolecularRenderer
 import simd
+import QuartzCore
 
 struct Diamondoid {
   var atoms: [MRAtom]
   var bonds: [SIMD2<Int32>]
+  var velocities: [SIMD3<Float>]
   
   // A bounding box that will never be exceeded during a simulation.
   var boundingBox: simd_float2x3
@@ -23,7 +25,7 @@ struct Diamondoid {
     self.init(atoms: atoms)
   }
   
-  init(atoms: [MRAtom]) {
+  init(atoms: [MRAtom], velocities: [SIMD3<Float>]? = nil) {
     let sp3BondAngle = Constants.sp3BondAngle
     precondition(atoms.count > 0, "Not enough atoms.")
     
@@ -143,122 +145,221 @@ struct Diamondoid {
       centerNeighbors.append(output)
     }
     
-    var hydrogensIndex = atoms.count
-    var hydrogenAtoms: [MRAtom] = []
+    // Round up the grid size to a binary multiple in each dimension, then
+    // create a cube with that size. Most cells will be skipped, especially for
+    // elongated structures, but that's not a bottleneck right now. It can be
+    // easily fixed in a future optimization that polishes up the code.
+    var newIndicesMap: [Int32] = Array(repeating: -1, count: atoms.count)
     self.atoms = []
     self.bonds = []
-    for i in atoms.indices {
-      self.atoms.append(atoms[i])
-      
-      var neighborTypes: [Int] = []
-      var neighborCenters: [SIMD3<Float>] = []
-      for j in 0..<centerTypes[i] {
-        let index = Int(centerNeighbors[i][j])
-        neighborTypes.append(centerTypes[index])
-        neighborCenters.append(atoms[index].origin)
-        
-        if i < index {
-          bonds.append(SIMD2(
-            Int32(truncatingIfNeeded: i),
-            Int32(truncatingIfNeeded: index)))
-        }
+    self.velocities = []
+    
+    let dimensionRangeEnds = SIMD3<Int>(
+      roundUpToPowerOf2(Int(boundingBox[0]) + 1),
+      roundUpToPowerOf2(Int(boundingBox[1]) + 1),
+      roundUpToPowerOf2(Int(boundingBox[2]) + 1))
+    let maxDimension = dimensionRangeEnds.max()
+    let mortonRangeEnd = 1 << (3 * maxDimension.trailingZeroBitCount)
+    
+    let initialMasks: SIMD3<Int> = SIMD3(1, 2, 4)
+    var dimensionIncludedMasks: SIMD3<Int> = .zero
+    var dimensionCandidateMasks: SIMD3<Int> = .zero
+    for dim in 0..<3 {
+      let trailingZeroes = dimensionRangeEnds[dim].trailingZeroBitCount
+      for i in 0..<trailingZeroes {
+        dimensionIncludedMasks[dim] |= initialMasks[dim] << (3 * i)
       }
-      
-      let valenceElectrons = Constants.valenceElectrons(
-        element: atoms[i].element)
-      if centerTypes[i] > valenceElectrons {
-        fatalError("Too many bonds.")
-      }
-      
-      var totalBonds = centerTypes[i]
-      func addHydrogen(direction: SIMD3<Float>) {
-        guard totalBonds < valenceElectrons else {
-          return
-        }
-        totalBonds += 1
-        
-        let bondLength = Constants.bondLengths[[1, atoms[i].element]]!.average
-        let hydrogenCenter = atoms[i].origin + bondLength * direction
-        hydrogenAtoms.append(MRAtom(origin: hydrogenCenter, element: 1))
-        self.bonds.append(SIMD2(
-          Int32(truncatingIfNeeded: i),
-          Int32(truncatingIfNeeded: hydrogensIndex)))
-        hydrogensIndex += 1
-      }
-      
-      switch centerTypes[i] {
-      case 4:
-        break
-      case 3:
-        let sideAB = neighborCenters[1] - neighborCenters[0]
-        let sideAC = neighborCenters[2] - neighborCenters[0]
-        var normal = normalize(cross(sideAB, sideAC))
-        
-        let deltaA = atoms[i].origin - neighborCenters[0]
-        if dot(normal, deltaA) < 0 {
-          normal = -normal
-        }
-        
-        addHydrogen(direction: normal)
-      case 2:
-        let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
-        guard distance(midPoint, atoms[i].origin) > 0.001 else {
-          fatalError("sp3 carbons are too close to 180 degrees.")
-        }
-        
-        let normal = normalize(atoms[i].origin - midPoint)
-        let axis = normalize(neighborCenters[1] - midPoint)
-        for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
-          let rotation = simd_quatf(angle: angle, axis: axis)
-          let direction = simd_act(rotation, normal)
-          addHydrogen(direction: direction)
-        }
-      case 1:
-        guard neighborTypes[0] > 1 else {
-          fatalError("Cannot determine structure of primary carbon.")
-        }
-        
-        let j = Int(centerNeighbors[i][0])
-        var referenceIndex: Int?
-        for k in 0..<neighborTypes[0] {
-          let index = Int(centerNeighbors[j][k])
-          if i != index {
-            referenceIndex = index
-            break
-          }
-        }
-        guard let referenceIndex else {
-          fatalError("Could not find valid neighbor index.")
-        }
-        let referenceCenter = atoms[referenceIndex].origin
-        let normal = normalize(atoms[i].origin - atoms[j].origin)
-        
-        let referenceDelta = atoms[j].origin - referenceCenter
-        var orthogonal = referenceDelta - normal * dot(normal, referenceDelta)
-        guard length(orthogonal) > 0.001 else {
-          fatalError("sp3 carbons are too close to 180 degrees.")
-        }
-        orthogonal = normalize(orthogonal)
-        let axis = cross(normal, orthogonal)
-        
-        var directions: [SIMD3<Float>] = []
-        let firstHydrogenRotation = simd_quatf(
-          angle: .pi - sp3BondAngle, axis: axis)
-        directions.append(simd_act(firstHydrogenRotation, normal))
-        
-        let secondHydrogenRotation = simd_quatf(
-          angle: 120 * .pi / 180, axis: normal)
-        directions.append(simd_act(secondHydrogenRotation, directions[0]))
-        directions.append(simd_act(secondHydrogenRotation, directions[1]))
-        
-        for direction in directions {
-          addHydrogen(direction: direction)
-        }
-      default:
-        fatalError("This should never happen.")
+      dimensionCandidateMasks[dim] = dimensionIncludedMasks[dim]
+      for i in trailingZeroes...maxDimension.trailingZeroBitCount {
+        dimensionCandidateMasks[dim] |= initialMasks[dim] << (3 * i)
       }
     }
-    self.atoms.append(contentsOf: hydrogenAtoms)
+    precondition(all(dimensionIncludedMasks .<= mortonRangeEnd))
+    precondition(any(dimensionIncludedMasks .>= mortonRangeEnd >> 3))
+    precondition(all(dimensionCandidateMasks .>= mortonRangeEnd))
+    
+  outer:
+    for mortonIndex in 0..<mortonRangeEnd {
+      for dim in 0..<3 {
+        let candidateMask = mortonIndex & dimensionCandidateMasks[dim]
+        let includedMask = mortonIndex & dimensionIncludedMasks[dim]
+        if candidateMask != includedMask {
+          continue outer
+        }
+      }
+      
+      // Source:
+      // https://stackoverflow.com/a/28358035
+      /*
+       uint64_t morton3(uint64_t x) {
+           x = x & 0x9249249249249249;
+           x = (x | (x >> 2))  & 0x30c30c30c30c30c3;
+           x = (x | (x >> 4))  & 0xf00f00f00f00f00f;
+           x = (x | (x >> 8))  & 0x00ff0000ff0000ff;
+           x = (x | (x >> 16)) & 0xffff00000000ffff;
+           x = (x | (x >> 32)) & 0x00000000ffffffff;
+           return x;
+       }
+       uint64_t bits;
+       uint64_t x = morton3(bits)
+       uint64_t y = morton3(bits>>1)
+       uint64_t z = morton3(bits>>2)
+       */
+      
+      func morton3(_ input: Int) -> Int {
+        var x = UInt64(input) & 0x9249249249249249
+        x = (x | (x >> 2))  & 0x30c30c30c30c30c3
+        x = (x | (x >> 4))  & 0xf00f00f00f00f00f
+        x = (x | (x >> 8))  & 0x00ff0000ff0000ff
+        x = (x | (x >> 16)) & 0xffff00000000ffff
+        x = (x | (x >> 32)) & 0x00000000ffffffff
+        return Int(x)
+      }
+      let x = Int32(morton3(mortonIndex))
+      let y = Int32(morton3(mortonIndex >> 1))
+      let z = Int32(morton3(mortonIndex >> 2))
+      let coords = SIMD3(x, y, z)
+      if any(coords .>= boundingBox) {
+        continue outer
+      }
+      
+      var address = coords.x
+      address += boundingBox.x * coords.y
+      address += boundingBox.x * boundingBox.y * coords.z
+      let gridSlot = grid[Int(address)]
+      
+      let numAtoms = Int(gridSlot[1])
+      precondition(numAtoms <= 16)
+      guard numAtoms > 0 else {
+        continue
+      }
+      
+      let sector = sectors[Int(gridSlot[0])]
+      for slotIndex in 0..<numAtoms {
+        let atomID = Int(sector[slotIndex])
+        precondition(atomID > -1)
+        
+        let newAtomID = Int32(self.atoms.count)
+        newIndicesMap[atomID] = newAtomID
+        self.atoms.append(atoms[atomID])
+        self.velocities.append(velocities?[atomID] ?? .zero)
+        
+        var neighborTypes: [Int] = []
+        var neighborCenters: [SIMD3<Float>] = []
+        for j in 0..<centerTypes[atomID] {
+          let index = Int(centerNeighbors[atomID][j])
+          neighborTypes.append(centerTypes[index])
+          neighborCenters.append(atoms[index].origin)
+          
+          // Change this; store the bonds with indices being sorted inside the
+          // bond, but only add a bond when the neighbor is already inside the
+          // final list.
+          let newNeighborID = newIndicesMap[index]
+          guard newNeighborID > -1 else {
+            continue
+          }
+          var newBond: SIMD2<Int32> = .zero
+          newBond[0] = min(newAtomID, newNeighborID)
+          newBond[1] = max(newAtomID, newNeighborID)
+          bonds.append(newBond)
+        }
+        
+        let valenceElectrons = Constants.valenceElectrons(
+          element: atoms[atomID].element)
+        if centerTypes[atomID] > valenceElectrons {
+          fatalError("Too many bonds.")
+        }
+        
+        var totalBonds = centerTypes[atomID]
+        func addHydrogen(direction: SIMD3<Float>) {
+          guard totalBonds < valenceElectrons else {
+            return
+          }
+          totalBonds += 1
+          
+          let bondLength = Constants.bondLengths[
+            [1, atoms[atomID].element]]!.average
+          let hydrogenCenter = atoms[atomID].origin + bondLength * direction
+          let hydrogenID = Int32(self.atoms.count)
+          
+          self.atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
+          self.velocities.append(velocities?[atomID] ?? .zero)
+          self.bonds.append(SIMD2(Int32(newAtomID), hydrogenID))
+        }
+        
+        switch centerTypes[atomID] {
+        case 4:
+          break
+        case 3:
+          let sideAB = neighborCenters[1] - neighborCenters[0]
+          let sideAC = neighborCenters[2] - neighborCenters[0]
+          var normal = normalize(cross(sideAB, sideAC))
+          
+          let deltaA = atoms[atomID].origin - neighborCenters[0]
+          if dot(normal, deltaA) < 0 {
+            normal = -normal
+          }
+          
+          addHydrogen(direction: normal)
+        case 2:
+          let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
+          guard distance(midPoint, atoms[atomID].origin) > 0.001 else {
+            fatalError("sp3 carbons are too close to 180 degrees.")
+          }
+          
+          let normal = normalize(atoms[atomID].origin - midPoint)
+          let axis = normalize(neighborCenters[1] - midPoint)
+          for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
+            let rotation = simd_quatf(angle: angle, axis: axis)
+            let direction = simd_act(rotation, normal)
+            addHydrogen(direction: direction)
+          }
+        case 1:
+          guard neighborTypes[0] > 1 else {
+            fatalError("Cannot determine structure of primary carbon.")
+          }
+          
+          let j = Int(centerNeighbors[atomID][0])
+          var referenceIndex: Int?
+          for k in 0..<neighborTypes[0] {
+            let index = Int(centerNeighbors[j][k])
+            if atomID != index {
+              referenceIndex = index
+              break
+            }
+          }
+          guard let referenceIndex else {
+            fatalError("Could not find valid neighbor index.")
+          }
+          let referenceCenter = atoms[referenceIndex].origin
+          let normal = normalize(atoms[atomID].origin - atoms[j].origin)
+          
+          let referenceDelta = atoms[j].origin - referenceCenter
+          var orthogonal = referenceDelta - normal * dot(normal, referenceDelta)
+          guard length(orthogonal) > 0.001 else {
+            fatalError("sp3 carbons are too close to 180 degrees.")
+          }
+          orthogonal = normalize(orthogonal)
+          let axis = cross(normal, orthogonal)
+          
+          var directions: [SIMD3<Float>] = []
+          let firstHydrogenRotation = simd_quatf(
+            angle: .pi - sp3BondAngle, axis: axis)
+          directions.append(simd_act(firstHydrogenRotation, normal))
+          
+          let secondHydrogenRotation = simd_quatf(
+            angle: 120 * .pi / 180, axis: normal)
+          directions.append(simd_act(secondHydrogenRotation, directions[0]))
+          directions.append(simd_act(secondHydrogenRotation, directions[1]))
+          
+          for direction in directions {
+            addHydrogen(direction: direction)
+          }
+        default:
+          fatalError("This should never happen.")
+        }
+      }
+    }
   }
   
   mutating func center() {

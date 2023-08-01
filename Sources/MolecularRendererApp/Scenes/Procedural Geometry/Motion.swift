@@ -13,9 +13,9 @@ func rotationVectorField(
   angularSpeedInRadPerPs: Float,
   origin: SIMD3<Float>,
   axis: SIMD3<Float>
-) -> MM4.VectorVield {
+) -> (SIMD3<Float>) -> SIMD3<Float> {
   let rotation = simd_quatf(angle: .pi / 2, axis: axis)
-  return { _, position in
+  return { position in
     let delta = position - origin
     let radius = length(delta)
     var direction = normalize(delta)

@@ -90,3 +90,12 @@ func sp3Delta(
   let rotation = simd_quatf(angle: Constants.sp3BondAngle / 2, axis: axis)
   return simd_act(rotation, start)
 }
+
+func roundUpToPowerOf2(_ input: Int) -> Int {
+  1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
+}
+
+/// Rounds an integer down to the nearest power of 2.
+func roundDownToPowerOf2(_ input: Int) -> Int {
+  1 << (Int.bitWidth - 1 - input.leadingZeroBitCount)
+}

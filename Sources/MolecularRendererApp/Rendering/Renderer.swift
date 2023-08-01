@@ -46,17 +46,20 @@ class Renderer {
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-    let figure = Nanosystems.Chapter4.Figure3()
-    var diamondoid = figure.a
-    diamondoid.center()
+//    let figure = Nanosystems.Chapter4.Figure3()
+//    var diamondoid = figure.a
+//    diamondoid.center()
     
     #if true
     self.atomProvider = DiamondoidCollision().provider
+//    let simulator = MM4(diamondoid: atom)
+//    simulator.simulate(ps: 10)
+//    self.atomProvider = simulator.provider
     serializer.save(
-      fileName: "DiamondoidCollision",
+      fileName: "Octane",
       provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "DiamondoidCollision")
+    let simulation = serializer.load(fileName: "Octane")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     #endif
   }
