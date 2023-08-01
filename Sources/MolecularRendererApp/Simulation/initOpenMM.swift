@@ -15,6 +15,9 @@ public func initOpenMM() {
   // Disable the nearest neighbor list because we run very small simulations.
   setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "0", 1)
   
+  // Use the ghost atoms fix for non-contiguous atom tiles.
+  setenv("OPENMM_METAL_USE_GHOST_ATOMS", "1", 1)
+  
   // Slightly optimize energy reductions while minimizing the increase in power
   // consumption, which harms performance for larger systems.
   setenv("OPENMM_METAL_REDUCE_ENERGY_THREADGROUPS", "2", 1)

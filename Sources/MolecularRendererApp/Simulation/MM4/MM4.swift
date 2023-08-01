@@ -9,6 +9,7 @@ import Foundation
 import MolecularRenderer
 import OpenMM
 import simd
+import QuartzCore
 
 // "An improved force field (MM4) for saturated hydrocarbons"
 // - 1996
@@ -116,10 +117,6 @@ class MM4 {
         }
       }
       
-      print(groups.count)
-      print(groups.filter { $0.movedIndex == nil }.count)
-      
-      
       var newIndicesMap: [Int32] = .init(repeating: -1, count: inputAtoms.count)
       for group in groups where group.movedIndex == nil {
         var indices = group.indices!
@@ -129,16 +126,10 @@ class MM4 {
         
         let rangeNumAtoms = (indices.count + 31) / 32 * 32
         let numGhostAtoms = rangeNumAtoms - indices.count
-        var totalMass: Float = 0
-        var centerOfMass: SIMD3<Float> = .zero
         for (i, index) in indices.enumerated() {
           newIndicesMap[Int(index)] = Int32(rangeStart + i)
           let atom = inputAtoms[Int(index)]
-          let approximateMass = 2 * Float(atom.element)
           precondition(atom.element > 0)
-          
-          totalMass += approximateMass
-          centerOfMass += approximateMass * atom.origin
           
           var mass: Double
           switch atom.element {
@@ -158,42 +149,14 @@ class MM4 {
           velocities.append(inputVelocities?[Int(index)] ?? .zero)
           system.addParticle(mass: mass)
         }
-        centerOfMass /= totalMass
         
-        var closestAtomDistance: Float = .greatestFiniteMagnitude
-        var closestAtomIndex: Int = -1
-        for i in rangeStart..<rangeStart + indices.count {
-          let atom = atoms[i]
-          let atomDistance = distance(atom.origin, centerOfMass)
-          if atomDistance < closestAtomDistance {
-            closestAtomDistance = atomDistance
-            closestAtomIndex = i
-          }
-        }
-        
-        let closestAtomCenter = atoms[closestAtomIndex].origin
-        let closestAtomVelocity = velocities[closestAtomIndex]
-        for i in 0..<numGhostAtoms {
-          // TODO: Fix the issue with constraints by creating a genuine bonded
-          // force with the ghost particles. Observe its effects in octane, then
-          // decrease the magnitude of the potential energy well to something
-          // vanishingly small. But before doing that, see whether a typical
-          // bond-stretch force magnitude + very small effectively suppresses
-          // the force (instead of making it worse).
-          let direction = normalize(SIMD3<Float>.random(in: 0..<1))
-          
-          let ghostDistance: Float = 1e-1
+        for _ in 0..<numGhostAtoms {
           let ghostAtom = MRAtom(
-            origin: closestAtomCenter + ghostDistance * direction, element: 0)
+            origin: [.nan, .nan, .nan], element: 0)
           atoms.append(ghostAtom)
           masses.append(0)
-          velocities.append(closestAtomVelocity)
-          system.addParticle(mass: 1e-4)
-          
-          let ghostAtomIndex = rangeStart + indices.count + i
-          system.addConstraint(
-            particles: SIMD2(closestAtomIndex, ghostAtomIndex),
-            distance: Double(ghostDistance))
+          velocities.append([.nan, .nan, .nan])
+          system.addParticle(mass: 0)
         }
         precondition(atoms.count % 32 == 0)
         precondition(atoms.count == masses.count)
@@ -263,9 +226,9 @@ class MM4 {
     var nonbondParameters: [UInt8: OpenMM_DoubleArray] = [:]
     do {
       let ghostParameters = OpenMM_DoubleArray(size: 3)
-      ghostParameters[0] = 2 * OpenMM_NmPerAngstrom
-      ghostParameters[1] = 0
-      ghostParameters[2] = 0
+      ghostParameters[0] = 1//1.640 * OpenMM_NmPerAngstrom
+      ghostParameters[1] = 1//0.017 * OpenMM_KJPerKcal
+      ghostParameters[2] = 1
       nonbondParameters[0] = ghostParameters
       
       let hydrogenParameters = OpenMM_DoubleArray(size: 3)
@@ -859,8 +822,12 @@ class MM4 {
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
     let positions = OpenMM_Vec3Array(size: atoms.count)
-    for i in 0..<atoms.count {
-      positions[i] = SIMD3(atoms[i].origin)
+    for (i, atom) in atoms.enumerated() {
+      var origin = atom.origin
+      if atom.element == 0 {
+        origin = SIMD3(repeating: .nan)
+      }
+      positions[i] = SIMD3(origin)
     }
     self.context.positions = positions
     precondition(context.platform.name == "HIP")
@@ -879,7 +846,7 @@ class MM4 {
       var totalMomentum: SIMD3<Double> = .zero
       var centerOfMass: SIMD3<Double> = .zero
       
-      for i in 0..<atoms.count {
+      for i in 0..<atoms.count where atoms[i].element > 0 {
         let mass = masses[i]
         let position = positions[i]
         let velocity = stateVelocities[i]
@@ -890,7 +857,7 @@ class MM4 {
       centerOfMass /= totalMass
       
       let correction = -totalMomentum / totalMass
-      for i in 0..<atoms.count {
+      for i in 0..<atoms.count where atoms[i].element > 0 {
         stateVelocities[i] += correction + SIMD3(velocities[i])
       }
       self.context.velocities = state.velocities

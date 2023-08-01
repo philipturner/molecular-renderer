@@ -56,7 +56,6 @@ class OpenMM_AtomProvider: MRAtomProvider {
         count += 1
       }
     }
-    print(atoms.map { $0.origin })
     self.states.append(atoms)
   }
   
