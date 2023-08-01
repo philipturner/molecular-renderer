@@ -214,7 +214,7 @@ struct DiamondoidCollision {
     print("Atom count: \(diamondoid.atoms.count)")
     
     let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 10)
-    simulator.simulate(ps: 10)
+    simulator.simulate(ps: 2) // 10
     provider = simulator.provider
   }
 }

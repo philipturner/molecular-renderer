@@ -58,25 +58,174 @@ class MM4 {
   }
   
   init(
-    atoms: [MRAtom],
-    bonds: [SIMD2<Int32>],
-    velocities: [SIMD3<Float>]? = nil,
+    atoms inputAtoms: [MRAtom],
+    bonds inputBonds: [SIMD2<Int32>],
+    velocities inputVelocities: [SIMD3<Float>]? = nil,
     fsPerFrame: Int = 10
   ) {
     self.system = OpenMM_System()
     
+    var atoms: [MRAtom] = []
+    var bonds: [SIMD2<Int32>] = []
+    var velocities: [SIMD3<Float>] = []
+    var masses: [Double] = []
+    var rigidBodies: [Range<Int>] = []
+    
+    do {
+      struct AtomGroup {
+        var indices: [Int32]?
+        var movedIndex: Int32?
+        
+        mutating func add(to other: inout AtomGroup, index: Int) {
+          precondition(indices!.count <= other.indices!.count)
+          precondition(movedIndex == nil)
+          other.indices! += indices!
+          movedIndex = Int32(index)
+        }
+      }
+      var groups = inputAtoms.indices.map { i in
+        AtomGroup(
+          indices: [Int32(i)],
+          movedIndex: nil)
+      }
+      
+      for bond in inputBonds {
+        var groupIDs: SIMD2<Int> = SIMD2(-1, -1)
+        for i in 0..<2 {
+          groupIDs[i] = Int(bond[i])
+          var group = groups[groupIDs[i]]
+          while let movedIndex = group.movedIndex {
+            groupIDs[i] = Int(movedIndex)
+            group = groups[groupIDs[i]]
+          }
+        }
+        precondition(!any(groupIDs .== -1))
+        if groupIDs[0] == groupIDs[1] {
+          // The groups have already been fused.
+          continue
+        }
+        
+        var group0 = groups[groupIDs[0]]
+        var group1 = groups[groupIDs[1]]
+        if group0.indices!.count < group1.indices!.count {
+          group0.add(to: &groups[groupIDs[1]], index: groupIDs[1])
+          groups[groupIDs[0]] = group0
+        } else {
+          group1.add(to: &groups[groupIDs[0]], index: groupIDs[0])
+          groups[groupIDs[1]] = group1
+        }
+      }
+      
+      print(groups.count)
+      print(groups.filter { $0.movedIndex == nil }.count)
+      
+      
+      var newIndicesMap: [Int32] = .init(repeating: -1, count: inputAtoms.count)
+      for group in groups where group.movedIndex == nil {
+        var indices = group.indices!
+        let rangeStart = rigidBodies.last?.upperBound ?? 0
+        precondition(rangeStart % 32 == 0)
+        indices.sort()
+        
+        let rangeNumAtoms = (indices.count + 31) / 32 * 32
+        let numGhostAtoms = rangeNumAtoms - indices.count
+        var totalMass: Float = 0
+        var centerOfMass: SIMD3<Float> = .zero
+        for (i, index) in indices.enumerated() {
+          newIndicesMap[Int(index)] = Int32(rangeStart + i)
+          let atom = inputAtoms[Int(index)]
+          let approximateMass = 2 * Float(atom.element)
+          precondition(atom.element > 0)
+          
+          totalMass += approximateMass
+          centerOfMass += approximateMass * atom.origin
+          
+          var mass: Double
+          switch atom.element {
+          case 1:
+            mass = 1.008
+          case 6:
+            // Don't give any special treatment to cyclobutane and cyclopentane
+            // carbons. Instead, restrict designs to only those based on a diamond
+            // lattice.
+            mass = 12.011
+          default:
+            fatalError("Unsupported element: \(atom.element)")
+          }
+          
+          atoms.append(atom)
+          masses.append(mass)
+          velocities.append(inputVelocities?[Int(index)] ?? .zero)
+          system.addParticle(mass: mass)
+        }
+        centerOfMass /= totalMass
+        
+        var closestAtomDistance: Float = .greatestFiniteMagnitude
+        var closestAtomIndex: Int = -1
+        for i in rangeStart..<rangeStart + indices.count {
+          let atom = atoms[i]
+          let atomDistance = distance(atom.origin, centerOfMass)
+          if atomDistance < closestAtomDistance {
+            closestAtomDistance = atomDistance
+            closestAtomIndex = i
+          }
+        }
+        
+        let closestAtomCenter = atoms[closestAtomIndex].origin
+        let closestAtomVelocity = velocities[closestAtomIndex]
+        for i in 0..<numGhostAtoms {
+          // TODO: Fix the issue with constraints by creating a genuine bonded
+          // force with the ghost particles. Observe its effects in octane, then
+          // decrease the magnitude of the potential energy well to something
+          // vanishingly small. But before doing that, see whether a typical
+          // bond-stretch force magnitude + very small effectively suppresses
+          // the force (instead of making it worse).
+          let direction = normalize(SIMD3<Float>.random(in: 0..<1))
+          
+          let ghostDistance: Float = 1e-1
+          let ghostAtom = MRAtom(
+            origin: closestAtomCenter + ghostDistance * direction, element: 0)
+          atoms.append(ghostAtom)
+          masses.append(0)
+          velocities.append(closestAtomVelocity)
+          system.addParticle(mass: 1e-4)
+          
+          let ghostAtomIndex = rangeStart + indices.count + i
+          system.addConstraint(
+            particles: SIMD2(closestAtomIndex, ghostAtomIndex),
+            distance: Double(ghostDistance))
+        }
+        precondition(atoms.count % 32 == 0)
+        precondition(atoms.count == masses.count)
+        precondition(atoms.count == velocities.count)
+        
+        let rangeEnd = rangeStart + rangeNumAtoms
+        rigidBodies.append(rangeStart..<rangeEnd)
+      }
+      for newIndex in newIndicesMap {
+        precondition(newIndex != -1)
+      }
+      
+      for bond in inputBonds {
+        let newIndex1 = newIndicesMap[Int(bond[0])]
+        let newIndex2 = newIndicesMap[Int(bond[1])]
+        bonds.append(SIMD2(newIndex1, newIndex2))
+      }
+    }
+    
     var nonbond: OpenMM_CustomNonbondedForce
     var nonbond14: OpenMM_CustomBondForce
     do {
-      let energy = """
-        epsilon * (
+      var energy = """
+        select(element1 * element2, epsilon * (
           -2.25 * (length / r)^6 +
           1.84e5 * exp(-12.00 * (r / length))
-        );
+        ), 0);
         """
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
-        epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
+        epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2)) * ghost_mask;
+        ghost_mask = select(element1 * element2, 1, 0);
         is_ch = is_min_h * is_max_c;
         is_min_h = select(min_element - 1, 0, 1);
         is_max_c = select(max_element - 1, 0, 1);
@@ -96,6 +245,12 @@ class MM4 {
       // TODO: When supporting non-carbon and non-hydrogen atoms, reduce the
       // value of 1-4 nonbonded interactions by 0.94x.
       
+      energy = """
+        epsilon * (
+          -2.25 * (length / r)^6 +
+          1.84e5 * exp(-12.00 * (r / length))
+        );
+        """
       nonbond14 = OpenMM_CustomBondForce(energy: "0.550 * " + energy)
       nonbond14.addPerBondParameter(name: "length")
       nonbond14.addPerBondParameter(name: "epsilon")
@@ -107,6 +262,12 @@ class MM4 {
     
     var nonbondParameters: [UInt8: OpenMM_DoubleArray] = [:]
     do {
+      let ghostParameters = OpenMM_DoubleArray(size: 3)
+      ghostParameters[0] = 2 * OpenMM_NmPerAngstrom
+      ghostParameters[1] = 0
+      ghostParameters[2] = 0
+      nonbondParameters[0] = ghostParameters
+      
       let hydrogenParameters = OpenMM_DoubleArray(size: 3)
       hydrogenParameters[0] = 1.640 * OpenMM_NmPerAngstrom
       hydrogenParameters[1] = 0.017 * OpenMM_KJPerKcal
@@ -120,23 +281,7 @@ class MM4 {
       nonbondParameters[6] = carbonParameters
     }
     
-    var masses: [Double] = []
     for atom in atoms {
-      var mass: Double
-      switch atom.element {
-      case 1:
-        mass = 1.008
-      case 6:
-        // Don't give any special treatment to cyclobutane and cyclopentane
-        // carbons. Instead, restrict designs to only those based on a diamond
-        // lattice.
-        mass = 12.011
-      default:
-        fatalError("Unsupported element: \(atom.element)")
-      }
-      
-      masses.append(mass)
-      system.addParticle(mass: mass)
       nonbond.addParticle(parameters: nonbondParameters[atom.element]!)
     }
     
@@ -520,6 +665,9 @@ class MM4 {
       let anglePairParticles = OpenMM_IntArray(size: 4)
       let anglePairParameters = OpenMM_DoubleArray(size: 3)
       for i in atoms.indices {
+        if atoms[i].element == 0 {
+          continue
+        }
         if atoms[i].element == 1 {
           continue
         }
@@ -743,7 +891,7 @@ class MM4 {
       
       let correction = -totalMomentum / totalMass
       for i in 0..<atoms.count {
-        stateVelocities[i] += correction + SIMD3(velocities?[i] ?? .zero)
+        stateVelocities[i] += correction + SIMD3(velocities[i])
       }
       self.context.velocities = state.velocities
     }

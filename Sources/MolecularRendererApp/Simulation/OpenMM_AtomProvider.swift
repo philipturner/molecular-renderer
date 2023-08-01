@@ -22,6 +22,8 @@ class OpenMM_AtomProvider: MRAtomProvider {
   private(set) var states: [[MRAtom]] = []
   
   // Specify each atom's atomic number beforehand; OpenMM doesn't provide that.
+  // Use element zero for ghost particles that keep diamondoids aligned to
+  // groups of 32 atoms.
   init(
     psPerStep: Double,
     stepsPerFrame: Int,
@@ -44,13 +46,17 @@ class OpenMM_AtomProvider: MRAtomProvider {
     let atoms = [MRAtom](
       unsafeUninitializedCapacity: elements.count
     ) { buffer, count in
-      for i in 0..<elements.count {
+      for (i, element) in elements.enumerated() {
+        guard element > 0 else {
+          continue
+        }
         let posInNm = SIMD3<Float>(positions[i])
-        let atom = MRAtom(origin: posInNm, element: elements[i])
-        buffer[i] = atom
+        let atom = MRAtom(origin: posInNm, element: element)
+        buffer[count] = atom
+        count += 1
       }
-      count = elements.count
     }
+    print(atoms.map { $0.origin })
     self.states.append(atoms)
   }
   

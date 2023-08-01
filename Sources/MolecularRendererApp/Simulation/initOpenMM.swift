@@ -19,16 +19,30 @@ public func initOpenMM() {
   // consumption, which harms performance for larger systems.
   setenv("OPENMM_METAL_REDUCE_ENERGY_THREADGROUPS", "2", 1)
   
+  let strLogLevel = getenv("MOLECULAR_RENDERER_LOG_LEVEL")
+  var logLevel = 0
+  if let strLogLevel {
+    guard let intLogLevel = Int(String(cString: strLogLevel) as String) else {
+      fatalError("Invalid log level: \(strLogLevel)")
+    }
+    logLevel = intLogLevel
+  }
+  
   let directory = OpenMM_Platform.defaultPluginsDirectory!
-  print("OpenMM plugins directory: \(directory)")
+  if logLevel >= 1 {
+    print("OpenMM plugins directory: \(directory)")
+  }
   
   let plugins = OpenMM_Platform.loadPlugins(directory: directory)!
-  print("Found plugins!")
-  
   let numPlugins = plugins.size
-  print("Number of plugins: \(numPlugins)")
+  if logLevel >= 1 {
+    print("Number of plugins: \(numPlugins)")
+  }
   
   for i in 0..<numPlugins {
-    print("Plugin \(i + 1): \(plugins[i])")
+    if logLevel >= 1 {
+      print("Plugin \(i + 1): \(plugins[i])")
+    }
   }
 }
+
