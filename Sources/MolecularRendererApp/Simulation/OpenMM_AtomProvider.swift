@@ -48,6 +48,9 @@ class OpenMM_AtomProvider: MRAtomProvider {
     ) { buffer, count in
       for (i, element) in elements.enumerated() {
         guard element > 0 else {
+          let position = positions[i]
+          precondition(
+            position.x.isNaN && position.y.isNaN && position.z.isNaN)
           continue
         }
         let posInNm = SIMD3<Float>(positions[i])
