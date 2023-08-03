@@ -194,12 +194,6 @@ class MM4 {
       // TODO: When supporting non-carbon and non-hydrogen atoms, reduce the
       // value of 1-4 nonbonded interactions by 0.94x.
       
-      energy = """
-        epsilon * (
-          -2.25 * (length / r)^6 +
-          1.84e5 * exp(-12.00 * (r / length))
-        );
-        """
       nonbond14 = OpenMM_CustomBondForce(energy: "0.550 * " + energy)
       nonbond14.addPerBondParameter(name: "length")
       nonbond14.addPerBondParameter(name: "epsilon")
