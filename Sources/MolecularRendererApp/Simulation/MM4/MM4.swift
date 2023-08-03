@@ -222,6 +222,12 @@ class MM4 {
       carbonParameters[1] = 0.037 * OpenMM_KJPerKcal
       carbonParameters[2] = 6
       nonbondParameters[6] = carbonParameters
+			
+			let largestVdwRadius = carbonParameters[0]
+			let switchingDistance = largestVdwRadius * pow(1.0 / 3, 1.0 / 6)
+//			nonbond.setCutoffDistance(largestVdwRadius)
+//			nonbond.setUseSwitchingFunction(true)
+//			nonbond.setSwitchingDistance(switchingDistance)
     }
     
     for atom in atoms {
@@ -853,6 +859,8 @@ class MM4 {
   func simulate(ps: Double) {
     simulate(ps: ps, context: self.context, integrator: self.integrator)
   }
+	
+	private static let profiling = true
   
   private func simulate(
     ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
@@ -862,19 +870,37 @@ class MM4 {
     let numFrames = numSteps / provider.stepsPerFrame
     precondition(
       numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
-    
-    print("t = 0.000 ps")
-    let state = context.state(types: OpenMM_State_Positions)
+		
+		print("t = 0.000 ps")
+		var start: Double?
+		if MM4.profiling {
+			#if DEBUG
+			fatalError("Do not profile in debug mode.")
+			#else
+			start = CACurrentMediaTime()
+			#endif
+		}
+    let state = context.state (types: OpenMM_State_Positions)
     provider.append(state: state, steps: 0)
     
     for t in 1...numFrames {
       let timestamp = Double(t * provider.stepsPerFrame * 2) / 1000
-      print("t = \(String(format: "%.3f", timestamp)) ps")
+			if !MM4.profiling || (t * provider.stepsPerFrame * 2) % 500 == 0 {
+				print("t = \(String(format: "%.3f", timestamp)) ps")
+			}
       
       integrator.step(provider.stepsPerFrame)
       
       let state = context.state(types: OpenMM_State_Positions)
       provider.append(state: state, steps: provider.stepsPerFrame)
     }
+		if MM4.profiling {
+			guard let start else {
+				fatalError()
+			}
+			let end = CACurrentMediaTime()
+			let seconds = String(format: "%.3f", end - start)
+			print("Latency: \(seconds) s")
+		}
   }
 }

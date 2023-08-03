@@ -13,7 +13,7 @@ import OpenMM
 
 public func initOpenMM() {
   // Disable the nearest neighbor list because we run very small simulations.
-  setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "0", 1)
+  setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "1", 1)
   
   // Slightly optimize energy reductions while minimizing the increase in power
   // consumption, which harms performance for larger systems.

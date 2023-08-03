@@ -37,7 +37,7 @@ struct DiamondoidCollision {
     var baseAtoms: [MRAtom]
     
     do {
-      let layerWidth: Int = 100
+      let layerWidth: Int = 20
       let ccBondLength = Constants.bondLengths[[6, 6]]!.average
       
       var baseLayer: [SIMD3<Float>] = [.zero]
@@ -213,7 +213,7 @@ struct DiamondoidCollision {
     let diamondoid = Diamondoid(atoms: atoms, velocities: velocities)
     print("Atom count: \(diamondoid.atoms.count)")
     
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 10)
+    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 100)
     simulator.simulate(ps: 10) // 10
     provider = simulator.provider
   }
