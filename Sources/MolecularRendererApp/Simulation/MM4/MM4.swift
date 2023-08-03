@@ -117,26 +117,12 @@ class MM4 {
         }
       }
       
-      var useGhostAtoms = false
-      if let value = getenv("OPENMM_METAL_USE_GHOST_ATOMS") {
-        let string = String(cString: value)
-        useGhostAtoms = (string == "1")
-      }
-      
       var newIndicesMap: [Int32] = .init(repeating: -1, count: inputAtoms.count)
       for group in groups where group.movedIndex == nil {
         var indices = group.indices!
         let rangeStart = rigidBodies.last?.upperBound ?? 0
-        if useGhostAtoms {
-          precondition(rangeStart % 32 == 0)
-        }
         indices.sort()
         
-        var rangeNumAtoms = indices.count
-        if useGhostAtoms {
-          rangeNumAtoms = (indices.count + 31) / 32 * 32
-        }
-        let numGhostAtoms = rangeNumAtoms - indices.count
         for (i, index) in indices.enumerated() {
           newIndicesMap[Int(index)] = Int32(rangeStart + i)
           let atom = inputAtoms[Int(index)]
@@ -160,21 +146,10 @@ class MM4 {
           velocities.append(inputVelocities?[Int(index)] ?? .zero)
           system.addParticle(mass: mass)
         }
-        
-        if useGhostAtoms {
-          for _ in 0..<numGhostAtoms {
-            let ghostAtom = MRAtom(origin: SIMD3(repeating: .nan), element: 0)
-            atoms.append(ghostAtom)
-            masses.append(.nan)
-            velocities.append(SIMD3(repeating: .nan))
-            system.addParticle(mass: .nan)
-          }
-          precondition(atoms.count % 32 == 0)
-        }
         precondition(atoms.count == masses.count)
         precondition(atoms.count == velocities.count)
         
-        let rangeEnd = rangeStart + rangeNumAtoms
+				let rangeEnd = rangeStart + indices.count
         rigidBodies.append(rangeStart..<rangeEnd)
       }
       for newIndex in newIndicesMap {
@@ -236,12 +211,6 @@ class MM4 {
     
     var nonbondParameters: [UInt8: OpenMM_DoubleArray] = [:]
     do {
-      let ghostParameters = OpenMM_DoubleArray(size: 3)
-      ghostParameters[0] = .nan
-      ghostParameters[1] = .nan
-      ghostParameters[2] = .nan
-      nonbondParameters[0] = ghostParameters
-      
       let hydrogenParameters = OpenMM_DoubleArray(size: 3)
       hydrogenParameters[0] = 1.640 * OpenMM_NmPerAngstrom
       hydrogenParameters[1] = 0.017 * OpenMM_KJPerKcal
@@ -835,7 +804,7 @@ class MM4 {
     let positions = OpenMM_Vec3Array(size: atoms.count)
     for (i, atom) in atoms.enumerated() {
       if atom.element == 0 {
-        precondition(all(__tg_isnan(atom.origin) .!= 0))
+        fatalError()
       }
       positions[i] = SIMD3(atom.origin)
     }

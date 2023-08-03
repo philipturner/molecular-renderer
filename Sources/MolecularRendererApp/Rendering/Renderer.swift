@@ -52,14 +52,14 @@ class Renderer {
     
     #if true
     self.atomProvider = DiamondoidCollision().provider
-//    let simulator = MM4(diamondoid: atom)
+//    let simulator = MM4(diamondoid: atomProvider)
 //    simulator.simulate(ps: 10)
 //    self.atomProvider = simulator.provider
     serializer.save(
-      fileName: "Octane",
+      fileName: "DiamondoidCollision",
       provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "Octane")
+    let simulation = serializer.load(fileName: "DiamondoidCollision")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     #endif
   }
