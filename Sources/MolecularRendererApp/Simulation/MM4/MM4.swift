@@ -49,7 +49,7 @@ class MM4 {
   
   convenience init(
     diamondoid: Diamondoid,
-    fsPerFrame: Int = 10
+    fsPerFrame: Double = 10
   ) {
     self.init(
       atoms: diamondoid.atoms,
@@ -62,7 +62,7 @@ class MM4 {
     atoms inputAtoms: [MRAtom],
     bonds inputBonds: [SIMD2<Int32>],
     velocities inputVelocities: [SIMD3<Float>]? = nil,
-    fsPerFrame: Int = 10
+    fsPerFrame: Double = 10
   ) {
     self.system = OpenMM_System()
     
@@ -840,7 +840,10 @@ class MM4 {
     system.addForce(bondTorsion)
     system.addForce(bondBendTorsionBend)
     
-    self.integrator = OpenMM_VerletIntegrator(stepSize: 2 * OpenMM_PsPerFs)
+    // TODO: Use a custom integrator that duplicates the code for MTSIntegrator.
+    // Use a hybrid timestep scheme with 2.5 fs bonded, 5.0 fs nonbonded.
+    // https://github.com/openmm/openmm/blob/116aed3927066b0a53eba929110d73f3dafb64bd/wrappers/python/openmm/mtsintegrator.py#L37
+    self.integrator = OpenMM_VerletIntegrator(stepSize: 2.5 * OpenMM_PsPerFs)
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
     let positions = OpenMM_Vec3Array(size: atoms.count)
@@ -886,8 +889,8 @@ class MM4 {
     #endif
     
     self.provider = OpenMM_AtomProvider(
-      psPerStep: 2 * OpenMM_PsPerFs,
-      stepsPerFrame: fsPerFrame / 2,
+      psPerStep: 2.5 * OpenMM_PsPerFs,
+      stepsPerFrame: Int(exactly: fsPerFrame / 2.5)!,
       elements: atoms.map(\.element))
   }
   
@@ -900,8 +903,8 @@ class MM4 {
   private func simulate(
     ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
   ) {
-    let numFemtoseconds = Int(rint(ps * 1000))
-    let numSteps = numFemtoseconds / 2
+    let numFemtoseconds = Double(rint(ps * 1000))
+    let numSteps = Int(exactly: numFemtoseconds / 2.5)!
     let numFrames = numSteps / provider.stepsPerFrame
     precondition(
       numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
@@ -919,8 +922,8 @@ class MM4 {
     provider.append(state: state, steps: 0)
     
     for t in 1...numFrames {
-      let timestamp = Double(t * provider.stepsPerFrame * 2) / 1000
-      if !MM4.profiling || (t * provider.stepsPerFrame * 2) % 500 == 0 {
+      let timestamp = Double(t * provider.stepsPerFrame) * 5 / 2 / 1000
+      if !MM4.profiling || (t * provider.stepsPerFrame) * 5 / 2 % 500 == 0 {
         print("t = \(String(format: "%.3f", timestamp)) ps")
       }
       
