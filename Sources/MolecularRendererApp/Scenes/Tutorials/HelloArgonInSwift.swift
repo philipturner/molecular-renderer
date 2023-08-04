@@ -44,7 +44,7 @@ func _simulateArgon(atomProvider: OpenMM_AtomProvider? = nil) {
   while true {
     defer { frameNum += 1 }
     
-    let state = context.state(types: OpenMM_State_Positions)
+    let state = context.state(types: .positions)
     if let atomProvider {
       atomProvider.append(state: state, steps: frameNum == 1 ? 0 : 10)
     } else {

@@ -149,7 +149,7 @@ class MM4 {
         precondition(atoms.count == masses.count)
         precondition(atoms.count == velocities.count)
         
-				let rangeEnd = rangeStart + indices.count
+        let rangeEnd = rangeStart + indices.count
         rigidBodies.append(rangeStart..<rangeEnd)
       }
       for newIndex in newIndicesMap {
@@ -166,7 +166,7 @@ class MM4 {
     var nonbond: OpenMM_CustomNonbondedForce
     var nonbond14: OpenMM_CustomBondForce
     do {
-      var energy = """
+      let energy = """
         epsilon * (
           -2.25 * (length / r)^6 +
           1.84e5 * exp(-12.00 * (r / length))
@@ -216,12 +216,14 @@ class MM4 {
       carbonParameters[1] = 0.037 * OpenMM_KJPerKcal
       carbonParameters[2] = 6
       nonbondParameters[6] = carbonParameters
-			
-			let largestVdwRadius = carbonParameters[0]
-			let switchingDistance = largestVdwRadius * pow(1.0 / 3, 1.0 / 6)
-//			nonbond.setCutoffDistance(largestVdwRadius)
-//			nonbond.setUseSwitchingFunction(true)
-//			nonbond.setSwitchingDistance(switchingDistance)
+      
+      let largestVdwRadius = carbonParameters[0]
+      let cutoff = largestVdwRadius * 2.5 * OpenMM_SigmaPerVdwRadius
+      let switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
+      nonbond.nonbondedMethod = .cutoffNonPeriodic
+      nonbond.useSwitchingFunction = true
+      nonbond.cutoffDistance = cutoff
+      nonbond.switchingDistance = switchingDistance
     }
     
     for atom in atoms {
@@ -819,8 +821,7 @@ class MM4 {
       //
       // TODO: Make this conserve angular momentum, while respecting the angular
       // momentum of each rigid body individually.
-      let state = context.state(types: .init(rawValue:
-          OpenMM_State_Positions.rawValue | OpenMM_State_Velocities.rawValue))
+      let state = context.state(types: [.positions, .velocities])
       let stateVelocities = state.velocities
       var totalMass: Double = 0
       var totalMomentum: SIMD3<Double> = .zero
@@ -853,8 +854,8 @@ class MM4 {
   func simulate(ps: Double) {
     simulate(ps: ps, context: self.context, integrator: self.integrator)
   }
-	
-	private static let profiling = true
+  
+  private static let profiling = true
   
   private func simulate(
     ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
@@ -864,37 +865,38 @@ class MM4 {
     let numFrames = numSteps / provider.stepsPerFrame
     precondition(
       numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
-		
-		print("t = 0.000 ps")
-		var start: Double?
-		if MM4.profiling {
-			#if DEBUG
-			fatalError("Do not profile in debug mode.")
-			#else
-			start = CACurrentMediaTime()
-			#endif
-		}
-    let state = context.state (types: OpenMM_State_Positions)
+    
+    print("t = 0.000 ps")
+    var start: Double?
+    if MM4.profiling {
+      #if DEBUG
+      fatalError("Do not profile in debug mode.")
+      #else
+      start = CACurrentMediaTime()
+      #endif
+    }
+    let state = context.state(types: .positions)
     provider.append(state: state, steps: 0)
     
     for t in 1...numFrames {
       let timestamp = Double(t * provider.stepsPerFrame * 2) / 1000
-			if !MM4.profiling || (t * provider.stepsPerFrame * 2) % 500 == 0 {
-				print("t = \(String(format: "%.3f", timestamp)) ps")
-			}
+      if !MM4.profiling || (t * provider.stepsPerFrame * 2) % 500 == 0 {
+        print("t = \(String(format: "%.3f", timestamp)) ps")
+      }
       
       integrator.step(provider.stepsPerFrame)
       
-      let state = context.state(types: OpenMM_State_Positions)
+      let state = context.state(types: .positions)
       provider.append(state: state, steps: provider.stepsPerFrame)
     }
-		if MM4.profiling {
-			guard let start else {
-				fatalError()
-			}
-			let end = CACurrentMediaTime()
-			let seconds = String(format: "%.3f", end - start)
-			print("Latency: \(seconds) s")
-		}
+    if MM4.profiling {
+      guard let start else {
+        fatalError()
+      }
+      let end = CACurrentMediaTime()
+      let seconds = String(format: "%.3f", end - start)
+      print("Latency: \(seconds) s")
+    }
   }
 }
+

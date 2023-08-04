@@ -8,6 +8,23 @@
 import COpenMM
 
 public class OpenMM_State: OpenMM_Object {
+  public struct DataType: OptionSet {
+    public var rawValue: UInt32
+    
+    @inlinable
+    public init(rawValue: UInt32) {
+      self.rawValue = rawValue
+    }
+    
+    init(_ _openmm_type: OpenMM_State_DataType) {
+      self.init(rawValue: _openmm_type.rawValue)
+    }
+    
+    public static let positions: DataType = .init(OpenMM_State_Positions)
+    public static let velocities: DataType = .init(OpenMM_State_Velocities)
+    public static let energy: DataType = .init(OpenMM_State_Energy)
+  }
+  
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_State_destroy(pointer)
   }

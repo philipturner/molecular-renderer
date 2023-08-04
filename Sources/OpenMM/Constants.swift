@@ -15,7 +15,3 @@
 @_exported import var COpenMM.OpenMM_DegreesPerRadian
 @_exported import var COpenMM.OpenMM_SigmaPerVdwRadius
 @_exported import var COpenMM.OpenMM_VdwRadiusPerSigma
-
-@_exported import var COpenMM.OpenMM_State_Energy
-@_exported import var COpenMM.OpenMM_State_Positions
-@_exported import var COpenMM.OpenMM_State_Velocities

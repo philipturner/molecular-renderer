@@ -199,13 +199,14 @@ fileprivate func myGetOpenMMState(
   _ omm: MyOpenMMData, wantEnergy: Bool, timeInPs: inout Double,
   energyInKT: inout Double, atoms: inout [Atom]
 ) {
-  var infoMask = OpenMM_State_Positions.rawValue
+  var types: OpenMM_State.DataType
   if wantEnergy {
-    infoMask |= OpenMM_State_Velocities.rawValue
-    infoMask |= OpenMM_State_Energy.rawValue
+    types = [.positions, .velocities, .energy]
+  } else {
+    types = .positions
   }
-  
-  let state = omm.context.state(types: .init(rawValue: infoMask))
+
+  let state = omm.context.state(types: types)
   timeInPs = state.time
   
   let positionsInNm = state.positions
@@ -241,7 +242,7 @@ fileprivate func myWriteMRFrame(
   } else {
     numSteps = SimulationConstants.numSilentSteps
   }
-  let state = omm.context.state(types: OpenMM_State_Positions)
+  let state = omm.context.state(types: .positions)
   omm.provider.append(state: state, steps: numSteps)
 }
 

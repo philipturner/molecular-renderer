@@ -12,7 +12,8 @@ import OpenMM
 // format for MolecularRenderer.
 
 public func initOpenMM() {
-  // Disable the nearest neighbor list because we run very small simulations.
+  // Enable the neighbor list because the 10K+ atom range is a dominant use
+  // case, and the asymptotic overhead for small simulations is only 50%.
   setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "1", 1)
   
   // Slightly optimize energy reductions while minimizing the increase in power
