@@ -12,6 +12,15 @@ public class OpenMM_Integrator: OpenMM_Object {
     OpenMM_Integrator_destroy(pointer)
   }
   
+  public var constraintTolerance: Double {
+    get {
+      _openmm_get(pointer, OpenMM_Integrator_getConstraintTolerance)
+    }
+    set {
+      OpenMM_Integrator_setConstraintTolerance(pointer, newValue)
+    }
+  }
+  
   public func step(_ steps: Int) {
     OpenMM_Integrator_step(pointer, Int32(steps))
   }

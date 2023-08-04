@@ -60,7 +60,7 @@ struct SimulationAtomProvider: MRAtomProvider {
   
   func atoms(time: MRTimeContext) -> [MRAtom] {
     let frameID = min(time.absolute.frames, frames.count - 1)
-    let ps = 1 / 1000 * Double(frameID) * frameTimeInFs
+//    let ps = 1 / 1000 * Double(frameID) * frameTimeInFs
     return frames[frameID]
   }
 }

@@ -144,7 +144,6 @@ class MM4 {
           atoms.append(atom)
           masses.append(mass)
           velocities.append(inputVelocities?[Int(index)] ?? .zero)
-          system.addParticle(mass: mass)
         }
         precondition(atoms.count == masses.count)
         precondition(atoms.count == velocities.count)
@@ -160,6 +159,47 @@ class MM4 {
         let newIndex1 = newIndicesMap[Int(bond[0])]
         let newIndex2 = newIndicesMap[Int(bond[1])]
         bonds.append(SIMD2(newIndex1, newIndex2))
+      }
+    }
+    var numHydrogens: Int = 0
+    var numNonHydrogens: Int = 0
+    var totalHydrogenMassInAmu: Double = 0
+    var totalNonHydrogenMassInAmu: Double = 0
+    for (atom, mass) in zip(atoms, masses) {
+      if atom.element == 1 {
+        numHydrogens += 1
+        totalHydrogenMassInAmu += mass
+      } else {
+        numNonHydrogens += 1
+        totalNonHydrogenMassInAmu += mass
+      }
+    }
+    
+    var repartitionedMasses = masses
+    do {
+      for var bond in bonds {
+        let firstAtom = atoms[Int(bond[0])]
+        let secondAtom = atoms[Int(bond[1])]
+        if min(firstAtom.element, secondAtom.element) != 1 {
+          continue
+        }
+        if secondAtom.element == 1 {
+          bond = SIMD2(bond[1], bond[0])
+        }
+        
+        let hydrogenMass = repartitionedMasses[Int(bond[0])]
+        var nonHydrogenMass = repartitionedMasses[Int(bond[1])]
+        nonHydrogenMass -= (1.5 - hydrogenMass)
+        repartitionedMasses[Int(bond[0])] = 1.5
+        repartitionedMasses[Int(bond[1])] = nonHydrogenMass
+      }
+      
+      let massSum = masses.reduce(0, +)
+      let repartitionedSum = repartitionedMasses.reduce(0, +)
+      precondition(abs(massSum - repartitionedSum) < 0.001)
+      
+      for repartitionedMass in repartitionedMasses {
+        system.addParticle(mass: repartitionedMass)
       }
     }
     
@@ -828,7 +868,7 @@ class MM4 {
       var centerOfMass: SIMD3<Double> = .zero
       
       for i in 0..<atoms.count where atoms[i].element > 0 {
-        let mass = masses[i]
+        let mass = repartitionedMasses[i]
         let position = positions[i]
         let velocity = stateVelocities[i]
         totalMass += mass
