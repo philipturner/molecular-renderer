@@ -840,9 +840,44 @@ class MM4 {
     system.addForce(bondTorsion)
     system.addForce(bondBendTorsionBend)
     
-    // TODO: Use a custom integrator that duplicates the code for MTSIntegrator.
-    // Use a hybrid timestep scheme with 2.5 fs bonded, 5.0 fs nonbonded.
+#if false
+    // Source:
     // https://github.com/openmm/openmm/blob/116aed3927066b0a53eba929110d73f3dafb64bd/wrappers/python/openmm/mtsintegrator.py#L37
+    let integrator = OpenMM_CustomIntegrator(stepSize: 2.5 * OpenMM_PsPerFs)
+    integrator.addPerDofVariable(name: "x1", initialValue: 0)
+    integrator.addUpdateContextState()
+
+    func createSubsteps(parentSubsteps: Int, groups: [SIMD2<Int>].SubSequence) {
+      let (group, substeps) = (groups.first!.x, groups.first!.y)
+      let stepsPerParentStep = substeps / parentSubsteps
+      precondition(substeps % parentSubsteps == 0)
+      precondition((0..<32).contains(group))
+      
+      for _ in 0..<stepsPerParentStep {
+        let velocity = """
+          v + 0.5 * (dt / \(substeps)) * f\(group) / m
+          """
+        integrator.addComputePerDof(variable: "v", expression: velocity)
+        if groups.count == 1 {
+          integrator.addComputePerDof(variable: "x", expression: """
+            x + (dt / \(substeps)) * v
+            """)
+          integrator.addComputePerDof(variable: "x1", expression: "x")
+          integrator.addConstrainPositions()
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + (x - x1) / (dt / \(substeps))
+            """)
+          integrator.addConstrainVelocities()
+        } else {
+          
+        }
+        integrator.addComputePerDof(variable: "v", expression: velocity)
+      }
+    }
+    createSubsteps(parentSubsteps: 1, groups: [SIMD2(0, 1)])
+    integrator.addConstrainVelocities()
+    #endif
+    
     self.integrator = OpenMM_VerletIntegrator(stepSize: 2.5 * OpenMM_PsPerFs)
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
