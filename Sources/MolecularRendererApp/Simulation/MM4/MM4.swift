@@ -851,11 +851,14 @@ class MM4 {
     system.addForce(bondTorsion)
     system.addForce(bondBendTorsionBend)
     
-#if true
-    // Source:
-    // https://github.com/openmm/openmm/blob/116aed3927066b0a53eba929110d73f3dafb64bd/wrappers/python/openmm/mtsintegrator.py#L37
     let integrator = OpenMM_CustomIntegrator(
       stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
+    #if false
+    do {
+      let groups: [(Int, Double)] = [(1, 4.0), (2, 2.0)]
+      
+    }
+    #else
     do {
       let loopIterations = Int(exactly: Self.timeStepInFs / 4.00)!
       for i in 0..<loopIterations {
@@ -895,11 +898,8 @@ class MM4 {
         }
       }
     }
+    #endif
     self.integrator = integrator
-#else
-    self.integrator = OpenMM_VerletIntegrator(
-      stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
-#endif
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
     let positions = OpenMM_Vec3Array(size: atoms.count)
