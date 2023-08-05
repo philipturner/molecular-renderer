@@ -191,8 +191,8 @@ class MM4 {
         
         let hydrogenMass = repartitionedMasses[Int(bond[0])]
         var nonHydrogenMass = repartitionedMasses[Int(bond[1])]
-        nonHydrogenMass -= (3.0 - hydrogenMass)
-        repartitionedMasses[Int(bond[0])] = 3.0
+        nonHydrogenMass -= (1.5 - hydrogenMass)
+        repartitionedMasses[Int(bond[0])] = 1.5
         repartitionedMasses[Int(bond[1])] = nonHydrogenMass
       }
       
@@ -855,34 +855,25 @@ class MM4 {
     // https://github.com/openmm/openmm/blob/116aed3927066b0a53eba929110d73f3dafb64bd/wrappers/python/openmm/mtsintegrator.py#L37
     let integrator = OpenMM_CustomIntegrator(
       stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
-    integrator.addPerDofVariable(name: "x1", initialValue: 0)
-    integrator.addUpdateContextState()
-
     for _ in 0..<1 {
-      let velocity = """
+      integrator.addComputePerDof(variable: "v", expression: """
         v + 0.5 * (dt / 1) * f1 / m
-        """
-      integrator.addComputePerDof(variable: "v", expression: velocity)
-      
+        """)
       for _ in 0..<2 {
-        let velocity = """
-          v + 0.5 * (dt / 2) * f2 / m
-          """
-        integrator.addComputePerDof(variable: "v", expression: velocity)
-        integrator.addComputePerDof(variable: "x", expression: """
-              x + (dt / 2) * v
-              """)
-        integrator.addComputePerDof(variable: "x1", expression: "x")
-        integrator.addConstrainPositions()
         integrator.addComputePerDof(variable: "v", expression: """
-            v + (x - x1) / (dt / 2)
-            """)
-        integrator.addConstrainVelocities()
-        integrator.addComputePerDof(variable: "v", expression: velocity)
+          v + 0.5 * (dt / 2) * f2 / m
+          """)
+        integrator.addComputePerDof(variable: "x", expression: """
+          x + (dt / 2) * v
+          """)
+        integrator.addComputePerDof(variable: "v", expression: """
+          v + 0.5 * (dt / 2) * f2 / m
+          """)
       }
-      integrator.addComputePerDof(variable: "v", expression: velocity)
+      integrator.addComputePerDof(variable: "v", expression: """
+        v + 0.5 * (dt / 1) * f1 / m
+        """)
     }
-    integrator.addConstrainVelocities()
     self.integrator = integrator
 #else
     self.integrator = OpenMM_VerletIntegrator(

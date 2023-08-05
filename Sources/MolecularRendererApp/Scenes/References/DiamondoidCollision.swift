@@ -37,7 +37,7 @@ struct DiamondoidCollision {
     var baseAtoms: [MRAtom]
     
     do {
-      let layerWidth: Int = 500
+      let layerWidth: Int = 100
       let ccBondLength = Constants.bondLengths[[6, 6]]!.average
       
       var baseLayer: [SIMD3<Float>] = [.zero]
