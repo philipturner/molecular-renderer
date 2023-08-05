@@ -47,8 +47,8 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  static let timeStepInFs: Double = 20.00
-  static let requestEnergy = false
+  static let timeStepInFs: Double = 40.00
+  static let requestEnergy = true
   
   convenience init(
     diamondoid: Diamondoid,
@@ -855,8 +855,76 @@ class MM4 {
       stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
     #if false
     do {
-      let groups: [(Int, Double)] = [(1, 4.0), (2, 2.0)]
+      integrator.addPerDofVariable(name: "initialized", initialValue: 0)
+      integrator.addPerDofVariable(name: "nonbonded", initialValue: 0)
+      integrator.addPerDofVariable(name: "bonded", initialValue: 0)
       
+      let loopIterations = Int(exactly: Self.timeStepInFs / 8.00)!
+      for _ in 0..<loopIterations {
+        // Create a time-reversible sequence of integration steps.
+        var sequence: [() -> Void] = []
+        
+        integrator.beginIfBlock(condition: "initialized < 1")
+        integrator.addComputePerDof(variable: "initialized", expression: "1")
+        integrator.addComputePerDof(variable: "nonbonded", expression: "f1")
+        integrator.addComputePerDof(variable: "bonded", expression: "f2")
+        integrator.endBlock()
+        
+        // Bonded force evaluation (1 / 3).
+        sequence.append {
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + (1 / 6) * (dt / \(loopIterations)) * bonded / m
+            """)
+        }
+        sequence.append {
+          integrator.addComputePerDof(variable: "x", expression: """
+            x + (1 / 6) * (dt / \(loopIterations)) * v
+            """)
+        }
+        sequence.append {
+          integrator.addComputePerDof(variable: "bonded", expression: "f2")
+        }
+        
+        // Nonbonded force evaluation (1 / 2).
+        sequence.append {
+          integrator.addComputePerDof(variable: "v", expression: """
+          v + (1 / 4) * (dt / \(loopIterations)) * nonbonded / m
+          """)
+        }
+        sequence.append {
+          integrator.addComputePerDof(variable: "x", expression: """
+            x + (1 / 12) * (dt / \(loopIterations)) * v
+            """)
+        }
+        sequence.append {
+          integrator.addComputePerDof(variable: "nonbonded", expression: "f1")
+        }
+        
+        // Prepare for bonded force evaluation (2 / 3).
+        sequence.append {
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + (1 / 3) * (dt / \(loopIterations)) * bonded / m
+            """)
+        }
+        sequence.append {
+          integrator.addComputePerDof(variable: "x", expression: """
+            x + (1 / 4) * (dt / \(loopIterations)) * v
+            """)
+        }
+        for statement in sequence {
+          statement()
+        }
+        
+        // Center of time-reversible sequence.
+        integrator.addComputePerDof(variable: "bonded", expression: "f2")
+        integrator.addComputePerDof(variable: "v", expression: """
+          v + (1 / 2) * (dt / \(loopIterations)) * nonbonded / m
+          """)
+        
+        for statement in sequence.reversed() {
+          statement()
+        }
+      }
     }
     #else
     do {
@@ -871,10 +939,10 @@ class MM4 {
             """)
         } else {
           integrator.addComputePerDof(variable: "v", expression: """
-          v + 0.25 * (dt * 2 / \(loopIterations)) * f2 / m
+          v + 0.5 * (dt * 2 / \(loopIterations)) * f1 / m
           """)
           integrator.addComputePerDof(variable: "v", expression: """
-          v + 0.5 * (dt * 2 / \(loopIterations)) * f1 / m
+          v + 0.25 * (dt * 2 / \(loopIterations)) * f2 / m
           """)
         }
         
@@ -981,8 +1049,8 @@ class MM4 {
       stepID *= Int(exactly: Self.timeStepInFs * 8)!
       
       
-      let timestamp = Double(stepID) / 8 / 1000
-      if !MM4.profiling || (stepID / 8) % 500 == 0 {
+      let timestamp = Double(stepID) / 8 / 960
+      if !MM4.profiling || (stepID / 8) % 480 == 0 {
         if !Self.requestEnergy {
           print("t = \(String(format: "%.3f", timestamp)) ps")
         }
@@ -993,9 +1061,9 @@ class MM4 {
       var state: OpenMM_State
       if Self.requestEnergy {
         state = context.state(types: [.positions, .energy])
-        if !MM4.profiling || (stepID / 8) % 500 == 0 {
+        if !MM4.profiling || (stepID / 8) % 480 == 0 {
           let energy = Float((state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
-          if timestamp >= 5.000 {
+          if timestamp >= 4.800 {
             let average = energies.reduce(0, +) / Float(energies.count)
             print(energy - average)
           } else {

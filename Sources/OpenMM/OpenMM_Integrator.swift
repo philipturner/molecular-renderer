@@ -86,6 +86,16 @@ public class OpenMM_CustomIntegrator: OpenMM_Integrator {
     let index = OpenMM_CustomIntegrator_addUpdateContextState(pointer)
     return Int(index)
   }
+  
+  @discardableResult
+  public func beginIfBlock(condition: String) -> Int {
+    let index = OpenMM_CustomIntegrator_beginIfBlock(pointer, condition)
+    return Int(index)
+  }
+  
+  public func endBlock() {
+    OpenMM_CustomIntegrator_endBlock(pointer)
+  }
 }
 
 public class OpenMM_LangevinMiddleIntegrator: OpenMM_Integrator {
