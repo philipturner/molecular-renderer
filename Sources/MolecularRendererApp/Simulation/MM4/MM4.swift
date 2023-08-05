@@ -47,7 +47,8 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  static let timeStepInFs: Double = 4.00
+  static let timeStepInFs: Double = 20.00
+  static let requestEnergy = false
   
   convenience init(
     diamondoid: Diamondoid,
@@ -191,8 +192,8 @@ class MM4 {
         
         let hydrogenMass = repartitionedMasses[Int(bond[0])]
         var nonHydrogenMass = repartitionedMasses[Int(bond[1])]
-        nonHydrogenMass -= (1.5 - hydrogenMass)
-        repartitionedMasses[Int(bond[0])] = 1.5
+        nonHydrogenMass -= (3.0 - hydrogenMass)
+        repartitionedMasses[Int(bond[0])] = 3.0
         repartitionedMasses[Int(bond[1])] = nonHydrogenMass
       }
       
@@ -855,24 +856,44 @@ class MM4 {
     // https://github.com/openmm/openmm/blob/116aed3927066b0a53eba929110d73f3dafb64bd/wrappers/python/openmm/mtsintegrator.py#L37
     let integrator = OpenMM_CustomIntegrator(
       stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
-    for _ in 0..<1 {
-      integrator.addComputePerDof(variable: "v", expression: """
-        v + 0.5 * (dt / 1) * f1 / m
-        """)
-      for _ in 0..<2 {
+    do {
+      let loopIterations = Int(exactly: Self.timeStepInFs / 4.00)!
+      for i in 0..<loopIterations {
+        if i == 0 {
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + 0.5 * (dt / \(loopIterations)) * f1 / m
+            """)
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + 0.25 * (dt / \(loopIterations)) * f2 / m
+            """)
+        } else {
+          integrator.addComputePerDof(variable: "v", expression: """
+          v + 0.25 * (dt * 2 / \(loopIterations)) * f2 / m
+          """)
+          integrator.addComputePerDof(variable: "v", expression: """
+          v + 0.5 * (dt * 2 / \(loopIterations)) * f1 / m
+          """)
+        }
+        
+        integrator.addComputePerDof(variable: "x", expression: """
+          x + 0.5 * (dt / \(loopIterations)) * v
+          """)
         integrator.addComputePerDof(variable: "v", expression: """
-          v + 0.5 * (dt / 2) * f2 / m
+          v + 0.5 * (dt / \(loopIterations)) * f2 / m
           """)
         integrator.addComputePerDof(variable: "x", expression: """
-          x + (dt / 2) * v
+          x + 0.5 * (dt / \(loopIterations)) * v
           """)
-        integrator.addComputePerDof(variable: "v", expression: """
-          v + 0.5 * (dt / 2) * f2 / m
-          """)
+        
+        if i + 1 == loopIterations {
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + 0.25 * (dt / \(loopIterations)) * f2 / m
+            """)
+          integrator.addComputePerDof(variable: "v", expression: """
+            v + 0.5 * (dt / \(loopIterations)) * f1 / m
+            """)
+        }
       }
-      integrator.addComputePerDof(variable: "v", expression: """
-        v + 0.5 * (dt / 1) * f1 / m
-        """)
     }
     self.integrator = integrator
 #else
@@ -954,7 +975,7 @@ class MM4 {
     let state = context.state(types: .positions)
     provider.append(state: state, steps: 0)
     
-//    var energies: [Float] = []
+    var energies: [Float] = []
     for t in 1...numFrames {
       var stepID = t * provider.stepsPerFrame
       stepID *= Int(exactly: Self.timeStepInFs * 8)!
@@ -962,23 +983,28 @@ class MM4 {
       
       let timestamp = Double(stepID) / 8 / 1000
       if !MM4.profiling || (stepID / 8) % 500 == 0 {
-        print("t = \(String(format: "%.3f", timestamp)) ps")
+        if !Self.requestEnergy {
+          print("t = \(String(format: "%.3f", timestamp)) ps")
+        }
       }
       
       integrator.step(provider.stepsPerFrame)
       
-//      let state = context.state(types: [.positions, .energy])
-//      if !MM4.profiling || (stepID / 8) % 500 == 0 {
-//        let energy = Float((state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
-//        if timestamp >= 5.000 {
-//          let average = energies.reduce(0, +) / Float(energies.count)
-//          print(energy - average)
-//        } else {
-//          energies.append(energy)
-//        }
-//      }
-      
-      let state = context.state(types: .positions)
+      var state: OpenMM_State
+      if Self.requestEnergy {
+        state = context.state(types: [.positions, .energy])
+        if !MM4.profiling || (stepID / 8) % 500 == 0 {
+          let energy = Float((state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
+          if timestamp >= 5.000 {
+            let average = energies.reduce(0, +) / Float(energies.count)
+            print(energy - average)
+          } else {
+            energies.append(energy)
+          }
+        }
+      } else {
+        state = context.state(types: .positions)
+      }
       provider.append(state: state, steps: provider.stepsPerFrame)
     }
     if MM4.profiling {
