@@ -11,6 +11,15 @@ public class OpenMM_Force: OpenMM_Object {
   public override class func destroy(_ pointer: OpaquePointer) {
     OpenMM_Force_destroy(pointer)
   }
+  
+  public var forceGroup: Int {
+    get {
+      Int(_openmm_get(pointer, OpenMM_Force_getForceGroup))
+    }
+    set {
+      OpenMM_Force_setForceGroup(pointer, Int32(newValue))
+    }
+  }
 }
 
 public class OpenMM_CustomAngleForce: OpenMM_Force {

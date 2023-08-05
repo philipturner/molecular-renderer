@@ -25,7 +25,8 @@ class Serializer {
   }
   
   func save(fileName: String, provider: OpenMM_AtomProvider) {
-    var frameTimeInFs = rint(1000 * provider.psPerStep)
+    // Allow 0.125 fs precision.
+    var frameTimeInFs = rint(8 * 1000 * provider.psPerStep) / 8
     frameTimeInFs *= Double(provider.stepsPerFrame)
     let simulation = MRSimulation(
       renderer: renderer.renderingEngine,

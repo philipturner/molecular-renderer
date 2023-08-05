@@ -47,6 +47,8 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
+  static let timeStepInFs: Double = 4.00
+  
   convenience init(
     diamondoid: Diamondoid,
     fsPerFrame: Double = 10
@@ -189,8 +191,8 @@ class MM4 {
         
         let hydrogenMass = repartitionedMasses[Int(bond[0])]
         var nonHydrogenMass = repartitionedMasses[Int(bond[1])]
-        nonHydrogenMass -= (1.5 - hydrogenMass)
-        repartitionedMasses[Int(bond[0])] = 1.5
+        nonHydrogenMass -= (3.0 - hydrogenMass)
+        repartitionedMasses[Int(bond[0])] = 3.0
         repartitionedMasses[Int(bond[1])] = nonHydrogenMass
       }
       
@@ -238,10 +240,6 @@ class MM4 {
       nonbond14.addPerBondParameter(name: "length")
       nonbond14.addPerBondParameter(name: "epsilon")
     }
-    nonbond.transfer()
-    nonbond14.transfer()
-    system.addForce(nonbond)
-    system.addForce(nonbond14)
     
     var nonbondParameters: [UInt8: OpenMM_DoubleArray] = [:]
     do {
@@ -828,57 +826,68 @@ class MM4 {
       }
     }
     
+    nonbond.forceGroup = 1
+    nonbond14.forceGroup = 1
+    bondStretch.forceGroup = 2
+    bondBend.forceGroup = 2
+    bondBendBend.forceGroup = 2
+    bondTorsion.forceGroup = 1
+    bondBendTorsionBend.forceGroup = 1
+    
+    nonbond.transfer()
+    nonbond14.transfer()
     bondStretch.transfer()
     bondBend.transfer()
     bondBendBend.transfer()
     bondTorsion.transfer()
     bondBendTorsionBend.transfer()
     
+    system.addForce(nonbond)
+    system.addForce(nonbond14)
     system.addForce(bondStretch)
     system.addForce(bondBend)
     system.addForce(bondBendBend)
     system.addForce(bondTorsion)
     system.addForce(bondBendTorsionBend)
     
-#if false
+#if true
     // Source:
     // https://github.com/openmm/openmm/blob/116aed3927066b0a53eba929110d73f3dafb64bd/wrappers/python/openmm/mtsintegrator.py#L37
-    let integrator = OpenMM_CustomIntegrator(stepSize: 2.5 * OpenMM_PsPerFs)
+    let integrator = OpenMM_CustomIntegrator(
+      stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
     integrator.addPerDofVariable(name: "x1", initialValue: 0)
     integrator.addUpdateContextState()
 
-    func createSubsteps(parentSubsteps: Int, groups: [SIMD2<Int>].SubSequence) {
-      let (group, substeps) = (groups.first!.x, groups.first!.y)
-      let stepsPerParentStep = substeps / parentSubsteps
-      precondition(substeps % parentSubsteps == 0)
-      precondition((0..<32).contains(group))
+    for _ in 0..<1 {
+      let velocity = """
+        v + 0.5 * (dt / 1) * f1 / m
+        """
+      integrator.addComputePerDof(variable: "v", expression: velocity)
       
-      for _ in 0..<stepsPerParentStep {
+      for _ in 0..<2 {
         let velocity = """
-          v + 0.5 * (dt / \(substeps)) * f\(group) / m
+          v + 0.5 * (dt / 2) * f2 / m
           """
         integrator.addComputePerDof(variable: "v", expression: velocity)
-        if groups.count == 1 {
-          integrator.addComputePerDof(variable: "x", expression: """
-            x + (dt / \(substeps)) * v
+        integrator.addComputePerDof(variable: "x", expression: """
+              x + (dt / 2) * v
+              """)
+        integrator.addComputePerDof(variable: "x1", expression: "x")
+        integrator.addConstrainPositions()
+        integrator.addComputePerDof(variable: "v", expression: """
+            v + (x - x1) / (dt / 2)
             """)
-          integrator.addComputePerDof(variable: "x1", expression: "x")
-          integrator.addConstrainPositions()
-          integrator.addComputePerDof(variable: "v", expression: """
-            v + (x - x1) / (dt / \(substeps))
-            """)
-          integrator.addConstrainVelocities()
-        } else {
-          
-        }
+        integrator.addConstrainVelocities()
         integrator.addComputePerDof(variable: "v", expression: velocity)
       }
+      integrator.addComputePerDof(variable: "v", expression: velocity)
     }
-    createSubsteps(parentSubsteps: 1, groups: [SIMD2(0, 1)])
     integrator.addConstrainVelocities()
+    self.integrator = integrator
+#else
+    self.integrator = OpenMM_VerletIntegrator(
+      stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
 #endif
-    
-    self.integrator = OpenMM_VerletIntegrator(stepSize: 2.5 * OpenMM_PsPerFs)
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
     let positions = OpenMM_Vec3Array(size: atoms.count)
@@ -922,8 +931,8 @@ class MM4 {
     }
     
     self.provider = OpenMM_AtomProvider(
-      psPerStep: 2.5 * OpenMM_PsPerFs,
-      stepsPerFrame: Int(exactly: fsPerFrame / 2.5)!,
+      psPerStep: Self.timeStepInFs * OpenMM_PsPerFs,
+      stepsPerFrame: Int(exactly: fsPerFrame / Self.timeStepInFs)!,
       elements: atoms.map(\.element))
   }
   
@@ -937,7 +946,7 @@ class MM4 {
     ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
   ) {
     let numFemtoseconds = Double(rint(ps * 1000))
-    let numSteps = Int(exactly: numFemtoseconds / 2.5)!
+    let numSteps = Int(exactly: numFemtoseconds / Self.timeStepInFs)!
     let numFrames = numSteps / provider.stepsPerFrame
     precondition(
       numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
@@ -954,13 +963,29 @@ class MM4 {
     let state = context.state(types: .positions)
     provider.append(state: state, steps: 0)
     
+//    var energies: [Float] = []
     for t in 1...numFrames {
-      let timestamp = Double(t * provider.stepsPerFrame) * 5 / 2 / 1000
-      if !MM4.profiling || (t * provider.stepsPerFrame) * 5 / 2 % 500 == 0 {
+      var stepID = t * provider.stepsPerFrame
+      stepID *= Int(exactly: Self.timeStepInFs * 8)!
+      
+      
+      let timestamp = Double(stepID) / 8 / 1000
+      if !MM4.profiling || (stepID / 8) % 500 == 0 {
         print("t = \(String(format: "%.3f", timestamp)) ps")
       }
       
       integrator.step(provider.stepsPerFrame)
+      
+//      let state = context.state(types: [.positions, .energy])
+//      if !MM4.profiling || (stepID / 8) % 500 == 0 {
+//        let energy = Float((state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
+//        if timestamp >= 5.000 {
+//          let average = energies.reduce(0, +) / Float(energies.count)
+//          print(energy - average)
+//        } else {
+//          energies.append(energy)
+//        }
+//      }
       
       let state = context.state(types: .positions)
       provider.append(state: state, steps: provider.stepsPerFrame)

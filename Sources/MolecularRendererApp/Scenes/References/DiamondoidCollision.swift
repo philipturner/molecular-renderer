@@ -13,8 +13,8 @@ struct DiamondoidCollision {
   var provider: OpenMM_AtomProvider
   
   init() {
-    let horizontalSpacing: Float = 6 // nm
-    let approachSpeed: Float = 4 // nm/ps, v2 - v1
+    let horizontalSpacing: Float = 0.3 * 6 // nm
+    let approachSpeed: Float = 0.2 * 4 // nm/ps, v2 - v1
     var blockVelocities: [SIMD3<Float>] = []
     
     func centerAtOrigin(_ atoms: [MRAtom]) -> [MRAtom] {
@@ -37,7 +37,7 @@ struct DiamondoidCollision {
     var baseAtoms: [MRAtom]
     
     do {
-      let layerWidth: Int = 100
+      let layerWidth: Int = 500
       let ccBondLength = Constants.bondLengths[[6, 6]]!.average
       
       var baseLayer: [SIMD3<Float>] = [.zero]
@@ -214,7 +214,7 @@ struct DiamondoidCollision {
     print("Atom count: \(diamondoid.atoms.count)")
     
     let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 100)
-    simulator.simulate(ps: 10) // 10
+    simulator.simulate(ps: 10) // 10, or 200 to measure energy drift
     provider = simulator.provider
   }
 }
