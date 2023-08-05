@@ -96,6 +96,10 @@ public class OpenMM_Platform: OpenMM_Object {
     return plugins
   }
   
+  public static func loadPluginLibrary(file: String) {
+    OpenMM_Platform_loadPluginLibrary(file)
+  }
+  
   public var name: String {
     .init(cString: _openmm_get(pointer, OpenMM_Platform_getName))
   }
