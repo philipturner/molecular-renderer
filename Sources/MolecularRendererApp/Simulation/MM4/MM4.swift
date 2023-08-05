@@ -876,7 +876,7 @@ class MM4 {
     }
     createSubsteps(parentSubsteps: 1, groups: [SIMD2(0, 1)])
     integrator.addConstrainVelocities()
-    #endif
+#endif
     
     self.integrator = OpenMM_VerletIntegrator(stepSize: 2.5 * OpenMM_PsPerFs)
     self.context = OpenMM_Context(system: system, integrator: integrator)
@@ -891,7 +891,6 @@ class MM4 {
     self.context.positions = positions
     precondition(context.platform.name == "HIP")
     
-    #if true
     do {
       context.setVelocitiesToTemperature(298)
       
@@ -921,7 +920,6 @@ class MM4 {
       }
       self.context.velocities = state.velocities
     }
-    #endif
     
     self.provider = OpenMM_AtomProvider(
       psPerStep: 2.5 * OpenMM_PsPerFs,
