@@ -52,11 +52,11 @@ class MM4 {
   var timeStepInFs: Double
   var substepsPerTimeStep: Int
   var requestEnergy = false
-  var profiling = true
+  var profiling = false
   
   convenience init(
     diamondoid: Diamondoid,
-    fsPerFrame: Double = 10
+    fsPerFrame: Double
   ) {
     self.init(
       atoms: diamondoid.atoms,
@@ -74,6 +74,8 @@ class MM4 {
     do {
       let fsInt = Int(exactly: fsPerFrame)!
       precondition(fsInt > 0)
+      precondition((fsInt % 100 == 0) || (100 % fsInt == 0))
+      
       if fsInt % 100 == 0 {
         // Replay at (n * 12) ps/s.
         self.timeStepInFs = 100
@@ -935,31 +937,85 @@ class MM4 {
     precondition(context.platform.name == "HIP")
     
     do {
+      // TODO: Better adherence to temperature.
+      // - Initialize the thermal velocities multiple times.
+      // - For each rigid body, find the sample with the least deviation in
+      //   kinetic energy after correcting to conserve momenta.
       context.setVelocitiesToTemperature(298)
       
-      // Conserve momentum after the velocities are randomly initialized.
-      //
-      // TODO: Make this conserve angular momentum, while respecting the angular
-      // momentum of each rigid body individually.
       let state = context.state(types: [.positions, .velocities])
       let stateVelocities = state.velocities
-      var totalMass: Double = 0
-      var totalMomentum: SIMD3<Double> = .zero
-      var centerOfMass: SIMD3<Double> = .zero
-      
-      for i in 0..<atoms.count where atoms[i].element > 0 {
-        let mass = repartitionedMasses[i]
-        let position = positions[i]
-        let velocity = stateVelocities[i]
-        totalMass += mass
-        totalMomentum += mass * velocity
-        centerOfMass += mass * position
-      }
-      centerOfMass /= totalMass
-      
-      let correction = -totalMomentum / totalMass
-      for i in 0..<atoms.count where atoms[i].element > 0 {
-        stateVelocities[i] += correction + SIMD3(velocities[i])
+      for rigidBody in rigidBodies {
+        var totalMass: Double = 0
+        var totalMomentum: SIMD3<Double> = .zero
+        var centerOfMass: SIMD3<Double> = .zero
+        
+        // Conserve momentum after the velocities are randomly initialized.
+        for atomID in rigidBody {
+          let mass = repartitionedMasses[atomID]
+          let position = positions[atomID]
+          let velocity = stateVelocities[atomID]
+          totalMass += mass
+          totalMomentum += mass * velocity
+          centerOfMass += mass * position
+        }
+        centerOfMass /= totalMass
+        
+        // Conserve angular momentum along the three cardinal axes, therefore
+        // conserving angular momentum along any possible axis.
+        var totalAngularMomentum: simd_double3 = .zero
+        var totalMomentOfInertia: simd_double3x3 = .init(diagonal: .zero)
+        for atomID in rigidBody {
+          let mass = repartitionedMasses[atomID]
+          let delta = positions[atomID] - centerOfMass
+          let velocity = stateVelocities[atomID]
+          
+          // From Wikipedia:
+          // https://en.wikipedia.org/wiki/Rigid_body_dynamics#Mass_properties
+          //
+          // I_R = m * (I (S^T S) - S S^T)
+          // where S is the column vector R - R_cm
+          let STS = dot(delta, delta)
+          var momentOfInertia = simd_double3x3(diagonal: .init(repeating: STS))
+          momentOfInertia -= simd_double3x3(rows: [
+            SIMD3(delta.x * delta.x, delta.x * delta.y, delta.x * delta.z),
+            SIMD3(delta.y * delta.x, delta.y * delta.y, delta.y * delta.z),
+            SIMD3(delta.z * delta.x, delta.z * delta.y, delta.z * delta.z),
+          ])
+          momentOfInertia *= mass
+          totalMomentOfInertia += momentOfInertia
+          
+          // From Wikipedia:
+          // https://en.wikipedia.org/wiki/Rigid_body_dynamics#Linear_and_angular_momentum
+          //
+          // L = m * (R - R_cm) cross d/dt (R - R_cm)
+          // assume R_cm is stationary
+          // L = m * (R - R_cm) cross v
+          let angularMomentum = mass * cross(delta, velocity)
+          totalAngularMomentum += angularMomentum
+        }
+        
+        // Matrix:
+        // L = I * w
+        // (I^{-1}) L = w
+        // w = angular velocity
+        //
+        // Resulting vector:
+        // w_x: angular velocity around x-axis (YZ plane)
+        // w_y: angular velocity around y-axis (ZX plane)
+        // w_z: angular velocity around z-axis (XY plane)
+        //
+        // How to convert this into a linear velocity for each particle?
+        let angularVelocity = totalMomentOfInertia
+          .inverse * totalAngularMomentum
+        
+        for atomID in rigidBody {
+          var velocity = stateVelocities[atomID]
+          velocity -= totalMomentum / totalMass
+          velocity += SIMD3(velocities[atomID])
+          
+          stateVelocities[atomID] = velocity
+        }
       }
       self.context.velocities = state.velocities
     }
@@ -1001,7 +1057,7 @@ class MM4 {
       stepID *= Int(exactly: timeStepInFs * 8)!
       
       let timestamp = Double(stepID) / 8 / 1000
-      if !profiling || (stepID / 8) % 500 == 0 {
+      if (stepID / 8) % 500 == 0 {
         if !requestEnergy {
           print("t = \(String(format: "%.3f", timestamp)) ps")
         }
@@ -1012,7 +1068,7 @@ class MM4 {
       var state: OpenMM_State
       if requestEnergy {
         state = context.state(types: [.positions, .energy])
-        if !profiling || (stepID / 8) % 500 == 0 {
+        if (stepID / 8) % 500 == 0 {
           let energy = Float((
             state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
           if timestamp >= 5.000 {
