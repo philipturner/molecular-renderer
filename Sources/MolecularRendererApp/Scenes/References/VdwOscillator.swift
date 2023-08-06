@@ -14,18 +14,32 @@ import simd
 // lacked a thermostat, so simulations couldn't last more than a few 100 ps.
 
 struct VdwOscillator {
-//  var provider: OpenMM_AtomProvider
-  var provider: ArrayAtomProvider
+  var provider: OpenMM_AtomProvider
+//  var provider: ArrayAtomProvider
   
   init() {
     // Generate a cube, then cleave it along directions I want.
+    //
+    // Make a system that only uses (111) and (110) surfaces, filling in (100)
+    // surfaces with other things to avoid the need for surface reconstruction.
+    //
+    // Debug the geometry generator, get things in the shapes you want. After
+    // that's all debugged, send a final design through 'Diamondoid' and 'MM4'.
     
-    // We need a means to reconstruct (100) surfaces automatically.
-    // - Detect cells with a nearby neighbor 90% omitted, except for its edge
-    //   atoms, which are intact. That marks a (100) surface.
-    // - Offset its atoms in a repeating pattern, which should align with nearby
-    //   (100) surface tiles.
-    // (110) surfaces don't need manual reconstruction.
+    struct Plane {
+      var origin: SIMD3<Float>
+      var normal: SIMD3<Float>
+      
+      init(origin: SIMD3<Float>, normal: SIMD3<Float>) {
+        self.origin = origin
+        self.normal = normal
+      }
+      
+      init(_ latticeOrigin: SIMD3<Int>, normal: SIMD3<Float>) {
+        self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
+        self.normal = normalize(normal)
+      }
+    }
     
     struct Cell {
       // Local coordinates within the cell, containing atoms that haven't been
@@ -70,27 +84,33 @@ struct VdwOscillator {
       // Atom-plane intersection function. Avoid planes that perfectly align
       // with the crystal lattice, as the results of intersection functions may
       // be unpredictable.
-      mutating func cleave(origin: SIMD3<Float>, normal: SIMD3<Float>) {
+      mutating func cleave(planes: [Plane]) {
         atoms = atoms.compactMap {
           let atomOrigin = $0 + SIMD3<Float>(self.offset)
-          let delta = atomOrigin - origin
-          let dotProduct = dot(delta, normal)
-          if abs(dotProduct) < 1e-8 {
-            fatalError("Cleaved along a perfect plane of atoms.")
+          
+          var allIntersectionsPassed = true
+          for plane in planes {
+            let delta = atomOrigin - plane.origin
+            let dotProduct = dot(delta, plane.normal)
+            if abs(dotProduct) < 1e-8 {
+              fatalError("Cleaved along a perfect plane of atoms.")
+            }
+            if dotProduct < 0 {
+              allIntersectionsPassed = false
+            }
           }
-          if dotProduct > 0 {
-            // Inside the bounding volume used to cleave atoms.
+          
+          if allIntersectionsPassed {
             return nil
           } else {
-            // Outside the bounding volume.
             return $0
           }
         }
       }
       
-      func cleaved(origin: SIMD3<Float>, normal: SIMD3<Float>) -> Cell {
+      func cleaved(planes: [Plane]) -> Cell {
         var copy = self
-        copy.cleave(origin: origin, normal: normal)
+        copy.cleave(planes: planes)
         return copy
       }
       
@@ -105,6 +125,92 @@ struct VdwOscillator {
       }
     }
     
-    fatalError("Not implemented.")
+    // Only using a cubic lattice for now.
+    let latticeWidth: Int = 10
+    var baseLattice: [Cell] = []
+    let baseCell = Cell()
+    for i in 0..<latticeWidth {
+      for j in 0..<latticeWidth {
+        for k in 0..<latticeWidth {
+          let offset = SIMD3(i, j, k)
+          baseLattice.append(baseCell.translated(offset: offset))
+        }
+      }
+    }
+    
+    func makeCarbonCenters(cells: [Cell]) -> [SIMD3<Float>] {
+      var dict: [SIMD3<Float>: Bool] = [:]
+      for cell in cells {
+        let offset = SIMD3<Float>(cell.offset)
+        for atom in cell.atoms {
+          dict[atom + offset] = true
+        }
+      }
+      return Array(dict.keys)
+    }
+    
+    // Remove cells from the grid that have already been 100% cleaved, to reduce
+    // the compute cost of successive transformations.
+    func cleave(cells: [Cell], planes: [Plane]) -> [Cell] {
+      cells.compactMap {
+        var cell = $0
+        cell.cleave(planes: planes)
+        if cell.atoms.count == 0 {
+          return nil
+        } else {
+          return cell
+        }
+      }
+    }
+    
+    var allCarbonCenters: [SIMD3<Float>] = []
+    
+    do {
+      var cells = baseLattice
+      cells = cleave(cells: cells, planes: [
+        Plane(SIMD3(0, latticeWidth, latticeWidth), normal: SIMD3(1, 1, 1)),
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(SIMD3(0, latticeWidth, latticeWidth), normal: SIMD3(-1, 1, -1)),
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(SIMD3(0, 0, 0), normal: SIMD3(-1, -1, 1)),
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(SIMD3(0, 0, 0), normal: SIMD3(1, -1, -1)),
+      ])
+      allCarbonCenters += makeCarbonCenters(cells: cells)
+    }
+    
+    var allAtoms = allCarbonCenters.map {
+      MRAtom(origin: $0 * 0.357, element: 6)
+    }
+//    self.provider = ArrayAtomProvider(allAtoms)
+    
+    let diamondoid = Diamondoid(atoms: allAtoms)
+    print(diamondoid.atoms.count)
+    
+    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+    simulator.simulate(ps: 10)
+    provider = simulator.provider
   }
 }
+
+#if false
+func makeTetrahedron() {
+  var cells = baseLattice
+  cells = cleave(cells: cells, planes: [
+    Plane(SIMD3(0, latticeWidth, latticeWidth), normal: SIMD3(1, 1, 1)),
+  ])
+  cells = cleave(cells: cells, planes: [
+    Plane(SIMD3(0, latticeWidth, latticeWidth), normal: SIMD3(-1, 1, -1)),
+  ])
+  cells = cleave(cells: cells, planes: [
+    Plane(SIMD3(0, 0, 0), normal: SIMD3(-1, -1, 1)),
+  ])
+  cells = cleave(cells: cells, planes: [
+    Plane(SIMD3(0, 0, 0), normal: SIMD3(1, -1, -1)),
+  ])
+  allCarbonCenters += makeCarbonCenters(cells: cells)
+}
+#endif

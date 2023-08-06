@@ -46,14 +46,14 @@ class Renderer {
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-    self.atomProvider = OctaneReference().provider
+//    self.atomProvider = OctaneReference().provider
 //    self.atomProvider = DiamondoidCollision().provider
-//    self.atomProvider = VdwOscillator().provider
+    self.atomProvider = VdwOscillator().provider
     
     #if true
-    serializer.save(
-      fileName: "SavedSimulation",
-      provider: atomProvider as! OpenMM_AtomProvider)
+//    serializer.save(
+//      fileName: "SavedSimulation",
+//      provider: atomProvider as! OpenMM_AtomProvider)
     #else
     let simulation = serializer.load(fileName: "SavedSimulation")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
