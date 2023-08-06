@@ -47,7 +47,7 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  static let timeStepInFs: Double = 20.00
+  static let timeStepInFs: Double = 100.00
   static let requestEnergy = false
   
   convenience init(
@@ -603,115 +603,6 @@ class MM4 {
     
     var bondBendBend: OpenMM_CustomCompoundBondForce
     
-    #if false
-    do {
-      let energy = """
-    \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
-    -0.021914 * stiffness * (
-      angle(p1, p2, p3) - equilibrium_angle1
-    ) * (
-      angle(p1, p2, p4) - equilibrium_angle2
-    );
-    """
-      bondBendBend = OpenMM_CustomCompoundBondForce(
-        numParticles: 4, energy: energy)
-      bondBendBend.addPerBondParameter(name: "stiffness")
-      bondBendBend.addPerBondParameter(name: "equilibrium_angle1")
-      bondBendBend.addPerBondParameter(name: "equilibrium_angle2")
-      
-      var bendBendParameters: [SIMD3<UInt8>: Double] = [:]
-      bendBendParameters[[1, 6, 1]] = 0.000
-      bendBendParameters[[1, 6, 6]] = 0.350
-      bendBendParameters[[6, 6, 6]] = 0.204
-      
-      var relativePairsDict: [SIMD3<UInt8>: Bool] = [:]
-      for j in 0..<4 {
-        let atom1 = j
-        for k in 0..<4 where j != k {
-          var atom3: Int?
-          var atom4: Int?
-          for l in 0..<4 where j != l && k != l {
-            if atom3 == nil {
-              atom3 = l
-            } else if atom4 == nil {
-              atom4 = l
-            } else {
-              fatalError("This should never happen.")
-            }
-          }
-          
-          guard let atom3, let atom4 else {
-            fatalError("This should never happen.")
-          }
-          let indices = SIMD3(atom1, atom3, atom4)
-          relativePairsDict[SIMD3(truncatingIfNeeded: indices)] = true
-        }
-      }
-      let relativePairs: Array = relativePairsDict.keys.map { $0 }
-      precondition(relativePairs.count == 4 * 3)
-      
-      let anglePairParticles = OpenMM_IntArray(size: 4)
-      let anglePairParameters = OpenMM_DoubleArray(size: 3)
-      for i in atoms.indices {
-        if atoms[i].element == 0 {
-          continue
-        }
-        if atoms[i].element == 1 {
-          continue
-        }
-        let bondMap = atomsToBondsMap[Int(i)]
-        precondition(!any(bondMap .== -1), "Carbon did not have 4 bonds.")
-        
-        var atomMap: SIMD4<Int32> = .init(repeating: -1)
-        for j in 0..<4 {
-          let bond = bonds[Int(bondMap[j])]
-          atomMap[j] = getNot(id: Int32(i), from: bond)
-        }
-        
-        for pair in relativePairs {
-          var particles: SIMD4<Int32> = .init(repeating: -1)
-          particles[0] = atomMap[Int(pair[0])]
-          particles[1] = Int32(i)
-          particles[2] = atomMap[Int(pair[1])]
-          particles[3] = atomMap[Int(pair[2])]
-          
-          var stiffnesses: SIMD2<Double> = .init(repeating: -1)
-          var angles: SIMD2<Double> = .init(repeating: -1)
-          for j in 0..<2 {
-            var atom1 = particles[0]
-            let atom2 = particles[1]
-            var atom3 = particles[2]
-            if !(atom1 < atom3) {
-              swap(&atom1, &atom3)
-            }
-            let type = angleTypes[SIMD3(atom1, atom2, atom3)]!
-            
-            var element1 = atoms[Int(atom1)].element
-            let element2 = atoms[Int(atom2)].element
-            var element3 = atoms[Int(atom3)].element
-            if !(element1 < element3) {
-              swap(&element1, &element3)
-            }
-            let bendKey = SIMD3<UInt8>(element1, element2, element3)
-            let bendParams = bendParameters[bendKey]!.parameters[type - 1]
-            let bendBendParams = bendBendParameters[bendKey]!
-            angles[j] = bendParams[2]
-            stiffnesses[j] = bendBendParams
-          }
-          
-          for j in 0..<4 {
-            anglePairParticles[j] = Int(particles[j])
-          }
-          anglePairParameters[0] = stiffnesses[0] * stiffnesses[1]
-          anglePairParameters[1] = angles[0]
-          anglePairParameters[2] = angles[1]
-          
-          bondBendBend.addBond(
-            particles: anglePairParticles, parameters: anglePairParameters)
-        }
-      }
-    }
-    #else
     do {
       let energy = """
       \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
@@ -824,7 +715,6 @@ class MM4 {
         }
       }
     }
-    #endif
     
     var torsionParameters: [SIMD4<UInt8>: SIMD4<Double>] = [:]
     var bondTorsion: OpenMM_CustomCompoundBondForce
@@ -968,82 +858,8 @@ class MM4 {
     
     let integrator = OpenMM_CustomIntegrator(
       stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
-    #if false
     do {
-      integrator.addGlobalVariable(name: "initialized", initialValue: 0)
-      integrator.addPerDofVariable(name: "nonbonded", initialValue: 0)
-      integrator.addPerDofVariable(name: "bonded", initialValue: 0)
-      
-      let loopIterations = Int(exactly: Self.timeStepInFs / 8.00)!
-      for _ in 0..<loopIterations {
-        // Create a time-reversible sequence of integration steps.
-        var sequence: [() -> Void] = []
-        
-        integrator.beginIfBlock(condition: "initialized < 1")
-        integrator.addComputeGlobal(variable: "initialized", expression: "1")
-        integrator.addComputePerDof(variable: "nonbonded", expression: "f1")
-        integrator.addComputePerDof(variable: "bonded", expression: "f2")
-        integrator.endBlock()
-        
-        // Bonded force evaluation (1 / 3).
-        sequence.append {
-          integrator.addComputePerDof(variable: "v", expression: """
-            v + (1 / 6) * (dt / \(loopIterations)) * bonded / m
-            """)
-        }
-        sequence.append {
-          integrator.addComputePerDof(variable: "x", expression: """
-            x + (1 / 6) * (dt / \(loopIterations)) * v
-            """)
-        }
-        sequence.append {
-          integrator.addComputePerDof(variable: "bonded", expression: "f2")
-        }
-        
-        // Nonbonded force evaluation (1 / 2).
-        sequence.append {
-          integrator.addComputePerDof(variable: "v", expression: """
-            v + (1 / 4) * (dt / \(loopIterations)) * nonbonded / m
-            """)
-        }
-        sequence.append {
-          integrator.addComputePerDof(variable: "x", expression: """
-            x + (1 / 12) * (dt / \(loopIterations)) * v
-            """)
-        }
-        sequence.append {
-          integrator.addComputePerDof(variable: "nonbonded", expression: "f1")
-        }
-        
-        // Prepare for bonded force evaluation (2 / 3).
-        sequence.append {
-          integrator.addComputePerDof(variable: "v", expression: """
-            v + (1 / 3) * (dt / \(loopIterations)) * bonded / m
-            """)
-        }
-        sequence.append {
-          integrator.addComputePerDof(variable: "x", expression: """
-            x + (1 / 4) * (dt / \(loopIterations)) * v
-            """)
-        }
-        for statement in sequence {
-          statement()
-        }
-        
-        // Center of time-reversible sequence.
-        integrator.addComputePerDof(variable: "bonded", expression: "f2")
-        integrator.addComputePerDof(variable: "v", expression: """
-          v + (1 / 2) * (dt / \(loopIterations)) * nonbonded / m
-          """)
-        
-        for statement in sequence.reversed() {
-          statement()
-        }
-      }
-    }
-    #else
-    do {
-      let loopIterations = Int(exactly: Self.timeStepInFs / 4.00)!
+      let loopIterations = 23
       for i in 0..<loopIterations {
         if i == 0 {
           integrator.addComputePerDof(variable: "v", expression: """
@@ -1054,11 +870,11 @@ class MM4 {
             """)
         } else {
           integrator.addComputePerDof(variable: "v", expression: """
-          v + 0.5 * (dt * 2 / \(loopIterations)) * f1 / m
-          """)
+            v + 0.5 * (dt * 2 / \(loopIterations)) * f1 / m
+            """)
           integrator.addComputePerDof(variable: "v", expression: """
-          v + 0.25 * (dt * 2 / \(loopIterations)) * f2 / m
-          """)
+            v + 0.25 * (dt * 2 / \(loopIterations)) * f2 / m
+            """)
         }
         
         integrator.addComputePerDof(variable: "x", expression: """
@@ -1081,7 +897,6 @@ class MM4 {
         }
       }
     }
-    #endif
     self.integrator = integrator
     self.context = OpenMM_Context(system: system, integrator: integrator)
     
