@@ -14,9 +14,6 @@ struct Diamondoid {
   var atoms: [MRAtom]
   var bonds: [SIMD2<Int32>]
   
-  // Remove this once you've redesigned the motion API.
-  var velocities: [SIMD3<Float>]
-  
   // These cannot be initialized until you finalize the position.
   //
   // The angular velocity must be w.r.t. the center of mass. Otherwise, you are
@@ -24,6 +21,16 @@ struct Diamondoid {
   // around the center of mass.
   var linearVelocity: SIMD3<Float>?
   var angularVelocity: simd_quatf?
+  
+  // TODO: Partition into finite elements when there's elastic deformation. Each
+  // chunk will have its linear and angular momentum conserved, and the
+  // thermostat applied locally. Rescale the temperature of each chunk in the
+  // system to conserve energy, but randomize the velocity changes within each
+  // chunk.
+  //
+  // Better: do this partitioning automatically, in addition to a constraint
+  // placed on the entire rigid body. Test this on the diamondoid collision
+  // simulation.
   
   private var isVelocitySet: Bool {
     linearVelocity != nil ||
@@ -37,7 +44,7 @@ struct Diamondoid {
     self.init(atoms: atoms)
   }
   
-  init(atoms: [MRAtom], velocities: [SIMD3<Float>]? = nil) {
+  init(atoms: [MRAtom]) {
     let sp3BondAngle = Constants.sp3BondAngle
     precondition(atoms.count > 0, "Not enough atoms.")
     
@@ -153,7 +160,6 @@ struct Diamondoid {
     var newIndicesMap: [Int32] = Array(repeating: -1, count: atoms.count)
     self.atoms = []
     self.bonds = []
-    self.velocities = []
     
     let dimensionRangeEnds = SIMD3<Int>(
       roundUpToPowerOf2(Int(boundingBox[0]) + 1),
@@ -243,7 +249,6 @@ struct Diamondoid {
         let newAtomID = Int32(self.atoms.count)
         newIndicesMap[atomID] = newAtomID
         self.atoms.append(atoms[atomID])
-        self.velocities.append(velocities?[atomID] ?? .zero)
         
         var neighborTypes: [Int] = []
         var neighborCenters: [SIMD3<Float>] = []
@@ -284,7 +289,6 @@ struct Diamondoid {
           let hydrogenID = Int32(self.atoms.count)
           
           self.atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
-          self.velocities.append(velocities?[atomID] ?? .zero)
           self.bonds.append(SIMD2(Int32(newAtomID), hydrogenID))
         }
         
@@ -387,20 +391,31 @@ struct Diamondoid {
     return Self.makeBoundingBox(atoms: atoms)
   }
   
-  mutating func moveToOrigin(explosionFactor: Float) {
-    precondition(!isVelocitySet)
+  func createVelocities() -> [SIMD3<Float>] {
+    var w: SIMD3<Float>?
+    var centerOfMass: SIMD3<Float>?
+    if let angularVelocity {
+      let angleRadians = angularVelocity.angle
+      let axis = angularVelocity.axis
+      w = axis * angleRadians
+      centerOfMass = createCenterOfMass()
+    }
     
-    let centerOfMass = self.createCenterOfMass()
-    for i in 0..<atoms.count {
-      atoms[i].origin -= centerOfMass
-      atoms[i].origin *= explosionFactor
+    return atoms.map { atom in
+      var velocity = self.linearVelocity ?? .zero
+      if let w, let centerOfMass {
+        let r = atom.origin - centerOfMass
+        velocity += cross(w, r)
+      }
+      return velocity
     }
   }
   
   mutating func translate(offset: SIMD3<Float>) {
     precondition(!isVelocitySet)
-    
-    // Translate the atoms.
+    for i in 0..<atoms.count {
+      atoms[i].origin += offset
+    }
   }
   
   // Rotations always occur around the center of mass for simplicity (you can
@@ -408,7 +423,12 @@ struct Diamondoid {
   mutating func rotate(angle: simd_quatf) {
     precondition(!isVelocitySet)
     
-    // modify the atom positions
+    let centerOfMass = createCenterOfMass()
+    for i in atoms.indices {
+      var delta = atoms[i].origin - centerOfMass
+      delta = simd_act(angle, delta)
+      atoms[i].origin = centerOfMass + delta
+    }
   }
   
   // Center of mass using HMR.
@@ -443,10 +463,12 @@ struct Diamondoid {
     }
     
     var centerOfMass: SIMD3<Float> = .zero
+    var totalMass: Float = .zero
     for i in atoms.indices {
       centerOfMass += masses[i] * atoms[i].origin
+      totalMass += masses[i]
     }
-    centerOfMass /= Float(atoms.count)
+    centerOfMass /= totalMass
     return centerOfMass
   }
 }

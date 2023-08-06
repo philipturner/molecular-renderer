@@ -60,6 +60,7 @@
 		986ED89229A71C2B00E0653B /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 986ED89129A71C2B00E0653B /* Atomics */; };
 		9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */; };
 		987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */; };
+		988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BB2A800130004879E5 /* VdwOscillator.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
@@ -181,6 +182,7 @@
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
+		988EF0BB2A800130004879E5 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRendererApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
 		9898382729A6C08F00B4AA98 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
@@ -503,6 +505,7 @@
 				98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */,
 				98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */,
 				98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */,
+				988EF0BB2A800130004879E5 /* VdwOscillator.swift */,
 			);
 			path = References;
 			sourceTree = "<group>";
@@ -789,6 +792,7 @@
 				98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */,
 				98F2F5D22A5F2E7B006216F4 /* MassiveDiamond.swift in Sources */,
 				9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */,
+				988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,

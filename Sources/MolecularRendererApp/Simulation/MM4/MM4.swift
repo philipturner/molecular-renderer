@@ -61,10 +61,25 @@ class MM4 {
     diamondoid: Diamondoid,
     fsPerFrame: Double
   ) {
+    self.init(diamondoids: [diamondoid], fsPerFrame: fsPerFrame)
+  }
+  
+  convenience init(
+    diamondoids: [Diamondoid],
+    fsPerFrame: Double
+  ) {
+    var atoms: [MRAtom] = []
+    var bonds: [SIMD2<Int32>] = []
+    var velocities: [SIMD3<Float>] = []
+    
+    for diamondoid in diamondoids {
+      let atomIDOffset = Int32(atoms.count)
+      atoms += diamondoid.atoms
+      bonds += diamondoid.bonds.map { $0 &+ atomIDOffset }
+      velocities += diamondoid.createVelocities()
+    }
     self.init(
-      atoms: diamondoid.atoms,
-      bonds: diamondoid.bonds,
-      velocities: diamondoid.velocities,
+      atoms: atoms, bonds: bonds, velocities: velocities,
       fsPerFrame: fsPerFrame)
   }
   

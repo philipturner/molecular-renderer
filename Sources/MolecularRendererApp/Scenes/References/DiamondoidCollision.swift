@@ -15,7 +15,6 @@ struct DiamondoidCollision {
   init() {
     let horizontalSpacing: Float = 1 * 6 // nm
     let approachSpeed: Float = 1 * 4 // nm/ps, v2 - v1
-    var blockVelocities: [SIMD3<Float>] = []
     
     func centerAtOrigin(_ atoms: [MRAtom]) -> [MRAtom] {
       var totalMass: Float = .zero
@@ -34,7 +33,7 @@ struct DiamondoidCollision {
       }
     }
     
-    var baseAtoms: [MRAtom]
+    var carbonCenters: [SIMD3<Float>] = []
     
     do {
       let layerWidth: Int = 100
@@ -53,7 +52,6 @@ struct DiamondoidCollision {
         baseLayer.append(center)
       }
       
-      var carbonCenters: [SIMD3<Float>] = []
       carbonCenters += baseLayer.map {
         var center = $0
         center.y = -center.y
@@ -165,16 +163,12 @@ struct DiamondoidCollision {
       carbonCenters += layer(positiveSteps: 2, negativeSteps: 4)
       carbonCenters += layer(positiveSteps: 3, negativeSteps: 4)
       carbonCenters += layer(positiveSteps: 4, negativeSteps: 4)
-      
-      baseAtoms = carbonCenters.map {
-        MRAtom(origin: $0, element: 6)
-      }
     }
     
-    baseAtoms.removeAll(where: { $0.element == 1 })
-    baseAtoms = centerAtOrigin(baseAtoms)
+    var baseDiamondoid = Diamondoid(carbonCenters: carbonCenters)
+    baseDiamondoid.translate(offset: -baseDiamondoid.createCenterOfMass())
     
-    var atoms: [MRAtom] = []
+    var diamondoids: [Diamondoid] = []
     for i in -1...1 where i != 0 {
       var translation: SIMD3<Float>
       var rotation: simd_quatf
@@ -192,28 +186,21 @@ struct DiamondoidCollision {
       default:
         fatalError("This should never happen.")
       }
-      blockVelocities.append(velocity)
       
-      atoms += baseAtoms.map { baseAtom in
-        var atom = baseAtom
-        atom.origin = translation + simd_act(rotation, atom.origin)
-        atom.element = 6
-        return atom
-      }
+      var diamondoid = baseDiamondoid
+      diamondoid.rotate(angle: rotation)
+      diamondoid.translate(offset: translation)
+      diamondoid.linearVelocity = velocity
+      diamondoids.append(diamondoid)
     }
     
-    let velocities = atoms.indices.map { i in
-      if i % (2 * baseAtoms.count) < baseAtoms.count {
-        return blockVelocities[0]
-      } else {
-        return blockVelocities[1]
-      }
+    var numAtoms = 0
+    for diamondoid in diamondoids {
+      numAtoms += diamondoid.atoms.count
     }
-    precondition(!velocities.contains(where: { length($0) < 0.01 }))
-    let diamondoid = Diamondoid(atoms: atoms, velocities: velocities)
-    print("Atom count: \(diamondoid.atoms.count)")
+    print("Atom count: \(numAtoms)")
     
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 100)
+    let simulator = MM4(diamondoids: diamondoids, fsPerFrame: 100)
     simulator.simulate(ps: 10) // 10, or 200 to measure energy drift
     provider = simulator.provider
   }
