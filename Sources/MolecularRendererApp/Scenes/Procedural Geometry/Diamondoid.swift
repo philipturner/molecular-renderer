@@ -13,10 +13,22 @@ import QuartzCore
 struct Diamondoid {
   var atoms: [MRAtom]
   var bonds: [SIMD2<Int32>]
+  
+  // Remove this once you've redesigned the motion API.
   var velocities: [SIMD3<Float>]
   
-  // A bounding box that will never be exceeded during a simulation.
-  var boundingBox: simd_float2x3
+  // These cannot be initialized until you finalize the position.
+  //
+  // The angular velocity must be w.r.t. the center of mass. Otherwise, you are
+  // actually providing a linear velocity + a (different) angular velocity
+  // around the center of mass.
+  var linearVelocity: SIMD3<Float>?
+  var angularVelocity: simd_quatf?
+  
+  private var isVelocitySet: Bool {
+    linearVelocity != nil ||
+    angularVelocity != nil
+  }
   
   init(carbonCenters: [SIMD3<Float>]) {
     let atoms = carbonCenters.map {
@@ -34,17 +46,6 @@ struct Diamondoid {
     for atom in atoms {
       minPosition = min(atom.origin, minPosition)
       maxPosition = max(atom.origin, maxPosition)
-    }
-    do {
-      let supportedElements: [UInt8] = [1, 6]
-      var maxBondLength: Float = 0
-      for element in supportedElements {
-        let length = Constants.bondLengthMax(element: element)
-        maxBondLength = max(maxBondLength, length)
-      }
-      self.boundingBox = simd_float2x3(
-        minPosition - maxBondLength,
-        maxPosition + maxBondLength)
     }
     
     // Build a uniform grid to search for neighbors in O(n) time.
@@ -362,26 +363,90 @@ struct Diamondoid {
     }
   }
   
-  mutating func center() {
-    var totalMass: Float = 0
-    var centerOfMass: SIMD3<Float> = .zero
+  // A bounding box that will never be exceeded during a simulation.
+  private static func makeBoundingBox(atoms: [MRAtom]) -> simd_float2x3 {
+    var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
+    var maxPosition: SIMD3<Float> = SIMD3(repeating: -.infinity)
     for atom in atoms {
-      // Rough estimate of atomic mass.
-      let mass = 2 * Float(atom.element)
-      totalMass += mass
-      centerOfMass += atom.origin * mass
+      minPosition = min(atom.origin, minPosition)
+      maxPosition = max(atom.origin, maxPosition)
     }
-    centerOfMass /= totalMass
     
-    let explosionFactor: Float = 1.01
+    let supportedElements: [UInt8] = [1, 6]
+    var maxBondLength: Float = 0
+    for element in supportedElements {
+      let length = Constants.bondLengthMax(element: element)
+      maxBondLength = max(maxBondLength, length)
+    }
+    return simd_float2x3(
+      minPosition - maxBondLength,
+      maxPosition + maxBondLength)
+  }
+  
+  func createBoundingBox() -> simd_float2x3 {
+    return Self.makeBoundingBox(atoms: atoms)
+  }
+  
+  mutating func moveToOrigin(explosionFactor: Float) {
+    precondition(!isVelocitySet)
+    
+    let centerOfMass = self.createCenterOfMass()
     for i in 0..<atoms.count {
       atoms[i].origin -= centerOfMass
       atoms[i].origin *= explosionFactor
     }
+  }
+  
+  mutating func translate(offset: SIMD3<Float>) {
+    precondition(!isVelocitySet)
     
-    boundingBox[0] -= centerOfMass
-    boundingBox[1] -= centerOfMass
-    boundingBox[0] *= explosionFactor
-    boundingBox[1] *= explosionFactor
+    // Translate the atoms.
+  }
+  
+  // Rotations always occur around the center of mass for simplicity (you can
+  // emulate off-axis rotations through a separate linear translation).
+  mutating func rotate(angle: simd_quatf) {
+    precondition(!isVelocitySet)
+    
+    // modify the atom positions
+  }
+  
+  // Center of mass using HMR.
+  // WARNING: The amount of repartitioned mass must stay in sync with MM4.
+  func createCenterOfMass() -> SIMD3<Float> {
+    var masses = atoms.map { atom -> Float in
+      switch atom.element {
+      case 1:
+        return 1.008
+      case 6:
+        return 12.011
+      default:
+        fatalError("Unsupported element: \(atom.element)")
+      }
+    }
+    
+    for var bond in bonds {
+      let firstAtom = atoms[Int(bond[0])]
+      let secondAtom = atoms[Int(bond[1])]
+      if min(firstAtom.element, secondAtom.element) != 1 {
+        continue
+      }
+      if secondAtom.element == 1 {
+        bond = SIMD2(bond[1], bond[0])
+      }
+      
+      let hydrogenMass = masses[Int(bond[0])]
+      var nonHydrogenMass = masses[Int(bond[1])]
+      nonHydrogenMass -= (2.0 - hydrogenMass)
+      masses[Int(bond[0])] = 2.0
+      masses[Int(bond[1])] = nonHydrogenMass
+    }
+    
+    var centerOfMass: SIMD3<Float> = .zero
+    for i in atoms.indices {
+      centerOfMass += masses[i] * atoms[i].origin
+    }
+    centerOfMass /= Float(atoms.count)
+    return centerOfMass
   }
 }

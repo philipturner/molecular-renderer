@@ -26,7 +26,8 @@ extension Figure3D {
     // position and overall momentum should not drift.
     var origins: [SIMD3<Float>] = [.zero]
     func getSize(_ structure: Diamondoid) -> SIMD3<Float> {
-      structure.boundingBox[1] - structure.boundingBox[0]
+      let boundingBox = structure.createBoundingBox()
+      return boundingBox[1] - boundingBox[0]
     }
     
     let structures = self.structures
@@ -53,7 +54,7 @@ extension Figure3D {
     // Center the structures.
     var output: [MRAtom] = []
     for (i, keyPath) in structures.enumerated() {
-      let box = self[keyPath: keyPath].boundingBox
+      let box = self[keyPath: keyPath].createBoundingBox()
       let boxCenter = (box[0] + box[1]) / 2
       let translation = origins[i] - boxCenter
       

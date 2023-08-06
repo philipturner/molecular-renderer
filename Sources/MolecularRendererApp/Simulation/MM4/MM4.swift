@@ -41,6 +41,9 @@ import QuartzCore
 //
 // Eventually, sp2 carbon, which requires more changes than the other elements.
 
+// Don't give any special treatment to cyclobutane and cyclopentane carbons.
+// Instead, restrict designs to only those based on a diamond lattice.
+
 class MM4 {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
@@ -162,9 +165,7 @@ class MM4 {
           case 1:
             mass = 1.008
           case 6:
-            // Don't give any special treatment to cyclobutane and cyclopentane
-            // carbons. Instead, restrict designs to only those based on a
-            // diamond lattice.
+            
             mass = 12.011
           default:
             fatalError("Unsupported element: \(atom.element)")
@@ -1091,7 +1092,7 @@ class MM4 {
         let sampleEnergy = absoluteTimeInFs > 200 && absoluteTimeInFs < 2000
         var message: String = ""
         if absoluteTimeInFs % 500 == 0 {
-          message = "t = \(String(format: "%.3f", timestamp)) ps"
+          message = "t = \(String(format: "%.1f", timestamp)) ps"
         }
         
         if !profiling && sampleEnergy && (absoluteTimeInFs % 100 == 0) {
@@ -1106,10 +1107,15 @@ class MM4 {
             let averageEnergy = energies.reduce(0, +) / Float(energies.count)
             let deviation = mechanicalEnergyInZJ(state) - averageEnergy
             message += ", "
+            
+            var formatString = "\(String(format: "%.1f", deviation)) zJ"
             if deviation >= 0 {
-              message += "+"
+              formatString = "+" + formatString
             }
-            message += "\(String(format: "%.1f", deviation)) zJ"
+            if formatString.count < "-XX.X zJ".count {
+              message += " "
+            }
+            message += formatString
           } else {
             state = context.state(types: .positions)
           }
