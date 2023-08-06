@@ -14,8 +14,9 @@ import simd
 // lacked a thermostat, so simulations couldn't last more than a few 100 ps.
 
 struct VdwOscillator {
-  var provider: OpenMM_AtomProvider
+//  var provider: OpenMM_AtomProvider
 //  var provider: ArrayAtomProvider
+  var provider: any MRAtomProvider
   
   init() {
     // Generate a cube, then cleave it along directions I want.
@@ -36,6 +37,11 @@ struct VdwOscillator {
       }
       
       init(_ latticeOrigin: SIMD3<Int>, normal: SIMD3<Float>) {
+        self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
+        self.normal = normalize(normal)
+      }
+      
+      init(_ latticeOrigin: SIMD3<Float>, normal: SIMD3<Float>) {
         self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
         self.normal = normalize(normal)
       }
@@ -126,7 +132,7 @@ struct VdwOscillator {
     }
     
     // Only using a cubic lattice for now.
-    let latticeWidth: Int = 10
+    let latticeWidth: Int = 16
     var baseLattice: [Cell] = []
     let baseCell = Cell()
     for i in 0..<latticeWidth {
@@ -165,34 +171,178 @@ struct VdwOscillator {
     
     var allCarbonCenters: [SIMD3<Float>] = []
     
+    // Half the hole width in either dimension.
+    let holeWidthX: Float = 2.0
+    let holdWidthYZ: Float = 3.0
+    
     do {
       var cells = baseLattice
-      cells = cleave(cells: cells, planes: [
-        Plane(SIMD3(0, latticeWidth, latticeWidth), normal: SIMD3(1, 1, 1)),
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane(SIMD3(0, latticeWidth, latticeWidth), normal: SIMD3(-1, 1, -1)),
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane(SIMD3(0, 0, 0), normal: SIMD3(-1, -1, 1)),
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane(SIMD3(0, 0, 0), normal: SIMD3(1, -1, -1)),
-      ])
+      let blockOrigin = SIMD3<Float>(SIMD3(repeating: latticeWidth / 2))
+      
+      let innerBounds: [SIMD3<Float>] = [
+        SIMD3(0, 2, 2),
+        SIMD3(0, 4, -4),
+        SIMD3(0, -2, -2),
+        SIMD3(0, -4, 4),
+      ]
+      let thickness: Float = 0.5
+      let outerBounds = innerBounds.map {
+        $0 + thickness * SIMD3<Float>(
+          (sign(Float($0.x))),
+          (sign(Float($0.y))),
+          (sign(Float($0.z))))
+      }
+      
+      cells = cleave(cells: cells, planes: innerBounds.map {
+        Plane(blockOrigin + $0, normal: SIMD3(0 - $0))
+      })
+      for bound in outerBounds {
+        cells = cleave(cells: cells, planes: [
+          Plane(blockOrigin + bound, normal: SIMD3(bound))
+        ])
+      }
+      
+      
+      
+      // Make a remover, then translate it several times across a diagonal line.
+      // Repeat in the alternate direction to carve out pyramids, and once more
+      // on the back.
+      var outer100Removers: [[Plane]] = []
+      var hole100Removers_first: [[Plane]] = []
+      var hole100Removers_second: [[Plane]] = []
+      for flippedX in [false, true] {
+        for flippedYZ in [false, true] {
+          let planeOrigin: SIMD3<Int> = SIMD3(
+            flippedX ? 1 : latticeWidth - 1,
+            latticeWidth / 2,
+            latticeWidth / 2
+          )
+          let base100Remover: [Plane] = [
+            Plane(
+              planeOrigin,
+              normal: [
+                flippedX ? -1 : 1,
+                flippedYZ ? 1 : 1,
+                flippedYZ ? -1 : 1,
+              ]),
+            Plane(
+              planeOrigin,
+              normal: [
+                flippedX ? -1 : 1,
+                flippedYZ ? -1 : -1,
+                flippedYZ ? 1 : -1,
+              ]),
+          ]
+          
+          for translationYZ_doubled in -16...16 {
+            let translationYZ = Float(translationYZ_doubled) / 2
+            var delta: SIMD3<Float>
+            if flippedYZ {
+              delta = SIMD3(0, -translationYZ, translationYZ)
+            } else {
+              delta = SIMD3(0, translationYZ, translationYZ)
+            }
+            var remover = base100Remover
+            remover[0].origin += SIMD3(delta)
+            remover[1].origin += SIMD3(delta)
+            outer100Removers.append(remover)
+            
+            var newOrigin0_first = __tg_rint(remover[0].origin * 2) / 2
+            var newOrigin1_first = __tg_rint(remover[1].origin * 2) / 2
+            var newOrigin0_second: SIMD3<Float> = newOrigin0_first
+            var newOrigin1_second: SIMD3<Float> = newOrigin1_first
+            if newOrigin0_first.x == 1 {
+              newOrigin0_first.x = Float(latticeWidth / 2) * 0.5 + holeWidthX
+              newOrigin1_first.x = Float(latticeWidth / 2) * 0.5 + holeWidthX
+              newOrigin0_second.x = Float(latticeWidth / 2) * 1.5 + holeWidthX
+              newOrigin1_second.x = Float(latticeWidth / 2) * 1.5 + holeWidthX
+            } else if newOrigin0_first.x == Float(latticeWidth - 1) {
+              newOrigin0_first.x = Float(latticeWidth / 2) * 0.5 - holeWidthX
+              newOrigin1_first.x = Float(latticeWidth / 2) * 0.5 - holeWidthX
+              newOrigin0_second.x = Float(latticeWidth / 2) * 1.5 - holeWidthX
+              newOrigin1_second.x = Float(latticeWidth / 2) * 1.5 - holeWidthX
+            }
+            newOrigin0_first.x += 0.5
+            newOrigin1_first.x += 0.5
+            newOrigin0_second.x -= 0.5
+            newOrigin1_second.x -= 0.5
+            
+            remover[0] = Plane(newOrigin0_first, normal: remover[0].normal)
+            remover[1] = Plane(newOrigin1_first, normal: remover[1].normal)
+            hole100Removers_first.append(remover)
+            
+            remover[0] = Plane(newOrigin0_second, normal: remover[0].normal)
+            remover[1] = Plane(newOrigin1_second, normal: remover[1].normal)
+            hole100Removers_second.append(remover)
+          }
+        }
+      }
+      for remover in outer100Removers {
+        cells = cleave(cells: cells, planes: remover)
+      }
+      
+      for half in [0, 1] {
+        let holeBounds: [SIMD3<Float>] = [
+          SIMD3(Float(-holeWidthX), 0, 0),
+          SIMD3(Float(+holeWidthX), 0, 0),
+          SIMD3(0, Float(+holdWidthYZ), Float(-holdWidthYZ)),
+          SIMD3(0, Float(-holdWidthYZ), Float(+holdWidthYZ)),
+        ]
+        var holePlanes: [Plane]
+        if half == 0 {
+          holePlanes = holeBounds.map {
+            Plane(
+              SIMD3(blockOrigin.x * 0.5, blockOrigin.y, blockOrigin.z) + $0,
+              normal: SIMD3(0 - $0))
+          }
+        } else {
+          holePlanes = holeBounds.map {
+            Plane(
+              SIMD3(blockOrigin.x * 1.5, blockOrigin.y, blockOrigin.z) + $0,
+              normal: SIMD3(0 - $0))
+          }
+        }
+        
+        var holeRemovers: [[Plane]]
+        if half == 0 {
+          holeRemovers = hole100Removers_first
+        } else {
+          holeRemovers = hole100Removers_second
+        }
+        
+        for remover in holeRemovers {
+          var planes = remover + holePlanes
+          let divider = (half == 0)
+          ? Float(latticeWidth / 4)
+          : Float(latticeWidth * 3 / 4)
+          
+          if planes[0].origin.x > divider {
+            planes.append(
+              Plane([divider - 1, 0, 0], normal: [1, 0, 0]))
+          } else {
+            planes.append(
+              Plane([divider + 1, 0, 0], normal: [-1, 0, 0]))
+          }
+          cells = cleave(cells: cells, planes: planes)
+        }
+      }
+      
       allCarbonCenters += makeCarbonCenters(cells: cells)
     }
     
-    var allAtoms = allCarbonCenters.map {
+    let allAtoms = allCarbonCenters.map {
       MRAtom(origin: $0 * 0.357, element: 6)
     }
-//    self.provider = ArrayAtomProvider(allAtoms)
+    print(allAtoms.count)
+    self.provider = ArrayAtomProvider(allAtoms)
     
-    let diamondoid = Diamondoid(atoms: allAtoms)
-    print(diamondoid.atoms.count)
-    
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
-    simulator.simulate(ps: 10)
-    provider = simulator.provider
+//    let diamondoid = Diamondoid(atoms: allAtoms)
+//    print(diamondoid.atoms.count)
+//    self.provider = ArrayAtomProvider(diamondoid.atoms)
+//
+//    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+//    simulator.simulate(ps: 10)
+//    provider = simulator.provider
   }
 }
 
@@ -214,3 +364,5 @@ func makeTetrahedron() {
   allCarbonCenters += makeCarbonCenters(cells: cells)
 }
 #endif
+
+
