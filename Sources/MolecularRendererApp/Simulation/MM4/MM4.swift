@@ -1005,14 +1005,26 @@ class MM4 {
         // w_y: angular velocity around y-axis (ZX plane)
         // w_z: angular velocity around z-axis (XY plane)
         //
-        // How to convert this into a linear velocity for each particle?
-        let angularVelocity = totalMomentOfInertia
+        // Convert into a linear velocity for each particle:
+        // v = w cross r
+        let totalAngularVelocity = totalMomentOfInertia
           .inverse * totalAngularMomentum
         
         for atomID in rigidBody {
           var velocity = stateVelocities[atomID]
-          velocity -= totalMomentum / totalMass
+          velocity += -totalMomentum / totalMass
           velocity += SIMD3(velocities[atomID])
+          
+          let delta = positions[atomID] - centerOfMass
+          for axis in 0..<3 {
+            var w: SIMD3<Double> = .zero
+            var r = delta
+            w[axis] = -totalAngularVelocity[axis]
+            r[axis] = 0
+            
+            let v = cross(w, r)
+            velocity += v
+          }
           
           stateVelocities[atomID] = velocity
         }
@@ -1053,24 +1065,21 @@ class MM4 {
     
     var energies: [Float] = []
     for t in 1...numFrames {
-      var stepID = t * provider.stepsPerFrame
-      stepID *= Int(exactly: timeStepInFs * 8)!
-      
-      let timestamp = Double(stepID) / 8 / 1000
-      if (stepID / 8) % 500 == 0 {
-        if !requestEnergy {
-          print("t = \(String(format: "%.3f", timestamp)) ps")
-        }
-      }
-      
+      var absoluteTimeInFs = t * provider.stepsPerFrame
+      absoluteTimeInFs *= Int(exactly: timeStepInFs)!
       integrator.step(provider.stepsPerFrame)
       
+      func mechanicalEnergyInZJ(_ state: OpenMM_State) -> Float {
+        Float((
+          state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
+      }
+      
+      let timestamp = Double(absoluteTimeInFs) / 1000
       var state: OpenMM_State
       if requestEnergy {
         state = context.state(types: [.positions, .energy])
-        if (stepID / 8) % 500 == 0 {
-          let energy = Float((
-            state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
+        if absoluteTimeInFs % 500 == 0 {
+          let energy = mechanicalEnergyInZJ(state)
           if timestamp >= 5.000 {
             let average = energies.reduce(0, +) / Float(energies.count)
             print(energy - average)
@@ -1079,7 +1088,22 @@ class MM4 {
           }
         }
       } else {
-        state = context.state(types: .positions)
+        let sampleEnergy = absoluteTimeInFs < 2000
+        if !profiling && sampleEnergy && (absoluteTimeInFs % 100 == 0) {
+          state = context.state(types: [.positions, .energy])
+          if absoluteTimeInFs % 500 == 0 {
+            print("t = \(String(format: "%.3f", timestamp)) ps")
+          }
+        } else {
+          state = context.state(types: .positions)
+          if absoluteTimeInFs % 500 == 0 {
+            if !profiling {
+              
+            } else {
+              print("t = \(String(format: "%.3f", timestamp)) ps")
+            }
+          }
+        }
       }
       provider.append(state: state, steps: provider.stepsPerFrame)
     }
