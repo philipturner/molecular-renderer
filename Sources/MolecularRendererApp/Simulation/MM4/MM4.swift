@@ -47,8 +47,12 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  static let timeStepInFs: Double = 100.00
-  static let requestEnergy = false
+  // Allow the time step to change based on what the user requests, to be as
+  // close to 100 / 23 as possible.
+  var timeStepInFs: Double
+  var substepsPerTimeStep: Int
+  var requestEnergy = false
+  var profiling = true
   
   convenience init(
     diamondoid: Diamondoid,
@@ -65,8 +69,28 @@ class MM4 {
     atoms inputAtoms: [MRAtom],
     bonds inputBonds: [SIMD2<Int32>],
     velocities inputVelocities: [SIMD3<Float>]? = nil,
-    fsPerFrame: Double = 10
+    fsPerFrame: Double
   ) {
+    do {
+      let fsInt = Int(exactly: fsPerFrame)!
+      precondition(fsInt > 0)
+      if fsInt % 100 == 0 {
+        // Replay at (n * 12) ps/s.
+        self.timeStepInFs = 100
+        self.substepsPerTimeStep = 23
+      } else if fsInt % 25 == 0 {
+        // Replay at (n * 3) ps/s.
+        self.timeStepInFs = fsPerFrame
+        self.substepsPerTimeStep = 24 * (fsInt / 25)
+      } else if fsInt % 4 == 0 {
+        // Replay at (n * 0.48) ps/s.
+        self.timeStepInFs = fsPerFrame
+        self.substepsPerTimeStep = fsInt / 4
+      } else {
+        fatalError("Unsupports fs per frame: '\(fsInt)'")
+      }
+    }
+    
     self.system = OpenMM_System()
     
     var atoms: [MRAtom] = []
@@ -857,9 +881,9 @@ class MM4 {
     system.addForce(bondBendTorsionBend)
     
     let integrator = OpenMM_CustomIntegrator(
-      stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
+      stepSize: timeStepInFs * OpenMM_PsPerFs)
     do {
-      let loopIterations = 23
+      let loopIterations = self.substepsPerTimeStep
       for i in 0..<loopIterations {
         if i == 0 {
           integrator.addComputePerDof(variable: "v", expression: """
@@ -941,8 +965,8 @@ class MM4 {
     }
     
     self.provider = OpenMM_AtomProvider(
-      psPerStep: Self.timeStepInFs * OpenMM_PsPerFs,
-      stepsPerFrame: Int(exactly: fsPerFrame / Self.timeStepInFs)!,
+      psPerStep: timeStepInFs * OpenMM_PsPerFs,
+      stepsPerFrame: Int(exactly: fsPerFrame / timeStepInFs)!,
       elements: atoms.map(\.element))
   }
   
@@ -950,20 +974,18 @@ class MM4 {
     simulate(ps: ps, context: self.context, integrator: self.integrator)
   }
   
-  private static let profiling = true
-  
   private func simulate(
     ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
   ) {
     let numFemtoseconds = Double(rint(ps * 1000))
-    let numSteps = Int(exactly: numFemtoseconds / Self.timeStepInFs)!
+    let numSteps = Int(exactly: numFemtoseconds / timeStepInFs)!
     let numFrames = numSteps / provider.stepsPerFrame
     precondition(
       numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
     
     print("t = 0.000 ps")
     var start: Double?
-    if MM4.profiling {
+    if profiling {
       #if DEBUG
       fatalError("Do not profile in debug mode.")
       #else
@@ -976,12 +998,11 @@ class MM4 {
     var energies: [Float] = []
     for t in 1...numFrames {
       var stepID = t * provider.stepsPerFrame
-      stepID *= Int(exactly: Self.timeStepInFs * 8)!
-      
+      stepID *= Int(exactly: timeStepInFs * 8)!
       
       let timestamp = Double(stepID) / 8 / 1000
-      if !MM4.profiling || (stepID / 8) % 500 == 0 {
-        if !Self.requestEnergy {
+      if !profiling || (stepID / 8) % 500 == 0 {
+        if !requestEnergy {
           print("t = \(String(format: "%.3f", timestamp)) ps")
         }
       }
@@ -989,10 +1010,11 @@ class MM4 {
       integrator.step(provider.stepsPerFrame)
       
       var state: OpenMM_State
-      if Self.requestEnergy {
+      if requestEnergy {
         state = context.state(types: [.positions, .energy])
-        if !MM4.profiling || (stepID / 8) % 500 == 0 {
-          let energy = Float((state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
+        if !profiling || (stepID / 8) % 500 == 0 {
+          let energy = Float((
+            state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
           if timestamp >= 5.000 {
             let average = energies.reduce(0, +) / Float(energies.count)
             print(energy - average)
@@ -1005,7 +1027,7 @@ class MM4 {
       }
       provider.append(state: state, steps: provider.stepsPerFrame)
     }
-    if MM4.profiling {
+    if profiling {
       guard let start else {
         fatalError()
       }
