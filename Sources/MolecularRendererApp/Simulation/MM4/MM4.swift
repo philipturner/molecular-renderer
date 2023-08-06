@@ -1088,21 +1088,34 @@ class MM4 {
           }
         }
       } else {
-        let sampleEnergy = absoluteTimeInFs < 2000
+        let sampleEnergy = absoluteTimeInFs > 200 && absoluteTimeInFs < 2000
+        var message: String = ""
+        if absoluteTimeInFs % 500 == 0 {
+          message = "t = \(String(format: "%.3f", timestamp)) ps"
+        }
+        
         if !profiling && sampleEnergy && (absoluteTimeInFs % 100 == 0) {
           state = context.state(types: [.positions, .energy])
-          if absoluteTimeInFs % 500 == 0 {
-            print("t = \(String(format: "%.3f", timestamp)) ps")
-          }
+          energies.append(mechanicalEnergyInZJ(state))
         } else {
-          state = context.state(types: .positions)
-          if absoluteTimeInFs % 500 == 0 {
-            if !profiling {
-              
-            } else {
-              print("t = \(String(format: "%.3f", timestamp)) ps")
+          if absoluteTimeInFs % 500 == 0,
+             !profiling,
+             energies.count > 0 {
+            state = context.state(types: [.positions, .energy])
+            
+            let averageEnergy = energies.reduce(0, +) / Float(energies.count)
+            let deviation = mechanicalEnergyInZJ(state) - averageEnergy
+            message += ", "
+            if deviation >= 0 {
+              message += "+"
             }
+            message += "\(String(format: "%.1f", deviation)) zJ"
+          } else {
+            state = context.state(types: .positions)
           }
+        }
+        if message.count > 0 {
+          print(message)
         }
       }
       provider.append(state: state, steps: provider.stepsPerFrame)
