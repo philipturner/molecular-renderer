@@ -52,6 +52,15 @@ public class OpenMM_CustomIntegrator: OpenMM_Integrator {
   }
   
   @discardableResult
+  public func addComputeGlobal(
+    variable: String, expression: String
+  ) -> Int {
+    let index = OpenMM_CustomIntegrator_addComputeGlobal(
+      pointer, variable, expression)
+    return Int(index)
+  }
+  
+  @discardableResult
   public func addComputePerDof(
     variable: String, expression: String
   ) -> Int {
@@ -69,6 +78,15 @@ public class OpenMM_CustomIntegrator: OpenMM_Integrator {
   @discardableResult
   public func addConstrainVelocities() -> Int {
     let index = OpenMM_CustomIntegrator_addConstrainVelocities(pointer)
+    return Int(index)
+  }
+  
+  @discardableResult
+  public func addGlobalVariable(
+    name: String, initialValue: Double
+  ) -> Int {
+    let index = OpenMM_CustomIntegrator_addGlobalVariable(
+      pointer, name, initialValue)
     return Int(index)
   }
   

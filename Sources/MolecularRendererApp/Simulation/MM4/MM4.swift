@@ -855,7 +855,7 @@ class MM4 {
       stepSize: Self.timeStepInFs * OpenMM_PsPerFs)
     #if false
     do {
-      integrator.addPerDofVariable(name: "initialized", initialValue: 0)
+      integrator.addGlobalVariable(name: "initialized", initialValue: 0)
       integrator.addPerDofVariable(name: "nonbonded", initialValue: 0)
       integrator.addPerDofVariable(name: "bonded", initialValue: 0)
       
@@ -865,7 +865,7 @@ class MM4 {
         var sequence: [() -> Void] = []
         
         integrator.beginIfBlock(condition: "initialized < 1")
-        integrator.addComputePerDof(variable: "initialized", expression: "1")
+        integrator.addComputeGlobal(variable: "initialized", expression: "1")
         integrator.addComputePerDof(variable: "nonbonded", expression: "f1")
         integrator.addComputePerDof(variable: "bonded", expression: "f2")
         integrator.endBlock()
@@ -888,8 +888,8 @@ class MM4 {
         // Nonbonded force evaluation (1 / 2).
         sequence.append {
           integrator.addComputePerDof(variable: "v", expression: """
-          v + (1 / 4) * (dt / \(loopIterations)) * nonbonded / m
-          """)
+            v + (1 / 4) * (dt / \(loopIterations)) * nonbonded / m
+            """)
         }
         sequence.append {
           integrator.addComputePerDof(variable: "x", expression: """
