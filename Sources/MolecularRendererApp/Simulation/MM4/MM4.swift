@@ -48,7 +48,7 @@ class MM4 {
   var provider: OpenMM_AtomProvider
   
   static let timeStepInFs: Double = 40.00
-  static let requestEnergy = true
+  static let requestEnergy = false
   
   convenience init(
     diamondoid: Diamondoid,
@@ -192,8 +192,8 @@ class MM4 {
         
         let hydrogenMass = repartitionedMasses[Int(bond[0])]
         var nonHydrogenMass = repartitionedMasses[Int(bond[1])]
-        nonHydrogenMass -= (3.0 - hydrogenMass)
-        repartitionedMasses[Int(bond[0])] = 3.0
+        nonHydrogenMass -= (2.0 - hydrogenMass)
+        repartitionedMasses[Int(bond[0])] = 2.0
         repartitionedMasses[Int(bond[1])] = nonHydrogenMass
       }
       
@@ -1049,7 +1049,7 @@ class MM4 {
       stepID *= Int(exactly: Self.timeStepInFs * 8)!
       
       
-      let timestamp = Double(stepID) / 8 / 960
+      let timestamp = Double(stepID) / 8 / 1000
       if !MM4.profiling || (stepID / 8) % 480 == 0 {
         if !Self.requestEnergy {
           print("t = \(String(format: "%.3f", timestamp)) ps")
