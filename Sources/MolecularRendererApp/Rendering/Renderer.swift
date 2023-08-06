@@ -33,7 +33,7 @@ class Renderer {
     MRSetFrameRate(ContentView.frameRate)
     initOpenMM()
     
-    let url =  Bundle.main.url(
+    let url = Bundle.main.url(
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
     self.renderingEngine = MRRenderer(
       metallibURL: url,
@@ -52,8 +52,8 @@ class Renderer {
     
     #if true
     
-//      let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 80)
-//      simulator.simulate(ps: 96)
+//      let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 100)
+//      simulator.simulate(ps: 10) // 100
 //      self.atomProvider = simulator.provider
     
     self.atomProvider = DiamondoidCollision().provider

@@ -47,7 +47,7 @@ class MM4 {
   var context: OpenMM_Context
   var provider: OpenMM_AtomProvider
   
-  static let timeStepInFs: Double = 40.00
+  static let timeStepInFs: Double = 20.00
   static let requestEnergy = false
   
   convenience init(
@@ -603,15 +603,16 @@ class MM4 {
     
     var bondBendBend: OpenMM_CustomCompoundBondForce
     
+    #if false
     do {
       let energy = """
-      \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
-      -0.021914 * stiffness * (
-        angle(p1, p2, p3) - equilibrium_angle1
-      ) * (
-        angle(p1, p2, p4) - equilibrium_angle2
-      );
-      """
+    \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
+    -0.021914 * stiffness * (
+      angle(p1, p2, p3) - equilibrium_angle1
+    ) * (
+      angle(p1, p2, p4) - equilibrium_angle2
+    );
+    """
       bondBendBend = OpenMM_CustomCompoundBondForce(
         numParticles: 4, energy: energy)
       bondBendBend.addPerBondParameter(name: "stiffness")
@@ -710,6 +711,120 @@ class MM4 {
         }
       }
     }
+    #else
+    do {
+      let energy = """
+      \(OpenMM_KJPerKcal) * (180 / 3.141592)^2 *
+      -0.021914 * (energy34 + energy45 + energy53);
+      
+      energy34 = stiffness34 * (
+        angle3 - equilibrium_angle23
+      ) * (
+        angle4 - equilibrium_angle24
+      );
+      energy45 = stiffness45 * (
+        angle4 - equilibrium_angle24
+      ) * (
+        angle5 - equilibrium_angle25
+      );
+      energy53 = stiffness53 * (
+        angle5 - equilibrium_angle25
+      ) * (
+        angle3 - equilibrium_angle23
+      );
+      
+      angle3 = angle(p2, p1, p3);
+      angle4 = angle(p2, p1, p4);
+      angle5 = angle(p2, p1, p5);
+      """
+      bondBendBend = OpenMM_CustomCompoundBondForce(
+        numParticles: 5, energy: energy)
+      bondBendBend.addPerBondParameter(name: "stiffness34")
+      bondBendBend.addPerBondParameter(name: "stiffness45")
+      bondBendBend.addPerBondParameter(name: "stiffness53")
+      bondBendBend.addPerBondParameter(name: "equilibrium_angle23")
+      bondBendBend.addPerBondParameter(name: "equilibrium_angle24")
+      bondBendBend.addPerBondParameter(name: "equilibrium_angle25")
+      
+      var bendBendParameters: [SIMD3<UInt8>: Double] = [:]
+      bendBendParameters[[1, 6, 1]] = 0.000
+      bendBendParameters[[1, 6, 6]] = 0.350
+      bendBendParameters[[6, 6, 6]] = 0.204
+      
+      let relativePairs: [SIMD3<Int>] = [
+        SIMD3(1, 2, 3),
+        SIMD3(2, 3, 0),
+        SIMD3(3, 0, 1),
+        SIMD3(1, 2, 0),
+      ]
+      
+      let angleTripleParticles = OpenMM_IntArray(size: 5)
+      let angleTripleParameters = OpenMM_DoubleArray(size: 6)
+      for i in atoms.indices {
+        if atoms[i].element == 0 {
+          continue
+        }
+        if atoms[i].element == 1 {
+          continue
+        }
+        let centerAtomID = i
+        let bondMap = atomsToBondsMap[Int(i)]
+        precondition(!any(bondMap .== -1), "Carbon did not have 4 bonds.")
+        
+        var atomMap: SIMD4<Int32> = .init(repeating: -1)
+        for j in 0..<4 {
+          let bond = bonds[Int(bondMap[j])]
+          atomMap[j] = getNot(id: Int32(i), from: bond)
+        }
+        
+        for (index, pair) in relativePairs.enumerated() {
+          var particles: SIMD4<Int32> = .init(repeating: -1)
+          particles[0] = atomMap[index]
+          particles[1] = atomMap[Int(pair[0])]
+          particles[2] = atomMap[Int(pair[1])]
+          particles[3] = atomMap[Int(pair[2])]
+          
+          var stiffnesses: SIMD3<Double> = .init(repeating: -1)
+          var angles: SIMD3<Double> = .init(repeating: -1)
+          for j in 0..<3 {
+            var atom1 = particles[0]
+            let atom2 = Int32(centerAtomID)
+            var atom3 = particles[1 + j]
+            if !(atom1 < atom3) {
+              swap(&atom1, &atom3)
+            }
+            let type = angleTypes[SIMD3(atom1, atom2, atom3)]!
+            
+            var element1 = atoms[Int(atom1)].element
+            let element2 = atoms[Int(atom2)].element
+            var element3 = atoms[Int(atom3)].element
+            if !(element1 < element3) {
+              swap(&element1, &element3)
+            }
+            let bendKey = SIMD3<UInt8>(element1, element2, element3)
+            let bendParams = bendParameters[bendKey]!.parameters[type - 1]
+            let bendBendParams = bendBendParameters[bendKey]!
+            angles[j] = bendParams[2]
+            stiffnesses[j] = bendBendParams
+          }
+          
+          angleTripleParticles[0] = centerAtomID
+          for j in 0..<4 {
+            angleTripleParticles[1 + j] = Int(particles[j])
+          }
+          angleTripleParameters[0] = stiffnesses[0] * stiffnesses[1]
+          angleTripleParameters[1] = stiffnesses[1] * stiffnesses[2]
+          angleTripleParameters[2] = stiffnesses[2] * stiffnesses[0]
+          angleTripleParameters[3] = angles[0]
+          angleTripleParameters[4] = angles[1]
+          angleTripleParameters[5] = angles[2]
+          bondBendBend.addBond(
+            particles: angleTripleParticles,
+            parameters: angleTripleParameters)
+        }
+      }
+    }
+    #endif
     
     var torsionParameters: [SIMD4<UInt8>: SIMD4<Double>] = [:]
     var bondTorsion: OpenMM_CustomCompoundBondForce
@@ -1050,7 +1165,7 @@ class MM4 {
       
       
       let timestamp = Double(stepID) / 8 / 1000
-      if !MM4.profiling || (stepID / 8) % 480 == 0 {
+      if !MM4.profiling || (stepID / 8) % 500 == 0 {
         if !Self.requestEnergy {
           print("t = \(String(format: "%.3f", timestamp)) ps")
         }
@@ -1061,9 +1176,9 @@ class MM4 {
       var state: OpenMM_State
       if Self.requestEnergy {
         state = context.state(types: [.positions, .energy])
-        if !MM4.profiling || (stepID / 8) % 480 == 0 {
+        if !MM4.profiling || (stepID / 8) % 500 == 0 {
           let energy = Float((state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
-          if timestamp >= 4.800 {
+          if timestamp >= 5.000 {
             let average = energies.reduce(0, +) / Float(energies.count)
             print(energy - average)
           } else {
