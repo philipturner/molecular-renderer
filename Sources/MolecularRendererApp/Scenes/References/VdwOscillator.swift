@@ -189,25 +189,61 @@ struct VdwOscillator {
           Plane([0, 10, 5 - 5 * zDir], normal: [0, -1, -zDir])
         ])
         
+        // Extra thickness.
+        // For some reason, adding thickness made the entire structure have
+        // 'NAN' energy in OpenMM.
+        let ext: Float = 0
         do {
-          cells = cleave(cells: cells, planes: [
-            Plane([0, 9, 5], normal: [0, -1, +1]),
-            Plane([0, 9, 5], normal: [0, -1, -1]),
-          ])
+          if zDir == 1 {
+            cells = cleave(cells: cells, planes: [
+              Plane([0, 9, 5], normal: [0, -1, +1]),
+              Plane([0, 9 - ext, 5 - ext], normal: [0, -1, -1]),
+            ])
+          } else {
+            cells = cleave(cells: cells, planes: [
+              Plane([0, 9 - ext, 5 + ext], normal: [0, -1, +1]),
+              Plane([0, 9, 5], normal: [0, -1, -1]),
+            ])
+          }
           cells = cleave(cells: cells, planes: [
             Plane([9.5, 9, 5], normal: [+1, +1, -1]),
           ])
-          cells = cleave(cells: cells, planes: [
-            Plane([9.5, 10, 5], normal: [+1, -1, +1]),
-            Plane([0, 9, 5], normal: [0, -1, -1]),
-          ])
-          cells = cleave(cells: cells, planes: [
-            Plane([10, 9, 5], normal: [+1, +1, +1]),
-          ])
-          cells = cleave(cells: cells, planes: [
-            Plane([10, 10, 5], normal: [+1, -1, -1]),
-            Plane([0, 9, 5], normal: [0, -1, +1]),
-          ])
+          if zDir == 1 {
+            cells = cleave(cells: cells, planes: [
+              Plane([9.5, 10, 5], normal: [+1, -1, +1]),
+              Plane([0, 9 - ext, 5 - ext], normal: [0, -1, -1]),
+            ])
+          } else {
+            cells = cleave(cells: cells, planes: [
+              Plane([9.5, 10 - ext, 5 + ext], normal: [+1, -1, +1]),
+              Plane([0, 9, 5], normal: [0, -1, -1]),
+            ])
+          }
+          if zDir == 1 {
+            cells = cleave(cells: cells, planes: [
+              Plane([10 - ext / 2, 9, 5], normal: [+1, +1, +1]),
+            ])
+          } else {
+            cells = cleave(cells: cells, planes: [
+              Plane([10, 9, 5], normal: [+1, +1, +1]),
+            ])
+          }
+          if zDir == 1 {
+            cells = cleave(cells: cells, planes: [
+              Plane([10 - ext / 2, 10 - ext, 5 - ext], normal: [+1, -1, -1]),
+              Plane([0, 9, 5], normal: [0, -1, +1]),
+            ])
+          } else {
+            cells = cleave(cells: cells, planes: [
+              Plane([10, 10, 5], normal: [+1, -1, -1]),
+              Plane([0, 9 - ext, 5 + ext], normal: [0, -1, +1]),
+            ])
+          }
+          if zDir == 1 {
+            cells = cleave(cells: cells, planes: [
+              Plane([8.5, 5, 10], normal: [+1, -1, +1]),
+            ])
+          }
           cells = cleave(cells: cells, planes: [
             Plane([9.5, 0, 0], normal: [+1, 0, 0]),
           ])
@@ -254,7 +290,7 @@ struct VdwOscillator {
           for _ in 0..<rotateYZClockwise {
             let oldY = output.y
             let oldZ = output.z - 5
-            output.y = oldZ + 5
+            output.y = oldZ + 0 + 5 // change horizontal thickness
             output.z = -oldY + 5 + 5
           }
           return output
