@@ -189,63 +189,36 @@ struct VdwOscillator {
           Plane([0, 10, 5 - 5 * zDir], normal: [0, -1, -zDir])
         ])
         
-        // Extra thickness.
-        // For some reason, adding thickness made the entire structure have
-        // 'NAN' energy in OpenMM.
-        let ext: Float = 0
         do {
-          if zDir == 1 {
-            cells = cleave(cells: cells, planes: [
-              Plane([0, 9, 5], normal: [0, -1, +1]),
-              Plane([0, 9 - ext, 5 - ext], normal: [0, -1, -1]),
-            ])
-          } else {
-            cells = cleave(cells: cells, planes: [
-              Plane([0, 9 - ext, 5 + ext], normal: [0, -1, +1]),
-              Plane([0, 9, 5], normal: [0, -1, -1]),
-            ])
-          }
+          // TODO: Remove an entire layer from the -zDir to accomodate for
+          // the reduction in side of +zDir
+          let xShift: Float = zDir == 1 ? 0 : -2
+          
           cells = cleave(cells: cells, planes: [
-            Plane([9.5, 9, 5], normal: [+1, +1, -1]),
+            Plane([0, 9, 5], normal: [0, -1, +1]),
+            Plane([0, 9, 5], normal: [0, -1, -1]),
           ])
-          if zDir == 1 {
-            cells = cleave(cells: cells, planes: [
-              Plane([9.5, 10, 5], normal: [+1, -1, +1]),
-              Plane([0, 9 - ext, 5 - ext], normal: [0, -1, -1]),
-            ])
-          } else {
-            cells = cleave(cells: cells, planes: [
-              Plane([9.5, 10 - ext, 5 + ext], normal: [+1, -1, +1]),
-              Plane([0, 9, 5], normal: [0, -1, -1]),
-            ])
-          }
-          if zDir == 1 {
-            cells = cleave(cells: cells, planes: [
-              Plane([10 - ext / 2, 9, 5], normal: [+1, +1, +1]),
-            ])
-          } else {
-            cells = cleave(cells: cells, planes: [
-              Plane([10, 9, 5], normal: [+1, +1, +1]),
-            ])
-          }
-          if zDir == 1 {
-            cells = cleave(cells: cells, planes: [
-              Plane([10 - ext / 2, 10 - ext, 5 - ext], normal: [+1, -1, -1]),
-              Plane([0, 9, 5], normal: [0, -1, +1]),
-            ])
-          } else {
-            cells = cleave(cells: cells, planes: [
-              Plane([10, 10, 5], normal: [+1, -1, -1]),
-              Plane([0, 9 - ext, 5 + ext], normal: [0, -1, +1]),
-            ])
-          }
+          cells = cleave(cells: cells, planes: [
+            Plane([9.5 + xShift, 9, 5], normal: [+1, +1, -1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([9.5 + xShift, 10, 5], normal: [+1, -1, +1]),
+            Plane([0, 9, 5], normal: [0, -1, -1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([zDir == 1 ? 8.5 : 10 + xShift, 9, 5], normal: [+1, +1, +1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([zDir == 1 ? 8.5 : 10 + xShift, 10, 5], normal: [+1, -1, -1]),
+            Plane([0, 9, 5], normal: [0, -1, +1]),
+          ])
           if zDir == 1 {
             cells = cleave(cells: cells, planes: [
               Plane([8.5, 5, 10], normal: [+1, -1, +1]),
             ])
           }
           cells = cleave(cells: cells, planes: [
-            Plane([9.5, 0, 0], normal: [+1, 0, 0]),
+            Plane([zDir == 1 ? 8.9 : 9.5 + xShift, 0, 0], normal: [+1, 0, 0]),
           ])
         }
         do {
@@ -254,12 +227,12 @@ struct VdwOscillator {
           cells = cleave(cells: cells, planes: [
             Plane([pos1, 5, 5 + 5 * zDir], normal: [1, 1, zDir]),
             Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
-            Plane([8 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, 1, zDir]),
+            Plane([6 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, 1, zDir]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane([pos2, 5, 5 + 5 * zDir], normal: [1, -1, -zDir]),
             Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
-            Plane([7 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, -1, -zDir]),
+            Plane([5 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, -1, -zDir]),
           ])
         }
         bases.append(makeCarbonCenters(cells: cells))
@@ -290,7 +263,7 @@ struct VdwOscillator {
           for _ in 0..<rotateYZClockwise {
             let oldY = output.y
             let oldZ = output.z - 5
-            output.y = oldZ + 0 + 5 // change horizontal thickness
+            output.y = oldZ + 0 + 5
             output.z = -oldY + 5 + 5
           }
           return output
@@ -300,6 +273,7 @@ struct VdwOscillator {
       var frontCenters = bases[0]
       frontCenters += rotate(bases[0], flipYZ: true)
       frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
+      allCarbonCenters = frontCenters
       
       var backCenters = bases[1]
       backCenters += rotate(bases[1], flipYZ: true)
@@ -330,13 +304,13 @@ struct VdwOscillator {
     print(allAtoms.count)
     self.provider = ArrayAtomProvider(allAtoms)
     
-    var diamondoid = Diamondoid(atoms: allAtoms)
-    print(diamondoid.atoms.count)
-    diamondoid.fixHydrogens(tolerance: 0.08)
-    self.provider = ArrayAtomProvider(diamondoid.atoms)
-
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
-    simulator.simulate(ps: 10)
-    provider = simulator.provider
+//    var diamondoid = Diamondoid(atoms: allAtoms)
+//    print(diamondoid.atoms.count)
+//    diamondoid.fixHydrogens(tolerance: 0.08)
+//    self.provider = ArrayAtomProvider(diamondoid.atoms)
+//
+//    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+//    simulator.simulate(ps: 10)
+//    provider = simulator.provider
   }
 }
