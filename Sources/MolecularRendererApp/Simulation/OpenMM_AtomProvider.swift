@@ -62,7 +62,7 @@ class OpenMM_AtomProvider: MRAtomProvider {
   
   // Move to the next frame. Call this **after** reading from the states.
   func atoms(time: MRTimeContext) -> [MRAtom] {
-    let fps = MRGetFrameRate()
+    let fps = ContentView.frameRate
     precondition(120 % fps == 0)
     let frameAmplificationFactor = 120 / fps
     

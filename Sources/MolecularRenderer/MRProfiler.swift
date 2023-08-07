@@ -59,8 +59,8 @@ class MRProfiler {
     var screenHeight: UInt32 = .init(renderer.intermediateSize.y)
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
-    var suppressSpecular: Bool = false
-    constants.setConstantValue(&suppressSpecular, type: .bool, index: 2)
+    var offline: Bool = renderer.offline
+    constants.setConstantValue(&offline, type: .bool, index: 2)
     
     var numerator: Float = 4
     constants.setConstantValue(&numerator, type: .float, index: 10)

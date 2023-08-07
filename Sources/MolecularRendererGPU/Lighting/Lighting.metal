@@ -205,6 +205,13 @@ public:
     motionVector.x = -motionVector.x;
   }
   
+  void write_offline(texture2d<half, access::write> colorTexture) {
+    float3 color_float = float3(color);
+    color_float = quad_sum(color_float) / 4;
+    half4 color_half = half4(half3(color_float), 1);
+    colorTexture.write(color_half, pixelCoords / 2);
+  }
+  
   void write(texture2d<half, access::write> colorTexture,
              texture2d<float, access::write> depthTexture,
              texture2d<half, access::write> motionTexture)

@@ -25,17 +25,21 @@ class Renderer {
   var atomProvider: MRAtomProvider!
   var styleProvider: MRAtomStyleProvider!
   var animationFrameID: Int = 0
+  var gifSerializer: GIFSerializer!
   var serializer: Serializer!
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
-    MRSetFrameRate(ContentView.frameRate)
-    initOpenMM()
     
-    
-    // Encode and save a GIF.
-    fatalError()
+    #if true
+    let upscaleFactor: Int? = ContentView.upscaleFactor
+    let offline: Bool = false
+    #else
+    let upscaleFactor: Int? = nil
+    let offline: Bool = true
+    fatalError("Haven't set up workflow for offline rendering.")
+    #endif
     
     let url = Bundle.main.url(
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
@@ -43,18 +47,21 @@ class Renderer {
       metallibURL: url,
       width: Int(ContentView.size),
       height: Int(ContentView.size),
-      upscaleFactor: ContentView.upscaleFactor)
-    
-    self.styleProvider = NanoStuff()
+      upscaleFactor: upscaleFactor,
+      offline: offline)
+    self.gifSerializer = GIFSerializer(
+      path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     self.serializer = Serializer(
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
+    self.styleProvider = NanoStuff()
+    initOpenMM()
     
-//    self.atomProvider = OctaneReference().provider
-//    self.atomProvider = DiamondoidCollision().provider
+    #if false
+    //    self.atomProvider = OctaneReference().provider
+    //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-    #if true
     serializer.save(
       fileName: "SavedSimulation",
       provider: atomProvider as! OpenMM_AtomProvider)
@@ -71,7 +78,10 @@ extension Renderer {
     
     let frameDelta = coordinator.vsyncHandler.updateFrameID()
     let frameID = coordinator.vsyncHandler.frameID
-    let irlTime = MRTimeContext(absolute: frameID, relative: frameDelta)
+    let irlTime = MRTimeContext(
+      absolute: frameID,
+      relative: frameDelta,
+      frameRate: ContentView.frameRate)
     eventTracker.update(time: irlTime)
     
     var animationDelta: Int
@@ -86,7 +96,9 @@ extension Renderer {
     }
     animationFrameID += animationDelta
     let animationTime = MRTimeContext(
-      absolute: animationFrameID, relative: animationDelta)
+      absolute: animationFrameID,
+      relative: animationDelta,
+      frameRate: ContentView.frameRate)
     
     renderingEngine.setGeometry(
       time: animationTime,

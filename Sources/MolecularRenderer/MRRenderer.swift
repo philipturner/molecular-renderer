@@ -67,7 +67,8 @@ struct ResetTracker {
 }
 
 public class MRRenderer {
-  var upscaledSize: SIMD2<Int>
+  var offline: Bool
+  var upscaleFactor: Int?
   var intermediateSize: SIMD2<Int>
   var jitterFrameID: Int = 0
   var jitterOffsets: SIMD2<Float> = .zero
@@ -83,24 +84,35 @@ public class MRRenderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
-  var upscaler: MTLFXTemporalScaler!
+  var upscaler: MTLFXTemporalScaler?
   var encodePipeline: MTLComputePipelineState!
   var decodePipeline: MTLComputePipelineState!
   
+  var offlineEncodingQueue: DispatchQueue?
+  var lastCommandBuffer: MTLCommandBuffer?
+  var lastHandledCommandBuffer: MTLCommandBuffer?
+  
   struct IntermediateTextures {
     var color: MTLTexture
-    var depth: MTLTexture
-    var motion: MTLTexture
+    var depth: MTLTexture?
+    var motion: MTLTexture?
     
     // Metal is forcing me to make another texture for this, because the
     // drawable texture "must have private storage mode".
-    var upscaled: MTLTexture
+    var upscaled: MTLTexture?
+    
+    // Buffer backing the texture for offline rendering.
+    var backingBuffer: MTLBuffer?
   }
   
   // Double-buffer the textures to remove dependencies between frames.
   var textures: [IntermediateTextures] = []
+  private static func makeFramesInFlight(offline: Bool) -> Int {
+    offline ? 4 : 2
+  }
+  var framesInFlight: Int { Self.makeFramesInFlight(offline: offline) }
   var currentTextures: IntermediateTextures {
-    self.textures[jitterFrameID % 2]
+    self.textures[jitterFrameID % framesInFlight]
   }
   
   // Cache previous arguments to generate motion vectors.
@@ -115,53 +127,75 @@ public class MRRenderer {
     metallibURL: URL,
     width: Int,
     height: Int,
-    upscaleFactor: Int
+    upscaleFactor: Int?,
+    offline: Bool
   ) {
     // Initialize Metal resources.
     self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
     
-    guard width % upscaleFactor == 0, height % upscaleFactor == 0 else {
-      fatalError("MRRenderer only accepts even image sizes.")
+    self.offline = offline
+    if offline {
+      self.upscaleFactor = nil
+      self.intermediateSize = 2 &* SIMD2(width, height)
+      self.offlineEncodingQueue = DispatchQueue(
+        label: "com.philipturner.molecular-renderer.MRRenderer.offlineEncodingQueue")
+    } else {
+      self.upscaleFactor = upscaleFactor ?? 1
+      self.intermediateSize = SIMD2(
+        width / upscaleFactor!, height / upscaleFactor!)
+      guard width % upscaleFactor! == 0, height % upscaleFactor! == 0 else {
+        fatalError("MRRenderer only accepts even image sizes.")
+      }
     }
-    self.upscaledSize = SIMD2(width, height)
-    self.intermediateSize = SIMD2(
-      width / upscaleFactor, height / upscaleFactor)
     
     // Ensure the textures use lossless compression.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeBlitCommandEncoder()!
     
-    for _ in 0..<2 {
+    for _ in 0..<Self.makeFramesInFlight(offline: offline) {
       let desc = MTLTextureDescriptor()
-      desc.width = intermediateSize.x
-      desc.height = intermediateSize.y
       desc.storageMode = .private
       desc.usage = [ .shaderWrite, .shaderRead ]
       
-      desc.pixelFormat = .rgb10a2Unorm
-      let color = device.makeTexture(descriptor: desc)!
-      color.label = "Intermediate Color"
-      
-      desc.pixelFormat = .r32Float
-      let depth = device.makeTexture(descriptor: desc)!
-      depth.label = "Intermediate Depth"
-      
-      desc.pixelFormat = .rg16Float
-      let motion = device.makeTexture(descriptor: desc)!
-      motion.label = "Intermediate Motion"
-      
-      desc.pixelFormat = .rgb10a2Unorm
-      desc.width = upscaledSize.x
-      desc.height = upscaledSize.y
-      let upscaled = device.makeTexture(descriptor: desc)!
-      upscaled.label = "Upscaled Color"
-      
-      textures.append(IntermediateTextures(
-        color: color, depth: depth, motion: motion, upscaled: upscaled))
-      
-      for texture in [color, depth, motion, upscaled] {
-        encoder.optimizeContentsForGPUAccess(texture: texture)
+      if !offline {
+        desc.width = intermediateSize.x
+        desc.height = intermediateSize.y
+        desc.pixelFormat = .rgb10a2Unorm
+        let color = device.makeTexture(descriptor: desc)!
+        color.label = "Intermediate Color"
+        
+        desc.pixelFormat = .r32Float
+        let depth = device.makeTexture(descriptor: desc)!
+        depth.label = "Intermediate Depth"
+        
+        desc.pixelFormat = .rg16Float
+        let motion = device.makeTexture(descriptor: desc)!
+        motion.label = "Intermediate Motion"
+        
+        desc.pixelFormat = .rgb10a2Unorm
+        desc.width = intermediateSize.x * upscaleFactor!
+        desc.height = intermediateSize.y * upscaleFactor!
+        let upscaled = device.makeTexture(descriptor: desc)!
+        upscaled.label = "Upscaled Color"
+        
+        textures.append(IntermediateTextures(
+          color: color, depth: depth, motion: motion, upscaled: upscaled))
+        
+        for texture in [color, depth, motion, upscaled] {
+          encoder.optimizeContentsForGPUAccess(texture: texture)
+        }
+      } else {
+        desc.width = intermediateSize.x / 2
+        desc.height = intermediateSize.y / 2
+        desc.pixelFormat = .bgra8Unorm
+        
+        let backingBuffer = device.makeBuffer(length: 4 * width * height)!
+        let color = backingBuffer.makeTexture(
+          descriptor: desc, offset: 0, bytesPerRow: 4 * width)!
+        
+        textures.append(IntermediateTextures(
+          color: color, backingBuffer: backingBuffer))
       }
     }
     encoder.endEncoding()
@@ -174,29 +208,37 @@ public class MRRenderer {
     let library = try! device.makeLibrary(URL: metallibURL)
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     self.profiler = MRProfiler(renderer: self, library: library)
-    self.initUpscaler()
+    if !offline {
+      
+      self.initUpscaler()
+    }
     self.initSerializer(library: library)
   }
   
   func initUpscaler() {
+    guard let upscaleFactor else {
+      fatalError("Upscaler requires an upscale factor.")
+    }
+    
     let desc = MTLFXTemporalScalerDescriptor()
     desc.inputWidth = intermediateSize.x
     desc.inputHeight = intermediateSize.y
-    desc.outputWidth = upscaledSize.x
-    desc.outputHeight = upscaledSize.y
+    desc.outputWidth = intermediateSize.x * upscaleFactor
+    desc.outputHeight = intermediateSize.y * upscaleFactor
     desc.colorTextureFormat = textures[0].color.pixelFormat
-    desc.depthTextureFormat = textures[0].depth.pixelFormat
-    desc.motionTextureFormat = textures[0].motion.pixelFormat
+    desc.depthTextureFormat = textures[0].depth!.pixelFormat
+    desc.motionTextureFormat = textures[0].motion!.pixelFormat
     desc.outputTextureFormat = desc.colorTextureFormat
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = Float(upscaledSize.x / intermediateSize.x)
-    desc.inputContentMaxScale = Float(upscaledSize.y / intermediateSize.y)
+    desc.inputContentMinScale = Float(upscaleFactor)
+    desc.inputContentMaxScale = Float(upscaleFactor)
     
     guard let upscaler = desc.makeTemporalScaler(device: device) else {
       fatalError("The temporal scaler effect is not usable!")
     }
+    
     self.upscaler = upscaler
     
     // We already store motion vectors in units of pixels. The default value
@@ -230,7 +272,11 @@ extension MRRenderer {
   // between now and when it can encode the rendering work.
   private func updateResources() {
     self.jitterFrameID += 1
-    self.jitterOffsets = makeJitterOffsets()
+    if offline {
+      self.jitterOffsets = SIMD2(repeating: 0)
+    } else {
+      self.jitterOffsets = makeJitterOffsets()
+    }
     self.textureIndex = (self.textureIndex + 1) % 2
     self.renderIndex = (self.renderIndex + 1) % 3
   }
@@ -267,6 +313,9 @@ extension MRRenderer {
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
   ) {
+    guard let upscaler else {
+      fatalError("Attempted to upscale in offline mode.")
+    }
     resetTracker.update(time: time)
     
     // Bind the intermediate textures.
@@ -282,7 +331,7 @@ extension MRRenderer {
     
     // Metal is forcing me to copy the upscaled texture to the drawable.
     let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    blitEncoder.copy(from: currentTextures.upscaled, to: drawableTexture)
+    blitEncoder.copy(from: currentTextures.upscaled!, to: drawableTexture)
     blitEncoder.endEncoding()
   }
 }
@@ -375,8 +424,14 @@ extension MRRenderer {
       return light
     })
     
-    // Quality coefficients are calibrated against 640x640 -> 1280x1280 resolution.
-    var screenMagnitude = Float(upscaledSize.x * upscaledSize.y)
+    // Quality coefficients are calibrated against 640x640 -> 1280x1280
+    // resolution.
+    var screenMagnitude = Float(intermediateSize.x * intermediateSize.y)
+    if offline {
+      screenMagnitude /= 4
+    } else {
+      screenMagnitude *= Float(upscaleFactor! * upscaleFactor!)
+    }
     screenMagnitude = sqrt(screenMagnitude) / 1280
     let qualityCoefficient = quality.qualityCoefficient * screenMagnitude
     
@@ -471,17 +526,93 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  // Eventually, we will allow presenting to a raw C pointer, instead of to a
-  // display drawable. This option will require a callback, which is called
-  // after the output's memory is written to.
+  
+  // renderToImage(handler: (UnsafePointer<UInt8>) -> Void)
+  
   public func render(
     layer: CAMetalLayer,
-    handler: @escaping MTLCommandBufferHandler
+    handler: @escaping (MTLCommandBuffer) -> Void
   ) {
     defer {
       // Invalidate the time.
       self.time = nil
     }
+    
+    guard !offline else {
+      fatalError(
+        "Tried to render to a CAMetalLayer, but configured for offline rendering.")
+    }
+    
+    var commandBuffer = self.render()
+    commandBuffer.commit()
+    commandBuffer = commandQueue.makeCommandBuffer()!
+    
+    // Acquire a reference to the drawable.
+    let drawable = layer.nextDrawable()!
+    let upscaledSize = intermediateSize &* upscaleFactor!
+    precondition(drawable.texture.width == upscaledSize.x)
+    precondition(drawable.texture.height == upscaledSize.y)
+    
+    // Encode the upscaling pass.
+    upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
+    
+    // Present the drawable and signal the semaphore.
+    commandBuffer.present(drawable)
+    commandBuffer.addCompletedHandler(handler)
+    commandBuffer.commit()
+  }
+  
+  public func render(
+    handler: @escaping (MTLCommandBuffer, UnsafePointer<UInt8>) -> Void
+  ) {
+    guard offline else {
+      fatalError(
+        "Tried to render to a pixel buffer, but configured for real-time rendering.")
+    }
+    
+    defer {
+      // Invalidate the time.
+      self.time = nil
+    }
+    
+    let commandBuffer = render()
+    let textures = self.currentTextures
+    commandBuffer.addCompletedHandler { commandBuffer in
+      let backingBuffer = textures.backingBuffer!
+      let pixels = backingBuffer.contents().assumingMemoryBound(to: UInt8.self)
+      self.offlineEncodingQueue!.async {
+        handler(commandBuffer, pixels)
+        self.lastHandledCommandBuffer = commandBuffer
+      }
+    }
+    lastCommandBuffer = commandBuffer
+  }
+  
+  // Call this before accessing the contents of the offline-rendered buffer.
+  public func stopRendering() {
+    guard offline else {
+      fatalError(
+        "Tried to stop rendering, but configured for real-time rendering.")
+    }
+    
+    lastCommandBuffer!.waitUntilCompleted()
+    while lastHandledCommandBuffer !== lastCommandBuffer {
+      usleep(50)
+    }
+    lastHandledCommandBuffer!.waitUntilCompleted()
+    
+    // Remove this code after debugging, and ensuring it doesn't cause a
+    // complete stall.
+    print("Waiting on semaphore.")
+    let semaphore = DispatchSemaphore(value: 0)
+    self.offlineEncodingQueue!.sync {
+      _ = semaphore.signal()
+    }
+    semaphore.wait()
+    print("Finished waiting on semaphore.")
+  }
+  
+  private func render() -> MTLCommandBuffer {
     self.updateResources()
     self.accelBuilder.updateResources()
     self.profiler.update(ringIndex: accelBuilder.ringIndex)
@@ -530,8 +661,13 @@ extension MRRenderer {
     
     // Encode the output textures.
     let textures = self.currentTextures
-    encoder.setTextures(
-      [textures.color, textures.depth, textures.motion], range: 0..<3)
+    if offline {
+      encoder.setTexture(textures.color, index: 0)
+    } else {
+      encoder.setTextures(
+        [textures.color, textures.depth!, textures.motion!], range: 0..<3)
+    }
+
     
     // Dispatch an even number of threads (the shader will rearrange them).
     let numThreadgroupsX = (intermediateSize.x + 7) / 8
@@ -543,21 +679,7 @@ extension MRRenderer {
     
     accelBuilder.addRenderHandler(
       id: profiler.currentID(), commandBuffer: commandBuffer)
-    commandBuffer.commit()
-    commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    // Acquire a reference to the drawable.
-    let drawable = layer.nextDrawable()!
-    precondition(drawable.texture.width == upscaledSize.x)
-    precondition(drawable.texture.height == upscaledSize.y)
-    
-    // Encode the upscaling pass.
-    upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
-    
-    // Present the drawable and signal the semaphore.
-    commandBuffer.present(drawable)
-    commandBuffer.addCompletedHandler(handler)
-    commandBuffer.commit()
+    return commandBuffer
   }
 }
 

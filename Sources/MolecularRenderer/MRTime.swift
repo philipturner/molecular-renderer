@@ -7,24 +7,7 @@
 
 import Foundation
 
-@usableFromInline
-internal var globalFrameRate: Int?
 
-// MolecularRenderer measures time in integer quantities, allowing vsync and
-// indexing into arrays of pre-recorded animation frames. The global frame rate
-// is the granularity of these measurements.
-//
-// TODO: In the app, set the frame rate to match the current display. The
-// rendering context cannot switch displays while rendering.
-@_cdecl("MRSetFrameRate")
-public func MRSetFrameRate(_ frameRate: Int) {
-  globalFrameRate = frameRate
-}
-
-@_cdecl("MRGetFrameRate")
-public func MRGetFrameRate() -> Int {
-  return globalFrameRate!
-}
 
 // MARK: - Data Structures
 
@@ -33,10 +16,8 @@ public struct MRTime {
   public var seconds: Double
   
   @inlinable
-  public init(frames: Int) {
+  public init(frames: Int, frameRate: Int) {
     self.frames = frames
-    
-    let frameRate = globalFrameRate!
     self.seconds = Double(frames / frameRate)
     
     let fractionalPart = frames % frameRate
@@ -54,9 +35,12 @@ public struct MRTimeContext {
   // agree with the absolute time.
   public var relative: MRTime
   
+  // MolecularRenderer measures time in integer quantities, allowing vsync and
+  // indexing into arrays of pre-recorded animation frames. The frame rate is the
+  // granularity of these measurements.
   @inlinable
-  public init(absolute: Int, relative: Int) {
-    self.absolute = MRTime(frames: absolute)
-    self.relative = MRTime(frames: relative)
+  public init(absolute: Int, relative: Int, frameRate: Int) {
+    self.absolute = MRTime(frames: absolute, frameRate: frameRate)
+    self.relative = MRTime(frames: relative, frameRate: frameRate)
   }
 }
