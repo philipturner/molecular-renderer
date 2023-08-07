@@ -165,6 +165,46 @@ struct VdwOscillator {
     let start = CACurrentMediaTime()
     do {
       var cells = baseLattice
+      cells = cleave(cells: cells, planes: [
+        Plane([0, 0, 5], normal: [0, -1, -1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane([0, 0, 5], normal: [0, -1, +1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane([0, 10, 5], normal: [0, +1, -1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane([0, 10, 5], normal: [0, +1, +1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane([0, 10, 0], normal: [0, -1, -1])
+      ])
+      
+      do {
+        cells = cleave(cells: cells, planes: [
+          Plane([0, 9, 5], normal: [0, -1, +1]),
+          Plane([0, 9, 5], normal: [0, -1, -1]),
+        ])
+        cells = cleave(cells: cells, planes: [
+          Plane([9.5, 9, 5], normal: [+1, +1, -1]),
+        ])
+        cells = cleave(cells: cells, planes: [
+          Plane([9.5, 10, 5], normal: [+1, -1, +1]),
+          Plane([0, 9, 5], normal: [0, -1, -1]),
+        ])
+        cells = cleave(cells: cells, planes: [
+          Plane([10, 9, 5], normal: [+1, +1, +1]),
+        ])
+        cells = cleave(cells: cells, planes: [
+          Plane([10, 10, 5], normal: [+1, -1, -1]),
+          Plane([0, 9, 5], normal: [0, -1, +1]),
+        ])
+        cells = cleave(cells: cells, planes: [
+          Plane([9.5, 0, 0], normal: [+1, 0, 0]),
+        ])
+      }
+      
       allCarbonCenters += makeCarbonCenters(cells: cells)
     }
     let end = CACurrentMediaTime()
@@ -176,12 +216,13 @@ struct VdwOscillator {
     let allAtoms = allCarbonCenters.map {
       MRAtom(origin: $0 * 0.357, element: 6)
     }
-    print(allAtoms.count)
+//    print(allAtoms.count)
     self.provider = ArrayAtomProvider(allAtoms)
     
-//    var diamondoid = Diamondoid(atoms: allAtoms)
-//    print(diamondoid.atoms.count)
-//    self.provider = ArrayAtomProvider(diamondoid.atoms)
+    var diamondoid = Diamondoid(atoms: allAtoms)
+    print(diamondoid.atoms.count)
+    diamondoid.fixHydrogens(tolerance: 0.08)
+    self.provider = ArrayAtomProvider(diamondoid.atoms)
 
 //    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
 //    simulator.simulate(ps: 10)

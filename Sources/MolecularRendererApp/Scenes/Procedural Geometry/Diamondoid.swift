@@ -367,6 +367,105 @@ struct Diamondoid {
     }
   }
   
+  // Remove hydrogens that are too close. This is a last resort, where the inner
+  // edges between (111) and (110) surfaces are like (100). It has O(n^2)
+  // computational complexity.
+  mutating func fixHydrogens(tolerance: Float) {
+    func getHydrogenID(_ bond: SIMD2<Int32>) -> Int? {
+      let atom1 = atoms[Int(bond[0])]
+      let atom2 = atoms[Int(bond[1])]
+      if atom1.element == 1 {
+        return Int(bond[0])
+      } else if atom2.element == 1 {
+        return Int(bond[1])
+      } else {
+        return nil
+      }
+    }
+    
+    func getCarbonID(_ bond: SIMD2<Int32>) -> Int? {
+      let atom1 = atoms[Int(bond[0])]
+      let atom2 = atoms[Int(bond[1])]
+      if atom1.element == 1 {
+        return Int(bond[1])
+      } else if atom2.element == 1 {
+        return Int(bond[0])
+      } else {
+        return nil
+      }
+    }
+    
+    var bondPairs: [SIMD2<Int>] = []
+  outer:
+    for i in 0..<bonds.count {
+      guard let hydrogenID1 = getHydrogenID(bonds[i]) else {
+        continue outer
+      }
+      let hydrogen1 = atoms[hydrogenID1]
+    inner:
+      for j in (i + 1)..<bonds.count {
+        guard let hydrogenID2 = getHydrogenID(bonds[j]) else {
+          continue inner
+        }
+        
+        if hydrogenID1 == hydrogenID2 {
+          continue inner
+        }
+        
+        let hydrogen2 = atoms[hydrogenID2]
+        if distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
+          print("Fusing bonds \(i) and \(j)")
+          bondPairs.append(SIMD2(i, j))
+          continue outer
+        }
+      }
+    }
+    
+    var newAtoms: [MRAtom?] = atoms.map { $0 }
+    var newBonds: [SIMD2<Int32>?] = bonds.map { $0 }
+  outer:
+    for pair in bondPairs {
+      var carbonIDs = SIMD2<Int32>(repeating: -1)
+      for i in 0..<2 {
+        // If one of these returns null, the bond was (incorrectly) referenced
+        // multiple times.
+        guard let hydrogenID = getHydrogenID(bonds[pair[i]]) else {
+          fatalError()
+//          continue outer
+        }
+        guard let carbonID = getCarbonID(bonds[pair[i]]) else {
+          fatalError()
+//          continue outer
+        }
+        newAtoms[hydrogenID] = nil
+        carbonIDs[i] = Int32(carbonID)
+      }
+      newBonds[pair[0]] = carbonIDs
+      newBonds[pair[1]] = nil
+    }
+    
+    var atomsNewLocations: [Int] = []
+    var currentNewIndex: Int = 0
+    for atom in newAtoms {
+      if atom == nil {
+        atomsNewLocations.append(-1)
+      } else {
+        atomsNewLocations.append(currentNewIndex)
+        currentNewIndex += 1
+      }
+    }
+    for i in bonds.indices {
+      guard var bond = newBonds[i] else {
+        continue
+      }
+      bond[0] = Int32(atomsNewLocations[Int(bond[0])])
+      bond[1] = Int32(atomsNewLocations[Int(bond[1])])
+    }
+    
+    self.atoms = newAtoms.compactMap { $0 }
+    self.bonds = newBonds.compactMap { $0 }
+  }
+  
   // A bounding box that will never be exceeded during a simulation.
   private static func makeBoundingBox(atoms: [MRAtom]) -> simd_float2x3 {
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
