@@ -46,9 +46,9 @@ class Renderer {
       renderer: self,
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     
-//    self.atomProvider = OctaneReference().provider
+    self.atomProvider = OctaneReference().provider
 //    self.atomProvider = DiamondoidCollision().provider
-    self.atomProvider = VdwOscillator().provider
+//    self.atomProvider = VdwOscillator().provider
     
     #if true
 //    serializer.save(

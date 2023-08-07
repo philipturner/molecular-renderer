@@ -13,8 +13,8 @@ struct DiamondoidCollision {
   var provider: OpenMM_AtomProvider
   
   init() {
-    let horizontalSpacing: Float = 1 * 6 // nm
-    let approachSpeed: Float = 1 * 4 // nm/ps, v2 - v1
+    let horizontalSpacing: Float = 0.3 * 6 // nm
+    let approachSpeed: Float = 0.2 * 4 // nm/ps, v2 - v1
     
     func centerAtOrigin(_ atoms: [MRAtom]) -> [MRAtom] {
       var totalMass: Float = .zero

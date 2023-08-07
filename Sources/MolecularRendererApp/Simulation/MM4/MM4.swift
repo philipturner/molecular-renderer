@@ -451,6 +451,9 @@ class MM4 {
     var bondStretch: OpenMM_CustomBondForce
     
     do {
+      // Octane Reference: unstable between 4 - 6 times
+      // Diamondoid Collision (1/5x): unstable between 1.5 - 4 times
+      // Vdw Oscillator: unstable between 1 - 1.5 times
       let energy = """
         \(OpenMM_KJPerKcal) * 10^2 *
         71.94 * stiffness * (
@@ -496,6 +499,57 @@ class MM4 {
         
         let parameters = stretchParameters[SIMD2(element1, element2)]!
         bondStretch.addBond(
+          particles: SIMD2(truncatingIfNeeded: bond), parameters: parameters)
+      }
+    }
+    
+    // Alternative bond-stretch potential that's more stable at extremely long
+    // bond lengths.
+    var morseParameters: [SIMD2<UInt8>: OpenMM_DoubleArray] = [:]
+    var bondMorse: OpenMM_CustomBondForce
+    
+    do {
+      // Octane Reference: unstable between 4 - 6 times
+      // Diamondoid Collision (1/5x): unstable between 4 - 7 times
+      // Vdw Oscillator: unstable between  3 - 4 times
+      let kjMolPerAJ: Float = 6.022 / 10 * 1000
+      let energy = """
+        \(kjMolPerAJ) *
+        well_depth * (
+          -1 + (
+            1 - exp(-beta * delta_l)
+          )^2
+        );
+        delta_l = r - length;
+        """
+      bondMorse = OpenMM_CustomBondForce(energy: energy)
+      bondMorse.addPerBondParameter(name: "well_depth")
+      bondMorse.addPerBondParameter(name: "beta")
+      bondMorse.addPerBondParameter(name: "length")
+      
+      let chWellDepth: Double = 0.671
+      let ccWellDepth: Double = 0.556
+      
+      let chParameters = OpenMM_DoubleArray(size: 3)
+      chParameters[0] = chWellDepth
+      chParameters[1] = sqrt(474 / 2 * chWellDepth)
+      chParameters[2] = 1.1120 * OpenMM_NmPerAngstrom
+      morseParameters[[1, 6]] = chParameters
+      
+      let ccParameters = OpenMM_DoubleArray(size: 3)
+      ccParameters[0] = ccWellDepth
+      ccParameters[1] = sqrt(455 / 2 * ccWellDepth)
+      ccParameters[2] = 1.5270 * OpenMM_NmPerAngstrom
+      morseParameters[[6, 6]] = ccParameters
+      
+      for bond in bonds {
+        let atom1 = atoms[Int(bond[0])]
+        let atom2 = atoms[Int(bond[1])]
+        let element1 = min(atom1.element, atom2.element)
+        let element2 = max(atom1.element, atom2.element)
+        
+        let parameters = morseParameters[SIMD2(element1, element2)]!
+        bondMorse.addBond(
           particles: SIMD2(truncatingIfNeeded: bond), parameters: parameters)
       }
     }
@@ -874,9 +928,12 @@ class MM4 {
       }
     }
     
+    // TODO: Try using the Morse potential instead of the MM4 bond-stretch potential, then switching over once it's in a stable state.
+    
     nonbond.forceGroup = 1
     nonbond14.forceGroup = 1
     bondStretch.forceGroup = 2
+    bondMorse.forceGroup = 2
     bondBend.forceGroup = 2
     bondBendBend.forceGroup = 2
     bondTorsion.forceGroup = 1
@@ -884,15 +941,21 @@ class MM4 {
     
     nonbond.transfer()
     nonbond14.transfer()
+    system.addForce(nonbond)
+    system.addForce(nonbond14)
+    
+    #if false
     bondStretch.transfer()
+    system.addForce(bondStretch)
+    #else
+    bondMorse.transfer()
+    system.addForce(bondMorse)
+    #endif
+    
     bondBend.transfer()
     bondBendBend.transfer()
     bondTorsion.transfer()
     bondBendTorsionBend.transfer()
-    
-    system.addForce(nonbond)
-    system.addForce(nonbond14)
-    system.addForce(bondStretch)
     system.addForce(bondBend)
     system.addForce(bondBendBend)
     system.addForce(bondTorsion)
