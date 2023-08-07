@@ -147,7 +147,7 @@ struct VdwOscillator {
       }
     }
     
-    let latticeWidth: Int = 10
+    let latticeWidth: Int = 16
     var baseLattice: [Cell] = []
     let baseCell = Cell()
     for i in 0..<latticeWidth {
@@ -161,52 +161,127 @@ struct VdwOscillator {
     
     var allCarbonCenters: [SIMD3<Float>] = []
     
-    // Make a housing, where a solid diamond brick can fit inside it.
+    
     let start = CACurrentMediaTime()
+    
+    // Make a housing, where a solid diamond brick can fit inside it.
+    // Re-run (some of) these transformations in opposite Z order, and we have a
+    // complementary part that will connect.
     do {
-      var cells = baseLattice
-      cells = cleave(cells: cells, planes: [
-        Plane([0, 0, 5], normal: [0, -1, -1])
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane([0, 0, 5], normal: [0, -1, +1])
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane([0, 10, 5], normal: [0, +1, -1])
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane([0, 10, 5], normal: [0, +1, +1])
-      ])
-      cells = cleave(cells: cells, planes: [
-        Plane([0, 10, 0], normal: [0, -1, -1])
-      ])
-      
-      do {
+      // Now, parameterize this so I can change the dimensions to something
+      // other than 5.
+      var bases: [[SIMD3<Float>]] = []
+      for zDir in [Float(1), -1] {
+        var cells = baseLattice
         cells = cleave(cells: cells, planes: [
-          Plane([0, 9, 5], normal: [0, -1, +1]),
-          Plane([0, 9, 5], normal: [0, -1, -1]),
+          Plane([0, 0, 5], normal: [0, -1, -zDir])
         ])
         cells = cleave(cells: cells, planes: [
-          Plane([9.5, 9, 5], normal: [+1, +1, -1]),
+          Plane([0, 0, 5], normal: [0, -1, +zDir])
         ])
         cells = cleave(cells: cells, planes: [
-          Plane([9.5, 10, 5], normal: [+1, -1, +1]),
-          Plane([0, 9, 5], normal: [0, -1, -1]),
+          Plane([0, 10, 5], normal: [0, +1, -zDir])
         ])
         cells = cleave(cells: cells, planes: [
-          Plane([10, 9, 5], normal: [+1, +1, +1]),
+          Plane([0, 10, 5], normal: [0, +1, +zDir])
         ])
         cells = cleave(cells: cells, planes: [
-          Plane([10, 10, 5], normal: [+1, -1, -1]),
-          Plane([0, 9, 5], normal: [0, -1, +1]),
+          Plane([0, 10, 5 - 5 * zDir], normal: [0, -1, -zDir])
         ])
-        cells = cleave(cells: cells, planes: [
-          Plane([9.5, 0, 0], normal: [+1, 0, 0]),
-        ])
+        
+        do {
+          cells = cleave(cells: cells, planes: [
+            Plane([0, 9, 5], normal: [0, -1, +1]),
+            Plane([0, 9, 5], normal: [0, -1, -1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([9.5, 9, 5], normal: [+1, +1, -1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([9.5, 10, 5], normal: [+1, -1, +1]),
+            Plane([0, 9, 5], normal: [0, -1, -1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([10, 9, 5], normal: [+1, +1, +1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([10, 10, 5], normal: [+1, -1, -1]),
+            Plane([0, 9, 5], normal: [0, -1, +1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([9.5, 0, 0], normal: [+1, 0, 0]),
+          ])
+        }
+        do {
+          let pos1 = 0.25 - 0.25 * zDir
+          let pos2 = 1.25 - 0.25 * zDir
+          cells = cleave(cells: cells, planes: [
+            Plane([pos1, 5, 5 + 5 * zDir], normal: [1, 1, zDir]),
+            Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
+            Plane([8 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, 1, zDir]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([pos2, 5, 5 + 5 * zDir], normal: [1, -1, -zDir]),
+            Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
+            Plane([7 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, -1, -zDir]),
+          ])
+        }
+        bases.append(makeCarbonCenters(cells: cells))
       }
       
-      allCarbonCenters += makeCarbonCenters(cells: cells)
+      func rotate(
+        _ base: [SIMD3<Float>],
+        flipX: Bool = false,
+        flipY: Bool = false,
+        flipZ: Bool = false,
+        flipYZ: Bool = false,
+        rotateYZClockwise: Int = 0
+      ) -> [SIMD3<Float>] {
+        base.map {
+          var output = SIMD3(
+            flipX ? 0 - $0.x : $0.x,
+            flipY ? 5 - ($0.y - 5) : $0.y,
+            flipZ ? 5 - ($0.z - 5) : $0.z)
+          if flipYZ {
+            let origin = SIMD3<Float>(0, 0, 10)
+            var delta = output - origin
+            let deltaY = delta.y
+            let deltaZ = delta.z
+            delta.y = -deltaZ
+            delta.z = -deltaY
+            output = origin + delta
+          }
+          for _ in 0..<rotateYZClockwise {
+            let oldY = output.y
+            let oldZ = output.z - 5
+            output.y = oldZ + 5
+            output.z = -oldY + 5 + 5
+          }
+          return output
+        }
+      }
+      
+      var frontCenters = bases[0]
+      frontCenters += rotate(bases[0], flipYZ: true)
+      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
+      
+      var backCenters = bases[1]
+      backCenters += rotate(bases[1], flipYZ: true)
+      backCenters += rotate(backCenters, rotateYZClockwise: 2)
+      backCenters = rotate(backCenters, flipX: true, flipZ: true)
+      
+      allCarbonCenters = frontCenters + backCenters
     }
+    
+    var hashMap: [SIMD3<Float>: Bool] = [:]
+    for center in allCarbonCenters {
+      hashMap[center] = true
+    }
+    allCarbonCenters = Array(hashMap.keys)
+    
+    // TODO: Squash the atoms along a diagonal plane to make the structure
+    // smaller and cheaper.
+    // TODO: De-duplicate the carbons before sending the into 'Diamondoid'.
     let end = CACurrentMediaTime()
     print("""
       Took \(String(format: "%.3f", end - start)) seconds to generate the \
@@ -216,7 +291,7 @@ struct VdwOscillator {
     let allAtoms = allCarbonCenters.map {
       MRAtom(origin: $0 * 0.357, element: 6)
     }
-//    print(allAtoms.count)
+    print(allAtoms.count)
     self.provider = ArrayAtomProvider(allAtoms)
     
     var diamondoid = Diamondoid(atoms: allAtoms)
@@ -224,8 +299,8 @@ struct VdwOscillator {
     diamondoid.fixHydrogens(tolerance: 0.08)
     self.provider = ArrayAtomProvider(diamondoid.atoms)
 
-//    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
-//    simulator.simulate(ps: 10)
-//    provider = simulator.provider
+    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+    simulator.simulate(ps: 10)
+    provider = simulator.provider
   }
 }

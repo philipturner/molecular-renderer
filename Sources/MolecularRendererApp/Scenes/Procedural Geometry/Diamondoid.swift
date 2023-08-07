@@ -370,6 +370,10 @@ struct Diamondoid {
   // Remove hydrogens that are too close. This is a last resort, where the inner
   // edges between (111) and (110) surfaces are like (100). It has O(n^2)
   // computational complexity.
+  //
+  // TODO: Change this to O(n) so it's feasible in Swift debug mode. In fact,
+  // run it during the creation of 'Diamondoid' as an argument disabled by
+  // default.
   mutating func fixHydrogens(tolerance: Float) {
     func getHydrogenID(_ bond: SIMD2<Int32>) -> Int? {
       let atom1 = atoms[Int(bond[0])]
@@ -414,7 +418,7 @@ struct Diamondoid {
         
         let hydrogen2 = atoms[hydrogenID2]
         if distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
-          print("Fusing bonds \(i) and \(j)")
+//          print("Fusing bonds \(i) and \(j)")
           bondPairs.append(SIMD2(i, j))
           continue outer
         }
@@ -460,6 +464,7 @@ struct Diamondoid {
       }
       bond[0] = Int32(atomsNewLocations[Int(bond[0])])
       bond[1] = Int32(atomsNewLocations[Int(bond[1])])
+      newBonds[i] = bond
     }
     
     self.atoms = newAtoms.compactMap { $0 }

@@ -137,7 +137,11 @@ class MM4 {
           movedIndex: nil)
       }
       
-      for bond in inputBonds {
+      for (i, bond) in inputBonds.enumerated() {
+        print(i)
+        if i == 7677 {
+          
+        }
         var groupIDs: SIMD2<Int> = SIMD2(-1, -1)
         for i in 0..<2 {
           groupIDs[i] = Int(bond[i])
