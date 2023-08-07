@@ -367,6 +367,71 @@ struct Diamondoid {
     }
   }
   
+  mutating func removeCloseHydrogens(tolerance: Float = 0.1) {
+    let hydrogenIndices = atoms.indices.compactMap {
+      if atoms[$0].element == 1 {
+        return $0
+      } else {
+        return nil
+      }
+    }
+    var hydrogenIncludedMap: [Int: Bool] = [:]
+    
+    // O(n^2), so not recommended for very large structures in Swift debug mode.
+    var hydrogenPairs: [SIMD2<Int>] = []
+    for i in 0..<hydrogenIndices.count {
+      let hydrogen_i = atoms[hydrogenIndices[i]]
+      for j in (i + 1)..<hydrogenIndices.count {
+        let hydrogen_j = atoms[hydrogenIndices[j]]
+        if distance(hydrogen_i.origin, hydrogen_j.origin) < tolerance {
+          hydrogenPairs.append(SIMD2(hydrogenIndices[i], hydrogenIndices[j]))
+          precondition(hydrogenIncludedMap[i] != true)
+          precondition(hydrogenIncludedMap[j] != true)
+          hydrogenIncludedMap[i] = true
+          hydrogenIncludedMap[j] = true
+        }
+      }
+    }
+    
+    var hydrogensToBondsMap: [Int: Int] = [:]
+    for (bondID, bond) in bonds.enumerated() {
+      for i in 0..<2 {
+        let atom = atoms[Int(bond[i])]
+        if atom.element == 1 {
+          precondition(hydrogensToBondsMap[Int(bond[i])] == nil)
+          hydrogensToBondsMap[Int(bond[i])] = bondID
+        }
+      }
+    }
+    
+    // Not sure whether the carbons need to be moved slightly closer to each
+    // other to relieve bond stretching stress. We'll find out after sending it
+    // through MM4.
+    //
+    // Perhaps only form bonds if the carbons are close enough to do so.
+    var newBonds: [SIMD2<Int32>?] = bonds.map { $0 }
+    for pair in hydrogenPairs {
+      let bondID1 = hydrogensToBondsMap[pair[0]]!
+      let bondID2 = hydrogensToBondsMap[pair[1]]!
+    }
+    
+    // Map compacted atoms to new locations, modify the new bonds again.
+    
+    // Finally, write the new bonds.
+    
+    self.bonds = newBonds.compactMap { $0 }
+    
+    
+    // Create a list of nullable bonds, then compact into a smaller list.
+    
+    let hydrogensToBondsMap: [Int] = hydrogenIndices.indices.map { i in
+      if !hydrogenIncludedMap[i] {
+        return
+      }
+    }
+    
+  }
+  
   // A bounding box that will never be exceeded during a simulation.
   private static func makeBoundingBox(atoms: [MRAtom]) -> simd_float2x3 {
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
