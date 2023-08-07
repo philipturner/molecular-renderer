@@ -374,7 +374,10 @@ struct Diamondoid {
   // TODO: Change this to O(n) so it's feasible in Swift debug mode. In fact,
   // run it during the creation of 'Diamondoid' as an argument disabled by
   // default.
-  mutating func fixHydrogens(tolerance: Float) {
+  mutating func fixHydrogens(
+    tolerance: Float,
+    where criterion: (SIMD3<Float>) -> Bool
+  ) {
     func getHydrogenID(_ bond: SIMD2<Int32>) -> Int? {
       let atom1 = atoms[Int(bond[0])]
       let atom2 = atoms[Int(bond[1])]
@@ -406,6 +409,9 @@ struct Diamondoid {
         continue outer
       }
       let hydrogen1 = atoms[hydrogenID1]
+      if !criterion(hydrogen1.origin) {
+        continue outer
+      }
     inner:
       for j in (i + 1)..<bonds.count {
         guard let hydrogenID2 = getHydrogenID(bonds[j]) else {
@@ -417,8 +423,10 @@ struct Diamondoid {
         }
         
         let hydrogen2 = atoms[hydrogenID2]
+        if !criterion(hydrogen2.origin) {
+          continue inner
+        }
         if distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
-//          print("Fusing bonds \(i) and \(j)")
           bondPairs.append(SIMD2(i, j))
           continue outer
         }

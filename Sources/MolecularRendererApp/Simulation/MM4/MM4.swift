@@ -1067,6 +1067,12 @@ class MM4 {
     precondition(
       numSteps % provider.stepsPerFrame == 0, "Uneven number of timesteps.")
     
+    func mechanicalEnergyInZJ(_ state: OpenMM_State) -> Float {
+      Float((
+        state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
+    }
+    
+    // TODO: Do an energy minimization beforehand, to solve ht
     print("t = 0.000 ps")
     var start: Double?
     if profiling {
@@ -1076,8 +1082,9 @@ class MM4 {
       start = CACurrentMediaTime()
       #endif
     }
-    let state = context.state(types: .positions)
+    let state = context.state(types: [.positions, .energy])
     provider.append(state: state, steps: 0)
+    let startEnergy = mechanicalEnergyInZJ(state)
     
     var energies: [Float] = []
     for t in 1...numFrames {
@@ -1085,10 +1092,7 @@ class MM4 {
       absoluteTimeInFs *= Int(exactly: timeStepInFs)!
       integrator.step(provider.stepsPerFrame)
       
-      func mechanicalEnergyInZJ(_ state: OpenMM_State) -> Float {
-        Float((
-          state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
-      }
+      
       
       let timestamp = Double(absoluteTimeInFs) / 1000
       var state: OpenMM_State
@@ -1124,6 +1128,8 @@ class MM4 {
             message += ", "
             
             var formatString = "\(String(format: "%.1f", deviation)) zJ"
+            let drift = averageEnergy - startEnergy
+            formatString +=  " from \(String(format: "%.1f", drift)) zJ"
             if deviation >= 0 {
               formatString = "+" + formatString
             }

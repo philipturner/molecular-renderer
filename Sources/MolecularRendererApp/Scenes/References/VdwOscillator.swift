@@ -147,7 +147,7 @@ struct VdwOscillator {
       }
     }
     
-    let latticeWidth: Int = 16
+    let latticeWidth: Int = 10
     var baseLattice: [Cell] = []
     let baseCell = Cell()
     for i in 0..<latticeWidth {
@@ -161,15 +161,10 @@ struct VdwOscillator {
     
     var allCarbonCenters: [SIMD3<Float>] = []
     
-    
     let start = CACurrentMediaTime()
     
     // Make a housing, where a solid diamond brick can fit inside it.
-    // Re-run (some of) these transformations in opposite Z order, and we have a
-    // complementary part that will connect.
     do {
-      // Now, parameterize this so I can change the dimensions to something
-      // other than 5.
       var bases: [[SIMD3<Float>]] = []
       for zDir in [Float(1), -1] {
         var cells = baseLattice
@@ -190,9 +185,7 @@ struct VdwOscillator {
         ])
         
         do {
-          // TODO: Remove an entire layer from the -zDir to accomodate for
-          // the reduction in side of +zDir
-          let xShift: Float = zDir == 1 ? 0 : -2
+          let xShift: Float = zDir == 1 ? 0 : -1
           
           cells = cleave(cells: cells, planes: [
             Plane([0, 9, 5], normal: [0, -1, +1]),
@@ -212,27 +205,30 @@ struct VdwOscillator {
             Plane([zDir == 1 ? 8.5 : 10 + xShift, 10, 5], normal: [+1, -1, -1]),
             Plane([0, 9, 5], normal: [0, -1, +1]),
           ])
-          if zDir == 1 {
-            cells = cleave(cells: cells, planes: [
-              Plane([8.5, 5, 10], normal: [+1, -1, +1]),
-            ])
-          }
           cells = cleave(cells: cells, planes: [
             Plane([zDir == 1 ? 8.9 : 9.5 + xShift, 0, 0], normal: [+1, 0, 0]),
           ])
         }
-        do {
-          let pos1 = 0.25 - 0.25 * zDir
-          let pos2 = 1.25 - 0.25 * zDir
+        let holeX: Float = 6 + (zDir == 1 ? 0 : 1)
+        let holeOffset: Float = 0
+        let pos1 = holeOffset + 0.25 - 0.25 * zDir
+        let pos2 = holeOffset + 1.25 - 0.25 * zDir
+        if zDir == 1 {
+          
+        } else {
           cells = cleave(cells: cells, planes: [
             Plane([pos1, 5, 5 + 5 * zDir], normal: [1, 1, zDir]),
             Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
-            Plane([6 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, 1, zDir]),
+            Plane([
+              holeX + 0.5 * zDir, 5, 5 + 5 * zDir
+            ], normal: [-1, 1, zDir]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane([pos2, 5, 5 + 5 * zDir], normal: [1, -1, -zDir]),
             Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
-            Plane([5 + 0.5 * zDir, 5, 5 + 5 * zDir], normal: [-1, -1, -zDir]),
+            Plane([
+              holeX - 1 + 0.5 * zDir, 5, 5 + 5 * zDir
+            ], normal: [-1, -1, -zDir]),
           ])
         }
         bases.append(makeCarbonCenters(cells: cells))
@@ -270,16 +266,18 @@ struct VdwOscillator {
         }
       }
       
-      var frontCenters = bases[0]
-      frontCenters += rotate(bases[0], flipYZ: true)
-      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
-      allCarbonCenters = frontCenters
+//      var frontCenters = bases[0]
+//      frontCenters += rotate(bases[0], flipYZ: true)
+//      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
+//      allCarbonCenters = frontCenters
       
       var backCenters = bases[1]
       backCenters += rotate(bases[1], flipYZ: true)
       backCenters += rotate(backCenters, rotateYZClockwise: 2)
       backCenters = rotate(backCenters, flipX: true, flipZ: true)
+      allCarbonCenters = backCenters
       
+      let frontCenters = rotate(backCenters, flipX: true, flipZ: true)
       allCarbonCenters = frontCenters + backCenters
     }
     
@@ -289,9 +287,6 @@ struct VdwOscillator {
     }
     allCarbonCenters = Array(hashMap.keys)
     
-    // TODO: Squash the atoms along a diagonal plane to make the structure
-    // smaller and cheaper.
-    // TODO: De-duplicate the carbons before sending the into 'Diamondoid'.
     let end = CACurrentMediaTime()
     print("""
       Took \(String(format: "%.3f", end - start)) seconds to generate the \
@@ -304,13 +299,16 @@ struct VdwOscillator {
     print(allAtoms.count)
     self.provider = ArrayAtomProvider(allAtoms)
     
-//    var diamondoid = Diamondoid(atoms: allAtoms)
-//    print(diamondoid.atoms.count)
-//    diamondoid.fixHydrogens(tolerance: 0.08)
-//    self.provider = ArrayAtomProvider(diamondoid.atoms)
-//
-//    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
-//    simulator.simulate(ps: 10)
-//    provider = simulator.provider
+    var diamondoid = Diamondoid(atoms: allAtoms)
+    print(diamondoid.atoms.count)
+    diamondoid.fixHydrogens(tolerance: 0.08) { _ in
+//      abs($0.z - 2.0) < 0.25
+      true
+    }
+    self.provider = ArrayAtomProvider(diamondoid.atoms)
+
+    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+    simulator.simulate(ps: 10)
+    provider = simulator.provider
   }
 }
