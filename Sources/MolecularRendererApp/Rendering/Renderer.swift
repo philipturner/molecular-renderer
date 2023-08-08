@@ -65,9 +65,9 @@ class Renderer {
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-    serializer.save(
-      fileName: "SavedSimulation-9",
-      provider: atomProvider as! OpenMM_AtomProvider)
+//    serializer.save(
+//      fileName: "SavedSimulation-9",
+//      provider: atomProvider as! OpenMM_AtomProvider)
     #else
     let simulation = serializer.load(fileName: "SavedSimulation-9")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
