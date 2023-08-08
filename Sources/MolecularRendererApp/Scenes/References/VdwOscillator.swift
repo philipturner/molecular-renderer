@@ -218,6 +218,32 @@ struct VdwOscillator {
             Plane([0, width - 4.75, width / 2], normal: [0, -1, -1]),
           ]
           
+          let topPlanes1 = [
+            Plane([0, width - 2.5, 0], normal: [0, +1, 0]),
+            Plane([0, width - 0.5, width / 2], normal: [0, +1, +1]),
+            Plane([0, width - 0.5, width / 2], normal: [0, +1, -1]),
+          ]
+          
+          let topPlanes2 = [
+            Plane([0, width - 1.75, 0], normal: [0, +1, 0]),
+            Plane([0, width - 1.00, width / 2], normal: [0, +1, +1]),
+            Plane([0, width - 1.00, width / 2], normal: [0, +1, -1]),
+          ]
+          
+          for i in 0..<2 {
+            cells = cleave(cells: cells, planes: [
+              topPlanes1[0],
+              topPlanes1[i + 1],
+            ])
+          }
+          
+          for i in 0..<2 {
+            cells = cleave(cells: cells, planes: [
+              topPlanes2[0],
+              topPlanes2[i + 1],
+            ])
+          }
+          
           for i in 0..<2 {
             cells = cleave(cells: cells, planes: [
               Plane(
@@ -262,50 +288,33 @@ struct VdwOscillator {
           ])
         }
         
-        // Change the holes so you can see right through them, removing a few
-        // extra atoms that block your view.
-        #if false
-        let holeX: Float = 6
-        let holeOffset: Float = 0
-        let holeYZ: Float = 2 // 2, 3
-        let pos1 = holeOffset + 0.25 - 0.25 * zDir
-        let pos2 = holeOffset + 2.25 - 0.25 * zDir // 1.25
+        // Make part of the hole appear on the other side. That way, the hole's
+        // boundary isn't just limited by the halfway mark.
+        let holePlanes = [
+          Plane([9, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
+          Plane([9, width - 3, width / 2 - 1.5], normal: [-1, -1, +1]),
+        ]
         
         cells = cleave(cells: cells, planes: [
-          Plane(
-            [pos1,
-             width / 2,
-             width / 2 * (1 + zDir)],
-            normal: [1, 1, zDir]),
-          Plane(
-            [0,
-             width,
-             width / 2 + holeYZ * zDir],
-            normal: [0, -1, zDir]),
-          Plane(
-            [holeX + 2 + 0.5 * zDir,
-             width / 2,
-             width / 2 * (1 + zDir)],
-            normal: [-1, 1, zDir]),
+          Plane([8, 0, 0], normal: [-1, 0, 0]),
+          Plane([0, width - 2, width / 2 - 1.5], normal: [0, -1, -1]),
+          Plane([0, width - 3, width / 2 - 1.5], normal: [0, +1, -1]),
+          Plane([8, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
         ])
         cells = cleave(cells: cells, planes: [
-          Plane(
-            [pos2,
-             width / 2,
-             width / 2 * (1 + zDir)],
-            normal: [1, -1, -zDir]),
-          Plane(
-            [0,
-             width,
-             width / 2 + holeYZ * zDir],
-            normal: [0, -1, zDir]),
-          Plane(
-            [holeX + 0.5 * zDir,
-             width / 2,
-             width / 2 * (1 + zDir)],
-            normal: [-1, -1, -zDir]),
+          Plane([9, 0, 0], normal: [-1, 0, 0]),
+          Plane([0, width - 3, width / 2 - 1.5], normal: [0, -1, -1]),
+          Plane([0, width - 4, width / 2 - 1.5], normal: [0, +1, -1]),
+          Plane([8, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
         ])
-        #endif
+        for i in 0..<2 {
+          cells = cleave(cells: cells, planes: [
+            Plane([10, 0, 0], normal: [-1, 0, 0]),
+            Plane([0, width - 4, width / 2 - 1.5], normal: [0, -1, -1]),
+            Plane([8, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
+            holePlanes[i]
+          ])
+        }
         bases.append(makeCarbonCenters(cells: cells))
       }
       
@@ -446,6 +455,9 @@ struct VdwOscillator {
         delta = simd_act(rotation2, delta)
         center = delta + origin2
         
+        // This time, find the center of mass of the housing diamondoid. Use
+        // that to move the atoms of the rod into the correct position, after
+        // transforming from lattice space to nanometers.
         thisCenters[i] = center + SIMD3(13, 3.75, 0.75)
       }
       let thisAtoms = generateAtoms(thisCenters)
@@ -469,8 +481,8 @@ struct VdwOscillator {
     // 20 fs/frame @ 3-10 ps
     // 100 fs/frame @ 50 ps
     // 500 fs/frame @ 250 ps
-    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
-    simulator.simulate(ps: 3)
-    provider = simulator.provider
+//    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
+//    simulator.simulate(ps: 3)
+//    provider = simulator.provider
   }
 }
