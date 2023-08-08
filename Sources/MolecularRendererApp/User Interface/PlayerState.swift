@@ -68,6 +68,32 @@ struct PlayerState {
   func fovDegrees(progress: Float) -> Float {
     return simd_mix(90, 90 * 1.20, progress)
   }
+  
+  static func makeRotation(azimuth: Double) -> simd_float3x3 {
+    let x: SIMD2<Double> = .init(azimuth / .pi, 0)
+    var sinvals: SIMD2<Double> = .zero
+    var cosvals: SIMD2<Double> = .zero
+    _simd_sincospi_d2(x, &sinvals, &cosvals)
+    
+    let sina = Float(sinvals[0])
+    let cosa = Float(cosvals[0])
+    let sinb = Float(sinvals[1])
+    let cosb = Float(cosvals[1])
+    
+    // The azimuth rotation matrix is:
+    let M_a = simd_float3x3(SIMD3(cosa, 0, sina),
+                            SIMD3(0, 1, 0),
+                            SIMD3(-sina, 0, cosa))
+      .transpose // simd and Metal use the column-major format
+
+    // The zenith rotation matrix is:
+    let M_b = simd_float3x3(SIMD3(1, 0, 0),
+                            SIMD3(0, cosb, -sinb),
+                            SIMD3(0, sinb, cosb))
+      .transpose // simd and Metal use the column-major format
+    
+    return M_a * M_b
+  }
 }
 
 

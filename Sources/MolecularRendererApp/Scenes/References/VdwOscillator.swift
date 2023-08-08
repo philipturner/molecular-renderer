@@ -181,7 +181,7 @@ struct VdwOscillator {
     // Make a housing, where a solid diamond slab can fit inside it.
     do {
       let latticeWidth: Int = 12
-      let widthX = Float(10)
+      let widthX = Float(14)
       let thickness: Float = 2.0
       let width = Float(latticeWidth)
       let baseLattice = makeBaseLattice(width: latticeWidth)
@@ -272,10 +272,10 @@ struct VdwOscillator {
 //          ])
         }
         
-        #if false
+        #if true
 //        let holeX: Float = widthX / 2 + (zDir == 1 ? 1 : 2)
         let holeOffset: Float = 0
-        let holeYZ: Float = 3 // 2
+        let holeYZ: Float = 2 // 2, 3
         let pos1 = holeOffset + 0.25 - 0.25 * zDir
         let pos2 = holeOffset + 2.25 - 0.25 * zDir // 1.25
         
@@ -291,7 +291,8 @@ struct VdwOscillator {
              width / 2 + holeYZ * zDir],
             normal: [0, -1, zDir]),
           Plane(
-            [6/*holeX*/ + 0.5 * zDir,
+//            [6/*holeX*/ + 0.5 * zDir,
+            [8/*holeX*/ + 0.5 * zDir,
              width / 2,
              width / 2 * (1 + zDir)],
             normal: [-1, 1, zDir]),
@@ -308,7 +309,8 @@ struct VdwOscillator {
              width / 2 + holeYZ * zDir],
             normal: [0, -1, zDir]),
           Plane(
-            [4/*holeX - thickness*/ + 0.5 * zDir,
+//            [4/*holeX - thickness*/ + 0.5 * zDir,
+            [6/*holeX - thickness*/ + 0.5 * zDir,
              width / 2,
              width / 2 * (1 + zDir)],
             normal: [-1, -1, -zDir]),
@@ -368,10 +370,10 @@ struct VdwOscillator {
     // Make a diamond slab that is superlubricant.
     do {
       // Adjustable parameters.
-      let latticeWidth: Int = 8
+      let latticeWidth: Int = 12
       let widthZ = Float(4)
       let thickness: Float = 1
-      let shortening: Float = 2
+      let shortening: Float = 4 // 2
       let width = Float(latticeWidth)
       let baseLattice = makeBaseLattice(width: latticeWidth)
       
@@ -451,10 +453,11 @@ struct VdwOscillator {
         delta = simd_act(rotation2, delta)
         center = delta + origin2
         
-        thisCenters[i] = center + SIMD3(
-          10, // 15,
-          (10 + -0.50 * (width - 10)) / 2 - 0.75,// + 6,
-          (10 + -0.20 * (width - 10)) / 2 - 3.25)
+//        thisCenters[i] = center + SIMD3(
+//          10,
+//          (10 + -0.50 * (width - 10)) / 2 - 0.75,
+//          (10 + -0.20 * (width - 10)) / 2 - 3.25))
+        thisCenters[i] = center + SIMD3(15, 3.75, 0.75)
       }
       var thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
@@ -477,7 +480,7 @@ struct VdwOscillator {
       // pieces in an alternating fashion with something like Kaehler brackets.
       // Or linking them together in a way they won't fall apart.
       let latticeWidth: Int = 12
-      let widthX = Float(10)
+      let widthX = Float(14)
       let thickness: Float = 2.0
       let shortening: Float = 0
       let width = Float(latticeWidth)
@@ -562,8 +565,8 @@ struct VdwOscillator {
     // 20 fs/frame @ 10 ps
     // 100 fs/frame @ 50 ps
     // 500 fs/frame @ 250 ps
-    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
-    simulator.simulate(ps: 10)
-    provider = simulator.provider
+//    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 200)
+//    simulator.simulate(ps: 100)
+//    provider = simulator.provider
   }
 }

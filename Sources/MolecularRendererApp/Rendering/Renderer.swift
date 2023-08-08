@@ -65,11 +65,11 @@ class Renderer {
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-    serializer.save(
-      fileName: "SavedSimulation-8",
-      provider: atomProvider as! OpenMM_AtomProvider)
+//    serializer.save(
+//      fileName: "SavedSimulation-9",
+//      provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "SavedSimulation-8")
+    let simulation = serializer.load(fileName: "SavedSimulation-9")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     
     if offline {
@@ -83,7 +83,7 @@ extension Renderer {
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
-    let psPerSecond: Double = 50.0
+    let psPerSecond: Double = 50.0 / 5
     
     let fsPerFrame = simulation.frameTimeInFs
     var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
@@ -105,40 +105,27 @@ extension Renderer {
         relative: framesPerFrame,
         frameRate: 20 * framesPerFrame)
       
-      var position: SIMD3<Float>
-      var rotation: simd_float3x3
+      var position: SIMD3<Float> = [0, 2.5, 10]
+      var rotation = PlayerState.makeRotation(azimuth: 0)
       
+      // Programmatically control the camera position.
+      #if true
       do {
-//        let azimuth: Double = 1.0 * Double.pi / 2
-        let azimuth: Double = 0.0 * Double.pi / 2
+        let framesPerSecond: Int = 20
+        let period: Float = 10
+        let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
+        let radius: Float = 10
         
-        let x: SIMD2<Double> = .init(azimuth / .pi, 0)
-        var sinvals: SIMD2<Double> = .zero
-        var cosvals: SIMD2<Double> = .zero
-        _simd_sincospi_d2(x, &sinvals, &cosvals)
+        var angle = Float(frameID) / Float(framesPerSecond)
+        angle /= period
+        angle *= 2 * .pi
         
-        let sina = Float(sinvals[0])
-        let cosa = Float(cosvals[0])
-        let sinb = Float(sinvals[1])
-        let cosb = Float(cosvals[1])
-        
-        // The azimuth rotation matrix is:
-        let M_a = simd_float3x3(SIMD3(cosa, 0, sina),
-                                SIMD3(0, 1, 0),
-                                SIMD3(-sina, 0, cosa))
-          .transpose // simd and Metal use the column-major format
-
-        // The zenith rotation matrix is:
-        let M_b = simd_float3x3(SIMD3(1, 0, 0),
-                                SIMD3(0, cosb, -sinb),
-                                SIMD3(0, sinb, cosb))
-          .transpose // simd and Metal use the column-major format
-        
-//        position = [5, 1.8, 1.8]
-        
-        position = [0, 2.5, 10]
-        rotation = M_a * M_b
+        let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+        let delta = simd_act(quaternion, [0, 0, 1])
+        position = rotationCenter + normalize(delta) * radius
+        rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       }
+      #endif
       
       self.prepareRendering(
         animationTime: time,
@@ -156,7 +143,7 @@ extension Renderer {
     // The encoder from the Swift GIF package is very slow; we might need to
     // fork the repository and speed it up. The encoding is faster when the
     // image isn't completely blank.
-    print("Expected ETA: \(numFrames / 4) - \(numFrames) seconds.")
+    print("ETA: \(numFrames / 4) - \(numFrames) seconds.")
     gifSerializer.save(fileName: "SavedSimulation")
     print("Checkpoint 3")
     print("Saved the production render.")
@@ -200,6 +187,25 @@ extension Renderer {
     position = playerState.position
     let (azimuth, zenith) = playerState.rotations
     rotation = azimuth * zenith
+    
+    // Programmatically control the camera position.
+    #if true
+    do {
+      let framesPerSecond: Int = 120
+      let period: Float = 10
+      let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
+      let radius: Float = 10
+      
+      var angle = Float(frameID) / Float(framesPerSecond)
+      angle /= period
+      angle *= 2 * .pi
+      
+      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      let delta = simd_act(quaternion, [0, 0, 1])
+      position = rotationCenter + normalize(delta) * radius
+      rotation = PlayerState.makeRotation(azimuth: Double(-angle))
+    }
+    #endif
     
     self.prepareRendering(
       animationTime: animationTime,
