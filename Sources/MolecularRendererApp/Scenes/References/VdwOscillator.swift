@@ -288,23 +288,22 @@ struct VdwOscillator {
       let frontCenters = rotate(backCenters, flipX: true, flipZ: true)
       let thisCenters = frontCenters + backCenters
       let thisAtoms = generateAtoms(thisCenters)
-      
-//      var diamondoid = Diamondoid(atoms: thisAtoms)
-//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
-//      allAtoms += diamondoid.atoms
-//      allDiamondoids.append(diamondoid)
+//      
+      var diamondoid = Diamondoid(atoms: thisAtoms)
+      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
-    // Make a diamond slab that isn't superlubricant.
+    // Make a diamond slab that isn't superlubricant (attempt 1).
     do {
-      // Adjustable parameter.
+      // Adjustable parameters.
       let latticeWidth: Int = 10
       let thickness: Float = 1
       let shortening: Float = 2
       let width = Float(latticeWidth)
       let baseLattice = makeBaseLattice(width: latticeWidth)
       
-      // Exploit symmetry around certain axes to simplify the design process?
       var cells = baseLattice
       cells = cleave(cells: cells, planes: [
         Plane(
@@ -361,13 +360,84 @@ struct VdwOscillator {
       thisCenters += thisCenters.map { center in
         SIMD3(-center.y, -center.x, center.z)
       }
-      
-      let thisAtoms = generateAtoms(thisCenters)
-      allAtoms += thisAtoms
+//      
+//      let thisAtoms = generateAtoms(thisCenters)
+//      allAtoms += thisAtoms
       
 //      let diamondoid = Diamondoid(atoms: thisAtoms)
 //      allAtoms += diamondoid.atoms
 //      allDiamondoids.append(diamondoid)
+    }
+    
+    // Make a diamond slab that isn't superlubricant (attempt 2).
+    do {
+      // Adjustable parameters.
+      let latticeWidth: Int = 10
+      let thickness: Float = 2.0
+      let shortening: Float = 0
+      let width = Float(latticeWidth)
+      let baseLattice = makeBaseLattice(width: latticeWidth)
+      
+      var cells = baseLattice
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [0, width / 2 + thickness, width / 2],
+          normal: [0, 1, 1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [0, width / 2 + thickness, width / 2],
+          normal: [0, 1, -1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [0, width / 2 - thickness, width / 2],
+          normal: [0, -1, 1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [0, width / 2 - thickness, width / 2],
+          normal: [0, -1, -1])
+      ])
+      
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width  - 0.5, width / 2, width / 2],
+          normal: [1, 1, 1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width - 0.5, width / 2, width / 2],
+          normal: [1, -1, 1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width - 0.5, width / 2, width / 2],
+          normal: [1, 1, -1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width  - 0.5, width / 2, width / 2],
+          normal: [1, -1, -1])
+      ])
+      
+      var thisCenters = makeCarbonCenters(cells: cells)
+      thisCenters = thisCenters.map {
+        $0 - SIMD3(shortening, shortening, 0)
+      }
+      thisCenters += thisCenters.map { center in
+        SIMD3(-center.x, width - center.y, center.z)
+      }
+      thisCenters = thisCenters.map {
+        $0 + SIMD3(10, 0, 0)
+      }
+      
+      let thisAtoms = generateAtoms(thisCenters)
+//      allAtoms += thisAtoms
+      
+      let diamondoid = Diamondoid(atoms: thisAtoms)
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
     print(allAtoms.count)
@@ -379,8 +449,8 @@ struct VdwOscillator {
       structure.
       """)
 
-//    let simulator = MM4(diamondoisd: diamondoids, fsPerFrame: 20)
-//    simulator.simulate(ps: 10)
-//    provider = simulator.provider
+    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 500)
+    simulator.simulate(ps: 250)
+    provider = simulator.provider
   }
 }

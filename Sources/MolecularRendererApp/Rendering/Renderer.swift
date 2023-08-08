@@ -32,7 +32,7 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    #if true
+    #if false
     let imageSize = Int(ContentView.size)
     let upscaleFactor: Int? = ContentView.upscaleFactor
     let offline: Bool = Bool.random() ? false : false
@@ -58,14 +58,16 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    #if true
+    eventTracker.playerState.position = [0, 2.5, 10]
+    
+    #if false
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-//    serializer.save(
-//      fileName: "SavedSimulation",
-//      provider: atomProvider as! OpenMM_AtomProvider)
+    serializer.save(
+      fileName: "SavedSimulation",
+      provider: atomProvider as! OpenMM_AtomProvider)
     #else
     let simulation = serializer.load(fileName: "SavedSimulation")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
@@ -79,9 +81,10 @@ class Renderer {
 
 extension Renderer {
   func renderSimulation(
-    _ simulation: MRSimulation,
-    psPerSecond: Double = 2.0
+    _ simulation: MRSimulation
   ) {
+    let psPerSecond: Double = 10.0
+    
     let fsPerFrame = simulation.frameTimeInFs
     var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
     if abs(framesPerFrame_d - rint(framesPerFrame_d)) < 0.001 {
@@ -106,7 +109,8 @@ extension Renderer {
       var rotation: simd_float3x3
       
       do {
-        let azimuth: Double = 1.0 * Double.pi / 2
+//        let azimuth: Double = 1.0 * Double.pi / 2
+        let azimuth: Double = 0.0 * Double.pi / 2
         
         let x: SIMD2<Double> = .init(azimuth / .pi, 0)
         var sinvals: SIMD2<Double> = .zero
@@ -130,7 +134,9 @@ extension Renderer {
                                 SIMD3(0, sinb, cosb))
           .transpose // simd and Metal use the column-major format
         
-        position = [5, 1.8, 1.8]
+//        position = [5, 1.8, 1.8]
+        
+        position = [0, 2.5, 10]
         rotation = M_a * M_b
       }
       
