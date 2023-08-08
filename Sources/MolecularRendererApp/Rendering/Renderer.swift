@@ -32,7 +32,7 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    #if false
+    #if true
     let imageSize = Int(ContentView.size)
     let upscaleFactor: Int? = ContentView.upscaleFactor
     let offline: Bool = Bool.random() ? false : false
@@ -60,14 +60,14 @@ class Renderer {
     
     eventTracker.playerState.position = [0, 2.5, 10]
     
-    #if false
+    #if true
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-    serializer.save(
-      fileName: "SavedSimulation",
-      provider: atomProvider as! OpenMM_AtomProvider)
+//    serializer.save(
+//      fileName: "SavedSimulation",
+//      provider: atomProvider as! OpenMM_AtomProvider)
     #else
     let simulation = serializer.load(fileName: "SavedSimulation")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
@@ -83,7 +83,7 @@ extension Renderer {
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
-    let psPerSecond: Double = 10.0
+    let psPerSecond: Double = 50.0
     
     let fsPerFrame = simulation.frameTimeInFs
     var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
