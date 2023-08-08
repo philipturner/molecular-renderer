@@ -210,70 +210,69 @@ struct VdwOscillator {
           
           cells = cleave(cells: cells, planes: [
             Plane(
-              [0, 9, 5],
+              [0, width - 1, width / 2],
               normal: [0, -1, +1]),
             Plane(
-              [0, 9, 5],
+              [0, width - 1, width / 2],
               normal: [0, -1, -1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [9.5 + xShift, 9, 5],
+              [width - 0.5 + xShift, width - 1, width / 2],
               normal: [+1, +1, -1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [9.5 + xShift, 10, 5],
+              [width - 0.5 + xShift, width, width / 2],
               normal: [+1, -1, +1]),
             Plane(
-              [0, 9, 5],
+              [0, width - 1, width / 2],
               normal: [0, -1, -1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [zDir == 1 ? 8.5 : 10 + xShift, 9, 5],
+              [zDir == 1 ? width - 1.5 : width + xShift, width - 1, width / 2],
               normal: [+1, +1, +1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [zDir == 1 ? 8.5 : 10 + xShift, 10, 5],
+              [zDir == 1 ? width - 1.5 : width + xShift, width, width / 2],
               normal: [+1, -1, -1]),
             Plane(
-              [0, 9, 5],
+              [0, width - 1, width / 2],
               normal: [0, -1, +1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [zDir == 1 ? 8.9 : 9.5 + xShift, 0, 0],
+              [zDir == 1 ? width - 1.1 : width - 0.5 + xShift, 0, 0],
               normal: [+1, 0, 0]),
           ])
         }
-        let holeX: Float = 6 + (zDir == 1 ? 0 : 1)
+        let holeX: Float = width / 2 + (zDir == 1 ? 1 : 2)
         let holeOffset: Float = 0
         let pos1 = holeOffset + 0.25 - 0.25 * zDir
         let pos2 = holeOffset + 1.25 - 0.25 * zDir
-
-        // 5 + 2 * zDir is unstable with MM4, but stable with Morse.
+        
         cells = cleave(cells: cells, planes: [
           Plane(
-            [pos1, 5, 5 + 5 * zDir],
+            [pos1, width / 2, width / 2 * (1 + zDir)],
             normal: [1, 1, zDir]),
           Plane(
-            [0, 10, 5 + 2 * zDir],
+            [0, width, width / 2 + 2 * zDir],
             normal: [0, -1, zDir]),
           Plane(
-            [holeX + 0.5 * zDir, 5, 5 + 5 * zDir],
+            [holeX + 0.5 * zDir, width / 2, width / 2 * (1 + zDir)],
             normal: [-1, 1, zDir]),
         ])
         cells = cleave(cells: cells, planes: [
           Plane(
-            [pos2, 5, 5 + 5 * zDir],
+            [pos2, width / 2, width / 2 * (1 + zDir)],
             normal: [1, -1, -zDir]),
           Plane(
-            [0, 10, 5 + 2 * zDir],
+            [0, width, width / 2 + 2 * zDir],
             normal: [0, -1, zDir]),
           Plane(
-            [holeX - 1 + 0.5 * zDir, 5, 5 + 5 * zDir],
+            [holeX - 1 + 0.5 * zDir, width / 2, width / 2 * (1 + zDir)],
             normal: [-1, -1, -zDir]),
         ])
         bases.append(makeCarbonCenters(cells: cells))
