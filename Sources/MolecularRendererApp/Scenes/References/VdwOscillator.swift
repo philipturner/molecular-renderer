@@ -180,11 +180,11 @@ struct VdwOscillator {
     
     // Make a housing, where a solid diamond slab can fit inside it.
     do {
-      let latticeWidth: Int = 10
+      let latticeWidth: Int = 12
+      let widthX = Float(10)
       let thickness: Float = 2.0
-      let shortening: Float = 0
       let width = Float(latticeWidth)
-      let baseLattice = makeBaseLattice(width: 10)
+      let baseLattice = makeBaseLattice(width: latticeWidth)
       
       var bases: [[SIMD3<Float>]] = []
       for zDir in [Float(1), -1] {
@@ -210,69 +210,106 @@ struct VdwOscillator {
           
           cells = cleave(cells: cells, planes: [
             Plane(
-              [0, width - 1, width / 2],
+              [0,
+               width - thickness,
+               width / 2],
               normal: [0, -1, +1]),
             Plane(
-              [0, width - 1, width / 2],
+              [0,
+               width - thickness,
+               width / 2],
               normal: [0, -1, -1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [width - 0.5 + xShift, width - 1, width / 2],
+              [widthX - 0.5 + xShift,
+               width - thickness,
+               width / 2],
               normal: [+1, +1, -1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [width - 0.5 + xShift, width, width / 2],
+              [widthX - 0.5 + xShift,
+               width,
+               width / 2],
               normal: [+1, -1, +1]),
             Plane(
-              [0, width - 1, width / 2],
+              [0, width - thickness,
+               width / 2],
               normal: [0, -1, -1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [zDir == 1 ? width - 1.5 : width + xShift, width - 1, width / 2],
+              [zDir == 1 ? widthX - 1.5 : widthX + xShift,
+               width - thickness,
+               width / 2],
               normal: [+1, +1, +1]),
           ])
           cells = cleave(cells: cells, planes: [
             Plane(
-              [zDir == 1 ? width - 1.5 : width + xShift, width, width / 2],
+              [zDir == 1 ? widthX - 1.5: widthX + xShift,
+               width,
+               width / 2],
               normal: [+1, -1, -1]),
             Plane(
-              [0, width - 1, width / 2],
+              [0,
+               width - 1,
+               width / 2],
               normal: [0, -1, +1]),
-          ])
-          cells = cleave(cells: cells, planes: [
             Plane(
-              [zDir == 1 ? width - 1.1 : width - 0.5 + xShift, 0, 0],
+              [widthX - 3, // needs to be a function of thickness
+               0,
+               0],
               normal: [+1, 0, 0]),
           ])
+          
+//          cells = cleave(cells: cells, planes: [
+//            Plane(
+//              [zDir == 1 ? width - 1.1 : width - 0.5 + xShift,
+//               0,
+//               0],
+//              normal: [+1, 0, 0]),
+//          ])
         }
-        let holeX: Float = width / 2 + (zDir == 1 ? 1 : 2)
+        let holeX: Float = widthX / 2 + (zDir == 1 ? 1 : 2)
+        let holeX2: Float = width / 2 + (zDir == 1 ? 1 : 2)
         let holeOffset: Float = 0
+        let holeYZ: Float = 3 // 2
         let pos1 = holeOffset + 0.25 - 0.25 * zDir
-        let pos2 = holeOffset + 1.25 - 0.25 * zDir
+        let pos2 = holeOffset + 2.25 - 0.25 * zDir // 1.25
         
         cells = cleave(cells: cells, planes: [
           Plane(
-            [pos1, width / 2, width / 2 * (1 + zDir)],
+            [pos1,
+             width / 2,
+             width / 2 * (1 + zDir)],
             normal: [1, 1, zDir]),
           Plane(
-            [0, width, width / 2 + 2 * zDir],
+            [0,
+             width,
+             width / 2 + holeYZ * zDir],
             normal: [0, -1, zDir]),
           Plane(
-            [holeX + 0.5 * zDir, width / 2, width / 2 * (1 + zDir)],
+            [6/*holeX*/ + 0.5 * zDir,
+             width / 2,
+             width / 2 * (1 + zDir)],
             normal: [-1, 1, zDir]),
         ])
         cells = cleave(cells: cells, planes: [
           Plane(
-            [pos2, width / 2, width / 2 * (1 + zDir)],
+            [pos2,
+             width / 2,
+             width / 2 * (1 + zDir)],
             normal: [1, -1, -zDir]),
           Plane(
-            [0, width, width / 2 + 2 * zDir],
+            [0,
+             width,
+             width / 2 + holeYZ * zDir],
             normal: [0, -1, zDir]),
           Plane(
-            [holeX - 1 + 0.5 * zDir, width / 2, width / 2 * (1 + zDir)],
+            [4/*holeX - thickness*/ + 0.5 * zDir,
+             width / 2,
+             width / 2 * (1 + zDir)],
             normal: [-1, -1, -zDir]),
         ])
         bases.append(makeCarbonCenters(cells: cells))
@@ -289,10 +326,10 @@ struct VdwOscillator {
         base.map {
           var output = SIMD3(
             flipX ? 0 - $0.x : $0.x,
-            flipY ? 5 - ($0.y - 5) : $0.y,
-            flipZ ? 5 - ($0.z - 5) : $0.z)
+            flipY ? width / 2 - ($0.y - width / 2) : $0.y,
+            flipZ ? width / 2 - ($0.z - width / 2) : $0.z)
           if flipYZ {
-            let origin = SIMD3<Float>(0, 0, 10)
+            let origin = SIMD3<Float>(0, 0, width)
             var delta = output - origin
             let deltaY = delta.y
             let deltaZ = delta.z
@@ -302,9 +339,9 @@ struct VdwOscillator {
           }
           for _ in 0..<rotateYZClockwise {
             let oldY = output.y
-            let oldZ = output.z - 5
-            output.y = oldZ + 0 + 5
-            output.z = -oldY + 5 + 5
+            let oldZ = output.z - width / 2
+            output.y = oldZ + 0 + width / 2
+            output.z = -oldY + width / 2 + width / 2
           }
           return output
         }
@@ -318,12 +355,12 @@ struct VdwOscillator {
       let frontCenters = rotate(backCenters, flipX: true, flipZ: true)
       let thisCenters = frontCenters + backCenters
       let thisAtoms = generateAtoms(thisCenters)
-      allAtoms += thisAtoms
+//      allAtoms += thisAtoms
 //
-//      var diamondoid = Diamondoid(atoms: thisAtoms)
-//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
-//      allAtoms += diamondoid.atoms
-//      allDiamondoids.append(diamondoid)
+      var diamondoid = Diamondoid(atoms: thisAtoms)
+      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
     // Make a diamond slab that isn't superlubricant (attempt 1).
@@ -404,9 +441,6 @@ struct VdwOscillator {
     do {
       // Adjustable parameters.
       
-      // Step 1 (easy): reverse the orientation of the inner piece, try to
-      // make the interfaces not match.
-      
       // Step 2: make the thickness 2 on the left, 2.5 on the right, and
       // reposition the rod to be centered. Close the gap and degrees of
       // freedom.
@@ -414,7 +448,8 @@ struct VdwOscillator {
       // Step 3: try the uneven slab surface above, but linking several such
       // pieces in an alternating fashion with something like Kaehler brackets.
       // Or linking them together in a way they won't fall apart.
-      let latticeWidth: Int = 10
+      let latticeWidth: Int = 12
+      let widthX = Float(10)
       let thickness: Float = 2.0
       let shortening: Float = 0
       let width = Float(latticeWidth)
@@ -444,22 +479,22 @@ struct VdwOscillator {
       
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width  - 0.5, width / 2, width / 2],
+          [widthX - 0.5, width / 2, width / 2],
           normal: [1, 1, 1])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - 0.5, width / 2, width / 2],
+          [widthX - 0.5, width / 2, width / 2],
           normal: [1, -1, 1])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - 0.5, width / 2, width / 2],
+          [widthX - 0.5, width / 2, width / 2],
           normal: [1, 1, -1])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width  - 0.5, width / 2, width / 2],
+          [widthX - 0.5, width / 2, width / 2],
           normal: [1, -1, -1])
       ])
       
@@ -471,20 +506,22 @@ struct VdwOscillator {
         SIMD3(-center.x, width - center.y, center.z)
       }
       thisCenters = thisCenters.map {
-        $0 + SIMD3(10, 0, 0)
+        $0 + SIMD3(widthX + 2, 0, 0)
       }
       
       // Flip across the XY plane.
-      thisCenters = thisCenters.map { center in
-        SIMD3(center.x, center.y, width - center.z)
-      }
+      // Record the difference in what the simulations look like with/without
+      // it being reversed.
+//      thisCenters = thisCenters.map { center in
+//        SIMD3(center.x, center.y, width - center.z)
+//      }
       
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
 //      
-//      let diamondoid = Diamondoid(atoms: thisAtoms)
-//      allAtoms += diamondoid.atoms
-//      allDiamondoids.append(diamondoid)
+      let diamondoid = Diamondoid(atoms: thisAtoms)
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
     print(allAtoms.count)
@@ -496,8 +533,9 @@ struct VdwOscillator {
       structure.
       """)
 
-//    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 500)
-//    simulator.simulate(ps: 250)
-//    provider = simulator.provider
+    // 20 fs/frame @ 10 ps
+    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
+    simulator.simulate(ps: 10)
+    provider = simulator.provider
   }
 }
