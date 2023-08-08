@@ -271,8 +271,9 @@ struct VdwOscillator {
 //              normal: [+1, 0, 0]),
 //          ])
         }
-        let holeX: Float = widthX / 2 + (zDir == 1 ? 1 : 2)
-        let holeX2: Float = width / 2 + (zDir == 1 ? 1 : 2)
+        
+        #if false
+//        let holeX: Float = widthX / 2 + (zDir == 1 ? 1 : 2)
         let holeOffset: Float = 0
         let holeYZ: Float = 3 // 2
         let pos1 = holeOffset + 0.25 - 0.25 * zDir
@@ -312,6 +313,7 @@ struct VdwOscillator {
              width / 2 * (1 + zDir)],
             normal: [-1, -1, -zDir]),
         ])
+        #endif
         bases.append(makeCarbonCenters(cells: cells))
       }
       
@@ -363,10 +365,11 @@ struct VdwOscillator {
       allDiamondoids.append(diamondoid)
     }
     
-    // Make a diamond slab that isn't superlubricant (attempt 1).
+    // Make a diamond slab that is superlubricant.
     do {
       // Adjustable parameters.
-      let latticeWidth: Int = 10
+      let latticeWidth: Int = 8
+      let widthZ = Float(4)
       let thickness: Float = 1
       let shortening: Float = 2
       let width = Float(latticeWidth)
@@ -375,12 +378,12 @@ struct VdwOscillator {
       var cells = baseLattice
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width / 2, width / 2 - thickness, width / 2],
+          [width / 2, width / 2 - thickness, widthZ / 2],
           normal: [1, -1, 0])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width / 2, width / 2 + thickness, width / 2],
+          [width / 2, width / 2 + thickness, widthZ / 2],
           normal: [-1, 1, 0])
       ])
       cells = cleave(cells: cells, planes: [
@@ -391,7 +394,7 @@ struct VdwOscillator {
       
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - thickness, width, width - 3 * thickness / 2],
+          [width - thickness, width, widthZ - 3 * thickness / 2],
           normal: [-1, 1, 1]),
       ])
       cells = cleave(cells: cells, planes: [
@@ -401,7 +404,7 @@ struct VdwOscillator {
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width - thickness, width - 3 * thickness / 2],
+          [width, width - thickness, widthZ - 3 * thickness / 2],
           normal: [1, -1, 1]),
       ])
       cells = cleave(cells: cells, planes: [
@@ -412,7 +415,7 @@ struct VdwOscillator {
       
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width, width - 5 * thickness / 2],
+          [width, width, widthZ - 5 * thickness / 2],
           normal: [1, 1, 1])
       ])
       cells = cleave(cells: cells, planes: [
@@ -428,16 +431,41 @@ struct VdwOscillator {
       thisCenters += thisCenters.map { center in
         SIMD3(-center.y, -center.x, center.z)
       }
-//      
-//      let thisAtoms = generateAtoms(thisCenters)
+      
+      let baseCenters = thisCenters
+      thisCenters += baseCenters.map {
+        $0 + SIMD3(1, -1, 0)
+      }
+      let rotation1 = simd_quatf(angle: -.pi / 4, axis: [0, 0, 1])
+      let rotation2 = simd_quatf(angle: -.pi / 4, axis: [1, 0, 0])
+      for i in thisCenters.indices {
+        var center = thisCenters[i]
+        
+        let origin1 = SIMD3<Float>(0, width / 2, widthZ / 2)
+        var delta = center - origin1
+        delta = simd_act(rotation1, delta)
+        center = delta + origin1
+        
+        let origin2 = SIMD3<Float>(0, width / 2, widthZ / 2)
+        delta = center - origin2
+        delta = simd_act(rotation2, delta)
+        center = delta + origin2
+        
+        thisCenters[i] = center + SIMD3(
+          10, // 15,
+          (10 + -0.50 * (width - 10)) / 2 - 0.75,// + 6,
+          (10 + -0.20 * (width - 10)) / 2 - 3.25)
+      }
+      var thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
-//      let diamondoid = Diamondoid(atoms: thisAtoms)
-//      allAtoms += diamondoid.atoms
-//      allDiamondoids.append(diamondoid)
+      var diamondoid = Diamondoid(atoms: thisAtoms)
+      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
-    // Make a diamond slab that isn't superlubricant (attempt 2).
+    // Make a diamond slab that isn't superlubricant.
     do {
       // Adjustable parameters.
       
@@ -510,18 +538,16 @@ struct VdwOscillator {
       }
       
       // Flip across the XY plane.
-      // Record the difference in what the simulations look like with/without
-      // it being reversed.
-//      thisCenters = thisCenters.map { center in
-//        SIMD3(center.x, center.y, width - center.z)
-//      }
+      thisCenters = thisCenters.map { center in
+        SIMD3(center.x, center.y, width - center.z)
+      }
       
-      let thisAtoms = generateAtoms(thisCenters)
+//      let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
 //      
-      let diamondoid = Diamondoid(atoms: thisAtoms)
-      allAtoms += diamondoid.atoms
-      allDiamondoids.append(diamondoid)
+//      let diamondoid = Diamondoid(atoms: thisAtoms)
+//      allAtoms += diamondoid.atoms
+//      allDiamondoids.append(diamondoid)
     }
     
     print(allAtoms.count)
@@ -534,6 +560,8 @@ struct VdwOscillator {
       """)
 
     // 20 fs/frame @ 10 ps
+    // 100 fs/frame @ 50 ps
+    // 500 fs/frame @ 250 ps
     let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
     simulator.simulate(ps: 10)
     provider = simulator.provider

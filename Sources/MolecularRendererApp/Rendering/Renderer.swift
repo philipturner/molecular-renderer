@@ -66,10 +66,10 @@ class Renderer {
     self.atomProvider = VdwOscillator().provider
     
     serializer.save(
-      fileName: "SavedSimulation",
+      fileName: "SavedSimulation-8",
       provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "SavedSimulation")
+    let simulation = serializer.load(fileName: "SavedSimulation-8")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     
     if offline {
