@@ -200,7 +200,6 @@ public class MRRenderer {
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     self.profiler = MRProfiler(renderer: self, library: library)
     if !offline {
-      
       self.initUpscaler()
     }
     self.initSerializer(library: library)
@@ -337,10 +336,6 @@ extension MRRenderer {
     styleProvider: MRAtomStyleProvider
   ) {
     var atoms = atomProvider.atoms(time: time)
-    
-//    var atoms: [MRAtom] = [
-//      MRAtom(origin: [0, 2.5, 0], element: 6),
-//    ]
     let styles = styleProvider.styles
     let available = styleProvider.available
     
@@ -364,7 +359,6 @@ extension MRRenderer {
   }
   
   // Only call this once per frame.
-  // - lightPower: Intensity of the camera-centered light for Blinn-Phong shading.
   public func setCamera(
     fovDegrees: Float,
     position: SIMD3<Float>,
@@ -510,21 +504,17 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  
-  // renderToImage(handler: (UnsafePointer<UInt8>) -> Void)
-  
   public func render(
     layer: CAMetalLayer,
     handler: @escaping () -> Void
   ) {
-    defer {
-      // Invalidate the time.
-      self.time = nil
-    }
-    
     guard !offline else {
       fatalError(
         "Tried to render to a CAMetalLayer, but configured for offline rendering.")
+    }
+    defer {
+      // Invalidate the time.
+      self.time = nil
     }
     
     var commandBuffer = self.render()
@@ -555,7 +545,6 @@ extension MRRenderer {
       fatalError(
         "Tried to render to a pixel buffer, but configured for real-time rendering.")
     }
-    
     defer {
       // Invalidate the time.
       self.time = nil

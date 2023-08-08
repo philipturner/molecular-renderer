@@ -217,14 +217,14 @@ struct VdwOscillator {
         // 5 + 2 * zDir is unstable with MM4, but stable with Morse.
         cells = cleave(cells: cells, planes: [
           Plane([pos1, 5, 5 + 5 * zDir], normal: [1, 1, zDir]),
-          Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
+          Plane([0, 10, 5 + 2 * zDir], normal: [0, -1, zDir]),
           Plane([
             holeX + 0.5 * zDir, 5, 5 + 5 * zDir
           ], normal: [-1, 1, zDir]),
         ])
         cells = cleave(cells: cells, planes: [
           Plane([pos2, 5, 5 + 5 * zDir], normal: [1, -1, -zDir]),
-          Plane([0, 10, 5 + 3 * zDir], normal: [0, -1, zDir]),
+          Plane([0, 10, 5 + 2 * zDir], normal: [0, -1, zDir]),
           Plane([
             holeX - 1 + 0.5 * zDir, 5, 5 + 5 * zDir
           ], normal: [-1, -1, -zDir]),
@@ -263,11 +263,6 @@ struct VdwOscillator {
           return output
         }
       }
-      
-//      var frontCenters = bases[0]
-//      frontCenters += rotate(bases[0], flipYZ: true)
-//      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
-//      allCarbonCenters = frontCenters
       
       var backCenters = bases[1]
       backCenters += rotate(bases[1], flipYZ: true)

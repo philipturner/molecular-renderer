@@ -32,7 +32,7 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    #if false
+    #if true
     let imageSize = Int(ContentView.size)
     let upscaleFactor: Int? = ContentView.upscaleFactor
     let offline: Bool = Bool.random() ? false : false
@@ -58,7 +58,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    #if false
+    #if true
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
@@ -82,15 +82,13 @@ extension Renderer {
     _ simulation: MRSimulation,
     psPerSecond: Double = 2.0
   ) {
-    // TODO: Eventually, support frame interpolation to bypass the restriction
-    // on granularity of playback speeds.
     let fsPerFrame = simulation.frameTimeInFs
     var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
     if abs(framesPerFrame_d - rint(framesPerFrame_d)) < 0.001 {
       framesPerFrame_d = rint(framesPerFrame_d)
     } else {
       fatalError(
-        "Invisible playback speed: \(psPerSecond) / 20 / \(fsPerFrame)")
+        "Indivisible playback speed: \(psPerSecond) / 20 / \(fsPerFrame)")
     }
     let framesPerFrame = Int(framesPerFrame_d)
     
@@ -193,34 +191,9 @@ extension Renderer {
     var position: SIMD3<Float>
     var rotation: simd_float3x3
     
-    do {
-      let azimuth: Double = 1.0 * Double.pi / 2
-      
-      let x: SIMD2<Double> = .init(azimuth / .pi, 0)
-      var sinvals: SIMD2<Double> = .zero
-      var cosvals: SIMD2<Double> = .zero
-      _simd_sincospi_d2(x, &sinvals, &cosvals)
-      
-      let sina = Float(sinvals[0])
-      let cosa = Float(cosvals[0])
-      let sinb = Float(sinvals[1])
-      let cosb = Float(cosvals[1])
-      
-      // The azimuth rotation matrix is:
-      let M_a = simd_float3x3(SIMD3(cosa, 0, sina),
-                              SIMD3(0, 1, 0),
-                              SIMD3(-sina, 0, cosa))
-        .transpose // simd and Metal use the column-major format
-
-      // The zenith rotation matrix is:
-      let M_b = simd_float3x3(SIMD3(1, 0, 0),
-                              SIMD3(0, cosb, -sinb),
-                              SIMD3(0, sinb, cosb))
-        .transpose // simd and Metal use the column-major format
-      
-      position = [5, 1.8, 1.8]
-      rotation = M_a * M_b
-    }
+    position = playerState.position
+    let (azimuth, zenith) = playerState.rotations
+    rotation = azimuth * zenith
     
     self.prepareRendering(
       animationTime: animationTime,
@@ -246,24 +219,9 @@ extension Renderer {
       styleProvider: styleProvider)
     
     var lights: [MRLight] = []
-    
-    #if true
-    let offsetXY: Float = 0.00
-    let offsetZ: Float = 0.00
-    let offset = rotation * [offsetXY, offsetXY, -offsetZ]
-    let lightPosition = position + offset
     let cameraLight = MRLight(
-      origin: lightPosition, diffusePower: 1, specularPower: 1)
+      origin: position, diffusePower: 1, specularPower: 1)
     lights.append(cameraLight)
-    #else
-    let cameraLight = MRLight(
-      origin: playerState.position, diffusePower: 0.3, specularPower: 0.3)
-    lights.append(cameraLight)
-    
-    let sunLight = MRLight(
-      origin: [400, 1000, 400], diffusePower: 1, specularPower: 1)
-    lights.append(sunLight)
-    #endif
     
     let quality = MRQuality(
       minSamples: 3, maxSamples: 7, qualityCoefficient: 30)

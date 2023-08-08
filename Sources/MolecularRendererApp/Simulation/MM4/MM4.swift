@@ -928,8 +928,6 @@ class MM4 {
       }
     }
     
-    // TODO: Try using the Morse potential instead of the MM4 bond-stretch potential, then switching over once it's in a stable state.
-    
     nonbond.forceGroup = 1
     nonbond14.forceGroup = 1
     bondStretch.forceGroup = 2
@@ -944,13 +942,8 @@ class MM4 {
     system.addForce(nonbond)
     system.addForce(nonbond14)
     
-    #if false
-    bondStretch.transfer()
-    system.addForce(bondStretch)
-    #else
     bondMorse.transfer()
     system.addForce(bondMorse)
-    #endif
     
     bondBend.transfer()
     bondBendBend.transfer()
