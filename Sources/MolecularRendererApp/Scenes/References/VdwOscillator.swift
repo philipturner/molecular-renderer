@@ -133,6 +133,19 @@ struct VdwOscillator {
       return Array(dict.keys)
     }
     
+    func generateAtoms(
+      _ latticePoints: [SIMD3<Float>]
+    ) -> [MRAtom] {
+      var hashMap: [SIMD3<Float>: Bool] = [:]
+      for point in latticePoints {
+        hashMap[point] = true
+      }
+      let allPoints = Array(hashMap.keys)
+      return allPoints.map {
+        MRAtom(origin: $0 * 0.357, element: 6)
+      }
+    }
+    
     // Remove cells from the grid that have already been 100% cleaved, to reduce
     // the compute cost of successive transformations.
     func cleave(cells: [Cell], planes: [Plane]) -> [Cell] {
@@ -147,24 +160,27 @@ struct VdwOscillator {
       }
     }
     
-    let latticeWidth: Int = 10
-    var baseLattice: [Cell] = []
-    let baseCell = Cell()
-    for i in 0..<latticeWidth {
-      for j in 0..<latticeWidth {
-        for k in 0..<latticeWidth {
-          let offset = SIMD3(i, j, k)
-          baseLattice.append(baseCell.translated(offset: offset))
+    func makeBaseLattice(width: Int) -> [Cell] {
+      var output: [Cell] = []
+      let baseCell = Cell()
+      for i in 0..<width {
+        for j in 0..<width {
+          for k in 0..<width {
+            let offset = SIMD3(i, j, k)
+            output.append(baseCell.translated(offset: offset))
+          }
         }
       }
+      return output
     }
     
-    var allCarbonCenters: [SIMD3<Float>] = []
-    
     let start = CACurrentMediaTime()
+    var allAtoms: [MRAtom] = []
+    var allDiamondoids: [Diamondoid] = []
     
-    // Make a housing, where a solid diamond brick can fit inside it.
+    // Make a housing, where a solid diamond slab can fit inside it.
     do {
+      let baseLattice = makeBaseLattice(width: 10)
       var bases: [[SIMD3<Float>]] = []
       for zDir in [Float(1), -1] {
         var cells = baseLattice
@@ -268,40 +284,103 @@ struct VdwOscillator {
       backCenters += rotate(bases[1], flipYZ: true)
       backCenters += rotate(backCenters, rotateYZClockwise: 2)
       backCenters = rotate(backCenters, flipX: true, flipZ: true)
-      allCarbonCenters = backCenters
       
       let frontCenters = rotate(backCenters, flipX: true, flipZ: true)
-      allCarbonCenters = frontCenters + backCenters
+      let thisCenters = frontCenters + backCenters
+      let thisAtoms = generateAtoms(thisCenters)
+      
+//      var diamondoid = Diamondoid(atoms: thisAtoms)
+//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+//      allAtoms += diamondoid.atoms
+//      allDiamondoids.append(diamondoid)
     }
     
-    var hashMap: [SIMD3<Float>: Bool] = [:]
-    for center in allCarbonCenters {
-      hashMap[center] = true
+    // Make a diamond slab that isn't superlubricant.
+    do {
+      // Adjustable parameter.
+      let latticeWidth: Int = 10
+      let thickness: Float = 1
+      let shortening: Float = 2
+      let width = Float(latticeWidth)
+      let baseLattice = makeBaseLattice(width: latticeWidth)
+      
+      // Exploit symmetry around certain axes to simplify the design process?
+      var cells = baseLattice
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width / 2, width / 2 - thickness, width / 2],
+          normal: [1, -1, 0])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width / 2, width / 2 + thickness, width / 2],
+          normal: [-1, 1, 0])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width - thickness, width, 0],
+          normal: [1, 1, 0])
+      ])
+      
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width - thickness, width, width - 3 * thickness / 2],
+          normal: [-1, 1, 1]),
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width - thickness, width, thickness / 2],
+          normal: [-1, 1, -1]),
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width, width - thickness, width - 3 * thickness / 2],
+          normal: [1, -1, 1]),
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width, width - thickness, thickness / 2],
+          normal: [1, -1, -1]),
+      ])
+      
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width, width, width - 5 * thickness / 2],
+          normal: [1, 1, 1])
+      ])
+      cells = cleave(cells: cells, planes: [
+        Plane(
+          [width, width, 3 * thickness / 2],
+          normal: [1, 1, -1])
+      ])
+      
+      var thisCenters = makeCarbonCenters(cells: cells)
+      thisCenters = thisCenters.map {
+        $0 - SIMD3(shortening, shortening, 0)
+      }
+      thisCenters += thisCenters.map { center in
+        SIMD3(-center.y, -center.x, center.z)
+      }
+      
+      let thisAtoms = generateAtoms(thisCenters)
+      allAtoms += thisAtoms
+      
+//      let diamondoid = Diamondoid(atoms: thisAtoms)
+//      allAtoms += diamondoid.atoms
+//      allDiamondoids.append(diamondoid)
     }
-    allCarbonCenters = Array(hashMap.keys)
+    
+    print(allAtoms.count)
+    self.provider = ArrayAtomProvider(allAtoms)
     
     let end = CACurrentMediaTime()
     print("""
       Took \(String(format: "%.3f", end - start)) seconds to generate the \
       structure.
       """)
-    
-    let allAtoms = allCarbonCenters.map {
-      MRAtom(origin: $0 * 0.357, element: 6)
-    }
-    print(allAtoms.count)
-    self.provider = ArrayAtomProvider(allAtoms)
-    
-    var diamondoid = Diamondoid(atoms: allAtoms)
-    print(diamondoid.atoms.count)
-    diamondoid.fixHydrogens(tolerance: 0.08) { _ in
-//      abs($0.z - 2.0) < 0.25
-      true
-    }
-    self.provider = ArrayAtomProvider(diamondoid.atoms)
 
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 20)
-    simulator.simulate(ps: 10)
-    provider = simulator.provider
+//    let simulator = MM4(diamondoisd: diamondoids, fsPerFrame: 20)
+//    simulator.simulate(ps: 10)
+//    provider = simulator.provider
   }
 }
