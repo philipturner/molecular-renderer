@@ -140,22 +140,26 @@ kernel void renderMain
     colorCtx.setDepth(depth);
     colorCtx.generateMotionVector(hitPoint);
   }
-  colorCtx.write(color_texture, depth_texture, motion_texture);
-  
-  // Store the profiling sample.
-  float2 sample(sampleValue, sampleSize);
-  sample += simd_shuffle_xor(sample, 4);
-  sample += simd_shuffle_xor(sample, 8);
-  sample += simd_shuffle_xor(sample, 16);
-  
-  if (simd_is_first()) {
-    ushort2 coords = pixelCoords / ushort2(8, 4);
-    ushort sampleRows = (SCREEN_WIDTH + 7) / 8;
-    ushort sampleCols = (SCREEN_HEIGHT + 3) / 4;
-    uint valueIndex = uint(coords.y * sampleRows) + coords.x;
-    profiling_samples[valueIndex] = sample[0];
+  if (OFFLINE) {
+    colorCtx.write_offline(color_texture);
+  } else {
+    colorCtx.write(color_texture, depth_texture, motion_texture);
     
-    uint countIndex = valueIndex + uint(sampleRows * sampleCols);
-    profiling_samples[countIndex] = sample[1];
+    // Store the profiling sample.
+    float2 sample(sampleValue, sampleSize);
+    sample += simd_shuffle_xor(sample, 4);
+    sample += simd_shuffle_xor(sample, 8);
+    sample += simd_shuffle_xor(sample, 16);
+    
+    if (simd_is_first()) {
+      ushort2 coords = pixelCoords / ushort2(8, 4);
+      ushort sampleRows = (SCREEN_WIDTH + 7) / 8;
+      ushort sampleCols = (SCREEN_HEIGHT + 3) / 4;
+      uint valueIndex = uint(coords.y * sampleRows) + coords.x;
+      profiling_samples[valueIndex] = sample[0];
+      
+      uint countIndex = valueIndex + uint(sampleRows * sampleCols);
+      profiling_samples[countIndex] = sample[1];
+    }
   }
 }

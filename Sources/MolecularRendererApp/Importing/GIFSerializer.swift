@@ -6,8 +6,9 @@
 //
 
 import CairoGraphics
-import GIF
 import Foundation
+import GIF
+import QuartzCore
 import simd
 
 final class GIFSerializer {
@@ -42,7 +43,20 @@ final class GIFSerializer {
   func save(fileName: String) {
     let path = self.path + "/" + fileName + ".gif"
     let url = URL(filePath: path)
+    
+    print()
+    print("Started encoding GIF.")
+    let start = CACurrentMediaTime()
     let data = try! gif.encoded()
+    let end = CACurrentMediaTime()
+    let latency = String(format: "%.3f", end - start)
+    print("Finished encoding GIF in \(latency) seconds.")
+    
+    if data.count >= 1024 * 1024 {
+      print("File size: \(data.count / 1024 / 1024) MB")
+    } else {
+      print("File size: \(data.count / 1024) KB")
+    }
     try! data.write(to: url, options: .atomic)
   }
 }

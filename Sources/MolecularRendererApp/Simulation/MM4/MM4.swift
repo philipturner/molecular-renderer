@@ -944,7 +944,7 @@ class MM4 {
     system.addForce(nonbond)
     system.addForce(nonbond14)
     
-    #if true
+    #if false
     bondStretch.transfer()
     system.addForce(bondStretch)
     #else

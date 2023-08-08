@@ -264,10 +264,10 @@ struct VdwOscillator {
         }
       }
       
-      var frontCenters = bases[0]
-      frontCenters += rotate(bases[0], flipYZ: true)
-      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
-      allCarbonCenters = frontCenters
+//      var frontCenters = bases[0]
+//      frontCenters += rotate(bases[0], flipYZ: true)
+//      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
+//      allCarbonCenters = frontCenters
       
       var backCenters = bases[1]
       backCenters += rotate(bases[1], flipYZ: true)
@@ -275,7 +275,7 @@ struct VdwOscillator {
       backCenters = rotate(backCenters, flipX: true, flipZ: true)
       allCarbonCenters = backCenters
       
-//      let frontCenters = rotate(backCenters, flipX: true, flipZ: true)
+      let frontCenters = rotate(backCenters, flipX: true, flipZ: true)
       allCarbonCenters = frontCenters + backCenters
     }
     

@@ -54,9 +54,10 @@ struct SimulationAtomProvider: MRAtomProvider {
       frames.append(frame.atoms)
     }
     
-    let ps = (frameTimeInFs * 120) / 1000
-    print()
-    print("Replaying at \(ps) ps/s.")
+    // This metric is not accurate when you're rendering offline.
+//    let ps = (frameTimeInFs * 120) / 1000
+//    print()
+//    print("Replaying at \(ps) ps/s.")
   }
   
   func atoms(time: MRTimeContext) -> [MRAtom] {

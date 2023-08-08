@@ -15,15 +15,6 @@ import func simd.distance_squared
 // Partially sourced from:
 // https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
 
-// TODO: Multiple rendering modes.
-// - Interactive: accounts for latency, synchronized with display
-// - Hybrid: writes a saveable frame, and the recording can be started/stopped
-// - Headless: removes stutters, suitable for production
-
-// TODO: Options for storing recorded frames.
-// - Async handler: pointer in memory
-// - File: uses built-in image/video encoder, stores to a pre-defined URL
-
 @_alignment(16)
 struct Arguments {
   var fovMultiplier: Float
@@ -337,26 +328,19 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  // TODO: Integrate with modern graphics APIs' asynchronous SSD loading. Allow
-  // computationally demanding simulations to run ahead-of-time.
-  //
-  // If you're rendering from a dynamic scene, there is a different API with a
-  // different C function. The dynamic API should be used when loading geometry
-  // is resource-intensive or high-latency and therefore requires Metal IO
-  // command buffers. Otherwise, the static API is sufficient to render dynamic
-  // geometry.
+  // TODO: Alternative high-performance API: the user to enters a pointer that
+  // will persist for 3 frames, operate in-place on the atoms. Don't force
+  // this requirement for every use case though.
   public func setGeometry(
-    // TODO: Consider removing the dependency on frame rate. Do this by making
-    // frame rate an input argument to initialize an MRTimeContext.
     time: MRTimeContext,
-    
-    // TODO: Alternative high-performance API: the user to enters a pointer that
-    // will persist for 3 frames, operate in-place on the atoms. Don't force
-    // this requirement for every use case though.
     atomProvider: inout MRAtomProvider,
     styleProvider: MRAtomStyleProvider
   ) {
     var atoms = atomProvider.atoms(time: time)
+    
+//    var atoms: [MRAtom] = [
+//      MRAtom(origin: [0, 2.5, 0], element: 6),
+//    ]
     let styles = styleProvider.styles
     let available = styleProvider.available
     
@@ -531,7 +515,7 @@ extension MRRenderer {
   
   public func render(
     layer: CAMetalLayer,
-    handler: @escaping (MTLCommandBuffer) -> Void
+    handler: @escaping () -> Void
   ) {
     defer {
       // Invalidate the time.
@@ -558,12 +542,14 @@ extension MRRenderer {
     
     // Present the drawable and signal the semaphore.
     commandBuffer.present(drawable)
-    commandBuffer.addCompletedHandler(handler)
+    commandBuffer.addCompletedHandler { _ in
+      handler()
+    }
     commandBuffer.commit()
   }
   
   public func render(
-    handler: @escaping (MTLCommandBuffer, UnsafePointer<UInt8>) -> Void
+    handler: @escaping (UnsafePointer<UInt8>) -> Void
   ) {
     guard offline else {
       fatalError(
@@ -581,10 +567,11 @@ extension MRRenderer {
       let backingBuffer = textures.backingBuffer!
       let pixels = backingBuffer.contents().assumingMemoryBound(to: UInt8.self)
       self.offlineEncodingQueue!.async {
-        handler(commandBuffer, pixels)
+        handler(pixels)
         self.lastHandledCommandBuffer = commandBuffer
       }
     }
+    commandBuffer.commit()
     lastCommandBuffer = commandBuffer
   }
   
@@ -601,15 +588,11 @@ extension MRRenderer {
     }
     lastHandledCommandBuffer!.waitUntilCompleted()
     
-    // Remove this code after debugging, and ensuring it doesn't cause a
-    // complete stall.
-    print("Waiting on semaphore.")
     let semaphore = DispatchSemaphore(value: 0)
     self.offlineEncodingQueue!.sync {
       _ = semaphore.signal()
     }
     semaphore.wait()
-    print("Finished waiting on semaphore.")
   }
   
   private func render() -> MTLCommandBuffer {
@@ -682,6 +665,3 @@ extension MRRenderer {
     return commandBuffer
   }
 }
-
-
-
