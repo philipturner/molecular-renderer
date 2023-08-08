@@ -370,7 +370,7 @@ struct VdwOscillator {
     // Make a diamond slab that is superlubricant.
     do {
       // Adjustable parameters.
-      let latticeWidth: Int = 12
+      let latticeWidth: Int = 12 // 16
       let widthZ = Float(4)
       let thickness: Float = 1
       let shortening: Float = 4 // 2
@@ -457,9 +457,11 @@ struct VdwOscillator {
 //          10,
 //          (10 + -0.50 * (width - 10)) / 2 - 0.75,
 //          (10 + -0.20 * (width - 10)) / 2 - 3.25))
-        thisCenters[i] = center + SIMD3(15, 3.75, 0.75)
+//        thisCenters[i] = center + SIMD3(15, 3.75, 0.75)
+//        thisCenters[i] = center + SIMD3(15, 2.75, -0.25)
+        thisCenters[i] = center + SIMD3(13, 3.75, 0.75)
       }
-      var thisAtoms = generateAtoms(thisCenters)
+      let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
       var diamondoid = Diamondoid(atoms: thisAtoms)
@@ -565,8 +567,8 @@ struct VdwOscillator {
     // 20 fs/frame @ 10 ps
     // 100 fs/frame @ 50 ps
     // 500 fs/frame @ 250 ps
-//    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 200)
-//    simulator.simulate(ps: 100)
-//    provider = simulator.provider
+    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 200)
+    simulator.simulate(ps: 100)
+    provider = simulator.provider
   }
 }

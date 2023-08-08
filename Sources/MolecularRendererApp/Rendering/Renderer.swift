@@ -58,16 +58,16 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    eventTracker.playerState.position = [0, 2.5, 10]
+//    eventTracker.playerState.position = [0, 2.5, 10]
     
     #if true
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-//    serializer.save(
-//      fileName: "SavedSimulation-9",
-//      provider: atomProvider as! OpenMM_AtomProvider)
+    serializer.save(
+      fileName: "SavedSimulation-9",
+      provider: atomProvider as! OpenMM_AtomProvider)
     #else
     let simulation = serializer.load(fileName: "SavedSimulation-9")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
@@ -189,7 +189,7 @@ extension Renderer {
     rotation = azimuth * zenith
     
     // Programmatically control the camera position.
-    #if true
+    #if false
     do {
       let framesPerSecond: Int = 120
       let period: Float = 10
