@@ -294,8 +294,6 @@ struct VdwOscillator {
           ])
         }
         
-        // Make part of the hole appear on the other side. That way, the hole's
-        // boundary isn't just limited by the halfway mark.
         do {
           let holePlanes = [
             Plane([10, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
@@ -304,14 +302,8 @@ struct VdwOscillator {
           
           cells = cleave(cells: cells, planes: [
             Plane([9, 0, 0], normal: [-1, 0, 0]),
-            Plane([0, width - 2, width / 2 - 1.5], normal: [0, -1, -1]),
-            Plane([0, width - 3, width / 2 - 1.5], normal: [0, +1, -1]),
-            Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
-          ])
-          cells = cleave(cells: cells, planes: [
-            Plane([10, 0, 0], normal: [-1, 0, 0]),
-            Plane([0, width - 3, width / 2 - 1.5], normal: [0, -1, -1]),
-            Plane([0, width - 4, width / 2 - 1.5], normal: [0, +1, -1]),
+            Plane([0, width - 2.5, width / 2 - 2], normal: [0, -1, -1]),
+            Plane([0, width - 3.5, width / 2 - 2], normal: [0, +1, -1]),
             Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
           ])
           for i in 0..<2 {
@@ -319,45 +311,31 @@ struct VdwOscillator {
               Plane([11, 0, 0], normal: [-1, 0, 0]),
               Plane([0, width - 4, width / 2 - 1.5], normal: [0, -1, -1]),
               Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
-              holePlanes[i]
+              holePlanes[i],
             ])
           }
         }
         do {
-          let baseX: Float = 2
-          
           let holePlanes = [
             Plane(
-              [baseX + 1, width - 3, width / 2 + 1.5], normal: [-1, +1, +1]),
+              [2, width - 3, width / 2 + 1.5], normal: [-1, +1, +1]),
             Plane(
-              [baseX + 1, width - 3, width / 2 + 1.5], normal: [-1, -1, -1]),
+              [2, width - 3, width / 2 + 1.5], normal: [-1, -1, -1]),
           ]
-          
-          cells = cleave(cells: cells, planes: [
-            Plane([baseX, 0, 0], normal: [-1, 0, 0]),
-            Plane([0, width - 2, width / 2 + 1.5], normal: [0, -1, +1]),
-            Plane([0, width - 3, width / 2 + 1.5], normal: [0, +1, +1]),
-            Plane([baseX, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
-          ])
-          cells = cleave(cells: cells, planes: [
-            Plane([baseX + 1, 0, 0], normal: [-1, 0, 0]),
-            Plane([0, width - 3, width / 2 + 1.5], normal: [0, -1, +1]),
-            Plane([0, width - 4, width / 2 + 1.5], normal: [0, +1, +1]),
-            Plane([baseX, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
-          ])
           for i in 0..<2 {
+            // Plane baseX + 1.75, baseX - 0.5 -> increase by some amount.
             cells = cleave(cells: cells, planes: [
-              Plane([baseX + 1.75, 0, 0], normal: [-1, 0, 0]),
+              Plane([2.75, 0, 0], normal: [-1, 0, 0]),
               Plane([0, width - 4, width / 2 + 1.5], normal: [0, -1, +1]),
-              Plane([baseX, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
-              holePlanes[i]
+              Plane([0.5, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
+              holePlanes[i],
             ])
           }
           
           // Remove a lone atom that's sticking out with 3 dangling bonds.
           cells = cleave(cells: cells, planes: [
-            Plane([0, 0, width / 2 + 2.25], normal: [0, 0, +1]),
-            Plane([baseX + 0.25, 0, 0], normal: [-1, 0, 0]),
+            Plane([0, 0, width / 2 + 2], normal: [0, 0, +1]),
+            Plane([0.25, 0, 0], normal: [-1, 0, 0]),
           ])
         }
         bases.append(makeCarbonCenters(cells: cells))
@@ -408,9 +386,9 @@ struct VdwOscillator {
       thisCenters = centerAtOrigin(thisCenters)
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
-      
+////      
       var diamondoid = Diamondoid(atoms: thisAtoms)
-//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
       allAtoms += diamondoid.atoms
       allDiamondoids.append(diamondoid)
     }
@@ -528,8 +506,8 @@ struct VdwOscillator {
     // 20 fs/frame @ 3-10 ps
     // 100 fs/frame @ 50 ps
     // 500 fs/frame @ 250 ps
-//    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
-//    simulator.simulate(ps: 3)
-//    provider = simulator.provider
+    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
+    simulator.simulate(ps: 3)
+    provider = simulator.provider
   }
 }
