@@ -187,13 +187,11 @@ struct VdwOscillator {
     // Make a housing, where a solid diamond slab can fit inside it.
     do {
       let latticeWidth: Int = 18
-      let widthX = Float(14)
       let thickness: Float = 3.0
       let width = Float(latticeWidth)
       let baseLattice = makeBaseLattice(width: latticeWidth)
       
       var bases: [[SIMD3<Float>]] = []
-      let zDir = Float(-1)
       do {
         var cells = baseLattice
         
@@ -299,11 +297,10 @@ struct VdwOscillator {
             Plane([10, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
             Plane([10, width - 3, width / 2 - 1.5], normal: [-1, -1, +1]),
           ]
-          
           cells = cleave(cells: cells, planes: [
             Plane([9, 0, 0], normal: [-1, 0, 0]),
             Plane([0, width - 2.5, width / 2 - 2], normal: [0, -1, -1]),
-            Plane([0, width - 3.5, width / 2 - 2], normal: [0, +1, -1]),
+            Plane([0, width - 3.75, width / 2 - 1.75], normal: [0, +1, -1]),
             Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
           ])
           for i in 0..<2 {
@@ -323,7 +320,6 @@ struct VdwOscillator {
               [2, width - 3, width / 2 + 1.5], normal: [-1, -1, -1]),
           ]
           for i in 0..<2 {
-            // Plane baseX + 1.75, baseX - 0.5 -> increase by some amount.
             cells = cleave(cells: cells, planes: [
               Plane([2.75, 0, 0], normal: [-1, 0, 0]),
               Plane([0, width - 4, width / 2 + 1.5], normal: [0, -1, +1]),
@@ -386,7 +382,7 @@ struct VdwOscillator {
       thisCenters = centerAtOrigin(thisCenters)
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
-////      
+      
       var diamondoid = Diamondoid(atoms: thisAtoms)
       diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
       allAtoms += diamondoid.atoms
@@ -503,10 +499,16 @@ struct VdwOscillator {
       structure.
       """)
     
+    // Minimize the energy of each diamondoid.
+    for i in allDiamondoids.indices {
+      allDiamondoids[i].minimize()
+    }
+    
     // 20 fs/frame @ 3-10 ps
     // 100 fs/frame @ 50 ps
     // 500 fs/frame @ 250 ps
-    let simulator = MM4(diamondoids: allDiamondoids, fsPerFrame: 20)
+    let simulator = MM4(
+      diamondoids: allDiamondoids, fsPerFrame: 20)
     simulator.simulate(ps: 3)
     provider = simulator.provider
   }

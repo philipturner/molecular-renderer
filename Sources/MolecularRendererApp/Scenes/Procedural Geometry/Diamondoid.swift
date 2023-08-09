@@ -543,6 +543,33 @@ struct Diamondoid {
     }
   }
   
+  mutating func minimize() {
+    var diamondoid = self
+    diamondoid.linearVelocity = nil
+    diamondoid.angularVelocity = nil
+    
+    let simulator = MM4(
+      diamondoid: diamondoid, fsPerFrame: 100)
+    let emptyVelocities: [SIMD3<Float>] = Array(
+      repeating: .zero, count: diamondoid.atoms.count)
+    
+    let numIterations = 10
+    for iteration in 0..<numIterations {
+      simulator.simulate(ps: 0.5, minimizing: true)
+      if iteration < numIterations - 1 {
+        simulator.provider.reset()
+        simulator.thermalize(velocities: emptyVelocities)
+      }
+    }
+    
+    let minimized = simulator.provider.states.last!
+    for j in diamondoid.atoms.indices {
+      let remapped = Int(simulator.newIndicesMap[j])
+      diamondoid.atoms[j].origin = minimized[remapped].origin
+    }
+    self = diamondoid
+  }
+  
   // Center of mass using HMR.
   // WARNING: The amount of repartitioned mass must stay in sync with MM4.
   func createCenterOfMass() -> SIMD3<Float> {

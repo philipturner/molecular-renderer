@@ -57,6 +57,11 @@ class MM4 {
   var requestEnergy = false
   var profiling = false
   
+  // Data for recovering atom positions after energy minimization.
+  var rigidBodies: [Range<Int>]
+  var repartitionedMasses: [Double]
+  var newIndicesMap: [Int32]
+  
   convenience init(
     diamondoid: Diamondoid,
     fsPerFrame: Double
@@ -87,7 +92,8 @@ class MM4 {
     atoms inputAtoms: [MRAtom],
     bonds inputBonds: [SIMD2<Int32>],
     velocities inputVelocities: [SIMD3<Float>]? = nil,
-    fsPerFrame: Double
+    fsPerFrame: Double,
+    minimizedAtoms: [MRAtom]? = nil
   ) {
     do {
       let fsInt = Int(exactly: fsPerFrame)!
@@ -117,7 +123,7 @@ class MM4 {
     var bonds: [SIMD2<Int32>] = []
     var velocities: [SIMD3<Float>] = []
     var masses: [Double] = []
-    var rigidBodies: [Range<Int>] = []
+    self.rigidBodies = []
     
     do {
       struct AtomGroup {
@@ -164,7 +170,7 @@ class MM4 {
         }
       }
       
-      var newIndicesMap: [Int32] = .init(repeating: -1, count: inputAtoms.count)
+      newIndicesMap = .init(repeating: -1, count: inputAtoms.count)
       for group in groups where group.movedIndex == nil {
         var indices = group.indices!
         let rangeStart = rigidBodies.last?.upperBound ?? 0
@@ -180,7 +186,6 @@ class MM4 {
           case 1:
             mass = 1.008
           case 6:
-            
             mass = 12.011
           default:
             fatalError("Unsupported element: \(atom.element)")
@@ -194,7 +199,7 @@ class MM4 {
         precondition(atoms.count == velocities.count)
         
         let rangeEnd = rangeStart + indices.count
-        rigidBodies.append(rangeStart..<rangeEnd)
+        self.rigidBodies.append(rangeStart..<rangeEnd)
       }
       for newIndex in newIndicesMap {
         precondition(newIndex != -1)
@@ -206,6 +211,16 @@ class MM4 {
         bonds.append(SIMD2(newIndex1, newIndex2))
       }
     }
+    
+    if let minimizedAtoms {
+      for i in 0..<atoms.count {
+        precondition(
+          atoms[i].element == minimizedAtoms[i].element,
+          "Minimized atoms did not match overwritten atoms.")
+        atoms[i].origin = minimizedAtoms[i].origin
+      }
+    }
+    
     var numHydrogens: Int = 0
     var numNonHydrogens: Int = 0
     var totalHydrogenMassInAmu: Double = 0
@@ -220,7 +235,7 @@ class MM4 {
       }
     }
     
-    var repartitionedMasses = masses
+    self.repartitionedMasses = masses
     do {
       for var bond in bonds {
         let firstAtom = atoms[Int(bond[0])]
@@ -1008,114 +1023,123 @@ class MM4 {
     self.context.positions = positions
     precondition(context.platform.name == "HIP")
     
-    do {
-      // TODO: Better adherence to temperature.
-      // - Initialize the thermal velocities multiple times.
-      // - For each rigid body, find the sample with the least deviation in
-      //   kinetic energy after correcting to conserve momenta.
-      context.setVelocitiesToTemperature(298)
-      
-      let state = context.state(types: [.positions, .velocities])
-      let stateVelocities = state.velocities
-      for rigidBody in rigidBodies {
-        var totalMass: Double = 0
-        var totalMomentum: SIMD3<Double> = .zero
-        var centerOfMass: SIMD3<Double> = .zero
-        
-        // Conserve momentum after the velocities are randomly initialized.
-        for atomID in rigidBody {
-          let mass = repartitionedMasses[atomID]
-          let position = positions[atomID]
-          let velocity = stateVelocities[atomID]
-          totalMass += mass
-          totalMomentum += mass * velocity
-          centerOfMass += mass * position
-        }
-        centerOfMass /= totalMass
-        
-        // Conserve angular momentum along the three cardinal axes, therefore
-        // conserving angular momentum along any possible axis.
-        var totalAngularMomentum: simd_double3 = .zero
-        var totalMomentOfInertia: simd_double3x3 = .init(diagonal: .zero)
-        for atomID in rigidBody {
-          let mass = repartitionedMasses[atomID]
-          let delta = positions[atomID] - centerOfMass
-          let velocity = stateVelocities[atomID]
-          
-          // From Wikipedia:
-          // https://en.wikipedia.org/wiki/Rigid_body_dynamics#Mass_properties
-          //
-          // I_R = m * (I (S^T S) - S S^T)
-          // where S is the column vector R - R_cm
-          let STS = dot(delta, delta)
-          var momentOfInertia = simd_double3x3(diagonal: .init(repeating: STS))
-          momentOfInertia -= simd_double3x3(rows: [
-            SIMD3(delta.x * delta.x, delta.x * delta.y, delta.x * delta.z),
-            SIMD3(delta.y * delta.x, delta.y * delta.y, delta.y * delta.z),
-            SIMD3(delta.z * delta.x, delta.z * delta.y, delta.z * delta.z),
-          ])
-          momentOfInertia *= mass
-          totalMomentOfInertia += momentOfInertia
-          
-          // From Wikipedia:
-          // https://en.wikipedia.org/wiki/Rigid_body_dynamics#Linear_and_angular_momentum
-          //
-          // L = m * (R - R_cm) cross d/dt (R - R_cm)
-          // assume R_cm is stationary
-          // L = m * (R - R_cm) cross v
-          let angularMomentum = mass * cross(delta, velocity)
-          totalAngularMomentum += angularMomentum
-        }
-        
-        // Matrix:
-        // L = I * w
-        // (I^{-1}) L = w
-        // w = angular velocity
-        //
-        // Resulting vector:
-        // w_x: angular velocity around x-axis (YZ plane)
-        // w_y: angular velocity around y-axis (ZX plane)
-        // w_z: angular velocity around z-axis (XY plane)
-        //
-        // Convert into a linear velocity for each particle:
-        // v = w cross r
-        let totalAngularVelocity = totalMomentOfInertia
-          .inverse * totalAngularMomentum
-        
-        for atomID in rigidBody {
-          var velocity = stateVelocities[atomID]
-          velocity += -totalMomentum / totalMass
-          velocity += SIMD3(velocities[atomID])
-          
-          let delta = positions[atomID] - centerOfMass
-          for axis in 0..<3 {
-            var w: SIMD3<Double> = .zero
-            var r = delta
-            w[axis] = -totalAngularVelocity[axis]
-            r[axis] = 0
-            
-            let v = cross(w, r)
-            velocity += v
-          }
-          
-          stateVelocities[atomID] = velocity
-        }
-      }
-      self.context.velocities = state.velocities
-    }
-    
     self.provider = OpenMM_AtomProvider(
       psPerStep: timeStepInFs * OpenMM_PsPerFs,
       stepsPerFrame: Int(exactly: fsPerFrame / timeStepInFs)!,
       elements: atoms.map(\.element))
+    
+    self.thermalize(positions: positions, velocities: velocities)
   }
   
-  func simulate(ps: Double) {
-    simulate(ps: ps, context: self.context, integrator: self.integrator)
+  func thermalize(
+    positions: OpenMM_Vec3Array? = nil,
+    velocities: [SIMD3<Float>]
+  ) {
+    context.setVelocitiesToTemperature(298)
+    
+    let state = context.state(types: [.positions, .velocities])
+    let statePositions = positions ?? state.positions
+    let stateVelocities = state.velocities
+    for rigidBody in rigidBodies {
+      var totalMass: Double = 0
+      var totalMomentum: SIMD3<Double> = .zero
+      var centerOfMass: SIMD3<Double> = .zero
+      
+      // Conserve momentum after the velocities are randomly initialized.
+      for atomID in rigidBody {
+        let mass = repartitionedMasses[atomID]
+        let position = statePositions[atomID]
+        let velocity = stateVelocities[atomID]
+        totalMass += mass
+        totalMomentum += mass * velocity
+        centerOfMass += mass * position
+      }
+      centerOfMass /= totalMass
+      
+      // Conserve angular momentum along the three cardinal axes, therefore
+      // conserving angular momentum along any possible axis.
+      var totalAngularMomentum: simd_double3 = .zero
+      var totalMomentOfInertia: simd_double3x3 = .init(diagonal: .zero)
+      for atomID in rigidBody {
+        let mass = repartitionedMasses[atomID]
+        let delta = statePositions[atomID] - centerOfMass
+        let velocity = stateVelocities[atomID]
+        
+        // From Wikipedia:
+        // https://en.wikipedia.org/wiki/Rigid_body_dynamics#Mass_properties
+        //
+        // I_R = m * (I (S^T S) - S S^T)
+        // where S is the column vector R - R_cm
+        let STS = dot(delta, delta)
+        var momentOfInertia = simd_double3x3(diagonal: .init(repeating: STS))
+        momentOfInertia -= simd_double3x3(rows: [
+          SIMD3(delta.x * delta.x, delta.x * delta.y, delta.x * delta.z),
+          SIMD3(delta.y * delta.x, delta.y * delta.y, delta.y * delta.z),
+          SIMD3(delta.z * delta.x, delta.z * delta.y, delta.z * delta.z),
+        ])
+        momentOfInertia *= mass
+        totalMomentOfInertia += momentOfInertia
+        
+        // From Wikipedia:
+        // https://en.wikipedia.org/wiki/Rigid_body_dynamics#Linear_and_angular_momentum
+        //
+        // L = m * (R - R_cm) cross d/dt (R - R_cm)
+        // assume R_cm is stationary
+        // L = m * (R - R_cm) cross v
+        let angularMomentum = mass * cross(delta, velocity)
+        totalAngularMomentum += angularMomentum
+      }
+      
+      // Matrix:
+      // L = I * w
+      // (I^{-1}) L = w
+      // w = angular velocity
+      //
+      // Resulting vector:
+      // w_x: angular velocity around x-axis (YZ plane)
+      // w_y: angular velocity around y-axis (ZX plane)
+      // w_z: angular velocity around z-axis (XY plane)
+      //
+      // Convert into a linear velocity for each particle:
+      // v = w cross r
+      let totalAngularVelocity = totalMomentOfInertia
+        .inverse * totalAngularMomentum
+      
+      for atomID in rigidBody {
+        var velocity = stateVelocities[atomID]
+        velocity += -totalMomentum / totalMass
+        velocity += SIMD3(velocities[atomID])
+        
+        let delta = statePositions[atomID] - centerOfMass
+        for axis in 0..<3 {
+          var w: SIMD3<Double> = .zero
+          var r = delta
+          w[axis] = -totalAngularVelocity[axis]
+          r[axis] = 0
+          
+          let v = cross(w, r)
+          velocity += v
+        }
+        
+        stateVelocities[atomID] = velocity
+      }
+    }
+    self.context.velocities = state.velocities
+  }
+  
+  func simulate(ps: Double, minimizing: Bool = false) {
+    simulate(
+      ps: ps,
+      context: self.context,
+      integrator: self.integrator,
+      minimizing: minimizing)
   }
   
   private func simulate(
-    ps: Double, context: OpenMM_Context, integrator: OpenMM_Integrator
+    ps: Double,
+    context: OpenMM_Context,
+    integrator: OpenMM_Integrator,
+    minimizing: Bool
   ) {
     let numFemtoseconds = Double(rint(ps * 1000))
     let numSteps = Int(exactly: numFemtoseconds / timeStepInFs)!
@@ -1128,8 +1152,9 @@ class MM4 {
         state.kineticEnergy + state.potentialEnergy) * 10 / 6.022)
     }
     
-    // TODO: Do an energy minimization beforehand, to solve ht
-    print("t = 0.000 ps")
+    if !minimizing {
+      print("t = 0.000 ps")
+    }
     var start: Double?
     if profiling {
       #if DEBUG
@@ -1141,6 +1166,14 @@ class MM4 {
     let state = context.state(types: [.positions, .energy])
     provider.append(state: state, steps: 0)
     let startEnergy = mechanicalEnergyInZJ(state)
+    var mostRecentEnergy = startEnergy
+    
+    func checkFailure(_ drift: Float) {
+      if abs(drift) > 1_000_000 {
+        fatalError(
+          "Simulation failed: \(String(format: "%.1f", drift)) zJ")
+      }
+    }
     
     var energies: [Float] = []
     for t in 1...numFrames {
@@ -1148,19 +1181,17 @@ class MM4 {
       absoluteTimeInFs *= Int(exactly: timeStepInFs)!
       integrator.step(provider.stepsPerFrame)
       
-      
-      
       let timestamp = Double(absoluteTimeInFs) / 1000
       var state: OpenMM_State
       if requestEnergy {
         state = context.state(types: [.positions, .energy])
         if absoluteTimeInFs % 500 == 0 {
-          let energy = mechanicalEnergyInZJ(state)
+          mostRecentEnergy = mechanicalEnergyInZJ(state)
           if timestamp >= 5.000 {
             let average = energies.reduce(0, +) / Float(energies.count)
-            print(energy - average)
+            print(mostRecentEnergy - average)
           } else {
-            energies.append(energy)
+            energies.append(mostRecentEnergy)
           }
         }
       } else {
@@ -1172,7 +1203,14 @@ class MM4 {
         
         if !profiling && sampleEnergy && (absoluteTimeInFs % 100 == 0) {
           state = context.state(types: [.positions, .energy])
-          energies.append(mechanicalEnergyInZJ(state))
+          
+          mostRecentEnergy = mechanicalEnergyInZJ(state)
+          energies.append(mostRecentEnergy)
+          if absoluteTimeInFs % 500 == 0 {
+            let drift = mostRecentEnergy - startEnergy
+            checkFailure(drift)
+//            message += " -> \(String(format: "%.1f", drift)) zJ"
+          }
         } else {
           if absoluteTimeInFs % 500 == 0,
              !profiling,
@@ -1180,17 +1218,16 @@ class MM4 {
             state = context.state(types: [.positions, .energy])
             
             let averageEnergy = energies.reduce(0, +) / Float(energies.count)
-            let deviation = mechanicalEnergyInZJ(state) - averageEnergy
+            mostRecentEnergy = mechanicalEnergyInZJ(state)
+            let deviation = mostRecentEnergy - averageEnergy
             message += ", "
             
             var formatString = "\(String(format: "%.1f", deviation)) zJ"
             let drift = averageEnergy - startEnergy
-            formatString +=  " from \(String(format: "%.1f", drift)) zJ"
+            checkFailure(drift)
+            formatString += " from \(String(format: "%.1f", drift)) zJ"
             if deviation >= 0 {
               formatString = "+" + formatString
-            }
-            if formatString.count < "-XX.X zJ".count {
-              message += " "
             }
             message += formatString
           } else {
@@ -1198,10 +1235,19 @@ class MM4 {
           }
         }
         if message.count > 0 {
-          print(message)
+          if !minimizing {
+            print(message)
+          }
         }
       }
       provider.append(state: state, steps: provider.stepsPerFrame)
+    }
+    if minimizing {
+      var message = "t = \(String(format: "%.1f", ps)) ps"
+      let drift = mostRecentEnergy - startEnergy
+      checkFailure(drift)
+      message += " -> \(String(format: "%.1f", drift)) zJ"
+      print(message)
     }
     if profiling {
       guard let start else {

@@ -70,4 +70,8 @@ class OpenMM_AtomProvider: MRAtomProvider {
     frameID = min(frameID, states.count - 1)
     return states[frameID]
   }
+  
+  func reset() {
+    self.states = []
+  }
 }
