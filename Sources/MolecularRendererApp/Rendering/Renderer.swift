@@ -58,8 +58,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-//    eventTracker.playerState.position = [0, 2.5, 10]
-    
     #if true
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
@@ -105,7 +103,7 @@ extension Renderer {
         relative: framesPerFrame,
         frameRate: 20 * framesPerFrame)
       
-      var position: SIMD3<Float> = [0, 2.5, 8]
+      var position: SIMD3<Float> = [0, 0, 8]
       var rotation = PlayerState.makeRotation(azimuth: 0)
       
       // Programmatically control the camera position.
@@ -113,7 +111,8 @@ extension Renderer {
       do {
         let framesPerSecond: Int = 20
         let period: Float = 10
-        let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
+//        let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
+        let rotationCenter: SIMD3<Float> = .zero
         let radius: Float = 8
         
         var angle = Float(frameID) / Float(framesPerSecond)
@@ -193,7 +192,8 @@ extension Renderer {
     do {
       let framesPerSecond: Int = 120
       let period: Float = 10
-      let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
+//      let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
+      let rotationCenter: SIMD3<Float> = .zero
       let radius: Float = 8
       
       var angle = Float(frameID) / Float(framesPerSecond)

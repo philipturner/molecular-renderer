@@ -174,6 +174,12 @@ struct VdwOscillator {
       return output
     }
     
+    func centerAtOrigin(_ centers: [SIMD3<Float>]) -> [SIMD3<Float>] {
+      var averagePosition = centers.reduce(SIMD3<Float>.zero, +)
+      averagePosition /= Float(centers.count)
+      return centers.map { $0 - averagePosition }
+    }
+    
     let start = CACurrentMediaTime()
     var allAtoms: [MRAtom] = []
     var allDiamondoids: [Diamondoid] = []
@@ -290,29 +296,68 @@ struct VdwOscillator {
         
         // Make part of the hole appear on the other side. That way, the hole's
         // boundary isn't just limited by the halfway mark.
-        let holePlanes = [
-          Plane([9, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
-          Plane([9, width - 3, width / 2 - 1.5], normal: [-1, -1, +1]),
-        ]
-        
-        cells = cleave(cells: cells, planes: [
-          Plane([8, 0, 0], normal: [-1, 0, 0]),
-          Plane([0, width - 2, width / 2 - 1.5], normal: [0, -1, -1]),
-          Plane([0, width - 3, width / 2 - 1.5], normal: [0, +1, -1]),
-          Plane([8, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
-        ])
-        cells = cleave(cells: cells, planes: [
-          Plane([9, 0, 0], normal: [-1, 0, 0]),
-          Plane([0, width - 3, width / 2 - 1.5], normal: [0, -1, -1]),
-          Plane([0, width - 4, width / 2 - 1.5], normal: [0, +1, -1]),
-          Plane([8, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
-        ])
-        for i in 0..<2 {
+        do {
+          let holePlanes = [
+            Plane([10, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
+            Plane([10, width - 3, width / 2 - 1.5], normal: [-1, -1, +1]),
+          ]
+          
+          cells = cleave(cells: cells, planes: [
+            Plane([9, 0, 0], normal: [-1, 0, 0]),
+            Plane([0, width - 2, width / 2 - 1.5], normal: [0, -1, -1]),
+            Plane([0, width - 3, width / 2 - 1.5], normal: [0, +1, -1]),
+            Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
+          ])
           cells = cleave(cells: cells, planes: [
             Plane([10, 0, 0], normal: [-1, 0, 0]),
-            Plane([0, width - 4, width / 2 - 1.5], normal: [0, -1, -1]),
-            Plane([8, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
-            holePlanes[i]
+            Plane([0, width - 3, width / 2 - 1.5], normal: [0, -1, -1]),
+            Plane([0, width - 4, width / 2 - 1.5], normal: [0, +1, -1]),
+            Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
+          ])
+          for i in 0..<2 {
+            cells = cleave(cells: cells, planes: [
+              Plane([11, 0, 0], normal: [-1, 0, 0]),
+              Plane([0, width - 4, width / 2 - 1.5], normal: [0, -1, -1]),
+              Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
+              holePlanes[i]
+            ])
+          }
+        }
+        do {
+          let baseX: Float = 2
+          
+          let holePlanes = [
+            Plane(
+              [baseX + 1, width - 3, width / 2 + 1.5], normal: [-1, +1, +1]),
+            Plane(
+              [baseX + 1, width - 3, width / 2 + 1.5], normal: [-1, -1, -1]),
+          ]
+          
+          cells = cleave(cells: cells, planes: [
+            Plane([baseX, 0, 0], normal: [-1, 0, 0]),
+            Plane([0, width - 2, width / 2 + 1.5], normal: [0, -1, +1]),
+            Plane([0, width - 3, width / 2 + 1.5], normal: [0, +1, +1]),
+            Plane([baseX, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
+          ])
+          cells = cleave(cells: cells, planes: [
+            Plane([baseX + 1, 0, 0], normal: [-1, 0, 0]),
+            Plane([0, width - 3, width / 2 + 1.5], normal: [0, -1, +1]),
+            Plane([0, width - 4, width / 2 + 1.5], normal: [0, +1, +1]),
+            Plane([baseX, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
+          ])
+          for i in 0..<2 {
+            cells = cleave(cells: cells, planes: [
+              Plane([baseX + 1.75, 0, 0], normal: [-1, 0, 0]),
+              Plane([0, width - 4, width / 2 + 1.5], normal: [0, -1, +1]),
+              Plane([baseX, width - 4, width / 2 + 1.5], normal: [-1, -1, +1]),
+              holePlanes[i]
+            ])
+          }
+          
+          // Remove a lone atom that's sticking out with 3 dangling bonds.
+          cells = cleave(cells: cells, planes: [
+            Plane([0, 0, width / 2 + 2.25], normal: [0, 0, +1]),
+            Plane([baseX + 0.25, 0, 0], normal: [-1, 0, 0]),
           ])
         }
         bases.append(makeCarbonCenters(cells: cells))
@@ -359,12 +404,13 @@ struct VdwOscillator {
 //      allAtoms += generateAtoms(frontCenters)
       
       let backCenters = rotate(frontCenters, flipX: true, flipZ: true)
-      let thisCenters = backCenters + frontCenters
+      var thisCenters = backCenters + frontCenters
+      thisCenters = centerAtOrigin(thisCenters)
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
       var diamondoid = Diamondoid(atoms: thisAtoms)
-      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
       allAtoms += diamondoid.atoms
       allDiamondoids.append(diamondoid)
     }
@@ -455,11 +501,12 @@ struct VdwOscillator {
         delta = simd_act(rotation2, delta)
         center = delta + origin2
         
-        // This time, find the center of mass of the housing diamondoid. Use
-        // that to move the atoms of the rod into the correct position, after
-        // transforming from lattice space to nanometers.
-        thisCenters[i] = center + SIMD3(13, 3.75, 0.75)
+//        // This time, find the center of mass of the housing diamondoid. Use
+//        // that to move the atoms of the rod into the correct position, after
+//        // transforming from lattice space to nanometers.
+//        thisCenters[i] = center + SIMD3(13, 3.75, 0.75)
       }
+      thisCenters = centerAtOrigin(thisCenters)
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
