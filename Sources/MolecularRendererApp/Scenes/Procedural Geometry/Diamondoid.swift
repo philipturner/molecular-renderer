@@ -367,6 +367,274 @@ struct Diamondoid {
     }
   }
   
+  func findAtoms(where criterion: (MRAtom) -> Bool) -> [Int] {
+    var output: [Int] = []
+    for i in atoms.indices {
+      if criterion(atoms[i]) {
+        output.append(i)
+      }
+    }
+    return output
+  }
+  
+  mutating func removeAtoms(atIndices indices: [Int]) {
+    var newAtoms: [MRAtom?] = atoms
+    for index in indices {
+      newAtoms[index] = nil
+    }
+    var newBonds: [SIMD2<Int32>?] = bonds.map { $0 }
+    
+    var dirtyAtomBrokenBonds: [Int] = .init(repeating: 0, count: atoms.count)
+    var dirtyAtomOriginalIndices: [[Int]?] = .init(
+      repeating: nil, count: atoms.count)
+    var atomsToBondsMap: [Int: [Int]] = [:]
+    for (i, bond) in bonds.enumerated() {
+      for j in 0..<2 {
+        let atomID = Int(bond[j])
+        var previous = atomsToBondsMap[atomID] ?? []
+        previous.append(i)
+        atomsToBondsMap[atomID] = previous
+      }
+    }
+    
+  outer:
+    for bondID in newBonds.indices {
+      let bond = newBonds[bondID]!
+      var occupiedAtom: MRAtom
+      var occupiedIndex: Int
+      var removedIndex: Int
+      
+      switch (newAtoms[Int(bond.x)], newAtoms[Int(bond.y)]) {
+      case (nil, nil):
+        newBonds[bondID] = nil
+        continue outer
+      case (.some(_), .some(_)):
+        continue outer
+      case (.some(let atom), nil):
+        occupiedAtom = atom
+        occupiedIndex = Int(bond[0])
+        removedIndex = Int(bond[1])
+      case (nil, .some(let atom)):
+        occupiedAtom = atom
+        removedIndex = Int(bond[0])
+        occupiedIndex = Int(bond[1])
+      }
+      
+      if occupiedAtom.element == 1 {
+        // Remove dangling hydrogens.
+        newAtoms[occupiedIndex] = nil
+        fatalError("Occupied atom element was hydrogen.")
+      } else if occupiedAtom.element == 6 {
+        dirtyAtomBrokenBonds[occupiedIndex] += 1
+        if dirtyAtomOriginalIndices[occupiedIndex] == nil {
+          dirtyAtomOriginalIndices[occupiedIndex] = [removedIndex]
+        } else {
+          dirtyAtomOriginalIndices[occupiedIndex]!.append(removedIndex)
+        }
+      } else {
+        fatalError("Unexpected element: \(occupiedAtom.element)")
+      }
+    }
+    
+    var atomsNewLocations: [Int] = []
+    var currentNewIndex: Int = 0
+    for (atom, brokenBondCount) in zip(newAtoms, dirtyAtomBrokenBonds) {
+      if atom == nil {
+        atomsNewLocations.append(-1)
+      } else {
+        atomsNewLocations.append(currentNewIndex)
+        currentNewIndex += 1
+        guard brokenBondCount >= 1 else {
+          continue
+        }
+        
+        for _ in 0..<brokenBondCount {
+          currentNewIndex += 1
+        }
+      }
+    }
+    
+    let copyAtoms = newAtoms
+    newAtoms = []
+    for (oldAtomID, brokenBondCount) in dirtyAtomBrokenBonds.enumerated() {
+      guard copyAtoms[oldAtomID] != nil else {
+        continue
+      }
+      newAtoms.append(copyAtoms[oldAtomID])
+      guard brokenBondCount > 0 else {
+        continue
+      }
+      
+      let originalIndices = dirtyAtomOriginalIndices[oldAtomID]
+      guard let originalIndices else {
+        fatalError("Original indices were nil.")
+      }
+      if originalIndices.count > 2 {
+        fatalError("Case not handled yet.")
+      }
+      
+      let cleanBonds = atomsToBondsMap[oldAtomID]!
+      var dirtyNeighbors: [MRAtom] = []
+      var cleanNeighbors: [MRAtom] = []
+      
+    inner:
+      for cleanBondID in cleanBonds.indices {
+        let bond = bonds[cleanBonds[cleanBondID]]
+        if atomsNewLocations[Int(bond[0])] == -1 {
+          dirtyNeighbors.append(self.atoms[Int(bond[0])])
+          continue inner
+        } else if atomsNewLocations[Int(bond[1])] == -1 {
+          dirtyNeighbors.append(self.atoms[Int(bond[1])])
+          continue inner
+        }
+        
+        var cleanAtom: MRAtom
+        if Int(bond[0]) == oldAtomID {
+          cleanAtom = self.atoms[Int(bond[1])]
+        } else if Int(bond[1]) == oldAtomID {
+          cleanAtom = self.atoms[Int(bond[0])]
+        } else {
+          fatalError("This should never happen (a).")
+        }
+        cleanNeighbors.append(cleanAtom)
+      }
+      precondition(dirtyNeighbors.count == originalIndices.count)
+      let thisAtom = self.atoms[oldAtomID]
+      
+      var dirtyDirections: [SIMD3<Float>] = []
+      
+      let hasHydrogen = cleanNeighbors.contains(where: { $0.element == 1 })
+      if hasHydrogen {
+        precondition(cleanNeighbors.filter { $0.element == 1 }.count == 1)
+      }
+      if cleanNeighbors.count == 2 || hasHydrogen {
+        var hydrogenNeighbor: MRAtom?
+        if hasHydrogen {
+          hydrogenNeighbor = cleanNeighbors.first(where: { $0.element == 1 })
+          cleanNeighbors = cleanNeighbors.filter { $0.element != 1 }
+        }
+        
+        let midPoint = (
+          cleanNeighbors[1].origin + cleanNeighbors[0].origin) / 2
+        guard distance(midPoint, thisAtom.origin) > 0.001 else {
+          fatalError("sp3 carbons are too close to 180 degrees.")
+        }
+        
+        let normal = normalize(thisAtom.origin - midPoint)
+        let axis = normalize(cleanNeighbors[1].origin - midPoint)
+        let sp3BondAngle = Constants.sp3BondAngle
+        
+        for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
+          let rotation = simd_quatf(angle: angle, axis: axis)
+          let direction = simd_act(rotation, normal)
+          dirtyDirections.append(direction)
+        }
+        
+        if hasHydrogen {
+          let bondLength = Constants.bondLengths[
+            [1, thisAtom.element]]!.average
+          guard let hydrogenNeighbor else {
+            fatalError("Hydrogen neighbor was nil.")
+          }
+          let candidateLengths = dirtyDirections.map { direction in
+            let atomOrigin = thisAtom.origin + bondLength * direction
+            return distance(atomOrigin, hydrogenNeighbor.origin)
+          }
+          if candidateLengths[0] < candidateLengths[1] {
+            dirtyDirections = [dirtyDirections[1]]
+          } else {
+            dirtyDirections = [dirtyDirections[0]]
+          }
+          let sum = normal + dirtyDirections[0]
+          dirtyDirections = [normalize(sum)]
+        }
+      } else if cleanNeighbors.count == 3 {
+        let sideAB = cleanNeighbors[1].origin - cleanNeighbors[0].origin
+        let sideAC = cleanNeighbors[2].origin - cleanNeighbors[0].origin
+        var normal = normalize(cross(sideAB, sideAC))
+        
+        let deltaA = thisAtom.origin - cleanNeighbors[0].origin
+        if dot(normal, deltaA) < 0 {
+          normal = -normal
+        }
+        if dirtyNeighbors.count >= 2 {
+          fatalError("This should never happen.")
+        }
+        dirtyDirections.append(normal)
+      } else {
+        fatalError("This should never happen.")
+      }
+      
+      for dirtyID in dirtyDirections.indices {
+        let bondLength = Constants.bondLengths[
+          [1, thisAtom.element]]!.average
+        
+        var direction = dirtyDirections[dirtyID]
+        var newHydrogen = thisAtom.origin + bondLength * direction
+        let dirtyNeighbor = dirtyNeighbors[dirtyID].origin
+        var movedDistance = distance(newHydrogen, dirtyNeighbor)
+        
+        // Need to raise the tolerance from 0.04 to 0.08.
+        if movedDistance < 0.08 {
+          // Maybe perform a quaternion rotation that would make it correct.
+          if dirtyNeighbors.count == 2 {
+            print("WARNING: Did not move enough: \(movedDistance)")
+          } else if movedDistance > 0.04 {
+            let delta = newHydrogen - dirtyNeighbor
+            newHydrogen += delta
+            
+            
+            let movedDistance1 = movedDistance
+            
+            
+            let dirtyDelta = normalize(dirtyNeighbor - thisAtom.origin)
+            let attemptDelta = normalize(newHydrogen - thisAtom.origin)
+            let attemptRot = simd_quatf(from: dirtyDelta, to: attemptDelta)
+            
+            // distance on circumference = angle (in radians) * 1 radius
+            // angle = distance on circumference / 1 radius
+            let radius = bondLength
+            precondition(attemptRot.angle >= 0)
+            let attemptAxis = attemptRot.axis
+            let newAngle = 0.08 / bondLength
+            
+            let newRot = simd_quatf(angle: newAngle, axis: attemptAxis)
+            let newDelta = normalize(simd_act(newRot, dirtyDelta))
+            
+            newHydrogen = thisAtom.origin + bondLength * newDelta
+            movedDistance = distance(newHydrogen, dirtyNeighbor)
+            if movedDistance < 0.08 {
+              print("Did not move enough (1): \(movedDistance1)")
+              print("Did not move enough (2): \(movedDistance)")
+              fatalError("Did not move enough (2): \(movedDistance)")
+            }
+          } else {
+            fatalError("Did not move enough: \(movedDistance)")
+          }
+        }
+        
+        // Insert new hydrogens right next to the atoms that bond to them,
+        // ensuring the atoms stay sorted in Morton order.
+        let element: UInt8 = (dirtyNeighbors.count == 2) ? 0 : 1
+        let newAtom = MRAtom(origin: newHydrogen, element: element)
+        newAtoms.append(newAtom)
+      }
+    }
+    
+    for i in newBonds.indices {
+      guard var bond = newBonds[i] else {
+        continue
+      }
+      bond[0] = Int32(atomsNewLocations[Int(bond[0])])
+      bond[1] = Int32(atomsNewLocations[Int(bond[1])])
+      newBonds[i] = bond
+    }
+    
+    precondition(!newAtoms.contains(nil))
+    self.atoms = newAtoms.compactMap { $0 }
+    self.bonds = newBonds.compactMap { $0 }
+  }
+  
   // Remove hydrogens that are too close. This is a last resort, where the inner
   // edges between (111) and (110) surfaces are like (100). It has O(n^2)
   // computational complexity.
@@ -376,7 +644,7 @@ struct Diamondoid {
   // default.
   mutating func fixHydrogens(
     tolerance: Float,
-    where criterion: (SIMD3<Float>) -> Bool
+    where criterion: ((SIMD3<Float>) -> Bool)? = nil
   ) {
     func getHydrogenID(_ bond: SIMD2<Int32>) -> Int? {
       let atom1 = atoms[Int(bond[0])]
@@ -409,8 +677,10 @@ struct Diamondoid {
         continue outer
       }
       let hydrogen1 = atoms[hydrogenID1]
-      if !criterion(hydrogen1.origin) {
-        continue outer
+      if let criterion {
+        if !criterion(hydrogen1.origin) {
+          continue outer
+        }
       }
     inner:
       for j in (i + 1)..<bonds.count {
@@ -423,8 +693,10 @@ struct Diamondoid {
         }
         
         let hydrogen2 = atoms[hydrogenID2]
-        if !criterion(hydrogen2.origin) {
-          continue inner
+        if let criterion {
+          if !criterion(hydrogen2.origin) {
+            continue inner
+          }
         }
         if distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
           bondPairs.append(SIMD2(i, j))
@@ -466,7 +738,7 @@ struct Diamondoid {
         currentNewIndex += 1
       }
     }
-    for i in bonds.indices {
+    for i in newBonds.indices {
       guard var bond = newBonds[i] else {
         continue
       }

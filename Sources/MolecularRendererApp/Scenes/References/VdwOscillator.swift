@@ -174,7 +174,13 @@ struct VdwOscillator {
       return output
     }
     
-    func centerAtOrigin(_ centers: [SIMD3<Float>]) -> [SIMD3<Float>] {
+    func centerAtOrigin(_ rawCenters: [SIMD3<Float>]) -> [SIMD3<Float>] {
+      var hashMap: [SIMD3<Float>: Bool] = [:]
+      for point in rawCenters {
+        hashMap[point] = true
+      }
+      let centers = Array(hashMap.keys)
+      
       var averagePosition = centers.reduce(SIMD3<Float>.zero, +)
       averagePosition /= Float(centers.count)
       return centers.map { $0 - averagePosition }
@@ -371,29 +377,31 @@ struct VdwOscillator {
       
 //      allAtoms += generateAtoms(bases[0])
       
-      var frontCenters = bases[0]
-      frontCenters += rotate(bases[0], flipYZ: true)
-      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
-      frontCenters = rotate(frontCenters, flipX: true, flipZ: true)
-//      allAtoms += generateAtoms(frontCenters)
-      
-      let backCenters = rotate(frontCenters, flipX: true, flipZ: true)
-      var thisCenters = backCenters + frontCenters
-      thisCenters = centerAtOrigin(thisCenters)
-      let thisAtoms = generateAtoms(thisCenters)
+//      var frontCenters = bases[0]
+//      frontCenters += rotate(bases[0], flipYZ: true)
+//      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
+//      frontCenters = rotate(frontCenters, flipX: true, flipZ: true)
+////      allAtoms += generateAtoms(frontCenters)
+//      
+//      let backCenters = rotate(frontCenters, flipX: true, flipZ: true)
+//      var thisCenters = backCenters + frontCenters
+//      thisCenters = centerAtOrigin(thisCenters)
+//      let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
-      var diamondoid = Diamondoid(atoms: thisAtoms)
-      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
-      allAtoms += diamondoid.atoms
-      allDiamondoids.append(diamondoid)
+//      var diamondoid = Diamondoid(atoms: thisAtoms)
+//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+//      allAtoms += diamondoid.atoms
+//      allDiamondoids.append(diamondoid)
     }
     
     // Make a diamond slab that is superlubricant.
     do {
       // Adjustable parameters.
       let latticeWidth: Int = 12 // 16
-      let widthZ = Float(4)
+      let widthZP = Float(6)
+      let widthZM = Float(6)
+      let repetitionDepth: Int = 3
       let thickness: Float = 1
       let shortening: Float = 4 // 2
       let width = Float(latticeWidth)
@@ -402,12 +410,12 @@ struct VdwOscillator {
       var cells = baseLattice
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width / 2, width / 2 - thickness, widthZ / 2],
+          [width / 2, width / 2 - thickness, 0],
           normal: [1, -1, 0])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width / 2, width / 2 + thickness, widthZ / 2],
+          [width / 2, width / 2 + thickness, 0],
           normal: [-1, 1, 0])
       ])
       cells = cleave(cells: cells, planes: [
@@ -415,10 +423,10 @@ struct VdwOscillator {
           [width - thickness, width, 0],
           normal: [1, 1, 0])
       ])
-      
+//      
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - thickness, width, widthZ - 3 * thickness / 2],
+          [width - thickness, width, widthZP - 3 * thickness / 2],
           normal: [-1, 1, 1]),
       ])
       cells = cleave(cells: cells, planes: [
@@ -428,7 +436,7 @@ struct VdwOscillator {
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width - thickness, widthZ - 3 * thickness / 2],
+          [width, width - thickness, widthZP - 3 * thickness / 2],
           normal: [1, -1, 1]),
       ])
       cells = cleave(cells: cells, planes: [
@@ -436,10 +444,9 @@ struct VdwOscillator {
           [width, width - thickness, thickness / 2],
           normal: [1, -1, -1]),
       ])
-      
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width, widthZ - 5 * thickness / 2],
+          [width, width, widthZP - 5 * thickness / 2],
           normal: [1, 1, 1])
       ])
       cells = cleave(cells: cells, planes: [
@@ -455,39 +462,76 @@ struct VdwOscillator {
       thisCenters += thisCenters.map { center in
         SIMD3(-center.y, -center.x, center.z)
       }
+      thisCenters += thisCenters.map {
+        $0 + SIMD3(0, 0, -1)
+      }
+      
+      precondition(
+        Int(exactly: widthZM)! % 2 == 0 &&
+        Int(exactly: widthZP)! % 2 == 0)
+      if widthZM != widthZP {
+        precondition(widthZM > widthZP)
+        let extraLayers = Int(exactly: widthZM - widthZP)! / 2
+        
+        let baseCenters = thisCenters
+        for i in 0..<extraLayers {
+          thisCenters += baseCenters.map {
+            $0 + SIMD3(0, 0, Float(-i))
+          }
+        }
+      }
       
       let baseCenters = thisCenters
-      thisCenters += baseCenters.map {
-        $0 + SIMD3(1, -1, 0)
+      for i in 0..<repetitionDepth {
+        let delta = SIMD3<Float>(SIMD3<Int>(i, -i, 0))
+        thisCenters += baseCenters.map {
+          $0 + delta
+        }
       }
-      let rotation1 = simd_quatf(angle: -.pi / 4, axis: [0, 0, 1])
-      let rotation2 = simd_quatf(angle: -.pi / 4, axis: [1, 0, 0])
-      for i in thisCenters.indices {
-        var center = thisCenters[i]
-        
-        let origin1 = SIMD3<Float>(0, width / 2, widthZ / 2)
-        var delta = center - origin1
-        delta = simd_act(rotation1, delta)
-        center = delta + origin1
-        
-        let origin2 = SIMD3<Float>(0, width / 2, widthZ / 2)
-        delta = center - origin2
-        delta = simd_act(rotation2, delta)
-        center = delta + origin2
-        
-//        // This time, find the center of mass of the housing diamondoid. Use
-//        // that to move the atoms of the rod into the correct position, after
-//        // transforming from lattice space to nanometers.
-//        thisCenters[i] = center + SIMD3(13, 3.75, 0.75)
-      }
+      
+      // Next, remove the carbons protruding from the grooves. Instead, generate
+      // a full (100) surface line by line.
+      
+      // Might need to do this post-minimization.
+      
+//      let rotation1 = simd_quatf(angle: -.pi / 4, axis: [0, 0, 1])
+//      let rotation2 = simd_quatf(angle: -.pi / 4, axis: [1, 0, 0])
+//      for i in thisCenters.indices {
+//        var center = thisCenters[i]
+//        
+//        let origin1 = SIMD3<Float>(0, width / 2, widthZ / 2)
+//        var delta = center - origin1
+//        delta = simd_act(rotation1, delta)
+//        center = delta + origin1
+//        
+//        let origin2 = SIMD3<Float>(0, width / 2, widthZ / 2)
+//        delta = center - origin2
+//        delta = simd_act(rotation2, delta)
+//        center = delta + origin2
+//        
+//        thisCenters[i] = center
+//      }
       thisCenters = centerAtOrigin(thisCenters)
+//      for i in thisCenters.indices {
+//        thisCenters[i] += SIMD3(13, 0, 0)
+//      }
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
-//      var diamondoid = Diamondoid(atoms: thisAtoms)
-//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
-//      allAtoms += diamondoid.atoms
-//      allDiamondoids.append(diamondoid)
+      var diamondoid = Diamondoid(atoms: thisAtoms)
+      diamondoid.fixHydrogens(tolerance: 0.08)
+      let removedIndices = diamondoid.findAtoms(where: {
+        if $0.element == 1 {
+          return abs($0.origin.z) > 3.00 * 0.357 - 0.01
+        } else {
+          return abs($0.origin.z) > 2.75 * 0.357 - 0.01
+        }
+      })
+//      diamondoid.minimize()
+      diamondoid.removeAtoms(atIndices: removedIndices)
+      
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
     print(allAtoms.count)
@@ -499,6 +543,7 @@ struct VdwOscillator {
       structure.
       """)
     
+    #if false
     // Minimize the energy of each diamondoid.
     for i in allDiamondoids.indices {
       allDiamondoids[i].minimize()
@@ -511,5 +556,6 @@ struct VdwOscillator {
       diamondoids: allDiamondoids, fsPerFrame: 20)
     simulator.simulate(ps: 3)
     provider = simulator.provider
+    #endif
   }
 }
