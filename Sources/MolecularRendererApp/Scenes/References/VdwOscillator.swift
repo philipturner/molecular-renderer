@@ -527,7 +527,6 @@ struct VdwOscillator {
           return abs($0.origin.z) > 2.75 * 0.357 - 0.01
         }
       })
-//      diamondoid.minimize()
       diamondoid.removeAtoms(atIndices: removedIndices)
       
       allAtoms += diamondoid.atoms
@@ -543,7 +542,7 @@ struct VdwOscillator {
       structure.
       """)
     
-    #if false
+    #if true
     // Minimize the energy of each diamondoid.
     for i in allDiamondoids.indices {
       allDiamondoids[i].minimize()

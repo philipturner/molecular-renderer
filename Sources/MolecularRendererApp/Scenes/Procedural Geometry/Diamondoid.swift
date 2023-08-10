@@ -454,8 +454,9 @@ struct Diamondoid {
       }
     }
     
-    let copyAtoms = newAtoms
+    var copyAtoms = newAtoms
     newAtoms = []
+    var appendedBonds: [SIMD2<Int32>] = []
     for (oldAtomID, brokenBondCount) in dirtyAtomBrokenBonds.enumerated() {
       guard copyAtoms[oldAtomID] != nil else {
         continue
@@ -476,6 +477,7 @@ struct Diamondoid {
       let cleanBonds = atomsToBondsMap[oldAtomID]!
       var dirtyNeighbors: [MRAtom] = []
       var cleanNeighbors: [MRAtom] = []
+      var cleanIDs: [Int] = []
       
     inner:
       for cleanBondID in cleanBonds.indices {
@@ -491,8 +493,10 @@ struct Diamondoid {
         var cleanAtom: MRAtom
         if Int(bond[0]) == oldAtomID {
           cleanAtom = self.atoms[Int(bond[1])]
+          cleanIDs.append(Int(bond[1]))
         } else if Int(bond[1]) == oldAtomID {
           cleanAtom = self.atoms[Int(bond[0])]
+          cleanIDs.append(Int(bond[0]))
         } else {
           fatalError("This should never happen (a).")
         }
@@ -508,9 +512,10 @@ struct Diamondoid {
         precondition(cleanNeighbors.filter { $0.element == 1 }.count == 1)
       }
       if cleanNeighbors.count == 2 || hasHydrogen {
-        var hydrogenNeighbor: MRAtom?
+        var hydrogenID: Int?
         if hasHydrogen {
-          hydrogenNeighbor = cleanNeighbors.first(where: { $0.element == 1 })
+          let index = cleanNeighbors.firstIndex(where: { $0.element == 1 })!
+          hydrogenID = cleanIDs[index]
           cleanNeighbors = cleanNeighbors.filter { $0.element != 1 }
         }
         
@@ -533,20 +538,39 @@ struct Diamondoid {
         if hasHydrogen {
           let bondLength = Constants.bondLengths[
             [1, thisAtom.element]]!.average
-          guard let hydrogenNeighbor else {
+          guard let hydrogenID else {
             fatalError("Hydrogen neighbor was nil.")
           }
           let candidateLengths = dirtyDirections.map { direction in
             let atomOrigin = thisAtom.origin + bondLength * direction
-            return distance(atomOrigin, hydrogenNeighbor.origin)
+            return distance(atomOrigin, self.atoms[hydrogenID].origin)
           }
           if candidateLengths[0] < candidateLengths[1] {
             dirtyDirections = [dirtyDirections[1]]
           } else {
             dirtyDirections = [dirtyDirections[0]]
           }
-          let sum = normal + dirtyDirections[0]
-          dirtyDirections = [normalize(sum)]
+          let sum = normalize(normal + dirtyDirections[0])
+          var rotation = simd_quatf(from: dirtyDirections[0], to: sum)
+          dirtyDirections = [sum]
+          
+          rotation = simd_quatf(
+            angle: rotation.angle * 0.5, axis: rotation.axis)
+          
+          var previousHydrDelta = (
+            self.atoms[hydrogenID].origin - thisAtom.origin)
+          previousHydrDelta = simd_act(rotation, previousHydrDelta)
+          let newHydrOrigin = thisAtom.origin + previousHydrDelta
+          
+          let mappedHydrogenID = atomsNewLocations[hydrogenID]
+          guard mappedHydrogenID > -1 else {
+            fatalError("Mapped hydrogen ID did not exist.")
+          }
+          if mappedHydrogenID < newAtoms.count {
+            newAtoms[mappedHydrogenID]!.origin = newHydrOrigin
+          } else {
+            copyAtoms[hydrogenID]!.origin = newHydrOrigin
+          }
         }
       } else if cleanNeighbors.count == 3 {
         let sideAB = cleanNeighbors[1].origin - cleanNeighbors[0].origin
@@ -564,6 +588,9 @@ struct Diamondoid {
       } else {
         fatalError("This should never happen.")
       }
+      
+      
+      let newBondFirstID = Int32(newAtoms.count - 1)
       
       for dirtyID in dirtyDirections.indices {
         let bondLength = Constants.bondLengths[
@@ -593,7 +620,6 @@ struct Diamondoid {
             
             // distance on circumference = angle (in radians) * 1 radius
             // angle = distance on circumference / 1 radius
-            let radius = bondLength
             precondition(attemptRot.angle >= 0)
             let attemptAxis = attemptRot.axis
             let newAngle = 0.08 / bondLength
@@ -618,6 +644,11 @@ struct Diamondoid {
         let element: UInt8 = (dirtyNeighbors.count == 2) ? 0 : 1
         let newAtom = MRAtom(origin: newHydrogen, element: element)
         newAtoms.append(newAtom)
+        
+        let newBondSecondID = Int32(newAtoms.count - 1)
+        precondition(newBondFirstID > -1)
+        precondition(newBondSecondID > -1)
+        appendedBonds.append(SIMD2(newBondFirstID, newBondSecondID))
       }
     }
     
@@ -627,12 +658,74 @@ struct Diamondoid {
       }
       bond[0] = Int32(atomsNewLocations[Int(bond[0])])
       bond[1] = Int32(atomsNewLocations[Int(bond[1])])
+      if bond[0] == -1 && bond[1] == -1 {
+        fatalError("Bond with ID \(i) had two references to -1.")
+      } else if bond[0] == -1 || bond[1] == -1 {
+//        fatalError("Bond with ID \(i) had one reference to -1.")
+        newBonds[i] = nil
+        continue
+      }
       newBonds[i] = bond
     }
     
     precondition(!newAtoms.contains(nil))
     self.atoms = newAtoms.compactMap { $0 }
-    self.bonds = newBonds.compactMap { $0 }
+    self.bonds = newBonds.compactMap { $0 } + appendedBonds
+    
+    // Validate integrity of the new topology.
+    do {
+      var atomsToBondsMap: [Int: [Int]] = [:]
+      for (bondID, bond) in bonds.enumerated() {
+        let id1 = Int(bond[0])
+        let id2 = Int(bond[1])
+        for id in [id1, id2] {
+          // Ensure the reference points to something valid.
+          if id == -1 {
+            fatalError("Bond contained reference to -1.")
+          }
+          if id >= atoms.count {
+            fatalError("Out of bounds reference: \(id).")
+          }
+          let atom = self.atoms[id]
+          precondition(
+            atom.element == 1 || atom.element == 6, "Corrupted atom.")
+          
+          if let map = atomsToBondsMap[id] {
+            atomsToBondsMap[id] = map + [bondID]
+          } else {
+            atomsToBondsMap[id] = [bondID]
+          }
+        }
+      }
+      
+      for (atomID, atom) in self.atoms.enumerated() {
+        let thisBonds = atomsToBondsMap[atomID]
+        guard let thisBonds else {
+          fatalError("No bonds connected to this atom.")
+        }
+        if atom.element == 1 {
+          guard thisBonds.count == 1 else {
+            fatalError("Hydrogen had bond count \(thisBonds.count).")
+          }
+          let bond = self.bonds[thisBonds[0]]
+          guard Int(bond[0]) == atomID ||
+                  Int(bond[1]) == atomID else {
+            fatalError("Hydrogen had corrupted bond indices.")
+          }
+        } else if atom.element == 6 {
+          guard thisBonds.count == 4 else {
+            fatalError("Carbon had bond count \(thisBonds.count).")
+          }
+          for thisBond in thisBonds {
+            let bond = self.bonds[thisBond]
+            guard Int(bond[0]) == atomID ||
+                  Int(bond[1]) == atomID else {
+              fatalError("Carbon had corrupted bond indices.")
+            }
+          }
+        }
+      }
+    }
   }
   
   // Remove hydrogens that are too close. This is a last resort, where the inner
