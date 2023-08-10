@@ -32,7 +32,7 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    #if true
+    #if false
     let imageSize = Int(ContentView.size)
     let upscaleFactor: Int? = ContentView.upscaleFactor
     let offline: Bool = Bool.random() ? false : false
@@ -58,16 +58,16 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    #if true
+    #if false
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
     serializer.save(
-      fileName: "SavedSimulation-9",
+      fileName: "SavedSimulation-10",
       provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "SavedSimulation-9")
+    let simulation = serializer.load(fileName: "SavedSimulation-10")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     
     if offline {
@@ -81,7 +81,7 @@ extension Renderer {
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
-    let psPerSecond: Double = 50.0 / 5
+    let psPerSecond: Double = 40.0
     
     let fsPerFrame = simulation.frameTimeInFs
     var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
@@ -103,17 +103,17 @@ extension Renderer {
         relative: framesPerFrame,
         frameRate: 20 * framesPerFrame)
       
-      var position: SIMD3<Float> = [0, 0, 8]
+      var position: SIMD3<Float> = [0, 0, 10]
       var rotation = PlayerState.makeRotation(azimuth: 0)
       
       // Programmatically control the camera position.
       #if true
       do {
         let framesPerSecond: Int = 20
-        let period: Float = 10
+        let period: Float = 25
 //        let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
-        let rotationCenter: SIMD3<Float> = .zero
-        let radius: Float = 8
+        let rotationCenter: SIMD3<Float> = [1.0158, 0, 0]
+        let radius: Float = 10
         
         var angle = Float(frameID) / Float(framesPerSecond)
         angle /= period
@@ -188,13 +188,13 @@ extension Renderer {
     rotation = azimuth * zenith
     
     // Programmatically control the camera position.
-    #if false
+    #if true
     do {
       let framesPerSecond: Int = 120
-      let period: Float = 10
+      let period: Float = 30
 //      let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
-      let rotationCenter: SIMD3<Float> = .zero
-      let radius: Float = 8
+      let rotationCenter: SIMD3<Float> = [1.0158, 0, 0]
+      let radius: Float = 10
       
       var angle = Float(frameID) / Float(framesPerSecond)
       angle /= period

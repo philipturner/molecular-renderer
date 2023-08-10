@@ -401,7 +401,7 @@ struct VdwOscillator {
     // Make a diamond slab that is superlubricant.
     do {
       // Adjustable parameters.
-      let latticeWidth: Int = 12 // 16
+      let latticeWidth: Int = 14 // 16
       let widthZP = Float(6)
       let widthZM = Float(6)
       let repetitionDepth: Int = 3
@@ -545,7 +545,7 @@ struct VdwOscillator {
     // orbit will look, and testing the graphs. Then go for the full 1 ns.
     let simulator = MM4(
       diamondoids: allDiamondoids, fsPerFrame: 500) // 200
-    simulator.simulate(ps: 500, trackingState: true) // 150
+    simulator.simulate(ps: 1000, trackingState: true) // 150
     provider = simulator.provider
     #endif
   }
