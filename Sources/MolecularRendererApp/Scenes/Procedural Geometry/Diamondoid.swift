@@ -661,7 +661,6 @@ struct Diamondoid {
       if bond[0] == -1 && bond[1] == -1 {
         fatalError("Bond with ID \(i) had two references to -1.")
       } else if bond[0] == -1 || bond[1] == -1 {
-//        fatalError("Bond with ID \(i) had one reference to -1.")
         newBonds[i] = nil
         continue
       }
@@ -918,7 +917,7 @@ struct Diamondoid {
     let emptyVelocities: [SIMD3<Float>] = Array(
       repeating: .zero, count: diamondoid.atoms.count)
     
-    let numIterations = 10
+    let numIterations = 8
     for iteration in 0..<numIterations {
       simulator.simulate(ps: 0.5, minimizing: true)
       if iteration < numIterations - 1 {

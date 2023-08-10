@@ -1127,19 +1127,25 @@ class MM4 {
     self.context.velocities = state.velocities
   }
   
-  func simulate(ps: Double, minimizing: Bool = false) {
+  func simulate(
+    ps: Double,
+    minimizing: Bool = false,
+    trackingState: Bool = false
+  ) {
     simulate(
       ps: ps,
       context: self.context,
       integrator: self.integrator,
-      minimizing: minimizing)
+      minimizing: minimizing,
+      trackingState: trackingState)
   }
   
   private func simulate(
     ps: Double,
     context: OpenMM_Context,
     integrator: OpenMM_Integrator,
-    minimizing: Bool
+    minimizing: Bool,
+    trackingState: Bool
   ) {
     let numFemtoseconds = Double(rint(ps * 1000))
     let numSteps = Int(exactly: numFemtoseconds / timeStepInFs)!
@@ -1163,8 +1169,62 @@ class MM4 {
       start = CACurrentMediaTime()
       #endif
     }
-    let state = context.state(types: [.positions, .energy])
+    
+    var energyFlags: OpenMM_State.DataType
+    var nonEnergyFlags: OpenMM_State.DataType
+    if trackingState {
+      energyFlags = [.positions, .velocities, .energy]
+      nonEnergyFlags = [.positions, .velocities]
+    } else {
+      energyFlags = [.positions, .energy]
+      nonEnergyFlags = [.positions]
+    }
+    
+    struct SimulationState {
+      var time: Float
+      var numAtoms: [Int] = []
+      var positions: [SIMD3<Float>] = []
+      var velocities: [SIMD3<Float>] = []
+      var speeds: [Float] = []
+      
+      init(time: Float, simulation: MM4, state: OpenMM_State) {
+        self.time = time
+        let statePositions = state.positions
+        let stateVelocities = state.velocities
+        
+        for body in simulation.rigidBodies {
+          var totalAtoms: Int = 0
+          var totalMass: Double = 0
+          var totalMomentum: SIMD3<Double> = .zero
+          var centerOfMass: SIMD3<Double> = .zero
+          
+          for atomID in body {
+            let mass = simulation.repartitionedMasses[atomID]
+            let position = statePositions[atomID]
+            let velocity = stateVelocities[atomID]
+            totalAtoms += 1
+            totalMass += mass
+            totalMomentum += mass * velocity
+            centerOfMass += mass * position
+          }
+          centerOfMass /= totalMass
+          
+          let totalVelocity = totalMomentum / totalMass
+          numAtoms.append(totalAtoms)
+          positions.append(SIMD3<Float>(centerOfMass))
+          velocities.append(SIMD3<Float>(totalVelocity))
+          speeds.append(Float(length(totalVelocity)))
+        }
+      }
+    }
+    
+    let state = context.state(types: energyFlags)
+    var trackedStates: [SimulationState] = []
     provider.append(state: state, steps: 0)
+    if trackingState {
+      trackedStates.append(
+        SimulationState(time: 0, simulation: self, state: state))
+    }
     let startEnergy = mechanicalEnergyInZJ(state)
     var mostRecentEnergy = startEnergy
     
@@ -1184,7 +1244,7 @@ class MM4 {
       let timestamp = Double(absoluteTimeInFs) / 1000
       var state: OpenMM_State
       if requestEnergy {
-        state = context.state(types: [.positions, .energy])
+        state = context.state(types: energyFlags)
         if absoluteTimeInFs % 500 == 0 {
           mostRecentEnergy = mechanicalEnergyInZJ(state)
           if timestamp >= 5.000 {
@@ -1202,7 +1262,7 @@ class MM4 {
         }
         
         if !profiling && sampleEnergy && (absoluteTimeInFs % 100 == 0) {
-          state = context.state(types: [.positions, .energy])
+          state = context.state(types: energyFlags)
           
           mostRecentEnergy = mechanicalEnergyInZJ(state)
           energies.append(mostRecentEnergy)
@@ -1215,7 +1275,7 @@ class MM4 {
           if absoluteTimeInFs % 500 == 0,
              !profiling,
              energies.count > 0 {
-            state = context.state(types: [.positions, .energy])
+            state = context.state(types: energyFlags)
             
             let averageEnergy = energies.reduce(0, +) / Float(energies.count)
             mostRecentEnergy = mechanicalEnergyInZJ(state)
@@ -1231,7 +1291,7 @@ class MM4 {
             }
             message += formatString
           } else {
-            state = context.state(types: .positions)
+            state = context.state(types: nonEnergyFlags)
           }
         }
         if message.count > 0 {
@@ -1239,6 +1299,11 @@ class MM4 {
             print(message)
           }
         }
+      }
+      if trackingState {
+        trackedStates.append(
+          SimulationState(
+            time: Float(timestamp), simulation: self, state: state))
       }
       provider.append(state: state, steps: provider.stepsPerFrame)
     }
@@ -1248,6 +1313,43 @@ class MM4 {
       checkFailure(drift)
       message += " -> \(String(format: "%.1f", drift)) zJ"
       print(message)
+    }
+    if trackingState {
+      print()
+      var output: String = ""
+      output += "time,"
+      for bodyID in Array(0..<rigidBodies.count).map({ $0 + 1 }) {
+        output += "num_atoms_\(bodyID),"
+        output += "position_\(bodyID)_x,"
+        output += "position_\(bodyID)_y,"
+        output += "position_\(bodyID)_z,"
+        output += "velocity_\(bodyID)_x,"
+        output += "velocity_\(bodyID)_y,"
+        output += "velocity_\(bodyID)_z,"
+        output += "speed_\(bodyID),"
+      }
+      precondition(output.count > "time,".count)
+      precondition(output.last! == ",")
+      output.removeLast(1)
+      print(output)
+      
+      for trackedState in trackedStates {
+        var output = "\(trackedState.time),"
+        for bodyID in 0..<rigidBodies.count {
+          output += "\(trackedState.numAtoms[bodyID]),"
+          output += "\(trackedState.positions[bodyID].x),"
+          output += "\(trackedState.positions[bodyID].y),"
+          output += "\(trackedState.positions[bodyID].z),"
+          output += "\(trackedState.velocities[bodyID].x),"
+          output += "\(trackedState.velocities[bodyID].y),"
+          output += "\(trackedState.velocities[bodyID].z),"
+          output += "\(trackedState.speeds[bodyID]),"
+        }
+        precondition(output.last! == ",")
+        output.removeLast(1)
+        print(output)
+      }
+      print()
     }
     if profiling {
       guard let start else {

@@ -299,21 +299,24 @@ struct VdwOscillator {
         }
         
         do {
+          let holeX: Float = 6
           let holePlanes = [
-            Plane([10, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
-            Plane([10, width - 3, width / 2 - 1.5], normal: [-1, -1, +1]),
+            Plane(
+              [holeX + 1, width - 3, width / 2 - 1.5], normal: [-1, +1, -1]),
+            Plane(
+              [holeX + 1, width - 3, width / 2 - 1.5], normal: [-1, -1, +1]),
           ]
           cells = cleave(cells: cells, planes: [
-            Plane([9, 0, 0], normal: [-1, 0, 0]),
+            Plane([holeX, 0, 0], normal: [-1, 0, 0]),
             Plane([0, width - 2.5, width / 2 - 2], normal: [0, -1, -1]),
             Plane([0, width - 3.75, width / 2 - 1.75], normal: [0, +1, -1]),
-            Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
+            Plane([holeX, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
           ])
           for i in 0..<2 {
             cells = cleave(cells: cells, planes: [
-              Plane([11, 0, 0], normal: [-1, 0, 0]),
+              Plane([holeX + 2, 0, 0], normal: [-1, 0, 0]),
               Plane([0, width - 4, width / 2 - 1.5], normal: [0, -1, -1]),
-              Plane([9, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
+              Plane([holeX, width - 4, width / 2 - 1.5], normal: [-1, -1, -1]),
               holePlanes[i],
             ])
           }
@@ -377,22 +380,22 @@ struct VdwOscillator {
       
 //      allAtoms += generateAtoms(bases[0])
       
-//      var frontCenters = bases[0]
-//      frontCenters += rotate(bases[0], flipYZ: true)
-//      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
-//      frontCenters = rotate(frontCenters, flipX: true, flipZ: true)
-////      allAtoms += generateAtoms(frontCenters)
-//      
-//      let backCenters = rotate(frontCenters, flipX: true, flipZ: true)
-//      var thisCenters = backCenters + frontCenters
-//      thisCenters = centerAtOrigin(thisCenters)
-//      let thisAtoms = generateAtoms(thisCenters)
+      var frontCenters = bases[0]
+      frontCenters += rotate(bases[0], flipYZ: true)
+      frontCenters += rotate(frontCenters, rotateYZClockwise: 2)
+      frontCenters = rotate(frontCenters, flipX: true, flipZ: true)
+//      allAtoms += generateAtoms(frontCenters)
+      
+      let backCenters = rotate(frontCenters, flipX: true, flipZ: true)
+      var thisCenters = backCenters + frontCenters
+      thisCenters = centerAtOrigin(thisCenters)
+      let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
       
-//      var diamondoid = Diamondoid(atoms: thisAtoms)
-//      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
-//      allAtoms += diamondoid.atoms
-//      allDiamondoids.append(diamondoid)
+      var diamondoid = Diamondoid(atoms: thisAtoms)
+      diamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
+      allAtoms += diamondoid.atoms
+      allDiamondoids.append(diamondoid)
     }
     
     // Make a diamond slab that is superlubricant.
@@ -402,7 +405,6 @@ struct VdwOscillator {
       let widthZP = Float(6)
       let widthZM = Float(6)
       let repetitionDepth: Int = 3
-      let thickness: Float = 1
       let shortening: Float = 4 // 2
       let width = Float(latticeWidth)
       let baseLattice = makeBaseLattice(width: latticeWidth)
@@ -410,48 +412,48 @@ struct VdwOscillator {
       var cells = baseLattice
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width / 2, width / 2 - thickness, 0],
+          [width / 2, width / 2 - 1.5, 0],
           normal: [1, -1, 0])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width / 2, width / 2 + thickness, 0],
+          [width / 2, width / 2 + 1.5, 0],
           normal: [-1, 1, 0])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - thickness, width, 0],
+          [width - 1, width, 0],
           normal: [1, 1, 0])
       ])
-//      
+      
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - thickness, width, widthZP - 3 * thickness / 2],
+          [width - 1, width, widthZP - 3 * 1 / 2],
           normal: [-1, 1, 1]),
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width - thickness, width, thickness / 2],
+          [width - 1, width, 1 / 2],
           normal: [-1, 1, -1]),
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width - thickness, widthZP - 3 * thickness / 2],
+          [width, width - 1, widthZP - 3 * 1 / 2],
           normal: [1, -1, 1]),
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width - thickness, thickness / 2],
+          [width, width - 1, 1 / 2],
           normal: [1, -1, -1]),
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width, widthZP - 5 * thickness / 2],
+          [width, width, widthZP - 5 * 1 / 2],
           normal: [1, 1, 1])
       ])
       cells = cleave(cells: cells, planes: [
         Plane(
-          [width, width, 3 * thickness / 2],
+          [width, width, 3 * 1 / 2],
           normal: [1, 1, -1])
       ])
       
@@ -488,46 +490,33 @@ struct VdwOscillator {
           $0 + delta
         }
       }
-      
-      // Next, remove the carbons protruding from the grooves. Instead, generate
-      // a full (100) surface line by line.
-      
-      // Might need to do this post-minimization.
-      
-//      let rotation1 = simd_quatf(angle: -.pi / 4, axis: [0, 0, 1])
-//      let rotation2 = simd_quatf(angle: -.pi / 4, axis: [1, 0, 0])
-//      for i in thisCenters.indices {
-//        var center = thisCenters[i]
-//        
-//        let origin1 = SIMD3<Float>(0, width / 2, widthZ / 2)
-//        var delta = center - origin1
-//        delta = simd_act(rotation1, delta)
-//        center = delta + origin1
-//        
-//        let origin2 = SIMD3<Float>(0, width / 2, widthZ / 2)
-//        delta = center - origin2
-//        delta = simd_act(rotation2, delta)
-//        center = delta + origin2
-//        
-//        thisCenters[i] = center
-//      }
       thisCenters = centerAtOrigin(thisCenters)
-//      for i in thisCenters.indices {
-//        thisCenters[i] += SIMD3(13, 0, 0)
-//      }
+
       let thisAtoms = generateAtoms(thisCenters)
 //      allAtoms += thisAtoms
-      
+//
       var diamondoid = Diamondoid(atoms: thisAtoms)
       diamondoid.fixHydrogens(tolerance: 0.08)
       let removedIndices = diamondoid.findAtoms(where: {
+        var compareZ = $0.origin.z
+        #if false
+        // Skip the absolute value, increasing width by a tiny amount.
+        #else
+        compareZ = abs(compareZ)
+        #endif
         if $0.element == 1 {
-          return abs($0.origin.z) > 3.00 * 0.357 - 0.01
+          return compareZ > 3.00 * 0.357 - 0.01
         } else {
-          return abs($0.origin.z) > 2.75 * 0.357 - 0.01
+          return compareZ > 2.75 * 0.357 - 0.01
         }
       })
       diamondoid.removeAtoms(atIndices: removedIndices)
+      
+      let rotation1 = simd_quatf(angle: -.pi / 4, axis: [0, 0, 1])
+      let rotation2 = simd_quatf(angle: -.pi / 4, axis: [1, 0, 0])
+      diamondoid.rotate(angle: rotation1)
+      diamondoid.rotate(angle: rotation2)
+      diamondoid.translate(offset: SIMD3(14 * 0.357, 0, 0))
       
       allAtoms += diamondoid.atoms
       allDiamondoids.append(diamondoid)
@@ -551,9 +540,12 @@ struct VdwOscillator {
     // 20 fs/frame @ 3-10 ps
     // 100 fs/frame @ 50 ps
     // 500 fs/frame @ 250 ps
+    
+    // Doing another trial run at 250 ps / 500 fs, with testing how the spinning
+    // orbit will look, and testing the graphs. Then go for the full 1 ns.
     let simulator = MM4(
-      diamondoids: allDiamondoids, fsPerFrame: 20)
-    simulator.simulate(ps: 3)
+      diamondoids: allDiamondoids, fsPerFrame: 500) // 200
+    simulator.simulate(ps: 500, trackingState: true) // 150
     provider = simulator.provider
     #endif
   }
