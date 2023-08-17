@@ -1,3 +1,6 @@
+
+![image](https://github.com/philipturner/molecular-renderer/assets/71743241/d5585c84-7e4e-4507-841a-452fb68615d3)
+
 # Molecular Renderer
 
 CAD framework for simulating nanotechnology, with ray-traced 120 Hz visualization. Designed to handle millions of atoms in real-time.
