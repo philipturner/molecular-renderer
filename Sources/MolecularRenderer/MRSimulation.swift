@@ -41,7 +41,14 @@ fileprivate func roundDownToPowerOf2(_ input: Int) -> Int {
 }
 
 public enum MRCompressionAlgorithm {
+  // High-performance, but only has first-class support on Apple platforms.
+  // Reverse-engineered and open-sourced at:
+  // https://github.com/eafer/libzbitmap
   case lzBitmap
+  
+  // High compression ratio, but very slow to decode. Best to use this format
+  // for sharing across OS platforms, or sharing over the internet. Then,
+  // transcode to LZBITMAP for use in latency-sensitive feedback loops.
   case lzma
   
   init<T: StringProtocol>(name: T) {
