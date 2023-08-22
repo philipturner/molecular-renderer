@@ -32,7 +32,7 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    #if false
+    #if true
     let imageSize = Int(ContentView.size)
     let upscaleFactor: Int? = ContentView.upscaleFactor
     let offline: Bool = Bool.random() ? false : false
@@ -60,19 +60,20 @@ class Renderer {
     
 //    let url2 = URL(filePath: "/Users/philipturner/Desktop/armchair-graphane-W-structure.pdb")
     
-//    let url2 = URL(filePath: "/Users/philipturner/Desktop/hydrocarbon-sleeve.pdb")
+    let url2 = URL(filePath: "/Users/philipturner/Desktop/sleeve-to-gear.mmp")
 //    let parsed = PDBParser(url: url2, hasA1: true)
+    let parsed = NanoEngineerParser(path: url2.absoluteString)
     
 //    let parsed = NanoEngineerParser(
 //      partLibPath: "bearings/Hydrocarbon Strained Sleeve Bearing.mmp")
-//    let centers = parsed._atoms.compactMap { atom -> SIMD3<Float>? in
-//      if atom.element == 6 {
-//        return atom.origin
-//      } else {
-//        return nil
-//      }
-//    }
-////
+    let centers = parsed._atoms.compactMap { atom -> SIMD3<Float>? in
+      if atom.element == 6 {
+        return atom.origin
+      } else {
+        return nil
+      }
+    }
+//
 //    var diamondoid = Diamondoid(carbonCenters: centers)
 //    diamondoid.translate(offset: -diamondoid.createCenterOfMass())
 //    diamondoid.rotate(angle: simd_quatf(angle: .pi / 2, axis: [1, 0, 0]))
@@ -112,29 +113,29 @@ class Renderer {
 //    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
 //      
 ////    }
-//    let provider = ArrayAtomProvider(centers.map {
-//      MRAtom(origin: $0, element: 6)
-//    })
-//    self.atomProvider = provider
+    let provider = ArrayAtomProvider(centers.map {
+      MRAtom(origin: $0, element: 6)
+    })
+    self.atomProvider = provider
     
     
     
-    #if false
-    //    self.atomProvider = OctaneReference().provider
-    //    self.atomProvider = DiamondoidCollision().provider
-    self.atomProvider = VdwOscillator().provider
-    
-//    serializer.save(
-//      fileName: "SavedSimulation-10",
-//      provider: atomProvider as! OpenMM_AtomProvider)
-    #else
-    let simulation = serializer.load(fileName: "Strained Shell Bearing")
-    self.atomProvider = SimulationAtomProvider(simulation: simulation)
-    
-    if offline {
-      renderSimulation(simulation)
-    }
-    #endif
+//    #if false
+//    //    self.atomProvider = OctaneReference().provider
+//    //    self.atomProvider = DiamondoidCollision().provider
+//    self.atomProvider = VdwOscillator().provider
+//    
+////    serializer.save(
+////      fileName: "SavedSimulation-10",
+////      provider: atomProvider as! OpenMM_AtomProvider)
+//    #else
+//    let simulation = serializer.load(fileName: "Strained Shell Bearing")
+//    self.atomProvider = SimulationAtomProvider(simulation: simulation)
+//    
+//    if offline {
+//      renderSimulation(simulation)
+//    }
+//    #endif
   }
 }
 
