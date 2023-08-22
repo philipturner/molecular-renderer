@@ -58,16 +58,77 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
+//    let url2 = URL(filePath: "/Users/philipturner/Desktop/armchair-graphane-W-structure.pdb")
+    
+//    let url2 = URL(filePath: "/Users/philipturner/Desktop/hydrocarbon-sleeve.pdb")
+//    let parsed = PDBParser(url: url2, hasA1: true)
+    
+//    let parsed = NanoEngineerParser(
+//      partLibPath: "bearings/Hydrocarbon Strained Sleeve Bearing.mmp")
+//    let centers = parsed._atoms.compactMap { atom -> SIMD3<Float>? in
+//      if atom.element == 6 {
+//        return atom.origin
+//      } else {
+//        return nil
+//      }
+//    }
+////
+//    var diamondoid = Diamondoid(carbonCenters: centers)
+//    diamondoid.translate(offset: -diamondoid.createCenterOfMass())
+//    diamondoid.rotate(angle: simd_quatf(angle: .pi / 2, axis: [1, 0, 0]))
+//    
+//    var simulation = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+//    let ranges = simulation.rigidBodies
+//    let state = simulation.context.state(types: [.positions, .velocities])
+//    let statePositions = state.positions
+//    let stateElements = simulation.provider.elements
+//    var rigidBodies = ranges.map { range -> Diamondoid in
+//      var centers: [SIMD3<Float>] = []
+//      for index in range {
+//        guard stateElements[index] == 6 else {
+//          continue
+//        }
+//        
+//        let position = statePositions[index]
+//        centers.append(SIMD3(position))
+//      }
+//      return Diamondoid(carbonCenters: centers)
+//    }
+//    print(rigidBodies.count)
+//    print(rigidBodies[0].atoms.count)
+//    print(rigidBodies[1].atoms.count)
+//    
+//    rigidBodies[1].angularVelocity = simd_quatf(angle: 1, axis: [0, 0, 1])
+//    
+//    simulation = MM4(diamondoids: rigidBodies, fsPerFrame: 20)
+//    simulation.simulate(ps: 15)
+//    
+//    
+//    
+//    self.atomProvider = simulation.provider
+//    serializer.save(fileName: "Strained Shell Bearing", provider: simulation.provider)
+    
+    
+//    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
+//      
+////    }
+//    let provider = ArrayAtomProvider(centers.map {
+//      MRAtom(origin: $0, element: 6)
+//    })
+//    self.atomProvider = provider
+    
+    
+    
     #if false
     //    self.atomProvider = OctaneReference().provider
     //    self.atomProvider = DiamondoidCollision().provider
     self.atomProvider = VdwOscillator().provider
     
-    serializer.save(
-      fileName: "SavedSimulation-10",
-      provider: atomProvider as! OpenMM_AtomProvider)
+//    serializer.save(
+//      fileName: "SavedSimulation-10",
+//      provider: atomProvider as! OpenMM_AtomProvider)
     #else
-    let simulation = serializer.load(fileName: "SavedSimulation-10")
+    let simulation = serializer.load(fileName: "Strained Shell Bearing")
     self.atomProvider = SimulationAtomProvider(simulation: simulation)
     
     if offline {
@@ -81,7 +142,8 @@ extension Renderer {
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
-    let psPerSecond: Double = 40.0
+//    let psPerSecond: Double = 40.0
+    let psPerSecond: Double = 2.4
     
     let fsPerFrame = simulation.frameTimeInFs
     var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
@@ -110,10 +172,10 @@ extension Renderer {
       #if true
       do {
         let framesPerSecond: Int = 20
-        let period: Float = 25
+        let period: Float = 12.5 // 25
 //        let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
-        let rotationCenter: SIMD3<Float> = [1.0158, 0, 0]
-        let radius: Float = 10
+        let rotationCenter: SIMD3<Float> = [0, 0, 0] // [1.0158, 0, 0]
+        let radius: Float = 3 // 10
         
         var angle = Float(frameID) / Float(framesPerSecond)
         angle /= period
@@ -191,10 +253,10 @@ extension Renderer {
     #if true
     do {
       let framesPerSecond: Int = 120
-      let period: Float = 30
+      let period: Float = 15 // 30
 //      let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
-      let rotationCenter: SIMD3<Float> = [1.0158, 0, 0]
-      let radius: Float = 10
+      let rotationCenter: SIMD3<Float> =  [0, 0, 0] // [1.0158, 0, 0]
+      let radius: Float = 3 // 10
       
       var angle = Float(frameID) / Float(framesPerSecond)
       angle /= period

@@ -26,7 +26,8 @@ struct Constants {
     [1, 8]: BondLength(range: 0.092...0.102, average: 0.097),
     [1, 16]: BondLength(range: 0.131...0.141, average: 0.136),
     
-    [6, 6]: BondLength(range: 0.149...0.159, average: 0.154),
+//    [6, 6]: BondLength(range: 0.149...0.159, average: 0.154),
+    [6, 6]: BondLength(range: 0.148...0.168, average: 0.154),
     [6, 7]: BondLength(range: 0.142...0.152, average: 0.147),
     [6, 8]: BondLength(range: 0.138...0.148, average: 0.143),
     
