@@ -28,19 +28,24 @@ class Renderer {
   var gifSerializer: GIFSerializer!
   var serializer: Serializer!
   
+  // Camera scripting settings.
+  static let recycleSimulation: Bool = false
+  static let productionRender: Bool = false
+  static let programCamera: Bool = false
+  
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    #if true
-    let imageSize = Int(ContentView.size)
-    let upscaleFactor: Int? = ContentView.upscaleFactor
-    let offline: Bool = Bool.random() ? false : false
-    #else
-    let imageSize = Int(640)
-    let upscaleFactor: Int? = nil
-    let offline: Bool = Bool.random() ? true : true
-    #endif
+    var imageSize: Int
+    var upscaleFactor: Int?
+    if Self.productionRender {
+      imageSize = Int(640)
+      upscaleFactor = nil
+    } else {
+      imageSize = Int(ContentView.size)
+      upscaleFactor = ContentView.upscaleFactor
+    }
     
     let url = Bundle.main.url(
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
@@ -49,7 +54,7 @@ class Renderer {
       width: imageSize,
       height: imageSize,
       upscaleFactor: upscaleFactor,
-      offline: offline)
+      offline: Self.productionRender)
     self.gifSerializer = GIFSerializer(
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     self.serializer = Serializer(
@@ -58,24 +63,9 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    fatalError("Working on development of wavefunction renderer")
+    self.atomProvider = ExampleProviders.strainedShellStructure()
     
-//    #if false
-//    //    self.atomProvider = OctaneReference().provider
-//    //    self.atomProvider = DiamondoidCollision().provider
-//    self.atomProvider = VdwOscillator().provider
-//    
-//    serializer.save(
-//      fileName: "SavedSimulation-10",
-//      provider: atomProvider as! OpenMM_AtomProvider)
-//    #else
-//    let simulation = serializer.load(fileName: "Strained Shell Bearing")
-//    self.atomProvider = SimulationAtomProvider(simulation: simulation)
-//    
-//    if offline {
-//      renderSimulation(simulation)
-//    }
-//    #endif
+//    fatalError("Working on development of wavefunction renderer")
   }
 }
 
@@ -83,57 +73,41 @@ extension Renderer {
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
-//    let psPerSecond: Double = 40.0
-    let psPerSecond: Double = 2.4
-    
-    let fsPerFrame = simulation.frameTimeInFs
-    var framesPerFrame_d = psPerSecond * 1000 / 20 / fsPerFrame
-    if abs(framesPerFrame_d - rint(framesPerFrame_d)) < 0.001 {
-      framesPerFrame_d = rint(framesPerFrame_d)
-    } else {
-      fatalError(
-        "Indivisible playback speed: \(psPerSecond) / 20 / \(fsPerFrame)")
+    func getFramesPerFrame(psPerSecond: Double? = nil) -> Int {
+      if let psPerSecond {
+        let fsPerFrame = simulation.frameTimeInFs
+        var framesPerFrame = psPerSecond * 1000 / 20 / fsPerFrame
+        if abs(framesPerFrame - rint(framesPerFrame)) < 0.001 {
+          framesPerFrame = rint(framesPerFrame)
+        } else {
+          fatalError(
+            "Indivisible playback speed: \(psPerSecond) / 20 / \(fsPerFrame)")
+        }
+        return Int(framesPerFrame)
+      } else {
+        return 120 / 20
+      }
     }
-    let framesPerFrame = Int(framesPerFrame_d)
+    let framesPerFrame = getFramesPerFrame()
     
     let numFrames = simulation.frameCount / framesPerFrame
     for frameID in 0..<numFrames {
-      print("Frame ID: \(frameID)")
       self.renderSemaphore.wait()
+      let timeDouble = Double(frameID) / 20
+      print("Timestamp: \(String(format: "%.2f", timeDouble))")
       
       let time = MRTimeContext(
         absolute: frameID * framesPerFrame,
         relative: framesPerFrame,
         frameRate: 20 * framesPerFrame)
       
-      var position: SIMD3<Float> = [0, 0, 10]
-      var rotation = PlayerState.makeRotation(azimuth: 0)
-      
-      // Programmatically control the camera position.
-      #if true
-      do {
-        let framesPerSecond: Int = 20
-        let period: Float = 12.5 // 25
-//        let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
-        let rotationCenter: SIMD3<Float> = [0, 0, 0] // [1.0158, 0, 0]
-        let radius: Float = 3 // 10
-        
-        var angle = Float(frameID) / Float(framesPerSecond)
-        angle /= period
-        angle *= 2 * .pi
-        
-        let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
-        let delta = simd_act(quaternion, [0, 0, 1])
-        position = rotationCenter + normalize(delta) * radius
-        rotation = PlayerState.makeRotation(azimuth: Double(-angle))
-      }
-      #endif
-      
       self.prepareRendering(
         animationTime: time,
         fov: 90,
-        position: position,
-        rotation: rotation)
+        position: [0, 0, 0],
+        rotation: PlayerState.makeRotation(azimuth: 0),
+        frameID: frameID,
+        framesPerSecond: 20)
       
       renderingEngine.render { pixels in
         self.gifSerializer.addImage(pixels: pixels)
@@ -147,9 +121,7 @@ extension Renderer {
     // image isn't completely blank.
     print("ETA: \(numFrames / 4) - \(numFrames) seconds.")
     gifSerializer.save(fileName: "SavedSimulation")
-    print("Checkpoint 3")
     print("Saved the production render.")
-    print("Checkpoint 4")
     exit(0)
   }
   
@@ -183,38 +155,15 @@ extension Renderer {
     let playerState = eventTracker.playerState
     let progress = eventTracker.fovHistory.progress
     let fov = playerState.fovDegrees(progress: progress)
-    var position: SIMD3<Float>
-    var rotation: simd_float3x3
     
-    position = playerState.position
     let (azimuth, zenith) = playerState.rotations
-    rotation = azimuth * zenith
-    
-    // Programmatically control the camera position.
-    #if false
-    do {
-      let framesPerSecond: Int = 120
-      let period: Float = 15 // 30
-//      let rotationCenter: SIMD3<Float> = [0, 6, 6] * 0.357
-      let rotationCenter: SIMD3<Float> =  [0, 0, 0] // [1.0158, 0, 0]
-      let radius: Float = 3 // 10
-      
-      var angle = Float(frameID) / Float(framesPerSecond)
-      angle /= period
-      angle *= 2 * .pi
-      
-      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
-      let delta = simd_act(quaternion, [0, 0, 1])
-      position = rotationCenter + normalize(delta) * radius
-      rotation = PlayerState.makeRotation(azimuth: Double(-angle))
-    }
-    #endif
-    
     self.prepareRendering(
       animationTime: animationTime,
       fov: fov,
-      position: position,
-      rotation: rotation)
+      position: playerState.position,
+      rotation: azimuth * zenith,
+      frameID: frameID,
+      framesPerSecond: 120)
     
     let layer = coordinator.view.metalLayer!
     renderingEngine.render(layer: layer) {
@@ -226,7 +175,9 @@ extension Renderer {
     animationTime: MRTimeContext,
     fov: Float,
     position: SIMD3<Float>,
-    rotation: simd_float3x3
+    rotation: simd_float3x3,
+    frameID: Int,
+    framesPerSecond: Int
   ) {
     renderingEngine.setGeometry(
       time: animationTime,
@@ -238,13 +189,50 @@ extension Renderer {
       origin: position, diffusePower: 1, specularPower: 1)
     lights.append(cameraLight)
     
+    var _position = position
+    var _rotation = rotation
+    if Self.programCamera {
+      let period: Float = 15
+      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
+      let radius: Float = 3
+      
+      var angle = Float(frameID) / Float(framesPerSecond)
+      angle /= period
+      angle *= 2 * .pi
+      
+      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      let delta = simd_act(quaternion, [0, 0, 1])
+      _position = rotationCenter + normalize(delta) * radius
+      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
+    }
+    
     let quality = MRQuality(
       minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
       fovDegrees: fov,
-      position: position,
-      rotation: rotation,
+      position: _position,
+      rotation: _rotation,
       lights: lights,
       quality: quality)
+  }
+  
+  private func runSimulation() {
+    let simulationName = "SavedSimulation"
+    if Self.recycleSimulation {
+      let simulation = serializer.load(fileName: simulationName)
+      self.atomProvider = SimulationAtomProvider(simulation: simulation)
+      
+      if Self.productionRender {
+        renderSimulation(simulation)
+      }
+    } else {
+      //    self.atomProvider = OctaneReference().provider
+      //    self.atomProvider = DiamondoidCollision().provider
+      self.atomProvider = VdwOscillator().provider
+      
+      serializer.save(
+        fileName: simulationName,
+        provider: atomProvider as! OpenMM_AtomProvider)
+    }
   }
 }

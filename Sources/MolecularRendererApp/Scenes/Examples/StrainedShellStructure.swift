@@ -12,7 +12,7 @@ extension ExampleProviders {
   static func strainedShellStructure() -> any MRAtomProvider {
     //    let url2 = URL(filePath: "/Users/philipturner/Desktop/armchair-graphane-W-structure.pdb")
         
-        let url2 = URL(filePath: "/Users/philipturner/Desktop/lonsdaleite-gear.pdb")
+        let url2 = URL(filePath: "/Users/philipturner/Documents/OpenMM/Renders/Imports/lonsdaleite-gear.pdb")
         let parsed = PDBParser(url: url2, hasA1: true)
     //    let parsed = NanoEngineerParser(path: url2.absoluteString)
         
