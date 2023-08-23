@@ -29,9 +29,9 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
-  static let productionRender: Bool = false
-  static let programCamera: Bool = false
+  static let recycleSimulation: Bool = true
+  static let productionRender: Bool = true
+  static let programCamera: Bool = true
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -63,7 +63,10 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = ExampleProviders.strainedShellStructure()
+//    self.atomProvider = ExampleProviders.strainedShellStructure()
+    
+    self.ioSimulation()
+    
     
 //    fatalError("Working on development of wavefunction renderer")
   }
@@ -184,15 +187,10 @@ extension Renderer {
       atomProvider: &atomProvider,
       styleProvider: styleProvider)
     
-    var lights: [MRLight] = []
-    let cameraLight = MRLight(
-      origin: position, diffusePower: 1, specularPower: 1)
-    lights.append(cameraLight)
-    
     var _position = position
     var _rotation = rotation
     if Self.programCamera {
-      let period: Float = 15
+      let period: Float = 16.65 * 2
       let rotationCenter: SIMD3<Float> =  [0, 0, 0]
       let radius: Float = 3
       
@@ -206,6 +204,11 @@ extension Renderer {
       _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
     }
     
+    var lights: [MRLight] = []
+    let cameraLight = MRLight(
+      origin: _position, diffusePower: 1, specularPower: 1)
+    lights.append(cameraLight)
+    
     let quality = MRQuality(
       minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
@@ -216,7 +219,7 @@ extension Renderer {
       quality: quality)
   }
   
-  private func runSimulation() {
+  private func ioSimulation() {
     let simulationName = "SavedSimulation"
     if Self.recycleSimulation {
       let simulation = serializer.load(fileName: simulationName)
@@ -228,7 +231,7 @@ extension Renderer {
     } else {
       //    self.atomProvider = OctaneReference().provider
       //    self.atomProvider = DiamondoidCollision().provider
-      self.atomProvider = VdwOscillator().provider
+      //      self.atomProvider = VdwOscillator().provider
       
       serializer.save(
         fileName: simulationName,
