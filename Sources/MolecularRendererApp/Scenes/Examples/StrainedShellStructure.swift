@@ -53,16 +53,16 @@ extension ExampleProviders {
     print(rigidBodies[1].atoms.count)
     
     // Radius: 0.957 nm
-    // Angular velocity: 0.03 rad/ps
-    // Velocity: radius * angular velocity * 1000 m/s = 29 m/s
-    //
-    // Divide angular velocity by 30 -> 1 m/s
+    // Angular velocity: 0.01 rad/ps
+    // Velocity: radius * angular velocity * 1000 m/s = 10 m/s
     rigidBodies[1].angularVelocity = simd_quatf(
-      angle: 0.03 / 30, axis: [0, 0, 1])
+      angle: 0.01, axis: [0, 0, 1])
+//    rigidBodies[1].angularVelocity = simd_quatf(
+//      angle: 0.00, axis: [0, 0, 1])
     
     // Also run for 10 nanoseconds
-    simulation = MM4(diamondoids: rigidBodies, fsPerFrame: 500)
-    simulation.simulate(ps: 1000)
+    simulation = MM4(diamondoids: rigidBodies, fsPerFrame: 2000) // 0.5 -> 2 ps
+    simulation.simulate(ps: 5000) // 1 ns -> 5 ns
     
     //    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
     //

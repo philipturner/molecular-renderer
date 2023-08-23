@@ -36,7 +36,7 @@ final class GIFSerializer {
     
     let quantization = OctreeQuantization(fromImage: image)
     let frame = Frame(
-      image: image, delayTime: 5, localQuantization: quantization)
+      image: image, delayTime: 2, localQuantization: quantization)
     gif.frames.append(frame)
   }
   
