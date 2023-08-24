@@ -14,6 +14,7 @@ import simd
 final class GIFSerializer {
   var gif: GIF
   var path: String
+  var previousFrames: [[UInt32]] = []
   
   init(path: String) {
     self.gif = GIF(width: 640, height: 640)
@@ -21,15 +22,54 @@ final class GIFSerializer {
   }
   
   // Pixels are in BGRA8888 format (little endian; A consumes the highest bits).
-  func addImage(pixels: UnsafeRawPointer) {
-    let image = try! CairoImage(width: 640, height: 640)
-    
+  func addImage(pixels: UnsafeRawPointer, blurFusion: Int = 1) {
     let _pixels = pixels.assumingMemoryBound(to: UInt32.self)
+    if previousFrames.count < blurFusion - 1 {
+      previousFrames.append(Array(
+        unsafeUninitializedCapacity: 640 * 640
+      ) { pointer, count in
+        count = 640 * 640
+        for y in 0..<640 {
+          for x in 0..<640 {
+            let index = y * 640 + x
+            pointer[index] = _pixels[index]
+          }
+        }
+      })
+      return
+    }
+    defer {
+      previousFrames = []
+    }
+    
+    let image = try! CairoImage(width: 640, height: 640)
+    var sumBuffer = [SIMD4<Float16>](repeating: .zero, count: 640 * 640)
+    for frame in previousFrames {
+      for y in 0..<640 {
+        for x in 0..<640 {
+          let index = y * 640 + x
+          let pixel = unsafeBitCast(frame[index], to: SIMD4<UInt8>.self)
+          sumBuffer[index] += SIMD4<Float16>(pixel)
+        }
+      }
+    }
+    
+    let numFramesRecip = (blurFusion == 1) ? 0 : 1 / Float(blurFusion - 1)
+    let currentMultiplier = (blurFusion == 1) ? 1 : Float(0.5)
     for y in 0..<640 {
       for x in 0..<640 {
         let index = y * 640 + x
-        let pixel = _pixels[index]
-        let color = Color(argb: pixel)
+        var sum = SIMD4<Float>(sumBuffer[index])
+        sum *= numFramesRecip
+        sum *= 1 - currentMultiplier
+        
+        var pixel = unsafeBitCast(_pixels[index], to: SIMD4<UInt8>.self)
+        sum += SIMD4<Float>(pixel) * currentMultiplier
+        sum = __tg_rint(sum)
+        sum = simd_clamp(sum, .zero, .init(repeating: 255))
+        pixel = SIMD4<UInt8>(sum)
+        
+        let color = Color(argb: unsafeBitCast(pixel, to: UInt32.self))
         image[y, x] = color
       }
     }
@@ -41,6 +81,9 @@ final class GIFSerializer {
   }
   
   func save(fileName: String) {
+    // Don't let any previous frames potentially leak into another render.
+    previousFrames = []
+    
     let path = self.path + "/" + fileName + ".gif"
     let url = URL(filePath: path)
     

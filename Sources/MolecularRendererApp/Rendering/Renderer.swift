@@ -29,9 +29,9 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
-  static let productionRender: Bool = false
-  static let programCamera: Bool = false
+  static let recycleSimulation: Bool = true
+  static let productionRender: Bool = true
+  static let programCamera: Bool = true
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -63,7 +63,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = ExampleProviders.strainedShellStructure()
+//    self.atomProvider = ExampleProviders.strainedShellStructure()
     
     self.ioSimulation()
     
@@ -79,16 +79,16 @@ extension Renderer {
     func getFramesPerFrame(psPerSecond: Double? = nil) -> Int {
       if let psPerSecond {
         let fsPerFrame = simulation.frameTimeInFs
-        var framesPerFrame = psPerSecond * 1000 / 50 / fsPerFrame
+        var framesPerFrame = psPerSecond * 1000 / 100 / fsPerFrame
         if abs(framesPerFrame - rint(framesPerFrame)) < 0.001 {
           framesPerFrame = rint(framesPerFrame)
         } else {
           fatalError(
-            "Indivisible playback speed: \(psPerSecond) / 50 / \(fsPerFrame)")
+            "Indivisible playback speed: \(psPerSecond) / 100 / \(fsPerFrame)")
         }
         return Int(framesPerFrame)
       } else {
-        return 2
+        return 1
       }
     }
     let framesPerFrame = getFramesPerFrame()
@@ -96,13 +96,15 @@ extension Renderer {
     let numFrames = simulation.frameCount / framesPerFrame
     for frameID in 0..<numFrames {
       self.renderSemaphore.wait()
-      let timeDouble = Double(frameID) / 50
-      print("Timestamp: \(String(format: "%.2f", timeDouble))")
+      let timeDouble = Double(frameID) / 100
+      if frameID % 2 == 0 {
+        print("Timestamp: \(String(format: "%.2f", timeDouble))")
+      }
       
       let time = MRTimeContext(
         absolute: frameID * framesPerFrame,
         relative: framesPerFrame,
-        frameRate: 50 * framesPerFrame)
+        frameRate: 100 * framesPerFrame)
       
       self.prepareRendering(
         animationTime: time,
@@ -110,10 +112,10 @@ extension Renderer {
         position: [0, 0, 0],
         rotation: PlayerState.makeRotation(azimuth: 0),
         frameID: frameID,
-        framesPerSecond: 50)
+        framesPerSecond: 100)
       
       renderingEngine.render { pixels in
-        self.gifSerializer.addImage(pixels: pixels)
+        self.gifSerializer.addImage(pixels: pixels, blurFusion: 2)
         self.renderSemaphore.signal()
       }
     }
@@ -122,7 +124,7 @@ extension Renderer {
     // The encoder from the Swift GIF package is very slow; we might need to
     // fork the repository and speed it up. The encoding is faster when the
     // image isn't completely blank.
-    print("ETA: \(numFrames / 32) - \(numFrames / 8) seconds.")
+    print("ETA: \(numFrames / 21 / 2) - \(numFrames / 12 / 2) seconds.")
     gifSerializer.save(fileName: "SavedSimulation")
     print("Saved the production render.")
     exit(0)
