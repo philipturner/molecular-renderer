@@ -10,9 +10,11 @@ import MolecularRenderer
 import QuartzCore
 import simd
 
-// Experiment with two oscillators side-by-side, the first non-superlubricating
-// and the second superlubricating. At the time of creation, the MM4 simulator
-// lacked a thermostat, so simulations couldn't last more than a few 100 ps.
+// Experiment with an attractive force bearing, originally non-superlubricating
+// and later superlubricating. At the time of creation, the MM4 simulator
+// lacked a thermostat, so (it was hypothesized) simulations couldn't last more
+// than a few 100 ps. Recent experiments suggest far longer timescales are
+// possible, even with NVE simulations at 4 fs/step.
 
 struct VdwOscillator {
   var provider: any MRAtomProvider
