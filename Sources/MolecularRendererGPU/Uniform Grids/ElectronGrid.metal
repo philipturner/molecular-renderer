@@ -18,8 +18,9 @@ using namespace metal;
 // operation is performed on the CPU to determine grid size.
 //
 // Need three modes:
-// - All-electron density
-// - One-electron density
-// - One-electron wave function
+// - Many-electron density
+//   - most often, all electrons
+// - Many-electron wave function
+//   - most often, one electron
 //   - normalize color by dividing by the greatest absolute value
 //   - use density instead of wave magnitude for absorbance
