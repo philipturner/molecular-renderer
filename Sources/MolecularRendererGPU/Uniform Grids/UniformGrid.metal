@@ -52,7 +52,7 @@ public:
 class ElectronGrid {
 public:
   ushort3 dimensions;
-  ushort3 origin;
+  short3 corner;
   
   // Probability density in electrons per cubic nanometer.
   device float *density;
