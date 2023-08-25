@@ -29,7 +29,7 @@ using namespace metal;
 // The electron's wave function should rotate over time, to show parts in
 // different phases. Use a blue (positive) to red (negative) spectrum and
 // only show the real parts, but the imaginary parts will be revealed
-// through rotation (if present).
+// through rotation (if present). Rotate so it makes a half-turn every 1 second.
 kernel void renderElectrons
 (
  // Add a density scale factor to arguments, allowing storage in FP16.
