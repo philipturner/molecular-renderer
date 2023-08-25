@@ -1,5 +1,5 @@
 //
-//  RenderMain.metal
+//  RenderAtoms.metal
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 2/22/23.
@@ -15,7 +15,7 @@ using namespace metal;
 
 constant bool not_offline = !OFFLINE;
 
-kernel void renderMain
+kernel void renderAtoms
 (
  device Arguments *args [[buffer(0)]],
  device MRAtomStyle *styles [[buffer(1)]],

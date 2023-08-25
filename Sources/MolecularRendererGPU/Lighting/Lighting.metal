@@ -210,17 +210,6 @@ public:
     color_float = quad_sum(color_float) / 4;
     half4 color_half = half4(half3(color_float), 1);
     colorTexture.write(color_half, pixelCoords / 2);
-    
-    if (pixelCoords.x % 2 == 0 && pixelCoords.y % 2 == 0) {
-//      color = half3(pixelCoords.x, pixelCoords.y, 0) / 1280;
-//      colorTexture.write(half4(color, 1), pixelCoords / 2);
-      
-//      for (int i = 0; i < 10; ++i) {
-//        for (int j = 0; j < 10; ++j) {
-//          colorTexture.write(half4(half(i) / 10, half(j) / 10, 0, 1), uint2(i, j));
-//        }
-//      }
-    }
   }
   
   void write(texture2d<half, access::write> colorTexture,

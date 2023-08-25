@@ -75,7 +75,7 @@ class MRProfiler {
       
       // Initialize the compute pipeline.
       let function = try! library.makeFunction(
-        name: "renderMain", constantValues: constants)
+        name: "renderAtoms", constantValues: constants)
       
       let desc = MTLComputePipelineDescriptor()
       desc.computeFunction = function
