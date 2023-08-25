@@ -51,6 +51,7 @@
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
 		98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */; };
 		985832A32A9946CA00D9E6A5 /* RenderElectrons.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985832A22A9946CA00D9E6A5 /* RenderElectrons.metal */; };
+		985832A52A9970D500D9E6A5 /* ElectronGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985832A42A9970D500D9E6A5 /* ElectronGrid.metal */; };
 		985C92A72A955CA9008629C0 /* StrainedShellStructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985C92A62A955CA9008629C0 /* StrainedShellStructure.swift */; };
 		985C92AA2A959540008629C0 /* GIF in Frameworks */ = {isa = PBXBuildFile; productRef = 985C92A92A959540008629C0 /* GIF */; };
 		986348F82A73310F0053E714 /* Amplifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986348F72A73310F0053E714 /* Amplifier.swift */; };
@@ -182,6 +183,7 @@
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		985832A22A9946CA00D9E6A5 /* RenderElectrons.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderElectrons.metal; sourceTree = "<group>"; };
+		985832A42A9970D500D9E6A5 /* ElectronGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ElectronGrid.metal; sourceTree = "<group>"; };
 		985C92A62A955CA9008629C0 /* StrainedShellStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainedShellStructure.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
@@ -615,6 +617,7 @@
 			isa = PBXGroup;
 			children = (
 				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
+				985832A42A9970D500D9E6A5 /* ElectronGrid.metal */,
 				98537EB02A62EA470037C392 /* OldSparseGrid.metal */,
 				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
 				980070F32A6607950097D21F /* NewSparseGrid.metal */,
@@ -840,6 +843,7 @@
 				98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */,
 				98537EB32A62EA940037C392 /* Memory.metal in Sources */,
 				985832A32A9946CA00D9E6A5 /* RenderElectrons.metal in Sources */,
+				985832A52A9970D500D9E6A5 /* ElectronGrid.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
 				98537EB72A63107F0037C392 /* Atomic.metal in Sources */,

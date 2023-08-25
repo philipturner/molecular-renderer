@@ -49,6 +49,16 @@ public:
   device MRAtom *atoms;
 };
 
+class ElectronGrid {
+public:
+  ushort3 dimensions;
+  ushort3 origin;
+  
+  // Probability density in electrons per cubic nanometer.
+  device float *density;
+  device half4 *colors;
+};
+
 namespace old_sparse_grids_draft {
   class SparseGrid {
   public:

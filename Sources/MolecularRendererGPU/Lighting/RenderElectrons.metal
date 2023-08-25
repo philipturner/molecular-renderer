@@ -8,14 +8,6 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// Geometry pass:
-//
-// Enter the un-normalized wavefunction of each electron in each cell,
-// a complex FP32 number. The grid origin is (0, 0, 0) nm, and cell
-// coordinates are given as integers. Cell resolution in whole number
-// fractions of a nanometer. Not all cells need to be present; a min/max
-// operation is performed on the CPU to determine grid size.
-
 // Render pass:
 //
 // No AI upscaling or antialiasing; wave functions are continuous and
@@ -27,14 +19,11 @@ using namespace metal;
 // simulations.
 //
 // The electron's wave function should rotate over time, to show parts in
-// different phases. Use a blue (positive) to red (negative) spectrum and
-// only show the real parts, but the imaginary parts will be revealed
-// through rotation (if present). Rotate so it makes a half-turn every 1 second.
-kernel void renderElectrons
-(
- // Add a density scale factor to arguments, allowing storage in FP16.
- // [density, r, g, b]
- )
+// different phases. Use a blue (positive) to clear (zero) to red (negative)
+// spectrum and only show the real parts, but the imaginary parts will be
+// revealed through rotation (if present). Rotate so it makes a half-turn every
+// 1 second.
+kernel void renderElectrons()
 {
   
 }
