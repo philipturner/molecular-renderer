@@ -66,14 +66,8 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-//    self.atomProvider = ExampleProviders.strainedShellStructure()
-    
-    _ = Hardware.VdwOscillator()
-    
-    self.ioSimulation()
-    
-    
-//    fatalError("Working on development of wavefunction renderer")
+    self.atomProvider = ExampleProviders.strainedShellStructure()
+    eventTracker.playerState.position = [0, 0, 2]
   }
 }
 

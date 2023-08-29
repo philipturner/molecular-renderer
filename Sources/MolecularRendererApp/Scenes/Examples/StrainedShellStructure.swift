@@ -60,9 +60,13 @@ extension ExampleProviders {
 //    rigidBodies[1].angularVelocity = simd_quatf(
 //      angle: 0.00, axis: [0, 0, 1])
     
+    return MovingAtomProvider(
+      rigidBodies[0].atoms + rigidBodies[1].atoms,
+      velocity: SIMD3(1, 0, 0))
+    
     // Also run for 10 nanoseconds
-    simulation = MM4(diamondoids: rigidBodies, fsPerFrame: 2000) // 0.5 -> 2 ps
-    simulation.simulate(ps: 5000) // 1 ns -> 5 ns
+//    simulation = MM4(diamondoids: rigidBodies, fsPerFrame: 2000) // 0.5 -> 2 ps
+//    simulation.simulate(ps: 5000) // 1 ns -> 5 ns
     
     //    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
     //
@@ -70,6 +74,7 @@ extension ExampleProviders {
     //        let provider = ArrayAtomProvider(centers.map {
     //          MRAtom(origin: $0, element: 6)
     //        })
-    return simulation.provider
+//    return simulation.provider
+    
   }
 }

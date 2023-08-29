@@ -19,3 +19,23 @@ struct ArrayAtomProvider: MRAtomProvider {
     return atoms
   }
 }
+
+struct MovingAtomProvider: MRAtomProvider {
+  var atoms: [MRAtom]
+  var velocity: SIMD3<Float>
+  
+  // Velocity is in nanometers per IRL second.
+  init(_ atoms: [MRAtom], velocity: SIMD3<Float>) {
+    self.atoms = atoms
+    self.velocity = velocity
+  }
+  
+  func atoms(time: MRTimeContext) -> [MRAtom] {
+    let delta = velocity * Float(time.absolute.seconds)
+    return atoms.map {
+      var copy = $0
+      copy.origin += delta
+      return copy
+    }
+  }
+}
