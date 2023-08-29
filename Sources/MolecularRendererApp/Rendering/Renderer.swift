@@ -13,6 +13,9 @@ import MolecularRenderer
 import OpenMM
 import simd
 
+import Hardware
+import HDL
+
 class Renderer {
   unowned let coordinator: Coordinator
   unowned let eventTracker: EventTracker
@@ -64,6 +67,8 @@ class Renderer {
     initOpenMM()
     
 //    self.atomProvider = ExampleProviders.strainedShellStructure()
+    
+    _ = Hardware.VdwOscillator()
     
     self.ioSimulation()
     

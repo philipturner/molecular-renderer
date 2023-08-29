@@ -9,10 +9,15 @@ let package = Package(
     .macOS(.v13),
   ],
   products: [
-    // Products define the executables and libraries a package produces, and make them visible to other packages.
     .library(
       name: "COpenMM",
       targets: ["COpenMM"]),
+    .library(
+      name: "Hardware",
+      targets: ["Hardware"]),
+    .library(
+      name: "HDL",
+      targets: ["HDL"]),
     .library(
       name: "MolecularRenderer",
       targets: ["MolecularRenderer"]),
@@ -21,15 +26,17 @@ let package = Package(
       targets: ["OpenMM"]),
   ],
   dependencies: [
-    // Dependencies declare other packages that this package depends on.
-     .package(url: "https://github.com/philipturner/applegpuinfo", from: "2.0.1"),
-    
+    .package(url: "https://github.com/philipturner/applegpuinfo", from: "2.0.1"),
   ],
   targets: [
-    // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-    // Targets can depend on other targets in this package, and on products in packages this package depends on.
     .target(
       name: "COpenMM",
+      dependencies: []),
+    .target(
+      name: "Hardware",
+      dependencies: ["HDL"]),
+    .target(
+      name: "HDL",
       dependencies: []),
     .target(
       name: "MolecularRenderer",
