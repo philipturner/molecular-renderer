@@ -19,7 +19,6 @@ class MRAccelBuilder {
   
   // Triple-buffer because the CPU accesses these.
   var atomBuffers: [MTLBuffer?] = [nil, nil, nil]
-  var sampleBuffers: [MTLBuffer] = []
   var totalSamples: Int = 0
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
   
@@ -76,17 +75,6 @@ class MRAccelBuilder {
     
     self.globalCounterBuffer = device.makeBuffer(length: 12)!
     self.globalCounter2Buffer = device.makeBuffer(length: 12)!
-    
-    // The intermediate resolution never changes.
-    for _ in 0..<3 {
-      let numSimdsX = (renderer.intermediateSize.x + 7) / 8
-      let numSimdsY = (renderer.intermediateSize.y + 3) / 4
-      totalSamples = numSimdsX * numSimdsY
-      
-      let sampleBufferBytes = numSimdsX * numSimdsY * 8
-      let sampleBuffer = device.makeBuffer(length: sampleBufferBytes)!
-      sampleBuffers.append(sampleBuffer)
-    }
   }
 }
 
@@ -154,8 +142,6 @@ extension MRAccelBuilder {
 extension MRAccelBuilder {
   func updateResources() {
     ringIndex = (ringIndex + 1) % 3
-    renderer.profiler.tracker.geometrySemaphores[ringIndex].wait()
-    renderer.profiler.tracker.renderSemaphores[ringIndex].wait()
     
     // Generate or fetch a buffer.
     let atomSize = MemoryLayout<MRAtom>.stride
@@ -288,11 +274,10 @@ extension MRAccelBuilder {
   }
   
   func buildDenseGrid(
-    encoder: MTLComputeCommandEncoder,
-    pipelineConfig: PipelineConfig
+    encoder: MTLComputeCommandEncoder
   ) {
-    let voxel_width_numer = pipelineConfig.voxelWidthNumer
-    let voxel_width_denom = pipelineConfig.voxelWidthDenom
+    let voxel_width_numer: Float = 4
+    let voxel_width_denom: Float = 16
     let statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
@@ -364,24 +349,10 @@ extension MRAccelBuilder {
       var cellSphereTest: UInt16
       var worldToVoxelTransform: Float
     }
-//    do {
-//      let p0 = globalCounterBuffer.contents() + ringIndex * 4
-//      let p02 = p0.assumingMemoryBound(to: UInt32.self)
-//      
-//      let pointer = globalCounter2Buffer.contents() + ringIndex * 4
-//      let pointer2 = pointer.assumingMemoryBound(to: UInt32.self)
-//      let denom = pipelineConfig.voxelWidthDenom
-//      let test = pipelineConfig.cellSphereTest
-//      
-//      let ratio = Double(p02.pointee) / Double(pointer2.pointee)
-//      let repr = String(format: "%.1f", ratio)
-//      print(
-//        "\(repr) - \(p02.pointee) - \(pointer2.pointee)")
-//    }
     
     var arguments: UniformGridArguments = .init(
       gridWidth: UInt16(gridWidth),
-      cellSphereTest: pipelineConfig.cellSphereTest ? 1 : 0,
+      cellSphereTest: 1,
       worldToVoxelTransform: voxel_width_denom / voxel_width_numer)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
@@ -413,45 +384,6 @@ extension MRAccelBuilder {
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  func addGeometryHandler(commandBuffer: MTLCommandBuffer) {
-    let ringIndex = self.ringIndex
-    
-    commandBuffer.addCompletedHandler { [self] commandBuffer in
-      let time = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-      renderer.profiler.tracker.queuedGeometryTimes[ringIndex] = time
-      renderer.profiler.tracker.geometrySemaphores[ringIndex].signal()
-    }
-  }
-  
-  func addRenderHandler(id: Int, commandBuffer: MTLCommandBuffer) {
-    let sampleBuffer = sampleBuffers[ringIndex]
-    let ringIndex = self.ringIndex
-    let totalSamples = self.totalSamples
-    
-    commandBuffer.addCompletedHandler { [self] commandBuffer in
-      let time = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-      renderer.profiler.tracker.queuedIDs[ringIndex] = id
-      renderer.profiler.tracker.queuedRenderTimes[ringIndex] = time
-      
-      let contents = sampleBuffer.contents()
-      let values = contents.assumingMemoryBound(to: Float.self)
-      let counts = values + totalSamples
-      
-      func sumBuffer(_ pointer: UnsafeMutablePointer<Float>) -> Float {
-        let buffer = UnsafeBufferPointer(start: pointer, count: totalSamples)
-        return vDSP.sum(buffer)
-      }
-      let valuesSum = sumBuffer(values)
-      let countsSum = sumBuffer(counts)
-      let radius = sqrt(valuesSum / countsSum)
-      renderer.profiler.tracker.queuedValues[ringIndex] = valuesSum
-      renderer.profiler.tracker.queuedCounts[ringIndex] = countsSum
-      renderer.profiler.tracker.queuedRmsAtomRadii[ringIndex] = radius
-      
-      renderer.profiler.tracker.renderSemaphores[ringIndex].signal()
-    }
-  }
-  
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
     precondition(gridWidth > 0, "Forgot to encode the grid construction.")
@@ -462,6 +394,5 @@ extension MRAccelBuilder {
     encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
     encoder.setBuffer(denseGridData!, offset: 0, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
-    encoder.setBuffer(sampleBuffers[ringIndex], offset: 0, index: 6)
   }
 }

@@ -69,13 +69,13 @@ public class MRRenderer {
   var time: MRTimeContext!
   var renderIndex: Int = 0
   var resetTracker: ResetTracker = .init()
-  var profiler: MRProfiler!
   
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
   var upscaler: MTLFXTemporalScaler?
+  var rayTracingPipeline: MTLComputePipelineState!
   var encodePipeline: MTLComputePipelineState!
   var decodePipeline: MTLComputePipelineState!
   
@@ -198,11 +198,11 @@ public class MRRenderer {
     
     let library = try! device.makeLibrary(URL: metallibURL)
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
-    self.profiler = MRProfiler(renderer: self, library: library)
     if !offline {
-      self.initUpscaler()
+      initUpscaler()
     }
-    self.initSerializer(library: library)
+    initRayTracer(library: library)
+    initSerializer(library: library)
   }
   
   func initUpscaler() {
@@ -236,6 +236,38 @@ public class MRRenderer {
     upscaler.motionVectorScaleX = 1
     upscaler.motionVectorScaleY = 1
     upscaler.isDepthReversed = true
+  }
+  
+  func initRayTracer(library: MTLLibrary) {
+    // Initialize resolution and aspect ratio for rendering.
+    let constants = MTLFunctionConstantValues()
+    
+    // Actual texture width.
+    var screenWidth: UInt32 = .init(intermediateSize.x)
+    constants.setConstantValue(&screenWidth, type: .uint, index: 0)
+    
+    // Actual texture height.
+    var screenHeight: UInt32 = .init(intermediateSize.y)
+    constants.setConstantValue(&screenHeight, type: .uint, index: 1)
+    
+    var offline: Bool = offline
+    constants.setConstantValue(&offline, type: .bool, index: 2)
+    
+    var numerator: Float = 4
+    constants.setConstantValue(&numerator, type: .float, index: 10)
+    
+    var denominator: Float = 16
+    constants.setConstantValue(&denominator, type: .float, index: 11)
+    
+    // Initialize the compute pipeline.
+    let function = try! library.makeFunction(
+      name: "renderAtoms", constantValues: constants)
+    
+    let desc = MTLComputePipelineDescriptor()
+    desc.computeFunction = function
+    desc.maxTotalThreadsPerThreadgroup = 1024
+    self.rayTracingPipeline = try! device.makeComputePipelineState(
+      descriptor: desc, options: [], reflection: nil)
   }
   
   func initSerializer(library: MTLLibrary) {
@@ -587,21 +619,18 @@ extension MRRenderer {
   private func render() -> MTLCommandBuffer {
     self.updateResources()
     self.accelBuilder.updateResources()
-    self.profiler.update(ringIndex: accelBuilder.ringIndex)
     
     var commandBuffer = commandQueue.makeCommandBuffer()!
     
     var encoder = commandBuffer.makeComputeCommandEncoder()!
-    let pipeline = profiler.currentPipeline()
-    accelBuilder.buildDenseGrid(encoder: encoder, pipelineConfig: pipeline)
+    accelBuilder.buildDenseGrid(encoder: encoder)
     encoder.endEncoding()
     
-    accelBuilder.addGeometryHandler(commandBuffer: commandBuffer)
     commandBuffer.commit()
     commandBuffer = commandQueue.makeCommandBuffer()!
     
     encoder = commandBuffer.makeComputeCommandEncoder()!
-    encoder.setComputePipelineState(pipeline.pipeline)
+    encoder.setComputePipelineState(rayTracingPipeline)
     accelBuilder.encodeGridArguments(encoder: encoder)
     accelBuilder.setGridWidth(arguments: &currentArguments!)
     
@@ -639,7 +668,6 @@ extension MRRenderer {
       encoder.setTextures(
         [textures.color, textures.depth!, textures.motion!], range: 0..<3)
     }
-
     
     // Dispatch an even number of threads (the shader will rearrange them).
     let numThreadgroupsX = (intermediateSize.x + 7) / 8
@@ -649,8 +677,6 @@ extension MRRenderer {
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
     encoder.endEncoding()
     
-    accelBuilder.addRenderHandler(
-      id: profiler.currentID(), commandBuffer: commandBuffer)
     return commandBuffer
   }
 }

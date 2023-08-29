@@ -25,7 +25,7 @@ kernel void renderAtoms
  device uint *dense_grid_data [[buffer(4)]],
  device REFERENCE *dense_grid_references [[buffer(5)]],
  
- device float *profiling_samples [[buffer(6)]],
+// device float3 *motion_vectors [[buffer(6)]],
  
  texture2d<half, access::write> color_texture [[texture(0)]],
  texture2d<float, access::write> depth_texture [[
@@ -55,16 +55,9 @@ kernel void renderAtoms
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayIntersector::traverse(ray, grid, params);
   
-  // Initialize the profiling sample.
-  half sampleValue = 0;
-  half sampleSize = 0;
-  
   // Calculate ambient occlusion, diffuse, and specular terms.
   auto colorCtx = ColorContext(args, styles, pixelCoords);
   if (intersect.accept) {
-    sampleValue = quad_max(float(intersect.atom.radiusSquared));
-    sampleSize = 1;
-    
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
     half3 normal = half3(normalize(hitPoint - intersect.atom.origin));
     colorCtx.setDiffuseColor(intersect.atom, normal);
@@ -87,16 +80,6 @@ kernel void renderAtoms
         IntersectionParams params { true, args->maxRayHitTime, false };
         auto intersect = RayIntersector::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);
-        
-        float atomRsq = 0;
-        if (intersect.accept) {
-          atomRsq = float(intersect.atom.radiusSquared);
-        }
-        atomRsq = quad_max(atomRsq);
-        if (atomRsq > 0) {
-          sampleValue += atomRsq;
-          sampleSize += 1;
-        }
       }
       colorCtx.finishAmbientContributions(samples);
     }
@@ -126,12 +109,6 @@ kernel void renderAtoms
       if (hitAtomRadiusSquared == 0) {
         colorCtx.addLightContribution(hitPoint, normal, light);
       }
-      
-      float atomRsq = quad_max(float(hitAtomRadiusSquared));
-      if (atomRsq > 0) {
-        sampleValue += atomRsq;
-        sampleSize += 1;
-      }
     }
     colorCtx.applyContributions();
     
@@ -144,22 +121,5 @@ kernel void renderAtoms
     colorCtx.write_offline(color_texture);
   } else {
     colorCtx.write(color_texture, depth_texture, motion_texture);
-    
-    // Store the profiling sample.
-    float2 sample(sampleValue, sampleSize);
-    sample += simd_shuffle_xor(sample, 4);
-    sample += simd_shuffle_xor(sample, 8);
-    sample += simd_shuffle_xor(sample, 16);
-    
-    if (simd_is_first()) {
-      ushort2 coords = pixelCoords / ushort2(8, 4);
-      ushort sampleRows = (SCREEN_WIDTH + 7) / 8;
-      ushort sampleCols = (SCREEN_HEIGHT + 3) / 4;
-      uint valueIndex = uint(coords.y * sampleRows) + coords.x;
-      profiling_samples[valueIndex] = sample[0];
-      
-      uint countIndex = valueIndex + uint(sampleRows * sampleCols);
-      profiling_samples[countIndex] = sample[1];
-    }
   }
 }
