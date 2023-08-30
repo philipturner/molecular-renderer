@@ -25,7 +25,7 @@ kernel void renderAtoms
  device uint *dense_grid_data [[buffer(4)]],
  device REFERENCE *dense_grid_references [[buffer(5)]],
  
-// device float3 *motion_vectors [[buffer(6)]],
+ device float3 *motion_vectors [[buffer(6)]],
  
  texture2d<half, access::write> color_texture [[texture(0)]],
  texture2d<float, access::write> depth_texture [[
@@ -115,7 +115,8 @@ kernel void renderAtoms
     // Write the depth as the intersection point's Z coordinate.
     float depth = ray.direction.z * intersect.distance;
     colorCtx.setDepth(depth);
-    colorCtx.generateMotionVector(hitPoint);
+    float3 motionVector = motion_vectors[intersect.reference];
+    colorCtx.generateMotionVector(hitPoint - motionVector);
   }
   if (OFFLINE) {
     colorCtx.write_offline(color_texture);

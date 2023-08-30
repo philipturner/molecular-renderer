@@ -186,7 +186,8 @@ extension Renderer {
     renderingEngine.setGeometry(
       time: animationTime,
       atomProvider: &atomProvider,
-      styleProvider: styleProvider)
+      styleProvider: styleProvider,
+      useMotionVectors: animationTime.absolute.frames > 0)
     
     var _position = position
     var _rotation = rotation

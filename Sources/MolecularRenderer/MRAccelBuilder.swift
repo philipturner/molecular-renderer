@@ -16,9 +16,11 @@ class MRAccelBuilder {
   unowned var renderer: MRRenderer
   var atoms: [MRAtom] = []
   var styles: [MRAtomStyle] = []
+  var motionVectors: [SIMD3<Float>] = []
   
   // Triple-buffer because the CPU accesses these.
-  var atomBuffers: [MTLBuffer?] = [nil, nil, nil]
+//  var atomBuffers: [MTLBuffer?] = [nil, nil, nil]
+  var motionVectorBuffers: [MTLBuffer?] = [nil, nil, nil]
   var totalSamples: Int = 0
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
   
@@ -37,7 +39,7 @@ class MRAccelBuilder {
   var densePass3Pipeline: MTLComputePipelineState
   
   // Keep track of memory sizes for exponential expansion.
-  var maxAtomBufferSize: Int = 1 << 10
+  var maxAtomBufferSize: Int = 1 << 1
   var maxAtoms: Int = 1 << 1
   var maxGridSlots: Int = 1 << 1
   var maxGridCells: Int = 1 << 1
@@ -147,18 +149,35 @@ extension MRAccelBuilder {
     let atomSize = MemoryLayout<MRAtom>.stride
     let atomBufferSize = atoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
-    let atomBuffer = cycle(
-      from: &atomBuffers,
+//    let atomBuffer = cycle(
+//      from: &atomBuffers,
+//      index: ringIndex,
+//      currentSize: &maxAtomBufferSize,
+//      desiredSize: atomBufferSize,
+//      name: "Atoms")
+    
+    let motionVectorSize = MemoryLayout<SIMD3<Float>>.stride
+    let motionVectorBufferSize = motionVectors.count * motionVectorSize
+    precondition(motionVectorSize == 16, "Unexpected motion vector size.")
+    let motionVectorBuffer = cycle(
+      from: &motionVectorBuffers,
       index: ringIndex,
       currentSize: &maxAtomBufferSize,
-      desiredSize: atomBufferSize,
-      name: "Atoms")
+      desiredSize: motionVectorBufferSize,
+      name: "MotionVectors")
     
-    // Write the buffer's contents.
-    let atomsPointer = atomBuffer.contents()
-      .assumingMemoryBound(to: MRAtom.self)
-    for (index, atom) in atoms.enumerated() {
-      atomsPointer[index] = atom
+    // Write the atom buffer's contents.
+//    let atomsPointer = atomBuffer.contents()
+//      .assumingMemoryBound(to: MRAtom.self)
+//    for (index, atom) in atoms.enumerated() {
+//      atomsPointer[index] = atom
+//    }
+    
+    // Write the motion vector buffer's contents.
+    let motionVectorsPointer = motionVectorBuffer.contents()
+      .assumingMemoryBound(to: SIMD3<Float>.self)
+    for (index, motionVector) in motionVectors.enumerated() {
+      motionVectorsPointer[index] = motionVector
     }
   }
 }
@@ -394,5 +413,6 @@ extension MRAccelBuilder {
     encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
     encoder.setBuffer(denseGridData!, offset: 0, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
+    encoder.setBuffer(motionVectorBuffers[ringIndex]!, offset: 0, index: 6)
   }
 }

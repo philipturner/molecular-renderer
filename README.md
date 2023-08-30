@@ -32,6 +32,14 @@ An ergonomic wrapper around the C API, for using OpenMM in Swift code.
 
 A high-performance 3D video codec for recording and replaying molecular simulations. This scales well into the thousand-atom range, becoming resource-intensive at the million-atom range.
 
+### MMForcefield
+
+TODO
+
+### Hardware Description Language
+
+A prototypical domain-specific language for specifying nanomechanical parts. Accompanied by a catalogue of parts for building larger systems.
+
 ## Requirements
 
 Dependencies:

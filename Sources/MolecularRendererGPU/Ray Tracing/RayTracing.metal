@@ -26,6 +26,7 @@ struct IntersectionResult {
   float distance;
   bool accept;
   MRAtom atom;
+  uint reference;
 };
 
 struct IntersectionParams {
@@ -132,6 +133,7 @@ public:
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
       out.atom = MRAtom(grid.atoms + result.atom);
+      out.reference = result.atom;
     }
     return out;
   }

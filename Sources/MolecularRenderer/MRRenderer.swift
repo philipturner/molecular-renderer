@@ -365,7 +365,8 @@ extension MRRenderer {
   public func setGeometry(
     time: MRTimeContext,
     atomProvider: inout MRAtomProvider,
-    styleProvider: MRAtomStyleProvider
+    styleProvider: MRAtomStyleProvider,
+    useMotionVectors: Bool
   ) {
     var atoms = atomProvider.atoms(time: time)
     let styles = styleProvider.styles
@@ -383,6 +384,19 @@ extension MRRenderer {
         atoms[i].radiusSquared = radius * radius
         atoms[i].flags = 0x1 | 0x2
       }
+    }
+    
+    if useMotionVectors {
+      guard accelBuilder.atoms.count == atoms.count else {
+        fatalError(
+          "Used motion vectors when last frame had different atom count.")
+      }
+      
+      accelBuilder.motionVectors = (0..<atoms.count).map { i -> SIMD3<Float> in
+        atoms[i].origin - accelBuilder.atoms[i].origin
+      }
+    } else {
+      accelBuilder.motionVectors = Array(repeating: .zero, count: atoms.count)
     }
     
     self.time = time

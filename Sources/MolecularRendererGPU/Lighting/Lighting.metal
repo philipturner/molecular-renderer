@@ -216,9 +216,6 @@ public:
              texture2d<float, access::write> depthTexture,
              texture2d<half, access::write> motionTexture)
   {
-    // Debugging motion vectors.
-//    color = mix(half3(1, 0, 0), half3(0, 0, 1), length(motionVector) / 3);
-    
     // Write the output color.
     half4 writtenColor(color, 1);
     colorTexture.write(writtenColor, pixelCoords);
