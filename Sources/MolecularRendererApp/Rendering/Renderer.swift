@@ -13,7 +13,7 @@ import MolecularRenderer
 import OpenMM
 import simd
 
-import Hardware
+import HardwareCatalog
 import HDL
 
 class Renderer {

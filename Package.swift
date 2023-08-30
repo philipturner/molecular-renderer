@@ -13,8 +13,8 @@ let package = Package(
       name: "COpenMM",
       targets: ["COpenMM"]),
     .library(
-      name: "Hardware",
-      targets: ["Hardware"]),
+      name: "HardwareCatalog",
+      targets: ["HardwareCatalog"]),
     .library(
       name: "HDL",
       targets: ["HDL"]),
@@ -33,7 +33,7 @@ let package = Package(
       name: "COpenMM",
       dependencies: []),
     .target(
-      name: "Hardware",
+      name: "HardwareCatalog",
       dependencies: ["HDL"]),
     .target(
       name: "HDL",
