@@ -11,7 +11,7 @@ Molecular Renderer is a platform for the author to conduct [computational nanote
 
 ### MolecularRenderer Library
 
-A C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into traditional CAD applications.
+C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into traditional CAD applications.
 
 ### MolecularRenderer App
 
@@ -26,19 +26,19 @@ module OpenMM {
 
 ### OpenMM Swift Bindings
 
-An ergonomic wrapper around the C API, for using OpenMM in Swift code.
+Ergonomic wrapper around the OpenMM C API, for using OpenMM in Swift code.
 
 ### MRSimulation Codec
 
-A high-performance 3D video codec for recording and replaying molecular simulations. This scales well into the thousand-atom range, becoming resource-intensive at the million-atom range.
+High-performance 3D video codec for recording and replaying molecular simulations. This scales well into the thousand-atom range, becoming resource-intensive at the million-atom range.
 
-### MMForcefield
+### MM4
 
-TODO
+Force field combining parameters from the MM family, which includes MM3, MMFF, and MM4.
 
 ### Hardware Description Language
 
-A prototypical domain-specific language for specifying nanomechanical parts. Accompanied by a catalogue of parts for building larger systems.
+Prototypical domain-specific language for specifying nanomechanical parts. Accompanied by a catalogue of parts for building larger systems.
 
 ## Requirements
 
