@@ -42,7 +42,7 @@ Planned Features:
   - Similar to Nanocut, but allows irregular, sophisticated geometric shapes. The design process is similar to editing blocks in Minecraft, except the blocks are crystal unit cells.
   - My codebase doesn’t include UI-based editing, but connecting it with atomCAD may change that.
 
-About Swift
+About Swift:
   - Swift was built by Apple, and the most popular Swift APIs are Apple-specific
   - That does not mean Swift cannot run on other platforms (Linux was a first, then Windows and Android, now WASM)
   - MolecularRenderer can become one of the Swift APIs that are cross-platform.
