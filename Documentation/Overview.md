@@ -20,7 +20,7 @@ Current Features:
 
 Planned Features:
 - Written in Swift, but exporting C symbols. These can be used in other languages, such as by the Python `ctypes` library
-  - All software uses C symbols under the hood, even C++ and Rust. These are what makes up dynamic libraries (`.dylib` or `.dll`).
+  - All software uses C symbols under the hood, even C++ and Rust. These are what make up dynamic libraries (`.dylib` or `.dll`).
 - Rewritten molecular dynamics simulator
   - Combines MM3, MM4, MMFF parameters
   - C-H, C-C, C-Si, Si-Si, C-Ge, Ge-Ge, C-N, N-N, C-Cl bonds
