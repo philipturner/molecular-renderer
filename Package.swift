@@ -15,6 +15,9 @@ var products: [Product] = [
     name: "HDL",
     targets: ["HDL"]),
   .library(
+    name: "MM4",
+    targets: ["MM4"]),
+  .library(
     name: "OpenMM",
     targets: ["OpenMM"]),
 ]
@@ -28,6 +31,9 @@ var targets: [Target] = [
   .target(
     name: "HDL",
     dependencies: []),
+  .target(
+    name: "MM4",
+    dependencies: [.product(name: "QuaternionModule", package: "swift-numerics"), "OpenMM"]),
   .target(
     name: "OpenMM",
     dependencies: ["COpenMM"]),
@@ -53,6 +59,8 @@ let package = Package(
   name: "MolecularRenderer",
   platforms: platforms,
   products: products,
-  dependencies: [],
+  dependencies: [
+    .package(url: "https://github.com/apple/swift-numerics", branch: "Quaternions"),
+  ],
   targets: targets
 )

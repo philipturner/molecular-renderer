@@ -15,7 +15,7 @@ struct OctaneReference {
     var diamondoid = figure.a
     diamondoid.translate(offset: -diamondoid.createCenterOfMass())
     
-    let simulator = MM4(diamondoid: diamondoid, fsPerFrame: 4)
+    let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 4)
     simulator.simulate(ps: 10) // 100
     self.provider = simulator.provider
   }

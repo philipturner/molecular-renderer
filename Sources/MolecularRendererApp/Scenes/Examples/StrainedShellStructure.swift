@@ -31,7 +31,7 @@ extension ExampleProviders {
     diamondoid.translate(offset: -diamondoid.createCenterOfMass())
     diamondoid.rotate(angle: simd_quatf(angle: .pi / 2, axis: [1, 0, 0]))
     
-    var simulation = MM4(diamondoid: diamondoid, fsPerFrame: 20)
+    var simulation = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
     let ranges = simulation.rigidBodies
     let state = simulation.context.state(types: [.positions, .velocities])
     let statePositions = state.positions
@@ -65,7 +65,7 @@ extension ExampleProviders {
       velocity: SIMD3(1, 0, 0))
     
     // Also run for 10 nanoseconds
-//    simulation = MM4(diamondoids: rigidBodies, fsPerFrame: 2000) // 0.5 -> 2 ps
+//    simulation = _Old_MM4(diamondoids: rigidBodies, fsPerFrame: 2000) // 0.5 -> 2 ps
 //    simulation.simulate(ps: 5000) // 1 ns -> 5 ns
     
     //    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)

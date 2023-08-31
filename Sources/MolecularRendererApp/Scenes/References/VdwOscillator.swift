@@ -545,7 +545,7 @@ struct VdwOscillator {
     
     // Doing another trial run at 250 ps / 500 fs, with testing how the spinning
     // orbit will look, and testing the graphs. Then go for the full 1 ns.
-    let simulator = MM4(
+    let simulator = _Old_MM4(
       diamondoids: allDiamondoids, fsPerFrame: 500) // 200
     simulator.simulate(ps: 1000, trackingState: true) // 150
     provider = simulator.provider

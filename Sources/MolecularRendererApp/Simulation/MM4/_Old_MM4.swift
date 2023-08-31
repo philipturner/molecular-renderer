@@ -44,7 +44,7 @@ import QuartzCore
 // Don't give any special treatment to cyclobutane and cyclopentane carbons.
 // Instead, restrict designs to only those based on a diamond lattice.
 
-class MM4 {
+class _Old_MM4 {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
   var context: OpenMM_Context
@@ -1187,7 +1187,7 @@ class MM4 {
       var velocities: [SIMD3<Float>] = []
       var speeds: [Float] = []
       
-      init(time: Float, simulation: MM4, state: OpenMM_State) {
+      init(time: Float, simulation: _Old_MM4, state: OpenMM_State) {
         self.time = time
         let statePositions = state.positions
         let stateVelocities = state.velocities

@@ -912,7 +912,7 @@ struct Diamondoid {
     diamondoid.linearVelocity = nil
     diamondoid.angularVelocity = nil
     
-    let simulator = MM4(
+    let simulator = _Old_MM4(
       diamondoid: diamondoid, fsPerFrame: 100)
     let emptyVelocities: [SIMD3<Float>] = Array(
       repeating: .zero, count: diamondoid.atoms.count)
@@ -935,7 +935,7 @@ struct Diamondoid {
   }
   
   // Center of mass using HMR.
-  // WARNING: The amount of repartitioned mass must stay in sync with MM4.
+  // WARNING: The amount of repartitioned mass must stay in sync with _Old_MM4.
   func createCenterOfMass() -> SIMD3<Float> {
     var masses = atoms.map { atom -> Float in
       switch atom.element {

@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Atomics
 import KeyCodes
 import Metal
 import MolecularRenderer
@@ -15,6 +14,7 @@ import simd
 
 import HardwareCatalog
 import HDL
+import MM4
 
 class Renderer {
   unowned let coordinator: Coordinator
