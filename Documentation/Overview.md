@@ -41,9 +41,9 @@ Planned Features:
   - Concept: carving out planes from a diamond or lonsdaleite lattice, constructive solid geometry
   - Similar to Nanocut, but allows irregular, sophisticated geometric shapes. The design process is similar to editing blocks in Minecraft, except the blocks are crystal unit cells.
   - My codebase doesn’t include UI-based editing, but connecting it with atomCAD may change that.
-  
+
 About Swift
   - Swift was built by Apple, and the most popular Swift APIs are Apple-specific
   - That does not mean Swift cannot run on other platforms (Linux was a first, then Windows and Android, now WASM)
   - MolecularRenderer can become one of the Swift APIs that are cross-platform.
-  - A similar argument could be made about C# being Windows-only, except some C# frameworks (Unity Engine) are cross-platform.
+  - A similar argument could be made that C# is Windows-only, except some C# frameworks (Unity Engine) are cross-platform.
