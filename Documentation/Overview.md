@@ -1,6 +1,7 @@
 # Overview
 
 Current Features:
+- Written in Swift, with no C symbols exported
 - Low-power ray traced renderer built on Apple’s Metal API
 - GPU-accelerated molecular dynamics with OpenMM
   - Only C-H and C-C bonds
