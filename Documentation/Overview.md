@@ -28,7 +28,9 @@ Planned Features:
   - Not yet figured out a way to support sp2 bonds, but that is being considered
   - Allows atoms to be held in place or external forces to act on them
 - Surface reconstruction/modification through energy minimization
-  - Process also used for Si and N-termination
+  - Allows atoms not perfecty aligned to the diamond or lonsdaleite lattice
+  - Process also used for Si- and N-termination
+  - Used to design and index Kaehler brackets
 - Highly efficient density functional theory code for simulating mechanosynthesis (ab initio MD)
   - More accurate than ReaxFF
   - More detailed explanation: https://github.com/philipturner/density-functional-theory
