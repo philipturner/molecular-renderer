@@ -11,7 +11,7 @@ Current Features:
 - Minecraft-based UI for moving around in an interactive simulation
   - Built heavily on Apple-specific APIs
 - Exporting animations to GIF for conversion to MP4 in [Shotcut](https://shotcut.org/)
-  - Room for improvement: integration with Blender, or exporting to other code bases for proper animation
+  - Room for improvement: integration with Blender, or interfacing with other code bases for direct MP4 conversion
 - PDB and MMP parser
 - `MRSimulation` codec for efficiently serializing molecular dynamics trajectories
 - `Diamondoid` API that automatically forms sp3 bonds from a group of carbon nucleus positions
