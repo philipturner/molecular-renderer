@@ -46,4 +46,4 @@ Planned Features:
   - Swift was built by Apple, and the most popular Swift APIs are Apple-specific
   - That does not mean Swift cannot run on other platforms (Linux was a first, then Windows and Android, now WASM)
   - MolecularRenderer can become one of the Swift APIs that are cross-platform.
-  - A similar argument could be made about C# being Windows-only, except some C# frameworks are cross-platform.
+  - A similar argument could be made about C# being Windows-only, except some C# frameworks (Unity Engine) are cross-platform.
