@@ -13,13 +13,14 @@ Current Features:
 - Exporting animations to GIF for conversion to MP4 in [Shotcut](https://shotcut.org/)
   - Room for improvement: integration with Blender, or exporting to other code bases for proper animation
 - PDB and MMP parser
-- MRSimulation codec for efficiently serializing molecular dynamics trajectories
-- ‘Diamondoid’ API that automatically forms sp3 bonds from a group of carbon nucleus positions
+- `MRSimulation` codec for efficiently serializing molecular dynamics trajectories
+- `Diamondoid` API that automatically forms sp3 bonds from a group of carbon nucleus positions
   - Performs rotations and assigns bulk velocities to rigid bodies
-  - API will be replaced with 'HDL' geometry compiler
+  - API will be replaced with `HDL` geometry compiler
 
 Planned Features:
-- Written in Swift, but exporting C symbols. These can be used for other languages, such as by the Python ‘ctypes’ library
+- Written in Swift, but exporting C symbols. These can be used in other languages, such as by the Python `ctypes` library
+  - All software uses C symbols under the hood, even C++ and Rust. These are what makes up dynamic libraries (`.dylib` or `.dll`).
 - Rewritten molecular dynamics simulator
   - Combines MM3, MM4, MMFF parameters
   - C-H, C-C, C-Si, Si-Si, C-Ge, Ge-Ge, C-N, N-N, C-Cl bonds
@@ -30,6 +31,7 @@ Planned Features:
 - Highly efficient density functional theory code for simulating mechanosynthesis (ab initio MD)
   - More accurate than ReaxFF
   - More detailed explanation: https://github.com/philipturner/density-functional-theory
+  - Eventually, GFN-xTB or GFN-FF for timesteps where a reaction does not occur
 - Electron probability density renderer, looking like [this](https://en.wikipedia.org/wiki/Atomic_orbital#/media/File:Atomic-orbital-clouds_spdf_m0.png).
   - Very likely this can be written in OpenCL for non-Apple platforms with little effort, unlike the ray tracer
 - Domain-specific language for designing crystolecules. 
