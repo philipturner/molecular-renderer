@@ -210,6 +210,7 @@
 		98610EAB2A9D7BF0006FAF95 /* HDL_Prototype_VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDL_Prototype_VdwOscillator.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		98610EEB2AA0204A006FAF95 /* MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4.swift; sourceTree = "<group>"; };
+		98610F072AA0CD6A006FAF95 /* Overview.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Overview.md; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
@@ -468,9 +469,18 @@
 			path = MM4;
 			sourceTree = "<group>";
 		};
+		98610F062AA0CD56006FAF95 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				98610F072AA0CD6A006FAF95 /* Overview.md */,
+			);
+			path = Documentation;
+			sourceTree = "<group>";
+		};
 		9898381929A6C08F00B4AA98 = {
 			isa = PBXGroup;
 			children = (
+				98610F062AA0CD56006FAF95 /* Documentation */,
 				9852E88229EB8CFA00D0E779 /* README.md */,
 				98F638972A349EDA00F51E95 /* Package.swift */,
 				9898382429A6C08F00B4AA98 /* Sources */,
