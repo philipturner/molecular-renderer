@@ -34,4 +34,5 @@ Planned Features:
   - Very likely this can be written in OpenCL for non-Apple platforms with little effort, unlike the ray tracer
 - Domain-specific language for designing crystolecules. 
   - Concept: carving out planes from a diamond or lonsdaleite lattice, constructive solid geometry
+  - Similar to Nanocut, but allows irregular, sophisticated geometric shapes. The design process is similar to editing blocks in Minecraft, except the blocks are crystal unit cells.
   - My codebase doesn’t include UI-based editing, but connecting it with atomCAD may change that.
