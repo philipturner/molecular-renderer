@@ -83,6 +83,24 @@
 		98610F102AA21442006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F0F2AA21442006FAF95 /* HDL */; };
 		98610F192AA214D7006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F182AA214D7006FAF95 /* HDL */; };
 		98610F1E2AA2188E006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F1D2AA2188E006FAF95 /* HDL */; };
+		98610F242AA2434B006FAF95 /* COpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F232AA2434B006FAF95 /* COpenMM */; };
+		98610F262AA2434B006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F252AA2434B006FAF95 /* HDL */; };
+		98610F282AA2434B006FAF95 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F272AA2434B006FAF95 /* HardwareCatalog */; };
+		98610F2C2AA2434B006FAF95 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F2B2AA2434B006FAF95 /* MM4 */; };
+		98610F2E2AA2434B006FAF95 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F2D2AA2434B006FAF95 /* MolecularRenderer */; };
+		98610F302AA2434B006FAF95 /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F2F2AA2434B006FAF95 /* OpenMM */; };
+		98610F352AA245D7006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F342AA245D7006FAF95 /* HDL */; };
+		98610F372AA245D7006FAF95 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F362AA245D7006FAF95 /* HardwareCatalog */; };
+		98610F3C2AA24698006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F3B2AA24698006FAF95 /* HDL */; };
+		98610F3E2AA24698006FAF95 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F3D2AA24698006FAF95 /* HardwareCatalog */; };
+		98610F512AA250BA006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F502AA250BA006FAF95 /* HDL */; };
+		98610F532AA250BA006FAF95 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F522AA250BA006FAF95 /* HardwareCatalog */; };
+		98610F552AA250BA006FAF95 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F542AA250BA006FAF95 /* MM4 */; };
+		98610F572AA250BA006FAF95 /* Shapes in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F562AA250BA006FAF95 /* Shapes */; };
+		98610F792AA28FD5006FAF95 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F782AA28FD5006FAF95 /* HDL */; };
+		98610F7B2AA28FD5006FAF95 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F7A2AA28FD5006FAF95 /* HardwareCatalog */; };
+		98610F7D2AA28FD5006FAF95 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F7C2AA28FD5006FAF95 /* MM4 */; };
+		98610F7F2AA28FD5006FAF95 /* Shapes in Frameworks */ = {isa = PBXBuildFile; productRef = 98610F7E2AA28FD5006FAF95 /* Shapes */; };
 		986348F82A73310F0053E714 /* Amplifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986348F72A73310F0053E714 /* Amplifier.swift */; };
 		986348FB2A735AD70053E714 /* COpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 986348FA2A735AD70053E714 /* COpenMM */; };
 		986348FF2A735AD70053E714 /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 986348FE2A735AD70053E714 /* OpenMM */; };
@@ -209,16 +227,25 @@
 		985832A22A9946CA00D9E6A5 /* RenderElectrons.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderElectrons.metal; sourceTree = "<group>"; };
 		985832A42A9970D500D9E6A5 /* ElectronGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ElectronGrid.metal; sourceTree = "<group>"; };
 		985C92A62A955CA9008629C0 /* StrainedShellStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainedShellStructure.swift; sourceTree = "<group>"; };
-		98610EAB2A9D7BF0006FAF95 /* HDL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HDL.swift; sourceTree = "<group>"; };
+		98610EAB2A9D7BF0006FAF95 /* Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compiler.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		98610EEB2AA0204A006FAF95 /* MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4.swift; sourceTree = "<group>"; };
 		98610F072AA0CD6A006FAF95 /* Overview.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Overview.md; sourceTree = "<group>"; };
-		98610F0B2AA213FA006FAF95 /* Scope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scope.swift; sourceTree = "<group>"; };
-		98610F0C2AA21401006FAF95 /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
-		98610F0D2AA2140A006FAF95 /* SolidGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolidGenerator.swift; sourceTree = "<group>"; };
-		98610F122AA2147A006FAF95 /* DestructiveTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestructiveTransform.swift; sourceTree = "<group>"; };
-		98610F142AA21483006FAF95 /* ConstructiveTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructiveTransform.swift; sourceTree = "<group>"; };
+		98610F0C2AA21401006FAF95 /* Affine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Affine.swift; sourceTree = "<group>"; };
 		98610F1A2AA21871006FAF95 /* Axis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Axis.swift; sourceTree = "<group>"; };
+		98610F322AA24533006FAF95 /* Lattice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lattice.swift; sourceTree = "<group>"; };
+		98610F462AA24C69006FAF95 /* Basis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basis.swift; sourceTree = "<group>"; };
+		98610F4D2AA24F10006FAF95 /* Volume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Volume.swift; sourceTree = "<group>"; };
+		98610F5A2AA25597006FAF95 /* Parts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parts.swift; sourceTree = "<group>"; };
+		98610F5C2AA256E7006FAF95 /* PlanePair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanePair.swift; sourceTree = "<group>"; };
+		98610F632AA2662C006FAF95 /* Origin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Origin.swift; sourceTree = "<group>"; };
+		98610F652AA27621006FAF95 /* Solid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solid.swift; sourceTree = "<group>"; };
+		98610F672AA28AC3006FAF95 /* Cuboid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cuboid.swift; sourceTree = "<group>"; };
+		98610F692AA28B1B006FAF95 /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
+		98610F6C2AA28E94006FAF95 /* Fill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fill.swift; sourceTree = "<group>"; };
+		98610F6E2AA28E99006FAF95 /* Cut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cut.swift; sourceTree = "<group>"; };
+		98610F702AA28E9E006FAF95 /* Replace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Replace.swift; sourceTree = "<group>"; };
+		98610F722AA28EA6006FAF95 /* Passivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Passivate.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
@@ -285,15 +312,23 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98610F7F2AA28FD5006FAF95 /* Shapes in Frameworks */,
+				98610F3E2AA24698006FAF95 /* HardwareCatalog in Frameworks */,
+				98610F532AA250BA006FAF95 /* HardwareCatalog in Frameworks */,
 				98610ED22A9ED423006FAF95 /* OpenMM in Frameworks */,
+				98610F792AA28FD5006FAF95 /* HDL in Frameworks */,
 				98610EFF2AA0219E006FAF95 /* GIF in Frameworks */,
 				98610F052AA022F1006FAF95 /* MM4 in Frameworks */,
+				98610F372AA245D7006FAF95 /* HardwareCatalog in Frameworks */,
 				98610F022AA021D6006FAF95 /* Atomics in Frameworks */,
 				98610EC72A9EBD30006FAF95 /* OpenMM in Frameworks */,
 				98610F1E2AA2188E006FAF95 /* HDL in Frameworks */,
 				98610EBF2A9EBD30006FAF95 /* COpenMM in Frameworks */,
 				98A000692A622677002E8907 /* OpenMM in Frameworks */,
+				98610F2C2AA2434B006FAF95 /* MM4 in Frameworks */,
+				98610F302AA2434B006FAF95 /* OpenMM in Frameworks */,
 				98610EF92AA0207D006FAF95 /* OpenMM in Frameworks */,
+				98610F7B2AA28FD5006FAF95 /* HardwareCatalog in Frameworks */,
 				98610EE42A9F581F006FAF95 /* HardwareCatalog in Frameworks */,
 				98610F192AA214D7006FAF95 /* HDL in Frameworks */,
 				98610ED92A9F57B2006FAF95 /* HardwareCatalog in Frameworks */,
@@ -302,12 +337,17 @@
 				98C48C592A48F7510047C078 /* libOpenMM.8.0.dylib in Frameworks */,
 				98610EB42A9D7E84006FAF95 /* COpenMM in Frameworks */,
 				98610ECE2A9ED423006FAF95 /* HardwareCatalog in Frameworks */,
+				98610F572AA250BA006FAF95 /* Shapes in Frameworks */,
 				98610EEF2AA0207D006FAF95 /* COpenMM in Frameworks */,
 				98610EF12AA0207D006FAF95 /* HDL in Frameworks */,
+				98610F2E2AA2434B006FAF95 /* MolecularRenderer in Frameworks */,
 				98B3E4F72A3F700400B02349 /* libc++.1.dylib in Frameworks */,
+				98610F352AA245D7006FAF95 /* HDL in Frameworks */,
 				98F2F5DB2A608F70006216F4 /* OpenMM in Frameworks */,
 				986348FB2A735AD70053E714 /* COpenMM in Frameworks */,
+				98610F242AA2434B006FAF95 /* COpenMM in Frameworks */,
 				98610EE22A9F581F006FAF95 /* HDL in Frameworks */,
+				98610F282AA2434B006FAF95 /* HardwareCatalog in Frameworks */,
 				98610EFC2AA0218C006FAF95 /* KeyCodes in Frameworks */,
 				98610ECA2A9ED423006FAF95 /* COpenMM in Frameworks */,
 				98610EE82A9F581F006FAF95 /* OpenMM in Frameworks */,
@@ -320,12 +360,17 @@
 				98610EE02A9F581F006FAF95 /* COpenMM in Frameworks */,
 				98610EF72AA0207D006FAF95 /* MolecularRenderer in Frameworks */,
 				98610F102AA21442006FAF95 /* HDL in Frameworks */,
+				98610F262AA2434B006FAF95 /* HDL in Frameworks */,
 				9802CB342A71BD6E004AFD03 /* COpenMM in Frameworks */,
+				98610F512AA250BA006FAF95 /* HDL in Frameworks */,
+				98610F3C2AA24698006FAF95 /* HDL in Frameworks */,
 				98610EF32AA0207D006FAF95 /* HardwareCatalog in Frameworks */,
+				98610F552AA250BA006FAF95 /* MM4 in Frameworks */,
 				98610ECC2A9ED423006FAF95 /* HDL in Frameworks */,
 				98A4A5782A81A65E00A74F87 /* libfreetype.6.dylib in Frameworks */,
 				98610EBC2A9D7E84006FAF95 /* OpenMM in Frameworks */,
 				98F2F5D72A608F70006216F4 /* COpenMM in Frameworks */,
+				98610F7D2AA28FD5006FAF95 /* MM4 in Frameworks */,
 				98A000652A622677002E8907 /* COpenMM in Frameworks */,
 				98325C672A6D7BA300A4D7BB /* COpenMM in Frameworks */,
 			);
@@ -458,11 +503,11 @@
 		98610EAE2A9D7D17006FAF95 /* HDL */ = {
 			isa = PBXGroup;
 			children = (
-				98610F1A2AA21871006FAF95 /* Axis.swift */,
-				98610EAB2A9D7BF0006FAF95 /* HDL.swift */,
-				98610F0B2AA213FA006FAF95 /* Scope.swift */,
-				98610F0D2AA2140A006FAF95 /* SolidGenerator.swift */,
-				98610F112AA2146F006FAF95 /* Transforms */,
+				98610F762AA28F43006FAF95 /* Bulk */,
+				98610F5B2AA255CE006FAF95 /* Compiler */,
+				98610F622AA2661C006FAF95 /* Coordinates */,
+				98610F6B2AA28E8B006FAF95 /* Editing */,
+				98610F752AA28F33006FAF95 /* Transforms */,
 			);
 			path = HDL;
 			sourceTree = "<group>";
@@ -470,7 +515,8 @@
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
 			isa = PBXGroup;
 			children = (
-				98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */,
+				98610F592AA2558A006FAF95 /* Parts */,
+				98610F582AA25584006FAF95 /* Assemblies */,
 			);
 			path = HardwareCatalog;
 			sourceTree = "<group>";
@@ -491,14 +537,77 @@
 			path = Documentation;
 			sourceTree = "<group>";
 		};
-		98610F112AA2146F006FAF95 /* Transforms */ = {
+		98610F1F2AA241FB006FAF95 /* Shapes */ = {
 			isa = PBXGroup;
 			children = (
-				98610F0C2AA21401006FAF95 /* Transform.swift */,
-				98610F142AA21483006FAF95 /* ConstructiveTransform.swift */,
-				98610F122AA2147A006FAF95 /* DestructiveTransform.swift */,
+				98610F672AA28AC3006FAF95 /* Cuboid.swift */,
+				98610F5C2AA256E7006FAF95 /* PlanePair.swift */,
+			);
+			path = Shapes;
+			sourceTree = "<group>";
+		};
+		98610F582AA25584006FAF95 /* Assemblies */ = {
+			isa = PBXGroup;
+			children = (
+				98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */,
+			);
+			path = Assemblies;
+			sourceTree = "<group>";
+		};
+		98610F592AA2558A006FAF95 /* Parts */ = {
+			isa = PBXGroup;
+			children = (
+				98610F5A2AA25597006FAF95 /* Parts.swift */,
+			);
+			path = Parts;
+			sourceTree = "<group>";
+		};
+		98610F5B2AA255CE006FAF95 /* Compiler */ = {
+			isa = PBXGroup;
+			children = (
+				98610EAB2A9D7BF0006FAF95 /* Compiler.swift */,
+			);
+			path = Compiler;
+			sourceTree = "<group>";
+		};
+		98610F622AA2661C006FAF95 /* Coordinates */ = {
+			isa = PBXGroup;
+			children = (
+				98610F1A2AA21871006FAF95 /* Axis.swift */,
+				98610F462AA24C69006FAF95 /* Basis.swift */,
+				98610F632AA2662C006FAF95 /* Origin.swift */,
+			);
+			path = Coordinates;
+			sourceTree = "<group>";
+		};
+		98610F6B2AA28E8B006FAF95 /* Editing */ = {
+			isa = PBXGroup;
+			children = (
+				98610F6E2AA28E99006FAF95 /* Cut.swift */,
+				98610F6C2AA28E94006FAF95 /* Fill.swift */,
+				98610F702AA28E9E006FAF95 /* Replace.swift */,
+				98610F722AA28EA6006FAF95 /* Passivate.swift */,
+			);
+			path = Editing;
+			sourceTree = "<group>";
+		};
+		98610F752AA28F33006FAF95 /* Transforms */ = {
+			isa = PBXGroup;
+			children = (
+				98610F0C2AA21401006FAF95 /* Affine.swift */,
+				98610F4D2AA24F10006FAF95 /* Volume.swift */,
 			);
 			path = Transforms;
+			sourceTree = "<group>";
+		};
+		98610F762AA28F43006FAF95 /* Bulk */ = {
+			isa = PBXGroup;
+			children = (
+				98610F322AA24533006FAF95 /* Lattice.swift */,
+				98610F692AA28B1B006FAF95 /* Material.swift */,
+				98610F652AA27621006FAF95 /* Solid.swift */,
+			);
+			path = Bulk;
 			sourceTree = "<group>";
 		};
 		9898381929A6C08F00B4AA98 = {
@@ -527,6 +636,7 @@
 			children = (
 				98DA27C02A3F685B00AFE8B7 /* COpenMM */,
 				98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */,
+				98610F1F2AA241FB006FAF95 /* Shapes */,
 				98610EAE2A9D7D17006FAF95 /* HDL */,
 				98610EEA2AA0203A006FAF95 /* MM4 */,
 				98F638992A349F7300F51E95 /* MolecularRenderer */,
@@ -804,6 +914,24 @@
 				98610F0F2AA21442006FAF95 /* HDL */,
 				98610F182AA214D7006FAF95 /* HDL */,
 				98610F1D2AA2188E006FAF95 /* HDL */,
+				98610F232AA2434B006FAF95 /* COpenMM */,
+				98610F252AA2434B006FAF95 /* HDL */,
+				98610F272AA2434B006FAF95 /* HardwareCatalog */,
+				98610F2B2AA2434B006FAF95 /* MM4 */,
+				98610F2D2AA2434B006FAF95 /* MolecularRenderer */,
+				98610F2F2AA2434B006FAF95 /* OpenMM */,
+				98610F342AA245D7006FAF95 /* HDL */,
+				98610F362AA245D7006FAF95 /* HardwareCatalog */,
+				98610F3B2AA24698006FAF95 /* HDL */,
+				98610F3D2AA24698006FAF95 /* HardwareCatalog */,
+				98610F502AA250BA006FAF95 /* HDL */,
+				98610F522AA250BA006FAF95 /* HardwareCatalog */,
+				98610F542AA250BA006FAF95 /* MM4 */,
+				98610F562AA250BA006FAF95 /* Shapes */,
+				98610F782AA28FD5006FAF95 /* HDL */,
+				98610F7A2AA28FD5006FAF95 /* HardwareCatalog */,
+				98610F7C2AA28FD5006FAF95 /* MM4 */,
+				98610F7E2AA28FD5006FAF95 /* Shapes */,
 			);
 			productName = MolecularRenderer;
 			productReference = 9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */;
@@ -882,6 +1010,11 @@
 				98610F0E2AA21442006FAF95 /* XCLocalSwiftPackageReference "" */,
 				98610F172AA214D7006FAF95 /* XCLocalSwiftPackageReference "" */,
 				98610F1C2AA2188E006FAF95 /* XCLocalSwiftPackageReference "" */,
+				98610F222AA2434B006FAF95 /* XCLocalSwiftPackageReference "" */,
+				98610F332AA245D7006FAF95 /* XCLocalSwiftPackageReference "" */,
+				98610F3A2AA24698006FAF95 /* XCLocalSwiftPackageReference "" */,
+				98610F4F2AA250BA006FAF95 /* XCLocalSwiftPackageReference "" */,
+				98610F772AA28FD5006FAF95 /* XCLocalSwiftPackageReference "" */,
 			);
 			productRefGroup = 9898382329A6C08F00B4AA98 /* Products */;
 			projectDirPath = "";
@@ -1301,6 +1434,26 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "";
 		};
+		98610F222AA2434B006FAF95 /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
+		98610F332AA245D7006FAF95 /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
+		98610F3A2AA24698006FAF95 /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
+		98610F4F2AA250BA006FAF95 /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
+		98610F772AA28FD5006FAF95 /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
 		986348F92A735AD70053E714 /* XCLocalSwiftPackageReference "" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "";
@@ -1517,6 +1670,78 @@
 		98610F1D2AA2188E006FAF95 /* HDL */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HDL;
+		};
+		98610F232AA2434B006FAF95 /* COpenMM */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = COpenMM;
+		};
+		98610F252AA2434B006FAF95 /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		98610F272AA2434B006FAF95 /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		98610F2B2AA2434B006FAF95 /* MM4 */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MM4;
+		};
+		98610F2D2AA2434B006FAF95 /* MolecularRenderer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MolecularRenderer;
+		};
+		98610F2F2AA2434B006FAF95 /* OpenMM */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OpenMM;
+		};
+		98610F342AA245D7006FAF95 /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		98610F362AA245D7006FAF95 /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		98610F3B2AA24698006FAF95 /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		98610F3D2AA24698006FAF95 /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		98610F502AA250BA006FAF95 /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		98610F522AA250BA006FAF95 /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		98610F542AA250BA006FAF95 /* MM4 */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MM4;
+		};
+		98610F562AA250BA006FAF95 /* Shapes */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Shapes;
+		};
+		98610F782AA28FD5006FAF95 /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		98610F7A2AA28FD5006FAF95 /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		98610F7C2AA28FD5006FAF95 /* MM4 */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MM4;
+		};
+		98610F7E2AA28FD5006FAF95 /* Shapes */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Shapes;
 		};
 		986348FA2A735AD70053E714 /* COpenMM */ = {
 			isa = XCSwiftPackageProductDependency;
