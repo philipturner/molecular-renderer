@@ -18,34 +18,6 @@ public class GeometryCompiler {
   }
 }
 
-// Multiple directions/positions sourced from the same axis may not be called
-// when generating a single cut or translation.
-public struct Axis {
-  public static let X = Axis()
-  public static let Y = Axis()
-  public static let Z = Axis()
-  
-  internal init(/*arguments*/) {
-    
-  }
-  
-  static prefix func + (rhs: Axis) -> Direction {
-    fatalError("Not implemented.")
-  }
-  
-  static prefix func - (rhs: Axis) -> Direction {
-    fatalError("Not implemented.")
-  }
-  
-  static func * (lhs: Float, rhs: Axis) -> Position {
-    fatalError("Not implemented.")
-  }
-}
 
-public struct Direction {
-  
-}
 
-public struct Position {
-  
-}
+
