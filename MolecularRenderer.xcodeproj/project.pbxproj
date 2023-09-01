@@ -246,6 +246,7 @@
 		98610F6E2AA28E99006FAF95 /* Cut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cut.swift; sourceTree = "<group>"; };
 		98610F702AA28E9E006FAF95 /* Replace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Replace.swift; sourceTree = "<group>"; };
 		98610F722AA28EA6006FAF95 /* Passivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Passivate.swift; sourceTree = "<group>"; };
+		98610F802AA29EBE006FAF95 /* HDL.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HDL.md; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
@@ -533,6 +534,7 @@
 			isa = PBXGroup;
 			children = (
 				98610F072AA0CD6A006FAF95 /* Overview.md */,
+				98610F802AA29EBE006FAF95 /* HDL.md */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";
