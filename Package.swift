@@ -30,7 +30,7 @@ var targets: [Target] = [
     dependencies: ["HDL"]),
   .target(
     name: "HDL",
-    dependencies: []),
+    dependencies: ["MM4"]),
   .target(
     name: "MM4",
     dependencies: [.product(name: "QuaternionModule", package: "swift-numerics"), "OpenMM"]),

@@ -16,7 +16,7 @@ public struct VdwOscillator {
 #if false
 
 func vdwOscillator() {
-  let (x, y, z) = (XAxis(), YAxis(), ZAxis())
+  let (x, y, z) = (Axis.X, Axis.Y, Axis.Z)
   
   // Make a housing, where a solid diamond slab can fit inside it.
   var housing = Solid {
