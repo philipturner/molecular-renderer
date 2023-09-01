@@ -1021,7 +1021,6 @@ class _Old_MM4 {
       positions[i] = SIMD3(atom.origin)
     }
     self.context.positions = positions
-    precondition(context.platform.name == "HIP")
     
     self.provider = OpenMM_AtomProvider(
       psPerStep: timeStepInFs * OpenMM_PsPerFs,
