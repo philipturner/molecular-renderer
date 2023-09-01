@@ -20,26 +20,26 @@ func vdwOscillator() {
   
   // Make a housing, where a solid diamond slab can fit inside it.
   var housing = Solid {
-    Lattice(18 * x, 18 * y, 18 * z)
+    Lattice { 18 * x + 18 * y + 18 * z }
     
     Convex {
-      Origin(width / 2 * z)
-      RidgeCut(z, -y)
-      Origin(width * y)
-      RidgeCut(z, +y)
+      Origin { width / 2 * z }
+      RidgeCut(z) { -y }
+      Origin { width * y }
+      RidgeCut(z) { +y }
     }
     Convex {
-      Origin(width * y, width * z)
-      PlaneCut(-y, +z)
+      Origin { width * y + width * z }
+      PlaneCut { -y ^ +z }
     }
     Convex {
-      Origin(width / 2 * y, width / 2 * z)
-      PlaneCut(-y, -z)
+      Origin { width / 2 * y + width / 2 * z }
+      PlaneCut { -y ^ -z }
     }
     
     // Add some circular supports on the corners for improved stiffness.
     Convex {
-      Origin { [width * y, width / 2 * z] }
+      Origin { width * y + width / 2 * z }
       Concave {
         Origin { -0.5 * y }
         RidgeCut(z) { +y }
@@ -66,21 +66,21 @@ func vdwOscillator() {
       }
     }
     Convex {
-      Origin { [20 * x, width * y, width / 2 * z] }
+      Origin { 20 * x + width * y + width / 2 * z }
       Concave {
-        Origin { [-0.5 * x, -thickness * y] }
-        PlaneCut { [+x, +y, -z] }
+        Origin { -0.5 * x - thickness * y }
+        PlaneCut { +x ^ +y ^ -z }
       }
       Concave {
         Origin { -0.5 * x }
-        PlaneCut { [+x, -y, +z] }
+        PlaneCut { +x ^ -y ^ +z }
       }
       Concave {
-        PlaneCut { [+x, -y, -z] }
+        PlaneCut { +x ^ -y ^ -z }
       }
       Concave {
-        Origin { [-1 * x, -thickness * y] }
-        PlaneCut { [+x, +y, +z] }
+        Origin { -1 * x - thickness * y }
+        PlaneCut { +x ^ +y ^ +z }
       }
     }
     Concave {
@@ -88,19 +88,19 @@ func vdwOscillator() {
         Origin { holeX * x }
         PlaneCut { -x }
       }
-      Origin { [width * y, width / 2 * z] }
+      Origin { width * y + width / 2 * z }
       Concave {
-        Origin { [-2.5 * y, -2 * z] }
-        PlaneCut { [-y, -z] }
+        Origin { -2.5 * y + -2 * z }
+        PlaneCut { -y ^ -z }
       }
       Concave {
-        Origin { [-3.75 * y, -1.75 * z] }
-        PlaneCut { [+y, -z] }
+        Origin { -3.75 * y + -1.75 * z }
+        PlaneCut { +y ^ -z }
       }
       Concave {
         Origin { holeX * x }
-        Origin { [-4 * y, -1.5 * z] }
-        PlaneCut { [-x, -y, -z] }
+        Origin { -4 * y + -1.5 * z }
+        PlaneCut { -x ^ -y ^ -z }
       }
     }
     Concave {
@@ -108,19 +108,19 @@ func vdwOscillator() {
         Origin { (holeX + 2) * x }
         PlaneCut { -x }
       }
-      Origin { [width * y, width / 2 * z] }
-      Origin { [-4 * y, -1.5 * z] }
+      Origin { width * y + width / 2 * z }
+      Origin { -4 * y + -1.5 * z }
       Concave {
-        Origin { [-4 * y, -1.5 * z] }
-        PlaneCut { -y; -z }
+        Origin { -4 * y + -1.5 * z }
+        PlaneCut { -y ^ -z }
       }
       Origin { holeX * x }
       Concave {
-        PlaneCut { -x; -y; -z }
+        PlaneCut { -x ^ -y ^ -z }
       }
       Concave {
-        Origin { 1 * x; 1 * y }
-        RidgeCut(z ^ y) { -x }
+        Origin { 1 * x + 1 * y }
+        RidgeCut(-y ^ +z) { -x }
       }
     }
     Concave {
@@ -128,18 +128,18 @@ func vdwOscillator() {
         Origin { 2.75 * x }
         PlaneCut { -x }
       }
-      Origin { width * y; width / 2 * z }
-      Origin { -4 * y; -1.5 * z }
+      Origin { width * y + width / 2 * z }
+      Origin { -4 * y + -1.5 * z }
       Concave {
-        PlaneCut { -y; +z }
+        PlaneCut { -y ^ +z }
       }
       Concave {
         Origin { 0.5 * x }
-        PlaneCut { -x; -y; +z }
+        PlaneCut { -x ^ -y ^ +z }
       }
       Concave {
-        Origin { 2 * x; 1 * y }
-        RidgeCut(+y, +z) { -x }
+        Origin { 2 * x + 1 * y }
+        RidgeCut(+y ^ +z) { -x }
       }
     }
     
@@ -184,52 +184,52 @@ func vdwOscillator() {
   
   // Make a diamond slab that is superlubricant.
   var rod = Solid {
-    Lattice { 14 * x; 14 * y; 14 * z }
+    Lattice { 14 * x + 14 * y + 14 * z }
     
     Convex {
-      Origin { width / 2 * x; width / 2 * y }
+      Origin { width / 2 * x + width / 2 * y }
       Convex {
         Origin { -1.5 * y }
-        PlaneCut { +x; -y }
+        PlaneCut { +x ^ -y }
       }
       Convex {
         Origin { 1.5 * y }
-        PlaneCut { -x; +y }
+        PlaneCut { -x ^ +y }
       }
     }
     Convex {
-      Origin { width * x; width * y }
+      Origin { width * x + width * y }
       Convex {
         Origin { -1 * x }
-        PlaneCut { +x; +y }
+        PlaneCut { +x ^ +y }
       }
       Convex {
-        Origin { -1 * x; (widthZ - 1.5) * z }
-        PlaneCut { -x; +y; +z }
+        Origin { -1 * x + (widthZ - 1.5) * z }
+        PlaneCut { -x ^ +y ^ +z }
       }
       Convex {
-        Origin { -1 * x; 0.5 * z }
-        PlaneCut { -x; +y; -z }
+        Origin { -1 * x + 0.5 * z }
+        PlaneCut { -x ^ +y ^ -z }
       }
       Convex {
-        Origin { -1 * y; (widthZ - 1.5) * z }
-        PlaneCut { +x; -y; +z }
+        Origin { -1 * y + (widthZ - 1.5) * z }
+        PlaneCut { +x ^ -y ^ +z }
       }
       Convex {
-        Origin { -1 * y; 0.5 * z }
-        PlaneCut { +x; -y; -z }
+        Origin { -1 * y + 0.5 * z }
+        PlaneCut { +x ^ -y ^ -z }
       }
       Convex {
         Origin { (widthZ - 2.5) * z }
-        PlaneCut { +x; +y; +z }
+        PlaneCut { +x ^ +y ^ +z }
       }
       Convex {
         Origin { 1.5 * z }
-        PlaneCut { +x; +y; -z }
+        PlaneCut { +x ^ +y ^ -z }
       }
     }
     
-    Translate { -4 * x; -4 * y }
+    Translate { -4 * x + -4 * y }
   }
   
   rod = Solid {
@@ -251,7 +251,7 @@ func vdwOscillator() {
     for i in 0..<3 {
       Solid {
         rod()
-        Translate { Float(i) * x; Float(-i) * y }
+        Translate { Float(i) * x + Float(-i) * y }
       }
     }
   }

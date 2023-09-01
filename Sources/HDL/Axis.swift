@@ -10,6 +10,10 @@ public protocol AxisProtocol {
   
 }
 
+public protocol DirectionProtocol {
+  
+}
+
 // Multiple directions/positions sourced from the same axis may not be called
 // when generating a single cut or translation.
 public struct Axis: AxisProtocol {
@@ -32,24 +36,20 @@ public struct Axis: AxisProtocol {
   static func * (lhs: Float, rhs: Axis) -> Position {
     fatalError("Not implemented.")
   }
-  
-  
-  // Creates a new axis specified by combining these directions in a specific
-  // order. If not following the right-hand rule, one axis's sign will be
-  // reversed.
-  //
-  // Not sure how to support ridge/valley cuts along (111) planes yet.
-  static func ^ (lhs: Axis, rhs: Axis) -> CombinedAxis {
-    fatalError("Not implemented.")
-  }
 }
 
-public struct CombinedAxis: AxisProtocol {
+// Fix this. Ridge/Valley cut should accept either z or +z, just
+// providing an option to omit the sign for simplicity.
+//
+// Ridge/Valley accept either an axis or a direction.
+public struct CombinedDirection: AxisProtocol, DirectionProtocol {
   
 }
 
 public struct Direction {
-  
+  static func ^ (lhs: Direction, rhs: Direction) -> CombinedDirection {
+    fatalError("Not implemented.")
+  }
 }
 
 public struct Position {
