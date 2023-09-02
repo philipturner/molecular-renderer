@@ -43,4 +43,4 @@ Key:
 TODO
 - Denotative (no hidden state)
 - Disjunctive normal form
-- Decoupling from the crystal lattice
+- Decreased functionality after decoupling from the crystal lattice
