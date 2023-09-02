@@ -58,8 +58,8 @@ Display:
 ## Requirements for Simulators
 
 Dependencies:
-- [Swift toolchain](swift.org/download)
-- [OpenMM 8.0](openmm.org) from conda
+- [Swift toolchain](https://swift.org/download)
+- [OpenMM 8.0](https://openmm.org) from conda
 
 Hardware:
 - macOS, Linux, Windows
