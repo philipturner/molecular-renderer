@@ -5,6 +5,7 @@
 - HardwareCatalog[^1]
   - API for instantiating parameterized nano-parts and assemblies (contributions welcome)
   - Markdown documentation for each part, similar to [ML model cards](https://modelcards.withgoogle.com/about)
+  - Image of each nano-part and assembly rendered using MolecularRendererApp
 - HDL[^1]
   - Hardware description language for crystolecules and mechanical part assemblies
 - Shapes[^1]
