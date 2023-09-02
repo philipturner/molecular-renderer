@@ -17,7 +17,7 @@ Table of Contents
 
 At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally heavy. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed. Part of the compiler is boolean masks over a grid on single-core CPU. Another part in energy minimizations on the GPU.
 
-The forcefield is based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon or silicon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
+The forcefield is based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$[^1] in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon or silicon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
 
 | MM4 Atom Type | 6-ring | 5-ring | 4-ring | 3-ring |
 | - | - | - | - | - |
@@ -41,7 +41,7 @@ Key:
 | sp2 C | X | O | X | O | O | O | O |
 | N     | X | O | O | X |   |   |   |
 | Si    | X | O | O |   | X |   |   |
-| Cl    |   | O | O |   |   | X |   |
+| Cl    |   | O | O |   |   |   |   |
 | Ge    | X | O | O |   |   |   | X |
 
 ## Syntax
@@ -51,21 +51,25 @@ TODO (points to cover):
 - Disjunctive normal form
 - Decreased functionality after decoupling from the crystal lattice
 
-### Hierarchy of Design
+### Design Hierarchy
 
-- RigidBody
-  - Solid
-    - Lattice\<Basis\>
-    - Slicing with planes
-    - Automatically removing duplicated atoms from bounding volume intersections
-    - Surface reconstruction
-  - Connecting two different materials
-  - Connecting two lattices through sp2 bonds
-  - Connecting with Kaehler brackets
-- Surface passivation
-- Surface energy minimization
-- Conservation of momentum
-- (Angular) position/velocity tracking during simulation
+- `Assembly`
+  - `RigidBody`
+    - `Solid`
+      - `Lattice<Basis>`
+      - Slicing with planes
+      - Automatically removing duplicated atoms from bounding volume intersections
+      - Surface reconstruction
+    - Connecting two different materials
+    - Connecting two lattices through sp2 bonds
+      - Two bodies connected by a joint must be marked as such, and have their momenta conserved separately
+    - Connecting with Kaehler brackets
+  - Surface passivation
+  - Surface energy minimization
+  - Conservation of momentum
+  - (Angular) position/velocity tracking during simulation
+- Multiple discontinuous bodies interlocked in a productive nanosystem
+- Avoid geometries that require welding
 
 ### Operators
 
@@ -112,3 +116,4 @@ infix operator ^ (Direction, Direction) -> Direction
 
 Concatenates two directions.
 
+[^1]: If simulating large moissanite structures becomes necessary, we can invest time into an $O(n\log{n})$ electrostatics algorithm. It will have unacceptably high overhead for other materials though.
