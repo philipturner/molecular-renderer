@@ -17,7 +17,7 @@ public class OpenMM_State: OpenMM_Object {
     }
     
     init(_ _openmm_type: OpenMM_State_DataType) {
-      self.init(rawValue: _openmm_type.rawValue)
+      self.init(rawValue: UInt32(_openmm_type.rawValue))
     }
     
     public static let positions: DataType = .init(OpenMM_State_Positions)

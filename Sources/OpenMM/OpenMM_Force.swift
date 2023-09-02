@@ -148,7 +148,7 @@ public class OpenMM_CustomNonbondedForce: OpenMM_Force {
     }
     
     init(_ _openmm_type: OpenMM_CustomNonbondedForce_NonbondedMethod) {
-      self.init(rawValue: _openmm_type.rawValue)
+      self.init(rawValue: UInt32(_openmm_type.rawValue))
     }
     
     public static let noCutoff: NonbondedMethod =
@@ -213,13 +213,12 @@ public class OpenMM_CustomNonbondedForce: OpenMM_Force {
   
   public var nonbondedMethod: NonbondedMethod {
     get {
-      let rawValue = _openmm_get(
-        pointer, OpenMM_CustomNonbondedForce_getNonbondedMethod)
-      return NonbondedMethod(rawValue)
+        let rawValue: UInt32 = UInt32(OpenMM_CustomNonbondedForce_getNonbondedMethod(pointer).rawValue)
+        return NonbondedMethod(rawValue: rawValue)
     }
     set {
       let rawValue = OpenMM_CustomNonbondedForce_NonbondedMethod(
-        rawValue: newValue.rawValue)
+        rawValue: Int32(newValue.rawValue))
       OpenMM_CustomNonbondedForce_setNonbondedMethod(pointer, rawValue)
     }
   }
