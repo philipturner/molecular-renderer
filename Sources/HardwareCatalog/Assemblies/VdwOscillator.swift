@@ -19,7 +19,6 @@ public struct VdwOscillator {
 
 func vdwOscillator() {
   // Make a housing, where a solid diamond slab can fit inside it.
-
   var housing = Lattice<Cubic> {
     let width: Float = 18
     let thickness: Float = 3
