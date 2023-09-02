@@ -3,9 +3,13 @@
 This is a precursor to the eventual hardware description language that atomCAD will build. The purpose is to allow reasonably efficient workflows for designing crystolecules here and now. Potentially, it can utilize primitive editing capabilities from the atomCAD codebase, to complement the lack of a UI in MolecularRenderer.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
 - Emphasis on <b>a first-generation technology base</b>. The language lacks support for strained shell structures, as they require second-generation technology (but it will facilitate testing of machines for building them). The forcefield will avoid exotic O or S atoms, sticking to elements manufacturable with an AFM.
-- Tutorials and well-maintained documentation will be provided, to onboard new engineers and provide the skills for making crystolecules. This will cover common pitfalls in design, such as actions that expose triply-unbonded carbon atoms (which passivate to methyl groups).
+- Tutorials and well-maintained documentation will be provided, to onboard new engineers and provide the skills for making crystolecules. This will cover common pitfalls in design, such as actions that expose triply-unbonded carbon atoms, and good practices like reconstructing (100) surfaces.
 - The API will be geared toward those with <b>little to no Swift experience</b>. It will make minimal use of Swift's many examples of syntactic sugar. When possible, subsets of the HDL or hardware catalog's functionality will have bindings to alternative programming languages.
 - The codebase will only depend on <b>cross-platform</b> Swift packages, even if Apple-specific libraries have higher performance.
+
+Table of Contents
+- [How it Works](#how-it-works)
+- [Syntax](#syntax)
 
 ## How it Works
 
@@ -44,3 +48,64 @@ TODO
 - Denotative (no hidden state)
 - Disjunctive normal form
 - Decreased functionality after decoupling from the crystal lattice
+
+### Operators
+
+```swift
+prefix operator + (Axis) -> Direction
+prefix operator - (Axis) -> Direction
+
+// Examples
+-x, +y, +z // cubic
++a, -b, +c // hexagonal
+```
+
+Transforms an `Axis` into a `Direction`.
+
+```swift
+infix operator * (Float, Axis) -> Position
+infix operator * (Axis, Float) -> Position
+
+// Examples
+6 * x, -7 * y, -9.75 * z
+a * -2.25, -8.5 * b, c * 1.0
+```
+
+Transforms an `Axis` into a `Position`.
+
+```swift
+infix operator + (Position, Position) -> Position
+infix operator - (Position, Position) -> Position
+
+// Examples
+6 * x - 7 * y - 9.75 * z
+a * -2.25 + -8.5 * b + c * 1.0
+```
+
+Concatenates two positions.
+
+```swift
+infix operator ^ (Direction, Direction) -> Direction
+
+// Examples
+-x ^ +y ^ +z
++a ^ -b
+```
+
+Concatenates two directions.
+
+### Hierarchy of Design
+
+- RigidBody
+  - Solid
+    - Lattice\<Basis\>
+    - Slicing with planes
+    - Automatically removing duplicated atoms from bounding volume intersections
+    - Surface reconstruction
+  - Connecting two different materials
+  - Connecting two lattices through sp2 bonds
+  - Connecting with Kaehler brackets
+- Surface passivation
+- Surface energy minimization
+- Conservation of momentum
+- (Angular) position/velocity tracking during simulation
