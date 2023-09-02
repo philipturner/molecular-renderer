@@ -116,4 +116,4 @@ infix operator ^ (Direction, Direction) -> Direction
 
 Concatenates two directions.
 
-[^1]: If simulating large moissanite structures becomes necessary, we can invest time into an $O(n\log{n})$ electrostatics algorithm. It will have unacceptably high overhead for other materials though.
+[^1]: If simulating large moissanite structures becomes necessary, we can invest time into an O(nlog(n)) electrostatics algorithm. It will have unacceptably high overhead for other materials though.
