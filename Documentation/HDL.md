@@ -14,7 +14,7 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 The forcefield is based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon or silicon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
 
 | MM4 Atom Type | 6-ring | 5-ring | 4-ring | 3-ring |
-| - | - | - | - | - | - |
+| - | - | - | - | - |
 | H     | 5  |     |    |    |
 | C     | 1  | 123 | 56 | 22 |
 | sp2 C | 2  | 122 | 57 | 38 |
