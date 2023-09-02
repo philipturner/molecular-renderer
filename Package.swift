@@ -10,7 +10,7 @@ var products: [Product] = [
     targets: ["COpenMM"]),
   .library(
     name: "DFT",
-    targets: ["DFT"])
+    targets: ["DFT"]),
   .library(
     name: "HardwareCatalog",
     targets: ["HardwareCatalog"]),
@@ -33,7 +33,7 @@ var targets: [Target] = [
     dependencies: []),
   .target(
     name: "DFT",
-    dependencies: [])
+    dependencies: []),
   .target(
     name: "HardwareCatalog",
     dependencies: ["Shapes", "HDL"]),
