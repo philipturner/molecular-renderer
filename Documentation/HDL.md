@@ -10,6 +10,8 @@ This is a precursor to the eventual hardware description language that atomCAD w
 Table of Contents
 - [How it Works](#how-it-works)
 - [Syntax](#syntax)
+    - [Hierarchy of Design](#hierarchy-of-design)
+    - [Operators](#operators)
 
 ## How it Works
 
@@ -44,10 +46,26 @@ Key:
 
 ## Syntax
 
-TODO
+TODO (points to cover):
 - Denotative (no hidden state)
 - Disjunctive normal form
 - Decreased functionality after decoupling from the crystal lattice
+
+### Hierarchy of Design
+
+- RigidBody
+  - Solid
+    - Lattice\<Basis\>
+    - Slicing with planes
+    - Automatically removing duplicated atoms from bounding volume intersections
+    - Surface reconstruction
+  - Connecting two different materials
+  - Connecting two lattices through sp2 bonds
+  - Connecting with Kaehler brackets
+- Surface passivation
+- Surface energy minimization
+- Conservation of momentum
+- (Angular) position/velocity tracking during simulation
 
 ### Operators
 
@@ -94,18 +112,3 @@ infix operator ^ (Direction, Direction) -> Direction
 
 Concatenates two directions.
 
-### Hierarchy of Design
-
-- RigidBody
-  - Solid
-    - Lattice\<Basis\>
-    - Slicing with planes
-    - Automatically removing duplicated atoms from bounding volume intersections
-    - Surface reconstruction
-  - Connecting two different materials
-  - Connecting two lattices through sp2 bonds
-  - Connecting with Kaehler brackets
-- Surface passivation
-- Surface energy minimization
-- Conservation of momentum
-- (Angular) position/velocity tracking during simulation
