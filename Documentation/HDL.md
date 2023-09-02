@@ -51,6 +51,8 @@ TODO (points to cover):
 - Disjunctive normal form
 - Decreased functionality after decoupling from the crystal lattice
 
+TODO: Host DocC documentation on GitHub pages
+
 ### Design Hierarchy
 
 - `Assembly`
