@@ -218,7 +218,7 @@ public class OpenMM_CustomNonbondedForce: OpenMM_Force {
     }
     set {
       let rawValue = OpenMM_CustomNonbondedForce_NonbondedMethod(
-        rawValue: Int32(newValue.rawValue))
+        rawValue: .init(newValue.rawValue))
       OpenMM_CustomNonbondedForce_setNonbondedMethod(pointer, rawValue)
     }
   }
