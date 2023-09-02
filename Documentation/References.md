@@ -1,5 +1,9 @@
 # References
 
+## External Collaborators
+
+https://github.com/atomCAD/atomCAD
+
 ## MolecularRenderer
 
 Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
