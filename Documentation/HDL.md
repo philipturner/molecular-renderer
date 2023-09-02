@@ -39,3 +39,8 @@ Key:
 | Ge    | X | O | O |   |   |   | X |
 
 ## Syntax
+
+TODO
+- Denotative (no hidden state)
+- Disjunctive normal form
+- Decoupling from the crystal lattice
