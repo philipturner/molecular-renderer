@@ -75,7 +75,7 @@ TODO: Host DocC documentation on GitHub pages
 
 ### Operators
 
-> Note: The operators will be simplified, so that direction and position are the same data type. Planes will accept (210), (221) vectors instead of just (100), (110), (111). This is an implementation detail to support lonsdaleite.
+> Note: The operators will be simplified, so that direction and position are the same data type. Planes will accept (210), (211), (221) vectors instead of just (100), (110), (111). This is an implementation detail to support lonsdaleite.
 
 ```swift
 prefix operator + (Axis) -> Direction
