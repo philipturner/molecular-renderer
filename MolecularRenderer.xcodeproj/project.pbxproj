@@ -108,6 +108,7 @@
 		988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BB2A800130004879E5 /* VdwOscillator.swift */; };
 		988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BD2A80105F004879E5 /* OctaneReference.swift */; };
 		988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */; };
+		98906AD92AA92FF300FE5832 /* RhombicDodecahedra.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98906AD82AA92FF300FE5832 /* RhombicDodecahedra.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
@@ -275,6 +276,7 @@
 		988EF0BB2A800130004879E5 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
 		988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFSerializer.swift; sourceTree = "<group>"; };
+		98906AD82AA92FF300FE5832 /* RhombicDodecahedra.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhombicDodecahedra.swift; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRendererApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
 		9898382729A6C08F00B4AA98 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
@@ -795,6 +797,7 @@
 				988EF0BD2A80105F004879E5 /* OctaneReference.swift */,
 				98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */,
 				988EF0BB2A800130004879E5 /* VdwOscillator.swift */,
+				98906AD82AA92FF300FE5832 /* RhombicDodecahedra.swift */,
 			);
 			path = References;
 			sourceTree = "<group>";
@@ -1138,6 +1141,7 @@
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
 				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
+				98906AD92AA92FF300FE5832 /* RhombicDodecahedra.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Chapter9_Figure5.swift in Sources */,
 				988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */,
 				980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */,

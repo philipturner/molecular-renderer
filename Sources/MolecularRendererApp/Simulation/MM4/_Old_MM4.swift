@@ -1255,7 +1255,7 @@ class _Old_MM4 {
         }
       } else {
         // WARNING: This needs to be moved back to 200 / 2000
-        let sampleEnergy = absoluteTimeInFs > 2000 && absoluteTimeInFs < 20000
+        let sampleEnergy = absoluteTimeInFs > 200 && absoluteTimeInFs < 2000
         var message: String = ""
         if absoluteTimeInFs % 500 == 0 {
           message = "t = \(String(format: "%.1f", timestamp)) ps"

@@ -32,7 +32,7 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = true
+  static let recycleSimulation: Bool = false
   static let productionRender: Bool = false
   static let programCamera: Bool = false
   
@@ -66,7 +66,8 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = ExampleProviders.strainedShellStructure()
+    self.atomProvider = RhombicDocedahedra().provider
+    self.ioSimulation()
     eventTracker.playerState.position = [0, 0, 2]
   }
 }
@@ -222,7 +223,7 @@ extension Renderer {
   }
   
   private func ioSimulation() {
-    let simulationName = "SavedSimulation"
+    let simulationName = "RhombicDodecahedra-3200"
     if Self.recycleSimulation {
       let simulation = serializer.load(fileName: simulationName)
       self.atomProvider = SimulationAtomProvider(simulation: simulation)
