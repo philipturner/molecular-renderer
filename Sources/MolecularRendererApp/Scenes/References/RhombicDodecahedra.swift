@@ -238,7 +238,7 @@ struct RhombicDocedahedra {
       baseDiamondoid.minimize()
       
       let separation: Float = 3.45 * 0.357
-      let object_lattice: SIMD3<Int> = [2, 2, 2]
+      let object_lattice: SIMD3<Int> = [4, 2, 4]
       for x in 0..<object_lattice.x {
         for y in 0..<object_lattice.y {
           for z in 0..<object_lattice.z {
@@ -266,8 +266,7 @@ struct RhombicDocedahedra {
         0
       ])
       
-      // One more to go: 3200 m/s
-      let speedInMetersPerSecond: Float = 3200
+      let speedInMetersPerSecond: Float = 6400
       projectile.linearVelocity = [
         0, -speedInMetersPerSecond / 1000, 0
       ]

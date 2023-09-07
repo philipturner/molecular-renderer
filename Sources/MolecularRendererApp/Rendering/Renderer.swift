@@ -68,10 +68,14 @@ class Renderer {
     
     renderSeries(names: [
       "RhombicDodecahedra-100",
-      "RhombicDodecahedra-3200"
+      "RhombicDodecahedra-200",
+      "RhombicDodecahedra-400",
+      "RhombicDodecahedra-800",
+      "RhombicDodecahedra-1600",
+      "RhombicDodecahedra-3200",
+      "RhombicDodecahedra-6400"
     ])
-//    self.ioSimulation()
-
+//    self.ioSimulation(name: "RhombicDodecahedra-6400")
   }
 }
 
@@ -227,15 +231,19 @@ extension Renderer {
       //      _position = rotationCenter + normalize(delta) * radius
       //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       
-      let rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
+      var rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
+      rotationCenter += 0.357 * SIMD3(3.75, 8.00, 3.75)
       
       var angle = Float(0.125)
       angle *= 2 * .pi
       
       let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
-      let delta = simd_act(quaternion, [0, 0, 1])
       _position = rotationCenter
       _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
+      _rotation = _rotation * simd_float3x3(
+        SIMD3(1, 0, 0),
+        SIMD3(0, cos(-20 * .pi / 180), -sin(-20 * .pi / 180)),
+        SIMD3(0, sin(-20 * .pi / 180), cos(-20 * .pi / 180))).transpose
       _rotation = _rotation * simd_float3x3(
         SIMD3(0, 1, 0),
         SIMD3(-1, 0, 0),
@@ -257,8 +265,8 @@ extension Renderer {
       quality: quality)
   }
   
-  private func ioSimulation() {
-    let simulationName = "RhombicDodecahedra-3200"
+  private func ioSimulation(name: String? = nil) {
+    let simulationName = name ?? "RhombicDodecahedra-1"
     if Self.recycleSimulation {
       let simulation = serializer.load(fileName: simulationName)
       self.atomProvider = SimulationAtomProvider(simulation: simulation)
