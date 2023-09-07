@@ -10,9 +10,7 @@ File extension: `mrsimulation`
 
 File extension: `mrsimulation-txt`
 
-The plain-text format is designed to be easy to parse from a Python script. It is slower and consumes more memory than the binary format. You may also face performance issues, as Python is not a fast language\*. Nonetheless, this greatly reduces the barrier to usability.
-
-> If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. Ensure you compile in release mode or execute from the Swift REPL. Molecular Renderer's built-in deserializer applies further optimizations, including multithreading and GPU acceleration.
+The plain-text format is designed to be easy to parse from a Python script. It is slower and consumes more memory than the binary format. You may also face performance issues, as Python is not a fast language[^1]. Nonetheless, this greatly reduces the barrier to usability.
 
 The plain-text format is based on YAML, and arranges characters in a way that maximizes compression ratio during ZIP compression. After serializing the MD trajectory to a text file, run an external archiver application to transform it into a `.zip`. This is reduces file size when sharing over the internet or storing on disk. More efficient techniques can serialize chunks of the text one-by-one using the Python `zlib` library.
 
@@ -106,3 +104,5 @@ Next, the Swift script is translated to Python. This code can be copied into you
 ```python
 # TODO
 ```
+
+[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. Ensure you compile in release mode or execute from the Swift REPL. Molecular Renderer's built-in deserializer applies further optimizations, including multithreading and GPU acceleration.
