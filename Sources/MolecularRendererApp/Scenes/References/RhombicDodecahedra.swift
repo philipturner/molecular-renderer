@@ -280,7 +280,7 @@ struct RhombicDocedahedra {
     
     let simulator = _Old_MM4(
       diamondoids: allDiamondoids, fsPerFrame: 100) // 20, 100
-    simulator.simulate(ps: 100) // 10, 100
+    simulator.simulate(ps: 80) // 10, 80
     provider = simulator.provider
   }
 }

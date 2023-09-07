@@ -32,21 +32,18 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
-  static let productionRender: Bool = false
-  static let programCamera: Bool = false
+  static let recycleSimulation: Bool = true
+  static let productionRender: Bool = true
+  static let programCamera: Bool = true
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    var imageSize: Int
     var upscaleFactor: Int?
     if Self.productionRender {
-      imageSize = Int(640)
       upscaleFactor = nil
     } else {
-      imageSize = Int(ContentView.size)
       upscaleFactor = ContentView.upscaleFactor
     }
     
@@ -54,8 +51,8 @@ class Renderer {
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
     self.renderingEngine = MRRenderer(
       metallibURL: url,
-      width: imageSize,
-      height: imageSize,
+      width: Self.productionRender ? 720 : Int(ContentView.size),
+      height: Self.productionRender ? 640 : Int(ContentView.size),
       upscaleFactor: upscaleFactor,
       offline: Self.productionRender)
     self.gifSerializer = GIFSerializer(
@@ -66,13 +63,37 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = RhombicDocedahedra().provider
-    self.ioSimulation()
-    eventTracker.playerState.position = [0, 0, 2]
+//    self.atomProvider = RhombicDocedahedra().provider
+//    eventTracker.playerState.position = [0, 0, 2]
+    
+    renderSeries(names: [
+      "RhombicDodecahedra-100",
+      "RhombicDodecahedra-3200"
+    ])
+//    self.ioSimulation()
+
   }
 }
 
 extension Renderer {
+  func renderSeries(names: [String]) {
+    for name in names {
+      print()
+      self.gifSerializer = GIFSerializer(
+        path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
+      
+      let simulation = serializer.load(fileName: name)
+      self.atomProvider = SimulationAtomProvider(simulation: simulation)
+      renderSimulation(simulation)
+      
+      let numFrames = gifSerializer.gif.frames.count
+      print("ETA: \(numFrames / 21 / 2) - \(numFrames / 12 / 2) seconds.")
+      gifSerializer.save(fileName: name)
+      print("Saved the production render.")
+    }
+    exit(0)
+  }
+  
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
@@ -120,10 +141,10 @@ extension Renderer {
       }
     }
     renderingEngine.stopRendering()
-    
-    // The encoder from the Swift GIF package is very slow; we might need to
-    // fork the repository and speed it up. The encoding is faster when the
-    // image isn't completely blank.
+  }
+  
+  func saveGIF() {
+    let numFrames = gifSerializer.gif.frames.count
     print("ETA: \(numFrames / 21 / 2) - \(numFrames / 12 / 2) seconds.")
     gifSerializer.save(fileName: "SavedSimulation")
     print("Saved the production render.")
@@ -193,18 +214,32 @@ extension Renderer {
     var _position = position
     var _rotation = rotation
     if Self.programCamera {
-      let period: Float = .greatestFiniteMagnitude
-      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
-      let radius: Float = 2.5
+      //      let period: Float = .greatestFiniteMagnitude
+      //      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
+      //      let radius: Float = 2.5
+      //      
+      //      var angle = Float(frameID) / Float(framesPerSecond)
+      //      angle /= period
+      //      angle *= 2 * .pi
+      //      
+      //      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      //      let delta = simd_act(quaternion, [0, 0, 1])
+      //      _position = rotationCenter + normalize(delta) * radius
+      //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       
-      var angle = Float(frameID) / Float(framesPerSecond)
-      angle /= period
+      let rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
+      
+      var angle = Float(0.125)
       angle *= 2 * .pi
       
       let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
       let delta = simd_act(quaternion, [0, 0, 1])
-      _position = rotationCenter + normalize(delta) * radius
+      _position = rotationCenter
       _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
+      _rotation = _rotation * simd_float3x3(
+        SIMD3(0, 1, 0),
+        SIMD3(-1, 0, 0),
+        SIMD3(0, 0, 1)).transpose
     }
     
     var lights: [MRLight] = []
@@ -230,6 +265,7 @@ extension Renderer {
       
       if Self.productionRender {
         renderSimulation(simulation)
+        saveGIF()
       }
     } else {
       //    self.atomProvider = OctaneReference().provider
