@@ -33,8 +33,8 @@ class Renderer {
   
   // Camera scripting settings.
   static let recycleSimulation: Bool = true
-  static let productionRender: Bool = true
-  static let programCamera: Bool = true
+  static let productionRender: Bool = false
+  static let programCamera: Bool = false
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -64,18 +64,18 @@ class Renderer {
     initOpenMM()
     
 //    self.atomProvider = RhombicDocedahedra().provider
-//    eventTracker.playerState.position = [0, 0, 2]
+    eventTracker.playerState.position = [0, 0, 2]
     
-    renderSeries(names: [
-      "RhombicDodecahedra-100",
-      "RhombicDodecahedra-200",
-      "RhombicDodecahedra-400",
-      "RhombicDodecahedra-800",
-      "RhombicDodecahedra-1600",
-      "RhombicDodecahedra-3200",
-      "RhombicDodecahedra-6400"
-    ])
-//    self.ioSimulation(name: "RhombicDodecahedra-6400")
+//    renderSeries(names: [
+//      "RhombicDodecahedra-100",
+//      "RhombicDodecahedra-200",
+//      "RhombicDodecahedra-400",
+//      "RhombicDodecahedra-800",
+//      "RhombicDodecahedra-1600",
+//      "RhombicDodecahedra-3200",
+//      "RhombicDodecahedra-6400"
+//    ])
+    self.ioSimulation(name: "RhombicDodecahedra-6400")
   }
 }
 

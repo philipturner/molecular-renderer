@@ -80,6 +80,20 @@ public enum MRCompressionAlgorithm {
   }
 }
 
+public enum MRSimulationFormat {
+  case binary
+  case plainText
+  
+  var fileExtension: StaticString {
+    switch self {
+    case .binary:
+      return StaticString("mrsimulation")
+    case .plainText:
+      return StaticString("mrsimulation-txt")
+    }
+  }
+}
+
 public struct MRFrame {
   public var atoms: [MRAtom]
   public var metadata: [UInt8]
@@ -105,7 +119,8 @@ public class MRSimulation {
   // - 4 bits: 1 pm
   // - 3 bits: 2 pm
   public internal(set) var resolutionInApproxPm: Double
-  public internal(set) var algorithm: MRCompressionAlgorithm
+  public internal(set) var algorithm: MRCompressionAlgorithm?
+  public internal(set) var format: MRSimulationFormat
   public internal(set) var usesCheckpoints: Bool = false
   
   public internal(set) var frameCount: Int = 0
@@ -127,13 +142,15 @@ public class MRSimulation {
     frameTimeInFs: Double,
     resolutionInApproxPm: Double = 0.25,
     clusterSize: Int = 128,
-    algorithm: MRCompressionAlgorithm = .lzBitmap
+    algorithm: MRCompressionAlgorithm? = .lzBitmap,
+    format: MRSimulationFormat = .binary
   ) {
     self.renderer = renderer
     self.frameTimeInFs = frameTimeInFs
     self.resolutionInApproxPm = resolutionInApproxPm
     self.clusterSize = clusterSize
     self.algorithm = algorithm
+    self.format = format
     
     let device = renderer.device
     self.compressedData = ExpandingBuffer(device: device)
@@ -188,7 +205,7 @@ public class MRSimulation {
       memset(header.buffer.contents() + header.cursor, 0, 128)
       
       let nextCursor = header.cursor + 128
-      algorithm.name.withUTF8Buffer {
+      algorithm!.name.withUTF8Buffer {
         header.write($0.count, source: $0.baseAddress!)
       }
       header.cursor = nextCursor
@@ -222,7 +239,7 @@ public class MRSimulation {
       let compressedBytes = compression_encode_buffer(
         dst, staticMetadata.count,
         staticMetadata, staticMetadata.count,
-        nil, algorithm.compressionAlgorithm)
+        nil, algorithm!.compressionAlgorithm)
       guard compressedBytes > 0 else {
         fatalError("Error occurred during encoding.")
       }
@@ -256,7 +273,16 @@ public class MRSimulation {
   }
   
   public init(renderer: MRRenderer, url: URL) {
-    guard let contents = FileManager.default.contents(atPath: url.path) else {
+    let path = url.path
+    if path.hasSuffix("." + "mrsimulation") {
+      self.format = .binary
+    } else if path.hasSuffix("." + "mrsimulation-txt") {
+      self.format = .plainText
+    } else {
+      fatalError("Invalid file extension.")
+    }
+    
+    guard let contents = FileManager.default.contents(atPath: path) else {
       fatalError("Could not open file at path: '\(url.path)'")
     }
     
@@ -329,7 +355,7 @@ public class MRSimulation {
       let uncompressedBytes = compression_decode_buffer(
         dst, staticMetadataCount,
         cursor, compressedCount,
-        nil, algorithm.compressionAlgorithm)
+        nil, algorithm!.compressionAlgorithm)
       guard uncompressedBytes == staticMetadataCount else {
         fatalError("Error occurred while decoding.")
       }
@@ -416,7 +442,7 @@ public class MRSimulation {
       precondition(component.compressed.cursor == 0)
       precondition(component.scratch.cursor == 0)
       let scratchSize = compression_encode_scratch_buffer_size(
-        algorithm.compressionAlgorithm)
+        algorithm!.compressionAlgorithm)
       component.scratch.reserve(scratchSize)
       let scratch_ptr = component.scratch.buffer.contents()
       
@@ -430,7 +456,7 @@ public class MRSimulation {
         let compressedBytes = compression_encode_buffer(
           .init(OpaquePointer(dst_ptr)), 65536,
           .init(OpaquePointer(src_ptr)), min(src_size, 65536),
-          scratch_ptr, algorithm.compressionAlgorithm)
+          scratch_ptr, algorithm!.compressionAlgorithm)
         guard compressedBytes > 0 else {
           fatalError("Error occurred during encoding.")
         }
@@ -552,7 +578,7 @@ public class MRSimulation {
       compressed.cursor = 0
       
       let scratchSize = compression_decode_scratch_buffer_size(
-        algorithm.compressionAlgorithm)
+        algorithm!.compressionAlgorithm)
       component.scratch.reserve(scratchSize)
       let scratch_ptr = component.scratch.buffer.contents()
       
@@ -578,7 +604,7 @@ public class MRSimulation {
         let uncompressedBytes = compression_decode_buffer(
           .init(OpaquePointer(dst_ptr)), 65536,
           .init(OpaquePointer(src_ptr)), compressedBytes,
-          scratch_ptr, algorithm.compressionAlgorithm)
+          scratch_ptr, algorithm!.compressionAlgorithm)
         guard uncompressedBytes > 0 else {
           fatalError("Error occurred during encoding @ \(z): \(src_size).")
         }

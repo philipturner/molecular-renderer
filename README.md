@@ -12,6 +12,7 @@ Documentation
 - [Project Overview](./Documentation/Overview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
+- [MRSimulation](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
 
 ## Usage
