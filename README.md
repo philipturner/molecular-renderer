@@ -8,6 +8,7 @@
 CAD framework for simulating nanotechnology, with ray-traced 120 Hz visualization. Designed to handle millions of atoms in real-time.
 
 Documentation
+- [Goals](./Documentation/Goals.md)
 - [Project Overview](./Documentation/Overview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
