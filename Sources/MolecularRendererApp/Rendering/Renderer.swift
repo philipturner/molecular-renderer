@@ -75,7 +75,7 @@ class Renderer {
 //      "RhombicDodecahedra-3200",
 //      "RhombicDodecahedra-6400"
 //    ])
-    self.ioSimulation(name: "Strained Shell Bearing")
+    self.ioSimulation(name: "RhombicDodecahedra-6400")
     
     guard let simProvider = atomProvider as? SimulationAtomProvider else {
       fatalError("This should never happen.")
@@ -90,7 +90,7 @@ class Renderer {
     }
     
     serializer.save(
-      fileName: "Strained Shell Bearing",
+      fileName: "RhombicDodecahedra-6400",
       provider: provider,
       asText: true)
   }
