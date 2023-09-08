@@ -289,6 +289,9 @@
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
+		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
+		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
+		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
 		98B3E4EB2A3F6F2200B02349 /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../../../miniforge3/lib/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
 		98B3E4F12A3F6F9D00B02349 /* libc++.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.0.dylib"; path = "../../../miniforge3/lib/libc++.1.0.dylib"; sourceTree = "<group>"; };
 		98B3E4F62A3F700400B02349 /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../bypass_dependencies/libc++.1.dylib"; sourceTree = "<group>"; };
@@ -579,6 +582,9 @@
 				98610F072AA0CD6A006FAF95 /* Overview.md */,
 				98610F802AA29EBE006FAF95 /* HDL.md */,
 				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
+				98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */,
+				98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */,
+				98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";

@@ -93,294 +93,42 @@ cluster 9:
 
 ## Decoding Script
 
-Here is a Swift script for decoding the plain-text MRSimulation format. You can execute it at the command-line by adding the Swift toolchain to the PATH, then typing `swift script.swift`.
+Here is a Swift script for decoding the plain-text MRSimulation format. You can execute it at the command-line by adding the Swift toolchain to the PATH, then typing the following.
 
-<details>
-<summary>Code</summary>
-
-```swift
-import Foundation
-
-// MARK: - Utilities
-
-func startError(
-  _ start: any StringProtocol,
-  _ sequence: any StringProtocol,
-  line: UInt = #line,
-  function: StaticString = #function
-) -> Never {
-  fatalError(
-    "'\(start)' is not the start of '\(sequence)'.",
-    file: (function), line: line)
-}
-
-func assertExpectedPrefix<T: StringProtocol>(
-  _ prefix: String,
-  from text: T
-) where T == T.SubSequence {
-  guard text.starts(with: prefix) else {
-    startError(prefix, text)
-  }
-}
-
-func removeExpectedPrefix<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) where T == T.SubSequence {
-  assertExpectedPrefix(prefix, from: text)
-  text.removeFirst(prefix.count)
-}
-
-func removeIncluding<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) where T == T.SubSequence {
-  while text.starts(with: prefix) {
-    text.removeFirst(prefix.count)
-  }
-}
-
-func removeExcluding<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) where T == T.SubSequence {
-  while !text.starts(with: prefix) {
-    text.removeFirst(prefix.count)
-  }
-}
-
-func extractExcluding<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) -> String where T == T.SubSequence {
-  var output: String = ""
-  while !text.starts(with: prefix) {
-    output += text.prefix(prefix.count)
-    text = text.dropFirst(prefix.count)
-  }
-  return output
-}
-
-func largeIntegerRepr(_ number: Int) -> String {
-  if number < 1_000 {
-    return String(number)
-  } else if number < 1_000_000 {
-    let radix = 1_000
-    return "\(number / radix).\(number % radix / 100) thousand"
-  } else if number < 1_000_000_000 {
-    let radix = 1_000_000
-    return "\(number / radix).\(number % radix / (radix / 10)) million"
-  } else if number < 1_000_000_000_000 {
-    let radix = 1_000_000_000
-    return "\(number / radix).\(number % radix / (radix / 10)) billion"
-  } else {
-    let radix = 1_000_000_000_000
-    return "\(number / radix).\(number % radix / (radix / 10)) trillion"
-  }
-}
-
-func latencyRepr<T: BinaryFloatingPoint>(_ number: T) -> String {
-  let number = Int(rint(Double(number) * 1e6)) // microseconds
-  if number < 1_000 {
-    return "\(number) µs"
-  } else if number < 1_000_000 {
-    let radix = 1_000
-    return "\(number / radix).\(number % radix / (radix / 10)) ms"
-  } else if number < 60 * 1_000_000 {
-    let radix = 1_000_000
-    return "\(number / radix).\(number % radix / (radix / 10)) s"
-  } else if number < 3_600 * 1_000_000 {
-    let radix = 60 * 1_000_000
-    return "\(number / radix).\(number % radix / (radix / 10)) min"
-  } else {
-    let radix = 3_600 * 1_000_000
-    return "\(number / radix).\(number % radix / (radix / 10)) hr"
-  }
-}
-
-func logCheckpoint(message: String, _ start: Date, _ end: Date) {
-  let seconds = end.timeIntervalSince(start)
-  print("\(message): \u{1b}[0;33m\(latencyRepr(seconds))\u{1b}[0m")
-}
-
-// MARK: - Header
-
-let checkpoint0 = Date()
-let filePath = CommandLine.arguments[1]
-guard let data = FileManager.default.contents(atPath: filePath) else {
-  let currentDir = FileManager.default.currentDirectoryPath
-  fatalError("File not found at path: \(currentDir)/\(filePath)")
-}
-
-let checkpoint1 = Date()
-logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
-
-let contents = String(data: data, encoding: .utf8)!
-var lines: [String.SubSequence]
-if contents.prefix(100).contains(Character("\r")) {
-  lines = contents.split(separator: "\r\n", omittingEmptySubsequences: false)
-} else {
-  lines = contents.split(separator: "\n", omittingEmptySubsequences: false)
-}
-
-// Assumes there are no comments in the bulk of the text.
-let rangeSeparator = min(100, lines.count)
-lines = lines[0..<min(100, lines.count)].compactMap {
-  if $0.first(where: { $0 != Character(" ") }) == "#" {
-    return nil
-  } else {
-    return $0
-  }
-} + Array(lines[rangeSeparator...])
-
-func assertNewLine<T: StringProtocol>(_ string: T) {
-  guard string == "" else { startError("", string) }
-}
-
-let checkpoint2 = Date()
-logCheckpoint(message: "Preprocessed text in", checkpoint1, checkpoint2)
-
-assertExpectedPrefix("specification:", from: lines[0])
-assertExpectedPrefix("  - https://github.com", from: lines[1])
-assertNewLine(lines[2])
-
-assertExpectedPrefix("header:", from: lines[3])
-removeExpectedPrefix("  frame time in femtoseconds: ", from: &lines[4])
-let frameTimeInFs = Double(lines[4])!
-removeExpectedPrefix("  spatial resolution in approximate picometers: ", from: &lines[5])
-let resolutionInApproxPm = Double(lines[5])!
-
-removeExpectedPrefix("  uses checkpoints: ", from: &lines[6])
-switch lines[6] {
-case "false":
-  break
-case "true":
-  fatalError("Checkpoints not recognized yet.")
-default:
-  fatalError("Error parsing \(lines[6]).")
-}
-
-removeExpectedPrefix("  frame count: ", from: &lines[7])
-let frameCount = Int(lines[7])!
-removeExpectedPrefix("  frame cluster size: ", from: &lines[8])
-let clusterSize = Int(lines[8])!
-assertNewLine(lines[9])
-
-assertExpectedPrefix("metadata:", from: lines[10])
-assertNewLine(lines[11])
-
-var clusterRanges: [Range<Int>] = []
-var clusterStart: Int?
-for i in 12..<lines.count {
-  if clusterStart == nil {
-    if lines[i].count == 0 {
-      // Allow multiple newlines, especially at the end of the file.
-      continue
-    }
-    
-    removeIncluding("frame cluster ", from: &lines[i])
-    let clusterID = Int(extractExcluding(":", from: &lines[i]))!
-    let expected = clusterRanges.count
-    guard clusterID == clusterRanges.count else {
-      fatalError("Cluster ID \(clusterID) does not match expected \(expected).")
-    }
-    clusterStart = i
-  } else {
-    if lines[i].count == 0 {
-      do {
-        guard let clusterStart else {
-          fatalError("Cluster start was nil. This should never happen.")
-        }
-        clusterRanges.append(clusterStart..<i)
-      }
-      clusterStart = nil
-    }
-  }
-}
-
-let checkpoint3 = Date()
-logCheckpoint(message: "Parsed header in", checkpoint2, checkpoint3)
-
-// MARK: - Frames
-
-struct Atom {
-  var x: Float
-  var y: Float
-  var z: Float
-  var element: UInt8
-  var flags: UInt8
-  
-  var origin: SIMD3<Float> { SIMD3(x, y, z) }
-}
-var clusters: [[[Atom]]] = Array(repeating: [], count: clusterRanges.count)
-
-// Data for multithreading.
-var numCores = ProcessInfo.processInfo.processorCount
-numCores = min(numCores, clusterRanges.count)
-let queue = DispatchQueue(
-  label: "com.philipturner.molecular-renderer.decode")
-var finishedClusterCount: Int = numCores
-
-DispatchQueue.concurrentPerform(iterations: numCores) { z in
-  var i = z
-  while true {
-    let (range, clusterID) = queue.sync { () -> (Range<Int>?, Int?) in
-      if i > numCores {
-        if finishedClusterCount >= clusterRanges.count {
-          return (nil, nil)
-        }
-        let range = clusterRanges[finishedClusterCount]
-        let clusterID = finishedClusterCount
-        finishedClusterCount += 1
-        return (range, clusterID)
-      } else {
-        return (clusterRanges[i], i)
-      }
-    }
-    defer {
-      i = numCores + 1
-    }
-    guard let range, let clusterID else {
-      break
-    }
-
-    queue.sync {
-      clusters[clusterID] = []
-    }
-  }
-}
-
-let checkpoint4 = Date()
-logCheckpoint(message: "Parsed clusters in", checkpoint3, checkpoint4)
-
-// TODO: Include time to combine all the clusters into a single array (ckpt 5)
-logCheckpoint(message: "Total decoding time", checkpoint0, checkpoint4)
-print("Warning: This script is not complete. No frame clusters have been parsed yet.")
-
-// TODO: Choose a random (sorted) subset of the frames, then display a few
-// random atoms. Show "timestamp, atom ID: element, coordinates"
+[MRSimulationDecoder.swift](./MRSimulationDecoder.swift)
 
 ```
+swiftc -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "<mrsim-to-decode>.mrsim-txt"
+```
 
-</details>
+If you want speed, type the command above. If you want to avoid having an executable pasted into the current directory, there are two options:
+- Make a new folder just for this executable. Enter the folder. Adjust the MRSimulation file's relative path accordingly. Run the command. Exit the folder.
+- Run this slower command, whose latency becomes unacceptable at the ~10,000 atom range.
+
+```
+swift -D NO_SIMD MRSimulationDecoder.swift "<mrsim-to-decode>.mrsim-txt"
+```
 
 Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer.
 
-<details>
-<summary>Code</summary>
+> TODO: Translate to Python
 
-```python
-# TODO
-```
+<!--[MRSimulationDecoder.py](./MRSimulationDecoder.py)-->
 
-</details>
+The Python version has been translated to Rust using ChatGPT-4, although the code hasn't been tested.
+
+> TODO: Translate to Rust
+
+<!--[MRSimulationDecoder.rs](./MRSimulationDecoder.rs)-->
 
 If the latencies for Python not acceptable, refer to the footnote[^1].
 
-| Trajectory | Atoms | Unzipped Text Size | Time to Decode (Swift) | Time to Decode (Python) |
-| ------------- | ------ | ------------------ | -------- | ------- |
-| Strained Shell Bearing | 2,300 | 19 MB |
-| Rhombic Dodecahedra (6400 m/s) | 34,000 | 300 MB |
+| Time to Decode | Atoms | Unzipped Text Size      | Swift  | Swift (`NO_SIMD`) | Python |
+| ------------------------------ | ------ | ------ | ------ | ------ | ------ |
+| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.5 s  | 1.8 s  |
+| Strained Shell Bearing (5 ns)  | 2,500  | TBD    |
+| Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB |
+| Vdw Oscillator (1 ns)          } 37,000 | TBD    |
 
 ## Future Directions
 
@@ -396,4 +144,4 @@ Quantum chemistry:
   - The remaining valence electrons are grouped into a collective density distribution.
   - Core electrons are stored in another collective density distribution.
 
-[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. Ensure you compile in release mode or execute from the Swift REPL. [PythonKit](https://github.com/pvieito/PythonKit) should allow most of your scripting code to remain written in Python; only the top-level program must be invoked from the Swift compiler.
+[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. <b>Always compile in release mode, as debug mode is as slow as Python.</b> [PythonKit](https://github.com/pvieito/PythonKit) should allow most of your scripting code to remain written in Python; only the top-level program must be invoked from the Swift compiler.
