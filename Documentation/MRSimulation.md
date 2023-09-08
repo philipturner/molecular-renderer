@@ -22,7 +22,7 @@ specification:
 
 header:
   # Time span between consecutive frames.
-  frame time in femtoseconds: 100
+  frame time in femtoseconds: 100.0
   # Spatial resolution in 1/1024 nanometers.
   spatial resolution in approximate picometers: 0.25
   # Forward compatibility for an unimplemented optimization.
@@ -104,5 +104,19 @@ Next, the Swift script is translated to Python. This code can be copied into you
 ```python
 # TODO
 ```
+
+## Future Directions
+
+Metadata sub-specifications:
+- Standardize a format for storing bond topology, which permits different bond orders and fractional bonds in graphene. The bond order may change between frames. To be efficient, only store the bonds that have changed.
+
+Bounded continuum finite element method:
+- Group the atoms into coarse-grained crystal unit cells. Store the centers and deformations of crystal grains instead of full atom positions.
+
+Quantum chemistry:
+- Add an alternative serialization scheme for storing electron probabilities in ab initio molecular simulations.
+  - Store the densities for each "important" electron at the mechanosynthesis site.
+  - The remaining valence electrons are grouped into a collective density distribution.
+  - Core electrons are stored in another collective density distribution.
 
 [^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. Ensure you compile in release mode or execute from the Swift REPL. Molecular Renderer's built-in deserializer applies further optimizations, including multithreading and GPU acceleration.

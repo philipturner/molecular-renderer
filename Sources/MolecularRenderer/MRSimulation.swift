@@ -192,6 +192,29 @@ public class MRSimulation {
       headerWords.removeAll(keepingCapacity: true)
     }
     
+    if format == .plainText {
+      precondition(
+        staticMetadata.count == 0, "No metadata formats recognized yet.")
+      
+      var yaml: String = """
+      specification:
+        - https://github.com/philipturner/molecular-renderer
+      
+      header:
+        frame time in femtoseconds: \(frameTimeInFs)
+        spatial resolution in approximate picometers: \(resolutionInApproxPm)
+        uses checkpoints: \(usesCheckpoints)
+        frame count: \(frameCount)
+        frame cluster size: \(clusterSize)
+      
+      metadata:
+      
+      """
+      
+      
+      
+    }
+    
     // frameTimeInFs, resolutionInApproxPm
     do {
       headerWords.append(frameTimeInFs.bitPattern)
@@ -265,8 +288,6 @@ public class MRSimulation {
     data += Data(
       bytes: compressedData.buffer.contents(), count: compressedData.cursor)
     precondition(compressedData.cursor == clustersTotalSize)
-    let byt = compressedData.buffer.contents()
-    
     precondition(
       FileManager.default.createFile(atPath: url.path, contents: data),
       "Could not write to the file.")
