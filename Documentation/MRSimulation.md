@@ -200,7 +200,7 @@ func latencyRepr<T: BinaryFloatingPoint>(_ number: T) -> String {
 
 func logCheckpoint(message: String, _ start: Date, _ end: Date) {
   let seconds = end.timeIntervalSince(start)
-  print("\(message) took \(latencyRepr(seconds))")
+  print("\(message): \u{1b}[0;33m\(latencyRepr(seconds))\u{1b}[0m")
 }
 
 // MARK: - Header
@@ -213,7 +213,7 @@ guard let data = FileManager.default.contents(atPath: filePath) else {
 }
 
 let checkpoint1 = Date()
-logCheckpoint(message: "Loading file", checkpoint0, checkpoint1)
+logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
 
 let contents = String(data: data, encoding: .utf8)!
 var lines: [String.SubSequence]
@@ -238,7 +238,7 @@ func assertNewLine<T: StringProtocol>(_ string: T) {
 }
 
 let checkpoint2 = Date()
-logCheckpoint(message: "Preprocessing text", checkpoint1, checkpoint2)
+logCheckpoint(message: "Preprocessed text in", checkpoint1, checkpoint2)
 
 assertExpectedPrefix("specification:", from: lines[0])
 assertExpectedPrefix("  - https://github.com", from: lines[1])
@@ -269,10 +269,96 @@ assertNewLine(lines[9])
 assertExpectedPrefix("metadata:", from: lines[10])
 assertNewLine(lines[11])
 
+var clusterRanges: [Range<Int>] = []
+var clusterStart: Int?
+for i in 12..<lines.count {
+  if clusterStart == nil {
+    if lines[i].count == 0 {
+      // Allow multiple newlines, especially at the end of the file.
+      continue
+    }
+    
+    removeIncluding("frame cluster ", from: &lines[i])
+    let clusterID = Int(extractExcluding(":", from: &lines[i]))!
+    let expected = clusterRanges.count
+    guard clusterID == clusterRanges.count else {
+      fatalError("Cluster ID \(clusterID) does not match expected \(expected).")
+    }
+    clusterStart = i
+  } else {
+    if lines[i].count == 0 {
+      do {
+        guard let clusterStart else {
+          fatalError("Cluster start was nil. This should never happen.")
+        }
+        clusterRanges.append(clusterStart..<i)
+      }
+      clusterStart = nil
+    }
+  }
+}
+
+let checkpoint3 = Date()
+logCheckpoint(message: "Parsed header in", checkpoint2, checkpoint3)
+
 // MARK: - Frames
 
-// TODO
+struct Atom {
+  var x: Float
+  var y: Float
+  var z: Float
+  var element: UInt8
+  var flags: UInt8
+  
+  var origin: SIMD3<Float> { SIMD3(x, y, z) }
+}
+var clusters: [[[Atom]]] = Array(repeating: [], count: clusterRanges.count)
+
+// Data for multithreading.
+var numCores = ProcessInfo.processInfo.processorCount
+numCores = min(numCores, clusterRanges.count)
+let queue = DispatchQueue(
+  label: "com.philipturner.molecular-renderer.decode")
+var finishedClusterCount: Int = numCores
+
+DispatchQueue.concurrentPerform(iterations: numCores) { z in
+  var i = z
+  while true {
+    let (range, clusterID) = queue.sync { () -> (Range<Int>?, Int?) in
+      if i > numCores {
+        if finishedClusterCount >= clusterRanges.count {
+          return (nil, nil)
+        }
+        let range = clusterRanges[finishedClusterCount]
+        let clusterID = finishedClusterCount
+        finishedClusterCount += 1
+        return (range, clusterID)
+      } else {
+        return (clusterRanges[i], i)
+      }
+    }
+    defer {
+      i = numCores + 1
+    }
+    guard let range, let clusterID else {
+      break
+    }
+
+    queue.sync {
+      clusters[clusterID] = []
+    }
+  }
+}
+
+let checkpoint4 = Date()
+logCheckpoint(message: "Parsed clusters in", checkpoint3, checkpoint4)
+
+// TODO: Include time to combine all the clusters into a single array (ckpt 5)
+logCheckpoint(message: "Total decoding time", checkpoint0, checkpoint4)
 print("Warning: This script is not complete. No frame clusters have been parsed yet.")
+
+// TODO: Choose a random (sorted) subset of the frames, then display a few
+// random atoms. Show "timestamp, atom ID: element, coordinates"
 
 ```
 
@@ -288,6 +374,11 @@ Next, the Swift script is translated to Python. This code can be copied into you
 ```
 
 </details>
+
+| Time to Parse | Unzipped Text Size | Time to Decode (Swift) | Time to Decode (Python) |
+| ------------- | ------------------ | -------- | ------- |
+| Strained Shell Bearing | 19 MB |
+| Rhombic Dodecahedra (6400 m/s) | 300 MB |
 
 ## Future Directions
 
