@@ -179,6 +179,17 @@ public class MRSimulation {
   }
   
   public func save(url: URL) {
+    let path = url.path
+    if path.hasSuffix(".mrsim") ||
+        path.hasSuffix(".mrsimulation") {
+      precondition(
+        self.format == .binary, "Attempted to save a text to a binary file.")
+    } else if path.hasSuffix(".mrsim-txt") ||
+                path.hasSuffix(".mrsimulation-txt") {
+      precondition(
+        self.format == .plainText, "Attempted to save a binary to a text file.")
+    }
+    
     if activeCluster.frameCount > 0 {
       encodeActiveCluster()
     }
@@ -196,7 +207,7 @@ public class MRSimulation {
       precondition(
         staticMetadata.count == 0, "No metadata formats recognized yet.")
       
-      var yaml: String = """
+      var yaml = """
       specification:
         - https://github.com/philipturner/molecular-renderer
       
@@ -209,78 +220,82 @@ public class MRSimulation {
       
       metadata:
       
+      
       """
       
-      
-      
-    }
-    
-    // frameTimeInFs, resolutionInApproxPm
-    do {
-      headerWords.append(frameTimeInFs.bitPattern)
-      headerWords.append(resolutionInApproxPm.bitPattern)
-      appendHeaderWords()
-    }
-    
-    // algorithm
-    do {
-      header.reserve(128)
-      memset(header.buffer.contents() + header.cursor, 0, 128)
-      
-      let nextCursor = header.cursor + 128
-      algorithm!.name.withUTF8Buffer {
+      header.reserve(yaml.count)
+      yaml.withUTF8 {
         header.write($0.count, source: $0.baseAddress!)
       }
-      header.cursor = nextCursor
-    }
-    
-    // usesCheckpoints, frameCount, clusterBlockSize
-    do {
-      let clusterCount = (frameCount + clusterSize - 1) / clusterSize
-      precondition(clusterCount == clusterCompressedOffsets.count)
+    } else {
       
-      headerWords.append(usesCheckpoints ? 1 : 0)
-      headerWords.append(UInt64(frameCount))
-      headerWords.append(UInt64(clusterSize))
-      appendHeaderWords()
-    }
-    
-    // clusterCompressedOffsets, clustersTotalSize, staticMetadata.count
-    do {
-      headerWords = clusterCompressedOffsets.map(UInt64.init)
-      headerWords.append(UInt64(clustersTotalSize))
-      headerWords.append(UInt64(staticMetadata.count))
-      appendHeaderWords()
-    }
-    
-    // compressed staticMetadata count, staticMetadata
-    if staticMetadata.count > 0 {
-      var dst = UnsafeMutablePointer<UInt8>
-        .allocate(capacity: staticMetadata.count)
-      defer { dst.deallocate() }
-      
-      let compressedBytes = compression_encode_buffer(
-        dst, staticMetadata.count,
-        staticMetadata, staticMetadata.count,
-        nil, algorithm!.compressionAlgorithm)
-      guard compressedBytes > 0 else {
-        fatalError("Error occurred during encoding.")
+      // frameTimeInFs, resolutionInApproxPm
+      do {
+        headerWords.append(frameTimeInFs.bitPattern)
+        headerWords.append(resolutionInApproxPm.bitPattern)
+        appendHeaderWords()
       }
       
-      headerWords.append(UInt64(compressedBytes))
-      appendHeaderWords()
+      // algorithm
+      do {
+        header.reserve(128)
+        memset(header.buffer.contents() + header.cursor, 0, 128)
+        
+        let nextCursor = header.cursor + 128
+        algorithm!.name.withUTF8Buffer {
+          header.write($0.count, source: $0.baseAddress!)
+        }
+        header.cursor = nextCursor
+      }
       
-      header.reserve(compressedBytes)
-      header.write(compressedBytes, source: dst)
-    }
-    
-    // padding
-    let paddedSize = (header.cursor + 127) / 128 * 128
-    let padding = paddedSize - header.cursor
-    if padding > 0 {
-      header.reserve(padding)
-      memset(header.buffer.contents() + header.cursor, 0, padding)
-      header.cursor += padding
+      // usesCheckpoints, frameCount, clusterBlockSize
+      do {
+        let clusterCount = (frameCount + clusterSize - 1) / clusterSize
+        precondition(clusterCount == clusterCompressedOffsets.count)
+        
+        headerWords.append(usesCheckpoints ? 1 : 0)
+        headerWords.append(UInt64(frameCount))
+        headerWords.append(UInt64(clusterSize))
+        appendHeaderWords()
+      }
+      
+      // clusterCompressedOffsets, clustersTotalSize, staticMetadata.count
+      do {
+        headerWords = clusterCompressedOffsets.map(UInt64.init)
+        headerWords.append(UInt64(clustersTotalSize))
+        headerWords.append(UInt64(staticMetadata.count))
+        appendHeaderWords()
+      }
+      
+      // compressed staticMetadata count, staticMetadata
+      if staticMetadata.count > 0 {
+        var dst = UnsafeMutablePointer<UInt8>
+          .allocate(capacity: staticMetadata.count)
+        defer { dst.deallocate() }
+        
+        let compressedBytes = compression_encode_buffer(
+          dst, staticMetadata.count,
+          staticMetadata, staticMetadata.count,
+          nil, algorithm!.compressionAlgorithm)
+        guard compressedBytes > 0 else {
+          fatalError("Error occurred during encoding.")
+        }
+        
+        headerWords.append(UInt64(compressedBytes))
+        appendHeaderWords()
+        
+        header.reserve(compressedBytes)
+        header.write(compressedBytes, source: dst)
+      }
+      
+      // padding
+      let paddedSize = (header.cursor + 127) / 128 * 128
+      let padding = paddedSize - header.cursor
+      if padding > 0 {
+        header.reserve(padding)
+        memset(header.buffer.contents() + header.cursor, 0, padding)
+        header.cursor += padding
+      }
     }
     
     var data = Data(
@@ -295,9 +310,11 @@ public class MRSimulation {
   
   public init(renderer: MRRenderer, url: URL) {
     let path = url.path
-    if path.hasSuffix("." + "mrsimulation") {
+    if path.hasSuffix(".mrsim") ||
+        path.hasSuffix(".mrsimulation") {
       self.format = .binary
-    } else if path.hasSuffix("." + "mrsimulation-txt") {
+    } else if path.hasSuffix(".mrsim-txt") ||
+                path.hasSuffix(".mrsimulation-txt") {
       self.format = .plainText
     } else {
       fatalError("Invalid file extension.")
@@ -439,6 +456,84 @@ public class MRSimulation {
       }
       
       let uncompressed = component.uncompressed
+      guard self.format == .binary else {
+        precondition(
+          activeCluster.metadataCounts.allSatisfy { $0 == 0 },
+          "No metadata formats recognized yet.")
+        
+        let actualAtoms = totalAtoms / activeCluster.frameCount
+        var yaml: String
+        if z == 0 {
+          var elements: String = ""
+          var flags: String = ""
+          let space = Character(" ")
+          
+          var rawContents = uncompressed.buffer.contents()
+          rawContents += activeCluster.compressedTailStart
+          let contents = rawContents.assumingMemoryBound(to: UInt16.self)
+          
+          for i in 0..<actualAtoms {
+            var rawTail = contents[i]
+            
+            var components = unsafeBitCast(rawTail, to: SIMD2<UInt8>.self)
+            components = SIMD2(components.y, components.x)
+            rawTail = unsafeBitCast(components, to: UInt16.self)
+            
+            let sign = rawTail & 1
+            var tail = Int16(rawTail >> 1)
+            tail = (sign > 0) ? -tail : tail
+            
+            components = unsafeBitCast(tail, to: SIMD2<UInt8>.self)
+            elements.append(space)
+            elements += String(describing: components[0])
+            flags.append(space)
+            flags += String(describing: components[1])
+          }
+          
+          yaml = """
+              elements:\(elements)
+              flags:\(flags)
+          
+          """
+        } else {
+          var label: String
+          switch z {
+          case 1: label = "x coordinates"
+          case 2: label = "y coordinates"
+          case 3: label = "z coordinates"
+          default: fatalError()
+          }
+          
+          yaml = """
+              \(label):
+          
+          """
+          let contents = uncompressed.buffer.contents()
+            .assumingMemoryBound(to: UInt32.self)
+          for i in 0..<actualAtoms {
+            var string: String = "      - \(i):"
+            let space = Character(" ")
+            
+            for j in 0..<activeCluster.frameCount {
+              let rawPosition = contents[j * actualAtoms + i]
+              let sign = rawPosition & 1
+              let delta = Int32(rawPosition >> 1)
+              string.append(space)
+              string += String(describing: (sign > 0) ? -delta : delta)
+            }
+            yaml += string + "\n"
+          }
+        }
+        
+        let compressed = component.compressed
+        precondition(compressed.cursor == 0, "Invalid cursor.")
+        compressed.reserve(yaml.count)
+        yaml.withUTF8 {
+          compressed.write($0.count, source: $0.baseAddress!)
+        }
+        return
+      }
+      
       var bytesToWrite: Int
       if z == 0 {
         let frameCount = activeCluster.frameCount
@@ -498,30 +593,58 @@ public class MRSimulation {
     let y = activeCluster.compressedY.compressed
     let z = activeCluster.compressedZ.compressed
     
-    var header: [Int] = [
-      activeCluster.frameStart,
-      activeCluster.frameStart + Int(UInt(activeCluster.frameCount - 1)),
-    ]
-    var totalBytes = 0
-    totalBytes += metadata.cursor
-    header.append(totalBytes)
-    totalBytes += x.cursor
-    header.append(totalBytes)
-    totalBytes += y.cursor
-    header.append(totalBytes)
-    totalBytes += z.cursor
-    header.append(totalBytes)
-    
-    clusterCompressedOffsets.append(compressedData.cursor)
-    
-    compressedData.reserve(header.count * 8)
-    compressedData.write(header.count * 8, source: header)
-    
-    compressedData.reserve(totalBytes)
-    compressedData.write(metadata.cursor, source: metadata.buffer.contents())
-    compressedData.write(x.cursor, source: x.buffer.contents())
-    compressedData.write(y.cursor, source: y.buffer.contents())
-    compressedData.write(z.cursor, source: z.buffer.contents())
+    if format == .plainText {
+      func writeString(_ string: String) {
+        compressedData.reserve(string.count)
+        var stringCopy = string
+        stringCopy.withUTF8 {
+          compressedData.write($0.count, source: $0.baseAddress!)
+        }
+      }
+      
+      let frameEnd = activeCluster.frameStart + activeCluster.frameCount - 1
+      let index = activeCluster.frameStart / clusterSize
+      writeString("frame cluster \(index):\n")
+      writeString("  frame start: \(activeCluster.frameStart)\n")
+      writeString("  frame end: \(frameEnd)\n")
+      writeString("  metadata:\n")
+      writeString("  atoms:\n")
+      compressedData.reserve(x.cursor)
+      compressedData.reserve(y.cursor)
+      compressedData.reserve(z.cursor)
+      compressedData.reserve(metadata.cursor)
+      compressedData.write(x.cursor, source: x.buffer.contents())
+      compressedData.write(y.cursor, source: y.buffer.contents())
+      compressedData.write(z.cursor, source: z.buffer.contents())
+      compressedData.write(metadata.cursor, source: metadata.buffer.contents())
+      writeString("\n")
+    } else {
+      
+      var header: [Int] = [
+        activeCluster.frameStart,
+        activeCluster.frameStart + Int(UInt(activeCluster.frameCount - 1)),
+      ]
+      var totalBytes = 0
+      totalBytes += metadata.cursor
+      header.append(totalBytes)
+      totalBytes += x.cursor
+      header.append(totalBytes)
+      totalBytes += y.cursor
+      header.append(totalBytes)
+      totalBytes += z.cursor
+      header.append(totalBytes)
+      
+      clusterCompressedOffsets.append(compressedData.cursor)
+      
+      compressedData.reserve(header.count * 8)
+      compressedData.write(header.count * 8, source: header)
+      
+      compressedData.reserve(totalBytes)
+      compressedData.write(metadata.cursor, source: metadata.buffer.contents())
+      compressedData.write(x.cursor, source: x.buffer.contents())
+      compressedData.write(y.cursor, source: y.buffer.contents())
+      compressedData.write(z.cursor, source: z.buffer.contents())
+    }
     
     clustersTotalSize = compressedData.cursor
   }

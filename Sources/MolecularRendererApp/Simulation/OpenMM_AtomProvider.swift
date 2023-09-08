@@ -19,7 +19,7 @@ class OpenMM_AtomProvider: MRAtomProvider {
   private(set) var psPerStep: Double
   private(set) var stepsPerFrame: Int
   private(set) var elements: [UInt8]
-  private(set) var states: [[MRAtom]] = []
+  /*private(set)*/ var states: [[MRAtom]] = []
   
   // Specify each atom's atomic number beforehand; OpenMM doesn't provide that.
   // Use element zero for ghost particles that keep diamondoids aligned to

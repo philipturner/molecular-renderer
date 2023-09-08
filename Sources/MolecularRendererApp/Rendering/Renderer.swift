@@ -75,7 +75,24 @@ class Renderer {
 //      "RhombicDodecahedra-3200",
 //      "RhombicDodecahedra-6400"
 //    ])
-    self.ioSimulation(name: "RhombicDodecahedra-6400")
+    self.ioSimulation(name: "Strained Shell Bearing")
+    
+    guard let simProvider = atomProvider as? SimulationAtomProvider else {
+      fatalError("This should never happen.")
+    }
+    
+    let provider = OpenMM_AtomProvider(
+      psPerStep: simProvider.frameTimeInFs / 1000,
+      stepsPerFrame: 1,
+      elements: simProvider.frames.first!.map { $0.element })
+    for frame in simProvider.frames {
+      provider.states.append(frame)
+    }
+    
+    serializer.save(
+      fileName: "Strained Shell Bearing",
+      provider: provider,
+      asText: true)
   }
 }
 

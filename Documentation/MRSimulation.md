@@ -4,11 +4,11 @@ High-performance codec for recording and replaying molecular simulations.
 
 ## Binary Format
 
-File extension: `mrsimulation`
+File extension: `mrsim, mrsimulation`
 
 ## Plain-Text Format
 
-File extension: `mrsimulation-txt`
+File extension: `mrsim-txt, mrsimulation-txt`
 
 The plain-text format is designed to be easy to parse from a Python script. It is slower and consumes more memory than the binary format. You may also face performance issues, as Python is not a fast language[^1]. Nonetheless, this greatly reduces the barrier to usability.
 
@@ -39,7 +39,7 @@ metadata:
     index 0: 0, 2, 4, 6, 8, 10
     index 1: 1, 3, 5, 7, 9, 11
 
-cluster 0:
+frame cluster 0:
   # Number of frames is 'frame end' - 'frame start' + 1.
   frame start: 0
   frame end: 127
