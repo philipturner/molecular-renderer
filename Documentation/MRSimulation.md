@@ -375,10 +375,12 @@ Next, the Swift script is translated to Python. This code can be copied into you
 
 </details>
 
-| Trajectory | Unzipped Text Size | Time to Decode (Swift) | Time to Decode (Python) |
-| ------------- | ------------------ | -------- | ------- |
-| Strained Shell Bearing | 19 MB |
-| Rhombic Dodecahedra (6400 m/s) | 300 MB |
+If the latencies for Python not acceptable, refer to the footnote[^1].
+
+| Trajectory | Atoms | Unzipped Text Size | Time to Decode (Swift) | Time to Decode (Python) |
+| ------------- | ------ | ------------------ | -------- | ------- |
+| Strained Shell Bearing | 2,300 | 19 MB |
+| Rhombic Dodecahedra (6400 m/s) | 34,000 | 300 MB |
 
 ## Future Directions
 
