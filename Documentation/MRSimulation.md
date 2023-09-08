@@ -12,7 +12,7 @@ File extension: `mrsim-txt, mrsimulation-txt`
 
 The plain-text format is designed to be easy to parse from a Python script. It is slower and consumes more memory than the binary format. You may also face performance issues, as Python is not a fast language[^1]. Nonetheless, this greatly reduces the barrier to usability.
 
-The plain-text format is based on YAML, and arranges characters in a way that maximizes compression ratio during ZIP compression. After serializing the MD trajectory to a text file, run an external archiver application to transform it into a `.zip`. This reduces file size when sharing over the internet or storing on disk. More efficient techniques can serialize chunks of the text one-by-one using the Python `zlib` library. Only if Python had multithreading...
+The plain-text format is based on YAML, and arranges characters in a way that maximizes compression ratio during ZIP compression. After serializing the MD trajectory to a text file, run an external archiver application to transform it into a `.zip`. This reduces file size when sharing over the internet or storing on disk. More efficient techniques can serialize chunks of the text one-by-one using the Python `zlib` library. If Python had multithreading, you could serialize all the chunks in parallel.
 
 In the binary format, each atom's element ID and flags are stored per-frame. 99% of the time, these will never change, and the compressor ignores them. The plain-text format doesn't allow flags to change per frame. Technically they can change per frame cluster, although that is ill-advised.
 
