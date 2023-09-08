@@ -375,7 +375,7 @@ Next, the Swift script is translated to Python. This code can be copied into you
 
 </details>
 
-| Time to Parse | Unzipped Text Size | Time to Decode (Swift) | Time to Decode (Python) |
+| Trajectory | Unzipped Text Size | Time to Decode (Swift) | Time to Decode (Python) |
 | ------------- | ------------------ | -------- | ------- |
 | Strained Shell Bearing | 19 MB |
 | Rhombic Dodecahedra (6400 m/s) | 300 MB |
@@ -394,4 +394,4 @@ Quantum chemistry:
   - The remaining valence electrons are grouped into a collective density distribution.
   - Core electrons are stored in another collective density distribution.
 
-[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. Ensure you compile in release mode or execute from the Swift REPL. Molecular Renderer's built-in deserializer applies further optimizations, including multithreading and GPU acceleration.
+[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. Ensure you compile in release mode or execute from the Swift REPL. [PythonKit](https://github.com/pvieito/PythonKit) should allow most of your scripting code to remain written in Python; only the top-level program must be invoked from the Swift compiler.
