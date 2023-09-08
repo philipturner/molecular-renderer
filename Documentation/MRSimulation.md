@@ -95,15 +95,199 @@ cluster 9:
 
 Here is a Swift script for decoding the plain-text MRSimulation format. It runs on single-core CPU and is therefore very slow. You can execute it at the command-line by adding the Swift toolchain to the PATH, then typing `swift script.swift`.
 
+<details>
+<summary>Code</summary>
+
 ```swift
+import Foundation
+
+// MARK: - Utilities
+
+func startError(
+  _ start: any StringProtocol,
+  _ sequence: any StringProtocol,
+  line: UInt = #line,
+  function: StaticString = #function
+) -> Never {
+  fatalError(
+    "'\(start)' is not the start of '\(sequence)'.",
+    file: (function), line: line)
+}
+
+func assertExpectedPrefix<T: StringProtocol>(
+  _ prefix: String,
+  from text: T
+) where T == T.SubSequence {
+  guard text.starts(with: prefix) else {
+    startError(prefix, text)
+  }
+}
+
+func removeExpectedPrefix<T: StringProtocol>(
+  _ prefix: String,
+  from text: inout T
+) where T == T.SubSequence {
+  assertExpectedPrefix(prefix, from: text)
+  text.removeFirst(prefix.count)
+}
+
+func removeIncluding<T: StringProtocol>(
+  _ prefix: String,
+  from text: inout T
+) where T == T.SubSequence {
+  while text.starts(with: prefix) {
+    text.removeFirst(prefix.count)
+  }
+}
+
+func removeExcluding<T: StringProtocol>(
+  _ prefix: String,
+  from text: inout T
+) where T == T.SubSequence {
+  while !text.starts(with: prefix) {
+    text.removeFirst(prefix.count)
+  }
+}
+
+func extractExcluding<T: StringProtocol>(
+  _ prefix: String,
+  from text: inout T
+) -> String where T == T.SubSequence {
+  var output: String = ""
+  while !text.starts(with: prefix) {
+    output += text.prefix(prefix.count)
+    text = text.dropFirst(prefix.count)
+  }
+  return output
+}
+
+func largeIntegerRepr(_ number: Int) -> String {
+  if number < 1_000 {
+    return String(number)
+  } else if number < 1_000_000 {
+    let radix = 1_000
+    return "\(number / radix).\(number % radix / 100) thousand"
+  } else if number < 1_000_000_000 {
+    let radix = 1_000_000
+    return "\(number / radix).\(number % radix / (radix / 10)) million"
+  } else if number < 1_000_000_000_000 {
+    let radix = 1_000_000_000
+    return "\(number / radix).\(number % radix / (radix / 10)) billion"
+  } else {
+    let radix = 1_000_000_000_000
+    return "\(number / radix).\(number % radix / (radix / 10)) trillion"
+  }
+}
+
+func latencyRepr<T: BinaryFloatingPoint>(_ number: T) -> String {
+  let number = Int(rint(Double(number) * 1e6)) // microseconds
+  if number < 1_000 {
+    return "\(number) µs"
+  } else if number < 1_000_000 {
+    let radix = 1_000
+    return "\(number / radix).\(number % radix / (radix / 10)) ms"
+  } else if number < 60 * 1_000_000 {
+    let radix = 1_000_000
+    return "\(number / radix).\(number % radix / (radix / 10)) s"
+  } else if number < 3_600 * 1_000_000 {
+    let radix = 60 * 1_000_000
+    return "\(number / radix).\(number % radix / (radix / 10)) min"
+  } else {
+    let radix = 3_600 * 1_000_000
+    return "\(number / radix).\(number % radix / (radix / 10)) hr"
+  }
+}
+
+func logCheckpoint(message: String, _ start: Date, _ end: Date) {
+  let seconds = end.timeIntervalSince(start)
+  print("\(message) took \(latencyRepr(seconds))")
+}
+
+// MARK: - Header
+
+let checkpoint0 = Date()
+let filePath = CommandLine.arguments[1]
+guard let data = FileManager.default.contents(atPath: filePath) else {
+  let currentDir = FileManager.default.currentDirectoryPath
+  fatalError("File not found at path: \(currentDir)/\(filePath)")
+}
+
+let checkpoint1 = Date()
+logCheckpoint(message: "Loading file", checkpoint0, checkpoint1)
+
+let contents = String(data: data, encoding: .utf8)!
+var lines: [String.SubSequence]
+if contents.prefix(100).contains(Character("\r")) {
+  lines = contents.split(separator: "\r\n", omittingEmptySubsequences: false)
+} else {
+  lines = contents.split(separator: "\n", omittingEmptySubsequences: false)
+}
+
+// Assumes there are no comments in the bulk of the text.
+let rangeSeparator = min(100, lines.count)
+lines = lines[0..<min(100, lines.count)].compactMap {
+  if $0.first(where: { $0 != Character(" ") }) == "#" {
+    return nil
+  } else {
+    return $0
+  }
+} + Array(lines[rangeSeparator...])
+
+func assertNewLine<T: StringProtocol>(_ string: T) {
+  guard string == "" else { startError("", string) }
+}
+
+let checkpoint2 = Date()
+logCheckpoint(message: "Preprocessing text", checkpoint1, checkpoint2)
+
+assertExpectedPrefix("specification:", from: lines[0])
+assertExpectedPrefix("  - https://github.com", from: lines[1])
+assertNewLine(lines[2])
+
+assertExpectedPrefix("header:", from: lines[3])
+removeExpectedPrefix("  frame time in femtoseconds: ", from: &lines[4])
+let frameTimeInFs = Double(lines[4])!
+removeExpectedPrefix("  spatial resolution in approximate picometers: ", from: &lines[5])
+let resolutionInApproxPm = Double(lines[5])!
+
+removeExpectedPrefix("  uses checkpoints: ", from: &lines[6])
+switch lines[6] {
+case "false":
+  break
+case "true":
+  fatalError("Checkpoints not recognized yet.")
+default:
+  fatalError("Error parsing \(lines[6]).")
+}
+
+removeExpectedPrefix("  frame count: ", from: &lines[7])
+let frameCount = Int(lines[7])!
+removeExpectedPrefix("  frame cluster size: ", from: &lines[8])
+let clusterSize = Int(lines[8])!
+assertNewLine(lines[9])
+
+assertExpectedPrefix("metadata:", from: lines[10])
+assertNewLine(lines[11])
+
+// MARK: - Frames
+
 // TODO
+print("Warning: This script is not complete. No frame clusters have been parsed yet.")
+
 ```
 
+</details>
+
 Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer.
+
+<details>
+<summary>Code</summary>
 
 ```python
 # TODO
 ```
+
+</details>
 
 ## Future Directions
 
