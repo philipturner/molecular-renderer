@@ -93,7 +93,7 @@ cluster 9:
 
 ## Decoding Script
 
-Here is a Swift script for decoding the plain-text MRSimulation format. It runs on single-core CPU and is therefore very slow. You can execute it at the command-line by adding the Swift toolchain to the PATH, then typing `swift script.swift`.
+Here is a Swift script for decoding the plain-text MRSimulation format. You can execute it at the command-line by adding the Swift toolchain to the PATH, then typing `swift script.swift`.
 
 <details>
 <summary>Code</summary>
