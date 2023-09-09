@@ -5,70 +5,128 @@ import Foundation
 // one of the following:
 //
 // Release Mode:
-// swiftc -D USE_SIMD -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt" && rm ./<this-script's-file-name>
+// swiftc -D RELEASE -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt" && rm ./<this-script's-file-name>
 //
 // Debug Mode:
 // swift <this-script's-location>.swift "<mrsim-to-decode>.mrsim-txt"
 
 // MARK: - Utilities
 
-func startError(
-  _ start: any StringProtocol,
-  _ sequence: any StringProtocol,
-  line: UInt = #line,
-  function: StaticString = #function
-) -> Never {
-  fatalError(
-    "'\(start)' is not the start of '\(sequence)'.",
-    file: (function), line: line)
-}
-
-func assertExpectedPrefix<T: StringProtocol>(
-  _ prefix: String,
-  from text: T
-) where T == T.SubSequence {
-  guard text.starts(with: prefix) else {
-    startError(prefix, text)
+func checkStarts(
+  _ prefix: StaticString,
+  from text: [UInt8].SubSequence
+) -> Bool {
+  guard text.count >= prefix.utf8CodeUnitCount else {
+    return false
+  }
+  
+  let count = prefix.utf8CodeUnitCount
+  return withUnsafeTemporaryAllocation(
+    of: UInt8.self, capacity: count
+  ) { buffer in
+    var startIndex = text.startIndex
+    for i in 0..<count {
+      buffer[i] = text[startIndex]
+      startIndex = text.index(after: startIndex)
+    }
+    return memcmp(prefix.utf8Start, buffer.baseAddress, count) == 0
   }
 }
 
-func removeExpectedPrefix<T: StringProtocol>(
+func checkStarts(
   _ prefix: String,
-  from text: inout T
-) where T == T.SubSequence {
-  assertExpectedPrefix(prefix, from: text)
+  from text: [UInt8].SubSequence
+) -> Bool {
+  guard text.count >= prefix.count else {
+    return false
+  }
+  
+  let count = prefix.count
+  return withUnsafeTemporaryAllocation(
+    of: UInt8.self, capacity: count
+  ) { buffer in
+    var startIndexPrefix = prefix.startIndex
+    var startIndexText = text.startIndex
+    var matched = true
+    for i in 0..<count {
+      guard prefix[startIndexPrefix].asciiValue! == text[startIndexText] else {
+        matched = false
+        break
+      }
+      startIndexPrefix = prefix.index(after: startIndexPrefix)
+      startIndexText = text.index(after: startIndexText)
+    }
+    return matched
+  }
+}
+
+func assertExpectedPrefix(
+  _ prefix: StaticString,
+  from text: [UInt8].SubSequence
+) {
+  guard text.count >= prefix.utf8CodeUnitCount,
+        checkStarts(prefix, from: text) else {
+    fatalError("'\(prefix)' is not the start of '\(text)'.")
+  }
+}
+
+func removeExpectedPrefix(
+  _ prefix: String,
+  from text: inout [UInt8].SubSequence
+) {
+  guard checkStarts(prefix, from: text) else {
+    fatalError("'\(prefix)' is not the start of '\(text)'.")
+  }
   text.removeFirst(prefix.count)
 }
 
-func removeIncluding<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) where T == T.SubSequence {
-  while text.starts(with: prefix) {
-    text.removeFirst(prefix.count)
+func removeExpectedPrefix(
+  _ prefix: [UInt8],
+  from text: inout [UInt8].SubSequence
+) {
+  guard text.starts(with: prefix) else {
+    fatalError("'\(prefix)' is not the start of '\(text)'.")
+  }
+  text.removeFirst(prefix.count)
+}
+
+func removeExpectedPrefix(
+  _ prefix: StaticString,
+  from text: inout [UInt8].SubSequence
+) {
+  assertExpectedPrefix(prefix, from: text)
+  text.removeFirst(prefix.utf8CodeUnitCount)
+}
+
+func removeIncluding(
+  _ prefix: StaticString,
+  from text: inout [UInt8].SubSequence
+) {
+  while checkStarts(prefix, from: text) {
+    text.removeFirst(prefix.utf8CodeUnitCount)
   }
 }
 
-func removeExcluding<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) where T == T.SubSequence {
-  while !text.starts(with: prefix) {
-    text.removeFirst(prefix.count)
+func removeExcluding(
+  _ prefix: StaticString,
+  from text: inout [UInt8].SubSequence
+) {
+  while !checkStarts(prefix, from: text) {
+    text.removeFirst(prefix.utf8CodeUnitCount)
     if text.count == 0 {
       break
     }
   }
 }
 
-func extractExcluding<T: StringProtocol>(
-  _ prefix: String,
-  from text: inout T
-) -> String where T == T.SubSequence {
+func extractExcluding(
+  _ prefix: StaticString,
+  from text: inout [UInt8].SubSequence
+) -> String {
   var output: String = ""
-  while !text.starts(with: prefix) {
-    output += text.prefix(prefix.count)
-    text = text.dropFirst(prefix.count)
+  while !checkStarts(prefix, from: text) {
+    output.append(Character(Unicode.Scalar(text.first!)))
+    text = text.dropFirst(1)
     if text.count == 0 {
       break
     }
@@ -134,35 +192,92 @@ guard let data = FileManager.default.contents(atPath: filePath) else {
   let currentDir = FileManager.default.currentDirectoryPath
   fatalError("File not found at path: \(currentDir)/\(filePath)")
 }
-let contents = String(data: data, encoding: .utf8)!
-let contentsBuffer = malloc(contents.utf8.count).assumingMemoryBound(to: UInt8.self)
-memcpy(contentsBuffer, contents, contents.utf8.count)
+let contents = [UInt8](
+  unsafeUninitializedCapacity: data.count,
+  initializingWith: { buffer, count in
+    count = data.count
+    data.copyBytes(to: buffer.baseAddress!, count: data.count)
+  }
+)
+let contentsBuffer = malloc(contents.count).assumingMemoryBound(to: UInt8.self)
+memcpy(contentsBuffer, contents, contents.count)
+
 
 let checkpoint1 = Date()
 logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
 
-var _lines: [String]
-var lines: [String.SubSequence]
-if contents.prefix(100).contains(Character("\r")) {
-  // Remove \r on Windows.
-  _lines = contents.components(separatedBy: "\r\n")
-} else {
-  _lines = contents.components(separatedBy: "\n")
+var _lines: [[UInt8]] = []
+var lines: [[UInt8].SubSequence]
+do {
+#if RELEASE
+  var pendingStart = 0
+  for index in 0..<contents.count {
+    if contents[index] == 10 {
+      _lines.append([UInt8](contents[pendingStart..<index]))
+      pendingStart = index + 1
+    } else if index == contents.count - 1 {
+      _lines.append([UInt8](contents[pendingStart...]))
+      pendingStart = -1000
+    }
+  }
+  
+  // Check for carriage returns on Windows.
+  if contents.prefix(100).contains(13) {
+    for lineID in _lines.indices {
+      if _lines[lineID].last == 13 {
+        _lines[lineID].removeLast()
+      }
+    }
+  }
+#else
+  
+  let strContents = String(data: data, encoding: .utf8)!
+  var strLines: [String]
+  if strContents.prefix(100).contains(Character("\r")) {
+    // Remove \r on Windows.
+    strLines = strContents.components(separatedBy: "\r\n")
+  } else {
+    strLines = strContents.components(separatedBy: "\n")
+  }
+  for var strLine in strLines {
+    strLine.withUTF8 { utf8 in
+      _lines.append([UInt8](unsafeUninitializedCapacity: utf8.count) {
+        $1 = utf8.count
+        memcpy($0.baseAddress, utf8.baseAddress, utf8.count)
+      })
+    }
+  }
+#endif
+  
+  lines = _lines.map { $0[...] }
 }
-lines = _lines.map { $0[...] }
 
 // Assumes there are no comments in the bulk of the text.
 let rangeSeparator = min(100, lines.count)
 lines = lines[0..<min(100, lines.count)].compactMap {
-  if $0.first(where: { $0 != Character(" ") }) == "#" {
+  if $0.first(where: { $0 != 32 }) == 35 {
     return nil
   } else {
     return $0
   }
 } + Array(lines[rangeSeparator...])
 
-func assertNewLine<T: StringProtocol>(_ string: T) {
-  guard string == "" else { startError("", string) }
+func assertNewLine<T: Collection>(_ string: T) {
+  guard string.isEmpty else {
+    fatalError("'\(string)' is not empty.")
+  }
+}
+
+func makeUTF8String(_ characters: [UInt8].SubSequence) -> String {
+  withUnsafeTemporaryAllocation(
+    of: UInt8.self, capacity: characters.count + 1
+  ) { cString in
+    for i in 0..<characters.count {
+      cString[i] = characters[characters.startIndex + i]
+    }
+    cString[characters.count] = 0
+    return String(cString: cString.baseAddress!)
+  }
 }
 
 let checkpoint2 = Date()
@@ -174,24 +289,24 @@ assertNewLine(lines[2])
 
 assertExpectedPrefix("header:", from: lines[3])
 removeExpectedPrefix("  frame time in femtoseconds: ", from: &lines[4])
-let frameTimeInFs = Double(lines[4])!
+let frameTimeInFs = Double(makeUTF8String(lines[4]))!
 removeExpectedPrefix("  spatial resolution in approximate picometers: ", from: &lines[5])
-let resolutionInApproxPm = Double(lines[5])!
+let resolutionInApproxPm = Double(makeUTF8String(lines[5]))!
 
 removeExpectedPrefix("  uses checkpoints: ", from: &lines[6])
 switch lines[6] {
-case "false":
+case [102, 97, 108, 115, 101]: // false
   break
-case "true":
+case [116, 114, 117, 101]: // true
   fatalError("Checkpoints not recognized yet.")
 default:
   fatalError("Error parsing \(lines[6]).")
 }
 
 removeExpectedPrefix("  frame count: ", from: &lines[7])
-let frameCount = Int(lines[7])!
+let frameCount = Int(makeUTF8String(lines[7]))!
 removeExpectedPrefix("  frame cluster size: ", from: &lines[8])
-let clusterSize = Int(lines[8])!
+let clusterSize = Int(makeUTF8String(lines[8]))!
 assertNewLine(lines[9])
 
 assertExpectedPrefix("metadata:", from: lines[10])
@@ -309,7 +424,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       
       // MARK: - Beginning of section to omit when translating to Python
       
-      #if USE_SIMD
+      #if RELEASE
       let numVectors = numAtoms / 2
       #else
       let numVectors = 0
@@ -329,7 +444,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
             tempPointers[lane].deallocate()
             tempPointers[lane] = .allocate(capacity: roundedCount)
           }
-          clusterLines[lineID + lane].withUTF8 {
+          clusterLines[lineID + lane].withUnsafeBufferPointer {
             memcpy(tempPointers[lane].baseAddress, $0.baseAddress, $0.count)
           }
         }
@@ -402,7 +517,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
               with: cumulativeSums &* 10 &+ digits, where: digitMask)
           }
           
-          var floats = SIMD2<Float>(cumulativeSums)
+          var floats = SIMD2<Float>(cumulativeSums &* signs)
           let multiplier = Float(resolutionInApproxPm / 1024)
           floats *= multiplier
           for lane in 0..<2 {
@@ -417,7 +532,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       
       // MARK: - End of section to omit when translating to Python
       
-      #if USE_SIMD
+      #if RELEASE
       let doLoop = numVectors * 2 < numAtoms
       var currentAtomID = numVectors * 2
       #else
@@ -426,7 +541,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       #endif
       while doLoop {
         assertExpectedPrefix("    ", from: clusterLines[lineID])
-        guard clusterLines[lineID].prefix(5) == "     " else {
+        guard clusterLines[lineID].prefix(5) == [32, 32, 32, 32, 32] else {
           break
         }
         defer { lineID += 1 }
@@ -453,7 +568,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         
         // Now, we need to vectorize the code across the number of atoms.
         removeExpectedPrefix(" ", from: &clusterLines[lineID])
-        clusterLines[lineID].withUTF8 { buffer in
+        clusterLines[lineID].withUnsafeBufferPointer { buffer in
           for charID in 0..<buffer.count {
             let char: UInt8 = buffer[charID]
             switch char {
@@ -485,10 +600,9 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         capacity: clusterLines[lineID].count + 1)
       defer { buffer.deallocate() }
       
-      var copy = String(clusterLines[lineID])
-      copy.withUTF8 { copyBuffer in
+      clusterLines[lineID].withUnsafeBufferPointer { copyBuffer in
         memcpy(buffer.baseAddress, copyBuffer.baseAddress!, copyBuffer.count)
-        buffer[clusterLines[lineID].count] = 0
+        buffer[copyBuffer.count] = 0
       }
       
       for atomID in 0..<numAtoms {
