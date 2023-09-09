@@ -575,6 +575,7 @@
 		98610F062AA0CD56006FAF95 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
+				98B27F642AACD42E0081F2B4 /* Scripts */,
 				98906ADA2AAA68AF00FE5832 /* Goals.md */,
 				98D2A3322AA2DF4D000DBAA0 /* KnownIssues.md */,
 				98D2A3302AA2DF4D000DBAA0 /* Modules.md */,
@@ -582,9 +583,6 @@
 				98610F072AA0CD6A006FAF95 /* Overview.md */,
 				98610F802AA29EBE006FAF95 /* HDL.md */,
 				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
-				98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */,
-				98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */,
-				98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";
@@ -706,6 +704,16 @@
 				9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		98B27F642AACD42E0081F2B4 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */,
+				98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */,
+				98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */,
+			);
+			path = Scripts;
 			sourceTree = "<group>";
 		};
 		98B3E4FB2A3F84FA00B02349 /* Tutorials */ = {

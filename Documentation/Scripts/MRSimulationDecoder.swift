@@ -5,7 +5,7 @@ import Foundation
 // one of the following:
 //
 // Release Mode:
-// swiftc -D USE_SIMD -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt"
+// swiftc -D USE_SIMD -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt" && rm ./<this-script's-file-name>
 //
 // Debug Mode:
 // swift <this-script's-location>.swift "<mrsim-to-decode>.mrsim-txt"
@@ -141,64 +141,15 @@ memcpy(contentsBuffer, contents, contents.utf8.count)
 let checkpoint1 = Date()
 logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
 
-#if USE_SIMD
-var newLinePositions: [Int] = []
-for characterID in 0..<contents.count {
-  if contentsBuffer[characterID] == 10 {
-    newLinePositions.append(characterID)
-  }
-}
-
-// Add an extra position for the last (non-omitted) subsequence.
-newLinePositions.append(contents.count)
-
-var _lines: [String] = []
-var lines: [String.SubSequence] = []
-
-do {
-  let isWindows = contents.prefix(100).contains(Character("\r"))
-  var currentPosition = 0
-  var scratch = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 2)
-  defer { scratch.deallocate() }
-  
-  for position in newLinePositions {
-    defer { currentPosition = position + 1 }
-    
-    var positionAdjusted = position
-    if isWindows {
-      guard contentsBuffer[position - 1] == 13 else {
-        fatalError("Detected Windows-style line endings, but one of the lines didn't have a carriage return.")
-      }
-      positionAdjusted -= 1
-    }
-    
-    let numCharacters = positionAdjusted - currentPosition
-    let numZeroPaddedCharacters = numCharacters + 1
-    if scratch.count < numZeroPaddedCharacters {
-      func roundUpToPowerOf2(_ input: Int) -> Int {
-        1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
-      }
-      let capacity = roundUpToPowerOf2(numZeroPaddedCharacters)
-      scratch = .allocate(capacity: capacity)
-    }
-    
-    memcpy(scratch.baseAddress, contentsBuffer + currentPosition, numCharacters)
-    scratch[numCharacters] = 0
-    let line = String(cString: scratch.baseAddress!)
-    _lines.append(line)
-    lines.append(line[...])
-  }
-}
-
-#else
+var _lines: [String]
 var lines: [String.SubSequence]
 if contents.prefix(100).contains(Character("\r")) {
   // Remove \r on Windows.
-  lines = contents.split(separator: "\r\n", omittingEmptySubsequences: false)
+  _lines = contents.components(separatedBy: "\r\n")
 } else {
-  lines = contents.split(separator: "\n", omittingEmptySubsequences: false)
+  _lines = contents.components(separatedBy: "\n")
 }
-#endif
+lines = _lines.map { $0[...] }
 
 // Assumes there are no comments in the bulk of the text.
 let rangeSeparator = min(100, lines.count)
@@ -528,10 +479,30 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       
       var array: [UInt8] = []
       defer { tail.append(array) }
+      
+      var cursor: Int = 0
+      let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(
+        capacity: clusterLines[lineID].count + 1)
+      defer { buffer.deallocate() }
+      
+      var copy = String(clusterLines[lineID])
+      copy.withUTF8 { copyBuffer in
+        memcpy(buffer.baseAddress, copyBuffer.baseAddress!, copyBuffer.count)
+        buffer[clusterLines[lineID].count] = 0
+      }
+      
       for atomID in 0..<numAtoms {
-        removeExpectedPrefix(" ", from: &clusterLines[lineID])
-        let value = UInt8(extractExcluding(" ", from: &clusterLines[lineID]))!
-        array.append(value)
+        precondition(buffer[cursor] == 32, "No space.")
+        cursor += 1
+        
+        var value: Int32 = 0
+        while buffer[cursor] != 0 && buffer[cursor] != 32 {
+          let digit = Int32(buffer[cursor]) - 48
+          cursor += 1
+          precondition(digit >= 0 && digit <= 9, "Invalid digit.")
+          value = value * 10 + digit
+        }
+        array.append(UInt8(value))
       }
     }
     

@@ -100,40 +100,39 @@ cluster 9:
 
 ## Decoding Script
 
-Here is a Swift script for decoding the plain-text MRSimulation format. You can execute it at the command-line by adding the Swift toolchain to the PATH, then typing the following.
+Implementations:
+- Swift: [MRSimulationDecoder.swift](./Scripts/MRSimulationDecoder.swift)
+- Python: [MRSimulationDecoder.py](./Scripts/MRSimulationDecoder.py)
+- Rust: [MRSimulationDecoder.rs](./Scripts/MRSimulationDecoder.rs) (untested)
 
-[MRSimulationDecoder.swift](./MRSimulationDecoder.swift)
+To test the decoder, open a terminal window. Set the path of the file to decode:
 
 ```bash
-# Only modify this line.
 export FILE="<mrsim-to-decode>.mrsim-txt"
+```
 
-# Leave this line as-is.
+Here is a Swift script for decoding the plain-text MRSimulation format. Add the Swift toolchain to the PATH, then type the following.
+
+```bash
 swiftc -D USE_SIMD -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "$FILE" && rm ./MRSimulationDecoder
 ```
 
 Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer. If the latencies for Python not acceptable, refer to the footnote[^1].
 
-> TODO: Translate to Python
-
-<!--[MRSimulationDecoder.py](./MRSimulationDecoder.py)-->
-
-The Python version has been translated to Rust using ChatGPT-4, although the code hasn't been tested.
-
-> TODO: Translate to Rust
-
-<!--[MRSimulationDecoder.rs](./MRSimulationDecoder.rs)-->
+```bash
+python3 MRSimulationDecoder.py $FILE
+```
 
 ## Benchmarks
 
-| Time to Decode | Atoms | Unzipped Text Size      | Swift (SIMD) | Swift (Default)[^2] | Python |
+| Time to Decode | Atoms | Unzipped Text Size      | Swift (Release) | Swift (Debug) | Python |
 | ------------------------------ | ------ | ------ | ------ | ------ | ------ |
-| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 2.9 s  | 8.1 s |
-| Vdw Oscillator (Final)         | 37,000 | 820 MB | 1.0 min | 1.9 min |
-| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.6 s  | 1.9 s  |
-| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  | 1.8 s  | 5.8 s  |
-| Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB | 23.2 s | 43.5 s |
-| Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB | 24.0 s | 49.0 s |
+| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 1.3 s  | 6.3 s | 21.3 s |
+| Vdw Oscillator (Final)         | 37,000 | 820 MB | 17.8 s | 1.0 min | not tested |
+| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.4 s  | 1.5 s  | 6.3 s |
+| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  | 1.4 s  | 5.0 s  | 21.4 s |
+| Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB | 6.4 s  | 22.1 s | 1.9 min |
+| Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB | 6.9 s  | 25.5 s | not tested |
 
 To access the MRSimulation files used for these benchmarks, check out https://github.com/philipturner/mrsimulation-benchmarks/releases.
 
@@ -152,5 +151,3 @@ Quantum chemistry:
   - Core electrons are stored in another collective density distribution.
 
 [^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. <b>Always compile in release mode; debug mode is as slow as Python.</b> [PythonKit](https://github.com/pvieito/PythonKit) should allow most of your scripting code to remain written in Python; only the top-level program must be invoked from the Swift compiler.
-
-[^2]: Predicted performance of a Rust implementation.
