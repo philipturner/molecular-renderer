@@ -98,7 +98,10 @@ Here is a Swift script for decoding the plain-text MRSimulation format. You can 
 [MRSimulationDecoder.swift](./MRSimulationDecoder.swift)
 
 ```bash
+# Only modify this line.
 export FILE="<mrsim-to-decode>.mrsim-txt"
+
+# Leave this line as-is.
 swiftc -D USE_SIMD -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "$FILE" && rm ./MRSimulationDecoder
 ```
 
@@ -121,9 +124,11 @@ If the latencies for Python not acceptable, refer to the footnote[^1].
 | Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 2.9 s  | 8.1 s |
 | Vdw Oscillator (Final)         | 37,000 | 820 MB | 1.0 min | 1.9 min |
 | Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.6 s  | 1.9 s  |
-| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  |        |        |
-| Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB |
-| Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB |
+| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  | 1.8 s  | 5.8 s  |
+| Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB | 23.2 s | 43.5 s |
+| Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB | 24.0 s | 49.0 s |
+
+To access the MRSimulation files used for these benchmarks, check out https://github.com/philipturner/mrsimulation-benchmarks/releases.
 
 ## Future Directions
 
