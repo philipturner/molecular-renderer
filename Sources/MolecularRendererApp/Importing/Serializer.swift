@@ -18,7 +18,7 @@ class Serializer {
   }
   
   func load(fileName: String) -> MRSimulation {
-    let path = self.path + "/" + fileName + ".mrsimulation"
+    let path = self.path + "/" + fileName + ".mrsim"
     let url = URL(filePath: path)
     return MRSimulation(
       renderer: renderer.renderingEngine, url: url)
@@ -44,6 +44,7 @@ class Serializer {
     
     var path = self.path + "/" + fileName + ".mrsimulation"
     if asText {
+      path.removeLast("ulation".count)
       path += "-txt"
     }
     let url = URL(filePath: path)

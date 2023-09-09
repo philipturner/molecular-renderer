@@ -1,12 +1,14 @@
 import Foundation
 
-// WARNING: Do not compile this in debug mode or run 'swift file.swift' the
-// usual way. It is very slow this way, often slower than without SIMD
-// optimizations. Do one of the following:
+// WARNING: Do not compile this in debug mode or run 'swift file.swift' with
+// SIMD instructions. That combination makes it 10x slower, not 10x faster. Do
+// one of the following:
 //
-// swiftc -Ounchecked <this-script's-location>.swift && ./script "<mrsim-to-decode>.mrsim-txt"
+// Release Mode:
+// swiftc -D USE_SIMD -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt"
 //
-// swift -D NO_SIMD <this-script's-location>.swift "<mrsim-to-decode>.mrsim-txt"
+// Debug Mode:
+// swift <this-script's-location>.swift "<mrsim-to-decode>.mrsim-txt"
 
 // MARK: - Utilities
 
@@ -139,16 +141,7 @@ memcpy(contentsBuffer, contents, contents.utf8.count)
 let checkpoint1 = Date()
 logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
 
-#if NO_SIMD
-var lines: [String.SubSequence]
-if contents.prefix(100).contains(Character("\r")) {
-  // Remove \r on Windows.
-  lines = contents.split(separator: "\r\n", omittingEmptySubsequences: false)
-} else {
-  lines = contents.split(separator: "\n", omittingEmptySubsequences: false)
-}
-
-#else
+#if USE_SIMD
 // TODO: Check whether using multithreading helps for supermassive files.
 numCores = 1 // ProcessInfo.processInfo.processorCount
 var _newLinePositions: [[Int]] = Array(repeating: [], count: numCores)
@@ -209,6 +202,15 @@ do {
     _lines.append(line)
     lines.append(line[...])
   }
+}
+
+#else
+var lines: [String.SubSequence]
+if contents.prefix(100).contains(Character("\r")) {
+  // Remove \r on Windows.
+  lines = contents.split(separator: "\r\n", omittingEmptySubsequences: false)
+} else {
+  lines = contents.split(separator: "\n", omittingEmptySubsequences: false)
 }
 #endif
 
@@ -366,15 +368,14 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       removeExpectedPrefix(" coordinates:", from: &clusterLines[lineID])
       lineID += 1
       
-      var atomCount: Int = 0
       var allAtomsCoords: [[Float]] = []
       
       // MARK: - Beginning of section to omit when translating to Python
       
-      #if NO_SIMD
-      let numVectors = 0
-      #else
+      #if USE_SIMD
       let numVectors = numAtoms / 8
+      #else
+      let numVectors = 0
       #endif
       for vectorID in 0..<numVectors {
         // Copy the strings' raw data to a custom memory region.
@@ -479,15 +480,22 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       
       // MARK: - End of section to omit when translating to Python
       
-      while true {
+      #if USE_SIMD
+      let doLoop = numVectors * 8 < numAtoms
+      var currentAtomID = numVectors * 8
+      #else
+      let doLoop = true
+      var currentAtomID = 0
+      #endif
+      while doLoop {
         assertExpectedPrefix("    ", from: clusterLines[lineID])
         guard clusterLines[lineID].prefix(5) == "     " else {
           break
         }
         defer { lineID += 1 }
         removeExpectedPrefix(
-          "      - \(atomCount):", from: &clusterLines[lineID])
-        defer { atomCount += 1 }
+          "      - \(currentAtomID):", from: &clusterLines[lineID])
+        defer { currentAtomID += 1 }
         
         var cumulativeSum: Int32 = 0
         let multiplier = Float(resolutionInApproxPm / 1024)
@@ -527,8 +535,20 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       allAxesCoords.append(allAtomsCoords)
     }
     
-    // (x y z)(atomID)(frameID) -> (frameID)(atomID)(x y z)
-    // var allAxesCoords: [[[Float]]] = []
+    var tail: [[UInt8]] = []
+    for label in ["elements", "flags"] {
+      removeExpectedPrefix("    \(label):", from: &clusterLines[lineID])
+      defer { lineID += 1 }
+      
+      var array: [UInt8] = []
+      defer { tail.append(array) }
+      for atomID in 0..<numAtoms {
+        removeExpectedPrefix(" ", from: &clusterLines[lineID])
+        let value = UInt8(extractExcluding(" ", from: &clusterLines[lineID]))!
+        array.append(value)
+      }
+    }
+    
     var cluster: [[Atom]] = []
     for frameID in 0...(frameEnd - frameStart) {
       var array: [Atom] = []
@@ -538,10 +558,10 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         let x = allAxesCoords[0][atomID][frameID]
         let y = allAxesCoords[1][atomID][frameID]
         let z = allAxesCoords[2][atomID][frameID]
+        let element = tail[0][atomID]
+        let flags = tail[1][atomID]
         
-        // TODO: Extract the element and flags, after debugging the coordinates.
-        // Then, profile execution speed.
-        let atom = Atom(x: x, y: y, z: z, element: 0, flags: 0)
+        let atom = Atom(x: x, y: y, z: z, element: element, flags: flags)
         array.append(atom)
       }
       cluster.append(array)

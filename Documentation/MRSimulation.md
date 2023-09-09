@@ -97,16 +97,9 @@ Here is a Swift script for decoding the plain-text MRSimulation format. You can 
 
 [MRSimulationDecoder.swift](./MRSimulationDecoder.swift)
 
-```
-swiftc -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "<mrsim-to-decode>.mrsim-txt"
-```
-
-If you want speed, type the command above. If you want to avoid having an executable pasted into the current directory, there are two options:
-- Make a new folder just for this executable. Enter the folder. Adjust the MRSimulation file's relative path accordingly. Run the command. Exit the folder.
-- Run this slower command, whose latency becomes unacceptable at the ~10,000 atom range.
-
-```
-swift -D NO_SIMD MRSimulationDecoder.swift "<mrsim-to-decode>.mrsim-txt"
+```bash
+export FILE="<mrsim-to-decode>.mrsim-txt"
+swiftc -D USE_SIMD -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "$FILE" && rm ./MRSimulationDecoder
 ```
 
 Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer.
@@ -123,12 +116,14 @@ The Python version has been translated to Rust using ChatGPT-4, although the cod
 
 If the latencies for Python not acceptable, refer to the footnote[^1].
 
-| Time to Decode | Atoms | Unzipped Text Size      | Swift  | Swift (`NO_SIMD`) | Python |
+| Time to Decode | Atoms | Unzipped Text Size      | Swift (SIMD) | Swift (Default)[^2] | Python |
 | ------------------------------ | ------ | ------ | ------ | ------ | ------ |
-| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.5 s  | 1.8 s  |
-| Strained Shell Bearing (5 ns)  | 2,500  | TBD    |
+| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 3.0 s  | 8.1 s |
+| Vdw Oscillator (Final)         | 37,000 | 820 MB |
+| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.6 s  | 1.9 s  |
+| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  |        |        |
+| Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB |
 | Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB |
-| Vdw Oscillator (1 ns)          } 37,000 | TBD    |
 
 ## Future Directions
 
@@ -144,4 +139,6 @@ Quantum chemistry:
   - The remaining valence electrons are grouped into a collective density distribution.
   - Core electrons are stored in another collective density distribution.
 
-[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. <b>Always compile in release mode, as debug mode is as slow as Python.</b> [PythonKit](https://github.com/pvieito/PythonKit) should allow most of your scripting code to remain written in Python; only the top-level program must be invoked from the Swift compiler.
+[^1]: If this become a bottleneck, try scripting in Swift, a language you must get slightly acquainted with to use Molecular Renderer. <b>Always compile in release mode; debug mode is as slow as Python.</b> [PythonKit](https://github.com/pvieito/PythonKit) should allow most of your scripting code to remain written in Python; only the top-level program must be invoked from the Swift compiler.
+
+[^2]: Predicted performance of a Rust implementation.
