@@ -146,7 +146,7 @@ Bounded continuum finite element method:
 - Group the atoms into coarse-grained crystal unit cells. Store the centers and deformations of crystal grains instead of full atom positions.
 
 Quantum chemistry:
-- Add an alternative serialization scheme for storing electron probabilities in ab initio molecular simulations.
+- Add an alternative serialization scheme for storing electron probabilities from ab initio molecular simulations.
   - Store the densities for each "important" electron at the mechanosynthesis site.
   - The remaining valence electrons are grouped into a collective density distribution.
   - Core electrons are stored in another collective density distribution.
