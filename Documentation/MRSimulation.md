@@ -118,8 +118,8 @@ If the latencies for Python not acceptable, refer to the footnote[^1].
 
 | Time to Decode | Atoms | Unzipped Text Size      | Swift (SIMD) | Swift (Default)[^2] | Python |
 | ------------------------------ | ------ | ------ | ------ | ------ | ------ |
-| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 3.0 s  | 8.1 s |
-| Vdw Oscillator (Final)         | 37,000 | 820 MB |
+| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 2.9 s  | 8.1 s |
+| Vdw Oscillator (Final)         | 37,000 | 820 MB | 1.0 min | 1.9 min |
 | Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.6 s  | 1.9 s  |
 | Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  |        |        |
 | Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB |

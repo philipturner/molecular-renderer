@@ -142,28 +142,14 @@ let checkpoint1 = Date()
 logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
 
 #if USE_SIMD
-// TODO: Check whether using multithreading helps for supermassive files.
-numCores = 1 // ProcessInfo.processInfo.processorCount
-var _newLinePositions: [[Int]] = Array(repeating: [], count: numCores)
-DispatchQueue.concurrentPerform(iterations: numCores) { z in
-  let z = 0
-  let numCharacters = contents.count
-  let charactersStart = z * numCharacters / numCores
-  let charactersEnd = (z + 1) * numCharacters / numCores
-  
-  var positions: [Int] = []
-  for characterID in charactersStart..<charactersEnd {
-    if contentsBuffer[characterID] == 10 {
-      positions.append(characterID)
-    }
-  }
-  queue.sync {
-    _newLinePositions[z] = positions
+var newLinePositions: [Int] = []
+for characterID in 0..<contents.count {
+  if contentsBuffer[characterID] == 10 {
+    newLinePositions.append(characterID)
   }
 }
 
 // Add an extra position for the last (non-omitted) subsequence.
-var newLinePositions: [Int] = _newLinePositions.flatMap { $0 }
 newLinePositions.append(contents.count)
 
 var _lines: [String] = []
@@ -352,11 +338,11 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
     let numAtoms = numAtomsLines / 3
     
     var tempPointers: [UnsafeMutableBufferPointer<UInt8>] = []
-    for _ in 0..<8 {
+    for _ in 0..<4 {
       tempPointers.append(.allocate(capacity: 2))
     }
     defer {
-      for i in 0..<8 {
+      for i in 0..<4 {
         tempPointers[i].deallocate()
       }
     }
@@ -373,14 +359,14 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       // MARK: - Beginning of section to omit when translating to Python
       
       #if USE_SIMD
-      let numVectors = numAtoms / 8
+      let numVectors = numAtoms / 2
       #else
       let numVectors = 0
       #endif
       for vectorID in 0..<numVectors {
         // Copy the strings' raw data to a custom memory region.
-        var stringMaxIndices: SIMD8<Int32> = .zero
-        for lane in 0..<8 {
+        var stringMaxIndices: SIMD2<Int32> = .zero
+        for lane in 0..<2 {
           func roundUpToPowerOf2(_ input: Int) -> Int {
             1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
           }
@@ -396,18 +382,18 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
             memcpy(tempPointers[lane].baseAddress, $0.baseAddress, $0.count)
           }
         }
-        defer { lineID += 8 }
+        defer { lineID += 2 }
         
-        var cursors: SIMD8<Int32> = .init(repeating: Int32("      - ".count))
-        let laneIDs = SIMD8<Int32>(0, 1, 2, 3, 4, 5, 6, 7)
-        var atomIDs = SIMD8<Int32>(repeating: Int32(vectorID * 8)) &+ laneIDs
+        var cursors: SIMD2<Int32> = .init(repeating: Int32("      - ".count))
+        let laneIDs = SIMD2<Int32>(0, 1)
+        var atomIDs = SIMD2<Int32>(repeating: Int32(vectorID * 2)) &+ laneIDs
         @inline(__always)
-        func fetch() -> SIMD8<Int32> {
-          var output: SIMD8<Int32> = .zero
+        func fetch() -> SIMD2<Int32> {
+          var output: SIMD2<Int32> = .zero
           var boundedCursors = cursors
           boundedCursors.replace(
             with: stringMaxIndices, where: cursors .> stringMaxIndices)
-          for lane in 0..<8 {
+          for lane in 0..<2 {
             output[lane] = Int32(tempPointers[lane][Int(boundedCursors[lane])])
           }
           output.replace(
@@ -417,7 +403,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         
         var remainders = atomIDs
         while any(remainders .> 0) {
-          var activeMask = SIMD8<Int32>.zero
+          var activeMask = SIMD2<Int32>.zero
           activeMask.replace(with: .one, where: remainders .> 0)
           cursors &+= activeMask
           remainders /= 10
@@ -429,7 +415,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         cursors &+= Int32(":".count)
         
         var arrays: [[Float]] = []
-        for lane in 0..<8 {
+        for lane in 0..<2 {
           arrays.append([])
           arrays[lane].reserveCapacity(frameEnd - frameStart + 1)
         }
@@ -440,15 +426,15 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
           }
           cursors &+= 1
           
-          var activeMask = SIMD8<Int32>.one
-          var signs = SIMD8<Int32>.one
-          var cumulativeSums = SIMD8<Int32>.zero
+          var activeMask = SIMD2<Int32>.one
+          var signs = SIMD2<Int32>.one
+          var cumulativeSums = SIMD2<Int32>.zero
           while any(activeMask .> 0) {
             let characters = fetch()
             
             var spaceMask = characters .== 32
             spaceMask = spaceMask .& (activeMask .> 0)
-            activeMask.replace(with: SIMD8<Int32>.zero, where: spaceMask)
+            activeMask.replace(with: SIMD2<Int32>.zero, where: spaceMask)
             
             var cursorMask = characters .!= 32
             cursorMask = cursorMask .& (activeMask .> 0)
@@ -465,15 +451,15 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
               with: cumulativeSums &* 10 &+ digits, where: digitMask)
           }
           
-          var floats = SIMD8<Float>(cumulativeSums)
+          var floats = SIMD2<Float>(cumulativeSums)
           let multiplier = Float(resolutionInApproxPm / 1024)
           floats *= multiplier
-          for lane in 0..<8 {
+          for lane in 0..<2 {
             arrays[lane].append(floats[lane])
           }
         }
         
-        for lane in 0..<8 {
+        for lane in 0..<2 {
           allAtomsCoords.append(arrays[lane])
         }
       }
@@ -481,8 +467,8 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       // MARK: - End of section to omit when translating to Python
       
       #if USE_SIMD
-      let doLoop = numVectors * 8 < numAtoms
-      var currentAtomID = numVectors * 8
+      let doLoop = numVectors * 2 < numAtoms
+      var currentAtomID = numVectors * 2
       #else
       let doLoop = true
       var currentAtomID = 0
