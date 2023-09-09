@@ -2,6 +2,13 @@
 
 High-performance codec for recording and replaying molecular simulations.
 
+Table of Contents
+- [Binary Format](#binary-format)
+- [Plain-Text Format](#plain-text-format)
+- [Decoding Script](#decoding-script)
+- [Benchmarks](#benchmarks)
+- [Future Directions](#future-directions)
+
 ## Binary Format
 
 File extension: `mrsim, mrsimulation`
@@ -105,7 +112,7 @@ export FILE="<mrsim-to-decode>.mrsim-txt"
 swiftc -D USE_SIMD -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "$FILE" && rm ./MRSimulationDecoder
 ```
 
-Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer.
+Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer. If the latencies for Python not acceptable, refer to the footnote[^1].
 
 > TODO: Translate to Python
 
@@ -117,7 +124,7 @@ The Python version has been translated to Rust using ChatGPT-4, although the cod
 
 <!--[MRSimulationDecoder.rs](./MRSimulationDecoder.rs)-->
 
-If the latencies for Python not acceptable, refer to the footnote[^1].
+## Benchmarks
 
 | Time to Decode | Atoms | Unzipped Text Size      | Swift (SIMD) | Swift (Default)[^2] | Python |
 | ------------------------------ | ------ | ------ | ------ | ------ | ------ |
