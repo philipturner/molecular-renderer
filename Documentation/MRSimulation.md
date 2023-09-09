@@ -126,11 +126,11 @@ python3 MRSimulationDecoder.py $FILE
 ## Benchmarks
 
 | Time to Decode | Atoms | Unzipped Text Size      | Swift (Release) | Swift (Debug) | Python |
-| ------------------------------ | ------ | ------ | ------ | ------ | ------ |
-| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 0.3 s  | 5.7 s  | 21.3 s |
-| Vdw Oscillator (Final)         | 37,000 | 820 MB | 4.2 s  | 55.7 s | not tested |
-| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.1 s  | 1.5 s  | 6.3 s |
-| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  | 0.3 s  | 4.0 s  | 21.4 s |
+| ------------------------------ | ------ | ------ | ------ | ------ | ------- |
+| Vdw Oscillator (Prototype 6)   | 10,000 | 58 MB  | 0.3 s  | 5.7 s  | 21.3 s  |
+| Vdw Oscillator (Final)         | 37,000 | 820 MB | 3.6 s  | 55.7 s | 5.6 min |
+| Strained Shell Bearing (15 ps) | 2,500  | 19 MB  | 0.1 s  | 1.5 s  | 6.3 s   |
+| Strained Shell Bearing (5 ns)  | 2,500  | 67 MB  | 0.3 s  | 4.0 s  | 21.4 s  |
 | Rhombic Dodecahedra (100 m/s)  | 34,000 | 285 MB | 1.4 s  | 21.2 s | 1.9 min |
 | Rhombic Dodecahedra (6400 m/s) | 34,000 | 316 MB | 1.5 s  | 22.3 s | 2.1 min |
 

@@ -403,12 +403,17 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
     precondition(numAtomsLines % 3 == 0, "Unexpected number of lines.")
     let numAtoms = numAtomsLines / 3
     
+    let executionWidth: Int = 4
+    typealias VInt = SIMD4<Int32>
+    typealias VFloat = SIMD4<Float>
+    let laneIDs = VInt(0, 1, 2, 3)
+    
     var tempPointers: [UnsafeMutableBufferPointer<UInt8>] = []
-    for _ in 0..<4 {
+    for _ in 0..<executionWidth {
       tempPointers.append(.allocate(capacity: 2))
     }
     defer {
-      for i in 0..<4 {
+      for i in 0..<executionWidth {
         tempPointers[i].deallocate()
       }
     }
@@ -425,14 +430,14 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       // MARK: - Beginning of section to omit when translating to Python
       
       #if RELEASE
-      let numVectors = numAtoms / 2
+      let numVectors = numAtoms / executionWidth
       #else
       let numVectors = 0
       #endif
       for vectorID in 0..<numVectors {
         // Copy the strings' raw data to a custom memory region.
-        var stringMaxIndices: SIMD2<Int32> = .zero
-        for lane in 0..<2 {
+        var stringMaxIndices: VInt = .zero
+        for lane in 0..<executionWidth {
           func roundUpToPowerOf2(_ input: Int) -> Int {
             1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
           }
@@ -448,18 +453,18 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
             memcpy(tempPointers[lane].baseAddress, $0.baseAddress, $0.count)
           }
         }
-        defer { lineID += 2 }
+        defer { lineID += executionWidth }
         
-        var cursors: SIMD2<Int32> = .init(repeating: Int32("      - ".count))
-        let laneIDs = SIMD2<Int32>(0, 1)
-        var atomIDs = SIMD2<Int32>(repeating: Int32(vectorID * 2)) &+ laneIDs
+        var cursors: VInt = .init(repeating: Int32("      - ".count))
+        var atomIDs = VInt(repeating: Int32(
+          vectorID * executionWidth)) &+ laneIDs
         @inline(__always)
-        func fetch() -> SIMD2<Int32> {
-          var output: SIMD2<Int32> = .zero
+        func fetch() -> VInt {
+          var output: VInt = .zero
           var boundedCursors = cursors
           boundedCursors.replace(
             with: stringMaxIndices, where: cursors .> stringMaxIndices)
-          for lane in 0..<2 {
+          for lane in 0..<executionWidth {
             output[lane] = Int32(tempPointers[lane][Int(boundedCursors[lane])])
           }
           output.replace(
@@ -469,7 +474,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         
         var remainders = atomIDs
         while any(remainders .> 0) {
-          var activeMask = SIMD2<Int32>.zero
+          var activeMask = VInt.zero
           activeMask.replace(with: .one, where: remainders .> 0)
           cursors &+= activeMask
           remainders /= 10
@@ -481,7 +486,7 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
         cursors &+= Int32(":".count)
         
         var arrays: [[Float]] = []
-        for lane in 0..<2 {
+        for lane in 0..<executionWidth {
           arrays.append([])
           arrays[lane].reserveCapacity(frameEnd - frameStart + 1)
         }
@@ -492,15 +497,15 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
           }
           cursors &+= 1
           
-          var activeMask = SIMD2<Int32>.one
-          var signs = SIMD2<Int32>.one
-          var cumulativeSums = SIMD2<Int32>.zero
+          var activeMask = VInt.one
+          var signs = VInt.one
+          var cumulativeSums = VInt.zero
           while any(activeMask .> 0) {
             let characters = fetch()
             
             var spaceMask = characters .== 32
             spaceMask = spaceMask .& (activeMask .> 0)
-            activeMask.replace(with: SIMD2<Int32>.zero, where: spaceMask)
+            activeMask.replace(with: VInt.zero, where: spaceMask)
             
             var cursorMask = characters .!= 32
             cursorMask = cursorMask .& (activeMask .> 0)
@@ -517,15 +522,15 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
               with: cumulativeSums &* 10 &+ digits, where: digitMask)
           }
           
-          var floats = SIMD2<Float>(cumulativeSums &* signs)
+          var floats = VFloat(cumulativeSums &* signs)
           let multiplier = Float(resolutionInApproxPm / 1024)
           floats *= multiplier
-          for lane in 0..<2 {
+          for lane in 0..<executionWidth {
             arrays[lane].append(floats[lane])
           }
         }
         
-        for lane in 0..<2 {
+        for lane in 0..<executionWidth {
           allAtomsCoords.append(arrays[lane])
         }
       }
@@ -533,8 +538,8 @@ DispatchQueue.concurrentPerform(iterations: numCores) { z in
       // MARK: - End of section to omit when translating to Python
       
       #if RELEASE
-      let doLoop = numVectors * 2 < numAtoms
-      var currentAtomID = numVectors * 2
+      let doLoop = numVectors * executionWidth < numAtoms
+      var currentAtomID = numVectors * executionWidth
       #else
       let doLoop = true
       var currentAtomID = 0
