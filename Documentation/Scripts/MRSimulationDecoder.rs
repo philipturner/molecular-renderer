@@ -80,13 +80,13 @@ fn latency_repr<T: Into<f64>>(number: T) -> String {
     let radix = 1_000;
     format!("{}.{} ms", number / radix, number % radix / (radix / 10))
   } else if number < 60 * 1_000_000 {
-    let radix = 60 * 1_000_000;
+    let radix = 1_000_000;
     format!("{}.{} s", number / radix, number % radix / (radix /10))
-  } else if number <3_600 *1_000_000{
-    let radix =3_600 *1_000_000;
+  } else if number < 3_600 * 1_000_000 {
+    let radix = 60 * 1_000_000;
     format!("{}.{} min",number/radix,number%radix/(radix/10))
 }else{
-let radix=3_600*1_000_000;
+let radix = 3_600 * 1_000_000;
 format!("{}.{} hr",number/radix,number%radix/(radix/10))
 }
 }
@@ -191,7 +191,7 @@ let contents_buffer = contents.as_bytes(); // Get a slice of bytes from the stri
 let checkpoint1 = Instant::now(); // Store the current time
 log_checkpoint(message="Loaded file in", start=checkpoint0, end=checkpoint1); // Print how much time it took to load the file
 
-#[cfg(feature = "use_simd")]
+#[cfg(feature = "release")]
 {
   let mut new_line_positions: Vec<usize> = Vec::new(); // Create an empty vector to store the positions of new lines
   for (character_id, character) in contents_buffer.iter().enumerate() { // Iterate over each byte and its index in the buffer
@@ -238,7 +238,7 @@ log_checkpoint(message="Loaded file in", start=checkpoint0, end=checkpoint1); //
     }
   }
 }
-#[cfg(not(feature = "use_simd"))]
+#[cfg(not(feature = "release"))]
 {
   let mut lines: Vec<&str>; // Create a mutable variable to store the lines as string slices
   if contents[..100].contains("\r") { // Check if the first 100 characters contain a carriage return character, which indicates Windows-style line endings
@@ -369,11 +369,11 @@ cluster_ranges.into_par_iter().enumerate().for_each(|(i, range)| {
     
     let mut all_atoms_coords: Vec<Vec<f32>> = Vec::new(); // Create an empty vector to store all atoms coordinates for the current axis
 
-#[cfg(feature = "use_simd")]
+#[cfg(feature = "release")]
 {
   let num_vectors = num_atoms / 2; // Calculate the number of vectors by dividing the number of atoms by two
 }
-#[cfg(not(feature = "use_simd"))]
+#[cfg(not(feature = "release"))]
 {
   let num_vectors = 0; // Set the number of vectors to zero
 }
@@ -508,12 +508,12 @@ for atom_id in (num_vectors * 2)..num_atoms { // Iterate over each atom ID from 
   
 }
 
-#[cfg(feature = "use_simd")]
+#[cfg(feature = "release")]
 {
   let do_loop = num_vectors * 2 < num_atoms; // Calculate a boolean value by comparing the product of num_vectors and two with num_atoms
   let mut current_atom_id = num_vectors * 2; // Initialize a mutable variable to store the current atom ID as the product of num_vectors and two
 }
-#[cfg(not(feature = "use_simd"))]
+#[cfg(not(feature = "release"))]
 {
   let do_loop = true; // Set the do loop value to true
   let mut current_atom_id = 0; // Initialize a mutable variable to store the current atom ID as zero
