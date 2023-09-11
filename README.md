@@ -14,6 +14,10 @@ Documentation
 - [MRSimulation](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
 
+<!--
+
+TODO: Relocate this old documentation somewhere else.
+
 ## Usage
 
 Molecular Renderer started as a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). Instead of a traditional UI, the CAD functionality is achieved entirely through scripting. It natively supports Swift and Metal Shading Language. Some core functionality will eventually have C bindings, bringing indirect support for C++, Rust, etc.
@@ -61,4 +65,4 @@ MolecularRendererApp currently requires an Apple M1 chip running Metal 3. It is 
 
 The simulators process geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
-
+-->
