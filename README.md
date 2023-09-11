@@ -24,20 +24,7 @@ Molecular Renderer started as a platform for the author to conduct [computationa
 C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into traditional CAD applications.
 - Known issues: [link](./Documentation/KnownIssues.md)
 
-### MolecularRenderer App
-
-At `Sources/OpenMM/include/module.modulemap` within the source tree, there is a file with the following contents. Replace `philipturner` with your username to compile the app.
-
-```
-module OpenMM {
-  header "/Users/philipturner/miniforge3/include/OpenMMCWrapper.h"
-  export *
-}
-```
-
 ### OpenMM Swift Bindings
-
-> TODO: Find a solution for the OpenMM module that eliminates the hard-coded header path.
 
 Ergonomic wrapper around the OpenMM C API, for using OpenMM in Swift code.
 

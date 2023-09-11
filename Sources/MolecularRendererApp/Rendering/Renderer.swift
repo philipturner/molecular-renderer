@@ -63,7 +63,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-//    self.atomProvider = RhombicDocedahedra().provider
+    self.atomProvider = RhombicDocedahedra().provider
     eventTracker.playerState.position = [0, 0, 2]
     
 //    renderSeries(names: [
@@ -75,24 +75,24 @@ class Renderer {
 //      "RhombicDodecahedra-3200",
 //      "RhombicDodecahedra-6400"
 //    ])
-    self.ioSimulation(name: "VdwOscillator-Prototype6")
+//    self.ioSimulation(name: "VdwOscillator-Prototype6")
     
-    guard let simProvider = atomProvider as? SimulationAtomProvider else {
-      fatalError("This should never happen.")
-    }
-    
-    let provider = OpenMM_AtomProvider(
-      psPerStep: simProvider.frameTimeInFs / 1000,
-      stepsPerFrame: 1,
-      elements: simProvider.frames.first!.map { $0.element })
-    for frame in simProvider.frames {
-      provider.states.append(frame)
-    }
-    
-    serializer.save(
-      fileName: "VdwOscillator-Prototype6",
-      provider: provider,
-      asText: true)
+//    guard let simProvider = atomProvider as? SimulationAtomProvider else {
+//      fatalError("This should never happen.")
+//    }
+//    
+//    let provider = OpenMM_AtomProvider(
+//      psPerStep: simProvider.frameTimeInFs / 1000,
+//      stepsPerFrame: 1,
+//      elements: simProvider.frames.first!.map { $0.element })
+//    for frame in simProvider.frames {
+//      provider.states.append(frame)
+//    }
+//    
+//    serializer.save(
+//      fileName: "VdwOscillator-Prototype6",
+//      provider: provider,
+//      asText: true)
   }
 }
 

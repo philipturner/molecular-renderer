@@ -292,6 +292,7 @@
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
+		98B27F652AAE91860081F2B4 /* OpenMMCWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenMMCWrapper.h; sourceTree = "<group>"; };
 		98B3E4EB2A3F6F2200B02349 /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../../../miniforge3/lib/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
 		98B3E4F12A3F6F9D00B02349 /* libc++.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.0.dylib"; path = "../../../miniforge3/lib/libc++.1.0.dylib"; sourceTree = "<group>"; };
 		98B3E4F62A3F700400B02349 /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../bypass_dependencies/libc++.1.dylib"; sourceTree = "<group>"; };
@@ -763,6 +764,7 @@
 			isa = PBXGroup;
 			children = (
 				98DA27C22A3F687500AFE8B7 /* module.modulemap */,
+				98B27F652AAE91860081F2B4 /* OpenMMCWrapper.h */,
 			);
 			path = include;
 			sourceTree = "<group>";

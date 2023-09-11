@@ -238,7 +238,7 @@ struct RhombicDocedahedra {
       baseDiamondoid.minimize()
       
       let separation: Float = 3.45 * 0.357
-      let object_lattice: SIMD3<Int> = [4, 2, 4]
+      let object_lattice: SIMD3<Int> = [2, 2, 2]
       for x in 0..<object_lattice.x {
         for y in 0..<object_lattice.y {
           for z in 0..<object_lattice.z {
@@ -266,7 +266,7 @@ struct RhombicDocedahedra {
         0
       ])
       
-      let speedInMetersPerSecond: Float = 6400
+      let speedInMetersPerSecond: Float = 100
       projectile.linearVelocity = [
         0, -speedInMetersPerSecond / 1000, 0
       ]
@@ -278,8 +278,8 @@ struct RhombicDocedahedra {
     self.provider = ArrayAtomProvider(allDiamondoids.flatMap { $0.atoms })
     
     let simulator = _Old_MM4(
-      diamondoids: allDiamondoids, fsPerFrame: 100) // 20, 100
-    simulator.simulate(ps: 80) // 10, 80
+      diamondoids: allDiamondoids, fsPerFrame: 20) // 20, 100
+    simulator.simulate(ps: 10) // 10, 80
     provider = simulator.provider
   }
 }
