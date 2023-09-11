@@ -3,15 +3,14 @@
 
 # Molecular Renderer
 
-> TODO: Update description to reflect recent cross-platform efforts.
-
-CAD framework for simulating nanotechnology, with ray-traced 120 Hz visualization. Designed to handle millions of atoms in real-time.
+What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working toward the design of the first self-replicating factory.
 
 Documentation
 - [Goals](./Documentation/Goals.md)
 - [Project Overview](./Documentation/Overview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
+  - TODO: Online DocC documentation of Swift modules.
 - [MRSimulation](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
 
