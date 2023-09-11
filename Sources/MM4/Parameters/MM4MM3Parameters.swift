@@ -1,3 +1,22 @@
+//
+//  MM4MM3Parameters.swift
+//  MolecularRenderer
+//
+//  Created by Philip Turner on 9/11/23.
+//
+
+import Foundation
+
+class MM4MM3Parameters {
+  static let global = MM4MM3Parameters()
+  
+  init() {
+    
+  }
+}
+
+extension MM4MM3Parameters {
+  static let sourceString = """
 // Originated from Tinker software.
 // License at: https://github.com/TinkerTools/tinker/blob/release/LICENSE.pdf
 
@@ -4733,3 +4752,6 @@ pibond5      57   57           2.820     0.1700
 pibond4      57   57           2.840     0.3900
 pibond4      57   58           4.600     0.1660
 pibond4      58   58           4.600     0.1660
+
+"""
+}

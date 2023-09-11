@@ -9,14 +9,10 @@ import Foundation
 
 /// A configuration for a force field simulator.
 public class MM4ForceFieldDescriptor {
+  // TODO: Allow more complex forces that can change over time?
+  //
   /// Optional. The force (in piconewtons) exerted on each atom.
   public var externalForces: [SIMD3<Float>]?
-  
-  /// Required. The amount of mass (in amu) to redistribute from a substituent
-  /// atom to each covalently bonded hydrogen.
-  ///
-  /// The default is 1 amu.
-  public var hydrogenMassRepartitioning: Double = 1.0
   
   /// Required. The largest time step (in picoseconds) that may be taken during
   /// a simulation.
