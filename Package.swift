@@ -45,7 +45,13 @@ var targets: [Target] = [
     dependencies: ["MM4"]),
   .target(
     name: "MM4",
-    dependencies: [.product(name: "QuaternionModule", package: "swift-numerics"), "OpenMM"]),
+    dependencies: [
+      .product(name: "QuaternionModule", package: "swift-numerics"),
+      "OpenMM"
+    ],
+    resources: [
+      .process("Parameters/")
+    ]),
   .target(
     name: "OpenMM",
     dependencies: ["COpenMM"]),
