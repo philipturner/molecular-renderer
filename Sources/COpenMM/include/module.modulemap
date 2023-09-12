@@ -9,6 +9,6 @@ module COpenMM {
   // TODO: Find a more general way for people besides myself to use OpenMM with
   // MolecularRenderer. In the meantime, when you see the Xcode error at this
   // line in the '.modulemap', replace "philipturner" with your username.
-  header "/Users/philipturner/miniforge3/include/OpenMMCWrapper.h"
+  header "C:/Users/Alexey Novikov/.conda/pkgs/openmm-8.0.0-py311h9957787_1/Library/include/OpenMMCWrapper.h"
   export *
 }

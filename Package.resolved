@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics",
+      "state" : {
+        "branch" : "Quaternions",
+        "revision" : "57508977327c7ae9f7bb89ce5e0654ca8e8a4822"
+      }
+    }
+  ],
+  "version" : 2
+}
