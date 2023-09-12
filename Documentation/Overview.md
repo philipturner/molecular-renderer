@@ -23,9 +23,9 @@ Planned Features:
 - Written in Swift, but exporting C symbols. These can be used in other languages, such as by the Python `ctypes` library
   - All software uses C symbols under the hood, even C++ and Rust. These are what make up dynamic libraries (`.dylib` or `.dll`).
 - Rewritten molecular dynamics simulator
-  - Combines MM3, MM4, MMFF parameters
-  - C-H, C-C, C-Si, Si-Si, C-Ge, Ge-Ge, C-N, N-N, C-Cl bonds
-  - Not yet figured out a way to support sp2 bonds, but that is being considered
+  - <s>Combines MM3, MM4, MMFF parameters</s>
+  - <s>C-H, C-C, C-Si, Si-Si, C-Ge, Ge-Ge, C-N, N-N, C-Cl bonds</s> most of the P-block of the periodic table
+  - <s>Not yet figured out a way to support sp2 bonds, but that is being considered</s>
   - Allows atoms to be held in place or external forces to act on them
 - Surface reconstruction/modification through energy minimization
   - Allows atoms not perfecty aligned to the diamond or lonsdaleite lattice

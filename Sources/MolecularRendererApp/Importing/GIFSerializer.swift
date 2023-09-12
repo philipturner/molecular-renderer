@@ -16,8 +16,11 @@ final class GIFSerializer {
   var path: String
   var previousFrames: [[UInt32]] = []
   
+  let width: Int = 720
+  let height: Int = 640
+  
   init(path: String) {
-    self.gif = GIF(width: 640, height: 640)
+    self.gif = GIF(width: width, height: height)
     self.path = path
   }
   
@@ -26,12 +29,12 @@ final class GIFSerializer {
     let _pixels = pixels.assumingMemoryBound(to: UInt32.self)
     if previousFrames.count < blurFusion - 1 {
       previousFrames.append(Array(
-        unsafeUninitializedCapacity: 640 * 640
+        unsafeUninitializedCapacity: width * height
       ) { pointer, count in
-        count = 640 * 640
-        for y in 0..<640 {
-          for x in 0..<640 {
-            let index = y * 640 + x
+        count = width * height
+        for y in 0..<height {
+          for x in 0..<width {
+            let index = y * width + x
             pointer[index] = _pixels[index]
           }
         }
@@ -42,12 +45,12 @@ final class GIFSerializer {
       previousFrames = []
     }
     
-    let image = try! CairoImage(width: 640, height: 640)
-    var sumBuffer = [SIMD4<Float16>](repeating: .zero, count: 640 * 640)
+    let image = try! CairoImage(width: width, height: height)
+    var sumBuffer = [SIMD4<Float16>](repeating: .zero, count: width * height)
     for frame in previousFrames {
-      for y in 0..<640 {
-        for x in 0..<640 {
-          let index = y * 640 + x
+      for y in 0..<height {
+        for x in 0..<width {
+          let index = y * width + x
           let pixel = unsafeBitCast(frame[index], to: SIMD4<UInt8>.self)
           sumBuffer[index] += SIMD4<Float16>(pixel)
         }
@@ -56,9 +59,9 @@ final class GIFSerializer {
     
     let numFramesRecip = (blurFusion == 1) ? 0 : 1 / Float(blurFusion - 1)
     let currentMultiplier = (blurFusion == 1) ? 1 : Float(0.5)
-    for y in 0..<640 {
-      for x in 0..<640 {
-        let index = y * 640 + x
+    for y in 0..<height {
+      for x in 0..<width {
+        let index = y * width + x
         var sum = SIMD4<Float>(sumBuffer[index])
         sum *= numFramesRecip
         sum *= 1 - currentMultiplier
@@ -106,7 +109,9 @@ final class GIFSerializer {
 
 struct GIFExamples {
   static func saveExampleGIF(serializer: GIFSerializer) {
-    let image = malloc(640 * 640 * 4)
+    let width = serializer.width
+    let height = serializer.height
+    let image = malloc(width * height * 4)
       .assumingMemoryBound(to: SIMD4<UInt8>.self)
     defer { free(image) }
     
@@ -118,11 +123,13 @@ struct GIFExamples {
       progressT = (progressT + 1) / 2
       precondition(progressT >= 0 && progressT <= 1)
       
-      for y in 0..<640 {
-        for x in 0..<640 {
-          let index = y * 640 + x
-          var progressX = Float(x) / 640
-          var progressY = Float(y) / 640
+      let widthRecip = 1 / Float(width)
+      let heightRecip = 1 / Float(height)
+      for y in 0..<height {
+        for x in 0..<width {
+          let index = y * width + x
+          var progressX = Float(x) * widthRecip
+          var progressY = Float(y) * heightRecip
           progressX *= progressT
           progressY *= progressT
           

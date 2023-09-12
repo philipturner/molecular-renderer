@@ -18,26 +18,35 @@ class Serializer {
   }
   
   func load(fileName: String) -> MRSimulation {
-    let path = self.path + "/" + fileName + ".mrsimulation"
+    let path = self.path + "/" + fileName + ".mrsim"
     let url = URL(filePath: path)
     return MRSimulation(
       renderer: renderer.renderingEngine, url: url)
   }
   
-  func save(fileName: String, provider: OpenMM_AtomProvider) {
+  func save(
+    fileName: String,
+    provider: OpenMM_AtomProvider,
+    asText: Bool = false
+  ) {
     // Allow 0.125 fs precision.
     var frameTimeInFs = rint(8 * 1000 * provider.psPerStep) / 8
     frameTimeInFs *= Double(provider.stepsPerFrame)
     let simulation = MRSimulation(
       renderer: renderer.renderingEngine,
-      frameTimeInFs: frameTimeInFs)
+      frameTimeInFs: frameTimeInFs,
+      format: asText ? .plainText : .binary)
     
     for state in provider.states {
       let frame = MRFrame(atoms: state)
       simulation.append(frame)
     }
     
-    let path = self.path + "/" + fileName + ".mrsimulation"
+    var path = self.path + "/" + fileName + ".mrsimulation"
+    if asText {
+      path.removeLast("ulation".count)
+      path += "-txt"
+    }
     let url = URL(filePath: path)
     simulation.save(url: url)
   }

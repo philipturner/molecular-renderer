@@ -40,13 +40,10 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    var imageSize: Int
     var upscaleFactor: Int?
     if Self.productionRender {
-      imageSize = Int(640)
       upscaleFactor = nil
     } else {
-      imageSize = Int(ContentView.size)
       upscaleFactor = ContentView.upscaleFactor
     }
     
@@ -54,8 +51,8 @@ class Renderer {
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
     self.renderingEngine = MRRenderer(
       metallibURL: url,
-      width: imageSize,
-      height: imageSize,
+      width: Self.productionRender ? 720 : Int(ContentView.size),
+      height: Self.productionRender ? 640 : Int(ContentView.size),
       upscaleFactor: upscaleFactor,
       offline: Self.productionRender)
     self.gifSerializer = GIFSerializer(
@@ -66,12 +63,58 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = ExampleProviders.strainedShellStructure()
+    self.atomProvider = RhombicDocedahedra().provider
     eventTracker.playerState.position = [0, 0, 2]
+    
+//    renderSeries(names: [
+//      "RhombicDodecahedra-100",
+//      "RhombicDodecahedra-200",
+//      "RhombicDodecahedra-400",
+//      "RhombicDodecahedra-800",
+//      "RhombicDodecahedra-1600",
+//      "RhombicDodecahedra-3200",
+//      "RhombicDodecahedra-6400"
+//    ])
+//    self.ioSimulation(name: "VdwOscillator-Prototype6")
+    
+//    guard let simProvider = atomProvider as? SimulationAtomProvider else {
+//      fatalError("This should never happen.")
+//    }
+//    
+//    let provider = OpenMM_AtomProvider(
+//      psPerStep: simProvider.frameTimeInFs / 1000,
+//      stepsPerFrame: 1,
+//      elements: simProvider.frames.first!.map { $0.element })
+//    for frame in simProvider.frames {
+//      provider.states.append(frame)
+//    }
+//    
+//    serializer.save(
+//      fileName: "VdwOscillator-Prototype6",
+//      provider: provider,
+//      asText: true)
   }
 }
 
 extension Renderer {
+  func renderSeries(names: [String]) {
+    for name in names {
+      print()
+      self.gifSerializer = GIFSerializer(
+        path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
+      
+      let simulation = serializer.load(fileName: name)
+      self.atomProvider = SimulationAtomProvider(simulation: simulation)
+      renderSimulation(simulation)
+      
+      let numFrames = gifSerializer.gif.frames.count
+      print("ETA: \(numFrames / 21 / 2) - \(numFrames / 12 / 2) seconds.")
+      gifSerializer.save(fileName: name)
+      print("Saved the production render.")
+    }
+    exit(0)
+  }
+  
   func renderSimulation(
     _ simulation: MRSimulation
   ) {
@@ -119,10 +162,10 @@ extension Renderer {
       }
     }
     renderingEngine.stopRendering()
-    
-    // The encoder from the Swift GIF package is very slow; we might need to
-    // fork the repository and speed it up. The encoding is faster when the
-    // image isn't completely blank.
+  }
+  
+  func saveGIF() {
+    let numFrames = gifSerializer.gif.frames.count
     print("ETA: \(numFrames / 21 / 2) - \(numFrames / 12 / 2) seconds.")
     gifSerializer.save(fileName: "SavedSimulation")
     print("Saved the production render.")
@@ -192,18 +235,36 @@ extension Renderer {
     var _position = position
     var _rotation = rotation
     if Self.programCamera {
-      let period: Float = .greatestFiniteMagnitude
-      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
-      let radius: Float = 2.5
+      //      let period: Float = .greatestFiniteMagnitude
+      //      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
+      //      let radius: Float = 2.5
+      //      
+      //      var angle = Float(frameID) / Float(framesPerSecond)
+      //      angle /= period
+      //      angle *= 2 * .pi
+      //      
+      //      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      //      let delta = simd_act(quaternion, [0, 0, 1])
+      //      _position = rotationCenter + normalize(delta) * radius
+      //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       
-      var angle = Float(frameID) / Float(framesPerSecond)
-      angle /= period
+      var rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
+      rotationCenter += 0.357 * SIMD3(3.75, 8.00, 3.75)
+      
+      var angle = Float(0.125)
       angle *= 2 * .pi
       
-      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
-      let delta = simd_act(quaternion, [0, 0, 1])
-      _position = rotationCenter + normalize(delta) * radius
+      _ = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      _position = rotationCenter
       _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
+      _rotation = _rotation * simd_float3x3(
+        SIMD3(1, 0, 0),
+        SIMD3(0, cos(-20 * .pi / 180), -sin(-20 * .pi / 180)),
+        SIMD3(0, sin(-20 * .pi / 180), cos(-20 * .pi / 180))).transpose
+      _rotation = _rotation * simd_float3x3(
+        SIMD3(0, 1, 0),
+        SIMD3(-1, 0, 0),
+        SIMD3(0, 0, 1)).transpose
     }
     
     var lights: [MRLight] = []
@@ -221,14 +282,15 @@ extension Renderer {
       quality: quality)
   }
   
-  private func ioSimulation() {
-    let simulationName = "SavedSimulation"
+  private func ioSimulation(name: String? = nil) {
+    let simulationName = name ?? "RhombicDodecahedra-1"
     if Self.recycleSimulation {
       let simulation = serializer.load(fileName: simulationName)
       self.atomProvider = SimulationAtomProvider(simulation: simulation)
       
       if Self.productionRender {
         renderSimulation(simulation)
+        saveGIF()
       }
     } else {
       //    self.atomProvider = OctaneReference().provider

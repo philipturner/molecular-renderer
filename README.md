@@ -3,15 +3,20 @@
 
 # Molecular Renderer
 
-> TODO: Update description to reflect recent cross-platform efforts.
-
-CAD framework for simulating nanotechnology, with ray-traced 120 Hz visualization. Designed to handle millions of atoms in real-time.
+What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working toward the design of the first self-replicating factory.
 
 Documentation
+- [Goals](./Documentation/Goals.md)
 - [Project Overview](./Documentation/Overview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
+  - TODO: Online DocC documentation of Swift modules.
+- [MRSimulation](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
+
+<!--
+
+TODO: Relocate this old documentation somewhere else.
 
 ## Usage
 
@@ -22,20 +27,7 @@ Molecular Renderer started as a platform for the author to conduct [computationa
 C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into traditional CAD applications.
 - Known issues: [link](./Documentation/KnownIssues.md)
 
-### MolecularRenderer App
-
-At `Sources/OpenMM/include/module.modulemap` within the source tree, there is a file with the following contents. Replace `philipturner` with your username to compile the app.
-
-```
-module OpenMM {
-  header "/Users/philipturner/miniforge3/include/OpenMMCWrapper.h"
-  export *
-}
-```
-
 ### OpenMM Swift Bindings
-
-> TODO: Find a solution for the OpenMM module that eliminates the hard-coded header path.
 
 Ergonomic wrapper around the OpenMM C API, for using OpenMM in Swift code.
 
@@ -73,4 +65,4 @@ MolecularRendererApp currently requires an Apple M1 chip running Metal 3. It is 
 
 The simulators process geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
 
-
+-->

@@ -45,7 +45,10 @@ var targets: [Target] = [
     dependencies: ["MM4"]),
   .target(
     name: "MM4",
-    dependencies: [.product(name: "QuaternionModule", package: "swift-numerics"), "OpenMM"]),
+    dependencies: [
+      .product(name: "QuaternionModule", package: "swift-numerics"),
+      "OpenMM"
+    ]),
   .target(
     name: "OpenMM",
     dependencies: ["COpenMM"]),
@@ -73,6 +76,7 @@ let package = Package(
   products: products,
   dependencies: [
     .package(url: "https://github.com/apple/swift-numerics", branch: "Quaternions"),
+    .package(url: "https://github.com/iwill/generic-json-swift", branch: "master")
   ],
   targets: targets
 )
