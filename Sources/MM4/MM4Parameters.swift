@@ -54,8 +54,7 @@ public class MM4Parameters {
     // Check the bond orders.
     if let bondOrders = descriptor.bondOrders {
       precondition(
-        bondOrders.allSatisfy { $0 == 1 },
-        "Only sigma bonds accepted for now.")
+        bondOrders.allSatisfy { $0 == 1 }, "Pi bonds not supported yet.")
     }
     
     // Compile the bonds into a map.
@@ -177,9 +176,9 @@ public class MM4Parameters {
             }
             
             var mask1 = iterate(lane5: 0)
-            var mask2 = iterate(lane5: 1)
+            let mask2 = iterate(lane5: 1)
             var mask3 = iterate(lane5: 2)
-            var mask4 = iterate(lane5: 3)
+            let mask4 = iterate(lane5: 3)
             mask1.replace(with: mask2, where: mask2 .< mask1)
             mask3.replace(with: mask4, where: mask4 .< mask3)
             mask1.replace(with: mask3, where: mask1 .< mask3)
@@ -187,6 +186,9 @@ public class MM4Parameters {
           }
         }
       }
+    }
+    guard ringTypes.allSatisfy({ $0 >= 5 }) else {
+      fatalError("3- and 4-member rings not supported yet.")
     }
     angles = anglesMap.keys.map { $0 }
     torsions = torsionsMap.keys.map { $0 }

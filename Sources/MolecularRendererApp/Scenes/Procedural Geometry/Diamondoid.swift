@@ -596,7 +596,7 @@ struct Diamondoid {
         let bondLength = Constants.bondLengths[
           [1, thisAtom.element]]!.average
         
-        var direction = dirtyDirections[dirtyID]
+        let direction = dirtyDirections[dirtyID]
         var newHydrogen = thisAtom.origin + bondLength * direction
         let dirtyNeighbor = dirtyNeighbors[dirtyID].origin
         var movedDistance = distance(newHydrogen, dirtyNeighbor)

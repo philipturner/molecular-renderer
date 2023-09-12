@@ -254,7 +254,7 @@ extension Renderer {
       var angle = Float(0.125)
       angle *= 2 * .pi
       
-      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      _ = simd_quatf(angle: -angle, axis: [0, 1, 0])
       _position = rotationCenter
       _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       _rotation = _rotation * simd_float3x3(
