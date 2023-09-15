@@ -153,7 +153,7 @@ Replaces selected atoms with the specified element. Does not affect vacant cryst
 Passivate { Element }
 ```
 
-Adds hydrogens or halogens to open orbitals of selected atoms. Does not affect vacant crystal unit cells.
+Adds hydrogens or halogens to the open orbitals of selected atoms. Does not affect vacant crystal unit cells.
 
 ```swift
 Plane { Vector }
@@ -169,11 +169,15 @@ Affine {
 }
 ```
 
+Start a section instantiating a previously designed lattice and rotating or translating it.
+
 ```swift
 Convex { 
 
 }
 ```
+
+Start a section where every plane is combined through OR in disjunctive normal form.
 
 ```swift
 Concave {
@@ -181,11 +185,15 @@ Concave {
 }
 ```
 
+Start a section where every plane is combined through AND in disjunctive normal form.
+
 ```swift
 Volume {
 
 }
 ```
+
+Encapsulate a set of planes, so everything inside the scope will be popped from the stack upon exiting.
 
 ### Lattice and Solid Transforms
 
@@ -200,6 +208,10 @@ Sets the input as the object the be modified in the enclosing `Affine`.
 Reflect { Vector }
 ```
 
+Reflect the object across an axis of the global coordinate system.
+
+> TODO: Should this reflect across the object's center of mass instead?
+
 ```swift
 Rotate { Vector }
 ```
@@ -210,15 +222,21 @@ Rotates counterclockwise around the vector by `length(vector)` revolutions. For 
 Translate { Vector }
 ```
 
+Translate the object by the specified vector, relative to its current center of mass.
+
 ### Other
 
 ```swift
-Lattice { }
+Lattice<Basis> { }
 ```
 
+TODO
+
 ```swift
-Solid
+Solid { }
 ```
+
+TODO
 
 ```swift
 Material { Element }
@@ -226,3 +244,9 @@ Material { [Element] }
 ```
 
 Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic moissanite.
+
+```swift
+Bounds { Vector }
+```
+
+TODO
