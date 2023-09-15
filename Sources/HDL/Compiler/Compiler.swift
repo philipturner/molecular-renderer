@@ -26,6 +26,11 @@ private class Compiler {
   public func _reset() {
     
   }
+  
+  /// Unstable API; do not use this function.
+  public func _makeKeyFrames() {
+    // Return key frames for animating the geometry compilation.
+  }
 }
 
 // MARK: - Hacked Together Internal Representation

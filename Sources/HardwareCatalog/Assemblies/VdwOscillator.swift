@@ -8,9 +8,6 @@
 import Shapes
 import HDL
 
-// This should be kept in the assemblies folder because a lot of parameters
-// are hard-coded.
-
 public struct VdwOscillator {
   public init() {
     
@@ -28,10 +25,10 @@ func vdwOscillator() {
     
     Volume {
       Origin { width / 2 * z }
-      Ridge(+z) { -y }
+      Ridge(z) { -y }
       
       Origin { width * y }
-      Ridge(+z) { +y }
+      Ridge(z) { +y }
       Cut()
     }
     Volume {
@@ -51,7 +48,7 @@ func vdwOscillator() {
       Volume {
         Concave {
           Origin { -0.5 * y }
-          Ridge(+z) { +y }
+          Ridge(z) { +y }
           
           Origin { -2 * y } // -2.5
           Plane { +y }
@@ -61,7 +58,7 @@ func vdwOscillator() {
       Volume {
         Concave {
           Origin { -1 * y }
-          Ridge(+z) { +y }
+          Ridge(z) { +y }
           
           Origin { -0.75 * y } // -1.75
           Plane { +y }
@@ -72,26 +69,28 @@ func vdwOscillator() {
         Concave {
           Convex {
             Origin { -thickness * y }
-            Valley(+z) { -y }
+            Valley(z) { -y }
           }
           
           Origin { -3.75 * y }
           Plane { -y }
           
           Origin { -1 * y }
-          Ridge(+z) { -y }
+          Ridge(z) { -y }
         }
         Cut()
       }
     }
-#if false
     Volume {
+
       Origin { 20 * x + width * y + width / 2 * z }
+
       Concave {
         Convex {
           Origin { -0.5 * x - thickness * y }
           Plane { x + y - z }
         }
+
         Convex {
           Origin { -0.5 * x }
           Plane { x - y + z }
@@ -106,6 +105,7 @@ func vdwOscillator() {
       }
       Cut()
     }
+    
     let holeX: Float = 6
     Volume {
       Concave {
@@ -190,11 +190,8 @@ func vdwOscillator() {
       }
       Cut()
     }
-    #endif
   }
   
-  #if false
-
   do {
     let width: Float = 18
     housing = Lattice<Cubic> {
@@ -319,8 +316,4 @@ func vdwOscillator() {
   }
   
   // Last steps: casting to Solid and making the assembly
-#endif
 }
-
-
-
