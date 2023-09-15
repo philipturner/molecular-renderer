@@ -5,6 +5,8 @@
 //  Created by Philip Turner on 9/1/23.
 //
 
+// TODO: Add another basis for representing vectors in `Solid`, once you break
+// out of the lattice space.
 public let a = Vector<Hexagonal>()
 public let b = Vector<Hexagonal>()
 public let c = Vector<Hexagonal>()
