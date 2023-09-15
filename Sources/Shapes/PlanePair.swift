@@ -7,9 +7,13 @@
 
 import HDL
 
-// Share some common functionality between the two shapes.
+// Share some common functionality between Ridge and Valley.
 
 public protocol PlanePair {
+  /// Initialize a type conforming to the plane pair protocol.
+  /// - Parameter reflected: The vector normal to the first plane.
+  /// - Parameter closure: The vector to reflect the first plane's normal
+  ///   across, when generating the second plane.
   @discardableResult
   init<T>(_ reflected: Vector<T>, _ closure: () -> Vector<T>)
 }
