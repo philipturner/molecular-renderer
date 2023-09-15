@@ -144,10 +144,11 @@ Fill()
 Replaces the selected volume with the crystal base material.
 
 ```swift
+Replace { Bond }
 Replace { Element }
 ```
 
-Replaces selected atoms with the specified element. Does not affect vacant crystal unit cells.
+Replaces selected atoms with the specified element, or deletes them and makes a bond bridging the neighbors. Does not affect vacant crystal unit cells.
 
 ```swift
 Passivate { Element }
