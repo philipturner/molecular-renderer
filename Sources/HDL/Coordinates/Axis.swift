@@ -17,35 +17,53 @@ public struct Axis<T: Basis> {
     
   }
   
-  public static prefix func + (rhs: Axis<T>) -> Direction<T> {
+  public static prefix func + (rhs: Axis<T>) -> Vector<T> {
     fatalError("Not implemented.")
   }
   
-  public static prefix func - (rhs: Axis<T>) -> Direction<T> {
+  public static prefix func - (rhs: Axis<T>) -> Vector<T> {
     fatalError("Not implemented.")
   }
   
-  public static func * (lhs: Float, rhs: Axis<T>) -> Position<T> {
+  public static func * (lhs: Float, rhs: Axis<T>) -> Vector<T> {
     fatalError("Not implemented.")
   }
   
-  public static func * (lhs: Axis<T>, rhs: Float) -> Position<T> {
+  public static func * (lhs: Axis<T>, rhs: Float) -> Vector<T> {
     fatalError("Not implemented.")
   }
 }
 
-public struct Direction<T: Basis> {
-  public static func ^ (lhs: Direction<T>, rhs: Direction<T>) -> Direction<T> {
-    fatalError("Not implemented.")
-  }
-}
-
-public struct Position<T: Basis> {
-  public static func + (lhs: Position<T>, rhs: Position<T>) -> Position<T> {
+public struct Vector<T: Basis> {
+  public static prefix func + (rhs: Vector<T>) -> Vector<T> {
     fatalError("Not implemented.")
   }
   
-  public static func - (lhs: Position<T>, rhs: Position<T>) -> Position<T> {
+  public static prefix func - (rhs: Vector<T>) -> Vector<T> {
     fatalError("Not implemented.")
+  }
+  
+  public static func + (lhs: Vector<T>, rhs: Vector<T>) -> Vector<T> {
+    fatalError("Not implemented.")
+  }
+  
+  public static func - (lhs: Vector<T>, rhs: Vector<T>) -> Vector<T> {
+    fatalError("Not implemented.")
+  }
+  
+  public static func + (lhs: Axis<T>, rhs: Vector<T>) -> Vector<T> {
+    fatalError("Not implemented.")
+  }
+  
+  public static func + (lhs: Vector<T>, rhs: Axis<T>) -> Vector<T> {
+    rhs + lhs
+  }
+  
+  public static func - (lhs: Axis<T>, rhs: Vector<T>) -> Vector<T> {
+    fatalError("Not implemented.")
+  }
+  
+  public static func - (lhs: Vector<T>, rhs: Axis<T>) -> Vector<T> {
+    -rhs + lhs
   }
 }

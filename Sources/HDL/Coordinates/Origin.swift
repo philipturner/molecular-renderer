@@ -7,7 +7,7 @@
 
 public struct Origin {
   @discardableResult
-  public init<T>(_ closure: () -> Position<T>) {
+  public init<T>(_ closure: () -> Vector<T>) {
     
   }
 }

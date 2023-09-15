@@ -20,26 +20,21 @@ public protocol AffineTransform { }
 
 public struct Reflect: AffineTransform {
   @discardableResult
-  public init<T>(_ closure: () -> Axis<T>) {
-    
-  }
-  
-  @discardableResult
-  public init<T>(_ closure: () -> Direction<T>) {
+  public init<T>(_ closure: () -> Vector<T>) {
     
   }
 }
 
 public struct Rotate: AffineTransform {
   @discardableResult
-  public init<T>(_ closure: () -> Position<T>) {
+  public init<T>(_ closure: () -> Vector<T>) {
     
   }
 }
 
 public struct Translate: AffineTransform {
   @discardableResult
-  public init<T>(_ closure: () -> Position<T>) {
+  public init<T>(_ closure: () -> Vector<T>) {
     
   }
 }

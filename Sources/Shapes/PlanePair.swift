@@ -11,32 +11,19 @@ import HDL
 
 public protocol PlanePair {
   @discardableResult
-  init<T>(_ reflected: Axis<T>, _ closure: () -> Direction<T>)
-  
-  @discardableResult
-  init<T>(_ reflected: Direction<T>, _ closure: () -> Direction<T>)
+  init<T>(_ reflected: Vector<T>, _ closure: () -> Vector<T>)
 }
 
 public struct Ridge {
   @discardableResult
-  public init<T>(_ reflected: Axis<T>, _ closure: () -> Direction<T>) {
-    fatalError("Not implemented.")
-  }
-  
-  @discardableResult
-  public init<T>(_ reflected: Direction<T>, _ closure: () -> Direction<T>) {
+  public init<T>(_ reflected: Vector<T>, _ closure: () -> Vector<T>) {
     fatalError("Not implemented.")
   }
 }
 
 public struct Valley {
   @discardableResult
-  public init<T>(_ reflected: Axis<T>, _ closure: () -> Direction<T>) {
-    fatalError("Not implemented.")
-  }
-  
-  @discardableResult
-  public init<T>(_ reflected: Direction<T>, _ closure: () -> Direction<T>) {
+  public init<T>(_ reflected: Vector<T>, _ closure: () -> Vector<T>) {
     fatalError("Not implemented.")
   }
 }

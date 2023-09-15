@@ -25,22 +25,23 @@ func vdwOscillator() {
     Material { .carbon }
     Bounds { width * x + width * y + width * z }
     
+    
     Volume {
       Origin { width / 2 * z }
-      Ridge(z) { -y }
+      Ridge(+z) { -y }
       
       Origin { width * y }
-      Ridge(z) { +y }
+      Ridge(+z) { +y }
       Cut()
     }
     Volume {
       Origin { width * y + width * z }
-      Plane { -y ^ +z }
+      Plane { -y + z }
       Cut()
     }
     Volume {
       Origin { width / 2 * y + width / 2 * z }
-      Plane { -y ^ -z }
+      Plane { -y - z }
       Cut()
     }
     
@@ -50,7 +51,7 @@ func vdwOscillator() {
       Volume {
         Concave {
           Origin { -0.5 * y }
-          Ridge(z) { +y }
+          Ridge(+z) { +y }
           
           Origin { -2 * y } // -2.5
           Plane { +y }
@@ -60,7 +61,7 @@ func vdwOscillator() {
       Volume {
         Concave {
           Origin { -1 * y }
-          Ridge(z) { +y }
+          Ridge(+z) { +y }
           
           Origin { -0.75 * y } // -1.75
           Plane { +y }
@@ -71,40 +72,40 @@ func vdwOscillator() {
         Concave {
           Convex {
             Origin { -thickness * y }
-            Valley(z) { -y }
+            Valley(+z) { -y }
           }
           
           Origin { -3.75 * y }
           Plane { -y }
           
           Origin { -1 * y }
-          Ridge(z) { -y }
+          Ridge(+z) { -y }
         }
         Cut()
       }
     }
+#if false
     Volume {
       Origin { 20 * x + width * y + width / 2 * z }
       Concave {
         Convex {
           Origin { -0.5 * x - thickness * y }
-          Plane { +x ^ +y ^ -z }
+          Plane { x + y - z }
         }
         Convex {
           Origin { -0.5 * x }
-          Plane { +x ^ -y ^ +z }
+          Plane { x - y + z }
         }
         Convex {
-          Plane { +x ^ -y ^ -z }
+          Plane { x - y - z }
         }
         Convex {
           Origin { -1 * x - thickness * y }
-          Plane { +x ^ +y ^ +z }
+          Plane { x + y + z }
         }
       }
       Cut()
     }
-    
     let holeX: Float = 6
     Volume {
       Concave {
@@ -115,16 +116,16 @@ func vdwOscillator() {
         Origin { width * y + width / 2 * z }
         Convex {
           Origin { -2.5 * y + -2 * z }
-          Plane { -y ^ -z }
+          Plane { -y - z }
         }
         Convex {
           Origin { -3.75 * y + -1.75 * z }
-          Plane { +y ^ -z }
+          Plane { y - z }
         }
         Convex {
           Origin { holeX * x }
           Origin { -4 * y + -1.5 * z }
-          Plane { -x ^ -y ^ -z }
+          Plane { -x - y - z }
         }
       }
       Cut()
@@ -139,15 +140,15 @@ func vdwOscillator() {
         Origin { -4 * y + -1.5 * z }
         Convex {
           Origin { -4 * y + -1.5 * z }
-          Plane { -y ^ -z }
+          Plane { -y - z }
         }
         Origin { holeX * x }
         Convex {
-          Plane { -x ^ -y ^ -z }
+          Plane { -x - y - z }
         }
         Convex {
           Origin { 1 * x + 1 * y }
-          Ridge(-y ^ +z) { -x }
+          Ridge(-y + z) { -x }
         }
       }
       Cut()
@@ -161,15 +162,15 @@ func vdwOscillator() {
         Origin { width * y + width / 2 * z }
         Origin { -4 * y + -1.5 * z }
         Convex {
-          Plane { -y ^ +z }
+          Plane { -y + z }
         }
         Convex {
           Origin { 0.5 * x }
-          Plane { -x ^ -y ^ +z }
+          Plane { -x - y + z }
         }
         Convex {
           Origin { 2 * x + 1 * y }
-          Ridge(+y ^ +z) { -x }
+          Ridge(y + z) { -x }
         }
       }
       Cut()
@@ -189,7 +190,10 @@ func vdwOscillator() {
       }
       Cut()
     }
+    #endif
   }
+  
+  #if false
 
   do {
     let width: Float = 18
@@ -208,7 +212,6 @@ func vdwOscillator() {
         Copy { housing }
         Origin { width / 2 * z }
         Rotate { 0.5 * x }
-        
       }
     }
     housing = Lattice<Cubic> {
@@ -233,11 +236,11 @@ func vdwOscillator() {
       Origin { width / 2 * x + width / 2 * y }
       Convex {
         Origin { -1.5 * y }
-        Plane { +x ^ -y }
+        Plane { x - y }
       }
       Convex {
         Origin { 1.5 * y }
-        Plane { -x ^ +y }
+        Plane { -x + y }
       }
       Cut()
     }
@@ -245,31 +248,31 @@ func vdwOscillator() {
       Origin { width * x + width * y }
       Convex {
         Origin { -1 * x }
-        Plane { +x ^ +y }
+        Plane { x + y }
       }
       Convex {
         Origin { -1 * x + (thickness - 1.5) * z }
-        Plane { -x ^ +y ^ +z }
+        Plane { -x + y + z }
       }
       Convex {
         Origin { -1 * x + 0.5 * z }
-        Plane { -x ^ +y ^ -z }
+        Plane { -x + y - z }
       }
       Convex {
         Origin { -1 * y + (thickness - 1.5) * z }
-        Plane { +x ^ -y ^ +z }
+        Plane { x - y + z }
       }
       Convex {
         Origin { -1 * y + 0.5 * z }
-        Plane { +x ^ -y ^ -z }
+        Plane { x - y - z }
       }
       Convex {
         Origin { (thickness - 2.5) * z }
-        Plane { +x ^ +y ^ +z }
+        Plane { x + y + z }
       }
       Convex {
         Origin { 1.5 * z }
-        Plane { +x ^ +y ^ -z }
+        Plane { x + y - z }
       }
       Cut()
     }
@@ -316,6 +319,7 @@ func vdwOscillator() {
   }
   
   // Last steps: casting to Solid and making the assembly
+#endif
 }
 
 

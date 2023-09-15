@@ -24,7 +24,7 @@ public protocol VolumeTransform { }
 // into the initializer.
 public struct Plane: VolumeTransform {
   @discardableResult
-  public init<T>(_ closure: () -> Direction<T>) {
+  public init<T>(_ closure: () -> Vector<T>) {
     
   }
 }
