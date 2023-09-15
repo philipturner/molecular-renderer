@@ -16,6 +16,16 @@ private class Compiler {
     // Resets the scene after the popping the stack of the outermost
     // 'Solid' scope.
   }
+  
+  /// Unstable API; do not use this function.
+  public func _makeAtoms() -> [(origin: SIMD3<Float>, element: UInt8)] {
+    return []
+  }
+  
+  /// Unstable API; do not use this function.
+  public func _reset() {
+    
+  }
 }
 
 // MARK: - Hacked Together Internal Representation
