@@ -61,8 +61,8 @@ TODO (points to cover):
 
 ### Design Hierarchy
 
-- `Assembly`
-  - `RigidBody`
+- `Assembly` (API not yet finalized)
+  - `RigidBody` (API not yet finalized)
     - `Solid`
       - `Lattice<Basis>`
       - Slicing with planes
