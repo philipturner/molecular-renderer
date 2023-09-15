@@ -123,13 +123,13 @@ a * -2.25 + -8.5 * b + c * 1.0
 
 Adds or subtracts two vectors.
 
-### Lattice Editing
-
 ```swift
 Origin { Vector }
 ```
 
 Translates the origin by a vector relative to the current origin.
+
+### Lattice Editing
 
 ```swift
 Cut()
@@ -153,7 +153,7 @@ Replaces selected atoms with the specified element. Does not affect vacant cryst
 Passivate { Element }
 ```
 
-Adds hydrogens or halogens to the open orbitals of selected atoms. Does not affect vacant crystal unit cells.
+Adds hydrogens or halogens to complete the valence shells of selected atoms. Does not affect vacant crystal unit cells.
 
 ```swift
 Plane { Vector }
@@ -208,9 +208,7 @@ Sets the input as the object the be modified in the enclosing `Affine`.
 Reflect { Vector }
 ```
 
-Reflect the object across an axis of the global coordinate system.
-
-> TODO: Should this reflect across the object's center of mass instead?
+Reflects the object across the current origin, along the specified axis.
 
 ```swift
 Rotate { Vector }
@@ -218,13 +216,17 @@ Rotate { Vector }
 
 Rotates counterclockwise around the vector by `length(vector)` revolutions. For example, scale the vector by 0.25 to rotate 90 degrees. When in a lattice, the rotation angle must be a multiple of 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
 
+Rotation occurs around a ray starting at the current origin, and pointing toward the specified vector.
+
 ```swift
 Translate { Vector }
 ```
 
-Translate the object by the specified vector, relative to its current center of mass.
+Translate the object by the specified vector, relative to its current position.
 
 ### Other
+
+TODO: Document how the origin resets when you exit a `Lattice<Basis>` or `Solid` scope.
 
 ```swift
 Lattice<Basis> { }
@@ -249,4 +251,4 @@ Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic m
 Bounds { Vector }
 ```
 
-TODO
+Sets the working set of crystal unit cells. The box spans `min(current origin, specified vector)` to `max(current origin, specified vector)` where `min` and `max` operate lane-wise on vectors.
