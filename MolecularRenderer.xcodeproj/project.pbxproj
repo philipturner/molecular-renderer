@@ -136,6 +136,10 @@
 		98C48C5A2A48F7510047C078 /* libOpenMM.8.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C48C652A48FA250047C078 /* initOpenMM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C48C642A48FA250047C078 /* initOpenMM.swift */; };
 		98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CC35822A3E48B3007B96DF /* ExampleProviders.swift */; };
+		98D0F18D2AB5118400BE267D /* Spring_Projectile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */; };
+		98D0F18F2AB5118D00BE267D /* Spring_Spring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */; };
+		98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */; };
+		98D0F1932AB511BB00BE267D /* Spring_Assembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */; };
 		98D2A3352AA2DF55000DBAA0 /* DFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D2A3342AA2DF55000DBAA0 /* DFT.swift */; };
 		98D2A3382AA35960000DBAA0 /* COpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 98D2A3372AA35960000DBAA0 /* COpenMM */; };
 		98D2A33C2AA35960000DBAA0 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D2A33B2AA35960000DBAA0 /* HDL */; };
@@ -323,6 +327,10 @@
 		98C48C6F2A48FBAB0047C078 /* OpenMM_Integrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMM_Integrator.swift; sourceTree = "<group>"; };
 		98C48C712A48FC000047C078 /* OpenMM_System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMM_System.swift; sourceTree = "<group>"; };
 		98CC35822A3E48B3007B96DF /* ExampleProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleProviders.swift; sourceTree = "<group>"; };
+		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
+		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
+		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
+		98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Assembly.swift; sourceTree = "<group>"; };
 		98D2A3302AA2DF4D000DBAA0 /* Modules.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Modules.md; sourceTree = "<group>"; };
 		98D2A3312AA2DF4D000DBAA0 /* References.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = References.md; sourceTree = "<group>"; };
 		98D2A3322AA2DF4D000DBAA0 /* KnownIssues.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = KnownIssues.md; sourceTree = "<group>"; };
@@ -741,6 +749,10 @@
 		98A700A82AB4A0CF00499CD2 /* Spring */ = {
 			isa = PBXGroup;
 			children = (
+				98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */,
+				98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */,
+				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
+				98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */,
 			);
 			path = Spring;
 			sourceTree = "<group>";
@@ -1190,6 +1202,7 @@
 				980E701F2A5E52920051797F /* FCC.swift in Sources */,
 				98C48C652A48FA250047C078 /* initOpenMM.swift in Sources */,
 				98325C562A6B512900A4D7BB /* ArrayAtomProvider.swift in Sources */,
+				98D0F18F2AB5118D00BE267D /* Spring_Spring.swift in Sources */,
 				98325C5C2A6C6C9A00A4D7BB /* StructureUtilities.swift in Sources */,
 				98FB90812A5D115200685E5C /* APMBootstrapper.swift in Sources */,
 				98325C542A6B501700A4D7BB /* Chapter9_Figure2.swift in Sources */,
@@ -1197,12 +1210,15 @@
 				98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */,
 				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
+				98D0F1932AB511BB00BE267D /* Spring_Assembly.swift in Sources */,
+				98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */,
 				98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
 				98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */,
+				98D0F18D2AB5118400BE267D /* Spring_Projectile.swift in Sources */,
 				980E70192A5E51D20051797F /* Tooltips.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
