@@ -243,7 +243,7 @@ Material { Element }
 Material { [Element] }
 ```
 
-Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic moissanite.
+Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic moissanite. More materials may be added in the future, such as elemental silicon and compounds with titanium.
 
 ```swift
 Bounds { Vector }
