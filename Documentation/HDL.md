@@ -113,8 +113,8 @@ a * -2.25, -8.5 * b, c * 1.0
 Scales a `Vector` by a constant.
 
 ```swift
-infix operator + (Position, Position) -> Position
-infix operator - (Position, Position) -> Position
+infix operator + (Vector<Basis>, Vector<Basis>) -> Vector<Basis>
+infix operator - (Vector<Basis>, Vector<Basis>) -> Vector<Basis>
 
 // Examples
 6 * x - 7 * y - 9.75 * z
