@@ -99,7 +99,7 @@ prefix operator - (Vector<Basis>) -> Vector<Basis>
 +a, -b, +c // hexagonal
 ```
 
-`-` make a `Vector` point in the opposite direction. `+` explicitly denotes that an axis vector is positive.
+`-` makes a `Vector` point in the opposite direction (reflects across the origin). `+` explicitly denotes that an axis vector is positive.
 
 ```swift
 infix operator * (Float, Vector<Basis>) -> Vector<Basis>
