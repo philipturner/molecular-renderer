@@ -42,9 +42,8 @@ class Serializer {
       simulation.append(frame)
     }
     
-    var path = self.path + "/" + fileName + ".mrsimulation"
+    var path = self.path + "/" + fileName + ".mrsim"
     if asText {
-      path.removeLast("ulation".count)
       path += "-txt"
     }
     let url = URL(filePath: path)
