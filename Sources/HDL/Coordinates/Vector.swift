@@ -7,39 +7,48 @@
 
 // TODO: Add another basis for representing vectors in `Solid`, once you break
 // out of the lattice space.
-public let a = Vector<Hexagonal>()
-public let b = Vector<Hexagonal>()
-public let c = Vector<Hexagonal>()
-public let x = Vector<Cubic>()
-public let y = Vector<Cubic>()
-public let z = Vector<Cubic>()
+public let a = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
+public let b = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
+public let c = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
+public let x = Vector<Cubic>(x: 1, y: 0, z: 0)
+public let y = Vector<Cubic>(x: 0, y: 1, z: 0)
+public let z = Vector<Cubic>(x: 0, y: 0, z: 1)
 
 public struct Vector<T: Basis> {
-  internal init(/*arguments*/) {
-    
+  // This is a hack for right now, until we find something better for
+  // lonsdaleite. For example, normalizing in a non-orthogonal basis would be
+  // detrimental for rotations.
+  var simdValue: SIMD3<Float> = .zero
+  
+  internal init(x: Float, y: Float, z: Float) {
+    self.simdValue = SIMD3(x, y, z)
+  }
+  
+  internal init(_ simdValue: SIMD3<Float>) {
+    self.simdValue = simdValue
   }
   
   public static prefix func + (rhs: Vector<T>) -> Vector<T> {
-    fatalError("Not implemented.")
+    Vector(rhs.simdValue)
   }
   
   public static prefix func - (rhs: Vector<T>) -> Vector<T> {
-    fatalError("Not implemented.")
+    Vector(-rhs.simdValue)
   }
   
   public static func * (lhs: Float, rhs: Vector<T>) -> Vector<T> {
-    fatalError("Not implemented.")
+    Vector(lhs * rhs.simdValue)
   }
   
   public static func * (lhs: Vector<T>, rhs: Float) -> Vector<T> {
-    fatalError("Not implemented.")
+    Vector(lhs.simdValue * rhs)
   }
   
   public static func + (lhs: Vector<T>, rhs: Vector<T>) -> Vector<T> {
-    fatalError("Not implemented.")
+    Vector(lhs.simdValue + rhs.simdValue)
   }
   
   public static func - (lhs: Vector<T>, rhs: Vector<T>) -> Vector<T> {
-    fatalError("Not implemented.")
+    Vector(lhs.simdValue - rhs.simdValue)
   }
 }
