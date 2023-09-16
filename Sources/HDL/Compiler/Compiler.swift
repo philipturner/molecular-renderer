@@ -119,10 +119,40 @@ extension Compiler {
   
   func startVolume() {
     assertBoundsSet()
+    stack!.pushOrigin()
+    stack!.pushPlanes()
   }
   
   func endVolume() {
     assertBoundsSet()
+    stack!.popOrigin()
+    stack!.popPlanes()
+  }
+  
+  func startConvex() {
+    assertBoundsSet()
+    stack!.pushPlaneType(.convex)
+  }
+  
+  func endConvex() {
+    assertBoundsSet()
+    stack!.popPlaneType()
+  }
+  
+  func startConcave() {
+    assertBoundsSet()
+    stack!.pushPlaneType(.concave)
+  }
+  
+  func endConcave() {
+    assertBoundsSet()
+    stack!.popPlaneType()
+  }
+  
+  func performCut() {
+    assertBoundsSet()
+    stack!.cut()
+    // TODO: - Inject an animation frame here
   }
 }
 
@@ -145,7 +175,9 @@ extension Compiler {
     defer { reset() }
     
     if let solidStack {
-      return solidStack.centers
+      // Not transforming from lattice space to nanometers (i.e. multiplying by
+      // 0.357 for diamond).
+      return solidStack.centers.keys.map { $0 }
     } else {
       return []
     }
@@ -154,17 +186,28 @@ extension Compiler {
   func startAffine() {
     assertSolid()
     precondition(!didSetAffine)
+    solidStack!.pushOrigin()
   }
   
   func endAffine() {
     assertAffine()
+    solidStack!.popOrigin()
   }
   
-  func startCopy() {
+  func performCopy(_ centers: [SIMD3<Float>]) {
     assertSolid()
+    solidStack!.addCenters(centers, affine: didSetAffine)
   }
   
-  func endCopy() {
-    assertSolid()
+  func performReflect() {
+    assertAffine()
+  }
+  
+  func performRotate() {
+    assertAffine()
+  }
+  
+  func performTranslate() {
+    assertAffine()
   }
 }

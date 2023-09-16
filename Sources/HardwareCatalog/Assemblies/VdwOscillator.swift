@@ -81,9 +81,7 @@ func vdwOscillator() {
       }
     }
     Volume {
-
       Origin { 20 * x + width * y + width / 2 * z }
-
       Concave {
         Convex {
           Origin { -0.5 * x - thickness * y }

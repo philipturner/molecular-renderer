@@ -38,7 +38,6 @@ public struct Convex: VolumeTransform {
   }
 }
 
-
 // Every time a volume is added, previous volumes are combined with AND.
 public struct Concave: VolumeTransform {
   @discardableResult
