@@ -116,7 +116,7 @@ Cubic: Basis
 Hexagonal: Basis
 ```
 
-Coordinate spaces for defining vectors in. `Cubic` is used for editing cubic lattices and defining the positions of objects. `Hexagonal` is used for cutting hexagonal lattices.
+Coordinate spaces for defining vectors in. `Cubic` is used for editing cubic lattices and defining the positions of objects. `Hexagonal` is used for editing hexagonal lattices.
 
 When editing lattices, vectors are measured in unit cell width. When defining the positions of objects, vectors are measured in nanometers.
 
