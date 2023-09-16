@@ -20,45 +20,75 @@ struct Spring_Spring {
       
       Volume {
         Origin { 5 * h + 5 * k + 5 * l }
-        Concave {
-          for hk_offset in [Float(-1.25), 0, 1.25] {
-            for l_offset in [Float(-2.5), 0, 2.5] { Convex {
-              if hk_offset == 0 {
-                if l_offset != 0 {
-                  return
-                } else {
-                  for l_vector in [l, -l] {
+        
+        // Stack two of these.
+        func carveSpring() {
+          for (h_index, h) in [h, -h].enumerated() {
+            for (k_index, k) in [k, -k].enumerated() {
+              for (l_index, l) in [l, -l].enumerated() {
+                Concave {
+                  Concave {
+                    Origin { -0.25 * (h + k + l) }
+                    Plane { h }
+                    Plane { k }
+                    Plane { l }
+                  }
+                  if (h_index + k_index + l_index) % 2 == 1 {
+                    Origin { 0.25 * (h + k + l) }
+                  }
+                  Origin { -1.0 * k }
+                  
+                  Convex {
                     Convex {
-                      Origin { 0.50 * l_vector }
-                      Valley(h + k + l_vector) { l_vector }
+                      Origin { 2 * (h + k + l) }
+                      Plane { h + k + l }
+                    }
+                    Concave {
+                      for axis in [h, k, l] {
+                        Convex {
+                          Origin { 0.5 * axis }
+                          Plane { axis }
+                        }
+                      }
+                    }
+                    Concave {
+                      Origin { 0.5 * (h + l) }
+                      Plane { h }
+                      Plane { l }
+                    }
+                    
+                    if (h_index + k_index + l_index) % 2 == 1 {
+                      Origin { -0.50 * (h + k + l) }
+                    }
+                    Concave {
+                      Concave {
+                        Origin { 1 * (h + k + l) }
+                        for (first, second, third) in [
+                          (h, k, l), (k, l, h), (l, h, k)
+                        ] {
+                          Convex {
+                            Origin { 2 * (second + third) }
+                            Plane { first - second - third }
+                          }
+                        }
+                      }
                     }
                   }
                 }
-              } else {
-                if hk_offset * l_offset < 0 {
-                  return
-                }
               }
-              
-              Origin { hk_offset * (h + k) }
-              Origin { l_offset * l }
-              for vector in [h + k, -h - k] { Convex {
-                Origin { 0.75 * vector }
-                Ridge(vector + l) { vector }
-              } }
-            } }
-          }
-          Convex {
-            for l_vector in [l, -l] {
-              for hk_index in -4...4 { Convex {
-                let hk_offset = 1.50 * Float(hk_index)
-                Origin { hk_offset * (h - k) }
-                Origin { -0.00 * l_vector }
-                Valley(h - k + l_vector) { l_vector }
-              } }
             }
           }
         }
+        
+        Concave {
+          Convex {
+            carveSpring()
+          }
+          for k in [k, -k] {
+//            let
+          }
+        }
+        
         Cut()
       }
     }
