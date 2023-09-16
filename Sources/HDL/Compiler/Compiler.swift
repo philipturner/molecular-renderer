@@ -147,21 +147,25 @@ extension Compiler {
   
   func startConvex() {
     assertBoundsSet()
+    stack!.pushOrigin()
     stack!.pushPlaneType(.convex)
   }
   
   func endConvex() {
     assertBoundsSet()
+    stack!.popOrigin()
     stack!.popPlaneType()
   }
   
   func startConcave() {
     assertBoundsSet()
+    stack!.pushOrigin()
     stack!.pushPlaneType(.concave)
   }
   
   func endConcave() {
     assertBoundsSet()
+    stack!.popOrigin()
     stack!.popPlaneType()
   }
   

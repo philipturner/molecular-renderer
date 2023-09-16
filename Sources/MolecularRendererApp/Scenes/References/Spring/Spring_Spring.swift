@@ -20,8 +20,14 @@ struct Spring_Spring {
       Volume {
         Origin { 5 * h + 5 * k + 5 * l }
         Concave {
-          Plane { h + k }
-          Plane { h + k + l }
+          Plane { +h }
+          Plane { -k }
+          for vector in [h + k, -h - k] {
+            Convex {
+              Origin { -vector * 1.5 }
+              Plane { vector }
+            }
+          }
         }
         Cut()
       }
