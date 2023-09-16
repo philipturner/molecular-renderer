@@ -16,13 +16,18 @@ struct Spring_Spring {
     let springLattice =
     Lattice<Cubic> {
       Material { .carbon }
-      Bounds { 10 * h + 10 * k + 10 * l }
+      let numSections: Int = 3
+      let sectionHeight: Int = 4
+      do {
+        let height = Float(14 + sectionHeight * (numSections - 1))
+        Bounds { 10 * h + height * k + 10 * l }
+      }
       
-      Volume {
-        Origin { 5 * h + 5 * k + 5 * l }
+      func carveLargeSection(index largeSectionIndex: Int) {
+        Origin { 5 * h + 7 * k + 5 * l }
+        Origin { Float(largeSectionIndex * sectionHeight) * k }
         
-        // Stack two of these.
-        func carveSpring() {
+        func carveSmallSection() {
           for (h_index, h) in [h, -h].enumerated() {
             for (k_index, k) in [k, -k].enumerated() {
               for (l_index, l) in [l, -l].enumerated() {
@@ -82,13 +87,72 @@ struct Spring_Spring {
         
         Concave {
           Convex {
-            carveSpring()
+            Convex {
+              carveSmallSection()
+            }
+            for k in [k, -k] {
+              Convex {
+                Origin { 3 * k }
+                Plane { k }
+              }
+            }
           }
-          for k in [k, -k] {
-//            let
+          var l_vector: Vector<Cubic>
+          var k_vector: Vector<Cubic>
+          if largeSectionIndex == 0 {
+            l_vector = l
+            k_vector = k
+          } else if largeSectionIndex == numSections - 1 {
+            l_vector = -l
+            k_vector = -k
+          } else {
+            return
+          }
+          Convex {
+            Convex {
+              Origin { -1 * k_vector }
+              Ridge(h + l_vector + k_vector) { k_vector }
+              Origin { -0.25 * k_vector }
+              Ridge(h - l_vector + k_vector) { k_vector }
+            }
+            Convex {
+              Origin { -7 * k_vector }
+              Ridge(h - l_vector - k_vector) { -k_vector }
+              Origin { -0.75 * k_vector }
+              Ridge(h + l_vector - k_vector) { -k_vector }
+            }
+//            Concave {
+//              Origin { -2 * k_vector }
+//              Valley(h - l_vector - k_vector) { -k_vector }
+//              Origin { -0.25 * k_vector }
+//              Valley(h + l_vector - k_vector) { -k_vector }
+//            }
           }
         }
         
+        for slice in 0..<2 {
+          if largeSectionIndex == 0 {
+            if slice == 0 { continue }
+          }
+          if largeSectionIndex == numSections - 1 {
+            if slice == 1 { continue }
+          }
+          Concave {
+            let vector = (slice == 0) ? -k : k
+            Origin { Float(sectionHeight / 2) * vector }
+            Plane { vector }
+          }
+        }
+      }
+      
+      Volume {
+        Concave {
+          for i in 0..<numSections {
+            Convex {
+              carveLargeSection(index: i)
+            }
+          }
+        }
         Cut()
       }
     }
