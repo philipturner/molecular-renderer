@@ -17,6 +17,10 @@ fileprivate func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
   return length == 0 ? .zero : (x / length)
 }
 
+fileprivate func dot(_ x: SIMD3<Float>, _ y: SIMD3<Float>) -> Float {
+  return (x * y).sum()
+}
+
 fileprivate struct _Plane {
   var origin: SIMD3<Float>
   var normal: SIMD3<Float>
@@ -319,6 +323,93 @@ struct SolidStack {
   
   mutating func applyOrigin(delta: SIMD3<Float>) {
     origins[origins.count - 1] += delta
+  }
+  
+  mutating func applyReflect(_ vector: SIMD3<Float>) {
+    precondition(affineCenters != nil)
+    let keys = affineCenters!.keys.map { $0 }
+    affineCenters = [:]
+    
+    let origin = self.origins.last!
+    let direction = normalize(vector)
+    for key in keys {
+      var delta = key - origin
+      delta -= 2 * direction * dot(delta, direction)
+      
+      let original = delta + origin
+      let position = (original * 4).rounded(.toNearestOrEven) / 4
+      let difference = position - original
+      if any((difference .> 0.01) .| (difference .< -0.01)) {
+        fatalError("Did not reflect across a (100), (110), or (111) plane.")
+      }
+      
+      affineCenters![origin + delta] = true
+    }
+  }
+  
+  mutating func applyRotate(_ vector: SIMD3<Float>) {
+    precondition(affineCenters != nil)
+    let keys = affineCenters!.keys.map { $0 }
+    affineCenters = [:]
+    
+    let origin = self.origins.last!
+    var mask: SIMD3<Int> = .zero
+    for i in 0..<3 {
+      mask[i] = (vector[i] == 0) ? 0 : 1
+    }
+    guard mask.wrappedSum() == 1 else {
+      // Require that it's rotating around a perfect X, Y, or Z axis for now.
+      fatalError("Did not rotate around a perfect X, Y, or Z axis.")
+    }
+    
+    // Just take the sum of all lanes, as we assume only one is nonzero.
+    let revolutions = vector.sum()
+    let roundedRevolutions = (revolutions * 4).rounded(.toNearestOrEven) / 4
+    if abs(roundedRevolutions - revolutions) > 0.01 {
+      fatalError("Did not rotate by a multiple of 90 degrees.")
+    }
+    var rotationCount = Int(rint(roundedRevolutions * 4))
+    rotationCount %= 4
+    if rotationCount < 0 {
+      rotationCount = 4 + rotationCount
+    }
+    precondition(rotationCount >= 0 && rotationCount < 4)
+    
+    var rotatedAxis1: Int
+    var rotatedAxis2: Int
+    switch mask {
+    case SIMD3(1, 0, 0):
+      rotatedAxis1 = 1
+      rotatedAxis2 = 2
+    case SIMD3(0, 1, 0):
+      rotatedAxis1 = 2
+      rotatedAxis2 = 0
+    case SIMD3(0, 0, 1):
+      rotatedAxis1 = 0
+      rotatedAxis2 = 1
+    default:
+      fatalError("This should never happen.")
+    }
+    
+    for key in keys {
+      var delta = key - origin
+      let oldCoord1 = delta[rotatedAxis1]
+      let oldCoord2 = delta[rotatedAxis2]
+      delta[rotatedAxis1] = -oldCoord2
+      delta[rotatedAxis2] = oldCoord1
+      
+      affineCenters![origin + delta] = true
+    }
+  }
+  
+  mutating func applyTranslate(_ vector: SIMD3<Float>) {
+    precondition(affineCenters != nil)
+    let keys = affineCenters!.keys.map { $0 }
+    affineCenters = [:]
+    
+    for key in keys {
+      affineCenters![key + vector] = true
+    }
   }
   
   mutating func pushOrigin() {

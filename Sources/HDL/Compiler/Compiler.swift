@@ -199,15 +199,19 @@ extension Compiler {
     solidStack!.addCenters(centers, affine: didSetAffine)
   }
   
-  func performReflect() {
+  func performReflect(_ vector: SIMD3<Float>) {
     assertAffine()
+    // TODO: - Inject an animation frame here
   }
   
-  func performRotate() {
+  func performRotate(_ vector: SIMD3<Float>) {
     assertAffine()
+    // TODO: - Inject an animation frame here
   }
   
-  func performTranslate() {
+  func performTranslate(_ vector: SIMD3<Float>) {
     assertAffine()
+    // TODO: - Inject an animation frame here
+    
   }
 }
