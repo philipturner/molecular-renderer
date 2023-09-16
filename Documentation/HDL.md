@@ -146,7 +146,7 @@ Copy { Lattice<Basis> }
 Copy { Solid }
 ```
 
-Sets the input as the object the be modified in the enclosing `Affine`.
+Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated.
 
 ```swift
 Reflect { Vector }
@@ -176,7 +176,7 @@ Affine {
 }
 ```
 
-Starts a section that instantiates a previously designed lattice, then rotates or translates it.
+Starts a section that instantiates a previously designed object, then rotates or translates it.
 
 ```swift
 Convex { 
