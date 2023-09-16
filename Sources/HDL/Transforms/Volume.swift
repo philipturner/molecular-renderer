@@ -14,7 +14,9 @@
 public struct Volume {
   @discardableResult
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startVolume()
+    closure()
+    Compiler.global.endVolume()
   }
 }
 
@@ -24,8 +26,13 @@ public protocol VolumeTransform { }
 // into the initializer.
 public struct Plane: VolumeTransform {
   @discardableResult
-  public init<T>(_ closure: () -> Vector<T>) {
-    
+  public init(_ closure: () -> Vector<Cubic>) {
+    Compiler.global.addPlane(closure().simdValue)
+  }
+  
+  @discardableResult
+  public init(_ closure: () -> Vector<Hexagonal>) {
+    fatalError("Not implemented.")
   }
 }
 

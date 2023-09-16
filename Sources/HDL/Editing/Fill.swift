@@ -9,6 +9,6 @@
 public struct Fill {
   @discardableResult
   public init() {
-    
+    fatalError("Not implemented.")
   }
 }

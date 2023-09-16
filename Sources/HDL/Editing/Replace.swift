@@ -13,21 +13,21 @@
 public struct Replace {
   @discardableResult
   public init(_ closure: () -> HDL.Element) {
-    
+    fatalError("Not implemented.")
   }
   
   @discardableResult
   public init(_ closure: () -> [HDL.Element]) {
-    
+    fatalError("Not implemented.")
   }
   
   @discardableResult
   public init(_ closure: () -> Bond) {
-    
+    fatalError("Not implemented.")
   }
   
   @discardableResult
   public init(_ closure: () -> [Bond]) {
-    
+    fatalError("Not implemented.")
   }
 }

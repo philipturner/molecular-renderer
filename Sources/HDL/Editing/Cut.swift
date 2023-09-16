@@ -8,6 +8,6 @@
 public struct Cut {
   @discardableResult
   public init() {
-    
+    Compiler.global.performCut()
   }
 }

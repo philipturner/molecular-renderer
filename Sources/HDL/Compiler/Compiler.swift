@@ -22,15 +22,20 @@ public class Compiler {
   private var willUseSolid: Bool = false
   private var didSetAffine: Bool = false
   
+  private var keyFrames: [AnimationKeyFrame] = []
+  
   init() {
     
   }
   
   /// Unstable API; do not use this function.
-  public func _makeKeyFrames() {
-    // Return key frames for animating the geometry compilation.
-    // TODO: Method to track keyframes across the different objects. They only
-    // track operations performed, not the evolution of the objects' data.
+  public func _getKeyFrames() -> [AnimationKeyFrame] {
+    return keyFrames
+  }
+  
+  /// Unstable API; do not use this function.
+  public func _resetKeyFrames() {
+    keyFrames = []
   }
 }
 
@@ -147,10 +152,25 @@ extension Compiler {
     stack!.popPlaneType()
   }
   
+  func addPlane(_ vector: SIMD3<Float>) {
+    assertBoundsSet()
+    stack!.applyPlane(normal: vector)
+  }
+  
   func performCut() {
     assertBoundsSet()
+    
+    let previousMask = stack!.result
     stack!.cut()
-    // TODO: - Inject an animation frame here.
+    var deletedMask = stack!.result
+    deletedMask.not()
+    deletedMask.and(mask: previousMask)
+    
+    let deletedAtoms = deletedMask.makeCenters()
+    let currentAtoms = stack!.result.makeCenters()
+    let previousAtoms = previousMask.makeCenters()
+    keyFrames.append(.stationary(previousAtoms))
+    keyFrames.append(.moving(currentAtoms, deletedAtoms, .fade))
   }
 }
 
@@ -200,16 +220,19 @@ extension Compiler {
   
   func performReflect(_ vector: SIMD3<Float>) {
     assertAffine()
+    solidStack!.applyReflect(vector)
     // TODO: - Inject an animation frame here.
   }
   
   func performRotate(_ vector: SIMD3<Float>) {
     assertAffine()
+    solidStack!.applyRotate(vector)
     // TODO: - Inject an animation frame here.
   }
   
   func performTranslate(_ vector: SIMD3<Float>) {
     assertAffine()
+    solidStack!.applyTranslate(vector)
     // TODO: - Inject an animation frame here.
   }
 }

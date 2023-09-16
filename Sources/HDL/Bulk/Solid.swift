@@ -8,7 +8,7 @@
 import Foundation
 
 public struct Solid {
-  private var centers: [SIMD3<Float>] = []
+  var centers: [SIMD3<Float>] = []
   
   /// Unstable API; do not use this function.
   public var _centers: [SIMD3<Float>] { centers }
@@ -26,11 +26,11 @@ public struct Copy {
   
   @discardableResult
   public init<T>(_ closure: () -> Lattice<T>) {
-    
+    Compiler.global.performCopy(closure().centers)
   }
   
   @discardableResult
   public init(_ closure: () -> Solid) {
-    
+    Compiler.global.performCopy(closure().centers)
   }
 }

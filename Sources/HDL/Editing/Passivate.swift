@@ -10,6 +10,6 @@ import Foundation
 public struct Passivate {
   @discardableResult
   public init(_ closure: () -> HDL.Element) {
-    
+    fatalError("Not implemented.")
   }
 }
