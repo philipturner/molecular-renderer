@@ -12,6 +12,8 @@
 // anymore. However, the same types of transforms can be performed on atoms in
 // bulk.
 public struct Lattice<T: Basis> {
+  private var centers: [SIMD3<Float>] = []
+  
   public init(_ closure: () -> Void) {
     
   }

@@ -22,7 +22,6 @@ func vdwOscillator() {
     Material { .carbon }
     Bounds { width * x + width * y + width * z }
     
-    
     Volume {
       Origin { width / 2 * z }
       Ridge(z) { -y }
