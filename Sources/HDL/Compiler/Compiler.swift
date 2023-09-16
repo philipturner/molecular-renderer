@@ -127,13 +127,13 @@ extension Compiler {
   func startVolume() {
     assertBoundsSet()
     stack!.pushOrigin()
-    stack!.pushPlanes()
+    stack!.pushVolume()
   }
   
   func endVolume() {
     assertBoundsSet()
     stack!.popOrigin()
-    stack!.popPlanes()
+    stack!.popVolume()
   }
   
   func startConvex() {

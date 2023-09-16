@@ -41,7 +41,9 @@ public struct Plane: VolumeTransform {
 public struct Convex: VolumeTransform {
   @discardableResult
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startConvex()
+    closure()
+    Compiler.global.endConvex()
   }
 }
 
@@ -49,6 +51,8 @@ public struct Convex: VolumeTransform {
 public struct Concave: VolumeTransform {
   @discardableResult
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startConcave()
+    closure()
+    Compiler.global.endConcave()
   }
 }

@@ -16,6 +16,15 @@ struct Spring_Spring {
     let springLattice = Lattice<Cubic> {
       Material { .carbon }
       Bounds { 10 * x + 10 * y + 10 * z }
+      
+      Volume {
+        Origin { 5 * x + 5 * y + 5 * z }
+        Concave {
+          Plane { x + y }
+          Plane { x + y + z }
+        }
+        Cut()
+      }
     }
     let centers = springLattice._centers
     provider = ArrayAtomProvider(centers.map {
