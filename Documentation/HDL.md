@@ -9,8 +9,8 @@ This is a precursor to the eventual hardware description language that atomCAD w
 
 Table of Contents
 - [How it Works](#how-it-works)
+- [Design Hierarchy](#design-hierarchy)
 - [Syntax](#syntax)
-    - [Hierarchy of Design](#hierarchy-of-design)
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)
     - [Object Transforms](#object-transforms)
@@ -56,9 +56,7 @@ Key:
 | Cl      |   |   | O |   |   |   |   |   |   |   |   |
 | Ge      | X |   | O |   |   |   |   |   |   |   | X |
 
-## Syntax
-
-### Design Hierarchy
+## Design Hierarchy
 
 - `Assembly` (API not yet finalized)
   - `RigidBody` (API not yet finalized)
@@ -75,6 +73,8 @@ Key:
   - (Angular) position/velocity tracking during simulation
 - Multiple discontinuous bodies interlocked in a productive nanosystem
 - Avoid geometries that require welding
+
+## Syntax
 
 ### Lattice Editing
 
