@@ -95,7 +95,7 @@ Replace { Bond }
 Replace { Element }
 ```
 
-Replaces selected atoms with the specified element, or deletes them and makes a bond bridging the neighbors. Does not affect vacant crystal unit cells.
+`Replace { Element }` replaces the selected atoms with the specified element. `Replace { Bond }` deletes the selected atoms and creates covalent bonds bridging their neighbors. Does not affect vacant crystal unit cells.
 
 ```swift
 Passivate { Element }
