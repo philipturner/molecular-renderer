@@ -118,6 +118,9 @@ extension Compiler {
     // origin, but the bounds are positive, etc).
     precondition(all(bounds .> 0))
     stack = Stack(dimensions: bounds)
+    
+    let currentAtoms = stack!.result.makeCenters()
+    keyFrames.append(.stationary(currentAtoms))
   }
   
   func startVolume() {
@@ -168,9 +171,8 @@ extension Compiler {
     
     let deletedAtoms = deletedMask.makeCenters()
     let currentAtoms = stack!.result.makeCenters()
-    let previousAtoms = previousMask.makeCenters()
-    keyFrames.append(.stationary(previousAtoms))
     keyFrames.append(.moving(currentAtoms, deletedAtoms, .fade))
+    keyFrames.append(.stationary(currentAtoms))
   }
 }
 
@@ -215,24 +217,52 @@ extension Compiler {
   func performCopy(_ centers: [SIMD3<Float>]) {
     assertSolid()
     solidStack!.addCenters(centers, affine: didSetAffine)
-    // TODO: - Inject an animation frame here.
+    
+    if !didSetAffine {
+      let currentAtoms = solidStack!.centers.keys.map { $0 }
+      keyFrames.append(.stationary(currentAtoms))
+    }
+    
   }
   
   func performReflect(_ vector: SIMD3<Float>) {
     assertAffine()
     solidStack!.applyReflect(vector)
-    // TODO: - Inject an animation frame here.
+    
+    let currentAtoms = solidStack!.centers.keys.map { $0 }
+    let copyAtoms = solidStack!.affineCenters!.keys.map { $0 }
+    keyFrames.append(
+      .moving(currentAtoms, copyAtoms,
+        .reflect(solidStack!.origins.last!, vector)))
   }
   
   func performRotate(_ vector: SIMD3<Float>) {
     assertAffine()
     solidStack!.applyRotate(vector)
-    // TODO: - Inject an animation frame here.
+    
+    func length(_ x: SIMD3<Float>) -> Float {
+      return (x * x).sum().squareRoot()
+    }
+    func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
+      let length = (x * x).sum().squareRoot()
+      return length == 0 ? .zero : (x / length)
+    }
+
+    let currentAtoms = solidStack!.centers.keys.map { $0 }
+    let copyAtoms = solidStack!.affineCenters!.keys.map { $0 }
+    keyFrames.append(
+      .moving(currentAtoms, copyAtoms,
+        .rotate(solidStack!.origins.last!, normalize(vector), length(vector))))
   }
   
   func performTranslate(_ vector: SIMD3<Float>) {
     assertAffine()
     solidStack!.applyTranslate(vector)
-    // TODO: - Inject an animation frame here.
+    
+    let currentAtoms = solidStack!.centers.keys.map { $0 }
+    let copyAtoms = solidStack!.affineCenters!.keys.map { $0 }
+    keyFrames.append(
+      .moving(currentAtoms, copyAtoms,
+        .translate(vector)))
   }
 }

@@ -7,8 +7,9 @@
 
 // MARK: - Transforms
 
-// Cuts cannot happen during a transform; transforms cannot happen inside a
-// 'Volume'.
+// Cuts cannot happen during an affine transform. Affine transforms cannot
+// happen inside a `Volume`.
+
 public struct Affine {
   @discardableResult
   public init(_ closure: () -> Void) {
