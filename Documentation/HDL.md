@@ -109,12 +109,14 @@ Plane { Vector }
 
 Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
 
+A `Plane` divides the `Bounds` into two sections. The "zero" volume is the side the normal vector points toward. The "one" volume is the side the normal points away from. The "zero" volume contains the atoms deleted during a `Cut()`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "zero" volume are deleted.
+
 ```swift
 Ridge(Vector) { Vector }
 Valley(Vector) { Vector }
 ```
 
-Creates two planes by reflecting the first argument `(Vector)` across the second argument `{ Vector }`. `Ridge` takes the intersection of the planes' volumes, while `Valley` takes the union.
+Creates two planes by reflecting the first argument `(Vector)` across the second argument `{ Vector }`. `Ridge` takes the intersection of the planes' "one" volumes, while `Valley` takes the union.
 
 ### Objects
 
