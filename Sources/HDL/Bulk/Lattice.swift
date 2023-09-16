@@ -11,7 +11,7 @@
 // bonds are formed and surfaces are passivated. Atoms can't be de-duplicated
 // anymore. However, the same types of transforms can be performed on atoms in
 // bulk.
-public struct Lattice<T: Basis> {
+public struct Lattice<T: CrystalBasis> {
   var centers: [SIMD3<Float>] = []
   
   /// Unstable API; do not use this function.

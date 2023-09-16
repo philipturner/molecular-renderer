@@ -17,6 +17,11 @@ public class Compiler {
   private var willUseLattice: Bool = false
   private var didSetMaterial: Bool = false
   
+  // TODO: Track the lattice type, ensure all entered vectors are of the correct
+  // type. Then, support the correct API for lattices composed of multiple
+  // sub-lattices. To enable combining of two crystal lattices, one may need to
+  // track the lower left corner of the bounds.
+  
   // For combining multiple lattices or solids into a solid.
   private var solidStack: SolidStack?
   private var willUseSolid: Bool = false

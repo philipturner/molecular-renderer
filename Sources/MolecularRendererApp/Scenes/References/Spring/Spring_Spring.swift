@@ -15,13 +15,13 @@ struct Spring_Spring {
   init() {
     let springLattice = Lattice<Cubic> {
       Material { .carbon }
-      Bounds { 10 * x + 10 * y + 10 * z }
+      Bounds { 10 * h + 10 * k + 10 * l }
       
       Volume {
-        Origin { 5 * x + 5 * y + 5 * z }
+        Origin { 5 * h + 5 * k + 5 * l }
         Concave {
-          Plane { x + y }
-          Plane { x + y + z }
+          Plane { h + k }
+          Plane { h + k + l }
         }
         Cut()
       }

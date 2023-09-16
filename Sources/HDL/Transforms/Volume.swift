@@ -26,13 +26,12 @@ public protocol VolumeTransform { }
 // into the initializer.
 public struct Plane: VolumeTransform {
   @discardableResult
-  public init(_ closure: () -> Vector<Cubic>) {
-    Compiler.global.addPlane(closure().simdValue)
-  }
-  
-  @discardableResult
-  public init(_ closure: () -> Vector<Hexagonal>) {
-    fatalError("Not implemented.")
+  public init<T>(_ closure: () -> Vector<T>) {
+    if T.self == Cubic.self {
+      Compiler.global.addPlane(closure().simdValue)
+    } else {
+      fatalError("Not implemented.")
+    }
   }
 }
 

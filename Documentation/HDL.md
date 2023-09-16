@@ -114,18 +114,24 @@ Ridge(Vector) { Vector }
 Valley(Vector) { Vector }
 ```
 
-TODO
+Creates two planes by reflecting the first argument `(Vector)` across the second argument `{ Vector }`. `Ridge` takes the intersection of the planes' volumes, while `Valley` takes the union.
 
 ### Objects
 
 ```swift
+Amorphous: Basis
 Cubic: Basis
 Hexagonal: Basis
 ```
 
-Coordinate spaces for defining vectors in. `Cubic` is used for editing cubic lattices and defining the positions of objects. `Hexagonal` is used for editing hexagonal lattices.
+Coordinate spaces for defining vectors in.
 
-When editing lattices, vectors are measured in unit cell width. When defining the positions of objects, vectors are measured in nanometers.
+
+| Basis | Use | Units |
+| ----- | --- | ----- |
+| Amorphous | editing cubic lattices | multiples of crystal unit cell width |
+| Cubic | defining positions of objects | nanometers |
+| Hexagonal | editing hexagonal lattices | multiples of crystal unit cell width |
 
 ```swift
 Lattice<Basis> { 
@@ -234,12 +240,12 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 ### Vectors
 
 ```swift
-public let a: Vector<Hexagonal>
-public let b: Vector<Hexagonal>
-public let c: Vector<Hexagonal>
-public let x: Vector<Cubic>
-public let y: Vector<Cubic>
-public let z: Vector<Cubic>
+public let a: Vector<Hexagonal> = [0, 0, 1]
+public let b: Vector<Hexagonal> = [0.866, 0, -0.5]
+public let c: Vector<Hexagonal> = [0, 1, 0]
+public let h: Vector<Cubic> = [1, 0, 0]
+public let k: Vector<Cubic> = [0, 1, 0]
+public let l: Vector<Cubic> = [0, 0, 1]
 ```
 
 Unit vectors representing the crystal's basis.
@@ -249,7 +255,7 @@ prefix operator + (Vector<Basis>) -> Vector<Basis>
 prefix operator - (Vector<Basis>) -> Vector<Basis>
 
 // Examples
--x, +y, +z // cubic
+-h, +k, +l // cubic
 +a, -b, +c // hexagonal
 ```
 
@@ -260,7 +266,7 @@ infix operator * (Float, Vector<Basis>) -> Vector<Basis>
 infix operator * (Vector<Basis>, Float) -> Vector<Basis>
 
 // Examples
-6 * x, -7 * y, -9.75 * z
+6 * h, -7 * k, -9.75 * l
 a * -2.25, -8.5 * b, c * 1.0
 ```
 
@@ -271,7 +277,7 @@ infix operator + (Vector<Basis>, Vector<Basis>) -> Vector<Basis>
 infix operator - (Vector<Basis>, Vector<Basis>) -> Vector<Basis>
 
 // Examples
-6 * x - 7 * y - 9.75 * z
+6 * h - 7 * k - 9.75 * l
 a * -2.25 + -8.5 * b + c * 1.0
 ```
 

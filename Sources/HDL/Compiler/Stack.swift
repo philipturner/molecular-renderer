@@ -27,7 +27,7 @@ fileprivate struct _Plane {
   
   init(origin: SIMD3<Float>, normal: SIMD3<Float>) {
     self.normal = normalize(normal)
-    self.origin = origin + 0.001 * self.normal
+    self.origin = origin + 0.01 * self.normal
   }
 }
 
