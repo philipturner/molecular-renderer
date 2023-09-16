@@ -187,29 +187,25 @@ struct Mask {
   // Lattice-aligned centers of atoms.
   func makeCenters() -> [SIMD3<Float>] {
     let cell = ReferenceCell.global
-    var uniqueMask = UInt16(0b0011_1111_1111_1111)
-    for i in 0..<14 where any(cell.atoms[i] .> 0.875) {
-      uniqueMask &= ~(1 << i)
-    }
+    var centers: [SIMD3<Float>: Bool] = [:]
     
-    var output: [SIMD3<Float>] = []
     for k in 0..<dimensions.z {
       for j in 0..<dimensions.y {
         for i in 0..<dimensions.x {
           let address =
           k &* dimensions.y &* dimensions.x &+
           j &* dimensions.x &+ i
-          let cellMask = uniqueMask & data[Int(address)]
+          let cellMask = data[Int(address)]
           if cellMask == 0 { continue }
           
           let start = SIMD3<Float>(SIMD3(i, j, k))
-          for i in 0..<14 where (cellMask >> i) & 1 == 1 {
-            output.append(start + cell.atoms[i])
+          for i in 0..<14 where cellMask & (1 << i) != 0 {
+            centers[start + cell.atoms[i]] = true
           }
         }
       }
     }
-    return output
+    return centers.keys.map { $0 }
   }
 }
 

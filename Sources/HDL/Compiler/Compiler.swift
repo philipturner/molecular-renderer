@@ -106,6 +106,7 @@ extension Compiler {
     assertLattice()
     precondition(didSetMaterial == false)
     precondition(elements == [.carbon])
+    didSetMaterial = true
   }
   
   func setBounds(_ bounds: SIMD3<Int32>) {
@@ -171,7 +172,9 @@ extension Compiler {
     
     let deletedAtoms = deletedMask.makeCenters()
     let currentAtoms = stack!.result.makeCenters()
-    keyFrames.append(.moving(currentAtoms, deletedAtoms, .fade))
+    keyFrames.append(
+      .moving(currentAtoms, deletedAtoms,
+        .fade(stack!.origins.last!)))
     keyFrames.append(.stationary(currentAtoms))
   }
 }

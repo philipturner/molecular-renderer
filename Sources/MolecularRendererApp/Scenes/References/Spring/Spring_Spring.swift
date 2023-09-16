@@ -6,3 +6,21 @@
 //
 
 import Foundation
+import MolecularRenderer
+import HDL
+
+struct Spring_Spring {
+  var provider: any MRAtomProvider
+  
+  init() {
+    let springLattice = Lattice<Cubic> {
+      Material { .carbon }
+      Bounds { 10 * x + 10 * y + 10 * z }
+    }
+    let centers = springLattice._centers
+    provider = ArrayAtomProvider(centers.map {
+      MRAtom(origin: $0 * 0.357, element: 6)
+    })
+    print(centers.count)
+  }
+}

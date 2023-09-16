@@ -6,11 +6,10 @@
   - API for instantiating parameterized nano-parts and assemblies (contributions welcome)
   - Markdown documentation for each part, similar to [ML model cards](https://modelcards.withgoogle.com/about)
   - Image of each nano-part and assembly rendered using MolecularRendererApp
-- HDL[^1]
-  - Hardware description language for crystolecules and mechanical part assemblies
-- Shapes[^1]
   - Collection primitive geometric shapes, which build on the hardware description language
-  - Unions of infinite planes for extruding slanted and curved surfaces
+- HDL
+  - Hardware description language for crystolecules and mechanical part assemblies
+  - Geometry compiler for generating atoms and modifying crystal surfaces
 
 ## Rendering
 
@@ -22,7 +21,6 @@
   - Contains a large amount of procedural geometry code, currently being extracted into other modules
 - MolecularRendererGPU[^2]
   - Metal shader files for MolecularRenderer
-  - May include OpenCL files in the future
 
 ## Simulation
 

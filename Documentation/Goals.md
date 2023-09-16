@@ -12,7 +12,7 @@ Short-Term (next few weeks)
 - Port some functionality to Linux and Windows
 - Modularize the source code, allow the simulator to be used with external renderers
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
-- Create a domain-specific language and geometry compiler for crystolecule design
+- Create a domain-specific language and geometry compiler for crystolecule design ✅
 - Upgrade MM4 to include more elements and external forces
 
 Medium-Term (next few months)

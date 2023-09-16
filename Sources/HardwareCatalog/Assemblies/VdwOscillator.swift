@@ -5,7 +5,6 @@
 //  Created by Philip Turner on 8/28/23.
 //
 
-import Shapes
 import HDL
 
 public struct VdwOscillator {

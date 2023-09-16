@@ -5,10 +5,7 @@
 //  Created by Philip Turner on 9/1/23.
 //
 
-import HDL
-
-// Share some common functionality between Ridge and Valley.
-
+/// Unions of infinite planes for extruding slanted and curved surfaces.
 public protocol PlanePair {
   /// Initialize a type conforming to the plane pair protocol.
   /// - Parameter reflected: The vector normal to the first plane.

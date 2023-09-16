@@ -109,6 +109,13 @@ Plane { Vector }
 
 Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
 
+```swift
+Ridge(Vector) { Vector }
+Valley(Vector) { Vector }
+```
+
+TODO
+
 ### Objects
 
 ```swift
@@ -125,15 +132,28 @@ Lattice<Basis> {
   Material { ... }
   Bounds { ... }
 }
+Lattice<Basis> {
+  Copy { Lattice<Basis> }
+}
+Lattice<Basis> {
+  Affine {
+    Copy { Lattice<Basis> }
+  }
+}
 ```
 
-Create a lattice of crystal unit cells to carve.
+Create a lattice of crystal unit cells to carve. Coordinates are stored in numbers of crystal unit cells.
 
 ```swift
-Solid { }
+Solid { 
+  Copy { Lattice<Basis> }
+}
+Solid {
+  Copy { Solid }
+}
 ```
 
-Create a solid object composed of multiple lattices or other solids.
+Create a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
 
 ```swift
 Material { Element }

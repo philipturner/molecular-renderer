@@ -1,5 +1,5 @@
 //
-//  KeyFrame.swift
+//  Animation.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 9/15/23.
@@ -27,7 +27,10 @@ public enum AnimationKeyFrame {
 /// A type of motion during an animation.
 public enum AnimationMotion {
   /// Make the atoms randomly fade away over time.
-  case fade
+  ///
+  /// Members:
+  /// - First argument: the world origin when the cut was made.
+  case fade(SIMD3<Float>)
   
   /// Reflect the atoms across an axis.
   ///

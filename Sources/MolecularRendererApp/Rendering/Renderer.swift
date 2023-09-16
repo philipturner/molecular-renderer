@@ -63,36 +63,8 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = RhombicDocedahedra().provider
-    eventTracker.playerState.position = [0, 0, 2]
-    
-//    renderSeries(names: [
-//      "RhombicDodecahedra-100",
-//      "RhombicDodecahedra-200",
-//      "RhombicDodecahedra-400",
-//      "RhombicDodecahedra-800",
-//      "RhombicDodecahedra-1600",
-//      "RhombicDodecahedra-3200",
-//      "RhombicDodecahedra-6400"
-//    ])
-//    self.ioSimulation(name: "VdwOscillator-Prototype6")
-    
-//    guard let simProvider = atomProvider as? SimulationAtomProvider else {
-//      fatalError("This should never happen.")
-//    }
-//    
-//    let provider = OpenMM_AtomProvider(
-//      psPerStep: simProvider.frameTimeInFs / 1000,
-//      stepsPerFrame: 1,
-//      elements: simProvider.frames.first!.map { $0.element })
-//    for frame in simProvider.frames {
-//      provider.states.append(frame)
-//    }
-//    
-//    serializer.save(
-//      fileName: "VdwOscillator-Prototype6",
-//      provider: provider,
-//      asText: true)
+    self.atomProvider = Spring_Spring().provider
+//    eventTracker.playerState.position = [0, 0, 2]
   }
 }
 
@@ -283,7 +255,7 @@ extension Renderer {
   }
   
   private func ioSimulation(name: String? = nil) {
-    let simulationName = name ?? "RhombicDodecahedra-1"
+    let simulationName = name ?? "SavedSimulation"
     if Self.recycleSimulation {
       let simulation = serializer.load(fileName: simulationName)
       self.atomProvider = SimulationAtomProvider(simulation: simulation)
