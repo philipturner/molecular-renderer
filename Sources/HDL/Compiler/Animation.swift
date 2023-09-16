@@ -30,6 +30,9 @@ public enum AnimationMotion {
   ///
   /// Members:
   /// - First argument: the world origin when the cut was made.
+  ///
+  /// Tip: you can set the origin to somewhere unrelated to plane generation
+  /// before calling `Cut()`. Doing so may put the camera in a better position.
   case fade(SIMD3<Float>)
   
   /// Reflect the atoms across an axis.

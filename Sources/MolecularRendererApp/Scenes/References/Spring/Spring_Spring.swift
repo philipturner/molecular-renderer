@@ -20,11 +20,12 @@ struct Spring_Spring {
       Volume {
         Origin { 5 * h + 5 * k + 5 * l }
         Concave {
-          Plane { +h }
-          Plane { -k }
-          for vector in [h + k, -h - k] {
+          Plane { h + l }
+          // TODO: Make an open 90 degree angle between two (100) planes, each
+          // having a 135 degree angle betwen the (110) plane.
+          for vector in [h + k + l, -h - k - l] {
             Convex {
-              Origin { -vector * 1.5 }
+              Origin { -vector * 0.5 }
               Plane { vector }
             }
           }
