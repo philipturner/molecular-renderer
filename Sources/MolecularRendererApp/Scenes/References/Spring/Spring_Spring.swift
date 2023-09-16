@@ -21,86 +21,34 @@ struct Spring_Spring {
       Volume {
         Origin { 5 * h + 5 * k + 5 * l }
         Concave {
-          for h_vector in [h, -h] {
-            for k_vector in [k, -k] {
-              Convex {
-                Origin { -1 * (h_vector + k_vector) }
-                Plane { h_vector + k_vector }
+          for hk_offset in [Float(-1.25), 0, 1.25] {
+            for l_offset in [Float(-2.5), 0, 2.5] { Convex {
+              if hk_offset == 0 {
+                if l_offset != 0 {
+                  return
+                } else {
+                  for l_vector in [l, -l] {
+                    Convex {
+                      Origin { 0.50 * l_vector }
+                      Valley(h + k + l_vector) { l_vector }
+                    }
+                  }
+                }
+              } else {
+                if hk_offset * l_offset < 0 {
+                  return
+                }
               }
-            }
+              
+              Origin { hk_offset * (h + k) }
+              Origin { l_offset * l }
+              for vector in [h + k, -h - k] { Convex {
+                Origin { 0.75 * vector }
+                Ridge(vector + l) { vector }
+              } }
+            } }
           }
         }
-        
-        Concave {
-          Convex {
-            Origin { -0.25 * l }
-            Plane { +l }
-          }
-          for vector in [-k] {
-            Convex {
-              Origin { -vector * 0.5 }
-              Plane { h + vector + l }
-            }
-          }
-          Origin { 2 * l }
-          Convex {
-            Origin { 0.25 * l }
-            Plane { -l }
-          }
-          for vector in [k, -k] {
-            Convex {
-              Origin { -vector * 0.5 }
-              Plane { h + vector - l }
-            }
-          }
-        }
-        
-        Concave {
-          Convex {
-            Origin { 0.25 * l }
-            Plane { -l }
-          }
-          for vector in [h] {
-            Convex {
-              Origin { -vector * 0.5 }
-              Plane { vector - k - l }
-            }
-          }
-          
-          Origin { -2 * l }
-          Convex {
-            Origin { -0.25 * l }
-            Plane { +l }
-          }
-          for vector in [h, -h] {
-            Convex {
-              Origin { -vector * 0.5 }
-              Plane { vector - k + l }
-            }
-          }
-        }
-        
-        for vector in [l, -l] {
-          Convex {
-            Origin { 2 * vector }
-            Plane { vector }
-          }
-        }
-        for vector in [-h + k + l, -h - k + l] {
-          Concave {
-            Plane { +l }
-            Origin { -h + vector }
-            Plane { vector }
-          }
-        }
-        for vector in [-h + k - l, h + k - l] {
-          Concave {
-            Plane { -l }
-            Origin { k + vector }
-            Plane { vector }
-          }
-        }
-        
         Cut()
       }
     }

@@ -21,21 +21,20 @@ extension PlanePair {
   fileprivate static func applyDirections<T>(
     _ original: Vector<T>, _ closure: () -> Vector<T>
   ) {
-    let reflector = closure()
-    Plane { original }
-    
-    func dot(_ x: SIMD3<Float>, _ y: SIMD3<Float>) -> Float {
-      (x * y).sum()
+    func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
+      let length = (x * x).sum().squareRoot()
+      return length == 0 ? .zero : (x / length)
     }
+    let reflector = normalize(closure().simdValue)
+    Plane { original }
     
     /// For the incident vector `I` and surface orientation `N`, compute
     /// normalized `N (NN)`, and return the reflection direction:
     /// `I - 2 * dot(NN, I) * NN`.
     func reflect(i: SIMD3<Float>, n: SIMD3<Float>) -> SIMD3<Float> {
-      i - 2 * dot(n, i) * n
+      i - 2 * (n * i).sum() * n
     }
-    
-    let reflected = -reflect(i: original.simdValue, n: reflector.simdValue)
+    let reflected = -reflect(i: original.simdValue, n: reflector)
     Plane { Vector<T>(simdValue: reflected) }
   }
 }
