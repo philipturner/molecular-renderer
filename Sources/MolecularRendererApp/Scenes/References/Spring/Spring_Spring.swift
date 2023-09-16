@@ -48,6 +48,16 @@ struct Spring_Spring {
               } }
             } }
           }
+          Convex {
+            for l_vector in [l, -l] {
+              for hk_index in -4...4 { Convex {
+                let hk_offset = 1.50 * Float(hk_index)
+                Origin { hk_offset * (h - k) }
+                Origin { -0.00 * l_vector }
+                Valley(h - k + l_vector) { l_vector }
+              } }
+            }
+          }
         }
         Cut()
       }
