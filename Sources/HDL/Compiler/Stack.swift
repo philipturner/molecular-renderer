@@ -239,7 +239,11 @@ struct Stack {
     self.types.append(.convex)
   }
   
-  mutating func addPlane(normal: SIMD3<Float>) {
+  mutating func applyOrigin(delta: SIMD3<Float>) {
+    origins[origins.count - 1] += delta
+  }
+  
+  mutating func applyPlane(normal: SIMD3<Float>) {
     let plane = _Plane(origin: origins.last ?? .zero, normal: normal)
     var mask = Mask(dimensions: dimensions)
     mask.apply(plane: plane)
@@ -277,4 +281,44 @@ struct Stack {
     masks.removeLast()
     types.removeLast()
   }
+}
+
+struct SolidStack {
+  // The atoms in the solid.
+  var centers: [SIMD3<Float>] = []
+  
+  // Absolute origins at each level of the stack.
+  var origins: [SIMD3<Float>] = []
+  
+  init() {
+    self.centers = []
+    self.origins.append(.zero)
+  }
+  
+  mutating func applyOrigin(delta: SIMD3<Float>) {
+    origins[origins.count - 1] += delta
+  }
+  
+  mutating func pushOrigin() {
+    origins.append(origins.last!)
+  }
+  
+  mutating func popOrigin() {
+    origins.removeLast()
+  }
+  
+  // Reference code for combining atom centers.
+  //
+  //fileprivate func generateAtoms(
+  //  _ latticePoints: [SIMD3<Float>]
+  //) -> [(origin: SIMD3<Float>, element: UInt8)] {
+  //  var hashMap: [SIMD3<Float>: Bool] = [:]
+  //  for point in latticePoints {
+  //    hashMap[point] = true
+  //  }
+  //  let allPoints = Array(hashMap.keys)
+  //  return allPoints.map {
+  //    (origin: $0 * 0.357, element: 6)
+  //  }
+  //}
 }

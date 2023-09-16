@@ -18,9 +18,10 @@ public class Compiler {
   private var didSetMaterial: Bool = false
   
   // For combining multiple lattices or solids into a solid.
-  private var solidCenters: [SIMD3<Float>]?
-  private var solidOrigin: SIMD3<Float>?
+  // TODO: Encapsulate all these variables in another object for solids.
+  private var solidStack: SolidStack?
   private var willUseSolid: Bool = false
+  private var didSetAffine: Bool = false
   
   init() {
     // Resets the scene after the popping the stack of the outermost
@@ -41,9 +42,9 @@ extension Compiler {
     willUseLattice = false
     didSetMaterial = false
     
-    solidCenters = nil
-    solidOrigin = nil
+    solidStack = nil
     willUseSolid = false
+    didSetAffine = false
   }
   
   func assertReset() {
@@ -51,9 +52,21 @@ extension Compiler {
     precondition(willUseLattice == false)
     precondition(didSetMaterial == false)
     
-    precondition(solidCenters == nil)
-    precondition(solidOrigin == nil)
+    precondition(solidStack == nil)
     precondition(willUseSolid == false)
+    precondition(didSetAffine == false)
+  }
+  
+  func moveOrigin(_ delta: SIMD3<Float>) {
+    if willUseLattice {
+      assertBoundsSet()
+      stack!.applyOrigin(delta: delta)
+    } else if willUseSolid {
+      assertSolid()
+      solidStack!.applyOrigin(delta: delta)
+    } else {
+      fatalError()
+    }
   }
 }
 
@@ -105,17 +118,22 @@ extension Compiler {
   }
   
   func startVolume() {
-    assertLattice()
+    assertBoundsSet()
   }
   
   func endVolume() {
-    assertLattice()
+    assertBoundsSet()
   }
 }
 
 extension Compiler {
   private func assertSolid() {
     precondition(willUseSolid && !willUseLattice)
+  }
+  
+  private func assertAffine() {
+    assertSolid()
+    precondition(didSetAffine)
   }
   
   func startSolid() {
@@ -126,11 +144,20 @@ extension Compiler {
     assertSolid()
     defer { reset() }
     
-    if let solidCenters {
-      return solidCenters
+    if let solidStack {
+      return solidStack.centers
     } else {
       return []
     }
+  }
+  
+  func startAffine() {
+    assertSolid()
+    precondition(!didSetAffine)
+  }
+  
+  func endAffine() {
+    assertAffine()
   }
   
   func startCopy() {
@@ -141,16 +168,3 @@ extension Compiler {
     assertSolid()
   }
 }
-
-//fileprivate func generateAtoms(
-//  _ latticePoints: [SIMD3<Float>]
-//) -> [(origin: SIMD3<Float>, element: UInt8)] {
-//  var hashMap: [SIMD3<Float>: Bool] = [:]
-//  for point in latticePoints {
-//    hashMap[point] = true
-//  }
-//  let allPoints = Array(hashMap.keys)
-//  return allPoints.map {
-//    (origin: $0 * 0.357, element: 6)
-//  }
-//}
