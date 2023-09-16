@@ -18,14 +18,12 @@ public class Compiler {
   private var didSetMaterial: Bool = false
   
   // For combining multiple lattices or solids into a solid.
-  // TODO: Encapsulate all these variables in another object for solids.
   private var solidStack: SolidStack?
   private var willUseSolid: Bool = false
   private var didSetAffine: Bool = false
   
   init() {
-    // Resets the scene after the popping the stack of the outermost
-    // 'Solid' scope.
+    
   }
   
   /// Unstable API; do not use this function.

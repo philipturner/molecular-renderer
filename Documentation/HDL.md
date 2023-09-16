@@ -127,7 +127,7 @@ Adds or subtracts two vectors.
 Origin { Vector }
 ```
 
-Translates the origin by a vector relative to the current origin.
+Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
 
 ### Lattice Editing
 
@@ -178,7 +178,7 @@ Convex {
 }
 ```
 
-Start a section where every plane is combined through OR in disjunctive normal form.
+Start a section where every plane is combined through OR in disjunctive normal form. Upon exiting this scope, the added planes remain.
 
 ```swift
 Concave {
@@ -186,7 +186,7 @@ Concave {
 }
 ```
 
-Start a section where every plane is combined through AND in disjunctive normal form.
+Start a section where every plane is combined through AND in disjunctive normal form. Upon exiting this scope, the added planes remain.
 
 ```swift
 Volume {
@@ -227,19 +227,20 @@ Translate the object by the specified vector, relative to its current position.
 
 ### Other
 
-TODO: Document how the origin resets when you exit a `Lattice<Basis>` or `Solid` scope.
-
 ```swift
-Lattice<Basis> { }
+Lattice<Basis> { 
+  Material { ... }
+  Bounds { ... }
+}
 ```
 
-TODO
+Create a lattice of crystal unit cells to carve.
 
 ```swift
 Solid { }
 ```
 
-TODO
+Create a solid object composed of multiple lattices or other solids.
 
 ```swift
 Material { Element }
