@@ -15,6 +15,9 @@ public struct Bounds {
           let z = Int32(exactly: vector.simdValue.z) else {
       fatalError("Bounds must be integer quantities of crystal unit cells.")
     }
+    guard x > 0, y > 0, z > 0 else {
+      fatalError("Bounds must be positive.")
+    }
     Compiler.global.setBounds(SIMD3(x, y, z))
   }
   

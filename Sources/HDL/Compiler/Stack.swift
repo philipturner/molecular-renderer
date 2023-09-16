@@ -235,6 +235,8 @@ struct Stack {
   // The boundary of the grid.
   var dimensions: SIMD3<Int32>
   
+  // TODO: Variable for offset of the grid's start from (0, 0, 0).
+  
   // The result of all cuts in the grid. To be translated back into atoms when
   // the grid is finished.
   var result: Mask

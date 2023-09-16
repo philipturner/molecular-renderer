@@ -21,6 +21,10 @@ public class Compiler {
   // type. Then, support the correct API for lattices composed of multiple
   // sub-lattices. To enable combining of two crystal lattices, one may need to
   // track the lower left corner of the bounds.
+  //
+  // The current solution is to crash with `fatalError("Not implemented")` for
+  // `Hexagonal` vectors. `Amorphous` vectors are suppressed because the
+  // necessary basis vectors (x, y, z) aren't exposed to the public API.
   
   // For combining multiple lattices or solids into a solid.
   private var solidStack: SolidStack?

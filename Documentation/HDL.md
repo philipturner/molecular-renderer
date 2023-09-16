@@ -25,17 +25,17 @@ The forcefield is based on MM4, using an algorithm $O(n)$ in van der Waals attra
 
 | MM4 Atom Type | 6-ring | 5-ring | 4-ring | 3-ring |
 | - | - | - | - | - |
-| H        | varies |        | | |
-| B (sp3)  | 27     | 27     | | |
-| C (sp3)  | 1      | 123    | not supported | not supported |
-| N (sp3)  | 8, 198 | 8, 198 | | |
-| O (sp3)  | 6  | 6   | | |
-| F        | 11 |     | | |
-| Si (sp3) | 19 | 19  | | |
-| P (sp3)  | 25 | 25  | | |
-| S (sp3)  | 15 | 15  | | |
-| Cl       | 12 |     | | |
-| Ge (sp3) | 31 | 31  | | |
+| H        | 5  | n/a | n/a | n/a |
+| B (sp3)  | 27 | 27  | not supported | not supported |
+| C (sp3)  | 1  | 123 | not supported | not supported |
+| N (sp3)  | 8  | 8   | not supported | not supported |
+| O (sp3)  | 6  | 6   | not supported | not supported |
+| F        | 11 | n/a | n/a | n/a |
+| Si (sp3) | 19 | 19  | not supported | not supported |
+| P (sp3)  | 25 | 25  | not supported | not supported |
+| S (sp3)  | 15 | 15  | not supported | not supported |
+| Cl       | 12 | n/a | n/a | n/a |
+| Ge (sp3) | 31 | 31  | not supported | not supported |
 
 Key:
 - X = nonpolar covalent bond (low compute cost)
@@ -242,12 +242,15 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 ### Vectors
 
 ```swift
-public let a: Vector<Hexagonal> = [0, 0, 1]
-public let b: Vector<Hexagonal> = [0.866, 0, -0.5]
-public let c: Vector<Hexagonal> = [0, 1, 0]
-public let h: Vector<Cubic> = [1, 0, 0]
-public let k: Vector<Cubic> = [0, 1, 0]
-public let l: Vector<Cubic> = [0, 0, 1]
+public let a: Vector<Hexagonal> = [0, 0, 1] * lattice ab constant
+public let b: Vector<Hexagonal> = [0.866, 0, -0.5] * lattice c constant
+public let c: Vector<Hexagonal> = [0, 1, 0] * lattice ab constant
+public let h: Vector<Cubic> = [1, 0, 0] * lattice constant
+public let k: Vector<Cubic> = [0, 1, 0] * lattice constant
+public let l: Vector<Cubic> = [0, 0, 1] * lattice constant
+public let x: Vector<Amorphous> = [1, 0, 0] * nanometer
+public let y: Vector<Amorphous> = [0, 1, 0] * nanometer
+public let z: Vector<Amorphous> = [0, 0, 1] * nanometer
 ```
 
 Unit vectors representing the crystal's basis.

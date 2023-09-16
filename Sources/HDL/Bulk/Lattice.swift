@@ -14,6 +14,8 @@
 public struct Lattice<T: CrystalBasis> {
   var centers: [SIMD3<Float>] = []
   
+  // TODO: Variable for offset of the grid's start from (0, 0, 0).
+  
   /// Unstable API; do not use this function.
   public var _centers: [SIMD3<Float>] { centers }
   
