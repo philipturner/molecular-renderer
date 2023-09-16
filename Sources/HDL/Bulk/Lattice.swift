@@ -12,9 +12,14 @@
 // anymore. However, the same types of transforms can be performed on atoms in
 // bulk.
 public struct Lattice<T: Basis> {
-  private var centers: [SIMD3<Float>] = []
+  var centers: [SIMD3<Float>] = []
+  
+  /// Unstable API; do not use this function.
+  public var _centers: [SIMD3<Float>] { centers }
   
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startLattice(type: T.self)
+    closure()
+    self.centers = Compiler.global.endLattice(type: T.self)
   }
 }

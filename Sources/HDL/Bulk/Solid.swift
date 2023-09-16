@@ -10,8 +10,13 @@ import Foundation
 public struct Solid {
   private var centers: [SIMD3<Float>] = []
   
+  /// Unstable API; do not use this function.
+  public var _centers: [SIMD3<Float>] { centers }
+  
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startSolid()
+    closure()
+    self.centers = Compiler.global.endSolid()
   }
 }
 
