@@ -11,7 +11,11 @@ Table of Contents
 - [How it Works](#how-it-works)
 - [Syntax](#syntax)
     - [Hierarchy of Design](#hierarchy-of-design)
-    - [Operators](#operators)
+    - [Lattice Editing](#lattice-editing)
+    - [Objects](#objects)
+    - [Object Transforms](#object-transforms)
+    - [Scopes](#scopes)
+    - [Vectors](#vectors)
 
 ## How it Works
 
@@ -54,11 +58,6 @@ Key:
 
 ## Syntax
 
-TODO (points to cover):
-- Denotative (no hidden state)
-- Disjunctive normal form
-- Decreased functionality after decoupling from the crystal lattice
-
 ### Design Hierarchy
 
 - `Assembly` (API not yet finalized)
@@ -76,6 +75,132 @@ TODO (points to cover):
   - (Angular) position/velocity tracking during simulation
 - Multiple discontinuous bodies interlocked in a productive nanosystem
 - Avoid geometries that require welding
+
+### Lattice Editing
+
+```swift
+Cut()
+```
+
+Replaces the selected volume with nothing.
+
+```swift
+Fill()
+```
+
+Replaces the selected volume with the crystal base material.
+
+```swift
+Replace { Bond }
+Replace { Element }
+```
+
+Replaces selected atoms with the specified element, or deletes them and makes a bond bridging the neighbors. Does not affect vacant crystal unit cells.
+
+```swift
+Passivate { Element }
+```
+
+Adds hydrogens or halogens to complete the valence shells of selected atoms. Does not affect vacant crystal unit cells.
+
+```swift
+Plane { Vector }
+```
+
+Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
+
+### Objects
+
+```swift
+Lattice<Basis> { 
+  Material { ... }
+  Bounds { ... }
+}
+```
+
+Create a lattice of crystal unit cells to carve.
+
+```swift
+Solid { }
+```
+
+Create a solid object composed of multiple lattices or other solids.
+
+```swift
+Material { Element }
+Material { [Element] }
+```
+
+Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic moissanite. More materials may be added in the future, such as elemental silicon and compounds with titanium.
+
+```swift
+Bounds { Vector }
+```
+
+Sets the working set of crystal unit cells. The box spans `min(current origin, specified vector)` to `max(current origin, specified vector)` where `min` and `max` operate lane-wise on vectors.
+
+### Object Transforms
+
+```swift
+Copy { Lattice<Basis> }
+Copy { Solid }
+```
+
+Sets the input as the object the be modified in the enclosing `Affine`.
+
+```swift
+Reflect { Vector }
+```
+
+Reflects the object across the current origin, along the specified axis.
+
+```swift
+Rotate { Vector }
+```
+
+Rotates counterclockwise around the vector by `length(vector)` revolutions. For example, scale the vector by 0.25 to rotate 90 degrees. When in a lattice, the rotation angle must be a multiple of 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
+
+Rotation occurs around a ray starting at the current origin, and pointing toward the specified vector.
+
+```swift
+Translate { Vector }
+```
+
+Translate the object by the specified vector, relative to its current position.
+
+### Scopes
+
+```swift
+Affine {
+  Copy { ... }
+}
+```
+
+Starts a section that instantiates a previously designed lattice, then rotates or translates it.
+
+```swift
+Convex { 
+
+}
+```
+
+Starts a section where every plane is combined through OR in disjunctive normal form. Upon exiting this scope, the added planes remain.
+
+```swift
+Concave {
+
+}
+```
+
+Starts a section where every plane is combined through AND in disjunctive normal form. Upon exiting this scope, the added planes remain.
+
+```swift
+Volume {
+
+}
+```
+
+Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting.
 
 ### Vectors
 
@@ -128,129 +253,3 @@ Origin { Vector }
 ```
 
 Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
-
-### Lattice Editing
-
-```swift
-Cut()
-```
-
-Replaces the selected volume with nothing.
-
-```swift
-Fill()
-```
-
-Replaces the selected volume with the crystal base material.
-
-```swift
-Replace { Bond }
-Replace { Element }
-```
-
-Replaces selected atoms with the specified element, or deletes them and makes a bond bridging the neighbors. Does not affect vacant crystal unit cells.
-
-```swift
-Passivate { Element }
-```
-
-Adds hydrogens or halogens to complete the valence shells of selected atoms. Does not affect vacant crystal unit cells.
-
-```swift
-Plane { Vector }
-```
-
-Adds a plane to the stack, for selecting atoms.
-
-### Scopes
-
-```swift
-Affine {
-  Copy { ... }
-}
-```
-
-Start a section instantiating a previously designed lattice and rotating or translating it.
-
-```swift
-Convex { 
-
-}
-```
-
-Start a section where every plane is combined through OR in disjunctive normal form. Upon exiting this scope, the added planes remain.
-
-```swift
-Concave {
-
-}
-```
-
-Start a section where every plane is combined through AND in disjunctive normal form. Upon exiting this scope, the added planes remain.
-
-```swift
-Volume {
-
-}
-```
-
-Encapsulate a set of planes, so everything inside the scope will be popped from the stack upon exiting.
-
-### Lattice and Solid Transforms
-
-```swift
-Copy { Lattice<Basis> }
-Copy { Solid }
-```
-
-Sets the input as the object the be modified in the enclosing `Affine`.
-
-```swift
-Reflect { Vector }
-```
-
-Reflects the object across the current origin, along the specified axis.
-
-```swift
-Rotate { Vector }
-```
-
-Rotates counterclockwise around the vector by `length(vector)` revolutions. For example, scale the vector by 0.25 to rotate 90 degrees. When in a lattice, the rotation angle must be a multiple of 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
-
-Rotation occurs around a ray starting at the current origin, and pointing toward the specified vector.
-
-```swift
-Translate { Vector }
-```
-
-Translate the object by the specified vector, relative to its current position.
-
-### Other
-
-```swift
-Lattice<Basis> { 
-  Material { ... }
-  Bounds { ... }
-}
-```
-
-Create a lattice of crystal unit cells to carve.
-
-```swift
-Solid { }
-```
-
-Create a solid object composed of multiple lattices or other solids.
-
-```swift
-Material { Element }
-Material { [Element] }
-```
-
-Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic moissanite. More materials may be added in the future, such as elemental silicon and compounds with titanium.
-
-```swift
-Bounds { Vector }
-```
-
-Sets the working set of crystal unit cells. The box spans `min(current origin, specified vector)` to `max(current origin, specified vector)` where `min` and `max` operate lane-wise on vectors.
