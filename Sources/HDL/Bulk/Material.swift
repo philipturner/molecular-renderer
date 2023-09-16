@@ -63,7 +63,7 @@ public struct Material {
       switch (element1, element2) {
       case (.carbon, .silicon):
         // silicon carbide
-        fatalError("Moissanite not supported yet.")
+        fatalError("Moissanite not supported yet (will be supported soon).")
         break
       default:
         fatalError("Unrecognized elements: \(element1), \(element2)")
@@ -71,5 +71,6 @@ public struct Material {
     } else {
       fatalError("Invalid element count: \(elements.count). Expected 1 or 2.")
     }
+    Compiler.global.setMaterial(elements)
   }
 }

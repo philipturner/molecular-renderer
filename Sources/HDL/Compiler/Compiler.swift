@@ -152,7 +152,7 @@ extension Compiler {
   func performCut() {
     assertBoundsSet()
     stack!.cut()
-    // TODO: - Inject an animation frame here
+    // TODO: - Inject an animation frame here.
   }
 }
 
@@ -197,21 +197,21 @@ extension Compiler {
   func performCopy(_ centers: [SIMD3<Float>]) {
     assertSolid()
     solidStack!.addCenters(centers, affine: didSetAffine)
+    // TODO: - Inject an animation frame here.
   }
   
   func performReflect(_ vector: SIMD3<Float>) {
     assertAffine()
-    // TODO: - Inject an animation frame here
+    // TODO: - Inject an animation frame here.
   }
   
   func performRotate(_ vector: SIMD3<Float>) {
     assertAffine()
-    // TODO: - Inject an animation frame here
+    // TODO: - Inject an animation frame here.
   }
   
   func performTranslate(_ vector: SIMD3<Float>) {
     assertAffine()
-    // TODO: - Inject an animation frame here
-    
+    // TODO: - Inject an animation frame here.
   }
 }
