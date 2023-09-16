@@ -5,12 +5,12 @@
 //  Created by Philip Turner on 9/1/23.
 //
 
-// Used for cutting hexagonal crystals.
+// Used for cutting hexagonal lattices.
 public let a = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
 public let b = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
 public let c = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
 
-// Used for cutting cubic crystals and defining the positions of solids.
+// Used for cutting cubic lattices and defining the positions of objects.
 public let x = Vector<Cubic>(x: 1, y: 0, z: 0)
 public let y = Vector<Cubic>(x: 0, y: 1, z: 0)
 public let z = Vector<Cubic>(x: 0, y: 0, z: 1)

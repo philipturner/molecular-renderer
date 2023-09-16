@@ -88,7 +88,7 @@ Replaces the selected volume with nothing.
 Fill()
 ```
 
-Replaces the selected volume with the crystal base material.
+Replaces the selected volume with the crystal's base material.
 
 ```swift
 Replace { Bond }
@@ -110,6 +110,15 @@ Plane { Vector }
 Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
 
 ### Objects
+
+```swift
+Cubic: Basis
+Hexagonal: Basis
+```
+
+Coordinate spaces for defining vectors in. `Cubic` is used for editing cubic lattices and defining the positions of objects. `Hexagonal` is used for cutting hexagonal lattices.
+
+When editing lattices, vectors are measured in unit cell width. When defining the positions of objects, vectors are measured in nanometers.
 
 ```swift
 Lattice<Basis> { 
