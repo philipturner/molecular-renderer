@@ -326,9 +326,7 @@ struct Spring_Springboard {
     var dualHousing = Diamondoid(atoms: dualHousingCarbons)
     var springs: [Diamondoid] = [spring.diamondoid]
     
-    // Show how the joining failed at 200 m/s and 400 m/s, but was successful at
-    // 300 m/s. Assembling the entire structure may require a jig created
-    // specifically for this task.
+    // Show how the joining succeeded temporarily at 300 m/s.
     let springSpeed: Float = 0.300
     do {
       var springCopy = springs[0]

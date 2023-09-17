@@ -126,7 +126,6 @@
 		98A700A12AAFC7E300499CD2 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98A700A02AAFC7E300499CD2 /* MM4 */; };
 		98A700A52AAFC97D00499CD2 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98A700A42AAFC97D00499CD2 /* MM4 */; };
 		98A700AB2AB4CC5300499CD2 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98A700AA2AB4CC5300499CD2 /* HDL */; };
-		98A8B7102AB75F52003E62E8 /* Spring_Rope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A8B70F2AB75F52003E62E8 /* Spring_Rope.swift */; };
 		98B3E4F72A3F700400B02349 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */; };
@@ -312,7 +311,6 @@
 		98A700992AAFB78800499CD2 /* MM4MassParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MassParameters.swift; sourceTree = "<group>"; };
 		98A7009E2AAFC61400499CD2 /* MM4MM3Parameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MM3Parameters.swift; sourceTree = "<group>"; };
 		98A700A22AAFC88000499CD2 /* MM4MorseParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MorseParameters.swift; sourceTree = "<group>"; };
-		98A8B70F2AB75F52003E62E8 /* Spring_Rope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Rope.swift; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
@@ -765,7 +763,6 @@
 				98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */,
 				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
 				98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */,
-				98A8B70F2AB75F52003E62E8 /* Spring_Rope.swift */,
 			);
 			path = Spring;
 			sourceTree = "<group>";
@@ -1243,7 +1240,6 @@
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
 				98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */,
-				98A8B7102AB75F52003E62E8 /* Spring_Rope.swift in Sources */,
 				98D0F18D2AB5118400BE267D /* Spring_Projectile.swift in Sources */,
 				980E70192A5E51D20051797F /* Tooltips.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */,

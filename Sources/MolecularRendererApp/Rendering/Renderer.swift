@@ -32,9 +32,9 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = true
-  static let productionRender: Bool = true
-  static let programCamera: Bool = true
+  static let recycleSimulation: Bool = false
+  static let productionRender: Bool = false
+  static let programCamera: Bool = false
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -63,7 +63,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Spring_Rope().provider
+    self.atomProvider = Spring_Springboard().provider
     eventTracker.playerState.position = [0, 0, 2]
 //    self.ioSimulation()
 //    self.saveGIF()
