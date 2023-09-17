@@ -241,9 +241,11 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 ### Vectors
 
 ```swift
-public let a: Vector<Hexagonal> = [0, 0, 1] * lattice ab constant
-public let b: Vector<Hexagonal> = [0.866, 0, -0.5] * lattice c constant
-public let c: Vector<Hexagonal> = [0, 1, 0] * lattice ab constant
+// Rhombic constants refer to a 3D rhombohedron spanning the smallest
+// repeatable unit of hexagonal diamond, which can tile like a cuboid.
+public let a: Vector<Hexagonal> = [0, 0, 1] * rhombic ab constant
+public let b: Vector<Hexagonal> = [0.866, 0, -0.5] * rhombic ab constant
+public let c: Vector<Hexagonal> = [0, 1, 0] * rhombic c constant
 public let h: Vector<Cubic> = [1, 0, 0] * lattice constant
 public let k: Vector<Cubic> = [0, 1, 0] * lattice constant
 public let l: Vector<Cubic> = [0, 0, 1] * lattice constant
@@ -293,4 +295,4 @@ Origin { Vector }
 
 Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
 
-[^1]: Right now, cubic lattices and solids all require vectors in the `Cubic` basis (`h`, `k`, `l`). The carbon centers can be extracted using `_centers`, in units of diamond cell width. You must multiply them by `0.357` to get nanometers. This API will be fixed in the future, so don't count on code written now being able to compile in the future.
+[^1]: Right now, cubic lattices and solids require vectors in the `Cubic` basis (`h`, `k`, `l`). The carbon centers can be extracted using `_centers`, in units of diamond cell width. You must multiply them by `0.357` to get nanometers. This API will be fixed in the future, so don't count on code written now being source-stable.
