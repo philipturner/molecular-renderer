@@ -974,4 +974,19 @@ struct Diamondoid {
     centerOfMass /= totalMass
     return centerOfMass
   }
+  
+  // Returns masses in atomic mass units (amu).
+  func createMass() -> Float {
+    let masses = atoms.map { atom -> Float in
+      switch atom.element {
+      case 1:
+        return 1.008
+      case 6:
+        return 12.011
+      default:
+        fatalError("Unsupported element: \(atom.element)")
+      }
+    }
+    return masses.reduce(0, +)
+  }
 }
