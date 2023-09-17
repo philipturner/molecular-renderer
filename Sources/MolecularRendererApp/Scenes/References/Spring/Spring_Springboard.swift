@@ -326,7 +326,8 @@ struct Spring_Springboard {
     var dualHousing = Diamondoid(atoms: dualHousingCarbons)
     var springs: [Diamondoid] = [spring.diamondoid]
     
-    // Show how the joining succeeded temporarily at 300 m/s.
+    // Show how the joining succeeded at 300 m/s. Shorten the simulation to
+    // omit the part where it falls apart.
     let springSpeed: Float = 0.300
     do {
       var springCopy = springs[0]
@@ -372,5 +373,147 @@ struct Spring_Springboard {
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
 #endif
+    
+    // Assemble the entire structure without a jig.
+    do {
+      #if true
+      spring.diamondoid.translate(
+        offset: 0.357 * [Float(0), Float(0.125), Float(0)])
+      
+      var dualHousing = Diamondoid(atoms: dualHousingCarbons)
+      dualHousing.minimize()
+      var dualHousings: [Diamondoid] = [dualHousing]
+      var springs: [Diamondoid] = [spring.diamondoid]
+      
+      let housingCenterOfMass = dualHousing.createCenterOfMass()
+      let springCenterOfMass = spring.diamondoid.createCenterOfMass()
+      var spring2Delta = 2 * (housingCenterOfMass - springCenterOfMass)
+      spring2Delta.y = 0
+      var spring2 = springs[0]
+      spring2.translate(offset: spring2Delta)
+      springs.append(spring2)
+      
+      let housing2Rotation = simd_quatf(angle: -90 * .pi / 180, axis: [0, 1, 0])
+      var housing2Delta = -spring2Delta / 2
+      var housing2 = dualHousings[0]
+      housing2.translate(offset: housing2Delta)
+      housing2.rotate(angle: housing2Rotation)
+      
+      housing2Delta = housing2Rotation.act(housing2Delta)
+      housing2.translate(offset: 2 * housing2Delta)
+      housing2.rotate(angle: housing2Rotation)
+      
+      housing2Delta = housing2Rotation.act(housing2Delta)
+      housing2.translate(offset: housing2Delta)
+      dualHousings.append(housing2)
+      
+      var systemCenter = (dualHousings[0].createCenterOfMass() +
+                          dualHousings[1].createCenterOfMass()) / 2
+      systemCenter.y = springs[0].createCenterOfMass().y
+      var newHousings = dualHousings
+      var newSprings = springs
+      
+      for i in 0..<newHousings.count {
+        var diamondoid = newHousings[i]
+        let currentDelta = diamondoid.createCenterOfMass() - systemCenter
+        
+        let systemRotation1 = simd_quatf(
+          angle: 180 * .pi / 180, axis: normalize(SIMD3<Float>(1, 0, 1)))
+        let systemRotation2 = simd_quatf(
+          angle: 90 * .pi / 180, axis: normalize(SIMD3<Float>(0, 1, 0)))
+        var newDelta = systemRotation1.act(currentDelta)
+        newDelta = systemRotation2.act(newDelta)
+        
+        diamondoid.rotate(angle: systemRotation1)
+        diamondoid.rotate(angle: systemRotation2)
+        diamondoid.translate(offset: -currentDelta + newDelta)
+        newHousings[i] = diamondoid
+      }
+      dualHousings += newHousings
+      
+      for i in 0..<newSprings.count {
+        var diamondoid = newSprings[i]
+        let currentDelta = diamondoid.createCenterOfMass() - systemCenter
+        
+        let systemRotation1 = simd_quatf(
+          angle: 180 * .pi / 180, axis: normalize(SIMD3<Float>(0, 1, 0)))
+        let newDelta = systemRotation1.act(currentDelta)
+        
+        diamondoid.rotate(angle: systemRotation1)
+        diamondoid.translate(offset: -currentDelta + newDelta)
+        newSprings[i] = diamondoid
+      }
+      springs += newSprings
+      
+      let providerAtoms = (dualHousings + springs).flatMap { $0.atoms }
+      provider = ArrayAtomProvider(providerAtoms)
+      print("4 x spring + 4 x housing =", providerAtoms.count)
+      #endif
+      
+      #if false
+      print("energy minimization: 8 x 0.5 ps")
+      var start = CACurrentMediaTime()
+      let simulator = _Old_MM4(
+        diamondoids: dualHousings + springs, fsPerFrame: 100)
+      let emptyVelocities: [SIMD3<Float>] = Array(
+        repeating: .zero, count: providerAtoms.count)
+      
+      // Energy-minimize the entire system.
+      var positions: [SIMD3<Float>] = []
+      var angularSpeedInRadPs: Float = -1
+      var linearSpeedInNmPs: Float = -1
+      for i in 0..<8 {
+        simulator.simulate(ps: 0.5, minimizing: true)
+        if i == 7 {
+          let masses = simulator.repartitionedMasses
+          positions = simulator.provider.states.last!.map(\.origin)
+          
+          var centerOfMass_d = (0..<providerAtoms.count).reduce(
+            SIMD3<Double>.zero
+          ) {
+            $0 + masses[$1] * SIMD3<Double>(positions[$1])
+          }
+          centerOfMass_d /= masses.reduce(0, +)
+          let centerOfMass = SIMD3<Float>(centerOfMass_d)
+          print("center of mass:", centerOfMass)
+          
+          let largestRadius = positions.map { length($0 - centerOfMass) }.max()!
+          print("largest radius:", largestRadius)
+          angularSpeedInRadPs = 0.080 // rad/ps
+          linearSpeedInNmPs = largestRadius * angularSpeedInRadPs
+          
+          let angularVelocity = simd_quatf(
+            angle: angularSpeedInRadPs, axis: [0, 1, 0])
+          let w = angularVelocity.axis * angularVelocity.angle
+          simulator.provider.reset()
+          simulator.thermalize(velocities: positions.map {
+            let r = $0 - centerOfMass
+            return cross(w, r)
+          })
+        } else {
+          simulator.provider.reset()
+          simulator.thermalize(velocities: emptyVelocities)
+        }
+        
+      }
+      var end = CACurrentMediaTime()
+      print("simulated in \(String(format: "%.1f", end - start)) seconds")
+      
+      // Before this test happens in the animation, change the dual housings to
+      // be connected by a bridge. The system must pass the test of rotating at
+      // 400 m/s for 160 ps. Show the simulation replaying at a faster speed
+      // than the previous ones.
+      
+      // Animate the entire system spinning for 40 ps. Re-thermalized with
+      // non-empty velocities that obey a particular angular speed.
+      let numPicoseconds: Double = 40
+      print("\(angularSpeedInRadPs) rad/ps (\(Int(linearSpeedInNmPs * 1000)) m/s), \(Int(numPicoseconds)) ps")
+      start = CACurrentMediaTime()
+      simulator.simulate(ps: numPicoseconds)
+      provider = simulator.provider
+      end = CACurrentMediaTime()
+      print("simulated in \(String(format: "%.1f", end - start)) seconds")
+      #endif
+    }
   }
 }
