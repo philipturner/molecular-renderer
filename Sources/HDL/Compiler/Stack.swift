@@ -439,10 +439,12 @@ struct SolidStack {
     
     for key in keys {
       var delta = key - origin
-      let oldCoord1 = delta[rotatedAxis1]
-      let oldCoord2 = delta[rotatedAxis2]
-      delta[rotatedAxis1] = -oldCoord2
-      delta[rotatedAxis2] = oldCoord1
+      for _ in 0..<rotationCount {
+        let oldCoord1 = delta[rotatedAxis1]
+        let oldCoord2 = delta[rotatedAxis2]
+        delta[rotatedAxis1] = -oldCoord2
+        delta[rotatedAxis2] = oldCoord1
+      }
       
       affineCenters![origin + delta] = true
     }

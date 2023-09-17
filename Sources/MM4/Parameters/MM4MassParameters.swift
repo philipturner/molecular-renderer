@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import GenericJSON
 
 class MM4MassParameters {
   static let global = MM4MassParameters()

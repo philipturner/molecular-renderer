@@ -16,9 +16,6 @@ struct Spring_Spring {
   var diamondoid: Diamondoid!
   
   init() {
-    print()
-    print("spring")
-    
     let springLattice =
     Lattice<Cubic> {
       Material { .carbon }
@@ -160,6 +157,8 @@ struct Spring_Spring {
     provider = ArrayAtomProvider(centers.map {
       MRAtom(origin: $0 * 0.357, element: 6)
     })
+    print()
+    print("spring")
     print("carbon atoms:", centers.count)
     
     // Show the hydrogens being added, using the same exponential

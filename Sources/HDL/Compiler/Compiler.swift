@@ -206,6 +206,8 @@ extension Compiler {
   
   func startSolid() {
     assertReset()
+    willUseSolid = true
+    solidStack = SolidStack()
   }
   
   func endSolid() -> [SIMD3<Float>] {
@@ -224,12 +226,16 @@ extension Compiler {
   func startAffine() {
     assertSolid()
     precondition(!didSetAffine)
+    didSetAffine = true
     solidStack!.pushOrigin()
+    solidStack!.startAffine()
   }
   
   func endAffine() {
     assertAffine()
+    didSetAffine = false
     solidStack!.popOrigin()
+    solidStack!.endAffine()
   }
   
   func performCopy(_ centers: [SIMD3<Float>]) {
