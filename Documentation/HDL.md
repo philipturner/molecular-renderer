@@ -128,11 +128,10 @@ Hexagonal: Basis
 
 Coordinate spaces for defining vectors in.
 
-
 | Basis | Use | Units |
 | ----- | --- | ----- |
-| Amorphous | editing cubic lattices | multiples of crystal unit cell width |
-| Cubic | defining positions of objects | nanometers |
+| Amorphous[^1] | defining positions of solids | nanometers |
+| Cubic | editing cubic lattices | multiples of crystal unit cell width |
 | Hexagonal | editing hexagonal lattices | multiples of crystal unit cell width |
 
 ```swift
@@ -293,3 +292,5 @@ Origin { Vector }
 ```
 
 Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
+
+[^1]: Right now, cubic lattices and solids all require vectors in the `Cubic` basis (`h`, `k`, `l`). The carbon centers can be extracted using `_centers`, in units of diamond cell width. You must multiply them by `0.357` to get nanometers. This API will be fixed in the future, so don't count on code written now being able to compile in the future.
