@@ -220,7 +220,7 @@ Convex {
 }
 ```
 
-Starts a section where every plane is combined through OR in disjunctive normal form. Upon exiting this scope, the added planes remain.
+Scope where every plane's "zero" volume merges through OR in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain.
 
 ```swift
 Concave {
@@ -228,7 +228,7 @@ Concave {
 }
 ```
 
-Starts a section where every plane is combined through AND in disjunctive normal form. Upon exiting this scope, the added planes remain.
+Scope where every plane's "zero" volume merges through AND in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain.
 
 ```swift
 Volume {
