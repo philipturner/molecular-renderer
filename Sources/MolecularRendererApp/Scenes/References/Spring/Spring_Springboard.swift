@@ -454,7 +454,7 @@ struct Spring_Springboard {
       print("energy minimization: 8 x 0.5 ps")
       var start = CACurrentMediaTime()
       let simulator = _Old_MM4(
-        diamondoids: dualHousings + springs, fsPerFrame: 100)
+        diamondoids: dualHousings + springs, fsPerFrame: 20)
       let emptyVelocities: [SIMD3<Float>] = Array(
         repeating: .zero, count: providerAtoms.count)
       
@@ -479,7 +479,7 @@ struct Spring_Springboard {
           
           let largestRadius = positions.map { length($0 - centerOfMass) }.max()!
           print("largest radius:", largestRadius)
-          angularSpeedInRadPs = 0.080 // rad/ps
+          angularSpeedInRadPs = 0.160 // rad/ps
           linearSpeedInNmPs = largestRadius * angularSpeedInRadPs
           
           let angularVelocity = simd_quatf(
@@ -494,19 +494,16 @@ struct Spring_Springboard {
           simulator.provider.reset()
           simulator.thermalize(velocities: emptyVelocities)
         }
-        
       }
       var end = CACurrentMediaTime()
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
       
-      // Before this test happens in the animation, change the dual housings to
-      // be connected by a bridge. The system must pass the test of rotating at
-      // 400 m/s for 160 ps. Show the simulation replaying at a faster speed
-      // than the previous ones.
-      
-      // Animate the entire system spinning for 40 ps. Re-thermalized with
-      // non-empty velocities that obey a particular angular speed.
-      let numPicoseconds: Double = 40
+      // In the animation, show the reverse of this falling apart at 800
+      // meters per second. Replay the simulation backwards to show how the
+      // structure can be constructed, with a final drift toward the state from
+      // CAD (pre-minimization). Then, fill in the bridges connecting each pair
+      // of dual housings.
+      let numPicoseconds: Double = 50
       print("\(angularSpeedInRadPs) rad/ps (\(Int(linearSpeedInNmPs * 1000)) m/s), \(Int(numPicoseconds)) ps")
       start = CACurrentMediaTime()
       simulator.simulate(ps: numPicoseconds)
@@ -514,6 +511,57 @@ struct Spring_Springboard {
       end = CACurrentMediaTime()
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
       #endif
+      
+      // A diamond lattice will appear superimposed over the structure. After
+      // carving out the half cross section, it slides away in a direction that
+      // doesn't collide with any other matter. Two completed, hydrogenated
+      // rings approach from above/below and click into place.
+      let ringLattice = Lattice<Cubic> {
+        Material { .carbon }
+        Bounds { 32 * h + 5 * k + 32 * l }
+        
+        Volume {
+          Origin { 16 * h + 16 * l }
+          Plane { h }
+          
+          Concave {
+            Convex {
+              Convex {
+                Origin { 18 * k }
+                Ridge(h + k + l) { k }
+                Origin { -0.25 * k }
+                Ridge(h + k - l) { k }
+              }
+              
+              Concave {
+                Origin { 16 * k }
+                Valley(h - k - l) { -k }
+                Origin { 0.25 * k }
+                Valley(h - k + l) { -k }
+              }
+            }
+          }
+          
+          Cut()
+        }
+      }
+      var ringCarbons = ringLattice._centers.map {
+        MRAtom(origin: $0 * 0.357, element: 6)
+      }
+      
+      print("")
+      print("ring")
+      print("carbon atoms:", ringCarbons.count)
+      do {
+        var delta = systemCenter - SIMD3<Float>(32, 5, 32) / 2 * 0.357
+        delta.y += 8 * 0.357
+        ringCarbons = ringCarbons.map {
+          var copy = $0
+          copy.origin += delta
+          return copy
+        }
+      }
+      provider = ArrayAtomProvider(providerAtoms + ringCarbons)
     }
   }
 }
