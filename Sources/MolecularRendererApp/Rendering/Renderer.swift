@@ -63,8 +63,10 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Spring_Spring().provider
+    self.atomProvider = Spring_Springboard().provider
     eventTracker.playerState.position = [0, 0, 2]
+//    self.ioSimulation()
+//    self.saveGIF()
   }
 }
 
@@ -220,23 +222,27 @@ extension Renderer {
       //      _position = rotationCenter + normalize(delta) * radius
       //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       
-      var rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
-      rotationCenter += 0.357 * SIMD3(3.75, 8.00, 3.75)
+//      var rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
+//      rotationCenter += 0.357 * SIMD3(3.75, 8.00, 3.75)
+//      
+//      var angle = Float(0.125)
+//      angle *= 2 * .pi
+//      
+//      _ = simd_quatf(angle: -angle, axis: [0, 1, 0])
+//      _position = rotationCenter
+//      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
+//      _rotation = _rotation * simd_float3x3(
+//        SIMD3(1, 0, 0),
+//        SIMD3(0, cos(-20 * .pi / 180), -sin(-20 * .pi / 180)),
+//        SIMD3(0, sin(-20 * .pi / 180), cos(-20 * .pi / 180))).transpose
+//      _rotation = _rotation * simd_float3x3(
+//        SIMD3(0, 1, 0),
+//        SIMD3(-1, 0, 0),
+//        SIMD3(0, 0, 1)).transpose
       
-      var angle = Float(0.125)
-      angle *= 2 * .pi
-      
-      _ = simd_quatf(angle: -angle, axis: [0, 1, 0])
-      _position = rotationCenter
-      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
-      _rotation = _rotation * simd_float3x3(
-        SIMD3(1, 0, 0),
-        SIMD3(0, cos(-20 * .pi / 180), -sin(-20 * .pi / 180)),
-        SIMD3(0, sin(-20 * .pi / 180), cos(-20 * .pi / 180))).transpose
-      _rotation = _rotation * simd_float3x3(
-        SIMD3(0, 1, 0),
-        SIMD3(-1, 0, 0),
-        SIMD3(0, 0, 1)).transpose
+      _position = [0, 1, 6]
+      _rotation = PlayerState.makeRotation(
+        azimuth: Double(-45 * Double.pi / 180))
     }
     
     var lights: [MRLight] = []

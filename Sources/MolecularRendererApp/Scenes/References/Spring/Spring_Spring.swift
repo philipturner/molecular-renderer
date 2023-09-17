@@ -16,7 +16,7 @@ struct Spring_Spring {
   var diamondoid: Diamondoid!
   
   init() {
-    print("\n")
+    print()
     print("spring")
     
     let springLattice =
