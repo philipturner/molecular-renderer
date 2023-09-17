@@ -186,6 +186,7 @@ struct Spring_Spring {
       let start = CACurrentMediaTime()
       diamondoid.minimize()
       let end = CACurrentMediaTime()
+      print("\(diamondoid.atoms.count) atoms")
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
     #endif
@@ -220,6 +221,7 @@ struct Spring_Spring {
       simulator.simulate(ps: numPicoseconds)
       provider = simulator.provider
       let end = CACurrentMediaTime()
+      print("\(2 * diamondoid.atoms.count) atoms")
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
     #endif
@@ -246,6 +248,7 @@ struct Spring_Spring {
       simulator.simulate(ps: numPicoseconds)
       provider = simulator.provider
       let end = CACurrentMediaTime()
+      print("\(diamondoid.atoms.count) atoms")
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
     #endif

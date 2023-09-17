@@ -316,7 +316,7 @@ struct Spring_Springboard {
     provider = ArrayAtomProvider(
       spring.diamondoid.atoms + dualHousingCarbons)
     
-#if true
+#if false
     spring.diamondoid.translate(
       offset: 0.357 * [Float(0.125), Float(0), Float(0.125)])
     spring.diamondoid.translate(
@@ -326,7 +326,10 @@ struct Spring_Springboard {
     var dualHousing = Diamondoid(atoms: dualHousingCarbons)
     var springs: [Diamondoid] = [spring.diamondoid]
     
-    let springSpeed: Float = 0.100
+    // Show how the joining failed at 200 m/s and 400 m/s, but was successful at
+    // 300 m/s. Assembling the entire structure may require a jig created
+    // specifically for this task.
+    let springSpeed: Float = 0.300
     do {
       var springCopy = springs[0]
       var com = springCopy.createCenterOfMass()
@@ -346,52 +349,30 @@ struct Spring_Springboard {
       }
     }
     dualHousing.minimize()
-#endif
     
     provider = ArrayAtomProvider(
       springs[0].atoms + springs[1].atoms + dualHousing.atoms)
     print("total atoms:", dualHousing.atoms.count)
+#endif
     
-#if true
-    do {
-      print()
-      print("spring =", springs[0].atoms.count, "atoms")
-      print("dual housing =", dualHousing.atoms.count, "atoms")
-      
-      let sceneAtoms = 2 * springs[0].atoms.count + dualHousing.atoms.count
-      print("2 x spring + housing =", sceneAtoms, "atoms")
-    }
-    
-    // Measure the entire system's total momentum, then correct it by giving
-    // the dual housing a velocity. Print the velocity assigned to the housing.
-    do {
-      let springMomentum = springs.reduce(SIMD3<Float>.zero) {
-        $0 + $1.createMass() * $1.linearVelocity!
-      }
-      let housingMomentum = -springMomentum
-      dualHousing.linearVelocity = housingMomentum / dualHousing.createMass()
-      
-      print()
-      print("conservation of momentum")
-      print("spring speed: \(Int(springSpeed * 1000)) m/s")
-      print(
-        "spring y velocity: \(Int(springSpeed * sqrt(1.0 / 3) * 1000)) m/s")
-      print(
-        "housing y velocity: \(Int(dualHousing.linearVelocity!.y * 1000)) m/s")
-    }
-    
+#if false
     // Make another simulation to ensure both springs lock into the housing
     // correctly.
-    // TODO
-    
-    #endif
-    
-    // TODO: A fourth (unplanned for) component type that bridges the gap
-    // of 4 instances of connectors between 2 springs. Clicks into place in
-    // a way that's a bit difficult for the final piece, but makes a virtually
-    // unbreakable structure via geometric constraints.
-    //
-    // This project will go way over atom budget, but the awesomeness of the
-    // idea shown above will be worth it.
+    do {
+      let numPicoseconds: Double = 40
+      print()
+      print("\(Int(springSpeed * 1000)) m/s, \(numPicoseconds) ps")
+      let sceneAtoms = 2 * springs[0].atoms.count + dualHousing.atoms.count
+      print("2 x spring + housing =", sceneAtoms, "atoms")
+      
+      let start = CACurrentMediaTime()
+      let simulator = _Old_MM4(
+        diamondoids: springs + [dualHousing], fsPerFrame: 20)
+      simulator.simulate(ps: numPicoseconds)
+      provider = simulator.provider
+      let end = CACurrentMediaTime()
+      print("simulated in \(String(format: "%.1f", end - start)) seconds")
+    }
+#endif
   }
 }

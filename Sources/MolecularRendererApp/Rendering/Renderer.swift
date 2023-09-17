@@ -32,9 +32,9 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
-  static let productionRender: Bool = false
-  static let programCamera: Bool = false
+  static let recycleSimulation: Bool = true
+  static let productionRender: Bool = true
+  static let programCamera: Bool = true
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -63,7 +63,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Spring_Springboard().provider
+    self.atomProvider = Spring_Rope().provider
     eventTracker.playerState.position = [0, 0, 2]
 //    self.ioSimulation()
 //    self.saveGIF()
@@ -240,7 +240,7 @@ extension Renderer {
 //        SIMD3(-1, 0, 0),
 //        SIMD3(0, 0, 1)).transpose
       
-      _position = [0, 1, 6]
+      _position = [-3.5, 3, 5.5]
       _rotation = PlayerState.makeRotation(
         azimuth: Double(-45 * Double.pi / 180))
     }
