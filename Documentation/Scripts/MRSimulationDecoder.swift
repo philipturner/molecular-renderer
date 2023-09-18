@@ -5,15 +5,23 @@ import Foundation
 // one of the following:
 //
 // Release Mode:
-// swiftc -D RELEASE -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt" && rm ./<this-script's-file-name>
-// 
-// for Windows: swiftc -D RELEASE -Ounchecked <this-script's-file-name>.swift and then <this-script's-file-name>.exe "<mrsim-to-decode>.mrsim-txt"
-
+//   Unix:
+//     swiftc -D RELEASE -Ounchecked <script-file-path>/NAME.swift && ./NAME "<mrsim-to-decode>.mrsim-txt" && rm ./NAME
+//   Windows:
+//     swiftc -D RELEASE -Ounchecked <script-file-path>/NAME.swift
+//     NAME.exe "<mrsim-to-decode>.mrsim-txt"
+//
 // Debug Mode:
-// swift <this-script's-location>.swift "<mrsim-to-decode>.mrsim-txt"
-// for Windows: swiftc <this-script's-file-name>.swift and then <this-script's-file-name>.exe "<mrsim-to-decode>.mrsim-txt"
+//   Unix:
+//     swift <script-file-path>/NAME.swift "<mrsim-to-decode>.mrsim-txt"
+//   Windows:
+//     swiftc <script-file-path>/NAME.swift
+//     NAME.exe "<mrsim-to-decode>.mrsim-txt"
+//
+// Replace NAME.swift with the script's file name.
 
 // MARK: - Utilities
+
 typealias ByteArray = [UInt8]
 typealias ByteArraySubSequence = ByteArray.SubSequence
 

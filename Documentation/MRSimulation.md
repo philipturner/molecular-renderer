@@ -114,7 +114,12 @@ export FILE="<mrsim-to-decode>.mrsim-txt"
 Here is a Swift script for decoding the plain-text MRSimulation format. Add the Swift toolchain to the PATH, then type the following.
 
 ```bash
+# (Unix)
 swiftc -D RELEASE -Ounchecked MRSimulationDecoder.swift && ./MRSimulationDecoder "$FILE" && rm ./MRSimulationDecoder
+
+# (Windows)
+swiftc -D RELEASE -Ounchecked MRSimulationDecoder.swift
+MRSimulationDecoder.exe "$FILE.mrsim-txt"
 ```
 
 Next, the Swift script is translated to Python. This code can be copied into your existing Python codebase, and used to supply atoms to an external renderer. If the latencies for Python not acceptable, refer to the footnote[^1].
