@@ -4,13 +4,13 @@
 
 atomCAD: https://github.com/atomCAD/atomCAD
 
-MSEP: https://astera.org/molecular-systems/ (now supported by someone other than Astera)
+MSEP: https://astera.org/molecular-systems (now supported by someone other than Astera)
 
 ## MolecularRenderer Module
 
-Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474/
+Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474
 
-Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion-rtao/
+Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion-rtao
 
 Working example of RTAO with source code: https://github.com/nvpro-samples/gl_vk_raytrace_interop
 
