@@ -18,7 +18,7 @@ NanoEngineer is currently the most capable platform for designing molecular nano
 
 Since ~May 2023, this repository was slated to join forces with atomCAD. After months of discussion, we realized the best way to collaborate was specializing in separate niches. Molecular Renderer grew rapidly and lets people _from all desktop operating systems_ to do exploratory engineering _today_. atomCAD evolved more slowly, due to a carefully planned internal representation that will scale better and support more platforms. Developers from both projects are actively exchanging ideas and engaging in constructive feedback, using Discord and other means.
 
-It is a measure of collaboration that we are sharing source code. Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until recently, the only OSS that aspiring engineers could rely on was NanoEngineer, which went unmaintained in 2008. We all share the [vision](https://github.com/atomCAD/atomCAD/wiki):
+It is a measure of collaboration that we are sharing source code. Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until recently, the only OSS that aspiring engineers could rely on was NanoEngineer, which went unmaintained in 2008. We all share the [vision](https://github.com/atomCAD/atomCAD/wiki) that:
 
 > ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
 
