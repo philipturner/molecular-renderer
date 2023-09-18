@@ -10,7 +10,6 @@ Documentation
 - [Project Overview](./Documentation/Overview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
-  - TODO: Online DocC documentation of Swift modules.
 - [MRSimulation](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
 
