@@ -6,10 +6,10 @@ Since ~May 2023, this repository was slated to join forces with atomCAD. After m
 
 It is a measure of collaboration that we are sharing source code. Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. The only OSS that aspiring engineers can rely on is NanoEngineer, which went unmaintained in 2008. We both share the vision (verbatim from atomCAD's wiki):
 
-> ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies [are training engineers] on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
+> ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
 
 Short-Term (next few weeks)
-- Port some functionality to Linux and Windows
+- Port core functionality to Linux and Windows
 - Modularize the source code, allow the simulator to be used with external renderers
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
 - Create a domain-specific language and geometry compiler for crystolecule design ✅

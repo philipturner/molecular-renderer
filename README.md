@@ -3,64 +3,46 @@
 
 # Molecular Renderer
 
-What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working toward the design of the first self-replicating factory.
+What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working on a large engineering knowledge base with machine specification in atomic detail.
 
 Documentation
-- [Goals](./Documentation/Goals.md)
+- Getting Started (TODO)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
 - [MRSimulation Codec](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
 
-<!--
+## Overview
 
-TODO: Relocate this old documentation somewhere else.
+NanoEngineer is currently the best platform for designing molecular nanotech. It has an interactive UI, but also very slow simulators that can't handle >5000 atoms. This forces users to design colorful strained shell structures (which cannot be built) [just to minimize atom count](http://www.imm.org/research/parts/controller/). atomCAD and collaborating OSS projects seek to improve on NanoEngineer's weaknesses, especially the difficulty performing iterative design on crystolecules.
 
-## Usage
+Since ~May 2023, this repository was slated to join forces with atomCAD. After months of discussion, we realized the best way to collaborate was specializing in separate niches. Molecular Renderer will grow rapidly and allow people _from all desktop operating systems_ to do exploratory engineering _very soon_. atomCAD evolves more slowly, due to a carefully planned internal representation that will scale better and support more platforms (mobile, WASM). Developers from both projects are actively exchanging ideas and engaging in constructive feedback, using the atomCAD discord and other means.
 
-Molecular Renderer started as a platform for the author to conduct [computational nanotechnology](https://www.zyvex.com/nanotech/compNano.html) research (the [original nanotechnology](https://en.wikipedia.org/wiki/Molecular_nanotechnology), not to be confused with nanomaterials science). Instead of a traditional UI, the CAD functionality is achieved entirely through scripting. It natively supports Swift and Metal Shading Language. Some core functionality will eventually have C bindings, bringing indirect support for C++, Rust, etc.
+It is a measure of collaboration that we are sharing source code. Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. The only OSS that aspiring engineers can rely on is NanoEngineer, which went unmaintained in 2008. We both share the vision (verbatim from atomCAD's wiki):
 
-### MolecularRenderer Library
+> ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
 
-C-compatible Swift package that extracts the core functionality of MolecularRenderer. This is designed to be as simple and lightweight as possible, while providing enough control to be integrated into traditional CAD applications.
-- Known issues: [link](./Documentation/KnownIssues.md)
+Short-Term (next few weeks)
+- Port core functionality to Linux and Windows
+- Modularize the source code, allow the simulator to be used with external renderers
+  - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
+- Create a domain-specific language and geometry compiler for crystolecule design ✅
+- Upgrade MM4 to include more elements and external forces
 
-### OpenMM Swift Bindings
+Medium-Term (next few months)
+- Establish a first-generation engineering knowledge base (database) for nanomechanical parts, written in the Swift DSL
+- Combine the bounded continuum model (introduced in _Nanosystems_) with an $O(n)$ finite element method (for bulk deformations) to accelerate MD simulations
+  - Enable quick prototyping of assemblies with over 100,000 atoms
+- Create tutorials to onboard new nanomechanical engineers (Jupyter notebooks, online DocC tutorials, etc.)
+- Exploratory engineering work on [kinematic self-replicating machines](http://www.molecularassembler.com/KSRM.htm) and/or mechanical computers
 
-Ergonomic wrapper around the OpenMM C API, for using OpenMM in Swift code.
+Long-Term (next few years)
+- Create a simulator for mechanosynthesis reactions, and novel rendering algorithms to interpret simulation results
+  - Ab initio and semiempirical methods such as DFT, [GFN-xTB, GFN-FF](https://github.com/grimme-lab/xtb)
+- Plugin for Eric Drexler's MSEP program, which utilizes their GUI, but adds new CAD or simulation functionality
 
-### MRSimulation Codec
-
-High-performance 3D video codec for recording and replaying molecular simulations. This scales well into the thousand-atom range, becoming resource-intensive at the million-atom range.
-
-## Requirements for Renderer
-
-Dependencies:
-- macOS Sonoma, Apple silicon chip
-- Xcode 15 installed
-- OpenMM 8.0 with the [Metal plugin](https://github.com/philipturner/openmm-metal) installed
-
-Display:
-- 640x640 -> 1920x1920 upscaled with MetalFX temporal upscaling
-- Monitor needs at least 1920x1920 pixels for the default resolution
-- 60 Hz and 120 Hz supported
-
-## Requirements for Simulators
-
-Dependencies:
-- [Swift toolchain](https://swift.org/download)
-- [OpenMM 8.0](https://openmm.org) from conda
-
-Hardware:
-- macOS, Linux, Windows
-  - OpenMM not yet ported to Android or iOS
-- Discrete GPU or recent smartphone model recommended
-- Apple AMX accelerator or Intel i7/i9 recommended
-
-## Technical Details
-
-MolecularRendererApp currently requires an Apple M1 chip running Metal 3. It is optimized for the author's personal machine (M1 Max), and samples the OpenMM simulation 120 times per second. The platform restriction makes it easier for the author to develop, but it can be ported to other devices. For example, one could port it to Windows through Vulkan and FidelityFX.
-
-The simulators process geometry using 32-bit floating point numbers (FP32), which are compatible with GPUs. Typically, most molecular dynamics simulations occur on CPUs, where FP32 is not much faster than FP64. It also makes energy measurements less precise. In solution-phase matter, differences of 10 kT (~10 kJ/mol) drastically alter reaction transition rates. Therefore, server GPUs often do a mixture of FP32 and FP64 calculations. This is not an issue for machine-phase matter, designed to resist small changes to energy and force. The energy drift from numerical error is dwarfed by the energy gradients (a.k.a. forces) of stiff nanomachines.
-
--->
+Non-Goals
+- Create a SAMSON plugin
+- Use simulators that aren't GPU-accelerated, or require CUDA
+- Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
+- Rewrite the Swift code in Python
