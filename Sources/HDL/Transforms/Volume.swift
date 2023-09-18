@@ -14,7 +14,9 @@
 public struct Volume {
   @discardableResult
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startVolume()
+    closure()
+    Compiler.global.endVolume()
   }
 }
 
@@ -24,8 +26,12 @@ public protocol VolumeTransform { }
 // into the initializer.
 public struct Plane: VolumeTransform {
   @discardableResult
-  public init<T>(_ closure: () -> Direction<T>) {
-    
+  public init<T>(_ closure: () -> Vector<T>) {
+    if T.self == Cubic.self {
+      Compiler.global.addPlane(closure().simdValue)
+    } else {
+      fatalError("Not implemented.")
+    }
   }
 }
 
@@ -34,15 +40,18 @@ public struct Plane: VolumeTransform {
 public struct Convex: VolumeTransform {
   @discardableResult
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startConvex()
+    closure()
+    Compiler.global.endConvex()
   }
 }
-
 
 // Every time a volume is added, previous volumes are combined with AND.
 public struct Concave: VolumeTransform {
   @discardableResult
   public init(_ closure: () -> Void) {
-    
+    Compiler.global.startConcave()
+    closure()
+    Compiler.global.endConcave()
   }
 }

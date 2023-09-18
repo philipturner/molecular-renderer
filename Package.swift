@@ -15,9 +15,6 @@ var products: [Product] = [
     name: "HardwareCatalog",
     targets: ["HardwareCatalog"]),
   .library(
-    name: "Shapes",
-    targets: ["Shapes"]),
-  .library(
     name: "HDL",
     targets: ["HDL"]),
   .library(
@@ -36,9 +33,6 @@ var targets: [Target] = [
     dependencies: []),
   .target(
     name: "HardwareCatalog",
-    dependencies: ["Shapes", "HDL"]),
-  .target(
-    name: "Shapes",
     dependencies: ["HDL"]),
   .target(
     name: "HDL",

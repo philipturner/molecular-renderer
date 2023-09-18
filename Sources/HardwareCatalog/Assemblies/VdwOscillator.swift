@@ -5,11 +5,7 @@
 //  Created by Philip Turner on 8/28/23.
 //
 
-import Shapes
 import HDL
-
-// This should be kept in the assemblies folder because a lot of parameters
-// are hard-coded.
 
 public struct VdwOscillator {
   public init() {
@@ -23,83 +19,84 @@ func vdwOscillator() {
     let width: Float = 18
     let thickness: Float = 3
     Material { .carbon }
-    Bounds { width * x + width * y + width * z }
+    Bounds { width * h + width * k + width * l }
     
     Volume {
-      Origin { width / 2 * z }
-      Ridge(z) { -y }
+      Origin { width / 2 * l }
+      Ridge(l) { -k }
       
-      Origin { width * y }
-      Ridge(z) { +y }
+      Origin { width * k }
+      Ridge(l) { +k }
       Cut()
     }
     Volume {
-      Origin { width * y + width * z }
-      Plane { -y ^ +z }
+      Origin { width * k + width * l }
+      Plane { -k + l }
       Cut()
     }
     Volume {
-      Origin { width / 2 * y + width / 2 * z }
-      Plane { -y ^ -z }
+      Origin { width / 2 * k + width / 2 * l }
+      Plane { -k - l }
       Cut()
     }
     
     // Add some circular supports on the corners for improved stiffness.
     Convex {
-      Origin { width * y + width / 2 * z }
+      Origin { width * k + width / 2 * l }
       Volume {
         Concave {
-          Origin { -0.5 * y }
-          Ridge(z) { +y }
+          Origin { -0.5 * k }
+          Ridge(l) { +k }
           
-          Origin { -2 * y } // -2.5
-          Plane { +y }
+          Origin { -2 * k } // -2.5
+          Plane { +k }
         }
         Cut()
       }
       Volume {
         Concave {
-          Origin { -1 * y }
-          Ridge(z) { +y }
+          Origin { -1 * k }
+          Ridge(l) { +k }
           
-          Origin { -0.75 * y } // -1.75
-          Plane { +y }
+          Origin { -0.75 * k } // -1.75
+          Plane { +k }
         }
         Cut()
       }
       Volume {
         Concave {
           Convex {
-            Origin { -thickness * y }
-            Valley(z) { -y }
+            Origin { -thickness * k }
+            Valley(l) { -k }
           }
           
-          Origin { -3.75 * y }
-          Plane { -y }
+          Origin { -3.75 * k }
+          Plane { -k }
           
-          Origin { -1 * y }
-          Ridge(z) { -y }
+          Origin { -1 * k }
+          Ridge(l) { -k }
         }
         Cut()
       }
     }
     Volume {
-      Origin { 20 * x + width * y + width / 2 * z }
+      Origin { 20 * h + width * k + width / 2 * l }
       Concave {
         Convex {
-          Origin { -0.5 * x - thickness * y }
-          Plane { +x ^ +y ^ -z }
+          Origin { -0.5 * h - thickness * k }
+          Plane { h + k - l }
+        }
+
+        Convex {
+          Origin { -0.5 * h }
+          Plane { h - k + l }
         }
         Convex {
-          Origin { -0.5 * x }
-          Plane { +x ^ -y ^ +z }
+          Plane { h - k - l }
         }
         Convex {
-          Plane { +x ^ -y ^ -z }
-        }
-        Convex {
-          Origin { -1 * x - thickness * y }
-          Plane { +x ^ +y ^ +z }
+          Origin { -1 * h - thickness * k }
+          Plane { h + k + l }
         }
       }
       Cut()
@@ -109,45 +106,22 @@ func vdwOscillator() {
     Volume {
       Concave {
         Convex {
-          Origin { holeX * x }
-          Plane { -x }
+          Origin { holeX * h }
+          Plane { -h }
         }
-        Origin { width * y + width / 2 * z }
+        Origin { width * k + width / 2 * l }
         Convex {
-          Origin { -2.5 * y + -2 * z }
-          Plane { -y ^ -z }
-        }
-        Convex {
-          Origin { -3.75 * y + -1.75 * z }
-          Plane { +y ^ -z }
+          Origin { -2.5 * k + -2 * l }
+          Plane { -k - l }
         }
         Convex {
-          Origin { holeX * x }
-          Origin { -4 * y + -1.5 * z }
-          Plane { -x ^ -y ^ -z }
-        }
-      }
-      Cut()
-    }
-    Volume {
-      Concave {
-        Convex {
-          Origin { (holeX + 2) * x }
-          Plane { -x }
-        }
-        Origin { width * y + width / 2 * z }
-        Origin { -4 * y + -1.5 * z }
-        Convex {
-          Origin { -4 * y + -1.5 * z }
-          Plane { -y ^ -z }
-        }
-        Origin { holeX * x }
-        Convex {
-          Plane { -x ^ -y ^ -z }
+          Origin { -3.75 * k + -1.75 * l }
+          Plane { k - l }
         }
         Convex {
-          Origin { 1 * x + 1 * y }
-          Ridge(-y ^ +z) { -x }
+          Origin { holeX * h }
+          Origin { -4 * k + -1.5 * l }
+          Plane { -h - k - l }
         }
       }
       Cut()
@@ -155,21 +129,44 @@ func vdwOscillator() {
     Volume {
       Concave {
         Convex {
-          Origin { 2.75 * x }
-          Plane { -x }
+          Origin { (holeX + 2) * h }
+          Plane { -h }
         }
-        Origin { width * y + width / 2 * z }
-        Origin { -4 * y + -1.5 * z }
+        Origin { width * k + width / 2 * l }
+        Origin { -4 * k + -1.5 * l }
         Convex {
-          Plane { -y ^ +z }
+          Origin { -4 * k + -1.5 * l }
+          Plane { -k - l }
+        }
+        Origin { holeX * h }
+        Convex {
+          Plane { -h - k - l }
         }
         Convex {
-          Origin { 0.5 * x }
-          Plane { -x ^ -y ^ +z }
+          Origin { 1 * h + 1 * k }
+          Ridge(-k + l) { -h }
+        }
+      }
+      Cut()
+    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 2.75 * h }
+          Plane { -h }
+        }
+        Origin { width * k + width / 2 * l }
+        Origin { -4 * k + -1.5 * l }
+        Convex {
+          Plane { -k + l }
         }
         Convex {
-          Origin { 2 * x + 1 * y }
-          Ridge(+y ^ +z) { -x }
+          Origin { 0.5 * h }
+          Plane { -h - k + l }
+        }
+        Convex {
+          Origin { 2 * h + 1 * k }
+          Ridge(k + l) { -h }
         }
       }
       Cut()
@@ -179,44 +176,43 @@ func vdwOscillator() {
     Volume {
       Concave {
         Convex {
-          Origin { (width / 2 + 2) * z }
-          Plane { +z }
+          Origin { (width / 2 + 2) * l }
+          Plane { +l }
         }
         Convex {
-          Origin { 0.25 * x }
-          Plane { -x }
+          Origin { 0.25 * h }
+          Plane { -h }
         }
       }
       Cut()
     }
   }
-
+  
   do {
     let width: Float = 18
     housing = Lattice<Cubic> {
       Copy { housing }
       Affine {
         Copy { housing }
-        Reflect { y }
-        Origin { width / 2 * z }
-        Rotate { 0.25 * x }
+        Reflect { k }
+        Origin { width / 2 * l }
+        Rotate { 0.25 * h }
       }
     }
     housing = Lattice<Cubic> {
       Copy { housing }
       Affine {
         Copy { housing }
-        Origin { width / 2 * z }
-        Rotate { 0.5 * x }
-        
+        Origin { width / 2 * l }
+        Rotate { 0.5 * h }
       }
     }
     housing = Lattice<Cubic> {
       Copy { housing }
       Affine {
         Copy { housing }
-        Reflect { x }
-        Reflect { z }
+        Reflect { h }
+        Reflect { l }
       }
       Passivate { .hydrogen }
     }
@@ -227,49 +223,49 @@ func vdwOscillator() {
     let width: Float = 14
     let thickness: Float = 6
     Material { .carbon }
-    Bounds { width * x + width * y + width * z }
+    Bounds { width * h + width * k + width * l }
     
     Volume {
-      Origin { width / 2 * x + width / 2 * y }
+      Origin { width / 2 * h + width / 2 * k }
       Convex {
-        Origin { -1.5 * y }
-        Plane { +x ^ -y }
+        Origin { -1.5 * k }
+        Plane { h - k }
       }
       Convex {
-        Origin { 1.5 * y }
-        Plane { -x ^ +y }
+        Origin { 1.5 * k }
+        Plane { -h + k }
       }
       Cut()
     }
     Volume {
-      Origin { width * x + width * y }
+      Origin { width * h + width * k }
       Convex {
-        Origin { -1 * x }
-        Plane { +x ^ +y }
+        Origin { -1 * h }
+        Plane { h + k }
       }
       Convex {
-        Origin { -1 * x + (thickness - 1.5) * z }
-        Plane { -x ^ +y ^ +z }
+        Origin { -1 * h + (thickness - 1.5) * l }
+        Plane { -h + k + l }
       }
       Convex {
-        Origin { -1 * x + 0.5 * z }
-        Plane { -x ^ +y ^ -z }
+        Origin { -1 * h + 0.5 * l }
+        Plane { -h + k - l }
       }
       Convex {
-        Origin { -1 * y + (thickness - 1.5) * z }
-        Plane { +x ^ -y ^ +z }
+        Origin { -1 * k + (thickness - 1.5) * l }
+        Plane { h - k + l }
       }
       Convex {
-        Origin { -1 * y + 0.5 * z }
-        Plane { +x ^ -y ^ -z }
+        Origin { -1 * k + 0.5 * l }
+        Plane { h - k - l }
       }
       Convex {
-        Origin { (thickness - 2.5) * z }
-        Plane { +x ^ +y ^ +z }
+        Origin { (thickness - 2.5) * l }
+        Plane { h + k + l }
       }
       Convex {
-        Origin { 1.5 * z }
-        Plane { +x ^ +y ^ -z }
+        Origin { 1.5 * l }
+        Plane { h + k - l }
       }
       Cut()
     }
@@ -278,37 +274,37 @@ func vdwOscillator() {
   rod = Lattice<Cubic> {
     Affine {
       Copy { rod }
-      Translate { -4 * x + -4 * y }
+      Translate { -4 * h + -4 * k }
     }
     Affine {
       Copy { rod }
-      Reflect { x }
-      Rotate { 0.25 * z }
+      Reflect { h }
+      Rotate { 0.25 * l }
     }
   }
   rod = Lattice<Cubic> {
     Copy { rod }
     Affine {
       Copy { rod }
-      Translate { -1 * z }
+      Translate { -1 * l }
     }
   }
   rod = Lattice<Cubic> {
     for i in 0..<3 {
       Affine {
         Copy { rod }
-        Translate { Float(i) * x + Float(-i) * y }
+        Translate { Float(i) * h + Float(-i) * k }
       }
     }
     Volume {
       let thickness: Float = 6
       Convex {
-        Origin { (thickness - 0.25) * z }
-        Plane { +z }
+        Origin { (thickness - 0.25) * l }
+        Plane { +l }
       }
       Convex {
-        Origin { -(thickness - 0.25) * z }
-        Plane { -z }
+        Origin { -(thickness - 0.25) * l }
+        Plane { -l }
       }
       Replace { .single }
     }
@@ -317,6 +313,3 @@ func vdwOscillator() {
   
   // Last steps: casting to Solid and making the assembly
 }
-
-
-

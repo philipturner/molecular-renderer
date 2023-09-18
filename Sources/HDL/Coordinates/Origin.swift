@@ -7,7 +7,12 @@
 
 public struct Origin {
   @discardableResult
-  public init<T>(_ closure: () -> Position<T>) {
-    
+  public init(_ closure: () -> Vector<Cubic>) {
+    Compiler.global.moveOrigin(closure().simdValue)
+  }
+  
+  @discardableResult
+  public init(_ closure: () -> Vector<Hexagonal>) {
+    fatalError("Not implemented.")
   }
 }

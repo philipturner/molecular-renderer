@@ -9,22 +9,28 @@ public protocol Basis {
   
 }
 
-public struct Cubic: Basis {
+public protocol CrystalBasis: Basis {
   
 }
 
-public struct Hexagonal: Basis {
+public struct Amorphous: Basis {
   
 }
 
-public struct Bounds {
-  @discardableResult
-  public init(_ position: () -> Position<Cubic>) {
-    // Initialize the atoms to a cuboid.
-  }
+public struct Cubic: CrystalBasis {
   
-  @discardableResult
-  public init(_ position: () -> Position<Hexagonal>) {
-    // Initialize the atoms to a hexagonal prism.
-  }
 }
+
+public struct Hexagonal: CrystalBasis {
+  
+}
+
+// Used for cutting hexagonal lattices.
+public let a = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
+public let b = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
+public let c = Vector<Hexagonal>(x: .nan, y: .nan, z: .nan)
+
+// Used for cutting cubic lattices and defining the positions of objects.
+public let h = Vector<Cubic>(x: 1, y: 0, z: 0)
+public let k = Vector<Cubic>(x: 0, y: 1, z: 0)
+public let l = Vector<Cubic>(x: 0, y: 0, z: 1)
