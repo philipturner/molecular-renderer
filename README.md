@@ -7,10 +7,9 @@ What began as a ray traced renderer, is now a cross-platform library used to des
 
 Documentation
 - [Goals](./Documentation/Goals.md)
-- [Project Overview](./Documentation/Overview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
-- [MRSimulation](./Documentation/MRSimulation.md)
+- [MRSimulation Codec](./Documentation/MRSimulation.md)
 - [References](./Documentation/References.md)
 
 <!--
