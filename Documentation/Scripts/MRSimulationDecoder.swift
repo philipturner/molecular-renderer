@@ -6,15 +6,20 @@ import Foundation
 //
 // Release Mode:
 // swiftc -D RELEASE -Ounchecked <this-script's-location>.swift && ./<this-script's-file-name> "<mrsim-to-decode>.mrsim-txt" && rm ./<this-script's-file-name>
-//
+// 
+// for Windows: swiftc -D RELEASE -Ounchecked <this-script's-file-name>.swift and then <this-script's-file-name>.exe "<mrsim-to-decode>.mrsim-txt"
+
 // Debug Mode:
 // swift <this-script's-location>.swift "<mrsim-to-decode>.mrsim-txt"
+// for Windows: swiftc <this-script's-file-name>.swift and then <this-script's-file-name>.exe "<mrsim-to-decode>.mrsim-txt"
 
 // MARK: - Utilities
+typealias ByteArray = [UInt8]
+typealias ByteArraySubSequence = ByteArray.SubSequence
 
 func checkStarts(
   _ prefix: StaticString,
-  from text: [UInt8].SubSequence
+  from text: ByteArraySubSequence
 ) -> Bool {
   guard text.count >= prefix.utf8CodeUnitCount else {
     return false
@@ -35,7 +40,7 @@ func checkStarts(
 
 func checkStarts(
   _ prefix: String,
-  from text: [UInt8].SubSequence
+  from text: ByteArraySubSequence
 ) -> Bool {
   guard text.count >= prefix.count else {
     return false
@@ -62,7 +67,7 @@ func checkStarts(
 
 func assertExpectedPrefix(
   _ prefix: StaticString,
-  from text: [UInt8].SubSequence
+  from text: ByteArraySubSequence
 ) {
   guard text.count >= prefix.utf8CodeUnitCount,
         checkStarts(prefix, from: text) else {
@@ -72,7 +77,7 @@ func assertExpectedPrefix(
 
 func removeExpectedPrefix(
   _ prefix: String,
-  from text: inout [UInt8].SubSequence
+  from text: inout ByteArraySubSequence
 ) {
   guard checkStarts(prefix, from: text) else {
     fatalError("'\(prefix)' is not the start of '\(text)'.")
@@ -82,7 +87,7 @@ func removeExpectedPrefix(
 
 func removeExpectedPrefix(
   _ prefix: [UInt8],
-  from text: inout [UInt8].SubSequence
+  from text: inout ByteArraySubSequence
 ) {
   guard text.starts(with: prefix) else {
     fatalError("'\(prefix)' is not the start of '\(text)'.")
@@ -92,7 +97,7 @@ func removeExpectedPrefix(
 
 func removeExpectedPrefix(
   _ prefix: StaticString,
-  from text: inout [UInt8].SubSequence
+  from text: inout ByteArraySubSequence
 ) {
   assertExpectedPrefix(prefix, from: text)
   text.removeFirst(prefix.utf8CodeUnitCount)
@@ -100,7 +105,7 @@ func removeExpectedPrefix(
 
 func removeIncluding(
   _ prefix: StaticString,
-  from text: inout [UInt8].SubSequence
+  from text: inout ByteArraySubSequence
 ) {
   while checkStarts(prefix, from: text) {
     text.removeFirst(prefix.utf8CodeUnitCount)
@@ -109,7 +114,7 @@ func removeIncluding(
 
 func removeExcluding(
   _ prefix: StaticString,
-  from text: inout [UInt8].SubSequence
+  from text: inout ByteArraySubSequence
 ) {
   while !checkStarts(prefix, from: text) {
     text.removeFirst(prefix.utf8CodeUnitCount)
@@ -121,7 +126,7 @@ func removeExcluding(
 
 func extractExcluding(
   _ prefix: StaticString,
-  from text: inout [UInt8].SubSequence
+  from text: inout ByteArraySubSequence
 ) -> String {
   var output: String = ""
   while !checkStarts(prefix, from: text) {
@@ -207,7 +212,7 @@ let checkpoint1 = Date()
 logCheckpoint(message: "Loaded file in", checkpoint0, checkpoint1)
 
 var _lines: [[UInt8]] = []
-var lines: [[UInt8].SubSequence]
+var lines: [ByteArraySubSequence]
 do {
 #if RELEASE
   var pendingStart = 0
@@ -268,7 +273,7 @@ func assertNewLine<T: Collection>(_ string: T) {
   }
 }
 
-func makeUTF8String(_ characters: [UInt8].SubSequence) -> String {
+func makeUTF8String(_ characters: ByteArraySubSequence) -> String {
   withUnsafeTemporaryAllocation(
     of: UInt8.self, capacity: characters.count + 1
   ) { cString in
