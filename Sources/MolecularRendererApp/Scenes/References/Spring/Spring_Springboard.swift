@@ -512,40 +512,205 @@ struct Spring_Springboard {
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
       #endif
       
+      #if true
       // A diamond lattice will appear superimposed over the structure. After
       // carving out the half cross section, it slides away in a direction that
-      // doesn't collide with any other matter. Two completed, hydrogenated
-      // rings approach from above/below and click into place.
+      // doesn't collide with any other matter. Completed, hydrogenated rings
+      // approach from above/side and slide into place.
       let ringLattice = Lattice<Cubic> {
         Material { .carbon }
-        Bounds { 32 * h + 5 * k + 32 * l }
+        Bounds { 32 * h + 7 * k + 32 * l }
         
         Volume {
           Origin { 16 * h + 16 * l }
           Plane { h }
           
+          Convex {
+            Origin { 14.5 * k }
+            Ridge(h + k + l) { +k }
+          }
+          
           Concave {
             Convex {
               Convex {
-                Origin { 18 * k }
-                Ridge(h + k + l) { k }
-                Origin { -0.25 * k }
-                Ridge(h + k - l) { k }
+                Origin { 3.5 * k }
+                Ridge(h - k - l) { -k }
               }
-              
-              Concave {
-                Origin { 16 * k }
-                Valley(h - k - l) { -k }
-                Origin { 0.25 * k }
+              Convex {
+                Origin { 6.75 * k }
+                Ridge(h + k - l) { +k }
+              }
+              Convex {
+                Origin { 6 * k }
                 Valley(h - k + l) { -k }
               }
+              Convex {
+                Origin { 4 * k }
+                Valley(h + k + l) { +k }
+              }
+              Convex {
+                Origin { -5.25 * k }
+                Ridge(h - k + l) { -k }
+              }
             }
+            Convex {
+              Convex {
+                Origin { 4.5 * k }
+                Ridge(h - k + l) { -k }
+                Origin { 3 * k }
+                Ridge(h + k + l) { +k }
+              }
+              Convex {
+                Origin { -0.5 * k }
+                Ridge(h - k - l) { -k }
+              }
+              Convex {
+                Origin { 9.25 * k }
+                Ridge(h + k - l) { +k }
+              }
+              Convex {
+                Origin { 2.5 * k }
+                Valley(h + k - l) { +k }
+              }
+            }
+            Convex {
+              Origin { 4.25 * (-h + l) + 4 * k }
+              Convex {
+                Origin { 2 * (-h + l) + -4 * k }
+                Ridge(h - k - l) { -k }
+              }
+              Convex {
+                Origin { 2.25 * k }
+                Ridge(h + k - l) { +k }
+              }
+              Convex {
+                Origin { 4.25 * (-h + l) + 2 * k }
+                Convex {
+                  Origin { 2 * k }
+                  Ridge(h + k + l) { +k }
+                }
+                Convex {
+                  Origin { -2 * k }
+                  Ridge(h - k + l) { -k }
+                }
+              }
+            }
+            Convex {
+              Convex {
+                Origin { 2.5 * k }
+                Ridge(h - k + l) { -k }
+                Origin { 2 * k }
+                Valley(h + k + l) { +k }
+                Origin { 4 * k }
+                Ridge(h + k + l) { +k }
+              }
+              Concave {
+                Convex {
+                  Origin { -0.5 * k }
+                  Ridge(h - k - l) { -k }
+                }
+                Convex {
+                  Origin { 13 * k }
+                  Valley(h - k - l) { -k }
+                }
+                Convex {
+                  Origin { 6.75 * k }
+                  Valley(h - k + l) { -k }
+                }
+              }
+            }
+            Convex {
+              Convex {
+                Origin { 6 * (-h + l) + 5.5 * k }
+                Plane { h + k - l }
+              }
+              Convex {
+                Origin { 17 * k }
+                Valley(h - k - l) { -k }
+              }
+              Convex {
+                Origin { 18.75 * k }
+                Ridge(h + k - l) { +k }
+              }
+              Convex {
+                Origin { -11.5 * k }
+                Ridge(h - k - l) { -k }
+              }
+            }
+          }
+          Convex {
+            Origin { 18.75 * k }
+            Ridge(h + k - l) { +k }
+          }
+          Convex {
+            Origin { -11.5 * k }
+            Ridge(h - k - l) { -k }
+          }
+          Concave {
+            Origin { 5 * (-h + l) + 4.5 * k }
+            Origin { -2 * k }
+            Convex {
+              Origin { -2.25 * k }
+              Valley(h + k + l) { +k }
+            }
+            Convex {
+              Origin { 3.00 * k }
+              Valley(h - k + l) { -k }
+            }
+            Convex {
+              Plane { -h + k + l }
+              Origin { 0.5 * k }
+              Plane { -h - k + l }
+            }
+            Convex {
+              Origin { 2.50 * k }
+              Plane { -h - k + l }
+            }
+          }
+          Concave {
+            Origin { 5 * (-h + l) + 4.5 * k }
+            Convex {
+              Origin { -0.25 * k }
+              Valley(h + k + l) { +k }
+            }
+            Convex {
+              Origin { 0 * (-h + l) + 2.50 * k }
+              Plane { -h + k + l }
+            }
+          }
+          Concave {
+            Origin { 1 * (-h + l) + 4.5 * k }
+            Origin { -2 * k }
+            Convex {
+              Origin { -2.25 * k }
+              Valley(h + k + l) { +k }
+            }
+            Convex {
+              Origin { 3.00 * k }
+              Valley(h - k + l) { -k }
+            }
+            Convex {
+              Origin { 2.50 * k }
+              Plane { h - k - l }
+            }
+          }
+          Convex {
+            Origin { -7.25 * k }
+            Ridge(h - k + l) { -k }
           }
           
           Cut()
         }
       }
-      var ringCarbons = ringLattice._centers.map {
+      let ringSolid = Solid {
+        Copy { ringLattice }
+        Affine {
+          Copy { ringLattice }
+          Origin { 16 * h + 16 * l }
+          Rotate { 0.5 * k }
+        }
+      }
+      var ringCarbons = ringSolid._centers.map {
         MRAtom(origin: $0 * 0.357, element: 6)
       }
       
@@ -553,8 +718,8 @@ struct Spring_Springboard {
       print("ring")
       print("carbon atoms:", ringCarbons.count)
       do {
-        var delta = systemCenter - SIMD3<Float>(32, 5, 32) / 2 * 0.357
-        delta.y += 8 * 0.357
+        var delta = systemCenter - SIMD3<Float>(32, 6, 32) / 2 * 0.357
+        delta.y += 7.5 * 0.357
         ringCarbons = ringCarbons.map {
           var copy = $0
           copy.origin += delta
@@ -562,6 +727,99 @@ struct Spring_Springboard {
         }
       }
       provider = ArrayAtomProvider(providerAtoms + ringCarbons)
+#endif
+      
+      #if false
+      let isRotationMode: Bool = true
+      
+      var ringDiamondoid = Diamondoid(atoms: ringCarbons)
+      print("total atoms:", ringDiamondoid.atoms.count)
+      ringDiamondoid.minimize()
+      if !isRotationMode {
+        ringDiamondoid.translate(offset: [0, 1, 0])
+      }
+      var ringDiamondoidCopy = ringDiamondoid
+      do {
+        let delta = ringDiamondoidCopy.createCenterOfMass() - systemCenter
+        ringDiamondoidCopy.translate(offset: -2 * delta)
+        ringDiamondoidCopy.rotate(angle: simd_quatf(
+          angle: -180 * .pi / 180, axis: [1, 0, 0]))
+//        ringDiamondoidCopy.rotate(angle: simd_quatf(
+//          angle: -90 * .pi / 180, axis: [0, 1, 0]))
+      }
+      
+      provider = ArrayAtomProvider(providerAtoms + ringDiamondoid.atoms + ringDiamondoidCopy.atoms)
+      
+      let diamondoids = dualHousings + springs + [
+        ringDiamondoid, ringDiamondoidCopy
+      ]
+      
+      do {
+        print()
+        print("energy minimization: 8 x 0.5 ps")
+        let systemNumAtoms = diamondoids.reduce(0) { $0 + $1.atoms.count }
+        print("4 x spring + 4 x housing + 2 x ring =", systemNumAtoms, "atoms")
+        
+        var start = CACurrentMediaTime()
+        let simulator = _Old_MM4(
+          diamondoids: diamondoids, fsPerFrame: 20)
+        provider = simulator.provider
+        
+        let speed: Float = 100
+        let angularSpeed: Float = 0.08
+        let emptyVelocities: [SIMD3<Float>] = Array(
+          repeating: .zero, count: systemNumAtoms)
+        for i in 0..<8 {
+          simulator.simulate(ps: 0.5, minimizing: true)
+          if i < 7 {
+            simulator.provider.reset()
+            simulator.thermalize(velocities: emptyVelocities)
+          } else {
+            let nonMovingAtoms = diamondoids[0..<8].reduce(0) { $0 + $1.atoms.count }
+            let ringAtoms = ringDiamondoid.atoms.count
+            var velocities = emptyVelocities
+            if isRotationMode {
+              let positions = simulator.provider.states.last!.map { $0.origin }
+              let w = SIMD3<Float>(0, 1, 0) * angularSpeed
+              for j in 0..<nonMovingAtoms + 2 * ringAtoms {
+                let r = positions[j] - systemCenter
+                velocities[j] = cross(w, r)
+              }
+            } else {
+              for j in nonMovingAtoms..<nonMovingAtoms + ringAtoms {
+                velocities[j] = [0, -speed / 1000, 0]
+              }
+              for j in nonMovingAtoms + ringAtoms..<nonMovingAtoms + 2 * ringAtoms {
+                velocities[j] = [0, speed / 1000, 0]
+              }
+            }
+            simulator.provider.reset()
+            simulator.thermalize(velocities: velocities)
+          }
+        }
+        var end = CACurrentMediaTime()
+        print("simulated in \(String(format: "%.1f", end - start)) seconds")
+        
+        var numPicoseconds: Double
+        print()
+        if isRotationMode {
+          // The rotation simulation here doesn't go in the animation.
+          numPicoseconds = 160
+          print("\(angularSpeed) rad/s, \(Int(5 * angularSpeed * 1000)) m/s, \(numPicoseconds) ps")
+        } else {
+          numPicoseconds = 20
+          print("\(speed) m/s, \(numPicoseconds) ps")
+        }
+        print("4 x spring + 4 x housing + 2 x ring =", systemNumAtoms, "atoms")
+        
+        start = CACurrentMediaTime()
+        simulator.simulate(ps: numPicoseconds)
+        end = CACurrentMediaTime()
+        print("simulated in \(String(format: "%.1f", end - start)) seconds")
+        provider = simulator.provider
+      }
+      
+      #endif
     }
   }
 }

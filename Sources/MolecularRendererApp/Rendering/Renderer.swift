@@ -63,7 +63,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    // TODO: Replay the simulation in reverse in the MR UI.
     self.atomProvider = Spring_Springboard().provider
     eventTracker.playerState.position = [0, 0, 2]
 //    self.ioSimulation()
