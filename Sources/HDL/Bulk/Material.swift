@@ -12,7 +12,7 @@ public enum Bond {
   case fractional(Int, Int) // TODO: Better solution for graphene
 }
 
-public enum Element: Int {
+public enum Element: Int, CustomStringConvertible {
   case hydrogen = 1
   case carbon = 6
   case silicon = 14
@@ -20,6 +20,15 @@ public enum Element: Int {
   
   public init(_ atomicNumber: Int) {
     self.init(rawValue: atomicNumber)!
+  }
+  
+  public var description: String {
+    switch self {
+    case .hydrogen: return ".hydrogen"
+    case .carbon: return ".carbon"
+    case .silicon: return ".silicon"
+    case .germanium: return ".germanium"
+    }
   }
 }
 

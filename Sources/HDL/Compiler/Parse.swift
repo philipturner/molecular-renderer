@@ -35,6 +35,11 @@ public struct _Parse {
           lastStart = i + 1
         }
       }
+      if lastStart != contents.count {
+        let string = RawString(
+          pointer: bytes + lastStart, count: contents.count - lastStart)
+        lines.append(try Line(rawValue: string))
+      }
     }
     for line in lines {
       // TODO: Print the full hierarchical AST, instead of just the lines.
@@ -54,7 +59,7 @@ public struct _ParseError: LocalizedError {
   }
 }
 
-fileprivate struct RawString: Equatable, ExpressibleByStringLiteral {
+fileprivate struct RawString: Equatable, ExpressibleByStringLiteral, CustomStringConvertible {
   var pointer: UnsafeMutableBufferPointer<UInt8>
   var count: Int { pointer.count }
   
@@ -144,7 +149,7 @@ fileprivate struct RawCharacter: Equatable, ExpressibleByUnicodeScalarLiteral {
 // Only comments on their own line are allowed for now.
 // Bracket initializers for language keywords must all be on one line.
 fileprivate enum Line {
-  case code(Int, RawString)
+  case code(Int, [Token])
   case closingBracket(Int)
   case comment(Int)
   case whitespace
@@ -181,7 +186,33 @@ fileprivate enum Line {
         .substring(start: numIndents, end: string.count) else {
         throw _ParseError(description: "Could not turn string into substring.")
       }
-      self = .code(numIndents, substring)
+      var tokenStrings: [RawString] = []
+      var lastStart: Int = 0
+      
+      for i in 0..<substring.count {
+        if RawCharacter(substring[i]) == " " {
+          if lastStart == i {
+            throw _ParseError(description: "Cannot have two consecutive spaces in a code line, even from trailing whitespace. Unable to parse line: '\(substring.description)'")
+          }
+          let tokenString = RawString(
+            pointer: substring.pointer.baseAddress! + lastStart,
+            count: i - lastStart)
+          tokenStrings.append(tokenString)
+          lastStart = i + 1
+        }
+      }
+      if lastStart != substring.count {
+        let tokenString = RawString(
+          pointer: substring.pointer.baseAddress! + lastStart,
+          count: substring.count - lastStart)
+        tokenStrings.append(tokenString)
+      }
+      
+      // Until we've debugged the separation into different substrings, don't call any token initializers. Also, the strings need to be separated into
+      // different substrings in a pre-pass due to the need to handle the very
+      // last segment.
+      let tokens = try tokenStrings.map(Token.init(rawValue:))
+      self = .code(numIndents, tokens)
     }
   }
   
@@ -200,7 +231,7 @@ fileprivate enum Line {
 }
 
 // TODO: Support simple for loops on an array of vector expressions?
-fileprivate enum Token {
+fileprivate enum Token: CustomStringConvertible {
   // Unsure of the most formal wording for "{" and "}"; this is probably
   // incorrect. Calling them "opening bracket" and "closing bracket" for now.
   case keyword(Keyword)
@@ -229,14 +260,29 @@ fileprivate enum Token {
       self = .expression(try Expression(rawValue: string))
     }
   }
+  
+  var description: String {
+    switch self {
+    case .keyword(let keyword):
+      return ".keyword(\(keyword.description))"
+    case .openingBracket:
+      return ".openingBracket"
+    case .expression(let expression):
+      return ".expression(\(expression.description)"
+    case .closingBracket:
+      return ".closingBracket"
+    }
+  }
 }
 
-fileprivate enum Keyword {
+fileprivate enum Keyword: CustomStringConvertible {
   case bounds
   case cut
   case material
   case origin
   case plane
+  case ridge
+  case valley
   case volume
   
   init(rawValue string: RawString) throws {
@@ -251,15 +297,32 @@ fileprivate enum Keyword {
       self = .origin
     case "Plane":
       self = .plane
+    case "Ridge":
+      self = .ridge
+    case "Valley":
+      self = .valley
     case "Volume":
       self = .volume
     default:
       throw _ParseError(description: "Unrecognized keyword: '\(string.description)'")
     }
   }
+  
+  var description: String {
+    switch self {
+    case .bounds: return "Bounds"
+    case .cut: return "Cut"
+    case .material: return "Material"
+    case .origin: return "Origin"
+    case .plane: return "Plane"
+    case .ridge: return "Ridge"
+    case .valley: return "Valley"
+    case .volume: return "Volume"
+    }
+  }
 }
 
-fileprivate enum Expression {
+fileprivate enum Expression: CustomStringConvertible {
   // A prefix operator (+/-) may be prepended to any axis.
   case cubicAxis(Vector<Cubic>)
   // Moissanite ([.carbon, .silicon]) not supported yet.
@@ -268,16 +331,80 @@ fileprivate enum Expression {
   case `operator`(Operator)
   
   init(rawValue string: RawString) throws {
-    fatalError("Not implemented.")
+    if string == "+" {
+      self = .operator(.plus)
+    } else if string == "-" {
+      self = .operator(.minus)
+    } else if string == "*" {
+      self = .operator(.times)
+    } else if string.starts(with: ".") {
+      switch string {
+      case ".hydrogen":
+        self = .element(.hydrogen)
+      case ".carbon":
+        self = .element(.carbon)
+      case ".silicon":
+        self = .element(.silicon)
+      case ".germanium":
+        self = .element(.germanium)
+      default:
+        throw _ParseError(description: "Unrecognized element: '\(string.description)'")
+      }
+    } else if string[string.count - 1] == 104 ||
+                string[string.count - 1] == 107 ||
+                string[string.count - 1] == 108 {
+      guard string.count >= 1 && string.count <= 2 else {
+        throw _ParseError(description: "Unrecognized axis: '\(string.description)'")
+      }
+      var vector: Vector<Cubic>
+      switch string[string.count - 1] {
+      case 104: vector = h
+      case 107: vector = k
+      case 108: vector = l
+      default: fatalError("This should never happen.")
+      }
+      if string.count == 2 {
+        if string.starts(with: "+") {
+          vector = +vector
+        } else if string.starts(with: "-") {
+          vector = -vector
+        } else {
+          throw _ParseError(description: "Invalid prefix operator for axis: '\(string.description)'")
+        }
+      }
+      self = .cubicAxis(vector)
+    } else {
+      guard let float = Float(string.description) else {
+        throw _ParseError(description: "Invalid number: '\(string.description)'")
+      }
+      self = .number(float)
+    }
+  }
+  
+  var description: String {
+    switch self {
+    case .cubicAxis(let vector):
+      return ".cubicAxis(\(vector.simdValue))"
+    case .element(let element):
+      return ".element(\(element.description))"
+    case .number(let number):
+      return ".number(\(number))"
+    case .operator(let `operator`):
+      return ".operator(\(`operator`.description))"
+    }
   }
 }
 
-fileprivate enum Operator {
+fileprivate enum Operator: CustomStringConvertible {
   case plus
   case minus
   case times
   
-  init(rawValue string: RawString) throws {
-    fatalError("Not implemented.")
+  var description: String {
+    switch self {
+    case .plus: return ".plus"
+    case .minus: return ".minus"
+    case .times: return ".times"
+    }
   }
 }
