@@ -23,7 +23,7 @@ public struct Solid {
   }
 }
 
-// Adds atoms to the scene, aligned with the crystal plane
+/// Adds atoms from a previously designed object.
 public struct Copy {
   private var centers: [SIMD3<Float>] = []
   
