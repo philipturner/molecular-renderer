@@ -183,8 +183,9 @@ extension Compiler {
     deletedMask.not()
     deletedMask.and(mask: previousMask)
     
-    // TODO: Add un-deleted atoms, which will rematerialize in a similar
-    // fashion. DNF can cause previously empty cells to become full again.
+    // TODO: Make an animation from each plane placement, instead of requiring
+    // manual placement of Cut(), looks like a smooth progression with multiple
+    // cuts decaying simultaneously
     let deletedAtoms = deletedMask.makeCenters()
     let currentAtoms = stack!.result.makeCenters()
     keyFrames.append(
