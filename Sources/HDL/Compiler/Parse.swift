@@ -40,63 +40,7 @@ public struct _Parse {
       print(line.description)
     }
     
-    // Only comments on their own line are allowed for now.
-    // Bracket initializers for language keywords must all be on one line.
-    enum Line {
-      case code(Int, RawString)
-      case closingBracket(Int)
-      case comment(Int)
-      case whitespace
-      
-      init(rawValue string: RawString) throws {
-        var numIndents: Int = 0
-        for i in 0..<string.count {
-          if RawCharacter(string[i]) == " " {
-            numIndents += 1
-          } else {
-            break
-          }
-        }
-        
-        if numIndents == string.count {
-          self = .whitespace
-        } else if RawCharacter(string[numIndents]) == "}" {
-          if string.count > numIndents + 1 {
-            for i in numIndents + 1..<string.count {
-              guard RawCharacter(string[i]) == " " else {
-                throw _ParseError(description: "A line with a closing bracket had content besides whitespace after it.")
-              }
-            }
-          }
-          self = .closingBracket(numIndents)
-        } else if RawCharacter(string[numIndents]) == "/" {
-          if string.count < numIndents + 2 ||
-              RawCharacter(string[numIndents + 1]) != "/" {
-            throw _ParseError(description: "A line with a single slash was not a comment.")
-          }
-          self = .comment(numIndents)
-        } else {
-          guard let substring = string
-            .substring(start: numIndents, end: string.count) else {
-            throw _ParseError(description: "Could not turn string into substring.")
-          }
-          self = .code(numIndents, substring)
-        }
-      }
-      
-      var description: String {
-        switch self {
-        case .code(let numIndents, let string):
-          return "tab \(numIndents) | \(string.description)"
-        case .closingBracket(let numIndents):
-          return "tab \(numIndents) | } (closing bracket)"
-        case .comment(let numIndents):
-          return "tab \(numIndents) | // (comment)"
-        case .whitespace:
-          return "whitespace"
-        }
-      }
-    }
+    
   }
 }
 
@@ -193,5 +137,63 @@ fileprivate struct RawCharacter: Equatable, ExpressibleByUnicodeScalarLiteral {
   
   init(unicodeScalarLiteral: Unicode.Scalar) {
     self.rawValue = UInt8(unicodeScalarLiteral.value)
+  }
+}
+
+// Only comments on their own line are allowed for now.
+// Bracket initializers for language keywords must all be on one line.
+fileprivate enum Line {
+  case code(Int, RawString)
+  case closingBracket(Int)
+  case comment(Int)
+  case whitespace
+  
+  init(rawValue string: RawString) throws {
+    var numIndents: Int = 0
+    for i in 0..<string.count {
+      if RawCharacter(string[i]) == " " {
+        numIndents += 1
+      } else {
+        break
+      }
+    }
+    
+    if numIndents == string.count {
+      self = .whitespace
+    } else if RawCharacter(string[numIndents]) == "}" {
+      if string.count > numIndents + 1 {
+        for i in numIndents + 1..<string.count {
+          guard RawCharacter(string[i]) == " " else {
+            throw _ParseError(description: "A line with a closing bracket had content besides whitespace after it.")
+          }
+        }
+      }
+      self = .closingBracket(numIndents)
+    } else if RawCharacter(string[numIndents]) == "/" {
+      if string.count < numIndents + 2 ||
+          RawCharacter(string[numIndents + 1]) != "/" {
+        throw _ParseError(description: "A line with a single slash was not a comment.")
+      }
+      self = .comment(numIndents)
+    } else {
+      guard let substring = string
+        .substring(start: numIndents, end: string.count) else {
+        throw _ParseError(description: "Could not turn string into substring.")
+      }
+      self = .code(numIndents, substring)
+    }
+  }
+  
+  var description: String {
+    switch self {
+    case .code(let numIndents, let string):
+      return "tab \(numIndents) | \(string.description)"
+    case .closingBracket(let numIndents):
+      return "tab \(numIndents) | } (closing bracket)"
+    case .comment(let numIndents):
+      return "tab \(numIndents) | // (comment)"
+    case .whitespace:
+      return "whitespace"
+    }
   }
 }
