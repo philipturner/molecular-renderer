@@ -37,6 +37,7 @@ public struct _Parse {
       }
     }
     for line in lines {
+      // TODO: Print the full hierarchical AST, instead of just the lines.
       print(line.description)
     }
     
@@ -195,5 +196,88 @@ fileprivate enum Line {
     case .whitespace:
       return "whitespace"
     }
+  }
+}
+
+// TODO: Support simple for loops on an array of vector expressions?
+fileprivate enum Token {
+  // Unsure of the most formal wording for "{" and "}"; this is probably
+  // incorrect. Calling them "opening bracket" and "closing bracket" for now.
+  case keyword(Keyword)
+  case openingBracket
+  case expression(Expression)
+  case closingBracket
+  
+  init(rawValue string: RawString) throws {
+    guard string.count > 0, RawCharacter(string[string.count - 1]) != " " else {
+      throw _ParseError(description: "Malformatted string entered into 'Token' initializer: '\(string.description)'")
+    }
+    if string[0] >= 65 && string[0] <= 90 {
+      // Uppercase ASCII characters.
+      self = .keyword(try Keyword(rawValue: string))
+    } else if RawCharacter(string[0]) == "{" {
+      guard string.count == 1 else {
+        throw _ParseError(description: "Too many characters in opening bracket token: '\(string.description)'")
+      }
+      self = .openingBracket
+    } else if RawCharacter(string[0]) == "}" {
+      guard string.count == 1 else {
+        throw _ParseError(description: "Too many characters in closing bracket token: '\(string.description)'")
+      }
+      self = .closingBracket
+    } else {
+      self = .expression(try Expression(rawValue: string))
+    }
+  }
+}
+
+fileprivate enum Keyword {
+  case bounds
+  case cut
+  case material
+  case origin
+  case plane
+  case volume
+  
+  init(rawValue string: RawString) throws {
+    switch string {
+    case "Bounds":
+      self = .bounds
+    case "Cut()":
+      self = .cut
+    case "Material":
+      self = .material
+    case "Origin":
+      self = .origin
+    case "Plane":
+      self = .plane
+    case "Volume":
+      self = .volume
+    default:
+      throw _ParseError(description: "Unrecognized keyword: '\(string.description)'")
+    }
+  }
+}
+
+fileprivate enum Expression {
+  // A prefix operator (+/-) may be prepended to any axis.
+  case cubicAxis(Vector<Cubic>)
+  // Moissanite ([.carbon, .silicon]) not supported yet.
+  case element(Element)
+  case number(Float)
+  case `operator`(Operator)
+  
+  init(rawValue string: RawString) throws {
+    fatalError("Not implemented.")
+  }
+}
+
+fileprivate enum Operator {
+  case plus
+  case minus
+  case times
+  
+  init(rawValue string: RawString) throws {
+    fatalError("Not implemented.")
   }
 }
