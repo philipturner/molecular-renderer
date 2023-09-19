@@ -137,7 +137,6 @@
 		98D0F18D2AB5118400BE267D /* Spring_Projectile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */; };
 		98D0F18F2AB5118D00BE267D /* Spring_Spring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */; };
 		98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */; };
-		98D0F1932AB511BB00BE267D /* Spring_Assembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */; };
 		98D0F1972AB5151900BE267D /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D0F1962AB5151900BE267D /* HDL */; };
 		98D0F19B2AB5325100BE267D /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D0F19A2AB5325100BE267D /* HDL */; };
 		98D0F19E2AB5E14800BE267D /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D0F19D2AB5E14800BE267D /* HDL */; };
@@ -336,7 +335,6 @@
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
-		98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Assembly.swift; sourceTree = "<group>"; };
 		98D0F1942AB5150600BE267D /* Stack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stack.swift; sourceTree = "<group>"; };
 		98D0F1982AB5323C00BE267D /* Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animation.swift; sourceTree = "<group>"; };
 		98D0F1AE2AB5F43D00BE267D /* Bounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bounds.swift; sourceTree = "<group>"; };
@@ -762,7 +760,6 @@
 				98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */,
 				98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */,
 				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
-				98D0F1922AB511BB00BE267D /* Spring_Assembly.swift */,
 			);
 			path = Spring;
 			sourceTree = "<group>";
@@ -1232,7 +1229,6 @@
 				98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */,
 				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
-				98D0F1932AB511BB00BE267D /* Spring_Assembly.swift in Sources */,
 				98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */,
