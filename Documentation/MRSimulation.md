@@ -144,6 +144,8 @@ To access the MRSimulation files used for these benchmarks, check out https://gi
 ## Future Directions
 
 Metadata sub-specifications:
+- Standardize a format for denoting which atoms belong to a specific rigid body. Although this may be detectable through geometry traversal, making it explicit would be cheaper and more reliable.
+  - Every frame, the linear and angular velocities of each rigid body would be stored in metadata. In addition, center of mass and moment of inertia about the X, Y, Z axes.
 - Standardize a format for storing bond topology, which permits different bond orders and fractional bonds in graphene. The bond order may change between frames. To be efficient, only store the bonds that have changed.
 
 Bounded continuum finite element method:
