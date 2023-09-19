@@ -41,12 +41,49 @@ public struct _Parse {
         lines.append(try Line(rawValue: string))
       }
     }
+    
+    print()
+    print("=== AST ===")
     for line in lines {
-      // TODO: Print the full hierarchical AST, instead of just the lines.
       print(line.description)
     }
     
-    
+    var stack: [Keyword] = []
+    for line in lines {
+      switch line {
+      case .code(_, let tokens):
+        guard case .keyword(let keyword) = tokens.first! else {
+          throw _ParseError(description: "Expected code to start with a keyword: \(tokens.description)")
+        }
+        
+        switch keyword {
+        case .concave, .convex, .volume:
+          guard tokens.count == 2,
+                case .openingBracket = tokens[2] else {
+            throw _ParseError(description: "Expected opening bracket after first token: \(tokens.description)")
+          }
+          fatalError("Not implemented.")
+        default:
+          fatalError("Not implemented.")
+        }
+      case .closingBracket(_):
+        let keyword = stack.removeLast()
+        switch keyword {
+        case .bounds, .cut, .material, .origin, .plane, .ridge, .valley:
+          throw _ParseError(description: "Popped an unexpected keyword from the stack: '\(keyword.description)'")
+        case .concave:
+          Compiler.global.endConcave()
+        case .convex:
+          Compiler.global.endConvex()
+        case .volume:
+          Compiler.global.endVolume()
+        }
+      case .comment(_):
+        continue
+      case .whitespace:
+        continue
+      }
+    }
   }
 }
 
@@ -277,6 +314,8 @@ fileprivate enum Token: CustomStringConvertible {
 
 fileprivate enum Keyword: CustomStringConvertible {
   case bounds
+  case concave
+  case convex
   case cut
   case material
   case origin
@@ -289,6 +328,10 @@ fileprivate enum Keyword: CustomStringConvertible {
     switch string {
     case "Bounds":
       self = .bounds
+    case "Concave":
+      self = .concave
+    case "Convex":
+      self = .convex
     case "Cut()":
       self = .cut
     case "Material":
@@ -311,6 +354,8 @@ fileprivate enum Keyword: CustomStringConvertible {
   var description: String {
     switch self {
     case .bounds: return "Bounds"
+    case .concave: return "Concave"
+    case .convex: return "Convex"
     case .cut: return "Cut"
     case .material: return "Material"
     case .origin: return "Origin"
