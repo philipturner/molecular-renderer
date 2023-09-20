@@ -15,12 +15,8 @@ import QuartzCore
 //
 // US Patent 11592463B2
 // Systems and methods for mechanosynthesis
-// Filed: 2021, Granted: 2023
-//
-// Recipient: CBN Nano Technologies
-// (shell company, ~50 employees)
-// $40 million funding
-// CEO: Robert Freitas, Ralph Merkle
+// CBN Nano Technologies (2023)
+// Robert Freitas, Ralph Merkle
 struct Spring_Mechanosynthesis {
   var provider: any MRAtomProvider
   var diamondoid: Diamondoid!
@@ -35,9 +31,9 @@ struct Spring_Mechanosynthesis {
     // sp2 C-C bond length 0.13320
     // sp1 C-C bond length 0.12100
     //
-    // sp2 C-H bond length: 0.11010
-    // sp2 C-O bond length: 0.13536
-    // sp2 C-F bond length: 0.13535
+    // sp2 C-H bond length 0.11010
+    // sp2 C-O bond length 0.13536
+    // sp2 C-F bond length 0.13535
     //
     // What about the carbon-germanium bonds?
     let benzeneAtoms: [MRAtom] = (0..<6).flatMap { i -> [MRAtom] in
