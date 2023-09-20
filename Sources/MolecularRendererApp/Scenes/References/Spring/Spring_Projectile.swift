@@ -23,6 +23,7 @@ struct Spring_Projectile {
   init() {
     provider = ArrayAtomProvider([MRAtom(origin: .zero, element: 6)])
     
+    _Parse.verbose = true
     let projectileLattice = Lattice<Cubic> {
       try! _Parse { "/Users/philipturner/Desktop/file.swift" }
     }

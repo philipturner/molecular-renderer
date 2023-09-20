@@ -9,6 +9,8 @@ This is a precursor to the eventual hardware description language that atomCAD w
 
 Table of Contents
 - [How it Works](#how-it-works)
+    - [Simulation](#simulation)
+    - [JIT Compiler](#jit-compiler)
 - [Design Hierarchy](#design-hierarchy)
 - [Syntax](#syntax)
     - [Lattice Editing](#lattice-editing)
@@ -19,7 +21,9 @@ Table of Contents
 
 ## How it Works
 
-At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally heavy. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed. Part of the compiler is boolean masks over a grid on single-core CPU. Another part is surface energy minimizations on the GPU.
+At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally intensive. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed. Part of the compiler is boolean masks over a grid on single-core CPU. Another part is energy minimizations on the GPU.
+
+### Simulation
 
 The forcefield is based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
 
@@ -55,6 +59,10 @@ Key:
 | S       | O |   | O |   |   |   |   |   |   |   |   |
 | Cl      |   |   | O |   |   |   |   |   |   |   |   |
 | Ge      | X |   | O |   |   |   |   |   |   |   | X |
+
+### JIT Compiler
+
+There is also a JIT compiler for the language, accepting a strict subset of Swift that contains DSL keywords. This was created out of necessity to bypass long compile times in Swift release mode. The API is still experimental and gated under an underscore (`_Parse`). Documentation can be found in triple-slashed comments at [Parse.swift](../Sources/HDL/Compiler/Parse.swift).
 
 ## Design Hierarchy
 

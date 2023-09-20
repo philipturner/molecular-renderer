@@ -9,6 +9,9 @@ import Foundation
 
 /// Unstable API; do not use this type. It is a JIT compiler for the DSL.
 public struct _Parse {
+  /// Whether to the internal AST for debugging.
+  public static var verbose: Bool = false
+  
   /// Initialize with a string representing the file's absolute path.
   @discardableResult
   public init(_ closure: () -> String) throws {
@@ -42,10 +45,10 @@ public struct _Parse {
       }
     }
     
-    print()
-    print("=== AST ===")
+    debugPrint()
+    debugPrint("=== AST ===")
     for line in lines {
-      print(line.description)
+      debugPrint(line.description)
     }
     
     var stack: [Keyword] = []
@@ -93,134 +96,19 @@ public struct _Parse {
             throw _ParseError(description: "Expected bracket, multiple tokens, bracket after \(tokens[0].description): \(tokens.description)")
           }
           
-          func parseVector(range: Range<Int>) throws -> Vector<Cubic> {
-            var output: Vector<Cubic> = .init(simdValue: .zero)
-            var lastScalar: (Int, Float)?
-            var lastOperator: (Int, Operator)?
-            var lastVector: (Int, Vector<Cubic>)?
-            for i in range {
-              guard case .expression(let expression) = tokens[i] else {
-                throw _ParseError(description: "Expected expression but got '\(tokens[i].description): \(tokens.description)")
-              }
-              func invalidExpression(_ reason: String? = nil) -> _ParseError {
-                _ParseError(description: "Invalid syntax at token '\(expression.description)': \(tokens.description)\nReason: \(reason ?? "[unknown]")")
-              }
-              func debugDiagnostics() {
-                print("")
-                print("i = \(i)")
-                print("  output: \(output)")
-                print("  lastScalar: \(lastScalar as Any)")
-                print("  lastOperator: \(lastOperator as Any)")
-                print("  lastVector: \(lastVector as Any)")
-              }
-              if i % 2 == 0 {
-                if case .number(let number) = expression {
-                  defer { lastScalar = (i, number) }
-                  guard let lastOperator else { continue }
-                  if lastOperator == (i - 1, .times) {
-                    guard lastScalar == nil ||
-                            lastScalar!.0 != i - 2 else {
-                      throw invalidExpression("Two scalars sandwiched between a times")
-                    }
-                    guard let (lastVectorID, lastVector) = lastVector,
-                          lastVectorID == i - 2 else {
-                      throw invalidExpression("No vector to precede a scalar in a times")
-                    }
-                    output = output + lastVector * number
-                  }
-                } else if case .cubicAxis(let cubicAxis) = expression {
-                  debugDiagnostics()
-                  defer { lastVector = (i, cubicAxis) }
-                  guard let lastOperator else { continue }
-                  if lastOperator == (i - 1, .times) {
-                    debugDiagnostics()
-                    guard lastVector == nil ||
-                            lastVector!.0 != i - 2 else {
-                      throw invalidExpression("Two vectors sandwiched between a times")
-                    }
-                    guard let (lastScalarID, lastScalar) = lastScalar,
-                          lastScalarID == i - 2 else {
-                      throw invalidExpression("No scalar to precede a vector in a times")
-                    }
-                    print("  output <- \(output) + \(lastScalar) * \(cubicAxis)")
-                    output = output + lastScalar * cubicAxis
-                    print("  output = \(output)")
-                  } else if lastOperator.0 == i - 1, i == range.upperBound - 1 {
-                    // Immediately add to output if there aren't any more tokens.
-                    print("  newVector: \(cubicAxis)")
-                    if lastOperator.1 == .times {
-                      fatalError("This should never happen: times at closing.")
-                    } else if lastOperator.1 == .plus {
-                      print("  output <- \(output) + \(cubicAxis)")
-                      output = output + cubicAxis
-                      print("  output = \(output)")
-                    } else {
-                      print("  output <- \(output) - \(cubicAxis)")
-                      output = output - cubicAxis
-                      print("  output = \(output)")
-                    }
-                  }
-                } else {
-                  throw _ParseError(description: "Expected number or axis at even-numbered token '\(expression.description): \(tokens.description)")
-                }
-              } else {
-                if case .`operator`(let `operator`) = expression {
-                  defer { lastOperator = (i, `operator`) }
-                  if `operator` == .times {
-                    guard let (lastOperatorID, _) = lastOperator else {
-                      continue
-                    }
-                    if lastOperatorID == i - 1 {
-                      throw invalidExpression("Two consecutive operators.")
-                    }
-                  } else if let (lastScalarID, _) = lastScalar,
-                            lastScalarID == i - 1 {
-                    throw invalidExpression("Retained a scalar without merging it with a vector.")
-                  } else if let (lastVectorID, lastVector) = lastVector,
-                            lastVectorID == i - 1 {
-                    guard let (lastOperatorID, lastOperator) = lastOperator else {
-                      debugDiagnostics()
-                      print("  output <- \(lastVector)")
-                      output = output + lastVector
-                      print("  output = \(output)")
-                      continue
-                    }
-                    if lastOperatorID == i - 1 {
-                      throw invalidExpression("Two consecutive operators.")
-                    }
-                    if lastOperatorID != i - 2 {
-                      continue
-                    }
-                    if lastOperator == .times {
-                      // This should hopefully already be handled correctly.
-                    } else if lastOperator == .plus {
-                      debugDiagnostics()
-                      print("  output <- \(output) + \(lastVector)")
-                      output = output + lastVector
-                      print("  output = \(output)")
-                    } else {
-                      debugDiagnostics()
-                      print("  output <- \(output) - \(lastVector)")
-                      output = output - lastVector
-                      print("  output = \(output)")
-                    }
-                  }
-                } else {
-                  throw _ParseError(description: "Expected operator at odd-numbered token '\(expression.description): \(tokens.description)")
-                }
-              }
-            }
-            return output
-          }
-          
-          // TODO: Support the vector input argument required for Ridge/Valley.
-          let output = try parseVector(range: 2..<tokens.count - 1)
+          let vector = try parseVector(
+            tokens: tokens, range: 2..<tokens.count - 1)
           switch keyword {
-          case .bounds: Bounds { output }
-          case .origin: Origin { output }
-          case .plane: Plane { output }
-          case .ridge: fatalError("Not implemented.")
-          case .valley: fatalError("Not implemented.")
+          case .bounds: Bounds { vector }
+          case .origin: Origin { vector }
+          case .plane: Plane { vector }
+          case .ridge(let _tokens), .valley(let _tokens):
+            let input = try parseVector(tokens: _tokens, range: _tokens.indices)
+            switch keyword {
+            case .ridge: Ridge(input) { vector }
+            case .valley: Valley(input) { vector }
+            default: fatalError("This should never happen.")
+            }
           default: fatalError("This should never happen.")
           }
         }
@@ -378,32 +266,7 @@ fileprivate enum Line {
         .substring(start: numIndents, end: string.count) else {
         throw _ParseError(description: "Could not turn string into substring.")
       }
-      var tokenStrings: [RawString] = []
-      var lastStart: Int = 0
-      
-      for i in 0..<substring.count {
-        if RawCharacter(substring[i]) == " " {
-          if lastStart == i {
-            throw _ParseError(description: "Cannot have two consecutive spaces in a code line, even from trailing whitespace. Unable to parse line: '\(substring.description)'")
-          }
-          let tokenString = RawString(
-            pointer: substring.pointer.baseAddress! + lastStart,
-            count: i - lastStart)
-          tokenStrings.append(tokenString)
-          lastStart = i + 1
-        }
-      }
-      if lastStart != substring.count {
-        let tokenString = RawString(
-          pointer: substring.pointer.baseAddress! + lastStart,
-          count: substring.count - lastStart)
-        tokenStrings.append(tokenString)
-      }
-      
-      // Until we've debugged the separation into different substrings, don't call any token initializers. Also, the strings need to be separated into
-      // different substrings in a pre-pass due to the need to handle the very
-      // last segment.
-      let tokens = try tokenStrings.map(Token.init(rawValue:))
+      let tokens = try parseStringIntoTokens(substring)
       self = .code(numIndents, tokens)
     }
   }
@@ -422,8 +285,10 @@ fileprivate enum Line {
   }
 }
 
-// TODO: Support parentheses in expressions.
-// TODO: Support simple for loops on an array of vector expressions?
+// Not supporting loops on an array of vector expressions yet.
+//
+// This can be partially worked around by using symmetry. Or, by injecting the
+// commands from `_Parse` into the inside of a loop.
 fileprivate enum Token: CustomStringConvertible {
   // Unsure of the most formal wording for "{" and "}"; this is probably
   // incorrect. Calling them "opening bracket" and "closing bracket" for now.
@@ -449,6 +314,17 @@ fileprivate enum Token: CustomStringConvertible {
         throw _ParseError(description: "Too many characters in closing bracket token: '\(string.description)'")
       }
       self = .closingBracket
+    } else if RawCharacter(string[0]) == "(" {
+      guard RawCharacter(string[string.count - 1]) == ")" else {
+        throw _ParseError(description: "Parentheses token did not start and end with a parenthesis: '\(string.description)'")
+      }
+      guard let substring = string
+        .substring(start: 1, end: string.count - 1) else {
+        throw _ParseError(description: "Unable to convert string into substring: '\(string)'")
+      }
+      let tokens = try parseStringIntoTokens(substring)
+      let vector = try parseVector(tokens: tokens, range: tokens.indices)
+      self = .expression(.cubicAxis(vector))
     } else {
       self = .expression(try Expression(rawValue: string))
     }
@@ -476,8 +352,8 @@ fileprivate enum Keyword: CustomStringConvertible {
   case material
   case origin
   case plane
-  case ridge
-  case valley
+  case ridge([Token])
+  case valley([Token])
   case volume
   
   init(rawValue string: RawString) throws {
@@ -496,29 +372,38 @@ fileprivate enum Keyword: CustomStringConvertible {
       self = .origin
     case "Plane":
       self = .plane
-    case "Ridge":
-      self = .ridge
-    case "Valley":
-      self = .valley
     case "Volume":
       self = .volume
     default:
-      throw _ParseError(description: "Unrecognized keyword: '\(string.description)'")
+      func makeTokens(start: Int) throws -> [Token] {
+        guard let substring = string
+          .substring(start: start, end: string.count - 1) else {
+          throw _ParseError(description: "Invalid input argument to \(start == 6 ? "Ridge" : "Valley"): '\(string)'")
+        }
+        return try parseStringIntoTokens(substring)
+      }
+      if string.starts(with: "Ridge") {
+        self = .ridge(try makeTokens(start: 6))
+      } else if string.starts(with: "Valley") {
+        self = .valley(try makeTokens(start: 7))
+      } else {
+        throw _ParseError(description: "Unrecognized keyword: '\(string.description)'")
+      }
     }
   }
   
   var description: String {
     switch self {
-    case .bounds: return "Bounds"
-    case .concave: return "Concave"
-    case .convex: return "Convex"
-    case .cut: return "Cut"
-    case .material: return "Material"
-    case .origin: return "Origin"
-    case .plane: return "Plane"
-    case .ridge: return "Ridge"
-    case .valley: return "Valley"
-    case .volume: return "Volume"
+    case .bounds: return ".bounds"
+    case .concave: return ".concave"
+    case .convex: return ".convex"
+    case .cut: return ".cut"
+    case .material: return ".material"
+    case .origin: return ".origin"
+    case .plane: return ".plane"
+    case .ridge(let tokens): return ".ridge(\(tokens))"
+    case .valley(let tokens): return ".valley(\(tokens))"
+    case .volume: return ".volume"
     }
   }
 }
@@ -610,4 +495,186 @@ fileprivate enum Operator: CustomStringConvertible {
   }
 }
 
+fileprivate func parseVector(
+  tokens: [Token], range: Range<Int>
+) throws -> Vector<Cubic> {
+  var output: Vector<Cubic> = .init(simdValue: .zero)
+  var lastScalar: (Int, Float)?
+  var lastOperator: (Int, Operator)?
+  var lastVector: (Int, Vector<Cubic>)?
+  for i in range {
+    guard case .expression(let expression) = tokens[i] else {
+      throw _ParseError(description: "Expected expression but got '\(tokens[i].description): \(tokens.description)")
+    }
+    func invalidExpression(_ reason: String? = nil) -> _ParseError {
+      _ParseError(description: "Invalid syntax at token '\(expression.description)': \(tokens.description)\nReason: \(reason ?? "[unknown]")")
+    }
+    func debugDiagnostics() {
+      debugPrint("")
+      debugPrint("i = \(i)")
+      debugPrint("  output: \(output)")
+      debugPrint("  lastScalar: \(lastScalar as Any)")
+      debugPrint("  lastOperator: \(lastOperator as Any)")
+      debugPrint("  lastVector: \(lastVector as Any)")
+    }
+    if i % 2 == 0 {
+      if case .number(let number) = expression {
+        defer { lastScalar = (i, number) }
+        if range.count == 1 {
+          throw invalidExpression("Had only one token but it wasn't an axis.")
+        }
+        guard let lastOperator else { continue }
+        if lastOperator == (i - 1, .times) {
+          guard lastScalar == nil ||
+                  lastScalar!.0 != i - 2 else {
+            throw invalidExpression("Two scalars sandwiched between a times")
+          }
+          guard let (lastVectorID, lastVector) = lastVector,
+                lastVectorID == i - 2 else {
+            throw invalidExpression("No vector to precede a scalar in a times")
+          }
+          output = output + lastVector * number
+        }
+      } else if case .cubicAxis(let cubicAxis) = expression {
+        debugDiagnostics()
+        defer { lastVector = (i, cubicAxis) }
+        if range.count == 1 {
+          debugPrint("  output <- \(cubicAxis)")
+          output = cubicAxis
+          debugPrint("  output = \(output)")
+          continue
+        }
+        guard let lastOperator else { continue }
+        if lastOperator == (i - 1, .times) {
+          debugDiagnostics()
+          guard lastVector == nil ||
+                  lastVector!.0 != i - 2 else {
+            throw invalidExpression("Two vectors sandwiched between a times")
+          }
+          guard let (lastScalarID, lastScalar) = lastScalar,
+                lastScalarID == i - 2 else {
+            throw invalidExpression("No scalar to precede a vector in a times")
+          }
+          debugPrint("  output <- \(output) + \(lastScalar) * \(cubicAxis)")
+          output = output + lastScalar * cubicAxis
+          debugPrint("  output = \(output)")
+        } else if lastOperator.0 == i - 1, i == range.upperBound - 1 {
+          // Immediately add to output if there aren't any more tokens.
+          debugPrint("  newVector: \(cubicAxis)")
+          if lastOperator.1 == .times {
+            fatalError("This should never happen: times at closing.")
+          } else if lastOperator.1 == .plus {
+            debugPrint("  output <- \(output) + \(cubicAxis)")
+            output = output + cubicAxis
+            debugPrint("  output = \(output)")
+          } else {
+            debugPrint("  output <- \(output) - \(cubicAxis)")
+            output = output - cubicAxis
+            debugPrint("  output = \(output)")
+          }
+        }
+      } else {
+        throw _ParseError(description: "Expected number or axis at even-numbered token '\(expression.description): \(tokens.description)")
+      }
+    } else {
+      if case .`operator`(let `operator`) = expression {
+        defer { lastOperator = (i, `operator`) }
+        if `operator` == .times {
+          guard let (lastOperatorID, _) = lastOperator else {
+            continue
+          }
+          if lastOperatorID == i - 1 {
+            throw invalidExpression("Two consecutive operators.")
+          }
+        } else if let (lastScalarID, _) = lastScalar,
+                  lastScalarID == i - 1 {
+          throw invalidExpression("Retained a scalar without merging it with a vector.")
+        } else if let (lastVectorID, lastVector) = lastVector,
+                  lastVectorID == i - 1 {
+          guard let (lastOperatorID, lastOperator) = lastOperator else {
+            debugDiagnostics()
+            debugPrint("  output <- \(lastVector)")
+            output = output + lastVector
+            debugPrint("  output = \(output)")
+            continue
+          }
+          if lastOperatorID == i - 1 {
+            throw invalidExpression("Two consecutive operators.")
+          }
+          if lastOperatorID != i - 2 {
+            continue
+          }
+          if lastOperator == .times {
+            // This should hopefully already be handled correctly.
+          } else if lastOperator == .plus {
+            debugDiagnostics()
+            debugPrint("  output <- \(output) + \(lastVector)")
+            output = output + lastVector
+            debugPrint("  output = \(output)")
+          } else {
+            debugDiagnostics()
+            debugPrint("  output <- \(output) - \(lastVector)")
+            output = output - lastVector
+            debugPrint("  output = \(output)")
+          }
+        }
+      } else {
+        throw _ParseError(description: "Expected operator at odd-numbered token '\(expression.description): \(tokens.description)")
+      }
+    }
+  }
+  return output
+}
 
+fileprivate func debugPrint(_ closure: @autoclosure () -> String) {
+  if _Parse.verbose {
+    print(closure())
+  }
+}
+
+fileprivate func parseStringIntoTokens(_ string: RawString) throws -> [Token] {
+  var tokenStrings: [RawString] = []
+  var lastStart: Int = 0
+  var parenthesesDepth: Int = 0
+  
+  for i in 0..<string.count {
+    if RawCharacter(string[i]) == "(" {
+      guard parenthesesDepth >= 0 else {
+        throw _ParseError(description: "Invalid syntax at tokens: \(string)")
+      }
+      parenthesesDepth += 1
+    }
+    if RawCharacter(string[i]) == ")" {
+      guard parenthesesDepth > 0 else {
+        throw _ParseError(description: "Invalid syntax at tokens: \(string)")
+      }
+      parenthesesDepth -= 1
+    }
+    if parenthesesDepth > 0 {
+      // Ignore all spaces inside a parenthesis; count as one giant token.
+      continue
+    }
+    
+    if RawCharacter(string[i]) == " " {
+      if lastStart == i {
+        throw _ParseError(description: "Cannot have two consecutive spaces in a code line, even from trailing whitespace. Unable to parse line: '\(string.description)'")
+      }
+      let tokenString = RawString(
+        pointer: string.pointer.baseAddress! + lastStart,
+        count: i - lastStart)
+      tokenStrings.append(tokenString)
+      lastStart = i + 1
+    }
+  }
+  if parenthesesDepth != 0 {
+    throw _ParseError(description: "Invalid syntax at tokens: \(string)")
+  }
+  if lastStart != string.count {
+    let tokenString = RawString(
+      pointer: string.pointer.baseAddress! + lastStart,
+      count: string.count - lastStart)
+    tokenStrings.append(tokenString)
+  }
+  
+  return try tokenStrings.map(Token.init(rawValue:))
+}
