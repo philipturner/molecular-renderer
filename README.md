@@ -14,7 +14,7 @@ Documentation
 
 ## Overview
 
-NanoEngineer is currently the most capable platform for designing molecular nanotech. It has an interactive UI, but also very slow simulators that can't handle >5000 atoms. This forces users to design colorful strained shell structures (which cannot be built) [just to minimize atom count](http://www.imm.org/research/parts/controller/). Several collaborating OSS projects seek to improve on NanoEngineer's weaknesses, including the difficulty performing iterative design on crystolecules.
+NanoEngineer is currently the most capable platform for designing molecular nanotechnology. It has an interactive UI, but also simulators that run slowly at >5000 atoms. This motivates the design of colorful strained shell structures (which cannot be built) [in order to minimize atom count](http://www.imm.org/research/parts/controller/). Several projects seek to improve on this aspect, and on the difficulty performing iterative design on crystolecules.
 
 Since ~May 2023, this repository was slated to join forces with atomCAD. After months of discussion, we realized the best way to collaborate was specializing in separate niches. Molecular Renderer grew rapidly and lets people _from all desktop operating systems_ do exploratory engineering _today_. atomCAD evolved more slowly, due to a carefully planned internal representation that will scale better and support more platforms. Developers from both projects are actively exchanging ideas and engaging in constructive feedback, using Discord and other means.
 
