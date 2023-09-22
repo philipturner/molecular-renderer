@@ -3,6 +3,8 @@
 
 # Molecular Renderer
 
+Author: Philip Turner
+
 What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working on a large engineering knowledge base with machine specification in atomic detail.
 
 Documentation

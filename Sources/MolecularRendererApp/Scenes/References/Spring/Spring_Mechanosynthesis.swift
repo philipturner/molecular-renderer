@@ -11,12 +11,6 @@ import HDL
 import simd
 import QuartzCore
 
-// Mechanosynthesis Scene
-//
-// US Patent 11592463B2
-// Systems and methods for mechanosynthesis
-// CBN Nano Technologies (2023)
-// Robert Freitas, Ralph Merkle
 struct Spring_Mechanosynthesis {
   var provider: any MRAtomProvider
   var diamondoid: Diamondoid!
