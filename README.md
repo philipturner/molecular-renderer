@@ -35,7 +35,7 @@ Medium-Term (next few months)
 - Combine the bounded continuum model (introduced in _Nanosystems_) with an $O(n)$ method for simulating bulk deformations
   - Enable quick prototyping of assemblies with over 100,000 atoms
 - Create tutorials to onboard new nanomechanical engineers (Jupyter notebooks, online DocC tutorials, etc.)
-- Exploratory engineering work on [kinematic self-replicating machines](http://www.molecularassembler.com/KSRM.htm) and/or mechanical computers
+- Exploratory engineering work on mechanical computers
 
 Long-Term (next few years)
 - Create a simulator for mechanosynthesis reactions, and novel rendering algorithms to interpret simulation results
