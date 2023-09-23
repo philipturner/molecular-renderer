@@ -53,7 +53,7 @@
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		987234EE2ABE83DC00E427E5 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 987234ED2ABE83DC00E427E5 /* MolecularRenderer */; };
-		987234F22ABE8AFA00E427E5 /* Spring_Mechanosynthesis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987234F12ABE8AFA00E427E5 /* Spring_Mechanosynthesis.swift */; };
+		987234F42ABE8B7500E427E5 /* Spring_Mechanosynthesis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987234F32ABE8B7500E427E5 /* Spring_Mechanosynthesis.swift */; };
 		9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */; };
 		987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */; };
 		988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BB2A800130004879E5 /* VdwOscillator.swift */; };
@@ -215,7 +215,7 @@
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		987234F02ABE860300E427E5 /* HardwareCatalogOverview.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HardwareCatalogOverview.md; sourceTree = "<group>"; };
-		987234F12ABE8AFA00E427E5 /* Spring_Mechanosynthesis.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Spring_Mechanosynthesis.swift; path = ../../../../../../../../Desktop/Spring_Mechanosynthesis.swift; sourceTree = "<group>"; };
+		987234F32ABE8B7500E427E5 /* Spring_Mechanosynthesis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Mechanosynthesis.swift; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMM_AtomProvider.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
@@ -626,8 +626,8 @@
 			children = (
 				98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */,
 				98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */,
-				987234F12ABE8AFA00E427E5 /* Spring_Mechanosynthesis.swift */,
 				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
+				987234F32ABE8B7500E427E5 /* Spring_Mechanosynthesis.swift */,
 			);
 			path = Spring;
 			sourceTree = "<group>";
@@ -1079,7 +1079,7 @@
 				988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */,
 				98D2A3352AA2DF55000DBAA0 /* DFT.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
-				987234F22ABE8AFA00E427E5 /* Spring_Mechanosynthesis.swift in Sources */,
+				987234F42ABE8B7500E427E5 /* Spring_Mechanosynthesis.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 				984F72192A6E130A00C15D4A /* Chapter9_Figure8.swift in Sources */,
