@@ -68,7 +68,6 @@
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
 		98A4A5792A81A65E00A74F87 /* libfreetype.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98A7009A2AAFB78800499CD2 /* MM4MassParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A700992AAFB78800499CD2 /* MM4MassParameters.swift */; };
-		98A8B7162ABB39A4003E62E8 /* Spring_Mechanosynthesis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A8B7152ABB39A4003E62E8 /* Spring_Mechanosynthesis.swift */; };
 		98A8B7182ABE6CB3003E62E8 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B7172ABE6CB3003E62E8 /* Atomics */; };
 		98A8B71A2ABE6CB3003E62E8 /* KeyCodes in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B7192ABE6CB3003E62E8 /* KeyCodes */; };
 		98A8B71C2ABE6CC7003E62E8 /* GIF in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B71B2ABE6CC7003E62E8 /* GIF */; };
@@ -243,7 +242,6 @@
 		98A7009E2AAFC61400499CD2 /* MM4MM3Parameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MM3Parameters.swift; sourceTree = "<group>"; };
 		98A700A22AAFC88000499CD2 /* MM4MorseParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MorseParameters.swift; sourceTree = "<group>"; };
 		98A8B7112ABA3E95003E62E8 /* Parse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parse.swift; sourceTree = "<group>"; };
-		98A8B7152ABB39A4003E62E8 /* Spring_Mechanosynthesis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Mechanosynthesis.swift; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
@@ -627,7 +625,6 @@
 				98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */,
 				98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */,
 				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
-				98A8B7152ABB39A4003E62E8 /* Spring_Mechanosynthesis.swift */,
 			);
 			path = Spring;
 			sourceTree = "<group>";
@@ -1079,7 +1076,6 @@
 				988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */,
 				98D2A3352AA2DF55000DBAA0 /* DFT.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
-				98A8B7162ABB39A4003E62E8 /* Spring_Mechanosynthesis.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 				984F72192A6E130A00C15D4A /* Chapter9_Figure8.swift in Sources */,
