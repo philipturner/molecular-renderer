@@ -63,7 +63,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Spring_Mechanosynthesis().provider
+    self.atomProvider = Spring_Springboard().provider
     eventTracker.playerState.position = [0, 0, 2]
 //    self.ioSimulation()
 //    self.saveGIF()
