@@ -8,7 +8,7 @@ Author: Philip Turner
 What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working on a large engineering knowledge base with machine specification in atomic detail.
 
 Documentation
-- [Hardware Catalog](./HardwareCatalog/HardwareCatalogOverview.md)
+- [Hardware Catalog](./Sources/HardwareCatalog/HardwareCatalogOverview.md)
 - [Modeling Language](./Documentation/HDL.md)
 - [Modules](./Documentation/Modules.md)
 - [MRSimulation Codec](./Documentation/MRSimulation.md)
