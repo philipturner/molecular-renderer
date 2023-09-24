@@ -14,14 +14,12 @@
 public struct Lattice<T: CrystalBasis> {
   var centers: [SIMD3<Float>] = []
   
-  // TODO: Variable for offset of the grid's start from (0, 0, 0).
-  
   /// Unstable API; do not use this function.
   public var _centers: [SIMD3<Float>] { centers }
   
-  public init(_ closure: () -> Void) {
+  public init(_ closure: (Vector<T>, Vector<T>, Vector<T>) -> Void) {
     Compiler.global.startLattice(type: T.self)
-    closure()
+    closure(T.h, T.k, T.l)
     self.centers = Compiler.global.endLattice(type: T.self)
   }
 }

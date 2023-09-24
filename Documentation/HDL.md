@@ -155,6 +155,12 @@ Hexagonal: Basis
 
 Coordinate spaces for defining vectors in.
 
+```swift
+Bounds { Vector }
+```
+
+Sets the working set of crystal unit cells. The box spans `min(current origin, specified vector)` to `max(current origin, specified vector)` where `min` and `max` operate lane-wise on vectors.
+
 | Basis | Use | Units |
 | ----- | --- | ----- |
 | Amorphous[^1] | defining positions of solids | nanometers |
@@ -162,14 +168,14 @@ Coordinate spaces for defining vectors in.
 | Hexagonal | editing hexagonal lattices | multiples of crystal unit cell width |
 
 ```swift
-Lattice<Basis> { 
+Lattice<Basis> { h, k, l in
   Material { ... }
   Bounds { ... }
 }
-Lattice<Basis> {
+Lattice<Basis> { h, k, l in
   Copy { Lattice<Basis> }
 }
-Lattice<Basis> {
+Lattice<Basis> { h, k, l in
   Affine {
     Copy { Lattice<Basis> }
   }
@@ -179,17 +185,6 @@ Lattice<Basis> {
 Create a lattice of crystal unit cells to carve. Coordinates are stored in numbers of crystal unit cells.
 
 ```swift
-Solid { 
-  Copy { Lattice<Basis> }
-}
-Solid {
-  Copy { Solid }
-}
-```
-
-Create a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
-
-```swift
 Material { Element }
 Material { [Element] }
 ```
@@ -197,10 +192,21 @@ Material { [Element] }
 Accepts `.carbon` for diamond and lonsdaleite, `[.carbon, .silicon]` for cubic moissanite. More materials may be added in the future, such as elemental silicon and compounds with titanium.
 
 ```swift
-Bounds { Vector }
+RigidBody
 ```
 
-Sets the working set of crystal unit cells. The box spans `min(current origin, specified vector)` to `max(current origin, specified vector)` where `min` and `max` operate lane-wise on vectors.
+Exposes the functionality from [Diamondoid](../Sources/MolecularRendererApp/Scenes/Procedural Geometry/Diamondoid.swift). Documentation for this API is in progress.
+
+```swift
+Solid { x, y, z in
+  Copy { Lattice<Basis> }
+}
+Solid { x, y, z in
+  Copy { Solid }
+}
+```
+
+Create a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
 
 ### Object Transforms
 
@@ -268,17 +274,25 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 ### Vectors
 
 ```swift
-// Rhombic constants refer to a 3D rhombohedron spanning the smallest
-// repeatable unit of hexagonal diamond, which can tile like a cuboid.
-public let a: Vector<Hexagonal> = [0, 0, 1] * rhombic ab constant
-public let b: Vector<Hexagonal> = [0.866, 0, -0.5] * rhombic ab constant
-public let c: Vector<Hexagonal> = [0, 1, 0] * rhombic c constant
-public let h: Vector<Cubic> = [1, 0, 0] * lattice constant
-public let k: Vector<Cubic> = [0, 1, 0] * lattice constant
-public let l: Vector<Cubic> = [0, 0, 1] * lattice constant
-public let x: Vector<Amorphous> = [1, 0, 0] * nanometer
-public let y: Vector<Amorphous> = [0, 1, 0] * nanometer
-public let z: Vector<Amorphous> = [0, 0, 1] * nanometer
+// Lattice vectors originate from the smallest repeatable unit of crystal. For
+// cubic crystals, they are edges of a cube. For hexagonal crystals, they are
+// sides of a hexagonal prism. The vectors aren't always orthogonal, so they are
+// internally translated to nanometers before applying affine transforms.
+//
+// Hexagonal crystals are sometimes described with four unit vectors: h, k, i,
+// and l. The 'i' vector is redundant and equals -h - k, creating a set of 3
+// vectors symmetric around the perimeter of a hexagon. In the HDL, you
+// must use (-h - k) to represent the 'i' vector.
+
+Hexagonal.h: Vector<Hexagonal> = [1, 0, 0] * hexagon side length
+Hexagonal.k: Vector<Hexagonal> = [-0.5, 0.866, 0] * hexagon side length
+Hexagonal.l: Vector<Hexagonal> = [0, 0, 1] * hexagonal prism depth
+Cubic.h: Vector<Cubic> = [1, 0, 0] * lattice spacing
+Cubic.k: Vector<Cubic> = [0, 1, 0] * lattice spacing
+Cubic.l: Vector<Cubic> = [0, 0, 1] * lattice spacing
+Amorphous.x: Vector<Amorphous> = [1, 0, 0] * nanometer
+Amorphous.y: Vector<Amorphous> = [0, 1, 0] * nanometer
+Amorphous.z: Vector<Amorphous> = [0, 0, 1] * nanometer
 ```
 
 Unit vectors representing the crystal's basis.

@@ -443,6 +443,7 @@ fileprivate enum Expression: CustomStringConvertible {
         throw _ParseError(description: "Unrecognized axis: '\(string.description)'")
       }
       var vector: Vector<Cubic>
+      let (h, k, l) = (Cubic.h, Cubic.k, Cubic.l)
       switch string[string.count - 1] {
       case 104: vector = h
       case 107: vector = k

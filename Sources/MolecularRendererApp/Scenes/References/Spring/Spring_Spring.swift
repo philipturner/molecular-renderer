@@ -16,8 +16,7 @@ struct Spring_Spring {
   var diamondoid: Diamondoid!
   
   init() {
-    let springLattice =
-    Lattice<Cubic> {
+    let springLattice = Lattice<Cubic> { h, k, l in
       Material { .carbon }
       let numSections: Int = 2
       let sectionHeight: Int = 4

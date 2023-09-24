@@ -23,13 +23,13 @@ struct Spring_Projectile {
   init() {
     provider = ArrayAtomProvider([MRAtom(origin: .zero, element: 6)])
     
-    _Parse.verbose = true
-    let projectileLattice = Lattice<Cubic> {
-      try! _Parse { "/Users/philipturner/Desktop/file.swift" }
-    }
-    let projectileCarbons = projectileLattice._centers.map {
-      MRAtom(origin: $0 * 0.357, element: 6)
-    }
-    provider = ArrayAtomProvider(projectileCarbons)
+//    _Parse.verbose = true
+//    let projectileLattice = Lattice<Cubic> { x, y, z in
+//      try! _Parse { "/Users/philipturner/Desktop/file.swift" }
+//    }
+//    let projectileCarbons = projectileLattice._centers.map {
+//      MRAtom(origin: $0 * 0.357, element: 6)
+//    }
+//    provider = ArrayAtomProvider(projectileCarbons)
   }
 }

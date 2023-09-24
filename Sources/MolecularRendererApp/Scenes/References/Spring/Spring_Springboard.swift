@@ -20,7 +20,7 @@ struct Spring_Springboard {
     spring.diamondoid.translate(
       offset: 0.357 * [Float(6), Float(0), Float(6)])
     
-    let housingLattice = Lattice<Cubic> {
+    let housingLattice = Lattice<Cubic> { h, k, l in
       Material { .carbon }
       Bounds { 12 * h + 10 * k + 12 * l }
       
@@ -242,7 +242,7 @@ struct Spring_Springboard {
     
     // Animate the creation of this connector and its merging into the housing
     // instances via CSG.
-    let connector1 = Lattice<Cubic> {
+    let connector1 = Lattice<Cubic> { h, k, l in
       Material { .carbon }
       let width: Float = 4
       let height: Float = 7
@@ -287,7 +287,7 @@ struct Spring_Springboard {
     
     // Eventually, this will change to the `Copy` initializer of
     // `Lattice<Basis>`, so that h/j/k unit vectors may be used.
-    let dualHousingSolid = Solid {
+    let dualHousingSolid = Solid { h, k, l in
       Copy { housingLattice }
       Affine {
         Copy { housingLattice }
@@ -517,7 +517,7 @@ struct Spring_Springboard {
       // carving out the half cross section, it slides away in a direction that
       // doesn't collide with any other matter. Completed, hydrogenated rings
       // approach from above/side and slide into place.
-      let ringLattice = Lattice<Cubic> {
+      let ringLattice = Lattice<Cubic> { h, k, l in
         Material { .carbon }
         Bounds { 32 * h + 7 * k + 32 * l }
         
@@ -702,7 +702,7 @@ struct Spring_Springboard {
           Cut()
         }
       }
-      let ringSolid = Solid {
+      let ringSolid = Solid { h, k, l in
         Copy { ringLattice }
         Affine {
           Copy { ringLattice }

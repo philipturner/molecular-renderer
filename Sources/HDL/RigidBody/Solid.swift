@@ -16,9 +16,12 @@ public struct Solid {
   /// in multiples of 0.357 nm, not in nanometers.
   public var _centers: [SIMD3<Float>] { centers }
   
-  public init(_ closure: () -> Void) {
+  // TODO: Change to Vector<Amorphous>
+  public init(_ closure: (
+    Vector<Cubic>, Vector<Cubic>, Vector<Cubic>
+  ) -> Void) {
     Compiler.global.startSolid()
-    closure()
+    closure(Cubic.h, Cubic.k, Cubic.l)
     self.centers = Compiler.global.endSolid()
   }
 }

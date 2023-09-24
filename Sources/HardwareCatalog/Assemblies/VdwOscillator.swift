@@ -15,7 +15,7 @@ public struct VdwOscillator {
 
 func vdwOscillator() {
   // Make a housing, where a solid diamond slab can fit inside it.
-  var housing = Lattice<Cubic> {
+  var housing = Lattice<Cubic> { h, k, l in
     let width: Float = 18
     let thickness: Float = 3
     Material { .carbon }
@@ -190,7 +190,7 @@ func vdwOscillator() {
   
   do {
     let width: Float = 18
-    housing = Lattice<Cubic> {
+    housing = Lattice<Cubic> { h, k, l in
       Copy { housing }
       Affine {
         Copy { housing }
@@ -199,7 +199,7 @@ func vdwOscillator() {
         Rotate { 0.25 * h }
       }
     }
-    housing = Lattice<Cubic> {
+    housing = Lattice<Cubic> { h, k, l in
       Copy { housing }
       Affine {
         Copy { housing }
@@ -207,7 +207,7 @@ func vdwOscillator() {
         Rotate { 0.5 * h }
       }
     }
-    housing = Lattice<Cubic> {
+    housing = Lattice<Cubic> { h, k, l in
       Copy { housing }
       Affine {
         Copy { housing }
@@ -219,7 +219,7 @@ func vdwOscillator() {
   }
   
   // Make a diamond slab that is superlubricant.
-  var rod = Lattice<Cubic> {
+  var rod = Lattice<Cubic> { h, k, l in
     let width: Float = 14
     let thickness: Float = 6
     Material { .carbon }
@@ -271,7 +271,7 @@ func vdwOscillator() {
     }
   }
   
-  rod = Lattice<Cubic> {
+  rod = Lattice<Cubic> { h, k, l in
     Affine {
       Copy { rod }
       Translate { -4 * h + -4 * k }
@@ -282,14 +282,14 @@ func vdwOscillator() {
       Rotate { 0.25 * l }
     }
   }
-  rod = Lattice<Cubic> {
+  rod = Lattice<Cubic> { h, k, l in
     Copy { rod }
     Affine {
       Copy { rod }
       Translate { -1 * l }
     }
   }
-  rod = Lattice<Cubic> {
+  rod = Lattice<Cubic> { h, k, l in
     for i in 0..<3 {
       Affine {
         Copy { rod }
