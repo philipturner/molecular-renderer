@@ -23,3 +23,6 @@ public struct RigidBody {
   // init(lattice:) -> materializes Lattice topology
   // private init(...) -> reduces code duplication between Lattice and Solid
 }
+
+// TODO: Add minimize(steps:) (with a default value for steps) to both RigidBody
+// and Array<RigidBody>, document how to apply it to similar data structures.
