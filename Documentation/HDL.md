@@ -12,7 +12,7 @@ Table of Contents
     - [Levels of Software Complexity](#levels-of-software-complexity)
     - [Simulation](#simulation)
     - [JIT Compiler](#jit-compiler)
-- [Design Hierarchy](#design-hierarchy)
+<!--- [Design Hierarchy](#design-hierarchy)-->
 - [Syntax](#syntax)
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)
@@ -35,7 +35,7 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 |    |    | 5x | sp3 halogen termination, sp3 pure elemental Si, sp3 pure elemental Ge |
 |    |    | 6x | sp3 mixed-element diamondoids with nonuniform lattice constants (sp3 B, sp3 N, sp3 O, sp3 P, sp3 S), sp3 moissanite |
 |    |    | 7x | sp2 aromatic carbon covalently welded to sp3 crystalline lattices (graphene) |
-|    |    | 8x | sp1 carbon (carbyne rods, acetylene rotary bearing) |
+|    |    | 8x | sp1 carbon (carbyne rods, acetylene rotary bearings) |
 |    |    | 20x | GFN-FF |
 |    |    | 100x | LAMMPS, typical DFT code bases |
 
@@ -84,23 +84,23 @@ Key:
 
 There is also a JIT compiler for the language, accepting a strict subset of Swift that contains DSL keywords. This was created out of necessity to bypass long compile times in Swift release mode. The API is still experimental and gated under an underscore (`_Parse`). Documentation can be found in triple-slashed comments at [Parse.swift](../Sources/HDL/Compiler/Parse.swift).
 
-## Design Hierarchy
-
-- `Assembly` (API not yet finalized)
-  - `RigidBody` (API not yet finalized)
-    - `Solid`
-      - `Lattice<Basis>`
-      - Slicing with planes
-      - Automatically removing duplicated atoms from bounding volume intersections
-      - Surface reconstruction
-    - Connecting two different lattice types
-    - Connecting with Kaehler brackets
-  - Surface passivation
-  - Surface energy minimization
-  - Conservation of momentum
-  - (Angular) position/velocity tracking during simulation
-- Multiple discontinuous bodies interlocked in a productive nanosystem
-- Avoid geometries that require welding
+<!--## Design Hierarchy-->
+<!---->
+<!--- `Assembly` (API not yet finalized)-->
+<!--  - `RigidBody` (API not yet finalized)-->
+<!--    - `Solid`-->
+<!--      - `Lattice<Basis>`-->
+<!--      - Slicing with planes-->
+<!--      - Automatically removing duplicated atoms from bounding volume intersections-->
+<!--      - Surface reconstruction-->
+<!--    - Connecting two different lattice types-->
+<!--    - Connecting with Kaehler brackets-->
+<!--  - Surface passivation-->
+<!--  - Surface energy minimization-->
+<!--  - Conservation of momentum-->
+<!--  - (Angular) position/velocity tracking during simulation-->
+<!--- Multiple discontinuous bodies interlocked in a productive nanosystem-->
+<!--- Avoid geometries that require welding-->
 
 ## Syntax
 
