@@ -12,7 +12,6 @@ Table of Contents
     - [Levels of Software Complexity](#levels-of-software-complexity)
     - [Simulation](#simulation)
     - [JIT Compiler](#jit-compiler)
-<!--- [Design Hierarchy](#design-hierarchy)-->
 - [Syntax](#syntax)
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)

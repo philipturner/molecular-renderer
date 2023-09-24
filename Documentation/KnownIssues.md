@@ -1,6 +1,6 @@
 # Known Issues
 
-## MolecularRenderer
+## MolecularRenderer Module
 
 Acceleration structures:
 
