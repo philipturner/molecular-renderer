@@ -9,6 +9,7 @@ This is a precursor to the eventual hardware description language that atomCAD w
 
 Table of Contents
 - [How it Works](#how-it-works)
+    - [Levels of Software Complexity](#levels-of-software-complexity)
     - [Simulation](#simulation)
     - [JIT Compiler](#jit-compiler)
 - [Design Hierarchy](#design-hierarchy)
@@ -21,11 +22,30 @@ Table of Contents
 
 ## How it Works
 
-At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally intensive. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed. Part of the compiler is boolean masks over a grid on single-core CPU. Another part is energy minimizations on the GPU.
+At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally intensive. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed.
+
+### Levels of Software Complexity
+
+| This repository is currently here | Current plan is to jump here | complexity | |
+| - | - | - | - |
+| ✅ |    | 1x | sp3 6-ring carbon (diamond) |
+|    |    | 2x | sp3 6-ring carbon (lonsdaleite) |
+|    |    | 3x | sp3 5-ring carbon (sharp corners (100) surfaces) |
+|    | ✅ | 4x | OpenMM external forces |
+|    |    | 5x | sp3 halogen termination, sp3 pure elemental Si, sp3 pure elemental Ge |
+|    |    | 6x | sp3 mixed-element diamondoids with nonuniform lattice constants (sp3 B, sp3 N, sp3 O, sp3 P, sp3 S), sp3 moissanite |
+|    |    | 7x | sp2 aromatic carbon covalently welded to sp3 crystalline lattices (graphene) |
+|    |    | 8x | sp1 carbon (carbyne rods, acetylene rotary bearing) |
+|    |    | 20x | GFN-FF |
+|    |    | 100x | LAMMPS, typical DFT code bases |
 
 ### Simulation
 
-The forcefield is based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
+Short-term goal: only use the parameters from the first MM4 research paper. Support every possible structure that can be simulated with those parameters.
+- 6-ring sp3 carbon (diamond, lonsdaleite)
+- 5-ring sp3 carbon (sharp corners, (100) surfaces)
+
+Long-term goal: forcefield based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
 
 | MM4 Atom Type | 6-ring | 5-ring | 4-ring | 3-ring |
 | - | - | - | - | - |
