@@ -68,21 +68,6 @@ public class MM4ForceField {
     
   }
   
-  /// Adjust the atom positions to be in the lowest-energy state.
-  ///
-  /// Typically, this is called when the bulk of the crystolecule is set to be
-  /// stationary. It ignores the system's temperature and produces the
-  /// lowest-energy structure at 0 Kelvin. It also ignores the maximum time step
-  /// and uses a stepping scheme that minimizes numerical instability.
-  public func minimize() {
-    // Lazily create the following forces:
-    // - van der Waals (Lennard-Jones 4-2)
-    // - van der Waals (Lennard-Jones 12-6)
-    // - bond stretch (harmonic)
-    // - bond bend (harmonic)
-    // - bond bend (quartic)
-  }
-  
   /// Simulate the system's evolution for the specified time interval (in
   /// picoseconds).
   public func simulate(time: Double) {
