@@ -26,8 +26,8 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 
 ### Levels of Software Complexity
 
-| This repository is currently here | Current plan is to jump here | complexity | |
-| - | - | - | - |
+| This repository is currently here | Current plan is to jump here | Complexity | Description |
+| :-: | :-: | :-: | :-: |
 | ✅ |    | 1x | sp3 6-ring carbon (diamond) |
 |    |    | 2x | sp3 6-ring carbon (lonsdaleite) |
 |    |    | 3x | sp3 5-ring carbon (sharp corners (100) surfaces) |
