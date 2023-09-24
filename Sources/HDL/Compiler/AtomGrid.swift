@@ -121,9 +121,6 @@ struct AtomGrid {
 // TODO: Add a function that returns a map, of how to reorder atoms into
 // Morton order. This will map the atom positions and bonds to a new location.
 // TODO: Add function for forming bonds.
-// TODO: Add function that returns deltas to atom positions, to fix
-// hydrogens when reconstructing (100) surfaces. This function will accept the
-// bond map as input.
 //
 // RigidBody will have a delegated initializer that calls multiple of the above
 // functions, reducing code duplication between Lattice and Solid.
@@ -146,4 +143,10 @@ extension AtomGrid {
     }
     return output
   }
+  
+  // TODO: Add function that returns deltas to atom positions, to fix
+  // hydrogens when reconstructing (100) surfaces. This function will accept the
+  // bond map as input.
+  //
+  // Implement this when adding support for 5-carbon rings.
 }
