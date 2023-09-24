@@ -7,21 +7,21 @@
 
 import Foundation
 
+// Each atom stores the position in the first three lanes, and the atom type
+// in the fourth. -1 corresponds to "sigma bond". When exporting, delete all
+// atoms whose mask slot is zero.
+struct Atom {
+  var data: SIMD4<Float>
+  var position: SIMD3<Float> { unsafeBitCast(data, to: SIMD3<Float>.self) }
+  var atomicNumber: Float {
+    get { data.w }
+    set { data.w = newValue }
+  }
+}
+
 struct AtomGrid {
   // Tolerance for floating-point error when comparing atom positions.
   static let epsilon: Float = 0.001
-  
-  // Each atom stores the position in the first three lanes, and the atom type
-  // in the fourth. -1 corresponds to "sigma bond". When exporting, delete all
-  // atoms whose mask slot is zero.
-  struct Atom {
-    var data: SIMD4<Float>
-    var position: SIMD3<Float> { unsafeBitCast(data, to: SIMD3<Float>.self) }
-    var type: Float {
-      get { data.w }
-      set { data.w = newValue }
-    }
-  }
   
   // When appending an atom to a cell, add (1 << atoms.count) to the bitmask.
   // Measure the array count before, not after, adding the new atom.
@@ -48,8 +48,9 @@ struct AtomGrid {
           let other = atoms.unsafelyUnwrapped[index]
           let selectMask: UInt64 = 1 << index
           
-          if self.mask & selectMask == 0 || other.type < element.type {
-            atoms?[index].type = element.type
+          if self.mask & selectMask == 0 ||
+              other.atomicNumber < element.atomicNumber {
+            atoms?[index].atomicNumber = element.atomicNumber
           }
           self.mask |= selectMask
           return
@@ -117,10 +118,32 @@ struct AtomGrid {
   }
 }
 
-// TODO: Add a function for extracting all atoms from the grid in the order
-// they appear.
 // TODO: Add a function that returns a map, of how to reorder atoms into
 // Morton order. This will map the atom positions and bonds to a new location.
+// TODO: Add function for forming bonds.
+// TODO: Add function that returns deltas to atom positions, to fix
+// hydrogens when reconstructing (100) surfaces. This function will accept the
+// bond map as input.
+//
+// RigidBody will have a delegated initializer that calls multiple of the above
+// functions, reducing code duplication between Lattice and Solid.
 extension AtomGrid {
+  private func cellsPrefixSum() -> [Int32] {
+    var output: [Int32] = []
+    var sum: Int = 0
+    for cell in self.cells {
+      output.append(Int32(truncatingIfNeeded: sum))
+      sum += cell.atoms?.count ?? 0
+    }
+    return output
+  }
   
+  // WARNING: This is a computed property. Access it sparingly.
+  var atoms: [Atom] {
+    var output: [Atom] = []
+    for cell in self.cells where cell.atoms != nil {
+      output.append(contentsOf: cell.atoms.unsafelyUnwrapped)
+    }
+    return output
+  }
 }

@@ -29,8 +29,8 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 | :-: | :-: | :-: | :-: | :-: |
 | ✅ |    |    | 1x | sp3 6-ring carbon (diamond) |
 |    |    |    | 2x | sp3 6-ring carbon (lonsdaleite) |
-|    | ✅ |    | 3x | sp3 5-ring carbon (sharp corners, (100) surfaces) |
-|    |    |    | 4x | OpenMM external forces |
+|    |    |    | 3x | sp3 5-ring carbon (sharp corners, (100) surfaces) |
+|    | ✅ |    | 4x | OpenMM external forces |
 |    |    |    | 5x | sp3 halogen termination, sp3 pure elemental Si, sp3 pure elemental Ge |
 |    |    | ✅ | 6x | sp3 mixed-element diamondoids with nonuniform lattice constants (sp3 B, sp3 N, sp3 O, sp3 P, sp3 S), sp3 moissanite |
 |    |    |    | 7x | sp2 aromatic carbon covalently welded to sp3 crystalline lattices (graphene) |
