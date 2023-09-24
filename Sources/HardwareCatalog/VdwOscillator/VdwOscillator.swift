@@ -7,13 +7,7 @@
 
 import HDL
 
-public struct VdwOscillator {
-  public init() {
-    
-  }
-}
-
-func vdwOscillator() {
+internal func vdwOscillator() {
   // Make a housing, where a solid diamond slab can fit inside it.
   var housing = Lattice<Cubic> { h, k, l in
     let width: Float = 18

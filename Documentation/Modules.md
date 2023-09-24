@@ -24,15 +24,11 @@
 
 ## Simulation
 
-- DFT[^1]
-  - Density functional theory library
-  - Used for simulating bond-breaking mechanosynthesis reactions
 - MM4[^1]
   - MM4 molecular dynamics forcefield
   - Algorithms for traversing the bond topology and assigning force parameters
 - OpenMM, COpenMM
   - Swift bindings for OpenMM
 
-[^1]: Unfinished, not in a production-ready state
 [^2]: Only compiles on Apple platforms
 

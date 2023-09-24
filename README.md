@@ -25,7 +25,7 @@ It is a measure of collaboration that source code is being shared. Most projects
 > ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
 
 Short-Term (next few weeks)
-- Port core functionality to Linux and Windows
+- Port core functionality to Linux and Windows - **in progress**
 - Modularize the source code, allow the simulator to be used with external renderers
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
 - Create a domain-specific language and geometry compiler for crystolecule design ✅
@@ -36,12 +36,11 @@ Medium-Term (next few months)
 - Combine the bounded continuum model (introduced in _Nanosystems_) with an $O(n)$ method for simulating bulk deformations
   - Enable quick prototyping of assemblies with over 100,000 atoms
 - Create tutorials to onboard new nanomechanical engineers (Jupyter notebooks, online DocC tutorials, etc.)
-- Exploratory engineering work on mechanical computers
 
 Long-Term (next few years)
 - Create a simulator for mechanosynthesis reactions, and novel rendering algorithms to interpret simulation results
   - Ab initio and semiempirical methods such as DFT, [GFN-xTB, GFN-FF](https://github.com/grimme-lab/xtb)
-- Plugin for Eric Drexler's MSEP program, which utilizes their GUI, but adds new CAD or simulation functionality
+- Plugins for other CAD programs, which utilize their GUI, but add new design or simulation functionality
 
 Non-Goals
 - Create a SAMSON plugin

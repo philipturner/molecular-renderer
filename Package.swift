@@ -9,9 +9,6 @@ var products: [Product] = [
     name: "COpenMM",
     targets: ["COpenMM"]),
   .library(
-    name: "DFT",
-    targets: ["DFT"]),
-  .library(
     name: "HardwareCatalog",
     targets: ["HardwareCatalog"]),
   .library(
@@ -29,20 +26,16 @@ var targets: [Target] = [
     name: "COpenMM",
     dependencies: []),
   .target(
-    name: "DFT",
-    dependencies: []),
-  .target(
     name: "HardwareCatalog",
-    dependencies: ["HDL"]),
+    dependencies: ["HDL", "MM4"]),
   .target(
     name: "HDL",
-    dependencies: ["MM4"]),
-  .target(
-    name: "MM4",
     dependencies: [
       .product(name: "QuaternionModule", package: "swift-numerics"),
-      "OpenMM"
     ]),
+  .target(
+    name: "MM4",
+    dependencies: ["OpenMM"]),
   .target(
     name: "OpenMM",
     dependencies: ["COpenMM"]),
