@@ -21,4 +21,5 @@ public struct RigidBody {
   
   // init(solid:) -> materializes Solid topology
   // init(lattice:) -> materializes Lattice topology
+  // private init(...) -> reduces code duplication between Lattice and Solid
 }

@@ -118,12 +118,6 @@ struct AtomGrid {
   }
 }
 
-// TODO: Add a function that returns a map, of how to reorder atoms into
-// Morton order. This will map the atom positions and bonds to a new location.
-// TODO: Add function for forming bonds.
-//
-// RigidBody will have a delegated initializer that calls multiple of the above
-// functions, reducing code duplication between Lattice and Solid.
 extension AtomGrid {
   private func cellsPrefixSum() -> [Int32] {
     var output: [Int32] = []
@@ -135,7 +129,7 @@ extension AtomGrid {
     return output
   }
   
-  // WARNING: This is a computed property. Access it sparingly.
+  /// WARNING: This is a computed property. Access it sparingly.
   var atoms: [Atom] {
     var output: [Atom] = []
     for cell in self.cells where cell.atoms != nil {
@@ -144,9 +138,40 @@ extension AtomGrid {
     return output
   }
   
-  // TODO: Add function that returns deltas to atom positions, to fix
-  // hydrogens when reconstructing (100) surfaces. This function will accept the
-  // bond map as input.
+  /// WARNING: This is a computed property. Access it sparingly.
+  ///
+  /// Returns a map, of the atoms' new locations when arranged in Morton order.
+  var mortonReordering: [Int32] {
+    fatalError("Not implemented.")
+  }
+  
+  /// WARNING: This is a computed property. Access it sparingly.
+  ///
+  /// If a carbon has more than four bonds, this returns [-2, -2, -2, -2].
+  /// Therefore, code checking for invalid bonds should simply check whether the
+  /// bond index is less than zero.
+  var bonds: [SIMD4<Int32>] {
+    fatalError("Not implemented.")
+  }
+  
+  /// Returns places where passivation must occur.
+  ///
+  /// The first 3 slots store the position. The last one stores the atom index
+  /// as a floating point number. Passivations corresponding to the same atom
+  /// are stored contiguously in memory.
+  ///
+  /// If the atom is already passivated at a specific location, that location isn't
+  /// returned. Instead, you can check whether a specific atom from the bond
+  /// map is hydrogen or a single bond. Duplicated passivations will connect two
+  /// carbons to the same hydrogen.
+  ///
+  /// NOTE: In the DSL, `Passivate` must override previous passivations.
+  func passivations(bonds: [SIMD4<Int32>]) -> [SIMD4<Float>] {
+    fatalError("Not implemented.")
+  }
+  
+  // When adding support for 5-carbon rings (implementing the new MM4):
   //
-  // Implement this when adding support for 5-carbon rings.
+  // Add a function that returns deltas to atom positions, to fix hydrogens when
+  // reconstructing (100) surfaces. This function accepts the bond map as input.
 }

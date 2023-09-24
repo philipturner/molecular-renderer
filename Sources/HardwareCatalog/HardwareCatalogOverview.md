@@ -7,12 +7,13 @@ Overview:
 - Each file contains some carbon-center stage geometry, which relies on "HDL".
   - Precursor: finish implementing the `Lattice` type, so it conforms to the documented API. Add support for hexagonal diamond.
   - Sometimes, a part may be revised to improve performance, often due to new atom types added to the force field. To avoid breaking existing assemblies that use this part, create a new part. It has the same name as the previous one, but with `_V2` appended to it.
+      - If used very often, this scheme may be refactored into an API accepting version strings. Prepare for this change by making subsequent versions have the same properties/members as the original.
 - Each file contains some code for testing the part, which relies on the new "MM4" (module not built yet). The old MM4 accepts all the data needed by the new MM4.
   - The test case may be arbitrarily defined, just something you can run to prove the part works.
   - Should provide a way to extract the atom trajectory from the simulation, serialize to MRSimulation, they replay somewhere else.
     - Precursor: cross-platform MRSimulation encoder.
     - Precursor: decide on the best API for returning atom trajectories.
-    
+
 Near-term:
 - Host the source code for the `Lattice` and the documentation in the catalog.
 - Keep appending files to the "MolecularRendererApp/Scenes/References" directory, which is already quite exhausted.
