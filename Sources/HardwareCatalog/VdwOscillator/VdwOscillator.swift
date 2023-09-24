@@ -290,6 +290,7 @@ internal func vdwOscillator() {
         Translate { Float(i) * h + Float(-i) * k }
       }
     }
+    Passivate { .hydrogen }
     Volume {
       let thickness: Float = 6
       Convex {
@@ -300,9 +301,8 @@ internal func vdwOscillator() {
         Origin { -(thickness - 0.25) * l }
         Plane { -l }
       }
-      Replace { .single }
+      Passivate { .single }
     }
-    Passivate { .hydrogen }
   }
   
   // Last steps: casting to Solid and making the assembly

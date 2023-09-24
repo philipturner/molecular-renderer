@@ -5,11 +5,14 @@
 //  Created by Philip Turner on 9/1/23.
 //
 
-import Foundation
-
 public struct Passivate {
   @discardableResult
-  public init(_ closure: () -> HDL.Element) {
+  public init(_ closure: () -> Element) {
+    fatalError("Not implemented.")
+  }
+  
+  @discardableResult
+  public init(_ closure: () -> Bond) {
     fatalError("Not implemented.")
   }
 }

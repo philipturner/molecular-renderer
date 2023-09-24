@@ -9,13 +9,15 @@ public enum Bond {
   case single
   case double
   case triple
-  case fractional(Int, Int) // TODO: Better solution for graphene
+  case fractional(Int, Int)
 }
 
 public enum Element: Int, CustomStringConvertible {
   case hydrogen = 1
   case carbon = 6
+  case fluorine = 9
   case silicon = 14
+  case chlorine = 17
   case germanium = 32
   
   public init(_ atomicNumber: Int) {
@@ -26,7 +28,9 @@ public enum Element: Int, CustomStringConvertible {
     switch self {
     case .hydrogen: return ".hydrogen"
     case .carbon: return ".carbon"
+    case .fluorine: return ".fluorine"
     case .silicon: return ".silicon"
+    case .chlorine: return ".chlorine"
     case .germanium: return ".germanium"
     }
   }
@@ -34,12 +38,12 @@ public enum Element: Int, CustomStringConvertible {
 
 public struct Material {
   @discardableResult
-  public init(_ closure: () -> HDL.Element) {
+  public init(_ closure: () -> Element) {
     self.init { [closure()] }
   }
   
   @discardableResult
-  public init(_ closure: () -> [HDL.Element]) {
+  public init(_ closure: () -> [Element]) {
     let elements = closure()
     if elements.count == 1 {
       switch elements[0] {
