@@ -17,4 +17,4 @@ Near-term:
   - Rewrite the code from "MolecularRendererApp/Scenes/References" for the parts created before the switch.
 
 Index:
-- [Vdw Oscillator](./VdwOscillator/VdwOscillator.md)
+- [Vdw Oscillator](./VdwOscillator/README.md)
