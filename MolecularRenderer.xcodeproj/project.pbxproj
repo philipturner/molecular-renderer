@@ -281,8 +281,8 @@
 		98D2A3322AA2DF4D000DBAA0 /* KnownIssues.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = KnownIssues.md; sourceTree = "<group>"; };
 		98D9758B2AC07FE00052EE6C /* RigidBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidBody.swift; sourceTree = "<group>"; };
 		98D975902AC088260052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		98D975912AC089090052EE6C /* VdwOscillator_Image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VdwOscillator_Image1.png; sourceTree = "<group>"; };
-		98D975922AC089090052EE6C /* VdwOscillator_Image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VdwOscillator_Image2.png; sourceTree = "<group>"; };
+		98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image1.jpg; sourceTree = "<group>"; };
+		98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image2.jpg; sourceTree = "<group>"; };
 		98DA27C22A3F687500AFE8B7 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		98DA27C62A3F69C800AFE8B7 /* shim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shim.c; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
@@ -665,8 +665,8 @@
 		98D9758F2AC088000052EE6C /* VdwOscillator */ = {
 			isa = PBXGroup;
 			children = (
-				98D975912AC089090052EE6C /* VdwOscillator_Image1.png */,
-				98D975922AC089090052EE6C /* VdwOscillator_Image2.png */,
+				98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */,
+				98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */,
 				98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */,
 				98D975902AC088260052EE6C /* README.md */,
 			);
