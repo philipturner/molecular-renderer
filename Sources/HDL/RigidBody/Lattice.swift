@@ -15,7 +15,7 @@ public struct Lattice<T: CrystalBasis> {
   var centers: [SIMD3<Float>] = []
   
   /// Unstable API; do not use this function.
-  public var _centers: [SIMD3<Float>] { centers }
+  public var _centers: [SIMD3<Float>] { centers.map { $0 / 1 } }
   
   public init(_ closure: (Vector<T>, Vector<T>, Vector<T>) -> Void) {
     Compiler.global.startLattice(type: T.self)

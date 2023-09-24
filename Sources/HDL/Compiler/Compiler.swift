@@ -105,7 +105,7 @@ extension Compiler {
     defer { reset() }
     
     if let stack {
-      return stack.result.makeCenters()
+      return stack.result.makeCenters().map { $0 * 1 }
     } else {
       return []
     }
@@ -128,9 +128,6 @@ extension Compiler {
     // origin, but the bounds are positive, etc).
     precondition(all(bounds .> 0))
     stack = Stack(dimensions: bounds)
-    
-    let currentAtoms = stack!.result.makeCenters()
-    keyFrames.append(.stationary(currentAtoms))
   }
   
   func startVolume() {
@@ -176,22 +173,7 @@ extension Compiler {
   
   func performCut() {
     assertBoundsSet()
-    
-    let previousMask = stack!.result
     stack!.cut()
-    var deletedMask = stack!.result
-    deletedMask.not()
-    deletedMask.and(mask: previousMask)
-    
-    // TODO: Make an animation from each plane placement, instead of requiring
-    // manual placement of Cut(), looks like a smooth progression with multiple
-    // cuts decaying simultaneously
-    let deletedAtoms = deletedMask.makeCenters()
-    let currentAtoms = stack!.result.makeCenters()
-    keyFrames.append(
-      .moving(currentAtoms, deletedAtoms,
-        .fade(stack!.origins.last!)))
-    keyFrames.append(.stationary(currentAtoms))
   }
 }
 
@@ -216,9 +198,7 @@ extension Compiler {
     defer { reset() }
     
     if let solidStack {
-      // Not transforming from lattice space to nanometers (i.e. multiplying by
-      // 0.357 for diamond).
-      return solidStack.centers.keys.map { $0 }
+      return solidStack.centers.keys.map { $0 * 0.357 }
     } else {
       return []
     }
@@ -242,52 +222,20 @@ extension Compiler {
   func performCopy(_ centers: [SIMD3<Float>]) {
     assertSolid()
     solidStack!.addCenters(centers, affine: didSetAffine)
-    
-    if !didSetAffine {
-      let currentAtoms = solidStack!.centers.keys.map { $0 }
-      keyFrames.append(.stationary(currentAtoms))
-    }
-    
   }
   
   func performReflect(_ vector: SIMD3<Float>) {
     assertAffine()
     solidStack!.applyReflect(vector)
-    
-    let currentAtoms = solidStack!.centers.keys.map { $0 }
-    let copyAtoms = solidStack!.affineCenters!.keys.map { $0 }
-    keyFrames.append(
-      .moving(currentAtoms, copyAtoms,
-        .reflect(solidStack!.origins.last!, vector)))
   }
   
   func performRotate(_ vector: SIMD3<Float>) {
     assertAffine()
     solidStack!.applyRotate(vector)
-    
-    func length(_ x: SIMD3<Float>) -> Float {
-      return (x * x).sum().squareRoot()
-    }
-    func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
-      let length = (x * x).sum().squareRoot()
-      return length == 0 ? .zero : (x / length)
-    }
-
-    let currentAtoms = solidStack!.centers.keys.map { $0 }
-    let copyAtoms = solidStack!.affineCenters!.keys.map { $0 }
-    keyFrames.append(
-      .moving(currentAtoms, copyAtoms,
-        .rotate(solidStack!.origins.last!, normalize(vector), length(vector))))
   }
   
   func performTranslate(_ vector: SIMD3<Float>) {
     assertAffine()
     solidStack!.applyTranslate(vector)
-    
-    let currentAtoms = solidStack!.centers.keys.map { $0 }
-    let copyAtoms = solidStack!.affineCenters!.keys.map { $0 }
-    keyFrames.append(
-      .moving(currentAtoms, copyAtoms,
-        .translate(vector)))
   }
 }

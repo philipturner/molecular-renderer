@@ -7,11 +7,6 @@
 
 import Foundation
 
-// MARK: - Hacked Together Internal Representation
-
-// This will be replaced with a more optimized representation that supports both
-// diamond and lonsdaleite.
-
 fileprivate func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
   let length = (x * x).sum().squareRoot()
   return length == 0 ? .zero : (x / length)
@@ -94,8 +89,8 @@ fileprivate struct ReferenceCell {
     }
   }
   
-  func intersect(_ plane: _Plane) -> UInt16 {
-    var output: SIMD16<UInt16> = .zero
+  func intersect(_ plane: _Plane) -> UInt64 {
+    var output: SIMD16<UInt64> = .zero
     for i in 0..<14 {
       let atom = self.atoms[i]
       let delta = atom - plane.origin
@@ -108,7 +103,7 @@ fileprivate struct ReferenceCell {
 
 struct Mask {
   var dimensions: SIMD3<Int32>
-  var data: [UInt16]
+  var data: [UInt64]
   
   init(dimensions: SIMD3<Int32>) {
     self.dimensions = dimensions
@@ -354,6 +349,10 @@ struct SolidStack {
     self.origins.append(.zero)
   }
   
+  // This should instead store a (possibly duplicated) list of carbon centers,
+  // which gets de-duplicated at the end of compilation. Make a common utility
+  // shared between the solid stack and regular stack, which handles sorting of
+  // atoms into an arbitrarily spaced grid.
   mutating func addCenters(_ centers: [SIMD3<Float>], affine: Bool) {
     if affine {
       precondition(affineCenters != nil)
