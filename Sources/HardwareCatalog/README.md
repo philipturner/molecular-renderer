@@ -1,7 +1,11 @@
 # Hardware Catalog
 
 Table of Contents
+- [Overview and Roadmap](#overview-and-roadmap)
+- [Rules](#rules)
 - [Index](#index)
+
+## Overview and Roadmap
 
 Overview:
 - Each file contains some carbon-center stage geometry, which relies on "HDL".
@@ -19,7 +23,15 @@ Near-term:
 - Keep appending files to the "MolecularRendererApp/Scenes/References" directory, which is already quite exhausted.
 - Once the necessary modules are complete, stop appending to the `MolecularRendererApp` directory and write test code inside the respective `HardwareCatalog` file.
 - Rewrite the code from "MolecularRendererApp/Scenes/References" for the parts created before the switch.
-    
+
+Very near-term:
+- The geometry compiler is undergoing an internal restructuring, which affects some of the public API. Working code inside the hardware catalog will need to change during the switch to the updated API. Anticipated changes are minimal; just simple replacement of keywords.
+- Without the restructuring to add lonsdaleite support, the following items can still be added to the catalog. More advanced machines could probably benefit significantly from more geometric flexibility.
+  - Diamond Rope
+  - Octahedral Spring
+
+## Rules
+
 Documentation Rules:
 - Each file contains a Markdown file, located in the same directory as the source folder.
 - The author of the part must be stated at the very top. If there are multiple others, state them in the order of greatest contribution. If two authors have equal contribution, state them alphabetically.
@@ -27,14 +39,15 @@ Documentation Rules:
 
 API Rules:
 - Each part or assembly is a Swift data structure. Code must adhere to mutable value semantics and Swift [API design guidelines](https://www.swift.org/documentation/api-design-guidelines).
+- There are no rules as to what properties, members, or initializers a part must contain. Good practices may be discovered after designing several parts, then enforced by revising old non-conforming parts.
 - If possible, each indexed item should be parametric. The constructor should accept multiple parameters that change the part's geometry. You must test the part under a large range of reasonable parameter combinations.
 - If any parameter combination will produce a non-functional part, you must throw a Swift error. These initializers would be throwing initializers (append the `throws` keyword to the initializer declaration). Such initializers will typically be called with `try!`, but sometimes the user may wish to handle it more gracefully.
 
 ## Index
 
 Index:
-- Diamond Rope (perfect example of something parametric)
-- Octahedral Spring
+- [Diamond Rope](./DiamondRope)
+- [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential
 - Screw
 - [Vdw Oscillator](./VdwOscillator)

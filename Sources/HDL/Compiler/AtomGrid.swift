@@ -189,6 +189,9 @@ extension AtomGrid {
   /// Usually, a 4/8 grid will be regenerated at 4/24 resolution to maximize
   /// spatial locality.
   var mortonReordering: [Int32] {
+    // TODO: Check that results are correct by animating addition of atoms to
+    // the scene, one at a time.
+    
     // Interleave, sort, then deinterleave.
     //
     // Interleaving algorithm:
@@ -268,6 +271,7 @@ extension AtomGrid {
   /// `[-2, -2, -2, -2]`. Therefore, anything checking for invalid bonds should
   /// simply check whether the bond index is less than zero.
   var bonds: [SIMD4<Int32>] {
+    // 0.1545855 nm - carbon-carbon bond length, corrected to match diamond
     fatalError("Not implemented.")
   }
   
