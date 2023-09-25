@@ -31,4 +31,8 @@ API Rules:
 - If any parameter combination will produce a non-functional part, you must throw a Swift error. All parameter initializers are throwing initializer (append the `throws` keyword to the initializer declaration). Such initializers will typically be called with `try!`, but sometimes the user may wish to handle it more gracefully.
 
 Index:
+- Diamond Rope (perfect example of something parametric)
+- Screw
+- Octahedral Spring
+- Pseudogear Rack Differential
 - [Vdw Oscillator](./VdwOscillator/README.md)
