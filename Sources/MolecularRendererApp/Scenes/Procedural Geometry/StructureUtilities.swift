@@ -92,6 +92,7 @@ func sp3Delta(
   return simd_act(rotation, start)
 }
 
+/// Rounds an integer up to the nearest power of 2.
 func roundUpToPowerOf2(_ input: Int) -> Int {
   1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
 }

@@ -7,6 +7,16 @@
 
 import Foundation
 
+/// Rounds an integer up to the nearest power of 2.
+fileprivate func roundUpToPowerOf2(_ input: Int) -> Int {
+  1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)
+}
+
+/// Rounds an integer down to the nearest power of 2.
+fileprivate func roundDownToPowerOf2(_ input: Int) -> Int {
+  1 << (Int.bitWidth - 1 - input.leadingZeroBitCount)
+}
+
 // Each atom stores the position in the first three lanes, and the atom type
 // in the fourth. -1 corresponds to "sigma bond". When exporting, delete all
 // atoms whose mask slot is zero.
@@ -34,15 +44,21 @@ struct AtomGrid {
         atoms = []
       }
       if merging {
-        var matchMask: SIMD64<Int8> = .init(repeating: -1)
-        for i in 0..<atoms.unsafelyUnwrapped.count {
-          let delta = atoms.unsafelyUnwrapped[i].position - element.position
-          let distance = (delta * delta).sum()
-          let index = Int8(truncatingIfNeeded: i)
-          matchMask[i] = (distance < epsilon) ? index : 0
+        var match: Int32 = 0
+        withUnsafeTemporaryAllocation(of: SIMD64<Int8>.self, capacity: 1) {
+          let matchMemory = UnsafeMutablePointer<Int8>(
+            OpaquePointer($0.baseAddress)).unsafelyUnwrapped
+          for i in 0..<atoms.unsafelyUnwrapped.count {
+            let delta = atoms.unsafelyUnwrapped[i].position - element.position
+            let distance = (delta * delta).sum()
+            let index = Int8(truncatingIfNeeded: i)
+            matchMemory[i] = (distance < epsilon) ? index : 0
+          }
+          
+          let matchMask = $0.baseAddress.unsafelyUnwrapped
+          match = Int32(truncatingIfNeeded: matchMask.pointee.max())
         }
         
-        let match = matchMask.max()
         if match > -1 {
           let index = Int(truncatingIfNeeded: match)
           let other = atoms.unsafelyUnwrapped[index]
@@ -108,7 +124,8 @@ struct AtomGrid {
       
       var coords: SIMD3<Int32> = .init(scaledOffset.rounded(.down))
       coords.clamp(lowerBound: .init(repeating: 0), upperBound: dimensions &- 1)
-      cells[address(coords: coords)].append(atom, merging: merging)
+      let address = self.address(coords: coords)
+      cells[address].append(atom, merging: merging)
     }
     
     // Always check that the number of atoms per cell never exceeds 64.
@@ -126,6 +143,7 @@ extension AtomGrid {
       output.append(Int32(truncatingIfNeeded: sum))
       sum += cell.atoms?.count ?? 0
     }
+    output.append(Int32(truncatingIfNeeded: sum))
     return output
   }
   
@@ -141,15 +159,87 @@ extension AtomGrid {
   /// WARNING: This is a computed property. Access it sparingly.
   ///
   /// Returns a map, of the atoms' new locations when arranged in Morton order.
+  /// Usually, a 4/8 grid will be regenerated at 4/24 resolution to maximize
+  /// spatial locality.
   var mortonReordering: [Int32] {
-    fatalError("Not implemented.")
+    // Interleave, sort, then deinterleave.
+    //
+    // Interleaving algorithm:
+    // https://stackoverflow.com/a/18528775
+    //
+    // Deinterleaving algorithm:
+    // https://stackoverflow.com/a/28358035
+    
+    @inline(__always)
+    func morton_interleave(_ input: Int32) -> UInt64 {
+      var x = UInt64(truncatingIfNeeded: input & 0x1fffff)
+      x = (x | x &<< 32) & 0x1f00000000ffff
+      x = (x | x &<< 16) & 0x1f0000ff0000ff
+      x = (x | x &<< 8) & 0x100f00f00f00f00f
+      x = (x | x &<< 4) & 0x10c30c30c30c30c3
+      x = (x | x &<< 2) & 0x1249249249249249
+      return x
+    }
+    
+    @inline(__always)
+    func morton_deinterleave(_ input: UInt64) -> Int32 {
+      var x = input & 0x9249249249249249
+      x = (x | (x &>> 2))  & 0x30c30c30c30c30c3
+      x = (x | (x &>> 4))  & 0xf00f00f00f00f00f
+      x = (x | (x &>> 8))  & 0x00ff0000ff0000ff
+      x = (x | (x &>> 16)) & 0xffff00000000ffff
+      x = (x | (x &>> 32)) & 0x00000000ffffffff
+      return Int32(truncatingIfNeeded: x)
+    }
+    
+    var mortonIndices: [UInt64] = []
+    for z in 0..<dimensions.z {
+      for y in 0..<dimensions.y {
+        for x in 0..<dimensions.x {
+          let address = self.address(coords: SIMD3(x, y, z))
+          if cells[address].atoms?.count ?? 0 > 0 {
+            let morton_x = morton_interleave(x)
+            let morton_y = morton_interleave(y)
+            let morton_z = morton_interleave(z)
+            
+            var mortonIndex = morton_x
+            mortonIndex |= morton_y << 1
+            mortonIndex |= morton_z << 2
+            mortonIndices.append(mortonIndex)
+          }
+        }
+      }
+    }
+    mortonIndices.sort()
+    
+    let prefixSum = cellsPrefixSum()
+    var outputMap: [Int32] = .init(repeating: -1, count: Int(prefixSum.last!))
+    var outputMapSize: Int = 0
+    for mortonIndex in mortonIndices {
+      let x = morton_deinterleave(mortonIndex)
+      let y = morton_deinterleave(mortonIndex >> 1)
+      let z = morton_deinterleave(mortonIndex >> 2)
+      
+      let address = self.address(coords: SIMD3(x, y, z))
+      guard let atoms = cells[address].atoms else {
+        fatalError("Morton indexing happened incorrectly.")
+      }
+      let inputPrefix = prefixSum[address]
+      let outputPrefix = outputMapSize
+      outputMapSize += atoms.count
+      
+      for i in 0..<atoms.count {
+        outputMap[outputPrefix + i] = inputPrefix + 1
+      }
+    }
+    return outputMap
   }
   
   /// WARNING: This is a computed property. Access it sparingly.
   ///
-  /// If a carbon has more than four bonds, this returns [-2, -2, -2, -2].
-  /// Therefore, code checking for invalid bonds should simply check whether the
-  /// bond index is less than zero.
+  /// If a carbon has more than four bonds, or less than two, this returns
+  /// `[-2, -2, -2, -2]`. Therefore, anything checking for invalid bonds should
+  /// simply check whether the bond index is less than zero.
   var bonds: [SIMD4<Int32>] {
     fatalError("Not implemented.")
   }
