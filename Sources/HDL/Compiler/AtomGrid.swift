@@ -30,8 +30,11 @@ struct Atom {
 }
 
 struct AtomGrid {
-  // Tolerance for floating-point error when comparing atom positions.
-  static let epsilon: Float = 0.001
+  // Tolerance for floating-point error or error in lattice constants when
+  // comparing atom positions.
+  // TODO: Override the nominal lonsdaleite lattice constants so they align
+  // perfectly with diamond (111) surfaces, using 0.357 nm for diamond.
+  static let epsilon: Float = 0.005
   
   // When appending an atom to a cell, add (1 << atoms.count) to the bitmask.
   // Measure the array count before, not after, adding the new atom.
@@ -39,41 +42,42 @@ struct AtomGrid {
     var mask: UInt64
     var atoms: [Atom]?
     
-    mutating func append(_ element: Atom, merging: Bool = false) {
+    func match(_ atom: Atom) -> Int32 {
+      var match: Int32 = -1
+      withUnsafeTemporaryAllocation(of: SIMD64<Int8>.self, capacity: 1) {
+        let matchMemory = UnsafeMutablePointer<Int8>(
+          OpaquePointer($0.baseAddress)).unsafelyUnwrapped
+        for i in 0..<atoms.unsafelyUnwrapped.count {
+          let delta = atoms.unsafelyUnwrapped[i].position - atom.position
+          let distance = (delta * delta).sum()
+          let index = Int8(truncatingIfNeeded: i)
+          matchMemory[i] = (distance < epsilon) ? index : 0
+        }
+        
+        let matchMask = $0.baseAddress.unsafelyUnwrapped
+        match = Int32(truncatingIfNeeded: matchMask.pointee.max())
+      }
+      return match
+    }
+    
+    mutating func append(_ atom: Atom) {
       if atoms == nil {
         atoms = []
       }
-      if merging {
-        var match: Int32 = 0
-        withUnsafeTemporaryAllocation(of: SIMD64<Int8>.self, capacity: 1) {
-          let matchMemory = UnsafeMutablePointer<Int8>(
-            OpaquePointer($0.baseAddress)).unsafelyUnwrapped
-          for i in 0..<atoms.unsafelyUnwrapped.count {
-            let delta = atoms.unsafelyUnwrapped[i].position - element.position
-            let distance = (delta * delta).sum()
-            let index = Int8(truncatingIfNeeded: i)
-            matchMemory[i] = (distance < epsilon) ? index : 0
-          }
-          
-          let matchMask = $0.baseAddress.unsafelyUnwrapped
-          match = Int32(truncatingIfNeeded: matchMask.pointee.max())
-        }
-        
-        if match > -1 {
-          let index = Int(truncatingIfNeeded: match)
-          let other = atoms.unsafelyUnwrapped[index]
-          let selectMask: UInt64 = 1 << index
-          
-          if self.mask & selectMask == 0 ||
-              other.atomicNumber < element.atomicNumber {
-            atoms?[index].atomicNumber = element.atomicNumber
-          }
-          self.mask |= selectMask
-          return
-        }
-      }
       mask |= 1 << atoms.unsafelyUnwrapped.count
-      atoms?.append(element)
+      atoms?.append(atom)
+    }
+    
+    mutating func merge(_ atom: Atom, match: Int32) {
+      let index = Int(truncatingIfNeeded: match)
+      let other = atoms.unsafelyUnwrapped[index]
+      let selectMask: UInt64 = 1 << index
+      
+      if self.mask & selectMask == 0 ||
+          other.atomicNumber < atom.atomicNumber {
+        atoms?[index].atomicNumber = atom.atomicNumber
+      }
+      self.mask |= selectMask
     }
   }
   
@@ -114,6 +118,7 @@ struct AtomGrid {
   // duplicated atoms. When merging multiple grids, consider setting 'merging'
   // to 'false' when adding atoms from the first grid.
   mutating func append(contentsOf other: [Atom], merging: Bool = false) {
+  outer:
     for atom in other {
       let offset = atom.position - origin
       var scaledOffset = offset / cellWidth
@@ -123,9 +128,31 @@ struct AtomGrid {
       }
       
       var coords: SIMD3<Int32> = .init(scaledOffset.rounded(.down))
-      coords.clamp(lowerBound: .init(repeating: 0), upperBound: dimensions &- 1)
+      coords.clamp(lowerBound: SIMD3.zero, upperBound: dimensions &- 1)
+      if merging {
+        let delta = scaledOffset - SIMD3<Float>(coords)
+        var starts: SIMD3<Int32> = .init(repeating: -1)
+        starts.replace(with: SIMD3.zero, where: delta .>= 0.5)
+        
+        for z in starts.z...starts.z + 1 {
+          for y in starts.y...starts.y + 1 {
+            for x in starts.x...starts.x + 1 {
+              var adjusted = coords &+ SIMD3(x, y, z)
+              if all(adjusted .>= 0 .& adjusted .<= dimensions &- 1) {
+                let address = self.address(coords: coords)
+                let match = cells[address].match(atom)
+                if match > -1 {
+                  cells[address].merge(atom, match: match)
+                  continue outer
+                }
+              }
+            }
+          }
+        }
+      }
+      
       let address = self.address(coords: coords)
-      cells[address].append(atom, merging: merging)
+      cells[address].append(atom)
     }
     
     // Always check that the number of atoms per cell never exceeds 64.
@@ -248,7 +275,10 @@ extension AtomGrid {
   ///
   /// The first 3 slots store the position. The last one stores the atom index
   /// as a floating point number. Passivations corresponding to the same atom
-  /// are stored contiguously in memory.
+  /// are stored contiguously in memory. The atoms resulting from the
+  /// passivations should be run through `.append` in a separate call, which
+  /// prevents any atoms from being duplicated. Then, the bond topology should
+  /// be regenerated, as the atoms are in a different order.
   ///
   /// If the atom is already passivated at a specific location, that location isn't
   /// returned. Instead, you can check whether a specific atom from the bond
@@ -257,6 +287,7 @@ extension AtomGrid {
   ///
   /// NOTE: In the DSL, `Passivate` must override previous passivations.
   func passivations(bonds: [SIMD4<Int32>]) -> [SIMD4<Float>] {
+    // 0.1545855 nm - carbon-carbon bond length, corrected to match diamond
     fatalError("Not implemented.")
   }
   
