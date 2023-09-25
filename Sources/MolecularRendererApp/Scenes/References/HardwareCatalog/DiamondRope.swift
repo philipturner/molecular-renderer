@@ -23,7 +23,8 @@ struct DiamondRope_Provider {
     }
     provider = ArrayAtomProvider(ropeAtoms)
     
-    // Covalently weld some weights onto the ends.
+    // Covalently weld some weights onto the ends (use large rhombic
+    // dodecahedra for the weights).
     // Scene 1: a jig in the middle spinning around the rope like a spiral.
     // Scene 2: four jigs bending the rope into a Z.
     

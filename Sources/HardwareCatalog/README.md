@@ -54,5 +54,6 @@ Index:
 - [Diamond Rope](./DiamondRope)
 - [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential
+- [Rhombic Dodecahedron](./RhombicDodecahedron)
 - Screw
 - [vdW Oscillator](./VdwOscillator)
