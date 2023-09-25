@@ -1,4 +1,4 @@
-# Vdw Oscillator
+# vdW Oscillator
 
 Author: Philip Turner
 

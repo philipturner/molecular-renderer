@@ -55,4 +55,4 @@ Index:
 - [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential
 - Screw
-- [Vdw Oscillator](./VdwOscillator)
+- [vdW Oscillator](./VdwOscillator)

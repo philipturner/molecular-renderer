@@ -17,7 +17,7 @@ struct DiamondRope_Provider {
   var diamondoid: Diamondoid!
   
   init() {
-    let rope = DiamondRope(height: 3, width: 2, length: 11)
+    let rope = try! DiamondRope(height: 3.5, width: 1, length: 11)
     let ropeAtoms = rope.lattice._centers.map {
       MRAtom(origin: $0 * 0.357, element: 6)
     }
