@@ -7,7 +7,7 @@ Author: Philip Turner
 Description: perfect example of something parametric.
 
 Parameters:
-- Height (Float) - Measures the cross-section, typically 1-2 unit cells.
+- Height (Float) - Measures the cross-section, typically 1-2 unit cells. Must have .5 in the decimal place.
 - Width (Float) - Measures the cross-section, typically 1-2 unit cells. Must be divisible by 0.5.
 - Length (Int) - Measures the distance between two ends of the rope, typically several dozen unit cells. This is the number of cells along a diagonal (TODO: explain in more detail).
 
