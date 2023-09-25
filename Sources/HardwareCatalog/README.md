@@ -34,6 +34,7 @@ API Rules:
 
 Index:
 - Diamond Rope (perfect example of something parametric)
+  - Potentially more practical alternative: chains
 - Octahedral Spring
 - Pseudogear Rack Differential
 - Screw
