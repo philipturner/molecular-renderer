@@ -17,7 +17,10 @@ struct DiamondRope_Provider {
   var diamondoid: Diamondoid!
   
   init() {
-    let rope = DiamondRope()
-    fatalError("Not implemented.")
+    let rope = DiamondRope(height: 2, width: 2, length: 10)
+    let ropeAtoms = rope.lattice._centers.map {
+      MRAtom(origin: $0 * 0.357, element: 6)
+    }
+    provider = ArrayAtomProvider(ropeAtoms)
   }
 }

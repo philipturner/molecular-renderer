@@ -46,6 +46,7 @@ API Rules:
 - Parameter types:
   - Integer parameters should use the Swift `Int` type (a 64-bit integer) unless there is good reason to use a different integral type.
   - Floating-point parameters should use the Swift `Float` type (a 32-bit real number) unless there is significant need for using double precision.
+  - Distances are always measured in nanometers.
 
 ## Index
 
