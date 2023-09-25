@@ -32,7 +32,7 @@ API Rules:
 
 Index:
 - Diamond Rope (perfect example of something parametric)
-- Screw
 - Octahedral Spring
 - Pseudogear Rack Differential
+- Screw
 - [Vdw Oscillator](./VdwOscillator/README.md)
