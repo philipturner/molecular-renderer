@@ -28,7 +28,7 @@ Documentation Rules:
 API Rules:
 - Each part or assembly is a Swift data structure. Code must adhere to mutable value semantics and Swift [API design guidelines](https://www.swift.org/documentation/api-design-guidelines).
 - If possible, each indexed item should be parametric. The constructor should accept multiple parameters that change the part's geometry. You must test the part under a large range of reasonable parameter combinations.
-- If any parameter combination will produce a non-functional part, you must throw a Swift error. All parameter initializers are throwing initializer (append the `throws` keyword to the initializer declaration). Such initializers will typically be called with `try!`, but sometimes the user may wish to handle it more gracefully.
+- If any parameter combination will produce a non-functional part, you must throw a Swift error. These initializers would be throwing initializers (append the `throws` keyword to the initializer declaration). Such initializers will typically be called with `try!`, but sometimes the user may wish to handle it more gracefully.
 
 ## Index
 
