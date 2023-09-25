@@ -222,7 +222,7 @@
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
-		987234F02ABE860300E427E5 /* HardwareCatalogOverview.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HardwareCatalogOverview.md; sourceTree = "<group>"; };
+		987234F02ABE860300E427E5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMM_AtomProvider.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
@@ -490,7 +490,7 @@
 			isa = PBXGroup;
 			children = (
 				98D9758F2AC088000052EE6C /* VdwOscillator */,
-				987234F02ABE860300E427E5 /* HardwareCatalogOverview.md */,
+				987234F02ABE860300E427E5 /* README.md */,
 			);
 			path = HardwareCatalog;
 			sourceTree = "<group>";
