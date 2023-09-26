@@ -177,6 +177,36 @@ struct DiamondRope_Provider {
     let emptyVelocities = [SIMD3<Float>](repeating: .zero, count: numAtoms)
     for i in 0..<8 {
       simulator.simulate(ps: 0.5, minimizing: true)
+      if i == 0 {
+        let bonds = ropeDiamondoid.bonds
+        let frame = ropeDiamondoid.atoms
+        do {
+          var maxCarbonDistance: Float = 0
+          for bond in bonds {
+            let atom1 = frame[Int(bond[0])]
+            let atom2 = frame[Int(bond[1])]
+            guard atom1.element == 6 && atom2.element == 6 else {
+              continue
+            }
+            let distance = length(atom1.origin - atom2.origin)
+            maxCarbonDistance = max(distance, maxCarbonDistance)
+          }
+          print(String(format: "%.3f", maxCarbonDistance))
+        }
+        for frame in simulator.provider.states {
+          var maxCarbonDistance: Float = 0
+          for bond in bonds {
+            let atom1 = frame[Int(simulator.newIndicesMap[Int(bond[0])])]
+            let atom2 = frame[Int(simulator.newIndicesMap[Int(bond[1])])]
+            guard atom1.element == 6 && atom2.element == 6 else {
+              continue
+            }
+            let distance = length(atom1.origin - atom2.origin)
+            maxCarbonDistance = max(distance, maxCarbonDistance)
+          }
+          print(String(format: "%.3f", maxCarbonDistance))
+        }
+      }
       if i == 7 {
         provider = ArrayAtomProvider(simulator.provider.states.last!)
       }
@@ -202,7 +232,7 @@ struct DiamondRope_Provider {
       print("radius: ", radius)
     }
     
-    let numPicoseconds2: Double = 40
+    let numPicoseconds2: Double = 5 // 40
     do {
       let angularSpeedInRadPs: Float = 0.240
       let ropeVelocities = [SIMD3<Float>](
@@ -229,6 +259,8 @@ struct DiamondRope_Provider {
     simulator.simulate(ps: numPicoseconds2)
     simulator.provider.states = oldStates + simulator.provider.states
     provider = simulator.provider
+    
+    
     #endif
   }
 }
