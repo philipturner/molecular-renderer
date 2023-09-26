@@ -12,7 +12,7 @@ public struct Solid {
   ///
   /// Right now, returns centers in the diamond `Cubic` basis. They are measured
   /// in multiples of 0.357 nm, not in nanometers.
-  public var _centers: [SIMD3<Float>] { centers.map { $0 / 0.357 } }
+  public var _centers: [SIMD3<Float>] { centers }
   
   // TODO: Change to Vector<Amorphous>
   public init(_ closure: (

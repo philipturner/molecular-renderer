@@ -509,9 +509,9 @@
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
 			isa = PBXGroup;
 			children = (
-				98E2C6142AC24D57002612CC /* RhombicDodecahedron */,
-				98D975BD2AC222950052EE6C /* OctahedralSpring */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
+				98D975BD2AC222950052EE6C /* OctahedralSpring */,
+				98E2C6142AC24D57002612CC /* RhombicDodecahedron */,
 				98D9758F2AC088000052EE6C /* VdwOscillator */,
 				987234F02ABE860300E427E5 /* README.md */,
 			);

@@ -198,7 +198,7 @@ extension Compiler {
     defer { reset() }
     
     if let solidStack {
-      return solidStack.centers.keys.map { $0 * 0.357 }
+      return solidStack.centers.keys.map { $0 }
     } else {
       return []
     }

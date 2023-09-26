@@ -32,7 +32,7 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
+  static let recycleSimulation: Bool = true
   static let productionRender: Bool = false
   static let programCamera: Bool = false
   
@@ -63,8 +63,8 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = DiamondRope_Provider().provider
-//    self.ioSimulation()
+//    self.atomProvider = DiamondRope_Provider().provider
+    self.ioSimulation()
 //    self.saveGIF()
   }
 }
