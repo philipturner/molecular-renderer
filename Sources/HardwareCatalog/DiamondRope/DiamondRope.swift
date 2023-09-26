@@ -8,7 +8,6 @@
 import Foundation
 import HDL
 
-/// TODO: Proper description.
 public struct DiamondRope {
   public var lattice: Lattice<Cubic>
   
