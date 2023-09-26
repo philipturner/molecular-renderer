@@ -2,7 +2,11 @@
 
 Author: Philip Turner
 
-> NOTE: This nano-part is in progress.
+<p align="center">
+  <img alt="Image 1" src="./RhombicDodecahedron_Image1.jpg" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Image 2" src="./RhombicDodecahedron_Image2.jpg" width="45%">
+</p>
 
 Description: a rotationally symmetric rhombic dodecahedron.
 

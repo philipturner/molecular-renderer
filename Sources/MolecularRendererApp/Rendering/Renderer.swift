@@ -239,9 +239,21 @@ extension Renderer {
 //        SIMD3(-1, 0, 0),
 //        SIMD3(0, 0, 1)).transpose
       
-      _position = [-3.5, 3, 5.5]
+      #if true
+      _position = [-8, 0, 8] + [3, 0, 3]
       _rotation = PlayerState.makeRotation(
         azimuth: Double(-45 * Double.pi / 180))
+      #else
+      let zenithAngle = 40 * Float.pi / 180
+      _position = [3, 0, 3] + [4, 4, 2]
+      _rotation = PlayerState.makeRotation(
+        azimuth: Double(60 * Double.pi / 180)) * simd_float3x3(
+          SIMD3(1, 0, 0),
+          SIMD3(0, cos(zenithAngle), sin(zenithAngle)),
+          SIMD3(0, -sin(zenithAngle), cos(zenithAngle))).transpose
+      
+       
+      #endif
     }
     
     var lights: [MRLight] = []

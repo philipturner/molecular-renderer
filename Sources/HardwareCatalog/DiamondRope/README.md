@@ -2,9 +2,9 @@
 
 Author: Philip Turner
 
-> NOTE: This nano-part is in progress.
+![Image 1](./DiamondRope_Image1.jpg)
 
-Description: perfect example of something parametric.
+Description: small beam of diamond that is flexible enough to be treated as rope, under some circumstances.
 
 Parameters:
 - Height (Float) - Measures the cross-section, typically 1-2 unit cells. Must have .5 in the decimal place.
