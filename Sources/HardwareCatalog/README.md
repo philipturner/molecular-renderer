@@ -52,6 +52,7 @@ API Rules:
 
 Index:
 - [Diamond Rope](./DiamondRope)
+- [Flywheel](./Flywheel)
 - [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential
 - [Rhombic Dodecahedron](./RhombicDodecahedron)

@@ -63,8 +63,8 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Spring_Projectile().provider
-//    self.atomProvider = DiamondRope_Provider().provider
+//    self.atomProvider = Spring_Projectile().provider
+    self.atomProvider = Flywheel_Provider().provider
 //    self.ioSimulation()
 //    self.saveGIF()
   }
