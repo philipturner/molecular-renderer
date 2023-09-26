@@ -194,6 +194,9 @@ struct DiamondRope_Provider {
           print(String(format: "%.3f", maxCarbonDistance))
         }
         for frame in simulator.provider.states {
+          // TODO: Take a histogram of the bond length distributions, graph it
+          // at several different points in time. Or color any atoms with bond
+          // lengths exceeding a certain value as red (oxygen).
           var maxCarbonDistance: Float = 0
           for bond in bonds {
             let atom1 = frame[Int(simulator.newIndicesMap[Int(bond[0])])]
