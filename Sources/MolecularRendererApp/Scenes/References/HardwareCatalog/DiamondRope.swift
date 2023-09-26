@@ -167,7 +167,7 @@ struct DiamondRope_Provider {
     jigDiamondoid.rotate(angle: simd_quatf(angle: -0.02, axis: [0, 1, 0]))
     provider = ArrayAtomProvider(ropeDiamondoid.atoms + jigDiamondoid.atoms)
     
-    #if true
+    #if false
     let simulator = _Old_MM4(
       diamondoids: [ropeDiamondoid, jigDiamondoid], fsPerFrame: 20)
     let numAtoms = ropeDiamondoid.atoms.count + jigDiamondoid.atoms.count
@@ -177,39 +177,6 @@ struct DiamondRope_Provider {
     let emptyVelocities = [SIMD3<Float>](repeating: .zero, count: numAtoms)
     for i in 0..<8 {
       simulator.simulate(ps: 0.5, minimizing: true)
-      if i == 0 {
-        let bonds = ropeDiamondoid.bonds
-        let frame = ropeDiamondoid.atoms
-        do {
-          var maxCarbonDistance: Float = 0
-          for bond in bonds {
-            let atom1 = frame[Int(bond[0])]
-            let atom2 = frame[Int(bond[1])]
-            guard atom1.element == 6 && atom2.element == 6 else {
-              continue
-            }
-            let distance = length(atom1.origin - atom2.origin)
-            maxCarbonDistance = max(distance, maxCarbonDistance)
-          }
-          print(String(format: "%.3f", maxCarbonDistance))
-        }
-        for frame in simulator.provider.states {
-          // TODO: Take a histogram of the bond length distributions, graph it
-          // at several different points in time. Or color any atoms with bond
-          // lengths exceeding a certain value as red (oxygen).
-          var maxCarbonDistance: Float = 0
-          for bond in bonds {
-            let atom1 = frame[Int(simulator.newIndicesMap[Int(bond[0])])]
-            let atom2 = frame[Int(simulator.newIndicesMap[Int(bond[1])])]
-            guard atom1.element == 6 && atom2.element == 6 else {
-              continue
-            }
-            let distance = length(atom1.origin - atom2.origin)
-            maxCarbonDistance = max(distance, maxCarbonDistance)
-          }
-          print(String(format: "%.3f", maxCarbonDistance))
-        }
-      }
       if i == 7 {
         provider = ArrayAtomProvider(simulator.provider.states.last!)
       }
@@ -235,7 +202,7 @@ struct DiamondRope_Provider {
       print("radius: ", radius)
     }
     
-    let numPicoseconds2: Double = 5 // 40
+    let numPicoseconds2: Double = 40
     do {
       let angularSpeedInRadPs: Float = 0.240
       let ropeVelocities = [SIMD3<Float>](
@@ -261,8 +228,43 @@ struct DiamondRope_Provider {
     
     simulator.simulate(ps: numPicoseconds2)
     simulator.provider.states = oldStates + simulator.provider.states
-    provider = simulator.provider
     
+    #if false
+    for frameID in simulator.provider.states.indices {
+      // TODO: Take a histogram of the bond length distributions, graph it
+      // at several different points in time. Or color any atoms with bond
+      // lengths exceeding a certain value as red (oxygen).
+      var frame = simulator.provider.states[frameID]
+      for bond in ropeDiamondoid.bonds {
+        var atom1 = frame[Int(bond[0])]
+        var atom2 = frame[Int(bond[1])]
+        guard atom1.element >= 6 && atom2.element >= 6 else {
+          continue
+        }
+        let distance = length(atom1.origin - atom2.origin)
+        var newAtomicNumber: UInt8 = 6
+        if distance > 0.160 {
+          newAtomicNumber = 7
+        }
+        if distance > 0.169 {
+          newAtomicNumber = 8
+        }
+        if distance > 0.178 {
+          newAtomicNumber = 9
+        }
+        if distance > 0.187 {
+          newAtomicNumber = 10
+        }
+        atom1.element = max(atom1.element, newAtomicNumber)
+        atom2.element = max(atom2.element, newAtomicNumber)
+        frame[Int(bond[0])] = atom1
+        frame[Int(bond[1])] = atom2
+      }
+      simulator.provider.states[frameID] = frame
+    }
+    #endif
+    
+    provider = simulator.provider
     
     #endif
   }
