@@ -32,7 +32,7 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = true
+  static let recycleSimulation: Bool = false
   static let productionRender: Bool = false
   static let programCamera: Bool = false
   
@@ -63,8 +63,9 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
+    self.atomProvider = Spring_Projectile().provider
 //    self.atomProvider = DiamondRope_Provider().provider
-    self.ioSimulation()
+//    self.ioSimulation()
 //    self.saveGIF()
   }
 }
@@ -239,7 +240,7 @@ extension Renderer {
 //        SIMD3(-1, 0, 0),
 //        SIMD3(0, 0, 1)).transpose
       
-      #if true
+      #if false
       _position = [-8, 0, 8] + [3, 0, 3]
       _rotation = PlayerState.makeRotation(
         azimuth: Double(-45 * Double.pi / 180))
@@ -251,8 +252,6 @@ extension Renderer {
           SIMD3(1, 0, 0),
           SIMD3(0, cos(zenithAngle), sin(zenithAngle)),
           SIMD3(0, -sin(zenithAngle), cos(zenithAngle))).transpose
-      
-       
       #endif
     }
     
