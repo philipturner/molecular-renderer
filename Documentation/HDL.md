@@ -191,6 +191,8 @@ Copy { Solid }
 
 Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
 
+> TODO: Extend this operation to accept raw atom positions, for example from strained shell structures.
+
 ```swift
 Reflect { Vector }
 ```

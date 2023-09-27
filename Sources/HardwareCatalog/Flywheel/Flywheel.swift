@@ -85,10 +85,10 @@ public struct Flywheel {
         
         let targetY: Float = (
           Int(perimeterAdjusted * 4) % 2 == 0) ? -0.125 : 0.125
-        if distanceRad < 2 {
+        if distanceRad < 7 {
           output.y += targetY
         } else if distanceRad < Float(radiusSize) {
-          var proportion = (distanceRad - 2) / Float(radiusSize - 2)
+          var proportion = (distanceRad - 7) / Float(radiusSize - 7)
           proportion = 1 - proportion
           output.y += targetY * proportion
         }

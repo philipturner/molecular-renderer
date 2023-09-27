@@ -15,6 +15,10 @@ struct ArrayAtomProvider: MRAtomProvider {
     self.atoms = atoms
   }
   
+  init(_ centers: [SIMD3<Float>]) {
+    self.init(centers.map { MRAtom(origin: $0, element: 6)})
+  }
+  
   func atoms(time: MRTimeContext) -> [MRAtom] {
     return atoms
   }
