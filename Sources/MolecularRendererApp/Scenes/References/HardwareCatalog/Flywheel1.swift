@@ -28,7 +28,7 @@ fileprivate func deduplicate(_ atoms: [SIMD3<Float>]) -> [SIMD3<Float>] {
   return newAtoms
 }
 
-struct Flywheel_Provider {
+struct Flywheel1_Provider {
   var provider: any MRAtomProvider
   
   init() {

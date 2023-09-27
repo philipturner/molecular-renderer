@@ -18,5 +18,10 @@ public struct Copy {
   public init(_ closure: () -> Solid) {
     Compiler.global.performCopy(closure()._centers)
   }
+  
+  @discardableResult
+  public init(_rawCenters: () -> [SIMD3<Float>]) {
+    Compiler.global.performCopy(_rawCenters())
+  }
 }
 

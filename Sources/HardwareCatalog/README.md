@@ -56,6 +56,7 @@ Index:
 - [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential
 - [Rhombic Dodecahedron](./RhombicDodecahedron)
+- [Ring](./Ring)
 - Screw
 - Tetrahedron
 - [vdW Oscillator](./VdwOscillator)

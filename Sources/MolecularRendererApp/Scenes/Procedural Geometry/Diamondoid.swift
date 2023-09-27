@@ -37,14 +37,14 @@ struct Diamondoid {
     angularVelocity != nil
   }
   
-  init(carbonCenters: [SIMD3<Float>]) {
+  init(carbonCenters: [SIMD3<Float>], ccBondRange: ClosedRange<Float>? = nil) {
     let atoms = carbonCenters.map {
       MRAtom(origin: $0, element: 6)
     }
-    self.init(atoms: atoms)
+    self.init(atoms: atoms, ccBondRange: ccBondRange)
   }
   
-  init(atoms: [MRAtom]) {
+  init(atoms: [MRAtom], ccBondRange: ClosedRange<Float>? = nil) {
     let sp3BondAngle = Constants.sp3BondAngle
     precondition(atoms.count > 0, "Not enough atoms.")
     
@@ -112,6 +112,8 @@ struct Diamondoid {
         }
       }
       
+      let ccBondMinMax = ccBondRange ?? Constants
+        .bondLengths[[6, 6]]!.range
       var neighbors: [Int] = []
       for address in addresses {
         let sector = grid[Int(address)]
@@ -134,10 +136,12 @@ struct Diamondoid {
             max(firstIndex, secondIndex))
           
           let bondLength = Constants.bondLengths[key]!
-          if deltaLength <= bondLength.range.upperBound {
+          let bondRange = all(key .== 6)
+          ? ccBondMinMax : bondLength.range
+          if deltaLength <= bondRange.upperBound {
             neighbors.append(j)
           }
-          if deltaLength < bondLength.range.lowerBound {
+          if deltaLength < bondRange.lowerBound {
             fatalError("Bond length too short: \(deltaLength)")
           }
         }
