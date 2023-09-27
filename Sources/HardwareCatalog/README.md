@@ -57,4 +57,5 @@ Index:
 - Pseudogear Rack Differential
 - [Rhombic Dodecahedron](./RhombicDodecahedron)
 - Screw
+- Tetrahedron
 - [vdW Oscillator](./VdwOscillator)
