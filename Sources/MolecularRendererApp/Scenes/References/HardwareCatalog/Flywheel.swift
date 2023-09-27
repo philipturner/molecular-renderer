@@ -14,10 +14,16 @@ import QuartzCore
 
 struct Flywheel_Provider {
   var provider: any MRAtomProvider
-  var diamondoid: Diamondoid!
   
   init() {
     let flywheel = Flywheel()
-    fatalError("Not implemented.")
+    let centers = flywheel.centers.map { $0 * 0.357 }
+    provider = ArrayAtomProvider(centers.map {
+      MRAtom(origin: $0, element: 6)
+    })
+    
+//    let diamondoid = Diamondoid(carbonCenters: centers)
+    print((provider as! ArrayAtomProvider).atoms.count)
+//    print(diamondoid.atoms.count)
   }
 }

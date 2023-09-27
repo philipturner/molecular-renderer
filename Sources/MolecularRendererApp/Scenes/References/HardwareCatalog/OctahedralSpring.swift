@@ -14,7 +14,6 @@ import QuartzCore
 
 struct OctahedralSpring_Provider {
   var provider: any MRAtomProvider
-  var diamondoid: Diamondoid!
   
   init() {
     fatalError("Not implemented.")

@@ -14,7 +14,6 @@ import QuartzCore
 
 struct DiamondRope_Provider {
   var provider: any MRAtomProvider
-  var diamondoid: Diamondoid!
   
   init() {
     let jigLattice1 = Lattice<Cubic> { h, k, l in
