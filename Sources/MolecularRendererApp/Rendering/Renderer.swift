@@ -32,7 +32,7 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
+  static let recycleSimulation: Bool = true
   static let productionRender: Bool = false
   static let programCamera: Bool = false
   
@@ -64,8 +64,8 @@ class Renderer {
     initOpenMM()
     
 //    self.atomProvider = Spring_Projectile().provider
-    self.atomProvider = Flywheel_Provider().provider
-//    self.ioSimulation()
+//    self.atomProvider = Flywheel_Provider().provider
+    self.ioSimulation()
 //    self.saveGIF()
   }
 }

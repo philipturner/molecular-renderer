@@ -12,13 +12,12 @@ import QuaternionModule
 public struct Flywheel {
   public var centers: [SIMD3<Float>]
   
-  // TODO: Measure how fast this thing can spin without crashing the simulator.
   // When making this parametric, define the perimeter to it's always slightly
   // larger than what the radius would permit, to prevent the carbon bonds from
   // being pre-stretched?
   public init() {
     let radiusSize = 20
-    let perimeterSize1 = 24 // 44
+    let perimeterSize1 = 30
     let radius = try! DiamondRope(
       height: 1.5, width: 1, length: radiusSize).lattice
     let perimeter = try! DiamondRope(
@@ -96,7 +95,11 @@ public struct Flywheel {
         return output
       } else {
         // rotate around axis perfectly
-        return center
+        let angle = (perimeterProportion - 0.125) * 2 * Float.pi
+        let x = distanceRad * cos(angle) * sqrt(2)
+        let z = distanceRad * -sin(angle) * sqrt(2)
+        return SIMD3(x, center.y, z)
+//        return center
       }
     }
     
