@@ -146,9 +146,8 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring34Diamondoid.atoms)
     provider = ArrayAtomProvider(ring12Diamondoid.atoms + ring34Diamondoid.atoms)
     
-    let systemCenterOfMass = Diamondoid(
-      carbonCenters: ring12Centers + ring34Centers,
-      ccBondRange: 0.14...0.18).createCenterOfMass()
+    
+
     let simulator = _Old_MM4(
       diamondoids: [ring12Diamondoid, ring34Diamondoid], fsPerFrame: 20)
     
@@ -158,12 +157,19 @@ struct Flywheel2_Provider {
         repeating: .zero,
         count: ring12Diamondoid.atoms.count + ring34Diamondoid.atoms.count)
       let positions = simulator.provider.states.last!.map { $0.origin }
-      
+
+      let centerOfMass = ring12Diamondoid.createCenterOfMass()
       let w = SIMD3<Float>(0, 2100.0 / 5000, 0)
       for i in ring12Diamondoid.atoms.indices {
         let atomID = i
-        let r = positions[atomID] - systemCenterOfMass
+        let r = positions[atomID] - centerOfMass
         velocities[atomID] = cross(w, r)
+      }
+      if i == 7 {
+        for i in ring34Diamondoid.atoms.indices {
+          let atomID = i + ring12Diamondoid.atoms.count
+          velocities[atomID] = SIMD3(0, 0.2, 0)
+        }
       }
       
       simulator.provider.reset()
