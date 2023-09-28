@@ -45,22 +45,44 @@ struct Flywheel2_Provider {
       radius: 5.0, perimeter: 32,
       thickness: 1.0, depth: 1.5,
       innerSpokes: false, outerSpokes: true)
-    let ring2Centers = ring2.centers.map { $0 * 0.357 }
     
     
     let connector1 = makeConnector1()
+    let connector3 = makeConnector3()
     
     let ring12Solid = Solid { h, k, l in
       Copy { ring1.centers.filter {
         distance($0, .zero) > 7 * 1.414
       } }
       Copy { ring2.centers }
-      Copy { connector1 }
+      for i in 0..<4 {
+        Affine {
+          Copy { connector1 }
+          Reflect { +k }
+          Translate { -0.125 * k }
+          Translate { 5 * k }
+          
+          if i % 2 == 0 {
+            Translate { 0.25 * (-h + k - l) }
+          }
+          Translate { 4 * h + 4 * l - 4 * k }
+          if i > 0 {
+            Rotate { Float(i) / 4 * k }
+          }
+        }
+      }
+      Affine {
+        Copy { connector3 }
+        // Warp the beams crossing over the middle, so they point under a
+        // little, and avoid the infinitely repulsive vdW interactions with
+        // hydrogens on the other part.
+        Translate { -10 * (h + l) - 4.125 * k }
+      }
     }
     let ring12Centers = deduplicate(ring12Solid._centers).map { $0 * 0.357 }
     provider = ArrayAtomProvider(ring12Centers)
     print("ring12 (C):", ring12Centers.count)
-    return
+    
     
     
     
@@ -101,6 +123,13 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring34Centers)
     print("ring34 (C):", ring34Centers.count)
     
+    provider = ArrayAtomProvider(ring12Centers + ring34Centers.map {
+      $0 + SIMD3(0, -1.5 * Float(0.357), 0)
+    })
+    
+    
+    
+    
     var ring12Diamondoid = Diamondoid(
       carbonCenters: ring12Centers, ccBondRange: 0.12...0.18)
     ring12Diamondoid.translate(offset: [0, 1.5 * Float(0.357), 0])
@@ -109,7 +138,9 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring12Diamondoid.atoms)
 //    return
     
-    let ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
+    var ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
+    // NOTE: Will always need to fine-tune this after adding more mass.
+    ring12CenterOfMass.y += 0.35
     let ring12Radius = ring12Diamondoid.atoms.filter {
       $0.element == 6
     }.map { $0.origin }.reduce(0) {
@@ -148,7 +179,7 @@ struct Flywheel2_Provider {
       if i == 7 {
         for i in ring34Diamondoid.atoms.indices {
           let atomID = i + ring12Diamondoid.atoms.count
-          velocities[atomID] = SIMD3(0, 0.2, 0)
+          velocities[atomID] = SIMD3(0, 0 * 0.2, 0)
         }
       }
       
@@ -176,22 +207,6 @@ fileprivate func makeConnector1() -> Lattice<Cubic> {
         Convex {
           Origin { 0.75 * hDirection * h }
           Ridge(hDirection * h + l) { hDirection * h }
-        }
-        if hDirection == 1 {
-          Convex {
-            Origin { 2 * (h + k + l) + 3.25 * k }
-            Convex {
-              Origin { -2 * k }
-              Plane { +k }
-              Origin { -1.5 * k }
-              Plane { -k }
-            }
-            Convex {
-              Plane { h - k + l }
-              Origin { 0.25 * (h - l) }
-              Plane { h - l }
-            }
-          }
         }
       } }
       for kDirection in [Float(1), -1] { Convex {
@@ -250,6 +265,81 @@ fileprivate func makeConnector2() -> Lattice<Cubic> {
         Origin { 0.25 * kDirection * k }
         Ridge(kDirection * k + h - kDirection * l) { kDirection * k }
       } }
+      Cut()
+    }
+  }
+}
+
+fileprivate func makeConnector3() -> Lattice<Cubic> {
+  Lattice<Cubic> { h, k, l in
+    Material { .carbon }
+    Bounds { 20 * h + 4 * k + 20 * l }
+    
+    Volume {
+      Origin { 10 * h + 10 * l }
+      
+      //        Convex {
+      //          Origin { 1.5 * k }
+      //          Plane { +k }
+      //        }
+      Concave {
+        Concave {
+          for hlDirection in [Float(1), -1] {
+            Convex {
+              Origin { 4.75 * hlDirection * (h + l) }
+              Plane { hlDirection * (-h - l) + k }
+              Origin { 3 * k }
+              Plane { hlDirection * (-h - l) - k }
+            }
+            Convex {
+              Origin { 5.25 * hlDirection * (h - l) }
+              Plane { hlDirection * (-h + l) + k }
+              Origin { 2 * k }
+              Plane { hlDirection * (-h + l) - k }
+            }
+          }
+        }
+        for hlDirection in [Float(1), -1] {
+          Concave {
+            Origin { 6 * hlDirection * (h + l) + 0.75 * k }
+            Convex {
+              Plane { hlDirection * -h + k }
+              Origin { 1 * k }
+              Plane { hlDirection * -h - k }
+            }
+            Convex {
+              Plane { hlDirection * -l + k }
+              Origin { 1 * k }
+              Plane { hlDirection * -l - k }
+            }
+          }
+        }
+      }
+      for hlDirection in [Float(1), -1] {
+        Convex {
+          Origin { 9 * hlDirection * (h + l) + 0.75 * k }
+          Plane { hlDirection * h + k }
+          Plane { hlDirection * l + k }
+          Origin { 1 * k }
+          Plane { hlDirection * h - k }
+          Plane { hlDirection * l - k }
+        }
+        Convex {
+          Origin { 7.75 * hlDirection * (h + l) + 0.75 * k }
+          Plane { hlDirection * (h + l) + k }
+          Origin { -0.25 * hlDirection * (h + l) }
+          Origin { 2 * k }
+          Plane { hlDirection * (h + l) - k }
+        }
+        Convex {
+          Origin { 7.75 * hlDirection * (h - l) + 0.75 * k }
+          Plane { hlDirection * (h - l) + k }
+          Origin { -0.25 * hlDirection * (h - l) }
+          Origin { 1 * k }
+          Plane { hlDirection * (h - l) - k }
+        }
+      }
+      
       Cut()
     }
   }
