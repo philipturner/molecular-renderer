@@ -1,8 +1,8 @@
 # Ring
 
-Author: Philip Turner
+> ⚠️⚠️⚠️ WARNING: This crystolecule likely cannot be manufactured. However, it is needed to create a constant current source for controlled motions _in silico_.
 
-> WARNING: This crystolecule likely cannot be manufactured. However, it is needed to create a constant current source for controlled motions _in silico_.
+Author: Philip Turner
 
 <p align="center">
   <img alt="Image 1" src="./Ring_Image1.jpg" width="45%">
