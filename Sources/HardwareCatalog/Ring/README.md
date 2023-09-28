@@ -2,8 +2,13 @@
 
 Author: Philip Turner
 
-![Image 1](./Ring_Image1.jpg)
-![Image 2](./Ring_Image2.jpg)
+> WARNING: This crystolecule likely cannot be manufactured. However, it is needed to create a constant current source for controlled motions _in silico_.
+
+<p align="center">
+  <img alt="Image 1" src="./Ring_Image1.jpg" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Image 2" src="./Ring_Image2.jpg" width="45%">
+</p>
 
 > Left: spinning at 1050 m/s, right: spinning at 4200 m/s. The flywheel in each image is two rings superimposed. The outer ring only has inner spokes, while the inner ring only has outer spokes. The two rings are overlaid using CSG, as the non-warped part aligns with the crystal lattice.
 
