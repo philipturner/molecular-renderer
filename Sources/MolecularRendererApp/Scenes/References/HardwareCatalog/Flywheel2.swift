@@ -138,10 +138,19 @@ struct Flywheel2_Provider {
     print("ring12 (C + H):", ring12Diamondoid.atoms.count)
 //    ring12Diamondoid.minimize()
     provider = ArrayAtomProvider(ring12Diamondoid.atoms)
-//
+    let ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
+    let ring12Radius = ring12Diamondoid.atoms.filter {
+      $0.element == 6
+    }.map { $0.origin }.reduce(0) {
+      max($0, distance($1 * [1, 0, 1], ring12CenterOfMass))
+    }
+    print(ring12Radius)
+    
     var ring34Diamondoid = Diamondoid(
       carbonCenters: ring34Centers, ccBondRange: 0.14...0.18)
     print("ring34 (C + H):", ring34Diamondoid.atoms.count)
+    ring34Diamondoid.translate(
+      offset: ring12CenterOfMass - ring34Diamondoid.createCenterOfMass())
 //    ring34Diamondoid.minimize()
     provider = ArrayAtomProvider(ring34Diamondoid.atoms)
     provider = ArrayAtomProvider(ring12Diamondoid.atoms + ring34Diamondoid.atoms)
@@ -159,7 +168,7 @@ struct Flywheel2_Provider {
       let positions = simulator.provider.states.last!.map { $0.origin }
 
       let centerOfMass = ring12Diamondoid.createCenterOfMass()
-      let w = SIMD3<Float>(0, 2100.0 / 5000, 0)
+      let w = SIMD3<Float>(0, 1050.0 / 1000 / ring12Radius, 0)
       for i in ring12Diamondoid.atoms.indices {
         let atomID = i
         let r = positions[atomID] - centerOfMass

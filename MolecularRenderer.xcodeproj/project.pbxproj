@@ -181,6 +181,8 @@
 		9816EFA42AC4B96E0042073F /* Ring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ring.swift; sourceTree = "<group>"; };
 		9816EFA52AC4B9790042073F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9816EFA92AC4BBA60042073F /* Flywheel2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel2.swift; sourceTree = "<group>"; };
+		9816EFAB2AC4FD720042073F /* Ring_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image1.jpg; sourceTree = "<group>"; };
+		9816EFAC2AC4FD720042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
@@ -416,6 +418,8 @@
 			isa = PBXGroup;
 			children = (
 				9816EFA42AC4B96E0042073F /* Ring.swift */,
+				9816EFAB2AC4FD720042073F /* Ring_Image1.jpg */,
+				9816EFAC2AC4FD720042073F /* Ring_Image2.jpg */,
 				9816EFA52AC4B9790042073F /* README.md */,
 			);
 			path = Ring;

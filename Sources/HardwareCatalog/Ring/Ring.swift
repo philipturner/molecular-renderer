@@ -12,9 +12,12 @@ import QuaternionModule
 public struct Ring {
   public var centers: [SIMD3<Float>]
   
-  // Ring is warped in a pucked manner, to ensure the spokes are aligned to
-  // the crystal lattice. Except for the gear teeth (which haven't been added
-  // to the parameters yet).
+  /// - Parameter radius: Approximate number of diagonal unit cells (`1.414 * 0.357` nanometers = 1 cell) from center to perimeter. This is not exact because of some internal implementation details.
+  /// - Parameter perimeter: Number of crystal unit cells placed diagonally to generate the perimeter.
+  /// - Parameter thickness: Thickness of the diamond rope in the XZ plane. Currently non-functional unless the value is `1.0`.
+  /// - Parameter depth: Thickness of the diamond rope in the Y direction. Currently non-functional unless the value is `1.5`.
+  /// - Parameter innerSpokes: Whether to include inner spokes, going from `r = 0` to `r = radius`.
+  /// - Parameter outerSpokes: Whether to include outer spokes, going from `r = radius` to `r = 2 * radius`.
   public init(
     radius: Float,
     perimeter: Int,
