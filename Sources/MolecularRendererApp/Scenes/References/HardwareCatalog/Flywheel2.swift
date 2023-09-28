@@ -47,11 +47,24 @@ struct Flywheel2_Provider {
       innerSpokes: false, outerSpokes: true)
     let ring2Centers = ring2.centers.map { $0 * 0.357 }
     
-    var ring12Centers = deduplicate(ring1Centers + ring2Centers)
+    
+    let connector1 = makeConnector1()
+    
+    let ring12Solid = Solid { h, k, l in
+      Copy { ring1.centers.filter {
+        distance($0, .zero) > 7 * 1.414
+      } }
+      Copy { ring2.centers }
+      Copy { connector1 }
+    }
+    let ring12Centers = deduplicate(ring12Solid._centers).map { $0 * 0.357 }
     provider = ArrayAtomProvider(ring12Centers)
     print("ring12 (C):", ring12Centers.count)
+    return
     
     
+    
+    let connector2 = makeConnector2()
     
     let ring3 = try! Ring(
       radius: 4, perimeter: 24,
@@ -59,52 +72,7 @@ struct Flywheel2_Provider {
       innerSpokes: true, outerSpokes: false)
     let ring3Centers = ring3.centers
       .filter { distance($0 * [1, 0, 1], .zero) > 3.0 * 1.414 }
-    
-    let connector = Lattice<Cubic> { h, k, l in
-      let height: Float = 4.75
-      Material { .carbon }
-      Bounds { 5 * h + ceil(height) * k + 5 * l }
-      
-      Volume {
-        Convex {
-          Origin { height * k }
-          Plane { +k }
-        }
-        Origin { 2.5 * h + 2.5 * l }
-        for hDirection in [Float(1), -1] { Concave {
-          Convex {
-            Origin { 0.75 * hDirection * h }
-            Ridge(hDirection * h + l) { hDirection * h }
-          }
-          if hDirection == 1 {
-            Convex {
-              Origin { 2 * (h + k + l) + 3.25 * k }
-              Convex {
-                Origin { -2 * k }
-                Plane { +k }
-                Origin { -1.5 * k }
-                Plane { -k }
-              }
-              Convex {
-                Plane { h - k + l }
-                Origin { 0.25 * (h - l) }
-                Plane { h - l }
-              }
-            }
-          }
-        } }
-        for kDirection in [Float(1), -1] { Convex {
-          if kDirection == 1 {
-            Origin { height * k }
-          }
-          Ridge(kDirection * k + h + kDirection * l) { kDirection * k }
-          Origin { 0.25 * kDirection * k }
-          Ridge(kDirection * k + h - kDirection * l) { kDirection * k }
-        } }
-        Cut()
-      }
-    }
-    provider = ArrayAtomProvider(connector._centers.map { $0 * 0.357 })
+    provider = ArrayAtomProvider(connector2._centers.map { $0 * 0.357 })
     
     let ring34 = Solid { h, k, l in
       Copy { ring3Centers }
@@ -114,7 +82,7 @@ struct Flywheel2_Provider {
       }
       for i in 0..<4 {
         Affine {
-          Copy { connector }
+          Copy { connector2 }
           Translate { -0.125 * k }
           if i % 2 == 1 {
             Translate { 0.125 * k }
@@ -133,23 +101,6 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring34Centers)
     print("ring34 (C):", ring34Centers.count)
     
-    
-    
-    var ring12CenterOfMass = Diamondoid(
-      carbonCenters: ring12Centers, ccBondRange: 0.14...0.18)
-      .createCenterOfMass()
-//    ring12Centers = ring12Centers.map { center in
-//      var r = (center - ring12CenterOfMass) * SIMD3<Float>(1, 0, 1)
-//      let r_length = length(r)
-//      if r_length < 9 {
-//        r *= 1 + simd_mix(1.0 / 9, 0 / 9, r_length / 9)
-//      }
-//      return (r + ring12CenterOfMass) * SIMD3<Float>(1, 0, 1)
-//      + SIMD3<Float>(0, 1, 0) * center
-//    }
-    provider = ArrayAtomProvider(ring12Centers)
-//    return
-    
     var ring12Diamondoid = Diamondoid(
       carbonCenters: ring12Centers, ccBondRange: 0.12...0.18)
     ring12Diamondoid.translate(offset: [0, 1.5 * Float(0.357), 0])
@@ -158,7 +109,7 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring12Diamondoid.atoms)
 //    return
     
-    ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
+    let ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
     let ring12Radius = ring12Diamondoid.atoms.filter {
       $0.element == 6
     }.map { $0.origin }.reduce(0) {
@@ -209,3 +160,97 @@ struct Flywheel2_Provider {
   }
 }
 
+fileprivate func makeConnector1() -> Lattice<Cubic> {
+  Lattice<Cubic> { h, k, l in
+    let height: Float = 4.75
+    Material { .carbon }
+    Bounds { 5 * h + ceil(height) * k + 5 * l }
+    
+    Volume {
+      Convex {
+        Origin { height * k }
+        Plane { +k }
+      }
+      Origin { 2.5 * h + 2.5 * l }
+      for hDirection in [Float(1), -1] { Concave {
+        Convex {
+          Origin { 0.75 * hDirection * h }
+          Ridge(hDirection * h + l) { hDirection * h }
+        }
+        if hDirection == 1 {
+          Convex {
+            Origin { 2 * (h + k + l) + 3.25 * k }
+            Convex {
+              Origin { -2 * k }
+              Plane { +k }
+              Origin { -1.5 * k }
+              Plane { -k }
+            }
+            Convex {
+              Plane { h - k + l }
+              Origin { 0.25 * (h - l) }
+              Plane { h - l }
+            }
+          }
+        }
+      } }
+      for kDirection in [Float(1), -1] { Convex {
+        if kDirection == 1 {
+          Origin { height * k }
+        }
+        Ridge(kDirection * k + h + kDirection * l) { kDirection * k }
+        Origin { 0.25 * kDirection * k }
+        Ridge(kDirection * k + h - kDirection * l) { kDirection * k }
+      } }
+      Cut()
+    }
+  }
+}
+
+
+fileprivate func makeConnector2() -> Lattice<Cubic> {
+  Lattice<Cubic> { h, k, l in
+    let height: Float = 4.75
+    Material { .carbon }
+    Bounds { 5 * h + ceil(height) * k + 5 * l }
+    
+    Volume {
+      Convex {
+        Origin { height * k }
+        Plane { +k }
+      }
+      Origin { 2.5 * h + 2.5 * l }
+      for hDirection in [Float(1), -1] { Concave {
+        Convex {
+          Origin { 0.75 * hDirection * h }
+          Ridge(hDirection * h + l) { hDirection * h }
+        }
+        if hDirection == 1 {
+          Convex {
+            Origin { 2 * (h + k + l) + 3.25 * k }
+            Convex {
+              Origin { -2 * k }
+              Plane { +k }
+              Origin { -1.5 * k }
+              Plane { -k }
+            }
+            Convex {
+              Plane { h - k + l }
+              Origin { 0.25 * (h - l) }
+              Plane { h - l }
+            }
+          }
+        }
+      } }
+      for kDirection in [Float(1), -1] { Convex {
+        if kDirection == 1 {
+          Origin { height * k }
+        }
+        Ridge(kDirection * k + h + kDirection * l) { kDirection * k }
+        Origin { 0.25 * kDirection * k }
+        Ridge(kDirection * k + h - kDirection * l) { kDirection * k }
+      } }
+      Cut()
+    }
+  }
+}
