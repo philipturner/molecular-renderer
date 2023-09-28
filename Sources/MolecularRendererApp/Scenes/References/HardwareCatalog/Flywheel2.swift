@@ -33,7 +33,7 @@ struct Flywheel2_Provider {
   
   init() {
     let ring1 = try! Ring(
-      radius: 20, perimeter: 124,
+      radius: 20, perimeter: 120,
       thickness: 1.0, depth: 1.5,
       innerSpokes: true, outerSpokes: false)
     var ring1Centers = ring1.centers.map { $0 * 0.357 }
@@ -42,33 +42,35 @@ struct Flywheel2_Provider {
     }
     
     let ring2 = try! Ring(
-      radius: 5, perimeter: 32,
+      radius: 5.0, perimeter: 32,
       thickness: 1.0, depth: 1.5,
       innerSpokes: false, outerSpokes: true)
     let ring2Centers = ring2.centers.map { $0 * 0.357 }
     
-    let ring12Centers = deduplicate(ring1Centers + ring2Centers)
+    var ring12Centers = deduplicate(ring1Centers + ring2Centers)
     provider = ArrayAtomProvider(ring12Centers)
     print("ring12 (C):", ring12Centers.count)
+    
+    
     
     let ring3 = try! Ring(
       radius: 4, perimeter: 24,
       thickness: 1.0, depth: 1.5,
       innerSpokes: true, outerSpokes: false)
     let ring3Centers = ring3.centers
-      .filter { distance($0 * [1, 0, 1], .zero) > 2 * 1.414 }
+      .filter { distance($0 * [1, 0, 1], .zero) > 3.0 * 1.414 }
     
     let connector = Lattice<Cubic> { h, k, l in
       let height: Float = 4.75
       Material { .carbon }
-      Bounds { 3 * h + ceil(height) * k + 3 * l }
+      Bounds { 5 * h + ceil(height) * k + 5 * l }
       
       Volume {
         Convex {
           Origin { height * k }
           Plane { +k }
         }
-        Origin { 1.5 * h + 1.5 * l }
+        Origin { 2.5 * h + 2.5 * l }
         for hDirection in [Float(1), -1] { Concave {
           Convex {
             Origin { 0.75 * hDirection * h }
@@ -132,13 +134,31 @@ struct Flywheel2_Provider {
     print("ring34 (C):", ring34Centers.count)
     
     
-    var ring12Diamondoid = Diamondoid(
+    
+    var ring12CenterOfMass = Diamondoid(
       carbonCenters: ring12Centers, ccBondRange: 0.14...0.18)
+      .createCenterOfMass()
+//    ring12Centers = ring12Centers.map { center in
+//      var r = (center - ring12CenterOfMass) * SIMD3<Float>(1, 0, 1)
+//      let r_length = length(r)
+//      if r_length < 9 {
+//        r *= 1 + simd_mix(1.0 / 9, 0 / 9, r_length / 9)
+//      }
+//      return (r + ring12CenterOfMass) * SIMD3<Float>(1, 0, 1)
+//      + SIMD3<Float>(0, 1, 0) * center
+//    }
+    provider = ArrayAtomProvider(ring12Centers)
+//    return
+    
+    var ring12Diamondoid = Diamondoid(
+      carbonCenters: ring12Centers, ccBondRange: 0.12...0.18)
     ring12Diamondoid.translate(offset: [0, 1.5 * Float(0.357), 0])
     print("ring12 (C + H):", ring12Diamondoid.atoms.count)
 //    ring12Diamondoid.minimize()
     provider = ArrayAtomProvider(ring12Diamondoid.atoms)
-    let ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
+//    return
+    
+    ring12CenterOfMass = ring12Diamondoid.createCenterOfMass()
     let ring12Radius = ring12Diamondoid.atoms.filter {
       $0.element == 6
     }.map { $0.origin }.reduce(0) {
@@ -154,7 +174,7 @@ struct Flywheel2_Provider {
 //    ring34Diamondoid.minimize()
     provider = ArrayAtomProvider(ring34Diamondoid.atoms)
     provider = ArrayAtomProvider(ring12Diamondoid.atoms + ring34Diamondoid.atoms)
-    
+//    return
     
 
     let simulator = _Old_MM4(
@@ -168,7 +188,7 @@ struct Flywheel2_Provider {
       let positions = simulator.provider.states.last!.map { $0.origin }
 
       let centerOfMass = ring12Diamondoid.createCenterOfMass()
-      let w = SIMD3<Float>(0, 1050.0 / 1000 / ring12Radius, 0)
+      let w = SIMD3<Float>(0, 3150.0 / 1000 / ring12Radius, 0)
       for i in ring12Diamondoid.atoms.indices {
         let atomID = i
         let r = positions[atomID] - centerOfMass
@@ -188,3 +208,4 @@ struct Flywheel2_Provider {
     provider = simulator.provider
   }
 }
+

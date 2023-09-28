@@ -753,8 +753,8 @@
 			children = (
 				98D975B82AC221EF0052EE6C /* DiamondRope.swift */,
 				98846F792AC39B450049C223 /* Flywheel1.swift */,
-				98D975BA2AC222340052EE6C /* OctahedralSpring.swift */,
 				9816EFA92AC4BBA60042073F /* Flywheel2.swift */,
+				98D975BA2AC222340052EE6C /* OctahedralSpring.swift */,
 			);
 			path = HardwareCatalog;
 			sourceTree = "<group>";
