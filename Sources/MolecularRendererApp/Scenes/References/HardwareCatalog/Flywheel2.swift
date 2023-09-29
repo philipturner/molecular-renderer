@@ -49,6 +49,10 @@ struct Flywheel2_Provider {
     
     let connector1 = makeConnector1()
     let connector3 = makeConnector3()
+    let rope1 = try! DiamondRope(height: 1.5, width: 1, length: 5)
+    let rope2 = try! DiamondRope(height: 1.5, width: 1, length: 5)
+    let connector4 = makeConnector4()
+    let connector5 = makeConnector5()
     
     let ring12Solid = Solid { h, k, l in
       Copy { ring1.centers.filter {
@@ -76,10 +80,30 @@ struct Flywheel2_Provider {
         // Warp the beams crossing over the middle, so they point under a
         // little, and avoid the infinitely repulsive vdW interactions with
         // hydrogens on the other part.
-        Translate { -10 * (h + l) - 4.125 * k }
+        Translate { -10 * (h + l) - 5.125 * k }
+      }
+      for rotationID in 0..<2 {
+        Affine {
+          Copy { rope1.lattice }
+          Translate { -7.25 * (h + l) - 4.625 * k }
+          Translate { 0.25 * (h - l) }
+          if rotationID == 1 { Rotate { 0.5 * k } }
+        }
+        Affine {
+          Copy { rope2.lattice }
+          Rotate { 0.25 * k }
+          Translate { -7.5 * (h - l) - 4.875 * k }
+          Translate { 0.25 * (-h - l) }
+          if rotationID == 1 { Rotate { 0.5 * k } }
+        }
+      }
+      Affine {
+        Copy { connector4 }
+        Translate { -4 * (h + l) - 5.125 * k }
       }
     }
-    let ring12Centers = deduplicate(ring12Solid._centers).map { $0 * 0.357 }
+    let ring12Centers = deduplicate(ring12Solid._centers)
+      .map { $0 * 0.357 }
     provider = ArrayAtomProvider(ring12Centers)
     print("ring12 (C):", ring12Centers.count)
     
@@ -126,7 +150,7 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring12Centers + ring34Centers.map {
       $0 + SIMD3(0, -1.5 * Float(0.357), 0)
     })
-    
+    return
     
     
     
@@ -156,7 +180,7 @@ struct Flywheel2_Provider {
 //    ring34Diamondoid.minimize()
     provider = ArrayAtomProvider(ring34Diamondoid.atoms)
     provider = ArrayAtomProvider(ring12Diamondoid.atoms + ring34Diamondoid.atoms)
-//    return
+    return
     
 
     let simulator = _Old_MM4(
@@ -170,7 +194,7 @@ struct Flywheel2_Provider {
       let positions = simulator.provider.states.last!.map { $0.origin }
 
       let centerOfMass = ring12Diamondoid.createCenterOfMass()
-      let w = SIMD3<Float>(0, 3150.0 / 1000 / ring12Radius, 0)
+      let w = SIMD3<Float>(0, 2100.0 / 1000 / ring12Radius, 0)
       for i in ring12Diamondoid.atoms.indices {
         let atomID = i
         let r = positions[atomID] - centerOfMass
@@ -179,7 +203,7 @@ struct Flywheel2_Provider {
       if i == 7 {
         for i in ring34Diamondoid.atoms.indices {
           let atomID = i + ring12Diamondoid.atoms.count
-          velocities[atomID] = SIMD3(0, 0 * 0.2, 0)
+          velocities[atomID] = SIMD3(0, 0, 0)
         }
       }
       
@@ -203,6 +227,7 @@ fileprivate func makeConnector1() -> Lattice<Cubic> {
         Plane { +k }
       }
       Origin { 2.5 * h + 2.5 * l }
+      
       for hDirection in [Float(1), -1] { Concave {
         Convex {
           Origin { 0.75 * hDirection * h }
@@ -233,6 +258,10 @@ fileprivate func makeConnector2() -> Lattice<Cubic> {
       Convex {
         Origin { height * k }
         Plane { +k }
+      }
+      Convex {
+        Origin { 1 * h + 1 * l }
+        Plane { -h - l + k }
       }
       Origin { 2.5 * h + 2.5 * l }
       for hDirection in [Float(1), -1] { Concave {
@@ -340,6 +369,103 @@ fileprivate func makeConnector3() -> Lattice<Cubic> {
         }
       }
       
+      Cut()
+    }
+  }
+}
+
+fileprivate func makeConnector4() -> Lattice<Cubic> {
+  Lattice<Cubic> { h, k, l in
+    Material { .carbon }
+    Bounds { 8 * h + 5 * k + 8 * l }
+    
+    Volume {
+      Origin { 4 * h + 4 * l }
+      Convex {
+        Convex {
+          Origin { 4.5 * k }
+          Ridge(h + k + l) { +k }
+        }
+        Convex {
+          Origin { 4.75 * k }
+          Ridge(h + k - l) { +k }
+        }
+      }
+      Concave {
+        Convex {
+          Origin { 2.5 * k }
+          Valley(h - k + l) { -k }
+        }
+        Convex {
+          Origin { 3.0 * k }
+          Valley(h - k - l) { -k }
+        }
+      }
+      Convex {
+        Convex {
+          Origin { -2.75 * k }
+          Ridge(h - k + l) { -k }
+        }
+        Convex {
+          Origin { -3.25 * k }
+          Ridge(h - k - l) { -k }
+        }
+      }
+      Concave {
+        Convex {
+          Origin { 1.5 * k }
+          Valley(h + k + l) { +k }
+        }
+        Convex {
+          Origin { 1.5 * k }
+          Valley(h + k - l) { +k }
+        }
+      }
+      Cut()
+    }
+  }
+}
+
+fileprivate func makeConnector5() -> Lattice<Cubic> {
+  Lattice<Cubic> { h, k, l in
+    Material { .carbon }
+    Bounds { 10 * h + 10 * k + 10 * l }
+    
+    Volume {
+      Convex {
+        Origin { 0.25 * (h + k + l) }
+        Plane { -1 * (h + k + l) }
+      }
+      Convex {
+        Origin { 0.25 * (h - k + l) }
+        Plane { h - k + l }
+      }
+      Convex {
+        Origin { 6.5 * k }
+        Plane { -h + k - l }
+      }
+      Convex {
+        Origin { 4 * (h + k + l) }
+        Plane { h + k + l }
+      }
+      Convex {
+        Origin { 4 * (h + k + l) }
+        Origin { 2 * (-h + k - l) }
+        Origin { 2.25 * k }
+        Ridge(h + k - l) { +k }
+      }
+      for direction in [h - l, -h + l] {
+        Convex {
+          Origin { 0.5 * direction }
+          Plane { direction }
+        }
+        Concave {
+          Origin { 0.25 * direction }
+          Plane { direction }
+          Origin { 2.5 * k }
+          Plane { +k }
+        }
+      }
       Cut()
     }
   }
