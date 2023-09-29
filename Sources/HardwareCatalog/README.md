@@ -24,12 +24,6 @@ Near-term:
 - Once the necessary modules are complete, stop appending to the `MolecularRendererApp` directory and write test code inside the respective `HardwareCatalog` file.
 - Rewrite the code from "MolecularRendererApp/Scenes/References" for the parts created before the switch.
 
-Very near-term:
-- The geometry compiler is undergoing an internal restructuring, which affects some of the public API. Working code inside the hardware catalog will need to change during the switch to the updated API. Anticipated changes are minimal; just simple replacement of keywords.
-- Without the restructuring to add lonsdaleite support, the following items can still be added to the catalog. More advanced machines could probably benefit significantly from more geometric flexibility.
-  - Diamond Rope
-  - Octahedral Spring
-
 ## Rules
 
 Documentation Rules:

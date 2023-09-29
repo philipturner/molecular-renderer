@@ -29,7 +29,7 @@ Short-Term (next few weeks)
 - Modularize the source code, allow the simulator to be used with external renderers
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
 - Create a domain-specific language and geometry compiler for crystolecule design ✅
-- Upgrade MM4 to include more elements and external forces
+- Upgrade MM4 to include more elements and external forces - **in progress**
 
 Medium-Term (next few months)
 - Establish a first-generation engineering knowledge base (database) for nanomechanical parts, written in the Swift DSL

@@ -1,6 +1,6 @@
-# (Prototype) Hardware Description Language
+# Hardware Description Language
 
-This is a precursor to the eventual hardware description language that atomCAD will build. The purpose is to allow reasonably efficient workflows for designing crystolecules here and now. Potentially, it can utilize primitive editing capabilities from the atomCAD codebase, to complement the lack of a UI in MolecularRenderer.
+Domain-specific language for accelerating nanomachine design workflows.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
 - Emphasis on <b>a first-generation technology base</b>. The language lacks support for strained shell structures, as they require second-generation technology (but it will facilitate testing of machines for building them).
 - Tutorials and well-maintained documentation will be provided, to onboard new engineers and provide the skills for making crystolecules. This will cover common pitfalls in design, such as actions that expose triply-unbonded carbon atoms, and good practices like reconstructing (100) surfaces.
@@ -18,6 +18,7 @@ Table of Contents
     - [Object Transforms](#object-transforms)
     - [Scopes](#scopes)
     - [Vectors](#vectors)
+- [Tips](#tips)
 
 ## How it Works
 
@@ -43,6 +44,7 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 Short-term goal: use only the parameters from the first MM4 research paper and the 2019 MM3 Morse paper. Support every possible structure that can be simulated with those parameters.
 - 6-ring sp3 carbon (diamond, lonsdaleite)
 - 5-ring sp3 carbon (sharp corners, (100) surfaces)
+- fluorine
 
 Long-term goal: forcefield based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
 
@@ -82,6 +84,8 @@ Key:
 ### JIT Compiler
 
 There is also a JIT compiler for the language, accepting a strict subset of Swift that contains DSL keywords. This was created out of necessity to bypass long compile times in Swift release mode. The API is still experimental and gated under an underscore (`_Parse`). Documentation can be found in triple-slashed comments at [Parse.swift](../Sources/HDL/Compiler/Parse.swift).
+
+At the moment, the JIT compiler has been deprecated, in favor of compiling in Swift release mode with incremental compilation.
 
 ## Syntax
 
@@ -187,11 +191,12 @@ Create a solid object composed of multiple lattices or other solids. Converts co
 ```swift
 Copy { Lattice<Basis> }
 Copy { Solid }
+Copy { [SIMD3<Float>] }
 ```
 
 Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
 
-> TODO: Extend this operation to accept raw atom positions, for example from strained shell structures.
+The array initializer accepts raw atom positions in the existing coordinate space (distance in crystal unit cells for `Lattice`, nanometers for `Solid`). Atoms do not need to perfectly align with the lattice, but must fall within a tight margin of floating-point error (`<0.1%`).
 
 ```swift
 Reflect { Vector }
@@ -313,3 +318,13 @@ Origin { Vector }
 Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
 
 [^1]: Right now, cubic lattices and solids require vectors in the `Cubic` basis (`h`, `k`, `l`). The carbon centers can be extracted using `_centers`, in units of diamond cell width. You must multiply them by `0.357` to get nanometers. This API will be fixed in the future, so don't count on code written now being source-stable.
+
+## Tips
+
+List:
+- Compile the Swift code in release mode with incremental compilation.
+- Split into multiple files, decreasing the chance the compiler will take a long time compiling any one file.
+- Don't spend time adhering to strange geometric constraints. If avoiding a certain type of geometry consumes a large portion of your workflow, change the simulator to permit that geometry.
+- Use fluorine termination sparingly to minimize $O(n^2)$ scaling. However, sometimes using it will drastically improve performance of a specific machine. Make a tradeoff between simulation speed and the time required to design alternative structures.
+- Avoid strained shell structures in machines intended to be manufactured IRL.
+- Don't be afraid to redesign a nanomachine from scratch, after discovering the first machine has sub-optimal performance. During the first attempt, only focus on getting the machine to work at all.
