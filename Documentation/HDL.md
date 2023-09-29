@@ -15,8 +15,8 @@ Table of Contents
 - [Syntax](#syntax)
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)
-    - [Object Transforms](#object-transforms)
     - [Scopes](#scopes)
+    - [Solid Editing](#solid-editing)
     - [Vectors](#vectors)
 - [Tips](#tips)
 
@@ -102,9 +102,17 @@ Passivate { Bond }
 Passivate { Element }
 ```
 
-Adds hydrogens or halogens to complete the valence shells of selected atoms. When specifying a bond, use that bond to connect nearby atoms.
+Adds hydrogens or halogens to complete the valence shells of selected atoms. When specifying a bond, use that bond to connect nearby atoms. The volumes "zero" volume must include both the atoms to be passivated, and the volume where passivators may exist.
 
 "Nearby" atoms are atoms that would connect to the same neighbor atom in a perfect crystal lattice. However, that neighbor has been deleted using a `Plane`, leaving two dangling bonds. Passivating the two "nearby" atoms with hydrogens would create hydrogens that overlap.
+
+If no passivation is specified, hydrogens or sigma bonds may be automatically added. This will not happen on (100) surfaces, where you must manually specify the restructuring pattern's direction.
+
+```swift
+Origin { Vector }
+```
+
+Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
 
 ```swift
 Plane { Vector }
@@ -186,37 +194,7 @@ Solid { x, y, z in
 
 Create a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
 
-### Object Transforms
 
-```swift
-Copy { Lattice<Basis> }
-Copy { Solid }
-Copy { [SIMD3<Float>] }
-```
-
-Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
-
-The array initializer accepts raw atom positions in the existing coordinate space (distance in crystal unit cells for `Lattice`, nanometers for `Solid`). Atoms do not need to perfectly align with the lattice, but must fall within a tight margin of floating-point error (`<0.1%`).
-
-```swift
-Reflect { Vector }
-```
-
-Reflects the object across the current origin, along the specified axis. This must be called inside an `Affine`.
-
-```swift
-Rotate { Vector }
-```
-
-Rotates counterclockwise around the vector by `length(vector)` revolutions. For example, scale the vector by 0.25 to rotate 90 degrees. This must be called inside an `Affine`.
-
-Rotation occurs around a ray starting at the current origin, and pointing toward the specified vector. When in a lattice, the rotation angle must be a multiple of 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
-
-```swift
-Translate { Vector }
-```
-
-Translate the object by the specified vector, relative to its current position. This must be called inside an `Affine`.
 
 ### Scopes
 
@@ -252,6 +230,38 @@ Volume {
 
 Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This may not be called inside `Affine`, but may be called inside another `Volume`.
 
+### Solid Editing
+
+```swift
+Copy { Lattice<Basis> }
+Copy { Solid }
+Copy { [SIMD3<Float>] }
+```
+
+Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
+
+The array initializer accepts raw atom positions in the existing coordinate space (distance in crystal unit cells for `Lattice`, nanometers for `Solid`). Atoms do not need to perfectly align with the lattice, but must fall within a tight margin of floating-point error (`<0.1%`).
+
+```swift
+Reflect { Vector }
+```
+
+Reflects the object across the current origin, along the specified axis. This must be called inside an `Affine`.
+
+```swift
+Rotate { Vector }
+```
+
+Rotates counterclockwise around the vector by `length(vector)` revolutions. For example, scale the vector by 0.25 to rotate 90 degrees. This must be called inside an `Affine`.
+
+Rotation occurs around a ray starting at the current origin, and pointing toward the specified vector. When in a lattice, the rotation angle must be a multiple of 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
+
+```swift
+Translate { Vector }
+```
+
+Translate the object by the specified vector, relative to its current position. This must be called inside an `Affine`.
+
 ### Vectors
 
 ```swift
@@ -277,6 +287,8 @@ Amorphous.z: Vector<Amorphous> = [0, 0, 1] * nanometer
 ```
 
 Unit vectors representing the crystal's basis.
+
+> TODO: Lattices should provide a function for querying a material's lattice constant. That way, one can generate lattice vectors inside a `Solid` correctly.
 
 ```swift
 prefix operator + (Vector<Basis>) -> Vector<Basis>
@@ -310,12 +322,6 @@ a * -2.25 + -8.5 * b + c * 1.0
 ```
 
 Adds or subtracts two vectors.
-
-```swift
-Origin { Vector }
-```
-
-Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
 
 [^1]: Right now, cubic lattices and solids require vectors in the `Cubic` basis (`h`, `k`, `l`). The carbon centers can be extracted using `_centers`, in units of diamond cell width. You must multiply them by `0.357` to get nanometers. This API will be fixed in the future, so don't count on code written now being source-stable.
 
