@@ -150,7 +150,7 @@ struct Flywheel2_Provider {
     provider = ArrayAtomProvider(ring12Centers + ring34Centers.map {
       $0 + SIMD3(0, -1.5 * Float(0.357), 0)
     })
-    return
+//    return
     
     
     
@@ -180,7 +180,7 @@ struct Flywheel2_Provider {
 //    ring34Diamondoid.minimize()
     provider = ArrayAtomProvider(ring34Diamondoid.atoms)
     provider = ArrayAtomProvider(ring12Diamondoid.atoms + ring34Diamondoid.atoms)
-    return
+//    return
     
 
     let simulator = _Old_MM4(
@@ -260,7 +260,7 @@ fileprivate func makeConnector2() -> Lattice<Cubic> {
         Plane { +k }
       }
       Convex {
-        Origin { 1 * h + 1 * l }
+        Origin { 0.5 * h + 0.5 * l }
         Plane { -h - l + k }
       }
       Origin { 2.5 * h + 2.5 * l }
@@ -307,10 +307,6 @@ fileprivate func makeConnector3() -> Lattice<Cubic> {
     Volume {
       Origin { 10 * h + 10 * l }
       
-      //        Convex {
-      //          Origin { 1.5 * k }
-      //          Plane { +k }
-      //        }
       Concave {
         Concave {
           for hlDirection in [Float(1), -1] {
