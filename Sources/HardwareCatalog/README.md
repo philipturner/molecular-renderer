@@ -46,11 +46,11 @@ API Rules:
 
 Index:
 - [Diamond Rope](./DiamondRope)
-- [Flywheel](./Flywheel)
-- [Octahedral Spring](./OctahedralSpring)
-- Pseudogear Rack Differential
 - [Rhombic Dodecahedron](./RhombicDodecahedron)
 - [Ring](./Ring)
-- Screw
-- Tetrahedron
 - [vdW Oscillator](./VdwOscillator)
+
+Ideas of parts to add:
+- [Octahedral Spring](./OctahedralSpring)
+- Pseudogear Rack Differential
+- Screw
