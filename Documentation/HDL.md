@@ -170,12 +170,11 @@ Create a lattice of crystal unit cells to carve. Coordinates are represented in 
 
 ```swift
 Material { Element }
-Material { [Element] }
 ```
 
 Specifiies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
 
- Accepts `.carbon` for diamond and lonsdaleite. `[.carbon, .silicon]` for cubic moissanite. More materials may be added in the future, such as elemental silicon and compounds with titanium.
+Accepts `.carbon` for diamond and lonsdaleite. `Material { [Element] }` may be added in the future, accepting `[.carbon, .silicon]` for cubic moissanite. Materials such as elemental silicon and compounds with titanium may also be added.
 
 ```swift
 RigidBody
@@ -193,8 +192,6 @@ Solid { x, y, z in
 ```
 
 Create a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
-
-
 
 ### Scopes
 
@@ -288,7 +285,13 @@ Amorphous.z: Vector<Amorphous> = [0, 0, 1] * nanometer
 
 Unit vectors representing the crystal's basis.
 
-> TODO: Lattices should provide a function for querying a material's lattice constant. That way, one can generate lattice vectors inside a `Solid` correctly.
+```swift
+Cubic.squareSideLength(material:)
+Hexagonal.hexagonSideLength(material:)
+Hexagonal.prismHeight(material:)
+```
+
+Values of the lattice constants, for use in `Solid`. Currently, the `material` argument only accepts a single element. Future versions may accept multiple elements, for materials like moissanite.
 
 ```swift
 prefix operator + (Vector<Basis>) -> Vector<Basis>

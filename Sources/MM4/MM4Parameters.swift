@@ -32,6 +32,52 @@ public class MM4ParametersDescriptor {
   }
 }
 
+/// Morse stretching parameters for a covalent bond.
+public struct MM4BondParameters {
+  
+}
+
+/// Parameters for 6 angles originating from the same carbon atom. Angles are
+/// sorted by a comparison function to maintain a consistent order.
+public struct MM4AngleParameters {
+  // 4-element tuples instead of SIMD vectors
+  // 6-element tuples instead of SIMD vectors
+}
+
+/// Parameters for a torsion among only carbon atoms.
+public struct MM4CarbonTorsionParameters {
+  
+}
+
+/// Parameters for a torsion containing a hydrogen, or inside a 5-membered ring.
+///
+/// Variable angle coefficent 1:
+/// - H-C-C-C: 3
+/// - 5-membered ring: 3
+///
+/// Variable angle coefficient 2:
+/// - H-C-C-C: 6
+/// - 5-membered ring: 1
+public struct MM4HydrogenTorsionParameters {
+
+}
+
+/// Parameters for the various torsion forces unique to fluorine-containing
+/// compounds (3-term torsion-stretch, torsion-bend, V1-4, V6). The
+/// fluorine-specific torsion-torsion force is handled by a separate data
+/// structure.
+public struct MM4FluorineTorsionParameters {
+  
+}
+
+/// Parameters for the van der Waals force on a specific atom, with an
+/// alternative value for use in hydrogen interactions. This force does not
+/// include electric forces, which are handled separately in a bond-bond based
+/// dipole interaction.
+public struct MM4NonbondedParameters {
+  
+}
+
 /// A set of force field parameters.
 public class MM4Parameters {
   /// The mass of each atom after hydrogen mass repartitioning.

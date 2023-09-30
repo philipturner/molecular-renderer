@@ -272,6 +272,16 @@ class _Old_MM4 {
           1.84e5 * exp(-12.00 * (r / length))
         );
         """
+      
+      // This is incorrect!!! The 'select' statement for carbon should have
+      // "- 6" instead of "- 1". A better approach would simply provide an
+      // alternative set of vdW parameters for hydrogen-containing interactions.
+      // Set such parameters to zero for hydrogen. If one element is hydrogen
+      // and the other element isn't, take the maximum of the elements'
+      // alternative parameters.
+      //
+      // If hydrogen mass repartitioning is used, the vdW interaction factor
+      // should be scaled to interpolate between the C-H and C-D parameter.
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
         epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
@@ -290,9 +300,6 @@ class _Old_MM4 {
       nonbond.addGlobalParameter(name: "length_ch", defaultValue: chLengthInNm)
       nonbond.addGlobalParameter(
         name: "epsilon_ch", defaultValue: chEpsilonInKJ)
-      
-      // TODO: When supporting non-carbon and non-hydrogen atoms, reduce the
-      // value of 1-4 nonbonded interactions by 0.94x.
       
       nonbond14 = OpenMM_CustomBondForce(energy: "0.550 * " + energy)
       nonbond14.addPerBondParameter(name: "length")
