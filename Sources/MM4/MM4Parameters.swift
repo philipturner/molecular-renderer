@@ -32,13 +32,14 @@ public class MM4ParametersDescriptor {
   }
 }
 
-/// Morse-Lippincott stretching parameters for a covalent bond.
+/// Morse-Lippincott stretching parameters for a covalent bond. Switches
+/// between the Morse and Lippincott functions at the equilibrium radius.
 public struct MM4BondParameters {
   
 }
 
-// Parameters for an angle between two bonds, including bending stiffness
-// and multiplicative contribution to bend-bend stiffness.
+/// Parameters for an angle between two bonds, including bending stiffness
+/// and multiplicative contribution to bend-bend stiffness.
 public struct MM4AngleParameters {
   
 }
