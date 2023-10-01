@@ -44,7 +44,6 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 Short-term goal: use only the parameters from the first MM4 research paper and the 2019 MM3 Morse paper. Support every possible structure that can be simulated with those parameters.
 - 6-ring sp3 carbon (diamond, lonsdaleite)
 - 5-ring sp3 carbon (sharp corners, (100) surfaces)
-- fluorine
 
 Long-term goal: forcefield based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
 
