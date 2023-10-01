@@ -37,7 +37,8 @@ public struct MM4BondParameters {
   
 }
 
-/// Parameters for an angle between two bonds.
+// Parameters for an angle between two bonds, including bending stiffness
+// and multiplicative contribution to bend-bend stiffness.
 public struct MM4AngleParameters {
   
 }
@@ -62,12 +63,18 @@ public struct MM4AngleParameters {
 /// - 2 for some cases of C-C-C-C
 /// - zeroed out for 5-membered rings
 /// - 2 for C-C-C-F
+///
+/// 1-term torsion-stretch:
+/// - present for X-C-C-H
+/// - present for C-C-C-C
+/// - present for 5-membered rings
+/// - zeroed out for C-C-C-F
 public struct MM4CarbonTorsionParameters {
   
 }
 
 /// Parameters for the various torsion forces unique to fluorine-containing
-/// compounds (3-term torsion-stretch, torsion-bend, V4, V6, torsion-bend).
+/// compounds (V4, V6, 3-term torsion-stretch, torsion-bend).
 public struct MM4FluorineTorsionParameters {
   
 }
