@@ -32,40 +32,42 @@ public class MM4ParametersDescriptor {
   }
 }
 
-/// Morse stretching parameters for a covalent bond.
+/// Morse-Lippincott stretching parameters for a covalent bond.
 public struct MM4BondParameters {
   
 }
 
-/// Parameters for 6 angles originating from the same carbon atom. Angles are
-/// sorted by a comparison function to maintain a consistent order.
+/// Parameters for an angle between two bonds.
 public struct MM4AngleParameters {
-  // 4-element tuples instead of SIMD vectors
-  // 6-element tuples instead of SIMD vectors
+  
 }
 
-/// Parameters for a torsion among only carbon atoms.
+/// Parameters for a torsion among carbon or hydrogen atoms, and
+/// the first few terms of a fluorine torsion.
+///
+/// V1 term:
+/// - zeroed out for X-C-C-H
+/// - present for C-C-C-C
+/// - present for 5-membered rings
+/// - present for C-C-C-F
+///
+/// V3 term:
+/// - present for X-C-C-H
+/// - present for C-C-C-C
+/// - present for 5-membered rings
+/// - present for C-C-C-F
+///
+/// Vn term:
+/// - 6 for some cases of X-C-C-H
+/// - 2 for some cases of C-C-C-C
+/// - zeroed out for 5-membered rings
+/// - 2 for C-C-C-F
 public struct MM4CarbonTorsionParameters {
   
 }
 
-/// Parameters for a torsion containing a hydrogen, or inside a 5-membered ring.
-///
-/// Variable angle coefficent 1:
-/// - H-C-C-C: 3
-/// - 5-membered ring: 3
-///
-/// Variable angle coefficient 2:
-/// - H-C-C-C: 6
-/// - 5-membered ring: 1
-public struct MM4HydrogenTorsionParameters {
-
-}
-
 /// Parameters for the various torsion forces unique to fluorine-containing
-/// compounds (3-term torsion-stretch, torsion-bend, V1-4, V6). The
-/// fluorine-specific torsion-torsion force is handled by a separate data
-/// structure.
+/// compounds (3-term torsion-stretch, torsion-bend, V4, V6, torsion-bend).
 public struct MM4FluorineTorsionParameters {
   
 }
