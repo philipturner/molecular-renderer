@@ -32,16 +32,46 @@ public class MM4ParametersDescriptor {
   }
 }
 
-/// Morse-Lippincott stretching parameters for a covalent bond. Switches
-/// between the Morse and Lippincott functions at the equilibrium radius.
+/// Morse stretching parameters for a covalent bond. The bond's electric dipole
+/// is also included in these parameters.
 public struct MM4BondParameters {
+  /// Units: millidyne \* angstrom
+  ///
+  /// The parameter's name originates from its description in
+  /// Nanosystems 3.3.3(a).
+  public var potentialWellDepth: Float
   
+  /// Units: millidyne / angstrom
+  public var stretchingStiffness: Float
+  
+  // TODO: Understand how the Electronegativity Effect and Bohlmann Band Effect
+  // are factored into bond lengths.
+  
+  /// Units: angstrom
+  public var equilibriumLength: Float
+  
+  // TODO: Find a method to simulate dipole-dipole interactions in OpenMM.
+  
+  /// Units: debye
+  ///
+  /// For nonpolar bonds, this should be zero.
+  public var dipoleMoment: Float
 }
 
 /// Parameters for an angle between two bonds, including bending stiffness
 /// and multiplicative contribution to bend-bend stiffness.
 public struct MM4AngleParameters {
+  /// This is an off-diagonal term, so units are omitted for brevity.
+  public var bendBendStiffness: Float
   
+  /// Units: millidyne \* angstrom / radian^2
+  public var bendingStiffness: Float
+  
+  /// Units: radian
+  public var equilibriumAngle: Float
+  
+  /// This is an off-diagonal term, so units are omitted for brevity.
+  public var stretchBendStiffness: Float
 }
 
 /// Parameters for a torsion among carbon or hydrogen atoms, and
@@ -51,33 +81,68 @@ public struct MM4AngleParameters {
 /// - zeroed out for X-C-C-H
 /// - present for C-C-C-C
 /// - present for 5-membered rings
-/// - present for C-C-C-F
+/// - present for X-C-C-F
 ///
 /// V3 term:
 /// - present for X-C-C-H
 /// - present for C-C-C-C
 /// - present for 5-membered rings
-/// - present for C-C-C-F
+/// - present for X-C-C-F
 ///
 /// Vn term:
 /// - 6 for some cases of X-C-C-H
 /// - 2 for some cases of C-C-C-C
 /// - zeroed out for 5-membered rings
-/// - 2 for C-C-C-F
+/// - 2 for X-C-C-F
 ///
 /// 1-term torsion-stretch:
 /// - present for X-C-C-H
 /// - present for C-C-C-C
 /// - present for 5-membered rings
-/// - zeroed out for C-C-C-F
+/// - zeroed out for X-C-C-F
 public struct MM4CarbonTorsionParameters {
+  /// Units: kilocalorie / mole
+  public var V1: Float
   
+  /// Units: kilocalorie / mole
+  public var V3: Float
+  
+  /// Units: kilocalorie / mole
+  public var Vn: Float
+  
+  /// The factor to multiply the angle with inside the cosine term for Vn.
+  public var n: Float
+  
+  /// The V3-like term contributing to torsion-stretch stiffness.
+  public var Kts3: Float
 }
 
 /// Parameters for the various torsion forces unique to fluorine-containing
 /// compounds (V4, V6, 3-term torsion-stretch, torsion-bend).
 public struct MM4FluorineTorsionParameters {
+  /// Units: kilocalorie / mole
+  public var V4: Float
   
+  /// Units: kilocalorie / mole
+  public var V6: Float
+  
+  /// The V1-like term contributing to torsion-stretch stiffness.
+  public var Kts1: (left: Float, central: Float, right: Float)
+  
+  /// The V2-like term contributing to torsion-stretch stiffness.
+  public var Kts2: (left: Float, central: Float, right: Float)
+  
+  /// The V3-like term contributing to torsion-stretch stiffness.
+  public var Kts3: (left: Float, central: Float, right: Float)
+  
+  /// The V1-like term contributing to torsion-bend stiffness.
+  public var Ktb1: (left: Float, right: Float)
+  
+  /// The V2-like term contributing to torsion-bend stiffness.
+  public var Ktb2: (left: Float, right: Float)
+  
+  /// The V3-like term contributing to torsion-bend stiffness.
+  public var Ktb3: (left: Float, right: Float)
 }
 
 /// Parameters for the van der Waals force on a specific atom, with an
@@ -85,7 +150,17 @@ public struct MM4FluorineTorsionParameters {
 /// include electric forces, which are handled separately in a bond-bond based
 /// dipole interaction.
 public struct MM4NonbondedParameters {
+  /// Units:  kilocalorie / mole
+  ///
+  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
+  /// hydrogen.
+  public var epsilon: (heteroatom: Float, hydrogen: Float)
   
+  /// Units: angstrom
+  ///
+  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
+  /// hydrogen.
+  public var radius: (heteroatom: Float, hydrogen: Float)
 }
 
 /// A set of force field parameters.
@@ -99,11 +174,26 @@ public class MM4Parameters {
   /// Groups of atom indices that form a torsion.
   public internal(set) var torsions: [SIMD4<Int32>]
   
-  /// Atom pairs to be excluded from vdW and electric interactions.
+  /// Atom pairs to be excluded from vdW interactions.
   public internal(set) var nonbondedExceptions13: [SIMD2<Int32>]
   
-  /// Atom pairs to have reduce vdW and/or electric interactions.
+  /// Atom pairs that have reduced vdW interactions.
   public internal(set) var nonbondedExceptions14: [SIMD2<Int32>]
+  
+  /// Each value corresponds to the bond at the same array index.
+  public internal(set) var bondParameters: [MM4BondParameters]
+  
+  /// Each value corresponds to the angle at the same array index.
+  public internal(set) var angleParameters: [MM4AngleParameters]
+  
+  /// Each value corresponds to the torsion at the same array index.
+  public internal(set) var carbonTorsionParameters: [MM4CarbonTorsionParameters]
+  
+  /// Each value corresponds to the torsion at the same array index.
+  public internal(set) var fluorineTorsionParameters: [MM4FluorineTorsionParameters?]
+  
+  /// Each value corresponds to the atom at the same array index.
+  public internal(set) var nonbondedParameters: [MM4NonbondedParameters]
   
   /// Create a set of parameters using the specified configuration.
   public init(descriptor: MM4ParametersDescriptor) {
@@ -267,5 +357,7 @@ public class MM4Parameters {
     }
     nonbondedExceptions13 = nonbondedExceptions13Map.keys.map { $0 }
     nonbondedExceptions14 = nonbondedExceptions14Map.keys.map { $0 }
+    
+    fatalError("Not implemented yet.")
   }
 }

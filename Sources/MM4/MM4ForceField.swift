@@ -9,8 +9,6 @@ import Foundation
 
 /// A configuration for a force field simulator.
 public class MM4ForceFieldDescriptor {
-  // TODO: Allow more complex forces that can change over time?
-  //
   /// Optional. The force (in piconewtons) exerted on each atom.
   public var externalForces: [SIMD3<Float>]?
   
@@ -32,8 +30,6 @@ public class MM4ForceFieldDescriptor {
   /// Optional. Whether each atom's absolute position should never change.
   public var stationaryAtoms: [Bool]?
   
-  // TODO: Support a thermostat that dissipates energy into stationary atoms.
-  //
   /// Required. The temperature (in Kelvin) to initialize thermal velocities at.
   ///
   /// The default is 25 degrees Celsius.
@@ -47,17 +43,7 @@ public class MM4ForceFieldDescriptor {
   public var velocities: [SIMD3<Float>]?
   
   public init() {
-    // Create the following forces from the paramters:
-    // - van der Waals (Buckingham)
-    // - electrostatic
-    //   - only if any polar covalent bonds exist
-    // - bond stretch (Morse)
-    // - bond bend (sextic) + stretch-bend
-    // - bond bend-bend
-    // - bond torsion + torsion-stretch
-    //   - excludes torsions with torsion-bend and bend-torsion-bend terms
-    // - bond torsion-bend + bend-torsion-bend
-    //   - computes torsion + torsion-stretch for included torsions
+    
   }
 }
 
@@ -71,7 +57,9 @@ public class MM4ForceField {
   /// Simulate the system's evolution for the specified time interval (in
   /// picoseconds).
   public func simulate(time: Double) {
-    
+    // If the time doesn't divide evenly into 100 fs, compile a temporary
+    // integrator that executes the remainder, potentially with a slightly
+    // scaled-down timestep.
   }
   
   /// Retrieve a frame of the simulation.
