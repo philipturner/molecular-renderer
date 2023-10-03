@@ -149,7 +149,7 @@ extension MM4Parameters {
         potentialWellDepth = 1.130
         stretchingStiffness = 4.9900
         equilibriumLength = 1.5290
-      case (1, 11), (123, 11):
+      case (1, 11), (11, 123):
         potentialWellDepth = 0.989
         stretchingStiffness = 6.10
         equilibriumLength = 1.3859
