@@ -7,164 +7,10 @@
 
 import Foundation
 
-/// A configuration for a set of force field parameters.
-public class MM4ParametersDescriptor {
-  /// Required. The number of protons in the atom's nucleus.
-  public var atomicNumbers: [UInt8] = []
-  
-  /// Required. Pairs of atom indices representing (potentially multiple)
-  /// covalent bonds.
-  public var bonds: [SIMD2<UInt32>] = []
-  
-  /// Optional. The bond order for each covalent bond, which may be fractional.
-  ///
-  /// If not specified, all covalent bonds are treated as sigma bonds.
-  public var bondOrders: [Float]?
-  
-  /// Required. The amount of mass (in amu) to redistribute from a substituent
-  /// atom to each covalently bonded hydrogen.
-  ///
-  /// The default is 1 amu.
-  public var hydrogenMassRepartitioning: Double = 1.0
-  
-  public init() {
-    
-  }
-}
-
-/// Morse stretching parameters for a covalent bond. The bond's electric dipole
-/// is also included in these parameters.
-public struct MM4BondParameters {
-  /// Units: millidyne \* angstrom
-  ///
-  /// The parameter's name originates from its description in
-  /// Nanosystems 3.3.3(a).
-  public var potentialWellDepth: Float
-  
-  /// Units: millidyne / angstrom
-  public var stretchingStiffness: Float
-  
-  // TODO: Understand how the Electronegativity Effect and Bohlmann Band Effect
-  // are factored into bond lengths.
-  
-  /// Units: angstrom
-  public var equilibriumLength: Float
-  
-  // TODO: Find a method to simulate dipole-dipole interactions in OpenMM.
-  
-  /// Units: debye
-  ///
-  /// For nonpolar bonds, this should be zero.
-  public var dipoleMoment: Float
-}
-
-/// Parameters for an angle between two bonds, including bending stiffness
-/// and multiplicative contribution to bend-bend stiffness.
-public struct MM4AngleParameters {
-  /// This is an off-diagonal term, so units are omitted for brevity.
-  public var bendBendStiffness: Float
-  
-  /// Units: millidyne \* angstrom / radian^2
-  public var bendingStiffness: Float
-  
-  /// Units: radian
-  public var equilibriumAngle: Float
-  
-  /// This is an off-diagonal term, so units are omitted for brevity.
-  public var stretchBendStiffness: Float
-}
-
-/// Parameters for a torsion among carbon or hydrogen atoms, and
-/// the first few terms of a fluorine torsion.
-///
-/// V1 term:
-/// - zeroed out for X-C-C-H
-/// - present for C-C-C-C
-/// - present for 5-membered rings
-/// - present for X-C-C-F
-///
-/// V3 term:
-/// - present for X-C-C-H
-/// - present for C-C-C-C
-/// - present for 5-membered rings
-/// - present for X-C-C-F
-///
-/// Vn term:
-/// - 6 for some cases of X-C-C-H
-/// - 2 for some cases of C-C-C-C
-/// - zeroed out for 5-membered rings
-/// - 2 for X-C-C-F
-///
-/// 1-term torsion-stretch:
-/// - present for X-C-C-H
-/// - present for C-C-C-C
-/// - present for 5-membered rings
-/// - zeroed out for X-C-C-F
-public struct MM4CarbonTorsionParameters {
-  /// Units: kilocalorie / mole
-  public var V1: Float
-  
-  /// Units: kilocalorie / mole
-  public var V3: Float
-  
-  /// Units: kilocalorie / mole
-  public var Vn: Float
-  
-  /// The factor to multiply the angle with inside the cosine term for Vn.
-  public var n: Float
-  
-  /// The V3-like term contributing to torsion-stretch stiffness.
-  public var Kts3: Float
-}
-
-/// Parameters for the various torsion forces unique to fluorine-containing
-/// compounds (V4, V6, 3-term torsion-stretch, torsion-bend).
-public struct MM4FluorineTorsionParameters {
-  /// Units: kilocalorie / mole
-  public var V4: Float
-  
-  /// Units: kilocalorie / mole
-  public var V6: Float
-  
-  /// The V1-like term contributing to torsion-stretch stiffness.
-  public var Kts1: (left: Float, central: Float, right: Float)
-  
-  /// The V2-like term contributing to torsion-stretch stiffness.
-  public var Kts2: (left: Float, central: Float, right: Float)
-  
-  /// The V3-like term contributing to torsion-stretch stiffness.
-  public var Kts3: (left: Float, central: Float, right: Float)
-  
-  /// The V1-like term contributing to torsion-bend stiffness.
-  public var Ktb1: (left: Float, right: Float)
-  
-  /// The V2-like term contributing to torsion-bend stiffness.
-  public var Ktb2: (left: Float, right: Float)
-  
-  /// The V3-like term contributing to torsion-bend stiffness.
-  public var Ktb3: (left: Float, right: Float)
-}
-
-/// Parameters for the van der Waals force on a specific atom, with an
-/// alternative value for use in hydrogen interactions. This force does not
-/// include electric forces, which are handled separately in a bond-bond based
-/// dipole interaction.
-public struct MM4NonbondedParameters {
-  /// Units:  kilocalorie / mole
-  ///
-  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
-  /// hydrogen.
-  public var epsilon: (heteroatom: Float, hydrogen: Float)
-  
-  /// Units: angstrom
-  ///
-  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
-  /// hydrogen.
-  public var radius: (heteroatom: Float, hydrogen: Float)
-}
-
 /// A set of force field parameters.
 public class MM4Parameters {
+  public internal(set) var atomTypes: [MM4AtomType]
+  
   /// The mass of each atom after hydrogen mass repartitioning.
   public internal(set) var masses: [Float]
   
@@ -187,7 +33,7 @@ public class MM4Parameters {
   public internal(set) var angleParameters: [MM4AngleParameters]
   
   /// Each value corresponds to the torsion at the same array index.
-  public internal(set) var carbonTorsionParameters: [MM4CarbonTorsionParameters]
+  public internal(set) var carbonTorsionParameters: [MM4CarbonTorsionParameters?]
   
   /// Each value corresponds to the torsion at the same array index.
   public internal(set) var fluorineTorsionParameters: [MM4FluorineTorsionParameters?]
@@ -197,6 +43,22 @@ public class MM4Parameters {
   
   /// Create a set of parameters using the specified configuration.
   public init(descriptor: MM4ParametersDescriptor) {
+    // Initialize all of the properties so you can call instance members during
+    // the initializer.
+    self.atomTypes = []
+    self.masses = []
+    self.angles = []
+    self.torsions = []
+    self.nonbondedExceptions13 = []
+    self.nonbondedExceptions14 = []
+    self.bondParameters = []
+    self.angleParameters = []
+    self.carbonTorsionParameters = []
+    self.fluorineTorsionParameters = []
+    self.nonbondedParameters = []
+    
+    // MARK: - Create Bond Topology
+    
     // Check the bond orders.
     if let bondOrders = descriptor.bondOrders {
       precondition(
@@ -338,6 +200,26 @@ public class MM4Parameters {
     }
     angles = anglesMap.keys.map { $0 }
     torsions = torsionsMap.keys.map { $0 }
+    atomTypes = descriptor.atomicNumbers.indices.map { atomID in
+      let atomicNumber = descriptor.atomicNumbers[atomID]
+      switch atomicNumber {
+      case 1:
+        return .hydrogen
+      case 6:
+        let ringType = ringTypes[atomID]
+        if ringType == 6 {
+          return .carbon_sp3
+        } else if ringType == 5 {
+          return .carbon_sp3_5ring
+        } else {
+          fatalError("Unsupported carbon ring type: \(ringType)")
+        }
+      case 9:
+        return .fluorine
+      default:
+        fatalError("Atomic number \(atomicNumber) not recognized.")
+      }
+    }
     
     // Create nonbonded exceptions.
     var nonbondedExceptions13Map: [SIMD2<Int32>: Bool] = [:]
@@ -358,6 +240,29 @@ public class MM4Parameters {
     nonbondedExceptions13 = nonbondedExceptions13Map.keys.map { $0 }
     nonbondedExceptions14 = nonbondedExceptions14Map.keys.map { $0 }
     
-    fatalError("Not implemented yet.")
+    // MARK: - Assign Parameters
+    
+    // TODO: Add Electronegativity Effect and Bohlmann Band corrections.
+    // Implement this as a separate function that modifies the generated values
+    // for bond length and angles. Preferably in something that just outputs
+    // the delta L and delta Theta. Then, you apply the force constant
+    // derivation formula in this Swift file, and apply the deltas to the
+    // equilibrium lengths/angles.
+    
+    let carbonTypes = createCarbonTypes(
+      atomicNumbers: descriptor.atomicNumbers,
+      bondsToAtomsMap: bondsToAtomsMap,
+      atomsToBondsMap: atomsToBondsMap)
+    
+    bondParameters = createBondParameters(
+      atomTypes: atomTypes,
+      bondCount: descriptor.bonds.count,
+      bondsToAtomsMap: bondsToAtomsMap,
+      carbonTypes: carbonTypes)
+    
+    nonbondedParameters = createNonbondedParameters(
+      atomicNumbers: descriptor.atomicNumbers,
+      hydrogenMassRepartitioning: descriptor.hydrogenMassRepartitioning)
   }
 }
+
