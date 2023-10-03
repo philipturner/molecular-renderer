@@ -61,6 +61,7 @@ extension MM4Parameters {
       var matchMask: SIMD4<UInt8> = .zero
       matchMask.replace(with: .one, where: otherElements .== 6)
       
+      // TODO: Does type 1, 2, 3 consider fluorine to be like hydrogen?
       var carbonType: CarbonType
       switch matchMask.wrappedSum() {
       case 4:
@@ -189,7 +190,52 @@ extension MM4Parameters {
       let medAtomID = angle[1]
       let maxAtomID = (types[2] == maxAtomType) ? angle[2] : angle[0]
       
+      // Factors in both the carbon type and the other atoms in the angle.
+      // TODO: Does type 1, 2, 3 consider fluorine to be like hydrogen?
+      var angleType: Int = -1
       
+      var parameters: (
+        bendingStiffness: Float,
+        equilibriumAngle1: Float,
+        equilibriumAngle2: Float,
+        equilibriumAngle3: Float
+      ) = (0, 108.900, 109.470, 110.800)
+      
+      switch (minAtomType, medAtomType, maxAtomType) {
+      case (1, 1, 1):
+        parameters = (0.740, 109.500, 110.400, 111.800)
+      case (1, 1, 5):
+        switch angleType {
+        case 1:
+          parameters.bendingStiffness = 0.590
+        case 2:
+          parameters.bendingStiffness = 0.560
+        case 3:
+          parameters.bendingStiffness = 0.600
+        default:
+          fatalError("Unrecognized angle type: \(angleType)")
+        }
+      case (5, 1, 5):
+        parameters = (0.540, 107.700, 107.800, 107.700)
+      case (1, 1, 123), (1, 123, 123):
+        parameters = (0.740, 109.500, 110.500, 111.800)
+      case (1, 123, 5):
+        parameters.bendingStiffness = 0.560
+      case (5, 1, 123):
+        parameters.bendingStiffness = 0.560
+      case (5, 123, 5):
+        parameters = (0.620, 107.800, 107.800, 0.000)
+        guard angleType != 3 else {
+          fatalError("Unrecognized angle type: \(angleType)")
+        }
+      case (5, 123, 123):
+        parameters.bendingStiffness = 0.580
+      case (123, 123, 123):
+        parameters = (0.740, 108.300, 108.900, 109.000)
+        
+      // Keep the blank line above to separate carbon params from fluorine params.
+      default: fatalError("Not implemented.")
+      }
     }
     return output
   }
