@@ -270,4 +270,12 @@ extension MM4Parameters {
     }
     return output
   }
+  
+  // TODO: Add a separate force for the edge case of fluorine stretch-bend
+  // params, which is only activated if two fluorines are attached to the same
+  // carbon.
+  
+  // TODO: Create an entire separate file "MM4Parameters+Torsions" for torsions
+  // and all the torsion-like forces. Keep the Electronegativity Effect and
+  // Bohlmann Band corrections in MM4Parameters+Extensions.
 }
