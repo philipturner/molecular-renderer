@@ -166,6 +166,34 @@ extension MM4Parameters {
     return output
   }
   
+  internal func createAngleParameters(
+    angles: [SIMD3<Int32>],
+    atomTypes: [MM4AtomType],
+    carbonTypes: [CarbonType]
+  ) -> [MM4AngleParameters] {
+    var output: [MM4AngleParameters] = []
+    for angleID in angles.indices {
+      let angle = angles[angleID]
+      var types: SIMD3<UInt8> = .zero
+      for lane in 0..<3 {
+        let atomID = angle[lane]
+        types[lane] = atomTypes[Int(atomID)].rawValue
+      }
+      if any(types .== 11) {
+        types.replace(with: .init(repeating: 1), where: types .== 123)
+      }
+      let minAtomType = SIMD2(types[0], types[2]).min()
+      let medAtomType = types[1]
+      let maxAtomType = SIMD2(types[0], types[2]).max()
+      let minAtomID = (types[0] == minAtomType) ? angle[0] : angle[2]
+      let medAtomID = angle[1]
+      let maxAtomID = (types[2] == maxAtomType) ? angle[2] : angle[0]
+      
+      
+    }
+    return output
+  }
+  
   internal func createNonbondedParameters(
     atomicNumbers: [UInt8],
     hydrogenMassRepartitioning: Double
