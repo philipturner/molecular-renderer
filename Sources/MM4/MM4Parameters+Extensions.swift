@@ -100,8 +100,6 @@ extension MM4Parameters {
       let minAtomID = (types[0] == minAtomType) ? bond[0] : bond[1]
       let maxAtomID = (types[1] == maxAtomType) ? bond[1] : bond[0]
       
-      // TODO: Dipole flips in either direction, depending on the order the
-      // carbon and fluorine are addressed in.
       var potentialWellDepth: Float
       var stretchingStiffness: Float
       var equilibriumLength: Float
@@ -130,9 +128,40 @@ extension MM4Parameters {
         default:
           fatalError("Unrecognized carbon type.")
         }
+      case (5, 123):
+        potentialWellDepth = 0.854
+        equilibriumLength = 1.1120
+        
+        let carbonType = carbonTypes[Int(maxAtomID)]
+        switch carbonType {
+        case .tertiary:
+          stretchingStiffness = 4.7000
+        case .secondary:
+          stretchingStiffness = 4.6400
+        default:
+          fatalError("Unrecognized carbon type.")
+        }
+      case (1, 123):
+        potentialWellDepth = 1.130
+        stretchingStiffness = 4.5600
+        equilibriumLength = 1.5270
+      case (123, 123):
+        potentialWellDepth = 1.130
+        stretchingStiffness = 4.9900
+        equilibriumLength = 1.5290
+      case (1, 11), (123, 11):
+        potentialWellDepth = 0.989
+        stretchingStiffness = 6.10
+        equilibriumLength = 1.3859
+        dipoleMoment = (types[1] == 11) ? 1.82 : -1.82
       default:
-        fatalError("Not implemented.")
+        fatalError("Not recognized: (\(minAtomType), \(maxAtomType))")
       }
+      output.append(MM4BondParameters(
+        potentialWellDepth: potentialWellDepth,
+        stretchingStiffness: stretchingStiffness,
+        equilibriumLength: equilibriumLength,
+        dipoleMoment: dipoleMoment))
     }
     return output
   }
