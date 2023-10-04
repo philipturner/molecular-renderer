@@ -9,16 +9,30 @@ import Foundation
 
 /// A set of force field parameters.
 public class MM4Parameters {
-  public internal(set) var atomTypes: [MM4AtomType]
-  
-  /// The mass of each atom after hydrogen mass repartitioning.
-  public internal(set) var masses: [Float]
+  /// Each value corresponds to the angle at the same array index.
+  public internal(set) var angleParameters: [(
+    MM4AngleParameters, MM4HeteroatomAngleParameters?
+  )]
   
   /// Groups of atom indices that form an angle.
   public internal(set) var angles: [SIMD3<Int32>]
   
-  /// Groups of atom indices that form a torsion.
-  public internal(set) var torsions: [SIMD4<Int32>]
+  /// The MM4 code for each atom in the system.
+  public internal(set) var atomTypes: [MM4AtomType]
+  
+  /// Each value corresponds to the bond at the same array index.
+  public internal(set) var bondParameters: [(
+    MM4BondParameters, MM4HeteroatomBondParameters?
+  )]
+  
+  /// The center type used to assign different parameters.
+  ///
+  /// This is useful for debugging the assignment of parameters, to ensure the
+  /// exact parameter as specified by the forcefield paper gets assigned.
+  public internal(set) var centerTypes: [MM4CenterType]
+  
+  /// The mass of each atom after hydrogen mass repartitioning.
+  public internal(set) var masses: [Float]
   
   /// Atom pairs to be excluded from vdW interactions.
   public internal(set) var nonbondedExceptions13: [SIMD2<Int32>]
@@ -26,36 +40,38 @@ public class MM4Parameters {
   /// Atom pairs that have reduced vdW interactions.
   public internal(set) var nonbondedExceptions14: [SIMD2<Int32>]
   
-  /// Each value corresponds to the bond at the same array index.
-  public internal(set) var bondParameters: [MM4BondParameters]
-  
-  /// Each value corresponds to the angle at the same array index.
-  public internal(set) var angleParameters: [MM4AngleParameters]
-  
-  /// Each value corresponds to the torsion at the same array index.
-  public internal(set) var carbonTorsionParameters: [MM4CarbonTorsionParameters?]
-  
-  /// Each value corresponds to the torsion at the same array index.
-  public internal(set) var fluorineTorsionParameters: [MM4FluorineTorsionParameters?]
-  
   /// Each value corresponds to the atom at the same array index.
   public internal(set) var nonbondedParameters: [MM4NonbondedParameters]
+  
+  /// Tells whether the atom is part of a 5-membered ring. The forcefield
+  /// parameters may be slightly inaccurate for rings with mixed carbon and
+  /// silicon atoms.
+  public internal(set) var ringTypes: [UInt8]
+  
+  /// Each value corresponds to the torsion at the same array index.
+  public internal(set) var torsionParameters: [(
+    MM4TorsionParameters, MM4HeteroatomTorsionParameters?
+  )]
+  
+  /// Groups of atom indices that form a torsion.
+  public internal(set) var torsions: [SIMD4<Int32>]
   
   /// Create a set of parameters using the specified configuration.
   public init(descriptor: MM4ParametersDescriptor) {
     // Initialize all of the properties so you can call instance members during
     // the initializer.
-    self.atomTypes = []
-    self.masses = []
+    self.angleParameters = []
     self.angles = []
-    self.torsions = []
+    self.atomTypes = []
+    self.bondParameters = []
+    self.centerTypes = []
+    self.masses = []
     self.nonbondedExceptions13 = []
     self.nonbondedExceptions14 = []
-    self.bondParameters = []
-    self.angleParameters = []
-    self.carbonTorsionParameters = []
-    self.fluorineTorsionParameters = []
     self.nonbondedParameters = []
+    self.ringTypes = []
+    self.torsionParameters = []
+    self.torsions = []
     
     // MARK: - Create Bond Topology
     
@@ -124,6 +140,7 @@ public class MM4Parameters {
     where descriptor.atomicNumbers[atomID] == 1 {
       masses[atomID] += Float(descriptor.hydrogenMassRepartitioning)
       
+      // HMR affects both carbon and silicon.
       let map = atomsToBondsMap[atomID]
       guard map[0] != -1, map[1] == -1, map[2] == -1, map[3] == -1 else {
         fatalError("Hydrogen did not have exactly 1 bond.")
@@ -208,9 +225,9 @@ public class MM4Parameters {
       case 6:
         let ringType = ringTypes[atomID]
         if ringType == 6 {
-          return .carbon_sp3
+          return .alkaneCarbon
         } else if ringType == 5 {
-          return .carbon_sp3_5ring
+          return .cyclopentaneCarbon
         } else {
           fatalError("Unsupported carbon ring type: \(ringType)")
         }
@@ -249,7 +266,7 @@ public class MM4Parameters {
     // derivation formula in this Swift file, and apply the deltas to the
     // equilibrium lengths/angles.
     
-    let carbonTypes = createCarbonTypes(
+    centerTypes = createCenterTypes(
       atomicNumbers: descriptor.atomicNumbers,
       bondsToAtomsMap: bondsToAtomsMap,
       atomsToBondsMap: atomsToBondsMap)
@@ -258,7 +275,8 @@ public class MM4Parameters {
       atomTypes: atomTypes,
       bondCount: descriptor.bonds.count,
       bondsToAtomsMap: bondsToAtomsMap,
-      carbonTypes: carbonTypes)
+      centerTypes: centerTypes,
+      ringTypes: ringTypes)
     
     nonbondedParameters = createNonbondedParameters(
       atomicNumbers: descriptor.atomicNumbers,

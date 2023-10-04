@@ -14,7 +14,7 @@ Overview:
       - If used very often, this scheme may be refactored into an API accepting version strings. Prepare for this change by making subsequent versions have the same properties/members as the original.
 - Each file contains some code for testing the part, which relies on the new "MM4" (module not built yet). The old MM4 accepts all the data needed by the new MM4.
   - The test case may be arbitrarily defined, just something you can run to prove the part works.
-  - Should provide a way to extract the atom trajectory from the simulation, serialize to MRSimulation, they replay somewhere else.
+  - Should provide a way to extract the atom trajectory from the simulation, serialize to MRSimulation, then replay somewhere else.
     - Precursor: cross-platform MRSimulation encoder.
     - Precursor: decide on the best API for returning atom trajectories.
 

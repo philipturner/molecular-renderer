@@ -7,6 +7,26 @@
 
 import Foundation
 
+/// Parameters for the van der Waals force on a specific atom, with an
+/// alternative value for use in hydrogen interactions. This force does not
+/// include electric forces, which are handled separately in a bond-bond based
+/// dipole interaction.
+public struct MM4NonbondedParameters {
+  /// Units:  kilocalorie / mole
+  ///
+  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
+  /// hydrogen. Epsilons are computed using the geometric mean for heteroatoms,
+  /// otherwise substitute directly with the hydrogen epsilon.
+  public var epsilon: (heteroatom: Float, hydrogen: Float)
+  
+  /// Units: angstrom
+  ///
+  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
+  /// hydrogen. Radii are computed using the arithmetic sum for heteroatoms,
+  /// otherwise substitute directly with the hydrogen radius.
+  public var radius: (heteroatom: Float, hydrogen: Float)
+}
+
 /// A configuration for a set of force field parameters.
 public class MM4ParametersDescriptor {
   /// Required. The number of protons in the atom's nucleus.
@@ -46,7 +66,9 @@ public struct MM4BondParameters {
   
   /// Units: angstrom
   public var equilibriumLength: Float
-  
+}
+
+public struct MM4HeteroatomBondParameters {
   /// Units: debye
   ///
   /// For nonpolar bonds, this should be zero.
@@ -67,6 +89,14 @@ public struct MM4AngleParameters {
   
   /// This is an off-diagonal term, so units are omitted for brevity.
   public var stretchBendStiffness: Float
+}
+
+public struct MM4HeteroatomAngleParameters {
+  /// Stiffness for type 2 stretch-bend forces, affecting bonds not directly
+  /// involved in this angle.
+  public var stretchBendStiffness: Float
+  
+  public var stretchStretchStiffness: Float
 }
 
 /// Parameters for a torsion among carbon or hydrogen atoms, and
@@ -95,7 +125,7 @@ public struct MM4AngleParameters {
 /// - present for C-C-C-C
 /// - present for 5-membered rings
 /// - zeroed out for X-C-C-F
-public struct MM4CarbonTorsionParameters {
+public struct MM4TorsionParameters {
   /// Units: kilocalorie / mole
   public var V1: Float
   
@@ -114,7 +144,7 @@ public struct MM4CarbonTorsionParameters {
 
 /// Parameters for the various torsion forces unique to fluorine-containing
 /// compounds (V4, V6, 3-term torsion-stretch, torsion-bend).
-public struct MM4FluorineTorsionParameters {
+public struct MM4HeteroatomTorsionParameters {
   /// Units: kilocalorie / mole
   public var V4: Float
   
@@ -140,29 +170,35 @@ public struct MM4FluorineTorsionParameters {
   public var Ktb3: (left: Float, right: Float)
 }
 
-/// Parameters for the van der Waals force on a specific atom, with an
-/// alternative value for use in hydrogen interactions. This force does not
-/// include electric forces, which are handled separately in a bond-bond based
-/// dipole interaction.
-public struct MM4NonbondedParameters {
-  /// Units:  kilocalorie / mole
-  ///
-  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
-  /// hydrogen. Epsilons are computed using the geometric mean for heteroatoms,
-  /// otherwise substitute directly with the hydrogen epsilon.
-  public var epsilon: (heteroatom: Float, hydrogen: Float)
+/// MM4 codes for an element or an atom in a specific functional group.
+public enum MM4AtomType: UInt8, RawRepresentable {
+  /// Carbon (sp3)
+  case alkaneCarbon = 1
   
-  /// Units: angstrom
-  ///
-  /// "Heteroatom" includes carbon; the term was simply chosen as an antonym to
-  /// hydrogen. Radii are computed using the arithmetic sum for heteroatoms,
-  /// otherwise substitute directly with the hydrogen radius.
-  public var radius: (heteroatom: Float, hydrogen: Float)
+  /// Hydrogen
+  case hydrogen = 5
+  
+  /// Fluorine
+  case fluorine = 11
+  
+  /// Silicon
+  case silicon = 19
+  
+  /// Carbon (sp3, 5-ring)
+  case cyclopentaneCarbon = 123
 }
 
-public enum MM4AtomType: UInt8, RawRepresentable {
-  case carbon_sp3 = 1
-  case hydrogen = 5
-  case fluorine = 11
-  case carbon_sp3_5ring = 123
+/// The number of hydrogens surrounding the carbon or silicon.
+///
+/// Methane carbons are disallowed in the simulator, as they will be simulated
+/// very inaccurately. The fluorine parameters struggle with the edge case of
+/// carbon tetrafluoride, and HMR creates the nonphysical carbon-8 isotope. In
+/// general, primary sp3 carbons are also discouraged, for the same reasons
+/// that methane is prohibited.
+public enum MM4CenterType {
+  case heteroatom(UInt8)
+  case primary
+  case secondary
+  case tertiary
+  case quaternary
 }

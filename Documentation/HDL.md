@@ -98,9 +98,11 @@ Cut()
 Replaces the selected volume with nothing. This must be called inside a `Volume`.
 
 ```swift
-Passivate { Bond }
-Passivate { Element }
+Replace { Bond }
+Replace { Element }
 ```
+
+> TODO: This was originally a "Passivate" keyword, but changed to a more general approach supporting silicon termination. Explain what the new purpose is.
 
 Adds hydrogens or halogens to complete the valence shells of selected atoms. When specifying a bond, use that bond to connect nearby atoms. The volumes "zero" volume must include both the atoms to be passivated, and the volume where passivators may exist.
 
