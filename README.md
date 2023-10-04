@@ -33,14 +33,17 @@ Short-Term (next few weeks)
 
 Medium-Term (next few months)
 - Establish a first-generation engineering knowledge base (database) for nanomechanical parts, written in the Swift DSL
-- Combine the bounded continuum model (introduced in _Nanosystems_) with an $O(n)$ method for simulating bulk deformations
-  - Enable quick prototyping of assemblies with over 100,000 atoms
-- Create tutorials to onboard new nanomechanical engineers (Jupyter notebooks, online DocC tutorials, etc.)
+- Optimize for multi-GPU desktop machines
+  - Resolve $O(n^2)$ scaling issues with non-carbon elements
+  - Port LZBITMAP to Linux
+  - Quick prototyping of assemblies with ~100,000 atoms
+  - Overnight simulation of systems with ~1,000,000 atoms
 
 Long-Term (next few years)
+- Create tutorials to onboard new nanomechanical engineers (Jupyter notebooks, online DocC tutorials, etc.)
 - Create a simulator for mechanosynthesis reactions, and novel rendering algorithms to interpret simulation results
   - Ab initio and semiempirical methods such as DFT, [GFN-xTB, GFN-FF](https://github.com/grimme-lab/xtb)
-- Plugins for other CAD programs, which utilize their GUI, but add new design or simulation functionality
+- Plugins for atomCAD and/or MSEP, which utilize their GUI, but add new design or simulation functionality
 
 Non-Goals
 - Create a SAMSON plugin
