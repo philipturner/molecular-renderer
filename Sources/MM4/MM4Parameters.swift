@@ -7,6 +7,31 @@
 
 import Foundation
 
+/// A configuration for a set of force field parameters.
+public class MM4ParametersDescriptor {
+  /// Required. The number of protons in the atom's nucleus.
+  public var atomicNumbers: [UInt8] = []
+  
+  /// Required. Pairs of atom indices representing (potentially multiple)
+  /// covalent bonds.
+  public var bonds: [SIMD2<UInt32>] = []
+  
+  /// Optional. The bond order for each covalent bond, which may be fractional.
+  ///
+  /// If not specified, all covalent bonds are treated as sigma bonds.
+  public var bondOrders: [Float]?
+  
+  /// Required. The amount of mass (in amu) to redistribute from a substituent
+  /// atom to each covalently bonded hydrogen.
+  ///
+  /// The default is 1 amu.
+  public var hydrogenMassRepartitioning: Double = 1.0
+  
+  public init() {
+    
+  }
+}
+
 /// A set of force field parameters.
 public class MM4Parameters {
   /// Each value corresponds to the angle at the same array index.
@@ -18,7 +43,7 @@ public class MM4Parameters {
   public internal(set) var angles: [SIMD3<Int32>]
   
   /// The MM4 code for each atom in the system.
-  public internal(set) var atomTypes: [MM4AtomType]
+  public internal(set) var atomCodes: [MM4AtomCode]
   
   /// Each value corresponds to the bond at the same array index.
   public internal(set) var bondParameters: [(
@@ -62,7 +87,7 @@ public class MM4Parameters {
     // the initializer.
     self.angleParameters = []
     self.angles = []
-    self.atomTypes = []
+    self.atomCodes = []
     self.bondParameters = []
     self.centerTypes = []
     self.masses = []
@@ -217,7 +242,7 @@ public class MM4Parameters {
     }
     angles = anglesMap.keys.map { $0 }
     torsions = torsionsMap.keys.map { $0 }
-    atomTypes = descriptor.atomicNumbers.indices.map { atomID in
+    atomCodes = descriptor.atomicNumbers.indices.map { atomID in
       let atomicNumber = descriptor.atomicNumbers[atomID]
       switch atomicNumber {
       case 1:
@@ -271,16 +296,16 @@ public class MM4Parameters {
       bondsToAtomsMap: bondsToAtomsMap,
       atomsToBondsMap: atomsToBondsMap)
     
+    nonbondedParameters = createNonbondedParameters(
+      atomicNumbers: descriptor.atomicNumbers,
+      hydrogenMassRepartitioning: descriptor.hydrogenMassRepartitioning)
+    
     bondParameters = createBondParameters(
-      atomTypes: atomTypes,
+      atomCodes: atomCodes,
       bondCount: descriptor.bonds.count,
       bondsToAtomsMap: bondsToAtomsMap,
       centerTypes: centerTypes,
       ringTypes: ringTypes)
-    
-    nonbondedParameters = createNonbondedParameters(
-      atomicNumbers: descriptor.atomicNumbers,
-      hydrogenMassRepartitioning: descriptor.hydrogenMassRepartitioning)
   }
 }
 

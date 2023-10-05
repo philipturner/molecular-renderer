@@ -569,11 +569,11 @@
 			children = (
 				98A700982AAFB77900499CD2 /* Parameters */,
 				98A700852AAE935000499CD2 /* MM4ForceField.swift */,
+				9816EFC42ACD088C0042073F /* MM4Forces.swift */,
 				98A700862AAE936B00499CD2 /* MM4Parameters.swift */,
 				9816EFB22ACBA2320042073F /* MM4Parameters+Extensions.swift */,
 				9816EFC02ACBA39B0042073F /* MM4Parameters+Types.swift */,
 				98A700872AAE937100499CD2 /* MM4State.swift */,
-				9816EFC42ACD088C0042073F /* MM4Forces.swift */,
 			);
 			path = MM4;
 			sourceTree = "<group>";

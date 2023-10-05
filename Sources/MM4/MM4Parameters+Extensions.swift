@@ -109,7 +109,7 @@ extension MM4Parameters {
   }
   
   internal func createBondParameters(
-    atomTypes: [MM4AtomType],
+    atomCodes: [MM4AtomCode],
     bondCount: Int,
     bondsToAtomsMap: UnsafeMutablePointer<SIMD2<Int32>>,
     centerTypes: [MM4CenterType],
@@ -120,20 +120,20 @@ extension MM4Parameters {
     var output: [(MM4BondParameters, MM4HeteroatomBondParameters?)] = []
     for bondID in 0..<bondCount {
       let bond = bondsToAtomsMap[bondID]
-      var types: SIMD2<UInt8> = .zero
+      var codes: SIMD2<UInt8> = .zero
       var rings: SIMD2<UInt8> = .zero
       for lane in 0..<2 {
         let atomID = bond[lane]
-        types[lane] = atomTypes[Int(atomID)].rawValue
+        codes[lane] = atomCodes[Int(atomID)].rawValue
         rings[lane] = ringTypes[Int(atomID)]
       }
-      if any(types .!= 11 .| types .== 19) {
-        types.replace(with: .init(repeating: 1), where: types .== 123)
+      if any(codes .!= 11 .| codes .== 19) {
+        codes.replace(with: .init(repeating: 1), where: codes .== 123)
       }
-      let minAtomType = types.min()
-      let maxAtomType = types.max()
-      let minAtomID = (types[0] == minAtomType) ? bond[0] : bond[1]
-      let maxAtomID = (types[1] == maxAtomType) ? bond[1] : bond[0]
+      let minatomCode = codes.min()
+      let maxatomCode = codes.max()
+      let minAtomID = (codes[0] == minatomCode) ? bond[0] : bond[1]
+      let maxAtomID = (codes[1] == maxatomCode) ? bond[1] : bond[0]
       
       // TODO: Don't erroneously classify a bond or angle from two separate
       // 5-membered rings as from the same ring. This requires some means to
@@ -149,7 +149,7 @@ extension MM4Parameters {
       var equilibriumLength: Float
       var dipoleMoment: Float?
       
-      switch (minAtomType, maxAtomType) {
+      switch (minatomCode, maxatomCode) {
         // Carbon
       case (1, 1):
         potentialWellDepth = 1.130
@@ -197,7 +197,7 @@ extension MM4Parameters {
         potentialWellDepth = 0.989
         stretchingStiffness = 6.10
         equilibriumLength = 1.3859
-        dipoleMoment = (types[1] == 11) ? +1.82 : -1.82
+        dipoleMoment = (codes[1] == 11) ? +1.82 : -1.82
         
         // Silicon
       case (1, 19):
@@ -205,7 +205,7 @@ extension MM4Parameters {
         potentialWellDepth = 0.812
         stretchingStiffness = 3.05
         equilibriumLength = (ringType == 5) ? 1.884 : 1.876
-        dipoleMoment = (types[1] == 19) ? -dipoleMagnitude : +dipoleMagnitude
+        dipoleMoment = (codes[1] == 19) ? -dipoleMagnitude : +dipoleMagnitude
       case (5, 19):
         potentialWellDepth = 0.777
         stretchingStiffness = 2.65
@@ -215,7 +215,7 @@ extension MM4Parameters {
         stretchingStiffness = 1.65
         equilibriumLength = (ringType == 5) ? 2.336 : 2.322
       default:
-        fatalError("Not recognized: (\(minAtomType), \(maxAtomType))")
+        fatalError("Not recognized: (\(minatomCode), \(maxatomCode))")
       }
       
       let parameters = MM4BondParameters(
@@ -237,7 +237,7 @@ extension MM4Parameters {
   
   internal func createAngleParameters(
     angles: [SIMD3<Int32>],
-    atomTypes: [MM4AtomType],
+    atomCodes: [MM4AtomCode],
     centerTypes: [MM4CenterType]
   ) -> [(
     MM4AngleParameters, MM4HeteroatomAngleParameters?
@@ -245,29 +245,29 @@ extension MM4Parameters {
     var output: [(MM4AngleParameters, MM4HeteroatomAngleParameters?)] = []
     for angleID in angles.indices {
       let angle = angles[angleID]
-      var types: SIMD3<UInt8> = .zero
+      var codes: SIMD3<UInt8> = .zero
       var rings: SIMD2<UInt8> = .zero
       for lane in 0..<3 {
         let atomID = angle[lane]
-        types[lane] = atomTypes[Int(atomID)].rawValue
+        codes[lane] = atomCodes[Int(atomID)].rawValue
         rings[lane] = ringTypes[Int(atomID)]
       }
-      if any(types .== 11 .| types .== 19) {
-        types.replace(with: .init(repeating: 1), where: types .== 123)
+      if any(codes .== 11 .| codes .== 19) {
+        codes.replace(with: .init(repeating: 1), where: codes .== 123)
       }
-      let minAtomType = SIMD2(types[0], types[2]).min()
-      let medAtomType = types[1]
-      let maxAtomType = SIMD2(types[0], types[2]).max()
-      let minAtomID = (types[0] == minAtomType) ? angle[0] : angle[2]
+      let minatomCode = SIMD2(codes[0], codes[2]).min()
+      let medatomCode = codes[1]
+      let maxatomCode = SIMD2(codes[0], codes[2]).max()
+      let minAtomID = (codes[0] == minatomCode) ? angle[0] : angle[2]
       let medAtomID = angle[1]
-      let maxAtomID = (types[2] == maxAtomType) ? angle[2] : angle[0]
+      let maxAtomID = (codes[2] == maxatomCode) ? angle[2] : angle[0]
       let ringType = rings.max()
       
       var bendingStiffnesses: SIMD3<Float>
       var equilibriumAngles: SIMD3<Float>
       let baseCarbonAngles: SIMD3<Float> = SIMD3(108.900, 109.470, 110.800)
       
-      switch (minAtomType, medAtomType, maxAtomType) {
+      switch (minatomCode, medatomCode, maxatomCode) {
         // Carbon
       case (1, 1, 1):
         bendingStiffnesses = SIMD3(repeating: 0.740)
@@ -355,14 +355,14 @@ extension MM4Parameters {
           equilibriumAngles = SIMD3(repeating: 106.00)
         }
       default:
-        fatalError("Not recognized: (\(minAtomType), \(medAtomType), \(maxAtomType))")
+        fatalError("Not recognized: (\(minatomCode), \(medatomCode), \(maxatomCode))")
       }
       
       // Factors in both the center type and the other atoms in the angle.
       var angleType: Int
       do {
         var matchMask: SIMD3<UInt8> = .zero
-        matchMask.replace(with: .one, where: types .== 5)
+        matchMask.replace(with: .one, where: codes .== 5)
         let numHydrogens = Int(matchMask.wrappedSum())
         
         let centerType = centerTypes[Int(medAtomID)]

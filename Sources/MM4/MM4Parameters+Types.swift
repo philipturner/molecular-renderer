@@ -7,6 +7,88 @@
 
 import Foundation
 
+/// Parameters for one atom.
+public struct MM4Atoms {
+  /// The number of protons in the atom's nucleus.
+  public var atomicNumbers: [UInt8]
+  
+  /// The center type used to assign different parameters.
+  ///
+  /// This is useful for debugging the assignment of parameters, to ensure the
+  /// exact parameter as specified by the forcefield paper gets assigned.
+  public var centerTypes: [MM4CenterType]
+  
+  /// The MM4 code for each atom in the system.
+  public var codes: [MM4AtomCode]
+  
+  /// The mass of each atom after hydrogen mass repartitioning.
+  public var masses: [Float]
+  
+  /// Each value corresponds to the atom at the same array index.
+  public var nonbondedParameters: [MM4NonbondedParameters]
+  
+  /// The smallest ring this is involved in.
+  public var ringTypes: [UInt8]
+}
+
+/// Parameters for a group of 2 atoms.
+public struct MM4Bonds {
+  /// Groups of atom indices that form a bond.
+  public var indices: [SIMD2<Int32>]
+  
+  /// Each value corresponds to the bond at the same array index.
+  public var heteroatomParameters: [MM4HeteroatomBondParameters?]
+  
+  /// Each value corresponds to the bond at the same array index.
+  public var parameters: [MM4BondParameters]
+  
+  /// The smallest ring this is involved in.
+  public var ringTypes: [UInt8]
+}
+
+/// Parameters for a group of 3 atoms.
+public struct MM4Angles {
+  /// Groups of atom indices that form an angle.
+  public var indices: [SIMD3<Int32>]
+  
+  /// Each value corresponds to the angle at the same array index.
+  public var heteroatomParameters: [MM4HeteroatomAngleParameters?]
+  
+  /// Each value corresponds to the angle at the same array index.
+  public var parameters: [MM4AngleParameters]
+  
+  /// The smallest ring this is involved in.
+  public var ringTypes: [UInt8]
+}
+
+/// Parameters for a group of 4 atoms.
+public struct MM4Torsions {
+  /// Groups of atom indices that form a torsion.
+  public var indices: [SIMD4<Int32>]
+  
+  /// Each value corresponds to the torsion at the same array index.
+  public var heteroatomParameters: [MM4HeteroatomTorsionParameters?]
+  
+  /// Each value corresponds to the torsion at the same array index.
+  public var parameters: [MM4TorsionParameters]
+  
+  /// The smallest ring this is involved in.
+  public var ringTypes: [UInt8]
+}
+
+/// Parameters for a group of 5 atoms.
+///
+/// The forcefield parameters may be slightly inaccurate for rings with mixed
+/// carbon and silicon atoms (not sure). In the future, this may be expanded to
+/// 3-atom and 4-atom rings.
+public struct MM4Rings {
+  /// Groups of atom indices that form a ring.
+  public var indices: [SIMD8<Int32>]
+  
+  /// The number of atoms in the ring.
+  public var ringTypes: [UInt8]
+}
+
 /// Parameters for the van der Waals force on a specific atom, with an
 /// alternative value for use in hydrogen interactions. This force does not
 /// include electric forces, which are handled separately in a bond-bond based
@@ -25,31 +107,6 @@ public struct MM4NonbondedParameters {
   /// hydrogen. Radii are computed using the arithmetic sum for heteroatoms,
   /// otherwise substitute directly with the hydrogen radius.
   public var radius: (heteroatom: Float, hydrogen: Float)
-}
-
-/// A configuration for a set of force field parameters.
-public class MM4ParametersDescriptor {
-  /// Required. The number of protons in the atom's nucleus.
-  public var atomicNumbers: [UInt8] = []
-  
-  /// Required. Pairs of atom indices representing (potentially multiple)
-  /// covalent bonds.
-  public var bonds: [SIMD2<UInt32>] = []
-  
-  /// Optional. The bond order for each covalent bond, which may be fractional.
-  ///
-  /// If not specified, all covalent bonds are treated as sigma bonds.
-  public var bondOrders: [Float]?
-  
-  /// Required. The amount of mass (in amu) to redistribute from a substituent
-  /// atom to each covalently bonded hydrogen.
-  ///
-  /// The default is 1 amu.
-  public var hydrogenMassRepartitioning: Double = 1.0
-  
-  public init() {
-    
-  }
 }
 
 /// Morse stretching parameters for a covalent bond. The bond's electric dipole
@@ -171,7 +228,7 @@ public struct MM4HeteroatomTorsionParameters {
 }
 
 /// MM4 codes for an element or an atom in a specific functional group.
-public enum MM4AtomType: UInt8, RawRepresentable {
+public enum MM4AtomCode: UInt8, RawRepresentable {
   /// Carbon (sp3)
   case alkaneCarbon = 1
   
