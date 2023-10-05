@@ -24,6 +24,8 @@ It is a measure of collaboration that source code is being shared. Most projects
 
 > ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
 
+## Roadmap
+
 Short-Term (next few weeks)
 - Port core functionality to Linux and Windows - **in progress**
 - Modularize the source code, allow the simulator to be used with external renderers
@@ -50,3 +52,17 @@ Non-Goals
 - Use simulators that aren't GPU-accelerated, or require CUDA
 - Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
 - Rewrite the Swift code in Python
+
+Milestones
+- [x] Repository created _(2/14/2023)_
+- [x] First molecule rendered _(4/14/2023)_
+- [x] Finished ray tracer _(7/19/2023)_
+- [x] First MM4 simulator _(7/30/2023)_
+- [x] Production renderer _(8/7/2023)_
+- [x] First source file compiling on non-Apple platforms _(8/30/2023)_
+- [x] MRSimulation-Text codec _(9/7/2023)_
+- [x] First shape compiled with DSL _(9/16/2023)_
+- [ ] H, C working under new simulator _(projected: October 8, 2023)_
+- [ ] Finished new geometry compiler _(projected: October 2023)_
+- [ ] F, Si working under new simulator _(projected: November 2023)_
+- [ ] Hardware catalog reaches 20 entries _(projected: November 2023)_
