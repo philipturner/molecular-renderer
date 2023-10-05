@@ -53,4 +53,3 @@ Index:
 Ideas of parts to add:
 - [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential
-- Screw

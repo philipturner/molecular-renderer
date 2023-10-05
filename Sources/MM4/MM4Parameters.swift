@@ -81,6 +81,8 @@ public class MM4Parameters {
   /// Groups of atom indices that form a torsion.
   public internal(set) var torsions: [SIMD4<Int32>]
   
+  // TODO: private var bondsToAtomsMap, deallocated during deinit
+  
   /// Create a set of parameters using the specified configuration.
   public init(descriptor: MM4ParametersDescriptor) {
     // Initialize all of the properties so you can call instance members during
@@ -118,6 +120,8 @@ public class MM4Parameters {
     atomsToBondsMap += 1
     atomsToBondsMap[-1] = SIMD4(repeating: -1)
     defer { free(atomsToBondsMap - 1) }
+    
+    // TODO: Wrap the logic below this in a generator function.
     
     for bondID in 0..<descriptor.bonds.count {
       var bond = descriptor.bonds[bondID]
@@ -173,6 +177,9 @@ public class MM4Parameters {
       let substituentID = Int(other(atomID: atomID, bondID: map[0]))
       masses[substituentID] -= Float(descriptor.hydrogenMassRepartitioning)
     }
+    
+    // TODO: Wrap traversal in a generator function, using the "otherID"
+    // instance member that already exists for general-purpose use.
     
     // Traverse the bond topology.
     var ringTypes: [UInt8] = []

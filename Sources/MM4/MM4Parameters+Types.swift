@@ -10,70 +10,70 @@ import Foundation
 /// Parameters for one atom.
 public struct MM4Atoms {
   /// The number of protons in the atom's nucleus.
-  public var atomicNumbers: [UInt8]
+  public var atomicNumbers: [UInt8] = []
   
   /// The center type used to assign different parameters.
   ///
   /// This is useful for debugging the assignment of parameters, to ensure the
   /// exact parameter as specified by the forcefield paper gets assigned.
-  public var centerTypes: [MM4CenterType]
+  public var centerTypes: [MM4CenterType] = []
   
   /// The MM4 code for each atom in the system.
-  public var codes: [MM4AtomCode]
+  public var codes: [MM4AtomCode] = []
   
   /// The mass of each atom after hydrogen mass repartitioning.
-  public var masses: [Float]
+  public var masses: [Float] = []
   
   /// Each value corresponds to the atom at the same array index.
-  public var nonbondedParameters: [MM4NonbondedParameters]
+  public var nonbondedParameters: [MM4NonbondedParameters] = []
   
   /// The smallest ring this is involved in.
-  public var ringTypes: [UInt8]
+  public var ringTypes: [UInt8] = []
 }
 
 /// Parameters for a group of 2 atoms.
 public struct MM4Bonds {
   /// Groups of atom indices that form a bond.
-  public var indices: [SIMD2<Int32>]
+  public var indices: [SIMD2<Int32>] = []
   
   /// Each value corresponds to the bond at the same array index.
-  public var heteroatomParameters: [MM4HeteroatomBondParameters?]
+  public var heteroatomParameters: [MM4HeteroatomBondParameters?] = []
   
   /// Each value corresponds to the bond at the same array index.
-  public var parameters: [MM4BondParameters]
+  public var parameters: [MM4BondParameters] = []
   
   /// The smallest ring this is involved in.
-  public var ringTypes: [UInt8]
+  public var ringTypes: [UInt8] = []
 }
 
 /// Parameters for a group of 3 atoms.
 public struct MM4Angles {
   /// Groups of atom indices that form an angle.
-  public var indices: [SIMD3<Int32>]
+  public var indices: [SIMD3<Int32>] = []
   
   /// Each value corresponds to the angle at the same array index.
-  public var heteroatomParameters: [MM4HeteroatomAngleParameters?]
+  public var heteroatomParameters: [MM4HeteroatomAngleParameters?] = []
   
   /// Each value corresponds to the angle at the same array index.
-  public var parameters: [MM4AngleParameters]
+  public var parameters: [MM4AngleParameters] = []
   
   /// The smallest ring this is involved in.
-  public var ringTypes: [UInt8]
+  public var ringTypes: [UInt8] = []
 }
 
 /// Parameters for a group of 4 atoms.
 public struct MM4Torsions {
   /// Groups of atom indices that form a torsion.
-  public var indices: [SIMD4<Int32>]
+  public var indices: [SIMD4<Int32>] = []
   
   /// Each value corresponds to the torsion at the same array index.
-  public var heteroatomParameters: [MM4HeteroatomTorsionParameters?]
+  public var heteroatomParameters: [MM4HeteroatomTorsionParameters?] = []
   
   /// Each value corresponds to the torsion at the same array index.
-  public var parameters: [MM4TorsionParameters]
+  public var parameters: [MM4TorsionParameters] = []
   
   /// The smallest ring this is involved in.
-  public var ringTypes: [UInt8]
+  public var ringTypes: [UInt8] = []
 }
 
 /// Parameters for a group of 5 atoms.
@@ -83,10 +83,10 @@ public struct MM4Torsions {
 /// 3-atom and 4-atom rings.
 public struct MM4Rings {
   /// Groups of atom indices that form a ring.
-  public var indices: [SIMD8<Int32>]
+  public var indices: [SIMD8<Int32>] = []
   
   /// The number of atoms in the ring.
-  public var ringTypes: [UInt8]
+  public var ringTypes: [UInt8] = []
 }
 
 /// Parameters for the van der Waals force on a specific atom, with an

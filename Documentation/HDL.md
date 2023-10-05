@@ -31,55 +31,68 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 | ✅ |    |    | 1x | sp3 6-ring carbon (diamond) |
 |    |    |    | 2x | sp3 6-ring carbon (lonsdaleite) |
 |    |    |    | 3x | sp3 5-ring carbon (sharp corners, (100) surfaces) |
-|    | ✅ |    | 4x | OpenMM external forces |
-|    |    |    | 5x | sp3 halogen termination, sp3 pure elemental Si, sp3 pure elemental Ge |
-|    |    | ✅ | 6x | sp3 mixed-element diamondoids with nonuniform lattice constants (sp3 B, sp3 N, sp3 O, sp3 P, sp3 S), sp3 moissanite |
-|    |    |    | 7x | sp2 aromatic carbon covalently welded to sp3 crystalline lattices (graphene) |
+|    |    |    | 4x | OpenMM external forces |
+|    | ✅ |    | 5x | sp3 fluorine termination, sp3 silicon |
+|    |    |    | 6x | sp3 mixed-element diamondoids with nonuniform lattice constants (B, N, O, P, S, Cl, Ge) |
+|    |    | ✅ | 7x | graphene covalently welded to sp3 crystal lattices |
 |    |    |    | 8x | sp1 carbon (carbyne rods, acetylene rotary bearings) |
 |    |    |    | 20x | GFN-FF |
 |    |    |    | 100x | LAMMPS, typical DFT code bases |
 
 ### Simulation
 
-Short-term goal: use only the parameters from the first MM4 research paper and the 2019 MM3 Morse paper. Support every possible structure that can be simulated with those parameters.
-- 6-ring sp3 carbon (diamond, lonsdaleite)
-- 5-ring sp3 carbon (sharp corners, (100) surfaces)
-- fluorine
-
-Long-term goal: forcefield based on MM4, using an algorithm $O(n)$ in van der Waals attractions and $O(n^2)$ in electrostatic interactions. Avoid mixed-element materials like moissanite in bulk, although they are okay in small quantities. Crystolecules should have the bulk of atoms as elemental carbon, and surfaces terminated/passivated with polar covalent bonds. MM4 will be extended to the following elements:
-
-| MM4 Atom Type | 6-ring | 5-ring | 4-ring | 3-ring |
-| - | - | - | - | - |
-| H        | 5  | n/a | n/a | n/a |
-| B (sp3)  | 27 | 27  | not supported | not supported |
-| C (sp3)  | 1  | 123 | not supported | not supported |
-| N (sp3)  | 8  | 8   | not supported | not supported |
-| O (sp3)  | 6  | 6   | not supported | not supported |
-| F        | 11 | n/a | n/a | n/a |
-| Si (sp3) | 19 | 19  | not supported | not supported |
-| P (sp3)  | 25 | 25  | not supported | not supported |
-| S (sp3)  | 15 | 15  | not supported | not supported |
-| Cl       | 12 | n/a | n/a | n/a |
-| Ge (sp3) | 31 | 31  | not supported | not supported |
-
 Key:
 - X = nonpolar covalent bond (low compute cost)
 - O = polar covalent bond (high compute cost)
 - blank means not supported
 
-| Element | H | B | C | N | O | F | Si | P | S | Cl | Ge |
-| ------- | - | - | - | - | - | - | - | - | - | - | - |
-| H       |   | X | X | O | O |   | X | O | O |   | X |
-| B       | X |   | O | O |   |   |   |   |   |   |   |
-| C       | X | O | X | O | O | O | O | O | O | O | O |
-| N       | O | O | O | X |   |   |   |   |   |   |   |
-| O       | O |   | O |   |   |   |   |   |   |   |   |
-| F       |   |   | O |   |   |   |   |   |   |   |   |
-| Si      | X |   | O |   |   |   | X |   |   |   |   |
-| P       | O |   | O |   |   |   |   |   |   |   |   |
-| S       | O |   | O |   |   |   |   |   |   |   |   |
-| Cl      |   |   | O |   |   |   |   |   |   |   |   |
-| Ge      | X |   | O |   |   |   |   |   |   |   | X |
+### Short-Term Goal
+
+| MM4 Atom Code | 6-ring | 5-ring | 4-ring | 3-ring |
+| - | - | - | - | - |
+| H            | 5   | n/a | n/a           | n/a           |
+| C (sp3)      | 1   | 123 | not supported | not supported |
+| F            | 11  | n/a | n/a           | n/a           |
+| Si (sp3)     | 19  | 19  | not supported | not supported |
+
+| Element | H | C<sub>sp3</sub> | F | Si |
+| --------------- | - | - | - | - |
+| H               |   | X |   | X |
+| C<sub>sp3</sub> | X | X | O | O |
+| F               |   | O |   |   |
+| Si              | X | O |   | X |
+
+### Long-Term Goal
+
+| MM4 Atom Code | 6-ring | 5-ring | 4-ring | 3-ring |
+| - | - | - | - | - |
+| H            | 5   | n/a | n/a           | n/a           |
+| B (sp3)      | 27  | 27  | not supported | not supported |
+| C (graphene) | TBD | n/a | n/a           | n/a           |
+| C (sp3)      | 1   | 123 | not supported | not supported |
+| N (sp3)      | 8   | 8   | not supported | not supported |
+| O (sp3)      | 6   | 6   | not supported | not supported |
+| F            | 11  | n/a | n/a           | n/a           |
+| Si (sp3)     | 19  | 19  | not supported | not supported |
+| P (sp3)      | 25  | 25  | not supported | not supported |
+| S (sp3)      | 15  | 15  | not supported | not supported |
+| Cl           | 12  | n/a | n/a           | n/a           |
+| Ge (sp3)     | 31  | 31  | not supported | not supported |
+
+| Element | H | B | C<sub>sp2</sub> | C<sub>sp3</sub> | N | O | F | Si | P | S | Cl | Ge |
+| --------------- | - | - | - | - | - | - | - | - | - | - | - | - |
+| H               |   | X | O | X | O | O |   | X | O | O |   | X |
+| B               | X |   |   | O | O |   |   |   |   |   |   |   |
+| C<sub>sp2</sub> | O |   | X | O |   |   |   |   |   |   |   |   |
+| C<sub>sp3</sub> | O | O | O | X | O | O | O | O | O | O | O | O |
+| N               | O | O |   | O | X |   |   |   |   |   |   |   |
+| O               | O |   |   | O |   |   |   |   |   |   |   |   |
+| F               |   |   |   | O |   |   |   |   |   |   |   |   |
+| Si              | X |   |   | O |   |   |   | X |   |   |   |   |
+| P               | O |   |   | O |   |   |   |   |   |   |   |   |
+| S               | O |   |   | O |   |   |   |   |   |   |   |   |
+| Cl              |   |   |   | O |   |   |   |   |   |   |   |   |
+| Ge              | X |   |   | O |   |   |   |   |   |   |   | X |
 
 ### JIT Compiler
 
