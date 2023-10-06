@@ -52,6 +52,8 @@ Non-Goals
 - Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
 - Rewrite the Swift code in Python
 
+<!--
+
 Milestones
 - [x] Repository created _(2/14/2023)_
 - [x] First molecule rendered _(4/14/2023)_
@@ -64,3 +66,5 @@ Milestones
 - [ ] H, C, Si working under new simulator _(projected: October 2023)_
 - [ ] Finished new geometry compiler _(projected: October 2023)_
 - [ ] Hardware catalog reaches 20 entries _(projected: November 2023)_
+
+-->
