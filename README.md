@@ -37,7 +37,6 @@ Medium-Term (next few months)
 - Establish a first-generation engineering knowledge base (database) for nanomechanical parts, written in the Swift DSL
 - Optimize for multi-GPU desktop machines
   - Resolve $O(n^2)$ scaling issues with non-carbon elements
-  - Port LZBITMAP to Linux
   - Quick prototyping of assemblies with ~100,000 atoms
   - Overnight simulation of systems with ~1,000,000 atoms
 
