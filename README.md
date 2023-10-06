@@ -62,7 +62,6 @@ Milestones
 - [x] First source file compiling on non-Apple platforms _(8/30/2023)_
 - [x] MRSimulation-Text codec _(9/7/2023)_
 - [x] First shape compiled with DSL _(9/16/2023)_
-- [ ] H, C working under new simulator _(projected: October 8, 2023)_
+- [ ] H, C, Si working under new simulator _(projected: October 8, 2023)_
 - [ ] Finished new geometry compiler _(projected: October 2023)_
-- [ ] F, Si working under new simulator _(projected: November 2023)_
 - [ ] Hardware catalog reaches 20 entries _(projected: November 2023)_
