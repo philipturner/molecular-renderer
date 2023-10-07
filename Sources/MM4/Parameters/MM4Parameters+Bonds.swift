@@ -11,14 +11,14 @@ import Foundation
 
 /// Parameters for a group of 2 atoms.
 public struct MM4Bonds {
+  /// Each value corresponds to the bond at the same array index.
+  public var extendedParameters: [MM4BondExtendedParameters?] = []
+  
   /// Groups of atom indices that form a bond.
   public var indices: [SIMD2<Int32>] = []
   
   /// Map from a group of atoms to a bond index.
   public var map: [SIMD2<Int32>: Int32] = [:]
-  
-  /// Each value corresponds to the bond at the same array index.
-  public var heteroatomParameters: [MM4HeteroatomBondParameters?] = []
   
   /// Each value corresponds to the bond at the same array index.
   public var parameters: [MM4BondParameters] = []
@@ -43,20 +43,19 @@ public struct MM4BondParameters {
   public var equilibriumLength: Float
 }
 
-public struct MM4HeteroatomBondParameters {
+public struct MM4BondExtendedParameters {
   /// Units: debye
   public var dipoleMoment: Float
 }
 
 extension MM4Parameters {
   func createBondParameters() {
-    for bond in bonds.indices {
+    for bondID in bonds.indices.indices {
+      let bond = bonds.indices[bondID]
       var codes: SIMD2<UInt8> = .zero
-      var rings: SIMD2<UInt8> = .zero
       for lane in 0..<2 {
         let atomID = bond[lane]
         codes[lane] = atoms.codes[Int(atomID)].rawValue
-        rings[lane] = atoms.ringTypes[Int(atomID)]
       }
       if any(codes .!= 11 .| codes .== 19) {
         codes.replace(with: .init(repeating: 1), where: codes .== 123)
@@ -65,15 +64,7 @@ extension MM4Parameters {
       let maxatomCode = codes.max()
       let minAtomID = (codes[0] == minatomCode) ? bond[0] : bond[1]
       let maxAtomID = (codes[1] == maxatomCode) ? bond[1] : bond[0]
-      
-      // TODO: Don't erroneously classify a bond or angle from two separate
-      // 5-membered rings as from the same ring. This requires some means to
-      // record instances of 5-membered rings, likely by querying all the
-      // torsions where every atom is in a 5-membered ring. Then, mapping
-      // backwards from the rings to bonds/angles that make them up.
-      precondition(Bool.random(), "Implementation is incorrect right now.")
-      
-      let ringType = rings.max()
+      let ringType = bonds.ringTypes[bondID]
       
       var potentialWellDepth: Float
       var stretchingStiffness: Float
@@ -120,8 +111,8 @@ extension MM4Parameters {
         equilibriumLength = 1.5270
       case (123, 123):
         potentialWellDepth = 1.130
-        stretchingStiffness = 4.9900
-        equilibriumLength = 1.5290
+        stretchingStiffness = (ringType == 5) ? 4.9900 : 4.5600
+        equilibriumLength = (ringType == 5) ? 1.5290 : 1.5270
       
         // Fluorine
       case (1, 11):
@@ -132,11 +123,13 @@ extension MM4Parameters {
         
         // Silicon
       case (1, 19):
-        let dipoleMagnitude: Float = (ringType == 5) ? 0.70 : 0.55
         potentialWellDepth = 0.812
-        stretchingStiffness = 3.05
+        stretchingStiffness = (ringType == 5) ? 2.85 : 3.05
         equilibriumLength = (ringType == 5) ? 1.884 : 1.876
-        dipoleMoment = (codes[1] == 19) ? -dipoleMagnitude : +dipoleMagnitude
+        
+        var dipoleMagnitude: Float = (ringType == 5) ? 0.55 : 0.70
+        dipoleMagnitude *= (codes[1] == 19) ? -1 : +1
+        dipoleMoment = dipoleMagnitude
       case (5, 19):
         potentialWellDepth = 0.777
         stretchingStiffness = 2.65
@@ -160,11 +153,144 @@ extension MM4Parameters {
           equilibriumLength: equilibriumLength))
       
       if let dipoleMoment {
-        bonds.heteroatomParameters.append(
-          MM4HeteroatomBondParameters(dipoleMoment: dipoleMoment))
+        bonds.extendedParameters.append(
+          MM4BondExtendedParameters(dipoleMoment: dipoleMoment))
       } else {
-        bonds.heteroatomParameters.append(nil)
+        bonds.extendedParameters.append(nil)
       }
+    }
+  }
+  
+  // TODO: Create a counterforce at short range that corrects for 1/2 of a
+  // dipole falling on the 1-3 border. In the paper about fluorine, Allinger
+  // mentioned some 1-4 fluorines on fluoroethane having a repulsive effect
+  // from their dipoles. This suggests 1-4 interactions ("sclfac = 1.000") are
+  // included, but perhaps not the 1-3 interactions.
+  func createPartialCharges() {
+    // Units: proton charge * angstrom
+    //
+    // Dipole moment is positive if it points from a positive charge to a
+    // negative charge. For example, a bond from C -> F should have a positive
+    // dipole moment. A bond from F -> C should have a negative moment.
+    let debye: Float = 0.2081943
+    var charges = Array<Float>(repeating: 0, count: atoms.atomicNumbers.count)
+    
+    for (bondID, parameters) in bonds.extendedParameters.enumerated() {
+      guard let parameters else { continue }
+      let atomsMap = bondsToAtomsMap[bondID]
+      let length = bonds.parameters[bondID].equilibriumLength
+      let dipole = parameters.dipoleMoment
+      
+      // Dipole points from positive to negative (+->)
+      let partialCharge = dipole * debye / length
+      let atomCharges = SIMD2(+partialCharge, -partialCharge)
+      for lane in 0..<2 {
+        let atomID = atomsMap[lane]
+        charges[Int(atomID)] += atomCharges[lane]
+      }
+    }
+  }
+  
+  private func electrostaticEffect(sign: Float) -> [Float] {
+    var primaryNeighbors: [[Float]] = Array(
+      repeating: [], count: bonds.indices.count)
+    var secondaryNeighborsSum: [Float] = Array(
+      repeating: 0, count: bonds.indices.count)
+    
+    func correction(atomID: Int32, endID: Int32, bondID: Int32) -> Float {
+      let otherID = other(atomID: endID, bondID: bondID)
+      var codeActing = atoms.atomicNumbers[Int(atomID)]
+      var codeEnd = atoms.atomicNumbers[Int(endID)]
+      var codeOther = atoms.atomicNumbers[Int(otherID)]
+      codeActing = (codeActing == 123) ? 1 : codeActing
+      codeEnd = (codeEnd == 123) ? 1 : codeEnd
+      codeOther = (codeOther == 123) ? 1 : codeOther
+      
+      let bondCodes = (min(codeEnd, codeOther), max(codeEnd, codeOther))
+      let presentCodes = SIMD3(codeActing, codeEnd, codeOther)
+      if any(presentCodes .== 11) && any(presentCodes .== 19) {
+        // Fail if there's no parameters for the electrostatic effect on a
+        // particular bond (e.g. secondary effect of fluorine on silicon).
+        fatalError(
+          "No parameters for electronegativity correction between F and Si.")
+      }
+      
+      switch (bondCodes.0, bondCodes.1, codeEnd, codeActing) {
+      case (1, 1, 1, 19):
+        return 0.009
+      case (5, 19, 19, 19):
+        return 0.003
+      case (19, 19, 19, 19):
+        return -0.002
+      case (19, 19, 19, 5):
+        return 0.004
+      case (1, 19, 19, 19):
+        return 0.009
+      case (1, 19, 1, 19):
+        return -0.004
+      default:
+        return 0
+      }
+    }
+    
+    for atom0 in 0..<Int32(atoms.atomicNumbers.count) {
+      let zeroLevelAtoms = atomsToAtomsMap[Int(atom0)]
+      
+      for lane in 0..<4 where zeroLevelAtoms[lane] != -1 {
+        let atom1 = zeroLevelAtoms[lane]
+        let primaryLevelAtoms = atomsToAtomsMap[Int(atom1)]
+        let primaryLevelBonds = atomsToBondsMap[Int(atom1)]
+        
+        for lane in 0..<4 where primaryLevelAtoms[lane] != -1 {
+          let atom2 = primaryLevelAtoms[lane]
+          if atom0 == atom2 { continue }
+          
+          let bondID = primaryLevelBonds[lane]
+          let corr = correction(atomID: atom0, endID: atom1, bondID: bondID)
+          if corr * sign > 0 {
+            primaryNeighbors[Int(bondID)].append(corr)
+          }
+          
+          let secondaryLevelAtoms = atomsToAtomsMap[Int(atom2)]
+          let secondaryLevelBonds = atomsToBondsMap[Int(atom2)]
+          for lane in 0..<4 where secondaryLevelAtoms[lane] != -1 {
+            let atom3 = secondaryLevelAtoms[lane]
+            if atom1 == atom3 { continue }
+            if atom0 == atom3 { fatalError("This should never happen.") }
+            
+            let bondID = secondaryLevelBonds[lane]
+            let corr = correction(atomID: atom0, endID: atom2, bondID: bondID)
+            if corr * sign > 0 {
+              secondaryNeighborsSum[Int(bondID)] += corr
+            }
+          }
+        }
+      }
+    }
+    
+    return bonds.indices.indices.map { bondID in
+      var correction: Float = 0
+      var neighbors = primaryNeighbors[bondID]
+      neighbors.sort(by: { $0.magnitude > $1.magnitude })
+      
+      var decay: Float = 1
+      for neighbor in neighbors {
+        correction += neighbor * decay
+        decay *= 0.62
+      }
+      correction += 0.4 * secondaryNeighborsSum[bondID]
+      return correction
+    }
+  }
+  
+  func addElectrostaticCorrections() {
+    let electronegativeCorrections = electrostaticEffect(sign: -1)
+    let electropositiveCorrections = electrostaticEffect(sign: +1)
+    for i in bonds.indices.indices {
+      var correction: Float = 0
+      correction += electronegativeCorrections[i]
+      correction += electropositiveCorrections[i]
+      bonds.parameters[i].equilibriumLength += correction
     }
   }
 }

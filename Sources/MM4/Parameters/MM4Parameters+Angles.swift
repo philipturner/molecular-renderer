@@ -11,14 +11,14 @@ import Foundation
 
 /// Parameters for a group of 3 atoms.
 public struct MM4Angles {
+  /// Each value corresponds to the angle at the same array index.
+  public var extendedParameters: [MM4AngleExtendedParameters?] = []
+  
   /// Groups of atom indices that form an angle.
   public var indices: [SIMD3<Int32>] = []
   
   /// Map from a group of atoms to an angle index.
   public var map: [SIMD3<Int32>: Int32] = [:]
-  
-  /// Each value corresponds to the angle at the same array index.
-  public var heteroatomParameters: [MM4HeteroatomAngleParameters?] = []
   
   /// Each value corresponds to the angle at the same array index.
   public var parameters: [MM4AngleParameters] = []
@@ -43,7 +43,7 @@ public struct MM4AngleParameters {
   public var stretchBendStiffness: Float
 }
 
-public struct MM4HeteroatomAngleParameters {
+public struct MM4AngleExtendedParameters {
   /// Stiffness for type 2 stretch-bend forces, affecting bonds not directly
   /// involved in this angle.
   public var stretchBendStiffness: Float

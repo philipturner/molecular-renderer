@@ -23,6 +23,9 @@ public struct MM4Atoms {
   /// The MM4 code for each atom in the system.
   public var codes: [MM4AtomCode] = []
   
+  /// Each value corresponds to the atom at the same array index.
+  public var extendedParameters: [MM4AtomExtendedParameters?] = []
+  
   /// The mass of each atom after hydrogen mass repartitioning.
   public var masses: [Float] = []
   
@@ -82,7 +85,53 @@ public struct MM4NonbondedParameters {
   public var radius: (heteroatom: Float, hydrogen: Float)
 }
 
+public struct MM4AtomExtendedParameters {
+  /// Partial charge in units of proton charge.
+  public var charge: Float
+}
+
 extension MM4Parameters {
+  func createMasses() {
+    atoms.masses = atoms.atomicNumbers.map { atomicNumber in
+      MM4MassParameters.global.mass(atomicNumber: atomicNumber)
+    }
+    for atomID in 0..<atoms.atomicNumbers.count
+    where atoms.atomicNumbers[atomID] == 1 {
+      atoms.masses[atomID] += hydrogenMassRepartitioning
+      
+      // HMR affects both carbon and silicon.
+      let map = atomsToBondsMap[atomID]
+      guard map[0] != -1, map[1] == -1, map[2] == -1, map[3] == -1 else {
+        fatalError("Hydrogen did not have exactly 1 bond.")
+      }
+      let substituentID = Int(other(atomID: atomID, bondID: map[0]))
+      atoms.masses[substituentID] -= hydrogenMassRepartitioning
+    }
+  }
+  
+  func createAtomCodes() {
+    atoms.codes = atoms.atomicNumbers.indices.map { atomID in
+      let atomicNumber = atoms.atomicNumbers[atomID]
+      switch atomicNumber {
+      case 1:
+        return .hydrogen
+      case 6:
+        let ringType = atoms.ringTypes[atomID]
+        if ringType == 6 {
+          return .alkaneCarbon
+        } else if ringType == 5 {
+          return .cyclopentaneCarbon
+        } else {
+          fatalError("Unsupported carbon ring type: \(ringType)")
+        }
+      case 14:
+        return .silicon
+      default:
+        fatalError("Atomic number \(atomicNumber) not recognized.")
+      }
+    }
+  }
+  
   func createCenterTypes() {
     for atomID in atoms.atomicNumbers.indices {
       let atomicNumber = atoms.atomicNumbers[atomID]
@@ -142,10 +191,6 @@ extension MM4Parameters {
   //
   // Near-term unoptimized alternative: two separate O(n^2) forces without any
   // cutoff, one for vdW and one for electrostatics
-  //
-  // TODO: Keep charges constant w.r.t bond length to conserve energy, create a
-  // counterforce at short range that corrects for 1/2 of a dipole falling on
-  // the 1-4 border.
   func createNonbondedParameters() {
     for atomID in atoms.atomicNumbers.indices {
       let atomicNumber = atoms.atomicNumbers[atomID]
@@ -174,47 +219,6 @@ extension MM4Parameters {
       }
       atoms.nonbondedParameters.append(
         MM4NonbondedParameters(epsilon: epsilon, radius: radius))
-    }
-  }
-  
-  func createAtomCodes() {
-    atoms.codes = atoms.atomicNumbers.indices.map { atomID in
-      let atomicNumber = atoms.atomicNumbers[atomID]
-      switch atomicNumber {
-      case 1:
-        return .hydrogen
-      case 6:
-        let ringType = atoms.ringTypes[atomID]
-        if ringType == 6 {
-          return .alkaneCarbon
-        } else if ringType == 5 {
-          return .cyclopentaneCarbon
-        } else {
-          fatalError("Unsupported carbon ring type: \(ringType)")
-        }
-      case 14:
-        return .silicon
-      default:
-        fatalError("Atomic number \(atomicNumber) not recognized.")
-      }
-    }
-  }
-  
-  func createMasses() {
-    atoms.masses = atoms.atomicNumbers.map { atomicNumber in
-      MM4MassParameters.global.mass(atomicNumber: atomicNumber)
-    }
-    for atomID in 0..<atoms.atomicNumbers.count
-    where atoms.atomicNumbers[atomID] == 1 {
-      atoms.masses[atomID] += hydrogenMassRepartitioning
-      
-      // HMR affects both carbon and silicon.
-      let map = atomsToBondsMap[atomID]
-      guard map[0] != -1, map[1] == -1, map[2] == -1, map[3] == -1 else {
-        fatalError("Hydrogen did not have exactly 1 bond.")
-      }
-      let substituentID = Int(other(atomID: atomID, bondID: map[0]))
-      atoms.masses[substituentID] -= hydrogenMassRepartitioning
     }
   }
   

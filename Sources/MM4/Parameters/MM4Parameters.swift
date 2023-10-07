@@ -131,23 +131,21 @@ public class MM4Parameters {
       atomsToAtomsMap[atomID] = atomsMap
     }
     
+    // Topology
     createTopology()
     createAtomCodes()
+    createCenterTypes()
     
+    // Per-Atom Parameters
     hydrogenMassRepartitioning = Float(descriptor.hydrogenMassRepartitioning)
     createMasses()
-    createCenterTypes()
     createNonbondedParameters()
     createNonbondedExceptions()
     
-    // TODO: Add Electronegativity and Electropositivity Effect to +Bonds.swift.
-    // Implement this as a separate function that modifies the generated values
-    // for bond length and angles. Preferably in something that just outputs
-    // the delta L and delta Theta. Then, you apply the force constant
-    // derivation formula in this Swift file, and apply the deltas to the
-    // equilibrium lengths/angles.
-    
+    // Per-Bond Parameters
     createBondParameters()
+    addElectrostaticCorrections()
+    createPartialCharges()
   }
   
   deinit {
