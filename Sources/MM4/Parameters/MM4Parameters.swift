@@ -65,6 +65,9 @@ public class MM4Parameters {
   /// Map from bonds to atoms that can be efficiently traversed.
   var bondsToAtomsMap: UnsafeMutablePointer<SIMD2<Int32>>
   
+  /// Map from atoms to connected atoms that can be efficienty traversed.
+  var atomsToAtomsMap: UnsafeMutablePointer<SIMD4<Int32>>
+  
   /// Create a set of parameters using the specified configuration.
   public init(descriptor: MM4ParametersDescriptor) {
     // MARK: - Create Bond Topology
@@ -85,16 +88,18 @@ public class MM4Parameters {
       // Sort the indices in the bond, so the lower appears first.
       bond = SIMD2(bond.min(), bond.max())
       bondsToAtomsMap[bondID] = SIMD2(truncatingIfNeeded: bond)
+      bonds.indices.append(SIMD2(truncatingIfNeeded: bond))
     }
     
-    atomsToBondsMap = .allocate(capacity: descriptor.atomicNumbers.count + 1)
+    atoms.atomicNumbers = descriptor.atomicNumbers
+    atomsToBondsMap = .allocate(capacity: atoms.atomicNumbers.count + 1)
     atomsToBondsMap += 1
     atomsToBondsMap[-1] = SIMD4(repeating: -1)
-    for atomID in 0..<descriptor.atomicNumbers.count {
+    for atomID in 0..<atoms.atomicNumbers.count {
       atomsToBondsMap[atomID] = SIMD4(repeating: -1)
     }
     
-    for bondID in 0..<descriptor.bonds.count {
+    for bondID in 0..<bonds.indices.count {
       let bond = bondsToAtomsMap[bondID]
       for j in 0..<2 {
         let atomID = Int(bond[j])
@@ -114,7 +119,18 @@ public class MM4Parameters {
       }
     }
     
-    atoms.atomicNumbers = descriptor.atomicNumbers
+    atomsToAtomsMap = .allocate(capacity: atoms.atomicNumbers.count + 1)
+    atomsToAtomsMap += 1
+    atomsToAtomsMap[-1] = SIMD4(repeating: -1)
+    for atomID in 0..<atoms.atomicNumbers.count {
+      let bondsMap = atomsToBondsMap[atomID]
+      var atomsMap = SIMD4<Int32>(repeating: -1)
+      for lane in 0..<4 {
+        atomsMap[lane] = other(atomID: atomID, bondID: bondsMap[lane])
+      }
+      atomsToAtomsMap[atomID] = atomsMap
+    }
+    
     createTopology()
     createAtomCodes()
     
@@ -137,6 +153,7 @@ public class MM4Parameters {
   deinit {
     (atomsToBondsMap - 1).deallocate()
     (bondsToAtomsMap - 1).deallocate()
+    (atomsToAtomsMap - 1).deallocate()
   }
   
   @inline(__always)

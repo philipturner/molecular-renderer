@@ -14,6 +14,9 @@ public struct MM4Torsions {
   /// Groups of atom indices that form a torsion.
   public var indices: [SIMD4<Int32>] = []
   
+  /// Map from a group of atoms to a torsion index.
+  public var map: [SIMD4<Int32>: Int32] = [:]
+  
   /// Each value corresponds to the torsion at the same array index.
   public var heteroatomParameters: [MM4HeteroatomTorsionParameters?] = []
   

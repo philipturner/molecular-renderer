@@ -14,6 +14,9 @@ public struct MM4Angles {
   /// Groups of atom indices that form an angle.
   public var indices: [SIMD3<Int32>] = []
   
+  /// Map from a group of atoms to an angle index.
+  public var map: [SIMD3<Int32>: Int32] = [:]
+  
   /// Each value corresponds to the angle at the same array index.
   public var heteroatomParameters: [MM4HeteroatomAngleParameters?] = []
   

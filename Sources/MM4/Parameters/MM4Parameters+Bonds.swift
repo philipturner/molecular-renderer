@@ -14,6 +14,9 @@ public struct MM4Bonds {
   /// Groups of atom indices that form a bond.
   public var indices: [SIMD2<Int32>] = []
   
+  /// Map from a group of atoms to a bond index.
+  public var map: [SIMD2<Int32>: Int32] = [:]
+  
   /// Each value corresponds to the bond at the same array index.
   public var heteroatomParameters: [MM4HeteroatomBondParameters?] = []
   

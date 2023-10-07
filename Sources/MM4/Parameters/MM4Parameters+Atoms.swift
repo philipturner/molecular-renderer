@@ -130,6 +130,22 @@ extension MM4Parameters {
     }
   }
   
+  // Two forces:
+  // - Short-range vdW force between pairs of non-charged atoms smaller than
+  //   the C-Si vdW radius.
+  //   - Interaction group 1: small vdW radius and non-charged
+  //   - Interaction group 2: any vdW radius and any charge status
+  // - Electrostatics and either (a) larger vdW radii or (b) vdW interactions
+  //   between pairs of charged particles.
+  //   - Interaction group 1: large vdW radius and/or charged
+  //   - Interaction group 2: large vdW radius and/or charged
+  //
+  // Near-term unoptimized alternative: two separate O(n^2) forces without any
+  // cutoff, one for vdW and one for electrostatics
+  //
+  // TODO: Keep charges constant w.r.t bond length to conserve energy, create a
+  // counterforce at short range that corrects for 1/2 of a dipole falling on
+  // the 1-4 border.
   func createNonbondedParameters() {
     for atomID in atoms.atomicNumbers.indices {
       let atomicNumber = atoms.atomicNumbers[atomID]
