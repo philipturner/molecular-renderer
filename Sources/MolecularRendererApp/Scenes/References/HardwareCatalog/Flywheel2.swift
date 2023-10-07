@@ -52,7 +52,7 @@ struct Flywheel2_Provider {
     let rope1 = try! DiamondRope(height: 1.5, width: 1, length: 5)
     let rope2 = try! DiamondRope(height: 1.5, width: 1, length: 5)
     let connector4 = makeConnector4()
-    let connector5 = makeConnector5()
+    _ = makeConnector5()
     
     let ring12Solid = Solid { h, k, l in
       Copy { ring1.centers.filter {
