@@ -43,7 +43,7 @@ public class MM4ForceFieldDescriptor {
   public var velocities: [SIMD3<Float>]?
   
   public init() {
-    
+    MM4Plugins.global.load()
   }
 }
 

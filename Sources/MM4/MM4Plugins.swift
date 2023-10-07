@@ -8,7 +8,7 @@
 import Foundation
 import OpenMM
 
-internal class MM4Plugins {
+class MM4Plugins {
   static var global: MM4Plugins = MM4Plugins()
   
   var loaded: Bool = false
@@ -24,6 +24,7 @@ internal class MM4Plugins {
     
     let directory = OpenMM_Platform.defaultPluginsDirectory!
     _ = OpenMM_Platform.loadPlugins(directory: directory)!
+    loaded = true
   }
 }
 
