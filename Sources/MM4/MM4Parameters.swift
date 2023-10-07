@@ -263,8 +263,8 @@ public class MM4Parameters {
         } else {
           fatalError("Unsupported carbon ring type: \(ringType)")
         }
-      case 9:
-        return .fluorine
+      case 14:
+        return .silicon
       default:
         fatalError("Atomic number \(atomicNumber) not recognized.")
       }

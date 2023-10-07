@@ -15,10 +15,7 @@ public enum Bond {
 public enum Element: Int, CustomStringConvertible {
   case hydrogen = 1
   case carbon = 6
-  case fluorine = 9
   case silicon = 14
-  case chlorine = 17
-  case germanium = 32
   
   public init(_ atomicNumber: Int) {
     self.init(rawValue: atomicNumber)!
@@ -28,10 +25,7 @@ public enum Element: Int, CustomStringConvertible {
     switch self {
     case .hydrogen: return ".hydrogen"
     case .carbon: return ".carbon"
-    case .fluorine: return ".fluorine"
     case .silicon: return ".silicon"
-    case .chlorine: return ".chlorine"
-    case .germanium: return ".germanium"
     }
   }
 }
@@ -52,11 +46,6 @@ public struct Material {
         break
       case .silicon:
         // silicon
-        fatalError("Elemental silicon not supported yet.")
-        break
-      case .germanium:
-        // germanium
-        fatalError("Elemental germanium not supported yet.")
         break
       default:
         fatalError("Unrecognized element: \(elements[0])")
@@ -76,7 +65,6 @@ public struct Material {
       switch (element1, element2) {
       case (.carbon, .silicon):
         // silicon carbide
-        fatalError("Moissanite not supported yet (will be supported soon).")
         break
       default:
         fatalError("Unrecognized elements: \(element1), \(element2)")

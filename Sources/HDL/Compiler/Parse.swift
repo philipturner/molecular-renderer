@@ -431,8 +431,6 @@ fileprivate enum Expression: CustomStringConvertible {
         self = .element(.carbon)
       case ".silicon":
         self = .element(.silicon)
-      case ".germanium":
-        self = .element(.germanium)
       default:
         throw _ParseError(description: "Unrecognized element: '\(string.description)'")
       }

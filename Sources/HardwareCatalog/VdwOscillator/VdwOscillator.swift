@@ -208,7 +208,6 @@ internal func vdwOscillator() {
         Reflect { h }
         Reflect { l }
       }
-      Passivate { .hydrogen }
     }
   }
   
@@ -290,7 +289,6 @@ internal func vdwOscillator() {
         Translate { Float(i) * h + Float(-i) * k }
       }
     }
-    Passivate { .hydrogen }
     Volume {
       let thickness: Float = 6
       Convex {
@@ -301,7 +299,7 @@ internal func vdwOscillator() {
         Origin { -(thickness - 0.25) * l }
         Plane { -l }
       }
-      Passivate { .single }
+      Replace { .single }
     }
   }
   

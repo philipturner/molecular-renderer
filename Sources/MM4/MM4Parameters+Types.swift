@@ -235,9 +235,6 @@ public enum MM4AtomCode: UInt8, RawRepresentable {
   /// Hydrogen
   case hydrogen = 5
   
-  /// Fluorine
-  case fluorine = 11
-  
   /// Silicon
   case silicon = 19
   

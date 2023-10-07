@@ -56,8 +56,8 @@ Key:
 | Element | H | C<sub>sp3</sub> | Si |
 | --------------- | - | - | - |
 | H               |   | X | X |
-| C<sub>sp3</sub> | X | X |   |
-| Si              | X |   | X |
+| C<sub>sp3</sub> | X | X | O |
+| Si              | X | O | X |
 
 ### Long-Term Goal
 
