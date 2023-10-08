@@ -214,7 +214,7 @@ extension MM4Parameters {
       
       // MARK: - Off-diagonal cross-terms
       
-      // The formula from the MM4 alkene paper was ambiguous, specifying:
+      // The formula from the MM4 alkene paper was ambiguous, specifying "-k":
       //   -k * Δl * Kts * (1 + cos(3ω))
       // The formula from the MM3 original paper was:
       //    11.995 * (Kts/2) * (1 + cos(3ω))
@@ -243,6 +243,7 @@ extension MM4Parameters {
       if any(torsionCodes .== 11) || any(torsionCodes .== 19) {
         torsionCodes.replace(with: 1, where: torsionCodes .== 123)
       }
+      
     }
   }
 }

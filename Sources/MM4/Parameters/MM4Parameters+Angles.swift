@@ -163,11 +163,22 @@ extension MM4Parameters {
         equilibriumAngles = SIMD3(repeating: 109.40)
       case (19, 19, 19):
         if ringType == 6 {
-          // WARNING: Avoid bulk silicon. The unusually large angle and low
-          // stiffness suggest this is fitted for Si-Si-Si in the presence of
-          // carbon. Avoid thin silicon layers greater than 1 atom thick.
+          // Typo from the MM3 silicon paper and retained in the MM3(2000)
+          // implementation donated to Tinker. Quaternary sp3 carbon has the
+          // parameters 109.5-112.7-111.5, while sp3 silicon *should* have
+          // something similar: 109.5-110.8-111.2. I think 118.00 was a typo
+          // from the column four cells below: 19-22-22. Anything connected to
+          // the other side of a cyclopropane carbon (60°) should have an angle
+          // like 120°. This is not the first typo I have caught in one of
+          // Allinger's research papers, see the note about the MM4 formula for
+          // the Torsion-Stretch cross-term.
+          //
+          // The stiffness does match up. Extrapolating the ratios of 1-1-19 :
+          // 19-19-19 and 1-19-1 : 19-19-19 from 5-membered ring variants, one
+          // gets 0.233 and 0.236 respectively for 19-19-19. That is very close
+          // to 0.25, so I don't think that was messed up.
           bendingStiffnesses = SIMD3(repeating: 0.250)
-          equilibriumAngles = SIMD3(118.00, 110.80, 111.20)
+          equilibriumAngles = SIMD3(109.500, 110.80, 111.20)
         } else {
           bendingStiffnesses = SIMD3(repeating: 0.320)
           equilibriumAngles = SIMD3(repeating: 106.00)
