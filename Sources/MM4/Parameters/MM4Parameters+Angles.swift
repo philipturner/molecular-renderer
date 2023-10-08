@@ -53,13 +53,12 @@ public struct MM4AngleExtendedParameters {
 
 extension MM4Parameters {
   func createAngleParameters() {
-    for angle in angles.indices {
+    for angleID in angles.indices.indices {
+      let angle = angles.indices[angleID]
       var codes: SIMD3<UInt8> = .zero
-      var rings: SIMD2<UInt8> = .zero
       for lane in 0..<3 {
         let atomID = angle[lane]
         codes[lane] = atoms.codes[Int(atomID)].rawValue
-        rings[lane] = atoms.ringTypes[Int(atomID)]
       }
       if any(codes .== 11 .| codes .== 19) {
         codes.replace(with: .init(repeating: 1), where: codes .== 123)
@@ -70,12 +69,23 @@ extension MM4Parameters {
       let minAtomID = (codes[0] == minatomCode) ? angle[0] : angle[2]
       let medAtomID = angle[1]
       let maxAtomID = (codes[2] == maxatomCode) ? angle[2] : angle[0]
-      let ringType = rings.max()
+      let ringType = angles.ringTypes[angleID]
+      
+      // This forcefield will not support Si-C-F angles, both for lack of angle
+      // parameters and lack of primary Electronegativity Effect parameters. It
+      // also will not support Si-C-C-F torsions.
+      if any(codes .== 11) && any(codes .== 19) {
+        // There should be a similar fatal error for torsions.
+        fatalError("Si-C-F angles are not supported.")
+      }
       
       var bendingStiffnesses: SIMD3<Float>
       var equilibriumAngles: SIMD3<Float>
-      let baseCarbonAngles: SIMD3<Float> = SIMD3(108.900, 109.470, 110.800)
+      let commonCarbonAngles: SIMD3<Float> = SIMD3(108.900, 109.470, 110.800)
       
+      // There should be Swift unit tests to ensure generated angle parameters
+      // match the parameters from research papers, one test for every unique
+      // parameter in the forcefield.
       switch (minatomCode, medatomCode, maxatomCode) {
         // Carbon
       case (1, 1, 1):
@@ -83,7 +93,7 @@ extension MM4Parameters {
         equilibriumAngles = SIMD3(109.500, 110.400, 111.800)
       case (1, 1, 5):
         bendingStiffnesses = SIMD3(0.590, 0.560, 0.600)
-        equilibriumAngles = baseCarbonAngles
+        equilibriumAngles = commonCarbonAngles
       case (5, 1, 5):
         bendingStiffnesses = SIMD3(repeating: 0.540)
         equilibriumAngles = SIMD3(107.700, 107.800, 107.700)
@@ -92,10 +102,10 @@ extension MM4Parameters {
         equilibriumAngles = SIMD3(109.500, 110.500, 111.800)
       case (1, 123, 5):
         bendingStiffnesses = SIMD3(repeating: 0.560)
-        equilibriumAngles = baseCarbonAngles
+        equilibriumAngles = commonCarbonAngles
       case (5, 1, 123):
         bendingStiffnesses = SIMD3(repeating: 0.560)
-        equilibriumAngles = baseCarbonAngles
+        equilibriumAngles = commonCarbonAngles
       case (5, 123, 5):
         bendingStiffnesses = SIMD3(repeating: 0.620)
         equilibriumAngles = SIMD3(107.800, 107.800, 0.000)
@@ -104,7 +114,7 @@ extension MM4Parameters {
         equilibriumAngles = SIMD3(109.500, 110.500, 111.800)
       case (5, 123, 123):
         bendingStiffnesses = SIMD3(repeating: 0.580)
-        equilibriumAngles = baseCarbonAngles
+        equilibriumAngles = commonCarbonAngles
       case (123, 123, 123):
         bendingStiffnesses = SIMD3(repeating: 0.740)
         equilibriumAngles = SIMD3(108.300, 108.900, 109.000)
@@ -174,7 +184,9 @@ extension MM4Parameters {
         matchMask.replace(with: .one, where: codes .== 5)
         let numHydrogens = Int(matchMask.wrappedSum())
         
-        let centerType = atoms.centerTypes[Int(medAtomID)]
+        guard let centerType = atoms.centerTypes[Int(medAtomID)] else {
+          fatalError("Angle did not occur at tetravalent atom.")
+        }
         switch centerType {
         case .quaternary:
           angleType = 1 - numHydrogens
@@ -184,12 +196,85 @@ extension MM4Parameters {
           angleType = 3 - numHydrogens
         case .primary:
           angleType = 4 - numHydrogens
-        default:
-          fatalError("Unrecognized center type: \(centerType)")
         }
       }
       
-      // Calculate bend-bend parameters using atomic number instead of MM4 type.
+      // MARK: - Off-diagonal cross-terms
+      
+      var bendBendStiffness: Float
+      var stretchBendStiffness: Float
+      var stretchBendStiffness2: Float?
+      var stretchStretchStiffness: Float?
+      
+      var angleCodes = codes
+      angleCodes.replace(with: .one, where: angleCodes .== 123)
+      if angleCodes[0] > angleCodes[2] {
+        angleCodes = SIMD3(angleCodes[2], angleCodes[1], angleCodes[0])
+      }
+      
+      if angleCodes[0] == 5 && angleCodes[2] == 5 {
+        bendBendStiffness = 0.000
+        stretchBendStiffness = 0.000
+      } else if any(angleCodes .== 11) {
+        precondition(angleCodes[2] == 11, "Unrecognized fluorine angle codes.")
+        if angleCodes[0] == 1 {
+          bendBendStiffness = -0.10
+          stretchBendStiffness = 0.160
+          stretchBendStiffness2 = 0.000
+          stretchStretchStiffness = 0.22
+        } else if angleCodes[0] == 5 {
+          bendBendStiffness = 0.00
+          stretchBendStiffness = 0.160
+          stretchBendStiffness2 = 0.000
+          stretchStretchStiffness = -0.45
+        } else if angleCodes[0] == 11 {
+          bendBendStiffness = 0.09
+          stretchBendStiffness = 0.140
+          stretchBendStiffness2 = 0.275
+          stretchStretchStiffness = 1.00
+        } else {
+          fatalError("Unrecognized fluorine angle codes.")
+        }
+      } else if angleCodes[1] == 19 {
+        if any(angleCodes .== 5) {
+          bendBendStiffness = 0.24
+          stretchBendStiffness = 0.10
+        } else {
+          bendBendStiffness = 0.30
+          stretchBendStiffness = 0.06
+        }
+      } else if angleCodes[1] == 1 {
+        // Assume the MM4 paper's parameters for H-C-C/C-C-C also apply to
+        // H-C-Si/C-C-Si/Si-C-Si.
+        if any(angleCodes .== 5) {
+          bendBendStiffness = 0.350
+          stretchBendStiffness = 0.100
+        } else {
+          bendBendStiffness = 0.204
+          stretchBendStiffness = (ringType == 5) ? 0.180 : 0.140
+        }
+      } else {
+        fatalError("Unrecognized atom codes for angle.")
+      }
+      
+      angles.parameters.append(
+        MM4AngleParameters(
+          bendBendStiffness: bendBendStiffness,
+          bendingStiffness: bendingStiffnesses[angleType - 1],
+          equilibriumAngle: equilibriumAngles[angleType - 1],
+          stretchBendStiffness: stretchBendStiffness))
+      if any(angleCodes .== 11) {
+        guard let stretchBendStiffness2,
+              let stretchStretchStiffness else {
+          fatalError("Fluorine angle did not have extended parameters.")
+        }
+        angles.extendedParameters.append(
+          MM4AngleExtendedParameters(
+            stretchBendStiffness: stretchBendStiffness2,
+            stretchStretchStiffness: stretchStretchStiffness))
+      } else {
+        angles.extendedParameters.append(nil)
+      }
     }
   }
 }

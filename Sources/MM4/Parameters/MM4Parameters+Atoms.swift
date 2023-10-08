@@ -44,6 +44,9 @@ public enum MM4AtomCode: UInt8, RawRepresentable {
   /// Hydrogen
   case hydrogen = 5
   
+  /// Fluorine
+  case fluorine = 11
+  
   /// Silicon
   case silicon = 19
   
@@ -124,6 +127,8 @@ extension MM4Parameters {
         } else {
           fatalError("Unsupported carbon ring type: \(ringType)")
         }
+      case 9:
+        return .fluorine
       case 14:
         return .silicon
       default:

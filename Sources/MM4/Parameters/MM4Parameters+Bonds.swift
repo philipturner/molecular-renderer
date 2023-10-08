@@ -142,10 +142,6 @@ extension MM4Parameters {
         fatalError("Not recognized: (\(minatomCode), \(maxatomCode))")
       }
       
-      let parameters = MM4BondParameters(
-        potentialWellDepth: potentialWellDepth,
-        stretchingStiffness: stretchingStiffness,
-        equilibriumLength: equilibriumLength)
       bonds.parameters.append(
         MM4BondParameters(
           potentialWellDepth: potentialWellDepth,
