@@ -194,16 +194,22 @@ extension MM4Parameters {
   }
   
   private func electrostaticEffect(sign: Float) -> [Float] {
-    var primaryNeighbors: [[Float]] = Array(
+    var primaryNeighbors: [[(correction: Float, decay: Float)]] = Array(
       repeating: [], count: bonds.indices.count)
     var secondaryNeighborsSum: [Float] = Array(
       repeating: 0, count: bonds.indices.count)
+    var bohlmannEffectSum: [Float] = Array(
+      repeating: 0, count: bonds.indices.count)
     
-    func correction(atomID: Int32, endID: Int32, bondID: Int32) -> Float {
+    func correction(
+      atomID: Int32, endID: Int32, bondID: Int32
+    ) -> (
+      correction: Float, bohlmann: Float?, decay: Float, beta: Float
+    )? {
       let otherID = other(atomID: endID, bondID: bondID)
-      var codeActing = atoms.atomicNumbers[Int(atomID)]
-      var codeEnd = atoms.atomicNumbers[Int(endID)]
-      var codeOther = atoms.atomicNumbers[Int(otherID)]
+      var codeActing = atoms.codes[Int(atomID)].rawValue
+      var codeEnd = atoms.codes[Int(endID)].rawValue
+      var codeOther = atoms.codes[Int(otherID)].rawValue
       codeActing = (codeActing == 123) ? 1 : codeActing
       codeEnd = (codeEnd == 123) ? 1 : codeEnd
       codeOther = (codeOther == 123) ? 1 : codeOther
@@ -218,20 +224,51 @@ extension MM4Parameters {
       }
       
       switch (bondCodes.0, bondCodes.1, codeEnd, codeActing) {
+        // Fluorine
+      case (1, 1, 1, 11):
+        var sum: Float = 0.00
+        var decay: Float = 1.00
+        var count: Int = 0
+        let neighbors = atomsToAtomsMap[Int(endID)]
+        for lane in 0..<4 where neighbors[lane] != -1 {
+          let atomID = neighbors[lane]
+          let otherElement = atoms.atomicNumbers[Int(atomID)]
+          if otherElement == 6 {
+            count += 1
+            sum += decay
+            decay *= 0.38
+          }
+        }
+        precondition(
+          count > 0, "Carbon with a C-C bond didn't have any carbon neighbors.")
+        
+        let units = sum / Float(count)
+        return (-0.0193 * units, nil, 0.38, 0.05)
+      case (1, 5, 1, 11):
+        let bohlmannEffect: Float = 0.0011
+        return (-0.0052, bohlmannEffect, 0.55, 0.30)
+      case (1, 11, 1, 1):
+        return (0.0127, nil, 0.62, 0.40)
+      case (1, 11, 1, 11):
+        let bohlmannEffect: Float = -0.0028
+        return (-0.0268, bohlmannEffect, 0.33, 0.67)
+        
+        // Silicon
       case (1, 1, 1, 19):
-        return 0.009
+        return (0.009, nil, 0.62, 0.40)
       case (5, 19, 19, 19):
-        return 0.003
+        return (0.003, nil, 0.62, 0.40)
       case (19, 19, 19, 19):
-        return -0.002
+        return (-0.002, nil, 0.62, 0.40)
       case (19, 19, 19, 5):
-        return 0.004
+        return (0.004, nil, 0.62, 0.40)
       case (1, 19, 19, 19):
-        return 0.009
+        return (0.009, nil, 0.62, 0.40)
       case (1, 19, 1, 19):
-        return -0.004
+        return (-0.004, nil, 0.62, 0.40)
+        
       default:
-        return 0
+        return nil
       }
     }
     
@@ -249,8 +286,11 @@ extension MM4Parameters {
           
           let bondID = primaryLevelBonds[lane]
           let corr = correction(atomID: atom0, endID: atom1, bondID: bondID)
-          if corr * sign > 0 {
-            primaryNeighbors[Int(bondID)].append(corr)
+          if let corr, corr.correction * sign > 0 {
+            primaryNeighbors[Int(bondID)].append((corr.correction, corr.decay))
+          }
+          if let bohlmann = corr?.bohlmann {
+            bohlmannEffectSum[Int(bondID)] += bohlmann
           }
           
           let secondaryLevelAtoms = atomsToAtomsMap[Int(atom2)]
@@ -262,8 +302,8 @@ extension MM4Parameters {
             
             let bondID = secondaryLevelBonds[lane]
             let corr = correction(atomID: atom0, endID: atom2, bondID: bondID)
-            if corr * sign > 0 {
-              secondaryNeighborsSum[Int(bondID)] += corr
+            if let corr, corr.correction * sign > 0 {
+              secondaryNeighborsSum[Int(bondID)] += corr.correction * corr.beta
             }
           }
         }
@@ -273,14 +313,17 @@ extension MM4Parameters {
     return bonds.indices.indices.map { bondID in
       var correction: Float = 0
       var neighbors = primaryNeighbors[bondID]
-      neighbors.sort(by: { $0.magnitude > $1.magnitude })
+      neighbors.sort(by: { $0.correction.magnitude > $1.correction.magnitude })
       
       var decay: Float = 1
-      for neighbor in neighbors {
-        correction += neighbor * decay
-        decay *= 0.62
+      for (neighborID, neighbor) in neighbors.enumerated() {
+        if neighborID > 0 {
+          decay *= neighbor.decay
+        }
+        correction += neighbor.correction * decay
       }
-      correction += 0.4 * secondaryNeighborsSum[bondID]
+      correction += secondaryNeighborsSum[bondID]
+      correction += bohlmannEffectSum[bondID]
       return correction
     }
   }

@@ -82,9 +82,7 @@ public class MM4Parameters {
     // forcefield, but will be added shortly after the first wave of bug fixes.
     if descriptor.atomicNumbers.contains(9) {
       // Missing parameters:
-      // Electronegativity effect of a single fluorine on multiple connected
-      // carbons, electronegativity effects on angles and stretching
-      // frequencies, fluorine extended torsion parameters
+      // Electronegativity effect on angles and stretching frequencies
       //
       // Missing forces:
       // Fluorine extended angle force

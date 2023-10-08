@@ -178,7 +178,7 @@ extension MM4Parameters {
           // gets 0.233 and 0.236 respectively for 19-19-19. That is very close
           // to 0.25, so I don't think that was messed up.
           bendingStiffnesses = SIMD3(repeating: 0.250)
-          equilibriumAngles = SIMD3(109.500, 110.80, 111.20)
+          equilibriumAngles = SIMD3(109.50, 110.80, 111.20)
         } else {
           bendingStiffnesses = SIMD3(repeating: 0.320)
           equilibriumAngles = SIMD3(repeating: 106.00)

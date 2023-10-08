@@ -225,20 +225,60 @@ extension MM4Parameters {
       //   new trough with ~2x the magnitude of the C-S peak
       // - Central TS for F-C-C-F (MM4) having 1% less peak stiffness than C-S,
       //   but a new trough with ~3.7x the magnitude of the C-S peak
-      //
-      var Kts: Float // Kts3 for `MM4TorsionParameters`
-      var Kts1: SIMD3<Float>?
-      var Kts2: SIMD3<Float>?
-      var Kts3: SIMD3<Float>?
-      var Ktb1: SIMD2<Float>?
-      var Ktb2: SIMD2<Float>?
-      var Ktb3: SIMD2<Float>?
+      var Kts: Float
+      var Kts_l: SIMD3<Float>?
+      var Kts_c: SIMD3<Float>?
+      var Kts_r: SIMD3<Float>?
+      var Ktb_l: SIMD3<Float>?
+      var Ktb_r: SIMD3<Float>?
       
       var torsionCodes = codes
       if any(torsionCodes .== 11) || any(torsionCodes .== 19) {
         torsionCodes.replace(with: 1, where: torsionCodes .== 123)
       }
+      if torsionCodes[1] > torsionCodes[2] ||
+          (torsionCodes[1] == torsionCodes[2] &&
+           torsionCodes[0] > torsionCodes[3]) {
+        torsionCodes = SIMD4(
+          torsionCodes[3], torsionCodes[2], torsionCodes[1], torsionCodes[0])
+      }
       
+      if any(torsionCodes .== 11) {
+        precondition(
+          torsionCodes[1] == 1 &&
+          torsionCodes[2] == 1 &&
+          torsionCodes[3] == 11,
+          "Unrecognized fluorine torsion codes.")
+        Kts = 0.000
+        if torsionCodes[0] == 1 {
+          Kts_l = SIMD3(0.000, 0.000, 0.000)
+          Kts_c = SIMD3(5.300, -4.800, 4.500)
+          Kts_r = SIMD3(0.000, 0.000, 0.000)
+          
+          Ktb_l = SIMD3(0.000, -0.012, -0.009)
+          Ktb_r = SIMD3(0.005, 0.004, 0.003)
+        } else if torsionCodes[0] == 5 {
+          Kts_l = SIMD3(0.000, 0.000, 0.000)
+          Kts_c = SIMD3(0.000, -1.650, 2.400)
+          Kts_r = SIMD3(0.000, 0.000, 0.550)
+          
+          Ktb_l = SIMD3(0.002, -0.022, 0.000)
+          Ktb_r = SIMD3(0.000, 0.000, -0.001)
+        } else if torsionCodes[0] == 11 {
+          Kts_l = SIMD3(-5.550, 4.500, 0.000)
+          Kts_c = SIMD3(4.800, -5.000, 1.559)
+          Kts_r = SIMD3(-5.550, 4.500, 0.000)
+          
+          Ktb_l = SIMD3(0.000, -0.015, -0.003)
+          Ktb_r = SIMD3(0.000, -0.015, -0.003)
+        }
+        if codes[3] != 11 {
+          swap(&Kts_l, &Kts_r)
+          swap(&Ktb_l, &Ktb_r)
+        }
+      } else if torsionCodes[1] == 19 || torsionCodes[2] == 19 {
+        
+      }
     }
   }
 }
