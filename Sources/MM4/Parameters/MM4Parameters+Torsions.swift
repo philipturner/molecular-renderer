@@ -52,21 +52,23 @@ public struct MM4Torsions {
 /// - present for X-C-C-H
 /// - present for C-C-C-C
 /// - present for 5-membered rings
-/// - zeroed out for X-C-C-F
+/// - zeroed out for X-C-C-F, to prioritize conciseness over performance
 public struct MM4TorsionParameters {
   /// Units: kilocalorie / mole
   public var V1: Float
   
   /// Units: kilocalorie / mole
-  public var V3: Float
-  
-  /// Units: kilocalorie / mole
   public var Vn: Float
   
+  /// Units: kilocalorie / mole
+  public var V3: Float
+  
   /// The factor to multiply the angle with inside the cosine term for Vn.
+  ///
+  /// The value of `n` is most often 2.
   public var n: Float
   
-  /// The V3-like term contributing to torsion-stretch stiffness.
+  /// Units: kilocalorie / angstrom \* mole^2
   public var Kts3: Float
 }
 
@@ -96,4 +98,121 @@ public struct MM4TorsionExtendedParameters {
   
   /// The V3-like term contributing to torsion-bend stiffness.
   public var Ktb3: (left: Float, right: Float)
+}
+
+extension MM4Parameters {
+  func createTorsionParameters() {
+    for torsionID in torsions.indices.indices {
+      let torsion = torsions.indices[torsionID]
+      let ringType = torsions.ringTypes[torsionID]
+      
+      var codes: SIMD4<UInt8> = .zero
+      for lane in 0..<3 {
+        let atomID = torsion[lane]
+        codes[lane] = atoms.codes[Int(atomID)].rawValue
+      }
+      if any(codes .== 11 .| codes .== 19) {
+        codes.replace(with: .init(repeating: 1), where: codes .== 123)
+      }
+      var sortedCodes = codes
+      if codes[1] > codes[2] ||
+          (codes[1] == codes[2] && codes[0] > codes[3]) {
+        sortedCodes = SIMD4(codes[3], codes[2], codes[1], codes[0])
+      }
+      
+      // This forcefield will not support Si-C-C-F torsions, for lack of torsion
+      // parameters and secondary Electronegativity Effect parameters.
+      if any(codes .== 11) && any(codes .== 19) {
+        // There should be a similar fatal error for torsions.
+        fatalError("Si-C-C-F torsions are not supported.")
+      }
+      
+      var V1: Float = 0.000
+      var Vn: Float = 0.000
+      var V3: Float
+      var n: Float = 2
+      var V4: Float?
+      var V6: Float?
+      
+      // There should be Swift unit tests to ensure generated torsion parameters
+      // match the parameters from research papers, one test for every unique
+      // parameter in the forcefield.
+      switch (sortedCodes[0], sortedCodes[1], sortedCodes[2], sortedCodes[3]) {
+        // Carbon
+      case (1, 1, 1, 1):
+        V1 = 0.239
+        Vn = 0.024
+        V3 = 0.637
+      case (1, 1, 1, 5):
+        V3 = 0.290
+      case (5, 1, 1, 5), (5, 1, 123, 5):
+        V3 = 0.260
+        if sortedCodes[2] == 1 {
+          Vn = 0.008
+          n = 6
+        }
+      case (1, 123, 123, 1), (1, 123, 123, 123):
+        V1 = 0.160
+        V3 = 0.550
+      case (5, 123, 123, 5):
+        V3 = 0.300
+      case (5, 123, 123, 123):
+        V3 = 0.290
+      case (123, 123, 123, 123):
+        V1 = (ringType == 5) ? -0.150 : -0.120
+        V3 = (ringType == 5) ? 0.160 : 0.550
+      case (5, 1, 123, 123), (1, 123, 123, 5), (123, 1, 123, 5):
+        V3 = 0.306
+        
+        // Fluorine
+      case (1, 1, 1, 11):
+        (V1, Vn, V3) = (-0.360, 0.380, 0.978)
+        (V4, V6) = (0.240, 0.010)
+      case (5, 1, 1, 11):
+        (V1, Vn, V3) = (-0.460, 1.190, 0.420)
+        (V4, V6) = (0.000, 0.000)
+      case (11, 1, 1, 11):
+        (V1, Vn, V3) = (-1.350, 0.305, 0.355)
+        (V4, V6) = (0.000, 0.000)
+        
+        // Silicon
+      case (1, 1, 1, 19):
+        Vn = (ringType == 5) ? 0.000 : 0.050
+        V3 = (ringType == 5) ? 0.850 : 0.240
+      case (19, 1, 1, 19), (1, 1, 19, 1), (19, 1, 19, 5):
+        if ringType == 5 && all(sortedCodes .== SIMD4(1, 1, 19, 1)) {
+          Vn = 0.800
+          V3 = 0.000
+        } else {
+          V3 = 0.167
+        }
+      case (5, 1, 19, 1):
+        V3 = 0.195
+      case (5, 1, 19, 5):
+        V3 = 0.177
+      case (19, 1, 19, 1):
+        V3 = 0.100
+      case (1, 1, 19, 19):
+        V3 = 0.300
+      case (5, 1, 19, 19):
+        V3 = 0.270
+      case (1, 19, 19, 5):
+        V3 = 0.127
+      case (1, 19, 19, 1):
+        V3 = 0.107
+      case (1, 19, 19, 19):
+        V3 = 0.350
+      case (5, 19, 19, 5):
+        V3 = 0.132
+      case (5, 19, 19, 19):
+        V3 = 0.070
+      case (19, 19, 19, 19):
+        V3 = (ringType == 5) ? 0.175 : 0.125
+      default:
+        fatalError("Unrecognized torsion: \(sortedCodes[0]), \(sortedCodes[1]), \(sortedCodes[2]), \(sortedCodes[3])")
+      }
+      
+      // MARK: - Off-diagonal cross-terms
+    }
+  }
 }

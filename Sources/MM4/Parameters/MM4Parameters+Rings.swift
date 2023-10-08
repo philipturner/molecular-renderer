@@ -51,7 +51,7 @@ extension MM4Parameters {
             } else if atom1 == atom4 {
               ringType = min(3, ringType)
               continue
-            } else if atom1 < atom4 {
+            } else if !(atom2 > atom3 || (atom2 == atom3 && atom1 > atom4)) {
               torsions.map[SIMD4(atom1, atom2, atom3, atom4)] = -2
             }
             
@@ -172,7 +172,8 @@ extension MM4Parameters {
         if angle[0] > angle[2] {
           angle = SIMD3(angle[2], angle[1], angle[0])
         }
-        if torsion[0] > torsion[3] {
+        if torsion[1] > torsion[2] ||
+            (torsion[1] == torsion[2] && torsion[0] > torsion[3]) {
           torsion = SIMD4(torsion[3], torsion[2], torsion[1], torsion[0])
         }
         

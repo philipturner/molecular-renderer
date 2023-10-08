@@ -30,7 +30,7 @@ public struct MM4Angles {
 /// Parameters for an angle between two bonds, including bending stiffness
 /// and multiplicative contribution to bend-bend stiffness.
 public struct MM4AngleParameters {
-  /// This is an off-diagonal term, so units are omitted for brevity.
+  /// Units: millidyne^2 / radian^2
   public var bendBendStiffness: Float
   
   /// Units: millidyne \* angstrom / radian^2
@@ -39,7 +39,7 @@ public struct MM4AngleParameters {
   /// Units: radian
   public var equilibriumAngle: Float
   
-  /// This is an off-diagonal term, so units are omitted for brevity.
+  /// Units: millidyne / radian \* mole
   public var stretchBendStiffness: Float
 }
 
@@ -55,6 +55,8 @@ extension MM4Parameters {
   func createAngleParameters() {
     for angleID in angles.indices.indices {
       let angle = angles.indices[angleID]
+      let ringType = angles.ringTypes[angleID]
+      
       var codes: SIMD3<UInt8> = .zero
       for lane in 0..<3 {
         let atomID = angle[lane]
@@ -66,16 +68,10 @@ extension MM4Parameters {
       let minatomCode = SIMD2(codes[0], codes[2]).min()
       let medatomCode = codes[1]
       let maxatomCode = SIMD2(codes[0], codes[2]).max()
-      let minAtomID = (codes[0] == minatomCode) ? angle[0] : angle[2]
-      let medAtomID = angle[1]
-      let maxAtomID = (codes[2] == maxatomCode) ? angle[2] : angle[0]
-      let ringType = angles.ringTypes[angleID]
       
-      // This forcefield will not support Si-C-F angles, both for lack of angle
-      // parameters and lack of primary Electronegativity Effect parameters. It
-      // also will not support Si-C-C-F torsions.
+      // This forcefield will not support Si-C-F angles, for lack of angle
+      // parameters and primary Electronegativity Effect parameters.
       if any(codes .== 11) && any(codes .== 19) {
-        // There should be a similar fatal error for torsions.
         fatalError("Si-C-F angles are not supported.")
       }
       
@@ -174,7 +170,7 @@ extension MM4Parameters {
           equilibriumAngles = SIMD3(repeating: 106.00)
         }
       default:
-        fatalError("Not recognized: (\(minatomCode), \(medatomCode), \(maxatomCode))")
+        fatalError("Unrecognized angle: (\(minatomCode), \(medatomCode), \(maxatomCode))")
       }
       
       // Factors in both the center type and the other atoms in the angle.
@@ -184,7 +180,7 @@ extension MM4Parameters {
         matchMask.replace(with: .one, where: codes .== 5)
         let numHydrogens = Int(matchMask.wrappedSum())
         
-        guard let centerType = atoms.centerTypes[Int(medAtomID)] else {
+        guard let centerType = atoms.centerTypes[Int(angle[1])] else {
           fatalError("Angle did not occur at tetravalent atom.")
         }
         switch centerType {

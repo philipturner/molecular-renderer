@@ -120,11 +120,12 @@ extension MM4Parameters {
         return .hydrogen
       case 6:
         let ringType = atoms.ringTypes[atomID]
-        if ringType == 6 {
+        switch ringType {
+        case 6:
           return .alkaneCarbon
-        } else if ringType == 5 {
+        case 5:
           return .cyclopentaneCarbon
-        } else {
+        default:
           fatalError("Unsupported carbon ring type: \(ringType)")
         }
       case 9:

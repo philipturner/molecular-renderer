@@ -52,6 +52,8 @@ extension MM4Parameters {
   func createBondParameters() {
     for bondID in bonds.indices.indices {
       let bond = bonds.indices[bondID]
+      let ringType = bonds.ringTypes[bondID]
+      
       var codes: SIMD2<UInt8> = .zero
       for lane in 0..<2 {
         let atomID = bond[lane]
@@ -64,13 +66,17 @@ extension MM4Parameters {
       let maxatomCode = codes.max()
       let minAtomID = (codes[0] == minatomCode) ? bond[0] : bond[1]
       let maxAtomID = (codes[1] == maxatomCode) ? bond[1] : bond[0]
-      let ringType = bonds.ringTypes[bondID]
       
       var potentialWellDepth: Float
       var stretchingStiffness: Float
       var equilibriumLength: Float
       var dipoleMoment: Float?
       
+      // There should be Swift unit tests to ensure generated bond parameters
+      // match the parameters from research papers, one test for every unique
+      // parameter in the forcefield.
+      //
+      // The tests should factor in Electronegativity Effect corrections.
       switch (minatomCode, maxatomCode) {
         // Carbon
       case (1, 1):
