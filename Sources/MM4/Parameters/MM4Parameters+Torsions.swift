@@ -213,6 +213,36 @@ extension MM4Parameters {
       }
       
       // MARK: - Off-diagonal cross-terms
+      
+      // The formula from the MM4 alkene paper was ambiguous, specifying:
+      //   -k * Δl * Kts * (1 + cos(3ω))
+      // The formula from the MM3 original paper was:
+      //    11.995 * (Kts/2) * (1 + cos(3ω))
+      // After running several parameters through Desmos, and comparing similar
+      // ones (https://www.desmos.com/calculator/p5wqbw7tku), I think I have
+      // identified a typo. "-k" was supposed to be "K_s^-1" or "1/K_s". This
+      // would result in:
+      // - C-C having ~33% less TS stiffness in MM4 than in MM3
+      // - C-Csp2 (MM4) having ~17% less stiffness than Si-Csp2 (MM3)
+      // - C-S (MM4) having nearly identical stiffness to C-Si (MM3)
+      // - Central TS for H-C-C-F (MM4) having 42% less peak stiffness than C-S
+      // - Central TS for C-C-C-F (MM4) having 2x larger peaks than C-S, and a
+      //   new trough with ~2x the magnitude of the C-S peak
+      // - Central TS for F-C-C-F (MM4) having 1% less peak stiffness than C-S,
+      //   but a new trough with ~3.7x the magnitude of the C-S peak
+      //
+      var Kts: Float // Kts3 for `MM4TorsionParameters`
+      var Kts1: SIMD3<Float>?
+      var Kts2: SIMD3<Float>?
+      var Kts3: SIMD3<Float>?
+      var Ktb1: SIMD2<Float>?
+      var Ktb2: SIMD2<Float>?
+      var Ktb3: SIMD2<Float>?
+      
+      var torsionCodes = codes
+      if any(torsionCodes .== 11) || any(torsionCodes .== 19) {
+        torsionCodes.replace(with: 1, where: torsionCodes .== 123)
+      }
     }
   }
 }
