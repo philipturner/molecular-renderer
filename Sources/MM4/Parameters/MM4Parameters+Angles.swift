@@ -163,6 +163,9 @@ extension MM4Parameters {
         equilibriumAngles = SIMD3(repeating: 109.40)
       case (19, 19, 19):
         if ringType == 6 {
+          // WARNING: Avoid bulk silicon. The unusually large angle and low
+          // stiffness suggest this is fitted for Si-Si-Si in the presence of
+          // carbon. Avoid thin silicon layers greater than 1 atom thick.
           bendingStiffnesses = SIMD3(repeating: 0.250)
           equilibriumAngles = SIMD3(118.00, 110.80, 111.20)
         } else {
