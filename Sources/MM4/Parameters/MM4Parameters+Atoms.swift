@@ -135,7 +135,7 @@ extension MM4Parameters {
   func createCenterTypes() {
     for atomID in atoms.atomicNumbers.indices {
       let atomicNumber = atoms.atomicNumbers[atomID]
-      guard atomicNumber == 6 else {
+      guard atomicNumber == 6 || atomicNumber == 14 else {
         precondition(
           atomicNumber == 1 || atomicNumber == 9,
           "Atomic number \(atomicNumber) not recognized.")
@@ -143,24 +143,21 @@ extension MM4Parameters {
         continue
       }
       
-      let map = atomsToBondsMap[atomID]
-      var otherIDs: SIMD4<Int32> = .zero
-      for lane in 0..<4 {
-        otherIDs[lane] = other(atomID: atomID, bondID: map[lane])
-      }
-      guard all(otherIDs .>= 1) else {
+      let map = atomsToAtomsMap[atomID]
+      guard all(map .> -1) else {
         fatalError("A carbon did not have 4 valid bonds.")
       }
       var otherElements: SIMD4<UInt8> = .zero
       for lane in 0..<4 {
-        let otherID = otherIDs[lane]
+        let otherID = map[lane]
         otherElements[lane] = atoms.atomicNumbers[Int(otherID)]
       }
       
       // In MM4, fluorine is treated like carbon when determining carbon types.
       // Allinger notes this may be a weakness of the forcefield.
       var matchMask: SIMD4<UInt8> = .zero
-      matchMask.replace(with: .one, where: otherElements .!= 1)
+      matchMask.replace(with: .one, where: otherElements .== 9)
+      matchMask.replace(with: .one, where: otherElements .== 14)
       
       var carbonType: MM4CenterType
       switch matchMask.wrappedSum() {

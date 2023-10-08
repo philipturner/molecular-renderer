@@ -70,8 +70,6 @@ public class MM4Parameters {
   
   /// Create a set of parameters using the specified configuration.
   public init(descriptor: MM4ParametersDescriptor) {
-    // MARK: - Create Bond Topology
-    
     // Check the bond orders.
     if let bondOrders = descriptor.bondOrders {
       precondition(

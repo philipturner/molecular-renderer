@@ -81,7 +81,7 @@ extension MM4Parameters {
       }
       
       guard ringType >= 5 else {
-        fatalError("3- and 4-member rings not supported yet.")
+        fatalError("3- and 4-membered rings not supported yet.")
       }
     }
     angles.indices = angles.map.keys.map { $0 }
@@ -109,7 +109,7 @@ extension MM4Parameters {
       match1 &+= match2
       match3 &+= match4
       match1 &+= match3
-      match1.replace(with: SIMD4.zero, where: map4 .== 1)
+      match1.replace(with: SIMD4.zero, where: map4 .== -1)
       
       for lane in 0..<4 where match1[lane] > 0 {
         var array: [Int32] = []

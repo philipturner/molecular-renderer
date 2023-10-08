@@ -43,10 +43,7 @@ public class MM4ForceFieldDescriptor {
   public var velocities: [SIMD3<Float>]?
   
   public init() {
-    MM4Plugins.global.load()
     
-    // Separate the atoms into two groups of "small" vs "large" atoms, creating
-    // different zones of internally contiguous tiles within the atom list.
   }
 }
 
@@ -54,7 +51,10 @@ public class MM4ForceFieldDescriptor {
 public class MM4ForceField {
   /// Create a simulator using the specified configuration.
   public init(descriptor: MM4ForceFieldDescriptor) {
+    MM4Plugins.global.load()
     
+    // Separate the atoms into two groups of "small" vs "large" atoms, creating
+    // different zones of internally contiguous tiles within the atom list.
   }
   
   /// Simulate the system's evolution for the specified time interval (in

@@ -57,7 +57,7 @@ extension MM4Parameters {
         let atomID = bond[lane]
         codes[lane] = atoms.codes[Int(atomID)].rawValue
       }
-      if any(codes .!= 11 .| codes .== 19) {
+      if any(codes .== 11 .| codes .== 19) {
         codes.replace(with: .init(repeating: 1), where: codes .== 123)
       }
       let minatomCode = codes.min()
