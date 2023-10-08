@@ -200,7 +200,7 @@ extension MM4Parameters {
       switch atomicNumber {
       case 1:
         epsilon = (heteroatom: 0.017, hydrogen: 0.017)
-        radius = (heteroatom: 1.960, hydrogen: 1.960)
+        radius = (heteroatom: 1.640, hydrogen: 1.640)
       case 6:
         let t = Float(hydrogenMassRepartitioning) - 0
         let hydrogenRadius = t * (3.410 - 3.440) + 3.440

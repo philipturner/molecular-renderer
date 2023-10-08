@@ -44,6 +44,9 @@ public class MM4ForceFieldDescriptor {
   
   public init() {
     MM4Plugins.global.load()
+    
+    // Separate the atoms into two groups of "small" vs "large" atoms, creating
+    // different zones of internally contiguous tiles within the atom list.
   }
 }
 
