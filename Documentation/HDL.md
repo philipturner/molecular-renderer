@@ -31,8 +31,8 @@ At the atomic scale, constructive solid geometry is much easier than at the macr
 | ✅ |    |    | 1x | sp3 6-ring carbon (diamond) |
 |    |    |    | 2x | sp3 6-ring carbon (lonsdaleite) |
 |    |    |    | 3x | sp3 4/5-ring carbon (sharp corners, (100) surfaces) |
-|    | ✅ |    | 4x | OpenMM external forces, sp3 elemental silicon |
-|    |    |    | 5x | sp3 mixed-element diamondoids with nonuniform lattice constants and polar covalent bonds (B, N, O, F, P, SiC, S, Cl, Ge) |
+|    | ✅ |    | 4x | OpenMM external forces, sp3 silicon |
+|    |    |    | 5x | sp3 mixed-element diamondoids with nonuniform lattice constants and polar covalent bonds (B, N, O, F, P, S, Cl, Ge) |
 |    |    | ✅ | 6x | graphene covalently welded to sp3 crystal lattices |
 |    |    |    | 7x | sp1 carbon (carbyne rods, acetylene rotary bearings) |
 |    |    |    | 20x | GFN-FF |
@@ -51,7 +51,9 @@ Key:
 | - | - | - | - | - |
 | H            | 5   | n/a | n/a           | n/a           |
 | C (sp3)      | 1   | 123 | not supported | not supported |
+| F            | 11  | n/a | n/a           | n/a           |
 | Si (sp3)     | 19  | 19  | not supported | not supported |
+| S (sp3)      | 15  | 15  | not supported | not supported |
 
 | Element | H | C<sub>sp3</sub> | F | Si | S |
 | --------------- | - | - | - | - | - |
