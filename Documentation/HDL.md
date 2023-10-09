@@ -53,11 +53,13 @@ Key:
 | C (sp3)      | 1   | 123 | not supported | not supported |
 | Si (sp3)     | 19  | 19  | not supported | not supported |
 
-| Element | H | C<sub>sp3</sub> | Si |
-| --------------- | - | - | - |
-| H               |   | X | X |
-| C<sub>sp3</sub> | X | X | O |
-| Si              | X | O | X |
+| Element | H | C<sub>sp3</sub> | F | Si | S |
+| --------------- | - | - | - | - | - |
+| H               |   | X |   | X |   |
+| C<sub>sp3</sub> | X | X | O | O | O |
+| F               |   | O |   |   |   |
+| Si              | X | O |   | X |   |
+| S               |   | O |   |   |   |
 
 ### Long-Term Goal
 

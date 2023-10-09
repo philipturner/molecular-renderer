@@ -98,6 +98,9 @@ public struct MM4TorsionExtendedParameters {
   
   /// The V3-like term contributing to torsion-bend stiffness.
   public var Ktb3: (left: Float, right: Float)
+  
+  /// Bend-torsion-bend constant.
+  public var Kbtb: Float
 }
 
 extension MM4Parameters {
@@ -134,6 +137,20 @@ extension MM4Parameters {
       var V4: Float?
       var V6: Float?
       
+      var Kts: Float
+      var Kts_l: SIMD3<Float>?
+      var Kts_c: SIMD3<Float>?
+      var Kts_r: SIMD3<Float>?
+      var Ktb_l: SIMD3<Float>?
+      var Ktb_r: SIMD3<Float>?
+      var Kbtb: Float?
+      
+      if any(sortedCodes .== 15) {
+        Ktb_l = SIMD3(repeating: 0.000)
+        Ktb_r = SIMD3(repeating: 0.000)
+        Kbtb = 0.000
+      }
+      
       // There should be Swift unit tests to ensure generated torsion parameters
       // match the parameters from research papers, one test for every unique
       // parameter in the forcefield.
@@ -168,17 +185,42 @@ extension MM4Parameters {
       case (1, 1, 1, 11):
         (V1, Vn, V3) = (-0.360, 0.380, 0.978)
         (V4, V6) = (0.240, 0.010)
+        
+        Kts_l = SIMD3(0.000, 0.000, 0.000)
+        Kts_c = SIMD3(5.300, -4.800, 4.500)
+        Kts_r = SIMD3(0.000, 0.000, 0.000)
+        
+        Ktb_l = SIMD3(0.000, -0.012, -0.009)
+        Ktb_r = SIMD3(0.005, 0.004, 0.003)
+        Kbtb = -0.06
       case (5, 1, 1, 11):
         (V1, Vn, V3) = (-0.460, 1.190, 0.420)
         (V4, V6) = (0.000, 0.000)
+        
+        Kts_l = SIMD3(0.000, 0.000, 0.000)
+        Kts_c = SIMD3(0.000, -1.650, 2.400)
+        Kts_r = SIMD3(0.000, 0.000, 0.550)
+        
+        Ktb_l = SIMD3(0.002, -0.022, 0.000)
+        Ktb_r = SIMD3(0.000, 0.000, -0.001)
+        Kbtb = 0.06
       case (11, 1, 1, 11):
         (V1, Vn, V3) = (-1.350, 0.305, 0.355)
         (V4, V6) = (0.000, 0.000)
+        
+        Kts_l = SIMD3(-5.550, 4.500, 0.000)
+        Kts_c = SIMD3(4.800, -5.000, 1.559)
+        Kts_r = SIMD3(-5.550, 4.500, 0.000)
+        
+        Ktb_l = SIMD3(0.000, -0.015, -0.003)
+        Ktb_r = SIMD3(0.000, -0.015, -0.003)
+        Kbtb = -0.06
         
         // Silicon
       case (1, 1, 1, 19):
         Vn = 0.050
         V3 = 0.240
+        fatalError("TODO: Check the ab initio calculations for cyclosilanes.")
       case (19, 1, 1, 19), (1, 1, 19, 1), (19, 1, 19, 5):
         V3 = 0.167
       case (5, 1, 19, 1):
@@ -203,6 +245,66 @@ extension MM4Parameters {
         V3 = 0.070
       case (19, 19, 19, 19):
         V3 = (ringType == 5) ? 0.175 : 0.125
+        
+        // Sulfur
+      case (5, 1, 15, 1):
+        V3 = 0.540
+        
+        Ktb_l = SIMD3(0.012, 0.016, 0.000)
+        Ktb_r = SIMD3(0.003, 0.000, 0.000)
+        Kbtb = 0.135
+      case (1, 1, 15, 1):
+        V1 = 0.410
+        V3 = 0.600
+        
+        Ktb_l = SIMD3(0.006, 0.020, 0.000)
+        Kbtb = 0.080
+      case (15, 1, 1, 15):
+        V1 = 0.461
+        Vn = 0.144
+        V3 = 1.511
+        
+        Ktb_l = SIMD3(0.000, 0.003, 0.000)
+        Kbtb = 0.130
+      case (5, 1, 1, 15):
+        V3 = 0.460
+        Kbtb = 0.050
+      case (1, 1, 1, 15):
+        V1 = 0.420
+        Vn = 0.100
+        V6 = 0.200
+        Kbtb = 0.090
+      case (5, 123, 123, 5):
+        V3 = 0.200
+        Kbtb = 0.020
+      case (123, 15, 123, 1), (123, 15, 123, 123):
+        if ringType == 5 && all(sortedCodes .== SIMD4(123, 15, 123, 123)) {
+          V1 = 0.440
+          Vn = 0.300
+          V3 = 0.500
+        } else {
+          V1 = 0.100
+          V3 = 0.200
+        }
+      case (5, 1, 123, 15):
+        Vn = 0.330
+        V3 = 0.200
+        Kbtb = 0.050
+      case (15, 123, 123, 123):
+        if ringType == 5 {
+          V1 = 0.040
+          Vn = 0.200
+          V3 = 0.300
+          Kbtb = 0.100
+        } else {
+          V1 = 0.520
+          Vn = 0.080
+          V3 = 0.250
+          Kbtb = 0.100
+        }
+      case (123, 15, 123, 5):
+        V3 = 0.450
+        Kbtb = 0.020
       default:
         fatalError("Unrecognized torsion: \(sortedCodes[0]), \(sortedCodes[1]), \(sortedCodes[2]), \(sortedCodes[3])")
       }
@@ -225,12 +327,6 @@ extension MM4Parameters {
       //   new trough with ~2x the magnitude of the C-S peak
       // - Central TS for F-C-C-F (MM4) having 1% less peak stiffness than C-S,
       //   but a new trough with ~3.7x the magnitude of the C-S peak
-      var Kts: Float
-      var Kts_l: SIMD3<Float>?
-      var Kts_c: SIMD3<Float>?
-      var Kts_r: SIMD3<Float>?
-      var Ktb_l: SIMD3<Float>?
-      var Ktb_r: SIMD3<Float>?
       
       var torsionCodes = codes
       if any(torsionCodes .== 11) || any(torsionCodes .== 19) {
@@ -250,34 +346,14 @@ extension MM4Parameters {
           torsionCodes[3] == 11,
           "Unrecognized fluorine torsion codes.")
         Kts = 0.000
-        if torsionCodes[0] == 1 {
-          Kts_l = SIMD3(0.000, 0.000, 0.000)
-          Kts_c = SIMD3(5.300, -4.800, 4.500)
-          Kts_r = SIMD3(0.000, 0.000, 0.000)
-          
-          Ktb_l = SIMD3(0.000, -0.012, -0.009)
-          Ktb_r = SIMD3(0.005, 0.004, 0.003)
-        } else if torsionCodes[0] == 5 {
-          Kts_l = SIMD3(0.000, 0.000, 0.000)
-          Kts_c = SIMD3(0.000, -1.650, 2.400)
-          Kts_r = SIMD3(0.000, 0.000, 0.550)
-          
-          Ktb_l = SIMD3(0.002, -0.022, 0.000)
-          Ktb_r = SIMD3(0.000, 0.000, -0.001)
-        } else if torsionCodes[0] == 11 {
-          Kts_l = SIMD3(-5.550, 4.500, 0.000)
-          Kts_c = SIMD3(4.800, -5.000, 1.559)
-          Kts_r = SIMD3(-5.550, 4.500, 0.000)
-          
-          Ktb_l = SIMD3(0.000, -0.015, -0.003)
-          Ktb_r = SIMD3(0.000, -0.015, -0.003)
-        }
         if codes[3] != 11 {
           swap(&Kts_l, &Kts_r)
           swap(&Ktb_l, &Ktb_r)
         }
+      } else if any(torsionCodes .== 15) {
+        // TODO: Torsion-stretch for sulfur.
       } else if torsionCodes[1] == 19 || torsionCodes[2] == 19 {
-        
+        // TODO: Torsion-stretch for silicon.
       }
     }
   }

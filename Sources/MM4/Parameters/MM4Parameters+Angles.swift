@@ -183,13 +183,43 @@ extension MM4Parameters {
           bendingStiffnesses = SIMD3(repeating: 0.320)
           equilibriumAngles = SIMD3(repeating: 106.00)
         }
+        
+        // Sulfur
+      case (5, 1, 15):
+        bendingStiffnesses = SIMD3(repeating: 0.782)
+        equilibriumAngles = SIMD3(108.9, 108.8, 105.8)
+      case (1, 15, 1):
+        bendingStiffnesses = SIMD3(0.920, .nan, .nan)
+        equilibriumAngles = SIMD3(97.2, .nan, .nan)
+      case (1, 1, 15):
+        bendingStiffnesses = SIMD3(repeating: 0.975)
+        equilibriumAngles = SIMD3(102.6, 105.7, 107.7)
+      case (5, 123, 5):
+        bendingStiffnesses = SIMD3(0.680, 0.680, .nan)
+        equilibriumAngles = SIMD3(109.1, 107.5, .nan)
+      case (1, 123, 15):
+        bendingStiffnesses = SIMD3(repeating: 0.975)
+        equilibriumAngles = SIMD3(102.6, 110.8, 107.7)
+      case (123, 15, 123):
+        bendingStiffnesses = SIMD3(0.920, .nan, .nan)
+        equilibriumAngles = SIMD3(ringType == 5 ? 96.5 : 97.2, .nan, .nan)
+      case (15, 123, 123):
+        if ringType == 5 {
+          bendingStiffnesses = SIMD3(repeating: 1.050)
+          equilibriumAngles = SIMD3(108.0, 108.0, 108.5)
+        } else {
+          bendingStiffnesses = SIMD3(repeating: 0.975)
+          equilibriumAngles = SIMD3(repeating: 106.2)
+        }
       default:
         fatalError("Unrecognized angle: (\(minatomCode), \(medatomCode), \(maxatomCode))")
       }
       
       // Factors in both the center type and the other atoms in the angle.
       var angleType: Int
-      do {
+      if medatomCode == 15 {
+        angleType = 0
+      } else {
         var matchMask: SIMD3<UInt8> = .zero
         matchMask.replace(with: .one, where: codes .== 5)
         let numHydrogens = Int(matchMask.wrappedSum())
@@ -244,6 +274,13 @@ extension MM4Parameters {
           stretchStretchStiffness = 1.00
         } else {
           fatalError("Unrecognized fluorine angle codes.")
+        }
+      } else if angleCodes[1] == 15 {
+        bendBendStiffness = 0.000
+        if all(angleCodes .== SIMD3(1, 15, 1)) {
+          stretchBendStiffness = (ringType == 5) ? 0.280 : 0.150
+        } else {
+          fatalError("Unrecognized sulfur angle codes.")
         }
       } else if angleCodes[1] == 19 {
         if any(angleCodes .== 5) {

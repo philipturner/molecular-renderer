@@ -144,6 +144,20 @@ extension MM4Parameters {
         potentialWellDepth = 0.672
         stretchingStiffness = 1.65
         equilibriumLength = (ringType == 5) ? 2.336 : 2.322
+        
+        // Sulfur
+      case (1, 15):
+        // Sulfur seems to be electronegative, as C-Si has the opposite sign in
+        // the MM3 reference implementation.
+        potentialWellDepth = 0.651
+        stretchingStiffness = 2.92
+        equilibriumLength = 1.814
+        dipoleMoment = (codes[1] == 15) ? +0.70 : -0.70
+      case (15, 123):
+        potentialWellDepth = 0.651
+        stretchingStiffness = (ringType == 5) ? 3.20 : 2.92
+        equilibriumLength = (ringType == 5) ? 1.821 : 1.814
+        dipoleMoment = (codes[1] == 15) ? +0.70 : -0.70
       default:
         fatalError("Not recognized: (\(minatomCode), \(maxatomCode))")
       }
@@ -229,6 +243,10 @@ extension MM4Parameters {
           "No parameters for electronegativity correction between F and Si.")
       }
       
+      if any(presentCodes .== 15) {
+        fatalError("There's some issues with the MM4 sulfur parameters for electronegativity correction that haven't been resolved. The paper's table may be malformatted and may be omitting all negative signs.")
+      }
+      
       switch (bondCodes.0, bondCodes.1, codeEnd, codeActing) {
         // Fluorine
       case (1, 1, 1, 11):
@@ -272,6 +290,9 @@ extension MM4Parameters {
         return (0.009, nil, 0.62, 0.40)
       case (1, 19, 1, 19):
         return (-0.004, nil, 0.62, 0.40)
+        
+        // Sulfur
+        // TODO: Implement (see the note above)
         
       default:
         return nil

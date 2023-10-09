@@ -47,6 +47,9 @@ public enum MM4AtomCode: UInt8, RawRepresentable {
   /// Fluorine
   case fluorine = 11
   
+  /// Sulfur
+  case sulfur = 15
+  
   /// Silicon
   case silicon = 19
   
@@ -117,6 +120,12 @@ extension MM4Parameters {
       let atomicNumber = atoms.atomicNumbers[atomID]
       switch atomicNumber {
       case 1:
+        let map = atomsToAtomsMap[atomID]
+        for lane in 0..<4 where map[lane] != -1 {
+          if atoms.atomicNumbers[Int(lane)] == 16 {
+            fatalError("Thiol hydrogen not allowed.")
+          }
+        }
         return .hydrogen
       case 6:
         let ringType = atoms.ringTypes[atomID]
@@ -217,6 +226,9 @@ extension MM4Parameters {
         // Scale silicon-hydrogen vdW parameters by 0.94, as suggested for MM4.
         epsilon = (heteroatom: 0.140, hydrogen: 0.046)
         radius = (heteroatom: 2.290, hydrogen: 3.690)
+      case 16:
+        epsilon = (heteroatom: 0.196, hydrogen: 0.0577 * pow(1 / 0.94, 6))
+        radius = (heteroatom: 2.090, hydrogen: 3.730 * 0.94)
       default:
         fatalError("Atomic number \(atomicNumber) not recognized.")
       }
