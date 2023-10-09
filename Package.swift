@@ -4,21 +4,8 @@
 import PackageDescription
 import class Foundation.ProcessInfo
 
-var linkerSettings: [LinkerSetting] = []
-
-// Example: "/Users/philipturner/miniforge3/lib"
-if let path = ProcessInfo.processInfo.environment["OPENMM_LIBRARY_PATH"] {
-  linkerSettings = [
-    .unsafeFlags(["-L\(path)"]),
-    .linkedLibrary("OpenMM"),
-  ]
-}
-
 var platforms: [SupportedPlatform]? = nil
 var products: [Product] = [
-  .library(
-    name: "COpenMM",
-    targets: ["COpenMM"]),
   .library(
     name: "HardwareCatalog",
     targets: ["HardwareCatalog"]),
@@ -28,14 +15,8 @@ var products: [Product] = [
   .library(
     name: "MM4",
     targets: ["MM4"]),
-  .library(
-    name: "OpenMM",
-    targets: ["OpenMM"]),
 ]
 var targets: [Target] = [
-  .target(
-    name: "COpenMM",
-    dependencies: []),
   .target(
     name: "HardwareCatalog",
     dependencies: ["HDL", "MM4"]),
@@ -46,14 +27,12 @@ var targets: [Target] = [
     ]),
   .target(
     name: "MM4",
-    dependencies: ["OpenMM"]),
+    dependencies: [
+      .product(name: "OpenMM", package: "swift-openmm"),
+    ]),
   .testTarget(
     name: "MM4Tests",
-    dependencies: ["MM4"],
-    linkerSettings: linkerSettings),
-  .target(
-    name: "OpenMM",
-    dependencies: ["COpenMM"]),
+    dependencies: ["MM4"]),
 ]
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -78,7 +57,7 @@ let package = Package(
   products: products,
   dependencies: [
     .package(url: "https://github.com/apple/swift-numerics", branch: "Quaternions"),
-    .package(url: "https://github.com/iwill/generic-json-swift", branch: "master")
+    .package(url: "https://github.com/philipturner/swift-openmm", branch: "main")
   ],
   targets: targets
 )

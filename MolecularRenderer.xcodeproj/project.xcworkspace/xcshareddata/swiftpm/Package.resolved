@@ -73,6 +73,15 @@
       }
     },
     {
+      "identity" : "swift-openmm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/philipturner/swift-openmm",
+      "state" : {
+        "branch" : "main",
+        "revision" : "0a4f7bbcef46a1647ad7ed1cc63076834f362834"
+      }
+    },
+    {
       "identity" : "swift-utils",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/fwcd/swift-utils.git",
