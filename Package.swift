@@ -12,27 +12,19 @@ var products: [Product] = [
   .library(
     name: "HDL",
     targets: ["HDL"]),
-  .library(
-    name: "MM4",
-    targets: ["MM4"]),
 ]
 var targets: [Target] = [
   .target(
     name: "HardwareCatalog",
-    dependencies: ["HDL", "MM4"]),
+    dependencies: [
+      "HDL",
+      .product(name: "MM4", package: "MM4")
+    ]),
   .target(
     name: "HDL",
     dependencies: [
       .product(name: "QuaternionModule", package: "swift-numerics"),
     ]),
-  .target(
-    name: "MM4",
-    dependencies: [
-      .product(name: "OpenMM", package: "swift-openmm"),
-    ]),
-  .testTarget(
-    name: "MM4Tests",
-    dependencies: ["MM4"]),
 ]
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -57,7 +49,8 @@ let package = Package(
   products: products,
   dependencies: [
     .package(url: "https://github.com/apple/swift-numerics", branch: "Quaternions"),
-    .package(url: "https://github.com/philipturner/swift-openmm", branch: "main")
+    .package(url: "https://github.com/philipturner/swift-openmm", branch: "main"),
+    .package(url: "https://github.com/philipturner/MM4", branch: "main")
   ],
   targets: targets
 )

@@ -25,11 +25,15 @@
 
 ## Simulation
 
+> These libraries were formerly in the molecular-renderer source tree, but have been factored into standalone repositories.
+
 - MM4
   - MM4 molecular dynamics forcefield
   - Algorithms for traversing the bond topology and assigning force parameters
+  - [new repository](https://github.com/philipturner/MM4)
 - OpenMM, COpenMM
   - Swift bindings for OpenMM
+  - [new repository](https://github.com/philipturner/swift-openmm)
 
 [^1]: Only compiles on Apple platforms
 

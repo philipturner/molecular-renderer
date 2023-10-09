@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "mm4",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/philipturner/MM4",
+      "state" : {
+        "branch" : "main",
+        "revision" : "2f32e2c646999455d586108774e61deee7b82e22"
+      }
+    },
+    {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",

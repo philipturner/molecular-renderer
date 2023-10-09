@@ -17,20 +17,22 @@
 		980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70202A5E57E10051797F /* CrystalPlane.swift */; };
 		980E791C2AD419A2004141CB /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 980E791B2AD419A2004141CB /* HDL */; };
 		980E791E2AD419A2004141CB /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 980E791D2AD419A2004141CB /* HardwareCatalog */; };
-		980E79202AD419A2004141CB /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 980E791F2AD419A2004141CB /* MM4 */; };
 		980E79222AD419A2004141CB /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79212AD419A2004141CB /* MolecularRenderer */; };
 		980E79252AD41A67004141CB /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79242AD41A67004141CB /* HDL */; };
 		980E79272AD41A67004141CB /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79262AD41A67004141CB /* HardwareCatalog */; };
-		980E79292AD41A67004141CB /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79282AD41A67004141CB /* MM4 */; };
 		980E792B2AD41A67004141CB /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 980E792A2AD41A67004141CB /* MolecularRenderer */; };
+		980E792E2AD41CD2004141CB /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 980E792D2AD41CD2004141CB /* HDL */; };
+		980E79302AD41CD2004141CB /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 980E792F2AD41CD2004141CB /* HardwareCatalog */; };
+		980E79322AD41CD2004141CB /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79312AD41CD2004141CB /* MolecularRenderer */; };
+		980E79352AD41DC8004141CB /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79342AD41DC8004141CB /* HDL */; };
+		980E79372AD41DC8004141CB /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79362AD41DC8004141CB /* HardwareCatalog */; };
+		980E79392AD41DC8004141CB /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 980E79382AD41DC8004141CB /* MolecularRenderer */; };
 		9816EFA82AC4B9B90042073F /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFA72AC4B9B90042073F /* HardwareCatalog */; };
 		9816EFAA2AC4BBA60042073F /* Flywheel2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9816EFA92AC4BBA60042073F /* Flywheel2.swift */; };
 		9816EFB12AC701C10042073F /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFB02AC701C10042073F /* HardwareCatalog */; };
 		9816EFB72ACBA24A0042073F /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFB62ACBA24A0042073F /* HDL */; };
 		9816EFB92ACBA24A0042073F /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFB82ACBA24A0042073F /* HardwareCatalog */; };
-		9816EFBB2ACBA24A0042073F /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFBA2ACBA24A0042073F /* MM4 */; };
 		9816EFBD2ACBA24A0042073F /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFBC2ACBA24A0042073F /* MolecularRenderer */; };
-		9816EFC32ACBA3BF0042073F /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9816EFC22ACBA3BF0042073F /* MM4 */; };
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
@@ -72,14 +74,9 @@
 		9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */; };
 		987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */; };
 		987BDAB12AD19C410093EBF8 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDAB02AD19C410093EBF8 /* HDL */; };
-		987BDAB82AD1A2450093EBF8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDAB72AD1A2450093EBF8 /* MM4 */; };
-		987BDABE2AD1A7AE0093EBF8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDABD2AD1A7AE0093EBF8 /* MM4 */; };
 		987BDAC92AD1BA430093EBF8 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDAC82AD1BA430093EBF8 /* HDL */; };
 		987BDACB2AD1BA430093EBF8 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDACA2AD1BA430093EBF8 /* HardwareCatalog */; };
-		987BDACD2AD1BA430093EBF8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDACC2AD1BA430093EBF8 /* MM4 */; };
 		987BDACF2AD1BA430093EBF8 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDACE2AD1BA430093EBF8 /* MolecularRenderer */; };
-		987BDAD42AD1BBE30093EBF8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDAD32AD1BBE30093EBF8 /* MM4 */; };
-		987BDAE02AD30DE80093EBF8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 987BDADF2AD30DE80093EBF8 /* MM4 */; };
 		98846F7A2AC39B450049C223 /* Flywheel1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98846F792AC39B450049C223 /* Flywheel1.swift */; };
 		98846F7D2AC39B740049C223 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98846F7C2AC39B740049C223 /* HardwareCatalog */; };
 		988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BB2A800130004879E5 /* VdwOscillator.swift */; };
@@ -99,13 +96,11 @@
 		98A8B71C2ABE6CC7003E62E8 /* GIF in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B71B2ABE6CC7003E62E8 /* GIF */; };
 		98A8B7232ABE6CE9003E62E8 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B7222ABE6CE9003E62E8 /* HDL */; };
 		98A8B7252ABE6CE9003E62E8 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B7242ABE6CE9003E62E8 /* HardwareCatalog */; };
-		98A8B7272ABE6CE9003E62E8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B7262ABE6CE9003E62E8 /* MM4 */; };
 		98A8B72C2ABE6D5B003E62E8 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98A8B72E2ABE6D5B003E62E8 /* libOpenMM.8.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */; };
 		98A8B74D2ABE72A7003E62E8 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B74C2ABE72A7003E62E8 /* HDL */; };
 		98A8B74F2ABE72A7003E62E8 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B74E2ABE72A7003E62E8 /* HardwareCatalog */; };
-		98A8B7512ABE72A7003E62E8 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98A8B7502ABE72A7003E62E8 /* MM4 */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */; };
 		98C48C472A48E0440047C078 /* HelloSodiumChlorideInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C48C462A48E0440047C078 /* HelloSodiumChlorideInSwift.swift */; };
@@ -117,10 +112,8 @@
 		98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */; };
 		98D9758E2AC084770052EE6C /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D9758D2AC084770052EE6C /* HDL */; };
 		98D975972AC089D10052EE6C /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975962AC089D10052EE6C /* HDL */; };
-		98D9759B2AC089D10052EE6C /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98D9759A2AC089D10052EE6C /* MM4 */; };
 		98D9759D2AC089D10052EE6C /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 98D9759C2AC089D10052EE6C /* MolecularRenderer */; };
 		98D975A62AC08DC90052EE6C /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975A52AC08DC90052EE6C /* HDL */; };
-		98D975AA2AC08DC90052EE6C /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975A92AC08DC90052EE6C /* MM4 */; };
 		98D975AC2AC08DC90052EE6C /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975AB2AC08DC90052EE6C /* MolecularRenderer */; };
 		98D975B22AC0C5E80052EE6C /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975B12AC0C5E80052EE6C /* HDL */; };
 		98D975B62AC0C7540052EE6C /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975B52AC0C7540052EE6C /* HDL */; };
@@ -128,7 +121,6 @@
 		98D975BB2AC222340052EE6C /* OctahedralSpring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D975BA2AC222340052EE6C /* OctahedralSpring.swift */; };
 		98D975C62AC226320052EE6C /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975C52AC226320052EE6C /* HDL */; };
 		98D975C82AC226320052EE6C /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975C72AC226320052EE6C /* HardwareCatalog */; };
-		98D975CA2AC226320052EE6C /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975C92AC226320052EE6C /* MM4 */; };
 		98D975CC2AC226320052EE6C /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 98D975CB2AC226320052EE6C /* MolecularRenderer */; };
 		98E2C6192AC24DA8002612CC /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98E2C6182AC24DA8002612CC /* HardwareCatalog */; };
 		98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */; };
@@ -195,7 +187,6 @@
 		9816EFA92AC4BBA60042073F /* Flywheel2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel2.swift; sourceTree = "<group>"; };
 		9816EFAD2AC501630042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
 		9816EFAE2AC501630042073F /* Ring_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image1.jpg; sourceTree = "<group>"; };
-		9816EFC42ACD088C0042073F /* MM4Forces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4Forces.swift; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
@@ -255,16 +246,6 @@
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987B7A1D2A48975500AB4D14 /* OpenMM_AtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMM_AtomProvider.swift; sourceTree = "<group>"; };
 		987BDAB42AD19D650093EBF8 /* MM4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4Tests.swift; sourceTree = "<group>"; };
-		987BDAB52AD1A2300093EBF8 /* MM4Plugins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4Plugins.swift; sourceTree = "<group>"; };
-		987BDAC02AD1B8680093EBF8 /* MM4Parameters+Torsions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Parameters+Torsions.swift"; sourceTree = "<group>"; };
-		987BDAC12AD1B8E30093EBF8 /* MM4Parameters+Rings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Parameters+Rings.swift"; sourceTree = "<group>"; };
-		987BDAC22AD1B8F30093EBF8 /* MM4Parameters+Angles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Parameters+Angles.swift"; sourceTree = "<group>"; };
-		987BDAC32AD1B92B0093EBF8 /* MM4Parameters+Bonds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Parameters+Bonds.swift"; sourceTree = "<group>"; };
-		987BDAC42AD1B9540093EBF8 /* MM4Parameters+Atoms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Parameters+Atoms.swift"; sourceTree = "<group>"; };
-		987BDAD92AD30D610093EBF8 /* MM4Forces+Angles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Forces+Angles.swift"; sourceTree = "<group>"; };
-		987BDADA2AD30D690093EBF8 /* MM4Forces+Bonds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Forces+Bonds.swift"; sourceTree = "<group>"; };
-		987BDADC2AD30D790093EBF8 /* MM4Forces+Torsions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Forces+Torsions.swift"; sourceTree = "<group>"; };
-		987BDADD2AD30DA90093EBF8 /* MM4Forces+Nonbonded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4Forces+Nonbonded.swift"; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
 		98846F792AC39B450049C223 /* Flywheel1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel1.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
@@ -285,12 +266,6 @@
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
-		98A700852AAE935000499CD2 /* MM4ForceField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4ForceField.swift; sourceTree = "<group>"; };
-		98A700862AAE936B00499CD2 /* MM4Parameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4Parameters.swift; sourceTree = "<group>"; };
-		98A700872AAE937100499CD2 /* MM4State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4State.swift; sourceTree = "<group>"; };
-		98A700992AAFB78800499CD2 /* MM4MassParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MassParameters.swift; sourceTree = "<group>"; };
-		98A7009E2AAFC61400499CD2 /* MM4MM3Parameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MM3Parameters.swift; sourceTree = "<group>"; };
-		98A700A22AAFC88000499CD2 /* MM4MorseParameters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4MorseParameters.swift; sourceTree = "<group>"; };
 		98A8B7112ABA3E95003E62E8 /* Parse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parse.swift; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
@@ -356,26 +331,26 @@
 			buildActionMask = 2147483647;
 			files = (
 				980E792B2AD41A67004141CB /* MolecularRenderer in Frameworks */,
-				987BDAB82AD1A2450093EBF8 /* MM4 in Frameworks */,
 				987BDACB2AD1BA430093EBF8 /* HardwareCatalog in Frameworks */,
+				980E79372AD41DC8004141CB /* HardwareCatalog in Frameworks */,
+				980E79302AD41CD2004141CB /* HardwareCatalog in Frameworks */,
+				980E79392AD41DC8004141CB /* MolecularRenderer in Frameworks */,
 				9816EFBD2ACBA24A0042073F /* MolecularRenderer in Frameworks */,
+				980E79322AD41CD2004141CB /* MolecularRenderer in Frameworks */,
 				987BDAB12AD19C410093EBF8 /* HDL in Frameworks */,
 				9816EFB92ACBA24A0042073F /* HardwareCatalog in Frameworks */,
 				98A8B72C2ABE6D5B003E62E8 /* libfreetype.6.dylib in Frameworks */,
 				98D975AC2AC08DC90052EE6C /* MolecularRenderer in Frameworks */,
-				987BDAE02AD30DE80093EBF8 /* MM4 in Frameworks */,
-				987BDACD2AD1BA430093EBF8 /* MM4 in Frameworks */,
+				980E79352AD41DC8004141CB /* HDL in Frameworks */,
 				98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */,
 				98A8B72E2ABE6D5B003E62E8 /* libOpenMM.8.0.dylib in Frameworks */,
-				987BDAD42AD1BBE30093EBF8 /* MM4 in Frameworks */,
+				980E792E2AD41CD2004141CB /* HDL in Frameworks */,
 				9816EFB72ACBA24A0042073F /* HDL in Frameworks */,
 				98D9759D2AC089D10052EE6C /* MolecularRenderer in Frameworks */,
 				98D975C82AC226320052EE6C /* HardwareCatalog in Frameworks */,
 				98A8B74D2ABE72A7003E62E8 /* HDL in Frameworks */,
 				980E79272AD41A67004141CB /* HardwareCatalog in Frameworks */,
 				980E79252AD41A67004141CB /* HDL in Frameworks */,
-				98D9759B2AC089D10052EE6C /* MM4 in Frameworks */,
-				98A8B7272ABE6CE9003E62E8 /* MM4 in Frameworks */,
 				9816EFB12AC701C10042073F /* HardwareCatalog in Frameworks */,
 				98A8B7252ABE6CE9003E62E8 /* HardwareCatalog in Frameworks */,
 				987BDACF2AD1BA430093EBF8 /* MolecularRenderer in Frameworks */,
@@ -388,23 +363,15 @@
 				98A8B71C2ABE6CC7003E62E8 /* GIF in Frameworks */,
 				980E79222AD419A2004141CB /* MolecularRenderer in Frameworks */,
 				98846F7D2AC39B740049C223 /* HardwareCatalog in Frameworks */,
-				9816EFBB2ACBA24A0042073F /* MM4 in Frameworks */,
 				98A8B7182ABE6CB3003E62E8 /* Atomics in Frameworks */,
 				98D975972AC089D10052EE6C /* HDL in Frameworks */,
-				9816EFC32ACBA3BF0042073F /* MM4 in Frameworks */,
-				980E79202AD419A2004141CB /* MM4 in Frameworks */,
-				98A8B7512ABE72A7003E62E8 /* MM4 in Frameworks */,
-				987BDABE2AD1A7AE0093EBF8 /* MM4 in Frameworks */,
-				98D975AA2AC08DC90052EE6C /* MM4 in Frameworks */,
 				98A8B7232ABE6CE9003E62E8 /* HDL in Frameworks */,
 				980E791C2AD419A2004141CB /* HDL in Frameworks */,
 				9816EFA82AC4B9B90042073F /* HardwareCatalog in Frameworks */,
 				98E2C6192AC24DA8002612CC /* HardwareCatalog in Frameworks */,
 				98D975B22AC0C5E80052EE6C /* HDL in Frameworks */,
 				987234EE2ABE83DC00E427E5 /* MolecularRenderer in Frameworks */,
-				98D975CA2AC226320052EE6C /* MM4 in Frameworks */,
 				98A8B71A2ABE6CB3003E62E8 /* KeyCodes in Frameworks */,
-				980E79292AD41A67004141CB /* MM4 in Frameworks */,
 				98D975A62AC08DC90052EE6C /* HDL in Frameworks */,
 				987BDAC92AD1BA430093EBF8 /* HDL in Frameworks */,
 			);
@@ -570,18 +537,6 @@
 			path = HardwareCatalog;
 			sourceTree = "<group>";
 		};
-		98610EEA2AA0203A006FAF95 /* MM4 */ = {
-			isa = PBXGroup;
-			children = (
-				987BDAD52AD30D120093EBF8 /* Forces */,
-				98A700982AAFB77900499CD2 /* Parameters */,
-				98A700852AAE935000499CD2 /* MM4ForceField.swift */,
-				987BDAB52AD1A2300093EBF8 /* MM4Plugins.swift */,
-				98A700872AAE937100499CD2 /* MM4State.swift */,
-			);
-			path = MM4;
-			sourceTree = "<group>";
-		};
 		98610F062AA0CD56006FAF95 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
@@ -667,18 +622,6 @@
 			path = MM4Tests;
 			sourceTree = "<group>";
 		};
-		987BDAD52AD30D120093EBF8 /* Forces */ = {
-			isa = PBXGroup;
-			children = (
-				9816EFC42ACD088C0042073F /* MM4Forces.swift */,
-				987BDAD92AD30D610093EBF8 /* MM4Forces+Angles.swift */,
-				987BDADA2AD30D690093EBF8 /* MM4Forces+Bonds.swift */,
-				987BDADD2AD30DA90093EBF8 /* MM4Forces+Nonbonded.swift */,
-				987BDADC2AD30D790093EBF8 /* MM4Forces+Torsions.swift */,
-			);
-			path = Forces;
-			sourceTree = "<group>";
-		};
 		9898381929A6C08F00B4AA98 = {
 			isa = PBXGroup;
 			children = (
@@ -706,7 +649,6 @@
 			children = (
 				98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */,
 				98610EAE2A9D7D17006FAF95 /* HDL */,
-				98610EEA2AA0203A006FAF95 /* MM4 */,
 				98F638992A349F7300F51E95 /* MolecularRenderer */,
 				98F638962A349D6A00F51E95 /* MolecularRendererApp */,
 				98F638A52A34A24E00F51E95 /* MolecularRendererGPU */,
@@ -720,22 +662,6 @@
 				9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		98A700982AAFB77900499CD2 /* Parameters */ = {
-			isa = PBXGroup;
-			children = (
-				98A700992AAFB78800499CD2 /* MM4MassParameters.swift */,
-				98A7009E2AAFC61400499CD2 /* MM4MM3Parameters.swift */,
-				98A700A22AAFC88000499CD2 /* MM4MorseParameters.swift */,
-				98A700862AAE936B00499CD2 /* MM4Parameters.swift */,
-				987BDAC22AD1B8F30093EBF8 /* MM4Parameters+Angles.swift */,
-				987BDAC42AD1B9540093EBF8 /* MM4Parameters+Atoms.swift */,
-				987BDAC32AD1B92B0093EBF8 /* MM4Parameters+Bonds.swift */,
-				987BDAC12AD1B8E30093EBF8 /* MM4Parameters+Rings.swift */,
-				987BDAC02AD1B8680093EBF8 /* MM4Parameters+Torsions.swift */,
-			);
-			path = Parameters;
 			sourceTree = "<group>";
 		};
 		98A700A82AB4A0CF00499CD2 /* Spring */ = {
@@ -1005,23 +931,18 @@
 				98A8B71B2ABE6CC7003E62E8 /* GIF */,
 				98A8B7222ABE6CE9003E62E8 /* HDL */,
 				98A8B7242ABE6CE9003E62E8 /* HardwareCatalog */,
-				98A8B7262ABE6CE9003E62E8 /* MM4 */,
 				98A8B74C2ABE72A7003E62E8 /* HDL */,
 				98A8B74E2ABE72A7003E62E8 /* HardwareCatalog */,
-				98A8B7502ABE72A7003E62E8 /* MM4 */,
 				987234ED2ABE83DC00E427E5 /* MolecularRenderer */,
 				98D9758D2AC084770052EE6C /* HDL */,
 				98D975962AC089D10052EE6C /* HDL */,
-				98D9759A2AC089D10052EE6C /* MM4 */,
 				98D9759C2AC089D10052EE6C /* MolecularRenderer */,
 				98D975A52AC08DC90052EE6C /* HDL */,
-				98D975A92AC08DC90052EE6C /* MM4 */,
 				98D975AB2AC08DC90052EE6C /* MolecularRenderer */,
 				98D975B12AC0C5E80052EE6C /* HDL */,
 				98D975B52AC0C7540052EE6C /* HDL */,
 				98D975C52AC226320052EE6C /* HDL */,
 				98D975C72AC226320052EE6C /* HardwareCatalog */,
-				98D975C92AC226320052EE6C /* MM4 */,
 				98D975CB2AC226320052EE6C /* MolecularRenderer */,
 				98E2C6182AC24DA8002612CC /* HardwareCatalog */,
 				98846F7C2AC39B740049C223 /* HardwareCatalog */,
@@ -1029,26 +950,23 @@
 				9816EFB02AC701C10042073F /* HardwareCatalog */,
 				9816EFB62ACBA24A0042073F /* HDL */,
 				9816EFB82ACBA24A0042073F /* HardwareCatalog */,
-				9816EFBA2ACBA24A0042073F /* MM4 */,
 				9816EFBC2ACBA24A0042073F /* MolecularRenderer */,
-				9816EFC22ACBA3BF0042073F /* MM4 */,
 				987BDAB02AD19C410093EBF8 /* HDL */,
-				987BDAB72AD1A2450093EBF8 /* MM4 */,
-				987BDABD2AD1A7AE0093EBF8 /* MM4 */,
 				987BDAC82AD1BA430093EBF8 /* HDL */,
 				987BDACA2AD1BA430093EBF8 /* HardwareCatalog */,
-				987BDACC2AD1BA430093EBF8 /* MM4 */,
 				987BDACE2AD1BA430093EBF8 /* MolecularRenderer */,
-				987BDAD32AD1BBE30093EBF8 /* MM4 */,
-				987BDADF2AD30DE80093EBF8 /* MM4 */,
 				980E791B2AD419A2004141CB /* HDL */,
 				980E791D2AD419A2004141CB /* HardwareCatalog */,
-				980E791F2AD419A2004141CB /* MM4 */,
 				980E79212AD419A2004141CB /* MolecularRenderer */,
 				980E79242AD41A67004141CB /* HDL */,
 				980E79262AD41A67004141CB /* HardwareCatalog */,
-				980E79282AD41A67004141CB /* MM4 */,
 				980E792A2AD41A67004141CB /* MolecularRenderer */,
+				980E792D2AD41CD2004141CB /* HDL */,
+				980E792F2AD41CD2004141CB /* HardwareCatalog */,
+				980E79312AD41CD2004141CB /* MolecularRenderer */,
+				980E79342AD41DC8004141CB /* HDL */,
+				980E79362AD41DC8004141CB /* HardwareCatalog */,
+				980E79382AD41DC8004141CB /* MolecularRenderer */,
 			);
 			productName = MolecularRenderer;
 			productReference = 9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */;
@@ -1171,6 +1089,8 @@
 				987BDADE2AD30DE80093EBF8 /* XCLocalSwiftPackageReference "" */,
 				980E791A2AD419A2004141CB /* XCLocalSwiftPackageReference "" */,
 				980E79232AD41A67004141CB /* XCLocalSwiftPackageReference "" */,
+				980E792C2AD41CD2004141CB /* XCLocalSwiftPackageReference "" */,
+				980E79332AD41DC8004141CB /* XCLocalSwiftPackageReference "" */,
 			);
 			productRefGroup = 9898382329A6C08F00B4AA98 /* Products */;
 			projectDirPath = "";
@@ -1572,6 +1492,14 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "";
 		};
+		980E792C2AD41CD2004141CB /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
+		980E79332AD41DC8004141CB /* XCLocalSwiftPackageReference "" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "";
+		};
 		9816EFA62AC4B9B90042073F /* XCLocalSwiftPackageReference "" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "";
@@ -1874,10 +1802,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
 		};
-		980E791F2AD419A2004141CB /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		980E79212AD419A2004141CB /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MolecularRenderer;
@@ -1890,11 +1814,31 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
 		};
-		980E79282AD41A67004141CB /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		980E792A2AD41A67004141CB /* MolecularRenderer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MolecularRenderer;
+		};
+		980E792D2AD41CD2004141CB /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		980E792F2AD41CD2004141CB /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		980E79312AD41CD2004141CB /* MolecularRenderer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MolecularRenderer;
+		};
+		980E79342AD41DC8004141CB /* HDL */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HDL;
+		};
+		980E79362AD41DC8004141CB /* HardwareCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HardwareCatalog;
+		};
+		980E79382AD41DC8004141CB /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MolecularRenderer;
 		};
@@ -1914,17 +1858,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
 		};
-		9816EFBA2ACBA24A0042073F /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		9816EFBC2ACBA24A0042073F /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MolecularRenderer;
-		};
-		9816EFC22ACBA3BF0042073F /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
 		};
 		987234ED2ABE83DC00E427E5 /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1934,14 +1870,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HDL;
 		};
-		987BDAB72AD1A2450093EBF8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
-		987BDABD2AD1A7AE0093EBF8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		987BDAC82AD1BA430093EBF8 /* HDL */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HDL;
@@ -1950,21 +1878,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
 		};
-		987BDACC2AD1BA430093EBF8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		987BDACE2AD1BA430093EBF8 /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MolecularRenderer;
-		};
-		987BDAD32AD1BBE30093EBF8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
-		987BDADF2AD30DE80093EBF8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
 		};
 		98846F7C2AC39B740049C223 /* HardwareCatalog */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1993,10 +1909,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
 		};
-		98A8B7262ABE6CE9003E62E8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		98A8B74C2ABE72A7003E62E8 /* HDL */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HDL;
@@ -2004,10 +1916,6 @@
 		98A8B74E2ABE72A7003E62E8 /* HardwareCatalog */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
-		};
-		98A8B7502ABE72A7003E62E8 /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
 		};
 		98D9758D2AC084770052EE6C /* HDL */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2017,10 +1925,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = HDL;
 		};
-		98D9759A2AC089D10052EE6C /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
-		};
 		98D9759C2AC089D10052EE6C /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MolecularRenderer;
@@ -2028,10 +1932,6 @@
 		98D975A52AC08DC90052EE6C /* HDL */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HDL;
-		};
-		98D975A92AC08DC90052EE6C /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
 		};
 		98D975AB2AC08DC90052EE6C /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2052,10 +1952,6 @@
 		98D975C72AC226320052EE6C /* HardwareCatalog */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HardwareCatalog;
-		};
-		98D975C92AC226320052EE6C /* MM4 */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MM4;
 		};
 		98D975CB2AC226320052EE6C /* MolecularRenderer */ = {
 			isa = XCSwiftPackageProductDependency;
