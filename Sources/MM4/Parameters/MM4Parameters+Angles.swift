@@ -287,4 +287,7 @@ extension MM4Parameters {
       }
     }
   }
+  
+  // TODO: Before simulating hydrofluorocarbon storage tape, you must add the
+  // MM4 Electronegativity Effect corrections to bond angles from fluorine.
 }

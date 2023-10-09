@@ -76,20 +76,6 @@ public class MM4Parameters {
         bondOrders.allSatisfy { $0 == 1 }, "Pi bonds not supported yet.")
     }
     
-    // Fluorine is strongly desired upon initial release of the force field, but
-    // there's still uncertainty to how time-consuming the remaining parameters
-    // and forces will be. It likely won't be added upon initial testing of the
-    // forcefield, but will be added shortly after the first wave of bug fixes.
-    if descriptor.atomicNumbers.contains(9) {
-      // Missing parameters:
-      // Electronegativity effect on angles and stretching frequencies
-      //
-      // Missing forces:
-      // Fluorine extended angle force
-      // Fluorine extended torsion force
-      fatalError("Not all parameters for fluorine have been added yet.")
-    }
-    
     // Compile the bonds into a map.
     bondsToAtomsMap = .allocate(capacity: descriptor.bonds.count + 1)
     bondsToAtomsMap += 1

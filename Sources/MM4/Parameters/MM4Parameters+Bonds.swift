@@ -168,6 +168,12 @@ extension MM4Parameters {
   // mentioned some 1-4 fluorines on fluoroethane having a repulsive effect
   // from their dipoles. This suggests 1-4 interactions ("sclfac = 1.000") are
   // included, but perhaps not the 1-3 interactions.
+  //
+  // The counterforce should simply minus out the charge from bond in question
+  // (on the 1-4 atoms) and remove the charge completely on the 1-3 atoms. Then,
+  // evaluate repulsion from the two bonds formed by the 1-4 torsion, using the
+  // exact dipole-dipole formula. I'm not entirely sure how to decide which
+  // torsions to include, and which dipoles will interact with which, just yet.
   func createPartialCharges() {
     // Units: proton charge * angstrom
     //
@@ -336,6 +342,15 @@ extension MM4Parameters {
       correction += electronegativeCorrections[i]
       correction += electropositiveCorrections[i]
       bonds.parameters[i].equilibriumLength += correction
+      
+      // Check whether there are any fluorines in the vicinity. If so, modify
+      // the carbon's frequency.
+      //
+      // Hydrogen doesn't need to check.
+      //
+      // TODO: The formula shouldn't be too hard to implement.
+      
+      fatalError("Stretching frequency change not yet corrected to SI units.")
     }
   }
 }
