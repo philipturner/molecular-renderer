@@ -9,7 +9,6 @@ Domain-specific language for accelerating nanomachine design workflows.
 
 Table of Contents
 - [How it Works](#how-it-works)
-    - [Levels of Software Complexity](#levels-of-software-complexity)
     - [Simulation](#simulation)
     - [JIT Compiler](#jit-compiler)
 - [Syntax](#syntax)
