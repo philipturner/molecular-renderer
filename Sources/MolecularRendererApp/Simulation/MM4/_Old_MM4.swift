@@ -601,10 +601,6 @@ class _Old_MM4 {
     var bondBend: OpenMM_CustomCompoundBondForce
     
     do {
-      // This is incorrect!!!
-      // The angle must be converted from radians to degrees before entering
-      // into the formula. Otherwise, relative differences between different
-      // powers of the angle will be off.
       let energy = """
       \(OpenMM_KJPerKcal) * (bend + stretch_bend);
       bend = (180 / 3.141592)^2 *
