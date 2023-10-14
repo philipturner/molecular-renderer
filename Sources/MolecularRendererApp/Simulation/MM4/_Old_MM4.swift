@@ -601,6 +601,16 @@ class _Old_MM4 {
     var bondBend: OpenMM_CustomCompoundBondForce
     
     do {
+      // This is incorrect!!!
+      //
+      // The 9.0e-10 parameter in the MM3 paper was typo. Replacing with a
+      // different parameter from Tinker completely changes the behavior. The
+      // transformation from radians to degrees should happen before, not after,
+      // computing the higher-power terms.
+      //
+      // The formula right here just uses a quadratic, harmonic bending force.
+      // To the first order, it is correct, but as it deviates more, it doesn't
+      // take the higher-order terms into account.
       let energy = """
       \(OpenMM_KJPerKcal) * (bend + stretch_bend);
       bend = (180 / 3.141592)^2 *
