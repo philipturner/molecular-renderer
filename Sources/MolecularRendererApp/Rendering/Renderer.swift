@@ -63,7 +63,9 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Spring_Projectile().provider
+    self.atomProvider = ExampleMolecules.Cyclosilane(name: "C-C-Si-C-Si")
+    
+//    self.atomProvider = Spring_Projectile().provider
 //    self.atomProvider = Flywheel2_Provider().provider
 //    self.ioSimulation()
 //    self.saveGIF()
