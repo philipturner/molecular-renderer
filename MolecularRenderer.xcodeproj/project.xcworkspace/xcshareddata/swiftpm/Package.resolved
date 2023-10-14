@@ -15,7 +15,7 @@
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
         "branch" : "main",
-        "revision" : "2f32e2c646999455d586108774e61deee7b82e22"
+        "revision" : "e1ae0fa2cd84ccf43f88b2f27ad2514810860a09"
       }
     },
     {
@@ -78,7 +78,7 @@
       "location" : "https://github.com/apple/swift-numerics",
       "state" : {
         "branch" : "Quaternions",
-        "revision" : "57508977327c7ae9f7bb89ce5e0654ca8e8a4822"
+        "revision" : "b0e86b6fd7e7d92aa008a28a9800c58a2489e1d2"
       }
     },
     {
@@ -87,7 +87,7 @@
       "location" : "https://github.com/philipturner/swift-openmm",
       "state" : {
         "branch" : "main",
-        "revision" : "0a4f7bbcef46a1647ad7ed1cc63076834f362834"
+        "revision" : "7a893106a0697903f7184653a0716fe74ed09204"
       }
     },
     {

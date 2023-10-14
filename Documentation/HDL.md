@@ -24,76 +24,11 @@ Table of Contents
 
 At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally intensive. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed.
 
-### Levels of Software Complexity
-
-| This repository is currently here | Short-term goal | Long-term goal | Complexity | Description |
-| :-: | :-: | :-: | :-: | :-: |
-| ✅ |    |    | 1x | sp3 6-ring carbon (diamond) |
-|    |    |    | 2x | sp3 6-ring carbon (lonsdaleite) |
-|    |    |    | 3x | sp3 4/5-ring carbon (sharp corners, (100) surfaces) |
-|    | ✅ |    | 4x | OpenMM external forces, sp3 silicon |
-|    |    |    | 5x | sp3 mixed-element diamondoids with nonuniform lattice constants and polar covalent bonds (B, N, O, F, P, S, Cl, Ge) |
-|    |    | ✅ | 6x | graphene covalently welded to sp3 crystal lattices |
-|    |    |    | 7x | sp1 carbon (carbyne rods, acetylene rotary bearings) |
-|    |    |    | 20x | GFN-FF |
-|    |    |    | 100x | LAMMPS, typical DFT code bases |
-
 ### Simulation
 
-Key:
-- X = nonpolar covalent bond (low compute cost)
-- O = polar covalent bond (high compute cost)
-- blank means not supported
+MM4 repository: [philipturner/MM4](https://github.com/philipturner/MM4)
 
-### Short-Term Goal
-
-| MM4 Atom Code | 6-ring | 5-ring | 4-ring | 3-ring |
-| - | - | - | - | - |
-| H            | 5   | n/a | n/a           | n/a           |
-| C (sp3)      | 1   | 123 | not supported | not supported |
-| F            | 11  | n/a | n/a           | n/a           |
-| Si (sp3)     | 19  | 19  | not supported | not supported |
-| S (sp3)      | 15  | 15  | not supported | not supported |
-
-| Element | H | C<sub>sp3</sub> | F | Si | S |
-| --------------- | - | - | - | - | - |
-| H               |   | X |   | X |   |
-| C<sub>sp3</sub> | X | X | O | O | O |
-| F               |   | O |   |   |   |
-| Si              | X | O |   | X |   |
-| S               |   | O |   |   |   |
-
-### Long-Term Goal
-
-| MM4 Atom Code | 6-ring | 5-ring | 4-ring | 3-ring |
-| - | - | - | - | - |
-| H            | 5   | n/a | n/a           | n/a           |
-| B (sp3)      | 27  | 27  | not supported | not supported |
-| C (graphene) | TBD | n/a | n/a           | n/a           |
-| C (sp3)      | 1   | 123 | 56            | not supported |
-| N (sp3)      | 8   | 8   | not supported | not supported |
-| O (sp3)      | 6   | 6   | not supported | not supported |
-| F            | 11  | n/a | n/a           | n/a           |
-| Si (sp3)     | 19  | 19  | not supported | not supported |
-| P (sp3)      | 25  | 25  | not supported | not supported |
-| S (sp3)      | 15  | 15  | not supported | not supported |
-| Cl           | 12  | n/a | n/a           | n/a           |
-| Ge (sp3)     | 31  | 31  | not supported | not supported |
-
-| Element | H | B | C<sub>sp2</sub> | C<sub>sp3</sub> | N | O | F | Si | P | S | Cl | Ge |
-| --------------- | - | - | - | - | - | - | - | - | - | - | - | - |
-| H               |   | X | O | X | O | O |   | X | O | O |   | X |
-| B               | X |   |   | O | O |   |   |   |   |   |   |   |
-| C<sub>sp2</sub> | O |   | X | O |   |   |   |   |   |   |   |   |
-| C<sub>sp3</sub> | O | O | O | X | O | O | O | O | O | O | O | O |
-| N               | O | O |   | O |   |   |   |   |   |   |   |   |
-| O               | O |   |   | O |   |   |   |   |   |   |   |   |
-| F               |   |   |   | O |   |   |   |   |   |   |   |   |
-| Si              | X |   |   | O |   |   |   | X |   |   |   |   |
-| P               | O |   |   | O |   |   |   |   |   |   |   |   |
-| S               | O |   |   | O |   |   |   |   |   |   |   |   |
-| Cl              |   |   |   | O |   |   |   |   |   |   |   |   |
-| Ge              | X |   |   | O |   |   |   |   |   |   |   |   |
+MM4 documentation: [philipturner.github.io/MM4](https://philipturner.github.io/MM4)
 
 ### JIT Compiler
 
