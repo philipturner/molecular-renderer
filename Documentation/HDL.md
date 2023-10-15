@@ -1,5 +1,7 @@
 # Hardware Description Language
 
+> This is not a prototype to something atomCAD will build. This is the final product, one component contributing to a foundation, on which a nano-factory can be designed and synthesized. It is not the only component of the CAD software, but an experiment that proved successful and generally useful.
+
 Domain-specific language for accelerating nanomachine design workflows.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
 - Emphasis on <b>a first-generation technology base</b>. The language lacks support for strained shell structures, as they require second-generation technology (but it will facilitate testing of machines for building them).
