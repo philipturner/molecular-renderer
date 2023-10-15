@@ -36,7 +36,7 @@ Short-Term (next few weeks)
 Long-Term (next few months)
 - Reproduce the entirety of Nanosystems Part 2
 - Breadth-first experiments with scaling up CAD software
-  - First-generation engineering knowledge base (catalog) for nanomechanical parts
+  - Engineering knowledge base (catalog) for nanomechanical parts synthesizable with a first-generation augmented AFM
   - Implement the Kaehler bracket indexing algorithm outlined in _Nanosystems 9.5.5_
   - Search for drastic approximations that can automate CAD workflows, pre-minimization, before setting up a simulation
     - Higher-order scaling methods such as $O(n^3)$ Lagrange multiplier constraint solvers and $O(e^n)$ combinatorial search procedures
