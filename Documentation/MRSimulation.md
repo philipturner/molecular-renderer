@@ -13,6 +13,8 @@ Table of Contents
 
 File extension: `mrsim, mrsimulation`
 
+> TODO: Document once the MRSimulation 2.0 binary codec is complete.
+
 ## Plain-Text Format
 
 File extension: `mrsim-txt, mrsimulation-txt`

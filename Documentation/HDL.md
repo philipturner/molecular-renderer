@@ -1,10 +1,10 @@
 # Hardware Description Language
 
-> This is not a prototype to something atomCAD will build. This is the final product, one component contributing to a foundation, on which a nano-factory can be designed and synthesized. It is not the only component of the CAD software, but an experiment that proved successful and generally useful.
+> This is not a prototype to something atomCAD will build. This is the final product, one component contributing to a foundation, upon which a nano-factory can be designed and synthesized. It is not the only component of the CAD software, but an experiment that proved successful and generally useful.
 
 Domain-specific language for accelerating nanomachine design workflows.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
-- Emphasis on <b>a first-generation technology base</b>. The language lacks support for strained shell structures, as they require second-generation technology (but it will facilitate testing of machines for building them).
+- Emphasis on <b>a first-generation technology base</b>. The language lacks keywords for strained shell structures, which happen to require second-generation technology (but it will facilitate testing of machines for building them).
 - Tutorials and well-maintained documentation will be provided, to onboard new engineers and provide the skills for making crystolecules. This will cover common pitfalls in design, such as actions that expose triply-unbonded carbon atoms, and good practices like reconstructing (100) surfaces.
 - The API will be geared toward those with <b>little to no Swift experience</b>. It will make minimal use of Swift's many examples of syntactic sugar. When possible, subsets of the HDL or hardware catalog's functionality will have bindings to alternative programming languages.
 - The codebase will only depend on <b>cross-platform</b> Swift packages, even if Apple-specific libraries have higher performance.

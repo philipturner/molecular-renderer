@@ -225,7 +225,6 @@
 		985C92A62A955CA9008629C0 /* StrainedShellStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainedShellStructure.swift; sourceTree = "<group>"; };
 		98610EAB2A9D7BF0006FAF95 /* Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compiler.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
-		98610F072AA0CD6A006FAF95 /* Overview.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Overview.md; sourceTree = "<group>"; };
 		98610F0C2AA21401006FAF95 /* Affine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Affine.swift; sourceTree = "<group>"; };
 		98610F1A2AA21871006FAF95 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
 		98610F322AA24533006FAF95 /* Lattice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lattice.swift; sourceTree = "<group>"; };
@@ -545,7 +544,6 @@
 				98D2A3322AA2DF4D000DBAA0 /* KnownIssues.md */,
 				98D2A3302AA2DF4D000DBAA0 /* Modules.md */,
 				98D2A3312AA2DF4D000DBAA0 /* References.md */,
-				98610F072AA0CD6A006FAF95 /* Overview.md */,
 				98610F802AA29EBE006FAF95 /* HDL.md */,
 				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
 			);
