@@ -5,7 +5,7 @@
 
 Author: Philip Turner
 
-What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working toward software capable of designing million-atom productive nanosystems.
+What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working toward software capable of synthesizing million-atom productive nanosystems.
 
 Documentation
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md)
@@ -16,9 +16,9 @@ Documentation
 
 ## Overview
 
-NanoEngineer is currently the most capable platform for designing molecular nanotechnology. It has an interactive UI, but also simulators that run slowly at >5000 atoms. This motivates the design of colorful strained shell structures (which cannot be built) [in order to minimize atom count](http://www.imm.org/research/parts/controller/). Several projects seek to improve on this aspect, and on the difficulty performing iterative design on crystolecules.
+NanoEngineer is currently the most capable platform for designing molecular nanotechnology. It has an interactive UI, but also simulators that run slowly at >5000 atoms. This restricts the design to colorful strained shell structures [in order to minimize atom count](http://www.imm.org/research/parts/controller/). Several projects seek to improve on this aspect - the difficulty performing iterative design on non-strained crystolecules.
 
-For about a year, this project was an independent effort that began with optimizing OpenMM. From May to October 2023, it was slated to join forces with atomCAD. After extensive discussions, we realized our approaches were too different. Molecular Renderer grew rapidly and let people _from all major operating systems_ do exploratory engineering, with existing MD simulation methods. atomCAD evolved more slowly, due to a carefully planned internal representation that purportedly scaled to 100x more atoms. Developers from both projects have exchanged ideas and engaged in constructive feedback, in the past.
+For about a year, this project was an independent effort that began with optimizing OpenMM. From May to October 2023, it was slated to join forces with atomCAD. After extensive discussions, we realized our approaches were too different. Molecular Renderer grew rapidly and let people _from all major operating systems_ do exploratory engineering, with existing MD simulation methods. atomCAD evolved more slowly, due to a carefully planned internal representation that supposedly scales to 100x more atoms. Developers from both projects have exchanged ideas and engaged in constructive feedback.
 
 Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until recently, the only OSS that aspiring engineers could rely on was NanoEngineer, which went unmaintained in 2008. This code base is following a modern [vision](https://github.com/atomCAD/atomCAD/wiki) that:
 
@@ -33,12 +33,12 @@ Short-Term (next few weeks)
 - Create a domain-specific language and geometry compiler for crystolecule design ✅
 - Upgrade MM4 to include more elements and external forces ✅
 
-Medium-Term (next few months)
+Long-Term (next few months)
 - Reproduce the entirety of Nanosystems Part 2
-- Experiments with scaling up CAD software
+- Breadth-first experiments with scaling up CAD software
   - First-generation engineering knowledge base (catalog) for nanomechanical parts
-  - Indexing a large amount of Kaehler brackets, to analyze how to combine digital lattice-aligned representations with intentionally off-lattice ones
-  - Search for rough approximations that can automate CAD workflows, pre-minimization, before setting up a simulation
+  - Indexing a large amount of small parts (e.g. Kaehler brackets), analyzing how to combine digital lattice-aligned representations with intentionally off-lattice ones
+  - Search for drastic approximations that can automate CAD workflows, pre-minimization, before setting up a simulation
     - Higher-order scaling methods such as $O(n^3)$ Lagrange multiplier constraint solvers and $O(e^n)$ combinatorial search procedures
 - Optimize for multi-GPU desktop machines
   - Resolve $O(n^2)$ scaling issues with non-carbon elements ✅
@@ -56,4 +56,4 @@ Help Wanted
   - Need to work with native Linux and Windows APIs for key bindings, windowing
   - Need to translate the Metal GPU shaders to HLSL, which compiles into SPIR-V
   - AMD FidelityFX integration for upscaling ray traced images
-- Replace the usage of Apple-specific `simd_quatf` and `CACurrentMediaTime()` API throughout the MolecularRendererApp code base, without breaking old code
+- Replace the usage of Apple-specific `simd_quatf` and `CACurrentMediaTime()` APIs throughout the MolecularRendererApp code base, without breaking old code
