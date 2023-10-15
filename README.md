@@ -5,7 +5,7 @@
 
 Author: Philip Turner
 
-What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working on toward the design of supermassive productive nanosystems.
+What began as a ray traced renderer, is now a cross-platform library used to design molecular nanotechnology. Similar to OpenSCAD, but with GPU-accelerated molecular simulation. Working toward software capable of designing million-atom productive nanosystems.
 
 Documentation
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md)
@@ -20,7 +20,7 @@ NanoEngineer is currently the most capable platform for designing molecular nano
 
 For about a year, this project was an independent effort that began with optimizing OpenMM. From May to October 2023, it was slated to join forces with atomCAD. After extensive discussions, we realized our approaches were too different. Molecular Renderer grew rapidly and let people _from all major operating systems_ do exploratory engineering, with existing MD simulation methods. atomCAD evolved more slowly, due to a carefully planned internal representation that purportedly scaled to 100x more atoms. Developers from both projects have exchanged ideas and engaged in constructive feedback, in the past.
 
-It was a measure of collaboration that source code is being shared. Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until recently, the only OSS that aspiring engineers could rely on was NanoEngineer, which went unmaintained in 2008. This code base is enacting the [vision](https://github.com/atomCAD/atomCAD/wiki) that:
+Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until recently, the only OSS that aspiring engineers could rely on was NanoEngineer, which went unmaintained in 2008. This code base is following a modern [vision](https://github.com/atomCAD/atomCAD/wiki) that:
 
 > ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
 
