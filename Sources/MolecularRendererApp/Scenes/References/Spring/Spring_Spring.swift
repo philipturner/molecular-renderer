@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import HDL
-import QuartzCore
 
 struct Spring_Spring {
   var provider: any MRAtomProvider
@@ -181,9 +180,9 @@ struct Spring_Spring {
     #if false
     do {
       print("energy minimization: 8 x 0.5 ps")
-      let start = CACurrentMediaTime()
+      let start = cross_platform_media_time()
       diamondoid.minimize()
-      let end = CACurrentMediaTime()
+      let end = cross_platform_media_time()
       print("\(diamondoid.atoms.count) atoms")
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
@@ -214,11 +213,11 @@ struct Spring_Spring {
     do {
       let numPicoseconds: Double = 10
       print("\(Int(linearSpeed * 1000)) m/s, \(Int(numPicoseconds)) ps")
-      let start = CACurrentMediaTime()
+      let start = cross_platform_media_time()
       let simulator = _Old_MM4(diamondoids: [diamondoid, copy], fsPerFrame: 20)
       simulator.simulate(ps: numPicoseconds)
       provider = simulator.provider
-      let end = CACurrentMediaTime()
+      let end = cross_platform_media_time()
       print("\(2 * diamondoid.atoms.count) atoms")
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
@@ -241,11 +240,11 @@ struct Spring_Spring {
       let linearSpeed = max(maxX, maxZ) * angularSpeed
       print("\(angularSpeed) rad/ps (\(Int(linearSpeed * 1000)) m/s),  \(Int(numPicoseconds)) ps")
       
-      let start = CACurrentMediaTime()
+      let start = cross_platform_media_time()
       let simulator = _Old_MM4(diamondoid: otherCopy, fsPerFrame: 20)
       simulator.simulate(ps: numPicoseconds)
       provider = simulator.provider
-      let end = CACurrentMediaTime()
+      let end = cross_platform_media_time()
       print("\(diamondoid.atoms.count) atoms")
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }

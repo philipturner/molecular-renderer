@@ -8,7 +8,6 @@
 import CairoGraphics
 import Foundation
 import GIF
-import QuartzCore
 
 final class GIFSerializer {
   var gif: GIF
@@ -91,9 +90,9 @@ final class GIFSerializer {
     
     print()
     print("Started encoding GIF.")
-    let start = CACurrentMediaTime()
+    let start = cross_platform_media_time()
     let data = try! gif.encoded()
-    let end = CACurrentMediaTime()
+    let end = cross_platform_media_time()
     let latency = String(format: "%.3f", end - start)
     print("Finished encoding GIF in \(latency) seconds.")
     

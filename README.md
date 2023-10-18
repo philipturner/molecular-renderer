@@ -31,7 +31,7 @@ Short-Term (next few weeks)
 - Modularize the source code, allow the simulator to be used with external renderers
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
 - Create a domain-specific language and geometry compiler for crystolecule design ✅
-- Upgrade MM4 to include more elements and external forces ✅
+- Upgrade MM4 to include more elements and external forces - **in progress**
 
 Long-Term (next few months)
 - Reproduce the entirety of Nanosystems Part 2
@@ -56,4 +56,3 @@ Help Wanted
   - Need to work with native Linux and Windows APIs for key bindings, windowing
   - Need to translate the Metal GPU shaders to HLSL, which compiles into SPIR-V
   - AMD FidelityFX integration for upscaling ray traced images
-- Replace the usage of Apple-specific `simd_quatf` and `CACurrentMediaTime()` APIs throughout the MolecularRendererApp code base, without breaking old code

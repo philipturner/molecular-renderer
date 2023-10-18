@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import HDL
-import QuartzCore
 
 // Shape the projectile so that landing disperses as little vdW energy as
 // possible (don't want it to take the ring with it!). Make it poke into the

@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import OpenMM
-import QuartzCore
 
 // "An improved force field (MM4) for saturated hydrocarbons"
 // - 1996
@@ -1181,7 +1180,7 @@ class _Old_MM4 {
       #if DEBUG
       fatalError("Do not profile in debug mode.")
       #else
-      start = CACurrentMediaTime()
+      start = cross_platform_media_time()
       #endif
     }
     
@@ -1371,7 +1370,7 @@ class _Old_MM4 {
       guard let start else {
         fatalError()
       }
-      let end = CACurrentMediaTime()
+      let end = cross_platform_media_time()
       let seconds = String(format: "%.3f", end - start)
       print("Latency: \(seconds) s")
     }

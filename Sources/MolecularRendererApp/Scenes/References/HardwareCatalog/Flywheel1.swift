@@ -9,7 +9,6 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import QuartzCore
 import QuaternionModule
 
 fileprivate func deduplicate(_ atoms: [SIMD3<Float>]) -> [SIMD3<Float>] {

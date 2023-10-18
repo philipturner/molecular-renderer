@@ -9,7 +9,6 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import QuartzCore
 
 struct OctahedralSpring_Provider {
   var provider: any MRAtomProvider

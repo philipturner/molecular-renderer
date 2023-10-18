@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import QuartzCore
 import QuaternionModule
 
 // Experiment with an attractive force bearing, originally non-superlubricating
@@ -188,7 +187,7 @@ struct VdwOscillator {
       return centers.map { $0 - averagePosition }
     }
     
-    let start = CACurrentMediaTime()
+    let start = cross_platform_media_time()
     var allAtoms: [MRAtom] = []
     var allDiamondoids: [Diamondoid] = []
     
@@ -527,7 +526,7 @@ struct VdwOscillator {
     print(allAtoms.count)
     self.provider = ArrayAtomProvider(allAtoms)
     
-    let end = CACurrentMediaTime()
+    let end = cross_platform_media_time()
     print("""
       Took \(String(format: "%.3f", end - start)) seconds to generate the \
       structure.

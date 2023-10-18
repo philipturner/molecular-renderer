@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import QuartzCore
 import MolecularRenderer
 
 #if false
@@ -230,9 +229,9 @@ extension NobleGasSimulator: MRAtomProvider {
       stepsToSimulate += 1
     }
     
-    let start = CACurrentMediaTime()
+    let start = cross_platform_media_time()
     system.evolve(timeStep: timeStep, steps: stepsToSimulate)
-    let end = CACurrentMediaTime()
+    let end = cross_platform_media_time()
     
     let nanoseconds = Double(stepsToSimulate) * timeStep / 1e-9
     let nsPerDay = nanoseconds * 86400 / (end - start)
@@ -825,9 +824,9 @@ extension System {
     } else {
       // Profile CPU synchronization latency.
       let loggingLatency = false
-      let start = loggingLatency ? CACurrentMediaTime() : 0
+      let start = loggingLatency ? cross_platform_media_time() : 0
       DispatchQueue.concurrentPerform(iterations: numCores, execute: execute)
-      let end = loggingLatency ? CACurrentMediaTime() : 0
+      let end = loggingLatency ? cross_platform_media_time() : 0
       if loggingLatency {
         print("\((end - start) / 1e-6) us")
       }

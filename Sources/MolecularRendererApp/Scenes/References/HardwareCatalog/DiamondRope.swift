@@ -9,7 +9,6 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import QuartzCore
 import QuaternionModule
 
 struct DiamondRope_Provider {

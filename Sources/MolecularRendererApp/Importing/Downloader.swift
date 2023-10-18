@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import QuartzCore
 
 fileprivate let logDownloadLatency = false
 
@@ -18,9 +17,9 @@ struct Downloader {
   
   // Immediately downloads the file upon initialization, blocking the caller.
   init(url: URL) throws {
-    let start = CACurrentMediaTime()
+    let start = cross_platform_media_time()
     let data = try Data(contentsOf: url)
-    let end = CACurrentMediaTime()
+    let end = cross_platform_media_time()
     
     self.url = url
     self.data = data

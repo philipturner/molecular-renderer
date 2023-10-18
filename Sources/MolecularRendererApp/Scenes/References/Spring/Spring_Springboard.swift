@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import HDL
-import QuartzCore
 import QuaternionModule
 
 struct Spring_Springboard {
@@ -364,12 +363,12 @@ struct Spring_Springboard {
       let sceneAtoms = 2 * springs[0].atoms.count + dualHousing.atoms.count
       print("2 x spring + housing =", sceneAtoms, "atoms")
       
-      let start = CACurrentMediaTime()
+      let start = cross_platform_media_time()
       let simulator = _Old_MM4(
         diamondoids: springs + [dualHousing], fsPerFrame: 20)
       simulator.simulate(ps: numPicoseconds)
       provider = simulator.provider
-      let end = CACurrentMediaTime()
+      let end = cross_platform_media_time()
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
     }
 #endif
@@ -452,7 +451,7 @@ struct Spring_Springboard {
       
       #if false
       print("energy minimization: 8 x 0.5 ps")
-      var start = CACurrentMediaTime()
+      var start = cross_platform_media_time()
       let simulator = _Old_MM4(
         diamondoids: dualHousings + springs, fsPerFrame: 20)
       let emptyVelocities: [SIMD3<Float>] = Array(
@@ -495,7 +494,7 @@ struct Spring_Springboard {
           simulator.thermalize(velocities: emptyVelocities)
         }
       }
-      var end = CACurrentMediaTime()
+      var end = cross_platform_media_time()
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
       
       // In the animation, show the reverse of this falling apart at 800
@@ -505,10 +504,10 @@ struct Spring_Springboard {
       // of dual housings.
       let numPicoseconds: Double = 50
       print("\(angularSpeedInRadPs) rad/ps (\(Int(linearSpeedInNmPs * 1000)) m/s), \(Int(numPicoseconds)) ps")
-      start = CACurrentMediaTime()
+      start = cross_platform_media_time()
       simulator.simulate(ps: numPicoseconds)
       provider = simulator.provider
-      end = CACurrentMediaTime()
+      end = cross_platform_media_time()
       print("simulated in \(String(format: "%.1f", end - start)) seconds")
       #endif
       
@@ -760,7 +759,7 @@ struct Spring_Springboard {
         let systemNumAtoms = diamondoids.reduce(0) { $0 + $1.atoms.count }
         print("4 x spring + 4 x housing + 2 x ring =", systemNumAtoms, "atoms")
         
-        var start = CACurrentMediaTime()
+        var start = cross_platform_media_time()
         let simulator = _Old_MM4(
           diamondoids: diamondoids, fsPerFrame: 20)
         provider = simulator.provider
@@ -797,7 +796,7 @@ struct Spring_Springboard {
             simulator.thermalize(velocities: velocities)
           }
         }
-        var end = CACurrentMediaTime()
+        var end = cross_platform_media_time()
         print("simulated in \(String(format: "%.1f", end - start)) seconds")
         
         var numPicoseconds: Double
@@ -812,9 +811,9 @@ struct Spring_Springboard {
         }
         print("4 x spring + 4 x housing + 2 x ring =", systemNumAtoms, "atoms")
         
-        start = CACurrentMediaTime()
+        start = cross_platform_media_time()
         simulator.simulate(ps: numPicoseconds)
-        end = CACurrentMediaTime()
+        end = cross_platform_media_time()
         print("simulated in \(String(format: "%.1f", end - start)) seconds")
         provider = simulator.provider
       }

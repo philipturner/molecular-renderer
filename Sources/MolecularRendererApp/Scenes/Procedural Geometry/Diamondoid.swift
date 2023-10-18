@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import QuartzCore
 import QuaternionModule
 
 struct Diamondoid {
