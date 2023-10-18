@@ -9,7 +9,6 @@ import CairoGraphics
 import Foundation
 import GIF
 import QuartzCore
-import simd
 
 final class GIFSerializer {
   var gif: GIF
@@ -68,8 +67,8 @@ final class GIFSerializer {
         
         var pixel = unsafeBitCast(_pixels[index], to: SIMD4<UInt8>.self)
         sum += SIMD4<Float>(pixel) * currentMultiplier
-        sum = __tg_rint(sum)
-        sum = simd_clamp(sum, .zero, .init(repeating: 255))
+        sum = sum.rounded(.toNearestOrEven)
+        sum.clamp(lowerBound: .zero, upperBound: .init(repeating: 255))
         pixel = SIMD4<UInt8>(sum)
         
         let color = Color(argb: unsafeBitCast(pixel, to: UInt32.self))
@@ -134,7 +133,7 @@ struct GIFExamples {
           progressY *= progressT
           
           var color = SIMD4<Float>(progressX, progressY, 0, 1)
-          color = __tg_rint(color * 256)
+          color.round(.toNearestOrEven)
           var color16 = SIMD4<UInt16>(color) as SIMD4<UInt16>
           color16.replace(with: SIMD4(repeating: 255), where: color16 .> 255)
           let color8 = SIMD4<UInt8>(truncatingIfNeeded: color16)

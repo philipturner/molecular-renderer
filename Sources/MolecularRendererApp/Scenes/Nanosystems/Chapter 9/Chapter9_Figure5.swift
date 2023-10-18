@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 extension Nanosystems.Chapter9 {
   struct Figure5: Figure3D {
@@ -49,7 +49,7 @@ extension Nanosystems.Chapter9 {
           currentLayer = currentLayer.map { $0 + delta }
           centers.append(contentsOf: currentLayer)
         }
-        let originalCircumference = Float(n_bonds) * length(delta)
+        let originalCircumference = Float(n_bonds) * cross_platform_length(delta)
         var currentRadius = originalCircumference / (2 * .pi)
         
         func makeOutput() -> [SIMD3<Float>] {
@@ -57,10 +57,10 @@ extension Nanosystems.Chapter9 {
             let center = $0
             precondition(abs(center.y) < 0.001, "Cannot have a Y dimension.")
             let angle = (2 * .pi) * (center.z / originalCircumference)
-            let rotation = simd_quatf(angle: angle, axis: [+1, 0, 0])
+            let rotation = Quaternion<Float>(angle: angle, axis: [+1, 0, 0])
             
             let start: SIMD3<Float> = SIMD3(center.x, currentRadius, 0)
-            return simd_act(rotation, start)
+            return rotation.act(on: start)
           }
         }
         
@@ -68,11 +68,11 @@ extension Nanosystems.Chapter9 {
           let originalDelta = centers[1] - centers[0]
           let adjacent = originalDelta.x
           
-          let originalOpposite = length(
+          let originalOpposite = cross_platform_length(
             originalDelta - adjacent * SIMD3(1, 0, 0))
           var originalLenSq = originalOpposite * originalOpposite
           originalLenSq += adjacent * adjacent
-          let lengthDifference = length(originalDelta) - sqrt(originalLenSq)
+          let lengthDifference = cross_platform_length(originalDelta) - sqrt(originalLenSq)
           precondition(
             abs(lengthDifference) < 0.001,
             "Unable to compute distances correctly with trigonometry.")

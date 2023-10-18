@@ -8,7 +8,7 @@
 import Foundation
 import MolecularRenderer
 import QuartzCore
-import simd
+import QuaternionModule
 
 // Experiment with an attractive force bearing, originally non-superlubricating
 // and later superlubricating. At the time of creation, the MM4 simulator
@@ -30,13 +30,13 @@ struct VdwOscillator {
       }
       
       init(_ latticeOrigin: SIMD3<Int>, normal: SIMD3<Float>) {
-        self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
-        self.normal = normalize(normal)
+        self.origin = SIMD3(latticeOrigin) + 1e-2 * cross_platform_normalize(normal)
+        self.normal = cross_platform_normalize(normal)
       }
       
       init(_ latticeOrigin: SIMD3<Float>, normal: SIMD3<Float>) {
-        self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
-        self.normal = normalize(normal)
+        self.origin = SIMD3(latticeOrigin) + 1e-2 * cross_platform_normalize(normal)
+        self.normal = cross_platform_normalize(normal)
       }
     }
     
@@ -90,7 +90,7 @@ struct VdwOscillator {
           var allIntersectionsPassed = true
           for plane in planes {
             let delta = atomOrigin - plane.origin
-            let dotProduct = dot(delta, plane.normal)
+            let dotProduct = cross_platform_dot(delta, plane.normal)
             if abs(dotProduct) < 1e-8 {
               fatalError("Cleaved along a perfect plane of atoms.")
             }
@@ -514,8 +514,8 @@ struct VdwOscillator {
       })
       diamondoid.removeAtoms(atIndices: removedIndices)
       
-      let rotation1 = simd_quatf(angle: -.pi / 4, axis: [0, 0, 1])
-      let rotation2 = simd_quatf(angle: -.pi / 4, axis: [1, 0, 0])
+      let rotation1 = Quaternion<Float>(angle: -.pi / 4, axis: [0, 0, 1])
+      let rotation2 = Quaternion<Float>(angle: -.pi / 4, axis: [1, 0, 0])
       diamondoid.rotate(angle: rotation1)
       diamondoid.rotate(angle: rotation2)
       diamondoid.translate(offset: SIMD3(14 * 0.357, 0, 0))

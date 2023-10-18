@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 struct APMBootstrapper: MRAtomProvider {
   var surface = GoldSurface()
@@ -21,11 +21,11 @@ struct APMBootstrapper: MRAtomProvider {
     
     for i in 0..<numTools {
       var offset = SIMD2(Float(drand48()), Float(drand48()))
-      offset.x = simd_mix(-7, 7, offset.x)
-      offset.y = simd_mix(-7, 7, offset.y)
+      offset.x = cross_platform_mix(-7, 7, offset.x)
+      offset.y = cross_platform_mix(-7, 7, offset.y)
       
       var numTries = 0
-      while offsets.contains(where: { distance($0, offset) < 1.0 }) {
+      while offsets.contains(where: { cross_platform_distance($0, offset) < 1.0 }) {
         numTries += 1
         if numTries > 100 {
           print(offsets)
@@ -34,8 +34,8 @@ struct APMBootstrapper: MRAtomProvider {
         }
         
         offset = SIMD2(Float(drand48()), Float(drand48()))
-        offset.x = simd_mix(-7, 7, offset.x)
-        offset.y = simd_mix(-7, 7, offset.y)
+        offset.x = cross_platform_mix(-7, 7, offset.x)
+        offset.y = cross_platform_mix(-7, 7, offset.y)
       }
       offsets.append(offset)
     }
@@ -49,7 +49,7 @@ struct APMBootstrapper: MRAtomProvider {
       let x: Float = offset.x
       let z: Float = offset.y
       let radians = rotation * 2 * .pi
-      let orientation = simd_quatf(angle: radians, axis: [0, 1, 0])
+      let orientation = Quaternion<Float>(angle: radians, axis: [0, 1, 0])
       return HabTool(x: x, z: z, orientation: orientation)
     }
   }

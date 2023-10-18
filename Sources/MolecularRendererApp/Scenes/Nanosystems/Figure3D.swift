@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 
 protocol Figure3D: MRAtomProvider {
   var structures: [WritableKeyPath<Self, Diamondoid>] { get }
@@ -27,16 +26,16 @@ extension Figure3D {
     var origins: [SIMD3<Float>] = [.zero]
     func getSize(_ structure: Diamondoid) -> SIMD3<Float> {
       let boundingBox = structure.createBoundingBox()
-      return boundingBox[1] - boundingBox[0]
+      return boundingBox.1 - boundingBox.0
     }
     
     let structures = self.structures
     var previousSize: SIMD3<Float> = getSize(self[keyPath: structures[0]])
-    let direction: SIMD3<Float> = normalize(self.stackingDirection)
+    let direction: SIMD3<Float> = cross_platform_normalize(self.stackingDirection)
     precondition(
-      abs(direction) == SIMD3(1, 0, 0) ||
-      abs(direction) == SIMD3(0, 1, 0) ||
-      abs(direction) == SIMD3(0, 0, 1),
+      cross_platform_abs(direction) == SIMD3<Float>(1, 0, 0) ||
+      cross_platform_abs(direction) == SIMD3<Float>(0, 1, 0) ||
+      cross_platform_abs(direction) == SIMD3<Float>(0, 0, 1),
       "Stacking direction needs to be aligned with an axis.")
     
     let spacing = 0.1 * direction
@@ -55,7 +54,7 @@ extension Figure3D {
     var output: [MRAtom] = []
     for (i, keyPath) in structures.enumerated() {
       let box = self[keyPath: keyPath].createBoundingBox()
-      let boxCenter = (box[0] + box[1]) / 2
+      let boxCenter = (box.0 + box.1) / 2
       let translation = origins[i] - boxCenter
       
       var atoms = self[keyPath: keyPath].atoms

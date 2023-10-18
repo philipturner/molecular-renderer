@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 struct ExampleMolecules {
   // Structure sourced from:
@@ -198,13 +198,13 @@ struct ExampleMolecules {
         
         var delta12 = pos1 - pos2
         var delta43 = pos4 - pos3
-        let perpComponent = normalize(pos2 - pos3)
-        delta12 -= dot(delta12, perpComponent) * perpComponent
-        delta43 -= dot(delta43, perpComponent) * perpComponent
-        delta12 = normalize(delta12)
-        delta43 = normalize(delta43)
+        let perpComponent = cross_platform_normalize(pos2 - pos3)
+        delta12 -= cross_platform_dot(delta12, perpComponent) * perpComponent
+        delta43 -= cross_platform_dot(delta43, perpComponent) * perpComponent
+        delta12 = cross_platform_normalize(delta12)
+        delta43 = cross_platform_normalize(delta43)
         
-        let quaternion = simd_quatf(from: delta12, to: delta43)
+        let quaternion = Quaternion<Float>(from: delta12, to: delta43)
         let angle = quaternion.angle * 180 / .pi
         output += " \(angle)°"
         print(output)
@@ -216,3 +216,4 @@ struct ExampleMolecules {
     }
   }
 }
+

@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 class CasingAtomProvider: MRAtomProvider {
   private let atomsDict: [String: [MRAtom]]
@@ -53,12 +53,12 @@ class CasingAtomProvider: MRAtomProvider {
       }
       
       // Rotate once every two seconds.
-      let rotation = simd_quatf(angle: t * .pi, axis: [0, 0, 1])
+      let rotation = Quaternion<Float>(angle: t * .pi, axis: [0, 0, 1])
       var atoms = atomsDict[key]!
       for i in 0..<atoms.count {
         var atom = atoms[i]
         var pos = SIMD3<Float>(atom.origin)
-        pos = simd_act(rotation, pos)
+        pos = rotation.act(on: pos)
         pos += translation
         atom.origin = pos
         atoms[i] = atom

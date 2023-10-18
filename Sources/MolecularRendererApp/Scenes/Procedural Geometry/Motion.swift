@@ -7,19 +7,19 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 func rotationVectorField(
   angularSpeedInRadPerPs: Float,
   origin: SIMD3<Float>,
   axis: SIMD3<Float>
 ) -> (SIMD3<Float>) -> SIMD3<Float> {
-  let rotation = simd_quatf(angle: .pi / 2, axis: axis)
+  let rotation = Quaternion<Float>(angle: .pi / 2, axis: axis)
   return { position in
     let delta = position - origin
-    let radius = length(delta)
-    var direction = normalize(delta)
-    direction = simd_act(rotation, direction)
+    let radius = cross_platform_length(delta)
+    var direction = cross_platform_normalize(delta)
+    direction = rotation.act(on: direction)
     
     let speed = angularSpeedInRadPerPs * radius
     return direction * speed

@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 extension Nanosystems.Chapter9 {
   struct Figure3: Figure3D {
@@ -58,12 +58,12 @@ extension Nanosystems.Chapter9 {
         origin: atoms.last!.origin + cnDelta, element: 7))
       
       let rotationCenter: SIMD3<Float> = SIMD3(thickness / 2, 0, 0)
-      let rotation = simd_quatf(angle: .pi, axis: [0, 0, +1])
+      let rotation = Quaternion<Float>(angle: .pi, axis: [0, 0, +1])
       
       func reflect(_ atom: MRAtom) -> MRAtom {
         var copy = atom
         var rotationDelta = copy.origin - rotationCenter
-        rotationDelta = simd_act(rotation, rotationDelta)
+        rotationDelta = rotation.act(on: rotationDelta)
         copy.origin = rotationCenter + rotationDelta
         return copy
       }

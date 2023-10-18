@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 struct HabTool {
   static let baseAtoms = { () -> [MRAtom] in
@@ -18,13 +18,13 @@ struct HabTool {
     var sulfurs = atoms.filter { $0.element == 16 }
     precondition(sulfurs.count == 3)
     
-    let normal = cross(sulfurs[1].origin - sulfurs[0].origin,
+    let normal = cross_platform_cross(sulfurs[1].origin - sulfurs[0].origin,
                        sulfurs[2].origin - sulfurs[0].origin)
     
-    let rotation = simd_quatf(from: normalize(normal), to: [0, 1, 0])
+    let rotation = Quaternion<Float>(from: cross_platform_normalize(normal), to: [0, 1, 0])
     for i in 0..<atoms.count {
       var atom = atoms[i]
-      atom.origin = rotation.act(atom.origin)
+      atom.origin = rotation.act(on: atom.origin)
       atom.origin += [0, 1, 0]
       atoms[i] = atom
     }
@@ -40,10 +40,10 @@ struct HabTool {
   
   var atoms: [MRAtom]
   
-  init(x: Float, z: Float, orientation: simd_quatf) {
+  init(x: Float, z: Float, orientation: Quaternion<Float>) {
     self.atoms = Self.baseAtoms.map { input in
       var atom = input
-      atom.origin = orientation.act(atom.origin)
+      atom.origin = orientation.act(on: atom.origin)
       atom.origin.y += 0.4
       atom.origin.x += x
       atom.origin.z += z

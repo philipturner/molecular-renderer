@@ -9,7 +9,6 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import simd
 import QuartzCore
 
 fileprivate func deduplicate(_ atoms: [SIMD3<Float>]) -> [SIMD3<Float>] {
@@ -38,7 +37,7 @@ struct Flywheel2_Provider {
       innerSpokes: true, outerSpokes: false)
     var ring1Centers = ring1.centers.map { $0 * 0.357 }
     ring1Centers = ring1Centers.filter {
-      distance($0, .zero) > 7 * 1.414 * 0.357
+      cross_platform_distance($0, .zero) > 7 * 1.414 * 0.357
     }
     
     let ring2 = try! Ring(
@@ -56,7 +55,7 @@ struct Flywheel2_Provider {
     
     let ring12Solid = Solid { h, k, l in
       Copy { ring1.centers.filter {
-        distance($0, .zero) > 7 * 1.414
+        cross_platform_distance($0, .zero) > 7 * 1.414
       } }
       Copy { ring2.centers }
       for i in 0..<4 {
@@ -117,7 +116,7 @@ struct Flywheel2_Provider {
       thickness: 1.0, depth: 1.5,
       innerSpokes: true, outerSpokes: false)
     let ring3Centers = ring3.centers
-      .filter { distance($0 * [1, 0, 1], .zero) > 3.0 * 1.414 }
+      .filter { cross_platform_distance($0 * [1, 0, 1], .zero) > 3.0 * 1.414 }
     provider = ArrayAtomProvider(connector2._centers.map { $0 * 0.357 })
     
     let ring34 = Solid { h, k, l in
@@ -168,7 +167,7 @@ struct Flywheel2_Provider {
     let ring12Radius = ring12Diamondoid.atoms.filter {
       $0.element == 6
     }.map { $0.origin }.reduce(0) {
-      max($0, distance($1 * [1, 0, 1], ring12CenterOfMass))
+      max($0, cross_platform_distance($1 * [1, 0, 1], ring12CenterOfMass))
     }
     print(ring12Radius)
     
@@ -198,7 +197,7 @@ struct Flywheel2_Provider {
       for i in ring12Diamondoid.atoms.indices {
         let atomID = i
         let r = positions[atomID] - centerOfMass
-        velocities[atomID] = cross(w, r)
+        velocities[atomID] = cross_platform_cross(w, r)
       }
       if i == 7 {
         for i in ring34Diamondoid.atoms.indices {

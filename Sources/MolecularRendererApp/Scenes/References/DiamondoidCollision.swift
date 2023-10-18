@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 struct DiamondoidCollision {
   var provider: OpenMM_AtomProvider
@@ -76,8 +76,8 @@ struct DiamondoidCollision {
         let translation = SIMD3(delta.x, 0, 0)
         delta.x = 0
         
-        let rotation = simd_quatf(angle: degrees * .pi / 180, axis: [1, 0, 0])
-        delta = simd_act(rotation, delta)
+        let rotation = Quaternion<Float>(angle: degrees * .pi / 180, axis: [1, 0, 0])
+        delta = rotation.act(on: delta)
         return firstCenter + delta + translation
       }
       
@@ -113,10 +113,10 @@ struct DiamondoidCollision {
           }
           rotationCenter.x = 0
           
-          let rotation = simd_quatf(angle: .pi, axis: [+1, 0, 0])
+          let rotation = Quaternion<Float>(angle: .pi, axis: [+1, 0, 0])
           output = output.map {
             var delta = $0 - rotationCenter
-            delta = simd_act(rotation, delta)
+            delta = rotation.act(on: delta)
             return rotationCenter + delta
           }
           flipped = !flipped
@@ -171,17 +171,17 @@ struct DiamondoidCollision {
     var diamondoids: [Diamondoid] = []
     for i in -1...1 where i != 0 {
       var translation: SIMD3<Float>
-      var rotation: simd_quatf
+      var rotation: Quaternion<Float>
       var velocity: SIMD3<Float>
       
       switch i {
       case -1:
         translation = [-horizontalSpacing / 2, 0, 0]
-        rotation = simd_quatf(angle: .pi / 2, axis: [0, 0, +1])
+        rotation = Quaternion<Float>(angle: .pi / 2, axis: [0, 0, +1])
         velocity = [approachSpeed / 2, 0, 0]
       case 1:
         translation = [+horizontalSpacing / 2, 0, 0]
-        rotation = simd_quatf(angle: .pi / 2, axis: [0, -1, 0])
+        rotation = Quaternion<Float>(angle: .pi / 2, axis: [0, -1, 0])
         velocity = [-approachSpeed / 2, 0, 0]
       default:
         fatalError("This should never happen.")

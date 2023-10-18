@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import simd
+import QuaternionModule
 
 struct Constants {
   struct BondLength {
@@ -80,16 +80,16 @@ func sp2Delta(
   start: SIMD3<Float>, axis: SIMD3<Float>
 ) -> SIMD3<Float> {
   
-  let rotation = simd_quatf(angle: Constants.sp2BondAngle / 2, axis: axis)
-  return simd_act(rotation, start)
+  let rotation = Quaternion<Float>(angle: Constants.sp2BondAngle / 2, axis: axis)
+  return rotation.act(on: start)
 }
 
 func sp3Delta(
   start: SIMD3<Float>, axis: SIMD3<Float>
 ) -> SIMD3<Float> {
   
-  let rotation = simd_quatf(angle: Constants.sp3BondAngle / 2, axis: axis)
-  return simd_act(rotation, start)
+  let rotation = Quaternion<Float>(angle: Constants.sp3BondAngle / 2, axis: axis)
+  return rotation.act(on: start)
 }
 
 /// Rounds an integer up to the nearest power of 2.

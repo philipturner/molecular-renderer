@@ -7,7 +7,6 @@
 
 import Foundation
 import QuartzCore
-import simd
 import MolecularRenderer
 
 #if false

@@ -7,13 +7,13 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 // Initially designed to create an 8x8x8 cube duplicating a very small OpenMM
 // simulation, to test the efficiency of a 3D video codec.
 struct Amplifier {
   var offsets: [SIMD3<Float>] = []
-  var rotations: [simd_quatf] = []
+  var rotations: [Quaternion<Float>] = []
   
   init() {
     for i in 0..<8 {
@@ -30,12 +30,12 @@ struct Amplifier {
     for _ in 0..<512 {
       let angle = 2 * Double.pi * drand48()
       var axis: SIMD3<Double> = SIMD3(1, 1, 1)
-      while length(axis) > 1 {
+      while cross_platform_length(axis) > 1 {
         axis = SIMD3(
           drand48(), drand48(), drand48())
       }
-      let rotation = simd_quatf(
-        angle: Float(angle), axis: SIMD3<Float>(normalize(axis)))
+      let rotation = Quaternion<Float>(
+        angle: Float(angle), axis: SIMD3<Float>(cross_platform_normalize(axis)))
       rotations.append(rotation)
     }
   }
@@ -46,7 +46,7 @@ struct Amplifier {
       let rotation = rotations[$0]
       return atoms.map {
         var copy = $0
-        copy.origin = offset + simd_act(rotation, copy.origin)
+        copy.origin = offset + rotation.act(on: copy.origin)
         return copy
       }
     }

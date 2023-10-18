@@ -9,7 +9,6 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import simd
 import QuartzCore
 import QuaternionModule
 
@@ -48,7 +47,7 @@ struct Flywheel1_Provider {
     var crunchedDiamondoid = Diamondoid(atoms: crunchedCarbons)
     crunchedDiamondoid.minimize()
     crunchedDiamondoid.rotate(
-      angle: simd_quatf(angle: .pi / 2, axis: normalize([1, 0, -1])))
+      angle: Quaternion<Float>(angle: .pi / 2, axis: cross_platform_normalize([1, 0, -1])))
     crunchedDiamondoid.translate(
       offset: -crunchedDiamondoid.createCenterOfMass())
     crunchedDiamondoid.translate(offset: [2, 32, 0])
@@ -57,7 +56,7 @@ struct Flywheel1_Provider {
     wheelDiamondoid.minimize()
     var wheelDiamondoid2 = wheelDiamondoid
     wheelDiamondoid2.rotate(
-      angle: simd_quatf(angle: .pi, axis: normalize([1, 0, -1])))
+      angle: Quaternion<Float>(angle: .pi, axis: cross_platform_normalize([1, 0, -1])))
     wheelDiamondoid2.translate(offset: [0, -1.25, 0])
     
     print(wheelDiamondoid.atoms.count)
@@ -87,7 +86,7 @@ struct Flywheel1_Provider {
       for atom in states.last![0..<wheelDiamondoid.atoms.count] {
         let center = atom.origin
         let r = center - centerOfMass1
-        velocities.append(cross(w, r))
+        velocities.append(cross_platform_cross(w, r))
       }
       
       let count = wheelDiamondoid.atoms.count
@@ -189,12 +188,12 @@ struct Flywheel1_Provider {
         Copy { octahedralInterfaceLattice }
       }
     }
-    let octahedralInterfaceRotation = simd_quatf(
-      from: normalize([1, 1, 1]), to: [0, 1, 0])
+    let octahedralInterfaceRotation = Quaternion<Float>(
+      from: cross_platform_normalize([1, 1, 1]), to: [0, 1, 0])
     var octahedralInterfaceCenters = octahedralInterfaceSolid
       ._centers.map { $0 * 0.357 }
     octahedralInterfaceCenters = octahedralInterfaceCenters.map {
-      octahedralInterfaceRotation.act($0)
+      octahedralInterfaceRotation.act(on: $0)
     }
     print("octahedral interface (C):", octahedralInterfaceCenters.count)
     print("octahedral interface (C + H):", Diamondoid(carbonCenters: octahedralInterfaceCenters).atoms.count)

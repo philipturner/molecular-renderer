@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 extension Nanosystems.Chapter9 {
   struct Figure6: Figure3D {
@@ -34,8 +34,8 @@ extension Nanosystems.Chapter9 {
         while baseInnerRing.count < n_bonds {
           baseInnerRing.append(baseInnerRing.last! + ringDelta)
           
-          let rotation = simd_quatf(angle: -polygonAngle, axis: [+1, 0, 0])
-          ringDelta = simd_act(rotation, -ringDelta)
+          let rotation = Quaternion<Float>(angle: -polygonAngle, axis: [+1, 0, 0])
+          ringDelta = rotation.act(on: -ringDelta)
         }
         baseInnerRing = makeCentered(baseInnerRing)
         
@@ -47,25 +47,25 @@ extension Nanosystems.Chapter9 {
             return baseInnerRing[index]
           }
           
-          let axis = normalize(neighborCenters[1] - neighborCenters[0])
-          let rotation = simd_quatf(
+          let axis = cross_platform_normalize(neighborCenters[1] - neighborCenters[0])
+          let rotation = Quaternion<Float>(
             angle: -(.pi - crossRingBondAngle), axis: axis)
           
           let midPoint = (neighborCenters[0] + neighborCenters[1]) / 2
-          let normal = normalize(center - midPoint)
-          let direction = simd_act(rotation, normal)
+          let normal = cross_platform_normalize(center - midPoint)
+          let direction = rotation.act(on: normal)
           return center + ccBondLength * direction
         }
         
         let sectorAngle: Float = 2 * .pi / Float(n_bonds)
-        let sectorRotation = simd_quatf(
+        let sectorRotation = Quaternion<Float>(
           angle: sectorAngle / 2, axis: [+1, 0, 0])
         var rotatedOuterRing = baseOuterRing.map { center in
-          return simd_act(sectorRotation, center)
+          return sectorRotation.act(on: center)
         }
         
         do {
-          let adjacent = distance(rotatedOuterRing[0], baseOuterRing[0])
+          let adjacent = cross_platform_distance(rotatedOuterRing[0], baseOuterRing[0])
           var opposite = ccBondLength * ccBondLength - adjacent * adjacent
           opposite = sqrt(opposite)
           precondition(abs(opposite) > 0.001, "Opposite too small.")
@@ -81,7 +81,7 @@ extension Nanosystems.Chapter9 {
           deltaX = rotatedOuterRing[0].x + deltaX
           rotatedInnerRing = baseInnerRing.map {
             let center = $0 + SIMD3(deltaX, 0, 0)
-            return simd_act(sectorRotation, center)
+            return sectorRotation.act(on: center)
           }
         }
         

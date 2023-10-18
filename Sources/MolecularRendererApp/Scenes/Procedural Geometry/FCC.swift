@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 
 struct GoldCuboid {
   var latticeConstant: Float
@@ -251,7 +250,7 @@ struct DiamondCuboid {
     // Use an additional physical constant for hydrogens.
     for hydrogen in hydrogens {
       var origin = latticeConstant * (hydrogen.origin - center)
-      origin += hydrogenBondLength * normalize(hydrogen.direction)
+      origin += hydrogenBondLength * cross_platform_normalize(hydrogen.direction)
       atoms.append(MRAtom(origin: origin, element: 1))
     }
   }

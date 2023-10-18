@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 extension Nanosystems.Chapter9 {
   struct Figure2: Figure3D {
@@ -61,8 +61,8 @@ extension Nanosystems.Chapter9 {
         let translation = SIMD3(delta.x, 0, 0)
         delta.x = 0
         
-        let rotation = simd_quatf(angle: degrees * .pi / 180, axis: [1, 0, 0])
-        delta = simd_act(rotation, delta)
+        let rotation = Quaternion<Float>(angle: degrees * .pi / 180, axis: [1, 0, 0])
+        delta = rotation.act(on: delta)
         return firstCenter + delta + translation
       }
       
@@ -99,10 +99,10 @@ extension Nanosystems.Chapter9 {
           }
           rotationCenter.x = 0
           
-          let rotation = simd_quatf(angle: .pi, axis: [+1, 0, 0])
+          let rotation = Quaternion<Float>(angle: .pi, axis: [+1, 0, 0])
           output = output.map {
             var delta = $0 - rotationCenter
-            delta = simd_act(rotation, delta)
+            delta = rotation.act(on: delta)
             return rotationCenter + delta
           }
           flipped = !flipped

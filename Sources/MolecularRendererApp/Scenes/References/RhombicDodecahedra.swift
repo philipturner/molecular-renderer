@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 
 struct RhombicDocedahedra {
   var provider: any MRAtomProvider
@@ -23,13 +22,13 @@ struct RhombicDocedahedra {
       }
       
       init(_ latticeOrigin: SIMD3<Int>, normal: SIMD3<Float>) {
-        self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
-        self.normal = normalize(normal)
+        self.origin = SIMD3(latticeOrigin) + 1e-2 * cross_platform_normalize(normal)
+        self.normal = cross_platform_normalize(normal)
       }
       
       init(_ latticeOrigin: SIMD3<Float>, normal: SIMD3<Float>) {
-        self.origin = SIMD3(latticeOrigin) + 1e-2 * normalize(normal)
-        self.normal = normalize(normal)
+        self.origin = SIMD3(latticeOrigin) + 1e-2 * cross_platform_normalize(normal)
+        self.normal = cross_platform_normalize(normal)
       }
     }
     
@@ -83,7 +82,7 @@ struct RhombicDocedahedra {
           var allIntersectionsPassed = true
           for plane in planes {
             let delta = atomOrigin - plane.origin
-            let dotProduct = dot(delta, plane.normal)
+            let dotProduct = cross_platform_dot(delta, plane.normal)
             if abs(dotProduct) < 1e-8 {
               fatalError("Cleaved along a perfect plane of atoms.")
             }

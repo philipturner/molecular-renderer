@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import simd
+import QuaternionModule
 
 extension ExampleProviders {
   static func strainedShellStructure() -> any MRAtomProvider {
@@ -29,7 +29,7 @@ extension ExampleProviders {
     //
     var diamondoid = Diamondoid(carbonCenters: centers)
     diamondoid.translate(offset: -diamondoid.createCenterOfMass())
-    diamondoid.rotate(angle: simd_quatf(angle: .pi / 2, axis: [1, 0, 0]))
+    diamondoid.rotate(angle: Quaternion<Float>(angle: .pi / 2, axis: [1, 0, 0]))
     
     let simulation = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
     let ranges = simulation.rigidBodies
@@ -55,9 +55,9 @@ extension ExampleProviders {
     // Radius: 0.957 nm
     // Angular velocity: 0.01 rad/ps
     // Velocity: radius * angular velocity * 1000 m/s = 10 m/s
-    rigidBodies[1].angularVelocity = simd_quatf(
+    rigidBodies[1].angularVelocity = Quaternion<Float>(
       angle: 0.01, axis: [0, 0, 1])
-//    rigidBodies[1].angularVelocity = simd_quatf(
+//    rigidBodies[1].angularVelocity = Quaternion<Float>(
 //      angle: 0.00, axis: [0, 0, 1])
     
     return MovingAtomProvider(

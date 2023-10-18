@@ -9,8 +9,8 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import simd
 import QuartzCore
+import QuaternionModule
 
 struct DiamondRope_Provider {
   var provider: any MRAtomProvider
@@ -161,9 +161,9 @@ struct DiamondRope_Provider {
     ropeDiamondoid.translate(
       offset: jigDiamondoid.createCenterOfMass()
       - ropeDiamondoid.createCenterOfMass())
-    jigDiamondoid.rotate(angle: simd_quatf(
-      angle: 0.08, axis: normalize(SIMD3<Float>([-1, 0, 1]))))
-    jigDiamondoid.rotate(angle: simd_quatf(angle: -0.02, axis: [0, 1, 0]))
+    jigDiamondoid.rotate(angle: Quaternion<Float>(
+      angle: 0.08, axis: cross_platform_normalize(SIMD3<Float>([-1, 0, 1]))))
+    jigDiamondoid.rotate(angle: Quaternion<Float>(angle: -0.02, axis: [0, 1, 0]))
     provider = ArrayAtomProvider(ropeDiamondoid.atoms + jigDiamondoid.atoms)
     
     #if false
@@ -192,11 +192,11 @@ struct DiamondRope_Provider {
     var radius: Float
     do {
       let jigCenters = jigDiamondoid.atoms.map { $0.origin }
-      let componentsXZ = jigCenters.map { dot($0, normalize([1, 0, 1])) }
+      let componentsXZ = jigCenters.map { cross_platform_dot($0, cross_platform_normalize([1, 0, 1])) }
       print("span xz:", componentsXZ.min()!, componentsXZ.max()!, componentsXZ.max()! - componentsXZ.min()!)
       
       let center = jigDiamondoid.createCenterOfMass()
-      let componentsR = jigCenters.map { length($0 - center) }
+      let componentsR = jigCenters.map { cross_platform_length($0 - center) }
       radius = componentsR.max()!
       print("radius: ", radius)
     }
@@ -206,10 +206,10 @@ struct DiamondRope_Provider {
       let angularSpeedInRadPs: Float = 0.240
       let ropeVelocities = [SIMD3<Float>](
         repeating: .zero, count: ropeDiamondoid.atoms.count)
-      let angularVelocity1 = simd_quatf(
-        angle: angularSpeedInRadPs * 1, axis: normalize(SIMD3<Float>([-1, 0, 1])))
-      let angularVelocity2 = simd_quatf(
-        angle: angularSpeedInRadPs * 0.1, axis: normalize(SIMD3<Float>([1, 0, 0])))
+      let angularVelocity1 = Quaternion<Float>(
+        angle: angularSpeedInRadPs * 1, axis: cross_platform_normalize(SIMD3<Float>([-1, 0, 1])))
+      let angularVelocity2 = Quaternion<Float>(
+        angle: angularSpeedInRadPs * 0.1, axis: cross_platform_normalize(SIMD3<Float>([1, 0, 0])))
       
       jigDiamondoid.angularVelocity = angularVelocity1
       let jigVelocities1 = jigDiamondoid.createVelocities()
@@ -240,7 +240,7 @@ struct DiamondRope_Provider {
         guard atom1.element >= 6 && atom2.element >= 6 else {
           continue
         }
-        let distance = length(atom1.origin - atom2.origin)
+        let distance = cross_platform_length(atom1.origin - atom2.origin)
         var newAtomicNumber: UInt8 = 6
         if distance > 0.160 {
           newAtomicNumber = 7

@@ -9,7 +9,6 @@ import Foundation
 import MolecularRenderer
 import HardwareCatalog
 import HDL
-import simd
 import QuartzCore
 
 struct OctahedralSpring_Provider {

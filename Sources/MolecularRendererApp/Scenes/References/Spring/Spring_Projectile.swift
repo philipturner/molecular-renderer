@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import HDL
-import simd
 import QuartzCore
 
 // Shape the projectile so that landing disperses as little vdW energy as

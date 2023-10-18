@@ -7,8 +7,8 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 import QuartzCore
+import QuaternionModule
 
 struct Diamondoid {
   var atoms: [MRAtom]
@@ -20,17 +20,7 @@ struct Diamondoid {
   // actually providing a linear velocity + a (different) angular velocity
   // around the center of mass.
   var linearVelocity: SIMD3<Float>?
-  var angularVelocity: simd_quatf?
-  
-  // TODO: Partition into finite elements when there's elastic deformation. Each
-  // chunk will have its linear and angular momentum conserved, and the
-  // thermostat applied locally. Rescale the temperature of each chunk in the
-  // system to conserve energy, but randomize the velocity changes within each
-  // chunk.
-  //
-  // Better: do this partitioning automatically, in addition to a constraint
-  // placed on the entire rigid body. Test this on the diamondoid collision
-  // simulation.
+  var angularVelocity: Quaternion<Float>?
   
   private var isVelocitySet: Bool {
     linearVelocity != nil ||
@@ -51,13 +41,13 @@ struct Diamondoid {
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
     var maxPosition: SIMD3<Float> = SIMD3(repeating: -.infinity)
     for atom in atoms {
-      minPosition = min(atom.origin, minPosition)
-      maxPosition = max(atom.origin, maxPosition)
+      minPosition = cross_platform_min(atom.origin, minPosition)
+      maxPosition = cross_platform_max(atom.origin, maxPosition)
     }
     
     // Build a uniform grid to search for neighbors in O(n) time.
-    let cellSpaceMin = floor(minPosition * 4)
-    let cellSpaceMax = floor(maxPosition * 4) + 1
+    let cellSpaceMin = cross_platform_floor(minPosition * Float(4))
+    let cellSpaceMax = cross_platform_floor(maxPosition * Float(4)) + 1
     let coordsOrigin = SIMD3<Int32>(cellSpaceMin)
     let boundingBox = SIMD3<Int32>(cellSpaceMax) &- coordsOrigin
     
@@ -67,7 +57,7 @@ struct Diamondoid {
     var sectors: [SIMD16<Int32>] = []
     
     for (i, atom) in atoms.enumerated() {
-      let cellSpaceFloor = floor(atom.origin * 4)
+      let cellSpaceFloor = cross_platform_floor(atom.origin * Float(4))
       let coords = SIMD3<Int32>(cellSpaceFloor) &- coordsOrigin
       var address = coords.x
       address += boundingBox.x * coords.y
@@ -95,12 +85,12 @@ struct Diamondoid {
       let center = atom.origin
       let bondLengthMax = Constants.bondLengthMax(element: atom.element)
       
-      var searchBoxMin = SIMD3<Int32>(floor((center - bondLengthMax) * 4))
-      var searchBoxMax = SIMD3<Int32>(floor((center + bondLengthMax) * 4))
+      var searchBoxMin = SIMD3<Int32>(cross_platform_floor((center - bondLengthMax) * 4))
+      var searchBoxMax = SIMD3<Int32>(cross_platform_floor((center + bondLengthMax) * 4))
       searchBoxMin &-= coordsOrigin
       searchBoxMax &-= coordsOrigin
-      searchBoxMin = clamp(searchBoxMin, min: .zero, max: boundingBox &- 1)
-      searchBoxMax = clamp(searchBoxMax, min: .zero, max: boundingBox &- 1)
+      searchBoxMin = searchBoxMin.clamped(lowerBound: SIMD3<Int32>.zero, upperBound: boundingBox &- 1)
+      searchBoxMax = searchBoxMax.clamped(lowerBound: SIMD3<Int32>.zero, upperBound: boundingBox &- 1)
       
       var addresses: [Int32] = []
       for z in searchBoxMin.z...searchBoxMax.z {
@@ -128,7 +118,7 @@ struct Diamondoid {
             continue
           }
           
-          let deltaLength = distance(atoms[i].origin, atoms[j].origin)
+          let deltaLength = cross_platform_distance(atoms[i].origin, atoms[j].origin)
           let firstIndex: UInt8 = atoms[i].element
           let secondIndex: UInt8 = atoms[j].element
           let key = SIMD2(
@@ -302,25 +292,25 @@ struct Diamondoid {
         case 3:
           let sideAB = neighborCenters[1] - neighborCenters[0]
           let sideAC = neighborCenters[2] - neighborCenters[0]
-          var normal = normalize(cross(sideAB, sideAC))
+          var normal = cross_platform_normalize(cross_platform_cross(sideAB, sideAC))
           
           let deltaA = atoms[atomID].origin - neighborCenters[0]
-          if dot(normal, deltaA) < 0 {
+          if cross_platform_dot(normal, deltaA) < 0 {
             normal = -normal
           }
           
           addHydrogen(direction: normal)
         case 2:
           let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
-          guard distance(midPoint, atoms[atomID].origin) > 0.001 else {
+          guard cross_platform_distance(midPoint, atoms[atomID].origin) > 0.001 else {
             fatalError("sp3 carbons are too close to 180 degrees.")
           }
           
-          let normal = normalize(atoms[atomID].origin - midPoint)
-          let axis = normalize(neighborCenters[1] - midPoint)
+          let normal = cross_platform_normalize(atoms[atomID].origin - midPoint)
+          let axis = cross_platform_normalize(neighborCenters[1] - midPoint)
           for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
-            let rotation = simd_quatf(angle: angle, axis: axis)
-            let direction = simd_act(rotation, normal)
+            let rotation = Quaternion<Float>(angle: angle, axis: axis)
+            let direction = rotation.act(on: normal)
             addHydrogen(direction: direction)
           }
         case 1:
@@ -341,25 +331,25 @@ struct Diamondoid {
             fatalError("Could not find valid neighbor index.")
           }
           let referenceCenter = atoms[referenceIndex].origin
-          let normal = normalize(atoms[atomID].origin - atoms[j].origin)
+          let normal = cross_platform_normalize(atoms[atomID].origin - atoms[j].origin)
           
           let referenceDelta = atoms[j].origin - referenceCenter
-          var orthogonal = referenceDelta - normal * dot(normal, referenceDelta)
-          guard length(orthogonal) > 0.001 else {
+          var orthogonal = referenceDelta - normal * cross_platform_dot(normal, referenceDelta)
+          guard cross_platform_length(orthogonal) > 0.001 else {
             fatalError("sp3 carbons are too close to 180 degrees.")
           }
-          orthogonal = normalize(orthogonal)
-          let axis = cross(normal, orthogonal)
+          orthogonal = cross_platform_normalize(orthogonal)
+          let axis = cross_platform_cross(normal, orthogonal)
           
           var directions: [SIMD3<Float>] = []
-          let firstHydrogenRotation = simd_quatf(
+          let firstHydrogenRotation = Quaternion<Float>(
             angle: .pi - sp3BondAngle, axis: axis)
-          directions.append(simd_act(firstHydrogenRotation, normal))
+          directions.append(firstHydrogenRotation.act(on: normal))
           
-          let secondHydrogenRotation = simd_quatf(
+          let secondHydrogenRotation = Quaternion<Float>(
             angle: 120 * .pi / 180, axis: normal)
-          directions.append(simd_act(secondHydrogenRotation, directions[0]))
-          directions.append(simd_act(secondHydrogenRotation, directions[1]))
+          directions.append(secondHydrogenRotation.act(on: directions[0]))
+          directions.append(secondHydrogenRotation.act(on: directions[1]))
           
           for direction in directions {
             addHydrogen(direction: direction)
@@ -525,17 +515,17 @@ struct Diamondoid {
         
         let midPoint = (
           cleanNeighbors[1].origin + cleanNeighbors[0].origin) / 2
-        guard distance(midPoint, thisAtom.origin) > 0.001 else {
+        guard cross_platform_distance(midPoint, thisAtom.origin) > 0.001 else {
           fatalError("sp3 carbons are too close to 180 degrees.")
         }
         
-        let normal = normalize(thisAtom.origin - midPoint)
-        let axis = normalize(cleanNeighbors[1].origin - midPoint)
+        let normal = cross_platform_normalize(thisAtom.origin - midPoint)
+        let axis = cross_platform_normalize(cleanNeighbors[1].origin - midPoint)
         let sp3BondAngle = Constants.sp3BondAngle
         
         for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
-          let rotation = simd_quatf(angle: angle, axis: axis)
-          let direction = simd_act(rotation, normal)
+          let rotation = Quaternion<Float>(angle: angle, axis: axis)
+          let direction = rotation.act(on: normal)
           dirtyDirections.append(direction)
         }
         
@@ -547,23 +537,23 @@ struct Diamondoid {
           }
           let candidateLengths = dirtyDirections.map { direction in
             let atomOrigin = thisAtom.origin + bondLength * direction
-            return distance(atomOrigin, self.atoms[hydrogenID].origin)
+            return cross_platform_distance(atomOrigin, self.atoms[hydrogenID].origin)
           }
           if candidateLengths[0] < candidateLengths[1] {
             dirtyDirections = [dirtyDirections[1]]
           } else {
             dirtyDirections = [dirtyDirections[0]]
           }
-          let sum = normalize(normal + dirtyDirections[0])
-          var rotation = simd_quatf(from: dirtyDirections[0], to: sum)
+          let sum = cross_platform_normalize(normal + dirtyDirections[0])
+          var rotation = Quaternion<Float>(from: dirtyDirections[0], to: sum)
           dirtyDirections = [sum]
           
-          rotation = simd_quatf(
+          rotation = Quaternion<Float>(
             angle: rotation.angle * 0.5, axis: rotation.axis)
           
           var previousHydrDelta = (
             self.atoms[hydrogenID].origin - thisAtom.origin)
-          previousHydrDelta = simd_act(rotation, previousHydrDelta)
+          previousHydrDelta = rotation.act(on: previousHydrDelta)
           let newHydrOrigin = thisAtom.origin + previousHydrDelta
           
           let mappedHydrogenID = atomsNewLocations[hydrogenID]
@@ -579,10 +569,10 @@ struct Diamondoid {
       } else if cleanNeighbors.count == 3 {
         let sideAB = cleanNeighbors[1].origin - cleanNeighbors[0].origin
         let sideAC = cleanNeighbors[2].origin - cleanNeighbors[0].origin
-        var normal = normalize(cross(sideAB, sideAC))
+        var normal = cross_platform_normalize(cross_platform_cross(sideAB, sideAC))
         
         let deltaA = thisAtom.origin - cleanNeighbors[0].origin
-        if dot(normal, deltaA) < 0 {
+        if cross_platform_dot(normal, deltaA) < 0 {
           normal = -normal
         }
         if dirtyNeighbors.count >= 2 {
@@ -603,7 +593,7 @@ struct Diamondoid {
         let direction = dirtyDirections[dirtyID]
         var newHydrogen = thisAtom.origin + bondLength * direction
         let dirtyNeighbor = dirtyNeighbors[dirtyID].origin
-        var movedDistance = distance(newHydrogen, dirtyNeighbor)
+        var movedDistance = cross_platform_distance(newHydrogen, dirtyNeighbor)
         
         // Need to raise the tolerance from 0.04 to 0.08.
         if movedDistance < 0.08 {
@@ -618,9 +608,9 @@ struct Diamondoid {
             let movedDistance1 = movedDistance
             
             
-            let dirtyDelta = normalize(dirtyNeighbor - thisAtom.origin)
-            let attemptDelta = normalize(newHydrogen - thisAtom.origin)
-            let attemptRot = simd_quatf(from: dirtyDelta, to: attemptDelta)
+            let dirtyDelta = cross_platform_normalize(dirtyNeighbor - thisAtom.origin)
+            let attemptDelta = cross_platform_normalize(newHydrogen - thisAtom.origin)
+            let attemptRot = Quaternion<Float>(from: dirtyDelta, to: attemptDelta)
             
             // distance on circumference = angle (in radians) * 1 radius
             // angle = distance on circumference / 1 radius
@@ -628,11 +618,11 @@ struct Diamondoid {
             let attemptAxis = attemptRot.axis
             let newAngle = 0.08 / bondLength
             
-            let newRot = simd_quatf(angle: newAngle, axis: attemptAxis)
-            let newDelta = normalize(simd_act(newRot, dirtyDelta))
+            let newRot = Quaternion<Float>(angle: newAngle, axis: attemptAxis)
+            let newDelta = cross_platform_normalize(newRot.act(on: dirtyDelta))
             
             newHydrogen = thisAtom.origin + bondLength * newDelta
-            movedDistance = distance(newHydrogen, dirtyNeighbor)
+            movedDistance = cross_platform_distance(newHydrogen, dirtyNeighbor)
             if movedDistance < 0.08 {
               print("Did not move enough (1): \(movedDistance1)")
               print("Did not move enough (2): \(movedDistance)")
@@ -794,7 +784,7 @@ struct Diamondoid {
             continue inner
           }
         }
-        if distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
+        if cross_platform_distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
           bondPairs.append(SIMD2(i, j))
           continue outer
         }
@@ -848,12 +838,14 @@ struct Diamondoid {
   }
   
   // A bounding box that will never be exceeded during a simulation.
-  private static func makeBoundingBox(atoms: [MRAtom]) -> simd_float2x3 {
+  private static func makeBoundingBox(
+    atoms: [MRAtom]
+  ) -> (SIMD3<Float>, SIMD3<Float>) {
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
     var maxPosition: SIMD3<Float> = SIMD3(repeating: -.infinity)
     for atom in atoms {
-      minPosition = min(atom.origin, minPosition)
-      maxPosition = max(atom.origin, maxPosition)
+      minPosition = cross_platform_min(atom.origin, minPosition)
+      maxPosition = cross_platform_max(atom.origin, maxPosition)
     }
     
     let supportedElements: [UInt8] = [1, 6]
@@ -862,12 +854,12 @@ struct Diamondoid {
       let length = Constants.bondLengthMax(element: element)
       maxBondLength = max(maxBondLength, length)
     }
-    return simd_float2x3(
+    return (
       minPosition - maxBondLength,
       maxPosition + maxBondLength)
   }
   
-  func createBoundingBox() -> simd_float2x3 {
+  func createBoundingBox() -> (SIMD3<Float>, SIMD3<Float>) {
     return Self.makeBoundingBox(atoms: atoms)
   }
   
@@ -885,7 +877,7 @@ struct Diamondoid {
       var velocity = self.linearVelocity ?? .zero
       if let w, let centerOfMass {
         let r = atom.origin - centerOfMass
-        velocity += cross(w, r)
+        velocity += cross_platform_cross(w, r)
       }
       return velocity
     }
@@ -900,13 +892,13 @@ struct Diamondoid {
   
   // Rotations always occur around the center of mass for simplicity (you can
   // emulate off-axis rotations through a separate linear translation).
-  mutating func rotate(angle: simd_quatf) {
+  mutating func rotate(angle: Quaternion<Float>) {
     precondition(!isVelocitySet)
     
     let centerOfMass = createCenterOfMass()
     for i in atoms.indices {
       var delta = atoms[i].origin - centerOfMass
-      delta = simd_act(angle, delta)
+      delta = angle.act(on: delta)
       atoms[i].origin = centerOfMass + delta
     }
   }
@@ -994,3 +986,7 @@ struct Diamondoid {
     return masses.reduce(0, +)
   }
 }
+
+
+
+

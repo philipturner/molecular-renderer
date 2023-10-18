@@ -219,9 +219,9 @@ extension Renderer {
       //      angle /= period
       //      angle *= 2 * .pi
       //      
-      //      let quaternion = simd_quatf(angle: -angle, axis: [0, 1, 0])
+      //      let quaternion = Quaternion<Float>(angle: -angle, axis: [0, 1, 0])
       //      let delta = simd_act(quaternion, [0, 0, 1])
-      //      _position = rotationCenter + normalize(delta) * radius
+      //      _position = rotationCenter + cross_platform_normalize(delta) * radius
       //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
       
 //      var rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
@@ -230,7 +230,7 @@ extension Renderer {
 //      var angle = Float(0.125)
 //      angle *= 2 * .pi
 //      
-//      _ = simd_quatf(angle: -angle, axis: [0, 1, 0])
+//      _ = Quaternion<Float>(angle: -angle, axis: [0, 1, 0])
 //      _position = rotationCenter
 //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
 //      _rotation = _rotation * simd_float3x3(

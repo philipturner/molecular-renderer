@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import OpenMM
-import simd
 
 // Adversarial test case to find where dense grids break down, and sparse grids
 // are needed.
@@ -101,25 +100,25 @@ struct MassiveDiamond: MRAtomProvider {
     var carbonAtoms = _atoms.filter { $0.element == 6 }
     
     for atom in carbonAtoms {
-      minimum = simd_min(atom.origin, minimum)
-      maximum = simd_max(atom.origin, maximum)
+      minimum.replace(with: atom.origin, where: atom.origin .< minimum)
+      maximum.replace(with: atom.origin, where: atom.origin .> maximum)
     }
     let center = (minimum + maximum) / 2
     
     let minimumIndex = carbonAtoms.indices.min(by: {
       let firstOrigin = carbonAtoms[$0].origin
       let secondOrigin = carbonAtoms[$1].origin
-      return distance(firstOrigin, center) < distance(secondOrigin, center)
+      return cross_platform_distance(firstOrigin, center) < cross_platform_distance(secondOrigin, center)
     })!
     let centerAtom = carbonAtoms.remove(at: minimumIndex)
     
     carbonAtoms.sort(by: {
-			let dist1 = distance($0.origin, centerAtom.origin)
-			let dist2 = distance($1.origin, centerAtom.origin)
+			let dist1 = cross_platform_distance($0.origin, centerAtom.origin)
+			let dist2 = cross_platform_distance($1.origin, centerAtom.origin)
       return dist1 < dist2
     })
 		var distances = carbonAtoms.map {
-			distance($0.origin, centerAtom.origin)
+			cross_platform_distance($0.origin, centerAtom.origin)
 		}
 		distances.reverse()
 		

@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import HDL
-import simd
 import QuartzCore
 
 struct Spring_Spring {
@@ -236,7 +235,7 @@ struct Spring_Spring {
       let angularSpeed: Float = 0.50
       let maxX = otherCopy.atoms.max(by: { $0.x < $1.x})!.x
       let maxZ = otherCopy.atoms.max(by: { $0.z < $1.z})!.z
-      otherCopy.angularVelocity = simd_quatf(
+      otherCopy.angularVelocity = Quaternion<Float>(
         angle: angularSpeed, axis: [0, 1, 0])
       
       let linearSpeed = max(maxX, maxZ) * angularSpeed

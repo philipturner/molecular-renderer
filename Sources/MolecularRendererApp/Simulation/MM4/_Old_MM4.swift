@@ -8,7 +8,6 @@
 import Foundation
 import MolecularRenderer
 import OpenMM
-import simd
 import QuartzCore
 
 // "An improved force field (MM4) for saturated hydrocarbons"
@@ -623,8 +622,8 @@ class _Old_MM4 {
       );
       stretch_bend = 10 * (180 / 3.141592) *
       2.51118 * stretch_bend_stiffness * (
-        distance(p1, p2) - length1 +
-        distance(p2, p3) - length2
+        cross_platform_distance(p1, p2) - length1 +
+        cross_platform_distance(p2, p3) - length2
       ) * delta_theta;
       delta_theta = angle(p1, p2, p3) - equilibrium_angle;
       """
@@ -862,7 +861,7 @@ class _Old_MM4 {
       );
       torsion_stretch = 10 *
       0.5 * 11.995 * \(torsionStretchStiffness) * (
-        distance(p2, p3) - length
+        cross_platform_distance(p2, p3) - length
       ) * term3;
       term3 = 1 + cos(3 * omega);
       omega = dihedral(p1, p2, p3, p4);
@@ -1074,8 +1073,8 @@ class _Old_MM4 {
       
       // Conserve angular momentum along the three cardinal axes, therefore
       // conserving angular momentum along any possible axis.
-      var totalAngularMomentum: simd_double3 = .zero
-      var totalMomentOfInertia: simd_double3x3 = .init(diagonal: .zero)
+      var totalAngularMomentum: SIMD3<Double> = .zero
+      var totalMomentOfInertia: cross_platform_double3x3 = .init(diagonal: .zero)
       for atomID in rigidBody {
         let mass = repartitionedMasses[atomID]
         let delta = statePositions[atomID] - centerOfMass
@@ -1086,9 +1085,9 @@ class _Old_MM4 {
         //
         // I_R = m * (I (S^T S) - S S^T)
         // where S is the column vector R - R_cm
-        let STS = dot(delta, delta)
-        var momentOfInertia = simd_double3x3(diagonal: .init(repeating: STS))
-        momentOfInertia -= simd_double3x3(rows: [
+        let STS = cross_platform_dot(delta, delta)
+        var momentOfInertia = cross_platform_double3x3(diagonal: .init(repeating: STS))
+        momentOfInertia -= cross_platform_double3x3(rows: [
           SIMD3(delta.x * delta.x, delta.x * delta.y, delta.x * delta.z),
           SIMD3(delta.y * delta.x, delta.y * delta.y, delta.y * delta.z),
           SIMD3(delta.z * delta.x, delta.z * delta.y, delta.z * delta.z),
@@ -1102,7 +1101,7 @@ class _Old_MM4 {
         // L = m * (R - R_cm) cross d/dt (R - R_cm)
         // assume R_cm is stationary
         // L = m * (R - R_cm) cross v
-        let angularMomentum = mass * cross(delta, velocity)
+        let angularMomentum = mass * cross_platform_cross(delta, velocity)
         totalAngularMomentum += angularMomentum
       }
       
@@ -1133,7 +1132,7 @@ class _Old_MM4 {
           w[axis] = -totalAngularVelocity[axis]
           r[axis] = 0
           
-          let v = cross(w, r)
+          let v = cross_platform_cross(w, r)
           velocity += v
         }
         
@@ -1229,7 +1228,7 @@ class _Old_MM4 {
           numAtoms.append(totalAtoms)
           positions.append(SIMD3<Float>(centerOfMass))
           velocities.append(SIMD3<Float>(totalVelocity))
-          speeds.append(Float(length(totalVelocity)))
+          speeds.append(Float(cross_platform_length(totalVelocity)))
         }
       }
     }
@@ -1378,4 +1377,5 @@ class _Old_MM4 {
     }
   }
 }
+
 

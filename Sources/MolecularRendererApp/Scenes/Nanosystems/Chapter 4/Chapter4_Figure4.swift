@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 
 extension Nanosystems.Chapter4 {
   struct Figure4: Figure3D {

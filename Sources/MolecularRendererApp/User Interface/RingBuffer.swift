@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 
 // Takes the average of the last N positions, to smooth out sudden jolts caused
 // by imperfect sampling. This decreases nausea and perceived stuttering. The
@@ -83,7 +82,8 @@ struct SprintingHistory {
     }
     
     func smoothstep(edge0: Float, edge1: Float, x: Float) -> Float {
-      let t = simd_clamp((x - edge0) / (edge1 - edge0), Float(0), Float(1))
+      var t = ((x - edge0) / (edge1 - edge0))
+      t = (t < 0) ? 0 : (t > 1) ? 1 : t
       return t * t * (Float(3) - Float(2) * t)
     }
     _progress = 2 * smoothstep(edge0: 0, edge1: 1, x: t / 2)

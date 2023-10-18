@@ -7,7 +7,6 @@
 
 import Foundation
 import MolecularRenderer
-import simd
 
 struct GoldSurface {
   var atoms: [MRAtom]

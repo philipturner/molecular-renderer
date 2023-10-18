@@ -8,8 +8,8 @@
 import Foundation
 import MolecularRenderer
 import HDL
-import simd
 import QuartzCore
+import QuaternionModule
 
 struct Spring_Springboard {
   var provider: any MRAtomProvider
@@ -219,8 +219,8 @@ struct Spring_Springboard {
     housing.minimize()
     spring.diamondoid.minimize()
     
-    spring.diamondoid.rotate(angle: simd_quatf(
-      angle: 45 * .pi / 180, axis: normalize(SIMD3(-1, 0, 1))))
+    spring.diamondoid.rotate(angle: Quaternion<Float>(
+      angle: 45 * .pi / 180, axis: cross_platform_normalize(SIMD3(-1, 0, 1))))
     
     provider = ArrayAtomProvider(spring.diamondoid.atoms + housing.atoms)
     print("total atoms:", housing.atoms.count)
@@ -231,7 +231,7 @@ struct Spring_Springboard {
     // rotation of the joint. Later, we'll need to use MD to assemble the
     // entire structure properly.
 #if false
-    let direction = normalize(SIMD3<Float>(-1, 1, -1))
+    let direction = cross_platform_normalize(SIMD3<Float>(-1, 1, -1))
     spring.diamondoid.linearVelocity = 0.050 * direction
     
     //    let simulator = _Old_MM4(
@@ -339,10 +339,10 @@ struct Spring_Springboard {
       
       for i in 0..<2 {
         let angle: Float = (i == 0) ? 45 : -45
-        springs[i].rotate(angle: simd_quatf(
-          angle: angle * .pi / 180, axis: normalize(SIMD3(-1, 0, 1))))
+        springs[i].rotate(angle: Quaternion<Float>(
+          angle: angle * .pi / 180, axis: cross_platform_normalize(SIMD3(-1, 0, 1))))
         
-        let direction = normalize(
+        let direction = cross_platform_normalize(
           i == 0 ? SIMD3<Float>(-1, 1, -1) : SIMD3<Float>(1, 1, 1))
         springs[i].linearVelocity = springSpeed * direction
       }
@@ -393,17 +393,17 @@ struct Spring_Springboard {
       spring2.translate(offset: spring2Delta)
       springs.append(spring2)
       
-      let housing2Rotation = simd_quatf(angle: -90 * .pi / 180, axis: [0, 1, 0])
+      let housing2Rotation = Quaternion<Float>(angle: -90 * .pi / 180, axis: [0, 1, 0])
       var housing2Delta = -spring2Delta / 2
       var housing2 = dualHousings[0]
       housing2.translate(offset: housing2Delta)
       housing2.rotate(angle: housing2Rotation)
       
-      housing2Delta = housing2Rotation.act(housing2Delta)
+      housing2Delta = housing2Rotation.act(on: housing2Delta)
       housing2.translate(offset: 2 * housing2Delta)
       housing2.rotate(angle: housing2Rotation)
       
-      housing2Delta = housing2Rotation.act(housing2Delta)
+      housing2Delta = housing2Rotation.act(on: housing2Delta)
       housing2.translate(offset: housing2Delta)
       dualHousings.append(housing2)
       
@@ -417,12 +417,12 @@ struct Spring_Springboard {
         var diamondoid = newHousings[i]
         let currentDelta = diamondoid.createCenterOfMass() - systemCenter
         
-        let systemRotation1 = simd_quatf(
-          angle: 180 * .pi / 180, axis: normalize(SIMD3<Float>(1, 0, 1)))
-        let systemRotation2 = simd_quatf(
-          angle: 90 * .pi / 180, axis: normalize(SIMD3<Float>(0, 1, 0)))
-        var newDelta = systemRotation1.act(currentDelta)
-        newDelta = systemRotation2.act(newDelta)
+        let systemRotation1 = Quaternion<Float>(
+          angle: 180 * .pi / 180, axis: cross_platform_normalize(SIMD3<Float>(1, 0, 1)))
+        let systemRotation2 = Quaternion<Float>(
+          angle: 90 * .pi / 180, axis: cross_platform_normalize(SIMD3<Float>(0, 1, 0)))
+        var newDelta = systemRotation1.act(on: currentDelta)
+        newDelta = systemRotation2.act(on: newDelta)
         
         diamondoid.rotate(angle: systemRotation1)
         diamondoid.rotate(angle: systemRotation2)
@@ -435,9 +435,9 @@ struct Spring_Springboard {
         var diamondoid = newSprings[i]
         let currentDelta = diamondoid.createCenterOfMass() - systemCenter
         
-        let systemRotation1 = simd_quatf(
-          angle: 180 * .pi / 180, axis: normalize(SIMD3<Float>(0, 1, 0)))
-        let newDelta = systemRotation1.act(currentDelta)
+        let systemRotation1 = Quaternion<Float>(
+          angle: 180 * .pi / 180, axis: cross_platform_normalize(SIMD3<Float>(0, 1, 0)))
+        let newDelta = systemRotation1.act(on: currentDelta)
         
         diamondoid.rotate(angle: systemRotation1)
         diamondoid.translate(offset: -currentDelta + newDelta)
@@ -477,18 +477,18 @@ struct Spring_Springboard {
           let centerOfMass = SIMD3<Float>(centerOfMass_d)
           print("center of mass:", centerOfMass)
           
-          let largestRadius = positions.map { length($0 - centerOfMass) }.max()!
+          let largestRadius = positions.map { cross_platform_length($0 - centerOfMass) }.max()!
           print("largest radius:", largestRadius)
           angularSpeedInRadPs = 0.160 // rad/ps
           linearSpeedInNmPs = largestRadius * angularSpeedInRadPs
           
-          let angularVelocity = simd_quatf(
+          let angularVelocity = Quaternion<Float>(
             angle: angularSpeedInRadPs, axis: [0, 1, 0])
           let w = angularVelocity.axis * angularVelocity.angle
           simulator.provider.reset()
           simulator.thermalize(velocities: positions.map {
             let r = $0 - centerOfMass
-            return cross(w, r)
+            return cross_platform_cross(w, r)
           })
         } else {
           simulator.provider.reset()
@@ -742,9 +742,9 @@ struct Spring_Springboard {
       do {
         let delta = ringDiamondoidCopy.createCenterOfMass() - systemCenter
         ringDiamondoidCopy.translate(offset: -2 * delta)
-        ringDiamondoidCopy.rotate(angle: simd_quatf(
+        ringDiamondoidCopy.rotate(angle: Quaternion<Float>(
           angle: -180 * .pi / 180, axis: [1, 0, 0]))
-//        ringDiamondoidCopy.rotate(angle: simd_quatf(
+//        ringDiamondoidCopy.rotate(angle: Quaternion<Float>(
 //          angle: -90 * .pi / 180, axis: [0, 1, 0]))
       }
       
@@ -783,7 +783,7 @@ struct Spring_Springboard {
               let w = SIMD3<Float>(0, 1, 0) * angularSpeed
               for j in 0..<nonMovingAtoms + 2 * ringAtoms {
                 let r = positions[j] - systemCenter
-                velocities[j] = cross(w, r)
+                velocities[j] = cross_platform_cross(w, r)
               }
             } else {
               for j in nonMovingAtoms..<nonMovingAtoms + ringAtoms {
