@@ -4,13 +4,12 @@
 
 Domain-specific language for accelerating nanomachine design workflows.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
-- Emphasis on <b>a first-generation technology base</b>. The language lacks keywords for strained shell structures, which happen to require second-generation technology (but it will facilitate testing of machines for building them).
-- Tutorials and well-maintained documentation will be provided, to onboard new engineers and provide the skills for making crystolecules. This will cover common pitfalls in design, such as actions that expose triply-unbonded carbon atoms, and good practices like reconstructing (100) surfaces.
 - The API will be geared toward those with <b>little to no Swift experience</b>. It will make minimal use of Swift's many examples of syntactic sugar. When possible, subsets of the HDL or hardware catalog's functionality will have bindings to alternative programming languages.
 - The codebase will only depend on <b>cross-platform</b> Swift packages, even if Apple-specific libraries have higher performance.
 
 Table of Contents
 - [How it Works](#how-it-works)
+    - [Atoms](#atoms)
     - [Simulation](#simulation)
     - [JIT Compiler](#jit-compiler)
 - [Syntax](#syntax)
@@ -25,7 +24,13 @@ Table of Contents
 
 At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally intensive. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed.
 
+### Atoms
+
+To enter raw atoms into the geometry at any point, the API accepts arrays of `SIMD4<Float>`. The first three vector components specify position. The fourth specifies atomic number (if positive) or bond order of a connector (if negative). 
+
 ### Simulation
+
+The compiler supports all atom types in the MM4 simulator (H, C, N, O, F, Si, P, S, and Ge). Generated structures are intended to be used with MM4.
 
 MM4 repository: [philipturner/MM4](https://github.com/philipturner/MM4)
 
@@ -35,11 +40,19 @@ MM4 documentation: [philipturner.github.io/MM4](https://philipturner.github.io/M
 
 There is also a JIT compiler for the language, accepting a strict subset of Swift that contains DSL keywords. This was created out of necessity to bypass long compile times in Swift release mode. The API is still experimental and gated under an underscore (`_Parse`). Documentation can be found in triple-slashed comments at [Parse.swift](../Sources/HDL/Compiler/Parse.swift).
 
-At the moment, the JIT compiler has been deprecated, in favor of compiling in Swift release mode with incremental compilation.
+At the moment, the JIT compiler has been deprecated, in favor of compiling in Swift release mode with incremental compilation. It may be brought back for a future Python API.
 
 ## Syntax
 
 ### Lattice Editing
+
+```swift
+Coutour(Float) { SIMD4<Float> }
+```
+
+Creates a contour with the provided spacing between the entered atoms. This is typically used to auto-generate complementary vdW interfaces, an otherwise time-consuming task.
+
+> WARNING: The spacing is in number of lattice cells, not nanometers. To create a spacing based on hydrogen vdW radius, first fetch the value of the lattice constant. Divide the spacing in nanometers by the lattice constant.
 
 ```swift
 Cut()
@@ -50,15 +63,10 @@ Replaces the selected volume with nothing. This must be called inside a `Volume`
 ```swift
 Replace { Bond }
 Replace { Element }
+Replace { [Element] }
 ```
 
-> TODO: This was originally a "Passivate" keyword, but changed to a more general approach supporting silicon termination. Explain what the new purpose is.
-
-Adds hydrogens or halogens to complete the valence shells of selected atoms. When specifying a bond, use that bond to connect nearby atoms. The volumes "zero" volume must include both the atoms to be passivated, and the volume where passivators may exist.
-
-"Nearby" atoms are atoms that would connect to the same neighbor atom in a perfect crystal lattice. However, that neighbor has been deleted using a `Plane`, leaving two dangling bonds. Passivating the two "nearby" atoms with hydrogens would create hydrogens that overlap.
-
-If no passivation is specified, hydrogens or sigma bonds may be automatically added. This will not happen on (100) surfaces, where you must manually specify the restructuring pattern's direction.
+Replace the highlighted "zero" volume with an element, connector, or polyatomic crystal lattice.
 
 ```swift
 Origin { Vector }
@@ -122,11 +130,10 @@ Create a lattice of crystal unit cells to carve. Coordinates are represented in 
 
 ```swift
 Material { Element }
+Material { [Element] }
 ```
 
 Specifiies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
-
-Accepts `.carbon` for diamond and lonsdaleite. `Material { [Element] }` may be added in the future, accepting `[.carbon, .silicon]` for cubic moissanite. Materials such as elemental silicon and compounds with titanium may also be added.
 
 ```swift
 RigidBody
@@ -184,7 +191,7 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 ```swift
 Copy { Lattice<Basis> }
 Copy { Solid }
-Copy { [SIMD3<Float>] }
+Copy { [SIMD4<Float>] }
 ```
 
 Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
@@ -285,7 +292,3 @@ Adds or subtracts two vectors.
 List:
 - Compile the Swift code in release mode with incremental compilation.
 - Split into multiple files, decreasing the chance the compiler will take a long time compiling any one file.
-- Don't spend time adhering to strange geometric constraints. If avoiding a certain type of geometry consumes a large portion of your workflow, change the simulator to permit that geometry.
-- Use fluorine termination sparingly to minimize $O(n^2)$ scaling. However, sometimes using it will drastically improve performance of a specific machine. Make a tradeoff between simulation speed and the time required to design alternative structures.
-- Avoid strained shell structures in machines intended to be manufactured IRL.
-- Don't be afraid to redesign a nanomachine from scratch, after discovering the first machine has sub-optimal performance. During the first attempt, only focus on getting the machine to work at all.

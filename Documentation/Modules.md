@@ -14,14 +14,17 @@
 
 ## Rendering
 
-- MolecularRenderer[^1]
-  - Power-efficient ray tracing on Apple platforms
-  - Source code for MRSimulation codec (which is designed to be cross-platform)
-- MolecularRendererApp[^1]
+- MolecularRenderer
+  - Power-efficient ray tracing
+    - Currently, only compiles on Apple platforms
+    - Will eventually support Vulkan and FidelityFX
+  - MRSimulation binary codec
+- MolecularRendererApp
   - Not a Swift module, but source files for the MolecularRenderer app
-  - Contains a large amount of procedural geometry code, currently being extracted into other modules
-- MolecularRendererGPU[^1]
-  - Metal shader files for MolecularRenderer
+  - Contains a large amount of old procedural geometry code
+- MolecularRendererGPU
+  - Shader files for MolecularRenderer
+  - MSL for now, eventually HLSL for compilation into SPIR-V
 
 ## Simulation
 
@@ -34,6 +37,3 @@
 - OpenMM, COpenMM
   - Swift bindings for OpenMM
   - [new repository](https://github.com/philipturner/swift-openmm)
-
-[^1]: Only compiles on Apple platforms
-

@@ -34,12 +34,10 @@ Short-Term (next few weeks)
 - Upgrade MM4 to include more elements and external forces - **in progress**
 
 Long-Term (next few months)
-- Reproduce the entirety of Nanosystems Part 2
-- Breadth-first experiments with scaling up CAD software
-  - Engineering knowledge base (catalog) for nanomechanical parts synthesizable with a first-generation augmented AFM
+- Experiments with scaling up CAD software
+  - Engineering knowledge base (catalog) for nanomechanical parts and geometric primitives
   - Implement the Kaehler bracket indexing algorithm outlined in _Nanosystems 9.5.5_
-  - Search for drastic approximations that can automate CAD workflows, pre-minimization, before setting up a simulation
-    - Higher-order scaling methods such as $O(n^3)$ Lagrange multiplier constraint solvers and $O(e^n)$ combinatorial search procedures
+  - Search for other tools that can automate large systems-level CAD workflows
 - Optimize for multi-GPU desktop machines
   - Resolve $O(n^2)$ scaling issues with non-carbon elements ✅
   - Quick prototyping of assemblies with ~100,000 atoms
@@ -48,7 +46,7 @@ Long-Term (next few months)
 Non-Goals
 - Use simulators that aren't GPU-accelerated, or require CUDA
 - Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
-- Use simulators that aren't $O(n)$ (GFN-FF, many FEA techniques)
+- Use simulators that aren't $O(n)$ (GFN-FF)
 - Create a graphical user interface beyond the minimal MD trajectory viewer
 
 Help Wanted
