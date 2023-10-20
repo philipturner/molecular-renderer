@@ -1,6 +1,6 @@
 # Hardware Description Language
 
-> This is not a prototype to something atomCAD will build. This is the final product, one component contributing to a foundation, upon which a nano-factory can be designed and synthesized. It is not the only component of the CAD software, but an experiment that proved successful and generally useful.
+> This is not a prototype to something atomCAD will build. This is the final product, one component of a new full stack CAD workflow. It is not the only component, but an experiment that proved successful and generally useful.
 
 Domain-specific language for accelerating nanomachine design workflows.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
@@ -47,7 +47,7 @@ At the moment, the JIT compiler has been deprecated, in favor of compiling in Sw
 ### Lattice Editing
 
 ```swift
-Coutour(Float) { SIMD4<Float> }
+Coutour(Float) { [SIMD4<Float>] }
 ```
 
 Creates a contour with the provided spacing between the entered atoms. This is typically used to auto-generate complementary vdW interfaces, an otherwise time-consuming task.
