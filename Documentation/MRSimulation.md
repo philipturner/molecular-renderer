@@ -151,9 +151,6 @@ Metadata sub-specifications:
 - Format for storing bond topology, which permits different bond orders and fractional bonds in graphene. The bond order may change between frames. To be efficient, only store the bonds that have changed.
 - Record which amount of hydrogen mass repartitioning (HMR) was used. For now, assume 1.0 amu.
 
-Bounded continuum finite element method:
-- Group the atoms into coarse-grained crystal unit cells. Store the centers and deformations of crystal grains instead of full atom positions.
-
 Quantum chemistry:
 - Add an alternative serialization scheme for storing electron probabilities from ab initio molecular simulations.
   - Store the densities for each "important" electron at the mechanosynthesis site.
