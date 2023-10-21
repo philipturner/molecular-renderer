@@ -51,5 +51,7 @@ Index:
 - [vdW Oscillator](./VdwOscillator)
 
 Ideas of parts to add:
+- (100) Surfaces
+- Flywheel to complete the forced motions matrix
 - [Octahedral Spring](./OctahedralSpring)
 - Pseudogear Rack Differential

@@ -6,6 +6,8 @@ Author: Philip Turner
 
 Description: small beam of diamond that is flexible enough to be treated as rope, under some circumstances.
 
+Nomenclature: `width`-`height` diamond rope, for example "the most commonly used form is 1.0-1.5 diamond rope".
+
 Parameters:
 - Height (Float) - Measures the cross-section, typically 1-2 unit cells. Must have .5 in the decimal place.
 - Width (Float) - Measures the cross-section, typically 1-2 unit cells. Must be divisible by 0.5.

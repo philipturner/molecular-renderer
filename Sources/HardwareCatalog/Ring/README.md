@@ -22,4 +22,9 @@ Parameters:
 - Inner Spokes (Bool) - Whether to include inner spokes, going from `r = 0` to `r = radius`.
 - Outer Spokes (Bool) - Whether to include outer spokes, going from `r = radius` to `r = 2 * radius`.
 
-Improvements: the part could be improved to add gear tooth connectors around the edges, with fourfold radial symmetry.
+Improvements: a `Ring_V2` could be created to:
+- accept multiple base materials, not just 1.0-1.5 diamond rope
+- create spokes conforming to a hexagonal lattice
+- vary the number of spokes; request a list of which spokes to include
+- shift the product by a certain number of lattice cells lengthwise, emulating the screw shape from a toroidal worm drive
+- increase or decrease the width, letting a linear vdW `Contour` be used for rotary shapes
