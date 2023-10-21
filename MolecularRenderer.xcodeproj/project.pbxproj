@@ -319,6 +319,7 @@
 		98F638C42A34F78A00F51E95 /* MRAtom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtom.swift; sourceTree = "<group>"; };
 		98F638CA2A34F94F00F51E95 /* MRProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProvider.swift; sourceTree = "<group>"; };
 		98F638CC2A34F97300F51E95 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
+		98F83E1C2AE496C40037E31A /* DFT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DFT.md; sourceTree = "<group>"; };
 		98FB906D2A5A8BD300685E5C /* CasingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasingProvider.swift; sourceTree = "<group>"; };
 		98FB906F2A5B19E100685E5C /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
 		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
@@ -551,6 +552,7 @@
 				98D2A3312AA2DF4D000DBAA0 /* References.md */,
 				98610F802AA29EBE006FAF95 /* HDL.md */,
 				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
+				98F83E1C2AE496C40037E31A /* DFT.md */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";
