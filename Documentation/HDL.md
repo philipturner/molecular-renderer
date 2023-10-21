@@ -47,7 +47,7 @@ At the moment, the JIT compiler has been deprecated, in favor of compiling in Sw
 ### Lattice Editing
 
 ```swift
-Coutour(Float) { [SIMD4<Float>] }
+Contour(Float) { [SIMD4<Float>] }
 ```
 
 Creates a contour with the provided spacing between the entered atoms. This is typically used to auto-generate complementary vdW interfaces, an otherwise time-consuming task.
