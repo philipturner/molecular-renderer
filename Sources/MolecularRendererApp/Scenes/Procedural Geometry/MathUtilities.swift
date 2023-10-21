@@ -131,25 +131,37 @@ struct cross_platform_double3x3 {
       SIMD3(columns.0[2], columns.1[2], columns.2[2]))
   }
   
-  // Source:
-  // Since we are in column-major form, the result computed with this row-major
-  // formula is actually the **correct** inverse.
+  // Source: https://stackoverflow.com/a/18504573
   var inverse: cross_platform_double3x3 {
+    // double det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
+    //              m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+    //              m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
     let determinant =
-    +columns.0[0]*(columns.1[1]*columns.2[0]-columns.2[1]*columns.1[2])
+     +columns.0[0]*(columns.1[1]*columns.2[2]-columns.2[1]*columns.1[2])
     - columns.0[1]*(columns.1[0]*columns.2[2]-columns.1[2]*columns.2[0])
-    + columns.0[2]*(columns.1[0]*columns.2[1]-columns.1[1]*columns.2[0]);
+    + columns.0[2]*(columns.1[0]*columns.2[1]-columns.1[1]*columns.2[0])
     let invdet = 1/determinant;
     
-    let result00 =  (columns.1[1]*columns.2[2]-columns.2[1]*columns.1[2])*invdet;
-    let result10 = -(columns.0[1]*columns.2[2]-columns.0[2]*columns.2[1])*invdet;
-    let result20 =  (columns.0[1]*columns.1[2]-columns.0[2]*columns.1[1])*invdet;
-    let result01 = -(columns.1[0]*columns.2[2]-columns.1[2]*columns.2[0])*invdet;
-    let result11 =  (columns.0[0]*columns.2[2]-columns.0[2]*columns.2[0])*invdet;
-    let result21 = -(columns.0[0]*columns.1[2]-columns.1[0]*columns.0[2])*invdet;
-    let result02 =  (columns.1[0]*columns.2[1]-columns.2[0]*columns.1[1])*invdet;
-    let result12 = -(columns.0[0]*columns.2[1]-columns.2[0]*columns.0[1])*invdet;
-    let result22 =  (columns.0[0]*columns.1[1]-columns.1[0]*columns.0[1])*invdet;
+    // minv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
+    // minv(0, 1) = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * invdet;
+    // minv(0, 2) = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) * invdet;
+    let result00 = (columns.1[1]*columns.2[2]-columns.2[1]*columns.1[2])*invdet
+    let result01 = (columns.0[2]*columns.2[1]-columns.0[1]*columns.2[2])*invdet
+    let result02 = (columns.0[1]*columns.1[2]-columns.0[2]*columns.1[1])*invdet
+    
+    // minv(1, 0) = (m(1, 2) * m(2, 0) - m(1, 0) * m(2, 2)) * invdet;
+    // minv(1, 1) = (m(0, 0) * m(2, 2) - m(0, 2) * m(2, 0)) * invdet;
+    // minv(1, 2) = (m(1, 0) * m(0, 2) - m(0, 0) * m(1, 2)) * invdet;
+    let result10 = (columns.1[2]*columns.2[0]-columns.1[0]*columns.2[2])*invdet
+    let result11 = (columns.0[0]*columns.2[2]-columns.0[2]*columns.2[0])*invdet
+    let result12 = (columns.1[0]*columns.0[2]-columns.0[0]*columns.1[2])*invdet
+    
+    // minv(2, 0) = (m(1, 0) * m(2, 1) - m(2, 0) * m(1, 1)) * invdet;
+    // minv(2, 1) = (m(2, 0) * m(0, 1) - m(0, 0) * m(2, 1)) * invdet;
+    // minv(2, 2) = (m(0, 0) * m(1, 1) - m(1, 0) * m(0, 1)) * invdet;
+    let result20 = (columns.1[0]*columns.2[1]-columns.2[0]*columns.1[1])*invdet
+    let result21 = (columns.2[0]*columns.0[1]-columns.0[0]*columns.2[1])*invdet
+    let result22 = (columns.0[0]*columns.1[1]-columns.1[0]*columns.0[1])*invdet
     
     return cross_platform_double3x3(
       SIMD3(result00, result10, result20),
