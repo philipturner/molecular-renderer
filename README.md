@@ -36,7 +36,7 @@ Short-Term (next few weeks)
 Long-Term (next few months)
 - Experiments with scaling up CAD software
   - Engineering knowledge base (catalog) for nanomechanical parts and geometric primitives
-  - Implement the Kaehler bracket indexing algorithm outlined in _Nanosystems 9.5.5_
+  - Implement the [Kaehler bracket](https://legacy.foresight.org/Updates/Update10/Update10.3.html) indexing algorithm outlined in _Nanosystems 9.5.5_
   - Search for other tools that can automate large systems-level CAD workflows
 - Optimize for multi-GPU desktop machines
   - Resolve $O(n^2)$ scaling issues with non-carbon elements ✅
