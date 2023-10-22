@@ -50,7 +50,7 @@ At the moment, the JIT compiler has been deprecated, in favor of compiling in Sw
 Contour(Float) { [SIMD4<Float>] }
 ```
 
-Creates a contour with the provided spacing between the entered atoms. This is typically used to auto-generate complementary vdW interfaces, an otherwise time-consuming task.
+Creates a contour with the provided spacing between the entered atoms. This is typically used to auto-generate complementary vdW interfaces, an otherwise time-consuming task. The entered atoms must be in nanometers.
 
 > WARNING: The spacing is in number of lattice cells, not nanometers. To create a spacing based on hydrogen vdW radius, first fetch the value of the lattice constant. Divide the spacing in nanometers by the lattice constant.
 

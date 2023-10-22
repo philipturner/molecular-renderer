@@ -1,5 +1,5 @@
 //
-//  AtomGrid.swift
+//  Grid.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 9/24/23.
@@ -29,7 +29,7 @@ struct Atom {
   }
 }
 
-struct AtomGrid {
+struct Grid {
   // Tolerance for floating-point error or error in lattice constants when
   // comparing atom positions.
   // TODO: Override the nominal lonsdaleite lattice constants so they align
@@ -162,7 +162,7 @@ struct AtomGrid {
   }
 }
 
-extension AtomGrid {
+extension Grid {
   private func cellsPrefixSum() -> [Int32] {
     var output: [Int32] = []
     var sum: Int = 0

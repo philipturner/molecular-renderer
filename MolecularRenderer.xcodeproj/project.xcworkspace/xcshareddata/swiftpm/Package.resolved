@@ -15,7 +15,7 @@
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
         "branch" : "main",
-        "revision" : "b06ce95cd1d83ce636b7c122eedc7856e2261dec"
+        "revision" : "39df8153ae5cd4f48be2f7cc5843ef7f610c658b"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
       "state" : {
-        "revision" : "6c89474e62719ddcc1e9614989fff2f68208fe10",
-        "version" : "1.1.0"
+        "revision" : "cd142fd2f64be2100422d658e7411e39489da985",
+        "version" : "1.2.0"
       }
     },
     {
@@ -51,7 +51,7 @@
       "location" : "https://github.com/philipturner/swift-gif",
       "state" : {
         "branch" : "main",
-        "revision" : "71692155b7d6e942cbe81492e91bd2475bf8b833"
+        "revision" : "be4b35e9ea0076edf81d1b1d59b8ab8ebc5dcc3d"
       }
     },
     {
@@ -75,7 +75,7 @@
     {
       "identity" : "swift-numerics",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-numerics",
+      "location" : "https://github.com/philipturner/swift-numerics",
       "state" : {
         "branch" : "Quaternions",
         "revision" : "b0e86b6fd7e7d92aa008a28a9800c58a2489e1d2"
@@ -87,7 +87,7 @@
       "location" : "https://github.com/philipturner/swift-openmm",
       "state" : {
         "branch" : "main",
-        "revision" : "7a893106a0697903f7184653a0716fe74ed09204"
+        "revision" : "a1be1f62e848359a2f77730fc3ada16f271d3347"
       }
     },
     {
