@@ -9,7 +9,7 @@
 //
 // Source: https://www.redblobgames.com/grids/hexagons/#coordinates-doubled
 // Similar to "Doubled coordinates", except halved and then compressed in the
-// X direction when addressing memory.
+// X direction (right -> 1/2 right) when storing in memory.
 
 struct HexagonalCell {
   // Multiply the plane's origin by [3, 3, 8] and direction by [8, 8, 3].
@@ -59,10 +59,9 @@ struct HexagonalCell {
   }
 }
 
-struct HexagonalSDF {
-  
-}
-
+// Don't store an SDF in memory. Use a rule for generating coordinates on the
+// fly, creating a 12-wide vector containing 12 corners, then intersecting based
+// on that. Every inner loop iteration, increment the x vector's value by 3.
 struct HexagonalGrid {
   // Store some vectors of bitmasks: SIMD16<Int8>
 }

@@ -33,10 +33,7 @@ struct CubicCell {
   }
 }
 
-struct CubicSDF {
-  
-}
-
+// See the note about lonsdaleite grids.
 struct CubicGrid {
   // Store some vectors of bitmasks: SIMD8<Int8>
 }
