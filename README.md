@@ -18,11 +18,25 @@ Documentation
 
 NanoEngineer is currently the most capable platform for designing molecular nanotechnology. It has an interactive UI, but also simulators that run slowly at >5000 atoms. This restricts the design to colorful strained shell structures [in order to minimize atom count](http://www.imm.org/research/parts/controller/). Several projects seek to improve on this aspect - the difficulty performing iterative design on non-strained crystolecules.
 
-For about a year, this project was an independent effort that began with optimizing OpenMM. From May to October 2023, it was slated to join forces with atomCAD. After extensive discussions, we realized our approaches were too different. Molecular Renderer grew rapidly and let people _from all major operating systems_ do exploratory engineering, with existing MD simulation methods. atomCAD evolved more slowly, due to a carefully planned internal representation that supposedly scales to 100x more atoms. Developers from both projects have exchanged ideas and engaged in constructive feedback.
+For about a year, this project was an independent effort that began with optimizing OpenMM. From May to October 2023, it was slated to join forces with atomCAD. After extensive discussions, we realized our approaches were too different. Molecular Renderer grew rapidly and let people _from all major operating systems_ do exploratory engineering, with existing MD simulation methods. atomCAD evolved more slowly, due to a carefully planned internal representation that can scale to 100x more atoms. Developers from both projects have exchanged ideas and engaged in constructive feedback.
 
 Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until recently, the only OSS that aspiring engineers could rely on was NanoEngineer, which went unmaintained in 2008. This code base is following a modern [vision](https://github.com/atomCAD/atomCAD/wiki) that:
 
 > ...for a molecular nanotechnology industry to exist, there must be such a society of engineers that transcends any single company, and a public body of knowledge capturing best practices for nano-mechanical engineering design. Other companies are training engineers on in-house tools where they create designs never to be seen by the outside world. We believe strongly that needs to change...
+
+## State of Cross-Platform Support
+
+The simulation and GUI-less CAD libraries are being rewritten from scratch. The end product will run on all platforms. In addition, the vast majority of `Sources/MolecularRendererApp` has been ported to cross-platform Swift toolchains. However, it is not in a "production-ready" state. 
+
+Need to port the ray traced trajectory viewer to Linux and Windows:
+- Work with native Linux and Windows APIs for key bindings, windowing
+- Translate the Metal GPU shaders to HLSL, which compiles into SPIR-V
+- AMD FidelityFX integration for upscaling ray traced images
+
+Prioritizing Linux for compute, exporting trajectories to macOS for rendering. Current solution for other platforms: 
+- Transcode the simulation to `mrsim-txt` and save to the disk.
+- Decode in a script controlling an alternative renderer (VMD, atomCAD, Blender, etc.)
+- This may require a different language than Swift. There is a decently fast Rust decoder, which is most recommended on Windows (Swift is slow there for an unknown reason).
 
 ## Roadmap
 
@@ -46,13 +60,5 @@ Long-Term (next few months)
 Non-Goals
 - Use simulators that aren't GPU-accelerated, or require CUDA
 - Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
-- Use simulators that aren't $O(n)$ (GFN-FF)
+- Use simulators that aren't $O(n)$ (GFN-FF), outside of [maximally efficient DFT](./Documentation/DFT.md)
 - Create a graphical user interface beyond the minimal MD trajectory viewer
-
-State of Cross-Platform Support
-- Prioritizing Linux for compute, exporting trajectories to macOS for rendering
-  - Near-term solution for other platforms: export/transcode to `mrsim-txt`. Decode in script controlling alterantive renderer (VMD, atomCAD, Blender, etc.), which may require a different language than Swift.
-- Need to port the ray traced trajectory viewer to Linux and Windows
-  - Work with native Linux and Windows APIs for key bindings, windowing
-  - Translate the Metal GPU shaders to HLSL, which compiles into SPIR-V
-  - AMD FidelityFX integration for upscaling ray traced images
