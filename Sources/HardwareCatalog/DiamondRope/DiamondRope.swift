@@ -29,7 +29,7 @@ public struct DiamondRope {
     }
     
     lattice = Lattice<Cubic> { h, k, l in
-      Material { .carbon }
+      Material { .elemental(.carbon) }
       Bounds {
         Float(length + 2) * h +
         height.rounded(.up) * k +
