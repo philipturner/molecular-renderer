@@ -23,16 +23,28 @@ public class Compiler {
   //   - no masking functionality
   //   - every operation accepts either "SIMD3<Float>" or "Atom"
   //   - create SIMD3<Float> initializers accepting lattice vectors
-  // - Utilities (with SIMD game math functions)
-  // - Parse
+  // - Utilities
+  //   - SIMD game math functions
+  // - Operations
+  //   - Parse (generates both Lattice and Solid HDL constructs for languages
+  //     besides Swift
+  //   - Contour (generates Lattice constructs only)
+  //   - Cut (works in two entirely different contexts: Lattice/Volume, Solid/Affine)
   // - RigidBody
+  //   - bond generation
+  //   - passivation
+  //   - not a "class"
+  //   - no "minimize" member
   // - Atom/Element/Material/Bond
   //   - "Atom" initializer accepting either an element or a bond type
   //   - replace "Material" with simply .siliconCarbide, .germaniumCarbide and
   //     don't worry about the specifics of which atom goes where in the lattice
-  //   - "Material" represents compounds with more than one element
+  //   - "Material" represents any crystal formed, also includes the words
+  //      .carbon, .silicon, .germanium
   //
-  // Deactivate most code in the hardware catalog while this rewrite goes on.
+  // Leave the "HDL" document unmaintained for a while, will eventually offload
+  // much of the documentation to Swift-DocC. Leave the remaining Markdown file
+  // as an explainer.
   
   // For editing a lattice.
   private var stack: Stack?
