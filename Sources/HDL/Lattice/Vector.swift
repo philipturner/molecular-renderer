@@ -6,9 +6,10 @@
 //
 
 public struct Vector<T: Basis> {
-  // This is a hack for right now, until we find something better for
-  // lonsdaleite. For example, normalizing in a non-orthogonal basis would be
-  // detrimental for rotations.
+  // Normalizing in a non-orthogonal basis would be detrimental for rotations.
+  // This doesn't need an orthonormal basis; it only needs to satisfy the
+  // requirements for a vector space:
+  // - s(A + B) = sA + sB
   var simdValue: SIMD3<Float> = .zero
   
   internal init(x: Float, y: Float, z: Float) {

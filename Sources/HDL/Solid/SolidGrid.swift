@@ -7,6 +7,17 @@
 
 import Foundation
 
+// New, sparse internal representation:
+// - lower octants: 0.25 nm
+// - lower voxels: 0.5 nm
+// - upper voxels: 4.0 nm
+//
+// - store chunks of 8 atoms in the arrays, interlacing atoms for each octant
+//   - [SIMD8(x0), SIMD8(y0), SIMD8(z0), SIMD8(x1), SIMD8(y1), SIMD8(z1), ...]
+// - when merging, sort the incoming atoms into the existing octants
+// - perform 8 comparisons in parallel, lanewise, instead of 64 un-sorted
+// - no restrictions on atom density
+
 /// Rounds an integer up to the nearest power of 2.
 fileprivate func roundUpToPowerOf2(_ input: Int) -> Int {
   1 << (Int.bitWidth - max(0, input - 1).leadingZeroBitCount)

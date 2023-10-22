@@ -173,8 +173,8 @@
 		9818225F2AE58E4D009CFAA8 /* Bond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bond.swift; sourceTree = "<group>"; };
 		981822602AE58E95009CFAA8 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		981822612AE59628009CFAA8 /* SolidStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolidStack.swift; sourceTree = "<group>"; };
-		981822622AE59631009CFAA8 /* CubicSDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicSDF.swift; sourceTree = "<group>"; };
-		981822632AE5963A009CFAA8 /* HexagonalSDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalSDF.swift; sourceTree = "<group>"; };
+		981822622AE59631009CFAA8 /* CubicGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicGrid.swift; sourceTree = "<group>"; };
+		981822632AE5963A009CFAA8 /* HexagonalGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalGrid.swift; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
@@ -398,8 +398,8 @@
 			children = (
 				98610F462AA24C69006FAF95 /* Basis.swift */,
 				98D0F1AE2AB5F43D00BE267D /* Bounds.swift */,
-				981822622AE59631009CFAA8 /* CubicSDF.swift */,
-				981822632AE5963A009CFAA8 /* HexagonalSDF.swift */,
+				981822622AE59631009CFAA8 /* CubicGrid.swift */,
+				981822632AE5963A009CFAA8 /* HexagonalGrid.swift */,
 				98610F322AA24533006FAF95 /* Lattice.swift */,
 				98D0F1942AB5150600BE267D /* LatticeStack.swift */,
 				98610F1A2AA21871006FAF95 /* Vector.swift */,

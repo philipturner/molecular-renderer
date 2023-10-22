@@ -225,12 +225,12 @@ Translate the object by the specified vector, relative to its current position. 
 // cubic crystals, they are edges of a cube. For hexagonal crystals, they are
 // sides of a hexagonal prism. The vectors aren't always orthogonal, so they are
 // internally translated to nanometers before applying affine transforms.
-Hexagonal.h: Vector<Hexagonal> = [1, 0, 0] * hexagon side length
-Hexagonal.k: Vector<Hexagonal> = [-0.5, 0.866, 0] * hexagon side length
-Hexagonal.l: Vector<Hexagonal> = [0, 0, 1] * hexagonal prism depth
-Cubic.h: Vector<Cubic> = [1, 0, 0] * lattice spacing
-Cubic.k: Vector<Cubic> = [0, 1, 0] * lattice spacing
-Cubic.l: Vector<Cubic> = [0, 0, 1] * lattice spacing
+Hexagonal.h: Vector<Hexagonal> /* [1, 0, 0] * hexagon side length */
+Hexagonal.k: Vector<Hexagonal> /* [-0.5, 0.866, 0] * hexagon side length */
+Hexagonal.l: Vector<Hexagonal> /* [0, 0, 1] * hexagonal prism depth */
+Cubic.h: Vector<Cubic> /* [1, 0, 0] * lattice spacing */
+Cubic.k: Vector<Cubic> /* [0, 1, 0] * lattice spacing */
+Cubic.l: Vector<Cubic> /* [0, 0, 1] * lattice spacing */
 
 // Hexagonal crystals are sometimes described with four unit vectors: h, k, i,
 // and l. The 'i' vector is redundant and equals -h - k, creating a set of 3

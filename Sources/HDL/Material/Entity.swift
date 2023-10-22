@@ -7,6 +7,8 @@
 
 import Foundation
 
+// Rule for converting to an efficient layout in the crystal grid:
+
 public enum EntityType: RawRepresentable {
   case atom(UInt8)
   case bond(Float)
