@@ -60,5 +60,5 @@ Long-Term (next few months)
 Non-Goals
 - Use simulators that aren't GPU-accelerated, or require CUDA
 - Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
-- Use simulators that aren't $O(n)$ (GFN-FF), outside of [maximally efficient DFT](./Documentation/DFT.md)
+- Use simulators that aren't $O(n)$ (GFN-FF), outside of [maximally efficient DFT](https://github.com/philipturner/molecular-renderer/blob/main/Documentation/DFT.md)
 - Create a graphical user interface beyond the minimal MD trajectory viewer
