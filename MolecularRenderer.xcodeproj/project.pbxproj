@@ -320,6 +320,16 @@
 		98F638CA2A34F94F00F51E95 /* MRProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProvider.swift; sourceTree = "<group>"; };
 		98F638CC2A34F97300F51E95 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
 		98F83E1C2AE496C40037E31A /* DFT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DFT.md; sourceTree = "<group>"; };
+		98F83E1E2AE4BF630037E31A /* Cargo.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
+		98F83E202AE4BF630037E31A /* mrsim_txt.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mrsim_txt.rs; sourceTree = "<group>"; };
+		98F83E222AE4BF630037E31A /* StrainedShellBearing-15ps.mrsim-txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "StrainedShellBearing-15ps.mrsim-txt"; sourceTree = "<group>"; };
+		98F83E232AE4BF630037E31A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98F83E252AE4BF630037E31A /* mrsim_txt.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mrsim_txt.rs; sourceTree = "<group>"; };
+		98F83E272AE4BF630037E31A /* mrsim_txt_benchmark.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mrsim_txt_benchmark.rs; sourceTree = "<group>"; };
+		98F83E282AE4BF630037E31A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98F83E292AE4BF630037E31A /* lib.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = lib.rs; sourceTree = "<group>"; };
+		98F83E2C2AE4BF630037E31A /* mod.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mod.rs; sourceTree = "<group>"; };
+		98F83E2E2AE4BF630037E31A /* mod.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mod.rs; sourceTree = "<group>"; };
 		98FB906D2A5A8BD300685E5C /* CasingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasingProvider.swift; sourceTree = "<group>"; };
 		98FB906F2A5B19E100685E5C /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
 		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
@@ -635,6 +645,7 @@
 		9898382429A6C08F00B4AA98 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				98F83E1D2AE4BF630037E31A /* SimulationImport */,
 				98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */,
 				98610EAE2A9D7D17006FAF95 /* HDL */,
 				98F638992A349F7300F51E95 /* MolecularRenderer */,
@@ -857,6 +868,79 @@
 				98FB907F2A5CF94F00685E5C /* Utilities */,
 			);
 			path = MolecularRendererGPU;
+			sourceTree = "<group>";
+		};
+		98F83E1D2AE4BF630037E31A /* SimulationImport */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E1E2AE4BF630037E31A /* Cargo.toml */,
+				98F83E1F2AE4BF630037E31A /* tests */,
+				98F83E232AE4BF630037E31A /* README.md */,
+				98F83E242AE4BF630037E31A /* src */,
+			);
+			path = SimulationImport;
+			sourceTree = "<group>";
+		};
+		98F83E1F2AE4BF630037E31A /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E202AE4BF630037E31A /* mrsim_txt.rs */,
+				98F83E212AE4BF630037E31A /* assets */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
+		98F83E212AE4BF630037E31A /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E222AE4BF630037E31A /* StrainedShellBearing-15ps.mrsim-txt */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		98F83E242AE4BF630037E31A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E252AE4BF630037E31A /* mrsim_txt.rs */,
+				98F83E262AE4BF630037E31A /* bin */,
+				98F83E292AE4BF630037E31A /* lib.rs */,
+				98F83E2A2AE4BF630037E31A /* mrsim_txt */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		98F83E262AE4BF630037E31A /* bin */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E272AE4BF630037E31A /* mrsim_txt_benchmark.rs */,
+				98F83E282AE4BF630037E31A /* README.md */,
+			);
+			path = bin;
+			sourceTree = "<group>";
+		};
+		98F83E2A2AE4BF630037E31A /* mrsim_txt */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E2B2AE4BF630037E31A /* utils */,
+				98F83E2D2AE4BF630037E31A /* definitions */,
+			);
+			path = mrsim_txt;
+			sourceTree = "<group>";
+		};
+		98F83E2B2AE4BF630037E31A /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E2C2AE4BF630037E31A /* mod.rs */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		98F83E2D2AE4BF630037E31A /* definitions */ = {
+			isa = PBXGroup;
+			children = (
+				98F83E2E2AE4BF630037E31A /* mod.rs */,
+			);
+			path = definitions;
 			sourceTree = "<group>";
 		};
 		98FB907D2A5CF8FD00685E5C /* Ray Tracing */ = {

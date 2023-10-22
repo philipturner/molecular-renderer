@@ -49,8 +49,10 @@ Non-Goals
 - Use simulators that aren't $O(n)$ (GFN-FF)
 - Create a graphical user interface beyond the minimal MD trajectory viewer
 
-Help Wanted
-- Porting the ray traced trajectory viewer to Linux and Windows
-  - Need to work with native Linux and Windows APIs for key bindings, windowing
-  - Need to translate the Metal GPU shaders to HLSL, which compiles into SPIR-V
+State of Cross-Platform Support
+- Prioritizing Linux for compute, exporting trajectories to macOS for rendering
+  - Near-term solution for other platforms: export/transcode to `mrsim-txt`. Decode in script controlling alterantive renderer (VMD, atomCAD, Blender, etc.), which may require a different language than Swift.
+- Need to port the ray traced trajectory viewer to Linux and Windows
+  - Work with native Linux and Windows APIs for key bindings, windowing
+  - Translate the Metal GPU shaders to HLSL, which compiles into SPIR-V
   - AMD FidelityFX integration for upscaling ray traced images

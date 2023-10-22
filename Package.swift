@@ -48,7 +48,7 @@ let package = Package(
   platforms: platforms,
   products: products,
   dependencies: [
-    .package(url: "https://github.com/apple/swift-numerics", branch: "Quaternions"),
+    .package(url: "https://github.com/philipturner/swift-numerics", branch: "Quaternions"),
     .package(url: "https://github.com/philipturner/swift-openmm", branch: "main"),
     .package(url: "https://github.com/philipturner/MM4", branch: "main")
   ],

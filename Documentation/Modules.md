@@ -17,7 +17,7 @@
 - MolecularRenderer
   - Power-efficient ray tracing
     - Currently, only compiles on Apple platforms
-    - Will eventually support Vulkan and FidelityFX
+    - May eventually support Vulkan and FidelityFX
   - MRSimulation binary codec
 - MolecularRendererApp
   - Not a Swift module, but source files for the MolecularRenderer app

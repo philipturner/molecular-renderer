@@ -140,7 +140,7 @@ struct cross_platform_double3x3 {
      +columns.0[0]*(columns.1[1]*columns.2[2]-columns.2[1]*columns.1[2])
     - columns.0[1]*(columns.1[0]*columns.2[2]-columns.1[2]*columns.2[0])
     + columns.0[2]*(columns.1[0]*columns.2[1]-columns.1[1]*columns.2[0])
-    let invdet = 1/determinant;
+    let invdet = 1/determinant
     
     // minv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
     // minv(0, 1) = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * invdet;

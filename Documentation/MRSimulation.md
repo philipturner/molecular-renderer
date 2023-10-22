@@ -105,7 +105,7 @@ cluster 9:
 Implementations:
 - Swift: [MRSimulationDecoder.swift](./Scripts/MRSimulationDecoder.swift)
 - Python: [MRSimulationDecoder.py](./Scripts/MRSimulationDecoder.py)
-- Rust: [MRSimulationDecoder.rs](./Scripts/MRSimulationDecoder.rs) (untested)
+- Rust: [simulation-import crate](../Sources/SimulationImport)
 
 To test the decoder, open a terminal window. Set the path of the file to decode:
 
