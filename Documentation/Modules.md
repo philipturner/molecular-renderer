@@ -10,7 +10,7 @@
 - HDL
   - Hardware description language for crystolecules and mechanical part assemblies
   - Geometry compiler for generating atoms and modifying crystal surfaces
-  - RigidBody wrapper for stiff diamond mechanical parts
+  - `RigidBody` wrapper for stiff diamond mechanical parts
 
 ## Rendering
 

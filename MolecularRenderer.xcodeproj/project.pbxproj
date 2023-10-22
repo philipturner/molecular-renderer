@@ -256,7 +256,6 @@
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
 		988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFSerializer.swift; sourceTree = "<group>"; };
 		98906AD82AA92FF300FE5832 /* RhombicDodecahedra.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhombicDodecahedra.swift; sourceTree = "<group>"; };
-		98906ADA2AAA68AF00FE5832 /* Goals.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Goals.md; sourceTree = "<group>"; };
 		98906ADB2AAA68C000FE5832 /* MRSimulation.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = MRSimulation.md; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRendererApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
@@ -556,7 +555,6 @@
 			isa = PBXGroup;
 			children = (
 				98B27F642AACD42E0081F2B4 /* Scripts */,
-				98906ADA2AAA68AF00FE5832 /* Goals.md */,
 				98D2A3322AA2DF4D000DBAA0 /* KnownIssues.md */,
 				98D2A3302AA2DF4D000DBAA0 /* Modules.md */,
 				98D2A3312AA2DF4D000DBAA0 /* References.md */,
