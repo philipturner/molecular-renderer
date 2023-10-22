@@ -28,3 +28,4 @@ Improvements: a `Ring_V2` could be created to:
 - vary the number of spokes; request a list of which spokes to include
 - shift the product by a certain number of lattice cells lengthwise, emulating the screw shape from a toroidal worm drive
 - increase or decrease the width, letting a linear vdW `Contour` be used for rotary shapes
+- then, rename the current `Ring` to `Ring_V1` and rename `Ring_V2` to `Ring`

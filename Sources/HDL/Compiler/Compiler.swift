@@ -12,6 +12,23 @@ import QuaternionModule
 public class Compiler {
   static let global: Compiler = Compiler()
   
+  // TODO: Encapsulate the code for handling lattices and solids in a different
+  // file or folder:
+  // - Lattice, LatticeCompiler (remove 'Stack'), LatticeMask
+  //   - "DNF" engine
+  //   - no merging or expansion functionality
+  //   - every operation accepts "Vector"
+  // - Solid, SolidCompiler (remove 'SolidStack'), SolidGrid
+  //   - "CSG" engine
+  //   - no masking functionality
+  //   - every operation accepts either "SIMD3<Float>" or "Atom"
+  //   - create SIMD3<Float> initializers accepting lattice vectors
+  // - Utilities (with SIMD game math functions)
+  // - Parse
+  // - RigidBody
+  //
+  // Deactivate most code in the hardware catalog while this rewrite goes on.
+  
   // For editing a lattice.
   private var stack: Stack?
   private var willUseLattice: Bool = false
@@ -31,20 +48,8 @@ public class Compiler {
   private var willUseSolid: Bool = false
   private var didSetAffine: Bool = false
   
-  private var keyFrames: [AnimationKeyFrame] = []
-  
   init() {
     
-  }
-  
-  /// Unstable API; do not use this function.
-  public func _getKeyFrames() -> [AnimationKeyFrame] {
-    return keyFrames
-  }
-  
-  /// Unstable API; do not use this function.
-  public func _resetKeyFrames() {
-    keyFrames = []
   }
 }
 

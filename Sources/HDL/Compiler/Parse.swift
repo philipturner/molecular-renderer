@@ -7,6 +7,12 @@
 
 import Foundation
 
+// This file is currently unmaintained. However, there is good reason to
+// anticipate it being used in the future. Therefore, it remains in the source
+// tree.
+
+#if false
+
 /// Unstable API; do not use this type. It is a JIT compiler for the DSL.
 public struct _Parse {
   /// Whether to the internal AST for debugging.
@@ -677,3 +683,5 @@ fileprivate func parseStringIntoTokens(_ string: RawString) throws -> [Token] {
   
   return try tokenStrings.map(Token.init(rawValue:))
 }
+
+#endif
