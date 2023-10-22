@@ -7,7 +7,7 @@
 
 import Foundation
 import MolecularRenderer
-import HardwareCatalog
+//import HardwareCatalog
 import HDL
 
 struct OctahedralSpring_Provider {

@@ -7,8 +7,11 @@
 
 import Foundation
 import MolecularRenderer
-import HardwareCatalog
+//import HardwareCatalog
 import HDL
+
+// Rewriting the geometry compiler
+#if false
 
 fileprivate func deduplicate(_ atoms: [SIMD3<Float>]) -> [SIMD3<Float>] {
   var newAtoms: [SIMD3<Float>] = []
@@ -464,3 +467,5 @@ fileprivate func makeConnector5() -> Lattice<Cubic> {
     }
   }
 }
+
+#endif

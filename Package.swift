@@ -6,20 +6,20 @@ import class Foundation.ProcessInfo
 
 var platforms: [SupportedPlatform]? = nil
 var products: [Product] = [
-  .library(
-    name: "HardwareCatalog",
-    targets: ["HardwareCatalog"]),
+//  .library(
+//    name: "HardwareCatalog",
+//    targets: ["HardwareCatalog"]),
   .library(
     name: "HDL",
     targets: ["HDL"]),
 ]
 var targets: [Target] = [
-  .target(
-    name: "HardwareCatalog",
-    dependencies: [
-      "HDL",
-      .product(name: "MM4", package: "MM4")
-    ]),
+//  .target(
+//    name: "HardwareCatalog",
+//    dependencies: [
+//      "HDL",
+//      .product(name: "MM4", package: "MM4")
+//    ]),
   .target(
     name: "HDL",
     dependencies: [

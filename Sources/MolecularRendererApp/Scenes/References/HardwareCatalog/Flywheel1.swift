@@ -7,9 +7,12 @@
 
 import Foundation
 import MolecularRenderer
-import HardwareCatalog
+//import HardwareCatalog
 import HDL
 import QuaternionModule
+
+// Rewriting the geometry compiler
+#if false
 
 fileprivate func deduplicate(_ atoms: [SIMD3<Float>]) -> [SIMD3<Float>] {
   var newAtoms: [SIMD3<Float>] = []
@@ -304,3 +307,5 @@ fileprivate struct Flywheel {
     centers = deduplicate(centers)
   }
 }
+
+#endif

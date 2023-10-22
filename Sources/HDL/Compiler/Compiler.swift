@@ -26,6 +26,11 @@ public class Compiler {
   // - Utilities (with SIMD game math functions)
   // - Parse
   // - RigidBody
+  // - Atom/Element/Material/Bond
+  //   - "Atom" initializer accepting either an element or a bond type
+  //   - replace "Material" with simply .siliconCarbide, .germaniumCarbide and
+  //     don't worry about the specifics of which atom goes where in the lattice
+  //   - "Material" represents compounds with more than one element
   //
   // Deactivate most code in the hardware catalog while this rewrite goes on.
   

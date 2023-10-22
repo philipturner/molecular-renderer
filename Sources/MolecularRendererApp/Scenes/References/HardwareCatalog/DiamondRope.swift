@@ -7,9 +7,12 @@
 
 import Foundation
 import MolecularRenderer
-import HardwareCatalog
+//import HardwareCatalog
 import HDL
 import QuaternionModule
+
+// Rewriting the geometry compiler
+#if false
 
 struct DiamondRope_Provider {
   var provider: any MRAtomProvider
@@ -267,3 +270,5 @@ struct DiamondRope_Provider {
     #endif
   }
 }
+
+#endif

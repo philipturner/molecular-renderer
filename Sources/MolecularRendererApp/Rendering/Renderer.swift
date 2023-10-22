@@ -12,7 +12,7 @@ import MolecularRenderer
 import OpenMM
 import simd
 
-import HardwareCatalog
+//import HardwareCatalog
 import HDL
 import MM4
 

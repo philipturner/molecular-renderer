@@ -10,6 +10,9 @@ import MolecularRenderer
 import HDL
 import QuaternionModule
 
+// Rewriting the geometry compiler
+#if false
+
 struct Spring_Springboard {
   var provider: any MRAtomProvider
   var diamondoid: Diamondoid!
@@ -822,3 +825,5 @@ struct Spring_Springboard {
     }
   }
 }
+
+#endif

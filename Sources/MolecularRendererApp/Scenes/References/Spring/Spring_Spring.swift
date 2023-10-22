@@ -9,6 +9,9 @@ import Foundation
 import MolecularRenderer
 import HDL
 
+// Rewriting the geometry compiler
+#if false
+
 struct Spring_Spring {
   var provider: any MRAtomProvider
   var diamondoid: Diamondoid!
@@ -251,3 +254,5 @@ struct Spring_Spring {
     #endif
   }
 }
+
+#endif
