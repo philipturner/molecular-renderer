@@ -39,8 +39,6 @@ public class Compiler {
   //   - "Atom" initializer accepting either an element or a bond type
   //   - replace "Material" with simply .siliconCarbide, .germaniumCarbide and
   //     don't worry about the specifics of which atom goes where in the lattice
-  //   - "Material" represents any crystal formed, also includes the words
-  //      .carbon, .silicon, .germanium
   //
   // Leave the "HDL" document unmaintained for a while, will eventually offload
   // much of the documentation to Swift-DocC. Leave the remaining Markdown file

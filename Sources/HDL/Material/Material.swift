@@ -9,7 +9,7 @@ public enum Bond {
   case single
   case double
   case triple
-  case fractional(Int, Int)
+  case fractional(Float)
 }
 
 public enum Element: Int, CustomStringConvertible {

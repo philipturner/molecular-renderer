@@ -225,21 +225,20 @@ Translate the object by the specified vector, relative to its current position. 
 // cubic crystals, they are edges of a cube. For hexagonal crystals, they are
 // sides of a hexagonal prism. The vectors aren't always orthogonal, so they are
 // internally translated to nanometers before applying affine transforms.
-//
-// Hexagonal crystals are sometimes described with four unit vectors: h, k, i,
-// and l. The 'i' vector is redundant and equals -h - k, creating a set of 3
-// vectors symmetric around the perimeter of a hexagon. In the HDL, you
-// must use (-h - k) to represent the 'i' vector.
-
 Hexagonal.h: Vector<Hexagonal> = [1, 0, 0] * hexagon side length
 Hexagonal.k: Vector<Hexagonal> = [-0.5, 0.866, 0] * hexagon side length
 Hexagonal.l: Vector<Hexagonal> = [0, 0, 1] * hexagonal prism depth
 Cubic.h: Vector<Cubic> = [1, 0, 0] * lattice spacing
 Cubic.k: Vector<Cubic> = [0, 1, 0] * lattice spacing
 Cubic.l: Vector<Cubic> = [0, 0, 1] * lattice spacing
-Amorphous.x: Vector<Amorphous> = [1, 0, 0] * nanometer
-Amorphous.y: Vector<Amorphous> = [0, 1, 0] * nanometer
-Amorphous.z: Vector<Amorphous> = [0, 0, 1] * nanometer
+
+// Hexagonal crystals are sometimes described with four unit vectors: h, k, i,
+// and l. The 'i' vector is redundant and equals -h - k, creating a set of 3
+// vectors symmetric around the perimeter of a hexagon. However, for the HDL, it
+// can make representation more concise.
+Lattice<Hexagonal> { h, k, l in
+  let i = -h - k
+}
 ```
 
 Unit vectors representing the crystal's basis.
