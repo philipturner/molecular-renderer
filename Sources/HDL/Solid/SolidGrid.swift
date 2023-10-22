@@ -10,7 +10,7 @@ import Foundation
 // New, sparse internal representation:
 // - lower octants: 0.25 nm
 // - lower voxels: 0.5 nm
-// - upper voxels: 4.0 nm
+// - upper voxels: 2.0 nm
 //
 // - store chunks of 8 atoms in the arrays, interlacing atoms for each octant
 //   - [SIMD8(x0), SIMD8(y0), SIMD8(z0), SIMD8(x1), SIMD8(y1), SIMD8(z1), ...]
