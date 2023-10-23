@@ -5,8 +5,6 @@
 //  Created by Philip Turner on 10/22/23.
 //
 
-import Foundation
-
 struct CubicCell {
   // Multiply the plane's origin by [4, 4, 4].
   // Span: [0 -> h], [0 -> k], [0 -> l]
@@ -59,7 +57,7 @@ struct CubicMask {
     let sdfDimensionZ = Int(dimensions.z + 1)
     var sdf: UnsafeMutableRawPointer = .allocate(
       byteCount: 4 * sdfDimensionY * sdfDimensionZ, alignment: 32)
-    defer { free(sdf) }
+    defer { sdf.deallocate() }
     
     // Solve the equations in parallel, 8 elements at a time.
     let sdfVector = sdf.assumingMemoryBound(to: SIMD8<Float>.self)
@@ -117,6 +115,7 @@ struct CubicMask {
         while loopStart <= loopEnd {
           let address = Int(loopStart) + baseAddress
           lowerCorner.x = loopStart
+          
           let cellMask = CubicCell.intersect(
             origin: origin - lowerCorner, normal: normal)
           mask[address] = cellMask
@@ -128,4 +127,6 @@ struct CubicMask {
 
 struct CubicGrid {
   // Store some vectors of bitmasks: SIMD8<Int8>
+  // Map known bond order fractions to an enumerated set of negative integer
+  // codes.
 }

@@ -237,7 +237,24 @@ Cubic.l: Vector<Cubic> /* [0, 0, 1] * lattice spacing */
 // vectors symmetric around the perimeter of a hexagon. However, for the HDL, it
 // can make representation more concise.
 Lattice<Hexagonal> { h, k, l in
+  // h + k + i == 0
   let i = -h - k
+}
+
+// Another helpful technique, which makes Hexagonal more similar to Cubic, is to
+// replace 'k' with something orthogonal to 'h'. The coordinate basis has
+// changed from h/k/l to h/h + 2k/l.
+Lattice<Hexagonal> { h, k, l in
+  // [3 * h, 2 * h2k, 2 * l] forms something close to a cube.
+  let h2k = h + 2 * k
+  Plane { -h }
+  Plane { -h2k }
+  Plane { -l }
+  
+  Origin { 3 * h + 2 * (h2k + l) }
+  Plane { +h }
+  Plane { +h2k }
+  Plane { +l }
 }
 ```
 
