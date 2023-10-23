@@ -24,6 +24,15 @@ import Foundation
 // order at an extremely high resolution (with connected hydrogens/halogens
 // simply inserted into the list). It would also be critical for accelerating
 // `Solid` + `Solid` merge operations.
+//
+// Algorithms:
+// - Verify integrity of unknown atom source, throwing error if atoms are duplicated
+// - Scan 8 closest octants during the comparison, use old atom’s position and new atom’s identity
+//     - round to nearest even when finding search octant
+//     - If within floating point epsilon away from 2 planes of first matching octant, set lane mask to 1 octant in that direction
+//     - If other octant is out of bounds, set lane mask to 1 octant and potentially modify the lower search corner
+// - Otherwise, enter memory allocation pass
+// - Check for overlapping destination octants in the incoming atom 8-vector, special serial case to handle what happens (match count > 1 and address not -1)
 
 /// Rounds an integer up to the nearest power of 2.
 fileprivate func roundUpToPowerOf2(_ input: Int) -> Int {
