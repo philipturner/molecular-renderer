@@ -17,6 +17,13 @@ import Foundation
 // - when merging, sort the incoming atoms into the existing octants
 // - perform 8 comparisons in parallel, lanewise, instead of 64 un-sorted
 // - no restrictions on atom density
+//
+// `Solid` objects should retain ownership of the grid that created them. Use
+// that grid instead of a raw list of atoms, as it contains some very useful
+// structure. For example, it could be used to easily sort the atoms into Morton
+// order at an extremely high resolution (with connected hydrogens/halogens
+// simply inserted into the list). It would also be critical for accelerating
+// `Solid` + `Solid` merge operations.
 
 /// Rounds an integer up to the nearest power of 2.
 fileprivate func roundUpToPowerOf2(_ input: Int) -> Int {
