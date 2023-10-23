@@ -99,7 +99,7 @@ struct HexagonalMask {
       dimensions.x * (dimensions.y * 2 - 1) * dimensions.z))
     
     if all(normal .== 0) {
-      // This cannot evaluated. It is a permissible escape hatch to create a
+      // This cannot be evaluated. It is a permissible escape hatch to create a
       // mask with no intersection.
       return
     }
@@ -175,18 +175,19 @@ struct HexagonalMask {
           parityOffset = 1.5
         }
         while loopStart <= minX - 1 {
-          loopStart += 1
+          loopStart += 3
           let address = Int(loopStart) + baseAddress
           mask[address] = SIMD16(repeating: 255)
         }
         while loopEnd >= maxX + 1 {
-          loopEnd -= 1
+          loopEnd -= 3
           let address = Int(loopEnd) + baseAddress
           mask[address] = SIMD16(repeating: 0)
         }
         
         var lowerCorner = SIMD3<Float>(0, Float(y) * 0.5, Float(z))
         while loopStart <= loopEnd {
+          defer { loopStart += 3 }
           let address = Int(loopStart - parityOffset) + baseAddress
           lowerCorner.x = loopStart
           

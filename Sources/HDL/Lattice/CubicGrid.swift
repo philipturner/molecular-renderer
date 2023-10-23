@@ -44,7 +44,7 @@ struct CubicMask {
       dimensions.x * dimensions.y * dimensions.z))
     
     if all(normal .== 0) {
-      // This cannot evaluated. It is a permissible escape hatch to create a
+      // This cannot be evaluated. It is a permissible escape hatch to create a
       // mask with no intersection.
       return
     }
@@ -113,6 +113,7 @@ struct CubicMask {
         
         var lowerCorner = SIMD3<Float>(0, Float(y), Float(z))
         while loopStart <= loopEnd {
+          defer { loopStart += 1 }
           let address = Int(loopStart) + baseAddress
           lowerCorner.x = loopStart
           
