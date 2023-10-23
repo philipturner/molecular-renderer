@@ -29,7 +29,7 @@ struct HexagonalCell {
   static func intersect(
     origin: SIMD3<Float>,
     normal: SIMD3<Float>
-  ) -> SIMD16<Int8> {
+  ) -> SIMD16<UInt8> {
     let scaledOrigin = origin * 4
     let scaledNormal = normal * 1
     
@@ -51,17 +51,18 @@ struct HexagonalCell {
     var mask1: SIMD4<Int32> = .one
     mask0.replace(with: SIMD8.zero, where: dotProduct0 .> 0)
     mask1.replace(with: SIMD4.zero, where: dotProduct1 .> 0)
-    let output0 = SIMD8<Int8>(truncatingIfNeeded: mask0)
-    let output1 = SIMD4<Int8>(truncatingIfNeeded: mask1)
+    let output0 = SIMD8<UInt8>(truncatingIfNeeded: mask0)
+    let output1 = SIMD4<UInt8>(truncatingIfNeeded: mask1)
     return SIMD16(
       lowHalf: output0,
       highHalf: SIMD8(lowHalf: output1, highHalf: .zero))
   }
 }
 
-// Don't store an SDF in memory. Use a rule for generating coordinates on the
-// fly, creating a 12-wide vector containing 12 corners, then intersecting based
-// on that. Every inner loop iteration, increment the x vector's value by 3.
+struct HexagonalMask {
+  
+}
+
 struct HexagonalGrid {
   // Store some vectors of bitmasks: SIMD16<Int8>
 }
