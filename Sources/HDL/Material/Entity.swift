@@ -73,3 +73,11 @@ public struct Entity {
     self.storage = SIMD4(position, type.rawValue)
   }
 }
+
+/// A block of entities for processing in parallel in a SIMD instruction.
+struct EntityBlock {
+  var x: SIMD8<Float>
+  var y: SIMD8<Float>
+  var z: SIMD8<Float>
+  var w: SIMD8<Float>
+}
