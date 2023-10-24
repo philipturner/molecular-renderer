@@ -47,18 +47,12 @@ At the moment, the JIT compiler has been deprecated, in favor of compiling in Sw
 ### Lattice Editing
 
 ```swift
-Contour(Float) { [SIMD4<Float>] }
-```
-
-Creates a contour with the provided spacing between the entered atoms. This is typically used to auto-generate complementary vdW interfaces, an otherwise time-consuming task. The entered atoms must be in nanometers.
-
-> WARNING: The spacing is in number of lattice cells, not nanometers. To create a spacing based on hydrogen vdW radius, first fetch the value of the lattice constant. Divide the spacing in nanometers by the lattice constant.
-
-```swift
 Cut()
 ```
 
 Replaces the selected volume with nothing. This must be called inside a `Volume`.
+
+> TODO: Extract Cut() and other plane-based operations to a separate section. Change `Lattice` to be mostly an alias of `Solid` with reduced functionality, and potentially a unified IR.
 
 ```swift
 Replace { Bond }
@@ -92,7 +86,6 @@ Creates two planes by reflecting the first argument `(Vector)` across the second
 ### Objects
 
 ```swift
-Amorphous: Basis
 Cubic: Basis
 Hexagonal: Basis
 ```
@@ -186,6 +179,8 @@ Volume {
 
 Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This may not be called inside `Affine`, but may be called inside another `Volume`.
 
+This is permitted inside both a `Lattice` and `Solid`.
+
 ### Solid Editing
 
 ```swift
@@ -219,6 +214,8 @@ Translate { Vector }
 Translate the object by the specified vector, relative to its current position. This must be called inside an `Affine`.
 
 ### Vectors
+
+> TODO: Remove the `Vector` type, replacing with `SIMD3<Float>` that can permit the plane boolean algebra inside of `Solid`.
 
 ```swift
 // Lattice vectors originate from the smallest repeatable unit of crystal. For
