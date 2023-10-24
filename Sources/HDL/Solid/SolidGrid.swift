@@ -43,13 +43,14 @@ struct SolidLowerVoxel {
   /// the 8 octants. This is a highly efficient method to store the data
   /// pre-sorted into octants. Entity block x/y/z are absolute positions, not
   /// positions relative to the lower corner.
-  var entities: [EntityBlock] = [
-    EntityBlock(x: .zero, y: .zero, z: .zero, w: .zero)
-  ]
+  var entities: [EntityBlock] = [EntityBlock()]
+  
+  /// Stores the number of non-empty atoms in each octant. Will never exceed 255.
   var octantCounts: SIMD8<UInt8> = .zero
 }
 
 struct SolidUpperVoxel {
+  /// Stores a 4x4x4 grid of lower voxels.
   var lowerVoxels: [SolidLowerVoxel] = Array(repeating: .init(), count: 64)
 }
 
@@ -111,6 +112,50 @@ struct SolidGrid {
           self.upperVoxels[Int(newUpperAddress)] = upperVoxel
         }
       }
+    }
+  }
+  
+  /// Create a new grid while verifying integrity of the data source.
+  init(entities: [Entity]) {
+    var lowerBound = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+    var upperBound = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+    for entity in entities where !entity.isEmpty {
+      lowerBound.replace(
+        with: entity.position, where: entity.position .< lowerBound)
+      upperBound.replace(
+        with: entity.position, where: entity.position .> upperBound)
+    }
+    if entities.count == 0 {
+      lowerBound = .zero
+      upperBound = .zero
+    }
+    self.init(lowerBound: lowerBound, upperBound: upperBound)
+    
+    // Run through the loop in groups of 8 entities.
+    let blockCount = (entities.count + 7) / 8
+    for blockID in 0..<blockCount {
+      var block = EntityBlock()
+      let blockStart = blockID * 8
+      
+      if blockID * 8 + 7 < entities.count {
+        for lane in 0..<8 {
+          let entity = entities[blockStart + lane]
+          block.x[lane] = entity.storage.x
+          block.y[lane] = entity.storage.y
+          block.z[lane] = entity.storage.z
+          block.w[lane] = entity.storage.w
+        }
+      } else {
+        for lane in 0..<entities.count - blockStart {
+          let entity = entities[blockStart + lane]
+          block.x[lane] = entity.storage.x
+          block.y[lane] = entity.storage.y
+          block.z[lane] = entity.storage.z
+          block.w[lane] = entity.storage.w
+        }
+      }
+      
+      // TODO: Finish
     }
   }
 }

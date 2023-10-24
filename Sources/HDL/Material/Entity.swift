@@ -46,7 +46,7 @@ public struct Entity {
   @inlinable @inline(__always)
   public var position: SIMD3<Float> {
     get {
-      SIMD3(storage.x, storage.y, storage.z)
+      unsafeBitCast(storage, to: SIMD3<Float>.self)
     }
     set {
       storage = SIMD4(newValue, storage.w)
@@ -64,6 +64,11 @@ public struct Entity {
   }
   
   @inlinable @inline(__always)
+  public var isEmpty: Bool {
+    storage.w == 0
+  }
+  
+  @inlinable @inline(__always)
   public init(storage: SIMD4<Float>) {
     self.storage = storage
   }
@@ -76,8 +81,8 @@ public struct Entity {
 
 /// A block of entities for processing in parallel in a SIMD instruction.
 struct EntityBlock {
-  var x: SIMD8<Float>
-  var y: SIMD8<Float>
-  var z: SIMD8<Float>
-  var w: SIMD8<Float>
+  var x: SIMD8<Float> = .zero
+  var y: SIMD8<Float> = .zero
+  var z: SIMD8<Float> = .zero
+  var w: SIMD8<Float> = .zero
 }
