@@ -261,13 +261,14 @@ struct HexagonalGrid: LatticeGrid {
     // | 1/3 -1/2 |
     // | 0    1/2 |
     var columns = (SIMD2<Float>(1.0 / 3, 0),
-                   SIMD2<Float>(-0.5, 0.5))
+                   SIMD2<Float>(-0.5 / 3, 0.5))
     func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
       var simd4 = SIMD4(input, 0)
       simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
       return unsafeBitCast(simd4, to: SIMD3<Float>.self)
     }
     let bounds = transform(untransformedBounds)
+    
     dimensions = SIMD3<Int32>(bounds.rounded(.up))
     dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
@@ -298,9 +299,9 @@ struct HexagonalGrid: LatticeGrid {
     let h2kPlus = transform(SIMD3<Float>(1, 0, 0))
     let lMinus = transform(SIMD3<Float>(0, 0, -1))
     let lPlus = transform(SIMD3<Float>(0, 0, 1))
-    self.initializeBounds(bounds, normals: [
-      hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
-    ])
+//    self.initializeBounds(bounds, normals: [
+//      hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
+//    ])
   }
   
   // Cut() can be implemented by replacing with ".empty" in the mask's zero
@@ -357,9 +358,18 @@ struct HexagonalGrid: LatticeGrid {
               continue
             }
             
-            let x = CubicCell.x0[lane] / 3
-            let y = CubicCell.y0[lane] / 3
-            let z = CubicCell.z0[lane] / 8
+            var x: Float
+            var y: Float
+            var z: Float
+            if lane < 8 {
+              x = HexagonalCell.x0[lane] / 3
+              y = HexagonalCell.y0[lane] / 3
+              z = HexagonalCell.z0[lane] / 8
+            } else {
+              x = HexagonalCell.x1[lane - 8] / 3
+              y = HexagonalCell.y1[lane - 8] / 3
+              z = HexagonalCell.z1[lane - 8] / 8
+            }
             let type = EntityType(compactRepresentation: cell[lane])
             
             var position = SIMD3<Float>(x, y, z)

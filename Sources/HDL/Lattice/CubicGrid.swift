@@ -8,9 +8,9 @@
 struct CubicCell {
   // Multiply the plane's origin by [4, 4, 4].
   // Span: [0 -> h], [0 -> k], [0 -> l]
-  static let x0 = SIMD8<Float>(0, 1, 0, 2, 2, 1, 3, 3)
-  static let y0 = SIMD8<Float>(0, 1, 2, 0, 2, 3, 1, 3)
-  static let z0 = SIMD8<Float>(0, 1, 2, 2, 0, 3, 3, 1)
+  static let x0 = SIMD8<Float>(0, 1, 0, 1, 2, 3, 2, 3)
+  static let y0 = SIMD8<Float>(0, 1, 2, 3, 0, 1, 2, 3)
+  static let z0 = SIMD8<Float>(0, 1, 2, 3, 2, 3, 0, 1)
   
   // Binary mask corresponding to the plane's "one volume" and "zero volume".
   static func intersect(
