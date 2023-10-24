@@ -175,6 +175,7 @@
 		981822612AE59628009CFAA8 /* SolidStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolidStack.swift; sourceTree = "<group>"; };
 		981822622AE59631009CFAA8 /* CubicGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicGrid.swift; sourceTree = "<group>"; };
 		981822632AE5963A009CFAA8 /* HexagonalGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalGrid.swift; sourceTree = "<group>"; };
+		981822642AE74DCA009CFAA8 /* LatticeGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeGrid.swift; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
@@ -401,6 +402,7 @@
 				981822622AE59631009CFAA8 /* CubicGrid.swift */,
 				981822632AE5963A009CFAA8 /* HexagonalGrid.swift */,
 				98610F322AA24533006FAF95 /* Lattice.swift */,
+				981822642AE74DCA009CFAA8 /* LatticeGrid.swift */,
 				98D0F1942AB5150600BE267D /* LatticeStack.swift */,
 				98610F1A2AA21871006FAF95 /* Vector.swift */,
 			);

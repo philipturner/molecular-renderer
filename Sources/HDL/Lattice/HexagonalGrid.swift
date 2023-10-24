@@ -73,25 +73,40 @@ enum HexagonalGridParity: Int32 {
   case firstRowStaggered = 1
 }
 
-struct HexagonalMask {
+struct HexagonalMask: LatticeMask {
   var mask: [SIMD16<UInt8>]
   
   /// Create a mask using a plane.
-  ///
-  /// > WARNING: The plane must be transformed from a h/k/l basis to a h/h+2k/l
-  ///   basis before entering into this function. The transform matrix only has
-  ///   fractions of 1/2, so there's no precision loss from floating-point
-  ///   error.
   ///
   /// The dimensions for this grid will appear very lopsided. `x` increments by
   /// one roughly every 2 hexagons in the `h` direction. Meanwhile, `y`
   /// increments by one exactly every hexagon in the `k` direction. This is the
   /// most direct way to represent the underlying storage.
-  init(dimensions: SIMD4<Int32>, origin: SIMD3<Float>, normal: SIMD3<Float>) {
-    // In loops, it will perform an XOR with the parity's raw value.
-    guard let parity = HexagonalGridParity(rawValue: dimensions.w) else {
-      fatalError("Invalid parity in hexagonal plane dimensions.")
+  init(
+    dimensions: SIMD3<Int32>,
+    origin untransformedOrigin: SIMD3<Float>,
+    normal untransformedNormal: SIMD3<Float>
+  ) {
+    var origin: SIMD3<Float>
+    var normal: SIMD3<Float>
+    do {
+      // This matrix maps from h/k/l -> h/h + 2k/l.
+      // | 1 -1/2 |
+      // | 0  1/2 |
+      let columns = (SIMD2<Float>(1, 0),
+                     SIMD2<Float>(-0.5, 0.5))
+      @inline(__always)
+      func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
+        var simd4 = SIMD4(input, 0)
+        simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
+        return unsafeBitCast(simd4, to: SIMD3<Float>.self)
+      }
+      origin = transform(untransformedOrigin)
+      normal = transform(untransformedNormal)
     }
+    
+    // In loops, it will perform an XOR with the parity's raw value.
+    let parity: HexagonalGridParity = .firstRowStaggered
     
     // Initialize the mask with everything in the one volume. The full mask
     // prevents the entity types from being set to "empty".
@@ -120,7 +135,7 @@ struct HexagonalMask {
     for z in 0..<sdfDimensionZ {
       for arrayIndex in 0..<sdfDimensionY / 8 {
         let base = Int32(truncatingIfNeeded: arrayIndex &* 8)
-        let offset = SIMD8<UInt8>(0, 1, 2, 3, 4, 5, 6, 7)
+        let offset = SIMD8<Int8>(-1, 0, 1, 2, 3, 4, 5, 6)
         let y = SIMD8<Int32>(repeating: base) &+
         SIMD8<Int32>(truncatingIfNeeded: offset)
         
@@ -136,7 +151,9 @@ struct HexagonalMask {
     }
     
     for z in 0..<sdfDimensionZ {
-      for y in 0..<sdfDimensionY * 2 - 1 {
+      // Note that the 'y' coordinate here starts at zero, while the actual
+      // floating-point value should start at -0.5.
+      for y in 0..<sdfDimensionY * 2 + 1 {
         let offsetY = SIMD4<UInt8>(0, 2, 0, 2)
         let offsetZ = SIMD4<UInt8>(0, 0, 1, 1)
         var searchY = SIMD4<Int32>(repeating: Int32(y))
@@ -169,7 +186,7 @@ struct HexagonalMask {
         // Staggered rows have one slot wasted in memory. This is regardless of
         // how tall the associated columns are. The memory wasting is O(hl) in
         // an O(hkl) context.
-        if (y & 1) ^ Int(parity.rawValue) == 1 {
+        if y ^ Int(parity.rawValue) == 1 {
           loopStart += 1.5
           loopEnd -= 1.5
           parityOffset = 1.5
@@ -185,7 +202,9 @@ struct HexagonalMask {
           mask[address] = SIMD16(repeating: 0)
         }
         
-        var lowerCorner = SIMD3<Float>(0, Float(y) * 0.5, Float(z))
+        // Correct the floating-point value for 'y' to be shifted downward
+        // by -0.5.
+        var lowerCorner = SIMD3<Float>(0, Float(y) * 0.5 - 0.5, Float(z))
         while loopStart <= loopEnd {
           defer { loopStart += 3 }
           let address = Int(loopStart - parityOffset) + baseAddress
@@ -213,8 +232,57 @@ struct HexagonalMask {
   }
 }
 
-struct HexagonalGrid {
-  // Store some vectors of bitmasks: SIMD16<Int8>
-  // Map known bond order fractions to an enumerated set of negative integer
-  // codes.
+struct HexagonalGrid: LatticeGrid {
+  var dimensions: SIMD4<Int32>
+  var entityTypes: [SIMD16<Int8>]
+  
+  /// Create a mask using a plane.
+  init(bounds untransformedBounds: SIMD3<Float>, material: MaterialType) {
+    var repeatingUnit: SIMD16<Int8>
+    switch material {
+    case .elemental(let element):
+      let scalar = Int8(clamping: element.rawValue)
+      repeatingUnit = SIMD16(repeating: scalar)
+    case .checkerboard(let a, let b):
+      let scalarA = Int8(clamping: a.rawValue)
+      let scalarB = Int8(clamping: b.rawValue)
+      let unit = unsafeBitCast(SIMD2(scalarA, scalarB), to: UInt16.self)
+      let repeated = SIMD8<UInt16>(repeating: unit)
+      repeatingUnit = unsafeBitCast(repeated, to: SIMD16<Int8>.self)
+    }
+    repeatingUnit.highHalf.highHalf = SIMD4(repeating: 0)
+    
+    // This matrix maps from h/k/l -> 3h/h + 2k/l.
+    // | 1/3 -1/2 |
+    // | 0    1/2 |
+    let columns = (SIMD2<Float>(1.0 / 3, 0),
+                   SIMD2<Float>(-0.5, 0.5))
+    @inline(__always)
+    func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
+      var simd4 = SIMD4(input, 0)
+      simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
+      return unsafeBitCast(simd4, to: SIMD3<Float>.self)
+    }
+    let bounds = transform(untransformedBounds)
+    
+    var boundsInt = SIMD3<Int32>(bounds.rounded(.up))
+    boundsInt.replace(with: SIMD3.zero, where: boundsInt .< 0)
+    dimensions = SIMD4(boundsInt, 0)
+    entityTypes = Array(repeating: repeatingUnit, count: Int(
+      boundsInt.x * boundsInt.y * boundsInt.z))
+    
+    fatalError("Need to apply some planes to remove edge entities.")
+  }
+  
+  // Cut() can be implemented by replacing with ".empty" in the mask's zero
+  // volume.
+  mutating func replace(with other: Int8, where mask: HexagonalMask) {
+    var newValue = SIMD16(repeating: other)
+    newValue.highHalf.highHalf = SIMD4(repeating: 0)
+    
+    for cellID in entityTypes.indices {
+      let condition = mask.mask[cellID] .> 0
+      entityTypes[cellID].replace(with: newValue, where: condition)
+    }
+  }
 }

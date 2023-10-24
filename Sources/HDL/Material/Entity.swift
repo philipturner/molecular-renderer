@@ -14,7 +14,7 @@ public enum EntityType: RawRepresentable {
   case bond(Float)
   case empty
   
-  @inlinable @inline(__always)
+  @inlinable
   public init(rawValue: Float) {
     if rawValue > 0 {
       self = .atom(UInt8(exactly: rawValue) ?? 0)
@@ -26,13 +26,32 @@ public enum EntityType: RawRepresentable {
     }
   }
   
-  @inlinable @inline(__always)
+  @inlinable
   public var rawValue: Float {
     switch self {
     case .atom(let atomicNumber):
       return Float(atomicNumber)
     case .bond(let bondOrder):
       return Float(-bondOrder)
+    case .empty:
+      return 0
+    }
+  }
+  
+  /// Map known bond order fractions to an enumerated set of negative integer
+  /// codes.
+  var compactRepresentation: Int8 {
+    switch self {
+    case .atom(let atomicNumber):
+      return Int8(clamping: atomicNumber)
+    case .bond(let bondOrder):
+      if let integerValue = Int8(exactly: bondOrder),
+         bondOrder >= 1 && bondOrder <= 3 {
+        return integerValue
+      } else {
+        // No fractional bond orders are recognized yet.
+        return 0
+      }
     case .empty:
       return 0
     }

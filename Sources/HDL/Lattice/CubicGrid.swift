@@ -33,7 +33,7 @@ struct CubicCell {
   }
 }
 
-struct CubicMask {
+struct CubicMask: LatticeMask {
   var mask: [SIMD8<UInt8>]
   
   /// Create a mask using a plane.
@@ -124,10 +124,48 @@ struct CubicMask {
       }
     }
   }
+  
+  // TODO: Define some logical operations on masks.
 }
 
-struct CubicGrid {
-  // Store some vectors of bitmasks: SIMD8<Int8>
-  // Map known bond order fractions to an enumerated set of negative integer
-  // codes.
+// This should conform to a common protocol for manipulating grids. Cubic and
+// hexagonal masks should follow a similar design.
+struct CubicGrid: LatticeGrid {
+  var dimensions: SIMD4<Int32>
+  var entityTypes: [SIMD8<Int8>]
+  
+  /// Create a mask using a plane.
+  init(bounds: SIMD3<Float>, material: MaterialType) {
+    var repeatingUnit: SIMD8<Int8>
+    switch material {
+    case .elemental(let element):
+      let scalar = Int8(clamping: element.rawValue)
+      repeatingUnit = SIMD8(repeating: scalar)
+    case .checkerboard(let a, let b):
+      let scalarA = Int8(clamping: a.rawValue)
+      let scalarB = Int8(clamping: b.rawValue)
+      let unit = unsafeBitCast(SIMD2(scalarA, scalarB), to: UInt16.self)
+      let repeated = SIMD4<UInt16>(repeating: unit)
+      repeatingUnit = unsafeBitCast(repeated, to: SIMD8<Int8>.self)
+    }
+    
+    var boundsInt = SIMD3<Int32>(bounds.rounded(.up))
+    boundsInt.replace(with: SIMD3.zero, where: boundsInt .< 0)
+    dimensions = SIMD4(boundsInt, 0)
+    entityTypes = Array(repeating: repeatingUnit, count: Int(
+      boundsInt.x * boundsInt.y * boundsInt.z))
+    
+    fatalError("Need to apply some planes to remove edge entities.")
+  }
+  
+  // Cut() can be implemented by replacing with ".empty" in the mask's zero
+  // volume.
+  mutating func replace(with other: Int8, where mask: CubicMask) {
+    let newValue = SIMD8(repeating: other)
+    
+    for cellID in entityTypes.indices {
+      let condition = mask.mask[cellID] .> 0
+      entityTypes[cellID].replace(with: newValue, where: condition)
+    }
+  }
 }
