@@ -8,9 +8,9 @@
 struct CubicCell {
   // Multiply the plane's origin by [4, 4, 4].
   // Span: [0 -> h], [0 -> k], [0 -> l]
-  static let x0 = SIMD8<Float>(0, 1, 0, 0, 1, 3, 3, 3)
-  static let y0 = SIMD8<Float>(0, 0, 1, 0, 3, 1, 3, 3)
-  static let z0 = SIMD8<Float>(0, 0, 0, 1, 3, 3, 1, 3)
+  static let x0 = SIMD8<Float>(0, 1, 0, 2, 2, 1, 3, 3)
+  static let y0 = SIMD8<Float>(0, 1, 2, 0, 2, 3, 1, 3)
+  static let z0 = SIMD8<Float>(0, 1, 2, 2, 0, 3, 3, 1)
   
   // Binary mask corresponding to the plane's "one volume" and "zero volume".
   static func intersect(
@@ -76,50 +76,55 @@ struct CubicMask: LatticeMask {
         
         // intersection x < 0      -> distance > 0, zero volume
         // intersection x > length -> distance < 0, one volume
-        sdfVector[z &* sdfDimensionY &+ arrayIndex &* 8] = x
+        sdfVector[z &* sdfDimensionY / 8 &+ arrayIndex] = x
       }
     }
     
-    for z in 0..<sdfDimensionZ {
-      for y in 0..<sdfDimensionY {
+    for z in 0..<dimensions.z {
+      for y in 0..<dimensions.y {
         let offsetY = SIMD4<UInt8>(0, 1, 0, 1)
         let offsetZ = SIMD4<UInt8>(0, 0, 1, 1)
         var searchY = SIMD4<Int32>(repeating: Int32(y))
         var searchZ = SIMD4<Int32>(repeating: Int32(z))
         searchY &+= SIMD4(truncatingIfNeeded: offsetY)
         searchZ &+= SIMD4(truncatingIfNeeded: offsetZ)
-        let addresses = searchZ &* Int32(sdfDimensionY) &+ Int32(sdfDimensionY)
+        let addresses = searchZ &* Int32(sdfDimensionY) &+ searchY
         
         var gathered: SIMD4<Float> = .zero
         for lane in 0..<4 {
           gathered[lane] = sdfScalar[Int(addresses[lane])]
         }
-        let minX = gathered.min()
-        let maxX = gathered.max()
-        let baseAddress = (z &* Int(dimensions.y) &+ y) &* Int(dimensions.x)
+        var minX = gathered.min()
+        var maxX = gathered.max()
+        minX = max(minX, 0)
+        maxX = min(maxX, Float(dimensions.x - 1))
+        
+        let baseAddress = (z &* Int32(dimensions.y) &+ y) &* Int32(dimensions.x)
         
         var loopStart = Float(0)
         var loopEnd = Float(dimensions.x) - 1
-        while loopStart <= minX - 1 {
-          loopStart += 1
-          let address = Int(loopStart) + baseAddress
-          mask[address] = SIMD8(repeating: 255)
-        }
-        while loopEnd >= maxX + 1 {
-          loopEnd -= 1
-          let address = Int(loopEnd) + baseAddress
-          mask[address] = SIMD8(repeating: 0)
-        }
+        
+        // Deactivate the buggy code for now. There's NaNs somewhere.
+//        while loopStart <= minX - 1 {
+//          let address = Int32(loopStart) + baseAddress
+//          mask[Int(address)] = SIMD8(repeating: 255)
+//          loopStart += 1
+//        }
+//        while loopEnd >= maxX + 1 {
+//          let address = Int32(loopEnd) + baseAddress
+//          mask[Int(address)] = SIMD8(repeating: 0)
+//          loopEnd -= 1
+//        }
         
         var lowerCorner = SIMD3<Float>(0, Float(y), Float(z))
         while loopStart <= loopEnd {
           defer { loopStart += 1 }
-          let address = Int(loopStart) + baseAddress
+          let address = Int32(loopStart) + baseAddress
           lowerCorner.x = loopStart
           
           let cellMask = CubicCell.intersect(
             origin: origin - lowerCorner, normal: normal)
-          mask[address] = cellMask
+          mask[Int(address)] = cellMask
         }
       }
     }
@@ -207,9 +212,9 @@ struct CubicGrid: LatticeGrid {
             var position = SIMD3<Float>(x, y, z)
             position += lowerCorner
             position =
-            outputTransform.0 * lowerCorner.x +
-            outputTransform.1 * lowerCorner.y +
-            outputTransform.2 * lowerCorner.z
+            outputTransform.0 * position.x +
+            outputTransform.1 * position.y +
+            outputTransform.2 * position.z
             
             let entity = Entity(
               position: position, type: type)
@@ -220,4 +225,14 @@ struct CubicGrid: LatticeGrid {
     }
     return output
   }
+}
+
+/// Test function that returns the initial grid. Try with:
+/// - diamond
+/// - moissanite
+/// - germanium
+public func Cubic_init(
+  bounds: SIMD3<Float>, material: MaterialType
+) -> [Entity] {
+  CubicGrid(bounds: bounds, material: material).entities
 }

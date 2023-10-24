@@ -146,28 +146,30 @@ struct HexagonalMask: LatticeMask {
         
         // intersection x < 0      -> distance > 0, zero volume
         // intersection x > length -> distance < 0, one volume
-        sdfVector[z &* sdfDimensionY &+ arrayIndex &* 8] = x
+        sdfVector[z &* sdfDimensionY / 8 &+ arrayIndex] = x
       }
     }
     
-    for z in 0..<sdfDimensionZ {
+    for z in 0..<dimensions.z {
       // Note that the 'y' coordinate here starts at zero, while the actual
       // floating-point value should start at -0.5.
-      for y in 0..<sdfDimensionY * 2 + 1 {
+      for y in 0..<dimensions.y * 2 - 1 {
         let offsetY = SIMD4<UInt8>(0, 2, 0, 2)
         let offsetZ = SIMD4<UInt8>(0, 0, 1, 1)
         var searchY = SIMD4<Int32>(repeating: Int32(y))
         var searchZ = SIMD4<Int32>(repeating: Int32(z))
         searchY &+= SIMD4(truncatingIfNeeded: offsetY)
         searchZ &+= SIMD4(truncatingIfNeeded: offsetZ)
-        let addresses = searchZ &* Int32(sdfDimensionY) &+ Int32(sdfDimensionY)
+        let addresses = searchZ &* Int32(sdfDimensionY) &+ searchY
         
         var gathered: SIMD4<Float> = .zero
         for lane in 0..<4 {
           gathered[lane] = sdfScalar[Int(addresses[lane])]
         }
-        let minX = gathered.min()
-        let maxX = gathered.max()
+        var minX = gathered.min()
+        var maxX = gathered.max()
+        minX = max(minX, 0)
+        maxX = min(maxX, Float(dimensions.x - 1))
         
         // Non-staggered columns have one slot wasted in memory. This is
         // regardless of how wide the associated rows are. The memory wasting
@@ -176,8 +178,8 @@ struct HexagonalMask: LatticeMask {
         // Except - the data isn't packed by column. It's packed by row. No
         // extra slots are wasted, but understanding **why none are wasted** can
         // reinforce your comprehension of the data layout.
-        var baseAddress = (z &* Int(dimensions.y * 2 - 1) &+ y)
-        baseAddress = baseAddress &* Int(dimensions.x)
+        var baseAddress = (z &* Int32(dimensions.y * 2 - 1) &+ y)
+        baseAddress = baseAddress &* Int32(dimensions.x)
         
         var loopStart = Float(0)
         var loopEnd = 3 * Float(dimensions.x) - 3
@@ -186,28 +188,29 @@ struct HexagonalMask: LatticeMask {
         // Staggered rows have one slot wasted in memory. This is regardless of
         // how tall the associated columns are. The memory wasting is O(hl) in
         // an O(hkl) context.
-        if y ^ Int(parity.rawValue) == 1 {
+        if y ^ Int32(parity.rawValue) == 1 {
           loopStart += 1.5
           loopEnd -= 1.5
           parityOffset = 1.5
         }
-        while loopStart <= minX - 1 {
-          loopStart += 3
-          let address = Int(loopStart) + baseAddress
-          mask[address] = SIMD16(repeating: 255)
-        }
-        while loopEnd >= maxX + 1 {
-          loopEnd -= 3
-          let address = Int(loopEnd) + baseAddress
-          mask[address] = SIMD16(repeating: 0)
-        }
+        // Deactivate the buggy code for now. There's NaNs somewhere.
+//        while loopStart <= minX - 1 {
+//          let address = Int32(loopStart) + baseAddress
+//          mask[Int(address)] = SIMD16(repeating: 255)
+//          loopStart += 3
+//        }
+//        while loopEnd >= maxX + 1 {
+//          let address = Int32(loopEnd) + baseAddress
+//          mask[Int(address)] = SIMD16(repeating: 0)
+//          loopEnd -= 3
+//        }
         
         // Correct the floating-point value for 'y' to be shifted downward
         // by -0.5.
         var lowerCorner = SIMD3<Float>(0, Float(y) * 0.5 - 0.5, Float(z))
         while loopStart <= loopEnd {
           defer { loopStart += 3 }
-          let address = Int(loopStart - parityOffset) + baseAddress
+          let address = Int32(loopStart - parityOffset) + baseAddress
           lowerCorner.x = loopStart
           
           // This matrix maps from h/h + 2k/l -> h/k/l.
@@ -225,7 +228,7 @@ struct HexagonalMask: LatticeMask {
           let cellMask = HexagonalCell.intersect(
             origin: transform(origin - lowerCorner),
             normal: transform(normal))
-          mask[address] = cellMask
+          mask[Int(address)] = cellMask
         }
       }
     }
@@ -362,9 +365,9 @@ struct HexagonalGrid: LatticeGrid {
             var position = SIMD3<Float>(x, y, z)
             position += lowerCorner
             position =
-            outputTransform.0 * lowerCorner.x +
-            outputTransform.1 * lowerCorner.y +
-            outputTransform.2 * lowerCorner.z
+            outputTransform.0 * position.x +
+            outputTransform.1 * position.y +
+            outputTransform.2 * position.z
             
             let entity = Entity(
               position: position, type: type)
@@ -375,4 +378,14 @@ struct HexagonalGrid: LatticeGrid {
     }
     return output
   }
+}
+
+/// Test function that returns the initial grid. Try with:
+/// - diamond
+/// - moissanite
+/// - germanium
+public func Hexagonal_init(
+  bounds: SIMD3<Float>, material: MaterialType
+) -> [Entity] {
+  HexagonalGrid(bounds: bounds, material: material).entities
 }

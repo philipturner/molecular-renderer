@@ -14,7 +14,7 @@ import simd
 
 //import HardwareCatalog
 import HDL
-import MM4
+//import MM4
 
 class Renderer {
   unowned let coordinator: Coordinator
@@ -63,7 +63,20 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = ExampleMolecules.Cyclosilane(name: "C-C-Si-C-Si")
+//    self.atomProvider = ExampleMolecules.Cyclosilane(name: "C-C-Si-C-Si")
+    
+    do {
+      let material: MaterialType = .elemental(.carbon)
+      let bounds: SIMD3<Float> = .init(repeating: 10)
+      let entities = Cubic_init(bounds: bounds, material: material)
+      let atoms: [MRAtom] = entities.map { entity in
+        guard case .atom(let atomicNumber) = entity.type else {
+          fatalError("Unrecognized entity type: \(entity.storage.w)")
+        }
+        return MRAtom(origin: entity.position, element: atomicNumber)
+      }
+      self.atomProvider = ArrayAtomProvider(atoms)
+    }
     
 //    self.atomProvider = Spring_Projectile().provider
 //    self.atomProvider = Flywheel2_Provider().provider
