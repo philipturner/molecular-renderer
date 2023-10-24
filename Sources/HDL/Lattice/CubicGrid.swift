@@ -131,8 +131,9 @@ struct CubicMask: LatticeMask {
 // This should conform to a common protocol for manipulating grids. Cubic and
 // hexagonal masks should follow a similar design.
 struct CubicGrid: LatticeGrid {
-  var dimensions: SIMD4<Int32>
+  var dimensions: SIMD3<Int32>
   var entityTypes: [SIMD8<Int8>]
+  var squareSideLength: Float
   
   /// Create a mask using a plane.
   init(bounds: SIMD3<Float>, material: MaterialType) {
@@ -149,13 +150,22 @@ struct CubicGrid: LatticeGrid {
       repeatingUnit = unsafeBitCast(repeated, to: SIMD8<Int8>.self)
     }
     
-    var boundsInt = SIMD3<Int32>(bounds.rounded(.up))
-    boundsInt.replace(with: SIMD3.zero, where: boundsInt .< 0)
-    dimensions = SIMD4(boundsInt, 0)
+    dimensions = SIMD3<Int32>(bounds.rounded(.up))
+    dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
-      boundsInt.x * boundsInt.y * boundsInt.z))
+      dimensions.x * dimensions.y * dimensions.z))
     
-    fatalError("Need to apply some planes to remove edge entities.")
+    // Set this to carbon lattice constants for now.
+    squareSideLength = 0.357
+    
+    self.initializeBounds(bounds, normals: [
+      SIMD3<Float>(-1, 0, 0),
+      SIMD3<Float>(1, 0, 0),
+      SIMD3<Float>(0, -1, 0),
+      SIMD3<Float>(0, 1, 0),
+      SIMD3<Float>(0, 0, -1),
+      SIMD3<Float>(0, 0, 1),
+    ])
   }
   
   // Cut() can be implemented by replacing with ".empty" in the mask's zero
@@ -164,8 +174,50 @@ struct CubicGrid: LatticeGrid {
     let newValue = SIMD8(repeating: other)
     
     for cellID in entityTypes.indices {
-      let condition = mask.mask[cellID] .> 0
+      let condition = mask.mask[cellID] .== 0
       entityTypes[cellID].replace(with: newValue, where: condition)
     }
+  }
+  
+  var entities: [Entity] {
+    var output: [Entity] = []
+    let outputTransform = (
+      SIMD3<Float>(squareSideLength, 0, 0),
+      SIMD3<Float>(0, squareSideLength, 0),
+      SIMD3<Float>(0, 0, squareSideLength)
+    )
+    for z in 0..<dimensions.z {
+      for y in 0..<dimensions.y {
+        for x in 0..<dimensions.x {
+          let lowerCorner = SIMD3<Float>(SIMD3(x, y, z))
+          var cellID = z * dimensions.y + y
+          cellID = cellID * dimensions.x + x
+          
+          let cell = entityTypes[Int(cellID)]
+          for lane in 0..<8 {
+            guard cell[lane] != 0 else {
+              continue
+            }
+            
+            let x = CubicCell.x0[lane] / 4
+            let y = CubicCell.y0[lane] / 4
+            let z = CubicCell.z0[lane] / 4
+            let type = EntityType(compactRepresentation: cell[lane])
+            
+            var position = SIMD3<Float>(x, y, z)
+            position += lowerCorner
+            position =
+            outputTransform.0 * lowerCorner.x +
+            outputTransform.1 * lowerCorner.y +
+            outputTransform.2 * lowerCorner.z
+            
+            let entity = Entity(
+              position: position, type: type)
+            output.append(entity)
+          }
+        }
+      }
+    }
+    return output
   }
 }

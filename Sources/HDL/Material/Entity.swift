@@ -7,8 +7,6 @@
 
 import Foundation
 
-// Rule for converting to an efficient layout in the crystal grid:
-
 public enum EntityType: RawRepresentable {
   case atom(UInt8)
   case bond(Float)
@@ -22,6 +20,16 @@ public enum EntityType: RawRepresentable {
       self = .bond(-rawValue)
     } else {
       // NaN or zero
+      self = .empty
+    }
+  }
+  
+  init(compactRepresentation: Int8) {
+    if compactRepresentation > 0 {
+      self = .atom(UInt8(truncatingIfNeeded: compactRepresentation))
+    } else if compactRepresentation < 0 {
+      fatalError("Not implemented.")
+    } else {
       self = .empty
     }
   }

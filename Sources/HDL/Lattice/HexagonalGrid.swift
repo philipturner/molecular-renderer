@@ -233,8 +233,10 @@ struct HexagonalMask: LatticeMask {
 }
 
 struct HexagonalGrid: LatticeGrid {
-  var dimensions: SIMD4<Int32>
+  var dimensions: SIMD3<Int32>
   var entityTypes: [SIMD16<Int8>]
+  var hexagonSideLength: Float
+  var prismHeight: Float
   
   /// Create a mask using a plane.
   init(bounds untransformedBounds: SIMD3<Float>, material: MaterialType) {
@@ -255,23 +257,47 @@ struct HexagonalGrid: LatticeGrid {
     // This matrix maps from h/k/l -> 3h/h + 2k/l.
     // | 1/3 -1/2 |
     // | 0    1/2 |
-    let columns = (SIMD2<Float>(1.0 / 3, 0),
+    var columns = (SIMD2<Float>(1.0 / 3, 0),
                    SIMD2<Float>(-0.5, 0.5))
-    @inline(__always)
     func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
       var simd4 = SIMD4(input, 0)
       simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
       return unsafeBitCast(simd4, to: SIMD3<Float>.self)
     }
     let bounds = transform(untransformedBounds)
-    
-    var boundsInt = SIMD3<Int32>(bounds.rounded(.up))
-    boundsInt.replace(with: SIMD3.zero, where: boundsInt .< 0)
-    dimensions = SIMD4(boundsInt, 0)
+    dimensions = SIMD3<Int32>(bounds.rounded(.up))
+    dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
-      boundsInt.x * boundsInt.y * boundsInt.z))
+      dimensions.x * dimensions.y * dimensions.z))
     
-    fatalError("Need to apply some planes to remove edge entities.")
+    // Set this to carbon lattice constants for now. Eventually, we'll need to
+    // scale it to perfectly line up with diamond.
+    hexagonSideLength = 0.251
+    prismHeight = 0.412
+    
+    // This matrix maps from h/k/l -> h/h + 2k/l.
+    // | 1 -1/2 |
+    // | 0  1/2 |
+    columns = (SIMD2<Float>(1, 0),
+               SIMD2<Float>(-0.5, 0.5))
+    let h2kBounds = transform(untransformedBounds)
+    
+    // This matrix maps from h/h + 2k/l -> h/k/l.
+    // | 1  1 |
+    // | 0  2 |
+    columns = (SIMD2<Float>(1, 0),
+               SIMD2<Float>(1, 2))
+    
+    // Intersect yourself with some h/h + 2k/l planes.
+    let hMinus = transform(SIMD3<Float>(-1, 0, 0))
+    let hPlus = transform(SIMD3<Float>(1, 0, 0))
+    let h2kMinus = transform(SIMD3<Float>(-1, 0, 0))
+    let h2kPlus = transform(SIMD3<Float>(1, 0, 0))
+    let lMinus = transform(SIMD3<Float>(0, 0, -1))
+    let lPlus = transform(SIMD3<Float>(0, 0, 1))
+    self.initializeBounds(bounds, normals: [
+      hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
+    ])
   }
   
   // Cut() can be implemented by replacing with ".empty" in the mask's zero
@@ -284,5 +310,69 @@ struct HexagonalGrid: LatticeGrid {
       let condition = mask.mask[cellID] .> 0
       entityTypes[cellID].replace(with: newValue, where: condition)
     }
+  }
+  
+  var entities: [Entity] {
+    var output: [Entity] = []
+    let sqrt34 = Float(0.75).squareRoot()
+    let outputTransform = (
+      SIMD3<Float>(hexagonSideLength, 0, 0),
+      SIMD3<Float>(-0.5 * hexagonSideLength, sqrt34 * hexagonSideLength, 0),
+      SIMD3<Float>(0, 0, prismHeight)
+    )
+    for z in 0..<dimensions.z {
+      for y in 0..<dimensions.y {
+        for x in 0..<dimensions.x {
+          var lowerCorner = SIMD3<Float>(SIMD3(x, y, z))
+          lowerCorner.x *= 3
+          lowerCorner.y *= 0.5
+          lowerCorner.y -= 0.5
+          
+          let parity: HexagonalGridParity = .firstRowStaggered
+          if y ^ Int32(parity.rawValue) == 1 {
+            lowerCorner += 1.5
+          }
+          
+          // This matrix maps from h/h + 2k/l -> h/k/l.
+          // | 1  1 |
+          // | 0  2 |
+          let columns = (SIMD2<Float>(1, 0),
+                         SIMD2<Float>(1, 2))
+          @inline(__always)
+          func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
+            var simd4 = SIMD4(input, 0)
+            simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
+            return unsafeBitCast(simd4, to: SIMD3<Float>.self)
+          }
+          lowerCorner = transform(lowerCorner)
+          
+          var cellID = z * dimensions.y + y
+          cellID = cellID * dimensions.x + x
+          let cell = entityTypes[Int(cellID)]
+          for lane in 0..<12 {
+            guard cell[lane] != 0 else {
+              continue
+            }
+            
+            let x = CubicCell.x0[lane] / 3
+            let y = CubicCell.y0[lane] / 3
+            let z = CubicCell.z0[lane] / 8
+            let type = EntityType(compactRepresentation: cell[lane])
+            
+            var position = SIMD3<Float>(x, y, z)
+            position += lowerCorner
+            position =
+            outputTransform.0 * lowerCorner.x +
+            outputTransform.1 * lowerCorner.y +
+            outputTransform.2 * lowerCorner.z
+            
+            let entity = Entity(
+              position: position, type: type)
+            output.append(entity)
+          }
+        }
+      }
+    }
+    return output
   }
 }
