@@ -30,8 +30,8 @@ struct HexagonalCell {
     origin: SIMD3<Float>,
     normal: SIMD3<Float>
   ) -> SIMD16<UInt8> {
-    let scaledOrigin = origin * 4
-    let scaledNormal = normal * 1
+    let scaledOrigin = origin * SIMD3(3, 3, 8)
+    let scaledNormal = normal * SIMD3(8, 8, 3)
     
     let delta_x0 = x0 - scaledOrigin.x
     let delta_y0 = y0 - scaledOrigin.y
@@ -64,7 +64,7 @@ struct HexagonalCell {
 /// `firstRowStaggered` is equivalent to `firstRowOrigin`, but with some extra
 /// padding for atoms cut off by the hexagonal zigzag on the very bottom. At
 /// first glance, one would intuit that most hexagonal grids use the staggered
-///// parity.
+/// parity.
 //enum HexagonalGridParity: Int32 {
 //  /// First row and column are larger than second.
 //  case firstRowOrigin = 0
@@ -113,10 +113,10 @@ struct HexagonalMask: LatticeMask {
         simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
         return unsafeBitCast(simd4, to: SIMD3<Float>.self)
       }
-      origin = transform(untransformedOrigin)
-      normal = transform(untransformedNormal)
-//      origin = untransformedOrigin
-//      normal = untransformedNormal
+//      origin = transform(untransformedOrigin)
+//      normal = transform(untransformedNormal)
+      origin = untransformedOrigin
+      normal = untransformedNormal
     }
     
     // In loops, it will perform an XOR with the parity's raw value.
@@ -133,6 +133,7 @@ struct HexagonalMask: LatticeMask {
       return
     }
     
+    #if false
     // Derivation of formula:
     // (r - r0) * n = 0
     // (x - x0)nx + (y - y0)ny + (z - z0)nz = 0
@@ -163,11 +164,42 @@ struct HexagonalMask: LatticeMask {
         sdfVector[z &* sdfDimensionY / 8 &+ arrayIndex] = x
       }
     }
+    #endif
     
     for z in 0..<dimensions.z {
       // Note that the 'y' coordinate here starts at zero, while the actual
       // floating-point value should start at -0.5.
       for y in 0..<dimensions.y * 2 - 1 {
+        let parityOffset: Float = (y & 1 == 0) ? 1.5 : 0.0
+        var baseAddress = (z &* Int32(dimensions.y * 2 - 1) &+ y)
+        baseAddress = baseAddress &* Int32(dimensions.x)
+        
+        var lowerCorner = SIMD3<Float>(0, Float(y) - 1, Float(z))
+        for x in 0..<dimensions.x {
+          lowerCorner.x = Float(x) * 3 + parityOffset
+          
+          // This matrix maps from h/h + 2k/l -> h/k/l.
+          // | 1  1 |
+          // | 0  2 |
+          let columns = (SIMD2<Float>(1, 0),
+                         SIMD2<Float>(1, 2))
+          @inline(__always)
+          func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
+            var simd4 = SIMD4(input, 0)
+            simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
+            return unsafeBitCast(simd4, to: SIMD3<Float>.self)
+          }
+          
+          let cellMask = HexagonalCell.intersect(
+            origin: origin - transform(lowerCorner),
+            normal: normal + transform(.zero))
+//          print(normal, x, y, z, origin, lowerCorner, transform(origin - lowerCorner), transform(normal), cellMask)
+          mask[Int(baseAddress + x)] = cellMask
+//          mask[Int(baseAddress + x)] = SIMD16(repeating: 0)
+        }
+        
+        
+        #if false
         let offsetY = SIMD4<UInt8>(0, 2, 0, 2)
         let offsetZ = SIMD4<UInt8>(0, 0, 1, 1)
         var searchY = SIMD4<Int32>(repeating: y)
@@ -280,6 +312,7 @@ struct HexagonalMask: LatticeMask {
           mask[Int(baseAddress + x)] = cellMask
 //          mask[Int(baseAddress + x)] = SIMD16(repeating: 0)
         }
+        #endif
       }
     }
   }
