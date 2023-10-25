@@ -11,6 +11,22 @@
 // Similar to "Doubled coordinates", except halved and then compressed in the
 // X direction (right -> 1/2 right) when storing in memory.
 
+// TODO: - Add parity back again if needed.
+// In loops, it will perform an XOR with the parity's raw value.
+
+/// The larger set of columns is typically half cut-off at either cap.
+///
+/// `firstRowStaggered` is equivalent to `firstRowOrigin`, but with some extra
+/// padding for atoms cut off by the hexagonal zigzag on the very bottom. At
+/// first glance, one would intuit that most hexagonal grids use the staggered
+/// parity.
+enum HexagonalGridParity: Int32 {
+  /// First row and column are larger than second.
+  case firstRowOrigin = 0
+  
+  /// Second row and column are larger than first.
+  case firstRowStaggered = 1
+}
 
 func transformHKLtoXYZ(_ input: SIMD3<Float>) -> SIMD3<Float> {
   var output = SIMD3(1, 0, 0) * input.x
@@ -102,30 +118,22 @@ struct HexagonalCell {
       var coords = coordsHKL * SIMD3(1.0 / 3, 1.0 / 3, 1.0 / 8)
       coords = transformHKLtoXYZ(coords)
       let distance = ((coords - origin) * normal).sum()
-      if distance <= 0 {
+      func abs(_ x: SIMD3<Float>) -> SIMD3<Float> {
+        var output = x
+        output.replace(with: -x, where: x .< 0)
+        return output
+      }
+      
+      if all(abs(normal - SIMD3<Float>(0.0, 1.7320508, 0.0)) .< 0.01) {
+//        print(i, coords, origin, normal, distance)
+      }
+      if distance <= 0.01 {
         output[i] = 1
       }
     }
     return output
   }
 }
-
-/// The larger set of columns is typically half cut-off at either cap.
-///
-/// `firstRowStaggered` is equivalent to `firstRowOrigin`, but with some extra
-/// padding for atoms cut off by the hexagonal zigzag on the very bottom. At
-/// first glance, one would intuit that most hexagonal grids use the staggered
-/// parity.
-///
-// TODO: - Add parity back again, allow the x/y dimensions to vary by +/- 1
-// even with the same parity, to compactly fit whatever hexagon is generated.
-//enum HexagonalGridParity: Int32 {
-//  /// First row and column are larger than second.
-//  case firstRowOrigin = 0
-//  
-//  /// Second row and column are larger than first.
-//  case firstRowStaggered = 1
-//}
 
 struct HexagonalMask: LatticeMask {
   var mask: [SIMD16<UInt8>]
@@ -141,46 +149,8 @@ struct HexagonalMask: LatticeMask {
     origin untransformedOrigin: SIMD3<Float>,
     normal untransformedNormal: SIMD3<Float>
   ) {
-    // TODO: Write a separate initializer from scratch, debug it along the way,
-    // then incrementally add optimizations. This may include debugging the
-    // function 'HexagonalCell.intersect`.
-//    var origin: SIMD3<Float>
-//    var normal: SIMD3<Float>
-//    do {
-//      // This matrix maps from h/k/l -> h/h + 2k/l.
-//      // | 1 -1/2 |
-//      // | 0  1/2 |
-//      let columns = (SIMD2<Float>(1, 0),
-//                     SIMD2<Float>(-0.5, 0.5))
-//      
-//      
-//      // This matrix maps from h/k/l -> 3h/h + 2k/l.
-//      // | 1/3 -1/2 |
-//      // | 0    1/2 |
-////      var columns = (SIMD2<Float>(1.0 / 3, 0),
-////                     SIMD2<Float>(-0.5 / 3, 0.5))
-//      
-//      
-//      @inline(__always)
-//      func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
-//        var simd4 = SIMD4(input, 0)
-//        simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
-//        return unsafeBitCast(simd4, to: SIMD3<Float>.self)
-//      }
-////      origin = transform(untransformedOrigin)
-////      normal = transform(untransformedNormal)
-//      origin = untransformedOrigin
-//      normal = untransformedNormal
-//    }
-    
     let origin = transformHH2KLtoXYZ(untransformedOrigin)
     let normal = transformHH2KLtoXYZ(untransformedNormal)
-
-//    print(untransformedOrigin, untransformedNormal)
-//    print(origin, normal)
-    
-    // In loops, it will perform an XOR with the parity's raw value.
-//    let parity: HexagonalGridParity = .firstRowStaggered
     
     // Initialize the mask with everything in the one volume. The full mask
     // prevents the entity types from being set to "empty".
@@ -230,50 +200,23 @@ struct HexagonalMask: LatticeMask {
       // Note that the 'y' coordinate here starts at zero, while the actual
       // floating-point value should start at -0.5.
       for y in 0..<dimensions.y {
+        let parityOffset: Float = (y & 1 == 0) ? 1.5 : 0.0
+        let loopOffset: Int32 = (y & 1 == 0) ? -1 : 0
         var baseAddress = (z &* dimensions.y &+ y)
         baseAddress = baseAddress &* dimensions.x
         
-        for x in 0..<dimensions.x {
-          let parityOffset: Float = (y & 1 == 0) ? 1.5 : 0.0
+        for x in 0..<dimensions.x + loopOffset {
           var lowerCorner = SIMD3(Float(x) * 3 + parityOffset,
                                   Float(y) - 1,
                                   Float(z))
           lowerCorner.y /= 2
-          
           lowerCorner = transformHH2KLtoXYZ(lowerCorner)
           
-          print(SIMD3(Float(x) * 3 + parityOffset,
-                      (Float(y) - 1) / 2,
-                      Float(z)), lowerCorner, origin, normal, transformHH2KLtoXYZ(origin), ((transformHH2KLtoXYZ(origin) - lowerCorner) * transformHH2KLtoXYZ(normal)).sum())
-          
+//          print("intersect", origin, normal)
           let cellMask = HexagonalCell.intersect(
             origin: origin - lowerCorner, normal: normal)
           mask[Int(baseAddress + x)] = cellMask
         }
-        
-//        var lowerCorner = SIMD3<Float>(0, Float(y) - 1, Float(z))
-//        for x in 0..<dimensions.x {
-//          lowerCorner.x = Float(x) * 3 + parityOffset
-//          
-//          // This matrix maps from h/h + 2k/l -> h/k/l.
-//          // | 1  1 |
-//          // | 0  2 |
-//          let columns = (SIMD2<Float>(1, 0),
-//                         SIMD2<Float>(1, 2))
-//          @inline(__always)
-//          func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
-//            var simd4 = SIMD4(input, 0)
-//            simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
-//            return unsafeBitCast(simd4, to: SIMD3<Float>.self)
-//          }
-//          let cellMask = HexagonalCell.intersect(
-//            origin: origin - transform(lowerCorner),
-//            normal: normal + transform(.zero))
-//          
-//          mask[Int(baseAddress + x)] = cellMask
-////          mask[Int(baseAddress + x)] = SIMD16(repeating: 0)
-//        }
-        
         
         #if false
         let offsetY = SIMD4<UInt8>(0, 2, 0, 2)
@@ -416,27 +359,11 @@ struct HexagonalGrid: LatticeGrid {
     }
     repeatingUnit.highHalf.highHalf = SIMD4(repeating: 0)
     
-    // This matrix maps from h/k/l -> 3h/h + 2k/l.
-    // | 1/3 -1/2 |
-    // | 0    1/2 |
-//    var columns = (SIMD2<Float>(1.0 / 2, 0),
-//                   SIMD2<Float>(-0.5 / 2, 0.5))
-//    func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
-//      var simd4 = SIMD4(input, 0)
-//      simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
-//      return unsafeBitCast(simd4, to: SIMD3<Float>.self)
-//    }
-//    
-//    let bounds = transform(untransformedBounds)
-    print("checkpoint 1", bounds)
-    
-    
     // Increase the bounds by a small amount, so atoms on the edge will be
     // present in the next cell.
     var transformedBounds = SIMD3(bounds.x * 1.0 / 3,
                                   bounds.y * 2 + 1,
                                   bounds.z)
-//    transformedBounds += SIMD3(1, 3, 1)
     
     // Dimensions are in h/h2k/l for now.
     dimensions = SIMD3<Int32>(transformedBounds.rounded(.up))
@@ -446,24 +373,8 @@ struct HexagonalGrid: LatticeGrid {
     
     // Set this to carbon lattice constants for now. Eventually, we'll need to
     // scale it to perfectly line up with diamond.
-    //
-    // The rendered structure looks off. Something's not right with the
-    // rendered dimensions or the spacing within a lattice cell.
     hexagonSideLength = 0.251
     prismHeight = 0.412
-    
-//    // This matrix maps from h/k/l -> h/h + 2k/l.
-//    // | 1 -1/2 |
-//    // | 0  1/2 |
-//    columns = (SIMD2<Float>(1, 0),
-//               SIMD2<Float>(-0.5, 0.5))
-//    let h2kBounds = transform(untransformedBounds)
-//    
-//    // This matrix maps from h/h + 2k/l -> h/k/l.
-//    // | 1  1 |
-//    // | 0  2 |
-//    columns = (SIMD2<Float>(1, 0),
-//               SIMD2<Float>(1, 2))
     
     // Intersect yourself with some h/h + 2k/l planes.
     let hMinus = (SIMD3<Float>(-1, 0, 0))
@@ -472,8 +383,6 @@ struct HexagonalGrid: LatticeGrid {
     let h2kPlus = (SIMD3<Float>(0, 1, 0))
     let lMinus = (SIMD3<Float>(0, 0, -1))
     let lPlus = (SIMD3<Float>(0, 0, 1))
-//    print("checkpoint 2", transformHH2KLtoHKL(untransformedBounds))
-    
     self.initializeBounds(bounds, normals: [
       hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
     ])
@@ -494,52 +403,28 @@ struct HexagonalGrid: LatticeGrid {
   var entities: [Entity] {
     var output: [Entity] = []
     let sqrt34 = Float(0.75).squareRoot()
-//    let outputTransform = (
-//      SIMD3<Float>(hexagonSideLength, 0, 0),
-//      SIMD3<Float>(-0.5 * hexagonSideLength, sqrt34 * hexagonSideLength, 0),
-//      SIMD3<Float>(0, 0, prismHeight)
-//    )
-    let outputScale: SIMD3<Float> = [
+    let outputScale = SIMD3<Float>(
       hexagonSideLength, hexagonSideLength, prismHeight
-    ]
+    )
     for z in 0..<dimensions.z {
       for y in 0..<dimensions.y {
-        var loopAmount = dimensions.x
-//        let parity: HexagonalGridParity = .firstRowStaggered
-        if (y & 1) /*^ Int32(parity.rawValue) == 1*/ == 0 {
-          loopAmount -= 1
-        }
-        for x in 0..<loopAmount {
+        let parityOffset: Float = (y & 1 == 0) ? 1.5 : 0.0
+        let loopOffset: Int32 = (y & 1 == 0) ? -1 : 0
+        var baseAddress = (z &* dimensions.y &+ y)
+        baseAddress = baseAddress &* dimensions.x
+        
+        for x in 0..<dimensions.x + loopOffset {
           var lowerCorner = SIMD3<Float>(SIMD3(x, y, z))
           lowerCorner.x *= 3
+          lowerCorner.x += parityOffset
           lowerCorner.y -= 1
           lowerCorner.y /= 2
           
-//          let parity: HexagonalGridParity = .firstRowStaggered
-          if (y & 1) /*^ Int32(parity.rawValue) == 1*/ == 0 {
-            lowerCorner.x += 1.5
-//            continue
-          }
-          
-//          // This matrix maps from h/h + 2k/l -> h/k/l.
-//          // | 1  1 |
-//          // | 0  2 |
-//          let columns = (SIMD2<Float>(1, 0),
-//                         SIMD2<Float>(1, 2))
-//          @inline(__always)
-//          func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
-//            var simd4 = SIMD4(input, 0)
-//            simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
-//            return unsafeBitCast(simd4, to: SIMD3<Float>.self)
-//          }
           lowerCorner = transformHH2KLtoHKL(lowerCorner)
           lowerCorner *= outputScale
           lowerCorner = transformHKLtoXYZ(lowerCorner)
-//          print(lowerCorner.x, lowerCorner.y, lowerCorner.z)
           
-          var cellID = z &* dimensions.y &+ y
-          cellID = cellID &* dimensions.x &+ x
-          let cell = entityTypes[Int(cellID)]
+          let cell = entityTypes[Int(baseAddress + x)]
           for lane in 0..<12 {
             guard cell[lane] != 0 else {
               continue

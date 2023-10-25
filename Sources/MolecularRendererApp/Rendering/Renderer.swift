@@ -74,7 +74,7 @@ class Renderer {
       let bounds: SIMD3<Float> = 10 * (h + h2k + l)
       let entities = Hexagonal_init(bounds: bounds, material: material)
 //      let entities = Cubic_init(bounds: [10, 10, 10], material: material)
-      let atoms: [MRAtom] = entities.map { entity in
+      var atoms: [MRAtom] = entities.map { entity in
         guard case .atom(let atomicNumber) = entity.type else {
           fatalError("Unrecognized entity type: \(entity.storage.w)")
         }
@@ -83,6 +83,20 @@ class Renderer {
         return MRAtom(origin: entity.position * scaleFactor, element: atomicNumber)
       }
       self.atomProvider = ArrayAtomProvider(atoms)
+      
+      var diamondoid = Diamondoid(atoms: atoms)
+      atoms = diamondoid.atoms
+      diamondoid.minimize()
+      diamondoid.minimize()
+      self.atomProvider = ArrayAtomProvider(diamondoid.atoms + atoms.map {
+        var copy = $0
+        copy.origin.y = -copy.origin.y - 0.3
+        return copy
+      })
+      
+//      let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
+//      simulator.simulate(ps: 10)
+//      self.atomProvider = simulator.provider
     }
     
 //    self.atomProvider = Spring_Projectile().provider

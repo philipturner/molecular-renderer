@@ -46,6 +46,7 @@ Short-Term (next few weeks)
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
 - Create a domain-specific language and geometry compiler for crystolecule design ✅
 - Upgrade MM4 to include more elements and external forces - **in progress**
+- Integrate the official [XTB](https://github.com/grimme-lab/xtb) CPU simulator, for when performance is not important
 
 Long-Term (next few months)
 - Experiments with scaling up CAD software

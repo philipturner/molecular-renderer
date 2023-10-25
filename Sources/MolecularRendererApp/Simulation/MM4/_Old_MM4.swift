@@ -621,8 +621,8 @@ class _Old_MM4 {
       );
       stretch_bend = 10 * (180 / 3.141592) *
       2.51118 * stretch_bend_stiffness * (
-        cross_platform_distance(p1, p2) - length1 +
-        cross_platform_distance(p2, p3) - length2
+        distance(p1, p2) - length1 +
+        distance(p2, p3) - length2
       ) * delta_theta;
       delta_theta = angle(p1, p2, p3) - equilibrium_angle;
       """
@@ -860,7 +860,7 @@ class _Old_MM4 {
       );
       torsion_stretch = 10 *
       0.5 * 11.995 * \(torsionStretchStiffness) * (
-        cross_platform_distance(p2, p3) - length
+        distance(p2, p3) - length
       ) * term3;
       term3 = 1 + cos(3 * omega);
       omega = dihedral(p1, p2, p3, p4);
