@@ -67,12 +67,13 @@ class Renderer {
     
     do {
       let material: MaterialType = .elemental(.carbon)
-//      let material: MaterialType = .checkerboard(.carbon, .silicon)
-      let h: SIMD3<Float> = [1, 0, 0]
-      let h2k: SIMD3<Float> = [1, 2, 0]
-      let l: SIMD3<Float> = [0, 0, 1]
-      let bounds: SIMD3<Float> = 10 * (h + h2k + l)
-      let entities = Hexagonal_init(bounds: bounds, material: material)
+//      let material: MaterialType = .checkerboard(.silicon, .carbon)
+//      let h: SIMD3<Float> = [1, 0, 0]
+//      let h2k: SIMD3<Float> = [1, 2, 0]
+//      let l: SIMD3<Float> = [0, 0, 1]
+//      let bounds: SIMD3<Float> = 10 * (h + h2k + l)
+//      let entities = Hexagonal_init(bounds: bounds, material: material)
+      let entities = Cubic_init(bounds: [10, 10, 10], material: material)
       let atoms: [MRAtom] = entities.map { entity in
         guard case .atom(let atomicNumber) = entity.type else {
           fatalError("Unrecognized entity type: \(entity.storage.w)")

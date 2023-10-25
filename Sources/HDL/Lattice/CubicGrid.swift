@@ -84,8 +84,8 @@ struct CubicMask: LatticeMask {
       for y in 0..<dimensions.y {
         let offsetY = SIMD4<UInt8>(0, 1, 0, 1)
         let offsetZ = SIMD4<UInt8>(0, 0, 1, 1)
-        var searchY = SIMD4<Int32>(repeating: Int32(y))
-        var searchZ = SIMD4<Int32>(repeating: Int32(z))
+        var searchY = SIMD4<Int32>(repeating: y)
+        var searchZ = SIMD4<Int32>(repeating: z)
         searchY &+= SIMD4(truncatingIfNeeded: offsetY)
         searchZ &+= SIMD4(truncatingIfNeeded: offsetZ)
         let addresses = searchZ &* Int32(sdfDimensionY) &+ searchY
@@ -94,37 +94,61 @@ struct CubicMask: LatticeMask {
         for lane in 0..<4 {
           gathered[lane] = sdfScalar[Int(addresses[lane])]
         }
-        var minX = gathered.min()
-        var maxX = gathered.max()
-        minX = max(minX, 0)
-        maxX = min(maxX, Float(dimensions.x - 1))
+        let gatheredMin = gathered.min()
+        let gatheredMax = gathered.max()
+        let gatheredNaN =
+        gathered[0].isNaN ||
+        gathered[1].isNaN ||
+        gathered[2].isNaN ||
+        gathered[3].isNaN
         
-        let baseAddress = (z &* Int32(dimensions.y) &+ y) &* Int32(dimensions.x)
+        var loopStart: Int32 = 0
+        var loopEnd = dimensions.x
+        var leftMask = SIMD8<UInt8>(repeating: normal.x > 0  ? 255 : 0)
+        var rightMask = SIMD8<UInt8>(repeating: normal.x < 0 ? 255 : 0)
+        if gatheredNaN {
+          // pass
+        } else if gatheredMin > Float(dimensions.x) || gatheredMax < 0 {
+          var distance = (Float(y) - origin.y) * normal.y
+          distance += (Float(z) - origin.z) * normal.z
+          loopEnd = 0
+          
+          if distance > 0 {
+            // "zero" volume
+            rightMask = SIMD8(repeating: 0)
+          } else {
+            // "one" volume
+            rightMask = SIMD8(repeating: 255)
+          }
+        } else {
+          // Add a floating-point epsilon to the gathered min/max, as the sharp
+          // cutoff could miss atoms in the next cell, which lie perfectly on
+          // the plane.
+          if gatheredMin > 0 {
+            loopStart = Int32((gatheredMin - 0.001).rounded(.down))
+            loopStart = max(loopStart, 0)
+          }
+          if gatheredMax < Float(dimensions.x) {
+            loopEnd = Int32((gatheredMax + 0.001).rounded(.up))
+            loopEnd = min(loopEnd, dimensions.x)
+          }
+        }
         
-        var loopStart = Float(0)
-        var loopEnd = Float(dimensions.x) - 1
-        
-        // Deactivate the buggy code for now. There's NaNs somewhere.
-//        while loopStart <= minX - 1 {
-//          let address = Int32(loopStart) + baseAddress
-//          mask[Int(address)] = SIMD8(repeating: 255)
-//          loopStart += 1
-//        }
-//        while loopEnd >= maxX + 1 {
-//          let address = Int32(loopEnd) + baseAddress
-//          mask[Int(address)] = SIMD8(repeating: 0)
-//          loopEnd -= 1
-//        }
+        let baseAddress = (z &* dimensions.y &+ y) &* dimensions.x
+        for x in 0..<loopStart {
+          mask[Int(baseAddress + x)] = leftMask
+        }
+        for x in loopEnd..<dimensions.x {
+          mask[Int(baseAddress + x)] = rightMask
+        }
         
         var lowerCorner = SIMD3<Float>(0, Float(y), Float(z))
-        while loopStart <= loopEnd {
-          defer { loopStart += 1 }
-          let address = Int32(loopStart) + baseAddress
-          lowerCorner.x = loopStart
+        for x in loopStart..<loopEnd {
+          lowerCorner.x = Float(x)
           
           let cellMask = CubicCell.intersect(
             origin: origin - lowerCorner, normal: normal)
-          mask[Int(address)] = cellMask
+          mask[Int(baseAddress + x)] = cellMask
         }
       }
     }
@@ -155,7 +179,9 @@ struct CubicGrid: LatticeGrid {
       repeatingUnit = unsafeBitCast(repeated, to: SIMD8<Int8>.self)
     }
     
-    dimensions = SIMD3<Int32>(bounds.rounded(.up))
+    // Increase the bounds by a small amount, so atoms on the edge will be
+    // present in the next cell.
+    dimensions = SIMD3<Int32>((bounds + 0.001).rounded(.up))
     dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
       dimensions.x * dimensions.y * dimensions.z))

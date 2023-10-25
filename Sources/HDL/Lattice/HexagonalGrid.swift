@@ -156,8 +156,8 @@ struct HexagonalMask: LatticeMask {
       for y in 0..<dimensions.y * 2 - 1 {
         let offsetY = SIMD4<UInt8>(0, 2, 0, 2)
         let offsetZ = SIMD4<UInt8>(0, 0, 1, 1)
-        var searchY = SIMD4<Int32>(repeating: Int32(y))
-        var searchZ = SIMD4<Int32>(repeating: Int32(z))
+        var searchY = SIMD4<Int32>(repeating: y)
+        var searchZ = SIMD4<Int32>(repeating: z)
         searchY &+= SIMD4(truncatingIfNeeded: offsetY)
         searchZ &+= SIMD4(truncatingIfNeeded: offsetZ)
         let addresses = searchZ &* Int32(sdfDimensionY) &+ searchY
@@ -166,10 +166,45 @@ struct HexagonalMask: LatticeMask {
         for lane in 0..<4 {
           gathered[lane] = sdfScalar[Int(addresses[lane])]
         }
-        var minX = gathered.min()
-        var maxX = gathered.max()
-        minX = max(minX, 0)
-        maxX = min(maxX, Float(dimensions.x - 1))
+        let gatheredMin = gathered.min()
+        let gatheredMax = gathered.max()
+        let gatheredNaN =
+        gathered[0].isNaN ||
+        gathered[1].isNaN ||
+        gathered[2].isNaN ||
+        gathered[3].isNaN
+        
+        var loopStart: Int32 = 0
+        var loopEnd = dimensions.x
+        var leftMask = SIMD16<UInt8>(repeating: normal.x > 0  ? 255 : 0)
+        var rightMask = SIMD16<UInt8>(repeating: normal.x < 0 ? 255 : 0)
+        if gatheredNaN {
+          // pass
+        } else if gatheredMin > Float(dimensions.x) || gatheredMax < 0 {
+          var distance = (Float(y) - origin.y) * normal.y
+          distance += (Float(z) - origin.z) * normal.z
+          loopEnd = 0
+          
+          if distance > 0 {
+            // "zero" volume
+            rightMask = SIMD16(repeating: 0)
+          } else {
+            // "one" volume
+            rightMask = SIMD16(repeating: 255)
+          }
+        } else {
+          // Add a floating-point epsilon to the gathered min/max, as the sharp
+          // cutoff could miss atoms in the next cell, which lie perfectly on
+          // the plane.
+          if gatheredMin > 0 {
+            loopStart = Int32((gatheredMin - 0.001).rounded(.down))
+            loopStart = max(loopStart, 0)
+          }
+          if gatheredMax < Float(dimensions.x) {
+            loopEnd = Int32((gatheredMax + 0.001).rounded(.up))
+            loopEnd = min(loopEnd, dimensions.x)
+          }
+        }
         
         // Non-staggered columns have one slot wasted in memory. This is
         // regardless of how wide the associated rows are. The memory wasting
@@ -181,37 +216,29 @@ struct HexagonalMask: LatticeMask {
         var baseAddress = (z &* Int32(dimensions.y * 2 - 1) &+ y)
         baseAddress = baseAddress &* Int32(dimensions.x)
         
-        var loopStart = Float(0)
-        var loopEnd = 3 * Float(dimensions.x) - 3
-        var parityOffset = Float(0)
-        
         // Staggered rows have one slot wasted in memory. This is regardless of
         // how tall the associated columns are. The memory wasting is O(hl) in
         // an O(hkl) context.
+        var parityOffset = Float(0)
+        var dimensionsX: Int32 = dimensions.x
         if y ^ Int32(parity.rawValue) == 1 {
-          loopStart += 1.5
-          loopEnd -= 1.5
           parityOffset = 1.5
+          dimensionsX -= 1
         }
-        // Deactivate the buggy code for now. There's NaNs somewhere.
-//        while loopStart <= minX - 1 {
-//          let address = Int32(loopStart) + baseAddress
-//          mask[Int(address)] = SIMD16(repeating: 255)
-//          loopStart += 3
-//        }
-//        while loopEnd >= maxX + 1 {
-//          let address = Int32(loopEnd) + baseAddress
-//          mask[Int(address)] = SIMD16(repeating: 0)
-//          loopEnd -= 3
-//        }
+        loopEnd = min(loopEnd, dimensionsX)
+        
+        for x in 0..<loopStart {
+          mask[Int(baseAddress + x)] = leftMask
+        }
+        for x in loopEnd..<dimensions.x {
+          mask[Int(baseAddress + x)] = rightMask
+        }
         
         // Correct the floating-point value for 'y' to be shifted downward
         // by -0.5.
         var lowerCorner = SIMD3<Float>(0, Float(y) * 0.5 - 0.5, Float(z))
-        while loopStart <= loopEnd {
-          defer { loopStart += 3 }
-          let address = Int32(loopStart - parityOffset) + baseAddress
-          lowerCorner.x = loopStart
+        for x in loopStart..<loopEnd {
+          lowerCorner.x = Float(x) * 3 + parityOffset
           
           // This matrix maps from h/h + 2k/l -> h/k/l.
           // | 1  1 |
@@ -228,7 +255,7 @@ struct HexagonalMask: LatticeMask {
           let cellMask = HexagonalCell.intersect(
             origin: transform(origin - lowerCorner),
             normal: transform(normal))
-          mask[Int(address)] = cellMask
+          mask[Int(baseAddress + x)] = cellMask
         }
       }
     }
@@ -267,9 +294,12 @@ struct HexagonalGrid: LatticeGrid {
       simd4.lowHalf = columns.0 * simd4.x + columns.1 * simd4.y
       return unsafeBitCast(simd4, to: SIMD3<Float>.self)
     }
+    
     let bounds = transform(untransformedBounds)
     
-    dimensions = SIMD3<Int32>(bounds.rounded(.up))
+    // Increase the bounds by a small amount, so atoms on the edge will be
+    // present in the next cell.
+    dimensions = SIMD3<Int32>((bounds + 0.001).rounded(.up))
     dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
       dimensions.x * dimensions.y * dimensions.z))
