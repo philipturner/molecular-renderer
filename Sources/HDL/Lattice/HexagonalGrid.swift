@@ -103,6 +103,8 @@ struct HexagonalMask: LatticeMask {
       }
       origin = transform(untransformedOrigin)
       normal = transform(untransformedNormal)
+//      origin = untransformedOrigin
+//      normal = untransformedNormal
     }
     
     // In loops, it will perform an XOR with the parity's raw value.
@@ -139,7 +141,7 @@ struct HexagonalMask: LatticeMask {
         let y = SIMD8<Int32>(repeating: base) &+
         SIMD8<Int32>(truncatingIfNeeded: offset)
         
-        let deltaY = SIMD8<Float>(y) * 0.5 - origin.y
+        let deltaY = SIMD8<Float>(y) - 1 - origin.y
         let deltaZ = Float(z) - origin.z
         let rhs = -deltaY * normal.y - deltaZ * normal.z
         let x = origin.x + (1 / normal.x) * rhs
@@ -149,7 +151,7 @@ struct HexagonalMask: LatticeMask {
         sdfVector[z &* sdfDimensionY / 8 &+ arrayIndex] = x
       }
     }
-    
+    print(origin, normal)
     for z in 0..<dimensions.z {
       // Note that the 'y' coordinate here starts at zero, while the actual
       // floating-point value should start at -0.5.
@@ -180,17 +182,20 @@ struct HexagonalMask: LatticeMask {
         var rightMask = SIMD16<UInt8>(repeating: normal.x < 0 ? 255 : 0)
         if gatheredNaN {
           // pass
+          print("NaN")
         } else if gatheredMin > Float(dimensions.x) || gatheredMax < 0 {
-          var distance = (Float(y) - origin.y) * normal.y
+          var distance = (Float(y) - 1 - origin.y) * normal.y
           distance += (Float(z) - origin.z) * normal.z
           loopEnd = 0
           
           if distance > 0 {
             // "zero" volume
             rightMask = SIMD16(repeating: 0)
+            print("zero volume")
           } else {
             // "one" volume
             rightMask = SIMD16(repeating: 255)
+            print("one volume")
           }
         } else {
           // Add a floating-point epsilon to the gathered min/max, as the sharp
@@ -199,10 +204,12 @@ struct HexagonalMask: LatticeMask {
           if gatheredMin > 0 {
             loopStart = Int32((gatheredMin - 0.001).rounded(.down))
             loopStart = max(loopStart, 0)
+            print("gatheredMin > 0")
           }
           if gatheredMax < Float(dimensions.x) {
             loopEnd = Int32((gatheredMax + 0.001).rounded(.up))
             loopEnd = min(loopEnd, dimensions.x)
+            print("gatheredMax < Float(\(dimensions.x))")
           }
         }
         
@@ -221,11 +228,13 @@ struct HexagonalMask: LatticeMask {
         // an O(hkl) context.
         var parityOffset = Float(0)
         var dimensionsX: Int32 = dimensions.x
-        if y ^ Int32(parity.rawValue) == 1 {
-          parityOffset = 1.5
+        if (y & 1) ^ Int32(parity.rawValue) == 1 {
+//          parityOffset = 1.5
           dimensionsX -= 1
         }
         loopEnd = min(loopEnd, dimensionsX)
+//        loopStart = 0
+//        loopEnd = dimensionsX
         
         for x in 0..<loopStart {
           mask[Int(baseAddress + x)] = leftMask
@@ -236,7 +245,7 @@ struct HexagonalMask: LatticeMask {
         
         // Correct the floating-point value for 'y' to be shifted downward
         // by -0.5.
-        var lowerCorner = SIMD3<Float>(0, Float(y) * 0.5 - 0.5, Float(z))
+        var lowerCorner = SIMD3<Float>(0, Float(y) - 1, Float(z))
         for x in loopStart..<loopEnd {
           lowerCorner.x = Float(x) * 3 + parityOffset
           
@@ -255,7 +264,9 @@ struct HexagonalMask: LatticeMask {
           let cellMask = HexagonalCell.intersect(
             origin: transform(origin - lowerCorner),
             normal: transform(normal))
-          mask[Int(baseAddress + x)] = cellMask
+//          print(normal, x, y, z, origin, lowerCorner, transform(origin - lowerCorner), transform(normal), cellMask)
+//          mask[Int(baseAddress + x)] = cellMask
+          mask[Int(baseAddress + x)] = SIMD16(repeating: 0)
         }
       }
     }
@@ -302,10 +313,13 @@ struct HexagonalGrid: LatticeGrid {
     dimensions = SIMD3<Int32>((bounds + 0.001).rounded(.up))
     dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
-      dimensions.x * dimensions.y * dimensions.z))
+      dimensions.x * (dimensions.y * 2 - 1) * dimensions.z))
     
     // Set this to carbon lattice constants for now. Eventually, we'll need to
     // scale it to perfectly line up with diamond.
+    //
+    // The rendered structure looks off. Something's not right with the
+    // rendered dimensions or the spacing within a lattice cell.
     hexagonSideLength = 0.251
     prismHeight = 0.412
     
@@ -325,13 +339,13 @@ struct HexagonalGrid: LatticeGrid {
     // Intersect yourself with some h/h + 2k/l planes.
     let hMinus = transform(SIMD3<Float>(-1, 0, 0))
     let hPlus = transform(SIMD3<Float>(1, 0, 0))
-    let h2kMinus = transform(SIMD3<Float>(-1, 0, 0))
-    let h2kPlus = transform(SIMD3<Float>(1, 0, 0))
+    let h2kMinus = transform(SIMD3<Float>(0, -1, 0))
+    let h2kPlus = transform(SIMD3<Float>(0, 1, 0))
     let lMinus = transform(SIMD3<Float>(0, 0, -1))
     let lPlus = transform(SIMD3<Float>(0, 0, 1))
-//    self.initializeBounds(bounds, normals: [
-//      hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
-//    ])
+    self.initializeBounds(bounds, normals: [
+      hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
+    ])
   }
   
   // Cut() can be implemented by replacing with ".empty" in the mask's zero
@@ -341,7 +355,7 @@ struct HexagonalGrid: LatticeGrid {
     newValue.highHalf.highHalf = SIMD4(repeating: 0)
     
     for cellID in entityTypes.indices {
-      let condition = mask.mask[cellID] .> 0
+      let condition = mask.mask[cellID] .== 0
       entityTypes[cellID].replace(with: newValue, where: condition)
     }
   }
@@ -355,16 +369,22 @@ struct HexagonalGrid: LatticeGrid {
       SIMD3<Float>(0, 0, prismHeight)
     )
     for z in 0..<dimensions.z {
-      for y in 0..<dimensions.y {
-        for x in 0..<dimensions.x {
+      for y in 0..<dimensions.y * 2 - 1 {
+        var loopAmount = dimensions.x
+        let parity: HexagonalGridParity = .firstRowStaggered
+        if (y & 1) ^ Int32(parity.rawValue) == 1 {
+          loopAmount -= 1
+        }
+        for x in 0..<loopAmount {
           var lowerCorner = SIMD3<Float>(SIMD3(x, y, z))
           lowerCorner.x *= 3
           lowerCorner.y *= 0.5
           lowerCorner.y -= 0.5
           
           let parity: HexagonalGridParity = .firstRowStaggered
-          if y ^ Int32(parity.rawValue) == 1 {
-            lowerCorner += 1.5
+          if (y & 1) ^ Int32(parity.rawValue) == 1 {
+            lowerCorner.x += 1.5
+//            continue
           }
           
           // This matrix maps from h/h + 2k/l -> h/k/l.
@@ -380,7 +400,7 @@ struct HexagonalGrid: LatticeGrid {
           }
           lowerCorner = transform(lowerCorner)
           
-          var cellID = z * dimensions.y + y
+          var cellID = z * (dimensions.y * 2 - 1) + y
           cellID = cellID * dimensions.x + x
           let cell = entityTypes[Int(cellID)]
           for lane in 0..<12 {
