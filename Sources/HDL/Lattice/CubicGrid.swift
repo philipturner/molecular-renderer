@@ -104,7 +104,7 @@ struct CubicMask: LatticeMask {
         
         var loopStart: Int32 = 0
         var loopEnd = dimensions.x
-        var leftMask = SIMD8<UInt8>(repeating: normal.x > 0  ? 255 : 0)
+        var leftMask = SIMD8<UInt8>(repeating: normal.x > 0 ? 255 : 0)
         var rightMask = SIMD8<UInt8>(repeating: normal.x < 0 ? 255 : 0)
         if gatheredNaN {
           // pass

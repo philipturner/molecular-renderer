@@ -64,14 +64,14 @@ struct HexagonalCell {
 /// `firstRowStaggered` is equivalent to `firstRowOrigin`, but with some extra
 /// padding for atoms cut off by the hexagonal zigzag on the very bottom. At
 /// first glance, one would intuit that most hexagonal grids use the staggered
-/// parity.
-enum HexagonalGridParity: Int32 {
-  /// First row and column are larger than second.
-  case firstRowOrigin = 0
-  
-  /// Second row and column are larger than first.
-  case firstRowStaggered = 1
-}
+///// parity.
+//enum HexagonalGridParity: Int32 {
+//  /// First row and column are larger than second.
+//  case firstRowOrigin = 0
+//  
+//  /// Second row and column are larger than first.
+//  case firstRowStaggered = 1
+//}
 
 struct HexagonalMask: LatticeMask {
   var mask: [SIMD16<UInt8>]
@@ -87,6 +87,9 @@ struct HexagonalMask: LatticeMask {
     origin untransformedOrigin: SIMD3<Float>,
     normal untransformedNormal: SIMD3<Float>
   ) {
+    // TODO: Write a separate initializer from scratch, debug it along the way,
+    // then incrementally add optimizations. This may include debugging the
+    // function 'HexagonalCell.intersect`.
     var origin: SIMD3<Float>
     var normal: SIMD3<Float>
     do {
@@ -95,6 +98,15 @@ struct HexagonalMask: LatticeMask {
       // | 0  1/2 |
       let columns = (SIMD2<Float>(1, 0),
                      SIMD2<Float>(-0.5, 0.5))
+      
+      
+      // This matrix maps from h/k/l -> 3h/h + 2k/l.
+      // | 1/3 -1/2 |
+      // | 0    1/2 |
+//      var columns = (SIMD2<Float>(1.0 / 3, 0),
+//                     SIMD2<Float>(-0.5 / 3, 0.5))
+      
+      
       @inline(__always)
       func transform(_ input: SIMD3<Float>) -> SIMD3<Float> {
         var simd4 = SIMD4(input, 0)
@@ -108,7 +120,7 @@ struct HexagonalMask: LatticeMask {
     }
     
     // In loops, it will perform an XOR with the parity's raw value.
-    let parity: HexagonalGridParity = .firstRowStaggered
+//    let parity: HexagonalGridParity = .firstRowStaggered
     
     // Initialize the mask with everything in the one volume. The full mask
     // prevents the entity types from being set to "empty".
@@ -141,7 +153,7 @@ struct HexagonalMask: LatticeMask {
         let y = SIMD8<Int32>(repeating: base) &+
         SIMD8<Int32>(truncatingIfNeeded: offset)
         
-        let deltaY = SIMD8<Float>(y) - 1 - origin.y
+        let deltaY = SIMD8<Float>(y) - origin.y
         let deltaZ = Float(z) - origin.z
         let rhs = -deltaY * normal.y - deltaZ * normal.z
         let x = origin.x + (1 / normal.x) * rhs
@@ -151,7 +163,7 @@ struct HexagonalMask: LatticeMask {
         sdfVector[z &* sdfDimensionY / 8 &+ arrayIndex] = x
       }
     }
-    print(origin, normal)
+    
     for z in 0..<dimensions.z {
       // Note that the 'y' coordinate here starts at zero, while the actual
       // floating-point value should start at -0.5.
@@ -178,7 +190,7 @@ struct HexagonalMask: LatticeMask {
         
         var loopStart: Int32 = 0
         var loopEnd = dimensions.x
-        var leftMask = SIMD16<UInt8>(repeating: normal.x > 0  ? 255 : 0)
+        var leftMask = SIMD16<UInt8>(repeating: normal.x > 0 ? 255 : 0)
         var rightMask = SIMD16<UInt8>(repeating: normal.x < 0 ? 255 : 0)
         if gatheredNaN {
           // pass
@@ -228,7 +240,7 @@ struct HexagonalMask: LatticeMask {
         // an O(hkl) context.
         var parityOffset = Float(0)
         var dimensionsX: Int32 = dimensions.x
-        if (y & 1) ^ Int32(parity.rawValue) == 1 {
+        if (y & 1) /*^ Int32(parity.rawValue) == 1*/ == 0 {
 //          parityOffset = 1.5
           dimensionsX -= 1
         }
@@ -265,8 +277,8 @@ struct HexagonalMask: LatticeMask {
             origin: transform(origin - lowerCorner),
             normal: transform(normal))
 //          print(normal, x, y, z, origin, lowerCorner, transform(origin - lowerCorner), transform(normal), cellMask)
-//          mask[Int(baseAddress + x)] = cellMask
-          mask[Int(baseAddress + x)] = SIMD16(repeating: 0)
+          mask[Int(baseAddress + x)] = cellMask
+//          mask[Int(baseAddress + x)] = SIMD16(repeating: 0)
         }
       }
     }
@@ -371,8 +383,8 @@ struct HexagonalGrid: LatticeGrid {
     for z in 0..<dimensions.z {
       for y in 0..<dimensions.y * 2 - 1 {
         var loopAmount = dimensions.x
-        let parity: HexagonalGridParity = .firstRowStaggered
-        if (y & 1) ^ Int32(parity.rawValue) == 1 {
+//        let parity: HexagonalGridParity = .firstRowStaggered
+        if (y & 1) /*^ Int32(parity.rawValue) == 1*/ == 0 {
           loopAmount -= 1
         }
         for x in 0..<loopAmount {
@@ -381,8 +393,8 @@ struct HexagonalGrid: LatticeGrid {
           lowerCorner.y *= 0.5
           lowerCorner.y -= 0.5
           
-          let parity: HexagonalGridParity = .firstRowStaggered
-          if (y & 1) ^ Int32(parity.rawValue) == 1 {
+//          let parity: HexagonalGridParity = .firstRowStaggered
+          if (y & 1) /*^ Int32(parity.rawValue) == 1*/ == 0 {
             lowerCorner.x += 1.5
 //            continue
           }
