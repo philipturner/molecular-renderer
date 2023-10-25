@@ -46,7 +46,7 @@ Short-Term (next few weeks)
   - Find a high-efficiency way to serialize and share MD simulation trajectories, which is easy to parse using Python ✅
 - Create a domain-specific language and geometry compiler for crystolecule design ✅
 - Upgrade MM4 to include more elements and external forces - **in progress**
-- Integrate the official [XTB](https://github.com/grimme-lab/xtb) CPU simulator, for when performance is not important
+- Integrate the official [xTB](https://github.com/grimme-lab/xtb) CPU simulator
 
 Long-Term (next few months)
 - Experiments with scaling up CAD software
@@ -59,7 +59,7 @@ Long-Term (next few months)
   - Overnight simulation of systems with ~1,000,000 atoms
 
 Non-Goals
-- Use simulators that aren't GPU-accelerated, or require CUDA
+- Use simulators with working CUDA-only GPU acceleration
+- Write new simulator implementations that aren't $O(n)$ (GFN-FF), outside of [maximally efficient DFT](https://github.com/philipturner/molecular-renderer/blob/main/Documentation/DFT.md)
 - Use simulators that aren't derived from the laws of physics (IM-UFF, ReaxFF)
-- Use simulators that aren't $O(n)$ (GFN-FF), outside of [maximally efficient DFT](https://github.com/philipturner/molecular-renderer/blob/main/Documentation/DFT.md)
 - Create a graphical user interface beyond the minimal MD trajectory viewer

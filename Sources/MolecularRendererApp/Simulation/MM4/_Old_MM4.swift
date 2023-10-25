@@ -859,12 +859,13 @@ class _Old_MM4 {
         V3 * term3
       );
       torsion_stretch = 10 *
-      0.5 * 11.995 * \(torsionStretchStiffness) * (
+      0.5 * \(torsionStretchStiffness) * (
         distance(p2, p3) - length
       ) * term3;
       term3 = 1 + cos(3 * omega);
       omega = dihedral(p1, p2, p3, p4);
       """
+      
       bondTorsion = OpenMM_CustomCompoundBondForce(
         numParticles: 4, energy: energy)
       bondTorsion.addPerBondParameter(name: "V1")

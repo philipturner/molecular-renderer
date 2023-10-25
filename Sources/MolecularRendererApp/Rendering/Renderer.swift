@@ -87,16 +87,11 @@ class Renderer {
       var diamondoid = Diamondoid(atoms: atoms)
       atoms = diamondoid.atoms
       diamondoid.minimize()
-      diamondoid.minimize()
-      self.atomProvider = ArrayAtomProvider(diamondoid.atoms + atoms.map {
-        var copy = $0
-        copy.origin.y = -copy.origin.y - 0.3
-        return copy
-      })
+      self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
       
-//      let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
-//      simulator.simulate(ps: 10)
-//      self.atomProvider = simulator.provider
+      let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
+      simulator.simulate(ps: 10)
+      self.atomProvider = simulator.provider
     }
     
 //    self.atomProvider = Spring_Projectile().provider

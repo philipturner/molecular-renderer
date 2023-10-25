@@ -239,6 +239,7 @@
 		98846F792AC39B450049C223 /* Flywheel1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel1.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
+		988B56C72AE9AAFE00B36DE9 /* Simulators.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Simulators.md; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
 		988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFSerializer.swift; sourceTree = "<group>"; };
@@ -587,6 +588,7 @@
 				98610F802AA29EBE006FAF95 /* HDL.md */,
 				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
 				98F83E1C2AE496C40037E31A /* DFT.md */,
+				988B56C72AE9AAFE00B36DE9 /* Simulators.md */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";
