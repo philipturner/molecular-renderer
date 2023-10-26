@@ -27,8 +27,8 @@ struct CubicCell {
     dotProduct0 += delta_y0 * scaledNormal.y
     dotProduct0 += delta_z0 * scaledNormal.z
     
-    var mask0: SIMD8<Int32> = .one
-    mask0.replace(with: SIMD8.zero, where: dotProduct0 .> 0)
+    var mask0: SIMD8<Int32> = .zero
+    mask0.replace(with: SIMD8.one, where: dotProduct0 .> 0)
     return SIMD8(truncatingIfNeeded: mask0)
   }
 }
@@ -205,7 +205,7 @@ struct CubicGrid: LatticeGrid {
     let newValue = SIMD8(repeating: other)
     
     for cellID in entityTypes.indices {
-      let condition = mask.mask[cellID] .== 0
+      let condition = mask.mask[cellID] .> 0
       entityTypes[cellID].replace(with: newValue, where: condition)
     }
   }
