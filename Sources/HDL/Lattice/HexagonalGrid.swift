@@ -210,11 +210,13 @@ struct HexagonalMask: LatticeMask {
         
         var loopStart: Int32 = 0
         var loopEnd = maxLoopSize
-        var leftMask = SIMD16<UInt8>(repeating: untransformedNormal.x < 0 ? 255 : 0)
-        var rightMask = SIMD16<UInt8>(repeating: untransformedNormal.x > 0 ? 255 : 0)
+        var leftMask = SIMD16<UInt8>(
+          repeating: untransformedNormal.x < 0 ? 255 : 0)
+        var rightMask = SIMD16<UInt8>(
+          repeating: untransformedNormal.x > 0 ? 255 : 0)
         if gatheredNaN {
           // pass
-        } else if (gatheredMin / 3) > Float(dimensions.x) || (gatheredMax / 3) < 0 {
+        } else if gatheredMin > 3 * Float(dimensions.x) || gatheredMax < 3 * 0 {
           var distance = Float(y - 1) * 0.5 - untransformedOrigin.y
           distance *= untransformedNormal.y
           distance += (Float(z) - untransformedOrigin.z) * untransformedNormal.z
@@ -231,11 +233,11 @@ struct HexagonalMask: LatticeMask {
           // Add a floating-point epsilon to the gathered min/max, as the sharp
           // cutoff could miss atoms in the next cell, which lie perfectly on
           // the plane.
-          if (gatheredMin / 3) > 0 {
+          if gatheredMin > 3 * 0 {
             loopStart = Int32((gatheredMin / 3 - 0.001).rounded(.down))
             loopStart = max(loopStart, 0)
           }
-          if (gatheredMax / 3) < Float(dimensions.x) {
+          if gatheredMax < 3 * Float(dimensions.x) {
             loopEnd = Int32((gatheredMax / 3 + 0.001).rounded(.up))
             loopEnd = min(loopEnd, dimensions.x)
           }
@@ -250,7 +252,6 @@ struct HexagonalMask: LatticeMask {
             xa += 1
           }
         }
-        
         do {
           var x = 3 * loopEnd
           var xa = loopEnd
@@ -274,7 +275,6 @@ struct HexagonalMask: LatticeMask {
             origin: origin - lowerCorner,
             normal: normal)
           mask[Int(baseAddress + xa)] = cellMask
-          
           x += 3
           xa += 1
         }
