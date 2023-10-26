@@ -49,6 +49,10 @@ struct CubicMask: LatticeMask {
       return
     }
     
+    // This is an exempler implementation of the SDF optimization. It was not
+    // ported to Hexagonal, due to other priorities at the time it was
+    // implemented.
+    
     // Derivation of formula:
     // (r - r0) * n = 0
     // (x - x0)nx + (y - y0)ny + (z - z0)nz = 0
@@ -104,8 +108,8 @@ struct CubicMask: LatticeMask {
         
         var loopStart: Int32 = 0
         var loopEnd = dimensions.x
-        var leftMask = SIMD8<UInt8>(repeating: normal.x > 0 ? 255 : 0)
-        var rightMask = SIMD8<UInt8>(repeating: normal.x < 0 ? 255 : 0)
+        var leftMask = SIMD8<UInt8>(repeating: normal.x < 0 ? 255 : 0)
+        var rightMask = SIMD8<UInt8>(repeating: normal.x > 0 ? 255 : 0)
         if gatheredNaN {
           // pass
         } else if gatheredMin > Float(dimensions.x) || gatheredMax < 0 {
@@ -114,11 +118,11 @@ struct CubicMask: LatticeMask {
           loopEnd = 0
           
           if distance > 0 {
-            // "zero" volume
-            rightMask = SIMD8(repeating: 0)
-          } else {
             // "one" volume
             rightMask = SIMD8(repeating: 255)
+          } else {
+            // "zero" volume
+            rightMask = SIMD8(repeating: 0)
           }
         } else {
           // Add a floating-point epsilon to the gathered min/max, as the sharp
@@ -153,8 +157,6 @@ struct CubicMask: LatticeMask {
       }
     }
   }
-  
-  // TODO: Define some logical operations on masks.
 }
 
 // This should conform to a common protocol for manipulating grids. Cubic and
@@ -199,8 +201,6 @@ struct CubicGrid: LatticeGrid {
     ])
   }
   
-  // Cut() can be implemented by replacing with ".empty" in the mask's zero
-  // volume.
   mutating func replace(with other: Int8, where mask: CubicMask) {
     let newValue = SIMD8(repeating: other)
     

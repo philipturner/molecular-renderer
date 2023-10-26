@@ -41,7 +41,7 @@ extension LatticeGrid {
       let normal = normals[normalID]
       let mask = Self.Mask(
         dimensions: self.dimensions, origin: origin, normal: normal)
-      self.replace(with: 0, where: mask)
+      self.replace(with: 8, where: mask)
     }
   }
 }

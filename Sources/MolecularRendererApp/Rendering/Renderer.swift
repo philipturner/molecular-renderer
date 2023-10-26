@@ -63,13 +63,11 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-//    self.atomProvider = ExampleMolecules.Cyclosilane(name: "C-C-Si-C-Si")
-    
     do {
       let material: MaterialType = .elemental(.carbon)
 //      let material: MaterialType = .checkerboard(.silicon, .carbon)
       let h: SIMD3<Float> = [1, 0, 0]
-      let h2k: SIMD3<Float> = [0, 1, 0]
+      let h2k: SIMD3<Float> = [1, 2, 0]
       let l: SIMD3<Float> = [0, 0, 1]
       let bounds: SIMD3<Float> = 10 * (h + h2k + l)
       let entities = Hexagonal_init(bounds: bounds, material: material)
