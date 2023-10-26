@@ -75,12 +75,14 @@ class Renderer {
       let entities = Hexagonal_init(bounds: bounds, material: material)
 //      let entities = Cubic_init(bounds: [10, 10, 10], material: material)
       var atoms: [MRAtom] = entities.map { entity in
-        guard case .atom(let atomicNumber) = entity.type else {
+        guard case .atom(let element) = entity.type else {
           fatalError("Unrecognized entity type: \(entity.storage.w)")
         }
         let scaleFactor: Float = 1.0
 //        let scaleFactor: Float = 1.22855
-        return MRAtom(origin: entity.position * scaleFactor, element: atomicNumber)
+        return MRAtom(
+          origin: entity.position * scaleFactor,
+          element: element.rawValue)
       }
       self.atomProvider = ArrayAtomProvider(atoms)
       

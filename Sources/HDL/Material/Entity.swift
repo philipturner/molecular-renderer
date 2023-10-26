@@ -8,14 +8,18 @@
 import Foundation
 
 public enum EntityType: RawRepresentable {
-  case atom(UInt8)
+  case atom(Element)
   case bond(Float)
   case empty
   
   @inlinable
   public init(rawValue: Float) {
     if rawValue > 0 {
-      self = .atom(UInt8(exactly: rawValue) ?? 0)
+      guard let uint = UInt8(exactly: rawValue),
+            let element = Element(rawValue: uint) else {
+        fatalError("Invalid raw value.")
+      }
+      self = .atom(element)
     } else if rawValue < 0 {
       self = .bond(-rawValue)
     } else {
@@ -26,7 +30,11 @@ public enum EntityType: RawRepresentable {
   
   init(compactRepresentation: Int8) {
     if compactRepresentation > 0 {
-      self = .atom(UInt8(truncatingIfNeeded: compactRepresentation))
+      guard let uint = UInt8(exactly: compactRepresentation),
+            let element = Element(rawValue: uint) else {
+        fatalError("Invalid raw value.")
+      }
+      self = .atom(element)
     } else if compactRepresentation < 0 {
       fatalError("Not implemented.")
     } else {
@@ -38,7 +46,7 @@ public enum EntityType: RawRepresentable {
   public var rawValue: Float {
     switch self {
     case .atom(let atomicNumber):
-      return Float(atomicNumber)
+      return Float(atomicNumber.rawValue)
     case .bond(let bondOrder):
       return Float(-bondOrder)
     case .empty:
@@ -51,7 +59,7 @@ public enum EntityType: RawRepresentable {
   var compactRepresentation: Int8 {
     switch self {
     case .atom(let atomicNumber):
-      return Int8(clamping: atomicNumber)
+      return Int8(clamping: atomicNumber.rawValue)
     case .bond(let bondOrder):
       if let integerValue = Int8(exactly: bondOrder),
          bondOrder >= 1 && bondOrder <= 3 {

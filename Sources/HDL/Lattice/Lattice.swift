@@ -17,9 +17,9 @@ public struct Lattice<T: Basis> {
   /// Unstable API; do not use this function.
   public var _centers: [SIMD3<Float>] { centers.map { $0 / 1 } }
   
-  public init(_ closure: (Vector<T>, Vector<T>, Vector<T>) -> Void) {
+  public init(_ closure: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) -> Void) {
     Compiler.global.startLattice(type: T.self)
-    closure(T.h, T.k, T.l)
+    closure(SIMD3(1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1))
     self.centers = Compiler.global.endLattice(type: T.self)
   }
 }

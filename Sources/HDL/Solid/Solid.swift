@@ -16,10 +16,10 @@ public struct Solid {
   
   // TODO: Change to Vector<Amorphous>
   public init(_ closure: (
-    Vector<Cubic>, Vector<Cubic>, Vector<Cubic>
+    SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
   ) -> Void) {
     Compiler.global.startSolid()
-    closure(Cubic.h, Cubic.k, Cubic.l)
+    closure(SIMD3(1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1))
     self.centers = Compiler.global.endSolid()
   }
 }
