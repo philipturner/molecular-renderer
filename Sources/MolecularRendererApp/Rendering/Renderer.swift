@@ -84,14 +84,14 @@ class Renderer {
       }
       self.atomProvider = ArrayAtomProvider(atoms)
       
-      var diamondoid = Diamondoid(atoms: atoms)
-      atoms = diamondoid.atoms
-      diamondoid.minimize()
-      self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
-      
-      let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
-      simulator.simulate(ps: 10)
-      self.atomProvider = simulator.provider
+//      var diamondoid = Diamondoid(atoms: atoms)
+//      atoms = diamondoid.atoms
+//      diamondoid.minimize()
+//      self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
+//      
+//      let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
+//      simulator.simulate(ps: 10)
+//      self.atomProvider = simulator.provider
     }
     
 //    self.atomProvider = Spring_Projectile().provider

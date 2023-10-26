@@ -11,15 +11,15 @@
 // Similar to "Doubled coordinates", except halved and then compressed in the
 // X direction (right -> 1/2 right) when storing in memory.
 
-// TODO: - Add parity back again if needed.
-// In loops, it will perform an XOR with the parity's raw value.
-
 /// The larger set of columns is typically half cut-off at either cap.
 ///
 /// `firstRowStaggered` is equivalent to `firstRowOrigin`, but with some extra
 /// padding for atoms cut off by the hexagonal zigzag on the very bottom. At
 /// first glance, one would intuit that most hexagonal grids use the staggered
 /// parity.
+///
+/// This type was originally deemed necessary, but it ended up unused in the
+/// final design. It remains here as reference.
 enum HexagonalGridParity: Int32 {
   /// First row and column are larger than second.
   case firstRowOrigin = 0
@@ -47,91 +47,69 @@ func transformHH2KLtoHKL(_ input: SIMD3<Float>) -> SIMD3<Float> {
   return output
 }
 
-
 struct HexagonalCell {
   // Multiply the plane's origin by [3, 3, 8] and direction by [8, 8, 3].
   // Span: [0 -> 2h], [0 -> 2k], [0 -> l]
-  static let x0 = SIMD8<Float>(2, 4, 5, 4, 2, 1, 2, 4)
-  static let y0 = SIMD8<Float>(1, 2, 4, 5, 4, 2, 1, 2)
-  static let z0 = SIMD8<Float>(0, 1, 0, 1, 0, 1, 5, 4)
+  static let x0 = SIMD8<Float>(2, 4, 5, 4, 2, 1, 1, 2)
+  static let y0 = SIMD8<Float>(1, 2, 4, 5, 4, 2, 2, 1)
+  static let z0 = SIMD8<Float>(0, 1, 0, 1, 0, 1, 4, 5)
   
   // Ring: x = [2, 4, 5, 4, 2, 1, repeat]
   //       y = [1, 2, 4, 5, 4, 2, repeat]
   //       z = [0, 1, 0, 1, 0, 1, 5, 4, 5, 4, 5, 4]
-  static let x1 = SIMD4<Float>(5, 4, 2, 1)
-  static let y1 = SIMD4<Float>(4, 5, 4, 2)
-  static let z1 = SIMD4<Float>(5, 4, 5, 4)
+  static let x1 = SIMD4<Float>(4, 5, 4, 2)
+  static let y1 = SIMD4<Float>(2, 4, 5, 4)
+  static let z1 = SIMD4<Float>(4, 5, 4, 5)
   
   // Binary mask corresponding to the plane's "one volume" and "zero volume".
   static func intersect(
-    origin: SIMD3<Float>,
-    normal: SIMD3<Float>
+    origin untransformedOrigin: SIMD3<Float>,
+    normal untransformedNormal: SIMD3<Float>
   ) -> SIMD16<UInt8> {
-    //    let scaledOrigin = origin * SIMD3(3, 3, 8)
-    //    let scaledNormal = normal * SIMD3(8, 8, 3)
-    //    
-    //    let delta_x0 = x0 - scaledOrigin.x
-    //    let delta_y0 = y0 - scaledOrigin.y
-    //    let delta_z0 = z0 - scaledOrigin.z
-    //    var dotProduct0 = delta_x0 * scaledNormal.x
-    //    dotProduct0 += delta_y0 * scaledNormal.y
-    //    dotProduct0 += delta_z0 * scaledNormal.z
-    //    
-    //    let delta_x1 = x1 - scaledOrigin.x
-    //    let delta_y1 = y1 - scaledOrigin.y
-    //    let delta_z1 = z1 - scaledOrigin.z
-    //    var dotProduct1 = delta_x1 * scaledNormal.x
-    //    dotProduct1 += delta_y1 * scaledNormal.y
-    //    dotProduct1 += delta_z1 * scaledNormal.z
-    //    
-    //    var mask0: SIMD8<Int32> = .one
-    //    var mask1: SIMD4<Int32> = .one
-    //    mask0.replace(with: SIMD8.zero, where: dotProduct0 .> 0)
-    //    mask1.replace(with: SIMD4.zero, where: dotProduct1 .> 0)
-    //    let output0 = SIMD8<UInt8>(truncatingIfNeeded: mask0)
-    //    let output1 = SIMD4<UInt8>(truncatingIfNeeded: mask1)
-    //    return SIMD16(
-    //      lowHalf: output0,
-    //      highHalf: SIMD8(lowHalf: output1, highHalf: .zero))
+    // r, r0, n are the original position in HKL space.
+    // M is the transform from HKL to XYZ.
+    //   (r - r0) * n  = 0 <- doesn't work
+    // (Mr - Mr0) * Mn = 0 <- does work
+    //
+    // M(r - r0) * Mn = 0
+    // (M(r - r0))^T Mn = 0
+    // (r - r0)^T (M^T M) n = 0
+    // pre-compute (M^T M) n, then dot with (r - r0)
+    //
+    // M^T M = |  1  -0.5 |
+    //         | -0.5 1   |
+    // In other words, subtract half of [n2, n1] from [n1, n2].
+    let origin = untransformedOrigin
+    var normal0 = unsafeBitCast(untransformedNormal, to: SIMD4<Float>.self)
+    normal0.lowHalf -= 0.5 * SIMD2(normal0[1], normal0[0])
+    let normal = unsafeBitCast(normal0, to: SIMD3<Float>.self)
     
-    // Debugging the dot product by de-vectorizing it, having the plane
-    // transformed into XYZ space beforehand.
-    var x_coords: [Float] = []
-    var y_coords: [Float] = []
-    var z_coords: [Float] = []
-    for i in 0..<8 {
-      x_coords.append(x0[i])
-      y_coords.append(y0[i])
-      z_coords.append(z0[i])
-    }
-    for i in 0..<4 {
-      x_coords.append(x1[i])
-      y_coords.append(y1[i])
-      z_coords.append(z1[i])
-    }
-    var output: SIMD16<UInt8> = .zero
-    for i in 0..<12 {
-      let coordsHKL = SIMD3(x_coords[i],
-                            y_coords[i],
-                            z_coords[i])
-      
-      var coords = coordsHKL * SIMD3(1.0 / 3, 1.0 / 3, 1.0 / 8)
-      coords = transformHKLtoXYZ(coords)
-      let distance = ((coords - origin) * normal).sum()
-      func abs(_ x: SIMD3<Float>) -> SIMD3<Float> {
-        var output = x
-        output.replace(with: -x, where: x .< 0)
-        return output
-      }
-      
-      if all(abs(normal - SIMD3<Float>(0.0, 1.7320508, 0.0)) .< 0.01) {
-//        print(i, coords, origin, normal, distance)
-      }
-      if distance <= 0.01 {
-        output[i] = 1
-      }
-    }
-    return output
+    let scaledOrigin = origin * SIMD3(3, 3, 8)
+    let scaledNormal = normal * SIMD3(8, 8, 3)
+    
+    let delta_x0 = x0 - scaledOrigin.x
+    let delta_y0 = y0 - scaledOrigin.y
+    let delta_z0 = z0 - scaledOrigin.z
+    var dotProduct0 = delta_x0 * scaledNormal.x
+    dotProduct0 += delta_y0 * scaledNormal.y
+    dotProduct0 += delta_z0 * scaledNormal.z
+    
+    let delta_x1 = x1 - scaledOrigin.x
+    let delta_y1 = y1 - scaledOrigin.y
+    let delta_z1 = z1 - scaledOrigin.z
+    var dotProduct1 = delta_x1 * scaledNormal.x
+    dotProduct1 += delta_y1 * scaledNormal.y
+    dotProduct1 += delta_z1 * scaledNormal.z
+    
+    var mask0: SIMD8<Int32> = .one
+    var mask1: SIMD4<Int32> = .one
+    mask0.replace(with: SIMD8.zero, where: dotProduct0 .> 0)
+    mask1.replace(with: SIMD4.zero, where: dotProduct1 .> 0)
+    let output0 = SIMD8<UInt8>(truncatingIfNeeded: mask0)
+    let output1 = SIMD4<UInt8>(truncatingIfNeeded: mask1)
+    return SIMD16(
+      lowHalf: output0,
+      highHalf: SIMD8(lowHalf: output1, highHalf: .zero))
   }
 }
 
@@ -149,8 +127,11 @@ struct HexagonalMask: LatticeMask {
     origin untransformedOrigin: SIMD3<Float>,
     normal untransformedNormal: SIMD3<Float>
   ) {
-    let origin = transformHH2KLtoXYZ(untransformedOrigin)
-    let normal = transformHH2KLtoXYZ(untransformedNormal)
+    // We may need to transform the normal by pre-computing the
+    // -0.5 shift from the 'intersect' function. If so, document the necessary
+    // pre-transformation to the 'normal' argument to the function.
+    let origin = transformHH2KLtoHKL(untransformedOrigin)
+    let normal = transformHH2KLtoHKL(untransformedNormal)
     
     // Initialize the mask with everything in the one volume. The full mask
     // prevents the entity types from being set to "empty".
@@ -210,11 +191,11 @@ struct HexagonalMask: LatticeMask {
                                   Float(y) - 1,
                                   Float(z))
           lowerCorner.y /= 2
-          lowerCorner = transformHH2KLtoXYZ(lowerCorner)
+          lowerCorner = transformHH2KLtoHKL(lowerCorner)
           
-//          print("intersect", origin, normal)
           let cellMask = HexagonalCell.intersect(
-            origin: origin - lowerCorner, normal: normal)
+            origin: origin - lowerCorner,
+            normal: normal)
           mask[Int(baseAddress + x)] = cellMask
         }
         
@@ -371,10 +352,12 @@ struct HexagonalGrid: LatticeGrid {
     entityTypes = Array(repeating: repeatingUnit, count: Int(
       dimensions.x * dimensions.y * dimensions.z))
     
-    // Set this to carbon lattice constants for now. Eventually, we'll need to
-    // scale it to perfectly line up with diamond.
-    hexagonSideLength = 0.251
-    prismHeight = 0.412
+    // Base the lattice constants on diamond, so it can intermix perfectly in
+    // mixed-phase crystalline structures.
+    // a: 2.51 -> 2.52
+    // c: 4.12 -> 4.12
+    hexagonSideLength = Float(1.0 / 2).squareRoot() * 0.357
+    prismHeight = Float(4.0 / 3).squareRoot() * 0.357
     
     // Intersect yourself with some h/h + 2k/l planes.
     let hMinus = (SIMD3<Float>(-1, 0, 0))
@@ -434,17 +417,18 @@ struct HexagonalGrid: LatticeGrid {
             var y: Float
             var z: Float
             if lane < 8 {
-              x = HexagonalCell.x0[lane] / 3
-              y = HexagonalCell.y0[lane] / 3
-              z = HexagonalCell.z0[lane] / 8
+              x = HexagonalCell.x0[lane]
+              y = HexagonalCell.y0[lane]
+              z = HexagonalCell.z0[lane]
             } else {
-              x = HexagonalCell.x1[lane - 8] / 3
-              y = HexagonalCell.y1[lane - 8] / 3
-              z = HexagonalCell.z1[lane - 8] / 8
+              x = HexagonalCell.x1[lane - 8]
+              y = HexagonalCell.y1[lane - 8]
+              z = HexagonalCell.z1[lane - 8]
             }
             let type = EntityType(compactRepresentation: cell[lane])
             
             var position = SIMD3<Float>(x, y, z)
+            position *= SIMD3<Float>(1.0 / 3, 1.0 / 3, 1.0 / 8)
             position *= outputScale
             position = transformHKLtoXYZ(position)
             position += lowerCorner
