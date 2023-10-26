@@ -56,11 +56,13 @@ Coordinate spaces for defining vectors in.
 
 ```swift
 Bounds { SIMD3<Float> }
+Bounds { 10 * h + 10 * k + 10 * l } // cubic
+Bounds { 10 * h + 10 * (h + 2 * k) + 10 * l } // hexagonal
 ```
 
 Sets the working set of crystal unit cells. The box spans from the current origin (set by `Origin`) to the origin plus the specified vector. This must be called in the top-level scope, before any `Volume` keywords.
 
-For hexagonal crystals, the bounds are a cuboid defined by transforming the input vector. It is mapped from h/k/l space to h/h2k/l space. This simplifies the implementation for now, but it may change in the future.
+For hexagonal crystals, the bounds are a cuboid defined by transforming the input vector. It is mapped from h/k/l space to h/h2k/l space. This allows the base lattice to be cartesian, similar to cubic. The quantity in each axis direction must be an integer.
 
 ```swift
 Constant<Basis>(Basis.ConstantType) { MaterialType }
