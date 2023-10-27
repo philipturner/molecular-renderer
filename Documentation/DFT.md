@@ -1,5 +1,9 @@
 # Density Functional Theory
 
+> This is not a brand name or trademarked word. There is no economic force with strings attached to it. It is simply the density functional theory simulator for bootstrapping molecular nanotechnology.
+>
+> It is being incubated in the Molecular Renderer repository, but will eventually become a standalone library. It will remain as simple, general-purpose, and flexible as possible, while avoiding sources of bit rot / technical debt.
+
 Goal: Iron out a set of algorithms using Swift, Apple Accelerate, and the AMX coprocessor. Once they're tested, port necessary modules to C++, rocSOLVER, and HIP. Test Kahan block-summation algorithms that translate well between multiple vendors. Potentially prototype some in [metal-flash-attention](https://github.com/philipturner/metal-flash-attention), as the RDNA 3 matrix multiplication instruction has similar constraints to the Apple `simdgroup_matrix`. However, MFA has a battle-tested debugging suite for novel matmul algorithms.  Do not attempt to create matrix factorization kernels for the Apple GPU. Once the implementation is mature enough, rewrite the code from scratch and host it in [philipturner/density-functional-theory](https://github.com/philipturner/density-functional-theory).
 
 Outcome: This should make proof-of-concept easier, compared to incubating it in code for alternative vendors I'm not very familiar with. Brings ability to design reaction sequences and pair them with ~million-atom materializations of assembler ideas. To create large-scale matter compilers from them (_Nanosystems 14.6.5_). Use this knowledge/experience to guide design of more manufacturable parts, and better CAD software for systems-level design.

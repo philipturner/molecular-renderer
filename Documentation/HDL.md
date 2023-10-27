@@ -1,6 +1,8 @@
 # Hardware Description Language
 
-> This is not a prototype to something atomCAD will build. This is the final product, one component of a new full stack CAD workflow. It is not the only component, but an experiment that proved successful and generally useful.
+> This is not a brand name or trademarked word. There is no economic force with strings attached to it. It is simply the hardware description language for bootstrapping molecular nanotechnology.
+>
+> It is being incubated in the Molecular Renderer repository, but will eventually become a standalone library. It will remain as simple, general-purpose, and flexible as possible, while avoiding sources of bit rot / technical debt.
 
 Domain-specific language for accelerating nanomachine design workflows.
 - This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
@@ -133,7 +135,7 @@ Replace([EntityType]) { EntityType }
 
 Replace instances of the first argument with the second argument. If the value in parentheses is unspecified, it defaults to all valid atoms and bond connectors. The replacement occurs in the "one" volume of the current union of planes.
 
-Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`.
+Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
 
 ```swift
 Origin { SIMD3<Float> }

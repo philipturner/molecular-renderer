@@ -1,4 +1,4 @@
-# MRSimulation Codec
+# Molecular Renderer Simulation
 
 High-performance codec for recording and replaying molecular simulations.
 
