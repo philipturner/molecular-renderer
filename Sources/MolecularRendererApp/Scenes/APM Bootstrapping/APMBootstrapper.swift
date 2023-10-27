@@ -8,6 +8,7 @@
 import Foundation
 import MolecularRenderer
 import QuaternionModule
+import simd
 
 struct APMBootstrapper: MRAtomProvider {
   var surface = GoldSurface()

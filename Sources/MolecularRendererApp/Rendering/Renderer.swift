@@ -63,42 +63,8 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    do {
-      let lattice = Lattice<Hexagonal> { h, k, l in
-        let h2k = h + 2 * k
-        Bounds { 10 * (h + h2k + l) }
-        Material { .elemental(.carbon) }
-      }
-      
-      let atoms = lattice.entities.map(MRAtom.init)
-      self.atomProvider = ArrayAtomProvider(atoms)
-      self.atomProvider = ExampleProviders.carbidesComparison()
-      
-//      var diamondoid = Diamondoid(atoms: atoms)
-//      atoms = diamondoid.atoms
-//      diamondoid.minimize()
-//      self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
-//      
-//      let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 20)
-//      simulator.simulate(ps: 10)
-//      self.atomProvider = simulator.provider
-    }
-    
-//    self.atomProvider = Spring_Projectile().provider
-//    self.atomProvider = Flywheel2_Provider().provider
-//    self.ioSimulation()
-//    self.saveGIF()
-  }
-}
-
-extension MRAtom {
-  init(entity: HDL.Entity) {
-    guard case .atom(let element) = entity.type else {
-      fatalError("Unrecognized entity type: \(entity.storage.w)")
-    }
-    self = MRAtom(
-      origin: entity.position,
-      element: element.rawValue)
+    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
+//    self.atomProvider = APMBootstrapper()
   }
 }
 

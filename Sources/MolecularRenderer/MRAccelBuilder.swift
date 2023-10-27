@@ -296,7 +296,7 @@ extension MRAccelBuilder {
     encoder: MTLComputeCommandEncoder
   ) {
     let voxel_width_numer: Float = 4
-    let voxel_width_denom: Float = 16
+    let voxel_width_denom: Float = 8
     let statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
@@ -314,7 +314,7 @@ extension MRAccelBuilder {
     self.gridWidth = max(Int(2 * ceil(
       maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
-    guard statistics.references < 8 * 1024 * 1024 else {
+    guard statistics.references < 16 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
     

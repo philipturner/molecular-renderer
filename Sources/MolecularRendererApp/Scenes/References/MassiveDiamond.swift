@@ -49,8 +49,8 @@ struct MassiveDiamond: MRAtomProvider {
     let dimensions: SIMD3<Int> = [outerSize, outerSize, outerSize]
     
     let axesOpenLower: SIMD3<Int> = [0, 0, 0]
-//    let axesOpenUpper: SIMD3<Int> = [0, 1, 0]
-    let axesOpenUpper: SIMD3<Int> = [0, 0, 0]
+    let axesOpenUpper: SIMD3<Int> = [0, 1, 0]
+//    let axesOpenUpper: SIMD3<Int> = [0, 0, 0]
 //    let plane = CrystalPlane.fcc100(outerSize, extraDepth, outerSize)
     let plane = CrystalPlane.fcc100(outerSize, outerSize, outerSize)
     

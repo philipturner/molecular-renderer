@@ -8,18 +8,19 @@
 import Foundation
 import MolecularRenderer
 import QuaternionModule
+import simd
 
 struct HabTool {
   static let baseAtoms = { () -> [MRAtom] in
-    let url = URL(string: "https://gist.githubusercontent.com/philipturner/334ec8cd769194c6f306f500f12d79ff/raw/0cbcbf749210551dbf7037cd6bab79dbffc468b4/HighLongLinkersCarbaGermatraneSilylated.pdb")!
-    let parser = PDBParser(url: url, hasA1: false)
+    let url = URL(string: "https://gist.githubusercontent.com/philipturner/6405518fadaf902492b1498b5d50e170/raw/d660f82a0d6bc5c84c0ec1cdd3ff9140cd7fa9f2/adamantane-thiol-Hab-tool.pdb")!
+    let parser = PDBParser(url: url, hasA1: true)
     var atoms = parser._atoms
     
     var sulfurs = atoms.filter { $0.element == 16 }
     precondition(sulfurs.count == 3)
     
-    let normal = cross_platform_cross(sulfurs[1].origin - sulfurs[0].origin,
-                       sulfurs[2].origin - sulfurs[0].origin)
+    let normal = cross_platform_cross(sulfurs[2].origin - sulfurs[0].origin,
+                                      sulfurs[1].origin - sulfurs[0].origin)
     
     let rotation = Quaternion<Float>(from: cross_platform_normalize(normal), to: [0, 1, 0])
     for i in 0..<atoms.count {

@@ -253,11 +253,11 @@ public class MRRenderer {
     var offline: Bool = offline
     constants.setConstantValue(&offline, type: .bool, index: 2)
     
-    var numerator: Float = 4
-    constants.setConstantValue(&numerator, type: .float, index: 10)
+    var voxel_width_numer: Float = 4
+    constants.setConstantValue(&voxel_width_numer, type: .float, index: 10)
     
-    var denominator: Float = 16
-    constants.setConstantValue(&denominator, type: .float, index: 11)
+    var voxel_width_denom: Float = 8
+    constants.setConstantValue(&voxel_width_denom, type: .float, index: 11)
     
     // Initialize the compute pipeline.
     let function = try! library.makeFunction(
@@ -596,6 +596,8 @@ extension MRRenderer {
       self.time = nil
     }
     
+    // TODO: Add automatic profiling of the geometry + render passes separately,
+    // don't expose a public API for it yet.
     let commandBuffer = render()
     let textures = self.currentTextures
     commandBuffer.addCompletedHandler { commandBuffer in

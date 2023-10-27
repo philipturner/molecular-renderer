@@ -10,6 +10,7 @@
 		980070F22A66078D0097D21F /* NewRayTracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 980070F12A66078D0097D21F /* NewRayTracing.metal */; };
 		980070F42A6607950097D21F /* NewSparseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 980070F32A6607950097D21F /* NewSparseGrid.metal */; };
 		9802CB302A71AA76004AFD03 /* Serialization.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9802CB2F2A71AA76004AFD03 /* Serialization.metal */; };
+		98056D4F2AEC4625000F6A8F /* MRAtom+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98056D4E2AEC4625000F6A8F /* MRAtom+Extensions.swift */; };
 		980E70192A5E51D20051797F /* Tooltips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E70182A5E51D20051797F /* Tooltips.swift */; };
 		980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701A2A5E51DB0051797F /* Feedstocks.swift */; };
 		980E701D2A5E520F0051797F /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980E701C2A5E520F0051797F /* Surfaces.swift */; };
@@ -157,6 +158,7 @@
 		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
+		98056D4E2AEC4625000F6A8F /* MRAtom+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRAtom+Extensions.swift"; sourceTree = "<group>"; };
 		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
 		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
 		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
@@ -765,6 +767,7 @@
 				98A07C262A2CC11B00729897 /* ParsingUtilities.swift */,
 				98A07C242A2CBFCF00729897 /* PDBParser.swift */,
 				98325C612A6D76E500A4D7BB /* Serializer.swift */,
+				98056D4E2AEC4625000F6A8F /* MRAtom+Extensions.swift */,
 			);
 			path = Importing;
 			sourceTree = "<group>";
@@ -1131,6 +1134,7 @@
 				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
 				98906AD92AA92FF300FE5832 /* RhombicDodecahedra.swift in Sources */,
+				98056D4F2AEC4625000F6A8F /* MRAtom+Extensions.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Chapter9_Figure5.swift in Sources */,
 				988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */,
 				980E701B2A5E51DB0051797F /* Feedstocks.swift in Sources */,
