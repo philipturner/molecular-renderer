@@ -72,8 +72,6 @@ public struct MRAtom: Equatable {
   public var element: UInt8
   
   // Flags to modify how the atom is rendered.
-  // TODO: Allow the user to enter ion charge as a flag, and change the atom's
-  // radius based on a table of ionic radii (in MRAtomStyle) if it exists.
   public var flags: UInt8 = 0
   
   @inlinable @inline(__always)

@@ -304,7 +304,6 @@
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F2F5D42A608DBD006216F4 /* MRQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRQuality.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
-		98F638A12A34A11000F51E95 /* MolecularRenderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MolecularRenderer.h; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F638BE2A34DC5800F51E95 /* Styles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Styles.swift; sourceTree = "<group>"; };
 		98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtomicMasses.swift; sourceTree = "<group>"; };
@@ -839,7 +838,6 @@
 		98F638992A349F7300F51E95 /* MolecularRenderer */ = {
 			isa = PBXGroup;
 			children = (
-				98F6389F2A34A0FE00F51E95 /* include */,
 				980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */,
 				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
 				98F2F5D42A608DBD006216F4 /* MRQuality.swift */,
@@ -847,22 +845,6 @@
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
-			);
-			path = MolecularRenderer;
-			sourceTree = "<group>";
-		};
-		98F6389F2A34A0FE00F51E95 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				98F638A02A34A10400F51E95 /* MolecularRenderer */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
-		98F638A02A34A10400F51E95 /* MolecularRenderer */ = {
-			isa = PBXGroup;
-			children = (
-				98F638A12A34A11000F51E95 /* MolecularRenderer.h */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";

@@ -7,8 +7,6 @@
 
 import Foundation
 
-
-
 // MARK: - Data Structures
 
 public struct MRTime {

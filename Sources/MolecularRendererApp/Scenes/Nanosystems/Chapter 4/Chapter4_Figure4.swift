@@ -15,7 +15,6 @@ extension Nanosystems.Chapter4 {
     init() {
       let ccBondLength = Constants.bondLengths[[6, 6]]!.average
       
-      // TODO: Create an option to replace the cubane with an adamantane.
       let atoms: [MRAtom] = (0..<8).map { i in
         let x = i % 2
         let y = (i / 2) % 2

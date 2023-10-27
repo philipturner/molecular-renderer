@@ -69,7 +69,7 @@ Arguments {
   half maxSamples;
   half qualityCoefficient; // 30
   
-  // TODO: Change these to half precision?
+  // Constants for the ambient occlusion cutoff.
   float maxRayHitTime;
   float exponentialFalloffDecayConstant;
   float minimumAmbientIllumination;

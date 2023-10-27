@@ -34,10 +34,6 @@ public protocol MRAtomStyleProvider {
 // available:
 //   Whether each element has a style. Anything without a style uses `radii[0]`
 //   and a black/magenta checkerboard pattern.
-//
-// TODO: C API using a function underscored on the Swift side, requires that you
-// deallocate the return value.
-//   @_cdecl("MRMakeAtomStyles")
 public func MRMakeAtomStyles(
   colors: [SIMD3<Float>],
   radii: [Float],

@@ -359,9 +359,6 @@ extension MRRenderer {
 }
 
 extension MRRenderer {
-  // TODO: Alternative high-performance API: the user to enters a pointer that
-  // will persist for 3 frames, operate in-place on the atoms. Don't force
-  // this requirement for every use case though.
   public func setGeometry(
     time: MRTimeContext,
     atomProvider: inout MRAtomProvider,

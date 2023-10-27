@@ -1026,13 +1026,6 @@ fileprivate class Cluster {
     precondition(frameCount + 1 == metadataOffsets.count)
   }
   
-  // TODO: Allow the cluster to be encoded/decoded without stalling on the GPU.
-  // Right now, GPU acceleration makes it slower than CPU-only. This also has
-  // the unfortunate side effect that we must materialize all the frames in RAM,
-  // if we want to use them in real-time.
-  //
-  // Once the uniform grid is entirely GPU-driven, we can remove the need for
-  // the CPU to see this frame's atoms.
   func makeFrame(frameID: Int) -> MRFrame {
     precondition(frameID - frameStart < frameCount)
     
