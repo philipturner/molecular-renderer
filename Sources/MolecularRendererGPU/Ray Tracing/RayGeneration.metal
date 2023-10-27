@@ -52,7 +52,7 @@ public:
     return float3x3(x, y, z);
   }
   
-  static Ray<float> primaryRay(ushort2 pixelCoords, device Arguments* args) {
+  static Ray<float> primaryRay(ushort2 pixelCoords, const device Arguments* args) {
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
     rayDirection.xy += args->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
@@ -81,11 +81,11 @@ public:
 };
 
 class GenerationContext {
-  device Arguments* args;
+  const device Arguments* args;
   uchar seed;
   
 public:
-  GenerationContext(device Arguments* args, ushort2 pixelCoords) {
+  GenerationContext(const device Arguments* args, ushort2 pixelCoords) {
     this->args = args;
     
     uint pixelSeed = as_type<uint>(pixelCoords);

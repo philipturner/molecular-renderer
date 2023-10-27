@@ -19,7 +19,6 @@ class MRAccelBuilder {
   var motionVectors: [SIMD3<Float>] = []
   
   // Triple-buffer because the CPU accesses these.
-//  var atomBuffers: [MTLBuffer?] = [nil, nil, nil]
   var motionVectorBuffers: [MTLBuffer?] = [nil, nil, nil]
   var totalSamples: Int = 0
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
@@ -29,8 +28,6 @@ class MRAccelBuilder {
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
-  var globalCounterBuffer: MTLBuffer
-  var globalCounter2Buffer: MTLBuffer
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
@@ -74,9 +71,6 @@ class MRAccelBuilder {
     let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
     self.densePass3Pipeline = try! device
       .makeComputePipelineState(function: densePass3Function)
-    
-    self.globalCounterBuffer = device.makeBuffer(length: 12)!
-    self.globalCounter2Buffer = device.makeBuffer(length: 12)!
   }
 }
 
@@ -149,12 +143,6 @@ extension MRAccelBuilder {
     let atomSize = MemoryLayout<MRAtom>.stride
     let atomBufferSize = atoms.count * atomSize
     precondition(atomSize == 16, "Unexpected atom size.")
-//    let atomBuffer = cycle(
-//      from: &atomBuffers,
-//      index: ringIndex,
-//      currentSize: &maxAtomBufferSize,
-//      desiredSize: atomBufferSize,
-//      name: "Atoms")
     
     let motionVectorSize = MemoryLayout<SIMD3<Float>>.stride
     let motionVectorBufferSize = motionVectors.count * motionVectorSize
@@ -165,13 +153,6 @@ extension MRAccelBuilder {
       currentSize: &maxAtomBufferSize,
       desiredSize: motionVectorBufferSize,
       name: "MotionVectors")
-    
-    // Write the atom buffer's contents.
-//    let atomsPointer = atomBuffer.contents()
-//      .assumingMemoryBound(to: MRAtom.self)
-//    for (index, atom) in atoms.enumerated() {
-//      atomsPointer[index] = atom
-//    }
     
     // Write the motion vector buffer's contents.
     let motionVectorsPointer = motionVectorBuffer.contents()
@@ -310,7 +291,8 @@ extension MRAccelBuilder {
                                statistics.boundingBox.max.y,
                                statistics.boundingBox.max.z)
     let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
-
+    
+    // TODO: Change the grid to be rectangular.
     self.gridWidth = max(Int(2 * ceil(
       maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
@@ -326,12 +308,13 @@ extension MRAccelBuilder {
       bytesPerElement: 16)
     memcpy(denseGridAtoms[ringIndex]!.contents(), atoms, atoms.count * 16)
     
-    let paddedCells = (totalCells + 127) / 128 * 128
-    let numSlots = paddedCells
+    // Add 8 to the number of slots, so the counters can be located at the start
+    // of the buffer.
+    let numSlots = (totalCells + 127) / 128 * 128
     let dataBuffer = allocate(
       &denseGridData,
       currentMaxElements: &maxGridSlots,
-      desiredElements: numSlots,
+      desiredElements: 8 + numSlots,
       bytesPerElement: 4)
     let countersBuffer = allocate(
       &denseGridCounters,
@@ -348,20 +331,8 @@ extension MRAccelBuilder {
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)
     encoder.dispatchThreads(
-      MTLSizeMake(paddedCells, 1, 1),
+      MTLSizeMake(8 + numSlots, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
-    
-    // TODO: Fix this now that we removed the dependency on Metal ray tracing,
-    // the source of the Metal Frame Capture bug.
-    encoder.setBuffer(globalCounterBuffer, offset: ringIndex * 4, index: 0)
-    encoder.dispatchThreads(
-      MTLSizeMake(1, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(32, 1, 1))
-    
-    encoder.setBuffer(globalCounter2Buffer, offset: ringIndex * 4, index: 0)
-    encoder.dispatchThreads(
-      MTLSizeMake(1, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(32, 1, 1))
     
     struct UniformGridArguments {
       var gridWidth: UInt16
@@ -380,12 +351,13 @@ extension MRAccelBuilder {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
+    // Set the data at offset 32, to fit the counters before it.
     encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
-    encoder.setBuffer(dataBuffer, offset: 0, index: 3)
+    encoder.setBuffer(dataBuffer, offset: 32, index: 3)
     encoder.setBuffer(countersBuffer, offset: 0, index: 4)
-    encoder.setBuffer(globalCounterBuffer, offset: ringIndex * 4, index: 5)
+    encoder.setBuffer(dataBuffer, offset: ringIndex * 4, index: 5)
     encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
-    encoder.setBuffer(globalCounter2Buffer, offset: ringIndex * 4, index: 7)
+    encoder.setBuffer(dataBuffer, offset: ringIndex * 4 + 16, index: 7)
     
     encoder.setComputePipelineState(densePass1Pipeline)
     encoder.dispatchThreads(
@@ -394,7 +366,7 @@ extension MRAccelBuilder {
     
     encoder.setComputePipelineState(densePass2Pipeline)
     encoder.dispatchThreadgroups(
-      MTLSizeMake(paddedCells / 128, 1, 1),
+      MTLSizeMake(numSlots / 128, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
     
     encoder.setComputePipelineState(densePass3Pipeline)
@@ -410,8 +382,9 @@ extension MRAccelBuilder {
   }
   
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
+    // Set the data at offset 32, to fit the counters before it.
     encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
-    encoder.setBuffer(denseGridData!, offset: 0, index: 4)
+    encoder.setBuffer(denseGridData!, offset: 32, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
     encoder.setBuffer(motionVectorBuffers[ringIndex]!, offset: 0, index: 6)
   }

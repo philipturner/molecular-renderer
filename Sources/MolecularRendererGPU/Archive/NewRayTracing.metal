@@ -5,6 +5,9 @@
 //  Created by Philip Turner on 7/17/23.
 //
 
+// Unused code; remains here as reference.
+#if 0
+
 #include <metal_stdlib>
 #include "../Utilities/MRAtom.metal"
 using namespace metal;
@@ -33,3 +36,5 @@ class metal::raytracing::grid_intersector {
 };
 
 #pragma clang diagnostic pop
+
+#endif

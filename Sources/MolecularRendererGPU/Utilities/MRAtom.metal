@@ -91,17 +91,17 @@ MRAtom {
     this->tailStorage = tailStorage;
   }
   
-  half getRadius(device MRAtomStyle* styles) {
+  half getRadius(const device MRAtomStyle* styles) {
     auto styles_ptr = (device half4*)(styles + get_element());
     return styles_ptr[0].w;
   }
   
-  half3 getColor(device MRAtomStyle* styles) {
+  half3 getColor(const device MRAtomStyle* styles) {
     auto styles_ptr = (device half4*)(styles + get_element());
     return styles_ptr[0].xyz;
   }
   
-  MRBoundingBox getBoundingBox(device MRAtomStyle* styles) {
+  MRBoundingBox getBoundingBox(const device MRAtomStyle* styles) {
     half radius = this->getRadius(styles);
     auto min = origin - float(radius);
     auto max = origin + float(radius);

@@ -17,8 +17,8 @@ constant bool not_offline = !OFFLINE;
 
 kernel void renderAtoms
 (
- device Arguments *args [[buffer(0)]],
- device MRAtomStyle *styles [[buffer(1)]],
+ const device Arguments *args [[buffer(0)]],
+ const device MRAtomStyle *styles [[buffer(1)]],
  device MRLight *lights [[buffer(2)]],
  
  device MRAtom *atoms [[buffer(3)]],

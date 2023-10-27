@@ -10,7 +10,7 @@
 #include "UniformGrid.metal"
 using namespace metal;
 
-#define PROFILE_OCCUPIED_CELLS 1
+#define PROFILE_OCCUPIED_CELLS 0
 
 #define DENSE_BOX_GENERATE(EXTREMUM) \
 box.EXTREMUM *= args.world_to_voxel_transform; \
@@ -63,7 +63,7 @@ METAL_FUNC bool cube_sphere_intersection(ushort3 cube_min,
 kernel void dense_grid_pass1
 (
  constant DenseGridArguments &args [[buffer(0)]],
- device MRAtomStyle *styles [[buffer(1)]],
+ const device MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  device atomic_uint *dense_grid_data [[buffer(3)]],
  
@@ -192,7 +192,7 @@ kernel void dense_grid_pass2
 kernel void dense_grid_pass3
 (
  constant DenseGridArguments &args [[buffer(0)]],
- device MRAtomStyle *styles [[buffer(1)]],
+ const device MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
  device uint *dense_grid_data [[buffer(3)]],

@@ -13,8 +13,8 @@ using namespace metal;
 // Handle specular and diffuse color, and transform raw AO hits into
 // meaningful color contributions.
 class ColorContext {
-  device Arguments* args;
-  device MRAtomStyle* styles;
+  const device Arguments* args;
+  const device MRAtomStyle* styles;
   
   ushort2 pixelCoords;
   half3 color;
@@ -28,8 +28,8 @@ class ColorContext {
   half specular;
   
 public:
-  ColorContext(device Arguments* args,
-               device MRAtomStyle* styles, ushort2 pixelCoords) {
+  ColorContext(const device Arguments* args,
+               const device MRAtomStyle* styles, ushort2 pixelCoords) {
     this->args = args;
     this->styles = styles;
     this->pixelCoords = pixelCoords;
