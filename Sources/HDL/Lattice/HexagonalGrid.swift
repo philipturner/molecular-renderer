@@ -157,8 +157,11 @@ struct HexagonalGrid: LatticeGrid {
     // mixed-phase crystalline structures.
     // a: 2.51 -> 2.52
     // c: 4.12 -> 4.12
+    let carbonBondLength = MaterialType.elemental(.carbon).bondLength
     hexagonSideLength = Float(1.0 / 2).squareRoot() * 0.357
     prismHeight = Float(4.0 / 3).squareRoot() * 0.357
+    hexagonSideLength *= material.bondLength / carbonBondLength
+    prismHeight *= material.bondLength / carbonBondLength
     
     // Intersect the lattice with some h/h + 2k/l planes.
     let hMinus = transformHH2KLtoHKL(SIMD3<Float>(-1, 0, 0))

@@ -67,22 +67,12 @@ class Renderer {
       let lattice = Lattice<Hexagonal> { h, k, l in
         let h2k = h + 2 * k
         Bounds { 10 * (h + h2k + l) }
-        Material { .checkerboard(.carbon, .silicon) }
+        Material { .elemental(.carbon) }
       }
       
-      let entities = lattice.entities
-      let atoms: [MRAtom] = entities.map { entity in
-        guard case .atom(let element) = entity.type else {
-          fatalError("Unrecognized entity type: \(entity.storage.w)")
-        }
-        
-//        let scaleFactor: Float = 1.0
-        let scaleFactor: Float = 1.22855
-        return MRAtom(
-          origin: entity.position * scaleFactor,
-          element: element.rawValue)
-      }
+      let atoms = lattice.entities.map(MRAtom.init)
       self.atomProvider = ArrayAtomProvider(atoms)
+      self.atomProvider = ExampleProviders.carbidesComparison()
       
 //      var diamondoid = Diamondoid(atoms: atoms)
 //      atoms = diamondoid.atoms
@@ -98,6 +88,17 @@ class Renderer {
 //    self.atomProvider = Flywheel2_Provider().provider
 //    self.ioSimulation()
 //    self.saveGIF()
+  }
+}
+
+extension MRAtom {
+  init(entity: HDL.Entity) {
+    guard case .atom(let element) = entity.type else {
+      fatalError("Unrecognized entity type: \(entity.storage.w)")
+    }
+    self = MRAtom(
+      origin: entity.position,
+      element: element.rawValue)
   }
 }
 
