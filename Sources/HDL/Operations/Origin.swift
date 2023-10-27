@@ -8,7 +8,9 @@
 public struct Origin {
   @discardableResult
   public init(_ closure: () -> Vector<Cubic>) {
-    Compiler.global.moveOrigin(closure().simdValue)
+    // For operations like this one, there needs to be a global object that
+    // tracks which scope is being affected. If it's a lattice scope, you need
+    // to delegate to 'LatticeStack'. Otherwise, delegate to 'SolidStack'.
   }
   
   @discardableResult

@@ -62,7 +62,7 @@ Bounds { 10 * h + 10 * k + 10 * l } // cubic
 Bounds { 10 * h + 10 * (h + 2 * k) + 10 * l } // hexagonal
 ```
 
-Sets the working set of crystal unit cells. The box spans from the current origin (set by `Origin`) to the origin plus the specified vector. This must be called in the top-level scope, before any `Volume` keywords.
+Sets the working set of crystal unit cells. The box spans from the world origin `[0, 0, 0]` the specified vector. This must be called in the top-level scope, before any `Volume` keywords.
 
 For hexagonal crystals, the bounds are a cuboid defined by transforming the input vector. It is mapped from h/k/l space to h/h2k/l space. This allows the base lattice to be cartesian, similar to cubic. The quantity in each axis direction must be an integer.
 
@@ -141,7 +141,7 @@ Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .em
 Origin { SIMD3<Float> }
 ```
 
-Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope.
+Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope. `Origin` may not be called before the bounds are initialized on a `Lattice`.
 
 ```swift
 Plane { SIMD3<Float> }
@@ -159,6 +159,15 @@ Valley(SIMD3<Float>) { SIMD3<Float> }
 Creates two planes by reflecting the first argument across the second argument. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection. This must be called inside a `Volume`.
 
 ### Objects
+
+
+```swift
+Entity
+```
+
+Documentation for this object is not complete.
+
+Internally, empty entities are often used to pad vector lengths to multiples of 8. This enables greater CPU vector parallelism without the overhead of bounds checking.
 
 ```swift
 Lattice<Basis> { h, k, l in

@@ -5,21 +5,24 @@
 //  Created by Philip Turner on 9/1/23.
 //
 
-// While inside a lattice, all translations and rotations must perfectly align
-// with the lattice. That way, atoms can be de-duplicated when fusing through
-// constructive solid geometry. After breaking out of the lattice, covalent
-// bonds are formed and surfaces are passivated. Atoms can't be de-duplicated
-// anymore. However, the same types of transforms can be performed on atoms in
-// bulk.
 public struct Lattice<T: Basis> {
-  var centers: [SIMD3<Float>] = []
+  private var stack: LatticeStack
   
-  /// Unstable API; do not use this function.
-  public var _centers: [SIMD3<Float>] { centers.map { $0 / 1 } }
-  
+  // This is currently a computed variable, but it may be cached in the future.
+  public var entities: [Entity] { stack.grid.entities }
+
   public init(_ closure: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) -> Void) {
-    Compiler.global.startLattice(type: T.self)
+    // Check whether there is invalid syntax.
+    guard LatticeStackDescriptor.global.basis == nil else {
+      fatalError("Already set basis.")
+    }
+    LatticeStackDescriptor.global.basis = T.self
+    
+    // Initialize the entities.
     closure(SIMD3(1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1))
-    self.centers = Compiler.global.endLattice(type: T.self)
+    self.stack = LatticeStack.global!
+    
+    // Erase the global stack.
+    LatticeStack.global = nil
   }
 }

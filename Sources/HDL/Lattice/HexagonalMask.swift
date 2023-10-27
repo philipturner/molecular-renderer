@@ -172,3 +172,23 @@ struct HexagonalMask: LatticeMask {
     }
   }
 }
+
+extension HexagonalMask {
+  static func &= (lhs: inout Self, rhs: Self) {
+    guard lhs.mask.count == rhs.mask.count else {
+      fatalError("Combined masks of different sizes.")
+    }
+    for elementID in lhs.mask.indices {
+      lhs.mask[elementID] &= rhs.mask[elementID]
+    }
+  }
+  
+  static func |= (lhs: inout Self, rhs: Self) {
+    guard lhs.mask.count == rhs.mask.count else {
+      fatalError("Combined masks of different sizes.")
+    }
+    for elementID in lhs.mask.indices {
+      lhs.mask[elementID] |= rhs.mask[elementID]
+    }
+  }
+}

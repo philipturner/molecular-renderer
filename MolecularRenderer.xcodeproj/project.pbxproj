@@ -215,14 +215,14 @@
 		98610EAB2A9D7BF0006FAF95 /* Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compiler.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		98610F0C2AA21401006FAF95 /* Affine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Affine.swift; sourceTree = "<group>"; };
-		98610F1A2AA21871006FAF95 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
+		98610F1A2AA21871006FAF95 /* _Old_Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_Vector.swift; sourceTree = "<group>"; };
 		98610F322AA24533006FAF95 /* Lattice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lattice.swift; sourceTree = "<group>"; };
 		98610F462AA24C69006FAF95 /* Basis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basis.swift; sourceTree = "<group>"; };
 		98610F4D2AA24F10006FAF95 /* Volume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Volume.swift; sourceTree = "<group>"; };
 		98610F5C2AA256E7006FAF95 /* PlanePair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanePair.swift; sourceTree = "<group>"; };
 		98610F632AA2662C006FAF95 /* Origin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Origin.swift; sourceTree = "<group>"; };
 		98610F652AA27621006FAF95 /* Solid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solid.swift; sourceTree = "<group>"; };
-		98610F692AA28B1B006FAF95 /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
+		98610F692AA28B1B006FAF95 /* MaterialType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialType.swift; sourceTree = "<group>"; };
 		98610F6E2AA28E99006FAF95 /* Cut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cut.swift; sourceTree = "<group>"; };
 		98610F722AA28EA6006FAF95 /* Replace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Replace.swift; sourceTree = "<group>"; };
 		98610F802AA29EBE006FAF95 /* HDL.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HDL.md; sourceTree = "<group>"; };
@@ -242,6 +242,8 @@
 		988B56C72AE9AAFE00B36DE9 /* Simulators.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Simulators.md; sourceTree = "<group>"; };
 		988B56C82AEA15FF00B36DE9 /* CubicMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicMask.swift; sourceTree = "<group>"; };
 		988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalMask.swift; sourceTree = "<group>"; };
+		988B56CB2AEB538300B36DE9 /* _Old_LatticeStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_LatticeStack.swift; sourceTree = "<group>"; };
+		988B56CC2AEB544100B36DE9 /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
 		988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFSerializer.swift; sourceTree = "<group>"; };
@@ -404,12 +406,12 @@
 				98D0F1AE2AB5F43D00BE267D /* Bounds.swift */,
 				981822622AE59631009CFAA8 /* CubicGrid.swift */,
 				988B56C82AEA15FF00B36DE9 /* CubicMask.swift */,
+				988B56CC2AEB544100B36DE9 /* Material.swift */,
 				981822632AE5963A009CFAA8 /* HexagonalGrid.swift */,
 				988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */,
 				98610F322AA24533006FAF95 /* Lattice.swift */,
 				981822642AE74DCA009CFAA8 /* LatticeGrid.swift */,
 				98D0F1942AB5150600BE267D /* LatticeStack.swift */,
-				98610F1A2AA21871006FAF95 /* Vector.swift */,
 			);
 			path = Lattice;
 			sourceTree = "<group>";
@@ -452,7 +454,7 @@
 			children = (
 				9818225F2AE58E4D009CFAA8 /* Bond.swift */,
 				9818225E2AE58E43009CFAA8 /* Element.swift */,
-				98610F692AA28B1B006FAF95 /* Material.swift */,
+				98610F692AA28B1B006FAF95 /* MaterialType.swift */,
 				981822602AE58E95009CFAA8 /* Entity.swift */,
 			);
 			path = Material;
@@ -558,6 +560,7 @@
 		98610EAE2A9D7D17006FAF95 /* HDL */ = {
 			isa = PBXGroup;
 			children = (
+				988B56CA2AEB536F00B36DE9 /* Archive */,
 				98610EAB2A9D7BF0006FAF95 /* Compiler.swift */,
 				981822562AE58C81009CFAA8 /* Lattice */,
 				9818225A2AE58CAA009CFAA8 /* Material */,
@@ -603,6 +606,15 @@
 				98D9758B2AC07FE00052EE6C /* RigidBody.swift */,
 			);
 			path = RigidBody;
+			sourceTree = "<group>";
+		};
+		988B56CA2AEB536F00B36DE9 /* Archive */ = {
+			isa = PBXGroup;
+			children = (
+				988B56CB2AEB538300B36DE9 /* _Old_LatticeStack.swift */,
+				98610F1A2AA21871006FAF95 /* _Old_Vector.swift */,
+			);
+			path = Archive;
 			sourceTree = "<group>";
 		};
 		9898381929A6C08F00B4AA98 = {

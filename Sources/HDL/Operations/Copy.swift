@@ -11,7 +11,7 @@ public struct Copy {
   
   @discardableResult
   public init<T>(_ closure: () -> Lattice<T>) {
-    Compiler.global.performCopy(closure()._centers)
+//    Compiler.global.performCopy(closure()._centers)
   }
   
   @discardableResult

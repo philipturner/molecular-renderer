@@ -10,6 +10,23 @@ protocol LatticeMask {
   var mask: [Storage] { get set }
   
   init(dimensions: SIMD3<Int32>, origin: SIMD3<Float>, normal: SIMD3<Float>)
+  
+  static func &= (lhs: inout Self, rhs: Self)
+  static func |= (lhs: inout Self, rhs: Self)
+}
+
+extension LatticeMask {
+  static func & (lhs: Self, rhs: Self) -> Self {
+    var copy = lhs
+    copy &= rhs
+    return copy
+  }
+  
+  static func | (lhs: Self, rhs: Self) -> Self {
+    var copy = lhs
+    copy |= rhs
+    return copy
+  }
 }
 
 protocol LatticeGrid {

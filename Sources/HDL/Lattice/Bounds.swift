@@ -7,23 +7,16 @@
 
 public struct Bounds {
   @discardableResult
-  public init(_ position: () -> Vector<Cubic>) {
-    // Initialize the atoms to a cuboid.
-    let vector = position()
-    guard let x = Int32(exactly: vector.simdValue.x),
-          let y = Int32(exactly: vector.simdValue.y),
-          let z = Int32(exactly: vector.simdValue.z) else {
-      fatalError("Bounds must be integer quantities of crystal unit cells.")
+  public init(_ closure: () -> SIMD3<Float>) {
+    let bounds = closure()
+    let remainder = bounds - bounds.rounded(.down)
+    guard all(remainder .== 0) else {
+      fatalError("Bounds were not integers.")
     }
-    guard x > 0, y > 0, z > 0 else {
-      fatalError("Bounds must be positive.")
+    
+    guard LatticeStackDescriptor.global.bounds == nil else {
+      fatalError("Already set bounds.")
     }
-    Compiler.global.setBounds(SIMD3(x, y, z))
-  }
-  
-  @discardableResult
-  public init(_ position: () -> Vector<Hexagonal>) {
-    // Initialize the atoms to a hexagonal prism.
-    fatalError("Not implemented.")
+    LatticeStackDescriptor.global.bounds = bounds
   }
 }
