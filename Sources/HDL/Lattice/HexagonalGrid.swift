@@ -242,12 +242,3 @@ struct HexagonalGrid: LatticeGrid {
     return output
   }
 }
-
-/// Test function that returns the initial grid. Try with:
-/// - diamond
-/// - moissanite
-public func Hexagonal_init(
-  bounds: SIMD3<Float>, material: MaterialType
-) -> [Entity] {
-  HexagonalGrid(bounds: bounds, material: material).entities
-}

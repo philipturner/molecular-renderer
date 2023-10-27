@@ -128,12 +128,3 @@ struct CubicGrid: LatticeGrid {
     return output
   }
 }
-
-/// Test function that returns the initial grid. Try with:
-/// - diamond
-/// - moissanite
-public func Cubic_init(
-  bounds: SIMD3<Float>, material: MaterialType
-) -> [Entity] {
-  CubicGrid(bounds: bounds, material: material).entities
-}

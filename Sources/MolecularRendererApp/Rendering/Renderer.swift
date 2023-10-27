@@ -64,20 +64,20 @@ class Renderer {
     initOpenMM()
     
     do {
-      let material: MaterialType = .elemental(.carbon)
-//      let material: MaterialType = .checkerboard(.silicon, .carbon)
-      let h: SIMD3<Float> = [1, 0, 0]
-      let h2k: SIMD3<Float> = [1, 2, 0]
-      let l: SIMD3<Float> = [0, 0, 1]
-      let bounds: SIMD3<Float> = 10 * (h + h2k + l)
-      let entities = Hexagonal_init(bounds: bounds, material: material)
-//      let entities = Cubic_init(bounds: [10, 10, 10], material: material)
-      var atoms: [MRAtom] = entities.map { entity in
+      let lattice = Lattice<Hexagonal> { h, k, l in
+        let h2k = h + 2 * k
+        Bounds { 10 * (h + h2k + l) }
+        Material { .checkerboard(.carbon, .silicon) }
+      }
+      
+      let entities = lattice.entities
+      let atoms: [MRAtom] = entities.map { entity in
         guard case .atom(let element) = entity.type else {
           fatalError("Unrecognized entity type: \(entity.storage.w)")
         }
-        let scaleFactor: Float = 1.0
-//        let scaleFactor: Float = 1.22855
+        
+//        let scaleFactor: Float = 1.0
+        let scaleFactor: Float = 1.22855
         return MRAtom(
           origin: entity.position * scaleFactor,
           element: element.rawValue)
