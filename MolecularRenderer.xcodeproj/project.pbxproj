@@ -271,6 +271,7 @@
 		98B3E4F12A3F6F9D00B02349 /* libc++.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.0.dylib"; path = "../../../miniforge3/lib/libc++.1.0.dylib"; sourceTree = "<group>"; };
 		98B3E4F62A3F700400B02349 /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../bypass_dependencies/libc++.1.dylib"; sourceTree = "<group>"; };
 		98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloArgonInSwift.swift; sourceTree = "<group>"; };
+		98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Preprocessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRAccelBuilder+Preprocessing.swift"; sourceTree = "<group>"; };
 		98C48C462A48E0440047C078 /* HelloSodiumChlorideInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloSodiumChlorideInSwift.swift; sourceTree = "<group>"; };
 		98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../bypass_dependencies/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
 		98C48C642A48FA250047C078 /* initOpenMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = initOpenMM.swift; sourceTree = "<group>"; };
@@ -845,6 +846,7 @@
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
+				98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Preprocessing.swift */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";

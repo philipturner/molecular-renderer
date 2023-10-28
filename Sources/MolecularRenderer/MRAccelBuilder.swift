@@ -184,142 +184,6 @@ extension MRAccelBuilder {
   }
 }
 
-fileprivate func denseGridStatistics(
-  atoms: [MRAtom],
-  styles: [MRAtomStyle],
-  voxel_width_numer: Float,
-  voxel_width_denom: Float
-) -> (boundingBox: MRBoundingBox, references: Int) {
-  precondition(atoms.count > 0, "Not enough atoms.")
-  precondition(styles.count > 0, "Not enough styles.")
-  precondition(styles.count < 255, "Too many styles.")
-  
-  let workBlockSize: Int = 64 * 1024
-  let numThreads = (atoms.count + workBlockSize - 1) / workBlockSize
-  var elementInstances = [UInt32](repeating: .zero, count: 256 * numThreads)
-  var minCoordinatesArray = [SIMD3<Float>](repeating: .zero, count: numThreads)
-  var maxCoordinatesArray = [SIMD3<Float>](repeating: .zero, count: numThreads)
-  
-  DispatchQueue.concurrentPerform(iterations: numThreads) { taskID in
-    var minCoordinates: SIMD4<Float> = .zero
-    var maxCoordinates: SIMD4<Float> = .zero
-    var loopStart = atoms.count * taskID / numThreads
-    var loopEnd = atoms.count * (taskID + 1) / numThreads
-    let elementsOffset = 256 * taskID
-    
-    atoms.withUnsafeBufferPointer {
-      let baseAddress = OpaquePointer($0.baseAddress!)
-      func iterateSingle(_ i: Int) {
-        let atomBuffer = UnsafeMutableRawPointer(baseAddress)
-          .assumingMemoryBound(to: SIMD4<Float>.self)
-        let atom = atomBuffer[i]
-        let element = unsafeBitCast(atom.w, to: SIMD4<UInt8>.self).x
-        let elementsAddress = elementsOffset &+ Int(element)
-        elementInstances[elementsAddress] &+= 1
-        minCoordinates = simd_min(minCoordinates, atom)
-        maxCoordinates = simd_max(maxCoordinates, atom)
-      }
-      while loopStart % 4 != 0, loopStart < loopEnd {
-        iterateSingle(loopStart)
-        loopStart += 1
-      }
-      while loopEnd % 4 != 0, loopStart < loopEnd {
-        iterateSingle(loopEnd)
-        loopEnd -= 1
-      }
-      
-      if loopStart % 4 == 0, loopEnd % 4 == 0 {
-        let atomBuffer = UnsafeMutableRawPointer(baseAddress)
-          .assumingMemoryBound(to: SIMD16<Float>.self)
-        var minCoordinatesVector: SIMD8<Float> = .zero
-        var maxCoordinatesVector: SIMD8<Float> = .zero
-        for vector in loopStart / 4..<loopEnd / 4 {
-          // 3400/3700 -> 2100/2200 -> ???
-          let vector = atomBuffer[vector]
-          let atom1 = vector.lowHalf.lowHalf
-          let atom2 = vector.lowHalf.highHalf
-          let atom3 = vector.highHalf.lowHalf
-          let atom4 = vector.highHalf.highHalf
-          
-          let element1 = unsafeBitCast(atom1.w, to: SIMD4<UInt8>.self).x
-          let elementsAddress1 = elementsOffset &+ Int(element1)
-          elementInstances[elementsAddress1] &+= 1
-          
-          let element2 = unsafeBitCast(atom2.w, to: SIMD4<UInt8>.self).x
-          let elementsAddress2 = elementsOffset &+ Int(element2)
-          elementInstances[elementsAddress2] &+= 1
-          
-          let element3 = unsafeBitCast(atom3.w, to: SIMD4<UInt8>.self).x
-          let elementsAddress3 = elementsOffset &+ Int(element3)
-          elementInstances[elementsAddress3] &+= 1
-          
-          let element4 = unsafeBitCast(atom4.w, to: SIMD4<UInt8>.self).x
-          let elementsAddress4 = elementsOffset &+ Int(element4)
-          elementInstances[elementsAddress4] &+= 1
-          
-          var minCoords = simd_min(vector.lowHalf, vector.highHalf)
-          var maxCoords = simd_max(vector.lowHalf, vector.highHalf)
-          minCoordinatesVector = simd_min(minCoordinatesVector, minCoords)
-          maxCoordinatesVector = simd_max(maxCoordinatesVector, maxCoords)
-        }
-        
-        minCoordinates = simd_min(
-          minCoordinates, minCoordinatesVector.lowHalf)
-        minCoordinates = simd_min(
-          minCoordinates, minCoordinatesVector.highHalf)
-        
-        maxCoordinates = simd_max(
-          maxCoordinates, maxCoordinatesVector.lowHalf)
-        maxCoordinates = simd_max(
-          maxCoordinates, maxCoordinatesVector.highHalf)
-      }
-    }
-    
-    minCoordinatesArray[taskID] = unsafeBitCast(
-      minCoordinates, to: SIMD3<Float>.self)
-    maxCoordinatesArray[taskID] = unsafeBitCast(
-      maxCoordinates, to: SIMD3<Float>.self)
-  }
-  
-  var minCoordinates: SIMD3<Float> = .zero
-  var maxCoordinates: SIMD3<Float> = .zero
-  for taskID in 0..<numThreads {
-    minCoordinates = simd_min(minCoordinates, minCoordinatesArray[taskID])
-    maxCoordinates = simd_max(maxCoordinates, maxCoordinatesArray[taskID])
-  }
-  for taskID in 1..<numThreads {
-    for elementID in 0..<256 {
-      elementInstances[elementID] += elementInstances[256 * taskID + elementID]
-    }
-  }
-  
-  let epsilon: Float = 1e-4
-  var references: Int = 0
-  var maxRadius: Float = 0
-  for i in 0..<styles.count {
-    let radius = Float(styles[i].radius)
-    let cellSpan = 1 + ceil(
-      (2 * radius + epsilon) * voxel_width_denom / voxel_width_numer)
-    let cellCube = cellSpan * cellSpan * cellSpan
-
-    let instances = elementInstances[i]
-    references &+= Int(instances &* UInt32(cellCube))
-
-    let presentMask: Float = (instances > 0) ? 1 : 0
-    maxRadius = max(radius * presentMask, maxRadius)
-  }
-  maxRadius += epsilon
-  minCoordinates -= maxRadius
-  maxCoordinates += maxRadius
-  
-  let boundingBox = MRBoundingBox(
-    min: MTLPackedFloat3Make(
-      minCoordinates.x, minCoordinates.y, minCoordinates.z),
-    max: MTLPackedFloat3Make(
-      maxCoordinates.x, maxCoordinates.y, maxCoordinates.z))
-  return (boundingBox, references)
-}
-
 extension MRAccelBuilder {
   // Utility for exponentially expanding memory allocations.
   private func allocate(
@@ -344,6 +208,16 @@ extension MRAccelBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {
+    // TODO: Automatically switch between the two modes, based on which one is
+    // faster or which one has enough capacity. With the optimization below,
+    // capacity may become the deciding factor.
+    //
+    // TODO: Sort contiguous blocks of atoms. Those which are spatially local,
+    // get an optimized shader that performs a memory operation or an atomic on
+    // the entire group. Summarize statistics about the group and send them to
+    // the GPU, to reduce the number of memory accesses during the shader. Make
+    // it legal to allocate slightly more references than needed, to accomodate
+    // all the atoms in the group that could theoretically intersect.
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = 8
     let statisticsStart = CACurrentMediaTime()
@@ -351,7 +225,7 @@ extension MRAccelBuilder {
       atoms: atoms,
       styles: styles,
       voxel_width_numer: voxel_width_numer,
-      voxel_width_denom: voxel_width_denom)
+      voxel_width_denom: [16, voxel_width_denom])
     let statisticsEnd = CACurrentMediaTime()
     let statisticsDuration = statisticsEnd - statisticsStart
     
@@ -405,9 +279,13 @@ extension MRAccelBuilder {
     self.gridWidth = max(Int(2 * ceil(
       maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
     let totalCells = gridWidth * gridWidth * gridWidth
-    guard statistics.references < 16 * 1024 * 1024 else {
+    guard statistics.references[1] < 16 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
+    print(
+      "References:",
+      "\(statistics.references[0] / 1000)k,",
+      "\(statistics.references[1] / 1000)k")
     
     // Allocate new memory.
     let atomsBuffer = allocate(
@@ -434,7 +312,7 @@ extension MRAccelBuilder {
     let referencesBuffer = allocate(
       &denseGridReferences,
       currentMaxElements: &maxGridReferences,
-      desiredElements: statistics.references,
+      desiredElements: statistics.references[1],
       bytesPerElement: 4) // 2
     
     encoder.setComputePipelineState(memsetPipeline)
@@ -498,3 +376,4 @@ extension MRAccelBuilder {
     encoder.setBuffer(motionVectorBuffers[ringIndex]!, offset: 0, index: 6)
   }
 }
+
