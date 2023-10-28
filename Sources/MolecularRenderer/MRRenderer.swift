@@ -12,9 +12,6 @@ import class QuartzCore.CAMetalLayer
 import struct simd.simd_float3x3
 import func simd.distance_squared
 
-// Partially sourced from:
-// https://developer.apple.com/documentation/metalfx/applying_temporal_antialiasing_and_upscaling_using_metalfx
-
 @_alignment(16)
 struct Arguments {
   var fovMultiplier: Float
@@ -593,8 +590,6 @@ extension MRRenderer {
       self.time = nil
     }
     
-    // TODO: Add automatic profiling of the geometry + render passes separately,
-    // don't expose a public API for it yet.
     let commandBuffer = render()
     let textures = self.currentTextures
     commandBuffer.addCompletedHandler { commandBuffer in
@@ -639,6 +634,25 @@ extension MRRenderer {
     accelBuilder.buildDenseGrid(encoder: encoder)
     encoder.endEncoding()
     
+    let frameID = accelBuilder.frameReportCounter
+    func addHandler(
+      _ closure: @escaping (inout MRFrameReport, Double) -> Void
+    ) {
+      commandBuffer.addCompletedHandler { [self] commandBuffer in
+        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+        self.accelBuilder.frameReportQueue.sync {
+          for index in self.accelBuilder.frameReports.indices.reversed() {
+            guard self.accelBuilder.frameReports[index].frameID == frameID else {
+              continue
+            }
+            closure(&self.accelBuilder.frameReports[index], executionTime)
+            break
+          }
+        }
+      }
+    }
+    
+    addHandler { $0.geometryTime = $1 }
     commandBuffer.commit()
     commandBuffer = commandQueue.makeCommandBuffer()!
     
@@ -690,6 +704,7 @@ extension MRRenderer {
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
     encoder.endEncoding()
     
+    addHandler { $0.renderTime = $1 }
     return commandBuffer
   }
 }

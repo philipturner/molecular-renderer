@@ -8,6 +8,21 @@
 import Accelerate
 import Metal
 import simd
+import QuartzCore
+
+struct MRFrameReport {
+  // The ID of the frame that owns this report.
+  var frameID: Int
+  
+  // CPU time spent preparing geometry.
+  var preprocessingTime: Double
+  
+  // GPU time spent building the uniform grid.
+  var geometryTime: Double
+  
+  // GPU time spent rendering.
+  var renderTime: Double
+}
 
 class MRAccelBuilder {
   // Main rendering resources.
@@ -20,8 +35,14 @@ class MRAccelBuilder {
   
   // Triple-buffer because the CPU accesses these.
   var motionVectorBuffers: [MTLBuffer?] = [nil, nil, nil]
-  var totalSamples: Int = 0
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
+  
+  // Safeguard access to these using a dispatch queue.
+  var frameReportQueue: DispatchQueue = .init(
+    label: "com.philipturner.MolecularRenderer.MRAccelBuilder.frameReportQueue")
+  var frameReports: [MRFrameReport] = []
+  var frameReportCounter: Int = 0
+  static let frameReportHistorySize: Int = 10
   
   // Data for uniform grids.
   var ringIndex: Int = 0
@@ -173,53 +194,103 @@ fileprivate func denseGridStatistics(
   precondition(styles.count > 0, "Not enough styles.")
   precondition(styles.count < 255, "Too many styles.")
   
-  let elementInstances = malloc(256 * 4)!
-    .assumingMemoryBound(to: UInt32.self)
-  var pattern4: UInt32 = 0
-  memset_pattern4(elementInstances, &pattern4, 256 * 4)
+  let workBlockSize: Int = 64 * 1024
+  let numThreads = (atoms.count + workBlockSize - 1) / workBlockSize
+  var elementInstances = [UInt32](repeating: .zero, count: 256 * numThreads)
+  var minCoordinatesArray = [SIMD3<Float>](repeating: .zero, count: numThreads)
+  var maxCoordinatesArray = [SIMD3<Float>](repeating: .zero, count: numThreads)
   
-  @_alignment(16)
-  struct MRAtom4 {
-    var atom1: MRAtom
-    var atom2: MRAtom
-    var atom3: MRAtom
-    var atom4: MRAtom
+  DispatchQueue.concurrentPerform(iterations: numThreads) { taskID in
+    var minCoordinates: SIMD4<Float> = .zero
+    var maxCoordinates: SIMD4<Float> = .zero
+    var loopStart = atoms.count * taskID / numThreads
+    var loopEnd = atoms.count * (taskID + 1) / numThreads
+    let elementsOffset = 256 * taskID
+    
+    atoms.withUnsafeBufferPointer {
+      let baseAddress = OpaquePointer($0.baseAddress!)
+      func iterateSingle(_ i: Int) {
+        let atomBuffer = UnsafeMutableRawPointer(baseAddress)
+          .assumingMemoryBound(to: SIMD4<Float>.self)
+        let atom = atomBuffer[i]
+        let element = unsafeBitCast(atom.w, to: SIMD4<UInt8>.self).x
+        let elementsAddress = elementsOffset &+ Int(element)
+        elementInstances[elementsAddress] &+= 1
+        minCoordinates = simd_min(minCoordinates, atom)
+        maxCoordinates = simd_max(maxCoordinates, atom)
+      }
+      while loopStart % 4 != 0, loopStart < loopEnd {
+        iterateSingle(loopStart)
+        loopStart += 1
+      }
+      while loopEnd % 4 != 0, loopStart < loopEnd {
+        iterateSingle(loopEnd)
+        loopEnd -= 1
+      }
+      
+      if loopStart % 4 == 0, loopEnd % 4 == 0 {
+        let atomBuffer = UnsafeMutableRawPointer(baseAddress)
+          .assumingMemoryBound(to: SIMD16<Float>.self)
+        var minCoordinatesVector: SIMD8<Float> = .zero
+        var maxCoordinatesVector: SIMD8<Float> = .zero
+        for vector in loopStart / 4..<loopEnd / 4 {
+          // 3400/3700 -> 2100/2200 -> ???
+          let vector = atomBuffer[vector]
+          let atom1 = vector.lowHalf.lowHalf
+          let atom2 = vector.lowHalf.highHalf
+          let atom3 = vector.highHalf.lowHalf
+          let atom4 = vector.highHalf.highHalf
+          
+          let element1 = unsafeBitCast(atom1.w, to: SIMD4<UInt8>.self).x
+          let elementsAddress1 = elementsOffset &+ Int(element1)
+          elementInstances[elementsAddress1] &+= 1
+          
+          let element2 = unsafeBitCast(atom2.w, to: SIMD4<UInt8>.self).x
+          let elementsAddress2 = elementsOffset &+ Int(element2)
+          elementInstances[elementsAddress2] &+= 1
+          
+          let element3 = unsafeBitCast(atom3.w, to: SIMD4<UInt8>.self).x
+          let elementsAddress3 = elementsOffset &+ Int(element3)
+          elementInstances[elementsAddress3] &+= 1
+          
+          let element4 = unsafeBitCast(atom4.w, to: SIMD4<UInt8>.self).x
+          let elementsAddress4 = elementsOffset &+ Int(element4)
+          elementInstances[elementsAddress4] &+= 1
+          
+          var minCoords = simd_min(vector.lowHalf, vector.highHalf)
+          var maxCoords = simd_max(vector.lowHalf, vector.highHalf)
+          minCoordinatesVector = simd_min(minCoordinatesVector, minCoords)
+          maxCoordinatesVector = simd_max(maxCoordinatesVector, maxCoords)
+        }
+        
+        minCoordinates = simd_min(
+          minCoordinates, minCoordinatesVector.lowHalf)
+        minCoordinates = simd_min(
+          minCoordinates, minCoordinatesVector.highHalf)
+        
+        maxCoordinates = simd_max(
+          maxCoordinates, maxCoordinatesVector.lowHalf)
+        maxCoordinates = simd_max(
+          maxCoordinates, maxCoordinatesVector.highHalf)
+      }
+    }
+    
+    minCoordinatesArray[taskID] = unsafeBitCast(
+      minCoordinates, to: SIMD3<Float>.self)
+    maxCoordinatesArray[taskID] = unsafeBitCast(
+      maxCoordinates, to: SIMD3<Float>.self)
   }
   
-  let paddedNumAtoms = (atoms.count + 3) / 4 * 4
-  let atomsPadded_raw = malloc(paddedNumAtoms * 16)!
-  let atomsPadded_1 = atomsPadded_raw.assumingMemoryBound(to: MRAtom.self)
-  let atomsPadded_4 = atomsPadded_raw.assumingMemoryBound(to: MRAtom4.self)
-  
-  memcpy(atomsPadded_raw, atoms, atoms.count * 16)
-  var paddingAtom = atoms[0]
-  paddingAtom.element = 255
-  for i in atoms.count..<paddedNumAtoms {
-    atomsPadded_1[i] = paddingAtom
+  var minCoordinates: SIMD3<Float> = .zero
+  var maxCoordinates: SIMD3<Float> = .zero
+  for taskID in 0..<numThreads {
+    minCoordinates = simd_min(minCoordinates, minCoordinatesArray[taskID])
+    maxCoordinates = simd_max(maxCoordinates, maxCoordinatesArray[taskID])
   }
-  
-  var minCoordinates: SIMD4<Float> = .zero
-  var maxCoordinates: SIMD4<Float> = .zero
-  for chunkIndex in 0..<paddedNumAtoms / 4 {
-    let chunk = atomsPadded_4[chunkIndex]
-    elementInstances[Int(chunk.atom1.element)] &+= 1
-    elementInstances[Int(chunk.atom2.element)] &+= 1
-    elementInstances[Int(chunk.atom3.element)] &+= 1
-    elementInstances[Int(chunk.atom4.element)] &+= 1
-    
-    let coords1 = unsafeBitCast(chunk.atom1, to: SIMD4<Float>.self)
-    let coords2 = unsafeBitCast(chunk.atom2, to: SIMD4<Float>.self)
-    let coords3 = unsafeBitCast(chunk.atom3, to: SIMD4<Float>.self)
-    let coords4 = unsafeBitCast(chunk.atom4, to: SIMD4<Float>.self)
-    let min12 = simd_min(coords1, coords2)
-    let min34 = simd_min(coords3, coords4)
-    let min1234 = simd_min(min12, min34)
-    minCoordinates = simd_min(min1234, minCoordinates)
-    
-    let max12 = simd_max(coords1, coords2)
-    let max34 = simd_max(coords3, coords4)
-    let max1234 = simd_max(max12, max34)
-    maxCoordinates = simd_max(max1234, maxCoordinates)
+  for taskID in 1..<numThreads {
+    for elementID in 0..<256 {
+      elementInstances[elementID] += elementInstances[256 * taskID + elementID]
+    }
   }
   
   let epsilon: Float = 1e-4
@@ -230,19 +301,16 @@ fileprivate func denseGridStatistics(
     let cellSpan = 1 + ceil(
       (2 * radius + epsilon) * voxel_width_denom / voxel_width_numer)
     let cellCube = cellSpan * cellSpan * cellSpan
-    
+
     let instances = elementInstances[i]
     references &+= Int(instances &* UInt32(cellCube))
-    
+
     let presentMask: Float = (instances > 0) ? 1 : 0
     maxRadius = max(radius * presentMask, maxRadius)
   }
   maxRadius += epsilon
   minCoordinates -= maxRadius
   maxCoordinates += maxRadius
-  
-  free(elementInstances)
-  free(atomsPadded_raw)
   
   let boundingBox = MRBoundingBox(
     min: MTLPackedFloat3Make(
@@ -278,11 +346,52 @@ extension MRAccelBuilder {
   ) {
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = 8
+    let statisticsStart = CACurrentMediaTime()
     let statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
       voxel_width_numer: voxel_width_numer,
       voxel_width_denom: voxel_width_denom)
+    let statisticsEnd = CACurrentMediaTime()
+    let statisticsDuration = statisticsEnd - statisticsStart
+    
+    // The first rendered frame will have an ID of 1.
+    frameReportCounter += 1
+    let performance = frameReportQueue.sync { () -> SIMD3<Double> in
+      // Remove frames too far back in the history.
+      let minimumID = frameReportCounter - Self.frameReportHistorySize
+      while frameReports.count > 0, frameReports.first!.frameID < minimumID {
+        frameReports.removeFirst()
+      }
+      
+      var dataSize: Int = 0
+      var output: SIMD3<Double> = .zero
+      for report in frameReports {
+        if report.geometryTime >= 0, report.renderTime >= 0 {
+          dataSize += 1
+          output[0] += report.preprocessingTime
+          output[1] += report.geometryTime
+          output[2] += report.renderTime
+        }
+      }
+      if dataSize > 0 {
+        output /= Double(dataSize)
+      }
+      
+      let report = MRFrameReport(
+        frameID: frameReportCounter,
+        preprocessingTime: statisticsDuration,
+        geometryTime: 1,
+        renderTime: 1)
+      frameReports.append(report)
+      return output
+    }
+    if any(performance .> 0) {
+      print(
+        Int(performance[0] * 1e6),
+        Int(performance[1] * 1e6),
+        Int(performance[2] * 1e6))
+    }
     
     let minCoordinates = SIMD3(statistics.boundingBox.min.x,
                                statistics.boundingBox.min.y,

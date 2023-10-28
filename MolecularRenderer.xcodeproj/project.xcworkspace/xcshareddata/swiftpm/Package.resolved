@@ -1,6 +1,24 @@
 {
   "pins" : [
     {
+      "identity" : "applegpuinfo",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/philipturner/applegpuinfo",
+      "state" : {
+        "branch" : "main",
+        "revision" : "341aee5cc5c1ee76e58088195fc6adbb03ac261c"
+      }
+    },
+    {
+      "identity" : "devicekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/devicekit/DeviceKit",
+      "state" : {
+        "branch" : "master",
+        "revision" : "43a9f9388636be506fed8b6b86f858d759a21178"
+      }
+    },
+    {
       "identity" : "keycodes",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ChimeHQ/KeyCodes",
@@ -12,10 +30,10 @@
     {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "location" : "https://github.com/apple/swift-argument-parser",
       "state" : {
-        "revision" : "9564d61b08a5335ae0a36f789a7d71493eacadfc",
-        "version" : "0.3.2"
+        "branch" : "main",
+        "revision" : "b7f5d8cff2255346c43e711f2e053b0e69e6f485"
       }
     },
     {
