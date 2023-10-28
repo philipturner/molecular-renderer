@@ -63,6 +63,8 @@ class MRAccelBuilder {
   var maxGridCells: Int = 1 << 1
   var maxGridReferences: Int = 1 << 1
   var gridWidth: Int = 0
+  var gridHeight: Int = 0
+  var gridDepth: Int = 0
   
   public init(
     renderer: MRRenderer,
@@ -274,10 +276,13 @@ extension MRAccelBuilder {
                                statistics.boundingBox.max.y,
                                statistics.boundingBox.max.z)
     let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
+    print(maxMagnitude)
     
     // TODO: Change the grid to be rectangular.
     self.gridWidth = max(Int(2 * ceil(
       maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
+    self.gridHeight = gridWidth
+    self.gridDepth = gridWidth
     let totalCells = gridWidth * gridWidth * gridWidth
     guard statistics.references[1] < 16 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
@@ -365,7 +370,11 @@ extension MRAccelBuilder {
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
     precondition(gridWidth > 0, "Forgot to encode the grid construction.")
+    precondition(gridHeight > 0, "Forgot to encode the grid construction.")
+    precondition(gridDepth > 0, "Forgot to encode the grid construction.")
     arguments.denseWidth = UInt16(self.gridWidth)
+    arguments.denseHeight = UInt16(self.gridHeight)
+    arguments.denseDepth = UInt16(self.gridDepth)
   }
   
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {

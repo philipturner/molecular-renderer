@@ -77,6 +77,8 @@ Arguments {
   
   // Uniform grid arguments.
   ushort dense_width;
+  ushort dense_height;
+  ushort dense_depth;
 };
 
 #pragma clang diagnostic pop

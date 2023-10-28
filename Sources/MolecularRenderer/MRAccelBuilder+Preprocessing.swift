@@ -19,7 +19,7 @@ func denseGridStatistics(
   precondition(styles.count > 0, "Not enough styles.")
   precondition(styles.count < 255, "Too many styles.")
   
-  let epsilon: Float = 1e-4
+  let epsilon: Float = 1e-3
   let workBlockSize: Int = 64 * 1024
   let numThreads = (atoms.count + workBlockSize - 1) / workBlockSize
   var elementInstances = [UInt32](repeating: .zero, count: 256 * numThreads)
@@ -66,7 +66,11 @@ func denseGridStatistics(
       let randomMultiplier = min(0, 1 + Float(UInt8.random(in: 0..<255)))
       precondition(randomMultiplier == 0, "This should never happen.")
       
-      if loopStart % 4 == 0, loopEnd % 4 == 0 {
+//      for i in loopStart..<loopEnd {
+//        iterateSingle(i)
+//      }
+      
+      if loopStart % 4 == 0, loopEnd % 4 == 0 {//}, false {
         let atomBuffer = UnsafeMutableRawPointer(baseAddress)
           .assumingMemoryBound(to: SIMD16<Float>.self)
         var minCoordinatesVector: SIMD8<Float> = .zero
@@ -87,14 +91,23 @@ func denseGridStatistics(
               truncatingIfNeeded: unsafeBitCast(atom.w, to: SIMD4<UInt8>.self).x)
             elementInstances[elementsOffset &+ element] &+= 1
             
+            // TODO: There is a bug somewhere, resulting in incorrect rounding.
             let radius = Float(styles[element].radius) + epsilon
-            let lowerBound0 = ((atom - radius) * voxelSizeInv[0]).rounded(.down)
-            let upperBound0 = ((atom + radius) * voxelSizeInv[0]).rounded(.up)
-            let lowerBound1 = ((atom - radius) * voxelSizeInv[1]).rounded(.down)
-            let upperBound1 = ((atom + radius) * voxelSizeInv[1]).rounded(.up)
-            return (
-              SIMD4<Float>(upperBound0 - lowerBound0),
-              SIMD4<Float>(upperBound1 - lowerBound1))
+            var lowerBound0 = ((atom - radius) * voxelSizeInv[0]).rounded(.down)
+            var upperBound0 = ((atom + radius) * voxelSizeInv[0]).rounded(.up)
+            var lowerBound1 = ((atom - radius) * voxelSizeInv[1]).rounded(.down)
+            var upperBound1 = ((atom + radius) * voxelSizeInv[1]).rounded(.up)
+            
+            var output0 = upperBound0 - lowerBound0
+            var output1 = upperBound1 - lowerBound1
+            @inline(__always)
+            func fixBoundUpper(_ bound: inout SIMD4<Float>) {
+              let max = bound.max()
+              bound.replace(with: .init(repeating: max), where: bound .< max)
+            }
+            fixBoundUpper(&output0)
+            fixBoundUpper(&output1)
+            return (output0, output1)
           }
           let (cells1_0, cells1_1) = process(atom1)
           let (cells2_0, cells2_1) = process(atom2)
@@ -119,6 +132,11 @@ func denseGridStatistics(
           var maxCoords = simd_max(vector.lowHalf, vector.highHalf)
           minCoordinatesVector = simd_min(minCoordinatesVector, minCoords)
           maxCoordinatesVector = simd_max(maxCoordinatesVector, maxCoords)
+          
+          if any(simd_abs(minCoordinatesVector) .> 100) ||
+              any(simd_abs(maxCoordinatesVector) .> 100) {
+            print(vector, minCoordinatesVector, maxCoordinatesVector)
+          }
         }
         
         minCoordinates = simd_min(
@@ -133,6 +151,8 @@ func denseGridStatistics(
       }
     }
     
+    // TODO: There is a bug somewhere. This is not multithreaded, so there
+    // should be no data race.
     minCoordinatesArray[taskID] = unsafeBitCast(
       minCoordinates, to: SIMD3<Float>.self)
     maxCoordinatesArray[taskID] = unsafeBitCast(
