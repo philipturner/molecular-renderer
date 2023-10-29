@@ -23,6 +23,7 @@ struct Diamondoid {
   
   // An external force distributed across the entire object, in piconewtons.
   var externalForce: SIMD3<Float>?
+  var atomsWithForce: [Bool] = []
   
   // You must ensure the number of anchors equals the number of atoms.
   // Otherwise, behavior is undefined.
@@ -892,14 +893,24 @@ struct Diamondoid {
   func createForces() -> [SIMD3<Float>] {
     var output = [SIMD3<Float>](repeating: .zero, count: atoms.count)
     if let externalForce {
+      var atomsWithForce: [Bool]
+      if self.atomsWithForce.count > 0 {
+        guard self.atomsWithForce.count == atoms.count else {
+          fatalError("'atomsWithForce' must be the same size as 'atoms'.")
+        }
+        atomsWithForce = self.atomsWithForce
+      } else {
+        atomsWithForce = [Bool](repeating: true, count: atoms.count)
+      }
+      
       // Only exert a force on the carbons. This will be changed to a better
       // heuristic with the new RigidBody API.
-      let numCarbons = atoms.reduce(Int(0)) {
-        $0 + ($1.element == 6 ? 1 : 0)
+      let numCarbons = atoms.indices.reduce(Int(0)) {
+        $0 + ((atoms[$1].element == 6 && atomsWithForce[$1]) ? 1 : 0)
       }
       let atomForce = externalForce / Float(numCarbons)
-      output = atoms.map {
-        $0.element == 6 ? atomForce : .zero
+      output = atoms.indices.map {
+        (atoms[$0].element == 6 && atomsWithForce[$0]) ? atomForce : .zero
       }
     }
     return output

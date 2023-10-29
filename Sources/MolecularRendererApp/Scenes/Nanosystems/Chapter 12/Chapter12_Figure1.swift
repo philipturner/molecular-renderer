@@ -20,8 +20,52 @@ extension Nanosystems.Chapter12 {
     var provider: any MRAtomProvider
     
     init() {
-      let atom = MRAtom(origin: .zero, element: 6)
-      provider = ArrayAtomProvider([atom])
+      provider = ArrayAtomProvider([MRAtom(origin: .zero, element: 6)])
+      
+      let rodLattice = Lattice<Hexagonal> { h, k, l in
+        let h2k = h + 2 * k
+        Bounds { 10 * h + 8 * h2k + 16 * l }
+        Material { .elemental(.carbon) }
+        
+        Volume {
+          Origin { 5 * h + 4 * h2k + 8 * l }
+          
+          for direction in [h, -h] {
+            Convex {
+              Origin { 2 * direction }
+              Plane { direction }
+            }
+          }
+          Convex {
+            Origin { h2k }
+            Plane { h2k }
+          }
+          for direction in [l, -l] {
+            Concave {
+              Origin { -h2k }
+              Plane { -h2k }
+              Convex {
+                if direction.z == 1 {
+                  Origin { 1.8 * direction }
+                } else {
+                  Origin { 2 * direction }
+                }
+                Plane { direction }
+              }
+            }
+          }
+          Convex {
+            Origin { -3 * h2k }
+            Plane { -h2k }
+          }
+          Replace { .empty }
+        }
+      }
+      let rodAtoms = rodLattice.entities.map(MRAtom.init)
+      var rodDiamondoid = Diamondoid(atoms: rodAtoms)
+      provider = ArrayAtomProvider(rodDiamondoid.atoms)
+      
+      // Next, create the housing.
     }
   }
 }

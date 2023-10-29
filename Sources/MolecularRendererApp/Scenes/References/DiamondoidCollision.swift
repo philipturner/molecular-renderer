@@ -243,6 +243,9 @@ struct LonsdaleiteCollision {
     var diamondoid2 = diamondoid1
     diamondoid2.translate(offset: [0, 3.5, 0])
     diamondoid2.externalForce = [0, -1000, 0]
+    diamondoid2.atomsWithForce = diamondoid2.atoms.map {
+      $0.z < 0
+    }
     
     // Change a few random atoms in diamondoid1 to anchors.
     diamondoid1.anchors = [Bool](
