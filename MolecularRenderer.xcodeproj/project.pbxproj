@@ -47,7 +47,7 @@
 		98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE22A74A6BD00CAD919 /* Chapter4.swift */; };
 		98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */; };
 		98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */; };
-		98518AF72A75845600CAD919 /* _Old_MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* _Old_MM4.swift */; };
+		98518AF72A75845600CAD919 /* MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* MM4.swift */; };
 		98518AFB2A77239700CAD919 /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AFA2A77239700CAD919 /* Motion.swift */; };
 		98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */; };
 		9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */; };
@@ -201,7 +201,7 @@
 		98518AE22A74A6BD00CAD919 /* Chapter4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4.swift; sourceTree = "<group>"; };
 		98518AE42A74A6EC00CAD919 /* Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure3.swift; sourceTree = "<group>"; };
 		98518AE62A74A8C200CAD919 /* Chapter4_Figure4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter4_Figure4.swift; sourceTree = "<group>"; };
-		98518AF62A75845600CAD919 /* _Old_MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_MM4.swift; sourceTree = "<group>"; };
+		98518AF62A75845600CAD919 /* MM4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MM4.swift; sourceTree = "<group>"; };
 		98518AFA2A77239700CAD919 /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondoidCollision.swift; sourceTree = "<group>"; };
 		9852E87829EB6BF200D0E779 /* ExampleMolecules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleMolecules.swift; sourceTree = "<group>"; };
@@ -562,7 +562,7 @@
 		98518AF52A7577A200CAD919 /* MM4 */ = {
 			isa = PBXGroup;
 			children = (
-				98518AF62A75845600CAD919 /* _Old_MM4.swift */,
+				98518AF62A75845600CAD919 /* MM4.swift */,
 			);
 			path = MM4;
 			sourceTree = "<group>";
@@ -1156,7 +1156,7 @@
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
 				988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
-				98518AF72A75845600CAD919 /* _Old_MM4.swift in Sources */,
+				98518AF72A75845600CAD919 /* MM4.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* Styles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
 				98056D542AEC57F2000F6A8F /* NewRayTracing.metal in Sources */,

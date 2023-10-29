@@ -60,38 +60,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    let latticeC = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 10 * (h + h2k + l) }
-      Material { .elemental(.carbon) }
-      
-      Volume {
-        Origin { 5 * (h + h2k + l) }
-        
-        Convex {
-          for direction in [h, h + k, k, -h, -h - k, -k] {
-            Convex {
-              Origin { 3 * direction }
-              Plane { direction }
-            }
-          }
-        }
-        
-        Replace { .empty }
-      }
-    }
-    
-//    let atoms = latticeC.entities.map(MRAtom.init)
-//    var diamondoid = Diamondoid(atoms: atoms)
-//    diamondoid.minimize()
-//    
-//    self.atomProvider = ArrayAtomProvider(atoms)
-//    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
-//    
-//    let simulator = _Old_MM4(diamondoid: diamondoid, fsPerFrame: 4)
-//    simulator.simulate(ps: 10)
-//    self.atomProvider = simulator.provider
-    
-    self.atomProvider = DiamondoidCollision().provider
+    self.atomProvider = LonsdaleiteCollision().provider
   }
 }

@@ -21,6 +21,9 @@ struct Diamondoid {
   var linearVelocity: SIMD3<Float>?
   var angularVelocity: Quaternion<Float>?
   
+  // An external force distributed across the entire object, in piconewtons.
+  var externalForce: SIMD3<Float>?
+  
   private var isVelocitySet: Bool {
     linearVelocity != nil ||
     angularVelocity != nil
@@ -880,6 +883,22 @@ struct Diamondoid {
       }
       return velocity
     }
+  }
+  
+  func createForces() -> [SIMD3<Float>] {
+    var output = [SIMD3<Float>](repeating: .zero, count: atoms.count)
+    if let externalForce {
+      // Only exert a force on the carbons. This will be changed to a better
+      // heuristic with the new RigidBody API.
+      let numCarbons = atoms.reduce(Int(0)) {
+        $0 + ($1.element == 6 ? 1 : 0)
+      }
+      let atomForce = externalForce / Float(numCarbons)
+      output = atoms.map {
+        $0.element == 6 ? atomForce : .zero
+      }
+    }
+    return output
   }
   
   mutating func translate(offset: SIMD3<Float>) {

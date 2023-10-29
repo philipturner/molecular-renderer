@@ -42,9 +42,9 @@ import OpenMM
 // Don't give any special treatment to cyclobutane and cyclopentane carbons.
 // Instead, restrict designs to only those based on a diamond lattice.
 
-typealias MM4 = _Old_MM4
+typealias _Old_MM4 = MM4
 
-class _Old_MM4 {
+class MM4 {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
   var context: OpenMM_Context
@@ -76,15 +76,17 @@ class _Old_MM4 {
     var atoms: [MRAtom] = []
     var bonds: [SIMD2<Int32>] = []
     var velocities: [SIMD3<Float>] = []
+    var forces: [SIMD3<Float>] = []
     
     for diamondoid in diamondoids {
       let atomIDOffset = Int32(atoms.count)
       atoms += diamondoid.atoms
       bonds += diamondoid.bonds.map { $0 &+ atomIDOffset }
       velocities += diamondoid.createVelocities()
+      forces += diamondoid.createForces()
     }
     self.init(
-      atoms: atoms, bonds: bonds, velocities: velocities,
+      atoms: atoms, bonds: bonds, velocities: velocities, forces: forces,
       fsPerFrame: fsPerFrame)
   }
   
@@ -92,6 +94,7 @@ class _Old_MM4 {
     atoms inputAtoms: [MRAtom],
     bonds inputBonds: [SIMD2<Int32>],
     velocities inputVelocities: [SIMD3<Float>]? = nil,
+    forces inputForces: [SIMD3<Float>]? = nil,
     fsPerFrame: Double,
     minimizedAtoms: [MRAtom]? = nil
   ) {
@@ -284,8 +287,12 @@ class _Old_MM4 {
       // should be scaled to interpolate between the C-H and C-D parameter.
       //
       // Update: The error has been fixed. However, it's still slightly off as
-      // the hydrogens aren't computed using virtual sites. That change requires
-      // more effort and is best left to the new MM4 repository.
+      // the hydrogens aren't computed using virtual sites.
+      //
+      // TODO: Correct this error in the old MM4 before publishing any new
+      // renders of the work on mechanical computers. For development, the
+      // slightly inaccurate forcefield is permissible for a little while
+      // longer.
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
         epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
@@ -344,9 +351,6 @@ class _Old_MM4 {
       bondPairs[bondIndex] = SIMD2(truncatingIfNeeded: bond)
       for i in 0..<2 {
         let atomIndex = Int(bond[i])
-        if atomIndex >= atomsToBondsMap.count || atomIndex == -1 {
-          
-        }
         var previous = atomsToBondsMap[atomIndex]
         for i in 0..<5 {
           if i == 4 {
@@ -513,9 +517,6 @@ class _Old_MM4 {
       ccParameters[3] = 0.03
       ccParameters[4] = 0.17
       stretchParameters[[6, 6]] = ccParameters
-      
-      // TODO: For bonds ported from MM3, retain the old 2.55 cubic scaling
-      // constant. Set 'fifth_power_term' and 'sixth_power_term' to zero.
       
       for bond in bonds {
         let atom1 = atoms[Int(bond[0])]
@@ -1002,6 +1003,36 @@ class _Old_MM4 {
       }
     }
     
+    var externalForce: OpenMM_CustomExternalForce?
+    if let inputForces,
+       inputForces.contains(where: { any($0 .!= 0) }) {
+      externalForce = OpenMM_CustomExternalForce(energy: """
+        x * fx + y * fy + z * fz;
+        """)
+      externalForce!.addPerParticleParameter(name: "fx")
+      externalForce!.addPerParticleParameter(name: "fy")
+      externalForce!.addPerParticleParameter(name: "fz")
+      
+      let array = OpenMM_DoubleArray(size: 3)
+      array[0] = 0
+      array[1] = 0
+      array[2] = 0
+      
+      guard inputForces.count == atoms.count else {
+        fatalError("Number of input forces did not match number of atoms.")
+      }
+      for atomID in inputForces.indices {
+        for lane in 0..<3 {
+          // 0.602214
+          let MM4KJPerMolPerZJ: Double = 1e-21 * 6.02214076e23 / 1000
+          
+          // Force is the negative gradient of potential energy.
+          array[lane] = -Double(inputForces[atomID][lane]) * MM4KJPerMolPerZJ
+        }
+        externalForce!.addParticle(atomID, parameters: array)
+      }
+    }
+    
     nonbond.forceGroup = 1
     nonbond14.forceGroup = 1
     bondStretch.forceGroup = 2
@@ -1010,6 +1041,9 @@ class _Old_MM4 {
     bondBendBend.forceGroup = 2
     bondTorsion.forceGroup = 1
     bondBendTorsionBend.forceGroup = 1
+    if let externalForce {
+      externalForce.forceGroup = 2
+    }
     
     nonbond.transfer()
     nonbond14.transfer()
@@ -1028,6 +1062,14 @@ class _Old_MM4 {
     system.addForce(bondTorsion)
 //    system.addForce(bondBendTorsionBend)
     
+    if let externalForce {
+      externalForce.transfer()
+      system.addForce(externalForce)
+    }
+    
+    // The integrator's kinetic energy formula could be corrected, so make it
+    // more stable. That would be important before testing the new MM4. However,
+    // that is not a priority right now.
     let integrator = OpenMM_CustomIntegrator(
       stepSize: timeStepInFs * OpenMM_PsPerFs)
     do {
@@ -1420,5 +1462,3 @@ class _Old_MM4 {
     }
   }
 }
-
-

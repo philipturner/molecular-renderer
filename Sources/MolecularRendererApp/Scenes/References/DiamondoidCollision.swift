@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import HDL
 import MolecularRenderer
 import QuaternionModule
 
@@ -203,5 +204,50 @@ struct DiamondoidCollision {
     let simulator = MM4(diamondoids: diamondoids, fsPerFrame: 20)
     simulator.simulate(ps: 20) // 10, or 200 to measure energy drift
     provider = simulator.provider
+  }
+}
+
+// Like DiamondoidCollision, but using OpenMM external forces and anchors to
+// drive the motion.
+struct LonsdaleiteCollision {
+  var provider: any MRAtomProvider
+  
+  init() {
+    let lattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      Bounds { 10 * (h + h2k + l) }
+      Material { .elemental(.carbon) }
+      
+      Volume {
+        Origin { 5 * (h + h2k + l) }
+        Convex {
+          for direction in [h, h + k, k, -h, -h - k, -k] {
+            Convex {
+              Origin { 3 * direction }
+              Plane { direction }
+            }
+          }
+        }
+        Replace { .empty }
+      }
+    }
+    
+    let atoms = lattice.entities.map(MRAtom.init)
+    self.provider = ArrayAtomProvider(atoms)
+    
+    var diamondoid1 = Diamondoid(atoms: atoms)
+    print("Atom count: \(diamondoid1.atoms.count * 2)")
+    diamondoid1.minimize()
+    diamondoid1.translate(offset: -diamondoid1.createCenterOfMass())
+    
+    var diamondoid2 = diamondoid1
+    diamondoid2.translate(offset: [0, 3.5, 0])
+    diamondoid2.externalForce = [0, -1000, 0]
+    self.provider = ArrayAtomProvider(diamondoid1.atoms + diamondoid2.atoms)
+    
+    let simulator = MM4(
+      diamondoids: [diamondoid1, diamondoid2], fsPerFrame: 100)
+    simulator.simulate(ps: 20)
+    self.provider = simulator.provider
   }
 }
