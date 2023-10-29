@@ -5,6 +5,8 @@
 //  Created by Philip Turner on 8/28/23.
 //
 
+#if false
+
 import QuaternionModule
 
 // MARK: - Environment Objects
@@ -255,3 +257,5 @@ extension Compiler {
     solidStack!.applyTranslate(vector)
   }
 }
+
+#endif

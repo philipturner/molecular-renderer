@@ -7,12 +7,8 @@
 
 public struct Plane {
   @discardableResult
-  public init<T>(_ closure: () -> Vector<T>) {
-    if T.self == Cubic.self {
-      Compiler.global.addPlane(closure().simdValue)
-    } else {
-      fatalError("Not implemented.")
-    }
+  public init(_ closure: () -> SIMD3<Float>) {
+    LatticeStack.global.plane(normal: closure())
   }
 }
 
@@ -23,21 +19,22 @@ protocol PlanePair {
   /// - Parameter closure: The vector to reflect the first plane's normal
   ///   across, when generating the second plane.
   @discardableResult
-  init<T>(_ original: Vector<T>, _ closure: () -> Vector<T>)
+  init(_ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>)
 }
 
 extension PlanePair {
   /// Reflection is a linear transformation, so this function works correctly
   /// in a non-orthonormal basis like `Hexagonal`.
-  fileprivate static func applyDirections<T>(
-    _ original: Vector<T>, _ closure: () -> Vector<T>
+  fileprivate static func applyDirections(
+    _ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>
   ) {
+    Plane { original }
+    
     func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
       let length = (x * x).sum().squareRoot()
       return length == 0 ? .zero : (x / length)
     }
-    let reflector = normalize(closure().simdValue)
-    Plane { original }
+    let reflector = normalize(closure())
     
     /// For the incident vector `I` and surface orientation `N`, compute
     /// normalized `N (NN)`, and return the reflection direction:
@@ -45,14 +42,13 @@ extension PlanePair {
     func reflect(i: SIMD3<Float>, n: SIMD3<Float>) -> SIMD3<Float> {
       i - 2 * (n * i).sum() * n
     }
-    let reflected = -reflect(i: original.simdValue, n: reflector)
-    Plane { Vector<T>(simdValue: reflected) }
+    Plane { -reflect(i: original, n: reflector) }
   }
 }
 
 public struct Ridge: PlanePair {
   @discardableResult
-  public init<T>(_ original: Vector<T>, _ closure: () -> Vector<T>) {
+  public init(_ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>) {
     Convex {
       Self.applyDirections(original, closure)
     }
@@ -61,7 +57,7 @@ public struct Ridge: PlanePair {
 
 public struct Valley: PlanePair {
   @discardableResult
-  public init<T>(_ original: Vector<T>, _ closure: () -> Vector<T>) {
+  public init(_ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>) {
     Concave {
       Self.applyDirections(original, closure)
     }

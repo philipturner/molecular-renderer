@@ -8,6 +8,6 @@
 public struct Replace {
   @discardableResult
   public init(_ closure: () -> EntityType) {
-    fatalError("Not implemented.")
+    LatticeStack.global.replace(with: closure().compactRepresentation)
   }
 }

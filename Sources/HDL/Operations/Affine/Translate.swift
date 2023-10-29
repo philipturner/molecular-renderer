@@ -7,12 +7,7 @@
 
 public struct Translate {
   @discardableResult
-  public init(_ closure: () -> Vector<Cubic>) {
-    Compiler.global.performTranslate(closure().simdValue)
-  }
-  
-  @discardableResult
-  public init(_ closure: () -> Vector<Hexagonal>) {
+  public init(_ closure: () -> SIMD3<Float>) {
     fatalError("Not implemented.")
   }
 }

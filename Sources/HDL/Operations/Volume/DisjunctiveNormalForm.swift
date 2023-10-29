@@ -8,17 +8,17 @@
 public struct Convex {
   @discardableResult
   public init(_ closure: () -> Void) {
-    Compiler.global.startConvex()
-    closure()
-    Compiler.global.endConvex()
+    LatticeStack.global.withScope(type: .convex) {
+      closure()
+    }
   }
 }
 
 public struct Concave {
   @discardableResult
   public init(_ closure: () -> Void) {
-    Compiler.global.startConcave()
-    closure()
-    Compiler.global.endConcave()
+    LatticeStack.global.withScope(type: .concave) {
+      closure()
+    }
   }
 }

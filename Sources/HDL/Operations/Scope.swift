@@ -8,17 +8,15 @@
 public struct Affine {
   @discardableResult
   public init(_ closure: () -> Void) {
-    Compiler.global.startAffine()
-    closure()
-    Compiler.global.endAffine()
+    
   }
 }
 
 public struct Volume {
   @discardableResult
   public init(_ closure: () -> Void) {
-    Compiler.global.startVolume()
-    closure()
-    Compiler.global.endVolume()
+    LatticeStack.global.withScope(type: .volume) {
+      closure()
+    }
   }
 }

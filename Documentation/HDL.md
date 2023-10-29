@@ -19,7 +19,7 @@ Table of Contents
     - [Objects](#objects)
     - [Scopes](#scopes)
     - [Solid Editing](#solid-editing)
-    - [Vectors](#vectors)
+    - [Volume Editing](#volume-editing)
 - [Tips](#tips)
 
 ## How it Works
@@ -130,39 +130,6 @@ Within the selected volume, reconstruct any surfaces that need reconstruction. T
 
 An exemplar surface that may be reconstructed is diamond (100).
 
-### Volume Editing
-
-The following keywords may only be called inside a `Volume`.
-
-```swift
-Origin { SIMD3<Float> }
-```
-
-Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
-
-```swift
-Plane { SIMD3<Float> }
-```
-
-Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
-
-A `Plane` divides the `Bounds` into two sections. The "one" volume is the side the normal vector points toward. The "zero" volume is the side the normal points away from. The "one" volume contains the atoms deleted during a `Cut()`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "one" volume are deleted.
-
-```swift
-Ridge(SIMD3<Float>) { SIMD3<Float> }
-Valley(SIMD3<Float>) { SIMD3<Float> }
-```
-
-Creates two planes by reflecting the first argument across the second argument. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection.
-
-```swift
-Replace { EntityType }
-```
-
-Replace all entities in the selected volume with a new entity. In the future, there may be an option to specify which atoms to preserve. The default is all non-empty atoms and bond connectors.
-
-Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
-
 ### Objects
 
 ```swift
@@ -189,7 +156,7 @@ RigidBody { Solid }
 RigidBody { [Entity] }
 ```
 
-Exposes the functionality from [Diamondoid](../Sources/MolecularRendererApp/Scenes/Procedural Geometry/Diamondoid.swift). Documentation for this API is in progress.
+Exposes the functionality from [Diamondoid](../Sources/MolecularRendererApp/Scenes/Procedural Geometry/Diamondoid.swift), such as topology generation. Documentation for this API is in progress.
 
 ```swift
 Solid { x, y, z in
@@ -218,7 +185,7 @@ Affine {
 
 Starts a section that instantiates a previously designed object, then rotates or translates it. This may not be called inside a `Volume` or another `Affine`.
 
-> TODO: Accumulate the affine transforms into a 3x3 matrix, then apply to the copied positions.
+> TODO: Accumulate the affine transforms into a 3x3 matrix, then apply to the copied positions. Simply pass all 3 cardinal axes through the transformation sequence, then create a matrix from the results. The transformations can be applied eagerly, instead of buffering them up for lazy evaluation.
 
 ```swift
 Concave { }
@@ -262,21 +229,54 @@ Reflect { SIMD3<Float> }
 Reflects the object across the current origin, along the specified axis.
 
 ```swift
-Rotate { SIMD4<Float> }
-Rotate { SIMD4(direction, revolutions) }
+Rotate { SIMD4<Float>(direction, rotation) }
+Rotate { Quaternion<Float> }
 ```
 
-Rotates counterclockwise around the direction, by the specified number of revolutions. The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` to rotate 0.25 revolutions (90 degrees).
-
-Rotation occurs around a ray starting at the current origin, pointing toward the specified vector. When editing a crystalline structure, try to restrict rotation angles to 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
+Rotates counterclockwise around the direction, by the specified number of revolutions. The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` for 0.25 revolutions (90 degrees). The rotation occurs around the world origin `.zero`.
 
 All direction vectors are `SIMD3` and must be converted to `SIMD4`. 4-wide SIMD vectors may be instantiated using the first three components (xyz, a `SIMD3<Float>`) and a fourth component (w, a `Float`). The initializer has the signature `SIMD4(SIMD3, Float)`. 
+
+`SIMD4` is a more convenient API than `Quaternion`. However, the input is internally mapped to a quaternion before proceeding.
 
 ```swift
 Translate { SIMD3<Float> }
 ```
 
 Translate the object by the specified vector, relative to its current position.
+
+### Volume Editing
+
+The following keywords may only be called inside a `Volume`.
+
+```swift
+Origin { SIMD3<Float> }
+```
+
+Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
+
+```swift
+Plane { SIMD3<Float> }
+```
+
+Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
+
+A `Plane` divides the `Bounds` into two sections. The "one" volume is the side the normal vector points toward. The "zero" volume is the side the normal points away from. The "one" volume contains the atoms deleted during a `Cut()`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "one" volume are deleted.
+
+```swift
+Ridge(SIMD3<Float>) { SIMD3<Float> }
+Valley(SIMD3<Float>) { SIMD3<Float> }
+```
+
+Creates two planes by reflecting the first argument across the second argument. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection.
+
+```swift
+Replace { EntityType }
+```
+
+Replace all entities in the selected volume with a new entity. In the future, there may be an option to specify which atoms to preserve. The default is all non-empty atoms and bond connectors.
+
+Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
 
 ## Tips
 

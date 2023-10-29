@@ -7,12 +7,7 @@
 
 public struct Reflect {
   @discardableResult
-  public init(_ closure: () -> Vector<Cubic>) {
-    Compiler.global.performReflect(closure().simdValue)
-  }
-  
-  @discardableResult
-  public init(_ closure: () -> Vector<Hexagonal>) {
+  public init(_ closure: () -> SIMD3<Float>) {
     fatalError("Not implemented.")
   }
 }

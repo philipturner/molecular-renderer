@@ -177,6 +177,9 @@ extension LatticeStack {
   }
   
   mutating func replace(with other: Int8) {
-    Self.replace(grid: &grid, other: other, volume: createSelectedVolume())
+    Self.replace(
+      grid: &grid,
+      other: other,
+      volume: createSelectedVolume())
   }
 }

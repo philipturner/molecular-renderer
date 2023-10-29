@@ -218,7 +218,6 @@
 		985C92A62A955CA9008629C0 /* StrainedShellStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainedShellStructure.swift; sourceTree = "<group>"; };
 		98610EAB2A9D7BF0006FAF95 /* Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compiler.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
-		98610F1A2AA21871006FAF95 /* _Old_Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_Vector.swift; sourceTree = "<group>"; };
 		98610F322AA24533006FAF95 /* Lattice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lattice.swift; sourceTree = "<group>"; };
 		98610F462AA24C69006FAF95 /* Basis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basis.swift; sourceTree = "<group>"; };
 		98610F632AA2662C006FAF95 /* Origin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Origin.swift; sourceTree = "<group>"; };
@@ -622,7 +621,6 @@
 			isa = PBXGroup;
 			children = (
 				988B56CB2AEB538300B36DE9 /* _Old_LatticeStack.swift */,
-				98610F1A2AA21871006FAF95 /* _Old_Vector.swift */,
 				98610EAB2A9D7BF0006FAF95 /* Compiler.swift */,
 			);
 			path = Archive;
