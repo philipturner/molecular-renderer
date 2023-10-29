@@ -200,7 +200,7 @@ struct DiamondoidCollision {
     }
     print("Atom count: \(numAtoms)")
     
-    let simulator = _Old_MM4(diamondoids: diamondoids, fsPerFrame: 20)
+    let simulator = MM4(diamondoids: diamondoids, fsPerFrame: 20)
     simulator.simulate(ps: 20) // 10, or 200 to measure energy drift
     provider = simulator.provider
   }

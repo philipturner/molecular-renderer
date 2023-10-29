@@ -42,6 +42,8 @@ import OpenMM
 // Don't give any special treatment to cyclobutane and cyclopentane carbons.
 // Instead, restrict designs to only those based on a diamond lattice.
 
+typealias MM4 = _Old_MM4
+
 class _Old_MM4 {
   var system: OpenMM_System
   var integrator: OpenMM_Integrator
@@ -613,6 +615,9 @@ class _Old_MM4 {
       // The formula right here just uses a quadratic, harmonic bending force.
       // To the first order, it is correct, but as it deviates more, it doesn't
       // take the higher-order terms into account.
+      //
+      // Update: It is corrected now.
+      #if false
       let energy = """
       \(OpenMM_KJPerKcal) * (bend + stretch_bend);
       bend = (180 / 3.141592)^2 *
@@ -636,6 +641,40 @@ class _Old_MM4 {
       bondBend.addPerBondParameter(name: "equilibrium_angle")
       bondBend.addPerBondParameter(name: "length1")
       bondBend.addPerBondParameter(name: "length2")
+      #else
+      let correction = 180 / Float.pi
+      let cubicTerm = 0.014 * correction
+      let quarticTerm = 5.6e-5 * pow(correction, 2)
+      let quinticTerm = 7.0e-7 * pow(correction, 3)
+      let sexticTerm = 2.2e-8 * pow(correction, 4)
+      
+      let energy = """
+        \(OpenMM_KJPerKcal) * (bend + stretchBend);
+        bend = 0.021914 * \(pow(OpenMM_DegreesPerRadian, 2)) *
+        bendingStiffness * deltaTheta^2 * (
+          1
+          - \(cubicTerm) * deltaTheta
+          + \(quarticTerm) * deltaTheta^2
+          - \(quinticTerm) * deltaTheta^3
+          + \(sexticTerm) * deltaTheta^4
+        );
+        stretchBend = 2.51118 * 10 * \(OpenMM_DegreesPerRadian) *
+        stretchBendStiffness * deltaTheta * (
+          deltaLengthLeft + deltaLengthRight
+        );
+        
+        deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+        deltaLengthLeft = distance(p1, p2) - equilibriumLengthLeft;
+        deltaLengthRight = distance(p3, p2) - equilibriumLengthRight;
+        """
+      
+      bondBend = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: energy)
+      bondBend.addPerBondParameter(name: "bendingStiffness")
+      bondBend.addPerBondParameter(name: "stretchBendStiffness")
+      bondBend.addPerBondParameter(name: "equilibriumAngle")
+      bondBend.addPerBondParameter(name: "equilibriumLengthLeft")
+      bondBend.addPerBondParameter(name: "equilibriumLengthRight")
+      #endif
       
       bendParameters[[1, 6, 1]] = BondBend(
         bendStiffness: 0.540,
