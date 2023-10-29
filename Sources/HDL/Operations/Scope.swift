@@ -15,7 +15,8 @@ public struct Affine {
 public struct Volume {
   @discardableResult
   public init(_ closure: () -> Void) {
-    LatticeStack.global.withScope(type: .volume) {
+    LatticeStack.touchGlobal()
+    LatticeStack.global!.withScope(type: .volume) {
       closure()
     }
   }

@@ -13,8 +13,8 @@ struct DiamondoidCollision {
   var provider: OpenMM_AtomProvider
   
   init() {
-    let horizontalSpacing: Float = 0.3 * 6 // nm
-    let approachSpeed: Float = 0.2 * 4 // nm/ps, v2 - v1
+    let horizontalSpacing: Float = /*0.3*/ 0.5 * 6 // nm
+    let approachSpeed: Float = /*0.2*/ 0.5 * 4 // nm/ps, v2 - v1
     
     func centerAtOrigin(_ atoms: [MRAtom]) -> [MRAtom] {
       var totalMass: Float = .zero
@@ -200,8 +200,8 @@ struct DiamondoidCollision {
     }
     print("Atom count: \(numAtoms)")
     
-    let simulator = _Old_MM4(diamondoids: diamondoids, fsPerFrame: 100)
-    simulator.simulate(ps: 10) // 10, or 200 to measure energy drift
+    let simulator = _Old_MM4(diamondoids: diamondoids, fsPerFrame: 20)
+    simulator.simulate(ps: 20) // 10, or 200 to measure energy drift
     provider = simulator.provider
   }
 }

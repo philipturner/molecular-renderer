@@ -8,7 +8,8 @@
 public struct Convex {
   @discardableResult
   public init(_ closure: () -> Void) {
-    LatticeStack.global.withScope(type: .convex) {
+    LatticeStack.touchGlobal()
+    LatticeStack.global!.withScope(type: .convex) {
       closure()
     }
   }
@@ -17,7 +18,8 @@ public struct Convex {
 public struct Concave {
   @discardableResult
   public init(_ closure: () -> Void) {
-    LatticeStack.global.withScope(type: .concave) {
+    LatticeStack.touchGlobal()
+    LatticeStack.global!.withScope(type: .concave) {
       closure()
     }
   }

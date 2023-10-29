@@ -23,7 +23,8 @@ public struct Lattice<T: Basis> {
     
     // Initialize the entities.
     closure(SIMD3(1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1))
-    self.stack = LatticeStack.global
+    LatticeStack.touchGlobal()
+    self.stack = LatticeStack.global!
     
     // Erase the global stack.
     LatticeStack.deleteGlobal()

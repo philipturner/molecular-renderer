@@ -8,6 +8,7 @@
 public struct Replace {
   @discardableResult
   public init(_ closure: () -> EntityType) {
-    LatticeStack.global.replace(with: closure().compactRepresentation)
+    LatticeStack.touchGlobal()
+    LatticeStack.global!.replace(with: closure().compactRepresentation)
   }
 }

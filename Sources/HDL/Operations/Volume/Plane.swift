@@ -8,7 +8,8 @@
 public struct Plane {
   @discardableResult
   public init(_ closure: () -> SIMD3<Float>) {
-    LatticeStack.global.plane(normal: closure())
+    LatticeStack.touchGlobal()
+    LatticeStack.global!.plane(normal: closure())
   }
 }
 

@@ -280,12 +280,16 @@ class _Old_MM4 {
       //
       // If hydrogen mass repartitioning is used, the vdW interaction factor
       // should be scaled to interpolate between the C-H and C-D parameter.
+      //
+      // Update: The error has been fixed. However, it's still slightly off as
+      // the hydrogens aren't computed using virtual sites. That change requires
+      // more effort and is best left to the new MM4 repository.
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
         epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
         is_ch = is_min_h * is_max_c;
         is_min_h = select(min_element - 1, 0, 1);
-        is_max_c = select(max_element - 1, 0, 1);
+        is_max_c = select(max_element - 6, 0, 1);
         min_element = min(element1, element2);
         max_element = max(element1, element2);
         """)
@@ -979,11 +983,11 @@ class _Old_MM4 {
     bondBend.transfer()
     bondBendBend.transfer()
     bondTorsion.transfer()
-    bondBendTorsionBend.transfer()
+//    bondBendTorsionBend.transfer()
     system.addForce(bondBend)
     system.addForce(bondBendBend)
     system.addForce(bondTorsion)
-    system.addForce(bondBendTorsionBend)
+//    system.addForce(bondBendTorsionBend)
     
     let integrator = OpenMM_CustomIntegrator(
       stepSize: timeStepInFs * OpenMM_PsPerFs)

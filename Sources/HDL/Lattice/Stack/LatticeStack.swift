@@ -15,17 +15,38 @@ struct LatticeStackDescriptor {
   var basis: (any _Basis.Type)?
 }
 
-struct LatticeStack {
+// `class` instead of `struct` to overcome an issue with Swift references.
+class LatticeStack {
   var grid: any LatticeGrid
   var basis: any _Basis.Type
   var scopes: [LatticeScope] = []
   var origins: [SIMD3<Float>] = []
   
-  private static var _global: LatticeStack?
+  // Call this before force-unwrapping the value of `.global`.
+  static func touchGlobal() {
+    guard global == nil else {
+      return
+    }
+    
+    let descriptor = LatticeStackDescriptor.global
+    guard let bounds = descriptor.bounds,
+          let material = descriptor.material,
+          let basis = descriptor.basis else {
+      fatalError(
+        "Global lattice stack does not exist, and descriptor is incomplete.")
+    }
+    
+    // Reset the global descriptor as soon as it is used.
+    LatticeStackDescriptor.global = .init()
+    
+    // Lazily create a new stack, if all arguments are specified.
+    global = LatticeStack(bounds: bounds, material: material, basis: basis)
+  }
   
+  // Call this instead of setting `.global` to `nil`.
   static func deleteGlobal() {
     // Remove the reference to the current stack. The caller may retain it.
-    _global = nil
+    global = nil
     
     // Reset to ensure the descriptor doesn't pollute future ones.
     LatticeStackDescriptor.global = .init()
@@ -33,32 +54,7 @@ struct LatticeStack {
   
   // The getter will never return 'nil', so it is okay to force-unwrap. It is
   // only nullable to the setter can be used to destroy it.
-  static var global: LatticeStack {
-    get {
-      if let _global {
-        return _global
-      }
-      
-      let descriptor = LatticeStackDescriptor.global
-      guard let bounds = descriptor.bounds,
-            let material = descriptor.material,
-            let basis = descriptor.basis else {
-        fatalError(
-          "Global lattice stack does not exist, and descriptor is incomplete.")
-      }
-      
-      // Reset the global descriptor as soon as it is used.
-      LatticeStackDescriptor.global = .init()
-      
-      // Lazily create a new stack, if all arguments are specified.
-      let stack = LatticeStack(bounds: bounds, material: material, basis: basis)
-      _global = stack
-      return stack
-    }
-    set {
-      _global = newValue
-    }
-  }
+  static var global: LatticeStack?
   
   init(bounds: SIMD3<Float>, material: MaterialType, basis: any _Basis.Type) {
     self.basis = basis
@@ -88,14 +84,14 @@ extension LatticeStack {
       "Plane algebra operations must be encapsulated inside a Volume scope.")
   }
   
-  mutating func withOrigin(_ closure: () -> Void) {
+  func withOrigin(_ closure: () -> Void) {
     let currentOrigin = origins.first ?? .zero
     origins.append(currentOrigin)
     closure()
     origins.removeLast()
   }
   
-  mutating func withScope(type: LatticeScopeType, _ closure: () -> Void) {
+  func withScope(type: LatticeScopeType, _ closure: () -> Void) {
     checkScopesValid(type: type)
     scopes.append(LatticeScope(type: type))
     withOrigin {
@@ -127,12 +123,12 @@ extension LatticeStack {
     }
   }
   
-  mutating func origin(delta: SIMD3<Float>) {
+  func origin(delta: SIMD3<Float>) {
     checkOriginsValid()
     origins[origins.count - 1] += delta
   }
   
-  mutating func plane(normal: SIMD3<Float>) {
+  func plane(normal: SIMD3<Float>) {
     plane(type: basis)
     
     func plane<T: _Basis>(type: T.Type) {
@@ -176,7 +172,7 @@ extension LatticeStack {
     grid.replace(with: other, where: volume)
   }
   
-  mutating func replace(with other: Int8) {
+  func replace(with other: Int8) {
     Self.replace(
       grid: &grid,
       other: other,

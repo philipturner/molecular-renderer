@@ -8,6 +8,7 @@
 public struct Origin {
   @discardableResult
   public init(_ closure: () -> SIMD3<Float>) {
-    LatticeStack.global.origin(delta: closure())
+    LatticeStack.touchGlobal()
+    LatticeStack.global!.origin(delta: closure())
   }
 }
