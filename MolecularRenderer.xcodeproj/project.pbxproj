@@ -276,6 +276,7 @@
 		98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Preprocessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRAccelBuilder+Preprocessing.swift"; sourceTree = "<group>"; };
 		98B6BDFA2AEE85B000F8655C /* Renderer+Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Setup.swift"; sourceTree = "<group>"; };
 		98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Update.swift"; sourceTree = "<group>"; };
+		98B6BDFE2AEE93F600F8655C /* LatticeScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeScope.swift; sourceTree = "<group>"; };
 		98C48C462A48E0440047C078 /* HelloSodiumChlorideInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloSodiumChlorideInSwift.swift; sourceTree = "<group>"; };
 		98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../bypass_dependencies/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
 		98C48C642A48FA250047C078 /* initOpenMM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = initOpenMM.swift; sourceTree = "<group>"; };
@@ -418,16 +419,11 @@
 		981822562AE58C81009CFAA8 /* Lattice */ = {
 			isa = PBXGroup;
 			children = (
+				98B6BDFF2AEE955600F8655C /* Stack */,
 				98610F462AA24C69006FAF95 /* Basis.swift */,
 				98D0F1AE2AB5F43D00BE267D /* Bounds.swift */,
-				981822622AE59631009CFAA8 /* CubicGrid.swift */,
-				988B56C82AEA15FF00B36DE9 /* CubicMask.swift */,
 				988B56CC2AEB544100B36DE9 /* Material.swift */,
-				981822632AE5963A009CFAA8 /* HexagonalGrid.swift */,
-				988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */,
 				98610F322AA24533006FAF95 /* Lattice.swift */,
-				981822642AE74DCA009CFAA8 /* LatticeGrid.swift */,
-				98D0F1942AB5150600BE267D /* LatticeStack.swift */,
 			);
 			path = Lattice;
 			sourceTree = "<group>";
@@ -705,6 +701,20 @@
 				9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */,
 			);
 			path = Tutorials;
+			sourceTree = "<group>";
+		};
+		98B6BDFF2AEE955600F8655C /* Stack */ = {
+			isa = PBXGroup;
+			children = (
+				981822622AE59631009CFAA8 /* CubicGrid.swift */,
+				988B56C82AEA15FF00B36DE9 /* CubicMask.swift */,
+				981822632AE5963A009CFAA8 /* HexagonalGrid.swift */,
+				988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */,
+				981822642AE74DCA009CFAA8 /* LatticeGrid.swift */,
+				98B6BDFE2AEE93F600F8655C /* LatticeScope.swift */,
+				98D0F1942AB5150600BE267D /* LatticeStack.swift */,
+			);
+			path = Stack;
 			sourceTree = "<group>";
 		};
 		98D9758F2AC088000052EE6C /* VdwOscillator */ = {

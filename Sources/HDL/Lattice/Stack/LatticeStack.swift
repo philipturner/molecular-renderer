@@ -5,53 +5,6 @@
 //  Created by Philip Turner on 9/15/23.
 //
 
-enum LatticeScopeType {
-  case concave
-  case convex
-  case volume
-  
-  var appliedToParent: Bool {
-    self != .volume
-  }
-  
-  var usesLogicalAnd: Bool {
-    self == .concave
-  }
-}
-
-struct LatticeScope {
-  var type: LatticeScopeType
-  
-  init(type: LatticeScopeType) {
-    self.type = type
-  }
-  
-  private var _mask: (any LatticeMask)?
-  var mask: (any LatticeMask)? {
-    get { _mask }
-  }
-  
-  var accumulatedLogicalOr: (any LatticeMask)?
-  
-  mutating func combine<T: LatticeMask>(_ other: T) {
-    guard let maskCopy = _mask else {
-      _mask = other
-      return
-    }
-    guard let maskCopy = maskCopy as? T else {
-      fatalError("Combined lattices of different types.")
-    }
-    
-    // Due to some implementation issues, a new Swift array will be allocated
-    // every time, instead of just writing to the old array in-place.
-    if type.usesLogicalAnd {
-      _mask = maskCopy & other
-    } else {
-      _mask = maskCopy | other
-    }
-  }
-}
-
 struct LatticeStackDescriptor {
   // The global descriptor resets as soon as it is used.
   static var global: LatticeStackDescriptor = .init()
@@ -59,13 +12,14 @@ struct LatticeStackDescriptor {
   // The user may only set each of these one time.
   var bounds: SIMD3<Float>?
   var material: MaterialType?
-  var basis: Basis.Type?
+  var basis: (any _Basis.Type)?
 }
 
 struct LatticeStack {
   var grid: any LatticeGrid
-  var basis: Basis.Type
-  var scopes: [LatticeScope]
+  var basis: any _Basis.Type
+  var scopes: [LatticeScope] = []
+  var origins: [SIMD3<Float>] = []
   
   private static var _global: LatticeStack?
   
@@ -105,7 +59,7 @@ struct LatticeStack {
     }
   }
   
-  init(bounds: SIMD3<Float>, material: MaterialType, basis: Basis.Type) {
+  init(bounds: SIMD3<Float>, material: MaterialType, basis: any _Basis.Type) {
     self.basis = basis
     if basis == Cubic.self {
       self.grid = CubicGrid(bounds: bounds, material: material)
@@ -114,13 +68,51 @@ struct LatticeStack {
     } else {
       fatalError("This should never happen.")
     }
-    self.scopes = []
   }
   
-  func checkScopesValid() {
-    guard scopes.count > 0, scopes.first!.type == .volume else {
-      fatalError(
-        "Plane algebra operations must be encapsulated inside a Volume scope.")
+  func checkScopesValid(type: LatticeScopeType) {
+    if scopes.count > 0 {
+      if scopes.first!.type == .volume {
+        return
+      }
+    } else {
+      if type == .volume {
+        return
+      }
+    }
+    fatalError(
+      "Plane algebra operations must be encapsulated inside a Volume scope.")
+  }
+}
+
+// Functions for pushing/popping items from the stack.
+// - Scope
+// - Origin (shared among scopes)
+extension LatticeStack {
+  mutating func withOrigin(_ closure: () -> Void) {
+    let currentOrigin = origins.first ?? .zero
+    origins.append(currentOrigin)
+    closure()
+    origins.removeLast()
+  }
+  
+  mutating func withScope(type: LatticeScopeType, _ closure: () -> Void) {
+    checkScopesValid(type: type)
+    scopes.append(LatticeScope(type: type))
+    withOrigin {
+      closure()
+    }
+    
+    // Check that a successor exists, and the list is large enough to have a
+    // predecessor.
+    if let successor = scopes.removeLast().mask, scopes.count > 0 {
+      if type.modifiesPredecessor {
+        scopes[scopes.count - 1].combine(successor)
+      }
     }
   }
 }
+
+// Functions for applying operations.
+// - Origin
+// - Plane

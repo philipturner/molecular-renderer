@@ -143,6 +143,8 @@ Origin { SIMD3<Float> }
 
 Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope. `Origin` may not be called before the bounds are initialized on a `Lattice`.
 
+> TODO: Document how this operation also exists inside `Affine`.
+
 ```swift
 Plane { SIMD3<Float> }
 ```

@@ -16,7 +16,10 @@ public struct Lattice<T: Basis> {
     guard LatticeStackDescriptor.global.basis == nil else {
       fatalError("Already set basis.")
     }
-    LatticeStackDescriptor.global.basis = T.self
+    guard let _T = T.self as? any _Basis.Type else {
+      fatalError("Invalid basis type.")
+    }
+    LatticeStackDescriptor.global.basis = _T
     
     // Initialize the entities.
     closure(SIMD3(1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1))
