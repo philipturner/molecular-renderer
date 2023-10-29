@@ -5,9 +5,7 @@
 //  Created by Philip Turner on 9/1/23.
 //
 
-public protocol Basis {
-  
-}
+public protocol Basis { }
 
 protocol _Basis: Basis {
   associatedtype Grid: LatticeGrid

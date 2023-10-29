@@ -288,7 +288,7 @@ struct Spring_Springboard {
     }
     
     // Eventually, this will change to the `Copy` initializer of
-    // `Lattice<Basis>`, so that h/j/k unit vectors may be used.
+    // `Lattice<Basis>`, so that h/k/l unit vectors may be used.
     let dualHousingSolid = Solid { h, k, l in
       Copy { housingLattice }
       Affine {

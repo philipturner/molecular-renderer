@@ -49,7 +49,7 @@ At the moment, the JIT compiler has been deprecated, in favor of compiling in Sw
 ### Lattice Editing
 
 ```swift
-Basis
+protocol Basis
 Cubic: Basis
 Hexagonal: Basis
 ```
@@ -98,14 +98,19 @@ Lattice<Hexagonal> { h, k, l in
 Lattice<Hexagonal> { h, k, l in
   // [3 * h, 2 * h2k, 2 * l] forms something close to a cube.
   let h2k = h + 2 * k
-  Plane { -h }
-  Plane { -h2k }
-  Plane { -l }
+  ...
   
-  Origin { 3 * h + 2 * (h2k + l) }
-  Plane { +h }
-  Plane { +h2k }
-  Plane { +l }
+  Volume {
+    Plane { -h }
+    Plane { -h2k }
+    Plane { -l }
+    
+    Origin { 3 * h + 2 * (h2k + l) }
+    Plane { +h }
+    Plane { +h2k }
+    Plane { +l }
+    ...
+  }
 }
 ```
 
@@ -125,28 +130,21 @@ Within the selected volume, reconstruct any surfaces that need reconstruction. T
 
 An exemplar surface that may be reconstructed is diamond (100).
 
-> As of now, the `Reconstruct` keyword is not supported.
-
 ### Volume Editing
 
 ```swift
 Replace { EntityType }
-Replace([EntityType]) { EntityType }
 ```
 
-Replace instances of the first argument with the second argument. If the value in parentheses is unspecified, it defaults to all valid atoms and bond connectors. The replacement occurs in the "one" volume of the current union of planes.
+Replace all entities in the selected volume with a new entity. In the future, there may be an option to specify which atoms to preserve. The default is all non-empty atoms and bond connectors.
 
 Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
-
-> As of now, it is not possible to specify which entity types are replaced.
 
 ```swift
 Origin { SIMD3<Float> }
 ```
 
-Translates the origin by a vector relative to the current origin. The origin will reset when you exit the current scope. `Origin` may not be called before the bounds are initialized on a `Lattice`.
-
-> TODO: Document how this operation also exists inside `Affine`.
+Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope.
 
 ```swift
 Plane { SIMD3<Float> }
@@ -165,7 +163,6 @@ Creates two planes by reflecting the first argument across the second argument. 
 
 ### Objects
 
-
 ```swift
 Entity
 ```
@@ -178,14 +175,6 @@ Internally, empty entities are often used to pad vector lengths to multiples of 
 Lattice<Basis> { h, k, l in
   Material { ... }
   Bounds { ... }
-}
-Lattice<Basis> { h, k, l in
-  Copy { Lattice<Basis> }
-}
-Lattice<Basis> { h, k, l in
-  Affine {
-    Copy { Lattice<Basis> }
-  }
 }
 ```
 
@@ -201,10 +190,14 @@ Exposes the functionality from [Diamondoid](../Sources/MolecularRendererApp/Scen
 
 ```swift
 Solid { x, y, z in
-  Copy { Lattice<Basis> }
+  Affine {
+    Copy { Lattice<Basis> }
+  }
 }
 Solid { x, y, z in
-  Copy { Solid }
+  Affine {
+    Copy { Solid }
+  }
 }
 ```
 
@@ -214,17 +207,15 @@ Create a solid object composed of multiple lattices or other solids. Converts co
 
 ```swift
 Affine {
-  Copy { ... }
+  // Perform any number of affine transforms (optional).
+  // Finally, call 'Copy' to add atoms that undergo the specified order of
+  // transforms.
 }
 ```
 
 Starts a section that instantiates a previously designed object, then rotates or translates it. This may not be called inside a `Volume` or another `Affine`.
 
-```swift
-Convex { }
-```
-
-Scope where every plane's "one" volume merges through OR in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
+> TODO: Accumulate the affine transforms into a 3x3 matrix, then apply to the copied positions.
 
 ```swift
 Concave { }
@@ -233,14 +224,16 @@ Concave { }
 Scope where every plane's "one" volume merges through AND in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
 
 ```swift
+Convex { }
+```
+
+Scope where every plane's "one" volume merges through OR in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
+
+```swift
 Volume { }
 ```
 
-Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This may not be called inside `Affine`, but may be called inside another `Volume`.
-
-This is permitted inside both a `Lattice` and a `Solid`.
-
-> TODO: Document the new requirement that all plane algebra must occur inside a `Volume` for `Lattice`.
+Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This is permitted inside both `Lattice` and `Solid`. This may not be called inside `Affine`, but may be called inside another `Volume`.
 
 ### Solid Editing
 
@@ -250,11 +243,9 @@ Copy { Solid }
 Copy { [Entity] }
 ```
 
-Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
+Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This must be called inside `Affine`. It may not be called inside `Volume` or the top-level scope.
 
-The array initializer accepts raw atom positions in the existing coordinate space (distance in crystal unit cells for `Lattice`, nanometers for `Solid`). Atoms do not need to perfectly align with the lattice, but must fall within a tight margin of floating-point error (`<0.1%`).
-
-> TODO: Document the new requirement that this must occur inside an `Affine`.
+The array initializer accepts raw atom positions in nanometers. Atoms do not need to perfectly align with overwritten atoms, but must fall within a tight margin of floating-point error (`<0.1%`).
 
 ```swift
 Reflect { SIMD3<Float> }
@@ -263,12 +254,15 @@ Reflect { SIMD3<Float> }
 Reflects the object across the current origin, along the specified axis. This must be called inside an `Affine`.
 
 ```swift
-Rotate { SIMD3<Float> }
+Rotate { SIMD4<Float> }
+Rotate { SIMD4(direction, revolutions) }
 ```
 
-Rotates counterclockwise around the vector by `length(vector)` revolutions. For example, scale the vector by 0.25 to rotate 90 degrees. This must be called inside an `Affine`.
+Rotates counterclockwise around the direction, by the specified number of revolutions. The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` to rotate 0.25 revolutions (90 degrees). This must be called inside an `Affine`.
 
-Rotation occurs around a ray starting at the current origin, and pointing toward the specified vector. When in a lattice, the rotation angle must be a multiple of 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
+Rotation occurs around a ray starting at the current origin, pointing toward the specified vector. When editing a crystalline structure, try to restrict rotation angles to 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
+
+All direction vectors are `SIMD3` and must be converted to `SIMD4`. 4-wide SIMD vectors may be instantiated using the first three components (xyz, a `SIMD3<Float>`) and a fourth component (w, a `Float`). The initializer has the signature `SIMD4(SIMD3, Float)`. 
 
 ```swift
 Translate { SIMD3<Float> }
