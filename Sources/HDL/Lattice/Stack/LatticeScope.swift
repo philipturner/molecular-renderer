@@ -38,11 +38,7 @@ struct LatticeScope {
     }
     
     // Due to some implementation issues, a new Swift array will be allocated
-    // every time, instead of just writing to the old array in-place. This
-    // should be possible to fix in the future.
-    //
-    // TODO: Replace the implementation of UInt8 with bitwise to reduce overhead
-    // further.
+    // every time, instead of just writing to the old array in-place.
     if type.usesLogicalAnd {
       mask = maskCopy & other
     } else {

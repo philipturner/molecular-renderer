@@ -6,7 +6,7 @@
 //
 
 protocol LatticeMask {
-  associatedtype Storage: SIMD where Storage.Scalar == UInt8
+  associatedtype Storage: FixedWidthInteger
   var mask: [Storage] { get set }
   
   init(dimensions: SIMD3<Int32>, origin: SIMD3<Float>, normal: SIMD3<Float>)

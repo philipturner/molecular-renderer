@@ -12,11 +12,15 @@ struct CubicCell {
   static let y0 = SIMD8<Float>(0, 1, 2, 3, 0, 1, 2, 3)
   static let z0 = SIMD8<Float>(0, 1, 2, 3, 2, 3, 0, 1)
   
+  static let flags = SIMD8<UInt8>(
+    1 << 0, 1 << 1, 1 << 2, 1 << 3,
+    1 << 4, 1 << 5, 1 << 6, 1 << 7)
+  
   // Binary mask corresponding to the plane's "one volume" and "zero volume".
   static func intersect(
     origin: SIMD3<Float>,
     normal: SIMD3<Float>
-  ) -> SIMD8<UInt8> {
+  ) -> UInt8 {
     let scaledOrigin = origin * 4
     let scaledNormal = normal * 1
     
@@ -28,8 +32,9 @@ struct CubicCell {
     dotProduct0 += delta_z0 * scaledNormal.z
     
     var mask0: SIMD8<Int32> = .zero
-    mask0.replace(with: SIMD8.one, where: dotProduct0 .> 0)
-    return SIMD8(truncatingIfNeeded: mask0)
+    mask0.replace(with: SIMD8(repeating: .max), where: dotProduct0 .> 0)
+    let compressed = SIMD8<UInt8>(truncatingIfNeeded: mask0)
+    return (compressed & CubicCell.flags).wrappedSum()
   }
 }
 
@@ -82,8 +87,9 @@ struct CubicGrid: LatticeGrid {
     let newValue = SIMD8(repeating: other)
     
     for cellID in entityTypes.indices {
-      let condition = mask.mask[cellID] .> 0
-      entityTypes[cellID].replace(with: newValue, where: condition)
+      let compressed = mask.mask[cellID]
+      let flags = CubicCell.flags & compressed
+      entityTypes[cellID].replace(with: newValue, where: flags .> 0)
     }
   }
   

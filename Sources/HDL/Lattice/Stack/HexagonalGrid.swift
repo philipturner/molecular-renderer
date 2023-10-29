@@ -63,6 +63,12 @@ struct HexagonalCell {
   static let y1 = SIMD4<Float>(2, 4, 5, 4)
   static let z1 = SIMD4<Float>(4, 5, 4, 5)
   
+  static let flags = SIMD16<UInt16>(
+    1 << 0, 1 << 1, 1 << 2, 1 << 3,
+    1 << 4, 1 << 5, 1 << 6, 1 << 7,
+    1 << 8, 1 << 9, 1 << 10, 1 << 11,
+    1 << 12, 1 << 13, 1 << 14, 1 << 15)
+  
   /// Binary mask corresponding to the plane's "zero volume" and "one volume".
   ///
   /// - Parameter origin: The origin in HKL space.
@@ -71,7 +77,7 @@ struct HexagonalCell {
   static func intersect(
     origin: SIMD3<Float>,
     normal: SIMD3<Float>
-  ) -> SIMD16<UInt8> {
+  ) -> UInt16 {
     // r, r0, n are the original position in HKL space.
     // M is the transform from HKL to XYZ.
     //   (r - r0) * n  = 0 <- doesn't work
@@ -102,15 +108,12 @@ struct HexagonalCell {
     dotProduct1 += delta_y1 * scaledNormal.y
     dotProduct1 += delta_z1 * scaledNormal.z
     
-    var mask0: SIMD8<Int32> = .zero
-    var mask1: SIMD4<Int32> = .zero
-    mask0.replace(with: SIMD8.one, where: dotProduct0 .> 0)
-    mask1.replace(with: SIMD4.one, where: dotProduct1 .> 0)
-    let output0 = SIMD8<UInt8>(truncatingIfNeeded: mask0)
-    let output1 = SIMD4<UInt8>(truncatingIfNeeded: mask1)
-    return SIMD16(
-      lowHalf: output0,
-      highHalf: SIMD8(lowHalf: output1, highHalf: .zero))
+    var mask: SIMD16<Int32> = .zero
+    mask.lowHalf.replace(with: SIMD8(repeating: .max), where: dotProduct0 .> 0)
+    mask.highHalf.lowHalf
+      .replace(with: SIMD4(repeating: .max), where: dotProduct1 .> 0)
+    let compressed = SIMD16<UInt16>(truncatingIfNeeded: mask)
+    return (compressed & HexagonalCell.flags).wrappedSum()
   }
 }
 
@@ -180,8 +183,11 @@ struct HexagonalGrid: LatticeGrid {
     newValue.highHalf.highHalf = SIMD4(repeating: 0)
     
     for cellID in entityTypes.indices {
-      let condition = mask.mask[cellID] .> 0
-      entityTypes[cellID].replace(with: newValue, where: condition)
+      let compressed = mask.mask[cellID]
+      let flags0 = CubicCell.flags & UInt8(truncatingIfNeeded: compressed)
+      let flags1 = CubicCell.flags & UInt8(truncatingIfNeeded: compressed / 256)
+      let flags = SIMD16(lowHalf: flags0, highHalf: flags1)
+      entityTypes[cellID].replace(with: newValue, where: flags .> 0)
     }
   }
   

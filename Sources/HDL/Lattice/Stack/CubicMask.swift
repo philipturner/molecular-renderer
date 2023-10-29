@@ -6,13 +6,13 @@
 //
 
 struct CubicMask: LatticeMask {
-  var mask: [SIMD8<UInt8>]
+  var mask: [UInt8]
   
   /// Create a mask using a plane.
   init(dimensions: SIMD3<Int32>, origin: SIMD3<Float>, normal: SIMD3<Float>) {
     // Initialize the mask with everything in the one volume, and filled. The
     // value should be overwritten somewhere in the inner loop.
-    mask = Array(repeating: SIMD8(repeating: 255), count: Int(
+    mask = Array(repeating: .max, count: Int(
       dimensions.x * dimensions.y * dimensions.z))
     if all(normal .== 0) {
       // This cannot be evaluated. It is a permissible escape hatch to create a
@@ -75,8 +75,8 @@ struct CubicMask: LatticeMask {
         
         var loopStart: Int32 = 0
         var loopEnd = dimensions.x
-        var leftMask = SIMD8<UInt8>(repeating: normal.x < 0 ? 255 : 0)
-        var rightMask = SIMD8<UInt8>(repeating: normal.x > 0 ? 255 : 0)
+        var leftMask: UInt8 = normal.x < 0 ? .max : .zero
+        var rightMask: UInt8 = normal.x > 0 ? .max : .zero
         if gatheredNaN {
           // pass
         } else if gatheredMin > Float(dimensions.x) || gatheredMax < 0 {
@@ -86,10 +86,10 @@ struct CubicMask: LatticeMask {
           
           if distance > 0 {
             // "one" volume
-            rightMask = SIMD8(repeating: 255)
+            rightMask = .max
           } else {
             // "zero" volume
-            rightMask = SIMD8(repeating: 0)
+            rightMask = .zero
           }
         } else {
           // Add a floating-point epsilon to the gathered min/max, as the sharp

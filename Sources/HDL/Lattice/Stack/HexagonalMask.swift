@@ -6,7 +6,7 @@
 //
 
 struct HexagonalMask: LatticeMask {
-  var mask: [SIMD16<UInt8>]
+  var mask: [UInt16]
   
   /// Create a mask using a plane.
   ///
@@ -28,7 +28,7 @@ struct HexagonalMask: LatticeMask {
     
     // Initialize the mask with everything in the one volume, and filled. The
     // value should be overwritten somewhere in the inner loop.
-    mask = Array(repeating: SIMD16(repeating: 255), count: Int(
+    mask = Array(repeating: 0x0FFF, count: Int(
       dimensions.x * dimensions.y * dimensions.z))
     if all(normal .== 0) {
       // This cannot be evaluated. It is a permissible escape hatch to create a
@@ -100,10 +100,8 @@ struct HexagonalMask: LatticeMask {
         
         var loopStart: Int32 = 0
         var loopEnd = maxLoopSize
-        var leftMask = SIMD16<UInt8>(
-          repeating: untransformedNormal.x < 0 ? 255 : 0)
-        var rightMask = SIMD16<UInt8>(
-          repeating: untransformedNormal.x > 0 ? 255 : 0)
+        var leftMask: UInt16 = normal.x < 0 ? .max : .zero
+        var rightMask: UInt16 = normal.x > 0 ? .max : .zero
         if gatheredNaN {
           // pass
         } else if gatheredMin > 3 * Float(dimensions.x) || gatheredMax < 3 * 0 {
@@ -114,10 +112,10 @@ struct HexagonalMask: LatticeMask {
           
           if distance > 0 {
             // "one" volume
-            rightMask = SIMD16(repeating: 255)
+            rightMask = .max
           } else {
             // "zero" volume
-            rightMask = SIMD16(repeating: 0)
+            rightMask = .zero
           }
         } else {
           // Add a floating-point epsilon to the gathered min/max, as the sharp
