@@ -62,6 +62,11 @@ class MM4 {
   var repartitionedMasses: [Double]
   var newIndicesMap: [Int32]
   
+  // WARNING: The array slots here are from after reordering the atoms. Anchors
+  // need to be created before doing anything, then mapped to a separate array
+  // afterward.
+  var anchors: [Bool]
+  
   convenience init(
     diamondoid: Diamondoid,
     fsPerFrame: Double
@@ -77,6 +82,7 @@ class MM4 {
     var bonds: [SIMD2<Int32>] = []
     var velocities: [SIMD3<Float>] = []
     var forces: [SIMD3<Float>] = []
+    var anchors: [Bool] = []
     
     for diamondoid in diamondoids {
       let atomIDOffset = Int32(atoms.count)
@@ -84,10 +90,20 @@ class MM4 {
       bonds += diamondoid.bonds.map { $0 &+ atomIDOffset }
       velocities += diamondoid.createVelocities()
       forces += diamondoid.createForces()
+      
+      if diamondoid.anchors.count > 0 {
+        guard diamondoid.anchors.count == diamondoid.atoms.count else {
+          fatalError(
+            "Diamondoid had number of anchors not equal to atom count.")
+        }
+        anchors += diamondoid.anchors
+      } else {
+        anchors += [Bool](repeating: false, count: diamondoid.atoms.count)
+      }
     }
     self.init(
       atoms: atoms, bonds: bonds, velocities: velocities, forces: forces,
-      fsPerFrame: fsPerFrame)
+      anchors: anchors, fsPerFrame: fsPerFrame)
   }
   
   init(
@@ -95,6 +111,7 @@ class MM4 {
     bonds inputBonds: [SIMD2<Int32>],
     velocities inputVelocities: [SIMD3<Float>]? = nil,
     forces inputForces: [SIMD3<Float>]? = nil,
+    anchors inputAnchors: [Bool]? = nil,
     fsPerFrame: Double,
     minimizedAtoms: [MRAtom]? = nil
   ) {
@@ -127,6 +144,7 @@ class MM4 {
     var velocities: [SIMD3<Float>] = []
     var masses: [Double] = []
     self.rigidBodies = []
+    self.anchors = []
     
     do {
       struct AtomGroup {
@@ -197,6 +215,7 @@ class MM4 {
           atoms.append(atom)
           masses.append(mass)
           velocities.append(inputVelocities?[Int(index)] ?? .zero)
+          anchors.append(inputAnchors?[Int(index)] ?? false)
         }
         precondition(atoms.count == masses.count)
         precondition(atoms.count == velocities.count)
@@ -264,6 +283,11 @@ class MM4 {
       for repartitionedMass in repartitionedMasses {
         system.addParticle(mass: repartitionedMass)
       }
+      for index in atoms.indices {
+        if anchors[index] {
+          system.setParticleMass(0, index: index)
+        }
+      }
     }
     
     var nonbond: OpenMM_CustomNonbondedForce
@@ -290,9 +314,10 @@ class MM4 {
       // the hydrogens aren't computed using virtual sites.
       //
       // TODO: Correct this error in the old MM4 before publishing any new
-      // renders of the work on mechanical computers. For development, the
-      // slightly inaccurate forcefield is permissible for a little while
-      // longer.
+      // renders of the work on mechanical computers. Also, finish the
+      // investigation into bulk crystal lattice constants with MM4. For
+      // development, the slightly inaccurate forcefield is permissible for a
+      // little while longer.
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
         epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
@@ -1131,6 +1156,7 @@ class MM4 {
     self.thermalize(positions: positions, velocities: velocities)
   }
   
+  /// WARNING: `velocities` uses indices after remapping.
   func thermalize(
     positions: OpenMM_Vec3Array? = nil,
     velocities: [SIMD3<Float>]
@@ -1221,6 +1247,9 @@ class MM4 {
           velocity += v
         }
         
+        if anchors[atomID] {
+          velocity = SIMD3(velocities[atomID])
+        }
         stateVelocities[atomID] = velocity
       }
     }

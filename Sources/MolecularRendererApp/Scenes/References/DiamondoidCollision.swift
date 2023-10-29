@@ -243,6 +243,15 @@ struct LonsdaleiteCollision {
     var diamondoid2 = diamondoid1
     diamondoid2.translate(offset: [0, 3.5, 0])
     diamondoid2.externalForce = [0, -1000, 0]
+    
+    // Change a few random atoms in diamondoid1 to anchors.
+    diamondoid1.anchors = [Bool](
+      repeating: false, count: diamondoid1.atoms.count)
+    let numAnchors = Int(Float(diamondoid1.atoms.count) / 20)
+    for _ in 0..<numAnchors {
+      let randomAtom = diamondoid1.atoms.indices.randomElement()!
+      diamondoid1.anchors[randomAtom] = true
+    }
     self.provider = ArrayAtomProvider(diamondoid1.atoms + diamondoid2.atoms)
     
     let simulator = MM4(

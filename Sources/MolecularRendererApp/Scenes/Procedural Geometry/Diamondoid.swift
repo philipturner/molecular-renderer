@@ -24,6 +24,10 @@ struct Diamondoid {
   // An external force distributed across the entire object, in piconewtons.
   var externalForce: SIMD3<Float>?
   
+  // You must ensure the number of anchors equals the number of atoms.
+  // Otherwise, behavior is undefined.
+  var anchors: [Bool] = []
+  
   private var isVelocitySet: Bool {
     linearVelocity != nil ||
     angularVelocity != nil
