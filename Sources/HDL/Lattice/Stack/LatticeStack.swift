@@ -23,9 +23,17 @@ struct LatticeStack {
   
   private static var _global: LatticeStack?
   
+  static func deleteGlobal() {
+    // Remove the reference to the current stack. The caller may retain it.
+    _global = nil
+    
+    // Reset to ensure the descriptor doesn't pollute future ones.
+    LatticeStackDescriptor.global = .init()
+  }
+  
   // The getter will never return 'nil', so it is okay to force-unwrap. It is
   // only nullable to the setter can be used to destroy it.
-  static var global: LatticeStack? {
+  static var global: LatticeStack {
     get {
       if let _global {
         return _global
@@ -49,13 +57,6 @@ struct LatticeStack {
     }
     set {
       _global = newValue
-      
-      // The destructor for Lattice should remove the reference to the global
-      // stack, while the caller may retain it via ARC.
-      if newValue == nil {
-        // Reset to ensure the descriptor doesn't pollute future ones.
-        LatticeStackDescriptor.global = .init()
-      }
     }
   }
   
@@ -69,7 +70,10 @@ struct LatticeStack {
       fatalError("This should never happen.")
     }
   }
-  
+}
+
+// Functions for pushing/popping items from the stack.
+extension LatticeStack {
   func checkScopesValid(type: LatticeScopeType) {
     if scopes.count > 0 {
       if scopes.first!.type == .volume {
@@ -83,12 +87,7 @@ struct LatticeStack {
     fatalError(
       "Plane algebra operations must be encapsulated inside a Volume scope.")
   }
-}
-
-// Functions for pushing/popping items from the stack.
-// - Scope
-// - Origin (shared among scopes)
-extension LatticeStack {
+  
   mutating func withOrigin(_ closure: () -> Void) {
     let currentOrigin = origins.first ?? .zero
     origins.append(currentOrigin)
@@ -102,17 +101,49 @@ extension LatticeStack {
     withOrigin {
       closure()
     }
+    let successor = scopes.removeLast()
     
     // Check that a successor exists, and the list is large enough to have a
     // predecessor.
-    if let successor = scopes.removeLast().mask, scopes.count > 0 {
+    if let mask = successor.mask, scopes.count > 0 {
       if type.modifiesPredecessor {
-        scopes[scopes.count - 1].combine(successor)
+        scopes[scopes.count - 1].combine(mask)
       }
     }
   }
 }
 
 // Functions for applying operations.
-// - Origin
-// - Plane
+extension LatticeStack {
+  func checkOriginsValid() {
+    guard origins.count > 0 else {
+      fatalError("No origins.")
+    }
+  }
+  
+  mutating func origin(delta: SIMD3<Float>) {
+    checkOriginsValid()
+    origins[origins.count - 1] += delta
+  }
+  
+  mutating func plane(normal: SIMD3<Float>) {
+    createMask(type: basis)
+    
+    func createMask<T: _Basis>(type: T.Type) {
+      if all(normal .== 0) {
+        fatalError("Plane normal must have a nonzero component.")
+      }
+      checkOriginsValid()
+      let origin = origins.last!
+      let mask = T.Grid.Mask(
+        dimensions: grid.dimensions, origin: origin, normal: normal)
+      
+      guard scopes.count > 0 else {
+        fatalError("No scopes.")
+      }
+      scopes[scopes.count - 1].combine(mask)
+    }
+  }
+  
+  // TODO: Implement summing backpropagation for atom editing operations.
+}

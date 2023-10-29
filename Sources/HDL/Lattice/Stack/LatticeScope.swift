@@ -21,20 +21,16 @@ enum LatticeScopeType {
 
 struct LatticeScope {
   var type: LatticeScopeType
+  private(set) var mask: (any LatticeMask)?
   
   init(type: LatticeScopeType) {
     self.type = type
   }
   
-  private var _mask: (any LatticeMask)?
-  var mask: (any LatticeMask)? {
-    get { _mask }
-  }
-  
   mutating func combine<T: LatticeMask>(_ other: T) {
-    guard let maskCopy = _mask else {
+    guard let maskCopy = mask else {
       // If no mask exists, simply replace with the passed-in mask.
-      _mask = other
+      mask = other
       return
     }
     guard let maskCopy = maskCopy as? T else {
@@ -44,10 +40,13 @@ struct LatticeScope {
     // Due to some implementation issues, a new Swift array will be allocated
     // every time, instead of just writing to the old array in-place. This
     // should be possible to fix in the future.
+    //
+    // TODO: Replace the implementation of UInt8 with bitwise to reduce overhead
+    // further.
     if type.usesLogicalAnd {
-      _mask = maskCopy & other
+      mask = maskCopy & other
     } else {
-      _mask = maskCopy | other
+      mask = maskCopy | other
     }
   }
   
@@ -60,7 +59,7 @@ struct LatticeScope {
   ) -> any LatticeMask {
     // If the current scope's mask doesn't exist, both AND and OR are identity
     // operations on the successor.
-    let predecessor = self._mask ?? successor
+    let predecessor = self.mask ?? successor
     guard let predecessor = predecessor as? T else {
       fatalError("Combined lattices of different types.")
     }

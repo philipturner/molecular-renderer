@@ -60,7 +60,15 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
+//    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
 //    self.atomProvider = APMBootstrapper()
+    
+    let latticeC = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      Bounds { 10 * (h + h2k + l) }
+      Material { .elemental(.carbon) }
+    }
+    var atoms = latticeC.entities.map(MRAtom.init)
+    self.atomProvider = ArrayAtomProvider(atoms)
   }
 }
