@@ -60,6 +60,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = LonsdaleiteCollision().provider
+    self.atomProvider = Nanosystems.Chapter12.Figure1().provider
   }
 }

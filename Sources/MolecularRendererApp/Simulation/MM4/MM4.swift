@@ -313,11 +313,10 @@ class MM4 {
       // Update: The error has been fixed. However, it's still slightly off as
       // the hydrogens aren't computed using virtual sites.
       //
-      // TODO: Correct this error in the old MM4 before publishing any new
-      // renders of the work on mechanical computers. Also, finish the
-      // investigation into bulk crystal lattice constants with MM4. For
-      // development, the slightly inaccurate forcefield is permissible for a
-      // little while longer.
+      // TODO: Correct this error in the old MM4 soon. Also, finish the
+      // investigation into bulk crystal lattice constants with MM4. Especially
+      // when you have the final computer design, and want to ensure the
+      // simulation is as accurate as possible.
       nonbond = OpenMM_CustomNonbondedForce(energy: energy + """
         length = select(is_ch, length_ch, radius1 + radius2);
         epsilon = select(is_ch, epsilon_ch, sqrt(epsilon1 * epsilon2));
