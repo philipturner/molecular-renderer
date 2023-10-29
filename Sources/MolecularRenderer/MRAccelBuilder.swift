@@ -210,24 +210,14 @@ extension MRAccelBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {
-    // TODO: Automatically switch between the two modes, based on which one is
-    // faster or which one has enough capacity. With the optimization below,
-    // capacity may become the deciding factor.
-    //
-    // TODO: Sort contiguous blocks of atoms. Those which are spatially local,
-    // get an optimized shader that performs a memory operation or an atomic on
-    // the entire group. Summarize statistics about the group and send them to
-    // the GPU, to reduce the number of memory accesses during the shader. Make
-    // it legal to allocate slightly more references than needed, to accomodate
-    // all the atoms in the group that could theoretically intersect.
     let voxel_width_numer: Float = 4
-    let voxel_width_denom: Float = 8
+    let voxel_width_denom: Float = 16
     let statisticsStart = CACurrentMediaTime()
     let statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
       voxel_width_numer: voxel_width_numer,
-      voxel_width_denom: [16, voxel_width_denom])
+      voxel_width_denom: voxel_width_denom)
     let statisticsEnd = CACurrentMediaTime()
     let statisticsDuration = statisticsEnd - statisticsStart
     
@@ -275,22 +265,26 @@ extension MRAccelBuilder {
     let maxCoordinates = SIMD3(statistics.boundingBox.max.x,
                                statistics.boundingBox.max.y,
                                statistics.boundingBox.max.z)
-    let maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
-    print(maxMagnitude)
+    var maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
     
-    // TODO: Change the grid to be rectangular.
+    // TODO: Change the grid to be rectangular, and let it use an origin besides
+    // (0, 0, 0). This should save some memory and reduce the computation from
+    // scanning cells on the edge of an asymmetric scene. Most importantly,
+    // rectangular grids are faster for mostly 2D structures with a high aspect
+    // ratio, like some of my ideas for mechanical computers.
     self.gridWidth = max(Int(2 * ceil(
       maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
+    
+    // If some atoms fly extremely far out of bounds, prevent the app from
+    // crashing. No atom may have a coordinate larger than +/- 100 nm, which
+    // creates a 2 GB memory allocation.
+    self.gridWidth = min(self.gridWidth, 800)
     self.gridHeight = gridWidth
     self.gridDepth = gridWidth
     let totalCells = gridWidth * gridWidth * gridWidth
-    guard statistics.references[1] < 16 * 1024 * 1024 else {
+    guard statistics.references < 16 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
-    print(
-      "References:",
-      "\(statistics.references[0] / 1000)k,",
-      "\(statistics.references[1] / 1000)k")
     
     // Allocate new memory.
     let atomsBuffer = allocate(
@@ -317,8 +311,8 @@ extension MRAccelBuilder {
     let referencesBuffer = allocate(
       &denseGridReferences,
       currentMaxElements: &maxGridReferences,
-      desiredElements: statistics.references[1],
-      bytesPerElement: 4) // 2
+      desiredElements: statistics.references,
+      bytesPerElement: 4)
     
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)
@@ -343,6 +337,7 @@ extension MRAccelBuilder {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
+    
     // Set the data at offset 32, to fit the counters before it.
     encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
     encoder.setBuffer(dataBuffer, offset: 32, index: 3)

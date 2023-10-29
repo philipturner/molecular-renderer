@@ -252,7 +252,7 @@ public class MRRenderer {
     var voxel_width_numer: Float = 4
     constants.setConstantValue(&voxel_width_numer, type: .float, index: 10)
     
-    var voxel_width_denom: Float = 8
+    var voxel_width_denom: Float = 16
     constants.setConstantValue(&voxel_width_denom, type: .float, index: 11)
     
     // Initialize the compute pipeline.
