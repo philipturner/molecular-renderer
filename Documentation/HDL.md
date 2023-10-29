@@ -235,6 +235,8 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 
 This is permitted inside both a `Lattice` and a `Solid`.
 
+> TODO: Document the new requirement that all plane algebra must occur inside a `Volume` for `Lattice`.
+
 ### Solid Editing
 
 ```swift
@@ -246,6 +248,8 @@ Copy { [Entity] }
 Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This may be called either inside an `Affine`, or at the top-level scope of a `Lattice` or `Solid`.
 
 The array initializer accepts raw atom positions in the existing coordinate space (distance in crystal unit cells for `Lattice`, nanometers for `Solid`). Atoms do not need to perfectly align with the lattice, but must fall within a tight margin of floating-point error (`<0.1%`).
+
+> TODO: Document the new requirement that this must occur inside an `Affine`.
 
 ```swift
 Reflect { SIMD3<Float> }

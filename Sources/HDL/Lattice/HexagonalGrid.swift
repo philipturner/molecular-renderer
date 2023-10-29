@@ -170,7 +170,7 @@ struct HexagonalGrid: LatticeGrid {
     let h2kPlus = transformHH2KLtoHKL(SIMD3<Float>(0, 1, 0))
     let lMinus = transformHH2KLtoHKL(SIMD3<Float>(0, 0, -1))
     let lPlus = transformHH2KLtoHKL(SIMD3<Float>(0, 0, 1))
-    self.initializeBounds((bounds), normals: [
+    self.initializeBounds(bounds, normals: [
       hMinus, hPlus, h2kMinus, h2kPlus, lMinus, lPlus
     ])
   }

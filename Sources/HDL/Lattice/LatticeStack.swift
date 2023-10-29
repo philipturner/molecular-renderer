@@ -5,7 +5,52 @@
 //  Created by Philip Turner on 9/15/23.
 //
 
-import Foundation
+enum LatticeScopeType {
+  case concave
+  case convex
+  case volume
+  
+  var appliedToParent: Bool {
+    self != .volume
+  }
+  
+  var usesLogicalAnd: Bool {
+    self == .concave
+  }
+}
+
+struct LatticeScope {
+  var type: LatticeScopeType
+  
+  init(type: LatticeScopeType) {
+    self.type = type
+  }
+  
+  private var _mask: (any LatticeMask)?
+  var mask: (any LatticeMask)? {
+    get { _mask }
+  }
+  
+  var accumulatedLogicalOr: (any LatticeMask)?
+  
+  mutating func combine<T: LatticeMask>(_ other: T) {
+    guard let maskCopy = _mask else {
+      _mask = other
+      return
+    }
+    guard let maskCopy = maskCopy as? T else {
+      fatalError("Combined lattices of different types.")
+    }
+    
+    // Due to some implementation issues, a new Swift array will be allocated
+    // every time, instead of just writing to the old array in-place.
+    if type.usesLogicalAnd {
+      _mask = maskCopy & other
+    } else {
+      _mask = maskCopy | other
+    }
+  }
+}
 
 struct LatticeStackDescriptor {
   // The global descriptor resets as soon as it is used.
@@ -20,6 +65,7 @@ struct LatticeStackDescriptor {
 struct LatticeStack {
   var grid: any LatticeGrid
   var basis: Basis.Type
+  var scopes: [LatticeScope]
   
   private static var _global: LatticeStack?
   
@@ -68,27 +114,13 @@ struct LatticeStack {
     } else {
       fatalError("This should never happen.")
     }
+    self.scopes = []
   }
-}
-
-struct LatticeScope {
-  var appliesToParent: Bool
-  var usesLogicalAnd: Bool
   
-  private var _mask: (any LatticeMask)?
-  var mask: (any LatticeMask)? {
-    get { _mask }
-    set {
-      if usesLogicalAnd {
-        // Invalidate the cumulative sum.
-        accumulatedLogicalOr = nil
-      }
-      _mask = newValue
+  func checkScopesValid() {
+    guard scopes.count > 0, scopes.first!.type == .volume else {
+      fatalError(
+        "Plane algebra operations must be encapsulated inside a Volume scope.")
     }
   }
-  
-  var accumulatedLogicalOr: (any LatticeMask)?
 }
-
-// MARK: - Old Code
-
