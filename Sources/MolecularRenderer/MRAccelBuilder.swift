@@ -45,6 +45,8 @@ class MRAccelBuilder {
   var frameReports: [MRFrameReport] = []
   var frameReportCounter: Int = 0
   static let frameReportHistorySize: Int = 10
+  var reportPerformance: Bool = false
+  var voxelSizeDenom: Float?
   
   // Data for uniform grids.
   var ringIndex: Int = 0
@@ -210,8 +212,12 @@ extension MRAccelBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {
+    guard let voxelSizeDenom else {
+      fatalError("Voxel size denominator not set.")
+    }
+    
     let voxel_width_numer: Float = 4
-    let voxel_width_denom: Float = 16
+    let voxel_width_denom = voxelSizeDenom
     let statisticsStart = CACurrentMediaTime()
     let statistics = denseGridStatistics(
       atoms: atoms,
@@ -252,7 +258,7 @@ extension MRAccelBuilder {
       frameReports.append(report)
       return output
     }
-    if any(performance .> 0) {
+    if reportPerformance, any(performance .> 0) {
       print(
         Int(performance[0] * 1e6),
         Int(performance[1] * 1e6),

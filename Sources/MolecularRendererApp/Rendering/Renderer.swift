@@ -40,21 +40,20 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     
-    var upscaleFactor: Int?
+    let descriptor = MRRendererDescriptor()
+    descriptor.url = Bundle.main.url(
+      forResource: "MolecularRendererGPU", withExtension: "metallib")!
     if Self.productionRender {
-      upscaleFactor = nil
+      descriptor.width = 720
+      descriptor.height = 640
+      descriptor.offline = true
     } else {
-      upscaleFactor = ContentView.upscaleFactor
+      descriptor.width = Int(ContentView.size)
+      descriptor.height = Int(ContentView.size)
+      descriptor.upscaleFactor = ContentView.upscaleFactor
     }
     
-    let url = Bundle.main.url(
-      forResource: "MolecularRendererGPU", withExtension: "metallib")!
-    self.renderingEngine = MRRenderer(
-      metallibURL: url,
-      width: Self.productionRender ? 720 : Int(ContentView.size),
-      height: Self.productionRender ? 640 : Int(ContentView.size),
-      upscaleFactor: upscaleFactor,
-      offline: Self.productionRender)
+    self.renderingEngine = MRRenderer(descriptor: descriptor)
     self.gifSerializer = GIFSerializer(
       path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
     self.serializer = Serializer(

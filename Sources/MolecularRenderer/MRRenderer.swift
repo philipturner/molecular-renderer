@@ -51,6 +51,52 @@ struct ResetTracker {
   }
 }
 
+public class MRRendererDescriptor {
+  /// Required. Location of the MolecularRendererGPU binary.
+  public var url: URL?
+  
+  /// Required. Width of the render target after upscaling.
+  public var width: Int?
+  
+  /// Required. Height of the render target after upscaling.
+  public var height: Int?
+  
+  /// Optional. Ignored in the offline mode, which instead downscales 2x.
+  public var upscaleFactor: Int = 1
+  
+  /// Optional. A mode with unacceptable performance in real-time, but which can
+  /// reliably produce renders at a low resolution. MolecularRenderer is not
+  /// optimized for production rendering, only real-time rendering. However, it
+  /// can do production rendering, which this mode is for.
+  public var offline: Bool = false
+  
+  /// Optional. Whether to use a mode that decreases render stage performance,
+  /// to improve geometry stage performance. This becomes necessary at around a
+  /// million atoms. Right now, the mode doesn't improve much, as the renderer
+  /// breaks down in both small and large-systems mode. In the future, an
+  /// optimized large systems mode will have slightly larger overhead from
+  /// storing 64-bit integers in the place of 32-bit integers. Thus, to extract
+  /// maximum possible performance from the render stage, 32-bit integers would
+  /// be the default.
+  public var largeSystemsMode: Bool = false
+  
+  /// Optional. Whether to print a space-separated list of microsecond latencies
+  /// for each stage of the render pipeline.
+  public var reportPerformance: Bool = false
+  
+  public init() {
+    
+  }
+  
+  func assertValid() {
+    guard url != nil,
+          width != nil,
+          height != nil else {
+      fatalError("'MRRendererDescriptor' not complete.")
+    }
+  }
+}
+
 public class MRRenderer {
   var offline: Bool
   var upscaleFactor: Int?
@@ -108,29 +154,27 @@ public class MRRenderer {
   
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
-  public init(
-    metallibURL: URL,
-    width: Int,
-    height: Int,
-    upscaleFactor: Int?,
-    offline: Bool
-  ) {
+  public init(descriptor: MRRendererDescriptor) {
     // Initialize Metal resources.
     self.device = MTLCreateSystemDefaultDevice()!
     self.commandQueue = device.makeCommandQueue()!
+    descriptor.assertValid()
     
-    self.offline = offline
+    self.offline = descriptor.offline
     if offline {
       self.upscaleFactor = nil
-      self.intermediateSize = 2 &* SIMD2(width, height)
+      self.intermediateSize = 2 &* SIMD2(descriptor.width!, descriptor.height!)
       self.offlineEncodingQueue = DispatchQueue(
         label: "com.philipturner.molecular-renderer.MRRenderer.offlineEncodingQueue")
     } else {
-      self.upscaleFactor = upscaleFactor ?? 1
+      self.upscaleFactor = descriptor.upscaleFactor
       self.intermediateSize = SIMD2(
-        width / upscaleFactor!, height / upscaleFactor!)
-      guard width % upscaleFactor! == 0, height % upscaleFactor! == 0 else {
-        fatalError("MRRenderer only accepts even image sizes.")
+        descriptor.width! / upscaleFactor!,
+        descriptor.height! / upscaleFactor!)
+      guard descriptor.width! % upscaleFactor! == 0,
+            descriptor.height! % upscaleFactor! == 0 else {
+        fatalError(
+          "'MRRenderer' only accepts image sizes divisible by the upscale factor.")
       }
     }
     
@@ -175,9 +219,10 @@ public class MRRenderer {
         desc.height = intermediateSize.y / 2
         desc.pixelFormat = .bgra8Unorm
         
-        let backingBuffer = device.makeBuffer(length: 4 * width * height)!
+        let backingBuffer = device.makeBuffer(
+          length: 4 * descriptor.width! * descriptor.height!)!
         let color = backingBuffer.makeTexture(
-          descriptor: desc, offset: 0, bytesPerRow: 4 * width)!
+          descriptor: desc, offset: 0, bytesPerRow: 4 * descriptor.width!)!
         
         textures.append(IntermediateTextures(
           color: color, backingBuffer: backingBuffer))
@@ -190,8 +235,11 @@ public class MRRenderer {
     precondition(MemoryLayout<MRLight>.stride == 16)
     self.lightsBuffer = device.makeBuffer(length: lightsBufferLength)!
     
-    let library = try! device.makeLibrary(URL: metallibURL)
+    let library = try! device.makeLibrary(URL: descriptor.url!)
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
+    accelBuilder.reportPerformance = descriptor.reportPerformance
+    accelBuilder.voxelSizeDenom = descriptor.largeSystemsMode ? 8 : 16
+    
     if !offline {
       initUpscaler()
     }
@@ -250,7 +298,10 @@ public class MRRenderer {
     var voxel_width_numer: Float = 4
     constants.setConstantValue(&voxel_width_numer, type: .float, index: 10)
     
-    var voxel_width_denom: Float = 16
+    guard let voxelSizeDenom = accelBuilder.voxelSizeDenom else {
+      fatalError("Voxel size denominator not set.")
+    }
+    var voxel_width_denom = voxelSizeDenom
     constants.setConstantValue(&voxel_width_denom, type: .float, index: 11)
     
     // Initialize the compute pipeline.
