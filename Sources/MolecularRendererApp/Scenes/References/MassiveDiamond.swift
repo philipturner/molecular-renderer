@@ -44,15 +44,15 @@ struct MassiveDiamond: MRAtomProvider {
   var _atoms: [MRAtom]
   
   init(outerSize: Int, thickness: Int? = nil) {
-    let extraDepth: Int = 100
-    let dimensions: SIMD3<Int> = [outerSize, outerSize + extraDepth, outerSize]
-//    let dimensions: SIMD3<Int> = [outerSize, outerSize, outerSize]
+//    let extraDepth: Int = 100
+//    let dimensions: SIMD3<Int> = [outerSize, outerSize + extraDepth, outerSize]
+    let dimensions: SIMD3<Int> = [outerSize, outerSize, outerSize]
     
     let axesOpenLower: SIMD3<Int> = [0, 0, 0]
     let axesOpenUpper: SIMD3<Int> = [0, 1, 0]
 //    let axesOpenUpper: SIMD3<Int> = [0, 0, 0]
-    let plane = CrystalPlane.fcc100(outerSize, extraDepth, outerSize)
-//    let plane = CrystalPlane.fcc100(outerSize, outerSize, outerSize)
+//    let plane = CrystalPlane.fcc100(outerSize, extraDepth, outerSize)
+    let plane = CrystalPlane.fcc100(outerSize, outerSize, outerSize)
     
     var hollowStart: SIMD3<Int>?
     var hollowEnd: SIMD3<Int>?

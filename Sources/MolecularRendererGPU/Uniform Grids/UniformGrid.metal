@@ -21,29 +21,29 @@ using namespace raytracing;
 // Behavior is undefined when the position goes out-of-bounds.
 class VoxelAddress {
 public:
-  static uint generate(ushort grid_width, ushort3 coords) {
-    uint grid_width_sq = grid_width * grid_width;
-    return coords.z * grid_width_sq + coords.y * grid_width + coords.x;
+  static uint generate(ushort3 grid_dims, ushort3 coords) {
+    uint grid_width_sq = grid_dims.y * grid_dims.x;
+    return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
   }
   
-  static int increment_x(ushort grid_width, bool negative = false) {
+  static int increment_x(ushort3 grid_dims, bool negative = false) {
     return select(1, -1, negative);
   }
   
-  static int increment_y(ushort grid_width, bool negative = false) {
-    short w = short(grid_width);
+  static int increment_y(ushort3 grid_dims, bool negative = false) {
+    short w = short(grid_dims.x);
     return select(w, short(-w), negative);
   }
   
-  static int increment_z(ushort grid_width, bool negative = false) {
-    int w_sq = grid_width * grid_width;
+  static int increment_z(ushort3 grid_dims, bool negative = false) {
+    int w_sq = grid_dims.y * grid_dims.x;
     return select(w_sq, -w_sq, negative);
   }
 };
 
 class DenseGrid {
 public:
-  ushort width;
+  ushort3 dims;
   device uint *data;
   device REFERENCE *references;
   device MRAtom *atoms;
@@ -74,14 +74,12 @@ class DenseDDA {
   float voxel_tmax; // in the relative coordinate space
   
 public:
-  ushort grid_width;
+  ushort3 grid_dims;
   uint address;
   bool continue_loop;
   
-  DenseDDA(Ray<T> ray, ushort grid_width) {
-    half h_grid_width(grid_width);
-    this->grid_width = grid_width;
-    
+  DenseDDA(Ray<T> ray, ushort3 grid_dims) {
+    half3 h_grid_dims = half3(grid_dims);
     float tmin = 0;
     float tmax = INFINITY;
     dt = precise::divide(1, float3(ray.direction));
@@ -92,13 +90,13 @@ public:
     
     // Dense grids start at an offset from the origin.
     // NOTE: This does not change `t`.
-    ray.origin += h_grid_width * 0.5;
+    ray.origin += float3(h_grid_dims) * 0.5;
     
     // Perform a ray-box intersection test.
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float t1 = (0 - ray.origin[i]) * dt[i];
-      float t2 = (h_grid_width - ray.origin[i]) * dt[i];
+      float t2 = (h_grid_dims[i] - ray.origin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
@@ -107,7 +105,7 @@ public:
     // NOTE: This translates `t` by an offset of `tmin`.
     continue_loop = (tmin < tmax);
     ray.origin += tmin * float3(ray.direction);
-    ray.origin = clamp(ray.origin, float(0), h_grid_width);
+    ray.origin = clamp(ray.origin, float(0), float3(h_grid_dims));
     this->tmin = tmin * voxel_width_numer / voxel_width_denom;
     
 #pragma clang loop unroll(full)
@@ -115,7 +113,7 @@ public:
       float origin = ray.origin[i];
       
       if (ray.direction[i] < 0) {
-        origin = h_grid_width - origin;
+        origin = h_grid_dims[i] - origin;
       }
       position[i] = ushort(origin);
       
@@ -126,9 +124,10 @@ public:
       t[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
     }
     
-    ushort3 neg_position = grid_width - 1 - position;
+    this->grid_dims = grid_dims;
+    ushort3 neg_position = this->grid_dims - 1 - position;
     ushort3 actual_position = select(position, neg_position, dt < 0);
-    address = VoxelAddress::generate(grid_width, actual_position);
+    address = VoxelAddress::generate(grid_dims, actual_position);
   }
   
   float get_max_accepted_t() {
@@ -143,25 +142,25 @@ public:
     
     if (as_type<uint>(cond_mask) == desired) {
       voxel_tmax = t.x; // actually t + dt
-      address += VoxelAddress::increment_x(grid_width, dt.x < 0);
+      address += VoxelAddress::increment_x(grid_dims, dt.x < 0);
       t.x += abs(dt.x); // actually t + dt + dt
       
       position.x += 1;
-      continue_loop = (position.x < grid_width);
+      continue_loop = (position.x < grid_dims.x);
     } else if (t.y < t.z) {
       voxel_tmax = t.y;
-      address += VoxelAddress::increment_y(grid_width, dt.y < 0);
+      address += VoxelAddress::increment_y(grid_dims, dt.y < 0);
       t.y += abs(dt.y);
       
       position.y += 1;
-      continue_loop = (position.y < grid_width);
+      continue_loop = (position.y < grid_dims.y);
     } else {
       voxel_tmax = t.z;
-      address += VoxelAddress::increment_z(grid_width, dt.z < 0);
+      address += VoxelAddress::increment_z(grid_dims, dt.z < 0);
       t.z += abs(dt.z);
       
       position.z += 1;
-      continue_loop = (position.z < grid_width);
+      continue_loop = (position.z < grid_dims.z);
     }
   }
 };

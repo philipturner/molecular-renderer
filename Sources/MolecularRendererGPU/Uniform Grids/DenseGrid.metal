@@ -14,11 +14,11 @@ using namespace metal;
 
 #define DENSE_BOX_GENERATE(EXTREMUM) \
 box.EXTREMUM *= args.world_to_voxel_transform; \
-box.EXTREMUM += h_grid_width * 0.5; \
+box.EXTREMUM += float3(h_grid_dims) * 0.5; \
 ushort3 box_##EXTREMUM; \
 {\
 short3 s_##EXTREMUM = short3(box.EXTREMUM); \
-s_##EXTREMUM = clamp(s_##EXTREMUM, 0, grid_width); \
+s_##EXTREMUM = clamp(s_##EXTREMUM, 0, short3(grid_dims)); \
 box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 }\
 
@@ -31,7 +31,7 @@ struct Box {
 };
 
 struct DenseGridArguments {
-  ushort grid_width;
+  ushort3 grid_dims;
   ushort cell_sphere_test;
   float world_to_voxel_transform;
 };
@@ -71,18 +71,18 @@ kernel void dense_grid_pass1
 {
   MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
-  ushort grid_width = args.grid_width;
-  half h_grid_width = args.grid_width;
+  ushort3 grid_dims = args.grid_dims;
+  half3 h_grid_dims = half3(args.grid_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
   float3 origin = atom.origin * args.world_to_voxel_transform;
-  origin += h_grid_width * 0.5;
+  origin += float3(h_grid_dims) * 0.5;
   float radiusSquared = atom.radiusSquared * args.world_to_voxel_transform;
   radiusSquared *= args.world_to_voxel_transform;
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
-  uint address_z = VoxelAddress::generate(grid_width, box_min);
+  uint address_z = VoxelAddress::generate(grid_dims, box_min);
   DENSE_BOX_LOOP(z) {
     uint address_y = address_z;
     DENSE_BOX_LOOP(y) {
@@ -95,11 +95,11 @@ kernel void dense_grid_pass1
         if (mark) {
           atomic_fetch_add(dense_grid_data + address_x, 1);
         }
-        address_x += VoxelAddress::increment_x(grid_width);
+        address_x += VoxelAddress::increment_x(grid_dims);
       }
-      address_y += VoxelAddress::increment_y(grid_width);
+      address_y += VoxelAddress::increment_y(grid_dims);
     }
-    address_z += VoxelAddress::increment_z(grid_width);
+    address_z += VoxelAddress::increment_z(grid_dims);
   }
 }
 
@@ -203,18 +203,18 @@ kernel void dense_grid_pass3
 {
   MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
-  ushort grid_width = args.grid_width;
-  half h_grid_width = args.grid_width;
+  ushort3 grid_dims = args.grid_dims;
+  half3 h_grid_dims = half3(args.grid_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
   float3 origin = atom.origin * args.world_to_voxel_transform;
-  origin += h_grid_width * 0.5;
+  origin += float3(h_grid_dims) * 0.5;
   float radiusSquared = atom.radiusSquared * args.world_to_voxel_transform;
   radiusSquared *= args.world_to_voxel_transform;
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
-  uint address_z = VoxelAddress::generate(grid_width, box_min);
+  uint address_z = VoxelAddress::generate(grid_dims, box_min);
   DENSE_BOX_LOOP(z) {
     uint address_y = address_z;
     DENSE_BOX_LOOP(y) {
@@ -230,11 +230,11 @@ kernel void dense_grid_pass3
             references[offset] = REFERENCE(tid);
           }
         }
-        address_x += VoxelAddress::increment_x(grid_width);
+        address_x += VoxelAddress::increment_x(grid_dims);
       }
-      address_y += VoxelAddress::increment_y(grid_width);
+      address_y += VoxelAddress::increment_y(grid_dims);
     }
-    address_z += VoxelAddress::increment_z(grid_width);
+    address_z += VoxelAddress::increment_z(grid_dims);
   }
 }
 

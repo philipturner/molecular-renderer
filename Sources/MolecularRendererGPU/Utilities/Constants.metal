@@ -76,9 +76,7 @@ Arguments {
   float diffuseReflectanceScale;
   
   // Uniform grid arguments.
-  ushort dense_width;
-  ushort dense_height;
-  ushort dense_depth;
+  ushort3 dense_dims;
 };
 
 #pragma clang diagnostic pop

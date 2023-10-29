@@ -32,9 +32,7 @@ struct Arguments {
   var minimumAmbientIllumination: Float
   var diffuseReflectanceScale: Float
   
-  var denseWidth: UInt16
-  var denseHeight: UInt16
-  var denseDepth: UInt16
+  var denseDims: SIMD3<UInt16>
 }
 
 // Track when to reset the MetalFX upscaler.
@@ -471,9 +469,7 @@ extension MRRenderer {
       minimumAmbientIllumination: minimumAmbientIllumination,
       diffuseReflectanceScale: diffuseReflectanceScale,
       
-      denseWidth: 0,
-      denseHeight: 0,
-      denseDepth: 0)
+      denseDims: .zero)
     
     let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
     if lightsBuffer.length < desiredSize {

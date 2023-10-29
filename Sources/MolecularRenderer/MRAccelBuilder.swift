@@ -10,6 +10,8 @@ import Metal
 import simd
 import QuartzCore
 
+// There should be an option to enable this performance reporting mechanism, in
+// the descriptor for 'MRRenderer'.
 struct MRFrameReport {
   // The ID of the frame that owns this report.
   var frameID: Int
@@ -62,9 +64,7 @@ class MRAccelBuilder {
   var maxGridSlots: Int = 1 << 1
   var maxGridCells: Int = 1 << 1
   var maxGridReferences: Int = 1 << 1
-  var gridWidth: Int = 0
-  var gridHeight: Int = 0
-  var gridDepth: Int = 0
+  var gridDims: SIMD3<UInt16> = .zero
   
   public init(
     renderer: MRRenderer,
@@ -265,23 +265,15 @@ extension MRAccelBuilder {
     let maxCoordinates = SIMD3(statistics.boundingBox.max.x,
                                statistics.boundingBox.max.y,
                                statistics.boundingBox.max.z)
-    var maxMagnitude = max(abs(minCoordinates), abs(maxCoordinates)).max()
-    
-    // TODO: Change the grid to be rectangular, and let it use an origin besides
-    // (0, 0, 0). This should save some memory and reduce the computation from
-    // scanning cells on the edge of an asymmetric scene. Most importantly,
-    // rectangular grids are faster for mostly 2D structures with a high aspect
-    // ratio, like some of my ideas for mechanical computers.
-    self.gridWidth = max(Int(2 * ceil(
-      maxMagnitude * voxel_width_denom / voxel_width_numer)), gridWidth)
+    let maxMagnitude = simd_max(abs(minCoordinates), abs(maxCoordinates))
+    self.gridDims = SIMD3<UInt16>(2 * ceil(
+      maxMagnitude * voxel_width_denom / voxel_width_numer))
     
     // If some atoms fly extremely far out of bounds, prevent the app from
-    // crashing. No atom may have a coordinate larger than +/- 100 nm, which
+    // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
     // creates a 2 GB memory allocation.
-    self.gridWidth = min(self.gridWidth, 800)
-    self.gridHeight = gridWidth
-    self.gridDepth = gridWidth
-    let totalCells = gridWidth * gridWidth * gridWidth
+    self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
+    let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
     guard statistics.references < 16 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
@@ -321,13 +313,13 @@ extension MRAccelBuilder {
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
     
     struct UniformGridArguments {
-      var gridWidth: UInt16
+      var gridDims: SIMD3<UInt16>
       var cellSphereTest: UInt16
       var worldToVoxelTransform: Float
     }
     
     var arguments: UniformGridArguments = .init(
-      gridWidth: UInt16(gridWidth),
+      gridDims: gridDims,
       cellSphereTest: 1,
       worldToVoxelTransform: voxel_width_denom / voxel_width_numer)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
@@ -364,12 +356,8 @@ extension MRAccelBuilder {
   
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
-    precondition(gridWidth > 0, "Forgot to encode the grid construction.")
-    precondition(gridHeight > 0, "Forgot to encode the grid construction.")
-    precondition(gridDepth > 0, "Forgot to encode the grid construction.")
-    arguments.denseWidth = UInt16(self.gridWidth)
-    arguments.denseHeight = UInt16(self.gridHeight)
-    arguments.denseDepth = UInt16(self.gridDepth)
+    precondition(all(gridDims .> 0), "Forgot to encode the grid construction.")
+    arguments.denseDims = self.gridDims
   }
   
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {

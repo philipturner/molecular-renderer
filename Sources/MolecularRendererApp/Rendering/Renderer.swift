@@ -63,7 +63,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = MassiveDiamond(outerSize: 10, thickness: 1)
+    self.atomProvider = MassiveDiamond(outerSize: 100, thickness: 2)
 //    self.atomProvider = APMBootstrapper()
   }
 }
