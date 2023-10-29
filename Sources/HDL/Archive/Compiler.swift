@@ -39,16 +39,6 @@ public class Compiler {
   //   - "Atom" initializer accepting either an element or a bond type
   //   - replace "Material" with simply .siliconCarbide, .germaniumCarbide and
   //     don't worry about the specifics of which atom goes where in the lattice
-  //
-  // TODO: New keywords or keyword functionality
-  // - Cut() forms a hole you can paste with further affine transforms
-  // - Paste() keyword with priority list:
-  //   - Highest valence, otherwise highest bond order
-  //   - Breaking ties: incoming atoms win
-  //
-  // Leave the "HDL" document unmaintained for a while, will eventually offload
-  // much of the documentation to Swift-DocC. Leave the remaining Markdown file
-  // as an explainer.
   
   // For editing a lattice.
   private var stack: Stack?

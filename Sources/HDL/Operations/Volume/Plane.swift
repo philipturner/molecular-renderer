@@ -1,14 +1,23 @@
 //
-//  PlanePair.swift
-//  MolecularRendererApp
+//  Plane.swift
+//  MolecularRenderer
 //
-//  Created by Philip Turner on 9/1/23.
+//  Created by Philip Turner on 10/29/23.
 //
 
+public struct Plane {
+  @discardableResult
+  public init<T>(_ closure: () -> Vector<T>) {
+    if T.self == Cubic.self {
+      Compiler.global.addPlane(closure().simdValue)
+    } else {
+      fatalError("Not implemented.")
+    }
+  }
+}
+
 /// Unions of infinite planes for extruding slanted and curved surfaces.
-///
-/// These may be extracted into a separate module in the future.
-public protocol PlanePair {
+protocol PlanePair {
   /// Initialize a type conforming to the plane pair protocol.
   /// - Parameter original: The vector normal to the first plane.
   /// - Parameter closure: The vector to reflect the first plane's normal
@@ -18,6 +27,8 @@ public protocol PlanePair {
 }
 
 extension PlanePair {
+  /// Reflection is a linear transformation, so this function works correctly
+  /// in a non-orthonormal basis like `Hexagonal`.
   fileprivate static func applyDirections<T>(
     _ original: Vector<T>, _ closure: () -> Vector<T>
   ) {

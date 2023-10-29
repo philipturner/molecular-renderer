@@ -120,17 +120,40 @@ Unit vectors representing the crystal's basis.
 Material { MaterialType }
 ```
 
-Specifiies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
+Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
 
 ```swift
 Reconstruct { SIMD3<Float> }
 ```
 
-Within the selected volume, reconstruct any surfaces that need reconstruction. This usually affects flat, open surfaces and avoids placing bonds in corners (which occurs at a later step of compilation). Bonds more parallel to the specified vector are prioritized, and the parity of alternating patterns is defined by `Origin`.
+Within the selected volume, reconstruct any surfaces that need reconstruction. This usually affects flat, open surfaces and avoids placing bonds in corners (which occurs at a later step of compilation). Bonds more parallel to the specified vector are prioritized, and the parity of alternating patterns is defined by `Origin`. This must be called inside `Volume`.
 
 An exemplar surface that may be reconstructed is diamond (100).
 
 ### Volume Editing
+
+The following keywords may only be called inside a `Volume`.
+
+```swift
+Origin { SIMD3<Float> }
+```
+
+Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
+
+```swift
+Plane { SIMD3<Float> }
+```
+
+Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
+
+A `Plane` divides the `Bounds` into two sections. The "one" volume is the side the normal vector points toward. The "zero" volume is the side the normal points away from. The "one" volume contains the atoms deleted during a `Cut()`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "one" volume are deleted.
+
+```swift
+Ridge(SIMD3<Float>) { SIMD3<Float> }
+Valley(SIMD3<Float>) { SIMD3<Float> }
+```
+
+Creates two planes by reflecting the first argument across the second argument. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection.
 
 ```swift
 Replace { EntityType }
@@ -140,36 +163,16 @@ Replace all entities in the selected volume with a new entity. In the future, th
 
 Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
 
-```swift
-Origin { SIMD3<Float> }
-```
-
-Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope.
-
-```swift
-Plane { SIMD3<Float> }
-```
-
-Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms. This must be called inside a `Volume`.
-
-A `Plane` divides the `Bounds` into two sections. The "one" volume is the side the normal vector points toward. The "zero" volume is the side the normal points away from. The "one" volume contains the atoms deleted during a `Cut()`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "one" volume are deleted.
-
-```swift
-Ridge(SIMD3<Float>) { SIMD3<Float> }
-Valley(SIMD3<Float>) { SIMD3<Float> }
-```
-
-Creates two planes by reflecting the first argument across the second argument. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection. This must be called inside a `Volume`.
-
 ### Objects
 
 ```swift
 Entity
+EntityType
 ```
 
-Documentation for this object is not complete.
+A wrapper type encapsulating atoms and bond connectors. The `Entity` includes position (12 bytes) and entity type (4 bytes). `EntityType` can extract information about the type, such as atomic number or bond order. Zero for the entity type indicates `.empty`.
 
-Internally, empty entities are often used to pad vector lengths to multiples of 8. This enables greater CPU vector parallelism without the overhead of bounds checking.
+Internally, empty entities are often used to pad vector lengths to multiples of 8. This enables greater CPU vector parallelism without the overhead of bounds checking. Replacing atoms with empty entities also deletes existing atoms.
 
 ```swift
 Lattice<Basis> { h, k, l in
@@ -178,7 +181,7 @@ Lattice<Basis> { h, k, l in
 }
 ```
 
-Create a lattice of crystal unit cells to edit. Coordinates are represented in numbers of crystal unit cells.
+Create a lattice of crystal unit cells to edit. Coordinates are represented in numbers of crystal unit cells. The coordinate system may be mapped to a non-orthonormal coordinate system internally. Keep this in mind when processing `SIMD3<Float>` vectors. For example, avoid normalizing any vectors.
 
 ```swift
 RigidBody { Lattice<Basis> }
@@ -237,28 +240,33 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 
 ### Solid Editing
 
+The following keywords may only be called inside an `Affine`.
+
 ```swift
 Copy { Lattice<Basis> }
 Copy { Solid }
 Copy { [Entity] }
 ```
 
-Instantiates a previously designed object. If called inside an `Affine`, the instance's atoms may be rotated or translated. This must be called inside `Affine`. It may not be called inside `Volume` or the top-level scope.
+Instantiates a previously designed object. The array initializer accepts raw atom positions in nanometers. This may not be called in the top-level scope.
 
-The array initializer accepts raw atom positions in nanometers. Atoms do not need to perfectly align with overwritten atoms, but must fall within a tight margin of floating-point error (`<0.1%`).
+When two entities in the new structure are extremely close, one will be overwritten. The entity that survives is decided by the following priority list:
+1. Highest valence.
+2. Highest bond order.
+3. Otherwise, the original atom wins. This rule prevents the atoms from drifting when several small modifications are performed.
 
 ```swift
 Reflect { SIMD3<Float> }
 ```
 
-Reflects the object across the current origin, along the specified axis. This must be called inside an `Affine`.
+Reflects the object across the current origin, along the specified axis.
 
 ```swift
 Rotate { SIMD4<Float> }
 Rotate { SIMD4(direction, revolutions) }
 ```
 
-Rotates counterclockwise around the direction, by the specified number of revolutions. The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` to rotate 0.25 revolutions (90 degrees). This must be called inside an `Affine`.
+Rotates counterclockwise around the direction, by the specified number of revolutions. The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` to rotate 0.25 revolutions (90 degrees).
 
 Rotation occurs around a ray starting at the current origin, pointing toward the specified vector. When editing a crystalline structure, try to restrict rotation angles to 1/4 or 1/6 revolutions. 0.166, 0.167, 0.333, etc. are automatically recognized as 1/6, 1/3, etc.
 
@@ -268,7 +276,7 @@ All direction vectors are `SIMD3` and must be converted to `SIMD4`. 4-wide SIMD 
 Translate { SIMD3<Float> }
 ```
 
-Translate the object by the specified vector, relative to its current position. This must be called inside an `Affine`.
+Translate the object by the specified vector, relative to its current position.
 
 ## Tips
 
