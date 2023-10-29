@@ -125,8 +125,9 @@ Within the selected volume, reconstruct any surfaces that need reconstruction. T
 
 An exemplar surface that may be reconstructed is diamond (100).
 
-### Volume Editing
+> As of now, the `Reconstruct` keyword is not supported.
 
+### Volume Editing
 
 ```swift
 Replace { EntityType }
@@ -136,6 +137,8 @@ Replace([EntityType]) { EntityType }
 Replace instances of the first argument with the second argument. If the value in parentheses is unspecified, it defaults to all valid atoms and bond connectors. The replacement occurs in the "one" volume of the current union of planes.
 
 Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
+
+> As of now, it is not possible to specify which entity types are replaced.
 
 ```swift
 Origin { SIMD3<Float> }

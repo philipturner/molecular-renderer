@@ -187,7 +187,11 @@ struct HexagonalGrid: LatticeGrid {
       let flags0 = CubicCell.flags & UInt8(truncatingIfNeeded: compressed)
       let flags1 = CubicCell.flags & UInt8(truncatingIfNeeded: compressed / 256)
       let flags = SIMD16(lowHalf: flags0, highHalf: flags1)
-      entityTypes[cellID].replace(with: newValue, where: flags .> 0)
+      
+      var codes = entityTypes[cellID]
+      let select = codes .!= 0
+      codes.replace(with: newValue, where: flags .> 0 .& select)
+      entityTypes[cellID] = codes
     }
   }
   

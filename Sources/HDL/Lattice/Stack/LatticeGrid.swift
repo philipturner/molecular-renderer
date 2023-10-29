@@ -50,6 +50,7 @@ extension LatticeGrid {
   mutating func initializeBounds(
     _ bounds: SIMD3<Float>, normals: [SIMD3<Float>]
   ) {
+    var union: Mask?
     for normalID in 0..<6 {
       var origin: SIMD3<Float> = .zero
       if normalID % 2 > 0 {
@@ -58,7 +59,13 @@ extension LatticeGrid {
       let normal = normals[normalID]
       let mask = Self.Mask(
         dimensions: self.dimensions, origin: origin, normal: normal)
-      self.replace(with: 0, where: mask)
+      
+      if union == nil {
+        union = mask
+      } else {
+        union! |= mask
+      }
     }
+    self.replace(with: 0, where: union!)
   }
 }

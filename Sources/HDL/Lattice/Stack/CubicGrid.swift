@@ -89,7 +89,11 @@ struct CubicGrid: LatticeGrid {
     for cellID in entityTypes.indices {
       let compressed = mask.mask[cellID]
       let flags = CubicCell.flags & compressed
-      entityTypes[cellID].replace(with: newValue, where: flags .> 0)
+      
+      var codes = entityTypes[cellID]
+      let select = codes .!= 0
+      codes.replace(with: newValue, where: flags .> 0 .& select)
+      entityTypes[cellID] = codes
     }
   }
   

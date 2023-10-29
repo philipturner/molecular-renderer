@@ -68,7 +68,7 @@ class Renderer {
       Bounds { 10 * (h + h2k + l) }
       Material { .elemental(.carbon) }
     }
-    var atoms = latticeC.entities.map(MRAtom.init)
+    let atoms = latticeC.entities.map(MRAtom.init)
     self.atomProvider = ArrayAtomProvider(atoms)
   }
 }

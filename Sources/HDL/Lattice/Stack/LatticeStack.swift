@@ -121,15 +121,21 @@ extension LatticeStack {
     }
   }
   
+  func checkScopesValid() {
+    guard scopes.count > 0 else {
+      fatalError("No scopes.")
+    }
+  }
+  
   mutating func origin(delta: SIMD3<Float>) {
     checkOriginsValid()
     origins[origins.count - 1] += delta
   }
   
   mutating func plane(normal: SIMD3<Float>) {
-    createMask(type: basis)
+    plane(type: basis)
     
-    func createMask<T: _Basis>(type: T.Type) {
+    func plane<T: _Basis>(type: T.Type) {
       if all(normal .== 0) {
         fatalError("Plane normal must have a nonzero component.")
       }
@@ -138,12 +144,39 @@ extension LatticeStack {
       let mask = T.Grid.Mask(
         dimensions: grid.dimensions, origin: origin, normal: normal)
       
-      guard scopes.count > 0 else {
-        fatalError("No scopes.")
-      }
+      checkScopesValid()
       scopes[scopes.count - 1].combine(mask)
     }
   }
   
-  // TODO: Implement summing backpropagation for atom editing operations.
+  func createSelectedVolume() -> any LatticeMask {
+    checkScopesValid()
+    var volume: (any LatticeMask)?
+    
+    for scope in scopes.reversed() {
+      let predecessor = scope
+      guard let successor = volume else {
+        volume = predecessor.mask
+        continue
+      }
+      volume = predecessor.backpropagate(successor)
+    }
+    guard let volume else {
+      fatalError("Backpropagation produced no volume.")
+    }
+    return volume
+  }
+  
+  private static func replace<G: LatticeGrid>(
+    grid: inout G, other: Int8, volume: any LatticeMask
+  ) {
+    guard let volume = volume as? G.Mask else {
+      fatalError("Combined lattices of different types.")
+    }
+    grid.replace(with: other, where: volume)
+  }
+  
+  mutating func replace(with other: Int8) {
+    Self.replace(grid: &grid, other: other, volume: createSelectedVolume())
+  }
 }

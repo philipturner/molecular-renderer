@@ -50,7 +50,7 @@ struct LatticeScope {
   // from deepest to shallowest tree level. Each backpropagation could be either
   // AND or OR, depending on whether the scope is concave. Backpropagation
   // starts at the deepest scope with a non-empty mask.
-  mutating func backpropagate<T: LatticeMask>(
+  func backpropagate<T: LatticeMask>(
     _ successor: T
   ) -> any LatticeMask {
     // If the current scope's mask doesn't exist, both AND and OR are identity
