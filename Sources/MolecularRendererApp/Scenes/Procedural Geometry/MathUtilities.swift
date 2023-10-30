@@ -11,18 +11,21 @@ import QuaternionModule
 
 // TODO: Extract this into a separate Swift package for 3D math.
 
+@inline(__always)
 func cross_platform_dot<T: Real & SIMDScalar>(
   _ x: SIMD2<T>, _ y: SIMD2<T>
 ) -> T {
   return (x * y).sum()
 }
 
+@inline(__always)
 func cross_platform_dot<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> T {
   return (x * y).sum()
 }
 
+@inline(__always)
 func cross_platform_cross<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> SIMD3<T> {
@@ -33,60 +36,70 @@ func cross_platform_cross<T: Real & SIMDScalar>(
   return SIMD3(s1, s2, s3)
 }
 
+@inline(__always)
 func cross_platform_length<T: Real & SIMDScalar>(
   _ x: SIMD2<T>
 ) -> T {
   return sqrt(cross_platform_dot(x, x))
 }
 
+@inline(__always)
 func cross_platform_length<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> T {
   return sqrt(cross_platform_dot(x, x))
 }
 
+@inline(__always)
 func cross_platform_distance<T: Real & SIMDScalar>(
   _ x: SIMD2<T>, _ y: SIMD2<T>
 ) -> T {
   return cross_platform_length(y - x)
 }
 
+@inline(__always)
 func cross_platform_min<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> SIMD3<T> {
   return x.replacing(with: y, where: y .< x)
 }
 
+@inline(__always)
 func cross_platform_max<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> SIMD3<T> {
   return x.replacing(with: y, where: y .> x)
 }
 
+@inline(__always)
 func cross_platform_distance<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> T {
   return cross_platform_length(y - x)
 }
 
+@inline(__always)
 func cross_platform_mix<T: Real & SIMDScalar>(
   _ x: T, _ y: T, _ t: T
 ) -> T {
   return y * t + x * (1 - t)
 }
 
+@inline(__always)
 func cross_platform_normalize<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> SIMD3<T> {
   return x / (cross_platform_dot(x, x)).squareRoot()
 }
 
+@inline(__always)
 func cross_platform_abs<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> SIMD3<T> {
   return x.replacing(with: -x, where: x .< 0)
 }
 
+@inline(__always)
 func cross_platform_floor<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> SIMD3<T> {

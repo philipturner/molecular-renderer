@@ -149,6 +149,18 @@ extension LatticeStack {
     checkScopesValid()
     var volume: (any LatticeMask)?
     
+    // NOTE: There is a bug. When a Volume is nested inside a Concave, it
+    // won't treat it like it's actually concave. Or, something is messed up
+    // with the origin. Reproducer:
+//    Concave {
+//      Origin { 2.8 * l }
+//      Plane { l }
+//      Volume {
+//        Origin { -2.5 * h2k }
+//        Plane { -h2k }
+//        Replace { .empty }
+//      }
+//    }
     for scope in scopes.reversed() {
       let predecessor = scope
       guard let successor = volume else {

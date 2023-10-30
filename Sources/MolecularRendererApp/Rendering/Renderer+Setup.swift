@@ -34,7 +34,7 @@ extension Renderer {
     exit(0)
   }
    
-  private func ioSimulation(name: String? = nil) {
+  func ioSimulation(name: String? = nil) {
     let simulationName = name ?? "SavedSimulation"
     if Self.recycleSimulation {
       let simulation = serializer.load(fileName: simulationName)

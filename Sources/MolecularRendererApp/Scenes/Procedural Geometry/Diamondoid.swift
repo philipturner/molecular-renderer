@@ -8,6 +8,10 @@
 import Foundation
 import MolecularRenderer
 import QuaternionModule
+#if os(macOS)
+import QuartzCore
+import simd
+#endif
 
 struct Diamondoid {
   var atoms: [MRAtom]
@@ -732,9 +736,11 @@ struct Diamondoid {
   // edges between (111) and (110) surfaces are like (100). It has O(n^2)
   // computational complexity.
   //
-  // TODO: Change this to O(n) so it's feasible in Swift debug mode. In fact,
-  // run it during the creation of 'Diamondoid' as an argument disabled by
-  // default.
+  // In the new RigidBody API, with the MM4 simulator supporting 5-membered
+  // rings, it should be possible to:
+  // - 1) Better automate the fixing of corner bonds.
+  // - 2) Simulate these carbons more accurately.
+  // - 3) Fix hydrogens with O(n) computational complexity.
   mutating func fixHydrogens(
     tolerance: Float,
     where criterion: ((SIMD3<Float>) -> Bool)? = nil
@@ -763,40 +769,50 @@ struct Diamondoid {
       }
     }
     
-    var bondPairs: [SIMD2<Int>] = []
-  outer:
+    var bondsWithHydrogen: [Int] = []
     for i in 0..<bonds.count {
       guard let hydrogenID1 = getHydrogenID(bonds[i]) else {
-        continue outer
+        continue
       }
       let hydrogen1 = atoms[hydrogenID1]
       if let criterion {
         if !criterion(hydrogen1.origin) {
-          continue outer
+          continue
         }
       }
+      bondsWithHydrogen.append(i)
+    }
+    
+    let start = CACurrentMediaTime()
+    var bondPairs: [SIMD2<Int>] = []
+  outer:
+    for (index_i, bond_i) in bondsWithHydrogen.enumerated() {
+      let hydrogenID1 = getHydrogenID(bonds[bond_i])!
+      let hydrogen1 = atoms[hydrogenID1]
+      guard index_i + 1 < bondsWithHydrogen.count else {
+        continue
+      }
+      
     inner:
-      for j in (i + 1)..<bonds.count {
-        guard let hydrogenID2 = getHydrogenID(bonds[j]) else {
-          continue inner
-        }
+      for index_j in (index_i + 1)..<bondsWithHydrogen.count {
+        let bond_j = bondsWithHydrogen[index_j]
+        let hydrogenID2 = getHydrogenID(bonds[bond_j])!
         
         if hydrogenID1 == hydrogenID2 {
           continue inner
         }
-        
         let hydrogen2 = atoms[hydrogenID2]
-        if let criterion {
-          if !criterion(hydrogen2.origin) {
-            continue inner
-          }
-        }
-        if cross_platform_distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
-          bondPairs.append(SIMD2(i, j))
+        
+        // For some reason, there's a 500x performance drop when the
+        // cross_platform_distance function is used.
+        if simd_distance(hydrogen1.origin, hydrogen2.origin) < tolerance {
+          bondPairs.append(SIMD2(bond_i, bond_j))
           continue outer
         }
       }
     }
+    let end = CACurrentMediaTime()
+    print("Fixing hydrogens took:", Float(end - start), "s")
     
     var newAtoms: [MRAtom?] = atoms.map { $0 }
     var newBonds: [SIMD2<Int32>?] = bonds.map { $0 }
