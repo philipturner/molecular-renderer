@@ -24,11 +24,11 @@ extension Nanosystems.Chapter12 {
       
       let rodLattice = Lattice<Hexagonal> { h, k, l in
         let h2k = h + 2 * k
-        Bounds { 10 * h + 8 * h2k + 16 * l }
+        Bounds { 10 * h + 8 * h2k + 20 * l }
         Material { .elemental(.carbon) }
         
         Volume {
-          Origin { 5 * h + 4 * h2k + 8 * l }
+          Origin { 5 * h + 4 * h2k + 10 * l }
           
           for direction in [h, -h] {
             Convex {
@@ -64,8 +64,70 @@ extension Nanosystems.Chapter12 {
       let rodAtoms = rodLattice.entities.map(MRAtom.init)
       var rodDiamondoid = Diamondoid(atoms: rodAtoms)
       provider = ArrayAtomProvider(rodDiamondoid.atoms)
+      rodDiamondoid.translate(offset: [
+        Float(0.252 * 5.25),
+        Float(0.437 * 1.25),
+        Float(-0.412 * 4)
+      ])
       
       // Next, create the housing.
+      let housingLattice = Lattice<Hexagonal> { h, k, l in
+        let h2k = h + 2 * k
+        Bounds { 20 * h + 9 * h2k + 12 * l }
+        Material { .elemental(.carbon) }
+        
+        Volume {
+          Origin { 10 * h + 4 * h2k + 6 * l }
+          
+          Concave {
+            for direction in [h2k, -h2k] {
+              Convex {
+                if direction.y > 0 {
+                  Origin { 3 * direction }
+                } else {
+                  Origin { 2.5 * direction }
+                }
+                Plane { -direction }
+              }
+            }
+            for direction in [h, -h] {
+              Convex {
+                if direction.x > 0 {
+                  Origin { 4 * direction }
+                } else {
+                  Origin { 3.5 * direction }
+                }
+                Plane { -direction }
+              }
+            }
+            for direction in [h * 2 + k, -h * 2 - k] {
+              Convex {
+                if direction.x > 0 {
+                  Origin { 3 * direction }
+                } else {
+                  Origin { 2.5 * direction }
+                }
+                Plane { -direction }
+              }
+            }
+            
+            // Try doing a few Volume { } -> Replace { .empty } calls instead
+            // of very complex Concave { } logic.
+          }
+          
+          Replace { .empty }
+        }
+      }
+      let housingAtoms = housingLattice.entities.map(MRAtom.init)
+//      var housingDiamondoid = Diamondoid(atoms: housingAtoms)
+//      housingDiamondoid.minimize()
+      
+      let allAtoms = rodDiamondoid.atoms + housingAtoms
+//      let allAtoms = rodDiamondoid.atoms + housingDiamondoid.atoms
+      print("Atom count: \(allAtoms.count)")
+      provider = ArrayAtomProvider(allAtoms)
+      
+//      let simulator = MM4(diamondoids: [], fsPerFrame: <#T##Double#>)
     }
   }
 }

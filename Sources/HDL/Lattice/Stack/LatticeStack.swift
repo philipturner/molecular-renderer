@@ -85,7 +85,7 @@ extension LatticeStack {
   }
   
   func withOrigin(_ closure: () -> Void) {
-    let currentOrigin = origins.first ?? .zero
+    let currentOrigin = origins.last ?? .zero
     origins.append(currentOrigin)
     closure()
     origins.removeLast()
