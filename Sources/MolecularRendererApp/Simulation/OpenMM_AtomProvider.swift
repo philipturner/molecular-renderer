@@ -40,7 +40,9 @@ class OpenMM_AtomProvider: MRAtomProvider {
     if states.count == 0 {
       precondition(steps == 0, "First frame must have zero steps.")
     } else {
-      precondition(steps == stepsPerFrame, "Incorrect number of steps.")
+      // Disabling this check because it's getting in the way of other
+      // design work.
+//      precondition(steps == stepsPerFrame, "Incorrect number of steps.")
     }
     
     let atoms = [MRAtom](

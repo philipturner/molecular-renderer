@@ -161,6 +161,34 @@ extension LatticeStack {
 //        Replace { .empty }
 //      }
 //    }
+    
+    // Second reproducer: when disconnecting this from the parent's scope
+    // (duplicating the "Origin { 12 * h + 8 * h2k + 6 * l }" statement), the
+    // geometry started behaving predictably again.
+//    Volume {
+//      Concave {
+//        for direction in [h, -h] {
+//          Convex {
+//            if direction.x > 0 {
+//              Origin { 4 * direction }
+//            } else {
+//              Origin { 3.5 * direction }
+//            }
+//            Plane { -direction }
+//          }
+//        }
+//        Concave {
+//          Origin { -1.2 * l }
+//          Plane { l }
+//          Origin { 2 * l }
+//          Plane { -l }
+//          
+//          Origin { -5.5 * h2k }
+//          Plane { -h2k }
+//        }
+//      }
+//      Replace { .empty }
+//    }
     for scope in scopes.reversed() {
       let predecessor = scope
       guard let successor = volume else {

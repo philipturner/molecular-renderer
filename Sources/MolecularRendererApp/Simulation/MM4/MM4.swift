@@ -66,6 +66,7 @@ class MM4 {
   // need to be created before doing anything, then mapped to a separate array
   // afterward.
   var anchors: [Bool]
+  var externalForceObject: OpenMM_CustomExternalForce?
   
   convenience init(
     diamondoid: Diamondoid,
@@ -1053,6 +1054,9 @@ class MM4 {
           // Force is the negative gradient of potential energy.
           array[lane] = -Double(inputForces[atomID][lane]) * MM4KJPerMolPerZJ
         }
+        guard atomID == Int(newIndicesMap[atomID]) else {
+          fatalError("New indices map.")
+        }
         externalForce!.addParticle(atomID, parameters: array)
       }
     }
@@ -1087,6 +1091,7 @@ class MM4 {
 //    system.addForce(bondBendTorsionBend)
     
     if let externalForce {
+      externalForceObject = externalForce
       externalForce.transfer()
       system.addForce(externalForce)
     }
@@ -1258,14 +1263,46 @@ class MM4 {
   func simulate(
     ps: Double,
     minimizing: Bool = false,
-    trackingState: Bool = false
+    trackingState: Bool = false,
+    silent: Bool = false
   ) {
     simulate(
       ps: ps,
       context: self.context,
       integrator: self.integrator,
       minimizing: minimizing,
-      trackingState: trackingState)
+      trackingState: trackingState,
+      silent: silent)
+  }
+  
+  func changeExternalForces(_ externalForces: [SIMD3<Float>]) {
+    guard let externalForceObject else {
+      fatalError("No external force object exists.")
+    }
+    guard externalForces.count == newIndicesMap.count else {
+      fatalError("External forces array must be same size as atom array.")
+    }
+    
+    let array = OpenMM_DoubleArray(size: 3)
+    array[0] = 0
+    array[1] = 0
+    array[2] = 0
+    
+    for atomID in externalForces.indices {
+      for lane in 0..<3 {
+        // 0.602214
+        let MM4KJPerMolPerZJ: Double = 1e-21 * 6.02214076e23 / 1000
+        
+        // Force is the negative gradient of potential energy.
+        array[lane] = -Double(externalForces[atomID][lane]) * MM4KJPerMolPerZJ
+      }
+      guard atomID == Int(newIndicesMap[atomID]) else {
+        fatalError("New indices map.")
+      }
+      externalForceObject.setParticleParameters(
+        index: atomID, particle: atomID, parameters: array)
+    }
+    externalForceObject.updateParametersInContext(context)
   }
   
   private func simulate(
@@ -1273,7 +1310,8 @@ class MM4 {
     context: OpenMM_Context,
     integrator: OpenMM_Integrator,
     minimizing: Bool,
-    trackingState: Bool
+    trackingState: Bool,
+    silent: Bool
   ) {
     let numFemtoseconds = Double(rint(ps * 1000))
     let numSteps = Int(exactly: numFemtoseconds / timeStepInFs)!
@@ -1441,7 +1479,9 @@ class MM4 {
       let drift = mostRecentEnergy - startEnergy
       checkFailure(drift)
       message += " -> \(String(format: "%.1f", drift)) zJ"
-      print(message)
+      if !silent {
+        print(message)
+      }
     }
     if trackingState {
       print()

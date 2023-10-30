@@ -61,6 +61,5 @@ class Renderer {
     initOpenMM()
     
     self.atomProvider = Nanosystems.Chapter12.Figure1().provider
-//    self.ioSimulation(name: "Ch12_Fig1_try3")
   }
 }
