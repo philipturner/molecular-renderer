@@ -307,7 +307,7 @@ extension Nanosystems.Chapter12 {
     // before. Maybe, find the energy to return the rod to its original
     // position.
     //
-    // First attempt to measure energy: ~30-70 zJ per half cycle, where the
+    // First attempt to measure energy loss: ~30-70 zJ per half cycle, where the
     // rod's intermediate velocity is 100 m/s. Didn't measure how much kinetic
     // energy was lost along the trajectory due to friction (seemed on the
     // order of 10 zJ). The priority right now is recovering potential energy
