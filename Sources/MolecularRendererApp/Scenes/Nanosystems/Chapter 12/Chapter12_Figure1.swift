@@ -74,11 +74,11 @@ extension Nanosystems.Chapter12 {
       // Next, create the housing.
       let housingLattice = Lattice<Hexagonal> { h, k, l in
         let h2k = h + 2 * k
-        Bounds { 20 * h + 13 * h2k + 12 * l }
+        Bounds { 20 * h + 14 * h2k + 12 * l }
         Material { .elemental(.carbon) }
         
         Volume {
-          Origin { 12 * h + 8 * h2k + 6 * l }
+          Origin { 12 * h + 9 * h2k + 6 * l }
           
           // TODO: Always remember to comment your HDL code. Otherwise, it's
           // almost impossible to understand when looking back on it.
@@ -115,6 +115,12 @@ extension Nanosystems.Chapter12 {
           Concave {
             Origin { 2.8 * l - 6.5 * h }
             Plane { l }
+            Plane { -h }
+          }
+          
+          // Chop off a slice of atoms that isn't needed for the second rod.
+          Convex {
+            Origin { -11 * h }
             Plane { -h }
           }
           
@@ -208,36 +214,56 @@ extension Nanosystems.Chapter12 {
             }
           }
         }
+        
+        secondHole(h, k, l)
       }
-      let housingAtoms = housingLattice.entities.map(MRAtom.init)
+      let housingAtoms = housingLattice.entities.map(MRAtom.init).map {
+        var copy = $0
+        copy.y -= 0.437
+        return copy
+      }
       var housingDiamondoid = Diamondoid(atoms: housingAtoms)
       housingDiamondoid.fixHydrogens(tolerance: 0.08) { _ in true }
       housingDiamondoid.minimize()
+//      
+//      rodDiamondoid.externalForce = [0, 0, -1600]
+//      housingDiamondoid.externalForce = [0, 0, 0]
+//      
+//      housingDiamondoid.anchors = [Bool](
+//        repeating: false, count: housingDiamondoid.atoms.count)
+//      rodDiamondoid.atomsWithForce = [Bool](
+//        repeating: false, count: rodDiamondoid.atoms.count)
+//      for index in housingAnchorIndices(housingDiamondoid, ratio: 0.2) {
+//        housingDiamondoid.anchors[index] = true
+//      }
+//      for index in rodForceIndices(rodDiamondoid, direction: [0, 0, 1]) {
+//        rodDiamondoid.atomsWithForce[index] = true
+//      }
       
-      rodDiamondoid.externalForce = [0, 0, -1600]
-      housingDiamondoid.externalForce = [0, 0, 0]
-      
-      housingDiamondoid.anchors = [Bool](
-        repeating: false, count: housingDiamondoid.atoms.count)
-      rodDiamondoid.atomsWithForce = [Bool](
-        repeating: false, count: rodDiamondoid.atoms.count)
-      for index in housingAnchorIndices(housingDiamondoid, ratio: 0.2) {
-        housingDiamondoid.anchors[index] = true
+      let secondRodLattice = secondRod()
+      var secondRodAtoms = secondRodLattice.entities.map(MRAtom.init)
+      secondRodAtoms = secondRodAtoms.map {
+        var copy = $0
+        copy.x -= 0.252437 * 8
+        copy.y -= 0.437 * 0.25
+        copy.z -= 0.412228 * 0.25
+        return copy
       }
-      for index in rodForceIndices(rodDiamondoid, direction: [0, 0, 1]) {
-        rodDiamondoid.atomsWithForce[index] = true
-      }
+      let secondRodDiamondoid = Diamondoid(atoms: secondRodAtoms)
       
-//      let allAtoms = rodDiamondoid.atoms + housingAtoms
-      let allAtoms = rodDiamondoid.atoms + housingDiamondoid.atoms
+      let allAtoms =
+      rodDiamondoid.atoms
+      + housingAtoms
+//      + housingDiamondoid.atoms
+      + secondRodDiamondoid.atoms
       print("Atom count: \(allAtoms.count)")
       provider = ArrayAtomProvider(allAtoms)
       
-      let simulator = MM4(diamondoids: [
-        rodDiamondoid, housingDiamondoid
-      ], fsPerFrame: 20)
-      simulator.simulate(ps: 4)
-      provider = simulator.provider
+//      let simulator = MM4(diamondoids: [
+//        rodDiamondoid, housingDiamondoid, secondRodDiamondoid
+//      ], fsPerFrame: 20)
+//      simulator.simulate(ps: 10)
+//      provider = simulator.provider
     }
     
     func housingAnchorIndices(_ diamondoid: Diamondoid, ratio: Float) -> [Int] {
