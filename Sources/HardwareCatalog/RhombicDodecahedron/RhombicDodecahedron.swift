@@ -8,6 +8,8 @@
 import Foundation
 import HDL
 
+#if false
+
 public struct RhombicDodecahedron {
   public var lattice: Lattice<Cubic>
   
@@ -45,3 +47,5 @@ public struct RhombicDodecahedron {
     }
   }
 }
+
+#endif

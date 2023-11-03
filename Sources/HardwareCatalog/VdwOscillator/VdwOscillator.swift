@@ -7,6 +7,8 @@
 
 import HDL
 
+#if false
+
 internal func vdwOscillator() {
   // Make a housing, where a solid diamond slab can fit inside it.
   var housing = Lattice<Cubic> { h, k, l in
@@ -305,3 +307,5 @@ internal func vdwOscillator() {
   
   // Last steps: casting to Solid and making the assembly
 }
+
+#endif

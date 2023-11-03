@@ -9,6 +9,8 @@ import Foundation
 import HDL
 import QuaternionModule
 
+#if false
+
 public struct Ring {
   public var centers: [SIMD3<Float>]
   
@@ -143,3 +145,5 @@ public struct Ring {
     centers = deduplicate(centers)
   }
 }
+
+#endif

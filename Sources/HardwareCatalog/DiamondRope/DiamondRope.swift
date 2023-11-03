@@ -8,6 +8,8 @@
 import Foundation
 import HDL
 
+#if false
+
 public struct DiamondRope {
   public var lattice: Lattice<Cubic>
   
@@ -74,3 +76,5 @@ public struct DiamondRope {
     }
   }
 }
+
+#endif

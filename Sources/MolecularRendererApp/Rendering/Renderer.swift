@@ -12,6 +12,7 @@ import MolecularRenderer
 import OpenMM
 import simd
 
+import HardwareCatalog
 import HDL
 
 class Renderer {
@@ -60,7 +61,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = Nanosystems.Chapter12.Figure1().provider
-//    self.ioSimulation(name: "Ch12_Fig1_try1")
+    self.atomProvider = ExampleMolecules.Ethylene()
   }
 }
