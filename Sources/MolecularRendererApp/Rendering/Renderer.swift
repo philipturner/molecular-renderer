@@ -61,6 +61,7 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = ExampleMolecules.Ethylene()
+//    self.atomProvider = ExampleMolecules.Ethylene()
+    self.atomProvider = RippleCounter().provider
   }
 }

@@ -124,6 +124,7 @@
 		98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */; };
 		98F638CD2A34F97300F51E95 /* Downloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F638CC2A34F97300F51E95 /* Downloader.swift */; };
 		98F852C22AF5B1A600986E61 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98F852C12AF5B1A600986E61 /* HardwareCatalog */; };
+		98F852CD2AF5B73300986E61 /* RippleCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F852CA2AF5B34700986E61 /* RippleCounter.swift */; };
 		98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB906D2A5A8BD300685E5C /* CasingProvider.swift */; };
 		98FB90702A5B19E100685E5C /* Key.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB906F2A5B19E100685E5C /* Key.swift */; };
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
@@ -335,8 +336,7 @@
 		98F83E292AE4BF630037E31A /* lib.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = lib.rs; sourceTree = "<group>"; };
 		98F83E2C2AE4BF630037E31A /* mod.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mod.rs; sourceTree = "<group>"; };
 		98F83E2E2AE4BF630037E31A /* mod.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mod.rs; sourceTree = "<group>"; };
-		98F852C42AF5B20A00986E61 /* RodLogicOR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RodLogicOR.swift; sourceTree = "<group>"; };
-		98F852C62AF5B23400986E61 /* RodLogicNOT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RodLogicNOT.swift; sourceTree = "<group>"; };
+		98F852C42AF5B20A00986E61 /* RodLogicNOT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RodLogicNOT.swift; sourceTree = "<group>"; };
 		98F852C82AF5B26E00986E61 /* HexagonalRAM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalRAM.swift; sourceTree = "<group>"; };
 		98F852CA2AF5B34700986E61 /* RippleCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleCounter.swift; sourceTree = "<group>"; };
 		98F852CC2AF5B38900986E61 /* RodLogicRegister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RodLogicRegister.swift; sourceTree = "<group>"; };
@@ -1001,25 +1001,16 @@
 			isa = PBXGroup;
 			children = (
 				98F852C72AF5B25300986E61 /* HexagonalRAM */,
-				98F852C52AF5B22400986E61 /* RodLogicNOT */,
-				98F852C32AF5B1DE00986E61 /* RodLogicOR */,
+				98F852C32AF5B1DE00986E61 /* RodLogicNOT */,
 				98F852CB2AF5B37900986E61 /* RodLogicRegister */,
 			);
 			path = Computing;
 			sourceTree = "<group>";
 		};
-		98F852C32AF5B1DE00986E61 /* RodLogicOR */ = {
+		98F852C32AF5B1DE00986E61 /* RodLogicNOT */ = {
 			isa = PBXGroup;
 			children = (
-				98F852C42AF5B20A00986E61 /* RodLogicOR.swift */,
-			);
-			path = RodLogicOR;
-			sourceTree = "<group>";
-		};
-		98F852C52AF5B22400986E61 /* RodLogicNOT */ = {
-			isa = PBXGroup;
-			children = (
-				98F852C62AF5B23400986E61 /* RodLogicNOT.swift */,
+				98F852C42AF5B20A00986E61 /* RodLogicNOT.swift */,
 			);
 			path = RodLogicNOT;
 			sourceTree = "<group>";
@@ -1251,6 +1242,7 @@
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				980E701D2A5E520F0051797F /* Surfaces.swift in Sources */,
 				98325C522A6B4FDE00A4D7BB /* Chapter9.swift in Sources */,
+				98F852CD2AF5B73300986E61 /* RippleCounter.swift in Sources */,
 				985C92A72A955CA9008629C0 /* StrainedShellStructure.swift in Sources */,
 				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
 				98846F7A2AC39B450049C223 /* Flywheel1.swift in Sources */,
