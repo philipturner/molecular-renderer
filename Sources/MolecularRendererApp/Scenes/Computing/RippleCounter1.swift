@@ -20,7 +20,7 @@ import QuaternionModule
 // design iterations.
 
 // 4-bit ripple counter using nanomechanical logic, combinational and serial
-struct RippleCounter {
+struct RippleCounter1 {
   var provider: any MRAtomProvider
   var openmmProvider: OpenMM_AtomProvider?
   

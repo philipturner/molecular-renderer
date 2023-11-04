@@ -42,7 +42,7 @@ MM4 documentation: [philipturner.github.io/MM4](https://philipturner.github.io/M
 
 There is also a JIT compiler for the language, accepting a strict subset of Swift that contains DSL keywords. This was created out of necessity to bypass long compile times in Swift release mode. The API is still experimental and gated under an underscore (`_Parse`). Documentation can be found in triple-slashed comments at [Parse.swift](../Sources/HDL/Compiler/Parse.swift).
 
-At the moment, the JIT compiler has been deprecated, in favor of compiling in Swift release mode with incremental compilation. It may be brought back for a future Python API.
+At the moment, the JIT compiler has been deprecated, in favor of compiling in Swift release mode with incremental compilation.
 
 ## Syntax
 

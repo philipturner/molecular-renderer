@@ -124,8 +124,9 @@
 		98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */; };
 		98F638CD2A34F97300F51E95 /* Downloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F638CC2A34F97300F51E95 /* Downloader.swift */; };
 		98F852C22AF5B1A600986E61 /* HardwareCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = 98F852C12AF5B1A600986E61 /* HardwareCatalog */; };
-		98F852CD2AF5B73300986E61 /* RippleCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F852CA2AF5B34700986E61 /* RippleCounter.swift */; };
-		98F852CF2AF5D24C00986E61 /* RippleCounter+File2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F852CE2AF5D24C00986E61 /* RippleCounter+File2.swift */; };
+		98F852CD2AF5B73300986E61 /* RippleCounter1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F852CA2AF5B34700986E61 /* RippleCounter1.swift */; };
+		98F852CF2AF5D24C00986E61 /* RippleCounter1+File2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F852CE2AF5D24C00986E61 /* RippleCounter1+File2.swift */; };
+		98F852D12AF66B7C00986E61 /* RippleCounter2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F852D02AF66B7C00986E61 /* RippleCounter2.swift */; };
 		98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB906D2A5A8BD300685E5C /* CasingProvider.swift */; };
 		98FB90702A5B19E100685E5C /* Key.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB906F2A5B19E100685E5C /* Key.swift */; };
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
@@ -337,11 +338,9 @@
 		98F83E292AE4BF630037E31A /* lib.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = lib.rs; sourceTree = "<group>"; };
 		98F83E2C2AE4BF630037E31A /* mod.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mod.rs; sourceTree = "<group>"; };
 		98F83E2E2AE4BF630037E31A /* mod.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mod.rs; sourceTree = "<group>"; };
-		98F852C42AF5B20A00986E61 /* RodLogicNOT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RodLogicNOT.swift; sourceTree = "<group>"; };
-		98F852C82AF5B26E00986E61 /* HexagonalRAM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalRAM.swift; sourceTree = "<group>"; };
-		98F852CA2AF5B34700986E61 /* RippleCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleCounter.swift; sourceTree = "<group>"; };
-		98F852CC2AF5B38900986E61 /* RodLogicRegister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RodLogicRegister.swift; sourceTree = "<group>"; };
-		98F852CE2AF5D24C00986E61 /* RippleCounter+File2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RippleCounter+File2.swift"; sourceTree = "<group>"; };
+		98F852CA2AF5B34700986E61 /* RippleCounter1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleCounter1.swift; sourceTree = "<group>"; };
+		98F852CE2AF5D24C00986E61 /* RippleCounter1+File2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RippleCounter1+File2.swift"; sourceTree = "<group>"; };
+		98F852D02AF66B7C00986E61 /* RippleCounter2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleCounter2.swift; sourceTree = "<group>"; };
 		98FB906D2A5A8BD300685E5C /* CasingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasingProvider.swift; sourceTree = "<group>"; };
 		98FB906F2A5B19E100685E5C /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
 		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
@@ -600,7 +599,6 @@
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
 			isa = PBXGroup;
 			children = (
-				98F852BF2AF5B14C00986E61 /* Computing */,
 				9816EFA32AC4B9620042073F /* Ring */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
 				98D975BD2AC222950052EE6C /* OctahedralSpring */,
@@ -999,47 +997,14 @@
 			path = definitions;
 			sourceTree = "<group>";
 		};
-		98F852BF2AF5B14C00986E61 /* Computing */ = {
-			isa = PBXGroup;
-			children = (
-				98F852C72AF5B25300986E61 /* HexagonalRAM */,
-				98F852C32AF5B1DE00986E61 /* RodLogicNOT */,
-				98F852CB2AF5B37900986E61 /* RodLogicRegister */,
-			);
-			path = Computing;
-			sourceTree = "<group>";
-		};
-		98F852C32AF5B1DE00986E61 /* RodLogicNOT */ = {
-			isa = PBXGroup;
-			children = (
-				98F852C42AF5B20A00986E61 /* RodLogicNOT.swift */,
-			);
-			path = RodLogicNOT;
-			sourceTree = "<group>";
-		};
-		98F852C72AF5B25300986E61 /* HexagonalRAM */ = {
-			isa = PBXGroup;
-			children = (
-				98F852C82AF5B26E00986E61 /* HexagonalRAM.swift */,
-			);
-			path = HexagonalRAM;
-			sourceTree = "<group>";
-		};
 		98F852C92AF5B2CC00986E61 /* Computing */ = {
 			isa = PBXGroup;
 			children = (
-				98F852CA2AF5B34700986E61 /* RippleCounter.swift */,
-				98F852CE2AF5D24C00986E61 /* RippleCounter+File2.swift */,
+				98F852CA2AF5B34700986E61 /* RippleCounter1.swift */,
+				98F852CE2AF5D24C00986E61 /* RippleCounter1+File2.swift */,
+				98F852D02AF66B7C00986E61 /* RippleCounter2.swift */,
 			);
 			path = Computing;
-			sourceTree = "<group>";
-		};
-		98F852CB2AF5B37900986E61 /* RodLogicRegister */ = {
-			isa = PBXGroup;
-			children = (
-				98F852CC2AF5B38900986E61 /* RodLogicRegister.swift */,
-			);
-			path = RodLogicRegister;
 			sourceTree = "<group>";
 		};
 		98FB907D2A5CF8FD00685E5C /* Ray Tracing */ = {
@@ -1227,9 +1192,10 @@
 				980E70192A5E51D20051797F /* Tooltips.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
-				98F852CF2AF5D24C00986E61 /* RippleCounter+File2.swift in Sources */,
+				98F852CF2AF5D24C00986E61 /* RippleCounter1+File2.swift in Sources */,
 				988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98F852D12AF66B7C00986E61 /* RippleCounter2.swift in Sources */,
 				98518AF72A75845600CAD919 /* MM4.swift in Sources */,
 				98247CBB2AF0656100958BC5 /* Chapter12_Figure1_file2.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* Styles.swift in Sources */,
@@ -1246,7 +1212,7 @@
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				980E701D2A5E520F0051797F /* Surfaces.swift in Sources */,
 				98325C522A6B4FDE00A4D7BB /* Chapter9.swift in Sources */,
-				98F852CD2AF5B73300986E61 /* RippleCounter.swift in Sources */,
+				98F852CD2AF5B73300986E61 /* RippleCounter1.swift in Sources */,
 				985C92A72A955CA9008629C0 /* StrainedShellStructure.swift in Sources */,
 				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
 				98846F7A2AC39B450049C223 /* Flywheel1.swift in Sources */,

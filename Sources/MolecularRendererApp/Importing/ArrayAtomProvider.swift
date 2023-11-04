@@ -22,6 +22,14 @@ struct ArrayAtomProvider: MRAtomProvider {
   func atoms(time: MRTimeContext) -> [MRAtom] {
     return atoms
   }
+  
+  init(_ diamondoids: [Diamondoid]) {
+    var atoms: [MRAtom] = []
+    for diamondoid in diamondoids {
+      atoms += diamondoid.atoms
+    }
+    self.init(atoms)
+  }
 }
 
 struct MovingAtomProvider: MRAtomProvider {

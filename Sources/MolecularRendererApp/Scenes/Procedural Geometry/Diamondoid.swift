@@ -732,6 +732,270 @@ struct Diamondoid {
     }
   }
   
+  // Remove groups that cause a lot of unnecessary degrees of freedom, or whose
+  // vibrational frequencies are significantly changed by hydrogen mass
+  // repartitioning:
+  // - primary carbons
+  // - pairs of 2 secondary carbons, which form a standalone ethyl chain
+  // - except when the carbon is an anchor
+  //
+  // This should be done after fixing colliding hydrogens. In theory, this
+  // function should never produce a new pair of colliding hydrogens.
+  mutating func removeLooseCarbons(iterations: Int = 3) {
+    var copy = self
+    var converged = false
+    for iterationID in 0..<iterations {
+      let removedAny = copy._removeLooseCarbons(onlyMethyls: false)
+      if !removedAny {
+        converged = true
+        print("NOTE: Removing loose carbons converged on iteration \(iterationID).")
+        break
+      }
+    }
+    if converged {
+      self = copy
+    } else {
+      print("NOTE: Removing loose carbons failed to converge after \(iterations) iterations.")
+      self._removeLooseCarbons(onlyMethyls: true)
+    }
+  }
+  
+  // Remove the loose carbons several times, in an iterature procedure that
+  // hopefully converges.
+  // - Returns whether any atoms were modified during this iteration.
+  @discardableResult
+  private mutating func _removeLooseCarbons(onlyMethyls: Bool) -> Bool {
+    var atomsToBondsMap: [Int: SIMD4<Int>] = [:]
+    for bondID in bonds.indices {
+      let bond = bonds[bondID]
+      for lane in 0..<2 {
+        let atomID = Int(bond[lane])
+        var previous = atomsToBondsMap[atomID] ?? SIMD4(repeating: -1)
+        var failed = true
+        for lane in 0..<4 {
+          guard previous[lane] == -1 else {
+            continue
+          }
+          failed = false
+          previous[lane] = bondID
+          atomsToBondsMap[atomID] = previous
+          break
+        }
+        if failed {
+          fatalError("More than 4 bonds on an atom: \(previous).")
+        }
+      }
+    }
+    
+    var shouldRemoveArray = [Bool](repeating: false, count: atoms.count)
+    var shouldMakeHydrogenArray = [Bool](repeating: false, count: atoms.count)
+    var carbonTypesArray = [Int](repeating: -1, count: atoms.count)
+    
+    // A new hydrogen neighbor index will sometimes be written, but not used. It
+    // is only used when the current atom ends up transformed into a hydrogen.
+    var newHydrogenNeighborIndices = [Int](repeating: -1, count: atoms.count)
+    for trialID in 0..<3 {
+      // Make two passes through the data. The first pass establishes which
+      // carbon type each carbon is.
+      for atomID in atoms.indices {
+        let atom = self.atoms[atomID]
+        if atom.element == 1 {
+          continue
+        }
+        guard let map = atomsToBondsMap[atomID] else {
+          fatalError("No map found for atom \(atomID).")
+        }
+        guard !any(map .== -1) else {
+          fatalError("Found -1 in tetravalent atom map: \(map).")
+        }
+        
+        // The closure accepts the hydrogen atom's ID.
+        func forNeighbor(_ closure: (Int) -> Void) {
+          for mapLane in 0..<4 {
+            let bondID = map[mapLane]
+            let bond = self.bonds[bondID]
+            for bondLane in 0..<2 {
+              let otherAtomID = Int(bond[bondLane])
+              if otherAtomID == atomID {
+                continue
+              } else {
+                closure(otherAtomID)
+              }
+            }
+          }
+        }
+        
+        var selfCarbonType: Int
+        
+        if trialID == 0 {
+          var numHydrogenNeighbors = 0
+          forNeighbor { neighborID in
+            if atoms[neighborID].element == 1 {
+              numHydrogenNeighbors += 1
+            }
+          }
+          
+          switch numHydrogenNeighbors {
+          case 0: selfCarbonType = 4
+          case 1: selfCarbonType = 3
+          case 2: selfCarbonType = 2
+          case 3: selfCarbonType = 1
+          case 4: selfCarbonType = 0
+          default: fatalError("This should never happen.")
+          }
+          carbonTypesArray[atomID] = selfCarbonType
+        } else if trialID == 1 {
+          selfCarbonType = carbonTypesArray[atomID]
+          guard selfCarbonType >= 0 else {
+            fatalError("Invalid carbon type.")
+          }
+          if anchors.count > 0, anchors[atomID] {
+            // Skip anchor carbons.
+            continue
+          }
+          
+          var selfShouldMakeHydrogen = false
+          var selfShouldRemove = false
+          if selfCarbonType <= 1 {
+            selfShouldMakeHydrogen = true
+          } else if selfCarbonType == 2, !onlyMethyls {
+            // Remove secondary carbons if 'onlyMethyls' is false.
+            var numChangedNeighbors = 0
+            forNeighbor { neighborID in
+              let neighborType = carbonTypesArray[neighborID]
+              if anchors.count > 0, anchors[neighborID] {
+                // Skip anchor carbons.
+                return
+              }
+              if neighborType >= 0, neighborType <= 2 {
+                selfShouldMakeHydrogen = true
+                numChangedNeighbors += 1
+              }
+            }
+            if numChangedNeighbors == 2 {
+              selfShouldMakeHydrogen = false
+              selfShouldRemove = true
+            }
+          }
+          if selfShouldMakeHydrogen {
+            shouldMakeHydrogenArray[atomID] = true
+          } else if selfShouldRemove {
+            shouldRemoveArray[atomID] = true
+          }
+          if selfShouldMakeHydrogen || selfShouldRemove {
+            forNeighbor { neighborID in
+              if atoms[neighborID].element == 1 {
+                shouldRemoveArray[neighborID] = true
+              }
+            }
+          }
+        } else if trialID == 2 {
+          forNeighbor { neighborID in
+            if atoms[neighborID].element == 1 {
+              return
+            }
+            if !shouldRemoveArray[neighborID],
+               !shouldMakeHydrogenArray[neighborID] {
+              newHydrogenNeighborIndices[atomID] = neighborID
+            }
+          }
+        }
+      }
+    }
+    
+    // Replace the "should make hydrogen" with silicon and replace the "should
+    // remove" with fluorine, for visualization. If the remapping happens
+    // successfully, all the Si/F atoms will be replaced with C/H/void.
+    var modifiedAnAtom = false
+    for atomID in atoms.indices {
+      if shouldMakeHydrogenArray[atomID] {
+        atoms[atomID].element = 14
+        modifiedAnAtom = true
+      } else if shouldRemoveArray[atomID] {
+        atoms[atomID].element = 9
+        modifiedAnAtom = true
+      }
+    }
+    defer {
+      for atom in atoms {
+        guard atom.element == 1 || atom.element == 6 else {
+          fatalError("Did not remove all non-carbon atoms from the structure.")
+        }
+      }
+    }
+    
+    var pointer = 0
+    var newIndicesMap = [Int](repeating: -1, count: atoms.count)
+    guard let chBondConstants = Constants.bondLengths[[1, 6]] else {
+      fatalError("No C-H bond constants found.")
+    }
+    for atomID in atoms.indices {
+      if shouldRemoveArray[atomID] {
+        continue
+      } else if shouldMakeHydrogenArray[atomID] {
+        atoms[atomID].element = 1
+        let neighborIndex = newHydrogenNeighborIndices[atomID]
+        guard neighborIndex > -1 else {
+          fatalError("No new-hydrogen neighbor index found.")
+        }
+        
+        let neighborCenter = atoms[neighborIndex].origin
+        var selfCenter = atoms[atomID].origin
+        let delta = cross_platform_normalize(selfCenter - neighborCenter)
+        selfCenter = neighborCenter + delta * chBondConstants.average
+        atoms[atomID].origin = selfCenter
+      }
+      
+      newIndicesMap[atomID] = pointer
+      pointer += 1
+    }
+    
+    var newBonds: [SIMD2<Int32>] = []
+    for bondID in bonds.indices {
+      let bond = self.bonds[bondID]
+      var newBond: SIMD2<Int32> = .init(repeating: -1)
+      var removeBond = false
+      for bondLane in 0..<2 {
+        let atomID = Int(bond[bondLane])
+        if shouldRemoveArray[atomID] {
+          // Remove this bond from the structure.
+          removeBond = true
+        } else {
+          let newIndex = newIndicesMap[atomID]
+          newBond[bondLane] = Int32(truncatingIfNeeded: newIndex)
+        }
+      }
+      if atoms[Int(bond[0])].element == 1,
+         atoms[Int(bond[1])].element == 1 {
+        // Remove bonds between two hydrogens.
+        removeBond = true
+      }
+      if !removeBond {
+        if any(newBond .== -1) {
+          fatalError("Invalid atom in new bond.")
+        }
+        newBonds.append(newBond)
+      }
+    }
+    self.bonds = newBonds
+    
+    var newAtoms: [MRAtom] = []
+    var newAnchors: [Bool] = []
+    for atomID in atoms.indices {
+      if newIndicesMap[atomID] == -1 {
+        continue
+      } else {
+        newAtoms.append(atoms[atomID])
+        if anchors.count > 0 {
+          newAnchors.append(anchors[atomID])
+        }
+      }
+    }
+    self.atoms = newAtoms
+    self.anchors = newAnchors
+    return modifiedAnAtom
+  }
+  
   // Remove hydrogens that are too close. This is a last resort, where the inner
   // edges between (111) and (110) surfaces are like (100). It has O(n^2)
   // computational complexity.

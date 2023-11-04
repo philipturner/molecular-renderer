@@ -10,7 +10,7 @@ import HardwareCatalog
 import HDL
 import MolecularRenderer
 
-extension RippleCounter {
+extension RippleCounter1 {
   func logicRod1() -> [MRAtom] {
     // There definitely seems to be a simpler way to get a vdW potential energy
     // surface with the same effect. Use some slanted planes. This will

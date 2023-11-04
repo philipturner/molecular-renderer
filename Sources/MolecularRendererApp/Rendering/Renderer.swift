@@ -12,7 +12,6 @@ import MolecularRenderer
 import OpenMM
 import simd
 
-import HardwareCatalog
 import HDL
 
 class Renderer {
@@ -61,7 +60,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-//    self.atomProvider = ExampleMolecules.Ethylene()
-    self.atomProvider = RippleCounter().provider
+    self.atomProvider = RippleCounter2().provider
   }
 }
