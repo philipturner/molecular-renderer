@@ -167,10 +167,8 @@ struct RippleCounter2 {
     //   a probe/gate knob like in Eric's design. This seems to be much more
     //   workable. It requires much smaller rod length, and clocking mechanisms
     //   on opposite sides (which won't interfere).
-    // - Intend to create two sheets, which will end up welded together (like
-    //   seamless covalent welding).
-    // - Print the grooves on each sheet separately. The sheets should be very
-    //   thin on the side that must be connected.
+    // - Start out with a piece on the Z midpoint. Design each side of the sheet
+    //   separately.
     
     #if true
     // Run the simulation.
