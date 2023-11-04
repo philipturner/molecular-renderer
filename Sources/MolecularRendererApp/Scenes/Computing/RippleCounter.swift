@@ -15,6 +15,10 @@ import QuaternionModule
 // catalog once you want to instantiate them multiple times. Transfer the code
 // from this file to the hardware catalog.
 
+// TODO: Make another file for the second attempt, called
+// "RippleCounter2". Use this naming convention for future systems with multiple
+// design iterations.
+
 // 4-bit ripple counter using nanomechanical logic, combinational and serial
 struct RippleCounter {
   var provider: any MRAtomProvider
