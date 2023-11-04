@@ -16,6 +16,10 @@ extension RippleCounter {
     // surface with the same effect. Use some slanted planes. This will
     // unfortunately decrease the restoring force, but hopefully it will be
     // sufficient.
+    //
+    // Update: For the spring, use a clocked separation from a vdW bond on the
+    // top of the rod. This allows the same clock motion to have massive
+    // fan-out. And, retracting the clock rod will retract the other rods.
     let lattice = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { 15 * h + 7 * h2k + 15 * l }
