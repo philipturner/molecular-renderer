@@ -32,7 +32,7 @@ class Renderer {
   // Camera scripting settings.
   static let recycleSimulation: Bool = false
   static let productionRender: Bool = false
-  static let programCamera: Bool = false
+  static let programCamera: Bool = true
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -60,6 +60,30 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = RippleCounter2().provider
+    // Concatenate the results from 4 simulations into a single MRSim.
+    #if true
+    self.atomProvider = LogicalNORGate1(rod1True: true, rod2True: true).provider
+    #elseif false
+    var openmmProvider: OpenMM_AtomProvider?
+    for rod1Value in [true, false] {
+      for rod2Value in [true, false] {
+        let provider = LogicalNORGate1(
+          rod1True: rod1Value, rod2True: rod2Value).provider
+        guard let provider = provider as? OpenMM_AtomProvider else {
+          fatalError("Not an OpenMM atom provider.")
+        }
+        if openmmProvider == nil {
+          openmmProvider = provider
+        } else {
+          openmmProvider!.states += provider.states
+        }
+      }
+    }
+    self.atomProvider = openmmProvider
+    self.ioSimulation(name: "NOR")
+    #else
+    self.ioSimulation(name: "NOR")
+    exit(0)
+    #endif
   }
 }

@@ -11,24 +11,60 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
-struct RippleCounter2 {
+// Previously RippleCounter2
+struct LogicalNORGate1 {
   var provider: any MRAtomProvider
   var openmmProvider: OpenMM_AtomProvider?
   
-  init() {
+  init(rod1True: Bool, rod2True: Bool) {
     provider = ArrayAtomProvider([
       MRAtom(origin: .zero, element: 6)
     ])
     
     let boardLattice = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 25 * h + 17 * h2k + 5 * l }
+      Bounds { 25 * h + 17 * h2k + 6 * l }
       Material { .elemental(.carbon) }
       
       Volume {
         Concave {
           Origin { 12 * h + 8 * h2k + 2.2 * l }
+          
+          // Cut a plane separating the back of the board from some open void.
           Plane { l }
+          
+          // Right hand side part that prevents the input rods from escaping
+          // into the void.
+          Concave {
+            Convex {
+              Origin { 6 * h }
+              Concave {
+                Plane { -h }
+                Convex {
+                  Origin { -2 * h + 4 * h2k }
+                  Plane { k - h }
+                  Plane { (-k - h) - h }
+                }
+                Convex {
+                  Origin { -2 * h + 9 * h2k }
+                  Plane { (-k - h) - h }
+                }
+              }
+              Origin { 2 * h }
+              Plane { h }
+              Plane { -k }
+            }
+          }
+          
+          Convex {
+            Origin { 10 * k }
+            Plane { -k }
+            Origin { 2 * k }
+            Plane { k }
+            Origin { 3 * h }
+            Plane { h }
+          }
+          
           Convex {
             Concave {
               Origin { -2.5 * h }
@@ -36,12 +72,26 @@ struct RippleCounter2 {
               Origin { 5 * h }
               Plane { -h }
             }
-            Concave {
-              Origin { -2.5 * k }
-              Plane { k }
-              Origin { 5 * k }
-              Plane { -k }
+            Convex {
+              Convex {
+                Origin { 8 * h }
+                Plane { h }
+              }
+              Concave {
+                Origin { -2.5 * k }
+                Plane { k }
+                Origin { 5 * k }
+                Plane { -k }
+              }
+              Concave {
+                Origin { 7.5 * k }
+                Origin { -2.5 * k }
+                Plane { k }
+                Origin { 5 * k }
+                Plane { -k }
+              }
             }
+            
             Concave {
               Convex {
                 Origin { -4.5 * h }
@@ -52,9 +102,11 @@ struct RippleCounter2 {
               Convex {
                 Origin { -4.5 * k }
                 Plane { -k }
-                Origin { 9 * k }
+                Origin { 9.5 * k }
                 Plane { k }
               }
+              
+              // Fix up some artifacts on the joint between two lines.
               Convex {
                 Convex {
                   Origin { -3.5 * (k - h) }
@@ -76,7 +128,7 @@ struct RippleCounter2 {
       }
       
       Volume {
-        Origin { 4.7 * l }
+        Origin { 5.2 * l }
         Plane { l }
         Replace { .empty }
       }
@@ -125,25 +177,36 @@ struct RippleCounter2 {
     let rod1Atoms = rod1Lattice.entities.map(MRAtom.init)
     var rod1Diamondoid = Diamondoid(atoms: rod1Atoms)
     var rod2Diamondoid = rod1Diamondoid
+    var rod3Diamondoid = rod1Diamondoid
     
     rod1Diamondoid.translate(offset: -rod1Diamondoid.createCenterOfMass())
     rod1Diamondoid.translate(offset: 4.25 * l)
     rod1Diamondoid.translate(offset: 6 * k)
     rod1Diamondoid.translate(offset: 4 * (k + 2 * h))
+//    rod1Diamondoid.translate(offset: [0, 0, 3])
     
     rod2Diamondoid.translate(offset: -rod2Diamondoid.createCenterOfMass())
-    rod2Diamondoid.rotate(angle: Quaternion<Float>(
-      angle: 4 * .pi / 3, axis: [0, 0, 1]))
     rod2Diamondoid.translate(offset: 4.25 * l)
-    rod2Diamondoid.translate(offset: 12 * h)
-    rod2Diamondoid.translate(offset: 2 * (h + 2 * k))
+    rod2Diamondoid.translate(offset: 6 * k)
+    rod2Diamondoid.translate(offset: 4 * (k + 2 * h))
+    rod2Diamondoid.translate(offset: 5.1 * (h + 2 * k))
+//    rod2Diamondoid.translate(offset: [0, 0, 4.5])
+    
+    rod3Diamondoid.translate(offset: -rod3Diamondoid.createCenterOfMass())
+    rod3Diamondoid.rotate(angle: Quaternion<Float>(
+      angle: 4 * .pi / 3, axis: [0, 0, 1]))
+    rod3Diamondoid.translate(offset: 4.25 * l)
+    rod3Diamondoid.translate(offset: 12 * h)
+    rod3Diamondoid.translate(offset: 1 * (h + 2 * k))
+//    rod3Diamondoid.translate(offset: [0, 0, 3])
     
     var diamondoids = [
-      boardDiamondoid, rod1Diamondoid, rod2Diamondoid
+      boardDiamondoid, rod1Diamondoid, rod2Diamondoid, rod3Diamondoid
     ]
     for diamondoidID in diamondoids.indices {
       diamondoids[diamondoidID].removeLooseCarbons()
     }
+    print(ArrayAtomProvider(diamondoids).atoms.count)
     provider = ArrayAtomProvider(diamondoids)
     
     // Changes needed:
@@ -170,18 +233,45 @@ struct RippleCounter2 {
     // - Start out with a piece on the Z midpoint. Design each side of the sheet
     //   separately.
     
-    #if true
+    #if false
     // Run the simulation.
     runSimulation(diamondoids: &diamondoids, minimize: true, time: 1)
     
-    let rod1Direction = cross_platform_normalize(k + 2 * h)
-    let rod2Direction = cross_platform_normalize(h + 2 * k)
-    diamondoids[1].externalForce = 500 * rod1Direction
-    runSimulation(diamondoids: &diamondoids, time: 2)
+    // Sequence:
+    // 1 1
+    // 1 0
+    // 0 1
+    // 0 0 -> output = 1
+    func reset() {
+      for i in 1...3 {
+        diamondoids[i].externalForce = nil
+      }
+    }
     
-    diamondoids[1].externalForce = nil
-    diamondoids[2].externalForce = 500 * rod2Direction
-    runSimulation(diamondoids: &diamondoids, time: 10)
+    let rod1Direction = cross_platform_normalize(k + 2 * h)
+    let rod2Direction = cross_platform_normalize(k + 2 * h)
+    let rod3Direction = cross_platform_normalize(h + 2 * k)
+    
+    reset()
+    if rod1True {
+      diamondoids[1].externalForce = 550 * rod1Direction
+    } else {
+      diamondoids[1].externalForce = 110 * rod1Direction
+    }
+    if rod2True {
+      diamondoids[2].externalForce = 500 * rod2Direction
+    } else {
+      diamondoids[2].externalForce = 100 * rod2Direction
+    }
+    runSimulation(diamondoids: &diamondoids, time: 8)
+    
+    reset()
+    diamondoids[3].externalForce = 500 * rod3Direction
+    if !rod1True && !rod2True {
+      runSimulation(diamondoids: &diamondoids, time: 25)
+    } else {
+      runSimulation(diamondoids: &diamondoids, time: 12)
+    }
     #endif
   }
   

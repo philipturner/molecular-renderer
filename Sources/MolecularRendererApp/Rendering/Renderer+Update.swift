@@ -71,7 +71,7 @@ extension Renderer {
         }
         return Int(framesPerFrame)
       } else {
-        return 1
+        return 2
       }
     }
     let framesPerFrame = getFramesPerFrame()
@@ -119,9 +119,17 @@ extension Renderer {
       styleProvider: styleProvider,
       useMotionVectors: animationTime.absolute.frames > 0)
     
+    var _fov = fov
     var _position = position
     var _rotation = rotation
     if Self.programCamera {
+      _fov = 90
+      _position = [3, -4.5, 5]
+      _rotation = _rotation * simd_float3x3(
+        SIMD3(1, 0, 0),
+        SIMD3(0, cos(60 * .pi / 180), -sin(60 * .pi / 180)),
+        SIMD3(0, sin(60 * .pi / 180), cos(60 * .pi / 180))).transpose
+      
       //      let period: Float = .greatestFiniteMagnitude
       //      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
       //      let radius: Float = 2.5
@@ -145,27 +153,23 @@ extension Renderer {
 //      _position = rotationCenter
 //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
 //      _rotation = _rotation * simd_float3x3(
-//        SIMD3(1, 0, 0),
-//        SIMD3(0, cos(-20 * .pi / 180), -sin(-20 * .pi / 180)),
-//        SIMD3(0, sin(-20 * .pi / 180), cos(-20 * .pi / 180))).transpose
-//      _rotation = _rotation * simd_float3x3(
 //        SIMD3(0, 1, 0),
 //        SIMD3(-1, 0, 0),
 //        SIMD3(0, 0, 1)).transpose
       
-      #if false
-      _position = [-8, 0, 8] + [3, 0, 3]
-      _rotation = PlayerState.makeRotation(
-        azimuth: Double(-45 * Double.pi / 180))
-      #else
-      let zenithAngle = 40 * Float.pi / 180
-      _position = [3, 0, 3] + [4, 4, 2]
-      _rotation = PlayerState.makeRotation(
-        azimuth: Double(60 * Double.pi / 180)) * simd_float3x3(
-          SIMD3(1, 0, 0),
-          SIMD3(0, cos(zenithAngle), sin(zenithAngle)),
-          SIMD3(0, -sin(zenithAngle), cos(zenithAngle))).transpose
-      #endif
+//      #if false
+//      _position = [-8, 0, 8] + [3, 0, 3]
+//      _rotation = PlayerState.makeRotation(
+//        azimuth: Double(-45 * Double.pi / 180))
+//      #else
+//      let zenithAngle = 40 * Float.pi / 180
+//      _position = [3, 0, 3] + [4, 4, 2]
+//      _rotation = PlayerState.makeRotation(
+//        azimuth: Double(60 * Double.pi / 180)) * simd_float3x3(
+//          SIMD3(1, 0, 0),
+//          SIMD3(0, cos(zenithAngle), sin(zenithAngle)),
+//          SIMD3(0, -sin(zenithAngle), cos(zenithAngle))).transpose
+//      #endif
     }
     
     var lights: [MRLight] = []
@@ -176,7 +180,7 @@ extension Renderer {
     let quality = MRQuality(
       minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
-      fovDegrees: fov,
+      fovDegrees: _fov,
       position: _position,
       rotation: _rotation,
       lights: lights,

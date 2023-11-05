@@ -341,6 +341,7 @@
 		98F852CA2AF5B34700986E61 /* RippleCounter1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleCounter1.swift; sourceTree = "<group>"; };
 		98F852CE2AF5D24C00986E61 /* RippleCounter1+File2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RippleCounter1+File2.swift"; sourceTree = "<group>"; };
 		98F852D02AF66B7C00986E61 /* RippleCounter2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RippleCounter2.swift; sourceTree = "<group>"; };
+		98F852D32AF7269700986E61 /* NorGate_Image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NorGate_Image1.png; sourceTree = "<group>"; };
 		98FB906D2A5A8BD300685E5C /* CasingProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasingProvider.swift; sourceTree = "<group>"; };
 		98FB906F2A5B19E100685E5C /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
 		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
@@ -599,6 +600,7 @@
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
 			isa = PBXGroup;
 			children = (
+				98F852D22AF7268800986E61 /* Computation */,
 				9816EFA32AC4B9620042073F /* Ring */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
 				98D975BD2AC222950052EE6C /* OctahedralSpring */,
@@ -1005,6 +1007,14 @@
 				98F852D02AF66B7C00986E61 /* RippleCounter2.swift */,
 			);
 			path = Computing;
+			sourceTree = "<group>";
+		};
+		98F852D22AF7268800986E61 /* Computation */ = {
+			isa = PBXGroup;
+			children = (
+				98F852D32AF7269700986E61 /* NorGate_Image1.png */,
+			);
+			path = Computation;
 			sourceTree = "<group>";
 		};
 		98FB907D2A5CF8FD00685E5C /* Ray Tracing */ = {
