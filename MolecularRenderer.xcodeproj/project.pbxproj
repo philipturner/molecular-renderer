@@ -246,7 +246,6 @@
 		98846F792AC39B450049C223 /* Flywheel1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel1.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
-		988B56C72AE9AAFE00B36DE9 /* Simulators.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Simulators.md; sourceTree = "<group>"; };
 		988B56C82AEA15FF00B36DE9 /* CubicMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicMask.swift; sourceTree = "<group>"; };
 		988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalMask.swift; sourceTree = "<group>"; };
 		988B56CB2AEB538300B36DE9 /* _Old_LatticeStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_LatticeStack.swift; sourceTree = "<group>"; };
@@ -621,7 +620,6 @@
 				98610F802AA29EBE006FAF95 /* HDL.md */,
 				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
 				98F83E1C2AE496C40037E31A /* DFT.md */,
-				988B56C72AE9AAFE00B36DE9 /* Simulators.md */,
 			);
 			path = Documentation;
 			sourceTree = "<group>";
