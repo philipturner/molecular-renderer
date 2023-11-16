@@ -122,6 +122,8 @@ Material { MaterialType }
 
 Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
 
+<!--
+
 ```swift
 Reconstruct { SIMD3<Float> }
 ```
@@ -129,6 +131,8 @@ Reconstruct { SIMD3<Float> }
 Within the selected volume, reconstruct any surfaces that need reconstruction. This usually affects flat, open surfaces and avoids placing bonds in corners (which occurs at a later step of compilation). Bonds more parallel to the specified vector are prioritized, and the parity of alternating patterns is defined by `Origin`. This must be called inside `Volume`.
 
 An exemplar surface that may be reconstructed is diamond (100).
+
+-->
 
 ### Objects
 

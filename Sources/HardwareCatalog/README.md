@@ -7,6 +7,8 @@ Table of Contents
 
 ## Overview and Roadmap
 
+> TODO: Change the requirements and significantly relax them. Mechanical engineering cannot reuse parts like functional blocks. Rather, general ideas are reused if one carefully chooses a good technology to explore. Remove the need to make catalogued projects "parametric". Transform it into an environment for pulling up static structures to render.
+
 Overview:
 - Each file contains some carbon-center stage geometry, which relies on "HDL".
   - Precursor: finish implementing the `Lattice` type, so it conforms to the documented API. Add support for hexagonal diamond.
