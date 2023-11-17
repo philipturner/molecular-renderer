@@ -71,12 +71,14 @@ extension Renderer {
         }
         return Int(framesPerFrame)
       } else {
-        return 2
+        // DO NOT return 2 here! That is for blur fusion!
+        return 1
       }
     }
     let framesPerFrame = getFramesPerFrame()
     
     let numFrames = simulation.frameCount / framesPerFrame
+
     for frameID in 0..<numFrames {
       self.renderSemaphore.wait()
       let timeDouble = Double(frameID) / 100
@@ -124,11 +126,14 @@ extension Renderer {
     var _rotation = rotation
     if Self.programCamera {
       _fov = 90
-      _position = [3, -4.5, 5]
-      _rotation = _rotation * simd_float3x3(
-        SIMD3(1, 0, 0),
-        SIMD3(0, cos(60 * .pi / 180), -sin(60 * .pi / 180)),
-        SIMD3(0, sin(60 * .pi / 180), cos(60 * .pi / 180))).transpose
+      _position = [0, 0, 1]
+      _rotation = matrix_identity_float3x3
+//      _fov = 90
+//      _position = [3, -4.5, 5]
+//      _rotation = _rotation * simd_float3x3(
+//        SIMD3(1, 0, 0),
+//        SIMD3(0, cos(60 * .pi / 180), -sin(60 * .pi / 180)),
+//        SIMD3(0, sin(60 * .pi / 180), cos(60 * .pi / 180))).transpose
       
       //      let period: Float = .greatestFiniteMagnitude
       //      let rotationCenter: SIMD3<Float> =  [0, 0, 0]

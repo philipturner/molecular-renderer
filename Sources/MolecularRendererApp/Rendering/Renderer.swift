@@ -30,8 +30,8 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = false
-  static let productionRender: Bool = false
+  static let recycleSimulation: Bool = true
+  static let productionRender: Bool = true
   static let programCamera: Bool = true
   
   init(coordinator: Coordinator) {
@@ -42,8 +42,8 @@ class Renderer {
     descriptor.url = Bundle.main.url(
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
     if Self.productionRender {
-      descriptor.width = 720
-      descriptor.height = 640
+      descriptor.width = 360 // 720
+      descriptor.height = 320 // 640
       descriptor.offline = true
     } else {
       descriptor.width = Int(ContentView.size)
@@ -60,30 +60,19 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    // Concatenate the results from 4 simulations into a single MRSim.
-    #if true
-    self.atomProvider = LogicalNORGate1(rod1True: true, rod2True: true).provider
-    #elseif false
-    var openmmProvider: OpenMM_AtomProvider?
-    for rod1Value in [true, false] {
-      for rod2Value in [true, false] {
-        let provider = LogicalNORGate1(
-          rod1True: rod1Value, rod2True: rod2Value).provider
-        guard let provider = provider as? OpenMM_AtomProvider else {
-          fatalError("Not an OpenMM atom provider.")
-        }
-        if openmmProvider == nil {
-          openmmProvider = provider
-        } else {
-          openmmProvider!.states += provider.states
-        }
-      }
-    }
-    self.atomProvider = openmmProvider
-    self.ioSimulation(name: "NOR")
+    let openingWidth: Float = 10 // make this even
+    let wallThicknessY: Float = 6 // this can be odd, ideally 1 - 3
+    let wallThicknessX: Float = 5 // this can be odd, ideally 1 - 3
+    let name: String = "\(Int(openingWidth))-\(Int(wallThicknessY))-\(Int(wallThicknessX))"
+    
+    #if false
+    self.atomProvider = HousingVibrations(
+      openingWidth: openingWidth,
+      wallThicknessY: wallThicknessY,
+      wallThicknessX: wallThicknessX).provider
+    self.ioSimulation(name: name)
     #else
-    self.ioSimulation(name: "NOR")
-    exit(0)
+    self.ioSimulation(name: name)
     #endif
   }
 }

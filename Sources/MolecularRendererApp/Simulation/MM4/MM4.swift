@@ -57,6 +57,8 @@ class MM4 {
   var requestEnergy = false
   var profiling = false
   
+  var temperature: Double = 298
+  
   // Data for recovering atom positions after energy minimization.
   var rigidBodies: [Range<Int>]
   var repartitionedMasses: [Double]
@@ -70,14 +72,19 @@ class MM4 {
   
   convenience init(
     diamondoid: Diamondoid,
-    fsPerFrame: Double
+    fsPerFrame: Double,
+    temperature: Double? = nil
   ) {
-    self.init(diamondoids: [diamondoid], fsPerFrame: fsPerFrame)
+    self.init(
+      diamondoids: [diamondoid],
+      fsPerFrame: fsPerFrame,
+      temperature: temperature)
   }
   
   convenience init(
     diamondoids: [Diamondoid],
-    fsPerFrame: Double
+    fsPerFrame: Double,
+    temperature: Double? = nil
   ) {
     var atoms: [MRAtom] = []
     var bonds: [SIMD2<Int32>] = []
@@ -104,7 +111,7 @@ class MM4 {
     }
     self.init(
       atoms: atoms, bonds: bonds, velocities: velocities, forces: forces,
-      anchors: anchors, fsPerFrame: fsPerFrame)
+      anchors: anchors, fsPerFrame: fsPerFrame, temperature: temperature)
   }
   
   init(
@@ -114,7 +121,8 @@ class MM4 {
     forces inputForces: [SIMD3<Float>]? = nil,
     anchors inputAnchors: [Bool]? = nil,
     fsPerFrame: Double,
-    minimizedAtoms: [MRAtom]? = nil
+    minimizedAtoms: [MRAtom]? = nil,
+    temperature: Double? = nil
   ) {
     do {
       let fsInt = Int(exactly: fsPerFrame)!
@@ -1157,6 +1165,7 @@ class MM4 {
       stepsPerFrame: Int(exactly: fsPerFrame / timeStepInFs)!,
       elements: atoms.map(\.element))
     
+    self.temperature = temperature ?? 298
     self.thermalize(positions: positions, velocities: velocities)
   }
   
@@ -1165,7 +1174,7 @@ class MM4 {
     positions: OpenMM_Vec3Array? = nil,
     velocities: [SIMD3<Float>]
   ) {
-    context.setVelocitiesToTemperature(298)
+    context.setVelocitiesToTemperature(temperature)
     
     let state = context.state(types: [.positions, .velocities])
     let statePositions = positions ?? state.positions
@@ -1175,7 +1184,7 @@ class MM4 {
       var totalMomentum: SIMD3<Double> = .zero
       var centerOfMass: SIMD3<Double> = .zero
       
-      // Conserve momentum after the velocities are randomly initialized.
+      // Conserve mtoomentum after the velocities are randomly initialized.
       for atomID in rigidBody {
         let mass = repartitionedMasses[atomID]
         let position = statePositions[atomID]

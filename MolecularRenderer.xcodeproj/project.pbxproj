@@ -31,6 +31,7 @@
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
+		9821824C2B06AC87001C356F /* HousingVibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9821824B2B06AC87001C356F /* HousingVibration.swift */; };
 		98247CBB2AF0656100958BC5 /* Chapter12_Figure1_file2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98247CBA2AF0656100958BC5 /* Chapter12_Figure1_file2.swift */; };
 		98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C4F2A6B4FD100A4D7BB /* Nanosystems.swift */; };
 		98325C522A6B4FDE00A4D7BB /* Chapter9.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C512A6B4FDE00A4D7BB /* Chapter9.swift */; };
@@ -192,6 +193,7 @@
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
 		981FCFF129ECAF24009904A2 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		981FCFF329EF52E9009904A2 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		9821824B2B06AC87001C356F /* HousingVibration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HousingVibration.swift; sourceTree = "<group>"; };
 		98247CBA2AF0656100958BC5 /* Chapter12_Figure1_file2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter12_Figure1_file2.swift; sourceTree = "<group>"; };
 		98325C4F2A6B4FD100A4D7BB /* Nanosystems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems.swift; sourceTree = "<group>"; };
 		98325C512A6B4FDE00A4D7BB /* Chapter9.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter9.swift; sourceTree = "<group>"; };
@@ -505,6 +507,23 @@
 				98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */,
 			);
 			path = "User Interface";
+			sourceTree = "<group>";
+		};
+		982182492B06AC62001C356F /* Experiments */ = {
+			isa = PBXGroup;
+			children = (
+				98F852C92AF5B2CC00986E61 /* NORGate */,
+				9821824A2B06AC68001C356F /* HousingVibration */,
+			);
+			path = Experiments;
+			sourceTree = "<group>";
+		};
+		9821824A2B06AC68001C356F /* HousingVibration */ = {
+			isa = PBXGroup;
+			children = (
+				9821824B2B06AC87001C356F /* HousingVibration.swift */,
+			);
+			path = HousingVibration;
 			sourceTree = "<group>";
 		};
 		98298F5829F353D30008E248 /* Rendering */ = {
@@ -844,8 +863,8 @@
 		98F2F5CD2A5F2DD0006216F4 /* Scenes */ = {
 			isa = PBXGroup;
 			children = (
+				982182492B06AC62001C356F /* Experiments */,
 				980E70162A5E51B60051797F /* APM Bootstrapping */,
-				98F852C92AF5B2CC00986E61 /* Computing */,
 				98F2F5D32A5F2EFE006216F4 /* Examples */,
 				98325C4D2A6B4F9200A4D7BB /* Nanosystems */,
 				980E70152A5E51AC0051797F /* Procedural Geometry */,
@@ -997,14 +1016,14 @@
 			path = definitions;
 			sourceTree = "<group>";
 		};
-		98F852C92AF5B2CC00986E61 /* Computing */ = {
+		98F852C92AF5B2CC00986E61 /* NORGate */ = {
 			isa = PBXGroup;
 			children = (
 				98F852CA2AF5B34700986E61 /* RippleCounter1.swift */,
 				98F852CE2AF5D24C00986E61 /* RippleCounter1+File2.swift */,
 				98F852D02AF66B7C00986E61 /* RippleCounter2.swift */,
 			);
-			path = Computing;
+			path = NORGate;
 			sourceTree = "<group>";
 		};
 		98F852D22AF7268800986E61 /* Computation */ = {
@@ -1181,6 +1200,7 @@
 				98325C5C2A6C6C9A00A4D7BB /* StructureUtilities.swift in Sources */,
 				98FB90812A5D115200685E5C /* APMBootstrapper.swift in Sources */,
 				98325C542A6B501700A4D7BB /* Chapter9_Figure2.swift in Sources */,
+				9821824C2B06AC87001C356F /* HousingVibration.swift in Sources */,
 				986348F82A73310F0053E714 /* Amplifier.swift in Sources */,
 				9816EFAA2AC4BBA60042073F /* Flywheel2.swift in Sources */,
 				98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */,

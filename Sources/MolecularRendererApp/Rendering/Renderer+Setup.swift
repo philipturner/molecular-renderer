@@ -26,10 +26,10 @@ extension Renderer {
     exit(0)
   }
   
-  func saveGIF() {
+  func saveGIF(name: String? = nil) {
     let numFrames = gifSerializer.gif.frames.count
     print("ETA: \(numFrames / 21 / 2) - \(numFrames / 12 / 2) seconds.")
-    gifSerializer.save(fileName: "SavedSimulation")
+    gifSerializer.save(fileName: name ?? "SavedSimulation")
     print("Saved the production render.")
     exit(0)
   }
@@ -42,7 +42,7 @@ extension Renderer {
       
       if Self.productionRender {
         renderSimulation(simulation)
-        saveGIF()
+        saveGIF(name: name)
       }
     } else {
       //    self.atomProvider = OctaneReference().provider

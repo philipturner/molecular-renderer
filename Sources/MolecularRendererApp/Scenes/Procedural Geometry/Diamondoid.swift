@@ -1216,13 +1216,13 @@ struct Diamondoid {
     }
   }
   
-  mutating func minimize() {
+  mutating func minimize(temperature: Double = 298) {
     var diamondoid = self
     diamondoid.linearVelocity = nil
     diamondoid.angularVelocity = nil
     
     let simulator = _Old_MM4(
-      diamondoid: diamondoid, fsPerFrame: 100)
+      diamondoid: diamondoid, fsPerFrame: 100, temperature: temperature)
     let emptyVelocities: [SIMD3<Float>] = Array(
       repeating: .zero, count: diamondoid.atoms.count)
     
