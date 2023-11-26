@@ -25,3 +25,9 @@ Goal: Combine a few recent advances in quantum chemistry. Do this with maximum p
 ## Roadmap
 
 This would start in 2024 at the earliest. The priority is getting supermassive systems on the molecular mechanics side, using the same superclusters described in this proposal.
+
+## Recent Development
+
+I found a pathway that makes the proposed ideas much more feasible. I can modify the [DFT-FE](https://github.com/dftfeDevelopers/dftfe) codebase, adding Metal GPU support and the DeepMind 2021 XC functional. The plan is to analyze this codebase over the first few months of 2024, similarly to the actions taken with OpenMM in early 2023.
+
+Progress on the Metal port is recorded here: https://gist.github.com/philipturner/4caf54432ef67d486bb55746e82f26a6
