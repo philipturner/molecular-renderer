@@ -80,17 +80,17 @@ struct HexagonalMask: LatticeMask {
         searchZ &+= SIMD4(truncatingIfNeeded: offsetZ)
         let addresses = searchZ &* Int32(sdfDimensionY) &+ searchY
         
-        var gathered: SIMD4<Float> = .zero
-        for lane in 0..<4 {
-          gathered[lane] = sdfScalar[Int(addresses[lane])]
-        }
-        let gatheredMin = gathered.min()
-        let gatheredMax = gathered.max()
-        let gatheredNaN =
-        gathered[0].isNaN ||
-        gathered[1].isNaN ||
-        gathered[2].isNaN ||
-        gathered[3].isNaN
+//        var gathered: SIMD4<Float> = .zero
+//        for lane in 0..<4 {
+//          gathered[lane] = sdfScalar[Int(addresses[lane])]
+//        }
+//        let gatheredMin = gathered.min()
+//        let gatheredMax = gathered.max()
+//        let gatheredNaN =
+//        gathered[0].isNaN ||
+//        gathered[1].isNaN ||
+//        gathered[2].isNaN ||
+//        gathered[3].isNaN
         
         let parityOffset: Float = (y & 1 == 0) ? 1.5 : 0.0
         let loopOffset: Int32 = (y & 1 == 0) ? -1 : 0
