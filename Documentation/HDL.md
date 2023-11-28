@@ -7,17 +7,118 @@
 Domain-specific language for designing nanomachines.
 
 Table of Contents
-- [Syntax](#syntax)
-    - [Lattice Editing](#lattice-editing)
+- [Overview](#overview)
     - [Objects](#objects)
     - [Scopes](#scopes)
-    - [Transform Editing](#transform-editing)
-    - [Volume Editing](#volume-editing)
+- [Operations](#operations)
+    - [Lattice](#lattice)
+    - [Topology](#topology)
+    - [Transform](#transform)
+    - [Volume](#volume)
 - [Tips](#tips)
 
-## Syntax
+## Overview
 
-### Lattice Editing
+<!-- This could be room for a general explainer. -->
+
+### Objects
+
+```swift
+struct Entity {
+  var position: SIMD3<Float>
+  var type: EntityType
+}
+
+enum EntityType {
+  case atom(Element)
+  case bond(Bond)
+  case empty
+}
+
+enum Element { ... }
+
+enum Bond {
+  case sigma
+  case pi
+}
+```
+
+A wrapper type encapsulating atoms and bond connectors. The `Entity` stores position (12 bytes) and entity type (4 bytes). `EntityType` can extract information about the type, such as atomic number or bond order. Zero for the entity type indicates `.empty`. This storage format aligns the entity to 128-bit vector words, improving compilation speed.
+
+Internally, empty entities are often used to pad vector lengths to multiples of 8. This enables greater CPU vector parallelism without the overhead of bounds checking. Replacing atoms with `.empty` is also a straightforward way to represent atom deletion.
+
+The compiler supports all elements from the [MM4 force field](https://github.com/philipturner/MM4) (H, C, N, O, F, Si, P, S, and Ge).
+
+```swift
+Lattice<Basis> { h, k, l in
+  Material { ... }
+  Bounds { ... }
+}
+Lattice<Basis>.entities
+```
+
+Object encapsulating crystal plane algebra.
+
+Creates a lattice of crystal unit cells to edit. Coordinates are represented in numbers of crystal unit cells. The coordinate system may be mapped to a non-orthonormal coordinate system internally. Keep this in mind when processing `SIMD3<Float>` vectors. For example, avoid normalizing any vectors.
+
+```swift
+Solid { x, y, z in
+  Transform { ... }
+}
+Solid.entities
+```
+
+Object encapsulating constructive solid geometry.
+
+Creates a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
+
+```
+Topology { [Entity] }
+Topology { Lattice<Basis>.entities }
+Topology { Solid.entities }
+```
+
+Object encapsulating bond topology generation.
+
+Creates a list of atoms in Morton order, with sigma bonds connecting them. Free radicals are not yet passivated. Geometric overlap between potential passivators is noted.
+
+### Scopes
+
+```swift
+Concave { }
+```
+
+Scope where every plane's "one" volume merges through AND in [disjunctive normal form](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
+
+```swift
+Convex { }
+```
+
+Scope where every plane's "one" volume merges through OR in [disjunctive normal form](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
+
+```swift
+Transform {
+  // Perform any number of transforms (optional).
+  // Call 'Copy' to add entities.
+  // After an entity is placed, future transforms do not modify it.
+}
+```
+
+Starts a section that instantiates a previously designed object, then rotates or translates it. This must be called inside a `Solid`.
+
+This may be called inside another `Transform`, with similar semantics to the other scopes. Exiting an `Transform` does not erase the operations done inside it, as `Volume` does. The only exception is when reaching the outer scope (`Solid`), which cannot store data about transforms.
+
+> TODO: Store consecutive affine transforms in 3x4/4x4 row-major matrices (column-major during matrix generation). Minimize $O(n^2)$ scaling with the number of objects copied.
+
+```swift
+Volume { }
+```
+
+Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This must be called inside `Lattice` and may be called inside another `Volume`.
+
+## Operations
+
+### Lattice
 
 The following keywords may be called inside a `Lattice`.
 
@@ -96,70 +197,51 @@ Material { MaterialType }
 
 Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope.
 
-### Objects
+### Topology
 
-```swift
-Entity
-EntityType
+The following members are part of `Topology`.
+
+```
+Topology.atomicNumbers: [UInt8]
+Topology.bonds: [UInt32]
+Topology.positions: [SIMD3<Float>]
 ```
 
-A wrapper type encapsulating atoms and bond connectors. The `Entity` includes position (12 bytes) and entity type (4 bytes). `EntityType` can extract information about the type, such as atomic number or bond order. Zero for the entity type indicates `.empty`.
+The current state of the compiled topology. These properties can be entered directly into `MM4ParametersDescriptor` or `MM4RigidBodyDescriptor`. If an entity exists where passivators collide, its atomic number is `0`.
 
-Internally, empty entities are often used to pad vector lengths to multiples of 8. This enables greater CPU vector parallelism without the overhead of bounds checking. Replacing atoms with empty entities also deletes existing atoms.
-
-The compiler supports all atom types in the [MM4 simulator](https://github.com/philipturner/MM4) (H, C, N, O, F, Si, P, S, and Ge).
-
-```swift
-Lattice<Basis> { h, k, l in
-  Material { ... }
-  Bounds { ... }
-}
+```
+Topology.clean()
 ```
 
-Create a lattice of crystal unit cells to edit. Coordinates are represented in numbers of crystal unit cells. The coordinate system may be mapped to a non-orthonormal coordinate system internally. Keep this in mind when processing `SIMD3<Float>` vectors. For example, avoid normalizing any vectors.
+A standard sequence of filters for cleaning up geometry.
+1. Colliding passivators are replaced with sigma bonds, if both atoms have a single collision (sharp corners).
+2. Primary carbons (methyl and trifluoromethyl) groups are removed.
+3. All free radicals are passivated with hydrogen, except those with multiple colliding passivators.
 
-```swift
-Solid { x, y, z in
-  Transform { ... }
-}
+```
+Topology.filter(where: 
+  (atom: inout Entity, neighbors: inout [Entity]) -> Void
+)
+Topology.filter { atom, neighbors in ... }
 ```
 
-Create a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
+Modify the topology using a custom filter. Unlike `Swift.Sequence.filter`, this method mutates the caller in-place. Three classes of filters are permitted:
+- `add bonds` - change the entity type of empty neighbors to `.bond(.sigma)`.
+- `remove atom` - change the entity type of `atom` to `.empty`.
+- `passivate` - add additional elements to the neighbors, keeping the previous ones intact.
 
-### Scopes
+After passivation, the neighbor list must equal the valence count. The valence shell includes only sp<sup>3</sup>-hybridized orbitals. In addition, added passivators must all have the same element. The following atom and passivator combinations are permitted:
 
-```swift
-Transform {
-  // Perform any number of transforms (optional).
-  // Call 'Copy' to add entities, or `Erase` to remove entities.
-}
-```
+| Atom      | Passivator | Valence |
+| --------- | ---------- | ------- |
+| carbon    | hydrogen   | 4       |
+| carbon    | fluorine   | 4       |
+| silicon   | hydrogen   | 4       |
+| germanium | hydrogen   | 4       |
 
-Starts a section that instantiates a previously designed object, then rotates or translates it. This must be called inside a `Solid`.
+The atom's position can be adjusted during the filter. New atoms are copied into a separate list while the closure is called. The adjustment will not affect the value of existing neighbors during the function call. This functionality could be used to adjust carbon atom positions when reconstructing diamond (100) surfaces.
 
-This may be called inside another `Transform`, with similar semantics to the other scopes. Exiting an `Transform` does not erase the operations done inside it, as `Volume` does. The only exception is when reaching the outer scope (`Solid`), which cannot store data about transforms.
-
-> TODO: Store consecutive affine transforms in 3x4 row-major matrices (column-major during matrix generation). Avoid a recomputation method that scales $O(n^2)$ with the number of objects copied.
-
-```swift
-Concave { }
-```
-
-Scope where every plane's "one" volume merges through AND in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
-
-```swift
-Convex { }
-```
-
-Scope where every plane's "one" volume merges through OR in [DNF](https://en.wikipedia.org/wiki/Disjunctive_normal_form). Upon exiting this scope, the added planes remain. This must be called inside a `Volume`.
-
-```swift
-Volume { }
-```
-
-Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This must be called inside `Lattice` and may be called inside another `Volume`.
-
-### Transform Editing
+### Transform
 
 The following keywords may be called inside a `Transform`.
 
@@ -170,23 +252,18 @@ Origin { SIMD3<Float> }
 Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
 
 ```swift
-Copy { Lattice<Basis> }
 Copy { [Entity] }
+Copy { Lattice<Basis>.entities }
+Copy { Solid.entities }
 ```
 
 Instantiates a previously designed object. The array initializer accepts raw atom positions in nanometers. This may not be called in the top-level scope. One may call `Copy` multiple times in the same `Transform`. Each call will drop a new object, which is merged with the existing geometry using CSG.
 
 When two entities in the new structure are extremely close, one will be overwritten. The entity that survives is decided by the following priority list:
-1. Highest valence.
-2. Highest bond order.
-3. Otherwise, the original atom wins. This rule prevents the atoms from drifting when several small modifications are performed.
-
-```swift
-Erase { Lattice<Basis> }
-Erase { [Entity] }
-```
-
-Destroy entity centers that coincide with the entered entities.
+1. Empty entities predominate, to enable geometry deletion.
+2. Highest valence.
+3. Highest bond order (`.pi` > `.sigma`).
+4. Otherwise, the original atom wins. This rule prevents the atoms from drifting when their position is recomputed several times.
 
 ```swift
 Reflect { SIMD3<Float> }
@@ -220,7 +297,7 @@ Before warping, one often needs to translate the object, so the desired warping 
 
 A common use case for `Warp` is generating ring structures. After warping, one may need to `Translate` the ring back, by the negative of the warp direction. This combination of operations sets the center of rotation to the current origin.
 
-### Volume Editing
+### Volume
 
 The following keywords may be called inside a `Volume`.
 

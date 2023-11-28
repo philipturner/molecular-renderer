@@ -9,7 +9,7 @@ import Foundation
 
 public enum EntityType: RawRepresentable {
   case atom(Element)
-  case bond(Float)
+  case bond(Bond)
   case empty
   
   @inlinable
@@ -21,7 +21,7 @@ public enum EntityType: RawRepresentable {
       }
       self = .atom(element)
     } else if rawValue < 0 {
-      self = .bond(-rawValue)
+      self = .bond(Bond(rawValue: -rawValue))
     } else {
       // NaN or zero
       self = .empty
@@ -48,7 +48,7 @@ public enum EntityType: RawRepresentable {
     case .atom(let atomicNumber):
       return Float(atomicNumber.rawValue)
     case .bond(let bondOrder):
-      return Float(-bondOrder)
+      return Float(-bondOrder.rawValue)
     case .empty:
       return 0
     }
@@ -61,8 +61,9 @@ public enum EntityType: RawRepresentable {
     case .atom(let atomicNumber):
       return Int8(clamping: atomicNumber.rawValue)
     case .bond(let bondOrder):
-      if let integerValue = Int8(exactly: bondOrder),
-         bondOrder >= 1 && bondOrder <= 3 {
+      let rawValue = bondOrder.rawValue
+      if let integerValue = Int8(exactly: rawValue),
+         rawValue >= 1 && rawValue <= 3 {
         return integerValue
       } else {
         // No fractional bond orders are recognized yet.

@@ -6,30 +6,27 @@
 //
 
 public enum Bond: RawRepresentable {
-  case single
-  case double
-  case triple
-  case fractional(Float)
+  /// A bond with order 1.
+  case sigma
+  
+  /// A bond with variable order, determined using quantum mechanics.
+  case pi
   
   @inlinable @inline(__always)
   public init(rawValue: Float) {
     switch rawValue {
-    case 1: self = .single
-    case 2: self = .double
-    case 3: self = .triple
+    case 1: self = .sigma
+    case 2: self = .pi
     default:
-      self = .fractional(rawValue)
+      fatalError("Invalid raw value for bond: \(rawValue)")
     }
   }
   
   @inlinable @inline(__always)
   public var rawValue: Float {
     switch self {
-    case .single: return 1
-    case .double: return 2
-    case .triple: return 3
-    case .fractional(let bondOrder):
-      return bondOrder
+    case .sigma: return 1
+    case .pi: return 2
     }
   }
 }

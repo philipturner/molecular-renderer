@@ -170,7 +170,6 @@
 		98056D512AEC57F2000F6A8F /* NewSparseGrid.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = NewSparseGrid.metal; sourceTree = "<group>"; };
 		98056D522AEC57F2000F6A8F /* NewRayTracing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = NewRayTracing.metal; sourceTree = "<group>"; };
 		980791282B15ABF300DC977C /* Warp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Warp.swift; sourceTree = "<group>"; };
-		980791292B15AD0300DC977C /* Erase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Erase.swift; sourceTree = "<group>"; };
 		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
 		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
 		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
@@ -723,7 +722,6 @@
 			isa = PBXGroup;
 			children = (
 				98D975AF2AC0C5CC0052EE6C /* Copy.swift */,
-				980791292B15AD0300DC977C /* Erase.swift */,
 				98B6BE062AEED4BC00F8655C /* Reflect.swift */,
 				98B6BE072AEED4D100F8655C /* Rotate.swift */,
 				98B6BE082AEED4D900F8655C /* Translate.swift */,
