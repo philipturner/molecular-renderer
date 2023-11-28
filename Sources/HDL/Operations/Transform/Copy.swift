@@ -12,11 +12,6 @@ public struct Copy {
   }
   
   @discardableResult
-  public init(_ closure: () -> Solid) {
-    fatalError("Not implemented.")
-  }
-  
-  @discardableResult
   public init(_ closure: () -> [Entity]) {
     fatalError("Not implemented.")
   }

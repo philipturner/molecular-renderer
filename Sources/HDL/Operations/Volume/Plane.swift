@@ -20,16 +20,16 @@ protocol PlanePair {
   /// - Parameter closure: The vector to reflect the first plane's normal
   ///   across, when generating the second plane.
   @discardableResult
-  init(_ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>)
+  init(_ normal: SIMD3<Float>, _ closure: () -> SIMD3<Float>)
 }
 
 extension PlanePair {
   /// Reflection is a linear transformation, so this function works correctly
   /// in a non-orthonormal basis like `Hexagonal`.
   fileprivate static func applyDirections(
-    _ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>
+    _ normal: SIMD3<Float>, _ closure: () -> SIMD3<Float>
   ) {
-    Plane { original }
+    Plane { normal }
     
     func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
       let length = (x * x).sum().squareRoot()
@@ -43,24 +43,24 @@ extension PlanePair {
     func reflect(i: SIMD3<Float>, n: SIMD3<Float>) -> SIMD3<Float> {
       i - 2 * (n * i).sum() * n
     }
-    Plane { -reflect(i: original, n: reflector) }
+    Plane { -reflect(i: normal, n: reflector) }
   }
 }
 
 public struct Ridge: PlanePair {
   @discardableResult
-  public init(_ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>) {
+  public init(_ normal: SIMD3<Float>, _ closure: () -> SIMD3<Float>) {
     Convex {
-      Self.applyDirections(original, closure)
+      Self.applyDirections(normal, closure)
     }
   }
 }
 
 public struct Valley: PlanePair {
   @discardableResult
-  public init(_ original: SIMD3<Float>, _ closure: () -> SIMD3<Float>) {
+  public init(_ normal: SIMD3<Float>, _ closure: () -> SIMD3<Float>) {
     Concave {
-      Self.applyDirections(original, closure)
+      Self.applyDirections(normal, closure)
     }
   }
 }

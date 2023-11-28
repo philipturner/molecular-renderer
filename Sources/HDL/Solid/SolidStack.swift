@@ -7,7 +7,10 @@
 
 import Foundation
 
-// MARK: - Sort of Old Code
+// This code will eventually be deleted. However, it is temporarily preserved
+// as a useful reference for things like Morton reordering.
+
+#if false
 
 /// Rounds an integer up to the nearest power of 2.
 fileprivate func roundUpToPowerOf2(_ input: Int) -> Int {
@@ -459,3 +462,4 @@ struct SolidStack {
   }
 }
 
+#endif

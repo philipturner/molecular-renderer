@@ -11,13 +11,15 @@ Table of Contents
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)
     - [Scopes](#scopes)
-    - [Solid Editing](#solid-editing)
+    - [Transform Editing](#transform-editing)
     - [Volume Editing](#volume-editing)
 - [Tips](#tips)
 
 ## Syntax
 
 ### Lattice Editing
+
+The following keywords may be called inside a `Lattice`.
 
 ```swift
 protocol Basis
@@ -53,7 +55,7 @@ Values of the lattice constants, for use in `Solid`. The hexagonal lattice const
 // Lattice vectors originate from the smallest repeatable unit of crystal. For
 // cubic crystals, they are edges of a cube. For hexagonal crystals, they are
 // sides of a hexagonal prism. The vectors aren't always orthogonal, so they are
-// internally translated to nanometers before applying affine transforms.
+// internally translated to nanometers before applying transforms.
 
 // Hexagonal crystals are sometimes described with four unit vectors: h, k, i,
 // and l. The 'i' vector is redundant and equals -h - k, creating a set of 3
@@ -92,7 +94,7 @@ Unit vectors representing the crystal's basis.
 Material { MaterialType }
 ```
 
-Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
+Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope.
 
 ### Objects
 
@@ -118,14 +120,7 @@ Create a lattice of crystal unit cells to edit. Coordinates are represented in n
 
 ```swift
 Solid { x, y, z in
-  Affine {
-    Copy { Lattice<Basis> }
-  }
-}
-Solid { x, y, z in
-  Affine {
-    Copy { Solid }
-  }
+  Transform { ... }
 }
 ```
 
@@ -134,18 +129,17 @@ Create a solid object composed of multiple lattices or other solids. Converts co
 ### Scopes
 
 ```swift
-Affine {
-  // Perform any number of affine transforms (optional).
-  // Finally, call 'Copy' to add atoms that undergo the specified order of
-  // transforms.
+Transform {
+  // Perform any number of transforms (optional).
+  // Call 'Copy' to add entities, or `Erase` to remove entities.
 }
 ```
 
-Starts a section that instantiates a previously designed object, then rotates or translates it. This may not be called inside a `Volume` or another `Affine`.
+Starts a section that instantiates a previously designed object, then rotates or translates it. This must be called inside a `Solid`.
 
-> TODO: Accumulate the affine transforms into a 3x3 matrix, then apply to the copied positions. Simply pass all 3 cardinal axes through the transformation sequence, then create a matrix from the results. The transformations can be applied eagerly, instead of buffering them up for lazy evaluation.
->
-> Whenever Warp operators occur, break up the transformation around the warps. Apply each transformation to the entire object before proceeding with the next one.
+This may be called inside another `Transform`, with similar semantics to the other scopes. Exiting an `Transform` does not erase the operations done inside it, as `Volume` does. The only exception is when reaching the outer scope (`Solid`), which cannot store data about transforms.
+
+> TODO: Store consecutive affine transforms in 3x4 row-major matrices (column-major during matrix generation). Avoid a recomputation method that scales $O(n^2)$ with the number of objects copied.
 
 ```swift
 Concave { }
@@ -163,60 +157,11 @@ Scope where every plane's "one" volume merges through OR in [DNF](https://en.wik
 Volume { }
 ```
 
-Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This is permitted inside both `Lattice` and `Solid`. This may not be called inside `Affine`, but may be called inside another `Volume`.
+Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This must be called inside `Lattice` and may be called inside another `Volume`.
 
-### Solid Editing
+### Transform Editing
 
-The following keywords may only be called inside an `Affine`.
-
-```swift
-Copy { Lattice<Basis> }
-Copy { Solid }
-Copy { [Entity] }
-```
-
-Instantiates a previously designed object. The array initializer accepts raw atom positions in nanometers. This may not be called in the top-level scope.
-
-When two entities in the new structure are extremely close, one will be overwritten. The entity that survives is decided by the following priority list:
-1. Highest valence.
-2. Highest bond order.
-3. Otherwise, the original atom wins. This rule prevents the atoms from drifting when several small modifications are performed.
-
-```swift
-Reflect { SIMD3<Float> }
-```
-
-Reflects the object across the origin (`.zero`), along the specified axis.
-
-```swift
-Rotate { SIMD4(axis, rotations) }
-```
-
-Rotate the object counterclockwise about the origin (`.zero`). The number of rotations is the specified in revolutions (multiples of 2π radians).
-
-The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` for 0.25 revolutions (90 degrees). The rotation occurs around the world origin `.zero`.
-
-All direction vectors are `SIMD3` and must be converted to `SIMD4`. 4-wide SIMD vectors may be instantiated using the first three components (xyz, a `SIMD3<Float>`) and a fourth component (w, a `Float`). The initializer has the signature `SIMD4(SIMD3, Float)`. 
-
-```swift
-Translate { SIMD3<Float> }
-```
-
-Translate the object by the specified vector, relative to its current position.
-
-```swift
-Warp(direction) { axis }
-```
-
-Warp the object counterclockwise about `axis` and the origin (`.zero`). The object is treated as a beam, perpendicular to the warp direction. `axis` and `direction` are ideally perpendicular; the parallel component of `direction` is ignored. The length of `direction` equals the radius of curvative.
-
-Before warping, one often needs to translate the object, so the desired warping center aligns with the origin. The object can extend in either direction from the origin; both sides will warp according to the same normal vector.
-
-After warping, one often needs to translate the object back, by the negative of the warp direction. `Warp` does not perform this translation for you.
-
-### Volume Editing
-
-The following keywords may only be called inside a `Volume`.
+The following keywords may be called inside a `Transform`.
 
 ```swift
 Origin { SIMD3<Float> }
@@ -224,7 +169,66 @@ Origin { SIMD3<Float> }
 
 Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
 
-`Origin` may not be called inside `Affine`. Instead, use `Translate` to shift the center of rotation or reflection `.zero`.
+```swift
+Copy { Lattice<Basis> }
+Copy { [Entity] }
+```
+
+Instantiates a previously designed object. The array initializer accepts raw atom positions in nanometers. This may not be called in the top-level scope. One may call `Copy` multiple times in the same `Transform`. Each call will drop a new object, which is merged with the existing geometry using CSG.
+
+When two entities in the new structure are extremely close, one will be overwritten. The entity that survives is decided by the following priority list:
+1. Highest valence.
+2. Highest bond order.
+3. Otherwise, the original atom wins. This rule prevents the atoms from drifting when several small modifications are performed.
+
+```swift
+Erase { Lattice<Basis> }
+Erase { [Entity] }
+```
+
+Destroy entity centers that coincide with the entered entities.
+
+```swift
+Reflect { SIMD3<Float> }
+```
+
+Reflects the object across the origin, along the specified axis.
+
+```swift
+Rotate(Float) { SIMD3<Float> }
+Rotate(rotations) { axis }
+```
+
+Rotate the object counterclockwise about the origin. The number of rotations is the specified in revolutions (multiples of 2π radians).
+
+```swift
+Translate { SIMD3<Float> }
+```
+
+Translate the object by the specified vector, relative to its current position.
+
+In some cases, using both `Translate` and `Origin` simultaneously can be bad practice. If both can be used to execute a transformation, choose `Origin`, which can harness nested `Transform` scopes.
+
+```swift
+Warp(SIMD3<Float>) { SIMD3<Float> }
+Warp(direction) { axis }
+```
+
+Warp the object counterclockwise about `axis` and the origin. The object is treated as a beam, perpendicular to the warp direction. `axis` and `direction` are ideally perpendicular; the parallel component of `direction` is ignored. The length of `direction` equals the radius of curvative.
+
+Before warping, one often needs to translate the object, so the desired warping center aligns with the origin. The object can extend in either direction from the origin; both sides will warp according to the same normal vector.
+
+A common use case for `Warp` is generating ring structures. After warping, one may needs to `Translate` the ring back, by the negative of the warp direction. This combination of operations sets the center of rotation to the current origin.
+
+### Volume Editing
+
+The following keywords may be called inside a `Volume`.
+
+```swift
+Origin { SIMD3<Float> }
+```
+
+Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
 
 ```swift
 Plane { SIMD3<Float> }
@@ -236,10 +240,12 @@ A `Plane` divides the `Bounds` into two sections. The "one" volume is the side t
 
 ```swift
 Ridge(SIMD3<Float>) { SIMD3<Float> }
+Ridge(normal) { reflector }
 Valley(SIMD3<Float>) { SIMD3<Float> }
+Valley(normal) { reflector }
 ```
 
-Creates two planes by reflecting the first argument across the second argument. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection.
+Reflect `normal` across `reflector`. Generate a plane with the normal before reflection, then a second plane after the reflection. `Ridge` takes the union of the planes' "one" volumes, while `Valley` takes the intersection.
 
 ```swift
 Replace { EntityType }
