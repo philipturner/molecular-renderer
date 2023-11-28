@@ -246,8 +246,6 @@
 		98846F792AC39B450049C223 /* Flywheel1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel1.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
-		988B56C82AEA15FF00B36DE9 /* CubicMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicMask.swift; sourceTree = "<group>"; };
-		988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalMask.swift; sourceTree = "<group>"; };
 		988B56CC2AEB544100B36DE9 /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
@@ -702,9 +700,7 @@
 			isa = PBXGroup;
 			children = (
 				981822622AE59631009CFAA8 /* CubicGrid.swift */,
-				988B56C82AEA15FF00B36DE9 /* CubicMask.swift */,
 				981822632AE5963A009CFAA8 /* HexagonalGrid.swift */,
-				988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */,
 				981822642AE74DCA009CFAA8 /* LatticeGrid.swift */,
 				98B6BDFE2AEE93F600F8655C /* LatticeScope.swift */,
 				98D0F1942AB5150600BE267D /* LatticeStack.swift */,

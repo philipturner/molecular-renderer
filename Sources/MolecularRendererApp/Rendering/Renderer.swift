@@ -30,9 +30,9 @@ class Renderer {
   var serializer: Serializer!
   
   // Camera scripting settings.
-  static let recycleSimulation: Bool = true
-  static let productionRender: Bool = true
-  static let programCamera: Bool = true
+  static let recycleSimulation: Bool = false
+  static let productionRender: Bool = false
+  static let programCamera: Bool = false
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
@@ -60,19 +60,52 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    let openingWidth: Float = 10 // make this even
-    let wallThicknessY: Float = 6 // this can be odd, ideally 1 - 3
-    let wallThicknessX: Float = 5 // this can be odd, ideally 1 - 3
-    let name: String = "\(Int(openingWidth))-\(Int(wallThicknessY))-\(Int(wallThicknessX))"
+    let openingWidth: Float = 6 // make this even
+    let wallThicknessY: Float = 3 // this can be odd, ideally 1 - 3
+    let wallThicknessX: Float = 2 // this can be odd, ideally 1 - 3
+        
+    let lattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      let _2h = 2 * h
+      Bounds { 24 * _2h + 24 * h2k + 20 * l }
+      Material { .elemental(.carbon) }
+      
+      let h2k2 = h2k / 2
+      
+      Volume {
+        Origin { 12 * _2h + 12 * h2k }
+        if (Int(openingWidth) / 2) % 2 == 0 {
+          Origin { 0.5 * h + 0.0 * h2k2 }
+        }
+        
+        Concave {
+          for direction in [h, h2k2, -h, -h2k2] {
+            Convex {
+              Origin { (openingWidth / 2) * direction }
+              Plane { -direction }
+            }
+          }
+        }
+        for direction in [h2k2, -h2k2] {
+          Convex {
+            Origin { (openingWidth / 2) * direction }
+            Origin { wallThicknessY * direction }
+            Plane { direction }
+          }
+        }
+        for direction in [h, -h] {
+          Convex {
+            Origin { (openingWidth / 2) * direction }
+            Origin { wallThicknessX * direction }
+            Plane { direction }
+          }
+        }
+        
+        Replace { .empty }
+      }
+    }
     
-    #if false
-    self.atomProvider = HousingVibrations(
-      openingWidth: openingWidth,
-      wallThicknessY: wallThicknessY,
-      wallThicknessX: wallThicknessX).provider
-    self.ioSimulation(name: name)
-    #else
-    self.ioSimulation(name: name)
-    #endif
+    let latticeAtoms = lattice.entities.map(MRAtom.init)
+    atomProvider = ArrayAtomProvider(latticeAtoms)
   }
 }

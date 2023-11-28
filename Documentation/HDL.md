@@ -4,15 +4,9 @@
 >
 > It is being incubated in the Molecular Renderer repository, but will eventually become a standalone library. It will remain as simple, general-purpose, and flexible as possible, while avoiding sources of technical debt.
 
-Domain-specific language for accelerating nanomachine design workflows.
-- This will enable the creation of a mechanical parts catalog covering several different categories. Each part will have Markdown documentation (when possible) and Swift APIs for instantiating parts/machines in larger assemblies. Heavy emphasis on making the parts <b>parametric</b>, so they can be used with a different material or dimension than originally conceived.
-- The API will be geared toward those with <b>little to no Swift experience</b>. It will make minimal use of Swift's many examples of syntactic sugar. When possible, subsets of the HDL or hardware catalog's functionality will have bindings to alternative programming languages.
-- The codebase will only depend on <b>cross-platform</b> Swift packages, even if Apple-specific libraries have higher performance.
+Domain-specific language for designing nanomachines.
 
 Table of Contents
-- [How it Works](#how-it-works)
-    - [Atoms](#atoms)
-    - [Simulation](#simulation)
 - [Syntax](#syntax)
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)
@@ -20,22 +14,6 @@ Table of Contents
     - [Solid Editing](#solid-editing)
     - [Volume Editing](#volume-editing)
 - [Tips](#tips)
-
-## How it Works
-
-At the atomic scale, constructive solid geometry is much easier than at the macroscale; there is no need to implicitly store shapes as equations. Instead, add or remove atoms from a grid held in computer memory. As the number of atoms can grow quite large, and many transformations can be applied, this approach can be computationally intensive. To achieve low latency, the compiler for translating the HDL (or UI actions) into geometry must be optimized for speed.
-
-### Atoms
-
-To enter raw atoms into the geometry at any point, the API accepts arrays of `SIMD4<Float>`. The first three vector components specify position. The fourth specifies atomic number (if positive) or bond order of a connector (if negative). 
-
-### Simulation
-
-The compiler supports all atom types in the MM4 simulator (H, C, N, O, F, Si, P, S, and Ge). Generated structures are intended to be used with MM4.
-
-MM4 repository: [philipturner/MM4](https://github.com/philipturner/MM4)
-
-MM4 documentation: [philipturner.github.io/MM4](https://philipturner.github.io/MM4)
 
 ## Syntax
 
@@ -115,18 +93,6 @@ Material { MaterialType }
 
 Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope, and may not be called after an `Affine` or `Copy`.
 
-<!--
-
-```swift
-Reconstruct { SIMD3<Float> }
-```
-
-Within the selected volume, reconstruct any surfaces that need reconstruction. This usually affects flat, open surfaces and avoids placing bonds in corners (which occurs at a later step of compilation). Bonds more parallel to the specified vector are prioritized, and the parity of alternating patterns is defined by `Origin`. This must be called inside `Volume`.
-
-An exemplar surface that may be reconstructed is diamond (100).
-
--->
-
 ### Objects
 
 ```swift
@@ -137,6 +103,8 @@ EntityType
 A wrapper type encapsulating atoms and bond connectors. The `Entity` includes position (12 bytes) and entity type (4 bytes). `EntityType` can extract information about the type, such as atomic number or bond order. Zero for the entity type indicates `.empty`.
 
 Internally, empty entities are often used to pad vector lengths to multiples of 8. This enables greater CPU vector parallelism without the overhead of bounds checking. Replacing atoms with empty entities also deletes existing atoms.
+
+The compiler supports all atom types in the [MM4 simulator](https://github.com/philipturner/MM4) (H, C, N, O, F, Si, P, S, and Ge).
 
 ```swift
 Lattice<Basis> { h, k, l in

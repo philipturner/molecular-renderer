@@ -152,6 +152,8 @@ extension LatticeStack {
     // NOTE: There is a bug. When a Volume is nested inside a Concave, it
     // won't treat it like it's actually concave. Or, something is messed up
     // with the origin. Reproducer:
+    //
+    // Was Convex any better?
 //    Concave {
 //      Origin { 2.8 * l }
 //      Plane { l }
@@ -165,6 +167,8 @@ extension LatticeStack {
     // Second reproducer: when disconnecting this from the parent's scope
     // (duplicating the "Origin { 12 * h + 8 * h2k + 6 * l }" statement), the
     // geometry started behaving predictably again.
+    //
+    // Was Convex any better?
 //    Volume {
 //      Concave {
 //        for direction in [h, -h] {

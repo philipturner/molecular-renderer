@@ -38,6 +38,56 @@ struct CubicCell {
   }
 }
 
+struct CubicMask: LatticeMask {
+  var mask: [UInt8]
+  
+  /// Create a mask using a plane.
+  init(dimensions: SIMD3<Int32>, origin: SIMD3<Float>, normal: SIMD3<Float>) {
+    // Initialize the mask with everything in the one volume, and filled. The
+    // value should be overwritten somewhere in the inner loop.
+    mask = Array(repeating: .max, count: Int(
+      dimensions.x * dimensions.y * dimensions.z))
+    if all(normal .== 0) {
+      // This cannot be evaluated. It is a permissible escape hatch to create a
+      // mask with no intersection.
+      return
+    }
+    
+    for z in 0..<dimensions.z {
+      for y in 0..<dimensions.y {
+        let baseAddress = (z &* dimensions.y &+ y) &* dimensions.x
+        
+        for x in 0..<dimensions.x {
+          let lowerCorner = SIMD3<Float>(Float(x), Float(y), Float(z))
+          
+          let cellMask = CubicCell.intersect(
+            origin: origin - lowerCorner, normal: normal)
+          mask[Int(baseAddress &+ x)] = cellMask
+        }
+      }
+    }
+  }
+  
+  static func &= (lhs: inout Self, rhs: Self) {
+    guard lhs.mask.count == rhs.mask.count else {
+      fatalError("Combined masks of different sizes.")
+    }
+    for elementID in lhs.mask.indices {
+      lhs.mask[elementID] &= rhs.mask[elementID]
+    }
+  }
+  
+  static func |= (lhs: inout Self, rhs: Self) {
+    guard lhs.mask.count == rhs.mask.count else {
+      fatalError("Combined masks of different sizes.")
+    }
+    for elementID in lhs.mask.indices {
+      lhs.mask[elementID] |= rhs.mask[elementID]
+    }
+  }
+}
+
+
 struct CubicGrid: LatticeGrid {
   var dimensions: SIMD3<Int32>
   var entityTypes: [SIMD8<Int8>]

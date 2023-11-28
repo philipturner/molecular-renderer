@@ -5,50 +5,6 @@
 //  Created by Philip Turner on 10/22/23.
 //
 
-// Hexagonal Grid
-//
-// Source: https://www.redblobgames.com/grids/hexagons/#coordinates-doubled
-// Similar to "Doubled coordinates", except halved and then compressed in the
-// X direction (right -> 1/2 right) when storing in memory.
-
-/// The larger set of columns is typically half cut-off at either cap.
-///
-/// `firstRowStaggered` is equivalent to `firstRowOrigin`, but with some extra
-/// padding for atoms cut off by the hexagonal zigzag on the very bottom. At
-/// first glance, one would intuit that most hexagonal grids use the staggered
-/// parity.
-///
-/// This type was originally deemed necessary, but it ended up unused in the
-/// final design. It remains here as reference.
-enum HexagonalGridParity: Int32 {
-  /// First row and column are larger than second.
-  case firstRowOrigin = 0
-  
-  /// Second row and column are larger than first.
-  case firstRowStaggered = 1
-}
-
-func transformHH2KLtoHKL(_ input: SIMD3<Float>) -> SIMD3<Float> {
-  var output = SIMD3(1, 0, 0) * input.x
-  output += SIMD3(1, 2, 0) * input.y
-  output += SIMD3(0, 0, 1) * input.z
-  return output
-}
-
-func transformHKLtoHH2KL(_ input: SIMD3<Float>) -> SIMD3<Float> {
-  var output = SIMD3(1, 0, 0) * input.x
-  output += SIMD3(-0.5, 0.5, 0) * input.y
-  output += SIMD3(0, 0, 1) * input.z
-  return output
-}
-
-func transformHKLtoXYZ(_ input: SIMD3<Float>) -> SIMD3<Float> {
-  var output = SIMD3(1, 0, 0) * input.x
-  output += SIMD3(-0.5, 0.8660254038, 0) * input.y
-  output += SIMD3(0, 0, 1) * input.z
-  return output
-}
-
 struct HexagonalCell {
   // Multiply the plane's origin by [3, 3, 8] and direction by [8, 8, 3].
   // Span: [0 -> 2h], [0 -> 2k], [0 -> l]
@@ -114,6 +70,79 @@ struct HexagonalCell {
       .replace(with: SIMD4(repeating: .max), where: dotProduct1 .> 0)
     let compressed = SIMD16<UInt16>(truncatingIfNeeded: mask)
     return (compressed & HexagonalCell.flags).wrappedSum()
+  }
+}
+
+struct HexagonalMask: LatticeMask {
+  var mask: [UInt16]
+  
+  /// Create a mask using a plane.
+  ///
+  /// The dimensions for this grid will appear very lopsided. `x` increments by
+  /// one roughly every 2 hexagons in the `h` direction. Meanwhile, `y`
+  /// increments by one exactly every hexagon in the `k` direction. This is the
+  /// most direct way to represent the underlying storage.
+  init(
+    dimensions: SIMD3<Int32>,
+    origin: SIMD3<Float>,
+    normal untransformedNormal0: SIMD3<Float>
+  ) {
+    var normal0 = unsafeBitCast(
+      (untransformedNormal0), to: SIMD4<Float>.self)
+    normal0.lowHalf -= 0.5 * SIMD2(normal0[1], normal0[0])
+    let normal = unsafeBitCast(normal0, to: SIMD3<Float>.self)
+    
+    // Initialize the mask with everything in the one volume, and filled. The
+    // value should be overwritten somewhere in the inner loop.
+    mask = Array(repeating: 0x0FFF, count: Int(
+      dimensions.x * dimensions.y * dimensions.z))
+    if all(normal .== 0) {
+      // This cannot be evaluated. It is a permissible escape hatch to create a
+      // mask with no intersection.
+      return
+    }
+    
+    for z in 0..<dimensions.z {
+      // Note that the 'y' coordinate here starts at zero, while the actual
+      // floating-point value should start at -0.5.
+      for y in 0..<dimensions.y {
+        let parityOffset: Float = (y & 1 == 0) ? 1.5 : 0.0
+        let loopOffset: Int32 = (y & 1 == 0) ? -1 : 0
+        var baseAddress = (z &* dimensions.y &+ y)
+        baseAddress = baseAddress &* dimensions.x
+        
+        for x in 0..<dimensions.x + loopOffset {
+          var lowerCorner = SIMD3(Float(x) * 3 + parityOffset,
+                                  Float(y) - 1,
+                                  Float(z))
+          lowerCorner.y /= 2
+          lowerCorner = transformHH2KLtoHKL(lowerCorner)
+          
+          let cellMask = HexagonalCell.intersect(
+            origin: origin - lowerCorner,
+            normal: normal)
+          mask[Int(baseAddress &+ x)] = cellMask
+        }
+      }
+    }
+  }
+  
+  static func &= (lhs: inout Self, rhs: Self) {
+    guard lhs.mask.count == rhs.mask.count else {
+      fatalError("Combined masks of different sizes.")
+    }
+    for elementID in lhs.mask.indices {
+      lhs.mask[elementID] &= rhs.mask[elementID]
+    }
+  }
+  
+  static func |= (lhs: inout Self, rhs: Self) {
+    guard lhs.mask.count == rhs.mask.count else {
+      fatalError("Combined masks of different sizes.")
+    }
+    for elementID in lhs.mask.indices {
+      lhs.mask[elementID] |= rhs.mask[elementID]
+    }
   }
 }
 
@@ -254,4 +283,27 @@ struct HexagonalGrid: LatticeGrid {
     }
     return output
   }
+}
+
+// MARK: - Utilities
+
+fileprivate func transformHH2KLtoHKL(_ input: SIMD3<Float>) -> SIMD3<Float> {
+  var output = SIMD3(1, 0, 0) * input.x
+  output += SIMD3(1, 2, 0) * input.y
+  output += SIMD3(0, 0, 1) * input.z
+  return output
+}
+
+fileprivate func transformHKLtoHH2KL(_ input: SIMD3<Float>) -> SIMD3<Float> {
+  var output = SIMD3(1, 0, 0) * input.x
+  output += SIMD3(-0.5, 0.5, 0) * input.y
+  output += SIMD3(0, 0, 1) * input.z
+  return output
+}
+
+fileprivate func transformHKLtoXYZ(_ input: SIMD3<Float>) -> SIMD3<Float> {
+  var output = SIMD3(1, 0, 0) * input.x
+  output += SIMD3(-0.5, 0.8660254038, 0) * input.y
+  output += SIMD3(0, 0, 1) * input.z
+  return output
 }
