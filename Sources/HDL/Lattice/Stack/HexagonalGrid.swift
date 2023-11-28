@@ -156,13 +156,13 @@ struct HexagonalGrid: LatticeGrid {
   ///
   /// - Parameter bounds: In the HKL coordinate space.
   /// - Parameter material: The material type to use.
-  init(bounds: SIMD3<Float>, material: MaterialType) {
+  init(bounds: SIMD3<Float>, materialType: MaterialType) {
     guard all(bounds.rounded(.up) .== bounds) else {
       fatalError("Bounds were not integers.")
     }
     
     var repeatingUnit: SIMD16<Int8>
-    switch material {
+    switch materialType {
     case .elemental(let element):
       let scalar = Int8(clamping: element.rawValue)
       repeatingUnit = SIMD16(repeating: scalar)
@@ -192,8 +192,8 @@ struct HexagonalGrid: LatticeGrid {
     let carbonBondLength = MaterialType.elemental(.carbon).bondLength
     hexagonSideLength = Float(1.0 / 2).squareRoot() * 0.357
     prismHeight = Float(4.0 / 3).squareRoot() * 0.357
-    hexagonSideLength *= material.bondLength / carbonBondLength
-    prismHeight *= material.bondLength / carbonBondLength
+    hexagonSideLength *= materialType.bondLength / carbonBondLength
+    prismHeight *= materialType.bondLength / carbonBondLength
     
     // Intersect the lattice with some h/h + 2k/l planes.
     let hMinus = transformHH2KLtoHKL(SIMD3<Float>(-1, 0, 0))

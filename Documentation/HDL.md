@@ -38,15 +38,16 @@ Sets the working set of crystal unit cells. The box spans from the world origin 
 For hexagonal crystals, the bounds are a cuboid defined by transforming the input vector. It is mapped from h/k/l space to h/h2k/l space. This allows the base lattice to be cartesian, similar to cubic. The quantity in each axis direction must be an integer.
 
 ```swift
-Constant<Basis>(Basis.ConstantType) { MaterialType }
-let latticeConstant = Constant<Cubic>(.square) { .elemental(.carbon) }
+Constant(ConstantType) { MaterialType }
+ConstantType.hexagon // Hexagonal - hexagon side length
+ConstantType.prism   // Hexagonal - prism height
+ConstantType.square  // Cubic - square side length
 
-Cubic.ConstantType.square // square side length
-Hexagonal.ConstantType.hexagon // hexagon side length
-Hexagonal.ConstantType.prism // prism height
+// Query the lattice constant for diamond.
+let latticeConstant = Constant(.square) { .elemental(.carbon) }
 ```
 
-Values of the lattice constants, for use in `Solid`. This is a function that returns a `Float`.
+Values of the lattice constants, for use in `Solid`. The hexagonal lattice constants are changed from the empirical values, so that (111) surfaces perfectly align with cubic lattices. This change allows for objects with heterogeneous crystal phases.
 
 ```swift
 // Lattice vectors originate from the smallest repeatable unit of crystal. For

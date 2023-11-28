@@ -31,5 +31,5 @@ Maintenance effort to port the ray tracer to Linux and Windows:
 
 Prioritizing Linux for compute, exporting trajectories to macOS for rendering. Current solution for other platforms: 
 - Transcode the simulation to `mrsim-txt` and save to the disk.
-- Decode in a script controlling an alternative renderer (VMD, atomCAD, Blender, etc.).
+- Decode in a script controlling an alternative renderer (VMD, Blender, etc.).
 - This may require a different language than Swift. There is a decently fast Rust decoder, which is most recommended on Windows (Swift is slow there for an unknown reason).

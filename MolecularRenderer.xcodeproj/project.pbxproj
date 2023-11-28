@@ -230,7 +230,6 @@
 		98610F462AA24C69006FAF95 /* Basis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basis.swift; sourceTree = "<group>"; };
 		98610F632AA2662C006FAF95 /* Origin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Origin.swift; sourceTree = "<group>"; };
 		98610F652AA27621006FAF95 /* Solid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solid.swift; sourceTree = "<group>"; };
-		98610F692AA28B1B006FAF95 /* MaterialType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialType.swift; sourceTree = "<group>"; };
 		98610F722AA28EA6006FAF95 /* Replace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Replace.swift; sourceTree = "<group>"; };
 		98610F802AA29EBE006FAF95 /* HDL.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HDL.md; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* MathUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathUtilities.swift; sourceTree = "<group>"; };
@@ -432,8 +431,8 @@
 				98B6BDFF2AEE955600F8655C /* Stack */,
 				98610F462AA24C69006FAF95 /* Basis.swift */,
 				98D0F1AE2AB5F43D00BE267D /* Bounds.swift */,
-				988B56CC2AEB544100B36DE9 /* Material.swift */,
 				98610F322AA24533006FAF95 /* Lattice.swift */,
+				988B56CC2AEB544100B36DE9 /* Material.swift */,
 			);
 			path = Lattice;
 			sourceTree = "<group>";
@@ -458,15 +457,14 @@
 			path = Operations;
 			sourceTree = "<group>";
 		};
-		9818225A2AE58CAA009CFAA8 /* Material */ = {
+		9818225A2AE58CAA009CFAA8 /* Entity */ = {
 			isa = PBXGroup;
 			children = (
 				9818225F2AE58E4D009CFAA8 /* Bond.swift */,
 				9818225E2AE58E43009CFAA8 /* Element.swift */,
-				98610F692AA28B1B006FAF95 /* MaterialType.swift */,
 				981822602AE58E95009CFAA8 /* Entity.swift */,
 			);
-			path = Material;
+			path = Entity;
 			sourceTree = "<group>";
 		};
 		981FCFED29ECADF5009904A2 /* Lighting */ = {
@@ -589,7 +587,7 @@
 			isa = PBXGroup;
 			children = (
 				981822562AE58C81009CFAA8 /* Lattice */,
-				9818225A2AE58CAA009CFAA8 /* Material */,
+				9818225A2AE58CAA009CFAA8 /* Entity */,
 				981822582AE58C93009CFAA8 /* Operations */,
 				981822572AE58C88009CFAA8 /* Solid */,
 			);

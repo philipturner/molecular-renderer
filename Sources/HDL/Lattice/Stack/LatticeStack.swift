@@ -9,18 +9,18 @@ struct LatticeStackDescriptor {
   // The global descriptor resets as soon as it is used.
   static var global: LatticeStackDescriptor = .init()
   
-  // The user may only set each of these one time.
-  var bounds: SIMD3<Float>?
-  var material: MaterialType?
+  // The user may only set each of these once.
   var basis: (any _Basis.Type)?
+  var bounds: SIMD3<Float>?
+  var materialType: MaterialType?
 }
 
 // `class` instead of `struct` to overcome an issue with Swift references.
 class LatticeStack {
-  var grid: any LatticeGrid
   var basis: any _Basis.Type
-  var scopes: [LatticeScope] = []
+  var grid: any LatticeGrid
   var origins: [SIMD3<Float>] = []
+  var scopes: [LatticeScope] = []
   
   // Call this before force-unwrapping the value of `.global`.
   static func touchGlobal() {
@@ -29,9 +29,9 @@ class LatticeStack {
     }
     
     let descriptor = LatticeStackDescriptor.global
-    guard let bounds = descriptor.bounds,
-          let material = descriptor.material,
-          let basis = descriptor.basis else {
+    guard let basis = descriptor.basis,
+          let bounds = descriptor.bounds,
+          let materialType = descriptor.materialType else {
       fatalError(
         "Global lattice stack does not exist, and descriptor is incomplete.")
     }
@@ -40,7 +40,8 @@ class LatticeStack {
     LatticeStackDescriptor.global = .init()
     
     // Lazily create a new stack, if all arguments are specified.
-    global = LatticeStack(bounds: bounds, material: material, basis: basis)
+    global = LatticeStack(
+      basis: basis, bounds: bounds, materialType: materialType)
   }
   
   // Call this instead of setting `.global` to `nil`.
@@ -56,12 +57,16 @@ class LatticeStack {
   // only nullable to the setter can be used to destroy it.
   static var global: LatticeStack?
   
-  init(bounds: SIMD3<Float>, material: MaterialType, basis: any _Basis.Type) {
+  init(
+    basis: any _Basis.Type,
+    bounds: SIMD3<Float>,
+    materialType: MaterialType
+  ) {
     self.basis = basis
     if basis == Cubic.self {
-      self.grid = CubicGrid(bounds: bounds, material: material)
+      self.grid = CubicGrid(bounds: bounds, materialType: materialType)
     } else if basis == Hexagonal.self {
-      self.grid = HexagonalGrid(bounds: bounds, material: material)
+      self.grid = HexagonalGrid(bounds: bounds, materialType: materialType)
     } else {
       fatalError("This should never happen.")
     }

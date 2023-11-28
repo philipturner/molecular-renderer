@@ -87,20 +87,19 @@ struct CubicMask: LatticeMask {
   }
 }
 
-
 struct CubicGrid: LatticeGrid {
   var dimensions: SIMD3<Int32>
   var entityTypes: [SIMD8<Int8>]
   var squareSideLength: Float
   
   /// Create a mask using a plane.
-  init(bounds: SIMD3<Float>, material: MaterialType) {
+  init(bounds: SIMD3<Float>, materialType: MaterialType) {
     guard all(bounds.rounded(.up) .== bounds) else {
       fatalError("Bounds were not integers.")
     }
     
     var repeatingUnit: SIMD8<Int8>
-    switch material {
+    switch materialType {
     case .elemental(let element):
       let scalar = Int8(clamping: element.rawValue)
       repeatingUnit = SIMD8(repeating: scalar)
@@ -121,7 +120,7 @@ struct CubicGrid: LatticeGrid {
     
     let carbonBondLength = MaterialType.elemental(.carbon).bondLength
     squareSideLength = 0.357
-    squareSideLength *= material.bondLength / carbonBondLength
+    squareSideLength *= materialType.bondLength / carbonBondLength
     
     self.initializeBounds(bounds, normals: [
       SIMD3<Float>(-1, 0, 0),

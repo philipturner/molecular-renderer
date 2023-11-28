@@ -38,7 +38,7 @@ protocol LatticeGrid {
   
   // Dimensions may be in a different coordinate space than the bounds that are
   // entered by the user.
-  init(bounds: SIMD3<Float>, material: MaterialType)
+  init(bounds: SIMD3<Float>, materialType: MaterialType)
   mutating func replace(with other: Int8, where mask: Mask)
   
   var entities: [Entity] { get }
