@@ -218,7 +218,7 @@ Warp the object counterclockwise about `axis` and the origin. The object is trea
 
 Before warping, one often needs to translate the object, so the desired warping center aligns with the origin. The object can extend in either direction from the origin; both sides will warp according to the same normal vector.
 
-A common use case for `Warp` is generating ring structures. After warping, one may needs to `Translate` the ring back, by the negative of the warp direction. This combination of operations sets the center of rotation to the current origin.
+A common use case for `Warp` is generating ring structures. After warping, one may need to `Translate` the ring back, by the negative of the warp direction. This combination of operations sets the center of rotation to the current origin.
 
 ### Volume Editing
 
@@ -236,7 +236,7 @@ Plane { SIMD3<Float> }
 
 Adds a plane to the stack. The plane will be combined with other planes, and used for selecting/deleting atoms.
 
-A `Plane` divides the `Bounds` into two sections. The "one" volume is the side the normal vector points toward. The "zero" volume is the side the normal points away from. The "one" volume contains the atoms deleted during a `Cut()`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "one" volume are deleted.
+A `Plane` divides the `Bounds` into two sections. The "one" volume is the side the normal vector points toward. The "zero" volume is the side the normal points away from. The "one" volume contains the atoms modified during a `Replace`. When planes combine into a `Concave`, only the crystal unit cells common to every plane's "one" volume are modifiable.
 
 ```swift
 Ridge(SIMD3<Float>) { SIMD3<Float> }
