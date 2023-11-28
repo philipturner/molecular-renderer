@@ -116,14 +116,6 @@ Lattice<Basis> { h, k, l in
 Create a lattice of crystal unit cells to edit. Coordinates are represented in numbers of crystal unit cells. The coordinate system may be mapped to a non-orthonormal coordinate system internally. Keep this in mind when processing `SIMD3<Float>` vectors. For example, avoid normalizing any vectors.
 
 ```swift
-RigidBody { Lattice<Basis> }
-RigidBody { Solid }
-RigidBody { [Entity] }
-```
-
-Exposes the functionality from [Diamondoid](../Sources/MolecularRendererApp/Scenes/Procedural Geometry/Diamondoid.swift), such as topology generation. Documentation for this API is in progress.
-
-```swift
 Solid { x, y, z in
   Affine {
     Copy { Lattice<Basis> }

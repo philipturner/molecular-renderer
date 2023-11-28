@@ -14,8 +14,8 @@ final class GIFSerializer {
   var path: String
   var previousFrames: [[UInt32]] = []
   
-  let width: Int = 360 // 720
-  let height: Int = 320 // 640
+  let width: Int = 720
+  let height: Int = 640
   
   init(path: String) {
     self.gif = GIF(width: width, height: height)
