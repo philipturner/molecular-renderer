@@ -5,6 +5,8 @@
 //  Created by Philip Turner on 10/26/23.
 //
 
+#if false
+
 fileprivate func normalize(_ x: SIMD3<Float>) -> SIMD3<Float> {
   let length = (x * x).sum().squareRoot()
   return length == 0 ? .zero : (x / length)
@@ -331,3 +333,5 @@ struct Stack {
     }
   }
 }
+
+#endif

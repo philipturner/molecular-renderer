@@ -180,7 +180,6 @@
 		9816EFA92AC4BBA60042073F /* Flywheel2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel2.swift; sourceTree = "<group>"; };
 		9816EFAD2AC501630042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
 		9816EFAE2AC501630042073F /* Ring_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image1.jpg; sourceTree = "<group>"; };
-		9818225D2AE58DE7009CFAA8 /* MathUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathUtilities.swift; sourceTree = "<group>"; };
 		9818225E2AE58E43009CFAA8 /* Element.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Element.swift; sourceTree = "<group>"; };
 		9818225F2AE58E4D009CFAA8 /* Bond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bond.swift; sourceTree = "<group>"; };
 		981822602AE58E95009CFAA8 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
@@ -226,7 +225,7 @@
 		985832A22A9946CA00D9E6A5 /* RenderElectrons.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderElectrons.metal; sourceTree = "<group>"; };
 		985832A42A9970D500D9E6A5 /* ElectronGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ElectronGrid.metal; sourceTree = "<group>"; };
 		985C92A62A955CA9008629C0 /* StrainedShellStructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainedShellStructure.swift; sourceTree = "<group>"; };
-		98610EAB2A9D7BF0006FAF95 /* Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compiler.swift; sourceTree = "<group>"; };
+		98610EAB2A9D7BF0006FAF95 /* _Archive_Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Archive_Compiler.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		98610F322AA24533006FAF95 /* Lattice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lattice.swift; sourceTree = "<group>"; };
 		98610F462AA24C69006FAF95 /* Basis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basis.swift; sourceTree = "<group>"; };
@@ -250,7 +249,7 @@
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
 		988B56C82AEA15FF00B36DE9 /* CubicMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicMask.swift; sourceTree = "<group>"; };
 		988B56C92AEA160B00B36DE9 /* HexagonalMask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalMask.swift; sourceTree = "<group>"; };
-		988B56CB2AEB538300B36DE9 /* _Old_LatticeStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_LatticeStack.swift; sourceTree = "<group>"; };
+		988B56CB2AEB538300B36DE9 /* _Archive_LatticeStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Archive_LatticeStack.swift; sourceTree = "<group>"; };
 		988B56CC2AEB544100B36DE9 /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
@@ -267,7 +266,7 @@
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
-		98A8B7112ABA3E95003E62E8 /* Parse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parse.swift; sourceTree = "<group>"; };
+		98A8B7112ABA3E95003E62E8 /* _Archive_Parse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Archive_Parse.swift; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
@@ -301,7 +300,6 @@
 		98D2A3302AA2DF4D000DBAA0 /* Modules.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Modules.md; sourceTree = "<group>"; };
 		98D2A3312AA2DF4D000DBAA0 /* References.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = References.md; sourceTree = "<group>"; };
 		98D2A3322AA2DF4D000DBAA0 /* KnownIssues.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = KnownIssues.md; sourceTree = "<group>"; };
-		98D9758B2AC07FE00052EE6C /* RigidBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidBody.swift; sourceTree = "<group>"; };
 		98D975902AC088260052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image1.jpg; sourceTree = "<group>"; };
 		98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image2.jpg; sourceTree = "<group>"; };
@@ -460,18 +458,9 @@
 			children = (
 				98B6BE012AEECA4200F8655C /* Affine */,
 				98B6BE002AEECA3B00F8655C /* Volume */,
-				98A8B7112ABA3E95003E62E8 /* Parse.swift */,
 				98B6BE022AEED40500F8655C /* Scope.swift */,
 			);
 			path = Operations;
-			sourceTree = "<group>";
-		};
-		981822592AE58CA1009CFAA8 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				9818225D2AE58DE7009CFAA8 /* MathUtilities.swift */,
-			);
-			path = Utilities;
 			sourceTree = "<group>";
 		};
 		9818225A2AE58CAA009CFAA8 /* Material */ = {
@@ -608,9 +597,7 @@
 				981822562AE58C81009CFAA8 /* Lattice */,
 				9818225A2AE58CAA009CFAA8 /* Material */,
 				981822582AE58C93009CFAA8 /* Operations */,
-				98610F762AA28F43006FAF95 /* RigidBody */,
 				981822572AE58C88009CFAA8 /* Solid */,
-				981822592AE58CA1009CFAA8 /* Utilities */,
 			);
 			path = HDL;
 			sourceTree = "<group>";
@@ -643,19 +630,12 @@
 			path = Documentation;
 			sourceTree = "<group>";
 		};
-		98610F762AA28F43006FAF95 /* RigidBody */ = {
-			isa = PBXGroup;
-			children = (
-				98D9758B2AC07FE00052EE6C /* RigidBody.swift */,
-			);
-			path = RigidBody;
-			sourceTree = "<group>";
-		};
 		988B56CA2AEB536F00B36DE9 /* Archive */ = {
 			isa = PBXGroup;
 			children = (
-				988B56CB2AEB538300B36DE9 /* _Old_LatticeStack.swift */,
-				98610EAB2A9D7BF0006FAF95 /* Compiler.swift */,
+				98610EAB2A9D7BF0006FAF95 /* _Archive_Compiler.swift */,
+				988B56CB2AEB538300B36DE9 /* _Archive_LatticeStack.swift */,
+				98A8B7112ABA3E95003E62E8 /* _Archive_Parse.swift */,
 			);
 			path = Archive;
 			sourceTree = "<group>";
@@ -1365,7 +1345,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				HEADER_SEARCH_PATHS = /opt/homebrew/Cellar/cairo/1.18.0/include/cairo;
+				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1427,7 +1409,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				HEADER_SEARCH_PATHS = /opt/homebrew/Cellar/cairo/1.18.0/include/cairo;
+				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1459,6 +1443,7 @@
 					"@executable_path/../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = /Users/philipturner/miniforge3/lib;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.philipturner-opensource.MolecularRenderer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1489,6 +1474,7 @@
 					"@executable_path/../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = /Users/philipturner/miniforge3/lib;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.philipturner-opensource.MolecularRenderer";

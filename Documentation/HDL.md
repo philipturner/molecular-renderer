@@ -13,7 +13,6 @@ Table of Contents
 - [How it Works](#how-it-works)
     - [Atoms](#atoms)
     - [Simulation](#simulation)
-    - [JIT Compiler](#jit-compiler)
 - [Syntax](#syntax)
     - [Lattice Editing](#lattice-editing)
     - [Objects](#objects)
@@ -37,12 +36,6 @@ The compiler supports all atom types in the MM4 simulator (H, C, N, O, F, Si, P,
 MM4 repository: [philipturner/MM4](https://github.com/philipturner/MM4)
 
 MM4 documentation: [philipturner.github.io/MM4](https://philipturner.github.io/MM4)
-
-### JIT Compiler
-
-There is also a JIT compiler for the language, accepting a strict subset of Swift that contains DSL keywords. This was created out of necessity to bypass long compile times in Swift release mode. The API is still experimental and gated under an underscore (`_Parse`). Documentation can be found in triple-slashed comments at [Parse.swift](../Sources/HDL/Compiler/Parse.swift).
-
-At the moment, the JIT compiler has been deprecated, in favor of compiling in Swift release mode with incremental compilation.
 
 ## Syntax
 

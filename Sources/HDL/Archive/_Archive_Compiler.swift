@@ -14,47 +14,10 @@ import QuaternionModule
 public class Compiler {
   static let global: Compiler = Compiler()
   
-  // TODO: Encapsulate the code for handling lattices and solids in a different
-  // file or folder:
-  // - Lattice, LatticeCompiler (remove 'Stack'), LatticeMask
-  //   - "DNF" engine
-  //   - no merging or expansion functionality
-  //   - every operation accepts "Vector"
-  // - Solid, SolidCompiler (remove 'SolidStack'), SolidGrid
-  //   - "CSG" engine
-  //   - no masking functionality
-  //   - every operation accepts either "SIMD3<Float>" or "Atom"
-  //   - create SIMD3<Float> initializers accepting lattice vectors
-  // - Utilities
-  //   - SIMD game math functions
-  // - Operations
-  //   - Parse (generates both Lattice and Solid HDL constructs for languages
-  //     besides Swift
-  //   - Contour (generates Lattice constructs only)
-  //   - Cut (works in two entirely different contexts: Lattice/Volume, Solid/Affine)
-  // - RigidBody
-  //   - bond generation
-  //   - passivation
-  //   - not a "class"
-  //   - no "minimize" member
-  // - Atom/Element/Material/Bond
-  //   - "Atom" initializer accepting either an element or a bond type
-  //   - replace "Material" with simply .siliconCarbide, .germaniumCarbide and
-  //     don't worry about the specifics of which atom goes where in the lattice
-  
   // For editing a lattice.
   private var stack: Stack?
   private var willUseLattice: Bool = false
   private var didSetMaterial: Bool = false
-  
-  // TODO: Track the lattice type, ensure all entered vectors are of the correct
-  // type. Then, support the correct API for lattices composed of multiple
-  // sub-lattices. To enable combining of two crystal lattices, one may need to
-  // track the lower left corner of the bounds.
-  //
-  // The current solution is to crash with `fatalError("Not implemented")` for
-  // `Hexagonal` vectors. `Amorphous` vectors are suppressed because the
-  // necessary basis vectors (x, y, z) aren't exposed to the public API.
   
   // For combining multiple lattices or solids into a solid.
   private var solidStack: SolidStack?
