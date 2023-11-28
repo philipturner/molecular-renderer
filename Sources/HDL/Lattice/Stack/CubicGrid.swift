@@ -118,9 +118,8 @@ struct CubicGrid: LatticeGrid {
     entityTypes = Array(repeating: repeatingUnit, count: Int(
       dimensions.x * dimensions.y * dimensions.z))
     
-    let carbonBondLength = MaterialType.elemental(.carbon).bondLength
-    squareSideLength = 0.357
-    squareSideLength *= materialType.bondLength / carbonBondLength
+    // Fetch the lattice constant using the 'Constant' API.
+    squareSideLength = Constant(.square) { materialType }
     
     self.initializeBounds(bounds, normals: [
       SIMD3<Float>(-1, 0, 0),

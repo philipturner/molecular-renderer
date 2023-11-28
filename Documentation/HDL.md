@@ -144,6 +144,8 @@ Affine {
 Starts a section that instantiates a previously designed object, then rotates or translates it. This may not be called inside a `Volume` or another `Affine`.
 
 > TODO: Accumulate the affine transforms into a 3x3 matrix, then apply to the copied positions. Simply pass all 3 cardinal axes through the transformation sequence, then create a matrix from the results. The transformations can be applied eagerly, instead of buffering them up for lazy evaluation.
+>
+> Whenever Warp operators occur, break up the transformation around the warps. Apply each transformation to the entire object before proceeding with the next one.
 
 ```swift
 Concave { }
@@ -184,24 +186,33 @@ When two entities in the new structure are extremely close, one will be overwrit
 Reflect { SIMD3<Float> }
 ```
 
-Reflects the object across the current origin, along the specified axis.
+Reflects the object across the origin (`.zero`), along the specified axis.
 
 ```swift
-Rotate { SIMD4<Float>(direction, rotation) }
-Rotate { Quaternion<Float> }
+Rotate { SIMD4(axis, rotations) }
 ```
 
-Rotates counterclockwise around the direction, by the specified number of revolutions. The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` for 0.25 revolutions (90 degrees). The rotation occurs around the world origin `.zero`.
+Rotate the object counterclockwise about the origin (`.zero`). The number of rotations is the specified in revolutions (multiples of 2π radians).
+
+The first 3 vector components are the direction; the fourth is the rotation. For example, enter `SIMD4(x + y + z, 0.25)` for 0.25 revolutions (90 degrees). The rotation occurs around the world origin `.zero`.
 
 All direction vectors are `SIMD3` and must be converted to `SIMD4`. 4-wide SIMD vectors may be instantiated using the first three components (xyz, a `SIMD3<Float>`) and a fourth component (w, a `Float`). The initializer has the signature `SIMD4(SIMD3, Float)`. 
-
-`SIMD4` is a more convenient API than `Quaternion`. However, the input is internally mapped to a quaternion before proceeding.
 
 ```swift
 Translate { SIMD3<Float> }
 ```
 
 Translate the object by the specified vector, relative to its current position.
+
+```swift
+Warp(direction) { axis }
+```
+
+Warp the object counterclockwise about `axis` and the origin (`.zero`). The object is treated as a beam, perpendicular to the warp direction. `axis` and `direction` are ideally perpendicular; the parallel component of `direction` is ignored. The length of `direction` equals the radius of curvative.
+
+Before warping, one often needs to translate the object, so the desired warping center aligns with the origin. The object can extend in either direction from the origin; both sides will warp according to the same normal vector.
+
+After warping, one often needs to translate the object back, by the negative of the warp direction. `Warp` does not perform this translation for you.
 
 ### Volume Editing
 
@@ -212,6 +223,8 @@ Origin { SIMD3<Float> }
 ```
 
 Translates the origin by a vector relative to the current origin. Modifications to the origin are undone when leaving the current scope. This may not be called in the top-level scope.
+
+`Origin` may not be called inside `Affine`. Instead, use `Translate` to shift the center of rotation or reflection `.zero`.
 
 ```swift
 Plane { SIMD3<Float> }

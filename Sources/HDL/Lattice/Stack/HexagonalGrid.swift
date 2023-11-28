@@ -180,20 +180,13 @@ struct HexagonalGrid: LatticeGrid {
                               transformedBounds.y * 2 + 1,
                               transformedBounds.z)
     dimensions = SIMD3<Int32>(transformedBounds.rounded(.up))
-    
     dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
       dimensions.x * dimensions.y * dimensions.z))
     
-    // Base the lattice constants on diamond, so it can intermix perfectly in
-    // mixed-phase crystalline structures.
-    // a: 2.51 -> 2.52
-    // c: 4.12 -> 4.12
-    let carbonBondLength = MaterialType.elemental(.carbon).bondLength
-    hexagonSideLength = Float(1.0 / 2).squareRoot() * 0.357
-    prismHeight = Float(4.0 / 3).squareRoot() * 0.357
-    hexagonSideLength *= materialType.bondLength / carbonBondLength
-    prismHeight *= materialType.bondLength / carbonBondLength
+    // Fetch the lattice constants using the 'Constant' API.
+    hexagonSideLength = Constant(.hexagon) { materialType }
+    prismHeight = Constant(.prism) { materialType }
     
     // Intersect the lattice with some h/h + 2k/l planes.
     let hMinus = transformHH2KLtoHKL(SIMD3<Float>(-1, 0, 0))

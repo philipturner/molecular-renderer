@@ -5,6 +5,32 @@
 //  Created by Philip Turner on 10/26/23.
 //
 
+// MARK: - Types
+
+public enum MaterialType {
+  case elemental(Element)
+  case checkerboard(Element, Element)
+}
+
+public enum ConstantType {
+  case hexagon
+  case prism
+  case square
+  
+  var latticeMultiplier: Float {
+    switch self {
+    case .hexagon:
+      return Float(1.0 / 2).squareRoot()
+    case .prism:
+      return Float(4.0 / 3).squareRoot()
+    case .square:
+      return 1
+    }
+  }
+}
+
+// MARK: - Keywords
+
 public struct Material {
   @discardableResult
   public init(_ closure: () -> MaterialType) {
@@ -34,109 +60,34 @@ public struct Material {
   }
 }
 
-public enum MaterialType {
-  case elemental(Element)
-  case checkerboard(Element, Element)
-  
-  /// Used internally to adjust the lattice spacing.
-  var bondLength: Float {
-    switch self {
-    case .elemental(let element):
-      switch element {
-      case .carbon: return 1.5270
-      case .silicon: return 2.322
-      case .germanium: return 2.404
-      default: fatalError("Unrecognized material: \(self)")
-      }
-    case .checkerboard(let a, let b):
-      let minElement = (a.rawValue < b.rawValue) ? a : b
-      let maxElement = (a.rawValue > b.rawValue) ? a : b
-      switch (minElement, maxElement) {
-      case (.carbon, .silicon): return 1.876
-      case (.carbon, .germanium): return 1.949
-      default: fatalError("Unrecognized material: \(self)")
-      }
-    }
-  }
-}
+typealias Constant = Float
 
-// Make an API that ends up used internally to LatticeGrid.
-//
-// Diamond:           cubic = 0.3567
-// Silicon Carbide:   cubic = 0.4360
-// Germanium Carbide: cubic = 0.4523
-// Silicon:           cubic = 0.5431
-// Germanium:         cubic = 0.5658
-
-/*
- let carbonBondLength = MaterialType.elemental(.carbon).bondLength
- squareSideLength = 0.357
- squareSideLength *= material.bondLength / carbonBondLength
- */
-
-/*
- // Base the lattice constants on diamond, so it can intermix perfectly in
- // mixed-phase crystalline structures.
- // a: 2.51 -> 2.52
- // c: 4.12 -> 4.12
- let carbonBondLength = MaterialType.elemental(.carbon).bondLength
- hexagonSideLength = Float(1.0 / 2).squareRoot() * 0.357
- prismHeight = Float(4.0 / 3).squareRoot() * 0.357
- hexagonSideLength *= material.bondLength / carbonBondLength
- prismHeight *= material.bondLength / carbonBondLength
- */
-
-/*
- ```swift
- Constant<Basis>(Basis.ConstantType) { MaterialType }
- let latticeConstant = Constant<Cubic>(.square) { .elemental(.carbon) }
-
- Cubic.ConstantType.square // square side length
- Hexagonal.ConstantType.hexagon // hexagon side length
- Hexagonal.ConstantType.prism // prism height
- ```
- */
-
-public enum ConstantType {
-  case hexagon
-  case prism
-  case square
-  
-  var latticeMultiplier: Float {
-    switch self {
-    case .hexagon:
-      return Float(1.0 / 2).squareRoot()
-    case .prism:
-      return Float(4.0 / 3).squareRoot()
-    case .square:
-      return 1
-    }
-  }
-}
-
-fileprivate func cubicSpacing(material: MaterialType) -> Float {
-  switch material {
-  case .elemental(.carbon):
-    return 0.3567
-  case .checkerboard(.carbon, .silicon),
-      .checkerboard(.silicon, .carbon):
-    return 0.4360
-  case .checkerboard(.carbon, .germanium),
-      .checkerboard(.germanium, .carbon):
-    return 0.4523
-  case .elemental(.silicon):
-    return 0.5431
-  case .elemental(.germanium):
-    return 0.5658
-  default:
-    fatalError("Unrecognized material type: \(material)")
-  }
-}
-
-public struct Constant {
-  @discardableResult
-  public init(_ constantType: ConstantType, _ closure: () -> MaterialType) {
+extension Float {
+  /// Do not use this initializer via the API `Float.init`. It is intended to be
+  /// used through the API `Constant.init`.
+  public init(
+    _ constantType: ConstantType,
+    _ closure: () -> MaterialType
+  ) {
     let materialType = closure()
-    fatalError("Not implemented.")
+    var cubicSpacing: Float
+    switch materialType {
+    case .elemental(.carbon):
+      cubicSpacing = 0.3567
+    case .checkerboard(.carbon, .silicon),
+        .checkerboard(.silicon, .carbon):
+      cubicSpacing = 0.4360
+    case .checkerboard(.carbon, .germanium),
+        .checkerboard(.germanium, .carbon):
+      cubicSpacing = 0.4523
+    case .elemental(.silicon):
+      cubicSpacing = 0.5431
+    case .elemental(.germanium):
+      cubicSpacing = 0.5658
+    default:
+      fatalError("Unrecognized material type: \(materialType)")
+    }
+    
+    self = cubicSpacing * constantType.latticeMultiplier
   }
 }
