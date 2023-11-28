@@ -72,7 +72,7 @@ Object encapsulating constructive solid geometry.
 
 Creates a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
 
-```
+```swift
 Topology { [Entity] }
 Topology { Lattice<Basis>.entities }
 Topology { Solid.entities }
@@ -201,7 +201,7 @@ Specifies the atom types to fill the lattice with, and the lattice constant. Thi
 
 The following members are part of `Topology`.
 
-```
+```swift
 Topology.atomicNumbers: [UInt8]
 Topology.bonds: [UInt32]
 Topology.positions: [SIMD3<Float>]
@@ -209,7 +209,7 @@ Topology.positions: [SIMD3<Float>]
 
 The current state of the compiled topology. These properties can be entered directly into `MM4ParametersDescriptor` or `MM4RigidBodyDescriptor`. If an entity exists where passivators collide, its atomic number is `0`.
 
-```
+```swift
 Topology.clean()
 ```
 
@@ -218,7 +218,7 @@ A standard sequence of filters for cleaning up geometry.
 2. Primary carbons (methyl and trifluoromethyl) groups are removed.
 3. All free radicals are passivated with hydrogen, except those with multiple colliding passivators.
 
-```
+```swift
 Topology.filter(where: 
   (atom: inout Entity, neighbors: inout [Entity]) -> Void
 )
@@ -228,7 +228,7 @@ Topology.filter { atom, neighbors in ... }
 Modify the topology using a custom filter. Unlike `Swift.Sequence.filter`, this method mutates the caller in-place. Three classes of filters are permitted:
 - `add bonds` - change the entity type of empty neighbors to `.bond(.sigma)`.
 - `remove atom` - change the entity type of `atom` to `.empty`.
-- `passivate` - add additional elements to the neighbors, keeping the previous ones intact.
+- `passivate` - append atoms to the neighbors, keeping existing atoms intact.
 
 After passivation, the neighbor list must equal the valence count. The valence shell includes only sp<sup>3</sup>-hybridized orbitals. In addition, added passivators must all have the same element. The following atom and passivator combinations are permitted:
 
@@ -260,7 +260,7 @@ Copy { Solid.entities }
 Instantiates a previously designed object. The array initializer accepts raw atom positions in nanometers. This may not be called in the top-level scope. One may call `Copy` multiple times in the same `Transform`. Each call will drop a new object, which is merged with the existing geometry using CSG.
 
 When two entities in the new structure are extremely close, one will be overwritten. The entity that survives is decided by the following priority list:
-1. Empty entities predominate, to enable geometry deletion.
+1. If the new atom is `.empty`, it wins. This rule lets you take the negative of a `Lattice`, then use it to delete geometry.
 2. Highest valence.
 3. Highest bond order (`.pi` > `.sigma`).
 4. Otherwise, the original atom wins. This rule prevents the atoms from drifting when their position is recomputed several times.
@@ -291,11 +291,11 @@ Warp(SIMD3<Float>) { SIMD3<Float> }
 Warp(direction) { axis }
 ```
 
-Warp the object counterclockwise about `axis` and the origin. The object is treated as a beam, perpendicular to the warp direction. `axis` and `direction` are ideally perpendicular; the parallel component of `direction` is ignored. The length of `direction` equals the radius of curvative.
+Warp the object counterclockwise about `axis` and the origin. The object is treated as a beam, perpendicular to the warp direction. `axis` and `direction` must be nearly perpendicular; the parallel component of `direction` is ignored. The length of `direction` equals the radius of curvative.
 
-Before warping, one often needs to translate the object, so the desired warping center aligns with the origin. The object can extend in either direction from the origin; both sides will warp according to the same normal vector.
+Before warping, one often shifts the origin, so the desired warping center aligns with the origin. Use a nested `Transform` so the `Origin` is undone after the warp.
 
-A common use case for `Warp` is generating ring structures. After warping, one may need to `Translate` the ring back, by the negative of the warp direction. This combination of operations sets the center of rotation to the current origin.
+A common use case for `Warp` is generating ring structures. After warping, one may wish to `Translate` the ring back, by the negative of the warp direction. This combination of operations sets the center of rotation to the current origin.
 
 ### Volume
 
@@ -328,9 +328,9 @@ Reflect `normal` across `reflector`. Generate a plane with the normal before ref
 Replace { EntityType }
 ```
 
-Replace all entities in the selected volume with a new entity. In the future, there may be an option to specify which atoms to preserve. The default is all non-empty atoms and bond connectors.
+Replace all entities in the selected volume with a new entity.
 
-Instead of a dedicated keyword for cutting empty volumes, specify `Replace { .empty }`. Atoms deleted with a `Replace` cannot be restored by a subsequent `Replace`. The only method for filling in this geometry is creating a `Solid`, copying a separate piece of geometry that fills the void.
+To delete atoms, use `Replace { .empty }`. Removed atoms cannot be restored by a subsequent `Replace`. To fill in the geometry again, create a `Solid`. Then, copy a separate piece of geometry that fills the void.
 
 ## Tips
 
