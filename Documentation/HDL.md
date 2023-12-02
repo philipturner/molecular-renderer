@@ -172,6 +172,8 @@ A sequence of filters for cleaning up geometry.
 2. Primary carbons (methyl and trifluoromethyl groups) are removed.
 3. All free radicals are passivated with hydrogen, except those with remaining passivator collisions.
 
+> TODO: For (1), should connected atoms be displaced to shorten the bond? The passivator detection algorithm should be robust enough to handle slight displacements.
+
 ```swift
 Filter.reconstructCubic100(SIMD3<Float>): FilterType
 
@@ -192,7 +194,7 @@ Filter { atom, neighbors in
 }
 ```
 
-A filter for cleaning up diamond (100) surfaces. Bonds are generated approximately parallel to the specified direction. This filter may fail to reconstruct bonds in certain cases.
+A filter for cleaning up diamond (100) surfaces. Sigma bonds are generated approximately parallel to the specified direction. Surface atoms are displaced to shorten the bond. Passivating hydrogens are created at an uneven angle. This filter may fail to reconstruct bonds in certain cases.
 
  An atom located roughly at (0, 0, 0) will form a bond pointing in the specified direction. This fact can be used to change the parity of which atoms are connected. Flip the sign of the direction to alternate which atoms are connected.
 
