@@ -125,19 +125,16 @@ Encapsulates a set of planes, so that everything inside the scope is removed fro
 
 ### Filter
 
-The following documentation describes `Filter`, which may only be called inside `Topology`.
-
-```swift
-typealias FilterType = (
-  atom: inout Entity, neighbors: inout [Entity]
-) -> Void
-```
-
-The function signature of a filter.
+The following documentation describes `Filter`, which may only be called inside a `Topology`.
 
 ```swift
 Filter(FilterType)
 Filter { atom, neighbors in ... }
+
+// Shorthand for the function signature.
+typealias FilterType = (
+  atom: inout Entity, neighbors: inout [Entity]
+) -> Void
 ```
 
 Modify the topology using a custom filter. Three classes of filters are permitted:
