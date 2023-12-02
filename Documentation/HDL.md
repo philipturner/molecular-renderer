@@ -254,6 +254,30 @@ A sequence of filters for cleaning up geometry.
 2. Primary carbons (methyl and trifluoromethyl groups) are removed.
 3. All free radicals are passivated with hydrogen, except those with remaining passivator collisions.
 
+```swift
+Filter.reconstructCubic100(SIMD3<Float>): FilterType
+
+// The simplest way to call the filter.
+let direction = SIMD3<Float>(1, 1, 1)
+Filter(Filter.reconstructCubic100(x))
+
+// You can exclude this filter from certain atoms.
+// For example, you may want to reconstruct bonds in
+// a different direction for different faces of a
+// crystolecule.
+Filter { atom, neighbors in
+  let direction = SIMD3<Float>(1, 1, 1)
+  guard condition(atom, neighbors) else {
+    return
+  }
+  Filter.reconstructCubic100(direction)(atoms, neighbors)
+}
+```
+
+A filter for cleaning up diamond (100) surfaces. Bonds are generated approximately parallel to the specified direction. This filter may fail to reconstruct bonds in certain cases.
+
+ An atom located roughly at (0, 0, 0) will form a bond pointing in the specified direction. This fact can be used to change the parity of which atoms are connected. Flip the sign of the direction to alternate which atoms are connected.
+
 ### Transform
 
 The following keywords may be called inside a `Transform`.
