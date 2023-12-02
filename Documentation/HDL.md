@@ -73,14 +73,19 @@ Object encapsulating constructive solid geometry.
 Creates a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
 
 ```swift
-Topology { [Entity] }
-Topology { Lattice<Basis>.entities }
-Topology { Solid.entities }
+Topology { 
+  Copy { [Entity] }
+}
+Topology.atomicNumbers: [UInt8]
+Topology.bonds: [UInt32]
+Topology.positions: [SIMD3<Float>]
 ```
 
 Object encapsulating bond topology generation.
 
-Creates a list of atoms in Morton order, with sigma bonds connecting them. Free radicals are not yet passivated. Geometric overlap between potential passivators is noted.
+Creates a list of atoms in Morton order, with sigma bonds connecting them. Free radicals are not yet passivated. Geometric overlap between potential passivators is detected.
+
+The compiled topology is provided through a set of properties. These properties can be entered directly into `MM4ParametersDescriptor` or `MM4RigidBodyDescriptor`. If an entity exists where passivators collide, its atomic number is `0`.
 
 ### Scopes
 
@@ -199,33 +204,22 @@ Specifies the atom types to fill the lattice with, and the lattice constant. Thi
 
 ### Topology
 
-The following members are part of `Topology`.
+The following keywords may be called inside a `Topology`.
 
 ```swift
-Topology.atomicNumbers: [UInt8]
-Topology.bonds: [UInt32]
-Topology.positions: [SIMD3<Float>]
+typealias FilterType = (
+  atom: inout Entity, neighbors: inout [Entity]
+) -> Void
 ```
 
-The current state of the compiled topology. These properties can be entered directly into `MM4ParametersDescriptor` or `MM4RigidBodyDescriptor`. If an entity exists where passivators collide, its atomic number is `0`.
+The function signature of a filter.
 
 ```swift
-Topology.clean()
+Filter(FilterType)
+Filter { atom, neighbors in ... }
 ```
 
-A standard sequence of filters for cleaning up geometry.
-1. Colliding passivators are replaced with sigma bonds, if both atoms have a single collision (sharp corners).
-2. Primary carbons (methyl and trifluoromethyl) groups are removed.
-3. All free radicals are passivated with hydrogen, except those with multiple colliding passivators.
-
-```swift
-Topology.filter(where: 
-  (atom: inout Entity, neighbors: inout [Entity]) -> Void
-)
-Topology.filter { atom, neighbors in ... }
-```
-
-Modify the topology using a custom filter. Unlike `Swift.Sequence.filter`, this method mutates the caller in-place. Three classes of filters are permitted:
+Modify the topology using a custom filter. Three classes of filters are permitted:
 - `add bonds` - change the entity type of empty neighbors to `.bond(.sigma)`.
 - `remove atom` - change the entity type of `atom` to `.empty`.
 - `passivate` - append atoms to the neighbors, keeping existing atoms intact.
@@ -240,6 +234,24 @@ After passivation, the neighbor list must equal the valence count. The valence s
 | germanium | hydrogen   | 4       |
 
 The atom's position can be adjusted during the filter. New atoms are copied into a separate list while the closure is called. The adjustment will not affect the value of existing neighbors during the function call. This functionality could be used to adjust carbon atom positions when reconstructing diamond (100) surfaces.
+
+```swift
+Filter.connectSharpCorners: FilterType
+Filter.removePrimaryAtoms: FilterType
+Filter.hydrogenPassivate: FilterType
+
+Topology {
+  Copy { ... }
+  Filter(Filter.connectSharpCorners)
+  Filter(Filter.removePrimaryAtoms)
+  Filter(Filter.hydrogenPassivate)
+}
+```
+
+A sequence of filters for cleaning up geometry.
+1. Colliding passivators are replaced with sigma bonds, if both atoms have a single collision.
+2. Primary carbons (methyl and trifluoromethyl groups) are removed.
+3. All free radicals are passivated with hydrogen, except those with multiple colliding passivators.
 
 ### Transform
 
