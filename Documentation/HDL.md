@@ -242,6 +242,7 @@ Filter.hydrogenPassivate: FilterType
 
 Topology {
   Copy { ... }
+  
   Filter(Filter.connectSharpCorners)
   Filter(Filter.removePrimaryAtoms)
   Filter(Filter.hydrogenPassivate)
@@ -251,7 +252,7 @@ Topology {
 A sequence of filters for cleaning up geometry.
 1. Colliding passivators are replaced with sigma bonds, if both atoms have a single collision.
 2. Primary carbons (methyl and trifluoromethyl groups) are removed.
-3. All free radicals are passivated with hydrogen, except those with multiple colliding passivators.
+3. All free radicals are passivated with hydrogen, except those with remaining passivator collisions.
 
 ### Transform
 
