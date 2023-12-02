@@ -117,6 +117,7 @@ struct SolidGrid {
   
   /// Create a new grid while verifying integrity of the data source.
   init(entities: [Entity]) {
+    // TODO: Extract the checking of integrity to a separate function.
     var lowerBound = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
     var upperBound = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
     for entity in entities where !entity.isEmpty {

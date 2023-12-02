@@ -11,8 +11,8 @@ Table of Contents
     - [Objects](#objects)
     - [Scopes](#scopes)
 - [Operations](#operations)
+    - [Filter](#filter)
     - [Lattice](#lattice)
-    - [Topology](#topology)
     - [Transform](#transform)
     - [Volume](#volume)
 - [Tips](#tips)
@@ -81,7 +81,7 @@ Topology.bonds: [UInt32]
 Topology.positions: [SIMD3<Float>]
 ```
 
-Object encapsulating bond topology generation.
+Object encapsulating bond topology filters.
 
 Creates a list of atoms in Morton order, with sigma bonds connecting them. Free radicals are not yet passivated. Geometric overlap between potential passivators is detected.
 
@@ -122,6 +122,82 @@ Volume { }
 Encapsulates a set of planes, so that everything inside the scope is removed from the stack upon exiting. This must be called inside `Lattice` and may be called inside another `Volume`.
 
 ## Operations
+
+### Filter
+
+The following documentation describes `Filter`, which may only be called inside `Topology`.
+
+```swift
+typealias FilterType = (
+  atom: inout Entity, neighbors: inout [Entity]
+) -> Void
+```
+
+The function signature of a filter.
+
+```swift
+Filter(FilterType)
+Filter { atom, neighbors in ... }
+```
+
+Modify the topology using a custom filter. Three classes of filters are permitted:
+- `add bonds` - change the entity type of empty neighbors to `.bond(.sigma)`.
+- `remove atom` - change the entity type of `atom` to `.empty`.
+- `passivate` - append atoms to the neighbors, keeping existing atoms intact.
+
+After passivation, the neighbor list must equal the valence count. The valence shell includes only sp<sup>3</sup>-hybridized orbitals. In addition, added passivators must all have the same element. The following atom and passivator combinations are permitted:
+
+| Atom      | Passivator | Valence |
+| --------- | ---------- | ------- |
+| carbon    | hydrogen   | 4       |
+| carbon    | fluorine   | 4       |
+| silicon   | hydrogen   | 4       |
+| germanium | hydrogen   | 4       |
+
+The atom's position can be adjusted during the filter. New atoms are copied into a separate list while the closure is called. The adjustment will not affect the value of existing neighbors during the function call. This functionality could be used to adjust carbon atom positions when reconstructing diamond (100) surfaces.
+
+```swift
+Filter.connectSharpCorners: FilterType
+Filter.removePrimaryAtoms: FilterType
+Filter.hydrogenPassivate: FilterType
+
+Topology {
+  Copy { ... }
+  
+  Filter(Filter.connectSharpCorners)
+  Filter(Filter.removePrimaryAtoms)
+  Filter(Filter.hydrogenPassivate)
+}
+```
+
+A sequence of filters for cleaning up geometry.
+1. Colliding passivators are replaced with sigma bonds, if both atoms have a single collision.
+2. Primary carbons (methyl and trifluoromethyl groups) are removed.
+3. All free radicals are passivated with hydrogen, except those with remaining passivator collisions.
+
+```swift
+Filter.reconstructCubic100(SIMD3<Float>): FilterType
+
+// The simplest way to call the filter.
+let direction = SIMD3<Float>(1, 1, 1)
+Filter(Filter.reconstructCubic100(x))
+
+// You can exclude this filter from certain atoms.
+// For example, you may want to reconstruct bonds in
+// a different direction for different faces of a
+// crystolecule.
+Filter { atom, neighbors in
+  let direction = SIMD3<Float>(1, 1, 1)
+  guard condition(atom, neighbors) else {
+    return
+  }
+  Filter.reconstructCubic100(direction)(atoms, neighbors)
+}
+```
+
+A filter for cleaning up diamond (100) surfaces. Bonds are generated approximately parallel to the specified direction. This filter may fail to reconstruct bonds in certain cases.
+
+ An atom located roughly at (0, 0, 0) will form a bond pointing in the specified direction. This fact can be used to change the parity of which atoms are connected. Flip the sign of the direction to alternate which atoms are connected.
 
 ### Lattice
 
@@ -201,82 +277,6 @@ Material { MaterialType }
 ```
 
 Specifies the atom types to fill the lattice with, and the lattice constant. This must be called in the top-level scope.
-
-### Topology
-
-The following keywords may be called inside a `Topology`.
-
-```swift
-typealias FilterType = (
-  atom: inout Entity, neighbors: inout [Entity]
-) -> Void
-```
-
-The function signature of a filter.
-
-```swift
-Filter(FilterType)
-Filter { atom, neighbors in ... }
-```
-
-Modify the topology using a custom filter. Three classes of filters are permitted:
-- `add bonds` - change the entity type of empty neighbors to `.bond(.sigma)`.
-- `remove atom` - change the entity type of `atom` to `.empty`.
-- `passivate` - append atoms to the neighbors, keeping existing atoms intact.
-
-After passivation, the neighbor list must equal the valence count. The valence shell includes only sp<sup>3</sup>-hybridized orbitals. In addition, added passivators must all have the same element. The following atom and passivator combinations are permitted:
-
-| Atom      | Passivator | Valence |
-| --------- | ---------- | ------- |
-| carbon    | hydrogen   | 4       |
-| carbon    | fluorine   | 4       |
-| silicon   | hydrogen   | 4       |
-| germanium | hydrogen   | 4       |
-
-The atom's position can be adjusted during the filter. New atoms are copied into a separate list while the closure is called. The adjustment will not affect the value of existing neighbors during the function call. This functionality could be used to adjust carbon atom positions when reconstructing diamond (100) surfaces.
-
-```swift
-Filter.connectSharpCorners: FilterType
-Filter.removePrimaryAtoms: FilterType
-Filter.hydrogenPassivate: FilterType
-
-Topology {
-  Copy { ... }
-  
-  Filter(Filter.connectSharpCorners)
-  Filter(Filter.removePrimaryAtoms)
-  Filter(Filter.hydrogenPassivate)
-}
-```
-
-A sequence of filters for cleaning up geometry.
-1. Colliding passivators are replaced with sigma bonds, if both atoms have a single collision.
-2. Primary carbons (methyl and trifluoromethyl groups) are removed.
-3. All free radicals are passivated with hydrogen, except those with remaining passivator collisions.
-
-```swift
-Filter.reconstructCubic100(SIMD3<Float>): FilterType
-
-// The simplest way to call the filter.
-let direction = SIMD3<Float>(1, 1, 1)
-Filter(Filter.reconstructCubic100(x))
-
-// You can exclude this filter from certain atoms.
-// For example, you may want to reconstruct bonds in
-// a different direction for different faces of a
-// crystolecule.
-Filter { atom, neighbors in
-  let direction = SIMD3<Float>(1, 1, 1)
-  guard condition(atom, neighbors) else {
-    return
-  }
-  Filter.reconstructCubic100(direction)(atoms, neighbors)
-}
-```
-
-A filter for cleaning up diamond (100) surfaces. Bonds are generated approximately parallel to the specified direction. This filter may fail to reconstruct bonds in certain cases.
-
- An atom located roughly at (0, 0, 0) will form a bond pointing in the specified direction. This fact can be used to change the parity of which atoms are connected. Flip the sign of the direction to alternate which atoms are connected.
 
 ### Transform
 

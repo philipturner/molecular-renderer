@@ -5,6 +5,8 @@
 //  Created by Philip Turner on 10/29/23.
 //
 
+// A pair of keywords for disjunctive normal form on planes.
+
 public struct Convex {
   @discardableResult
   public init(_ closure: () -> Void) {

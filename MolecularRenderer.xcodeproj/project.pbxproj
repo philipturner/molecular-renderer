@@ -258,6 +258,11 @@
 		9898382929A6C09000B4AA98 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MolecularRenderer.entitlements; sourceTree = "<group>"; };
+		989CBA012B1BF2C000213CBE /* Topology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Topology.swift; sourceTree = "<group>"; };
+		989CBA022B1BF2D900213CBE /* Volume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Volume.swift; sourceTree = "<group>"; };
+		989CBA032B1BF2F400213CBE /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
+		989CBA052B1BF39500213CBE /* GlobalScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalScope.swift; sourceTree = "<group>"; };
+		989CBA062B1BF4E800213CBE /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		98A07C242A2CBFCF00729897 /* PDBParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDBParser.swift; sourceTree = "<group>"; };
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
@@ -275,7 +280,6 @@
 		98B6BDFA2AEE85B000F8655C /* Renderer+Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Setup.swift"; sourceTree = "<group>"; };
 		98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Update.swift"; sourceTree = "<group>"; };
 		98B6BDFE2AEE93F600F8655C /* LatticeScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeScope.swift; sourceTree = "<group>"; };
-		98B6BE022AEED40500F8655C /* Scope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scope.swift; sourceTree = "<group>"; };
 		98B6BE042AEED47E00F8655C /* Plane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plane.swift; sourceTree = "<group>"; };
 		98B6BE052AEED49300F8655C /* DisjunctiveNormalForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisjunctiveNormalForm.swift; sourceTree = "<group>"; };
 		98B6BE062AEED4BC00F8655C /* Reflect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reflect.swift; sourceTree = "<group>"; };
@@ -434,6 +438,7 @@
 				98D0F1AE2AB5F43D00BE267D /* Bounds.swift */,
 				98610F322AA24533006FAF95 /* Lattice.swift */,
 				988B56CC2AEB544100B36DE9 /* Material.swift */,
+				989CBA022B1BF2D900213CBE /* Volume.swift */,
 			);
 			path = Lattice;
 			sourceTree = "<group>";
@@ -444,6 +449,7 @@
 				98610F652AA27621006FAF95 /* Solid.swift */,
 				98D975B32AC0C73E0052EE6C /* SolidGrid.swift */,
 				981822612AE59628009CFAA8 /* SolidStack.swift */,
+				989CBA032B1BF2F400213CBE /* Transform.swift */,
 			);
 			path = Solid;
 			sourceTree = "<group>";
@@ -451,10 +457,9 @@
 		981822582AE58C93009CFAA8 /* Operations */ = {
 			isa = PBXGroup;
 			children = (
+				989CBA042B1BF34500213CBE /* Shared */,
 				98B6BE012AEECA4200F8655C /* Transform */,
 				98B6BE002AEECA3B00F8655C /* Volume */,
-				98610F632AA2662C006FAF95 /* Origin.swift */,
-				98B6BE022AEED40500F8655C /* Scope.swift */,
 			);
 			path = Operations;
 			sourceTree = "<group>";
@@ -588,6 +593,7 @@
 		98610EAE2A9D7D17006FAF95 /* HDL */ = {
 			isa = PBXGroup;
 			children = (
+				989CBA002B1BF2AA00213CBE /* Topology */,
 				981822562AE58C81009CFAA8 /* Lattice */,
 				9818225A2AE58CAA009CFAA8 /* Entity */,
 				981822582AE58C93009CFAA8 /* Operations */,
@@ -666,6 +672,25 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		989CBA002B1BF2AA00213CBE /* Topology */ = {
+			isa = PBXGroup;
+			children = (
+				989CBA062B1BF4E800213CBE /* Filter.swift */,
+				989CBA012B1BF2C000213CBE /* Topology.swift */,
+			);
+			path = Topology;
+			sourceTree = "<group>";
+		};
+		989CBA042B1BF34500213CBE /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				98D975AF2AC0C5CC0052EE6C /* Copy.swift */,
+				989CBA052B1BF39500213CBE /* GlobalScope.swift */,
+				98610F632AA2662C006FAF95 /* Origin.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		98A700A82AB4A0CF00499CD2 /* Spring */ = {
 			isa = PBXGroup;
 			children = (
@@ -721,7 +746,6 @@
 		98B6BE012AEECA4200F8655C /* Transform */ = {
 			isa = PBXGroup;
 			children = (
-				98D975AF2AC0C5CC0052EE6C /* Copy.swift */,
 				98B6BE062AEED4BC00F8655C /* Reflect.swift */,
 				98B6BE072AEED4D100F8655C /* Rotate.swift */,
 				98B6BE082AEED4D900F8655C /* Translate.swift */,

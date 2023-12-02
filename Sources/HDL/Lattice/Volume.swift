@@ -1,16 +1,9 @@
 //
-//  Scope.swift
-//  MolecularRendererApp
+//  Volume.swift
+//  MolecularRenderer
 //
-//  Created by Philip Turner on 10/29/23.
+//  Created by Philip Turner on 12/2/23.
 //
-
-public struct Transform {
-  @discardableResult
-  public init(_ closure: () -> Void) {
-    
-  }
-}
 
 public struct Volume {
   @discardableResult
