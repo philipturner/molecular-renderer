@@ -8,7 +8,6 @@
 public struct Lattice<T: Basis> {
   private var stack: LatticeStack
   
-  // This is currently a computed variable, but it may be cached in the future.
   public var entities: [Entity] { stack.grid.entities }
 
   public init(_ closure: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) -> Void) {

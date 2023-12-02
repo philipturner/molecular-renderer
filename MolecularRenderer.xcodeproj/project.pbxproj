@@ -593,11 +593,11 @@
 		98610EAE2A9D7D17006FAF95 /* HDL */ = {
 			isa = PBXGroup;
 			children = (
-				989CBA002B1BF2AA00213CBE /* Topology */,
-				981822562AE58C81009CFAA8 /* Lattice */,
 				9818225A2AE58CAA009CFAA8 /* Entity */,
+				981822562AE58C81009CFAA8 /* Lattice */,
 				981822582AE58C93009CFAA8 /* Operations */,
 				981822572AE58C88009CFAA8 /* Solid */,
+				989CBA002B1BF2AA00213CBE /* Topology */,
 			);
 			path = HDL;
 			sourceTree = "<group>";

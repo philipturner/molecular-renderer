@@ -176,9 +176,16 @@ struct HexagonalGrid: LatticeGrid {
     repeatingUnit.highHalf.highHalf = SIMD4(repeating: 0)
     
     var transformedBounds = transformHKLtoHH2KL(bounds)
-    transformedBounds = SIMD3(transformedBounds.x * 1.0 / 3,
+    transformedBounds = SIMD3(transformedBounds.x * 1 / 3,
                               transformedBounds.y * 2 + 1,
                               transformedBounds.z)
+    
+    // Prevent floating-point error from causing incorrect rounding.
+    guard let boundsX = Int(exactly: bounds.x) else {
+      fatalError("Bounds x should always be an integer.")
+    }
+    transformedBounds.x = Float((boundsX + 2) / 3)
+    
     dimensions = SIMD3<Int32>(transformedBounds.rounded(.up))
     dimensions.replace(with: SIMD3.zero, where: dimensions .< 0)
     entityTypes = Array(repeating: repeatingUnit, count: Int(
