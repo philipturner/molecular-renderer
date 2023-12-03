@@ -77,7 +77,7 @@ Topology {
   Copy { [Entity] }
 }
 Topology.atomicNumbers: [UInt8]
-Topology.bonds: [UInt32]
+Topology.bonds: [SIMD2<UInt32>]
 Topology.positions: [SIMD3<Float>]
 ```
 
