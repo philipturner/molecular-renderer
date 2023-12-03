@@ -34,6 +34,10 @@ public enum ConstantType {
 public struct Material {
   @discardableResult
   public init(_ closure: () -> MaterialType) {
+    guard GlobalScope.global == .lattice else {
+      GlobalScope.throwUnrecognized(Self.self)
+    }
+    
     let materialType = closure()
     switch materialType {
     case .elemental(let element):

@@ -8,6 +8,10 @@
 public struct Rotate {
   @discardableResult
   public init(_ rotation: Float, _ closure: () -> SIMD3<Float>) {
+    guard GlobalScope.global == .solid else {
+      GlobalScope.throwUnrecognized(Self.self)
+    }
+    
     let input = closure()
     var axis = SIMD3(input.x, input.y, input.z)
     guard !all(axis .== 0) else {
@@ -15,6 +19,8 @@ public struct Rotate {
     }
     axis /= (axis * axis).sum().squareRoot()
     
+    // Use "rotation = Optional(rotation)" to redefine the variable as
+    // something mutable.
     guard var rotation = Optional(rotation), rotation != 0 else {
       fatalError("Rotation must not be zero.")
     }

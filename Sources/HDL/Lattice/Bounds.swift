@@ -8,6 +8,10 @@
 public struct Bounds {
   @discardableResult
   public init(_ closure: () -> SIMD3<Float>) {
+    guard GlobalScope.global == .lattice else {
+      GlobalScope.throwUnrecognized(Self.self)
+    }
+    
     let bounds = closure()
     let remainder = bounds - bounds.rounded(.down)
     guard all(remainder .== 0) else {

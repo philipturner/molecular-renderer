@@ -8,6 +8,9 @@
 public struct Plane {
   @discardableResult
   public init(_ closure: () -> SIMD3<Float>) {
+    guard GlobalScope.global == .lattice else {
+      GlobalScope.throwUnrecognized(Self.self)
+    }
     LatticeStack.touchGlobal()
     LatticeStack.global!.plane(normal: closure())
   }

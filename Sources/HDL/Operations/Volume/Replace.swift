@@ -8,6 +8,9 @@
 public struct Replace {
   @discardableResult
   public init(_ closure: () -> EntityType) {
+    guard GlobalScope.global == .lattice else {
+      GlobalScope.throwUnrecognized(Self.self)
+    }
     LatticeStack.touchGlobal()
     LatticeStack.global!.replace(with: closure().compactRepresentation)
   }

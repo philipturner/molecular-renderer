@@ -263,6 +263,7 @@
 		989CBA032B1BF2F400213CBE /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
 		989CBA052B1BF39500213CBE /* GlobalScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalScope.swift; sourceTree = "<group>"; };
 		989CBA062B1BF4E800213CBE /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
+		989CBA072B1C003000213CBE /* TopologyGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyGrid.swift; sourceTree = "<group>"; };
 		98A07C242A2CBFCF00729897 /* PDBParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDBParser.swift; sourceTree = "<group>"; };
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
@@ -677,6 +678,7 @@
 			children = (
 				989CBA062B1BF4E800213CBE /* Filter.swift */,
 				989CBA012B1BF2C000213CBE /* Topology.swift */,
+				989CBA072B1C003000213CBE /* TopologyGrid.swift */,
 			);
 			path = Topology;
 			sourceTree = "<group>";
