@@ -82,6 +82,7 @@
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
 		9898382D29A6C09000B4AA98 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */; };
+		989CBA0A2B1C0F4200213CBE /* Adamantanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA092B1C0F4200213CBE /* Adamantanes.swift */; };
 		98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A07C242A2CBFCF00729897 /* PDBParser.swift */; };
 		98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A07C262A2CC11B00729897 /* ParsingUtilities.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -264,6 +265,7 @@
 		989CBA052B1BF39500213CBE /* GlobalScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalScope.swift; sourceTree = "<group>"; };
 		989CBA062B1BF4E800213CBE /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		989CBA072B1C003000213CBE /* TopologyGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyGrid.swift; sourceTree = "<group>"; };
+		989CBA092B1C0F4200213CBE /* Adamantanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adamantanes.swift; sourceTree = "<group>"; };
 		98A07C242A2CBFCF00729897 /* PDBParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDBParser.swift; sourceTree = "<group>"; };
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
@@ -405,6 +407,7 @@
 				98325C5B2A6C6C9A00A4D7BB /* StructureUtilities.swift */,
 				986289E72ADF6784009CF919 /* MathUtilities.swift */,
 				986289E92ADF678B009CF919 /* TimeUtilities.swift */,
+				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
 			);
 			path = "Procedural Geometry";
 			sourceTree = "<group>";
@@ -1220,6 +1223,7 @@
 				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
 				98906AD92AA92FF300FE5832 /* RhombicDodecahedra.swift in Sources */,
+				989CBA0A2B1C0F4200213CBE /* Adamantanes.swift in Sources */,
 				98056D4F2AEC4625000F6A8F /* MRAtom+Extensions.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Chapter9_Figure5.swift in Sources */,
 				988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */,

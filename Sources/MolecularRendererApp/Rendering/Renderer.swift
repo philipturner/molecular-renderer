@@ -13,6 +13,7 @@ import OpenMM
 import simd
 
 import HDL
+import MM4
 
 class Renderer {
   unowned let coordinator: Coordinator
@@ -60,50 +61,55 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    // Test that GlobalScope pushes and pops correctly.
-    _ = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 9 * h + 7 * h2k + 15 * l }
+    // Use an adamantane cage to test the new MM4. You can replace one of the
+    // carbons with a sigma bond, creating a 5-membered ring.
+    let lattice = Lattice<Cubic> { h, k, l in
+      Bounds { 4 * h + 4 * k + 4 * l }
       Material { .elemental(.carbon) }
-  
+      
       Volume {
-        Concave {
-          Origin { 3 * h + 4.5 * h2k }
-          Plane { -h }
-          Plane { -h2k }
+        Origin { 2 * h + 2 * k + 2 * l }
+        Origin { 0.25 * (h + k - l) }
+        
+        // Remove the front plane.
+        Convex {
+          Origin { 0.25 * (h + k + l) }
+          Plane { h + k + l }
         }
-        Concave {
-          Origin { 6 * h + 4.5 * h2k }
-          Plane { h }
-          Plane { -h2k }
+        
+        func triangleCut(sign: Float) {
+          Convex {
+            Origin { 0.25 * sign * (h - k - l) }
+            Plane { sign * (h - k / 2 - l / 2) }
+          }
+          Convex {
+            Origin { 0.25 * sign * (k - l - h) }
+            Plane { sign * (k - l / 2 - h / 2) }
+          }
+          Convex {
+            Origin { 0.25 * sign * (l - h - k) }
+            Plane { sign * (l - h / 2 - k / 2) }
+          }
         }
-  
-        Replace { .empty }
-      }
-    }
-    
-    let lattice = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 9 * h + 7 * h2k + 15 * l }
-      Material { .elemental(.carbon) }
-  
-      Volume {
-        Concave {
-          Origin { 3 * h + 4.5 * h2k }
-          Plane { -h }
-          Plane { -h2k }
+        
+        // Remove three sides forming a triangle.
+        triangleCut(sign: +1)
+        
+        // Remove their opposites.
+        triangleCut(sign: -1)
+        
+        // Remove the back plane.
+        Convex {
+          Origin { -0.25 * (h + k + l) }
+          Plane { -(h + k + l) }
         }
-        Concave {
-          Origin { 6 * h + 4.5 * h2k }
-          Plane { h }
-          Plane { -h2k }
-        }
-  
+        
         Replace { .empty }
       }
     }
     
     let latticeAtoms = lattice.entities.map(MRAtom.init)
-    atomProvider = ArrayAtomProvider(latticeAtoms)
+    let diamondoid = Diamondoid(atoms: latticeAtoms)
+    self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
   }
 }
