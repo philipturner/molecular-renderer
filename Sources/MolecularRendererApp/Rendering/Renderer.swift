@@ -109,7 +109,8 @@ class Renderer {
     }
     
     let latticeAtoms = lattice.entities.map(MRAtom.init)
-    let diamondoid = Diamondoid(atoms: latticeAtoms)
+    var diamondoid = Diamondoid(atoms: latticeAtoms)
+    diamondoid.translate(offset: -diamondoid.createCenterOfMass())
     self.atomProvider = ArrayAtomProvider(diamondoid.atoms)
   }
 }
