@@ -1252,6 +1252,14 @@ struct Diamondoid {
         return 1.008
       case 6:
         return 12.011
+      case 7:
+        return 14.007
+      case 14:
+        return 28.085
+      case 16:
+        return 32.06
+      case 32:
+        return 72.6308
       default:
         fatalError("Unsupported element: \(atom.element)")
       }

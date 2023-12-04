@@ -157,7 +157,7 @@ struct Adamantanes {
       deltas += makeArray(magnitude: magnitude)
     }
     
-    var silicon111Surface = latticeAtoms2
+    let silicon111Surface = latticeAtoms2
     for delta in deltas {
 //      silicon111Surface += diamondoid3.atoms.map {
 //        var atom = $0
@@ -179,6 +179,7 @@ struct Adamantanes {
         
         let atom = MRAtom(
           origin: sulfurOrigin + sulfurOffset, element: 16)
+        _ = atom
 //        silicon111Surface.append(atom)
       }
     }

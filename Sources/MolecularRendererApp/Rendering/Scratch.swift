@@ -291,7 +291,7 @@ struct HydrogenAbstraction {
           let bondedID = bondedAtomIDs[i]
           var other = tooltipDiamondoid.atoms[bondedID]
           
-          let quaternion = Quaternion<Float>(angle: 0.3, axis: direction)
+          let quaternion = Quaternion<Float>(angle: 0.7, axis: direction)
           var delta = other.origin - atom.origin
           delta = quaternion.act(on: delta)
           other.origin = atom.origin + delta
@@ -380,7 +380,7 @@ struct HydrogenAbstraction {
           Plane { -(h + k + l) }
         }
         for direction in [h, k, l] {
-          for multiplier in [Float(1), -1.25] {
+          for multiplier in [Float(0.50), -0.75] {
             Convex {
               Origin { multiplier * direction }
               Plane { multiplier * direction }
@@ -395,7 +395,7 @@ struct HydrogenAbstraction {
         // These atoms will eventually be held stationary when we simulate the
         // trajectory.
         Convex {
-          Origin { 0 * (h + k + l) }
+          Origin { -0.00 * (h + k + l) }
           Plane { -(h + k + l) }
           
           Replace { .atom(.nitrogen) }
@@ -415,6 +415,7 @@ struct HydrogenAbstraction {
     // This should equal the number of nitrogens; take special care to not
     // delete hydrogens elevated above a certain point.
     var hydrogensToRemove: [Int] = []
+    var anchors: [Int] = []
     for i in surfaceAtoms.indices {
       let atomI = surfaceAtoms[i]
       var closestDistance: Float = .greatestFiniteMagnitude
@@ -477,12 +478,17 @@ struct HydrogenAbstraction {
       }
       
       hydrogensToRemove.append(bondedHydrogenIDs[0])
+      anchors.append(index)
     }
     surfaceDiamondoid.translate(offset: -surfaceCenterOfMass)
     
     // Rescale the bonds, now that the center of mass is the origin.
     for index in surfaceDiamondoid.atoms.indices {
-      let atom = surfaceDiamondoid.atoms[index]
+      var atom = surfaceDiamondoid.atoms[index]
+      if atom.element == 1 {
+        continue
+      }
+      
       var bondedHydrogenIDs: [Int] = []
       for var bond in surfaceDiamondoid.bonds {
         guard Int(bond[0]) == index || Int(bond[1]) == index else {
@@ -503,19 +509,33 @@ struct HydrogenAbstraction {
         let hydrogen = surfaceDiamondoid.atoms[hydrogenID]
         var delta = hydrogen.origin - atom.origin
         let deltaLength = (delta * delta).sum().squareRoot()
-        let scaleFactor: Float = (1.483 / 10) / deltaLength
-        hydrogenDeltas.append(delta * scaleFactor)
+        delta /= deltaLength
+        hydrogenDeltas.append(delta * 1.483 / 10)
       }
       
       // Map the silicon to the new position.
       let scaleFactor: Float =
       Constant(.square) { .elemental(.silicon) } /
       Constant(.square) { .elemental(.carbon) }
+      atom.origin *= scaleFactor
+      surfaceDiamondoid.atoms[index] = atom
       
-      // Bring the hydrogens along with the silicon.
+      // Bring the hydrogen(s) along with the silicon.
+      for lane in bondedHydrogenIDs.indices {
+        let hydrogenID = bondedHydrogenIDs[lane]
+        var hydrogen = surfaceDiamondoid.atoms[hydrogenID]
+        hydrogen.origin = atom.origin + hydrogenDeltas[lane]
+        surfaceDiamondoid.atoms[hydrogenID] = hydrogen
+      }
     }
     
     // Push the tooltip forward, so it rests just over the surface.
+    tooltipDiamondoid.translate(
+      offset: 0.470 * SIMD3<Float>(1, 1, 1) / Float(3).squareRoot())
+    tooltipDiamondoid.rotate(
+      angle: Quaternion<Float>(
+        angle: 0.06 * 3.141592,
+        axis: SIMD3<Float>(1, 1, 1) / Float(3).squareRoot()))
     
     // Record the closest silicon-sulfur bond while placing the tooltip. Record
     // its length and angle from (111) in degrees. Report the C-S-Si angle too.
@@ -525,15 +545,29 @@ struct HydrogenAbstraction {
     
     // Defer the removal of hydrogens until you discard the bonding topology.
     hydrogensToRemove.sort()
+    anchors.sort()
     for i in hydrogensToRemove.reversed() {
       surfaceDiamondoid.atoms.remove(at: i)
+      for anchorID in anchors.indices {
+        if i < anchors[anchorID] {
+          anchors[anchorID] -= 1
+        }
+      }
     }
     print("atoms:", tooltipDiamondoid.atoms.count + surfaceDiamondoid.atoms.count)
     print("unpaired electrons:", hydrogensToRemove.count)
     provider = ArrayAtomProvider([tooltipDiamondoid, surfaceDiamondoid])
     
+    // TODO: Change the anchors. Only the 3 outermost radical atoms should be
+    // constrained. This gives the inner atoms more room to adapt to the
+    // hydrogens' Pauli repulsion. It results in a very conservative estimate
+    // of stiffness. However, now that atoms can actually contribute to the
+    // simulation, instead of wasting compute power.
+    print(anchors.map { $0 + 1 })
+    
     // MARK: - Simulation
     
+//    print(exportToXTB(surfaceDiamondoid.atoms))
     //     print(exportToXTB([tooltipDiamondoid, surfaceDiamondoid]))
         #if false
         var minimized = importFromXTB(xtbText)
@@ -542,48 +576,84 @@ struct HydrogenAbstraction {
           copy.origin += SIMD3(1, 0, 0)
           return copy
         }
-        provider = ArrayAtomProvider(tooltipDiamondoid.atoms + minimized)
+        provider = ArrayAtomProvider(surfaceDiamondoid.atoms + minimized)
         #endif
   }
 }
 
 fileprivate let xtbText = """
 $coord
-        3.44399199229851       -3.16747677505113       -3.18936371114192      c
-        4.63717066092302       -4.47731244803007       -2.13137965776747      h
-        1.35947208582459       -5.05843783419669       -5.08610434484183      s
-        4.63341801517251       -2.10276788799378       -4.49654028426620      h
-       -3.18933203886304        3.44406029412651       -3.16749499354120      c
-       -4.49651328863342        4.63344922958938       -2.10278265189111      h
-       -2.13134798538449        4.63727839218242       -4.47727958087681      h
-       -5.08603441991406        1.35960531003696       -5.05854940056505      s
-        0.44344719108351        0.45510021529654       -2.90159983286753      c
-        1.65214951764306        1.67238360612168       -4.05670708031906      h
-       -0.70423351799427       -0.69192449040904       -4.18709024064721      h
-       -1.34108850448502       -1.35321149652661        2.09921533498816      c
-        0.45505376220611       -2.90158179077822        0.44342961300973      c
-        1.67232955981442       -4.05670630764915        1.65212307911701      h
-       -0.69198177825394       -4.18705448900726       -0.70425920717963      h
-        2.09921860605363       -1.34105506176055       -1.35323090871049      c
-       -2.90159887155688        0.44347908582615        0.45506673218882      c
-       -4.18708960086848       -0.70418641810586       -0.69197122127619      h
-       -4.05670426237385        1.65217798396790        1.67235563268492      h
-       -1.35321968971417        2.09925889282796       -1.34107321796084      c
-        0.07312212123703        4.17272827538892        0.08808076381443      c
-        1.08237049537136        5.37844441800916       -1.24369158263211      h
-       -1.25990978801982        5.36860450484282        1.10772237098618      h
-        4.17270472018807        0.08806903650578        0.07311335175519      c
-        5.37841486390125       -1.24372102706945        1.08234597719494      h
-        5.36858128209206        1.10771262673607       -1.25991529967192      h
-        2.40018566801537        2.40018390187991        2.40019499888236      ge
-        4.05463599361086        4.05461174715140        4.05464861132229      h
-       -3.16752515875321       -3.18933267844438        3.44398498393523      c
-       -4.47734272672973       -2.13133383535775        4.63716420192703      h
-       -5.05854494100868       -5.08604523028315        1.35947469213975      s
-       -2.10283293355980       -4.49650863939412        4.63341245986778      h
-        0.08805894945626        0.07310629303998        4.17270467574895      c
-       -1.24371853288885        1.08234305899044        5.37842524166468      h
-        1.10769255411005       -1.25994046246293        5.36857049492894      h
+        2.98000000000001       -2.15200000000000       -2.15200000000002      si
+        8.11100000000004       -7.28299999999994       -2.15199999999991      si
+        8.11099999999999       -2.15199999999982       -7.28300000000005      si
+       10.35377145969368       -4.11294024156710       -4.11337776018159      si
+       11.24813559819791       -2.28008869949299       -2.27993677827648      h
+       12.82246680914358       -4.96110468220498       -4.96088488100989      h
+       -2.15200000000000        2.97999999999999       -2.15200000000000      si
+       -7.28300000000006        8.11099999999995       -2.15200000000024      si
+       -2.15199999999983        8.11099999999994       -7.28299999999959      si
+       -4.11309608824441       10.35363713490670       -4.11270109328524      si
+       -4.95994441282860       12.82279122441483       -4.96017191489364      h
+       -2.27944167712681       11.24699150695717       -2.27959887401768      h
+        5.34922684155456        5.34937945608331      -10.03764662802719      si
+        6.86099797890083        6.86077435877462       -8.32407309870508      h
+        8.11099999999978        2.97999999999995      -12.41499999999980      si
+        9.87355229739514        5.04298128954095      -12.33565177196745      h
+       10.33041462349519        1.03270814964049       -9.21909697749970      si
+       12.84209580959330        0.20650693208344       -9.96169916250762      h
+       11.13450711349145        2.82575151983170       -7.30481532005889      h
+        2.98000000000021        8.11100000000008      -12.41499999999958      si
+        5.04326700472809        9.87330062257226      -12.33573402266810      h
+        1.03357120650075       10.33016633153923       -9.21749386372056      si
+        2.82532834522560       11.13690661595249       -7.30543324465342      h
+        0.20640413236465       12.83935371403845       -9.96234767664668      h
+        2.98000000000001        2.97999999999995       -7.28299999999997      si
+        0.22733002930242        5.35055703384098       -4.90263999414114      si
+        1.81124606086336        6.92082270729949       -3.31599492235141      h
+        5.35058034971129        0.22746690024087       -4.90278032892479      si
+        6.92091880587462        1.81110559020452       -3.31592821644291      h
+       -2.15199999999999       -2.15200000000001        2.97999999999998      si
+       -7.28299999999990       -2.15200000000014        8.11100000000005      si
+       -2.15200000000011       -7.28299999999994        8.11100000000001      si
+       -4.11313579313848       -4.11352000661447       10.35383655048162      si
+       -2.28038978865931       -2.28021922871597       11.24870442667161      h
+       -4.96162083213731       -4.96138535608491       12.82229340035121      h
+        5.34947001027410      -10.03765596812405        5.34910623457813      si
+        6.86076888632580       -8.32409559683367        6.86098687824233      h
+        8.11100000000024      -12.41500000000010        2.98000000000018      si
+        9.87322851070819      -12.33585898008609        5.04332894815939      h
+       10.32995710452839       -9.21659663176685        1.03450623953020      si
+       12.83821901162261       -9.96159296831000        0.20718231473525      h
+       11.13710980541523       -7.30527315695550        2.82548693466381      h
+        2.97999999999996       -7.28300000000006        2.98000000000040      si
+        0.22744062725028       -4.90277010913410        5.35057675394601      si
+        1.81108153900363       -3.31590698372143        6.92090130057552      h
+        5.35060525144308       -4.90263876834798        0.22729978111590      si
+        6.92082229702738       -3.31596209197348        1.81123211596892      h
+        2.98000000000120      -12.41499999999952        8.11100000000034      si
+        5.04303892777987      -12.33596669290296        9.87339546866552      h
+        1.03367719839922       -9.21815455919358       10.33020872304606      si
+        0.20748147918012       -9.96080347250929       12.84100999752600      h
+        2.82597894099327       -7.30461402152367       11.13451162731410      h
+      -10.03765235953809        5.34865784477999        5.34991933421399      si
+       -8.32407812339092        6.86095294355421        6.86078676054780      h
+       -7.28299999999973        2.97999999999786        2.98000000000163      si
+       -4.90267994596781        0.22728799862162        5.35068252981261      si
+       -3.31598108642896        1.81123809038711        6.92085992708651      h
+       -4.90275073211389        5.35046228508582        0.22748477422198      si
+       -3.31593632714434        6.92086861856216        1.81109288462796      h
+      -12.41499999999908        8.11100000000190        2.98000000000174      si
+      -12.33627578696130        9.87323376883001        5.04303094611650      h
+       -9.21813232190815       10.33031489385017        1.03364818359917      si
+       -7.30492595506905       11.13539286328123        2.82570616927270      h
+       -9.96139010637590       12.84061193049213        0.20699215096136      h
+      -12.41499999999357        2.97999999999953        8.11099999999920      si
+      -12.33519535856262        5.04326029292649        9.87352703657604      h
+       -9.21790797340367        1.03319442996942       10.33012235893189      si
+       -9.96204880973608        0.20652256786248       12.84018690653871      h
+       -7.30519820091799        2.82547611933390       11.13591718386115      h
+        0.24698418619880        0.24702591770618        0.24696208149018      si
+        1.82748369784307        1.82749066250870        1.82748217925278      h
 $end
 
 """
