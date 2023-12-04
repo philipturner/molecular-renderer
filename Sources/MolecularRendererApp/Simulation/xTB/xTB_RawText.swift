@@ -14,6 +14,10 @@ func exportToXTB(_ atoms: [MRAtom]) -> String {
   exportToText(atoms, xtb: true)
 }
 
+func exportToXTB(_ diamondoids: [Diamondoid]) -> String {
+  exportToText(diamondoids.flatMap(\.atoms), xtb: true)
+}
+
 /// Used for storing xTB trajectories as Swift source code.
 func exportToSwift(_ atoms: [MRAtom]) -> String {
   exportToText(atoms, xtb: false)
