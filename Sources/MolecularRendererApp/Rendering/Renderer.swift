@@ -61,6 +61,6 @@ class Renderer {
     self.styleProvider = NanoStuff()
     initOpenMM()
     
-    self.atomProvider = HydrogenAbstraction().provider
+    self.atomProvider = SimpleMechanosynthesis().provider
   }
 }

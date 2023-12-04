@@ -28,6 +28,9 @@ func importFromXTB(_ data: String) -> [MRAtom] {
   guard lines.first!.starts(with: "$coord") else {
     fatalError("Did not start with $coord.")
   }
+  guard !lines.first!.starts(with: "$coord ang") else {
+    fatalError("Coordinates cannot be in angstroms.")
+  }
   while lines.last!.allSatisfy(\.isWhitespace) {
     lines.removeLast()
   }
@@ -36,6 +39,7 @@ func importFromXTB(_ data: String) -> [MRAtom] {
   }
   lines.removeFirst()
   lines.removeLast()
+  lines.removeAll(where: { $0.starts(with: "$")})
   
   var output: [MRAtom] = []
   for line in lines {
@@ -68,7 +72,7 @@ fileprivate let BohrPerAngstrom: Float = 1 / 0.529177
 fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
   var output: String = ""
   if xtb {
-    output += "$coord ang"
+    output += "$coord"
     output += "\n"
   }
   
@@ -122,4 +126,44 @@ fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
     output += "\n"
   }
   return output
+}
+
+// Utilities for running MD simulations through xTB.
+
+// WARNING: This does not include which atoms should be anchors, and does not
+// include the number of unpaired electrons. It should go in "coord.inp".
+let xtbSettingsMD: String = """
+$md
+   temp=298.15 # in K
+   time=  1.0  # in ps
+   dump=  2.0  # in fs
+   step=  2.0  # in fs
+   velo=false
+   nvt =true
+   hmass=2
+   shake=0
+   sccacc=2.0
+$end
+"""
+
+// MD simulations are in angstroms, while coordinate files are in bohr.
+// - declare a function that imports the xTB simulation from text
+
+// TODO: - Debug the text deserialization before rendering a simulation with
+// 'XtbAtomProvider'.
+struct XtbAtomProvider: MRAtomProvider {
+  var frames: [[MRAtom]] = []
+  
+  // Main initializer from an array of frames.
+  
+  // Convenience initializer directly from xTB text.
+  
+  mutating func atoms(time: MRTimeContext) -> [MRAtom] {
+    var arrayIndex = time.absolute.frames
+    arrayIndex = min(arrayIndex, frames.count - 1)
+    guard frames.count > 0 else {
+      return []
+    }
+    return frames[arrayIndex]
+  }
 }

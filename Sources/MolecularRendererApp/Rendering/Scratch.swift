@@ -3,9 +3,10 @@
 import Foundation
 import HDL
 import MolecularRenderer
+import Numerics
 import QuaternionModule
 
-struct HydrogenAbstraction {
+struct SimpleMechanosynthesis {
   var provider: MRAtomProvider
   
   init() {
@@ -291,7 +292,7 @@ struct HydrogenAbstraction {
           let bondedID = bondedAtomIDs[i]
           var other = tooltipDiamondoid.atoms[bondedID]
           
-          let quaternion = Quaternion<Float>(angle: 0.7, axis: direction)
+          let quaternion = Quaternion<Float>(angle: 0.8, axis: direction)
           var delta = other.origin - atom.origin
           delta = quaternion.act(on: delta)
           other.origin = atom.origin + delta
@@ -359,7 +360,7 @@ struct HydrogenAbstraction {
       label += "-"
       label += atomLabel(atom2.element)
       label += " \((idealBondLength - bondLength).magnitude)"
-      print(label)
+//      print(label)
     }
     
     provider = ArrayAtomProvider(tooltipDiamondoid.atoms)
@@ -543,6 +544,85 @@ struct HydrogenAbstraction {
     // the hydrogen attached to the silicon and remap the bond topology. Then,
     // it is ready to validate in xTB.
     
+    var replacedHydrogens: [Int] = []
+    for tooltipAtomID in tooltipDiamondoid.atoms.indices {
+      let sulfur = tooltipDiamondoid.atoms[tooltipAtomID]
+      guard sulfur.element == 16 else {
+        continue
+      }
+      
+      var minimumDistance: Float = .greatestFiniteMagnitude
+      var minimumIndex: Int = -1
+      for atomID in surfaceDiamondoid.atoms.indices {
+        let silicon = surfaceDiamondoid.atoms[atomID]
+        guard silicon.element == 14 else {
+          continue
+        }
+        let delta = silicon.origin - sulfur.origin
+        let distance = (delta * delta).sum().squareRoot()
+        if distance < minimumDistance {
+          minimumDistance = distance
+          minimumIndex = atomID
+        }
+      }
+      
+      // Remove the upward-facing hydrogen; report angles with any other atoms.
+      var bondedAtoms: [(index: Int, atom: MRAtom)] = []
+      for var bond in surfaceDiamondoid.bonds {
+        guard Int(bond[0]) == minimumIndex || Int(bond[1]) == minimumIndex else {
+          continue
+        }
+        if Int(bond[0]) == minimumIndex {
+          bond = SIMD2(bond[1], bond[0])
+        }
+        let neighbor = surfaceDiamondoid.atoms[Int(bond[0])]
+        bondedAtoms.append((Int(bond[0]), neighbor))
+      }
+      bondedAtoms.sort(by: {
+        let dot1 = ($0.atom.origin * SIMD3(1, 1, 1)).sum()
+        let dot2 = ($1.atom.origin * SIMD3(1, 1, 1)).sum()
+        return dot1 > dot2
+      })
+      replacedHydrogens.append(bondedAtoms.first!.index)
+      
+      // Report deviation from ideal geometry.
+      let silicon = surfaceDiamondoid.atoms[minimumIndex]
+      var siSDelta = sulfur.origin - silicon.origin
+      let siSBondLength = (siSDelta * siSDelta).sum().squareRoot()
+      siSDelta /= siSBondLength
+      print("Si-S bond:", siSBondLength - 2.16 / 10)
+      
+      for bondedAtom in bondedAtoms[1...] {
+        let first = bondedAtoms[0]
+        guard first.atom.element == 1 else {
+          fatalError("Unrecognized first bonded atom.")
+        }
+        let second = bondedAtom
+        guard second.atom.element == 1 || second.atom.element == 14 else {
+          fatalError("Unrecognized second bonded atom.")
+        }
+        
+        // Units: rad -> degree
+        var siSiDelta = second.atom.origin - silicon.origin
+        siSiDelta /= (siSiDelta * siSiDelta).sum().squareRoot()
+        let cosine = (siSDelta * siSiDelta).sum()
+        var angle = Float.acos(cosine)
+        angle *= 180 / 3.141592653
+        
+        var message: String = ""
+        if second.atom.element == 1 {
+          message += " H-Si-S"
+        } else {
+          message += "Si-Si-S"
+        }
+        message += " angle: "
+        message += String(format: "%.2f", angle - (180 - 70.528779))
+        
+        print(message)
+      }
+    }
+    hydrogensToRemove.append(contentsOf: replacedHydrogens)
+    
     // Defer the removal of hydrogens until you discard the bonding topology.
     hydrogensToRemove.sort()
     anchors.sort()
@@ -554,106 +634,125 @@ struct HydrogenAbstraction {
         }
       }
     }
-    print("atoms:", tooltipDiamondoid.atoms.count + surfaceDiamondoid.atoms.count)
-    print("unpaired electrons:", hydrogensToRemove.count)
-    provider = ArrayAtomProvider([tooltipDiamondoid, surfaceDiamondoid])
     
-    // TODO: Change the anchors. Only the 3 outermost radical atoms should be
+    // Change the anchors. Only the 3 outermost radical atoms should be
     // constrained. This gives the inner atoms more room to adapt to the
     // hydrogens' Pauli repulsion. It results in a very conservative estimate
     // of stiffness. However, now that atoms can actually contribute to the
     // simulation, instead of wasting compute power.
-    print(anchors.map { $0 + 1 })
+    anchors.removeAll(where: { index in
+      let atom = surfaceDiamondoid.atoms[index]
+      let delta = atom.origin - .zero
+      if (delta * delta).sum().squareRoot() < 0.25 {
+        return true
+      } else {
+        return false
+      }
+    })
+    print()
+    print(
+      "atoms:",
+      surfaceDiamondoid.atoms.count, "(surface) +",
+      tooltipDiamondoid.atoms.count, "(tooltip) =",
+      // eventually, add the workpiece here
+      surfaceDiamondoid.atoms.count + tooltipDiamondoid.atoms.count)
+    print(
+      "unpaired electrons:",
+      hydrogensToRemove.count - replacedHydrogens.count)
+    print(
+      "anchors:",
+      anchors.map { $0 + 1 })
+    provider = ArrayAtomProvider([surfaceDiamondoid, tooltipDiamondoid])
     
     // MARK: - Simulation
     
 //    print(exportToXTB(surfaceDiamondoid.atoms))
-    //     print(exportToXTB([tooltipDiamondoid, surfaceDiamondoid]))
-        #if false
+         print(exportToXTB([surfaceDiamondoid, tooltipDiamondoid]))
+        #if true
         var minimized = importFromXTB(xtbText)
         minimized = minimized.map {
           var copy = $0
-          copy.origin += SIMD3(1, 0, 0)
+          copy.origin += SIMD3(1, 0, -1)
           return copy
         }
-        provider = ArrayAtomProvider(surfaceDiamondoid.atoms + minimized)
+        provider = ArrayAtomProvider(
+          surfaceDiamondoid.atoms +
+          tooltipDiamondoid.atoms +
+          minimized)
         #endif
   }
 }
 
 fileprivate let xtbText = """
 $coord
-        2.98000000000001       -2.15200000000000       -2.15200000000002      si
-        8.11100000000004       -7.28299999999994       -2.15199999999991      si
-        8.11099999999999       -2.15199999999982       -7.28300000000005      si
-       10.35377145969368       -4.11294024156710       -4.11337776018159      si
-       11.24813559819791       -2.28008869949299       -2.27993677827648      h
-       12.82246680914358       -4.96110468220498       -4.96088488100989      h
-       -2.15200000000000        2.97999999999999       -2.15200000000000      si
-       -7.28300000000006        8.11099999999995       -2.15200000000024      si
-       -2.15199999999983        8.11099999999994       -7.28299999999959      si
-       -4.11309608824441       10.35363713490670       -4.11270109328524      si
-       -4.95994441282860       12.82279122441483       -4.96017191489364      h
-       -2.27944167712681       11.24699150695717       -2.27959887401768      h
-        5.34922684155456        5.34937945608331      -10.03764662802719      si
-        6.86099797890083        6.86077435877462       -8.32407309870508      h
-        8.11099999999978        2.97999999999995      -12.41499999999980      si
-        9.87355229739514        5.04298128954095      -12.33565177196745      h
-       10.33041462349519        1.03270814964049       -9.21909697749970      si
-       12.84209580959330        0.20650693208344       -9.96169916250762      h
-       11.13450711349145        2.82575151983170       -7.30481532005889      h
-        2.98000000000021        8.11100000000008      -12.41499999999958      si
-        5.04326700472809        9.87330062257226      -12.33573402266810      h
-        1.03357120650075       10.33016633153923       -9.21749386372056      si
-        2.82532834522560       11.13690661595249       -7.30543324465342      h
-        0.20640413236465       12.83935371403845       -9.96234767664668      h
-        2.98000000000001        2.97999999999995       -7.28299999999997      si
-        0.22733002930242        5.35055703384098       -4.90263999414114      si
-        1.81124606086336        6.92082270729949       -3.31599492235141      h
-        5.35058034971129        0.22746690024087       -4.90278032892479      si
-        6.92091880587462        1.81110559020452       -3.31592821644291      h
-       -2.15199999999999       -2.15200000000001        2.97999999999998      si
-       -7.28299999999990       -2.15200000000014        8.11100000000005      si
-       -2.15200000000011       -7.28299999999994        8.11100000000001      si
-       -4.11313579313848       -4.11352000661447       10.35383655048162      si
-       -2.28038978865931       -2.28021922871597       11.24870442667161      h
-       -4.96162083213731       -4.96138535608491       12.82229340035121      h
-        5.34947001027410      -10.03765596812405        5.34910623457813      si
-        6.86076888632580       -8.32409559683367        6.86098687824233      h
-        8.11100000000024      -12.41500000000010        2.98000000000018      si
-        9.87322851070819      -12.33585898008609        5.04332894815939      h
-       10.32995710452839       -9.21659663176685        1.03450623953020      si
-       12.83821901162261       -9.96159296831000        0.20718231473525      h
-       11.13710980541523       -7.30527315695550        2.82548693466381      h
-        2.97999999999996       -7.28300000000006        2.98000000000040      si
-        0.22744062725028       -4.90277010913410        5.35057675394601      si
-        1.81108153900363       -3.31590698372143        6.92090130057552      h
-        5.35060525144308       -4.90263876834798        0.22729978111590      si
-        6.92082229702738       -3.31596209197348        1.81123211596892      h
-        2.98000000000120      -12.41499999999952        8.11100000000034      si
-        5.04303892777987      -12.33596669290296        9.87339546866552      h
-        1.03367719839922       -9.21815455919358       10.33020872304606      si
-        0.20748147918012       -9.96080347250929       12.84100999752600      h
-        2.82597894099327       -7.30461402152367       11.13451162731410      h
-      -10.03765235953809        5.34865784477999        5.34991933421399      si
-       -8.32407812339092        6.86095294355421        6.86078676054780      h
-       -7.28299999999973        2.97999999999786        2.98000000000163      si
-       -4.90267994596781        0.22728799862162        5.35068252981261      si
-       -3.31598108642896        1.81123809038711        6.92085992708651      h
-       -4.90275073211389        5.35046228508582        0.22748477422198      si
-       -3.31593632714434        6.92086861856216        1.81109288462796      h
-      -12.41499999999908        8.11100000000190        2.98000000000174      si
-      -12.33627578696130        9.87323376883001        5.04303094611650      h
-       -9.21813232190815       10.33031489385017        1.03364818359917      si
-       -7.30492595506905       11.13539286328123        2.82570616927270      h
-       -9.96139010637590       12.84061193049213        0.20699215096136      h
-      -12.41499999999357        2.97999999999953        8.11099999999920      si
-      -12.33519535856262        5.04326029292649        9.87352703657604      h
-       -9.21790797340367        1.03319442996942       10.33012235893189      si
-       -9.96204880973608        0.20652256786248       12.84018690653871      h
-       -7.30519820091799        2.82547611933390       11.13591718386115      h
-        0.24698418619880        0.24702591770618        0.24696208149018      si
-        1.82748369784307        1.82749066250870        1.82748217925278      h
+        2.62822876030066       -2.21172196967269       -2.37969220280360      si
+       -3.13691023003335        3.13790719131804       -3.31338885955427      si
+        2.95500000000108        2.95500000000003       -7.30799999999890      si
+        4.42521888810655        4.65485695961784       -8.97989254825987      h
+       -0.36769334414354        5.45369019487105       -5.97196571296181      si
+       -2.02844621850132        6.12184659015700       -8.11924812428409      h
+       -0.01143341896473        7.95947268133861       -4.76907988045431      h
+        5.30172550404049        0.19976503947437       -4.92407963757327      si
+        7.09948290491001       -1.09320549651707       -6.60482120137705      h
+       -2.29336370701247       -2.94747886933030        1.67975851103261      si
+        2.95499999999887       -7.30800000000156        2.95500000000020      si
+        5.26621344123946       -8.13629115215489        4.30620491510530      h
+        0.29457070635645       -4.46466531606950        5.01632193224689      si
+       -1.11984429993545       -5.85522416836862        6.98316094869633      h
+        4.34039032432114       -6.08728813603224       -0.99552720328946      si
+        3.54586288995535       -7.83491305076961       -3.03247750827945      h
+        7.05065350984897       -5.75851898025073       -1.63952531530258      h
+       -7.30800000000130        2.95500000000301        2.95499999999893      si
+       -6.79554888623501        3.92950180502591        5.54800425149037      h
+       -6.07813462332742       -1.23341138074673        3.10282156104154      si
+       -7.91086668463838       -2.83724388584450        1.70151797682663      h
+       -6.31250511695399       -2.26865148844946        5.70303576809164      h
+       -5.18517268111156        5.29053405811186       -0.02500121027027      si
+       -6.72396524389615        7.34971685203124       -1.10377084539491      h
+       -1.53131766023092       -0.85642513545190       -2.24347844704613      si
+       -0.61744065906852        1.02256870884859        1.36940112254218      h
+        7.66917480872288        1.45919994506266        0.31363248174101      c
+        6.65285136510724       -0.33669048060176        0.17797611796493      h
+        7.91934196456178        2.69873113210071       -2.86651650520263      s
+        9.60036381056200        1.06185323942511        0.91882481173444      h
+        0.29218004569995        6.97275018438153        1.06921447512297      c
+        0.77533211172229        8.74232737072302        0.12160598152634      h
+       -0.00221248703101        5.52606958413067       -0.37065822250511      h
+       -2.73290290342971        7.42525988253319        2.56311493762660      s
+        4.22630292865646        4.66783284584735        0.98013484231611      c
+        4.98377558785302        5.98990335105611       -0.41812866085430      h
+        3.06792741719169        3.27291926731373       -0.02851258234432      h
+        3.46436306381917        2.71828407871303        6.15979139036808      c
+        5.15873483253062        1.45273126316740        4.19322018339138      c
+        6.63816094359496        0.36890642739204        5.14749050460011      h
+        3.96603385477580        0.11805962664258        3.14593920256420      h
+        6.36210795812106        3.20697183014651        2.23826336789439      c
+        1.48067538574143        4.34925929896649        4.83119438919284      c
+        0.13310084441681        3.09099174097604        3.92431984812975      h
+        0.44372162880082        5.44335499721286        6.24666460223491      h
+        2.47334942905238        6.11514393230619        2.77743782755989      c
+        3.75337710820490        8.41086393793624        3.97035184123234      c
+        4.40674419123852        9.70730948471489        2.50500909860944      h
+        2.38089774077612        9.42519921107238        5.12751648294856      h
+        8.34609047805194        4.99297758860627        3.34733266572909      c
+        9.90138489111496        3.89958768491833        4.14575525275979      h
+        9.12404498322260        6.14888397706745        1.82571332916493      h
+        6.58148487458919        6.99751936403095        5.93244568381226      ge
+        8.20092843581630        8.89349640750753        7.36122514913008      h
+        1.98954634905449        0.67900933856257        7.65542819962993      c
+        0.01261680126182        0.64844349532925        7.07449748772767      h
+        3.14080765698384       -2.54361048388239        7.36852123937045      s
+        2.05350292651056        1.08336543992601        9.67685656798431      h
+        5.03673273902152        4.30538336646664        7.99770271977629      c
+        3.82319422292282        5.06166642314857        9.48240342106623      h
+        6.45949524473946        3.11661548452282        8.90326383368335      h
+$eht charge=0 unpaired=6
 $end
+
+"""
+
+// TODO: - Never commit an entire trajectory to GitHub Gist. Always delete the
+// text beforehand.
+fileprivate let xtbSimulation: String = """
 
 """
