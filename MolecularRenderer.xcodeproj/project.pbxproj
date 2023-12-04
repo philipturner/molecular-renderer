@@ -83,6 +83,8 @@
 		9898382A29A6C09000B4AA98 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382929A6C09000B4AA98 /* Assets.xcassets */; };
 		9898382D29A6C09000B4AA98 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9898382C29A6C09000B4AA98 /* Preview Assets.xcassets */; };
 		989CBA0A2B1C0F4200213CBE /* Adamantanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA092B1C0F4200213CBE /* Adamantanes.swift */; };
+		989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
+		989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */; };
 		98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A07C242A2CBFCF00729897 /* PDBParser.swift */; };
 		98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A07C262A2CC11B00729897 /* ParsingUtilities.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -266,6 +268,8 @@
 		989CBA062B1BF4E800213CBE /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		989CBA072B1C003000213CBE /* TopologyGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyGrid.swift; sourceTree = "<group>"; };
 		989CBA092B1C0F4200213CBE /* Adamantanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adamantanes.swift; sourceTree = "<group>"; };
+		989CBA0B2B1D2AE200213CBE /* Scratch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch.swift; sourceTree = "<group>"; };
+		989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = xTB_RawText.swift; sourceTree = "<group>"; };
 		98A07C242A2CBFCF00729897 /* PDBParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDBParser.swift; sourceTree = "<group>"; };
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
 		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
@@ -399,6 +403,7 @@
 		980E70152A5E51AC0051797F /* Procedural Geometry */ = {
 			isa = PBXGroup;
 			children = (
+				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
 				986348F72A73310F0053E714 /* Amplifier.swift */,
 				980E70202A5E57E10051797F /* CrystalPlane.swift */,
 				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
@@ -407,7 +412,6 @@
 				98325C5B2A6C6C9A00A4D7BB /* StructureUtilities.swift */,
 				986289E72ADF6784009CF919 /* MathUtilities.swift */,
 				986289E92ADF678B009CF919 /* TimeUtilities.swift */,
-				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
 			);
 			path = "Procedural Geometry";
 			sourceTree = "<group>";
@@ -526,6 +530,7 @@
 				986ED88929A6CF3600E0653B /* Renderer.swift */,
 				98B6BDFA2AEE85B000F8655C /* Renderer+Setup.swift */,
 				98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */,
+				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
 				98FB90792A5B6FC600685E5C /* VsyncHandler.swift */,
 			);
 			path = Rendering;
@@ -567,6 +572,7 @@
 		9846B9002A069785006E4924 /* Simulation */ = {
 			isa = PBXGroup;
 			children = (
+				989CBA0D2B1D2B3C00213CBE /* xTB */,
 				98518AF52A7577A200CAD919 /* MM4 */,
 				98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */,
 				98C48C642A48FA250047C078 /* initOpenMM.swift */,
@@ -694,6 +700,14 @@
 				98610F632AA2662C006FAF95 /* Origin.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		989CBA0D2B1D2B3C00213CBE /* xTB */ = {
+			isa = PBXGroup;
+			children = (
+				989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */,
+			);
+			path = xTB;
 			sourceTree = "<group>";
 		};
 		98A700A82AB4A0CF00499CD2 /* Spring */ = {
@@ -1255,6 +1269,8 @@
 				98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */,
 				98F2F5D22A5F2E7B006216F4 /* MassiveDiamond.swift in Sources */,
 				9879280F2A505A4300268AE2 /* HelloEthaneInSwift.swift in Sources */,
+				989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */,
+				989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */,
 				988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */,
 				98B6BE0D2AEF0E0300F8655C /* Chapter12_Figure1.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
