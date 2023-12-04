@@ -49,6 +49,12 @@ struct HydrogenAbstraction {
     //   the traditional 120 Hz resolution. Alternatively, run a very long
     //   simulation at 120 Hz resolution and save to MRSim.
     // - Publish an animation.
+    //
+    // Other notes:
+    // - Make the entire contraption have threefold symmetry, so it can be
+    //   simulated faster with DFT. Not sure this particular instance will
+    //   trigger the symmetry recognition in whatever software package simulates
+    //   it. However, this is a good practice to establish.
     
     // MARK: - Tooltip
     
@@ -373,28 +379,158 @@ struct HydrogenAbstraction {
           Origin { -0.25 * (h + k + l) }
           Plane { -(h + k + l) }
         }
-        for directionZ in [Float(1), -1] {
-          Convex {
-            Origin { directionZ * 2 * l }
-            Plane { directionZ * l }
+        for direction in [h, k, l] {
+          for multiplier in [Float(1), -1.25] {
+            Convex {
+              Origin { multiplier * direction }
+              Plane { multiplier * direction }
+            }
           }
         }
         
         Replace { .empty }
+        
+        // The back row must be converted into free radicals to minimize the
+        // atom count. Accomplish this by marking the back row with nitrogens.
+        // These atoms will eventually be held stationary when we simulate the
+        // trajectory.
+        Convex {
+          Origin { 0 * (h + k + l) }
+          Plane { -(h + k + l) }
+          
+          Replace { .atom(.nitrogen) }
+        }
       }
     }
     let surfaceAtoms = surfaceLattice.entities.map(MRAtom.init)
-//    var surfaceDiamondoid = Diamondoid(atoms: surfaceAtoms)
+    let surfaceCarbonAtoms = surfaceAtoms.map {
+      var copy = $0
+      copy.element = 6
+      return copy
+    }
+    var surfaceDiamondoid = Diamondoid(atoms: surfaceCarbonAtoms)
+    let surfaceCenterOfMass = surfaceDiamondoid.createCenterOfMass()
     
-    // Map the surface to silicon and rescale the bonds.
+    // Map the surface to silicon and record the number of unpaired electrons.
+    // This should equal the number of nitrogens; take special care to not
+    // delete hydrogens elevated above a certain point.
+    var hydrogensToRemove: [Int] = []
+    for i in surfaceAtoms.indices {
+      let atomI = surfaceAtoms[i]
+      var closestDistance: Float = .greatestFiniteMagnitude
+      var closestIndex: Int = -1
+      for j in surfaceDiamondoid.atoms.indices {
+        let atomJ = surfaceDiamondoid.atoms[j]
+        let delta = atomI.origin - atomJ.origin
+        let distance = (delta * delta).sum().squareRoot()
+        if distance < closestDistance {
+          closestDistance = distance
+          closestIndex = j
+        }
+      }
+      
+      let index = closestIndex
+      guard index != -1 else {
+        fatalError("Index not correct.")
+      }
+      
+      // Change the atom's identity to silicon.
+      surfaceDiamondoid.atoms[index].element = 14
+      
+      var bondedHydrogenIDs: [Int] = []
+      for var bond in surfaceDiamondoid.bonds {
+        guard Int(bond[0]) == index || Int(bond[1]) == index else {
+          continue
+        }
+        if Int(bond[0]) == index {
+          bond = SIMD2(bond[1], bond[0])
+        }
+        if surfaceDiamondoid.atoms[Int(bond[0])].element != 1 {
+          continue
+        }
+        bondedHydrogenIDs.append(Int(bond[0]))
+      }
+      
+      // If there are no bonded hydrogens, return early.
+      if bondedHydrogenIDs.count == 0 {
+        continue
+      }
+      
+      bondedHydrogenIDs.sort(by: { index1, index2 in
+        let atom1 = surfaceDiamondoid.atoms[index1]
+        let atom2 = surfaceDiamondoid.atoms[index2]
+        return (
+          (atom1.origin * SIMD3(1, 1, 1)).sum() <
+          (atom2.origin * SIMD3(1, 1, 1)).sum()
+        )
+      })
+      
+      // For front atoms, the bonded hydrogen points toward (111).
+      do {
+        var delta =
+        surfaceDiamondoid.atoms[bondedHydrogenIDs.last!].origin -
+        surfaceDiamondoid.atoms[index].origin
+        delta /= (delta * delta).sum().squareRoot()
+        if (delta * SIMD3(1, 1, 1)).sum() > 0.800 {
+          continue
+        }
+      }
+      
+      hydrogensToRemove.append(bondedHydrogenIDs[0])
+    }
+    surfaceDiamondoid.translate(offset: -surfaceCenterOfMass)
+    
+    // Rescale the bonds, now that the center of mass is the origin.
+    for index in surfaceDiamondoid.atoms.indices {
+      let atom = surfaceDiamondoid.atoms[index]
+      var bondedHydrogenIDs: [Int] = []
+      for var bond in surfaceDiamondoid.bonds {
+        guard Int(bond[0]) == index || Int(bond[1]) == index else {
+          continue
+        }
+        if Int(bond[0]) == index {
+          bond = SIMD2(bond[1], bond[0])
+        }
+        if surfaceDiamondoid.atoms[Int(bond[0])].element != 1 {
+          continue
+        }
+        bondedHydrogenIDs.append(Int(bond[0]))
+      }
+      
+      // Record the delta between each hydrogen.
+      var hydrogenDeltas: [SIMD3<Float>] = []
+      for hydrogenID in bondedHydrogenIDs {
+        let hydrogen = surfaceDiamondoid.atoms[hydrogenID]
+        var delta = hydrogen.origin - atom.origin
+        let deltaLength = (delta * delta).sum().squareRoot()
+        let scaleFactor: Float = (1.483 / 10) / deltaLength
+        hydrogenDeltas.append(delta * scaleFactor)
+      }
+      
+      // Map the silicon to the new position.
+      let scaleFactor: Float =
+      Constant(.square) { .elemental(.silicon) } /
+      Constant(.square) { .elemental(.carbon) }
+      
+      // Bring the hydrogens along with the silicon.
+    }
+    
+    // Push the tooltip forward, so it rests just over the surface.
     
     // Record the closest silicon-sulfur bond while placing the tooltip. Record
     // its length and angle from (111) in degrees. Report the C-S-Si angle too.
     // Use trial and error to find the ideal position on the surface. Remove
-    // the hydrogen attached to the silicon and remap the bond topology.
+    // the hydrogen attached to the silicon and remap the bond topology. Then,
+    // it is ready to validate in xTB.
     
-    provider = ArrayAtomProvider(surfaceAtoms)
-//    provider = ArrayAtomProvider([tooltipDiamondoid, surfaceDiamondoid])
+    // Defer the removal of hydrogens until you discard the bonding topology.
+    hydrogensToRemove.sort()
+    for i in hydrogensToRemove.reversed() {
+      surfaceDiamondoid.atoms.remove(at: i)
+    }
+    print("atoms:", tooltipDiamondoid.atoms.count + surfaceDiamondoid.atoms.count)
+    print("unpaired electrons:", hydrogensToRemove.count)
+    provider = ArrayAtomProvider([tooltipDiamondoid, surfaceDiamondoid])
     
     // MARK: - Simulation
     

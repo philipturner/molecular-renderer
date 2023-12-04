@@ -64,7 +64,7 @@ public struct Material {
   }
 }
 
-typealias Constant = Float
+public typealias Constant = Float
 
 extension Float {
   /// Do not use this initializer via the API `Float.init`. It is intended to be
