@@ -28,6 +28,8 @@ This would start in 2024 at the earliest. The priority is getting supermassive s
 
 ## Recent Development
 
-I found a pathway that makes the proposed ideas much more feasible. I can modify the [DFT-FE](https://github.com/dftfeDevelopers/dftfe) codebase, adding Metal GPU support and the DeepMind 2021 XC functional. The plan is to analyze this codebase over the first few months of 2024, similarly to the actions taken with OpenMM in early 2023.
+<s>I found a pathway that makes the proposed ideas much more feasible. I can modify the [DFT-FE](https://github.com/dftfeDevelopers/dftfe) codebase, adding Metal GPU support and the DeepMind 2021 XC functional. The plan is to analyze this codebase over the first few months of 2024, similarly to the actions taken with OpenMM in early 2023.
 
-Progress on the Metal port is recorded here: https://gist.github.com/philipturner/4caf54432ef67d486bb55746e82f26a6
+Progress on the Metal port is recorded here: https://gist.github.com/philipturner/4caf54432ef67d486bb55746e82f26a6</s>
+
+False alarm: this just adds an immense $O(n^2)$ prefactor to delay $O(n^3)$ scaling for supermassive systems. Optimized for supercomputers, but much slower for personal computers.
