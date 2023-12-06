@@ -24,6 +24,7 @@ struct Constants {
     [1, 6]: BondLength(range: 0.104...0.114, average: 0.109),
     [1, 7]: BondLength(range: 0.097...0.107, average: 0.102),
     [1, 8]: BondLength(range: 0.092...0.102, average: 0.097),
+    [1, 14]: BondLength(range: 0.143...0.153, average: 0.148),
     [1, 16]: BondLength(range: 0.131...0.141, average: 0.136),
     
 //    [6, 6]: BondLength(range: 0.149...0.159, average: 0.154),
@@ -44,6 +45,8 @@ struct Constants {
     
     [8, 8]: BondLength(range: 0.127...0.137, average: 0.132),
     [8, 16]: BondLength(range: 0.166...0.176, average: 0.171),
+    
+    [14, 14]: BondLength(range: 0.227...0.237, average: 0.232)
   ]
   
   static func bondLengthMax(element: UInt8) -> Float {
@@ -67,6 +70,7 @@ struct Constants {
     case 6: return 4
     case 7: return 3
     case 8: return 2
+    case 14: return 4
     case 16: return 2
     default: fatalError("Element \(element) not supported.")
     }
