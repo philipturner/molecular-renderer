@@ -22,9 +22,7 @@ var targets: [Target] = [
     ]),
   .target(
     name: "HDL",
-    dependencies: [
-      .product(name: "QuaternionModule", package: "swift-numerics"),
-    ]),
+    dependencies: []),
 ]
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)

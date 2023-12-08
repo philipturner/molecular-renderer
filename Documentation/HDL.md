@@ -1,9 +1,5 @@
 # Hardware Description Language
 
-> This is not a brand name or trademarked word. There is no economic force with strings attached to it. It is simply a hardware description language for bootstrapping molecular nanotechnology.
->
-> It is being incubated in the Molecular Renderer repository, but will eventually become a standalone library. It will remain as simple, general-purpose, and flexible as possible, while avoiding sources of technical debt.
-
 Domain-specific language for designing nanomachines.
 
 Table of Contents
@@ -71,6 +67,8 @@ Solid.entities
 Object encapsulating constructive solid geometry.
 
 Creates a solid object composed of multiple lattices or other solids. Converts coordinates inside a crystal unit cell to nanometers.
+
+> NOTE: While the functionality of `Solid` and `Transform` has been thought out after extensive planning, implementing it is not a priority for the foreseeable future. This is because large covalent solids likely won't be manufacturable early on. Warped strained shell structures may be difficult to mechanosynthesize, even those containing natural warping due to dopants. Rather, only lattice-aligned (3D printable) parts with ~10k atoms, which don't benefit significantly from the functionality of `Solid`.
 
 ```swift
 Topology { 

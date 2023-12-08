@@ -3,14 +3,13 @@
 
 # Molecular Renderer
 
-This repository is a ray tracer for molecular nanotechnology. It also contains code, proposals, or links for related projects, including a domain-specific language and a hydrocarbon simulator.
+This repository is a ray tracer for molecular nanotechnology. It originally encapsulated several other projects, most of which have moved into separate repositories.
 
-Documentation
-- [Hardware Catalog](./Sources/HardwareCatalog/README.md)
-- [Modeling Language](./Documentation/HDL.md)
-- [Modules](./Documentation/Modules.md)
+Projects
+- [Hardware Catalog](./Sources/HardwareCatalog/README.md) - attempt at a catalog of reusable parts, currently unsuccessful
+- [Hardware Description Language](https://github.com/philipturner/hardware-description-language) - domain-specific language for crystolecule design
+- [MM4](https://github.com/philipturner/MM4) - hydrocarbon/hydrosilicon simulator
 - [MRSimulation Codec](./Documentation/MRSimulation.md)
-- [References](./Documentation/References.md)
 
 ## Overview
 
