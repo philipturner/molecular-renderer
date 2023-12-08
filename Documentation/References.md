@@ -1,13 +1,5 @@
 # References
 
-## Similar Projects
-
-atomCAD: https://github.com/atomCAD/atomCAD
-
-MSEP: https://astera.org/molecular-systems (now supported by someone other than Astera)
-
-## MolecularRenderer Algorithm
-
 Discussion of MetalFX upscaling quality: https://forums.macrumors.com/threads/observations-discussion-on-apple-silicon-graphics-performance-with-metalfx-upscaling.2368474
 
 Explanation of RTAO: https://thegamedev.guru/unity-ray-tracing/ambient-occlusion-rtao

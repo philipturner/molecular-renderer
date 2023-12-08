@@ -18,10 +18,6 @@ Goal: Combine a few recent advances in quantum chemistry. Do this with maximum p
   - Real-space removes the need for FFTs, both an additional library dependency and a bottleneck.
   - So far, every major commercial-quality codebase (GAUSSIAN, GAMESS) uses the plane-wave method. This CPU-designed algorithm isn't accelerator friendly, especially for medium-sized problems.
 
-## Roadmap
-
-This would start in 2024 at the earliest. The priority is getting supermassive systems on the molecular mechanics side, using the same superclusters described in this proposal.
-
 ## Recent Development 1
 
 <s>I found a pathway that makes the proposed ideas much more feasible. I can modify the [DFT-FE](https://github.com/dftfeDevelopers/dftfe) codebase, adding Metal GPU support and the DeepMind 2021 XC functional. The plan is to analyze this codebase over the first few months of 2024, similarly to the actions taken with OpenMM in early 2023.

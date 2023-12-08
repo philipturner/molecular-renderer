@@ -7,9 +7,10 @@ This repository is a ray tracer for molecular nanotechnology. It originally enca
 
 Projects:
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md) - attempt at a catalog of reusable parts, currently unsuccessful
-- [Hardware Description Language](https://github.com/philipturner/hardware-description-language) - domain-specific language for crystolecule design
+- [HDL](https://github.com/philipturner/HDL) - domain-specific language for crystolecule design
 - [MM4](https://github.com/philipturner/MM4) - hydrocarbon/hydrosilicon simulator
 - [MRSimulation Codec](./Documentation/MRSimulation.md)
+  - [SimulationImport](./Sources/SimulationImport) - Rust port of plain-text format
 
 ## Overview
 
@@ -21,7 +22,7 @@ Most projects (Atomic Machines, CBN Nano Technologies) are closed-source. Until 
 
 ## State of Cross-Platform Support
 
-The simulation and GUI-less CAD libraries are being rewritten from scratch. The end product will run on all platforms. In addition, the vast majority of `Sources/MolecularRendererApp` has been ported to cross-platform Swift toolchains. However, it is not in a "production-ready" state. 
+The simulation and GUI-less CAD libraries now run on all platforms. In addition, the vast majority of `Sources/MolecularRendererApp` has been ported to cross-platform Swift toolchains.
 
 Maintenance effort to port the ray tracer to Linux and Windows:
 - Work with native Linux and Windows APIs for key bindings, windowing
