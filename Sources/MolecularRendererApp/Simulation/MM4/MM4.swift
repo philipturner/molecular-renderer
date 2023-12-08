@@ -1184,7 +1184,7 @@ class MM4 {
       var totalMomentum: SIMD3<Double> = .zero
       var centerOfMass: SIMD3<Double> = .zero
       
-      // Conserve mtoomentum after the velocities are randomly initialized.
+      // Conserve momentum after the velocities are randomly initialized.
       for atomID in rigidBody {
         let mass = repartitionedMasses[atomID]
         let position = statePositions[atomID]
