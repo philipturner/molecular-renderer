@@ -5,7 +5,7 @@
 
 This repository is a ray tracer for molecular nanotechnology. It originally encapsulated several other projects, most of which have moved into separate repositories.
 
-Projects
+Projects:
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md) - attempt at a catalog of reusable parts, currently unsuccessful
 - [Hardware Description Language](https://github.com/philipturner/hardware-description-language) - domain-specific language for crystolecule design
 - [MM4](https://github.com/philipturner/MM4) - hydrocarbon/hydrosilicon simulator
@@ -31,4 +31,4 @@ Maintenance effort to port the ray tracer to Linux and Windows:
 Prioritizing macOS for all development. Current solution for other platforms: 
 - Transcode the simulation to `mrsim-txt` and save to the disk.
 - Decode in a script controlling an alternative renderer (VMD, Blender, etc.).
-- This may require a different language than Swift. There is a decently fast Rust decoder, which is most recommended on Windows (Swift is slow there for an unknown reason).
+- This may require a different language than Swift. `Sources/SimulationImport` contains a decently fast Rust decoder, which is highly recommended on Windows (Swift is slow there for an unknown reason).
