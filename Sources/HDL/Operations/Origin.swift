@@ -12,8 +12,6 @@ public struct Origin {
     case .lattice:
       LatticeStack.touchGlobal()
       LatticeStack.global!.origin(delta: closure())
-    case .solid:
-      fatalError("Not implemented yet for Solid.")
     default:
       GlobalScope.throwUnrecognized(Self.self)
     }

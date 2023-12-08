@@ -8,13 +8,9 @@
 public struct Copy {
   @discardableResult
   public init(_ closure: () -> [Entity]) {
-    switch GlobalScope.global {
-    case .solid:
-      fatalError("Not implemented yet for Solid.")
-    case .topology:
-      fatalError("Not implemented yet for Topology.")
-    default:
+    guard GlobalScope.global == .topology else {
       GlobalScope.throwUnrecognized(Self.self)
     }
+    fatalError("Not implemented.")
   }
 }

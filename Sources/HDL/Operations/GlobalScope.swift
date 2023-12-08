@@ -6,7 +6,8 @@
 //
 
 // Methods to resolve conflicts when a keyword is valid in multiple
-// scopes.
+// scopes. This also throws an error when you use a keyword outside of a valid
+// scope.
 enum GlobalScope {
   case lattice
   case solid

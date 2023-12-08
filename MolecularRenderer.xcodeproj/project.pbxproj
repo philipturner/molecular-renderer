@@ -172,7 +172,6 @@
 		98056D4E2AEC4625000F6A8F /* MRAtom+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRAtom+Extensions.swift"; sourceTree = "<group>"; };
 		98056D512AEC57F2000F6A8F /* NewSparseGrid.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = NewSparseGrid.metal; sourceTree = "<group>"; };
 		98056D522AEC57F2000F6A8F /* NewRayTracing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = NewRayTracing.metal; sourceTree = "<group>"; };
-		980791282B15ABF300DC977C /* Warp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Warp.swift; sourceTree = "<group>"; };
 		980E70182A5E51D20051797F /* Tooltips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltips.swift; sourceTree = "<group>"; };
 		980E701A2A5E51DB0051797F /* Feedstocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedstocks.swift; sourceTree = "<group>"; };
 		980E701C2A5E520F0051797F /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
@@ -187,7 +186,6 @@
 		9818225E2AE58E43009CFAA8 /* Element.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Element.swift; sourceTree = "<group>"; };
 		9818225F2AE58E4D009CFAA8 /* Bond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bond.swift; sourceTree = "<group>"; };
 		981822602AE58E95009CFAA8 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
-		981822612AE59628009CFAA8 /* SolidStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolidStack.swift; sourceTree = "<group>"; };
 		981822622AE59631009CFAA8 /* CubicGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicGrid.swift; sourceTree = "<group>"; };
 		981822632AE5963A009CFAA8 /* HexagonalGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexagonalGrid.swift; sourceTree = "<group>"; };
 		981822642AE74DCA009CFAA8 /* LatticeGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeGrid.swift; sourceTree = "<group>"; };
@@ -233,7 +231,6 @@
 		98610F322AA24533006FAF95 /* Lattice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lattice.swift; sourceTree = "<group>"; };
 		98610F462AA24C69006FAF95 /* Basis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Basis.swift; sourceTree = "<group>"; };
 		98610F632AA2662C006FAF95 /* Origin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Origin.swift; sourceTree = "<group>"; };
-		98610F652AA27621006FAF95 /* Solid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solid.swift; sourceTree = "<group>"; };
 		98610F722AA28EA6006FAF95 /* Replace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Replace.swift; sourceTree = "<group>"; };
 		98610F802AA29EBE006FAF95 /* HDL.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HDL.md; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* MathUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathUtilities.swift; sourceTree = "<group>"; };
@@ -263,8 +260,6 @@
 		9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MolecularRenderer.entitlements; sourceTree = "<group>"; };
 		989CBA012B1BF2C000213CBE /* Topology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Topology.swift; sourceTree = "<group>"; };
 		989CBA022B1BF2D900213CBE /* Volume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Volume.swift; sourceTree = "<group>"; };
-		989CBA032B1BF2F400213CBE /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
-		989CBA052B1BF39500213CBE /* GlobalScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalScope.swift; sourceTree = "<group>"; };
 		989CBA062B1BF4E800213CBE /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		989CBA072B1C003000213CBE /* TopologyGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyGrid.swift; sourceTree = "<group>"; };
 		989CBA092B1C0F4200213CBE /* Adamantanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adamantanes.swift; sourceTree = "<group>"; };
@@ -276,6 +271,7 @@
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
+		98AD5B2F2B22B19000AE692D /* GlobalScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalScope.swift; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
@@ -289,9 +285,6 @@
 		98B6BDFE2AEE93F600F8655C /* LatticeScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatticeScope.swift; sourceTree = "<group>"; };
 		98B6BE042AEED47E00F8655C /* Plane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plane.swift; sourceTree = "<group>"; };
 		98B6BE052AEED49300F8655C /* DisjunctiveNormalForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisjunctiveNormalForm.swift; sourceTree = "<group>"; };
-		98B6BE062AEED4BC00F8655C /* Reflect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reflect.swift; sourceTree = "<group>"; };
-		98B6BE072AEED4D100F8655C /* Rotate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rotate.swift; sourceTree = "<group>"; };
-		98B6BE082AEED4D900F8655C /* Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Translate.swift; sourceTree = "<group>"; };
 		98B6BE0A2AEF082000F8655C /* Chapter12.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter12.swift; sourceTree = "<group>"; };
 		98B6BE0C2AEF0E0300F8655C /* Chapter12_Figure1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter12_Figure1.swift; sourceTree = "<group>"; };
 		98C48C462A48E0440047C078 /* HelloSodiumChlorideInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloSodiumChlorideInSwift.swift; sourceTree = "<group>"; };
@@ -310,7 +303,6 @@
 		98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image1.jpg; sourceTree = "<group>"; };
 		98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image2.jpg; sourceTree = "<group>"; };
 		98D975AF2AC0C5CC0052EE6C /* Copy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Copy.swift; sourceTree = "<group>"; };
-		98D975B32AC0C73E0052EE6C /* SolidGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolidGrid.swift; sourceTree = "<group>"; };
 		98D975B82AC221EF0052EE6C /* DiamondRope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondRope.swift; sourceTree = "<group>"; };
 		98D975BA2AC222340052EE6C /* OctahedralSpring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctahedralSpring.swift; sourceTree = "<group>"; };
 		98D975BE2AC222A30052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -451,23 +443,16 @@
 			path = Lattice;
 			sourceTree = "<group>";
 		};
-		981822572AE58C88009CFAA8 /* Solid */ = {
-			isa = PBXGroup;
-			children = (
-				98610F652AA27621006FAF95 /* Solid.swift */,
-				98D975B32AC0C73E0052EE6C /* SolidGrid.swift */,
-				981822612AE59628009CFAA8 /* SolidStack.swift */,
-				989CBA032B1BF2F400213CBE /* Transform.swift */,
-			);
-			path = Solid;
-			sourceTree = "<group>";
-		};
 		981822582AE58C93009CFAA8 /* Operations */ = {
 			isa = PBXGroup;
 			children = (
-				989CBA042B1BF34500213CBE /* Shared */,
-				98B6BE012AEECA4200F8655C /* Transform */,
-				98B6BE002AEECA3B00F8655C /* Volume */,
+				98D975AF2AC0C5CC0052EE6C /* Copy.swift */,
+				98B6BE052AEED49300F8655C /* DisjunctiveNormalForm.swift */,
+				989CBA062B1BF4E800213CBE /* Filter.swift */,
+				98AD5B2F2B22B19000AE692D /* GlobalScope.swift */,
+				98610F632AA2662C006FAF95 /* Origin.swift */,
+				98B6BE042AEED47E00F8655C /* Plane.swift */,
+				98610F722AA28EA6006FAF95 /* Replace.swift */,
 			);
 			path = Operations;
 			sourceTree = "<group>";
@@ -606,7 +591,6 @@
 				9818225A2AE58CAA009CFAA8 /* Entity */,
 				981822562AE58C81009CFAA8 /* Lattice */,
 				981822582AE58C93009CFAA8 /* Operations */,
-				981822572AE58C88009CFAA8 /* Solid */,
 				989CBA002B1BF2AA00213CBE /* Topology */,
 			);
 			path = HDL;
@@ -685,21 +669,10 @@
 		989CBA002B1BF2AA00213CBE /* Topology */ = {
 			isa = PBXGroup;
 			children = (
-				989CBA062B1BF4E800213CBE /* Filter.swift */,
 				989CBA012B1BF2C000213CBE /* Topology.swift */,
 				989CBA072B1C003000213CBE /* TopologyGrid.swift */,
 			);
 			path = Topology;
-			sourceTree = "<group>";
-		};
-		989CBA042B1BF34500213CBE /* Shared */ = {
-			isa = PBXGroup;
-			children = (
-				98D975AF2AC0C5CC0052EE6C /* Copy.swift */,
-				989CBA052B1BF39500213CBE /* GlobalScope.swift */,
-				98610F632AA2662C006FAF95 /* Origin.swift */,
-			);
-			path = Shared;
 			sourceTree = "<group>";
 		};
 		989CBA0D2B1D2B3C00213CBE /* xTB */ = {
@@ -750,27 +723,6 @@
 				98D0F1942AB5150600BE267D /* LatticeStack.swift */,
 			);
 			path = Stack;
-			sourceTree = "<group>";
-		};
-		98B6BE002AEECA3B00F8655C /* Volume */ = {
-			isa = PBXGroup;
-			children = (
-				98B6BE052AEED49300F8655C /* DisjunctiveNormalForm.swift */,
-				98B6BE042AEED47E00F8655C /* Plane.swift */,
-				98610F722AA28EA6006FAF95 /* Replace.swift */,
-			);
-			path = Volume;
-			sourceTree = "<group>";
-		};
-		98B6BE012AEECA4200F8655C /* Transform */ = {
-			isa = PBXGroup;
-			children = (
-				98B6BE062AEED4BC00F8655C /* Reflect.swift */,
-				98B6BE072AEED4D100F8655C /* Rotate.swift */,
-				98B6BE082AEED4D900F8655C /* Translate.swift */,
-				980791282B15ABF300DC977C /* Warp.swift */,
-			);
-			path = Transform;
 			sourceTree = "<group>";
 		};
 		98B6BE092AEF080A00F8655C /* Chapter 12 */ = {
