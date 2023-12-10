@@ -61,8 +61,9 @@ class Renderer {
       initOpenMM()
     }
     
-    let lattice = adamantaneLattice()
-    let latticeAtoms = lattice.entities.map(MRAtom.init)
-    self.atomProvider = ArrayAtomProvider(latticeAtoms)
+//    let lattice = adamantaneLattice()
+//    let latticeAtoms = lattice.entities.map(MRAtom.init)
+//    self.atomProvider = ArrayAtomProvider(latticeAtoms)
+    self.atomProvider = Bootstrapping.Animation()
   }
 }

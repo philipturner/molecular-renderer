@@ -5,8 +5,6 @@
 //  Created by Philip Turner on 12/10/23.
 //
 
-import Foundation
-
 // Namespace encapsulating the project to animate the bootstrapping process.
 enum Bootstrapping {
   

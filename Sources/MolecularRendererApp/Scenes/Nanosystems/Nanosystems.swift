@@ -5,8 +5,6 @@
 //  Created by Philip Turner on 7/21/23.
 //
 
-import Foundation
-
 // Namespace encapsulating the project to reproduce Nanosystems.
 enum Nanosystems {
   

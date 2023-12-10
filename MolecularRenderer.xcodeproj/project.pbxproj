@@ -100,6 +100,10 @@
 		98D975BB2AC222340052EE6C /* OctahedralSpring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D975BA2AC222340052EE6C /* OctahedralSpring.swift */; };
 		98F012602B266EEC0037318D /* _Old_APMBootstrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */; };
 		98F012622B266FA70037318D /* Bootstrapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012612B266FA70037318D /* Bootstrapping.swift */; };
+		98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012632B2671080037318D /* Bootstrapping_Tripod.swift */; };
+		98F012662B2671160037318D /* Bootstrapping_BuildPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */; };
+		98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012672B2671210037318D /* Bootstrapping_Surface.swift */; };
+		98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012692B2671430037318D /* Bootstrapping_Animation.swift */; };
 		98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */; };
 		98F2F5D22A5F2E7B006216F4 /* MassiveDiamond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -272,6 +276,10 @@
 		98E2C6222AC27CD7002612CC /* RhombicDodecahedron_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image2.jpg; sourceTree = "<group>"; };
 		98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_APMBootstrapper.swift; sourceTree = "<group>"; };
 		98F012612B266FA70037318D /* Bootstrapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping.swift; sourceTree = "<group>"; };
+		98F012632B2671080037318D /* Bootstrapping_Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Tripod.swift; sourceTree = "<group>"; };
+		98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_BuildPlate.swift; sourceTree = "<group>"; };
+		98F012672B2671210037318D /* Bootstrapping_Surface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Surface.swift; sourceTree = "<group>"; };
+		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F2F5D42A608DBD006216F4 /* MRQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRQuality.swift; sourceTree = "<group>"; };
@@ -356,6 +364,10 @@
 			children = (
 				98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */,
 				98F012612B266FA70037318D /* Bootstrapping.swift */,
+				98F012692B2671430037318D /* Bootstrapping_Animation.swift */,
+				98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */,
+				98F012672B2671210037318D /* Bootstrapping_Surface.swift */,
+				98F012632B2671080037318D /* Bootstrapping_Tripod.swift */,
 			);
 			path = Bootstrapping;
 			sourceTree = "<group>";
@@ -1016,12 +1028,14 @@
 				9821824C2B06AC87001C356F /* HousingVibration.swift in Sources */,
 				986348F82A73310F0053E714 /* Amplifier.swift in Sources */,
 				9816EFAA2AC4BBA60042073F /* Flywheel2.swift in Sources */,
+				98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */,
 				98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */,
 				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,
 				9852E87929EB6BF200D0E779 /* ExampleMolecules.swift in Sources */,
 				98D975B92AC221EF0052EE6C /* DiamondRope.swift in Sources */,
 				98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
+				98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */,
 				98F638C32A34F4EC00F51E95 /* AtomicMasses.swift in Sources */,
 				98518AE52A74A6EC00CAD919 /* Chapter4_Figure3.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
@@ -1046,6 +1060,7 @@
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
 				98906AD92AA92FF300FE5832 /* RhombicDodecahedra.swift in Sources */,
 				989CBA0A2B1C0F4200213CBE /* Adamantanes.swift in Sources */,
+				98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */,
 				98056D4F2AEC4625000F6A8F /* MRAtom+Extensions.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Chapter9_Figure5.swift in Sources */,
 				988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */,
@@ -1078,6 +1093,7 @@
 				989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */,
 				989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */,
 				988EF0BC2A800130004879E5 /* VdwOscillator.swift in Sources */,
+				98F012662B2671160037318D /* Bootstrapping_BuildPlate.swift in Sources */,
 				98B6BE0D2AEF0E0300F8655C /* Chapter12_Figure1.swift in Sources */,
 				987B7A1E2A48975500AB4D14 /* OpenMM_AtomProvider.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
