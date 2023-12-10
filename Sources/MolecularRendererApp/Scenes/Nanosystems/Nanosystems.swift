@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Namespace encapsulating the project to reproduce Nanosystems.
 enum Nanosystems {
   
 }

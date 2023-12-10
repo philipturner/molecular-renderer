@@ -5,16 +5,13 @@
 //  Created by Philip Turner on 2/22/23.
 //
 
-import AppKit
-import KeyCodes
 import Metal
-import MolecularRenderer
-import OpenMM
+import Numerics
 import simd
 
 import HDL
 import MM4
-import Numerics
+import MolecularRenderer
 
 class Renderer {
   unowned let coordinator: Coordinator
