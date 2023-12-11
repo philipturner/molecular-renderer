@@ -56,11 +56,7 @@ extension Bootstrapping {
           passes.append([6.50, 8.17])
           passes.append([7.00, 8.83])
           passes.append([7.50, 10.50])
-          
-          // TODO: Figure out how to remove the zones where bond topology
-          // goes haywire. Either manually add planes, or create new bond
-          // generation code. Investigate this later after Topology is finished
-          // in the compiler.
+          // TODO: Add another layer once you can make the probe tall enough.
           
           Concave {
             for pass in passes {
@@ -93,8 +89,10 @@ extension Bootstrapping {
       
       // Hydrogen-passivate using 'Diamondoid'. Then, use a deterministic rule
       // to fix up every pair of bad nearby hydrogens. Displace the silicons
-      // that were reconstructed.
-      let diamondoid = Diamondoid(atoms: lattice.entities.map(MRAtom.init))
+      // that were reconstructed. This will not be possible until the new
+      // compiler is finished.
+      var diamondoid = Diamondoid(atoms: lattice.entities.map(MRAtom.init))
+      diamondoid.removeLooseCarbons(iterations: 0)
       var siliconAtoms = diamondoid.atoms
       
       let axis1 = cross_platform_normalize([1, 0, -1])

@@ -742,6 +742,11 @@ struct Diamondoid {
   // This should be done after fixing colliding hydrogens. In theory, this
   // function should never produce a new pair of colliding hydrogens.
   mutating func removeLooseCarbons(iterations: Int = 3) {
+    if iterations == 0 {
+      self._removeLooseCarbons(onlyMethyls: true)
+      return
+    }
+    
     var copy = self
     var converged = false
     for iterationID in 0..<iterations {
@@ -918,7 +923,7 @@ struct Diamondoid {
     }
     defer {
       for atom in atoms {
-        guard atom.element == 1 || atom.element == 6 else {
+        guard atom.element == 1 || atom.element == 6 || atom.element == 14 else {
           fatalError("Did not remove all non-carbon atoms from the structure.")
         }
       }
@@ -926,7 +931,8 @@ struct Diamondoid {
     
     var pointer = 0
     var newIndicesMap = [Int](repeating: -1, count: atoms.count)
-    guard let chBondConstants = Constants.bondLengths[[1, 6]] else {
+    guard let chBondConstants = Constants.bondLengths[[1, 6]],
+          let sihBondConstants = Constants.bondLengths[[1, 14]] else {
       fatalError("No C-H bond constants found.")
     }
     for atomID in atoms.indices {
@@ -942,7 +948,14 @@ struct Diamondoid {
         let neighborCenter = atoms[neighborIndex].origin
         var selfCenter = atoms[atomID].origin
         let delta = cross_platform_normalize(selfCenter - neighborCenter)
-        selfCenter = neighborCenter + delta * chBondConstants.average
+        
+        var average: Float
+        if atoms[neighborIndex].element == 14 {
+          average = sihBondConstants.average
+        } else {
+          average = chBondConstants.average
+        }
+        selfCenter = neighborCenter + delta * average
         atoms[atomID].origin = selfCenter
       }
       
