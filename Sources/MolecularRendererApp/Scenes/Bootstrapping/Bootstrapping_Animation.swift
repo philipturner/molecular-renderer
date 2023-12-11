@@ -13,9 +13,10 @@ extension Bootstrapping {
     
     init() {
       let surface = Surface()
-      frames.append(surface.atoms)
       
       // Place a tripod directly at the center.
+      let tripod = Tripod(position: [0, 0, 0])
+      frames.append(surface.atoms + tripod.atoms)
     }
     
     // For the final animation, we may need a function for scripting the camera.

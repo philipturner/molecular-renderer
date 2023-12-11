@@ -5,10 +5,9 @@
 //  Created by Philip Turner on 12/10/23.
 //
 
-import Numerics
-
 import HDL
 import MolecularRenderer
+import Numerics
 
 extension Bootstrapping {
   struct Surface {
@@ -16,13 +15,14 @@ extension Bootstrapping {
     
     init() {
       // Create a hexagon of gold. Make it truly gigantic.
+      let scaleFactor: Float = 2
       let lattice = Lattice<Cubic> { h, k, l in
-        Bounds { 80 * (h + k + l) }
+        Bounds { scaleFactor * 40 * (h + k + l) }
         Material { .elemental(.gold) }
         
         Volume {
           Convex {
-            Origin { 40 * (h + k + l) }
+            Origin { scaleFactor * 20 * (h + k + l) }
             
             for direction in [h + k + l, -h - k - l] {
               Convex {
@@ -34,7 +34,7 @@ extension Bootstrapping {
             // Change the chiseling on the 3 (110) sides.
             for direction in [h + k, h + l, k + l] {
               Convex {
-                Origin { 20 * direction }
+                Origin { scaleFactor * 10 * direction }
                 Plane { direction }
               }
             }
@@ -43,7 +43,7 @@ extension Bootstrapping {
           // Change the chiseling on the 3 (100) sides.
           for direction in [h - k - l, k - h - l, l - h - k] {
             Convex {
-              Origin { 13.50 * direction }
+              Origin { scaleFactor * 6.75 * direction }
               Plane { direction }
             }
           }
@@ -67,7 +67,6 @@ extension Bootstrapping {
         }
       }
       center()
-      
       
       // Rotate the hexagon so its normal points toward +Y.
       let axis1 = cross_platform_normalize([1, 0, -1])
