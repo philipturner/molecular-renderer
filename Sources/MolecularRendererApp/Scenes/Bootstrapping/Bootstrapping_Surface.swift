@@ -15,7 +15,7 @@ extension Bootstrapping {
     
     init() {
       // Create a hexagon of gold. Make it truly gigantic.
-      let scaleFactor: Float = 2
+      let scaleFactor: Float = 4
       let lattice = Lattice<Cubic> { h, k, l in
         Bounds { scaleFactor * 40 * (h + k + l) }
         Material { .elemental(.gold) }
@@ -54,6 +54,7 @@ extension Bootstrapping {
       
       // 50,000 gold atoms
       var goldAtoms = lattice.entities
+      print("gold atoms:", goldAtoms.count)
       
       // Center the surface at the world origin.
       func center() {

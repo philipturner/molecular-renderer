@@ -15,9 +15,9 @@ import Numerics
 // Not all locations will be filled.
 //
 // 1) Debug the position and alignment of a single tripod, as well as lattice
-//    vectors. Estimate how many tripods could fit on the surface.
+//    vectors. Estimate how many tripods could fit on the surface. ✅
 // 2) Get to where you're randomly initializing tripods in a circle, but not
-//    yet clearing room for a build plate.
+//    yet clearing room for a build plate. ✅
 // 3) Add silicon radical moieties to the tips of the tripods. Store it in a
 //    property separate from the bulk atoms, so it can be detached later.
 // 4) Create some code that searches for the closest tripod with a particular
@@ -54,6 +54,58 @@ extension Bootstrapping {
       moietyAtoms = []
       moiety = .none
       return output
+    }
+    
+    static func createPositions(radius: Float) -> [SIMD3<Float>] {
+      var spacingH = Constant(.square) { .elemental(.gold) }
+      spacingH *= Float(0.5).squareRoot()
+      spacingH *= 3
+      
+      var vectorH: SIMD3<Float> = [1, 0, 0]
+      var vectorK: SIMD3<Float> = [
+        -Float(0.25).squareRoot(), 0, -Float(0.75).squareRoot()]
+      vectorH *= spacingH
+      vectorK *= spacingH
+      
+      let numTripods: Int = 500
+      var positions: [SIMD3<Float>] = []
+      var createdDictionary: [SIMD2<Int>: Bool] = [:]
+      var randomBounds = Int(radius / spacingH)
+      randomBounds *= 2
+      
+      for tripodID in 0..<numTripods {
+        var attempts: Int = 0
+        while true {
+          attempts += 1
+          if attempts > 100 {
+            fatalError("Took too many attempts to create a tripod.")
+          }
+          
+          let h = Int.random(in: -randomBounds...randomBounds)
+          let k = Int.random(in: -randomBounds...randomBounds)
+          let position = Float(h) * vectorH + Float(k) * vectorK
+          guard (position * position).sum().squareRoot() < radius else {
+            // The position fell outside of bounds.
+            continue
+          }
+          
+          let intVector = SIMD2(h, k)
+          guard createdDictionary[intVector] == nil else {
+            // The position was already taken.
+            continue
+          }
+          createdDictionary[intVector] = true
+          positions.append(position)
+          break
+        }
+      }
+      
+//      var positions: [SIMD3<Float>] = []
+//      positions.append([0, 0, 0])
+//      positions.append(-vectorH)
+//      positions.append(vectorK)
+//      positions.append(vectorH + vectorK)
+      return positions
     }
   }
 }
@@ -334,7 +386,6 @@ extension Bootstrapping {
         for atom in baseAtoms {
           if atom.element == 32 {
             germaniumPosition = atom.origin
-            print(germaniumPosition)
           }
         }
         
@@ -342,7 +393,7 @@ extension Bootstrapping {
         let rotation = Quaternion(angle: angle, axis: [0, 1, 0])
         for i in baseAtoms.indices {
           baseAtoms[i].origin.x -= germaniumPosition.x
-          baseAtoms[i].origin.y += 0.565
+          baseAtoms[i].origin.y += 0.566
           baseAtoms[i].origin.z -= germaniumPosition.z
           baseAtoms[i].origin = rotation.act(on: baseAtoms[i].origin)
         }
@@ -388,7 +439,6 @@ extension Bootstrapping {
           for j in atomsToMove {
             baseAtoms[j].origin.y -= 0.010
           }
-          print(baseAtoms[i].origin.y * 2 / Float(6).squareRoot())
         }
         
         // Reverse the direction along `h` to match:

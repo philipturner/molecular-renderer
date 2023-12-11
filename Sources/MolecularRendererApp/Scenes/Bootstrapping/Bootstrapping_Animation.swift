@@ -5,7 +5,10 @@
 //  Created by Philip Turner on 12/10/23.
 //
 
+import HDL
 import MolecularRenderer
+
+// Approach: Herman 1999 + CBN 2023
 
 extension Bootstrapping {
   struct Animation: MRAtomProvider {
@@ -13,10 +16,16 @@ extension Bootstrapping {
     
     init() {
       let surface = Surface()
+      var tripods: [Tripod] = []
       
-      // Place a tripod directly at the center.
-      let tripod = Tripod(position: [0, 0, 0])
-      frames.append(surface.atoms + tripod.atoms)
+      let tripodPositions = Tripod.createPositions(radius: 38)
+      for position in tripodPositions {
+        tripods.append(Tripod(position: position))
+      }
+      frames.append(surface.atoms + tripods.flatMap(\.atoms))
+      
+      // Challenge: automatically choose a trajectory where the AFM doesn't
+      // collide with any nearby tripods.
     }
     
     // For the final animation, we may need a function for scripting the camera.
