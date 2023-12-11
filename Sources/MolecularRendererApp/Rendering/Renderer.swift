@@ -61,6 +61,9 @@ class Renderer {
       initOpenMM()
     }
     
+    
+    print("app start")
+    
 //    let lattice = adamantaneLattice()
 //    let latticeAtoms = lattice.entities.map(MRAtom.init)
 //    self.atomProvider = ArrayAtomProvider(latticeAtoms)

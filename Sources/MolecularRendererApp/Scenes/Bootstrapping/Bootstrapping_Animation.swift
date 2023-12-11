@@ -7,6 +7,7 @@
 
 import HDL
 import MolecularRenderer
+import QuartzCore
 
 // Approach: Herman 1999 + CBN 2023
 
@@ -15,17 +16,23 @@ extension Bootstrapping {
     var frames: [[MRAtom]] = []
     
     init() {
+      let checkpoint0 = CACurrentMediaTime()
       let surface = Surface()
+      let checkpoint1 = CACurrentMediaTime()
       var tripods: [Tripod] = []
+      let checkpoint2 = CACurrentMediaTime()
+      let probe = Probe()
+      let checkpoint3 = CACurrentMediaTime()
       
-      let tripodPositions = Tripod.createPositions(radius: 38)
+      print("time 0 - 1:", checkpoint1 - checkpoint0)
+      print("time 1 - 2:", checkpoint2 - checkpoint1)
+      print("time 2 - 3:", checkpoint3 - checkpoint2)
+      
+      let tripodPositions = Tripod.createPositions(radius: 29)
       for position in tripodPositions {
         tripods.append(Tripod(position: position))
       }
-      frames.append(surface.atoms + tripods.flatMap(\.atoms))
-      
-      // Challenge: automatically choose a trajectory where the AFM doesn't
-      // collide with any nearby tripods.
+      frames.append(surface.atoms + tripods.flatMap(\.atoms) + probe.atoms)
     }
     
     // For the final animation, we may need a function for scripting the camera.

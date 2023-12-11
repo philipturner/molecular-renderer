@@ -11,13 +11,20 @@ import Numerics
 
 // The surface needs to be improved, so that it's more realistic.
 //
-// 0) Wait to change this until the code for controlling the AFM is sorted out.
-//    Having less surface area (and therefore higher tip conc.) is a
+// 1) Fix up the code for initializing the 160-cell gold surface, so it doesn't
+//    take 1.6 seconds.
+//    -> make changes to the compiler instead of changing the code here
+//    -> skip cells that aren't intersected by the plane, only for cubic
+//      -> hexagonal doesn't need the optimization because its coordinate system
+//         is already oriented with 3-fold symmetry on a cartesian axis
+//    -> maybe parallelize over multicore CPU
+// 2) Wait to change further until the code for controlling the AFM is sorted
+//    out. Having less surface area (and therefore higher tip conc.) is a
 //    conservative estimate of device performance. Not adding the ledges will
 //    make the code much simpler when first implementing it.
-// 1) Make the gold surface maximally thin so you can fit more surface area
+// 3) Make the gold surface maximally thin so you can fit more surface area
 //    with the same rendering cost.
-// 2) Achieve this by emulating a few randomly spaced ledges (within a certain
+// 4) Achieve this by emulating a few randomly spaced ledges (within a certain
 //    margin of safety from the central build plate). This makes it a bit
 //    harder to plan trajectories and better represents real-world conditions.
 //
@@ -30,7 +37,7 @@ extension Bootstrapping {
     
     init() {
       // Create a hexagon of gold. Make it truly gigantic.
-      let scaleFactor: Float = 4
+      let scaleFactor: Float = 3
       let lattice = Lattice<Cubic> { h, k, l in
         Bounds { scaleFactor * 40 * (h + k + l) }
         Material { .elemental(.gold) }
@@ -39,35 +46,36 @@ extension Bootstrapping {
           Convex {
             Origin { scaleFactor * 20 * (h + k + l) }
             
-            for direction in [h + k + l, -h - k - l] {
-              Convex {
-                Origin { 0.5 * direction }
-                Plane { direction }
-              }
+            Convex {
+              Origin { 0.5 * (h + k + l) }
+              Plane { h + k + l }
+            }
+            Convex {
+              Origin { -0.5 * (h + k + l) }
+              Plane { -(h + k + l) }
             }
             
             // Change the chiseling on the 3 (110) sides.
-            for direction in [h + k, h + l, k + l] {
-              Convex {
-                Origin { scaleFactor * 10 * direction }
-                Plane { direction }
-              }
-            }
+//            for direction in [h + k, h + l, k + l] {
+//              Convex {
+//                Origin { scaleFactor * 10 * direction }
+//                Plane { direction }
+//              }
+//            }
           }
           
           // Change the chiseling on the 3 (100) sides.
-          for direction in [h - k - l, k - h - l, l - h - k] {
-            Convex {
-              Origin { scaleFactor * 6.75 * direction }
-              Plane { direction }
-            }
-          }
+//          for direction in [h - k - l, k - h - l, l - h - k] {
+//            Convex {
+//              Origin { scaleFactor * 6.75 * direction }
+//              Plane { direction }
+//            }
+//          }
           
           Replace { .empty }
         }
       }
       
-      // 50,000 gold atoms
       var goldAtoms = lattice.entities
       print("gold atoms:", goldAtoms.count)
       
@@ -106,7 +114,6 @@ extension Bootstrapping {
       for atom in goldAtoms {
         maxY = max(maxY, atom.position.y)
       }
-      print(maxY)
       for i in goldAtoms.indices {
         goldAtoms[i].position.y -= maxY
       }

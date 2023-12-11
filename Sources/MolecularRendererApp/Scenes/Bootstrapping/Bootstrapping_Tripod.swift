@@ -24,6 +24,9 @@ import Numerics
 //    moiety attached, then shifts that tripod's moiety upward to visualize.
 // 5) Create some code that moves the surface and detaches a moiety from a
 //    tripod.
+// 6) Don't worry about putting the AFM on a trajectory where it needs to avoid
+//    the tripods. The code for searching for unused tips is already complex
+//    enough and sufficient for an animation.
 //
 // Finish the rest of this scene another time; each component of the project
 // can be worked on in bits.
