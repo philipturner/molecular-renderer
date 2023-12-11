@@ -24,13 +24,24 @@ import Numerics
 //    moiety attached, then shifts that tripod's moiety upward to visualize.
 // 5) Create some code that moves the surface and detaches a moiety from a
 //    tripod.
+//
+// Finish the rest of this scene another time; each component of the project
+// can be worked on in bits.
 
 extension Bootstrapping {
   struct Tripod {
+    // Concentration in solution should be something like:
+    // - 5% failures
+    // - 15% silylene
+    // - 75% silicon
+    // - 5% germanene
+    // The numbers will be randomly selected from that distribution, so ensure
+    // there's enough feedstocks in total to cover random deviations.
     enum Moiety {
       case none
       case silylene
       case silicon
+      case germanene
     }
     
     var baseAtoms: [MRAtom] = []
@@ -73,7 +84,7 @@ extension Bootstrapping {
       var randomBounds = Int(radius / spacingH)
       randomBounds *= 2
       
-      for tripodID in 0..<numTripods {
+      for _ in 0..<numTripods {
         var attempts: Int = 0
         while true {
           attempts += 1
@@ -100,11 +111,6 @@ extension Bootstrapping {
         }
       }
       
-//      var positions: [SIMD3<Float>] = []
-//      positions.append([0, 0, 0])
-//      positions.append(-vectorH)
-//      positions.append(vectorK)
-//      positions.append(vectorH + vectorK)
       return positions
     }
   }

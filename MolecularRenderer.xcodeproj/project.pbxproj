@@ -104,6 +104,7 @@
 		98F012662B2671160037318D /* Bootstrapping_BuildPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */; };
 		98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012672B2671210037318D /* Bootstrapping_Surface.swift */; };
 		98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012692B2671430037318D /* Bootstrapping_Animation.swift */; };
+		98F0126C2B26A1C40037318D /* Bootstrapping_Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */; };
 		98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */; };
 		98F2F5D22A5F2E7B006216F4 /* MassiveDiamond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -280,6 +281,7 @@
 		98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_BuildPlate.swift; sourceTree = "<group>"; };
 		98F012672B2671210037318D /* Bootstrapping_Surface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Surface.swift; sourceTree = "<group>"; };
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
+		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F2F5D42A608DBD006216F4 /* MRQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRQuality.swift; sourceTree = "<group>"; };
@@ -366,6 +368,7 @@
 				98F012612B266FA70037318D /* Bootstrapping.swift */,
 				98F012692B2671430037318D /* Bootstrapping_Animation.swift */,
 				98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */,
+				98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */,
 				98F012672B2671210037318D /* Bootstrapping_Surface.swift */,
 				98F012632B2671080037318D /* Bootstrapping_Tripod.swift */,
 			);
@@ -1050,6 +1053,7 @@
 				98F852CF2AF5D24C00986E61 /* RippleCounter1+File2.swift in Sources */,
 				988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98F0126C2B26A1C40037318D /* Bootstrapping_Probe.swift in Sources */,
 				98F852D12AF66B7C00986E61 /* RippleCounter2.swift in Sources */,
 				98518AF72A75845600CAD919 /* MM4.swift in Sources */,
 				98247CBB2AF0656100958BC5 /* Chapter12_Figure1_file2.swift in Sources */,

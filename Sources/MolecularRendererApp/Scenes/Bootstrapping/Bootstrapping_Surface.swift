@@ -9,6 +9,21 @@ import HDL
 import MolecularRenderer
 import Numerics
 
+// The surface needs to be improved, so that it's more realistic.
+//
+// 0) Wait to change this until the code for controlling the AFM is sorted out.
+//    Having less surface area (and therefore higher tip conc.) is a
+//    conservative estimate of device performance. Not adding the ledges will
+//    make the code much simpler when first implementing it.
+// 1) Make the gold surface maximally thin so you can fit more surface area
+//    with the same rendering cost.
+// 2) Achieve this by emulating a few randomly spaced ledges (within a certain
+//    margin of safety from the central build plate). This makes it a bit
+//    harder to plan trajectories and better represents real-world conditions.
+//
+// Finish the rest of this scene another time; each component of the project
+// can be worked on in bits.
+
 extension Bootstrapping {
   struct Surface {
     var atoms: [MRAtom]
