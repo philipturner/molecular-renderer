@@ -753,4 +753,3 @@ extension MRRenderer {
     return commandBuffer
   }
 }
-

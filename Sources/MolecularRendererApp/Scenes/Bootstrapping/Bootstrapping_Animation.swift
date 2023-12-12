@@ -20,6 +20,10 @@ extension Bootstrapping {
       let surface = Surface()
       let checkpoint1 = CACurrentMediaTime()
       var tripods: [Tripod] = []
+      let tripodPositions = Tripod.createPositions(radius: 19) // 38
+      for position in tripodPositions {
+        tripods.append(Tripod(position: position))
+      }
       let checkpoint2 = CACurrentMediaTime()
       let probe = Probe()
       let checkpoint3 = CACurrentMediaTime()
@@ -33,10 +37,7 @@ extension Bootstrapping {
        time 2 - 3: 0.5508762500248849
        */
       
-      let tripodPositions = Tripod.createPositions(radius: 38)
-      for position in tripodPositions {
-        tripods.append(Tripod(position: position))
-      }
+      
       frames.append(surface.atoms + tripods.flatMap(\.atoms) + probe.atoms)
       
       // Ensure no nearby tripod collides with the AFM. If a tripod has its

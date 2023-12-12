@@ -20,9 +20,9 @@ extension Bootstrapping {
     // now, hard-code a specific position into the initializer.
     init() {
       let lattice = Lattice<Cubic> { h, k, l in
-        Bounds { 60 * (h + k + l) }
+        Bounds { 40 * (h + k + l) }
         Material { .elemental(.silicon) }
-        let topCutoff: Float = 47
+        let topCutoff: Float = 27
         
         Volume {
           var directions: [SIMD3<Float>] = []

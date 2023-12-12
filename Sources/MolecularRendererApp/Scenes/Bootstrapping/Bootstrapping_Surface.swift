@@ -37,7 +37,7 @@ extension Bootstrapping {
     
     init() {
       // Create a hexagon of gold. Make it truly gigantic.
-      let scaleFactor: Float = 4
+      let scaleFactor: Float = 2
       let lattice = Lattice<Cubic> { h, k, l in
         Bounds { scaleFactor * 40 * (h + k + l) }
         Material { .elemental(.gold) }

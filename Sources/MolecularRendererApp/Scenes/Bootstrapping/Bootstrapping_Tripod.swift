@@ -81,7 +81,7 @@ extension Bootstrapping {
       vectorH *= spacingH
       vectorK *= spacingH
       
-      let numTripods: Int = 500
+      let numTripods: Int = 125 // 500
       var positions: [SIMD3<Float>] = []
       var createdDictionary: [SIMD2<Int>: Bool] = [:]
       var randomBounds = Int(radius / spacingH)
