@@ -81,36 +81,70 @@ extension Bootstrapping {
       vectorH *= spacingH
       vectorK *= spacingH
       
-      let numTripods: Int = 125 // 500
       var positions: [SIMD3<Float>] = []
       var createdDictionary: [SIMD2<Int>: Bool] = [:]
-      var randomBounds = Int(radius / spacingH)
-      randomBounds *= 2
-      
-      for _ in 0..<numTripods {
-        var attempts: Int = 0
-        while true {
-          attempts += 1
-          if attempts > 100 {
-            fatalError("Took too many attempts to create a tripod.")
+      do {
+        let numTripods: Int = 500
+        var randomBounds = Int(radius / spacingH)
+        
+        for _ in 0..<numTripods {
+          var attempts: Int = 0
+          while true {
+            attempts += 1
+            if attempts > 100 {
+              fatalError("Took too many attempts to create a tripod.")
+            }
+            
+            let h = Int.random(in: -randomBounds...randomBounds)
+            let k = Int.random(in: -randomBounds...randomBounds)
+            let position = Float(h) * vectorH + Float(k) * vectorK
+            guard (position * position).sum().squareRoot() < radius / 2 else {
+              // The position fell outside of bounds.
+              continue
+            }
+            
+            let intVector = SIMD2(h, k)
+            guard createdDictionary[intVector] == nil else {
+              // The position was already taken.
+              continue
+            }
+            createdDictionary[intVector] = true
+            positions.append(position)
+            break
           }
-          
-          let h = Int.random(in: -randomBounds...randomBounds)
-          let k = Int.random(in: -randomBounds...randomBounds)
-          let position = Float(h) * vectorH + Float(k) * vectorK
-          guard (position * position).sum().squareRoot() < radius else {
-            // The position fell outside of bounds.
-            continue
+        }
+      }
+      do {
+        let numTripods: Int = 4000
+        var randomBounds = Int(radius / spacingH)
+        randomBounds *= 2
+        
+        for _ in 0..<numTripods {
+          var attempts: Int = 0
+          while true {
+            attempts += 1
+            if attempts > 100 {
+              fatalError("Took too many attempts to create a tripod.")
+            }
+            
+            let h = Int.random(in: -randomBounds...randomBounds)
+            let k = Int.random(in: -randomBounds...randomBounds)
+            let position = Float(h) * vectorH + Float(k) * vectorK
+            guard (position * position).sum().squareRoot() > radius / 2,
+                  (position * position).sum().squareRoot() < radius else {
+              // The position fell outside of bounds.
+              continue
+            }
+            
+            let intVector = SIMD2(h, k)
+            guard createdDictionary[intVector] == nil else {
+              // The position was already taken.
+              continue
+            }
+            createdDictionary[intVector] = true
+            positions.append(position)
+            break
           }
-          
-          let intVector = SIMD2(h, k)
-          guard createdDictionary[intVector] == nil else {
-            // The position was already taken.
-            continue
-          }
-          createdDictionary[intVector] = true
-          positions.append(position)
-          break
         }
       }
       

@@ -20,9 +20,9 @@ extension Bootstrapping {
     // now, hard-code a specific position into the initializer.
     init() {
       let lattice = Lattice<Cubic> { h, k, l in
-        Bounds { 40 * (h + k + l) }
+        Bounds { 80 * (h + k + l) }
         Material { .elemental(.silicon) }
-        let topCutoff: Float = 27
+        let topCutoff: Float = 67
         
         Volume {
           var directions: [SIMD3<Float>] = []
@@ -49,20 +49,34 @@ extension Bootstrapping {
             directions[directionID] = adjusted
           }
           
-          var passes: [SIMD3<Float>] = []
-          passes.append([2.50, 6.50, 1.0])
-          passes.append([4.50, 6.83, 1.0])
-          passes.append([5.50, 7.17, 1.0])
-          passes.append([6.00, 7.50, 1.0])
-          passes.append([6.50, 8.17, 1.0])
-          passes.append([7.00, 8.83, 1.0])
-          passes.append([7.50, 9.50, 1.0])
-          passes.append([8.00, 10.83, 1.0])
+          var passes: [SIMD4<Float>] = []
+          passes.append([2.50, 6.50, 1.0, 0.5])
+          passes.append([4.50, 6.83, 1.0, 0.5])
+          passes.append([5.50, 7.17, 1.0, 0.5])
+          passes.append([6.00, 7.50, 1.0, 0.5])
+          passes.append([6.50, 8.17, 1.0, 0.5])
+          passes.append([7.00, 8.83, 1.0, 0.5])
+          passes.append([7.50, 9.50, 1.0, 0.5])
+          passes.append([8.00, 10.83, 1.0, 0.5])
           
-          passes.append([8.25, 12.83, 1.0])
-          passes.append([8.50, 14.83, 1.0])
-          passes.append([9.00, 16.83, 1.0])
-          passes.append([9.25, 18.83, 1.0])
+          passes.append([8.25, 12.83, 1.0, 0.5])
+          passes.append([8.50, 14.83, 1.0, 0.5])
+          passes.append([9.00, 17.17, 1.0, 0.5])
+          passes.append([9.50, 20.17, 1.0, 0.5])
+          passes.append([9.75, 23.17, 1.0, 0.5])
+          passes.append([10.00, 27.17, 0.5, 0.25])
+          passes.append([10.25, 31.17, 0.5, 0.25])
+          passes.append([10.75, 36.17, 0.75, 0.5])
+          passes.append([11.00, 41.17, 0.5, 0.25])
+          passes.append([11.50, 47.17, 0.75, 0.5])
+          passes.append([11.75, 53.17, 0.5, 0.25])
+//          passes.append([10.50, 28.17, 1.0, 0.5])
+          
+//          passes.append([11.00, 28.83, 0.5, 0.25])
+//          passes.append([11.25, 30.83, 0.75, 0.25])
+//          passes.append([11.50, 32.83, 0.75, 0.25])
+//          passes.append([12.00, 34.83, 0.75, 0.25])
+//          passes.append([12.25, 36.83, 0.75, 0.25])
           
           Concave {
             for pass in passes {
@@ -126,24 +140,25 @@ extension Bootstrapping {
               let distanceWidth: Float = pass[0]
               let distanceHeight: Float = pass[1]
               let wallThickness: Float = pass[2]
+              let carbonDelta: Float = pass[3]
               
               Concave {
                 Convex {
-                  Origin { (distanceHeight + wallThickness - 0.5) * (h + k + l) }
+                  Origin { (distanceHeight + wallThickness - carbonDelta) * (h + k + l) }
                   Plane { (h + k + l) }
                 }
                 Convex {
-                  Origin { 11.5 * (h + k + l) }
+                  Origin { (12 - carbonDelta) * (h + k + l) }
                   Plane { h + k + l }
                 }
                 Convex {
-                  Origin { (topCutoff - 0.5) * (h + k + l) }
+                  Origin { (topCutoff - carbonDelta) * (h + k + l) }
                   Plane { -(h + k + l) }
                 }
                 for direction in directions {
                   Convex {
                     Origin {
-                      (distanceWidth + 0.01 - wallThickness + 0.5) * direction
+                      (distanceWidth + 0.00 - wallThickness + carbonDelta) * direction
                     }
                     Plane { -direction }
                   }
@@ -157,10 +172,9 @@ extension Bootstrapping {
       }
       print("silicon atoms:", lattice.entities.count)
       
-      // Hydrogen-passivate using 'Diamondoid'. Then, use a deterministic rule
-      // to fix up every pair of bad nearby hydrogens. Displace the silicons
-      // that were reconstructed. This will not be possible until the new
-      // compiler is finished.
+      // Hydrogen-passivate using 'Diamondoid'. Don't worry about fixing the
+      // instances of colliding hydrogens; invest time in other, more important
+      // areas. There's a lot of other details to perfect.
       
       // Take note of all the atoms that were marked as carbons.
       var latticeAtoms = lattice.entities.map(MRAtom.init)
@@ -194,8 +208,6 @@ extension Bootstrapping {
         if latticeCarbons[atom1.origin] != nil {
           atomsToRemove[Int(bond[1])] = true
         }
-        
-//        atomsToRemove[Int(bond[1])] = true
       }
       
       var siliconAtoms = diamondoid.atoms.indices.compactMap { i -> MRAtom? in

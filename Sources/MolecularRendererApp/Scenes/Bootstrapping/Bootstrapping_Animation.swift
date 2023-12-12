@@ -18,16 +18,19 @@ extension Bootstrapping {
     init() {
       let checkpoint0 = CACurrentMediaTime()
       let surface = Surface()
+      
       let checkpoint1 = CACurrentMediaTime()
       var tripods: [Tripod] = []
-      let tripodPositions = Tripod.createPositions(radius: 19) // 38
+      let tripodPositions = Tripod.createPositions(radius: 58) // 38
       for position in tripodPositions {
         tripods.append(Tripod(position: position))
       }
+      print("tripod atoms:", tripods.reduce(0) { $0 + $1.atoms.count })
+      
       let checkpoint2 = CACurrentMediaTime()
       let probe = Probe()
-      let checkpoint3 = CACurrentMediaTime()
       
+      let checkpoint3 = CACurrentMediaTime()
       print("time 0 - 1:", checkpoint1 - checkpoint0)
       print("time 1 - 2:", checkpoint2 - checkpoint1)
       print("time 2 - 3:", checkpoint3 - checkpoint2)
@@ -37,11 +40,20 @@ extension Bootstrapping {
        time 2 - 3: 0.5508762500248849
        */
       
-      
       frames.append(surface.atoms + tripods.flatMap(\.atoms) + probe.atoms)
       
       // Ensure no nearby tripod collides with the AFM. If a tripod has its
       // moiety removed, that may or may not make it okay to come near again.
+      //
+      // Show the surface moving for the up-close part of the animation, then
+      // the scanning probe moving for the bulk of the trajectory. Zoom back in
+      // to the tip to show the finished product. When mechanosynthesizing onto
+      // the build plate, the AFM is still the object that's moving. It can now
+      // access the tripods in the rim of the area, which have much higher
+      // density and require the sharper tip to handle.
+      // - To pull off the "surface motion" effect in the most efficient way,
+      //   keep the atoms for the tripods and surface always constant. Instead,
+      //   shift the camera's origin to make it look like the AFM is still.
     }
     
     // For the final animation, we may need a function for scripting the camera.

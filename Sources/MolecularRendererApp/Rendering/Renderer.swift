@@ -42,6 +42,7 @@ class Renderer {
       descriptor.url = Bundle.main.url(
         forResource: "MolecularRendererGPU", withExtension: "metallib")!
       if Self.productionRender {
+        // TODO: Export this next movie as 1280x720 instead of 720x640.
         descriptor.width = 720
         descriptor.height = 640
         descriptor.offline = true
@@ -51,7 +52,8 @@ class Renderer {
         descriptor.upscaleFactor = ContentView.upscaleFactor
       }
       
-      descriptor.largeSystemsMode = false
+      // TODO: Revert to small system mode after the project is done.
+      descriptor.largeSystemsMode = true
       
       self.renderingEngine = MRRenderer(descriptor: descriptor)
       self.gifSerializer = GIFSerializer(
