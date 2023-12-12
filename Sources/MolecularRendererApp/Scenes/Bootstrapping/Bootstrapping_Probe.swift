@@ -20,8 +20,9 @@ extension Bootstrapping {
     // now, hard-code a specific position into the initializer.
     init() {
       let lattice = Lattice<Cubic> { h, k, l in
-        Bounds { 30 * (h + k + l) }
+        Bounds { 60 * (h + k + l) }
         Material { .elemental(.silicon) }
+        let topCutoff: Float = 47
         
         Volume {
           var directions: [SIMD3<Float>] = []
@@ -48,15 +49,20 @@ extension Bootstrapping {
             directions[directionID] = adjusted
           }
           
-          var passes: [SIMD2<Float>] = []
-          passes.append([2.50, 6.50])
-          passes.append([4.50, 6.83])
-          passes.append([5.50, 7.17])
-          passes.append([6.00, 7.50])
-          passes.append([6.50, 8.17])
-          passes.append([7.00, 8.83])
-          passes.append([7.50, 10.50])
-          // TODO: Add another layer once you can make the probe tall enough.
+          var passes: [SIMD3<Float>] = []
+          passes.append([2.50, 6.50, 1.0])
+          passes.append([4.50, 6.83, 1.0])
+          passes.append([5.50, 7.17, 1.0])
+          passes.append([6.00, 7.50, 1.0])
+          passes.append([6.50, 8.17, 1.0])
+          passes.append([7.00, 8.83, 1.0])
+          passes.append([7.50, 9.50, 1.0])
+          passes.append([8.00, 10.83, 1.0])
+          
+          passes.append([8.25, 12.83, 1.0])
+          passes.append([8.50, 14.83, 1.0])
+          passes.append([9.00, 16.83, 1.0])
+          passes.append([9.25, 18.83, 1.0])
           
           Concave {
             for pass in passes {
@@ -69,7 +75,7 @@ extension Bootstrapping {
                   Plane { -(h + k + l) }
                 }
                 Convex {
-                  Origin { 17 * (h + k + l) }
+                  Origin { topCutoff * (h + k + l) }
                   Plane { h + k + l }
                 }
                 for direction in directions {
@@ -82,7 +88,71 @@ extension Bootstrapping {
             }
           }
           
+          Convex {
+            for pass in passes {
+              let distanceWidth: Float = pass[0]
+              let distanceHeight: Float = pass[1]
+              let wallThickness: Float = pass[2]
+              
+              Concave {
+                Convex {
+                  Origin { (distanceHeight + wallThickness) * (h + k + l) }
+                  Plane { (h + k + l) }
+                }
+                Convex {
+                  Origin { 12 * (h + k + l) }
+                  Plane { h + k + l }
+                }
+                Convex {
+                  Origin { (topCutoff - 1) * (h + k + l) }
+                  Plane { -(h + k + l) }
+                }
+                for direction in directions {
+                  Convex {
+                    Origin {
+                      (distanceWidth + 0.01 - wallThickness) * direction
+                    }
+                    Plane { -direction }
+                  }
+                }
+              }
+            }
+          }
+          
           Replace { .empty }
+          
+          Convex {
+            for pass in passes {
+              let distanceWidth: Float = pass[0]
+              let distanceHeight: Float = pass[1]
+              let wallThickness: Float = pass[2]
+              
+              Concave {
+                Convex {
+                  Origin { (distanceHeight + wallThickness - 0.5) * (h + k + l) }
+                  Plane { (h + k + l) }
+                }
+                Convex {
+                  Origin { 11.5 * (h + k + l) }
+                  Plane { h + k + l }
+                }
+                Convex {
+                  Origin { (topCutoff - 0.5) * (h + k + l) }
+                  Plane { -(h + k + l) }
+                }
+                for direction in directions {
+                  Convex {
+                    Origin {
+                      (distanceWidth + 0.01 - wallThickness + 0.5) * direction
+                    }
+                    Plane { -direction }
+                  }
+                }
+              }
+            }
+          }
+          
+          Replace { .atom(.carbon) }
         }
       }
       print("silicon atoms:", lattice.entities.count)
@@ -91,9 +161,51 @@ extension Bootstrapping {
       // to fix up every pair of bad nearby hydrogens. Displace the silicons
       // that were reconstructed. This will not be possible until the new
       // compiler is finished.
-      var diamondoid = Diamondoid(atoms: lattice.entities.map(MRAtom.init))
+      
+      // Take note of all the atoms that were marked as carbons.
+      var latticeAtoms = lattice.entities.map(MRAtom.init)
+      var latticeCarbons: [SIMD3<Float>: Bool] = [:]
+      for i in latticeAtoms.indices {
+        if latticeAtoms[i].element == 6 {
+          latticeCarbons[latticeAtoms[i].origin] = true
+          latticeAtoms[i].element = 14
+        }
+      }
+      
+      var diamondoid = Diamondoid(atoms: latticeAtoms)
       diamondoid.removeLooseCarbons(iterations: 0)
-      var siliconAtoms = diamondoid.atoms
+      
+      // Remove hydrogens pointing inward.
+      var atomsToRemove: [Int: Bool] = [:]
+      for var bond in diamondoid.bonds {
+        var atom1 = diamondoid.atoms[Int(bond[0])]
+        var atom2 = diamondoid.atoms[Int(bond[1])]
+        if atom1.element == 1 {
+          swap(&atom1, &atom2)
+          bond = SIMD2(bond[1], bond[0])
+        }
+        guard atom2.element == 1 else {
+          continue
+        }
+        guard atom1.element == 14 else {
+          fatalError("This should never happen.")
+        }
+        
+        if latticeCarbons[atom1.origin] != nil {
+          atomsToRemove[Int(bond[1])] = true
+        }
+        
+//        atomsToRemove[Int(bond[1])] = true
+      }
+      
+      var siliconAtoms = diamondoid.atoms.indices.compactMap { i -> MRAtom? in
+        let atom = diamondoid.atoms[i]
+        if atomsToRemove[i] != nil {
+          return nil
+        } else {
+          return atom
+        }
+      }
       
       let axis1 = cross_platform_normalize([1, 0, -1])
       let axis3 = cross_platform_normalize([-1, -1, -1])

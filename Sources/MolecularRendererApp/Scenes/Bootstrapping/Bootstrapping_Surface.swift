@@ -37,7 +37,7 @@ extension Bootstrapping {
     
     init() {
       // Create a hexagon of gold. Make it truly gigantic.
-      let scaleFactor: Float = 3
+      let scaleFactor: Float = 4
       let lattice = Lattice<Cubic> { h, k, l in
         Bounds { scaleFactor * 40 * (h + k + l) }
         Material { .elemental(.gold) }
@@ -56,21 +56,21 @@ extension Bootstrapping {
             }
             
             // Change the chiseling on the 3 (110) sides.
-//            for direction in [h + k, h + l, k + l] {
-//              Convex {
-//                Origin { scaleFactor * 10 * direction }
-//                Plane { direction }
-//              }
-//            }
+            for direction in [h + k, h + l, k + l] {
+              Convex {
+                Origin { scaleFactor * 10 * direction }
+                Plane { direction }
+              }
+            }
           }
           
           // Change the chiseling on the 3 (100) sides.
-//          for direction in [h - k - l, k - h - l, l - h - k] {
-//            Convex {
-//              Origin { scaleFactor * 6.75 * direction }
-//              Plane { direction }
-//            }
-//          }
+          for direction in [h - k - l, k - h - l, l - h - k] {
+            Convex {
+              Origin { scaleFactor * 6.75 * direction }
+              Plane { direction }
+            }
+          }
           
           Replace { .empty }
         }

@@ -83,7 +83,7 @@ public:
     float maxTargetDistance;
     if (params.get_has_max_time()) {
       const float voxel_size = voxel_width_numer / voxel_width_denom;
-      maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * voxel_size;
+      maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * 4.0 / 8;
     }
     
     while (dda.continue_loop) {

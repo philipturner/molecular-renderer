@@ -51,6 +51,8 @@ class Renderer {
         descriptor.upscaleFactor = ContentView.upscaleFactor
       }
       
+      descriptor.largeSystemsMode = false
+      
       self.renderingEngine = MRRenderer(descriptor: descriptor)
       self.gifSerializer = GIFSerializer(
         path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
