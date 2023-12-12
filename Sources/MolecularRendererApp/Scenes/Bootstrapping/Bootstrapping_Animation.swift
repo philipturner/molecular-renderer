@@ -34,12 +34,6 @@ extension Bootstrapping {
       print("time 0 - 1:", checkpoint1 - checkpoint0)
       print("time 1 - 2:", checkpoint2 - checkpoint1)
       print("time 2 - 3:", checkpoint3 - checkpoint2)
-      /*
-       time 0 - 1: 0.664029041538015
-       time 1 - 2: 2.9173679649829865e-07
-       time 2 - 3: 0.5508762500248849
-       */
-      
       frames.append(surface.atoms + tripods.flatMap(\.atoms) + probe.atoms)
       
       // Ensure no nearby tripod collides with the AFM. If a tripod has its

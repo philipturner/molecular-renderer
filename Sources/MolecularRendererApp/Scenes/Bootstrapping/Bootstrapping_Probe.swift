@@ -70,13 +70,6 @@ extension Bootstrapping {
           passes.append([11.00, 41.17, 0.5, 0.25])
           passes.append([11.50, 47.17, 0.75, 0.5])
           passes.append([11.75, 53.17, 0.5, 0.25])
-//          passes.append([10.50, 28.17, 1.0, 0.5])
-          
-//          passes.append([11.00, 28.83, 0.5, 0.25])
-//          passes.append([11.25, 30.83, 0.75, 0.25])
-//          passes.append([11.50, 32.83, 0.75, 0.25])
-//          passes.append([12.00, 34.83, 0.75, 0.25])
-//          passes.append([12.25, 36.83, 0.75, 0.25])
           
           Concave {
             for pass in passes {

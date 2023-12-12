@@ -85,7 +85,7 @@ extension Bootstrapping {
       var createdDictionary: [SIMD2<Int>: Bool] = [:]
       do {
         let numTripods: Int = 500
-        var randomBounds = Int(radius / spacingH)
+        let randomBounds = Int(radius / spacingH)
         
         for _ in 0..<numTripods {
           var attempts: Int = 0
@@ -115,9 +115,10 @@ extension Bootstrapping {
         }
       }
       do {
+        // Expand to 10000 tripods for the final animation. 4000 should be
+        // plenty for debugging performance.
         let numTripods: Int = 4000
-        var randomBounds = Int(radius / spacingH)
-        randomBounds *= 2
+        let randomBounds = 2 * Int(radius / spacingH)
         
         for _ in 0..<numTripods {
           var attempts: Int = 0
