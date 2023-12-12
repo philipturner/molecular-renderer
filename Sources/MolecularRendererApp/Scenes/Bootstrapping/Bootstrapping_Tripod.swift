@@ -23,7 +23,8 @@ import Numerics
 // 4) Create some code that searches for the closest tripod with a particular
 //    moiety attached, then shifts that tripod's moiety upward to visualize.
 // 5) Create some code that moves the surface and detaches a moiety from a
-//    tripod.
+//    tripod. Make the tripod compress a little bit to animate how mechanical
+//    force catalyzes chemical reactions in mechanosynthesis.
 //
 // Finish the rest of this scene another time; each component of the project
 // can be worked on in bits.

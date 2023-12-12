@@ -18,24 +18,31 @@ import Numerics
 //      -> hexagonal doesn't need the optimization because its coordinate system
 //         is already oriented with 3-fold symmetry on a cartesian axis
 //    -> maybe parallelize over multicore CPU
-// 2) Wait to change further until the code for controlling the AFM is sorted
-//    out. Having less surface area (and therefore higher tip conc.) is a
-//    conservative estimate of device performance. Not adding the ledges will
-//    make the code much simpler when first implementing it.
-// 3) Make the gold surface maximally thin so you can fit more surface area
-//    with the same rendering cost.
-// 4) Achieve this by emulating a few randomly spaced ledges (within a certain
-//    margin of safety from the central build plate). This makes it a bit
-//    harder to plan trajectories and better represents real-world conditions.
+// 2) Make the gold surface maximally thin so you can fit more surface area
+//    with the same rendering cost. ✅
+// 3) Achieve this by emulating a few randomly spaced ledges (within a certain
+//    margin of safety from the central build plate). This makes it a bit harder
+//    to plan trajectories and better represents real-world conditions. ✅
 //
 // Finish the rest of this scene another time; each component of the project
 // can be worked on in bits.
 
 extension Bootstrapping {
   struct Surface {
-    var atoms: [MRAtom]
+    var atoms: [MRAtom] = []
+    var ledges: SurfaceLedges
+    
+    // These are not the center of mass, max Y, etc. of the actual object. Only
+    // parameters used while transforming points. Therefore, they are private.
+    private var centerOfMass: SIMD3<Float>
+    private var basis: (x: SIMD3<Float>, y: SIMD3<Float>, z: SIMD3<Float>)
+    private var maxY: Float = .nan
     
     init() {
+      // Create the ledges before the lattice is compiled. Access the ledges
+      // during the compilation, then transform them afterward.
+      self.ledges = SurfaceLedges()
+      
       // Create a hexagon of gold. Make it truly gigantic.
       let scaleFactor: Float = 6
       let lattice = Lattice<Cubic> { h, k, l in
@@ -73,6 +80,8 @@ extension Bootstrapping {
             let cutNormal = cross_platform_normalize(-cutAlignment + axis)
             
             // Make the spacings in nm by dividing by the lattice constant.
+            // Note: When storing in the object, it should be in the original
+            // form (nm) instead of in lattice constants.
             let latticeConstant = Constant(.square) { .elemental(.gold) }
             let cutOffset = Float.random(in: -1..<1) / latticeConstant
             let cutSpacing = Float.random(in: 18..<20) / latticeConstant
@@ -101,68 +110,109 @@ extension Bootstrapping {
                 }
               }
             }
-            
           }
           
           Replace { .empty }
         }
       }
       
+      // Create a list of atoms that is transformed.
       var goldAtoms = lattice.entities
+      print("gold atoms:", goldAtoms.count)
       
-      // Center the surface at the world origin.
-      func center() {
+      // Read the center of mass when there are no ledges, then use that
+      // number for geometries with ledges. Repeat this every time the surface
+      // size changes.
+      do {
         var centerOfMass: SIMD3<Double> = .zero
         for entity in goldAtoms {
           centerOfMass += SIMD3(entity.position)
         }
         centerOfMass /= Double(goldAtoms.count)
-        
-        // Read the center of mass when there are no ledges, then use that
-        // number for geometries with ledges. Repeat this every time the surface
-        // size changes.
-        do {
-//          print(centerOfMass)
-          centerOfMass = SIMD3(49.00396455334486, 49.00396455334486, 49.00396455334486)
-        }
-        for i in goldAtoms.indices {
-          goldAtoms[i].position -= SIMD3(centerOfMass)
-        }
+        //        print(centerOfMass)
+        centerOfMass = SIMD3(49.00396455334486, 49.00396455334486, 49.00396455334486)
+        self.centerOfMass = SIMD3(centerOfMass)
       }
-      center()
+      
+      // Center the surface at the world origin.
+      for i in goldAtoms.indices {
+        goldAtoms[i].position -= self.centerOfMass
+      }
       
       // Rotate the hexagon so its normal points toward +Y.
       let axis1 = cross_platform_normalize([1, 0, -1])
       let axis3 = cross_platform_normalize([1, 1, 1])
       let axis2 = cross_platform_cross(axis1, axis3)
-      
+      self.basis = (SIMD3(axis1), SIMD3(axis3), SIMD3(axis2))
       for i in goldAtoms.indices {
-        var position = goldAtoms[i].position
-        let componentH = (position * SIMD3(axis1)).sum()
-        let componentH2K = (position * SIMD3(axis2)).sum()
-        let componentL = (position * SIMD3(axis3)).sum()
-        position = SIMD3(componentH, componentL, componentH2K)
-        goldAtoms[i].position = position
-      }
-      
-      // Shift the atoms, so that Y=0 coincides with the highest atom.
-      var maxY: Float = -.greatestFiniteMagnitude
-      for atom in goldAtoms {
-        maxY = max(maxY, atom.position.y)
+        goldAtoms[i].position = transform(direction: goldAtoms[i].position)
       }
       
       // As with the center of mass, use a value from when the surface has no
       // elevation (actually, 0.5 unit cells of elevation in (111)).
       do {
-//        print(maxY)
+        var maxY: Float = -.greatestFiniteMagnitude
+        for atom in goldAtoms {
+          maxY = max(maxY, atom.position.y)
+        }
+        //        print(maxY)
         maxY = 0.117731094
-      }
-      for i in goldAtoms.indices {
-        goldAtoms[i].position.y -= maxY
+        self.maxY = maxY
       }
       
-      print("gold atoms:", goldAtoms.count)
+      // Shift the atoms, so that Y=0 coincides with the highest atom.
+      for i in goldAtoms.indices {
+        goldAtoms[i].position.y -= self.maxY
+      }
+      
+      // Set the object's atoms to the final version of the gold atoms.
+      // [TODO] Append some oxygen atoms while debugging ledges.
       self.atoms = goldAtoms.map(MRAtom.init)
     }
+    
+    // Functions to transform the contents from the lattice basis to the new
+    // one. This could be used to reposition the atoms and ledges.
+    
+    @inline(__always)
+    func transform(position: SIMD3<Float>) -> SIMD3<Float> {
+      // Only used for ledges, as some parameters require knowledge of the
+      // atoms' final positions to initialize.
+      var output = position - centerOfMass
+      output = transform(direction: output)
+      output.y -= maxY
+      return output
+    }
+    
+    @inline(__always)
+    func transform(direction: SIMD3<Float>) -> SIMD3<Float> {
+      // Used for atoms and ledges.
+      let componentH = (direction * SIMD3(basis.x)).sum()
+      let componentL = (direction * SIMD3(basis.y)).sum()
+      let componentH2K = (direction * SIMD3(basis.z)).sum()
+      return SIMD3(componentH, componentL, componentH2K)
+    }
+  }
+}
+
+extension Bootstrapping {
+  struct SurfaceLedges {
+    init() {
+      
+    }
+    
+    // Function to mutate the ledges, mapping them from the cubic lattice basis
+    // to the new one. As the ledge's properties might change independently of
+    // the surface, it's best to encapsulate the code somewhere besides
+    // 'Surface.init'.
+    
+    // Function that gives you a conservative estimate of elevation based on an
+    // entered position. This could be used to place tripods or generate
+    // camera keyframes.
+    
+    // Function that tells you whether you're directly on top of a ledge. This
+    // could be used to avoid placing tripods on ledges.
+    
+    // Function that creates a bounding box representation of the ledges, for
+    // debugging. The atoms are oxygen because the red color is easy to spot.
   }
 }

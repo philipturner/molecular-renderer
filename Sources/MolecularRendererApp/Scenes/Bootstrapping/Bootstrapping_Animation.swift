@@ -27,10 +27,10 @@ extension Bootstrapping {
 //        tripods.append(Tripod(position: position))
 //      }
 //      print("tripod atoms:", tripods.reduce(0) { $0 + $1.atoms.count })
-//      
+//
       let checkpoint2 = CACurrentMediaTime()
       let probe = Probe()
-//      
+//
       let checkpoint3 = CACurrentMediaTime()
       print("time 0 - 1:", checkpoint1 - checkpoint0)
       print("time 1 - 2:", checkpoint2 - checkpoint1)
@@ -50,6 +50,11 @@ extension Bootstrapping {
       // - To pull off the "surface motion" effect in the most efficient way,
       //   keep the atoms for the tripods and surface always constant. Instead,
       //   shift the camera's origin to make it look like the AFM is still.
+      //
+      // Set up an array structure to efficiently hold the atom positions each
+      // frame. Only the atoms that move this/last frame need to be mutated.
+      // This means you should record the subranges that were mutated this
+      // frame, so they can be reset at the start of the next frame.
     }
     
     // For the final animation, we may need a function for scripting the camera.
