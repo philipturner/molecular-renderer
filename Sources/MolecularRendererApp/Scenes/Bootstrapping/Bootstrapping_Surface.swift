@@ -45,7 +45,7 @@ extension Bootstrapping {
       
       // Create a hexagon of gold. Make it truly gigantic.
       let scaleFactor: Float = 6
-      let lattice = Lattice<Cubic> { h, k, l in
+      let lattice = Lattice<Cubic> { [ledges] h, k, l in
         Bounds { scaleFactor * 40 * (h + k + l) }
         Material { .elemental(.gold) }
         
@@ -63,28 +63,17 @@ extension Bootstrapping {
               Plane { -(h + k + l) }
             }
             
-            // TODO: Modify the code so the locations of ledges can be recorded,
-            // and used to decide where the tripods initialize. The ledge
-            // metadata should be projected onto the new basis along with the
-            // atom positions.
+            // Set the effective center of the line to 0.375 unit cells
+            // off in the alignment direction.
             //
             // Test the data structure for describing the ledges by placing some
             // oxygen atoms dotted along each ledge's bounds. Ensure the
             // bounding box looks correct, otherwise adjust it.
-            let revolutions = Float.random(in: 0..<1)
-            var cutAlignment = cross_platform_normalize(SIMD3<Float>(1, 0, -1))
-            let axis = cross_platform_normalize(SIMD3<Float>(1, 1, 1))
-            let rotation = Quaternion<Float>(
-              angle: revolutions * 2 * .pi, axis: axis)
-            cutAlignment = rotation.act(on: cutAlignment)
-            let cutNormal = cross_platform_normalize(-cutAlignment + axis)
             
             // Make the spacings in nm by dividing by the lattice constant.
-            // Note: When storing in the object, it should be in the original
-            // form (nm) instead of in lattice constants.
             let latticeConstant = Constant(.square) { .elemental(.gold) }
-            let cutOffset = Float.random(in: -1..<1) / latticeConstant
-            let cutSpacing = Float.random(in: 18..<20) / latticeConstant
+            let cutOffset = ledges.cutOffset / latticeConstant
+            let cutSpacing = ledges.cutSpacing / latticeConstant
             
             for integer in -11...11 {
               if (integer & 1) == 0 {
@@ -92,20 +81,39 @@ extension Bootstrapping {
                 continue
               }
               Convex {
-                Origin { Float(integer) / 2 * cutSpacing * cutAlignment }
-                Origin { Float(integer - 1) / 3 * (h + k + l) }
+                // Set the offset of this ledge in particular.
+                Origin {
+                  Float(integer) / 2 * cutSpacing * ledges.cutAlignment
+                }
+                Origin {
+                  Float(integer - 1) / 3 * (h + k + l)
+                }
+                
+                // Make 2 cuts in the crystal.
                 Concave {
-                  Origin { cutOffset * cutAlignment }
-                  Plane { cutNormal }
-                  Origin { 0 * (h + k + l) }
+                  // Points up and sideways.
+                  Origin {
+                    cutOffset * ledges.cutAlignment
+                  }
+                  Plane { ledges.cutNormal }
+                  
+                  // Points straight up.
+                  Origin {
+                    0 * (h + k + l)
+                  }
                   Plane { h + k + l }
                 }
                 Concave {
-                  // Set the effective center of the line to 0.375 unit cells
-                  // off in the alignment direction.
-                  Origin { (0.75 + cutOffset) * cutAlignment }
-                  Plane { -cutNormal }
-                  Origin { 0.25 * (h + k + l) }
+                  // Points down and sideways.
+                  Origin {
+                    (0.75 + cutOffset) * ledges.cutAlignment
+                  }
+                  Plane { -ledges.cutNormal }
+                  
+                  // Points straight down.
+                  Origin {
+                    0.25 * (h + k + l)
+                  }
                   Plane { -(h + k + l) }
                 }
               }
@@ -196,8 +204,23 @@ extension Bootstrapping {
 
 extension Bootstrapping {
   struct SurfaceLedges {
+    var cutAlignment: SIMD3<Float>
+    var cutNormal: SIMD3<Float>
+    var cutOffset: Float
+    var cutSpacing: Float
+    
     init() {
+      let revolutions = Float.random(in: 0..<1)
+      let axis = cross_platform_normalize(SIMD3<Float>(1, 1, 1))
+      let rotation = Quaternion<Float>(
+        angle: revolutions * 2 * .pi, axis: axis)
       
+      self.cutAlignment = cross_platform_normalize(SIMD3<Float>(1, 0, -1))
+      self.cutAlignment = rotation.act(on: cutAlignment)
+      
+      self.cutNormal = cross_platform_normalize(-cutAlignment + axis)
+      self.cutOffset = Float.random(in: -1..<1)
+      self.cutSpacing = Float.random(in: 18..<20)
     }
     
     // Function to mutate the ledges, mapping them from the cubic lattice basis
