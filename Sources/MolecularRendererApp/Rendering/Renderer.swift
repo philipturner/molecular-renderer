@@ -65,6 +65,15 @@ class Renderer {
       initOpenMM()
     }
     
-    self.atomProvider = Bootstrapping.Animation()
+    //    self.atomProvider = Bootstrapping.Animation()
+    
+    var atoms1 = createSilyleneTooltip(sp3: false)
+    var atoms2 = createSilyleneTooltip(sp3: true)
+    for i in atoms1.indices {
+      atoms1[i].origin.x -= 0.5
+      atoms2[i].origin.x += 0.5
+    }
+    self.atomProvider = ArrayAtomProvider(
+      atoms1 + atoms2)
   }
 }
