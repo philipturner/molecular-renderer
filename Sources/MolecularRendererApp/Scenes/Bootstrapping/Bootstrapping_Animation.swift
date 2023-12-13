@@ -18,7 +18,7 @@ extension Bootstrapping {
     init() {
       let checkpoint0 = CACurrentMediaTime()
       let surface = Surface()
-      frames.append(surface.atoms)
+//      frames.append(surface.atoms)
       
       let checkpoint1 = CACurrentMediaTime()
 //      var tripods: [Tripod] = []
@@ -35,8 +35,26 @@ extension Bootstrapping {
       print("time 0 - 1:", checkpoint1 - checkpoint0)
       print("time 1 - 2:", checkpoint2 - checkpoint1)
       print("time 2 - 3:", checkpoint3 - checkpoint2)
-      frames[0] += probe.atoms
+//      frames[0] += probe.atoms
 //      frames.append(surface.atoms + tripods.flatMap(\.atoms) + probe.atoms)
+      
+//      let tripod = Tripod(position: .zero)
+//      frames[0] += tripod.atoms
+      
+      for frameID in 1..<1000 {
+        let t = Float.sin(Float(frameID) / 50 + .pi / 2)
+        let heightChange = Float(0.05) * t - 0.05
+        
+        let tripod = TripodWarp.global
+          .createTripod(heightChange: heightChange)
+        var frame = (surface.atoms + tripod.atoms).map {
+          var copy = $0
+          copy.origin.y -= 0 * heightChange
+          return copy
+        }
+        frame += probe.atoms
+        self.frames.append(frame)
+      }
       
       // Ensure no nearby tripod collides with the AFM. If a tripod has its
       // moiety removed, that may or may not make it okay to come near again.

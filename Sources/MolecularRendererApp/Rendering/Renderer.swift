@@ -68,9 +68,7 @@ class Renderer {
     
     print("app start")
     
-//    let lattice = adamantaneLattice()
-//    let latticeAtoms = lattice.entities.map(MRAtom.init)
-//    self.atomProvider = ArrayAtomProvider(latticeAtoms)
     self.atomProvider = Bootstrapping.Animation()
+//    self.atomProvider = ArrayAtomProvider(createXTBGeometry())
   }
 }

@@ -23,6 +23,7 @@ import Numerics
 // 3) Achieve this by emulating a few randomly spaced ledges (within a certain
 //    margin of safety from the central build plate). This makes it a bit harder
 //    to plan trajectories and better represents real-world conditions. ✅
+// 4) Finish up the code that makes a bounding box for each ledge.
 //
 // Finish the rest of this scene another time; each component of the project
 // can be worked on in bits.
