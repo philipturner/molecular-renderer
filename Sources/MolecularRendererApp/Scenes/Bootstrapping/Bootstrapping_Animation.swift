@@ -16,6 +16,8 @@ extension Bootstrapping {
     var frames: [[MRAtom]] = []
     
     init() {
+      print("app start")
+      
       let checkpoint0 = CACurrentMediaTime()
       let surface = Surface()
 //      frames.append(surface.atoms)

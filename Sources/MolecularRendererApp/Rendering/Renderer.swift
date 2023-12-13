@@ -52,7 +52,7 @@ class Renderer {
         descriptor.upscaleFactor = ContentView.upscaleFactor
       }
       
-      // TODO: Revert to small system mode after the project is done.
+      // TODO: Revert to small systems mode after the project is done.
       descriptor.largeSystemsMode = true
       
       self.renderingEngine = MRRenderer(descriptor: descriptor)
@@ -65,10 +65,6 @@ class Renderer {
       initOpenMM()
     }
     
-    
-    print("app start")
-    
     self.atomProvider = Bootstrapping.Animation()
-//    self.atomProvider = ArrayAtomProvider(createXTBGeometry())
   }
 }
