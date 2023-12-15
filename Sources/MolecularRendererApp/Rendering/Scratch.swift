@@ -112,7 +112,11 @@ func createNanomachinery() -> [MRAtom] {
   bandDiamondoid.translate(offset: -bandDiamondoid.createCenterOfMass())
   bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
   bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [0, 1, 0]))
-  bandDiamondoid.translate(offset: [4.2, 0, 0])
+  
+  let maxX = bandDiamondoid.atoms.reduce(-Float.greatestFiniteMagnitude) {
+    max($0, $1.x)
+  }
+  bandDiamondoid.translate(offset: [5.7 - maxX, 0, 0])
   bandDiamondoid.translate(offset: [0, 7, 0])
   
   // silicon housing

@@ -46,9 +46,9 @@ class MRAccelBuilder {
   var frameReportCounter: Int = 0
   static let frameReportHistorySize: Int = 10
   var reportPerformance: Bool = false
-  var voxelSizeDenom: Float?
   
   // Data for uniform grids.
+  var sceneSize: MRSceneSize?
   var ringIndex: Int = 0
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
@@ -212,12 +212,12 @@ extension MRAccelBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {
-    guard let voxelSizeDenom else {
+    guard let sceneSize else {
       fatalError("Voxel size denominator not set.")
     }
     
     let voxel_width_numer: Float = 4
-    let voxel_width_denom = voxelSizeDenom
+    let voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
     let statisticsStart = CACurrentMediaTime()
     let statistics = denseGridStatistics(
       atoms: atoms,
@@ -295,10 +295,11 @@ extension MRAccelBuilder {
     // Add 8 to the number of slots, so the counters can be located at the start
     // of the buffer.
     let numSlots = (totalCells + 127) / 128 * 128
+    let atomicSpan = (sceneSize == .extreme) ? 2 : 1
     let dataBuffer = allocate(
       &denseGridData,
       currentMaxElements: &maxGridSlots,
-      desiredElements: 8 + numSlots,
+      desiredElements: 8 + numSlots * atomicSpan,
       bytesPerElement: 4)
     let countersBuffer = allocate(
       &denseGridCounters,
@@ -315,7 +316,7 @@ extension MRAccelBuilder {
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)
     encoder.dispatchThreads(
-      MTLSizeMake(8 + numSlots, 1, 1),
+      MTLSizeMake(8 + numSlots * atomicSpan, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
     
     struct UniformGridArguments {

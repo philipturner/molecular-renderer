@@ -21,16 +21,24 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant bool OFFLINE [[function_constant(2)]];
 
+// Whether to use 64-bit cell descriptors. For now, this must be changed
+// manually when enabling extreme system sizes. Eventually, a more elegant
+// implementation will select a function variant at app launch.
+#define SCENE_SIZE_EXTREME 0
+
 // Safeguard against infinite loops. Disable this for profiling.
 #define FAULT_COUNTERS_ENABLE 1
-
-// Whether to render using dense or sparse grids.
-#define GRID_TYPE_SPARSE 0
 
 // Voxel width in nm.
 constant float voxel_width_numer [[function_constant(10)]];
 constant float voxel_width_denom [[function_constant(11)]];
 
+#if SCENE_SIZE_EXTREME
+typedef uint2 VOXEL_DATA;
+
+constant uint dense_grid_reference_capacity = __UINT32_MAX__;
+constant uint voxel_reference_capacity = __UINT32_MAX__;
+#else
 // Max 16 million atoms/dense grid, including duplicated references.
 // Max ~5 million atoms/dense grid, excluding duplicated references.
 // Max 256 references/voxel.
@@ -41,8 +49,8 @@ constant uint voxel_reference_capacity = 256;
 constant uint voxel_offset_mask = dense_grid_reference_capacity - 1;
 constant uint voxel_count_mask = 0xFFFFFFFF - voxel_offset_mask;
 
-// When we have sparse grids, the references can be `ushort`.
-typedef uint REFERENCE;
+typedef uint VOXEL_DATA;
+#endif
 
 // MARK: - Definitions
 

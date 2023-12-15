@@ -15,11 +15,10 @@
 #include "../Uniform Grids/UniformGrid.metal"
 using namespace metal;
 
-template <typename REFERENCE>
 struct _IntersectionResult {
   float distance;
   bool accept;
-  REFERENCE atom;
+  uint atom;
 };
 
 struct IntersectionResult {
@@ -41,13 +40,13 @@ struct IntersectionParams {
 
 class RayIntersector {
 public:
-  template <typename T, typename REFERENCE>
+  template <typename T>
   METAL_FUNC static void intersect
   (
-   thread _IntersectionResult<REFERENCE> *result,
+   thread _IntersectionResult *result,
    Ray<T> ray,
    float4 sphere,
-   REFERENCE reference)
+   uint reference)
   {
     // Do not walk inside an atom; doing so will produce corrupted graphics.
     float3 oc = ray.origin - sphere.xyz;
@@ -78,7 +77,7 @@ public:
    Ray<T> ray, DenseGrid grid, IntersectionParams params)
   {
     DenseDDA<T> dda(ray, grid.dims);
-    _IntersectionResult<REFERENCE> result { MAXFLOAT, false };
+    _IntersectionResult result { MAXFLOAT, false };
     
     float maxTargetDistance;
     if (params.get_has_max_time()) {
@@ -88,7 +87,7 @@ public:
     
     while (dda.continue_loop) {
       // To reduce divergence, fast forward through empty voxels.
-      uint voxel_data = 0;
+      VOXEL_DATA voxel_data = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
         voxel_data = grid.data[dda.address];
@@ -99,7 +98,12 @@ public:
           dda.continue_loop = false;
         }
         
-        if ((voxel_data & voxel_count_mask) == 0) {
+#if SCENE_SIZE_EXTREME
+        uint voxel_count = voxel_data[0];
+#else
+        uint voxel_count = voxel_data & voxel_count_mask;
+#endif
+        if (voxel_count == 0) {
           continue_fast_forward = dda.continue_loop;
         } else {
           continue_fast_forward = false;
@@ -115,11 +119,16 @@ public:
         }
         result.distance = target_distance;
         
+#if SCENE_SIZE_EXTREME
+        uint count = voxel_data[0];
+        uint offset = voxel_data[1];
+#else
         uint count = reverse_bits(voxel_data & voxel_count_mask);
         uint offset = voxel_data & voxel_offset_mask;
+#endif
         uint upper_bound = offset + count;
         for (; offset < upper_bound; ++offset) {
-          REFERENCE reference = grid.references[offset];
+          uint reference = grid.references[offset];
           float4 sphere = ((device float4*)grid.atoms)[reference];
           RayIntersector::intersect(&result, ray, sphere, reference);
         }

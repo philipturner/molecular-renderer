@@ -25,6 +25,12 @@ box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 #define DENSE_BOX_LOOP(COORD) \
 for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
 
+#if SCENE_SIZE_EXTREME
+#define ATOMIC_SPAN 2
+#else
+#define ATOMIC_SPAN 1
+#endif
+
 struct Box {
   float3 min;
   float3 max;
@@ -93,7 +99,7 @@ kernel void dense_grid_pass1
           mark = cube_sphere_intersection({ x, y, z }, origin, radiusSquared);
         }
         if (mark) {
-          atomic_fetch_add(dense_grid_data + address_x, 1);
+          atomic_fetch_add(dense_grid_data + address_x * ATOMIC_SPAN, 1);
         }
         address_x += VoxelAddress::increment_x(grid_dims);
       }
@@ -116,14 +122,14 @@ kernel void dense_grid_pass2
  device atomic_uint *global_counter_2 [[buffer(7)]],
 #endif
  
- // 128 thread/threadgroup
+ // 128 threads/threadgroup
  uint tid [[thread_position_in_grid]],
  ushort sidx [[simdgroup_index_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]])
 {
   // Allocate extra cells if the total number isn't divisible by 128. The first
   // pass should zero them out.
-  uint voxel_count = dense_grid_data[tid];
+  uint voxel_count = dense_grid_data[tid * ATOMIC_SPAN];
   uint prefix_sum_results = simd_prefix_exclusive_sum(voxel_count);
   
 #if PROFILE_OCCUPIED_CELLS
@@ -181,9 +187,13 @@ kernel void dense_grid_pass2
   voxel_count = next_offset - prefix_sum_results;
   
   // Overwrite contents of the grid.
+#if SCENE_SIZE_EXTREME
+  ((device uint2*)dense_grid_data)[tid] = { voxel_count, prefix_sum_results };
+#else
   uint count_part = reverse_bits(voxel_count) & voxel_count_mask;
   uint offset_part = prefix_sum_results & voxel_offset_mask;
   dense_grid_data[tid] = count_part | offset_part;
+#endif
   dense_grid_counters[tid] = prefix_sum_results;
 }
 
@@ -195,9 +205,8 @@ kernel void dense_grid_pass3
  const device MRAtomStyle *styles [[buffer(1)]],
  device MRAtom *atoms [[buffer(2)]],
  
- device uint *dense_grid_data [[buffer(3)]],
  device atomic_uint *dense_grid_counters [[buffer(4)]],
- device REFERENCE *references [[buffer(6)]],
+ device uint *references [[buffer(6)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -225,9 +234,11 @@ kernel void dense_grid_pass3
           mark = cube_sphere_intersection({ x, y, z }, origin, radiusSquared);
         }
         if (mark) {
-          uint offset = atomic_fetch_add(dense_grid_counters + address_x, 1);
+          uint offset =
+          atomic_fetch_add(dense_grid_counters + address_x, 1);
+          
           if (offset < dense_grid_reference_capacity) {
-            references[offset] = REFERENCE(tid);
+            references[offset] = uint(tid);
           }
         }
         address_x += VoxelAddress::increment_x(grid_dims);

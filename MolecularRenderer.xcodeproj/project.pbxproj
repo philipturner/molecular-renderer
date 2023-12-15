@@ -284,7 +284,7 @@
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
-		98F2F5D42A608DBD006216F4 /* MRQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRQuality.swift; sourceTree = "<group>"; };
+		98F2F5D42A608DBD006216F4 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F638BE2A34DC5800F51E95 /* Styles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Styles.swift; sourceTree = "<group>"; };
@@ -759,13 +759,13 @@
 			isa = PBXGroup;
 			children = (
 				980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */,
+				98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Preprocessing.swift */,
 				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
-				98F2F5D42A608DBD006216F4 /* MRQuality.swift */,
 				98F638CA2A34F94F00F51E95 /* MRProvider.swift */,
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
-				98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Preprocessing.swift */,
+				98F2F5D42A608DBD006216F4 /* Settings.swift */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";

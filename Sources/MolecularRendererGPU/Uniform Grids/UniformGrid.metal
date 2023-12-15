@@ -45,7 +45,7 @@ class DenseGrid {
 public:
   ushort3 dims;
   device uint *data;
-  device REFERENCE *references;
+  device uint *references;
   device MRAtom *atoms;
 };
 

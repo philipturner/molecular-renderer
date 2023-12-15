@@ -1,5 +1,5 @@
 //
-//  MRQuality.swift
+//  Settings.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 7/13/23.
@@ -35,4 +35,15 @@ public struct MRQuality {
     self.maxSamples = maxSamples
     self.qualityCoefficient = qualityCoefficient
   }
+}
+
+public enum MRSceneSize {
+  /// 0.25 nm grid cells, <1 million atoms
+  case small
+  
+  /// 0.5 nm grid cells, <8 million atoms
+  case large
+  
+  /// 0.5 nm grid cells, no limit on atom count, scene must be static
+  case extreme
 }

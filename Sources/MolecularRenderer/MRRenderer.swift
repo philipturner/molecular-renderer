@@ -71,14 +71,10 @@ public class MRRendererDescriptor {
   public var offline: Bool = false
   
   /// Optional. Whether to use a mode that decreases render stage performance,
-  /// to improve geometry stage performance. This becomes necessary at around a
-  /// million atoms. Right now, the mode doesn't improve much, as the renderer
-  /// breaks down in both small and large-systems mode. In the future, an
-  /// optimized large systems mode will have slightly larger overhead from
-  /// storing 64-bit integers in the place of 32-bit integers. Thus, to extract
-  /// maximum possible performance from the render stage, 32-bit integers would
-  /// be the default.
-  public var largeSystemsMode: Bool = false
+  /// to improve geometry stage performance.
+  ///
+  /// The default value optimizes performance for small systems.
+  public var sceneSize: MRSceneSize = .small
   
   /// Optional. Whether to print a space-separated list of microsecond latencies
   /// for each stage of the render pipeline.
@@ -238,7 +234,7 @@ public class MRRenderer {
     let library = try! device.makeLibrary(URL: descriptor.url!)
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     accelBuilder.reportPerformance = descriptor.reportPerformance
-    accelBuilder.voxelSizeDenom = descriptor.largeSystemsMode ? 8 : 16
+    accelBuilder.sceneSize = descriptor.sceneSize
     
     if !offline {
       initUpscaler()
@@ -298,10 +294,10 @@ public class MRRenderer {
     var voxel_width_numer: Float = 4
     constants.setConstantValue(&voxel_width_numer, type: .float, index: 10)
     
-    guard let voxelSizeDenom = accelBuilder.voxelSizeDenom else {
+    guard let sceneSize = accelBuilder.sceneSize else {
       fatalError("Voxel size denominator not set.")
     }
-    var voxel_width_denom = voxelSizeDenom
+    var voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
     constants.setConstantValue(&voxel_width_denom, type: .float, index: 11)
     
     // Initialize the compute pipeline.

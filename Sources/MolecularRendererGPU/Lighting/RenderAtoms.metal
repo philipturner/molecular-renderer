@@ -23,7 +23,7 @@ kernel void renderAtoms
  
  device MRAtom *atoms [[buffer(3)]],
  device uint *dense_grid_data [[buffer(4)]],
- device REFERENCE *dense_grid_references [[buffer(5)]],
+ device uint *dense_grid_references [[buffer(5)]],
  
  device float3 *motion_vectors [[buffer(6)]],
  
