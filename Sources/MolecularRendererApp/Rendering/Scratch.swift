@@ -6,53 +6,122 @@ import MM4
 import MolecularRenderer
 import Numerics
 
-// Add a variable within the function that controls whether it starts out as
-// sp2 or sp3.
-func createSilyleneTooltip(sp3: Bool) -> [MRAtom] {
-  var tripodAtoms = Bootstrapping.Tripod(position: .zero).atoms
-  let germanium = tripodAtoms.first(where: {
-    $0.element == 32
-  })!
-  
-  let siliconLocation = tripodAtoms.firstIndex(where: {
-    $0.element == 1 && $0.origin.y > germanium.y
-  })!
-  
-  // Use 2.37 angstroms for the Si-Ge bond length.
-  // Use 1.483 angstroms for the H-Si bond length
-  var siliconPosition = germanium.origin
-  siliconPosition.y += 2.37 / 10
-  tripodAtoms[siliconLocation].origin = siliconPosition
-  tripodAtoms[siliconLocation].element = 14
-  
-  var zenith: Float
-  var azimuth: Float
-  if sp3 {
-    zenith = 109.47
-    azimuth = 120.00
-  } else {
-    zenith = 120.00
-    azimuth = 180.00
+func createNanomachinery() -> [MRAtom] {
+  // diamond claw
+  let robotClaw = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 30 * h + 30 * h2k + 4 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      Origin { 15 * h + 10 * h2k + 2 * l }
+      
+      Concave {
+        for direction in [h, -h, k, h + k] {
+          Convex {
+            Origin { 7 * direction }
+            Plane { -direction }
+          }
+        }
+      }
+      Concave {
+        Convex {
+          for direction in [h, -h] {
+            Convex {
+              Origin { 6 * direction }
+              Plane { direction }
+            }
+          }
+        }
+        Convex {
+          for direction in [h, -h, k, h + k] {
+            Convex {
+              Origin { 12 * direction }
+              Plane { direction }
+            }
+          }
+          for direction in [-k, -h - k] {
+            Convex {
+              Origin { -2 * h2k }
+              Origin { 12 * direction }
+              Plane { direction }
+            }
+          }
+        }
+      }
+      
+      Replace { .empty }
+    }
   }
-  zenith *= .pi / 180
-  azimuth *= .pi / 180
+  var robotClawDiamondoid = Diamondoid(atoms: robotClaw.entities.map(MRAtom.init))
+  let robotClawCoM = robotClawDiamondoid.createCenterOfMass()
+  robotClawDiamondoid.translate(offset: [-robotClawCoM.x, 0, -robotClawCoM.z])
   
-  var hydrogen1Delta: SIMD3<Float> = [0, -1, 0]
-  let zenithRotation = Quaternion<Float>(angle: zenith, axis: [0, 0, 1])
-  let azimuthRotation = Quaternion<Float>(angle: azimuth, axis: [0, 1, 0])
-  hydrogen1Delta = zenithRotation.act(on: hydrogen1Delta)
-  
-  var hydrogen2Delta = hydrogen1Delta
-  hydrogen2Delta = azimuthRotation.act(on: hydrogen2Delta)
-  
-  let hydrogenBondLength: Float = 1.483 / 10
-  for delta in [hydrogen1Delta, hydrogen2Delta] {
-    let position = siliconPosition + delta * hydrogenBondLength
-    let atom = MRAtom(origin: position, element: 1)
-    tripodAtoms.append(atom)
+  // silicon carbide band
+  let band = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 10 * h + 9 * h2k + 20 * l }
+    Material { .checkerboard(.carbon, .silicon) }
+    
+    Volume {
+      Origin { 5 * h + 3.5 * h2k + 0 * l }
+      
+      Concave {
+        Origin { -0.25 * h2k }
+        for direction in [4 * h, 1.75 * h2k, -4 * h, -2.25 * h2k] {
+          Convex {
+            Origin { 1 * direction }
+            Plane { -direction }
+          }
+        }
+      }
+      
+      for directionPair in [(h, 2 * h + k), (-h, k - h)] {
+        Concave {
+          Convex {
+            Origin { 2 * directionPair.0 }
+            Plane { directionPair.0 }
+          }
+          Convex {
+            Origin { 3.75 * directionPair.1 }
+            Plane { directionPair.1 }
+          }
+        }
+      }
+      
+      Concave {
+        Origin { 2.8 * l }
+        Plane { l }
+        Origin { 2 * h2k }
+        Plane { -h2k }
+      }
+      
+      for direction in [h, -h] {
+        Concave {
+          Origin { 2.8 * l }
+          Plane { l }
+          Origin { 2 * direction }
+          Plane { direction }
+        }
+      }
+      
+      Replace { .empty }
+    }
   }
-  return tripodAtoms
+  var bandDiamondoid = Diamondoid(atoms: band.entities.map(MRAtom.init))
+  bandDiamondoid.translate(offset: -bandDiamondoid.createCenterOfMass())
+  bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
+  bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [0, 1, 0]))
+  bandDiamondoid.translate(offset: [4.2, 0, 0])
+  bandDiamondoid.translate(offset: [0, 7, 0])
+  
+  // silicon housing
+  
+  let diamondoids = [
+    robotClawDiamondoid,
+    bandDiamondoid
+  ]
+  let output = diamondoids.flatMap { $0.atoms }
+  print(output.count)
+  return output
 }
-
-// Another function to load the minimized structure in xTB. Don't forget to
-// unfreeze the germanium atom in xtb.inp!

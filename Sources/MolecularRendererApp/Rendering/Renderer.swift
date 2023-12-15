@@ -42,7 +42,6 @@ class Renderer {
       descriptor.url = Bundle.main.url(
         forResource: "MolecularRendererGPU", withExtension: "metallib")!
       if Self.productionRender {
-        // TODO: Export this next movie as 1280x720 instead of 720x640.
         descriptor.width = 720
         descriptor.height = 640
         descriptor.offline = true
@@ -52,7 +51,6 @@ class Renderer {
         descriptor.upscaleFactor = ContentView.upscaleFactor
       }
       
-      // TODO: Revert to small systems mode after the project is done.
       descriptor.largeSystemsMode = true
       
       self.renderingEngine = MRRenderer(descriptor: descriptor)
@@ -65,15 +63,9 @@ class Renderer {
       initOpenMM()
     }
     
-    //    self.atomProvider = Bootstrapping.Animation()
+   
     
-    var atoms1 = createSilyleneTooltip(sp3: false)
-    var atoms2 = createSilyleneTooltip(sp3: true)
-    for i in atoms1.indices {
-      atoms1[i].origin.x -= 0.5
-      atoms2[i].origin.x += 0.5
-    }
-    self.atomProvider = ArrayAtomProvider(
-      atoms1 + atoms2)
+    let atoms = createNanomachinery()
+    self.atomProvider = ArrayAtomProvider(atoms)
   }
 }

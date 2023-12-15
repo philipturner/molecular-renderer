@@ -31,6 +31,7 @@ struct Constants {
     [6, 6]: BondLength(range: 0.148...0.168, average: 0.154),
     [6, 7]: BondLength(range: 0.142...0.152, average: 0.147),
     [6, 8]: BondLength(range: 0.138...0.148, average: 0.143),
+    [6, 14]: BondLength(range: 0.183...0.193, average: 0.188),
     
     // Source: https://en.wikipedia.org/wiki/Organosulfur_chemistry
     [6, 16]: BondLength(range: 0.170...0.195, average: 0.183),

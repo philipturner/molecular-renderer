@@ -39,7 +39,7 @@ func importFromXTB(_ data: String) -> [MRAtom] {
   }
   lines.removeFirst()
   lines.removeLast()
-  lines.removeAll(where: { $0.starts(with: "$")})
+  lines.removeAll(where: { $0.starts(with: "$") })
   
   var output: [MRAtom] = []
   for line in lines {
