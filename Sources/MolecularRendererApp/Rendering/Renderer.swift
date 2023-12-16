@@ -51,7 +51,7 @@ class Renderer {
         descriptor.upscaleFactor = ContentView.upscaleFactor
       }
       
-      descriptor.sceneSize = .large
+      descriptor.sceneSize = .extreme
       
       self.renderingEngine = MRRenderer(descriptor: descriptor)
       self.gifSerializer = GIFSerializer(

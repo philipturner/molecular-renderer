@@ -406,6 +406,12 @@ extension MRRenderer {
     styleProvider: MRAtomStyleProvider,
     useMotionVectors: Bool
   ) {
+    self.time = time
+    
+    if accelBuilder.sceneSize == .extreme, accelBuilder.builtGrid {
+      return
+    }
+    
     var atoms = atomProvider.atoms(time: time)
     let styles = styleProvider.styles
     let available = styleProvider.available
@@ -437,7 +443,6 @@ extension MRRenderer {
       accelBuilder.motionVectors = Array(repeating: .zero, count: atoms.count)
     }
     
-    self.time = time
     self.accelBuilder.atoms = atoms
     self.accelBuilder.styles = styles
   }

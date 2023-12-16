@@ -44,7 +44,7 @@ public:
 class DenseGrid {
 public:
   ushort3 dims;
-  device uint *data;
+  device VOXEL_DATA *data;
   device uint *references;
   device MRAtom *atoms;
 };

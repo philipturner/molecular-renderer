@@ -50,6 +50,7 @@ class MRAccelBuilder {
   // Data for uniform grids.
   var sceneSize: MRSceneSize?
   var ringIndex: Int = 0
+  var builtGrid: Bool = false
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
@@ -162,6 +163,10 @@ extension MRAccelBuilder {
 // Only call these methods once per frame.
 extension MRAccelBuilder {
   func updateResources() {
+    if sceneSize == .extreme, builtGrid {
+      return
+    }
+    
     ringIndex = (ringIndex + 1) % 3
     
     // Generate or fetch a buffer.
@@ -212,6 +217,11 @@ extension MRAccelBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {
+    if sceneSize == .extreme, builtGrid {
+      return
+    }
+    builtGrid = true
+    
     guard let sceneSize else {
       fatalError("Voxel size denominator not set.")
     }
@@ -280,6 +290,8 @@ extension MRAccelBuilder {
     // creates a 2 GB memory allocation.
     self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
     let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
+    
+    // TODO: Remove this check for extreme systems, only once you reach it.
     guard statistics.references < 16 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
@@ -367,6 +379,9 @@ extension MRAccelBuilder {
     arguments.denseDims = self.gridDims
   }
   
+  // For extreme systems, cell this repeatedly and only call 'buildDenseGrid'
+  // one time. That ensures only a single instance of the grid is allocated in
+  // memory, enabling extremely massive scenes.
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
     // Set the data at offset 32, to fit the counters before it.
     encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
