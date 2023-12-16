@@ -7,9 +7,12 @@ import MolecularRenderer
 import Numerics
 
 func createNanomachinery() -> [MRAtom] {
+  // The entire assembly can be roughly put together, even while many
+  // important pieces are missing. This should be done to get a rough
+  // estimate of the atom count and final geometry.
+  //
   // missing pieces:
   // - level 1:
-  //   - housing (cubic Ge lattice)
   //   - chain-linked track depicting products being moved along
   //
   // - level 2:
@@ -21,12 +24,70 @@ func createNanomachinery() -> [MRAtom] {
   //   - mystery - what is the feature here? large multi-DOF manipulator?
   //     computer? decide when the time comes.
   
-//  let assemblyLine = AssemblyLine()
-//  return assemblyLine.createAtoms()
+  let assemblyLine = AssemblyLine()
+  let assemblyAtoms = assemblyLine.createAtoms()
   
-  // TODO: - Add function parameters for the location of different beams.
-  let housing = createAssemblyHousing()
-  return housing.entities.map(MRAtom.init)
+  let spacing: Float = 18.2
+  var output: [MRAtom] = []
+  for i in 0..<3 {
+    let vector = SIMD3<Float>(Float(i) * spacing, 0, 0)
+    output += assemblyAtoms.map {
+      var copy = $0
+      copy.origin += vector
+      return copy
+    }
+  }
+  
+  let terminalHousingLattice = createAssemblyHousing(terminal: true)
+  var terminalHousingDiamondoid = Diamondoid(lattice: terminalHousingLattice)
+  terminalHousingDiamondoid.translate(offset: [-14.25, -8, -5])
+  terminalHousingDiamondoid.translate(offset: [spacing * 3, 0, 0])
+  output += terminalHousingDiamondoid.atoms
+  output = output.map {
+    var copy = $0
+    copy.origin.x -= 5 * spacing
+    copy.origin.y -= 20
+    copy.origin.z += -35
+    return copy
+  }
+  
+  // TODO: Make a 3x3 array with void in the center. This should pack
+  // atoms more densely than the current hexagonal arrangement.
+  return (0..<6).flatMap { index -> [MRAtom] in
+    let angle = Float(index) * -60 * .pi / 180
+    let quaternion = Quaternion<Float>(angle: angle, axis: [0, 1, 0])
+    let basisX = quaternion.act(on: [1, 0, 0])
+    let basisY = quaternion.act(on: [0, 1, 0])
+    let basisZ = quaternion.act(on: [0, 0, 1])
+    
+    return output.map {
+      var atom = $0
+      let vector = atom.origin
+      
+      var output = vector.x * basisX
+      output.addProduct(vector.y, basisY)
+      output.addProduct(vector.z, basisZ)
+      
+      atom.origin = output
+      return atom
+    }
+  }
+  
+//  return housingLattice.entities.map(MRAtom.init)
+  
+//  var output = housing.entities.map(MRAtom.init)
+//    .filter { $0.element == 32 }
+//  let ratio = Float(output.count) / Float(housing.entities.count)
+//  let ratioRepr = String(format: "%.1f", 100 * ratio) + "%"
+//  print(output.count, "/", housing.entities.count, ratioRepr)
+//  
+//  let assemblyLine = AssemblyLine()
+//  for i in output.indices {
+//    output[i].origin += SIMD3<Float>(
+//      -11.5, -7.7, -5.0)
+//  }
+//  
+//  return output + assemblyLine.createAtoms()
 }
 
 func createRobotClawLattice() -> Lattice<Hexagonal> {
@@ -285,12 +346,21 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
   }
 }
 
-func createAssemblyHousing() -> Lattice<Cubic> {
+// The assembly housing DSL code is ~150-200 lines - one of the
+// most unwieldy pieces in this project. Refrain from pieces like
+// this as much as possible; designing the geometry for them
+// consumes an exorbitant amount of time.
+func createAssemblyHousing(terminal: Bool) -> Lattice<Cubic> {
   Lattice<Cubic> { h, k, l in
-    let spanY: Float = 20
-    let spanZ: Float = 60
-    let beamPositionY: Float = 5
-    Bounds { 20 * h + spanY * k + spanZ * l }
+    let spanX: Float = 35
+    let spanY: Float = 77
+    let spanZ: Float = 67
+    let beamPositionX: Float = 7
+    let beamPositionY: Float = 45
+    Bounds {
+      (4 + spanX) * h +
+      (4 + spanY) * k +
+      (4 + spanZ) * l }
     Material { .elemental(.germanium) }
     
     // Tasks:
@@ -301,8 +371,7 @@ func createAssemblyHousing() -> Lattice<Cubic> {
     
     func _createBeam(
       principalAxis1: SIMD3<Float>,
-      principalAxis2: SIMD3<Float>,
-      thickness: Float
+      principalAxis2: SIMD3<Float>
     ) {
       for negate1 in [false, true] {
         for negate2 in [false, true] {
@@ -310,7 +379,7 @@ func createAssemblyHousing() -> Lattice<Cubic> {
           direction += negate1 ? -principalAxis1 : principalAxis1
           direction += negate2 ? -principalAxis2 : principalAxis2
           Convex {
-            Origin { thickness * direction }
+            Origin { 1.5 * direction }
             Plane { direction }
           }
         }
@@ -319,36 +388,138 @@ func createAssemblyHousing() -> Lattice<Cubic> {
     
     func createBeamX() {
       Convex {
-        Origin { 4 * (k + l) }
-        Origin { beamPositionY * k }
-        _createBeam(principalAxis1: k, principalAxis2: l, thickness: 2)
+        Convex {
+          Origin { 1 * h }
+          Ridge(-h + k) { -h }
+        }
+        Convex {
+          Origin { beamPositionX * h }
+          _createBeam(
+            principalAxis1: k, principalAxis2: l)
+        }
+        Convex {
+          Origin { (spanX - 4) * h }
+          Plane { h }
+        }
+        if terminal {
+          Convex {
+            Origin { (beamPositionX + 3) * h }
+            Convex {
+              Ridge(h + k) { h }
+              Ridge(h + l) { h }
+            }
+          }
+        }
       }
+      if !terminal { createConnectorX() }
     }
     
     func createBeamY() {
       Convex {
-        Origin { 4 * (h + l) }
-        _createBeam(principalAxis1: h, principalAxis2: l, thickness: 2)
+        Origin { beamPositionX * h }
+        Convex {
+          Origin { -3 * k }
+          Ridge(-k + h) { -k }
+          Ridge(-k + l) { -k }
+        }
+        _createBeam(principalAxis1: h, principalAxis2: l)
+        
+        Origin { (spanY - 3) * k }
+        Convex {
+          Ridge(k + h) { k }
+          Ridge(k + l) { k }
+        }
       }
     }
     
     func createBeamZ() {
       Convex {
-        Origin { 4 * (h + k) }
-        Origin { beamPositionY * k }
-        _createBeam(principalAxis1: h, principalAxis2: k, thickness: 2)
+        Origin { beamPositionX * h }
+        Convex {
+          Origin { -3 * l }
+          Ridge(-l + h) { -l }
+          Ridge(-l + k) { -l }
+        }
+        _createBeam(principalAxis1: h, principalAxis2: k)
+        
+        Origin { (spanZ - 3) * l }
+        Convex {
+          Ridge(l + h) { l }
+          Ridge(l + k) { l }
+        }
+      }
+    }
+    
+    // Slight bulge to prepare for connecting with the next piece.
+    func createConnectorX() {
+      Convex {
+        Convex {
+          Origin { (spanX - 8.25) * h }
+          Ridge(-h + l + k) { -h }
+        }
+        Convex {
+          Origin { (spanX - 8) * h }
+          Ridge(-h + l - k) { -h }
+        }
+        for direction in [l+k, l-k, -l+k, -l-k] {
+          Convex {
+            Origin { 2 * direction }
+            Plane { direction }
+          }
+        }
+        for lNegative in [true, false] {
+          Convex {
+            Origin { (lNegative ? -1.5 : 1.5) * l }
+            let lDir = lNegative ? -l : l
+            Valley(lDir + k) { lDir }
+          }
+        }
+        Convex {
+          Origin { (spanX - 3.5) * h }
+          Valley(h + k) { h }
+        }
+        
+        // Remove some methyl carbons.
+        Convex {
+          Origin { (spanX + 4.5) * h }
+          Ridge(h + k) { h }
+        }
       }
     }
     
     Volume {
+      Origin { 2 * (h + k + l) }
+      
       Concave {
-        createBeamX()
-        createBeamY()
-        createBeamZ()
+        Concave {
+          Origin { 3 * k }
+          Origin { 3 * l }
+          createBeamX()
+          createBeamY()
+          createBeamZ()
+        }
         
-        Origin { (spanZ - 4 - 2 * 2) * l }
-        createBeamX()
-        createBeamY()
+        Concave {
+          Origin { 3 * k }
+          Origin { (spanZ - 3) * l }
+          createBeamX()
+          createBeamY()
+        }
+        
+        for positionY in [beamPositionY, spanY - 3] {
+          Concave {
+            Origin { positionY * k }
+            Origin { 3 * l }
+            createBeamX()
+            createBeamZ()
+          }
+          
+          Concave {
+            Origin { positionY * k }
+            Origin { (spanZ - 3) * l }
+            createBeamX()
+          }
+        }
       }
       
       Replace { .empty }
@@ -409,9 +580,9 @@ struct AssemblyLine {
       rod.translate(offset: [
         4.3 - box.1.x,
         22 - box.0.y,
-        -3.5 - box.0.z
+        -3.3 - box.0.z
       ])
-      rod.translate(offset: [0, 4 * Float(index), 0])
+      rod.translate(offset: [0, 3.9 * Float(index), 0])
       let right = rod
       
       rod.translate(offset: [0, 1.3, 0])
@@ -459,6 +630,7 @@ struct AssemblyLine {
   
   var robotArms: [RobotArm] = []
   var roofPieces: [Diamondoid] = []
+  var housing: Diamondoid
   
   init() {
     robotArms.append(RobotArm(index: 0))
@@ -486,6 +658,10 @@ struct AssemblyLine {
     roofPieces += makeRoofPieces(xCenter: 4.5, yHeight: -7)
     roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 17)
     roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 33)
+    
+    let housingLattice = createAssemblyHousing(terminal: false)
+    housing = Diamondoid(lattice: housingLattice)
+    housing.translate(offset: [-14.25, -8, -5])
   }
   
   func createAtoms() -> [MRAtom] {
@@ -502,6 +678,7 @@ struct AssemblyLine {
       append(robotArm.controlRods)
     }
     append(roofPieces)
+    append([housing])
     return output
   }
 }

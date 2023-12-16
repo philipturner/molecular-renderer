@@ -291,9 +291,10 @@ extension MRAccelBuilder {
     self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
     let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
     
-    // TODO: Remove this check for extreme systems, only once you reach it.
-    guard statistics.references < 16 * 1024 * 1024 else {
-      fatalError("Too many references for a dense grid.")
+    if sceneSize != .extreme {
+      guard statistics.references < 16 * 1024 * 1024 else {
+        fatalError("Too many references for a dense grid.")
+      }
     }
     
     // Allocate new memory.

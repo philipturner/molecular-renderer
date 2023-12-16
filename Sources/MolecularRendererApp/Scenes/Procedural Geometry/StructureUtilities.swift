@@ -50,7 +50,7 @@ struct Constants {
     [8, 16]: BondLength(range: 0.166...0.176, average: 0.171),
     
     [14, 14]: BondLength(range: 0.227...0.237, average: 0.232),
-    [32, 32]: BondLength(range: 0.235...0.245, average: 0.240),
+    [32, 32]: BondLength(range: 0.235...0.250, average: 0.240),
   ]
   
   static func bondLengthMax(element: UInt8) -> Float {
