@@ -7,91 +7,19 @@ import MolecularRenderer
 import Numerics
 
 func createNanomachinery() -> [MRAtom] {
-  // diamond claw
-  let robotClaw = createRobotClawLattice()
-  var robotClawDiamondoid = Diamondoid(
-    atoms: robotClaw.entities.map(MRAtom.init))
-  let robotClawCoM = robotClawDiamondoid.createCenterOfMass()
-  robotClawDiamondoid.translate(offset: [-robotClawCoM.x, 0, -robotClawCoM.z])
-  
-  // diamond claw topper - several small hexagonal prisms, each
-  // rotated a bit
-  let hexagon = createHexagonLattice()
-  var hexagonDiamondoid = Diamondoid(
-    atoms: hexagon.entities.map(MRAtom.init))
-  hexagonDiamondoid.translate(offset: -hexagonDiamondoid.createCenterOfMass())
-  hexagonDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
-  hexagonDiamondoid.translate(offset: [0, 23, 0])
-  var hexagons: [Diamondoid] = []
-  for i in 0..<13 {
-    var output = hexagonDiamondoid
-    output.translate(offset: [0, Float(i) * 0.8, 0])
-    let angle = Float(i) * 4 * .pi / 180
-    output.rotate(angle: Quaternion(angle: angle, axis: [0, 1, 0]))
-    hexagons.append(output)
-  }
-  
-  // silicon carbide band
-  let band = createBandLattice()
-  var bandDiamondoid = Diamondoid(atoms: band.entities.map(MRAtom.init))
-  bandDiamondoid.translate(offset: -bandDiamondoid.createCenterOfMass())
-  bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
-  bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [0, 1, 0]))
-  do {
-    let maxX = bandDiamondoid.atoms.reduce(-Float.greatestFiniteMagnitude) {
-      max($0, $1.x)
-    }
-    let minY = bandDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
-      min($0, $1.y)
-    }
-    bandDiamondoid.translate(offset: [6.15 - maxX, 0, 0])
-    bandDiamondoid.translate(offset: [0, 2.5 - minY, 0])
-  }
-  
-  // silicon roof piece - instantiate one in the top, middle, and bottom
-  let roofPiece = createRoofPieceLattice(xCenter: 7.5)
-  var roofPieceDiamondoid = Diamondoid(
-    atoms: roofPiece.entities.map(MRAtom.init))
-  roofPieceDiamondoid.translate(offset: [0, 17, 0])
-  
-  // rod for controlling the arms - one for each arm, each a different length
-  // rods on one side are elevated a half-spacing above rods on the other side
-  let controlRod = createControlRod(length: 80)
-  var controlRodDiamondoid = Diamondoid(
-    atoms: controlRod.entities.map(MRAtom.init))
-  controlRodDiamondoid.translate(
-    offset: -controlRodDiamondoid.createCenterOfMass())
-  controlRodDiamondoid.rotate(angle: Quaternion(angle: .pi / 2, axis: [1, 0, 0]))
-  do {
-    let minX = controlRodDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
-      min($0, $1.x)
-    }
-    let minZ = controlRodDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
-      min($0, $1.z)
-    }
-    controlRodDiamondoid.translate(offset: [3 - minX, 0, 0])
-    controlRodDiamondoid.translate(offset: [0, 21, 0])
-    controlRodDiamondoid.translate(offset: [0, 0, -3 - minZ])
-  }
-  
-  
-  
   // missing pieces:
-  // - track depicting products being moved through the sequence of arms
-  // - housing
-  // - piece to connect housings of nearby assembly lines
-  // - larger assembly line in front of the rows of robot arms
-  // - hexagonal centerpiece at the 3rd level of convergent assembly
-  
-//  let diamondoids = [
-//    robotClawDiamondoid,
-//    bandDiamondoid,
-//    roofPieceDiamondoid,
-//    controlRodDiamondoid
-//  ] + hexagons
-//  let output = diamondoids.flatMap { $0.atoms }
-//  print(output.count)
-//  return output
+  // - level 1:
+  //   - housing (cubic Ge lattice)
+  //   - chain-linked track depicting products being moved along
+  //
+  // - level 2:
+  //   - rod that links controls for 3 assembly lines in SIMD fashion
+  //   - larger assembly line in front of the rows of robot arms
+  //
+  // - level 3:
+  //   - hexagonal centerpiece at the 3rd level of convergent assembly
+  //   - mystery - what is the feature here? large multi-DOF manipulator?
+  //     computer? decide when the time comes.
   
   let assemblyLine = AssemblyLine()
   return assemblyLine.createAtoms()
@@ -333,7 +261,7 @@ func createRoofPieceLattice(xCenter: Float) -> Lattice<Hexagonal> {
 func createControlRod(length: Int) -> Lattice<Hexagonal> {
   Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
-    Bounds { 8 * h + Float(length) * h2k + 2 * l }
+    Bounds { 10 * h + Float(length) * h2k + 2 * l }
     Material { .elemental(.carbon) }
     
     Volume {
@@ -343,7 +271,7 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
         Plane { h - k }
       }
       Concave {
-        Origin { 6 * h + 3 * h2k }
+        Origin { 8 * h + 5 * h2k }
         Plane { -h }
         Plane { k - h }
       }
@@ -374,6 +302,21 @@ struct AssemblyLine {
       let hexagonLattice = createHexagonLattice()
       return Diamondoid(lattice: hexagonLattice)
     }()
+    static let masterHexagons: [Diamondoid] = {
+      var hexagon = Self.masterHexagon
+      hexagon.setCenterOfMass(.zero)
+      hexagon.rotate(degrees: -90, axis: [1, 0, 0])
+      hexagon.translate(offset: [0, 22, 0])
+      
+      var hexagons: [Diamondoid] = []
+      for i in 0..<15 {
+        var output = hexagon
+        output.translate(offset: [0, Float(i) * 0.8, 0])
+        output.rotate(degrees: Float(i) * 3, axis: [0, 1, 0])
+        hexagons.append(output)
+      }
+      return hexagons
+    }()
     
     init(index: Int) {
       claw = Self.masterClaw
@@ -393,20 +336,45 @@ struct AssemblyLine {
         bands.append(band)
       }
       
-      var hexagon = Self.masterHexagon
-      hexagon.setCenterOfMass(.zero)
-      hexagon.rotate(degrees: -90, axis: [1, 0, 0])
-      hexagon.translate(offset: [0, 23, 0])
-      hexagons.append(hexagon)
+      hexagons = Self.masterHexagons
       
-      let constant = Constant(.prism) { .elemental(.silicon) }
-      let offsetZ = Float(16 * index + 8) * constant
+      // 685 ms before -> ??? ms after
+      let ratio =
+      Float(3).squareRoot() *
+      Constant(.hexagon) { .elemental(.carbon) }
+      / Constant(.prism) { .elemental(.silicon) }
+      let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
+      
+      let rodLattice = createControlRod(length: 70 - rodCellSpacing * index)
+      var rod = Diamondoid(lattice: rodLattice)
+      rod.setCenterOfMass(.zero)
+      rod.rotate(degrees: 90, axis: [1, 0, 0])
+      do {
+        let box = rod.createBoundingBox()
+        rod.translate(offset: [
+          4.3 - box.1.x,
+          22 - box.0.y,
+          -3.5 - box.0.z
+        ])
+        rod.translate(offset: [0, 4 * Float(index), 0])
+        controlRods.append(rod)
+        
+        rod.translate(offset: [0, 1.3, 0])
+        rod.transform { $0.origin.x = -$0.origin.x }
+        controlRods.append(rod)
+      }
+      
+      let siliconConstant = Constant(.prism) { .elemental(.silicon) }
+      let offsetZ = Float(16 * index + 8) * siliconConstant
       claw.translate(offset: [0, 0, offsetZ])
       for i in bands.indices {
         bands[i].translate(offset: [0, 0, offsetZ])
       }
       for i in hexagons.indices {
         hexagons[i].translate(offset: [0, 0, offsetZ])
+      }
+      for i in controlRods.indices {
+        controlRods[i].translate(offset: [0, 0, offsetZ])
       }
     }
   }
@@ -437,8 +405,9 @@ struct AssemblyLine {
       }
       return output
     }
+    roofPieces += makeRoofPieces(xCenter: 4.5, yHeight: -7)
     roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 17)
-    roofPieces += makeRoofPieces(xCenter: 2.5, yHeight: -4)
+    roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 33)
   }
   
   func createAtoms() -> [MRAtom] {

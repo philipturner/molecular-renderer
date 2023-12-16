@@ -53,6 +53,7 @@ class Renderer {
       }
       
       descriptor.sceneSize = .extreme
+      eventTracker.walkingSpeed = 5
       
       self.renderingEngine = MRRenderer(descriptor: descriptor)
       self.gifSerializer = GIFSerializer(
@@ -64,7 +65,6 @@ class Renderer {
       initOpenMM()
     }
     
-   
     let start = CACurrentMediaTime()
     let atoms = createNanomachinery()
     let end = CACurrentMediaTime()

@@ -17,6 +17,10 @@ class EventTracker {
   // State of the player in 3D.
   var playerState = PlayerState()
   
+  // The base speed (in nm/ps) for walking, scaled by 5x when sprinting.
+  // This variable can be changed to enable quicker movement in larger scenes.
+  var walkingSpeed: Float = 1
+  
   // The sensitivity of the mouse movement
   //
   // I measured my trackpad as (816, 428). In Minecraft, two sweeps up the
@@ -207,8 +211,9 @@ extension EventTracker {
           anyKeySprinting = true
         }
         
-        // TODO: Add ultra sprinting mode at 25 nm/s for triple-taps.
-        let speed: Float = cross_platform_mix(1, 5, newState.history.progress)
+        let slow = walkingSpeed
+        let fast = walkingSpeed * 5
+        let speed = cross_platform_mix(slow, fast, newState.history.progress)
         let delta = speed * Float(time.relative.seconds)
         let worldSpaceDirection = azimuth * cameraSpaceDirection
         playerState.position += worldSpaceDirection * delta
