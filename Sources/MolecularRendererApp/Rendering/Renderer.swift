@@ -66,6 +66,7 @@ class Renderer {
    
     
     let atoms = createNanomachinery()
+    print("atom count:", atoms.count)
     self.atomProvider = ArrayAtomProvider(atoms)
   }
 }

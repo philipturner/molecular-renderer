@@ -49,7 +49,7 @@ func createNanomachinery() -> [MRAtom] {
   }
   
   // silicon roof piece - instantiate one in the top, middle, and bottom
-  let roofPiece = createRoofPieceLattice()
+  let roofPiece = createRoofPieceLattice(xCenter: 7.5)
   var roofPieceDiamondoid = Diamondoid(
     atoms: roofPiece.entities.map(MRAtom.init))
   roofPieceDiamondoid.translate(offset: [0, 17, 0])
@@ -75,31 +75,26 @@ func createNanomachinery() -> [MRAtom] {
   }
   
   
-  // need to create a Swift data structure to encapsulate the initialization and
-  // assembly of a single assembly line
   
   // missing pieces:
   // - track depicting products being moved through the sequence of arms
   // - housing
   // - piece to connect housings of nearby assembly lines
   // - larger assembly line in front of the rows of robot arms
+  // - hexagonal centerpiece at the 3rd level of convergent assembly
   
-  let diamondoids = [
-    robotClawDiamondoid,
-    bandDiamondoid,
-    roofPieceDiamondoid,
-    controlRodDiamondoid
-  ] + hexagons
-  let output = diamondoids.flatMap { $0.atoms }
-//  + controlRod.entities.map(MRAtom.init).map {
-//    var copy = $0
-////    copy.origin.x += 3.5
-////    copy.origin.y += 20
-//    copy.origin.z += 10
-//    return copy
-//  }
-  print(output.count)
-  return output
+//  let diamondoids = [
+//    robotClawDiamondoid,
+//    bandDiamondoid,
+//    roofPieceDiamondoid,
+//    controlRodDiamondoid
+//  ] + hexagons
+//  let output = diamondoids.flatMap { $0.atoms }
+//  print(output.count)
+//  return output
+  
+  let assemblyLine = AssemblyLine()
+  return assemblyLine.createAtoms()
 }
 
 func createRobotClawLattice() -> Lattice<Hexagonal> {
@@ -270,14 +265,13 @@ func createBandLattice() -> Lattice<Hexagonal> {
   }
 }
 
-func createRoofPieceLattice() -> Lattice<Hexagonal> {
+func createRoofPieceLattice(xCenter: Float) -> Lattice<Hexagonal> {
   Lattice<Hexagonal> { h, k, l in
     let holeSpacing: Float = 8
     let holeWidth: Float = 5
     
     let xWidth: Float = 22
     let yHeight: Float = 4
-    let xCenter: Float = 7.5
     let zWidth: Float = (3*2) * holeSpacing
     let h2k = h + 2 * k
     Bounds { xWidth * h + yHeight * h2k + zWidth * l }
@@ -359,9 +353,6 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
   }
 }
 
-// There is a 'createBoundingBox()' function on Diamondoid. This should make
-// some operations easier.
-
 struct AssemblyLine {
   struct RobotArm {
     var claw: Diamondoid
@@ -369,13 +360,41 @@ struct AssemblyLine {
     var bands: [Diamondoid] = []
     var controlRods: [Diamondoid] = []
     
-    // Each instance duplicates the act of compiling each diamondoid. If this
-    // becomes a bottleneck, simply parallelize it with
-    // DispatchQueue.concurrentPerform.
-    init(index: Int) {
+    // Avoid compiling these multiple times. The hydrogenation during the
+    // initializer for 'Diamondoid' is a known bottleneck.
+    static let masterClaw: Diamondoid = {
       let clawLattice = createRobotClawLattice()
-      claw = Diamondoid(lattice: clawLattice)
-      // center the claw, visualize, then add both bands that belong to it
+      return Diamondoid(lattice: clawLattice)
+    }()
+    static let masterBand: Diamondoid = {
+      let bandLattice = createBandLattice()
+      return Diamondoid(lattice: bandLattice)
+    }()
+    
+    init(index: Int) {
+      claw = Self.masterClaw
+      claw.setCenterOfMass(.zero)
+      claw.translate(offset: [0, 0 - claw.createBoundingBox().0.y, 0])
+      
+      var band = Self.masterBand
+      band.setCenterOfMass(.zero)
+      band.rotate(degrees: -90, axis: [1, 0, 0])
+      band.rotate(degrees: -90, axis: [0, 1, 0])
+      do {
+        let box = band.createBoundingBox()
+        band.translate(offset: [6.4 - box.1.x, 2.4 - box.0.y, 0])
+        bands.append(band)
+        
+        band.transform { $0.origin.x = -$0.origin.x }
+        bands.append(band)
+      }
+      
+      let constant = Constant(.prism) { .elemental(.silicon) }
+      let offsetZ = Float(16 * index + 8) * constant
+      claw.translate(offset: [0, 0, offsetZ])
+      for i in bands.indices {
+        bands[i].translate(offset: [0, 0, offsetZ])
+      }
     }
   }
   
@@ -383,7 +402,30 @@ struct AssemblyLine {
   var roofPieces: [Diamondoid] = []
   
   init() {
+    robotArms.append(RobotArm(index: 0))
+    robotArms.append(RobotArm(index: 1))
+    robotArms.append(RobotArm(index: 2))
     
+    func makeRoofPieces(xCenter: Float, yHeight: Float) -> [Diamondoid] {
+      let roofPieceLattice = createRoofPieceLattice(xCenter: xCenter)
+      var roofPiece = Diamondoid(lattice: roofPieceLattice)
+      roofPiece.setCenterOfMass(.zero)
+      var output: [Diamondoid] = []
+      
+      let box = roofPiece.createBoundingBox()
+      roofPiece.translate(
+        offset: [0 - box.0.x, yHeight - box.0.y, -0.2 - box.0.z])
+      output.append(roofPiece)
+      
+      for i in output.indices {
+        var copy = output[i]
+        copy.transform { $0.origin.x = -$0.origin.x }
+        output.append(copy)
+      }
+      return output
+    }
+    roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 17)
+    roofPieces += makeRoofPieces(xCenter: 2.5, yHeight: -4)
   }
   
   func createAtoms() -> [MRAtom] {

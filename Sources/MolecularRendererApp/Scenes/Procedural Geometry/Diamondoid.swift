@@ -1346,4 +1346,10 @@ extension Diamondoid {
     translation += center
     self.translate(offset: translation)
   }
+  
+  mutating func transform(_ closure: (inout MRAtom) -> Void) {
+    for atomID in self.atoms.indices {
+      closure(&self.atoms[atomID])
+    }
+  }
 }
