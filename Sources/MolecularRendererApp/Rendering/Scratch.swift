@@ -363,5 +363,43 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
 // some operations easier.
 
 struct AssemblyLine {
+  struct RobotArm {
+    var claw: Diamondoid
+    var hexagons: [Diamondoid] = []
+    var bands: [Diamondoid] = []
+    var controlRods: [Diamondoid] = []
+    
+    // Each instance duplicates the act of compiling each diamondoid. If this
+    // becomes a bottleneck, simply parallelize it with
+    // DispatchQueue.concurrentPerform.
+    init(index: Int) {
+      let clawLattice = createRobotClawLattice()
+      claw = Diamondoid(lattice: clawLattice)
+      // center the claw, visualize, then add both bands that belong to it
+    }
+  }
   
+  var robotArms: [RobotArm] = []
+  var roofPieces: [Diamondoid] = []
+  
+  init() {
+    
+  }
+  
+  func createAtoms() -> [MRAtom] {
+    var output: [MRAtom] = []
+    func append(_ diamondoids: [Diamondoid]) {
+      for element in diamondoids {
+        output += element.atoms
+      }
+    }
+    for robotArm in robotArms {
+      append([robotArm.claw])
+      append(robotArm.hexagons)
+      append(robotArm.bands)
+      append(robotArm.controlRods)
+    }
+    append(roofPieces)
+    return output
+  }
 }
