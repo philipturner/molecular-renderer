@@ -358,3 +358,10 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
     }
   }
 }
+
+// There is a 'createBoundingBox()' function on Diamondoid. This should make
+// some operations easier.
+
+struct AssemblyLine {
+  
+}

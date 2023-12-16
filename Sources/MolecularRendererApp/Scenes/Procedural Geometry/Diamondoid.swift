@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import HDL
 import MolecularRenderer
 import QuaternionModule
 #if os(macOS)
@@ -1329,6 +1330,20 @@ struct Diamondoid {
   }
 }
 
-
-
-
+extension Diamondoid {
+  init<T: Basis>(lattice: Lattice<T>) {
+    let entities = lattice.entities
+    self.init(atoms: entities.map(MRAtom.init))
+  }
+  
+  mutating func rotate(degrees: Float, axis: SIMD3<Float>) {
+    let quaternion = Quaternion<Float>(angle: degrees * .pi / 180, axis: axis)
+    self.rotate(angle: quaternion)
+  }
+  
+  mutating func setCenterOfMass(_ center: SIMD3<Float>) {
+    var translation = -createCenterOfMass()
+    translation += center
+    self.translate(offset: translation)
+  }
+}
