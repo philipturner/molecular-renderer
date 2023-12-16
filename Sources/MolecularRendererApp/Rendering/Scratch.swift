@@ -21,8 +21,12 @@ func createNanomachinery() -> [MRAtom] {
   //   - mystery - what is the feature here? large multi-DOF manipulator?
   //     computer? decide when the time comes.
   
-  let assemblyLine = AssemblyLine()
-  return assemblyLine.createAtoms()
+//  let assemblyLine = AssemblyLine()
+//  return assemblyLine.createAtoms()
+  
+  // TODO: - Add function parameters for the location of different beams.
+  let housing = createAssemblyHousing()
+  return housing.entities.map(MRAtom.init)
 }
 
 func createRobotClawLattice() -> Lattice<Hexagonal> {
@@ -281,6 +285,77 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
   }
 }
 
+func createAssemblyHousing() -> Lattice<Cubic> {
+  Lattice<Cubic> { h, k, l in
+    let spanY: Float = 20
+    let spanZ: Float = 60
+    let beamPositionY: Float = 5
+    Bounds { 20 * h + spanY * k + spanZ * l }
+    Material { .elemental(.germanium) }
+    
+    // Tasks:
+    // - Design the general shape and functionality you want.
+    // - Visualize the dimensions in the assembly.
+    // - Make the ends of nearby beams agree in 3D, and remove difficult-to-
+    //   passivate crystal surfaces, so it can be hydrogen-passivated.
+    
+    func _createBeam(
+      principalAxis1: SIMD3<Float>,
+      principalAxis2: SIMD3<Float>,
+      thickness: Float
+    ) {
+      for negate1 in [false, true] {
+        for negate2 in [false, true] {
+          var direction: SIMD3<Float> = .zero
+          direction += negate1 ? -principalAxis1 : principalAxis1
+          direction += negate2 ? -principalAxis2 : principalAxis2
+          Convex {
+            Origin { thickness * direction }
+            Plane { direction }
+          }
+        }
+      }
+    }
+    
+    func createBeamX() {
+      Convex {
+        Origin { 4 * (k + l) }
+        Origin { beamPositionY * k }
+        _createBeam(principalAxis1: k, principalAxis2: l, thickness: 2)
+      }
+    }
+    
+    func createBeamY() {
+      Convex {
+        Origin { 4 * (h + l) }
+        _createBeam(principalAxis1: h, principalAxis2: l, thickness: 2)
+      }
+    }
+    
+    func createBeamZ() {
+      Convex {
+        Origin { 4 * (h + k) }
+        Origin { beamPositionY * k }
+        _createBeam(principalAxis1: h, principalAxis2: k, thickness: 2)
+      }
+    }
+    
+    Volume {
+      Concave {
+        createBeamX()
+        createBeamY()
+        createBeamZ()
+        
+        Origin { (spanZ - 4 - 2 * 2) * l }
+        createBeamX()
+        createBeamY()
+      }
+      
+      Replace { .empty }
+    }
+  }
+}
+
 struct AssemblyLine {
   struct RobotArm {
     var claw: Diamondoid
@@ -318,6 +393,34 @@ struct AssemblyLine {
       return hexagons
     }()
     
+    static func createRods(index: Int) -> [Diamondoid] {
+      let ratio =
+      Float(3).squareRoot() *
+      Constant(.hexagon) { .elemental(.carbon) }
+      / Constant(.prism) { .elemental(.silicon) }
+      let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
+      
+      let rodLattice = createControlRod(length: 70 - rodCellSpacing * index)
+      var rod = Diamondoid(lattice: rodLattice)
+      rod.setCenterOfMass(.zero)
+      rod.rotate(degrees: 90, axis: [1, 0, 0])
+      
+      let box = rod.createBoundingBox()
+      rod.translate(offset: [
+        4.3 - box.1.x,
+        22 - box.0.y,
+        -3.5 - box.0.z
+      ])
+      rod.translate(offset: [0, 4 * Float(index), 0])
+      let right = rod
+      
+      rod.translate(offset: [0, 1.3, 0])
+      rod.transform { $0.origin.x = -$0.origin.x }
+      let left = rod
+      
+      return [left, right]
+    }
+    
     init(index: Int) {
       claw = Self.masterClaw
       claw.setCenterOfMass(.zero)
@@ -337,32 +440,7 @@ struct AssemblyLine {
       }
       
       hexagons = Self.masterHexagons
-      
-      // 685 ms before -> ??? ms after
-      let ratio =
-      Float(3).squareRoot() *
-      Constant(.hexagon) { .elemental(.carbon) }
-      / Constant(.prism) { .elemental(.silicon) }
-      let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
-      
-      let rodLattice = createControlRod(length: 70 - rodCellSpacing * index)
-      var rod = Diamondoid(lattice: rodLattice)
-      rod.setCenterOfMass(.zero)
-      rod.rotate(degrees: 90, axis: [1, 0, 0])
-      do {
-        let box = rod.createBoundingBox()
-        rod.translate(offset: [
-          4.3 - box.1.x,
-          22 - box.0.y,
-          -3.5 - box.0.z
-        ])
-        rod.translate(offset: [0, 4 * Float(index), 0])
-        controlRods.append(rod)
-        
-        rod.translate(offset: [0, 1.3, 0])
-        rod.transform { $0.origin.x = -$0.origin.x }
-        controlRods.append(rod)
-      }
+      controlRods = Self.createRods(index: index)
       
       let siliconConstant = Constant(.prism) { .elemental(.silicon) }
       let offsetZ = Float(16 * index + 8) * siliconConstant
