@@ -26,12 +26,14 @@ struct Constants {
     [1, 8]: BondLength(range: 0.092...0.102, average: 0.097),
     [1, 14]: BondLength(range: 0.143...0.153, average: 0.148),
     [1, 16]: BondLength(range: 0.131...0.141, average: 0.136),
+    [1, 32]: BondLength(range: 0.148...0.158, average: 0.153),
     
 //    [6, 6]: BondLength(range: 0.149...0.159, average: 0.154),
     [6, 6]: BondLength(range: 0.148...0.168, average: 0.154),
     [6, 7]: BondLength(range: 0.142...0.152, average: 0.147),
     [6, 8]: BondLength(range: 0.138...0.148, average: 0.143),
     [6, 14]: BondLength(range: 0.183...0.193, average: 0.188),
+    [6, 32]: BondLength(range: 0.188...0.198, average: 0.195),
     
     // Source: https://en.wikipedia.org/wiki/Organosulfur_chemistry
     [6, 16]: BondLength(range: 0.170...0.195, average: 0.183),
@@ -47,7 +49,8 @@ struct Constants {
     [8, 8]: BondLength(range: 0.127...0.137, average: 0.132),
     [8, 16]: BondLength(range: 0.166...0.176, average: 0.171),
     
-    [14, 14]: BondLength(range: 0.227...0.237, average: 0.232)
+    [14, 14]: BondLength(range: 0.227...0.237, average: 0.232),
+    [32, 32]: BondLength(range: 0.235...0.245, average: 0.240),
   ]
   
   static func bondLengthMax(element: UInt8) -> Float {
@@ -73,6 +76,7 @@ struct Constants {
     case 8: return 2
     case 14: return 4
     case 16: return 2
+    case 32: return 4
     default: fatalError("Element \(element) not supported.")
     }
   }

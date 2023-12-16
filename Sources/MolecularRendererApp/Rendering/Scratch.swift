@@ -15,6 +15,20 @@ func createNanomachinery() -> [MRAtom] {
   
   // diamond claw topper - several small hexagonal prisms, each
   // rotated a bit
+  let hexagon = createHexagonLattice()
+  var hexagonDiamondoid = Diamondoid(
+    atoms: hexagon.entities.map(MRAtom.init))
+  hexagonDiamondoid.translate(offset: -hexagonDiamondoid.createCenterOfMass())
+  hexagonDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
+  hexagonDiamondoid.translate(offset: [0, 23, 0])
+  var hexagons: [Diamondoid] = []
+  for i in 0..<13 {
+    var output = hexagonDiamondoid
+    output.translate(offset: [0, Float(i) * 0.8, 0])
+    let angle = Float(i) * 4 * .pi / 180
+    output.rotate(angle: Quaternion(angle: angle, axis: [0, 1, 0]))
+    hexagons.append(output)
+  }
   
   // silicon carbide band
   let band = createBandLattice()
@@ -23,30 +37,65 @@ func createNanomachinery() -> [MRAtom] {
   bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
   bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [0, 1, 0]))
   
-  let maxX = bandDiamondoid.atoms.reduce(-Float.greatestFiniteMagnitude) {
-    max($0, $1.x)
+  do {
+    let maxX = bandDiamondoid.atoms.reduce(-Float.greatestFiniteMagnitude) {
+      max($0, $1.x)
+    }
+    let minY = bandDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
+      min($0, $1.y)
+    }
+    bandDiamondoid.translate(offset: [6.15 - maxX, 0, 0])
+    bandDiamondoid.translate(offset: [0, 2.5 - minY, 0])
   }
-  let minY = bandDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
-    min($0, $1.y)
-  }
-  bandDiamondoid.translate(offset: [6.15 - maxX, 0, 0])
-  bandDiamondoid.translate(offset: [0, 2.5 - minY, 0])
   
-  // silicon roof piece
+  // silicon roof piece - instantiate one in the top, middle, and bottom
   let roofPiece = createRoofPieceLattice()
   var roofPieceDiamondoid = Diamondoid(
     atoms: roofPiece.entities.map(MRAtom.init))
   roofPieceDiamondoid.translate(offset: [0, 17, 0])
   
+  // rod for controlling the arms - one for each arm, each a different length
+  // rods on one side are elevated a half-spacing above rods on the other side
+  let controlRod = createControlRod(length: 80)
+  var controlRodDiamondoid = Diamondoid(
+    atoms: controlRod.entities.map(MRAtom.init))
+  controlRodDiamondoid.translate(
+    offset: -controlRodDiamondoid.createCenterOfMass())
+  controlRodDiamondoid.rotate(angle: Quaternion(angle: .pi / 2, axis: [1, 0, 0]))
+  do {
+    let minX = controlRodDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
+      min($0, $1.x)
+    }
+    let minZ = controlRodDiamondoid.atoms.reduce(Float.greatestFiniteMagnitude) {
+      min($0, $1.z)
+    }
+    controlRodDiamondoid.translate(offset: [3 - minX, 0, 0])
+    controlRodDiamondoid.translate(offset: [0, 21, 0])
+    controlRodDiamondoid.translate(offset: [0, 0, -3 - minZ])
+  }
+  
+  
+  // need to create a Swift data structure to encapsulate the initialization and
+  // assembly of a single assembly line
+  
+  // missing pieces:
+  // - track depicting products being moved through the sequence of arms
+  // - housing
+  // - piece to connect housings of nearby assembly lines
+  // - larger assembly line in front of the rows of robot arms
+  
   let diamondoids = [
     robotClawDiamondoid,
     bandDiamondoid,
-    roofPieceDiamondoid
-  ]
+    roofPieceDiamondoid,
+    controlRodDiamondoid
+  ] + hexagons
   let output = diamondoids.flatMap { $0.atoms }
-//  + roofPiece.entities.map(MRAtom.init).map {
+//  + controlRod.entities.map(MRAtom.init).map {
 //    var copy = $0
-//    copy.y += 10
+////    copy.origin.x += 3.5
+////    copy.origin.y += 20
+//    copy.origin.z += 10
 //    return copy
 //  }
   print(output.count)
@@ -56,7 +105,7 @@ func createNanomachinery() -> [MRAtom] {
 func createRobotClawLattice() -> Lattice<Hexagonal> {
   Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
-    Bounds { 30 * h + 70 * h2k + 4 * l }
+    Bounds { 30 * h + 85 * h2k + 4 * l }
     Material { .elemental(.carbon) }
     
     Volume {
@@ -98,7 +147,7 @@ func createRobotClawLattice() -> Lattice<Hexagonal> {
       
       for hSign in [Float(1), -1] {
         Concave {
-          Origin { 35 * h2k }
+          Origin { 34 * h2k }
           Convex {
             Origin { 6 * hSign * h }
             Plane { hSign * h + h2k }
@@ -107,10 +156,58 @@ func createRobotClawLattice() -> Lattice<Hexagonal> {
             Origin { 4 * hSign * h }
             Plane { hSign * h }
           }
+        }
+      }
+      
+      Replace { .empty }
+    }
+  }
+}
+
+func createHexagonLattice() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 24 * h + 24 * h2k + 3 * l }
+    Material { .checkerboard(.carbon, .germanium) }
+    
+    Volume {
+      Convex {
+        Origin { 0.7 * l }
+        Plane { l }
+      }
+      
+      Origin { 12 * h + 12 * h2k }
+      
+      let directions1 = [h, h + k, k, -h, -k - h, -k]
+      var directions2: [SIMD3<Float>] = []
+      directions2.append(h * 2 + k)
+      directions2.append(h + 2 * k)
+      directions2.append(k - h)
+      directions2 += directions2.map(-)
+      
+      for direction in directions1 {
+        Convex {
+          Origin { 6 * 1.5 * direction }
+          Plane { direction }
+        }
+      }
+      for direction in directions2 {
+        Convex {
+          Origin { (6 - 0.5) * direction }
+          Plane { direction }
+        }
+      }
+      Concave {
+        for direction in directions1 {
           Convex {
-            Origin { 20 * h2k }
-            Origin { 6 * hSign * h }
-            Plane { hSign * h - h2k  }
+            Origin { 4 * 1.5 * direction }
+            Plane { -direction }
+          }
+        }
+        for direction in directions2 {
+          Convex {
+            Origin { (4 - 0.5) * direction }
+            Plane { -direction }
           }
         }
       }
@@ -123,7 +220,7 @@ func createRobotClawLattice() -> Lattice<Hexagonal> {
 func createBandLattice() -> Lattice<Hexagonal> {
   Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
-    Bounds { 10 * h + 9 * h2k + 40 * l }
+    Bounds { 10 * h + 9 * h2k + 60 * l }
     Material { .checkerboard(.carbon, .silicon) }
     
     Volume {
@@ -155,7 +252,7 @@ func createBandLattice() -> Lattice<Hexagonal> {
       Concave {
         Origin { 2.8 * l }
         Plane { l }
-        Origin { 2 * h2k }
+        Origin { 2.5 * h2k }
         Plane { -h2k }
       }
       
@@ -217,7 +314,7 @@ func createRoofPieceLattice() -> Lattice<Hexagonal> {
       for hDirection in [h, -h] {
         for lIndex in 0...Int(zWidth / holeSpacing + 1e-3) {
           Concave {
-            Origin { 2 * hDirection }
+            Origin { (hDirection.x > 0) ? 3 * h : -2 * h }
             Plane { hDirection }
             
             Origin { holeSpacing * Float(lIndex) * l }
@@ -232,6 +329,29 @@ func createRoofPieceLattice() -> Lattice<Hexagonal> {
             }
           }
         }
+      }
+      
+      Replace { .empty }
+    }
+  }
+}
+
+func createControlRod(length: Int) -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 8 * h + Float(length) * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      // Add a hook-like feature to the end of the control rod.
+      Convex {
+        Origin { 6 * h }
+        Plane { h - k }
+      }
+      Concave {
+        Origin { 6 * h + 3 * h2k }
+        Plane { -h }
+        Plane { k - h }
       }
       
       Replace { .empty }
