@@ -12,6 +12,7 @@ import simd
 import HDL
 import MM4
 import MolecularRenderer
+import QuartzCore
 
 class Renderer {
   unowned let coordinator: Coordinator
@@ -64,9 +65,11 @@ class Renderer {
     }
     
    
-    
+    let start = CACurrentMediaTime()
     let atoms = createNanomachinery()
+    let end = CACurrentMediaTime()
     print("atom count:", atoms.count)
+    print("compile time:", Int((end - start) * 1e3), "ms")
     self.atomProvider = ArrayAtomProvider(atoms)
   }
 }

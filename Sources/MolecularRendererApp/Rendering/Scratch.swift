@@ -9,7 +9,8 @@ import Numerics
 func createNanomachinery() -> [MRAtom] {
   // diamond claw
   let robotClaw = createRobotClawLattice()
-  var robotClawDiamondoid = Diamondoid(atoms: robotClaw.entities.map(MRAtom.init))
+  var robotClawDiamondoid = Diamondoid(
+    atoms: robotClaw.entities.map(MRAtom.init))
   let robotClawCoM = robotClawDiamondoid.createCenterOfMass()
   robotClawDiamondoid.translate(offset: [-robotClawCoM.x, 0, -robotClawCoM.z])
   
@@ -36,7 +37,6 @@ func createNanomachinery() -> [MRAtom] {
   bandDiamondoid.translate(offset: -bandDiamondoid.createCenterOfMass())
   bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [1, 0, 0]))
   bandDiamondoid.rotate(angle: Quaternion(angle: -.pi / 2, axis: [0, 1, 0]))
-  
   do {
     let maxX = bandDiamondoid.atoms.reduce(-Float.greatestFiniteMagnitude) {
       max($0, $1.x)
@@ -370,6 +370,10 @@ struct AssemblyLine {
       let bandLattice = createBandLattice()
       return Diamondoid(lattice: bandLattice)
     }()
+    static let masterHexagon: Diamondoid = {
+      let hexagonLattice = createHexagonLattice()
+      return Diamondoid(lattice: hexagonLattice)
+    }()
     
     init(index: Int) {
       claw = Self.masterClaw
@@ -389,11 +393,20 @@ struct AssemblyLine {
         bands.append(band)
       }
       
+      var hexagon = Self.masterHexagon
+      hexagon.setCenterOfMass(.zero)
+      hexagon.rotate(degrees: -90, axis: [1, 0, 0])
+      hexagon.translate(offset: [0, 23, 0])
+      hexagons.append(hexagon)
+      
       let constant = Constant(.prism) { .elemental(.silicon) }
       let offsetZ = Float(16 * index + 8) * constant
       claw.translate(offset: [0, 0, offsetZ])
       for i in bands.indices {
         bands[i].translate(offset: [0, 0, offsetZ])
+      }
+      for i in hexagons.indices {
+        hexagons[i].translate(offset: [0, 0, offsetZ])
       }
     }
   }

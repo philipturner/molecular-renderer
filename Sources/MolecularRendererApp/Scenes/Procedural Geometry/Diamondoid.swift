@@ -8,11 +8,76 @@
 import Foundation
 import HDL
 import MolecularRenderer
+import RealModule
 import QuaternionModule
 #if os(macOS)
 import QuartzCore
 import simd
 #endif
+
+// MARK: - Duplicating Helper Functions for Speed
+
+@inline(__always)
+func _cross_platform_min<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>, _ y: SIMD3<T>
+) -> SIMD3<T> {
+  return x.replacing(with: y, where: y .< x)
+}
+
+@inline(__always)
+func _cross_platform_max<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>, _ y: SIMD3<T>
+) -> SIMD3<T> {
+  return x.replacing(with: y, where: y .> x)
+}
+
+@inline(__always)
+func _cross_platform_dot<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>, _ y: SIMD3<T>
+) -> T {
+  return (x * y).sum()
+}
+
+@inline(__always)
+func _cross_platform_length<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>
+) -> T {
+  return _cross_platform_dot(x, x).squareRoot()
+}
+
+@inline(__always)
+func _cross_platform_distance<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>, _ y: SIMD3<T>
+) -> T {
+  return _cross_platform_length(y - x)
+}
+
+@inline(__always)
+func _cross_platform_floor<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>
+) -> SIMD3<T> {
+  return x.rounded(.down)
+}
+
+@inline(__always)
+func _cross_platform_normalize<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>
+) -> SIMD3<T> {
+  return x / (_cross_platform_dot(x, x)).squareRoot()
+}
+
+@inline(__always)
+func _cross_platform_cross<T: Real & SIMDScalar>(
+  _ x: SIMD3<T>, _ y: SIMD3<T>
+) -> SIMD3<T> {
+  // Source: https://en.wikipedia.org/wiki/Cross_product#Computing
+  let s1 = x[1] * y[2] - x[2] * y[1]
+  let s2 = x[2] * y[0] - x[0] * y[2]
+  let s3 = x[0] * y[1] - x[1] * y[0]
+  return SIMD3(s1, s2, s3)
+}
+
+// MARK: - Diamondoid
 
 struct Diamondoid {
   var atoms: [MRAtom]
@@ -53,13 +118,13 @@ struct Diamondoid {
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
     var maxPosition: SIMD3<Float> = SIMD3(repeating: -.infinity)
     for atom in atoms {
-      minPosition = cross_platform_min(atom.origin, minPosition)
-      maxPosition = cross_platform_max(atom.origin, maxPosition)
+      minPosition = _cross_platform_min(atom.origin, minPosition)
+      maxPosition = _cross_platform_max(atom.origin, maxPosition)
     }
     
     // Build a uniform grid to search for neighbors in O(n) time.
-    let cellSpaceMin = cross_platform_floor(minPosition * Float(4))
-    let cellSpaceMax = cross_platform_floor(maxPosition * Float(4)) + 1
+    let cellSpaceMin = _cross_platform_floor(minPosition * Float(4))
+    let cellSpaceMax = _cross_platform_floor(maxPosition * Float(4)) + 1
     let coordsOrigin = SIMD3<Int32>(cellSpaceMin)
     let boundingBox = SIMD3<Int32>(cellSpaceMax) &- coordsOrigin
     
@@ -69,7 +134,7 @@ struct Diamondoid {
     var sectors: [SIMD16<Int32>] = []
     
     for (i, atom) in atoms.enumerated() {
-      let cellSpaceFloor = cross_platform_floor(atom.origin * Float(4))
+      let cellSpaceFloor = _cross_platform_floor(atom.origin * Float(4))
       let coords = SIMD3<Int32>(cellSpaceFloor) &- coordsOrigin
       var address = coords.x
       address += boundingBox.x * coords.y
@@ -97,8 +162,8 @@ struct Diamondoid {
       let center = atom.origin
       let bondLengthMax = Constants.bondLengthMax(element: atom.element)
       
-      var searchBoxMin = SIMD3<Int32>(cross_platform_floor((center - bondLengthMax) * 4))
-      var searchBoxMax = SIMD3<Int32>(cross_platform_floor((center + bondLengthMax) * 4))
+      var searchBoxMin = SIMD3<Int32>(_cross_platform_floor((center - bondLengthMax) * 4))
+      var searchBoxMax = SIMD3<Int32>(_cross_platform_floor((center + bondLengthMax) * 4))
       searchBoxMin &-= coordsOrigin
       searchBoxMax &-= coordsOrigin
       searchBoxMin = searchBoxMin.clamped(lowerBound: SIMD3<Int32>.zero, upperBound: boundingBox &- 1)
@@ -130,7 +195,8 @@ struct Diamondoid {
             continue
           }
           
-          let deltaLength = cross_platform_distance(atoms[i].origin, atoms[j].origin)
+          let deltaLength = _cross_platform_distance(
+            atoms[i].origin, atoms[j].origin)
           let firstIndex: UInt8 = atoms[i].element
           let secondIndex: UInt8 = atoms[j].element
           let key = SIMD2(
@@ -203,22 +269,6 @@ struct Diamondoid {
       
       // Source:
       // https://stackoverflow.com/a/28358035
-      /*
-       uint64_t morton3(uint64_t x) {
-           x = x & 0x9249249249249249;
-           x = (x | (x >> 2))  & 0x30c30c30c30c30c3;
-           x = (x | (x >> 4))  & 0xf00f00f00f00f00f;
-           x = (x | (x >> 8))  & 0x00ff0000ff0000ff;
-           x = (x | (x >> 16)) & 0xffff00000000ffff;
-           x = (x | (x >> 32)) & 0x00000000ffffffff;
-           return x;
-       }
-       uint64_t bits;
-       uint64_t x = morton3(bits)
-       uint64_t y = morton3(bits>>1)
-       uint64_t z = morton3(bits>>2)
-       */
-      
       func morton3(_ input: Int) -> Int {
         var x = UInt64(input) & 0x9249249249249249
         x = (x | (x >> 2))  & 0x30c30c30c30c30c3
@@ -250,125 +300,129 @@ struct Diamondoid {
       let sector = sectors[Int(gridSlot[0])]
       for slotIndex in 0..<numAtoms {
         let atomID = Int(sector[slotIndex])
-        precondition(atomID > -1)
+        createAtom(atoms: atoms, atomID: atomID)
+      }
+    }
+    
+    func createAtom(atoms: [MRAtom], atomID: Int) {
+      precondition(atomID > -1)
+      
+      let newAtomID = Int32(self.atoms.count)
+      newIndicesMap[atomID] = newAtomID
+      self.atoms.append(atoms[atomID])
+      
+      var neighborTypes: [Int] = []
+      var neighborCenters: [SIMD3<Float>] = []
+      for j in 0..<centerTypes[atomID] {
+        let index = Int(centerNeighbors[atomID][j])
+        neighborTypes.append(centerTypes[index])
+        neighborCenters.append(atoms[index].origin)
         
-        let newAtomID = Int32(self.atoms.count)
-        newIndicesMap[atomID] = newAtomID
-        self.atoms.append(atoms[atomID])
+        // Change this; store the bonds with indices being sorted inside the
+        // bond, but only add a bond when the neighbor is already inside the
+        // final list.
+        let newNeighborID = newIndicesMap[index]
+        guard newNeighborID > -1 else {
+          continue
+        }
+        var newBond: SIMD2<Int32> = .zero
+        newBond[0] = min(newAtomID, newNeighborID)
+        newBond[1] = max(newAtomID, newNeighborID)
+        bonds.append(newBond)
+      }
+      
+      let valenceElectrons = Constants.valenceElectrons(
+        element: atoms[atomID].element)
+      if centerTypes[atomID] > valenceElectrons {
+        fatalError("Too many bonds.")
+      }
+      
+      var totalBonds = centerTypes[atomID]
+      func addHydrogen(direction: SIMD3<Float>) {
+        guard totalBonds < valenceElectrons else {
+          return
+        }
+        totalBonds += 1
         
-        var neighborTypes: [Int] = []
-        var neighborCenters: [SIMD3<Float>] = []
-        for j in 0..<centerTypes[atomID] {
-          let index = Int(centerNeighbors[atomID][j])
-          neighborTypes.append(centerTypes[index])
-          neighborCenters.append(atoms[index].origin)
-          
-          // Change this; store the bonds with indices being sorted inside the
-          // bond, but only add a bond when the neighbor is already inside the
-          // final list.
-          let newNeighborID = newIndicesMap[index]
-          guard newNeighborID > -1 else {
-            continue
-          }
-          var newBond: SIMD2<Int32> = .zero
-          newBond[0] = min(newAtomID, newNeighborID)
-          newBond[1] = max(newAtomID, newNeighborID)
-          bonds.append(newBond)
+        let bondLength = Constants.bondLengths[
+          [1, atoms[atomID].element]]!.average
+        let hydrogenCenter = atoms[atomID].origin + bondLength * direction
+        let hydrogenID = Int32(self.atoms.count)
+        
+        self.atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
+        self.bonds.append(SIMD2(Int32(newAtomID), hydrogenID))
+      }
+      
+      switch centerTypes[atomID] {
+      case 4:
+        break
+      case 3:
+        let sideAB = neighborCenters[1] - neighborCenters[0]
+        let sideAC = neighborCenters[2] - neighborCenters[0]
+        var normal = _cross_platform_normalize(_cross_platform_cross(sideAB, sideAC))
+        
+        let deltaA = atoms[atomID].origin - neighborCenters[0]
+        if _cross_platform_dot(normal, deltaA) < 0 {
+          normal = -normal
         }
         
-        let valenceElectrons = Constants.valenceElectrons(
-          element: atoms[atomID].element)
-        if centerTypes[atomID] > valenceElectrons {
-          fatalError("Too many bonds.")
+        addHydrogen(direction: normal)
+      case 2:
+        let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
+        guard _cross_platform_distance(midPoint, atoms[atomID].origin) > 0.001 else {
+          fatalError("sp3 carbons are too close to 180 degrees.")
         }
         
-        var totalBonds = centerTypes[atomID]
-        func addHydrogen(direction: SIMD3<Float>) {
-          guard totalBonds < valenceElectrons else {
-            return
-          }
-          totalBonds += 1
-          
-          let bondLength = Constants.bondLengths[
-            [1, atoms[atomID].element]]!.average
-          let hydrogenCenter = atoms[atomID].origin + bondLength * direction
-          let hydrogenID = Int32(self.atoms.count)
-          
-          self.atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
-          self.bonds.append(SIMD2(Int32(newAtomID), hydrogenID))
+        let normal = _cross_platform_normalize(atoms[atomID].origin - midPoint)
+        let axis = _cross_platform_normalize(neighborCenters[1] - midPoint)
+        for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
+          let rotation = Quaternion<Float>(angle: angle, axis: axis)
+          let direction = rotation.act(on: normal)
+          addHydrogen(direction: direction)
+        }
+      case 1:
+        guard neighborTypes[0] > 1 else {
+          fatalError("Cannot determine structure of primary carbon.")
         }
         
-        switch centerTypes[atomID] {
-        case 4:
-          break
-        case 3:
-          let sideAB = neighborCenters[1] - neighborCenters[0]
-          let sideAC = neighborCenters[2] - neighborCenters[0]
-          var normal = cross_platform_normalize(cross_platform_cross(sideAB, sideAC))
-          
-          let deltaA = atoms[atomID].origin - neighborCenters[0]
-          if cross_platform_dot(normal, deltaA) < 0 {
-            normal = -normal
+        let j = Int(centerNeighbors[atomID][0])
+        var referenceIndex: Int?
+        for k in 0..<neighborTypes[0] {
+          let index = Int(centerNeighbors[j][k])
+          if atomID != index {
+            referenceIndex = index
+            break
           }
-          
-          addHydrogen(direction: normal)
-        case 2:
-          let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
-          guard cross_platform_distance(midPoint, atoms[atomID].origin) > 0.001 else {
-            fatalError("sp3 carbons are too close to 180 degrees.")
-          }
-          
-          let normal = cross_platform_normalize(atoms[atomID].origin - midPoint)
-          let axis = cross_platform_normalize(neighborCenters[1] - midPoint)
-          for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
-            let rotation = Quaternion<Float>(angle: angle, axis: axis)
-            let direction = rotation.act(on: normal)
-            addHydrogen(direction: direction)
-          }
-        case 1:
-          guard neighborTypes[0] > 1 else {
-            fatalError("Cannot determine structure of primary carbon.")
-          }
-          
-          let j = Int(centerNeighbors[atomID][0])
-          var referenceIndex: Int?
-          for k in 0..<neighborTypes[0] {
-            let index = Int(centerNeighbors[j][k])
-            if atomID != index {
-              referenceIndex = index
-              break
-            }
-          }
-          guard let referenceIndex else {
-            fatalError("Could not find valid neighbor index.")
-          }
-          let referenceCenter = atoms[referenceIndex].origin
-          let normal = cross_platform_normalize(atoms[atomID].origin - atoms[j].origin)
-          
-          let referenceDelta = atoms[j].origin - referenceCenter
-          var orthogonal = referenceDelta - normal * cross_platform_dot(normal, referenceDelta)
-          guard cross_platform_length(orthogonal) > 0.001 else {
-            fatalError("sp3 carbons are too close to 180 degrees.")
-          }
-          orthogonal = cross_platform_normalize(orthogonal)
-          let axis = cross_platform_cross(normal, orthogonal)
-          
-          var directions: [SIMD3<Float>] = []
-          let firstHydrogenRotation = Quaternion<Float>(
-            angle: .pi - sp3BondAngle, axis: axis)
-          directions.append(firstHydrogenRotation.act(on: normal))
-          
-          let secondHydrogenRotation = Quaternion<Float>(
-            angle: 120 * .pi / 180, axis: normal)
-          directions.append(secondHydrogenRotation.act(on: directions[0]))
-          directions.append(secondHydrogenRotation.act(on: directions[1]))
-          
-          for direction in directions {
-            addHydrogen(direction: direction)
-          }
-        default:
-          fatalError("This should never happen.")
         }
+        guard let referenceIndex else {
+          fatalError("Could not find valid neighbor index.")
+        }
+        let referenceCenter = atoms[referenceIndex].origin
+        let normal = _cross_platform_normalize(atoms[atomID].origin - atoms[j].origin)
+        
+        let referenceDelta = atoms[j].origin - referenceCenter
+        var orthogonal = referenceDelta - normal * _cross_platform_dot(normal, referenceDelta)
+        guard _cross_platform_length(orthogonal) > 0.001 else {
+          fatalError("sp3 carbons are too close to 180 degrees.")
+        }
+        orthogonal = _cross_platform_normalize(orthogonal)
+        let axis = _cross_platform_cross(normal, orthogonal)
+        
+        var directions: [SIMD3<Float>] = []
+        let firstHydrogenRotation = Quaternion<Float>(
+          angle: .pi - sp3BondAngle, axis: axis)
+        directions.append(firstHydrogenRotation.act(on: normal))
+        
+        let secondHydrogenRotation = Quaternion<Float>(
+          angle: 120 * .pi / 180, axis: normal)
+        directions.append(secondHydrogenRotation.act(on: directions[0]))
+        directions.append(secondHydrogenRotation.act(on: directions[1]))
+        
+        for direction in directions {
+          addHydrogen(direction: direction)
+        }
+      default:
+        fatalError("This should never happen.")
       }
     }
   }
@@ -531,8 +585,8 @@ struct Diamondoid {
           fatalError("sp3 carbons are too close to 180 degrees.")
         }
         
-        let normal = cross_platform_normalize(thisAtom.origin - midPoint)
-        let axis = cross_platform_normalize(cleanNeighbors[1].origin - midPoint)
+        let normal = _cross_platform_normalize(thisAtom.origin - midPoint)
+        let axis = _cross_platform_normalize(cleanNeighbors[1].origin - midPoint)
         let sp3BondAngle = Constants.sp3BondAngle
         
         for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
@@ -549,14 +603,14 @@ struct Diamondoid {
           }
           let candidateLengths = dirtyDirections.map { direction in
             let atomOrigin = thisAtom.origin + bondLength * direction
-            return cross_platform_distance(atomOrigin, self.atoms[hydrogenID].origin)
+            return _cross_platform_distance(atomOrigin, self.atoms[hydrogenID].origin)
           }
           if candidateLengths[0] < candidateLengths[1] {
             dirtyDirections = [dirtyDirections[1]]
           } else {
             dirtyDirections = [dirtyDirections[0]]
           }
-          let sum = cross_platform_normalize(normal + dirtyDirections[0])
+          let sum = _cross_platform_normalize(normal + dirtyDirections[0])
           var rotation = Quaternion<Float>(from: dirtyDirections[0], to: sum)
           dirtyDirections = [sum]
           
@@ -581,10 +635,10 @@ struct Diamondoid {
       } else if cleanNeighbors.count == 3 {
         let sideAB = cleanNeighbors[1].origin - cleanNeighbors[0].origin
         let sideAC = cleanNeighbors[2].origin - cleanNeighbors[0].origin
-        var normal = cross_platform_normalize(cross_platform_cross(sideAB, sideAC))
+        var normal = _cross_platform_normalize(_cross_platform_cross(sideAB, sideAC))
         
         let deltaA = thisAtom.origin - cleanNeighbors[0].origin
-        if cross_platform_dot(normal, deltaA) < 0 {
+        if _cross_platform_dot(normal, deltaA) < 0 {
           normal = -normal
         }
         if dirtyNeighbors.count >= 2 {
@@ -620,8 +674,8 @@ struct Diamondoid {
             let movedDistance1 = movedDistance
             
             
-            let dirtyDelta = cross_platform_normalize(dirtyNeighbor - thisAtom.origin)
-            let attemptDelta = cross_platform_normalize(newHydrogen - thisAtom.origin)
+            let dirtyDelta = _cross_platform_normalize(dirtyNeighbor - thisAtom.origin)
+            let attemptDelta = _cross_platform_normalize(newHydrogen - thisAtom.origin)
             let attemptRot = Quaternion<Float>(from: dirtyDelta, to: attemptDelta)
             
             // distance on circumference = angle (in radians) * 1 radius
@@ -631,7 +685,7 @@ struct Diamondoid {
             let newAngle = 0.08 / bondLength
             
             let newRot = Quaternion<Float>(angle: newAngle, axis: attemptAxis)
-            let newDelta = cross_platform_normalize(newRot.act(on: dirtyDelta))
+            let newDelta = _cross_platform_normalize(newRot.act(on: dirtyDelta))
             
             newHydrogen = thisAtom.origin + bondLength * newDelta
             movedDistance = cross_platform_distance(newHydrogen, dirtyNeighbor)
@@ -948,7 +1002,7 @@ struct Diamondoid {
         
         let neighborCenter = atoms[neighborIndex].origin
         var selfCenter = atoms[atomID].origin
-        let delta = cross_platform_normalize(selfCenter - neighborCenter)
+        let delta = _cross_platform_normalize(selfCenter - neighborCenter)
         
         var average: Float
         if atoms[neighborIndex].element == 14 {
@@ -1145,8 +1199,8 @@ struct Diamondoid {
     var minPosition: SIMD3<Float> = SIMD3(repeating: .infinity)
     var maxPosition: SIMD3<Float> = SIMD3(repeating: -.infinity)
     for atom in atoms {
-      minPosition = cross_platform_min(atom.origin, minPosition)
-      maxPosition = cross_platform_max(atom.origin, maxPosition)
+      minPosition = _cross_platform_min(atom.origin, minPosition)
+      maxPosition = _cross_platform_max(atom.origin, maxPosition)
     }
     
     let supportedElements: [UInt8] = [1, 6]
@@ -1178,7 +1232,7 @@ struct Diamondoid {
       var velocity = self.linearVelocity ?? .zero
       if let w, let centerOfMass {
         let r = atom.origin - centerOfMass
-        velocity += cross_platform_cross(w, r)
+        velocity += _cross_platform_cross(w, r)
       }
       return velocity
     }

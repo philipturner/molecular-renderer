@@ -9,7 +9,9 @@ import Foundation
 import RealModule
 import QuaternionModule
 
-// TODO: Extract this into a separate Swift package for 3D math.
+// WARNING: Since we disabled whole-module optimization, none of these functions
+// will actually inline. Always explicitly write out the functions in
+// performance-critical loops.
 
 @inline(__always)
 func cross_platform_dot<T: Real & SIMDScalar>(
@@ -40,14 +42,14 @@ func cross_platform_cross<T: Real & SIMDScalar>(
 func cross_platform_length<T: Real & SIMDScalar>(
   _ x: SIMD2<T>
 ) -> T {
-  return sqrt(cross_platform_dot(x, x))
+  return cross_platform_dot(x, x).squareRoot()
 }
 
 @inline(__always)
 func cross_platform_length<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> T {
-  return sqrt(cross_platform_dot(x, x))
+  return cross_platform_dot(x, x).squareRoot()
 }
 
 @inline(__always)
