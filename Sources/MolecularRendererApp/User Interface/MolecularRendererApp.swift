@@ -35,7 +35,7 @@ struct ContentView: View {
   static let frameRate: Int = 120
   
 //  static let size: CGFloat = 640 * CGFloat(upscaleFactor)
-  static let size: CGFloat = 640 * CGFloat(upscaleFactor)
+  static let size: CGFloat = 600 * CGFloat(upscaleFactor)
   
   var body: some View {
     // A ZStack to overlay the crosshair over the scene view

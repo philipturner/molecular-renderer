@@ -553,3 +553,45 @@ func createNewBackBoardLattice2() -> Lattice<Hexagonal> {
     }
   }
 }
+
+func createFloorHexagon(radius: Float) -> Lattice<Hexagonal> {
+  var hexagonRadius = radius
+  hexagonRadius /= Constant(.hexagon) { .checkerboard(.silicon, .carbon) }
+  hexagonRadius.round(.toNearestOrEven)
+  
+  return Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { (2*hexagonRadius) * h + (2*hexagonRadius) * h2k + 3 * l }
+    Material { .checkerboard(.silicon, .carbon) }
+    
+    Volume {
+      Origin { hexagonRadius * h + hexagonRadius * h2k }
+      
+      var directions: [SIMD3<Float>] = []
+      directions.append(h)
+      directions.append(k + h)
+      directions.append(k)
+      directions.append(-h)
+      directions.append(-k - h)
+      directions.append(-k)
+      
+      Concave {
+        for direction in directions {
+          Convex {
+            Origin { (hexagonRadius - 10) * direction }
+            Plane { -direction }
+          }
+        }
+      }
+      
+      for direction in directions {
+        Convex {
+          Origin { hexagonRadius * direction }
+          Plane { direction }
+        }
+      }
+      
+      Replace { .empty }
+    }
+  }
+}

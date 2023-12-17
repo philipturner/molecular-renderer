@@ -15,15 +15,12 @@ func createNanomachinery() -> [MRAtom] {
   //   - small manufactured pieces (gold atoms)
   //
   // - level 2:
-  //   - recycle the "roof piece" with some slight modifications
+  //   - new crystolecule building clock that forms chains
   //   - rod that links controls for 3 assembly lines in SIMD fashion
   //   - leave some space near the rods, to visualize the adjacent quadrant
   //   - larger manufactured pieces (gold atoms)
-  //
-  // - level 3:
-  //   - hexagonal centerpiece at the 3rd level of convergent assembly
-  //   - mystery - what is the feature here? large multi-DOF manipulator?
-  //     computer? decide when the time comes.
+  
+  // MARK: - Assembly Machinery
   
   let masterQuadrant = Quadrant()
   var quadrants: [Quadrant] = []
@@ -43,6 +40,20 @@ func createNanomachinery() -> [MRAtom] {
       $0.origin = origin
     }
   }
+  for i in quadrants.indices {
+    quadrants[i].transform { $0.origin.y += 23.5 }
+  }
+  for i in quadrants.indices {
+    var copy = quadrants[i]
+    copy.transform { $0.origin.y *= -1 }
+    quadrants.append(copy)
+  }
+  var output = quadrants.flatMap { $0.createAtoms() }
   
-  return quadrants.flatMap { $0.createAtoms() }
+  // MARK: - Other
+  
+  let floor = Floor(openCenter: true)
+  output += floor.createAtoms()
+  
+  return output
 }

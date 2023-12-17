@@ -1278,9 +1278,12 @@ struct Diamondoid {
     precondition(!isVelocitySet)
     
     let centerOfMass = createCenterOfMass()
+    let basis1 = angle.act(on: [1, 0, 0])
+    let basis2 = angle.act(on: [0, 1, 0])
+    let basis3 = angle.act(on: [0, 0, 1])
     for i in atoms.indices {
       var delta = atoms[i].origin - centerOfMass
-      delta = angle.act(on: delta)
+      delta = delta.x*basis1 + delta.y*basis2 + delta.z*basis3
       atoms[i].origin = centerOfMass + delta
     }
   }

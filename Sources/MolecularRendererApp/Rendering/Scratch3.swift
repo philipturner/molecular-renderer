@@ -281,3 +281,59 @@ struct Quadrant {
     return output
   }
 }
+
+struct Floor {
+  var hexagons: [Diamondoid] = []
+  
+  // Avoid compiling this multiple times.
+  static let masterHexagon: Diamondoid = {
+    let lattice = createFloorHexagon(radius: 8.5)
+    var master = Diamondoid(lattice: lattice)
+    master.setCenterOfMass(.zero)
+    master.rotate(degrees: -90, axis: [1, 0, 0])
+    return master
+  }()
+  
+  init(openCenter: Bool) {
+    let h: SIMD3<Float> = 2 * 9 * [1, 0, 0]
+    let k: SIMD3<Float> = 2 * 9 * [-0.5, 0, 0.5 * Float(3).squareRoot()]
+    
+    for i in -10...10 {
+      for j in -10...10 {
+        var position = Float(i) * h + Float(j) * k
+        position += 0.5 * h + 0.5 * k
+        let squareRadius: Float = 65
+        if any(position .< -squareRadius .| position .> squareRadius) {
+          continue
+        }
+        
+        if openCenter {
+          let length = (position * position).sum().squareRoot()
+          if length < 20 {
+            continue
+          }
+        }
+        
+        var copy = Self.masterHexagon
+        copy.transform { $0.origin += position }
+        hexagons.append(copy)
+      }
+    }
+    
+    print("floor atom count:", Self.masterHexagon.atoms.count * hexagons.count)
+  }
+  
+  mutating func transform(_ closure: (inout MRAtom) -> Void) {
+    for i in hexagons.indices {
+      hexagons[i].transform(closure)
+    }
+  }
+  
+  func createAtoms() -> [MRAtom] {
+    var output: [MRAtom] = []
+    for hexagon in hexagons {
+      output += hexagon.atoms
+    }
+    return output
+  }
+}

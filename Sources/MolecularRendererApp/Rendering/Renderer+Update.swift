@@ -128,59 +128,17 @@ extension Renderer {
       _fov = 90
       _position = [0, 0, 1]
       _rotation = matrix_identity_float3x3
-//      _fov = 90
-//      _position = [3, -4.5, 5]
-//      _rotation = _rotation * simd_float3x3(
-//        SIMD3(1, 0, 0),
-//        SIMD3(0, cos(60 * .pi / 180), -sin(60 * .pi / 180)),
-//        SIMD3(0, sin(60 * .pi / 180), cos(60 * .pi / 180))).transpose
-      
-      //      let period: Float = .greatestFiniteMagnitude
-      //      let rotationCenter: SIMD3<Float> =  [0, 0, 0]
-      //      let radius: Float = 2.5
-      //
-      //      var angle = Float(frameID) / Float(framesPerSecond)
-      //      angle /= period
-      //      angle *= 2 * .pi
-      //
-      //      let quaternion = Quaternion<Float>(angle: -angle, axis: [0, 1, 0])
-      //      let delta = simd_act(quaternion, [0, 0, 1])
-      //      _position = rotationCenter + cross_platform_normalize(delta) * radius
-      //      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
-      
-//      var rotationCenter: SIMD3<Float> =  [-2.5, 3, +4]
-//      rotationCenter += 0.357 * SIMD3(3.75, 8.00, 3.75)
-//
-//      var angle = Float(0.125)
-//      angle *= 2 * .pi
-//
-//      _ = Quaternion<Float>(angle: -angle, axis: [0, 1, 0])
-//      _position = rotationCenter
-//      _rotation = PlayerState.makeRotation(azimuth: Double(-angle))
-//      _rotation = _rotation * simd_float3x3(
-//        SIMD3(0, 1, 0),
-//        SIMD3(-1, 0, 0),
-//        SIMD3(0, 0, 1)).transpose
-      
-//      #if false
-//      _position = [-8, 0, 8] + [3, 0, 3]
-//      _rotation = PlayerState.makeRotation(
-//        azimuth: Double(-45 * Double.pi / 180))
-//      #else
-//      let zenithAngle = 40 * Float.pi / 180
-//      _position = [3, 0, 3] + [4, 4, 2]
-//      _rotation = PlayerState.makeRotation(
-//        azimuth: Double(60 * Double.pi / 180)) * simd_float3x3(
-//          SIMD3(1, 0, 0),
-//          SIMD3(0, cos(zenithAngle), sin(zenithAngle)),
-//          SIMD3(0, -sin(zenithAngle), cos(zenithAngle))).transpose
-//      #endif
     }
     
     var lights: [MRLight] = []
     let cameraLight = MRLight(
-      origin: _position, diffusePower: 1, specularPower: 1)
+      origin: _position,
+      diffusePower: 0.6, specularPower: 0.6)
+    let cameraLight2 = MRLight(
+      origin: _position + _rotation * [0, 0, -1],
+      diffusePower: 0.4, specularPower: 0.4)
     lights.append(cameraLight)
+    lights.append(cameraLight2)
     
     let quality = MRQuality(
       minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
