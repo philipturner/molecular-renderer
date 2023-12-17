@@ -54,25 +54,29 @@ struct RobotArm {
     / Constant(.prism) { .elemental(.silicon) }
     let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
     
-    let rodLattice = createControlRod(length: 70 - rodCellSpacing * index)
-    var rod = Diamondoid(lattice: rodLattice)
-    rod.setCenterOfMass(.zero)
-    rod.rotate(degrees: 90, axis: [1, 0, 0])
-    
-    let box = rod.createBoundingBox()
-    rod.translate(offset: [
-      4.3 - box.1.x,
-      22 - box.0.y,
-      -3.3 - box.0.z
-    ])
-    rod.translate(offset: [0, 3.9 * Float(index), 0])
-    let right = rod
-    
-    rod.translate(offset: [0, 1.3, 0])
-    rod.transform { $0.origin.x = -$0.origin.x }
-    let left = rod
-    
-    return [left, right]
+    var output: [Diamondoid] = []
+    for isLeft in [false, true] {
+      let length = isLeft ? Int(84) : 79
+      let rodLattice = createControlRod(
+        length: length - rodCellSpacing * index)
+      var rod = Diamondoid(lattice: rodLattice)
+      rod.setCenterOfMass(.zero)
+      rod.rotate(degrees: 90, axis: [1, 0, 0])
+      
+      let box = rod.createBoundingBox()
+      rod.translate(offset: [
+        4.3 - box.1.x,
+        22 - box.0.y,
+        -3.3 - box.0.z
+      ])
+      rod.translate(offset: [0, 3.9 * Float(index), 0])
+      if isLeft {
+        rod.translate(offset: [0, 1.3, 0])
+        rod.transform { $0.origin.x = -$0.origin.x }
+      }
+      output.append(rod)
+    }
+    return output
   }
   
   init(index: Int) {
@@ -152,9 +156,9 @@ struct AssemblyLine {
       }
       return output
     }
-    roofPieces += makeRoofPieces(xCenter: 4.5, yHeight: -7)
+    roofPieces += makeRoofPieces(xCenter: 4.5, yHeight: -6.75)
     roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 17)
-    roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 33)
+    roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 33.5)
     
     let housingLattice = createAssemblyHousing(terminal: false)
     housing = Diamondoid(lattice: housingLattice)
