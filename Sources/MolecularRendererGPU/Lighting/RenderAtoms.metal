@@ -100,7 +100,7 @@ kernel void renderAtoms
         direction *= rsqrt(distance_sq);
         
         Ray<float> ray { hitPoint + 0.0001 * float3(normal), direction };
-        IntersectionParams params { false, 1 + sqrt(distance_sq), true };
+        IntersectionParams params { false, 0.3 + sqrt(distance_sq), true };
         auto intersect = RayIntersector::traverse(ray, grid, params);
         if (intersect.accept) {
           hitAtomRadiusSquared = intersect.atom.radiusSquared;

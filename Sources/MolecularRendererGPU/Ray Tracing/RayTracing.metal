@@ -120,7 +120,7 @@ public:
         result.distance = target_distance;
         
 #if SCENE_SIZE_EXTREME
-        uint count = voxel_data[0];
+        uint count = voxel_data[0] & 0xFF;
         uint offset = voxel_data[1];
 #else
         uint count = reverse_bits(voxel_data & voxel_count_mask);
