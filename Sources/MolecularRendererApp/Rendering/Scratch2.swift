@@ -653,8 +653,6 @@ func createBroadcastRod() -> Lattice<Hexagonal> {
         }
       }
       
-      
-      
       Replace { .empty }
     }
   }
