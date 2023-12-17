@@ -2,7 +2,6 @@
 
 import Foundation
 import HDL
-import MM4
 import MolecularRenderer
 import Numerics
 
@@ -13,82 +12,45 @@ func createNanomachinery() -> [MRAtom] {
   //
   // missing pieces:
   // - level 1:
-  //   - chain-linked track depicting products being moved along
+  //   - chain-linked track depicting products being moved
+  //   - manufactured pieces (gold atoms)
   //
   // - level 2:
   //   - rod that links controls for 3 assembly lines in SIMD fashion
   //   - larger assembly line in front of the rows of robot arms
+  //   - wall in the back to depict where the line continues
   //
   // - level 3:
   //   - hexagonal centerpiece at the 3rd level of convergent assembly
   //   - mystery - what is the feature here? large multi-DOF manipulator?
   //     computer? decide when the time comes.
   
-  let assemblyLine = AssemblyLine()
-  let assemblyAtoms = assemblyLine.createAtoms()
+  let masterQuadrant = Quadrant()
+  var quadrants: [Quadrant] = []
+  quadrants.append(masterQuadrant)
   
-  let spacing: Float = 18.2
-  var output: [MRAtom] = []
-  for i in 0..<3 {
-    let vector = SIMD3<Float>(Float(i) * spacing, 0, 0)
-    output += assemblyAtoms.map {
-      var copy = $0
-      copy.origin += vector
-      return copy
-    }
-  }
-  
-  let terminalHousingLattice = createAssemblyHousing(terminal: true)
-  var terminalHousingDiamondoid = Diamondoid(lattice: terminalHousingLattice)
-  terminalHousingDiamondoid.translate(offset: [-14.25, -8, -5])
-  terminalHousingDiamondoid.translate(offset: [spacing * 3, 0, 0])
-  output += terminalHousingDiamondoid.atoms
-  output = output.map {
-    var copy = $0
-    copy.origin.x -= 5 * spacing
-    copy.origin.y -= 20
-    copy.origin.z += -35
-    return copy
-  }
-  
-  // TODO: Make a 3x3 array with void in the center. This should pack
-  // atoms more densely than the current hexagonal arrangement.
-  return (0..<6).flatMap { index -> [MRAtom] in
-    let angle = Float(index) * -60 * .pi / 180
+  for i in 1..<4 {
+    let angle = Float(i) * -90 * .pi / 180
     let quaternion = Quaternion<Float>(angle: angle, axis: [0, 1, 0])
     let basisX = quaternion.act(on: [1, 0, 0])
     let basisY = quaternion.act(on: [0, 1, 0])
     let basisZ = quaternion.act(on: [0, 0, 1])
-    
-    return output.map {
-      var atom = $0
-      let vector = atom.origin
-      
-      var output = vector.x * basisX
-      output.addProduct(vector.y, basisY)
-      output.addProduct(vector.z, basisZ)
-      
-      atom.origin = output
-      return atom
+    quadrants.append(masterQuadrant)
+    quadrants[i].transform {
+      var origin = $0.origin.x * basisX
+      origin.addProduct($0.origin.y, basisY)
+      origin.addProduct($0.origin.z, basisZ)
+      $0.origin = origin
     }
   }
+  return quadrants.flatMap { $0.createAtoms() }
   
-//  return housingLattice.entities.map(MRAtom.init)
-  
-//  var output = housing.entities.map(MRAtom.init)
-//    .filter { $0.element == 32 }
-//  let ratio = Float(output.count) / Float(housing.entities.count)
-//  let ratioRepr = String(format: "%.1f", 100 * ratio) + "%"
-//  print(output.count, "/", housing.entities.count, ratioRepr)
-//  
-//  let assemblyLine = AssemblyLine()
-//  for i in output.indices {
-//    output[i].origin += SIMD3<Float>(
-//      -11.5, -7.7, -5.0)
-//  }
-//  
-//  return output + assemblyLine.createAtoms()
+  // Next up: add diamond backboards, ensure the render-stage cost
+  // doesn't become too great (high primary ray cost + high secondary
+  // ray cost).
 }
+
+// MARK: - Crystolecules
 
 func createRobotClawLattice() -> Lattice<Hexagonal> {
   Lattice<Hexagonal> { h, k, l in
@@ -350,6 +312,11 @@ func createControlRod(length: Int) -> Lattice<Hexagonal> {
 // most unwieldy pieces in this project. Refrain from pieces like
 // this as much as possible; designing the geometry for them
 // consumes an exorbitant amount of time.
+//
+// Cubic lattices creating cartesian geometry are very time-consuming. But
+// sometimes, the end result is worth the effort. Here, the piece ended up
+// tiling to interlock with nearby quadrants. That was not anticipated when
+// first designing it.
 func createAssemblyHousing(terminal: Bool) -> Lattice<Cubic> {
   Lattice<Cubic> { h, k, l in
     let spanX: Float = 35
@@ -362,12 +329,6 @@ func createAssemblyHousing(terminal: Bool) -> Lattice<Cubic> {
       (4 + spanY) * k +
       (4 + spanZ) * l }
     Material { .elemental(.germanium) }
-    
-    // Tasks:
-    // - Design the general shape and functionality you want.
-    // - Visualize the dimensions in the assembly.
-    // - Make the ends of nearby beams agree in 3D, and remove difficult-to-
-    //   passivate crystal surfaces, so it can be hydrogen-passivated.
     
     func _createBeam(
       principalAxis1: SIMD3<Float>,
@@ -527,107 +488,121 @@ func createAssemblyHousing(terminal: Bool) -> Lattice<Cubic> {
   }
 }
 
-struct AssemblyLine {
-  struct RobotArm {
-    var claw: Diamondoid
+// MARK: - Data Structures
+
+struct RobotArm {
+  var claw: Diamondoid
+  var hexagons: [Diamondoid] = []
+  var bands: [Diamondoid] = []
+  var controlRods: [Diamondoid] = []
+  
+  // Avoid compiling these multiple times.
+  static let masterClaw: Diamondoid = {
+    let clawLattice = createRobotClawLattice()
+    return Diamondoid(lattice: clawLattice)
+  }()
+  static let masterBand: Diamondoid = {
+    let bandLattice = createBandLattice()
+    return Diamondoid(lattice: bandLattice)
+  }()
+  static let masterHexagon: Diamondoid = {
+    let hexagonLattice = createHexagonLattice()
+    return Diamondoid(lattice: hexagonLattice)
+  }()
+  static let masterHexagons: [Diamondoid] = {
+    var hexagon = Self.masterHexagon
+    hexagon.setCenterOfMass(.zero)
+    hexagon.rotate(degrees: -90, axis: [1, 0, 0])
+    hexagon.translate(offset: [0, 22, 0])
+    
     var hexagons: [Diamondoid] = []
-    var bands: [Diamondoid] = []
-    var controlRods: [Diamondoid] = []
+    for i in 0..<15 {
+      var output = hexagon
+      output.translate(offset: [0, Float(i) * 0.8, 0])
+      output.rotate(degrees: Float(i) * 3, axis: [0, 1, 0])
+      hexagons.append(output)
+    }
+    return hexagons
+  }()
+  
+  static func createRods(index: Int) -> [Diamondoid] {
+    let ratio =
+    Float(3).squareRoot() *
+    Constant(.hexagon) { .elemental(.carbon) }
+    / Constant(.prism) { .elemental(.silicon) }
+    let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
     
-    // Avoid compiling these multiple times. The hydrogenation during the
-    // initializer for 'Diamondoid' is a known bottleneck.
-    static let masterClaw: Diamondoid = {
-      let clawLattice = createRobotClawLattice()
-      return Diamondoid(lattice: clawLattice)
-    }()
-    static let masterBand: Diamondoid = {
-      let bandLattice = createBandLattice()
-      return Diamondoid(lattice: bandLattice)
-    }()
-    static let masterHexagon: Diamondoid = {
-      let hexagonLattice = createHexagonLattice()
-      return Diamondoid(lattice: hexagonLattice)
-    }()
-    static let masterHexagons: [Diamondoid] = {
-      var hexagon = Self.masterHexagon
-      hexagon.setCenterOfMass(.zero)
-      hexagon.rotate(degrees: -90, axis: [1, 0, 0])
-      hexagon.translate(offset: [0, 22, 0])
-      
-      var hexagons: [Diamondoid] = []
-      for i in 0..<15 {
-        var output = hexagon
-        output.translate(offset: [0, Float(i) * 0.8, 0])
-        output.rotate(degrees: Float(i) * 3, axis: [0, 1, 0])
-        hexagons.append(output)
-      }
-      return hexagons
-    }()
+    let rodLattice = createControlRod(length: 70 - rodCellSpacing * index)
+    var rod = Diamondoid(lattice: rodLattice)
+    rod.setCenterOfMass(.zero)
+    rod.rotate(degrees: 90, axis: [1, 0, 0])
     
-    static func createRods(index: Int) -> [Diamondoid] {
-      let ratio =
-      Float(3).squareRoot() *
-      Constant(.hexagon) { .elemental(.carbon) }
-      / Constant(.prism) { .elemental(.silicon) }
-      let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
+    let box = rod.createBoundingBox()
+    rod.translate(offset: [
+      4.3 - box.1.x,
+      22 - box.0.y,
+      -3.3 - box.0.z
+    ])
+    rod.translate(offset: [0, 3.9 * Float(index), 0])
+    let right = rod
+    
+    rod.translate(offset: [0, 1.3, 0])
+    rod.transform { $0.origin.x = -$0.origin.x }
+    let left = rod
+    
+    return [left, right]
+  }
+  
+  init(index: Int) {
+    claw = Self.masterClaw
+    claw.setCenterOfMass(.zero)
+    claw.translate(offset: [0, 0 - claw.createBoundingBox().0.y, 0])
+    
+    var band = Self.masterBand
+    band.setCenterOfMass(.zero)
+    band.rotate(degrees: -90, axis: [1, 0, 0])
+    band.rotate(degrees: -90, axis: [0, 1, 0])
+    do {
+      let box = band.createBoundingBox()
+      band.translate(offset: [6.4 - box.1.x, 2.4 - box.0.y, 0])
+      bands.append(band)
       
-      let rodLattice = createControlRod(length: 70 - rodCellSpacing * index)
-      var rod = Diamondoid(lattice: rodLattice)
-      rod.setCenterOfMass(.zero)
-      rod.rotate(degrees: 90, axis: [1, 0, 0])
-      
-      let box = rod.createBoundingBox()
-      rod.translate(offset: [
-        4.3 - box.1.x,
-        22 - box.0.y,
-        -3.3 - box.0.z
-      ])
-      rod.translate(offset: [0, 3.9 * Float(index), 0])
-      let right = rod
-      
-      rod.translate(offset: [0, 1.3, 0])
-      rod.transform { $0.origin.x = -$0.origin.x }
-      let left = rod
-      
-      return [left, right]
+      band.transform { $0.origin.x = -$0.origin.x }
+      bands.append(band)
     }
     
-    init(index: Int) {
-      claw = Self.masterClaw
-      claw.setCenterOfMass(.zero)
-      claw.translate(offset: [0, 0 - claw.createBoundingBox().0.y, 0])
-      
-      var band = Self.masterBand
-      band.setCenterOfMass(.zero)
-      band.rotate(degrees: -90, axis: [1, 0, 0])
-      band.rotate(degrees: -90, axis: [0, 1, 0])
-      do {
-        let box = band.createBoundingBox()
-        band.translate(offset: [6.4 - box.1.x, 2.4 - box.0.y, 0])
-        bands.append(band)
-        
-        band.transform { $0.origin.x = -$0.origin.x }
-        bands.append(band)
-      }
-      
-      hexagons = Self.masterHexagons
-      controlRods = Self.createRods(index: index)
-      
-      let siliconConstant = Constant(.prism) { .elemental(.silicon) }
-      let offsetZ = Float(16 * index + 8) * siliconConstant
-      claw.translate(offset: [0, 0, offsetZ])
-      for i in bands.indices {
-        bands[i].translate(offset: [0, 0, offsetZ])
-      }
-      for i in hexagons.indices {
-        hexagons[i].translate(offset: [0, 0, offsetZ])
-      }
-      for i in controlRods.indices {
-        controlRods[i].translate(offset: [0, 0, offsetZ])
-      }
+    hexagons = Self.masterHexagons
+    controlRods = Self.createRods(index: index)
+    
+    let siliconConstant = Constant(.prism) { .elemental(.silicon) }
+    let offsetZ = Float(16 * index + 8) * siliconConstant
+    claw.translate(offset: [0, 0, offsetZ])
+    for i in bands.indices {
+      bands[i].translate(offset: [0, 0, offsetZ])
+    }
+    for i in hexagons.indices {
+      hexagons[i].translate(offset: [0, 0, offsetZ])
+    }
+    for i in controlRods.indices {
+      controlRods[i].translate(offset: [0, 0, offsetZ])
     }
   }
   
+  mutating func transform(_ closure: (inout MRAtom) -> Void) {
+    claw.transform(closure)
+    for i in hexagons.indices {
+      hexagons[i].transform(closure)
+    }
+    for i in bands.indices {
+      bands[i].transform(closure)
+    }
+    for i in controlRods.indices {
+      controlRods[i].transform(closure)
+    }
+  }
+}
+
+struct AssemblyLine {
   var robotArms: [RobotArm] = []
   var roofPieces: [Diamondoid] = []
   var housing: Diamondoid
@@ -664,6 +639,16 @@ struct AssemblyLine {
     housing.translate(offset: [-14.25, -8, -5])
   }
   
+  mutating func transform(_ closure: (inout MRAtom) -> Void) {
+    for i in robotArms.indices {
+      robotArms[i].transform(closure)
+    }
+    for i in roofPieces.indices {
+      roofPieces[i].transform(closure)
+    }
+    housing.transform(closure)
+  }
+  
   func createAtoms() -> [MRAtom] {
     var output: [MRAtom] = []
     func append(_ diamondoids: [Diamondoid]) {
@@ -679,6 +664,61 @@ struct AssemblyLine {
     }
     append(roofPieces)
     append([housing])
+    return output
+  }
+}
+
+struct Quadrant {
+  var assemblyLines: [AssemblyLine] = []
+  var spacerHousing: Diamondoid
+  // var backBoard: Diamondoid
+  
+  init() {
+    let masterAssemblyLine = AssemblyLine()
+    let assemblyLineSpacing: Float = 18.2
+    assemblyLines.append(masterAssemblyLine)
+    for i in 1..<4 {
+      let vector = SIMD3(Float(i) * assemblyLineSpacing, 0, 0)
+      assemblyLines.append(masterAssemblyLine)
+      assemblyLines[i].transform { $0.origin += vector }
+    }
+    
+    let spacerOffset = SIMD3(Float(4) * assemblyLineSpacing, 0, 0)
+    spacerHousing = masterAssemblyLine.housing
+    spacerHousing.transform { $0.origin += spacerOffset }
+    
+    do {
+      let housingAtoms = assemblyLines[0].housing.atoms + spacerHousing.atoms
+      var min: SIMD3<Float> = .init(repeating: .greatestFiniteMagnitude)
+      var max = -min
+      for atom in housingAtoms {
+        let origin = atom.origin
+        min.replace(with: origin, where: origin .< min)
+        max.replace(with: origin, where: origin .> max)
+      }
+      
+      let translation: SIMD3<Float> = [
+        -67.5 - min.x,
+        0 - (max.y + min.y) / 2,
+         -23.5 - max.z
+      ]
+      self.transform { $0.origin += translation }
+    }
+  }
+  
+  mutating func transform(_ closure: (inout MRAtom) -> Void) {
+    for i in assemblyLines.indices {
+      assemblyLines[i].transform(closure)
+    }
+    spacerHousing.transform(closure)
+  }
+  
+  func createAtoms() -> [MRAtom] {
+    var output: [MRAtom] = []
+    for assemblyLine in assemblyLines {
+      output += assemblyLine.createAtoms()
+    }
+    output += spacerHousing.atoms
     return output
   }
 }
