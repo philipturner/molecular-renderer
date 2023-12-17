@@ -47,38 +47,6 @@ struct RobotArm {
     return hexagons
   }()
   
-  static func createRods(index: Int) -> [Diamondoid] {
-    let ratio =
-    Float(3).squareRoot() *
-    Constant(.hexagon) { .elemental(.carbon) }
-    / Constant(.prism) { .elemental(.silicon) }
-    let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
-    
-    var output: [Diamondoid] = []
-    for isLeft in [false, true] {
-      let length = isLeft ? Int(84) : 79
-      let rodLattice = createControlRod(
-        length: length - rodCellSpacing * index)
-      var rod = Diamondoid(lattice: rodLattice)
-      rod.setCenterOfMass(.zero)
-      rod.rotate(degrees: 90, axis: [1, 0, 0])
-      
-      let box = rod.createBoundingBox()
-      rod.translate(offset: [
-        4.3 - box.1.x,
-        22 - box.0.y,
-        -3.3 - box.0.z
-      ])
-      rod.translate(offset: [0, 3.9 * Float(index), 0])
-      if isLeft {
-        rod.translate(offset: [0, 1.3, 0])
-        rod.transform { $0.origin.x = -$0.origin.x }
-      }
-      output.append(rod)
-    }
-    return output
-  }
-  
   init(index: Int) {
     claw = Self.masterClaw
     claw.setCenterOfMass(.zero)
@@ -112,6 +80,38 @@ struct RobotArm {
     for i in controlRods.indices {
       controlRods[i].translate(offset: [0, 0, offsetZ])
     }
+  }
+  
+  static func createRods(index: Int) -> [Diamondoid] {
+    let ratio =
+    Float(3).squareRoot() *
+    Constant(.hexagon) { .elemental(.carbon) }
+    / Constant(.prism) { .elemental(.silicon) }
+    let rodCellSpacing = Int((16 / ratio).rounded(.toNearestOrEven))
+    
+    var output: [Diamondoid] = []
+    for isLeft in [false, true] {
+      let length = isLeft ? Int(84) : 79
+      let rodLattice = createControlRod(
+        length: length - rodCellSpacing * index)
+      var rod = Diamondoid(lattice: rodLattice)
+      rod.setCenterOfMass(.zero)
+      rod.rotate(degrees: 90, axis: [1, 0, 0])
+      
+      let box = rod.createBoundingBox()
+      rod.translate(offset: [
+        4.3 - box.1.x,
+        22 - box.0.y,
+        -3.3 - box.0.z
+      ])
+      rod.translate(offset: [0, 3.9 * Float(index), 0])
+      if isLeft {
+        rod.translate(offset: [0, 1.3, 0])
+        rod.transform { $0.origin.x = -$0.origin.x }
+      }
+      output.append(rod)
+    }
+    return output
   }
   
   mutating func transform(_ closure: (inout MRAtom) -> Void) {
@@ -199,6 +199,7 @@ struct Quadrant {
   var spacerHousing: Diamondoid
   var backBoards: [Diamondoid] = []
   var broadcastRods: [Diamondoid] = []
+  var beltLinks: [Diamondoid] = []
   
   init() {
     let masterAssemblyLine = AssemblyLine()
@@ -232,77 +233,84 @@ struct Quadrant {
       self.transform { $0.origin += translation }
     }
     
-    do {
-      let lattice1 = createNewBackBoardLattice1()
-      let lattice2 = createNewBackBoardLattice2()
-      var diamondoid1 = Diamondoid(lattice: lattice1)
-      var diamondoid3 = Diamondoid(lattice: lattice2)
-      diamondoid1.translate(offset: SIMD3(-66, -22, -62.5))
-      diamondoid3.translate(offset: SIMD3(-66, -22, -62.5))
-      diamondoid3.translate(offset: SIMD3(0.05, 0, 0))
-      backBoards = [diamondoid1, diamondoid3]
-      
-      var diamondoid2 = diamondoid1
-      diamondoid2.translate(offset: SIMD3(18.2 / 2, 0, 0))
-      let boundingBox = diamondoid2.createBoundingBox()
-      let minX = boundingBox.0.x
-      let maxX = boundingBox.1.x
-      diamondoid2.transform {
-        let xDelta = $0.origin.x - minX
-        let newX = maxX - xDelta
-        $0.origin.x = newX
-      }
-      for i in 0..<4 {
-        var board1 = diamondoid2
-        var board2 = diamondoid1
-        let delta1 = SIMD3(Float(i) * 18.2, 0, 0)
-        let delta2 = SIMD3(Float(i + 1) * 18.2, 0, 0)
-        board1.transform { $0.origin += delta1 }
-        board2.transform { $0.origin += delta2 }
-        backBoards += [board1, board2]
-      }
-    }
+    backBoards = Self.createBackBoards()
+    broadcastRods = Self.createBroadcastRods()
+    beltLinks = Self.createBeltLinks()
+  }
+  
+  static func createBackBoards() -> [Diamondoid] {
+    let lattice1 = createNewBackBoardLattice1()
+    let lattice2 = createNewBackBoardLattice2()
+    var diamondoid1 = Diamondoid(lattice: lattice1)
+    var diamondoid3 = Diamondoid(lattice: lattice2)
+    diamondoid1.translate(offset: SIMD3(-66, -22, -62.5))
+    diamondoid3.translate(offset: SIMD3(-66, -22, -62.5))
+    diamondoid3.translate(offset: SIMD3(0.05, 0, 0))
+    var output = [diamondoid1, diamondoid3]
     
-    do {
-      let lattice = createBroadcastRod()
-      var rod = Diamondoid(lattice: lattice)
-      rod.setCenterOfMass(.zero)
-      let rodBox = rod.createBoundingBox()
-      rod.translate(offset: [
-        -61.9 - rodBox.0.x,
-         (30.55 - 23.5) - rodBox.0.y,
-         -20.3 - rodBox.0.z
-      ])
-      
-      for j in 0..<2 {
-        var copyJ = rod
-        if j == 1 {
-          let boundingBox = copyJ.createBoundingBox()
-          let minY = boundingBox.0.y
-          let maxY = boundingBox.1.y
-          copyJ.transform {
-            let deltaY = $0.origin.y - minY
-            let newY = maxY - deltaY
-            $0.origin.y = newY
-          }
-        }
-        for i in 0..<3 {
-          var spacingZ: Float = 79 - 84
-          spacingZ *= Float(3).squareRoot() * Constant(.hexagon) {
-            .elemental(.carbon)
-          }
-          var translation = SIMD3(
-            0, Float(i) * 3.9, Float(j) * spacingZ)
-          if j == 1 {
-            translation.x += 7.6
-          }
-          
-          var copy = copyJ
-          copy.translate(offset: translation)
-          broadcastRods.append(copy)
+    var diamondoid2 = diamondoid1
+    diamondoid2.translate(offset: SIMD3(18.2 / 2, 0, 0))
+    let boundingBox = diamondoid2.createBoundingBox()
+    let minX = boundingBox.0.x
+    let maxX = boundingBox.1.x
+    diamondoid2.transform {
+      let xDelta = $0.origin.x - minX
+      let newX = maxX - xDelta
+      $0.origin.x = newX
+    }
+    for i in 0..<4 {
+      var board1 = diamondoid2
+      var board2 = diamondoid1
+      let delta1 = SIMD3(Float(i) * 18.2, 0, 0)
+      let delta2 = SIMD3(Float(i + 1) * 18.2, 0, 0)
+      board1.transform { $0.origin += delta1 }
+      board2.transform { $0.origin += delta2 }
+      output += [board1, board2]
+    }
+    return output
+  }
+  
+  static func createBroadcastRods() -> [Diamondoid] {
+    let lattice = createBroadcastRod()
+    var rod = Diamondoid(lattice: lattice)
+    rod.setCenterOfMass(.zero)
+    let rodBox = rod.createBoundingBox()
+    rod.translate(offset: [
+      -61.9 - rodBox.0.x,
+       (30.55 - 23.5) - rodBox.0.y,
+       -20.3 - rodBox.0.z
+    ])
+    
+    var output: [Diamondoid] = []
+    for j in 0..<2 {
+      var copyJ = rod
+      if j == 1 {
+        let boundingBox = copyJ.createBoundingBox()
+        let minY = boundingBox.0.y
+        let maxY = boundingBox.1.y
+        copyJ.transform {
+          let deltaY = $0.origin.y - minY
+          let newY = maxY - deltaY
+          $0.origin.y = newY
         }
       }
+      for i in 0..<3 {
+        var spacingZ: Float = 79 - 84
+        spacingZ *= Float(3).squareRoot() * Constant(.hexagon) {
+          .elemental(.carbon)
+        }
+        var translation = SIMD3(
+          0, Float(i) * 3.9, Float(j) * spacingZ)
+        if j == 1 {
+          translation.x += 7.6
+        }
+        
+        var copy = copyJ
+        copy.translate(offset: translation)
+        output.append(copy)
+      }
     }
+    return output
   }
   
   mutating func transform(_ closure: (inout MRAtom) -> Void) {
@@ -315,6 +323,9 @@ struct Quadrant {
     }
     for i in broadcastRods.indices {
       broadcastRods[i].transform(closure)
+    }
+    for i in beltLinks.indices {
+      beltLinks[i].transform(closure)
     }
   }
   
@@ -329,6 +340,9 @@ struct Quadrant {
     }
     for broadcastRod in broadcastRods {
       output += broadcastRod.atoms
+    }
+    for beltLink in beltLinks {
+      output += beltLink.atoms
     }
     return output
   }

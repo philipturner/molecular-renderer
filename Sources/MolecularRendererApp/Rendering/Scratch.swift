@@ -16,8 +16,11 @@ func createNanomachinery() -> [MRAtom] {
   //   - gold atom floating inside each robot arm
   //
   // - level 2:
-  //   - new crystolecule building clock that forms chains
   //   - larger manufactured pieces (gold atoms)
+  //
+  // - level 3:
+  //   - one final, supermassive robot arm made of multiple smaller pieces,
+  //     holding a larger gold cube
   
   // MARK: - Assembly Machinery
   
@@ -25,7 +28,7 @@ func createNanomachinery() -> [MRAtom] {
   var quadrants: [Quadrant] = []
   quadrants.append(masterQuadrant)
   
-  let constructFullScene = Bool.random() ? false : false
+  let constructFullScene = Bool.random() ? true : true
   
   if constructFullScene {
     for i in 1..<4 {
@@ -58,24 +61,14 @@ func createNanomachinery() -> [MRAtom] {
   
   if constructFullScene {
     let floor = Floor(openCenter: true)
-    output += floor.createAtoms()
+    output += floor.createAtoms().map {
+      var copy = $0
+      copy.origin = SIMD3(-copy.origin.z, copy.origin.y, copy.origin.x)
+      return copy
+    }
   }
   
   // MARK: - Scratch
   
-  let beltLinkLattice = createBeltLink()
-  var beltLinkDiamondoid = Diamondoid(lattice: beltLinkLattice)
-  output += beltLinkDiamondoid.atoms
-  
-  beltLinkDiamondoid.translate(offset: [3.8, 0, 0])
-  output += beltLinkDiamondoid.atoms
-  
-  // Prototype the belt in front of the quadrant, with an easy method to
-  // transfer it to the right side. This provides both a visually easy method
-  // to connect the h/k planes to geometry and a double-checker against where it
-  // will actually be placed.
-  
-  
   return output
 }
-
