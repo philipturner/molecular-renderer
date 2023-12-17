@@ -98,6 +98,8 @@
 		98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */; };
 		98D975B92AC221EF0052EE6C /* DiamondRope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D975B82AC221EF0052EE6C /* DiamondRope.swift */; };
 		98D975BB2AC222340052EE6C /* OctahedralSpring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D975BA2AC222340052EE6C /* OctahedralSpring.swift */; };
+		98EFEE102B2E7D2200405095 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EFEE0F2B2E7D2200405095 /* Scratch2.swift */; };
+		98EFEE122B2E8D8000405095 /* Scratch3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EFEE112B2E8D8000405095 /* Scratch3.swift */; };
 		98F012602B266EEC0037318D /* _Old_APMBootstrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */; };
 		98F012622B266FA70037318D /* Bootstrapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012612B266FA70037318D /* Bootstrapping.swift */; };
 		98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012632B2671080037318D /* Bootstrapping_Tripod.swift */; };
@@ -275,6 +277,8 @@
 		98E2C61C2AC27AF5002612CC /* DiamondRope_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiamondRope_Image1.jpg; sourceTree = "<group>"; };
 		98E2C6212AC27CD7002612CC /* RhombicDodecahedron_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image1.jpg; sourceTree = "<group>"; };
 		98E2C6222AC27CD7002612CC /* RhombicDodecahedron_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image2.jpg; sourceTree = "<group>"; };
+		98EFEE0F2B2E7D2200405095 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
+		98EFEE112B2E8D8000405095 /* Scratch3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch3.swift; sourceTree = "<group>"; };
 		98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_APMBootstrapper.swift; sourceTree = "<group>"; };
 		98F012612B266FA70037318D /* Bootstrapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping.swift; sourceTree = "<group>"; };
 		98F012632B2671080037318D /* Bootstrapping_Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Tripod.swift; sourceTree = "<group>"; };
@@ -435,6 +439,8 @@
 				98B6BDFA2AEE85B000F8655C /* Renderer+Setup.swift */,
 				98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */,
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
+				98EFEE0F2B2E7D2200405095 /* Scratch2.swift */,
+				98EFEE112B2E8D8000405095 /* Scratch3.swift */,
 				98FB90792A5B6FC600685E5C /* VsyncHandler.swift */,
 			);
 			path = Rendering;
@@ -1049,6 +1055,7 @@
 				98D0F18D2AB5118400BE267D /* Spring_Projectile.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */,
 				98F012622B266FA70037318D /* Bootstrapping.swift in Sources */,
+				98EFEE102B2E7D2200405095 /* Scratch2.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
 				98F852CF2AF5D24C00986E61 /* RippleCounter1+File2.swift in Sources */,
 				988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */,
@@ -1059,6 +1066,7 @@
 				98247CBB2AF0656100958BC5 /* Chapter12_Figure1_file2.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* Styles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
+				98EFEE122B2E8D8000405095 /* Scratch3.swift in Sources */,
 				98056D542AEC57F2000F6A8F /* NewRayTracing.metal in Sources */,
 				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,

@@ -306,10 +306,11 @@ struct Diamondoid {
     
     func createAtom(atoms: [MRAtom], atomID: Int) {
       precondition(atomID > -1)
+      let thisAtom = atoms[atomID]
       
       let newAtomID = Int32(self.atoms.count)
       newIndicesMap[atomID] = newAtomID
-      self.atoms.append(atoms[atomID])
+      self.atoms.append(thisAtom)
       
       var neighborTypes: [Int] = []
       var neighborCenters: [SIMD3<Float>] = []
@@ -332,7 +333,7 @@ struct Diamondoid {
       }
       
       let valenceElectrons = Constants.valenceElectrons(
-        element: atoms[atomID].element)
+        element: thisAtom.element)
       if centerTypes[atomID] > valenceElectrons {
         fatalError("Too many bonds.")
       }
@@ -345,8 +346,8 @@ struct Diamondoid {
         totalBonds += 1
         
         let bondLength = Constants.bondLengths[
-          [1, atoms[atomID].element]]!.average
-        let hydrogenCenter = atoms[atomID].origin + bondLength * direction
+          [1, thisAtom.element]]!.average
+        let hydrogenCenter = thisAtom.origin + bondLength * direction
         let hydrogenID = Int32(self.atoms.count)
         
         self.atoms.append(MRAtom(origin: hydrogenCenter, element: 1))
@@ -361,7 +362,7 @@ struct Diamondoid {
         let sideAC = neighborCenters[2] - neighborCenters[0]
         var normal = _cross_platform_normalize(_cross_platform_cross(sideAB, sideAC))
         
-        let deltaA = atoms[atomID].origin - neighborCenters[0]
+        let deltaA = thisAtom.origin - neighborCenters[0]
         if _cross_platform_dot(normal, deltaA) < 0 {
           normal = -normal
         }
@@ -369,11 +370,11 @@ struct Diamondoid {
         addHydrogen(direction: normal)
       case 2:
         let midPoint = (neighborCenters[1] + neighborCenters[0]) / 2
-        guard _cross_platform_distance(midPoint, atoms[atomID].origin) > 0.001 else {
+        guard _cross_platform_distance(midPoint, thisAtom.origin) > 0.001 else {
           fatalError("sp3 carbons are too close to 180 degrees.")
         }
         
-        let normal = _cross_platform_normalize(atoms[atomID].origin - midPoint)
+        let normal = _cross_platform_normalize(thisAtom.origin - midPoint)
         let axis = _cross_platform_normalize(neighborCenters[1] - midPoint)
         for angle in [-sp3BondAngle / 2, sp3BondAngle / 2] {
           let rotation = Quaternion<Float>(angle: angle, axis: axis)
@@ -398,7 +399,7 @@ struct Diamondoid {
           fatalError("Could not find valid neighbor index.")
         }
         let referenceCenter = atoms[referenceIndex].origin
-        let normal = _cross_platform_normalize(atoms[atomID].origin - atoms[j].origin)
+        let normal = _cross_platform_normalize(thisAtom.origin - atoms[j].origin)
         
         let referenceDelta = atoms[j].origin - referenceCenter
         var orthogonal = referenceDelta - normal * _cross_platform_dot(normal, referenceDelta)
