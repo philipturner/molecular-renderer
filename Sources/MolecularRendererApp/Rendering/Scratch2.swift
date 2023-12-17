@@ -595,3 +595,67 @@ func createFloorHexagon(radius: Float) -> Lattice<Hexagonal> {
     }
   }
 }
+
+func createBroadcastRod() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 284 * h + 10 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    func createCutPair() {
+      Concave {
+        Convex {
+          Origin { 3 * h }
+          Plane { -k }
+        }
+        Convex {
+          Origin { 3 * h2k }
+          Plane { -h2k }
+        }
+        Convex {
+          Origin { 69 * h }
+          Plane { -k - h }
+        }
+      }
+      
+      Concave {
+        Origin { 5 * h2k }
+        Convex {
+          Origin { -12 * h }
+          Plane { k + h }
+        }
+        Convex {
+          Origin { -3 * h2k }
+          Plane { h2k }
+        }
+        Convex {
+          Origin { 12 * h }
+          Plane { k }
+        }
+      }
+    }
+    
+    Volume {
+      Convex {
+        Origin { 5 * h2k }
+        Plane { h2k }
+      }
+      Convex {
+        Origin { 40 * h }
+        Plane { -h }
+      }
+      
+      for index in 0..<5 {
+        Convex {
+          Origin { -20 * h }
+          Origin { Float(index) * 72 * h }
+          createCutPair()
+        }
+      }
+      
+      
+      
+      Replace { .empty }
+    }
+  }
+}

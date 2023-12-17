@@ -198,6 +198,7 @@ struct Quadrant {
   var assemblyLines: [AssemblyLine] = []
   var spacerHousing: Diamondoid
   var backBoards: [Diamondoid] = []
+  var broadcastRods: [Diamondoid] = []
   
   init() {
     let masterAssemblyLine = AssemblyLine()
@@ -261,6 +262,47 @@ struct Quadrant {
         backBoards += [board1, board2]
       }
     }
+    
+    do {
+      let lattice = createBroadcastRod()
+      var rod = Diamondoid(lattice: lattice)
+      rod.setCenterOfMass(.zero)
+      let rodBox = rod.createBoundingBox()
+      rod.translate(offset: [
+        -61.9 - rodBox.0.x,
+         (30.55 - 23.5) - rodBox.0.y,
+         -20.3 - rodBox.0.z
+      ])
+      
+      for j in 0..<2 {
+        var copyJ = rod
+        if j == 1 {
+          let boundingBox = copyJ.createBoundingBox()
+          let minY = boundingBox.0.y
+          let maxY = boundingBox.1.y
+          copyJ.transform {
+            let deltaY = $0.origin.y - minY
+            let newY = maxY - deltaY
+            $0.origin.y = newY
+          }
+        }
+        for i in 0..<3 {
+          var spacingZ: Float = 79 - 84
+          spacingZ *= Float(3).squareRoot() * Constant(.hexagon) {
+            .elemental(.carbon)
+          }
+          var translation = SIMD3(
+            0, Float(i) * 3.9, Float(j) * spacingZ)
+          if j == 1 {
+            translation.x += 7.6
+          }
+          
+          var copy = copyJ
+          copy.translate(offset: translation)
+          broadcastRods.append(copy)
+        }
+      }
+    }
   }
   
   mutating func transform(_ closure: (inout MRAtom) -> Void) {
@@ -270,6 +312,9 @@ struct Quadrant {
     spacerHousing.transform(closure)
     for i in backBoards.indices {
       backBoards[i].transform(closure)
+    }
+    for i in broadcastRods.indices {
+      broadcastRods[i].transform(closure)
     }
   }
   
@@ -281,6 +326,9 @@ struct Quadrant {
     output += spacerHousing.atoms
     for backBoard in backBoards {
       output += backBoard.atoms
+    }
+    for broadcastRod in broadcastRods {
+      output += broadcastRod.atoms
     }
     return output
   }
@@ -323,8 +371,6 @@ struct Floor {
         hexagons.append(copy)
       }
     }
-    
-    print("floor atom count:", Self.masterHexagon.atoms.count * hexagons.count)
   }
   
   mutating func transform(_ closure: (inout MRAtom) -> Void) {
