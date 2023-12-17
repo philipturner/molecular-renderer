@@ -657,3 +657,136 @@ func createBroadcastRod() -> Lattice<Hexagonal> {
     }
   }
 }
+
+func createBeltLink() -> Lattice<Hexagonal> {
+  // One encounter mechanism is 4 nm x 4 nm x 2 nm in Nanosystems 13.3.5(a).
+  // 16 = 4 / Constant(.hexagon) { .elemental(.carbon) }
+  //  5 = 2 / Float(3).squareRoot() / Constant(.hexagon) { .elemental(.carbon) }
+  // 10 = 4 / Constant(.prism) { .elemental(.carbon) }
+  
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 25 * h + 5 * h2k + 14 * l }
+    Material { .elemental(.carbon) }
+    
+    func createEncounterVolume() {
+      Convex {
+        Plane { -h }
+        Plane { -h2k }
+        Plane { -l }
+        Origin  { 11.5 * h + 5 * h2k + 7.00 * l }
+        Plane { h }
+        Plane { h2k }
+        Plane { l }
+      }
+    }
+    
+    func createKnob() {
+      Convex {
+        Origin { 2 * h2k }
+        Plane { h2k }
+      }
+      Convex {
+        Origin { 1 * h2k }
+        Plane { k - h }
+      }
+      Convex {
+        Origin { 1 * h2k }
+        Plane { -k - h - h }
+      }
+      Convex {
+        Origin { 4 * h }
+        Plane { h }
+      }
+      Origin { -0.125 * l }
+      Concave {
+        for direction in [l, -l] {
+          Convex {
+            Origin { 3 * direction }
+            Plane { -direction }
+          }
+        }
+      }
+    }
+    
+    func createHook() {
+      let leftPosition: Float = -8
+      Convex {
+        Origin { (leftPosition + 0.75) * h }
+        Plane { -h }
+      }
+      Convex {
+        Origin { 8 * h }
+        Plane { h }
+        Origin { 4.75 * h2k }
+        Plane { -(k - h) }
+      }
+      Concave {
+        Origin { (leftPosition + 3.5) * h + 3 * h2k }
+        Plane { h }
+        Plane { -h2k }
+        Convex {
+          Origin { 0.75 * -(k - h) }
+          Plane { -(k - h) }
+        }
+      }
+      Convex {
+        Origin { (leftPosition + 0.5) * h + 5 * h2k }
+        Plane { -h }
+        Plane { h2k }
+        Convex {
+          Origin { 1.25 * -(k - h) }
+          Plane { (k - h) }
+        }
+        Convex {
+          Origin { 2 * -k }
+          Plane { k }
+        }
+      }
+      Origin { -0.125 * l }
+      Concave {
+        Convex {
+          Origin { 4.5 * h }
+          Plane { -h }
+        }
+        for direction in [l, -l] {
+          Convex {
+            Origin { 4.5 * direction }
+            Plane { -direction }
+          }
+        }
+      }
+    }
+    
+    // Hook and knob-style connectors. The hook protrudes from the current
+    // object and latches onto the opposite side of the adjacent object. There
+    // should be enough breathing room for the belt to be inclined at a slight
+    // angle.
+    Volume {
+      Origin { 8 * h + 1 * l }
+      Concave {
+        Convex {
+          Origin { 4.5 * h + 2.25 * l }
+          createEncounterVolume()
+        }
+        Convex {
+          Origin { 12 * h }
+          Origin { 6 * l }
+          createKnob()
+        }
+        Convex {
+          Origin { 6 * l }
+          createHook()
+        }
+      }
+      for direction in [l, -l] {
+        Convex {
+          Origin { -0.125 * l }
+          Origin { 6 * l + 6 * direction }
+          Plane { direction }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+}
