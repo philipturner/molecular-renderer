@@ -65,6 +65,8 @@ func createNanomachinery() -> [MRAtom] {
   
   // MARK: - Scratch
   
+//  var output: [MRAtom] = []
+  
   return output
   
 //  let product: [MRAtom] = createBeltLinkProduct()

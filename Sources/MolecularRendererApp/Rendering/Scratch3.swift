@@ -218,6 +218,7 @@ struct Quadrant {
   var backBoards: [Diamondoid] = []
   var broadcastRods: [Diamondoid] = []
   var beltLinks: [Diamondoid] = []
+  var weldingStand: [MRAtom] = []
   
   init() {
     let masterAssemblyLine = AssemblyLine()
@@ -254,6 +255,11 @@ struct Quadrant {
     backBoards = Self.createBackBoards()
     broadcastRods = Self.createBroadcastRods()
     beltLinks = Self.createBeltLinks()
+    
+    weldingStand = createWeldingStandScene()
+    for i in weldingStand.indices {
+      weldingStand[i].origin.y -= 23.5
+    }
   }
   
   static func createBackBoards() -> [Diamondoid] {
@@ -345,6 +351,9 @@ struct Quadrant {
     for i in beltLinks.indices {
       beltLinks[i].transform(closure)
     }
+    for i in weldingStand.indices {
+      closure(&weldingStand[i])
+    }
   }
   
   func createAtoms() -> [MRAtom] {
@@ -362,6 +371,7 @@ struct Quadrant {
     for beltLink in beltLinks {
       output += beltLink.atoms
     }
+    output += weldingStand
     return output
   }
 }
@@ -456,7 +466,7 @@ struct ServoArm {
     }
     for i in 0..<3 {
       var copy = norGate[i]
-      copy.translate(offset: [0, 7.8, 0.2])
+      copy.translate(offset: [0, 7.8, 0.0])
       norGate.append(copy)
     }
     do {

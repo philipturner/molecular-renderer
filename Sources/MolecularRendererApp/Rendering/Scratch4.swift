@@ -726,3 +726,88 @@ func createBeltLinkProduct() -> [MRAtom] {
   
   return output
 }
+
+// MARK: - Welding Stand
+
+func createWeldingStand() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 25 * h + 5 * h2k + 18 * l }
+    Material { .elemental(.carbon) }
+    
+    func createEncounterVolume() {
+      Convex {
+        Plane { -h }
+        Plane { -h2k }
+        Plane { -l }
+        Origin  { 11.5 * h + 5 * h2k + 15.00 * l }
+        Plane { h }
+        Plane { h2k }
+        Plane { l }
+      }
+    }
+    
+    Volume {
+      Origin { 8 * h + 0 * l }
+      Concave {
+        Convex {
+          Origin { 4.5 * h + 0.25 * l }
+          createEncounterVolume()
+        }
+      }
+      for direction in [l, -l] {
+        Convex {
+          Origin { -0.125 * l }
+          Origin { 6 * l + 8 * direction }
+          Plane { direction }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+}
+
+func createWeldingStandScene() -> [MRAtom] {
+  var output: [MRAtom] = []
+  
+  let boardLattice = createNORGateBoard()
+  var boardDiamondoid = Diamondoid(lattice: boardLattice)
+  boardDiamondoid.fixHydrogens(tolerance: 0.08)
+  boardDiamondoid.setCenterOfMass(.zero)
+  boardDiamondoid.atoms.removeAll(where: { atom -> Bool in
+    let zone1 = atom.origin.x < 0.250
+    let zone2 = atom.origin.y < -2.00
+    return zone1 || zone2
+  })
+  boardDiamondoid.transform {
+    $0.origin = SIMD3($0.origin.x, $0.origin.z, -$0.origin.y)
+    $0.origin += SIMD3(5, 5, -10)
+  }
+  var product: [MRAtom] = createBeltLinkProduct()
+  for i in product.indices {
+    product[i].origin += SIMD3(4.730, 3.930, -13.050)
+  }
+  boardDiamondoid.atoms += product
+  
+  let stand = createWeldingStand()
+  var standDiamondoid = Diamondoid(lattice: stand)
+  standDiamondoid.translate(offset: [2.2, 1.1, -13.7])
+  boardDiamondoid.atoms += standDiamondoid.atoms
+  
+  var gold = createBuildPlateGold()
+  for i in gold.indices {
+    gold[i].origin += SIMD3(6.8, 3.95, -12.3)
+  }
+  boardDiamondoid.atoms += gold
+  for i in gold.indices {
+    gold[i].origin += SIMD3(0, 0, 3)
+  }
+  boardDiamondoid.atoms += gold
+  
+  boardDiamondoid.transform {
+    $0.origin += SIMD3(6.5, 0.55, -6.55)
+  }
+  output += boardDiamondoid.atoms
+  
+  return output
+}

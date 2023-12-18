@@ -1145,7 +1145,7 @@ struct Diamondoid {
       }
     }
     let end = CACurrentMediaTime()
-    print("Fixing hydrogens took:", Float(end - start), "s")
+//    print("Fixing hydrogens took:", Float(end - start), "s")
     
     var newAtoms: [MRAtom?] = atoms.map { $0 }
     var newBonds: [SIMD2<Int32>?] = bonds.map { $0 }
