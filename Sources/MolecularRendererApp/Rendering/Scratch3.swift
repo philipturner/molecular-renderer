@@ -452,12 +452,22 @@ struct ServoArm {
     self.norGate = Self.createNORGate()
     self.norGate.removeLast()
     for i in norGate.indices {
-      norGate[i].translate(offset: [-3.15, -8, 0])
+      norGate[i].translate(offset: [-3.15, -8, 0.2])
     }
     for i in 0..<3 {
       var copy = norGate[i]
-      copy.translate(offset: [0, 8, 0])
+      copy.translate(offset: [0, 7.8, 0.2])
       norGate.append(copy)
+    }
+    do {
+      let master = norGate
+      for i in 1..<3 {
+        for var diamondoid in master {
+          diamondoid.translate(offset: [
+            0, 0, -2.4 * Float(i)])
+          norGate.append(diamondoid)
+        }
+      }
     }
     self.addHexagons()
     

@@ -271,6 +271,10 @@ func createNORGateBoard() -> Lattice<Hexagonal> {
     Material { .elemental(.carbon) }
     
     Volume {
+      Convex {
+        Origin { 0.25 * l }
+        Plane { -l }
+      }
       Concave {
         Origin { 12 * h + 8 * h2k + 2.2 * l }
         
