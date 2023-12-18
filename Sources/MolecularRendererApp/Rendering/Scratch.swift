@@ -11,11 +11,8 @@ func createNanomachinery() -> [MRAtom] {
   // estimate of the atom count and final geometry.
   //
   // missing pieces:
-  // - level 1 & 2:
-  //   - gold + graphene + sulfur square "build plates" as basic unit
-  //
-  // - level 2:
-  //   - larger manufactured pieces - depassivated, so they bond on contact
+  // - level 1:
+  //   - built plates + 1st-step products
   
   // MARK: - Assembly Machinery
   
@@ -62,11 +59,14 @@ func createNanomachinery() -> [MRAtom] {
       return copy
     }
   }
-//  
+  
   let arm = ServoArm()
   output += arm.createAtoms()
   
   // MARK: - Scratch
   
   return output
+  
+//  let product: [MRAtom] = createBeltLinkProduct()
+//  return createBuildPlate(product: product, sideHydrogens: false)
 }

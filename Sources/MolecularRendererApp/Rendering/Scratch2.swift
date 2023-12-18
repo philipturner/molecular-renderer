@@ -861,7 +861,7 @@ func createServoArmGripper() -> Lattice<Hexagonal> {
     
     Volume {
       Concave {
-        Origin { 9 * h + 14 * h2k }
+        Origin { 8 * h + 14 * h2k }
         Plane { k }
         Plane { -h }
       }

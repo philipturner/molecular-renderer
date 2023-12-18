@@ -379,8 +379,8 @@ struct Floor {
   }()
   
   init(openCenter: Bool) {
-    let h: SIMD3<Float> = 2 * 9 * [1, 0, 0]
-    let k: SIMD3<Float> = 2 * 9 * [-0.5, 0, 0.5 * Float(3).squareRoot()]
+    let h: SIMD3<Float> = 17.75 * [1, 0, 0]
+    let k: SIMD3<Float> = 17.75 * [-0.5, 0, 0.5 * Float(3).squareRoot()]
     
     for i in -10...10 {
       for j in -10...10 {
@@ -436,7 +436,7 @@ struct ServoArm {
     grippers.append(Diamondoid(lattice: latticeGripper))
     connectors.append(Diamondoid(lattice: latticeConnector))
     connectors.append(connectors[0])
-    grippers[0].translate(offset: [0, -4.5, -3.7])
+    grippers[0].translate(offset: [0, -4.15, -3.7])
     connectors[0].translate(offset: [-7, 6.5, -1.3])
     connectors[1].translate(offset: [-7, 14.5, -1.3])
     self.transform { $0.origin.x += 4 }
@@ -452,7 +452,7 @@ struct ServoArm {
     self.norGate = Self.createNORGate()
     self.norGate.removeLast()
     for i in norGate.indices {
-      norGate[i].translate(offset: [-3, -8, 0])
+      norGate[i].translate(offset: [-3.15, -8, 0])
     }
     for i in 0..<3 {
       var copy = norGate[i]
@@ -493,8 +493,8 @@ struct ServoArm {
     let hexagon2 = Diamondoid(atoms: hexagon2Atoms)
   
     do {
-      let h: SIMD3<Float> = 10.5 * [1, 0, 0]
-      let k: SIMD3<Float> = 10.5 * [-0.5, Float(3).squareRoot()/2,  0]
+      let h: SIMD3<Float> = 10.35 * [1, 0, 0]
+      let k: SIMD3<Float> = 10.35 * [-0.5, Float(3).squareRoot()/2,  0]
       func add(
         _ hMultiplier: Int,
         _ kMultiplier: Int,

@@ -19,11 +19,11 @@ extension Quadrant {
     }
     
     let arguments: [(SIMD3<Float>, SIMD2<Float>)] = [
-      (SIMD3(-59.8, 5, 0.5), SIMD2(-100, 100)),
+      (SIMD3(-59.8, 5, 0.333), SIMD2(-100, 100)),
       (SIMD3(-27.3, 5, 0.5), SIMD2(-100, -27.3)),
       (SIMD3(-25.3, 5.6, 0.1), SIMD2(-27.3, -23.3)),
       (SIMD3(-23.3, 5, 0.5), SIMD2(-23.3, -21.3)),
-      (SIMD3(-21.3, 3, 1), SIMD2(-21.3, 100)),
+      (SIMD3(-21.3, 4, 0.333), SIMD2(-21.3, 100)),
     ]
     
     var output: Float = 1.5
@@ -41,26 +41,46 @@ extension Quadrant {
   static func createBeltLinks() -> [Diamondoid] {
     let lattice = createBeltLink()
     var masterBeltLink = Diamondoid(lattice: lattice)
+    
+    do {
+      let beltLink = masterBeltLink
+      let beltLinkBox = beltLink.createBoundingBox()
+      let beltLinkMiddle = (beltLinkBox.0 + beltLinkBox.1) / 2
+      
+      var atoms = createBuildPlate(
+        product: createBeltLinkProduct(), sideHydrogens: false)
+      atoms = atoms.map {
+        var copy = $0
+        copy.origin += beltLinkMiddle
+        copy.origin += SIMD3(1.5, 1.7, 0)
+        return copy
+      }
+      masterBeltLink.atoms += atoms
+      precondition(atoms.contains(where: { $0.element == 79 }))
+      precondition(masterBeltLink.atoms .contains(where: { $0.element == 79 }))
+    }
+    
     masterBeltLink.atoms.append(
       MRAtom(origin: [5.5, 0.5, 6], element: 7))
     masterBeltLink.atoms.append(
-      MRAtom(origin: [Float(5.5) - 3.8, 0.5, 5.8], element: 16))
+      MRAtom(origin: [Float(5.5) - 3.8, 0.5, 5.8], element: 14))
     
     // originally x=-45, y=2-23.5, z=-20.8
-    masterBeltLink.translate(offset: [-65, Float(5) - 23.5, -20.8])
+    masterBeltLink.translate(offset: [-65, Float(5.5) - 23.5, -20.8])
     var output = [masterBeltLink]
     var masterCopy = masterBeltLink
     masterCopy.atoms.removeAll(where: {
-      $0.element != 1 && $0.element != 6
+      $0.element != 1 && $0.element != 6 && $0.element != 79
     })
-    let masterBoundingBox = masterCopy.createBoundingBox()
+    precondition(masterCopy.atoms .contains(where: { $0.element == 79 }))
+    let masterBoundingBox = createBeltLinkBoundingBox(masterCopy)
     
     // Before: 823 ms
     // After: ??? ms
     let numLinks = 20
     var angles = [Float](repeating: 0, count: numLinks)
     for i in 1..<numLinks {
-      let firstSulfur = masterBeltLink.atoms.last(where: { $0.element == 16 })!
+      let firstSulfur = masterBeltLink.atoms.last(where: { $0.element == 14 })!
       let lastNitrogen = output.last!.atoms.last(where: { $0.element == 7 })!
       var translation = lastNitrogen.origin - firstSulfur.origin
       translation.z = 0
@@ -193,7 +213,8 @@ extension Quadrant {
     
     for i in output.indices {
       output[i].atoms.removeAll(where: {
-        $0.element != 1 && $0.element != 6 && $0.element != 79
+        $0.element != 1 && $0.element != 6 &&
+        $0.element != 79 && $0.element != 16
       })
     }
     return output
@@ -503,4 +524,201 @@ extension RobotArm {
     
     return tripods
   }
+}
+
+// MARK: - Build Plates
+
+// Hexagonal prism of gold.
+func createBuildPlateGold() -> [MRAtom] {
+  let lattice = Lattice<Cubic> { h, k, l in
+    Bounds { 8 * h + 8 * k + 8 * l }
+    Material { .elemental(.gold) }
+    
+    Volume {
+      Origin { 4 * h + 4 * k + 4 * l }
+      for sign in [Float(1), -1] {
+        Convex {
+          Origin { sign * 0.25 * (h + k + l) }
+          Plane { sign * (h + k + l) }
+        }
+      }
+      var directions: [SIMD3<Float>] = []
+      directions.append(h + k - 2 * l)
+      directions.append(h + l - 2 * k)
+      directions.append(k + l - 2 * h)
+      directions += directions.map(-)
+      for direction in directions {
+        Convex {
+          Origin { 1 * direction }
+          Plane { direction }
+        }
+      }
+      
+      Replace { .empty }
+    }
+  }
+  var goldAtoms = lattice.entities.map(MRAtom.init)
+  var basisVector1: SIMD3<Float> = [1, 1, 1]
+  var basisVector2: SIMD3<Float> = [1, 0, -1]
+  var basisVector3 = cross_platform_cross(basisVector1, basisVector2)
+  basisVector1 = cross_platform_normalize(basisVector1)
+  basisVector2 = cross_platform_normalize(basisVector2)
+  basisVector3 = cross_platform_normalize(basisVector3)
+  for i in goldAtoms.indices {
+    var origin = goldAtoms[i].origin
+    let dot1 = (origin * basisVector1).sum()
+    let dot2 = (origin * basisVector2).sum()
+    let dot3 = (origin * basisVector3).sum()
+    origin = SIMD3(dot2, dot1, dot3)
+    goldAtoms[i].origin = origin
+  }
+  
+  var goldCenterOfMass: SIMD3<Float> = .zero
+  var goldMaxY: Float = -.greatestFiniteMagnitude
+  for atom in goldAtoms {
+    goldMaxY = max(goldMaxY, atom.origin.y)
+    goldCenterOfMass += atom.origin
+  }
+  goldCenterOfMass /= Float(goldAtoms.count)
+  for i in goldAtoms.indices {
+    var translation = -goldCenterOfMass
+    translation.y = -0.2 - goldMaxY
+    goldAtoms[i].origin += translation
+  }
+  return goldAtoms
+}
+
+// Rectangular segment of graphene, with sulfurs to connect to gold.
+func createBuildPlateCarbon(sideHydrogens: Bool) -> [MRAtom] {
+  let carbonLattice = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 4 * h + 3 * h2k + 1 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      // Move the player position from the origin to (0, 0, 0.25).
+      Origin { 0.25 * l }
+      
+      // Create a plane pointing from the origin to positive `l`.
+      Plane { l }
+      
+      // Remove all atoms on the positive side of the plane.
+      Replace { .empty }
+    }
+  }
+  
+  var grapheneHexagonScale: Float
+  do {
+    // Convert graphene lattice constant from Å to nm.
+    let grapheneConstant: Float = 2.45 / 10
+    
+    // Retrieve lonsdaleite lattice constant in nm.
+    let lonsdaleiteConstant = Constant(.hexagon) { .elemental(.carbon) }
+    
+    // Each hexagon's current side length is the value of
+    // `lonsdaleiteConstant`. Dividing by this constant, changes the hexagon
+    // so its sides are all 1 nm.
+    grapheneHexagonScale = 1 / lonsdaleiteConstant
+    
+    // Multiply by the graphene constant. This second transformation stretches
+    // the hexagon, so its sides are all 0.245 nm.
+    grapheneHexagonScale *= grapheneConstant
+  }
+
+  var carbons: [Entity] = carbonLattice.entities
+  var centerOfMass: SIMD3<Float> = .zero
+  for atomID in carbons.indices {
+    // Flatten the sp3 sheet into an sp2 sheet.
+    carbons[atomID].position.z = 0
+    
+    // Resize the hexagon side length, so it matches graphene.
+    carbons[atomID].position.x *= grapheneHexagonScale
+    carbons[atomID].position.y *= grapheneHexagonScale
+    
+    var position = carbons[atomID].position
+    position = SIMD3(position.x, position.z, position.y)
+    centerOfMass += position
+    carbons[atomID].position = position
+  }
+  centerOfMass /= Float(carbons.count)
+  for i in carbons.indices {
+    carbons[i].position -= centerOfMass
+    carbons[i].position.y = 0.2
+  }
+  
+  var hydrogens: [MRAtom] = []
+  var sulfurs: [MRAtom] = []
+  for sideLeft in [false, true] {
+    for i in 0..<6 {
+      var position = SIMD3<Float>(
+        sideLeft ? -0.62 : 0.62,
+        0.2,
+        Float(i) * 0.22 - 0.55)
+      position.z += (i % 2 == 0) ? -0.01 : 0.01
+      if i == 0 || i == 5 {
+        let sign = (i == 0) ? Float(-1) : Float(1)
+        position.z += sign * 0.050
+        position.y -= 0.100
+        sulfurs.append(MRAtom(origin: position, element: 16))
+      } else if sideHydrogens {
+        hydrogens.append(MRAtom(origin: position, element: 1))
+      }
+    }
+  }
+  for sideTop in [false, true] {
+    for i in 0..<4 {
+      var position = SIMD3<Float>(
+        (Float(i) - 1.5) * 0.24,
+        0.2,
+        sideTop ? -0.7 : 0.7)
+      hydrogens.append(MRAtom(origin: position, element: 1))
+    }
+  }
+  
+  return carbons.map(MRAtom.init) + hydrogens + sulfurs
+}
+
+func createBuildPlate(product: [MRAtom], sideHydrogens: Bool) -> [MRAtom] {
+  var output: [MRAtom] = []
+  output += createBuildPlateGold()
+  output += createBuildPlateCarbon(sideHydrogens: sideHydrogens)
+  output += product
+  return output
+}
+
+func createBeltLinkBoundingBox(_ beltLink: Diamondoid) -> (
+  SIMD3<Float>, SIMD3<Float>
+) {
+  var copy = beltLink
+  let goldAtom = copy.atoms.first(where: { $0.element == 79 })!
+  copy.atoms.removeAll(where: { $0.origin.y > goldAtom.origin.y - 1e-3 })
+  precondition(!copy.atoms.contains(where: { $0.element == 79 }))
+  return copy.createBoundingBox()
+}
+
+func createBeltLinkProduct() -> [MRAtom] {
+  let lattice = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+      Bounds { 4 * h + 3 * h2k + 2 * l }
+      Material { .elemental(.carbon) }
+  }
+  var diamondoid = Diamondoid(lattice: lattice)
+  diamondoid.setCenterOfMass(.zero)
+  let boundingBox = diamondoid.createBoundingBox()
+  var output = diamondoid.atoms
+  output.removeAll(where: { atom -> Bool in
+    let isHydrogen = atom.element == 1
+    let isLow = atom.origin.x < (boundingBox.0.x + 0.2)
+    let isHigh = atom.origin.x > (boundingBox.1.x - 0.2)
+    let isBack = atom.origin.z < (boundingBox.0.z + 0.2)
+    return isHydrogen && (isLow || isHigh || isBack)
+  })
+  output = output.map { atom -> MRAtom in
+    var copy = atom
+    copy.origin = SIMD3(copy.origin.x, copy.origin.z, copy.origin.y)
+    copy.origin.y += 0.75
+    return copy
+  }
+  
+  return output
 }
