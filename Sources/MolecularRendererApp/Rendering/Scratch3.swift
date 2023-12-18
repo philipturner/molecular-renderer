@@ -147,6 +147,7 @@ struct AssemblyLine {
   var robotArms: [RobotArm] = []
   var roofPieces: [Diamondoid] = []
   var housing: Diamondoid
+  var buildPlates: [[MRAtom]] = []
   
   init() {
     robotArms.append(RobotArm(index: 0))
@@ -178,6 +179,15 @@ struct AssemblyLine {
     let housingLattice = createAssemblyHousing(terminal: false)
     housing = Diamondoid(lattice: housingLattice)
     housing.translate(offset: [-14.25, -8, -5])
+    
+    for plateID in 0..<6 {
+      var plate = createStage1BuildPlate(index: plateID)
+      for atomID in plate.indices {
+        plate[atomID].origin += SIMD3(
+          0, -3.9, 2.6 + Float(plateID) * 5)
+      }
+      buildPlates.append(plate)
+    }
   }
   
   mutating func transform(_ closure: (inout MRAtom) -> Void) {
@@ -188,6 +198,13 @@ struct AssemblyLine {
       roofPieces[i].transform(closure)
     }
     housing.transform(closure)
+    for i in buildPlates.indices {
+      var nextPlate = buildPlates[i]
+      for j in nextPlate.indices {
+        closure(&nextPlate[j])
+      }
+      buildPlates[i] = nextPlate
+    }
   }
   
   func createAtoms() -> [MRAtom] {
@@ -208,6 +225,9 @@ struct AssemblyLine {
     }
     append(roofPieces)
     append([housing])
+    for buildPlate in buildPlates {
+      output += buildPlate
+    }
     return output
   }
 }

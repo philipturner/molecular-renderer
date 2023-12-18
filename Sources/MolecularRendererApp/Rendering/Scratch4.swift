@@ -671,7 +671,7 @@ func createBuildPlateCarbon(sideHydrogens: Bool) -> [MRAtom] {
   }
   for sideTop in [false, true] {
     for i in 0..<4 {
-      var position = SIMD3<Float>(
+      let position = SIMD3<Float>(
         (Float(i) - 1.5) * 0.24,
         0.2,
         sideTop ? -0.7 : 0.7)
@@ -810,4 +810,30 @@ func createWeldingStandScene() -> [MRAtom] {
   output += boardDiamondoid.atoms
   
   return output
+}
+
+func createStage1BuildPlate(index: Int) -> [MRAtom] {
+  var product: [MRAtom] = []
+  if index > 0 {
+    product = createBeltLinkProduct()
+    if index <= 3 {
+      product.removeAll(where: { $0.y < 0.8 })
+    }
+    if index % 3 == 1 {
+      product.removeAll(where: { $0.y > 0.8 && $0.z < 0.2 })
+    }
+    if index % 3 == 2 {
+      product.removeAll(where: { $0.y > 0.8 && $0.z < -0.2 })
+    }
+    if index <= 3 {
+      var distance = Constant(.hexagon) { .elemental(.carbon) }
+      distance *= Float(3).squareRoot()
+      for i in product.indices {
+        product[i].origin.y -= distance
+      }
+    }
+  }
+  
+  return createBuildPlate(
+    product: product, sideHydrogens: index < 3)
 }

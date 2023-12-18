@@ -6,20 +6,13 @@ import MolecularRenderer
 import Numerics
 
 func createNanomachinery() -> [MRAtom] {
-  // The entire assembly can be roughly put together, even while many
-  // important pieces are missing. This should be done to get a rough
-  // estimate of the atom count and final geometry.
-  //
-  // missing pieces:
-  // - level 1:
-  //   - built plates + 1st-step products
-  
   // MARK: - Assembly Machinery
   
   let masterQuadrant = Quadrant()
   var quadrants: [Quadrant] = []
   quadrants.append(masterQuadrant)
   
+  // Bypass Swift compiler warnings.
   let constructFullScene = Bool.random() ? true : true
   
   if constructFullScene {
@@ -65,10 +58,6 @@ func createNanomachinery() -> [MRAtom] {
   
   // MARK: - Scratch
   
-//  var output: [MRAtom] = []
-  
   return output
-  
-//  let product: [MRAtom] = createBeltLinkProduct()
-//  return createBuildPlate(product: product, sideHydrogens: false)
 }
+
