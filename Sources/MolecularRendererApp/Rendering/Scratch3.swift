@@ -17,6 +17,7 @@ struct RobotArm {
   var hexagons: [Diamondoid] = []
   var bands: [Diamondoid] = []
   var controlRods: [Diamondoid] = []
+  var tripods: [[MRAtom]] = []
   
   // Avoid compiling these multiple times.
   static let masterClaw: Diamondoid = {
@@ -67,6 +68,7 @@ struct RobotArm {
     
     hexagons = Self.masterHexagons
     controlRods = Self.createRods(index: index)
+    tripods = Self.createTripods(index: index)
     
     let siliconConstant = Constant(.prism) { .elemental(.silicon) }
     let offsetZ = Float(16 * index + 8) * siliconConstant
@@ -79,6 +81,12 @@ struct RobotArm {
     }
     for i in controlRods.indices {
       controlRods[i].translate(offset: [0, 0, offsetZ])
+    }
+    for i in tripods.indices {
+      for j in tripods[i].indices {
+        tripods[i][j].origin.y += -2 + 0.85 * 1 + 0.5 * 0.25
+        tripods[i][j].origin.z += offsetZ
+      }
     }
   }
   
@@ -124,6 +132,13 @@ struct RobotArm {
     }
     for i in controlRods.indices {
       controlRods[i].transform(closure)
+    }
+    for i in tripods.indices {
+      var newTripod = tripods[i]
+      for j in tripods[i].indices {
+        closure(&newTripod[j])
+      }
+      tripods[i] = newTripod
     }
   }
 }
@@ -187,6 +202,9 @@ struct AssemblyLine {
       append(robotArm.hexagons)
       append(robotArm.bands)
       append(robotArm.controlRods)
+      for tripod in robotArm.tripods {
+        output += tripod
+      }
     }
     append(roofPieces)
     append([housing])

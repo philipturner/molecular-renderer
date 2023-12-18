@@ -385,3 +385,122 @@ func createNORGateRod() -> Lattice<Hexagonal> {
     }
   }
 }
+
+// MARK: - Tripods
+
+extension RobotArm {
+  static func createTripods(index: Int) -> [[MRAtom]] {
+    let methylene = createMethyleneTripod()
+    let hAbst = createHAbstTripod()
+    let hDon = createHDonTripod()
+    switch index {
+    case 0:
+      return createTripodPair(hAbst, methylene)
+    case 1:
+      return createTripodPair(methylene, hDon)
+    case 2:
+      return createTripodPair(hAbst, hDon)
+    default:
+      fatalError("Unrecognized index.")
+    }
+  }
+  
+  static func createTripodPair(
+    _ tripod1: [MRAtom], _ tripod2: [MRAtom]
+  ) -> [[MRAtom]] {
+    var tripods = [tripod1, tripod2]
+    
+    // Create a hexagonal prism out of gold.
+    let goldLattice = Lattice<Cubic> { h, k, l in
+      Bounds { 8 * h + 8 * k + 8 * l }
+      Material { .elemental(.gold) }
+      
+      Volume {
+        Origin { 4 * h + 4 * k + 4 * l }
+        for sign in [Float(1), -1] {
+          Convex {
+            Origin { sign * 1.0 * (h + k + l) }
+            Plane { sign * (h + k + l) }
+          }
+        }
+        var directions: [SIMD3<Float>] = []
+        directions.append(h + k - 2 * l)
+        directions.append(h + l - 2 * k)
+        directions.append(k + l - 2 * h)
+        directions += directions.map(-)
+        for direction in directions {
+          Convex {
+            Origin { 0.75 * direction }
+            Plane { direction }
+          }
+        }
+        
+        Replace { .empty }
+      }
+    }
+    var goldAtoms = goldLattice.entities.map(MRAtom.init)
+    var basisVector1: SIMD3<Float> = [1, 1, 1]
+    var basisVector2: SIMD3<Float> = [1, 0, -1]
+    var basisVector3 = cross_platform_cross(basisVector1, basisVector2)
+    basisVector1 = cross_platform_normalize(basisVector1)
+    basisVector2 = cross_platform_normalize(basisVector2)
+    basisVector3 = cross_platform_normalize(basisVector3)
+    for i in goldAtoms.indices {
+      var origin = goldAtoms[i].origin
+      let dot1 = (origin * basisVector1).sum()
+      let dot2 = (origin * basisVector2).sum()
+      let dot3 = (origin * basisVector3).sum()
+      origin = SIMD3(dot2, dot1, dot3)
+      goldAtoms[i].origin = origin
+    }
+    
+    var goldCenterOfMass: SIMD3<Float> = .zero
+    var goldMaxY: Float = -.greatestFiniteMagnitude
+    for atom in goldAtoms {
+      goldMaxY = max(goldMaxY, atom.origin.y)
+      goldCenterOfMass += atom.origin
+    }
+    goldCenterOfMass /= Float(goldAtoms.count)
+    for i in goldAtoms.indices {
+      var translation = -goldCenterOfMass
+      translation.y = -0.2 - goldMaxY
+      goldAtoms[i].origin += translation
+    }
+    
+    for i in tripods.indices {
+      var tripod = tripods[i]
+      var minY: Float = .greatestFiniteMagnitude
+      var centerOfMass: SIMD3<Float> = .zero
+      for atom in tripod where atom.element == 16 {
+        minY = min(minY, atom.origin.y)
+        centerOfMass += atom.origin
+      }
+      centerOfMass /= 3
+      
+      var translation = -centerOfMass
+      translation.y = 0.1 - minY
+      for i in tripod.indices {
+        tripod[i].origin += translation
+      }
+      tripod += goldAtoms
+      
+      let angle = Float(-150) * .pi / 180
+      let rotation = Quaternion<Float>(angle: angle, axis: [0, 0, 1])
+      for i in tripod.indices {
+        var origin = tripod[i].origin
+        origin = rotation.act(on: origin)
+        tripod[i].origin = origin
+        tripod[i].origin.x -= 1.5 + 0.5 * 1 - 0.85 * 0.25
+      }
+      
+      if i == 0 {
+        for i in tripod.indices {
+          tripod[i].origin.x = -tripod[i].origin.x
+        }
+      }
+      tripods[i] = tripod
+    }
+    
+    return tripods
+  }
+}

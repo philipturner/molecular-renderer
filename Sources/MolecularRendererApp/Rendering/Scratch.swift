@@ -11,12 +11,11 @@ func createNanomachinery() -> [MRAtom] {
   // estimate of the atom count and final geometry.
   //
   // missing pieces:
-  // - level 1:
-  //   - two tripods on each robot arm
-  //   - small manufactured pieces
+  // - level 1 & 2:
+  //   - gold + graphene + sulfur square "build plates" as basic unit
   //
   // - level 2:
-  //   - larger manufactured pieces
+  //   - larger manufactured pieces - depassivated, so they bond on contact
   
   // MARK: - Assembly Machinery
   
@@ -24,7 +23,7 @@ func createNanomachinery() -> [MRAtom] {
   var quadrants: [Quadrant] = []
   quadrants.append(masterQuadrant)
   
-  let constructFullScene = Bool.random() ? false : false
+  let constructFullScene = Bool.random() ? true : true
   
   if constructFullScene {
     for i in 1..<4 {
@@ -64,8 +63,8 @@ func createNanomachinery() -> [MRAtom] {
     }
   }
 //  
-//  let arm = ServoArm()
-//  output += arm.createAtoms()
+  let arm = ServoArm()
+  output += arm.createAtoms()
   
   // MARK: - Scratch
   
