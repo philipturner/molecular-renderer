@@ -45,13 +45,18 @@ func createRobotClawLattice() -> Lattice<Hexagonal> {
               Plane { direction }
             }
           }
-          for direction in [-k, -h - k] {
-            Convex {
-              Origin { -2 * h2k }
-              Origin { 14 * direction }
-              Plane { direction }
-            }
-          }
+        }
+      }
+      Concave {
+        Convex {
+          Origin { 1 * h2k }
+          Origin { 14 * (-k) }
+          Plane { -k - h }
+        }
+        Convex {
+          Origin { 1 * h2k }
+          Origin { 14 * (-k - h) }
+          Plane { -k }
         }
       }
       

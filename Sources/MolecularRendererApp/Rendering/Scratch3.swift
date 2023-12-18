@@ -406,6 +406,7 @@ struct ServoArm {
   var part1s: [Diamondoid] = []
   var grippers: [Diamondoid] = []
   var connectors: [Diamondoid] = []
+  var norGate: [Diamondoid] = []
   var hexagons: [Diamondoid] = []
   var halfHexagons: [Diamondoid] = []
   
@@ -430,6 +431,16 @@ struct ServoArm {
       connectors += copy.connectors
     }
     
+    self.norGate = Self.createNORGate()
+    self.norGate.removeLast()
+    for i in norGate.indices {
+      norGate[i].translate(offset: [-3, -8, 0])
+    }
+    for i in 0..<3 {
+      var copy = norGate[i]
+      copy.translate(offset: [0, 8, 0])
+      norGate.append(copy)
+    }
     self.addHexagons()
     
     let rotationCenter: SIMD3<Float> = [0, -2, 0]
@@ -532,6 +543,9 @@ struct ServoArm {
     for i in connectors.indices {
       connectors[i].transform(closure)
     }
+    for i in norGate.indices {
+      norGate[i].transform(closure)
+    }
     for i in hexagons.indices {
       hexagons[i].transform(closure)
     }
@@ -550,6 +564,9 @@ struct ServoArm {
     }
     for connector in connectors {
       output += connector.atoms
+    }
+    for part in norGate {
+      output += part.atoms
     }
     for hexagon in hexagons {
       output += hexagon.atoms

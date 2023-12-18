@@ -199,3 +199,189 @@ extension Quadrant {
     return output
   }
 }
+
+// MARK: - NOR Gate
+
+extension ServoArm {
+  static func createNORGate() -> [Diamondoid] {
+    let boardLattice = createNORGateBoard()
+    var boardDiamondoid = Diamondoid(lattice: boardLattice)
+    boardDiamondoid.fixHydrogens(tolerance: 0.08)
+    
+    let h = SIMD3<Float>(1, 0, 0) * 0.252
+    let k = SIMD3<Float>(-0.5, 0.866925, 0) * 0.252
+    let l = SIMD3<Float>(0, 0, 1) * 0.412
+    
+    let rod1Lattice = createNORGateRod()
+    var rod1Diamondoid = Diamondoid(lattice: rod1Lattice)
+    var rod2Diamondoid = rod1Diamondoid
+    var rod3Diamondoid = rod1Diamondoid
+    
+    rod1Diamondoid.translate(offset: -rod1Diamondoid.createCenterOfMass())
+    rod1Diamondoid.translate(offset: 4.25 * l)
+    rod1Diamondoid.translate(offset: 6 * k)
+    rod1Diamondoid.translate(offset: 4 * (k + 2 * h))
+    rod1Diamondoid.translate(offset: 4 * (k + 2 * h))
+    
+    rod2Diamondoid.translate(offset: -rod2Diamondoid.createCenterOfMass())
+    rod2Diamondoid.translate(offset: 4.25 * l)
+    rod2Diamondoid.translate(offset: 6 * k)
+    rod2Diamondoid.translate(offset: 4 * (k + 2 * h))
+    rod2Diamondoid.translate(offset: 5.1 * (h + 2 * k))
+    rod2Diamondoid.translate(offset: 4 * (k + 2 * h))
+    
+    rod3Diamondoid.translate(offset: -rod3Diamondoid.createCenterOfMass())
+    rod3Diamondoid.rotate(angle: Quaternion<Float>(
+      angle: 4 * .pi / 3, axis: [0, 0, 1]))
+    rod3Diamondoid.translate(offset: 4.25 * l)
+    rod3Diamondoid.translate(offset: 12 * h)
+    rod3Diamondoid.translate(offset: 1 * (h + 2 * k))
+    
+    return [
+      boardDiamondoid, rod1Diamondoid, rod2Diamondoid, rod3Diamondoid
+    ]
+  }
+}
+
+func createNORGateBoard() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 25 * h + 17 * h2k + 6 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      Concave {
+        Origin { 12 * h + 8 * h2k + 2.2 * l }
+        
+        // Cut a plane separating the back of the board from some open void.
+        Plane { l }
+        
+        // Right hand side part that prevents the input rods from escaping
+        // into the void.
+        Concave {
+          Convex {
+            Origin { 6 * h }
+            Concave {
+              Plane { -h }
+              Convex {
+                Origin { -2 * h + 4 * h2k }
+                Plane { k - h }
+                Plane { (-k - h) - h }
+              }
+              Convex {
+                Origin { -2 * h + 9 * h2k }
+                Plane { (-k - h) - h }
+              }
+            }
+            Origin { 2 * h }
+            Plane { h }
+            Plane { -k }
+          }
+        }
+        
+        Convex {
+          Origin { 10 * k }
+          Plane { -k }
+          Origin { 2 * k }
+          Plane { k }
+          Origin { 3 * h }
+          Plane { h }
+        }
+        
+        Convex {
+          Concave {
+            Origin { -2.5 * h }
+            Plane { h }
+            Origin { 5 * h }
+            Plane { -h }
+          }
+          Convex {
+            Convex {
+              Origin { 8 * h }
+              Plane { h }
+            }
+            Concave {
+              Origin { -2.5 * k }
+              Plane { k }
+              Origin { 5 * k }
+              Plane { -k }
+            }
+            Concave {
+              Origin { 7.5 * k }
+              Origin { -2.5 * k }
+              Plane { k }
+              Origin { 5 * k }
+              Plane { -k }
+            }
+          }
+          
+          Concave {
+            Convex {
+              Origin { -4.5 * h }
+              Plane { -h }
+              Origin { 9 * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { -4.5 * k }
+              Plane { -k }
+              Origin { 9.5 * k }
+              Plane { k }
+            }
+            
+            // Fix up some artifacts on the joint between two lines.
+            Convex {
+              Convex {
+                Origin { -3.5 * (k - h) }
+                Plane { -(k - h) }
+                Origin { 7 * (k - h) }
+                Plane { k - h }
+              }
+              Convex {
+                Origin { -3.5 * (k + h) }
+                Plane { -(k + h) }
+                Origin { 7 * (k + h) }
+                Plane { k + h }
+              }
+            }
+          }
+        }
+        Replace { .empty }
+      }
+    }
+    
+    Volume {
+      Origin { 5.2 * l }
+      Plane { l }
+      Replace { .empty }
+    }
+  }
+}
+
+func createNORGateRod() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 15 * h + 14 * h2k + 3 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      Convex {
+        Origin { 5 * k }
+        Plane { -k }
+      }
+      Convex {
+        Origin { 6.5 * k }
+        Plane { k }
+      }
+      Convex {
+        Origin { 2.2 * l }
+        Plane { l }
+      }
+      Convex {
+        Origin { 6 * (h + k) }
+        Plane { -(h + k) }
+      }
+      Replace { .empty }
+    }
+  }
+}
