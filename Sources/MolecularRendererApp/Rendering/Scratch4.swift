@@ -10,6 +10,8 @@ import HDL
 import MolecularRenderer
 import Numerics
 
+// MARK: - Very Complex Code for Solving Implicit Boundary Conditions
+
 extension Quadrant {
   static func beltHeightMap(_ x: Float) -> Float? {
     if x > 15 {

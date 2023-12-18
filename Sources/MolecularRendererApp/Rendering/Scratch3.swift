@@ -353,7 +353,7 @@ struct Floor {
   
   // Avoid compiling this multiple times.
   static let masterHexagon: Diamondoid = {
-    let lattice = createFloorHexagon(radius: 8.5)
+    let lattice = createFloorHexagon(radius: 8.5, thickness: 10)
     var master = Diamondoid(lattice: lattice)
     master.setCenterOfMass(.zero)
     master.rotate(degrees: -90, axis: [1, 0, 0])
@@ -397,6 +397,165 @@ struct Floor {
     var output: [MRAtom] = []
     for hexagon in hexagons {
       output += hexagon.atoms
+    }
+    return output
+  }
+}
+
+struct ServoArm {
+  var part1s: [Diamondoid] = []
+  var grippers: [Diamondoid] = []
+  var connectors: [Diamondoid] = []
+  var hexagons: [Diamondoid] = []
+  var halfHexagons: [Diamondoid] = []
+  
+  init() {
+    let lattice1 = createServoArmPart1()
+    let latticeGripper = createServoArmGripper()
+    let latticeConnector = createServoArmConnector()
+    part1s.append(Diamondoid(lattice: lattice1))
+    grippers.append(Diamondoid(lattice: latticeGripper))
+    connectors.append(Diamondoid(lattice: latticeConnector))
+    connectors.append(connectors[0])
+    grippers[0].translate(offset: [0, -4.5, -3.7])
+    connectors[0].translate(offset: [-7, 6.5, -1.3])
+    connectors[1].translate(offset: [-7, 14.5, -1.3])
+    self.transform { $0.origin.x += 4 }
+    
+    do {
+      var copy = self
+      copy.transform { $0.origin.x = -$0.origin.x }
+      part1s += copy.part1s
+      grippers += copy.grippers
+      connectors += copy.connectors
+    }
+    
+    self.addHexagons()
+    
+    let rotationCenter: SIMD3<Float> = [0, -2, 0]
+    
+    func rotate(degrees: Float, axis: SIMD3<Float>) {
+      let radians = degrees * .pi / 180
+      let quaternion = Quaternion<Float>(angle: radians, axis: axis)
+      let basis1 = quaternion.act(on: [1, 0, 0])
+      let basis2 = quaternion.act(on: [0, 1, 0])
+      let basis3 = quaternion.act(on: [0, 0, 1])
+      self.transform {
+        var delta = $0.origin - rotationCenter
+        delta = basis1 * delta.x + basis2 * delta.y + basis3 * delta.z
+        $0.origin = rotationCenter + delta
+      }
+    }
+    rotate(degrees: 60, axis: [0, 1, 0])
+    rotate(degrees: -20, axis: [1, 0, 0])
+    rotate(degrees: -30, axis: [0, 1, 0])
+  }
+  
+  mutating func addHexagons() {
+    let latticeHexagon = createFloorHexagon(radius: 5, thickness: 5)
+    var hexagon = Diamondoid(lattice: latticeHexagon)
+    hexagon.setCenterOfMass(.zero)
+    hexagon.translate(offset: [0, 15.7, -2.5])
+    hexagons.append(hexagon)
+  
+    let hexagon2Atoms = hexagon.atoms.filter {
+      $0.element != 1 && $0.x < 1e-3
+    }
+    let hexagon2 = Diamondoid(atoms: hexagon2Atoms)
+  
+    do {
+      let h: SIMD3<Float> = 10.5 * [1, 0, 0]
+      let k: SIMD3<Float> = 10.5 * [-0.5, Float(3).squareRoot()/2,  0]
+      func add(
+        _ hMultiplier: Int,
+        _ kMultiplier: Int,
+        _ hexagon: Diamondoid,
+        flip: Bool
+      ) -> Diamondoid {
+        var copy = hexagon
+        var translation: SIMD3<Float> = .zero
+        translation += Float(hMultiplier) * h
+        translation += Float(kMultiplier) * k
+        copy.translate(offset: translation)
+        if flip {
+          copy.transform { $0.origin.x = -$0.origin.x }
+        }
+        return copy
+      }
+      halfHexagons.append(add(1, 1, hexagon2, flip: true))
+      halfHexagons.append(add(1, 1, hexagon2, flip: false))
+      hexagons.append(add(1, 2, hexagon, flip: false))
+      halfHexagons.append(add(2, 3, hexagon2, flip: true))
+      halfHexagons.append(add(2, 3, hexagon2, flip: false))
+      hexagons.append(add(2, 4, hexagon, flip: false))
+      
+      func secondLayer(_ input: Diamondoid) -> Diamondoid {
+        let h2k = (h + 2 * k) / 2
+        let l: SIMD3<Float> = [0, 0, 1.8]
+        let translation = h2k + l
+        var copy = input
+        copy.translate(offset: translation)
+        return copy
+      }
+      func thirdLayer(_ input: Diamondoid) -> Diamondoid {
+        let l: SIMD3<Float> = [0, 0, 3.6]
+        var copy = input
+        copy.translate(offset: l)
+        return copy
+      }
+      
+      let boundingBox = hexagons[0].createBoundingBox()
+      let y = (boundingBox.0.y + boundingBox.1.y) / 2
+      let upperHexagonAtoms = hexagons[0].atoms.filter {
+        ($0.origin.y > y - 1e-3) && ($0.element != 1)
+      }
+      let upperHexagon = Diamondoid(atoms: upperHexagonAtoms)
+      
+      let thirdLayerHexagons = Array<Diamondoid>(hexagons[1...])
+      let thirdLayerHalfHexagons = Array(halfHexagons)
+      hexagons += hexagons[1..<2].map(secondLayer)
+      hexagons += [secondLayer(upperHexagon)]
+      halfHexagons += halfHexagons.map(secondLayer)
+      hexagons += thirdLayerHexagons.map(thirdLayer)
+      hexagons += [thirdLayer(upperHexagon)]
+      halfHexagons += thirdLayerHalfHexagons.map(thirdLayer)
+    }
+  }
+  
+  mutating func transform(_ closure: (inout MRAtom) -> Void) {
+    for i in part1s.indices {
+      part1s[i].transform(closure)
+    }
+    for i in grippers.indices {
+      grippers[i].transform(closure)
+    }
+    for i in connectors.indices {
+      connectors[i].transform(closure)
+    }
+    for i in hexagons.indices {
+      hexagons[i].transform(closure)
+    }
+    for i in halfHexagons.indices {
+      halfHexagons[i].transform(closure)
+    }
+  }
+  
+  func createAtoms() -> [MRAtom] {
+    var output: [MRAtom] = []
+    for part1 in part1s {
+      output += part1.atoms
+    }
+    for gripper in grippers {
+      output += gripper.atoms
+    }
+    for connector in connectors {
+      output += connector.atoms
+    }
+    for hexagon in hexagons {
+      output += hexagon.atoms
+    }
+    for halfHexagon in halfHexagons {
+      output += halfHexagon.atoms
     }
     return output
   }

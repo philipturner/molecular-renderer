@@ -554,7 +554,10 @@ func createNewBackBoardLattice2() -> Lattice<Hexagonal> {
   }
 }
 
-func createFloorHexagon(radius: Float) -> Lattice<Hexagonal> {
+func createFloorHexagon(
+  radius: Float,
+  thickness: Int
+) -> Lattice<Hexagonal> {
   var hexagonRadius = radius
   hexagonRadius /= Constant(.hexagon) { .checkerboard(.silicon, .carbon) }
   hexagonRadius.round(.toNearestOrEven)
@@ -578,7 +581,7 @@ func createFloorHexagon(radius: Float) -> Lattice<Hexagonal> {
       Concave {
         for direction in directions {
           Convex {
-            Origin { (hexagonRadius - 10) * direction }
+            Origin { (hexagonRadius - Float(thickness)) * direction }
             Plane { -direction }
           }
         }
@@ -785,6 +788,129 @@ func createBeltLink() -> Lattice<Hexagonal> {
           Origin { 6 * l + 6 * direction }
           Plane { direction }
         }
+      }
+      Replace { .empty }
+    }
+  }
+}
+
+// The part that should have a rubber gripper attached.
+func createServoArmPart1() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 17 * h + 40 * h2k + 2 * l }
+    Material { .elemental(.silicon) }
+    
+    Volume {
+      Convex {
+        Origin { 2 * h2k }
+        Plane { -k }
+      }
+      Concave {
+        Origin { 4 * h }
+        Plane { h }
+        Origin { 6 * h2k }
+        Plane { -k }
+      }
+      Concave {
+        Origin { 4 * h }
+        Plane { h }
+        Origin { 8 * h2k }
+        Plane { k }
+        Origin { 8 * h2k }
+        Plane { -k - h }
+        Origin { 9 * h }
+        Plane { -h }
+      }
+      Concave {
+        Origin { 13 * h }
+        Plane { -h }
+        Origin { 15 * h2k }
+        Plane { k + h }
+        Origin { 8 * h2k }
+        Plane { -k }
+        Origin { -9 * h }
+        Plane { h }
+      }
+      Concave {
+        Origin { 21 * h2k }
+        Plane { k }
+      }
+      Concave {
+        Origin { 17 * h }
+        Origin { 24 * h2k }
+        Plane { k + h }
+      }
+      
+      Replace { .empty }
+    }
+  }
+}
+
+// This is the rubber gripper made of diamond.
+func createServoArmGripper() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 25 * h + 35 * h2k + 12 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      Concave {
+        Origin { 9 * h + 14 * h2k }
+        Plane { k }
+        Plane { -h }
+      }
+      Concave {
+        Convex {
+          Origin { 16 * h + 5 * h2k }
+          Plane { h }
+          Plane { -k }
+        }
+        Convex {
+          Origin { 16 * h + 16 * h2k }
+          Plane { -k }
+        }
+      }
+      Convex {
+        Origin { 30 * h + 25.5 * h2k }
+        Plane { k }
+      }
+      Concave {
+        Origin { 6 * h + 8 * h2k }
+        Plane { h }
+        Plane { -k }
+      }
+      Concave {
+        Origin { 4 * h + 9 * l }
+        Plane { h }
+        Plane { -l }
+      }
+      
+      Replace { .empty }
+    }
+  }
+}
+
+// This connects part 1 to the housing.
+func createServoArmConnector() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 54 * h + 30 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      Convex {
+        Origin { 50 * h }
+        Plane { -k - h }
+      }
+      Convex {
+        Origin { 50 * h + 4 * h2k }
+        Plane { k + h }
+      }
+      Convex {
+        Origin { 17 * h + 13 * h2k }
+        Plane { -h }
+        Plane { k }
       }
       Replace { .empty }
     }

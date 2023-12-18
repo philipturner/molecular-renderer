@@ -12,15 +12,14 @@ func createNanomachinery() -> [MRAtom] {
   //
   // missing pieces:
   // - level 1:
+  //   - gold atom in each robot arm
   //   - small manufactured pieces (gold atoms)
-  //   - gold atom floating inside each robot arm
   //
   // - level 2:
   //   - larger manufactured pieces (gold atoms)
   //
   // - level 3:
-  //   - one final, supermassive robot arm made of multiple smaller pieces,
-  //     holding a larger gold cube
+  //   - servo arm holds a large gold cube
   
   // MARK: - Assembly Machinery
   
@@ -67,6 +66,9 @@ func createNanomachinery() -> [MRAtom] {
       return copy
     }
   }
+  
+  let arm = ServoArm()
+  output += arm.createAtoms()
   
   // MARK: - Scratch
   
