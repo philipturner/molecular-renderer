@@ -277,7 +277,7 @@ enum Slideshow {
   
   static func _08BeltPlacement() -> [MRAtom] {
     var output: [MRAtom] = []
-    var quadrant = Quadrant()
+    let quadrant = Quadrant()
     output += quadrant.createAtoms()
     return output
   }
@@ -476,7 +476,7 @@ enum Slideshow {
   
   static func _14ServoGripperHexagons() -> [MRAtom] {
     var output: [MRAtom] = []
-    var arm = ServoArm()
+    let arm = ServoArm()
     output += arm.createAtoms()
     return output
   }
@@ -584,5 +584,127 @@ enum Media {
       output += plate
     }
     return output
+  }
+  
+  static func _HousingPart1() -> [MRAtom] {
+    var output: [MRAtom] = []
+    
+    let housingLattice = createAssemblyHousing(terminal: false)
+    var housing1 = Diamondoid(lattice: housingLattice)
+    housing1.translate(offset: [-14.25, -18, -45])
+    
+    var housing2 = housing1
+    housing2.translate(offset: [20.2, 0, 0])
+    
+    output += housing1.atoms
+    output += housing2.atoms
+    return output
+  }
+  
+  static func _HousingPart2() -> [MRAtom] {
+    var output: [MRAtom] = []
+    
+    let housingLattice = createAssemblyHousing(terminal: false)
+    var housing1 = Diamondoid(lattice: housingLattice)
+    housing1.translate(offset: [-14.25, -18, -45])
+    
+    let degrees1: Float = 10
+    let quaternion1 = Quaternion<Float>(
+      angle: degrees1 * .pi / 180, axis: [0, 0, 1])
+    let basis1 = quaternion1.act(on: [1, 0, 0])
+    let basis2 = quaternion1.act(on: [0, 1, 0])
+    let basis3 = quaternion1.act(on: [0, 0, 1])
+    var housing2 = housing1
+    housing2.transform {
+      var origin = $0.origin
+      origin = basis1 * origin.x + basis2 * origin.y + basis3 * origin.z
+      $0.origin = origin
+    }
+    housing2.translate(offset: [23, 2.5, 0])
+    
+    output += housing1.atoms
+    output += housing2.atoms
+    return output
+  }
+  
+  enum Crystolecule: CaseIterable {
+    case backBoard1
+    case backBoard2
+    case beltLink
+    case broadcastRod
+    case floorHexagon
+    case geHousing
+    case geCDodecagons
+    case receiverRod1
+    case receiverRod2
+    case receiverRod3
+    case robotArmBand
+    case robotArmClaw
+    case robotArmRoof1
+    case robotArmRoof2
+    case servoArmConnector
+    case servoArmGripper
+    case servoArmHexagon1
+    case servoArmHexagon2
+    case servoArmHexagon3
+    case servoArmPart1
+    case weldingStand
+    
+    var description: String {
+      switch self {
+      case .backBoard1:
+        return "Back Board (1)"
+      case .backBoard2:
+        return "Back Board (2)"
+      case .beltLink:
+        return "Belt Link"
+      case .broadcastRod:
+        return "Broadcast Rod"
+      case .floorHexagon:
+        return "Floor Hexagon"
+      case .geHousing:
+        return "Ge Housing"
+      case .geCDodecagons:
+        return "GeC Dodecagon"
+      case .receiverRod1:
+        return "Receiver Rod (1)"
+      case .receiverRod2:
+        return "Receiver Rod (2)"
+      case .receiverRod3:
+        return "Receiver Rod (3)"
+      case .robotArmBand:
+        return "Robot Arm Band"
+      case .robotArmClaw:
+        return "Robot Arm Claw"
+      case .robotArmRoof1:
+        return "Robot Arm Roof (1)"
+      case .robotArmRoof2:
+        return "Robot Arm Roof (2)"
+      case .servoArmConnector:
+        return "Servo Arm Connector"
+      case .servoArmGripper:
+        return "Servo Arm Gripper"
+      case .servoArmHexagon1:
+        return "Servo Arm Hexagon (1)"
+      case .servoArmHexagon2:
+        return "Servo Arm Hexagon (2)"
+      case .servoArmHexagon3:
+        return "Servo Arm Hexagon (3)"
+      case .servoArmPart1:
+        return "Servo Arm Part 1"
+      case .weldingStand:
+        return "Welding Stand"
+      }
+    }
+    
+    // WARNING: Do not forget to check which parts were duplicated 8 times
+    // along with the assembly lines! Rigorously check the numbers you arrive
+    // at.
+    var instanceCount: Int {
+      fatalError("Not implemented.")
+//      switch self {
+//        
+//      }
+    }
   }
 }
