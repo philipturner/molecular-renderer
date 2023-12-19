@@ -40,6 +40,7 @@ extension Renderer {
     let playerState = eventTracker.playerState
     let progress = eventTracker.fovHistory.progress
     let fov = playerState.fovDegrees(progress: progress)
+//    let fov: Float = 150
     
     let (azimuth, zenith) = playerState.rotations
     self.prepareRendering(

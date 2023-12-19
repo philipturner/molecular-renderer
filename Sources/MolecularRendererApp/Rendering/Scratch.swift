@@ -5,6 +5,9 @@ import HDL
 import MolecularRenderer
 import Numerics
 
+// TODO: Move this scratch into the hardware catalog instead of a
+// GitHub gist. Name the folder "ConvergentAssemblyArchitecture".
+
 func createNanomachinery() -> [MRAtom] {
   // MARK: - Assembly Machinery
   
@@ -58,6 +61,8 @@ func createNanomachinery() -> [MRAtom] {
   
   // MARK: - Scratch
   
+//  var output: [MRAtom] = []
+//  var arm = ServoArm()
+//  output += arm.createAtoms()
   return output
 }
-

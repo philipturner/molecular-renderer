@@ -78,6 +78,7 @@
 		98A8B72C2ABE6D5B003E62E8 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98A8B72E2ABE6D5B003E62E8 /* libOpenMM.8.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */; };
+		98B25A122B30D65100081A61 /* Scratch5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A112B30D65100081A61 /* Scratch5.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */; };
 		98B6BDFB2AEE85B000F8655C /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B6BDFA2AEE85B000F8655C /* Renderer+Setup.swift */; };
@@ -234,6 +235,7 @@
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
+		98B25A112B30D65100081A61 /* Scratch5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch5.swift; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
@@ -423,6 +425,7 @@
 				98EFEE0F2B2E7D2200405095 /* Scratch2.swift */,
 				98EFEE112B2E8D8000405095 /* Scratch3.swift */,
 				98F1FE522B2F901200807F62 /* Scratch4.swift */,
+				98B25A112B30D65100081A61 /* Scratch5.swift */,
 				98FB90792A5B6FC600685E5C /* VsyncHandler.swift */,
 			);
 			path = Rendering;
@@ -1074,6 +1077,7 @@
 				98325C722A6DC84400A4D7BB /* Chapter9_Figure3.swift in Sources */,
 				98D975BB2AC222340052EE6C /* OctahedralSpring.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
+				98B25A122B30D65100081A61 /* Scratch5.swift in Sources */,
 				980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */,
 				98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */,
 				98325C5A2A6C617500A4D7BB /* Figure3D.swift in Sources */,
