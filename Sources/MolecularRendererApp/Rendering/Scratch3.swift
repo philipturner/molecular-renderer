@@ -457,6 +457,7 @@ struct ServoArm {
   var norGate: [Diamondoid] = []
   var hexagons: [Diamondoid] = []
   var halfHexagons: [Diamondoid] = []
+  var upperHexagons: [Diamondoid] = []
   
   init() {
     let lattice1 = createServoArmPart1()
@@ -583,10 +584,10 @@ struct ServoArm {
       let thirdLayerHexagons = Array<Diamondoid>(hexagons[1...])
       let thirdLayerHalfHexagons = Array(halfHexagons)
       hexagons += hexagons[1..<2].map(secondLayer)
-      hexagons += [secondLayer(upperHexagon)]
+      upperHexagons += [secondLayer(upperHexagon)]
       halfHexagons += halfHexagons.map(secondLayer)
       hexagons += thirdLayerHexagons.map(thirdLayer)
-      hexagons += [thirdLayer(upperHexagon)]
+      upperHexagons += [thirdLayer(upperHexagon)]
       halfHexagons += thirdLayerHalfHexagons.map(thirdLayer)
     }
   }
@@ -610,6 +611,9 @@ struct ServoArm {
     for i in halfHexagons.indices {
       halfHexagons[i].transform(closure)
     }
+    for i in upperHexagons.indices {
+      upperHexagons[i].transform(closure)
+    }
   }
   
   func createAtoms() -> [MRAtom] {
@@ -632,13 +636,17 @@ struct ServoArm {
     for halfHexagon in halfHexagons {
       output += halfHexagon.atoms
     }
+    for upperHexagon in upperHexagons {
+      output += upperHexagon.atoms
+    }
     return output
   }
 }
 
 struct FactoryScene {
   var quadrants: [Quadrant] = []
-  var servoArm: ServoArm
+  var floor: Floor?
+  var servoArm: ServoArm?
   
   init() {
     let masterQuadrant = Quadrant()
@@ -674,17 +682,27 @@ struct FactoryScene {
         quadrants.append(copy)
       }
     }
-    var output = quadrants.flatMap { $0.createAtoms() }
     
     if constructFullScene {
-      let floor = Floor(openCenter: true)
-      output += floor.createAtoms().map {
-        var copy = $0
-        copy.origin = SIMD3(-copy.origin.z, copy.origin.y, copy.origin.x)
-        return copy
+      floor = Floor(openCenter: true)
+      floor!.transform {
+        $0.origin = SIMD3(-$0.origin.z, $0.origin.y, $0.origin.x)
       }
+      servoArm = ServoArm()
     }
-    
-    servoArm = ServoArm()
+  }
+  
+  func createAtoms() -> [MRAtom] {
+    var output: [MRAtom] = []
+    for quadrant in quadrants {
+      output += quadrant.createAtoms()
+    }
+    if let floor {
+      output += floor.createAtoms()
+    }
+    if let servoArm {
+      output += servoArm.createAtoms()
+    }
+    return output
   }
 }
