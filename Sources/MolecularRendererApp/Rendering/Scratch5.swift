@@ -481,54 +481,108 @@ enum Slideshow {
     return output
   }
   
-   static func _15FinishedScene() -> [MRAtom] {
-     let masterQuadrant = Quadrant()
-     var quadrants: [Quadrant] = []
-     quadrants.append(masterQuadrant)
-     
-     // Bypass Swift compiler warnings.
-     let constructFullScene = Bool.random() ? true : true
-     
-     if constructFullScene {
-       for i in 1..<4 {
-         let angle = Float(i) * -90 * .pi / 180
-         let quaternion = Quaternion<Float>(angle: angle, axis: [0, 1, 0])
-         let basisX = quaternion.act(on: [1, 0, 0])
-         let basisY = quaternion.act(on: [0, 1, 0])
-         let basisZ = quaternion.act(on: [0, 0, 1])
-         quadrants.append(masterQuadrant)
-         quadrants[i].transform {
-           var origin = $0.origin.x * basisX
-           origin.addProduct($0.origin.y, basisY)
-           origin.addProduct($0.origin.z, basisZ)
-           $0.origin = origin
-         }
-       }
-     }
-     for i in quadrants.indices {
-       quadrants[i].transform { $0.origin.y += 23.5 }
-     }
-     
-     if constructFullScene {
-       for i in quadrants.indices {
-         var copy = quadrants[i]
-         copy.transform { $0.origin.y *= -1 }
-         quadrants.append(copy)
-       }
-     }
-     var output = quadrants.flatMap { $0.createAtoms() }
-     
-     if constructFullScene {
-       let floor = Floor(openCenter: true)
-       output += floor.createAtoms().map {
-         var copy = $0
-         copy.origin = SIMD3(-copy.origin.z, copy.origin.y, copy.origin.x)
-         return copy
-       }
-     }
-     
-     let arm = ServoArm()
-     output += arm.createAtoms()
-     return output
-   }
+  static func _15FinishedScene() -> [MRAtom] {
+    let masterQuadrant = Quadrant()
+    var quadrants: [Quadrant] = []
+    quadrants.append(masterQuadrant)
+    
+    // Bypass Swift compiler warnings.
+    let constructFullScene = Bool.random() ? true : true
+    
+    if constructFullScene {
+      for i in 1..<4 {
+        let angle = Float(i) * -90 * .pi / 180
+        let quaternion = Quaternion<Float>(angle: angle, axis: [0, 1, 0])
+        let basisX = quaternion.act(on: [1, 0, 0])
+        let basisY = quaternion.act(on: [0, 1, 0])
+        let basisZ = quaternion.act(on: [0, 0, 1])
+        quadrants.append(masterQuadrant)
+        quadrants[i].transform {
+          var origin = $0.origin.x * basisX
+          origin.addProduct($0.origin.y, basisY)
+          origin.addProduct($0.origin.z, basisZ)
+          $0.origin = origin
+        }
+      }
+    }
+    for i in quadrants.indices {
+      quadrants[i].transform { $0.origin.y += 23.5 }
+    }
+    
+    if constructFullScene {
+      for i in quadrants.indices {
+        var copy = quadrants[i]
+        copy.transform { $0.origin.y *= -1 }
+        quadrants.append(copy)
+      }
+    }
+    var output = quadrants.flatMap { $0.createAtoms() }
+    
+    if constructFullScene {
+      let floor = Floor(openCenter: true)
+      output += floor.createAtoms().map {
+        var copy = $0
+        copy.origin = SIMD3(-copy.origin.z, copy.origin.y, copy.origin.x)
+        return copy
+      }
+    }
+    
+    let arm = ServoArm()
+    output += arm.createAtoms()
+    return output
+  }
+}
+
+enum Media {
+  static func _Architecture() -> [MRAtom] {
+    var output: [MRAtom] = []
+    for plateID in 0..<7 {
+      var plate: [MRAtom] = []
+      if plateID < 6 {
+        plate = createStage1BuildPlate(index: plateID)
+      } else {
+        let product = createBeltLinkProduct()
+        plate = createBuildPlate(product: product, sideHydrogens: false)
+      }
+      var translation: SIMD3<Float> = .zero
+      if plateID >= 6 {
+        translation.y = -6.5
+      } else if plateID >= 3 {
+        translation.y = -3
+      }
+      
+      translation.x =
+      plateID >= 6 ? Float(0) :
+      3 * Float((plateID % 3) - 1)
+      
+      let degrees1 =
+      plateID >= 6 ? Float(20) :
+      plateID >= 3 ? Float(40) : 70
+      
+      let degrees2 =
+      plateID >= 6 ? Float(-45) :
+      Float((plateID % 3) - 1) * -30
+      
+      let quaternion1 = Quaternion<Float>(
+        angle: degrees1 * .pi / 180, axis: [1, 0, 0])
+      let quaternion2 = Quaternion<Float>(
+        angle: degrees2 * .pi / 180, axis: [0, 1, 0])
+      var basis1 = quaternion1.act(on: [1, 0, 0])
+      var basis2 = quaternion1.act(on: [0, 1, 0])
+      var basis3 = quaternion1.act(on: [0, 0, 1])
+      basis1 = quaternion2.act(on: basis1)
+      basis2 = quaternion2.act(on: basis2)
+      basis3 = quaternion2.act(on: basis3)
+      
+      for atomID in plate.indices {
+        var origin = plate[atomID].origin
+        origin.z = -origin.z
+        origin = basis1 * origin.x + basis2 * origin.y + basis3 * origin.z
+        origin += translation
+        plate[atomID].origin = origin
+      }
+      output += plate
+    }
+    return output
+  }
 }
