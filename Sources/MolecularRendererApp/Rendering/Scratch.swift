@@ -66,6 +66,51 @@ func createNanomachinery() -> [MRAtom] {
     for assemblyLine in quadrant.assemblyLines {
       atoms[.geHousing] = assemblyLine.housing.atoms.count
       instances[.geHousing]! += 1
+      
+      let roofPieces = assemblyLine.roofPieces
+      precondition(roofPieces.count == 6)
+      precondition(roofPieces.allSatisfy {
+        $0.atoms.count == roofPieces[0].atoms.count
+      })
+      atoms[.robotArmRoof1] = roofPieces[0].atoms.count
+      atoms[.robotArmRoof2] = roofPieces.last!.atoms.count
+      instances[.robotArmRoof1]! += 2
+      instances[.robotArmRoof2]! += 4
+      
+      for robotArmID in assemblyLine.robotArms.indices {
+        let robotArm = assemblyLine.robotArms[robotArmID]
+        for dodecagon in robotArm.hexagons {
+          atoms[.geCDodecagon] = dodecagon.atoms.count
+          instances[.geCDodecagon]! += 1
+        }
+        for band in robotArm.bands {
+          atoms[.robotArmBand] = band.atoms.count
+          instances[.robotArmBand]! += 1
+        }
+        atoms[.robotArmClaw] = robotArm.claw.atoms.count
+        instances[.robotArmClaw]! += 1
+        
+        let rods = robotArm.controlRods
+        precondition(rods.count == 2)
+        for rodID in 0..<2 {
+          var crystolecule: Media.Crystolecule
+          switch (robotArmID, rodID) {
+          case (0, 0): crystolecule = .receiverRod0
+          case (0, 1): crystolecule = .receiverRod1
+          case (1, 0): crystolecule = .receiverRod2
+          case (1, 1): crystolecule = .receiverRod3
+          case (2, 0): crystolecule = .receiverRod4
+          case (2, 1): crystolecule = .receiverRod5
+          default: fatalError("This should never happen.")
+          }
+          atoms[crystolecule] = rods[rodID].atoms.count
+          instances[crystolecule]! += 1
+        }
+        
+        for tripod in robotArm.tripods {
+          miscellaneousAtomCount += tripod.count
+        }
+      }
     }
     
     // Add the contribution from the spacer housing.
@@ -89,7 +134,13 @@ func createNanomachinery() -> [MRAtom] {
     var chunks: [String] = []
     var result = number
     while result > 0 {
-      chunks.append("\(result % 1000)")
+      // Account for the case where the sequence starts with zero.
+      let chunk = "\(result)"
+      if result >= 1000 {
+        chunks.append(String(chunk.dropFirst(chunk.count - 3)))
+      } else {
+        chunks.append(chunk)
+      }
       result /= 1000
     }
     return chunks.reversed().joined(separator: ",")

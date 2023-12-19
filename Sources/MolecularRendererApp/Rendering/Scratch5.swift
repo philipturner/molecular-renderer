@@ -634,10 +634,13 @@ enum Media {
     case broadcastRod
     case floorHexagon
     case geHousing
-    case geCDodecagons
+    case geCDodecagon
+    case receiverRod0
     case receiverRod1
     case receiverRod2
     case receiverRod3
+    case receiverRod4
+    case receiverRod5
     case robotArmBand
     case robotArmClaw
     case robotArmRoof1
@@ -664,14 +667,20 @@ enum Media {
         return "Floor Hexagon"
       case .geHousing:
         return "Ge Housing"
-      case .geCDodecagons:
+      case .geCDodecagon:
         return "GeC Dodecagon"
+      case .receiverRod0:
+        return "Receiver Rod (0)"
       case .receiverRod1:
         return "Receiver Rod (1)"
       case .receiverRod2:
         return "Receiver Rod (2)"
       case .receiverRod3:
         return "Receiver Rod (3)"
+      case .receiverRod4:
+        return "Receiver Rod (4)"
+      case .receiverRod5:
+        return "Receiver Rod (5)"
       case .robotArmBand:
         return "Robot Arm Band"
       case .robotArmClaw:
