@@ -627,8 +627,8 @@ enum Media {
     return output
   }
   
-  enum Crystolecule: CaseIterable {
-    case backBoard1
+  enum Crystolecule: Int, CaseIterable {
+    case backBoard1 = 0
     case backBoard2
     case beltLink
     case broadcastRod
