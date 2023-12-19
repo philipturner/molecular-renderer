@@ -7,6 +7,7 @@ import Numerics
 
 // TODO: Move this scratch into the hardware catalog instead of a
 // GitHub gist. Name the folder "ConvergentAssemblyArchitecture".
+// - Add thumbnail to folder once the film is released.
 
 func createNanomachinery() -> [MRAtom] {
   // MARK: - Assembly Machinery

@@ -39,11 +39,18 @@ public struct MRQuality {
 
 public enum MRSceneSize {
   /// 0.25 nm grid cells, <1 million atoms
+  /// - cheapest per-pixel cost
+  /// - highest per-atom cost
   case small
   
   /// 0.5 nm grid cells, <8 million atoms
+  /// - higher per-pixel cost
+  /// - cheaper per-atom cost
   case large
   
   /// 0.5 nm grid cells, no limit on atom count, scene must be static
+  /// - highest per-pixel cost
+  /// - zero per-atom cost
+  /// - volume becomes a bottleneck (primary ray intersects too many cells)
   case extreme
 }
