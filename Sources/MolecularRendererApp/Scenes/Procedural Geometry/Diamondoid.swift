@@ -1116,7 +1116,6 @@ struct Diamondoid {
       bondsWithHydrogen.append(i)
     }
     
-    let start = CACurrentMediaTime()
     var bondPairs: [SIMD2<Int>] = []
   outer:
     for (index_i, bond_i) in bondsWithHydrogen.enumerated() {
@@ -1144,8 +1143,6 @@ struct Diamondoid {
         }
       }
     }
-    let end = CACurrentMediaTime()
-//    print("Fixing hydrogens took:", Float(end - start), "s")
     
     var newAtoms: [MRAtom?] = atoms.map { $0 }
     var newBonds: [SIMD2<Int32>?] = bonds.map { $0 }

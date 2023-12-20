@@ -1031,4 +1031,207 @@ enum Media {
     }
     print()
   }
+  
+  // The function returns an optional value so it can function while partially
+  // incomplete.
+  static func createCrystoleculeAtoms(
+    _ crystolecule: Media.Crystolecule
+  ) -> (
+    atoms: [MRAtom]?, offset: SIMD2<Float>?
+  ) {
+    func transformRod(_ rod: Diamondoid) -> Diamondoid {
+      var copy = rod
+      copy.setCenterOfMass(.zero)
+      copy.transform {
+        $0.origin = SIMD3($0.origin.x, -$0.origin.z, $0.origin.y)
+      }
+      return copy
+    }
+    func transformHexagon(_ hexagon: Diamondoid) -> Diamondoid {
+      var copy = hexagon
+      copy.setCenterOfMass(.zero)
+      copy.transform {
+        $0.origin = SIMD3($0.origin.y, -$0.origin.x, $0.origin.z)
+      }
+      return copy
+    }
+    
+    switch crystolecule {
+    case .backBoard1:
+      let lattice1 = createNewBackBoardLattice1()
+      let diamondoid1 = Diamondoid(lattice: lattice1)
+      return (diamondoid1.atoms, SIMD2(10, 10))
+    case .backBoard2:
+      let lattice2 = createNewBackBoardLattice2()
+      let diamondoid3 = Diamondoid(lattice: lattice2)
+      return (diamondoid3.atoms, SIMD2(35, 10))
+    case .beltLink:
+      let lattice = createBeltLink()
+      let masterBeltLink = Diamondoid(lattice: lattice)
+      return (masterBeltLink.atoms, SIMD2(67, 20))
+    case .broadcastRod:
+      let lattice = createBroadcastRod()
+      let rod = Diamondoid(lattice: lattice)
+      return (rod.atoms, SIMD2(40, 35))
+    case .floorHexagon:
+      let lattice = createFloorHexagon(radius: 8.5, thickness: 10)
+      var master = Diamondoid(lattice: lattice)
+      master.setCenterOfMass(.zero)
+      return (transformHexagon(master).atoms, SIMD2(23, 0))
+    case .geHousing:
+      let housingLattice = createAssemblyHousing(terminal: false)
+      var housing1 = Diamondoid(lattice: housingLattice)
+      housing1.setCenterOfMass(.zero)
+      return (housing1.atoms, SIMD2(65, 10))
+    case .geCDodecagon:
+      let dodecagon = RobotArm.masterHexagon
+      return (dodecagon.atoms, SIMD2(67, 42))
+    case .receiverRod0:
+      let rod = RobotArm.createRods(index: 0)[0]
+      return (transformHexagon(transformRod(rod)).atoms, SIMD2(25, 42))
+    case .receiverRod1:
+      let rod = RobotArm.createRods(index: 0)[1]
+      return (transformHexagon(transformRod(rod)).atoms, SIMD2(25, 47))
+    case .receiverRod2:
+      let rod = RobotArm.createRods(index: 1)[0]
+      return (transformHexagon(transformRod(rod)).atoms, SIMD2(40, 39))
+    case .receiverRod3:
+      let rod = RobotArm.createRods(index: 1)[1]
+      return (transformHexagon(transformRod(rod)).atoms, SIMD2(40, 44))
+    case .receiverRod4:
+      let rod = RobotArm.createRods(index: 2)[0]
+      return (transformHexagon(transformRod(rod)).atoms, SIMD2(55, 42))
+    case .receiverRod5:
+      let rod = RobotArm.createRods(index: 2)[1]
+      return (transformHexagon(transformRod(rod)).atoms, SIMD2(55, 47))
+    case .robotArmBand:
+      var band = RobotArm.masterBand
+      band.transform {
+        $0.origin = SIMD3($0.origin.x, $0.origin.z, $0.origin.y)
+      }
+      band.transform {
+        $0.origin = SIMD3(-$0.origin.z, $0.origin.y, $0.origin.x)
+      }
+      return (band.atoms, SIMD2(43, 3))
+    case .robotArmClaw:
+      return (RobotArm.masterClaw.atoms, SIMD2(47, 12))
+    case .robotArmRoof1:
+      let pieces = AssemblyLine.makeRoofPieces(xCenter: 4.5, yHeight: -6.75)
+      var output = transformRod(pieces[1])
+      output.transform {
+        $0.origin = SIMD3(-$0.origin.y, $0.origin.x, $0.origin.z)
+      }
+      return (output.atoms, SIMD2(52, 55))
+    case .robotArmRoof2:
+      let pieces = AssemblyLine.makeRoofPieces(xCenter: 7.5, yHeight: 17)
+      var output = transformRod(pieces[1])
+      output.transform {
+        $0.origin = SIMD3(-$0.origin.y, $0.origin.x, $0.origin.z)
+      }
+      return (output.atoms, SIMD2(20, 55))
+    case .servoArmConnector:
+      let lattice = createServoArmConnector()
+      let connector = Diamondoid(lattice: lattice)
+      return (connector.atoms, SIMD2(72, 23))
+    case .servoArmGripper:
+      let lattice = createServoArmGripper()
+      let gripper = Diamondoid(lattice: lattice)
+      return (gripper.atoms, SIMD2(66.5, 2))
+    case .servoArmHexagon1:
+      let latticeHexagon = createFloorHexagon(radius: 5, thickness: 5)
+      var hexagon = Diamondoid(lattice: latticeHexagon)
+      hexagon.setCenterOfMass(.zero)
+      hexagon.translate(offset: [0, 15.7, -2.5])
+      return (transformHexagon(hexagon).atoms, SIMD2(23, 15))
+    case .servoArmHexagon2:
+      let latticeHexagon = createFloorHexagon(radius: 5, thickness: 5)
+      var hexagon = Diamondoid(lattice: latticeHexagon)
+      hexagon.setCenterOfMass(.zero)
+      hexagon.translate(offset: [0, 15.7, -2.5])
+      
+      let hexagon2Atoms = hexagon.atoms.filter {
+        $0.element != 1 && $0.x < 1e-3
+      }
+      let hexagon2 = Diamondoid(atoms: hexagon2Atoms)
+      return (hexagon2.atoms, SIMD2(19, 27))
+    case .servoArmHexagon3:
+      let latticeHexagon = createFloorHexagon(radius: 5, thickness: 5)
+      var hexagon = Diamondoid(lattice: latticeHexagon)
+      hexagon.setCenterOfMass(.zero)
+      hexagon.translate(offset: [0, 15.7, -2.5])
+      
+      let boundingBox = hexagon.createBoundingBox()
+      let y = (boundingBox.0.y + boundingBox.1.y) / 2
+      let upperHexagonAtoms = hexagon.atoms.filter {
+        ($0.origin.y > y - 1e-3) && ($0.element != 1)
+      }
+      let upperHexagon = Diamondoid(atoms: upperHexagonAtoms)
+      return (transformHexagon(upperHexagon).atoms, SIMD2(27, 27))
+    case .servoArmPart1:
+      let lattice1 = createServoArmPart1()
+      let diamondoid1 = Diamondoid(lattice: lattice1)
+      return (diamondoid1.atoms, SIMD2(74.5, 2))
+    case .weldingStand:
+      let stand = createWeldingStand()
+      let standDiamondoid = Diamondoid(lattice: stand)
+      return (transformRod(standDiamondoid).atoms, SIMD2(75, 42.5))
+    }
+  }
+  
+  static func renderBillOfMaterials() -> [MRAtom] {
+    struct Figure {
+      var atoms: [MRAtom]
+      var bounds: SIMD3<Float>
+      var offset: SIMD2<Float>?
+    }
+    var figures: [Figure?] = []
+    
+    for crystolecule in Media.Crystolecule.allCases {
+      let (atoms, offset) = createCrystoleculeAtoms(crystolecule)
+      guard let atoms else {
+        fatalError("This should never happen.")
+        continue
+      }
+      
+      var min = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+      var max = -min
+      for i in atoms.indices {
+        let origin = atoms[i].origin
+        min.replace(with: origin, where: origin .< min)
+        max.replace(with: origin, where: origin .> max)
+      }
+      let median = (min + max) / 2
+      var centeringOperation = SIMD3<Float>.zero - median
+      centeringOperation.z = 0 - max.z
+      
+      var outputAtoms = atoms
+      for i in outputAtoms.indices {
+        outputAtoms[i].origin += centeringOperation
+      }
+      figures.append(
+        Figure(atoms: outputAtoms, bounds: max - min, offset: offset))
+    }
+    
+    var output: [MRAtom] = []
+    for figureID in figures.indices {
+      guard let figure = figures[figureID] else {
+        continue
+      }
+      // Use these default values until all crystolecules have an offset
+      // manually assigned.
+      let xProgress = Float(figureID % 5)
+      let yProgress = Float(figureID / 5)
+      var x = 10 * xProgress
+      var y = 10 * yProgress
+      if let offset = figure.offset {
+        x = offset.x
+        y = offset.y
+      }
+      for var atom in figure.atoms {
+        atom.origin += SIMD3(x, y, 0)
+        output.append(atom)
+      }
+    }
+    return output
+  }
 }

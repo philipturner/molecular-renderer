@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Numerics
 import simd
 
 fileprivate let defaultPlayerPosition: SIMD3<Float> = [0, 0, 1]
@@ -93,6 +94,38 @@ struct PlayerState {
       .transpose // simd and Metal use the column-major format
     
     return M_a * M_b
+  }
+  
+  /// Accepts the azimuth and zenith in revolutions, returning a rotation
+  /// matrix.
+  ///
+  /// - parameter azimuth: Rotation counterclockwise around the world-space
+  ///   Y axis, where 0 is looking straight ahead. Must be between 0 and 1,
+  ///   otherwise there will be an error.
+  /// - parameter zenith: Rotation counterclockwise around the camera-space
+  ///   U axis, where 0 is looking straight down. Must be between 0 and 0.5,
+  ///   otherwise there will be an error.
+  static func rotation(azimuth: Float, zenith: Float) -> (
+    SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
+  ) {
+    guard azimuth >= 0 && azimuth <= 1 else {
+      fatalError("Invalid azimuth.")
+    }
+    guard zenith >= 0 && zenith <= 0.5 else {
+      fatalError("Invalid zenith.")
+    }
+    let quaternionU = Quaternion<Float>(
+      angle: (zenith - 0.25) * 2 * .pi, axis: [1, 0, 0])
+    let quaternionY = Quaternion<Float>(
+      angle: azimuth * 2 * .pi, axis: [0, 1, 0])
+    
+    var basis1 = quaternionU.act(on: [1, 0, 0])
+    var basis2 = quaternionU.act(on: [0, 1, 0])
+    var basis3 = quaternionU.act(on: [0, 0, 1])
+    basis1 = quaternionY.act(on: basis1)
+    basis2 = quaternionY.act(on: basis2)
+    basis3 = quaternionY.act(on: basis3)
+    return (basis1, basis2, basis3)
   }
 }
 

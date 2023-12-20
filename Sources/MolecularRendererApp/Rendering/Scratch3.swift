@@ -154,27 +154,9 @@ struct AssemblyLine {
     robotArms.append(RobotArm(index: 1))
     robotArms.append(RobotArm(index: 2))
     
-    func makeRoofPieces(xCenter: Float, yHeight: Float) -> [Diamondoid] {
-      let roofPieceLattice = createRoofPieceLattice(xCenter: xCenter)
-      var roofPiece = Diamondoid(lattice: roofPieceLattice)
-      roofPiece.setCenterOfMass(.zero)
-      var output: [Diamondoid] = []
-      
-      let box = roofPiece.createBoundingBox()
-      roofPiece.translate(
-        offset: [0 - box.0.x, yHeight - box.0.y, -0.2 - box.0.z])
-      output.append(roofPiece)
-      
-      for i in output.indices {
-        var copy = output[i]
-        copy.transform { $0.origin.x = -$0.origin.x }
-        output.append(copy)
-      }
-      return output
-    }
-    roofPieces += makeRoofPieces(xCenter: 4.5, yHeight: -6.75)
-    roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 17)
-    roofPieces += makeRoofPieces(xCenter: 7.5, yHeight: 33.5)
+    roofPieces += Self.makeRoofPieces(xCenter: 4.5, yHeight: -6.75)
+    roofPieces += Self.makeRoofPieces(xCenter: 7.5, yHeight: 17)
+    roofPieces += Self.makeRoofPieces(xCenter: 7.5, yHeight: 33.5)
     
     let housingLattice = createAssemblyHousing(terminal: false)
     housing = Diamondoid(lattice: housingLattice)
@@ -188,6 +170,25 @@ struct AssemblyLine {
       }
       buildPlates.append(plate)
     }
+  }
+  
+  static func makeRoofPieces(xCenter: Float, yHeight: Float) -> [Diamondoid] {
+    let roofPieceLattice = createRoofPieceLattice(xCenter: xCenter)
+    var roofPiece = Diamondoid(lattice: roofPieceLattice)
+    roofPiece.setCenterOfMass(.zero)
+    var output: [Diamondoid] = []
+    
+    let box = roofPiece.createBoundingBox()
+    roofPiece.translate(
+      offset: [0 - box.0.x, yHeight - box.0.y, -0.2 - box.0.z])
+    output.append(roofPiece)
+    
+    for i in output.indices {
+      var copy = output[i]
+      copy.transform { $0.origin.x = -$0.origin.x }
+      output.append(copy)
+    }
+    return output
   }
   
   mutating func transform(_ closure: (inout MRAtom) -> Void) {

@@ -37,17 +37,19 @@ extension Renderer {
       relative: animationDelta,
       frameRate: ContentView.frameRate)
     
+    // TODO: Test the new method for computing the rotation matrix.
     let playerState = eventTracker.playerState
     let progress = eventTracker.fovHistory.progress
     let fov = playerState.fovDegrees(progress: progress)
-//    let fov: Float = 150
-    
     let (azimuth, zenith) = playerState.rotations
+    let camera = MRCamera(
+      position: playerState.position,
+      rotation: (azimuth * zenith).columns,
+      fovDegrees: fov)
+    
     self.prepareRendering(
       animationTime: animationTime,
-      fov: fov,
-      position: playerState.position,
-      rotation: azimuth * zenith,
+      camera: camera,
       frameID: frameID,
       framesPerSecond: 120)
     
@@ -91,12 +93,16 @@ extension Renderer {
         absolute: frameID * framesPerFrame,
         relative: framesPerFrame,
         frameRate: 100 * framesPerFrame)
+      let rotation = PlayerState
+        .makeRotation(azimuth: 0)
+      let camera = MRCamera(
+        position: [0, 0, 0],
+        rotation: rotation.columns,
+        fovDegrees: 90)
       
       self.prepareRendering(
         animationTime: time,
-        fov: 90,
-        position: [0, 0, 0],
-        rotation: PlayerState.makeRotation(azimuth: 0),
+        camera: camera,
         frameID: frameID,
         framesPerSecond: 100)
       
@@ -110,9 +116,7 @@ extension Renderer {
   
   private func prepareRendering(
     animationTime: MRTimeContext,
-    fov: Float,
-    position: SIMD3<Float>,
-    rotation: simd_float3x3,
+    camera: MRCamera,
     frameID: Int,
     framesPerSecond: Int
   ) {
@@ -122,21 +126,12 @@ extension Renderer {
       styleProvider: styleProvider,
       useMotionVectors: animationTime.absolute.frames > 0)
     
-    var _fov = fov
-    var _position = position
-    var _rotation = rotation
-    if Self.programCamera {
-      _fov = 90
-      _position = [0, 0, 1]
-      _rotation = matrix_identity_float3x3
-    }
-    
     var lights: [MRLight] = []
     let cameraLight = MRLight(
-      origin: _position,
+      origin: camera.position,
       diffusePower: 0.6, specularPower: 0.6)
     let cameraLight2 = MRLight(
-      origin: _position + _rotation * [0, 0, -1],
+      origin: camera.position - camera.rotation.2 * 1,
       diffusePower: 0.4, specularPower: 0.4)
     lights.append(cameraLight)
     lights.append(cameraLight2)
@@ -144,9 +139,7 @@ extension Renderer {
     let quality = MRQuality(
       minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
     renderingEngine.setCamera(
-      fovDegrees: _fov,
-      position: _position,
-      rotation: _rotation,
+      camera: camera,
       lights: lights,
       quality: quality)
   }

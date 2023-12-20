@@ -32,7 +32,6 @@ class Renderer {
   // Camera scripting settings.
   static let recycleSimulation: Bool = false
   static let productionRender: Bool = false
-  static let programCamera: Bool = false
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator

@@ -236,6 +236,7 @@
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98B25A112B30D65100081A61 /* Scratch5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch5.swift; sourceTree = "<group>"; };
+		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
@@ -282,13 +283,11 @@
 		98F1FE522B2F901200807F62 /* Scratch4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch4.swift; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
-		98F2F5D42A608DBD006216F4 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F638BE2A34DC5800F51E95 /* Styles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Styles.swift; sourceTree = "<group>"; };
 		98F638C22A34F4EC00F51E95 /* AtomicMasses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtomicMasses.swift; sourceTree = "<group>"; };
 		98F638C42A34F78A00F51E95 /* MRAtom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtom.swift; sourceTree = "<group>"; };
-		98F638CA2A34F94F00F51E95 /* MRProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRProvider.swift; sourceTree = "<group>"; };
 		98F638CC2A34F97300F51E95 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
 		98F83E1C2AE496C40037E31A /* DFT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DFT.md; sourceTree = "<group>"; };
 		98F83E1E2AE4BF630037E31A /* Cargo.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
@@ -752,11 +751,10 @@
 				980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */,
 				98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Preprocessing.swift */,
 				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
-				98F638CA2A34F94F00F51E95 /* MRProvider.swift */,
+				98B25A132B33478400081A61 /* MRCamera.swift */,
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
-				98F2F5D42A608DBD006216F4 /* Settings.swift */,
 			);
 			path = MolecularRenderer;
 			sourceTree = "<group>";
