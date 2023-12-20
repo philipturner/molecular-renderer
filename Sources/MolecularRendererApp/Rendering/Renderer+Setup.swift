@@ -45,10 +45,6 @@ extension Renderer {
         saveGIF(name: name)
       }
     } else {
-      //    self.atomProvider = OctaneReference().provider
-      //    self.atomProvider = DiamondoidCollision().provider
-      //      self.atomProvider = VdwOscillator().provider
-      
       serializer.save(
         fileName: simulationName,
         provider: atomProvider as! OpenMM_AtomProvider)

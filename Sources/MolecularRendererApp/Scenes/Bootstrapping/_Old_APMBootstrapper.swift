@@ -10,7 +10,7 @@ import MolecularRenderer
 import QuaternionModule
 import simd
 
-struct _Old_APMBootstrapper: MRAtomProvider {
+class _Old_APMBootstrapper: MRAtomProvider {
   var surface = GoldSurface()
   var habTools: [HabTool]
   var reportedAtoms = false
@@ -55,7 +55,7 @@ struct _Old_APMBootstrapper: MRAtomProvider {
     }
   }
   
-  mutating func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTimeContext) -> [MRAtom] {
     var atoms = surface.atoms
     for habTool in habTools {
       atoms.append(contentsOf: habTool.atoms)

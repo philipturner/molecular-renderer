@@ -7,52 +7,7 @@
 
 import Metal
 import MetalFX
-import func QuartzCore.CACurrentMediaTime
 import class QuartzCore.CAMetalLayer
-import struct simd.simd_float3x3
-import func simd.distance_squared
-
-public class MRRendererDescriptor {
-  /// Required. Location of the MolecularRendererGPU binary.
-  public var url: URL?
-  
-  /// Required. Width of the render target after upscaling.
-  public var width: Int?
-  
-  /// Required. Height of the render target after upscaling.
-  public var height: Int?
-  
-  /// Optional. Ignored in the offline mode, which instead downscales 2x.
-  public var upscaleFactor: Int = 1
-  
-  /// Optional. A mode with unacceptable performance in real-time, but which can
-  /// reliably produce renders at a low resolution. MolecularRenderer is not
-  /// optimized for production rendering, only real-time rendering. However, it
-  /// can do production rendering, which this mode is for.
-  public var offline: Bool = false
-  
-  /// Optional. Whether to use a mode that decreases render stage performance,
-  /// to improve geometry stage performance.
-  ///
-  /// The default value optimizes performance for small systems.
-  public var sceneSize: MRSceneSize = .small
-  
-  /// Optional. Whether to print a space-separated list of microsecond latencies
-  /// for each stage of the render pipeline.
-  public var reportPerformance: Bool = false
-  
-  public init() {
-    
-  }
-  
-  func assertValid() {
-    guard url != nil,
-          width != nil,
-          height != nil else {
-      fatalError("'MRRendererDescriptor' not complete.")
-    }
-  }
-}
 
 public class MRRenderer {
   var offline: Bool
@@ -66,6 +21,10 @@ public class MRRenderer {
   var time: MRTimeContext!
   var renderIndex: Int = 0
   var resetTracker: ResetTracker = .init()
+  
+  // Objects that supply data to the renderer.
+  var atomProvider: MRAtomProvider!
+  var atomStyleProvider: MRAtomStyleProvider!
   
   // Main rendering resources.
   var device: MTLDevice
@@ -295,6 +254,9 @@ extension MRRenderer {
   // This should be called as early as possible each frame, to hide any latency
   // between now and when it can encode the rendering work.
   private func updateResources() {
+    self.updateGeometry(time)
+    self.accelBuilder.updateResources()
+    
     self.jitterFrameID += 1
     if offline {
       self.jitterOffsets = SIMD2(repeating: 0)
@@ -442,8 +404,11 @@ extension MRRenderer {
   }
   
   private func render() -> MTLCommandBuffer {
+    // TODO: Refactor, splitting into some separate files:
+    // - MRRenderer + MRRendererDescriptor -> MRRenderer
+    // - MRRenderer+Update
+    // - MRRenderer+Render
     self.updateResources()
-    self.accelBuilder.updateResources()
     
     var commandBuffer = commandQueue.makeCommandBuffer()!
     

@@ -137,9 +137,6 @@ struct Arguments {
 // MARK: - MRRenderer Methods
 
 extension MRRenderer {
-  // TODO: Separate the act of setting time vs. atoms vs. camera into different
-  // functions, which must be called in a specific order.
-  
   // Only call this once per frame, otherwise there will be an error.
   public func setCamera(
     camera: MRCamera,

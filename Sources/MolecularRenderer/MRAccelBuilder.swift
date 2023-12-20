@@ -10,24 +10,6 @@ import Metal
 import simd
 import QuartzCore
 
-public enum MRSceneSize {
-  /// 0.25 nm grid cells, <1 million atoms
-  /// - cheapest per-pixel cost
-  /// - highest per-atom cost
-  case small
-  
-  /// 0.5 nm grid cells, <8 million atoms
-  /// - higher per-pixel cost
-  /// - cheaper per-atom cost
-  case large
-  
-  /// 0.5 nm grid cells, no limit on atom count, scene must be static
-  /// - highest per-pixel cost
-  /// - zero per-atom cost
-  /// - volume becomes a bottleneck (primary ray intersects too many cells)
-  case extreme
-}
-
 // There should be an option to enable this performance reporting mechanism, in
 // the descriptor for 'MRRenderer'.
 struct MRFrameReport {
@@ -58,12 +40,12 @@ class MRAccelBuilder {
   var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
   
   // Safeguard access to these using a dispatch queue.
+  var reportPerformance: Bool = false
   var frameReportQueue: DispatchQueue = .init(
     label: "com.philipturner.MolecularRenderer.MRAccelBuilder.frameReportQueue")
   var frameReports: [MRFrameReport] = []
   var frameReportCounter: Int = 0
   static let frameReportHistorySize: Int = 10
-  var reportPerformance: Bool = false
   
   // Data for uniform grids.
   var sceneSize: MRSceneSize?
@@ -176,6 +158,25 @@ extension MRAccelBuilder {
   ) {
     buffers[index] = object
   }
+  
+  func allocate(
+    _ buffer: inout MTLBuffer?,
+    currentMaxElements: inout Int,
+    desiredElements: Int,
+    bytesPerElement: Int
+  ) -> MTLBuffer {
+    if let buffer, currentMaxElements >= desiredElements {
+      return buffer
+    }
+    while currentMaxElements < desiredElements {
+      currentMaxElements = currentMaxElements << 1
+    }
+    
+    let bufferSize = currentMaxElements * bytesPerElement
+    let newBuffer = device.makeBuffer(length: bufferSize)!
+    buffer = newBuffer
+    return newBuffer
+  }
 }
 
 // Only call these methods once per frame.
@@ -212,186 +213,6 @@ extension MRAccelBuilder {
 }
 
 extension MRAccelBuilder {
-  // Utility for exponentially expanding memory allocations.
-  private func allocate(
-    _ buffer: inout MTLBuffer?,
-    currentMaxElements: inout Int,
-    desiredElements: Int,
-    bytesPerElement: Int
-  ) -> MTLBuffer {
-    if let buffer, currentMaxElements >= desiredElements {
-      return buffer
-    }
-    while currentMaxElements < desiredElements {
-      currentMaxElements = currentMaxElements << 1
-    }
-    
-    let bufferSize = currentMaxElements * bytesPerElement
-    let newBuffer = device.makeBuffer(length: bufferSize)!
-    buffer = newBuffer
-    return newBuffer
-  }
-  
-  func buildDenseGrid(
-    encoder: MTLComputeCommandEncoder
-  ) {
-    if sceneSize == .extreme, builtGrid {
-      return
-    }
-    builtGrid = true
-    
-    guard let sceneSize else {
-      fatalError("Voxel size denominator not set.")
-    }
-    
-    let voxel_width_numer: Float = 4
-    let voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
-    let statisticsStart = CACurrentMediaTime()
-    let statistics = denseGridStatistics(
-      atoms: atoms,
-      styles: styles,
-      voxel_width_numer: voxel_width_numer,
-      voxel_width_denom: voxel_width_denom)
-    let statisticsEnd = CACurrentMediaTime()
-    let statisticsDuration = statisticsEnd - statisticsStart
-    
-    // The first rendered frame will have an ID of 1.
-    frameReportCounter += 1
-    let performance = frameReportQueue.sync { () -> SIMD3<Double> in
-      // Remove frames too far back in the history.
-      let minimumID = frameReportCounter - Self.frameReportHistorySize
-      while frameReports.count > 0, frameReports.first!.frameID < minimumID {
-        frameReports.removeFirst()
-      }
-      
-      var dataSize: Int = 0
-      var output: SIMD3<Double> = .zero
-      for report in frameReports {
-        if report.geometryTime >= 0, report.renderTime >= 0 {
-          dataSize += 1
-          output[0] += report.preprocessingTime
-          output[1] += report.geometryTime
-          output[2] += report.renderTime
-        }
-      }
-      if dataSize > 0 {
-        output /= Double(dataSize)
-      }
-      
-      let report = MRFrameReport(
-        frameID: frameReportCounter,
-        preprocessingTime: statisticsDuration,
-        geometryTime: 1,
-        renderTime: 1)
-      frameReports.append(report)
-      return output
-    }
-    if reportPerformance, any(performance .> 0) {
-      print(
-        Int(performance[0] * 1e6),
-        Int(performance[1] * 1e6),
-        Int(performance[2] * 1e6))
-    }
-    
-    let minCoordinates = SIMD3(statistics.boundingBox.min.x,
-                               statistics.boundingBox.min.y,
-                               statistics.boundingBox.min.z)
-    let maxCoordinates = SIMD3(statistics.boundingBox.max.x,
-                               statistics.boundingBox.max.y,
-                               statistics.boundingBox.max.z)
-    let maxMagnitude = simd_max(abs(minCoordinates), abs(maxCoordinates))
-    self.gridDims = SIMD3<UInt16>(2 * ceil(
-      maxMagnitude * voxel_width_denom / voxel_width_numer))
-    
-    // If some atoms fly extremely far out of bounds, prevent the app from
-    // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
-    // creates a 2 GB memory allocation.
-    self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
-    let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
-    
-    if sceneSize != .extreme {
-      guard statistics.references < 16 * 1024 * 1024 else {
-        fatalError("Too many references for a dense grid.")
-      }
-    }
-    
-    // Allocate new memory.
-    let atomsBuffer = allocate(
-      &denseGridAtoms[ringIndex],
-      currentMaxElements: &maxAtoms,
-      desiredElements: atoms.count,
-      bytesPerElement: 16)
-    memcpy(denseGridAtoms[ringIndex]!.contents(), atoms, atoms.count * 16)
-    
-    // Add 8 to the number of slots, so the counters can be located at the start
-    // of the buffer.
-    let numSlots = (totalCells + 127) / 128 * 128
-    let atomicSpan = (sceneSize == .extreme) ? 2 : 1
-    let dataBuffer = allocate(
-      &denseGridData,
-      currentMaxElements: &maxGridSlots,
-      desiredElements: 8 + numSlots * atomicSpan,
-      bytesPerElement: 4)
-    let countersBuffer = allocate(
-      &denseGridCounters,
-      currentMaxElements: &maxGridCells,
-      desiredElements: totalCells,
-      bytesPerElement: 4)
-    
-    let referencesBuffer = allocate(
-      &denseGridReferences,
-      currentMaxElements: &maxGridReferences,
-      desiredElements: statistics.references,
-      bytesPerElement: 4)
-    
-    encoder.setComputePipelineState(memsetPipeline)
-    encoder.setBuffer(dataBuffer, offset: 0, index: 0)
-    encoder.dispatchThreads(
-      MTLSizeMake(8 + numSlots * atomicSpan, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
-    
-    struct UniformGridArguments {
-      var gridDims: SIMD3<UInt16>
-      var cellSphereTest: UInt16
-      var worldToVoxelTransform: Float
-    }
-    
-    var arguments: UniformGridArguments = .init(
-      gridDims: gridDims,
-      cellSphereTest: 1,
-      worldToVoxelTransform: voxel_width_denom / voxel_width_numer)
-    let argumentsStride = MemoryLayout<UniformGridArguments>.stride
-    encoder.setBytes(&arguments, length: argumentsStride, index: 0)
-    
-    styles.withUnsafeBufferPointer {
-      let length = $0.count * MemoryLayout<MRAtomStyle>.stride
-      encoder.setBytes($0.baseAddress!, length: length, index: 1)
-    }
-    
-    // Set the data at offset 32, to fit the counters before it.
-    encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
-    encoder.setBuffer(dataBuffer, offset: 32, index: 3)
-    encoder.setBuffer(countersBuffer, offset: 0, index: 4)
-    encoder.setBuffer(dataBuffer, offset: ringIndex * 4, index: 5)
-    encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
-    encoder.setBuffer(dataBuffer, offset: ringIndex * 4 + 16, index: 7)
-    
-    encoder.setComputePipelineState(densePass1Pipeline)
-    encoder.dispatchThreads(
-      MTLSizeMake(atoms.count, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-    
-    encoder.setComputePipelineState(densePass2Pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSizeMake(numSlots / 128, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-    
-    encoder.setComputePipelineState(densePass3Pipeline)
-    encoder.dispatchThreads(
-      MTLSizeMake(atoms.count, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-  }
-  
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
     precondition(all(gridDims .> 0), "Forgot to encode the grid construction.")
@@ -409,4 +230,3 @@ extension MRAccelBuilder {
     encoder.setBuffer(motionVectorBuffers[ringIndex]!, offset: 0, index: 6)
   }
 }
-

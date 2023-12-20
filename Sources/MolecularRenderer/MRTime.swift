@@ -59,24 +59,19 @@ struct ResetTracker {
 
 // MARK: - MRRenderer Methods
 
-// TODO: Change this function to "setAtomProvider" and move into MRAtom.swift.
-
 extension MRRenderer {
-  public func setGeometry(
-    time: MRTimeContext,
-    atomProvider: inout MRAtomProvider,
-    styleProvider: MRAtomStyleProvider,
-    useMotionVectors: Bool
-  ) {
+  public func setTime(_ time: MRTimeContext) {
     self.time = time
-    
+  }
+  
+  func updateGeometry(_ time: MRTimeContext) {
     if accelBuilder.sceneSize == .extreme, accelBuilder.builtGrid {
       return
     }
     
     var atoms = atomProvider.atoms(time: time)
-    let styles = styleProvider.styles
-    let available = styleProvider.available
+    let styles = atomStyleProvider.styles
+    let available = atomStyleProvider.available
     
     for i in atoms.indices {
       let element = Int(atoms[i].element)
@@ -92,7 +87,7 @@ extension MRRenderer {
       }
     }
     
-    if useMotionVectors {
+    if time.absolute.frames > 0 {
       guard accelBuilder.atoms.count == atoms.count else {
         fatalError(
           "Used motion vectors when last frame had different atom count.")

@@ -5,15 +5,7 @@
 //  Created by Philip Turner on 4/6/23.
 //
 
-import struct Metal.MTLPackedFloat3
-import func Metal.MTLPackedFloat3Make
-
-#if arch(arm64)
-
-#else
-// x86_64 is not supported; we are just bypassing a compiler error.
-public typealias Float16 = UInt16
-#endif
+import Foundation
 
 // MARK: - MRAtom
 
@@ -75,23 +67,10 @@ public struct MRAtom: Equatable {
   public func getColor(styles: UnsafePointer<MRAtomStyle>) -> SIMD3<Float16> {
     styles[Int(element)].color
   }
-  
-  @inlinable @inline(__always)
-  public func getBoundingBox(
-    styles: UnsafePointer<MRAtomStyle>
-  ) -> MRBoundingBox {
-    let radius = getRadius(styles: styles)
-    let min = origin - Float(radius)
-    let max = origin + Float(radius)
-    return MRBoundingBox(
-      min: MTLPackedFloat3Make(min.x, min.y, min.z),
-      max: MTLPackedFloat3Make(max.x, max.y, max.z))
-  }
 }
 
-// A finite-state machine that changes state based on time.
 public protocol MRAtomProvider {
-  mutating func atoms(time: MRTimeContext) -> [MRAtom]
+  func atoms(time: MRTimeContext) -> [MRAtom]
 }
 
 // MARK: - MRAtomStyle
@@ -147,31 +126,27 @@ public func MRMakeAtomStyles(
   available: [Bool]
 ) -> [MRAtomStyle] {
 #if arch(x86_64)
-    let atomColors: [SIMD3<Float16>] = []
+  let atomColors: [SIMD3<Float16>] = []
 #else
-    let atomColors = colors.map(SIMD3<Float16>.init)
+  let atomColors = colors.map(SIMD3<Float16>.init)
 #endif
-    let atomRadii = radii.map { $0 * 1e9 }.map(Float16.init)
-    
-    precondition(available.count == 127)
-    return available.indices.map { i in
-      let index = available[i] ? i : 0
-      return MRAtomStyle(color: atomColors[index], radius: atomRadii[index])
-    }
+  let atomRadii = radii.map { $0 * 1e9 }.map(Float16.init)
+  
+  precondition(available.count == 127)
+  return available.indices.map { i in
+    let index = available[i] ? i : 0
+    return MRAtomStyle(color: atomColors[index], radius: atomRadii[index])
+  }
 }
 
-// MARK: - MRBoundingBox
+// MARK: - MRRenderer Methods
 
-// TODO: Remove MRBoundingBox from the API, and thus the Metal dependency.
-
-@_alignment(8)
-public struct MRBoundingBox {
-  public var min: MTLPackedFloat3
-  public var max: MTLPackedFloat3
+extension MRRenderer {
+  public func setAtomProvider(_ provider: MRAtomProvider) {
+    self.atomProvider = provider
+  }
   
-  @inlinable @inline(__always)
-  public init(min: MTLPackedFloat3, max: MTLPackedFloat3) {
-    self.min = min
-    self.max = max
+  public func setAtomStyleProvider(_ provider: MRAtomStyleProvider) {
+    self.atomStyleProvider = provider
   }
 }
