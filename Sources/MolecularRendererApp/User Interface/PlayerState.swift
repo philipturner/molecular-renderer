@@ -100,22 +100,18 @@ struct PlayerState {
   /// matrix.
   ///
   /// - parameter azimuth: Rotation counterclockwise around the world-space
-  ///   Y axis, where 0 is looking straight ahead. Must be between 0 and 1,
-  ///   otherwise there will be an error.
+  ///   Y axis, where 0 is looking straight ahead.
   /// - parameter zenith: Rotation counterclockwise around the camera-space
-  ///   U axis, where 0 is looking straight down. Must be between 0 and 0.5,
+  ///   U axis, where 0 is looking straight down. Must be between -0.25 and 0.25,
   ///   otherwise there will be an error.
   static func rotation(azimuth: Float, zenith: Float) -> (
     SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
   ) {
-    guard azimuth >= 0 && azimuth <= 1 else {
-      fatalError("Invalid azimuth.")
-    }
-    guard zenith >= 0 && zenith <= 0.5 else {
+    guard zenith >= -0.25 && zenith <= 0.25 else {
       fatalError("Invalid zenith.")
     }
     let quaternionU = Quaternion<Float>(
-      angle: (zenith - 0.25) * 2 * .pi, axis: [1, 0, 0])
+      angle: zenith * 2 * .pi, axis: [1, 0, 0])
     let quaternionY = Quaternion<Float>(
       angle: azimuth * 2 * .pi, axis: [0, 1, 0])
     

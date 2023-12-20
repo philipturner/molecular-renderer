@@ -41,10 +41,23 @@ extension Renderer {
     let playerState = eventTracker.playerState
     let progress = eventTracker.fovHistory.progress
     let fov = playerState.fovDegrees(progress: progress)
-    let (azimuth, zenith) = playerState.rotations
+    var rotation: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
+    
+    if frameID % 1200 < 600 {
+      let (azimuth, zenith) = playerState.rotations
+      rotation = (azimuth * zenith).columns
+      print("rot 1")
+    } else {
+      var (azimuth, zenith) = playerState.orientationHistory.load().phase
+      azimuth = -azimuth
+      zenith -= 0.25
+      rotation = PlayerState.rotation(azimuth: Float(azimuth), zenith: Float(zenith))
+      print("rot 2")
+    }
+    
     let camera = MRCamera(
       position: playerState.position,
-      rotation: (azimuth * zenith).columns,
+      rotation: rotation,
       fovDegrees: fov)
     
     self.prepareRendering(
