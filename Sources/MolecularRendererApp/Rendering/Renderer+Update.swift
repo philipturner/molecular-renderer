@@ -37,23 +37,13 @@ extension Renderer {
       relative: animationDelta,
       frameRate: ContentView.frameRate)
     
-    // TODO: Test the new method for computing the rotation matrix.
     let playerState = eventTracker.playerState
     let progress = eventTracker.fovHistory.progress
     let fov = playerState.fovDegrees(progress: progress)
     var rotation: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
     
-    if frameID % 1200 < 600 {
-      let (azimuth, zenith) = playerState.rotations
-      rotation = (azimuth * zenith).columns
-      print("rot 1")
-    } else {
-      var (azimuth, zenith) = playerState.orientationHistory.load().phase
-      azimuth = -azimuth
-      zenith -= 0.25
-      rotation = PlayerState.rotation(azimuth: Float(azimuth), zenith: Float(zenith))
-      print("rot 2")
-    }
+    let (azimuth, zenith) = playerState.orientations
+    rotation = PlayerState.rotation(azimuth: azimuth, zenith: zenith)
     
     let camera = MRCamera(
       position: playerState.position,
@@ -106,11 +96,10 @@ extension Renderer {
         absolute: frameID * framesPerFrame,
         relative: framesPerFrame,
         frameRate: 100 * framesPerFrame)
-      let rotation = PlayerState
-        .makeRotation(azimuth: 0)
+      let rotation = PlayerState.rotation(azimuth: 0, zenith: 0)
       let camera = MRCamera(
         position: [0, 0, 0],
-        rotation: rotation.columns,
+        rotation: rotation,
         fovDegrees: 90)
       
       self.prepareRendering(

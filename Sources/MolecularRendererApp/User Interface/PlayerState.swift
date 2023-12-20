@@ -22,78 +22,25 @@ struct PlayerState {
     repeating: Orientation(azimuth: 0, zenith: 0.25), count: historyLength)
   
   // Use azimuth * zenith to get the correct orientation from Minecraft.
-  var rotations: (azimuth: simd_float3x3, zenith: simd_float3x3) {
-    // Assume that the world space axes are x, y, z and the camera space axes
-    // are u, v, w
-    // Assume that the azimuth angle is a and the zenith angle is b
-    // Assume that the ray direction in world space is r = (rx, ry, rz) and in
-    // camera space is s = (su, sv, sw)
-
-    // The transformation matrix can be obtained by multiplying two rotation
-    // matrices: one for azimuth and one for zenith
-    // The azimuth rotation matrix rotates the world space axes around the
-    // y-axis by -a radians
-    // The zenith rotation matrix rotates the camera space axes around the
-    // u-axis by -b radians
-    
-    var (azimuth, zenith) = orientationHistory.load().phase
-    azimuth = -azimuth
-    zenith = zenith - 0.25
-    
-    let x: SIMD2<Double> = .init(azimuth, zenith) * 2
-    var sinvals: SIMD2<Double> = .zero
-    var cosvals: SIMD2<Double> = .zero
-    _simd_sincospi_d2(x, &sinvals, &cosvals)
-    
-    let sina = Float(sinvals[0])
-    let cosa = Float(cosvals[0])
-    let sinb = Float(sinvals[1])
-    let cosb = Float(cosvals[1])
-    
-    // The azimuth rotation matrix is:
-    let M_a = simd_float3x3(SIMD3(cosa, 0, sina),
-                            SIMD3(0, 1, 0),
-                            SIMD3(-sina, 0, cosa))
-      .transpose // simd and Metal use the column-major format
-
-    // The zenith rotation matrix is:
-    let M_b = simd_float3x3(SIMD3(1, 0, 0),
-                            SIMD3(0, cosb, -sinb),
-                            SIMD3(0, sinb, cosb))
-      .transpose // simd and Metal use the column-major format
-    
-    return (azimuth: M_a, zenith: M_b)
+  // Assume that the world space axes are x, y, z and the camera space axes
+  // are u, v, w
+  // Assume that the azimuth angle is a and the zenith angle is b
+  // Assume that the ray direction in world space is r = (rx, ry, rz) and in
+  // camera space is s = (su, sv, sw)
+  //
+  // The transformation matrix can be obtained by multiplying two rotation
+  // matrices: one for azimuth and one for zenith
+  // The azimuth rotation matrix rotates the world space axes around the
+  // y-axis by -a radians
+  // The zenith rotation matrix rotates the camera space axes around the
+  // u-axis by -b radians
+  var orientations: (azimuth: Float, zenith: Float) {
+    orientationHistory.load().phase
   }
   
   // FOV dilation due to sprinting.
   func fovDegrees(progress: Float) -> Float {
     return simd_mix(90, 90 * 1.20, progress)
-  }
-  
-  static func makeRotation(azimuth: Double) -> simd_float3x3 {
-    let x: SIMD2<Double> = .init(azimuth / .pi, 0)
-    var sinvals: SIMD2<Double> = .zero
-    var cosvals: SIMD2<Double> = .zero
-    _simd_sincospi_d2(x, &sinvals, &cosvals)
-    
-    let sina = Float(sinvals[0])
-    let cosa = Float(cosvals[0])
-    let sinb = Float(sinvals[1])
-    let cosb = Float(cosvals[1])
-    
-    // The azimuth rotation matrix is:
-    let M_a = simd_float3x3(SIMD3(cosa, 0, sina),
-                            SIMD3(0, 1, 0),
-                            SIMD3(-sina, 0, cosa))
-      .transpose // simd and Metal use the column-major format
-
-    // The zenith rotation matrix is:
-    let M_b = simd_float3x3(SIMD3(1, 0, 0),
-                            SIMD3(0, cosb, -sinb),
-                            SIMD3(0, sinb, cosb))
-      .transpose // simd and Metal use the column-major format
-    
-    return M_a * M_b
   }
   
   /// Accepts the azimuth and zenith in revolutions, returning a rotation
@@ -189,8 +136,11 @@ struct Orientation {
     self.normalize()
   }
   
-  var phase: (azimuth: Double, zenith: Double) {
-    return (self.azimuthRemainder, self.zenith)
+  var phase: (azimuth: Float, zenith: Float) {
+    return (
+      Float(-self.azimuthRemainder),
+      Float( self.zenith - 0.25)
+    )
   }
 }
 

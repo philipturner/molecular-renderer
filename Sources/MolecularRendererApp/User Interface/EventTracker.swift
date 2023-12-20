@@ -191,7 +191,9 @@ class EventTracker {
 extension EventTracker {
   func updatePosition(time: MRTime) {
     // In Minecraft, WASD only affects horizontal position, even when flying.
-    let azimuth = playerState.rotations.azimuth
+    let (azimuth, _) = playerState.orientations
+    let rotation = PlayerState.rotation(azimuth: azimuth, zenith: 0)
+//    let azimuth = playerState.rotations.azimuth
     
     var anyKeySprinting = false
     for keyCode in keyCodes {
@@ -215,7 +217,11 @@ extension EventTracker {
         let fast = walkingSpeed * 5
         let speed = cross_platform_mix(slow, fast, newState.history.progress)
         let delta = speed * Float(time.relative.seconds)
-        let worldSpaceDirection = azimuth * cameraSpaceDirection
+        
+        var worldSpaceDirection: SIMD3<Float> = .zero
+        worldSpaceDirection += rotation.0 * cameraSpaceDirection.x
+        worldSpaceDirection += rotation.1 * cameraSpaceDirection.y
+        worldSpaceDirection += rotation.2 * cameraSpaceDirection.z
         playerState.position += worldSpaceDirection * delta
       }
     }
