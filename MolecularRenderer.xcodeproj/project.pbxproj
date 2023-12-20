@@ -237,8 +237,10 @@
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98B25A112B30D65100081A61 /* Scratch5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch5.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
-		98B25A142B334F6700081A61 /* MRRendererDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRendererDescriptor.swift; sourceTree = "<group>"; };
+		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Update.swift"; sourceTree = "<group>"; };
+		98B25A182B335F7600081A61 /* MRRenderer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Render.swift"; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
@@ -755,7 +757,9 @@
 				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
 				98B25A132B33478400081A61 /* MRCamera.swift */,
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
-				98B25A142B334F6700081A61 /* MRRendererDescriptor.swift */,
+				98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */,
+				98B25A182B335F7600081A61 /* MRRenderer+Render.swift */,
+				98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */,
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
 				98B25A162B33562E00081A61 /* Utilities.swift */,

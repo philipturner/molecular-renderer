@@ -63,44 +63,4 @@ extension MRRenderer {
   public func setTime(_ time: MRTimeContext) {
     self.time = time
   }
-  
-  func updateGeometry(_ time: MRTimeContext) {
-    if accelBuilder.sceneSize == .extreme, accelBuilder.builtGrid {
-      return
-    }
-    
-    var atoms = atomProvider.atoms(time: time)
-    let styles = atomStyleProvider.styles
-    let available = atomStyleProvider.available
-    
-    for i in atoms.indices {
-      let element = Int(atoms[i].element)
-      if available[element] {
-        let radius = styles[element].radius
-        atoms[i].radiusSquared = radius * radius
-        atoms[i].flags = 0
-      } else {
-        let radius = styles[0].radius
-        atoms[i].element = 0
-        atoms[i].radiusSquared = radius * radius
-        atoms[i].flags = 0x1 | 0x2
-      }
-    }
-    
-    if time.absolute.frames > 0 {
-      guard accelBuilder.atoms.count == atoms.count else {
-        fatalError(
-          "Used motion vectors when last frame had different atom count.")
-      }
-      
-      accelBuilder.motionVectors = (0..<atoms.count).map { i -> SIMD3<Float> in
-        atoms[i].origin - accelBuilder.atoms[i].origin
-      }
-    } else {
-      accelBuilder.motionVectors = Array(repeating: .zero, count: atoms.count)
-    }
-    
-    self.accelBuilder.atoms = atoms
-    self.accelBuilder.styles = styles
-  }
 }
