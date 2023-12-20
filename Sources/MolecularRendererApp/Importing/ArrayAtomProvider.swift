@@ -19,7 +19,7 @@ struct ArrayAtomProvider: MRAtomProvider {
     self.init(centers.map { MRAtom(origin: $0, element: 6)})
   }
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     return atoms
   }
   
@@ -42,7 +42,7 @@ struct MovingAtomProvider: MRAtomProvider {
     self.velocity = velocity
   }
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     let delta = velocity * Float(time.absolute.seconds)
     return atoms.map {
       var copy = $0

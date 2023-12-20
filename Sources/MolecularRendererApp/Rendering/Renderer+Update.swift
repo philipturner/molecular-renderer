@@ -15,7 +15,7 @@ extension Renderer {
     
     let frameDelta = coordinator.vsyncHandler.updateFrameID()
     let frameID = coordinator.vsyncHandler.frameID
-    let irlTime = MRTimeContext(
+    let irlTime = MRTime(
       absolute: frameID,
       relative: frameDelta,
       frameRate: ContentView.frameRate)
@@ -32,7 +32,7 @@ extension Renderer {
       animationFrameID = 0
     }
     animationFrameID += animationDelta
-    let animationTime = MRTimeContext(
+    let animationTime = MRTime(
       absolute: animationFrameID,
       relative: animationDelta,
       frameRate: ContentView.frameRate)
@@ -89,7 +89,7 @@ extension Renderer {
         print("Timestamp: \(String(format: "%.2f", timeDouble))")
       }
       
-      let time = MRTimeContext(
+      let time = MRTime(
         absolute: frameID * framesPerFrame,
         relative: framesPerFrame,
         frameRate: 100 * framesPerFrame)
@@ -115,14 +115,12 @@ extension Renderer {
   }
   
   private func prepareRendering(
-    animationTime: MRTimeContext,
+    animationTime: MRTime,
     camera: MRCamera,
     frameID: Int,
     framesPerSecond: Int
   ) {
     renderingEngine.setTime(animationTime)
-    renderingEngine.setAtomStyleProvider(styleProvider)
-    renderingEngine.setAtomProvider(atomProvider)
     
     var lights: [MRLight] = []
     let cameraLight = MRLight(
@@ -133,12 +131,7 @@ extension Renderer {
       diffusePower: 0.4, specularPower: 0.4)
     lights.append(cameraLight)
     lights.append(cameraLight2)
-    
-    let quality = MRQuality(
-      minSamples: 3, maxSamples: 7, qualityCoefficient: 30)
-    renderingEngine.setCamera(
-      camera: camera,
-      lights: lights,
-      quality: quality)
+    renderingEngine.setCamera(camera)
+    renderingEngine.setLights(lights)
   }
 }

@@ -10,34 +10,28 @@ import Foundation
 // MARK: - MRTime
 
 public struct MRTime {
-  public var frames: Int
-  public var seconds: Double
-  
-  @inlinable
-  public init(frames: Int, frameRate: Int) {
-    self.frames = frames
-    self.seconds = Double(frames / frameRate)
-    
-    let fractionalPart = frames % frameRate
-    self.seconds += Double(fractionalPart) / Double(frameRate)
-  }
-}
-
-public struct MRTimeContext {
   // Absolute time. Atom providers should check whether this jumps to zero.
-  public var absolute: MRTime
+  public var absolute: (frames: Int, seconds: Double)
   
   // Number of frames since the last frame, typically 1. This does not always
   // agree with the absolute time.
-  public var relative: MRTime
+  public var relative: (frames: Int, seconds: Double)
   
   // MolecularRenderer measures time in integer quantities, allowing vsync and
   // indexing into arrays of pre-recorded animation frames. The frame rate is the
   // granularity of these measurements.
-  @inlinable
   public init(absolute: Int, relative: Int, frameRate: Int) {
-    self.absolute = MRTime(frames: absolute, frameRate: frameRate)
-    self.relative = MRTime(frames: relative, frameRate: frameRate)
+    func makeTime(frames: Int, frameRate: Int) -> (Int, Double) {
+      let frames = frames
+      let fractionalPart = frames % frameRate
+      
+      var seconds = Double(frames / frameRate)
+      seconds += Double(fractionalPart) / Double(frameRate)
+      return (frames, seconds)
+    }
+    
+    self.absolute = makeTime(frames: absolute, frameRate: frameRate)
+    self.relative = makeTime(frames: relative, frameRate: frameRate)
   }
 }
 
@@ -46,7 +40,7 @@ struct ResetTracker {
   var currentFrameID: Int = -1
   var resetUpscaler: Bool = false
   
-  mutating func update(time: MRTimeContext) {
+  mutating func update(time: MRTime) {
     let nextFrameID = time.absolute.frames
     if nextFrameID == 0 && nextFrameID != currentFrameID {
       resetUpscaler = true
@@ -60,7 +54,7 @@ struct ResetTracker {
 // MARK: - MRRenderer Methods
 
 extension MRRenderer {
-  public func setTime(_ time: MRTimeContext) {
+  public func setTime(_ time: MRTime) {
     self.time = time
   }
 }

@@ -70,7 +70,7 @@ public struct MRAtom: Equatable {
 }
 
 public protocol MRAtomProvider {
-  func atoms(time: MRTimeContext) -> [MRAtom]
+  func atoms(time: MRTime) -> [MRAtom]
 }
 
 // MARK: - MRAtomStyle

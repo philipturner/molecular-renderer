@@ -41,7 +41,7 @@ struct ExampleMolecules {
       }
     }
     
-    func atoms(time: MRTimeContext) -> [MRAtom] {
+    func atoms(time: MRTime) -> [MRAtom] {
       return _atoms
     }
   }
@@ -59,7 +59,7 @@ struct ExampleMolecules {
       _atoms[firstCarbon].element = 220
     }
     
-    func atoms(time: MRTimeContext) -> [MRAtom] {
+    func atoms(time: MRTime) -> [MRAtom] {
       return _atoms
     }
   }
@@ -100,7 +100,7 @@ struct ExampleMolecules {
       }
     }
     
-    func atoms(time: MRTimeContext) -> [MRAtom] {
+    func atoms(time: MRTime) -> [MRAtom] {
       return _atoms
     }
   }
@@ -211,7 +211,7 @@ struct ExampleMolecules {
       }
     }
     
-    func atoms(time: MRTimeContext) -> [MRAtom] {
+    func atoms(time: MRTime) -> [MRAtom] {
       return _atoms
     }
   }

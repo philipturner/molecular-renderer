@@ -17,14 +17,17 @@ public class MRRenderer {
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
   
-  // The time of this frame.
-  var time: MRTimeContext!
+  // Properties that track the frame ID.
   var renderIndex: Int = 0
   var resetTracker: ResetTracker = .init()
   
   // Objects that supply data to the renderer.
   var atomProvider: MRAtomProvider!
   var atomStyleProvider: MRAtomStyleProvider!
+  var camera: MRCamera!
+  var lights: [MRLight]!
+  var quality: MRQuality!
+  var time: MRTime!
   
   // Main rendering resources.
   var device: MTLDevice
@@ -65,7 +68,6 @@ public class MRRenderer {
   // Cache previous arguments to generate motion vectors.
   var previousArguments: Arguments?
   var currentArguments: Arguments?
-  var lights: [MRLight] = []
   var lightsBuffer: MTLBuffer
   
   // Enter the width and height of the texture to present, not the resolution

@@ -165,7 +165,7 @@ class EventTracker {
     return accept
   }
   
-  func update(time: MRTimeContext) {
+  func update(time: MRTime) {
     // Proceed if the user is not in the game menu (analogy from Minecraft).
     if shouldAcceptInput, crosshairActive.load(ordering: .relaxed) {
       // Update keyboard first.
@@ -189,7 +189,7 @@ class EventTracker {
 }
 
 extension EventTracker {
-  func updatePosition(time: MRTimeContext) {
+  func updatePosition(time: MRTime) {
     // In Minecraft, WASD only affects horizontal position, even when flying.
     let azimuth = playerState.rotations.azimuth
     

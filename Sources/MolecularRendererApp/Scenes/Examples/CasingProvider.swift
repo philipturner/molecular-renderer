@@ -28,7 +28,7 @@ class CasingAtomProvider: MRAtomProvider {
     self.atomsDict = selfAtomsDict
   }
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     let t = Float(time.absolute.seconds)
     
     var currentAtomsDict: [String: [MRAtom]] = [:]

@@ -78,9 +78,7 @@ extension Bootstrapping {
     }
     
     // For the final animation, we may need a function for scripting the camera.
-    func atoms(
-      time: MolecularRenderer.MRTimeContext
-    ) -> [MolecularRenderer.MRAtom] {
+    func atoms(time: MRTime) -> [MRAtom] {
       if time.absolute.frames >= frames.count {
         return frames.last ?? []
       } else {

@@ -20,10 +20,6 @@ extension MRRenderer {
       fatalError(
         "Tried to render to a CAMetalLayer, but configured for offline rendering.")
     }
-    defer {
-      // Invalidate the time.
-      self.time = nil
-    }
     
     var commandBuffer = self.render()
     commandBuffer.commit()
@@ -52,10 +48,6 @@ extension MRRenderer {
     guard offline else {
       fatalError(
         "Tried to render to a pixel buffer, but configured for real-time rendering.")
-    }
-    defer {
-      // Invalidate the time.
-      self.time = nil
     }
     
     let commandBuffer = render()
@@ -123,14 +115,9 @@ extension MRRenderer {
   }
   
   private func render() -> MTLCommandBuffer {
-    // TODO: Refactor, splitting into some separate files:
-    // - MRRenderer + MRRendererDescriptor -> MRRenderer
-    // - MRRenderer+Update
-    // - MRRenderer+Render
     self.updateResources()
     
     var commandBuffer = commandQueue.makeCommandBuffer()!
-    
     var encoder = commandBuffer.makeComputeCommandEncoder()!
     accelBuilder.buildDenseGrid(encoder: encoder)
     encoder.endEncoding()

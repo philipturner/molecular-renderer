@@ -11,7 +11,7 @@ import MolecularRenderer
 final class PDBParser: MRAtomProvider {
   var _atoms: [MRAtom]
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     return _atoms
   }
   

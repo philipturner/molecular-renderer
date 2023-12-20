@@ -55,7 +55,7 @@ class _Old_APMBootstrapper: MRAtomProvider {
     }
   }
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     var atoms = surface.atoms
     for habTool in habTools {
       atoms.append(contentsOf: habTool.atoms)

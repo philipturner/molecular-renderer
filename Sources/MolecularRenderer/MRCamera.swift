@@ -114,92 +114,15 @@ public struct MRQuality {
 // MARK: - MRRenderer Methods
 
 extension MRRenderer {
-  // Only call this once per frame, otherwise there will be an error.
-  public func setCamera(
-    camera: MRCamera,
-    lights: [MRLight],
-    quality: MRQuality
-  ) {
-    self.previousArguments = currentArguments
-    
-    let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
-    let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
-    let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
-    let decayConstant: Float = 2.0 // range(0...20, 0.25)
-    
-    precondition(lights.count < UInt16.max, "Too many lights.")
-    
-    var totalDiffuse: Float = 0
-    var totalSpecular: Float = 0
-    for light in lights {
-      totalDiffuse += Float(light.diffusePower)
-      totalSpecular += Float(light.specularPower)
-    }
-    self.lights = (lights.map { _light in
-      var light = _light
-      
-      // Normalize so nothing causes oversaturation.
-      let diffuse = Float(light.diffusePower) / totalDiffuse
-      let specular = Float(light.specularPower) / totalSpecular
-      light.diffusePower = Float16(diffuse)
-      light.specularPower = Float16(specular)
-      light.resetMask()
-      
-      // Mark camera-centered lights as something to render more efficiently.
-      if sqrt(distance_squared(light.origin, camera.position)) < 1e-3 {
-        #if arch(arm64)
-        var diffuseMask = light.diffusePower.bitPattern
-        diffuseMask |= 0x1
-        light.diffusePower = Float16(bitPattern: diffuseMask)
-        #endif
-      }
-      return light
-    })
-    
-    // Quality coefficients are calibrated against 640x640 -> 1280x1280
-    // resolution.
-    var screenMagnitude = Float(intermediateSize.x * intermediateSize.y)
-    if offline {
-      screenMagnitude /= 4
-    } else {
-      screenMagnitude *= Float(upscaleFactor! * upscaleFactor!)
-    }
-    screenMagnitude = sqrt(screenMagnitude) / 1280
-    let qualityCoefficient = quality.qualityCoefficient * screenMagnitude
-    
-    // Create the FOV and rotation matrix from user-supplied arguments.
-    let fovMultiplier = self.fovMultiplier(fovDegrees: camera.fovDegrees)
-    let rotation = simd_float3x3(
-      camera.rotation.0, camera.rotation.1, camera.rotation.2)
-    
-    self.currentArguments = Arguments(
-      fovMultiplier: fovMultiplier,
-      positionX: camera.position.x,
-      positionY: camera.position.y,
-      positionZ: camera.position.z,
-      rotation: rotation,
-      jitter: jitterOffsets,
-      frameSeed: UInt32.random(in: 0...UInt32.max),
-      numLights: UInt16(lights.count),
-      
-      minSamples: Float16(quality.minSamples),
-      maxSamples: Float16(quality.maxSamples),
-      qualityCoefficient: Float16(qualityCoefficient),
-      
-      maxRayHitTime: maxRayHitTime,
-      exponentialFalloffDecayConstant: decayConstant,
-      minimumAmbientIllumination: minimumAmbientIllumination,
-      diffuseReflectanceScale: diffuseReflectanceScale,
-      
-      denseDims: .zero)
-    
-    let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
-    if lightsBuffer.length < desiredSize {
-      var newLength = lightsBuffer.length
-      while newLength < desiredSize {
-        newLength = newLength << 1
-      }
-      lightsBuffer = device.makeBuffer(length: newLength)!
-    }
+  public func setCamera(_ camera: MRCamera) {
+    self.camera = camera
+  }
+  
+  public func setLights(_ lights: [MRLight]) {
+    self.lights = lights
+  }
+  
+  public func setQuality(_ quality: MRQuality) {
+    self.quality = quality
   }
 }

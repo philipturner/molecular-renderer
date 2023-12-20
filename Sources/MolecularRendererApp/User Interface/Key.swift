@@ -53,7 +53,8 @@ struct MotionState {
   var history: SprintingHistory = .init()
   
   mutating func update(
-    time: MRTimeContext, pressed: (same: Bool, opposite: Bool)
+    time: MRTime,
+    pressed: (same: Bool, opposite: Bool)
   ) {
     timer -= time.relative.seconds
     

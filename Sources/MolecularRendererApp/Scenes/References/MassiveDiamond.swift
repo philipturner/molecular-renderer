@@ -87,7 +87,7 @@ struct MassiveDiamond: MRAtomProvider {
     
   }
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     return self._atoms
   }
   

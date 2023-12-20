@@ -36,7 +36,8 @@ extension MRRenderer {
   // This should be called as early as possible each frame, to hide any latency
   // between now and when it can encode the rendering work.
   func updateResources() {
-    self.updateGeometry(time)
+    self.updateCamera(camera: camera, lights: lights, quality: quality)
+    self.updateGeometry(time: time)
     self.accelBuilder.updateResources()
     
     self.jitterFrameID += 1
@@ -49,7 +50,7 @@ extension MRRenderer {
     self.renderIndex = (self.renderIndex + 1) % 3
   }
   
-  func updateGeometry(_ time: MRTimeContext) {
+  func updateGeometry(time: MRTime) {
     if accelBuilder.sceneSize == .extreme, accelBuilder.builtGrid {
       return
     }
@@ -89,5 +90,90 @@ extension MRRenderer {
     self.accelBuilder.styles = styles
   }
   
-  // TODO: - Add camera update function.
+  func updateCamera(
+    camera: MRCamera,
+    lights: [MRLight],
+    quality: MRQuality
+  ) {
+    self.previousArguments = currentArguments
+    
+    let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
+    let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
+    let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
+    let decayConstant: Float = 2.0 // range(0...20, 0.25)
+    
+    var totalDiffuse: Float = 0
+    var totalSpecular: Float = 0
+    for light in lights {
+      totalDiffuse += Float(light.diffusePower)
+      totalSpecular += Float(light.specularPower)
+    }
+    
+    precondition(lights.count < UInt16.max, "Too many lights.")
+    self.lights = []
+    for var light in lights {
+      // Normalize so nothing causes oversaturation.
+      let diffuse = Float(light.diffusePower) / totalDiffuse
+      let specular = Float(light.specularPower) / totalSpecular
+      light.diffusePower = Float16(diffuse)
+      light.specularPower = Float16(specular)
+      light.resetMask()
+      
+      // Mark camera-centered lights as something to render more efficiently.
+      if sqrt(distance_squared(light.origin, camera.position)) < 1e-3 {
+        #if arch(arm64)
+        var diffuseMask = light.diffusePower.bitPattern
+        diffuseMask |= 0x1
+        light.diffusePower = Float16(bitPattern: diffuseMask)
+        #endif
+      }
+      self.lights.append(light)
+    }
+    
+    // Quality coefficients are calibrated against 640x640 -> 1280x1280
+    // resolution.
+    var screenMagnitude = Float(intermediateSize.x * intermediateSize.y)
+    if offline {
+      screenMagnitude /= 4
+    } else {
+      screenMagnitude *= Float(upscaleFactor! * upscaleFactor!)
+    }
+    screenMagnitude = sqrt(screenMagnitude) / 1280
+    let qualityCoefficient = quality.qualityCoefficient * screenMagnitude
+    
+    // Create the FOV and rotation matrix from user-supplied arguments.
+    let fovMultiplier = self.fovMultiplier(fovDegrees: camera.fovDegrees)
+    let rotation = simd_float3x3(
+      camera.rotation.0, camera.rotation.1, camera.rotation.2)
+    
+    self.currentArguments = Arguments(
+      fovMultiplier: fovMultiplier,
+      positionX: camera.position.x,
+      positionY: camera.position.y,
+      positionZ: camera.position.z,
+      rotation: rotation,
+      jitter: jitterOffsets,
+      frameSeed: UInt32.random(in: 0...UInt32.max),
+      numLights: UInt16(lights.count),
+      
+      minSamples: Float16(quality.minSamples),
+      maxSamples: Float16(quality.maxSamples),
+      qualityCoefficient: Float16(qualityCoefficient),
+      
+      maxRayHitTime: maxRayHitTime,
+      exponentialFalloffDecayConstant: decayConstant,
+      minimumAmbientIllumination: minimumAmbientIllumination,
+      diffuseReflectanceScale: diffuseReflectanceScale,
+      
+      denseDims: .zero)
+    
+    let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
+    if lightsBuffer.length < desiredSize {
+      var newLength = lightsBuffer.length
+      while newLength < desiredSize {
+        newLength = newLength << 1
+      }
+      lightsBuffer = device.makeBuffer(length: newLength)!
+    }
+  }
 }

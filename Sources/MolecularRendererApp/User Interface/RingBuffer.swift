@@ -49,7 +49,7 @@ struct SprintingHistory {
   var progress: Float { _progress! }
   private var _progress: Float?
   
-  mutating func update(time: MRTimeContext, sprinting: Bool) {
+  mutating func update(time: MRTime, sprinting: Bool) {
     var newSamples: [Sample] = []
     for var sample in samples {
       sample.timer -= time.relative.seconds

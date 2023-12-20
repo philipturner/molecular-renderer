@@ -16,7 +16,7 @@ import MolecularRenderer
 final class NanoEngineerParser: MRAtomProvider {
   var _atoms: [MRAtom]
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     return _atoms
   }
   

@@ -158,7 +158,7 @@ struct XtbAtomProvider: MRAtomProvider {
   
   // Convenience initializer directly from xTB text.
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     var arrayIndex = time.absolute.frames
     arrayIndex = min(arrayIndex, frames.count - 1)
     guard frames.count > 0 else {

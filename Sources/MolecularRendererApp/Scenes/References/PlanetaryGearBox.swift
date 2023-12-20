@@ -21,7 +21,7 @@ struct PlanetaryGearBox: MRAtomProvider {
     self._atoms = parser._atoms
   }
   
-  func atoms(time: MRTimeContext) -> [MRAtom] {
+  func atoms(time: MRTime) -> [MRAtom] {
     return self._atoms
   }
 }
