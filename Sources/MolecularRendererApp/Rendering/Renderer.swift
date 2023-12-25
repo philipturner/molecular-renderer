@@ -28,11 +28,7 @@ class Renderer {
     initializeRenderingEngine()
     initializeExternalLibraries()
     
-    let start = CACurrentMediaTime()
-    let atoms = createNanomachinery()
-    let end = CACurrentMediaTime()
-    print("atom count:", atoms.count)
-    print("compile time:", Int((end - start) * 1e3), "ms")
+    let atoms = [MRAtom(origin: .zero, element: 6)]
     initializeAtoms(atoms)
   }
 }

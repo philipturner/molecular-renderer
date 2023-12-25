@@ -1,6 +1,6 @@
 //
-//  Scratch2.swift
-//  MolecularRendererApp
+//  ConvergentAssemblyArchitecture2.swift
+//  HardwareCatalog
 //
 //  Created by Philip Turner on 12/16/23.
 //

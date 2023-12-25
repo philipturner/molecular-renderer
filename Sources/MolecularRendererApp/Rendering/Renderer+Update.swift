@@ -127,12 +127,8 @@ extension Renderer {
     var lights: [MRLight] = []
     let cameraLight = MRLight(
       origin: camera.position,
-      diffusePower: 0.6, specularPower: 0.6)
-    let cameraLight2 = MRLight(
-      origin: camera.position - 1 * camera.rotation.2,
-      diffusePower: 0.4, specularPower: 0.4)
+      diffusePower: 1, specularPower: 1)
     lights.append(cameraLight)
-    lights.append(cameraLight2)
     renderingEngine.setCamera(camera)
     renderingEngine.setLights(lights)
   }

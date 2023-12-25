@@ -1,6 +1,6 @@
 //
-//  Scratch3.swift
-//  MolecularRendererApp
+//  ConvergentAssemblyArchitecture3.swift
+//  HardwareCatalog
 //
 //  Created by Philip Turner on 12/16/23.
 //
@@ -707,3 +707,4 @@ struct FactoryScene {
     return output
   }
 }
+

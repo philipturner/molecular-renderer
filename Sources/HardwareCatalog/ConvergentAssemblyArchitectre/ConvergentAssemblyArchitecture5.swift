@@ -1,6 +1,6 @@
 //
-//  Scratch5.swift
-//  MolecularRendererApp
+//  ConvergentAssemblyArchitecture5.swift
+//  HardwareCatalog
 //
 //  Created by Philip Turner on 12/18/23.
 //

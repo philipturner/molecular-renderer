@@ -78,7 +78,6 @@
 		98A8B72C2ABE6D5B003E62E8 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98A8B72E2ABE6D5B003E62E8 /* libOpenMM.8.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */; };
-		98B25A122B30D65100081A61 /* Scratch5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A112B30D65100081A61 /* Scratch5.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */; };
@@ -95,8 +94,6 @@
 		98D0F1912AB511AA00BE267D /* Spring_Springboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */; };
 		98D975B92AC221EF0052EE6C /* DiamondRope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D975B82AC221EF0052EE6C /* DiamondRope.swift */; };
 		98D975BB2AC222340052EE6C /* OctahedralSpring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D975BA2AC222340052EE6C /* OctahedralSpring.swift */; };
-		98EFEE102B2E7D2200405095 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EFEE0F2B2E7D2200405095 /* Scratch2.swift */; };
-		98EFEE122B2E8D8000405095 /* Scratch3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EFEE112B2E8D8000405095 /* Scratch3.swift */; };
 		98F012602B266EEC0037318D /* _Old_APMBootstrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */; };
 		98F012622B266FA70037318D /* Bootstrapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012612B266FA70037318D /* Bootstrapping.swift */; };
 		98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012632B2671080037318D /* Bootstrapping_Tripod.swift */; };
@@ -104,7 +101,6 @@
 		98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012672B2671210037318D /* Bootstrapping_Surface.swift */; };
 		98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012692B2671430037318D /* Bootstrapping_Animation.swift */; };
 		98F0126C2B26A1C40037318D /* Bootstrapping_Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */; };
-		98F1FE532B2F901200807F62 /* Scratch4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F1FE522B2F901200807F62 /* Scratch4.swift */; };
 		98F2F5CF2A5F2DDC006216F4 /* PlanetaryGearBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */; };
 		98F2F5D22A5F2E7B006216F4 /* MassiveDiamond.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -236,13 +232,16 @@
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
-		98B25A112B30D65100081A61 /* Scratch5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch5.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Update.swift"; sourceTree = "<group>"; };
 		98B25A182B335F7600081A61 /* MRRenderer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Render.swift"; sourceTree = "<group>"; };
 		98B25A192B33666B00081A61 /* Renderer+Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Setup.swift"; sourceTree = "<group>"; };
+		98B25A1D2B391B6600081A61 /* ConvergentAssemblyArchitecture2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConvergentAssemblyArchitecture2.swift; sourceTree = "<group>"; };
+		98B25A1E2B391B8300081A61 /* ConvergentAssemblyArchitecture3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConvergentAssemblyArchitecture3.swift; sourceTree = "<group>"; };
+		98B25A1F2B391BA000081A61 /* ConvergentAssemblyArchitecture4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConvergentAssemblyArchitecture4.swift; sourceTree = "<group>"; };
+		98B25A202B391BBC00081A61 /* ConvergentAssemblyArchitecture5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConvergentAssemblyArchitecture5.swift; sourceTree = "<group>"; };
 		98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulationDecoder.swift; sourceTree = "<group>"; };
 		98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = MRSimulationDecoder.py; sourceTree = "<group>"; };
 		98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = MRSimulationDecoder.rs; sourceTree = "<group>"; };
@@ -277,8 +276,6 @@
 		98E2C61C2AC27AF5002612CC /* DiamondRope_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiamondRope_Image1.jpg; sourceTree = "<group>"; };
 		98E2C6212AC27CD7002612CC /* RhombicDodecahedron_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image1.jpg; sourceTree = "<group>"; };
 		98E2C6222AC27CD7002612CC /* RhombicDodecahedron_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image2.jpg; sourceTree = "<group>"; };
-		98EFEE0F2B2E7D2200405095 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
-		98EFEE112B2E8D8000405095 /* Scratch3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch3.swift; sourceTree = "<group>"; };
 		98F0125F2B266EEC0037318D /* _Old_APMBootstrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = _Old_APMBootstrapper.swift; sourceTree = "<group>"; };
 		98F012612B266FA70037318D /* Bootstrapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping.swift; sourceTree = "<group>"; };
 		98F012632B2671080037318D /* Bootstrapping_Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Tripod.swift; sourceTree = "<group>"; };
@@ -286,7 +283,6 @@
 		98F012672B2671210037318D /* Bootstrapping_Surface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Surface.swift; sourceTree = "<group>"; };
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
-		98F1FE522B2F901200807F62 /* Scratch4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch4.swift; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -428,10 +424,6 @@
 				98B25A192B33666B00081A61 /* Renderer+Setup.swift */,
 				98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */,
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
-				98EFEE0F2B2E7D2200405095 /* Scratch2.swift */,
-				98EFEE112B2E8D8000405095 /* Scratch3.swift */,
-				98F1FE522B2F901200807F62 /* Scratch4.swift */,
-				98B25A112B30D65100081A61 /* Scratch5.swift */,
 				98FB90792A5B6FC600685E5C /* VsyncHandler.swift */,
 			);
 			path = Rendering;
@@ -505,10 +497,11 @@
 			isa = PBXGroup;
 			children = (
 				98F852D22AF7268800986E61 /* Computation */,
-				9816EFA32AC4B9620042073F /* Ring */,
+				98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitectre */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
 				98D975BD2AC222950052EE6C /* OctahedralSpring */,
 				98E2C6142AC24D57002612CC /* RhombicDodecahedron */,
+				9816EFA32AC4B9620042073F /* Ring */,
 				98D9758F2AC088000052EE6C /* VdwOscillator */,
 				987234F02ABE860300E427E5 /* README.md */,
 			);
@@ -583,6 +576,17 @@
 				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
 			);
 			path = Spring;
+			sourceTree = "<group>";
+		};
+		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitectre */ = {
+			isa = PBXGroup;
+			children = (
+				98B25A1D2B391B6600081A61 /* ConvergentAssemblyArchitecture2.swift */,
+				98B25A1E2B391B8300081A61 /* ConvergentAssemblyArchitecture3.swift */,
+				98B25A1F2B391BA000081A61 /* ConvergentAssemblyArchitecture4.swift */,
+				98B25A202B391BBC00081A61 /* ConvergentAssemblyArchitecture5.swift */,
+			);
+			path = ConvergentAssemblyArchitectre;
 			sourceTree = "<group>";
 		};
 		98B27F642AACD42E0081F2B4 /* Scripts */ = {
@@ -1047,7 +1051,6 @@
 				98D0F18D2AB5118400BE267D /* Spring_Projectile.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Chapter4_Figure4.swift in Sources */,
 				98F012622B266FA70037318D /* Bootstrapping.swift in Sources */,
-				98EFEE102B2E7D2200405095 /* Scratch2.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
 				98F852CF2AF5D24C00986E61 /* RippleCounter1+File2.swift in Sources */,
 				988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */,
@@ -1058,7 +1061,6 @@
 				98247CBB2AF0656100958BC5 /* Chapter12_Figure1_file2.swift in Sources */,
 				98F638BF2A34DC5800F51E95 /* Styles.swift in Sources */,
 				98CC35832A3E48B3007B96DF /* ExampleProviders.swift in Sources */,
-				98EFEE122B2E8D8000405095 /* Scratch3.swift in Sources */,
 				98518AE32A74A6BD00CAD919 /* Chapter4.swift in Sources */,
 				98B3E4FD2A3F854300B02349 /* HelloArgonInSwift.swift in Sources */,
 				98906AD92AA92FF300FE5832 /* RhombicDodecahedra.swift in Sources */,
@@ -1073,7 +1075,6 @@
 				98F852CD2AF5B73300986E61 /* RippleCounter1.swift in Sources */,
 				985C92A72A955CA9008629C0 /* StrainedShellStructure.swift in Sources */,
 				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
-				98F1FE532B2F901200807F62 /* Scratch4.swift in Sources */,
 				98846F7A2AC39B450049C223 /* Flywheel1.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* MathUtilities.swift in Sources */,
@@ -1087,7 +1088,6 @@
 				98325C722A6DC84400A4D7BB /* Chapter9_Figure3.swift in Sources */,
 				98D975BB2AC222340052EE6C /* OctahedralSpring.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
-				98B25A122B30D65100081A61 /* Scratch5.swift in Sources */,
 				980E70212A5E57E10051797F /* CrystalPlane.swift in Sources */,
 				98FB906E2A5A8BD300685E5C /* CasingProvider.swift in Sources */,
 				98325C5A2A6C617500A4D7BB /* Figure3D.swift in Sources */,
