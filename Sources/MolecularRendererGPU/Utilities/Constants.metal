@@ -24,7 +24,7 @@ constant bool OFFLINE [[function_constant(2)]];
 // Whether to use 64-bit cell descriptors. For now, this must be changed
 // manually when enabling extreme system sizes. Eventually, a more elegant
 // implementation will select a function variant at app launch.
-#define SCENE_SIZE_EXTREME 1
+#define SCENE_SIZE_EXTREME 0
 
 // Safeguard against infinite loops. Disable this for profiling.
 #define FAULT_COUNTERS_ENABLE 1

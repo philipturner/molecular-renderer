@@ -36,6 +36,15 @@ public class MRRendererDescriptor {
   /// for each stage of the render pipeline.
   public var reportPerformance: Bool = false
   
+  /// Optional. Whether to incorporate animated atom positions into motion
+  /// vectors for temporal upscaling.
+  ///
+  /// The default value is `true`.
+  ///
+  /// If the number of atoms changes during a frame, motion vectors are
+  /// automatically disabled.
+  public var useMotionVectors: Bool = true
+  
   public init() {
     
   }

@@ -49,6 +49,7 @@ class MRAccelBuilder {
   
   // Data for uniform grids.
   var sceneSize: MRSceneSize?
+  var gridDims: SIMD3<UInt16> = .zero
   var ringIndex: Int = 0
   var builtGrid: Bool = false
   var denseGridData: MTLBuffer?
@@ -60,14 +61,6 @@ class MRAccelBuilder {
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
-  
-  // Keep track of memory sizes for exponential expansion.
-  var maxAtomBufferSize: Int = 1 << 1
-  var maxAtoms: Int = 1 << 1
-  var maxGridSlots: Int = 1 << 1
-  var maxGridCells: Int = 1 << 1
-  var maxGridReferences: Int = 1 << 1
-  var gridDims: SIMD3<UInt16> = .zero
   
   public init(
     renderer: MRRenderer,
@@ -105,74 +98,56 @@ extension MRAccelBuilder {
   func cycle(
     from buffers: inout [MTLBuffer?],
     index: Int,
-    currentSize: inout Int,
     desiredSize: Int,
     name: String
   ) -> MTLBuffer {
-    var resource = fetch(from: buffers, size: desiredSize, index: index)
+    // Either find a valid buffer or report the size of the existing one.
+    var previousSize = 0
+    var resource: MTLBuffer?
+    if let buffer = buffers[index] {
+      if buffer.allocatedSize < desiredSize {
+        previousSize = buffer.allocatedSize
+      } else {
+        resource = buffer
+      }
+    }
+    
+    // If necessary, create a new buffer.
     if resource == nil {
-      resource = create(
-        currentSize: &currentSize, desiredSize: desiredSize, {
-          $0.makeBuffer(length: $1)
-        })
+      var maximumSize = max(1, previousSize)
+      while maximumSize < desiredSize {
+        maximumSize = maximumSize << 1
+      }
+      
+      guard let buffer = device.makeBuffer(length: maximumSize) else {
+        fatalError(
+          "Could not create buffer with size \(maximumSize).")
+      }
+      resource = buffer
       resource!.label = name
     }
     guard let resource else { fatalError("This should never happen.") }
-    append(resource, to: &buffers, index: index)
+    
+    // Overwrite the existing reference with the returned one.
+    buffers[index] = resource
     return resource
-  }
-  
-  func fetch<T: MTLResource>(
-    from buffers: [T?],
-    size: Int,
-    index: Int
-  ) -> T? {
-    guard let buffer = buffers[index] else {
-      return nil
-    }
-    if buffer.allocatedSize < size {
-      return nil
-    }
-    return buffer
-  }
-  
-  func create<T: MTLResource>(
-    currentSize: inout Int,
-    desiredSize: Int,
-    _ closure: (MTLDevice, Int) -> T?
-  ) -> T {
-    while currentSize < desiredSize {
-      currentSize = currentSize << 1
-    }
-    guard let output = closure(self.device, currentSize) else {
-      fatalError(
-        "Could not create object of type \(T.self) with size \(currentSize).")
-    }
-    return output
-  }
-  
-  func append<T: MTLResource>(
-    _ object: T,
-    to buffers: inout [T?],
-    index: Int
-  ) {
-    buffers[index] = object
   }
   
   func allocate(
     _ buffer: inout MTLBuffer?,
-    currentMaxElements: inout Int,
     desiredElements: Int,
     bytesPerElement: Int
   ) -> MTLBuffer {
-    if let buffer, currentMaxElements >= desiredElements {
+    if let buffer,
+       buffer.length >= desiredElements * bytesPerElement {
       return buffer
     }
-    while currentMaxElements < desiredElements {
-      currentMaxElements = currentMaxElements << 1
+    var maxElements = (buffer?.length ?? 0) / bytesPerElement
+    while maxElements < desiredElements {
+      maxElements = max(1, maxElements << 1)
     }
     
-    let bufferSize = currentMaxElements * bytesPerElement
+    let bufferSize = maxElements * bytesPerElement
     let newBuffer = device.makeBuffer(length: bufferSize)!
     buffer = newBuffer
     return newBuffer
@@ -185,7 +160,6 @@ extension MRAccelBuilder {
     if sceneSize == .extreme, builtGrid {
       return
     }
-    
     ringIndex = (ringIndex + 1) % 3
     
     // Generate or fetch a buffer.
@@ -199,7 +173,6 @@ extension MRAccelBuilder {
     let motionVectorBuffer = cycle(
       from: &motionVectorBuffers,
       index: ringIndex,
-      currentSize: &maxAtomBufferSize,
       desiredSize: motionVectorBufferSize,
       name: "MotionVectors")
     

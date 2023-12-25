@@ -27,7 +27,9 @@ class Renderer {
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
     
-    let atoms = renderScratch()
-    initializeAtoms(atoms)
+    let atoms = renderScratch2()
+    let provider = AnimationAtomProvider(atoms)
+    
+    renderingEngine.setAtomProvider(provider)
   }
 }

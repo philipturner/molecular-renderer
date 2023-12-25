@@ -73,15 +73,17 @@ extension MRRenderer {
       }
     }
     
-    if time.absolute.frames > 0 {
-      guard accelBuilder.atoms.count == atoms.count else {
-        fatalError(
-          "Used motion vectors when last frame had different atom count.")
+    if useMotionVectors,
+       time.absolute.frames > 0,
+       time.relative.frames > 0,
+       accelBuilder.atoms.count == atoms.count {
+      var newVectors = [SIMD3<Float>](repeating: .zero, count: atoms.count)
+      for i in atoms.indices {
+        let current = atoms[i].origin
+        let previous = accelBuilder.atoms[i].origin
+        newVectors[i] = current - previous
       }
-      
-      accelBuilder.motionVectors = (0..<atoms.count).map { i -> SIMD3<Float> in
-        atoms[i].origin - accelBuilder.atoms[i].origin
-      }
+      accelBuilder.motionVectors = newVectors
     } else {
       accelBuilder.motionVectors = Array(repeating: .zero, count: atoms.count)
     }

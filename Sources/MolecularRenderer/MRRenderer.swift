@@ -10,9 +10,13 @@ import MetalFX
 import class QuartzCore.CAMetalLayer
 
 public class MRRenderer {
+  // Renderer configuration variables.
   var offline: Bool
+  var useMotionVectors: Bool
   var upscaleFactor: Int?
   var intermediateSize: SIMD2<Int>
+  
+  // Per-frame state variables.
   var jitterFrameID: Int = 0
   var jitterOffsets: SIMD2<Float> = .zero
   var textureIndex: Int = 0
@@ -79,6 +83,7 @@ public class MRRenderer {
     descriptor.assertValid()
     
     self.offline = descriptor.offline
+    self.useMotionVectors = descriptor.useMotionVectors
     if offline {
       self.upscaleFactor = nil
       self.intermediateSize = 2 &* SIMD2(descriptor.width!, descriptor.height!)

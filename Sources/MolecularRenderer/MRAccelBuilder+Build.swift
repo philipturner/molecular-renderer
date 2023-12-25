@@ -171,7 +171,7 @@ extension MRAccelBuilder {
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
     let statisticsStart = CACurrentMediaTime()
-    let statistics = denseGridStatistics(
+    var statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
       voxel_width_numer: voxel_width_numer,
@@ -232,7 +232,6 @@ extension MRAccelBuilder {
     // creates a 2 GB memory allocation.
     self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
     let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
-    
     if sceneSize != .extreme {
       guard statistics.references < 16 * 1024 * 1024 else {
         fatalError("Too many references for a dense grid.")
@@ -242,7 +241,6 @@ extension MRAccelBuilder {
     // Allocate new memory.
     let atomsBuffer = allocate(
       &denseGridAtoms[ringIndex],
-      currentMaxElements: &maxAtoms,
       desiredElements: atoms.count,
       bytesPerElement: 16)
     memcpy(denseGridAtoms[ringIndex]!.contents(), atoms, atoms.count * 16)
@@ -253,18 +251,14 @@ extension MRAccelBuilder {
     let atomicSpan = (sceneSize == .extreme) ? 2 : 1
     let dataBuffer = allocate(
       &denseGridData,
-      currentMaxElements: &maxGridSlots,
       desiredElements: 8 + numSlots * atomicSpan,
       bytesPerElement: 4)
     let countersBuffer = allocate(
       &denseGridCounters,
-      currentMaxElements: &maxGridCells,
       desiredElements: totalCells,
       bytesPerElement: 4)
-    
     let referencesBuffer = allocate(
       &denseGridReferences,
-      currentMaxElements: &maxGridReferences,
       desiredElements: statistics.references,
       bytesPerElement: 4)
     
