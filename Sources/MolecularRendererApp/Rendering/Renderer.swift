@@ -27,7 +27,7 @@ class Renderer {
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
     
-    let atoms = [MRAtom(origin: .zero, element: 6)]
+    let atoms = renderScratch()
     initializeAtoms(atoms)
   }
 }
