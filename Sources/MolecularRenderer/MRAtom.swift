@@ -112,33 +112,6 @@ public protocol MRAtomStyleProvider {
   var available: [Bool] { get }
 }
 
-// colors:
-//   RGB color for each atom, ranging from 0 to 1 for each component.
-// radii:
-//   Enter all data in meters and Float32. They will be range-reduced to
-//   nanometers and converted to Float16.
-// available:
-//   Whether each element has a style. Anything without a style uses `radii[0]`
-//   and a black/magenta checkerboard pattern.
-public func MRMakeAtomStyles(
-  colors: [SIMD3<Float>],
-  radii: [Float],
-  available: [Bool]
-) -> [MRAtomStyle] {
-#if arch(x86_64)
-  let atomColors: [SIMD3<Float16>] = []
-#else
-  let atomColors = colors.map(SIMD3<Float16>.init)
-#endif
-  let atomRadii = radii.map { $0 * 1e9 }.map(Float16.init)
-  
-  precondition(available.count == 127)
-  return available.indices.map { i in
-    let index = available[i] ? i : 0
-    return MRAtomStyle(color: atomColors[index], radius: atomRadii[index])
-  }
-}
-
 // MARK: - MRRenderer Methods
 
 extension MRRenderer {

@@ -3,14 +3,13 @@
 
 # Molecular Renderer
 
-This repository is a ray tracer for molecular nanotechnology. It originally encapsulated several other projects, most of which have moved into separate repositories.
+Molecular Renderer is a ray tracer for molecular nanotechnology. It originally encapsulated several other projects, which branched off into distinct libraries.
 
 Projects:
-- [Hardware Catalog](./Sources/HardwareCatalog/README.md) - attempt at a catalog of reusable parts, currently unsuccessful
-- [HDL](https://github.com/philipturner/HDL) - domain-specific language for crystolecule design
-- [MM4](https://github.com/philipturner/MM4) - hydrocarbon/hydrosilicon simulator
-- [MRSimulation Codec](./Documentation/MRSimulation.md)
-  - [SimulationImport](./Sources/SimulationImport) - Rust port of plain-text format
+- [Hardware Catalog](./Sources/HardwareCatalog/README.md) - archive of experiments and projects with nanomachinery
+- [HDL](https://github.com/philipturner/HDL) - domain-specific language and crystolecule compiler
+- [MM4](https://github.com/philipturner/MM4) - hydrocarbon and hydrosilicon simulator
+- [Simulation Import](./Sources/SimulationImport) - decoder for the [MRSimulation](./Documentation/MRSimulation.md) plain-text format
 
 ## Overview
 

@@ -25,7 +25,6 @@ class Renderer {
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
-    initializeRenderingEngine()
     initializeExternalLibraries()
     
     let atoms = [MRAtom(origin: .zero, element: 6)]
