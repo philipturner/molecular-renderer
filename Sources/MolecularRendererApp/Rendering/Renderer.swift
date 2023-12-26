@@ -27,9 +27,11 @@ class Renderer {
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
     
-    let atoms = renderScratch2()
-    let provider = AnimationAtomProvider(atoms)
-    
-    renderingEngine.setAtomProvider(provider)
+    let start = CACurrentMediaTime()
+    let atoms = render100Reconstruction()
+    let end = CACurrentMediaTime()
+    print("atoms:", atoms.count)
+    print("compile time:", Int((end - start) * 1e3), "ms")
+    initializeAtoms(atoms)
   }
 }
