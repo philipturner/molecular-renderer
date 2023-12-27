@@ -62,6 +62,13 @@ func reconstruct100(_ atoms: [Entity]) -> Topology {
   reconstruct100Chains(&topology)
   nudgeReconstructedCarbons(&topology)
   
+  // TODO: Validate that the structures simulate in the old MM4 simulator.
+  // Determine what the minimized bond topology actually looks like around these
+  // carbons.
+  //
+  // TODO: If a carbon has 2 reconstructed bonds, create some nudges to make the
+  // bond angles farther from 90 degrees and a little closer to 109.5 degrees.
+  // Also, nudge those carbons a bit closer.
   regenerateHydrogens(&topology)
   createHydrogenBonds(&topology)
   return topology
@@ -120,33 +127,6 @@ func reconstruct100Chains(_ topology: inout Topology) {
     }
   }
   
-  var hydrogensToRemove: [UInt32] = []
-  
-  // Search for chains that are extremely simple to reconstruct.
-  for (collision, carbons) in collisionToCarbonMap {
-    precondition(carbons.count == 2)
-    
-    var allCarbonsFree = true
-    for carbon in carbons {
-      let collisions = carbonToCollisionMap[carbon]!
-      if collisions.count > 1 {
-        allCarbonsFree = false
-      }
-    }
-    if allCarbonsFree {
-      hydrogensToRemove.append(collision[0])
-      hydrogensToRemove.append(collision[1])
-      
-      let newBond = SIMD2(UInt32(carbons[0]),
-                          UInt32(carbons[1]))
-      topology.insert(bonds: [newBond])
-      
-      _ = carbonToCollisionMap.removeValue(forKey: carbons[0])!
-      _ = carbonToCollisionMap.removeValue(forKey: carbons[1])!
-      _ = collisionToCarbonMap.removeValue(forKey: collision)!
-    }
-  }
-  
   // To form chains, start at the end. Start with a place where there's
   // asymmetry. One carbon on a collision is free, the others are not. Remove
   // that carbon/collision from the list and add to the chain. Repeat another
@@ -165,6 +145,103 @@ func reconstruct100Chains(_ topology: inout Topology) {
   // - The inner carbon becomes part of 2 5-membered rings. Being closest to
   //   the bulk, it has the smallest possible chance of also being in a ring
   //   somewhere else. In 99% of cases, it does not form a 4-membered ring.
+  
+  var hydrogensToRemove: [UInt32] = []
+  
+  // This function returns the number of collisions that were removed. Many
+  // removals are duplicates, but all that matters is whether the return value
+  // is zero.
+  func shortenChainIteration() -> Int {
+    var collisionsToRemove: [SIMD2<UInt32>: Bool] = [:]
+    var carbonCollisionPairsToRemove: [SIMD3<UInt32>: Bool] = [:]
+    
+    for (collision, carbons) in collisionToCarbonMap {
+      precondition(carbons.count == 2)
+      
+      var numCarbonsFree = 0
+      var carbon1: Int = -1
+      var carbon2: Int = -1
+      for carbon in carbons {
+        let collisions = carbonToCollisionMap[carbon]!
+        if collisions.count == 1 {
+          numCarbonsFree += 1
+          carbon1 = carbon
+        } else {
+          precondition(collisions.count == 2, "Carbon had >2 collisions..")
+          carbon2 = carbon
+        }
+      }
+      
+      if numCarbonsFree == 2 {
+        // This chain is extremely simple to reconstruct.
+        hydrogensToRemove.append(collision[0])
+        hydrogensToRemove.append(collision[1])
+        
+        let newBond = SIMD2(UInt32(carbons[0]),
+                            UInt32(carbons[1]))
+        topology.insert(bonds: [newBond])
+        
+        carbonCollisionPairsToRemove[
+          SIMD3(collision, UInt32(carbons[0]))] = true
+        carbonCollisionPairsToRemove[
+          SIMD3(collision, UInt32(carbons[1]))] = true
+        collisionsToRemove[collision] = true
+      } else if numCarbonsFree == 1 {
+        hydrogensToRemove.append(collision[0])
+        hydrogensToRemove.append(collision[1])
+        
+        let newBond = SIMD2(UInt32(carbons[0]),
+                            UInt32(carbons[1]))
+        topology.insert(bonds: [newBond])
+        
+        carbonCollisionPairsToRemove[
+          SIMD3(collision, UInt32(carbons[0]))] = true
+        carbonCollisionPairsToRemove[
+          SIMD3(collision, UInt32(carbons[1]))] = true
+        
+        let collisions1 = carbonToCollisionMap[carbon1]!
+        let collisions2 = carbonToCollisionMap[carbon2]!
+        precondition(collisions1.count == 1)
+        precondition(collisions2.count == 2)
+        
+        for collision in collisions2 {
+          let carbons = collisionToCarbonMap[collision]!
+          carbonCollisionPairsToRemove[
+            SIMD3(collision, UInt32(carbons[0]))] = true
+          carbonCollisionPairsToRemove[
+            SIMD3(collision, UInt32(carbons[1]))] = true
+          collisionsToRemove[collision] = true
+        }
+      }
+    }
+    
+    for pair in carbonCollisionPairsToRemove.keys {
+      let carbon = Int(pair[2])
+      let collision = SIMD2(pair[0], pair[1])
+      var previous = carbonToCollisionMap[carbon]!
+      precondition(previous.contains(collision))
+      
+      previous.removeFirst(value: collision)
+      if previous.count == 0 {
+        _ = carbonToCollisionMap.removeValue(forKey: carbon)!
+      } else {
+        carbonToCollisionMap[carbon] = previous
+      }
+    }
+    for collision in collisionsToRemove.keys {
+      _ = collisionToCarbonMap.removeValue(forKey: collision)!
+    }
+    return collisionsToRemove.keys.count
+  }
+  
+  // If the number of remaining keys doesn't change after an iteration, the
+  // algorithm has failed to converge. If it reaches zero, it has converged.
+  while true {
+    let removed = shortenChainIteration()
+    if removed <= 0 {
+      break
+    }
+  }
   
   topology.remove(atoms: hydrogensToRemove)
 }
