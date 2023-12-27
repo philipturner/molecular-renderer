@@ -52,6 +52,14 @@ struct Reconstruction {
   // object might rearrange some bonds before the object is transformed into a
   // self-referential shell structure. After merging carbons on both ends, you
   // still need to adjust the atoms before a simulator will accept them.
+  //
+  // Acquire parameters from MM4 to perform the energy minimization on CPU, but
+  // only adjusting the surface atoms. This is the idea of "surface energy
+  // minimization" from several months ago.
+  // - If some structures still explode in the simulator after surface energy
+  //   minimization, we may need to minimize the bulk of the structure.
+  // - In this situation, there should be a function argument specifying the
+  //   scope of the minimization.
   mutating func minimize() {
     // Nudge the atoms into a lower-energy position. This may happen as a
     // post-processing effect, after the structure is warped.
@@ -83,7 +91,10 @@ struct Reconstruction {
       }
       
       let atomList = hydrogensToAtomsMap[Int(i)]
-      precondition(atomList.count == 2, "Not a two-way collision.")
+      if atomList.count != 2 {
+        print("Not a two-way collision: \(atomList)")
+      }
+      precondition(atomList.count == 2, "Not a two-way collision: \(atomList)")
       hydrogensToAtomsMap[Int(i)] = []
       
       let bond = SIMD2(atomList[0], atomList[1])

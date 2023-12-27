@@ -15,6 +15,12 @@ func createReconstructionDemo() -> [MRAtom] {
   reconstruction.topology = topology
   reconstruction.prepare()
   
+  // TODO:
+  // - 1) Move all of this into a function in 'Scratch4'.
+  // - 2) Test the raw structure(s) in MM4, see if it works by some miracle.
+  // - 3) Create the CPU-side energy minimizer.
+  let warpStructure = Bool.random() ? true : true
+  
   do {
     var updates: [Reconstruction.CollisionState?] = []
     for _ in reconstruction.hydrogensToAtomsMap.indices {
@@ -31,6 +37,18 @@ func createReconstructionDemo() -> [MRAtom] {
           continue
         }
         closure(UInt32(i), atomList)
+      }
+    }
+    
+    let orbitals = reconstruction.topology.nonbondingOrbitals()
+    for i in orbitals.indices {
+      let orbital = orbitals[i]
+      if orbital.count == 2 {
+        precondition(reconstruction.initialTypes[i] == .secondary)
+      } else if orbital.count == 1 {
+        precondition(reconstruction.initialTypes[i] == .tertiary)
+      } else if orbital.count == 0 {
+        precondition(reconstruction.initialTypes[i] == .quaternary)
       }
     }
     
@@ -52,23 +70,62 @@ func createReconstructionDemo() -> [MRAtom] {
         }
       }
       
+      var linkedList: [Int] = []
+      
       if bothBridgehead {
         fatalError("Edge case not handled yet.")
+      } else if bothSidewall {
+      outer:
+        for atomID in atomList {
+          var hydrogens = reconstruction.atomsToHydrogensMap[Int(atomID)]
+          precondition(
+            hydrogens.count == 2, "Sidewall did not have 2 hydrogens.")
+          
+          if hydrogens[0] == UInt32(i) {
+            
+          } else if hydrogens[1] == UInt32(i) {
+            hydrogens = [hydrogens[1], hydrogens[0]]
+          } else {
+            fatalError("Unexpected hydrogen list.")
+          }
+          precondition(hydrogens.first! == UInt32(i))
+          precondition(hydrogens.last! != UInt32(i))
+          
+          let nextHydrogen = Int(hydrogens.last!)
+          let atomList2 = reconstruction.hydrogensToAtomsMap[nextHydrogen]
+          if atomList2.count == 1 {
+            // This is the end of the list.
+            linkedList.append(Int(atomID))
+            linkedList.append(Int(hydrogens.first!))
+            precondition(reconstruction
+              .hydrogensToAtomsMap[Int(hydrogens.first!)].count == 2)
+            var atomListCopy = atomList
+            precondition(atomListCopy.count == 2)
+            atomListCopy.removeAll(where: { $0 == atomID })
+            precondition(atomListCopy.count == 1)
+            
+            linkedList.append(Int(atomListCopy[0]))
+            break outer
+          }
+        }
+        
+        if linkedList.count == 0 {
+          // Edge case: middle of a bond chain. This is never handled. If there
+          // is a self-referential ring, the entire ring is skipped.
+          return
+        }
+        
+        precondition(linkedList.count == 3, "Unexpected linked list length.")
+      } else {
+        precondition(bridgeheadID >= 0 && sidewallID >= 0)
+        
+        // The IDs of the elements are interleaved. First a carbon, then the
+        // connecting collision, then a carbon, then a collision, etc. The end
+        // must always be a carbon.
+        linkedList.append(bridgeheadID)
+        linkedList.append(Int(i))
+        linkedList.append(sidewallID)
       }
-      if bothSidewall {
-        // This will be necessary to reconstruct many surfaces. For now, don't
-        // handle the edge case.
-        return
-      }
-      precondition(bridgeheadID >= 0 && sidewallID >= 0)
-      
-      // The IDs of the elements are interleaved. First a carbon, then the
-      // connecting collision, then a carbon, then a collision, etc. The end
-      // must always be a carbon.
-      var linkedList: [Int] = []
-      linkedList.append(bridgeheadID)
-      linkedList.append(Int(i))
-      linkedList.append(sidewallID)
       
       var iterationCount = 0
     outer:
@@ -86,13 +143,15 @@ func createReconstructionDemo() -> [MRAtom] {
         var hydrogens = reconstruction.atomsToHydrogensMap[endOfList]
         switch hydrogens.count {
         case 1:
-          print("case 1")
+          // If this happens, the end of the list is a bridgehead carbon.
           precondition(
             hydrogens[0] == UInt32(existingHydrogen),
             "Unexpected hydrogen list.")
-          fatalError("This should have been caught in a previous iteration.")
+          
+          let centerType = reconstruction.initialTypes[endOfList]
+          precondition(centerType == .tertiary, "Must be a bridgehead carbon.")
+          break outer
         case 2:
-          print("case 2")
           if hydrogens[0] == UInt32(existingHydrogen) {
             
           } else if hydrogens[1] == UInt32(existingHydrogen) {
@@ -117,16 +176,96 @@ func createReconstructionDemo() -> [MRAtom] {
           precondition(atomList.count == 1)
           linkedList.append(Int(atomList[0]))
           
-          break
+          break outer
         case 3:
-          print("case 3")
           fatalError("3-way collisions not handled yet.")
         default:
-          print("case default")
           fatalError("Unexpected hydrogen count: \(hydrogens.count)")
         }
       }
-      print(linkedList)
+      
+      // Choose which traversal path to accept based on a rule.
+      var reverseLinkedList = true
+      var highStrainOnWarp = false
+      var lowStrainOnWarp = false
+      do {
+        let firstAtom = reconstruction.topology.atoms[linkedList.first!]
+        let lastAtom = reconstruction.topology.atoms[linkedList.last!]
+        let delta = lastAtom.position - firstAtom.position
+        
+        var perpendicularAxis = -1
+        for axisID in 0..<3 {
+          guard abs(delta[axisID]) < 10 / 1000 else {
+            continue
+          }
+          precondition(perpendicularAxis == -1)
+          perpendicularAxis = axisID
+        }
+        precondition(perpendicularAxis != -1)
+        
+        switch perpendicularAxis {
+        case 0:
+          // x
+          if delta.z > 0 {
+            reverseLinkedList = false
+          }
+        case 1:
+          // y
+          if delta.x < 0 {
+            reverseLinkedList = false
+          }
+        case 2:
+          // z
+          if delta.x < 0 {
+            reverseLinkedList = false
+          }
+          
+          let anOrbital = orbitals[linkedList.first!].first!
+          if anOrbital.z > 0 {
+            highStrainOnWarp = true
+          } else {
+            lowStrainOnWarp = true
+          }
+        default:
+          fatalError("This should never happen.")
+        }
+      }
+      if reverseLinkedList {
+        linkedList.reverse()
+      }
+      
+      // Choose which bonds to form based on a rule.
+      // - A more elaborate rule can selectively form bonds on one side, causing
+      //   immense strain that naturally keeps it in a shell structure.
+      if linkedList.count == 3 {
+        print("hello world")
+        let listElement = linkedList[1]
+        if updates[listElement] == nil {
+          updates[listElement] = .bond
+        }
+      } else {
+        for i in linkedList.indices {
+          guard i % 2 == 1 else {
+            continue
+          }
+          let listElement = linkedList[i]
+          guard updates[listElement] == nil else {
+            continue
+          }
+          
+          if warpStructure && highStrainOnWarp {
+            updates[listElement] = .bond
+          } else if warpStructure && lowStrainOnWarp {
+            updates[listElement] = .keep
+          } else {
+            if i % 4 == 1 {
+              updates[listElement] = .bond
+            } else {
+              updates[listElement] = .keep
+            }
+          }
+        }
+      }
     }
     
     reconstruction.updateCollisions(updates.map { $0 ?? .keep })
@@ -148,6 +287,7 @@ func createBeamLattice() -> [Entity] {
     Bounds { 10 * h + 3 * k + 2 * l }
     Material { .elemental(.carbon) }
     
+    #if false
     Volume {
       // These two cuts can be commented out to see how the structure warps
       // differently without them.
@@ -167,6 +307,7 @@ func createBeamLattice() -> [Entity] {
       }
       Replace { .empty }
     }
+    #endif
   }
   return lattice.atoms
 }
