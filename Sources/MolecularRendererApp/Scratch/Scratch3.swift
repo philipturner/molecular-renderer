@@ -7,6 +7,7 @@
 
 import Foundation
 import HDL
+import MM4
 import MolecularRenderer
 import Numerics
 
@@ -182,45 +183,17 @@ func reconstruct100Chains(_ topology: inout Topology) {
   topology.remove(atoms: hydrogensToRemove)
 }
 
-func reconstruct100(_ atoms: [Entity]) -> Topology {
-  var topology = Topology()
-  topology.insert(atoms: atoms)
+func testTopology(_ topology: inout Topology) {
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+  paramsDesc.bonds = topology.bonds
+  _ = try! MM4Parameters(descriptor: paramsDesc)
   
-  let ccBondMatches = topology.match(topology.atoms)
-  var ccBonds: [SIMD2<UInt32>] = []
+  var diamondoid = Diamondoid(topology: topology)
+  diamondoid.minimize(temperature: 0, fsPerFrame: 1)
+  diamondoid.minimize(temperature: 0, fsPerFrame: 100)
+  
   for i in topology.atoms.indices {
-    for j in ccBondMatches[i] {
-      if i < j {
-        let bond = SIMD2(UInt32(i), UInt32(j))
-        ccBonds.append(bond)
-      }
-    }
+    topology.atoms[i].position = diamondoid.atoms[i].origin
   }
-  topology.insert(bonds: ccBonds)
-  cleanupLooseCarbons(&topology, minimumNeighborCount: 1)
-  
-  regenerateHydrogens(&topology)
-  cleanupFourHydrogenCollisions(&topology)
-  cleanupThreeHydrogenCollisions(&topology)
-  cleanupLooseCarbons(&topology, minimumNeighborCount: 2)
-  cleanupLooseCarbons(&topology, minimumNeighborCount: 2)
-  nudgeReconstructedCarbons(&topology)
-  
-  regenerateHydrogens(&topology)
-  reconstruct100Chains(&topology)
-  nudgeReconstructedCarbons(&topology)
-  
-  // TODO: Validate that the structures simulate in the old MM4 simulator.
-  // Determine what the minimized bond topology actually looks like around these
-  // carbons.
-  //
-  // TODO: If a carbon has 2 reconstructed bonds, create some nudges to make the
-  // bond angles farther from 90 degrees and a little closer to 109.5 degrees.
-  // Also, nudge those carbons a bit closer.
-  //
-  // Potentially provide a choice between the elegant 2 5-ring solution and the
-  // asymmetric lower-energy configuration.
-  regenerateHydrogens(&topology)
-  createHydrogenBonds(&topology)
-  return topology
 }
