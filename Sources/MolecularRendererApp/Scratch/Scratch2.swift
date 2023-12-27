@@ -11,18 +11,7 @@ import MM4
 import MolecularRenderer
 import Numerics
 
-// This may output one of two materials - C or Si. The code handling it must
-// function correctly in either case. Being a single element reduces the
-// complexity of rules regarding hydrogen locations for detecting collisions.
-// It could theoretically be extended to mixed-element structures, but with
-// extra effort and restrictions on the code processing the geometry.
-func createBeamLattice() -> [Entity] {
-  let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * h + 3 * k + 2 * l }
-    Material { .elemental(.carbon) }
-  }
-  return lattice.atoms
-}
+
 
 extension Reconstruction {
   // Remove malformed and primary carbons.
@@ -150,5 +139,141 @@ extension Reconstruction {
     for j in topology.atoms.indices {
       atomsToHydrogensMap[Int(j)].sort()
     }
+  }
+  
+  mutating func createHydrogenBonds() {
+    var insertedAtoms: [Entity] = []
+    var insertedBonds: [SIMD2<UInt32>] = []
+    func createCenter(_ atomList: [UInt32]) -> SIMD3<Float>? {
+      guard atomList.count > 1 else {
+        return nil
+      }
+      var output: SIMD3<Float> = .zero
+      for atomID in atomList {
+        let atom = topology.atoms[Int(atomID)]
+        output += atom.position
+      }
+      output /= Float(atomList.count)
+      return output
+    }
+    func addBond(_ atomID: Int, orbital: SIMD3<Float>) {
+      let atom = topology.atoms[atomID]
+      guard case .atom(let element) = atom.type else {
+        fatalError("This should never happen.")
+      }
+      var bondLength = element.covalentRadius
+      bondLength += Element.hydrogen.covalentRadius
+      let position = atom.position + bondLength * orbital
+      let hydrogenID = topology.atoms.count + insertedAtoms.count
+      
+      let hydrogen = Entity(position: position, type: .atom(.hydrogen))
+      let bond = SIMD2(UInt32(atomID), UInt32(hydrogenID))
+      insertedAtoms.append(hydrogen)
+      insertedBonds.append(bond)
+    }
+    func withClosestOrbitals(
+      _ atomList: [UInt32],
+      _ closure: (UInt32, SIMD3<Float>) -> Void
+    ) {
+      let siteCenter = createCenter(atomList)!
+      for atomID in atomList {
+        let orbital = orbitals[Int(atomID)]
+        let delta = siteCenter - topology.atoms[Int(atomID)].position
+        var keyValuePairs = orbital.map { orbital -> (SIMD3<Float>, Float) in
+          (orbital, (orbital * delta).sum())
+        }
+        keyValuePairs.sort(by: { $0.1 > $1.1 })
+        
+        let closestOrbital = keyValuePairs[0].0
+        closure(atomID, closestOrbital)
+      }
+    }
+    let orbitals = topology.nonbondingOrbitals(hybridization: .sp3)
+    
+    for i in hydrogensToAtomsMap.indices {
+      let atomList = hydrogensToAtomsMap[i]
+      
+      if atomList.count == 0 {
+        // This collision was resolved.
+        continue
+      } else if atomList.count == 1 {
+        let atomID = Int(atomList[0])
+        let hydrogenList = atomsToHydrogensMap[atomID]
+        let collisionMask = hydrogenList.map {
+          let atomList = hydrogensToAtomsMap[Int($0)]
+          precondition(atomList.count > 0)
+          return atomList.count > 1
+        }
+        let orbital = orbitals[atomID]
+        precondition(orbital.count > 0, "No orbitals.")
+        
+        // Switch over the different cases of the atom's hydrogen list.
+        if hydrogenList.count == 1 {
+          precondition(orbital.count == 1, "Unexpected orbital count.")
+          
+          // Easiest case:
+          //
+          // The list only has a single hydrogen.
+          precondition(!collisionMask[0])
+          addBond(atomID, orbital: orbital[orbital.startIndex])
+        } else if hydrogenList.count == 2 {
+          precondition(orbital.count == 2, "Unexpected orbital count.")
+          let orbital0 = orbital[orbital.startIndex]
+          let orbital1 = orbital[orbital.endIndex-1]
+          
+          if collisionMask[0] && collisionMask[1] {
+            fatalError("This should never happen.")
+          } else if collisionMask[0] || collisionMask[1] {
+            // If 1 orbital has a collision:
+            //
+            // Use a scoring function to match collision(s) to orbitals.
+            
+            let collisionID =
+            (collisionMask[0]) ? hydrogenList[0] : hydrogenList[1]
+            let nonCollisionID =
+            (collisionMask[0]) ? hydrogenList[1] : hydrogenList[0]
+            precondition(collisionID != UInt32(i))
+            precondition(nonCollisionID == UInt32(i))
+            
+            let atomList = hydrogensToAtomsMap[Int(collisionID)]
+            let center = createCenter(atomList)!
+            let delta = center - topology.atoms[atomID].position
+            let score0 = (orbital0 * delta).sum()
+            let score1 = (orbital1 * delta).sum()
+            
+            if score0 > score1 {
+              addBond(atomID, orbital: orbital1)
+            } else if score0 < score1 {
+              addBond(atomID, orbital: orbital0)
+            } else {
+              fatalError("Scores were equal.")
+            }
+          } else {
+            // If there are 2 orbitals and both are collision-free:
+            //
+            // The compiler uses a deterministic method to generate orbitals.
+            // Plus, the orbitals are already generated once. Assign the first
+            // hydrogen in the list to the first orbital.
+            let isFirst = hydrogenList[0] == UInt32(i)
+            let orbital = isFirst ? orbital0 : orbital1
+            addBond(atomID, orbital: orbital)
+          }
+        } else {
+          fatalError("Large hydrogen lists not handled yet.")
+        }
+      } else if atomList.count == 2 {
+        withClosestOrbitals(atomList) { atomID, orbital in
+          addBond(Int(atomID), orbital: orbital)
+        }
+      } else if atomList.count == 3 {
+        withClosestOrbitals(atomList) { atomID, orbital in
+          addBond(Int(atomID), orbital: orbital)
+        }
+      } else if atomList.count > 3 {
+        fatalError("Edge case with >3 hydrogens in a site not handled yet.")
+      }
+    }
+    topology.insert(atoms: insertedAtoms)
+    topology.insert(bonds: insertedBonds)
   }
 }
