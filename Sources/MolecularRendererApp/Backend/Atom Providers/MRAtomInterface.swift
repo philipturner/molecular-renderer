@@ -149,17 +149,14 @@ class OpenMM_AtomProvider: MRAtomProvider {
 
 extension MRAtom {
   init(entity: HDL.Entity) {
-    if case .empty = entity.type {
+    if entity.storage.w == 0 {
       self = MRAtom(origin: entity.position, element: 0)
       self.flags = 0x1
       return
     }
     
-    guard case .atom(let element) = entity.type else {
-      fatalError("Unrecognized entity type: \(entity.storage.w)")
-    }
     self = MRAtom(
       origin: entity.position,
-      element: element.rawValue)
+      element: UInt8(entity.storage.w))
   }
 }

@@ -31,7 +31,7 @@ class Renderer {
     let atoms = render100Reconstruction()
     let end = CACurrentMediaTime()
     print("atoms:", atoms.count)
-    print("compile time:", Int((end - start) * 1e3), "ms")
+    print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
     initializeAtoms(atoms)
   }
 }
