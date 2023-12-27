@@ -85,6 +85,7 @@
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
 		98FE60CF2B3BBD9F00D73E37 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60CE2B3BBD9F00D73E37 /* Scratch2.swift */; };
+		98FE60D12B3BDA0300D73E37 /* Scratch3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60D02B3BDA0300D73E37 /* Scratch3.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -261,6 +262,7 @@
 		98FB90792A5B6FC600685E5C /* VsyncHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VsyncHandler.swift; sourceTree = "<group>"; };
 		98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
 		98FE60CE2B3BBD9F00D73E37 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
+		98FE60D02B3BDA0300D73E37 /* Scratch3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch3.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -449,6 +451,7 @@
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
 				98FE60CE2B3BBD9F00D73E37 /* Scratch2.swift */,
+				98FE60D02B3BDA0300D73E37 /* Scratch3.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -978,6 +981,7 @@
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98B6BDFD2AEE85B700F8655C /* Renderer+Update.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
+				98FE60D12B3BDA0300D73E37 /* Scratch3.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift in Sources */,
 				98F012622B266FA70037318D /* Bootstrapping.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,

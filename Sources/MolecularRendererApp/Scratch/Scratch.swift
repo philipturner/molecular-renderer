@@ -49,44 +49,122 @@ func reconstruct100(_ atoms: [Entity]) -> Topology {
     }
   }
   topology.insert(bonds: ccBonds)
-  
   cleanupLooseCarbons(&topology, minimumNeighborCount: 1)
   
-  let passivatorDirections = topology.nonbondingOrbitals()
+  regenerateHydrogens(&topology)
+  cleanupFourHydrogenCollisions(&topology)
+  cleanupThreeHydrogenCollisions(&topology)
+  cleanupLooseCarbons(&topology, minimumNeighborCount: 2)
+  cleanupLooseCarbons(&topology, minimumNeighborCount: 2)
+  nudgeReconstructedCarbons(&topology)
+  
+  regenerateHydrogens(&topology)
+  reconstruct100Chains(&topology)
+  nudgeReconstructedCarbons(&topology)
+  
+  regenerateHydrogens(&topology)
+  createHydrogenBonds(&topology)
+  return topology
+}
+
+// Searches for any pairs of hydrogens in a very simple situation. They collide,
+// but their respective carbons are the only 5-ring carbons in the vicinity.
+// There is no ambiguity about where to place bonds.
+//
+// Examples include bonds in the crevice between two (110) or (111) planes.
+//
+// The remaining situations, e.g. lines with several bonds, are not as simple.
+// They are not handled yet. They might be the last missing piece before 99%
+// of (100)-like collisions can be automatically reconstructed.
+func reconstruct100Chains(_ topology: inout Topology) {
   let chBondLength =
   Element.carbon.covalentRadius + Element.hydrogen.covalentRadius
   
-  var hydrogens: [Entity] = []
+  let matches = topology.match(
+    topology.atoms, algorithm: .absoluteRadius(0.080))
+  let farMatches = topology.match(
+    topology.atoms, algorithm: .absoluteRadius(chBondLength * 1.01))
+  var carbonToCollisionMap: [Int: [SIMD2<UInt32>]] = [:]
+  var collisionToCarbonMap: [SIMD2<UInt32>: [Int]] = [:]
+  
   for i in topology.atoms.indices {
-    let carbon = topology.atoms[i]
-    for direction in passivatorDirections[i] {
-      let position = carbon.position + direction * chBondLength
-      let atom = Entity(position: position, type: .atom(.hydrogen))
-      hydrogens.append(atom)
+    let range = matches[i]
+    guard topology.atoms[i].atomicNumber == 1 else {
+      continue
+    }
+    if range.count == 2 {
+      var list: [UInt32] = []
+      list.append(UInt32(i))
+      for j in range[(range.startIndex+1)...] {
+        list.append(j)
+      }
+      list.sort()
+      
+      var collision: SIMD2<UInt32> = .zero
+      for lane in 0..<2 {
+        collision[lane] = list[lane]
+      }
+      let farMatchRange = farMatches[i]
+      precondition(farMatchRange.count == 3)
+      
+      let carbonID = Int(farMatchRange[farMatchRange.endIndex - 1])
+      var previous = carbonToCollisionMap[carbonID] ?? []
+      previous.append(collision)
+      carbonToCollisionMap[carbonID] = previous
+      
+      do {
+        var previous = collisionToCarbonMap[collision] ?? []
+        previous.append(carbonID)
+        collisionToCarbonMap[collision] = previous
+      }
     }
   }
-  topology.insert(atoms: hydrogens)
   
-  // 13498 atoms
-  cleanupFourHydrogenCollisions(&topology)
+  var hydrogensToRemove: [UInt32] = []
   
-  // Clean up all the places where 3 hydrogens collide.
-  // - if there's a bridgehead carbon, bond the two sidewalls
-  // - if all 3 are sidewalls, generate a new carbon by extrapolating all 3
-  //   hydrogen bond deltas to the C-C bond length, then averaging.
-  do {
-//      var carbonTypesMap = [Int](repeating: -2, count: topology.atoms.count)
-//      for i in topology.atoms.indices {
-//        if topology.atoms[i].atomicNumber == 1 {
-//          // we haven't connected hydrogens yet
-//          precondition(atomsToAtomsMap[i].count == 0)
-//          carbonTypesMap[i] = -1 // hydrogen type
-//        } else {
-//          carbonTypesMap[i] = atomsToAtomsMap[i].count
-//        }
-//      }
-//      precondition(carbonTypesMap.allSatisfy { $0 != -2 })
+  // Search for chains that are extremely simple to reconstruct.
+  for (collision, carbons) in collisionToCarbonMap {
+    precondition(carbons.count == 2)
+    
+    var allCarbonsFree = true
+    for carbon in carbons {
+      let collisions = carbonToCollisionMap[carbon]!
+      if collisions.count > 1 {
+        allCarbonsFree = false
+      }
+    }
+    if allCarbonsFree {
+      hydrogensToRemove.append(collision[0])
+      hydrogensToRemove.append(collision[1])
+      
+      let newBond = SIMD2(UInt32(carbons[0]),
+                          UInt32(carbons[1]))
+      topology.insert(bonds: [newBond])
+      
+      _ = carbonToCollisionMap.removeValue(forKey: carbons[0])!
+      _ = carbonToCollisionMap.removeValue(forKey: carbons[1])!
+      _ = collisionToCarbonMap.removeValue(forKey: collision)!
+    }
   }
   
-  return topology
+  // To form chains, start at the end. Start with a place where there's
+  // asymmetry. One carbon on a collision is free, the others are not. Remove
+  // that carbon/collision from the list and add to the chain. Repeat another
+  // time, except the carbon knows where the previous chain is (instead of
+  // steading a new chain).
+  
+  // Finally, decide which carbon should start the chain. Rules in order of
+  // priority:
+  // - 1) One side is embedded within the bulk structure (bridgehead).
+  // - 2) Whether both are bridgeheads
+  //   - TODO: slightly more complex heuristics are needed for this case
+  // - 3) Which end has the most negative X/Y/Z coordinates.
+  
+  // More simple approach:
+  // - Walk inward from the edges, one atom at a time.
+  // - The inner carbon becomes part of 2 5-membered rings. Being closest to
+  //   the bulk, it has the smallest possible chance of also being in a ring
+  //   somewhere else. In 99% of cases, it does not form a 4-membered ring.
+  
+  topology.remove(atoms: hydrogensToRemove)
 }
