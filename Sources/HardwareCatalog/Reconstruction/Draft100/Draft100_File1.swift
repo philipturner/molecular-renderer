@@ -39,17 +39,18 @@ import Numerics
 //   - such cuts for lonsdaleite may be highly desirable
 // - applicable to silicon and other materials
 //   - find a more extensible approach for applying nudges
+// - flexibility to keep primary carbons around and form bonds with them
 //
 // Design space restricton to simplify the compiler:
-// - No isolated enclosed shells
-//   - A small number of warped parts that interlock to provide something
+// - no isolated enclosed shells
+//   - a small number of warped parts that interlock to provide something
 //     close-enough to a strained shell structure
-// - Compiler doesn't need to preserve hydrogen collision sites across any
+// - compiler doesn't need to preserve hydrogen collision sites across any
 //   merging operations
-//   - Less complex graphs; unidirectional and acyclic
-// - Adheres to the workflow acceleration of breaking into smaller parts
-//   - More manufacturable
-//   - More recyclable
+//   - less complex graphs; unidirectional and acyclic
+// - adheres to the workflow acceleration of breaking into smaller parts
+//   - more manufacturable
+//   - more recyclable
 
 func render100Reconstruction() -> [MRAtom] {
   var lattices: [[Entity]] = []

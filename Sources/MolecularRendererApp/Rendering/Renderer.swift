@@ -28,7 +28,7 @@ class Renderer {
     initializeExternalLibraries()
     
     let start = CACurrentMediaTime()
-    let atoms = [MRAtom(origin: .zero, element: 6)]
+    let atoms = createReconstructionDemo()
     let end = CACurrentMediaTime()
     print("atoms:", atoms.count)
     print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
