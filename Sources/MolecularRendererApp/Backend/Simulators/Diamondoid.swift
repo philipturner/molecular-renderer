@@ -104,6 +104,11 @@ struct Diamondoid {
     angularVelocity != nil
   }
   
+  init(atoms: [MRAtom], bonds: [SIMD2<Int32>]) {
+    self.atoms = atoms
+    self.bonds = bonds
+  }
+  
   init(carbonCenters: [SIMD3<Float>], ccBondRange: ClosedRange<Float>? = nil) {
     let atoms = carbonCenters.map {
       MRAtom(origin: $0, element: 6)
@@ -1285,13 +1290,13 @@ struct Diamondoid {
     }
   }
   
-  mutating func minimize(temperature: Double = 298) {
+  mutating func minimize(temperature: Double = 298, fsPerFrame: Double = 100) {
     var diamondoid = self
     diamondoid.linearVelocity = nil
     diamondoid.angularVelocity = nil
     
     let simulator = _Old_MM4(
-      diamondoid: diamondoid, fsPerFrame: 100, temperature: temperature)
+      diamondoid: diamondoid, fsPerFrame: fsPerFrame, temperature: temperature)
     let emptyVelocities: [SIMD3<Float>] = Array(
       repeating: .zero, count: diamondoid.atoms.count)
     
@@ -1405,6 +1410,12 @@ extension Diamondoid {
     for atomID in self.atoms.indices {
       closure(&self.atoms[atomID])
     }
+  }
+  
+  init(topology: Topology) {
+    let atoms = topology.atoms.map(MRAtom.init)
+    let bonds = topology.bonds.map(SIMD2<Int32>.init(truncatingIfNeeded:))
+    self.init(atoms: atoms, bonds: bonds)
   }
 }
 

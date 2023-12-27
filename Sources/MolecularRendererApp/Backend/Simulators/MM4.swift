@@ -128,24 +128,32 @@ class MM4 {
     OpenMM_Platform.loadPlugins(directory: directory)
     
     do {
-      let fsInt = Int(exactly: fsPerFrame)!
-      precondition(fsInt > 0)
-      precondition((fsInt % 100 == 0) || (100 % fsInt == 0))
-      
-      if fsInt % 100 == 0 {
-        // Replay at (n * 12) ps/s.
-        self.timeStepInFs = 100
-        self.substepsPerTimeStep = 23
-      } else if fsInt % 25 == 0 {
-        // Replay at (n * 3) ps/s.
-        self.timeStepInFs = fsPerFrame
-        self.substepsPerTimeStep = 24 * (fsInt / 25)
-      } else if fsInt % 4 == 0 {
-        // Replay at (n * 0.48) ps/s.
-        self.timeStepInFs = fsPerFrame
-        self.substepsPerTimeStep = fsInt / 4
+      if fsPerFrame == 0.25 {
+        self.timeStepInFs = 0.25
+        self.substepsPerTimeStep = 1
       } else {
-        fatalError("Unsupports fs per frame: '\(fsInt)'")
+        let fsInt = Int(exactly: fsPerFrame)!
+        precondition(fsInt > 0)
+        precondition((fsInt % 100 == 0) || (100 % fsInt == 0))
+        
+        if fsInt % 100 == 0 {
+          // Replay at (n * 12) ps/s.
+          self.timeStepInFs = 100
+          self.substepsPerTimeStep = 23
+        } else if fsInt % 25 == 0 {
+          // Replay at (n * 3) ps/s.
+          self.timeStepInFs = fsPerFrame
+          self.substepsPerTimeStep = 24 * (fsInt / 25)
+        } else if fsInt % 4 == 0 {
+          // Replay at (n * 0.48) ps/s.
+          self.timeStepInFs = fsPerFrame
+          self.substepsPerTimeStep = fsInt / 4
+        } else if fsInt == 1 {
+          self.timeStepInFs = fsPerFrame
+          self.substepsPerTimeStep = fsInt / 1
+        } else {
+          fatalError("Unsupported fs per frame: '\(fsInt)'")
+        }
       }
     }
     
@@ -685,25 +693,38 @@ class MM4 {
       let quinticTerm = 7.0e-7 * pow(correction, 3)
       let sexticTerm = 2.2e-8 * pow(correction, 4)
       
-      let energy = """
-        \(OpenMM_KJPerKcal) * (bend + stretchBend);
-        bend = 0.021914 * \(pow(OpenMM_DegreesPerRadian, 2)) *
-        bendingStiffness * deltaTheta^2 * (
-          1
-          - \(cubicTerm) * deltaTheta
-          + \(quarticTerm) * deltaTheta^2
-          - \(quinticTerm) * deltaTheta^3
-          + \(sexticTerm) * deltaTheta^4
-        );
-        stretchBend = 2.51118 * 10 * \(OpenMM_DegreesPerRadian) *
-        stretchBendStiffness * deltaTheta * (
-          deltaLengthLeft + deltaLengthRight
-        );
-        
-        deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
-        deltaLengthLeft = distance(p1, p2) - equilibriumLengthLeft;
-        deltaLengthRight = distance(p3, p2) - equilibriumLengthRight;
-        """
+      var energy: String
+      if fsPerFrame > 1 {
+        energy = """
+          \(OpenMM_KJPerKcal) * (bend + stretchBend);
+          bend = 0.021914 * \(pow(OpenMM_DegreesPerRadian, 2)) *
+          bendingStiffness * deltaTheta^2 * (
+            1
+            - \(cubicTerm) * deltaTheta
+            + \(quarticTerm) * deltaTheta^2
+            - \(quinticTerm) * deltaTheta^3
+            + \(sexticTerm) * deltaTheta^4
+          );
+          stretchBend = 2.51118 * 10 * \(OpenMM_DegreesPerRadian) *
+          stretchBendStiffness * deltaTheta * (
+            deltaLengthLeft + deltaLengthRight
+          );
+          
+          deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+          deltaLengthLeft = distance(p1, p2) - equilibriumLengthLeft;
+          deltaLengthRight = distance(p3, p2) - equilibriumLengthRight;
+          """
+      } else {
+        energy = """
+          \(OpenMM_KJPerKcal) * bend;
+          bend = 0.021914 * \(pow(OpenMM_DegreesPerRadian, 2)) *
+          bendingStiffness * deltaTheta^2 * (
+            1
+          );
+          
+          deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+          """
+      }
       
       bondBend = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: energy)
       bondBend.addPerBondParameter(name: "bendingStiffness")
@@ -1093,13 +1114,13 @@ class MM4 {
     system.addForce(bondMorse)
     
     bondBend.transfer()
-    bondBendBend.transfer()
-    bondTorsion.transfer()
-//    bondBendTorsionBend.transfer()
     system.addForce(bondBend)
-    system.addForce(bondBendBend)
-    system.addForce(bondTorsion)
-//    system.addForce(bondBendTorsionBend)
+    if fsPerFrame > 1 {
+      bondBendBend.transfer()
+      bondTorsion.transfer()
+      system.addForce(bondBendBend)
+      system.addForce(bondTorsion)
+    }
     
     if let externalForce {
       externalForceObject = externalForce
@@ -1416,7 +1437,7 @@ class MM4 {
     var energies: [Float] = []
     for t in 1...numFrames {
       var absoluteTimeInFs = t * provider.stepsPerFrame
-      absoluteTimeInFs *= Int(exactly: timeStepInFs)!
+      absoluteTimeInFs *= Int(exactly: max(timeStepInFs, 1))!
       integrator.step(provider.stepsPerFrame)
       
       let timestamp = Double(absoluteTimeInFs) / 1000
