@@ -84,8 +84,6 @@
 		98FB90702A5B19E100685E5C /* Key.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB906F2A5B19E100685E5C /* Key.swift */; };
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
-		98FE60CF2B3BBD9F00D73E37 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60CE2B3BBD9F00D73E37 /* Scratch2.swift */; };
-		98FE60D12B3BDA0300D73E37 /* Scratch3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60D02B3BDA0300D73E37 /* Scratch3.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -261,8 +259,10 @@
 		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
 		98FB90792A5B6FC600685E5C /* VsyncHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VsyncHandler.swift; sourceTree = "<group>"; };
 		98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
-		98FE60CE2B3BBD9F00D73E37 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
-		98FE60D02B3BDA0300D73E37 /* Scratch3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch3.swift; sourceTree = "<group>"; };
+		98FE60D42B3C6B1E00D73E37 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98FE60D52B3C743F00D73E37 /* Draft100_File1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft100_File1.swift; sourceTree = "<group>"; };
+		98FE60D62B3C744800D73E37 /* Draft100_File2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft100_File2.swift; sourceTree = "<group>"; };
+		98FE60D72B3C745000D73E37 /* Draft100_File3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft100_File3.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -397,6 +397,7 @@
 				98B25A2F2B393A7B00081A61 /* Experiments */,
 				98B25A302B393AA800081A61 /* Materials */,
 				98B25A322B393AEE00081A61 /* Parts */,
+				98FE60D22B3C6AFC00D73E37 /* Reconstruction */,
 				98B25A332B393B0A00081A61 /* Systems */,
 				987234F02ABE860300E427E5 /* README.md */,
 			);
@@ -450,8 +451,6 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
-				98FE60CE2B3BBD9F00D73E37 /* Scratch2.swift */,
-				98FE60D02B3BDA0300D73E37 /* Scratch3.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -856,6 +855,25 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
+		98FE60D22B3C6AFC00D73E37 /* Reconstruction */ = {
+			isa = PBXGroup;
+			children = (
+				98FE60D32B3C6B0900D73E37 /* Draft100 */,
+				98FE60D42B3C6B1E00D73E37 /* README.md */,
+			);
+			path = Reconstruction;
+			sourceTree = "<group>";
+		};
+		98FE60D32B3C6B0900D73E37 /* Draft100 */ = {
+			isa = PBXGroup;
+			children = (
+				98FE60D52B3C743F00D73E37 /* Draft100_File1.swift */,
+				98FE60D62B3C744800D73E37 /* Draft100_File2.swift */,
+				98FE60D72B3C745000D73E37 /* Draft100_File3.swift */,
+			);
+			path = Draft100;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -981,7 +999,6 @@
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98B6BDFD2AEE85B700F8655C /* Renderer+Update.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
-				98FE60D12B3BDA0300D73E37 /* Scratch3.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift in Sources */,
 				98F012622B266FA70037318D /* Bootstrapping.swift in Sources */,
 				98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */,
@@ -1014,7 +1031,6 @@
 				98F012662B2671160037318D /* Bootstrapping_BuildPlate.swift in Sources */,
 				98B6BE0D2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
-				98FE60CF2B3BBD9F00D73E37 /* Scratch2.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 				984F72192A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift in Sources */,
 			);
