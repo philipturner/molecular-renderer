@@ -1,9 +1,7 @@
-//
-//  Scratch2.swift
-//  MolecularRendererApp
-//
-//  Created by Philip Turner on 12/27/23.
-//
+// ALL OF THE IDEAS PRESENTED HERE ARE MIT LICENSED BY PHILIP A. TURNER (2024)
+// THEY SHALL NEVER BE PATENTED IN ANY COUNTRY
+// THE INVENTOR RESERVES THE RIGHT TO REVOKE A PARTY'S PERMISSION TO USE THESE
+// IDEAS, AT HIS DISCRETION, IN RESPONSE TO EGREGIOUS CASES OF MISUSE
 
 import Foundation
 import HDL
@@ -15,7 +13,7 @@ import Numerics
 
 extension Reconstruction {
   // Remove malformed and primary carbons.
-  mutating func removePathologialAtoms() {
+  mutating func removePathologicalAtoms() {
     var iteration = 0
     while true {
       let matches = topology.match(topology.atoms)
