@@ -1305,7 +1305,7 @@ struct Diamondoid {
       if fsPerFrame > 1 {
         simulator.simulate(ps: 0.5, minimizing: true)
       } else {
-        simulator.simulate(ps: 0.15, minimizing: true)
+        simulator.simulate(ps: 0.5, minimizing: true)
       }
       if iteration < numIterations - 1 {
         simulator.provider.reset()

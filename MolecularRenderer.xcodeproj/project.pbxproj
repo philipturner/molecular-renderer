@@ -86,6 +86,7 @@
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
 		98FE60D92B3C929900D73E37 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60D82B3C929900D73E37 /* Scratch2.swift */; };
 		98FE60DB2B3CD77100D73E37 /* Scratch3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60DA2B3CD77100D73E37 /* Scratch3.swift */; };
+		98FE60DD2B3CFDB400D73E37 /* Scratch4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60DC2B3CFDB400D73E37 /* Scratch4.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -267,6 +268,7 @@
 		98FE60D72B3C745000D73E37 /* Draft1_File3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft1_File3.swift; sourceTree = "<group>"; };
 		98FE60D82B3C929900D73E37 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
 		98FE60DA2B3CD77100D73E37 /* Scratch3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch3.swift; sourceTree = "<group>"; };
+		98FE60DC2B3CFDB400D73E37 /* Scratch4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch4.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -457,6 +459,7 @@
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
 				98FE60D82B3C929900D73E37 /* Scratch2.swift */,
 				98FE60DA2B3CD77100D73E37 /* Scratch3.swift */,
+				98FE60DC2B3CFDB400D73E37 /* Scratch4.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -1028,6 +1031,7 @@
 				98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */,
 				98B6BE0B2AEF082000F8655C /* Nanosystems_Chapter12.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
+				98FE60DD2B3CFDB400D73E37 /* Scratch4.swift in Sources */,
 				98325C602A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift in Sources */,
 				98325C722A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,

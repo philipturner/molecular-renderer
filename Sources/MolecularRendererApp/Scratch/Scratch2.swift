@@ -109,7 +109,7 @@ extension Reconstruction {
     var matcher = Topology()
     matcher.insert(atoms: hydrogenEntities)
     let matches = matcher.match(
-      hydrogenEntities, algorithm: .absoluteRadius(0.020))
+      hydrogenEntities, algorithm: .absoluteRadius(0.030))
     
   outer:
     for i in hydrogenData.indices {

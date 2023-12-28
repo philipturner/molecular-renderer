@@ -5,6 +5,7 @@ import HDL
 import MM4
 import MolecularRenderer
 import Numerics
+import OpenMM
 
 func createReconstructionDemo() -> [MRAtom] {
   let lattice = createBeamLattice()
@@ -16,264 +17,11 @@ func createReconstructionDemo() -> [MRAtom] {
   reconstruction.prepare()
   
   // TODO:
-  // - 1) Move all of this into a function in 'Scratch4'.
-  // - 2) Test the raw structure(s) in MM4, see if it works by some miracle.
-  // - 3) Create the CPU-side energy minimizer.
-  let warpStructure = Bool.random() ? true : true
-  
-  do {
-    var updates: [Reconstruction.CollisionState?] = []
-    for _ in reconstruction.hydrogensToAtomsMap.indices {
-      updates.append(nil)
-    }
-    
-    func withTwoWayCollisions(_ closure: (UInt32, [UInt32]) -> Void) {
-      for i in reconstruction.hydrogensToAtomsMap.indices {
-        let atomList = reconstruction.hydrogensToAtomsMap[i]
-        if atomList.count > 2 {
-          fatalError("3-way collisions not handled yet.")
-        }
-        if atomList.count < 2 {
-          continue
-        }
-        closure(UInt32(i), atomList)
-      }
-    }
-    
-    let orbitals = reconstruction.topology.nonbondingOrbitals()
-    for i in orbitals.indices {
-      let orbital = orbitals[i]
-      if orbital.count == 2 {
-        precondition(reconstruction.initialTypes[i] == .secondary)
-      } else if orbital.count == 1 {
-        precondition(reconstruction.initialTypes[i] == .tertiary)
-      } else if orbital.count == 0 {
-        precondition(reconstruction.initialTypes[i] == .quaternary)
-      }
-    }
-    
-    withTwoWayCollisions { i, atomList in
-      var bridgeheadID: Int = -1
-      var sidewallID: Int = -1
-      var bothBridgehead = true
-      var bothSidewall = true
-      for atomID in atomList {
-        switch reconstruction.initialTypes[Int(atomID)] {
-        case .secondary:
-          sidewallID = Int(atomID)
-          bothBridgehead = false
-        case .tertiary:
-          bridgeheadID = Int(atomID)
-          bothSidewall = false
-        default:
-          fatalError("This should never happen.")
-        }
-      }
-      
-      var linkedList: [Int] = []
-      
-      if bothBridgehead {
-        fatalError("Edge case not handled yet.")
-      } else if bothSidewall {
-      outer:
-        for atomID in atomList {
-          var hydrogens = reconstruction.atomsToHydrogensMap[Int(atomID)]
-          precondition(
-            hydrogens.count == 2, "Sidewall did not have 2 hydrogens.")
-          
-          if hydrogens[0] == UInt32(i) {
-            
-          } else if hydrogens[1] == UInt32(i) {
-            hydrogens = [hydrogens[1], hydrogens[0]]
-          } else {
-            fatalError("Unexpected hydrogen list.")
-          }
-          precondition(hydrogens.first! == UInt32(i))
-          precondition(hydrogens.last! != UInt32(i))
-          
-          let nextHydrogen = Int(hydrogens.last!)
-          let atomList2 = reconstruction.hydrogensToAtomsMap[nextHydrogen]
-          if atomList2.count == 1 {
-            // This is the end of the list.
-            linkedList.append(Int(atomID))
-            linkedList.append(Int(hydrogens.first!))
-            precondition(reconstruction
-              .hydrogensToAtomsMap[Int(hydrogens.first!)].count == 2)
-            var atomListCopy = atomList
-            precondition(atomListCopy.count == 2)
-            atomListCopy.removeAll(where: { $0 == atomID })
-            precondition(atomListCopy.count == 1)
-            
-            linkedList.append(Int(atomListCopy[0]))
-            break outer
-          }
-        }
-        
-        if linkedList.count == 0 {
-          // Edge case: middle of a bond chain. This is never handled. If there
-          // is a self-referential ring, the entire ring is skipped.
-          return
-        }
-        
-        precondition(linkedList.count == 3, "Unexpected linked list length.")
-      } else {
-        precondition(bridgeheadID >= 0 && sidewallID >= 0)
-        
-        // The IDs of the elements are interleaved. First a carbon, then the
-        // connecting collision, then a carbon, then a collision, etc. The end
-        // must always be a carbon.
-        linkedList.append(bridgeheadID)
-        linkedList.append(Int(i))
-        linkedList.append(sidewallID)
-      }
-      
-      var iterationCount = 0
-    outer:
-      while true {
-        defer {
-          iterationCount += 1
-          if iterationCount > 1000 {
-            fatalError(
-              "(100) reconstructon took too many iterations to converge.")
-          }
-        }
-        let endOfList = linkedList.last!
-        let existingHydrogen = linkedList[linkedList.count - 2]
-        
-        var hydrogens = reconstruction.atomsToHydrogensMap[endOfList]
-        switch hydrogens.count {
-        case 1:
-          // If this happens, the end of the list is a bridgehead carbon.
-          precondition(
-            hydrogens[0] == UInt32(existingHydrogen),
-            "Unexpected hydrogen list.")
-          
-          let centerType = reconstruction.initialTypes[endOfList]
-          precondition(centerType == .tertiary, "Must be a bridgehead carbon.")
-          break outer
-        case 2:
-          if hydrogens[0] == UInt32(existingHydrogen) {
-            
-          } else if hydrogens[1] == UInt32(existingHydrogen) {
-            hydrogens = [hydrogens[1], hydrogens[0]]
-          } else {
-            fatalError("Unexpected hydrogen list.")
-          }
-          precondition(hydrogens.first! == UInt32(existingHydrogen))
-          precondition(hydrogens.last! != UInt32(existingHydrogen))
-          
-          let nextHydrogen = Int(hydrogens.last!)
-          var atomList = reconstruction.hydrogensToAtomsMap[nextHydrogen]
-          if atomList.count == 1 {
-            // This is the end of the list.
-            break outer
-          }
-          linkedList.append(nextHydrogen)
-          precondition(atomList.count == 2) // this may not always be true
-          
-          precondition(atomList.contains(UInt32(endOfList)))
-          atomList.removeAll(where: { $0 == UInt32(endOfList) })
-          precondition(atomList.count == 1)
-          linkedList.append(Int(atomList[0]))
-          
-          break outer
-        case 3:
-          fatalError("3-way collisions not handled yet.")
-        default:
-          fatalError("Unexpected hydrogen count: \(hydrogens.count)")
-        }
-      }
-      
-      // Choose which traversal path to accept based on a rule.
-      var reverseLinkedList = true
-      var highStrainOnWarp = false
-      var lowStrainOnWarp = false
-      do {
-        let firstAtom = reconstruction.topology.atoms[linkedList.first!]
-        let lastAtom = reconstruction.topology.atoms[linkedList.last!]
-        let delta = lastAtom.position - firstAtom.position
-        
-        var perpendicularAxis = -1
-        for axisID in 0..<3 {
-          guard abs(delta[axisID]) < 10 / 1000 else {
-            continue
-          }
-          precondition(perpendicularAxis == -1)
-          perpendicularAxis = axisID
-        }
-        precondition(perpendicularAxis != -1)
-        
-        switch perpendicularAxis {
-        case 0:
-          // x
-          if delta.z > 0 {
-            reverseLinkedList = false
-          }
-        case 1:
-          // y
-          if delta.x < 0 {
-            reverseLinkedList = false
-          }
-        case 2:
-          // z
-          if delta.x < 0 {
-            reverseLinkedList = false
-          }
-          
-          let anOrbital = orbitals[linkedList.first!].first!
-          if anOrbital.z > 0 {
-            highStrainOnWarp = true
-          } else {
-            lowStrainOnWarp = true
-          }
-        default:
-          fatalError("This should never happen.")
-        }
-      }
-      if reverseLinkedList {
-        linkedList.reverse()
-      }
-      
-      // Choose which bonds to form based on a rule.
-      // - A more elaborate rule can selectively form bonds on one side, causing
-      //   immense strain that naturally keeps it in a shell structure.
-      if linkedList.count == 3 {
-        print("hello world")
-        let listElement = linkedList[1]
-        if updates[listElement] == nil {
-          updates[listElement] = .bond
-        }
-      } else {
-        for i in linkedList.indices {
-          guard i % 2 == 1 else {
-            continue
-          }
-          let listElement = linkedList[i]
-          guard updates[listElement] == nil else {
-            continue
-          }
-          
-          if warpStructure && highStrainOnWarp {
-            updates[listElement] = .bond
-          } else if warpStructure && lowStrainOnWarp {
-            updates[listElement] = .keep
-          } else {
-            if i % 4 == 1 {
-              updates[listElement] = .bond
-            } else {
-              updates[listElement] = .keep
-            }
-          }
-        }
-      }
-    }
-    
-    reconstruction.updateCollisions(updates.map { $0 ?? .keep })
-  }
-  
+  // - 3) Write a simple, fresh energy minimizer in straight OpenMM code.
+  resolveCollisions(&reconstruction, warpStructure: true)
   reconstruction.apply()
   topology = reconstruction.topology
-  
+  minimizeTopology(&topology)
   return topology.atoms.map(MRAtom.init)
 }
 
@@ -283,31 +31,314 @@ func createReconstructionDemo() -> [MRAtom] {
 // It could theoretically be extended to mixed-element structures, but with
 // extra effort and restrictions on the code processing the geometry.
 func createBeamLattice() -> [Entity] {
+//  let lattice = Lattice<Cubic> { h, k, l in
+//    let kDimension: Float = 6
+//    Bounds { 20 * h + kDimension * k + 2 * l }
+//    Material { .elemental(.carbon) }
+//    
+//    #if true
+//    Volume {
+//      Convex {
+//        Origin { 1.5*l }
+//        Plane { l }
+//      }
+//      
+//      // These two cuts can be commented out to see how the structure warps
+//      // differently without them.
+//      Convex {
+//        Origin { (kDimension/2+0.00) * k + 1.25 * l }
+//        Concave {
+//          Plane { k }
+//          Plane { l }
+//        }
+//      }
+//      Convex {
+//        Origin { (kDimension/2+0.00) * k + 0.25 * l }
+//        Concave {
+//          Plane { -k }
+//          Plane { -l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
+//    #endif
+//  }
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * h + 3 * k + 2 * l }
+    Bounds { 24 * h + 24 * k + 2 * l }
     Material { .elemental(.carbon) }
     
-    #if false
     Volume {
-      // These two cuts can be commented out to see how the structure warps
-      // differently without them.
       Convex {
-        Origin { 1.5 * k + 1.75 * l }
-        Concave {
-          Plane { k }
-          Plane { l }
+        Origin { 0.25 * l }
+        Plane { -l }
+      }
+      
+      Origin { 12 * h + 12 * k + 1 * l }
+      for direction in [-h+k, h-k] {
+        Convex {
+          Origin { 1.5 * direction }
+          Plane { direction }
         }
       }
-      Convex {
-        Origin { 1.5 * k + 0.25 * l }
-        Concave {
-          Plane { -k }
-          Plane { -l }
+      for direction in [h+k, -h-k] {
+        Convex {
+          Origin { 10 * direction }
+          Plane { direction }
         }
       }
+      
       Replace { .empty }
     }
-    #endif
   }
   return lattice.atoms
+}
+
+// The old MM4 is beyond repair. It's so bad, I have to create a 2nd prototype
+// simulator just to execute this engineering project. At least it's informative
+// about what functionality might need to be added to MM4 (e.g. progressive
+// application of more complex force terms during minimization).
+func minimizeTopology(_ topology: inout Topology) {
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+  paramsDesc.bonds = topology.bonds
+  paramsDesc.hydrogenMassScale = 1
+  let parameters = try! MM4Parameters(descriptor: paramsDesc)
+  
+  // MARK: - Stretch Force
+  
+  let stretchForce = OpenMM_CustomBondForce(energy: """
+    potentialWellDepth * ((
+      1 - exp(-beta * (r - equilibriumLength))
+    )^2 - 1);
+    """)
+  stretchForce.addPerBondParameter(name: "potentialWellDepth")
+  stretchForce.addPerBondParameter(name: "beta")
+  stretchForce.addPerBondParameter(name: "equilibriumLength")
+  
+  do {
+    let array = OpenMM_DoubleArray(size: 3)
+    let bonds = parameters.bonds
+    for bondID in bonds.indices.indices {
+      // Pre-multiply constants in formulas as much as possible. For example,
+      // the "beta" constant for bond stretch is multiplied by
+      // 'OpenMM_AngstromsPerNm'. This reduces the amount of computation during
+      // force execution.
+      let bond = bonds.indices[bondID]
+      let parameters = bonds.parameters[bondID]
+      
+      // Units: millidyne-angstrom -> kJ/mol
+      var potentialWellDepth = Double(parameters.potentialWellDepth)
+      potentialWellDepth *= MM4KJPerMolPerAJ
+      
+      // Units: angstrom^-1 -> nm^-1
+      var beta = Double(
+        parameters.stretchingStiffness / (2 * parameters.potentialWellDepth)
+      ).squareRoot()
+      beta /= OpenMM_NmPerAngstrom
+      
+      // Units: angstrom -> nm
+      var equilibriumLength = Double(parameters.equilibriumLength)
+      equilibriumLength *= OpenMM_NmPerAngstrom
+      
+      let particles = SIMD2<Int>(truncatingIfNeeded: bond)
+      array[0] = potentialWellDepth
+      array[1] = beta
+      array[2] = equilibriumLength
+      stretchForce.addBond(particles: particles, parameters: array)
+    }
+  }
+  
+  // MARK: - Bend Force
+  
+  let bendForce = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: """
+    bend;
+    bend = bendingStiffness * deltaTheta^2;
+    deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+    """)
+  bendForce.addPerBondParameter(name: "bendingStiffness")
+  bendForce.addPerBondParameter(name: "equilibriumAngle")
+  bendForce.addPerBondParameter(name: "stretchBendStiffness")
+  bendForce.addPerBondParameter(name: "equilibriumLengthLeft")
+  bendForce.addPerBondParameter(name: "equilibriumLengthRight")
+  
+  do {
+    let particles = OpenMM_IntArray(size: 3)
+    let array = OpenMM_DoubleArray(size: 5)
+    let bonds = parameters.bonds
+    let angles = parameters.angles
+    for angleID in angles.indices.indices {
+      let angle = angles.indices[angleID]
+      let parameters = angles.parameters[angleID]
+      
+      // Units: millidyne-angstrom/rad^2 -> kJ/mol/rad^2
+      //
+      // WARNING: 143 needs to be divided by 2 before it becomes 71.94.
+      var bendingStiffness = Double(parameters.bendingStiffness)
+      bendingStiffness *= MM4KJPerMolPerAJ
+      bendingStiffness /= 2
+      
+      // Units: degree -> rad
+      var equilibriumAngle = Double(parameters.equilibriumAngle)
+      equilibriumAngle *= OpenMM_RadiansPerDegree
+      
+      // Units: millidyne-angstrom/rad^2 -> kJ/mol/rad^2
+      //
+      // This part does not need to be divided by 2; it was never divided by
+      // 2 in the first place (2.5118 was used instead of 1.2559).
+      var stretchBendStiffness = Double(parameters.stretchBendStiffness)
+      stretchBendStiffness *= MM4KJPerMolPerAJ
+      
+      // Units: angstrom -> nm
+      @inline(__always)
+      func sortBond<T>(_ codes: SIMD2<T>) -> SIMD2<T>
+      where T: FixedWidthInteger {
+        if codes[0] > codes[1] {
+          return SIMD2(codes[1], codes[0])
+        } else {
+          return codes
+        }
+      }
+      let bondLeft = sortBond(SIMD2(angle[0], angle[1]))
+      let bondRight = sortBond(SIMD2(angle[1], angle[2]))
+      
+      @inline(__always)
+      func createLength(_ bond: SIMD2<UInt32>) -> Double {
+        guard let bondID = bonds.map[bond] else {
+          fatalError("Invalid bond.")
+        }
+        let parameters = bonds.parameters[Int(bondID)]
+        var equilibriumLength = Double(parameters.equilibriumLength)
+        equilibriumLength *= OpenMM_NmPerAngstrom
+        return equilibriumLength
+      }
+      
+      let reorderedAngle = SIMD3<Int>(truncatingIfNeeded: angle)
+      for lane in 0..<3 {
+        particles[lane] = reorderedAngle[lane]
+      }
+      array[0] = bendingStiffness
+      array[1] = equilibriumAngle
+      array[2] = stretchBendStiffness
+      array[3] = createLength(bondLeft)
+      array[4] = createLength(bondRight)
+      bendForce.addBond(particles: particles, parameters: array)
+    }
+  }
+  
+  func createExceptions(force: OpenMM_CustomNonbondedForce) {
+    for bond in parameters.bonds.indices {
+      let reordered = SIMD2<Int>(truncatingIfNeeded: bond)
+      force.addExclusion(particles: reordered)
+    }
+    for exception in parameters.nonbondedExceptions13 {
+      let reordered = SIMD2<Int>(truncatingIfNeeded: exception)
+      force.addExclusion(particles: reordered)
+    }
+  }
+  
+  var cutoff: Double {
+    // Since germanium will rarely be used, use the cutoff for silicon. The
+    // slightly greater sigma for carbon allows greater accuracy in vdW forces
+    // for bulk diamond. 1.020 nm also accomodates charge-charge interactions.
+    let siliconRadius = 2.290 * OpenMM_NmPerAngstrom
+    return siliconRadius * 2.5 * OpenMM_SigmaPerVdwRadius
+  }
+  
+  let nonbondedForce = OpenMM_CustomNonbondedForce(energy: """
+    epsilon * (
+      -2.25 * (min(radius / r, 1.00 / 0.50))^6 +
+      1.84e5 * exp(-12.00 * (r / radius))
+    );
+    epsilon = select(isHydrogenBond, heteroatomEpsilon, hydrogenEpsilon);
+    radius = select(isHydrogenBond, heteroatomRadius, hydrogenRadius);
+    
+    isHydrogenBond = step(hydrogenEpsilon1 * hydrogenEpsilon2);
+    heteroatomEpsilon = sqrt(epsilon1 * epsilon2);
+    hydrogenEpsilon = max(hydrogenEpsilon1, hydrogenEpsilon2);
+    heteroatomRadius = radius1 + radius2;
+    hydrogenRadius = max(hydrogenRadius1, hydrogenRadius2);
+    """)
+  nonbondedForce.addPerParticleParameter(name: "epsilon")
+  nonbondedForce.addPerParticleParameter(name: "hydrogenEpsilon")
+  nonbondedForce.addPerParticleParameter(name: "radius")
+  nonbondedForce.addPerParticleParameter(name: "hydrogenRadius")
+  
+  nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
+  nonbondedForce.useSwitchingFunction = true
+  nonbondedForce.cutoffDistance = cutoff
+  nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
+  
+  do {
+    let array = OpenMM_DoubleArray(size: 4)
+    let atoms = parameters.atoms
+    for atomID in parameters.atoms.indices {
+      let parameters = atoms.parameters[Int(atomID)]
+      
+      // Units: kcal/mol -> kJ/mol
+      let (epsilon, hydrogenEpsilon) = parameters.epsilon
+      array[0] = Double(epsilon) * OpenMM_KJPerKcal
+      array[1] = Double(hydrogenEpsilon) * OpenMM_KJPerKcal
+      
+      // Units: angstrom -> nm
+      let (radius, hydrogenRadius) = parameters.radius
+      array[2] = Double(radius) * OpenMM_NmPerAngstrom
+      array[3] = Double(hydrogenRadius) * OpenMM_NmPerAngstrom
+      nonbondedForce.addParticle(parameters: array)
+    }
+    createExceptions(force: nonbondedForce)
+  }
+  
+  // MARK: - System
+  
+  let system = OpenMM_System()
+  var arrayP = OpenMM_Vec3Array(size: parameters.atoms.count)
+  var arrayV = OpenMM_Vec3Array(size: parameters.atoms.count)
+  for atomID in parameters.atoms.indices {
+    // Units: yg -> amu
+    var mass = parameters.atoms.masses[atomID]
+    mass *= Float(MM4AmuPerYg)
+    system.addParticle(mass: Double(mass))
+    arrayP[atomID] = SIMD3<Double>(topology.atoms[atomID].position)
+    arrayV[atomID] = SIMD3<Double>.zero
+  }
+  
+  stretchForce.transfer()
+  bendForce.transfer()
+  nonbondedForce.transfer()
+  system.addForce(stretchForce)
+  system.addForce(bendForce)
+  system.addForce(nonbondedForce)
+  
+  let integrator = OpenMM_VerletIntegrator(stepSize: 0.001)
+  let context = OpenMM_Context(system: system, integrator: integrator)
+  context.positions = arrayP
+  context.velocities = arrayV
+  
+  // MARK: - Minimization
+  
+  @discardableResult
+  func reportState() -> [SIMD3<Float>] {
+    let dataTypes: OpenMM_State.DataType = [
+      OpenMM_State.DataType.energy, OpenMM_State.DataType.positions
+    ]
+    let query = context.state(types: dataTypes)
+    let positions = query.positions
+    var output: [SIMD3<Float>] = []
+    
+    print(query.potentialEnergy * MM4ZJPerKJPerMol,
+          query.kineticEnergy * MM4ZJPerKJPerMol)
+    for i in parameters.atoms.indices {
+      let original = topology.atoms[i].position
+      let modified = SIMD3<Float>(positions[i])
+      output.append(modified)
+    }
+    return output
+  }
+  reportState()
+
+  OpenMM_LocalEnergyMinimizer.minimize(context: context)
+  let minimizedPositions = reportState()
+  for i in parameters.atoms.indices {
+    topology.atoms[i].position = minimizedPositions[i]
+  }
 }
