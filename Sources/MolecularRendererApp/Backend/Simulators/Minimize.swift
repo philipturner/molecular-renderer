@@ -1,7 +1,9 @@
-// ALL OF THE IDEAS PRESENTED HERE ARE MIT LICENSED BY PHILIP A. TURNER (2024)
-// THEY SHALL NEVER BE PATENTED IN ANY COUNTRY
-// THE INVENTOR RESERVES THE RIGHT TO REVOKE A PARTY'S PERMISSION TO USE THESE
-// IDEAS, AT HIS DISCRETION, IN RESPONSE TO EGREGIOUS CASES OF MISUSE
+//
+//  Minimize.swift
+//  MolecularRendererApp
+//
+//  Created by Philip Turner on 12/28/23.
+//
 
 import Foundation
 import HDL
@@ -10,96 +12,6 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
-func createReconstructionDemo() -> [MRAtom] {
-  let lattice = createBeamLattice()
-  var topology = Topology()
-  topology.insert(atoms: lattice)
-  
-  var reconstruction = Reconstruction()
-  reconstruction.topology = topology
-  reconstruction.prepare()
-  
-  // TODO:
-  // - 3) Write a simple, fresh energy minimizer in straight OpenMM code.
-  resolveCollisions(&reconstruction, warpStructure: true)
-  reconstruction.apply()
-  topology = reconstruction.topology
-  minimizeTopology(&topology)
-  return topology.atoms.map(MRAtom.init)
-}
-
-// This may output one of two materials - C or Si. The code handling it must
-// function correctly in either case. Being a single element reduces the
-// complexity of rules regarding hydrogen locations for detecting collisions.
-// It could theoretically be extended to mixed-element structures, but with
-// extra effort and restrictions on the code processing the geometry.
-func createBeamLattice() -> [Entity] {
-//  let lattice = Lattice<Cubic> { h, k, l in
-//    let kDimension: Float = 6
-//    Bounds { 20 * h + kDimension * k + 2 * l }
-//    Material { .elemental(.carbon) }
-//
-//    #if true
-//    Volume {
-//      Convex {
-//        Origin { 1.5*l }
-//        Plane { l }
-//      }
-//
-//      // These two cuts can be commented out to see how the structure warps
-//      // differently without them.
-//      Convex {
-//        Origin { (kDimension/2+0.00) * k + 1.25 * l }
-//        Concave {
-//          Plane { k }
-//          Plane { l }
-//        }
-//      }
-//      Convex {
-//        Origin { (kDimension/2+0.00) * k + 0.25 * l }
-//        Concave {
-//          Plane { -k }
-//          Plane { -l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
-//    #endif
-//  }
-  let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 24 * h + 24 * k + 2 * l }
-    Material { .elemental(.carbon) }
-    
-    Volume {
-      Convex {
-        Origin { 0.25 * l }
-        Plane { -l }
-      }
-      
-      Origin { 12 * h + 12 * k + 1 * l }
-      for direction in [-h+k, h-k] {
-        Convex {
-          Origin { 1.5 * direction }
-          Plane { direction }
-        }
-      }
-      for direction in [h+k, -h-k] {
-        Convex {
-          Origin { 10 * direction }
-          Plane { direction }
-        }
-      }
-      
-      Replace { .empty }
-    }
-  }
-  return lattice.atoms
-}
-
-// The old MM4 is beyond repair. It's so bad, I have to create a 2nd prototype
-// simulator just to execute this engineering project. At least it's informative
-// about what functionality might need to be added to MM4 (e.g. progressive
-// application of more complex force terms during minimization).
 func minimizeTopology(_ topology: inout Topology) {
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
