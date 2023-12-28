@@ -98,8 +98,8 @@ func denseGridStatistics(
             cells4[0] * cells4[1] * cells4[2])
           references += Double(products0.sum())
           
-          var minCoords = simd_min(vector.lowHalf, vector.highHalf)
-          var maxCoords = simd_max(vector.lowHalf, vector.highHalf)
+          let minCoords = simd_min(vector.lowHalf, vector.highHalf)
+          let maxCoords = simd_max(vector.lowHalf, vector.highHalf)
           minCoordinatesVector = simd_min(minCoordinatesVector, minCoords)
           maxCoordinatesVector = simd_max(maxCoordinatesVector, maxCoords)
         }
@@ -171,7 +171,7 @@ extension MRAccelBuilder {
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
     let statisticsStart = CACurrentMediaTime()
-    var statistics = denseGridStatistics(
+    let statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
       voxel_width_numer: voxel_width_numer,
