@@ -63,12 +63,7 @@ func createScene(_ topology: Topology) -> Topology {
   let rigidBodyCount = 4
   for i in 0..<rigidBodyCount {
     var rigidBody = mainRigidBody
-    #if false
     rigidBody.centerOfMass.y += Float(i) * 1.7
-    #else
-    rigidBody.centerOfMass.x += Float(i) * 0.5
-    rigidBody.centerOfMass.z += Float(i) * 0.7
-    #endif
     addRigidBody(rigidBody)
   }
   
