@@ -7,12 +7,7 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
-// TODO: Validate that all 3 structures minimize in OpenMM or xTB.
-// - small lonsdaleite shell structure
-// - HAbst tripod
-// - graphene thiol
-
-func createLonsdaleiteUnitTest() -> [MRAtom] {
+func createLonsdaleiteSimulation() -> AnimationAtomProvider {
   let lattice = createLonsdaleiteLattice()
   
   // MARK: - Bond Formation
@@ -52,15 +47,18 @@ func createLonsdaleiteUnitTest() -> [MRAtom] {
     topology.insert(bonds: insertedBonds)
   }
   
+  // MARK: - Warping
+  
+  do {
+    
+  }
+  
   // MARK: - Analysis
   
   // Before warping the topology into a shell structure, confirm that it
   // minimizes in OpenMM.
 //  minimizeTopology(&topology)
-  
-  // Minimize the scene topology to determine what the ideal vdW distance is.
-  var sceneTopology = createScene(topology)
-//  minimizeTopology(&sceneTopology)
-  return sceneTopology.atoms.map(MRAtom.init)
+  return AnimationAtomProvider([topology.atoms.map(MRAtom.init)])
+//  return createAnimation(topology)
 }
 

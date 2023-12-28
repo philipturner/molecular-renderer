@@ -12,6 +12,24 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
+// MARK: - Scene
+
+// Accepts the topology for just one crystolecule, instantiates the rest.
+func createAnimation(_ topology: Topology) -> AnimationAtomProvider {
+  var minimizer = TopologyMinimizer(createScene(topology))
+  minimizer.minimize()
+  var provider = AnimationAtomProvider([])
+  provider.frames.append(minimizer.topology.atoms.map(MRAtom.init))
+  
+  let totalTime: Double = 20
+  let frameTime = totalTime / 500
+  for _ in 0..<Int(totalTime/frameTime) {
+    minimizer.simulate(time: frameTime)
+    provider.frames.append(minimizer.topology.atoms.map(MRAtom.init))
+  }
+  return provider
+}
+
 func createScene(_ topology: Topology) -> Topology {
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
@@ -42,10 +60,15 @@ func createScene(_ topology: Topology) -> Topology {
     sceneTopology.insert(bonds: insertedBonds)
   }
   
-  // Only 1 rigid body for now.
-  for i in 0..<1 {
+  let rigidBodyCount = 4
+  for i in 0..<rigidBodyCount {
     var rigidBody = mainRigidBody
+    #if false
     rigidBody.centerOfMass.y += Float(i) * 1.7
+    #else
+    rigidBody.centerOfMass.x += Float(i) * 0.5
+    rigidBody.centerOfMass.z += Float(i) * 0.7
+    #endif
     addRigidBody(rigidBody)
   }
   

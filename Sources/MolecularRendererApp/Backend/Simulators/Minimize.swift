@@ -13,24 +13,133 @@ import Numerics
 import OpenMM
 
 func minimizeTopology(_ topology: inout Topology) {
-  var paramsDesc = MM4ParametersDescriptor()
-  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-  paramsDesc.bonds = topology.bonds
-  paramsDesc.hydrogenMassScale = 1
-  let parameters = try! MM4Parameters(descriptor: paramsDesc)
+  var minimizer = TopologyMinimizer(topology)
+  minimizer.minimize()
+  topology = minimizer.topology
+}
+
+// A second prototype of MM4; a stopgap until the library is finally running.
+struct TopologyMinimizer {
+  var context: OpenMM_Context!
+  var forces: [OpenMM_Force] = []
+  var integrator: OpenMM_Integrator!
+  var parameters: MM4Parameters
+  var system: OpenMM_System!
+  var topology: Topology
   
-  // MARK: - Stretch Force
+  init(_ topology: Topology) {
+    self.topology = topology
+    
+    var paramsDesc = MM4ParametersDescriptor()
+    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+    paramsDesc.bonds = topology.bonds
+    paramsDesc.hydrogenMassScale = 1
+    self.parameters = try! MM4Parameters(descriptor: paramsDesc)
+    
+    self.initializeStretchForce()
+    self.initializeBendForce()
+    self.initializeNonbondedForce()
+    self.initializeSystem()
+  }
   
-  let stretchForce = OpenMM_CustomBondForce(energy: """
-    potentialWellDepth * ((
-      1 - exp(-beta * (r - equilibriumLength))
-    )^2 - 1);
-    """)
-  stretchForce.addPerBondParameter(name: "potentialWellDepth")
-  stretchForce.addPerBondParameter(name: "beta")
-  stretchForce.addPerBondParameter(name: "equilibriumLength")
+  var potentialEnergy: Double {
+    reportEnergy().potential
+  }
   
-  do {
+  var kineticEnergy: Double {
+    reportEnergy().kinetic
+  }
+  
+  mutating func minimize() {
+    OpenMM_LocalEnergyMinimizer.minimize(context: context)
+    let minimizedPositions = reportPositions()
+    for i in parameters.atoms.indices {
+      topology.atoms[i].position = minimizedPositions[i]
+    }
+  }
+  
+  mutating func simulate(time: Double) {
+    let numSteps = Double((time / 0.002).rounded(.down))
+    if numSteps > 0 {
+      integrator.step(Int(exactly: numSteps)!)
+    }
+    let remaining = time - numSteps
+    if remaining > 1e-6 {
+      integrator.stepSize = remaining
+      integrator.step(1)
+      integrator.stepSize = 0.002
+    }
+    let simulatedPositions = reportPositions()
+    for i in parameters.atoms.indices {
+      topology.atoms[i].position = simulatedPositions[i]
+    }
+  }
+}
+  
+extension TopologyMinimizer {
+  private func reportEnergy() -> (
+    potential: Double,
+    kinetic: Double
+  ) {
+    let dataTypes: OpenMM_State.DataType = [
+      OpenMM_State.DataType.energy
+    ]
+    let query = context.state(types: dataTypes)
+    
+    let potential = query.potentialEnergy * MM4ZJPerKJPerMol
+    let kinetic = query.kineticEnergy * MM4ZJPerKJPerMol
+    return (potential, kinetic)
+  }
+  
+  private func reportPositions() -> [SIMD3<Float>] {
+    let dataTypes: OpenMM_State.DataType = [
+      OpenMM_State.DataType.positions
+    ]
+    let query = context.state(types: dataTypes)
+    let positions = query.positions
+    var output: [SIMD3<Float>] = []
+    
+    for i in parameters.atoms.indices {
+      let modified = SIMD3<Float>(positions[i])
+      output.append(modified)
+    }
+    return output
+  }
+  
+  private mutating func initializeSystem() {
+    self.system = OpenMM_System()
+    let arrayP = OpenMM_Vec3Array(size: parameters.atoms.count)
+    let arrayV = OpenMM_Vec3Array(size: parameters.atoms.count)
+    for atomID in parameters.atoms.indices {
+      // Units: yg -> amu
+      var mass = parameters.atoms.masses[atomID]
+      mass *= Float(MM4AmuPerYg)
+      system.addParticle(mass: Double(mass))
+      arrayP[atomID] = SIMD3<Double>(topology.atoms[atomID].position)
+      arrayV[atomID] = SIMD3<Double>.zero
+    }
+    
+    for force in forces {
+      force.transfer()
+      system.addForce(force)
+    }
+    
+    self.integrator = OpenMM_VerletIntegrator(stepSize: 0.002)
+    self.context = OpenMM_Context(system: system, integrator: integrator)
+    context.positions = arrayP
+    context.velocities = arrayV
+  }
+  
+  private mutating func initializeStretchForce() {
+    let stretchForce = OpenMM_CustomBondForce(energy: """
+      potentialWellDepth * ((
+        1 - exp(-beta * (r - equilibriumLength))
+      )^2 - 1);
+      """)
+    stretchForce.addPerBondParameter(name: "potentialWellDepth")
+    stretchForce.addPerBondParameter(name: "beta")
+    stretchForce.addPerBondParameter(name: "equilibriumLength")
+    
     let array = OpenMM_DoubleArray(size: 3)
     let bonds = parameters.bonds
     for bondID in bonds.indices.indices {
@@ -61,22 +170,22 @@ func minimizeTopology(_ topology: inout Topology) {
       array[2] = equilibriumLength
       stretchForce.addBond(particles: particles, parameters: array)
     }
+    
+    self.forces.append(stretchForce)
   }
   
-  // MARK: - Bend Force
-  
-  let bendForce = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: """
-    bend;
-    bend = bendingStiffness * deltaTheta^2;
-    deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
-    """)
-  bendForce.addPerBondParameter(name: "bendingStiffness")
-  bendForce.addPerBondParameter(name: "equilibriumAngle")
-  bendForce.addPerBondParameter(name: "stretchBendStiffness")
-  bendForce.addPerBondParameter(name: "equilibriumLengthLeft")
-  bendForce.addPerBondParameter(name: "equilibriumLengthRight")
-  
-  do {
+  mutating func initializeBendForce() {
+    let bendForce = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: """
+      bend;
+      bend = bendingStiffness * deltaTheta^2;
+      deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+      """)
+    bendForce.addPerBondParameter(name: "bendingStiffness")
+    bendForce.addPerBondParameter(name: "equilibriumAngle")
+    bendForce.addPerBondParameter(name: "stretchBendStiffness")
+    bendForce.addPerBondParameter(name: "equilibriumLengthLeft")
+    bendForce.addPerBondParameter(name: "equilibriumLengthRight")
+    
     let particles = OpenMM_IntArray(size: 3)
     let array = OpenMM_DoubleArray(size: 5)
     let bonds = parameters.bonds
@@ -138,52 +247,54 @@ func minimizeTopology(_ topology: inout Topology) {
       array[4] = createLength(bondRight)
       bendForce.addBond(particles: particles, parameters: array)
     }
-  }
-  
-  func createExceptions(force: OpenMM_CustomNonbondedForce) {
-    for bond in parameters.bonds.indices {
-      let reordered = SIMD2<Int>(truncatingIfNeeded: bond)
-      force.addExclusion(particles: reordered)
-    }
-    for exception in parameters.nonbondedExceptions13 {
-      let reordered = SIMD2<Int>(truncatingIfNeeded: exception)
-      force.addExclusion(particles: reordered)
-    }
-  }
-  
-  var cutoff: Double {
-    // Since germanium will rarely be used, use the cutoff for silicon. The
-    // slightly greater sigma for carbon allows greater accuracy in vdW forces
-    // for bulk diamond. 1.020 nm also accomodates charge-charge interactions.
-    let siliconRadius = 2.290 * OpenMM_NmPerAngstrom
-    return siliconRadius * 2.5 * OpenMM_SigmaPerVdwRadius
-  }
-  
-  let nonbondedForce = OpenMM_CustomNonbondedForce(energy: """
-    epsilon * (
-      -2.25 * (min(2, radius / r))^6 +
-      1.84e5 * exp(-12.00 * (r / radius))
-    );
-    epsilon = select(isHydrogenBond, heteroatomEpsilon, hydrogenEpsilon);
-    radius = select(isHydrogenBond, heteroatomRadius, hydrogenRadius);
     
-    isHydrogenBond = step(hydrogenEpsilon1 * hydrogenEpsilon2);
-    heteroatomEpsilon = sqrt(epsilon1 * epsilon2);
-    hydrogenEpsilon = max(hydrogenEpsilon1, hydrogenEpsilon2);
-    heteroatomRadius = radius1 + radius2;
-    hydrogenRadius = max(hydrogenRadius1, hydrogenRadius2);
-    """)
-  nonbondedForce.addPerParticleParameter(name: "epsilon")
-  nonbondedForce.addPerParticleParameter(name: "hydrogenEpsilon")
-  nonbondedForce.addPerParticleParameter(name: "radius")
-  nonbondedForce.addPerParticleParameter(name: "hydrogenRadius")
+    self.forces.append(bendForce)
+  }
   
-  nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
-  nonbondedForce.useSwitchingFunction = true
-  nonbondedForce.cutoffDistance = cutoff
-  nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
-  
-  do {
+  private mutating func initializeNonbondedForce() {
+    func createExceptions(force: OpenMM_CustomNonbondedForce) {
+      for bond in parameters.bonds.indices {
+        let reordered = SIMD2<Int>(truncatingIfNeeded: bond)
+        force.addExclusion(particles: reordered)
+      }
+      for exception in parameters.nonbondedExceptions13 {
+        let reordered = SIMD2<Int>(truncatingIfNeeded: exception)
+        force.addExclusion(particles: reordered)
+      }
+    }
+    
+    var cutoff: Double {
+      // Since germanium will rarely be used, use the cutoff for silicon. The
+      // slightly greater sigma for carbon allows greater accuracy in vdW forces
+      // for bulk diamond. 1.020 nm also accomodates charge-charge interactions.
+      let siliconRadius = 2.290 * OpenMM_NmPerAngstrom
+      return siliconRadius * 2.5 * OpenMM_SigmaPerVdwRadius
+    }
+    
+    let nonbondedForce = OpenMM_CustomNonbondedForce(energy: """
+      epsilon * (
+        -2.25 * (min(2, radius / r))^6 +
+        1.84e5 * exp(-12.00 * (r / radius))
+      );
+      epsilon = select(isHydrogenBond, heteroatomEpsilon, hydrogenEpsilon);
+      radius = select(isHydrogenBond, heteroatomRadius, hydrogenRadius);
+      
+      isHydrogenBond = step(hydrogenEpsilon1 * hydrogenEpsilon2);
+      heteroatomEpsilon = sqrt(epsilon1 * epsilon2);
+      hydrogenEpsilon = max(hydrogenEpsilon1, hydrogenEpsilon2);
+      heteroatomRadius = radius1 + radius2;
+      hydrogenRadius = max(hydrogenRadius1, hydrogenRadius2);
+      """)
+    nonbondedForce.addPerParticleParameter(name: "epsilon")
+    nonbondedForce.addPerParticleParameter(name: "hydrogenEpsilon")
+    nonbondedForce.addPerParticleParameter(name: "radius")
+    nonbondedForce.addPerParticleParameter(name: "hydrogenRadius")
+    
+    nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
+    nonbondedForce.useSwitchingFunction = true
+    nonbondedForce.cutoffDistance = cutoff
+    nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
+    
     let array = OpenMM_DoubleArray(size: 4)
     let atoms = parameters.atoms
     for atomID in parameters.atoms.indices {
@@ -201,58 +312,7 @@ func minimizeTopology(_ topology: inout Topology) {
       nonbondedForce.addParticle(parameters: array)
     }
     createExceptions(force: nonbondedForce)
-  }
-  
-  // MARK: - System
-  
-  let system = OpenMM_System()
-  let arrayP = OpenMM_Vec3Array(size: parameters.atoms.count)
-  let arrayV = OpenMM_Vec3Array(size: parameters.atoms.count)
-  for atomID in parameters.atoms.indices {
-    // Units: yg -> amu
-    var mass = parameters.atoms.masses[atomID]
-    mass *= Float(MM4AmuPerYg)
-    system.addParticle(mass: Double(mass))
-    arrayP[atomID] = SIMD3<Double>(topology.atoms[atomID].position)
-    arrayV[atomID] = SIMD3<Double>.zero
-  }
-  
-  stretchForce.transfer()
-  bendForce.transfer()
-  nonbondedForce.transfer()
-  system.addForce(stretchForce)
-  system.addForce(bendForce)
-  system.addForce(nonbondedForce)
-  
-  let integrator = OpenMM_VerletIntegrator(stepSize: 0.001)
-  let context = OpenMM_Context(system: system, integrator: integrator)
-  context.positions = arrayP
-  context.velocities = arrayV
-  
-  // MARK: - Minimization
-  
-  @discardableResult
-  func reportState() -> [SIMD3<Float>] {
-    let dataTypes: OpenMM_State.DataType = [
-      OpenMM_State.DataType.energy, OpenMM_State.DataType.positions
-    ]
-    let query = context.state(types: dataTypes)
-    let positions = query.positions
-    var output: [SIMD3<Float>] = []
     
-    print(query.potentialEnergy * MM4ZJPerKJPerMol,
-          query.kineticEnergy * MM4ZJPerKJPerMol)
-    for i in parameters.atoms.indices {
-      let modified = SIMD3<Float>(positions[i])
-      output.append(modified)
-    }
-    return output
-  }
-  reportState()
-
-  OpenMM_LocalEnergyMinimizer.minimize(context: context)
-  let minimizedPositions = reportState()
-  for i in parameters.atoms.indices {
-    topology.atoms[i].position = minimizedPositions[i]
+    self.forces.append(nonbondedForce)
   }
 }

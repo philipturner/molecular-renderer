@@ -27,11 +27,14 @@ class Renderer {
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
     
-    let start = CACurrentMediaTime()
-    let atoms = createLonsdaleiteUnitTest()
-    let end = CACurrentMediaTime()
-    print("atoms:", atoms.count)
-    print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
-    initializeAtoms(atoms)
+//    let start = CACurrentMediaTime()
+//    let atoms = createLonsdaleiteUnitTest()
+//    let end = CACurrentMediaTime()
+//    print("atoms:", atoms.count)
+//    print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
+//    initializeAtoms(atoms)
+    
+    let animation = createLonsdaleiteSimulation()
+    self.renderingEngine.setAtomProvider(animation)
   }
 }
