@@ -87,20 +87,120 @@ func createCBNTripod() -> [MRAtom] {
     for i in topology.atoms.indices {
       let atom = topology.atoms[i]
       if let orbital = orbitals[i].first {
-        // We need to add both hydrogens, so the center of mass is synonymous
-        // with the nitrogen's position. In a later data transformation, we can
-        // swap out one hydrogen with a bond to the adamantane.
         let position = atom.position + orbital * chBondLength
         let hydrogen = Entity(position: position, type: .atom(.hydrogen))
         let hydrogenID = topology.atoms.count + insertedAtoms.count
+        let bond = SIMD2(UInt32(i), UInt32(hydrogenID))
+        
+        // Only add the left hydrogen.
+        if orbital.x < 0 {
+          insertedAtoms.append(hydrogen)
+          insertedBonds.append(bond)
+        }
+        continue
+      }
+      guard atom.atomicNumber == 7 || atom.atomicNumber == 9 else {
         continue
       }
       
       let neighbors = atomsToAtomsMap[i]
-      for neighbor in neighbors {
-        
+      precondition(neighbors.count == 1)
+      let neighbor = topology.atoms[Int(neighbors.first!)]
+      var delta = atom.position - neighbor.position
+      delta /= (delta * delta).sum().squareRoot()
+      
+      let bondLength = (atom.atomicNumber == 7) ? cnBondLength : cfBondLength
+      let position = neighbor.position + delta * bondLength
+      topology.atoms[i].position = position
+    }
+    topology.insert(atoms: insertedAtoms)
+    topology.insert(bonds: insertedBonds)
+  }
+  
+  do {
+    // MM4 forcefield:
+    // - sp3 C-H bond length is 1.1120 Å.
+    // - sp3 Si-H bond length is 1.483 Å.
+    //
+    // MM4 alkene paper:
+    // - sp2 C - sp3 C bond length is 1.501 Å.
+    //
+    // MM4 amine paper:
+    // - sp3 N-H bond length is 1.0340 Å.
+    //
+    // N-Si bond length is estimated by summing covalent radii.
+    let chBondLength: Float = 1.1120 / 10
+    let sihBondLength: Float = 1.483 / 10
+    let ccBondLength: Float = 1.501 / 10
+    let nhBondLength: Float = 1.0340 / 10
+    let nsiBondLength =
+    Element.nitrogen.covalentRadius + Element.silicon.covalentRadius
+    
+    // Create a prototypical methane/silane geometry to insert into the
+    // structure.
+    func createMethaneAnalogue(_ element: Element) -> [Entity] {
+      return []
+    }
+    
+    var nitrogenID: Int = -1
+    var insertedAtoms: [Entity] = []
+    var insertedBonds: [SIMD2<UInt32>] = []
+    for i in topology.atoms.indices {
+      let atom = topology.atoms[i]
+      guard atom.atomicNumber == 7 else {
+        continue
+      }
+      nitrogenID = i
+      
+      let rotation1 = Quaternion<Float>(
+        angle: 109.47 * .pi / 180, axis: [1, 0, 0])
+      let rotation2 = Quaternion<Float>(
+        angle: 120 * .pi / 180, axis: [0, 1, 0])
+      let orbital0 = SIMD3<Float>(0, 1, 0)
+      let orbital1 = rotation1.act(on: orbital0)
+      let orbital2 = rotation2.act(on: orbital1)
+      
+      // Add one hydrogen.
+      do {
+        let position = atom.position + orbital2 * nhBondLength
+        let hydrogen = Entity(position: position, type: .atom(.hydrogen))
+        let hydrogenID = topology.atoms.count + insertedAtoms.count
+        let bond = SIMD2(UInt32(i), UInt32(hydrogenID))
+        insertedAtoms.append(hydrogen)
+        insertedBonds.append(bond)
       }
     }
+    precondition(nitrogenID != -1)
+    
+    topology.insert(atoms: insertedAtoms)
+    topology.insert(bonds: insertedBonds)
+    
+    // Shift the entire molecule according to the nitrogen's position.
+    let nitrogen = topology.atoms[nitrogenID]
+    let translation = SIMD3<Float>.zero - nitrogen.position
+    for i in topology.atoms.indices {
+      topology.atoms[i].position += translation
+    }
+    
+    // print(exportToXTB(topology.atoms.map(MRAtom.init))
+  }
+  
+  do {
+    
+  }
+  
+  do {
+    // Report, then later import from xTB, bond lengths in the molecule. The end
+    // result is a structure ready for programmatic linking to the other stuff.
+    //
+    // We can't use the raw atom positions directly because that is too severe
+    // a loss of information. The minimized molecule is asymmetric and may be
+    // tilted off-axis by the simulator.
+    //
+    // Start by scaling the benzene ring according to the new bond lengths.
+    // Then, adjust the other atoms' positions relative to the ring. Propagate
+    // changes all the way to the methyl and silyl groups, except remove the
+    // hydrogens from those groups.
   }
   
   return topology.atoms.map(MRAtom.init)
