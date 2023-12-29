@@ -66,7 +66,7 @@ mkdir -p vendor
 cp $CONDA_PREFIX/lib/*.dylib ./vendor/
 ```
 
-As an optional, but encouraged performance enhancement, install the (OpenMM Metal Plugin)[https://github.com/philipturner/openmm-metal] using this same `conda` environment.
+Install the (OpenMM Metal Plugin)[https://github.com/philipturner/openmm-metal] using this same `conda` environment.
 
 You should be ready to build the project in XCode now:
 
