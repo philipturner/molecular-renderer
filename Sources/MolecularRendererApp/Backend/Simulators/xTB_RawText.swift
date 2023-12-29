@@ -51,7 +51,11 @@ func importFromXTB(_ data: String) -> [MRAtom] {
     switch segments.last! {
     case "h": element = 1
     case "c": element = 6
+    case "n": element = 7
+    case "o": element = 8
+    case "f": element = 9
     case "si": element = 14
+    case "p": element = 15
     case "s": element = 16
     case "ge": element = 32
     default: fatalError("This should never happen.")
@@ -100,7 +104,11 @@ fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
       switch atom.element {
       case 1: repr = "h "
       case 6: repr = "c "
+      case 7: repr = "n "
+      case 8: repr = "o "
+      case 9: repr = "f "
       case 14: repr = "si"
+      case 15: repr = "p "
       case 16: repr = "s "
       case 32: repr = "ge"
       default:

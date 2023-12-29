@@ -85,7 +85,10 @@
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
 		98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */; };
-		98FE60E92B3F4EAF00D73E37 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E82B3F4EAF00D73E37 /* Scratch2.swift */; };
+		98FE60E92B3F4EAF00D73E37 /* CBNTripodLeg.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E82B3F4EAF00D73E37 /* CBNTripodLeg.swift */; };
+		98FE60EC2B3F6E8900D73E37 /* CBNTripodCage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */; };
+		98FE60EE2B3F6F9800D73E37 /* CBNTripodComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */; };
+		98FE60F02B3F70C400D73E37 /* CBNTripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -270,7 +273,11 @@
 		98FE60E12B3D18A700D73E37 /* Draft2_File3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft2_File3.swift; sourceTree = "<group>"; };
 		98FE60E32B3D18B700D73E37 /* Draft2_File4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft2_File4.swift; sourceTree = "<group>"; };
 		98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyMinimizer.swift; sourceTree = "<group>"; };
-		98FE60E82B3F4EAF00D73E37 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
+		98FE60E82B3F4EAF00D73E37 /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
+		98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CBNTripodLeg.jpg; sourceTree = "<group>"; };
+		98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
+		98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
+		98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripod.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -459,7 +466,10 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
-				98FE60E82B3F4EAF00D73E37 /* Scratch2.swift */,
+				98FE60E82B3F4EAF00D73E37 /* CBNTripodLeg.swift */,
+				98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */,
+				98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */,
+				98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -506,14 +516,6 @@
 				9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */,
 			);
 			path = OpenMMTutorials;
-			sourceTree = "<group>";
-		};
-		98B25A262B39322D00081A61 /* Adamantanes */ = {
-			isa = PBXGroup;
-			children = (
-				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
-			);
-			path = Adamantanes;
 			sourceTree = "<group>";
 		};
 		98B25A272B39372E00081A61 /* Carbides */ = {
@@ -579,8 +581,8 @@
 		98B25A302B393AA800081A61 /* Materials */ = {
 			isa = PBXGroup;
 			children = (
-				98B25A262B39322D00081A61 /* Adamantanes */,
 				98B25A272B39372E00081A61 /* Carbides */,
+				98FE60F12B3F716E00D73E37 /* CBNTripod */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
 			);
 			path = Materials;
@@ -896,6 +898,15 @@
 			path = Draft2;
 			sourceTree = "<group>";
 		};
+		98FE60F12B3F716E00D73E37 /* CBNTripod */ = {
+			isa = PBXGroup;
+			children = (
+				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
+				98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */,
+			);
+			path = CBNTripod;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1020,6 +1031,8 @@
 				98518AE52A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				98B6BDFD2AEE85B700F8655C /* Renderer+Update.swift in Sources */,
+				98FE60F02B3F70C400D73E37 /* CBNTripod.swift in Sources */,
+				98FE60EC2B3F6E8900D73E37 /* CBNTripodCage.swift in Sources */,
 				98570CF82A116BDC0078E023 /* NanoEngineerParser.swift in Sources */,
 				98518AE72A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift in Sources */,
 				98F012622B266FA70037318D /* Bootstrapping.swift in Sources */,
@@ -1029,6 +1042,7 @@
 				98F0126C2B26A1C40037318D /* Bootstrapping_Probe.swift in Sources */,
 				98518AF72A75845600CAD919 /* MM4.swift in Sources */,
 				98247CBB2AF0656100958BC5 /* Nanosystems_Chapter12_Figure1_file2.swift in Sources */,
+				98FE60EE2B3F6F9800D73E37 /* CBNTripodComponent.swift in Sources */,
 				98518AE32A74A6BD00CAD919 /* Nanosystems_Chapter4.swift in Sources */,
 				98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Nanosystems_Chapter9_Figure5.swift in Sources */,
@@ -1046,7 +1060,7 @@
 				98325C602A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift in Sources */,
 				98325C722A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
-				98FE60E92B3F4EAF00D73E37 /* Scratch2.swift in Sources */,
+				98FE60E92B3F4EAF00D73E37 /* CBNTripodLeg.swift in Sources */,
 				98325C5A2A6C617500A4D7BB /* NanosystemsFigure.swift in Sources */,
 				98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */,
 				989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */,
