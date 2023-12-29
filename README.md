@@ -34,3 +34,42 @@ Current solution for Linux and Windows:
 - Transcode the simulation to `mrsim-txt` and save to the disk.
 - Decode in a script controlling an alternative renderer (VMD, Blender, etc.).
 - This may require a different language than Swift. `Sources/SimulationImport` contains a decently fast Rust decoder, which is highly recommended on Windows (Swift is slow there for an unknown reason).
+
+
+## Getting Started
+
+To build the project, we need to open the Xcode project.
+
+```bash
+( cd ./MolecularRenderer.xcodeproj && xed . )
+```
+
+This project has external build and runtime dependencies. To successfully build this project with Xcode, we must first install these external dependencies into our environment.
+
+Create and activate a `conda` environment at the root of this repository, You can use any Python3 version which is compatible, for example:
+
+```bash
+conda create --name molecular-renderer python=3.10
+conda activate molecular-renderer
+```
+
+Install the dependencies:
+```bash
+conda install --yes --file requirements.txt
+```
+
+Vendor the dependencies for this project:
+
+```bash
+rm -rf ./vendor
+mkdir -p vendor
+cp $CONDA_PREFIX/lib/*.dylib ./vendor/
+```
+
+As an optional, but encouraged performance enhancement, install the (OpenMM Metal Plugin)[https://github.com/philipturner/openmm-metal] using this same `conda` environment.
+
+You should be ready to build the project in XCode now:
+
+```bash
+( cd ./MolecularRenderer.xcodeproj && xed . )
+```

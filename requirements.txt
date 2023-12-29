@@ -1,0 +1,2 @@
+openmm==8.0
+freetype
