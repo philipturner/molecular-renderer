@@ -28,10 +28,10 @@ class Renderer {
     initializeExternalLibraries()
     
     let start = CACurrentMediaTime()
-    let animation = createLonsdaleiteSimulation()
+    let atoms = createCBNTripod()
     let end = CACurrentMediaTime()
-    print("atoms:", animation.frames.first!.count)
+    print("atoms:", atoms.count)
     print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
-    self.renderingEngine.setAtomProvider(animation)
+    initializeAtoms(atoms)
   }
 }

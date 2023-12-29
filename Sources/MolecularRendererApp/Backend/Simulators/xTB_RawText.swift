@@ -14,11 +14,7 @@ func exportToXTB(_ atoms: [MRAtom]) -> String {
   exportToText(atoms, xtb: true)
 }
 
-func exportToXTB(_ diamondoids: [Diamondoid]) -> String {
-  exportToText(diamondoids.flatMap(\.atoms), xtb: true)
-}
-
-/// Used for storing xTB trajectories as Swift source code.
+/// Used for storing xTB structures as Swift source code.
 func exportToSwift(_ atoms: [MRAtom]) -> String {
   exportToText(atoms, xtb: false)
 }
@@ -126,44 +122,4 @@ fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
     output += "\n"
   }
   return output
-}
-
-// Utilities for running MD simulations through xTB.
-
-// WARNING: This does not include which atoms should be anchors, and does not
-// include the number of unpaired electrons. It should go in "coord.inp".
-let xtbSettingsMD: String = """
-$md
-   temp=298.15 # in K
-   time=  1.0  # in ps
-   dump=  2.0  # in fs
-   step=  2.0  # in fs
-   velo=false
-   nvt =true
-   hmass=2
-   shake=0
-   sccacc=2.0
-$end
-"""
-
-// MD simulations are in angstroms, while coordinate files are in bohr.
-// - declare a function that imports the xTB simulation from text
-
-// TODO: - Debug the text deserialization before rendering a simulation with
-// 'XtbAtomProvider'.
-struct XtbAtomProvider: MRAtomProvider {
-  var frames: [[MRAtom]] = []
-  
-  // Main initializer from an array of frames.
-  
-  // Convenience initializer directly from xTB text.
-  
-  func atoms(time: MRTime) -> [MRAtom] {
-    var arrayIndex = time.absolute.frames
-    arrayIndex = min(arrayIndex, frames.count - 1)
-    guard frames.count > 0 else {
-      return []
-    }
-    return frames[arrayIndex]
-  }
 }

@@ -19,6 +19,13 @@ func minimizeTopology(_ topology: inout Topology) {
 }
 
 // A second prototype of MM4; a stopgap until the library is finally running.
+// Once the new simulator is running, archive this in the hardware catalog ASAP.
+//
+// Objectives for the new simulator in light of this prototype:
+// - Remove rigid body mechanics and MM4LevelOfTheory
+// - Make each force optional -> MM4ForceFieldDescriptor
+// - Make cutoff customizable
+// - Make hydrogen reduction optional
 struct TopologyMinimizer {
   var context: OpenMM_Context!
   var forces: [OpenMM_Force] = []
