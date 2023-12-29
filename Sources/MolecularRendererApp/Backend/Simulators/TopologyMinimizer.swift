@@ -65,6 +65,9 @@ struct TopologyMinimizer {
     }
   }
   
+  // WARNING: Sort the topology before simulating. This will speed up
+  // simulation time. In order to do this, sort before you create the
+  // TopologyMinimizer object.
   mutating func simulate(time: Double) {
     let numSteps = Double((time / 0.002).rounded(.down))
     if numSteps > 0 {

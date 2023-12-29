@@ -85,6 +85,7 @@
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
 		98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */; };
+		98FE60E92B3F4EAF00D73E37 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E82B3F4EAF00D73E37 /* Scratch2.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -269,6 +270,7 @@
 		98FE60E12B3D18A700D73E37 /* Draft2_File3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft2_File3.swift; sourceTree = "<group>"; };
 		98FE60E32B3D18B700D73E37 /* Draft2_File4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft2_File4.swift; sourceTree = "<group>"; };
 		98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyMinimizer.swift; sourceTree = "<group>"; };
+		98FE60E82B3F4EAF00D73E37 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -457,6 +459,7 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
+				98FE60E82B3F4EAF00D73E37 /* Scratch2.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -465,9 +468,9 @@
 			isa = PBXGroup;
 			children = (
 				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
-				98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */,
 				98518AF62A75845600CAD919 /* MM4.swift */,
 				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
+				98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */,
 				989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */,
 			);
 			path = Simulators;
@@ -1043,6 +1046,7 @@
 				98325C602A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift in Sources */,
 				98325C722A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
+				98FE60E92B3F4EAF00D73E37 /* Scratch2.swift in Sources */,
 				98325C5A2A6C617500A4D7BB /* NanosystemsFigure.swift in Sources */,
 				98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */,
 				989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */,
