@@ -19,16 +19,6 @@ import OpenMM
 // - potentially using minimized structures in the middle of the compilation
 //   process (e.g. the strained germ-adamantane to more accurately place
 //   remaining functional groups)
-//
-// Diagram:
-// - render of CBN tripod on surface
-//   - the entire tripod and the silicons in the simulation
-//   - energy-minimized with GFN-FF
-// - graph of tripod from patent
-// - Ge-C-C• chain warping as it's placed onto the AFM
-// - AFM after C2 dimer has been transferred
-//
-// Estimate for completion: Dec 30, 2024
 
 // TODO:
 // - minimize the leg structure in GFN2-xTB
