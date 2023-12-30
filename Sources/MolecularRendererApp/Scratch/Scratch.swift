@@ -13,23 +13,23 @@ import OpenMM
 // this compiler can facilitate deformation/animation of individual atoms.
 //
 // In addition, experience using xTB for more advanced analysis:
-// - derive structural parameters from simulation data (C-N bond length)
+// - derive structural parameters from simulation data (C-N bond length) ✅
 // - perform energy minimizations of the strain from germanium instead of
-//   manually adjusting nearby carbons
+//   manually adjusting nearby carbons ❌
 // - potentially using minimized structures in the middle of the compilation
 //   process (e.g. the strained germ-adamantane to more accurately place
-//   remaining functional groups)
+//   remaining functional groups) ✅
 //
-// Estimated completion date: Dec 30, 2023
+// Estimated completion date: Dec 30-31, 2023
 
-// TODO:
-// - minimize the leg structure in GFN2-xTB
-//   - change the NH into NH2 groups
-//   - add hydrogens where it will attach to the adamantane
-//   - use bond lengths extracted from the results for further compilation
-// - minimize the adamantane cage using GFN2-xTB
-//   - add sp1-bonded carbons to the top
-//   - use the results for further compilation
+// Tasks:
+// - minimize the leg structure in GFN2-xTB ✅
+//   - change the NH into NH2 groups ✅
+//   - add hydrogens where it will attach to the adamantane ✅
+//   - use bond lengths extracted from the results for further compilation ✅
+// - minimize the adamantane cage using GFN2-xTB ✅
+//   - add sp1-bonded carbons to the top ✅
+//   - use the results for further compilation ✅
 // - minimize the entire tripod using GFN-FF
 //   - change the N-SiH3 into N-H
 //   - don't add positional constraints, see whether benzenes stay in position
@@ -53,116 +53,48 @@ import OpenMM
 func createCBNTripod() -> [MRAtom] {
   let cage = CBNTripodCage()
   let topology = cage.topology
-  
   return topology.atoms.map(MRAtom.init)
 }
 
 extension CBNTripodCage {
-  // Create a lattice with a germanium dopant. This will be extremely far from
-  // equilibrium, but the compiled structure doesn't need to be close. It only
-  // needed to be close for the tripod leg, where replacing with the minimized
-  // structure constituted unacceptable information loss.
-  func createLattice() -> [Entity] {
-    // Create the adamantane cage with Ge and with 3 methyl groups in place of
-    // the leg structures.
-    let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 4 * h + 4 * k + 4 * l }
-      Material { .elemental(.carbon) }
-      
-      Volume {
-        Origin { 2 * h + 2 * k + 2 * l }
-        Origin { 0.25 * (h + k - l) }
-        
-        // Remove the front plane.
-        Convex {
-          Origin { 0.25 * (h + k + l) }
-          Plane { h + k + l }
-        }
-        
-        Volume {
-          Convex {
-            Origin { 0.2 * (h + k + l) }
-            Plane { h + k + l }
-          }
-          
-          Replace { .atom(.germanium) }
-        }
-        
-        func triangleCut(sign: Float) {
-          Convex {
-            Origin { 0.25 * sign * (h - k - l) }
-            Plane { sign * (h - k / 2 - l / 2) }
-          }
-          Convex {
-            Origin { 0.25 * sign * (k - l - h) }
-            Plane { sign * (k - l / 2 - h / 2) }
-          }
-          Convex {
-            Origin { 0.25 * sign * (l - h - k) }
-            Plane { sign * (l - h / 2 - k / 2) }
-          }
-        }
-        
-        // Keep the 3 carbons representing the legs.
-        // triangleCut(sign: +1)
-        
-        // Remove the remaining carbons.
-        triangleCut(sign: -1)
-        
-        // Remove the back plane.
-        Convex {
-          Origin { -0.25 * (h + k + l) }
-          Plane { -(h + k + l) }
-        }
-        
-        Replace { .empty }
-      }
-    }
-    var atoms = lattice.atoms
+  // Replace the atom positions with the energy-minimized ones from xTB.
+  mutating func compilationPass5() {
+    let xtbOptimizedAtoms: [Entity] = [
+      Entity(position: SIMD3( 0.0000, -0.2471, -0.1449), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.1255, -0.2471,  0.0725), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.1255, -0.2471,  0.0725), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.0000, -0.2024,  0.1490), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.0000, -0.0523,  0.1782), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.1290, -0.2024, -0.0745), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.1543, -0.0523, -0.0891), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.1290, -0.2024, -0.0745), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.1543, -0.0523, -0.0891), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.0000,  0.0341,  0.0000), type: .atom(.germanium)),
+      Entity(position: SIMD3( 0.0000, -0.2795,  0.2808), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.0000, -0.3987,  0.2894), type: .atom(.oxygen)),
+      Entity(position: SIMD3( 0.0000, -0.2153,  0.3710), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.2431, -0.2795, -0.1404), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.2506, -0.3987, -0.1447), type: .atom(.oxygen)),
+      Entity(position: SIMD3( 0.3213, -0.2153, -0.1856), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.2431, -0.2795, -0.1404), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.2506, -0.3987, -0.1447), type: .atom(.oxygen)),
+      Entity(position: SIMD3(-0.3213, -0.2153, -0.1856), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.0000, -0.3563, -0.1495), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.0000, -0.2088, -0.2475), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.2143, -0.2088,  0.1237), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.1295, -0.3563,  0.0748), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.1295, -0.3563,  0.0748), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.2143, -0.2088,  0.1237), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.0880, -0.0254,  0.2368), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.0880, -0.0254,  0.2368), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.1610, -0.0254, -0.1946), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.2490, -0.0254, -0.0422), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.2490, -0.0254, -0.0422), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.1610, -0.0254, -0.1946), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.0000,  0.2273, -0.0000), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.0000,  0.3471, -0.0000), type: .atom(.carbon)),
+    ]
     
-    // Rotate the cage so the germanium points straight up, and one of the
-    // legs points toward +Z.
-    let basisX = SIMD3<Float>(1, 0, -1) / Float(2).squareRoot()
-    let basisY = SIMD3<Float>(1, 1, 1) / Float(3).squareRoot()
-    precondition((basisX * basisY).sum().magnitude < 1e-3)
-    
-    func cross<T: Real & SIMDScalar>(
-      _ x: SIMD3<T>, _ y: SIMD3<T>
-    ) -> SIMD3<T> {
-      // Source: https://en.wikipedia.org/wiki/Cross_product#Computing
-      let s1 = x[1] * y[2] - x[2] * y[1]
-      let s2 = x[2] * y[0] - x[0] * y[2]
-      let s3 = x[0] * y[1] - x[1] * y[0]
-      return SIMD3(s1, s2, s3)
-    }
-    let basisZ = -cross(basisX, basisY)
-    let basisZLength = (basisZ * basisZ).sum().squareRoot()
-    precondition((basisZLength - 1).magnitude < 1e-3)
-    
-    for i in atoms.indices {
-      var atom = atoms[i]
-      let componentX = (atom.position * basisX).sum()
-      let componentY = (atom.position * basisY).sum()
-      let componentZ = (atom.position * basisZ).sum()
-      atom.position = SIMD3(componentX, componentY, componentZ)
-      atoms[i] = atom
-    }
-    
-    var germaniumID: Int = -1
-    for i in atoms.indices {
-      let atom = atoms[i]
-      if atom.atomicNumber == 32 {
-        germaniumID = i
-      }
-    }
-    precondition(germaniumID != -1)
-    
-    // Center the cage so the germanium is at (0, 0, 0).
-    let germaniumPosition = atoms[germaniumID].position
-    let translation = SIMD3<Float>.zero - germaniumPosition
-    for i in atoms.indices {
-      atoms[i].position += translation
-    }
-    return atoms
+    topology.atoms = xtbOptimizedAtoms
   }
 }

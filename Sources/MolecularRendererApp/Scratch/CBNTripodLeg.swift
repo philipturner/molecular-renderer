@@ -230,7 +230,7 @@ struct CBNTripodLeg: CBNTripodComponent {
     // N-Si bond length is estimated by summing covalent radii.
     // - sp3 N-Si bond length is 1.82 Å.
     let nhBondLength: Float = 1.0088 / 10 // xTB
-    let nsiBondLength: Float = 1.7450 / 10 // xTB
+    let nSiBondLength: Float = 1.7450 / 10 // xTB
     
     var nitrogenID: Int = -1
     var insertedAtoms: [Entity] = []
@@ -262,7 +262,7 @@ struct CBNTripodLeg: CBNTripodComponent {
       
       // Add a silyl group to the front.
       do {
-        let siliconPosition = atom.position + orbital1 * nsiBondLength
+        let siliconPosition = atom.position + orbital1 * nSiBondLength
         var silane = createMethaneAnalogue(.silicon)
         silane.remove(at: 3)
         for i in silane.indices {
@@ -359,7 +359,7 @@ extension CBNTripodLeg {
     // These bond lengths are not updated with xTB values because the hydrogens
     // are discarded afterward.
     let chBondLength: Float = 1.1120 / 10
-    let sihBondLength: Float = 1.483 / 10
+    let siHBondLength: Float = 1.483 / 10
     
     // carbon   0 -> center
     // hydrogen 1 -> bottom left  (x < 0)
@@ -394,7 +394,7 @@ extension CBNTripodLeg {
     var output: [Entity] = []
     output.append(Entity(position: .zero, type: .atom(element)))
     for orbital in orbitals {
-      let bondLength = (element == .carbon) ? chBondLength : sihBondLength
+      let bondLength = (element == .carbon) ? chBondLength : siHBondLength
       let position = orbital * bondLength
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       output.append(hydrogen)

@@ -6,17 +6,18 @@
 //
 
 import Foundation
+import HDL
 import MolecularRenderer
 
 // Utilities for manually running geometry through xTB.
 
 func exportToXTB(_ atoms: [MRAtom]) -> String {
-  exportToText(atoms, xtb: true)
+  exportToText(atoms, xtb: true, hdl: false)
 }
 
 /// Used for storing xTB structures as Swift source code.
-func exportToSwift(_ atoms: [MRAtom]) -> String {
-  exportToText(atoms, xtb: false)
+func exportToSwift(_ atoms: [MRAtom], hdl: Bool) -> String {
+  exportToText(atoms, xtb: false, hdl: hdl)
 }
 
 func importFromXTB(_ data: String) -> [MRAtom] {
@@ -69,7 +70,9 @@ func importFromXTB(_ data: String) -> [MRAtom] {
 fileprivate let AngstromPerNm: Float = 10
 fileprivate let BohrPerAngstrom: Float = 1 / 0.529177
 
-fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
+fileprivate func exportToText(
+  _ atoms: [MRAtom], xtb: Bool, hdl: Bool
+) -> String {
   var output: String = ""
   if xtb {
     output += "$coord"
@@ -78,7 +81,11 @@ fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
   
   for atom in atoms {
     if !xtb {
-      output += "MRAtom(origin: SIMD3("
+      if hdl {
+        output += "Entity(position: SIMD3("
+      } else {
+        output += "MRAtom(origin: SIMD3("
+      }
     }
     
     for index in 0..<3 {
@@ -115,6 +122,14 @@ fileprivate func exportToText(_ atoms: [MRAtom], xtb: Bool) -> String {
         fatalError("Unrecognized element: \(atom.element)")
       }
       output += repr
+      output += "\n"
+    } else if hdl {
+      guard let element = Element(rawValue: atom.element) else {
+        fatalError("Unrecognized element.")
+      }
+      output += "), type: .atom("
+      output += "\(element.description)"
+      output += ")),"
       output += "\n"
     } else {
       output += "), element: "

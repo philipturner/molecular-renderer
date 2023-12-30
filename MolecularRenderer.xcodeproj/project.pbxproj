@@ -278,6 +278,7 @@
 		98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
 		98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
 		98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripod.swift; sourceTree = "<group>"; };
+		98FE60F22B3FA5CE00D73E37 /* CBNTripodCage.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CBNTripodCage.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -902,6 +903,7 @@
 			isa = PBXGroup;
 			children = (
 				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
+				98FE60F22B3FA5CE00D73E37 /* CBNTripodCage.jpg */,
 				98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */,
 			);
 			path = CBNTripod;
