@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3C08BA492B3F780200949C9B /* libfreetype.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA442B3F780200949C9B /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		3C08BA4A2B3F780200949C9B /* libOpenMM.8.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA452B3F780200949C9B /* libOpenMM.8.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		3C08BA4B2B3F780200949C9B /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA462B3F780200949C9B /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		3C08BA4C2B3F780200949C9B /* libpng16.16.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA472B3F780200949C9B /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		3C08BA4D2B3F780200949C9B /* libz.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA482B3F780200949C9B /* libz.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3C08BA532B40308D00949C9B /* libfreetype.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA4E2B40308D00949C9B /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3C08BA542B40308D00949C9B /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA4F2B40308D00949C9B /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3C08BA552B40308D00949C9B /* libOpenMM.8.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA502B40308D00949C9B /* libOpenMM.8.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3C08BA562B40308D00949C9B /* libpng16.16.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA512B40308D00949C9B /* libpng16.16.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3C08BA572B40308D00949C9B /* libz.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 3C08BA522B40308D00949C9B /* libz.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9802CB302A71AA76004AFD03 /* Serialization.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9802CB2F2A71AA76004AFD03 /* Serialization.metal */; };
 		9814BFD22B22C45000BA5B24 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD12B22C45000BA5B24 /* MolecularRenderer */; };
 		9814BFD52B22C57100BA5B24 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD42B22C57100BA5B24 /* MM4 */; };
@@ -106,11 +106,11 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3C08BA492B3F780200949C9B /* libfreetype.6.dylib in Embed Libraries */,
-				3C08BA4A2B3F780200949C9B /* libOpenMM.8.0.dylib in Embed Libraries */,
-				3C08BA4B2B3F780200949C9B /* libc++.1.dylib in Embed Libraries */,
-				3C08BA4C2B3F780200949C9B /* libpng16.16.dylib in Embed Libraries */,
-				3C08BA4D2B3F780200949C9B /* libz.1.dylib in Embed Libraries */,
+				3C08BA532B40308D00949C9B /* libfreetype.6.dylib in Embed Libraries */,
+				3C08BA542B40308D00949C9B /* libc++.1.dylib in Embed Libraries */,
+				3C08BA552B40308D00949C9B /* libOpenMM.8.0.dylib in Embed Libraries */,
+				3C08BA562B40308D00949C9B /* libpng16.16.dylib in Embed Libraries */,
+				3C08BA572B40308D00949C9B /* libz.1.dylib in Embed Libraries */,
 			);
 			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -123,6 +123,11 @@
 		3C08BA462B3F780200949C9B /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "vendor/libc++.1.dylib"; sourceTree = "<group>"; };
 		3C08BA472B3F780200949C9B /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpng16.16.dylib; path = vendor/libpng16.16.dylib; sourceTree = "<group>"; };
 		3C08BA482B3F780200949C9B /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = vendor/libz.1.dylib; sourceTree = "<group>"; };
+		3C08BA4E2B40308D00949C9B /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
+		3C08BA4F2B40308D00949C9B /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../bypass_dependencies/libc++.1.dylib"; sourceTree = "<group>"; };
+		3C08BA502B40308D00949C9B /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../bypass_dependencies/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
+		3C08BA512B40308D00949C9B /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpng16.16.dylib; path = ../bypass_dependencies/libpng16.16.dylib; sourceTree = "<group>"; };
+		3C08BA522B40308D00949C9B /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = ../bypass_dependencies/libz.1.dylib; sourceTree = "<group>"; };
 		3C6FEDDE2B3F4729004F16B1 /* libpng16.16.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpng16.16.dylib; path = ../bypass_dependencies/libpng16.16.dylib; sourceTree = "<group>"; };
 		3C6FEDE12B3F4D9B004F16B1 /* libz.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.dylib; path = ../bypass_dependencies/libz.1.dylib; sourceTree = "<group>"; };
 		980140E52A3E1F78009408BE /* MRRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRenderer.swift; sourceTree = "<group>"; };
@@ -437,10 +442,15 @@
 				3C6FEDE12B3F4D9B004F16B1 /* libz.1.dylib */,
 				3C6FEDDE2B3F4729004F16B1 /* libpng16.16.dylib */,
 				3C08BA462B3F780200949C9B /* libc++.1.dylib */,
+				3C08BA4F2B40308D00949C9B /* libc++.1.dylib */,
 				3C08BA442B3F780200949C9B /* libfreetype.6.dylib */,
 				3C08BA452B3F780200949C9B /* libOpenMM.8.0.dylib */,
 				3C08BA472B3F780200949C9B /* libpng16.16.dylib */,
 				3C08BA482B3F780200949C9B /* libz.1.dylib */,
+				3C08BA4E2B40308D00949C9B /* libfreetype.6.dylib */,
+				3C08BA502B40308D00949C9B /* libOpenMM.8.0.dylib */,
+				3C08BA512B40308D00949C9B /* libpng16.16.dylib */,
+				3C08BA522B40308D00949C9B /* libz.1.dylib */,
 				9852E88229EB8CFA00D0E779 /* README.md */,
 				98F638972A349EDA00F51E95 /* Package.swift */,
 				98610F062AA0CD56006FAF95 /* Documentation */,
@@ -1261,7 +1271,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = ./vendor;
+				LIBRARY_SEARCH_PATHS = ../bypass_dependencies;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.philipturner-opensource.MolecularRenderer";
@@ -1292,7 +1302,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = ./vendor;
+				LIBRARY_SEARCH_PATHS = ../bypass_dependencies;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				ONLY_ACTIVE_ARCH = YES;
