@@ -247,7 +247,7 @@ struct CBNTripodCage: CBNTripodComponent {
         let oxygen = Entity(position: oxygenPosition, type: .atom(.oxygen))
         let oxygenID = topology.atoms.count + insertedAtoms.count
         insertedAtoms.append(oxygen)
-        insertedBonds.append(SIMD2(UInt32(i), UInt32(oxygenID)))
+        insertedBonds.append(SIMD2(UInt32(carbonID), UInt32(oxygenID)))
         
         let hydrogenOrbital = rotation.act(on: oxygenOrbital)
         let hydrogenPosition = carbon.position + hydrogenOrbital * chBondLength
@@ -255,7 +255,7 @@ struct CBNTripodCage: CBNTripodComponent {
           position: hydrogenPosition, type: .atom(.hydrogen))
         let hydrogenID = topology.atoms.count + insertedAtoms.count
         insertedAtoms.append(hydrogen)
-        insertedBonds.append(SIMD2(UInt32(i), UInt32(hydrogenID)))
+        insertedBonds.append(SIMD2(UInt32(carbonID), UInt32(hydrogenID)))
       }
       topology.insert(atoms: insertedAtoms)
       topology.insert(bonds: insertedBonds)
@@ -352,6 +352,47 @@ struct CBNTripodCage: CBNTripodComponent {
       topology.insert(atoms: [carbon2])
       topology.insert(bonds: [SIMD2(UInt32(carbonID1), UInt32(carbonID2))])
     }
+  }
+  
+  // Replace the atom positions with the energy-minimized ones from xTB.
+  mutating func compilationPass5() {
+    let xtbOptimizedAtoms: [Entity] = [
+      Entity(position: SIMD3( 0.0000, -0.2471, -0.1449), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.1255, -0.2471,  0.0725), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.1255, -0.2471,  0.0725), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.0000, -0.2024,  0.1490), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.0000, -0.0523,  0.1782), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.1290, -0.2024, -0.0745), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.1543, -0.0523, -0.0891), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.1290, -0.2024, -0.0745), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.1543, -0.0523, -0.0891), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.0000,  0.0341,  0.0000), type: .atom(.germanium)),
+      Entity(position: SIMD3( 0.0000, -0.2795,  0.2808), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.0000, -0.3987,  0.2894), type: .atom(.oxygen)),
+      Entity(position: SIMD3( 0.0000, -0.2153,  0.3710), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.2431, -0.2795, -0.1404), type: .atom(.carbon)),
+      Entity(position: SIMD3( 0.2506, -0.3987, -0.1447), type: .atom(.oxygen)),
+      Entity(position: SIMD3( 0.3213, -0.2153, -0.1856), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.2431, -0.2795, -0.1404), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.2506, -0.3987, -0.1447), type: .atom(.oxygen)),
+      Entity(position: SIMD3(-0.3213, -0.2153, -0.1856), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.0000, -0.3563, -0.1495), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.0000, -0.2088, -0.2475), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.2143, -0.2088,  0.1237), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.1295, -0.3563,  0.0748), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.1295, -0.3563,  0.0748), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.2143, -0.2088,  0.1237), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.0880, -0.0254,  0.2368), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.0880, -0.0254,  0.2368), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.1610, -0.0254, -0.1946), type: .atom(.hydrogen)),
+      Entity(position: SIMD3( 0.2490, -0.0254, -0.0422), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.2490, -0.0254, -0.0422), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.1610, -0.0254, -0.1946), type: .atom(.hydrogen)),
+      Entity(position: SIMD3(-0.0000,  0.2273, -0.0000), type: .atom(.carbon)),
+      Entity(position: SIMD3(-0.0000,  0.3471, -0.0000), type: .atom(.carbon)),
+    ]
+    
+    topology.atoms = xtbOptimizedAtoms
   }
 }
 
