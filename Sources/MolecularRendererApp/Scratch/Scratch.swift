@@ -20,7 +20,7 @@ import OpenMM
 //   process (e.g. the strained germ-adamantane to more accurately place
 //   remaining functional groups) ✅
 //
-// Estimated completion date: Dec 30-31, 2023
+// Estimated completion date: Dec 30-31, 2023 ✅
 
 // Tasks:
 // - minimize the leg structure in GFN2-xTB ✅
@@ -52,7 +52,7 @@ import OpenMM
 //   - copy portions of the code into an HDL unit test
 //     - figure out how to disable whole-module optimization in unit tests
 //       (provides a more realistic performance estimate b/c MR also disables
-//        whole-module optimization)
+//        whole-module optimization) ✅
 
 func createCBNTripod() -> [MRAtom] {
   var tripod = CBNTripod()

@@ -34,7 +34,6 @@
 		98518AE52A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE42A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift */; };
 		98518AE72A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE62A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift */; };
 		98518AF72A75845600CAD919 /* MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* MM4.swift */; };
-		98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
@@ -45,13 +44,11 @@
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
-		988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BD2A80105F004879E5 /* OctaneReference.swift */; };
 		988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
 		989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */; };
-		989F8A202B393B8700622946 /* HousingVibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9821824B2B06AC87001C356F /* HousingVibration.swift */; };
 		98A07C252A2CBFCF00729897 /* PDBParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A07C242A2CBFCF00729897 /* PDBParser.swift */; };
 		98A07C272A2CC11B00729897 /* ParsingUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98A07C262A2CC11B00729897 /* ParsingUtilities.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -502,7 +499,7 @@
 			path = SpringSystem;
 			sourceTree = "<group>";
 		};
-		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitectre */ = {
+		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */ = {
 			isa = PBXGroup;
 			children = (
 				98B25A1D2B391B6600081A61 /* ConvergentAssemblyArchitecture2.swift */,
@@ -510,7 +507,7 @@
 				98B25A1F2B391BA000081A61 /* ConvergentAssemblyArchitecture4.swift */,
 				98B25A202B391BBC00081A61 /* ConvergentAssemblyArchitecture5.swift */,
 			);
-			path = ConvergentAssemblyArchitectre;
+			path = ConvergentAssemblyArchitecture;
 			sourceTree = "<group>";
 		};
 		98B25A252B3931F200081A61 /* OpenMMTutorials */ = {
@@ -608,7 +605,7 @@
 		98B25A332B393B0A00081A61 /* Systems */ = {
 			isa = PBXGroup;
 			children = (
-				98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitectre */,
+				98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */,
 				98F852C92AF5B2CC00986E61 /* NORGate */,
 				98A700A82AB4A0CF00499CD2 /* SpringSystem */,
 			);
@@ -1032,8 +1029,6 @@
 				98325C542A6B501700A4D7BB /* Nanosystems_Chapter9_Figure2.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */,
-				98518AFD2A774F8E00CAD919 /* DiamondoidCollision.swift in Sources */,
-				989F8A202B393B8700622946 /* HousingVibration.swift in Sources */,
 				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */,
@@ -1055,7 +1050,6 @@
 				98518AE32A74A6BD00CAD919 /* Nanosystems_Chapter4.swift in Sources */,
 				98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */,
 				98325C5E2A6CA28F00A4D7BB /* Nanosystems_Chapter9_Figure5.swift in Sources */,
-				988EF0BE2A80105F004879E5 /* OctaneReference.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				98325C522A6B4FDE00A4D7BB /* Nanosystems_Chapter9.swift in Sources */,
 				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
