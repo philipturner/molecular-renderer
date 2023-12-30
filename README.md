@@ -61,9 +61,8 @@ conda install --yes --file requirements.txt
 Vendor the dependencies for this project:
 
 ```bash
-rm -rf ./vendor
-mkdir -p vendor
-cp $CONDA_PREFIX/lib/*.dylib ./vendor/
+mkdir -p ../bypass_dependencies/
+cp $CONDA_PREFIX/lib/*.dylib ../bypass_dependencies/
 ```
 
 Install the (OpenMM Metal Plugin)[https://github.com/philipturner/openmm-metal] using this same `conda` environment.
