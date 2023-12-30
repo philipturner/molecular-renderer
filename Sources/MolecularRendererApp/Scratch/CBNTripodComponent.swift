@@ -18,8 +18,6 @@ protocol CBNTripodComponent {
   // Call the compiler passes here, instead of doing them post-initialization.
   // The preconditions will eventually become XCTAssert invocations.
   init()
-  
-  static var xtbOptimizedStructure: String { get }
 }
 
 extension CBNTripodComponent {

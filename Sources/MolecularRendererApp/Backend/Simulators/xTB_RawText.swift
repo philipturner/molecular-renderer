@@ -137,7 +137,6 @@ fileprivate func exportToText(
       output += "),"
       output += "\n"
     }
-    
   }
   
   if xtb {
