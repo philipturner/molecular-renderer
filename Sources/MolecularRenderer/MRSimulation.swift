@@ -195,7 +195,7 @@ public class MRSimulation {
     }
     
     // Decoding will use a similar method, which generates words upon each call.
-    var header = ExpandingBuffer(device: renderer.device)
+    let header = ExpandingBuffer(device: renderer.device)
     var headerWords: [UInt64] = []
     func appendHeaderWords() {
       header.reserve(headerWords.count * 8)
@@ -269,7 +269,7 @@ public class MRSimulation {
       
       // compressed staticMetadata count, staticMetadata
       if staticMetadata.count > 0 {
-        var dst = UnsafeMutablePointer<UInt8>
+        let dst = UnsafeMutablePointer<UInt8>
           .allocate(capacity: staticMetadata.count)
         defer { dst.deallocate() }
         
@@ -386,7 +386,7 @@ public class MRSimulation {
       precondition(compressedCount > 0)
       
       checkCapacity(compressedCount)
-      var dst = UnsafeMutablePointer<UInt8>
+      let dst = UnsafeMutablePointer<UInt8>
         .allocate(capacity: staticMetadataCount)
       defer { dst.deallocate() }
       
