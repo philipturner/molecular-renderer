@@ -18,9 +18,9 @@ enum XTBError: Error {
   case invalidFormatting(Int, String)
 }
 
-// A better API centered around 'HDL.Entity'. This invokes xTB by launching
-// processes. It can also be used in hybrid scripting + command-line workflows,
-// where scripting just automates the saving/loading of data.
+// A better API centered around 'HDL.Entity'. <s>This invokes xTB by launching
+// processes</s> NOT YET. It can also be used in hybrid scripting + command-line
+// workflows, where scripting just automates the saving/loading of data.
 struct XTBProcess {
   var workspace: URL
   
@@ -33,12 +33,6 @@ struct XTBProcess {
     precondition(try! url.checkResourceIsReachable())
     self.workspace = url
   }
-  
-  // ideas for future features:
-  //   mutating function to energy-minimize the structure
-  //   properties such as spinMultiplicity, algorithm, anchors
-  //     prove anchors work by constraining H on a ridiculous water molecule
-  //   ability to perform ONIOM
   
   func readFile(name: String) -> String {
     let fileURL = workspace.appending(component: name)
