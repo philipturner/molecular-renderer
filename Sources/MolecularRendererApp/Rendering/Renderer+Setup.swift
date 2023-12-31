@@ -6,18 +6,25 @@
 //
 
 import Foundation
+import HDL
 import MolecularRenderer
 import OpenMM
+import QuartzCore
 
 extension Renderer {
   func initializeExternalLibraries() {
     initializeOpenMM()
     initializeRenderingEngine()
-    initializeSerializers()
   }
   
-  func initializeAtoms(_ atoms: [MRAtom]) {
-    let provider = ArrayAtomProvider(atoms)
+  func initializeCompilation(_ closure: () -> [Entity]) {
+    let start = CACurrentMediaTime()
+    let atoms = closure()
+    let end = CACurrentMediaTime()
+    print("atoms:", atoms.count)
+    print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
+    
+    let provider = ArrayAtomProvider(atoms.map(MRAtom.init))
     renderingEngine.setAtomProvider(provider)
   }
 }
@@ -60,14 +67,6 @@ extension Renderer {
     let directory = OpenMM_Platform.defaultPluginsDirectory!
     let plugins = OpenMM_Platform.loadPlugins(directory: directory)
     precondition(plugins != nil, "Failed to load plugins.")
-  }
-  
-  func initializeSerializers() {
-    self.gifSerializer = GIFSerializer(
-      path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
-    self.serializer = Serializer(
-      renderer: self,
-      path: "/Users/philipturner/Documents/OpenMM/Renders/Exports")
   }
 }
 

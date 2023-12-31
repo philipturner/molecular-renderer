@@ -1423,6 +1423,16 @@ extension Diamondoid {
   }
 }
 
+extension ArrayAtomProvider {
+  init(_ diamondoids: [Diamondoid]) {
+    var atoms: [MRAtom] = []
+    for diamondoid in diamondoids {
+      atoms += diamondoid.atoms
+    }
+    self.init(atoms)
+  }
+}
+
 // MARK: - Old Bond Topology Backend
 
 struct Constants {

@@ -13,27 +13,11 @@
 		9814BFD82B22C58A00BA5B24 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD72B22C58A00BA5B24 /* HDL */; };
 		9818223E2AE56D57009CFAA8 /* KeyCodes in Frameworks */ = {isa = PBXBuildFile; productRef = 9818223D2AE56D57009CFAA8 /* KeyCodes */; };
 		981822412AE56D5E009CFAA8 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 981822402AE56D5E009CFAA8 /* Atomics */; };
-		981822472AE56D7C009CFAA8 /* GIF in Frameworks */ = {isa = PBXBuildFile; productRef = 981822462AE56D7C009CFAA8 /* GIF */; };
 		981822552AE574C0009CFAA8 /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 981822542AE574C0009CFAA8 /* OpenMM */; };
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
-		98247CBB2AF0656100958BC5 /* Nanosystems_Chapter12_Figure1_file2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98247CBA2AF0656100958BC5 /* Nanosystems_Chapter12_Figure1_file2.swift */; };
-		98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C4F2A6B4FD100A4D7BB /* Nanosystems.swift */; };
-		98325C522A6B4FDE00A4D7BB /* Nanosystems_Chapter9.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C512A6B4FDE00A4D7BB /* Nanosystems_Chapter9.swift */; };
-		98325C542A6B501700A4D7BB /* Nanosystems_Chapter9_Figure2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C532A6B501700A4D7BB /* Nanosystems_Chapter9_Figure2.swift */; };
 		98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C552A6B512900A4D7BB /* MRAtomInterface.swift */; };
-		98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C572A6C1A3800A4D7BB /* Diamondoid.swift */; };
-		98325C5A2A6C617500A4D7BB /* NanosystemsFigure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C592A6C617500A4D7BB /* NanosystemsFigure.swift */; };
-		98325C5E2A6CA28F00A4D7BB /* Nanosystems_Chapter9_Figure5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C5D2A6CA28F00A4D7BB /* Nanosystems_Chapter9_Figure5.swift */; };
-		98325C602A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C5F2A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift */; };
-		98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C612A6D76E500A4D7BB /* Serializer.swift */; };
-		98325C722A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C712A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift */; };
-		984F72192A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984F72182A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift */; };
-		98518AE32A74A6BD00CAD919 /* Nanosystems_Chapter4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE22A74A6BD00CAD919 /* Nanosystems_Chapter4.swift */; };
-		98518AE52A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE42A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift */; };
-		98518AE72A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AE62A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift */; };
-		98518AF72A75845600CAD919 /* MM4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98518AF62A75845600CAD919 /* MM4.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
@@ -43,31 +27,17 @@
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
-		988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
-		989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
-		98A4A5792A81A65E00A74F87 /* libfreetype.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		98A8B72C2ABE6D5B003E62E8 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98A8B72E2ABE6D5B003E62E8 /* libOpenMM.8.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		98B6BDFB2AEE85B000F8655C /* Renderer+Offline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */; };
-		98B6BDFD2AEE85B700F8655C /* Renderer+Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */; };
-		98B6BE0B2AEF082000F8655C /* Nanosystems_Chapter12.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B6BE0A2AEF082000F8655C /* Nanosystems_Chapter12.swift */; };
-		98B6BE0D2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B6BE0C2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift */; };
 		98C48C5A2A48F7510047C078 /* libOpenMM.8.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
-		98F012622B266FA70037318D /* Bootstrapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012612B266FA70037318D /* Bootstrapping.swift */; };
-		98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012632B2671080037318D /* Bootstrapping_Tripod.swift */; };
-		98F012662B2671160037318D /* Bootstrapping_BuildPlate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */; };
-		98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012672B2671210037318D /* Bootstrapping_Surface.swift */; };
-		98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F012692B2671430037318D /* Bootstrapping_Animation.swift */; };
-		98F0126C2B26A1C40037318D /* Bootstrapping_Probe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
@@ -80,10 +50,6 @@
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
 		98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */; };
-		98FE60E92B3F4EAF00D73E37 /* CBNTripodLeg.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E82B3F4EAF00D73E37 /* CBNTripodLeg.swift */; };
-		98FE60EC2B3F6E8900D73E37 /* CBNTripodCage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */; };
-		98FE60EE2B3F6F9800D73E37 /* CBNTripodComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */; };
-		98FE60F02B3F70C400D73E37 /* CBNTripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,7 +69,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				98A4A5792A81A65E00A74F87 /* libfreetype.6.dylib in Embed Libraries */,
 				98C48C5A2A48F7510047C078 /* libOpenMM.8.0.dylib in Embed Libraries */,
 				98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */,
 			);
@@ -206,7 +171,6 @@
 		98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloArgonInSwift.swift; sourceTree = "<group>"; };
 		98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRAccelBuilder+Build.swift"; sourceTree = "<group>"; };
 		98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Offline.swift"; sourceTree = "<group>"; };
-		98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Update.swift"; sourceTree = "<group>"; };
 		98B6BE0A2AEF082000F8655C /* Nanosystems_Chapter12.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter12.swift; sourceTree = "<group>"; };
 		98B6BE0C2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter12_Figure1.swift; sourceTree = "<group>"; };
 		98C48C462A48E0440047C078 /* HelloSodiumChlorideInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloSodiumChlorideInSwift.swift; sourceTree = "<group>"; };
@@ -233,6 +197,7 @@
 		98EA89F42B40E34E00DC5C7E /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
 		98EA89F62B40E35A00DC5C7E /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
 		98EA89F72B40E37000DC5C7E /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
+		98EA8A002B41070F00DC5C7E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98F012612B266FA70037318D /* Bootstrapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping.swift; sourceTree = "<group>"; };
 		98F012632B2671080037318D /* Bootstrapping_Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Tripod.swift; sourceTree = "<group>"; };
 		98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_BuildPlate.swift; sourceTree = "<group>"; };
@@ -273,11 +238,7 @@
 		98FE60E12B3D18A700D73E37 /* Draft2_File3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft2_File3.swift; sourceTree = "<group>"; };
 		98FE60E32B3D18B700D73E37 /* Draft2_File4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Draft2_File4.swift; sourceTree = "<group>"; };
 		98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopologyMinimizer.swift; sourceTree = "<group>"; };
-		98FE60E82B3F4EAF00D73E37 /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
 		98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CBNTripodLeg.jpg; sourceTree = "<group>"; };
-		98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
-		98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
-		98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripod.swift; sourceTree = "<group>"; };
 		98FE60F22B3FA5CE00D73E37 /* CBNTripodCage.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CBNTripodCage.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -289,11 +250,9 @@
 				9814BFD52B22C57100BA5B24 /* MM4 in Frameworks */,
 				9814BFD82B22C58A00BA5B24 /* HDL in Frameworks */,
 				981822412AE56D5E009CFAA8 /* Atomics in Frameworks */,
-				98A8B72C2ABE6D5B003E62E8 /* libfreetype.6.dylib in Frameworks */,
 				98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */,
 				98A8B72E2ABE6D5B003E62E8 /* libOpenMM.8.0.dylib in Frameworks */,
 				9814BFD22B22C45000BA5B24 /* MolecularRenderer in Frameworks */,
-				981822472AE56D7C009CFAA8 /* GIF in Frameworks */,
 				981822552AE574C0009CFAA8 /* OpenMM in Frameworks */,
 				9818223E2AE56D57009CFAA8 /* KeyCodes in Frameworks */,
 			);
@@ -357,9 +316,7 @@
 			isa = PBXGroup;
 			children = (
 				986ED88929A6CF3600E0653B /* Renderer.swift */,
-				98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */,
 				98B25A192B33666B00081A61 /* Renderer+Setup.swift */,
-				98B6BDFC2AEE85B700F8655C /* Renderer+Update.swift */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -467,25 +424,8 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
-				98FE60E82B3F4EAF00D73E37 /* CBNTripodLeg.swift */,
-				98FE60EB2B3F6E8900D73E37 /* CBNTripodCage.swift */,
-				98FE60ED2B3F6F9800D73E37 /* CBNTripodComponent.swift */,
-				98FE60EF2B3F70C400D73E37 /* CBNTripod.swift */,
 			);
 			path = Scratch;
-			sourceTree = "<group>";
-		};
-		989F8A232B393E4800622946 /* Simulators */ = {
-			isa = PBXGroup;
-			children = (
-				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
-				98518AF62A75845600CAD919 /* MM4.swift */,
-				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
-				98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */,
-				989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */,
-				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
-			);
-			path = Simulators;
 			sourceTree = "<group>";
 		};
 		98A700A82AB4A0CF00499CD2 /* SpringSystem */ = {
@@ -529,23 +469,6 @@
 			path = Carbides;
 			sourceTree = "<group>";
 		};
-		98B25A292B39378600081A61 /* Serializers */ = {
-			isa = PBXGroup;
-			children = (
-				988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */,
-				98325C612A6D76E500A4D7BB /* Serializer.swift */,
-			);
-			path = Serializers;
-			sourceTree = "<group>";
-		};
-		98B25A2A2B39379500081A61 /* Atom Providers */ = {
-			isa = PBXGroup;
-			children = (
-				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
-			);
-			path = "Atom Providers";
-			sourceTree = "<group>";
-		};
 		98B25A2E2B393A6300081A61 /* Experiments */ = {
 			isa = PBXGroup;
 			children = (
@@ -570,9 +493,9 @@
 			isa = PBXGroup;
 			children = (
 				98B25A272B39372E00081A61 /* Carbides */,
-				98FE60F12B3F716E00D73E37 /* CBNTripod */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
 				98FE60D22B3C6AFC00D73E37 /* Reconstruction */,
+				98FE60F12B3F716E00D73E37 /* Tripods */,
 			);
 			path = Materials;
 			sourceTree = "<group>";
@@ -693,6 +616,8 @@
 		98EA89FB2B40E51800DC5C7E /* Backend */ = {
 			isa = PBXGroup;
 			children = (
+				98518AF62A75845600CAD919 /* MM4.swift */,
+				989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */,
 			);
 			path = Backend;
 			sourceTree = "<group>";
@@ -700,35 +625,43 @@
 		98EA89FC2B40E54100DC5C7E /* Other */ = {
 			isa = PBXGroup;
 			children = (
-				98EA89FD2B40E54600DC5C7E /* Backend */,
+				980E70162A5E51B60051797F /* Bootstrapping */,
+				98EA89FF2B41047800DC5C7E /* Diamondoid */,
+				98325C4D2A6B4F9200A4D7BB /* Nanosystems */,
+				98EA89FE2B41045100DC5C7E /* Serialization */,
 			);
 			path = Other;
 			sourceTree = "<group>";
 		};
-		98EA89FD2B40E54600DC5C7E /* Backend */ = {
+		98EA89FE2B41045100DC5C7E /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
+				988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */,
+				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
+				98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */,
+				98325C612A6D76E500A4D7BB /* Serializer.swift */,
+				98EA8A002B41070F00DC5C7E /* README.md */,
 			);
-			path = Backend;
+			path = Serialization;
+			sourceTree = "<group>";
+		};
+		98EA89FF2B41047800DC5C7E /* Diamondoid */ = {
+			isa = PBXGroup;
+			children = (
+				98325C572A6C1A3800A4D7BB /* Diamondoid.swift */,
+			);
+			path = Diamondoid;
 			sourceTree = "<group>";
 		};
 		98F250032A130A65009AABDE /* Backend */ = {
 			isa = PBXGroup;
 			children = (
-				98B25A2A2B39379500081A61 /* Atom Providers */,
-				98B25A292B39378600081A61 /* Serializers */,
-				989F8A232B393E4800622946 /* Simulators */,
+				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
+				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
+				98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */,
+				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
 			);
 			path = Backend;
-			sourceTree = "<group>";
-		};
-		98F2F5CD2A5F2DD0006216F4 /* Projects */ = {
-			isa = PBXGroup;
-			children = (
-				980E70162A5E51B60051797F /* Bootstrapping */,
-				98325C4D2A6B4F9200A4D7BB /* Nanosystems */,
-			);
-			path = Projects;
 			sourceTree = "<group>";
 		};
 		98F638962A349D6A00F51E95 /* MolecularRendererApp */ = {
@@ -736,7 +669,6 @@
 			children = (
 				981FCFEE29ECAE0E009904A2 /* App */,
 				98F250032A130A65009AABDE /* Backend */,
-				98F2F5CD2A5F2DD0006216F4 /* Projects */,
 				98298F5829F353D30008E248 /* Rendering */,
 				989F8A222B393D4900622946 /* Scratch */,
 				9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */,
@@ -755,7 +687,6 @@
 				98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */,
 				98B25A182B335F7600081A61 /* MRRenderer+Render.swift */,
 				98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */,
-				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
 				98B25A162B33562E00081A61 /* Utilities.swift */,
 			);
@@ -922,7 +853,7 @@
 			path = Draft2;
 			sourceTree = "<group>";
 		};
-		98FE60F12B3F716E00D73E37 /* CBNTripod */ = {
+		98FE60F12B3F716E00D73E37 /* Tripods */ = {
 			isa = PBXGroup;
 			children = (
 				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
@@ -935,7 +866,7 @@
 				98FE60F22B3FA5CE00D73E37 /* CBNTripodCage.jpg */,
 				98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */,
 			);
-			path = CBNTripod;
+			path = Tripods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -959,7 +890,6 @@
 			packageProductDependencies = (
 				9818223D2AE56D57009CFAA8 /* KeyCodes */,
 				981822402AE56D5E009CFAA8 /* Atomics */,
-				981822462AE56D7C009CFAA8 /* GIF */,
 				981822542AE574C0009CFAA8 /* OpenMM */,
 				9814BFD12B22C45000BA5B24 /* MolecularRenderer */,
 				9814BFD42B22C57100BA5B24 /* MM4 */,
@@ -1015,7 +945,6 @@
 				9818223C2AE56D57009CFAA8 /* XCRemoteSwiftPackageReference "KeyCodes" */,
 				9818223F2AE56D5E009CFAA8 /* XCRemoteSwiftPackageReference "swift-atomics" */,
 				981822422AE56D6D009CFAA8 /* XCRemoteSwiftPackageReference "swift-openmm" */,
-				981822452AE56D7C009CFAA8 /* XCRemoteSwiftPackageReference "swift-gif" */,
 				9818224F2AE57443009CFAA8 /* XCLocalSwiftPackageReference "" */,
 				98F852C02AF5B1A600986E61 /* XCLocalSwiftPackageReference "" */,
 				9814BFD02B22C45000BA5B24 /* XCLocalSwiftPackageReference "" */,
@@ -1051,52 +980,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
-				98325C542A6B501700A4D7BB /* Nanosystems_Chapter9_Figure2.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
-				98F0126A2B2671430037318D /* Bootstrapping_Animation.swift in Sources */,
-				98325C502A6B4FD100A4D7BB /* Nanosystems.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
-				98F012642B2671080037318D /* Bootstrapping_Tripod.swift in Sources */,
-				98518AE52A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
-				98B6BDFD2AEE85B700F8655C /* Renderer+Update.swift in Sources */,
-				98FE60F02B3F70C400D73E37 /* CBNTripod.swift in Sources */,
-				98FE60EC2B3F6E8900D73E37 /* CBNTripodCage.swift in Sources */,
-				98518AE72A74A8C200CAD919 /* Nanosystems_Chapter4_Figure4.swift in Sources */,
-				98F012622B266FA70037318D /* Bootstrapping.swift in Sources */,
-				988EF0C02A818E0B004879E5 /* GIFSerializer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
-				98F0126C2B26A1C40037318D /* Bootstrapping_Probe.swift in Sources */,
-				98518AF72A75845600CAD919 /* MM4.swift in Sources */,
-				98247CBB2AF0656100958BC5 /* Nanosystems_Chapter12_Figure1_file2.swift in Sources */,
-				98FE60EE2B3F6F9800D73E37 /* CBNTripodComponent.swift in Sources */,
-				98518AE32A74A6BD00CAD919 /* Nanosystems_Chapter4.swift in Sources */,
-				98F012682B2671210037318D /* Bootstrapping_Surface.swift in Sources */,
-				98325C5E2A6CA28F00A4D7BB /* Nanosystems_Chapter9_Figure5.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
-				98325C522A6B4FDE00A4D7BB /* Nanosystems_Chapter9.swift in Sources */,
-				98325C622A6D76E500A4D7BB /* Serializer.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
-				98B6BDFB2AEE85B000F8655C /* Renderer+Offline.swift in Sources */,
-				98B6BE0B2AEF082000F8655C /* Nanosystems_Chapter12.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
-				98325C602A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift in Sources */,
-				98325C722A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
-				98FE60E92B3F4EAF00D73E37 /* CBNTripodLeg.swift in Sources */,
-				98325C5A2A6C617500A4D7BB /* NanosystemsFigure.swift in Sources */,
-				98325C582A6C1A3800A4D7BB /* Diamondoid.swift in Sources */,
-				989CBA112B1D5D0F00213CBE /* xTB_RawText.swift in Sources */,
 				989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */,
-				98F012662B2671160037318D /* Bootstrapping_BuildPlate.swift in Sources */,
-				98B6BE0D2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
-				984F72192A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1440,14 +1338,6 @@
 				kind = branch;
 			};
 		};
-		981822452AE56D7C009CFAA8 /* XCRemoteSwiftPackageReference "swift-gif" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/philipturner/swift-gif";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1474,11 +1364,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9818223F2AE56D5E009CFAA8 /* XCRemoteSwiftPackageReference "swift-atomics" */;
 			productName = Atomics;
-		};
-		981822462AE56D7C009CFAA8 /* GIF */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 981822452AE56D7C009CFAA8 /* XCRemoteSwiftPackageReference "swift-gif" */;
-			productName = GIF;
 		};
 		981822542AE574C0009CFAA8 /* OpenMM */ = {
 			isa = XCSwiftPackageProductDependency;

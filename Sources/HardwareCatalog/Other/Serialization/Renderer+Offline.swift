@@ -71,4 +71,58 @@ extension Renderer {
     renderSimulation(simulation)
     saveGIF(name: simulationName)
   }
+  
+  func renderSimulation(
+    _ simulation: MRSimulation
+  ) {
+    func getFramesPerFrame(psPerSecond: Double? = nil) -> Int {
+      if let psPerSecond {
+        let fsPerFrame = simulation.frameTimeInFs
+        var framesPerFrame = psPerSecond * 1000 / 100 / fsPerFrame
+        if abs(framesPerFrame - rint(framesPerFrame)) < 0.001 {
+          framesPerFrame = rint(framesPerFrame)
+        } else {
+          fatalError(
+            "Indivisible playback speed: \(psPerSecond) / 100 / \(fsPerFrame)")
+        }
+        return Int(framesPerFrame)
+      } else {
+        // DO NOT return 2 here! That is for blur fusion!
+        return 1
+      }
+    }
+    let framesPerFrame = getFramesPerFrame()
+    
+    let numFrames = simulation.frameCount / framesPerFrame
+    
+    for frameID in 0..<numFrames {
+      self.renderSemaphore.wait()
+      let timeDouble = Double(frameID) / 100
+      if frameID % 2 == 0 {
+        print("Timestamp: \(String(format: "%.2f", timeDouble))")
+      }
+      
+      let time = MRTime(
+        absolute: frameID * framesPerFrame,
+        relative: framesPerFrame,
+        frameRate: 100 * framesPerFrame)
+      let rotation = PlayerState.rotation(azimuth: 0, zenith: 0)
+      let camera = MRCamera(
+        position: [0, 0, 0],
+        rotation: rotation,
+        fovDegrees: 90)
+      
+      self.prepareRendering(
+        animationTime: time,
+        camera: camera,
+        frameID: frameID,
+        framesPerSecond: 100)
+      
+      renderingEngine.render { pixels in
+        self.gifSerializer.addImage(pixels: pixels, blurFusion: 2)
+        self.renderSemaphore.signal()
+      }
+    }
+    renderingEngine.stopRendering()
+  }
 }

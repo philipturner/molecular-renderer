@@ -12,26 +12,66 @@ import QuartzCore
 class Renderer {
   unowned let coordinator: Coordinator
   unowned let eventTracker: EventTracker
-  
-  // Rendering resources.
   var renderSemaphore: DispatchSemaphore = .init(value: 3)
   var renderingEngine: MRRenderer!
   var animationFrameID: Int = 0
-  
-  // Data serializers.
-  var gifSerializer: GIFSerializer!
-  var serializer: Serializer!
   
   init(coordinator: Coordinator) {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
+    initializeCompilation {
+      createCBNTripod()
+    }
+  }
+}
+
+extension Renderer {
+  func update() {
+    self.renderSemaphore.wait()
     
-    let start = CACurrentMediaTime()
-    let atoms = createCBNTripod()
-    let end = CACurrentMediaTime()
-    print("atoms:", atoms.count)
-    print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
-    initializeAtoms(atoms)
+    let frameDelta = coordinator.vsyncHandler.updateFrameID()
+    let frameID = coordinator.vsyncHandler.frameID
+    eventTracker.update(time: MRTime(
+      absolute: frameID,
+      relative: frameDelta,
+      frameRate: ContentView.frameRate))
+    
+    var animationDelta: Int
+    if eventTracker[.keyboardP].pressed {
+      animationDelta = frameDelta
+    } else {
+      animationDelta = 0
+    }
+    if eventTracker[.keyboardR].pressed {
+      animationDelta = 0
+      animationFrameID = 0
+    }
+    animationFrameID += animationDelta
+    
+    let playerState = eventTracker.playerState
+    let fov = playerState.fovDegrees(progress: eventTracker.fovHistory.progress)
+    let (azimuth, zenith) = playerState.orientations
+    let rotation = PlayerState.rotation(azimuth: azimuth, zenith: zenith)
+    
+    renderingEngine.setTime(MRTime(
+      absolute: animationFrameID,
+      relative: animationDelta,
+      frameRate: ContentView.frameRate))
+    
+    renderingEngine.setCamera(MRCamera(
+      position: playerState.position,
+      rotation: rotation,
+      fovDegrees: fov))
+    
+    renderingEngine.setLights([
+      MRLight(
+        origin: playerState.position,
+        diffusePower: 1, specularPower: 1)
+    ])
+    
+    renderingEngine.render(layer: coordinator.view.metalLayer!) {
+      self.renderSemaphore.signal()
+    }
   }
 }

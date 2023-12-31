@@ -1,80 +1,73 @@
 //
-//  AtomProviders.swift
+//  Serializer.swift
 //  MolecularRendererApp
 //
-//  Created by Philip Turner on 7/21/23.
+//  Created by Philip Turner on 7/23/23.
 //
 
-import Foundation
-import HDL
-import OpenMM
+import Metal
 import MolecularRenderer
 
-// MARK: - MRAtom Interface with Array
-
-struct ArrayAtomProvider: MRAtomProvider {
-  var atoms: [MRAtom]
+class Serializer {
+  unowned let renderer: Renderer
+  var path: String
   
-  init(_ atoms: [MRAtom]) {
-    self.atoms = atoms
+  init(renderer: Renderer, path: String) {
+    self.renderer = renderer
+    self.path = path
   }
   
-  init(_ centers: [SIMD3<Float>]) {
-    self.init(centers.map { MRAtom(origin: $0, element: 6)})
+  func load(fileName: String) -> MRSimulation {
+    let path = self.path + "/" + fileName + ".mrsim"
+    let url = URL(filePath: path)
+    return MRSimulation(
+      renderer: renderer.renderingEngine, url: url)
   }
   
-  func atoms(time: MRTime) -> [MRAtom] {
-    return atoms
-  }
-  
-  init(_ diamondoids: [Diamondoid]) {
-    var atoms: [MRAtom] = []
-    for diamondoid in diamondoids {
-      atoms += diamondoid.atoms
+  func save(
+    fileName: String,
+    provider: OpenMM_AtomProvider,
+    asText: Bool = false
+  ) {
+    // Allow 0.125 fs precision.
+    var frameTimeInFs = rint(8 * 1000 * provider.psPerStep) / 8
+    frameTimeInFs *= Double(provider.stepsPerFrame)
+    let simulation = MRSimulation(
+      renderer: renderer.renderingEngine,
+      frameTimeInFs: frameTimeInFs,
+      format: asText ? .plainText : .binary)
+    
+    for state in provider.states {
+      let frame = MRFrame(atoms: state)
+      simulation.append(frame)
     }
-    self.init(atoms)
+    
+    var path = self.path + "/" + fileName + ".mrsim"
+    if asText {
+      path += "-txt"
+    }
+    let url = URL(filePath: path)
+    simulation.save(url: url)
   }
 }
 
-struct AnimationAtomProvider: MRAtomProvider {
-  var frames: [[MRAtom]]
+struct SimulationAtomProvider: MRAtomProvider {
+  var frameTimeInFs: Double
+  var frames: [[MRAtom]] = []
   
-  init(_ frames: [[MRAtom]]) {
-    self.frames = frames
+  init(simulation: MRSimulation) {
+    self.frameTimeInFs = simulation.frameTimeInFs
+    for frameID in 0..<simulation.frameCount {
+      let frame = simulation.frame(id: frameID)
+      frames.append(frame.atoms)
+    }
   }
   
   func atoms(time: MRTime) -> [MRAtom] {
-    if frames.count == 0 {
-      return []
-    }
-    
-    var frameID = time.absolute.frames
-    frameID = min(frameID, frames.count - 1)
+    let frameID = min(time.absolute.frames, frames.count - 1)
     return frames[frameID]
   }
 }
-
-struct MovingAtomProvider: MRAtomProvider {
-  var atoms: [MRAtom]
-  var velocity: SIMD3<Float>
-  
-  // Velocity is in nanometers per IRL second.
-  init(_ atoms: [MRAtom], velocity: SIMD3<Float>) {
-    self.atoms = atoms
-    self.velocity = velocity
-  }
-  
-  func atoms(time: MRTime) -> [MRAtom] {
-    let delta = velocity * Float(time.absolute.seconds)
-    return atoms.map {
-      var copy = $0
-      copy.origin += delta
-      return copy
-    }
-  }
-}
-
-// MARK: - MRAtom Interface with OpenMM
 
 // The results of an OpenMM simulation. Currently, the data must be generated
 // inside OpenMM at app launch time.
@@ -142,21 +135,5 @@ class OpenMM_AtomProvider: MRAtomProvider {
   
   func reset() {
     self.states = []
-  }
-}
-
-// MARK: - MRAtom Interface with HDL
-
-extension MRAtom {
-  init(entity: HDL.Entity) {
-    if entity.storage.w == 0 {
-      self = MRAtom(origin: entity.position, element: 0)
-      self.flags = 0x1
-      return
-    }
-    
-    self = MRAtom(
-      origin: entity.position,
-      element: UInt8(entity.storage.w))
   }
 }
