@@ -4,7 +4,7 @@ The code in this archive is about serializing molecular dynamics trajectories to
 
 The code was archived because the APIs grew very unwieldy. The code was outdated, often project-specific, and needs to be redone in a fresh way. There is a new MRSimulation text codec. In addition, a version 2 of the binary codec can be created. It would be cross-platform from the start, using vectorized CPU code instead of GPU code. This design approach will make it easier to port to non-Apple platforms. It was also questionable whether GPU was needed in the first place, other than Metal being easier than vectorized Swift code at the time.
 
-The following dependency will still be important in future efforts. It is clear that GIF images are the only viable way to export time-series data from the app. Screen recording software was attempted many times and all solution were broken. There is no known API that writes directly to MP4 files from Swift; it would be insightful to discover such an API.
+The following dependency will still be important in future efforts. It is clear that GIF images are the only viable way to export time-series data from the app. Screen recording software was attempted many times and all solutions were broken. There is no known API that writes directly to MP4 videos from Swift; it would be insightful to discover such an API.
 
 https://github.com/philipturner/swift-gif
 
