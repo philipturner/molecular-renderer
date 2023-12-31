@@ -10,9 +10,9 @@ This reference relates to a quote from Nanosystems 14.6.5. It constitutes study 
 
 > This section has given only a rough sketch of past developments. A more detailed study of the evolution from lower-level CAD systems ot silicon compilers could yield further insights into the likely path from today's molecular modeling and mechanical CAD packages toward future compiler-style support for the engineering of nanomechanical systems.
 
-In addition, the failure of the original design goal for the hardware catalog represents study of CAD software evolution. It was an idea conceived under extreme time constraints. The author wanted to enjoy nanomechanical design, but faced an immense road block from lacking the right software. Recycling previous designs seemed like the easiest approach to overcoming a "person hours bottleneck" in generating molecular structures. That approach clearly failed. Reading the VLSI paper was the nail in the coffin.
+Another related topic: failure of the original design goal for the hardware catalog. It was an idea conceived under extreme time constraints. The author wanted to enjoy nanomechanical design, but faced an immense roadblock: lacking the right software. Recycling previous designs seemed like the easiest approach to overcoming a "person hours bottleneck" in generating molecular structures. That approach clearly failed. Reading the VLSI paper was the nail in the coffin.
 
-Instead, the author carefully gathered spare time across many months. He worked on making software the right way, even if it was time-consuming. It was discovered that simple, well-principled software is the key to scaling. He created a compiler that actualized several design aspects proposed in Nanosystems Chapter 14.6.
+Instead, the author carefully gathered spare time across many months. He worked on making software the right way, even if development was time-consuming. It was discovered that simple, well-principled software is the key to scaling. He created a compiler that actualized several design constraints proposed in Nanosystems Chapter 14.6.
 
 For reference, the section headings of that chapter are enumerated:
 - <b>14.6.1</b> Part counts and automation in design and computation
