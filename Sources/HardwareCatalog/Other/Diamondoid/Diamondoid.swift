@@ -1290,6 +1290,8 @@ struct Diamondoid {
     }
   }
   
+  // Remove '_Old_MM4' dependency so this file can be compiled in isolation.
+  #if false
   mutating func minimize(temperature: Double = 298, fsPerFrame: Double = 100) {
     var diamondoid = self
     diamondoid.linearVelocity = nil
@@ -1320,6 +1322,7 @@ struct Diamondoid {
     }
     self = diamondoid
   }
+  #endif
   
   // Center of mass using HMR.
   // WARNING: The amount of repartitioned mass must stay in sync with _Old_MM4.
