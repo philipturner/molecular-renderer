@@ -20,12 +20,9 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
-//    initializeCompilation {
-//      createCBNTripod()
-//    }
-    
-    let provider = createLonsdaleiteSimulation()
-    renderingEngine.setAtomProvider(provider)
+    initializeCompilation {
+      createCBNTripod()
+    }
   }
 }
 

@@ -21,7 +21,19 @@ The most well-funded projects (Atomic Machines, CBN Nano Technologies) are close
 
 Out of all the ongoing efforts to succeed NanoEngineer, Molecular Renderer was the first to breach million-atom scale. It was built from scratch to enable engineering of massive systems, and achieved exactly that. The scale that unlocks general-purpose compute, self-replication, and cytonavigation.
 
-## State of Cross-Platform Support
+## Installation
+
+Dependencies:
+- macOS 14
+- OpenMM 8.1.0
+- OpenMM [Metal plugin](https://github.com/philipturner/openmm-metal)
+- Xcode
+
+Recommended hardware:
+- Apple silicon chip (base M1 chip works with 60 Hz)
+- ProMotion laptop display or 144 Hz monitor
+
+## Cross-Platform Support
 
 The simulators and compilers (GUI-less CAD libraries) run on all platforms. Large chunks of code were migrated from the vendor-specific `MolecularRendererApp` module to the `HardwareCatalog` archive.
 

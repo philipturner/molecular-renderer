@@ -104,7 +104,8 @@ extension TopologyMinimizer {
   }
   
   mutating func minimize() {
-    OpenMM_LocalEnergyMinimizer.minimize(context: context)
+    // A minimizaton reporter doesn't report anything here.
+    OpenMM_LocalEnergyMinimizer.minimize(context: context, reporter: nil)
     let minimizedPositions = reportPositions()
     for i in parameters.atoms.indices {
       topology.atoms[i].position = minimizedPositions[i]
@@ -217,7 +218,7 @@ extension TopologyMinimizer {
     let stretchForce = OpenMM_CustomBondForce(energy: """
       potentialWellDepth * ((
         1 - exp(-beta * (r - equilibriumLength))
-      )^2);
+      )^2 - 1);
       """)
     stretchForce.addPerBondParameter(name: "potentialWellDepth")
     stretchForce.addPerBondParameter(name: "beta")
