@@ -12,12 +12,6 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
-func minimizeTopology(_ topology: inout Topology) {
-  var minimizer = TopologyMinimizer(topology)
-  minimizer.minimize()
-  topology = minimizer.topology
-}
-
 // A second prototype of MM4; a stopgap until the library is finally running.
 // Once the new simulator is running, archive this in the hardware catalog ASAP.
 //
@@ -26,35 +20,86 @@ func minimizeTopology(_ topology: inout Topology) {
 // - Make each force optional -> MM4ForceFieldDescriptor
 // - Make cutoff customizable
 // - Make hydrogen reduction optional
+
+func minimizeTopology(_ topology: inout Topology) {
+  var minimizer = TopologyMinimizer(topology)
+  minimizer.minimize()
+  topology = minimizer.topology
+}
+
+struct TopologyMinimizerDescriptor {
+  var forces: [MM4Force] = [.bend, .stretch, .nonbonded]
+  var timeStep: Double = 0.002
+  var topology: Topology = .init()
+}
+
 struct TopologyMinimizer {
   var context: OpenMM_Context!
   var forces: [OpenMM_Force] = []
   var integrator: OpenMM_Integrator!
   var parameters: MM4Parameters
   var system: OpenMM_System!
+  var timeStep: Double
   var topology: Topology
   
   init(_ topology: Topology) {
+    var descriptor = TopologyMinimizerDescriptor()
+    descriptor.topology = topology
+    self.init(descriptor: descriptor)
     self.topology = topology
+  }
+  
+  init(descriptor: TopologyMinimizerDescriptor) {
+    self.timeStep = descriptor.timeStep
+    self.topology = descriptor.topology
     
+    // When performing rigid body dynamics experiments with this API, make
+    // sure each rigid body is initialized with HMR disabled.
     var paramsDesc = MM4ParametersDescriptor()
     paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
     paramsDesc.bonds = topology.bonds
     paramsDesc.hydrogenMassScale = 1
     self.parameters = try! MM4Parameters(descriptor: paramsDesc)
     
-    self.initializeStretchForce()
-    self.initializeBendForce()
-    self.initializeNonbondedForce()
+    if descriptor.forces.contains(.stretch) {
+      self.initializeStretchForce()
+    }
+    if descriptor.forces.contains(.bend) {
+      self.initializeBendForce()
+    }
+    if descriptor.forces.contains(.nonbonded) {
+      self.initializeNonbondedForce()
+    }
     self.initializeSystem()
   }
   
-  var potentialEnergy: Double {
+  func createForces() -> [SIMD3<Float>] {
+    reportForces()
+  }
+  
+  func createPotentialEnergy() -> Double {
     reportEnergy().potential
   }
   
-  var kineticEnergy: Double {
+  func createKineticEnergy() -> Double {
     reportEnergy().kinetic
+  }
+  
+}
+
+// MARK: - Mutating Functions
+
+extension TopologyMinimizer {
+  
+  // This simple API provides no control over velocities in the simulator; only
+  // control over positions.
+  mutating func setPositions(_ positions: [SIMD3<Float>]) {
+    precondition(positions.count == topology.atoms.count, "Positions array has incorrect size.")
+    let array = OpenMM_Vec3Array(size: positions.count)
+    for i in positions.indices {
+      array[i] = SIMD3(positions[i])
+    }
+    context.positions = array
   }
   
   mutating func minimize() {
@@ -69,15 +114,16 @@ struct TopologyMinimizer {
   // simulation time. In order to do this, sort before you create the
   // TopologyMinimizer object.
   mutating func simulate(time: Double) {
-    let numSteps = Double((time / 0.002).rounded(.down))
+    let numSteps = Double((time / timeStep).rounded(.down))
     if numSteps > 0 {
+      integrator.stepSize = timeStep
       integrator.step(Int(exactly: numSteps)!)
     }
-    let remaining = time - numSteps
+    let remaining = time - numSteps * timeStep
     if remaining > 1e-6 {
       integrator.stepSize = remaining
       integrator.step(1)
-      integrator.stepSize = 0.002
+    } else {
     }
     let simulatedPositions = reportPositions()
     for i in parameters.atoms.indices {
@@ -116,6 +162,26 @@ extension TopologyMinimizer {
     return output
   }
   
+  private func reportForces() -> [SIMD3<Float>] {
+    let dataTypes: OpenMM_State.DataType = [
+      OpenMM_State.DataType.forces
+    ]
+    let query = context.state(types: dataTypes)
+    let forces = query.forces
+    var output: [SIMD3<Float>] = []
+    
+    for i in parameters.atoms.indices {
+      let modified = SIMD3<Float>(forces[i])
+      output.append(modified)
+    }
+    return output
+  }
+}
+
+// MARK: - Initialization
+
+extension TopologyMinimizer {
+  
   private mutating func initializeSystem() {
     self.system = OpenMM_System()
     let arrayP = OpenMM_Vec3Array(size: parameters.atoms.count)
@@ -134,7 +200,8 @@ extension TopologyMinimizer {
       system.addForce(force)
     }
     
-    self.integrator = OpenMM_VerletIntegrator(stepSize: 0.002)
+    // It doesn't matter what step size the integrator is initialized at.
+    self.integrator = OpenMM_VerletIntegrator(stepSize: 0)
     self.context = OpenMM_Context(system: system, integrator: integrator)
     context.positions = arrayP
     context.velocities = arrayV
@@ -185,6 +252,10 @@ extension TopologyMinimizer {
   }
   
   mutating func initializeBendForce() {
+    // This could probably include the sextic Taylor expansion and be just fine.
+    // We're just playing it safe and simple; there are more important issues.
+    // There are also accuracy issues with this simulator's nonbonded force,
+    // which doesn't include hydrogen reductions.
     let bendForce = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: """
       bend;
       bend = bendingStiffness * deltaTheta^2;

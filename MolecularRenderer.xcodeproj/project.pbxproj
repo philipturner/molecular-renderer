@@ -25,6 +25,8 @@
 		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
+		9868D9292B46FD3F00344C23 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9868D9282B46FD3F00344C23 /* Scratch2.swift */; };
+		9868D92B2B46FE8200344C23 /* Scratch3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9868D92A2B46FE8200344C23 /* Scratch3.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
@@ -120,6 +122,8 @@
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
+		9868D9282B46FD3F00344C23 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
+		9868D92A2B46FE8200344C23 /* Scratch3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch3.swift; sourceTree = "<group>"; };
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
@@ -424,6 +428,8 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
+				9868D9282B46FD3F00344C23 /* Scratch2.swift */,
+				9868D92A2B46FE8200344C23 /* Scratch3.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -985,6 +991,7 @@
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
+				9868D9292B46FD3F00344C23 /* Scratch2.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
@@ -994,6 +1001,7 @@
 				989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */,
+				9868D92B2B46FE8200344C23 /* Scratch3.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
