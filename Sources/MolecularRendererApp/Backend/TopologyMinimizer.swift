@@ -29,6 +29,7 @@ func minimizeTopology(_ topology: inout Topology) {
 
 struct TopologyMinimizerDescriptor {
   var forces: [MM4Force] = [.bend, .stretch, .nonbonded]
+  var platform: OpenMM_Platform? = nil
   var timeStep: Double = 0.002
   var topology: Topology = .init()
 }
@@ -70,7 +71,7 @@ struct TopologyMinimizer {
     if descriptor.forces.contains(.nonbonded) {
       self.initializeNonbondedForce()
     }
-    self.initializeSystem()
+    self.initializeSystem(platform: descriptor.platform)
   }
   
   func createForces() -> [SIMD3<Float>] {
@@ -182,7 +183,7 @@ extension TopologyMinimizer {
 
 extension TopologyMinimizer {
   
-  private mutating func initializeSystem() {
+  private mutating func initializeSystem(platform: OpenMM_Platform?) {
     self.system = OpenMM_System()
     let arrayP = OpenMM_Vec3Array(size: parameters.atoms.count)
     let arrayV = OpenMM_Vec3Array(size: parameters.atoms.count)
@@ -202,7 +203,12 @@ extension TopologyMinimizer {
     
     // It doesn't matter what step size the integrator is initialized at.
     self.integrator = OpenMM_VerletIntegrator(stepSize: 0)
-    self.context = OpenMM_Context(system: system, integrator: integrator)
+    if let platform {
+      self.context = OpenMM_Context(
+        system: system, integrator: integrator, platform: platform)
+    } else {
+      self.context = OpenMM_Context(system: system, integrator: integrator)
+    }
     context.positions = arrayP
     context.velocities = arrayV
   }
@@ -211,7 +217,7 @@ extension TopologyMinimizer {
     let stretchForce = OpenMM_CustomBondForce(energy: """
       potentialWellDepth * ((
         1 - exp(-beta * (r - equilibriumLength))
-      )^2 - 1);
+      )^2);
       """)
     stretchForce.addPerBondParameter(name: "potentialWellDepth")
     stretchForce.addPerBondParameter(name: "beta")

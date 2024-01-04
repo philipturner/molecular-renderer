@@ -15,22 +15,42 @@ import OpenMM
 // Accepts the topology for just one crystolecule, instantiates the rest.
 func createAnimation(_ topology: Topology) -> AnimationAtomProvider {
   var stepEnergies: [[Float]] = []
-  stepEnergies = Array(repeating: [], count: 100)
+  stepEnergies = Array(repeating: [], count: 25)
   var potentialEnergies: [Double] = []
   var stepFs: [Float] = []
   
-  for trialID in 0..<9 {
+  for trialID in 0..<5 {
     var fs: Double
-    if trialID < 3 {
+    if trialID < 1 {
       fs = 2
-    } else if trialID < 6 {
+    } else if trialID < 2 {
       fs = 1
-    } else {
+    } else if trialID < 3 {
       fs = 0.5
+    } else if trialID < 4 {
+      fs = 0.25
+    } else {
+      fs = 0.125
     }
     stepFs.append(Float(fs))
     
     var descriptor = TopologyMinimizerDescriptor()
+    do {
+      let platforms = OpenMM_Platform.platforms
+      for platform in platforms {
+        print(platform.name)
+        
+        let names = platform.propertyNames
+        for i in 0..<names.size {
+          let name = names[i]
+          let value = platform.getPropertyDefaultValue(name)
+          print("-", name, value)
+        }
+        if platform.name == "HIP" {
+          descriptor.platform = platform
+        }
+      }
+    }
     descriptor.timeStep = 0.001 * Double(fs)
     descriptor.topology = createScene(topology)
     
@@ -52,7 +72,8 @@ func createAnimation(_ topology: Topology) -> AnimationAtomProvider {
     let initialPotential = minimizer.createPotentialEnergy()
     potentialEnergies.append(initialPotential)
     let start = cross_platform_media_time()
-    for i in 0..<100 {
+    for i in 0..<25 {
+      print("timestep \(i)")
       minimizer.simulate(time: 0.004)
       let kinetic = minimizer.createKineticEnergy()
       let potential = minimizer.createPotentialEnergy() - initialPotential
@@ -80,7 +101,7 @@ func createAnimation(_ topology: Topology) -> AnimationAtomProvider {
   // The solution might be this combination:
   // - Minimize the absolute value of potential energy
   // - Set METAL_REDUCE_ENERGY_THREADGROUPS to something large.
-  //   -
+  //   - Fix the Metal plugin, update to OpenMM 8.1.0
   // - Have one common GPU platform, no falling back to CPU or lazily
   //   initializing anything.
   // - Encourage users to install the Metal plugin on Apple silicon. Otherwise,
@@ -101,17 +122,54 @@ func createAnimation(_ topology: Topology) -> AnimationAtomProvider {
   //   of interest is differences between potential energies. The differences
   //   are often a fraction of total energy (1e-7) that cannot be represented by
   //   an FP32 mantissa.
+  //
+  // TODO: Important change of plans. Create a force field descriptor specifying
+  // the OpenMM platform, precision, and parameters. This is a more flexible API
+  // that's less ergonomic than init(rigidBodies:). It uses the defaults above,
+  // which should work for every conceivable use case. However, users should
+  // technically have the freedom to choose. They can copy the source code of
+  // 'MM4ForceField.init(rigidBodies:)' and call the more tedious initializer
+  // directly, if they wish.
+  //
+  // MM4ForceFieldDescriptor properties:
+  // - parameters
+  // - platform, type 'OpenMM_Platform?' so users can customize things like
+  //   precision in the future
+  //
+  // <s>
+  // - platform precision
+  // </s>
+  // The OpenMM 8.0.0 C wrapper lacks the proper API to set the precision
+  // property. This leads to an even better design choice, which sticks with the
+  // original desire. Force all double-precision stuff onto CPU to provide
+  // equality between GPU vendors. This removes the need to update the Metal
+  // plugin and makes the library's internal behavior simpler to understand.
+  // - CPU platform always uses mixed precision; note that this is preferred for
+  //   evaluating single-point energies
+  // - GPU platform always uses single precision, regardless of whether the
+  //   hardware has some FP64 units
+  // - maximum performance on all GPU platforms, including Metal, by not forcing
+  //   simulation and minimization to use mixed precision
+  //
+  // <s>
+  // - positions
+  // - velocities
+  // - external forces
+  //   (to avoid I/O into OpenMM twice; necessary for performance)
+  // </s> too many sources of truth
+  //
+  // init(rigidBodies:) is a `convenience init`.
   do {
     var output = "potential energy"
     for potentialEnergy in potentialEnergies {
-      output += ", " + String(format: "%.2f", potentialEnergy)
+      output += ", " + String(format: "%.3f", potentialEnergy)
     }
     print(output)
   }
   do {
     var output = "time \\ time step (fs)"
     for fs in stepFs {
-      output += ", " + String(format: "%.2f", fs)
+      output += ", " + String(format: "%.3f", fs)
     }
     print(output)
   }
@@ -124,7 +182,7 @@ func createAnimation(_ topology: Topology) -> AnimationAtomProvider {
     
     let list = stepEnergies[i]
     for i in list.indices {
-      var repr = String(format: "%.2f", list[i])
+      var repr = String(format: "%.3f", list[i])
       while repr.count < 6 {
         repr = " " + repr
       }
