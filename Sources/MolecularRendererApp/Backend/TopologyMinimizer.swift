@@ -21,12 +21,6 @@ import OpenMM
 // - Make cutoff customizable
 // - Make hydrogen reduction optional
 
-func minimizeTopology(_ topology: inout Topology) {
-  var minimizer = TopologyMinimizer(topology)
-  minimizer.minimize()
-  topology = minimizer.topology
-}
-
 struct TopologyMinimizerDescriptor {
   var forces: [MM4Force] = [.bend, .stretch, .nonbonded]
   var platform: OpenMM_Platform? = nil
