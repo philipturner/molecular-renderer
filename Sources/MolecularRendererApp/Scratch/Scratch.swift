@@ -25,10 +25,14 @@ import OpenMM
 // - Adjust TopologyMinimizer to have the same ergonomic rigid body API as
 //   MM4ForceField. ✅
 // - Compare the instantaneous forces in TopologyMinimizer with a 1-part vs.
-//   2-part system.
-// - Compute the net force and torque on each rigid body.
-// - Set up Verlet integrator.
-// - Next steps: TBD
+//   2-part system. ✅
+// - Compute the net force and torque on each rigid body in the 2-part system. ✅
+// - Set up a Verlet integrator.
+//   - Visualize an MD and rigid body dynamics trajectory side-by-side, both
+//     with the same timestep.
+// - Study where the system breaks down in the limit of large time steps.
+//   - Study viability of a variable time step that automatically detects
+//     force explosions and recursively retries with a smaller timestep.
 //
 // Unit tests:
 // - Get MM4ForceField to the point it can selectively generate parameters.
@@ -64,10 +68,13 @@ import OpenMM
 //   - Measure execution time of the energy minimization, then add a unit test.
 
 func createNCFMechanism() -> [Entity] {
-  var mechanism = NCFMechanism(partCount: 2)
-  mechanism.simulationExperiment1()
-  return createEntities(
-    mechanism.parts.map(\.rigidBody))
+  
+  
+  NCFMechanism.simulationExperiment3()
+  exit(0)
+  
+//  return createEntities(
+//    mechanism.parts.map(\.rigidBody))
 }
 
 func createEntities(_ rigidBodies: [MM4RigidBody]) -> [Entity] {
@@ -81,4 +88,128 @@ func createEntities(_ rigidBodies: [MM4RigidBody]) -> [Entity] {
     }
   }
   return output
+}
+
+extension NCFMechanism {
+  // Evolve the system for a single time step, using Verlet integration.
+  mutating func evolve(
+    timeStep: Double,
+    start: Bool,
+    end: Bool,
+    evaluateForces: () -> [SIMD3<Float>]
+  ) {
+    // Source code from MM4, minimized to only include force group 1.
+    /*
+     if descriptor.start {
+       integrator.addComputePerDof(variable: "v", expression: """
+         v + 0.5 * dt * f1 / m
+         """)
+     } else {
+       integrator.addComputePerDof(variable: "v", expression: """
+         v + 1.0 * dt * f1 / m
+         """)
+     }
+     
+     integrator.addComputePerDof(variable: "x", expression: """
+       x + 1.0 * dt * v
+       """)
+     
+     if descriptor.end {
+       integrator.addComputePerDof(variable: "v", expression: """
+         v + 0.5 * dt * f1 / m
+         """)
+     }
+     */
+    
+    if start {
+      let forces = evaluateForces()
+      _evolve(
+        velocityTimeStep: 0.5 * timeStep,
+        positionTimeStep: 1.0 * timeStep,
+        forces: forces)
+    } else {
+      let forces = evaluateForces()
+      _evolve(
+        velocityTimeStep: 1.0 * timeStep,
+        positionTimeStep: 1.0 * timeStep,
+        forces: forces)
+    }
+    
+    if end {
+      let forces = evaluateForces()
+      _evolve(
+        velocityTimeStep: 0.5 * timeStep,
+        positionTimeStep: 0,
+        forces: forces)
+    }
+  }
+  
+  mutating func _evolve(
+    velocityTimeStep: Double,
+    positionTimeStep: Double,
+    forces: [SIMD3<Float>]
+  ) {
+    for i in parts.indices {
+      var rigidBody = parts[i].rigidBody
+      defer { parts[i].rigidBody = rigidBody }
+      
+      // Fetch the force and torque on each atom.
+      let mass = rigidBody.mass
+      let centerOfMass = rigidBody.centerOfMass
+      let I = rigidBody.momentOfInertia
+      
+      let atomRange = atomRange(partID: i)
+      let atomForces = Array(forces[atomRange])
+      let atomTorques = zip(rigidBody.positions, atomForces).map { p, F in
+        // An improved version of this would operate directly on the vectorized
+        // atom positions and velocities.
+        let r = p - centerOfMass
+        return cross_platform_cross(r, F)
+      }
+      
+      // Evaluate bulk force and torque.
+      var forceAccumulator: SIMD3<Double> = .zero
+      var torqueAccumulator: SIMD3<Double> = .zero
+      for i in rigidBody.parameters.atoms.indices {
+        forceAccumulator += SIMD3<Double>(atomForces[i])
+        torqueAccumulator += SIMD3<Double>(atomTorques[i])
+      }
+      let force = SIMD3<Float>(forceAccumulator)
+      let torque = SIMD3<Float>(torqueAccumulator)
+      
+      let linearAcceleration = force / mass
+      let inverseI = cross_platform_inverse3x3(I)
+      let angularAcceleration =
+      inverseI.0 * torque.x + inverseI.1 * torque.y + inverseI.2 * torque.z
+      
+      // Update atom velocities according to force and torque.
+      var linearVelocity = rigidBody.linearVelocity
+      var angularVelocity = quaternion_to_vector(rigidBody.angularVelocity)
+      linearVelocity += Float(velocityTimeStep) * linearAcceleration
+      angularVelocity += Float(velocityTimeStep) * angularAcceleration
+      rigidBody.linearVelocity = linearVelocity
+      rigidBody.angularVelocity = vector_to_quaternion(angularVelocity)
+      
+      // Update atom positions according to bulk velocity.
+      guard positionTimeStep > 0 else {
+        continue
+      }
+      let linearDisplacement = Float(positionTimeStep) * linearVelocity
+      let angularDisplacement = Float(positionTimeStep) * angularVelocity
+      let angularDisplacementQ = vector_to_quaternion(angularDisplacement)
+      let rotation = (
+        angularDisplacementQ.act(on: SIMD3<Float>(1, 0, 0)),
+        angularDisplacementQ.act(on: SIMD3<Float>(0, 1, 0)),
+        angularDisplacementQ.act(on: SIMD3<Float>(0, 0, 1)))
+      
+      let newPositions = rigidBody.positions.map { p in
+        // An improved version of this would operate directly on the vectorized
+        // atom positions and velocities.
+        var r = p - centerOfMass
+        r = rotation.0 * r.x + rotation.1 * r.y + rotation.2 * r.z
+        return centerOfMass + linearDisplacement + r
+      }
+      rigidBody.setPositions(newPositions)
+    }
+  }
 }

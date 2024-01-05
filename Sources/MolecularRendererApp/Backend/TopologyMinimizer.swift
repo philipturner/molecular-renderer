@@ -217,7 +217,9 @@ extension TopologyMinimizer {
     var output: [SIMD3<Float>] = []
     
     for i in parameters.atoms.indices {
-      let modified = SIMD3<Float>(forces[i])
+      // Units: kJ/mol/nm -> pN
+      var modified = SIMD3<Float>(forces[i])
+      modified *= Float(MM4ZJPerKJPerMol)
       output.append(modified)
     }
     return output

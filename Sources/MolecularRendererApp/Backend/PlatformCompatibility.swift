@@ -227,6 +227,61 @@ extension Quaternion {
   }
 }
 
+func quaternion_to_vector(_ quaternion: Quaternion<Float>) -> SIMD3<Float> {
+  let angleAxis = quaternion.angleAxis
+  let axis = angleAxis.axis
+  
+  if axis[0].isNaN || axis[1].isNaN || axis[2].isNaN {
+    return .zero
+  } else if angleAxis.length == 0 || angleAxis.angle.isNaN {
+    return .zero
+  } else {
+    return angleAxis.angle * angleAxis.axis
+  }
+}
+
+func vector_to_quaternion(_ vector: SIMD3<Float>) -> Quaternion<Float> {
+  let length = (vector * vector).sum().squareRoot()
+  if length < .leastNormalMagnitude {
+    return Quaternion<Float>.zero
+  } else {
+    return Quaternion(angle: length, axis: vector / length)
+  }
+}
+
+// Source: https://stackoverflow.com/a/18504573
+func cross_platform_inverse3x3(
+  _ columns: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
+) -> (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) {
+  let col = (SIMD3<Double>(columns.0),
+             SIMD3<Double>(columns.1),
+             SIMD3<Double>(columns.2))
+  let determinant =
+  col.0[0] * (col.1[1] * col.2[2] - col.2[1] * col.1[2]) -
+  col.0[1] * (col.1[0] * col.2[2] - col.1[2] * col.2[0]) +
+  col.0[2] * (col.1[0] * col.2[1] - col.1[1] * col.2[0])
+  let invdet = 1 / determinant
+  
+  let result00 = (col.1[1] * col.2[2] - col.2[1] * col.1[2]) * invdet
+  let result01 = (col.0[2] * col.2[1] - col.0[1] * col.2[2]) * invdet
+  let result02 = (col.0[1] * col.1[2] - col.0[2] * col.1[1]) * invdet
+  
+  let result10 = (col.1[2] * col.2[0] - col.1[0] * col.2[2]) * invdet
+  let result11 = (col.0[0] * col.2[2] - col.0[2] * col.2[0]) * invdet
+  let result12 = (col.1[0] * col.0[2] - col.0[0] * col.1[2]) * invdet
+  
+  let result20 = (col.1[0] * col.2[1] - col.2[0] * col.1[1]) * invdet
+  let result21 = (col.2[0] * col.0[1] - col.0[0] * col.2[1]) * invdet
+  let result22 = (col.0[0] * col.1[1] - col.1[0] * col.0[1]) * invdet
+  
+  let column0 = SIMD3(result00, result10, result20)
+  let column1 = SIMD3(result01, result11, result21)
+  let column2 = SIMD3(result02, result12, result22)
+  return (SIMD3<Float>(column0),
+          SIMD3<Float>(column1),
+          SIMD3<Float>(column2))
+}
+
 // MARK: - Time Utilities
 
 // For lack of a better place to put them, bridging functions for cross-platform

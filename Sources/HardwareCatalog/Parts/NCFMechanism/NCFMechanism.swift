@@ -77,3 +77,66 @@ struct NCFMechanism {
     return prefixSum[partID]..<prefixSum[partID + 1]
   }
 }
+
+extension NCFMechanism {
+  func reportState(forces systemForces: [SIMD3<Float>]) {
+    print("system state, summarized by bulk properties:")
+    for i in self.parts.indices {
+      let rigidBody = self.parts[i].rigidBody
+      print("- rigid body \(i):")
+      
+      let mass = rigidBody.mass
+      let centerOfMass = rigidBody.centerOfMass
+      let I = rigidBody.momentOfInertia
+      print("  - mass: \(mass)")
+      print("  - center of mass: \(centerOfMass.x) \(centerOfMass.y) \(centerOfMass.z)")
+      print("  - moment of inertia: \(I.0.x) \(I.1.x) \(I.2.x)")
+      print("                       \(I.0.y) \(I.1.y) \(I.2.y)")
+      print("                       \(I.0.z) \(I.1.z) \(I.2.z)")
+      
+      let atomRange = self.atomRange(partID: i)
+      let atomForces = Array(systemForces[atomRange])
+      let atomTorques = zip(rigidBody.positions, atomForces).map { p, F in
+        let r = p - centerOfMass
+        return cross_platform_cross(r, F)
+      }
+      
+      var forceAccumulator: SIMD3<Double> = .zero
+      var torqueAccumulator: SIMD3<Double> = .zero
+      for i in rigidBody.parameters.atoms.indices {
+        forceAccumulator += SIMD3<Double>(atomForces[i])
+        torqueAccumulator += SIMD3<Double>(atomTorques[i])
+      }
+      let force = SIMD3<Float>(forceAccumulator)
+      let torque = SIMD3<Float>(torqueAccumulator)
+      
+      // p = m v -> v = p / m
+      // L = I w -> w = I^-1 L
+      //
+      // F = m a -> a = F / m
+      // T = I a -> a = I^-1 T
+      let linearVelocity = rigidBody.linearVelocity
+      let angularVelocity = rigidBody.angularVelocity
+      
+      let linearAcceleration = force / mass
+      let inverseI = cross_platform_inverse3x3(I)
+      let angularAcceleration =
+      inverseI.0 * torque.x + inverseI.1 * torque.y + inverseI.2 * torque.z
+      
+      func repr(_ quaternion: Quaternion<Float>) -> String {
+        let axis = quaternion.axis
+        return "\(quaternion.angle) | \(axis.x) \(axis.y) \(axis.z)"
+      }
+      
+      print()
+      print("  - linear velocity: \(linearVelocity.x) \(linearVelocity.y) \(linearVelocity.z)")
+      print("  - linear acceleration: \(linearAcceleration.x) \(linearAcceleration.y) \(linearAcceleration.z)")
+      print("  - force: \(force.x) \(force.y) \(force.z)")
+      
+      print()
+      print("  - angular velocity: \(repr(angularVelocity))")
+      print("  - angular acceleration: \(repr(vector_to_quaternion(angularAcceleration)))")
+      print("  - torque: \(repr(vector_to_quaternion(torque)))")
+    }
+  }
+}
