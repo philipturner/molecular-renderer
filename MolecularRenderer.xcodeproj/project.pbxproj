@@ -12,6 +12,7 @@
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360DA2B4861010007D40F /* NCFPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981360D92B4861000007D40F /* NCFPart.swift */; };
 		981360DC2B4875D10007D40F /* NCFMechanism.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981360DB2B4875D10007D40F /* NCFMechanism.swift */; };
+		981360E22B488D3B0007D40F /* NCFMechanism+Experiments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */; };
 		9814BFD22B22C45000BA5B24 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD12B22C45000BA5B24 /* MolecularRenderer */; };
 		9814BFD52B22C57100BA5B24 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD42B22C57100BA5B24 /* MM4 */; };
 		9814BFD82B22C58A00BA5B24 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD72B22C58A00BA5B24 /* HDL */; };
@@ -89,6 +90,7 @@
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
 		981360DE2B4884310007D40F /* NCFMechanism_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = NCFMechanism_Image1.jpg; sourceTree = "<group>"; };
+		981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NCFMechanism+Experiments.swift"; sourceTree = "<group>"; };
 		9816EFA42AC4B96E0042073F /* Ring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ring.swift; sourceTree = "<group>"; };
 		9816EFA52AC4B9790042073F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9816EFAD2AC501630042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 			isa = PBXGroup;
 			children = (
 				981360DB2B4875D10007D40F /* NCFMechanism.swift */,
+				981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */,
 				981360D92B4861000007D40F /* NCFPart.swift */,
 				981360DE2B4884310007D40F /* NCFMechanism_Image1.jpg */,
 			);
@@ -1006,6 +1009,7 @@
 				981360DA2B4861010007D40F /* NCFPart.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
+				981360E22B488D3B0007D40F /* NCFMechanism+Experiments.swift in Sources */,
 				981360DC2B4875D10007D40F /* NCFMechanism.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,

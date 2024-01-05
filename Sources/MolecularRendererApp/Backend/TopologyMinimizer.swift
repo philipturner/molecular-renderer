@@ -23,9 +23,10 @@ import OpenMM
 
 struct TopologyMinimizerDescriptor {
   var forces: [MM4Force] = [.bend, .stretch, .nonbonded]
-  var platform: OpenMM_Platform? = nil
+  var platform: OpenMM_Platform?
+  var rigidBodies: [MM4RigidBody]?
   var timeStep: Double = 0.002
-  var topology: Topology = .init()
+  var topology: Topology?
 }
 
 struct TopologyMinimizer {
@@ -46,15 +47,42 @@ struct TopologyMinimizer {
   
   init(descriptor: TopologyMinimizerDescriptor) {
     self.timeStep = descriptor.timeStep
-    self.topology = descriptor.topology
     
     // When performing rigid body dynamics experiments with this API, make
     // sure each rigid body is initialized with HMR disabled.
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    paramsDesc.hydrogenMassScale = 1
-    self.parameters = try! MM4Parameters(descriptor: paramsDesc)
+    if let topology = descriptor.topology {
+      // If both topology and rigid bodies are specified, this will initialize
+      // to the topology without warning you that arguments are invalid.
+      self.topology = topology
+      
+      var paramsDesc = MM4ParametersDescriptor()
+      paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+      paramsDesc.bonds = topology.bonds
+      paramsDesc.hydrogenMassScale = 1
+      self.parameters = try! MM4Parameters(descriptor: paramsDesc)
+    } else if let rigidBodies = descriptor.rigidBodies {
+      self.topology = Topology()
+      
+      var paramsDesc = MM4ParametersDescriptor()
+      paramsDesc.atomicNumbers = []
+      paramsDesc.bonds = []
+      self.parameters = try! MM4Parameters(descriptor: paramsDesc)
+      
+      for rigidBody in rigidBodies {
+        parameters.append(contentsOf: rigidBody.parameters)
+        var atoms: [Entity] = []
+        for i in rigidBody.parameters.atoms.indices {
+          let position = rigidBody.positions[i]
+          let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[i]
+          let storage = SIMD4(position, Float(atomicNumber))
+          atoms.append(Entity(storage: storage))
+        }
+        topology.insert(atoms: atoms)
+      }
+      topology.insert(bonds: parameters.bonds.indices)
+    } else {
+      fatalError("Neither topology nor rigid bodies were specified.")
+    }
     
     if descriptor.forces.contains(.stretch) {
       self.initializeStretchForce()
@@ -80,6 +108,26 @@ struct TopologyMinimizer {
     reportEnergy().kinetic
   }
   
+  // <s>
+  // This takes O(n^2) time to export because it doesn't cache the data like
+  // MM4ForceField does. Luckily, isn't the way forces are exported. It also
+  // won't be used for time evolution in the rigid body dynamics experiment.
+  // </s>
+  //
+  // This takes O(n) time because the positions are stored in the Topology. But,
+  // it does not modify the velocities of the rigid body's atoms. Don't add
+  // such exporting functionality until we start performing rigid body
+  // dynamics simulations and comparing the bulk velocities to the MD
+  // simulation trajectory.
+  func export(to rigidBody: inout MM4RigidBody, range: Range<Int>) {
+    var positions: [SIMD3<Float>] = []
+    for i in 0..<range.count {
+      let index = range.startIndex + i
+      let position = topology.atoms[index].position
+      positions.append(position)
+    }
+    rigidBody.setPositions(positions)
+  }
 }
 
 // MARK: - Mutating Functions
@@ -89,7 +137,9 @@ extension TopologyMinimizer {
   // This simple API provides no control over velocities in the simulator; only
   // control over positions.
   mutating func setPositions(_ positions: [SIMD3<Float>]) {
-    precondition(positions.count == topology.atoms.count, "Positions array has incorrect size.")
+    precondition(
+      positions.count == topology.atoms.count,
+      "Positions array has incorrect size.")
     let array = OpenMM_Vec3Array(size: positions.count)
     for i in positions.indices {
       array[i] = SIMD3(positions[i])
