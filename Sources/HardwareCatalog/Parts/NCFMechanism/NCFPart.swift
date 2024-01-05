@@ -20,6 +20,7 @@ struct NCFPart {
     var topology = Topology()
     Self.compilationPass0(topology: &topology)
     Self.compilationPass1(topology: &topology)
+    Self.compilationPass2(topology: &topology)
     
     // How long does the MM4Parameters take to initialize, with and without
     // torsions enabled?
@@ -121,6 +122,10 @@ struct NCFPart {
     }
     topology.insert(atoms: insertedAtoms)
     topology.insert(bonds: insertedBonds)
+  }
+  
+  static func compilationPass2(topology: inout Topology) {
+    topology.sort()
   }
 }
 

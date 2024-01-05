@@ -21,7 +21,9 @@ import OpenMM
 //   project, reducing the total time to solve all of them.
 //
 // Experiment:
-// - Set up the NCFMechanism data structre.
+// - Set up the NCFMechanism data structure.
+// - Adjust TopologyMinimizer to have the same ergonomic rigid body API as
+//   MM4ForceField.
 // - Compare the instantaneous forces in TopologyMinimizer with a 1-part vs.
 //   2-part system.
 // - Compute the net force and torque on each rigid body.
@@ -62,9 +64,9 @@ import OpenMM
 //   - Measure execution time of the energy minimization, then add a unit test.
 
 func createNCFMechanism() -> [Entity] {
-  let part = NCFPart()
-  
-  return createEntities([part.rigidBody])
+  let mechanism = NCFMechanism(partCount: 2)
+  return createEntities(
+    mechanism.parts.map(\.rigidBody))
 }
 
 func createEntities(_ rigidBodies: [MM4RigidBody]) -> [Entity] {
