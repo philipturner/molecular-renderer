@@ -34,7 +34,7 @@ import Foundation
 
 struct Base64Decoder {
   // This currently takes ~100 nanoseconds per atom on a single CPU core.
-  static func decode(_ string: String) -> [SIMD4<Float>] {
+  static func decodeAtoms(_ string: String) -> [SIMD4<Float>] {
     let options: Data.Base64DecodingOptions = [
       .ignoreUnknownCharacters
     ]
@@ -56,11 +56,34 @@ struct Base64Decoder {
     rawMemory.deallocate()
     return output
   }
+  
+  static func decodeBonds(_ string: String) -> [SIMD2<UInt32>] {
+    let options: Data.Base64DecodingOptions = [
+      .ignoreUnknownCharacters
+    ]
+    guard let data = Data(base64Encoded: string, options: options) else {
+      fatalError("Could not decode the data.")
+    }
+    guard data.count % 8 == 0 else {
+      fatalError("Data did not have the right alignment.")
+    }
+    
+    let rawMemory: UnsafeMutableBufferPointer<SIMD2<UInt32>> =
+      .allocate(capacity: data.count / 8)
+    let encodedBytes = data.copyBytes(to: rawMemory)
+    guard encodedBytes == data.count else {
+      fatalError("Did not encode the right number of bytes.")
+    }
+    
+    let output = Array(rawMemory)
+    rawMemory.deallocate()
+    return output
+  }
 }
 
 struct Base64Encoder {
   // This currently takes ~100 nanoseconds per atom on a single CPU core.
-  static func encode(_ atoms: [SIMD4<Float>]) -> String {
+  static func encodeAtoms(_ atoms: [SIMD4<Float>]) -> String {
     let rawMemory: UnsafeMutableRawPointer =
       .allocate(byteCount: 16 * atoms.count, alignment: 16)
     rawMemory.copyMemory(from: atoms, byteCount: 16 * atoms.count)
@@ -75,5 +98,21 @@ struct Base64Encoder {
     rawMemory.deallocate()
     return string
   }
-}
+  
+  static func encodeBonds(_ bonds: [SIMD2<UInt32>]) -> String {
+    let rawMemory: UnsafeMutableRawPointer =
+      .allocate(byteCount: 8 * bonds.count, alignment: 8)
+    rawMemory.copyMemory(from: bonds, byteCount: 8 * bonds.count)
+    
+    let data = Data(bytes: rawMemory, count: 8 * bonds.count)
+    let options: Data.Base64EncodingOptions = [
+      .lineLength76Characters,
+      .endLineWithLineFeed
+    ]
+    let string = data.base64EncodedString(options: options)
+    
+    rawMemory.deallocate()
+    return string
+  }
 
+}

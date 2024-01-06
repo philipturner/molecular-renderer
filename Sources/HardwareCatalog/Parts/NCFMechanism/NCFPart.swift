@@ -36,9 +36,12 @@ struct NCFPart {
     // Without torsion parameters: 20.7 ms
     // With only nonbonded parameters: 20.9 ms
     //
-    // TODO: Figure out what the bottleneck during parameter generation is. Make
-    // a branch of MM4 to perform the testing on, without disrupting the public
-    // repository.
+    // With the optimizations that fixed bottlenecks during parameter
+    // generation:
+    //
+    // With torsion parameters: 7.7 ms
+    // Without torsion parameters: 3.8 ms
+    // With only nonbonded parameters: 2.3 ms
     var rigidBody = MM4RigidBody(parameters: parameters)
     rigidBody.setPositions(topology.atoms.map(\.position))
     self.rigidBody = rigidBody

@@ -69,7 +69,7 @@ import OpenMM
 
 func createNCFMechanism() -> [[Entity]] {
 //  let mechanism = NCFMechanism(partCount: 2)
-//  return createEntities(
+//  return NCFMechanism.createEntities(
 //    mechanism.parts.map(\.rigidBody))
   
   return NCFMechanism.simulationExperiment4()
