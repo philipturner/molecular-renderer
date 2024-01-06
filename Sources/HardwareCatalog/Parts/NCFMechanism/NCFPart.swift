@@ -15,24 +15,30 @@ import OpenMM
 struct NCFPart {
   var rigidBody: MM4RigidBody
   
-  init() {
+  init(forces: MM4ForceOptions = [.bend, .stretch, .nonbonded]) {
     // 0.7 ms
     var topology = Topology()
     Self.compilationPass0(topology: &topology)
     Self.compilationPass1(topology: &topology)
     Self.compilationPass2(topology: &topology)
     
-    // How long does the MM4Parameters take to initialize, with and without
-    // torsions enabled?
-    //
-    // With torsions enabled: 21.7 ms
     var descriptor = MM4ParametersDescriptor()
     descriptor.atomicNumbers = topology.atoms.map(\.atomicNumber)
     descriptor.bonds = topology.bonds
+    descriptor.forces = forces
     descriptor.hydrogenMassScale = 1
     let parameters = try! MM4Parameters(descriptor: descriptor)
     
-    // With torsions enabled: 22.7 ms
+    // How long does the rigid body take to initialize, with and without
+    // torsion parameter generation?
+    //
+    // With torsion parameters: 22.0 ms
+    // Without torsion parameters: 20.7 ms
+    // With only nonbonded parameters: 20.9 ms
+    //
+    // TODO: Figure out what the bottleneck during parameter generation is. Make
+    // a branch of MM4 to perform the testing on, without disrupting the public
+    // repository.
     var rigidBody = MM4RigidBody(parameters: parameters)
     rigidBody.setPositions(topology.atoms.map(\.position))
     self.rigidBody = rigidBody

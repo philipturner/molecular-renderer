@@ -15,8 +15,11 @@ import OpenMM
 struct NCFMechanism {
   var parts: [NCFPart] = []
   
-  init(partCount: Int) {
-    let compiledPart = NCFPart()
+  init(
+    partCount: Int,
+    forces: MM4ForceOptions = [.bend, .stretch, .nonbonded]
+  ) {
+    let compiledPart = NCFPart(forces: forces)
     for i in 0..<partCount {
       var part = compiledPart
       
@@ -128,6 +131,10 @@ extension NCFMechanism {
         return "\(quaternion.angle) | \(axis.x) \(axis.y) \(axis.z)"
       }
       
+      // TODO: Re-evaluate the results once quaternions are fixed, and the
+      // vector representation is used instead of the quaternion representation.
+      // Move all of the quaternionToVector utilities from MM4 into the hardware
+      // catalog and remove the dependency on 'swift-numerics @ Quaternions'.
       print()
       print("  - linear velocity: \(linearVelocity.x) \(linearVelocity.y) \(linearVelocity.z)")
       print("  - linear acceleration: \(linearAcceleration.x) \(linearAcceleration.y) \(linearAcceleration.z)")

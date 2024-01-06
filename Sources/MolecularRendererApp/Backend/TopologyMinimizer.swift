@@ -22,7 +22,6 @@ import OpenMM
 // - Make hydrogen reduction optional
 
 struct TopologyMinimizerDescriptor {
-  var forces: [MM4Force] = [.bend, .stretch, .nonbonded]
   var platform: OpenMM_Platform?
   var rigidBodies: [MM4RigidBody]?
   var timeStep: Double = 0.002
@@ -84,15 +83,9 @@ struct TopologyMinimizer {
       fatalError("Neither topology nor rigid bodies were specified.")
     }
     
-    if descriptor.forces.contains(.stretch) {
-      self.initializeStretchForce()
-    }
-    if descriptor.forces.contains(.bend) {
-      self.initializeBendForce()
-    }
-    if descriptor.forces.contains(.nonbonded) {
-      self.initializeNonbondedForce()
-    }
+    self.initializeStretchForce()
+    self.initializeBendForce()
+    self.initializeNonbondedForce()
     self.initializeSystem(platform: descriptor.platform)
   }
   
@@ -279,6 +272,9 @@ extension TopologyMinimizer {
       // force execution.
       let bond = bonds.indices[bondID]
       let parameters = bonds.parameters[bondID]
+      guard parameters.potentialWellDepth != 0 else {
+        continue
+      }
       
       // Units: millidyne-angstrom -> kJ/mol
       var potentialWellDepth = Double(parameters.potentialWellDepth)
@@ -327,6 +323,9 @@ extension TopologyMinimizer {
     for angleID in angles.indices.indices {
       let angle = angles.indices[angleID]
       let parameters = angles.parameters[angleID]
+      guard parameters.bendingStiffness != 0 else {
+        continue
+      }
       
       // Units: millidyne-angstrom/rad^2 -> kJ/mol/rad^2
       //
