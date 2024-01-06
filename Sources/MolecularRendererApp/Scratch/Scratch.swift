@@ -67,26 +67,45 @@ import OpenMM
 //     reduction) and MM4ForceField (sextic angle, hydrogen reduction).
 //   - Measure execution time of the energy minimization, then add a unit test.
 
-func createNCFMechanism() -> [Entity] {
+func createNCFMechanism() -> [[Entity]] {
 //  let mechanism = NCFMechanism(partCount: 2)
 //  return createEntities(
 //    mechanism.parts.map(\.rigidBody))
   
-  NCFMechanism.simulationExperiment3()
-  exit(0)
+  return NCFMechanism.simulationExperiment4()
 }
 
-func createEntities(_ rigidBodies: [MM4RigidBody]) -> [Entity] {
-  var output: [Entity] = []
-  for rigidBody in rigidBodies {
-    for i in rigidBody.parameters.atoms.indices {
-      let position = rigidBody.positions[i]
-      let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[i]
-      let storage = SIMD4(position, Float(atomicNumber))
-      output.append(Entity(storage: storage))
+extension NCFMechanism {
+  // Run a few iterations of Verlet integration, then export the results to
+  // an array of animation frames. Do not compare to MD simulation yet.
+  @discardableResult
+  static func simulationExperiment4() -> [[Entity]] {
+    var mechanism = NCFMechanism(partCount: 2, forces: [.nonbonded])
+    
+    var descriptor = TopologyMinimizerDescriptor()
+    descriptor.rigidBodies = mechanism.parts.map(\.rigidBody)
+    var minimizer = TopologyMinimizer(descriptor: descriptor)
+    
+    var output: [[Entity]] = []
+    for i in 0..<2 {
+      if i > 0 {
+        // Simulate evolution for one timestep.
+        for partID in mechanism.parts.indices {
+          mechanism.parts[partID].rigidBody.centerOfMass.x += 1
+        }
+        
+        // Update the simulator so it can compute forces for the next timestep.
+        var positions: [SIMD3<Float>] = []
+        for partID in mechanism.parts.indices {
+          positions += mechanism.parts[partID].rigidBody.positions
+        }
+        minimizer.setPositions(positions)
+      }
+      
+      output.append(Self.createEntities(mechanism.parts.map(\.rigidBody)))
     }
+    return output
   }
-  return output
 }
 
 extension NCFMechanism {
@@ -149,6 +168,7 @@ extension NCFMechanism {
     forces: [SIMD3<Float>]
   ) {
     for i in parts.indices {
+      print("rigid body \(i):")
       var rigidBody = parts[i].rigidBody
       defer { parts[i].rigidBody = rigidBody }
       
@@ -181,9 +201,20 @@ extension NCFMechanism {
       let angularAcceleration =
       inverseI.0 * torque.x + inverseI.1 * torque.y + inverseI.2 * torque.z
       
+      func repr(_ vector: SIMD3<Float>) -> String {
+        let angle = (vector * vector).sum().squareRoot()
+        let axis = vector / angle
+        return "\(angle) | \(axis.x) \(axis.y) \(axis.z)"
+      }
+      
       // Update atom velocities according to force and torque.
       var linearVelocity = rigidBody.linearVelocity
       var angularVelocity = rigidBody.angularVelocity
+      print("- before:")
+      print("  - center of mass: \(centerOfMass.x) \(centerOfMass.y) \(centerOfMass.z)")
+      print("  - linear velocity: \(linearVelocity.x) \(linearVelocity.y) \(linearVelocity.z)")
+      print("  - angular velocity: \(repr(angularVelocity))")
+      
       linearVelocity += Float(velocityTimeStep) * linearAcceleration
       angularVelocity += Float(velocityTimeStep) * angularAcceleration
       rigidBody.linearVelocity = linearVelocity
@@ -200,6 +231,10 @@ extension NCFMechanism {
         angularDisplacementQ.act(on: SIMD3<Float>(1, 0, 0)),
         angularDisplacementQ.act(on: SIMD3<Float>(0, 1, 0)),
         angularDisplacementQ.act(on: SIMD3<Float>(0, 0, 1)))
+      print("- after:")
+      print("  - center of mass: \(centerOfMass.x + linearDisplacement.x) \(centerOfMass.y + linearDisplacement.y) \(centerOfMass.z + linearDisplacement.z)")
+      print("  - linear velocity: \(linearVelocity.x) \(linearVelocity.y) \(linearVelocity.z)")
+      print("  - angular velocity: \(repr(angularVelocity))")
       
       let newPositions = rigidBody.positions.map { p in
         // An improved version of this would operate directly on the vectorized
@@ -212,3 +247,4 @@ extension NCFMechanism {
     }
   }
 }
+

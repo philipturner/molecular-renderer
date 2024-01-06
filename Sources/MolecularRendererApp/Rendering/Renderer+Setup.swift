@@ -27,6 +27,29 @@ extension Renderer {
     let provider = ArrayAtomProvider(atoms.map(MRAtom.init))
     renderingEngine.setAtomProvider(provider)
   }
+  
+  func initializeCompilation(_ closure: () -> [[Entity]]) {
+    let start = CACurrentMediaTime()
+    let frames = closure()
+    let end = CACurrentMediaTime()
+    
+    var maxAtomCount = 0
+    for frame in frames {
+      maxAtomCount += frame.count
+    }
+    print("atoms:", maxAtomCount)
+    print("frames:", frames.count)
+    print("setup time:", String(format: "%.1f", (end - start) * 1e3), "ms")
+    
+    var provider = AnimationAtomProvider([])
+    for frame in frames {
+      let mapped = frame.map {
+        MRAtom(origin: $0.position, element: Int($0.atomicNumber))
+      }
+      provider.frames.append(mapped)
+    }
+    renderingEngine.setAtomProvider(provider)
+  }
 }
 
 extension Renderer {

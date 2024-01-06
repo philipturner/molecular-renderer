@@ -13,6 +13,21 @@ import Numerics
 import OpenMM
 
 extension NCFMechanism {
+  static func createEntities(_ rigidBodies: [MM4RigidBody]) -> [Entity] {
+    var output: [Entity] = []
+    for rigidBody in rigidBodies {
+      for i in rigidBody.parameters.atoms.indices {
+        let position = rigidBody.positions[i]
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[i]
+        let storage = SIMD4(position, Float(atomicNumber))
+        output.append(Entity(storage: storage))
+      }
+    }
+    return output
+  }
+}
+
+extension NCFMechanism {
   @discardableResult
   static func simulationExperiment1() -> NCFMechanism {
     var mechanism = NCFMechanism(partCount: 2)

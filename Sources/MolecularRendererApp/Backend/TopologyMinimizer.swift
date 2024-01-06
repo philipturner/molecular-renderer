@@ -62,6 +62,8 @@ struct TopologyMinimizer {
     } else if let rigidBodies = descriptor.rigidBodies {
       self.topology = Topology()
       
+      
+      
       var paramsDesc = MM4ParametersDescriptor()
       paramsDesc.atomicNumbers = []
       paramsDesc.bonds = []
@@ -79,6 +81,8 @@ struct TopologyMinimizer {
         topology.insert(atoms: atoms)
       }
       topology.insert(bonds: parameters.bonds.indices)
+      
+      
     } else {
       fatalError("Neither topology nor rigid bodies were specified.")
     }

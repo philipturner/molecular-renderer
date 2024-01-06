@@ -17,6 +17,7 @@
 		981360EB2B48F6070007D40F /* Numerics in Frameworks */ = {isa = PBXBuildFile; productRef = 981360EA2B48F6070007D40F /* Numerics */; };
 		981360ED2B48F6070007D40F /* QuaternionModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360EC2B48F6070007D40F /* QuaternionModule */; };
 		981360EF2B48F6070007D40F /* RealModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360EE2B48F6070007D40F /* RealModule */; };
+		981360F32B49AF300007D40F /* Base64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981360F22B49AF300007D40F /* Base64.swift */; };
 		9814BFD22B22C45000BA5B24 /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD12B22C45000BA5B24 /* MolecularRenderer */; };
 		9814BFD52B22C57100BA5B24 /* MM4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD42B22C57100BA5B24 /* MM4 */; };
 		9814BFD82B22C58A00BA5B24 /* HDL in Frameworks */ = {isa = PBXBuildFile; productRef = 9814BFD72B22C58A00BA5B24 /* HDL */; };
@@ -97,6 +98,7 @@
 		981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NCFMechanism+Experiments.swift"; sourceTree = "<group>"; };
 		981360E42B48CFD70007D40F /* MM4RigidBody+HeatCapacity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MM4RigidBody+HeatCapacity.swift"; sourceTree = "<group>"; };
 		981360E62B48D0320007D40F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		981360F22B49AF300007D40F /* Base64.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base64.swift; sourceTree = "<group>"; };
 		9816EFA42AC4B96E0042073F /* Ring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ring.swift; sourceTree = "<group>"; };
 		9816EFA52AC4B9790042073F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9816EFAD2AC501630042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
@@ -677,6 +679,7 @@
 		98EA89FE2B41045100DC5C7E /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
+				981360F22B49AF300007D40F /* Base64.swift */,
 				988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */,
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */,
@@ -1033,6 +1036,7 @@
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981360DA2B4861010007D40F /* NCFPart.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
+				981360F32B49AF300007D40F /* Base64.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				981360E22B488D3B0007D40F /* NCFMechanism+Experiments.swift in Sources */,
 				981360DC2B4875D10007D40F /* NCFMechanism.swift in Sources */,
