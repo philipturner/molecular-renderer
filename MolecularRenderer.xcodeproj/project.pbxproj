@@ -91,6 +91,8 @@
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
 		981360DE2B4884310007D40F /* NCFMechanism_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = NCFMechanism_Image1.jpg; sourceTree = "<group>"; };
 		981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NCFMechanism+Experiments.swift"; sourceTree = "<group>"; };
+		981360E42B48CFD70007D40F /* MM4RigidBody+HeatCapacity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MM4RigidBody+HeatCapacity.swift"; sourceTree = "<group>"; };
+		981360E62B48D0320007D40F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9816EFA42AC4B96E0042073F /* Ring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ring.swift; sourceTree = "<group>"; };
 		9816EFA52AC4B9790042073F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9816EFAD2AC501630042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
@@ -291,6 +293,15 @@
 				981360DE2B4884310007D40F /* NCFMechanism_Image1.jpg */,
 			);
 			path = NCFMechanism;
+			sourceTree = "<group>";
+		};
+		981360E32B48CFC60007D40F /* HeatCapacity */ = {
+			isa = PBXGroup;
+			children = (
+				981360E42B48CFD70007D40F /* MM4RigidBody+HeatCapacity.swift */,
+				981360E62B48D0320007D40F /* README.md */,
+			);
+			path = HeatCapacity;
 			sourceTree = "<group>";
 		};
 		9816EFA32AC4B9620042073F /* Ring */ = {
@@ -513,6 +524,7 @@
 			children = (
 				98B25A272B39372E00081A61 /* Carbides */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
+				981360E32B48CFC60007D40F /* HeatCapacity */,
 				98FE60D22B3C6AFC00D73E37 /* Reconstruction */,
 				98FE60F12B3F716E00D73E37 /* Tripods */,
 			);
