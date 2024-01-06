@@ -183,11 +183,11 @@ extension NCFMechanism {
       
       // Update atom velocities according to force and torque.
       var linearVelocity = rigidBody.linearVelocity
-      var angularVelocity = quaternion_to_vector(rigidBody.angularVelocity)
+      var angularVelocity = rigidBody.angularVelocity
       linearVelocity += Float(velocityTimeStep) * linearAcceleration
       angularVelocity += Float(velocityTimeStep) * angularAcceleration
       rigidBody.linearVelocity = linearVelocity
-      rigidBody.angularVelocity = vector_to_quaternion(angularVelocity)
+      rigidBody.angularVelocity = angularVelocity
       
       // Update atom positions according to bulk velocity.
       guard positionTimeStep > 0 else {

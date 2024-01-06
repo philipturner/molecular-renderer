@@ -202,9 +202,9 @@ extension NCFMechanism {
        - linear acceleration: 0.025583362 -0.0018239636 0.15584198
        - force: 482.71616 -34.415207 2940.4832
 
-       - angular velocity: nan | nan nan nan
-       - angular acceleration: 0.035587512 | 0.99176013 -0.12637189 0.021026528
-       - torque: 5.576448 | 0.274559 -0.94910926 0.15430143
+       - angular velocity: 0.0 | nan nan nan
+       - angular acceleration: 0.035587516 | 0.99176 -0.12637188 0.021026526
+       - torque: 533.364 | 0.274559 -0.94910926 0.15430143
      - rigid body 1:
        - mass: 18868.363
        - center of mass: 4.529469 0.8710828 0.84871304
@@ -216,9 +216,9 @@ extension NCFMechanism {
        - linear acceleration: -0.025583318 0.001824234 -0.15584189
        - force: -482.71533 34.42031 -2940.4812
 
-       - angular velocity: nan | nan nan nan
-       - angular acceleration: 0.031795017 | -0.9814885 -0.18939526 -0.02845629
-       - torque: 4.6959977 | 0.19123301 0.96900165 0.15641549
+       - angular velocity: 0.0 | nan nan nan
+       - angular acceleration: 0.03179502 | -0.9814885 -0.18939526 -0.02845629
+       - torque: 636.1889 | -0.19123301 -0.9690016 -0.15641549
      */
   }
 }

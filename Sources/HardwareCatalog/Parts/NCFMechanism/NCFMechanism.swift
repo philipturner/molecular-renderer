@@ -126,15 +126,12 @@ extension NCFMechanism {
       let angularAcceleration =
       inverseI.0 * torque.x + inverseI.1 * torque.y + inverseI.2 * torque.z
       
-      func repr(_ quaternion: Quaternion<Float>) -> String {
-        let axis = quaternion.axis
-        return "\(quaternion.angle) | \(axis.x) \(axis.y) \(axis.z)"
+      func repr(_ vector: SIMD3<Float>) -> String {
+        let angle = (vector * vector).sum().squareRoot()
+        let axis = vector / angle
+        return "\(angle) | \(axis.x) \(axis.y) \(axis.z)"
       }
       
-      // TODO: Re-evaluate the results once quaternions are fixed, and the
-      // vector representation is used instead of the quaternion representation.
-      // Move all of the quaternionToVector utilities from MM4 into the hardware
-      // catalog and remove the dependency on 'swift-numerics @ Quaternions'.
       print()
       print("  - linear velocity: \(linearVelocity.x) \(linearVelocity.y) \(linearVelocity.z)")
       print("  - linear acceleration: \(linearAcceleration.x) \(linearAcceleration.y) \(linearAcceleration.z)")
@@ -142,8 +139,8 @@ extension NCFMechanism {
       
       print()
       print("  - angular velocity: \(repr(angularVelocity))")
-      print("  - angular acceleration: \(repr(vector_to_quaternion(angularAcceleration)))")
-      print("  - torque: \(repr(vector_to_quaternion(torque)))")
+      print("  - angular acceleration: \(repr(angularAcceleration))")
+      print("  - torque: \(repr(torque))")
     }
   }
 }
