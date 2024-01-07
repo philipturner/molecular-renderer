@@ -62,8 +62,6 @@ struct TopologyMinimizer {
     } else if let rigidBodies = descriptor.rigidBodies {
       self.topology = Topology()
       
-      
-      
       var paramsDesc = MM4ParametersDescriptor()
       paramsDesc.atomicNumbers = []
       paramsDesc.bonds = []
@@ -91,6 +89,14 @@ struct TopologyMinimizer {
     self.initializeBendForce()
     self.initializeNonbondedForce()
     self.initializeSystem(platform: descriptor.platform)
+    
+    if let rigidBodies = descriptor.rigidBodies {
+      var velocities: [SIMD3<Float>] = []
+      for rigidBody in rigidBodies {
+        velocities += rigidBody.velocities
+      }
+      setVelocities(velocities)
+    }
   }
   
   func createForces() -> [SIMD3<Float>] {
@@ -105,6 +111,21 @@ struct TopologyMinimizer {
     reportEnergy().kinetic
   }
   
+  func createVelocities() -> [SIMD3<Float>] {
+    let dataTypes: OpenMM_State.DataType = [
+      OpenMM_State.DataType.velocities
+    ]
+    let query = context.state(types: dataTypes)
+    let velocities = query.velocities
+    var output: [SIMD3<Float>] = []
+    
+    for i in parameters.atoms.indices {
+      let modified = SIMD3<Float>(velocities[i])
+      output.append(modified)
+    }
+    return output
+  }
+  
   // <s>
   // This takes O(n^2) time to export because it doesn't cache the data like
   // MM4ForceField does. Luckily, isn't the way forces are exported. It also
@@ -117,13 +138,20 @@ struct TopologyMinimizer {
   // dynamics simulations and comparing the bulk velocities to the MD
   // simulation trajectory.
   func export(to rigidBody: inout MM4RigidBody, range: Range<Int>) {
+    // This function for fetching is O(n^2) right now.
+    let allVelocities = createVelocities()
+    
     var positions: [SIMD3<Float>] = []
+    var velocities: [SIMD3<Float>] = []
     for i in 0..<range.count {
       let index = range.startIndex + i
       let position = topology.atoms[index].position
+      let velocity = allVelocities[index]
       positions.append(position)
+      velocities.append(velocity)
     }
     rigidBody.setPositions(positions)
+    rigidBody.setVelocities(velocities)
   }
 }
 
@@ -140,8 +168,20 @@ extension TopologyMinimizer {
     let array = OpenMM_Vec3Array(size: positions.count)
     for i in positions.indices {
       array[i] = SIMD3(positions[i])
+      topology.atoms[i].position = positions[i]
     }
     context.positions = array
+  }
+  
+  mutating func setVelocities(_ velocities: [SIMD3<Float>]) {
+    precondition(
+      velocities.count == topology.atoms.count,
+      "Velocities array has incorrect size.")
+    let array = OpenMM_Vec3Array(size: velocities.count)
+    for i in velocities.indices {
+      array[i] = SIMD3(velocities[i])
+    }
+    context.velocities = array
   }
   
   mutating func minimize() {

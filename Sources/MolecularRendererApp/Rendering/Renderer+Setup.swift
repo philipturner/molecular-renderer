@@ -35,7 +35,7 @@ extension Renderer {
     
     var maxAtomCount = 0
     for frame in frames {
-      maxAtomCount += frame.count
+      maxAtomCount = max(maxAtomCount, frame.count)
     }
     print("atoms:", maxAtomCount)
     print("frames:", frames.count)

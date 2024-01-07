@@ -14,6 +14,8 @@ import OpenMM
 
 struct NCFMechanism {
   var parts: [NCFPart] = []
+  var linearVelocities: [SIMD3<Double>] = []
+  var angularVelocities: [SIMD3<Double>] = []
   
   init(
     partCount: Int,

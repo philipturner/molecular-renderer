@@ -29,7 +29,7 @@ func cross_platform_dot<T: Real & SIMDScalar>(
   return (x * y).sum()
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_cross<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> SIMD3<T> {
