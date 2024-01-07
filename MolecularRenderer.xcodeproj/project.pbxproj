@@ -36,6 +36,14 @@
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
+		987507AC2B4A61330031A15E /* rigid_body_30yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507A82B4A61330031A15E /* rigid_body_30yj.jpg */; };
+		987507AD2B4A61330031A15E /* rigid_body_10yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507A92B4A61330031A15E /* rigid_body_10yj.jpg */; };
+		987507AE2B4A61330031A15E /* molecular_dynamics.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507AA2B4A61330031A15E /* molecular_dynamics.jpg */; };
+		987507AF2B4A61330031A15E /* start.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507AB2B4A61330031A15E /* start.jpg */; };
+		987507B42B4A6A7C0031A15E /* rigid_body_100yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507B02B4A6A7C0031A15E /* rigid_body_100yj.jpg */; };
+		987507B52B4A6A7C0031A15E /* rigid_body_300yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507B12B4A6A7C0031A15E /* rigid_body_300yj.jpg */; };
+		987507B62B4A6A7C0031A15E /* rigid_body_1yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507B22B4A6A7C0031A15E /* rigid_body_1yj.jpg */; };
+		987507B72B4A6A7C0031A15E /* rigid_body_3yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507B32B4A6A7C0031A15E /* rigid_body_3yj.jpg */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
@@ -139,6 +147,15 @@
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		987234F02ABE860300E427E5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		987507A82B4A61330031A15E /* rigid_body_30yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_30yj.jpg; sourceTree = "<group>"; };
+		987507A92B4A61330031A15E /* rigid_body_10yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_10yj.jpg; sourceTree = "<group>"; };
+		987507AA2B4A61330031A15E /* molecular_dynamics.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = molecular_dynamics.jpg; sourceTree = "<group>"; };
+		987507AB2B4A61330031A15E /* start.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = start.jpg; sourceTree = "<group>"; };
+		987507B02B4A6A7C0031A15E /* rigid_body_100yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_100yj.jpg; sourceTree = "<group>"; };
+		987507B12B4A6A7C0031A15E /* rigid_body_300yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_300yj.jpg; sourceTree = "<group>"; };
+		987507B22B4A6A7C0031A15E /* rigid_body_1yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_1yj.jpg; sourceTree = "<group>"; };
+		987507B32B4A6A7C0031A15E /* rigid_body_3yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_3yj.jpg; sourceTree = "<group>"; };
+		987507B92B4A6AB50031A15E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
@@ -299,7 +316,16 @@
 				981360DB2B4875D10007D40F /* NCFMechanism.swift */,
 				981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */,
 				981360D92B4861000007D40F /* NCFPart.swift */,
+				987507AA2B4A61330031A15E /* molecular_dynamics.jpg */,
 				981360DE2B4884310007D40F /* NCFMechanism_Image1.jpg */,
+				987507B22B4A6A7C0031A15E /* rigid_body_1yj.jpg */,
+				987507B32B4A6A7C0031A15E /* rigid_body_3yj.jpg */,
+				987507A92B4A61330031A15E /* rigid_body_10yj.jpg */,
+				987507A82B4A61330031A15E /* rigid_body_30yj.jpg */,
+				987507B02B4A6A7C0031A15E /* rigid_body_100yj.jpg */,
+				987507B12B4A6A7C0031A15E /* rigid_body_300yj.jpg */,
+				987507AB2B4A61330031A15E /* start.jpg */,
+				987507B92B4A6AB50031A15E /* README.md */,
 			);
 			path = NCFMechanism;
 			sourceTree = "<group>";
@@ -1014,9 +1040,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				987507B72B4A6A7C0031A15E /* rigid_body_3yj.jpg in Resources */,
+				987507B62B4A6A7C0031A15E /* rigid_body_1yj.jpg in Resources */,
+				987507AE2B4A61330031A15E /* molecular_dynamics.jpg in Resources */,
 				98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */,
+				987507B42B4A6A7C0031A15E /* rigid_body_100yj.jpg in Resources */,
 				98F638B42A34A3A800F51E95 /* MolecularRendererGPU.metallib in Resources */,
+				987507AD2B4A61330031A15E /* rigid_body_10yj.jpg in Resources */,
+				987507B52B4A6A7C0031A15E /* rigid_body_300yj.jpg in Resources */,
 				9852E88329EB8CFA00D0E779 /* README.md in Resources */,
+				987507AC2B4A61330031A15E /* rigid_body_30yj.jpg in Resources */,
+				987507AF2B4A61330031A15E /* start.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
