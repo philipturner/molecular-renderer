@@ -1,10 +1,10 @@
 # Non-Contact Force Mechanism
 
-The idea of using vdW forces instead of elastic springs was originally devised by CBN Nano Technologies and myself, independently (prior to the patent's publication). My intent was to use "vdW springs" to drive the clocking mechanism of a mechanical computer, which I documented just a few days before the patent surfaced. It is not the same as CBN's idea to make the logic gates themselves run on vdW forces. Doing that creates monstrous, bulky logic with 1000x lower volumetric packing density than rod logic.
+The idea of using vdW forces instead of elastic springs was originally discovered by CBN Nano Technologies. Prior to the patent's publication, I independently discovered the idea. My intent was to use "vdW springs" to drive the clocking mechanism of a mechanical computer. I created some schematics for this a few days before the patent surfaced. It is not the same as CBN's idea to make the logic gates themselves run on vdW forces. Doing that creates monstrous, bulky logic with 1000x lower volumetric packing density than rod logic.
 
 ![NCF Mechanism Image 1](./NCFMechanism_Image1.jpg)
 
-A crystolecule, loosely inspired by NCF mechanisms, was designed using the hardware description language. It was shaped into a shell structure and embedded into an HDL unit test. The linear form was used ~3-day-long experiment with rigid body dynamics. The experiment is recorded on this README. The hypothesized outcome was a faster alternative to MD that could produce low-latency, robust animation. In addition, the project would produce content for `MM4ForceField` unit tests.
+A crystolecule, loosely inspired by NCF mechanisms, was designed with the hardware description language. It was shaped into a shell structure and embedded into an HDL unit test. The linear form powered a ~3-day-long experiment with rigid body dynamics. That experiment is recorded on this README. The hypothesized outcome was a faster alternative to MD that could produce low-latency, robust animation. In addition, the project would produce content for `MM4ForceField` unit tests.
 
 ## Experiment
 
@@ -39,9 +39,9 @@ stable timestep varies in an interesting way with the energy threshold/tolerance
 | energy drift tolerance | stable time step | outcome |
 | -----------------: | :---: | :--------------------- |
 | molecular dynamics |  2 fs | setup time: 29456.6 ms |
-|        0.1 yJ/atom | &lt;1 fs | failure             |
-|        0.3 yJ/atom | &lt;1 fs | failure             |
-|        1   yJ/atom | &lt;1 fs | failure             |
+|        0.1 yJ/atom | &lt;0.6 fs | failure           |
+|        0.3 yJ/atom | &lt;0.6 fs | failure           |
+|        1   yJ/atom | &lt;0.6 fs | failure           |
 |        3   yJ/atom | 40 fs | setup time: 12618.0 ms |
 |       10   yJ/atom | 80 fs | setup time: 14042.8 ms |
 |       30   yJ/atom | 80 fs | setup time: 17919.8 ms |
@@ -66,13 +66,13 @@ parallelize the CPU-side code.
     'encodeAtoms' with no changes, or the API can be revised to something
     with more general function names (e.g. encodeFloat4).
 
-Running the benchmark again with 10x more atoms (6k -> 60k) and 1/10 the time (112 ps -> 12 ps):
+Running the benchmark again with 10x more atoms (6k -> 60k) and 1/10 the time (112 ps -> 11.2 ps):
 
 | energy drift tolerance | stable time step | outcome |
 | -----------------: | :---: | :--------------------- |
 | molecular dynamics |  2 fs | setup time: 23429.2 ms |
-|        0.1 yJ/atom | &lt;1 fs | failure             |
-|        0.3 yJ/atom | &lt;1 fs | failure             |
+|        0.1 yJ/atom | &lt;0.6 fs | failure           |
+|        0.3 yJ/atom | &lt;0.6 fs | failure           |
 |        1   yJ/atom | 40 fs | setup time: 11015.8 ms |
 |        3   yJ/atom | 80 fs | setup time:  8334.3 ms |
 |       10   yJ/atom | 80 fs | setup time:  7983.7 ms |
