@@ -243,7 +243,8 @@ extension NCFMechanism {
   // an array of animation frames
   @discardableResult
   static func simulationExperiment4() -> [[Entity]] {
-    let rigidBodyDynamics = true
+    // Bypass Swift compiler warnings about dead code.
+    let rigidBodyDynamics = Bool.random() ? true : true
     
     var mechanism = NCFMechanism(
       partCount: 40, forces:
@@ -303,7 +304,6 @@ extension NCFMechanism {
         if rigidBodyDynamics {
           // Simulate evolution for one timestep.
           for j in 0..<maxJ {
-            let time = Double(maxJ * i + j) * (timeStep / Double(maxJ))
             mechanism.evolve(timeStep: (timeStep / Double(maxJ)), start: j == 0, end: j + 1 == maxJ, minimizer: &minimizer)
           }
         } else {
@@ -647,6 +647,174 @@ extension NCFMechanism {
 //      if i == indexToPrint {
 //        print("  - angular velocity: \(repr(rigidBody.angularVelocity))")
 //      }
+    }
+  }
+}
+
+extension NCFMechanism {
+  // Investigate how the moment of inertia changes during a rotation. Can the
+  // final value be predicted beforehand? If so, that enables some optimizations
+  // in the MM4RigidBody backend.
+  //
+  // The code for NCFMechanism is about to break, as MM4RigidBody gets
+  // rewritten to store bulk properties in double precision. This design
+  // change lets properties be cached across successive timesteps, with
+  // minimal drift from rounding error. There are ways to refresh the cached
+  // properties and synchronize with actual atom positions/velocities.
+  //
+  // Nevermind: the source of rounding error may have been use of such
+  // small timesteps (2 fs). Larger timesteps (80 fs) may have the same
+  // effect as in molecular dynamics. In addition, the frequent
+  // recomputation of bulk properties introduced numerical error. Until you
+  // have 100% hard evidence, do not change the internal representation from
+  // Float32 to Float64. If it is necessary, delaying the change and
+  // understanding exactly why it's necessary would be more insightful
+  // anyways.
+  static func simulationExperiment5() {
+    func displayMatrix(
+      _ M: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>),
+      leftPlaces: Int,
+      rightPlaces: Int
+    ) {
+      func fmt(_ number: Float) -> String {
+        var output = String(format: "%.\(rightPlaces)f", number)
+        while output.count < leftPlaces + 1 + rightPlaces {
+          output = " " + output
+        }
+        return output
+      }
+      print("[\(fmt(M.0.x)) \(fmt(M.1.x)) \(fmt(M.2.x))]")
+      print("[\(fmt(M.0.y)) \(fmt(M.1.y)) \(fmt(M.2.y))]")
+      print("[\(fmt(M.0.z)) \(fmt(M.1.z)) \(fmt(M.2.z))]")
+    }
+    
+    var rigidBody = NCFPart().rigidBody
+    let axis = cross_platform_normalize(
+      SIMD3<Float>(1, 0, 0))
+    let originalPositions = rigidBody.positions
+    let originalMoment = rigidBody.momentOfInertia
+    
+    print()
+    print("original inertia tensor")
+    print()
+    displayMatrix(rigidBody.momentOfInertia, leftPlaces: 6, rightPlaces: 3)
+    
+    for decade in 1...9 {
+      let angle = Float(decade * 10)
+      let rotationQuaternion = Quaternion<Float>(
+        angle: angle * .pi / 180,
+        axis: axis)
+      let rotationMatrix = (
+        rotationQuaternion.act(on: SIMD3<Float>(1, 0, 0)),
+        rotationQuaternion.act(on: SIMD3<Float>(0, 1, 0)),
+        rotationQuaternion.act(on: SIMD3<Float>(0, 0, 1)))
+      
+      var positions: [SIMD3<Float>] = []
+      for i in rigidBody.parameters.atoms.indices {
+        let position = originalPositions[i]
+        positions.append(cross_platform_gemv3x3(rotationMatrix, position))
+      }
+      rigidBody.setPositions(positions)
+      
+      func fmt(_ number: Float) -> String {
+        var output = String(format: "%.3f", number)
+        while output.count < 6 {
+          output = " " + output
+        }
+        return output
+      }
+      print()
+      print("\(angle)°", "|", fmt(axis.x), fmt(axis.y), fmt(axis.y))
+      print()
+      displayMatrix(rigidBody.momentOfInertia, leftPlaces: 6, rightPlaces: 3)
+      
+      // apply transform F to turn A into B
+      // B = F A
+      // B A^-1 = F A A^-1
+      // B A^-1 = F
+      let newMoment = rigidBody.momentOfInertia
+      let invOldMoment = cross_platform_inverse3x3(originalMoment)
+      let oldToNew = cross_platform_gemm3x3(newMoment, invOldMoment)
+      print()
+      displayMatrix(oldToNew, leftPlaces: 3, rightPlaces: 3)
+      print()
+      displayMatrix(rotationMatrix, leftPlaces: 3, rightPlaces: 3)
+      
+      // Predict the new inertia tensor.
+      let invRotationMatrix = cross_platform_inverse3x3(rotationMatrix)
+      var newMomentPredicted = cross_platform_gemm3x3(originalMoment, invRotationMatrix)
+      newMomentPredicted = cross_platform_gemm3x3(rotationMatrix, newMomentPredicted)
+      print()
+      displayMatrix(newMomentPredicted, leftPlaces: 3, rightPlaces: 3)
+      
+      // Try an alternative method with less numerical error.
+      var rotationMatrixT: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
+      do {
+        let M = rotationMatrix
+        rotationMatrixT = (
+          SIMD3(M.0.x, M.1.x, M.2.x),
+          SIMD3(M.0.y, M.1.y, M.2.y),
+          SIMD3(M.0.z, M.1.z, M.2.z))
+      }
+      newMomentPredicted = cross_platform_gemm3x3(originalMoment, rotationMatrixT)
+      newMomentPredicted = cross_platform_gemm3x3(rotationMatrix, newMomentPredicted)
+      print()
+      displayMatrix(newMomentPredicted, leftPlaces: 3, rightPlaces: 3)
+      
+      // For some problems, the 1st method has less rounding error. For others,
+      // the 2nd method has less rounding error. The optimal solution:
+      // - 1) Use the matrix transpose instead of inverse operation.
+      // - 2) Perform all intermediate computations in Float64.*
+      // - 3) Never round off the final result to Float32.
+      //
+      // Keep the moment of inertia in Float64 across timesteps. Only cast to
+      // Float32 when presenting through the public API.
+      //
+      // *Intermediate computations on the scalar bulk quantity. Cast to FP32
+      // before adjusting individual atom positions. We need to maximize
+      // execution speed on the CPU. Interesting idea:
+      // - Store the vectorized positions as the last time they were modified
+      // - Compute the scalarized positions as an analytical function of the
+      //   saved state and recorded mutation to inertia/position
+      // - Remove vectorizedPositions and vectorizedVelocities from the API.
+      // - We never need to recompute the vectorized positions. Only accept new
+      //   positions specified by the user.
+      // - Similarly, we can store the velocities as an update over the last
+      //   save state. The computation method has to effectively separate out
+      //   and rotate the thermal component of velocity.
+      // - Store a local 3x3 matrix accumulating the cached updates to
+      //   position/velocity.
+      //
+      // - Store only the thermal velocities in vVelocities. That partially
+      //   simplifies the function setThermalKineticEnergy().
+      // - Store vPositions in a local basis as well. All of the data is stored
+      //   relative to the center of mass / bulk momentum. None of it is rotated
+      //   to match the current reference frame.
+      // - Forces need to be different. The user must be able to specify the
+      //   forces from an external simulator, so we can't hide them and only
+      //   expose bulk variables. Rather, vForces are stored and the netForce/
+      //   netTorque are computed/cached together. They only have getters, not
+      //   setters.
+      // - Remove externalForces from MM4RigidBody and only expose in
+      //   MM4ForceField. Change the property so it only has a setter, and no
+      //   getter. Use a function similar to setPositions or
+      //   setThermalKineticEnergy.
+      // - Add exportForces to MM4ForceField and remove all other rigid body
+      //   I/O functions for now. There is already functionality for importing
+      //   the initial positions/velocities of rigid bodies prior to a
+      //   molecular dynamics simulation.
+      //   - Except, we need to modify the force field's state to calculate
+      //     potential energy during a rigid body dynamics simulation.
+      //   - And, we need to import thermal velocities for NVT-like simulations.
+      //   - Add functions importPositions and importVelocities, but not the
+      //     analogues for exporting yet. That removes the need to unit test
+      //     certain state mutations onto the rigid body.
+      //   - Recycle these functions when importing rigid body states during
+      //     the convenience initializer (what became of the initializer after
+      //     MM4ForceFieldDescriptor was added).
+      //
+      // /// Rotates around the axis defined by `angularVelocity`.
+      // mutating func rotate(angle: Float)
     }
   }
 }

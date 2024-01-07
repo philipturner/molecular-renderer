@@ -117,3 +117,13 @@ Rigid Body Dynamics (100 yJ/atom tolerance):
 Rigid Body Dynamics (300 yJ/atom tolerance):
 
 ![rigid body dynamics 300 yj](./rigid_body_300yj.jpg)
+
+## Conclusions
+
+Here is a rough estimate of the upper bound to simulation speed. Note that it is a liberal estimate, the only number that can be proven with certainty. The real-world performance will likely be at least 2-3x slower. However, the real-world performance of the old MM4 implementation was also 2-3x slower than OpenMM water box. The gap may exist because of MM4 torsions and cross-terms. These forces are omitted from the new MM4 (technically included in the codebase, but rarely used).
+
+![Molecular Simulation Speed](./MolecularSimulationSpeed.png)
+
+Technical details of the liberal upper bound:
+- Rigid body dynamics uses 1 nm radius for diamond, padding the overhead of search from 700 atoms to effectively 1000 atoms. It does not account for the use of the more expensive Buckingham potential. Theoretically, the MM4RigidBody component of MM4 could be separated out and used with a custom GPU kernel to calculate forces.
+- Rigid body dynamics assumes an 80 fs timestep, compared to 4 fs for molecular dynamics. It also assumes a performance ceiling equalling that of OpenMM with neighbor lists (1120 ns/day).

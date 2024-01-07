@@ -45,5 +45,3 @@ func createNCFMechanism() -> [Entity] {
   return NCFMechanism.createEntities(
     mechanism.parts.map(\.rigidBody))
 }
-
-

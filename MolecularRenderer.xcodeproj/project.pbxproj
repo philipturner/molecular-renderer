@@ -156,6 +156,7 @@
 		987507B22B4A6A7C0031A15E /* rigid_body_1yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_1yj.jpg; sourceTree = "<group>"; };
 		987507B32B4A6A7C0031A15E /* rigid_body_3yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_3yj.jpg; sourceTree = "<group>"; };
 		987507B92B4A6AB50031A15E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		987507BA2B4B17A50031A15E /* MolecularSimulationSpeed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MolecularSimulationSpeed.png; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
@@ -317,6 +318,7 @@
 				981360E12B488D3B0007D40F /* NCFMechanism+Experiments.swift */,
 				981360D92B4861000007D40F /* NCFPart.swift */,
 				987507AA2B4A61330031A15E /* molecular_dynamics.jpg */,
+				987507BA2B4B17A50031A15E /* MolecularSimulationSpeed.png */,
 				981360DE2B4884310007D40F /* NCFMechanism_Image1.jpg */,
 				987507B22B4A6A7C0031A15E /* rigid_body_1yj.jpg */,
 				987507B32B4A6A7C0031A15E /* rigid_body_3yj.jpg */,
@@ -549,6 +551,7 @@
 			children = (
 				98EA89FB2B40E51800DC5C7E /* Backend */,
 				98B25A2E2B393A6300081A61 /* Experiments */,
+				981360DD2B4883C40007D40F /* NCFMechanism */,
 				98B25A252B3931F200081A61 /* OpenMMTutorials */,
 			);
 			path = Simulation;
@@ -570,7 +573,6 @@
 			isa = PBXGroup;
 			children = (
 				98EA89F92B40E48700DC5C7E /* NanoEngineer */,
-				981360DD2B4883C40007D40F /* NCFMechanism */,
 				98EA89FA2B40E4A700DC5C7E /* RendererDemos */,
 				98E2C6142AC24D57002612CC /* RhombicDodecahedron */,
 				9816EFA32AC4B9620042073F /* Ring */,

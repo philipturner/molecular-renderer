@@ -15,14 +15,14 @@ import System
 // will actually inline. Always explicitly write out the functions in
 // performance-critical loops.
 
-@inline(__always)
+@_transparent
 func cross_platform_dot<T: Real & SIMDScalar>(
   _ x: SIMD2<T>, _ y: SIMD2<T>
 ) -> T {
   return (x * y).sum()
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_dot<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> T {
@@ -40,70 +40,70 @@ func cross_platform_cross<T: Real & SIMDScalar>(
   return SIMD3(s1, s2, s3)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_length<T: Real & SIMDScalar>(
   _ x: SIMD2<T>
 ) -> T {
   return cross_platform_dot(x, x).squareRoot()
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_length<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> T {
   return cross_platform_dot(x, x).squareRoot()
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_distance<T: Real & SIMDScalar>(
   _ x: SIMD2<T>, _ y: SIMD2<T>
 ) -> T {
   return cross_platform_length(y - x)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_min<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> SIMD3<T> {
   return x.replacing(with: y, where: y .< x)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_max<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> SIMD3<T> {
   return x.replacing(with: y, where: y .> x)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_distance<T: Real & SIMDScalar>(
   _ x: SIMD3<T>, _ y: SIMD3<T>
 ) -> T {
   return cross_platform_length(y - x)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_mix<T: Real & SIMDScalar>(
   _ x: T, _ y: T, _ t: T
 ) -> T {
   return y * t + x * (1 - t)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_normalize<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> SIMD3<T> {
   return x / (cross_platform_dot(x, x)).squareRoot()
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_abs<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> SIMD3<T> {
   return x.replacing(with: -x, where: x .< 0)
 }
 
-@inline(__always)
+@_transparent
 func cross_platform_floor<T: Real & SIMDScalar>(
   _ x: SIMD3<T>
 ) -> SIMD3<T> {
@@ -274,12 +274,33 @@ func cross_platform_inverse3x3(
   let result21 = (col.2[0] * col.0[1] - col.0[0] * col.2[1]) * invdet
   let result22 = (col.0[0] * col.1[1] - col.1[0] * col.0[1]) * invdet
   
-  let column0 = SIMD3(result00, result10, result20)
-  let column1 = SIMD3(result01, result11, result21)
-  let column2 = SIMD3(result02, result12, result22)
+  // Originally, the result was transposed from the actual inverse. We fixed the
+  // issue now.
+  let column0 = SIMD3(result00, result01, result02)
+  let column1 = SIMD3(result10, result11, result12)
+  let column2 = SIMD3(result20, result21, result22)
   return (SIMD3<Float>(column0),
           SIMD3<Float>(column1),
           SIMD3<Float>(column2))
+}
+
+@_transparent
+func cross_platform_gemv3x3(
+  _ lhs: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>),
+  _ rhs: SIMD3<Float>
+) -> SIMD3<Float> {
+  lhs.0 * rhs.x +
+  lhs.1 * rhs.y +
+  lhs.2 * rhs.z
+}
+
+func cross_platform_gemm3x3(
+  _ lhs: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>),
+  _ rhs: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
+) -> (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) {
+  (cross_platform_gemv3x3(lhs, rhs.0),
+   cross_platform_gemv3x3(lhs, rhs.1),
+   cross_platform_gemv3x3(lhs, rhs.2))
 }
 
 // MARK: - Time Utilities
@@ -295,4 +316,3 @@ func cross_platform_media_time() -> Double {
   let attoseconds = duration.components.attoseconds
   return -(Double(seconds) + Double(attoseconds) * 1e-18)
 }
-
