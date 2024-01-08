@@ -82,7 +82,7 @@ Running the benchmark again with 10x more atoms (6k -> 60k) and 1/10 the time (1
 
 ## Images
 
-The smaller the energy tolerance, the closer the result looked to molecular dynamics. However, setting the tolerance too slow can harm performance. It can result in more failed attempts to increase the time step. It can even cause the simulation to fail, becoming trapped with a timestep asymptotically diving toward zero.
+The smaller the energy tolerance, the closer the result looked to molecular dynamics. However, setting the tolerance too low can harm performance. It can result in more failed attempts to increase the time step. It can even cause the simulation to fail, becoming trapped with a timestep asymptotically diving toward zero.
 
 The tabulated data (above; previous section) showed that larger systems can survive with tighter energy tolerance. This may be a unique feature of the provided system. Its geometry and dynamics changed as the number of stacked crystolecules increased. The total simulation time also shortened, decreasing the opportunity for crystolecules to randomly escape the vdW well and leave machine phase.
 
