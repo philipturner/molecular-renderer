@@ -118,7 +118,7 @@ Rigid Body Dynamics (300 yJ/atom tolerance):
 
 ![rigid body dynamics 300 yj](./rigid_body_300yj.jpg)
 
-## Conclusions
+## Conclusion
 
 Here is a rough estimate of the upper bound to simulation speed. Note that it is a liberal estimate, the only number that can be proven with certainty. The real-world performance will likely be at least 2-3x slower. However, the real-world performance of the old MM4 implementation was also 2-3x slower than OpenMM water box. The gap may exist because of MM4 torsions and cross-terms. These forces are omitted from the new MM4 (technically included in the codebase, but rarely used).
 
@@ -127,3 +127,19 @@ Here is a rough estimate of the upper bound to simulation speed. Note that it is
 Technical details of the liberal upper bound:
 - Rigid body dynamics uses 1 nm radius for diamond, padding the overhead of search from 700 atoms to effectively 1000 atoms. It does not account for the use of the more expensive Buckingham potential. Theoretically, the MM4RigidBody component of MM4 could be separated out and used with a custom GPU kernel to calculate forces.
 - Rigid body dynamics assumes an 80 fs timestep, compared to 4 fs for molecular dynamics. It also assumes a performance ceiling equalling that of OpenMM with neighbor lists (1120 ns/day).
+
+## Addendum: Diagonalizing the Moment of Inertia
+
+To go all-in on rigid body dynamics, I am rewriting the internal representation of `MM4RigidBody`. One beautiful part about this IR is how atoms are stored. Then are shifted into a local coordinate space where `[0, 0, 0]` is the center of mass. They are also rotated so the cardinal axes align with the principal moments of inertia.
+
+It took several hours, but I accomplished a stable method of eigendecomposing the matrix. I used the direct analytical solution to cubic polynomials, which involved some debugging of complex numbers (GPT-4 used the iterative method that 99% of people use). The second part was solving some systems of linear equations. GPT-4 was using Gaussian elimination, but there was some hidden bug I could not solve. Instead, I went with direct matrix inversion.
+
+Being ill-conditioned, matrix inversion occasionally produced NANs. But never for more than 1 vector in the eigenbasis. I could recover the lost eigenvector with a cross product of the other two. I generated about 100 random rotation axes and sampled each at ~2-degree resolution through the process of rotating. Not a single one produced 2 NAN eigenvectors simultaneously. Despite GPT-4's warnings against the matrix inversion method, I conclude it is stable.
+
+Here are a few instances where the inertia tensor is diagonalized. No information about the rigid body's orientation is known a priori; all of it is solved analytically. The source of truth is the array of atom positions.
+
+![inertia tensor eigendecomposition 1](./inertia_tensor_eigendecomposition_1.jpg)
+
+![inertia tensor eigendecomposition 2](./inertia_tensor_eigendecomposition_2.jpg)
+
+![inertia tensor eigendecomposition 3](./inertia_tensor_eigendecomposition_3.jpg)

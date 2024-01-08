@@ -284,6 +284,40 @@ func cross_platform_inverse3x3(
           SIMD3<Float>(column2))
 }
 
+func cross_platform_inverse3x3(
+  _ columns: (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>)
+) -> (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>) {
+  let col = (SIMD3<Double>(columns.0),
+             SIMD3<Double>(columns.1),
+             SIMD3<Double>(columns.2))
+  let determinant =
+  col.0[0] * (col.1[1] * col.2[2] - col.2[1] * col.1[2]) -
+  col.0[1] * (col.1[0] * col.2[2] - col.1[2] * col.2[0]) +
+  col.0[2] * (col.1[0] * col.2[1] - col.1[1] * col.2[0])
+  let invdet = 1 / determinant
+  
+  let result00 = (col.1[1] * col.2[2] - col.2[1] * col.1[2]) * invdet
+  let result01 = (col.0[2] * col.2[1] - col.0[1] * col.2[2]) * invdet
+  let result02 = (col.0[1] * col.1[2] - col.0[2] * col.1[1]) * invdet
+  
+  let result10 = (col.1[2] * col.2[0] - col.1[0] * col.2[2]) * invdet
+  let result11 = (col.0[0] * col.2[2] - col.0[2] * col.2[0]) * invdet
+  let result12 = (col.1[0] * col.0[2] - col.0[0] * col.1[2]) * invdet
+  
+  let result20 = (col.1[0] * col.2[1] - col.2[0] * col.1[1]) * invdet
+  let result21 = (col.2[0] * col.0[1] - col.0[0] * col.2[1]) * invdet
+  let result22 = (col.0[0] * col.1[1] - col.1[0] * col.0[1]) * invdet
+  
+  // Originally, the result was transposed from the actual inverse. We fixed the
+  // issue now.
+  let column0 = SIMD3(result00, result01, result02)
+  let column1 = SIMD3(result10, result11, result12)
+  let column2 = SIMD3(result20, result21, result22)
+  return (SIMD3<Double>(column0),
+          SIMD3<Double>(column1),
+          SIMD3<Double>(column2))
+}
+
 @_transparent
 func cross_platform_gemv3x3(
   _ lhs: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>),
@@ -294,10 +328,29 @@ func cross_platform_gemv3x3(
   lhs.2 * rhs.z
 }
 
+@_transparent
+func cross_platform_gemv3x3(
+  _ lhs: (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>),
+  _ rhs: SIMD3<Double>
+) -> SIMD3<Double> {
+  lhs.0 * rhs.x +
+  lhs.1 * rhs.y +
+  lhs.2 * rhs.z
+}
+
 func cross_platform_gemm3x3(
   _ lhs: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>),
   _ rhs: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>)
 ) -> (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) {
+  (cross_platform_gemv3x3(lhs, rhs.0),
+   cross_platform_gemv3x3(lhs, rhs.1),
+   cross_platform_gemv3x3(lhs, rhs.2))
+}
+
+func cross_platform_gemm3x3(
+  _ lhs: (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>),
+  _ rhs: (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>)
+) -> (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>) {
   (cross_platform_gemv3x3(lhs, rhs.0),
    cross_platform_gemv3x3(lhs, rhs.1),
    cross_platform_gemv3x3(lhs, rhs.2))

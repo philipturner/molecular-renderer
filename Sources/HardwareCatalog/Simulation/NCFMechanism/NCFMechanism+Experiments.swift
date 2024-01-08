@@ -670,7 +670,7 @@ extension NCFMechanism {
   // Float32 to Float64. If it is necessary, delaying the change and
   // understanding exactly why it's necessary would be more insightful
   // anyways.
-  static func simulationExperiment5() {
+  static func simulationExperiment5() -> [[Entity]] {
     func displayMatrix(
       _ M: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>),
       leftPlaces: Int,
@@ -690,7 +690,10 @@ extension NCFMechanism {
     
     var rigidBody = NCFPart().rigidBody
     let axis = cross_platform_normalize(
-      SIMD3<Float>(1, 0, 0))
+//      SIMD3<Float>(1, 0, 0))
+//      SIMD3<Float>(0, 2, -1))
+//    SIMD3<Float>(3.5, -9.1, -6.3))
+      SIMD3<Float>.random(in: -1...1)) // try several times with random vectors to ensure you never encounter a case where 2+ matrices fail to invert
     let originalPositions = rigidBody.positions
     let originalMoment = rigidBody.momentOfInertia
     
@@ -699,8 +702,11 @@ extension NCFMechanism {
     print()
     displayMatrix(rigidBody.momentOfInertia, leftPlaces: 6, rightPlaces: 3)
     
-    for decade in 1...9 {
-      let angle = Float(decade * 10)
+    var allOutputFrames: [[Entity]] = []
+    
+    for decade in 1...92 {
+//    for decade in 0...0 {
+      let angle = Float(decade * 2)
       let rotationQuaternion = Quaternion<Float>(
         angle: angle * .pi / 180,
         axis: axis)
@@ -728,6 +734,7 @@ extension NCFMechanism {
       print()
       displayMatrix(rigidBody.momentOfInertia, leftPlaces: 6, rightPlaces: 3)
       
+      #if false
       // apply transform F to turn A into B
       // B = F A
       // B A^-1 = F A A^-1
@@ -760,6 +767,7 @@ extension NCFMechanism {
       newMomentPredicted = cross_platform_gemm3x3(rotationMatrix, newMomentPredicted)
       print()
       displayMatrix(newMomentPredicted, leftPlaces: 3, rightPlaces: 3)
+      #endif
       
       // For some problems, the 1st method has less rounding error. For others,
       // the 2nd method has less rounding error. The optimal solution:
@@ -813,8 +821,602 @@ extension NCFMechanism {
       //     the convenience initializer (what became of the initializer after
       //     MM4ForceFieldDescriptor was added).
       //
+      // - Don’t store forces as vectorized; don’t expose public API for
+      //   vectorized positions and velocities. The method with the least amount
+      //   of work is de-swizzling the forces on the fly. De-swizzling happens
+      //   the one and only time they are read: when computing 'netForce' and
+      //   'netTorque' simultaneously.
+      //
       // /// Rotates around the axis defined by `angularVelocity`.
       // mutating func rotate(angle: Float)
+      
+      // MARK: - Experiment with Diagonalizing the Inertia Tensor
+      
+      // After we have a formula to diagonalize the matrix, test it here.
+      // Analyze what happens to the matrix as it undergoes each increment of
+      // rotation.
+      
+      // Trying to understand what GPT-4 did here. It wrote the exact same
+      // function call 3 times. Here are the arguments, rewritten in a way that
+      // sort of makes sense. I'll use the original formula verbatim (with
+      // minimal tweaks) and leave this to explain it. The original formula is
+      // being used to minimize the chance of accidental human errors.
+      /*
+       // Find the eigenvalues of the inertia tensor using the bisection method
+       // The coefficients of the characteristic equation are -1, -(a + b + c), ab + bc + ca, -abc
+       
+      let (a, b, c) = diagonal
+      let xy = I[0][1] = I[1][0]
+      let xz = I[0][2] = I[2][0]
+      let yz = I[1][2] = I[2][1]
+        lambda[0] = bisection(
+          -1,
+           -a - b - c,
+           
+           a * b +
+           b * c +
+           a * c
+           - xy * xy
+           - yz * yz
+           - xz * xz,
+           
+           -a * b * c
+           + a * yz * yz
+           + b * xz * xz
+           + c * xy * xy -
+           - 2 * (xy * yz * xz));
+       
+       //      coefficients[0] = -1
+       //      coefficients[1] = -I.0[0] - I.1[1] - I.2[2]
+       //      coefficients[2] =
+       //      I.0[0] * I.1[1]
+       //      + I.1[1] * I.2[2]
+       //      + I.0[0] * I.2[2]
+       //      - I.0[1] * I.1[0]
+       //      - I.1[2] * I.2[1]
+       //      - I.0[2] * I.2[0]
+       //      coefficients[3] =
+       //      -I.0[0] * I.1[1] * I.2[2]
+       //      + I.0[0] * I.1[2] * I.2[1]
+       //      + I.0[1] * I.1[0] * I.2[2]
+       //      - I.0[1] * I.1[2] * I.2[0]
+       //      - I.0[2] * I.1[0] * I.2[1]
+       //      + I.0[2] * I.1[1] * I.2[0]
+       */
+      
+      var coefficients: SIMD4<Double> = .zero
+      var I: (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>)
+
+      // CP = [-1, tr(A), -0.5 * [tr(A)^2 - tr(A^2)], det(A)]
+      do {
+        // Cast to FP64 to increase numerical stability.
+        let I_fp32 = rigidBody.momentOfInertia
+        I = (SIMD3<Double>(I_fp32.0),
+                 SIMD3<Double>(I_fp32.1),
+                 SIMD3<Double>(I_fp32.2))
+        
+        let I2 = cross_platform_gemm3x3(I, I)
+        let trA = I.0[0] + I.1[1] + I.2[2]
+        let trA2 = I2.0[0] + I2.1[1] + I2.2[2]
+        let detA =
+        I.0[0] * (I.1[1] * I.2[2] - I.2[1] * I.1[2]) -
+        I.0[1] * (I.1[0] * I.2[2] - I.1[2] * I.2[0]) +
+        I.0[2] * (I.1[0] * I.2[1] - I.1[1] * I.2[0])
+        
+        coefficients[0] = -1
+        coefficients[1] = trA
+        coefficients[2] = -0.5 * (trA * trA - trA2)
+        coefficients[3] = detA
+      }
+      
+      
+      
+      
+//      print("coefficients:", coefficients)
+      let roots = NCFMechanism.solveCubicEquation(coefficients: coefficients, debugResults: false)
+//      print()
+//      print("roots: \(SIMD2<Double>(SIMD2<Float>(roots.0))) \(SIMD2<Double>(SIMD2<Float>(roots.1))) \(SIMD2<Double>(SIMD2<Float>(roots.2)))")
+      
+      for root in [roots.0, roots.1, roots.2] {
+        let rootRounded = SIMD2<Double>(SIMD2<Float>(root))
+        var output = ""
+        output += "\n  \(coefficients[0]) * \(rootRounded)^3 + "
+        output += "\(coefficients[1]) * \(rootRounded)^2 + "
+        output += "\(coefficients[2]) * \(rootRounded)^1 + "
+        output += "\(coefficients[3]) = \n  "
+        
+        let root0 = SIMD2<Double>(1, 0)
+        let root1 = root
+        let root2 = NCFMechanism.complexMultiply(root1, root1)
+        let root3 = NCFMechanism.complexMultiply(root2, root1)
+        
+        var rhs: SIMD2<Double> = .zero
+        rhs += coefficients[3] * root0
+        rhs += coefficients[2] * root1
+        rhs += coefficients[1] * root2
+        rhs += coefficients[0] * root3
+        
+        // Although the results are not zero (they have a magnitude of ~1.0 for
+        // the real component), it's understandable why that is the case. They
+        // were adding and subtracting extremely massive numbers. 1 would fall
+        // roughly at the ulp of 10^13.
+        //
+        // Roots for the original inertia tensor:
+        // SIMD2<Double>(109983.7421875, 9.701277108031814e-12)
+        // SIMD2<Double>(4043.4931640625, 0.0)
+        // SIMD2<Double>(106430.8046875, -4.850638554015907e-12)
+//        print(output + "\(rhs)")
+      }
+      
+      let eigenValues: [Double] = [roots.0.x, roots.1.x, roots.2.x]
+      
+      
+       var eigenVectors: [SIMD3<Double>] = []
+      for eigenValue in eigenValues {
+//        print()
+//        print("eigenvalue \(eigenValue):")
+        var B = I as (SIMD3<Double>, SIMD3<Double>, SIMD3<Double>)
+        B.0.x -= eigenValue
+        B.1.y -= eigenValue
+        B.2.z -= eigenValue
+        
+        let B_inv = cross_platform_inverse3x3(B)
+//        print("- B_inv.columns.0 =", B_inv.0)
+//        print("- B_inv.columns.1 =", B_inv.1)
+//        print("- B_inv.columns.2 =", B_inv.2)
+        
+        // All 3 of the matrix's columns are a multiple of the same vector! It
+        // is a singular matrix.
+        var chosenVector: SIMD3<Double>?
+        for candidate in [B_inv.0, B_inv.1, B_inv.2] {
+          let length = (candidate * candidate).sum().squareRoot()
+          let normalized = candidate / length
+          let Ev = cross_platform_gemv3x3(I, normalized)
+//          let λ = (Ev * Ev).sum().squareRoot()
+          
+          if !normalized.x.isNaN {
+            chosenVector = normalized
+          }
+          
+//          print("  - candidate: \(λ) | \(normalized)")
+        }
+        guard let chosenVector else {
+          print("Could not invert matrix: \(B) \(B_inv)")
+          
+          // We'll have to fix the fact that eigenvectors are sometimes NAN.
+          // If only one is NAN, we might be able to recover it using the cross
+          // product. Otherwise, we'll need something more convoluted like
+          // Gaussian elimination.
+          eigenVectors.append([42, 0, 0])
+          continue
+        }
+        
+        
+        eigenVectors.append(chosenVector)
+      }
+      
+      if eigenVectors.filter({ $0 == [42, 0, 0] }).count > 0 {
+        if eigenVectors.filter({ $0 == [42, 0, 0] }).count > 1 {
+          fatalError("Too many eigenvectors were NAN.")
+        } else {
+          let otherVectors = eigenVectors.filter { $0 != [42, 0, 0] }
+          guard otherVectors.count == 2 else {
+            fatalError("This should never happen.")
+          }
+          let crossProduct = cross_platform_cross(SIMD3<Float>(otherVectors[0]), SIMD3<Float>(otherVectors[1]))
+          for i in eigenVectors.indices {
+            if eigenVectors[i] == [42, 0, 0] {
+              eigenVectors[i] = SIMD3<Double>(crossProduct)
+              print("recovered eigenvector: \(eigenValues[i]) | \(crossProduct)")
+            }
+          }
+        }
+      }
+      
+      // Establish a rule so the eigenvectors don't keep flashing back and
+      // forth between different directions.
+      for eigenPairID in eigenVectors.indices {
+        var chosenVector = eigenVectors[eigenPairID]
+        var flip = false
+        if chosenVector.x != 0 {
+          flip = chosenVector.x > 0
+        } else if chosenVector.y != 0 {
+          flip = chosenVector.y < 0
+        } else {
+          flip = chosenVector.z < 0
+        }
+        if flip {
+          chosenVector = -chosenVector
+        }
+        eigenVectors[eigenPairID] = chosenVector
+      }
+      
+      /*
+      let eigenVectors = NCFMechanism.gaussianElimination(matrix: I, eigenValues: eigenValues)
+       */
+      
+      var thisFrameAtoms: [Entity] = []
+      var eigenVectorAtomicNumber: UInt8 = 9
+      // green (F) = 1st
+      // red   (O) = 2nd
+      // blue  (N) = 3rd
+      
+      print()
+      for (eigenValue, eigenVector) in zip(eigenValues, eigenVectors).sorted(by: { $0.0 > $1.0 }) {
+        print("- eigenpair: \(Float(eigenValue)) | \(SIMD3<Float>(eigenVector))")
+        
+        
+        // Use the square root of the ratio, so it's proportional to the ratio
+        // of object dimensions. We used the square operation when creating
+        // the inertia tensor.
+        let ratio = (eigenValue / eigenValues.max()!).squareRoot()
+        var distance: Double = 0
+        
+        // Make the eigenvectors stretch out for 5 nanometers.
+        while distance < 5 * ratio {
+          distance += 0.050
+          let atomPosition = SIMD3<Float>(distance * eigenVector)
+          thisFrameAtoms.append(Entity(position: atomPosition, type: .atom(Element(rawValue: eigenVectorAtomicNumber)!)))
+        }
+        
+        eigenVectorAtomicNumber -= 1
+      }
+      
+      /*
+        // Print the eigenvalues
+        printf("The eigenvalues are:\n");
+        for (int i = 0; i < 3; i++) {
+          printf("%f\n", lambda[i]);
+        }
+        // Find the eigenvectors of the inertia tensor using Gaussian elimination
+        eigen(I, lambda, v);
+        // Print the eigenvectors
+        printf("The eigenvectors are:\n");
+        for (int i = 0; i < 3; i++) {
+          print_vector(v[i]);
+        }
+        // Construct the matrix of eigenvectors
+        for (int i = 0; i < 3; i++) {
+          P.a[0][i] = v[i].x;
+          P.a[1][i] = v[i].y;
+          P.a[2][i] = v[i].z;
+        }
+        // Print the matrix of eigenvectors
+        printf("The matrix of eigenvectors is:\n");
+        print_matrix(P);
+        // Find the inverse of the matrix of eigenvectors
+        P_inv = invert(P);
+        // Print the inverse of the matrix of eigenvectors
+        printf("The inverse of the matrix of eigenvectors is:\n");
+        print_matrix(P_inv);
+        // Diagonalize the inertia tensor using the formula D = P_inv * I * P
+        D = multiply(multiply(P_inv, I), P);
+        // Print the diagonalized inertia tensor
+        printf("The diagonalized inertia tensor is:\n");
+        print_matrix(D);
+        // Return 0 to indicate successful execution
+        return 0;
+       }
+      */
+      
+      // MARK: - Unit Tests for Eigendecomposition of the Inertia Tensor
+      
+      /*
+       original inertia tensor
+
+       [  4049.466   -782.010     -0.000]
+       [  -782.010 106424.828     -0.000]
+       [    -0.000     -0.000 109983.742]
+
+       10.0° |  1.000  0.000  0.000
+
+       [  4049.468   -770.131   -135.795]
+       [  -770.131 106532.141   -608.610]
+       [  -135.795   -608.610 109876.430]
+
+       - eigenpair: 109983.74 | SIMD3<Float>(-1.4592249e-06, -0.17364776, 0.98480785)
+       - eigenpair: 106430.8 | SIMD3<Float>(-0.0076380027, 0.98477906, 0.17364302)
+       - eigenpair: 4043.4949 | SIMD3<Float>(-0.99997085, -0.0075219646, -0.0013263224)
+
+       20.0° |  1.000  0.000  0.000
+
+       [  4049.466   -734.850   -267.464]
+       [  -734.850 106841.125  -1143.814]
+       [  -267.464  -1143.814 109567.414]
+
+       - eigenpair: 109983.73 | SIMD3<Float>(-8.911204e-08, -0.34202006, 0.9396927)
+       - eigenpair: 106430.78 | SIMD3<Float>(0.0076379967, -0.93966526, -0.34201008)
+       - eigenpair: 4043.4932 | SIMD3<Float>(0.99997085, 0.0071773687, 0.0026123496)
+
+       30.0° |  1.000  0.000  0.000
+
+       [  4049.467   -677.242   -391.005]
+       [  -677.242 107314.539  -1541.056]
+       [  -391.005  -1541.056 109094.000]
+
+       - eigenpair: 109983.73 | SIMD3<Float>(-9.233208e-07, 0.49999985, -0.8660255)
+       - eigenpair: 106430.78 | SIMD3<Float>(0.007637999, -0.8660003, -0.4999851)
+       - eigenpair: 4043.494 | SIMD3<Float>(-0.99997085, -0.0066147023, -0.0038189972)
+
+       40.0° |  1.000  0.000  0.000
+
+       [  4049.468   -599.055   -502.667]
+       [  -599.055 107895.273  -1752.424]
+       [  -502.667  -1752.424 108513.273]
+
+       - eigenpair: 109983.734 | SIMD3<Float>(-1.0875323e-06, -0.64278734, 0.7660447)
+       - eigenpair: 106430.79 | SIMD3<Float>(0.0076379958, -0.76602215, -0.6427688)
+       - eigenpair: 4043.4949 | SIMD3<Float>(0.99997085, 0.005851044, 0.00490961)
+
+       50.0° |  1.000  0.000  0.000
+
+       [  4049.468   -502.667   -599.055]
+       [  -502.667 108513.289  -1752.425]
+       [  -599.055  -1752.425 107895.289]
+
+       - eigenpair: 109983.75 | SIMD3<Float>(-2.4222502e-06, 0.76604486, -0.64278716)
+       - eigenpair: 106430.805 | SIMD3<Float>(0.0076379925, -0.6427688, -0.76602215)
+       - eigenpair: 4043.495 | SIMD3<Float>(-0.99997085, -0.004909607, -0.0058510415)
+
+       60.0° |  1.000  0.000  0.000
+
+       [  4049.468   -391.006   -677.241]
+       [  -391.006 109094.016  -1541.056]
+       [  -677.241  -1541.056 107314.562]
+
+       - eigenpair: 109983.75 | SIMD3<Float>(-2.2484057e-06, -0.86602485, 0.500001)
+       - eigenpair: 106430.805 | SIMD3<Float>(0.007637995, -0.499986, -0.8659998)
+       - eigenpair: 4043.495 | SIMD3<Float>(-0.99997085, -0.0038189993, -0.0066146962)
+
+       70.0° |  1.000  0.000  0.000
+
+       [  4049.467   -267.464   -734.850]
+       [  -267.464 109567.414  -1143.814]
+       [  -734.850  -1143.814 106841.125]
+
+       - eigenpair: 109983.73 | SIMD3<Float>(-1.8781752e-06, 0.93969274, -0.34201977)
+       - eigenpair: 106430.78 | SIMD3<Float>(0.0076379976, -0.34201017, -0.9396652)
+       - eigenpair: 4043.494 | SIMD3<Float>(0.99997085, 0.0026123498, 0.0071773697)
+
+       80.0° |  1.000  0.000  0.000
+
+       [  4049.468   -135.795   -770.131]
+       [  -135.795 109876.430   -608.611]
+       [  -770.131   -608.611 106532.148]
+
+       - eigenpair: 109983.74 | SIMD3<Float>(-8.329109e-07, 0.9848077, -0.17364843)
+       - eigenpair: 106430.805 | SIMD3<Float>(-0.007638003, 0.17364354, 0.98477894)
+       - eigenpair: 4043.4944 | SIMD3<Float>(0.99997085, 0.001326325, 0.0075219646)
+
+       90.0° |  1.000  0.000  0.000
+
+       [  4049.466     -0.000   -782.010]
+       [    -0.000 109983.742     -0.000]
+       [  -782.010     -0.000 106424.828]
+
+       - eigenpair: 109983.74 | SIMD3<Float>(-1.2692162e-05, -1.0, 2.87981e-06)
+       - eigenpair: 106430.805 | SIMD3<Float>(-0.0076379897, 9.090486e-08, 0.99997085)
+       - eigenpair: 4043.4932 | SIMD3<Float>(0.99997085, 7.704745e-10, 0.0076379897)
+       */
+      
+      /*
+       
+       original inertia tensor
+
+       [  4049.466   -782.010     -0.000]
+       [  -782.010 106424.828     -0.000]
+       [    -0.000     -0.000 109983.742]
+
+       10.0° |  0.000  0.894  0.894
+
+       [  7102.700   7063.030  16219.079]
+       [  7063.030 105928.656  -1135.441]
+       [ 16219.079  -1135.441 107426.695]
+
+       - eigenpair: 109983.75 | SIMD3<Float>(0.15531562, -0.0060769385, 0.9878462)
+       - eigenpair: 106430.805 | SIMD3<Float>(-0.07013358, -0.99752563, 0.0048903762)
+       - eigenpair: 4043.4946 | SIMD3<Float>(-0.9853722, 0.07004075, 0.15535751)
+
+       20.0° |  0.000  0.894  0.894
+
+       [ 16133.357  13980.624  30519.664]
+       [ 13980.624 104268.070  -4638.508]
+       [ 30519.664  -4638.508 100056.523]
+
+       - eigenpair: 109983.7 | SIMD3<Float>(0.30591223, -0.02412253, 0.9517541)
+       - eigenpair: 106430.76 | SIMD3<Float>(-0.14577411, -0.989078, 0.021786107)
+       - eigenpair: 4043.492 | SIMD3<Float>(0.94083345, -0.14540574, -0.3060875)
+
+       30.0° |  0.000  0.894  0.894
+
+       [ 30052.211  19119.611  41185.301]
+       [ 19119.611 101656.625 -10076.827]
+       [ 41185.301 -10076.827  88749.180]
+
+       - eigenpair: 109983.734 | SIMD3<Float>(0.4472136, -0.05358959, 0.89282036)
+       - eigenpair: 106430.79 | SIMD3<Float>(-0.21698543, -0.9748846, 0.050172657)
+       - eigenpair: 4043.4963 | SIMD3<Float>(0.8677081, -0.21616691, -0.4476098)
+
+       40.0° |  0.000  0.894  0.894
+
+       [ 47180.438  21846.162  46936.547]
+       [ 21846.162  98424.727 -16782.795]
+       [ 46936.547 -16782.795  74852.820]
+
+       - eigenpair: 109983.72 | SIMD3<Float>(nan, nan, nan)
+       - eigenpair: 106430.77 | SIMD3<Float>(0.28160313, 0.95537686, -0.08918928)
+       - eigenpair: 4043.4907 | SIMD3<Float>(-0.7682178, 0.28017434, 0.5756247)
+       recovered eigenvector: 109983.71891591714 | SIMD3<Float>(-0.57492703, 0.093580924, -0.81283545)
+
+       50.0° |  0.000  0.894  0.894
+
+       [ 65452.133  21820.650  47085.102]
+       [ 21820.650  94979.750 -23934.473]
+       [ 47085.102 -23934.473  60026.141]
+
+       - eigenpair: 109983.734 | SIMD3<Float>(-0.6851706, 0.14288588, -0.7142303)
+       - eigenpair: 106430.8 | SIMD3<Float>(0.33766657, 0.931147, -0.1376467)
+       - eigenpair: 4043.4966 | SIMD3<Float>(0.64538556, -0.33548316, -0.6862423)
+
+       60.0° |  0.000  0.894  0.894
+
+       [ 82663.453  19038.959  41616.652]
+       [ 19038.959  91756.047 -30655.078]
+       [ 41616.652 -30655.078  46038.535]
+
+       - eigenpair: 109983.74 | SIMD3<Float>(-0.77459675, 0.19999957, -0.6)
+       - eigenpair: 106430.8 | SIMD3<Float>(0.3834677, 0.90293205, -0.19407801)
+       - eigenpair: 4043.494 | SIMD3<Float>(nan, nan, nan)
+       recovered eigenvector: 4043.493889071387 | SIMD3<Float>(-0.50294375, 0.38041282, 0.7761016)
+
+       70.0° |  0.000  0.894  0.894
+
+       [ 96738.430  13833.156  31192.459]
+       [ 13833.156  89162.156 -36119.215]
+       [ 31192.459 -36119.215  34557.383]
+
+       - eigenpair: 109983.71 | SIMD3<Float>(-0.84048676, 0.2631916, -0.47361612)
+       - eigenpair: 106430.766 | SIMD3<Float>(0.41761842, 0.87158865, -0.25676477)
+       - eigenpair: 4043.497 | SIMD3<Float>(0.3452201, -0.41359818, -0.8424723)
+
+       80.0° |  0.000  0.894  0.894
+
+       [105979.484   6831.616  17069.654]
+       [  6831.616  87530.961 -39652.891]
+       [ 17069.654 -39652.891  26947.564]
+
+       - eigenpair: 109983.734 | SIMD3<Float>(-0.880839, 0.33054027, -0.3389185)
+       - eigenpair: 106430.78 | SIMD3<Float>(0.43907982, 0.8380694, -0.32380337)
+       - eigenpair: 4043.4932 | SIMD3<Float>(0.17700718, -0.43403092, -0.8833378)
+
+       90.0° |  0.000  0.894  0.894
+
+       [109271.977  -1116.872    949.448]
+       [ -1116.872  87078.758 -40815.188]
+       [   949.448 -40815.188  24107.334]
+
+       - eigenpair: 109983.76 | SIMD3<Float>(-0.89442736, 0.3999997, -0.19999988)
+       - eigenpair: 106430.81 | SIMD3<Float>(0.44720024, 0.80339265, -0.3931567)
+       - eigenpair: 4043.4954 | SIMD3<Float>(0.0034158754, -0.4410901, -0.89745635)
+       */
+      
+      /*
+       
+       original inertia tensor
+
+       [  4049.466   -782.010     -0.000]
+       [  -782.010 106424.828     -0.000]
+       [    -0.000     -0.000 109983.742]
+
+       10.0° |  0.302 -0.784 -0.784
+
+       [  6786.336   9140.271 -14035.544]
+       [  9140.271 105604.562   1077.542]
+       [-14035.544   1077.542 108067.125]
+
+       - eigenpair: 109983.734 | SIMD3<Float>(0.13861392, 0.045893345, -0.98928255)
+       - eigenpair: 106430.8 | SIMD3<Float>(0.08311635, 0.9948623, 0.05779809)
+       - eigenpair: 4043.4946 | SIMD3<Float>(0.9868525, -0.09023718, 0.13408728)
+
+       20.0° |  0.302 -0.784 -0.784
+
+       [ 14988.880  18721.973 -26066.104]
+       [ 18721.973 102661.570   4843.333]
+       [-26066.104   4843.333 102807.531]
+
+       - eigenpair: 109983.72 | SIMD3<Float>(-0.27798817, -0.07746486, 0.9574559)
+       - eigenpair: 106430.77 | SIMD3<Float>(-0.16414261, -0.9782524, -0.12680468)
+       - eigenpair: 4043.4937 | SIMD3<Float>(0.94645643, -0.19240952, 0.2592273)
+
+       30.0° |  0.302 -0.784 -0.784
+
+       [ 27748.875  26787.699 -34814.973]
+       [ 26787.699  97504.898  10952.274]
+       [-34814.973  10952.274  95204.203]
+       Could not invert matrix: (SIMD3<Double>(-82234.84168607595, 26787.69921875, -34814.97265625), SIMD3<Double>(26787.69921875, -12478.818248575946, 10952.2744140625), SIMD3<Double>(-34814.97265625, 10952.2744140625, -14779.513561075946)) (SIMD3<Double>(inf, inf, -inf), SIMD3<Double>(inf, inf, -inf), SIMD3<Double>(-inf, -inf, inf))
+       recovered eigenvector: 109983.71668607595 | SIMD3<Float>(0.41388798, 0.09375615, -0.9054869)
+
+       - eigenpair: 109983.72 | SIMD3<Float>(0.41388798, 0.09375615, -0.9054869)
+       - eigenpair: 106430.77 | SIMD3<Float>(0.23297852, 0.9506457, 0.20492388)
+       - eigenpair: 4043.49 | SIMD3<Float>(-0.88001007, 0.29577452, -0.37161765)
+
+       40.0° |  0.302 -0.784 -0.784
+
+       [ 43650.941  32289.797 -39427.980]
+       [ 32289.797  90309.625  18746.305]
+       [-39427.980  18746.305  86497.430]
+
+       - eigenpair: 109983.72 | SIMD3<Float>(0.54218394, 0.0942708, -0.8349548)
+       - eigenpair: 106430.78 | SIMD3<Float>(0.28753302, 0.9128811, 0.28978074)
+       - eigenpair: 4043.4956 | SIMD3<Float>(-0.78953236, 0.39719152, -0.46784353)
+
+       50.0° |  0.302 -0.784 -0.784
+
+       [ 60939.469  34437.016 -39570.430]
+       [ 34437.016  81509.359  27331.355]
+       [-39570.430  27331.355  78009.242]
+
+       - eigenpair: 109983.76 | SIMD3<Float>(-0.6589778, -0.07899367, 0.7480028)
+       - eigenpair: 106430.82 | SIMD3<Float>(-0.32614848, -0.8661061, -0.37879735)
+       - eigenpair: 4043.4927 | SIMD3<Float>(-0.6777724, 0.49357903, -0.544981)
+
+       60.0° |  0.302 -0.784 -0.784
+
+       [ 77725.430  32793.758 -35460.660]
+       [ 32793.758  71757.102  35683.781]
+       [-35460.660  35683.781  70975.531]
+
+       - eigenpair: 109983.75 | SIMD3<Float>(-0.76072127, -0.048389822, 0.6472724)
+       - eigenpair: 106430.805 | SIMD3<Float>(-0.3476508, -0.8117418, -0.46926978)
+       - eigenpair: 4043.5024 | SIMD3<Float>(-0.548126, 0.5820083, -0.6006865)
+
+       70.0° |  0.302 -0.784 -0.784
+
+       [ 92208.320  27338.090 -27836.654]
+       [ 27338.090  61858.945  42773.527]
+       [-27836.654  42773.527  66390.766]
+
+       - eigenpair: 109983.74 | SIMD3<Float>(0.8443226, 0.0033884414, -0.5358244)
+       - eigenpair: 106430.8 | SIMD3<Float>(0.35138723, 0.75144005, 0.5584486)
+       - eigenpair: 4043.4944 | SIMD3<Float>(0.4045322, -0.65979266, 0.6332672)
+
+       80.0° |  0.302 -0.784 -0.784
+
+       [102886.453  18470.988 -17859.629]
+       [ 18470.988  52688.156  47688.988]
+       [-17859.629  47688.988  64883.441]
+
+       - eigenpair: 109983.75 | SIMD3<Float>(0.90724087, -0.054644696, -0.41704673)
+       - eigenpair: 106430.805 | SIMD3<Float>(0.33724615, 0.6870333, 0.6436228)
+       - eigenpair: 4043.4941 | SIMD3<Float>(-0.2513544, 0.7245683, -0.6417334)
+
+       90.0° |  0.302 -0.784 -0.784
+
+       [108730.711   6975.808  -6966.566]
+       [  6975.808  45089.371  49748.707]
+       [ -6966.566  49748.707  66638.031]
+
+       - eigenpair: 109983.78 | SIMD3<Float>(-0.947566, 0.12394297, 0.29454523)
+       - eigenpair: 106430.83 | SIMD3<Float>(-0.30565315, -0.6204782, -0.72220695)
+       - eigenpair: 4043.5017 | SIMD3<Float>(0.09324642, -0.7743674, 0.6258276)
+       */
+      
+      // MARK: - Visual Validation Test of Eigendecomposition
+      
+      // Visualize the rigid body along with its eigenvectors.
+      for i in rigidBody.parameters.atoms.indices {
+        let position = rigidBody.positions[i]
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[i]
+        let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
+        thisFrameAtoms.append(entity)
+      }
+      
+      // Animate the rotation by keeping each eigenbasis active for 30 frames.
+//      for _ in 0..<30/10 {
+      do {
+        allOutputFrames.append(thisFrameAtoms)
+      }
     }
+    return allOutputFrames
   }
 }
