@@ -132,7 +132,7 @@ Technical details of the liberal upper bound:
 
 ## Addendum: Diagonalizing the Moment of Inertia
 
-To go all-in on rigid body dynamics, I am rewriting the internal representation of `MM4RigidBody`. One beautiful part about this IR is how atoms are stored. Then are shifted into a local coordinate space where `[0, 0, 0]` is the center of mass. They are also rotated so the cardinal axes align with the principal moments of inertia.
+To go all-in on rigid body dynamics, I am rewriting the internal representation of `MM4RigidBody`. One beautiful part about this IR is how atoms are stored. They are shifted into a local coordinate frame where `[0, 0, 0]` is the center of mass. They are also rotated so the cardinal axes align with the principal moments of inertia.
 
 It took several hours, but I accomplished a stable method of eigendecomposing the matrix. I used the direct analytical solution to cubic polynomials, which involved some debugging of complex numbers (GPT-4 used the iterative method that 99% of people use). The second part was solving some systems of linear equations. GPT-4 was using Gaussian elimination, but there was some hidden bug I could not solve. Instead, I went with direct matrix inversion.
 
