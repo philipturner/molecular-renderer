@@ -1,5 +1,16 @@
 # Hardware Catalog
 
+The hardware catalog contains various images, Markdown files, and snippets of source code. They are organized into a file directory. On GitHub, the Markdown files transform into web pages with images and formatted text. This is the preferred method for reading the hardware catalog.
+
+Table of Contents
+- [Materials](./Materials/README.md)
+- [Miscellaneous](./Other/README.md)
+- [Parts](./Parts/README.md)
+- [Simulation](./Simulation/README.md)
+- [Systems](./Systems/README.md)
+
+## About
+
 This is an archive to organize a large volume of nanomechanical experiments, designs, and demos. It was originally intended to be a software library, where parts could be instantiated from an API with parametric dimensions. It would reduce the amount of human effort to design large systems. Design a part once, catalogue it, and recycle in future projects with no effort.
 
 However, that approach proved inappropriate for a mechanical engineering context. The article below explains how this approach - the VLSI approach of reusing functional blocks - does not work for mechanical engineering. Molecular nanotechnology is partially immune to the claims from the article. Nanofactories are designed be modular. There's separation of variables and separation of concerns. Housing is extremely stiff, removing the coupling between nearby parts. Subsystems can genuinely be isolated. This does not happen at macroscale where the immense amount of matter required, and tight profit margins, motivate practices that couple numerous parts in non-scalable ways.
@@ -24,3 +35,7 @@ For reference, the section headings of that chapter are enumerated:
   - <b>b)</b> Design compilers
   - <b>c)</b> The economics of compiler development
 - <b>14.6.6</b> Relative complexities
+
+## Usage
+
+When using the Molecular Renderer app, you can add source code files to the Xcode target. Go to the banner on the right (<b>Identity and Type</b>) > <b>Target Membership</b> > <b>MolecularRendererApp</b> > check the box. Not every piece of code will compile. Some of the projects are actively maintained as their dependencies receive breaking API changes. Most should compile with minor modifications.

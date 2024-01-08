@@ -37,6 +37,8 @@ Originally, the MM4 library was planned to reproduce `setVelocitiesToTemperature
 
 When using `setVelocitiesToTemperature` directly, the function violates conservation of momentum. The old MM4 implementation automatically corrected for momentum drift, and the new MM4 implementation was originally planned to contain such functionality. However, a major overhaul to `MM4RigidBody` changed that plan. The overhaul made quantities like linear and angular momentum much easier to work with. It became feasible to script together some code for correcting momentum drift on the client side. Therefore, the code was relocated from `MM4` to the hardware catalog.
 
+> WARNING: setVelocitiesToTemperature from OpenMM assumes masses are in `amu`. With the MM4 framework, masses are in a different unit: `yg`. Take extreme caution when setting thermal velocities, to make sure all units are correct. The formula from the function body below may be helpful. You can compute the expected energy per particle, in zJ. Then, compute the average energy of the generated thermal velocities. Assert that they agree with a 1&ndash;5% margin of error.
+
 ```swift
 extension MM4RigidBody {
   public mutating func setThermalKineticEnergy(

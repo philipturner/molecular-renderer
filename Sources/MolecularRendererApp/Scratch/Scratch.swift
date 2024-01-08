@@ -41,10 +41,6 @@ import OpenMM
 //   - Measure execution time of the energy minimization, then add a unit test.
 
 func createNCFMechanism() -> [[Entity]] {
-//  let mechanism = NCFMechanism(partCount: 2)
-//  return NCFMechanism.createEntities(
-//    mechanism.parts.map(\.rigidBody))
-  
   var output: [[Entity]] = []
   for _ in 0..<10 {
     output += NCFMechanism.simulationExperiment5()
