@@ -122,6 +122,8 @@ Rigid Body Dynamics (300 yJ/atom tolerance):
 
 Here is a rough estimate of the upper bound to simulation speed. Note that it is a liberal estimate, the only number that can be proven with certainty. The real-world performance will likely be at least 2-3x slower. However, the real-world performance of the old MM4 implementation was also 2-3x slower than OpenMM water box. The gap may exist because of MM4 torsions and cross-terms. These forces are omitted from the new MM4 (technically included in the codebase, but rarely used).
 
+> Note: The label "MolecularRenderer" in this graph has no relation to the ray tracer. I use OpenMM for all simulation. This graph was originally part of a research project to design a simulator from scratch, and establish proofs about maximum simulation speed. I didn't know what to name it. So I called it the same name as the repository for presenting the animations. Hence, the beginning of the project name "Molecular Renderer". https://github.com/philipturner/noble-gas-md-simulation
+
 ![Molecular Simulation Speed](./MolecularSimulationSpeed.png)
 
 Technical details of the liberal upper bound:
