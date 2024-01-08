@@ -128,7 +128,7 @@ Here is a rough estimate of the upper bound to simulation speed. Note that it is
 
 Technical details of the liberal upper bound:
 - Rigid body dynamics uses 1 nm radius for diamond, padding the overhead of search from 700 atoms to effectively 1000 atoms. It does not account for the use of the more expensive Buckingham potential. Theoretically, the MM4RigidBody component of MM4 could be separated out and used with a custom GPU kernel to calculate forces.
-- Rigid body dynamics assumes an 80 fs timestep, compared to 4 fs for molecular dynamics. It also assumes a performance ceiling equalling that of OpenMM with neighbor lists (1120 ns/day).
+- Rigid body dynamics assumes an 80 fs timestep, compared to 4 fs for molecular dynamics. It also assumes a performance ceiling equalling that of OpenMM with neighbor lists (1120 ns/day @ 4 fs/step).
 
 ## Addendum: Diagonalizing the Moment of Inertia
 
