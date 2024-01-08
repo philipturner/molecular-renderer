@@ -224,6 +224,9 @@
 		98D975BE2AC222A30052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975BF2AC224C10052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975C02AC225850052EE6C /* DiamondRope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondRope.swift; sourceTree = "<group>"; };
+		98E23B1E2B4C7BAF00B5A7D5 /* MaterialHeatCapacities.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialHeatCapacities.png; sourceTree = "<group>"; };
+		98E23B1F2B4C7BAF00B5A7D5 /* MaterialEnthalpies.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialEnthalpies.png; sourceTree = "<group>"; };
+		98E23B202B4C7E8700B5A7D5 /* MM4RigidBody+Temperature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4RigidBody+Temperature.swift"; sourceTree = "<group>"; };
 		98E2C6152AC24D68002612CC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E2C6162AC24D8C002612CC /* RhombicDodecahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhombicDodecahedron.swift; sourceTree = "<group>"; };
 		98E2C61C2AC27AF5002612CC /* DiamondRope_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiamondRope_Image1.jpg; sourceTree = "<group>"; };
@@ -344,7 +347,10 @@
 		981360E32B48CFC60007D40F /* HeatCapacity */ = {
 			isa = PBXGroup;
 			children = (
+				98E23B1F2B4C7BAF00B5A7D5 /* MaterialEnthalpies.png */,
+				98E23B1E2B4C7BAF00B5A7D5 /* MaterialHeatCapacities.png */,
 				981360E42B48CFD70007D40F /* MM4RigidBody+HeatCapacity.swift */,
+				98E23B202B4C7E8700B5A7D5 /* MM4RigidBody+Temperature.swift */,
 				981360E62B48D0320007D40F /* README.md */,
 			);
 			path = HeatCapacity;
