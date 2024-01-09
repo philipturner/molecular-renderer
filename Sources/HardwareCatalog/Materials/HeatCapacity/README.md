@@ -93,3 +93,11 @@ reference, here are some common heat capacities:
 - Silicon: 2.41 kT at 298 K, 2.84 kT at 500 K ([Desai, 1985](https://srd.nist.gov/JPCRD/jpcrd298.pdf)).
 
 ![Material Heat Capacities](./MaterialHeatCapacities.png)
+
+## Addendum: Material Enthalpies
+
+While trying to make sense of the mismatch between the quantum and classical models of heat capacity, I examined enthalpy. This is the energy entered into a system starting from the zero-point energy at 0 Kelvin. I converted the heat capacities from kT into zJ, integrated over temperature, then converted back into kT at the destination temperature.
+
+I think the line for silicon (yellow) is off by a factor of 2. I had to divide some stuff by 2 while converging molar heat capacity into atomic heat capacity for silicon. That Google Sheets formula may have carried over into the column for silicon data. If the yellow line is increased a factor of 2, the graph seems to make more sense. The graph is not going to be regenerated, because it's considered irrelevant and is not maintenance worth investing time in.
+
+![Material Enthalpies](./MaterialEnthalpies.png)
