@@ -10,6 +10,8 @@ A crystolecule, loosely inspired by NCF mechanisms, was designed with the hardwa
 
 By relying on non-contact forces, one can entirely eliminate deformations from the system. This allows the equations of motion to be integrated with rigid body dynamics, which assumes the objects are infinitely stiff and non-deformable. Ideally, one would energy-minimize beforehand in a non-rigid model, then freeze the atom positions into a rigid body. I'm not yet sure whether one can have hybrid MM-RBM (molecular mechanics + rigid body mechanics) in the same way as existing QM-MM (quantum mechanics + molecular mechanics) simulations. There are some ideas for modeling deformations in an RBM context with or without bond stretching/bending forces.
 
+Generally, multiscale simulations happen with the same simulation framework. Hybrid QM-MM simulations with xTB use a molecular mechanical model embedded into xTB. This is the GFN-FF force field. The speed difference between two levels of theory is a factor of 10&ndash;100. If RBM were to be combined with MM, it would likely happen within the same simulation framework: MM4. The speed difference between different levels of theory would also be ~10x.
+
 Objectives:
 - Investigate the maximum possible timestep with rigid body dynamics.
 - Recycle this experiment into a set of low-latency MM4 unit tests, covering
