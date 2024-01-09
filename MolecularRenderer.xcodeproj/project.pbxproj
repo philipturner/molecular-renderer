@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9802CB302A71AA76004AFD03 /* Serialization.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9802CB2F2A71AA76004AFD03 /* Serialization.metal */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360DA2B4861010007D40F /* NCFPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981360D92B4861000007D40F /* NCFPart.swift */; };
@@ -232,6 +231,10 @@
 		98E23B232B4C824A00B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E23B242B4C825300B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E23B252B4C825C00B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98E23B282B4CC5DA00B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98E23B2C2B4CC61900B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98E23B2D2B4CC6C000B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98E23B2E2B4CCCCB00B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E2C6152AC24D68002612CC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E2C6162AC24D8C002612CC /* RhombicDodecahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhombicDodecahedron.swift; sourceTree = "<group>"; };
 		98E2C61C2AC27AF5002612CC /* DiamondRope_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiamondRope_Image1.jpg; sourceTree = "<group>"; };
@@ -244,7 +247,6 @@
 		98EA89F42B40E34E00DC5C7E /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
 		98EA89F62B40E35A00DC5C7E /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
 		98EA89F72B40E37000DC5C7E /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
-		98EA8A002B41070F00DC5C7E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98F012612B266FA70037318D /* Bootstrapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping.swift; sourceTree = "<group>"; };
 		98F012632B2671080037318D /* Bootstrapping_Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Tripod.swift; sourceTree = "<group>"; };
 		98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_BuildPlate.swift; sourceTree = "<group>"; };
@@ -433,14 +435,6 @@
 			path = "Chapter 9";
 			sourceTree = "<group>";
 		};
-		98325C6C2A6D869A00A4D7BB /* IO */ = {
-			isa = PBXGroup;
-			children = (
-				9802CB2F2A71AA76004AFD03 /* Serialization.metal */,
-			);
-			path = IO;
-			sourceTree = "<group>";
-		};
 		98518AE12A74A6B200CAD919 /* Chapter 4 */ = {
 			isa = PBXGroup;
 			children = (
@@ -457,6 +451,7 @@
 				98B25A302B393AA800081A61 /* Materials */,
 				98EA89FC2B40E54100DC5C7E /* Miscellaneous */,
 				98B25A322B393AEE00081A61 /* Parts */,
+				98E23B272B4CC5B900B5A7D5 /* Serialization */,
 				98B25A2F2B393A7B00081A61 /* Simulation */,
 				98B25A332B393B0A00081A61 /* Systems */,
 				987234F02ABE860300E427E5 /* README.md */,
@@ -468,7 +463,6 @@
 			isa = PBXGroup;
 			children = (
 				98F83E1C2AE496C40037E31A /* DFT.md */,
-				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
 				98D2A3312AA2DF4D000DBAA0 /* References.md */,
 			);
 			path = Documentation;
@@ -501,8 +495,6 @@
 				98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */,
 				98F638992A349F7300F51E95 /* MolecularRenderer */,
 				98F638962A349D6A00F51E95 /* MolecularRendererApp */,
-				98F638A52A34A24E00F51E95 /* MolecularRendererGPU */,
-				98F83E1D2AE4BF630037E31A /* SimulationImport */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -615,16 +607,6 @@
 			path = Systems;
 			sourceTree = "<group>";
 		};
-		98B27F642AACD42E0081F2B4 /* scripts */ = {
-			isa = PBXGroup;
-			children = (
-				98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */,
-				98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */,
-				98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */,
-			);
-			path = scripts;
-			sourceTree = "<group>";
-		};
 		98B6BE092AEF080A00F8655C /* Chapter 12 */ = {
 			isa = PBXGroup;
 			children = (
@@ -671,6 +653,51 @@
 				98B3E4EB2A3F6F2200B02349 /* libOpenMM.8.0.dylib */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		98E23B272B4CC5B900B5A7D5 /* Serialization */ = {
+			isa = PBXGroup;
+			children = (
+				98E23B2B2B4CC5FD00B5A7D5 /* Base64 */,
+				98E23B292B4CC5E300B5A7D5 /* GIF */,
+				98E23B2A2B4CC5E900B5A7D5 /* MRSimulation */,
+				98F83E1D2AE4BF630037E31A /* SimulationImport */,
+				98E23B282B4CC5DA00B5A7D5 /* README.md */,
+			);
+			path = Serialization;
+			sourceTree = "<group>";
+		};
+		98E23B292B4CC5E300B5A7D5 /* GIF */ = {
+			isa = PBXGroup;
+			children = (
+				988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */,
+				98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */,
+				98E23B2D2B4CC6C000B5A7D5 /* README.md */,
+			);
+			path = GIF;
+			sourceTree = "<group>";
+		};
+		98E23B2A2B4CC5E900B5A7D5 /* MRSimulation */ = {
+			isa = PBXGroup;
+			children = (
+				98B27F612AABC6E30081F2B4 /* MRSimulationDecoder.swift */,
+				98B27F622AABC7020081F2B4 /* MRSimulationDecoder.py */,
+				98B27F632AABC7130081F2B4 /* MRSimulationDecoder.rs */,
+				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
+				9802CB2F2A71AA76004AFD03 /* Serialization.metal */,
+				98325C612A6D76E500A4D7BB /* Serializer.swift */,
+				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
+			);
+			path = MRSimulation;
+			sourceTree = "<group>";
+		};
+		98E23B2B2B4CC5FD00B5A7D5 /* Base64 */ = {
+			isa = PBXGroup;
+			children = (
+				981360F22B49AF300007D40F /* Base64.swift */,
+				98E23B2C2B4CC61900B5A7D5 /* README.md */,
+			);
+			path = Base64;
 			sourceTree = "<group>";
 		};
 		98E2C6142AC24D57002612CC /* RhombicDodecahedron */ = {
@@ -722,23 +749,9 @@
 				980E70162A5E51B60051797F /* Bootstrapping */,
 				98EA89FF2B41047800DC5C7E /* Diamondoid */,
 				98325C4D2A6B4F9200A4D7BB /* Nanosystems */,
-				98EA89FE2B41045100DC5C7E /* Serialization */,
 				98E23B232B4C824A00B5A7D5 /* README.md */,
 			);
 			path = Miscellaneous;
-			sourceTree = "<group>";
-		};
-		98EA89FE2B41045100DC5C7E /* Serialization */ = {
-			isa = PBXGroup;
-			children = (
-				981360F22B49AF300007D40F /* Base64.swift */,
-				988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */,
-				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
-				98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */,
-				98325C612A6D76E500A4D7BB /* Serializer.swift */,
-				98EA8A002B41070F00DC5C7E /* README.md */,
-			);
-			path = Serialization;
 			sourceTree = "<group>";
 		};
 		98EA89FF2B41047800DC5C7E /* Diamondoid */ = {
@@ -775,6 +788,10 @@
 		98F638992A349F7300F51E95 /* MolecularRenderer */ = {
 			isa = PBXGroup;
 			children = (
+				981FCFED29ECADF5009904A2 /* Lighting */,
+				98FB907D2A5CF8FD00685E5C /* Ray Tracing */,
+				98FB907E2A5CF91A00685E5C /* Uniform Grids */,
+				98FB907F2A5CF94F00685E5C /* Utilities */,
 				980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */,
 				98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Build.swift */,
 				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
@@ -785,27 +802,15 @@
 				98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
 				98B25A162B33562E00081A61 /* Utilities.swift */,
+				98E23B2E2B4CCCCB00B5A7D5 /* README.md */,
 			);
 			path = MolecularRenderer;
-			sourceTree = "<group>";
-		};
-		98F638A52A34A24E00F51E95 /* MolecularRendererGPU */ = {
-			isa = PBXGroup;
-			children = (
-				98325C6C2A6D869A00A4D7BB /* IO */,
-				981FCFED29ECADF5009904A2 /* Lighting */,
-				98FB907D2A5CF8FD00685E5C /* Ray Tracing */,
-				98FB907E2A5CF91A00685E5C /* Uniform Grids */,
-				98FB907F2A5CF94F00685E5C /* Utilities */,
-			);
-			path = MolecularRendererGPU;
 			sourceTree = "<group>";
 		};
 		98F83E1D2AE4BF630037E31A /* SimulationImport */ = {
 			isa = PBXGroup;
 			children = (
 				98F83E1E2AE4BF630037E31A /* Cargo.toml */,
-				98B27F642AACD42E0081F2B4 /* scripts */,
 				98F83E242AE4BF630037E31A /* src */,
 				98F83E1F2AE4BF630037E31A /* tests */,
 				98F83E232AE4BF630037E31A /* README.md */,
@@ -1129,7 +1134,6 @@
 				98537EB72A63107F0037C392 /* Atomic.metal in Sources */,
 				98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
-				9802CB302A71AA76004AFD03 /* Serialization.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

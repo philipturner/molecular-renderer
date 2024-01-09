@@ -949,7 +949,7 @@ extension NCFMechanism {
       }
       
       let eigenValues: [Double] = [roots.0.x, roots.1.x, roots.2.x]
-      
+      var hadAFailure = false
       
        var eigenVectors: [SIMD3<Double>] = []
       for eigenValue in eigenValues {
@@ -960,42 +960,63 @@ extension NCFMechanism {
         B.1.y -= eigenValue
         B.2.z -= eigenValue
         
-        let B_inv = cross_platform_inverse3x3(B)
-//        print("- B_inv.columns.0 =", B_inv.0)
-//        print("- B_inv.columns.1 =", B_inv.1)
-//        print("- B_inv.columns.2 =", B_inv.2)
-        
-        // All 3 of the matrix's columns are a multiple of the same vector! It
-        // is a singular matrix.
-        var chosenVector: SIMD3<Double>?
-        for candidate in [B_inv.0, B_inv.1, B_inv.2] {
-          let length = (candidate * candidate).sum().squareRoot()
-          let normalized = candidate / length
-          let Ev = cross_platform_gemv3x3(I, normalized)
-//          let λ = (Ev * Ev).sum().squareRoot()
-          
-          if !normalized.x.isNaN {
-            chosenVector = normalized
+        var trialID = 0
+        while true {
+          trialID += 1
+          if trialID > 10 {
+            fatalError("Failed to diagonalize the inertia tensor.")
           }
           
-//          print("  - candidate: \(λ) | \(normalized)")
-        }
-        guard let chosenVector else {
-          print("Could not invert matrix: \(B) \(B_inv)")
+          let B_inv = cross_platform_inverse3x3(B)
+  //        print("- B_inv.columns.0 =", B_inv.0)
+  //        print("- B_inv.columns.1 =", B_inv.1)
+  //        print("- B_inv.columns.2 =", B_inv.2)
           
-          // We'll have to fix the fact that eigenvectors are sometimes NAN.
-          // If only one is NAN, we might be able to recover it using the cross
-          // product. Otherwise, we'll need something more convoluted like
-          // Gaussian elimination.
-          eigenVectors.append([42, 0, 0])
-          continue
+          // All 3 of the matrix's columns are a multiple of the same vector! It
+          // is a singular matrix.
+          var chosenVector: SIMD3<Double>?
+          for candidate in [B_inv.0, B_inv.1, B_inv.2] {
+            let length = (candidate * candidate).sum().squareRoot()
+            let normalized = candidate / length
+  //          let Ev = cross_platform_gemv3x3(I, normalized)
+  //          let λ = (Ev * Ev).sum().squareRoot()
+            
+            if !normalized.x.isNaN {
+              chosenVector = normalized
+            }
+            
+  //          print("  - candidate: \(λ) | \(normalized)")
+          }
+          guard let chosenVector else {
+            print("Could not invert matrix: \(B) \(B_inv)")
+            hadAFailure = true
+            
+            // We'll have to fix the fact that eigenvectors are sometimes NAN.
+            // If only one is NAN, we might be able to recover it using the cross
+            // product. Otherwise, we'll need something more convoluted like
+            // Gaussian elimination.
+            
+            // Adding some noise makes the matrix no longer singular. So far,
+            // this has converged after 1 try. We provide a budget of 10
+            // retries.
+            B.0.x *= 1 + 1e-10
+            B.1.y *= 1 + 1e-10
+            B.2.z *= 1 + 1e-10
+            print("Retrying with: \(B) \(cross_platform_inverse3x3(B))")
+//            eigenVectors.append([42, 0, 0])
+            continue
+          }
+          
+          
+          eigenVectors.append(chosenVector)
+          break
         }
         
-        
-        eigenVectors.append(chosenVector)
+       
       }
       
       if eigenVectors.filter({ $0 == [42, 0, 0] }).count > 0 {
+        fatalError("The cross-product path was deactivated.")
         if eigenVectors.filter({ $0 == [42, 0, 0] }).count > 1 {
           fatalError("Too many eigenvectors were NAN.")
         } else {
@@ -1056,7 +1077,7 @@ extension NCFMechanism {
         while distance < 5 * ratio {
           distance += 0.050
           let atomPosition = SIMD3<Float>(distance * eigenVector)
-          thisFrameAtoms.append(Entity(position: atomPosition, type: .atom(Element(rawValue: eigenVectorAtomicNumber)!)))
+          thisFrameAtoms.append(Entity(position: atomPosition, type: .atom(Element(rawValue: hadAFailure ? 14 : eigenVectorAtomicNumber)!)))
         }
         
         eigenVectorAtomicNumber -= 1

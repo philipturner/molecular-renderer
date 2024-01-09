@@ -4,8 +4,9 @@ The hardware catalog contains various images, Markdown files, and snippets of so
 
 Table of Contents
 - [Materials](./Materials/README.md)
-- [Miscellaneous](./Other/README.md)
+- [Miscellaneous](./Miscellaneous/README.md)
 - [Parts](./Parts/README.md)
+- [Serialization](./Serialization/README.md)
 - [Simulation](./Simulation/README.md)
 - [Systems](./Systems/README.md)
 

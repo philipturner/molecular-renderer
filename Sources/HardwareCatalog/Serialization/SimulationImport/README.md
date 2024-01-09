@@ -1,9 +1,14 @@
 # Support external simulations format import
 
+Author: Alexey Novikov
+
 ## Molecular Renderer (MRSIM-TXT)
+
 Project GitHub: https://github.com/philipturner/molecular-renderer
 
-Vendor specification: https://github.com/philipturner/molecular-renderer/blob/main/Documentation/MRSimulation.md
+Vendor specification: 
+- original link: https://github.com/philipturner/molecular-renderer/blob/main/Documentation/MRSimulation.md
+- updated link: [../MRSimulation/README.md](../MRSimulation/README.md)
 
 File extensions: `mrsim-txt, mrsimulation-txt`
 

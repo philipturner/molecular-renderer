@@ -167,7 +167,6 @@ public class MRRenderer {
       initUpscaler()
     }
     initRayTracer(library: library)
-    initSerializer(library: library)
   }
   
   func initUpscaler() {
@@ -236,22 +235,5 @@ public class MRRenderer {
     desc.maxTotalThreadsPerThreadgroup = 1024
     self.rayTracingPipeline = try! device.makeComputePipelineState(
       descriptor: desc, options: [], reflection: nil)
-  }
-  
-  func initSerializer(library: MTLLibrary) {
-    let constants = MTLFunctionConstantValues()
-    let configs: [
-      (Bool, ReferenceWritableKeyPath<MRRenderer, MTLComputePipelineState?>)
-    ] = [(true, \.encodePipeline), (false, \.decodePipeline)]
-    
-    for (encode, keyPath) in configs {
-      var encodeCopy = encode
-      constants.setConstantValue(&encodeCopy, type: .bool, index: 300)
-      
-      let function = try! library.makeFunction(
-        name: "process_atoms", constantValues: constants)
-      let pipeline = try! device.makeComputePipelineState(function: function)
-      self[keyPath: keyPath] = pipeline
-    }
   }
 }
