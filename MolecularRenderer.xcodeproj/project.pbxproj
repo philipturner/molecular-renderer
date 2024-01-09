@@ -258,7 +258,7 @@
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F638C42A34F78A00F51E95 /* MRAtom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtom.swift; sourceTree = "<group>"; };
 		98F638CC2A34F97300F51E95 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
-		98F83E1C2AE496C40037E31A /* DFT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DFT.md; sourceTree = "<group>"; };
+		98F83E1C2AE496C40037E31A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98F83E1E2AE4BF630037E31A /* Cargo.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
 		98F83E202AE4BF630037E31A /* mrsim_txt.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mrsim_txt.rs; sourceTree = "<group>"; };
 		98F83E222AE4BF630037E31A /* StrainedShellBearing-15ps.mrsim-txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "StrainedShellBearing-15ps.mrsim-txt"; sourceTree = "<group>"; };
@@ -693,7 +693,7 @@
 		98E23B2F2B4CF03A00B5A7D5 /* DFT */ = {
 			isa = PBXGroup;
 			children = (
-				98F83E1C2AE496C40037E31A /* DFT.md */,
+				98F83E1C2AE496C40037E31A /* README.md */,
 			);
 			path = DFT;
 			sourceTree = "<group>";
