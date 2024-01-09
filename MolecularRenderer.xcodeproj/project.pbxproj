@@ -170,7 +170,7 @@
 		988EF0BD2A80105F004879E5 /* OctaneReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OctaneReference.swift; sourceTree = "<group>"; };
 		988EF0BF2A818E0B004879E5 /* GIFSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GIFSerializer.swift; sourceTree = "<group>"; };
 		98906AD82AA92FF300FE5832 /* RhombicDodecahedraSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhombicDodecahedraSimulation.swift; sourceTree = "<group>"; };
-		98906ADB2AAA68C000FE5832 /* MRSimulation.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = MRSimulation.md; sourceTree = "<group>"; };
+		98906ADB2AAA68C000FE5832 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRendererApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
 		9898382729A6C08F00B4AA98 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
@@ -686,7 +686,7 @@
 				9802CB312A71AA85004AFD03 /* MRSimulation.swift */,
 				9802CB2F2A71AA76004AFD03 /* Serialization.metal */,
 				98325C612A6D76E500A4D7BB /* Serializer.swift */,
-				98906ADB2AAA68C000FE5832 /* MRSimulation.md */,
+				98906ADB2AAA68C000FE5832 /* README.md */,
 			);
 			path = MRSimulation;
 			sourceTree = "<group>";
