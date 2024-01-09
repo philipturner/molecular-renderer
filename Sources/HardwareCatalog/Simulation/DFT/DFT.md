@@ -18,7 +18,7 @@ Goal: Combine a few recent advances in quantum chemistry. Do this with maximum p
   - Real-space removes the need for FFTs, both an additional library dependency and a bottleneck.
   - So far, every major commercial-quality codebase (GAUSSIAN, GAMESS) uses the plane-wave method. This CPU-designed algorithm isn't accelerator friendly, especially for medium-sized problems.
 
-## Recent Development 1
+## Development 1
 
 <s>I found a pathway that makes the proposed ideas much more feasible. I can modify the [DFT-FE](https://github.com/dftfeDevelopers/dftfe) codebase, adding Metal GPU support and the DeepMind 2021 XC functional. The plan is to analyze this codebase over the first few months of 2024, similarly to the actions taken with OpenMM in early 2023.
 
@@ -26,6 +26,6 @@ Progress on the Metal port is recorded here: https://gist.github.com/philipturne
 
 False alarm: this just adds an immense $O(n^2)$ prefactor to delay $O(n^3)$ scaling for supermassive systems. Optimized for supercomputers, but much slower for personal computers.
 
-## Recent Development 2
+## Development 2
 
 The DFT simulator may be unnecessary, as the silicon mechanosynthesis approach seems more viable than diamond mechanosynthesis. Silicon mechanosynthesis has already been proven in experiment and the build sequences are very simple. Therefore, there is less need to rely on quantum chemistry to predict which reactions will work.
