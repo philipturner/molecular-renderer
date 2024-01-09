@@ -23,17 +23,17 @@ Out of all the [ongoing efforts](https://astera.org/molecular-systems) to succee
 
 ## Installation
 
-Dependencies (Mac):
+Dependencies (Mac)
 - macOS 14
 - Xcode
 - [Metal Plugin](https://github.com/philipturner/openmm-metal) for OpenMM
 
-Dependencies (Linux):
+Dependencies (Linux)
 - Ubuntu 18&ndash;22
 - Visual Studio Code
 - [Swift Extension](https://www.swift.org/blog/vscode-extension) for Visual Studio Code
 
-Dependencies (Windows):
+Dependencies (Windows)
 - Windows 10&ndash;11
 - Visual Studio Code
 - [Swift Extension](https://www.swift.org/blog/vscode-extension) for Visual Studio Code
