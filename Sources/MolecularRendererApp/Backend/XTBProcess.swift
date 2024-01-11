@@ -18,12 +18,14 @@ enum XTBError: Error {
   case invalidFormatting(Int, String)
 }
 
-struct XTBProcess {
+class XTBProcess {
   var workspace: URL
   var anchors: [Int] = []
   var atoms: [HDL.Entity] = []
   var charge: Int = 0
   var spinMultiplicity: Int = 0
+  var standardError: Bool = true
+  var standardOutput: Bool = true
   
   init(path: String) {
     let url = URL(filePath: path, directoryHint: .isDirectory)
@@ -62,7 +64,7 @@ struct XTBProcess {
 // MARK: - I/O through SSD
 
 extension XTBProcess {
-  func writeSettings() {
+  func encodeSettings() -> String {
     var contents = ""
     if anchors.count > 0 {
       var anchorList: [String] = []
@@ -82,8 +84,14 @@ extension XTBProcess {
       $end
       
       """
+    } else {
+      contents = """
+      $fix
+      $end
+      
+      """
     }
-    writeFile(name: "xtb.inp", contents)
+    return contents
   }
   
   static let atomicNumbersToSymbolsMap: [UInt8: String] = [
@@ -266,5 +274,21 @@ extension XTBProcess {
 // MARK: - Process Invocation
 
 extension XTBProcess {
-  
+  func run(arguments: [String]) {
+    let url = URL(filePath: "/opt/homebrew/bin/xtb")
+    precondition(try! url.checkResourceIsReachable(), "'xtb' executable is not reachable.")
+    
+    let process = Process()
+    process.executableURL = url
+    process.currentDirectoryURL = workspace
+    process.arguments = arguments
+    if !standardError {
+      process.standardError = nil
+    }
+    if !standardOutput {
+      process.standardOutput = nil
+    }
+    try! process.run()
+    process.waitUntilExit()
+  }
 }

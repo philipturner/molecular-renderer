@@ -7,17 +7,45 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
-func createGeometry() -> [Entity] {
-  // Use the acetylene tutorial from the xTB docs until we get XTBProcess
-  // working, with a lower-latency workflow that can execute in a single
-  // Swift program.
-  var acetyleneAtoms: [Entity] = []
-  acetyleneAtoms.append(Entity(position: [0, 0, 0], type: .atom(.hydrogen)))
-  acetyleneAtoms.append(Entity(position: [0.11, 0, 0], type: .atom(.carbon)))
-  acetyleneAtoms.append(Entity(position: [0.23, 0, 0], type: .atom(.carbon)))
-  acetyleneAtoms.append(Entity(position: [0.34, 0, 0], type: .atom(.hydrogen)))
+func createNanoRobot() -> [Entity] {
+  let finger = RobotFinger()
+  return finger.topology.atoms
+}
+
+struct RobotFinger {
+  var topology = Topology()
   
-  let process = XTBProcess(path: "/Users/philipturner/Documents/OpenMM/xtb/cpu0")
-  process.writeSettings()
-  return acetyleneAtoms
+  init() {
+    compilationPass0()
+  }
+  
+  mutating func compilationPass0() {
+    let lattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      Bounds { 6 * h + 5 * h2k + 3 * l }
+      Material { .elemental(.carbon) }
+      
+      Volume {
+        Convex {
+          Origin { 0.5 * l }
+          Plane { -l }
+        }
+        Convex {
+          Origin { 4 * h + h2k }
+          Plane { -k - 2 * h }
+        }
+        Convex {
+          Origin { 0.0 * h2k }
+          Plane { -h2k }
+        }
+        Convex {
+          Origin { 2.25 * l }
+          Plane { l }
+        }
+        
+        Replace { .empty }
+      }
+    }
+    topology.insert(atoms: lattice.atoms)
+  }
 }
