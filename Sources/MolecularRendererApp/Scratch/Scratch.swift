@@ -8,6 +8,6 @@ import Numerics
 import OpenMM
 
 func createNanoRobot() -> [Entity] {
-  let finger = RobotFinger()
-  return finger.topology.atoms
+  let buildPlate = RobotBuildPlate(video: .version2)
+  return buildPlate.topology.atoms
 }

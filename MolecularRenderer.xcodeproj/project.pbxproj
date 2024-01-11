@@ -50,7 +50,7 @@
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		98E23B3A2B4FCF9A00B5A7D5 /* NanoRobotPartPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B372B4F9C0600B5A7D5 /* NanoRobotPartPlacement.swift */; };
+		98E23B3A2B4FCF9A00B5A7D5 /* RobotPartPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B372B4F9C0600B5A7D5 /* RobotPartPlacement.swift */; };
 		98E23B3C2B502D6E00B5A7D5 /* RobotFinger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B3B2B502D6E00B5A7D5 /* RobotFinger.swift */; };
 		98E23B3E2B503D9800B5A7D5 /* RobotFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B3D2B503D9800B5A7D5 /* RobotFrame.swift */; };
 		98E23B402B503DE300B5A7D5 /* RobotBuildSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B3F2B503DE300B5A7D5 /* RobotBuildSite.swift */; };
@@ -235,7 +235,7 @@
 		98E23B2C2B4CC61900B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E23B2D2B4CC6C000B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98E23B2E2B4CCCCB00B5A7D5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		98E23B372B4F9C0600B5A7D5 /* NanoRobotPartPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoRobotPartPlacement.swift; sourceTree = "<group>"; };
+		98E23B372B4F9C0600B5A7D5 /* RobotPartPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotPartPlacement.swift; sourceTree = "<group>"; };
 		98E23B3B2B502D6E00B5A7D5 /* RobotFinger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotFinger.swift; sourceTree = "<group>"; };
 		98E23B3D2B503D9800B5A7D5 /* RobotFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotFrame.swift; sourceTree = "<group>"; };
 		98E23B3F2B503DE300B5A7D5 /* RobotBuildSite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotBuildSite.swift; sourceTree = "<group>"; };
@@ -707,7 +707,7 @@
 		98E23B392B4F9CEA00B5A7D5 /* NanoRobot */ = {
 			isa = PBXGroup;
 			children = (
-				98E23B372B4F9C0600B5A7D5 /* NanoRobotPartPlacement.swift */,
+				98E23B372B4F9C0600B5A7D5 /* RobotPartPlacement.swift */,
 				98E23B3F2B503DE300B5A7D5 /* RobotBuildSite.swift */,
 				98E23B3B2B502D6E00B5A7D5 /* RobotFinger.swift */,
 				98E23B3D2B503D9800B5A7D5 /* RobotFrame.swift */,
@@ -1121,7 +1121,7 @@
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
-				98E23B3A2B4FCF9A00B5A7D5 /* NanoRobotPartPlacement.swift in Sources */,
+				98E23B3A2B4FCF9A00B5A7D5 /* RobotPartPlacement.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				98E23B3C2B502D6E00B5A7D5 /* RobotFinger.swift in Sources */,

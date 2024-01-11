@@ -1,5 +1,5 @@
 //
-//  NanoRobotPartPlacement.swift
+//  RobotPartPlacement.swift
 //  MolecularRendererApp
 //
 //  Created by Philip Turner on 1/10/24.
@@ -15,13 +15,19 @@ import MM4
 //
 // Details:
 // - Reproduce the video subtitles.
-//   - MD Package: OpenMM
-//   - FF: Molecular Mechanics 4
-//   - 13,054 Atoms, 10.0 ms Compile Time
+//   - MD Package: MM4
+//   - Atoms: 7,242 (10.0 ms compile time)
+//   - Simulation: 100 ps (10.0 s compute time)
 //   - Rendered with Apple Metal
 // - Copy the exact same geometry from the video, atom for atom.
-// - Don't waste time copying source code into the video. The primary objective
-//   is to test the new MM4ForceField API.
+// - There will be 2+ videos. Only reproduce the first video for now. It's less
+//   work to design the geometry; less complex code to script together. That
+//   allows you to reproduce the remaining videos in order, in the future.
+//
+// Structure:
+// - Small section of code on top left, the highest-level entry function.
+// - Subtitles on bottom left.
+// - iPhone video on right, cropped to a square w/ rounded corners.
 
 enum RobotVideo {
   // Two-finger robot arm with a rectangular frame.
