@@ -83,7 +83,7 @@ extension Renderer {
     // Revisit this once the new force field is completed, and can simulate with
     // less CPU-side command encoding overhead. It would be an experiment just
     // to benchmark simulation speed.
-    setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "1", 1)
+    setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "0", 1)
     
     // Prevent energy measurement precision from becoming unacceptable at the
     // 100k-300k atom range.

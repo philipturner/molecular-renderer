@@ -58,6 +58,7 @@ struct TopologyMinimizer {
       paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
       paramsDesc.bonds = topology.bonds
       paramsDesc.hydrogenMassScale = 1
+      paramsDesc.forces = [.nonbonded]
       self.parameters = try! MM4Parameters(descriptor: paramsDesc)
     } else if let rigidBodies = descriptor.rigidBodies {
       self.topology = Topology()
@@ -85,8 +86,8 @@ struct TopologyMinimizer {
       fatalError("Neither topology nor rigid bodies were specified.")
     }
     
-    self.initializeStretchForce()
-    self.initializeBendForce()
+//    self.initializeStretchForce()
+//    self.initializeBendForce()
     self.initializeNonbondedForce()
     self.initializeSystem(platform: descriptor.platform)
     
@@ -186,7 +187,7 @@ extension TopologyMinimizer {
   
   mutating func minimize() {
     // A minimizaton reporter doesn't report anything here.
-    OpenMM_LocalEnergyMinimizer.minimize(context: context, reporter: nil)
+    OpenMM_LocalEnergyMinimizer.minimize(context: context, tolerance: 9, reporter: nil)
     let minimizedPositions = reportPositions()
     for i in parameters.atoms.indices {
       topology.atoms[i].position = minimizedPositions[i]
@@ -281,6 +282,7 @@ extension TopologyMinimizer {
     }
     
     for force in forces {
+      force.forceGroup = 1
       force.transfer()
       system.addForce(force)
     }
@@ -301,7 +303,7 @@ extension TopologyMinimizer {
     let stretchForce = OpenMM_CustomBondForce(energy: """
       potentialWellDepth * ((
         1 - exp(-beta * (r - equilibriumLength))
-      )^2 - 1);
+      )^2);
       """)
     stretchForce.addPerBondParameter(name: "potentialWellDepth")
     stretchForce.addPerBondParameter(name: "beta")
@@ -349,11 +351,35 @@ extension TopologyMinimizer {
     // We're just playing it safe and simple; there are more important issues.
     // There are also accuracy issues with this simulator's nonbonded force,
     // which doesn't include hydrogen reductions.
+//    let bendForce = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: """
+//      bend;
+//      bend = bendingStiffness * deltaTheta^2;
+//      deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+//      """)
+    
+    let correction = 180 / Float.pi
+    // let bendingStiffness = /*71.94*/ 1.00 * bendingStiffness
+    let cubicTerm = 0.014 * correction
+    let quarticTerm = 5.6e-5 * pow(correction, 2)
+    let quinticTerm = 7.0e-7 * pow(correction, 3)
+    let sexticTerm = 2.2e-8 * pow(correction, 4)
     let bendForce = OpenMM_CustomCompoundBondForce(numParticles: 3, energy: """
-      bend;
-      bend = bendingStiffness * deltaTheta^2;
-      deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
-      """)
+    bend + stretchBend;
+    bend = bendingStiffness * deltaTheta^2 * (
+      1
+      - \(cubicTerm) * deltaTheta
+      + \(quarticTerm) * deltaTheta^2
+      - \(quinticTerm) * deltaTheta^3
+      + \(sexticTerm) * deltaTheta^4
+    );
+    stretchBend = stretchBendStiffness * deltaTheta * (
+      deltaLengthLeft + deltaLengthRight
+    );
+    
+    deltaTheta = angle(p1, p2, p3) - equilibriumAngle;
+    deltaLengthLeft = distance(p1, p2) - equilibriumLengthLeft;
+    deltaLengthRight = distance(p3, p2) - equilibriumLengthRight;
+    """)
     bendForce.addPerBondParameter(name: "bendingStiffness")
     bendForce.addPerBondParameter(name: "equilibriumAngle")
     bendForce.addPerBondParameter(name: "stretchBendStiffness")
@@ -444,8 +470,9 @@ extension TopologyMinimizer {
       // Since germanium will rarely be used, use the cutoff for silicon. The
       // slightly greater sigma for carbon allows greater accuracy in vdW forces
       // for bulk diamond. 1.020 nm also accomodates charge-charge interactions.
-      let siliconRadius = 2.290 * OpenMM_NmPerAngstrom
-      return siliconRadius * 2.5 * OpenMM_SigmaPerVdwRadius
+//      let siliconRadius = 2.290 * OpenMM_NmPerAngstrom
+//      return siliconRadius * 2.5 * OpenMM_SigmaPerVdwRadius
+      return 1.0
     }
     
     let nonbondedForce = OpenMM_CustomNonbondedForce(energy: """
@@ -467,10 +494,13 @@ extension TopologyMinimizer {
     nonbondedForce.addPerParticleParameter(name: "radius")
     nonbondedForce.addPerParticleParameter(name: "hydrogenRadius")
     
-    nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
-    nonbondedForce.useSwitchingFunction = true
-    nonbondedForce.cutoffDistance = cutoff
-    nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
+    nonbondedForce.nonbondedMethod = .noCutoff
+    nonbondedForce.useSwitchingFunction = false
+    
+//    nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
+//    nonbondedForce.useSwitchingFunction = true
+//    nonbondedForce.cutoffDistance = cutoff
+//    nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
     
     let array = OpenMM_DoubleArray(size: 4)
     let atoms = parameters.atoms
