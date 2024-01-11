@@ -6,6 +6,7 @@
 //
 
 import HDL
+import QuaternionModule
 
 // The scene that the robot fingers act on. It is different in each of the two
 // videos. Two parts:
@@ -26,6 +27,11 @@ struct RobotBuildPlate {
     } else if video == .version2 {
       compilationPass0(boundsH: 36)
       compilationPass1()
+      compilationPass2()
+      
+      // Break ground with MM4ForceField by minimizing the colliding hydrogens
+      // in this structure (compilation pass 3).
+      compilationPass3()
     }
   }
   
@@ -130,11 +136,66 @@ struct RobotBuildPlate {
     let matches = topology.match(topology.atoms)
     
     var bonds: [SIMD2<UInt32>] = []
-    for atomID in topology.atoms.indices {
-//      for
+    for i in topology.atoms.indices {
+      for j in matches[i] where i < j {
+        bonds.append(SIMD2(UInt32(i), j))
+      }
     }
+    topology.insert(bonds: bonds)
     
-    // Break the ground with MM4ForceField by minimizing the colliding hydrogens
-    // in this structure (compilation pass 3).
+    let orbitals = topology.nonbondingOrbitals()
+    let atomsToAtomsMap = topology.map(.atoms, to: .atoms)
+    let chBondLength = Element.carbon.covalentRadius +
+    Element.hydrogen.covalentRadius
+    
+    var insertedAtoms: [Entity] = []
+    var insertedBonds: [SIMD2<UInt32>] = []
+    for i in topology.atoms.indices {
+      let carbon = topology.atoms[i]
+      func addOrbital(_ orbital: SIMD3<Float>) {
+        let position = carbon.position + orbital * chBondLength
+        let hydrogen = Entity(position: position, type: .atom(.hydrogen))
+        let hydrogenID = UInt32(topology.atoms.count + insertedAtoms.count)
+        insertedAtoms.append(hydrogen)
+        insertedBonds.append(SIMD2(UInt32(i), hydrogenID))
+      }
+      for orbital in orbitals[i] {
+        addOrbital(orbital)
+      }
+      
+      // Patch the primary carbons so we keep the same atom count as in the
+      // video.
+      let neighbors = atomsToAtomsMap[i]
+      if neighbors.count == 1 {
+        // Generate an orbital for the 1 bond that exists.
+        let neighbor = topology.atoms[Int(neighbors.first!)]
+        var neighborOrbital = neighbor.position - carbon.position
+        neighborOrbital /= (
+          neighborOrbital * neighborOrbital).sum().squareRoot()
+        
+        // Generate an axis to rotate 109.5° around.
+        let randomVector = SIMD3<Float>(-1, 0, 0)
+        var axis = cross_platform_cross(neighborOrbital, randomVector)
+        axis /= (axis * axis).sum().squareRoot()
+        let rotation1 = Quaternion(angle: 109.47 * .pi / 180, axis: axis)
+        let orbital1 = rotation1.act(on: neighborOrbital)
+        addOrbital(orbital1)
+        
+        // Rotate 120° around the neighbor orbital for the other hydrogens.
+        let rotation2 = Quaternion(angle: 2 * .pi / 3, axis: neighborOrbital)
+        let orbital2 = rotation2.act(on: orbital1)
+        let orbital3 = rotation2.act(on: orbital2)
+        addOrbital(orbital2)
+        addOrbital(orbital3)
+      }
+    }
+    topology.insert(atoms: insertedAtoms)
+    topology.insert(bonds: insertedBonds)
+  }
+  
+  mutating func compilationPass3() {
+    var minimizer = TopologyMinimizer(topology)
+    minimizer.minimize()
+    topology = minimizer.topology
   }
 }

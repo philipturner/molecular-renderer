@@ -20,9 +20,19 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
-    initializeCompilation {
-      createNanoRobot()
-    }
+    
+    let start = CACurrentMediaTime()
+    let frames = [createNanoRobot()]
+    let end = CACurrentMediaTime()
+    
+    let timeRepr = String(format: "%.1f", (end - start) * 1e3)
+    print("MD Package: OpenMM")
+    print("FF: MM4")
+    print("\(frames[0].count) atoms, \(timeRepr) ms compile time")
+    print("Rendered with Apple Metal")
+    renderingEngine.setAtomProvider(AnimationAtomProvider(frames.map {
+      $0.map(MRAtom.init)
+    }))
   }
 }
 

@@ -9,15 +9,15 @@ import MM4
 
 // Reproduce Tom Moore's nano-robot part placement, export to a video.
 // - Litmus test of the new MM4ForceField implementation
-// - Experiment with new serialization/video exporting workflows
-//   - Base64 or no serialization at all
-//   - iPhone recording to show real-time FPS monitor
+// - Experiment with new video creation workflows
+//   - No serialization, if simulation latency is short enough.
+//   - iPhone recording to show real-time FPS monitor.
 //
 // Details:
 // - Reproduce the video subtitles.
-//   - MD Package: MM4
+//   - MD Package: OpenMM
+//   - FF: MM4
 //   - Atoms: 7,242 (10.0 ms compile time)
-//   - Simulation: 100 ps (10.0 s compute time)
 //   - Rendered with Apple Metal
 // - Copy the exact same geometry from the video, atom for atom.
 // - There will be 2+ videos. Only reproduce the first video for now. It's less
@@ -26,7 +26,9 @@ import MM4
 //
 // Structure:
 // - Small section of code on top left, the highest-level entry function.
-// - Subtitles on bottom left.
+// - Subtitles on bottom left - print the subtitles through console output.
+//   - Put the Xcode window next to the MRApp window, removing the need for
+//     any video post-processing.
 // - iPhone video on right, cropped to a square w/ rounded corners.
 
 enum RobotVideo {
