@@ -6,7 +6,7 @@
       "location" : "https://github.com/philipturner/HDL",
       "state" : {
         "branch" : "main",
-        "revision" : "8c3ae43c0c2536042b59320c82010eaf641cff13"
+        "revision" : "3589e2c74f21c4aae84054f9005989d32bbb7def"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
-        "branch" : "main",
-        "revision" : "f71500577d1943c674da915c168fbc65b93a18d7"
+        "branch" : "force-field",
+        "revision" : "9aacd583cc75ffdcae6d1759cd1cd01466dccf66"
       }
     },
     {

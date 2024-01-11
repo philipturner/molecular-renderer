@@ -21,7 +21,7 @@ class Renderer {
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
     initializeCompilation {
-      createNCFMechanism()
+      createGeometry()
     }
   }
 }

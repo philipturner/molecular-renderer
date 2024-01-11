@@ -14,6 +14,12 @@ import Foundation
 // catalog. While at the same time, avoiding the compute cost of reinitializing
 // velocities every time the rigid body is updated.
 
+/// 0.008314
+public let MM4BoltzInKJPerMolPerK: Double = 8.314462618 / 1000
+
+/// 0.013806
+public let MM4BoltzInZJPerK: Double = 8.314462618 / 1000 * MM4ZJPerKJPerMol
+
 extension MM4RigidBody {
   /// Set the thermal kinetic energy to match a given temperature, assuming
   /// positions are energy-minimized at 0 K.

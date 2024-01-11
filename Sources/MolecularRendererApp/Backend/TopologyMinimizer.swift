@@ -137,22 +137,22 @@ struct TopologyMinimizer {
   // such exporting functionality until we start performing rigid body
   // dynamics simulations and comparing the bulk velocities to the MD
   // simulation trajectory.
-  func export(to rigidBody: inout MM4RigidBody, range: Range<Int>) {
-    // This function for fetching is O(n^2) right now.
-    let allVelocities = createVelocities()
-    
-    var positions: [SIMD3<Float>] = []
-    var velocities: [SIMD3<Float>] = []
-    for i in 0..<range.count {
-      let index = range.startIndex + i
-      let position = topology.atoms[index].position
-      let velocity = allVelocities[index]
-      positions.append(position)
-      velocities.append(velocity)
-    }
-    rigidBody.setPositions(positions)
-    rigidBody.setVelocities(velocities)
-  }
+//  func export(to rigidBody: inout MM4RigidBody, range: Range<Int>) {
+//    // This function for fetching is O(n^2) right now.
+//    let allVelocities = createVelocities()
+//    
+//    var positions: [SIMD3<Float>] = []
+//    var velocities: [SIMD3<Float>] = []
+//    for i in 0..<range.count {
+//      let index = range.startIndex + i
+//      let position = topology.atoms[index].position
+//      let velocity = allVelocities[index]
+//      positions.append(position)
+//      velocities.append(velocity)
+//    }
+//    rigidBody.setPositions(positions)
+//    rigidBody.setVelocities(velocities)
+//  }
 }
 
 // MARK: - Mutating Functions

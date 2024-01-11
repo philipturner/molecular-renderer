@@ -18,14 +18,11 @@ enum XTBError: Error {
   case invalidFormatting(Int, String)
 }
 
-// A better API centered around 'HDL.Entity'. <s>This invokes xTB by launching
-// processes</s> NOT YET. It can also be used in hybrid scripting + command-line
-// workflows, where scripting just automates the saving/loading of data.
 struct XTBProcess {
   var workspace: URL
-  
   var anchors: [Int] = []
   var atoms: [HDL.Entity] = []
+  var charge: Int = 0
   var spinMultiplicity: Int = 0
   
   init(path: String) {
@@ -60,16 +57,10 @@ struct XTBProcess {
       atPath: filePath, contents: data)
     precondition(succeeded)
   }
-  
-  
-  
 }
 
-// Write better functions to I/O geometry from scratch.
-// - write settings
-// - read geometry
-// - write geometry
-// - Swift source string of geometry
+// MARK: - I/O through SSD
+
 extension XTBProcess {
   func writeSettings() {
     var contents = ""
@@ -270,4 +261,10 @@ extension XTBProcess {
     // whitespace is formatted.
     return output.joined(separator: "\n")
   }
+}
+
+// MARK: - Process Invocation
+
+extension XTBProcess {
+  
 }
