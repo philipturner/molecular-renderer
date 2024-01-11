@@ -20,6 +20,13 @@ import MM4
 //   - 13,054 Atoms, 10.0 ms Compile Time
 //   - Rendered with Apple Metal
 // - Copy the exact same geometry from the video, atom for atom.
-// - Show all the source code at the end of the video.
-//   - Somewhere in the code, comment that the temperature is 0 Kelvin.
-//     Show the array of zero velocities being created.
+// - Don't waste time copying source code into the video. The primary objective
+//   is to test the new MM4ForceField API.
+
+enum RobotVideo {
+  // Two-finger robot arm with a rectangular frame.
+  case version1
+  
+  // Three-finger robot arm with a hexagonal frame.
+  case version2
+}
