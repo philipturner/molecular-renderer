@@ -17,12 +17,15 @@ import QuaternionModule
 // - struct RobotBuildPlate
 // - struct RobotBuildMolecule
 
+// MARK: - Plate
+
 struct RobotBuildPlate {
   var topology = Topology()
   
   init(video: RobotVideo) {
     if video == .version1 {
       compilationPass0(boundsH: 18)
+      compilationPass2()
     } else if video == .version2 {
       compilationPass0(boundsH: 36)
       compilationPass1()
@@ -182,6 +185,101 @@ struct RobotBuildPlate {
         let orbital3 = rotation2.act(on: orbital2)
         addOrbital(orbital2)
         addOrbital(orbital3)
+      }
+    }
+    topology.insert(atoms: insertedAtoms)
+    topology.insert(bonds: insertedBonds)
+    topology.sort()
+  }
+}
+
+// MARK: - Molecule
+
+struct RobotBuildMolecule {
+  var topology = Topology()
+  
+  init(video: RobotVideo) {
+    if video == .version1 {
+      compilationPass0(size: 2, height: 2, flip: false)
+      compilationPass1()
+    } else if video == .version2 {
+      compilationPass0(size: 3, height: 4, flip: true)
+      compilationPass1()
+    }
+  }
+  
+  mutating func compilationPass0(size: Float, height: Float, flip: Bool) {
+    let lattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      Bounds { 6 * h + 6 * h2k + height * l}
+      Material { .elemental(.carbon) }
+      
+      Volume {
+        Origin { 3 * h + 3 * h2k }
+        
+        var directions: [SIMD3<Float>] = []
+        directions.append(k / 2 + h)
+        directions.append(h / 2 + k)
+        directions.append(k / 2 - h / 2)
+        directions.append(contentsOf: directions.map(-))
+        
+        var offsets: [SIMD3<Float>] = []
+        offsets.append(0.00 * (h + k))
+        offsets.append(0.00 * (h + k))
+        offsets.append(.zero)
+        offsets.append(.zero)
+        offsets.append(.zero)
+        offsets.append(0.00 * (h + k))
+        
+        for (direction, offset) in zip(directions, offsets) {
+          Convex {
+            Origin { size * direction + offset }
+            Plane { direction }
+          }
+        }
+        
+        Replace { .empty }
+      }
+    }
+    var atoms = lattice.atoms
+    
+    for i in atoms.indices {
+      var position = atoms[i].position
+      if flip {
+        position = SIMD3(position.x, position.z, -position.y)
+      } else {
+        position.y = -position.y
+      }
+      atoms[i].position = position
+    }
+    topology.insert(atoms: atoms)
+  }
+  
+  mutating func compilationPass1() {
+    let matches = topology.match(topology.atoms)
+    
+    var bonds: [SIMD2<UInt32>] = []
+    for i in topology.atoms.indices {
+      for j in matches[i] where i < j {
+        bonds.append(SIMD2(UInt32(i), j))
+      }
+    }
+    topology.insert(bonds: bonds)
+    
+    let orbitals = topology.nonbondingOrbitals()
+    let chBondLength = Element.carbon.covalentRadius +
+    Element.hydrogen.covalentRadius
+    
+    var insertedAtoms: [Entity] = []
+    var insertedBonds: [SIMD2<UInt32>] = []
+    for i in topology.atoms.indices {
+      let carbon = topology.atoms[i]
+      for orbital in orbitals[i] {
+        let position = carbon.position + orbital * chBondLength
+        let hydrogen = Entity(position: position, type: .atom(.hydrogen))
+        let hydrogenID = UInt32(topology.atoms.count + insertedAtoms.count)
+        insertedAtoms.append(hydrogen)
+        insertedBonds.append(SIMD2(UInt32(i), hydrogenID))
       }
     }
     topology.insert(atoms: insertedAtoms)
