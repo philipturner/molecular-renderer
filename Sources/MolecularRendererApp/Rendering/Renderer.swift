@@ -25,11 +25,16 @@ class Renderer {
     let frames = [createNanoRobot()]
     let end = CACurrentMediaTime()
     
+    let separator = String(repeating: "=", count: 40)
     let timeRepr = String(format: "%.1f", (end - start) * 1e3)
-    print("MD Package: OpenMM")
-    print("FF: MM4")
-    print("\(frames[0].count) atoms, \(timeRepr) ms compile time")
+    print()
+    print(separator)
+    print("     MD Package: MM4")
+    print("Level of Theory: Molecular Dynamics")
+    print("          Atoms: \(frames[0].count)")
+    print("   Compile Time: \(timeRepr) ms")
     print("Rendered with Apple Metal")
+    print(separator)
     renderingEngine.setAtomProvider(AnimationAtomProvider(frames.map {
       $0.map(MRAtom.init)
     }))

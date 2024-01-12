@@ -24,7 +24,7 @@
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
         "branch" : "force-field",
-        "revision" : "c113300370033f1b5b9077cb2098d0d8826a0fb7"
+        "revision" : "02dbec4e376f725d54bbaa7be0c3920b093bfbb6"
       }
     },
     {
@@ -51,7 +51,7 @@
       "location" : "https://github.com/philipturner/swift-openmm",
       "state" : {
         "branch" : "main",
-        "revision" : "a28bdb71dfa198779f477695620569a99d122333"
+        "revision" : "68f8c63fb7d812733478812949ef3dc7a9cc6057"
       }
     }
   ],

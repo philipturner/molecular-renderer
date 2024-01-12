@@ -13,8 +13,8 @@ import MM4
 //
 // Details:
 // - Reproduce the video subtitles.
-//   - MD Package: OpenMM
-//   - FF: MM4
+//   - MD Package: MM4
+//   - Level of Theory: Molecular Dynamics
 //   - Atoms: 7,242 (10000.0 ms compile time)
 //   - Rendered with Apple Metal
 // - Copy the exact same geometry from the video, atom for atom.

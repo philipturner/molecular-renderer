@@ -58,7 +58,7 @@ struct TopologyMinimizer {
       paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
       paramsDesc.bonds = topology.bonds
       paramsDesc.hydrogenMassScale = 1
-      paramsDesc.forces = [.nonbonded]
+      paramsDesc.forces = [.stretch, .bend, .stretchBend, .nonbonded]
       self.parameters = try! MM4Parameters(descriptor: paramsDesc)
     } else if let rigidBodies = descriptor.rigidBodies {
       self.topology = Topology()
@@ -86,8 +86,8 @@ struct TopologyMinimizer {
       fatalError("Neither topology nor rigid bodies were specified.")
     }
     
-//    self.initializeStretchForce()
-//    self.initializeBendForce()
+    self.initializeStretchForce()
+    self.initializeBendForce()
     self.initializeNonbondedForce()
     self.initializeSystem(platform: descriptor.platform)
     
@@ -187,7 +187,7 @@ extension TopologyMinimizer {
   
   mutating func minimize() {
     // A minimizaton reporter doesn't report anything here.
-    OpenMM_LocalEnergyMinimizer.minimize(context: context, tolerance: 9, reporter: nil)
+    OpenMM_LocalEnergyMinimizer.minimize(context: context, tolerance: 10 * MM4KJPerMolPerZJ, reporter: nil)
     let minimizedPositions = reportPositions()
     for i in parameters.atoms.indices {
       topology.atoms[i].position = minimizedPositions[i]
@@ -282,7 +282,6 @@ extension TopologyMinimizer {
     }
     
     for force in forces {
-      force.forceGroup = 1
       force.transfer()
       system.addForce(force)
     }
@@ -494,13 +493,10 @@ extension TopologyMinimizer {
     nonbondedForce.addPerParticleParameter(name: "radius")
     nonbondedForce.addPerParticleParameter(name: "hydrogenRadius")
     
-    nonbondedForce.nonbondedMethod = .noCutoff
-    nonbondedForce.useSwitchingFunction = false
-    
-//    nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
-//    nonbondedForce.useSwitchingFunction = true
-//    nonbondedForce.cutoffDistance = cutoff
-//    nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
+    nonbondedForce.nonbondedMethod = .cutoffNonPeriodic
+    nonbondedForce.useSwitchingFunction = true
+    nonbondedForce.cutoffDistance = cutoff
+    nonbondedForce.switchingDistance = cutoff * pow(1.0 / 3, 1.0 / 6)
     
     let array = OpenMM_DoubleArray(size: 4)
     let atoms = parameters.atoms
