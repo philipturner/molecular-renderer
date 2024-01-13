@@ -29,6 +29,7 @@
 		98537EB32A62EA940037C392 /* Memory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB22A62EA940037C392 /* Memory.metal */; };
 		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
+		9855200B2B53215C00AB068D /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -45,18 +46,10 @@
 		987507C02B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
-		989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		98E23B3A2B4FCF9A00B5A7D5 /* RobotPartPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B372B4F9C0600B5A7D5 /* RobotPartPlacement.swift */; };
-		98E23B3C2B502D6E00B5A7D5 /* RobotGripper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B3B2B502D6E00B5A7D5 /* RobotGripper.swift */; };
-		98E23B3E2B503D9800B5A7D5 /* RobotFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B3D2B503D9800B5A7D5 /* RobotFrame.swift */; };
-		98E23B402B503DE300B5A7D5 /* RobotBuildSite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B3F2B503DE300B5A7D5 /* RobotBuildSite.swift */; };
-		98E23B422B5210D400B5A7D5 /* Draft2_File2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E02B3D189F00D73E37 /* Draft2_File2.swift */; };
-		98E23B432B5210D600B5A7D5 /* Draft2_File3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E12B3D18A700D73E37 /* Draft2_File3.swift */; };
-		98E23B452B52308000B5A7D5 /* RobotCenterPiece.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E23B442B52308000B5A7D5 /* RobotCenterPiece.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -711,11 +704,11 @@
 		98E23B392B4F9CEA00B5A7D5 /* NanoRobot */ = {
 			isa = PBXGroup;
 			children = (
-				98E23B372B4F9C0600B5A7D5 /* RobotPartPlacement.swift */,
 				98E23B3F2B503DE300B5A7D5 /* RobotBuildSite.swift */,
+				98E23B442B52308000B5A7D5 /* RobotCenterPiece.swift */,
 				98E23B3D2B503D9800B5A7D5 /* RobotFrame.swift */,
 				98E23B3B2B502D6E00B5A7D5 /* RobotGripper.swift */,
-				98E23B442B52308000B5A7D5 /* RobotCenterPiece.swift */,
+				98E23B372B4F9C0600B5A7D5 /* RobotPartPlacement.swift */,
 			);
 			path = NanoRobot;
 			sourceTree = "<group>";
@@ -1116,26 +1109,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				98E23B3E2B503D9800B5A7D5 /* RobotFrame.swift in Sources */,
+				9855200B2B53215C00AB068D /* Scratch.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
-				98E23B432B5210D600B5A7D5 /* Draft2_File3.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
-				98E23B402B503DE300B5A7D5 /* RobotBuildSite.swift in Sources */,
-				98E23B422B5210D400B5A7D5 /* Draft2_File2.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
-				98E23B3A2B4FCF9A00B5A7D5 /* RobotPartPlacement.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
-				98E23B452B52308000B5A7D5 /* RobotCenterPiece.swift in Sources */,
-				98E23B3C2B502D6E00B5A7D5 /* RobotGripper.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
-				989CBA0C2B1D2AE200213CBE /* Scratch.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,

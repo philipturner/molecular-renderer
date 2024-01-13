@@ -20,27 +20,9 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
-    
-    let start = CACurrentMediaTime()
-    let frames = createNanoRobot()
-    let end = CACurrentMediaTime()
-    print("animation_seconds=\(Double(frames.count) / 120)")
-    
-    let separator = String(repeating: "=", count: 40)
-    let timeRepr = String(format: "%.3f", (end - start) * 1e0)
-    print()
-    print(separator)
-    print("     MD Package: MM4")
-    print("Level of Theory: Molecular Dynamics")
-    print("          Atoms: \(frames.reduce(0) { max($0, $1.count) })")
-    print("   Compile Time: \(timeRepr) s")
-    print("    Rendered with Apple Metal")
-    print(separator)
-    
-    usleep(3_000_000)
-    renderingEngine.setAtomProvider(AnimationAtomProvider(frames.map {
-      $0.map(MRAtom.init)
-    }))
+    initializeCompilation {
+      createGeometry()
+    }
   }
 }
 
