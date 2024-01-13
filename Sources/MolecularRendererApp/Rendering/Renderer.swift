@@ -26,13 +26,13 @@ class Renderer {
     let end = CACurrentMediaTime()
     
     let separator = String(repeating: "=", count: 40)
-    let timeRepr = String(format: "%.1f", (end - start) * 1e3)
+    let timeRepr = String(format: "%.3f", (end - start) * 1e0)
     print()
     print(separator)
     print("     MD Package: MM4")
     print("Level of Theory: Molecular Dynamics")
     print("          Atoms: \(frames.reduce(0) { max($0, $1.count) })")
-    print("   Compile Time: \(timeRepr) ms")
+    print("   Compile Time: \(timeRepr) s")
     print("    Rendered with Apple Metal")
     print(separator)
     renderingEngine.setAtomProvider(AnimationAtomProvider(frames.map {

@@ -151,3 +151,21 @@ struct RobotCenterPiece {
     topology.sort()
   }
 }
+
+extension RobotCenterPiece {
+  mutating func compilationPass3() {
+    var paramsDesc = MM4ParametersDescriptor()
+    paramsDesc.bonds = topology.bonds
+    paramsDesc.atomicNumbers = topology.atoms.map {
+      if $0.atomicNumber == 1 { return 1 }
+      else { return 6 }
+    }
+    var parameters = try! MM4Parameters(descriptor: paramsDesc)
+    for i in topology.atoms.indices {
+      if topology.atoms[i].atomicNumber == 14 {
+        parameters.atoms.masses[i] = 0
+      }
+    }
+    self.parameters = parameters
+  }
+}

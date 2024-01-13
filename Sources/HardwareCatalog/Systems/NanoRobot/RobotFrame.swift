@@ -11,6 +11,7 @@ import MM4
 struct RobotFrame {
   var grippers: [RobotGripper]
   var centerPiece: RobotCenterPiece
+  var buildSite: RobotBuildSite
   
   var animationFrames: [[Entity]] = []
   
@@ -25,18 +26,25 @@ struct RobotFrame {
       centerPiece.topology.atoms[i].position += SIMD3(1.5, 2.1, -0.6)
     }
     
+    buildSite = RobotBuildSite(video: .version1)
+    buildSite.molecule.centerOfMass += SIMD3(2.9, -0.6, 0.5)
+    buildSite.plate.centerOfMass += SIMD3(2.9, -0.6, 0.5)
+    
     displayGripperConstruction()
     for _ in 0..<30 {
       displayStartFrame()
     }
     
     // Simulate the gripper joining.
-    simulateGripperJoining()
-//    displayJoinedFrame()
+//    simulateGripperJoining()
+    displayJoinedFrame()
     
     displayCenterPieceConstruction()
-    simulateCenterPieceStability()
-    simulateGrippingMotion(directionIn: false)
+//    simulateCenterPieceStability()
+//    simulateGrippingMotion(directionIn: false)
+    
+    displayBuildSiteConstruction()
+//    simulateGrippingMotion(directionIn: true)
   }
   
   mutating func displayGripperConstruction() {
@@ -250,117 +258,22 @@ struct RobotFrame {
     }
   }
   
-  mutating func simulateGrippingMotion(directionIn: Bool) {
-    var centerPieceMinX: Float = .greatestFiniteMagnitude
-    var centerPieceMaxX: Float = -.greatestFiniteMagnitude
-    for atom in centerPiece.topology.atoms {
-      let x = atom.position.x
-      centerPieceMaxX = max(centerPieceMaxX, x)
-      centerPieceMinX = min(centerPieceMinX, x)
+  mutating func displayBuildSiteConstruction() {
+    let frameOther = animationFrames.last!
+    
+    var frameBuildSite: [Entity] = []
+    for rigidBody in [buildSite.molecule, buildSite.plate] {
+      for i in rigidBody.parameters.atoms.indices {
+        let position = rigidBody.positions[i]
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[i]
+        frameBuildSite.append(Entity(storage: SIMD4(position, Float(atomicNumber))))
+      }
     }
     
-    var sceneParameters: MM4Parameters?
-    for gripper in grippers {
-      var parameters = gripper.rigidBody!.parameters
-      for i in parameters.atoms.indices {
-        if parameters.atoms.masses[i] == 0 {
-          parameters.atoms.masses[i] = 12.011 * Float(MM4YgPerAmu)
-        }
-      }
-      if sceneParameters == nil {
-        sceneParameters = parameters
-      } else {
-        sceneParameters!.append(contentsOf: parameters)
-      }
-    }
-    sceneParameters!.append(contentsOf: centerPiece.parameters!)
-    
-    var forceFieldDesc = MM4ForceFieldDescriptor()
-    forceFieldDesc.parameters = sceneParameters
-    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-    var initialPositions: [SIMD3<Float>] = []
-    for gripper in grippers {
-      initialPositions += gripper.rigidBody!.positions
-    }
-    initialPositions += centerPiece.topology.atoms.map(\.position)
-    forceField.positions = initialPositions
-    
-    var externalForces: [SIMD3<Float>] = []
-    var velocities: [SIMD3<Float>] = []
-    for gripper in grippers {
-      for position in gripper.rigidBody!.positions {
-        if position.x > centerPieceMinX && position.x < centerPieceMaxX {
-          externalForces.append(SIMD3(0, directionIn ? +1 : -1, 0))
-          velocities.append(SIMD3(0, 0, 0))
-        } else {
-          externalForces.append(SIMD3(0, directionIn ? -1 : 1, 0))
-          velocities.append(SIMD3(0, 0, 0))
-        }
-      }
-    }
-    for _ in centerPiece.topology.atoms.indices {
-      externalForces.append(SIMD3(0, 0, 0))
-      velocities.append(SIMD3(0, 0, 0))
-    }
-    forceField.externalForces = externalForces
-    forceField.velocities = velocities
-    
-    print("frame=0")
-    for frameID in 0...70 {
-      // Add a thermostat to all atoms with X inside the desired range.
-      if frameID % 10 == 0 {
-        var newVelocities = forceField.velocities
-        for i in forceField.positions.indices {
-          let position = forceField.positions[i]
-          if position.x > centerPieceMinX && position.x < centerPieceMaxX {
-            newVelocities[i] = .zero
-          }
-        }
-        forceField.velocities = newVelocities
-      }
-      
-      // NOTE: Never minimize when there are external forces!
-      let step: Double = 0.200
-      forceField.simulate(time: step)
-      print("frame=\(frameID), time=\(String(format: "%.3f", Double(frameID) * step))")
-      
-      var cursor: Int = 0
-      var frame: [Entity] = []
-      for gripperID in grippers.indices {
-        let gripper = grippers[gripperID]
-        let topology = gripper.topology
-        let range = cursor..<cursor + topology.atoms.count
-        let positions = Array(forceField.positions[range])
-        for i in topology.atoms.indices {
-          var entity = topology.atoms[i]
-          entity.position = positions[i]
-          frame.append(entity)
-        }
-        cursor = range.endIndex
-        
-        if frameID == 70 {
-          var rigidBodyDesc = MM4RigidBodyDescriptor()
-          rigidBodyDesc.parameters = grippers[gripperID].rigidBody!.parameters
-          rigidBodyDesc.positions = positions
-          let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-          grippers[gripperID].rigidBody = rigidBody
-        }
-      }
-      do {
-        let topology = centerPiece.topology
-        let range = cursor..<cursor + topology.atoms.count
-        let positions = Array(forceField.positions[range])
-        for i in topology.atoms.indices {
-          var entity = topology.atoms[i]
-          entity.position = positions[i]
-          if frameID == 70 {
-            centerPiece.topology.atoms[i].position = entity.position
-          }
-          frame.append(entity)
-        }
-        cursor = range.endIndex
-      }
-      animationFrames.append(frame)
+    for i in 0..<90 {
+      let proportion = Float(i) / Float(90)
+      let range = 0..<max(1, Int(proportion * Float(frameBuildSite.count)))
+      animationFrames.append(frameOther + Array(frameBuildSite[range]))
     }
   }
 }
