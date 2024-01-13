@@ -31,7 +31,7 @@ class Renderer {
     print(separator)
     print("     MD Package: MM4")
     print("Level of Theory: Molecular Dynamics")
-    print("          Atoms: \(frames[0].count)")
+    print("          Atoms: \(frames.reduce(0) { max($0, $1.count) })")
     print("   Compile Time: \(timeRepr) ms")
     print("    Rendered with Apple Metal")
     print(separator)

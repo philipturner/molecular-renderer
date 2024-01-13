@@ -130,7 +130,7 @@ struct RobotGripper {
         }
         
         Concave {
-          Origin { 0.5 * h + 2.5 * h2k }
+          Origin { 0 * h + 3.0 * h2k }
           Plane { h }
           Plane { k / 2 + h }
         }
