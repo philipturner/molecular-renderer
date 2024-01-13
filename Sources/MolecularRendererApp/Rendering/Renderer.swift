@@ -24,6 +24,7 @@ class Renderer {
     let start = CACurrentMediaTime()
     let frames = createNanoRobot()
     let end = CACurrentMediaTime()
+    print("animation_seconds=\(Double(frames.count) / 120)")
     
     let separator = String(repeating: "=", count: 40)
     let timeRepr = String(format: "%.3f", (end - start) * 1e0)
@@ -35,6 +36,8 @@ class Renderer {
     print("   Compile Time: \(timeRepr) s")
     print("    Rendered with Apple Metal")
     print(separator)
+    
+    usleep(3_000_000)
     renderingEngine.setAtomProvider(AnimationAtomProvider(frames.map {
       $0.map(MRAtom.init)
     }))

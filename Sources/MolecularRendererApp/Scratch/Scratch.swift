@@ -8,21 +8,13 @@ import Numerics
 import OpenMM
 
 func createNanoRobot() -> [[Entity]] {
-  // TODO: Add some crystolecules from the built site to the center frame.
-  // When the boolean for 'directionIn' is true, materialize them into the
-  // simulator. Ensure the crystolecule stays between the grippers. Then, give
-  // the build plate a velocity. Have it fly away for another ~70 frames.
-  //
-  // After this is done, double the time taken for the animation. Keep the
-  // number of simulation frames the same; just interleave nearby frames. That
-  // means the amount of compile time doesn't change.
-  
   // Video structure:
   // - looking at workspace
   //   - screenshot from YouTube video behing Xcode window
   // - video the entire scene compiling in 15 seconds
   //   - zoom in on the compile time
   // - video the window on the MacBook
+  // - after the animation is done, move around in the scene
   let robotFrame = RobotFrame()
   return robotFrame.animationFrames
 }
@@ -108,7 +100,7 @@ extension RobotFrame {
     let maxFrame = (directionIn ? 100 : 50)
     for frameID in 0...maxFrame {
       // Add a thermostat to all atoms with X inside the desired range.
-      if frameID % 10 == 0 {
+      if frameID % 5 == 0 {
         var newVelocities = forceField.velocities
         for i in forceField.positions.indices {
           let position = forceField.positions[i]
@@ -177,7 +169,36 @@ extension RobotFrame {
           }
         }
       }
-      animationFrames.append(frame)
+      if frameID == 0 {
+        animationFrames.append(frame)
+      } else {
+        let lastFrame = animationFrames.last!
+        for keyFrame in 1...3 {
+          var interpolatedFrame: [Entity] = []
+          for i in lastFrame.indices {
+            let last = lastFrame[i]
+            let next = frame[i]
+            let closenessLast = 1 - Float(keyFrame) / 3
+            let closenessNext = Float(keyFrame) / 3
+            let position = last.position * closenessLast + next.position * closenessNext
+            interpolatedFrame.append(Entity(position: position, type: next.type))
+          }
+          animationFrames.append(interpolatedFrame)
+        }
+      }
+    }
+    
+    if directionIn {
+      for _ in 0..<480 {
+        // Set the position to what happens with -0.100 velocity and
+        // 0.200 / keyFrames step.
+        var nextFrame = animationFrames.last!
+        let start = nextFrame.count - buildSite.plate.positions.count
+        for i in start..<nextFrame.count {
+          nextFrame[i].position += SIMD3(0, -0.100 * 0.200 / 3, 0)
+        }
+        animationFrames.append(nextFrame)
+      }
     }
   }
 }

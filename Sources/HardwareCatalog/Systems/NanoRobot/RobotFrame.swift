@@ -39,12 +39,12 @@ struct RobotFrame {
     
     // Simulate the gripper joining.
     simulateGripperJoining()
-    displayJoinedFrame()
+// // // // // // // //   displayJoinedFrame()
     
     displayCenterPieceConstruction()
     simulateCenterPieceStability()
     simulateGrippingMotion(directionIn: false)
-    
+//    
     displayBuildSiteConstruction()
     simulateGrippingMotion(directionIn: true)
   }
@@ -60,8 +60,8 @@ struct RobotFrame {
         frame.append(entity)
       }
     }
-    for i in 0..<90 {
-      let proportion = Float(i) / Float(90)
+    for i in 0..<180 {
+      let proportion = Float(i) / Float(180)
       let range = 0..<max(1, Int(proportion * Float(frame.count)))
       animationFrames.append(Array(frame[range]))
     }
@@ -116,8 +116,8 @@ struct RobotFrame {
       }
     }
     
-    for i in 0..<60 {
-      let proportion = Float(i) / Float(60)
+    for i in 0..<120 {
+      let proportion = Float(i) / Float(120)
       let range = 0..<max(1, Int(proportion * Float(frameCenterPiece.count)))
       animationFrames.append(frameGrippers + Array(frameCenterPiece[range]))
     }
@@ -179,7 +179,23 @@ struct RobotFrame {
           grippers[gripperID].rigidBody = rigidBody
         }
       }
-      animationFrames.append(frame)
+      if frameID == 0 {
+        animationFrames.append(frame)
+      } else {
+        let lastFrame = animationFrames.last!
+        for keyFrame in 1...3 {
+          var interpolatedFrame: [Entity] = []
+          for i in lastFrame.indices {
+            let last = lastFrame[i]
+            let next = frame[i]
+            let closenessLast = 1 - Float(keyFrame) / 3
+            let closenessNext = Float(keyFrame) / 3
+            let position = last.position * closenessLast + next.position * closenessNext
+            interpolatedFrame.append(Entity(position: position, type: next.type))
+          }
+          animationFrames.append(interpolatedFrame)
+        }
+      }
     }
   }
   
@@ -234,7 +250,6 @@ struct RobotFrame {
         cursor = range.endIndex
         
         if frameID == 70 {
-          print("HELLO WORLDLDLLELDEL")
           var rigidBodyDesc = MM4RigidBodyDescriptor()
           rigidBodyDesc.parameters = grippers[gripperID].rigidBody!.parameters
           rigidBodyDesc.positions = positions
@@ -272,8 +287,8 @@ struct RobotFrame {
       }
     }
     
-    for i in 0..<90 {
-      let proportion = Float(i) / Float(90)
+    for i in 0..<180 {
+      let proportion = Float(i) / Float(180)
       let range = 0..<max(1, Int(proportion * Float(frameBuildSite.count)))
       animationFrames.append(frameOther + Array(frameBuildSite[range]))
     }
