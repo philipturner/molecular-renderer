@@ -49,7 +49,7 @@ struct RobotBuildSite {
     self.molecule = createRigidBody(molecule.topology)
     
     if video == .version1 {
-      self.molecule.centerOfMass += SIMD3(0, 0.850, 0)
+      self.molecule.centerOfMass += SIMD3(0, 1.250, 0)
     } else {
       fatalError("Version 2 not implemented.")
     }
@@ -251,7 +251,7 @@ struct RobotBuildMolecule {
   
   init(video: RobotVideo) {
     if video == .version1 {
-      compilationPass0(size: 2, height: 2, flip: false)
+      compilationPass0(size: 2, height: 4, flip: false)
       compilationPass1()
     } else if video == .version2 {
       compilationPass0(size: 3, height: 4, flip: true)

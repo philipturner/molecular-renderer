@@ -13,8 +13,9 @@ func createNanoRobot() -> [[Entity]] {
   // simulator. Ensure the crystolecule stays between the grippers. Then, give
   // the build plate a velocity. Have it fly away for another ~70 frames.
   //
-  // After this is done, double the time taken for the animation. Double the
-  // number of frames presented to the user.
+  // After this is done, double the time taken for the animation. Keep the
+  // number of simulation frames the same; just interleave nearby frames. That
+  // means the amount of compile time doesn't change.
   
   // Video structure:
   // - looking at workspace
@@ -52,6 +53,11 @@ extension RobotFrame {
     }
     sceneParameters!.append(contentsOf: centerPiece.parameters!)
     
+    if directionIn {
+      sceneParameters!.append(contentsOf: buildSite.molecule.parameters)
+      sceneParameters!.append(contentsOf: buildSite.plate.parameters)
+    }
+    
     var forceFieldDesc = MM4ForceFieldDescriptor()
     forceFieldDesc.parameters = sceneParameters
     let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
@@ -60,17 +66,24 @@ extension RobotFrame {
       initialPositions += gripper.rigidBody!.positions
     }
     initialPositions += centerPiece.topology.atoms.map(\.position)
+    if directionIn {
+      initialPositions += buildSite.molecule.positions
+      initialPositions += buildSite.plate.positions
+    }
+    
     forceField.positions = initialPositions
+    
+
     
     var externalForces: [SIMD3<Float>] = []
     var velocities: [SIMD3<Float>] = []
     for gripper in grippers {
       for position in gripper.rigidBody!.positions {
         if position.x > centerPieceMinX && position.x < centerPieceMaxX {
-          externalForces.append(SIMD3(0, directionIn ? +1 : -1, 0))
+          externalForces.append(SIMD3(0, directionIn ? +2 : -1, 0))
           velocities.append(SIMD3(0, 0, 0))
         } else {
-          externalForces.append(SIMD3(0, directionIn ? -1 : 1, 0))
+          externalForces.append(SIMD3(0, directionIn ? -2 : 1, 0))
           velocities.append(SIMD3(0, 0, 0))
         }
       }
@@ -79,11 +92,21 @@ extension RobotFrame {
       externalForces.append(SIMD3(0, 0, 0))
       velocities.append(SIMD3(0, 0, 0))
     }
+    
+    if directionIn {
+      for _ in 0..<(buildSite.molecule.positions.count + buildSite.plate.positions.count) {
+        externalForces.append(SIMD3(0, 0, 0))
+        velocities.append(SIMD3(0, 0, 0))
+      }
+    }
+    
     forceField.externalForces = externalForces
     forceField.velocities = velocities
     
+    
     print("frame=0")
-    for frameID in 0...70 {
+    let maxFrame = (directionIn ? 100 : 50)
+    for frameID in 0...maxFrame {
       // Add a thermostat to all atoms with X inside the desired range.
       if frameID % 10 == 0 {
         var newVelocities = forceField.velocities
@@ -91,6 +114,12 @@ extension RobotFrame {
           let position = forceField.positions[i]
           if position.x > centerPieceMinX && position.x < centerPieceMaxX {
             newVelocities[i] = .zero
+          }
+        }
+        if directionIn && frameID >= 50 {
+          let start = newVelocities.count - buildSite.plate.positions.count
+          for i in start..<newVelocities.count {
+            newVelocities[i] = SIMD3(0, -0.100, 0)
           }
         }
         forceField.velocities = newVelocities
@@ -115,7 +144,7 @@ extension RobotFrame {
         }
         cursor = range.endIndex
         
-        if frameID == 70 {
+        if frameID == 50 {
           var rigidBodyDesc = MM4RigidBodyDescriptor()
           rigidBodyDesc.parameters = grippers[gripperID].rigidBody!.parameters
           rigidBodyDesc.positions = positions
@@ -130,12 +159,23 @@ extension RobotFrame {
         for i in topology.atoms.indices {
           var entity = topology.atoms[i]
           entity.position = positions[i]
-          if frameID == 70 {
+          if frameID == 50 {
             centerPiece.topology.atoms[i].position = entity.position
           }
           frame.append(entity)
         }
         cursor = range.endIndex
+      }
+      if directionIn {
+        for rigidBody in [buildSite.molecule, buildSite.plate] {
+          for i in rigidBody.parameters.atoms.indices {
+            let position = forceField.positions[cursor]
+            cursor += 1
+            let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[i]
+            let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
+            frame.append(entity)
+          }
+        }
       }
       animationFrames.append(frame)
     }

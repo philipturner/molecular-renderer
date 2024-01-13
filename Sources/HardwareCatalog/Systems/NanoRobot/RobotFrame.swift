@@ -28,6 +28,8 @@ struct RobotFrame {
     
     buildSite = RobotBuildSite(video: .version1)
     buildSite.molecule.centerOfMass += SIMD3(2.9, -0.6, 0.5)
+    buildSite.molecule.rotate(angle: .pi / 2, axis: [0, 0, 1])
+    buildSite.molecule.rotate(angle: .pi / 2, axis: [1, 0, 0])
     buildSite.plate.centerOfMass += SIMD3(2.9, -0.6, 0.5)
     
     displayGripperConstruction()
@@ -36,15 +38,15 @@ struct RobotFrame {
     }
     
     // Simulate the gripper joining.
-//    simulateGripperJoining()
+    simulateGripperJoining()
     displayJoinedFrame()
     
     displayCenterPieceConstruction()
-//    simulateCenterPieceStability()
-//    simulateGrippingMotion(directionIn: false)
+    simulateCenterPieceStability()
+    simulateGrippingMotion(directionIn: false)
     
     displayBuildSiteConstruction()
-//    simulateGrippingMotion(directionIn: true)
+    simulateGrippingMotion(directionIn: true)
   }
   
   mutating func displayGripperConstruction() {
