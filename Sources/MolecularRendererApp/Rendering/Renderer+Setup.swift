@@ -77,17 +77,9 @@ extension Renderer {
   }
   
   func initializeOpenMM() {
-    // Enable the neighbor list because the 10K+ atom range is a dominant use
-    // case, and the asymptotic overhead for small simulations is only 50%.
-    //
-    // Revisit this once the new force field is completed, and can simulate with
-    // less CPU-side command encoding overhead. It would be an experiment just
-    // to benchmark simulation speed.
-    setenv("OPENMM_METAL_USE_NEIGHBOR_LIST", "1", 1)
-    
     // Prevent energy measurement precision from becoming unacceptable at the
     // 100k-300k atom range.
-    setenv("OPENMM_METAL_REDUCE_ENERGY_THREADGROUPS", "256", 1)
+    setenv("OPENMM_METAL_REDUCE_ENERGY_THREADGROUPS", "1024", 1)
     
     // Ensure the Metal plugin loads, even though the simulator framework is
     // supposed to load it.

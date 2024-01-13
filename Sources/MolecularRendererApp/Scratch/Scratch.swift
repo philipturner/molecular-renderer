@@ -7,24 +7,23 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
-func createNanoRobot() -> [Entity] {
-  let buildSite = RobotBuildSite(video: .version1)
-  let rigidBodies = buildSite.rigidBodies
-  
-  // Try exerting an external force on an isolated molecule with MM4ForceField.
-  // Log the actual and expected rigid body CoM + momentum to the console.
-  //
-  // Next, run an MD simulation of this scene, using both the old
-  // TopologyMinimizer and the new MM4ForceField. Compare results visually after
-  // a few ps, and compare energy drift over ~1 ns time span. Save the results
-  // to the GitHub gist for debugging MM4 minimization performance.
-  return rigidBodies.flatMap { rigidBody in
-    rigidBody.parameters.atoms.indices.map { i in
-      let element = Float(rigidBody.parameters.atoms.atomicNumbers[i])
-      let position = rigidBody.positions[i]
-      return Entity(storage: SIMD4(position, element))
+func createNanoRobot() -> [[Entity]] {
+  var buildSite = RobotBuildSite(video: .version1)
+  for i in buildSite.rigidBodies.indices {
+    buildSite.rigidBodies[i].centerOfMass.y -= 1
+  }
+  func createEntities() -> [Entity] {
+    let rigidBodies = buildSite.rigidBodies
+    return rigidBodies.flatMap { rigidBody in
+      rigidBody.parameters.atoms.indices.map { i in
+        let element = Float(rigidBody.parameters.atoms.atomicNumbers[i])
+        let position = rigidBody.positions[i]
+        return Entity(storage: SIMD4(position, element))
+      }
     }
   }
+  
+  return [createEntities()]
 }
 
 struct RobotBuildSite {
@@ -48,18 +47,16 @@ struct RobotBuildSite {
       var paramsDesc = MM4ParametersDescriptor()
       paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
       paramsDesc.bonds = topology.bonds
+//      paramsDesc.hydrogenMassScale = 1
       let parameters = try! MM4Parameters(descriptor: paramsDesc)
+//      for i in parameters.atoms.indices {
+//        parameters.atoms.parameters[i].hydrogenReductionFactor = 0.9999
+//      }
       
       var rigidBodyDesc = MM4RigidBodyDescriptor()
       rigidBodyDesc.parameters = parameters
       rigidBodyDesc.positions = topology.atoms.map(\.position)
       var rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-      
-      print()
-      print("rigid body:")
-      print("- atom count:", rigidBody.parameters.atoms.count)
-      print("- moment of inertia:", rigidBody.momentOfInertia)
-      print("- principal axes:", rigidBody.principalAxes)
       
       rigidBody.centerOfMass = .zero
       return rigidBody
@@ -75,8 +72,14 @@ struct RobotBuildSite {
   }
   
   var rigidBodies: [MM4RigidBody] {
-    get {
-      [plate, molecule]
+    _read {
+      yield [plate, molecule]
+    }
+    _modify {
+      var value = [plate, molecule]
+      yield &value
+      plate = value[0]
+      molecule = value[1]
     }
   }
 }

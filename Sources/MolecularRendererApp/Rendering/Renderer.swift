@@ -22,7 +22,7 @@ class Renderer {
     initializeExternalLibraries()
     
     let start = CACurrentMediaTime()
-    let frames = [createNanoRobot()]
+    let frames = createNanoRobot()
     let end = CACurrentMediaTime()
     
     let separator = String(repeating: "=", count: 40)
@@ -33,7 +33,7 @@ class Renderer {
     print("Level of Theory: Molecular Dynamics")
     print("          Atoms: \(frames[0].count)")
     print("   Compile Time: \(timeRepr) ms")
-    print("Rendered with Apple Metal")
+    print("    Rendered with Apple Metal")
     print(separator)
     renderingEngine.setAtomProvider(AnimationAtomProvider(frames.map {
       $0.map(MRAtom.init)

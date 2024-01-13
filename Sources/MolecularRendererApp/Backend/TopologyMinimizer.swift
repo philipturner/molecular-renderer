@@ -282,12 +282,45 @@ extension TopologyMinimizer {
     }
     
     for force in forces {
+      force.forceGroup = 1
       force.transfer()
       system.addForce(force)
     }
     
     // It doesn't matter what step size the integrator is initialized at.
     self.integrator = OpenMM_VerletIntegrator(stepSize: 0)
+    
+    
+//    let integrator = OpenMM_CustomIntegrator(stepSize: 0)
+//    integrator.addUpdateContextState()
+//    integrator.addComputePerDof(variable: "v", expression: """
+//      v + 0.5 * dt * f1 / m
+//      """)
+//    integrator.addComputePerDof(variable: "v", expression: """
+//      v + 0.25 * dt * f2 / m
+//      """)
+//    integrator.addComputePerDof(variable: "x", expression: """
+//      x + 0.5 * dt * v
+//      """)
+//    integrator.addConstrainPositions()
+//    
+//    integrator.addComputePerDof(variable: "v", expression: """
+//      v + 0.5 * dt * f2 / m
+//      """)
+//    integrator.addComputePerDof(variable: "x", expression: """
+//      x + 0.5 * dt * v
+//      """)
+//    integrator.addConstrainPositions()
+//    integrator.addComputePerDof(variable: "v", expression: """
+//      v + 0.25 * dt * f2 / m
+//      """)
+//    integrator.addComputePerDof(variable: "v", expression: """
+//      v + 0.5 * dt * f1 / m
+//      """)
+//    
+//    
+//    self.integrator = integrator
+    
     if let platform {
       self.context = OpenMM_Context(
         system: system, integrator: integrator, platform: platform)
