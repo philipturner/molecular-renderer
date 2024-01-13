@@ -6,6 +6,7 @@
 //
 
 import HDL
+import MM4
 import QuaternionModule
 
 // The scene that the robot fingers act on. It is different in each of the two
@@ -13,9 +14,59 @@ import QuaternionModule
 // - 'RobotBuildPlate', the anchored floor/plate.
 // - 'RobotMolecule', the piece the robot picks up.
 
-// struct RobotBuiltSite
-// - struct RobotBuildPlate
-// - struct RobotBuildMolecule
+struct RobotBuildSite {
+  var plate: MM4RigidBody
+  var molecule: MM4RigidBody
+  
+  init(video: RobotVideo) {
+    var plate: RobotBuildPlate
+    var molecule: RobotBuildMolecule
+    
+    if video == .version1 {
+      plate = RobotBuildPlate(video: .version1)
+      molecule = RobotBuildMolecule(video: .version1)
+    } else {
+      plate = RobotBuildPlate(video: .version2)
+      molecule = RobotBuildMolecule(video: .version2)
+    }
+    
+    // Creates a rigid body centered at the world origin.
+    func createRigidBody(_ topology: Topology) -> MM4RigidBody {
+      var paramsDesc = MM4ParametersDescriptor()
+      paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+      paramsDesc.bonds = topology.bonds
+      let parameters = try! MM4Parameters(descriptor: paramsDesc)
+      
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.parameters = parameters
+      rigidBodyDesc.positions = topology.atoms.map(\.position)
+      var rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+      
+      rigidBody.centerOfMass = .zero
+      return rigidBody
+    }
+    self.plate = createRigidBody(plate.topology)
+    self.molecule = createRigidBody(molecule.topology)
+    
+    if video == .version1 {
+      self.molecule.centerOfMass += SIMD3(0, 0.850, 0)
+    } else {
+      fatalError("Version 2 not implemented.")
+    }
+  }
+  
+  var rigidBodies: [MM4RigidBody] {
+    _read {
+      yield [plate, molecule]
+    }
+    _modify {
+      var value = [plate, molecule]
+      yield &value
+      plate = value[0]
+      molecule = value[1]
+    }
+  }
+}
 
 // MARK: - Plate
 
