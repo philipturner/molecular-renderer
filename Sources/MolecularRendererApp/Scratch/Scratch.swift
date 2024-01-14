@@ -114,96 +114,84 @@ func createGeometry() -> [Entity] {
   for i in parameters.atoms.indices {
     let atomicNumber = parameters.atoms.atomicNumbers[i]
     let params = parameters.atoms.parameters[i]
-    print("-", atomicNumber, params.charge, params.hydrogenReductionFactor, params.epsilon, params.radius, parameters.atoms.centerTypes[i])
+    print("-", atomicNumber, params.charge, params.hydrogenReductionFactor, params.epsilon, params.radius, parameters.atoms.centerTypes[i] as Any)
   }
+  
+//  print()
+//  print("bonds:")
+//  for i in parameters.bonds.indices.indices {
+//    let bond = parameters.bonds.indices[i]
+//    let params = parameters.bonds.parameters[i]
+//    let extendedParams = parameters.bonds.extendedParameters[i]
+//    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], params.potentialWellDepth, params.equilibriumLength, params.stretchingStiffness, extendedParams?.dipoleMoment as Any)
+//  }
+//  
+//  print()
+//  print("angles:")
+//  for i in parameters.angles.indices.indices {
+//    let angle = parameters.angles.indices[i]
+//    let params = parameters.angles.parameters[i]
+//    let extendedParams = parameters.angles.extendedParameters[i]
+//    print("-", parameters.atoms.atomicNumbers[Int(angle[0])], parameters.atoms.atomicNumbers[Int(angle[1])], parameters.atoms.atomicNumbers[Int(angle[2])], params.equilibriumAngle, params.bendingStiffness, params.stretchBendStiffness, extendedParams as Any)
+//  }
+  
+  // MARK: - xTB
+  
+  let process = XTBProcess(path: "/Users/philipturner/Documents/OpenMM/xtb/cpu0")
+  process.writeFile(name: "xtb.inp", process.encodeSettings())
+  process.writeFile(name: "coord", try! process.encodeAtoms(topology.atoms))
+  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt"])
+  let optimized1 = try! process.decodeAtoms(process.readFile(name: "xtbopt.coord"))
+  
+  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt", "--gfnff"])
+  let optimized2 = try! process.decodeAtoms(process.readFile(name: "xtbopt.coord"))
+  
+  // MARK: - OpenMM
+  
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.parameters = parameters
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  forceField.positions = topology.atoms.map(\.position)
+  forceField.minimize()
   
   print()
   print("bonds:")
   for i in parameters.bonds.indices.indices {
     let bond = parameters.bonds.indices[i]
-    let params = parameters.bonds.parameters[i]
-    let extendedParams = parameters.bonds.extendedParameters[i]
-    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], params.potentialWellDepth, params.equilibriumLength, params.stretchingStiffness, extendedParams?.dipoleMoment as Any)
+    let delta = forceField.positions[Int(bond[0])] - forceField.positions[Int(bond[1])]
+    let length = (delta * delta).sum().squareRoot()
+    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], length)
   }
   
   print()
   print("angles:")
   for i in parameters.angles.indices.indices {
     let angle = parameters.angles.indices[i]
-    let params = parameters.angles.parameters[i]
-    let extendedParams = parameters.angles.extendedParameters[i]
-    print("-", parameters.atoms.atomicNumbers[Int(angle[0])], parameters.atoms.atomicNumbers[Int(angle[1])], parameters.atoms.atomicNumbers[Int(angle[2])], params.equilibriumAngle, params.bendingStiffness, params.stretchBendStiffness, extendedParams as Any)
+    var delta1 = forceField.positions[Int(angle[0])] - forceField.positions[Int(angle[1])]
+    var delta2 = forceField.positions[Int(angle[2])] - forceField.positions[Int(angle[1])]
+    delta1 /= (delta1 * delta1).sum().squareRoot()
+    delta2 /= (delta2 * delta2).sum().squareRoot()
+    let dotProduct = (delta1 * delta2).sum()
+    let angleMeasure = Float.acos(dotProduct) * 180 / .pi
+    print("-", parameters.atoms.atomicNumbers[Int(angle[0])], parameters.atoms.atomicNumbers[Int(angle[1])], parameters.atoms.atomicNumbers[Int(angle[2])], angleMeasure)
   }
   
-  return topology.atoms
+  // MARK: - Output
+  
+  var output: [Entity] = []
+  func transform(_ positions: [SIMD3<Float>], shift: SIMD3<Float>) {
+    for i in topology.atoms.indices {
+      var atom = topology.atoms[i]
+      atom.position = positions[i] + shift
+      output.append(atom)
+    }
+  }
+  transform(topology.atoms.map(\.position), shift: SIMD3(-0.35, 0.5, -0.35))
+  transform(forceField.positions, shift: SIMD3(0.35, 0.5, 0.35))
+  transform(optimized1.map(\.position), shift: SIMD3(-0.35, -0.5, -0.35))
+  transform(optimized2.map(\.position), shift: SIMD3(0.35, -0.5, 0.35))
+  
+  // Copy the table from Google Sheets, this source file w/ raw data, and a
+  // screenshot into HardwareCatalog/Simulation.
+  return output
 }
-
-/*
- Before the fix to the algorithm for computing angle type:
- 
- angles:
- - 6 6 6 111.8 0.74 0.14 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 1 6 1 107.7 0.54 0.0 nil
- - 6 6 6 111.8 0.74 0.14 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 1 6 1 107.7 0.54 0.0 nil
- - 6 6 6 111.8 0.74 0.14 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 1 6 1 107.7 0.54 0.0 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 14 111.5 0.4 0.14 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 14 6 1 110.0 0.54 0.1 nil
- - 14 6 1 110.0 0.54 0.1 nil
- - 1 6 1 107.7 0.54 0.0 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 14 111.5 0.4 0.14 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 14 6 1 110.0 0.54 0.1 nil
- - 14 6 1 110.0 0.54 0.1 nil
- - 1 6 1 107.7 0.54 0.0 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 6 110.4 0.74 0.14 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 1 108.9 0.59 0.1 nil
- - 6 6 14 111.5 0.4 0.14 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 6 6 1 109.47 0.56 0.1 nil
- - 14 6 1 110.0 0.54 0.1 nil
- - 14 6 1 110.0 0.54 0.1 nil
- - 1 6 1 107.7 0.54 0.0 nil
- - 6 14 6 110.4 0.48 0.06 nil
- - 6 14 6 110.4 0.48 0.06 nil
- - 6 14 1 109.3 0.4 0.1 nil
- - 6 14 6 110.4 0.48 0.06 nil
- - 6 14 1 109.3 0.4 0.1 nil
- - 6 14 1 109.3 0.4 0.1 nil
- */
-
-/*
- After the fix to the algorithm for computing angle type:
- */

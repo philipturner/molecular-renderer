@@ -63,7 +63,6 @@
 		98FB90702A5B19E100685E5C /* Key.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB906F2A5B19E100685E5C /* Key.swift */; };
 		98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB90792A5B6FC600685E5C /* VsyncHandler.swift */; };
 		98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */; };
-		98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,6 +137,9 @@
 		98537EB22A62EA940037C392 /* Memory.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Memory.metal; sourceTree = "<group>"; };
 		98537EB42A62FD230037C392 /* FaultCounter.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FaultCounter.metal; sourceTree = "<group>"; };
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
+		9855200D2B5443F900AB068D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9855200E2B54458B00AB068D /* SiliconDopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiliconDopedAdamantane.swift; sourceTree = "<group>"; };
+		985520102B5446F900AB068D /* SiliconDopedAdamantane.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiliconDopedAdamantane.jpg; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
@@ -446,6 +448,16 @@
 			path = "Chapter 4";
 			sourceTree = "<group>";
 		};
+		9855200C2B5443D200AB068D /* NonCarbonElements */ = {
+			isa = PBXGroup;
+			children = (
+				9855200E2B54458B00AB068D /* SiliconDopedAdamantane.swift */,
+				985520102B5446F900AB068D /* SiliconDopedAdamantane.jpg */,
+				9855200D2B5443F900AB068D /* README.md */,
+			);
+			path = NonCarbonElements;
+			sourceTree = "<group>";
+		};
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
 			isa = PBXGroup;
 			children = (
@@ -568,6 +580,7 @@
 				98B25A272B39372E00081A61 /* Carbides */,
 				98D975BC2AC2228E0052EE6C /* DiamondRope */,
 				981360E32B48CFC60007D40F /* HeatCapacity */,
+				9855200C2B5443D200AB068D /* NonCarbonElements */,
 				98FE60D22B3C6AFC00D73E37 /* Reconstruction */,
 				98FE60F12B3F716E00D73E37 /* Tripods */,
 				98E23B242B4C825300B5A7D5 /* README.md */,
@@ -751,6 +764,7 @@
 			isa = PBXGroup;
 			children = (
 				98518AF62A75845600CAD919 /* MM4.swift */,
+				98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */,
 				989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */,
 			);
 			path = Backend;
@@ -780,7 +794,6 @@
 			children = (
 				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
 				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
-				98FE60E42B3DE0F300D73E37 /* TopologyMinimizer.swift */,
 				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
 			);
 			path = Backend;
@@ -1123,7 +1136,6 @@
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
-				98FE60E52B3DE0F300D73E37 /* TopologyMinimizer.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

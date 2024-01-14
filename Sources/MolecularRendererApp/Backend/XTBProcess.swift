@@ -22,8 +22,6 @@ class XTBProcess {
   var workspace: URL
   var anchors: [Int] = []
   var atoms: [HDL.Entity] = []
-  var charge: Int = 0
-  var spinMultiplicity: Int = 0
   var standardError: Bool = true
   var standardOutput: Bool = true
   
