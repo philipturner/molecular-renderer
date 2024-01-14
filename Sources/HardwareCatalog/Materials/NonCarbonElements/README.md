@@ -4,7 +4,7 @@ This file documents the performance of MM4 when handling elements besides carbon
 
 ## Bridgehead-Doped Adamantane
 
-### Si-Doped Adamantane (Bridgehead)
+### Si-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a silicon.
 
@@ -26,7 +26,7 @@ Adamantane, with one bridgehead carbon replaced with a silicon.
 
 ![Si Doped Adamantane Bridgehead](./SiDopedAdamantane_Bridgehead.jpg)
 
-### Ge-Doped Adamantane (Bridgehead)
+### Ge-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a germanium.
 
@@ -34,14 +34,32 @@ Adamantane, with one bridgehead carbon replaced with a germanium.
 
 Adamantane, with one bridgehead carbon replaced with a nitrogen.
 
-### Silicon Carbide (Bridgehead)
+### Silicon Carbide
 
 Adamantane, with each bridgehead carbon replaced with a silicon.
-
-### Germanium Carbide (Bridgehead)
-
-Adamantane, with each bridgehead carbon replaced with a germanium.
 
 ### Carbon Nitride
 
 Adamantane, with each bridgehead carbon replaced with a nitrogen.
+
+## Sidewall-Doped Adamantane
+
+### Si-Doped Adamantane
+
+Adamantane, with one sidewall carbon replaced with a silicon.
+
+### Ge-Doped Adamantane
+
+Adamantane, with one sidewall carbon replaced with a germanium.
+
+### S-Doped Adamantane
+
+Adamantane, with one sidewall carbon replaced with a sulfur.
+
+### Germanium Carbide
+
+Adamantane, with each sidewall carbon replaced with a germanium.
+
+### Carbon Sulfide
+
+Adamantane, with each sidewall carbon replaced with a sulfur.

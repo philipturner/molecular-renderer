@@ -138,7 +138,7 @@
 		98537EB42A62FD230037C392 /* FaultCounter.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FaultCounter.metal; sourceTree = "<group>"; };
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
 		9855200D2B5443F900AB068D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		9855200E2B54458B00AB068D /* DopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DopedAdamantane.swift; sourceTree = "<group>"; };
+		9855200E2B54458B00AB068D /* BridgeheadDopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeheadDopedAdamantane.swift; sourceTree = "<group>"; };
 		985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
@@ -451,7 +451,7 @@
 		9855200C2B5443D200AB068D /* NonCarbonElements */ = {
 			isa = PBXGroup;
 			children = (
-				9855200E2B54458B00AB068D /* DopedAdamantane.swift */,
+				9855200E2B54458B00AB068D /* BridgeheadDopedAdamantane.swift */,
 				985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */,
 				9855200D2B5443F900AB068D /* README.md */,
 			);
