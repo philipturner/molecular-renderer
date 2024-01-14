@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
-        "branch" : "force-field",
-        "revision" : "c4409da248d4d29d55b196ce8e4d51f41f084ab6"
+        "branch" : "non-carbon-elements",
+        "revision" : "172769ab291e713c2b742dd14f9c02c310d4ab5f"
       }
     },
     {
