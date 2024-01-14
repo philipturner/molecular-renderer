@@ -2,9 +2,11 @@
 
 This file documents the performance of MM4 when handling elements besides carbon and hydrogen. It reports partial charges, bond lengths, and bond angles of notable functional groups. The results are compared to xTB.
 
-## Silicon-Doped Adamantane
+## Bridgehead-Doped Adamantane
 
-This molecule is adamantane, but with one bridgehead carbon replaced with a silicon.
+### Si-Doped Adamantane (Bridgehead)
+
+Adamantane, with one bridgehead carbon replaced with a silicon.
 
 |                             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
 | --------------------------- | ------------- | ------------- | -------- | ------- |
@@ -22,4 +24,24 @@ This molecule is adamantane, but with one bridgehead carbon replaced with a sili
 | Si-C-H angle                | 110.0         | 110.4         | 112.2    | 108.8   |
 | C-Si-H angle                | 109.3         | 114.6         | 115.7    | 114.6   |
 
-![Silicon-Doped Adamantane](./SiliconDopedAdamantane.jpg)
+![Si Doped Adamantane Bridgehead](./SiDopedAdamantane_Bridgehead.jpg)
+
+### Ge-Doped Adamantane (Bridgehead)
+
+Adamantane, with one bridgehead carbon replaced with a germanium.
+
+### N-Doped Adamantane
+
+Adamantane, with one bridgehead carbon replaced with a nitrogen.
+
+### Silicon Carbide (Bridgehead)
+
+Adamantane, with each bridgehead carbon replaced with a silicon.
+
+### Germanium Carbide (Bridgehead)
+
+Adamantane, with each bridgehead carbon replaced with a germanium.
+
+### Carbon Nitride
+
+Adamantane, with each bridgehead carbon replaced with a nitrogen.

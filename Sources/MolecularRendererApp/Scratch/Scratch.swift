@@ -117,23 +117,23 @@ func createGeometry() -> [Entity] {
     print("-", atomicNumber, params.charge, params.hydrogenReductionFactor, params.epsilon, params.radius, parameters.atoms.centerTypes[i] as Any)
   }
   
-//  print()
-//  print("bonds:")
-//  for i in parameters.bonds.indices.indices {
-//    let bond = parameters.bonds.indices[i]
-//    let params = parameters.bonds.parameters[i]
-//    let extendedParams = parameters.bonds.extendedParameters[i]
-//    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], params.potentialWellDepth, params.equilibriumLength, params.stretchingStiffness, extendedParams?.dipoleMoment as Any)
-//  }
-//  
-//  print()
-//  print("angles:")
-//  for i in parameters.angles.indices.indices {
-//    let angle = parameters.angles.indices[i]
-//    let params = parameters.angles.parameters[i]
-//    let extendedParams = parameters.angles.extendedParameters[i]
-//    print("-", parameters.atoms.atomicNumbers[Int(angle[0])], parameters.atoms.atomicNumbers[Int(angle[1])], parameters.atoms.atomicNumbers[Int(angle[2])], params.equilibriumAngle, params.bendingStiffness, params.stretchBendStiffness, extendedParams as Any)
-//  }
+  print()
+  print("bonds:")
+  for i in parameters.bonds.indices.indices {
+    let bond = parameters.bonds.indices[i]
+    let params = parameters.bonds.parameters[i]
+    let extendedParams = parameters.bonds.extendedParameters[i]
+    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], params.potentialWellDepth, params.equilibriumLength, params.stretchingStiffness, extendedParams?.dipoleMoment as Any)
+  }
+  
+  print()
+  print("angles:")
+  for i in parameters.angles.indices.indices {
+    let angle = parameters.angles.indices[i]
+    let params = parameters.angles.parameters[i]
+    let extendedParams = parameters.angles.extendedParameters[i]
+    print("-", parameters.atoms.atomicNumbers[Int(angle[0])], parameters.atoms.atomicNumbers[Int(angle[1])], parameters.atoms.atomicNumbers[Int(angle[2])], params.equilibriumAngle, params.bendingStiffness, params.stretchBendStiffness, extendedParams as Any)
+  }
   
   // MARK: - xTB
   
