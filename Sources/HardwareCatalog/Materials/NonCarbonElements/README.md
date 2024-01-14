@@ -26,21 +26,37 @@ Adamantane, with one bridgehead carbon replaced with a silicon.
 
 ![Si Doped Adamantane Bridgehead](./SiDopedAdamantane_Bridgehead.jpg)
 
+### P-Doped Adamantane
+
+Adamantane, with one bridgehead carbon replaced with a phosphorus.
+
+|                             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| --------------------------- | ------------- | ------------- | -------- | ------- |
+| C charge (far from P)       | 0.000         | 0.000         | \-0.056  | \-0.049 |
+| C charge (close to P)       | 0.105         | 0.105         | \-0.048  | \-0.057 |
+| P charge                    | \-0.314       | \-0.314       | \-0.119  | 0.026   |
+| C-C bond (far from P)       | 1.527         | 1.536         | 1.528    | 1.551   |
+| C-C bond (close to P)       | 1.527         | 1.538         | 1.527    | 1.534   |
+| C-P bond                    | 1.844         | 1.856         | 1.856    | 1.834   |
+| C-H bond (close to P)       | 1.111         | 1.112         | 1.095    | 1.0926  |
+| C-C-C angle (most strained) | 111.8         | 111.4         | 111.2    | 111.4   |
+| C-C-P angle                 | 109.6         | 113.8         | 114.3    | 112.2   |
+| C-P-C angle                 | 94.5          | 97.9          | 97.2     | 100.2   |
+| P-C-H angle                 | 108.3         | 107.8         | 107.3    | 107.3   |
+
+![P Doped Adamantane Bridgehead](./PDopedAdamantane_Bridgehead.jpg)
+
 ### Ge-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a germanium.
-
-### N-Doped Adamantane
-
-Adamantane, with one bridgehead carbon replaced with a nitrogen.
 
 ### Silicon Carbide
 
 Adamantane, with each bridgehead carbon replaced with a silicon.
 
-### Carbon Nitride
+### Carbon Phosphide
 
-Adamantane, with each bridgehead carbon replaced with a nitrogen.
+### Germanium Carbide
 
 ## Sidewall-Doped Adamantane
 
@@ -48,18 +64,12 @@ Adamantane, with each bridgehead carbon replaced with a nitrogen.
 
 Adamantane, with one sidewall carbon replaced with a silicon.
 
-### Ge-Doped Adamantane
-
-Adamantane, with one sidewall carbon replaced with a germanium.
-
 ### S-Doped Adamantane
 
-Adamantane, with one sidewall carbon replaced with a sulfur.
+### Ge-Doped Adamantane
 
-### Germanium Carbide
-
-Adamantane, with each sidewall carbon replaced with a germanium.
+### Silicon Carbide
 
 ### Carbon Sulfide
 
-Adamantane, with each sidewall carbon replaced with a sulfur.
+### Germanium Carbide
