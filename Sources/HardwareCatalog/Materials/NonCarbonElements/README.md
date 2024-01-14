@@ -2,6 +2,8 @@
 
 This file documents the performance of MM4 when handling elements besides carbon and hydrogen. It reports partial charges, bond lengths, and bond angles of notable functional groups. The results are compared to xTB.
 
+<!-- Method for creating images: take a ~1000x1000 screenshot of the 2000x2000 window. Downsample to ~500x500 and use 30-pt font. -->
+
 ## Bridgehead-Doped Adamantane
 
 ### Si-Doped Adamantane
@@ -49,6 +51,24 @@ Adamantane, with one bridgehead carbon replaced with a phosphorus.
 ### Ge-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a germanium.
+
+|                             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| --------------------------- | ------------- | ------------- | -------- | ------- |
+| C charge (far from Ge)      | 0.000         | 0.000         | \-0.048  | \-0.051 |
+| C charge (close to Ge)      | \-0.068       | \-0.068       | \-0.100  | \-0.076 |
+| Ge charge                   | 0.203         | 0.203         | 0.153    | 0.168   |
+| H charge (on Ge)            | 0.000         | 0.000         | \-0.011  | \-0.035 |
+| C-C bond (far from Ge)      | 1.527         | 1.545         | 1.530    | 1.560   |
+| C-C bond (close to Ge)      | 1.527         | 1.544         | 1.531    | 1.541   |
+| C-Ge bond                   | 1.949         | 1.945         | 1.971    | 1.947   |
+| Ge-H bond                   | 1.555         | 1.554         | 1.521    | 1.557   |
+| C-C-C angle (most strained) | 111.8         | 113.5         | 114.0    | 114.0   |
+| C-C-Ge angle                | 109.3         | 105.8         | 105.7    | 104.5   |
+| C-Ge-C angle                | 109.8         | 102.7         | 101.8    | 104.3   |
+| Ge-C-H angle                | 111.9         | 111.6         | 112.4    | 109.4   |
+| C-Ge-H angle                | 110.2         | 115.6         | 116.4    | 114.3   |
+
+![Ge Doped Adamantane Bridgehead](./GeDopedAdamantane_Bridgehead.jpg)
 
 ### Silicon Carbide
 

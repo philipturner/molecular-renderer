@@ -54,7 +54,7 @@ func createGeometry() -> [Entity] {
       Volume {
         Origin { 0.20 * (h + k + l) }
         Plane { h + k + l }
-        Replace { .atom(.phosphorus) }
+        Replace { .atom(.germanium) }
       }
     }
   }
@@ -85,18 +85,18 @@ func createGeometry() -> [Entity] {
   
   let orbitals = topology.nonbondingOrbitals()
   let chBondLength = Float(1.1120) / 10
-//  let hSiBondLength = Float(1.483) / 10
+  let hGeBondLength = Float(1.529) / 10
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
   for i in topology.atoms.indices {
     let carbon = topology.atoms[i]
     for orbital in orbitals[i] {
-      if carbon.atomicNumber == 15 {
-        continue
-      }
-      precondition(carbon.atomicNumber == 6)
-      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : chBondLength
+//      if carbon.atomicNumber == 15 {
+//        continue
+//      }
+//      precondition(carbon.atomicNumber == 6)
+      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hGeBondLength
       let position = carbon.position + bondLength * orbital
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       let hydrogenID = topology.atoms.count + insertedAtoms.count

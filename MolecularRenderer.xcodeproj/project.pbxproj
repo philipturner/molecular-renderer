@@ -141,6 +141,7 @@
 		9855200E2B54458B00AB068D /* BridgeheadDopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeheadDopedAdamantane.swift; sourceTree = "<group>"; };
 		985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
 		985520112B54604B00AB068D /* PDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = PDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
+		985520122B546E9F00AB068D /* GeDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GeDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
@@ -455,6 +456,7 @@
 				9855200E2B54458B00AB068D /* BridgeheadDopedAdamantane.swift */,
 				985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */,
 				985520112B54604B00AB068D /* PDopedAdamantane_Bridgehead.jpg */,
+				985520122B546E9F00AB068D /* GeDopedAdamantane_Bridgehead.jpg */,
 				9855200D2B5443F900AB068D /* README.md */,
 			);
 			path = NonCarbonElements;
