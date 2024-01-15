@@ -208,6 +208,21 @@ Adamantane, with one sidewall carbon replaced with a sulfur.
 
 ### Carbon Sulfide
 
+Adamantane, with each sidewall carbon replaced with a sulfur.
+
+![Carbon Sulfide Sidewall](./CarbonSulfide_Sidewall.jpg)
+
+|             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ----------- | ------------- | ------------- | -------- | ------- |
+| H charge    | 0.000         | 0.000         | 0.089    | 0.065   |
+| C charge    | 0.241         | 0.241         | 0.100    | 0.007   |
+| S charge    | \-0.161       | \-0.161       | \-0.126  | \-0.048 |
+| C-S bond    | 1.814         | 1.813         | 1.819    | 1.793   |
+| C-H bond    | 1.082         | 1.082         | 1.090    | 1.094   |
+| S-C-S angle | 110.0         | 113.1         | 113.7    | 113.3   |
+| C-S-C angle | 97.2          | 101.6         | 100.2    | 101.2   |
+| H-C-S angle | 108.9         | 105.6         | 104.8    | 105.3   |
+
 ### Ge-Doped Adamantane
 
 ### Germanium Carbide
@@ -233,6 +248,7 @@ Bulk material properties reflect accuracy of parameters for quaternary atoms. Ad
 TODO:
 - Measure density and lattice constant
 - Measure elastic/shear/flexural modulus
+- Compare lattice-scaled moduli of different materials
 - Compare to results from xTB, where computationally feasible
 - Compare to empirical data
 

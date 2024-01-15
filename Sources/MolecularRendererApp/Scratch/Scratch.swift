@@ -10,7 +10,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .elemental(.carbon) }
+    Material { .checkerboard(.carbon, .silicon) }
     
     Volume {
       Origin { 2 * h + 2 * k + 2 * l }
@@ -51,16 +51,24 @@ func createGeometry() -> [Entity] {
       
       Replace { .empty }
       
-      Volume {
-        Origin { 0.3 * l }
-        Plane { l }
-        Replace { .atom(.sulfur) }
-      }
+//      Volume {
+//        Origin { 0.3 * l }
+//        Plane { l }
+//        Replace { .atom(.sulfur) }
+//      }
     }
   }
   
   var topology = Topology()
   topology.insert(atoms: lattice.atoms)
+  for i in topology.atoms.indices {
+    var atom = topology.atoms[i]
+    if atom.atomicNumber == 14 {
+      atom.atomicNumber = 16
+    }
+    topology.atoms[i] = atom
+  }
+  
   let matches = topology.match(topology.atoms, algorithm: .covalentBondLength(1.1))
   
   var insertedBonds: [SIMD2<UInt32>] = []
