@@ -61,12 +61,12 @@ func createGeometry() -> [Entity] {
   
   var topology = Topology()
   topology.insert(atoms: lattice.atoms)
-//  for i in topology.atoms.indices {
-//    if topology.atoms[i].atomicNumber == 14 {
-//      topology.atoms[i].atomicNumber = 15
-//    }
-//  }
-//  
+  for i in topology.atoms.indices {
+    if topology.atoms[i].atomicNumber == 14 {
+      topology.atoms[i].atomicNumber = 15
+    }
+  }
+  
   let cSiBondLength = Element.carbon.covalentRadius +
   Element.silicon.covalentRadius
   let matches = topology.match(
@@ -91,18 +91,17 @@ func createGeometry() -> [Entity] {
   
   let orbitals = topology.nonbondingOrbitals()
   let chBondLength = Float(1.1120) / 10
-  let hSiBondLength = Float(1.483) / 10
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
   for i in topology.atoms.indices {
     let carbon = topology.atoms[i]
     for orbital in orbitals[i] {
-//      if carbon.atomicNumber == 15 {
-//        continue
-//      }
-//      precondition(carbon.atomicNumber == 6)
-      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hSiBondLength
+      if carbon.atomicNumber == 15 {
+        continue
+      }
+      precondition(carbon.atomicNumber == 6)
+      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : chBondLength
       let position = carbon.position + bondLength * orbital
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       let hydrogenID = topology.atoms.count + insertedAtoms.count

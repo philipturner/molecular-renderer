@@ -95,6 +95,22 @@ Adamantane, with each bridgehead carbon replaced with a silicon.
 
 ### Carbon Phosphide
 
+Adamantane, with each bridgehead carbon replaced with a phosphorus.
+
+![Carbon Phosphide Bridgehead](./CarbonPhosphide_Bridgehead.jpg)
+
+|             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ----------- | ------------- | ------------- | -------- | ------- |
+| H charge    | 0.000         | 0.000         | 0.058    | 0.026   |
+| C charge    | 0.209         | 0.209         | \-0.031  | \-0.068 |
+| P charge    | \-0.313       | \-0.313       | \-0.127  | 0.026   |
+| C-P bond    | 1.846         | 1.842         | 1.853    | 1.828   |
+| C-H bond    | 1.110         | 1.110         | 1.098    | 1.088   |
+| P-C-P angle | 109.5         | 125.0         | 124.0    | 120.7   |
+| C-P-C angle | 94.5          | 100.7         | 101.3    | 103.4   |
+| H-C-P angle | 108.3         | 106.2         | 106.3    | 107.1   |
+| H-C-H angle | 107.7         | 105.7         | 106.6    | 107.2   |
+
 ### Germanium Carbide
 
 ## Sidewall-Doped Adamantane
