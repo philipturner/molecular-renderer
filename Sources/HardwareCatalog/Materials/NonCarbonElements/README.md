@@ -2,6 +2,8 @@
 
 This file documents the performance of MM4 when handling elements besides carbon and hydrogen. It reports partial charges, bond lengths, and bond angles of notable functional groups. The results are compared to xTB.
 
+Cross-terms containing torsions are deactivated. It is unclear to what degree they're required for first-row electronegative elements. Therefore, this analysis has avoided N/O/F so far.
+
 <!-- Method for creating images: take a ~1000x1000 screenshot of the 2000x2000 window. Downsample to ~500x500 and use 30-pt font. -->
 
 ## Bridgehead-Doped Adamantane
@@ -9,6 +11,8 @@ This file documents the performance of MM4 when handling elements besides carbon
 ### Si-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a silicon.
+
+![Si Doped Adamantane Bridgehead](./SiDopedAdamantane_Bridgehead.jpg)
 
 |                             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
 | --------------------------- | ------------- | ------------- | -------- | ------- |
@@ -26,11 +30,11 @@ Adamantane, with one bridgehead carbon replaced with a silicon.
 | Si-C-H angle                | 110.0         | 110.4         | 112.2    | 108.8   |
 | C-Si-H angle                | 109.3         | 114.6         | 115.7    | 114.6   |
 
-![Si Doped Adamantane Bridgehead](./SiDopedAdamantane_Bridgehead.jpg)
-
 ### P-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a phosphorus.
+
+![P Doped Adamantane Bridgehead](./PDopedAdamantane_Bridgehead.jpg)
 
 |                             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
 | --------------------------- | ------------- | ------------- | -------- | ------- |
@@ -46,11 +50,11 @@ Adamantane, with one bridgehead carbon replaced with a phosphorus.
 | C-P-C angle                 | 94.5          | 97.9          | 97.2     | 100.2   |
 | P-C-H angle                 | 108.3         | 107.8         | 107.3    | 107.3   |
 
-![P Doped Adamantane Bridgehead](./PDopedAdamantane_Bridgehead.jpg)
-
 ### Ge-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a germanium.
+
+![Ge Doped Adamantane Bridgehead](./GeDopedAdamantane_Bridgehead.jpg)
 
 |                             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
 | --------------------------- | ------------- | ------------- | -------- | ------- |
@@ -68,11 +72,26 @@ Adamantane, with one bridgehead carbon replaced with a germanium.
 | Ge-C-H angle                | 111.9         | 111.6         | 112.4    | 109.4   |
 | C-Ge-H angle                | 110.2         | 115.6         | 116.4    | 114.3   |
 
-![Ge Doped Adamantane Bridgehead](./GeDopedAdamantane_Bridgehead.jpg)
-
 ### Silicon Carbide
 
 Adamantane, with each bridgehead carbon replaced with a silicon.
+
+![Silicon Carbide Bridgehead](./SiliconCarbide_Bridgehead.jpg)
+
+|                  | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ---------------- | ------------- | ------------- | -------- | ------- |
+| H charge (on C)  | 0.000         | 0.000         | 0.011    | 0.022   |
+| H charge (on Si) | 0.000         | 0.000         | \-0.107  | \-0.069 |
+| C charge         | \-0.155       | \-0.155       | \-0.271  | \-0.091 |
+| Si charge        | 0.233         | 0.233         | 0.480    | 0.311   |
+| C-Si bond        | 1.879         | 1.880         | 1.903    | 1.872   |
+| C-H bond         | 1.112         | 1.112         | 1.088    | 1.088   |
+| Si-H bond        | 1.487         | 1.487         | 1.482    | 1.451   |
+| Si-C-Si angle    | 117.0         | 111.8         | 111.9    | 108.6   |
+| C-Si-C angle     | 110.4         | 108.3         | 108.2    | 109.8   |
+| H-C-Si angle     | 110.0         | 109.5         | 109.6    | 110.0   |
+| H-Si-C angle     | 109.3         | 110.6         | 110.7    | 109.0   |
+| H-C-H angle      | 107.7         | 107.0         | 106.2    | 108.8   |
 
 ### Carbon Phosphide
 
@@ -81,8 +100,6 @@ Adamantane, with each bridgehead carbon replaced with a silicon.
 ## Sidewall-Doped Adamantane
 
 ### Si-Doped Adamantane
-
-Adamantane, with one sidewall carbon replaced with a silicon.
 
 ### S-Doped Adamantane
 
