@@ -6,6 +6,8 @@ Cross-terms containing torsions are deactivated. It is unclear to what degree th
 
 <!-- Method for creating images: take a ~1000x1000 screenshot of the 2000x2000 window. Downsample to ~500x500 and use 30-pt font. -->
 
+<!-- Save results of this investigation to the Internet Archive. -->
+
 ## Bridgehead-Doped Adamantane
 
 ### Si-Doped Adamantane
@@ -113,6 +115,25 @@ Adamantane, with each bridgehead carbon replaced with a phosphorus.
 
 ### Germanium Carbide
 
+Adamantane, with each bridgehead carbon replaced with a germanium.
+
+![Germanium Carbide Bridgehead](./GermaniumCarbide_Bridgehead.jpg)
+
+|                  | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ---------------- | ------------- | ------------- | -------- | ------- |
+| H charge (on C)  | 0.000         | 0.000         | 0.043    | 0.016   |
+| H charge (on Ge) | 0.000         | 0.000         | \-0.058  | \-0.034 |
+| C charge         | \-0.136       | \-0.136       | \-0.157  | \-0.106 |
+| Ge charge        | 0.203         | 0.203         | 0.165    | 0.146   |
+| C-Ge bond        | 1.949         | 1.951         | 1.975    | 1.967   |
+| C-H bond         | 1.112         | 1.112         | 1.090    | 1.087   |
+| Ge-H bond        | 1.552         | 1.552         | 1.535    | 1.538   |
+| Ge-C-Ge angle    | 112.0         | 109.8         | 109.8    | 109.1   |
+| C-Ge-C angle     | 109.8         | 109.3         | 109.3    | 109.7   |
+| H-C-Ge angle     | 111.9         | 110.2         | 109.8    | 109.7   |
+| H-Ge-C angle     | 110.2         | 109.6         | 109.6    | 109.3   |
+| H-C-H angle      | 107.7         | 106.4         | 107.6    | 108.9   |
+
 ## Sidewall-Doped Adamantane
 
 ### Si-Doped Adamantane
@@ -126,3 +147,28 @@ Adamantane, with each bridgehead carbon replaced with a phosphorus.
 ### Carbon Sulfide
 
 ### Germanium Carbide
+
+Investigate the results with different Ge-C-Ge angles: ~109.5°, ~114.5°, ~119.5°.
+
+## Elemental Silicon
+
+Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
+
+Materials:
+- Sila-adamantane with methyl and silyl groups
+- C-doped sila-adamantane with methyl and silyl groups
+
+## Material Properties
+
+TODO:
+- Measure density and lattice constant
+- Measure elastic/shear/flexural modulus
+- Compare to results from xTB, where computationally feasible
+- Compare to empirical data
+
+Materials:
+- Diamond
+- Moissanite
+- Germanium Carbide
+- Silicon
+- All crystals are cubic, with reconstructed (100) surfaces.

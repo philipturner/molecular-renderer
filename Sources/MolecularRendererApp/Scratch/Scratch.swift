@@ -10,7 +10,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .checkerboard(.silicon, .carbon) }
+    Material { .checkerboard(.germanium, .carbon) }
     
     Volume {
       Origin { 2 * h + 2 * k + 2 * l }
@@ -61,16 +61,11 @@ func createGeometry() -> [Entity] {
   
   var topology = Topology()
   topology.insert(atoms: lattice.atoms)
-  for i in topology.atoms.indices {
-    if topology.atoms[i].atomicNumber == 14 {
-      topology.atoms[i].atomicNumber = 15
-    }
-  }
   
-  let cSiBondLength = Element.carbon.covalentRadius +
-  Element.silicon.covalentRadius
+  let cGeBondLength = Element.carbon.covalentRadius +
+  Element.germanium.covalentRadius
   let matches = topology.match(
-    topology.atoms, algorithm: .absoluteRadius(1.5 * cSiBondLength))
+    topology.atoms, algorithm: .absoluteRadius(1.5 * cGeBondLength))
   
   var insertedBonds: [SIMD2<UInt32>] = []
   for i in topology.atoms.indices {
@@ -91,17 +86,18 @@ func createGeometry() -> [Entity] {
   
   let orbitals = topology.nonbondingOrbitals()
   let chBondLength = Float(1.1120) / 10
+  let hGeBondLength = Float(1.529) / 10
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
   for i in topology.atoms.indices {
     let carbon = topology.atoms[i]
     for orbital in orbitals[i] {
-      if carbon.atomicNumber == 15 {
-        continue
-      }
-      precondition(carbon.atomicNumber == 6)
-      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : chBondLength
+//      if carbon.atomicNumber == 15 {
+//        continue
+//      }
+//      precondition(carbon.atomicNumber == 6)
+      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hGeBondLength
       let position = carbon.position + bondLength * orbital
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       let hydrogenID = topology.atoms.count + insertedAtoms.count
@@ -197,8 +193,8 @@ func createGeometry() -> [Entity] {
   }
   transform(topology.atoms.map(\.position), shift: SIMD3(-0.35, 0.5, -0.35))
   transform(forceField.positions, shift: SIMD3(0.35, 0.5, 0.35))
-  transform(optimized1.map(\.position), shift: SIMD3(-0.35, -0.5, -0.35))
-  transform(optimized2.map(\.position), shift: SIMD3(0.35, -0.5, 0.35))
+  transform(optimized1.map(\.position), shift: SIMD3(-0.35, -0.6, -0.35))
+  transform(optimized2.map(\.position), shift: SIMD3(0.35, -0.6, 0.35))
   
   // Copy the table from Google Sheets, this source file w/ raw data, and a
   // screenshot into HardwareCatalog/Simulation.
