@@ -10,7 +10,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .checkerboard(.carbon, .silicon) }
+    Material { .elemental(.carbon) }
     
     Volume {
       Origin { 2 * h + 2 * k + 2 * l }
@@ -51,24 +51,16 @@ func createGeometry() -> [Entity] {
       
       Replace { .empty }
       
-//      Volume {
-//        Origin { 0.3 * l }
-//        Plane { l }
-//        Replace { .atom(.sulfur) }
-//      }
+      Volume {
+        Origin { 0.3 * l }
+        Plane { l }
+        Replace { .atom(.germanium) }
+      }
     }
   }
   
   var topology = Topology()
   topology.insert(atoms: lattice.atoms)
-  for i in topology.atoms.indices {
-    var atom = topology.atoms[i]
-    if atom.atomicNumber == 14 {
-      atom.atomicNumber = 16
-    }
-    topology.atoms[i] = atom
-  }
-  
   let matches = topology.match(topology.atoms, algorithm: .covalentBondLength(1.1))
   
   var insertedBonds: [SIMD2<UInt32>] = []
@@ -90,17 +82,18 @@ func createGeometry() -> [Entity] {
   
   let orbitals = topology.nonbondingOrbitals()
   let chBondLength = Float(1.1120) / 10
+  let hGeBondLength = Float(1.529) / 10
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
   for i in topology.atoms.indices {
     let carbon = topology.atoms[i]
     for orbital in orbitals[i] {
-      if carbon.atomicNumber == 16 {
-        continue
-      }
-      precondition(carbon.atomicNumber == 6)
-      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : chBondLength
+//      if carbon.atomicNumber == 16 {
+//        continue
+//      }
+//      precondition(carbon.atomicNumber == 6)
+      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hGeBondLength
       let position = carbon.position + bondLength * orbital
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       let hydrogenID = topology.atoms.count + insertedAtoms.count

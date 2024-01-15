@@ -225,6 +225,27 @@ Adamantane, with each sidewall carbon replaced with a sulfur.
 
 ### Ge-Doped Adamantane
 
+Adamantane, with one sidewall carbon replaced with a germanium.
+
+![Ge Doped Adamantane Sidewall](./GeDopedAdamantane_Sidewall.jpg)
+
+|                                 | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ------------------------------- | ------------- | ------------- | -------- | ------- |
+| C charge (once removed from Ge) | 0.000         | 0.000         | \-0.054  | \-0.050 |
+| C charge (close to Ge)          | \-0.068       | \-0.068       | \-0.055  | \-0.055 |
+| Ge charge                       | 0.136         | 0.136         | 0.126    | 0.162   |
+| H charge (on Ge)                | 0.000         | 0.000         | \-0.012  | \-0.032 |
+| C-C bond (once removed from Ge) | 1.527         | 1.547         | 1.531    | 1.560   |
+| C-C bond (close to Ge)          | 1.527         | 1.545         | 1.528    | 1.542   |
+| C-Ge bond                       | 1.949         | 1.949         | 1.977    | 1.957   |
+| Ge-H bond                       | 1.555         | 1.554         | 1.510    | 1.548   |
+| C-C-C angle (closest to Ge)     | 111.8         | 113.0         | 112.6    | 112.5   |
+| C-C-Ge angle                    | 109.3         | 107.3         | 107.4    | 106.2   |
+| C-Ge-C angle                    | 110.5         | 96.2          | 94.1     | 97.9    |
+| Ge-C-H angle                    | 110.0         | 110.7         | 113.4    | 108.7   |
+| C-Ge-H angle                    | 110.5         | 112.6         | 113.7    | 111.0   |
+| H-Ge-H angle                    | 107.5         | 109.6         | 107.8    | 113.8   |
+
 ### Germanium Carbide
 
 Investigate the results with different Ge-C-Ge angles: ~109.5°, ~114.5°, ~119.5°.
@@ -233,13 +254,13 @@ Investigate the results with different Ge-C-Ge angles: ~109.5°, ~114.5°, ~119.
 
 Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
 
-### Silyl-Adamantasilane
+### Di-Adamantasilane
 
-### Methyl-Adamantasilane
+### C-Doped Di-Adamantasilane (2)
 
-### C-Doped Silyl-Adamantasilane
+### C-Doped Di-Adamantasilane (4)
 
-### C-Doped Methyl-Adamantasilane
+### C-Doped Di-Adamantasilane (6)
 
 ## Material Properties
 
@@ -250,6 +271,7 @@ TODO:
 - Measure elastic/shear/flexural modulus
 - Compare lattice-scaled moduli of different materials
 - Compare to results from xTB, where computationally feasible
+  - Generate multiple data points in parallel, determine whether that helps or harms performance
 - Compare to empirical data
 
 Materials:
