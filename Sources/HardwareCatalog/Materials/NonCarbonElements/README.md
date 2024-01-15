@@ -138,6 +138,25 @@ Adamantane, with each bridgehead carbon replaced with a germanium.
 
 ### Si-Doped Adamantane
 
+![Si Doped Adamantane Sidewall](./SiDopedAdamantane_Sidewall.jpg)
+
+|                                 | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ------------------------------- | ------------- | ------------- | -------- | ------- |
+| C charge (once removed from Si) | 0.000         | 0.000         | \-0.058  | \-0.211 |
+| C charge (close to Si)          | \-0.078       | \-0.078       | \-0.114  | 0.427   |
+| Si charge                       | 0.155         | 0.155         | 0.476    | \-0.208 |
+| H charge (on Si)                | 0.000         | 0.000         | \-0.092  | 0.007   |
+| C-C bond (once removed from Si) | 1.531         | 1.549         | 1.530    | 1.641   |
+| C-C bond (close to Si)          | 1.536         | 1.551         | 1.530    | 1.624   |
+| C-Si bond                       | 1.876         | 1.872         | 1.897    | 1.908   |
+| Si-H bond                       | 1.483         | 1.483         | 1.467    | 1.434   |
+| C-C-C angle (closest to Si)     | 111.8         | 112.2         | 112.0    | 114.9   |
+| C-C-Si angle                    | 112.7         | 108.4         | 108.7    | 105.4   |
+| C-Si-C angle                    | 109.2         | 97.6          | 95.6     | 105.0   |
+| Si-C-H angle                    | 109.5         | 109.8         | 112.5    | 108.8   |
+| C-Si-H angle                    | 107.0         | 111.9         | 112.5    | 110.8   |
+| H-Si-H angle                    | 106.5         | 110.9         | 110.7    | 108.7   |
+
 ### Silicon Carbide
 
 ### S-Doped Adamantane

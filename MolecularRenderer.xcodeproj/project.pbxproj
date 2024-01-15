@@ -138,13 +138,14 @@
 		98537EB42A62FD230037C392 /* FaultCounter.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = FaultCounter.metal; sourceTree = "<group>"; };
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
 		9855200D2B5443F900AB068D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		9855200E2B54458B00AB068D /* BridgeheadDopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeheadDopedAdamantane.swift; sourceTree = "<group>"; };
+		9855200E2B54458B00AB068D /* DopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DopedAdamantane.swift; sourceTree = "<group>"; };
 		985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
 		985520112B54604B00AB068D /* PDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = PDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
 		985520122B546E9F00AB068D /* GeDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GeDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
 		985520132B54B10200AB068D /* SiliconCarbide_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiliconCarbide_Bridgehead.jpg; sourceTree = "<group>"; };
 		985520142B54D42900AB068D /* CarbonPhosphide_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CarbonPhosphide_Bridgehead.jpg; sourceTree = "<group>"; };
 		985520152B55815800AB068D /* GermaniumCarbide_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GermaniumCarbide_Bridgehead.jpg; sourceTree = "<group>"; };
+		985520162B55922400AB068D /* SiDopedAdamantane_Sidewall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiDopedAdamantane_Sidewall.jpg; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
@@ -456,11 +457,12 @@
 		9855200C2B5443D200AB068D /* NonCarbonElements */ = {
 			isa = PBXGroup;
 			children = (
-				9855200E2B54458B00AB068D /* BridgeheadDopedAdamantane.swift */,
+				9855200E2B54458B00AB068D /* DopedAdamantane.swift */,
 				985520142B54D42900AB068D /* CarbonPhosphide_Bridgehead.jpg */,
 				985520122B546E9F00AB068D /* GeDopedAdamantane_Bridgehead.jpg */,
 				985520152B55815800AB068D /* GermaniumCarbide_Bridgehead.jpg */,
 				985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */,
+				985520162B55922400AB068D /* SiDopedAdamantane_Sidewall.jpg */,
 				985520132B54B10200AB068D /* SiliconCarbide_Bridgehead.jpg */,
 				985520112B54604B00AB068D /* PDopedAdamantane_Bridgehead.jpg */,
 				9855200D2B5443F900AB068D /* README.md */,

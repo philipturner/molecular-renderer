@@ -10,7 +10,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .checkerboard(.germanium, .carbon) }
+    Material { .elemental(.carbon) }
     
     Volume {
       Origin { 2 * h + 2 * k + 2 * l }
@@ -51,21 +51,17 @@ func createGeometry() -> [Entity] {
       
       Replace { .empty }
       
-//      Volume {
-//        Origin { 0.20 * (h + k + l) }
-//        Plane { h + k + l }
-//        Replace { .atom(.phosphorus) }
-//      }
+      Volume {
+        Origin { 0.3 * l }
+        Plane { l }
+        Replace { .atom(.silicon) }
+      }
     }
   }
   
   var topology = Topology()
   topology.insert(atoms: lattice.atoms)
-  
-  let cGeBondLength = Element.carbon.covalentRadius +
-  Element.germanium.covalentRadius
-  let matches = topology.match(
-    topology.atoms, algorithm: .absoluteRadius(1.5 * cGeBondLength))
+  let matches = topology.match(topology.atoms, algorithm: .covalentBondLength(1.1))
   
   var insertedBonds: [SIMD2<UInt32>] = []
   for i in topology.atoms.indices {
@@ -86,7 +82,7 @@ func createGeometry() -> [Entity] {
   
   let orbitals = topology.nonbondingOrbitals()
   let chBondLength = Float(1.1120) / 10
-  let hGeBondLength = Float(1.529) / 10
+  let hSiBondLength = Float(1.483) / 10
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
@@ -97,7 +93,7 @@ func createGeometry() -> [Entity] {
 //        continue
 //      }
 //      precondition(carbon.atomicNumber == 6)
-      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hGeBondLength
+      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hSiBondLength
       let position = carbon.position + bondLength * orbital
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       let hydrogenID = topology.atoms.count + insertedAtoms.count
@@ -109,7 +105,7 @@ func createGeometry() -> [Entity] {
   topology.insert(atoms: insertedAtoms)
   topology.insert(bonds: insertedBonds)
   
-  return topology.atoms
+  
   
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
