@@ -54,14 +54,19 @@ func createGeometry() -> [Entity] {
 //      Volume {
 //        Origin { 0.20 * (h + k + l) }
 //        Plane { h + k + l }
-//        Replace { .atom(.germanium) }
+//        Replace { .atom(.phosphorus) }
 //      }
     }
   }
   
   var topology = Topology()
   topology.insert(atoms: lattice.atoms)
-  
+//  for i in topology.atoms.indices {
+//    if topology.atoms[i].atomicNumber == 14 {
+//      topology.atoms[i].atomicNumber = 15
+//    }
+//  }
+//  
   let cSiBondLength = Element.carbon.covalentRadius +
   Element.silicon.covalentRadius
   let matches = topology.match(
