@@ -32,6 +32,27 @@ Adamantane, with one bridgehead carbon replaced with a silicon.
 | Si-C-H angle                | 110.0         | 110.4         | 112.2    | 108.8   |
 | C-Si-H angle                | 109.3         | 114.5         | 115.7    | 114.6   |
 
+### Silicon Carbide
+
+Adamantane, with each bridgehead carbon replaced with a silicon.
+
+![Silicon Carbide Bridgehead](./SiliconCarbide_Bridgehead.jpg)
+
+|                  | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ---------------- | ------------- | ------------- | -------- | ------- |
+| H charge (on C)  | 0.000         | 0.000         | 0.011    | 0.022   |
+| H charge (on Si) | 0.000         | 0.000         | \-0.107  | \-0.069 |
+| C charge         | \-0.155       | \-0.155       | \-0.271  | \-0.091 |
+| Si charge        | 0.233         | 0.233         | 0.480    | 0.311   |
+| C-Si bond        | 1.879         | 1.880         | 1.903    | 1.872   |
+| C-H bond         | 1.112         | 1.112         | 1.088    | 1.088   |
+| Si-H bond        | 1.487         | 1.487         | 1.482    | 1.451   |
+| Si-C-Si angle    | 117.0         | 111.8         | 111.9    | 108.6   |
+| C-Si-C angle     | 110.4         | 108.3         | 108.2    | 109.8   |
+| H-C-Si angle     | 110.0         | 109.5         | 109.6    | 110.0   |
+| H-Si-C angle     | 109.3         | 110.6         | 110.7    | 109.0   |
+| H-C-H angle      | 107.7         | 107.1         | 106.2    | 108.8   |
+
 ### P-Doped Adamantane
 
 Adamantane, with one bridgehead carbon replaced with a phosphorus.
@@ -51,6 +72,24 @@ Adamantane, with one bridgehead carbon replaced with a phosphorus.
 | C-C-P angle                 | 109.6         | 113.8         | 114.3    | 112.2   |
 | C-P-C angle                 | 94.5          | 97.9          | 97.2     | 100.2   |
 | P-C-H angle                 | 108.3         | 107.8         | 107.3    | 107.3   |
+
+### Carbon Phosphide
+
+Adamantane, with each bridgehead carbon replaced with a phosphorus.
+
+![Carbon Phosphide Bridgehead](./CarbonPhosphide_Bridgehead.jpg)
+
+|             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ----------- | ------------- | ------------- | -------- | ------- |
+| H charge    | 0.000         | 0.000         | 0.058    | 0.026   |
+| C charge    | 0.209         | 0.209         | \-0.031  | \-0.068 |
+| P charge    | \-0.313       | \-0.313       | \-0.127  | 0.026   |
+| C-P bond    | 1.846         | 1.842         | 1.853    | 1.828   |
+| C-H bond    | 1.110         | 1.110         | 1.098    | 1.088   |
+| P-C-P angle | 109.5         | 125.0         | 124.0    | 120.7   |
+| C-P-C angle | 94.5          | 100.7         | 101.3    | 103.4   |
+| H-C-P angle | 108.3         | 106.2         | 106.3    | 107.1   |
+| H-C-H angle | 107.7         | 105.7         | 106.6    | 107.2   |
 
 ### Ge-Doped Adamantane
 
@@ -73,45 +112,6 @@ Adamantane, with one bridgehead carbon replaced with a germanium.
 | C-Ge-C angle                | 109.8         | 102.7         | 101.8    | 104.3   |
 | Ge-C-H angle                | 111.9         | 111.6         | 112.4    | 109.4   |
 | C-Ge-H angle                | 110.2         | 115.6         | 116.4    | 114.3   |
-
-### Silicon Carbide
-
-Adamantane, with each bridgehead carbon replaced with a silicon.
-
-![Silicon Carbide Bridgehead](./SiliconCarbide_Bridgehead.jpg)
-
-|                  | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
-| ---------------- | ------------- | ------------- | -------- | ------- |
-| H charge (on C)  | 0.000         | 0.000         | 0.011    | 0.022   |
-| H charge (on Si) | 0.000         | 0.000         | \-0.107  | \-0.069 |
-| C charge         | \-0.155       | \-0.155       | \-0.271  | \-0.091 |
-| Si charge        | 0.233         | 0.233         | 0.480    | 0.311   |
-| C-Si bond        | 1.879         | 1.880         | 1.903    | 1.872   |
-| C-H bond         | 1.112         | 1.112         | 1.088    | 1.088   |
-| Si-H bond        | 1.487         | 1.487         | 1.482    | 1.451   |
-| Si-C-Si angle    | 117.0         | 111.8         | 111.9    | 108.6   |
-| C-Si-C angle     | 110.4         | 108.3         | 108.2    | 109.8   |
-| H-C-Si angle     | 110.0         | 109.5         | 109.6    | 110.0   |
-| H-Si-C angle     | 109.3         | 110.6         | 110.7    | 109.0   |
-| H-C-H angle      | 107.7         | 107.1         | 106.2    | 108.8   |
-
-### Carbon Phosphide
-
-Adamantane, with each bridgehead carbon replaced with a phosphorus.
-
-![Carbon Phosphide Bridgehead](./CarbonPhosphide_Bridgehead.jpg)
-
-|             | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
-| ----------- | ------------- | ------------- | -------- | ------- |
-| H charge    | 0.000         | 0.000         | 0.058    | 0.026   |
-| C charge    | 0.209         | 0.209         | \-0.031  | \-0.068 |
-| P charge    | \-0.313       | \-0.313       | \-0.127  | 0.026   |
-| C-P bond    | 1.846         | 1.842         | 1.853    | 1.828   |
-| C-H bond    | 1.110         | 1.110         | 1.098    | 1.088   |
-| P-C-P angle | 109.5         | 125.0         | 124.0    | 120.7   |
-| C-P-C angle | 94.5          | 100.7         | 101.3    | 103.4   |
-| H-C-P angle | 108.3         | 106.2         | 106.3    | 107.1   |
-| H-C-H angle | 107.7         | 105.7         | 106.6    | 107.2   |
 
 ### Germanium Carbide
 
@@ -138,13 +138,13 @@ Adamantane, with each bridgehead carbon replaced with a germanium.
 
 ### Si-Doped Adamantane
 
-### S-Doped Adamantane
-
-### Ge-Doped Adamantane
-
 ### Silicon Carbide
 
+### S-Doped Adamantane
+
 ### Carbon Sulfide
+
+### Ge-Doped Adamantane
 
 ### Germanium Carbide
 
@@ -154,9 +154,13 @@ Investigate the results with different Ge-C-Ge angles: ~109.5°, ~114.5°, ~119.
 
 Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
 
-Materials:
-- Sila-adamantane with methyl and silyl groups
-- C-doped sila-adamantane with methyl and silyl groups
+### Silyl-Sila-Adamantane
+
+### Methyl-Sila-Adamantane
+
+### C-Doped Silyl-Sila-Adamantane
+
+### C-Doped Methyl-Sila-Adamantane
 
 ## Material Properties
 

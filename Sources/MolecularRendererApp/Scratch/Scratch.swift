@@ -109,6 +109,8 @@ func createGeometry() -> [Entity] {
   topology.insert(atoms: insertedAtoms)
   topology.insert(bonds: insertedBonds)
   
+  return topology.atoms
+  
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
   paramsDesc.bonds = topology.bonds
