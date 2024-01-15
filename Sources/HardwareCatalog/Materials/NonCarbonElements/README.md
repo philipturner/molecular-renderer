@@ -8,6 +8,12 @@ Cross-terms containing torsions are deactivated. It is unclear to what degree th
 
 <!-- Save results of this investigation to the Internet Archive. -->
 
+Table of Contents
+- [Bridgehead-Doped Adamantane](#bridgehead-doped-adamantane)
+- [Sidewall-Doped Adamantane](#sidewall-doped-adamantane)
+- [Elemental Silicon](#elemental-silicon)
+- [Material Properties](#material-properties)
+
 ## Bridgehead-Doped Adamantane
 
 ### Si-Doped Adamantane
@@ -212,13 +218,13 @@ Investigate the results with different Ge-C-Ge angles: ~109.5°, ~114.5°, ~119.
 
 Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
 
-### Silyl-Sila-Adamantane
+### Silyl-Adamantasilane
 
-### Methyl-Sila-Adamantane
+### Methyl-Adamantasilane
 
-### C-Doped Silyl-Sila-Adamantane
+### C-Doped Silyl-Adamantasilane
 
-### C-Doped Methyl-Sila-Adamantane
+### C-Doped Methyl-Adamantasilane
 
 ## Material Properties
 
