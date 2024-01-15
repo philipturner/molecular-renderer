@@ -248,11 +248,30 @@ Adamantane, with one sidewall carbon replaced with a germanium.
 
 ### Germanium Carbide
 
-Investigate the results with different Ge-C-Ge angles: ~109.5°, ~114.5°, ~119.5°.
+Adamantane, with each sidewall carbon replaced with a germanium.
+
+![Germanium Carbide Sidewall](./GermaniumCarbide_Sidewall.jpg)
+
+|                  | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ---------------- | ------------- | ------------- | -------- | ------- |
+| H charge (on C)  | 0.000         | 0.000         | 0.032    | 0.031   |
+| H charge (on Ge) | 0.000         | 0.000         | \-0.034  | \-0.024 |
+| C charge         | \-0.203       | \-0.203       | \-0.167  | 0.026   |
+| Ge charge        | 0.136         | 0.136         | 0.158    | \-0.171 |
+| C-Ge bond        | 1.949         | 1.954         | 1.971    | 1.914   |
+| C-H bond         | 1.112         | 1.112         | 1.091    | 1.088   |
+| Ge-H bond        | 1.552         | 1.552         | 1.518    | 1.491   |
+| Ge-C-Ge angle    | 112.0         | 109.8         | 109.7    | 109.3   |
+| C-Ge-C angle     | 110.5         | 108.8         | 109.0    | 109.8   |
+| H-C-Ge angle     | 110.0         | 109.1         | 109.2    | 109.6   |
+| H-Ge-C angle     | 110.5         | 110.4         | 110.2    | 109.6   |
+| H-Ge-H angle     | 107.5         | 106.5         | 107.2    | 108.6   |
 
 ## Elemental Silicon
 
 Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
+
+<!-- Only render the structures from MM4 and GFN2-xTB for these. Don't track MM4Parameters and GFN-FF data. Do tabulate the results when you swap out 109.5° for 118° in MM4Parameters. Label them MM3(2000), MM4(2024), GFN2-xTB. -->
 
 ### Di-Adamantasilane
 
@@ -264,14 +283,12 @@ Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond 
 
 ## Material Properties
 
-Bulk material properties reflect accuracy of parameters for quaternary atoms. Adamantanes only represent surfaces (bridgehead and sidewall atoms).
+This is an investigation that ought to be performed, to investigate the correctness of MM4. In theory, it should reproduce the bulk material properties of every compound. It is likely that the measured structures will be too large to study in a reasonable amount of time with GFN2-xTB. The cheaper GFN-FF has known deficiencies when modeling these compounds.
 
 TODO:
 - Measure density and lattice constant
 - Measure elastic/shear/flexural modulus
 - Compare lattice-scaled moduli of different materials
-- Compare to results from xTB, where computationally feasible
-  - Generate multiple data points in parallel, determine whether that helps or harms performance
 - Compare to empirical data
 
 Materials:
@@ -279,4 +296,4 @@ Materials:
 - Moissanite
 - Germanium Carbide
 - Silicon
-- All crystals are cubic, with reconstructed (100) surfaces.
+- All materials are cubic, with reconstructed (100) surfaces.
