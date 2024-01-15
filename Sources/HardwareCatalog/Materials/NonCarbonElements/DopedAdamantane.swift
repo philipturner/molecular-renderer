@@ -160,7 +160,7 @@ func createGeometry() -> [Entity] {
     let bond = parameters.bonds.indices[i]
     let delta = forceField.positions[Int(bond[0])] - forceField.positions[Int(bond[1])]
     let length = (delta * delta).sum().squareRoot()
-    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], length)
+    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], 10 * length)
   }
   
   print()

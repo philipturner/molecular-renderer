@@ -138,6 +138,8 @@ Adamantane, with each bridgehead carbon replaced with a germanium.
 
 ### Si-Doped Adamantane
 
+Adamantane, with one sidewall carbon replaced with a silicon.
+
 ![Si Doped Adamantane Sidewall](./SiDopedAdamantane_Sidewall.jpg)
 
 |                                 | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
@@ -158,6 +160,25 @@ Adamantane, with each bridgehead carbon replaced with a germanium.
 | H-Si-H angle                    | 106.5         | 110.9         | 110.7    | 108.7   |
 
 ### Silicon Carbide
+
+Adamantane, with each sidewall carbon replaced with a silicon.
+
+![Silicon Carbide Sidewall](./SiliconCarbide_Sidewall.jpg)
+
+|                  | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ---------------- | ------------- | ------------- | -------- | ------- |
+| H charge (on C)  | 0.000         | 0.000         | \-0.006  | \-0.133 |
+| H charge (on Si) | 0.000         | 0.000         | \-0.123  | 0.009   |
+| C charge         | \-0.233       | \-0.233       | \-0.344  | 0.416   |
+| Si charge        | 0.155         | 0.155         | 0.480    | \-0.206 |
+| C-Si bond        | 1.877         | 1.881         | 1.901    | 1.902   |
+| C-H bond         | 1.112         | 1.112         | 1.090    | 1.133   |
+| Si-H bond        | 1.488         | 1.488         | 1.476    | 1.437   |
+| Si-C-Si angle    | 119.5         | 111.0         | 110.7    | 108.5   |
+| C-Si-C angle     | 109.2         | 106.3         | 107.0    | 111.4   |
+| H-C-Si angle     | 109.5         | 107.9         | 108.2    | 110.4   |
+| H-Si-C angle     | 107.0         | 110.5         | 110.7    | 109.4   |
+| H-Si-H angle     | 106.5         | 108.8         | 110.7    | 107.9   |
 
 ### S-Doped Adamantane
 
@@ -182,6 +203,8 @@ Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond 
 ### C-Doped Methyl-Sila-Adamantane
 
 ## Material Properties
+
+Bulk material properties reflect accuracy of parameters for quaternary atoms. Adamantanes only represent surfaces (bridgehead and sidewall atoms).
 
 TODO:
 - Measure density and lattice constant

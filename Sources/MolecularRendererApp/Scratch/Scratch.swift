@@ -10,7 +10,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .elemental(.carbon) }
+    Material { .checkerboard(.carbon, .silicon) }
     
     Volume {
       Origin { 2 * h + 2 * k + 2 * l }
@@ -51,11 +51,11 @@ func createGeometry() -> [Entity] {
       
       Replace { .empty }
       
-      Volume {
-        Origin { 0.3 * l }
-        Plane { l }
-        Replace { .atom(.silicon) }
-      }
+//      Volume {
+//        Origin { 0.3 * l }
+//        Plane { l }
+//        Replace { .atom(.silicon) }
+//      }
     }
   }
   
@@ -104,8 +104,6 @@ func createGeometry() -> [Entity] {
   }
   topology.insert(atoms: insertedAtoms)
   topology.insert(bonds: insertedBonds)
-  
-  
   
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
@@ -163,7 +161,7 @@ func createGeometry() -> [Entity] {
     let bond = parameters.bonds.indices[i]
     let delta = forceField.positions[Int(bond[0])] - forceField.positions[Int(bond[1])]
     let length = (delta * delta).sum().squareRoot()
-    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], length)
+    print("-", parameters.atoms.atomicNumbers[Int(bond[0])], parameters.atoms.atomicNumbers[Int(bond[1])], 10 * length)
   }
   
   print()
