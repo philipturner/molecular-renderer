@@ -10,7 +10,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .checkerboard(.carbon, .silicon) }
+    Material { .elemental(.carbon) }
     
     Volume {
       Origin { 2 * h + 2 * k + 2 * l }
@@ -51,11 +51,11 @@ func createGeometry() -> [Entity] {
       
       Replace { .empty }
       
-//      Volume {
-//        Origin { 0.3 * l }
-//        Plane { l }
-//        Replace { .atom(.silicon) }
-//      }
+      Volume {
+        Origin { 0.3 * l }
+        Plane { l }
+        Replace { .atom(.sulfur) }
+      }
     }
   }
   
@@ -82,18 +82,17 @@ func createGeometry() -> [Entity] {
   
   let orbitals = topology.nonbondingOrbitals()
   let chBondLength = Float(1.1120) / 10
-  let hSiBondLength = Float(1.483) / 10
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
   for i in topology.atoms.indices {
     let carbon = topology.atoms[i]
     for orbital in orbitals[i] {
-//      if carbon.atomicNumber == 15 {
-//        continue
-//      }
-//      precondition(carbon.atomicNumber == 6)
-      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : hSiBondLength
+      if carbon.atomicNumber == 16 {
+        continue
+      }
+      precondition(carbon.atomicNumber == 6)
+      let bondLength = (carbon.atomicNumber == 6) ? chBondLength : chBondLength
       let position = carbon.position + bondLength * orbital
       let hydrogen = Entity(position: position, type: .atom(.hydrogen))
       let hydrogenID = topology.atoms.count + insertedAtoms.count

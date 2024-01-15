@@ -182,6 +182,24 @@ Adamantane, with each sidewall carbon replaced with a silicon.
 
 ### S-Doped Adamantane
 
+Adamantane, with one sidewall carbon replaced with a sulfur.
+
+![S Doped Adamantane Sidewall](./SDopedAdamantane_Sidewall.jpg)
+
+|                                | MM4Parameters | MM4ForceField | GFN2-xTB | GFN-FF  |
+| ------------------------------ | ------------- | ------------- | -------- | ------- |
+| C charge (once removed from S) | 0.000         | 0.000         | \-0.056  | \-0.047 |
+| C charge (close to S)          | 0.080         | 0.080         | 0.040    | \-0.010 |
+| S charge                       | \-0.161       | \-0.161       | \-0.229  | \-0.120 |
+| C-C bond (once removed from S) | 1.527         | 1.538         | 1.530    | 1.551   |
+| C-C bond (close to S)          | 1.526         | 1.539         | 1.523    | 1.544   |
+| C-S bond                       | 1.814         | 1.828         | 1.826    | 1.799   |
+| C-H bond (close to S)          | 1.097         | 1.099         | 1.093    | 1.101   |
+| C-C-C angle (closest to S)     | 111.8         | 111.9         | 110.9    | 110.9   |
+| C-C-S angle                    | 105.7         | 107.6         | 109.6    | 110.2   |
+| C-S-C angle                    | 97.2          | 98.5          | 95.0     | 96.6    |
+| S-C-H angle                    | 108.9         | 109.0         | 104.8    | 106.2   |
+
 ### Carbon Sulfide
 
 ### Ge-Doped Adamantane
