@@ -271,15 +271,90 @@ Adamantane, with each sidewall carbon replaced with a germanium.
 
 Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
 
-<!-- Only render the structures from MM4 and GFN2-xTB for these. Don't track MM4Parameters and GFN-FF data. Do tabulate the results when you swap out 109.5° for 118° in MM4Parameters. Label them MM3(2000), MM4(2024), GFN2-xTB. -->
+Based on this investigation, it looks like 118° is correct. Which parameter is used doesn't affect bulk silicon (di-adamantasilane) or compounds which don't have a quaternary Si-Si-Si bond (6-carbon doped variant). However, the RMS error between MM4 and GFN2-xTB greatly decreases when using the 118° parameter.
 
 ### Di-Adamantasilane
 
-### C-Doped Di-Adamantasilane (2)
+![Di-Adamantasilane](./DiAdamantasilane.jpg)
 
-### C-Doped Di-Adamantasilane (4)
+|                            | 118° | 109.5° | GFN2-xTB |
+| -------------------------- | ------ | ------ | ------ |
+| Si charge (bulk)           |  0.000 |  0.000 |  0.080 |
+| Si-Si (sidewall)           |  2.325 |  2.322 |  2.346 |
+| Si-Si (bridgehead)         |  2.329 |  2.326 |  2.374 |
+| Si-Si (bulk)               |  2.333 |  2.328 |  2.428 |
+| Si-Si-Si (sidewall)        |  110.1 |  110.2 |  113.5 |
+| Si-Si-Si (bridgehead)      |  109.2 |  109.2 |  110.1 |
+| Si-Si-Si (bulk 1)          |  109.8 |  110.0 |  108.3 |
+| Si-Si-Si (bulk 2)          |  109.3 |  109.3 |  106.8 |
+| Si-Si-Si (bulk 3)          |  109.7 |  109.7 |  113.3 |
+| Si-Si-Si (bulk 4)          |  109.1 |  109.0 |  107.9 |
 
-### C-Doped Di-Adamantasilane (6)
+### Di-Adamantasilane (2-Carbon Doped)
+
+![Di-Adamantasilane 2 Carbon Doped](./DiAdamantasilane_2CarbonDoped.jpg)
+
+|                            | 118° | 109.5° | GFN2-xTB |
+| -------------------------- | ------ | ------ | ------ |
+| H charge (on sidewall C)   |  0.000 |  0.000 | -0.030 |
+| C charge (sidewall)        | -0.154 | -0.154 | -0.285 |
+| Si charge (bulk)           |  0.077 |  0.077 |  0.198 |
+| Si-Si (sidewall)           |  2.326 |  2.324 |  2.346 |
+| Si-Si (bridgehead)         |  2.322 |  2.324 |  2.374 |
+| Si-Si (bulk)               |  2.325 |  2.328 |  2.394 |
+| C-Si (sidewall)            |  1.916 |  1.914 |  1.933 |
+| Si-Si-Si (sidewall)        |  108.4 |  107.8 |  110.9 |
+| Si-Si-Si (bridgehead 1)    |  111.7 |  111.0 |  113.4 |
+| Si-Si-Si (bridgehead 2)    |  102.3 |  104.6 |  101.4 |
+| Si-C-Si (sidewall)         |  120.4 |  119.6 |  124.1 |
+| Si-Si-Si (bulk 1)          |  108.2 |  106.4 |  107.0 |
+| Si-Si-Si (bulk 2)          |  112.0 |  108.9 |  111.2 |
+| Si-Si-Si (bulk 3)          |  110.1 |  107.6 |  113.9 |
+| C-Si-Si (bulk 1)           |  108.1 |  111.2 |  104.3 |
+| C-Si-Si (bulk 2)           |  109.1 |  111.0 |  111.2 |
+| C-Si-Si (bulk 3)           |  109.3 |  111.5 |  108.9 |
+
+### Di-Adamantasilane (4-Carbon Doped)
+
+![Di-Adamantasilane 4 Carbon Doped](./DiAdamantasilane_4CarbonDoped.jpg)
+
+|                            | 118° | 109.5° | GFN2-xTB |
+| -------------------------- | ------ | ------ | ------ |
+| H charge (on sidewall C)   |  0.000 |  0.000 | -0.018 |
+| C charge (sidewall)        | -0.154 | -0.154 | -0.282 |
+| Si charge (bulk)           |  0.154 |  0.154 |  0.292 |
+| Si-Si (bridgehead)         |  2.318 |  2.323 |  2.363 |
+| Si-Si (bulk)               |  2.324 |  2.333 |  2.360 |
+| C-Si (sidewall)            |  1.908 |  1.907 |  1.924 |
+| Si-Si-Si (bridgehead)      |  104.7 |  106.3 |  103.6 |
+| Si-C-Si (sidewall)         |  118.6 |  118.1 |  121.9 |
+| Si-Si-Si (bulk)            |  106.6 |  103.0 |  107.2 |
+| C-Si-C (bulk)              |  112.8 |  113.2 |  109.5 |
+| C-Si-Si (bulk 1)           |  109.4 |  110.8 |  108.4 |
+| C-Si-Si (bulk 2)           |  109.2 |  109.3 |  111.6 |
+| C-Si-Si (bulk 3)           |  109.4 |  110.7 |  108.4 |
+| C-Si-Si (bulk 4)           |  109.2 |  109.3 |  111.6 |
+
+### Di-Adamantasilane (6-Carbon Doped)
+
+![Di-Adamantasilane 6 Carbon Doped](./DiAdamantasilane_6CarbonDoped.jpg)
+
+|                            | 118° | 109.5° | GFN2-xTB |
+| -------------------------- | ------ | ------ | ------ |
+| H charge (on sidewall C)   |  0.000 |  0.000 | -0.000 |
+| H charge (on bridgehead C) |  0.000 |  0.000 |  0.001 |
+| C charge (sidewall)        | -0.154 | -0.154 | -0.286 |
+| C charge (bridgehead)      | -0.233 | -0.233 | -0.347 |
+| Si charge (bulk)           |  0.232 |  0.232 |  0.386 |
+| Si-Si (bulk)               |  2.338 |  2.338 |  2.320 |
+| C-Si (sidewall)            |  1.898 |  1.898 |  1.918 |
+| C-Si (bridgehead)          |  1.890 |  1.890 |  1.924 |
+| Si-C-Si (sidewall)         |  115.9 |  115.9 |  115.7 |
+| Si-C-Si (bridgehead)       |  112.5 |  112.5 |  111.6 |
+| C-Si-C (bulk 1)            |  111.4 |  111.4 |  111.2 |
+| C-Si-C (bulk 2)            |  110.5 |  110.5 |  108.7 |
+| C-Si-Si (bulk 1)           |  106.6 |  106.6 |  106.7 |
+| C-Si-Si (bulk 2)           |  108.4 |  108.4 |  109.5 |
 
 ## Material Properties
 

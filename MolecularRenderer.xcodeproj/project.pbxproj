@@ -225,6 +225,10 @@
 		98B6BE0C2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter12_Figure1.swift; sourceTree = "<group>"; };
 		98C48C462A48E0440047C078 /* HelloSodiumChlorideInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloSodiumChlorideInSwift.swift; sourceTree = "<group>"; };
 		98C48C582A48F7510047C078 /* libOpenMM.8.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.0.dylib; path = ../bypass_dependencies/libOpenMM.8.0.dylib; sourceTree = "<group>"; };
+		98C757F22B562505000B16B2 /* DiAdamantasilane_2CarbonDoped.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane_2CarbonDoped.jpg; sourceTree = "<group>"; };
+		98C757F32B562505000B16B2 /* DiAdamantasilane_4CarbonDoped.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane_4CarbonDoped.jpg; sourceTree = "<group>"; };
+		98C757F42B562505000B16B2 /* DiAdamantasilane.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane.jpg; sourceTree = "<group>"; };
+		98C757F52B562505000B16B2 /* DiAdamantasilane_6CarbonDoped.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane_6CarbonDoped.jpg; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -468,6 +472,10 @@
 				9855200E2B54458B00AB068D /* DopedAdamantane.swift */,
 				985520142B54D42900AB068D /* CarbonPhosphide_Bridgehead.jpg */,
 				985520192B55C29300AB068D /* CarbonSulfide_Sidewall.jpg */,
+				98C757F42B562505000B16B2 /* DiAdamantasilane.jpg */,
+				98C757F22B562505000B16B2 /* DiAdamantasilane_2CarbonDoped.jpg */,
+				98C757F32B562505000B16B2 /* DiAdamantasilane_4CarbonDoped.jpg */,
+				98C757F52B562505000B16B2 /* DiAdamantasilane_6CarbonDoped.jpg */,
 				985520122B546E9F00AB068D /* GeDopedAdamantane_Bridgehead.jpg */,
 				9855201A2B55D07A00AB068D /* GeDopedAdamantane_Sidewall.jpg */,
 				985520152B55815800AB068D /* GermaniumCarbide_Bridgehead.jpg */,
