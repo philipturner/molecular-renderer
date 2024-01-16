@@ -271,7 +271,7 @@ Adamantane, with each sidewall carbon replaced with a germanium.
 
 Investigate the quaternary silicon atom. Is the MM3 parameter for Si-Si-Si bond angle correct? Does it hold true in pure elemental form, or only when bonded to carbon?
 
-Based on this investigation, it looks like 118° is correct. Which parameter is used doesn't affect bulk silicon (di-adamantasilane) or compounds which don't have a quaternary Si-Si-Si bond (6-carbon doped variant). However, the RMS error between MM4 and GFN2-xTB greatly decreases when using the 118° parameter.
+Based on this investigation, it looks like 118° is correct. Which parameter is used doesn't affect bulk silicon (di-adamantasilane). It also doesn't affect compounds that lack a quaternary Si-Si-Si bond (6-carbon doped variant). For the 2-carbon and 4-carbon variants, the RMS error between MM4 and GFN2-xTB greatly decreases when using the 118° parameter.
 
 ### Di-Adamantasilane
 
