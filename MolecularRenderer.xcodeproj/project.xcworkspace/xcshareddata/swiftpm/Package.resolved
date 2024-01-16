@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
-        "branch" : "non-carbon-elements",
-        "revision" : "8515d7534647071c03a1dd417016877e1fdd4dc3"
+        "branch" : "main",
+        "revision" : "0dd39063be59c9bb90ef3a0502c159ac1087fec8"
       }
     },
     {

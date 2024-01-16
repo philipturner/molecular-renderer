@@ -30,7 +30,6 @@
 		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
 		9855200B2B53215C00AB068D /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
-		9855201D2B55E54500AB068D /* DiAdamantasilane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9855201C2B55E54500AB068D /* DiAdamantasilane.swift */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -1156,7 +1155,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9855200B2B53215C00AB068D /* Scratch.swift in Sources */,
-				9855201D2B55E54500AB068D /* DiAdamantasilane.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
@@ -1485,7 +1483,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/philipturner/MM4";
 			requirement = {
-				branch = "non-carbon-elements";
+				branch = main;
 				kind = branch;
 			};
 		};
