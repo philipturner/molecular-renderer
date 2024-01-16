@@ -358,7 +358,7 @@ Based on this investigation, it looks like 118° is correct. Which parameter is 
 
 ## Material Properties
 
-This is an investigation that ought to be performed, to investigate the correctness of MM4. In theory, it should reproduce the bulk material properties of every compound. It is likely that the measured structures will be too large to study in a reasonable amount of time with GFN2-xTB. The cheaper GFN-FF has known deficiencies when modeling these compounds.
+This is an investigation that ought to be performed, to investigate the correctness of MM4. In theory, it should reproduce the bulk material properties of every compound. The structures will be too large to study in a reasonable amount of time with GFN2-xTB. The cheaper GFN-FF has known deficiencies when modeling these compounds.
 
 TODO:
 - Measure density and lattice constant
