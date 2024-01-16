@@ -30,6 +30,7 @@
 		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
 		9855200B2B53215C00AB068D /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
+		9855201D2B55E54500AB068D /* DiAdamantasilane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9855201C2B55E54500AB068D /* DiAdamantasilane.swift */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -151,6 +152,7 @@
 		985520192B55C29300AB068D /* CarbonSulfide_Sidewall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CarbonSulfide_Sidewall.jpg; sourceTree = "<group>"; };
 		9855201A2B55D07A00AB068D /* GeDopedAdamantane_Sidewall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GeDopedAdamantane_Sidewall.jpg; sourceTree = "<group>"; };
 		9855201B2B55E2F600AB068D /* GermaniumCarbide_Sidewall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GermaniumCarbide_Sidewall.jpg; sourceTree = "<group>"; };
+		9855201C2B55E54500AB068D /* DiAdamantasilane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiAdamantasilane.swift; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
@@ -462,6 +464,7 @@
 		9855200C2B5443D200AB068D /* NonCarbonElements */ = {
 			isa = PBXGroup;
 			children = (
+				9855201C2B55E54500AB068D /* DiAdamantasilane.swift */,
 				9855200E2B54458B00AB068D /* DopedAdamantane.swift */,
 				985520142B54D42900AB068D /* CarbonPhosphide_Bridgehead.jpg */,
 				985520192B55C29300AB068D /* CarbonSulfide_Sidewall.jpg */,
@@ -1145,6 +1148,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9855200B2B53215C00AB068D /* Scratch.swift in Sources */,
+				9855201D2B55E54500AB068D /* DiAdamantasilane.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
