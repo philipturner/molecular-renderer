@@ -9,8 +9,6 @@ import MM4
 import MolecularRenderer
 import Numerics
 
-
-
 extension Reconstruction {
   // Remove malformed and primary carbons.
   mutating func removePathologicalAtoms() {
