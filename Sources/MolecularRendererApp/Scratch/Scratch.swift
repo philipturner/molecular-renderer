@@ -6,6 +6,12 @@ import MM4
 import Numerics
 
 func createGeometry() -> [[Entity]] {
+  // This code is getting very unwieldy and should be rewritten after the
+  // diamond anvil experiment is done. Rewrite it using organized data
+  // structures, extensible to different jigs and elastic moduli.
+  
+  // MARK: - Geometry Generation
+  
   let material: MaterialType = .elemental(.carbon)
   
   func createRigidBody(_ lattice: Lattice<Cubic>, anchor: Bool) -> MM4RigidBody {
@@ -40,8 +46,9 @@ func createGeometry() -> [[Entity]] {
     return try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
   
+  let latticeSize: Int = 10
   let latticeJig = Lattice<Cubic> { h, k, l in
-    Bounds { 13 * h + 13 * k + 13 * l }
+    Bounds { Float(latticeSize + 3) * (h + k + l) }
     Material { material }
     
     Volume {
@@ -62,12 +69,67 @@ func createGeometry() -> [[Entity]] {
   var jig = createRigidBody(latticeJig, anchor: true)
   
   let latticeSpecimen = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * h + 10 * k + 10 * l }
+    Bounds { Float(latticeSize) * (h + k + l) }
     Material { material }
   }
   
   var specimen = createRigidBody(latticeSpecimen, anchor: false)
-  specimen.centerOfMass += SIMD3(repeating: 1)
+  
+  // MARK: - Force Generation
+  
+  var handlePositions: Set<Int> = []
+  do {
+    var maxCoords: SIMD3<Float> = .init(repeating: -.greatestFiniteMagnitude)
+    for (position, atomicNumber) in zip(
+      specimen.positions, specimen.parameters.atoms.atomicNumbers
+    ) {
+      if atomicNumber != 1 {
+        maxCoords.replace(with: position, where: position .> maxCoords)
+      }
+    }
+    
+    for (atomID, position) in specimen.positions.enumerated() {
+      guard specimen.parameters.atoms.atomicNumbers[atomID] != 1 else {
+        continue
+      }
+      if any(position .>= maxCoords - 1e-3) {
+        handlePositions.insert(atomID)
+      }
+    }
+  }
+  
+  var specimenForces = [SIMD3<Float>](
+    repeating: .zero, count: specimen.parameters.atoms.count)
+  for (atomID, position) in specimen.positions.enumerated() {
+    let atomicNumber = specimen.parameters.atoms.atomicNumbers[atomID]
+    if handlePositions.contains(atomID) {
+      var maxAxis = -1
+      var maxDirection: Float = -.greatestFiniteMagnitude
+      for lane in 0..<3 {
+        if position[lane] > maxDirection {
+          maxAxis = lane
+          maxDirection = position[lane]
+        }
+      }
+      var force: SIMD3<Float> = .zero
+      force[maxAxis] = 1 // 1 pN/atom ≈ 16 MPa
+      specimenForces[atomID] = force
+    }
+  }
+  
+  let latticeConstant = Constant(.square) { material }
+  var perFaceArea = latticeConstant * Float(latticeSize)
+  perFaceArea *= perFaceArea
+  let totalForces = specimenForces.reduce(SIMD3.zero, +)
+  print("- total forces (pN):", totalForces)
+  
+  let totalPressures = totalForces / perFaceArea
+  print("- total pressures (MPa):", totalPressures)
+  
+  // MARK: - Scene Setup
+  
+  specimen.centerOfMass += SIMD3<Double>(
+    2.5 * latticeConstant * SIMD3(repeating: 1))
   
   var parameters = jig.parameters
   parameters.append(contentsOf: specimen.parameters)
@@ -142,7 +204,7 @@ func createGeometry() -> [[Entity]] {
         let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
         frame.append(entity)
       }
-      output.append(frame)
+//      output.append(frame)
       
       if potentialEnergy >= minimumPotentialEnergy {
         break
@@ -151,10 +213,62 @@ func createGeometry() -> [[Entity]] {
     }
   }
   
-  // Compute the minimum-energy position on-the-fly with rigid body mechanics.
-  // Cache the minimum-energy CoM for diamond. When you simulate other
-  // materials, you'll need to generate their ideal specimen CoM on the fly.
-  //
-  // TODO: Serialize the system position to base64 as a build product.
+  // MARK: - Force Application
+  
+  print()
+  for frameID in 0..<120 {
+    let forceMultiplier = 100 * Float(frameID)
+    let timeStep: Double = 0.100
+    if frameID % 10 == 0 {
+      let atomForce = 1 * forceMultiplier
+      let pressure = Float(totalPressures[0]) * forceMultiplier
+      print("frame=\(frameID), force=\(String(format: "%.0f", atomForce)) pN/atom, pressure=\(String(format: "%.0f", pressure)) MPa")
+    }
+    
+    var externalForces = [SIMD3<Float>](
+      repeating: .zero, count: jig.parameters.atoms.count)
+    externalForces += specimenForces
+    for i in externalForces.indices {
+      // Make the force point inward.
+      externalForces[i] *= -forceMultiplier
+    }
+    forceField.externalForces = externalForces
+    
+    let velocities = [SIMD3<Float>](
+      repeating: .zero, count: externalForces.count)
+    forceField.velocities = velocities
+    
+    // Do the minimizaton and MD simulation approaches give different results?
+//    forceField.minimize(maxIterations: 30)
+    forceField.simulate(time: timeStep)
+    
+    var frame: [Entity] = []
+    for i in parameters.atoms.indices {
+      let position = forceField.positions[i]
+      let atomicNumber = parameters.atoms.atomicNumbers[i]
+      let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
+      frame.append(entity)
+    }
+    
+    if forceField.positions.allSatisfy({ all($0 .< 10)  && all($0 .> -1) }) {
+      if frameID % 10 == 0 {
+        output.append(frame)
+        output.append(frame)
+        output.append(frame)
+      } else {
+        output.append(output.last!)
+        output.append(output.last!)
+        output.append(output.last!)
+      }
+      continue
+    } else {
+      print("Failed after \(frameID) frames.")
+      output.append(frame)
+      output.append(frame)
+      output.append(frame)
+      break
+    }
+  }
+  
   return output
 }
