@@ -228,6 +228,10 @@
 		98C757F32B562505000B16B2 /* DiAdamantasilane_4CarbonDoped.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane_4CarbonDoped.jpg; sourceTree = "<group>"; };
 		98C757F42B562505000B16B2 /* DiAdamantasilane.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane.jpg; sourceTree = "<group>"; };
 		98C757F52B562505000B16B2 /* DiAdamantasilane_6CarbonDoped.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiAdamantasilane_6CarbonDoped.jpg; sourceTree = "<group>"; };
+		98C757F92B57723D000B16B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98C757FA2B577868000B16B2 /* ElasticModuli_MD_SceneSetup.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ElasticModuli_MD_SceneSetup.jpg; sourceTree = "<group>"; };
+		98C757FB2B57786C000B16B2 /* ElasticModuli_RBD_SceneSetup.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ElasticModuli_RBD_SceneSetup.jpg; sourceTree = "<group>"; };
+		98C757FC2B57789C000B16B2 /* ElasticModuli_SceneSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElasticModuli_SceneSetup.swift; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -598,6 +602,7 @@
 			children = (
 				98EA89FB2B40E51800DC5C7E /* Backend */,
 				98E23B2F2B4CF03A00B5A7D5 /* DFT */,
+				98C757F82B57721A000B16B2 /* ElasticModuli */,
 				98B25A2E2B393A6300081A61 /* Experiments */,
 				981360DD2B4883C40007D40F /* NCFMechanism */,
 				98B25A252B3931F200081A61 /* OpenMMTutorials */,
@@ -653,6 +658,17 @@
 				98247CBA2AF0656100958BC5 /* Nanosystems_Chapter12_Figure1_file2.swift */,
 			);
 			path = "Chapter 12";
+			sourceTree = "<group>";
+		};
+		98C757F82B57721A000B16B2 /* ElasticModuli */ = {
+			isa = PBXGroup;
+			children = (
+				98C757FC2B57789C000B16B2 /* ElasticModuli_SceneSetup.swift */,
+				98C757FA2B577868000B16B2 /* ElasticModuli_MD_SceneSetup.jpg */,
+				98C757FB2B57786C000B16B2 /* ElasticModuli_RBD_SceneSetup.jpg */,
+				98C757F92B57723D000B16B2 /* README.md */,
+			);
+			path = ElasticModuli;
 			sourceTree = "<group>";
 		};
 		98D9758F2AC088000052EE6C /* VdwOscillator */ = {

@@ -1,4 +1,9 @@
-// Save as GitHub Gist instead of polluting the molecular-renderer source tree.
+//
+//  ElasticModuli_SceneSetup.swift
+//  MolecularRenderer
+//
+//  Created by Philip Turner on 1/16/24.
+//
 
 import Foundation
 import HDL
