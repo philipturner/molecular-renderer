@@ -5,6 +5,32 @@ import HDL
 import MM4
 import Numerics
 
+// Work breakdown structure:
+// - Designing geometry and data structures
+//   - Setups for 4 different properties, each in 2 different regimes
+//     - Young's modulus
+//     - Poisson's ratio
+//     - Bulk modulus
+//     - Shear modulus
+//   - (100) reconstruction of every crystolecule
+//   - Organization into Swift code that is easy to extend and modify
+// - Testing simulations and correcting for artifacts
+//   - Finding low-latency alternatives to accurate simulation techniques
+//   - Walking through the execution of an entire production run
+//     - Walking through just one material property
+//     - Walking through just one material
+//   - Energy minimization, or lack thereof in certain execution paths
+// - Running long production simulations and recording the data
+//   - Adapting simulations of diamond to 3 additional materials
+//   - Determining which datasets will have graphs generated
+//   - Fusing compressive and tensile experiments into the same dataset
+//   - Visual documentation of various simulation snapshots
+// - Analyzing the results
+//   - Gathering material properties from the literature
+//   - Self-consistency of the system of elastic moduli
+//   - Running additional simulation trials at different system sizes
+//   - Whether/how MM4 parameters for elemental silicon should be adjusted
+
 func createGeometry() -> [Entity] {
   // In the middle of rewriting this code from scratch. We have some snippets of
   // the previous code left over, for reference.
