@@ -2,7 +2,7 @@
 
 ## Scene Setup
 
-Experiment: a traditional energy minimizer does not minimize vdW potential energy to sufficient accuracy, only internal deformations. One typically starts a simulation with energy-minimized rigid bodies, then uses MD or RBD to simulate evolution over time.
+Experiment: A traditional energy minimizer does not minimize vdW potential energy to sufficient accuracy, only internal deformations. One typically starts a simulation with energy-minimized rigid bodies, then uses MD or RBD to simulate evolution over time.
 
 Simulation: jig + specimen, 16,296 atoms, 9.6 ps evolution
 
@@ -26,10 +26,12 @@ Pressure was calculated as the total force on any face, divided by the area of a
 
 The system was simulated for 120 frames. Each frames, the pressure per surface atom was incremented by 100 pN. The forcefield was minimized for a maximum of 30 iterations. The cap on iterations was set because minimizations started taking several seconds each with extreme pressures. The atom positions from each frame were recycled for the subsequent one, accelerating the convergence of the subsequent minimization.
 
-The setup was retried with 20 femtoseconds of temporal evolution each frame. The results were not satisfactory. To get the same results, 100 femtoseconds of temporal evolution was required. However, the overall latency of MD simulation was half that of minimization. This could be explained by the GPU to CPU latency bottleneck. 100 femtoseconds is 50 timesteps, close to the 30 iterations for minimization. However, the system size is small enough that each singlepoint executes in under 1 millisecond.
+![Elastic Moduli Diamond Anvil](./ElasticModuli_DiamondAnvil.jpg)
+
+The setup was retried with 20 femtoseconds of temporal evolution each frame. The results were not satisfactory. To get the same results, 100 femtoseconds of temporal evolution was required. However, the overall latency of MD simulation was half that of minimization. This could be explained by the GPU to CPU latency bottleneck. 100 femtoseconds is 50 timesteps, close to the 30 iterations for minimization. However, the system is small enough that each singlepoint executes in under 1 millisecond.
 
 ```
-Minimization:
+Energy Minimization:
 frame=0, force=0 pN/atom, pressure=0 MPa
 frame=10, force=1000 pN/atom, pressure=14226 MPa
 frame=20, force=2000 pN/atom, pressure=28451 MPa
@@ -47,7 +49,7 @@ atoms: 16653
 frames: 348
 setup time: 22055.9 ms
 
-Simulation:
+Molecular Dynamics:
 frame=0, force=0 pN/atom, pressure=0 MPa
 frame=10, force=1000 pN/atom, pressure=14226 MPa
 frame=20, force=2000 pN/atom, pressure=28451 MPa
@@ -65,3 +67,13 @@ atoms: 16653
 frames: 342
 setup time: 11276.4 ms
 ```
+
+From this experiment, it appears that we should impose forces on the edges of 
+the specimen. They should counteract the torsion caused by the three different
+(100) planes being slightly off-center. Correction forces may also increase the
+uniformity of the applied force.
+
+> Insight: The system has a finite amount of atoms, so it doesn't always behave
+> like a bulk/continuum material. However, we can add corrections to the
+> modeling conditions to better represent bulk force/pressure. Push the system
+> to the extremes of deformation and mitigate the artifacts that appear.

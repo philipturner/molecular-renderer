@@ -234,6 +234,8 @@
 		98C757FB2B57786C000B16B2 /* ElasticModuli_RBD_SceneSetup.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ElasticModuli_RBD_SceneSetup.jpg; sourceTree = "<group>"; };
 		98C757FC2B57789C000B16B2 /* ElasticModuli_SceneSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElasticModuli_SceneSetup.swift; sourceTree = "<group>"; };
 		98C757FD2B577BB7000B16B2 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
+		98C758002B586EB8000B16B2 /* ElasticModuli_DiamondAnvil.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ElasticModuli_DiamondAnvil.jpg; sourceTree = "<group>"; };
+		98C758012B5871EF000B16B2 /* ElasticModuli_DiamondAnvil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElasticModuli_DiamondAnvil.swift; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -666,7 +668,9 @@
 		98C757F82B57721A000B16B2 /* ElasticModuli */ = {
 			isa = PBXGroup;
 			children = (
+				98C758012B5871EF000B16B2 /* ElasticModuli_DiamondAnvil.swift */,
 				98C757FC2B57789C000B16B2 /* ElasticModuli_SceneSetup.swift */,
+				98C758002B586EB8000B16B2 /* ElasticModuli_DiamondAnvil.jpg */,
 				98C757FA2B577868000B16B2 /* ElasticModuli_MD_SceneSetup.jpg */,
 				98C757FB2B57786C000B16B2 /* ElasticModuli_RBD_SceneSetup.jpg */,
 				98C757F92B57723D000B16B2 /* README.md */,
