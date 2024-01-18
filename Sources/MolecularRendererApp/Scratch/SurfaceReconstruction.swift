@@ -10,6 +10,10 @@ import HDL
 import MM4
 import Numerics
 
+// To avoid "dependency hell", this file is not considered a baked-in dependency
+// to the app. It can change based on each project's needs. It will not be
+// copied into the archive of a project; the algorithm should be easy to
+// reproduce from scratch.
 struct SurfaceReconstruction {
   var material: MaterialType?
   var topology: Topology = Topology()

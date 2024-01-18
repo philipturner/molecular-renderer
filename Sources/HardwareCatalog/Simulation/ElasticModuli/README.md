@@ -1,5 +1,11 @@
 # Elastic Moduli
 
+This is part of an ongoing effort to vaildate the accuracy of MM4. In theory, bulk material properties like lattice constant and stiffness should be reproduced to within 1&ndash;10% error. The measurement process will face a combinatorial explosion - multiple properties, multiple materials, multiple force magnitudes, multiple system sizes.
+
+It would be insightful to walk through the process of solving the combinatorial explosion. At first glance, the compute cost seems to not be the bottleneck. Rather, the complexity of the source code. Experiments need to be organized into data structures, with functions and initializers for different conditions. There must be ways to quickly prototype a production simulation, discover and fix errors, summarize the results, etc.
+
+So far, there were some initial experiments. These revealed potential problems that may appear in production, and should be anticipated during code design. There was also a work breakdown structure. The project was estimated to take about a week. Since it was not the author's top priority, the project was put on hold.
+
 ## Scene Setup
 
 Experiment: A traditional energy minimizer does not minimize vdW potential energy to sufficient accuracy, only internal deformations. One typically starts a simulation with energy-minimized rigid bodies, then uses MD or RBD to simulate evolution over time.
@@ -77,3 +83,33 @@ uniformity of the applied force.
 > like a bulk/continuum material. However, we can add corrections to the
 > modeling conditions to better represent bulk force/pressure. Push the system
 > to the extremes of deformation and mitigate the artifacts that appear.
+
+## Work Breakdown Structure
+
+List:
+ - Designing geometry and data structures
+   - Setups for 4 different properties, each in 2 different regimes
+     - Young's modulus
+     - Poisson's ratio
+     - Bulk modulus
+     - Shear modulus
+   - (100) reconstruction of every crystolecule
+   - Organization into Swift code that is easy to extend and modify
+     - Each unique physical object has its own type
+     - Methods to select the atoms that receive forces and anchors
+ - Testing simulations and correcting for artifacts
+   - Finding low-latency alternatives to accurate simulation techniques
+   - Walking through the execution of an entire production run
+     - Walking through just one material property
+     - Walking through just one material
+   - Energy minimization, or lack thereof in certain execution paths
+ - Running long production simulations and recording the data
+   - Adapting simulations of diamond to 3 additional materials
+   - Determining which datasets will have graphs generated
+   - Fusing compressive and tensile experiments into the same dataset
+   - Visual documentation of various simulation snapshots
+ - Analyzing the results
+   - Gathering material properties from the literature
+   - Self-consistency of the system of elastic moduli
+   - Running additional simulation trials at different system sizes
+   - Whether/how MM4 parameters for elemental silicon should be adjusted
