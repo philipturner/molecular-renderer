@@ -5,15 +5,34 @@
 //  Created by Philip Turner on 1/16/24.
 //
 
-import Foundation
 import HDL
 import MM4
-import Numerics
 
 // To avoid "dependency hell", this file is not considered a baked-in dependency
-// to the app. It can change based on each project's needs. It will not be
-// copied into the archive of a project; the algorithm should be easy to
+// to the app. It can be modified to suit each project's needs. It will not be
+// copied into the archive of any project; the algorithm should be easy to
 // reproduce from scratch.
+//
+// Here is an example of using the API:
+/*
+ func createTopology(_ lattice: Lattice<Cubic>) -> Topology {
+   var topology = Topology()
+   topology.insert(atoms: lattice.atoms)
+   var reconstruction = SurfaceReconstruction()
+   reconstruction.material = .elemental(.carbon)
+   reconstruction.topology = topology
+   reconstruction.removePathologicalAtoms()
+   reconstruction.createBulkAtomBonds()
+   reconstruction.createHydrogenSites()
+   reconstruction.resolveCollisions()
+   reconstruction.createHydrogenBonds()
+   topology = reconstruction.topology
+   topology.sort()
+   
+   return topology
+ }
+ */
+
 struct SurfaceReconstruction {
   var material: MaterialType?
   var topology: Topology = Topology()

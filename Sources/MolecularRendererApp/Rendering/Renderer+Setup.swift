@@ -17,6 +17,11 @@ extension Renderer {
     initializeRenderingEngine()
   }
   
+  // We may also want easier APIs for directly rendering a set of MM4RigidBody.
+  // It could be advantageous to only store deviations of the CoM and MoI over
+  // time. In this case, the most workable approach might be a custom
+  // 'MRAtomProvider'.
+  
   func initializeCompilation(_ closure: () -> [Entity]) {
     let start = CACurrentMediaTime()
     let atoms = closure()
