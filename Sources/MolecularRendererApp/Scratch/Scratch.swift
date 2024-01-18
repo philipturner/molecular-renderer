@@ -6,6 +6,24 @@ import MM4
 import Numerics
 
 func createGeometry() -> [[Entity]] {
+  #if false
+  let logicRod = LogicRod()
+  return [logicRod.topology.atoms]
+  #endif
+  
+  #if false
+  let logicHousing = LogicHousing()
+  var logicRod = LogicRod()
+  for i in logicRod.topology.atoms.indices {
+    var position = logicRod.topology.atoms[i].position
+    position = SIMD3(position.z, position.y, position.x)
+    position += 0.3567 * SIMD3(2.5, 2.5, -1)
+    logicRod.topology.atoms[i].position = position
+  }
+  return [logicHousing.topology.atoms + logicRod.topology.atoms]
+  #endif
+  
+  #if true
   let logicHousing = LogicHousing()
   let masterLogicRod = LogicRod()
   
@@ -15,6 +33,9 @@ func createGeometry() -> [[Entity]] {
     let latticeConstant = Constant(.square) { .elemental(.carbon) }
     for i in logicRod.topology.atoms.indices {
       var position = logicRod.topology.atoms[i].position
+      position = SIMD3(position.z, position.y, position.x)
+      position.x += 0.030
+      
       position += latticeConstant * SIMD3(2.5, 2.5, -1)
       position.x += latticeConstant * Float(logicRodID % 2) * 5.5
       if logicRodID == 1 {
@@ -30,9 +51,13 @@ func createGeometry() -> [[Entity]] {
   }
   
   let sceneTopologies = [logicHousing.topology] + logicRods.map(\.topology)
+//  return [sceneTopologies.flatMap(\.atoms)]
+  #endif
   
+  #if true
   var parameters: MM4Parameters?
   var positions: [SIMD3<Float>] = []
+  var forces: [SIMD3<Float>] = []
   for topology in sceneTopologies {
     var descriptor = MM4ParametersDescriptor()
     descriptor.atomicNumbers = topology.atoms.map(\.atomicNumber)
@@ -45,6 +70,24 @@ func createGeometry() -> [[Entity]] {
       parameters!.append(contentsOf: params)
     }
     positions += topology.atoms.map(\.position)
+    for _ in topology.atoms.indices {
+      forces.append(.zero)
+    }
+  }
+  
+  do {
+    let atomStart = logicHousing
+      .topology.atoms.count + masterLogicRod.topology.atoms.count
+    let atomCount = logicRods[1].topology.atoms.filter {
+      $0.position.z > 5
+    }.count
+    let forcePerAtom = Float(1000) / Float(atomCount)
+    for atomID in logicRods[1].topology.atoms.indices {
+      let atom = logicRods[1].topology.atoms[atomID]
+      if atom.position.z > 5 {
+        forces[atomStart + atomID] = SIMD3(0, 0, -forcePerAtom)
+      }
+    }
   }
   
   var descriptor = MM4ForceFieldDescriptor()
@@ -52,6 +95,8 @@ func createGeometry() -> [[Entity]] {
   let forceField = try! MM4ForceField(descriptor: descriptor)
   forceField.positions = positions
   forceField.minimize()
+  
+  forceField.externalForces = forces
   
   var animation: [[Entity]] = []
   func takeSnapshot() {
@@ -68,11 +113,12 @@ func createGeometry() -> [[Entity]] {
     if frameID % 10 == 0 {
       print("frame=\(frameID)")
     }
-    forceField.simulate(time: 1)
+    forceField.simulate(time: 0.100)
     takeSnapshot()
   }
   
   return animation
+  #endif
 }
 
 struct LogicHousing {
@@ -181,16 +227,33 @@ struct LogicRod {
   // Find a static rod thickness that's optimal for the entire system. Then,
   // make the rod length variable.
   mutating func createRod() {
-    let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 2 * h + 2 * k + 15 * l }
+//    let lattice = Lattice<Cubic> { h, k, l in
+//      Bounds { 2 * h + 2 * k + 15 * l }
+//      Material { .elemental(.carbon) }
+//      
+//      Volume {
+//        Convex {
+//          Origin { 14.5 * l }
+//          Plane { l }
+//        }
+//        
+//        Replace { .empty }
+//      }
+//    }
+    let lattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      Bounds { 20 * h + 2 * h2k + 4 * l }
       Material { .elemental(.carbon) }
       
       Volume {
         Convex {
-          Origin { 14.5 * l }
+          Origin { 1.9 * l }
           Plane { l }
         }
-        
+        Convex {
+          Origin { 1.5 * h2k }
+          Plane { h2k }
+        }
         Replace { .empty }
       }
     }
