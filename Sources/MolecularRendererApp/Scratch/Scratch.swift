@@ -6,59 +6,41 @@ import MM4
 import Numerics
 
 func createGeometry() -> [[Entity]] {
-  #if false
-  let logicRod = LogicRod()
-  return [logicRod.topology.atoms]
-  #endif
-  
-  #if false
   let logicHousing = LogicHousing()
   var logicRod = LogicRod()
   for i in logicRod.topology.atoms.indices {
     var position = logicRod.topology.atoms[i].position
     position = SIMD3(position.z, position.y, position.x)
-    position += 0.3567 * SIMD3(2.5, 2.5, -1)
+    position += 0.3567 * SIMD3(3.0, 2.5, -3)
+    position.x += 0.030
+    position.y -= 0.050
     logicRod.topology.atoms[i].position = position
   }
-  return [logicHousing.topology.atoms + logicRod.topology.atoms]
-  #endif
-  
-  #if true
-  let logicHousing = LogicHousing()
-  let masterLogicRod = LogicRod()
-  
-  var logicRods: [LogicRod] = []
-  for logicRodID in 0..<4 {
-    var logicRod = masterLogicRod
-    let latticeConstant = Constant(.square) { .elemental(.carbon) }
-    for i in logicRod.topology.atoms.indices {
-      var position = logicRod.topology.atoms[i].position
-      position = SIMD3(position.z, position.y, position.x)
-      position.x += 0.030
-      
-      position += latticeConstant * SIMD3(2.5, 2.5, -1)
-      position.x += latticeConstant * Float(logicRodID % 2) * 5.5
-      if logicRodID == 1 {
-        position.z += latticeConstant * 3
-      }
-      if logicRodID >= 2 {
-        position.y += latticeConstant * 3
-        position = SIMD3(position.z, position.y, position.x)
-      }
-      logicRod.topology.atoms[i].position = position
-    }
-    logicRods.append(logicRod)
+  var logicRod2 = logicRod
+  for i in logicRod2.topology.atoms.indices {
+    var position = logicRod2.topology.atoms[i].position
+    position = SIMD3(position.z, position.y, position.x)
+    position.y = 0.3567 * 10 - position.y
+    logicRod2.topology.atoms[i].position = position
   }
   
-  let sceneTopologies = [logicHousing.topology] + logicRods.map(\.topology)
-//  return [sceneTopologies.flatMap(\.atoms)]
-  #endif
+  for i in logicRod.topology.atoms.indices {
+    var position = logicRod.topology.atoms[i].position
+    position += 0.3567 * SIMD3(0, 0, -3)
+    logicRod.topology.atoms[i].position = position
+  }
   
-  #if true
+  var topologies = [
+    logicHousing.topology,
+    logicRod.topology,
+    logicRod2.topology
+  ]
+//  return [topologies.flatMap(\.atoms)]
+  var topologyRanges: [Range<Int>] = []
+  var topologyCursor: Int = 0
+  
   var parameters: MM4Parameters?
-  var positions: [SIMD3<Float>] = []
-  var forces: [SIMD3<Float>] = []
-  for topology in sceneTopologies {
+  for topology in topologies {
     var descriptor = MM4ParametersDescriptor()
     descriptor.atomicNumbers = topology.atoms.map(\.atomicNumber)
     descriptor.bonds = topology.bonds
@@ -69,56 +51,39 @@ func createGeometry() -> [[Entity]] {
     } else {
       parameters!.append(contentsOf: params)
     }
-    positions += topology.atoms.map(\.position)
-    for _ in topology.atoms.indices {
-      forces.append(.zero)
-    }
-  }
-  
-  do {
-    let atomStart = logicHousing
-      .topology.atoms.count + masterLogicRod.topology.atoms.count
-    let atomCount = logicRods[1].topology.atoms.filter {
-      $0.position.z > 5
-    }.count
-    let forcePerAtom = Float(1000) / Float(atomCount)
-    for atomID in logicRods[1].topology.atoms.indices {
-      let atom = logicRods[1].topology.atoms[atomID]
-      if atom.position.z > 5 {
-        forces[atomStart + atomID] = SIMD3(0, 0, -forcePerAtom)
-      }
-    }
+    
+    let atomStart = topologyCursor
+    topologyCursor += topology.atoms.count
+    let atomEnd = topologyCursor
+    topologyRanges.append(atomStart..<atomEnd)
   }
   
   var descriptor = MM4ForceFieldDescriptor()
   descriptor.parameters = parameters
   let forceField = try! MM4ForceField(descriptor: descriptor)
-  forceField.positions = positions
+  forceField.positions = topologies.flatMap { $0.atoms.map(\.position) }
   forceField.minimize()
   
-  forceField.externalForces = forces
+  var externalForces = forceField.positions.map { $0 * 0 }
+  for i in topologyRanges[1] {
+    externalForces[i] = SIMD3(0, 0, 1)
+  }
+  forceField.externalForces = externalForces
   
   var animation: [[Entity]] = []
-  func takeSnapshot() {
-    var frame: [Entity] = []
-    for (i, position) in forceField.positions.enumerated() {
-      let z = parameters!.atoms.atomicNumbers[i]
-      frame.append(Entity(storage: SIMD4(position, Float(z))))
-    }
-    animation.append(frame)
-  }
-  takeSnapshot()
-  
-  for frameID in 0..<120 {
-    if frameID % 10 == 0 {
-      print("frame=\(frameID)")
-    }
+  for frameID in 0...120 {
     forceField.simulate(time: 0.100)
-    takeSnapshot()
+    
+    for topologyID in topologies.indices {
+      let positions = Array(forceField.positions[topologyRanges[topologyID]])
+      for i in topologies[topologyID].atoms.indices {
+        topologies[topologyID].atoms[i].position = positions[i]
+      }
+    }
+    animation.append(topologies.flatMap(\.atoms))
   }
   
   return animation
-  #endif
 }
 
 struct LogicHousing {
@@ -134,7 +99,7 @@ struct LogicHousing {
   // especially if the housing is anchored in place.
   mutating func createLattice() {
     let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 13 * h + 10 * k + 13 * l }
+      Bounds { 8 * h + 10 * k + 8 * l }
       Material { .elemental(.carbon) }
       
       // Cut a hole for the rod to sit inside.
@@ -151,6 +116,9 @@ struct LogicHousing {
           for i in 0..<4 {
             Convex {
               Origin { loopDirections[i] * 2 }
+              if i == 1 {
+                Origin { 0.25 * k }
+              }
               Plane { -loopDirections[i] }
             }
             Convex {
@@ -158,6 +126,9 @@ struct LogicHousing {
               let next = loopDirections[(i + 1) % 4]
               Origin { (current + next) * 2 }
               Origin { (current + next) * -0.25 }
+              if i == 0 || i == 1 {
+                Origin { 0.25 * k }
+              }
               Plane { -(current + next) }
             }
           }
@@ -166,31 +137,12 @@ struct LogicHousing {
       
       Volume {
         Convex {
-          Origin { 1.5 * (h + k) }
-          for i in 0..<2 {
-            Convex {
-              Origin { 5.5 * Float(i) * h }
-              cutGroove(direction: h)
-            }
-          }
+          Origin { 2 * h + 1.5 * k }
+          cutGroove(direction: h)
         }
         Convex {
-          Origin { 12.5 * h }
-          Plane { h }
-        }
-        
-        Convex {
-          Origin { 1.5 * l + 4.5 * k }
-          for i in 0..<2 {
-            Convex {
-              Origin { 5.5 * Float(i) * l }
-              cutGroove(direction: l)
-            }
-          }
-        }
-        Convex {
-          Origin { 12.5 * l }
-          Plane { l }
+          Origin { 2 * l + 4.25 * k }
+          cutGroove(direction: l)
         }
         
         Replace { .empty }
@@ -227,23 +179,26 @@ struct LogicRod {
   // Find a static rod thickness that's optimal for the entire system. Then,
   // make the rod length variable.
   mutating func createRod() {
-//    let lattice = Lattice<Cubic> { h, k, l in
-//      Bounds { 2 * h + 2 * k + 15 * l }
-//      Material { .elemental(.carbon) }
-//      
-//      Volume {
-//        Convex {
-//          Origin { 14.5 * l }
-//          Plane { l }
-//        }
-//        
-//        Replace { .empty }
-//      }
-//    }
     let lattice = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { 20 * h + 2 * h2k + 4 * l }
       Material { .elemental(.carbon) }
+      
+      func cutGroove() {
+        Concave {
+          Convex {
+            Plane { h }
+          }
+          Convex {
+            Origin { 1.5 * h2k }
+            Plane { h2k }
+          }
+          Convex {
+            Origin { 6 * h }
+            Plane { -h }
+          }
+        }
+      }
       
       Volume {
         Convex {
@@ -251,8 +206,16 @@ struct LogicRod {
           Plane { l }
         }
         Convex {
-          Origin { 1.5 * h2k }
-          Plane { h2k }
+          Origin { -4 * h }
+          cutGroove()
+        }
+        Convex {
+          Origin { 7 * h }
+          cutGroove()
+        }
+        Convex {
+          Origin { 18 * h }
+          cutGroove()
         }
         Replace { .empty }
       }
