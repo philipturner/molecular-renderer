@@ -51,6 +51,7 @@
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
+		98C758032B5AA1FD000B16B2 /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C758022B5AA1FD000B16B2 /* Scratch2.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -236,6 +237,7 @@
 		98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceReconstruction.swift; sourceTree = "<group>"; };
 		98C758002B586EB8000B16B2 /* ElasticModuli_DiamondAnvil.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = ElasticModuli_DiamondAnvil.jpg; sourceTree = "<group>"; };
 		98C758012B5871EF000B16B2 /* ElasticModuli_DiamondAnvil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElasticModuli_DiamondAnvil.swift; sourceTree = "<group>"; };
+		98C758022B5AA1FD000B16B2 /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -546,6 +548,7 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
+				98C758022B5AA1FD000B16B2 /* Scratch2.swift */,
 				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
 			);
 			path = Scratch;
@@ -1183,6 +1186,7 @@
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
+				98C758032B5AA1FD000B16B2 /* Scratch2.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
