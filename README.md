@@ -6,7 +6,7 @@
 Molecular Renderer is a CAD program for molecular nanotechnology. It enabled the development of several related projects. Some evolved into distinct libraries, while one contributes to a UI experience based on existing IDEs.
 
 Projects:
-- [DFT](https://github.com/philipturner/DFT) - density functional theory simulator (0 LoC)
+- [DFT](https://github.com/philipturner/DFT) - mechanosynthesis simulator (0 LoC)
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md) - catalog of code samples and archived experiments (25,000 LoC)
 - [HDL](https://github.com/philipturner/HDL) - domain-specific language and geometry compiler (8,000 LoC)
 - [MM4](https://github.com/philipturner/MM4) - molecular mechanics simulator (13,000 LoC)
