@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
-        "branch" : "integrators",
-        "revision" : "ebd07b9cc0402653e98e07cfa00e07a25bf94c7b"
+        "branch" : "main",
+        "revision" : "4d2acdaad967a163f2f2c75e41c359120cee1ef6"
       }
     },
     {
