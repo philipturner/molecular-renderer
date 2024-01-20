@@ -1,4 +1,3 @@
 # Systems
 
-Table of Contents
-- [SpringSystem](./SpringSystem/README.md)
+There are no entries in this folder with a README.

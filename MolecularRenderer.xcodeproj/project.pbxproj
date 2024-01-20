@@ -240,6 +240,8 @@
 		98C758012B5871EF000B16B2 /* ElasticModuli_DiamondAnvil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElasticModuli_DiamondAnvil.swift; sourceTree = "<group>"; };
 		98C758042B5ABF10000B16B2 /* LogicHousing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicHousing.swift; sourceTree = "<group>"; };
 		98C758062B5ABF16000B16B2 /* LogicRod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicRod.swift; sourceTree = "<group>"; };
+		98C758082B5C3B7C000B16B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = QuantumSimulationSpeed.png; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -557,7 +559,7 @@
 			path = Scratch;
 			sourceTree = "<group>";
 		};
-		98A700A82AB4A0CF00499CD2 /* SpringSystem */ = {
+		98A700A82AB4A0CF00499CD2 /* OctahedralSpring */ = {
 			isa = PBXGroup;
 			children = (
 				98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */,
@@ -565,7 +567,8 @@
 				98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */,
 				98D975BF2AC224C10052EE6C /* README.md */,
 			);
-			path = SpringSystem;
+			name = OctahedralSpring;
+			path = ../Systems/OctahedralSpring;
 			sourceTree = "<group>";
 		};
 		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */ = {
@@ -613,6 +616,7 @@
 			children = (
 				98EA89FB2B40E51800DC5C7E /* Backend */,
 				98E23B2F2B4CF03A00B5A7D5 /* DFT */,
+				98FE60F12B3F716E00D73E37 /* DMSTooltips */,
 				98C757F82B57721A000B16B2 /* ElasticModuli */,
 				98B25A2E2B393A6300081A61 /* Experiments */,
 				981360DD2B4883C40007D40F /* NCFMechanism */,
@@ -630,7 +634,7 @@
 				981360E32B48CFC60007D40F /* HeatCapacity */,
 				9855200C2B5443D200AB068D /* NonCarbonElements */,
 				98FE60D22B3C6AFC00D73E37 /* Reconstruction */,
-				98FE60F12B3F716E00D73E37 /* Tripods */,
+				98C7580A2B5C4157000B16B2 /* Tripods */,
 				98E23B242B4C825300B5A7D5 /* README.md */,
 			);
 			path = Materials;
@@ -639,10 +643,11 @@
 		98B25A322B393AEE00081A61 /* Parts */ = {
 			isa = PBXGroup;
 			children = (
-				98EA89F92B40E48700DC5C7E /* NanoEngineer */,
+				98A700A82AB4A0CF00499CD2 /* OctahedralSpring */,
 				98EA89FA2B40E4A700DC5C7E /* RendererDemos */,
 				98E2C6142AC24D57002612CC /* RhombicDodecahedron */,
 				9816EFA32AC4B9620042073F /* Ring */,
+				98F852C92AF5B2CC00986E61 /* NORGate */,
 				98D9758F2AC088000052EE6C /* VdwOscillator */,
 				98E23B222B4C824100B5A7D5 /* README.md */,
 			);
@@ -654,8 +659,6 @@
 			children = (
 				98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */,
 				98E23B392B4F9CEA00B5A7D5 /* NanoRobot */,
-				98F852C92AF5B2CC00986E61 /* NORGate */,
-				98A700A82AB4A0CF00499CD2 /* SpringSystem */,
 				98E23B252B4C825C00B5A7D5 /* README.md */,
 			);
 			path = Systems;
@@ -682,6 +685,22 @@
 				98C757F92B57723D000B16B2 /* README.md */,
 			);
 			path = ElasticModuli;
+			sourceTree = "<group>";
+		};
+		98C7580A2B5C4157000B16B2 /* Tripods */ = {
+			isa = PBXGroup;
+			children = (
+				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
+				98EA89F32B40E34400DC5C7E /* CBNTripod.swift */,
+				98EA89F62B40E35A00DC5C7E /* CBNTripodCage.swift */,
+				98EA89F42B40E34E00DC5C7E /* CBNTripodComponent.swift */,
+				98EA89F72B40E37000DC5C7E /* CBNTripodLeg.swift */,
+				98EA89F22B40E33A00DC5C7E /* CBNTripod+Scratch.swift */,
+				98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */,
+				98FE60F22B3FA5CE00D73E37 /* CBNTripodCage.jpg */,
+				98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */,
+			);
+			path = Tripods;
 			sourceTree = "<group>";
 		};
 		98D9758F2AC088000052EE6C /* VdwOscillator */ = {
@@ -728,6 +747,7 @@
 				98E23B2B2B4CC5FD00B5A7D5 /* Base64 */,
 				98E23B292B4CC5E300B5A7D5 /* GIF */,
 				98E23B2A2B4CC5E900B5A7D5 /* MRSimulation */,
+				98EA89F92B40E48700DC5C7E /* NanoEngineer */,
 				98F83E1D2AE4BF630037E31A /* SimulationImport */,
 				98E23B282B4CC5DA00B5A7D5 /* README.md */,
 			);
@@ -1041,20 +1061,13 @@
 			path = Draft2;
 			sourceTree = "<group>";
 		};
-		98FE60F12B3F716E00D73E37 /* Tripods */ = {
+		98FE60F12B3F716E00D73E37 /* DMSTooltips */ = {
 			isa = PBXGroup;
 			children = (
-				989CBA092B1C0F4200213CBE /* Adamantanes.swift */,
-				98EA89F32B40E34400DC5C7E /* CBNTripod.swift */,
-				98EA89F62B40E35A00DC5C7E /* CBNTripodCage.swift */,
-				98EA89F42B40E34E00DC5C7E /* CBNTripodComponent.swift */,
-				98EA89F72B40E37000DC5C7E /* CBNTripodLeg.swift */,
-				98EA89F22B40E33A00DC5C7E /* CBNTripod+Scratch.swift */,
-				98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */,
-				98FE60F22B3FA5CE00D73E37 /* CBNTripodCage.jpg */,
-				98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */,
+				98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */,
+				98C758082B5C3B7C000B16B2 /* README.md */,
 			);
-			path = Tripods;
+			path = DMSTooltips;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

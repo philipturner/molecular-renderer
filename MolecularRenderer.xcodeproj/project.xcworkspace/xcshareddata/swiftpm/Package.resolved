@@ -6,7 +6,7 @@
       "location" : "https://github.com/philipturner/HDL",
       "state" : {
         "branch" : "main",
-        "revision" : "3589e2c74f21c4aae84054f9005989d32bbb7def"
+        "revision" : "9081e7096bf5322fba009db4fe4d1385b582ef9e"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
         "branch" : "main",
-        "revision" : "49ddb721544aa3db2db705bac8a9b0b909d19d5a"
+        "revision" : "a6eece0a9146bbc213fd32c41e4a73de8f2230fc"
       }
     },
     {
