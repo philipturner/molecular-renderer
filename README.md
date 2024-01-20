@@ -37,3 +37,11 @@ Dependencies (Windows)
 - Windows 10&ndash;11
 - Visual Studio Code
 - [Swift Extension](https://www.swift.org/blog/vscode-extension) for Visual Studio Code
+
+Various simulators are used in CAD workflows. OpenMM is always required. Remaining simulators are only needed for mechanosynthesis work.
+
+| Library | Type | Mac | Linux | Windows |
+| ------- | ---- | --- | ----- | ------- |
+| OpenMM  | Molecular Mechanics | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) |
+| xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | TBD | TBD |
+| Octopus | Quantum Mechanics   | [MacPorts](https://ports.macports.org/port/octopus) | TBD | TBD |
