@@ -23,7 +23,7 @@ Out of all the [ongoing efforts](https://astera.org/molecular-systems) to succee
 
 ## Installation
 
-Various simulators are used in CAD workflows. OpenMM is always required. Remaining simulators are only needed for mechanosynthesis work.
+Various simulators are used in CAD workflows. OpenMM is always required. Others are only needed for mechanosynthesis work.
 
 | Library | Type | Mac | Linux | Windows |
 | ------- | ---- | --- | ----- | ------- |
