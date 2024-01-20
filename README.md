@@ -29,7 +29,7 @@ Various simulators are used in CAD workflows. OpenMM is always required. Others 
 | :-----: | :--: | :-: | :---: | :-----: |
 | OpenMM  | Molecular Mechanics | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) |
 | xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | TBD | TBD |
-| Octopus | Quantum Mechanics   | [MacPorts](https://ports.macports.org/port/octopus) | TBD | TBD |
+| Octopus | Quantum Mechanics   | TBD | TBD | TBD |
 
 There are also platform-specific dependencies. One allows OpenMM to run on macOS. Others allow Swift to run on Linux and Windows.
 
