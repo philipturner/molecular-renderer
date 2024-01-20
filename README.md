@@ -6,6 +6,7 @@
 Molecular Renderer is a CAD program for molecular nanotechnology. It enabled the development of several related projects. Some evolved into distinct libraries, while one contributes to a UI experience based on existing IDEs.
 
 Projects:
+- [DFT](https://github.com/philipturner/DFT) - density functional theory simulator (0 LoC)
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md) - catalog of code samples and archived experiments (25,000 LoC)
 - [HDL](https://github.com/philipturner/HDL) - domain-specific language and geometry compiler (8,000 LoC)
 - [MM4](https://github.com/philipturner/MM4) - molecular mechanics simulator (13,000 LoC)
@@ -23,13 +24,12 @@ Out of all the [ongoing efforts](https://astera.org/molecular-systems) to succee
 
 ## Installation
 
-Various simulators are used in CAD workflows. OpenMM is always required. Others are only needed for mechanosynthesis work.
+There are only two simulator dependencies. Everything else is implemented from scratch in Swift.
 
 | Library | Type | Mac | Linux | Windows |
 | :-----: | :--: | :-: | :---: | :-----: |
 | OpenMM  | Molecular Mechanics | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) |
-| xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | TBD | TBD |
-| Octopus | Quantum Mechanics   | TBD | TBD | TBD |
+| xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | [GitHub Releases](https://github.com/grimme-lab/xtb/releases) | [GitHub Releases](https://github.com/grimme-lab/xtb/releases) |
 
 There are also platform-specific dependencies. One allows OpenMM to run on macOS. Others allow Swift to run on Linux and Windows.
 
