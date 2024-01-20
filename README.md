@@ -26,7 +26,7 @@ Out of all the [ongoing efforts](https://astera.org/molecular-systems) to succee
 Various simulators are used in CAD workflows. OpenMM is always required. Others are only needed for mechanosynthesis work.
 
 | Library | Type | Mac | Linux | Windows |
-| ------- | ---- | --- | ----- | ------- |
+| :-----: | :--: | :-: | :---: | :-----: |
 | OpenMM  | Molecular Mechanics | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) |
 | xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | TBD | TBD |
 | Octopus | Quantum Mechanics   | [MacPorts](https://ports.macports.org/port/octopus) | TBD | TBD |
