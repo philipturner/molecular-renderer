@@ -59,6 +59,7 @@ struct LogicRod {
   
   init(length: Int) {
     createRod(length: length)
+    passivateSurfaces()
   }
   
   // Find a static rod thickness that's optimal for the entire system. Then,
