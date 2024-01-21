@@ -206,7 +206,7 @@ private struct RendererStyle: MRAtomStyleProvider {
       SIMD3(200, 128,  51), // 29
       SIMD3(106, 106, 130), // 30
       SIMD3(153, 153, 204), // 31
-      SIMD3(125, 128, 176), // 32
+      SIMD3(102, 115,  26), // 32
       SIMD3(153,  66, 179), // 33
       SIMD3(199,  79,   0), // 34
       SIMD3(  0, 102,  77), // 35
