@@ -122,3 +122,168 @@ xtb coord --input xtb.inp --opt --uhf 2
           | HOMO-LUMO GAP               2.781488566362 eV   |
            -------------------------------------------------
 ```
+
+Next, I benchmarked the act of preconditioning the minimization with GFN-FF. In an earlier study with extremely far-from-equilibrium adamantasilanes, preconditioning reduced execution time by 3x. The technique is to first minimize the structure with GFN-FF, then minimize it again with GFN2-xTB.
+
+The structures with and without preconditioning were practically equivalent. Their total energies differed by &lt;0.001 eV and their HOMO-LUMO gaps differed by 0.003 eV. The total execution time speedup was 1.43x. However, large quantities of structures will be solved in parallel to increase CPU utilization. In this context, the reduction in CPU-minutes was 1.46x.
+
+```
+// Run the original structure directly through GFN2-xTB.
+xtb coord --input xtb.inp --opt
+
+           -------------------------------------------------
+          | TOTAL ENERGY              -58.859507835885 Eh   |
+          | GRADIENT NORM               0.000571068136 Eh/α |
+          | HOMO-LUMO GAP               2.639553942984 eV   |
+           -------------------------------------------------
+
+ total:
+ * wall-time:     0 d,  0 h,  0 min,  4.820 sec
+ *  cpu-time:     0 d,  0 h,  0 min, 19.956 sec
+ * ratio c/w:     4.140 speedup
+
+// Precondition the structure with GFN-FF.
+xtb coord --input xtb.inp --opt --gfnff
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -7.522732651943 Eh   |
+          | GRADIENT NORM               0.000588677819 Eh/α |
+           -------------------------------------------------
+           
+ total:
+ * wall-time:     0 d,  0 h,  0 min,  0.175 sec
+ *  cpu-time:     0 d,  0 h,  0 min,  0.271 sec
+ * ratio c/w:     1.550 speedup
+ 
+// Run the preconditioned structure through GFN2-xTB.
+xtb coord --input xtb.inp --opt
+ 
+           -------------------------------------------------
+          | TOTAL ENERGY              -58.859508691701 Eh   |
+          | GRADIENT NORM               0.000239990773 Eh/α |
+          | HOMO-LUMO GAP               2.636769310805 eV   |
+           -------------------------------------------------
+
+ total:
+ * wall-time:     0 d,  0 h,  0 min,  3.189 sec
+ *  cpu-time:     0 d,  0 h,  0 min, 13.334 sec
+ * ratio c/w:     4.181 speedup
+```
+
+Finally, each stationary point's energy is computed for DCB6-Ge. The energy of an isolated CC dimer is computed with 0, 2, and 4 unpaired electrons. With all of this data, we can reproduce an entry of "Table I" from the JNNDimerTool paper. This is a litmus test to troubleshoot problems before a large-scale production simulation.
+
+Tooltip structures:
+
+```
+let tooltipLHS: Element = .germanium
+let tooltipRHS: Element = .germanium
+let tooltipState: TooltipState = .charged
+  
+ C  H  Rav=1.0950 sigma=0.0035  Rmin=1.0891  Rmax=1.0996    24
+ C  C  Rav=1.5190 sigma=0.0612  Rmin=1.2392  Rmax=1.5503    22
+ Ge C  Rav=1.9765 sigma=0.0459  Rmin=1.9006  Rmax=2.0130     8
+  
+           -------------------------------------------------
+          | TOTAL ENERGY              -58.859507837580 Eh   |
+          | GRADIENT NORM               0.000571407150 Eh/α |
+          | HOMO-LUMO GAP               2.639577034383 eV   |
+           -------------------------------------------------
+           
+let tooltipLHS: Element = .germanium
+let tooltipRHS: Element = .germanium
+let tooltipState: TooltipState = .carbenicRearrangement
+  
+ C  H  Rav=1.0949 sigma=0.0038  Rmin=1.0882  Rmax=1.0998    24
+ C  C  Rav=1.5196 sigma=0.0573  Rmin=1.2585  Rmax=1.5589    22
+ Ge C  Rav=2.0019 sigma=0.0124  Rmin=1.9895  Rmax=2.0226     8
+ Ge Ge Rav=2.8518 sigma=0.0000  Rmin=2.8518  Rmax=2.8518     1
+  
+           -------------------------------------------------
+          | TOTAL ENERGY              -58.832328386449 Eh   |
+          | GRADIENT NORM               0.000563952957 Eh/α |
+          | HOMO-LUMO GAP               2.105831008948 eV   |
+           -------------------------------------------------
+
+let tooltipLHS: Element = .germanium
+let tooltipRHS: Element = .germanium
+let tooltipState: TooltipState = .discharged
+
+ C  H  Rav=1.0960 sigma=0.0041  Rmin=1.0908  Rmax=1.1026    24
+ C  C  Rav=1.5275 sigma=0.0080  Rmin=1.5099  Rmax=1.5532    21
+ Ge C  Rav=2.0320 sigma=0.0075  Rmin=2.0214  Rmax=2.0373     6
+ Ge Ge Rav=2.7705 sigma=0.0000  Rmin=2.7705  Rmax=2.7705     1
+  
+           -------------------------------------------------
+          | TOTAL ENERGY              -54.688018253050 Eh   |
+          | GRADIENT NORM               0.000518078809 Eh/α |
+          | HOMO-LUMO GAP               1.071303321402 eV   |
+           -------------------------------------------------
+```
+
+Detached feedstock structures:
+
+```         
+let tooltipLHS: Element = .germanium
+let tooltipRHS: Element = .germanium
+let tooltipState: TooltipState = .charged
+
+var atoms = topology.atoms
+atoms = [atoms[atoms.count-2], atoms[atoms.count-1]]
+
+xtb coord --input xtb.inp --opt --gfnff
+xtb coord --input xtb.inp --opt
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -4.045689113574 Eh   |
+          | GRADIENT NORM               0.000936246410 Eh/α |
+          | HOMO-LUMO GAP               3.075092365846 eV   |
+           -------------------------------------------------
+           
+xtb coord --input xtb.inp --opt --uhf 0 --gfnff
+xtb coord --input xtb.inp --opt --uhf 0
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -4.045689113574 Eh   |
+          | GRADIENT NORM               0.000936246266 Eh/α |
+          | HOMO-LUMO GAP               3.075092368282 eV   |
+           -------------------------------------------------
+           
+xtb coord --input xtb.inp --opt --uhf 2 --gfnff
+xtb coord --input xtb.inp --opt --uhf 2
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -3.948846547825 Eh   |
+          | GRADIENT NORM               0.000083273255 Eh/α |
+          | HOMO-LUMO GAP               4.208564229109 eV   |
+           -------------------------------------------------
+           
+xtb coord --input xtb.inp --opt --uhf 4 --gfnff
+xtb coord --input xtb.inp --opt --uhf 4
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -3.752400216324 Eh   |
+          | GRADIENT NORM               0.000237935876 Eh/α |
+          | HOMO-LUMO GAP               0.000000001129 eV   |
+           -------------------------------------------------
+```
+
+xTB has a slightly different energy gap between the charged and carbenic rearrangement states. The difference is 1.16x from the Gaussian result. Note that different calculations within the same DFT framework (GOSPEL) reported band gaps that differed by ~1.13x.
+
+Gaussian and xTB disagreed much more about the gap between charged and discharged states. Their energy gaps differ by a factor of ~2. However, they both have the correct sign. They are both greater than the 150 zJ gap required for room-temperature operation in _Nanosystems_.
+
+| Tool tip configuration  | Gaussian Energy |  xTB Energy |
+| :---------------------- | --------------: |  ---------: |
+| DCB6-Ge                 |   -134161.98 eV | -1601.65 eV |
+| Carbene rearrangement   |   -134161.12 eV | -1600.91 eV |
+| diff                    |         0.86 eV |     0.74 eV |
+| Discharged DCB6-Ge      |   -132088.86 eV | -1488.14 eV |
+| CC dimer                |     -2065.32 eV |  -110.09 eV |
+| CC + discharged DCB6-Ge |   -134154.18 eV | -1598.23 eV |
+| Minus DCB6-Ge           |         7.80 eV |     3.42 eV |
+
+| Energy Difference       | Gaussian Energy |  xTB Energy |
+| :---------------------- | --------------: |  ---------: |
+| Charged -> Carbenenic   |          138 zJ |      119 zJ |
+| Charged -> Discharged   |         1250 zJ |      548 zJ |
+
+## Production Simulation
