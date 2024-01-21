@@ -8,7 +8,7 @@ import Numerics
 func createGeometry() -> [Entity] {
   let tooltipLHS: Element = .germanium
   let tooltipRHS: Element = .germanium
-  let tooltipState: TooltipState = .charged
+  let tooltipState: TooltipState = .discharged
   
   enum TooltipState {
     case charged
@@ -217,15 +217,14 @@ func createGeometry() -> [Entity] {
   topology.insert(atoms: insertedAtoms)
   topology.insert(bonds: insertedBonds)
   
-  var atoms = topology.atoms
-  atoms = [atoms[atoms.count-2], atoms[atoms.count-1]]
-  
   let process = XTBProcess(path: "/Users/philipturner/Documents/OpenMM/xtb/cpu0")
   process.writeFile(name: "xtb.inp", process.encodeSettings())
-  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt", "--uhf", "4", "--gfnff"])
+  process.writeFile(name: "coord", try! process.encodeAtoms(topology.atoms))
+  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt", "--gfnff"])
   let preconditioned = try! process.decodeAtoms(process.readFile(name: "xtbopt.coord"))
+  
   process.writeFile(name: "coord", try! process.encodeAtoms(preconditioned))
-  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt", "--uhf", "4"])
+  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt"])
   let optimized = try! process.decodeAtoms(process.readFile(name: "xtbopt.coord"))
   
   return optimized

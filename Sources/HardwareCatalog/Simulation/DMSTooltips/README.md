@@ -172,13 +172,17 @@ xtb coord --input xtb.inp --opt
 
 Finally, each stationary point's energy is computed for DCB6-Ge. The energy of an isolated CC dimer is computed with 0, 2, and 4 unpaired electrons. With all of this data, we can reproduce an entry of "Table I" from the JNNDimerTool paper. This is a litmus test to troubleshoot problems before a large-scale production simulation.
 
+> NOTE: I forgot to precondition the following minimizations with GFN-FF.
+
 Tooltip structures:
 
-```
+```swift
 let tooltipLHS: Element = .germanium
 let tooltipRHS: Element = .germanium
 let tooltipState: TooltipState = .charged
-  
+```
+
+```
  C  H  Rav=1.0950 sigma=0.0035  Rmin=1.0891  Rmax=1.0996    24
  C  C  Rav=1.5190 sigma=0.0612  Rmin=1.2392  Rmax=1.5503    22
  Ge C  Rav=1.9765 sigma=0.0459  Rmin=1.9006  Rmax=2.0130     8
@@ -188,11 +192,15 @@ let tooltipState: TooltipState = .charged
           | GRADIENT NORM               0.000571407150 Eh/α |
           | HOMO-LUMO GAP               2.639577034383 eV   |
            -------------------------------------------------
-           
+```
+
+```swift
 let tooltipLHS: Element = .germanium
 let tooltipRHS: Element = .germanium
 let tooltipState: TooltipState = .carbenicRearrangement
-  
+```
+
+```
  C  H  Rav=1.0949 sigma=0.0038  Rmin=1.0882  Rmax=1.0998    24
  C  C  Rav=1.5196 sigma=0.0573  Rmin=1.2585  Rmax=1.5589    22
  Ge C  Rav=2.0019 sigma=0.0124  Rmin=1.9895  Rmax=2.0226     8
@@ -203,11 +211,15 @@ let tooltipState: TooltipState = .carbenicRearrangement
           | GRADIENT NORM               0.000563952957 Eh/α |
           | HOMO-LUMO GAP               2.105831008948 eV   |
            -------------------------------------------------
+```
 
+```swift
 let tooltipLHS: Element = .germanium
 let tooltipRHS: Element = .germanium
 let tooltipState: TooltipState = .discharged
+```
 
+```
  C  H  Rav=1.0960 sigma=0.0041  Rmin=1.0908  Rmax=1.1026    24
  C  C  Rav=1.5275 sigma=0.0080  Rmin=1.5099  Rmax=1.5532    21
  Ge C  Rav=2.0320 sigma=0.0075  Rmin=2.0214  Rmax=2.0373     6
@@ -222,14 +234,16 @@ let tooltipState: TooltipState = .discharged
 
 Detached feedstock structures:
 
-```         
+```swift
 let tooltipLHS: Element = .germanium
 let tooltipRHS: Element = .germanium
 let tooltipState: TooltipState = .charged
 
 var atoms = topology.atoms
 atoms = [atoms[atoms.count-2], atoms[atoms.count-1]]
+```
 
+```
 xtb coord --input xtb.inp --opt --gfnff
 xtb coord --input xtb.inp --opt
 
@@ -285,5 +299,134 @@ Gaussian and xTB disagreed much more about the gap between charged and discharge
 | :---------------------- | --------------: |  ---------: |
 | Charged -> Carbenenic   |          138 zJ |      119 zJ |
 | Charged -> Discharged   |         1250 zJ |      548 zJ |
+
+## GFN-FF Failure Mode
+
+Another interesting observation: a Ge-Ge bond in the carbenic rearrangement, giving Ge a bond order of 5. The diagram from the JNNDimerTool paper did not depict this bond. I re-ran each singlepoint and recorded the Wiberg bond orders. It registers 5 bonds, but not from the Ge-Ge bond. Rather, a new (weak) bond between each germanium and the upper carbon.
+
+```swift
+let tooltipState: TooltipState = .charged
+```
+
+```
+     #   Z          covCN         q      C6AA      α(0)
+    10  32 ge       4.019     0.223   166.965    23.186
+    20  32 ge       4.020     0.223   166.965    23.186
+    45   6 c        1.968    -0.107    34.034     9.421
+    46   6 c        1.968    -0.107    34.034     9.421
+
+ ---------------------------------------------------------------------------
+     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO
+ ---------------------------------------------------------------------------
+    10  32 ge   3.323 --    45 c    0.892     5 c    0.809     7 c    0.797
+                             9 c    0.797
+    20  32 ge   3.323 --    46 c    0.892    15 c    0.809    19 c    0.797
+                            17 c    0.797
+    45   6 c    3.821 --    46 c    2.601    10 ge   0.892
+    46   6 c    3.821 --    45 c    2.601    20 ge   0.892
+ ---------------------------------------------------------------------------
+
+ * 3 distinct bonds (by element types)
+
+   Z      Z             #   av. dist./Å        max./Å        min./Å
+   1 H    6 C          24     1.0949971     1.0996169     1.0889464
+   6 C    6 C          21     1.5174898     1.5350268     1.2391651
+   6 C   32 Ge          2     1.9784241     1.9784262     1.9784221
+```
+
+```swift
+let tooltipState: TooltipState = .carbenicRearrangement
+```
+
+```
+     #   Z          covCN         q      C6AA      α(0)
+    10  32 ge       4.348     0.239   166.634    23.163
+    20  32 ge       4.348     0.239   166.634    23.163
+    45   6 c        2.731    -0.063    29.535     8.897
+    46   6 c        0.990    -0.190    42.330    10.933
+
+ ---------------------------------------------------------------------------
+     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO
+ ---------------------------------------------------------------------------
+    10  32 ge   3.216 --     9 c    0.814     7 c    0.814     5 c    0.798
+                            45 c    0.658    46 c    0.150
+    20  32 ge   3.216 --    19 c    0.814    17 c    0.814    15 c    0.798
+                            45 c    0.658    46 c    0.150
+    45   6 c    3.938 --    46 c    2.318    20 ge   0.658    10 ge   0.658
+    46   6 c    2.772 --    45 c    2.318    10 ge   0.150    20 ge   0.150
+ ---------------------------------------------------------------------------
+
+ * 3 distinct bonds (by element types)
+
+   Z      Z             #   av. dist./Å        max./Å        min./Å
+   1 H    6 C          24     1.0949244     1.0998407     1.0882188
+   6 C    6 C          21     1.5177472     1.5339305     1.2584691
+   6 C   32 Ge          6     1.9949659     1.9977101     1.9894774
+```
+
+```swift
+let tooltipState: TooltipState = .discharged
+```
+
+```
+     #   Z          covCN         q      C6AA      α(0)
+    10  32 ge       3.469     0.198   171.131    23.659
+    20  32 ge       3.469     0.198   171.132    23.660
+
+ ---------------------------------------------------------------------------
+     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO
+ ---------------------------------------------------------------------------
+    10  32 ge   2.931 --     5 c    0.826     7 c    0.763     9 c    0.763
+                            20 ge   0.309
+    20  32 ge   2.931 --    15 c    0.826    19 c    0.763    17 c    0.763
+                            10 ge   0.309
+ ---------------------------------------------------------------------------
+
+ * 2 distinct bonds (by element types)
+
+   Z      Z             #   av. dist./Å        max./Å        min./Å
+   1 H    6 C          24     1.0959904     1.1026175     1.0907511
+   6 C    6 C          20     1.5261769     1.5305437     1.5098890
+```
+
+While attempting to minimize the structure for the carbenic rearrangement, I noticed that the final structure was the same as the charged tool. The culprit was the preconditioning with GFN-FF. Either this messed up the GFN-FF parameter assignment, or the preconditioning explored nearby PES regions and found a new minimum. Afterward, the structure was disrupted enough for GFN2-xTB to stabilize at the lower-energy charged state. I could not inspect the original GFN-FF topology to determine whether the sp2 carbon was registered as bonding to both germaniums.
+
+> Insight: Don't precondition the carbenic rearrangement with GFN-FF. For other structures, precondition by default. Only deactivate the preconditioning when there is a known issue.
+
+![DMS Tooltips GFN-FF Failure Mode](./DMSTooltips_GFNFF_FailureMode.jpg)
+
+The discharged state hasn't been analyzed yet with GFN-FF preconditioning. Results for energy, structure, and bond order are shown below. The energy and structure is almost identical to that without preconditioning. We should investigate whether this agreement exists for other tooltip variants.
+
+```
+ C  H  Rav=1.0959 sigma=0.0041  Rmin=1.0905  Rmax=1.1027    24
+ C  C  Rav=1.5274 sigma=0.0080  Rmin=1.5095  Rmax=1.5530    21
+ Ge C  Rav=2.0323 sigma=0.0079  Rmin=2.0212  Rmax=2.0379     6
+ Ge Ge Rav=2.7730 sigma=0.0000  Rmin=2.7730  Rmax=2.7730     1
+ 
+      #   Z          covCN         q      C6AA      α(0)
+    10  32 ge       3.464     0.198   171.309    23.681
+    20  32 ge       3.464     0.198   171.307    23.680
+    
+ ---------------------------------------------------------------------------
+     #   Z sym  total        # sym  WBO       # sym  WBO       # sym  WBO
+ ---------------------------------------------------------------------------
+    10  32 ge   2.930 --     5 c    0.826     9 c    0.763     7 c    0.763
+                            20 ge   0.308
+    20  32 ge   2.930 --    15 c    0.826    19 c    0.763    17 c    0.763
+                            10 ge   0.308
+ ---------------------------------------------------------------------------
+ 
+  * 2 distinct bonds (by element types)
+
+   Z      Z             #   av. dist./Å        max./Å        min./Å
+   1 H    6 C          24     1.0959286     1.1026708     1.0905202
+   6 C    6 C          20     1.5261282     1.5304142     1.5094862
+   
+           -------------------------------------------------
+          | TOTAL ENERGY              -54.688017084579 Eh   |
+          | GRADIENT NORM               0.000932257779 Eh/α |
+          | HOMO-LUMO GAP               1.065752686326 eV   |
+           -------------------------------------------------
+```
 
 ## Production Simulation

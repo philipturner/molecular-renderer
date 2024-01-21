@@ -200,6 +200,7 @@
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
+		98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_GFNFF_FailureMode.jpg; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -1060,6 +1061,7 @@
 			isa = PBXGroup;
 			children = (
 				98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */,
+				98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */,
 				98ED5E9E2B5CE155005B2D6C /* DMSTooltips_JNNDimerTool_StationaryPoints.jpg */,
 				98ED5E9D2B5CE082005B2D6C /* DMSTooltips_MolecularRenderer_StationaryPoints.jpg */,
 				98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */,
