@@ -6,8 +6,15 @@ import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
-  let tooltipLHS: Element = .silicon
+  let tooltipLHS: Element = .germanium
   let tooltipRHS: Element = .germanium
+  let tooltipState: TooltipState = .discharged
+  
+  enum TooltipState {
+    case charged
+    case carbenicRearrangement
+    case discharged
+  }
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 4 * h + 4 * k + 4 * l }
@@ -115,8 +122,7 @@ func createGeometry() -> [Entity] {
   var insertedBonds: [SIMD2<UInt32>] = []
   for i in topology.atoms.indices {
     for j in matches[i] where i < j {
-      if topology.atoms[Int(i)].atomicNumber != 6,
-         topology.atoms[Int(j)].atomicNumber != 6 {
+      if reactiveSiteAtoms == [i, Int(j)] {
         continue
       }
       insertedBonds.append(SIMD2(UInt32(i), UInt32(j)))
@@ -124,14 +130,14 @@ func createGeometry() -> [Entity] {
   }
   topology.insert(bonds: insertedBonds)
   
-  let orbitals = topology.nonbondingOrbitals()
+  var orbitals = topology.nonbondingOrbitals()
   let chBondLength = Element.carbon.covalentRadius +
   Element.hydrogen.covalentRadius
   
   var insertedAtoms: [Entity] = []
   insertedBonds = []
   for i in topology.atoms.indices {
-    if topology.atoms[i].atomicNumber != 6 {
+    if reactiveSiteAtoms.contains(i) {
       continue
     }
     let carbon = topology.atoms[i]
@@ -147,7 +153,73 @@ func createGeometry() -> [Entity] {
   topology.insert(atoms: insertedAtoms)
   topology.insert(bonds: insertedBonds)
   
+  // Add the feedstocks if the tooltip is charged.
+  orbitals = topology.nonbondingOrbitals()
+  insertedAtoms = []
+  insertedBonds = []
+  for i in reactiveSiteAtoms {
+    let orbital = orbitals[i][0]
+    let centerAtom = topology.atoms[i]
+    var position = centerAtom.position + orbital * 0.2
+    if tooltipState == .carbenicRearrangement {
+      position.x = 0
+    }
+    
+    let element = Element(rawValue: centerAtom.atomicNumber)!
+    var bondLength = element.covalentRadius
+    if tooltipState == .carbenicRearrangement {
+      bondLength += 0.067
+    } else {
+      bondLength += 0.061
+    }
+    
+    let deltaX = min(bondLength, position.x - centerAtom.position.x)
+    let deltaY = (bondLength * bondLength - deltaX * deltaX).squareRoot()
+    position.y = centerAtom.position.y + deltaY
+    
+    let carbon = Entity(position: position, type: .atom(.carbon))
+    let carbonID = topology.atoms.count + insertedAtoms.count
+    let bond = SIMD2(UInt32(i), UInt32(carbonID))
+    insertedAtoms.append(carbon)
+    insertedBonds.append(bond)
+  }
   
+  let averageY = (insertedAtoms[0].position.y + insertedAtoms[1].position.y) / 2
+  insertedAtoms[0].position.y = averageY
+  insertedAtoms[1].position.y = averageY
+  
+  switch tooltipState {
+  case .charged:
+    insertedBonds.append(SIMD2(UInt32(topology.atoms.count),
+                               UInt32(topology.atoms.count + 1)))
+  case .carbenicRearrangement:
+    insertedBonds.removeLast()
+    insertedAtoms.removeLast()
+    
+    var position = insertedAtoms[0].position
+    position.y += 0.133
+    let carbon = Entity(position: position, type: .atom(.carbon))
+    insertedAtoms.append(carbon)
+    insertedBonds.append(SIMD2(UInt32(topology.atoms.count),
+                               UInt32(topology.atoms.count + 1)))
+    
+    let carbenicBond = SIMD2(UInt32(reactiveSiteAtoms[1]),
+                             UInt32(topology.atoms.count))
+    insertedBonds.append(carbenicBond)
+  case .discharged:
+    insertedAtoms.removeAll()
+    insertedBonds.removeAll()
+    
+    let reactiveSiteBond = SIMD2(UInt32(reactiveSiteAtoms[0]),
+                                 UInt32(reactiveSiteAtoms[1]))
+    insertedBonds.append(reactiveSiteBond)
+  }
+  topology.insert(atoms: insertedAtoms)
+  topology.insert(bonds: insertedBonds)
+  
+  for i in topology.atoms.indices {
+    topology.atoms[i].position.z -= 0.5
+  }
   
   return topology.atoms
 }

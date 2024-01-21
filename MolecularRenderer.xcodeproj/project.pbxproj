@@ -282,6 +282,8 @@
 		98EA89F42B40E34E00DC5C7E /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
 		98EA89F62B40E35A00DC5C7E /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
 		98EA89F72B40E37000DC5C7E /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
+		98ED5E9D2B5CE082005B2D6C /* DMSTooltips_StationaryPoints.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_StationaryPoints.jpg; sourceTree = "<group>"; };
+		98ED5E9E2B5CE155005B2D6C /* DMSTooltips_JNNDimerTool_StationaryPoints.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_JNNDimerTool_StationaryPoints.jpg; sourceTree = "<group>"; };
 		98F012612B266FA70037318D /* Bootstrapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping.swift; sourceTree = "<group>"; };
 		98F012632B2671080037318D /* Bootstrapping_Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Tripod.swift; sourceTree = "<group>"; };
 		98F012652B2671160037318D /* Bootstrapping_BuildPlate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_BuildPlate.swift; sourceTree = "<group>"; };
@@ -1058,6 +1060,8 @@
 			isa = PBXGroup;
 			children = (
 				98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */,
+				98ED5E9E2B5CE155005B2D6C /* DMSTooltips_JNNDimerTool_StationaryPoints.jpg */,
+				98ED5E9D2B5CE082005B2D6C /* DMSTooltips_StationaryPoints.jpg */,
 				98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */,
 				98C758082B5C3B7C000B16B2 /* README.md */,
 			);
