@@ -31,7 +31,7 @@ There are only two simulator dependencies. Everything else is implemented from s
 | OpenMM  | Molecular Mechanics | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) |
 | xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | [GitHub Releases](https://github.com/grimme-lab/xtb/releases) | [GitHub Releases](https://github.com/grimme-lab/xtb/releases) |
 
-There are also platform-specific dependencies. One allows OpenMM to run on macOS. Others allow Swift to run on Linux and Windows.
+There are also platform-specific dependencies. One lets OpenMM run on macOS. Others let Swift run on Linux and Windows.
 
 Dependencies (Mac)
 - macOS 14
