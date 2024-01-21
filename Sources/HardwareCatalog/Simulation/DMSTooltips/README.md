@@ -393,7 +393,11 @@ While attempting to minimize the structure for the carbenic rearrangement, I not
 
 > Insight: Don't precondition the carbenic rearrangement with GFN-FF. For other structures, precondition by default. Only deactivate the preconditioning when there is a known issue.
 
+<div align="center">
+
 ![DMS Tooltips GFN-FF Failure Mode](./DMSTooltips_GFNFF_FailureMode.jpg)
+
+</div>
 
 The discharged state hasn't been analyzed yet with GFN-FF preconditioning. Results for energy, structure, and bond order are shown below. The energy and structure is almost identical to that without preconditioning. We should investigate whether this agreement exists for other tooltip variants.
 
