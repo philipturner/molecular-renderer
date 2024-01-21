@@ -1,12 +1,10 @@
 # Non-Carbon Elements
 
+> TODO: Upload this to the internet archive.
+
 This file validates the accuracy of MM4 when handling elements besides carbon and hydrogen. It reports partial charges, bond lengths, and bond angles of notable functional groups. The results are compared to xTB.
 
 Cross-terms containing torsions are deactivated. It is unclear to what degree they're required for first-row electronegative elements. Therefore, this analysis has avoided N/O/F so far.
-
-<!-- Method for creating images: take a ~1000x1000 screenshot of the 2000x2000 window. Downsample to ~500x500 and use 30-pt font. -->
-
-<!-- Save results of this investigation to the Internet Archive. -->
 
 Table of Contents
 - [Bridgehead-Doped Adamantane](#bridgehead-doped-adamantane)

@@ -1,5 +1,7 @@
 # Non-Contact Force Mechanism
 
+> TODO: Upload this to the internet archive.
+
 The idea of using vdW forces instead of elastic springs was originally discovered by CBN Nano Technologies. Prior to the patent's publication, I independently discovered the idea. My intent was to use "vdW springs" to drive the clocking mechanism of a mechanical computer. I created some schematics for this a few days before the patent surfaced. It is not the same as CBN's idea to make the logic gates themselves run on vdW forces. Doing that creates monstrous, bulky logic with 1000x lower volumetric packing density than rod logic.
 
 ![NCF Mechanism Image 1](./NCFMechanism_Image1.jpg)

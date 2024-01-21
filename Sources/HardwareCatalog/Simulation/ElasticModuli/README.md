@@ -1,5 +1,7 @@
 # Elastic Moduli
 
+> TODO: Upload this to the internet archive.
+
 This is part of an effort to validate the accuracy of MM4. In theory, bulk material properties like lattice constant and stiffness should be reproduced to within 1&ndash;10% error. The measurement process faces a combinatorial explosion - multiple properties, multiple materials, multiple force magnitudes, multiple system sizes.
 
 It would be insightful to walk through the process of solving the combinatorial explosion. At first glance, the compute cost seems to not be the bottleneck. Rather, the complexity of the source code. Experiments need to be organized into data structures, with functions and initializers for different conditions. There must be ways to quickly prototype a production simulation, discover and fix errors, summarize the results, etc.

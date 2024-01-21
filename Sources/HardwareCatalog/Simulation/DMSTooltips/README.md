@@ -1,5 +1,7 @@
 # Diamond Mechanosynthesis Tooltips
 
+> TODO: Upload this to the internet archive.
+
 The following experiment uses three simulation techniques: real-space DFT, GFN2-xTB, GFN-FF. At the time of writing, the real-space DFT simulator only ran on CPU. It also didn't employ the DM21 exchange-correlation functional. Preceding [literature](https://github.com/philipturner/diamond-mechanosynthesis-literature-review) used plane-wave DFT and AM1.
 
 This will be the first time the following workflow is attempted:
