@@ -52,10 +52,14 @@ func createGeometry() -> [Entity] {
       let tooltipName = "\(name) (\(stateName))"
       tooltipNames.append(tooltipName)
       
+      descriptor.state = states[stateID]
+      var tooltip = Tooltip(descriptor: descriptor)
+      
       // NOTE: Only perform this transformation when presenting tooltips for
       // rendering. Otherwise, keep them centered and in their original
       // orientation.
       
+      #if false
       let angle0: Float = 20
       let angle1 = 15 * Float(1 - stateID)
       let translation1 = 1.2 * (2.5 - Float(variantID))
@@ -67,8 +71,6 @@ func createGeometry() -> [Entity] {
         angle: angle1 * .pi / 180, axis: [1, 0, 0])
       let radius: Float = 15
       
-      descriptor.state = states[stateID]
-      var tooltip = Tooltip(descriptor: descriptor)
       for i in tooltip.topology.atoms.indices {
         var atom = tooltip.topology.atoms[i]
         var position = atom.position
@@ -83,14 +85,32 @@ func createGeometry() -> [Entity] {
         atom.position = position
         tooltip.topology.atoms[i] = atom
       }
+      #endif
       tooltips.append(tooltip)
     }
   }
   
-  // Next: Serialize the (non-tilted) structures into a base64 string and decode
-  // in another app launch.
   
+  
+  #if true
+  var allAtoms: [Entity] = []
+  for tooltip in tooltips {
+    allAtoms += tooltip.topology.atoms
+  }
+  print()
+  print(Base64Coder.encodeAtoms(allAtoms))
+  print()
   return tooltips.flatMap { $0.topology.atoms }
+  #endif
+  
+  #if false
+  let string = """
+
+"""
+  
+  return Base64Coder.decodeAtoms(string)
+  
+  #endif
 }
 
 struct XTBSolver {
