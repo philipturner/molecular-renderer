@@ -301,7 +301,7 @@ Gaussian and xTB disagreed much more about the gap between charged and discharge
 
 | Energy Difference       | Gaussian Energy |  xTB Energy |
 | :---------------------- | --------------: |  ---------: |
-| Charged -> Carbenenic   |         +138 zJ |     +119 zJ |
+| Charged -> Carbenic     |         +138 zJ |     +119 zJ |
 | Charged -> Discharged   |        +1250 zJ |     +548 zJ |
 
 </div>
@@ -397,7 +397,7 @@ let tooltipState: TooltipState = .discharged
 
 While attempting to minimize the structure for the carbenic rearrangement, I noticed that the final structure was the same as the charged tool. The culprit was the preconditioning with GFN-FF. Either this messed up the GFN-FF parameter assignment, or the preconditioning explored nearby PES regions and found a new minimum. Afterward, the structure was disrupted enough for GFN2-xTB to stabilize at the lower-energy charged state. I could not inspect the original GFN-FF topology to determine whether the sp2 carbon was registered as bonding to both germaniums.
 
-> Insight: Don't precondition the carbenic rearrangement with GFN-FF. For other structures, precondition by default. Only deactivate the preconditioning when there is a known issue.
+> Insight: Don't precondition the carbenic rearrangement with GFN-FF. This edge case causes wierdness everywhere in xTB. For other structures, precondition by default. Only deactivate preconditioning when the minimized structure deviates from the compiled structure.
 
 <div align="center">
 
@@ -405,7 +405,7 @@ While attempting to minimize the structure for the carbenic rearrangement, I not
 
 </div>
 
-The discharged state hasn't been analyzed yet with GFN-FF preconditioning. Results for energy, structure, and bond order are shown below. The energy and structure is almost identical to that without preconditioning. We should investigate whether this agreement exists for other tooltip variants.
+The discharged state is the only state waiting to be analyzed with GFN-FF preconditioning. Results for energy, structure, and bond order are shown below. The energy and structure are almost identical to that without preconditioning. We should investigate whether this agreement exists for other tooltip variants.
 
 ```
  C  H  Rav=1.0959 sigma=0.0041  Rmin=1.0905  Rmax=1.1027    24
