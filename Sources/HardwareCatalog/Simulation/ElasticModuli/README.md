@@ -26,7 +26,7 @@ RBD seems sufficient for setting up the scene, and minimizing the vdW potential 
 
 ## Diamond Anvil
 
-To prototype the act of measuring moduli, a virtual diamond anvil was created. The jig was anchored in place by setting the mass of every quaternary (`MM4AtomCode.quaternary`) atom to zero. An external force (`MM4ForceField.externalForces`) was exerted on a fraction of the specimen atoms. These atoms were located on the surface of outward-pointing faces. The normal force from the jig pointed opposite to the external forces, making the net force zero.
+To prototype the measurement of bulk modulus, a virtual diamond anvil was created. The jig was anchored in place by setting the mass of every quaternary (`MM4AtomCode.quaternary`) atom to zero. An external force (`MM4ForceField.externalForces`) was exerted on a fraction of the specimen atoms. These atoms were located on the surface of outward-pointing faces. The normal force from the jig pointed opposite to the external forces, making the net force zero.
 
 Pressure was calculated as the total force on any face, divided by the area of a 10x10 array of lattice cells. This significantly underestimates the pressure at extremely high pressures. The diamond can be compressed a factor of ~1.3x in each linear dimension, changing the area by ~1.7x.
 
