@@ -93,6 +93,10 @@ I had to make some modifications to `MolecularRendererApp`. The module was origi
 
 Here are the compiled structures for each DCB6-Ge stationary point. The structures are compared to the schematic from the literature. Other tooltip variants will be rendered once they are all minimized.
 
+<div align="center">
+
 ![DMS Tooltips Molecular Renderer Stationary Points](./DMSTooltips_MolecularRenderer_StationaryPoints.jpg)
 
 ![DMS Tooltips JNN Dimer Tool Stationary Points](./DMSTooltips_JNNDimerTool_StationaryPoints.jpg)
+
+</div>
