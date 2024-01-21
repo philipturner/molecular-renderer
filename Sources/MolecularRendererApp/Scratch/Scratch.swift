@@ -1,28 +1,96 @@
 // Save as GitHub Gist instead of polluting the molecular-renderer source tree.
 
+import Atomics
 import Foundation
 import HDL
 import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
-  var descriptor = TooltipDescriptor()
-  descriptor.reactiveSiteLeft = .germanium
-  descriptor.reactiveSiteRight = .germanium
-  descriptor.state = .charged
-  let tooltip = Tooltip(descriptor: descriptor)
+  var tooltips: [Tooltip] = []
+  var tooltipNames: [String] = []
+  for variantID in 0..<6 {
+    var descriptor = TooltipDescriptor()
+    var name = ""
+    
+    if variantID == 0 {
+      descriptor.reactiveSiteLeft = .carbon
+      descriptor.reactiveSiteRight = .carbon
+      name = "C"
+    }
+    if variantID == 1 {
+      descriptor.reactiveSiteLeft = .silicon
+      descriptor.reactiveSiteRight = .silicon
+      name = "Si"
+    }
+    if variantID == 2 {
+      descriptor.reactiveSiteLeft = .silicon
+      descriptor.reactiveSiteRight = .germanium
+      name = "SiGe"
+    }
+    if variantID == 3 {
+      descriptor.reactiveSiteLeft = .germanium
+      descriptor.reactiveSiteRight = .germanium
+      name = "Ge"
+    }
+    if variantID == 4 {
+      descriptor.reactiveSiteLeft = .tin
+      descriptor.reactiveSiteRight = .tin
+      name = "Sn"
+    }
+    if variantID == 5 {
+      descriptor.reactiveSiteLeft = .lead
+      descriptor.reactiveSiteRight = .lead
+      name = "Pb"
+    }
+    name = "DCB6-" + name
+    
+    let states: [TooltipState] = [.charged, .carbenicRearrangement, .discharged]
+    let stateNames = ["charged", "carbenic rearrangement", "discharged"]
+    for stateID in states.indices {
+      let stateName = stateNames[stateID]
+      let tooltipName = "\(name) (\(stateName))"
+      tooltipNames.append(tooltipName)
+      
+      // NOTE: Only perform this transformation when presenting tooltips for
+      // rendering. Otherwise, keep them centered and in their original
+      // orientation.
+      
+      let angle0: Float = 20
+      let angle1 = 15 * Float(1 - stateID)
+      let translation1 = 1.2 * (2.5 - Float(variantID))
+      let translation2 = 1.2 * Float(1 - stateID)
+      
+      let rotation0 = Quaternion<Float>(
+        angle: angle0 * .pi / 180, axis: [1, 0, 0])
+      let rotation1 = Quaternion<Float>(
+        angle: angle1 * .pi / 180, axis: [1, 0, 0])
+      let radius: Float = 15
+      
+      descriptor.state = states[stateID]
+      var tooltip = Tooltip(descriptor: descriptor)
+      for i in tooltip.topology.atoms.indices {
+        var atom = tooltip.topology.atoms[i]
+        var position = atom.position
+        
+        position = rotation0.act(on: position)
+        position = rotation1.act(on: position)
+        position.z -= radius
+        position.x -= translation1
+        position.y += translation2
+        position.z += 1 // player position
+        
+        atom.position = position
+        tooltip.topology.atoms[i] = atom
+      }
+      tooltips.append(tooltip)
+    }
+  }
   
-  var solver = XTBSolver(cpuID: 0)
-  solver.atoms = tooltip.topology.atoms
-  solver.process.anchors = tooltip.constrainedAtoms
-//  solver.solve(arguments: ["--opt"])
+  // Next: Serialize the (non-tilted) structures into a base64 string and decode
+  // in another app launch.
   
-  // Next: generate a list of all the tooltips, present the renders. Tilt all
-  // of them to their local Z axis points straight toward the global (0, 0, 0).
-  // Serialize the (non-tilted) structures into a base64 string and decode in
-  // another app launch.
-  
-  return solver.atoms
+  return tooltips.flatMap { $0.topology.atoms }
 }
 
 struct XTBSolver {
