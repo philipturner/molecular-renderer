@@ -74,3 +74,15 @@ let band_gap = calc.band_gap
 I will begin by reproducing the tooltips from Robert Freitas's first paper. Run them through xTB, then compare the structures and energies to the literature. Finally, get GOSPEL to accept the structures and output something about them.
 
 ## Tooltips
+
+I had to make some modifications to `MolecularRendererApp`. The module was originally built to reproduce NanoEngineer + QuteMol as closely as possible. NanoEngineer only had a full parameter set for Z=1 to Z=36. To render Au(111) surfaces for early mechanosynthesis, Z=79 was added in ~June 2023. The DMS tooltips project required new rendering parameters for tin and lead.
+
+![DMS Tooltips Atom Colors](./DMSTooltips_AtomColors.jpg)
+
+| Element    | Z   | Radius  | Color |
+| :--------: | :-: | :-----: | :---: |
+| Copper     |  29 | 2.325 Å | $\color{rgb(200, 128,  51)}{\texttt{200, 128,  51}}$ |
+| Germanium  |  32 | 1.938 Å | $\color{rgb(125, 128, 176)}{\texttt{125, 128, 176}}$ |
+| Tin (new)  |  50 | 2.227 Å | $\color{rgb(102, 128, 128)}{\texttt{102, 128, 128}}$ |
+| Gold       |  79 | 2.623 Å | $\color{rgb(212, 175,  55)}{\texttt{212, 175,  55}}$ |
+| Lead (new) |  82 | 2.339 Å | $\color{rgb( 87,  89,  97)}{\texttt{ 87,  89,  97}}$ |

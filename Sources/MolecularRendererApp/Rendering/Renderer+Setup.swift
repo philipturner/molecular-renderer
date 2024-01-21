@@ -144,16 +144,36 @@ private struct RendererStyle: MRAtomStyleProvider {
       1.550, // 35
       1.472, // 36
     ]
-    radii += Array(repeating: 0, count: 79 - 36 - 1)
-    radii += [
-      2.625, // 79
-    ]
-    radii = radii.map { $0 * 1e-10 }
     
+    // Extrapolating from the lattice constant ratio with germanium:
+    // https://7id.xray.aps.anl.gov/calculators/crystal_lattice_parameters.html
+    // 5.64613 (Ge) -> 6.48920 (Sn)
+    // 1.938 (Ge) * 6.48920/5.64613 = 2.227 (Sn)
+    radii += Array(repeating: 0, count: 50 - 36 - 1)
+    radii.append(2.227)
+    
+    // Extrapolating from the lattice constant ratio with copper:
+    // https://periodictable.com/Properties/A/LatticeConstants.html
+    // 3.6149 (Cu) -> 4.0782 (Au)
+    // 2.325 (Cu) * 4.0782/3.6149 = 2.623 (Au)
+    radii += Array(repeating: 0, count: 79 - 50 - 1)
+    radii.append(2.623)
+    
+    // Extrapolating from the covalent radius ratio with tin:
+    // https://en.wikipedia.org/wiki/Covalent_radius#Average_radii
+    // 1.39 (Sn) -> 1.46 (Pb)
+    // 2.227 (Sn) * 1.46/1.39 = 2.339 (Pb)
+    radii += Array(repeating: 0, count: 82 - 79 - 1)
+    radii.append(2.339)
+    
+    // The noble gases (Z=2, Z=10, Z=18, Z=36) and transition metals (Z=21-30)
+    // are not properly parameterized by NanoEngineer. Use the commented-out
+    // colors from QuteMol for these:
+    // https://github.com/zulman/qutemol/blob/master/src/AtomColor.cpp#L54
     var colors: [SIMD3<Float>] = [
       SIMD3(204,   0,   0), // 0
       SIMD3(199, 199, 199), // 1
-      SIMD3(107, 115, 140), // 2
+      SIMD3(217, 255, 255), // 2
       
       SIMD3(  0, 128, 128), // 3
       SIMD3(250, 171, 255), // 4
@@ -162,7 +182,7 @@ private struct RendererStyle: MRAtomStyleProvider {
       SIMD3( 31,  31,  99), // 7
       SIMD3(128,   0,   0), // 8
       SIMD3(  0,  99,  51), // 9
-      SIMD3(107, 115, 140), // 10
+      SIMD3(179, 227, 245), // 10
       
       SIMD3(  0, 102, 102), // 11
       SIMD3(224, 153, 230), // 12
@@ -171,38 +191,50 @@ private struct RendererStyle: MRAtomStyleProvider {
       SIMD3( 84,  20, 128), // 15
       SIMD3(219, 150,   0), // 16
       SIMD3( 74,  99,   0), // 17
-      SIMD3(107, 115, 140), // 18
+      SIMD3(128, 209, 227), // 18
       
       SIMD3(  0,  77,  77), // 19
       SIMD3(201, 140, 204), // 20
-      SIMD3(106, 106, 130), // 21
-      SIMD3(106, 106, 130), // 22
-      SIMD3(106, 106, 130), // 23
-      SIMD3(106, 106, 130), // 24
-      SIMD3(106, 106, 130), // 25
-      SIMD3(106, 106, 130), // 26
-      SIMD3(106, 106, 130), // 27
-      SIMD3(106, 106, 130), // 28
-      SIMD3(106, 106, 130), // 29
+      SIMD3(230, 230, 230), // 21
+      SIMD3(191, 194, 199), // 22
+      SIMD3(166, 166, 171), // 23
+      SIMD3(138, 153, 199), // 24
+      SIMD3(156, 122, 199), // 25
+      SIMD3(224, 102,  51), // 26
+      SIMD3(240, 144, 160), // 27
+      SIMD3( 80, 208,  80), // 28
+      SIMD3(200, 128,  51), // 29
       SIMD3(106, 106, 130), // 30
       SIMD3(153, 153, 204), // 31
-      SIMD3(102, 115,  26), // 32
+      SIMD3(125, 128, 176), // 32
       SIMD3(153,  66, 179), // 33
       SIMD3(199,  79,   0), // 34
       SIMD3(  0, 102,  77), // 35
-      SIMD3(107, 115, 140), // 36
+      SIMD3( 92, 184, 209), // 36
     ]
-    colors += Array(repeating: .zero, count: 79 - 36 - 1)
-    colors += [
-      SIMD3(212, 175, 55), // 79
-    ]
+    
+    colors += Array(repeating: .zero, count: 50 - 36 - 1)
+    colors.append(SIMD3(102, 128, 128))
+    
+    // Use the exact definition for the color "metallic gold". This is a
+    // physically correct simulation of the pure metal's color.
+    // https://en.wikipedia.org/wiki/Gold_(color)
+    colors += Array(repeating: .zero, count: 79 - 50 - 1)
+    colors.append(SIMD3(212, 175, 55))
+    
+    colors += Array(repeating: .zero, count: 82 - 79 - 1)
+    colors.append(SIMD3(87, 89, 97))
+    
+    radii = radii.map { $0 * 1e-10 }
     colors = colors.map { $0 / 255 }
     
     self.available = .init(repeating: false, count: 127)
     for i in 1...36 {
       self.available[i] = true
     }
+    self.available[50] = true
     self.available[79] = true
+    self.available[82] = true
     self.styles = []
     
   #if arch(x86_64)

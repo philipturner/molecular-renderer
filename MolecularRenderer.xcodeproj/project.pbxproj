@@ -243,6 +243,7 @@
 		98C758062B5ABF16000B16B2 /* LogicRod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicRod.swift; sourceTree = "<group>"; };
 		98C758082B5C3B7C000B16B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = QuantumSimulationSpeed.png; sourceTree = "<group>"; };
+		98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_AtomColors.jpg; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -1056,6 +1057,7 @@
 		98FE60F12B3F716E00D73E37 /* DMSTooltips */ = {
 			isa = PBXGroup;
 			children = (
+				98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */,
 				98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */,
 				98C758082B5C3B7C000B16B2 /* README.md */,
 			);
