@@ -114,5 +114,4 @@ struct Base64Encoder {
     rawMemory.deallocate()
     return string
   }
-
 }

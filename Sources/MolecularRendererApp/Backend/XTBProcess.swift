@@ -21,7 +21,6 @@ enum XTBError: Error {
 class XTBProcess {
   var workspace: URL
   var anchors: [Int] = []
-  var atoms: [HDL.Entity] = []
   var standardError: Bool = true
   var standardOutput: Bool = true
   
@@ -67,7 +66,7 @@ extension XTBProcess {
     if anchors.count > 0 {
       var anchorList: [String] = []
       for anchor in anchors {
-        guard anchor >= 0, anchor < atoms.count else {
+        guard anchor >= 0 else {
           fatalError("Invalid anchor: \(anchor)")
         }
         
@@ -102,6 +101,8 @@ extension XTBProcess {
     15: "p",
     16: "s",
     32: "ge",
+    50: "sn",
+    82: "pb"
   ]
   
   enum Encoding {

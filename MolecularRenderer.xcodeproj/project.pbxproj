@@ -23,6 +23,7 @@
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
 		98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C552A6B512900A4D7BB /* MRAtomInterface.swift */; };
+		984160012B5D9AAC00A559AF /* Tooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984160002B5D9AAC00A559AF /* Tooltip.swift */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
@@ -129,6 +130,7 @@
 		98325C5F2A6CA2A300A4D7BB /* Nanosystems_Chapter9_Figure6.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter9_Figure6.swift; sourceTree = "<group>"; };
 		98325C612A6D76E500A4D7BB /* Serializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Serializer.swift; sourceTree = "<group>"; };
 		98325C712A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter9_Figure3.swift; sourceTree = "<group>"; };
+		984160002B5D9AAC00A559AF /* Tooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltip.swift; sourceTree = "<group>"; };
 		984F72182A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter9_Figure8.swift; sourceTree = "<group>"; };
 		98518AE22A74A6BD00CAD919 /* Nanosystems_Chapter4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter4.swift; sourceTree = "<group>"; };
 		98518AE42A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter4_Figure3.swift; sourceTree = "<group>"; };
@@ -560,6 +562,7 @@
 				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
 				98C758042B5ABF10000B16B2 /* LogicHousing.swift */,
 				98C758062B5ABF16000B16B2 /* LogicRod.swift */,
+				984160002B5D9AAC00A559AF /* Tooltip.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -1202,6 +1205,7 @@
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98C758052B5ABF10000B16B2 /* LogicHousing.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
+				984160012B5D9AAC00A559AF /* Tooltip.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
