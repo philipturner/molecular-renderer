@@ -221,5 +221,35 @@ func createGeometry() -> [Entity] {
     topology.atoms[i].position.z -= 0.5
   }
   
-  return topology.atoms
+  // Does xTB work okay with carbenes? Do I need to set UHF to 2 for them?
+  var atoms: [Entity] = []
+  atoms.append(Entity(position: SIMD3(0, 0, 0), type: .atom(.carbon)))
+  atoms.append(Entity(position: SIMD3(0, 0.122, 0), type: .atom(.carbon)))
+  for i in 0..<2 {
+    let direction: SIMD3<Float> = [0, -1, 0]
+    let angle = (i == 0) ? Float.pi / 3 : -Float.pi / 3
+    let rotation = Quaternion<Float>(angle: angle, axis: [0, 0, 1])
+    let position = rotation.act(on: direction) * 1.1010 / 10
+    let hydrogen = Entity(position: position, type: .atom(.hydrogen))
+    atoms.append(hydrogen)
+  }
+  
+  let process = XTBProcess(path: "/Users/philipturner/Documents/OpenMM/xtb/cpu0")
+  process.writeFile(name: "xtb.inp", process.encodeSettings())
+  process.writeFile(name: "coord", try! process.encodeAtoms(atoms))
+  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt", "--uhf", "0"])
+  var optimized1 = try! process.decodeAtoms(process.readFile(name: "xtbopt.coord"))
+  for i in optimized1.indices {
+    optimized1[i].position.x += -0.2
+  }
+  
+  process.run(arguments: ["coord", "--input", "xtb.inp", "--opt", "--uhf", "2"])
+  var optimized2 = try! process.decodeAtoms(process.readFile(name: "xtbopt.coord"))
+  for i in optimized2.indices {
+    optimized2[i].position.x += 0.2
+  }
+  
+
+  
+  return optimized1 + optimized2
 }

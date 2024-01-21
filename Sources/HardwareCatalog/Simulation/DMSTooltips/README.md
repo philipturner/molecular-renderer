@@ -100,3 +100,25 @@ Here are the compiled structures for each DCB6-Ge stationary point. The structur
 ![DMS Tooltips JNN Dimer Tool Stationary Points](./DMSTooltips_JNNDimerTool_StationaryPoints.jpg)
 
 </div>
+
+To run the tooltips through xTB, we had to know how many unpaired electrons existed in the carbenic rearrangements. A C<sub>2</sub>H<sub>2</sub> molecule was created where both hydrogens were attached to the first carbon. They formed 120° angles with each other and the second carbon.
+
+The parameter `--uhf` was set to 0, meaning no unpaired electrons. Next, `--uhf` was set to 2. Each configuration was minimized and the final singlepoint was analyzed. The first one is lower in total energy by -0.091 Hartree (-2.47 eV). Therefore, it is the most stable structure. Tooltip calculations will set the `--uhf` flag to 0.
+
+```
+xtb coord --input xtb.inp --opt --uhf 0
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -5.120053767132 Eh   |
+          | GRADIENT NORM               0.000304950057 Eh/α |
+          | HOMO-LUMO GAP               2.494435088648 eV   |
+           -------------------------------------------------
+
+xtb coord --input xtb.inp --opt --uhf 2
+
+           -------------------------------------------------
+          | TOTAL ENERGY               -5.029428635938 Eh   |
+          | GRADIENT NORM               0.000447854607 Eh/α |
+          | HOMO-LUMO GAP               2.781488566362 eV   |
+           -------------------------------------------------
+```
