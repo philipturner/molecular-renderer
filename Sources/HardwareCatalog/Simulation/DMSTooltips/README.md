@@ -441,9 +441,9 @@ The discharged state is the only state waiting to be analyzed with GFN-FF precon
 
 There were some issues with the lead tooltip. GFN-FF would make the tin and lead atoms fly out of the structure. GFN2-xTB outputted NaNs and failed to converge for `.charged` lead tooltips. However, it did converge for `.discharged`. The optimized discharged tooltip was used as a starting point for other structures. It was serialized as Swift source code and injected into the compilation process. I also had to constrain the carbon atoms in the lead tooltip, so they never moved during minimization. This was clearly not kinetically stable, but something had to be simulated to match the research paper.
 
-The issue with atoms flying also occurred for germanium and silicon. It made the GFN2-xTB minimization produce something where the Ge atoms were detached from the surrounding structure. The source code was refactored before this problem started occurring; it is unclear why the simulations are failing now. We unfortunately have to abort the idea of accelerating minimizations with GFN-FF.
+The issue with atoms flying also occurred for silicon and germanium. It made the GFN2-xTB minimization produce something where the Ge atoms were detached from the surrounding structure. The source code was refactored before this problem started occurring; it is unclear why the simulations are failing now. We unfortunately have to abort the idea of accelerating minimizations with GFN-FF.
 
-GFN2-xTB is also taking longer to execute and producing slightly different numbers for the HOMO-LUMO gap of DCB6-Ge. I have no idea why this is happening.
+GFN2-xTB is also taking longer to execute. It produces slightly different numbers for the HOMO-LUMO gap of DCB6-Ge. I have no idea why this is happening.
 
 ```
            -------------------------------------------------
