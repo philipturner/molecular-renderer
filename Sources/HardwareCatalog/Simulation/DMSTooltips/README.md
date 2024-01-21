@@ -283,7 +283,9 @@ xtb coord --input xtb.inp --opt --uhf 4
 
 xTB has a slightly different energy gap between the charged and carbenic rearrangement states. The difference is 1.16x from the Gaussian result. Note that different calculations within the same DFT framework (GOSPEL) reported band gaps that differed by ~1.13x.
 
-Gaussian and xTB disagreed much more about the gap between charged and discharged states. Their energy gaps differ by a factor of ~2. However, they both have the correct sign. They are both greater than the 150 zJ gap required for room-temperature operation in _Nanosystems_.
+Gaussian and xTB disagreed much more about the gap between charged and discharged states. Their energy gaps differed by a factor of ~2. However, both energies have the correct sign. xTB also stays above the 150 zJ gap required for room-temperature operation in _Nanosystems_.
+
+<div align="center">
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy |
 | :---------------------- | --------------: |  ---------: |
@@ -297,8 +299,10 @@ Gaussian and xTB disagreed much more about the gap between charged and discharge
 
 | Energy Difference       | Gaussian Energy |  xTB Energy |
 | :---------------------- | --------------: |  ---------: |
-| Charged -> Carbenenic   |          138 zJ |      119 zJ |
-| Charged -> Discharged   |         1250 zJ |      548 zJ |
+| Charged -> Carbenenic   |         +138 zJ |     +119 zJ |
+| Charged -> Discharged   |        +1250 zJ |     +548 zJ |
+
+</div>
 
 ## GFN-FF Failure Mode
 
