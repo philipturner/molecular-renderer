@@ -466,10 +466,45 @@ The raw data from the experiment is located at https://gist.github.com/philiptur
 
 ![DMS Tooltips Production Simulation](./DMSTooltips_ProductionSimulation2.jpg)
 
+| Tooltip   | Charged      | Carbenic     | Discharged   |
+| :-------- | -----------: | -----------: | -----------: |
+| DCB6-C    | \-1615.40 eV | \-1615.15 eV | \-1499.12 eV |
+| DCB6-Si   | \-1591.33 eV | \-1590.68 eV | \-1476.64 eV |
+| DCB6-SiGe | \-1596.54 eV | \-1595.82 eV | \-1482.49 eV |
+| DCB6-Ge   | \-1601.65 eV | \-1600.91 eV | \-1488.14 eV |
+| DCB6-Sn   | \-1608.74 eV | \-1608.12 eV | \-1497.02 eV |
+| DCB6-Pb   | \-1616.94 eV | \-1617.50 eV | \-1506.35 eV |
+
 </div>
 
 <div align="center">
 
 ![DMS Tooltips DCB6-Pb Simulation Failure](./DMSTooltips_DCB6Pb_SimulationFailure.jpg)
 
+| Compiled Pb-C Bond Length | Energy       |
+| :-----------------------: | -----------: |
+| 2.628 Å                   | \-1616.94 eV |
+| 2.620 Å                   | \-0.407 meV  |
+| 2.610 Å                   | \-0.765 meV  |
+| 2.600 Å                   | \-0.954 meV  |
+| 2.597 Å                   | \-0.975 meV  |
+| 2.596 Å                   | \-0.980 meV  |
+| 2.595 Å                   | \-0.981 meV  |
+| 2.594 Å                   | \-0.981 meV  |
+| 2.593 Å                   | \-0.979 meV  |
+| 2.590 Å                   | \-0.963 meV  |
+| 2.585 Å                   | \-0.893 meV  |
+| 2.580 Å                   | \-0.783 meV  |
+| 2.570 Å                   | \-0.404 meV  |
+| 2.550 Å                   | +1.038 meV   |
+| 2.500 Å                   | +8.903 meV   |
+
+| Structure           | Energy       |
+| :------------------ | -----------: |
+| Failure Minimum     | \-1617.67 eV |
+| Non-Failure Minimum | \-1616.94 eV |
+| diff                |      0.73 eV |
+
 </div>
+
+## Comparison to Literature
