@@ -24,6 +24,8 @@
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
 		98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98325C552A6B512900A4D7BB /* MRAtomInterface.swift */; };
 		984160012B5D9AAC00A559AF /* Tooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984160002B5D9AAC00A559AF /* Tooltip.swift */; };
+		984160042B5DF25A00A559AF /* DMSTooltips_DCB6Pb_SimulationFailure.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 984160022B5DF25A00A559AF /* DMSTooltips_DCB6Pb_SimulationFailure.jpg */; };
+		984160052B5DF25A00A559AF /* DMSTooltips_ProductionSimulation.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 984160032B5DF25A00A559AF /* DMSTooltips_ProductionSimulation.jpg */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
 		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
@@ -131,6 +133,8 @@
 		98325C612A6D76E500A4D7BB /* Serializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Serializer.swift; sourceTree = "<group>"; };
 		98325C712A6DC84400A4D7BB /* Nanosystems_Chapter9_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter9_Figure3.swift; sourceTree = "<group>"; };
 		984160002B5D9AAC00A559AF /* Tooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tooltip.swift; sourceTree = "<group>"; };
+		984160022B5DF25A00A559AF /* DMSTooltips_DCB6Pb_SimulationFailure.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_DCB6Pb_SimulationFailure.jpg; sourceTree = "<group>"; };
+		984160032B5DF25A00A559AF /* DMSTooltips_ProductionSimulation.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_ProductionSimulation.jpg; sourceTree = "<group>"; };
 		984F72182A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter9_Figure8.swift; sourceTree = "<group>"; };
 		98518AE22A74A6BD00CAD919 /* Nanosystems_Chapter4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter4.swift; sourceTree = "<group>"; };
 		98518AE42A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter4_Figure3.swift; sourceTree = "<group>"; };
@@ -1064,9 +1068,11 @@
 			isa = PBXGroup;
 			children = (
 				98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */,
+				984160022B5DF25A00A559AF /* DMSTooltips_DCB6Pb_SimulationFailure.jpg */,
 				98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */,
 				98ED5E9E2B5CE155005B2D6C /* DMSTooltips_JNNDimerTool_StationaryPoints.jpg */,
 				98ED5E9D2B5CE082005B2D6C /* DMSTooltips_MolecularRenderer_StationaryPoints.jpg */,
+				984160032B5DF25A00A559AF /* DMSTooltips_ProductionSimulation.jpg */,
 				98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */,
 				98C758082B5C3B7C000B16B2 /* README.md */,
 			);
@@ -1177,11 +1183,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				984160052B5DF25A00A559AF /* DMSTooltips_ProductionSimulation.jpg in Resources */,
 				987507B72B4A6A7C0031A15E /* rigid_body_3yj.jpg in Resources */,
 				987507B62B4A6A7C0031A15E /* rigid_body_1yj.jpg in Resources */,
 				987507BE2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg in Resources */,
 				987507AE2B4A61330031A15E /* molecular_dynamics.jpg in Resources */,
 				98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */,
+				984160042B5DF25A00A559AF /* DMSTooltips_DCB6Pb_SimulationFailure.jpg in Resources */,
 				987507B42B4A6A7C0031A15E /* rigid_body_100yj.jpg in Resources */,
 				987507BF2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg in Resources */,
 				98F638B42A34A3A800F51E95 /* MolecularRendererGPU.metallib in Resources */,

@@ -462,3 +462,6 @@ GFN2-xTB is also taking longer to execute. It produces slightly different number
 
 The raw data from the experiment is located at https://gist.github.com/philipturner/b6d13864b0129f09c2e4144364117a8e.
 
+![DMS Tooltips Production Simulation](./DMSTooltips_ProductionSimulation.jpg)
+
+![DMS Tooltips DCB6-Pb Simulation Failure](./DMSTooltips_DCB6Pb_SimulationFailure.jpg)
