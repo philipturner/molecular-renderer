@@ -464,12 +464,12 @@ The raw data from the experiment is located at https://gist.github.com/philiptur
 
 <div align="center">
 
-![DMS Tooltips Production Simulation](./DMSTooltips_ProductionSimulation.jpg)
+![DMS Tooltips Production Simulation](./DMSTooltips_ProductionSimulation2.jpg)
 
 </div>
 
 <div align="center">
 
-![DMS Tooltips DCB6-Pb Simulation Failure](./DMSTooltips_DCB6Pb_SimulationFailure2.jpg)
+![DMS Tooltips DCB6-Pb Simulation Failure](./DMSTooltips_DCB6Pb_SimulationFailure.jpg)
 
 </div>
