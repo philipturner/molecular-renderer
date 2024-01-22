@@ -284,7 +284,7 @@ struct Tooltip {
         bondLength += 0.061
       }
       if centerAtom.atomicNumber == 82 {
-        bondLength = 0.2628
+        bondLength = 0.2595
       }
       
       let deltaX = min(bondLength, position.x - centerAtom.position.x)
