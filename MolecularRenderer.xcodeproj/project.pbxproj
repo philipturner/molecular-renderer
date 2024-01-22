@@ -138,6 +138,9 @@
 		984160082B5E8DF300A559AF /* DMSTooltips_Tooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMSTooltips_Tooltip.swift; sourceTree = "<group>"; };
 		984160092B5E8E0100A559AF /* DMSTooltips_xTB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMSTooltips_xTB.swift; sourceTree = "<group>"; };
 		9841600A2B5E937B00A559AF /* DMSTooltips_TooltipScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMSTooltips_TooltipScene.swift; sourceTree = "<group>"; };
+		9841600E2B5E9D9E00A559AF /* GOSPEL_run_silicon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GOSPEL_run_silicon.swift; sourceTree = "<group>"; };
+		9841600F2B5EA21700A559AF /* GOSPEL_run_diamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GOSPEL_run_diamond.swift; sourceTree = "<group>"; };
+		984160112B5EA5D700A559AF /* GOSPEL_tucker_diamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GOSPEL_tucker_diamond.swift; sourceTree = "<group>"; };
 		984F72182A6E130A00C15D4A /* Nanosystems_Chapter9_Figure8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter9_Figure8.swift; sourceTree = "<group>"; };
 		98518AE22A74A6BD00CAD919 /* Nanosystems_Chapter4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter4.swift; sourceTree = "<group>"; };
 		98518AE42A74A6EC00CAD919 /* Nanosystems_Chapter4_Figure3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter4_Figure3.swift; sourceTree = "<group>"; };
@@ -482,6 +485,16 @@
 			path = "Chapter 9";
 			sourceTree = "<group>";
 		};
+		9841600D2B5E9D8700A559AF /* GOSPELTests */ = {
+			isa = PBXGroup;
+			children = (
+				9841600F2B5EA21700A559AF /* GOSPEL_run_diamond.swift */,
+				9841600E2B5E9D9E00A559AF /* GOSPEL_run_silicon.swift */,
+				984160112B5EA5D700A559AF /* GOSPEL_tucker_diamond.swift */,
+			);
+			path = GOSPELTests;
+			sourceTree = "<group>";
+		};
 		98518AE12A74A6B200CAD919 /* Chapter 4 */ = {
 			isa = PBXGroup;
 			children = (
@@ -632,6 +645,7 @@
 				98FE60F12B3F716E00D73E37 /* DMSTooltips */,
 				98C757F82B57721A000B16B2 /* ElasticModuli */,
 				98B25A2E2B393A6300081A61 /* Experiments */,
+				9841600D2B5E9D8700A559AF /* GOSPELTests */,
 				981360DD2B4883C40007D40F /* NCFMechanism */,
 				98B25A252B3931F200081A61 /* OpenMMTutorials */,
 				98E23B212B4C823700B5A7D5 /* README.md */,
