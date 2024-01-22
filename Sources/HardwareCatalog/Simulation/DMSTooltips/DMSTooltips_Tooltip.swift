@@ -1,8 +1,8 @@
 //
-//  Tooltip.swift
-//  MolecularRendererApp
+//  DMSTooltips_Tooltip.swift
+//  MolecularRenderer
 //
-//  Created by Philip Turner on 1/21/24.
+//  Created by Philip Turner on 1/22/24.
 //
 
 import Foundation

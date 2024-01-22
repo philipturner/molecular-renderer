@@ -458,7 +458,7 @@ GFN2-xTB is also taking longer to execute. It produces slightly different number
  * ratio c/w:     4.800 speedup
 ```
 
-## Production Simulation
+## Semiempirical Simulation
 
 The raw data from the experiment is located at https://gist.github.com/philipturner/b6d13864b0129f09c2e4144364117a8e.
 
@@ -476,6 +476,10 @@ The raw data from the experiment is located at https://gist.github.com/philiptur
 | DCB6-Pb   | \-1616.94 eV | \-1617.50 eV | \-1506.35 eV |
 
 </div>
+
+In the initial experimental results, the `.charged` lead tooltip had a structure resembling the carbenic rearrangement. To reproduce the research paper, I performed a manual energy minimization. The carbon dimer was held in the charged state. The bond length between the lead and acetylene carbons was varied. 2.595 Å was ~1 meV lower than the original 2.628 Å.
+
+The total atomization energy was -1616.94 eV, higher than both the failure state (-1617.67 eV) and the carbenic rearrangement (-1617.50 eV). This does not reproduce the research paper's energy gap with the carbenic rearrangement. The gap has the opposite sign.
 
 <div align="center">
 
@@ -507,106 +511,100 @@ The raw data from the experiment is located at https://gist.github.com/philiptur
 
 </div>
 
+## DFT Simulation
+
+
+
 ## Comparison to Literature
+
+### Summary
+
+| Charged -> Carbenic     | Gaussian Energy |  xTB Energy | DFT Energy |
+| :---------------------- | --------------: |  ---------: | ---------: |
+| DCB6-C                  |        +0.37 eV |    +0.25 eV | |
+| DCB6-Si                 |        +0.96 eV |    +0.65 eV | |
+| DCB6-SiGe               |             n/a |    +0.72 eV | |
+| DCB6-Ge                 |        +0.86 eV |    +0.74 eV | |
+| DCB6-Sn                 |        +0.74 eV |    +0.62 eV | |
+| DCB6-Pb                 |        +0.65 eV |    -0.56 eV | |
+
+| Charged -> Discharged   | Gaussian Energy |  xTB Energy | DFT Energy |
+| :---------------------- | --------------: |  ---------: | ---------: |
+| DCB6-C                  |        +8.59 eV |    +6.19 eV | |
+| DCB6-Si                 |        +8.79 eV |    +4.60 eV | |
+| DCB6-SiGe               |        +8.30 eV |    +3.96 eV | |
+| DCB6-Ge                 |        +7.80 eV |    +3.42 eV | |
+| DCB6-Sn                 |        +7.25 eV |    +1.63 eV | |
+| DCB6-Pb                 |        +6.15 eV |    +0.50 eV | |
 
 ### DCB6-C
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy | DFT Energy |
 | :---------------------- | --------------: |  ---------: | ---------: |
-| DCB6-C                  |    -23197.52 eV | -XXXX.XX eV | |
-| Carbene rearrangement   |    -23197.15 eV | -XXXX.XX eV | |
-| diff                    |         0.37 eV |     X.XX eV | |
-| Discharged DCB6-C       |    -21123.60 eV | -XXXX.XX eV | |
-| CC dimer                |     -2065.32 eV |  -XXX.XX eV | |
-| CC + discharged DCB6-C  |    -23188.93 eV | -XXXX.XX eV | |
-| Minus DCB6-C            |         8.59 eV |     X.XX eV | |
-
-| Energy Difference       | Gaussian Energy |  xTB Energy | DFT Energy |
-| :---------------------- | --------------: |  ---------: | ---------: |
-| Charged -> Carbenic     |         +XXX zJ |     +XXX zJ | |
-| Charged -> Discharged   |        +XXXX zJ |     +XXX zJ | |
+| DCB6-C                  |    -23197.52 eV | -1615.40 eV | |
+| Carbene rearrangement   |    -23197.15 eV | -1615.15 eV | |
+| diff                    |         0.37 eV |     0.25 eV | |
+| Discharged DCB6-C       |    -21123.60 eV | -1499.12 eV | |
+| CC dimer                |     -2065.32 eV |  -110.09 eV | |
+| CC + discharged DCB6-C  |    -23188.93 eV | -1609.21 eV | |
+| Minus DCB6-C            |         8.59 eV |     6.19 eV | |
 
 ### DCB6-Si
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy | DFT Energy |
 | :---------------------- | --------------: |  ---------: | ---------: |
-| DCB6-Si                 |    -36882.22 eV | -XXXX.XX eV | |
-| Carbene rearrangement   |    -36881.26 eV | -XXXX.XX eV | |
-| diff                    |         0.96 eV |     X.XX eV | |
-| Discharged DCB6-Si      |    -34808.11 eV | -XXXX.XX eV | |
-| CC dimer                |     -2065.32 eV |  -XXX.XX eV | |
-| CC + discharged DCB6-Si |    -36873.43 eV | -XXXX.XX eV | |
-| Minus DCB6-Si           |         8.79 eV |     X.XX eV | |
-
-| Energy Difference       | Gaussian Energy |  xTB Energy | DFT Energy |
-| :---------------------- | --------------: |  ---------: | ---------: |
-| Charged -> Carbenic     |         +XXX zJ |     +XXX zJ | |
-| Charged -> Discharged   |        +XXXX zJ |     +XXX zJ | |
+| DCB6-Si                 |    -36882.22 eV | -1591.33 eV | |
+| Carbene rearrangement   |    -36881.26 eV | -1590.68 eV | |
+| diff                    |         0.96 eV |     0.65 eV | |
+| Discharged DCB6-Si      |    -34808.11 eV | -1476.64 eV | |
+| CC dimer                |     -2065.32 eV |  -110.09 eV | |
+| CC + discharged DCB6-Si |    -36873.43 eV | -1586.73 eV | |
+| Minus DCB6-Si           |         8.79 eV |     4.60 eV | |
 
 ### DCB6-SiGe
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy | DFT Energy |
 | :---------------------- | --------------: |  ---------: | ---------: |
-| DCB6-SiGe               |    -85522.11 eV | -XXXX.XX eV | |
-| Carbene rearrangement   |             n/a | -XXXX.XX eV | |
-| diff                    |             n/a |     X.XX eV | |
-| Discharged DCB6-SiGe    |    -83448.49 eV | -XXXX.XX eV | |
-| CC dimer                |     -2065.32 eV |  -XXX.XX eV | |
-| CC + discharged DCB6-SiGe |  -85513.81 eV | -XXXX.XX eV | |
-| Minus DCB6-SiGe         |         8.30 eV |     X.XX eV | |
-
-| Energy Difference       | Gaussian Energy |  xTB Energy | DFT Energy |
-| :---------------------- | --------------: |  ---------: | ---------: |
-| Charged -> Carbenic     |         +XXX zJ |     +XXX zJ | |
-| Charged -> Discharged   |        +XXXX zJ |     +XXX zJ | |
+| DCB6-SiGe               |    -85522.11 eV | -1596.54 eV | |
+| Carbene rearrangement   |             n/a | -1595.82 eV | |
+| diff                    |             n/a |     0.72 eV | |
+| Discharged DCB6-SiGe    |    -83448.49 eV | -1482.49 eV | |
+| CC dimer                |     -2065.32 eV |  -110.09 eV | |
+| CC + discharged DCB6-SiGe |  -85513.81 eV | -1592.58 eV | |
+| Minus DCB6-SiGe         |         8.30 eV |     3.96 eV | |
 
 ### DCB6-Ge
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy | DFT Energy |
 | :---------------------- | --------------: |  ---------: | ---------: |
-| DCB6-Ge                 |   -134161.98 eV | -XXXX.XX eV | |
-| Carbene rearrangement   |   -134161.12 eV | -XXXX.XX eV | |
-| diff                    |         0.86 eV |     X.XX eV | |
-| Discharged DCB6-Ge      |   -132088.86 eV | -XXXX.XX eV | |
-| CC dimer                |     -2065.32 eV |  -XXX.XX eV | |
-| CC + discharged DCB6-Ge |   -134154.18 eV | -XXXX.XX eV | |
-| Minus DCB6-Ge           |         7.80 eV |     X.XX eV | |
-
-| Energy Difference       | Gaussian Energy |  xTB Energy | DFT Energy |
-| :---------------------- | --------------: |  ---------: | ---------: |
-| Charged -> Carbenic     |         +138 zJ |     +XXX zJ | |
-| Charged -> Discharged   |        +1250 zJ |     +XXX zJ | |
+| DCB6-Ge                 |   -134161.98 eV | -1601.65 eV | |
+| Carbene rearrangement   |   -134161.12 eV | -1600.91 eV | |
+| diff                    |         0.86 eV |     0.74 eV | |
+| Discharged DCB6-Ge      |   -132088.86 eV | -1488.14 eV | |
+| CC dimer                |     -2065.32 eV |  -110.09 eV | |
+| CC + discharged DCB6-Ge |   -134154.18 eV | -1598.23 eV | |
+| Minus DCB6-Ge           |         7.80 eV |     3.42 eV | |
 
 ### DCB6-Sn
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy | DFT Energy |
 | :---------------------- | --------------: |  ---------: | ---------: |
-| DCB6-Sn                 |    -21298.01 eV | -XXXX.XX eV | |
-| Carbene rearrangement   |    -21297.27 eV | -XXXX.XX eV | |
-| diff                    |         0.74 eV |     X.XX eV | |
-| Discharged DCB6-Sn      |    -19226.27 eV | -XXXX.XX eV | |
-| CC dimer                |     -2064.49 eV |  -XXX.XX eV | |
-| CC + discharged DCB6-Sn |    -21290.76 eV | -XXXX.XX eV | |
-| Minus DCB6-Sn           |         7.25 eV |     X.XX eV | |
-
-| Energy Difference       | Gaussian Energy |  xTB Energy | DFT Energy |
-| :---------------------- | --------------: |  ---------: | ---------: |
-| Charged -> Carbenic     |         +XXX zJ |     +XXX zJ | |
-| Charged -> Discharged   |        +XXXX zJ |     +XXX zJ | |
+| DCB6-Sn                 |    -21298.01 eV | -1608.74 eV | |
+| Carbene rearrangement   |    -21297.27 eV | -1608.12 eV | |
+| diff                    |         0.74 eV |     0.62 eV | |
+| Discharged DCB6-Sn      |    -19226.27 eV | -1497.02 eV | |
+| CC dimer                |     -2064.49 eV |  -110.09 eV | |
+| CC + discharged DCB6-Sn |    -21290.76 eV | -1607.11 eV | |
+| Minus DCB6-Sn           |         7.25 eV |     1.63 eV | |
 
 ### DCB6-Pb
 
 | Tool tip configuration  | Gaussian Energy |  xTB Energy | DFT Energy |
 | :---------------------- | --------------: |  ---------: | ---------: |
-| DCB6-Pb                 |    -21301.01 eV | -XXXX.XX eV | |
-| Carbene rearrangement   |    -21300.36 eV | -XXXX.XX eV | |
-| diff                    |         0.65 eV |     X.XX eV | |
-| Discharged DCB6-Pb      |    -19230.37 eV | -XXXX.XX eV | |
-| CC dimer                |     -2064.49 eV |  -XXX.XX eV | |
-| CC + discharged DCB6-Pb |    -21294.86 eV | -XXXX.XX eV | |
-| Minus DCB6-Pb           |         6.15 eV |     X.XX eV | |
-
-| Energy Difference       | Gaussian Energy |  xTB Energy | DFT Energy |
-| :---------------------- | --------------: |  ---------: | ---------: |
-| Charged -> Carbenic     |         +XXX zJ |     +XXX zJ | |
-| Charged -> Discharged   |        +XXXX zJ |     +XXX zJ | |
+| DCB6-Pb                 |    -21301.01 eV | -1616.94 eV | |
+| Carbene rearrangement   |    -21300.36 eV | -1617.50 eV | |
+| diff                    |         0.65 eV |    -0.56 eV | |
+| Discharged DCB6-Pb      |    -19230.37 eV | -1506.35 eV | |
+| CC dimer                |     -2064.49 eV |  -110.09 eV | |
+| CC + discharged DCB6-Pb |    -21294.86 eV | -1616.44 eV | |
+| Minus DCB6-Pb           |         6.15 eV |     0.50 eV | |
