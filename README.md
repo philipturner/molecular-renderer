@@ -11,6 +11,7 @@ Projects:
 - [HDL](https://github.com/philipturner/HDL) - domain-specific language and geometry compiler (8,000 LoC)
 - [MM4](https://github.com/philipturner/MM4) - molecular mechanics simulator (13,000 LoC)
 - [Molecular Renderer](./Sources/MolecularRenderer/README.md) - programmable renderer with real-time ray tracing (3,000 LoC)
+- [Rod Logic](https://github.com/philipturner/rod-logic) - exploratory engineering project about compact, efficient, and manufacturable computing (0 LoC)
 
 ## Overview
 
