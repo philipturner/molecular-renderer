@@ -51,57 +51,63 @@ import Numerics
  }
  */
 
+struct LogicRodDescriptor {
+  /// The span of each intendation, or zone where knobs don't exist.
+  ///
+  /// Units are lonsdaleite unit cells.
+  ///
+  /// This is the gap between two knobs or nearby plateaus on the logic rod. It
+  /// is larger than the span of the atomic layer at the bottom of the
+  /// indentation.
+  var indentations: [Range<Int>]?
+  
+  /// The length (in lonsdaleite unit cells).
+  var length: Int?
+}
+
 // A fundmental component of a computer.
-// - May need customizable length or customizable sequence of knobs.
+// - May need customizable length or customizable sequence of knobs. ✅
 // - Should be extensible to future variants with vdW connectors to a clock.
+//   - Future member of 'LogicRodDescriptor'.
 struct LogicRod {
   var topology = Topology()
   
-  init(length: Int) {
-    createRod(length: length)
+  init(descriptor: LogicRodDescriptor) {
+    createRod(descriptor: descriptor)
     passivateSurfaces()
   }
   
-  // Find a static rod thickness that's optimal for the entire system. Then,
-  // make the rod length variable.
-  mutating func createRod(length: Int) {
+  mutating func createRod(descriptor: LogicRodDescriptor) {
+    guard let indentations = descriptor.indentations,
+          let length = descriptor.length else {
+      fatalError("Logic rod not fully specified.")
+    }
+    
     let lattice = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { Float(length) * h + 2 * h2k + 4 * l }
       Material { .elemental(.carbon) }
-      
-      func cutGroove() {
-        Concave {
-          Convex {
-            Plane { h }
-          }
-          Convex {
-            Origin { 1.5 * h2k }
-            Plane { h2k }
-          }
-          Convex {
-            Origin { 6 * h }
-            Plane { -h }
-          }
-        }
-      }
       
       Volume {
         Convex {
           Origin { 1.9 * l }
           Plane { l }
         }
-        Convex {
-          Origin { -4 * h }
-          cutGroove()
-        }
-        Convex {
-          Origin { 7 * h }
-          cutGroove()
-        }
-        Convex {
-          Origin { 18 * h }
-          cutGroove()
+        for range in indentations {
+          Concave {
+            Convex {
+              Origin { Float(range.startIndex) * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.5 * h2k }
+              Plane { h2k }
+            }
+            Convex {
+              Origin { Float(range.endIndex) * h }
+              Plane { -h }
+            }
+          }
         }
         Replace { .empty }
       }
