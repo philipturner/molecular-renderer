@@ -39,4 +39,4 @@ For reference, the section headings of that chapter are enumerated:
 
 ## Usage
 
-When using the Molecular Renderer app, you can add source code files to the Xcode target. Go to the banner on the right (<b>Identity and Type</b>) > <b>Target Membership</b> > <b>MolecularRendererApp</b> > check the box. Not every piece of code will compile. Some of the projects are actively maintained as their dependencies receive breaking API changes. Most should compile with minor modifications.
+When using the Molecular Renderer app, you can add source code files to the Xcode target. Go to the banner on the right (<b>Identity and Type</b>) > <b>Target Membership</b> > <b>MolecularRendererApp</b> > check the box. Not every code sample compiles, but most should with minor modifications.

@@ -1,7 +1,5 @@
 # Non-Carbon Elements
 
-> TODO: Upload this to the internet archive.
-
 This file validates the accuracy of MM4 when handling elements besides carbon and hydrogen. It reports partial charges, bond lengths, and bond angles of notable functional groups. The results are compared to xTB.
 
 Cross-terms containing torsions are deactivated. It is unclear to what degree they're required for first-row electronegative elements. Therefore, this analysis has avoided N/O/F so far.
