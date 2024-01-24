@@ -59,7 +59,7 @@ struct LogicRodDescriptor {
   /// This is the gap between two knobs or nearby plateaus on the logic rod. It
   /// is larger than the span of the atomic layer at the bottom of the
   /// indentation.
-  var indentations: [Range<Int>]?
+  var indentations: [Range<Int>] = []
   
   /// The length (in lonsdaleite unit cells).
   var length: Int?
@@ -78,8 +78,7 @@ struct LogicRod {
   }
   
   mutating func createRod(descriptor: LogicRodDescriptor) {
-    guard let indentations = descriptor.indentations,
-          let length = descriptor.length else {
+    guard let length = descriptor.length else {
       fatalError("Logic rod not fully specified.")
     }
     
@@ -93,7 +92,7 @@ struct LogicRod {
           Origin { 1.9 * l }
           Plane { l }
         }
-        for range in indentations {
+        for range in descriptor.indentations {
           Concave {
             Convex {
               Origin { Float(range.startIndex) * h }
