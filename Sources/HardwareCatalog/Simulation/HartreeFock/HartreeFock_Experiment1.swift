@@ -357,4 +357,3 @@ func createAtoms(orbital: Orbital) -> [Entity] {
   
   return output
 }
-
