@@ -281,6 +281,7 @@
 		98E2C61C2AC27AF5002612CC /* DiamondRope_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DiamondRope_Image1.jpg; sourceTree = "<group>"; };
 		98E2C6212AC27CD7002612CC /* RhombicDodecahedron_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image1.jpg; sourceTree = "<group>"; };
 		98E2C6222AC27CD7002612CC /* RhombicDodecahedron_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = RhombicDodecahedron_Image2.jpg; sourceTree = "<group>"; };
+		98E818BC2B657F4A00A9FA06 /* HartreeFock_Experiment1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HartreeFock_Experiment1.swift; sourceTree = "<group>"; };
 		98EA89EA2B40759700DC5C7E /* XTBProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XTBProcess.swift; sourceTree = "<group>"; };
 		98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = CBNTripod.jpg; sourceTree = "<group>"; };
 		98EA89F22B40E33A00DC5C7E /* CBNTripod+Scratch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CBNTripod+Scratch.swift"; sourceTree = "<group>"; };
@@ -624,6 +625,7 @@
 				98FE60F12B3F716E00D73E37 /* DMSTooltips */,
 				98C757F82B57721A000B16B2 /* ElasticModuli */,
 				98B25A2E2B393A6300081A61 /* Experiments */,
+				98E818BB2B657F3100A9FA06 /* HartreeFock */,
 				981360DD2B4883C40007D40F /* NCFMechanism */,
 				98B25A252B3931F200081A61 /* OpenMMTutorials */,
 				98E23B212B4C823700B5A7D5 /* README.md */,
@@ -814,6 +816,14 @@
 				98E2C6152AC24D68002612CC /* README.md */,
 			);
 			path = RhombicDodecahedron;
+			sourceTree = "<group>";
+		};
+		98E818BB2B657F3100A9FA06 /* HartreeFock */ = {
+			isa = PBXGroup;
+			children = (
+				98E818BC2B657F4A00A9FA06 /* HartreeFock_Experiment1.swift */,
+			);
+			path = HartreeFock;
 			sourceTree = "<group>";
 		};
 		98EA89F92B40E48700DC5C7E /* NanoEngineer */ = {

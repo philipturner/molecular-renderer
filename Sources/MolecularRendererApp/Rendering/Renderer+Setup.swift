@@ -73,7 +73,7 @@ extension Renderer {
     descriptor.height = Int(ContentView.size)
     descriptor.upscaleFactor = ContentView.upscaleFactor
 #endif
-    descriptor.sceneSize = .small
+    descriptor.sceneSize = .extreme
     
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyleProvider(RendererStyle())
