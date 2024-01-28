@@ -1,5 +1,5 @@
 //
-//  HartreeFock_Equation2.swift
+//  HartreeFock_Experiment2.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 1/27/24.
