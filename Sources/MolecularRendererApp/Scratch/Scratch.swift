@@ -16,7 +16,7 @@ struct OrbitalFragment {
 }
 
 let gridWidth: Int = 52 * 2
-let spacing: Float = 0.010
+let spacing: Float = 0.100
 
 func createGeometry() -> [[Entity]] {
   // Solve the Hartree equation with finite-differencing, visualizing the
@@ -82,7 +82,7 @@ func createGeometry() -> [[Entity]] {
   var previousDensity = createDensity(fragments: fragments)
   
   var output: [[Entity]] = []
-  for frameID in 0..<20 {
+  for frameID in 0..<2 {
     if frameID > 0 {
       let nextPreviousDensity = createDensity(fragments: fragments)
       let previous = fragments
@@ -94,9 +94,9 @@ func createGeometry() -> [[Entity]] {
       for i in fragments.indices {
         if frameID < 10 {
           fragments[i].wavefunction =
-//          -0.30 * ψ[i].wavefunction +
-//          0.70 * previous[i].wavefunction
-          ψ[i].wavefunction
+          -0.30 * ψ[i].wavefunction +
+          0.70 * previous[i].wavefunction
+//          ψ[i].wavefunction
         }
       }
       fragments = normalize(fragments: fragments)
@@ -261,25 +261,91 @@ func hamiltonian(
         for laneID in 0..<3 {
           var coordsDelta = SIMD3<Int>.zero
           coordsDelta[laneID] = 1
-          let lowerCoords = coords &- coordsDelta
-          let upperCoords = coords &+ coordsDelta
-          let coordsArray = [lowerCoords, coords, upperCoords]
+          var coordsArray: [SIMD3<Int>] = []
+          coordsArray.append(coords &- coordsDelta &* 2)
+          coordsArray.append(coords &- coordsDelta &* 1)
+          coordsArray.append(coords)
+          coordsArray.append(coords &+ coordsDelta &* 1)
+          coordsArray.append(coords &+ coordsDelta &* 2)
           
-          var samples: SIMD3<Float> = .zero
-          for (i, coordsElement) in coordsArray.enumerated() {
+          var samples: [Float] = []
+          for coordsElement in coordsArray {
             guard all(coordsElement .>= 0), all(coordsElement .< gridWidth) else {
+              samples.append(0)
               continue
             }
             let address = (coordsElement &* addressDeltas).wrappedSum()
-            samples[i] = fragments[address].wavefunction
+            samples.append(fragments[address].wavefunction)
           }
           
           // jhwoo15/GOSPEL, Fighting!!
           let cellWidth: Float = spacing / 0.0529177
           let denominator = cellWidth * cellWidth
           let contribution =
-          (-samples[0] + 2 * samples[1] - samples[2]) / denominator / 2
-          kineticEnergy += contribution
+          samples[0] * Float(-1) / 12 +
+          samples[1] * Float(4) / 3 +
+          samples[2] * Float(-5) / 2 +
+          samples[3] * Float(4) / 3 +
+          samples[4] * Float(-1) / 12
+//          samples[1] * 1 +
+//          samples[2] * -2 +
+//          samples[3] * 1
+          
+          // spacing: 0.010 Å
+          // 2nd order = 0.0134500583693252
+          // 4th order = 0.013630877683047651
+          
+          // spacing: 0.018 Å
+          // 2nd order = 0.030957075842291584
+          // 4th order = 0.03197474541714042
+          
+          // spacing: 0.020 Å
+          // 2nd order = 0.035667597263968495
+          // 4th order = 0.037020990097903966
+          
+          // 4th order: kinetic energy
+          // spacing in Å
+          //
+          // 0.004 - 0.0035136492963466414
+          // 0.006 - 0.006372689246770936
+          // 0.008 - 0.009787292514539785
+          // 0.010 - 0.013630877683047651
+          // 0.012 - 0.017831284679967762
+          // 0.014 - 0.022326506401555618
+          // 0.016 - 0.027059174818914906
+          // 0.018 - 0.031974745417140420
+          // 0.020 - 0.037020990097903966
+          // 0.030 - 0.06253649838896072
+          // 0.040 - 0.08495735285971276
+          // 0.050 - 0.10124387563313601
+          // 0.060 - 0.11057718716294337
+          // 0.070 - 0.11369516474119935
+          // 0.080 - 0.11206056361881009
+          // 0.090 - 0.10723632457812105
+          // 0.100 - 0.10055459338968825
+          //
+          // external energy
+          // spacing in Å
+          //
+          // 0.004 - -1.1149023690641116
+          // 0.006 - -1.0202569947422298
+          // 0.008 - -0.9986269854533549
+          // 0.010 - -0.9917613397214031
+          // 0.012 - -0.9870798312959288
+          // 0.014 - -0.9825135314084877
+          // 0.016 - -0.9773083403017427
+          // 0.018 - -0.9714896067715426
+          // 0.020 - -0.9650858099200509
+          // 0.030 - -0.9253970250951384
+          // 0.040 - -0.8760852995592328
+          // 0.050 - -0.8214242605367826
+          // 0.060 - -0.7650828379191089
+          // 0.070 - -0.7097922183978944
+          // 0.080 - -0.6573319397110133
+          // 0.090 - -0.6086879637644945
+          // 0.100 - -0.5642675116560891
+          
+          kineticEnergy += -0.5 * contribution / denominator
           
 //          if Float.random(in: 0..<1) < 1e-4 {
 //            print()
@@ -340,8 +406,6 @@ func hamiltonian(
       }
     }
   }
-  
-  
   
   let hartree = dot(fragments, hartreeψ)
   let exchange = dot(fragments, exchangeψ)
