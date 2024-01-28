@@ -15,6 +15,9 @@ struct OrbitalFragment {
   var wavefunction: Float
 }
 
+let gridWidth: Int = 52 * 2
+let spacing: Float = 0.010
+
 func createGeometry() -> [[Entity]] {
   // Solve the Hartree equation with finite-differencing, visualizing the
   // evolution of the 2s orbital into the 1s orbital. Then, experiment with
@@ -43,15 +46,15 @@ func createGeometry() -> [[Entity]] {
   
   // Create a 30x30x30 grid of orbital fragments.
   var fragments: [OrbitalFragment] = []
-  for zIndex in -15..<15 {
-    for yIndex in -15..<15 {
-      for xIndex in -15..<15 {
+  for zIndex in -gridWidth/2..<gridWidth/2 {
+    for yIndex in -gridWidth/2..<gridWidth/2 {
+      for xIndex in -gridWidth/2..<gridWidth/2 {
         var position = SIMD3<Float>(
           Float(xIndex),
           Float(yIndex),
           Float(zIndex))
         position += 0.5
-        position *= 0.020
+        position *= spacing
         position /= 0.0529177
         
         // 1s orbital of hydrogen.
@@ -79,20 +82,29 @@ func createGeometry() -> [[Entity]] {
   var previousDensity = createDensity(fragments: fragments)
   
   var output: [[Entity]] = []
-  for frameID in 0..<15 {
+  for frameID in 0..<20 {
     if frameID > 0 {
       let nextPreviousDensity = createDensity(fragments: fragments)
+      let previous = fragments
       let energyψ = hamiltonian(
         fragments: fragments,
         previousDensity: previousDensity)
       
       let ψ = normalize(fragments: energyψ)
-      fragments = ψ
+      for i in fragments.indices {
+        if frameID < 10 {
+          fragments[i].wavefunction =
+//          -0.30 * ψ[i].wavefunction +
+//          0.70 * previous[i].wavefunction
+          ψ[i].wavefunction
+        }
+      }
+      fragments = normalize(fragments: fragments)
       previousDensity = nextPreviousDensity
     }
     
     let rendered = renderElectron(fragments)
-    for _ in 0..<30 {
+    for _ in 0..<1 {
       output.append(rendered)
     }
   }
@@ -111,6 +123,22 @@ func createGeometry() -> [[Entity]] {
    | * XC Energy           : -1.3027477371813951
    | * Kinetic Energy      : 3.717959856629932
    | * External Energy     : -3.0551960829175187
+   | * Non-local Energy    : 0
+   ============================================
+   
+   1s orbital + 100 steps
+   
+   ============ Energy (Hartree) ==============
+   |   Hamiltonian         : 2.0266494750976562
+   |   Sum Energy          : 2.026649594306946
+   |   "Energy"            : 2.0266494750976562
+   --------------------------------------------
+   | * Ion-ion Energy      : 0.0
+   | * Eigenvals sum for 0 : 0
+   | * Hartree Energy      : 2.6719298362731934
+   | * XC Energy           : -1.3027609586715698
+   | * Kinetic Energy      : 3.7126858234405518
+   | * External Energy     : -3.0552051067352295
    | * Non-local Energy    : 0
    ============================================
    
@@ -168,7 +196,7 @@ func createEnergy(fragments: [OrbitalFragment]) -> Double {
 func createDensity(fragments: [OrbitalFragment]) -> [SIMD4<Float>] {
   var density: [SIMD4<Float>] = []
   for i in fragments.indices {
-    let cellWidth: Float = 0.020 / 0.0529177
+    let cellWidth: Float = spacing / 0.0529177
     let microvolume = cellWidth * cellWidth * cellWidth
     let fragment = fragments[i]
     
@@ -222,14 +250,14 @@ func hamiltonian(
   var externalψ = fragments
   var energyψ = fragments
   
-  for zIndex in -15..<15 {
-    for yIndex in -15..<15 {
-      for xIndex in -15..<15 {
-        let coords = 15 &+ SIMD3(xIndex, yIndex, zIndex)
-        let addressDeltas = SIMD3<Int>(1, 30, 30 * 30)
+  for zIndex in -gridWidth/2..<gridWidth/2 {
+    for yIndex in -gridWidth/2..<gridWidth/2 {
+      for xIndex in -gridWidth/2..<gridWidth/2 {
+        let coords = gridWidth/2 &+ SIMD3(xIndex, yIndex, zIndex)
+        let addressDeltas = SIMD3<Int>(1, gridWidth, gridWidth * gridWidth)
         
         // Create the kinetic energy term.
-        var divergence: Float = 0
+        var kineticEnergy: Float = 0
         for laneID in 0..<3 {
           var coordsDelta = SIMD3<Int>.zero
           coordsDelta[laneID] = 1
@@ -239,19 +267,30 @@ func hamiltonian(
           
           var samples: SIMD3<Float> = .zero
           for (i, coordsElement) in coordsArray.enumerated() {
-            guard all(coordsElement .>= 0), all(coordsElement .< 30) else {
+            guard all(coordsElement .>= 0), all(coordsElement .< gridWidth) else {
               continue
             }
             let address = (coordsElement &* addressDeltas).wrappedSum()
             samples[i] = fragments[address].wavefunction
           }
           
-          let cellWidth: Float = 0.020 / 0.0529177
-          let lowerDerivative = (samples[1] - samples[0]) / cellWidth
-          let upperDerivative = (samples[2] - samples[1]) / cellWidth
-          divergence += (upperDerivative - lowerDerivative) / cellWidth
+          // jhwoo15/GOSPEL, Fighting!!
+          let cellWidth: Float = spacing / 0.0529177
+          let denominator = cellWidth * cellWidth
+          let contribution =
+          (-samples[0] + 2 * samples[1] - samples[2]) / denominator / 2
+          kineticEnergy += contribution
+          
+//          if Float.random(in: 0..<1) < 1e-4 {
+//            print()
+//            print("kinetic energy calculation:")
+//            print("samples[0] =", samples[0])
+//            print("samples[1] =", samples[1])
+//            print("samples[2] =", samples[2])
+//            print("cellWidth =", cellWidth)
+//            print("contribution =", contribution)
+//          }
         }
-        let kineticEnergy = -0.5 * divergence
         
         // Create the external potential term.
         let address = (coords &* addressDeltas).wrappedSum()
@@ -262,33 +301,34 @@ func hamiltonian(
         // Create the Hartree term.
         let position = fragment.position
         var hartreeEnergyAccumulator: Double = .zero
-        for (i, densityStructure) in densities.enumerated() {
-          let otherPosition = SIMD3(densityStructure.x,
-                                    densityStructure.y,
-                                    densityStructure.z)
-          let cellWidth: Float = 0.020 / 0.0529177
-          var g: Float
-          
-          if i == address {
-            // chelikowsky1994
-            g = -cellWidth * cellWidth
-            g *= Float.pi / 2 + 3 * logf((Float(3).squareRoot() - 1) /
-                                         (Float(3).squareRoot() + 1))
-          } else {
-            let delta = otherPosition - position
-            let distance = (delta * delta).sum().squareRoot()
-            let microvolume = cellWidth * cellWidth * cellWidth
-            g = microvolume / distance
-          }
-          
-          let density = Float(densityStructure.w)
-          hartreeEnergyAccumulator += Double(density * g)
-        }
+//        for (i, densityStructure) in densities.enumerated() {
+//          let otherPosition = SIMD3(densityStructure.x,
+//                                    densityStructure.y,
+//                                    densityStructure.z)
+//          let cellWidth: Float = 0.020 / 0.0529177
+//          var g: Float
+//          
+//          if i == address {
+//            // chelikowsky1994
+//            g = -cellWidth * cellWidth
+//            g *= Float.pi / 2 + 3 * logf((Float(3).squareRoot() - 1) /
+//                                         (Float(3).squareRoot() + 1))
+//          } else {
+//            let delta = otherPosition - position
+//            let distance = (delta * delta).sum().squareRoot()
+//            let microvolume = cellWidth * cellWidth * cellWidth
+//            g = microvolume / distance
+//          }
+//          
+//          let density = Float(densityStructure.w)
+//          hartreeEnergyAccumulator += Double(density * g)
+//        }
         let hartreeEnergy = Float(hartreeEnergyAccumulator)
         
         // Local density approximation.
-        let localDensity = densities[address].w
-        let exchangeEnergy = -cbrtf(3 / Float.pi * localDensity)
+//        let localDensity = densities[address].w
+//        let exchangeEnergy = -cbrtf(3 / Float.pi * localDensity)
+        let exchangeEnergy: Float = .zero
         
         // Sum all of the energies.
         let energy = kineticEnergy + externalEnergy + hartreeEnergy + exchangeEnergy
@@ -335,7 +375,7 @@ func hamiltonian(
 func renderElectron(_ fragments: [OrbitalFragment]) -> [Entity] {
   var output: [Entity] = []
   for fragment in fragments {
-    let cellWidth: Float = 0.020 / 0.0529177
+    let cellWidth: Float = spacing / 0.0529177
     let microvolumeBohr3 = cellWidth * cellWidth * cellWidth
     let occupancy = fragment.wavefunction * fragment.wavefunction
     let chargeDensityBohr3 = occupancy / microvolumeBohr3
