@@ -46,6 +46,7 @@
 		987507BE2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BB2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg */; };
 		987507BF2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BC2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg */; };
 		987507C02B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */; };
+		9882597B2B67D540001B1D71 /* HartreeFock_Experiment4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9882597A2B67D4D9001B1D71 /* HartreeFock_Experiment4.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -186,6 +187,8 @@
 		987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = inertia_tensor_eigendecomposition_2.jpg; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTracing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTracing.metal; sourceTree = "<group>"; };
+		988259792B67D4B2001B1D71 /* HartreeFock_Experiment3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HartreeFock_Experiment3.swift; sourceTree = "<group>"; };
+		9882597A2B67D4D9001B1D71 /* HartreeFock_Experiment4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HartreeFock_Experiment4.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillatorSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillatorSimulation.swift; sourceTree = "<group>"; };
@@ -824,6 +827,8 @@
 			children = (
 				98E818BC2B657F4A00A9FA06 /* HartreeFock_Experiment1.swift */,
 				98E818BD2B6605C900A9FA06 /* HartreeFock_Experiment2.swift */,
+				988259792B67D4B2001B1D71 /* HartreeFock_Experiment3.swift */,
+				9882597A2B67D4D9001B1D71 /* HartreeFock_Experiment4.swift */,
 			);
 			path = HartreeFock;
 			sourceTree = "<group>";
@@ -1233,6 +1238,7 @@
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
+				9882597B2B67D540001B1D71 /* HartreeFock_Experiment4.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
