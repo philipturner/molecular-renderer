@@ -417,7 +417,17 @@ struct SurfaceReconstruction {
       var linkedList: [Int] = []
       
       if bothBridgehead {
-        fatalError("Edge case not handled yet.")
+        if atomList.count == 2 {
+          let hydrogens = atomsToHydrogensMap[Int(atomList[0])]
+          precondition(
+            hydrogens.count == 1, "Bridgehead did not have 1 hydrogen.")
+          
+          linkedList.append(Int(atomList[0]))
+          linkedList.append(Int(hydrogens.first!))
+          linkedList.append(Int(atomList[1]))
+        } else {
+          fatalError("Edge case not handled yet.")
+        }
       } else if bothSidewall {
       outer:
         for atomID in atomList {
