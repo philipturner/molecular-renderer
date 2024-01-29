@@ -27,6 +27,11 @@ func createGeometry() -> [Entity] {
   //   fragment size iso-accuracy.
   // - Compare constrained fragment count (density threshold) to actual fragment
   //   count, which will be larger.
+  //
+  // TODO: Establish a sparse/mipmapped data layout in a future experiment.
+  // Already proved a substantial speedup by hand for 2D wavefunctions.
+  // Making a data structure "right" requires careful planning to make it
+  // efficient and GPU-friendly.
   
   var descriptor = WavefunctionDescriptor()
   descriptor.cellCountWidth = 128
@@ -43,6 +48,8 @@ func createGeometry() -> [Entity] {
   print("integral:", integral)
   
   // Next, start measuring some observables like kinetic and external energy.
+  // After that, iteratively solve the Schrodinger equation like a
+  // self-consistent field equation on a uniform grid.
   
   return renderElectron(fragments)
 }
