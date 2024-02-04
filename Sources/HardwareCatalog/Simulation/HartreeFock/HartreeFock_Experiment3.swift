@@ -155,7 +155,7 @@ func laguerrePolynomial(
       
       for k in 1...(n - 1) {
         let coeffLeft = Float(2 * k + 1) + alpha - x
-        let coeffRight = -Float(k) * alpha
+        let coeffRight = -(Float(k) + alpha)
         let numerator = coeffLeft * stack[k] + coeffRight * stack[k - 1]
         let denominator = Float(k + 1)
         stack.append(numerator / denominator)
