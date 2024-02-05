@@ -6,139 +6,35 @@ import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
-  for Z in 79...79 {
-    let occupations = createShellOccupations(Z: Z)
-    let effectiveCharges = createEffectiveCharges(
-      Z: Z, occupations: occupations)
+  let Z: Int = 86
+  let histogram = Histogram(Z: Z)
+  print()
+  print("Z = \(Z)")
+  print("upper bounds:")
+  print(histogram.fragments.map { $0[1] })
+  print("histogram:")
+  print(histogram.radialDensity)
+  print("atomic radius:")
+  print(histogram.atomicRadius)
+  print()
+  
+  var csv: String = ""
+  csv.append("Radius, Radial Density, Atomic Radius, Z\n")
+  for i in histogram.fragments.indices {
+    let range = histogram.fragments[i]
+    let r = (range[0] + range[1]) / 2
+    let Dr = histogram.radialDensity[i]
     
-    for n in occupations.indices where occupations[n] > 0 {
-      let quantumNumbers = QuantumNumbers(n: n, l: 0, m: 0)
-      func probability(range: Range<Float>) -> Float {
-        let r = (range.lowerBound + range.upperBound) / 2
-        let waveFunction = hydrogenWaveFunction(
-          Z: effectiveCharges[n],
-          numbers: quantumNumbers,
-          position: SIMD3(r, 0, 0))
-        
-        let D = { (r: Float) -> Float in
-          4 * Float.pi * r * r * (waveFunction * waveFunction)
-        }
-        let dr = range.upperBound - range.lowerBound
-        return D(r) * dr
-      }
-      
-      struct OrbitalFragment {
-        var range: Range<Float>
-        var probability: Float
-      }
-      func createFragment(range: Range<Float>) -> OrbitalFragment {
-        let probability = probability(range: range)
-        let fragment = OrbitalFragment(range: range, probability: probability)
-        return fragment
-      }
-      
-      var fragments: [OrbitalFragment] = []
-      for power10 in -4..<2 { // 1e-4 to 1e2
-        var ranges: [Range<Float>] = []
-        ranges.append(Float.pow(10, 0.0)..<Float.pow(10, 0.2))
-        ranges.append(Float.pow(10, 0.2)..<Float.pow(10, 0.4))
-        ranges.append(Float.pow(10, 0.4)..<Float.pow(10, 0.6))
-        ranges.append(Float.pow(10, 0.6)..<Float.pow(10, 0.8))
-        ranges.append(Float.pow(10, 0.8)..<Float.pow(10, 1.0))
-        
-        let scaleFactor = Float.pow(10, Float(power10))
-        for range in ranges {
-          let lowerBound = range.lowerBound * scaleFactor
-          let upperBound = range.upperBound * scaleFactor
-          fragments.append(createFragment(range: lowerBound..<upperBound))
-        }
-      }
-      let histogramRanges = fragments.map(\.range)
-      
-      func normalize(_ fragments: [OrbitalFragment]) -> [OrbitalFragment] {
-        var sum: Double = .zero
-        for fragment in fragments {
-          sum += Double(fragment.probability)
-        }
-        let normalizationFactor = 1 / Float(sum)
-        return fragments.map {
-          OrbitalFragment(
-            range: $0.range,
-            probability: $0.probability * normalizationFactor)
-        }
-      }
-      var firstFragment = fragments.removeFirst()
-      while fragments.count > 0 {
-        let secondFragment = fragments.first!
-        if firstFragment.probability + secondFragment.probability > 1e-6 {
-          break
-        } else {
-          let lowerBound = firstFragment.range.lowerBound
-          let upperBound = secondFragment.range.upperBound
-          firstFragment = OrbitalFragment(
-            range: lowerBound..<upperBound,
-            probability: firstFragment.probability + secondFragment.probability)
-          fragments.removeFirst()
-        }
-      }
-      fragments = [firstFragment] + fragments
-      fragments = normalize(fragments)
-      
-      var converged = false
-      for trialID in 0..<20 {
-        var newFragments: [OrbitalFragment] = []
-        for fragment in fragments {
-          if fragment.probability > 1e-3 {
-            let lowerBound = fragment.range.lowerBound
-            let upperBound = fragment.range.upperBound
-            let midPoint = (lowerBound + upperBound) / 2
-            newFragments.append(createFragment(range: lowerBound..<midPoint))
-            newFragments.append(createFragment(range: midPoint..<upperBound))
-          } else {
-            newFragments.append(createFragment(range: fragment.range))
-          }
-        }
-        newFragments = normalize(newFragments)
-        let addedCount = newFragments.count - fragments.count
-        fragments = newFragments
-        
-        if addedCount == 0 {
-          converged = true
-          break
-        }
-      }
-      guard converged else {
-        fatalError("Orbital fragmentation failed to converge.")
-      }
-      
-      print()
-      print("n = \(n)")
-      print("upper bounds:")
-      print(histogramRanges.map { $0.upperBound })
-      print("histogram:")
-      var histogram = [Float](repeating: 0, count: histogramRanges.count)
-      for fragment in fragments {
-        var center = fragment.range.lowerBound + fragment.range.upperBound
-        center /= 2
-        
-        for (i, range) in histogramRanges.enumerated() {
-          if range.contains(center) {
-            histogram[i] += fragment.probability
-          }
-        }
-      }
-      for i in histogram.indices {
-        // convert one-electron abslute probability to
-        // multi-electron probability density
-        let range = histogramRanges[i]
-        let dr = range.upperBound - range.lowerBound
-        let probability = histogram[i]
-        let Dr = probability / dr
-        histogram[i] = Dr
-      }
-      print(histogram)
+    if i == 0 {
+      csv += "\(r), \(Dr), \(histogram.atomicRadius), \(Z)\n"
+    } else {
+      csv += "\(r), \(Dr)\n"
     }
   }
+  
+  print()
+  print(csv)
+  
   exit(0)
 }
 
@@ -368,5 +264,192 @@ func createEffectiveCharges(Z: Int, occupations: [Int]) -> [Float] {
     effectiveCharges.append(Float(coreCharge))
     coreCharge -= occupation
   }
+  
+  // Algorithm:
+  // - break up the effective charge into different components
+  // - fully shielded (0)
+  // - partially shielded (sqrt(Z))
+  // - not shielded (Z)
+  for i in effectiveCharges.indices {
+    var valenceCharge = Float(occupations[i])
+    var coreCharge = effectiveCharges[i] - valenceCharge
+    valenceCharge.formSquareRoot()
+    print("\(effectiveCharges[i]) -> \(valenceCharge + coreCharge)")
+    effectiveCharges[i] = valenceCharge + coreCharge
+  }
+  
   return effectiveCharges
+}
+
+struct Histogram {
+  var fragments: [SIMD2<Float>] = []
+  var radialDensity: [Float] = []
+  var atomicRadius: Float = .zero
+  
+  init(Z: Int) {
+    let occupations = createShellOccupations(Z: Z)
+    let effectiveCharges = createEffectiveCharges(
+      Z: Z, occupations: occupations)
+    
+    var overallHistogramRanges: [Range<Float>]?
+    var overallHistogramSum: [Float]?
+    
+    for n in occupations.indices where occupations[n] > 0 {
+      let quantumNumbers = QuantumNumbers(n: n, l: 0, m: 0)
+      var correction = Float(n)
+      var normalization = correction * correction * correction
+      normalization = normalization.squareRoot()
+      
+      func probability(range: Range<Float>) -> Float {
+        let r = (range.lowerBound + range.upperBound) / 2
+        let waveFunction = hydrogenWaveFunction(
+          Z: effectiveCharges[n],
+          numbers: quantumNumbers,
+          position: SIMD3(r * correction, 0, 0)) * normalization
+        
+        let D = { (r: Float) -> Float in
+          4 * Float.pi * r * r * (waveFunction * waveFunction)
+        }
+        let dr = range.upperBound - range.lowerBound
+        return D(r) * dr
+      }
+      
+      struct OrbitalFragment {
+        var range: Range<Float>
+        var probability: Float
+      }
+      func createFragment(range: Range<Float>) -> OrbitalFragment {
+        let probability = probability(range: range)
+        let fragment = OrbitalFragment(range: range, probability: probability)
+        return fragment
+      }
+      
+      var fragments: [OrbitalFragment] = []
+      for power10 in -4..<2 { // 1e-4 to 1e2
+        var ranges: [Range<Float>] = []
+        for i in 0..<20 {
+          let lowerBound = Float.pow(10, Float(i) / 20)
+          let upperBound = Float.pow(10, Float(i + 1) / 20)
+          ranges.append(lowerBound..<upperBound)
+        }
+        
+        let scaleFactor = Float.pow(10, Float(power10))
+        for range in ranges {
+          let lowerBound = range.lowerBound * scaleFactor
+          let upperBound = range.upperBound * scaleFactor
+          fragments.append(createFragment(range: lowerBound..<upperBound))
+        }
+      }
+      let histogramRanges = fragments.map(\.range)
+      
+      func normalize(_ fragments: [OrbitalFragment]) -> [OrbitalFragment] {
+        var sum: Double = .zero
+        for fragment in fragments {
+          sum += Double(fragment.probability)
+        }
+        let normalizationFactor = 1 / Float(sum)
+        return fragments.map {
+          OrbitalFragment(
+            range: $0.range,
+            probability: $0.probability * normalizationFactor)
+        }
+      }
+      var firstFragment = fragments.removeFirst()
+      while fragments.count > 0 {
+        let secondFragment = fragments.first!
+        if firstFragment.probability + secondFragment.probability > 1e-6 {
+          break
+        } else {
+          let lowerBound = firstFragment.range.lowerBound
+          let upperBound = secondFragment.range.upperBound
+          firstFragment = OrbitalFragment(
+            range: lowerBound..<upperBound,
+            probability: firstFragment.probability + secondFragment.probability)
+          fragments.removeFirst()
+        }
+      }
+      fragments = [firstFragment] + fragments
+      fragments = normalize(fragments)
+      
+      var converged = false
+      for _ in 0..<20 {
+        var newFragments: [OrbitalFragment] = []
+        for fragment in fragments {
+          if fragment.probability > 1e-3 {
+            let lowerBound = fragment.range.lowerBound
+            let upperBound = fragment.range.upperBound
+            let midPoint = (lowerBound + upperBound) / 2
+            newFragments.append(createFragment(range: lowerBound..<midPoint))
+            newFragments.append(createFragment(range: midPoint..<upperBound))
+          } else {
+            newFragments.append(createFragment(range: fragment.range))
+          }
+        }
+        newFragments = normalize(newFragments)
+        let addedCount = newFragments.count - fragments.count
+        fragments = newFragments
+        
+        if addedCount == 0 {
+          converged = true
+          break
+        }
+      }
+      guard converged else {
+        fatalError("Orbital fragmentation failed to converge.")
+      }
+      
+      print()
+      print("n = \(n)")
+      print("upper bounds:")
+      print(histogramRanges.map { $0.upperBound })
+      print("histogram:")
+      var histogram = [Float](repeating: 0, count: histogramRanges.count)
+      for fragment in fragments {
+        var center = fragment.range.lowerBound + fragment.range.upperBound
+        center /= 2
+        
+        for (i, range) in histogramRanges.enumerated() {
+          if range.contains(center) {
+            histogram[i] += fragment.probability
+          }
+        }
+      }
+      atomicRadius = .zero
+      for i in histogram.indices {
+        // convert one-electron absolute probability to
+        // one-electron probability density
+        let range = histogramRanges[i]
+        let dr = range.upperBound - range.lowerBound
+        let probability = histogram[i]
+        let Dr = probability / dr
+        histogram[i] = Dr
+        
+        let r = (range.lowerBound + range.upperBound) / 2
+        atomicRadius += probability * r
+      }
+      print(histogram)
+      
+      // convert from one-electron probability density to
+      // multi-electron probability density
+      if overallHistogramRanges == nil {
+        overallHistogramRanges = histogramRanges
+        overallHistogramSum = histogram.map { $0 * 0 }
+      }
+      let multiplier = Float(occupations[n])
+      for i in histogram.indices {
+        overallHistogramSum![i] += multiplier * histogram[i]
+      }
+    }
+    
+    guard let overallHistogramRanges,
+          let overallHistogramSum else {
+      fatalError("This should never happen.")
+    }
+    for range in overallHistogramRanges {
+      fragments.append(SIMD2(range.lowerBound, range.upperBound))
+    }
+    for sum in overallHistogramSum {
+      radialDensity.append(sum)
+    }
+  }
 }
