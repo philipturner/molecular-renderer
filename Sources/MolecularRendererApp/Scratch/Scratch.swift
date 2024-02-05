@@ -6,28 +6,25 @@ import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
-//  let polynomial = laguerrePolynomial(alpha: 0, n: 2)
-//  let x: Float = 3.5
-//  print(polynomial(x))
-//  print(0.5 * (x * x - 4 * x + 2))
-  
-  let numbers = QuantumNumbers(n: 3, l: 0, m: 0, Z: 1)
-  var integral: Double = .zero
-  var radius: Double = .zero
-  while radius < 300 {
-    let dr: Double = 0.1
-    defer { radius += dr }
+  for Z in 1...118 {
+    let occupations = createShellOccupations(Z: Z)
+    let effectiveCharges = createEffectiveCharges(
+      Z: Z, occupations: occupations)
     
-    let coordinates = SphericalCoordinates(
-      cartesian: SIMD3(Float(radius), 0, 0))
-    let waveFunction = Double(hydrogenWaveFunction(
-      numbers: numbers, coordinates: coordinates))
+    var expectationRadii: [Float] = []
+    for n in occupations.indices where n > 0 {
+      let quantumNumbers = QuantumNumbers(n: n, l: 0, m: 0)
+      let position = SIMD3<Float>(1, 0, 0)
+      
+      let waveFunction = hydrogenWaveFunction(
+        Z: effectiveCharges[n],
+        numbers: quantumNumbers,
+        position: position)
+      expectationRadii.append(waveFunction * 1 * waveFunction)
+    }
     
-    let observable: Double = waveFunction * radius * waveFunction
-    integral += observable * radius * radius * dr
+    print("Z=\(Z), occupations=\(occupations), radii=\(expectationRadii)")
   }
-  integral *= 4 * Double.pi
-  print(integral)
   exit(0)
 }
 
@@ -38,46 +35,99 @@ func laguerrePolynomial(
 ) -> (_ x: Float) -> Float {
   if n == 0 {
     return { _ in 1 }
-  } else if n == 1 {
-    return { x in 1 + alpha - x }
-  } else if n >= 1 {
+  } else if n > 0 {
     return { x in
-      var stack: [Float] = []
-      stack.append(1)
-      stack.append(1 + alpha - x)
+      var secondLast: Float = 1
+      var last: Float = 1 + alpha - x
       
-      for k in 1...(n - 1) {
+      for k in 1..<n {
         let coeffLeft = Float(2 * k + 1) + alpha - x
         let coeffRight = -(Float(k) + alpha)
-        let numerator = coeffLeft * stack[k] + coeffRight * stack[k - 1]
+        let numerator = coeffLeft * last + coeffRight * secondLast
         let denominator = Float(k + 1)
-        stack.append(numerator / denominator)
+        secondLast = last
+        last = numerator / denominator
       }
-      return stack.last!
+      return last
     }
   }
   
   fatalError("Unsupported value for n.")
 }
 
-func sphericalHarmonic(
+func cubicHarmonic(
   l: Int, m: Int
-) -> (_ theta: Float, _ phi: Float) -> Float {
+) -> (_ x: Float, _ y: Float, _ z: Float, _ r: Float) -> Float {
+  var factorial: Int = 1
+  for i in 0...l {
+    factorial *= (i * 2 + 1)
+  }
+  let Nc = (Float(factorial) / (4 * Float.pi)).squareRoot()
+  
   if l == 0 {
-    if m == 0 {
-      return { _, _ in
-        1.0 / 2 * (1 / Float.pi).squareRoot()
+    return { _, _, _, _ in
+      var output = Nc
+      switch m {
+      case 0: output *= 1
+      default: fatalError("Invalid value for m.")
       }
+      return output
     }
   } else if l == 1 {
-    if m == 0 {
-      return { theta, _ in
-        1.0 / 2 * (3 / Float.pi).squareRoot() * Float.cos(theta)
+    return { x, y, z, r in
+      var output = Nc / r
+      switch m {
+      case 0: output *= z
+      case -1: output *= x
+      case 1: output *= y
+      default: fatalError("Invalid value for m.")
       }
+      return output
+    }
+  } else if l == 2 {
+    return { x, y, z, r in
+      var output = Nc / (r * r)
+      switch m {
+      case 0: output *= (3 * z * z - r * r) / (2 * Float(3).squareRoot())
+      case -1: output *= x * z
+      case 1: output *= y * z
+      case -2: output *= x * y
+      case 2: output *= (x * x - y * y) / 2
+      default: fatalError("Invalid value for m.")
+      }
+      return output
+    }
+  } else if l == 3 {
+    return { x, y, z, r in
+      var output = Nc / (r * r * r)
+      switch m {
+      case 0:
+        output *= z * (2 * z * z - 3 * x * x - 3 * y * y)
+        output /= 2 * Float(15).squareRoot()
+      case -1:
+        output *= x * (4 * z * z - x * x - y * y)
+        output /= 2 * Float(10).squareRoot()
+      case 1:
+        output *= y * (4 * z * z - x * x - y * y)
+        output /= 2 * Float(10).squareRoot()
+      case -2:
+        output *= x * y * z
+      case 2:
+        output *= z * (x * x - y * y) / 2
+      case -3:
+        output *= x * (x * x - 3 * y * y)
+        output /= 2 * Float(6).squareRoot()
+      case 3:
+        output *= y * (3 * x * x - y * y)
+        output /= 2 * Float(6).squareRoot()
+      default:
+        fatalError("Invalid value for m.")
+      }
+      return output
     }
   }
   
-  fatalError("Unsupported value for m or l.")
+  fatalError("Unsupported value for l.")
 }
 
 func factorial(_ x: Int) -> Int {
@@ -101,37 +151,19 @@ struct QuantumNumbers {
   var n: Int
   var l: Int
   var m: Int
-  var Z: Int
-}
-
-struct SphericalCoordinates {
-  var r: Float
-  var phi: Float
-  var theta: Float
-  
-  init(cartesian: SIMD3<Float>) {
-    r = (cartesian * cartesian).sum().squareRoot()
-    if r.magnitude < .leastNormalMagnitude {
-      phi = 0
-      theta = 0
-    } else {
-      // in the physics convention, phi is theta and theta is phi
-      phi = Float.atan2(y: cartesian.y, x: cartesian.x)
-      theta = Float.acos(cartesian.z / r)
-    }
-  }
 }
 
 func hydrogenWaveFunction(
+  Z: Float,
   numbers: QuantumNumbers,
-  coordinates: SphericalCoordinates
+  position: SIMD3<Float>
 ) -> Float {
   let R = { (r: Float) -> Float in
     let numerator = factorial(numbers.n - numbers.l - 1)
     let denominator = 2 * numbers.n * factorial(numbers.n + numbers.l)
     var normalizationFactor = Float(numerator) / Float(denominator)
     
-    let shellPart = Float(2 * numbers.Z) / Float(numbers.n)
+    let shellPart = Float(2 * Z) / Float(numbers.n)
     normalizationFactor *= shellPart * shellPart * shellPart
     normalizationFactor.formSquareRoot()
     
@@ -146,8 +178,81 @@ func hydrogenWaveFunction(
     * L(shellRadiusPart)
   }
   
-  let Y = sphericalHarmonic(l: numbers.l, m: numbers.m)
-  let magnitude = R(coordinates.r) * Y(coordinates.theta, coordinates.phi)
+  let r = (position * position).sum().squareRoot()
+  let Y = cubicHarmonic(l: numbers.l, m: numbers.m)
+  let magnitude = R(r) * Y(position.x, position.y, position.z, r)
   let parity = pow(-1, Float(numbers.l))
   return parity * magnitude
+}
+
+// MARK: - Ansatz
+
+func createShellOccupations(Z: Int) -> [Int] {
+  // Output is zero-indexed, starting with the nonexistent zero shell. It spans
+  // from n=0 to n=7.
+  var shellOccupations = [Int](repeating: 0, count: 1 + 7)
+  
+  var cursorZ: Int = 0
+  func subShell(n: Int, occupancy: Int) {
+    if Z > cursorZ {
+      shellOccupations[n] += min(Z - cursorZ, occupancy)
+    }
+    cursorZ += occupancy
+  }
+  
+  // First period.
+  subShell(n: 1, occupancy: 2)
+  
+  // Second period.
+  subShell(n: 2, occupancy: 2)
+  subShell(n: 2, occupancy: 6)
+  
+  // Third period.
+  subShell(n: 3, occupancy: 2)
+  subShell(n: 3, occupancy: 6)
+  
+  // Fourth period.
+  subShell(n: 4, occupancy: 2)
+  subShell(n: 3, occupancy: 10)
+  subShell(n: 4, occupancy: 6)
+  
+  // Fifth period.
+  subShell(n: 5, occupancy: 2)
+  subShell(n: 4, occupancy: 10)
+  subShell(n: 5, occupancy: 6)
+  
+  // Sixth period.
+  subShell(n: 6, occupancy: 2)
+  subShell(n: 4, occupancy: 14)
+  subShell(n: 5, occupancy: 10)
+  subShell(n: 6, occupancy: 6)
+  
+  // Seventh period.
+  subShell(n: 7, occupancy: 2)
+  subShell(n: 5, occupancy: 14)
+  subShell(n: 6, occupancy: 10)
+  subShell(n: 7, occupancy: 6)
+  
+  // Eighth period.
+  if Z > 118 {
+    fatalError("Eighth period elements are not supported.")
+  }
+  
+  return shellOccupations
+}
+
+// Returns the effective charge for each electron shell.
+func createEffectiveCharges(Z: Int, occupations: [Int]) -> [Float] {
+// var correction = Float(n) * Float(n) / Float(Zeff)
+// correction = correction.squareRoot()
+// var normalization = correction * correction * correction
+// normalization = normalization.squareRoot()
+   
+  var coreCharge = Z
+  var effectiveCharges: [Float] = []
+  for occupation in occupations {
+    effectiveCharges.append(Float(coreCharge))
+    coreCharge -= occupation
+  }
+  return effectiveCharges
 }
