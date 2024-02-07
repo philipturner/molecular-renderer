@@ -30,7 +30,7 @@ To prototype the measurement of bulk modulus, a virtual diamond anvil was create
 
 Pressure was calculated as the total force on any face, divided by the area of a 10x10 array of lattice cells. This significantly underestimates the pressure at extremely high pressures. The diamond can be compressed a factor of ~1.3x in each linear dimension, changing the area by ~1.7x.
 
-The system was simulated for 120 frames. Each frames, the pressure per surface atom was incremented by 100 pN. The forcefield was minimized for a maximum of 30 iterations. The cap on iterations was set because minimizations started taking several seconds each with extreme pressures. The atom positions from each frame were recycled for the subsequent one, accelerating the convergence of the subsequent minimization.
+The system was simulated for 120 frames. Each frame, the pressure per surface atom was incremented by 100 pN. The forcefield was minimized for a maximum of 30 iterations. The cap on iterations was set because minimizations started taking several seconds each with extreme pressures. The atom positions from each frame were recycled for the subsequent one, accelerating the convergence of the subsequent minimization.
 
 ![Elastic Moduli Diamond Anvil](./ElasticModuli_DiamondAnvil.jpg)
 
