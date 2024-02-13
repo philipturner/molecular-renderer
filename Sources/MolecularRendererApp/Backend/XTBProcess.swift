@@ -23,6 +23,7 @@ class XTBProcess {
   var anchors: [Int] = []
   var standardError: Bool = true
   var standardOutput: Bool = true
+  var engine: String = ""
   
   init(path: String) {
     let url = URL(filePath: path, directoryHint: .isDirectory)
@@ -63,6 +64,8 @@ class XTBProcess {
 extension XTBProcess {
   func encodeSettings() -> String {
     var contents = ""
+    
+    contents += "$fix\n"
     if anchors.count > 0 {
       var anchorList: [String] = []
       for anchor in anchors {
@@ -75,19 +78,16 @@ extension XTBProcess {
       }
       
       let anchorString = anchorList.joined(separator: ",")
-      contents += """
-      $fix
-         atoms: \(anchorString)
-      $end
-      
-      """
-    } else {
-      contents = """
-      $fix
-      $end
-      
-      """
+      contents += "atoms: \(anchorString)\n"
     }
+    contents += "$end\n"
+    
+    contents += "$opt\n"
+    if engine != "" {
+      contents += "engine=\(engine)\n"
+    }
+    contents += "$end\n"
+    
     return contents
   }
   
