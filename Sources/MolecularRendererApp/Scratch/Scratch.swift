@@ -6,5 +6,6 @@ import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
+  // Create a flywheel-driven drive system structure.
   return [Entity(position: .zero, type: .atom(.carbon))]
 }
