@@ -28,6 +28,15 @@
       }
     },
     {
+      "identity" : "molecular-renderer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/philipturner/molecular-renderer",
+      "state" : {
+        "branch" : "main",
+        "revision" : "53062e0fe49b0e2701d293743413fea8ea80e1d1"
+      }
+    },
+    {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
