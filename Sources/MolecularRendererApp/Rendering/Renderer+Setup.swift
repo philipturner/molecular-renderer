@@ -73,6 +73,9 @@ extension Renderer {
     descriptor.height = Int(ContentView.size)
     descriptor.upscaleFactor = ContentView.upscaleFactor
 #endif
+    descriptor.sceneSize = .large
+    
+    eventTracker.walkingSpeed = 5
     
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyleProvider(RendererStyle())
