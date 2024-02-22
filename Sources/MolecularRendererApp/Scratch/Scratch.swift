@@ -7,46 +7,68 @@ import Numerics
 
 func createGeometry() -> [Entity] {
   // Create a flywheel-driven drive system structure.
-  //
-  // General process structure:
-  // - 1) Rough sketch
-  // - 2) Break into smaller parts that are manufacturable
-  // - 3) Add hydrogens and simulate
-  let germaniumCarbide = Lattice<Hexagonal> { h, k, l in
+  let backBoardLattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
-    Bounds { 2 * h + 100 * h2k + 2 * l }
-    Material { .checkerboard(.germanium, .carbon) }
-  }
-  var atoms = germaniumCarbide.atoms
-  
-  var minPosition: SIMD3<Float> = .init(repeating: .greatestFiniteMagnitude)
-  var maxPosition: SIMD3<Float> = .init(repeating: -.greatestFiniteMagnitude)
-  for atom in atoms {
-    let position = atom.position
-    minPosition.replace(with: position, where: position .< minPosition)
-    maxPosition.replace(with: position, where: position .> maxPosition)
-  }
-  
-  print(maxPosition - minPosition)
-  
-  var output: [Entity] = []
-  for spokeID in 0..<3 {
-    let angle = Float(spokeID) * 2 * Float.pi / 3
-    let rotation = Quaternion(angle: angle, axis: [0, 0, 1])
-    for var atom in atoms {
-      atom.position.x -= 0.28
-      atom.position = rotation.act(on: atom.position)
-      output.append(atom)
+    Bounds { 400 * h + 100 * h2k + 6 * l }
+    Material { .checkerboard(.silicon, .carbon) }
+    
+    Volume {
+      Origin { 90 * h + 50 * h2k }
+      
+      // Rightmost two triangles.
+      Concave {
+        Origin { 4 * h2k }
+        Origin { 3 * h }
+        Plane { h2k }
+        Plane { h - k }
+        
+        Origin { 70 * h }
+        Plane { -k - 2 * h }
+      }
+      Concave {
+        Origin { -4 * h2k }
+        Origin { 3 * h }
+        Plane { -h2k }
+        Plane { k + 2 * h }
+        
+        Origin { 70 * h }
+        Plane { k - h }
+      }
+      
+      // Leftmost two triangles.
+      Concave {
+        Origin { -80 * h }
+        Origin { 4 * h2k }
+        Origin { 3 * h }
+        Plane { h2k }
+        Plane { h - k }
+        
+        Origin { 70 * h }
+        Plane { -k - 2 * h }
+      }
+      Concave {
+        Origin { -80 * h }
+        Origin { -4 * h2k }
+        Origin { 3 * h }
+        Plane { -h2k }
+        Plane { k + 2 * h }
+        
+        Origin { 70 * h }
+        Plane { k - h }
+      }
+      
+      Replace { .empty }
     }
   }
   
-  let diamond = Lattice<Hexagonal> { h, k, l in
-    let h2k = h + 2 * k
-    Bounds { 2 * h + 100 * h2k + 2 * l }
-    Material { .checkerboard(.germanium, .carbon) }
+  var minPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+  var maxPosition = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+  for atom in backBoardLattice.atoms {
+    minPosition.replace(with: atom.position, where: atom.position .< minPosition)
+    maxPosition.replace(with: atom.position, where: atom.position .> maxPosition)
   }
-  atoms = diamond.atoms
+  print(maxPosition - minPosition)
+  print(backBoardLattice.atoms.count)
   
-  
-  return output
+  return backBoardLattice.atoms
 }
