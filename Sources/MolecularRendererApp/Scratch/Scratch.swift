@@ -6,7 +6,7 @@ import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
-  // Create a flywheel-driven drive system structure.
+  // Create a bearing 50 nanometers wide.
   let backBoardLattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
     Bounds { 400 * h + 100 * h2k + 6 * l }
@@ -15,60 +15,185 @@ func createGeometry() -> [Entity] {
     Volume {
       Origin { 90 * h + 50 * h2k }
       
-      // Rightmost two triangles.
-      Concave {
-        Origin { 4 * h2k }
-        Origin { 3 * h }
-        Plane { h2k }
-        Plane { h - k }
+      func createHexagon() {
+        var hexagonDirections: [SIMD3<Float>] = []
+        hexagonDirections.append(k + 2 * h)
+        hexagonDirections.append(h + 2 * k)
+        hexagonDirections.append(k - h)
+        hexagonDirections += hexagonDirections.map(-)
         
-        Origin { 70 * h }
-        Plane { -k - 2 * h }
-      }
-      Concave {
-        Origin { -4 * h2k }
-        Origin { 3 * h }
-        Plane { -h2k }
-        Plane { k + 2 * h }
-        
-        Origin { 70 * h }
-        Plane { k - h }
+        for directionID in hexagonDirections.indices {
+          let mainDirection = hexagonDirections[directionID]
+          Convex {
+            Origin { 43 * mainDirection }
+            Plane { mainDirection }
+          }
+          Concave {
+            let direction2 = hexagonDirections[(directionID + 1) % 6]
+            let direction3 = hexagonDirections[(directionID + 5) % 6]
+            Concave {
+              Origin { 35 * mainDirection }
+              Plane { -mainDirection }
+              Convex {
+                Origin { 10 * direction2 }
+                Plane { -direction2 }
+              }
+              Convex {
+                Origin { 10 * direction3 }
+                Plane { -direction3 }
+              }
+            }
+            Convex {
+              Origin { 4 * direction2 }
+              Plane { direction2 }
+            }
+            Convex {
+              Origin { 4 * direction3 }
+              Plane { direction3 }
+            }
+            Convex {
+              Origin { 11.5 * mainDirection }
+              Plane { mainDirection }
+            }
+          }
+        }
       }
       
-      // Leftmost two triangles.
       Concave {
-        Origin { -80 * h }
-        Origin { 4 * h2k }
-        Origin { 3 * h }
-        Plane { h2k }
-        Plane { h - k }
+        Convex {
+          createHexagon()
+        }
         
-        Origin { 70 * h }
-        Plane { -k - 2 * h }
-      }
-      Concave {
-        Origin { -80 * h }
-        Origin { -4 * h2k }
-        Origin { 3 * h }
-        Plane { -h2k }
-        Plane { k + 2 * h }
+        Convex {
+          Plane { -h }
+          Convex {
+            Origin { 4 * h2k }
+            Plane { h2k }
+          }
+          Convex {
+            Origin { -4 * h2k }
+            Plane { -h2k }
+          }
+        }
         
-        Origin { 70 * h }
-        Plane { k - h }
+        Convex {
+          Plane { -h2k }
+          Convex {
+            Origin { 86 * (k + h) }
+            Plane { h2k }
+            Plane { k + h + h2k / 3 }
+          }
+          
+          Concave {
+            Convex {
+              Origin { 86 * (k + h) }
+              Origin { -9 * (k + h + h2k / 3) }
+              Plane { -(k + h + h2k / 3) }
+            }
+            Convex {
+              Origin { 86 * (k + h) }
+              Plane { -k - 2 * h }
+              Origin { -30 * k }
+              Plane { -k + h }
+            }
+            Convex {
+              Origin { 171 * h }
+              Plane { k - h }
+            }
+            Convex {
+              Origin { 183 * h }
+              Plane { -k - 2 * h }
+            }
+          }
+        }
+        Convex {
+          Plane { h2k }
+          Convex {
+            Origin { 86 * (-k) }
+            Plane { -h2k }
+            Plane { -k - h2k / 3 }
+          }
+          
+          Concave {
+            Convex {
+              Origin { 86 * (-k) }
+              Origin { -9 * (-k - h2k / 3) }
+              Plane { -(-k - h2k / 3) }
+            }
+            Convex {
+              Origin { 86 * (-k) }
+              Plane { k - h }
+              Origin { -30 * (-k - h) }
+              Plane { k + 2 * h }
+            }
+            Convex {
+              Origin { 171 * h }
+              Plane { -k - 2 * h }
+            }
+            Convex {
+              Origin { 183 * h }
+              Plane { k - h }
+            }
+          }
+        }
       }
       
       Replace { .empty }
     }
   }
   
-  var minPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
-  var maxPosition = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
-  for atom in backBoardLattice.atoms {
-    minPosition.replace(with: atom.position, where: atom.position .< minPosition)
-    maxPosition.replace(with: atom.position, where: atom.position .> maxPosition)
+  var backBoardAtoms = backBoardLattice.atoms
+  var accumulator: SIMD3<Double> = .zero
+  var mass: Double = .zero
+  for atom in backBoardAtoms {
+    let atomMass = Float(atom.atomicNumber)
+    accumulator += SIMD3<Double>(atomMass * atom.position)
+    mass += Double(atomMass)
   }
-  print(maxPosition - minPosition)
-  print(backBoardLattice.atoms.count)
+  let centerOfMass = SIMD3<Float>(accumulator / mass)
+  for i in backBoardAtoms.indices {
+    backBoardAtoms[i].position -= centerOfMass
+  }
   
-  return backBoardLattice.atoms
+  var topology = Topology()
+  topology.insert(atoms: backBoardAtoms)
+  var reconstruction = SurfaceReconstruction()
+  reconstruction.material = .checkerboard(.silicon, .carbon)
+  reconstruction.topology = topology
+  reconstruction.removePathologicalAtoms()
+  reconstruction.createBulkAtomBonds()
+  reconstruction.createHydrogenSites()
+  reconstruction.resolveCollisions()
+  reconstruction.createHydrogenBonds()
+  topology = reconstruction.topology
+  topology.sort()
+  
+  // 2717 ms
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+  paramsDesc.bonds = topology.bonds
+  let parameters = try! MM4Parameters(descriptor: paramsDesc)
+  
+  // 11750 ms
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.parameters = parameters
+  forceFieldDesc.integrator = .multipleTimeStep
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  
+  // 11874 ms - 1 iteration
+  // 17745 ms - full minimization
+  // pausing development to optimize the forcefield initializer
+  forceField.positions = topology.atoms.map(\.position)
+  forceField.minimize()
+  for i in topology.atoms.indices {
+    topology.atoms[i].position = forceField.positions[i]
+  }
+  
+  return topology.atoms
+  
+//  var output: [[Entity]] = []
+//  for frameID in 0..<120 {
+//    // run an MD simulation of the structure
+//  }
+//  return output
 }
