@@ -4,8 +4,9 @@ import Foundation
 import HDL
 import MM4
 import Numerics
+import OpenMM
 
-func createGeometry() -> [Entity] {
+func createGeometry() -> [[Entity]] {
   // Create a bearing 50 nanometers wide.
   let backBoardLattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
@@ -155,6 +156,9 @@ func createGeometry() -> [Entity] {
     backBoardAtoms[i].position -= centerOfMass
   }
   
+  // 115 ms
+  
+  // 468 ms
   var topology = Topology()
   topology.insert(atoms: backBoardAtoms)
   var reconstruction = SurfaceReconstruction()
@@ -179,21 +183,30 @@ func createGeometry() -> [Entity] {
   forceFieldDesc.parameters = parameters
   forceFieldDesc.integrator = .multipleTimeStep
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  forceField.positions = topology.atoms.map(\.position)
   
   // 11874 ms - 1 iteration
   // 17745 ms - full minimization
-  // pausing development to optimize the forcefield initializer
-  forceField.positions = topology.atoms.map(\.position)
-  forceField.minimize()
-  for i in topology.atoms.indices {
-    topology.atoms[i].position = forceField.positions[i]
-  }
-  
-  return topology.atoms
-  
-//  var output: [[Entity]] = []
-//  for frameID in 0..<120 {
-//    // run an MD simulation of the structure
+//  forceField.minimize()
+//  for i in topology.atoms.indices {
+//    topology.atoms[i].position = forceField.positions[i]
 //  }
-//  return output
+  
+  var output: [[Entity]] = []
+  for frameID in 0...120 {
+    // run an MD simulation of the structure
+    print("frame \(frameID)")
+    if frameID > 0 {
+      forceField.simulate(time: 0.010)
+    }
+    
+    var frame: [Entity] = []
+    for atomID in topology.atoms.indices {
+      var atom = topology.atoms[atomID]
+      atom.position = forceField.positions[atomID]
+      frame.append(atom)
+    }
+    output.append(frame)
+  }
+  return output
 }
