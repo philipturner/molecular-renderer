@@ -6,7 +6,7 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [[Entity]] {
+func createGeometry() -> [Entity] {
   // Create a bearing 50 nanometers wide.
   let backBoardLattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
@@ -181,9 +181,83 @@ func createGeometry() -> [[Entity]] {
   // 11750 ms
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.parameters = parameters
-  forceFieldDesc.integrator = .multipleTimeStep
+  forceFieldDesc.integrator = .verlet
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   forceField.positions = topology.atoms.map(\.position)
+  _ = forceField.forces
+  print(forceField.energy.kinetic)
+  print(forceField.energy.potential)
+  
+  /*
+   0.0
+   -82574540.5
+   atoms: 636834
+   compile time: 11508.8 ms
+   
+   0.0
+   -82574541.0
+   atoms: 636834
+   compile time: 11643.4 ms
+   
+   0.0
+   -82574540.5
+   atoms: 636834
+   compile time: 11501.6 ms
+   */
+  
+  /*
+   0.0
+   -82574540.5
+   atoms: 636834
+   compile time: 11457.7 ms
+   */
+  
+  /*
+   0.0
+   -5648576.0625
+   atoms: 636834
+   compile time: 11376.1 ms
+   */
+  
+  /*
+   0.0
+   -82574538.5
+   atoms: 636834
+   compile time: 11472.7 ms
+   
+   0.0
+   -82574541.5
+   atoms: 636834
+   compile time: 11172.1 ms
+   
+   0.0
+   -82574540.0
+   atoms: 636834
+   compile time: 1124
+   
+   0.0
+   -82574540.0
+   atoms: 636834
+   compile time: 11067.7 ms
+   */
+  
+  // Does the original code ever produce 40.0 or 38.5?
+  
+  /*
+   0.0
+   -82574538.5
+   atoms: 636834
+   compile time: 11534.1 ms
+   
+   0.0
+   -82574540.0
+   atoms: 636834
+   compile time: 11461.1 ms
+   */
+  
+  return topology.atoms
+  
+  /*
   
   // 11874 ms - 1 iteration
   // 17745 ms - full minimization
@@ -209,4 +283,5 @@ func createGeometry() -> [[Entity]] {
     output.append(frame)
   }
   return output
+   */
 }
