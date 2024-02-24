@@ -7,7 +7,7 @@ import Numerics
 import OpenMM
 
 func createGeometry() -> [Entity] {
-  // Sketch all of the moving parts for a flywheel drive system, without the
-  // housing. It's okay if each part is a solid, unmanufacturable piece.
+  // Smaller test system: full adder driven by the signal source. Should have
+  // an interface for inputs and an interface for outputs.
   return [Entity(position: .zero, type: .atom(.carbon))]
 }
