@@ -1538,7 +1538,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/philipturner/MM4";
 			requirement = {
-				branch = "optimize-force-field-init";
+				branch = main;
 				kind = branch;
 			};
 		};

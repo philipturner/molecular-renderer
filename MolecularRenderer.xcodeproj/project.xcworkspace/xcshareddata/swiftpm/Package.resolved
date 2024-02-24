@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
-        "branch" : "optimize-force-field-init",
-        "revision" : "b476869c2d6470cac3c6862327e79945165c0149"
+        "branch" : "main",
+        "revision" : "b73d120cee43f0997ab34f55710c47d859cc7349"
       }
     },
     {
