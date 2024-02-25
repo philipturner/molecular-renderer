@@ -13,6 +13,7 @@ import OpenMM
 
 struct DriveWall {
   var topology = Topology()
+  var rigidBody: MM4RigidBody?
   
   init() {
     topology.atoms = createLattice().atoms

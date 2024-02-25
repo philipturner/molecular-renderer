@@ -20,6 +20,7 @@ struct Rod {
   var topology = Topology()
   var xIndex: Int
   var yIndex: Int
+  var rigidBody: MM4RigidBody?
   
   init(descriptor: RodDescriptor) {
     guard let xIndex = descriptor.xIndex,
