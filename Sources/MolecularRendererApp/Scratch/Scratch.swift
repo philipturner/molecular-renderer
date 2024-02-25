@@ -12,69 +12,19 @@ func createGeometry() -> [Entity] {
   // the full ALU. Measure how short the switching time can be.
   // - Take at least one screenshot to document this experiment.
   
-  // MARK: - Compile Parts
+  var system = System()
+  system.minimize()
+  system.initializeRigidBodies()
   
-  let housing = Housing()
-  var rods: [Rod] = []
-  for xIndex in 0..<2 {
-    for yIndex in 0..<2 {
-      var descriptor = RodDescriptor()
-      descriptor.xIndex = xIndex
-      descriptor.yIndex = yIndex
-      let rod = Rod(descriptor: descriptor)
-      rods.append(rod)
-    }
-  }
-  let driveWall = DriveWall()
+  // Start with a short rigid body dynamics simulation, with the housing and
+  // drive wall positionally constrained. Test whether the rods fall into their
+  // lowest-energy state.
   
-  // MARK: - Other Setup
+  // Demonstrate rigid body energy minimization with FIRE. This is a proof of
+  // concept for the DFT simulator. Use INQ as a reference, then incorporate the
+  // improvements from FIRE 2.0 and ABC.
   
-  var topologies: [Topology] = []
-  topologies.append(housing.topology)
-  for rod in rods {
-    topologies.append(rod.topology)
-  }
-  topologies.append(driveWall.topology)
-  
-  var systemAtoms: [Entity] = []
-  for topology in topologies {
-    systemAtoms += topology.atoms
-  }
-  
-  let minimizer = createMinimizer(topologies: topologies)
-  minimizer.positions = systemAtoms.map(\.position)
-  minimizer.minimize()
-  for i in systemAtoms.indices {
-    let position = minimizer.positions[i]
-    systemAtoms[i].position = position
-  }
-  
-  return systemAtoms
-}
-
-func createMinimizer(topologies: [Topology]) -> MM4ForceField {
-  var emptyParamsDesc = MM4ParametersDescriptor()
-  emptyParamsDesc.atomicNumbers = []
-  emptyParamsDesc.bonds = []
-  var systemParameters = try! MM4Parameters(descriptor: emptyParamsDesc)
-  
-  for topology in topologies {
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    var parameters = try! MM4Parameters(descriptor: paramsDesc)
-    for i in parameters.atoms.indices {
-      if parameters.atoms.ringTypes[i] == 5 {
-        // pass
-      } else if parameters.atoms.centerTypes[i] == .quaternary {
-        parameters.atoms.masses[i] = 0
-      }
-    }
-    systemParameters.append(contentsOf: parameters)
-  }
-  
-  var forceFieldDesc = MM4ForceFieldDescriptor()
-  forceFieldDesc.parameters = systemParameters
-  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-  return forceField
+  let topologies = system.getTopologies()
+  let output = topologies.flatMap(\.atoms)
+  return output
 }
