@@ -58,196 +58,110 @@ func createGeometry() -> [[Entity]] {
     return output
   }
   
-  let step: Float = 0.001
-  let tolforce: Float = 1 // 1 pN
-  
-  var alphaStart: Float = 0.1
-  var dt: Float = step
-  var alpha: Float = alphaStart
-  var pTimes: Int = 0
-  var fAlpha: Float = 0.99
-  var nMin: Int = 5
-  var fInc: Float = 1.1
-  var dtMax: Float = 10 * dt
-  var fDec: Float = 0.5
-  
-  var oldXX = rigidBodies
-  var oldPValue: Float = 0
-  var pValue: Float = 0
+  let ΔtStart: Double = 0.040
+  let ΔtMax: Double = 10 * ΔtStart
+  let αStart: Double = 0.1
+  var Δt: Double = ΔtStart
+  var α: Double = αStart
   
   var frames: [[Entity]] = []
   frames.append(createFrame(rigidBodies: rigidBodies))
-  for frameID in 0..<600 {
+  for frameID in 0..<500 {
+    // Record which frame this is.
     forceField.positions = rigidBodies.flatMap(\.positions)
     print("frame: \(frameID)")
     
-    /*
-     auto force = func(xx);
-     old_p_value = p_value;
-     */
+    // Assign forces.
     let forces = forceField.forces
-    oldPValue = pValue
-    var linearForces: [SIMD3<Double>] = []
-    var linearVelocities: [SIMD3<Double>] = []
-    // NOTE: Leaving angular velocities out of the integrator. It requires
-    // extra effort to track rotations from the previous timestep and
-    // interpolate those rotations.
-    
     var cursor = 0
     for rigidBodyID in rigidBodies.indices {
       let spacing = rigidBodies[rigidBodyID].parameters.atoms.count
       let range = cursor..<(cursor + spacing)
       cursor += spacing
-      
-      var copy = rigidBodies[rigidBodyID]
-      copy.forces = Array(forces[range])
-      
-      /*
-       p_value = operations::sum(force, vel, [](auto fo, auto ve) { return dot(fo, ve);});
-       */
-      var linearForce = copy.netForce!
-      var linearVelocity = copy.linearMomentum / copy.mass
-      pValue += Float((linearForce * linearVelocity).sum())
-      
-      
-      
-      /*
-       auto norm_vel = operations::sum(vel, [](auto xx) { return norm(xx); });
-       auto norm_force = operations::sum(force, [](auto xx) { return norm(xx); });
-       */
-      let normLinearForce = (linearForce * linearForce)
-        .sum().squareRoot()
-      let normLinearVelocity = (linearVelocity * linearVelocity)
-        .sum().squareRoot()
-      
-      /*
-       for(auto ii = 0; ii < vel.size(); ii++) vel[ii] = (1.0 - alpha)*vel[ii] + alpha*force[ii]*sqrt(norm_vel/norm_force);
-       */
-      let linearForceAligned = linearForce * (
-        normLinearVelocity / normLinearForce).squareRoot()
-      linearVelocity = Double(1 - alpha) * linearVelocity
-      + Double(alpha) * linearForceAligned
-      
-      linearForces.append(linearForce)
-      linearVelocities.append(linearVelocity)
+      rigidBodies[rigidBodyID].forces = Array(forces[range])
     }
     
-    /*
-     if(p_times == 0 or p_value > 0.0) {
-       if(p_times > n_min) {
-         dt = std::min(dt*f_inc, dt_max);
-         alpha *= f_alpha;
-       }
-
-       p_times++;
-     } else {
-     */
-    if pTimes == 0 || pValue > 0 {
-      if pTimes > nMin {
-        dt = min(dt * fInc, dtMax)
-        alpha *= fAlpha
+    // Calculate P <- F * v.
+    var P: Double = .zero
+    for rigidBody in rigidBodies {
+      let v = rigidBody.linearMomentum / rigidBody.mass
+      let w = rigidBody.angularMomentum / rigidBody.momentOfInertia
+      P += (rigidBody.netForce! * v).sum()
+      P += (rigidBody.netTorque! * w).sum()
+    }
+    
+    // Branch on the value of P.
+    var vLinear: [SIMD3<Double>] = []
+    var vAngular: [SIMD3<Double>] = []
+    if P < 0 {
+      print("restart")
+      for _ in rigidBodies.indices {
+        vLinear.append(.zero)
+        vAngular.append(.zero)
       }
-      pTimes += 1
+      
+      Δt = Δt * 0.5
+      α = αStart
     } else {
-      /*
-       p_times = 0;
-       dt *= f_dec;
-       alpha = alpha_start;
-
-       auto den = old_p_value - p_value;
-       auto c0 = -p_value/den;
-       auto c1 = old_p_value/den;
-
-       if(fabs(den) < 1e-16) c0 = c1 = 0.5;
-       */
-      pTimes = 0
-      dt *= fDec
-      alpha = alphaStart
-      
-      #if false
-      let den = oldPValue - pValue
-      var c0 = -pValue / den
-      var c1 = oldPValue / den
-      
-      if den.magnitude < 1e-16 {
-        c0 = 0.5
-        c1 = 0.5
-      }
-      
-      /*
-       for(auto ii = 0; ii < vel.size(); ii++) {
-         xx[ii] = c0*old_xx[ii] + c1*xx[ii];
-         vel[ii] = vector3{0.0, 0.0, 0.0};
-       }
-       
-       continue;
-       */
-      for rigidBodyID in rigidBodies.indices {
-        if rigidBodyID == 0 && rigidBodyID == 5 {
-          continue
+      for rigidBody in rigidBodies {
+        var v = rigidBody.linearMomentum / rigidBody.mass
+        var w = rigidBody.angularMomentum / rigidBody.momentOfInertia
+        let f = rigidBody.netForce!
+        let τ = rigidBody.netTorque!
+        
+        let vNorm = (v * v).sum().squareRoot()
+        let fNorm = (f * f).sum().squareRoot()
+        var forceScale = vNorm / fNorm
+        if forceScale.isNaN || forceScale.isInfinite {
+          forceScale = .zero
         }
         
-        let value1 = oldXX[rigidBodyID].centerOfMass
-        let value2 = rigidBodies[rigidBodyID].centerOfMass
-        rigidBodies[rigidBodyID].centerOfMass = Double(c0) * oldXX[rigidBodyID].centerOfMass + Double(c1) * rigidBodies[rigidBodyID].centerOfMass
-        rigidBodies[rigidBodyID].linearMomentum = .zero
+        let wNorm = (w * w).sum().squareRoot()
+        let τNorm = (τ * τ).sum().squareRoot()
+        var torqueScale = wNorm / τNorm
+        if torqueScale.isNaN || torqueScale.isInfinite {
+          torqueScale = .zero
+        }
         
-        let value3 = rigidBodies[rigidBodyID].centerOfMass
-//        print("combined: \(value1), \(value2) -> \(value3)")
-      }
-      #endif
-      
-      rigidBodies = oldXX
-      for i in rigidBodies.indices {
-        rigidBodies[i].linearMomentum = .zero
-        oldXX[i].linearMomentum = .zero
+        v = (1 - α) * v + α * f * forceScale
+        w = (1 - α) * w + α * τ * torqueScale
+        vLinear.append(v)
+        vAngular.append(w)
       }
       
-      frames.append(createFrame(rigidBodies: rigidBodies))
-      #if false
-      print("c0:", c0)
-      print("c1:", c1)
-      #endif
-      print("continue")
-      continue
+      Δt = min(Δt * 1.1, ΔtMax)
+      α *= 0.99
+      print("Δt:", Δt, "α:", α)
     }
     
-    /*
-     auto max_force = 0.0;
-     for(auto ii = 0; ii < force.size(); ii++) max_force = std::max(max_force, fabs(force[ii]));
-     if(max_force < tolforce) break;
-     */
-    var maxForce: Float = .zero
-    for linearForce in linearForces {
-      let normLinearForce = (linearForce * linearForce)
-        .sum().squareRoot()
-      maxForce = max(maxForce, Float(normLinearForce))
+    // Perform MD integration.
+    for rigidBodyID in rigidBodies.indices {
+      var copy = rigidBodies[rigidBodyID]
+      let p = vLinear[rigidBodyID] * copy.mass
+      let L = vAngular[rigidBodyID] * copy.momentOfInertia
+      copy.linearMomentum = p + Δt * copy.netForce!
+      copy.angularMomentum = L + Δt * copy.netTorque!
+      
+      if rigidBodyID == 0 || rigidBodyID == 5 {
+        copy.linearMomentum = .zero
+        copy.angularMomentum = .zero
+      }
+      
+      let linearVelocity = copy.linearMomentum / copy.mass
+      let angularVelocity = copy.angularMomentum / copy.momentOfInertia
+      let angularSpeed = (angularVelocity * angularVelocity).sum().squareRoot()
+      copy.centerOfMass += Δt * linearVelocity
+      copy.rotate(angle: Δt * angularSpeed)
+      rigidBodies[rigidBodyID] = copy
     }
-    print("max force: \(maxForce)")
-    if maxForce < tolforce {
-      print("break")
+    
+    // Display the current positions.
+    frames.append(createFrame(rigidBodies: rigidBodies))
+    
+    if Δt < 0.001 {
+      print("converged")
       break
     }
-    
-    /*
-     for(auto ii = 0; ii < vel.size(); ii++) {
-       vel[ii] += force[ii]*dt/mass;
-       old_xx[ii] = xx[ii];
-       xx[ii]  += vel[ii]*dt;
-     }
-     */
-    for rigidBodyID in rigidBodies.indices {
-      var linearVelocity = linearVelocities[rigidBodyID]
-      let linearForce = linearForces[rigidBodyID]
-      let mass = rigidBodies[rigidBodyID].mass
-      linearVelocity += linearForce * Double(dt) / mass
-      rigidBodies[rigidBodyID].linearMomentum = linearVelocity * mass
-      
-      oldXX[rigidBodyID] = rigidBodies[rigidBodyID]
-      rigidBodies[rigidBodyID].centerOfMass += linearVelocity * Double(dt)
-    }
-    
-    frames.append(createFrame(rigidBodies: rigidBodies))
   }
   
   // Demonstrate rigid body energy minimization with FIRE. This is a proof of
