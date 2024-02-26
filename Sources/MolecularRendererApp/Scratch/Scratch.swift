@@ -59,10 +59,10 @@ func createGeometry() -> [[Entity]] {
   }
   
   let ΔtStart: Double = 0.040
-  let ΔtMax: Double = 10 * ΔtStart
-  let αStart: Double = 0.1
+  let αStart: Double = 0.25
   var Δt: Double = ΔtStart
   var α: Double = αStart
+  var NP0: Int = 0
   
   var frames: [[Entity]] = []
   frames.append(createFrame(rigidBodies: rigidBodies))
@@ -91,77 +91,73 @@ func createGeometry() -> [[Entity]] {
     }
     
     // Branch on the value of P.
-    var vLinear: [SIMD3<Double>] = []
-    var vAngular: [SIMD3<Double>] = []
     if P < 0 {
       print("restart")
-      for _ in rigidBodies.indices {
-        vLinear.append(.zero)
-        vAngular.append(.zero)
+      for rigidBodyID in rigidBodies.indices {
+        rigidBodies[rigidBodyID].linearMomentum = .zero
+        rigidBodies[rigidBodyID].angularMomentum = .zero
       }
       
-      Δt = Δt * 0.5
+      NP0 = 0
+      Δt = max(Δt * 0.5, ΔtStart * 0.02)
       α = αStart
     } else {
-      for rigidBody in rigidBodies {
-        var v = rigidBody.linearMomentum / rigidBody.mass
-        var w = rigidBody.angularMomentum / rigidBody.momentOfInertia
-        let f = rigidBody.netForce!
-        let τ = rigidBody.netTorque!
-        
-        let vNorm = (v * v).sum().squareRoot()
-        let fNorm = (f * f).sum().squareRoot()
-        var forceScale = vNorm / fNorm
-        if forceScale.isNaN || forceScale.isInfinite {
-          forceScale = .zero
-        }
-        
-        let wNorm = (w * w).sum().squareRoot()
-        let τNorm = (τ * τ).sum().squareRoot()
-        var torqueScale = wNorm / τNorm
-        if torqueScale.isNaN || torqueScale.isInfinite {
-          torqueScale = .zero
-        }
-        
-        v = (1 - α) * v + α * f * forceScale
-        w = (1 - α) * w + α * τ * torqueScale
-        vLinear.append(v)
-        vAngular.append(w)
+      NP0 += 1
+      if NP0 > 20 {
+        Δt = min(Δt * 1.1, ΔtStart * 10)
+        α *= 0.99
       }
-      
-      Δt = min(Δt * 1.1, ΔtMax)
-      α *= 0.99
       print("Δt:", Δt, "α:", α)
     }
     
     // Perform MD integration.
     for rigidBodyID in rigidBodies.indices {
       var copy = rigidBodies[rigidBodyID]
-      let p = vLinear[rigidBodyID] * copy.mass
-      let L = vAngular[rigidBodyID] * copy.momentOfInertia
-      copy.linearMomentum = p + Δt * copy.netForce!
-      copy.angularMomentum = L + Δt * copy.netTorque!
+      defer {
+        rigidBodies[rigidBodyID] = copy
+      }
       
+      var v = copy.linearMomentum / copy.mass
+      var w = copy.angularMomentum / copy.momentOfInertia
+      let f = copy.netForce!
+      let τ = copy.netTorque!
+      
+      let vNorm = (v * v).sum().squareRoot()
+      let fNorm = (f * f).sum().squareRoot()
+      var forceScale = vNorm / fNorm
+      if forceScale.isNaN || forceScale.isInfinite {
+        forceScale = .zero
+      }
+      
+      let wNorm = (w * w).sum().squareRoot()
+      let τNorm = (τ * τ).sum().squareRoot()
+      var torqueScale = wNorm / τNorm
+      if torqueScale.isNaN || torqueScale.isInfinite {
+        torqueScale = .zero
+      }
+      
+      // Semi-Implicit Euler Integration
+      v += Δt * copy.netForce! / copy.mass
+      w += Δt * copy.netTorque! / copy.momentOfInertia
+      v = (1 - α) * v + α * f * forceScale
+      w = (1 - α) * w + α * τ * torqueScale
+      
+      // Regular MD integration.
+      copy.linearMomentum = v * copy.mass
+      copy.angularMomentum = w * copy.momentOfInertia
       if rigidBodyID == 0 || rigidBodyID == 5 {
         copy.linearMomentum = .zero
         copy.angularMomentum = .zero
       }
-      
       let linearVelocity = copy.linearMomentum / copy.mass
       let angularVelocity = copy.angularMomentum / copy.momentOfInertia
       let angularSpeed = (angularVelocity * angularVelocity).sum().squareRoot()
       copy.centerOfMass += Δt * linearVelocity
       copy.rotate(angle: Δt * angularSpeed)
-      rigidBodies[rigidBodyID] = copy
     }
     
     // Display the current positions.
     frames.append(createFrame(rigidBodies: rigidBodies))
-    
-    if Δt < 0.001 {
-      print("converged")
-      break
-    }
   }
   
   // Demonstrate rigid body energy minimization with FIRE. This is a proof of
