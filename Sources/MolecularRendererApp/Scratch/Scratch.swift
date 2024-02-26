@@ -58,18 +58,24 @@ func createGeometry() -> [[Entity]] {
     return output
   }
   
+  let ΔtMin: Double = 0.002
   let ΔtStart: Double = 0.040
-  let αStart: Double = 0.25
+  let ΔtMax: Double = 0.400
   var Δt: Double = ΔtStart
-  var α: Double = αStart
   var NP0: Int = 0
+  var oldRigidBodies: [MM4RigidBody]?
   
+  // Demonstrate rigid body energy minimization with FIRE. This is a proof of
+  // concept for the DFT simulator. Use INQ as a reference, then incorporate the
+  // improvements from FIRE 2.0 and ABC.
   var frames: [[Entity]] = []
   frames.append(createFrame(rigidBodies: rigidBodies))
-  for frameID in 0..<500 {
+  for frameID in 0..<5000 {
     // Record which frame this is.
     forceField.positions = rigidBodies.flatMap(\.positions)
-    print("frame: \(frameID)")
+    if frameID % 10 == 0 {
+      print("frame: \(frameID)")
+    }
     
     // Assign forces.
     let forces = forceField.forces
@@ -90,27 +96,45 @@ func createGeometry() -> [[Entity]] {
       P += (rigidBody.netTorque! * w).sum()
     }
     
+    // Save the forces, as they'll become 'nil' when the position resets.
+    let netForces = rigidBodies.map { $0.netForce! }
+    let netTorques = rigidBodies.map { $0.netTorque! }
+    let maxForce = netForces[1...4].map {
+      ($0 * $0).sum().squareRoot()
+    }.max()!
+    let maxTorque = netTorques[1...4].map {
+      ($0 * $0).sum().squareRoot()
+    }.max()!
+    if maxForce < 1 && maxTorque < 1 {
+      print("converged after \(frameID) iterations")
+      break
+    }
+    
     // Branch on the value of P.
     if P < 0 {
       print("restart")
-      for rigidBodyID in rigidBodies.indices {
-        rigidBodies[rigidBodyID].linearMomentum = .zero
-        rigidBodies[rigidBodyID].angularMomentum = .zero
+      if let oldRigidBodies {
+        // FIRE 2.0 correction.
+        rigidBodies = oldRigidBodies
+      } else {
+        for rigidBodyID in rigidBodies.indices {
+          rigidBodies[rigidBodyID].linearMomentum = .zero
+          rigidBodies[rigidBodyID].angularMomentum = .zero
+        }
       }
       
       NP0 = 0
-      Δt = max(Δt * 0.5, ΔtStart * 0.02)
-      α = αStart
+      Δt = max(Δt * 0.5, ΔtMin)
     } else {
       NP0 += 1
-      if NP0 > 20 {
-        Δt = min(Δt * 1.1, ΔtStart * 10)
-        α *= 0.99
+      if NP0 > 5 {
+        Δt = min(Δt * 1.1, ΔtMax)
       }
-      print("Δt:", Δt, "α:", α)
     }
     
+    
     // Perform MD integration.
+    oldRigidBodies = []
     for rigidBodyID in rigidBodies.indices {
       var copy = rigidBodies[rigidBodyID]
       defer {
@@ -119,8 +143,8 @@ func createGeometry() -> [[Entity]] {
       
       var v = copy.linearMomentum / copy.mass
       var w = copy.angularMomentum / copy.momentOfInertia
-      let f = copy.netForce!
-      let τ = copy.netTorque!
+      let f = netForces[rigidBodyID]
+      let τ = netTorques[rigidBodyID]
       
       let vNorm = (v * v).sum().squareRoot()
       let fNorm = (f * f).sum().squareRoot()
@@ -136,11 +160,21 @@ func createGeometry() -> [[Entity]] {
         torqueScale = .zero
       }
       
-      // Semi-Implicit Euler Integration
-      v += Δt * copy.netForce! / copy.mass
-      w += Δt * copy.netTorque! / copy.momentOfInertia
+      // Semi-implicit Euler integration.
+      let α: Double = 0.25
+      v += Δt * f / copy.mass
+      w += Δt * τ / copy.momentOfInertia
       v = (1 - α) * v + α * f * forceScale
       w = (1 - α) * w + α * τ * torqueScale
+      
+      // Accelerated bias correction.
+      if NP0 > 0 {
+        var biasCorrection = 1 - α
+        biasCorrection = Double.pow(biasCorrection, Double(NP0))
+        biasCorrection = 1 / (1 - biasCorrection)
+        v *= biasCorrection
+        w *= biasCorrection
+      }
       
       // Regular MD integration.
       copy.linearMomentum = v * copy.mass
@@ -154,85 +188,21 @@ func createGeometry() -> [[Entity]] {
       let angularSpeed = (angularVelocity * angularVelocity).sum().squareRoot()
       copy.centerOfMass += Δt * linearVelocity
       copy.rotate(angle: Δt * angularSpeed)
+      
+      // Save the rigid bodies for the next iteration at this checkpoint.
+      var oldRigidBody = rigidBodies[rigidBodyID]
+      oldRigidBody.linearMomentum = copy.linearMomentum
+      oldRigidBody.angularMomentum = copy.angularMomentum
+      oldRigidBody.centerOfMass += 0.5 * Δt * linearVelocity
+      oldRigidBody.rotate(angle: 0.5 * Δt * angularSpeed)
+      oldRigidBody.linearMomentum = .zero
+      oldRigidBody.angularMomentum = .zero
+      oldRigidBodies!.append(oldRigidBody)
     }
     
     // Display the current positions.
     frames.append(createFrame(rigidBodies: rigidBodies))
   }
-  
-  // Demonstrate rigid body energy minimization with FIRE. This is a proof of
-  // concept for the DFT simulator. Use INQ as a reference, then incorporate the
-  // improvements from FIRE 2.0 and ABC.
-  
-  /*
-     auto alpha_start = 0.1;
-     auto dt = step;
-     auto alpha = alpha_start;
-     auto p_times = 0;
-     auto f_alpha = 0.99;
-     auto n_min = 5;
-     auto f_inc = 1.1;
-     auto dt_max = 10.0*dt;
-     auto f_dec = 0.5;
-     auto const mass = 1.0;
-     auto const maxiter = 200;
-
-     auto old_xx = xx;
-     auto old_p_value = 0.0;
-     auto p_value = 0.0;
-     
-     auto vel = ArrayType(xx.size(), {0.0, 0.0, 0.0});
-     for(int iiter = 0; iiter < maxiter; iiter++){
-
-       auto force = func(xx);
-       old_p_value = p_value;
-       p_value = operations::sum(force, vel, [](auto fo, auto ve) { return dot(fo, ve);});
-
-       auto norm_vel = operations::sum(vel, [](auto xx) { return norm(xx); });
-       auto norm_force = operations::sum(force, [](auto xx) { return norm(xx); });
-       for(auto ii = 0; ii < vel.size(); ii++) vel[ii] = (1.0 - alpha)*vel[ii] + alpha*force[ii]*sqrt(norm_vel/norm_force);
-         
-       if(p_times == 0 or p_value > 0.0) {
-         if(p_times > n_min) {
-           dt = std::min(dt*f_inc, dt_max);
-           alpha *= f_alpha;
-         }
-
-         p_times++;
-       } else {
-         
-         p_times = 0;
-         dt *= f_dec;
-         alpha = alpha_start;
-
-         auto den = old_p_value - p_value;
-         auto c0 = -p_value/den;
-         auto c1 = old_p_value/den;
-
-         if(fabs(den) < 1e-16) c0 = c1 = 0.5;
-         
-         for(auto ii = 0; ii < vel.size(); ii++) {
-           xx[ii] = c0*old_xx[ii] + c1*xx[ii];
-           vel[ii] = vector3{0.0, 0.0, 0.0};
-         }
-         
-         continue;
-
-       }
-
-       auto max_force = 0.0;
-       for(auto ii = 0; ii < force.size(); ii++) max_force = std::max(max_force, fabs(force[ii]));
-       if(max_force < tolforce) break;
-       
-       for(auto ii = 0; ii < vel.size(); ii++) {
-         vel[ii] += force[ii]*dt/mass;
-         old_xx[ii] = xx[ii];
-         xx[ii]  += vel[ii]*dt;
-       }
-       
-     }
-
-   */
   
   return frames
 }
