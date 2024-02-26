@@ -44,6 +44,9 @@ struct FIRE {
   /// Required. The torque tolerance for convergence.
   var torqueTolerance: Double = 1
   
+  /// Cached MM4ForceField, generated during minimization.
+  var forceField: MM4ForceField?
+  
   init() {
     
   }
@@ -81,7 +84,7 @@ struct FIRE {
   
   @discardableResult
   mutating func minimize() -> FIREResult {
-    let forceField = createForceField()
+    forceField = createForceField()
     var result = FIREResult()
     
     var Δt: Double = ΔtStart
@@ -90,11 +93,11 @@ struct FIRE {
     
     result.frames.append(createFrame())
     for frameID in 0..<maxIterations {
-      // Record which frame this is.
-      forceField.positions = rigidBodies.flatMap(\.positions)
+      // Update the positions in the forcefield.
+      forceField!.positions = rigidBodies.flatMap(\.positions)
       
       // Assign forces.
-      let forces = forceField.forces
+      let forces = forceField!.forces
       var cursor = 0
       for rigidBodyID in rigidBodies.indices {
         let spacing = rigidBodies[rigidBodyID].parameters.atoms.count
