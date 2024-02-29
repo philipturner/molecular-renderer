@@ -30,6 +30,7 @@ func createGeometry() -> [Entity] {
      * number of atoms, atomic number, total charge, multiplicity
      * and boundary conditions.
     **/
+  
   var env: xtb_TEnvironment = xtb_newEnvironment()
   exit(0)
 }
