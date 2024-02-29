@@ -43,7 +43,7 @@ func createGeometry() -> [[Entity]] {
   
   var movedPosition: Double = .zero
   var reversedDirection = false
-  for frameID in 0..<1500 {
+  for frameID in 0..<1600 {
     // Update the positions in the forcefield.
     forceField.positions = rigidBodies.flatMap(\.positions)
     
@@ -65,8 +65,8 @@ func createGeometry() -> [[Entity]] {
         
         // Dampen the kinetic energy, emulating thermal energy dissipation from
         // bonded forces.
-        rigidBodies[i].linearMomentum *= 0.95
-        rigidBodies[i].angularMomentum *= 0.95
+        rigidBodies[i].linearMomentum *= 0.98
+        rigidBodies[i].angularMomentum *= 0.98
         
         let v = rigidBodies[i].linearMomentum / rigidBodies[i].mass
         let w = rigidBodies[i].angularMomentum / rigidBodies[i].momentOfInertia
@@ -74,7 +74,7 @@ func createGeometry() -> [[Entity]] {
         rigidBodies[i].centerOfMass += 0.040 * v
         rigidBodies[i].rotate(angle: 0.040 * angularSpeed)
       } else if i == 5 {
-        let v: Double = 0.050
+        let v: Double = 0.100
         if reversedDirection {
           rigidBodies[i].centerOfMass.y -= 0.040 * v
         } else {
