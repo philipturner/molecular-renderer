@@ -4,7 +4,6 @@ import Foundation
 import HDL
 import MM4
 import Numerics
-import xtb
 
 func createGeometry() -> [Entity] {
   var energy: Double = 0
@@ -22,6 +21,7 @@ func createGeometry() -> [Entity] {
     0.00000000000000, 0.00000000000000, 5.23010455462158
   ]
   
+  
   /*
      * All objects except for the molecular structure can be
      * constructued without other objects present.
@@ -31,6 +31,12 @@ func createGeometry() -> [Entity] {
      * and boundary conditions.
     **/
   
+  XTBLibrary.loadLibrary(
+    path: "/opt/homebrew/Cellar/xtb/6.6.1/lib/libxtb.6.dylib")
+  
+  print(xtb_getAPIVersion())
   var env: xtb_TEnvironment = xtb_newEnvironment()
+  var calc: xtb_TCalculator = xtb_newCalculator()
+  print(env)
   exit(0)
 }
