@@ -19,6 +19,8 @@
 		9818223E2AE56D57009CFAA8 /* KeyCodes in Frameworks */ = {isa = PBXBuildFile; productRef = 9818223D2AE56D57009CFAA8 /* KeyCodes */; };
 		981822412AE56D5E009CFAA8 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 981822402AE56D5E009CFAA8 /* Atomics */; };
 		981822552AE574C0009CFAA8 /* OpenMM in Frameworks */ = {isa = PBXBuildFile; productRef = 981822542AE574C0009CFAA8 /* OpenMM */; };
+		981897EE2B91119A00013D4C /* libxtb.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981897ED2B91119A00013D4C /* libxtb.dylib */; };
+		981897EF2B91119A00013D4C /* libxtb.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981897ED2B91119A00013D4C /* libxtb.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFEF29ECAE36009904A2 /* CrosshairView.swift */; };
 		981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF129ECAF24009904A2 /* Coordinator.swift */; };
 		981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981FCFF329EF52E9009904A2 /* PlayerState.swift */; };
@@ -86,6 +88,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				981897EF2B91119A00013D4C /* libxtb.dylib in Embed Libraries */,
 				98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */,
 				981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */,
 			);
@@ -112,6 +115,10 @@
 		9816EFA52AC4B9790042073F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9816EFAD2AC501630042073F /* Ring_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image2.jpg; sourceTree = "<group>"; };
 		9816EFAE2AC501630042073F /* Ring_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Ring_Image1.jpg; sourceTree = "<group>"; };
+		981897E62B910FE800013D4C /* xtb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xtb.h; sourceTree = "<group>"; };
+		981897EA2B91116F00013D4C /* libxtb.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxtb.6.dylib; path = ../bypass_dependencies/libxtb.6.dylib; sourceTree = "<group>"; };
+		981897ED2B91119A00013D4C /* libxtb.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxtb.dylib; path = ../bypass_dependencies/libxtb.dylib; sourceTree = "<group>"; };
+		981897F22B91122A00013D4C /* shim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shim.c; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
 		981FCFEF29ECAE36009904A2 /* CrosshairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrosshairView.swift; sourceTree = "<group>"; };
@@ -345,6 +352,7 @@
 				98548EB62B86C95E005833FA /* MolecularRenderer in Frameworks */,
 				9814BFD52B22C57100BA5B24 /* MM4 in Frameworks */,
 				981360E92B48F6070007D40F /* ComplexModule in Frameworks */,
+				981897EE2B91119A00013D4C /* libxtb.dylib in Frameworks */,
 				981360ED2B48F6070007D40F /* QuaternionModule in Frameworks */,
 				9814BFD82B22C58A00BA5B24 /* HDL in Frameworks */,
 				981822412AE56D5E009CFAA8 /* Atomics in Frameworks */,
@@ -421,6 +429,23 @@
 				9816EFA52AC4B9790042073F /* README.md */,
 			);
 			path = Ring;
+			sourceTree = "<group>";
+		};
+		981897F02B9111FE00013D4C /* xtb */ = {
+			isa = PBXGroup;
+			children = (
+				981897F12B91121900013D4C /* include */,
+				981897F22B91122A00013D4C /* shim.c */,
+			);
+			path = xtb;
+			sourceTree = "<group>";
+		};
+		981897F12B91121900013D4C /* include */ = {
+			isa = PBXGroup;
+			children = (
+				981897E62B910FE800013D4C /* xtb.h */,
+			);
+			path = include;
 			sourceTree = "<group>";
 		};
 		981FCFED29ECADF5009904A2 /* Lighting */ = {
@@ -555,6 +580,7 @@
 		9898382429A6C08F00B4AA98 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				981897F02B9111FE00013D4C /* xtb */,
 				98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */,
 				98F638992A349F7300F51E95 /* MolecularRenderer */,
 				98F638962A349D6A00F51E95 /* MolecularRendererApp */,
@@ -740,6 +766,8 @@
 		98DA27CC2A3F6EDB00AFE8B7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				981897ED2B91119A00013D4C /* libxtb.dylib */,
+				981897EA2B91116F00013D4C /* libxtb.6.dylib */,
 				981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */,
 				98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */,
 				98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */,
@@ -1158,6 +1186,7 @@
 				TargetAttributes = {
 					9898382129A6C08F00B4AA98 = {
 						CreatedOnToolsVersion = 14.2;
+						LastSwiftMigration = 1520;
 					};
 					98F638A32A34A24E00F51E95 = {
 						CreatedOnToolsVersion = 15.0;
@@ -1412,6 +1441,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/MolecularRendererApp/MolecularRenderer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -1434,6 +1464,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.philipturner-opensource.MolecularRenderer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -1443,6 +1474,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/MolecularRendererApp/MolecularRenderer.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;

@@ -13,11 +13,17 @@ let package = Package(
     .library(
       name: "MolecularRenderer",
       targets: ["MolecularRenderer"]),
+    .library(
+      name: "xtb",
+      targets: ["xtb"])
   ],
   dependencies: [],
   targets: [
     .target(
       name: "MolecularRenderer",
       dependencies: []),
+    .target(
+      name: "xtb",
+      dependencies: [])
   ]
 )
