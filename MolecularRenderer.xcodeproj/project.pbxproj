@@ -117,6 +117,7 @@
 		981897EA2B91116F00013D4C /* libxtb.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxtb.6.dylib; path = ../bypass_dependencies/libxtb.6.dylib; sourceTree = "<group>"; };
 		981898062B91167B00013D4C /* XTBLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XTBLibrary.swift; sourceTree = "<group>"; };
 		981898082B91189A00013D4C /* MolecularRendererApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MolecularRendererApp-Bridging-Header.h"; sourceTree = "<group>"; };
+		981919802B9136FA003CB3DE /* Water.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Water.swift; sourceTree = "<group>"; };
 		9819203B2B91284A00C0077F /* XTBTutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XTBTutorial.swift; sourceTree = "<group>"; };
 		981E8F4629F4C99A00F7BA21 /* Sampling.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Sampling.metal; sourceTree = "<group>"; };
 		981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayGeneration.metal; sourceTree = "<group>"; };
@@ -431,6 +432,7 @@
 			isa = PBXGroup;
 			children = (
 				9819203B2B91284A00C0077F /* XTBTutorial.swift */,
+				981919802B9136FA003CB3DE /* Water.swift */,
 			);
 			path = Nanoreactor;
 			sourceTree = "<group>";

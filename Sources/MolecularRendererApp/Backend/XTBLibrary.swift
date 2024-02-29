@@ -57,6 +57,14 @@ let xtb_newMolecule: @convention(c) (
 ) -> xtb_TMolecule? =
 XTBLibrary.loadSymbol(name: "xtb_newMolecule")
 
+let xtb_updateMolecule: @convention(c) (
+  xtb_TEnvironment?,
+  xtb_TMolecule?,
+  UnsafePointer<Double>?,
+  UnsafePointer<Double>?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_updateMolecule")
+
 let xtb_checkEnvironment: @convention(c) (
   xtb_TEnvironment?) -> Int32 =
 XTBLibrary.loadSymbol(name: "xtb_checkEnvironment")
@@ -87,6 +95,13 @@ let xtb_getEnergy: @convention(c) (
   UnsafeMutablePointer<Double>?
 ) -> Void =
 XTBLibrary.loadSymbol(name: "xtb_getEnergy")
+
+let xtb_getGradient: @convention(c) (
+  xtb_TEnvironment?,
+  xtb_TResults?,
+  UnsafeMutablePointer<Double>?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_getGradient")
 
 let xtb_delResults: @convention(c) (
   UnsafeMutablePointer<xtb_TResults?>?) -> Void =

@@ -1,12 +1,105 @@
-// Save as GitHub Gist instead of polluting the molecular-renderer source tree.
+//
+//  Water.swift
+//  MolecularRenderer
+//
+//  Created by Philip Turner on 2/29/24.
+//
 
 import Foundation
 import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [Entity] {
-  return [Entity(position: .zero, type: .atom(.carbon))]
+func createGeometry() -> [[Entity]] {
+  // After reproducing the tutorial, run an ab initio MD
+  // simulation of water, starting at a 90° bond angle instead of the
+  // correct angle. Reproduce the vibrational frequency from the
+  // literature.
+  //
+  // Literature value:
+  // 1594 cm^-1 (gas phase)
+  // 2.99793e10 Hz / cm^-1
+  // 21 femtoseconds per vibration
+  //
+  // Water appears to undergo two vibrations in 40 femtoseconds.
+  // Therefore, the simulator is running correctly.
+  XTBLibrary.loadLibrary(
+    path: "/opt/homebrew/Cellar/xtb/6.6.1/lib/libxtb.6.dylib")
+  
+  var water = Water(angle: .pi / 2 * 100 / 90)
+  let env = xtb_newEnvironment()!
+  let calc = xtb_newCalculator()!
+  let res = xtb_newResults()!
+  let mol = createMolecule(
+    env: env, atoms: water.atoms, charge: 0, uhf: 0)
+  initializeEnvironment(env: env, mol: mol, calc: calc)
+  updateMolecule(env: env, mol: mol, atoms: water.atoms)
+  
+  var output: [[Entity]] = []
+  var momenta = [SIMD3<Float>](
+    repeating: .zero, count: water.atoms.count)
+  for frameID in 0...20 {
+    print("frame:", frameID)
+    
+    if frameID > 0 {
+      updateMolecule(env: env, mol: mol, atoms: water.atoms)
+      
+      let forces = createForces(
+        env: env, mol: mol, calc: calc, res: res, atomCount: 3)
+      for force in forces {
+        print(force)
+      }
+      
+      let masses = createMasses(atoms: water.atoms)
+      for atomID in water.atoms.indices {
+        print(atomID)
+        print(water.atoms[atomID].position, momenta[atomID] / masses[atomID])
+        momenta[atomID] += 0.002 * forces[atomID]
+        
+        let velocity = momenta[atomID] / masses[atomID]
+        water.atoms[atomID].position += 0.002 * velocity
+        print(water.atoms[atomID].position, velocity)
+      }
+    }
+    
+    // Each timestep is 2 fs.
+    // 12 duplicated frames per timestep.
+    // 10 timesteps per second.
+    // 20 fs renders in 1 second.
+    for _ in 0..<12 {
+      output.append(water.atoms)
+    }
+  }
+  
+  return output
+}
+
+struct Water {
+  var atoms: [Entity] = []
+  
+  // The angle must be in radians.
+  init(angle: Float) {
+    let oxygenPosition: SIMD3<Float> = .zero
+    var hydrogenPosition1: SIMD3<Float> = [-1, 0, 0]
+    var hydrogenPosition2: SIMD3<Float> = [
+      -Float.cos(angle),
+       Float.sin(angle),
+       0
+    ]
+    
+    // The O-H bond length is 0.957 Å, according to the literature.
+    hydrogenPosition1 *= 0.957 / 10
+    hydrogenPosition2 *= 0.957 / 10
+    
+    // Create atoms from the generated positions.
+    let oxygen = Entity(
+      position: oxygenPosition, type: .atom(.oxygen))
+    let hydrogen1 = Entity(
+      position: hydrogenPosition1, type: .atom(.hydrogen))
+    let hydrogen2 = Entity(
+      position: hydrogenPosition2, type: .atom(.hydrogen))
+    atoms = [oxygen, hydrogen1, hydrogen2]
+  }
 }
 
 // MARK: - Utility Functions
