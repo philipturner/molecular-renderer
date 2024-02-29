@@ -36,8 +36,70 @@ class XTBLibrary {
 let xtb_getAPIVersion: @convention(c) () -> Int32 =
 XTBLibrary.loadSymbol(name: "xtb_getAPIVersion")
 
-let xtb_newEnvironment: @convention(c) () -> xtb_TEnvironment =
+let xtb_newEnvironment: @convention(c) () -> xtb_TEnvironment? =
 XTBLibrary.loadSymbol(name: "xtb_newEnvironment")
 
-let xtb_newCalculator: @convention(c) () -> xtb_TCalculator =
+let xtb_newCalculator: @convention(c) () -> xtb_TCalculator? =
 XTBLibrary.loadSymbol(name: "xtb_newCalculator")
+
+let xtb_newResults: @convention(c) () -> xtb_TResults? =
+XTBLibrary.loadSymbol(name: "xtb_newResults")
+
+let xtb_newMolecule: @convention(c) (
+  xtb_TEnvironment?,
+  UnsafePointer<Int32>?,
+  UnsafePointer<Int32>?,
+  UnsafePointer<Double>?,
+  UnsafePointer<Double>?,
+  UnsafePointer<Int32>?,
+  UnsafePointer<Double>?,
+  UnsafePointer<CBool>?
+) -> xtb_TMolecule? =
+XTBLibrary.loadSymbol(name: "xtb_newMolecule")
+
+let xtb_checkEnvironment: @convention(c) (
+  xtb_TEnvironment?) -> Int32 =
+XTBLibrary.loadSymbol(name: "xtb_checkEnvironment")
+
+let xtb_setVerbosity: @convention(c) (
+  xtb_TEnvironment?, Int32) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_setVerbosity")
+
+let xtb_loadGFN2xTB: @convention(c) (
+  xtb_TEnvironment?,
+  xtb_TMolecule?,
+  xtb_TCalculator?,
+  UnsafePointer<CChar>?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_loadGFN2xTB")
+
+let xtb_singlepoint: @convention(c) (
+  xtb_TEnvironment?,
+  xtb_TMolecule?,
+  xtb_TCalculator?,
+  xtb_TResults?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_singlepoint")
+
+let xtb_getEnergy: @convention(c) (
+  xtb_TEnvironment?,
+  xtb_TResults?,
+  UnsafeMutablePointer<Double>?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_getEnergy")
+
+let xtb_delResults: @convention(c) (
+  UnsafeMutablePointer<xtb_TResults?>?) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_delResults")
+
+let xtb_delCalculator: @convention(c) (
+  UnsafeMutablePointer<xtb_TCalculator?>?) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_delCalculator")
+
+let xtb_delMolecule: @convention(c) (
+  UnsafeMutablePointer<xtb_TMolecule?>?) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_delMolecule")
+
+let xtb_delEnvironment: @convention(c) (
+  UnsafeMutablePointer<xtb_TEnvironment?>?) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_delEnvironment")
