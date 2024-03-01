@@ -14,13 +14,15 @@ func createGeometry() -> [[Entity]] {
   var leftHandSide = Isobutane(descriptor: descriptor)
   for i in leftHandSide.topology.atoms.indices {
     var atom = leftHandSide.topology.atoms[i]
-    atom.position += SIMD3(-0.5, 0, 0)
+    atom.position += SIMD3(-0.4, 0, 0)
     leftHandSide.topology.atoms[i] = atom
   }
   
+  // Speed is in kilometers per second.
   let startSeparation: Float = 0.8
-  let endSeparation: Float = 0.7
-  let framesStationary: Int = 60
+  let endSeparation: Float = 0.5
+  let framesStationary: Int = 90
+  let speed: Float = 2
   
   descriptor.bulkElement = .silicon
   descriptor.tipElement = .silicon
@@ -29,7 +31,7 @@ func createGeometry() -> [[Entity]] {
   for i in rightHandSide.topology.atoms.indices {
     var atom = rightHandSide.topology.atoms[i]
     atom.position.x = -atom.position.x
-    atom.position += SIMD3(-0.5 + startSeparation, 0, 0)
+    atom.position += SIMD3(-0.4 + startSeparation, 0, 0)
     rightHandSide.topology.atoms[i] = atom
   }
   
@@ -37,17 +39,26 @@ func createGeometry() -> [[Entity]] {
   isobutanes.append(leftHandSide)
   isobutanes.append(rightHandSide)
   
+  var isobutaneAtomVelocities: [[SIMD3<Float>]] = []
+  isobutaneAtomVelocities.append(Array(
+    repeating: .zero,
+    count: leftHandSide.topology.atoms.count))
+  isobutaneAtomVelocities.append(Array(
+    repeating: [-speed, 0, 0],
+    count: rightHandSide.topology.atoms.count))
+  
   var output: [[Entity]] = []
   var movingBackward: Bool = false
   var stationaryStartFrame: Int = -1
-  for frameID in 0...120 {
+  for frameID in 0...240 {
     print("frame", frameID)
     
     if frameID > 0 {
       for isobutaneID in isobutanes.indices {
         var isobutane = isobutanes[isobutaneID]
-        let targetPosition = -0.5 + endSeparation
+        let targetPosition = -0.4 + endSeparation
         if isobutaneID == 1 {
+          let frameDelta = frameID - stationaryStartFrame
           if !movingBackward {
             let tipAtomID = Int(isobutane.tipAtomID)
             let tipAtom = isobutane.topology.atoms[tipAtomID]
@@ -55,24 +66,34 @@ func createGeometry() -> [[Entity]] {
               movingBackward = true
               stationaryStartFrame = frameID
               print("switched direction at frame \(frameID)")
+              
+              for i in isobutane.topology.atoms.indices {
+                isobutaneAtomVelocities[isobutaneID][i] +=
+                SIMD3(speed, 0, 0)
+              }
+            }
+          } else if frameDelta == framesStationary {
+            for i in isobutane.topology.atoms.indices {
+              isobutaneAtomVelocities[isobutaneID][i] +=
+              SIMD3(speed, 0, 0)
             }
           }
         }
         
-        for atomID in isobutane.topology.atoms.indices {
-          var atom = isobutane.topology.atoms[atomID]
-          if isobutaneID == 1 {
-            if movingBackward {
-              if frameID - stationaryStartFrame < framesStationary {
-                // Don't move.
-              } else {
-                atom.position.x += 1 * 0.002
-              }
-            } else {
-              atom.position.x -= 1 * 0.002
-            }
+        let anchors = Set(isobutane.anchors)
+        for i in isobutane.topology.atoms.indices {
+          var atom = isobutane.topology.atoms[i]
+          var velocity = isobutaneAtomVelocities[isobutaneID][i]
+          
+          if anchors.contains(UInt32(i)) {
+            // Do not change the velocity.
+          } else {
+            
           }
-          isobutane.topology.atoms[atomID] = atom
+          atom.position += velocity * 0.002
+          
+          isobutaneAtomVelocities[isobutaneID][i] = velocity
+          isobutane.topology.atoms[i] = atom
         }
         isobutanes[isobutaneID] = isobutane
       }
