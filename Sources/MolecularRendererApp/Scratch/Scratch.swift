@@ -5,24 +5,83 @@ import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [Entity] {
+func createGeometry() -> [[Entity]] {
   // Create a nanoreactor for HAbst and HDon reactions.
   var descriptor = IsobutaneDescriptor()
-  descriptor.bulkElement = .silicon
-  descriptor.tipElement = .tin
+  descriptor.bulkElement = .carbon
+  descriptor.tipElement = .carbon
   descriptor.passivation = .hydrogen
   var leftHandSide = Isobutane(descriptor: descriptor)
-  print(leftHandSide.anchors)
-  print(leftHandSide.anchors.map { leftHandSide.topology.atoms[Int($0)].atomicNumber })
-  print(leftHandSide.tipAtomID)
-  print(leftHandSide.topology.atoms[Int(leftHandSide.tipAtomID)].atomicNumber)
+  for i in leftHandSide.topology.atoms.indices {
+    var atom = leftHandSide.topology.atoms[i]
+    atom.position += SIMD3(-0.5, 0, 0)
+    leftHandSide.topology.atoms[i] = atom
+  }
   
-//  descriptor.bulkElement = .carbon
-//  descriptor.tipElement = .carbon
-//  descriptor.passivation = .radical
-//  var rightHandSide = Isobutane(descriptor: descriptor)
+  let startSeparation: Float = 0.8
+  let endSeparation: Float = 0.7
+  let framesStationary: Int = 60
   
-  return leftHandSide.topology.atoms //+ rightHandSide.topology.atoms
+  descriptor.bulkElement = .silicon
+  descriptor.tipElement = .silicon
+  descriptor.passivation = .acetyleneRadical
+  var rightHandSide = Isobutane(descriptor: descriptor)
+  for i in rightHandSide.topology.atoms.indices {
+    var atom = rightHandSide.topology.atoms[i]
+    atom.position.x = -atom.position.x
+    atom.position += SIMD3(-0.5 + startSeparation, 0, 0)
+    rightHandSide.topology.atoms[i] = atom
+  }
+  
+  var isobutanes: [Isobutane] = []
+  isobutanes.append(leftHandSide)
+  isobutanes.append(rightHandSide)
+  
+  var output: [[Entity]] = []
+  var movingBackward: Bool = false
+  var stationaryStartFrame: Int = -1
+  for frameID in 0...120 {
+    print("frame", frameID)
+    
+    if frameID > 0 {
+      for isobutaneID in isobutanes.indices {
+        var isobutane = isobutanes[isobutaneID]
+        let targetPosition = -0.5 + endSeparation
+        if isobutaneID == 1 {
+          if !movingBackward {
+            let tipAtomID = Int(isobutane.tipAtomID)
+            let tipAtom = isobutane.topology.atoms[tipAtomID]
+            if tipAtom.position.x < targetPosition {
+              movingBackward = true
+              stationaryStartFrame = frameID
+              print("switched direction at frame \(frameID)")
+            }
+          }
+        }
+        
+        for atomID in isobutane.topology.atoms.indices {
+          var atom = isobutane.topology.atoms[atomID]
+          if isobutaneID == 1 {
+            if movingBackward {
+              if frameID - stationaryStartFrame < framesStationary {
+                // Don't move.
+              } else {
+                atom.position.x += 1 * 0.002
+              }
+            } else {
+              atom.position.x -= 1 * 0.002
+            }
+          }
+          isobutane.topology.atoms[atomID] = atom
+        }
+        isobutanes[isobutaneID] = isobutane
+      }
+    }
+    
+    output.append(isobutanes.flatMap(\.topology.atoms))
+  }
+  
+  return output
 }
 
 enum Passivation {
@@ -103,13 +162,15 @@ struct Isobutane {
       topology.atoms[atomID].position = position
     }
     
-    // Adjust so the maximum X component is zero.
-    var maxX: Float = -.greatestFiniteMagnitude
+    // Adjust so the tip atom is the origin.
+    var tipPosition: SIMD3<Float>?
     for atom in topology.atoms {
-      maxX = max(maxX, atom.position.x)
+      if atom.atomicNumber == Element.lead.rawValue {
+        tipPosition = atom.position
+      }
     }
     for atomID in topology.atoms.indices {
-      topology.atoms[atomID].position.x -= maxX
+      topology.atoms[atomID].position -= tipPosition!
     }
   }
   
