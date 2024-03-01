@@ -49,11 +49,6 @@
 		987507C02B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
-		989BD7DE2B8BC0CA00B12D77 /* Housing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989BD7DD2B8BC0CA00B12D77 /* Housing.swift */; };
-		989BD7E02B8BC0D600B12D77 /* Rod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989BD7DF2B8BC0D600B12D77 /* Rod.swift */; };
-		989BD7E22B8BC0DF00B12D77 /* DriveWall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989BD7E12B8BC0DF00B12D77 /* DriveWall.swift */; };
-		989BD7E42B8BCEFE00B12D77 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989BD7E32B8BCEFE00B12D77 /* System.swift */; };
-		989BD7E62B8CB41C00B12D77 /* FIRE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989BD7E52B8CB41C00B12D77 /* FIRE.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
@@ -204,11 +199,6 @@
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
 		9898382729A6C08F00B4AA98 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
 		9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MolecularRenderer.entitlements; sourceTree = "<group>"; };
-		989BD7DD2B8BC0CA00B12D77 /* Housing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Housing.swift; sourceTree = "<group>"; };
-		989BD7DF2B8BC0D600B12D77 /* Rod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rod.swift; sourceTree = "<group>"; };
-		989BD7E12B8BC0DF00B12D77 /* DriveWall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveWall.swift; sourceTree = "<group>"; };
-		989BD7E32B8BCEFE00B12D77 /* System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = System.swift; sourceTree = "<group>"; };
-		989BD7E52B8CB41C00B12D77 /* FIRE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FIRE.swift; sourceTree = "<group>"; };
 		989CBA092B1C0F4200213CBE /* Adamantanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adamantanes.swift; sourceTree = "<group>"; };
 		989CBA0B2B1D2AE200213CBE /* Scratch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch.swift; sourceTree = "<group>"; };
 		989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = xTB_RawText.swift; sourceTree = "<group>"; };
@@ -576,11 +566,6 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
-				989BD7DD2B8BC0CA00B12D77 /* Housing.swift */,
-				989BD7DF2B8BC0D600B12D77 /* Rod.swift */,
-				989BD7E12B8BC0DF00B12D77 /* DriveWall.swift */,
-				989BD7E32B8BCEFE00B12D77 /* System.swift */,
-				989BD7E52B8CB41C00B12D77 /* FIRE.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -1238,27 +1223,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				989BD7E42B8BCEFE00B12D77 /* System.swift in Sources */,
 				9855200B2B53215C00AB068D /* Scratch.swift in Sources */,
-				989BD7E02B8BC0D600B12D77 /* Rod.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
-				989BD7E22B8BC0DF00B12D77 /* DriveWall.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
-				989BD7DE2B8BC0CA00B12D77 /* Housing.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
-				989BD7E62B8CB41C00B12D77 /* FIRE.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
