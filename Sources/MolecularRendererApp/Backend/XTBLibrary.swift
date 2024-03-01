@@ -69,6 +69,12 @@ let xtb_checkEnvironment: @convention(c) (
   xtb_TEnvironment?) -> Int32 =
 XTBLibrary.loadSymbol(name: "xtb_checkEnvironment")
 
+let xtb_showEnvironment: @convention(c) (
+  xtb_TEnvironment?,
+  UnsafePointer<CChar>?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_showEnvironment")
+
 let xtb_setVerbosity: @convention(c) (
   xtb_TEnvironment?, Int32) -> Void =
 XTBLibrary.loadSymbol(name: "xtb_setVerbosity")

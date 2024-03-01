@@ -6,11 +6,45 @@ import MM4
 import Numerics
 
 func createGeometry() -> [[Entity]] {
+  // MARK: - Scene Setup
+  
+  // HAbst1
+  // - startSeparation = 0.80
+  // - endSeparation = 0.55
+  // - 16 seconds
+  // HAbst2
+  // - startSeparation = 0.90
+  // - endSeparation = 0.65
+  // - 34 seconds
+  // HDon1
+  // - startSeparation = 0.55
+  // - endSeparation = 0.30
+  // - 12 seconds
+  // HDon2
+  // - startSeparation = 0.60
+  // - endSeparation = 0.35
+  // - 12 seconds
+  // HDon3
+  // - startSeparation = 0.50
+  // - endSeparation = 0.25
+  // - 40 seconds
+  // HDon4
+  // - startSeparation = 0.65
+  // - endSeparation = 0.40
+  // - 34 seconds
+  
+  // Speed is in kilometers per second.
+  let startSeparation: Float = 0.55
+  let endSeparation: Float = 0.30
+  let framesStationary: Int = 90
+  let speed: Float = 2
+  let simulating: Bool = true
+  
   // Create a nanoreactor for HAbst and HDon reactions.
   var descriptor = IsobutaneDescriptor()
   descriptor.bulkElement = .carbon
   descriptor.tipElement = .carbon
-  descriptor.passivation = .hydrogen
+  descriptor.passivation = .radical
   var leftHandSide = Isobutane(descriptor: descriptor)
   for i in leftHandSide.topology.atoms.indices {
     var atom = leftHandSide.topology.atoms[i]
@@ -18,15 +52,9 @@ func createGeometry() -> [[Entity]] {
     leftHandSide.topology.atoms[i] = atom
   }
   
-  // Speed is in kilometers per second.
-  let startSeparation: Float = 0.8
-  let endSeparation: Float = 0.5
-  let framesStationary: Int = 90
-  let speed: Float = 2
-  
   descriptor.bulkElement = .silicon
   descriptor.tipElement = .silicon
-  descriptor.passivation = .acetyleneRadical
+  descriptor.passivation = .hydrogen
   var rightHandSide = Isobutane(descriptor: descriptor)
   for i in rightHandSide.topology.atoms.indices {
     var atom = rightHandSide.topology.atoms[i]
@@ -47,13 +75,47 @@ func createGeometry() -> [[Entity]] {
     repeating: [-speed, 0, 0],
     count: rightHandSide.topology.atoms.count))
   
+  // MARK: - Simulator Setup
+  
+  XTBLibrary.loadLibrary(
+    path: "/opt/homebrew/Cellar/xtb/6.6.1/lib/libxtb.6.dylib")
+  
+  let initialAtoms = isobutanes.flatMap(\.topology.atoms)
+  let env = xtb_newEnvironment()!
+  let calc = xtb_newCalculator()!
+  let res = xtb_newResults()!
+  let mol = createMolecule(
+    env: env, atoms: initialAtoms, charge: 0, uhf: 1)
+  initializeEnvironment(env: env, mol: mol, calc: calc)
+  updateMolecule(env: env, mol: mol, atoms: initialAtoms)
+  
+  // MARK: - Simulation
+  
   var output: [[Entity]] = []
   var movingBackward: Bool = false
   var stationaryStartFrame: Int = -1
-  for frameID in 0...240 {
+  var currentIsobutaneVelocities: [SIMD3<Float>] = []
+  currentIsobutaneVelocities.append(.zero)
+  currentIsobutaneVelocities.append([-speed, 0, 0])
+  for frameID in 0...300 {
     print("frame", frameID)
     
     if frameID > 0 {
+      var forces: [SIMD3<Float>] = []
+      var masses: [Float] = []
+      if simulating {
+        let currentAtoms = isobutanes.flatMap(\.topology.atoms)
+        updateMolecule(env: env, mol: mol, atoms: currentAtoms)
+        forces = createForces(
+          env: env, mol: mol, calc: calc, res: res,
+          atomCount: currentAtoms.count)
+        masses = createMasses(atoms: currentAtoms)
+        guard xtb_checkEnvironment(env) == 0 else {
+          fatalError("Environment is bad.")
+        }
+      }
+      
+      var atomCursor: Int = .zero
       for isobutaneID in isobutanes.indices {
         var isobutane = isobutanes[isobutaneID]
         let targetPosition = -0.4 + endSeparation
@@ -71,15 +133,18 @@ func createGeometry() -> [[Entity]] {
                 isobutaneAtomVelocities[isobutaneID][i] +=
                 SIMD3(speed, 0, 0)
               }
+              currentIsobutaneVelocities[1].x += speed
             }
           } else if frameDelta == framesStationary {
             for i in isobutane.topology.atoms.indices {
               isobutaneAtomVelocities[isobutaneID][i] +=
               SIMD3(speed, 0, 0)
             }
+            currentIsobutaneVelocities[1].x += speed
           }
         }
         
+        let bulkVelocity = currentIsobutaneVelocities[isobutaneID]
         let anchors = Set(isobutane.anchors)
         for i in isobutane.topology.atoms.indices {
           var atom = isobutane.topology.atoms[i]
@@ -88,12 +153,34 @@ func createGeometry() -> [[Entity]] {
           if anchors.contains(UInt32(i)) {
             // Do not change the velocity.
           } else {
-            
+            if simulating {
+              let force = forces[atomCursor]
+              var momentum = velocity * masses[atomCursor]
+              momentum += 0.002 * force
+              velocity = momentum / masses[atomCursor]
+              
+              // Dampen the velocities to make the simulation more
+              // numerically stable.
+              var diff = velocity - bulkVelocity
+              diff *= 0.95
+              
+              // Clamp the velocity to something reasonable.
+              let threshold: Float = 4
+              diff.replace(
+                with: .init(repeating: -threshold),
+                where: diff .< -threshold)
+              diff.replace(
+                with: .init(repeating: threshold),
+                where: diff .> threshold)
+              
+              velocity = diff + bulkVelocity
+            }
           }
           atom.position += velocity * 0.002
           
           isobutaneAtomVelocities[isobutaneID][i] = velocity
           isobutane.topology.atoms[i] = atom
+          atomCursor += 1
         }
         isobutanes[isobutaneID] = isobutane
       }
@@ -518,6 +605,7 @@ func createMasses(atoms: [Entity]) -> [Float] {
     case 15: mass = 30.9737619985
     case 16: mass = 32.06
     case 32: mass = 72.6308
+    case 50: mass = 118.7100
     default:
       fatalError("Unrecognized atomic number: \(atom.atomicNumber)")
     }
