@@ -6,7 +6,7 @@
       "location" : "https://github.com/philipturner/HDL",
       "state" : {
         "branch" : "main",
-        "revision" : "c4403dec12f730878fd50325758304e6b8825f76"
+        "revision" : "79d3baa33539554d67c851b8b809b415c5376df6"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
         "branch" : "main",
-        "revision" : "a6eece0a9146bbc213fd32c41e4a73de8f2230fc"
+        "revision" : "b73d120cee43f0997ab34f55710c47d859cc7349"
       }
     },
     {
@@ -33,7 +33,7 @@
       "location" : "https://github.com/philipturner/molecular-renderer",
       "state" : {
         "branch" : "main",
-        "revision" : "9806e2e285d90e369ac22ef3a501da29585120aa"
+        "revision" : "efe72189315e7861554d5c09717a2d25614d918d"
       }
     },
     {
@@ -60,7 +60,7 @@
       "location" : "https://github.com/philipturner/swift-openmm",
       "state" : {
         "branch" : "main",
-        "revision" : "68f8c63fb7d812733478812949ef3dc7a9cc6057"
+        "revision" : "a1b454a8a1cd299dacecfdefe7dce4f75331d3f8"
       }
     }
   ],
