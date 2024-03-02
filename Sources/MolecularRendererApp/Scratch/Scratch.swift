@@ -17,12 +17,11 @@ func createGeometry() -> [[Entity]] {
   // - endSeparation = 0.40
   // - endSeparation = 0.30 (MethyleneSilicon1)
   // Silylene
-  // - endSeparation = 0.50
+  // - endSeparation = 0.35
   
   // Speed is in kilometers per second.
   let speed: Float = 1
-  let endSeparation: Float = 0.40
-  let startSeparation = endSeparation + 100 * 0.002 * speed
+  let endSeparation: Float = 0.35
   let framesStationary: Int = 100
   let framesTotal: Int = 400
   
@@ -32,11 +31,12 @@ func createGeometry() -> [[Entity]] {
   // Make the tooltip approach from above. Orient the molecules vertically
   // instead of horizontally.
   let azimuthTilt = Quaternion<Float>(angle: 90 * .pi / 180, axis: [0, 1, 0])
+  let startSeparation = endSeparation + 100 * 0.002 * speed
   
   var descriptor = TooltipDescriptor()
-  descriptor.feedstock = .silylene
-  descriptor.bridgehead = .tin
-  descriptor.sidewall = .silicon
+  descriptor.feedstock = .methylene
+  descriptor.bridgehead = .silicon
+  descriptor.sidewall = .carbon
   
   var tooltip = Tooltip(descriptor: descriptor)
   for i in tooltip.topology.atoms.indices {
@@ -48,10 +48,10 @@ func createGeometry() -> [[Entity]] {
   }
   
   descriptor.feedstock = .radical
-  descriptor.bridgehead = .silicon
-  descriptor.sidewall = .silicon
+  descriptor.bridgehead = .carbon
+  descriptor.sidewall = .carbon
   
-  var workpiece = Tooltip(descriptor: descriptor)
+  var workpiece = Graphene()
   for i in workpiece.topology.atoms.indices {
     var atom = workpiece.topology.atoms[i]
     atom.position = SIMD3(atom.position.x, atom.position.z, atom.position.y)
