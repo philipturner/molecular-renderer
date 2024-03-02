@@ -9,47 +9,54 @@ func createGeometry() -> [[Entity]] {
   // MARK: - Scene Setup
   
   // Methylene
-  // - endSeparation = 0.40
+  // - endSeparation = 0.35
+  // - endSeparation = 0.33 (Methylene2T)
   // MethyleneGraphene
   // - endSeparation = 0.35
   // MethyleneSilicon
-  // - endSeparation = 0.45
+  // - endSeparation = 0.40
+  // - endSeparation = 0.30 (MethyleneSilicon1)
   // Silylene
   // - endSeparation = 0.50
   
   // Speed is in kilometers per second.
+  let speed: Float = 1
   let endSeparation: Float = 0.40
-  let framesStationary: Int = 100
-  let speed: Float = 2
-  let simulating: Bool = false
-  
   let startSeparation = endSeparation + 100 * 0.002 * speed
+  let framesStationary: Int = 100
+  let framesTotal: Int = 400
+  
+  let simulating: Bool = true
+  let uhf: Int = 0
   
   // Make the tooltip approach from above. Orient the molecules vertically
   // instead of horizontally.
+  let azimuthTilt = Quaternion<Float>(angle: 90 * .pi / 180, axis: [0, 1, 0])
   
   var descriptor = TooltipDescriptor()
-  descriptor.feedstock = .methylene
-  descriptor.bridgehead = .silicon
-  descriptor.sidewall = .hydrogen
+  descriptor.feedstock = .silylene
+  descriptor.bridgehead = .tin
+  descriptor.sidewall = .silicon
   
   var tooltip = Tooltip(descriptor: descriptor)
   for i in tooltip.topology.atoms.indices {
     var atom = tooltip.topology.atoms[i]
     atom.position = SIMD3(atom.position.x, -atom.position.z, atom.position.y)
     atom.position.y += startSeparation - 0.4
+    atom.position = azimuthTilt.act(on: atom.position)
     tooltip.topology.atoms[i] = atom
   }
   
   descriptor.feedstock = .radical
-  descriptor.bridgehead = .carbon
-  descriptor.sidewall = .carbon
+  descriptor.bridgehead = .silicon
+  descriptor.sidewall = .silicon
   
   var workpiece = Tooltip(descriptor: descriptor)
   for i in workpiece.topology.atoms.indices {
     var atom = workpiece.topology.atoms[i]
     atom.position = SIMD3(atom.position.x, atom.position.z, atom.position.y)
     atom.position.y += -0.4
+    atom.position = azimuthTilt.act(on: atom.position)
     workpiece.topology.atoms[i] = atom
   }
   
@@ -63,9 +70,16 @@ func createGeometry() -> [[Entity]] {
   let calc = xtb_newCalculator()!
   let res = xtb_newResults()!
   let mol = createMolecule(
-    env: env, atoms: initialAtoms, charge: 0, uhf: 0)
+    env: env, atoms: initialAtoms, charge: 0, uhf: uhf)
   initializeEnvironment(env: env, mol: mol, calc: calc)
   updateMolecule(env: env, mol: mol, atoms: initialAtoms)
+  
+  xtb_singlepoint(env, mol, calc, res)
+  var startEnergy: Double = .zero
+  xtb_getEnergy(env, res, &startEnergy)
+  guard xtb_checkEnvironment(env) == 0 else {
+    fatalError("Environment is bad.")
+  }
   
   var tooltipBulkVelocity = SIMD3<Float>(0, -speed, 0)
   var tooltipAtomVelocities = [SIMD3<Float>](
@@ -77,10 +91,34 @@ func createGeometry() -> [[Entity]] {
   var movingBackward: Bool = false
   var stationaryStartFrame: Int = -1
   
-  for frameID in 0...300 {
-    print("frame", frameID)
+  for frameID in 0...framesTotal {
+    print("\nframe", frameID, terminator: " ")
     
     if frameID > 0 {
+      var forces: [SIMD3<Float>] = []
+      var masses: [Float] = []
+      if simulating {
+        let currentAtoms = tooltip.topology.atoms + workpiece.topology.atoms
+        updateMolecule(env: env, mol: mol, atoms: currentAtoms)
+        xtb_singlepoint(env, mol, calc, res)
+        
+        var energy: Double = .zero
+        xtb_getEnergy(env, res, &energy)
+        guard xtb_checkEnvironment(env) == 0 else {
+          fatalError("Environment is bad.")
+        }
+        let energyChange = Float(energy - startEnergy)
+        print(4360 * energyChange, "zJ", terminator: " ")
+        
+        forces = createForces(
+          env: env, mol: mol, calc: calc, res: res,
+          atomCount: currentAtoms.count)
+        masses = createMasses(atoms: currentAtoms)
+        guard xtb_checkEnvironment(env) == 0 else {
+          fatalError("Environment is bad.")
+        }
+      }
+      
       let targetPosition = -0.4 + endSeparation
       let frameDelta = frameID - stationaryStartFrame
       if !movingBackward {
@@ -89,18 +127,19 @@ func createGeometry() -> [[Entity]] {
         if tipAtom.position.y < targetPosition {
           movingBackward = true
           stationaryStartFrame = frameID
-          print("switched at frame \(frameID), \(tipAtom), \(targetPosition)")
-          
           for i in tooltip.topology.atoms.indices {
             tooltipAtomVelocities[i] += SIMD3(0, speed, 0)
           }
+          tooltipBulkVelocity += SIMD3(0, speed, 0)
         }
       } else if frameDelta == framesStationary {
         for i in tooltip.topology.atoms.indices {
           tooltipAtomVelocities[i] += SIMD3(0, speed, 0)
         }
+        tooltipBulkVelocity += SIMD3(0, speed, 0)
       }
       
+      var atomCursor: Int = .zero
       func integrate(
         topology: inout Topology,
         velocities: inout [SIMD3<Float>],
@@ -113,13 +152,32 @@ func createGeometry() -> [[Entity]] {
           
           if anchors.contains(UInt32(i)) {
             // Do not change the velocity.
-          } else {
-            // Not simulating yet.
+          } else if simulating {
+            let force = forces[atomCursor]
+            var momentum = velocity * masses[atomCursor]
+            momentum += 0.002 * force
+            velocity = momentum / masses[atomCursor]
+            
+            // Dampen the velocities to make the simulation more
+            // numerically stable.
+            var diff = velocity - bulkVelocity
+            diff *= 0.95
+            
+            // Clamp the velocity to something reasonable.
+            let threshold: Float = 4
+            diff.replace(
+              with: .init(repeating: -threshold),
+              where: diff .< -threshold)
+            diff.replace(
+              with: .init(repeating: threshold),
+              where: diff .> threshold)
+            velocity = diff + bulkVelocity
           }
           atom.position += velocity * 0.002
           
           velocities[i] = velocity
           topology.atoms[i] = atom
+          atomCursor += 1
         }
       }
       
@@ -137,6 +195,7 @@ func createGeometry() -> [[Entity]] {
     
     output.append(tooltip.topology.atoms + workpiece.topology.atoms)
   }
+  print()
   
   return output
 }
@@ -216,7 +275,8 @@ struct Tooltip {
           topology.insert(atoms: [silicon])
         }
         
-        let chBondLength = Tooltip.hydrogenBondLength(element: .carbon)
+        let chBondLength = Tooltip.hydrogenBondLength(
+          element: descriptor.sidewall!)
         let position2 = position1 + chBondLength * SIMD3<Float>(0, 0, -1)
         hydrogen = Entity(position: position2, type: .atom(.hydrogen))
         
