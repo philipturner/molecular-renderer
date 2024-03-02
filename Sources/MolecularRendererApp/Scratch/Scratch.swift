@@ -6,247 +6,255 @@ import MM4
 import Numerics
 
 func createGeometry() -> [Entity] {
-  var descriptor = IsobutaneDescriptor()
-  let isobutane = Isobutane(descriptor: descriptor)
-  return isobutane.topology.atoms
+  // MARK: - Scene Setup
+  
+  // Methylene
+  // - startSeparation = 0.65
+  // - endSeparation = 0.40
+  // MethyleneGraphene
+  // - startSeparation = 0.60
+  // - endSeparation = 0.35
+  // MethyleneSilicon
+  // - startSeparation = 0.70
+  // - endSeparation = 0.45
+  // Silylene
+  // - startSeparation = 0.75
+  // - endSeparation = 0.50
+  
+  // Speed is in kilometers per second.
+  let startSeparation: Float = 0.65
+  let endSeparation: Float = 0.40
+  let framesStationary: Int = 90
+  let speed: Float = 2
+  let simulating: Bool = false
+  
+  // Make the tooltip approach from above. Orient the molecules vertically
+  // instead of horizontally.
+  
+  var descriptor = TooltipDescriptor()
+  descriptor.feedstock = .methylene
+  descriptor.bridgehead = .silicon
+  descriptor.sidewall = .hydrogen
+  
+  var tooltip = Tooltip(descriptor: descriptor)
+  for i in tooltip.topology.atoms.indices {
+    var atom = tooltip.topology.atoms[i]
+    atom.position = SIMD3(atom.position.x, -atom.position.z, atom.position.y)
+    atom.position.y += startSeparation - 0.4
+    tooltip.topology.atoms[i] = atom
+  }
+  
+  descriptor.feedstock = .radical
+  descriptor.bridgehead = .carbon
+  descriptor.sidewall = .carbon
+  
+  var workpiece = Tooltip(descriptor: descriptor)
+  for i in workpiece.topology.atoms.indices {
+    var atom = workpiece.topology.atoms[i]
+    atom.position = SIMD3(atom.position.x, atom.position.z, atom.position.y)
+    atom.position.y += -0.4
+    workpiece.topology.atoms[i] = atom
+  }
+  
+  // MARK: - Simulation Setup
+  
+  if simulating {
+    fatalError("Not implemented.")
+  }
+  
+  return tooltip.topology.atoms + workpiece.topology.atoms
 }
 
 // MARK: - Structures
 
-enum Passivation {
-  case acetyleneRadical
-  case hydrogen
+enum Feedstock {
   case radical
+  case methylene
+  case silylene
 }
 
-struct IsobutaneDescriptor {
-  var bulkElement: Element = .carbon
-  var tipElement: Element = .carbon
-  var passivation: Passivation = .hydrogen
+struct TooltipDescriptor {
+  var feedstock: Feedstock?
+  var bridgehead: Element?
+  var sidewall: Element?
 }
 
-// TODO: Modify this to be an arbitrary tooltip. Allow the body to consist of
-// hydrogen atoms, with a smaller atom count and different identity of anchor
-// atoms.
-struct Isobutane {
+// A tooltip pointing toward the Z direction.
+struct Tooltip {
   var topology = Topology()
   var anchors: [UInt32] = []
   var tipAtomID: UInt32 = .max
   
-  init(descriptor: IsobutaneDescriptor) {
-    compilationPass0(bulkElement: descriptor.bulkElement)
-    compilationPass1()
-    compilationPass2(bulkElement: descriptor.bulkElement)
-    compilationPass3(bulkElement: descriptor.bulkElement)
-    compilationPass4(bulkElement: descriptor.bulkElement)
-    compilationPass5(descriptor: descriptor)
-    compilationPass6(tipElement: descriptor.tipElement)
+  init(descriptor: TooltipDescriptor) {
+    guard descriptor.feedstock != nil,
+          descriptor.bridgehead != nil,
+          descriptor.sidewall != nil else {
+      fatalError("Descriptor not complete.")
+    }
+    
+    createBaseAtoms(descriptor: descriptor)
+    createSidewallHydrogens()
+    createFeedstock(descriptor: descriptor)
   }
   
-  // Create the center atoms.
-  mutating func compilationPass0(bulkElement: Element) {
-    let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 2 * (h + k + l) }
-      Material { .elemental(bulkElement) }
-      
-      Volume {
-        Convex {
-          let direction = -h + k + l
-          Origin { direction }
-          Plane { -direction }
-        }
-        Convex {
-          let direction = -h + k + l
-          Origin { 1.2 * direction }
-          Plane { direction }
-        }
-        Replace { .empty }
-        
-        // Mark the apex atom with lead. This will never be used as a bulk or
-        // tip element.
-        Convex {
-          let direction = -h + k + l
-          Origin { 1.05 * direction }
-          Plane { direction }
-        }
-        Replace { .atom(.lead) }
-      }
-    }
-    topology.atoms = lattice.atoms
-  }
-  
-  // Rotate so the tip points right.
-  mutating func compilationPass1() {
-    var basisVector1: SIMD3<Float> = [-1, 1, 1]
-    var basisVector2: SIMD3<Float> = [1, 0, 1]
-    basisVector1 /= (basisVector1 * basisVector1).sum().squareRoot()
-    basisVector2 /= (basisVector2 * basisVector2).sum().squareRoot()
+  mutating func createBaseAtoms(descriptor: TooltipDescriptor) {
+    let tipAtom = Entity(position: .zero, type: .atom(descriptor.bridgehead!))
+    topology.insert(atoms: [tipAtom])
+    tipAtomID = 0
     
-    var basisVector3 = cross_platform_cross(basisVector1, basisVector2)
-    basisVector3 /= (basisVector3 * basisVector3).sum().squareRoot()
-    
-    for atomID in topology.atoms.indices {
-      var position = topology.atoms[atomID].position
-      let xComponent = (position * basisVector1).sum()
-      let zComponent = (position * basisVector2).sum()
-      let yComponent = (position * basisVector3).sum()
-      position = [xComponent, yComponent, zComponent]
-      topology.atoms[atomID].position = position
-    }
-    
-    // Adjust so the tip atom is the origin.
-    var tipPosition: SIMD3<Float>?
-    for atom in topology.atoms {
-      if atom.atomicNumber == Element.lead.rawValue {
-        tipPosition = atom.position
-      }
-    }
-    for atomID in topology.atoms.indices {
-      topology.atoms[atomID].position -= tipPosition!
-    }
-  }
-  
-  // Remove the pathological atoms.
-  mutating func compilationPass2(bulkElement: Element) {
-    let matches = topology.match(
-      topology.atoms,
-      algorithm: .absoluteRadius(bulkElement.covalentRadius * 2.2))
-    
-    var removedAtoms: [UInt32] = []
     var insertedBonds: [SIMD2<UInt32>] = []
-    for i in topology.atoms.indices {
-      for j in matches[i] where i < j {
-        let bond = SIMD2(UInt32(i), UInt32(j))
+    for sidewallID in 0..<3 {
+      let angle = Float(sidewallID) * (2 * .pi) / 3
+      let rotation1 = Quaternion<Float>(
+        angle: 109.47 * .pi / 180, axis: [-1, 0, 0])
+      let rotation2 = Quaternion<Float>(
+        angle: angle, axis: [0, 0, 1])
+      
+      var orbital: SIMD3<Float> = [0, 0, 1]
+      orbital = rotation1.act(on: orbital)
+      orbital = rotation2.act(on: orbital)
+      
+      var hydrogen: Entity
+      switch descriptor.sidewall! {
+      case .hydrogen:
+        let xhBondLength = Tooltip.hydrogenBondLength(
+          element: descriptor.bridgehead!)
+        let position = tipAtom.position + xhBondLength * orbital
+        hydrogen = Entity(position: position, type: .atom(.hydrogen))
+        
+        let bond = SIMD2(UInt32(0), UInt32(topology.atoms.count - 1))
         insertedBonds.append(bond)
+      case .carbon, .silicon:
+        var position1: SIMD3<Float>
+        if descriptor.sidewall! == .carbon {
+          let xcBondLength = Tooltip.carbonBondLength(
+            element: descriptor.bridgehead!)
+          position1 = tipAtom.position + xcBondLength * orbital
+          let carbon = Entity(position: position1, type: .atom(.carbon))
+          topology.insert(atoms: [carbon])
+        } else {
+          let xSiBondLength = Tooltip.siliconBondLength(
+            element: descriptor.bridgehead!)
+          position1 = tipAtom.position + xSiBondLength * orbital
+          let silicon = Entity(position: position1, type: .atom(.silicon))
+          topology.insert(atoms: [silicon])
+        }
+        
+        let chBondLength = Tooltip.hydrogenBondLength(element: .carbon)
+        let position2 = position1 + chBondLength * SIMD3<Float>(0, 0, -1)
+        hydrogen = Entity(position: position2, type: .atom(.hydrogen))
+        
+        let bond1 = SIMD2(UInt32(0), UInt32(topology.atoms.count - 1))
+        let bond2 = SIMD2(bond1[1], UInt32(topology.atoms.count))
+        insertedBonds.append(bond1)
+        insertedBonds.append(bond2)
+      default:
+        fatalError("Unsupported sidewall element.")
       }
-      if matches[i].count == 1 {
-        removedAtoms.append(UInt32(i))
-      }
+      
+      let hydrogenID = UInt32(topology.atoms.count)
+      anchors.append(hydrogenID)
+      topology.insert(atoms: [hydrogen])
     }
     topology.insert(bonds: insertedBonds)
-    topology.remove(atoms: removedAtoms)
   }
   
-  // Add the hydrogens pointing in the X direction.
-  // - NOTE: This sets the anchor indices. It assumes the atoms at the
-  //   beginning of the list won't change position.
-  mutating func compilationPass3(bulkElement: Element) {
+  mutating func createSidewallHydrogens() {
+    let orbitals = topology.nonbondingOrbitals(hybridization: .sp3)
+    
     var insertedAtoms: [Entity] = []
     var insertedBonds: [SIMD2<UInt32>] = []
     for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      if atom.atomicNumber == Element.lead.rawValue {
+      guard orbitals[atomID].count == 2 else {
         continue
-      } else {
-        let chBondLength = Self.hydrogenBondLength(element: bulkElement)
-        let orbital: SIMD3<Float> = [-1, 0, 0]
-        let position = atom.position + orbital * chBondLength
+      }
+      let atom = topology.atoms[atomID]
+      let element = Element(atom.atomicNumber)
+      
+      for orbital in orbitals[atomID] {
+        let xhBondLength = Tooltip.hydrogenBondLength(element: element)
+        let position = atom.position + xhBondLength * orbital
         let hydrogen = Entity(position: position, type: .atom(.hydrogen))
         
         let hydrogenID = topology.atoms.count + insertedAtoms.count
         let bond = SIMD2(UInt32(atomID), UInt32(hydrogenID))
         insertedAtoms.append(hydrogen)
         insertedBonds.append(bond)
-        
-        anchors.append(UInt32(hydrogenID))
       }
     }
     topology.insert(atoms: insertedAtoms)
     topology.insert(bonds: insertedBonds)
   }
   
-  // Add hydrogens to the sidewall atoms.
-  mutating func compilationPass4(bulkElement: Element) {
-    let orbitals = topology.nonbondingOrbitals(hybridization: .sp3)
+  mutating func createFeedstock(descriptor: TooltipDescriptor) {
+    let feedstock = descriptor.feedstock!
+    if feedstock == .radical {
+      return
+    }
     
-    var insertedAtoms: [Entity] = []
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      if atom.atomicNumber == Element.lead.rawValue {
-        continue
-      } else {
-        for orbital in orbitals[atomID] {
-          let chBondLength = Self.hydrogenBondLength(element: bulkElement)
-          let position = atom.position + orbital * chBondLength
-          let hydrogen = Entity(position: position, type: .atom(.hydrogen))
-          
-          let hydrogenID = topology.atoms.count + insertedAtoms.count
-          let bond = SIMD2(UInt32(atomID), UInt32(hydrogenID))
-          insertedAtoms.append(hydrogen)
-          insertedBonds.append(bond)
-        }
-      }
+    var feedstockElement: Element
+    var feedstockHBondLength: Float
+    var feedstockTipBondLength: Float
+    if feedstock == .methylene {
+      feedstockElement = .carbon
+      feedstockHBondLength = 1.1010 / 10
+      feedstockTipBondLength = Self.methyleneBondLength(
+        element: descriptor.bridgehead!)
+    } else {
+      feedstockElement = .silicon
+      feedstockHBondLength = Self.hydrogenBondLength(element: .silicon)
+      feedstockTipBondLength = Self.siliconBondLength(
+        element: descriptor.bridgehead!)
     }
-    topology.insert(atoms: insertedAtoms)
-    topology.insert(bonds: insertedBonds)
-  }
-  
-  // Add the passivator.
-  mutating func compilationPass5(descriptor: IsobutaneDescriptor) {
-    var insertedAtoms: [Entity] = []
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      if atom.atomicNumber == Element.lead.rawValue {
-        switch descriptor.passivation {
-        case .acetyleneRadical:
-          let xcBondLength = Self.acetyleneBondLength(
-            element: descriptor.tipElement)
-          let orbital1: SIMD3<Float> = [1, 0, 0]
-          let position1 = atom.position + orbital1 * xcBondLength
-          let carbon1 = Entity(position: position1, type: .atom(.carbon))
-          
-          let carbonID1 = topology.atoms.count + insertedAtoms.count
-          let bond1 = SIMD2(UInt32(atomID), UInt32(carbonID1))
-          insertedAtoms.append(carbon1)
-          insertedBonds.append(bond1)
-          
-          let ccBondLength: Float = 1.2100 / 10
-          let orbital2: SIMD3<Float> = [1, 0, 0]
-          let position2 = position1 + orbital2 * ccBondLength
-          let carbon2 = Entity(position: position2, type: .atom(.carbon))
-          
-          let carbonID2 = topology.atoms.count + insertedAtoms.count
-          let bond2 = SIMD2(UInt32(carbonID1), UInt32(carbonID2))
-          insertedAtoms.append(carbon2)
-          insertedBonds.append(bond2)
-        case .hydrogen:
-          let xhBondLength = Self.hydrogenBondLength(
-            element: descriptor.tipElement)
-          let orbital: SIMD3<Float> = [1, 0, 0]
-          let position = atom.position + orbital * xhBondLength
-          let hydrogen = Entity(position: position, type: .atom(.hydrogen))
-          
-          let hydrogenID = topology.atoms.count + insertedAtoms.count
-          let bond = SIMD2(UInt32(atomID), UInt32(hydrogenID))
-          insertedAtoms.append(hydrogen)
-          insertedBonds.append(bond)
-        case .radical:
-          break
-        }
-      } else {
-        continue
-      }
+    
+    // Add the carbon or silicon atom.
+    var centerAtomPosition: SIMD3<Float>
+    var centerAtomID: Int
+    do {
+      let orbital: SIMD3<Float> = [0, 0, 1]
+      let position = SIMD3<Float>.zero + feedstockTipBondLength * orbital
+      let atom = Entity(position: position, type: .atom(feedstockElement))
+      let bond = SIMD2(UInt32(0), UInt32(topology.atoms.count))
+      centerAtomPosition = position
+      centerAtomID = topology.atoms.count
+      topology.insert(atoms: [atom])
+      topology.insert(bonds: [bond])
     }
-    topology.insert(atoms: insertedAtoms)
-    topology.insert(bonds: insertedBonds)
-  }
-  
-  // Transmute the lead marker into the tip element.
-  mutating func compilationPass6(tipElement: Element) {
-    for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      if atom.atomicNumber == Element.lead.rawValue {
-        topology.atoms[atomID].atomicNumber = tipElement.rawValue
-        self.tipAtomID = UInt32(atomID)
-      }
+    
+    var angle1: Float
+    var angle2: Float
+    if feedstock == .methylene {
+      angle1 = 120
+      angle2 = 180
+    } else {
+      angle1 = 109.47
+      angle2 = 120
+    }
+    angle1 *= .pi / 180
+    angle2 *= .pi / 180
+    
+    let rotation1 = Quaternion<Float>(angle: angle1, axis: [0, 1, 0])
+    let orbital1 = rotation1.act(on: [0, 0, -1])
+    let position1 = centerAtomPosition + feedstockHBondLength * orbital1
+    
+    let rotation2 = Quaternion<Float>(angle: angle2, axis: [0, 0, 1])
+    let orbital2 = rotation2.act(on: orbital1)
+    let position2 = centerAtomPosition + feedstockHBondLength * orbital2
+    
+    for position in [position1, position2] {
+      let hydrogen = Entity(position: position, type: .atom(.hydrogen))
+      let hydrogenID = topology.atoms.count
+      let bond = SIMD2(UInt32(centerAtomID), UInt32(hydrogenID))
+      topology.insert(atoms: [hydrogen])
+      topology.insert(bonds: [bond])
     }
   }
 }
 
-extension Isobutane {
-  // The bond length between and sp3 element and hydrogen.
+extension Tooltip {
+  // The bond length between an sp3 element and hydrogen.
+  // - This is not correct for methylene.
+  // - This is correct for silylene.
   static func hydrogenBondLength(element: Element) -> Float {
     switch element {
     case .carbon:
@@ -262,27 +270,62 @@ extension Isobutane {
     }
   }
   
-  // The bond length between and sp3 element and sp1 carbon.
-  static func acetyleneBondLength(element: Element) -> Float {
+  // The bond length between an sp3 element and sp2 carbon.
+  static func methyleneBondLength(element: Element) -> Float {
     switch element {
     case .carbon:
-      return 1.4700 / 10
+      return 1.4990 / 10
     case .silicon:
-      let sp1sp2Difference: Float = 1.4700 - 1.4990
-      return (1.8540 + sp1sp2Difference) / 10
+      return 1.8540 / 10
     case .germanium:
-      let sp1sp2Difference: Float = 1.4700 - 1.4990
-      return (1.9350 + sp1sp2Difference) / 10
+      return 1.9350 / 10
     case .tin:
-      let sp1sp2Difference: Float = 1.4700 - 1.4990
       let snGeDifference: Float = 2.1470 - 1.9490
-      return (1.9350 + sp1sp2Difference + snGeDifference) / 10
+      return (1.9350 + snGeDifference) / 10
     default:
-      fatalError("Unexpected element for X-CC bond.")
+      fatalError("Unexpected element for X-CH2* bond.")
+    }
+  }
+  
+  // The bond length between an sp3 element and sp3 carbon.
+  static func carbonBondLength(element: Element) -> Float {
+    switch element {
+    case .carbon:
+      return 1.5270 / 10
+    case .silicon:
+      return 1.876 / 10
+    case .germanium:
+      return 1.949 / 10
+    case .tin:
+      return 2.1470 / 10
+    default:
+      fatalError("Unexpected element for X-CH3 bond.")
+    }
+  }
+  
+  // The bond length between an sp3 element and sp3 silicon.
+  // - Use this for silylene as well.
+  static func siliconBondLength(element: Element) -> Float {
+    switch element {
+    case .carbon:
+      return 1.876 / 10
+    case .silicon:
+      return 2.322 / 10
+    case .germanium:
+      // Source:
+      // https://www.degruyter.com/document/doi/10.1515/MGMC.1999.22.6.385/pdf
+      return 2.372 / 10
+    case .tin:
+      // Source:
+      // https://www.degruyter.com/document/doi/10.1515/MGMC.1999.22.6.385/pdf
+      return 2.610 / 10
+    default:
+      fatalError("Unexpected element for X-SiH3 bond.")
     }
   }
 }
 
+// A graphene flake whose normal is the Z direction.
 struct Graphene {
   var topology = Topology()
   var anchors: [UInt32] = []

@@ -427,7 +427,7 @@ struct Isobutane {
 }
 
 extension Isobutane {
-  // The bond length between and sp3 element and hydrogen.
+  // The bond length between an sp3 element and hydrogen.
   static func hydrogenBondLength(element: Element) -> Float {
     switch element {
     case .carbon:
@@ -443,7 +443,7 @@ extension Isobutane {
     }
   }
   
-  // The bond length between and sp3 element and sp1 carbon.
+  // The bond length between an sp3 element and sp1 carbon.
   static func acetyleneBondLength(element: Element) -> Float {
     switch element {
     case .carbon:
