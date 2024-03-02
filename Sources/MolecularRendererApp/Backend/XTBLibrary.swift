@@ -109,6 +109,13 @@ let xtb_getGradient: @convention(c) (
 ) -> Void =
 XTBLibrary.loadSymbol(name: "xtb_getGradient")
 
+let xtb_getCharges: @convention(c) (
+  xtb_TEnvironment?,
+  xtb_TResults?,
+  UnsafeMutablePointer<Double>?
+) -> Void =
+XTBLibrary.loadSymbol(name: "xtb_getCharges")
+
 let xtb_delResults: @convention(c) (
   UnsafeMutablePointer<xtb_TResults?>?) -> Void =
 XTBLibrary.loadSymbol(name: "xtb_delResults")

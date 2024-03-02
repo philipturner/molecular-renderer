@@ -1,29 +1,37 @@
-// Save as GitHub Gist instead of polluting the molecular-renderer source tree.
+//
+//  UHFInvestigation.swift
+//  MolecularRenderer
+//
+//  Created by Philip Turner on 3/2/24.
+//
 
 import Foundation
 import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [[Entity]] {
+func createGeometry() -> [Entity] {
   // MARK: - Scene Setup
   
   // Methylene
+  // - startSeparation = 0.65
   // - endSeparation = 0.40
   // MethyleneGraphene
+  // - startSeparation = 0.60
   // - endSeparation = 0.35
   // MethyleneSilicon
+  // - startSeparation = 0.70
   // - endSeparation = 0.45
   // Silylene
+  // - startSeparation = 0.75
   // - endSeparation = 0.50
   
   // Speed is in kilometers per second.
+  let startSeparation: Float = 10.65
   let endSeparation: Float = 0.40
-  let framesStationary: Int = 100
+  let framesStationary: Int = 90
   let speed: Float = 2
   let simulating: Bool = false
-  
-  let startSeparation = endSeparation + 100 * 0.002 * speed
   
   // Make the tooltip approach from above. Orient the molecules vertically
   // instead of horizontally.
@@ -58,88 +66,223 @@ func createGeometry() -> [[Entity]] {
   XTBLibrary.loadLibrary(
     path: "/opt/homebrew/Cellar/xtb/6.6.1/lib/libxtb.6.dylib")
   
-  let initialAtoms = tooltip.topology.atoms + workpiece.topology.atoms
-  let env = xtb_newEnvironment()!
-  let calc = xtb_newCalculator()!
-  let res = xtb_newResults()!
-  let mol = createMolecule(
-    env: env, atoms: initialAtoms, charge: 0, uhf: 0)
-  initializeEnvironment(env: env, mol: mol, calc: calc)
-  updateMolecule(env: env, mol: mol, atoms: initialAtoms)
-  
-  var tooltipBulkVelocity = SIMD3<Float>(0, -speed, 0)
-  var tooltipAtomVelocities = [SIMD3<Float>](
-    repeating: tooltipBulkVelocity, count: tooltip.topology.atoms.count)
-  var workpieceAtomVelocities = [SIMD3<Float>](
-    repeating: .zero, count: workpiece.topology.atoms.count)
-  
-  var output: [[Entity]] = []
-  var movingBackward: Bool = false
-  var stationaryStartFrame: Int = -1
-  
-  for frameID in 0...300 {
-    print("frame", frameID)
+  // This does not deallocate the xTB objects, leaving zombie objects.
+  func createCharges(uhf: Int) -> [Float] {
+    let initialAtoms = tooltip.topology.atoms + workpiece.topology.atoms
+    let env = xtb_newEnvironment()!
+    let calc = xtb_newCalculator()!
+    let res = xtb_newResults()!
+    let mol = createMolecule(
+      env: env, atoms: initialAtoms, charge: 0, uhf: uhf)
+    initializeEnvironment(env: env, mol: mol, calc: calc)
+    updateMolecule(env: env, mol: mol, atoms: initialAtoms)
     
-    if frameID > 0 {
-      let targetPosition = -0.4 + endSeparation
-      let frameDelta = frameID - stationaryStartFrame
-      if !movingBackward {
-        let tipAtomID = Int(tooltip.tipAtomID)
-        let tipAtom = tooltip.topology.atoms[tipAtomID]
-        if tipAtom.position.y < targetPosition {
-          movingBackward = true
-          stationaryStartFrame = frameID
-          print("switched at frame \(frameID), \(tipAtom), \(targetPosition)")
-          
-          for i in tooltip.topology.atoms.indices {
-            tooltipAtomVelocities[i] += SIMD3(0, speed, 0)
-          }
-        }
-      } else if frameDelta == framesStationary {
-        for i in tooltip.topology.atoms.indices {
-          tooltipAtomVelocities[i] += SIMD3(0, speed, 0)
-        }
-      }
-      
-      func integrate(
-        topology: inout Topology,
-        velocities: inout [SIMD3<Float>],
-        bulkVelocity: SIMD3<Float>,
-        anchors: Set<UInt32>
-      ) {
-        for i in topology.atoms.indices {
-          var atom = topology.atoms[i]
-          var velocity = velocities[i]
-          
-          if anchors.contains(UInt32(i)) {
-            // Do not change the velocity.
-          } else {
-            // Not simulating yet.
-          }
-          atom.position += velocity * 0.002
-          
-          velocities[i] = velocity
-          topology.atoms[i] = atom
-        }
-      }
-      
-      integrate(
-        topology: &tooltip.topology,
-        velocities: &tooltipAtomVelocities,
-        bulkVelocity: tooltipBulkVelocity,
-        anchors: tooltip.anchors)
-      integrate(
-        topology: &workpiece.topology,
-        velocities: &workpieceAtomVelocities,
-        bulkVelocity: .zero,
-        anchors: workpiece.anchors)
+    xtb_singlepoint(env, mol, calc, res)
+    guard xtb_checkEnvironment(env) == 0 else {
+      fatalError("Call xtb_showEnvironment.")
     }
     
-    output.append(tooltip.topology.atoms + workpiece.topology.atoms)
+    var charges = [Double](repeating: .zero, count: initialAtoms.count)
+    xtb_getCharges(env, res, &charges)
+    return charges.map(Float.init)
   }
   
-  return output
+  let charges0 = createCharges(uhf: 0)
+  let charges2 = createCharges(uhf: 2)
+  let charges4 = createCharges(uhf: 4)
+  
+  let initialAtoms = tooltip.topology.atoms + workpiece.topology.atoms
+  for i in initialAtoms.indices {
+    let atom = initialAtoms[i]
+    print(atom.atomicNumber, terminator: "")
+    
+    var chargeDeltas: [Float] = []
+    chargeDeltas.append(charges2[i] - charges0[i])
+    chargeDeltas.append(charges4[i] - charges0[i])
+    for chargeDelta in chargeDeltas {
+      print(" ", terminator: "")
+      if chargeDelta < 0 {
+        print("-", separator: "", terminator: "")
+      } else {
+        print("+", separator: "", terminator: "")
+      }
+      let repr = String(format: "%.3f", chargeDelta.magnitude)
+      print(repr, terminator: "")
+    }
+    print()
+  }
+  
+  if simulating {
+    fatalError("Not implemented.")
+  }
+  
+  return tooltip.topology.atoms + workpiece.topology.atoms
 }
+
+// Determine whether keeping spin multiplicity at 0, or changing to 2, affects
+// the results. Do the molecules become charged in order to keep the same
+// number of doubly occupied orbitals?
+//
+// Store this data in a file "UHF investigation".
+
+/*
+ 0 14 SIMD3<Float>(0.0, 0.24999997, 0.0)
+ 1 1 SIMD3<Float>(0.0, 0.2994303, 0.13981965)
+ 2 1 SIMD3<Float>(-0.12108738, 0.2994303, -0.06990982)
+ 3 1 SIMD3<Float>(0.12108734, 0.2994303, -0.06990987)
+ 4 6 SIMD3<Float>(0.0, 0.064599976, 0.0)
+ 5 1 SIMD3<Float>(-0.09534939, 0.0095499605, 0.0)
+ 6 1 SIMD3<Float>(0.09534939, 0.0095499605, 8.335709e-09)
+ 7 6 SIMD3<Float>(0.0, -0.4, 0.0)
+ 8 6 SIMD3<Float>(0.0, -0.45089692, 0.14396803)
+ 9 1 SIMD3<Float>(0.0, -0.56209695, 0.14396803)
+ 10 6 SIMD3<Float>(-0.12467998, -0.45089692, -0.071984)
+ 11 1 SIMD3<Float>(-0.12467998, -0.56209695, -0.071984)
+ 12 6 SIMD3<Float>(0.124679945, -0.45089692, -0.07198406)
+ 13 1 SIMD3<Float>(0.124679945, -0.56209695, -0.07198406)
+ 14 1 SIMD3<Float>(0.09079442, -0.41382968, 0.19638781)
+ 15 1 SIMD3<Float>(-0.09079442, -0.41382968, 0.19638781)
+ 16 1 SIMD3<Float>(-0.21547404, -0.41382968, -0.019563612)
+ 17 1 SIMD3<Float>(-0.124679655, -0.41382968, -0.17682417)
+ 18 1 SIMD3<Float>(0.12467956, -0.41382968, -0.17682423)
+ 19 1 SIMD3<Float>(0.21547404, -0.41382968, -0.019563708)
+ 
+ UHF  0-1  2-3 4
+ 0 14 +.00
+ 1  1 +.00
+ 2  1 +.00
+ 3  1 +.00
+ 4  6 +.00
+ 5  1 +.00
+ 6  1 +.00
+ 7  6 +.00
+ 8  6 +.00
+ 9  1 +.00
+ 10 6 +.00
+ 11 1 +.00
+ 12 6 +.00
+ 13 1 +.00
+ 14 1 +.00
+ 15 1 +.00
+ 16 1 +.00
+ 17 1 +.00
+ 18 1 +.00
+ 19 1 +.00
+ 
+ 14 +0.004 -0.229
+ 1 +0.008 +0.060
+ 1 +0.007 +0.102
+ 1 +0.007 +0.102
+ 6 +0.009 +0.042
+ 1 +0.009 -0.011
+ 1 +0.009 -0.011
+ 6 -0.014 -0.014
+ 6 +0.002 +0.003
+ 1 -0.006 -0.006
+ 6 +0.002 +0.004
+ 1 -0.006 -0.006
+ 6 +0.002 +0.004
+ 1 -0.006 -0.006
+ 1 -0.005 -0.005
+ 1 -0.005 -0.005
+ 1 -0.005 -0.005
+ 1 -0.005 -0.006
+ 1 -0.005 -0.006
+ 1 -0.005 -0.005
+ 
+ 14 +0.004 -0.230
+ 1 +0.008 +0.061
+ 1 +0.007 +0.103
+ 1 +0.007 +0.103
+ 6 +0.008 +0.040
+ 1 +0.008 -0.013
+ 1 +0.008 -0.013
+ 6 -0.012 -0.012
+ 6 +0.002 +0.002
+ 1 -0.006 -0.006
+ 6 +0.002 +0.002
+ 1 -0.006 -0.006
+ 6 +0.002 +0.002
+ 1 -0.006 -0.006
+ 1 -0.004 -0.004
+ 1 -0.004 -0.004
+ 1 -0.004 -0.005
+ 1 -0.004 -0.005
+ 1 -0.004 -0.005
+ 1 -0.004 -0.005
+ 
+ 14 +0.003 -0.231
+ 1 +0.008 +0.061
+ 1 +0.007 +0.103
+ 1 +0.007 +0.103
+ 6 +0.008 +0.039
+ 1 +0.007 -0.014
+ 1 +0.007 -0.014
+ 6 -0.011 -0.011
+ 6 +0.002 +0.002
+ 1 -0.006 -0.006
+ 6 +0.002 +0.002
+ 1 -0.006 -0.006
+ 6 +0.002 +0.002
+ 1 -0.006 -0.006
+ 1 -0.004 -0.004
+ 1 -0.004 -0.004
+ 1 -0.004 -0.004
+ 1 -0.004 -0.004
+ 1 -0.004 -0.004
+ 1 -0.004 -0.004
+ 
+ */
+
+/*
+ UHF=0
+ 
+ :: total energy             -19.387987566711 Eh    ::
+ :: gradient norm              0.090538065208 Eh/a0 ::
+ :: HOMO-LUMO gap              0.005549872590 eV    ::
+ 
+ [0.4146175644186763, -0.10860930828992775, -0.12144197861711693, -0.1214419379524618, -0.18494548336536326, 0.03406371193862707, 0.03406370868609129, -0.024681617599840555, -0.10082701457767625, 0.04897436663473399, -0.10079023812063545, 0.0489456685085108, -0.10079021978105068, 0.048945676882609736, 0.039023516128477424, 0.03902352638862199, 0.03873395728231667, 0.039201071821478084, 0.03920109176555564, 0.03873393784839573]
+ */
+
+/*
+ UHF=1
+ 
+ :: total energy             -19.387987566711 Eh    ::
+ :: gradient norm              0.090538065208 Eh/a0 ::
+ :: HOMO-LUMO gap              0.005549872590 eV    ::
+ 
+ [0.4146175644186763, -0.10860930828992775, -0.12144197861711693, -0.1214419379524618, -0.18494548336536326, 0.03406371193862707, 0.03406370868609129, -0.024681617599840555, -0.10082701457767625, 0.04897436663473399, -0.10079023812063545, 0.0489456685085108, -0.10079021978105068, 0.048945676882609736, 0.039023516128477424, 0.03902352638862199, 0.03873395728231667, 0.039201071821478084, 0.03920109176555564, 0.03873393784839573]
+ */
+
+/*
+ UHF=2
+ 
+ :: total energy             -19.384775425018 Eh    ::
+ :: gradient norm              0.086063225595 Eh/a0 ::
+ :: HOMO-LUMO gap              4.061359128637 eV    ::
+ 
+ [0.41829308367693074, -0.10071009710653352, -0.11448934177048167, -0.1144893015801973, -0.1755530209000488, 0.043474492532022825, 0.04347448935578582, -0.03841433197803193, -0.09835685876766599, 0.04305438503156926, -0.09832134945682691, 0.043027126968540254, -0.0983213310949877, 0.04302713492672467, 0.03408720839080098, 0.03408721881970516, 0.03379811544075375, 0.03426713125474729, 0.034267151350582656, 0.03379809490660585]
+ */
+
+/*
+ UHF=3
+ 
+ :: total energy             -19.384775425018 Eh    ::
+ :: gradient norm              0.086063225595 Eh/a0 ::
+ :: HOMO-LUMO gap              4.061359128637 eV    ::
+ 
+ [0.4182930836769118, -0.10071009710652795, -0.11448934177047643, -0.1144893015801919, -0.17555302090004582, 0.04347449253202189, 0.0434744893557833, -0.03841433197803351, -0.09835685876766509, 0.043054385031566896, -0.0983213494568267, 0.043027126968539435, -0.09832133109498895, 0.04302713492672384, 0.034087208390802246, 0.034087218819704806, 0.033798115440755706, 0.03426713125474794, 0.0342671513505848, 0.033798094906608504]
+ */
+
+/*
+ UHF=4
+ 
+ :: total energy             -19.132617188096 Eh    ::
+ :: gradient norm              0.125519760859 Eh/a0 ::
+ :: HOMO-LUMO gap              0.541588162723 eV    ::
+ 
+ [0.18514746520795466, -0.04850424592520525, -0.01993826191394901, -0.01993834961914293, -0.14295843200088587, 0.02309661214681296, 0.023096579519104175, -0.03866491928974328, -0.09739698264217334, 0.04285061752583108, -0.0972510362254356, 0.042799321466752284, -0.09725101854367456, 0.04279932956040325, 0.03388684001651249, 0.033886849605638245, 0.03350431857045585, 0.03366549616050314, 0.03366551685602689, 0.03350429946025993]
+ */
 
 // MARK: - Structures
 
@@ -158,7 +301,7 @@ struct TooltipDescriptor {
 // A tooltip pointing toward the Z direction.
 struct Tooltip {
   var topology = Topology()
-  var anchors: Set<UInt32> = []
+  var anchors: [UInt32] = []
   var tipAtomID: UInt32 = .max
   
   init(descriptor: TooltipDescriptor) {
@@ -229,7 +372,7 @@ struct Tooltip {
       }
       
       let hydrogenID = UInt32(topology.atoms.count)
-      anchors.insert(hydrogenID)
+      anchors.append(hydrogenID)
       topology.insert(atoms: [hydrogen])
     }
     topology.insert(bonds: insertedBonds)
@@ -404,7 +547,7 @@ extension Tooltip {
 // A graphene flake whose normal is the Z direction.
 struct Graphene {
   var topology = Topology()
-  var anchors: Set<UInt32> = []
+  var anchors: [UInt32] = []
   
   init() {
     let lattice = createLattice()
@@ -556,7 +699,7 @@ struct Graphene {
         let otherID = Int(map[0])
         let otherAtom = topology.atoms[otherID]
         if otherAtom.atomicNumber == 14 {
-          anchors.insert(UInt32(atomID))
+          anchors.append(UInt32(atomID))
         }
       }
     }
