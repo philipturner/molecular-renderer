@@ -110,7 +110,7 @@ extension XTBProcess {
     case xtb
   }
   
-  func decodeAtoms(
+  static func decodeAtoms(
     _ input: String, encoding: Encoding = .xtb
   ) throws -> [Entity] {
     guard encoding == .xtb else {
@@ -180,7 +180,7 @@ extension XTBProcess {
     return output
   }
   
-  func encodeAtoms(
+  static func encodeAtoms(
     _ input: [Entity], encoding: Encoding = .xtb
   ) throws -> String {
     var output: [String] = []

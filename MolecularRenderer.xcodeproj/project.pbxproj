@@ -205,6 +205,7 @@
 		98906AD82AA92FF300FE5832 /* RhombicDodecahedraSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RhombicDodecahedraSimulation.swift; sourceTree = "<group>"; };
 		98906ADB2AAA68C000FE5832 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9890BAF52B9359DD00F144D1 /* UHFInvestigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UHFInvestigation.swift; sourceTree = "<group>"; };
+		9890BAF62B93CC5800F144D1 /* Methylation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Methylation.swift; sourceTree = "<group>"; };
 		9898382229A6C08F00B4AA98 /* MolecularRendererApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MolecularRendererApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolecularRendererApp.swift; sourceTree = "<group>"; };
 		9898382729A6C08F00B4AA98 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
@@ -436,6 +437,7 @@
 			children = (
 				9882C63E2B92BEA90032823D /* Graphene.swift */,
 				9882C63D2B9172730032823D /* HAbstAndHDon.swift */,
+				9890BAF62B93CC5800F144D1 /* Methylation.swift */,
 				9890BAF52B9359DD00F144D1 /* UHFInvestigation.swift */,
 				981919802B9136FA003CB3DE /* Water.swift */,
 				9819203B2B91284A00C0077F /* XTBTutorial.swift */,

@@ -1,4 +1,9 @@
-// Save as GitHub Gist instead of polluting the molecular-renderer source tree.
+//
+//  Methylation.swift
+//  MolecularRenderer
+//
+//  Created by Philip Turner on 3/2/24.
+//
 
 import Foundation
 import HDL
@@ -23,7 +28,7 @@ func createGeometry() -> [[Entity]] {
   let speed: Float = 1
   let endSeparation: Float = 0.35
   let framesStationary: Int = 100
-  let framesTotal: Int = 500
+  let framesTotal: Int = 400
   
   let simulating: Bool = true
   let uhf: Int = 0
@@ -195,10 +200,6 @@ func createGeometry() -> [[Entity]] {
     
     output.append(tooltip.topology.atoms + workpiece.topology.atoms)
   }
-  print()
-  
-  let serialized = try! XTBProcess.encodeAtoms(tooltip.topology.atoms + workpiece.topology.atoms, encoding: .hdl)
-  print(serialized)
   print()
   
   return output
