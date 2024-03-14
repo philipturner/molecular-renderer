@@ -167,6 +167,9 @@ func createGeometry() -> [[Entity]] {
     frames.append(atomsInput1 + atomsInput2 + atomsOutput)
   }
   
+  // Turn the parts red, until ~1 second after the collision. This
+  // could allow for debugging the time at which events occur.
+  
   for _ in 0..<300 {
     var nextAtomsOutput = atomsOutput
     for atomID in nextAtomsOutput.indices {
@@ -174,10 +177,9 @@ func createGeometry() -> [[Entity]] {
     }
     atomsOutput = nextAtomsOutput
     
-    // Turn the parts red, until ~1 second after the collision. This
-    // could allow for debugging the time at which events occur.
-    
-    
+    // Profile how much latency is incurred by 300 frames of
+    // collision detection here.
+        
     frames.append(atomsInput1 + atomsInput2 + atomsOutput)
   }
   
