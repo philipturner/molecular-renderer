@@ -30,6 +30,13 @@ import Numerics
 // * Project idea: simulate the CBN tripod HDon reaction with frame
 //   interpolation. Profile xTB in Xcode, to see whether most of the
 //   time is spent in LAPACK.
+// * Can the carbene idea be used to complete a diamond cage in the
+//   (111) orientation, with 1 DOF?
+//
+// The mechanosynthesis part seems out of scope for such a video, and could
+// take away some very critical time required to get it done (or time that
+// could be spent developing DFT software). Remove this level of theory from
+// such an explanation, resulting in three levels.
 func createGeometry() -> [[Entity]] {
   let inputRodLattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
@@ -85,7 +92,7 @@ func createGeometry() -> [[Entity]] {
   for atomID in atomsInput1.indices {
     var atom = atomsInput1[atomID]
     atom.position.y = -atom.position.y
-    atom.position.y += 2.0
+    atom.position.y += 1.9
     atom.position = SIMD3(
       atom.position.z, atom.position.y, atom.position.x)
     atom.position.z += -0.9
@@ -122,7 +129,7 @@ func createGeometry() -> [[Entity]] {
   }
   #endif
   
-  #if true
+  #if false
   do {
     var atomsInput = atomsInput2
     
@@ -156,32 +163,104 @@ func createGeometry() -> [[Entity]] {
   // - Move the input rods forward, independently of whether you
   //   turned them into NOT gates. Specify an array of input bits
   //   and print a bit representing the output to the console.
+  var descriptor = SimulationDescriptor()
+  descriptor.atomsInput1 = atomsInput1
+  descriptor.atomsInput2 = atomsInput2
+  descriptor.atomsOutput = atomsOutput
+  descriptor.inputBits = [true, true]
+  
+  var simulation = Simulation(descriptor: descriptor)
+  for _ in 0..<300 {
+    simulation.step()
+  }
+  print("output:", simulation.result.outputBit)
+  
+  // Next: print a truth table to the console for each given input. Exit the
+  // program early and do not render the output.
+  
+  return simulation.result.frames
+}
+
+struct SimulationDescriptor {
+  var atomsInput1: [Entity]?
+  var atomsInput2: [Entity]?
+  var atomsOutput: [Entity]?
+  var inputBits: [Bool]?
+}
+
+struct SimulationResult {
   var frames: [[Entity]] = []
-  for _ in 0..<60 {
-    for atomID in atomsInput1.indices {
-      atomsInput1[atomID].position.z += -0.02
+  var outputBit: Bool = true
+}
+
+struct Simulation {
+  var atomsInput1: [Entity]
+  var atomsInput2: [Entity]
+  var atomsOutput: [Entity]
+  var inputBits: [Bool]
+  
+  var result: SimulationResult = .init()
+  
+  init(descriptor: SimulationDescriptor) {
+    guard let atomsInput1 = descriptor.atomsInput1,
+          let atomsInput2 = descriptor.atomsInput2,
+          let atomsOutput = descriptor.atomsOutput,
+          let inputBits = descriptor.inputBits else {
+      fatalError("Simulation not fully specified.")
     }
-    for atomID in atomsInput2.indices {
-      atomsInput2[atomID].position.z += -0.02
-    }
-    frames.append(atomsInput1 + atomsInput2 + atomsOutput)
+    self.atomsInput1 = atomsInput1
+    self.atomsInput2 = atomsInput2
+    self.atomsOutput = atomsOutput
+    self.inputBits = inputBits
+    setInputs()
   }
   
-  // Turn the parts red, until ~1 second after the collision. This
-  // could allow for debugging the time at which events occur.
+  mutating func setInputs() {
+    for _ in 0..<60 {
+      if inputBits[0] {
+        for atomID in atomsInput1.indices {
+          atomsInput1[atomID].position.z += -0.02
+        }
+      }
+      if inputBits[1] {
+        for atomID in atomsInput2.indices {
+          atomsInput2[atomID].position.z += -0.02
+        }
+      }
+      
+      let frame = self.atomsInput1 + self.atomsInput2 + self.atomsOutput
+      result.frames.append(frame)
+    }
+  }
   
-  for _ in 0..<300 {
+  mutating func step() {
     var nextAtomsOutput = atomsOutput
     for atomID in nextAtomsOutput.indices {
       nextAtomsOutput[atomID].position.x += 0.02
     }
-    atomsOutput = nextAtomsOutput
     
-    // Profile how much latency is incurred by 300 frames of
-    // collision detection here.
-        
-    frames.append(atomsInput1 + atomsInput2 + atomsOutput)
+    var topology = Topology()
+    topology.insert(atoms: atomsInput1)
+    topology.insert(atoms: atomsInput2)
+    let matches = topology.match(
+      nextAtomsOutput, algorithm: .covalentBondLength(3),
+      maximumNeighborCount: 16)
+    
+    var foundMatch = false
+    for atomID in nextAtomsOutput.indices {
+      if matches[atomID].count > 0 {
+        foundMatch = true
+      }
+    }
+    if foundMatch {
+      // Do nothing.
+      result.outputBit = false
+    } else {
+      // Advance the output if there is no collision.
+      atomsOutput = nextAtomsOutput
+    }
+    
+    let frame = atomsInput1 + atomsInput2 + atomsOutput
+    result.frames.append(frame)
   }
-  
-  return frames
 }
