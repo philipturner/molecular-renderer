@@ -13,8 +13,8 @@ import Numerics
 //
 // There are four levels of theory:
 // - Semiempirical Quantum Mechanics
-//   - CBN tripod donating hydrogen atom to logic rod fragment, with
-//     frame interpolation *
+//   - CBN tripod adding carbenic feedstock to logic rod fragment,
+//     with frame interpolation *
 // - Molecular Mechanics
 //   - Obstructed and mobile states of a single logic switch
 // - Rigid Body Mechanics
