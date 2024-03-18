@@ -48,7 +48,15 @@ struct Rod {
       Bounds { hDimension * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
       
-      #if false
+      Volume {
+        Convex {
+          Origin { 1 * h2k }
+          Plane { k - h }
+        }
+        Replace { .empty }
+      }
+      
+      #if true
       pattern(h, k, l)
       #endif
     }
@@ -84,13 +92,39 @@ struct Housing {
   mutating func createLattice() {
     let lattice = Lattice<Cubic> { h, k, l in
       // The minimum required height is 10 * k. However, to be compatible
-      // with the clocking mechanism, we extend this by 2 cells in each
+      // with the clocking mechanism, we extend this by ~2 cells in each
       // direction. If multiple bits were being clocked in parallel, this
       // extension would not be needed.
-      Bounds { 13 * h + 14 * k + 7 * l }
+      Bounds { 13 * h + 17 * k + 7 * l }
       Material { .elemental(.carbon) }
       
       Volume {
+        // Shape a place on the bottom, to hold the input drive wall in place.
+        Concave {
+          Convex {
+            Origin { 3 * k }
+            Plane { -k }
+          }
+          Convex {
+            Origin { 0 * k }
+            Origin { 1 * l }
+            Plane { -k + l }
+          }
+        }
+        
+        // Shape a place on the top, to hold the output drive wall in place.
+        Concave {
+          Convex {
+            Origin { 14 * k }
+            Plane { k }
+          }
+          Convex {
+            Origin { 17 * k }
+            Origin { 1 * h }
+            Plane { h + k }
+          }
+        }
+        
         func inputRodShaft() {
           Concave {
             Concave {
@@ -112,18 +146,18 @@ struct Housing {
         }
         
         Convex {
-          Origin { 1.5 * h + 3.5 * k }
+          Origin { 1.5 * h + 5.5 * k }
           inputRodShaft()
         }
         
         Convex {
-          Origin { 7.5 * h + 3.5 * k }
+          Origin { 7.5 * h + 5.5 * k }
           inputRodShaft()
         }
         
         // Create the output rod shaft.
         Convex {
-          Origin { 1.5 * l + 6.25 * k }
+          Origin { 1.5 * l + 8.25 * k }
           Concave {
             Concave {
               Plane { l }
@@ -153,6 +187,115 @@ struct Housing {
   mutating func passivate() {
     var reconstruction = SurfaceReconstruction()
     reconstruction.material = .elemental(.carbon)
+    reconstruction.topology = topology
+    reconstruction.removePathologicalAtoms()
+    reconstruction.createBulkAtomBonds()
+    reconstruction.createHydrogenSites()
+    reconstruction.resolveCollisions()
+    reconstruction.createHydrogenBonds()
+    topology = reconstruction.topology
+    topology.sort()
+  }
+}
+
+struct DriveWallDescriptor {
+  // How many consecutive rods to clock.
+  //
+  // Only 1 and 2 are accepted as valid values.
+  var cellCount: Int?
+}
+
+struct DriveWall {
+  var topology = Topology()
+  
+  init(descriptor: DriveWallDescriptor) {
+    createLattice(descriptor: descriptor)
+  }
+  
+  mutating func createLattice(descriptor: DriveWallDescriptor) {
+    let allowedCellCounts: Set<Int> = [1, 2]
+    guard let cellCount = descriptor.cellCount,
+          allowedCellCounts.contains(cellCount) else {
+      fatalError("Descriptor not complete.")
+    }
+    
+    let lattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      
+      // This must be floating-point to be compatible wth the compiler.
+      let lDimension: Float
+      if cellCount == 2 {
+        lDimension = 10
+      } else {
+        lDimension = 6
+      }
+      
+      Bounds { 4 * h + 8 * h2k + lDimension * l }
+      Material { .checkerboard(.silicon, .carbon) }
+      
+      Volume {
+        func createRodAGroove() {
+          Concave {
+            Origin { 1.25 * l }
+            Plane { l }
+            
+            Origin { 1.9 * h }
+            Plane { h }
+            
+            Origin { 3.0 * l }
+            Plane { -l }
+          }
+        }
+        
+        func createRodBGroove() {
+          Concave {
+            Origin { 5.25 * l }
+            Plane { l }
+            
+            Origin { 1.9 * h }
+            Plane { h }
+            
+            Origin { 3.0 * l }
+            Plane { -l }
+          }
+        }
+        
+        Concave {
+          createRodAGroove()
+          Convex {
+            Origin { 1 * h2k }
+            Plane { h2k }
+          }
+          Convex {
+            Origin { 1.9 * h + 2.75 * h2k }
+            Plane { -k + h }
+          }
+        }
+        
+        if cellCount == 2 {
+          Concave {
+            createRodBGroove()
+            Convex {
+              Origin { 1 * h2k }
+              Plane { h2k }
+            }
+            Convex {
+              Origin { 1.9 * h + 2.75 * h2k }
+              Plane { -k + h }
+            }
+          }
+        }
+        
+        Replace { .empty }
+      }
+    }
+    topology.insert(atoms: lattice.atoms)
+  }
+  
+  // Passivates the surface and reorders atoms for optimized simulation.
+  mutating func passivate() {
+    var reconstruction = SurfaceReconstruction()
+    reconstruction.material = .checkerboard(.silicon, .carbon)
     reconstruction.topology = topology
     reconstruction.removePathologicalAtoms()
     reconstruction.createBulkAtomBonds()

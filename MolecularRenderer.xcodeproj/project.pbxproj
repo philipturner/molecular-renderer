@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		9812FA9C2BA8CC1500636FF9 /* Parts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FA9B2BA8CC1500636FF9 /* Parts.swift */; };
 		9812FA9E2BA8CC1B00636FF9 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FA9D2BA8CC1B00636FF9 /* System.swift */; };
+		9812FAA02BA8F68700636FF9 /* FIRE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FA9F2BA8F68700636FF9 /* FIRE.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -105,6 +106,7 @@
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
 		9812FA9B2BA8CC1500636FF9 /* Parts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parts.swift; sourceTree = "<group>"; };
 		9812FA9D2BA8CC1B00636FF9 /* System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = System.swift; sourceTree = "<group>"; };
+		9812FA9F2BA8F68700636FF9 /* FIRE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FIRE.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -914,6 +916,7 @@
 		98F250032A130A65009AABDE /* Backend */ = {
 			isa = PBXGroup;
 			children = (
+				9812FA9F2BA8F68700636FF9 /* FIRE.swift */,
 				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
 				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
 				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
@@ -1266,6 +1269,7 @@
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
+				9812FAA02BA8F68700636FF9 /* FIRE.swift in Sources */,
 				9812FA9C2BA8CC1500636FF9 /* Parts.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
