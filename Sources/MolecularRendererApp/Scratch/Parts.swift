@@ -83,7 +83,11 @@ struct Housing {
   // enough to work at room temperature.
   mutating func createLattice() {
     let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 13 * h + 10 * k + 7 * l }
+      // The minimum required height is 10 * k. However, to be compatible
+      // with the clocking mechanism, we extend this by 2 cells in each
+      // direction. If multiple bits were being clocked in parallel, this
+      // extension would not be needed.
+      Bounds { 13 * h + 14 * k + 7 * l }
       Material { .elemental(.carbon) }
       
       Volume {
@@ -108,18 +112,18 @@ struct Housing {
         }
         
         Convex {
-          Origin { 1.5 * h + 1.5 * k }
+          Origin { 1.5 * h + 3.5 * k }
           inputRodShaft()
         }
         
         Convex {
-          Origin { 7.5 * h + 1.5 * k }
+          Origin { 7.5 * h + 3.5 * k }
           inputRodShaft()
         }
         
         // Create the output rod shaft.
         Convex {
-          Origin { 1.5 * l + 4.25 * k }
+          Origin { 1.5 * l + 6.25 * k }
           Concave {
             Concave {
               Plane { l }

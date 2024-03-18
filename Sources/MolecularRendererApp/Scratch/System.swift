@@ -90,6 +90,16 @@ struct System {
   
   init(pattern: Pattern) {
     housing = Housing()
+    for atomID in housing.topology.atoms.indices {
+      var atom = housing.topology.atoms[atomID]
+      var position = atom.position
+      
+      // Shift the housing down by 2 cells, to match the extension in the Y
+      // direction.
+      position += SIMD3(0, -2 * 0.357, 0)
+      atom.position = position
+      housing.topology.atoms[atomID] = atom
+    }
     
     var rodDescriptor = RodDescriptor()
     rodDescriptor.length = 10
