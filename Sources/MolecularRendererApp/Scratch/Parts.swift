@@ -145,6 +145,7 @@ struct Housing {
     topology.insert(atoms: lattice.atoms)
   }
   
+  // Passivates the surface and reorders atoms for optimized simulation.
   mutating func passivate() {
     var reconstruction = SurfaceReconstruction()
     reconstruction.material = .elemental(.carbon)
