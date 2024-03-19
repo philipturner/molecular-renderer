@@ -25,6 +25,7 @@ struct RodDescriptor {
 // A logic rod.
 struct Rod {
   var topology = Topology()
+  var velocities: [SIMD3<Float>]?
   
   init(descriptor: RodDescriptor) {
     createLattice(descriptor: descriptor)
@@ -82,6 +83,7 @@ struct Rod {
 struct Housing {
   var topology = Topology()
   var anchors: Set<UInt32> = []
+  var velocities: [SIMD3<Float>]?
   
   init() {
     createLattice()
@@ -207,6 +209,7 @@ struct DriveWallDescriptor {
 
 struct DriveWall {
   var topology = Topology()
+  var velocities: [SIMD3<Float>]?
   
   init(descriptor: DriveWallDescriptor) {
     createLattice(descriptor: descriptor)

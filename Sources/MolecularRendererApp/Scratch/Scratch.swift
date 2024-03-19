@@ -4,14 +4,13 @@ import Foundation
 import HDL
 import MM4
 import Numerics
-import OpenMM
 
 // Test two-bit logic gates with full MD simulation. Verify that they work
 // reliably at room temperature with the proposed actuation mechanism, at up
 // to a 3 nm vdW cutoff. How long do they take to switch?
 //
 // This may require serializing long MD simulations to the disk for playback.
-func createGeometry() -> [[Entity]] {
+func createGeometry() -> [Entity] {
   var systemDesc = SystemDescriptor()
   systemDesc.patternA = { h, k, l in
     let h2k = h + 2 * k
@@ -81,103 +80,93 @@ func createGeometry() -> [[Entity]] {
   
   var system = System(descriptor: systemDesc)
   system.passivate()
+  system.minimizeSurfaces()
   
-  var topologies: [Topology] = []
-  topologies.append(system.housing.topology)
-  topologies.append(system.inputDriveWall.topology)
-  topologies.append(system.outputDriveWall.topology)
-  topologies.append(system.rodA.topology)
-  topologies.append(system.rodB.topology)
-  topologies.append(system.rodC.topology)
-  
-  var emptyParamsDesc = MM4ParametersDescriptor()
-  emptyParamsDesc.atomicNumbers = []
-  emptyParamsDesc.bonds = []
-  var systemParameters = try! MM4Parameters(descriptor: emptyParamsDesc)
-  
+  // Initialize the rigid bodies with thermal velocities, then zero out the
+  // drift in bulk momentum.
+  let randomThermalVelocities = system.createRandomThermalVelocities()
+  var topologies = system.getTopologies()
   for topologyID in topologies.indices {
+    print()
+    print("topologies[\(topologyID)]")
     let topology = topologies[topologyID]
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    var partParameters = try! MM4Parameters(descriptor: paramsDesc)
-    
-    // Don't let the bulk atoms move during the minimization.
-    for atomID in topology.atoms.indices {
-      let centerType = partParameters.atoms.centerTypes[atomID]
-      if centerType == .quaternary {
-        partParameters.atoms.masses[atomID] = 0
-      }
+    let velocities = randomThermalVelocities[topologyID]
+    for i in 0..<3 {
+      let atom = topology.atoms[i]
+      let Z = atom.atomicNumber
+      print("Z = \(Z) | velocities[\(i)] = \(velocities[i])")
     }
-    systemParameters.append(contentsOf: partParameters)
-  }
-  
-  var forceFieldDesc = MM4ForceFieldDescriptor()
-  forceFieldDesc.cutoffDistance = 1 // not simulating dynamics yet
-  forceFieldDesc.parameters = systemParameters
-  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-  
-  var atoms = topologies.flatMap(\.atoms)
-  forceField.positions = atoms.map(\.position)
-  forceField.minimize()
-  for atomID in atoms.indices {
-    var atom = atoms[atomID]
-    atom.position = forceField.positions[atomID]
-    atoms[atomID] = atom
-  }
-  
-  var atomCursor: Int = 0
-  for topologyID in topologies.indices {
-    var topology = topologies[topologyID]
-    for atomID in topology.atoms.indices {
-      let atom = atoms[atomCursor]
-      topology.atoms[atomID] = atom
-      atomCursor += 1
+    for i in (velocities.count - 3)..<velocities.count {
+      let atom = topology.atoms[i]
+      let Z = atom.atomicNumber
+      print("Z = \(Z) | velocities[\(i)] = \(velocities[i])")
     }
-    topologies[topologyID] = topology
   }
   
-  var rigidBodies: [MM4RigidBody] = []
+  system.setAtomVelocities(randomThermalVelocities)
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.forces = []
+  var rigidBodies = system.createRigidBodies(parametersDescriptor: paramsDesc)
+  print()
+  print("rigid bodies")
+  for rigidBodyID in rigidBodies.indices {
+    let rigidBody = rigidBodies[rigidBodyID]
+    let linearMomentum = SIMD3<Float>(rigidBody.linearMomentum)
+    print("rigidBodies[\(rigidBodyID)].linearMomentum = ", terminator: "")
+    print(linearMomentum)
+  }
+  for rigidBodyID in rigidBodies.indices {
+    let rigidBody = rigidBodies[rigidBodyID]
+    let angularMomentum = SIMD3<Float>(rigidBody.angularMomentum)
+    print("rigidBodies[\(rigidBodyID)].angularMomentum = ", terminator: "")
+    print(angularMomentum)
+  }
+  
+  for rigidBodyID in rigidBodies.indices {
+    var rigidBody = rigidBodies[rigidBodyID]
+    rigidBody.linearMomentum = .zero
+    rigidBody.angularMomentum = .zero
+    rigidBodies[rigidBodyID] = rigidBody
+  }
+  let rigidBodyAtomVelocities = rigidBodies.map(\.velocities)
+  system.setAtomVelocities(rigidBodyAtomVelocities)
+  
+  let atomVelocities = system.getAtomVelocities()
+  topologies = system.getTopologies()
   for topologyID in topologies.indices {
+    print()
+    print("topologies[\(topologyID)]")
     let topology = topologies[topologyID]
-    
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    paramsDesc.forces = [.nonbonded]
-    let parameters = try! MM4Parameters(descriptor: paramsDesc)
-    
-    var rigidBodyDesc = MM4RigidBodyDescriptor()
-    rigidBodyDesc.parameters = parameters
-    rigidBodyDesc.positions = topology.atoms.map(\.position)
-    let rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-    rigidBodies.append(rigidBody)
+    let velocities = atomVelocities[topologyID]
+    for i in 0..<3 {
+      let atom = topology.atoms[i]
+      let Z = atom.atomicNumber
+      print("Z = \(Z) | velocities[\(i)] = \(velocities[i])")
+    }
+    for i in (velocities.count - 3)..<velocities.count {
+      let atom = topology.atoms[i]
+      let Z = atom.atomicNumber
+      print("Z = \(Z) | velocities[\(i)] = \(velocities[i])")
+    }
   }
   
-  var frames: [[Entity]] = []
-  rigidBodies[2].centerOfMass.y += 2.2
-  do {
-    var fire = FIRE()
-    fire.anchors = [0, 1, 2]
-    fire.rigidBodies = rigidBodies
-    let result = fire.minimize()
-    
-    rigidBodies = fire.rigidBodies
-    frames += result.frames
+  rigidBodies = system.createRigidBodies(parametersDescriptor: paramsDesc)
+  print()
+  print("rigid bodies")
+  for rigidBodyID in rigidBodies.indices {
+    let rigidBody = rigidBodies[rigidBodyID]
+    let linearMomentum = SIMD3<Float>(rigidBody.linearMomentum)
+    print("rigidBodies[\(rigidBodyID)].linearMomentum = ", terminator: "")
+    print(linearMomentum)
+  }
+  for rigidBodyID in rigidBodies.indices {
+    let rigidBody = rigidBodies[rigidBodyID]
+    let angularMomentum = SIMD3<Float>(rigidBody.angularMomentum)
+    print("rigidBodies[\(rigidBodyID)].angularMomentum = ", terminator: "")
+    print(angularMomentum)
   }
   
-  rigidBodies[2].centerOfMass.y += -2.2
-  rigidBodies[5].centerOfMass.x += -0.4
-  do {
-    var fire = FIRE()
-    fire.anchors = [0, 1, 2, 3, 4]
-    fire.rigidBodies = rigidBodies
-    let result = fire.minimize()
-    
-    rigidBodies = fire.rigidBodies
-    frames += result.frames
-  }
+  // TODO: Push this debugging code to GitHub before you delete it.
   
-  return frames
+  return topologies.flatMap(\.atoms)
 }
-
