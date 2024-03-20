@@ -76,7 +76,7 @@ struct System {
       position = SIMD3(position.z, position.y, position.x)
       
       // Set Z to either 0 or -0.8, to visualize ends of the clock cycle.
-      position += SIMD3(0.91, 0.85, -0.4)
+      position += SIMD3(0.91, 0.85, 0)
       atom.position = position
       rodA.topology.atoms[atomID] = atom
     }
@@ -88,7 +88,7 @@ struct System {
       position = SIMD3(position.z, position.y, position.x)
       
       // Set Z to either 0 or -0.8, to visualize ends of the clock cycle.
-      position += SIMD3(0.91 + 6 * 0.357, 0.85, -0.4)
+      position += SIMD3(0.91 + 6 * 0.357, 0.85, 0)
       atom.position = position
       rodB.topology.atoms[atomID] = atom
     }
@@ -110,7 +110,7 @@ struct System {
       var position = atom.position
       
       // Set Y to either 0 or -2.2, to visualize ends of the clock cycle.
-      position += SIMD3(-1.7, 0, -0.1)
+      position += SIMD3(-1.7, -2.2, -0.1)
       position = SIMD3(position.z, position.y, position.x)
       atom.position = position
       inputDriveWall.topology.atoms[atomID] = atom
