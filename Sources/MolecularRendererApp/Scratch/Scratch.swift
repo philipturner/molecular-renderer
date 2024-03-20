@@ -4,6 +4,7 @@ import Foundation
 import HDL
 import MM4
 import Numerics
+import OpenMM
 
 // Test two-bit logic gates with full MD simulation. Verify that they work
 // reliably at room temperature with the proposed actuation mechanism, at up
@@ -95,6 +96,44 @@ func createGeometry() -> [[Entity]] {
       var rigidBody = rigidBodies[rigidBodyID]
       rigidBody.linearMomentum = .zero
       rigidBody.angularMomentum = .zero
+      
+      // Give the input drive wall a velocity of 100 m/s in the Y direction.
+      //
+      // TODO: Rewrite this code. We need to equilibriate the system before
+      // giving the drive wall any momentum. In the first iteration, give each
+      // atom double the thermal kinetic energy. 40 fs per iteration should be
+      // sufficient. Repeat until the energy drift has stabilized.
+      if rigidBodyID == 1 {
+        let atomVelocitiesBefore = rigidBody.velocities
+        let massesBefore = rigidBody.parameters.atoms.masses
+        var atomKineticEnergyBefore: Double = .zero
+        for atomID in rigidBody.parameters.atoms.indices {
+          let mass = massesBefore[atomID]
+          let velocityBefore = atomVelocitiesBefore[atomID]
+          atomKineticEnergyBefore += Double(0.5 * mass * (velocityBefore * velocityBefore).sum())
+        }
+        
+        let mass = rigidBody.mass
+        let velocity = SIMD3<Double>(0, 0.000, 0)
+        let linearMomentum = mass * velocity
+        rigidBody.linearMomentum = linearMomentum
+        
+        let kineticEnergy = 0.5 * mass * (velocity * velocity).sum()
+        print("Organized kinetic energy:", kineticEnergy)
+        
+        let atomVelocitiesAfter = rigidBody.velocities
+        let massesAfter = rigidBody.parameters.atoms.masses
+        var atomKineticEnergyAfter: Double = .zero
+        for atomID in rigidBody.parameters.atoms.indices {
+          let mass = massesAfter[atomID]
+          let velocityAfter = atomVelocitiesAfter[atomID]
+          atomKineticEnergyAfter += Double(0.5 * mass * (velocityAfter * velocityAfter).sum())
+        }
+        
+        print("Before:", atomKineticEnergyBefore)
+        print("After:", atomKineticEnergyAfter)
+      }
+      
       rigidBodies[rigidBodyID] = rigidBody
     }
     let rigidBodyAtomVelocities = rigidBodies.map(\.velocities)
@@ -126,7 +165,7 @@ func createGeometry() -> [[Entity]] {
       boundingBoxMinY = .signalingNaN
     }
     
-    let frozenRigidBodyIDs: Set<Int> = [0, 1, 2]
+    let frozenRigidBodyIDs: Set<Int> = [0, 2]
     if frozenRigidBodyIDs.contains(rigidBodyID) {
       for atomID in parameters.atoms.indices {
         let centerType = parameters.atoms.centerTypes[atomID]
@@ -148,19 +187,35 @@ func createGeometry() -> [[Entity]] {
     systemParameters.append(contentsOf: parameters)
   }
   
+  let platforms = OpenMM_Platform.platforms
+  let reference = platforms.first(where: {
+    $0.name == "HIP"
+  })!
+  
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.cutoffDistance = 2.5
   forceFieldDesc.integrator = .multipleTimeStep
   forceFieldDesc.parameters = systemParameters
+  forceFieldDesc.platform = reference
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   let systemStartPositions = rigidBodies.flatMap(\.positions)
   let systemStartVelocities = rigidBodies.flatMap(\.velocities)
   forceField.positions = systemStartPositions
+  
+  do {
+    let kinetic = forceField.energy.kinetic
+    let potential = forceField.energy.potential
+    print("frame:", -1, terminator: " | ")
+    print("kinetic:", kinetic, terminator: " | ")
+    print("potential:", potential, terminator: " | ")
+  }
+  
   forceField.minimize()
   forceField.velocities = systemStartVelocities
   
   var frames: [[Entity]] = []
-  for frameID in 0...240 {
+  var initialEnergy: Double?
+  for frameID in 0...2 {
     if frameID > 0 {
       forceField.simulate(time: 0.040)
     }
@@ -168,7 +223,14 @@ func createGeometry() -> [[Entity]] {
     let potential = forceField.energy.potential
     print("frame:", frameID, terminator: " | ")
     print("kinetic:", kinetic, terminator: " | ")
-    print("potential:", potential)
+    print("potential:", potential, terminator: " | ")
+    if frameID > 0 {
+      let totalEnergy = kinetic + potential
+      let driftEnergy = totalEnergy - initialEnergy!
+      print("drift:", driftEnergy)
+    } else {
+      initialEnergy = kinetic + potential
+    }
     
     var frame: [Entity] = []
     for atomID in systemParameters.atoms.indices {
@@ -183,6 +245,7 @@ func createGeometry() -> [[Entity]] {
   
   // Next, give the drive walls velocities. Send them through the clocking
   // motion at 100 m/s and time the gate switching time.
+  
   
   return frames
 }
