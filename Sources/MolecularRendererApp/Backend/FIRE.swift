@@ -89,7 +89,7 @@ struct FIRE {
     // This uses a cutoff distance of 2 nm for accurate vdW forces.
     var forceFieldDesc = MM4ForceFieldDescriptor()
     forceFieldDesc.parameters = systemParameters
-    forceFieldDesc.cutoffDistance = 3 // custom cutoff distance
+    forceFieldDesc.cutoffDistance = 2.5 // custom cutoff distance
     let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
     return forceField
   }
