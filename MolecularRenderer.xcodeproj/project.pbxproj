@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		9812FAA02BA8F68700636FF9 /* FIRE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FA9F2BA8F68700636FF9 /* FIRE.swift */; };
+		9812FAA42BAE2CFD00636FF9 /* Parts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAA32BAE2CFD00636FF9 /* Parts.swift */; };
+		9812FAA62BAE2D0400636FF9 /* System.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAA52BAE2D0400636FF9 /* System.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -103,6 +105,8 @@
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
 		9812FA9F2BA8F68700636FF9 /* FIRE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FIRE.swift; sourceTree = "<group>"; };
+		9812FAA32BAE2CFD00636FF9 /* Parts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parts.swift; sourceTree = "<group>"; };
+		9812FAA52BAE2D0400636FF9 /* System.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = System.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -590,6 +594,8 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
+				9812FAA32BAE2CFD00636FF9 /* Parts.swift */,
+				9812FAA52BAE2D0400636FF9 /* System.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -1252,6 +1258,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9812FAA62BAE2D0400636FF9 /* System.swift in Sources */,
 				9855200B2B53215C00AB068D /* Scratch.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
@@ -1267,6 +1274,7 @@
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
+				9812FAA42BAE2CFD00636FF9 /* Parts.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
