@@ -6,214 +6,221 @@ import MM4
 import Numerics
 import OpenMM
 
-// Test whether you can have a knob on the (111) side of the lonsdaleite, to
-// facilitate 3D data transfers. There are suspected to cause the rod to warp,
-// so we need a method to compensate.
-func createGeometry() -> [[Entity]] {
-  var rodDesc = RodDescriptor()
-  rodDesc.dopantElement = .carbon
-  var rodC = Rod(descriptor: rodDesc)
-  for atomID in rodC.topology.atoms.indices {
-    var atom = rodC.topology.atoms[atomID]
-    atom.position += SIMD3(0, 0, -3)
-    rodC.topology.atoms[atomID] = atom
-  }
-  
-  rodDesc.dopantElement = .silicon
-  var rodSi = Rod(descriptor: rodDesc)
-  for atomID in rodSi.topology.atoms.indices {
-    var atom = rodSi.topology.atoms[atomID]
-    atom.position += SIMD3(0, 0, 0)
-    rodSi.topology.atoms[atomID] = atom
-  }
-  
-  rodDesc.dopantElement = .germanium
-  var rodGe = Rod(descriptor: rodDesc)
-  for atomID in rodGe.topology.atoms.indices {
-    var atom = rodGe.topology.atoms[atomID]
-    atom.position += SIMD3(0, 0, 3)
-    rodGe.topology.atoms[atomID] = atom
-  }
-  
-  var topologies: [Topology] = []
-  topologies.append(rodC.topology)
-  topologies.append(rodSi.topology)
-  topologies.append(rodGe.topology)
-  
-  var emptyParamsDesc = MM4ParametersDescriptor()
-  emptyParamsDesc.atomicNumbers = []
-  emptyParamsDesc.bonds = []
-  var systemParameters = try! MM4Parameters(descriptor: emptyParamsDesc)
-  
-  for topology in topologies {
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    let rodParameters = try! MM4Parameters(descriptor: paramsDesc)
-    systemParameters.append(contentsOf: rodParameters)
-  }
-  
-
-  var forceFieldDesc = MM4ForceFieldDescriptor()
-  forceFieldDesc.parameters = systemParameters
-  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-  
-  var combinedPositions: [SIMD3<Float>] = []
-  combinedPositions += topologies[0].atoms.map(\.position)
-  combinedPositions += topologies[1].atoms.map(\.position)
-  combinedPositions += topologies[2].atoms.map(\.position)
-  forceField.positions = combinedPositions
-  forceField.minimize()
-  
-  var frames: [[Entity]] = []
-  for frameID in 0...600 {
-    if frameID > 0 {
-      forceField.simulate(time: 0.040)
-    }
+// Test whether switches with sideways knobs work correctly. Test every
+// possible permutation of touching knobs and approach directions.
+//
+// Then, test whether extremely long rods work correctly.
+//
+// Notes:
+// - Save each test to rod-logic in its own file. Then, overwrite the contents
+//   and proceed with the next test.
+// - Run each setup with MD at room temperature.
+func createGeometry() -> [Entity] {
+  let lattice1 = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 30 * h + 2 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
     
-    var frame: [Entity] = []
-    for atomID in systemParameters.atoms.indices {
-      let atomicNumber = systemParameters.atoms.atomicNumbers[atomID]
-      let position = forceField.positions[atomID]
-      let storage = SIMD4(position, Float(atomicNumber))
-      let entity = Entity(storage: storage)
-      frame.append(entity)
+    Volume {
+      // Create a sideways groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        
+        Origin { 1.375 * l }
+        Plane { l }
+        
+        Origin { 6 * h }
+        Plane { -h }
+      }
+      Replace { .empty }
+      
+      // Create silicon dopants to stabilize the groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 1 * l }
+        Plane { l }
+        Origin { 0.5 * l }
+        Plane { -l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Concave {
+        Origin { (7 + 5) * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 1 * l }
+        Plane { l }
+        Origin { 0.5 * l }
+        Plane { -l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Replace { .atom(.silicon) }
     }
-    frames.append(frame)
   }
-  return frames
+  let lattice2 = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 30 * h + 2 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      // Create a sideways groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        
+        Origin { 0.5 * l }
+        Plane { -l }
+        
+        Origin { 6 * h }
+        Plane { -h }
+      }
+      Replace { .empty }
+      
+      // Create silicon dopants to stabilize the groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 0.6 * l }
+        Plane { -l }
+        Origin { -0.5 * l }
+        Plane { l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Concave {
+        Origin { (7 + 5) * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 0.6 * l }
+        Plane { -l }
+        Origin { -0.5 * l }
+        Plane { l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Replace { .atom(.silicon) }
+    }
+  }
+  var rod1 = Rod(lattice: lattice1)
+  var rod2 = Rod(lattice: lattice2)
+  
+  for atomID in rod1.topology.atoms.indices {
+    var atom = rod1.topology.atoms[atomID]
+    var position = atom.position
+    position = SIMD3(position.z, position.y, position.x)
+    position += SIMD3(0.91, 0.85, -1.25)
+    atom.position = position
+    rod1.topology.atoms[atomID] = atom
+  }
+  for atomID in rod2.topology.atoms.indices {
+    var atom = rod2.topology.atoms[atomID]
+    var position = atom.position
+    position = SIMD3(position.z, position.y, position.x)
+    position = SIMD3(position.x, position.z, position.y)
+    
+    let latticeConstant = Constant(.square) { .elemental(.carbon) }
+    position += SIMD3(2.5 * latticeConstant, 0, 0)
+    position += SIMD3(0.91, -1.25, 0.85)
+    atom.position = position
+    rod2.topology.atoms[atomID] = atom
+  }
+  
+  let housing = Housing()
+  
+  var atoms: [Entity] = []
+//  atoms += rod1.topology.atoms
+//  atoms += rod2.topology.atoms
+  atoms += housing.topology.atoms
+  return atoms
 }
 
-struct RodDescriptor {
-  var dopantElement: Element?
+struct Housing {
+  var topology = Topology()
+  
+  init() {
+    createLattice()
+  }
+  
+  mutating func createLattice() {
+    let lattice = Lattice<Cubic> { h, k, l in
+      Bounds { 10 * h + 8 * k + 8 * l }
+      Material { .elemental(.carbon) }
+      
+      Volume {
+        // Groove for the first rod.
+        Convex {
+          Concave {
+            Origin { 1.5 * h + 1.5 * k }
+            Plane { h }
+            Plane { k }
+            Origin { 4 * h + 4.25 * k }
+            Plane { -h }
+            Plane { -k }
+          }
+          Convex {
+            Origin { 7.25 * k }
+            Plane { k }
+          }
+        }
+        
+        // Groove for the second rod.
+        Convex {
+          Origin { 2.5 * h }
+          Concave {
+            Concave {
+              Origin { 1.5 * h + 1.5 * l }
+              Plane { h }
+              Plane { l }
+              Origin { 4 * h + 4.25 * l }
+              Plane { -h }
+              Plane { -l }
+            }
+          }
+          Convex {
+            Origin { 7.25 * l }
+            Plane { l }
+          }
+        }
+        
+        // Clean up the extraneous block of atoms on the right.
+        Convex {
+          Origin { 9.5 * h }
+          Plane { h }
+        }
+        
+        Replace { .empty }
+      }
+    }
+    topology.insert(atoms: lattice.atoms)
+  }
 }
 
 struct Rod {
   var topology = Topology()
   
-  init(descriptor: RodDescriptor) {
-    createLattice(descriptor: descriptor)
+  init(lattice: Lattice<Hexagonal>) {
+    topology.insert(atoms: lattice.atoms)
     passivate()
   }
   
-  mutating func createLattice(descriptor: RodDescriptor) {
-    guard let dopantElement = descriptor.dopantElement else {
-      fatalError("Descriptor was not complete.")
-    }
-    
-    let lattice = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 40 * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
-      
-      func knob1(startH: Float) {
-        Concave {
-          Origin { startH * h }
-          Plane { h }
-          
-          Origin { 1.49 * l }
-          Plane { l }
-          
-          Origin { 6 * h }
-          Plane { -h }
-        }
-      }
-      
-      func knob2(startH: Float) {
-        Concave {
-          Origin { startH * h }
-          Plane { h }
-          
-          Origin { 1.49 * l }
-          Plane { l }
-          
-          Origin { 6 * h }
-          Plane { -h }
-        }
-      }
-      
-      func siliconDopants1(startH: Float) {
-        Concave {
-          Origin { startH * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 1 * l }
-          Plane { l }
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 1 * h2k }
-          Plane { -h2k }
-        }
-        Concave {
-          Origin { (startH + 5) * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 1 * l }
-          Plane { l }
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 1 * h2k }
-          Plane { -h2k }
-        }
-      }
-      
-      func siliconDopants2(startH: Float) {
-        Concave {
-          Origin { startH * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 1 * l }
-          Plane { l }
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 1 * h2k }
-          Plane { h2k }
-        }
-        Concave {
-          Origin { (startH + 5) * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 1 * l }
-          Plane { l }
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 1 * h2k }
-          Plane { h2k }
-        }
-      }
-      
-      Volume {
-        knob1(startH: 3)
-        knob2(startH: 11.5)
-        knob1(startH: 24)
-        knob2(startH: 31.5)
-        Replace { .empty }
-      }
-      
-      Volume {
-        siliconDopants1(startH: 3)
-        siliconDopants2(startH: 11.5)
-        siliconDopants1(startH: 24)
-        siliconDopants2(startH: 31.5)
-        Replace { .atom(dopantElement) }
-      }
-    }
-    topology.insert(atoms: lattice.atoms)
-  }
-  
-  // Adds C-H bonds, then sorts the atoms for efficient simulation.
+  // Adds hydrogens and reorders the atoms for efficient simulation.
   mutating func passivate() {
     var reconstruction = SurfaceReconstruction()
     reconstruction.material = .elemental(.carbon)
