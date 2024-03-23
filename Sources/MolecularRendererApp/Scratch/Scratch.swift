@@ -70,6 +70,79 @@ func createGeometry() -> [Entity] {
       let velocity32 = SIMD3<Float>(velocity64)
       velocities.append(velocity32)
     }
+    
+    // Do not overwrite the current rigid bodies; just reference them to
+    // zero out the bulk momenta.
+    print()
+    print("Correcting Momentum Drift:")
+    var velocityCursor: Int = .zero
+    for rigidBodyID in rigidBodies.indices {
+      let oldRigidBody = rigidBodies[rigidBodyID]
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.positions = oldRigidBody.positions
+      rigidBodyDesc.parameters = oldRigidBody.parameters
+      
+      let rangeStart = velocityCursor
+      let rangeEnd = velocityCursor + oldRigidBody.parameters.atoms.count
+      velocityCursor += oldRigidBody.parameters.atoms.count
+      
+      var selectedVelocities = Array(velocities[rangeStart..<rangeEnd])
+      rigidBodyDesc.velocities = selectedVelocities
+      var rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+      
+      func fmt(_ number: Double) -> String {
+        String(format: "%.1f", number) + " zJ"
+      }
+      
+      let v = rigidBody.linearMomentum / rigidBody.mass
+      let w = rigidBody.angularMomentum / rigidBody.momentOfInertia
+      let linearEnergy = 0.5 * (v * rigidBody.mass * v).sum()
+      let angularEnergy = 0.5 * (w * rigidBody.momentOfInertia * w).sum()
+      let lostEnergy = -(linearEnergy + angularEnergy)
+      print("- rigid body \(rigidBodyID):", fmt(lostEnergy))
+      
+      rigidBody.linearMomentum = .zero
+      rigidBody.angularMomentum = .zero
+      selectedVelocities = rigidBody.velocities
+      velocities.replaceSubrange(
+        rangeStart..<rangeEnd, with: selectedVelocities)
+    }
+    
+    print()
+    print("Correcting Momentum Drift:")
+    velocityCursor = .zero
+    for rigidBodyID in rigidBodies.indices {
+      let oldRigidBody = rigidBodies[rigidBodyID]
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.positions = oldRigidBody.positions
+      rigidBodyDesc.parameters = oldRigidBody.parameters
+      
+      let rangeStart = velocityCursor
+      let rangeEnd = velocityCursor + oldRigidBody.parameters.atoms.count
+      velocityCursor += oldRigidBody.parameters.atoms.count
+      
+      var selectedVelocities = Array(velocities[rangeStart..<rangeEnd])
+      rigidBodyDesc.velocities = selectedVelocities
+      var rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+      
+      func fmt(_ number: Double) -> String {
+        String(format: "%.1f", number) + " zJ"
+      }
+      
+      let v = rigidBody.linearMomentum / rigidBody.mass
+      let w = rigidBody.angularMomentum / rigidBody.momentOfInertia
+      let linearEnergy = 0.5 * (v * rigidBody.mass * v).sum()
+      let angularEnergy = 0.5 * (w * rigidBody.momentOfInertia * w).sum()
+      let lostEnergy = -(linearEnergy + angularEnergy)
+      print("- rigid body \(rigidBodyID):", fmt(lostEnergy))
+      
+      rigidBody.linearMomentum = .zero
+      rigidBody.angularMomentum = .zero
+      selectedVelocities = rigidBody.velocities
+      velocities.replaceSubrange(
+        rangeStart..<rangeEnd, with: selectedVelocities)
+    }
+    
     return velocities
   }
   
@@ -86,70 +159,22 @@ func createGeometry() -> [Entity] {
   // Create the forcefield, but don't set the bulk velocities yet.
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.parameters = systemParameters
-  //
-  // Note: OpenMM_VerletIntegrator doesn't conserve energy as well as the
-  // custom integrator. Perhaps we need to set a custom kinetic energy
-  // expression.
-  //
-  // TODO: Change the MM4 docs. Move the WARNING from MTS to Verlet.
   forceFieldDesc.integrator = .multipleTimeStep
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   forceField.positions = rigidBodies.flatMap(\.positions)
   forceField.minimize()
   
-  // Add the thermal velocities and equilibriate. Record the energy drift, and
-  // the thermal kinetic/potential energy.
+  // Add thermal energy and equilibriate.
+  let equilibriationTime: Double = 1
   var energyDrifts: [Double] = []
-  for iterationID in 0..<10 {
+  for iterationID in 0...5 {
     var temperature: Double = 298
     if iterationID == 0 {
       temperature *= 2
     }
     
-    // RMS energy drifts for 10x200 fs simulations (6571 atoms):
-    // timeStep=4.35 | RMS Drift: 3.16 * 25.381630655561978 zJ
-    // timeStep=4.00 | RMS Drift: 3.16 * 29.350738873948234 zJ
-    // timeStep=3.50 | RMS Drift: 3.16 * 21.598473661799222 zJ
-    // timeStep=3.00 | RMS Drift: 3.16 * 9.9675571081211 zJ
-    // timeStep=2.50 | RMS Drift: 3.16 * 8.666203282675804 zJ
-    // timeStep=2.00 | RMS Drift: 3.16 * 5.578050111806885 zJ
-    // timeStep=1.75 | RMS Drift: 3.16 * 2.6580977252759106 zJ
-    // timeStep=1.50 | RMS Drift: 3.16 * 2.4210065942965167 zJ
-    // timeStep=1.25 | RMS Drift: 3.16 * 1.1603037378127872 zJ
-    // timeStep=1.00 | RMS Drift: 3.16 * 0.9260122244849645 zJ
-    // timeStep=0.88 | RMS Drift: 3.16 * 0.7831310242435118 zJ
-    // timeStep=0.75 | RMS Drift: 3.16 * 0.9983872489449445 zJ
-    // timeStep=0.63 | RMS Drift: 3.16 * 0.44236257177910554 zJ
-    // timeStep=0.50 | RMS Drift: 3.16 * 0.2611367900657507 zJ
-    // timeStep=0.44 | RMS Drift: 3.16 * 0.3885328085591009 zJ
-    // timeStep=0.38 | RMS Drift: 3.16 * 0.19615450735840045 zJ
-    // timeStep=0.25 | RMS Drift: 3.16 * 0.22480208872323384 zJ
-    // timeStep=0.13 | RMS Drift: 3.16 * 0.3922176492656797 zJ
-    // timeStep=0.07 | RMS Drift: 3.16 * 0.28718965727420254 zJ
-    // timeStep=0.04 | RMS Drift: 3.16 * 0.19906810715412918 zJ
-    // timeStep=0.02 | RMS Drift: 3.16 * 0.14040530276072355 zJ
-    //
-    // RMS energy drifts for 10x1 ps simulations (6571 atoms):
-    // timeStep=4.35 | RMS Drift: 3.16 * 76.73924878885694 zJ
-    // timeStep=3.50 | RMS Drift: 3.16 * 23.992461866243122 zJ
-    // timeStep=2.00 | RMS Drift: 3.16 * 5.068917865780912 zJ
-    // timeStep=1.25 | RMS Drift: 3.16 * 2.7726182024978763 zJ
-    // timeStep=0.75 | RMS Drift: 3.16 * 2.099965931628944 zJ
-    // timeStep=0.44 | RMS Drift: 3.16 * 0.5680858667189179 zJ
-    // timeStep=0.25 | RMS Drift: 3.16 * 0.36732977557409763 zJ
-    // timeStep=0.13 | RMS Drift: 3.16 * 0.3997385230034797 zJ
-    // timeStep=0.07 | RMS Drift: 3.16 * 0.44820870958540154 zJ
-    //
-    // RMS energy drifts for 10x10 ps simulations (6571 atoms):
-    // timeStep=4.35 | RMS Drift: 3.16 * 709.0952747778861 zJ
-    // timeStep=3.50 | RMS Drift: 3.16 * 143.12503617325453 zJ
-    // timeStep=2.00 | RMS Drift: 3.16 * 25.144545025712596 zJ
-    // timeStep=1.25 | RMS Drift: 3.16 * 9.61804680056887 zJ
-    // timeStep=0.75 | RMS Drift: 3.16 * 3.2759571299258705 zJ
-    // timeStep=0.44 | RMS Drift: 3.16 * 2.1677592095968548 zJ
     let thermalVelocities = createThermalVelocities(temperature: temperature)
     forceField.velocities = thermalVelocities
-    forceField.timeStep = 0.44e-3
     
     func fmt(_ number: Double) -> String {
       String(format: "%.1f", number) + " zJ"
@@ -165,9 +190,9 @@ func createGeometry() -> [Entity] {
     print("- total:    ", fmt(originalTotal))
     
     if iterationID == 0 {
-      forceField.simulate(time: 0.040)
+      forceField.simulate(time: equilibriationTime / 2)
     } else {
-      forceField.simulate(time: 10)
+      forceField.simulate(time: equilibriationTime / 10)
     }
     
     func diff(_ initial: Double, _ final: Double) -> String {
@@ -190,7 +215,6 @@ func createGeometry() -> [Entity] {
     }
   }
   
-  
   print()
   let totalSquare = energyDrifts.reduce(0) { $0 + $1 * $1 }
   let totalRMS = totalSquare.squareRoot() / Double(energyDrifts.count)
@@ -198,6 +222,8 @@ func createGeometry() -> [Entity] {
   print("Atom Count:", systemParameters.atoms.count)
   
   exit(0)
+  
+  // Use the simulation's current thermal state
   
   var atoms: [Entity] = []
   atoms += system.rod1.topology.atoms
