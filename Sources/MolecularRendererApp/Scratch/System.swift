@@ -125,6 +125,21 @@ extension System {
       rigidBodies[rigidBodyID] = rigidBody
     }
   }
+  
+  // Create a frame for animation.
+  func createFrame() -> [Entity] {
+    var frame: [Entity] = []
+    for rigidBody in rigidBodies {
+      for atomID in rigidBody.parameters.atoms.indices {
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+        let position = rigidBody.positions[atomID]
+        let storage = SIMD4(position, Float(atomicNumber))
+        let entity = Entity(storage: storage)
+        frame.append(entity)
+      }
+    }
+    return frame
+  }
 }
 
 // MARK: - Simulation
