@@ -6,8 +6,6 @@ import MM4
 import Numerics
 import OpenMM
 
-import QuartzCore
-
 // Test whether switches with sideways knobs work correctly. Test every
 // possible permutation of touching knobs and approach directions.
 //
@@ -20,50 +18,39 @@ import QuartzCore
 func createGeometry() -> [[Entity]] {
   var system = System()
   system.alignParts()
-  system.rigidBodies[1].centerOfMass += SIMD3(0, -2, 0)
+  system.rigidBodies[0].centerOfMass += SIMD3(0, 0, -2.00)
   system.minimize()
   system.equilibriate(temperature: 298)
-
+  
   do {
-    // Select the last principal axis, and make it point toward +Z.
-    var axis = system.rigidBodies[0].principalAxes.2
-    if axis.z < 0 {
+    // Select the last principal axis, and make it point toward +Y.
+    var axis = system.rigidBodies[1].principalAxes.2
+    if axis.y < 0 {
       axis = -axis
     }
     
+    // NOTES:
+    //
+    // Sideways-Sideways Knobs: fails when rod1 = 700 m/s
+    // Sideways-Vertical Knobs: fails when rod1 = 700 m/s
+    // Sideways-Vertical Knobs: fails when rod2 = 800 m/s
+    
     // Set the momentum of the rigid body.
-    let m = system.rigidBodies[0].mass
-    let v = -0.200 * axis
-    system.rigidBodies[0].linearMomentum = m * v
+    let m = system.rigidBodies[1].mass
+    let v = -0.800 * axis
+    
+    system.rigidBodies[1].linearMomentum = m * v
   }
   
   var frames: [[Entity]] = []
   for frameID in 0...500 {
     if frameID > 0 {
-      let checkpoint0 = CACurrentMediaTime()
       system.forceField.positions = system.rigidBodies.flatMap(\.positions)
       system.forceField.velocities = system.rigidBodies.flatMap(\.velocities)
-      let checkpoint1 = CACurrentMediaTime()
       system.forceField.simulate(time: 0.100)
-      let checkpoint2 = CACurrentMediaTime()
       system.updateRigidBodies()
-      let checkpoint3 = CACurrentMediaTime()
-      
-      let checkpoints = [checkpoint0, checkpoint1, checkpoint2, checkpoint3]
-      var elapsedTimes: [Double] = []
-      for timeID in 1..<checkpoints.count {
-        elapsedTimes.append(checkpoints[timeID] - checkpoints[timeID - 1])
-      }
-      
-      print("frame:", frameID, terminator: " | ")
-      for time in elapsedTimes {
-        let us = Int(time * 1e6)
-        print(us, terminator: " ")
-      }
-      print()
-    } else {
-      print("frame:", frameID)
     }
+    print("frame:", frameID)
     
     let frame = system.createFrame()
     frames.append(frame)

@@ -91,13 +91,7 @@ extension System {
     rigidBodies[0].centerOfMass += SIMD3(-0.46, 0, 1.30)
     
     rigidBodies[1].rotate(angle: .pi / 2, axis: [0, 0, 1])
-    rigidBodies[1].rotate(angle: .pi / 2, axis: [0, 1, 0])
     rigidBodies[1].centerOfMass += SIMD3(0.46, 1.30, 0)
-  }
-  
-  // Print the potential energy.
-  func logPotentialEnergy() {
-    print("Potential Energy:", forceField.energy.potential)
   }
   
   // Overwrite the rigid bodies with the force field's current state.
@@ -133,8 +127,7 @@ extension System {
       for atomID in rigidBody.parameters.atoms.indices {
         let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
         let position = rigidBody.positions[atomID]
-        let storage = SIMD4(position, Float(atomicNumber))
-        let entity = Entity(storage: storage)
+        let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
         frame.append(entity)
       }
     }
@@ -190,9 +183,6 @@ extension System {
       rigidBodies[i].linearMomentum = .zero
       rigidBodies[i].angularMomentum = .zero
     }
-    //
-    // WARNING: The force field's velocities are not correct. This may cause
-    // bugs. Remember that the force field's state is transient.
   }
   
   // Create the thermal kinetic state from the Boltzmann distribution.

@@ -19,7 +19,7 @@ struct Housing {
   
   mutating func createLattice() {
     let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 10 * h + 8 * k + 8 * l }
+      Bounds { 10 * h + 8 * k + 7 * l }
       Material { .elemental(.carbon) }
       
       Volume {
@@ -65,32 +65,25 @@ struct Housing {
             Concave {
               Plane { h }
               Plane { l }
-              Origin { 4 * h + 4.25 * l }
+              Origin { 4.25 * h + 4 * l }
               Plane { -h }
               Plane { -l }
             }
             
-            // Fill in some places where the bonding topology is ambiguous.
             Convex {
               Origin { 0.25 * h + 0.25 * l }
               Plane { h + l }
             }
             Convex {
-              Origin { 3.75 * h + 0.25 * l }
-              Plane { -h + l }
+              Origin { 0.25 * h + 3.75 * l }
+              Plane { h - l }
             }
-          }
-          
-          // Clean up the extraneous block of atoms on the front.
-          Convex {
-            Origin { 7.25 * l }
-            Plane { l }
           }
         }
         
         // Clean up the extraneous block of atoms on the right.
         Convex {
-          Origin { 9.5 * h }
+          Origin { 9.75 * h }
           Plane { h }
         }
         
@@ -201,49 +194,18 @@ func createRod2Lattice() -> Lattice<Hexagonal> {
     Material { .elemental(.carbon) }
     
     Volume {
-      // Create a sideways groove.
+      // Create a vertical groove.
       Concave {
         Origin { 7 * h }
         Plane { h }
         
-        Origin { 0.5 * l }
-        Plane { -l }
+        Origin { 1.5 * h2k }
+        Plane { h2k }
         
         Origin { 6 * h }
         Plane { -h }
       }
       Replace { .empty }
-      
-      // Create silicon dopants to stabilize the groove.
-      Concave {
-        Origin { 7 * h }
-        Plane { h }
-        Origin { 1 * h }
-        Plane { -h }
-        
-        Origin { 0.6 * l }
-        Plane { -l }
-        Origin { -0.5 * l }
-        Plane { l }
-        
-        Origin { 1 * h2k }
-        Plane { -h2k }
-      }
-      Concave {
-        Origin { (7 + 5) * h }
-        Plane { h }
-        Origin { 1 * h }
-        Plane { -h }
-        
-        Origin { 0.6 * l }
-        Plane { -l }
-        Origin { -0.5 * l }
-        Plane { l }
-        
-        Origin { 1 * h2k }
-        Plane { -h2k }
-      }
-      Replace { .atom(.silicon) }
     }
   }
 }
