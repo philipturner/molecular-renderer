@@ -10,11 +10,14 @@ import HDL
 import MM4
 import Numerics
 
+import QuartzCore
+
 struct Housing {
   var topology = Topology()
   
   init() {
     createLattice()
+    passivate()
   }
   
   mutating func createLattice() {
@@ -22,24 +25,31 @@ struct Housing {
       Bounds { 48 * h + 28 * k + 35 * l }
       Material { .elemental(.carbon) }
       
-      func createHoleZ(offset: SIMD3<Float>) {
+      func fillInCorner(majorAxis: SIMD3<Float>, minorAxis: SIMD3<Float>) {
         Convex {
-          Origin { offset[0] * h + offset[1] * k + offset[2] * l }
-          Origin { 1.5 * h + 1.5 * k }
-          Concave {
-            Plane { h }
-            Plane { k }
-            Origin { 4 * h + 4.25 * k }
-            Plane { -h }
-            Plane { -k }
-          }
+          Origin { 0.25 * majorAxis + 0.25 * minorAxis }
+          Plane { majorAxis + minorAxis }
+        }
+        Convex {
+          Origin { 0.25 * majorAxis + 4.00 * minorAxis }
+          Plane { majorAxis - minorAxis }
+        }
+        Convex {
+          Origin { 3.75 * majorAxis + 0.25 * minorAxis }
+          Plane { -majorAxis + minorAxis }
+        }
+        Convex {
+          Origin { 3.75 * majorAxis + 4.00 * minorAxis }
+          Plane { -majorAxis - minorAxis }
         }
       }
       
       func createHoleX(offset: SIMD3<Float>) {
-        Convex {
+        Concave {
           Origin { offset[0] * h + offset[1] * k + offset[2] * l }
           Origin { 1.5 * k + 1.5 * l }
+          
+          // Create a groove for the rod.
           Concave {
             Plane { k }
             Plane { l }
@@ -47,13 +57,18 @@ struct Housing {
             Plane { -k }
             Plane { -l }
           }
+          
+          // Fill in some places where the bonding topology is ambiguous.
+          fillInCorner(majorAxis: l, minorAxis: k)
         }
       }
       
       func createHoleY(offset: SIMD3<Float>) {
-        Convex {
+        Concave {
           Origin { offset[0] * h + offset[1] * k + offset[2] * l }
           Origin { 1.5 * h + 1.5 * l }
+          
+          // Create a groove for the rod.
           Concave {
             Plane { h }
             Plane { l }
@@ -61,6 +76,28 @@ struct Housing {
             Plane { -h }
             Plane { -l }
           }
+          
+          // Fill in some places where the bonding topology is ambiguous.
+          fillInCorner(majorAxis: h, minorAxis: l)
+        }
+      }
+      
+      func createHoleZ(offset: SIMD3<Float>) {
+        Concave {
+          Origin { offset[0] * h + offset[1] * k + offset[2] * l }
+          Origin { 1.5 * h + 1.5 * k }
+          
+          // Create a groove for the rod.
+          Concave {
+            Plane { h }
+            Plane { k }
+            Origin { 4 * h + 4.25 * k }
+            Plane { -h }
+            Plane { -k }
+          }
+          
+          // Fill in some places where the bonding topology is ambiguous.
+          fillInCorner(majorAxis: h, minorAxis: k)
         }
       }
       
@@ -126,7 +163,28 @@ struct Housing {
         
         Replace { .empty }
       }
+      
+      // Clean up the extraneous block of atoms on the front.
+      Volume {
+        Origin { 34.5 * l }
+        Plane { l }
+        Replace { .empty }
+      }
     }
     topology.insert(atoms: lattice.atoms)
+  }
+  
+  // Adds hydrogens and reorders the atoms for efficient simulation.
+  mutating func passivate() {
+    var reconstruction = SurfaceReconstruction()
+    reconstruction.material = .elemental(.carbon)
+    reconstruction.topology = topology
+    reconstruction.removePathologicalAtoms()
+    reconstruction.createBulkAtomBonds()
+    reconstruction.createHydrogenSites()
+    reconstruction.resolveCollisions()
+    reconstruction.createHydrogenBonds()
+    topology = reconstruction.topology
+    topology.sort()
   }
 }

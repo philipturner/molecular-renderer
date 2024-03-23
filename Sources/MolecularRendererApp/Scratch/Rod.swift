@@ -15,6 +15,21 @@ struct Rod {
   
   init(atoms: [Entity]) {
     topology.insert(atoms: atoms)
+    passivate()
+  }
+  
+  // Adds hydrogens and reorders the atoms for efficient simulation.
+  mutating func passivate() {
+    var reconstruction = SurfaceReconstruction()
+    reconstruction.material = .elemental(.carbon)
+    reconstruction.topology = topology
+    reconstruction.removePathologicalAtoms()
+    reconstruction.createBulkAtomBonds()
+    reconstruction.createHydrogenSites()
+    reconstruction.resolveCollisions()
+    reconstruction.createHydrogenBonds()
+    topology = reconstruction.topology
+    topology.sort()
   }
 }
 
@@ -36,7 +51,7 @@ struct Rods {
     
     let rodLatticeZ = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 43 * h + 2 * h2k + 2 * l }
+      Bounds { 50 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
@@ -84,7 +99,7 @@ struct Rods {
     for layerID in 0..<4 {
       let y = 6 * Float(layerID)
       
-      for positionZ in 0..<5 {
+      for positionZ in 0..<4 {
         // Only send gather3 to bit 3.
         if positionZ == 0, layerID < 3 {
           continue
@@ -103,6 +118,8 @@ struct Rods {
         let z = 5.75 * Float(positionZ)
         rods.append(createRodX(offset: SIMD3(0, y + 2.5, z + 0)))
       }
+      rods.append(createRodX(offset: SIMD3(0, y + 2.5, 24 + 2.5)))
+      
       for positionX in 0..<2 {
         let x = 5.5 * Float(positionX)
         rods.append(createRodZ(offset: SIMD3(x + 0, y + 0, 0)))
@@ -135,7 +152,7 @@ struct Rods {
     }
     for positionX in 1..<5 {
       let x = 5.5 * Float(positionX)
-      rods.append(createRodY(offset: SIMD3(x + 11, 0, 17.75 + 2.5)))
+      rods.append(createRodY(offset: SIMD3(x + 11, 0, 21.25 + 2.5)))
     }
   }
 }
