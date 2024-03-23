@@ -11,129 +11,20 @@ import Numerics
 import OpenMM
 
 struct System {
-  // TODO: Create these in separate functions, resulting in nullable values.
-  var rod1: Rod
-  var rod2: Rod
-  var housing: Housing
+  var rod1: Rod!
+  var rod2: Rod!
+  var housing: Housing!
   
-  var forceField: MM4ForceField?
+  var forceField: MM4ForceField!
   var rigidBodies: [MM4RigidBody] = []
   
   init() {
-    // Create lattices for the logic rods.
-    let lattice1 = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 30 * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
-      
-      Volume {
-        // Create a sideways groove.
-        Concave {
-          Origin { 7 * h }
-          Plane { h }
-          
-          Origin { 1.375 * l }
-          Plane { l }
-          
-          Origin { 6 * h }
-          Plane { -h }
-        }
-        Replace { .empty }
-        
-        // Create silicon dopants to stabilize the groove.
-        Concave {
-          Origin { 7 * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 1 * l }
-          Plane { l }
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 1 * h2k }
-          Plane { -h2k }
-        }
-        Concave {
-          Origin { (7 + 5) * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 1 * l }
-          Plane { l }
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 1 * h2k }
-          Plane { -h2k }
-        }
-        Replace { .atom(.silicon) }
-      }
-    }
-    let lattice2 = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 30 * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
-      
-      Volume {
-        // Create a sideways groove.
-        Concave {
-          Origin { 7 * h }
-          Plane { h }
-          
-          Origin { 0.5 * l }
-          Plane { -l }
-          
-          Origin { 6 * h }
-          Plane { -h }
-        }
-        Replace { .empty }
-        
-        // Create silicon dopants to stabilize the groove.
-        Concave {
-          Origin { 7 * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 0.6 * l }
-          Plane { -l }
-          Origin { -0.5 * l }
-          Plane { l }
-          
-          Origin { 1 * h2k }
-          Plane { -h2k }
-        }
-        Concave {
-          Origin { (7 + 5) * h }
-          Plane { h }
-          Origin { 1 * h }
-          Plane { -h }
-          
-          Origin { 0.6 * l }
-          Plane { -l }
-          Origin { -0.5 * l }
-          Plane { l }
-          
-          Origin { 1 * h2k }
-          Plane { -h2k }
-        }
-        Replace { .atom(.silicon) }
-      }
-    }
-    
     // Create the logic rods.
-    rod1 = Rod(lattice: lattice1)
-    rod2 = Rod(lattice: lattice2)
+    rod1 = Rod(lattice: createRod1Lattice())
+    rod2 = Rod(lattice: createRod2Lattice())
     
     // Create 'housing'.
     housing = Housing()
-    
-    // Bring the parts into their start position.
-    // TODO: Do this after, not before, creating the rigid bodies.
-    alignParts()
     
     // Create 'rigidBodies'.
     createRigidBodies()
@@ -142,31 +33,8 @@ struct System {
     createForceField()
   }
   
-  mutating func alignParts() {
-    for atomID in rod1.topology.atoms.indices {
-      var atom = rod1.topology.atoms[atomID]
-      var position = atom.position
-      position = SIMD3(position.z, position.y, position.x)
-      position += SIMD3(0.91, 0.85, -1.25)
-      atom.position = position
-      rod1.topology.atoms[atomID] = atom
-    }
-    for atomID in rod2.topology.atoms.indices {
-      var atom = rod2.topology.atoms[atomID]
-      var position = atom.position
-      position = SIMD3(position.z, position.y, position.x)
-      position = SIMD3(position.x, position.z, position.y)
-      
-      let latticeConstant = Constant(.square) { .elemental(.carbon) }
-      position += SIMD3(2.5 * latticeConstant, 0, 0)
-      position += SIMD3(0.91, -1.25, 0.85)
-      atom.position = position
-      rod2.topology.atoms[atomID] = atom
-    }
-  }
-  
-  // Create rigid bodies, which store the positions, bonding topologies, and
-  // bulk velocities (if any).
+  // Create rigid bodies, which store the positions, velocities, and even the
+  // bonding topologies.
   mutating func createRigidBodies() {
     func createRigidBody(topology: Topology) -> MM4RigidBody {
       var paramsDesc = MM4ParametersDescriptor()
@@ -189,6 +57,7 @@ struct System {
     rigidBodies.append(rigidBodyHousing)
   }
   
+  // Create a force field object to recycle for multiple simulations.
   mutating func createForceField() {
     // Create a single 'MM4Parameters' object from the rigid bodies.
     var emptyParamsDesc = MM4ParametersDescriptor()
@@ -208,32 +77,72 @@ struct System {
   }
 }
 
-// MARK: - Simulation
+// MARK: - State
 
-// TODO: A function to synchronize the forcefield state with the rigid bodies.
-// Call this function every time the state changes.
+extension System {
+  // Bring the parts into their initial positions.
+  mutating func alignParts() {
+    for rigidBodyID in rigidBodies.indices {
+      rigidBodies[rigidBodyID].centerOfMass = .zero
+    }
+    
+    rigidBodies[0].rotate(angle: .pi / 2, axis: [0, 1, 0])
+    rigidBodies[0].rotate(angle: .pi, axis: [1, 0, 0])
+    rigidBodies[0].centerOfMass += SIMD3(-0.46, 0, 1.30)
+    
+    rigidBodies[1].rotate(angle: .pi / 2, axis: [0, 0, 1])
+    rigidBodies[1].rotate(angle: .pi / 2, axis: [0, 1, 0])
+    rigidBodies[1].centerOfMass += SIMD3(0.46, 1.30, 0)
+  }
+  
+  // Print the potential energy.
+  func logPotentialEnergy() {
+    print("Potential Energy:", forceField.energy.potential)
+  }
+  
+  // Overwrite the rigid bodies with the force field's current state.
+  //
+  // NOTE: You can treat the force field state as transient. Use it to store
+  //       temporary arrays of linearized data. The rigid bodies should always
+  //       be the source of truth.
+  mutating func updateRigidBodies() {
+    var atomCursor: Int = .zero
+    for rigidBodyID in rigidBodies.indices {
+      // Determine the atom range.
+      var rigidBody = rigidBodies[rigidBodyID]
+      let nextAtomCursor = atomCursor + rigidBody.parameters.atoms.count
+      let atomRange = atomCursor..<nextAtomCursor
+      atomCursor += rigidBody.parameters.atoms.count
+      
+      // Create a new rigid body with the desired state.
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.positions = Array(forceField.positions[atomRange])
+      rigidBodyDesc.parameters = rigidBody.parameters
+      rigidBodyDesc.velocities = Array(forceField.velocities[atomRange])
+      rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+      
+      // Overwrite the current value in the array.
+      rigidBodies[rigidBodyID] = rigidBody
+    }
+  }
+}
+
+// MARK: - Simulation
 
 extension System {
   // Minimize the potential energy at zero temperature.
   mutating func minimize() {
-    guard let forceField else {
-      fatalError("Force field not initialized.")
-    }
-    
     forceField.positions = rigidBodies.flatMap(\.positions)
-    print("Potential Energy:", forceField.energy.potential)
     forceField.minimize()
-    print("Potential Energy:", forceField.energy.potential)
+    updateRigidBodies()
   }
   
-  // Equilibriate the thermal potential energy.
+  // Equilibriate the thermal potential energy, and save the associated
+  // thermal kinetic state.
   mutating func equilibriate(temperature: Double) {
-    guard let forceField else {
-      fatalError("Force field not initialized.")
-    }
-    
-    // The equilibriation time is fixed, to simplify the function signature.
     let equilibriationTime: Double = 1
+    
+    // Iterate once at twice the energy, then 5 times at the correct energy.
     for iterationID in 0...5 {
       var effectiveTemperature: Double
       if iterationID == 0 {
@@ -241,22 +150,43 @@ extension System {
       } else {
         effectiveTemperature = temperature
       }
+      setVelocitiesToTemperature(effectiveTemperature)
       
-      let thermalVelocities = createThermalVelocities(
-        temperature: effectiveTemperature)
-      forceField.velocities = thermalVelocities
+      // Zero out the bulk momenta.
+      updateRigidBodies()
+      for i in rigidBodies.indices {
+        rigidBodies[i].linearMomentum = .zero
+        rigidBodies[i].angularMomentum = .zero
+      }
+      
+      // Divide the equilibriation time among the iterations.
+      forceField.positions = rigidBodies.flatMap(\.positions)
+      forceField.velocities = rigidBodies.flatMap(\.velocities)
       if iterationID == 0 {
         forceField.simulate(time: equilibriationTime / 2)
       } else {
         forceField.simulate(time: equilibriationTime / 10)
       }
-      print("Potential Energy:", forceField.energy.potential)
     }
+    
+    // Update the rigid bodies with the final thermal kinetic state.
+    updateRigidBodies()
+    for i in rigidBodies.indices {
+      rigidBodies[i].linearMomentum = .zero
+      rigidBodies[i].angularMomentum = .zero
+    }
+    //
+    // WARNING: The force field's velocities are not correct. This may cause
+    // bugs. Remember that the force field's state is transient.
   }
   
-  // TODO: Separate the functions for assigning thermal velocities and
-  // overriding the bulk momenta.
-  func createThermalVelocities(temperature: Double) -> [SIMD3<Float>] {
+  // Create the thermal kinetic state from the Boltzmann distribution.
+  //
+  // Since the force field is a 'class', this function doesn't have to be
+  // 'mutating'. The absence of 'mutating' expresses that this function doesn't
+  // update the rigid bodies.
+  func setVelocitiesToTemperature(_ temperature: Double) {
+    // Create a temporary OpenMM system.
     let system = OpenMM_System()
     let positions = OpenMM_Vec3Array(size: 0)
     for rigidBody in rigidBodies {
@@ -270,11 +200,24 @@ extension System {
       }
     }
     
+    // Fetch the reference platform.
+    //
+    // NOTE: Using the reference platform for temporary 'OpenMM_Context's
+    // reduces the latency. It also avoids annoying OpenCL compiler warnings.
+    let platforms = OpenMM_Platform.platforms
+    let reference = platforms.first(where: { $0.name == "Reference" })
+    guard let reference else {
+      fatalError("Could not find reference platform.")
+    }
+    
+    // Use the OpenMM host function for generating thermal velocities.
     let integrator = OpenMM_VerletIntegrator(stepSize: 0)
-    let context = OpenMM_Context(system: system, integrator: integrator)
+    let context = OpenMM_Context(
+      system: system, integrator: integrator, platform: reference)
     context.positions = positions
     context.setVelocitiesToTemperature(temperature)
     
+    // Cast the velocities from FP64 to FP32.
     let state = context.state(types: [.velocities])
     let velocitiesObject = state.velocities
     var velocities: [SIMD3<Float>] = []
@@ -284,31 +227,7 @@ extension System {
       velocities.append(velocity32)
     }
     
-    // Do not overwrite the current rigid bodies; just reference them to
-    // zero out the bulk momenta.
-    var velocityCursor: Int = .zero
-    for rigidBodyID in rigidBodies.indices {
-      let oldRigidBody = rigidBodies[rigidBodyID]
-      var rigidBodyDesc = MM4RigidBodyDescriptor()
-      rigidBodyDesc.positions = oldRigidBody.positions
-      rigidBodyDesc.parameters = oldRigidBody.parameters
-      
-      let rangeStart = velocityCursor
-      let rangeEnd = velocityCursor + oldRigidBody.parameters.atoms.count
-      velocityCursor += oldRigidBody.parameters.atoms.count
-      
-      var selectedVelocities = Array(velocities[rangeStart..<rangeEnd])
-      rigidBodyDesc.velocities = selectedVelocities
-      var rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-      
-      rigidBody.linearMomentum = .zero
-      rigidBody.angularMomentum = .zero
-      selectedVelocities = rigidBody.velocities
-      velocities.replaceSubrange(
-        rangeStart..<rangeEnd, with: selectedVelocities)
-    }
-    
-    return velocities
+    // Assign the force field state.
+    forceField.velocities = velocities
   }
-
 }

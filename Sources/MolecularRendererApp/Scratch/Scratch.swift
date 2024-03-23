@@ -17,19 +17,26 @@ import OpenMM
 // - Run each setup with MD at room temperature.
 func createGeometry() -> [Entity] {
   var system = System()
+  system.alignParts()
   system.minimize()
   system.equilibriate(temperature: 298)
   
   // Conserve the thermal kinetic state associated with the thermal potential
   // state above. Set each rigid body's bulk momentum to the desired value. Use
   // the current inertial eigenbasis, as it shifts with thermal potential state.
+  for i in system.rigidBodies.indices {
+    print(system.rigidBodies[i].linearMomentum, system.rigidBodies[i].angularMomentum)
+  }
   
   var atoms: [Entity] = []
-  atoms += system.rod1.topology.atoms
-  atoms += system.rod2.topology.atoms
-  atoms += system.housing.topology.atoms
-  for i in atoms.indices {
-    atoms[i].position = system.forceField!.positions[i]
+  for rigidBody in system.rigidBodies {
+    for atomID in rigidBody.parameters.atoms.indices {
+      let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+      let position = rigidBody.positions[atomID]
+      let storage = SIMD4(position, Float(atomicNumber))
+      let entity = Entity(storage: storage)
+      atoms.append(entity)
+    }
   }
   return atoms
 }

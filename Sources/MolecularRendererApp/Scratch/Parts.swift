@@ -137,3 +137,113 @@ struct Rod {
     topology.sort()
   }
 }
+
+// MARK: - Instantiating Parts
+
+func createRod1Lattice() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 30 * h + 2 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      // Create a sideways groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        
+        Origin { 1.375 * l }
+        Plane { l }
+        
+        Origin { 6 * h }
+        Plane { -h }
+      }
+      Replace { .empty }
+      
+      // Create silicon dopants to stabilize the groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 1 * l }
+        Plane { l }
+        Origin { 0.5 * l }
+        Plane { -l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Concave {
+        Origin { (7 + 5) * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 1 * l }
+        Plane { l }
+        Origin { 0.5 * l }
+        Plane { -l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Replace { .atom(.silicon) }
+    }
+  }
+}
+
+func createRod2Lattice() -> Lattice<Hexagonal> {
+  Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 30 * h + 2 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      // Create a sideways groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        
+        Origin { 0.5 * l }
+        Plane { -l }
+        
+        Origin { 6 * h }
+        Plane { -h }
+      }
+      Replace { .empty }
+      
+      // Create silicon dopants to stabilize the groove.
+      Concave {
+        Origin { 7 * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 0.6 * l }
+        Plane { -l }
+        Origin { -0.5 * l }
+        Plane { l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Concave {
+        Origin { (7 + 5) * h }
+        Plane { h }
+        Origin { 1 * h }
+        Plane { -h }
+        
+        Origin { 0.6 * l }
+        Plane { -l }
+        Origin { -0.5 * l }
+        Plane { l }
+        
+        Origin { 1 * h2k }
+        Plane { -h2k }
+      }
+      Replace { .atom(.silicon) }
+    }
+  }
+}
