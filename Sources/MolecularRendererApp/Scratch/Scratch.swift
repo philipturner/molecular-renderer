@@ -90,6 +90,8 @@ func createGeometry() -> [Entity] {
   // Note: OpenMM_VerletIntegrator doesn't conserve energy as well as the
   // custom integrator. Perhaps we need to set a custom kinetic energy
   // expression.
+  //
+  // TODO: Change the MM4 docs. Move the WARNING from MTS to Verlet.
   forceFieldDesc.integrator = .multipleTimeStep
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   forceField.positions = rigidBodies.flatMap(\.positions)
@@ -104,30 +106,50 @@ func createGeometry() -> [Entity] {
       temperature *= 2
     }
     
-    // Energy drifts for 200 fs simulations (6571 atoms):
-    // timeStep=4.35 | RMS Drift: 25.381630655561978
-    // timeStep=4.00 | RMS Drift: 29.350738873948234
-    // timeStep=3.50 | RMS Drift: 21.598473661799222
-    // timeStep=3.00 | RMS Drift: 9.9675571081211
-    // timeStep=2.50 | RMS Drift: 8.666203282675804
-    // timeStep=2.00 | RMS Drift: 5.578050111806885
-    // timeStep=1.75 | RMS Drift: 2.6580977252759106
-    // timeStep=1.50 | RMS Drift: 2.4210065942965167
-    // timeStep=1.25 | RMS Drift: 1.1603037378127872
-    // timeStep=1.00 | RMS Drift: 0.9260122244849645
-    // timeStep=0.88 | RMS Drift: 0.7831310242435118
-    // timeStep=0.75 | RMS Drift: 0.9983872489449445
-    // timeStep=0.63 | RMS Drift: 0.44236257177910554
-    // timeStep=0.50 | RMS Drift: 0.2611367900657507
-    // timeStep=0.44 | RMS Drift: 0.3885328085591009
-    // timeStep=0.38 | RMS Drift: 0.19615450735840045
-    // timeStep=0.25 | RMS Drift: 0.22480208872323384
+    // RMS energy drifts for 10x200 fs simulations (6571 atoms):
+    // timeStep=4.35 | RMS Drift: 3.16 * 25.381630655561978 zJ
+    // timeStep=4.00 | RMS Drift: 3.16 * 29.350738873948234 zJ
+    // timeStep=3.50 | RMS Drift: 3.16 * 21.598473661799222 zJ
+    // timeStep=3.00 | RMS Drift: 3.16 * 9.9675571081211 zJ
+    // timeStep=2.50 | RMS Drift: 3.16 * 8.666203282675804 zJ
+    // timeStep=2.00 | RMS Drift: 3.16 * 5.578050111806885 zJ
+    // timeStep=1.75 | RMS Drift: 3.16 * 2.6580977252759106 zJ
+    // timeStep=1.50 | RMS Drift: 3.16 * 2.4210065942965167 zJ
+    // timeStep=1.25 | RMS Drift: 3.16 * 1.1603037378127872 zJ
+    // timeStep=1.00 | RMS Drift: 3.16 * 0.9260122244849645 zJ
+    // timeStep=0.88 | RMS Drift: 3.16 * 0.7831310242435118 zJ
+    // timeStep=0.75 | RMS Drift: 3.16 * 0.9983872489449445 zJ
+    // timeStep=0.63 | RMS Drift: 3.16 * 0.44236257177910554 zJ
+    // timeStep=0.50 | RMS Drift: 3.16 * 0.2611367900657507 zJ
+    // timeStep=0.44 | RMS Drift: 3.16 * 0.3885328085591009 zJ
+    // timeStep=0.38 | RMS Drift: 3.16 * 0.19615450735840045 zJ
+    // timeStep=0.25 | RMS Drift: 3.16 * 0.22480208872323384 zJ
+    // timeStep=0.13 | RMS Drift: 3.16 * 0.3922176492656797 zJ
+    // timeStep=0.07 | RMS Drift: 3.16 * 0.28718965727420254 zJ
+    // timeStep=0.04 | RMS Drift: 3.16 * 0.19906810715412918 zJ
+    // timeStep=0.02 | RMS Drift: 3.16 * 0.14040530276072355 zJ
     //
-    // Energy drifts for 10 ps simulations (6571 atoms):
+    // RMS energy drifts for 10x1 ps simulations (6571 atoms):
+    // timeStep=4.35 | RMS Drift: 3.16 * 76.73924878885694 zJ
+    // timeStep=3.50 | RMS Drift: 3.16 * 23.992461866243122 zJ
+    // timeStep=2.00 | RMS Drift: 3.16 * 5.068917865780912 zJ
+    // timeStep=1.25 | RMS Drift: 3.16 * 2.7726182024978763 zJ
+    // timeStep=0.75 | RMS Drift: 3.16 * 2.099965931628944 zJ
+    // timeStep=0.44 | RMS Drift: 3.16 * 0.5680858667189179 zJ
+    // timeStep=0.25 | RMS Drift: 3.16 * 0.36732977557409763 zJ
+    // timeStep=0.13 | RMS Drift: 3.16 * 0.3997385230034797 zJ
+    // timeStep=0.07 | RMS Drift: 3.16 * 0.44820870958540154 zJ
     //
+    // RMS energy drifts for 10x10 ps simulations (6571 atoms):
+    // timeStep=4.35 | RMS Drift: 3.16 * 709.0952747778861 zJ
+    // timeStep=3.50 | RMS Drift: 3.16 * 143.12503617325453 zJ
+    // timeStep=2.00 | RMS Drift: 3.16 * 25.144545025712596 zJ
+    // timeStep=1.25 | RMS Drift: 3.16 * 9.61804680056887 zJ
+    // timeStep=0.75 | RMS Drift: 3.16 * 3.2759571299258705 zJ
+    // timeStep=0.44 | RMS Drift: 3.16 * 2.1677592095968548 zJ
     let thermalVelocities = createThermalVelocities(temperature: temperature)
     forceField.velocities = thermalVelocities
-    forceField.timeStep = 0.25e-3
+    forceField.timeStep = 0.44e-3
     
     func fmt(_ number: Double) -> String {
       String(format: "%.1f", number) + " zJ"
@@ -145,7 +167,7 @@ func createGeometry() -> [Entity] {
     if iterationID == 0 {
       forceField.simulate(time: 0.040)
     } else {
-      forceField.simulate(time: 0.200)
+      forceField.simulate(time: 10)
     }
     
     func diff(_ initial: Double, _ final: Double) -> String {
