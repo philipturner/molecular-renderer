@@ -10,46 +10,14 @@ import OpenMM
 // render any animations.
 func createGeometry() -> [Entity] {
   // Create the scene.
-  var housing = Housing()
-  
-  // TODO: Save the repo state after taking the image.
-  if true {
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = housing.topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = housing.topology.bonds
-    var parameters = try! MM4Parameters(descriptor: paramsDesc)
-    for atomID in housing.topology.atoms.indices {
-      let centerType = parameters.atoms.centerTypes[atomID]
-      if centerType == .quaternary {
-        parameters.atoms.masses[atomID] = 0
-      }
-    }
-    
-    var forceFieldDesc = MM4ForceFieldDescriptor()
-    forceFieldDesc.parameters = parameters
-    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-    forceField.positions = housing.topology.atoms.map(\.position)
-    forceField.minimize()
-    
-    for atomID in housing.topology.atoms.indices {
-      var atom = housing.topology.atoms[atomID]
-      let position = forceField.positions[atomID]
-      atom.position = position
-      housing.topology.atoms[atomID] = atom
-    }
-  }
-  
-  
+  let housing = Housing()
   let rods = Rods()
+  
+  // TODO: Add patterns to the rods next.
   
   // Create the atoms.
   var atoms: [Entity] = []
   atoms += housing.topology.atoms
-    .filter {
-    var normal = SIMD3<Float>(-1, 1, 1)
-    normal /= (normal * normal).squareRoot()
-    return ($0.position * normal).sum() < 7
-  }
   for rod in rods.rods {
     atoms += rod.topology.atoms
   }
