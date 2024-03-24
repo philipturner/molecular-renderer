@@ -14,14 +14,17 @@ func createGeometry() -> [Entity] {
   
   // TODO: Add the patterns to the rods.
   
-  // Perhaps simulate/animate the circuit at the "collision detection" level of
-  // theory. Then, add the drive walls and simulate with RBD. Positionally
+  // Animate the circuit that check that there's no collisions with knobs.
+  // Then, add the drive walls and simulate with RBD. Positionally
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in circuit.rods {
+  for rod in circuit.input.rods {
+    atoms += rod.topology.atoms
+  }
+  for rod in circuit.propagate.rods {
     atoms += rod.topology.atoms
   }
   
