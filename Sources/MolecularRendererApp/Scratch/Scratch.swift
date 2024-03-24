@@ -12,7 +12,11 @@ func createGeometry() -> [Entity] {
   // Create the scene.
   let circuit = Circuit()
   
-  // TODO: Change the layer IDs and formulas for computing Y offsets.
+  // TODO: Add the rods for computing the final output.
+  
+  // TODO: Add the patterns to the rods before revisiting the housing.
+  // Perhaps simulate/debug the circuit at the "collision detection" level of
+  // theory.
   
   // Create the atoms.
   var atoms: [Entity] = []

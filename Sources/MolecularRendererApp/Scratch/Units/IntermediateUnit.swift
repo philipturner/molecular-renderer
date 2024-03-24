@@ -1,5 +1,5 @@
 //
-//  OutputUnit.swift
+//  IntermediateUnit.swift
 //  MolecularRendererApp
 //
 //  Created by Philip Turner on 3/24/24.
@@ -10,7 +10,7 @@ import HDL
 import MM4
 import Numerics
 
-struct OutputUnit {
+struct IntermediateUnit {
   // The carry bits for the final computation.
   //
   // Ordered from bit 0 -> bit 3.
@@ -34,38 +34,38 @@ struct OutputUnit {
   
   init() {
     for layerID in 1...4 {
-      let y = 6.25 * Float(layerID)
+      let y = 6 * Float(layerID)
       
       // Create 'carry'.
       do {
-        let offset = SIMD3(39, y - 0.75, 0)
-        let rod = OutputUnit.createRodZ(offset: offset)
+        let offset = SIMD3(42, y - 3.25, 0)
+        let rod = IntermediateUnit.createRodZ(offset: offset)
         carry.append(rod)
       }
       
       // Create 'xor'.
       do {
-        let offset = SIMD3(44.5, y + 0, 0)
-        let rod = OutputUnit.createRodZ(offset: offset)
+        let offset = SIMD3(47.5, y - 2.75, 0)
+        let rod = IntermediateUnit.createRodZ(offset: offset)
         xor.append(rod)
       }
     }
     
     // Create 'carryOut'.
     do {
-      let y = 6.25 * Float(5)
-      let offset = SIMD3(39, y - 0.75, 0)
-      let rod = OutputUnit.createRodZ(offset: offset)
+      let y = 6 * Float(5)
+      let offset = SIMD3(42, y - 3.25, 0)
+      let rod = IntermediateUnit.createRodZ(offset: offset)
       carryOut = rod
     }
   }
 }
 
-extension OutputUnit {
+extension IntermediateUnit {
   private static func createRodZ(offset: SIMD3<Float>) -> Rod {
     let rodLatticeZ = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 2 * h2k + 2 * l }
+      Bounds { 54 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     

@@ -14,7 +14,7 @@
 		9812FAB12BB0BC5800636FF9 /* InputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAB02BB0BC5800636FF9 /* InputUnit.swift */; };
 		9812FAB32BB0BC6000636FF9 /* PropagateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAB22BB0BC6000636FF9 /* PropagateUnit.swift */; };
 		9812FAB52BB0BC6500636FF9 /* GenerateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAB42BB0BC6500636FF9 /* GenerateUnit.swift */; };
-		9812FAB72BB0BC6B00636FF9 /* OutputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAB62BB0BC6B00636FF9 /* OutputUnit.swift */; };
+		9812FAB72BB0BC6B00636FF9 /* IntermediateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAB62BB0BC6B00636FF9 /* IntermediateUnit.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -116,7 +116,7 @@
 		9812FAB02BB0BC5800636FF9 /* InputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputUnit.swift; sourceTree = "<group>"; };
 		9812FAB22BB0BC6000636FF9 /* PropagateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropagateUnit.swift; sourceTree = "<group>"; };
 		9812FAB42BB0BC6500636FF9 /* GenerateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateUnit.swift; sourceTree = "<group>"; };
-		9812FAB62BB0BC6B00636FF9 /* OutputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputUnit.swift; sourceTree = "<group>"; };
+		9812FAB62BB0BC6B00636FF9 /* IntermediateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntermediateUnit.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -405,7 +405,7 @@
 				9812FAB02BB0BC5800636FF9 /* InputUnit.swift */,
 				9812FAB22BB0BC6000636FF9 /* PropagateUnit.swift */,
 				9812FAB42BB0BC6500636FF9 /* GenerateUnit.swift */,
-				9812FAB62BB0BC6B00636FF9 /* OutputUnit.swift */,
+				9812FAB62BB0BC6B00636FF9 /* IntermediateUnit.swift */,
 			);
 			path = Units;
 			sourceTree = "<group>";
@@ -1287,7 +1287,7 @@
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
-				9812FAB72BB0BC6B00636FF9 /* OutputUnit.swift in Sources */,
+				9812FAB72BB0BC6B00636FF9 /* IntermediateUnit.swift in Sources */,
 				9812FAAA2BAF7B6900636FF9 /* Rod.swift in Sources */,
 				9812FAAC2BB0BBD200636FF9 /* Circuit.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,

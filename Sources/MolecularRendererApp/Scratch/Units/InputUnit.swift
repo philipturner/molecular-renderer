@@ -29,18 +29,18 @@ struct InputUnit {
   
   init() {
     for layerID in 1...4 {
-      let y = 6.25 * Float(layerID)
+      let y = 6 * Float(layerID)
       
       // Create 'operandA'.
       do {
-        let offset = SIMD3(0, y + 0, 0)
+        let offset = SIMD3(0, y - 2.75, 0)
         let rod = InputUnit.createRodZ(offset: offset)
         operandA.append(rod)
       }
       
       // Create 'operandB'.
       do {
-        let offset = SIMD3(5.5, y + 0, 0)
+        let offset = SIMD3(5.5, y - 2.75, 0)
         let rod = InputUnit.createRodZ(offset: offset)
         operandB.append(rod)
       }
@@ -52,7 +52,7 @@ extension InputUnit {
   private static func createRodZ(offset: SIMD3<Float>) -> Rod {
     let rodLatticeZ = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 2 * h2k + 2 * l }
+      Bounds { 54 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     

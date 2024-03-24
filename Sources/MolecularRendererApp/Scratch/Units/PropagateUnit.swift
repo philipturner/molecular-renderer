@@ -35,11 +35,11 @@ struct PropagateUnit {
   
   init() {
     for layerID in 1...4 {
-      let y = 6.25 * Float(layerID)
+      let y = 6 * Float(layerID)
       
       // Create 'signal'.
       do {
-        let offset = SIMD3(0, y + 2.75, 30.75)
+        let offset = SIMD3(0, y, 30.75)
         let rod = PropagateUnit.createRodX(offset: offset)
         signal.append(rod)
       }
@@ -51,10 +51,10 @@ struct PropagateUnit {
           // Stack the final broadcast on the top layer, removing a large
           // block of unnecessary housing.
           let x = 7.5 * Float(positionX)
-          offset = SIMD3(x + 10.75, y + 5.5, 0)
+          offset = SIMD3(x + 10.75, y + 2.75, 0)
         } else {
           let x = 7.5 * Float(positionX)
-          offset = SIMD3(x + 15.75, y + 0, 0)
+          offset = SIMD3(x + 15.75, y - 2.75, 0)
         }
         let rod = PropagateUnit.createRodZ(offset: offset)
         
@@ -79,7 +79,7 @@ extension PropagateUnit {
   private static func createRodX(offset: SIMD3<Float>) -> Rod {
     let rodLatticeX = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 68 * h + 2 * h2k + 2 * l }
+      Bounds { 77 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
@@ -98,7 +98,7 @@ extension PropagateUnit {
   private static func createRodY(offset: SIMD3<Float>) -> Rod {
     let rodLatticeY = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 2 * h2k + 2 * l }
+      Bounds { 46 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
@@ -118,7 +118,7 @@ extension PropagateUnit {
   private static func createRodZ(offset: SIMD3<Float>) -> Rod {
     let rodLatticeZ = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 2 * h2k + 2 * l }
+      Bounds { 54 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     

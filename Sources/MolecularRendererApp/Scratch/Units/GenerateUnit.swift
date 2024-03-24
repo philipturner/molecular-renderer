@@ -41,18 +41,18 @@ struct GenerateUnit {
     // Create 'carryIn'.
     do {
       let z = 5.75 * Float(4)
-      let offset = SIMD3(0, 2.75, z + 0)
+      let offset = SIMD3(0, 0, z + 0)
       let rod = GenerateUnit.createRodX(offset: offset)
       carryIn = rod
     }
     
     for layerID in 1...4 {
-      let y = 6.25 * Float(layerID)
+      let y = 6 * Float(layerID)
       
       // Create 'generate'.
       do {
         let z = 5.75 * Float(4 - layerID)
-        let offset = SIMD3(0, y + 2.75, z + 0)
+        let offset = SIMD3(0, y, z + 0)
         let rod = GenerateUnit.createRodX(offset: offset)
         signal.append(rod)
       }
@@ -60,7 +60,7 @@ struct GenerateUnit {
       // Create 'broadcast'.
       for positionZ in (4 - layerID)...4 {
         let z = 5.75 * Float(positionZ)
-        let offset = SIMD3(0, y + 2.75, z + 0)
+        let offset = SIMD3(0, y, z + 0)
         let rod = GenerateUnit.createRodX(offset: offset)
         
         let key = SIMD2(Int(positionZ), Int(layerID))
@@ -84,7 +84,7 @@ extension GenerateUnit {
   private static func createRodX(offset: SIMD3<Float>) -> Rod {
     let rodLatticeX = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 68 * h + 2 * h2k + 2 * l }
+      Bounds { 77 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
@@ -103,7 +103,7 @@ extension GenerateUnit {
   private static func createRodY(offset: SIMD3<Float>) -> Rod {
     let rodLatticeY = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 2 * h2k + 2 * l }
+      Bounds { 46 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
