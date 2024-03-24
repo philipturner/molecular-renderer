@@ -10,8 +10,6 @@ import HDL
 import MM4
 import Numerics
 
-// TODO: Store 'broadcast' uncompressed, but make the rods nullable.
-
 struct PropagateUnit {
   // The propagate signal.
   //
@@ -19,47 +17,60 @@ struct PropagateUnit {
   var signal: [Rod] = []
   
   // The propagate signal, transmitted vertically.
-  //
-  // Ordered from bit 0 -> bit 3.
-  var query: [Rod] = []
+  // - keys: The source layer.
+  // - values: The associated logic rods.
+  var probe: [Int: Rod] = [:]
   
   // The propagate signal, broadcasted to every applicable carry chain.
-  //
-  // Stored in a compressed order.
-  var broadcast: [Rod] = []
+  // - keys: The source layer (0) and the destination layer (1).
+  // - values: The associated logic rods.
+  var broadcast: [SIMD2<Int>: Rod] = [:]
   
+  // The rods in the unit, gathered into an array.
   var rods: [Rod] {
     signal +
-    query +
-    broadcast
+    Array(probe.values) +
+    Array(broadcast.values)
   }
   
   init() {
     for layerID in 1...4 {
-      let y = 6 * Float(layerID)
+      let y = 6.25 * Float(layerID)
       
       // Create 'signal'.
       do {
-        let offset = SIMD3(0, y + 2.5, 24 + 2.5)
+        let offset = SIMD3(0, y + 2.75, 30.75)
         let rod = PropagateUnit.createRodX(offset: offset)
         signal.append(rod)
       }
       
       // Create 'broadcast'.
       for positionX in 0..<layerID {
-        let x = 5.5 * Float(positionX)
-        let offset = SIMD3(x + 16.5, y + 0, 0)
+        var offset: SIMD3<Float>
+        if layerID == 4 && positionX == 3 {
+          // Stack the final broadcast on the top layer, removing a large
+          // block of unnecessary housing.
+          let x = 7.5 * Float(positionX)
+          offset = SIMD3(x + 10.75, y + 5.5, 0)
+        } else {
+          let x = 7.5 * Float(positionX)
+          offset = SIMD3(x + 15.75, y + 0, 0)
+        }
         let rod = PropagateUnit.createRodZ(offset: offset)
-        broadcast.append(rod)
+        
+        let key = SIMD2(Int(positionX), Int(layerID))
+        broadcast[key] = rod
       }
     }
     
     // Create 'query'.
     for positionX in 0..<3 {
-      let x = 5.5 * Float(positionX)
-      let offset = SIMD3(x + 14, 0, 21.25 + 2.5)
+      let x = 7.5 * Float(positionX)
+      let offset = SIMD3(x + 13.25, 0, 28)
       let rod = PropagateUnit.createRodY(offset: offset)
-      query.append(rod)
+      
+      let key = positionX
+      probe[key] = rod
     }
   }
 }
@@ -87,7 +98,7 @@ extension PropagateUnit {
   private static func createRodY(offset: SIMD3<Float>) -> Rod {
     let rodLatticeY = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 45 * h + 2 * h2k + 2 * l }
+      Bounds { 50 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     

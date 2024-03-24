@@ -10,38 +10,49 @@ import HDL
 import MM4
 import Numerics
 
-// TODO: Store 'broadcast' uncompressed, but make the rods nullable.
-
 struct GenerateUnit {
+  // The carry in.
+  var carryIn: Rod
+  
   // The generate signal.
   //
-  // Ordered from bit -1 -> bit 3.
+  // Ordered from bit 0 -> bit 3.
   var signal: [Rod] = []
   
   // The generate signal, transmitted vertically.
-  //
-  // Ordered from bit 2 -> bit -1.
-  var query: [Rod] = []
+  // - keys: The source layer (>= 0), or 'carryIn' (-1).
+  // - values: The associated logic rods.
+  var probe: [Int: Rod] = [:]
   
   // The carry chains that terminate at the current bit.
-  //
-  // Stored in a compressed order.
-  var broadcast: [Rod] = []
+  // - keys: The source layer (lane 0) and the destination layer (lane 1).
+  // - values: The associated logic rods.
+  var broadcast: [SIMD2<Int>: Rod] = [:]
   
+  // The rods in the unit, gathered into an array.
   var rods: [Rod] {
+    Array([carryIn]) +
     signal +
-    query +
-    broadcast
+    Array(probe.values) +
+    Array(broadcast.values)
   }
   
   init() {
-    for layerID in 0...4 {
-      let y = 6 * Float(layerID)
+    // Create 'carryIn'.
+    do {
+      let z = 5.75 * Float(4)
+      let offset = SIMD3(0, 2.75, z + 0)
+      let rod = GenerateUnit.createRodX(offset: offset)
+      carryIn = rod
+    }
+    
+    for layerID in 1...4 {
+      let y = 6.25 * Float(layerID)
       
       // Create 'generate'.
       do {
         let z = 5.75 * Float(4 - layerID)
-        let offset = SIMD3(0, y + 2.5, z + 0)
+        let offset = SIMD3(0, y + 2.75, z + 0)
         let rod = GenerateUnit.createRodX(offset: offset)
         signal.append(rod)
       }
@@ -49,20 +60,22 @@ struct GenerateUnit {
       // Create 'broadcast'.
       for positionZ in (4 - layerID)...4 {
         let z = 5.75 * Float(positionZ)
-        let offset = SIMD3(0, y + 2.5, z + 0)
+        let offset = SIMD3(0, y + 2.75, z + 0)
         let rod = GenerateUnit.createRodX(offset: offset)
-        broadcast.append(rod)
+        
+        let key = SIMD2(Int(positionZ), Int(layerID))
+        broadcast[key] = rod
       }
     }
     
     // Create 'query'.
-    //
-    // TODO: Flip the orientation toward the one with optimal packing.
-    for positionZ in 0..<3 {
+    for positionZ in 0...3 {
       let z = 5.75 * Float(positionZ)
-      let offset = SIMD3(11, 0, z + 2.5)
+      let offset = SIMD3(10.5, 0, z + 3)
       let rod = GenerateUnit.createRodY(offset: offset)
-      query.append(rod)
+      
+      let key = 2 - positionZ
+      probe[key] = rod
     }
   }
 }
@@ -90,7 +103,7 @@ extension GenerateUnit {
   private static func createRodY(offset: SIMD3<Float>) -> Rod {
     let rodLatticeY = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 45 * h + 2 * h2k + 2 * l }
+      Bounds { 50 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
@@ -98,8 +111,8 @@ extension GenerateUnit {
       var copy = $0
       var position = copy.position
       let latticeConstant = Constant(.square) { .elemental(.carbon) }
-      position = SIMD3(position.z, position.x, position.y)
-      position += SIMD3(0.91, 0, 0.85)
+      position = SIMD3(position.y, position.x, position.z)
+      position += SIMD3(0.85, 0, 0.91)
       position += offset * latticeConstant
       copy.position = position
       return copy

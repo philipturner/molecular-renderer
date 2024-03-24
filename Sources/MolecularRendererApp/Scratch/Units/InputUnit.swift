@@ -21,6 +21,7 @@ struct InputUnit {
   // Ordered from bit 0 -> bit 3.
   var operandB: [Rod] = []
   
+  // The rods in the unit, gathered into an array.
   var rods: [Rod] {
     operandA +
     operandB
@@ -28,7 +29,7 @@ struct InputUnit {
   
   init() {
     for layerID in 1...4 {
-      let y = 6 * Float(layerID)
+      let y = 6.25 * Float(layerID)
       
       // Create 'operandA'.
       do {

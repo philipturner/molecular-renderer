@@ -12,6 +12,8 @@ func createGeometry() -> [Entity] {
   // Create the scene.
   let circuit = Circuit()
   
+  // TODO: Change the layer IDs and formulas for computing Y offsets.
+  
   // Create the atoms.
   var atoms: [Entity] = []
   for rod in circuit.rods {
