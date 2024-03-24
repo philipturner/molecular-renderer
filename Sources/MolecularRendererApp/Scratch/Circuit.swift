@@ -15,12 +15,14 @@ struct Circuit {
   var propagate = PropagateUnit()
   var generate = GenerateUnit()
   var intermediate = IntermediateUnit()
+  var output = OutputUnit()
   
   var rods: [Rod] {
     input.rods +
     propagate.rods +
     generate.rods +
-    intermediate.rods
+    intermediate.rods +
+    output.rods
   }
   
   init() {

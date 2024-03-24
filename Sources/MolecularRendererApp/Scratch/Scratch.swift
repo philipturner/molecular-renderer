@@ -12,11 +12,12 @@ func createGeometry() -> [Entity] {
   // Create the scene.
   let circuit = Circuit()
   
-  // TODO: Add the rods for computing the final output.
+  // TODO: Add the patterns to the rods.
   
-  // TODO: Add the patterns to the rods before revisiting the housing.
-  // Perhaps simulate/debug the circuit at the "collision detection" level of
-  // theory.
+  // Perhaps simulate/animate the circuit at the "collision detection" level of
+  // theory. Then, add the drive walls and simulate with RBD. Positionally
+  // constrain the logic rods during the RBD simulation, saving compute cost
+  // and deferring the compilation of housing until later.
   
   // Create the atoms.
   var atoms: [Entity] = []

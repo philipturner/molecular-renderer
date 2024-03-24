@@ -38,14 +38,14 @@ struct IntermediateUnit {
       
       // Create 'carry'.
       do {
-        let offset = SIMD3(42, y - 3.25, 0)
+        let offset = SIMD3(42, y - 3.25, -18.5)
         let rod = IntermediateUnit.createRodZ(offset: offset)
         carry.append(rod)
       }
       
       // Create 'xor'.
       do {
-        let offset = SIMD3(47.5, y - 2.75, 0)
+        let offset = SIMD3(47.5, y - 2.75, -18.5)
         let rod = IntermediateUnit.createRodZ(offset: offset)
         xor.append(rod)
       }
@@ -54,7 +54,7 @@ struct IntermediateUnit {
     // Create 'carryOut'.
     do {
       let y = 6 * Float(5)
-      let offset = SIMD3(42, y - 3.25, 0)
+      let offset = SIMD3(42, y - 3.25, -18.5)
       let rod = IntermediateUnit.createRodZ(offset: offset)
       carryOut = rod
     }
@@ -65,7 +65,7 @@ extension IntermediateUnit {
   private static func createRodZ(offset: SIMD3<Float>) -> Rod {
     let rodLatticeZ = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 54 * h + 2 * h2k + 2 * l }
+      Bounds { 81 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
     }
     
