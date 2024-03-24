@@ -10,8 +10,13 @@ import HDL
 import MM4
 import Numerics
 
-import QuartzCore
+// Rewrite this entire file from scratch. Make the housing be compiled
+// block-by-block from the units.
 
+
+
+// Initial design iteration, preserved for reference.
+#if false
 struct Housing {
   var topology = Topology()
   
@@ -198,3 +203,4 @@ struct Housing {
     topology.sort()
   }
 }
+#endif
