@@ -10,14 +10,11 @@ import OpenMM
 // render any animations.
 func createGeometry() -> [Entity] {
   // Create the scene.
-  let rods = Rods()
-  
-  // TODO: Get all the necessary rods present and sorted, before patterning
-  // any of them.
+  let circuit = Circuit()
   
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in rods.allRods {
+  for rod in circuit.rods {
     atoms += rod.topology.atoms
   }
   
