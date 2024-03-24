@@ -105,18 +105,25 @@ struct Housing {
         for layerID in 0..<4 {
           let y = 6 * Float(layerID)
           
+          // The inputs to the circuit.
+          for positionX in 0..<2 {
+            let x = 5.5 * Float(positionX)
+            createHoleZ(offset: SIMD3(x + 0, y + 0, 0))
+          }
+          
+          // Right-pointing rods that each represent a possible carry sequence.
           for positionZ in 0..<4 {
-            // Only send gather3 to bit 3.
+            // Only send generate3 to bit 3.
             if positionZ == 0, layerID < 3 {
               continue
             }
             
-            // Only send gather2 to bits 2 and 3.
+            // Only send generate2 to bits 2 and 3.
             if positionZ == 1, layerID < 2 {
               continue
             }
             
-            // Only send gather1 to bits 1, 2, and 3.
+            // Only send generate1 to bits 1, 2, and 3.
             if positionZ == 2, layerID < 1 {
               continue
             }
@@ -124,12 +131,11 @@ struct Housing {
             let z = 5.75 * Float(positionZ)
             createHoleX(offset: SIMD3(0, y + 2.5, z + 0))
           }
+          
+          // The original propagate signals.
           createHoleX(offset: SIMD3(0, y + 2.5, 24 + 2.5))
           
-          for positionX in 0..<2 {
-            let x = 5.5 * Float(positionX)
-            createHoleZ(offset: SIMD3(x + 0, y + 0, 0))
-          }
+          // The 'propagate' signals, broadcasted to every bit in the circuit.
           for positionX in 0..<5 {
             // Only create a rod at positionX=0 for the carry in.
             if positionX == 0, layerID > 0 {
@@ -146,12 +152,16 @@ struct Housing {
               continue
             }
             
+            // TODO: Fix the last rod, which is not the carry bit.
             let x = 5.5 * Float(positionX)
             createHoleZ(offset: SIMD3(x + 13.5, y + 0, 0))
           }
+          
+          // The sum output of the first half-adder.
           createHoleZ(offset: SIMD3(41, y + 0, 0))
         }
         
+        // Some rods for sending signals between lanes.
         for positionZ in 0..<4 {
           let z = 5.75 * Float(positionZ)
           createHoleY(offset: SIMD3(11, 0, z + 2.5))
