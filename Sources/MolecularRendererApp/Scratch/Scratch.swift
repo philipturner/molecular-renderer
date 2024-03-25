@@ -8,7 +8,7 @@ import OpenMM
 
 // WARNING: The renderer is currently in 'MRSceneSize.extreme'. It will not
 // render any animations.
-func createGeometry() -> [[Entity]] {
+func createGeometry() -> [Entity] {
   // Create the scene.
   let circuit = Circuit()
   
@@ -21,47 +21,15 @@ func createGeometry() -> [[Entity]] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
-  var rod = circuit.propagate.broadcast.values.first!
-//  return [rod.topology.atoms]
-  
-  var paramsDesc = MM4ParametersDescriptor()
-  paramsDesc.atomicNumbers = rod.topology.atoms.map(\.atomicNumber)
-  paramsDesc.bonds = rod.topology.bonds
-  let parameters = try! MM4Parameters(descriptor: paramsDesc)
-  
-  var forceFieldDesc = MM4ForceFieldDescriptor()
-  forceFieldDesc.parameters = parameters
-  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-  forceField.positions = rod.topology.atoms.map(\.position)
-  forceField.minimize()
-  
-  var frames: [[Entity]] = []
-  for frameID in 0...240 {
-    if frameID > 0 {
-      forceField.simulate(time: 0.040)
-      print(forceField.energy.potential, forceField.energy.kinetic)
-    }
-    print("frame:", frameID)
-    
-    var frame: [Entity] = []
-    for atomID in rod.topology.atoms.indices {
-      var atom = rod.topology.atoms[atomID]
-      let position = forceField.positions[atomID]
-      atom.position = position
-      frame.append(atom)
-    }
-    frames.append(frame)
-  }
-  
-  return frames
-  
-  #if false
   // Create the atoms.
   var atoms: [Entity] = []
   for rod in circuit.input.rods {
     atoms += rod.topology.atoms
   }
-  for rod in circuit.propagate.broadcast.values {
+  for rod in circuit.propagate.probe.values {
+    atoms += rod.topology.atoms
+  }
+  for rod in circuit.propagate.signal {
     atoms += rod.topology.atoms
   }
   
@@ -77,5 +45,4 @@ func createGeometry() -> [[Entity]] {
   
   // Return the atoms.
   return atoms
-#endif
 }

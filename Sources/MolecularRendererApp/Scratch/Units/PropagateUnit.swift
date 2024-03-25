@@ -40,7 +40,7 @@ struct PropagateUnit {
       // Create 'signal'.
       do {
         let offset = SIMD3(0, y, 30.75)
-        let pattern = PropagateUnit.signalPattern()
+        let pattern = PropagateUnit.signalPattern(layerID: layerID)
         let rod = PropagateUnit.createRodX(
           offset: offset, pattern: pattern)
         signal.append(rod)
@@ -74,9 +74,14 @@ struct PropagateUnit {
     
     // Create 'probe'.
     for positionX in 0..<3 {
+      let pattern: KnobPattern = { h, h2k, l in
+        
+      }
+      
       let x = 7.5 * Float(positionX)
       let offset = SIMD3(x + 13.5, 0, 28)
-      let rod = PropagateUnit.createRodY(offset: offset)
+      let rod = PropagateUnit.createRodY(
+        offset: offset, pattern: pattern)
       
       let key = positionX
       probe[key] = rod
@@ -111,11 +116,18 @@ extension PropagateUnit {
     return Rod(atoms: atoms)
   }
   
-  private static func createRodY(offset: SIMD3<Float>) -> Rod {
+  private static func createRodY(
+    offset: SIMD3<Float>,
+    pattern: KnobPattern
+  ) -> Rod {
     let rodLatticeY = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { 46 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
+      
+      Volume {
+        pattern(h, h2k, l)
+      }
     }
     
     let atoms = rodLatticeY.atoms.map {
@@ -160,7 +172,7 @@ extension PropagateUnit {
 }
 
 extension PropagateUnit {
-  private static func signalPattern() -> KnobPattern {
+  private static func signalPattern(layerID: Int) -> KnobPattern {
     { h, h2k, l in
       Concave {
         Convex {
@@ -192,6 +204,138 @@ extension PropagateUnit {
           Plane { -h }
         }
         Replace { .empty }
+      }
+      
+      Concave {
+        Convex {
+          Origin { 21 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 0.5 * l }
+          Plane { -l }
+        }
+        Convex {
+          var origin: Float
+          switch layerID {
+          case 1: origin = 27
+          case 2: origin = 37
+          case 3: origin = 48
+          case 4: origin = 52
+          default: fatalError("Unexpected layer ID.")
+          }
+          Origin { origin * h }
+          Plane { -h }
+        }
+        Replace { .empty }
+      }
+      
+      if layerID <= 2 {
+        Concave {
+          Convex {
+            var origin: Float
+            switch layerID {
+            case 1: origin = 31.5
+            case 2: origin = 42.5
+            default: fatalError("Unexpected layer ID.")
+            }
+            Origin { origin * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 0.5 * l }
+            Plane { -l }
+          }
+          Convex {
+            Origin { 51.5 * h }
+            Plane { -h }
+          }
+          Replace { .empty }
+        }
+      }
+      
+      func createLowerSiliconDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.4 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 0.5 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.silicon) }
+          }
+        }
+      }
+      
+      func createUpperSiliconDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.4 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 1 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.silicon) }
+          }
+        }
+      }
+      
+      // Create a silicon dopant.
+      createLowerSiliconDopant(offsetH: 21)
+      
+      // Create a silicon dopant
+      do {
+        var origin: Float
+        switch layerID {
+        case 1: origin = 26
+        case 2: origin = 36
+        case 3: origin = 47
+        case 4: origin = 51
+        default: fatalError("Unexpected layer ID.")
+        }
+        createLowerSiliconDopant(offsetH: origin)
+      }
+      
+      if layerID <= 2 {
+        // Create a silicon dopant.
+        do {
+          var origin: Float
+          switch layerID {
+          case 1: origin = 31.5
+          case 2: origin = 42.5
+          default: fatalError("Unexpected layer ID.")
+          }
+          createUpperSiliconDopant(offsetH: origin)
+        }
+        
+        // Create a silicon dopant.
+        createUpperSiliconDopant(offsetH: 50.5)
       }
     }
   }
@@ -226,55 +370,37 @@ extension PropagateUnit {
         Replace { .empty }
       }
       
-      // Create a silicon dopant.
-      Volume {
-        Concave {
+      func createSiliconDopant(offsetH: Float) {
+        Volume {
           Concave {
-            Origin { 42 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.4 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 0.5 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.silicon) }
           }
-          Concave {
-            Origin { 0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 0.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.silicon) }
         }
       }
       
       // Create a silicon dopant.
-      Volume {
-        Concave {
-          Concave {
-            Origin { 47 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { 0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 0.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.silicon) }
-        }
-      }
+      createSiliconDopant(offsetH: 42)
+      
+      // Create a silicon dopant.
+      createSiliconDopant(offsetH: 47)
       
       // Create a phosphorus dopant.
       Volume {
