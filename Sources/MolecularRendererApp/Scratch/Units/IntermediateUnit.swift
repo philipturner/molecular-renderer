@@ -38,14 +38,14 @@ struct IntermediateUnit {
       
       // Create 'carry'.
       do {
-        let offset = SIMD3(42, y - 3.25, -18.5)
+        let offset = SIMD3(42.25, y - 3.25, -18.75)
         let rod = IntermediateUnit.createRodZ(offset: offset)
         carry.append(rod)
       }
       
       // Create 'xor'.
       do {
-        let offset = SIMD3(47.5, y - 2.75, -18.5)
+        let offset = SIMD3(48, y - 2.75, -18.75)
         let rod = IntermediateUnit.createRodZ(offset: offset)
         xor.append(rod)
       }
@@ -54,7 +54,7 @@ struct IntermediateUnit {
     // Create 'carryOut'.
     do {
       let y = 6 * Float(5)
-      let offset = SIMD3(42, y - 3.25, -18.5)
+      let offset = SIMD3(42.25, y - 3.25, -18.75)
       let rod = IntermediateUnit.createRodZ(offset: offset)
       carryOut = rod
     }

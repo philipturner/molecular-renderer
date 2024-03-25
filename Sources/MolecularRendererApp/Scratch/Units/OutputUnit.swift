@@ -37,21 +37,21 @@ struct OutputUnit {
       
       // Create 'nor'.
       do {
-        let offset = SIMD3(42, y, -13)
+        let offset = SIMD3(42.25, y, -13)
         let rod = OutputUnit.createRodX(offset: offset)
         nor.append(rod)
       }
       
       // Create 'and'.
       do {
-        let offset = SIMD3(42, y, -18.5)
+        let offset = SIMD3(42.25, y, -18.75)
         let rod = OutputUnit.createRodX(offset: offset)
         and.append(rod)
       }
       
       // Create 'sum'.
       do {
-        let offset = SIMD3(53, y - 2.75, -18.5)
+        let offset = SIMD3(53.75, y - 2.75, -18.75)
         let rod = OutputUnit.createRodZ(offset: offset)
         sum.append(rod)
       }

@@ -29,6 +29,24 @@ struct Rod {
     reconstruction.resolveCollisions()
     reconstruction.createHydrogenBonds()
     topology = reconstruction.topology
+    
+    let atomsToAtomsMap = topology.map(.atoms, to: .atoms)
+    
+    var removedAtoms: [UInt32] = []
+    for i in topology.atoms.indices {
+      let atom = topology.atoms[i]
+      guard atom.atomicNumber == 1 else {
+        continue
+      }
+      for j in atomsToAtomsMap[i] {
+        let other = topology.atoms[Int(j)]
+        if other.atomicNumber == 15 {
+          removedAtoms.append(UInt32(i))
+        }
+      }
+    }
+    topology.remove(atoms: removedAtoms)
+    
     topology.sort()
   }
 }

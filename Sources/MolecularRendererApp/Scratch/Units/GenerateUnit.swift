@@ -68,10 +68,10 @@ struct GenerateUnit {
       }
     }
     
-    // Create 'query'.
+    // Create 'probe'.
     for positionZ in 0...3 {
       let z = 5.75 * Float(positionZ)
-      let offset = SIMD3(10.5, 0, z + 3)
+      let offset = SIMD3(10.75, 0, z + 3)
       let rod = GenerateUnit.createRodY(offset: offset)
       
       let key = 2 - positionZ
