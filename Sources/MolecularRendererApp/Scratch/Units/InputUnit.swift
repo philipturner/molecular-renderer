@@ -87,7 +87,7 @@ extension InputUnit {
     { h, h2k, l in
       Concave {
         Convex {
-          Origin { 45 * h }
+          Origin { 46 * h }
           Plane { h }
         }
         Convex {
@@ -103,6 +103,7 @@ extension InputUnit {
       
       Concave {
         Convex {
+          // +4 units from the mobile position.
           var origin: Float
           switch layerID {
           case 1: origin = 31
@@ -119,6 +120,7 @@ extension InputUnit {
           Plane { h2k }
         }
         Convex {
+          // +4 units from the mobile position.
           var origin: Float
           switch layerID {
           case 1: origin = 36

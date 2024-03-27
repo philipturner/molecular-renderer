@@ -21,11 +21,15 @@ func createGeometry() -> [Entity] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
-  // TODO: Pattern the signal/broadcast pair for propagate[3].
-  
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in circuit.propagate.rods {
+  for rod in circuit.input.rods {
+    atoms += rod.topology.atoms
+  }
+  for rod in circuit.propagate.signal {
+    atoms += rod.topology.atoms
+  }
+  for rod in circuit.generate.rods {
     atoms += rod.topology.atoms
   }
   
