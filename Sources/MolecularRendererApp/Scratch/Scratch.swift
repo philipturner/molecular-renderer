@@ -5,11 +5,16 @@ import HDL
 import MM4
 import Numerics
 
+// For profiling; there are alternative methods on Windows.
+import QuartzCore
+
 func createGeometry() -> [Entity] {
   // MARK: - Initializing Geometry
   
+  setenv("OMP_STACKSIZE", "2G", 1)
+  
   var descriptor = LonsdaleiteRodDescriptor()
-  descriptor.atomicLayerCount = 1
+  descriptor.atomicLayerCount = 3
   let lonsdaleiteRod = LonsdaleiteRod(descriptor: descriptor)
   
   // MARK: - Initializing xTB
@@ -23,7 +28,7 @@ func createGeometry() -> [Entity] {
   let mol = createMolecule(
     env: env, atoms: lonsdaleiteRod.topology.atoms, charge: 0, uhf: 0)
   initializeEnvironment(
-    env: env, mol: mol, calc: calc, verbosityLevel: XTB_VERBOSITY_MUTED)
+    env: env, mol: mol, calc: calc, verbosityLevel: XTB_VERBOSITY_FULL)
   updateMolecule(
     env: env, mol: mol, atoms: lonsdaleiteRod.topology.atoms)
   
@@ -44,12 +49,42 @@ func createGeometry() -> [Entity] {
     repeating: .zero, count: currentAtoms.count)
   let masses = createMasses(atoms: currentAtoms)
   
-  for frameID in 0..<20 {
-    print("frame:", frameID, terminator: " | ")
-    
-    // Perform the singlepoint and update the energy.
+  var singlepointTimes: [Double] = []
+  var gradientTimes: [Double] = []
+  
+  for frameID in 0..<1 {
+    // Perform the singlepoint calculation.
     updateMolecule(env: env, mol: mol, atoms: currentAtoms)
-    xtb_singlepoint(env, mol, calc, res)
+    do {
+      let start = CACurrentMediaTime()
+      xtb_singlepoint(env, mol, calc, res)
+      let end = CACurrentMediaTime()
+      let elapsedTime = end - start
+      
+      // The very first frame is polluted by the initial singlepoint.
+      if frameID > 0 {
+        singlepointTimes.append(elapsedTime)
+      }
+    }
+    
+    // Retrieve the forces.
+    var forces: [SIMD3<Float>]
+    do {
+      let start = CACurrentMediaTime()
+      forces = createForces(
+        env: env, mol: mol, calc: calc, res: res,
+        atomCount: currentAtoms.count)
+      let end = CACurrentMediaTime()
+      let elapsedTime = end - start
+      
+      // The very first frame is polluted by the initial singlepoint.
+      if frameID > 0 {
+        gradientTimes.append(elapsedTime)
+      }
+    }
+    guard xtb_checkEnvironment(env) == 0 else {
+      fatalError("Environment is bad.")
+    }
     
     // Determine the potential energy.
     var potentialEnergy: Double = .zero
@@ -58,8 +93,6 @@ func createGeometry() -> [Entity] {
       fatalError("Environment is bad.")
     }
     potentialEnergy *= 4360
-    //      let potentialEnergyChange = 4360 * Float(energy - startEnergy)
-    //      print(4360 * energyChange, "zJ", terminator: " ")
     
     // Determine the kinetic energy.
     var kineticEnergy: Double = .zero
@@ -72,6 +105,7 @@ func createGeometry() -> [Entity] {
     
     // Report the energy conservation to the console.
     let drift = (kineticEnergy + potentialEnergy) - initialPotentialEnergy
+    print("frame:", frameID, terminator: " | ")
     print(
       "\(String(format: "%.1f", kineticEnergy)) zJ (kinetic)",
       terminator: " | ")
@@ -84,14 +118,6 @@ func createGeometry() -> [Entity] {
     
     // Terminate the log statement with a newline.
     print()
-    
-    // Retrieve the forces.
-    let forces = createForces(
-      env: env, mol: mol, calc: calc, res: res,
-      atomCount: currentAtoms.count)
-    guard xtb_checkEnvironment(env) == 0 else {
-      fatalError("Environment is bad.")
-    }
     
     // Integrate over time with the velocity Verlet integrator.
     for atomID in currentAtoms.indices {
@@ -113,6 +139,85 @@ func createGeometry() -> [Entity] {
       velocities[atomID] = velocity
     }
   }
+  
+  func summarizeTimes(_ times: [Double]) {
+    var minimum: Double = 1e38
+    var accumulator: Double = .zero
+    var maximum: Double = .zero
+    
+    for timeID in times.indices {
+      let time = times[timeID]
+      minimum = min(minimum, time)
+      accumulator += time
+      maximum = max(maximum, time)
+    }
+    let average = accumulator / Double(times.count)
+    
+    print("- maximum: \(Int(maximum * 1e6)) μs")
+    print("- average: \(Int(average * 1e6)) μs")
+    print("- minimum: \(Int(minimum * 1e6)) μs")
+  }
+  
+  print()
+  print("system size:")
+  print("- atoms:", currentAtoms.count, terminator: " ")
+  var carbonAtomCount: Int = .zero
+  for atomID in currentAtoms.indices {
+    let atom = currentAtoms[atomID]
+    if atom.atomicNumber == 6 {
+      carbonAtomCount += 1
+    }
+  }
+  print("(\(carbonAtomCount) carbons)")
+  
+  var electronCount: Int = .zero
+  for atomID in currentAtoms.indices {
+    let atom = currentAtoms[atomID]
+    electronCount += Int(atom.atomicNumber)
+  }
+  print("- electrons:", electronCount)
+  print("- orbitals:", electronCount / 2)
+  
+  print()
+  print("singlepoint latency:")
+  summarizeTimes(singlepointTimes)
+  
+  print()
+  print("gradient latency:")
+  summarizeTimes(gradientTimes)
+  
+  // Report the linear algebra metric, GFLOPS/k.
+  let n: Int = electronCount / 2
+  let minLatency = singlepointTimes.min()!
+  let mflopsK = Double(n * n * n) / Double(minLatency) / 1e6
+  print()
+  print("MFLOPS/k:", mflopsK, "* 2 * SCF iters")
+  
+  // The fastest samples typically had 6 self-consistent field iterations.
+  //  24 orbitals | MFLOPS/k: 1.672308637821706 * 2 * SCF iters
+  //  45 orbitals | MFLOPS/k: 2.850558771998712 * 2 * SCF iters
+  //  66 orbitals | MFLOPS/k: 4.264920785466363 * 2 * SCF iters
+  //  87 orbitals | MFLOPS/k: 6.719695497555669 * 2 * SCF iters
+  // 108 orbitals | MFLOPS/k: 7.817894503753794 * 2 * SCF iters
+  // 129 orbitals | MFLOPS/k: 7.040054789433814 * 2 * SCF iters
+  // 150 orbitals | MFLOPS/k: 10.617432539617518 * 2 * SCF iters
+  // 171 orbitals | MFLOPS/k: 11.824962467189183 * 2 * SCF iters
+  // 192 orbitals | MFLOPS/k: 14.864456295740977 * 2 * SCF iters
+  // 213 orbitals | MFLOPS/k: 16.72527140353499 * 2 * SCF iters
+  // 234 orbitals | MFLOPS/k: 18.577699670110036 * 2 * SCF iters
+  // 255 orbitals | MFLOPS/k: 21.400103087540572 * 2 * SCF iters
+  // 276 orbitals | MFLOPS/k: 25.673197216320762 * 2 * SCF iters
+  // 297 orbitals | MFLOPS/k: 26.257907112019282 * 2 * SCF iters
+  // 318 orbitals | MFLOPS/k: 31.986542563476643 * 2 * SCF iters
+  // 339 orbitals | MFLOPS/k: 34.261739645398904 * 2 * SCF iters
+  // 360 orbitals | MFLOPS/k: 39.19743800150395 * 2 * SCF iters
+  // 423 orbitals | MFLOPS/k: 50.09500766413211 * 2 * SCF iters
+  // 528 orbitals | MFLOPS/k: 64.13679686045143 * 2 * SCF iters
+  // 633 orbitals | MFLOPS/k: 83.85597804067446 * 2 * SCF iters
+  // 738 orbitals | MFLOPS/k: 103.02688576953425 * 2 * SCF iters
+  // 801 orbitals | MFLOPS/k: 111.85982029565841 * 2 * SCF iters
+  // 822 orbitals | MFLOPS/k: 126.25993070649956 * 2 * SCF iters
+  // Anything larger crashes at runtime.
   
   exit(0)
 }
@@ -267,11 +372,7 @@ func createForces(
   res: xtb_TResults,
   atomCount: Int
 ) -> [SIMD3<Float>] {
-  xtb_singlepoint(env, mol, calc, res)
-  if xtb_checkEnvironment(env) != 0 {
-    fatalError("Call xtb_showEnvironment.")
-  }
-  
+  // WARNING: You must have already called xtb_singlepoint.
   var gradient = [Double](repeating: 0, count: atomCount * 3)
   xtb_getGradient(env, res, &gradient)
   if xtb_checkEnvironment(env) != 0 {
