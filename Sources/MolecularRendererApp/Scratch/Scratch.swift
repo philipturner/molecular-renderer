@@ -12,9 +12,10 @@ func createGeometry() -> [Entity] {
   // MARK: - Initializing Geometry
   
   setenv("OMP_STACKSIZE", "2G", 1)
+  setenv("OMP_NUM_THREADS", "2", 1)
   
   var descriptor = LonsdaleiteRodDescriptor()
-  descriptor.atomicLayerCount = 3
+  descriptor.atomicLayerCount = 39
   let lonsdaleiteRod = LonsdaleiteRod(descriptor: descriptor)
   
   // MARK: - Initializing xTB
@@ -28,7 +29,7 @@ func createGeometry() -> [Entity] {
   let mol = createMolecule(
     env: env, atoms: lonsdaleiteRod.topology.atoms, charge: 0, uhf: 0)
   initializeEnvironment(
-    env: env, mol: mol, calc: calc, verbosityLevel: XTB_VERBOSITY_FULL)
+    env: env, mol: mol, calc: calc, verbosityLevel: XTB_VERBOSITY_MINIMAL)
   updateMolecule(
     env: env, mol: mol, atoms: lonsdaleiteRod.topology.atoms)
   
@@ -52,7 +53,7 @@ func createGeometry() -> [Entity] {
   var singlepointTimes: [Double] = []
   var gradientTimes: [Double] = []
   
-  for frameID in 0..<1 {
+  for frameID in 0..<5 {
     // Perform the singlepoint calculation.
     updateMolecule(env: env, mol: mol, atoms: currentAtoms)
     do {
@@ -218,6 +219,8 @@ func createGeometry() -> [Entity] {
   // 801 orbitals | MFLOPS/k: 111.85982029565841 * 2 * SCF iters
   // 822 orbitals | MFLOPS/k: 126.25993070649956 * 2 * SCF iters
   // Anything larger crashes at runtime.
+  
+  
   
   exit(0)
 }
