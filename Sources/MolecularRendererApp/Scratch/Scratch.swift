@@ -12,7 +12,7 @@ func createGeometry() -> [Entity] {
   // MARK: - Initializing Geometry
   
   setenv("OMP_STACKSIZE", "2G", 1)
-  setenv("OMP_NUM_THREADS", "2", 1)
+  setenv("OMP_NUM_THREADS", "8", 1)
   
   var descriptor = LonsdaleiteRodDescriptor()
   descriptor.atomicLayerCount = 39
@@ -21,7 +21,7 @@ func createGeometry() -> [Entity] {
   // MARK: - Initializing xTB
   
   XTBLibrary.loadLibrary(
-    path: "/opt/homebrew/Cellar/xtb/6.6.1/lib/libxtb.6.dylib")
+    path: "/Users/philipturner/Documents/OpenMM/bypass_dependencies/libxtb.6.dylib")
   
   let env = xtb_newEnvironment()!
   let calc = xtb_newCalculator()!
