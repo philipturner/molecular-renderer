@@ -23,15 +23,15 @@ func createGeometry() -> [Entity] {
   
   // Tasks:
   // - Finish patterning the generate unit.
-  // - Revise the propagate unit to follow the "clockingOffset" convention from
+  // - Revise the propagate unit to follow the "clockingShift" convention from
   //   the generate unit.
+  // - Revise the signal rods of the propagate unit to use a "clockingShift"
+  //   convention, letting you model what happens after they're mobile (sort
+  //   of a substitute for animation).
   
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in circuit.input.rods {
-    atoms += rod.topology.atoms
-  }
-  for rod in circuit.generate.rods {
+  for rod in circuit.propagate.signal {
     atoms += rod.topology.atoms
   }
   

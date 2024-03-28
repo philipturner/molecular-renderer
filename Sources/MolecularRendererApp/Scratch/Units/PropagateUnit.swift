@@ -304,7 +304,7 @@ extension PropagateUnit {
       
       // Create a groove to directly transmit signals to 'broadcast'.
       //
-      // This might warrant some extra P dopants to balance out the twist.
+      // This might need extra dopants to balance out the twist.
       if layerID == 4 {
         Volume {
           Concave {
@@ -381,6 +381,13 @@ extension PropagateUnit {
   
   private static func probePattern(positionX: Int) -> KnobPattern {
     { h, h2k, l in
+      // TODO:
+      // - Introduce the clocking shift (value 0).
+      // - Comment on all the dopants, and how the offset affects them.
+      // - Shift the coordinates to match the offset.
+      // - Test how the rods look with the shift changed to 0.
+      let clockingShift: Float = 4
+      
       // Create a groove to receive signals from 'signal'.
       Concave {
         Convex {
@@ -416,8 +423,7 @@ extension PropagateUnit {
       if positionX <= 0 {
         Concave {
           Convex {
-            // -4 units from the mobile position.
-            Origin { 2.5 * h }
+            Origin { (6.5 - clockingShift) * h }
             Plane { h }
           }
           Convex {
@@ -425,22 +431,24 @@ extension PropagateUnit {
             Plane { l }
           }
           Convex {
-            // -4 units from the mobile position.
-            Origin { 8.5 * h }
+            Origin { (12.5 - clockingShift) * h }
             Plane { -h }
           }
           Replace { .empty }
         }
-        createUpperSiliconDopant(offsetH: 2.5)
-        createUpperSiliconDopant(offsetH: 7.5)
+        
+        // 6.5 - clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: 6.5 - clockingShift)
+        
+        // 12.5 - clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: (12.5 - 1) - clockingShift)
       }
       
       // Create a groove to transmit signals to 'broadcast' on layer 2.
       if positionX <= 1 {
         Concave {
           Convex {
-            // -4 units from the mobile position.
-            Origin { 11 * h }
+            Origin { (15 - clockingShift) * h }
             Plane { h }
           }
           Convex {
@@ -448,21 +456,23 @@ extension PropagateUnit {
             Plane { l }
           }
           Convex {
-            // -4 units from the mobile position.
-            Origin { 17 * h }
+            Origin { (21 - clockingShift) * h }
             Plane { -h }
           }
           Replace { .empty }
         }
-        createLowerSiliconDopant(offsetH: 11)
-        createLowerSiliconDopant(offsetH: 16)
+        
+        // 15 - clockingShift is an even number.
+        createLowerSiliconDopant(offsetH: 15 - clockingShift)
+        
+        // 21 - clockingShift is an even number.
+        createLowerSiliconDopant(offsetH: (21 - 1) - clockingShift)
       }
       
       // Create a groove to transmit signals to 'broadcast' on layer 3.
       Concave {
         Convex {
-          // -4 units from the mobile position.
-          Origin { 19.5 * h }
+          Origin { (23.5 - clockingShift) * h }
           Plane { h }
         }
         Convex {
@@ -470,24 +480,26 @@ extension PropagateUnit {
           Plane { l }
         }
         Convex {
-          // -4 units from the mobile position.
-          Origin { 25.5 * h }
+          Origin { (29.5 - clockingShift) * h }
           Plane { -h }
         }
         Replace { .empty }
       }
+      
+      // 23.5 - clockingShift is an odd number.
       if positionX == 1 {
-        createUpperPhosphorusDopant(offsetH: 19.5)
+        createUpperPhosphorusDopant(offsetH: 23.5 - clockingShift)
       } else {
-        createUpperSiliconDopant(offsetH: 19.5)
+        createUpperSiliconDopant(offsetH: 23.5 - clockingShift)
       }
-      createUpperSiliconDopant(offsetH: 24.5)
+      
+      // 29.5 - clockingShift is an odd number.
+      createUpperSiliconDopant(offsetH: (29.5 - 1) - clockingShift)
       
       // Create a groove to transmit signals to 'broadcast' on layer 4.
       Concave {
         Convex {
-          // -4 units from the mobile position.
-          Origin { 28 * h }
+          Origin { (32 - clockingShift) * h }
           Plane { h }
         }
         Convex {
@@ -495,14 +507,17 @@ extension PropagateUnit {
           Plane { l }
         }
         Convex {
-          // -4 units from the mobile position.
-          Origin { 34 * h }
+          Origin { (38 - clockingShift) * h }
           Plane { -h }
         }
         Replace { .empty }
       }
-      createLowerSiliconDopant(offsetH: 28)
-      createLowerSiliconDopant(offsetH: 33)
+      
+      // 32 - clockingShift is an even number.
+      createLowerSiliconDopant(offsetH: 32 - clockingShift)
+      
+      // 38 - clockingShift is an even number.
+      createLowerSiliconDopant(offsetH: (38 - 1) - clockingShift)
       
       func createLowerSiliconDopant(offsetH: Float) {
         Volume {
