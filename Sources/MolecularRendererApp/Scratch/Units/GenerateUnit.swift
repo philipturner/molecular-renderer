@@ -64,7 +64,7 @@ struct GenerateUnit {
       }
       
       // Create 'broadcast'.
-      for positionZ in (4 - layerID)...4 {
+      for positionZ in ((4 - layerID) + 1)...4 {
         let z = 5.75 * Float(positionZ)
         let offset = SIMD3(0, y, z + 0)
         let pattern = GenerateUnit
@@ -150,6 +150,8 @@ extension GenerateUnit {
 extension GenerateUnit {
   private static func signalPattern(layerID: Int) -> KnobPattern {
     { h, h2k, l in
+      let clockingShift: Float = 4
+      
       // Exclude the carry in from these knobs.
       if layerID > 0 {
         // Connect to operand A.
@@ -197,8 +199,7 @@ extension GenerateUnit {
         Volume {
           Concave {
             Convex {
-              // +4 units from the mobile position.
-              Origin { 21.5 * h }
+              Origin { (17.5 + clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -206,15 +207,18 @@ extension GenerateUnit {
               Plane { -l }
             }
             Convex {
-              // +4 units from the mobile position.
-              Origin { 27.5 * h }
+              Origin { (23.5 + clockingShift) * h }
               Plane { -h }
             }
           }
           Replace { .empty }
         }
-        createUpperSiliconDopant(offsetH: 21.5)
-        createUpperSiliconDopant(offsetH: 26.5)
+        
+        // 17.5 + clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: 17.5 + clockingShift)
+        
+        // 22.5 + clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: 22.5 + clockingShift)
       }
       
       func createUpperSiliconDopant(offsetH: Float) {
@@ -473,6 +477,54 @@ extension GenerateUnit {
             Plane { -h }
           }
           Replace { .empty }
+        }
+      }
+      
+      // Create a groove to interact with the 'probe' rod.
+      Volume {
+        Concave {
+          Convex {
+            Origin { 17 * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 0.5 * l }
+            Plane { -l }
+          }
+          Convex {
+            Origin { 23 * h }
+            Plane { -h }
+          }
+          Replace { .empty }
+        }
+      }
+      createLowerSiliconDopant(offsetH: 17)
+      createLowerSiliconDopant(offsetH: 22)
+      
+      // Experiment with creating a silicon dopant.
+      func createLowerSiliconDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.4 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 0.5 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.silicon) }
+          }
         }
       }
     }

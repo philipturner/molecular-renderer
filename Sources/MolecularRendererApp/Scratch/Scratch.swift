@@ -21,8 +21,16 @@ func createGeometry() -> [Entity] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
+  // Tasks:
+  // - Finish patterning the generate unit.
+  // - Revise the propagate unit to follow the "clockingOffset" convention from
+  //   the generate unit.
+  
   // Create the atoms.
   var atoms: [Entity] = []
+  for rod in circuit.input.rods {
+    atoms += rod.topology.atoms
+  }
   for rod in circuit.generate.rods {
     atoms += rod.topology.atoms
   }
