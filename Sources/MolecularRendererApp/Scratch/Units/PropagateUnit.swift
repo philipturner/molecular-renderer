@@ -77,7 +77,8 @@ struct PropagateUnit {
         } else {
           let x = 7.5 * Float(positionX)
           offset = SIMD3(x + 16, y - 2.75, 0)
-          pattern = PropagateUnit.broadcastPattern()
+          pattern = PropagateUnit
+            .broadcastPattern()
         }
         let rod = PropagateUnit
           .createRodZ(offset: offset, pattern: pattern)
@@ -583,6 +584,8 @@ extension PropagateUnit {
     }
   }
   
+  // We haven't reached the level of detail where individual broadcasts get
+  // unique patterns.
   private static func broadcastPattern() -> KnobPattern {
     { h, h2k, l in
       // Create a groove to avoid interaction with 'signal'.

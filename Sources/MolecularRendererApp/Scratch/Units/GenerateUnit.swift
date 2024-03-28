@@ -51,11 +51,12 @@ struct GenerateUnit {
     for layerID in 1...4 {
       let y = 6 * Float(layerID)
       
-      // Create 'generate'.
+      // Create 'signal'.
       do {
         let z = 5.75 * Float(4 - layerID)
         let offset = SIMD3(0, y, z + 0)
-        let pattern: KnobPattern = { _, _, _ in }
+        let pattern = GenerateUnit
+          .signalPattern(layerID: layerID)
         let rod = GenerateUnit
           .createRodX(offset: offset, pattern: pattern)
         signal.append(rod)
@@ -65,7 +66,8 @@ struct GenerateUnit {
       for positionZ in (4 - layerID)...4 {
         let z = 5.75 * Float(positionZ)
         let offset = SIMD3(0, y, z + 0)
-        let pattern: KnobPattern = { _, _, _ in }
+        let pattern = GenerateUnit
+          .broadcastPattern()
         let rod = GenerateUnit
           .createRodX(offset: offset, pattern: pattern)
         
@@ -131,5 +133,70 @@ extension GenerateUnit {
       return copy
     }
     return Rod(atoms: atoms)
+  }
+}
+
+extension GenerateUnit {
+  private static func signalPattern(layerID: Int) -> KnobPattern {
+    { h, h2k, l in
+      // Connect to operand A.
+      Volume {
+        Concave {
+          Convex {
+            Origin { 2 * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 0.5 * h2k }
+            Plane { -h2k }
+          }
+          Convex {
+            Origin { 7 * h }
+            Plane { -h }
+          }
+          Replace { .empty }
+        }
+      }
+      
+      // Connect to operand B.
+      Volume {
+        Concave {
+          Convex {
+            Origin { 11 * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 0.5 * h2k }
+            Plane { -h2k }
+          }
+          Convex {
+            Origin { 16 * h }
+            Plane { -h }
+          }
+          Replace { .empty }
+        }
+      }
+    }
+  }
+  
+  // We haven't reached the level of detail where individual broadcasts get
+  // unique patterns.
+  private static func broadcastPattern() -> KnobPattern {
+    { h, h2k, l in
+      // Create a groove to avoid collision with the A/B operands.
+      Volume {
+        Concave {
+          Convex {
+            Origin { 0.5 * h2k }
+            Plane { -h2k }
+          }
+          Convex {
+            Origin { 16 * h }
+            Plane { -h }
+          }
+          Replace { .empty }
+        }
+      }
+    }
   }
 }
