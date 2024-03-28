@@ -42,7 +42,8 @@ struct GenerateUnit {
     do {
       let z = 5.75 * Float(4)
       let offset = SIMD3(0, 0, z + 0)
-      let pattern: KnobPattern = { _, _, _ in }
+      let pattern = GenerateUnit
+        .signalPattern(layerID: 0)
       let rod = GenerateUnit
         .createRodX(offset: offset, pattern: pattern)
       carryIn = rod
@@ -80,7 +81,9 @@ struct GenerateUnit {
     for positionZ in 0...3 {
       let z = 5.75 * Float(positionZ)
       let offset = SIMD3(10.75, 0, z + 3.25)
-      let rod = GenerateUnit.createRodY(offset: offset)
+      let pattern: KnobPattern = { _, _, _ in }
+      let rod = GenerateUnit
+        .createRodY(offset: offset, pattern: pattern)
       
       let key = 2 - positionZ
       probe[key] = rod
@@ -115,11 +118,18 @@ extension GenerateUnit {
     return Rod(atoms: atoms)
   }
   
-  private static func createRodY(offset: SIMD3<Float>) -> Rod {
+  private static func createRodY(
+    offset: SIMD3<Float>,
+    pattern: KnobPattern
+  ) -> Rod {
     let rodLatticeY = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { 46 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
+      
+      Volume {
+        pattern(h, h2k, l)
+      }
     }
     
     let atoms = rodLatticeY.atoms.map {
@@ -139,63 +149,97 @@ extension GenerateUnit {
 extension GenerateUnit {
   private static func signalPattern(layerID: Int) -> KnobPattern {
     { h, h2k, l in
-      // Connect to operand A.
-      Volume {
-        Concave {
-          Convex {
-            Origin { 2 * h }
-            Plane { h }
+      // Exclude the carry in from these knobs.
+      if layerID > 0 {
+        // Connect to operand A.
+        Volume {
+          Concave {
+            Convex {
+              Origin { 2 * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Convex {
+              Origin { 7 * h }
+              Plane { -h }
+            }
+            Replace { .empty }
           }
-          Convex {
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
+        }
+        
+        // Connect to operand B.
+        Volume {
+          Concave {
+            Convex {
+              Origin { 11 * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Convex {
+              Origin { 16 * h }
+              Plane { -h }
+            }
+            Replace { .empty }
           }
-          Convex {
-            Origin { 7 * h }
-            Plane { -h }
-          }
-          Replace { .empty }
         }
       }
       
-      // Connect to operand B.
-      Volume {
-        Concave {
-          Convex {
-            Origin { 11 * h }
-            Plane { h }
-          }
-          Convex {
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Convex {
-            Origin { 16 * h }
-            Plane { -h }
+      // Exclude the last generate bit from interaction with the probes.
+      if layerID != 4 {
+        // Create a groove that interacts with the 'probe' rod.
+        Volume {
+          Concave {
+            Convex {
+              // +4 units from the mobile position.
+              Origin { 21.5 * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Convex {
+              // +4 units from the mobile position.
+              Origin { 27.5 * h }
+              Plane { -h }
+            }
           }
           Replace { .empty }
         }
+        createUpperSiliconDopant(offsetH: 21.5)
+        createUpperSiliconDopant(offsetH: 26.5)
       }
       
-      // Create a groove that interacts with the 'probe' rod.
-      Volume {
-        Concave {
-          Convex {
-            // +4 units from the mobile position.
-            Origin { 21.5 * h }
-            Plane { h }
+      func createUpperSiliconDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.4 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 1 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
           }
-          Convex {
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Convex {
-            // +4 units from the mobile position.
-            Origin { 27.5 * h }
-            Plane { -h }
-          }
+          Replace { .atom(.silicon) }
         }
-        Replace { .empty }
       }
     }
   }

@@ -21,9 +21,6 @@ func createGeometry() -> [Entity] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
-  // TODO: Place dopants on the grooves between the generate 'signal' and
-  // generate 'probe' rods.
-  
   // Create the atoms.
   var atoms: [Entity] = []
   atoms += circuit.generate.carryIn.topology.atoms
