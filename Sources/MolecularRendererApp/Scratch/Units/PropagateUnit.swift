@@ -257,13 +257,89 @@ extension PropagateUnit {
           }
         }
         
-        // Temporarily deactivate the dopants, while figuring out the clocking shift.
-#if false
-        createLowerSiliconDopant(offsetH: 17 + clockingShift)
-        do {
-          createLowerSiliconDopant(offsetH: (endOffset - 1) + clockingShift)
+        // 17 + clockingShift is an even number.
+        if layerID == 4 || layerID == 3 {
+          Volume {
+            Concave {
+              Concave {
+                Origin { (16.5 + clockingShift) * h }
+                Plane { h }
+                Origin { 1 * h }
+                Plane { -h }
+              }
+              Concave {
+                Origin { -0.4 * l }
+                Plane { l }
+                Origin { 0.5 * l }
+                Plane { -l }
+              }
+              Concave {
+                Origin { 0.5 * h2k }
+                Plane { h2k }
+                Origin { 0.5 * h2k }
+                Plane { -h2k }
+              }
+              Replace { .atom(.phosphorus) }
+            }
+          }
+          createUpperPhosphorusDopant(offsetH: 17 + clockingShift)
+        } else {
+          createLowerSiliconDopant(offsetH: 17 + clockingShift)
+          createUpperPhosphorusDopant(offsetH: 17 + clockingShift)
         }
-#endif
+        
+        // endOffset + clockingShift is an even number.
+        if layerID == 4 {
+          Volume {
+            Concave {
+              Concave {
+                Origin { (47.5 + clockingShift) * h }
+                Plane { h }
+                Origin { 1 * h }
+                Plane { -h }
+              }
+              Concave {
+                Origin { -0.4 * l }
+                Plane { l }
+                Origin { 0.5 * l }
+                Plane { -l }
+              }
+              Concave {
+                Origin { 0.5 * h2k }
+                Plane { h2k }
+                Origin { 0.5 * h2k }
+                Plane { -h2k }
+              }
+              Replace { .atom(.phosphorus) }
+            }
+          }
+        } else {
+//          createLowerSiliconDopant(offsetH: (endOffset - 1) + clockingShift)
+          Volume {
+            Concave {
+              Concave {
+                Origin { ((endOffset - 0.5) + clockingShift) * h }
+                Plane { h }
+                Origin { 1 * h }
+                Plane { -h }
+              }
+              Concave {
+                Origin { -0.1 * l }
+                Plane { l }
+                Origin { 0.5 * l }
+                Plane { -l }
+              }
+              Concave {
+                Origin { 0.5 * h2k }
+                Plane { h2k }
+                Origin { 0.5 * h2k }
+                Plane { -h2k }
+              }
+              Replace { .atom(.phosphorus) }
+            }
+          }
+          createUpperPhosphorusDopant(offsetH: (endOffset - 1) + clockingShift)
+        }
       }
       
       // Create a groove to avoid interaction with 'probe' on other layers.
@@ -293,13 +369,11 @@ extension PropagateUnit {
           }
         }
         
-        // Temporarily deactivate the dopants, while figuring out the clocking shift.
-        #if false
-        do {
-          createUpperSiliconDopant(offsetH: startOffset + clockingShift)
-        }
+        // startOffset + clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: startOffset + clockingShift)
+        
+        // 47.5 + clockingShift is an odd number.
         createUpperSiliconDopant(offsetH: (47.5 - 1) + clockingShift)
-        #endif
       }
       
       // Create a groove to directly transmit signals to 'broadcast'.
@@ -373,6 +447,32 @@ extension PropagateUnit {
               Plane { -h2k }
             }
             Replace { .atom(.silicon) }
+          }
+        }
+      }
+      
+      func createUpperPhosphorusDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.4 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 1.5 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.phosphorus) }
           }
         }
       }
