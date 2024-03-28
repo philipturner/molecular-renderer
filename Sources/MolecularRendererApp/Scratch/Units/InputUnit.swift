@@ -34,18 +34,20 @@ struct InputUnit {
       // Create 'operandA'.
       do {
         let offset = SIMD3(0, y - 2.75, 0)
-        let pattern = InputUnit.commonPattern(layerID: layerID)
-        let rod = InputUnit.createRodZ(
-          offset: offset, pattern: pattern)
+        let pattern = InputUnit
+          .commonPattern(layerID: layerID)
+        let rod = InputUnit
+          .createRodZ(offset: offset, pattern: pattern)
         operandA.append(rod)
       }
       
       // Create 'operandB'.
       do {
         let offset = SIMD3(5.75, y - 2.75, 0)
-        let pattern = InputUnit.commonPattern(layerID: layerID)
-        let rod = InputUnit.createRodZ(
-          offset: offset, pattern: pattern)
+        let pattern = InputUnit
+          .commonPattern(layerID: layerID)
+        let rod = InputUnit
+          .createRodZ(offset: offset, pattern: pattern)
         operandB.append(rod)
       }
     }

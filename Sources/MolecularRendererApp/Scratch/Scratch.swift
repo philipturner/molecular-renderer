@@ -21,6 +21,11 @@ func createGeometry() -> [Entity] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
+  // TODO: Next, remove the collisions between the carry-chain rods and the
+  // A/B operand rods. Keep the clock signal direction in mind.
+  //
+  // In addition, pattern the 'generate' rods to respond to the A/B operands.
+  
   // Create the atoms.
   var atoms: [Entity] = []
   for rod in circuit.input.rods {
@@ -29,7 +34,7 @@ func createGeometry() -> [Entity] {
   for rod in circuit.propagate.signal {
     atoms += rod.topology.atoms
   }
-  for rod in circuit.generate.rods {
+  for rod in circuit.generate.signal {
     atoms += rod.topology.atoms
   }
   

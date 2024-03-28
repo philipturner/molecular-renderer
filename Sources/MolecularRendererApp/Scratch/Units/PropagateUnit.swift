@@ -40,9 +40,10 @@ struct PropagateUnit {
       // Create 'signal'.
       do {
         let offset = SIMD3(0, y, 30.75)
-        let pattern = PropagateUnit.signalPattern(layerID: layerID)
-        let rod = PropagateUnit.createRodX(
-          offset: offset, pattern: pattern)
+        let pattern = PropagateUnit
+          .signalPattern(layerID: layerID)
+        let rod = PropagateUnit
+          .createRodX(offset: offset, pattern: pattern)
         signal.append(rod)
       }
       
@@ -78,8 +79,8 @@ struct PropagateUnit {
           offset = SIMD3(x + 16, y - 2.75, 0)
           pattern = PropagateUnit.broadcastPattern()
         }
-        let rod = PropagateUnit.createRodZ(
-          offset: offset, pattern: pattern)
+        let rod = PropagateUnit
+          .createRodZ(offset: offset, pattern: pattern)
         
         let key = SIMD2(Int(positionX), Int(layerID))
         broadcast[key] = rod
@@ -90,9 +91,10 @@ struct PropagateUnit {
     for positionX in 0..<3 {
       let x = 7.5 * Float(positionX)
       let offset = SIMD3(x + 13.5, 0, 28)
-      let pattern = PropagateUnit.probePattern(positionX: positionX)
-      let rod = PropagateUnit.createRodY(
-        offset: offset, pattern: pattern)
+      let pattern = PropagateUnit
+        .probePattern(positionX: positionX)
+      let rod = PropagateUnit
+        .createRodY(offset: offset, pattern: pattern)
       
       let key = positionX
       probe[key] = rod
