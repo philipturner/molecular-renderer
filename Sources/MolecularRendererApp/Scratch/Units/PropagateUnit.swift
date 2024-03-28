@@ -188,6 +188,8 @@ extension PropagateUnit {
 extension PropagateUnit {
   private static func signalPattern(layerID: Int) -> KnobPattern {
     { h, h2k, l in
+      let clockingShift: Float = 4
+      
       // Connect to operand A.
       Volume {
         Concave {
@@ -227,56 +229,20 @@ extension PropagateUnit {
       }
       
       // Create a groove for interaction with 'probe'.
-      Volume {
-        Concave {
-          Convex {
-            Origin { 21 * h }
-            Plane { h }
-          }
-          Convex {
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Convex {
-            var origin: Float
-            switch layerID {
-            case 1: origin = 27
-            case 2: origin = 37
-            case 3: origin = 48
-            case 4: origin = 52
-            default: fatalError("Unexpected layer ID.")
-            }
-            Origin { origin * h }
-            Plane { -h }
-          }
-          Replace { .empty }
-        }
-      }
-      createLowerSiliconDopant(offsetH: 21)
       do {
-        var origin: Float
+        var endOffset: Float
         switch layerID {
-        case 1: origin = 26
-        case 2: origin = 36
-        case 3: origin = 47
-        case 4: origin = 51
+        case 1: endOffset = 23
+        case 2: endOffset = 33
+        case 3: endOffset = 44
+        case 4: endOffset = 48
         default: fatalError("Unexpected layer ID.")
         }
-        createLowerSiliconDopant(offsetH: origin)
-      }
-      
-      // Create a groove to avoid interaction with 'probe' on other layers.
-      if layerID <= 2 {
+        
         Volume {
           Concave {
             Convex {
-              var origin: Float
-              switch layerID {
-              case 1: origin = 31.5
-              case 2: origin = 42.5
-              default: fatalError("Unexpected layer ID.")
-              }
-              Origin { origin * h }
+              Origin { (17 + clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -284,22 +250,56 @@ extension PropagateUnit {
               Plane { -l }
             }
             Convex {
-              Origin { 51.5 * h }
+              Origin { (endOffset + clockingShift) * h }
               Plane { -h }
             }
             Replace { .empty }
           }
         }
+        
+        // Temporarily deactivate the dopants, while figuring out the clocking shift.
+#if false
+        createLowerSiliconDopant(offsetH: 17 + clockingShift)
         do {
-          var origin: Float
-          switch layerID {
-          case 1: origin = 31.5
-          case 2: origin = 42.5
-          default: fatalError("Unexpected layer ID.")
-          }
-          createUpperSiliconDopant(offsetH: origin)
+          createLowerSiliconDopant(offsetH: (endOffset - 1) + clockingShift)
         }
-        createUpperSiliconDopant(offsetH: 50.5)
+#endif
+      }
+      
+      // Create a groove to avoid interaction with 'probe' on other layers.
+      if layerID <= 2 {
+        var startOffset: Float
+        switch layerID {
+        case 1: startOffset = 27.5
+        case 2: startOffset = 38.5
+        default: fatalError("Unexpected layer ID.")
+        }
+        
+        Volume {
+          Concave {
+            Convex {
+              Origin { (startOffset + clockingShift) * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Convex {
+              Origin { (47.5 + clockingShift) * h }
+              Plane { -h }
+            }
+            Replace { .empty }
+          }
+        }
+        
+        // Temporarily deactivate the dopants, while figuring out the clocking shift.
+        #if false
+        do {
+          createUpperSiliconDopant(offsetH: startOffset + clockingShift)
+        }
+        createUpperSiliconDopant(offsetH: (47.5 - 1) + clockingShift)
+        #endif
       }
       
       // Create a groove to directly transmit signals to 'broadcast'.
@@ -309,7 +309,7 @@ extension PropagateUnit {
         Volume {
           Concave {
             Convex {
-              Origin { 50 * h }
+              Origin { (46 + clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -317,7 +317,7 @@ extension PropagateUnit {
               Plane { h2k }
             }
             Convex {
-              Origin { 55 * h }
+              Origin { (51 + clockingShift) * h }
               Plane { -h }
             }
             Replace { .empty }
@@ -381,11 +381,6 @@ extension PropagateUnit {
   
   private static func probePattern(positionX: Int) -> KnobPattern {
     { h, h2k, l in
-      // TODO:
-      // - Introduce the clocking shift (value 0).
-      // - Comment on all the dopants, and how the offset affects them.
-      // - Shift the coordinates to match the offset.
-      // - Test how the rods look with the shift changed to 0.
       let clockingShift: Float = 4
       
       // Create a groove to receive signals from 'signal'.
@@ -437,10 +432,10 @@ extension PropagateUnit {
           Replace { .empty }
         }
         
-        // 6.5 - clockingShift is an odd number.
+        // 10.5 - clockingShift is an odd number.
         createUpperSiliconDopant(offsetH: 6.5 - clockingShift)
         
-        // 12.5 - clockingShift is an odd number.
+        // 16.5 - clockingShift is an odd number.
         createUpperSiliconDopant(offsetH: (12.5 - 1) - clockingShift)
       }
       
@@ -462,10 +457,10 @@ extension PropagateUnit {
           Replace { .empty }
         }
         
-        // 15 - clockingShift is an even number.
+        // 19 - clockingShift is an even number.
         createLowerSiliconDopant(offsetH: 15 - clockingShift)
         
-        // 21 - clockingShift is an even number.
+        // 25 - clockingShift is an even number.
         createLowerSiliconDopant(offsetH: (21 - 1) - clockingShift)
       }
       
@@ -486,14 +481,14 @@ extension PropagateUnit {
         Replace { .empty }
       }
       
-      // 23.5 - clockingShift is an odd number.
+      // 27.5 - clockingShift is an odd number.
       if positionX == 1 {
         createUpperPhosphorusDopant(offsetH: 23.5 - clockingShift)
       } else {
         createUpperSiliconDopant(offsetH: 23.5 - clockingShift)
       }
       
-      // 29.5 - clockingShift is an odd number.
+      // 33.5 - clockingShift is an odd number.
       createUpperSiliconDopant(offsetH: (29.5 - 1) - clockingShift)
       
       // Create a groove to transmit signals to 'broadcast' on layer 4.
@@ -513,10 +508,10 @@ extension PropagateUnit {
         Replace { .empty }
       }
       
-      // 32 - clockingShift is an even number.
+      // 36 - clockingShift is an even number.
       createLowerSiliconDopant(offsetH: 32 - clockingShift)
       
-      // 38 - clockingShift is an even number.
+      // 42 - clockingShift is an even number.
       createLowerSiliconDopant(offsetH: (38 - 1) - clockingShift)
       
       func createLowerSiliconDopant(offsetH: Float) {
