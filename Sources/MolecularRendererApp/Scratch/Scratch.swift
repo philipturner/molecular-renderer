@@ -23,11 +23,7 @@ func createGeometry() -> [Entity] {
   
   // Create the atoms.
   var atoms: [Entity] = []
-  atoms += circuit.generate.carryIn.topology.atoms
-  for rod in circuit.generate.signal {
-    atoms += rod.topology.atoms
-  }
-  for rod in circuit.generate.probe.values {
+  for rod in circuit.generate.rods {
     atoms += rod.topology.atoms
   }
   

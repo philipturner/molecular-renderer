@@ -81,7 +81,8 @@ struct GenerateUnit {
     for positionZ in 0...3 {
       let z = 5.75 * Float(positionZ)
       let offset = SIMD3(10.75, 0, z + 3.25)
-      let pattern: KnobPattern = { _, _, _ in }
+      let pattern = GenerateUnit
+        .probePattern(positionZ: positionZ)
       let rod = GenerateUnit
         .createRodY(offset: offset, pattern: pattern)
       
@@ -239,6 +240,218 @@ extension GenerateUnit {
             }
           }
           Replace { .atom(.silicon) }
+        }
+      }
+    }
+  }
+  
+  private static func probePattern(positionZ: Int) -> KnobPattern {
+    { h, h2k, l in
+      let clockingShift: Float = 4.5
+      
+      // Groove for interaction with the 'signal' rod.
+      do {
+        var startOffset: Float
+        switch positionZ {
+        case 0: startOffset = 27.5
+        case 1: startOffset = 19
+        case 2: startOffset = 10.5
+        case 3: startOffset = 2
+        default: fatalError("Unrecognized position Z.")
+        }
+        
+        Volume {
+          Concave {
+            Convex {
+              Origin { startOffset * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              var origin: Float
+              switch positionZ {
+              case 0: origin = 33.5
+              case 1: origin = 25
+              case 2: origin = 16.5
+              case 3: origin = 8
+              default: fatalError("Unrecognized position Z.")
+              }
+              Origin { origin * h }
+              Plane { -h }
+            }
+            Replace { .empty }
+          }
+        }
+        if positionZ % 2 == 1 {
+          createLowerSiliconDopant(offsetH: startOffset)
+        } else {
+          createUpperSiliconDopant(offsetH: startOffset)
+        }
+      }
+      
+      // Groove for interaction with layer 1.
+      if positionZ > 2 {
+        Volume {
+          Concave {
+            Convex {
+              Origin { (10.5 - clockingShift) * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { (16.5 - clockingShift) * h }
+              Plane { -h }
+            }
+          }
+          Replace { .empty }
+        }
+        
+        // 16.5 - clockingShift is an even number.
+        createLowerSiliconDopant(offsetH: (16.5 - 1) - clockingShift)
+      }
+      
+      // Groove for interaction with layer 2.
+      if positionZ > 1 {
+        Volume {
+          Concave {
+            Convex {
+              Origin { (19 - clockingShift) * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { (25 - clockingShift) * h }
+              Plane { -h }
+            }
+          }
+          Replace { .empty }
+        }
+        
+        // 19 - clockingShift is an odd number.
+        if positionZ > 2 {
+          createUpperSiliconDopant(offsetH: 19 - clockingShift)
+        }
+        
+        // 25 - clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: (25 - 1) - clockingShift)
+      }
+      
+      // Groove for interaction with layer 3.
+      if positionZ > 0 {
+        Volume {
+          Concave {
+            Convex {
+              Origin { (27.5 - clockingShift) * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { (33.5 - clockingShift) * h }
+              Plane { -h }
+            }
+            Replace { .empty }
+          }
+        }
+        
+        // 27.5 - clockingShift is an even number.
+        if positionZ > 1 {
+          createLowerSiliconDopant(offsetH: 27.5 - clockingShift)
+        }
+        
+        // 33.5 - clockingShift is an even number.
+        createLowerSiliconDopant(offsetH: (33.5 - 1) - clockingShift)
+      }
+      
+      // Groove for interaction with layer 4.
+      do {
+        Volume {
+          Concave {
+            Convex {
+              Origin { (36 - clockingShift) * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { (42 - clockingShift) * h }
+              Plane { -h }
+            }
+            Replace { .empty }
+          }
+        }
+        
+        // 36 - clockingShift is an odd number.
+        if positionZ > 0 {
+          createUpperSiliconDopant(offsetH: 36 - clockingShift)
+        }
+        
+        // 42 - clockingShift is an odd number.
+        createUpperSiliconDopant(offsetH: (42 - 1) - clockingShift)
+      }
+      
+      func createLowerSiliconDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.9 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 0.5 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.silicon) }
+          }
+        }
+      }
+      
+      func createUpperSiliconDopant(offsetH: Float) {
+        Volume {
+          Concave {
+            Concave {
+              Origin { offsetH * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { 0.9 * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+            Concave {
+              Origin { 1 * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Replace { .atom(.silicon) }
+          }
         }
       }
     }
