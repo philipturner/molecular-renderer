@@ -79,7 +79,7 @@ struct GenerateUnit {
     // Create 'probe'.
     for positionZ in 0...3 {
       let z = 5.75 * Float(positionZ)
-      let offset = SIMD3(10.75, 0, z + 3)
+      let offset = SIMD3(10.75, 0, z + 3.25)
       let rod = GenerateUnit.createRodY(offset: offset)
       
       let key = 2 - positionZ
@@ -175,6 +175,27 @@ extension GenerateUnit {
           }
           Replace { .empty }
         }
+      }
+      
+      // Create a groove that interacts with the 'probe' rod.
+      Volume {
+        Concave {
+          Convex {
+            // +4 units from the mobile position.
+            Origin { 21.5 * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 0.5 * l }
+            Plane { -l }
+          }
+          Convex {
+            // +4 units from the mobile position.
+            Origin { 27.5 * h }
+            Plane { -h }
+          }
+        }
+        Replace { .empty }
       }
     }
   }
