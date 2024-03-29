@@ -437,35 +437,16 @@ extension PropagateUnit {
           }
         }
         createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, 1.85))
-//        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 1.05))
-        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 1.05))
+        if positionX == 0 {
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 1.75, 1.05))
+        } else {
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 1.05))
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 1.05))
+        }
         createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, 1.85))
         createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 1.05))
-        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 1.05))
-        
-        Volume {
-          let position = SIMD3<Float>(startOffset - 0.5, 1.75, 1.65)
-          Concave {
-            Concave {
-              Origin { (position.x - 0.5) * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { (position.y - 0.25) * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Concave {
-              Origin { (position.z - 0.25) * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-//            Replace { .atom(.silicon) }
-          }
+        if positionX != 0 {
+          createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 1.05))
         }
       }
       
@@ -491,8 +472,12 @@ extension PropagateUnit {
             Replace { .empty }
           }
         }
-        createPhosphorusDopant(position: SIMD3(startOffset, 1.25, 1.85))
-        createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 1.05))
+        if positionX == 1 {
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.25, 1.05))
+        } else {
+          createPhosphorusDopant(position: SIMD3(startOffset, 1.25, 1.85))
+          createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 1.05))
+        }
         createPhosphorusDopant(position: SIMD3(endOffset, 1.25, 1.85))
         createPhosphorusDopant(position: SIMD3(endOffset, 0.25, 1.05))
       }
@@ -520,8 +505,12 @@ extension PropagateUnit {
           }
         }
         createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, 1.85))
-        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 1.05))
-        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 1.05))
+        if positionX == 2 {
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 1.75, 1.05))
+        } else {
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 1.05))
+          createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 1.05))
+        }
         createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, 1.85))
         createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 1.05))
         createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 1.05))
