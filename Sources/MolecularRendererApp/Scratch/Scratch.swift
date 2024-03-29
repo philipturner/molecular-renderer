@@ -5,7 +5,7 @@ import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [Entity] {
+func createGeometry() -> [[Entity]] {
   // MARK: - Initializing Geometry
   
   var surface = Surface()
@@ -36,11 +36,28 @@ func createGeometry() -> [Entity] {
   updateMolecule(
     env: env, mol: mol, atoms: surface.topology.atoms)
   
-  // Create frames for rendering in the CAD program.
-  var frames: [[Entity]] = []
+  // Begin the simulation at a high temperature.
   var velocities = [SIMD3<Float>](
     repeating: .zero, count: surface.topology.atoms.count)
-  for frameID in 0...5 {
+  var finishedVelocities = 0
+  while finishedVelocities < velocities.count {
+    var direction = SIMD3<Float>.random(in: -1...1)
+    let directionLength = (direction * direction).sum().squareRoot()
+    if directionLength > 1 {
+      continue
+    } else {
+      finishedVelocities += 1
+    }
+    
+    direction /= directionLength
+    let speed = 0.500 * Float.random(in: 0...2)
+    let velocity = speed * direction
+    velocities[finishedVelocities - 1] = velocity
+  }
+  
+  // Create frames for rendering in the CAD program.
+  var frames: [[Entity]] = []
+  for frameID in 0...240 {
     if frameID == 0 {
       // Check that the structure is accepted.
       xtb_singlepoint(env, mol, calc, res)
@@ -66,11 +83,35 @@ func createGeometry() -> [Entity] {
         var atom = surface.topology.atoms[atomID]
         var position = atom.position
         var velocity = velocities[atomID]
-        var mass = masses[atomID]
+        let mass = masses[atomID]
+        let force = forces[atomID]
         
-        atom.position = position
-        velocities[atomID] = velocity
-        surface.topology.atoms[atomID] = atom
+        // Update the velocity.
+        var momentum = velocity * mass
+        momentum += 0.002 * force
+        velocity = momentum / mass
+        
+        // Dampen the velocities, gradually tending toward the energy minimum.
+        velocity *= 0.95
+        
+        // Clamp the velocities to something reasonable.
+        let threshold: Float = 2.000
+        velocity.replace(
+          with: .init(repeating: -threshold),
+          where: velocity .< -threshold)
+        velocity.replace(
+          with: .init(repeating: threshold),
+          where: velocity .> threshold)
+        
+        // Update the position.
+        position += velocity * 0.002
+        
+        // Save the state.
+        if !surface.anchors.contains(UInt32(atomID)) {
+          atom.position = position
+          velocities[atomID] = velocity
+          surface.topology.atoms[atomID] = atom
+        }
       }
       
       // Update the resource objects for the next singlepoint.
@@ -83,7 +124,9 @@ func createGeometry() -> [Entity] {
         // The force at the start of the current timestep.
         let force = forces[atomID]
         let forceMagnitude = (force * force).sum().squareRoot()
-        maxForce = max(maxForce, forceMagnitude)
+        if !surface.anchors.contains(UInt32(atomID)) {
+          maxForce = max(maxForce, forceMagnitude)
+        }
         
         // The kinetic energy at the end of the current timestep.
         let velocity = velocities[atomID]
@@ -94,10 +137,11 @@ func createGeometry() -> [Entity] {
       print("kinetic energy:", kineticEnergy, "zJ")
     }
     
-    
+    frames.append(surface.topology.atoms)
+    print(frames.last![0].position)
   }
   
-  return surface.topology.atoms
+  return frames
 }
 
 // MARK: - Geometry
@@ -107,11 +151,17 @@ struct Surface {
   var anchors: Set<UInt32> = []
   
   init() {
+    // Compile the geometry.
     createLattice()
     passivate()
+    
+    // Run through MM4.
     minimize()
     align()
+    
+    // Prepare to run through xTB.
     depassivate()
+    createAnchors()
   }
   
   // Add the bulk silicon atoms.
@@ -221,22 +271,28 @@ struct Surface {
   }
   
   // Remove hydrogens from the surface.
-  //
-  // Right now, this step does something else. It detects hydrogens that will
-  // be removed. Then, it sets the remaining hydrogens as anchors. In the
-  // future, the setting of anchors should occur strictly after the hydrogens
-  // have been removed.
   mutating func depassivate() {
+    var removedAtoms: [UInt32] = []
     for atomID in topology.atoms.indices {
       let atom = topology.atoms[atomID]
       guard atom.atomicNumber == 1 else {
         continue
       }
       if atom.position.z > 0.22 {
-        // Remove this atom eventually.
-      } else {
-        anchors.insert(UInt32(atomID))
+        removedAtoms.append(UInt32(atomID))
       }
+    }
+    topology.remove(atoms: removedAtoms)
+  }
+  
+  // Set the remaining hydrogens as anchors.
+  mutating func createAnchors() {
+    for atomID in topology.atoms.indices {
+      let atom = topology.atoms[atomID]
+      guard atom.atomicNumber == 1 else {
+        continue
+      }
+      anchors.insert(UInt32(atomID))
     }
   }
 }
