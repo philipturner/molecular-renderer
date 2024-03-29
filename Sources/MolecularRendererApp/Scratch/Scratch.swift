@@ -21,11 +21,9 @@ func createGeometry() -> [[Entity]] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
-  // TODO: Re-evaluate the propagate broadcast rods, with the new phosphorus
-  // doping scheme instead of silicon doping. Of and only if this works,
-  // proceed with replacing all silicon dopants with phosphorus.
+  // TODO: Evaluate the propagate 'signal' rods with the new code for P-dopants.
   
-  #if false
+  #if true
   // Create the atoms.
   var atoms: [Entity] = []
   let rod = circuit.propagate.broadcast[SIMD2(2, 4)]!

@@ -728,227 +728,32 @@ extension PropagateUnit {
         Replace { .empty }
       }
       
-      Volume {
-        Concave {
-          Concave {
-            Origin { 41.5 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { -0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 0.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
+      createPhosphorusDopant(position: SIMD3(42.0, 0.75, -0.15))
+      createPhosphorusDopant(position: SIMD3(42.5, 1.75, 0.65))
+      createPhosphorusDopant(position: SIMD3(42.5, 0.25, 0.65))
+      createPhosphorusDopant(position: SIMD3(48.0, 0.75, -0.15))
+      createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
       
-      Volume {
-        Concave {
-          Concave {
-            Origin { 42 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { 0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 1.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
-      
-      Volume {
-        Concave {
-          Concave {
-            Origin { 42 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { 0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 0.0 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
-      
-      Volume {
-        Concave {
-          Concave {
-            Origin { 47.5 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { -0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 0.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
-      
-      Volume {
-        Concave {
-          Concave {
-            Origin { 47 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { 0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 1.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
-      
-      Volume {
-        Concave {
-          Concave {
-            Origin { 47 * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { 0.4 * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Concave {
-            Origin { 0.0 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
-      
-//      createSiliconDopant(offsetH: 42)
-//      createSiliconDopant(offsetH: 47)
-//      createFirstPhosphorusDopant()
-//      createSecondPhosphorusDopant()
-      
-      func createSiliconDopant(offsetH: Float) {
+      func createPhosphorusDopant(position: SIMD3<Float>) {
         Volume {
           Concave {
             Concave {
-              Origin { offsetH * h }
+              Origin { (position.x - 0.5) * h }
               Plane { h }
               Origin { 1 * h }
               Plane { -h }
             }
             Concave {
-              Origin { 0.4 * l }
+              Origin { (position.y - 0.25) * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Concave {
+              Origin { (position.z - 0.25) * l }
               Plane { l }
               Origin { 0.5 * l }
               Plane { -l }
-            }
-            Concave {
-              Origin { 0.5 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.silicon) }
-          }
-        }
-      }
-      
-      func createFirstPhosphorusDopant() {
-        Volume {
-          Concave {
-            Concave {
-              Origin { 47 * h }
-              Plane { h }
-              Origin { 1.5 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.75 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 0.0 * h2k }
-              Plane { h2k }
-              Origin { 0.3 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.phosphorus) }
-          }
-        }
-      }
-      
-      func createSecondPhosphorusDopant() {
-        Volume {
-          Concave {
-            Concave {
-              Origin { 49 * h }
-              Plane { h }
-              Origin { 1.5 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 1.3 * l }
-              Plane { l }
-              Origin { 0.3 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 1.0 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
             }
             Replace { .atom(.phosphorus) }
           }
