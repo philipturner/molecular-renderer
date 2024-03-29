@@ -207,43 +207,11 @@ extension GenerateUnit {
               Plane { -l }
             }
             Convex {
-              Origin { (23.5 + clockingShift) * h }
+              Origin { (23 + clockingShift) * h }
               Plane { -h }
             }
           }
           Replace { .empty }
-        }
-        
-        // 17.5 + clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: 17.5 + clockingShift)
-        
-        // 22.5 + clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: 22.5 + clockingShift)
-      }
-      
-      func createUpperSiliconDopant(offsetH: Float) {
-        Volume {
-          Concave {
-            Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.4 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 1 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-          }
-          Replace { .atom(.silicon) }
         }
       }
     }
@@ -251,18 +219,19 @@ extension GenerateUnit {
   
   private static func probePattern(positionZ: Int) -> KnobPattern {
     { h, h2k, l in
-      let clockingShift: Float = 4.5
+      let clockingShift: Float = 4
       
       // Groove for interaction with the 'signal' rod.
       do {
         var startOffset: Float
         switch positionZ {
-        case 0: startOffset = 27.5
-        case 1: startOffset = 19
-        case 2: startOffset = 10.5
-        case 3: startOffset = 2
+        case 0: startOffset = 28
+        case 1: startOffset = 19.5
+        case 2: startOffset = 11
+        case 3: startOffset = 2.5
         default: fatalError("Unrecognized position Z.")
         }
+        let endOffset: Float = 6 + startOffset
         
         Volume {
           Concave {
@@ -275,24 +244,11 @@ extension GenerateUnit {
               Plane { l }
             }
             Convex {
-              var origin: Float
-              switch positionZ {
-              case 0: origin = 33.5
-              case 1: origin = 25
-              case 2: origin = 16.5
-              case 3: origin = 8
-              default: fatalError("Unrecognized position Z.")
-              }
-              Origin { origin * h }
+              Origin { endOffset * h }
               Plane { -h }
             }
             Replace { .empty }
           }
-        }
-        if positionZ % 2 == 1 {
-          createLowerSiliconDopant(offsetH: startOffset)
-        } else {
-          createUpperSiliconDopant(offsetH: startOffset)
         }
       }
       
@@ -301,7 +257,7 @@ extension GenerateUnit {
         Volume {
           Concave {
             Convex {
-              Origin { (10.5 - clockingShift) * h }
+              Origin { (11 - clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -315,9 +271,6 @@ extension GenerateUnit {
           }
           Replace { .empty }
         }
-        
-        // 16.5 - clockingShift is an even number.
-        createLowerSiliconDopant(offsetH: (16.5 - 1) - clockingShift)
       }
       
       // Groove for interaction with layer 2.
@@ -325,7 +278,7 @@ extension GenerateUnit {
         Volume {
           Concave {
             Convex {
-              Origin { (19 - clockingShift) * h }
+              Origin { (19.5 - clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -339,14 +292,6 @@ extension GenerateUnit {
           }
           Replace { .empty }
         }
-        
-        // 19 - clockingShift is an odd number.
-        if positionZ > 2 {
-          createUpperSiliconDopant(offsetH: 19 - clockingShift)
-        }
-        
-        // 25 - clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: (25 - 1) - clockingShift)
       }
       
       // Groove for interaction with layer 3.
@@ -354,7 +299,7 @@ extension GenerateUnit {
         Volume {
           Concave {
             Convex {
-              Origin { (27.5 - clockingShift) * h }
+              Origin { (28 - clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -368,14 +313,6 @@ extension GenerateUnit {
             Replace { .empty }
           }
         }
-        
-        // 27.5 - clockingShift is an even number.
-        if positionZ > 1 {
-          createLowerSiliconDopant(offsetH: 27.5 - clockingShift)
-        }
-        
-        // 33.5 - clockingShift is an even number.
-        createLowerSiliconDopant(offsetH: (33.5 - 1) - clockingShift)
       }
       
       // Groove for interaction with layer 4.
@@ -383,7 +320,7 @@ extension GenerateUnit {
         Volume {
           Concave {
             Convex {
-              Origin { (36 - clockingShift) * h }
+              Origin { (36.5 - clockingShift) * h }
               Plane { h }
             }
             Convex {
@@ -397,66 +334,6 @@ extension GenerateUnit {
             Replace { .empty }
           }
         }
-        
-        // 36 - clockingShift is an odd number.
-        if positionZ > 0 {
-          createUpperSiliconDopant(offsetH: 36 - clockingShift)
-        }
-        
-        // 42 - clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: (42 - 1) - clockingShift)
-      }
-      
-      func createLowerSiliconDopant(offsetH: Float) {
-        Volume {
-          Concave {
-            Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.9 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 0.5 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.silicon) }
-          }
-        }
-      }
-      
-      func createUpperSiliconDopant(offsetH: Float) {
-        Volume {
-          Concave {
-            Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.9 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 1 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.silicon) }
-          }
-        }
       }
     }
   }
@@ -465,6 +342,8 @@ extension GenerateUnit {
   // unique patterns.
   private static func broadcastPattern() -> KnobPattern {
     { h, h2k, l in
+      let clockingShift: Float = 4
+      
       // Create a groove to avoid collision with the A/B operands.
       Volume {
         Concave {
@@ -484,7 +363,7 @@ extension GenerateUnit {
       Volume {
         Concave {
           Convex {
-            Origin { 17 * h }
+            Origin { (21.5 - clockingShift) * h }
             Plane { h }
           }
           Convex {
@@ -492,39 +371,10 @@ extension GenerateUnit {
             Plane { -l }
           }
           Convex {
-            Origin { 23 * h }
+            Origin { (27 - clockingShift) * h }
             Plane { -h }
           }
           Replace { .empty }
-        }
-      }
-      createLowerSiliconDopant(offsetH: 17)
-      createLowerSiliconDopant(offsetH: 22)
-      
-      // Experiment with creating a silicon dopant.
-      func createLowerSiliconDopant(offsetH: Float) {
-        Volume {
-          Concave {
-            Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.4 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 0.5 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.silicon) }
-          }
         }
       }
     }

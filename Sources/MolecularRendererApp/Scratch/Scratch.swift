@@ -21,12 +21,12 @@ func createGeometry() -> [[Entity]] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
-  // TODO: Modify the generate 'probe' rods with the new flexibility.
+  // TODO: Add dopants to the newly redesigned generate unit.
   
   #if true
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in circuit.propagate.rods {
+  for rod in circuit.generate.rods {
     atoms += rod.topology.atoms
   }
   

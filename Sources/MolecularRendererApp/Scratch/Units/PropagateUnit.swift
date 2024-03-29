@@ -575,30 +575,18 @@ extension PropagateUnit {
             Plane { -l }
           }
           Convex {
-            // Option 1:
             Origin { 48 * h }
             Plane { -h }
-            
-            // Option 2:
-            //          Origin { 47.5 * h }
-            //          Plane { -h }
           }
           Replace { .empty }
         }
       }
-      
       createPhosphorusDopant(position: SIMD3(42.0, 0.75, -0.15))
       createPhosphorusDopant(position: SIMD3(42.5, 1.75, 0.65))
       createPhosphorusDopant(position: SIMD3(42.5, 0.25, 0.65))
-      
-      // Option 1:
       createPhosphorusDopant(position: SIMD3(48.0, 0.75, -0.15))
       createPhosphorusDopant(position: SIMD3(47.5, 1.75, 0.65))
       createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
-      
-      // Option 2:
-      //      createPhosphorusDopant(position: SIMD3(47.5, 1.25, -0.15))
-      //      createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
       
       func createPhosphorusDopant(position: SIMD3<Float>) {
         Volume {
