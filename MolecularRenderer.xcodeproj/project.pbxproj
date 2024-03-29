@@ -261,6 +261,7 @@
 		98C758082B5C3B7C000B16B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = QuantumSimulationSpeed.png; sourceTree = "<group>"; };
 		98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_AtomColors.jpg; sourceTree = "<group>"; };
+		98D070572BB785C400DF192F /* SiliconSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiliconSurface.swift; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -439,6 +440,7 @@
 				9882C63D2B9172730032823D /* HAbstAndHDon.swift */,
 				9890BAF62B93CC5800F144D1 /* Methylation.swift */,
 				9890BAF52B9359DD00F144D1 /* UHFInvestigation.swift */,
+				98D070572BB785C400DF192F /* SiliconSurface.swift */,
 				981919802B9136FA003CB3DE /* Water.swift */,
 				9819203B2B91284A00C0077F /* XTBTutorial.swift */,
 			);

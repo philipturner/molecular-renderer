@@ -6,6 +6,27 @@ import MM4
 import Numerics
 
 func createGeometry() -> [[Entity]] {
+  // Configure xTB for the highest performance possible without a custom
+  // linear algebra library. This speedup is already promising, and I expect my
+  // in-progress eigensolver to be an order of magnitude faster than this.
+  // - before: 129.6 seconds
+  // - after: 12.5 seconds
+  setenv("OMP_STACKSIZE", "2G", 1)
+  
+  // Ban OpenMP from using the E-cores.
+  setenv("OMP_NUM_THREADS", "8", 1) // replace '8' with number of P-cores
+  
+  // Copy the dylib from Homebrew Cellar to the folder for hacked dylibs. Use
+  // 'otool' to replace the OpenBLAS dependency with Accelerate. To do this:
+  // - copy libxtb.dylib into custom folder
+  // - otool -L "path to libxtb.dylib"
+  // - find the address of the OpenBLAS in the output
+  // - install_name_tool -change "path to libopenblas.dylib" \
+  //   "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate" \
+  //   "path to libxtb.dylib"
+  XTBLibrary.loadLibrary(
+    path: "/Users/philipturner/Documents/OpenMM/bypass_dependencies/libxtb.6.dylib")
+  
   // MARK: - Scene Setup
   
   // Methylene
@@ -61,9 +82,6 @@ func createGeometry() -> [[Entity]] {
   }
   
   // MARK: - Simulation Setup
-  
-  XTBLibrary.loadLibrary(
-    path: "/opt/homebrew/Cellar/xtb/6.6.1/lib/libxtb.6.dylib")
   
   let initialAtoms = tooltip.topology.atoms + workpiece.topology.atoms
   let env = xtb_newEnvironment()!
