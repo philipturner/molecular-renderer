@@ -257,11 +257,9 @@ extension PropagateUnit {
             Replace { .empty }
           }
         }
-        
         createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, -0.15))
         createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 0.65))
         createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 0.65))
-        
         createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, -0.15))
         createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 0.65))
         createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 0.65))
@@ -294,10 +292,8 @@ extension PropagateUnit {
             Replace { .empty }
           }
         }
-        
         createPhosphorusDopant(position: SIMD3(startOffset, 1.25, -0.15))
         createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 0.65))
-        
         createPhosphorusDopant(position: SIMD3(endOffset, 1.25, -0.15))
         createPhosphorusDopant(position: SIMD3(endOffset, 0.25, 0.65))
       }
@@ -356,208 +352,201 @@ extension PropagateUnit {
       let clockingShift: Float = 4
       
       // Create a groove to receive signals from 'signal'.
-      Concave {
-        Convex {
-          var origin: Float
-          switch positionX {
-          case 0: origin = 11
-          case 1: origin = 19
-          case 2: origin = 28
-          default: fatalError("Unrecognized position X.")
+      do {
+        Volume {
+          Concave {
+            Convex {
+              var origin: Float
+              switch positionX {
+              case 0: origin = 11
+              case 1: origin = 19
+              case 2: origin = 28
+              default: fatalError("Unrecognized position X.")
+              }
+              Origin { origin * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.5 * h2k }
+              Plane { h2k }
+            }
+            Convex {
+              var origin: Float
+              switch positionX {
+              case 0: origin = 16
+              case 1: origin = 25
+              case 2: origin = 33
+              default: fatalError("Unrecognized position X.")
+              }
+              Origin { origin * h }
+              Plane { -h }
+            }
+            Replace { .empty }
           }
-          Origin { origin * h }
-          Plane { h }
         }
-        Convex {
-          Origin { 1.5 * h2k }
-          Plane { h2k }
-        }
-        Convex {
-          var origin: Float
-          switch positionX {
-          case 0: origin = 16
-          case 1: origin = 25
-          case 2: origin = 33
-          default: fatalError("Unrecognized position X.")
-          }
-          Origin { origin * h }
-          Plane { -h }
-        }
-        Replace { .empty }
       }
       
       // Create a groove to transmit signals to 'broadcast' on layer 1.
       if positionX <= 0 {
-        Concave {
-          Convex {
-            Origin { (6.5 - clockingShift) * h }
-            Plane { h }
+        let startOffset: Float = 6.5 - clockingShift
+        let endOffset: Float = 12.5 - clockingShift
+        
+        Volume {
+          Concave {
+            Convex {
+              Origin { startOffset * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { endOffset * h }
+              Plane { -h }
+            }
+            Replace { .empty }
           }
-          Convex {
-            Origin { 1.49 * l }
-            Plane { l }
-          }
-          Convex {
-            Origin { (12.5 - clockingShift) * h }
-            Plane { -h }
-          }
-          Replace { .empty }
         }
-        
-        // 10.5 - clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: 6.5 - clockingShift)
-        
-        // 16.5 - clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: (12.5 - 1) - clockingShift)
+        createPhosphorusDopant(position: SIMD3(startOffset, 1.25, 1.85))
+        createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 1.05))
+        createPhosphorusDopant(position: SIMD3(endOffset, 1.25, 1.85))
+        createPhosphorusDopant(position: SIMD3(endOffset, 0.25, 1.05))
       }
       
       // Create a groove to transmit signals to 'broadcast' on layer 2.
       if positionX <= 1 {
-        Concave {
-          Convex {
-            Origin { (15 - clockingShift) * h }
-            Plane { h }
+        let startOffset: Float = 15 - clockingShift
+        let endOffset: Float = 21 - clockingShift
+        
+        Volume {
+          Concave {
+            Convex {
+              Origin { startOffset * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { endOffset * h }
+              Plane { -h }
+            }
+            Replace { .empty }
           }
-          Convex {
-            Origin { 1.49 * l }
-            Plane { l }
-          }
-          Convex {
-            Origin { (21 - clockingShift) * h }
-            Plane { -h }
-          }
-          Replace { .empty }
         }
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, 1.85))
+//        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 1.05))
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 1.05))
+        createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, 1.85))
+        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 1.05))
+        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 1.05))
         
-        // 19 - clockingShift is an even number.
-        createLowerSiliconDopant(offsetH: 15 - clockingShift)
-        
-        // 25 - clockingShift is an even number.
-        createLowerSiliconDopant(offsetH: (21 - 1) - clockingShift)
+        Volume {
+          let position = SIMD3<Float>(startOffset - 0.5, 1.75, 1.65)
+          Concave {
+            Concave {
+              Origin { (position.x - 0.5) * h }
+              Plane { h }
+              Origin { 1 * h }
+              Plane { -h }
+            }
+            Concave {
+              Origin { (position.y - 0.25) * h2k }
+              Plane { h2k }
+              Origin { 0.5 * h2k }
+              Plane { -h2k }
+            }
+            Concave {
+              Origin { (position.z - 0.25) * l }
+              Plane { l }
+              Origin { 0.5 * l }
+              Plane { -l }
+            }
+//            Replace { .atom(.silicon) }
+          }
+        }
       }
       
       // Create a groove to transmit signals to 'broadcast' on layer 3.
-      Concave {
-        Convex {
-          Origin { (23.5 - clockingShift) * h }
-          Plane { h }
+      do {
+        let startOffset: Float = 23.5 - clockingShift
+        let endOffset: Float = 29.5 - clockingShift
+        
+        Volume {
+          Concave {
+            Convex {
+              Origin { startOffset * h }
+              Plane { h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { endOffset * h }
+              Plane { -h }
+            }
+            Replace { .empty }
+          }
         }
-        Convex {
-          Origin { 1.49 * l }
-          Plane { l }
-        }
-        Convex {
-          Origin { (29.5 - clockingShift) * h }
-          Plane { -h }
-        }
-        Replace { .empty }
+        createPhosphorusDopant(position: SIMD3(startOffset, 1.25, 1.85))
+        createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 1.05))
+        createPhosphorusDopant(position: SIMD3(endOffset, 1.25, 1.85))
+        createPhosphorusDopant(position: SIMD3(endOffset, 0.25, 1.05))
       }
-      
-      // 27.5 - clockingShift is an odd number.
-      if positionX == 1 {
-        createUpperPhosphorusDopant(offsetH: 23.5 - clockingShift)
-      } else {
-        createUpperSiliconDopant(offsetH: 23.5 - clockingShift)
-      }
-      
-      // 33.5 - clockingShift is an odd number.
-      createUpperSiliconDopant(offsetH: (29.5 - 1) - clockingShift)
       
       // Create a groove to transmit signals to 'broadcast' on layer 4.
-      Concave {
-        Convex {
-          Origin { (32 - clockingShift) * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 1.49 * l }
-          Plane { l }
-        }
-        Convex {
-          Origin { (38 - clockingShift) * h }
-          Plane { -h }
-        }
-        Replace { .empty }
-      }
-      
-      // 36 - clockingShift is an even number.
-      createLowerSiliconDopant(offsetH: 32 - clockingShift)
-      
-      // 42 - clockingShift is an even number.
-      createLowerSiliconDopant(offsetH: (38 - 1) - clockingShift)
-      
-      func createLowerSiliconDopant(offsetH: Float) {
+      do {
+        let startOffset: Float = 32 - clockingShift
+        let endOffset: Float = 38 - clockingShift
+        
         Volume {
           Concave {
-            Concave {
-              Origin { offsetH * h }
+            Convex {
+              Origin { startOffset * h }
               Plane { h }
-              Origin { 1 * h }
+            }
+            Convex {
+              Origin { 1.49 * l }
+              Plane { l }
+            }
+            Convex {
+              Origin { endOffset * h }
               Plane { -h }
             }
-            Concave {
-              Origin { 0.9 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 0.5 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.silicon) }
+            Replace { .empty }
           }
         }
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, 1.85))
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 1.05))
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 1.05))
+        createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, 1.85))
+        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 1.05))
+        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 1.05))
       }
       
-      func createUpperSiliconDopant(offsetH: Float) {
+      func createPhosphorusDopant(position: SIMD3<Float>) {
         Volume {
           Concave {
             Concave {
-              Origin { offsetH * h }
+              Origin { (position.x - 0.5) * h }
               Plane { h }
               Origin { 1 * h }
               Plane { -h }
             }
             Concave {
-              Origin { 0.9 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 1 * h2k }
+              Origin { (position.y - 0.25) * h2k }
               Plane { h2k }
               Origin { 0.5 * h2k }
               Plane { -h2k }
             }
-            Replace { .atom(.silicon) }
-          }
-        }
-      }
-      
-      func createUpperPhosphorusDopant(offsetH: Float) {
-        Volume {
-          Concave {
             Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.9 * l }
+              Origin { (position.z - 0.25) * l }
               Plane { l }
               Origin { 0.5 * l }
               Plane { -l }
-            }
-            Concave {
-              Origin { 1 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
             }
             Replace { .atom(.phosphorus) }
           }
@@ -571,38 +560,42 @@ extension PropagateUnit {
   private static func broadcastPattern() -> KnobPattern {
     { h, h2k, l in
       // Create a groove to avoid interaction with 'signal'.
-      Concave {
-        Convex {
-          Origin { 45 * h }
-          Plane { h }
+      Volume {
+        Concave {
+          Convex {
+            Origin { 45 * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 1.5 * h2k }
+            Plane { h2k }
+          }
+          Replace { .empty }
         }
-        Convex {
-          Origin { 1.5 * h2k }
-          Plane { h2k }
-        }
-        Replace { .empty }
       }
       
       // Create a groove to receive signals from 'probe'.
-      Concave {
-        Convex {
-          Origin { 42 * h }
-          Plane { h }
+      Volume {
+        Concave {
+          Convex {
+            Origin { 42 * h }
+            Plane { h }
+          }
+          Convex {
+            Origin { 0.5 * l }
+            Plane { -l }
+          }
+          Convex {
+            // Option 1:
+            Origin { 48 * h }
+            Plane { -h }
+            
+            // Option 2:
+            //          Origin { 47.5 * h }
+            //          Plane { -h }
+          }
+          Replace { .empty }
         }
-        Convex {
-          Origin { 0.5 * l }
-          Plane { -l }
-        }
-        Convex {
-          // Option 1:
-          Origin { 48 * h }
-          Plane { -h }
-          
-          // Option 2:
-          //          Origin { 47.5 * h }
-          //          Plane { -h }
-        }
-        Replace { .empty }
       }
       
       createPhosphorusDopant(position: SIMD3(42.0, 0.75, -0.15))

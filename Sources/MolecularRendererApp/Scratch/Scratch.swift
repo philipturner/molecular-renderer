@@ -27,9 +27,8 @@ func createGeometry() -> [[Entity]] {
   #if false
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in circuit.propagate.signal {
-    atoms += rod.topology.atoms
-  }
+  let rod = circuit.propagate.probe[0]!
+  atoms += rod.topology.atoms
   
   // Center the scene at the origin.
   var centerOfMass: SIMD3<Float> = .zero
@@ -45,7 +44,7 @@ func createGeometry() -> [[Entity]] {
   return [atoms]
   #else
   
-  let rod = circuit.propagate.signal[0]
+  let rod = circuit.propagate.probe[0]!
   
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = rod.topology.atoms.map(\.atomicNumber)

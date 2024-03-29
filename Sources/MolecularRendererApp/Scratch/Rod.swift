@@ -43,6 +43,9 @@ struct Rod {
         if other.atomicNumber == 15 {
           removedAtoms.append(UInt32(i))
         }
+        if other.atomicNumber == 16 {
+          removedAtoms.append(UInt32(i))
+        }
       }
     }
     topology.remove(atoms: removedAtoms)
