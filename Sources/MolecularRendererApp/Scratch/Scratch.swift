@@ -28,9 +28,8 @@ func createGeometry() -> [[Entity]] {
   #if false
   // Create the atoms.
   var atoms: [Entity] = []
-  for rod in circuit.propagate.signal {
-    atoms += rod.topology.atoms
-  }
+  let rod = circuit.propagate.broadcast[SIMD2(2, 4)]!
+  atoms += rod.topology.atoms
   
   // Center the scene at the origin.
   var centerOfMass: SIMD3<Float> = .zero
@@ -46,7 +45,7 @@ func createGeometry() -> [[Entity]] {
   return [atoms]
   #else
   
-  let rod = circuit.propagate.signal[2]
+  let rod = circuit.propagate.broadcast[SIMD2(2, 4)]!
   
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = rod.topology.atoms.map(\.atomicNumber)
@@ -68,6 +67,7 @@ func createGeometry() -> [[Entity]] {
     }
     print("frame:", frameID)
     
+    #if false
     do {
       var rigidBodyDesc = MM4RigidBodyDescriptor()
       rigidBodyDesc.parameters = parameters
@@ -92,6 +92,7 @@ func createGeometry() -> [[Entity]] {
       forceField.velocities = rigidBody.velocities.map(transform(direction:))
       forceField.positions = rigidBody.positions.map(transform(direction:))
     }
+    #endif
     
     var frame: [Entity] = []
     for atomID in rod.topology.atoms.indices {
