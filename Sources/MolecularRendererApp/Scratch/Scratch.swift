@@ -8,7 +8,7 @@ import Numerics
 func createGeometry() -> [Entity] {
   // MARK: - Initializing Geometry
   
-  let surface = Surface()
+  var surface = Surface()
   do {
     let atoms = surface.topology.atoms
     print("silicons:", atoms.filter { $0.atomicNumber == 14 }.count)
@@ -25,6 +25,7 @@ func createGeometry() -> [Entity] {
   XTBLibrary.loadLibrary(
     path: "/Users/philipturner/Documents/OpenMM/bypass_dependencies/libxtb.6.dylib")
   
+  // Create the resource objects.
   let env = xtb_newEnvironment()!
   let calc = xtb_newCalculator()!
   let res = xtb_newResults()!
@@ -35,13 +36,66 @@ func createGeometry() -> [Entity] {
   updateMolecule(
     env: env, mol: mol, atoms: surface.topology.atoms)
   
-  xtb_singlepoint(env, mol, calc, res)
-  var startEnergy: Double = .zero
-  xtb_getEnergy(env, res, &startEnergy)
-  guard xtb_checkEnvironment(env) == 0 else {
-    fatalError("Environment is bad.")
+  // Create frames for rendering in the CAD program.
+  var frames: [[Entity]] = []
+  var velocities = [SIMD3<Float>](
+    repeating: .zero, count: surface.topology.atoms.count)
+  for frameID in 0...5 {
+    if frameID == 0 {
+      // Check that the structure is accepted.
+      xtb_singlepoint(env, mol, calc, res)
+      guard xtb_checkEnvironment(env) == 0 else {
+        fatalError("Environment is bad.")
+      }
+      
+      // Units: Hartree -> zJ
+      var potentialEnergy: Double = .zero
+      xtb_getEnergy(env, res, &potentialEnergy)
+      potentialEnergy *= 4360
+      let repr = String(format: "%.1f", potentialEnergy)
+      print("initial potential energy:", repr, "zJ")
+    } else {
+      // Query the forces.
+      let forces = createForces(
+        env: env, mol: mol, calc: calc, res: res,
+        atomCount: surface.topology.atoms.count)
+      let masses = createMasses(atoms: surface.topology.atoms)
+      
+      // Perform one step of integration.
+      for atomID in surface.topology.atoms.indices {
+        var atom = surface.topology.atoms[atomID]
+        var position = atom.position
+        var velocity = velocities[atomID]
+        var mass = masses[atomID]
+        
+        atom.position = position
+        velocities[atomID] = velocity
+        surface.topology.atoms[atomID] = atom
+      }
+      
+      // Update the resource objects for the next singlepoint.
+      updateMolecule(env: env, mol: mol, atoms: surface.topology.atoms)
+      
+      // Check that total kinetic energy didn't explode.
+      var maxForce: Float = .zero
+      var kineticEnergy: Float = .zero
+      for atomID in surface.topology.atoms.indices {
+        // The force at the start of the current timestep.
+        let force = forces[atomID]
+        let forceMagnitude = (force * force).sum().squareRoot()
+        maxForce = max(maxForce, forceMagnitude)
+        
+        // The kinetic energy at the end of the current timestep.
+        let velocity = velocities[atomID]
+        let mass = masses[atomID]
+        kineticEnergy += 0.5 * mass * (velocity * velocity).sum()
+      }
+      print("maximum force:", maxForce, "pN")
+      print("kinetic energy:", kineticEnergy, "zJ")
+    }
+    
+    
   }
-  print("initial potential energy:", startEnergy)
   
   return surface.topology.atoms
 }
