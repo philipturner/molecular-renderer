@@ -21,14 +21,15 @@ func createGeometry() -> [[Entity]] {
   // constrain the logic rods during the RBD simulation, saving compute cost
   // and deferring the compilation of housing until later.
   
-  // TODO: Evaluate the propagate 'signal' rods with the new code for P-dopants.
+  // TODO: Update the propagate 'probe' rods with P-dopants, check structures.
   // TODO: Modify the generate 'probe' rods with the new flexibility.
   
-  #if true
+  #if false
   // Create the atoms.
   var atoms: [Entity] = []
-  let rod = circuit.propagate.broadcast[SIMD2(2, 4)]!
-  atoms += rod.topology.atoms
+  for rod in circuit.propagate.signal {
+    atoms += rod.topology.atoms
+  }
   
   // Center the scene at the origin.
   var centerOfMass: SIMD3<Float> = .zero
@@ -44,7 +45,7 @@ func createGeometry() -> [[Entity]] {
   return [atoms]
   #else
   
-  let rod = circuit.propagate.broadcast[SIMD2(2, 4)]!
+  let rod = circuit.propagate.signal[0]
   
   var paramsDesc = MM4ParametersDescriptor()
   paramsDesc.atomicNumbers = rod.topology.atoms.map(\.atomicNumber)

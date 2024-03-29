@@ -230,19 +230,20 @@ extension PropagateUnit {
       
       // Create a groove for interaction with 'probe'.
       do {
+        let startOffset: Float = 17 + clockingShift
         var endOffset: Float
         switch layerID {
-        case 1: endOffset = 23
-        case 2: endOffset = 33
-        case 3: endOffset = 44
-        case 4: endOffset = 48
+        case 1: endOffset = 23 + clockingShift
+        case 2: endOffset = 33 + clockingShift
+        case 3: endOffset = 44 + clockingShift
+        case 4: endOffset = 48 + clockingShift
         default: fatalError("Unexpected layer ID.")
         }
         
         Volume {
           Concave {
             Convex {
-              Origin { (17 + clockingShift) * h }
+              Origin { startOffset * h }
               Plane { h }
             }
             Convex {
@@ -250,111 +251,36 @@ extension PropagateUnit {
               Plane { -l }
             }
             Convex {
-              Origin { (endOffset + clockingShift) * h }
+              Origin { endOffset * h }
               Plane { -h }
             }
             Replace { .empty }
           }
         }
         
-        // 17 + clockingShift is an even number.
-        if layerID == 4 || layerID == 3 {
-          Volume {
-            Concave {
-              Concave {
-                Origin { (16.5 + clockingShift) * h }
-                Plane { h }
-                Origin { 1 * h }
-                Plane { -h }
-              }
-              Concave {
-                Origin { -0.4 * l }
-                Plane { l }
-                Origin { 0.5 * l }
-                Plane { -l }
-              }
-              Concave {
-                Origin { 0.5 * h2k }
-                Plane { h2k }
-                Origin { 0.5 * h2k }
-                Plane { -h2k }
-              }
-              Replace { .atom(.phosphorus) }
-            }
-          }
-          createUpperPhosphorusDopant(offsetH: 17 + clockingShift)
-        } else {
-          createLowerSiliconDopant(offsetH: 17 + clockingShift)
-          createUpperPhosphorusDopant(offsetH: 17 + clockingShift)
-        }
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, -0.15))
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 0.65))
+        createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 0.65))
         
-        // endOffset + clockingShift is an even number.
-        if layerID == 4 {
-          Volume {
-            Concave {
-              Concave {
-                Origin { (47.5 + clockingShift) * h }
-                Plane { h }
-                Origin { 1 * h }
-                Plane { -h }
-              }
-              Concave {
-                Origin { -0.4 * l }
-                Plane { l }
-                Origin { 0.5 * l }
-                Plane { -l }
-              }
-              Concave {
-                Origin { 0.5 * h2k }
-                Plane { h2k }
-                Origin { 0.5 * h2k }
-                Plane { -h2k }
-              }
-              Replace { .atom(.phosphorus) }
-            }
-          }
-        } else {
-//          createLowerSiliconDopant(offsetH: (endOffset - 1) + clockingShift)
-          Volume {
-            Concave {
-              Concave {
-                Origin { ((endOffset - 0.5) + clockingShift) * h }
-                Plane { h }
-                Origin { 1 * h }
-                Plane { -h }
-              }
-              Concave {
-                Origin { -0.1 * l }
-                Plane { l }
-                Origin { 0.5 * l }
-                Plane { -l }
-              }
-              Concave {
-                Origin { 0.5 * h2k }
-                Plane { h2k }
-                Origin { 0.5 * h2k }
-                Plane { -h2k }
-              }
-              Replace { .atom(.phosphorus) }
-            }
-          }
-          createUpperPhosphorusDopant(offsetH: (endOffset - 1) + clockingShift)
-        }
+        createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, -0.15))
+        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 0.65))
+        createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 0.65))
       }
       
       // Create a groove to avoid interaction with 'probe' on other layers.
       if layerID <= 2 {
         var startOffset: Float
         switch layerID {
-        case 1: startOffset = 27.5
-        case 2: startOffset = 38.5
+        case 1: startOffset = 27.5 + clockingShift
+        case 2: startOffset = 38.5 + clockingShift
         default: fatalError("Unexpected layer ID.")
         }
+        let endOffset: Float = 47.5 + clockingShift
         
         Volume {
           Concave {
             Convex {
-              Origin { (startOffset + clockingShift) * h }
+              Origin { startOffset * h }
               Plane { h }
             }
             Convex {
@@ -362,23 +288,21 @@ extension PropagateUnit {
               Plane { -l }
             }
             Convex {
-              Origin { (47.5 + clockingShift) * h }
+              Origin { endOffset * h }
               Plane { -h }
             }
             Replace { .empty }
           }
         }
         
-        // startOffset + clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: startOffset + clockingShift)
+        createPhosphorusDopant(position: SIMD3(startOffset, 1.25, -0.15))
+        createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 0.65))
         
-        // 47.5 + clockingShift is an odd number.
-        createUpperSiliconDopant(offsetH: (47.5 - 1) + clockingShift)
+        createPhosphorusDopant(position: SIMD3(endOffset, 1.25, -0.15))
+        createPhosphorusDopant(position: SIMD3(endOffset, 0.25, 0.65))
       }
       
       // Create a groove to directly transmit signals to 'broadcast'.
-      //
-      // This might need extra dopants to balance out the twist.
       if layerID == 4 {
         Volume {
           Concave {
@@ -399,78 +323,26 @@ extension PropagateUnit {
         }
       }
       
-      func createLowerSiliconDopant(offsetH: Float) {
+      func createPhosphorusDopant(position: SIMD3<Float>) {
         Volume {
           Concave {
             Concave {
-              Origin { offsetH * h }
+              Origin { (position.x - 0.5) * h }
               Plane { h }
               Origin { 1 * h }
               Plane { -h }
             }
             Concave {
-              Origin { 0.4 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 0.5 * h2k }
+              Origin { (position.y - 0.25) * h2k }
               Plane { h2k }
               Origin { 0.5 * h2k }
               Plane { -h2k }
             }
-            Replace { .atom(.silicon) }
-          }
-        }
-      }
-      
-      func createUpperSiliconDopant(offsetH: Float) {
-        Volume {
-          Concave {
             Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.4 * l }
+              Origin { (position.z - 0.25) * l }
               Plane { l }
               Origin { 0.5 * l }
               Plane { -l }
-            }
-            Concave {
-              Origin { 1 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Replace { .atom(.silicon) }
-          }
-        }
-      }
-      
-      func createUpperPhosphorusDopant(offsetH: Float) {
-        Volume {
-          Concave {
-            Concave {
-              Origin { offsetH * h }
-              Plane { h }
-              Origin { 1 * h }
-              Plane { -h }
-            }
-            Concave {
-              Origin { 0.4 * l }
-              Plane { l }
-              Origin { 0.5 * l }
-              Plane { -l }
-            }
-            Concave {
-              Origin { 1.5 * h2k }
-              Plane { h2k }
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
             }
             Replace { .atom(.phosphorus) }
           }
@@ -727,8 +599,8 @@ extension PropagateUnit {
           Plane { -h }
           
           // Option 2:
-//          Origin { 47.5 * h }
-//          Plane { -h }
+          //          Origin { 47.5 * h }
+          //          Plane { -h }
         }
         Replace { .empty }
       }
@@ -743,8 +615,8 @@ extension PropagateUnit {
       createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
       
       // Option 2:
-//      createPhosphorusDopant(position: SIMD3(47.5, 1.25, -0.15))
-//      createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
+      //      createPhosphorusDopant(position: SIMD3(47.5, 1.25, -0.15))
+      //      createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
       
       func createPhosphorusDopant(position: SIMD3<Float>) {
         Volume {
