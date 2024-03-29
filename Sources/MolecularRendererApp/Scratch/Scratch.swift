@@ -22,6 +22,7 @@ func createGeometry() -> [[Entity]] {
   // and deferring the compilation of housing until later.
   
   // TODO: Evaluate the propagate 'signal' rods with the new code for P-dopants.
+  // TODO: Modify the generate 'probe' rods with the new flexibility.
   
   #if true
   // Create the atoms.
