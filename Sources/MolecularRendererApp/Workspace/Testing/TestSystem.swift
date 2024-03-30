@@ -118,4 +118,104 @@ extension TestSystem {
     // Assign the forcefield state to the rigid bodies.
     updateRigidBodies()
   }
+  
+  // Equilibriate the thermal potential energy, and save the associated
+  // thermal kinetic state.
+  mutating func equilibriate(temperature: Double) {
+    let equilibriationTime: Double = 1
+    
+    // Iterate once at twice the energy, then 5 times at the correct energy.
+    for iterationID in 0...5 {
+      var effectiveTemperature: Double
+      if iterationID == 0 {
+        effectiveTemperature = temperature * 2
+      } else {
+        effectiveTemperature = temperature
+      }
+      setVelocitiesToTemperature(effectiveTemperature)
+      
+      // Zero out the bulk momenta.
+      updateRigidBodies()
+      testHousing.rigidBody.linearMomentum = .zero
+      testHousing.rigidBody.angularMomentum = .zero
+      testRod.rigidBody.linearMomentum = .zero
+      testRod.rigidBody.angularMomentum = .zero
+      
+      // Update the force field's positions.
+      var positions: [SIMD3<Float>] = []
+      positions += testHousing.rigidBody.positions
+      positions += testRod.rigidBody.positions
+      forceField.positions = positions
+      
+      // Update the force field's velocities.
+      var velocities: [SIMD3<Float>] = []
+      velocities += testHousing.rigidBody.velocities
+      velocities += testRod.rigidBody.velocities
+      forceField.velocities = velocities
+      
+      // Divide the equilibriation time among the iterations.
+      if iterationID == 0 {
+        forceField.simulate(time: equilibriationTime / 2)
+      } else {
+        forceField.simulate(time: equilibriationTime / 10)
+      }
+    }
+    
+    // Update the rigid bodies with the final thermal kinetic state.
+    updateRigidBodies()
+    testHousing.rigidBody.linearMomentum = .zero
+    testHousing.rigidBody.angularMomentum = .zero
+    testRod.rigidBody.linearMomentum = .zero
+    testRod.rigidBody.angularMomentum = .zero
+  }
+  
+  // Create the thermal kinetic state from the Boltzmann distribution.
+  //
+  // The absence of 'mutating' expresses that this function doesn't
+  // update the rigid bodies.
+  func setVelocitiesToTemperature(_ temperature: Double) {
+    // Create a temporary OpenMM system.
+    let system = OpenMM_System()
+    let positions = OpenMM_Vec3Array(size: 0)
+    for rigidBody in [testHousing.rigidBody!, testRod.rigidBody] {
+      for atomID in rigidBody.parameters.atoms.indices {
+        let massInYg = rigidBody.parameters.atoms.masses[atomID]
+        let massInAmu = massInYg * Float(MM4AmuPerYg)
+        system.addParticle(mass: Double(massInAmu))
+        
+        let positionInNm = rigidBody.positions[atomID]
+        positions.append(SIMD3<Double>(positionInNm))
+      }
+    }
+    
+    // Fetch the reference platform.
+    //
+    // NOTE: Using the reference platform for temporary 'OpenMM_Context's
+    // reduces the latency. It also avoids annoying OpenCL compiler warnings.
+    let platforms = OpenMM_Platform.platforms
+    let reference = platforms.first(where: { $0.name == "Reference" })
+    guard let reference else {
+      fatalError("Could not find reference platform.")
+    }
+    
+    // Use the OpenMM host function for generating thermal velocities.
+    let integrator = OpenMM_VerletIntegrator(stepSize: 0)
+    let context = OpenMM_Context(
+      system: system, integrator: integrator, platform: reference)
+    context.positions = positions
+    context.setVelocitiesToTemperature(temperature)
+    
+    // Cast the velocities from FP64 to FP32.
+    let state = context.state(types: [.velocities])
+    let velocitiesObject = state.velocities
+    var velocities: [SIMD3<Float>] = []
+    for atomID in 0..<velocitiesObject.size {
+      let velocity64 = velocitiesObject[atomID]
+      let velocity32 = SIMD3<Float>(velocity64)
+      velocities.append(velocity32)
+    }
+    
+    // Assign the force field state.
+    forceField.velocities = velocities
+  }
 }
