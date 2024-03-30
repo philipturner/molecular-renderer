@@ -24,7 +24,7 @@ struct TestHousing {
   // Compiles the lattice of carbon centers.
   mutating func createLattice() {
     let lattice = Lattice<Cubic> { h, k, l in
-      Bounds { 9 * h + 9 * k + 40 * l }
+      Bounds { 9 * h + 9 * k + 50 * l }
       Material { .elemental(.carbon) }
       
       func fillInCorner(majorAxis: SIMD3<Float>, minorAxis: SIMD3<Float>) {

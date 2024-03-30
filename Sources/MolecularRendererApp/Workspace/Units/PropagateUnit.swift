@@ -340,7 +340,7 @@ extension PropagateUnit {
               Origin { 0.5 * l }
               Plane { -l }
             }
-            Replace { .atom(.phosphorus) }
+            Replace { .atom(.carbon) }
           }
         }
       }
