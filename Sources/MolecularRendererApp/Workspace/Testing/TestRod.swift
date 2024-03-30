@@ -11,6 +11,7 @@ import MM4
 import Numerics
 import OpenMM
 
+#if false
 struct TestRod {
   var rigidBody: MM4RigidBody
   
@@ -35,3 +36,4 @@ struct TestRod {
     // z-oriented does not require rotations
   }
 }
+#endif

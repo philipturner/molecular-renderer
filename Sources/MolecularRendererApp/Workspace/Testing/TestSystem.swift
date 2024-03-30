@@ -11,6 +11,7 @@ import MM4
 import Numerics
 import OpenMM
 
+#if false
 struct TestSystem {
   // The objects for the compiled parts.
   var testHousing: TestHousing
@@ -219,3 +220,4 @@ extension TestSystem {
     forceField.velocities = velocities
   }
 }
+#endif

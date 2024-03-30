@@ -11,6 +11,7 @@ import MM4
 import Numerics
 import OpenMM
 
+#if false
 struct TestHousing {
   var topology = Topology()
   var rigidBody: MM4RigidBody!
@@ -104,3 +105,4 @@ struct TestHousing {
     rigidBody.centerOfMass = .zero
   }
 }
+#endif
