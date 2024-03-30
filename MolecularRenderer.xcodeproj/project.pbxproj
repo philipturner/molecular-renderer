@@ -43,7 +43,7 @@
 		98537EB32A62EA940037C392 /* Memory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB22A62EA940037C392 /* Memory.metal */; };
 		98537EB52A62FD230037C392 /* FaultCounter.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB42A62FD230037C392 /* FaultCounter.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
-		9855200B2B53215C00AB068D /* Scratch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Scratch.swift */; };
+		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -65,7 +65,10 @@
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
-		98D070592BB8481100DF192F /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D070582BB8481100DF192F /* Scratch2.swift */; };
+		98D0705D2BB8584F00DF192F /* TestSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0705C2BB8584F00DF192F /* TestSystem.swift */; };
+		98D070602BB85C4E00DF192F /* TestRod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D0705F2BB85C4E00DF192F /* TestRod.swift */; };
+		98D070622BB85C5400DF192F /* TestHousing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D070612BB85C5400DF192F /* TestHousing.swift */; };
+		98D070642BB85D0500DF192F /* TestStrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D070632BB85D0500DF192F /* TestStrain.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -232,7 +235,7 @@
 		9898382729A6C08F00B4AA98 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
 		9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MolecularRenderer.entitlements; sourceTree = "<group>"; };
 		989CBA092B1C0F4200213CBE /* Adamantanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Adamantanes.swift; sourceTree = "<group>"; };
-		989CBA0B2B1D2AE200213CBE /* Scratch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch.swift; sourceTree = "<group>"; };
+		989CBA0B2B1D2AE200213CBE /* Workspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Workspace.swift; sourceTree = "<group>"; };
 		989CBA102B1D5D0F00213CBE /* xTB_RawText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = xTB_RawText.swift; sourceTree = "<group>"; };
 		989F8A212B393BD400622946 /* RendererStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererStyles.swift; sourceTree = "<group>"; };
 		98A07C242A2CBFCF00729897 /* PDBParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDBParser.swift; sourceTree = "<group>"; };
@@ -282,7 +285,10 @@
 		98C758082B5C3B7C000B16B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = QuantumSimulationSpeed.png; sourceTree = "<group>"; };
 		98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_AtomColors.jpg; sourceTree = "<group>"; };
-		98D070582BB8481100DF192F /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
+		98D0705C2BB8584F00DF192F /* TestSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSystem.swift; sourceTree = "<group>"; };
+		98D0705F2BB85C4E00DF192F /* TestRod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestRod.swift; sourceTree = "<group>"; };
+		98D070612BB85C5400DF192F /* TestHousing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHousing.swift; sourceTree = "<group>"; };
+		98D070632BB85D0500DF192F /* TestStrain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestStrain.swift; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -618,15 +624,15 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
-		989F8A222B393D4900622946 /* Scratch */ = {
+		989F8A222B393D4900622946 /* Workspace */ = {
 			isa = PBXGroup;
 			children = (
-				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
-				98D070582BB8481100DF192F /* Scratch2.swift */,
+				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 				98D0705B2BB84CB000DF192F /* Parts */,
+				98D0705E2BB85C2400DF192F /* Testing */,
 				9812FAAF2BB0BC4C00636FF9 /* Units */,
 			);
-			path = Scratch;
+			path = Workspace;
 			sourceTree = "<group>";
 		};
 		98A700A82AB4A0CF00499CD2 /* OctahedralSpring */ = {
@@ -783,6 +789,17 @@
 				9812FAA92BAF7B6900636FF9 /* Rod.swift */,
 			);
 			path = Parts;
+			sourceTree = "<group>";
+		};
+		98D0705E2BB85C2400DF192F /* Testing */ = {
+			isa = PBXGroup;
+			children = (
+				98D070612BB85C5400DF192F /* TestHousing.swift */,
+				98D0705F2BB85C4E00DF192F /* TestRod.swift */,
+				98D070632BB85D0500DF192F /* TestStrain.swift */,
+				98D0705C2BB8584F00DF192F /* TestSystem.swift */,
+			);
+			path = Testing;
 			sourceTree = "<group>";
 		};
 		98D9758F2AC088000052EE6C /* VdwOscillator */ = {
@@ -974,7 +991,7 @@
 				981FCFEE29ECAE0E009904A2 /* App */,
 				98F250032A130A65009AABDE /* Backend */,
 				98298F5829F353D30008E248 /* Rendering */,
-				989F8A222B393D4900622946 /* Scratch */,
+				989F8A222B393D4900622946 /* Workspace */,
 				9898382E29A6C09000B4AA98 /* MolecularRenderer.entitlements */,
 			);
 			path = MolecularRendererApp;
@@ -1299,17 +1316,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				9812FAB52BB0BC6500636FF9 /* GenerateUnit.swift in Sources */,
-				9855200B2B53215C00AB068D /* Scratch.swift in Sources */,
+				9855200B2B53215C00AB068D /* Workspace.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				9812FABB2BB0EAD600636FF9 /* Knob.swift in Sources */,
+				98D070602BB85C4E00DF192F /* TestRod.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				9812FAB92BB0E47800636FF9 /* OutputUnit.swift in Sources */,
 				9812FAB72BB0BC6B00636FF9 /* IntermediateUnit.swift in Sources */,
 				9812FAAA2BAF7B6900636FF9 /* Rod.swift in Sources */,
 				9812FAAC2BB0BBD200636FF9 /* Circuit.swift in Sources */,
-				98D070592BB8481100DF192F /* Scratch2.swift in Sources */,
+				98D0705D2BB8584F00DF192F /* TestSystem.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				9812FAB12BB0BC5800636FF9 /* InputUnit.swift in Sources */,
 				9812FAB32BB0BC6000636FF9 /* PropagateUnit.swift in Sources */,
@@ -1318,11 +1336,13 @@
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9812FAA02BA8F68700636FF9 /* FIRE.swift in Sources */,
+				98D070622BB85C5400DF192F /* TestHousing.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				9812FAA82BAF7B1300636FF9 /* Housing.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
+				98D070642BB85D0500DF192F /* TestStrain.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
