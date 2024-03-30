@@ -65,6 +65,7 @@
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
+		98D070592BB8481100DF192F /* Scratch2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D070582BB8481100DF192F /* Scratch2.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -281,6 +282,7 @@
 		98C758082B5C3B7C000B16B2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98C758092B5C3FAE000B16B2 /* QuantumSimulationSpeed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = QuantumSimulationSpeed.png; sourceTree = "<group>"; };
 		98C7580E2B5CB409000B16B2 /* DMSTooltips_AtomColors.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_AtomColors.jpg; sourceTree = "<group>"; };
+		98D070582BB8481100DF192F /* Scratch2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scratch2.swift; sourceTree = "<group>"; };
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
@@ -620,11 +622,9 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Scratch.swift */,
+				98D070582BB8481100DF192F /* Scratch2.swift */,
+				98D0705B2BB84CB000DF192F /* Parts */,
 				9812FAAF2BB0BC4C00636FF9 /* Units */,
-				9812FAAB2BB0BBD200636FF9 /* Circuit.swift */,
-				9812FAA72BAF7B1300636FF9 /* Housing.swift */,
-				9812FABA2BB0EAD600636FF9 /* Knob.swift */,
-				9812FAA92BAF7B6900636FF9 /* Rod.swift */,
 			);
 			path = Scratch;
 			sourceTree = "<group>";
@@ -772,6 +772,17 @@
 				98FE60EA2B3F60AF00D73E37 /* CBNTripodLeg.jpg */,
 			);
 			path = Tripods;
+			sourceTree = "<group>";
+		};
+		98D0705B2BB84CB000DF192F /* Parts */ = {
+			isa = PBXGroup;
+			children = (
+				9812FAAB2BB0BBD200636FF9 /* Circuit.swift */,
+				9812FAA72BAF7B1300636FF9 /* Housing.swift */,
+				9812FABA2BB0EAD600636FF9 /* Knob.swift */,
+				9812FAA92BAF7B6900636FF9 /* Rod.swift */,
+			);
+			path = Parts;
 			sourceTree = "<group>";
 		};
 		98D9758F2AC088000052EE6C /* VdwOscillator */ = {
@@ -1298,6 +1309,7 @@
 				9812FAB72BB0BC6B00636FF9 /* IntermediateUnit.swift in Sources */,
 				9812FAAA2BAF7B6900636FF9 /* Rod.swift in Sources */,
 				9812FAAC2BB0BBD200636FF9 /* Circuit.swift in Sources */,
+				98D070592BB8481100DF192F /* Scratch2.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				9812FAB12BB0BC5800636FF9 /* InputUnit.swift in Sources */,
 				9812FAB32BB0BC6000636FF9 /* PropagateUnit.swift in Sources */,

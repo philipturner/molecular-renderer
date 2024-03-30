@@ -22,7 +22,7 @@ struct PropagateUnit {
   var probe: [Int: Rod] = [:]
   
   // The propagate signal, broadcasted to every applicable carry chain.
-  // - keys: The source layer (0) and the destination layer (1).
+  // - keys: The source x-index (0) and the destination layer (1).
   // - values: The associated logic rods.
   var broadcast: [SIMD2<Int>: Rod] = [:]
   
