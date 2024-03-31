@@ -314,7 +314,7 @@ struct TestSystem {
 
 extension TestSystem {
   // Minimize the potential energy at zero temperature.
-  mutating func minimize(tolerance: Double) {
+  mutating func minimize() {
     // Assign the rigid body states to the forcefield.
     var positions: [SIMD3<Float>] = []
     positions += testDriveWall.rigidBody.positions
@@ -322,7 +322,7 @@ extension TestSystem {
     forceField.positions = positions
     
     // Conduct the energy minimization.
-    forceField.minimize(tolerance: tolerance)
+    forceField.minimize()
     
     // Assign the forcefield state to the rigid bodies.
     updateRigidBodies()
