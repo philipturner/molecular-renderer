@@ -19,9 +19,6 @@ import OpenMM
 // from minimization).
 //
 // The algorithm is the most modern version of FIRE, v2.0 with ABC.
-//
-// Do not add this to the main branch of molecular-renderer. It does not seem
-// like a necessity, given the potential for technical debt.
 
 struct FIREResult {
   /// The iteration ID where the minimization converged, if any.
@@ -89,7 +86,7 @@ struct FIRE {
     // This uses a cutoff distance of 2 nm for accurate vdW forces.
     var forceFieldDesc = MM4ForceFieldDescriptor()
     forceFieldDesc.parameters = systemParameters
-    forceFieldDesc.cutoffDistance = 2.5 // custom cutoff distance
+    forceFieldDesc.cutoffDistance = 2
     let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
     return forceField
   }
