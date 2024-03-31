@@ -18,7 +18,7 @@ func createGeometry() -> [[Entity]] {
     testDriveWall: testDriveWall, testRod: testRod)
   
   // Move the rigid bodies into position.
-  testSystem.testRod.rigidBody.centerOfMass += SIMD3(1.3, 0.5, 1.5)
+  testSystem.testRod.rigidBody.centerOfMass += SIMD3(10.3, 0.5, 1.5)
   testSystem.createForceField()
   
   // Find the initial potential energy.
@@ -27,13 +27,15 @@ func createGeometry() -> [[Entity]] {
   testSystem.minimize(tolerance: 0.1)
   let potentialEnergyOrigin = testSystem.forceField.energy.potential
   
+  testSystem.testRod.rigidBody.centerOfMass += SIMD3(-10, 0, 0)
+  
   // Render the scene.
   var frames: [[Entity]] = []
   var displacement: Float = .zero
-  for frameID in 0...40 {
+  for frameID in 0...50 {
     // Spacing between measurements, in nm.
     var stepSize: Float
-    if frameID <= 25 {
+    if frameID <= 35 {
       stepSize = 0.010
     } else {
       stepSize = 0.250
@@ -50,57 +52,27 @@ func createGeometry() -> [[Entity]] {
     let relativeEnergy = absoluteEnergy - potentialEnergyOrigin
     let displacementRepr = String(format: "%.3f", displacement)
     let energyRepr = String(format: "%.1f", relativeEnergy)
+    
+    #if true
     print("U(\(displacementRepr)) = \(energyRepr) zJ")
-    if frameID == 25 {
+    if frameID == 35 {
       print("...")
     }
+    #else
+    print(displacementRepr, energyRepr)
+    #endif
     
     /*
-     1 nm cutoff
-     U(0.000) = 0.0 zJ
-     U(0.010) = -12.3 zJ
-     U(0.020) = -21.1 zJ
-     U(0.030) = -26.8 zJ
-     U(0.040) = -30.0 zJ
-     U(0.050) = -30.9 zJ
-     U(0.060) = -30.0 zJ
-     U(0.070) = -27.5 zJ
-     U(0.080) = -23.8 zJ
-     U(0.090) = -19.1 zJ
-     U(0.100) = -13.7 zJ
-     U(0.110) = -7.7 zJ
-     U(0.120) = -1.5 zJ
-     U(0.130) = 5.0 zJ
-     U(0.140) = 11.5 zJ
-     U(0.150) = 18.0 zJ
-     U(0.160) = 24.4 zJ
-     U(0.170) = 30.6 zJ
-     U(0.180) = 36.6 zJ
-     U(0.190) = 42.3 zJ
-     U(0.200) = 47.8 zJ
-     U(0.210) = 53.1 zJ
-     U(0.220) = 58.1 zJ
-     U(0.230) = 62.8 zJ
-     U(0.240) = 67.3 zJ
-     U(0.250) = 71.5 zJ
-     ...
-     U(0.500) = 123.3 zJ
-     U(0.750) = 133.3 zJ
-     U(1.000) = 134.4 zJ
-     U(1.250) = 134.4 zJ
-     U(1.500) = 134.4 zJ
-     U(1.750) = 134.4 zJ
-     U(2.000) = 134.4 zJ
-     U(2.250) = 134.4 zJ
-     U(2.500) = 134.4 zJ
-     U(2.750) = 134.4 zJ
-     U(3.000) = 134.4 zJ
-     U(3.250) = 134.4 zJ
-     U(3.500) = 134.4 zJ
-     U(3.750) = 134.4 zJ
-     U(4.000) = 134.4 zJ
-     
-     2 nm cutoff
+     S terminated
+     U(-0.090) = 347.7 zJ
+     U(-0.080) = 280.8 zJ
+     U(-0.070) = 222.3 zJ
+     U(-0.060) = 171.5 zJ
+     U(-0.050) = 128.0 zJ
+     U(-0.040) = 91.1 zJ
+     U(-0.030) = 60.4 zJ
+     U(-0.020) = 35.4 zJ
+     U(-0.010) = 15.4 zJ
      U(0.000) = 0.0 zJ
      U(0.010) = -11.4 zJ
      U(0.020) = -19.4 zJ
@@ -144,49 +116,58 @@ func createGeometry() -> [[Entity]] {
      U(3.750) = 194.9 zJ
      U(4.000) = 194.9 zJ
      
-     3 nm cutoff
+     H terminated
+     U(-0.090) = 147.6 zJ
+     U(-0.080) = 111.5 zJ
+     U(-0.070) = 81.8 zJ
+     U(-0.060) = 57.7 zJ
+     U(-0.050) = 38.7 zJ
+     U(-0.040) = 24.1 zJ
+     U(-0.030) = 13.3 zJ
+     U(-0.020) = 6.1 zJ
+     U(-0.010) = 1.7 zJ
      U(0.000) = 0.0 zJ
-     U(0.010) = -11.4 zJ
-     U(0.020) = -19.3 zJ
-     U(0.030) = -24.2 zJ
-     U(0.040) = -26.5 zJ
-     U(0.050) = -26.5 zJ
-     U(0.060) = -24.7 zJ
-     U(0.070) = -21.4 zJ
-     U(0.080) = -16.8 zJ
-     U(0.090) = -11.2 zJ
-     U(0.100) = -5.0 zJ
-     U(0.110) = 1.8 zJ
-     U(0.120) = 9.0 zJ
-     U(0.130) = 16.3 zJ
-     U(0.140) = 23.6 zJ
-     U(0.150) = 31.0 zJ
-     U(0.160) = 38.2 zJ
-     U(0.170) = 45.3 zJ
-     U(0.180) = 52.1 zJ
-     U(0.190) = 58.7 zJ
-     U(0.200) = 65.0 zJ
-     U(0.210) = 71.1 zJ
-     U(0.220) = 76.9 zJ
-     U(0.230) = 82.4 zJ
-     U(0.240) = 87.6 zJ
-     U(0.250) = 92.6 zJ
+     U(0.010) = 0.4 zJ
+     U(0.020) = 2.7 zJ
+     U(0.030) = 6.5 zJ
+     U(0.040) = 11.4 zJ
+     U(0.050) = 17.3 zJ
+     U(0.060) = 23.9 zJ
+     U(0.070) = 30.9 zJ
+     U(0.080) = 38.3 zJ
+     U(0.090) = 45.8 zJ
+     U(0.100) = 53.3 zJ
+     U(0.110) = 60.7 zJ
+     U(0.120) = 68.0 zJ
+     U(0.130) = 75.1 zJ
+     U(0.140) = 82.0 zJ
+     U(0.150) = 88.6 zJ
+     U(0.160) = 95.0 zJ
+     U(0.170) = 101.0 zJ
+     U(0.180) = 106.8 zJ
+     U(0.190) = 112.3 zJ
+     U(0.200) = 117.5 zJ
+     U(0.210) = 122.4 zJ
+     U(0.220) = 127.1 zJ
+     U(0.230) = 131.5 zJ
+     U(0.240) = 135.7 zJ
+     U(0.250) = 139.7 zJ
      ...
-     U(0.500) = 161.4 zJ
-     U(0.750) = 183.8 zJ
-     U(1.000) = 192.8 zJ
-     U(1.250) = 196.9 zJ
-     U(1.500) = 198.8 zJ
-     U(1.750) = 199.8 zJ
-     U(2.000) = 200.3 zJ
-     U(2.250) = 200.6 zJ
-     U(2.500) = 200.7 zJ
-     U(2.750) = 200.7 zJ
-     U(3.000) = 200.7 zJ
-     U(3.250) = 200.7 zJ
-     U(3.500) = 200.7 zJ
-     U(3.750) = 200.7 zJ
-     U(4.000) = 200.7 zJ
+     U(0.500) = 194.6 zJ
+     U(0.750) = 212.6 zJ
+     U(1.000) = 219.6 zJ
+     U(1.250) = 222.4 zJ
+     U(1.500) = 223.6 zJ
+     U(1.750) = 223.9 zJ
+     U(2.000) = 224.0 zJ
+     U(2.250) = 224.1 zJ
+     U(2.500) = 224.1 zJ
+     U(2.750) = 224.1 zJ
+     U(3.000) = 224.1 zJ
+     U(3.250) = 224.1 zJ
+     U(3.500) = 224.1 zJ
+     U(3.750) = 224.1 zJ
+     U(4.000) = 224.1 zJ
      */
   }
   return frames

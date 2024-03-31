@@ -249,7 +249,7 @@ struct TestSystem {
     
     // Set up the force field.
     var forceFieldDesc = MM4ForceFieldDescriptor()
-    forceFieldDesc.cutoffDistance = 3
+    forceFieldDesc.cutoffDistance = 2
     forceFieldDesc.integrator = .multipleTimeStep
     forceFieldDesc.parameters = forceFieldParameters
     forceField = try! MM4ForceField(descriptor: forceFieldDesc)
