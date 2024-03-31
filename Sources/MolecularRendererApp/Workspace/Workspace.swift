@@ -4,26 +4,25 @@ import MM4
 import Numerics
 import OpenMM
 
-// WARNING: The renderer could be in 'MRSceneSize.extreme'. If so, it will not
-// render any animations.
 func createGeometry() -> [Entity] {
   // TODO: Design a new drive wall for the rods, based on the revised design
   // constraints. Debug the scene with rigid body dynamics. Validate the
   // final design with molecular dynamics on the AMD GPU.
   
-  // Compile the geometry.
-  let testRod = TestRod()
-  let testDriveWall = TestDriveWall()
-  var testSystem = TestSystem(
-    testDriveWall: testDriveWall, testRod: testRod)
-  
-  // Move the rigid bodies into position.
-  testSystem.testRod.rigidBody.centerOfMass += SIMD3(1.5, 0.5, 1.5)
-  testSystem.createForceField()
-  
-  testSystem.testRod.rigidBody.centerOfMass.x += 10
-  testSystem.minimize()
-  testSystem.testRod.rigidBody.centerOfMass.x -= 10
-  
-  return testSystem.createFrame()
+  let rodLattice = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 20 * h + 2 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      Concave {
+        Origin { 1 * h2k }
+        Plane { h2k }
+        Origin { 1 * h }
+        Plane { k - h }
+      }
+      Replace { .empty }
+    }
+  }
+  return rodLattice.atoms
 }

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		980A91112BB9BD4300F3392D /* TestDriveWall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980A91102BB9BD4300F3392D /* TestDriveWall.swift */; };
 		9812FAA02BA8F68700636FF9 /* FIRE.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FA9F2BA8F68700636FF9 /* FIRE.swift */; };
 		9812FAA82BAF7B1300636FF9 /* Housing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAA72BAF7B1300636FF9 /* Housing.swift */; };
 		9812FAAA2BAF7B6900636FF9 /* Rod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9812FAA92BAF7B6900636FF9 /* Rod.swift */; };
@@ -115,7 +114,6 @@
 		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
-		980A91102BB9BD4300F3392D /* TestDriveWall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDriveWall.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
 		9812FA9F2BA8F68700636FF9 /* FIRE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FIRE.swift; sourceTree = "<group>"; };
 		9812FAA72BAF7B1300636FF9 /* Housing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Housing.swift; sourceTree = "<group>"; };
@@ -796,7 +794,6 @@
 		98D0705E2BB85C2400DF192F /* Testing */ = {
 			isa = PBXGroup;
 			children = (
-				980A91102BB9BD4300F3392D /* TestDriveWall.swift */,
 				98D070612BB85C5400DF192F /* TestHousing.swift */,
 				98D0705F2BB85C4E00DF192F /* TestRod.swift */,
 				98D070632BB85D0500DF192F /* TestStrain.swift */,
@@ -1342,7 +1339,6 @@
 				98D070622BB85C5400DF192F /* TestHousing.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
-				980A91112BB9BD4300F3392D /* TestDriveWall.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				9812FAA82BAF7B1300636FF9 /* Housing.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
