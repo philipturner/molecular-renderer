@@ -3,27 +3,29 @@ import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [MM4RigidBody] {
-  var driveWall = DriveWall()
-  driveWall.rigidBody.centerOfMass.x -= 5.0
+func createGeometry() -> [Entity] {
+  // Modify the shape of the drive wall. It must move the rods by 1 nm over the
+  // clock cycle, while keeping them positionally constrained.
+  let lattice = DriveWall.createLattice()
+  return lattice.atoms
   
-  let rod = Rod()
-  
-  // Render the scene.
-  var output: [MM4RigidBody] = []
-  output.append(driveWall.rigidBody)
-  for indexX in 0..<3 {
-    for indexY in 0..<3 {
-      var rigidBody = rod.rigidBody
-      rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
-      
-      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
-      rigidBody.centerOfMass.z += Double(indexX) * 5.75 * latticeConstant
-      rigidBody.centerOfMass.y += Double(indexY) * 6 * latticeConstant
-      output.append(rigidBody)
-    }
-  }
-  return output
+//  driveWall.rigidBody.centerOfMass.x -= 5.0
+//
+//  // Render the scene.
+//  var output: [MM4RigidBody] = []
+//  output.append(driveWall.rigidBody)
+//  for indexX in 0..<3 {
+//    for indexY in 0..<3 {
+//      var rigidBody = rod.rigidBody
+//      rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
+//      
+//      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
+//      rigidBody.centerOfMass.z += Double(indexX) * 5.75 * latticeConstant
+//      rigidBody.centerOfMass.y += Double(indexY) * 6 * latticeConstant
+//      output.append(rigidBody)
+//    }
+//  }
+//  return output
 }
 
 // MARK: - Parts
