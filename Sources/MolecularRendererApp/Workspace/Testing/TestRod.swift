@@ -44,7 +44,7 @@ struct TestRod {
   
   init() {
     createLattice()
-    createSulfurAtoms()
+//    createSulfurAtoms()
     removeSulfurMarkers()
     
     createBulkAtomBonds()

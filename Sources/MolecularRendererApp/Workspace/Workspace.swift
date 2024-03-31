@@ -18,7 +18,7 @@ func createGeometry() -> [[Entity]] {
     testDriveWall: testDriveWall, testRod: testRod)
   
   // Move the rigid bodies into position.
-  testSystem.testRod.rigidBody.centerOfMass += SIMD3(10.3, 0.5, 1.5)
+  testSystem.testRod.rigidBody.centerOfMass += SIMD3(11.2, 0.5, 1.5)
   testSystem.createForceField()
   
   // Find the initial potential energy.
@@ -32,20 +32,20 @@ func createGeometry() -> [[Entity]] {
   // Render the scene.
   var frames: [[Entity]] = []
   var displacement: Float = .zero
-  for frameID in 0...50 {
+  for frameID in 0...100 {
     // Spacing between measurements, in nm.
     var stepSize: Float
-    if frameID <= 35 {
+    if frameID <= 50 {
       stepSize = 0.010
     } else {
-      stepSize = 0.250
+      stepSize = 0.050
     }
     
     if frameID > 0 {
       displacement += stepSize
       testSystem.testRod.rigidBody.centerOfMass.x += Double(stepSize)
-      testSystem.minimize(tolerance: 0.1)
     }
+    testSystem.minimize(tolerance: 0.1)
     frames.append(testSystem.createFrame())
     
     let absoluteEnergy = testSystem.forceField.energy.potential
@@ -53,13 +53,13 @@ func createGeometry() -> [[Entity]] {
     let displacementRepr = String(format: "%.3f", displacement)
     let energyRepr = String(format: "%.1f", relativeEnergy)
     
-    #if true
+    #if false
     print("U(\(displacementRepr)) = \(energyRepr) zJ")
-    if frameID == 35 {
+    if frameID == 50 {
       print("...")
     }
     #else
-    print(displacementRepr, energyRepr)
+    print(displacementRepr + ", " + energyRepr)
     #endif
     
     /*
