@@ -8,6 +8,7 @@
 import Foundation
 import HDL
 import MolecularRenderer
+import MM4
 import OpenMM
 import QuartzCore
 
@@ -16,11 +17,6 @@ extension Renderer {
     initializeOpenMM()
     initializeRenderingEngine()
   }
-  
-  // We may also want easier APIs for directly rendering a set of MM4RigidBody.
-  // It could be advantageous to only store deviations of the CoM and MoI over
-  // time. In this case, the most workable approach might be a custom
-  // 'MRAtomProvider'.
   
   func initializeCompilation(_ closure: () -> [Entity]) {
     let start = CACurrentMediaTime()
@@ -54,6 +50,39 @@ extension Renderer {
       provider.frames.append(mapped)
     }
     renderingEngine.setAtomProvider(provider)
+  }
+  
+  private static func createFrame(rigidBodies: [MM4RigidBody]) -> [Entity] {
+    var atoms: [Entity] = []
+    for rigidBody in rigidBodies {
+      for atomID in rigidBody.parameters.atoms.indices {
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+        let position = rigidBody.positions[atomID]
+        let storage = SIMD4(position, Float(atomicNumber))
+        atoms.append(Entity(storage: storage))
+      }
+    }
+    return atoms
+  }
+  
+  func initializeCompilation(_ closure: () -> [MM4RigidBody]) {
+    initializeCompilation {
+      let rigidBodyFrame = closure()
+      let frame = Self.createFrame(rigidBodies: rigidBodyFrame)
+      return frame
+    }
+  }
+  
+  func initializeCompilation(_ closure: () -> [[MM4RigidBody]]) {
+    initializeCompilation {
+      let rigidBodyFrames = closure()
+      var frames: [[Entity]] = []
+      for rigidBodyFrame in rigidBodyFrames {
+        let frame = Self.createFrame(rigidBodies: rigidBodyFrame)
+        frames.append(frame)
+      }
+      return frames
+    }
   }
 }
 

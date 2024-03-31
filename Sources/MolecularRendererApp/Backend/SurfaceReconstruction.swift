@@ -554,4 +554,12 @@ struct SurfaceReconstruction {
     
     updateCollisions(updates.map { $0 ?? .keep })
   }
+  
+  mutating func compile() {
+    removePathologicalAtoms()
+    createBulkAtomBonds()
+    createHydrogenSites()
+    resolveCollisions()
+    createHydrogenBonds()
+  }
 }
