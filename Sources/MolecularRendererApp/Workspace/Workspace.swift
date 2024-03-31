@@ -77,7 +77,7 @@ struct Rod {
     paramsDesc.bonds = topology.bonds
     let parameters = try! MM4Parameters(descriptor: paramsDesc)
     
-    var rigidBodyDesc =  MM4RigidBodyDescriptor()
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
     rigidBodyDesc.parameters = parameters
     rigidBodyDesc.positions = topology.atoms.map(\.position)
     return try! MM4RigidBody(descriptor: rigidBodyDesc)
