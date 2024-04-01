@@ -52,6 +52,9 @@
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
+		98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */; };
+		98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */; };
+		98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
@@ -221,6 +224,9 @@
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_GFNFF_FailureMode.jpg; sourceTree = "<group>"; };
+		98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoWayCollisions.swift; sourceTree = "<group>"; };
+		98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeWayCollisions.swift; sourceTree = "<group>"; };
+		98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceReconstructionTestCases.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -589,7 +595,6 @@
 		989F8A222B393D4900622946 /* Workspace */ = {
 			isa = PBXGroup;
 			children = (
-				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 			);
 			path = Workspace;
@@ -605,6 +610,36 @@
 			);
 			name = OctahedralSpring;
 			path = ../Systems/OctahedralSpring;
+			sourceTree = "<group>";
+		};
+		98AF5AFA2BBAF1EC0015C7DC /* SurfaceReconstruction */ = {
+			isa = PBXGroup;
+			children = (
+				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
+				98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */,
+				98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */,
+				98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */,
+			);
+			path = SurfaceReconstruction;
+			sourceTree = "<group>";
+		};
+		98AF5AFF2BBAF3D20015C7DC /* xtb */ = {
+			isa = PBXGroup;
+			children = (
+				981898062B91167B00013D4C /* XTBLibrary.swift */,
+				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
+				981897E62B910FE800013D4C /* xtb.h */,
+			);
+			path = xtb;
+			sourceTree = "<group>";
+		};
+		98AF5B002BBAF4580015C7DC /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
+				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */ = {
@@ -911,12 +946,10 @@
 		98F250032A130A65009AABDE /* Backend */ = {
 			isa = PBXGroup;
 			children = (
-				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
-				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
-				981898062B91167B00013D4C /* XTBLibrary.swift */,
-				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
-				981897E62B910FE800013D4C /* xtb.h */,
 				981898082B91189A00013D4C /* MolecularRendererApp-Bridging-Header.h */,
+				98AF5AFA2BBAF1EC0015C7DC /* SurfaceReconstruction */,
+				98AF5B002BBAF4580015C7DC /* Utilities */,
+				98AF5AFF2BBAF3D20015C7DC /* xtb */,
 			);
 			path = Backend;
 			sourceTree = "<group>";
@@ -1260,8 +1293,11 @@
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
+				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
+				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
+				98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
