@@ -589,6 +589,7 @@
 		989F8A222B393D4900622946 /* Workspace */ = {
 			isa = PBXGroup;
 			children = (
+				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 			);
 			path = Workspace;
@@ -912,7 +913,6 @@
 			children = (
 				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
 				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
-				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
 				981898062B91167B00013D4C /* XTBLibrary.swift */,
 				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
 				981897E62B910FE800013D4C /* xtb.h */,

@@ -366,7 +366,7 @@ struct SurfaceReconstruction {
     topology.insert(bonds: insertedBonds)
   }
   
-  mutating func resolveCollisions() {
+  mutating func resolveTwoWayCollisions() {
     var updates = [CollisionState?](
       repeating: nil, count: hydrogensToAtomsMap.count)
     
@@ -374,8 +374,10 @@ struct SurfaceReconstruction {
       for i in hydrogensToAtomsMap.indices {
         let atomList = hydrogensToAtomsMap[i]
         
-        if atomList.count > 2 {
-          fatalError("3-way collisions not handled yet.")
+        if atomList.count > 3 {
+          fatalError("4-way collisions not handled yet.")
+        } else if atomList.count == 3 {
+          fatalError("3-way collision should have been caught.")
         }
         if atomList.count < 2 {
           continue
@@ -534,7 +536,7 @@ struct SurfaceReconstruction {
           
           break
         case 3:
-          fatalError("3-way collisions not handled yet.")
+          fatalError("Chain terminated at 3-way collision.")
         default:
           fatalError("Unexpected hydrogen count: \(hydrogens.count)")
         }
@@ -559,7 +561,129 @@ struct SurfaceReconstruction {
     removePathologicalAtoms()
     createBulkAtomBonds()
     createHydrogenSites()
-    resolveCollisions()
+    
+    if hydrogensToAtomsMap.contains(where: { $0.count == 3 }) {
+      let count = countThreeWayCollisions()
+      print("\(count) 3-way collisions were caught.")
+      
+      resolveThreeWayCollisions()
+      return
+    }
+    
+    resolveTwoWayCollisions()
     createHydrogenBonds()
+  }
+}
+
+// MARK: - Three-Way Collisions
+
+extension SurfaceReconstruction {
+  func countThreeWayCollisions() -> Int {
+    var collisionsDict: [SIMD3<UInt32>: Bool] = [:]
+    for i in hydrogensToAtomsMap.indices {
+      var atomList = hydrogensToAtomsMap[i]
+      guard atomList.count == 3 else {
+        continue
+      }
+      atomList.sort()
+      
+      let vectorRepr = SIMD3(atomList[0], atomList[1], atomList[2])
+      if collisionsDict[vectorRepr] != nil {
+        fatalError("Duplicate dictionary entry.")
+      }
+      collisionsDict[vectorRepr] = true
+    }
+    return collisionsDict.keys.count
+  }
+  
+  mutating func resolveThreeWayCollisions() {
+    guard let material else {
+      fatalError("Material not specified.")
+    }
+    
+    let orbitals = topology.nonbondingOrbitals(hybridization: .sp3)
+    
+    var insertedAtoms: [Entity] = []
+    for hydrogenSiteID in hydrogensToAtomsMap.indices {
+      var atomList = hydrogensToAtomsMap[hydrogenSiteID]
+      guard atomList.count == 3 else {
+        continue
+      }
+      atomList.sort()
+      
+      var orbitalPermutationCount: SIMD3<Int> = .zero
+      for laneID in 0..<3 {
+        let atomID = atomList[laneID]
+        let orbitalList = orbitals[Int(atomID)]
+        orbitalPermutationCount[laneID] = orbitalList.count
+      }
+      
+      var bulkBondLength = Constant(.square) { material }
+      bulkBondLength *= Float(3).squareRoot() / 4
+      var bestPermutationScore: Float = .greatestFiniteMagnitude
+      var bestPermutationAverage: SIMD3<Float>?
+      
+      // Loop over all possible combinations of bond directions.
+      print()
+      for index1 in 0..<orbitalPermutationCount[0] {
+        for index2 in 0..<orbitalPermutationCount[1] {
+          for index3 in 0..<orbitalPermutationCount[2] {
+            let atomID1 = atomList[0]
+            let atomID2 = atomList[1]
+            let atomID3 = atomList[2]
+            let atom1 = topology.atoms[Int(atomID1)]
+            let atom2 = topology.atoms[Int(atomID2)]
+            let atom3 = topology.atoms[Int(atomID3)]
+            let position1 = atom1.position
+            let position2 = atom2.position
+            let position3 = atom3.position
+            
+            let orbitals1 = orbitals[Int(atomID1)]
+            let orbitals2 = orbitals[Int(atomID2)]
+            let orbitals3 = orbitals[Int(atomID3)]
+            let orbital1 = orbitals1[index1]
+            let orbital2 = orbitals2[index2]
+            let orbital3 = orbitals3[index3]
+            let estimate1 = position1 + bulkBondLength * orbital1
+            let estimate2 = position2 + bulkBondLength * orbital2
+            let estimate3 = position3 + bulkBondLength * orbital3
+            
+            let delta12 = estimate1 - estimate2
+            let delta13 = estimate1 - estimate3
+            let delta23 = estimate2 - estimate3
+            let distance12 = (delta12 * delta12).sum().squareRoot()
+            let distance13 = (delta13 * delta13).sum().squareRoot()
+            let distance23 = (delta23 * delta23).sum().squareRoot()
+            
+            let score = distance12 + distance13 + distance23
+            let average = (estimate1 + estimate2 + estimate3) / 3
+            if score < bestPermutationScore {
+              bestPermutationScore = score
+              bestPermutationAverage = average
+            }
+          }
+        }
+      }
+      
+      guard bestPermutationScore < 0.01 * bulkBondLength,
+            let bestPermutationAverage else {
+        fatalError("Could not find suitable orbital permutation.")
+      }
+      print("inserted atom position:", bestPermutationAverage)
+      
+      var atomicNumbersDict: [UInt8: Int] = [:]
+      for atomID in atomList {
+        let atom = topology.atoms[Int(atomID)]
+        let atomicNumber = atom.atomicNumber
+        if atomicNumbersDict[atomicNumber] == nil {
+          atomicNumbersDict[atomicNumber] = 1
+        } else {
+          atomicNumbersDict[atomicNumber]! += 1
+        }
+      }
+      print("atomic numbers:", atomicNumbersDict)
+      
+      
+    }
   }
 }

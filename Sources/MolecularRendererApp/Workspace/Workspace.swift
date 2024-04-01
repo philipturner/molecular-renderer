@@ -5,6 +5,32 @@ import Numerics
 
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
+    Bounds { 5 * h + 5 * k + 5 * l }
+    Material { .checkerboard(.silicon, .carbon) }
+    
+    Volume {
+      Concave {
+        Origin { 1.5 * k + 1.5 * l }
+        
+        // Create a groove for the rod.
+        Concave {
+          Plane { k }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+  
+  var reconstruction = SurfaceReconstruction()
+  reconstruction.material = .checkerboard(.silicon, .carbon)
+  reconstruction.topology.insert(atoms: lattice.atoms)
+  reconstruction.compile()
+  return reconstruction.topology.atoms
+}
+
+func surfaceReconstructionReproducer() {
+  let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 10 * h + 9 * k + 7 * l }
     Material { .elemental(.carbon) }
     
@@ -47,10 +73,10 @@ func createGeometry() -> [Entity] {
           }
           
           // Correct the concave corner of the drive wall site.
-          Convex {
-            Origin { 1.75 * h + 0.5 * (h + k + l) }
-            Plane { h + k + l }
-          }
+//          Convex {
+//            Origin { 1.75 * h + 0.5 * (h + k + l) }
+//            Plane { h + k + l }
+//          }
         }
       }
       
@@ -62,5 +88,4 @@ func createGeometry() -> [Entity] {
   reconstruction.material = .elemental(.carbon)
   reconstruction.topology.insert(atoms: lattice.atoms)
   reconstruction.compile()
-  return reconstruction.topology.atoms
 }
