@@ -6,7 +6,7 @@ import Numerics
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 5 * h + 5 * k + 5 * l }
-    Material { .checkerboard(.silicon, .carbon) }
+    Material { .checkerboard(.carbon, .germanium) }
     
     Volume {
       Concave {
@@ -23,10 +23,40 @@ func createGeometry() -> [Entity] {
   }
   
   var reconstruction = SurfaceReconstruction()
-  reconstruction.material = .checkerboard(.silicon, .carbon)
+  reconstruction.material = .checkerboard(.carbon, .germanium)
   reconstruction.topology.insert(atoms: lattice.atoms)
   reconstruction.compile()
   return reconstruction.topology.atoms
+}
+
+// MARK: - Test Cases
+
+// Add these to the bottom of the 'SurfaceReconstruction' file, after you've
+// finished debugging.
+
+func surfaceReconstructionUnitTest() {
+  let lattice = Lattice<Cubic> { h, k, l in
+    Bounds { 5 * h + 5 * k + 5 * l }
+    Material { .checkerboard(.carbon, .germanium) }
+    
+    Volume {
+      Concave {
+        Origin { 1.5 * k + 1.5 * l }
+        
+        // Create a groove for the rod.
+        Concave {
+          Plane { k }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+  
+  var reconstruction = SurfaceReconstruction()
+  reconstruction.material = .checkerboard(.carbon, .germanium)
+  reconstruction.topology.insert(atoms: lattice.atoms)
+  reconstruction.compile()
 }
 
 func surfaceReconstructionReproducer() {

@@ -683,7 +683,31 @@ extension SurfaceReconstruction {
       }
       print("atomic numbers:", atomicNumbersDict)
       
+      var maxAtomicNumber: UInt8 = .zero
+      var maxAtomicNumberCount: Int = .zero
+      for atomicNumber in atomicNumbersDict.keys {
+        let count = atomicNumbersDict[atomicNumber]!
+        if count > maxAtomicNumberCount {
+          maxAtomicNumberCount = count
+          maxAtomicNumber = atomicNumber
+        }
+      }
+      print("max atomic number:", maxAtomicNumber)
       
+      var chosenAtomicNumber: UInt8
+      switch material {
+      case .elemental(let element):
+        chosenAtomicNumber = element.rawValue
+      case .checkerboard(let element1, let element2):
+        if maxAtomicNumber == element1.rawValue {
+          chosenAtomicNumber = element2.rawValue
+        } else if maxAtomicNumber == element2.rawValue {
+          chosenAtomicNumber = element1.rawValue
+        } else {
+          fatalError("Could not resolve identity of inserted atom in checkerboard structure.")
+        }
+      }
+      print("chosen atomic number:", chosenAtomicNumber)
     }
   }
 }
