@@ -55,6 +55,8 @@
 		98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */; };
 		98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */; };
 		98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */; };
+		98AF5B072BBB5E090015C7DC /* Housing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B062BBB5E090015C7DC /* Housing.swift */; };
+		98AF5B092BBB69D00015C7DC /* Flywheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B082BBB69D00015C7DC /* Flywheel.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
@@ -227,6 +229,8 @@
 		98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoWayCollisions.swift; sourceTree = "<group>"; };
 		98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeWayCollisions.swift; sourceTree = "<group>"; };
 		98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceReconstructionTestCases.swift; sourceTree = "<group>"; };
+		98AF5B062BBB5E090015C7DC /* Housing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Housing.swift; sourceTree = "<group>"; };
+		98AF5B082BBB69D00015C7DC /* Flywheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -595,6 +599,7 @@
 		989F8A222B393D4900622946 /* Workspace */ = {
 			isa = PBXGroup;
 			children = (
+				98AF5B052BBB5DEF0015C7DC /* Parts */,
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 			);
 			path = Workspace;
@@ -640,6 +645,15 @@
 				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		98AF5B052BBB5DEF0015C7DC /* Parts */ = {
+			isa = PBXGroup;
+			children = (
+				98AF5B082BBB69D00015C7DC /* Flywheel.swift */,
+				98AF5B062BBB5E090015C7DC /* Housing.swift */,
+			);
+			path = Parts;
 			sourceTree = "<group>";
 		};
 		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */ = {
@@ -1291,6 +1305,7 @@
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98AF5B072BBB5E090015C7DC /* Housing.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
@@ -1300,6 +1315,7 @@
 				98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
+				98AF5B092BBB69D00015C7DC /* Flywheel.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
