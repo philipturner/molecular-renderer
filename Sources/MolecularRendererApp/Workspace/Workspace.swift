@@ -3,37 +3,27 @@ import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [Entity] {
-  let flywheel = Flywheel()
+func createGeometry() -> [MM4RigidBody] {
+  let housing = Housing()
+  var flywheel = Flywheel()
   
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.parameters = flywheel.rigidBody.parameters
-  forceFieldDesc.integrator = .multipleTimeStep
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   forceField.positions = flywheel.rigidBody.positions
-  
-  print(forceField.energy.potential)
-  
-  // 132396232.265625
-  //   3993967.810546875
-  //   2308207.91796875
-  
-  let forces = forceField.forces
-  var maxForceMagnitude: Float = .zero
-  for force in forces {
-    let magnitude = (force * force).sum().squareRoot()
-    maxForceMagnitude = max(maxForceMagnitude, magnitude)
-    if magnitude.isInfinite || magnitude.isNaN {
-      print("NAN force")
-    }
-  }
-  print(maxForceMagnitude)
-  
   forceField.minimize()
-  print(forceField.energy.potential)
   
-  // -538450.728515625
-  // -583069.953125
+  var rigidBodyDesc = MM4RigidBodyDescriptor()
+  rigidBodyDesc.parameters = flywheel.rigidBody.parameters
+  rigidBodyDesc.positions = forceField.positions
+  flywheel.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   
-  exit(0)
+  var rigidBodies: [MM4RigidBody] = []
+  rigidBodies = [housing.rigidBody, flywheel.rigidBody]
+  for rigidBodyID in rigidBodies.indices {
+    var rigidBody = rigidBodies[rigidBodyID]
+    rigidBody.centerOfMass = .zero
+    rigidBodies[rigidBodyID] = rigidBody
+  }
+  return rigidBodies
 }

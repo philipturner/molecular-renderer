@@ -43,6 +43,7 @@ struct Flywheel {
     reconstruction.material = .checkerboard(.germanium, .carbon)
     reconstruction.topology.insert(atoms: lattice.atoms)
     reconstruction.compile()
+    var topology = reconstruction.topology
     
     // Parameters here are in nm.
     let latticeConstant = Constant(.hexagon) {
@@ -59,26 +60,35 @@ struct Flywheel {
     
     // The distance between Y = 0 in the compiled lattice's coordinate space,
     // and the center of the warped circle.
-    let curvatureRadius: Float = 5.0
+    let curvatureRadius: Float = 4.7
     
-    for atomID in reconstruction.topology.atoms.indices {
-      var atom = reconstruction.topology.atoms[atomID]
+    // 5.0 - 2308208.0234375
+    // 4.9 - 2238502.61328125
+    // 4.8 - 2188385.16796875
+    // 4.7 - 2159392.32421875
+    // 4.6 - 2153415.54296875
+    // 4.5 - 2172300.1328125
+    // 4.4 - 2217845.28515625
+    // 4.3 - 2292167.6640625
+    
+    for atomID in topology.atoms.indices {
+      var atom = topology.atoms[atomID]
       var position = atom.position
       let θ = 2 * Float.pi * (position.x - 0) / perimeter
       let r = curvatureRadius + position.y
       position.x = r * Float.cos(θ)
       position.y = r * Float.sin(θ)
       atom.position = position
-      reconstruction.topology.atoms[atomID] = atom
+      topology.atoms[atomID] = atom
     }
     
-    // 21828 atoms before
-    // 21600 atoms after
-    reconstruction.topology = deduplicate(topology: reconstruction.topology)
-    reconstruction.topology.sort()
-    return reconstruction.topology
+    topology = deduplicate(topology: topology)
+    topology.sort()
+    return topology
   }
   
+  // Source:
+  // https://gist.github.com/philipturner/6ec30aca0a1ec08fb4faebb07637bde1
   private static func deduplicate(topology: Topology) -> Topology {
     let matches = topology.match(
       topology.atoms, algorithm: .absoluteRadius(0.010))
