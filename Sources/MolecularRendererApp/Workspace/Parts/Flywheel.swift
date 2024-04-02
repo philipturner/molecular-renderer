@@ -10,6 +10,9 @@ import HDL
 import MM4
 import Numerics
 
+// NOTE: This flywheel should be changed to match the new housing. Generally,
+// you design the housing first and the moving parts second.
+
 struct Flywheel {
   var rigidBody: MM4RigidBody
   

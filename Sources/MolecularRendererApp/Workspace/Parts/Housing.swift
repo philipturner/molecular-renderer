@@ -17,74 +17,143 @@ struct Housing {
     let lattice = Self.createLattice()
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
-    
-    let latticeConstant = Constant(.hexagon) { .elemental(.carbon) }
-    rigidBody.centerOfMass.x -= Double(50 * latticeConstant)
-    
-    let sqrt34 = Float(3).squareRoot()
-    rigidBody.centerOfMass.y -= Double(25 * sqrt34 * latticeConstant)
   }
   
-  static func createLattice() -> Lattice<Hexagonal> {
-    Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 100 * h + 50 * h2k + 6 * l }
+  static func createLattice() -> Lattice<Cubic> {
+    Lattice<Cubic> { h, k, l in
+      Bounds { 130 * h + 30 * k + 18 * l }
       Material { .elemental(.carbon) }
       
+      func createBoard() {
+        Convex {
+          Origin { 20 * h }
+          Plane { -h }
+          
+          Origin { 10 * l }
+          Plane { l }
+        }
+      }
+      
+      var flatDirections: [SIMD3<Float>] = []
+      flatDirections.append(h)
+      flatDirections.append(k)
+      flatDirections += flatDirections.map(-)
+      
+      var diagonalDirections: [SIMD3<Float>] = []
+      diagonalDirections.append(h + k)
+      diagonalDirections.append(h - k)
+      diagonalDirections += diagonalDirections.map(-)
+      
+      func createInnerAxle() {
+        Convex {
+          Origin { 15 * h + 15 * k }
+          
+          for direction in flatDirections {
+            Convex {
+              Origin { 11 * direction }
+              Plane { direction }
+            }
+          }
+          for direction in diagonalDirections {
+            Convex {
+              Origin { 8 * direction }
+              Plane { direction }
+            }
+          }
+        }
+      }
+      
+      func createOuterAxle() {
+        Convex {
+          Origin { 15 * h + 15 * k }
+          
+          for direction in flatDirections {
+            Convex {
+              Origin { 15 * direction }
+              Plane { direction }
+            }
+          }
+          for direction in diagonalDirections {
+            Convex {
+              Origin { 11 * direction }
+              Plane { direction }
+            }
+          }
+          
+          Origin { 13 * l }
+          Plane { l }
+        }
+      }
+      
+      func createGuide() {
+        Convex {
+          Origin { 15 * k }
+          
+          Convex {
+            Origin { 36 * h }
+            Plane { -h }
+          }
+          
+          Concave {
+            Origin { 40 * h }
+            Plane { -h }
+            
+            Convex {
+              Origin { 8 * k }
+              Plane { -h - k }
+            }
+            Convex {
+              Origin { -8 * k }
+              Plane { -h + k }
+            }
+          }
+          
+          Concave {
+            Convex {
+              Origin { 8 * k }
+              Plane { -k }
+            }
+            Convex {
+              Origin { -8 * k }
+              Plane { k }
+            }
+            Convex {
+              Origin { 13 * l }
+              Plane { l }
+            }
+          }
+        }
+      }
+      
       Volume {
-        Origin { 50 * h + 25 * h2k }
-        
-        var directions: [SIMD3<Float>] = []
-        directions.append(h)
-        directions.append((h + k + h) / Float(3).squareRoot())
-        directions.append(k + h)
-        directions.append((k + h + k) / Float(3).squareRoot())
-        directions.append(k)
-        directions.append((k - h) / Float(3).squareRoot())
-        directions += directions.map(-)
-        
-        // Trim the inner side, where the flywheel will reside.
         Concave {
-          Convex {
-            Origin { 3.99 * l }
-            Plane { l }
-          }
-          for direction in directions {
-            Convex {
-              Origin { 33 * direction }
-              Plane { -direction }
-            }
-          }
+          createBoard()
+          createInnerAxle()
+          createOuterAxle()
+          createGuide()
         }
         Concave {
-          for direction in directions {
-            Convex {
-              Origin { 25 * direction }
-              Plane { -direction }
-            }
-          }
+          Origin { 41 * h + (15 + 10) * k }
+          Plane { h + k }
+          Plane { k }
+          
+          Origin { 5 * l }
+          Plane { k - l }
         }
-        
-        // Trim the outer side.
-        for direction in directions {
-          Convex {
-            Origin { 40 * direction }
-            Plane { direction }
-          }
+        Concave {
+          Origin { 41 * h + (15 - 10) * k }
+          Plane { h - k }
+          Plane { -k }
+          
+          Origin { 5 * l }
+          Plane { -k - l }
         }
-        for direction in directions {
-          Convex {
-            Origin { 35 * direction }
-            Plane { direction - l }
-          }
-        }
-        
         Replace { .empty }
       }
     }
   }
   
-  static func createTopology(lattice: Lattice<Hexagonal>) -> Topology {
+  static func createTopology(lattice: Lattice<Cubic>) -> Topology {
     var reconstruction = SurfaceReconstruction()
     reconstruction.material = .elemental(.carbon)
     reconstruction.topology.insert(atoms: lattice.atoms)
