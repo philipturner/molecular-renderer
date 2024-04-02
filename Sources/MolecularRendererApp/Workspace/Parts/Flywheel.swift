@@ -62,15 +62,6 @@ struct Flywheel {
     // and the center of the warped circle.
     let curvatureRadius: Float = 4.7
     
-    // 5.0 - 2308208.0234375
-    // 4.9 - 2238502.61328125
-    // 4.8 - 2188385.16796875
-    // 4.7 - 2159392.32421875
-    // 4.6 - 2153415.54296875
-    // 4.5 - 2172300.1328125
-    // 4.4 - 2217845.28515625
-    // 4.3 - 2292167.6640625
-    
     for atomID in topology.atoms.indices {
       var atom = topology.atoms[atomID]
       var position = atom.position
