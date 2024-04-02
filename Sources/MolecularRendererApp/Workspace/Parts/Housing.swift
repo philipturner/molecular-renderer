@@ -17,6 +17,12 @@ struct Housing {
     let lattice = Self.createLattice()
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
+    
+    let latticeConstant = Constant(.hexagon) { .elemental(.carbon) }
+    rigidBody.centerOfMass.x -= Double(50 * latticeConstant)
+    
+    let sqrt34 = Float(3).squareRoot()
+    rigidBody.centerOfMass.y -= Double(25 * sqrt34 * latticeConstant)
   }
   
   static func createLattice() -> Lattice<Hexagonal> {
