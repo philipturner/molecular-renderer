@@ -78,6 +78,20 @@ struct Flywheel {
     return topology
   }
   
+  static func createRigidBody(topology: Topology) -> MM4RigidBody {
+    var paramsDesc = MM4ParametersDescriptor()
+    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+    paramsDesc.bonds = topology.bonds
+    let parameters = try! MM4Parameters(descriptor: paramsDesc)
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.parameters = parameters
+    rigidBodyDesc.positions = topology.atoms.map(\.position)
+    return try! MM4RigidBody(descriptor: rigidBodyDesc)
+  }
+}
+
+extension Flywheel {
   // Source:
   // https://gist.github.com/philipturner/6ec30aca0a1ec08fb4faebb07637bde1
   private static func deduplicate(topology: Topology) -> Topology {
@@ -205,17 +219,5 @@ struct Flywheel {
     output.insert(bonds: Array(insertedBonds))
     output.remove(atoms: Array(removedAtoms))
     return output
-  }
-  
-  static func createRigidBody(topology: Topology) -> MM4RigidBody {
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    let parameters = try! MM4Parameters(descriptor: paramsDesc)
-    
-    var rigidBodyDesc = MM4RigidBodyDescriptor()
-    rigidBodyDesc.parameters = parameters
-    rigidBodyDesc.positions = topology.atoms.map(\.position)
-    return try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
 }
