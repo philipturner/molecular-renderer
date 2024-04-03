@@ -4,11 +4,9 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [MM4RigidBody] {
-//  let lattice = Flywheel.createLattice()
-//  let topology = Flywheel.createTopology(lattice: lattice)
-//  let rigidBody = Flywheel.createRigidBody(topology: topology)
-//  return [rigidBody]
+func createGeometry() -> [Entity] {
+  let lattice = ConnectingRod.createLattice()
+  return lattice.atoms
   
 //  var flywheel = Flywheel()
 //  
@@ -25,7 +23,7 @@ func createGeometry() -> [MM4RigidBody] {
 //  
 //  return [flywheel.rigidBody]
   
-  #if true
+  #if false
   let housing = Housing()
   
   var flywheel = Flywheel()

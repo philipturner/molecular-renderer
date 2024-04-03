@@ -24,8 +24,48 @@ struct Piston {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 7 * h2k + 5 * l }
+      Bounds { 50 * h + 7 * h2k + 7 * l }
       Material { .elemental(.carbon) }
+      
+      func createBlock() {
+        Convex {
+          Origin { 4.99 * l }
+          Plane { l }
+        }
+      }
+      
+      func createAxle() {
+        Convex {
+          Origin { 2 * h + 3.75 * h2k }
+          
+          var directions: [SIMD3<Float>] = []
+          directions.append(k + 2 * h)
+          directions.append(k - h)
+          directions.append(-h2k)
+          for direction in directions {
+            Convex {
+              Origin { 0.7 * direction }
+              Plane { direction }
+            }
+          }
+          
+          let negativeDirections = directions.map(-)
+          for direction in negativeDirections {
+            Convex {
+              Origin { 0.8 * direction }
+              Plane { direction }
+            }
+          }
+        }
+      }
+      
+      Volume {
+        Concave {
+          createBlock()
+          createAxle()
+        }
+        Replace { .empty }
+      }
     }
   }
   

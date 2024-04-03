@@ -58,6 +58,7 @@
 		98AF5B072BBB5E090015C7DC /* Housing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B062BBB5E090015C7DC /* Housing.swift */; };
 		98AF5B092BBB69D00015C7DC /* Flywheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B082BBB69D00015C7DC /* Flywheel.swift */; };
 		98AF5B0B2BBCBC390015C7DC /* Piston.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B0A2BBCBC390015C7DC /* Piston.swift */; };
+		98AF5B0D2BBD834C0015C7DC /* ConnectingRod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B0C2BBD834C0015C7DC /* ConnectingRod.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
@@ -233,6 +234,7 @@
 		98AF5B062BBB5E090015C7DC /* Housing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Housing.swift; sourceTree = "<group>"; };
 		98AF5B082BBB69D00015C7DC /* Flywheel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flywheel.swift; sourceTree = "<group>"; };
 		98AF5B0A2BBCBC390015C7DC /* Piston.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piston.swift; sourceTree = "<group>"; };
+		98AF5B0C2BBD834C0015C7DC /* ConnectingRod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectingRod.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -652,6 +654,7 @@
 		98AF5B052BBB5DEF0015C7DC /* Parts */ = {
 			isa = PBXGroup;
 			children = (
+				98AF5B0C2BBD834C0015C7DC /* ConnectingRod.swift */,
 				98AF5B082BBB69D00015C7DC /* Flywheel.swift */,
 				98AF5B062BBB5E090015C7DC /* Housing.swift */,
 				98AF5B0A2BBCBC390015C7DC /* Piston.swift */,
@@ -1312,6 +1315,7 @@
 				98AF5B072BBB5E090015C7DC /* Housing.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
+				98AF5B0D2BBD834C0015C7DC /* ConnectingRod.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
 				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
