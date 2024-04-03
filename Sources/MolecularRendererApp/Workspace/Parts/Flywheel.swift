@@ -25,16 +25,16 @@ struct Flywheel {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 120 * h + 6 * h2k + 3 * l }
+      Bounds { 79 * h + 4 * h2k + 3 * l }
       Material { .checkerboard(.germanium, .carbon) }
       
       Volume {
-        Origin { 1.5 * h2k }
+        Origin { 1 * h2k }
         Plane { -h2k }
         Replace { .atom(.carbon) }
       }
       Volume {
-        Origin { 4 * h2k }
+        Origin { 2.5 * h2k }
         Plane { h2k }
         Replace { .atom(.germanium) }
       }
@@ -59,11 +59,11 @@ struct Flywheel {
     // - Other values of X are mapped into the angular coordinate with a linear
     //   transformation. Anything outside of the range will overshoot and
     //   potentially overlap another chunk of matter.
-    let perimeter = Float(120) * latticeConstant
+    let perimeter = Float(79) * latticeConstant
     
     // The distance between Y = 0 in the compiled lattice's coordinate space,
     // and the center of the warped circle.
-    let curvatureRadius: Float = 4.7
+    let curvatureRadius: Float = 3.05
     
     for atomID in topology.atoms.indices {
       var atom = topology.atoms[atomID]

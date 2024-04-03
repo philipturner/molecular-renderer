@@ -21,15 +21,15 @@ struct Housing {
   
   static func createLattice() -> Lattice<Cubic> {
     Lattice<Cubic> { h, k, l in
-      Bounds { 130 * h + 30 * k + 18 * l }
+      Bounds { 90 * h + 20 * k + 14 * l }
       Material { .elemental(.carbon) }
       
       func createBoard() {
         Convex {
-          Origin { 20 * h }
+          Origin { 13 * h }
           Plane { -h }
           
-          Origin { 10 * l }
+          Origin { 7 * l }
           Plane { l }
         }
       }
@@ -46,17 +46,17 @@ struct Housing {
       
       func createInnerAxle() {
         Convex {
-          Origin { 15 * h + 15 * k }
+          Origin { 10 * h + 10 * k }
           
           for direction in flatDirections {
             Convex {
-              Origin { 11 * direction }
+              Origin { 7 * direction }
               Plane { direction }
             }
           }
           for direction in diagonalDirections {
             Convex {
-              Origin { 8 * direction }
+              Origin { 5 * direction }
               Plane { direction }
             }
           }
@@ -65,60 +65,60 @@ struct Housing {
       
       func createOuterAxle() {
         Convex {
-          Origin { 15 * h + 15 * k }
+          Origin { 10 * h + 10 * k }
           
           for direction in flatDirections {
             Convex {
-              Origin { 15 * direction }
+              Origin { 10 * direction }
               Plane { direction }
             }
           }
           for direction in diagonalDirections {
             Convex {
-              Origin { 11 * direction }
+              Origin { 7.5 * direction }
               Plane { direction }
             }
           }
           
-          Origin { 13 * l }
+          Origin { 9 * l }
           Plane { l }
         }
       }
       
       func createGuide() {
         Convex {
-          Origin { 15 * k }
+          Origin { 10 * k }
           
           Convex {
-            Origin { 36 * h }
+            Origin { 24 * h }
             Plane { -h }
           }
           
           Concave {
-            Origin { 40 * h }
+            Origin { 26.5 * h }
             Plane { -h }
             
             Convex {
-              Origin { 8 * k }
+              Origin { 5.5 * k }
               Plane { -h - k }
             }
             Convex {
-              Origin { -8 * k }
+              Origin { -5.5 * k }
               Plane { -h + k }
             }
           }
           
           Concave {
             Convex {
-              Origin { 8 * k }
+              Origin { 5.25 * k }
               Plane { -k }
             }
             Convex {
-              Origin { -8 * k }
+              Origin { -5.25 * k }
               Plane { k }
             }
             Convex {
-              Origin { 13 * l }
+              Origin { 9 * l }
               Plane { l }
             }
           }
@@ -133,19 +133,19 @@ struct Housing {
           createGuide()
         }
         Concave {
-          Origin { 41 * h + (15 + 10) * k }
+          Origin { 27 * h + (10 + 7) * k }
           Plane { h + k }
           Plane { k }
           
-          Origin { 5 * l }
+          Origin { 3.5 * l }
           Plane { k - l }
         }
         Concave {
-          Origin { 41 * h + (15 - 10) * k }
+          Origin { 27 * h + (10 - 7) * k }
           Plane { h - k }
           Plane { -k }
           
-          Origin { 5 * l }
+          Origin { 3.5 * l }
           Plane { -k - l }
         }
         Replace { .empty }
