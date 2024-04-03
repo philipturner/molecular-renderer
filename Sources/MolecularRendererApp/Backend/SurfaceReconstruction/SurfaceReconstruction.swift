@@ -42,8 +42,6 @@ struct SurfaceReconstruction {
       
       if hydrogensToAtomsMap.contains(where: { $0.count > 2 }) {
         let count = countThreeWayCollisions()
-        print()
-        print("iteration \(iterationID): \(count) 3-way collisions were caught.")
         
         // Add center atoms to problematic sites.
         resolveThreeWayCollisions()
@@ -59,8 +57,7 @@ struct SurfaceReconstruction {
       }
     }
     guard converged else {
-      print("Could not resolve 3-way collisions.")
-      return
+      fatalError("Could not resolve 3-way collisions.")
     }
     
     // Add hydrogens after the center atoms are fixed.

@@ -56,7 +56,6 @@ extension SurfaceReconstruction {
       var bestPermutationAverage: SIMD3<Float>?
       
       // Loop over all possible combinations of bond directions.
-      print()
       for index1 in 0..<orbitalPermutationCount[0] {
         for index2 in 0..<orbitalPermutationCount[1] {
           for index3 in 0..<orbitalPermutationCount[2] {
@@ -101,7 +100,6 @@ extension SurfaceReconstruction {
             let bestPermutationAverage else {
         fatalError("Could not find suitable orbital permutation.")
       }
-      print("inserted atom position:", bestPermutationAverage)
       
       // Iterate over all 3-4 atoms in the collision.
       var atomicNumbersDict: [UInt8: Int] = [:]
@@ -114,7 +112,6 @@ extension SurfaceReconstruction {
           atomicNumbersDict[atomicNumber]! += 1
         }
       }
-      print("atomic numbers:", atomicNumbersDict)
       
       // For checkerboard patterns, select the element that doesn't equal the
       // neighbor atoms.
@@ -127,7 +124,6 @@ extension SurfaceReconstruction {
           maxAtomicNumber = atomicNumber
         }
       }
-      print("max atomic number:", maxAtomicNumber)
       
       // Fill in with atoms of the assigned material.
       var chosenAtomicNumber: UInt8
@@ -143,7 +139,6 @@ extension SurfaceReconstruction {
           fatalError("Could not resolve identity of inserted atom in checkerboard structure.")
         }
       }
-      print("chosen atomic number:", chosenAtomicNumber)
       
       let element = Element(rawValue: chosenAtomicNumber)!
       let entity = Entity(

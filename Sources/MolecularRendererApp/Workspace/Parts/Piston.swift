@@ -17,7 +17,6 @@ struct Piston {
     let lattice = Self.createLattice()
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
-    
     rigidBody.centerOfMass.y = .zero
   }
   
