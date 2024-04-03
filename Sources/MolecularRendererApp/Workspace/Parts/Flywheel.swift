@@ -25,7 +25,7 @@ struct Flywheel {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 79 * h + 4 * h2k + 3 * l }
+      Bounds { 80 * h + 4 * h2k + 5 * l }
       Material { .checkerboard(.germanium, .carbon) }
       
       Volume {
@@ -38,13 +38,34 @@ struct Flywheel {
         Plane { h2k }
         Replace { .atom(.germanium) }
       }
+      Volume {
+        Origin { 3.99 * l }
+        Plane { l }
+        Replace { .atom(.carbon) }
+      }
+      Volume {
+        Concave {
+          Origin { 1.5 * h2k }
+          Plane { h2k }
+          Origin { 2.99 * l }
+          Plane { l }
+        }
+        Convex {
+          Origin { 4.49 * l }
+          Plane { l }
+        }
+        Replace { .empty }
+      }
     }
   }
   
   static func createTopology(lattice: Lattice<Hexagonal>) -> Topology {
     var reconstruction = SurfaceReconstruction()
     reconstruction.material = .checkerboard(.germanium, .carbon)
-    reconstruction.topology.insert(atoms: lattice.atoms)
+    
+    var atoms = lattice.atoms
+    atoms.sort { $0.position.x < $1.position.x }
+    reconstruction.topology.insert(atoms: atoms)
     reconstruction.compile()
     var topology = reconstruction.topology
     
