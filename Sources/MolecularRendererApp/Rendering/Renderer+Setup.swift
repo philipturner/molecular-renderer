@@ -121,6 +121,12 @@ extension Renderer {
     let directory = OpenMM_Platform.defaultPluginsDirectory!
     let plugins = OpenMM_Platform.loadPlugins(directory: directory)
     precondition(plugins != nil, "Failed to load plugins.")
+    
+    // Initialize xTB automatically in this branch.
+    setenv("OMP_STACKSIZE", "2G", 1)
+    setenv("OMP_NUM_THREADS", "8", 1) // replace '8' with number of P-cores
+    XTBLibrary.loadLibrary(
+      path: "/Users/philipturner/Documents/OpenMM/bypass_dependencies/libxtb.6.dylib")
   }
 }
 

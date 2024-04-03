@@ -100,6 +100,8 @@ extension XTBProcess {
     14: "si",
     15: "p",
     16: "s",
+    17: "cl",
+    35: "br",
     32: "ge",
     50: "sn",
     82: "pb"

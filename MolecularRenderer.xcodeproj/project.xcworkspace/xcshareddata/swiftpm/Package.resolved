@@ -1,4 +1,5 @@
 {
+  "originHash" : "60010ddd2c904744348e8cac180babb14a58a61d154beb3d8592d5f32e964d98",
   "pins" : [
     {
       "identity" : "hdl",
@@ -6,7 +7,7 @@
       "location" : "https://github.com/philipturner/HDL",
       "state" : {
         "branch" : "main",
-        "revision" : "79d3baa33539554d67c851b8b809b415c5376df6"
+        "revision" : "38bedc6165d3b1b27c7382699dbbba90c1bab3a9"
       }
     },
     {
@@ -64,5 +65,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
