@@ -5,25 +5,12 @@ import Numerics
 import OpenMM
 
 func createGeometry() -> [MM4RigidBody] {
-//  let connectingRodLattice = ConnectingRod.createLattice()
-//  let flywheelLattice = Flywheel.createLattice()
-//  let flywheelTopology = Flywheel.createTopology(lattice: flywheelLattice)
-//  return connectingRodLattice.atoms + flywheelTopology.atoms
-  
-//  var flywheel = Flywheel()
-//  
-//  var forceFieldDesc = MM4ForceFieldDescriptor()
-//  forceFieldDesc.parameters = flywheel.rigidBody.parameters
-//  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-//  forceField.positions = flywheel.rigidBody.positions
-//  forceField.minimize(tolerance: 0.1)
-//  
-//  var rigidBodyDesc = MM4RigidBodyDescriptor()
-//  rigidBodyDesc.parameters = flywheel.rigidBody.parameters
-//  rigidBodyDesc.positions = forceField.positions
-//  flywheel.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-//  
-//  return [flywheel.rigidBody]
+  // 1) [No mechanosynthesis yet for this video] Show each part materializing
+  //    in Morton order, in the state immediately after compilation.
+  // 2) Energy-minimize while in the air.
+  // 3) Compress down into assembled structure, rotate toward viewer.
+  // 4) Run RBD simulation.
+  // 5) Revive the GIF encoder.
   
   #if true
   let housing = Housing()
@@ -35,25 +22,30 @@ func createGeometry() -> [MM4RigidBody] {
   flywheel.rigidBody.centerOfMass.z += Double(10.3 * latticeConstant)
   
   var piston = Piston()
-  piston.rigidBody.centerOfMass.x += Double(29 * latticeConstant)
+  piston.rigidBody.centerOfMass.x += Double(28.5 * latticeConstant)
   piston.rigidBody.centerOfMass.y += Double(10 * latticeConstant)
   piston.rigidBody.centerOfMass.z += Double(10.3 * latticeConstant)
   
   var connectingRod = ConnectingRod()
-  connectingRod.rigidBody.centerOfMass.x += Double(-2 * latticeConstant)
-  connectingRod.rigidBody.centerOfMass.y += Double(10 * latticeConstant)
-  connectingRod.rigidBody.centerOfMass.z += Double(19 * latticeConstant)
+  connectingRod.rigidBody.centerOfMass.x += Double(-2.6 * latticeConstant)
+  connectingRod.rigidBody.centerOfMass.y += Double(10.3 * latticeConstant)
+  connectingRod.rigidBody.centerOfMass.z += Double(17.5 * latticeConstant)
   
-  var forceFieldDesc = MM4ForceFieldDescriptor()
-  forceFieldDesc.parameters = flywheel.rigidBody.parameters
-  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-  forceField.positions = flywheel.rigidBody.positions
-  forceField.minimize(tolerance: 0.1)
-  
-  var rigidBodyDesc = MM4RigidBodyDescriptor()
-  rigidBodyDesc.parameters = flywheel.rigidBody.parameters
-  rigidBodyDesc.positions = forceField.positions
-  flywheel.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  func minimize(rigidBody: inout MM4RigidBody) {
+    var forceFieldDesc = MM4ForceFieldDescriptor()
+    forceFieldDesc.parameters = rigidBody.parameters
+    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+    forceField.positions = rigidBody.positions
+    forceField.minimize(tolerance: 0.1)
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.parameters = rigidBody.parameters
+    rigidBodyDesc.positions = forceField.positions
+    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  }
+  minimize(rigidBody: &flywheel.rigidBody)
+  minimize(rigidBody: &piston.rigidBody)
+  minimize(rigidBody: &connectingRod.rigidBody)
   
   var rigidBodies: [MM4RigidBody] = []
   rigidBodies.append(housing.rigidBody)
