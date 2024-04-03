@@ -12,4 +12,4 @@ import Numerics
 
 // Si-H bond length: 1.483 Å (MM4)
 // Si-Cl bond length: 2.029 Å (xTB)
-// Cl-Cl bond length: ??? (xTB)
+// Cl-Cl bond length: 2.017 Å (xTB)

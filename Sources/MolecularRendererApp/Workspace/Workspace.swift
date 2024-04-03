@@ -90,97 +90,21 @@ func createGeometry() -> [Entity] {
   // - Compile and minimize the tripod tooltips.
   // - Serialize the tripods as Swift source code.
   
-  let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 4 * h + 4 * k + 4 * l }
-    Material { .elemental(.silicon) }
-    
-    Volume {
-      Origin { 2 * h + 2 * k + 2 * l }
-      Origin { 0.25 * (h + k - l) }
-      
-      // Remove the front plane.
-      Convex {
-        Origin { 0.25 * (h + k + l) }
-        Plane { h + k + l }
-      }
-      
-      func triangleCut(sign: Float) {
-        Convex {
-          Origin { 0.25 * sign * (h - k - l) }
-          Plane { sign * (h - k / 2 - l / 2) }
-        }
-        Convex {
-          Origin { 0.25 * sign * (k - l - h) }
-          Plane { sign * (k - l / 2 - h / 2) }
-        }
-        Convex {
-          Origin { 0.25 * sign * (l - h - k) }
-          Plane { sign * (l - h / 2 - k / 2) }
-        }
-      }
-      
-      // Remove three sides forming a triangle.
-      triangleCut(sign: +1)
-      
-      // Remove their opposites.
-      triangleCut(sign: -1)
-      
-      // Remove the back plane.
-      Convex {
-        Origin { -0.25 * (h + k + l) }
-        Plane { -(h + k + l) }
-      }
-      
-      Replace { .empty }
-    }
-  }
+  var atoms: [Entity] = []
+  atoms.append(Entity(position: .zero, type: .atom(.chlorine)))
   
-  var topology = Topology()
-  topology.insert(atoms: lattice.atoms)
+  let bondLength = 2 * Element.chlorine.covalentRadius
+  let position = SIMD3<Float>(bondLength, 0, 0)
+  atoms.append(Entity(position: position, type: .atom(.chlorine)))
   
-  // Form bonds between bulk atoms.
-  do {
-    let matches = topology.match(topology.atoms)
-    
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for i in topology.atoms.indices {
-      for j in matches[i] where i < j {
-        let bond = SIMD2(UInt32(i), UInt32(j))
-        insertedBonds.append(bond)
-      }
-    }
-    topology.insert(bonds: insertedBonds)
-  }
-  
-  // Form bonds to chlorine atoms.
-  do {
-    let orbitals = topology.nonbondingOrbitals()
-    
-    var insertedAtoms: [Entity] = []
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for atomID in topology.atoms.indices {
-      let silicon = topology.atoms[atomID]
-      for orbital in orbitals[atomID] {
-        var siClBondLength: Float = .zero
-        siClBondLength += Element.silicon.covalentRadius
-        siClBondLength += Element.chlorine.covalentRadius
-        let position = silicon.position + siClBondLength * orbital
-        let chlorine = Entity(position: position, type: .atom(.chlorine))
-        
-        let chlorineID = topology.atoms.count + insertedAtoms.count
-        let bond = SIMD2(UInt32(atomID), UInt32(chlorineID))
-        insertedAtoms.append(chlorine)
-        insertedBonds.append(bond)
-      }
-    }
-    topology.insert(atoms: insertedAtoms)
-    topology.insert(bonds: insertedBonds)
-  }
+  print(atoms)
   
   var solver = XTBSolver(cpuID: 0)
-  solver.atoms = topology.atoms
+  solver.atoms = atoms
   solver.solve(arguments: ["--opt"])
   solver.load()
+  
+  print(solver.atoms)
   
   return solver.atoms
 }
