@@ -51,6 +51,8 @@ struct DriveSystem {
       rigidBodyDesc.positions = forceField.positions
       rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
     }
+    
+    #if true
     minimize(rigidBody: &flywheel.rigidBody)
     minimize(rigidBody: &piston.rigidBody)
     minimize(rigidBody: &connectingRod.rigidBody)
@@ -69,12 +71,14 @@ struct DriveSystem {
       forceFieldDesc.parameters = parameters
       let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
       forceField.positions = housing.rigidBody.positions
+      forceField.minimize()
       
       var rigidBodyDesc = MM4RigidBodyDescriptor()
       rigidBodyDesc.parameters = housing.rigidBody.parameters
       rigidBodyDesc.positions = forceField.positions
       housing.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
     }
+    #endif
     
     rigidBodies.append(housing.rigidBody)
     rigidBodies.append(flywheel.rigidBody)

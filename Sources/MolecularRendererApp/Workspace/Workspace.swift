@@ -84,6 +84,40 @@ import OpenMM
 // - Music
 // - Inspiration (for mechanosynthesis and rod logic)
 
+func createRigidBodyFrames() -> [[MM4RigidBody]] {
+  let system = DriveSystem()
+  var frame = system.rigidBodies
+  for i in frame.indices {
+    frame[i].centerOfMass += SIMD3(-15, -3, -40)
+  }
+  return [frame]
+}
+
+func createAtomFrames(
+  rigidBodyFrames: [[MM4RigidBody]]
+) -> [[Entity]] {
+  rigidBodyFrames.map { rigidBodies in
+    var atoms: [Entity] = []
+    for rigidBody in rigidBodies {
+      for atomID in rigidBody.parameters.atoms.indices {
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+        let position = rigidBody.positions[atomID]
+        let storage = SIMD4(position, Float(atomicNumber))
+        atoms.append(Entity(storage: storage))
+      }
+    }
+    return atoms
+  }
+}
+
+// MARK: - Renderer Scripting
+
+func createGeometry() -> [[Entity]] {
+  let rigidBodyFrames = createRigidBodyFrames()
+  let atomFrames = createAtomFrames(rigidBodyFrames: rigidBodyFrames)
+  return atomFrames
+}
+
 func renderOffline(renderingEngine: MRRenderer) {
   // Second task:
   // - Compile and minimize the tripod tooltips.
@@ -95,10 +129,21 @@ func renderOffline(renderingEngine: MRRenderer) {
   print("Hello, world!")
   
   struct Provider: MRAtomProvider {
+    var atomFrames: [[Entity]] = []
+    
+    init() {
+      atomFrames = createGeometry()
+    }
+    
     func atoms(time: MolecularRenderer.MRTime) -> [MolecularRenderer.MRAtom] {
-      let progress = Float(time.absolute.frames % 120) / 120
-      let position = SIMD3<Float>(progress - 0.5, 0, -1)
-      return [MRAtom(origin: position, element: 6)]
+      var frameID = time.absolute.frames
+      frameID = max(frameID, 0)
+      frameID = min(frameID, atomFrames.count - 1)
+      
+      let atomFrame = atomFrames[frameID]
+      return atomFrame.map {
+        MRAtom(origin: $0.position, element: $0.atomicNumber)
+      }
     }
   }
   renderingEngine.setAtomProvider(Provider())
