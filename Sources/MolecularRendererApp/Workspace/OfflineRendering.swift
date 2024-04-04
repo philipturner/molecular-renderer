@@ -14,23 +14,7 @@ import MolecularRenderer
 import Numerics
 import OpenMM
 
-func createAtomFrames(
-  rigidBodyFrames: [[MM4RigidBody]]
-) -> [[Entity]] {
-  rigidBodyFrames.map { rigidBodies in
-    var atoms: [Entity] = []
-    for rigidBody in rigidBodies {
-      for atomID in rigidBody.parameters.atoms.indices {
-        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
-        let position = rigidBody.positions[atomID]
-        let storage = SIMD4(position, Float(atomicNumber))
-        atoms.append(Entity(storage: storage))
-      }
-    }
-    return atoms
-  }
-}
-
+#if false
 func createGeometry() -> [[Entity]] {
   let rigidBodyFrames = createRigidBodyFrames()
   let atomFrames = createAtomFrames(rigidBodyFrames: rigidBodyFrames)
@@ -152,6 +136,5 @@ func renderOffline(renderingEngine: MRRenderer) {
   print("- checkpoint 2 -> 3 | \(checkpoint3.timeIntervalSince(checkpoint2))")
   
   exit(0)
-//  var system = DriveSystem()
-//  return system.rigidBodies
 }
+#endif

@@ -81,20 +81,11 @@ import OpenMM
 // - Music
 // - Inspiration (for mechanosynthesis and rod logic)
 
-// Next task:
-// - Compile and minimize the tripod tooltips.
-//   - Anchor every atom in the SiH3 groups.
-//   - Get the xtb command-line binary running with Accelerate.
-// - Serialize the tripods as Swift source code.
-
-func createRigidBodyFrames() -> [[MM4RigidBody]] {
-  // Create the rigid bodies.
-  let system = DriveSystem()
-  
-  var rigidBodies: [MM4RigidBody] = []
-  rigidBodies.append(system.housing.rigidBody)
-  rigidBodies.append(system.flywheel.rigidBody)
-  rigidBodies.append(system.piston.rigidBody)
-  rigidBodies.append(system.connectingRod.rigidBody)
-  return [rigidBodies]
+func createGeometry() -> [Entity] {
+  // Current task:
+  // - Compile and minimize the tripod tooltips.
+  //   - Anchor every atom in the SiH3 groups.
+  //   - Get the xtb command-line binary running with Accelerate.
+  // - Serialize the tripods as Swift source code.
+  return [Entity(position: .zero, type: .atom(.carbon))]
 }
