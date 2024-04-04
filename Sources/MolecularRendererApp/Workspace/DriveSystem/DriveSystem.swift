@@ -11,10 +11,10 @@ import MM4
 import Numerics
 
 struct DriveSystem {
-  var housing: Housing
-  var flywheel: Flywheel
-  var piston: Piston
   var connectingRod: ConnectingRod
+  var flywheel: Flywheel
+  var housing: Housing
+  var piston: Piston
   
   init() {
     // 1) Each part materializes in the state immediately after compilation.
@@ -61,7 +61,7 @@ struct DriveSystem {
       rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
     }
     
-    #if true
+    #if false
     minimize(rigidBody: &flywheel.rigidBody, surfaceOnly: false)
     minimize(rigidBody: &piston.rigidBody, surfaceOnly: false)
     minimize(rigidBody: &connectingRod.rigidBody, surfaceOnly: false)
