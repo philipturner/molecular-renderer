@@ -29,6 +29,7 @@ import OpenMM
 //     - Ge-CH2Br
 //     - Sn*
 //     - Sn-H
+// - molecular dynamics at 77 K?
 // - remove halogen caps with 254 nm light
 //
 // Mechanosynthesis
@@ -85,7 +86,6 @@ func createGeometry() -> [Entity] {
   // Current task:
   // - Compile and minimize the tripod tooltips.
   //   - Anchor every atom in the SiH3 groups.
-  //   - Get the xtb command-line binary running with Accelerate.
   // - Serialize the tripods as Swift source code.
   return [Entity(position: .zero, type: .atom(.carbon))]
 }
