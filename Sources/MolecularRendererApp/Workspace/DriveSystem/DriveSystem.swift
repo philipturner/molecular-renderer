@@ -11,7 +11,10 @@ import MM4
 import Numerics
 
 struct DriveSystem {
-  var rigidBodies: [MM4RigidBody] = []
+  var housing: Housing
+  var flywheel: Flywheel
+  var piston: Piston
+  var connectingRod: ConnectingRod
   
   init() {
     // 1) Each part materializes in the state immediately after compilation.
@@ -21,27 +24,33 @@ struct DriveSystem {
     // 5) Run MD simulation on 7900 XTX, serialize.
     // 6) Serialized simulation -> GIF pipeline.
     
-    var housing = Housing()
+    housing = Housing()
+    flywheel = Flywheel()
+    piston = Piston()
+    connectingRod = ConnectingRod()
     
-    var flywheel = Flywheel()
-    let latticeConstant = Constant(.square) { .elemental(.carbon) }
-    flywheel.rigidBody.centerOfMass.x += Double(10 * latticeConstant)
-    flywheel.rigidBody.centerOfMass.y += Double(10 * latticeConstant)
-    flywheel.rigidBody.centerOfMass.z += Double(10.3 * latticeConstant)
+    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
+    let flywheelOffset = SIMD3(10, 10, 10.3) * latticeConstant
+    let pistonOffset = SIMD3(28.5, 10, 10.3) * latticeConstant
+    let connectingRodOffset = SIMD3(-2.5, 10.3, 17.4) * latticeConstant
     
-    var piston = Piston()
-    piston.rigidBody.centerOfMass.x += Double(28.5 * latticeConstant)
-    piston.rigidBody.centerOfMass.y += Double(10 * latticeConstant)
-    piston.rigidBody.centerOfMass.z += Double(10.3 * latticeConstant)
+    flywheel.rigidBody.centerOfMass += flywheelOffset
+    piston.rigidBody.centerOfMass += pistonOffset
+    connectingRod.rigidBody.centerOfMass += connectingRodOffset
     
-    var connectingRod = ConnectingRod()
-    connectingRod.rigidBody.centerOfMass.x += Double(-2.5 * latticeConstant)
-    connectingRod.rigidBody.centerOfMass.y += Double(10.3 * latticeConstant)
-    connectingRod.rigidBody.centerOfMass.z += Double(17.4 * latticeConstant)
-    
-    func minimize(rigidBody: inout MM4RigidBody) {
+    func minimize(rigidBody: inout MM4RigidBody, surfaceOnly: Bool) {
+      var parameters = rigidBody.parameters
+      if surfaceOnly {
+        for atomID in parameters.atoms.indices {
+          let centerType = parameters.atoms.centerTypes[atomID]
+          if centerType == .quaternary {
+            parameters.atoms.masses[atomID] = .zero
+          }
+        }
+      }
+      
       var forceFieldDesc = MM4ForceFieldDescriptor()
-      forceFieldDesc.parameters = rigidBody.parameters
+      forceFieldDesc.parameters = parameters
       let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
       forceField.positions = rigidBody.positions
       forceField.minimize(tolerance: 0.1)
@@ -53,36 +62,10 @@ struct DriveSystem {
     }
     
     #if true
-    minimize(rigidBody: &flywheel.rigidBody)
-    minimize(rigidBody: &piston.rigidBody)
-    minimize(rigidBody: &connectingRod.rigidBody)
-    
-    // Energy-minimize the housing's surface atoms (hasty solution).
-    do {
-      var parameters = housing.rigidBody.parameters
-      for atomID in parameters.atoms.indices {
-        let centerType = parameters.atoms.centerTypes[atomID]
-        if centerType == .quaternary {
-          parameters.atoms.masses[atomID] = .zero
-        }
-      }
-      
-      var forceFieldDesc = MM4ForceFieldDescriptor()
-      forceFieldDesc.parameters = parameters
-      let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-      forceField.positions = housing.rigidBody.positions
-      forceField.minimize()
-      
-      var rigidBodyDesc = MM4RigidBodyDescriptor()
-      rigidBodyDesc.parameters = housing.rigidBody.parameters
-      rigidBodyDesc.positions = forceField.positions
-      housing.rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-    }
+    minimize(rigidBody: &flywheel.rigidBody, surfaceOnly: false)
+    minimize(rigidBody: &piston.rigidBody, surfaceOnly: false)
+    minimize(rigidBody: &connectingRod.rigidBody, surfaceOnly: false)
+    minimize(rigidBody: &housing.rigidBody, surfaceOnly: true)
     #endif
-    
-    rigidBodies.append(housing.rigidBody)
-    rigidBodies.append(flywheel.rigidBody)
-    rigidBodies.append(piston.rigidBody)
-    rigidBodies.append(connectingRod.rigidBody)
   }
 }

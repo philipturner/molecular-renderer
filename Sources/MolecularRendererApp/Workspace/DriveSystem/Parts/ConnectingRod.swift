@@ -150,6 +150,9 @@ struct ConnectingRod {
         Volume {
           Origin { offsetH * h + 3 * k }
           
+          // TODO: Fix the knobs and holes. They're currently misaligned with
+          // the letters 'nano', clipping some letters and making then harder
+          // to reading.
           Concave {
 //            Convex {
 //              Origin { 3 * l }
