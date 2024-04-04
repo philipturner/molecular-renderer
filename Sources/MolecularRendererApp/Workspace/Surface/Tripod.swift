@@ -21,6 +21,33 @@ struct Tripod {
     topology = Topology()
     topology.atoms = tripod.createAtoms()
     Self.shift(topology: &topology)
+    
+    removeFeedstock()
+  }
+  
+  // Assumes the tip atom is germanium.
+  mutating func removeFeedstock() {
+    var germanium: Entity?
+    for atom in topology.atoms {
+      if atom.atomicNumber == 32 {
+        germanium = atom
+      }
+    }
+    guard let germanium else {
+      fatalError("Could not find germanium.")
+    }
+    
+    var removedAtoms: [UInt32] = []
+    for atomID in topology.atoms.indices {
+      let atom = topology.atoms[atomID]
+      if atom.atomicNumber == 32 {
+        continue
+      }
+      if atom.position.y > germanium.position.y {
+        removedAtoms.append(UInt32(atomID))
+      }
+    }
+    topology.remove(atoms: removedAtoms)
   }
 }
 
@@ -40,20 +67,17 @@ extension Tripod {
         
         // Two possibilities for energy minimum:
         // - triangle length = 0.768 nm
-        // - triangle length = 1.016 nm
+        // - triangle length = 1.016 nm (chosen)
         var silicon = atom
-        print(silicon.position)
-        
         var siliconXZVector = SIMD2(silicon.position.x, silicon.position.z)
         siliconXZVector /= (siliconXZVector * siliconXZVector).sum().squareRoot()
         siliconXZVector *= 1.016 / Float(3).squareRoot()
         silicon.position.x = siliconXZVector[0]
         silicon.position.z = siliconXZVector[1]
         topology.atoms[atomID] = silicon
-        print(silicon.position)
         
         var baseOrbital: SIMD3<Float> = .init(0, 1, 0)
-        let baseAngle: Float = 109.5 * .pi / 180
+        let baseAngle: Float = 109.47 * .pi / 180
         let baseRotation = Quaternion(angle: baseAngle, axis: [0, 0, 1])
         baseOrbital = baseRotation.act(on: baseOrbital)
         

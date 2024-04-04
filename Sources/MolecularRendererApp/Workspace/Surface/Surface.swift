@@ -25,7 +25,7 @@ struct Surface {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 10 * h + 10 * h2k + 3 * l }
+      Bounds { 60 * h + 40 * h2k + 3 * l }
       Material { .elemental(.silicon) }
     }
   }
@@ -47,8 +47,8 @@ extension Surface {
       
       // Offset by a multiple of the lattice constant.
       let latticeConstant = Constant(.hexagon) { .elemental(.silicon) }
-      position.x -= latticeConstant * 5
-      position.z -= latticeConstant * 5 * Float(3).squareRoot()
+      position.x -= latticeConstant * 50
+      position.z -= latticeConstant * 20 * Float(3).squareRoot()
       
       atom.position = position
       topology.atoms[atomID] = atom
