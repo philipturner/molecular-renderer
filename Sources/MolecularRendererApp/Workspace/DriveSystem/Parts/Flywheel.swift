@@ -25,7 +25,7 @@ struct Flywheel {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 80 * h + 4 * h2k + 7 * l }
+      Bounds { 80 * h + 4 * h2k + 9 * l }
       Material { .checkerboard(.germanium, .carbon) }
       
       func trimOuterRing() {
@@ -46,7 +46,7 @@ struct Flywheel {
       func createAxle() {
         Convex {
           Convex {
-            Origin { 6.49 * l }
+            Origin { 8.49 * l }
             Plane { l }
           }
           

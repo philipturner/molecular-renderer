@@ -151,10 +151,10 @@ struct ConnectingRod {
           Origin { offsetH * h + 3 * k }
           
           Concave {
-            Convex {
-              Origin { 2 * l }
-              Plane { -l }
-            }
+//            Convex {
+//              Origin { 3 * l }
+//              Plane { -l }
+//            }
             
             var straightDirections: [SIMD3<Float>] = []
             straightDirections.append(h)
@@ -162,7 +162,7 @@ struct ConnectingRod {
             straightDirections += straightDirections.map(-)
             for direction in straightDirections {
               Convex {
-                Origin { 2 * direction }
+                Origin { 1.75 * direction }
                 Plane { -direction }
               }
             }

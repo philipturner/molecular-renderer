@@ -23,7 +23,7 @@ struct Piston {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 50 * h + 7 * h2k + 7 * l }
+      Bounds { 50 * h + 7 * h2k + 10 * l }
       Material { .elemental(.carbon) }
       
       func createBlock() {

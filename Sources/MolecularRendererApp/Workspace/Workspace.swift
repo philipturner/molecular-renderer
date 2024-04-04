@@ -85,12 +85,89 @@ import OpenMM
 // - Inspiration (for mechanosynthesis and rod logic)
 
 func createRigidBodyFrames() -> [[MM4RigidBody]] {
+  // Create the rigid bodies.
   let system = DriveSystem()
-  var frame = system.rigidBodies
-  for i in frame.indices {
-    frame[i].centerOfMass += SIMD3(-15, -3, -40)
+  var rigidBodies = system.rigidBodies
+  for i in rigidBodies.indices {
+    rigidBodies[i].centerOfMass += SIMD3(-15, -3, -40)
   }
-  return [frame]
+//  return [rigidBodies]
+  
+  // Create the force field.
+  var forceFieldParameters = rigidBodies[0].parameters
+  for rigidBody in rigidBodies[1...] {
+    let parameters = rigidBody.parameters
+    forceFieldParameters.append(contentsOf: parameters)
+  }
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.parameters = forceFieldParameters
+  forceFieldDesc.cutoffDistance = 1
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  
+  // Create the frames.
+  var frames: [[MM4RigidBody]] = [rigidBodies]
+  for frameID in 0..<2000 {
+    print("simulation frame:", frameID)
+    
+    if frameID == 240 {
+      var flywheel = rigidBodies[1]
+      let angularVelocity: SIMD3<Double> = .init(-0.063, 0, 0)
+      let momentOfIneertia = flywheel.momentOfInertia
+      flywheel.angularMomentum = momentOfIneertia * angularVelocity
+      rigidBodies[1] = flywheel
+    }
+    
+    var positions = rigidBodies[0].positions
+    for rigidBody in rigidBodies[1...] {
+      positions.append(contentsOf: rigidBody.positions)
+    }
+    forceField.positions = positions
+    let forces = forceField.forces
+    
+    // Assign the forces.
+    var cursor = 0
+    for rigidBodyID in rigidBodies.indices {
+      let spacing = rigidBodies[rigidBodyID].parameters.atoms.count
+      let range = cursor..<(cursor + spacing)
+      cursor += spacing
+      rigidBodies[rigidBodyID].forces = Array(forces[range])
+    }
+    
+    // Perform time integration, damping the kinetic energy.
+    for i in rigidBodies.indices {
+      rigidBodies[i].linearMomentum += 0.040 * rigidBodies[i].netForce!
+      rigidBodies[i].angularMomentum += 0.040 * rigidBodies[i].netTorque!
+      
+      // Dampen the kinetic energy, emulating thermal energy dissipation from
+      // bonded forces.
+      if frameID < 240 {
+        if frameID % 60 == 0 {
+          rigidBodies[i].linearMomentum = .zero
+          rigidBodies[i].angularMomentum = .zero
+        } else {
+          rigidBodies[i].linearMomentum *= 0.98
+          rigidBodies[i].angularMomentum *= 0.98
+        }
+      } else {
+        if i == 0 || i == 3 {
+          rigidBodies[i].linearMomentum *= 0.98
+          rigidBodies[i].angularMomentum *= 0.98
+        }
+      }
+      
+      let v = rigidBodies[i].linearMomentum / rigidBodies[i].mass
+      let w = rigidBodies[i].angularMomentum / rigidBodies[i].momentOfInertia
+      let angularSpeed = (w * w).sum().squareRoot()
+      rigidBodies[i].centerOfMass += 0.040 * v
+      rigidBodies[i].rotate(angle: 0.040 * angularSpeed)
+    }
+    
+    // Record the data for this frame.
+    frames.append(rigidBodies)
+  }
+  
+  // Return the frames.
+  return frames
 }
 
 func createAtomFrames(
@@ -146,7 +223,9 @@ func renderOffline(renderingEngine: MRRenderer) {
       }
     }
   }
-  renderingEngine.setAtomProvider(Provider())
+  
+  let atomProvider = Provider()
+  renderingEngine.setAtomProvider(atomProvider)
   renderingEngine.setQuality(
     MRQuality(minSamples: 7, maxSamples: 32, qualityCoefficient: 100))
   
@@ -163,8 +242,8 @@ func renderOffline(renderingEngine: MRRenderer) {
   var gif = GIF(width: 1280, height: 720)
   
   let checkpoint0 = Date()
-  for frameID in 0..<60 {
-    print("frame:", frameID)
+  for frameID in 0..<atomProvider.atomFrames.count {
+    print("rendering frame:", frameID)
     renderSemaphore.wait()
     
     let time = MRTime(absolute: frameID, relative: 1, frameRate: 60)

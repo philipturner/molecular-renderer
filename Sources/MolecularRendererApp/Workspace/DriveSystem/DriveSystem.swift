@@ -35,7 +35,7 @@ struct DriveSystem {
     piston.rigidBody.centerOfMass.z += Double(10.3 * latticeConstant)
     
     var connectingRod = ConnectingRod()
-    connectingRod.rigidBody.centerOfMass.x += Double(-2.6 * latticeConstant)
+    connectingRod.rigidBody.centerOfMass.x += Double(-2.5 * latticeConstant)
     connectingRod.rigidBody.centerOfMass.y += Double(10.3 * latticeConstant)
     connectingRod.rigidBody.centerOfMass.z += Double(17.4 * latticeConstant)
     
