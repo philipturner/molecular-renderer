@@ -29,7 +29,6 @@ import OpenMM
 //     - Ge-CH2Br
 //     - Sn*
 //     - Sn-H
-// - molecular dynamics at 77 K?
 // - remove halogen caps with 254 nm light
 //
 // Mechanosynthesis
@@ -61,31 +60,35 @@ import OpenMM
 //   - voltage pulse:               Si* + H2C-(CH2)2    surface
 //   - sila-adamantane cage forms:  Si-CH* + *HC-(CH2)2 surface
 //
-// System Construction
-// - move camera to an empty silicon surface
-// - synthesize diamond lattice: AFM follows atoms in Morton order
-// - compile abbreviated mechanosynthesis animation for every part
+// End Product
+// - compile an atomically exact sequence to build an entire ~1000 atom logic
+//   rod, assuming hexagonal Si has the same lattice constant as hexagonal C
+// - show the housing and other rods, but without investing the time into a
+//   mechanosynthetic build sequence for them
+// - show the half adder working, with a truth table
+//
+// Credits
+// - Author
+// - Music
+// - Inspiration (Systems and Methods for Mechanosynthesis)
+//
+// TODO: Move the above notes and relevant code into "silicon-experiment".
+// TODO: Finish fixing up the flywheel before moving on to that project.
+
+// Separate media (not part of this video)
+// - Get the flywheel working with MD, publish short animation
+// - Don't have to get working method to link up to logic; just explain how
+//   that would work
+// - Don't have to finish patterning all the logic rods in the CLA; the
+//   existing progress is enough
+//
+// Flywheel System Animation
 // - lift parts into exploded view
 // - energy-minimize from compiled to relaxed structure
 //   - show each frame of the minimization, if practical
 // - assemble parts on top of each other
 // - rotate so the flywheel points toward viewer
-//
-// System Operation
-// - animate the flywheel-piston system moving
-// - parallel 8-bit half adder, due to restriction to 3 unique clock phases
-// - will include MD simulation at 298 K
-// - [storyboard in progress]
-//
-// Credits
-// - Author
-// - Music
-// - Inspiration (for mechanosynthesis and rod logic)
 
 func createGeometry() -> [Entity] {
-  // Current task:
-  // - Compile and minimize the tripod tooltips.
-  //   - Anchor every atom in the SiH3 groups.
-  // - Serialize the tripods as Swift source code.
   return [Entity(position: .zero, type: .atom(.carbon))]
 }
