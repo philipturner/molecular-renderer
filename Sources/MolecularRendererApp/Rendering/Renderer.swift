@@ -20,9 +20,10 @@ class Renderer {
     self.coordinator = coordinator
     self.eventTracker = coordinator.eventTracker
     initializeExternalLibraries()
-    initializeCompilation {
-      createGeometry()
-    }
+//    initializeCompilation {
+//      createGeometry()
+//    }
+    renderOffline(renderingEngine: renderingEngine)
   }
 }
 

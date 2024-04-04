@@ -1,6 +1,9 @@
+import CairoGraphics
 import Foundation
+import GIF
 import HDL
 import MM4
+import MolecularRenderer
 import Numerics
 import OpenMM
 
@@ -81,143 +84,107 @@ import OpenMM
 // - Music
 // - Inspiration (for mechanosynthesis and rod logic)
 
-func createGeometry() -> [Entity] {
+func renderOffline(renderingEngine: MRRenderer) {
   // Second task:
   // - Compile and minimize the tripod tooltips.
   //   - Anchor every atom in the SiH3 groups.
   //   - Get the xtb command-line binary running with Accelerate.
   // - Serialize the tripods as Swift source code.
   
-  var surface = Surface()
-  var tripod = Tripod()
+  print()
+  print("Hello, world!")
   
-  var germanium: Entity?
-  for atom in tripod.topology.atoms {
-    if atom.atomicNumber == 32 {
-      germanium = atom
+  struct Provider: MRAtomProvider {
+    func atoms(time: MolecularRenderer.MRTime) -> [MolecularRenderer.MRAtom] {
+      let progress = Float(time.absolute.frames % 120) / 120
+      let position = SIMD3<Float>(progress - 0.5, 0, -1)
+      return [MRAtom(origin: position, element: 6)]
     }
   }
-  guard let germanium else {
-    fatalError("Could not find germanium.")
-  }
+  renderingEngine.setAtomProvider(Provider())
+  renderingEngine.setQuality(
+    MRQuality(minSamples: 7, maxSamples: 32, qualityCoefficient: 100))
   
-  // Add the feedstock to the tripod (hasty solution).
-  do {
-    var position = germanium.position
-    position.y += Element.germanium.covalentRadius
-    position.y += Element.carbon.covalentRadius
-    let carbon = Entity(position: position, type: .atom(.carbon))
-    let carbonID = tripod.topology.atoms.count
-    
-    var insertedAtoms = [carbon]
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for passivatorID in 0..<3 {
-      var element: Element
-      if passivatorID == 0 {
-        element = .hydrogen
-      } else {
-        element = .bromine
-      }
-      
-      let baseAngle: Float = 109.47 * .pi / 180
-      let baseRotation = Quaternion(angle: baseAngle, axis: [0, 0, 1])
-      let secondAngle = Float(passivatorID) * .pi * 2 / 3
-      let secondRotation = Quaternion(angle: secondAngle, axis: [0, 1, 0])
-      
-      var orbital: SIMD3<Float> = .init(0, -1, 0)
-      orbital = baseRotation.act(on: orbital)
-      orbital = secondRotation.act(on: orbital)
-      
-      var bondLength: Float = .zero
-      bondLength += Element.carbon.covalentRadius
-      bondLength += element.covalentRadius
-      let position = carbon.position + bondLength * orbital
-      let passivator = Entity(position: position, type: .atom(element))
-      
-      let passivatorID = tripod.topology.atoms.count + insertedAtoms.count
-      let bond = SIMD2(UInt32(carbonID), UInt32(passivatorID))
-      insertedAtoms.append(passivator)
-      insertedBonds.append(bond)
-    }
-    tripod.topology.insert(atoms: insertedAtoms)
-    tripod.topology.insert(bonds: insertedBonds)
-  }
+  let rotation: (SIMD3<Float>, SIMD3<Float>, SIMD3<Float>) = (
+    SIMD3(1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1))
+  renderingEngine.setCamera(
+    MRCamera(position: .zero, rotation: rotation, fovDegrees: 60))
+  renderingEngine.setLights([
+    MRLight(origin: .zero, diffusePower: 1, specularPower: 1)
+  ])
   
-  // Passivate the surface (hasty solution).
-  do {
-    var squashedTopology = tripod.topology
-    for atomID in squashedTopology.atoms.indices {
-      squashedTopology.atoms[atomID].position.y = .zero
-    }
+  let renderSemaphore: DispatchSemaphore = .init(value: 3)
+  let renderQueue = DispatchQueue(label: "renderQueue")
+  var gif = GIF(width: 1280, height: 720)
+  
+  let checkpoint0 = Date()
+  for frameID in 0..<60 {
+    print("frame:", frameID)
+    renderSemaphore.wait()
     
-    // Return value has same dimensions as function argument.
-    let closeMatches = tripod.topology.match(
-      surface.topology.atoms, algorithm: .absoluteRadius(0.010))
-    let farMatches = squashedTopology.match(
-      surface.topology.atoms, algorithm: .absoluteRadius(0.200))
-    
-    var insertedAtoms: [Entity] = []
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for atomID in surface.topology.atoms.indices {
-      let silicon = surface.topology.atoms[atomID]
-      if silicon.position.y < -0.010 {
-        continue
-      }
-      
-      // Exclude the silicon where the nitrogen attaches.
-      if closeMatches[atomID].count > 0 {
-        continue
-      }
-      
-      // Make the passivators under the tripod all be hydrogen.
-      var element: Element
-      if farMatches[atomID].count > 0 {
-        element = .hydrogen
-      } else {
-        if Bool.random() {
-          element = .hydrogen
-        } else {
-          element = .chlorine
+    let time = MRTime(absolute: frameID, relative: 1, frameRate: 60)
+    renderingEngine.setTime(time)
+    renderingEngine.render { pixels in
+      let image = try! CairoImage(width: 1280, height: 720)
+      for y in 0..<720 {
+        for x in 0..<1280 {
+          let address = y * 1280 + x
+          let r = pixels[4 * address + 0]
+          let g = pixels[4 * address + 1]
+          let b = pixels[4 * address + 2]
+          let a = pixels[4 * address + 3]
+          
+          let pixelVector = SIMD4(r, g, b, a)
+          let pixelScalar = unsafeBitCast(pixelVector, to: UInt32.self)
+          let color = Color(argb: pixelScalar)
+          image[y, x] = color
         }
       }
       
-      var bondLength: Float
-      if element == .hydrogen {
-        bondLength = 1.483 / 10
-      } else {
-        bondLength = 2.029 / 10
+      let quantization = OctreeQuantization(fromImage: image)
+      let frame = Frame(
+        image: image, 
+        delayTime: 2, // 50 FPS
+        localQuantization: quantization)
+      renderQueue.sync {
+        gif.frames.append(frame)
       }
-      let orbital: SIMD3<Float> = [0, 1, 0]
-      let position = silicon.position + bondLength * orbital
-      let passivator = Entity(position: position, type: .atom(element))
-      
-      let passivatorID = surface.topology.atoms.count + insertedAtoms.count
-      let bond = SIMD2(UInt32(atomID), UInt32(passivatorID))
-      insertedAtoms.append(passivator)
-      insertedBonds.append(bond)
-    }
-    surface.topology.insert(atoms: insertedAtoms)
-    surface.topology.insert(bonds: insertedBonds)
-  }
-  
-  // Set the silyl group as anchors (hasty solution).
-  var anchors: [Int] = []
-  for atomID in tripod.topology.atoms.indices {
-    let atom = tripod.topology.atoms[atomID]
-    if atom.atomicNumber == 14 || atom.position.y < 0 {
-      anchors.append(atomID)
+      renderSemaphore.signal()
     }
   }
   
-  var solver = XTBSolver(cpuID: 0)
-  solver.atoms = tripod.topology.atoms
-  solver.process.anchors = anchors
-  solver.solve(arguments: ["--opt"])
-  solver.load()
-  tripod.topology.atoms = solver.atoms
+  print("waiting on semaphore")
+  renderSemaphore.wait()
+  print("waiting on semaphore")
+  renderSemaphore.wait()
+  print("waiting on semaphore")
+  renderSemaphore.wait()
   
-  var output: [Entity] = []
-  output += tripod.topology.atoms
-  output += surface.topology.atoms
-  return output
+  let checkpoint1 = Date()
+  
+  print("encoding GIF")
+  let data = try! gif.encoded()
+  print("encoded size")
+  print(data.count)
+  
+  let checkpoint2 = Date()
+  
+  print("saving to file")
+  let path = "/Users/philipturner/Desktop/Render.gif"
+  let url = URL(fileURLWithPath: path)
+  guard FileManager.default.createFile(atPath: path, contents: data) else {
+    fatalError("Could not create file at \(url.relativeString).")
+  }
+  
+  let checkpoint3 = Date()
+  
+  print()
+  print("latency overview:")
+  print("- checkpoint 0 -> 1 | \(checkpoint1.timeIntervalSince(checkpoint0))")
+  print("- checkpoint 1 -> 2 | \(checkpoint2.timeIntervalSince(checkpoint1))")
+  print("- checkpoint 2 -> 3 | \(checkpoint3.timeIntervalSince(checkpoint2))")
+  
+  exit(0)
+//  var system = DriveSystem()
+//  return system.rigidBodies
 }

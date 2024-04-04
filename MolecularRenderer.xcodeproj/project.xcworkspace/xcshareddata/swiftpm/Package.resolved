@@ -1,5 +1,5 @@
 {
-  "originHash" : "60010ddd2c904744348e8cac180babb14a58a61d154beb3d8592d5f32e964d98",
+  "originHash" : "6bbddfa43a197dab20ecb602cfa556ef013fd10c1ee19a749cda2b2880c13774",
   "pins" : [
     {
       "identity" : "hdl",
@@ -38,12 +38,57 @@
       }
     },
     {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "9564d61b08a5335ae0a36f789a7d71493eacadfc",
+        "version" : "0.3.2"
+      }
+    },
+    {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
       "state" : {
         "revision" : "cd142fd2f64be2100422d658e7411e39489da985",
         "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "swift-cairo",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/fwcd/swift-cairo.git",
+      "state" : {
+        "revision" : "9654454540ed412249259f310aa8b658b4359bc2",
+        "version" : "1.3.4"
+      }
+    },
+    {
+      "identity" : "swift-gif",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/philipturner/swift-gif",
+      "state" : {
+        "branch" : "main",
+        "revision" : "be4b35e9ea0076edf81d1b1d59b8ab8ebc5dcc3d"
+      }
+    },
+    {
+      "identity" : "swift-graphics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/fwcd/swift-graphics.git",
+      "state" : {
+        "revision" : "d57c3f5b4deb36009301ae3628bb2400f466c8e4",
+        "version" : "2.1.0"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "revision" : "e97a6fcb1ab07462881ac165fdbb37f067e205d5",
+        "version" : "1.5.4"
       }
     },
     {
@@ -62,6 +107,33 @@
       "state" : {
         "branch" : "main",
         "revision" : "a1b454a8a1cd299dacecfdefe7dce4f75331d3f8"
+      }
+    },
+    {
+      "identity" : "swift-utils",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/fwcd/swift-utils.git",
+      "state" : {
+        "revision" : "6b0fefcc89511fd5e5d6c0afa111a3ca0b61cfae",
+        "version" : "2.2.2"
+      }
+    },
+    {
+      "identity" : "swiftsoup",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/scinfu/SwiftSoup.git",
+      "state" : {
+        "revision" : "028487d4a8a291b2fe1b4392b5425b6172056148",
+        "version" : "2.7.2"
+      }
+    },
+    {
+      "identity" : "xmlcoder",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MaxDesiatov/XMLCoder.git",
+      "state" : {
+        "revision" : "b1e944cbd0ef33787b13f639a5418d55b3bed501",
+        "version" : "0.17.1"
       }
     }
   ],

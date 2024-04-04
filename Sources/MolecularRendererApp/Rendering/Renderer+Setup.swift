@@ -102,8 +102,13 @@ extension Renderer {
     descriptor.height = Int(ContentView.size)
     descriptor.upscaleFactor = ContentView.upscaleFactor
 #endif
-    descriptor.sceneSize = .extreme
-    eventTracker.walkingSpeed = 2
+//    descriptor.sceneSize = .extreme
+//    eventTracker.walkingSpeed = 2
+    
+    descriptor.sceneSize = .large
+    descriptor.offline = true
+    descriptor.width = 1280
+    descriptor.height = 720
     
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyleProvider(RendererStyle())
@@ -132,7 +137,7 @@ extension Renderer {
 
 // MARK: - Atom Style Provider
 
-private struct RendererStyle: MRAtomStyleProvider {
+struct RendererStyle: MRAtomStyleProvider {
   var styles: [MRAtomStyle]
   
   var available: [Bool]
