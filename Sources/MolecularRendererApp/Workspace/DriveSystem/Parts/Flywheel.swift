@@ -10,9 +10,6 @@ import HDL
 import MM4
 import Numerics
 
-// NOTE: This flywheel should be changed to match the new housing. Generally,
-// you design the housing first and the moving parts second.
-
 struct Flywheel {
   var rigidBody: MM4RigidBody
   
@@ -25,7 +22,7 @@ struct Flywheel {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 80 * h + 4 * h2k + 9 * l }
+      Bounds { 80 * h + 4 * h2k + 10 * l }
       Material { .checkerboard(.germanium, .carbon) }
       
       func trimOuterRing() {
@@ -46,7 +43,7 @@ struct Flywheel {
       func createAxle() {
         Convex {
           Convex {
-            Origin { 8.49 * l }
+            Origin { 9.49 * l }
             Plane { l }
           }
           
@@ -310,5 +307,21 @@ extension Flywheel {
       atom.position = position
       topology.atoms[atomID] = atom
     }
+  }
+}
+
+extension Flywheel {
+  // Minimize this before adding to the system, so that the knobs are smaller.
+  mutating func minimize() {
+    var forceFieldDesc = MM4ForceFieldDescriptor()
+    forceFieldDesc.parameters = rigidBody.parameters
+    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+    forceField.positions = rigidBody.positions
+    forceField.minimize(tolerance: 0.1)
+
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.parameters = rigidBody.parameters
+    rigidBodyDesc.positions = Array(forceField.positions)
+    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
 }

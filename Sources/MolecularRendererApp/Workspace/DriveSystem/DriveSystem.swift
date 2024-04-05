@@ -38,9 +38,8 @@ struct DriveSystem {
     piston.rigidBody.centerOfMass += pistonOffset
     connectingRod.rigidBody.centerOfMass += connectingRodOffset
     
-    // Correct for the shift that would occur after energy minimization.
-    connectingRod.rigidBody.centerOfMass.x -= 0.22
-    piston.rigidBody.centerOfMass.x -= 0.18
+    connectingRod.rigidBody.centerOfMass.x -= 0.2
+    piston.rigidBody.centerOfMass.x += 0.35
   }
   
   mutating func rotate(angle: Double, axis: SIMD3<Double>) {
@@ -75,23 +74,10 @@ struct DriveSystem {
 }
 
 extension DriveSystem {
-  // The parts must already be separated from each other. Example:
-  // driveSystem.rotate(angle: .pi / 2, axis: [-1, 0, 0])
-  // driveSystem.scale(factor: SIMD3(1.5, 4, 1.5))
-  // driveSystem.shift(offset: SIMD3(0, -15, 0))
   mutating func minimize() {
     var forceFieldParameters = connectingRod.rigidBody.parameters
     forceFieldParameters.append(contentsOf: flywheel.rigidBody.parameters)
-    do {
-      var parameters = housing.rigidBody.parameters
-      for atomID in parameters.atoms.indices {
-        let centerType = parameters.atoms.centerTypes[atomID]
-        if centerType == .quaternary {
-//          parameters.atoms.masses[atomID] = .zero
-        }
-      }
-      forceFieldParameters.append(contentsOf: parameters)
-    }
+    forceFieldParameters.append(contentsOf: housing.rigidBody.parameters)
     forceFieldParameters.append(contentsOf: piston.rigidBody.parameters)
     
     var forceFieldPositions = connectingRod.rigidBody.positions

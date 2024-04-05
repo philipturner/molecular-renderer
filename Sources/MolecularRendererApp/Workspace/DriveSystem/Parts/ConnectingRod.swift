@@ -24,7 +24,7 @@ struct ConnectingRod {
   
   static func createLattice() -> Lattice<Cubic> {
     Lattice<Cubic> { h, k, l in
-      Bounds { 36 * h + 6 * k + 4 * l }
+      Bounds { 38 * h + 6 * k + 4 * l }
       Material { .elemental(.carbon) }
       
       // Fix the warping.
@@ -49,20 +49,27 @@ struct ConnectingRod {
         }
       }
       createIndent(start: 1, end: 3, front: false)
-      createIndent(start: 7, end: 9, front: true)
-      createIndent(start: 12, end: 14, front: false)
-      createIndent(start: 17, end: 19, front: true)
-      createIndent(start: 22, end: 25, front: false)
-      createIndent(start: 27, end: 29, front: true)
-      createIndent(start: 32, end: 35, front: false)
+      createIndent(start: 7, end: 10, front: true)
+      createIndent(start: 13, end: 15, front: false)
+      createIndent(start: 18, end: 20, front: true)
+      createIndent(start: 23, end: 26, front: false)
+      createIndent(start: 28, end: 31, front: true)
+      createIndent(start: 34, end: 37, front: false)
       
       // Engrave the text: "nano"
-      func createPixel(position: SIMD2<Float>) {
+      func createPixel(position: SIMD2<Float>, withBack: Bool = true) {
         Volume {
           let offsetH = Float(position.x)
           let offsetK = Float(position.y)
           Origin { offsetH * h + offsetK * k }
-          for segmentID in 0..<2 {
+          
+          var segmentStart: Int = 1
+          var segmentEnd: Int = 2
+          if withBack {
+            segmentStart = 0
+          }
+          
+          for segmentID in segmentStart..<segmentEnd {
             Concave {
               Origin { -0.25 * h }
               Plane { h }
@@ -76,11 +83,7 @@ struct ConnectingRod {
               
               if segmentID == 0 {
                 Convex {
-                  Origin { 0.5 * l }
-                  Plane { l }
-                }
-                Convex {
-                  Origin { 2.5 * l }
+                  Origin { 1.5 * l }
                   Plane { -l }
                 }
               } else {
@@ -94,71 +97,66 @@ struct ConnectingRod {
       }
       
       let pattern1: [String] = [
-        "00|0||00000||||000000|0||00000|||||0",
-        "00|||||0000000||00000|||||0000|000|0",
-        "00||00|0000|||||00000||00|0000|000|0",
-        "00|000|0000|00||00000|000|0000|000|0",
-        "00|000|0000|||||00000|000|0000|||||0",
+        "00|0||000000||||000000|0||000000|||||0",
+        "00|||||00000000||00000|||||00000|000|0",
+        "00||00|00000|||||00000||00|00000|000|0",
+        "00|000|00000|00||00000|000|00000|000|0",
+        "00|000|00000|||||00000|000|00000|||||0",
       ]
       
       for lineID in pattern1.indices {
         let line: String = pattern1[lineID]
         line.withCString { cString in
           let zeroRawValue = Character("0").asciiValue!
-          for characterID in 0..<36 {
+          for characterID in 0..<38 {
             let character = cString[characterID]
             guard character != zeroRawValue else {
               continue
             }
             
-            let positionY = Float(5 - lineID)
             let positionX = Float(characterID)
+            let positionY = Float(5 - lineID)
             createPixel(position: SIMD2(positionX, positionY))
           }
         }
       }
       
       let pattern2: [String] = [
-        "00|000000000|||000000|000000000||||0",
-        "00|0|||00000000|00000|0|||0000||00||",
-        "00|||0||0000000|00000|||0||000|0000|",
-        "00||000|000|||||00000||000|000|0000|",
-        "00|0000|000||0||00000|0000|000||00||",
-        "00|0000|0000||0|00000|0000|0000||||0",
-        "000000000000000000000000000000000000",
+        "00|0000000000|||000000|0000000000||||0",
+        "00|0|||000000000|00000|0|||00000||000|",
+        "00|||0||00000000|00000|||0||0000|0000|",
+        "00||000|0000|||||00000||000|0000|0000|",
+        "00|0000|0000||0||00000|0000|0000|000||",
+        "00|0000|00000||0|00000|0000|00000||||0",
+        "00000000000000000000000000000000000000",
       ]
       
       for lineID in pattern2.indices {
         let line: String = pattern2[lineID]
         line.withCString { cString in
           let zeroRawValue = Character("0").asciiValue!
-          for characterID in 0..<36 {
+          for characterID in 0..<38 {
             let character = cString[characterID]
             guard character != zeroRawValue else {
               continue
             }
             
-            let positionY = Float(6 - lineID) - 0.5
             let positionX = Float(characterID) - 0.5
+            let positionY = Float(6 - lineID) - 0.5
             createPixel(position: SIMD2(positionX, positionY))
           }
         }
       }
+      
+      // Make the 'n' more clear, since it's partially obstructed by the knob.
+      createPixel(position: SIMD2(3.25, 4.75), withBack: false)
       
       // Create holes for the knobs to fit inside.
       func createHole(offsetH: Float) {
         Volume {
           Origin { offsetH * h + 3 * k }
           
-          // TODO: Fix the knobs and holes. They're currently misaligned with
-          // the letters 'nano', clipping some letters and making then harder
-          // to reading.
           Concave {
-//            Convex {
-//              Origin { 3 * l }
-//              Plane { -l }
-//            }
-            
             var straightDirections: [SIMD3<Float>] = []
             straightDirections.append(h)
             straightDirections.append(k)
@@ -184,8 +182,8 @@ struct ConnectingRod {
           Replace { .empty }
         }
       }
-      createHole(offsetH: 3.5)
-      createHole(offsetH: 32.5)
+      createHole(offsetH: 4.00)
+      createHole(offsetH: 34.00)
     }
   }
   
@@ -208,5 +206,22 @@ struct ConnectingRod {
     rigidBodyDesc.parameters = parameters
     rigidBodyDesc.positions = topology.atoms.map(\.position)
     return try! MM4RigidBody(descriptor: rigidBodyDesc)
+  }
+}
+
+extension ConnectingRod {
+  // This must be minimized before adding to the system, otherwise hydrogens
+  // will fly off.
+  mutating func minimize() {
+    var forceFieldDesc = MM4ForceFieldDescriptor()
+    forceFieldDesc.parameters = rigidBody.parameters
+    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+    forceField.positions = rigidBody.positions
+    forceField.minimize(tolerance: 10)
+
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.parameters = rigidBody.parameters
+    rigidBodyDesc.positions = Array(forceField.positions)
+    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
 }
