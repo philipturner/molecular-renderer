@@ -137,6 +137,7 @@ struct Flywheel {
     }
     
     topology = deduplicate(topology: topology)
+    shrink(topology: &topology)
     topology.sort()
     return topology
   }
@@ -282,5 +283,32 @@ extension Flywheel {
     output.insert(bonds: Array(insertedBonds))
     output.remove(atoms: Array(removedAtoms))
     return output
+  }
+  
+  private static func shrink(topology: inout Topology) {
+    var germaniumMaxZ: Float = -.greatestFiniteMagnitude
+    for atom in topology.atoms {
+      guard atom.atomicNumber == 32 else {
+        continue
+      }
+      let positionZ = atom.position.z
+      germaniumMaxZ = max(germaniumMaxZ, positionZ)
+    }
+    
+    var shrinkFactor: Float = 1
+    shrinkFactor *= Constant(.prism) { .elemental(.carbon) }
+    shrinkFactor /= Constant(.prism) { .checkerboard(.germanium, .carbon) }
+    
+    for atomID in topology.atoms.indices {
+      var atom = topology.atoms[atomID]
+      var position = atom.position
+      if position.z - germaniumMaxZ > 0.001 {
+        var delta = position.z - germaniumMaxZ
+        delta *= shrinkFactor
+        position.z = germaniumMaxZ + delta
+      }
+      atom.position = position
+      topology.atoms[atomID] = atom
+    }
   }
 }
