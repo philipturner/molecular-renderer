@@ -8,25 +8,6 @@
 import HDL
 
 extension SurfaceReconstruction {
-  mutating
-  func countThreeWayCollisions() -> Int {
-    var collisionsDict: [SIMD3<UInt32>: Bool] = [:]
-    for i in hydrogensToAtomsMap.indices {
-      var atomList = hydrogensToAtomsMap[i]
-      guard atomList.count == 3 || atomList.count == 4 else {
-        continue
-      }
-      atomList.sort()
-      
-      let vectorRepr = SIMD3(atomList[0], atomList[1], atomList[2])
-      if collisionsDict[vectorRepr] != nil {
-        fatalError("Duplicate dictionary entry.")
-      }
-      collisionsDict[vectorRepr] = true
-    }
-    return collisionsDict.keys.count
-  }
-  
   mutating func resolveThreeWayCollisions() {
     guard let material else {
       fatalError("Material not specified.")

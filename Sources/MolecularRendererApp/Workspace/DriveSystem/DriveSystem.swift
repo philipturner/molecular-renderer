@@ -16,14 +16,12 @@ struct DriveSystem {
   var housing: Housing
   var piston: Piston
   
+  // Initialization sequence:
+  // - call the system initializer
+  // - minimize the connecting rod in isolation
+  // - minimize the flywheel in isolation
+  // - minimize the entire system
   init() {
-    // 1) Each part materializes in the state immediately after compilation.
-    // 2) Energy-minimize while in the air, a few steps at a time.
-    // 3) Compress down into assembled structure, rotate toward viewer.
-    // 4) Run RBD simulation.
-    // 5) Run MD simulation on 7900 XTX, serialize and debug in CAD program.
-    // 6) Fix up the 'nano' lettering on the connecting rod.
-    
     connectingRod = ConnectingRod()
     flywheel = Flywheel()
     housing = Housing()

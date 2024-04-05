@@ -36,13 +36,11 @@ struct SurfaceReconstruction {
     
     // Loop over this several times.
     var converged = false
-    for iterationID in 0..<100 {
+    for _ in 0..<100 {
       createBulkAtomBonds()
       createHydrogenSites()
       
       if hydrogensToAtomsMap.contains(where: { $0.count > 2 }) {
-        let count = countThreeWayCollisions()
-        
         // Add center atoms to problematic sites.
         resolveThreeWayCollisions()
         
