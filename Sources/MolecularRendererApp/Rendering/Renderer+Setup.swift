@@ -52,6 +52,18 @@ extension Renderer {
     renderingEngine.setAtomProvider(provider)
   }
   
+  func initializeCompilation(_ closure: () -> Animation) {
+    let start = CACurrentMediaTime()
+    let provider = closure()
+    let end = CACurrentMediaTime()
+    
+    print("atoms:", provider.atomCount)
+    print("frames:", provider.frameCount)
+    print("setup time:", String(format: "%.1f", (end - start) * 1e3), "ms")
+    
+    renderingEngine.setAtomProvider(provider)
+  }
+  
   private static func createFrame(rigidBodies: [MM4RigidBody]) -> [Entity] {
     var atoms: [Entity] = []
     for rigidBody in rigidBodies {
