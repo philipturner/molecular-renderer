@@ -70,7 +70,6 @@
 		98AF5B232BBE51320015C7DC /* GIF in Frameworks */ = {isa = PBXBuildFile; productRef = 98AF5B222BBE51320015C7DC /* GIF */; };
 		98AF5B242BBE519A0015C7DC /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; };
 		98AF5B252BBE519A0015C7DC /* libfreetype.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		98AF5B2B2BBEC4800015C7DC /* OfflineRendering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B2A2BBEC4800015C7DC /* OfflineRendering.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
@@ -256,7 +255,6 @@
 		98AF5B1B2BBE0E5B0015C7DC /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
 		98AF5B1D2BBE0E620015C7DC /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
 		98AF5B1F2BBE0E6A0015C7DC /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
-		98AF5B2A2BBEC4800015C7DC /* OfflineRendering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineRendering.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -628,7 +626,6 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
-				98AF5B2A2BBEC4800015C7DC /* OfflineRendering.swift */,
 				98AF5B0E2BBDB6F40015C7DC /* DriveSystem */,
 				98AF5B112BBDFD290015C7DC /* Surface */,
 			);
@@ -1391,7 +1388,6 @@
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98AF5B092BBB69D00015C7DC /* Flywheel.swift in Sources */,
-				98AF5B2B2BBEC4800015C7DC /* OfflineRendering.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
