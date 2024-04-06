@@ -65,6 +65,7 @@
 		98AF5B252BBE519A0015C7DC /* libfreetype.6.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98AF5B2E2BC09D3B0015C7DC /* Surface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B2D2BC09D3B0015C7DC /* Surface.swift */; };
 		98AF5B302BC0ABA20015C7DC /* Animation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B2F2BC0ABA20015C7DC /* Animation.swift */; };
+		98AF5B322BC0BF150015C7DC /* ManufacturingSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B312BC0BF150015C7DC /* ManufacturingSequence.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
@@ -245,6 +246,7 @@
 		98AF5B0F2BBDB7060015C7DC /* DriveSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveSystem.swift; sourceTree = "<group>"; };
 		98AF5B2D2BC09D3B0015C7DC /* Surface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surface.swift; sourceTree = "<group>"; };
 		98AF5B2F2BC0ABA20015C7DC /* Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animation.swift; sourceTree = "<group>"; };
+		98AF5B312BC0BF150015C7DC /* ManufacturingSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManufacturingSequence.swift; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -689,6 +691,7 @@
 			children = (
 				98AF5B2F2BC0ABA20015C7DC /* Animation.swift */,
 				98AF5B2D2BC09D3B0015C7DC /* Surface.swift */,
+				98AF5B312BC0BF150015C7DC /* ManufacturingSequence.swift */,
 			);
 			path = Animation;
 			sourceTree = "<group>";
@@ -1352,6 +1355,7 @@
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				98AF5B0D2BBD834C0015C7DC /* ConnectingRod.swift in Sources */,
+				98AF5B322BC0BF150015C7DC /* ManufacturingSequence.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
 				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,

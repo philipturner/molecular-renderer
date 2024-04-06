@@ -5,6 +5,7 @@ import Numerics
 import OpenMM
 
 func createGeometry() -> Animation {
+  // TODO: Don't forget to energy-minimize before rendering the structure!
   let animation = Animation()
   return animation
 }
