@@ -14,69 +14,6 @@ import Numerics
 struct ManufacturingSequence {
   var manufacturingPartAtomSequences: [[Entity]]
   var manufacturingPartTimeSpans: [Int] = [1200, 600, 600, 1500]
-  var cameraKeyFrames: [SIMD3<Float>] = [
-    SIMD3<Float>(0, 20, 2),
-    SIMD3<Float>(0, 20, 3.2),
-    SIMD3<Float>(0, 20, 4.4),
-    SIMD3<Float>(0, 20, 5.6),
-    SIMD3<Float>(0, 20, 6.7),
-    
-    SIMD3<Float>(0, 20, 7.7),
-    SIMD3<Float>(0, 20, 8.5),
-    SIMD3<Float>(0, 20, 9),
-    SIMD3<Float>(0, 20, 9),
-    SIMD3<Float>(0, 20, 9),
-    
-    SIMD3<Float>(0, 20.0, 9.0),
-    SIMD3<Float>(0, 20.0, 9.0),
-    SIMD3<Float>(0, 19.0, 10.0),
-    SIMD3<Float>(0, 18.0, 11.0),
-    SIMD3<Float>(0, 17.0, 12.0),
-    
-    SIMD3<Float>(0, 16.0, 13.0),
-    SIMD3<Float>(0, 15.0, 14.0),
-    SIMD3<Float>(0, 14.0, 15.0),
-    SIMD3<Float>(0, 13.0, 16.0),
-    SIMD3<Float>(0, 12.0, 17.0),
-    
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    SIMD3<Float>(0, 10, 18),
-    
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    SIMD3<Float>(0, 0, 25),
-    
-    SIMD3<Float>(0, 0, 25),
-  ]
   
   var frameCount: Int {
     manufacturingPartTimeSpans.reduce(0, +)
@@ -239,21 +176,7 @@ extension ManufacturingSequence {
     }
     for atomID in partAtoms.indices {
       let atom = partAtoms[atomID]
-      var atomProgress = Float(atomID) / Float(partAtoms.count)
-      
-      switch containingRangeID {
-      case 0:
-        atomProgress *= 6 / 10
-      case 1:
-        break
-      case 2:
-        break
-      case 3:
-        break
-      default:
-        fatalError("Unrecognized part ID.")
-      }
-      
+      let atomProgress = Float(atomID) / Float(partAtoms.count)
       guard atomProgress < progressFloat else {
         continue
       }
@@ -261,23 +184,5 @@ extension ManufacturingSequence {
     }
     
     return frame
-  }
-  
-  func cameraPosition(frameID: Int) -> SIMD3<Float> {
-    let partTimeRanges = createPartTimeRanges()
-    let containingRangeID = findContainingRangeID(frameID: frameID)
-    let containingRange = partTimeRanges[containingRangeID]
-    
-    let tenth = 10 * (frameID - containingRange.lowerBound) / containingRange.count
-    let tenthCheckpoint = tenth * containingRange.count / 10
-    let nextTenthCheckpoint = (tenth + 1) * containingRange.count / 10
-    let tenthProgress = Float((frameID - containingRange.lowerBound) - tenthCheckpoint) / Float(nextTenthCheckpoint - tenthCheckpoint)
-    
-    let keyFrame1 = cameraKeyFrames[containingRangeID * 10 + tenth]
-    let keyFrame2 = cameraKeyFrames[min(containingRangeID * 10 + tenth + 1, cameraKeyFrames.count - 1)]
-    
-    var cameraPosition: SIMD3<Float> = keyFrame1
-    cameraPosition += tenthProgress * (keyFrame2 - keyFrame1)
-    return cameraPosition
   }
 }

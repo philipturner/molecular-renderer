@@ -14,9 +14,27 @@ import Numerics
 struct Animation: MRAtomProvider {
   // Stored properties.
   var surface: Surface
+  
+  // TODO: Simulate the drive system with molecular dynamics. Measure the
+  // energy dissipation as a function of clock speed. Pre-compile a simulation
+  // of it moving. Also, pre-compile the energy-minimized structures to reduce
+  // load times.
   var driveSystem: DriveSystem
+  
+  // TODO: Script the 'nano' rod being manufactured with tripods + AFM. The
+  // reaction sequence doesn't need to be tested in xTB; only the tripod
+  // structures need to come from xTB (and they can be pre-compiled as well).
+  // - Create a function to compile the tripods pre-minimization, and another
+  //   function to retrieve compiled ones from the disk (like with the flywheel
+  //   structure).
   var manufacturingSequence: ManufacturingSequence
-  // TODO: AssemblySequence
+  
+  // TODO: Script the parts being brought together. What order are they placed
+  // in, and where do they move in 3D space?
+  
+  // TODO: Record camera motions in the UI, then load them for replaying in
+  // the offline renderer. It is especially tricky to automate the camera
+  // motions for the atom placement sequence.
   
   // Computed properties.
   var atomCount: Int {
@@ -36,6 +54,9 @@ struct Animation: MRAtomProvider {
   init() {
     surface = Surface()
     driveSystem = DriveSystem()
+//    driveSystem.connectingRod.minimize()
+//    driveSystem.flywheel.minimize()
+//    driveSystem.minimize()
     manufacturingSequence = ManufacturingSequence(driveSystem: driveSystem)
     
     // Phases:
@@ -43,8 +64,6 @@ struct Animation: MRAtomProvider {
     // - Assembly
     // - Operation
   }
-  
-  
 }
 
 extension Animation {
@@ -56,11 +75,12 @@ extension Animation {
     frame += surface.topology.atoms
     frame += manufacturingSequence.atoms(frameID: frameID)
     
-    let cameraPosition = manufacturingSequence
-      .cameraPosition(frameID: frameID)
+    // Flip the axes so it's easier to move around.
     for atomID in frame.indices {
       var atom = frame[atomID]
-      atom.position -= cameraPosition
+      var position = atom.position
+      position = SIMD3(position.x, position.z, -position.y)
+      atom.position = position
       frame[atomID] = atom
     }
     
