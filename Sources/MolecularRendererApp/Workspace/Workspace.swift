@@ -19,6 +19,14 @@ import OpenMM
 
 #if true
 
+// Raw data (to be archived in the corresponding Git commit):
+//
+// 10 GHz - fails to function correctly, connecting rod detaches in +Z direction
+// 3.2 GHz
+//
+// 10 GHz - 250 frames @ 0.400 ps/frame, 250 seconds compile time on AMD machine
+// 3.2 GHz - 250 frames @ 1.25 ps/frame
+
 func createGeometry() -> [[Entity]] {
   let frames = deserialize(
     path: "/Users/philipturner/Desktop/Simulation.data")
