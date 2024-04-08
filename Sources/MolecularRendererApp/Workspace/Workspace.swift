@@ -48,9 +48,6 @@ import OpenMM
 //    - frame 200:  -14,000 yg-nm^2/ps along first principal axis
 //                    3,000 yg-nm^2/ps along second principal axis
 //                   17,000 yg-nm^2/ps along third principal axis
-//    - frame 232:  -14,000 yg-nm^2/ps along first principal axis
-//                   -7,000 yg-nm^2/ps along second principal axis
-//                   31,000 yg-nm^2/ps along third principal axis
 //    - frame 250:  -56,000 yg-nm^2/ps along first principal axis
 //                    3,000 yg-nm^2/ps along second principal axis
 //                   15,000 yg-nm^2/ps along third principal axis
