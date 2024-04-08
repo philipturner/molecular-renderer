@@ -54,9 +54,9 @@ struct Animation: MRAtomProvider {
   init() {
     surface = Surface()
     driveSystem = DriveSystem()
-//    driveSystem.connectingRod.minimize()
-//    driveSystem.flywheel.minimize()
-//    driveSystem.minimize()
+    driveSystem.connectingRod.minimize()
+    driveSystem.flywheel.minimize()
+    driveSystem.minimize()
     manufacturingSequence = ManufacturingSequence(driveSystem: driveSystem)
     
     // Phases:
