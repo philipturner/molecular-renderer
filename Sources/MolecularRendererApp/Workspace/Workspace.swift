@@ -19,14 +19,41 @@ import OpenMM
 
 #if true
 
-// Raw data (to be archived in the corresponding Git commit):
-//
-// 10 GHz - fails to function correctly, connecting rod detaches in +Z direction
-// 3.2 GHz
+// Simulated one half of a revolution:
 //
 // 10 GHz - 250 frames @ 0.400 ps/frame, 250 seconds compile time on AMD machine
-// 3.2 GHz - 250 frames @ 1.25 ps/frame
-
+// 3.2 GHz - 250 frames @ 1.25 ps/frame, 560 seconds compile time on AMD machine
+//
+// Raw experimental data (to be archived in the corresponding Git commits):
+//
+// 10 GHz - fails to function correctly, connecting rod detaches in +Z direction
+// 3.2 GHz (attempt 1)
+// - 'almost' flew off, but fully extended the piston. The flywheel lost
+//    over half of its angular momentum. Will be giving the connecting
+//    rod an initial momentum and retrying.
+//    - moment(s) of inertia deviated from the initial values by only ~1%,
+//      throughout the simulation: 12099700, 6287238, 6212110 in nm-yg-ps system
+//    - frame 0:   -240,000 yg-nm^2/ps along first principal axis
+//                      500 yg-nm^2/ps along second principal axis
+//                    4,000 yg-nm^2/ps along third principal axis
+//    - frame 50:  -134,000 yg-nm^2/ps along first principal axis
+//                  -12,000 yg-nm^2/ps along second principal axis
+//                   18,000 yg-nm^2/ps along third principal axis
+//    - frame 100:  -87,000 yg-nm^2/ps along first principal axis
+//                  -54,000 yg-nm^2/ps along second principal axis
+//                   30,000 yg-nm^2/ps along third principal axis
+//    - frame 150: -108,000 yg-nm^2/ps along first principal axis
+//                  -48,000 yg-nm^2/ps along second principal axis
+//                      600 yg-nm^2/ps along third principal axis
+//    - frame 200:  -14,000 yg-nm^2/ps along first principal axis
+//                    3,000 yg-nm^2/ps along second principal axis
+//                   17,000 yg-nm^2/ps along third principal axis
+//    - frame 232:  -14,000 yg-nm^2/ps along first principal axis
+//                   -7,000 yg-nm^2/ps along second principal axis
+//                   31,000 yg-nm^2/ps along third principal axis
+//    - frame 250:  -56,000 yg-nm^2/ps along first principal axis
+//                    3,000 yg-nm^2/ps along second principal axis
+//                   15,000 yg-nm^2/ps along third principal axis
 func createGeometry() -> [[Entity]] {
   let frames = deserialize(
     path: "/Users/philipturner/Desktop/Simulation.data")
