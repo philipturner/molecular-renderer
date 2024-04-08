@@ -17,6 +17,16 @@ import OpenMM
 //   this environment is set up. Pretend the germanium atoms are actually C.
 // - 8885 atoms, estimated 50,000 tripods
 
+#if true
+
+func createGeometry() -> [[Entity]] {
+  let frames = deserialize(
+    path: "/Users/philipturner/Desktop/Simulation.data")
+  return frames
+}
+
+#else
+
 func createGeometry() -> [[Entity]] {
   // Run a zero-Kelvin molecular dynamics simulation of the drive system.
   var driveSystem = DriveSystem()
@@ -126,7 +136,7 @@ func createGeometry() -> [[Entity]] {
   // Start creating frames.
   var frames = [createFrame()]
   
-  for frameID in 0..<240 {
+  for frameID in 0..<20 {
     print("frame:", frameID)
     
     forceField.simulate(time: 0.040)
@@ -137,6 +147,78 @@ func createGeometry() -> [[Entity]] {
     
     frames.append(createFrame())
   }
+  
+  serialize(frames: frames, path: "/Users/philipturner/Desktop/Simulation.data")
+  return frames
+}
+
+#endif
+
+func serialize(frames: [[Entity]], path: String) {
+  let frameCount = frames.count
+  let atomCount = frames[0].count
+  for frame in frames {
+    if frame.count != atomCount {
+      fatalError("Frames do not have the same atom count.")
+    }
+  }
+  
+  let rawDataPointer: UnsafeMutablePointer<SIMD4<Float>> =
+    .allocate(capacity: 1 + frameCount * atomCount)
+  
+  // Encode the header.
+  rawDataPointer[0] = SIMD4(Float(frameCount), Float(atomCount), 0, 0)
+  
+  // Encode the frames.
+  var cursor: Int = 1
+  for frame in frames {
+    for atom in frame {
+      let storage = atom.storage
+      rawDataPointer[cursor] = storage
+      cursor += 1
+    }
+  }
+  
+  let data = Data(
+    bytes: rawDataPointer, count: 16 * (1 + frameCount * atomCount))
+  rawDataPointer.deallocate()
+  
+  let url = URL(filePath: path)
+  try! data.write(to: url, options: .atomic)
+}
+
+func deserialize(path: String) -> [[Entity]] {
+  let url = URL(filePath: path)
+  let data = try! Data(contentsOf: url)
+  guard data.count % 16 == 0 else {
+    fatalError("Data is not aligned properly.")
+  }
+  
+  let rawDataPointer: UnsafeMutableBufferPointer<SIMD4<Float>> =
+    .allocate(capacity: data.count / 16)
+  let copiedByteCount = data.copyBytes(to: rawDataPointer)
+  guard copiedByteCount == data.count else {
+    fatalError("Did not copy all of the bytes.")
+  }
+  
+  // Decode the header.
+  let frameCount = Int(rawDataPointer[0].x)
+  let atomCount = Int(rawDataPointer[0].y)
+  
+  // Decode the frames.
+  var cursor: Int = 1
+  var frames: [[Entity]] = []
+  for frameID in 0..<frameCount {
+    var frame: [Entity] = []
+    for atomID in 0..<atomCount {
+      let storage = rawDataPointer[cursor]
+      let atom = Entity(storage: storage)
+      frame.append(atom)
+      cursor += 1
+    }
+    frames.append(frame)
+  }
+  rawDataPointer.deallocate()
   
   return frames
 }
