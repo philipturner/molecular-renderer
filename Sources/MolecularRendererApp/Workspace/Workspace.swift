@@ -28,7 +28,7 @@ func createGeometry() -> [[Entity]] {
 #else
 
 func createGeometry() -> [[Entity]] {
-  // Run a zero-Kelvin molecular dynamics simulation of the drive system.
+  // Run a 298-Kelvin molecular dynamics simulation of the drive system.
   var driveSystem = DriveSystem()
   driveSystem.connectingRod.minimize()
   driveSystem.flywheel.minimize()
