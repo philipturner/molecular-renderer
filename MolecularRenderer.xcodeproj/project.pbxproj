@@ -69,6 +69,13 @@
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
+		98DAE8E02BC4C0B900738E02 /* DriveSystem+Simulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8DF2BC4C0B900738E02 /* DriveSystem+Simulation.swift */; };
+		98DAE8E42BC4C17000738E02 /* CBNTripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8E32BC4C17000738E02 /* CBNTripod.swift */; };
+		98DAE8E62BC4C17900738E02 /* CBNTripodCage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8E52BC4C17900738E02 /* CBNTripodCage.swift */; };
+		98DAE8E82BC4C18000738E02 /* CBNTripodComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8E72BC4C18000738E02 /* CBNTripodComponent.swift */; };
+		98DAE8EA2BC4C18800738E02 /* CBNTripodLeg.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8E92BC4C18800738E02 /* CBNTripodLeg.swift */; };
+		98DAE8EC2BC4C1E900738E02 /* TripodCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8EB2BC4C1E900738E02 /* TripodCache.swift */; };
+		98DAE8EE2BC4C1F100738E02 /* Tripod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8ED2BC4C1F100738E02 /* Tripod.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -297,6 +304,13 @@
 		98D975BE2AC222A30052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975BF2AC224C10052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975C02AC225850052EE6C /* DiamondRope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondRope.swift; sourceTree = "<group>"; };
+		98DAE8DF2BC4C0B900738E02 /* DriveSystem+Simulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DriveSystem+Simulation.swift"; sourceTree = "<group>"; };
+		98DAE8E32BC4C17000738E02 /* CBNTripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripod.swift; sourceTree = "<group>"; };
+		98DAE8E52BC4C17900738E02 /* CBNTripodCage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodCage.swift; sourceTree = "<group>"; };
+		98DAE8E72BC4C18000738E02 /* CBNTripodComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodComponent.swift; sourceTree = "<group>"; };
+		98DAE8E92BC4C18800738E02 /* CBNTripodLeg.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBNTripodLeg.swift; sourceTree = "<group>"; };
+		98DAE8EB2BC4C1E900738E02 /* TripodCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripodCache.swift; sourceTree = "<group>"; };
+		98DAE8ED2BC4C1F100738E02 /* Tripod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tripod.swift; sourceTree = "<group>"; };
 		98E23B1E2B4C7BAF00B5A7D5 /* MaterialHeatCapacities.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialHeatCapacities.png; sourceTree = "<group>"; };
 		98E23B1F2B4C7BAF00B5A7D5 /* MaterialEnthalpies.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialEnthalpies.png; sourceTree = "<group>"; };
 		98E23B202B4C7E8700B5A7D5 /* MM4RigidBody+Temperature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4RigidBody+Temperature.swift"; sourceTree = "<group>"; };
@@ -620,6 +634,7 @@
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 				98AF5B2C2BC09D2E0015C7DC /* Animation */,
 				98AF5B0E2BBDB6F40015C7DC /* DriveSystem */,
+				98DAE8E12BC4C14800738E02 /* Tripod */,
 			);
 			path = Workspace;
 			sourceTree = "<group>";
@@ -681,6 +696,7 @@
 			isa = PBXGroup;
 			children = (
 				98AF5B0F2BBDB7060015C7DC /* DriveSystem.swift */,
+				98DAE8DF2BC4C0B900738E02 /* DriveSystem+Simulation.swift */,
 				98AF5B052BBB5DEF0015C7DC /* Parts */,
 			);
 			path = DriveSystem;
@@ -864,6 +880,27 @@
 				98B3E4F12A3F6F9D00B02349 /* libc++.1.0.dylib */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		98DAE8E12BC4C14800738E02 /* Tripod */ = {
+			isa = PBXGroup;
+			children = (
+				98DAE8E22BC4C16700738E02 /* CBNTripod */,
+				98DAE8ED2BC4C1F100738E02 /* Tripod.swift */,
+				98DAE8EB2BC4C1E900738E02 /* TripodCache.swift */,
+			);
+			path = Tripod;
+			sourceTree = "<group>";
+		};
+		98DAE8E22BC4C16700738E02 /* CBNTripod */ = {
+			isa = PBXGroup;
+			children = (
+				98DAE8E32BC4C17000738E02 /* CBNTripod.swift */,
+				98DAE8E52BC4C17900738E02 /* CBNTripodCage.swift */,
+				98DAE8E72BC4C18000738E02 /* CBNTripodComponent.swift */,
+				98DAE8E92BC4C18800738E02 /* CBNTripodLeg.swift */,
+			);
+			path = CBNTripod;
 			sourceTree = "<group>";
 		};
 		98E23B272B4CC5B900B5A7D5 /* Serialization */ = {
@@ -1342,6 +1379,7 @@
 			files = (
 				9855200B2B53215C00AB068D /* Workspace.swift in Sources */,
 				98AF5B2E2BC09D3B0015C7DC /* Surface.swift in Sources */,
+				98DAE8E62BC4C17900738E02 /* CBNTripodCage.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
@@ -1349,7 +1387,9 @@
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98AF5B302BC0ABA20015C7DC /* Animation.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
+				98DAE8EA2BC4C18800738E02 /* CBNTripodLeg.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98DAE8E82BC4C18000738E02 /* CBNTripodComponent.swift in Sources */,
 				98AF5B0B2BBCBC390015C7DC /* Piston.swift in Sources */,
 				98AF5B072BBB5E090015C7DC /* Housing.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
@@ -1357,14 +1397,18 @@
 				98AF5B0D2BBD834C0015C7DC /* ConnectingRod.swift in Sources */,
 				98AF5B322BC0BF150015C7DC /* ManufacturingSequence.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
+				98DAE8E02BC4C0B900738E02 /* DriveSystem+Simulation.swift in Sources */,
 				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,
+				98DAE8EC2BC4C1E900738E02 /* TripodCache.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				98AF5B092BBB69D00015C7DC /* Flywheel.swift in Sources */,
+				98DAE8E42BC4C17000738E02 /* CBNTripod.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
+				98DAE8EE2BC4C1F100738E02 /* Tripod.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,

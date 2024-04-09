@@ -276,7 +276,10 @@ extension XTBProcess {
 
 extension XTBProcess {
   func run(arguments: [String]) {
-    let url = URL(filePath: "/opt/homebrew/bin/xtb")
+    // For an unknown reason, the binary linked to Accelerate will always fail
+    // the geometry optimizations.
+    let url = URL(
+      filePath: "/opt/homebrew/bin/xtb")
     precondition(try! url.checkResourceIsReachable(), "'xtb' executable is not reachable.")
     
     let process = Process()
@@ -291,5 +294,28 @@ extension XTBProcess {
     }
     try! process.run()
     process.waitUntilExit()
+  }
+}
+
+// MARK: - Geometry Optimization
+
+// Utility for optimizing structures.
+struct XTBSolver {
+  var atoms: [Entity] = []
+  var process: XTBProcess
+  
+  init(cpuID: Int) {
+    let path = "/Users/philipturner/Documents/OpenMM/xtb/cpu\(cpuID)"
+    self.process = XTBProcess(path: path)
+  }
+  
+  mutating func solve(arguments: [String]) {
+    process.writeFile(name: "xtb.inp", process.encodeSettings())
+    process.writeFile(name: "coord", try! XTBProcess.encodeAtoms(atoms))
+    process.run(arguments: ["coord", "--input", "xtb.inp"] + arguments)
+  }
+  
+  mutating func load() {
+    atoms = try! XTBProcess.decodeAtoms(process.readFile(name: "xtbopt.coord"))
   }
 }
