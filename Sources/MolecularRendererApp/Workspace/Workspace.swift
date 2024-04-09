@@ -26,46 +26,69 @@ func createGeometry() -> [Entity] {
     }
     
     // Add the feedstock to the tripod (hasty solution).
-    do {
-      var position = germanium.position
-      position.y += Element.germanium.covalentRadius
-      position.y += Element.carbon.covalentRadius
-      let carbon = Entity(position: position, type: .atom(.carbon))
-      let carbonID = tripod.topology.atoms.count
-      
-      var insertedAtoms = [carbon]
-      var insertedBonds: [SIMD2<UInt32>] = []
-      for passivatorID in 0..<3 {
-        var element: Element
-        if passivatorID == 0 {
-          element = .hydrogen
-        } else {
-          element = .bromine
-        }
-        
-        let baseAngle: Float = 109.47 * .pi / 180
-        let baseRotation = Quaternion(angle: baseAngle, axis: [0, 0, 1])
-        let secondAngle = Float(passivatorID) * .pi * 2 / 3
-        let secondRotation = Quaternion(angle: secondAngle, axis: [0, 1, 0])
-        
-        var orbital: SIMD3<Float> = .init(0, -1, 0)
-        orbital = baseRotation.act(on: orbital)
-        orbital = secondRotation.act(on: orbital)
-        
-        var bondLength: Float = .zero
-        bondLength += Element.carbon.covalentRadius
-        bondLength += element.covalentRadius
-        let position = carbon.position + bondLength * orbital
-        let passivator = Entity(position: position, type: .atom(element))
-        
-        let passivatorID = tripod.topology.atoms.count + insertedAtoms.count
-        let bond = SIMD2(UInt32(carbonID), UInt32(passivatorID))
-        insertedAtoms.append(passivator)
-        insertedBonds.append(bond)
+  do {
+    var position = germanium.position
+    position.y += Element.germanium.covalentRadius
+    position.y += Element.carbon.covalentRadius
+    let carbon = Entity(position: position, type: .atom(.carbon))
+    let carbonID = tripod.topology.atoms.count
+    
+    var insertedAtoms = [carbon]
+    var insertedBonds: [SIMD2<UInt32>] = []
+    #if false
+    for passivatorID in 0..<3 {
+      var element: Element
+      if passivatorID == 0 || passivatorID == 1 {
+        element = .hydrogen
+      } else {
+        element = .bromine
       }
-      tripod.topology.insert(atoms: insertedAtoms)
-      tripod.topology.insert(bonds: insertedBonds)
+      
+      let baseAngle: Float = 109.47 * .pi / 180
+      let baseRotation = Quaternion(angle: baseAngle, axis: [0, 0, 1])
+      let secondAngle = Float(passivatorID) * .pi * 2 / 3
+      let secondRotation = Quaternion(angle: secondAngle, axis: [0, 1, 0])
+      
+      var orbital: SIMD3<Float> = .init(0, -1, 0)
+      orbital = baseRotation.act(on: orbital)
+      orbital = secondRotation.act(on: orbital)
+      
+      var bondLength: Float = .zero
+      bondLength += Element.carbon.covalentRadius
+      bondLength += element.covalentRadius
+      let position = carbon.position + bondLength * orbital
+      let passivator = Entity(position: position, type: .atom(element))
+      
+      let passivatorID = tripod.topology.atoms.count + insertedAtoms.count
+      let bond = SIMD2(UInt32(carbonID), UInt32(passivatorID))
+      insertedAtoms.append(passivator)
+      insertedBonds.append(bond)
     }
+    #endif
+    tripod.topology.insert(atoms: insertedAtoms)
+    tripod.topology.insert(bonds: insertedBonds)
+  }
+  
+  // Remove the halogen caps.
+  do {
+    var removedAtoms: [UInt32] = []
+    for atomID in tripod.topology.atoms.indices {
+      let atom = tripod.topology.atoms[atomID]
+      if atom.type == .atom(.bromine) {
+        removedAtoms.append(UInt32(atomID))
+      }
+    }
+    tripod.topology.remove(atoms: removedAtoms)
+  }
+  
+  // Replace the germanium with tin.
+  for atomID in tripod.topology.atoms.indices {
+    var atom = tripod.topology.atoms[atomID]
+    if atom.atomicNumber == 32 {
+      atom.atomicNumber = 50
+    }
+    tripod.topology.atoms[atomID] = atom
+  }
   
   // Set the silyl group as anchors.
   var anchors: [Int] = []
@@ -77,12 +100,13 @@ func createGeometry() -> [Entity] {
   }
   
   // Solve for the geometry.
-  var solver = XTBSolver(cpuID: 0)
-  solver.atoms = tripod.topology.atoms
-  solver.process.anchors = anchors
-  solver.solve(arguments: ["--opt"])
-  solver.load()
-  tripod.topology.atoms = solver.atoms
+//  var solver = XTBSolver(cpuID: 0)
+//  solver.atoms = tripod.topology.atoms
+//  solver.process.anchors = anchors
+//  solver.solve(arguments: ["--opt"])
+//  solver.load()
+//  tripod.topology.atoms = solver.atoms
+//  print(try! XTBProcess.encodeAtoms(tripod.topology.atoms, encoding: .hdl))
   
   return tripod.topology.atoms
 }
