@@ -6,17 +6,20 @@ import OpenMM
 
 // TODO: Can the carbene group successfully transfer from the tinCarbene tripod
 // to the germaniumRadical tripod? From the tin tripod to the AFM probe with a
-// germanium tip?
-
-// TODO: Fire up the old AFM probe embedded into the hardware catalog and/or
-// the HDL unit tests. Design a good tooltip and set up a scripting environment
-// for tripod build sequences.
-// - Silicon probe, but (H3C)3-Ge* tooltip.
+// germanium tip? What about leaving it partially activated (with a different
+// halogen that will be activated at a different wavelength)? Then, covering
+// the tripods with a thin shield to protect them from the UV light.
 
 func createGeometry() -> [Entity] {
-  return TripodCache.tinSet.carbene + TripodCache.germaniumSet.radical.map {
+  // Use the hydrogen transfer between Sn and Ge as a simpler test case, for
+  // troubleshooting the other components of the simulation. Try:
+  // - (a) getting GFN-FF ONIOM to work, despite bond topology changing
+  // - (b) serializing the simulation and replaying
+  
+  return TripodCache.tinSet.hydrogen + TripodCache.germaniumSet.radical.map {
     var copy = $0
-    copy.position.x += 2
+    copy.position.y = -copy.position.y
+    copy.position.y += 2.00
     return copy
   }
 }
