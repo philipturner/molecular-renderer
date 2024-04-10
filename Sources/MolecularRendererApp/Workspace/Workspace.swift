@@ -4,6 +4,8 @@ import MM4
 import Numerics
 import OpenMM
 
+// Goal: Build sequence for a lonsdaleite unit cell, in a matter of weeks.
+
 // TODO: Can the carbene group successfully transfer from the tinCarbene tripod
 // to the germaniumRadical tripod? From the tin tripod to the AFM probe with a
 // germanium tip? What about leaving it partially activated (with a different
@@ -11,10 +13,10 @@ import OpenMM
 // the tripods with a thin shield to protect them from the UV light.
 
 // TODO: You can just mount the Ge tripod on the AFM probe, instead of building
-// a sharped silicon lattice. That makes it much more viable within the limited
-// amount of time to present the project.
+// a sharpened silicon lattice. That makes it much more viable within the
+// limited amount of time to present the project.
 
-func createGeometry() -> [Entity] {
+func createGeometry() -> [[Entity]] {
   // Use the hydrogen transfer between Sn and Ge as a simpler test case, for
   // troubleshooting the other components of the simulation.
   let tinTripodSource = TripodCache.tinSet.hydrogen
@@ -22,14 +24,33 @@ func createGeometry() -> [Entity] {
   let tinTripod = Tripod(atoms: tinTripodSource)
   var germaniumTripod = Tripod(atoms: germaniumTripodSource)
   
+  // TODO: Run a simulation of hydrogen transfer. Figure out how to do
+  // velocities, and shift between local and global reference frames.
+  
   germaniumTripod.project(distance: 2.00)
   
-  var output: [Entity] = []
-  output += tinTripod.tooltip.createFrame()
-  output += tinTripod.feedstockAtoms
-  output += germaniumTripod.tooltip.createFrame()
+  var initialAtoms: [Entity] = []
+  initialAtoms += tinTripod.tooltip.createFrame()
+  initialAtoms += tinTripod.feedstockAtoms
+  initialAtoms += germaniumTripod.tooltip.createFrame()
   
-  return output
+  // Create the resource objects.
+  let env = xtb_newEnvironment()!
+  let calc = xtb_newCalculator()!
+  let res = xtb_newResults()!
+  let mol = createMolecule(
+    env: env, atoms: initialAtoms, charge: 0, uhf: 0)
+  initializeEnvironment(
+    env: env, mol: mol, calc: calc, verbosityLevel: XTB_VERBOSITY_MINIMAL)
+  updateMolecule(
+    env: env, mol: mol, atoms: initialAtoms)
+  
+  // Start with 30 frames of no motion, to let the potential energy fizzle out.
+  // There is 95% velocity damping per frame, so 21% * 21% of the kinetic
+  // energy remains after 30 frames.
+  
+  
+  return [initialAtoms]
 }
 
 // MARK: - xTB Simulation Utilities
