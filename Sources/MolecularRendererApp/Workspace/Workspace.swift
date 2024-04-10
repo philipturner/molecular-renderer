@@ -17,132 +17,19 @@ import OpenMM
 func createGeometry() -> [Entity] {
   // Use the hydrogen transfer between Sn and Ge as a simpler test case, for
   // troubleshooting the other components of the simulation.
-  let tinTripod = TripodCache.tinSet.hydrogen
-  let germaniumTripod = TripodCache.germaniumSet.radical
+  let tinTripodSource = TripodCache.tinSet.hydrogen
+  let germaniumTripodSource = TripodCache.germaniumSet.radical
+  let tinTripod = Tripod(atoms: tinTripodSource)
+  var germaniumTripod = Tripod(atoms: germaniumTripodSource)
   
-  let tinTip = Tooltip(tripod: tinTripod)
-  let tinLegs = Array(tinTripod[22..<70])
-  let germaniumTip = Tooltip(tripod: germaniumTripod)
-  let germaniumLegs = Array(germaniumTripod[22..<70])
-  
-  // Store the tripods in their own reference frame. "project" the tripods to
-  // render and/or query forces from the simulator. Then, invert the Y
-  // component of the force for the germanium tip.
+  germaniumTripod.project(distance: 2.00)
   
   var output: [Entity] = []
-  output += tinTip.topology.atoms
-  output += tinLegs
-  output += germaniumTip.topology.atoms.map {
-    var copy = $0
-    copy.position.y = -copy.position.y
-    copy.position.y += 2.00
-    return copy
-  }
-  output += germaniumLegs.map {
-    var copy = $0
-    copy.position.y = -copy.position.y
-    copy.position.y += 2.00
-    return copy
-  }
+  output += tinTripod.tooltip.createFrame()
+  output += tinTripod.feedstockAtoms
+  output += germaniumTripod.tooltip.createFrame()
+  
   return output
-}
-
-// A tooltip with an adamantane cage, formed by stripping a tripod of its legs.
-//
-// The legs can be extracted from the pre-compiled tripod separately. That way,
-// both the cage and legs can be rendered. It will be possible to formalize
-// inter-tripod distances as the distances between the approaching silicon
-// surfaces that attach at the legs.
-struct Tooltip {
-  var topology = Topology()
-  
-  // The carbon atoms attached to legs must have their position fixed. In
-  // addition, the ghost hydrogens must be held fixed throughout simulations.
-  var anchorIDs: [UInt32] = []
-  
-  // Ghost hydrogens are generated in a location that doesn't perfectly line
-  // up with where the leg once was.
-  var hydrogenIDs: [UInt32] = []
-  
-  // The feedstock atoms, which you might want to treat differently in the
-  // dynamic simulation. For example, assuming the reaction worked, you would
-  // treat them as part of a different object.
-  var feedstockIDs: [UInt32] = []
-  
-  init(tripod: [Entity]) {
-    var tripodAtoms = tripod
-    tripodAtoms.removeSubrange(22..<70)
-    topology.insert(atoms: tripodAtoms)
-    
-    // Fetch the feedstock atom IDs before adding the ghost hydrogens.
-    for atomID in 22..<topology.atoms.count {
-      feedstockIDs.append(UInt32(atomID))
-    }
-    
-    createBonds()
-    createGhostLegs()
-  }
-  
-  // Forms a (potentially incorrect) bonding topology for the entire structure,
-  // but the important part (leg attachment point) will always be correct.
-  mutating func createBonds() {
-    // 1.2 covalent bond lengths produces a completely correct topology for:
-    // - 'TripodCache.germaniumSet.radical'
-    // - 'TripodCache.tinSet.hydrogen'
-    var matches = topology.match(
-      topology.atoms, algorithm: .covalentBondLength(1.2))
-    
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for i in topology.atoms.indices {
-      for j in matches[i] where i < j {
-        let bond = SIMD2(UInt32(i), UInt32(j))
-        insertedBonds.append(bond)
-      }
-    }
-    topology.insert(bonds: insertedBonds)
-  }
-  
-  // Detects the carbons that were attached to the legs, and sets them as
-  // anchors.
-  mutating func createGhostLegs() {
-    let orbitals = topology.nonbondingOrbitals(hybridization: .sp3)
-    
-    var insertedAnchorIDs: [UInt32] = []
-    var insertedHydrogenIDs: [UInt32] = []
-    var insertedAtoms: [Entity] = []
-    var insertedBonds: [SIMD2<UInt32>] = []
-    for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      let orbitalSet = orbitals[atomID]
-      guard orbitalSet.count > 0 else {
-        continue
-      }
-      guard atom.atomicNumber == 6, atom.position.y < 0.4600 else {
-        continue
-      }
-      
-      guard orbitalSet.count == 1 else {
-        fatalError("Orbital set had unexpected size.")
-      }
-      let orbital = orbitalSet.first!
-      
-      // Source: MM4Parameters
-      let chBondLength: Float = 1.112 / 10
-      let hydrogenPosition = atom.position + orbital * chBondLength
-      let hydrogen = Entity(position: hydrogenPosition, type: .atom(.hydrogen))
-      let hydrogenID = topology.atoms.count + insertedAtoms.count
-      
-      insertedAnchorIDs.append(UInt32(atomID))
-      insertedAnchorIDs.append(UInt32(hydrogenID))
-      insertedHydrogenIDs.append(UInt32(hydrogenID))
-      insertedAtoms.append(hydrogen)
-      insertedBonds.append(SIMD2(UInt32(atomID), UInt32(hydrogenID)))
-    }
-    anchorIDs = insertedAnchorIDs
-    hydrogenIDs = insertedHydrogenIDs
-    topology.insert(atoms: insertedAtoms)
-    topology.insert(bonds: insertedBonds)
-  }
 }
 
 // MARK: - xTB Simulation Utilities
