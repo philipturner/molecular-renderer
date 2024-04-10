@@ -11,6 +11,22 @@ import MM4
 import MolecularRenderer
 import Numerics
 
+// Archive of code for reference.
+#if false
+extension Renderer {
+  func initializeCompilation(_ closure: () -> Animation) {
+    let start = CACurrentMediaTime()
+    let provider = closure()
+    let end = CACurrentMediaTime()
+    
+    print("atoms:", provider.atomCount)
+    print("frames:", provider.frameCount)
+    print("setup time:", String(format: "%.1f", (end - start) * 1e3), "ms")
+    
+    renderingEngine.setAtomProvider(provider)
+  }
+}
+
 struct Animation: MRAtomProvider {
   // Stored properties.
   var surface: Surface
@@ -89,3 +105,4 @@ extension Animation {
     }
   }
 }
+#endif

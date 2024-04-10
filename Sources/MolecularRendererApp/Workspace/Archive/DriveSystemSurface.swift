@@ -10,6 +10,8 @@ import HDL
 import MM4
 import Numerics
 
+// Archive of code for reference.
+#if false
 // A partially-hydrogenated partially-chlorinated silicon surface, facing
 // towards positive Z.
 struct Surface {
@@ -110,3 +112,4 @@ struct Surface {
     return try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
 }
+#endif

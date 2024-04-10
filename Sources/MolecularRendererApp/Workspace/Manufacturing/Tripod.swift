@@ -168,7 +168,7 @@ struct Tripod {
     }
   }
   
-  // Returns a snapshot of the internal state, for rendering.
+  // Returns all the atoms currently contained in the object.
   func createFrame() -> [Entity] {
     // Exclude the hydrogens from the tooltip.
     var output: [Entity] = []

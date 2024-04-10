@@ -11,6 +11,8 @@ import MM4
 import MolecularRenderer
 import Numerics
 
+// Archive of code for reference.
+#if false
 struct ManufacturingSequence {
   var manufacturingPartAtomSequences: [[Entity]]
   var manufacturingPartTimeSpans: [Int] = [1200, 600, 600, 1500]
@@ -186,3 +188,4 @@ extension ManufacturingSequence {
     return frame
   }
 }
+#endif

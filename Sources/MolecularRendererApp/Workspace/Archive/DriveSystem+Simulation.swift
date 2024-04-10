@@ -11,10 +11,10 @@ import MM4
 import Numerics
 import OpenMM
 
+// Archive of code for reference.
+#if true
 // TODO: Clean up the simulation, understand what's going on with velocities.
 // You might need to design and add the actual flywheel.
-
-#if true
 
 // Simulated one half of a revolution:
 //
