@@ -7,9 +7,7 @@ import OpenMM
 // Goal: Animate a build sequence for a small logic rod.
 
 func createGeometry() -> [Entity] {
-  var probe = Probe()
-  probe.project(distance: 3)
-  
-  let surfaceTripod = Tripod(atoms: TripodCache.tinSet.methylene)
-  return probe.createFrame() + surfaceTripod.createFrame()
+  let surface = Surface()
+  let tripod = Tripod(atoms: TripodCache.tinCappedSet.methylene)
+  return surface.topology.atoms + tripod.createFrame()
 }

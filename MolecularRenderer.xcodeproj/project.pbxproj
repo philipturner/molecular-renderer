@@ -702,8 +702,8 @@
 			children = (
 				98AF5B2F2BC0ABA20015C7DC /* Animation.swift */,
 				98DAE8DF2BC4C0B900738E02 /* DriveSystem+Simulation.swift */,
-				98AF5B312BC0BF150015C7DC /* ManufacturingSequence.swift */,
 				98AF5B2D2BC09D3B0015C7DC /* DriveSystemSurface.swift */,
+				98AF5B312BC0BF150015C7DC /* ManufacturingSequence.swift */,
 			);
 			path = Archive;
 			sourceTree = "<group>";
