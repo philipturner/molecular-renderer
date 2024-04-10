@@ -97,7 +97,9 @@ struct Surface {
       topology.atoms[atomID] = atom
     }
   }
-  
+}
+
+extension Surface {
   // Requires that the lattice isn't shifted from its original translation in
   // 'align()'.
   mutating func passivate() {
@@ -119,13 +121,6 @@ struct Surface {
       if Float.random(in: 0..<1) < concentration {
         passivatorElement = .hydrogen
       } else {
-        // Eventually, we'll need to avoid hydrogen under the sites where
-        // tripods will be placed. And/or remove passivators entirely.
-        //
-        // This could happen in a separate function, which transmutes all
-        // chlorines under tripod sites to H and shrinks the bond length. The
-        // atoms directly under the leg might be handled specially, being
-        // rendered as chlorine during a specific point of an animation.
         passivatorElement = .chlorine
       }
       
@@ -154,5 +149,51 @@ struct Surface {
     }
     topology.insert(atoms: insertedAtoms)
     topology.insert(bonds: insertedBonds)
+  }
+  
+  // Requires that the lattice isn't shifted from its original translation in
+  // 'align()'.
+  mutating func transmuteOverlappingPassivators(supply: Supply) {
+    let tripodLegAtoms = supply.tripods.flatMap { $0.legAtoms }
+    var squashedAtoms = tripodLegAtoms
+    for atomID in squashedAtoms.indices {
+      squashedAtoms[atomID].position.y = 2.029 / 10
+    }
+    
+    var matchingTopology = Topology()
+    matchingTopology.atoms = squashedAtoms
+    let matches = matchingTopology.match(
+      topology.atoms, algorithm: .absoluteRadius(0.200))
+    
+    var removedAtoms: [UInt32] = []
+    var transmutedAtoms: [UInt32] = []
+    for atomID in topology.atoms.indices {
+      let atom = topology.atoms[atomID]
+      guard matches[atomID].count > 0 else {
+        continue
+      }
+      
+      let firstMatchID = matches[atomID].first!
+      let firstMatchAtom = squashedAtoms[Int(firstMatchID)]
+      let delta = atom.position - firstMatchAtom.position
+      let distance = (delta * delta).sum().squareRoot()
+      
+      if distance < 0.100,
+          firstMatchAtom.atomicNumber == 7 ||
+          firstMatchAtom.atomicNumber == 14 {
+        removedAtoms.append(UInt32(atomID))
+      } else if atom.atomicNumber == 17 {
+        transmutedAtoms.append(UInt32(atomID))
+      }
+    }
+    
+    // Transmute to hydrogen and compensate for the change in bond length.
+    for atomID in transmutedAtoms {
+      var atom = topology.atoms[Int(atomID)]
+      atom.atomicNumber = 1
+      atom.position.y += (1.483 - 2.029) / 10
+      topology.atoms[Int(atomID)] = atom
+    }
+    topology.remove(atoms: removedAtoms)
   }
 }
