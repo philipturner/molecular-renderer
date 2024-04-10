@@ -4,7 +4,7 @@ import MM4
 import Numerics
 import OpenMM
 
-// Goal: Animate a sequence for a lonsdaleite unit cell.
+// Goal: Animate a build sequence for the piston.
 //
 // TODO: You can just mount the Ge tripod on the AFM probe, instead of building
 // a sharpened silicon lattice. That makes it much more viable within the
