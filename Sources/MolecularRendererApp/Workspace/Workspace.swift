@@ -19,13 +19,18 @@ import OpenMM
 func createGeometry() -> [[Entity]] {
   // Use the hydrogen transfer between Sn and Ge as a simpler test case, for
   // troubleshooting the other components of the simulation.
+  // - After getting GFN2-xTB to work, try a GFN-FF ONIOM simulation that
+  //   excludes the reactive moieties from GFN-FF. If the reaction runs
+  //   correctly, GFN-FF should not throw a fit.
+  //
+  // TODO: Run a simulation of hydrogen transfer. Figure out how to do
+  // velocities, and shift between local and global reference frames.
   let tinTripodSource = TripodCache.tinSet.hydrogen
   let germaniumTripodSource = TripodCache.germaniumSet.radical
   let tinTripod = Tripod(atoms: tinTripodSource)
   var germaniumTripod = Tripod(atoms: germaniumTripodSource)
   
-  // TODO: Run a simulation of hydrogen transfer. Figure out how to do
-  // velocities, and shift between local and global reference frames.
+  
   
   germaniumTripod.project(distance: 2.00)
   
@@ -48,6 +53,9 @@ func createGeometry() -> [[Entity]] {
   // Start with 30 frames of no motion, to let the potential energy fizzle out.
   // There is 95% velocity damping per frame, so 21% * 21% of the kinetic
   // energy remains after 30 frames.
+  var relativeVelocities = [SIMD3<Float>](
+    repeating: .zero, count: initialAtoms.count)
+  var frames: [[Entity]] = [initialAtoms]
   
   
   return [initialAtoms]
