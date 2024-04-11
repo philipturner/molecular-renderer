@@ -12,6 +12,9 @@ import OpenMM
 //   the logic rods.
 // - Try just serializing the surface atoms. Erase the bond topology and move
 //   the serialized atoms to the end of the list.
+// - Serialize the results of a few energy-conserving RBD simulations. You only
+//   need to store the offset and rotation matrix for each rigid body, in each
+//   simulation frame.
 //
 // Extract each logic rod, remove the hydrogens on one side, and place the
 // finished products on the silicon surface. If we can compile a build
@@ -28,6 +31,5 @@ func createGeometry() -> [MM4RigidBody] {
   //   integer multiple of the lattice constant.
   
   let halfAdder = HalfAdder()
-  
-  return halfAdder.unit.rods.map(\.rigidBody)
+  return halfAdder.rigidBodies
 }
