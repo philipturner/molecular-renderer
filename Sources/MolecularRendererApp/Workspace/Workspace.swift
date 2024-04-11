@@ -12,20 +12,28 @@ import OpenMM
 // drive wall that actuates the rods.
 // - Lay out all of the housing and drive walls, before adding any patterns to
 //   the logic rods.
+// - Try just serializing the surface atoms. Erase the bond topology and move
+//   the serialized atoms to the end of the list.
 //
 // Extract each logic rod, remove the hydrogens on one side, and place the
 // finished products on the silicon surface. If we can compile a build
 // sequence for one, compiling sequences for the rest should be trivial.
 //
 // Finally, try rewriting the unfinished CLA with the new layout & synthesis.
+// The "unfinished CLA" is a test case for compiler engineering.
 
-// Drafting the housing here. Drive walls might need their own type object.
-func createGeometry() -> [Entity] {
-  var housingDesc = LogicHousingDescriptor()
-  housingDesc.dimensions = SIMD3(20, 20, 20)
+func createGeometry() -> [MM4RigidBody] {
+  // TODO:
+  // - Create 'HalfAdderUnit', which lays out all of the logic rods.
+  // - Create the associated housing and drive wall objects. Find a good way to
+  //   set up the data transfer from HalfAdderUnit -> LogicHousingDescriptor.
+  // - Create the patterns for the logic rods, once you know the directions
+  //   they will move.
   
-  // TODO: Create a similar API for constructing drive walls from patterns.
-  let pattern: HolePattern = { h, k, l in
+  var driveWallDesc = DriveWallDescriptor()
+  driveWallDesc.dimensions = SIMD3(20, 20, 10)
+  
+  let pattern: RampPattern = { h, k, l in
     Concave {
       Concave {
         Origin { 3 * h + 3 * k }
@@ -37,13 +45,17 @@ func createGeometry() -> [Entity] {
         Plane { -h }
         Plane { -k }
       }
+      Concave {
+        Origin { 3 * k + 2 * l }
+        Plane { -k + l }
+      }
     }
     Replace { .empty }
   }
-  housingDesc.patterns.append(pattern)
+  driveWallDesc.patterns.append(pattern)
   
-  let lattice = LogicHousing.createLattice(descriptor: housingDesc)
-  return lattice.atoms
+  let driveWall = DriveWall(descriptor: driveWallDesc)
+  return [driveWall.rigidBody]
 }
 
 // Drafting the logic rods here.

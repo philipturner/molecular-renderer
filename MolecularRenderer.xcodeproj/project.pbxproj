@@ -79,6 +79,7 @@
 		98DAE8F92BC7FFE500738E02 /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8F82BC7FFE500738E02 /* Pattern.swift */; };
 		98DAE8FB2BC8003300738E02 /* HalfAdder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FA2BC8003300738E02 /* HalfAdder.swift */; };
 		98DAE8FE2BC8038E00738E02 /* LogicHousing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */; };
+		98DAE9002BC8163700738E02 /* DriveWall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FF2BC8163700738E02 /* DriveWall.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
@@ -317,6 +318,7 @@
 		98DAE8F82BC7FFE500738E02 /* Pattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
 		98DAE8FA2BC8003300738E02 /* HalfAdder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalfAdder.swift; sourceTree = "<group>"; };
 		98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicHousing.swift; sourceTree = "<group>"; };
+		98DAE8FF2BC8163700738E02 /* DriveWall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveWall.swift; sourceTree = "<group>"; };
 		98E23B1E2B4C7BAF00B5A7D5 /* MaterialHeatCapacities.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialHeatCapacities.png; sourceTree = "<group>"; };
 		98E23B1F2B4C7BAF00B5A7D5 /* MaterialEnthalpies.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialEnthalpies.png; sourceTree = "<group>"; };
 		98E23B202B4C7E8700B5A7D5 /* MM4RigidBody+Temperature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MM4RigidBody+Temperature.swift"; sourceTree = "<group>"; };
@@ -905,6 +907,7 @@
 			isa = PBXGroup;
 			children = (
 				98DAE8FC2BC8006900738E02 /* Units */,
+				98DAE8FF2BC8163700738E02 /* DriveWall.swift */,
 				98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */,
 				98DAE8F82BC7FFE500738E02 /* Pattern.swift */,
 				98DAE8F62BC7FFCC00738E02 /* Rod.swift */,
@@ -1431,6 +1434,7 @@
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				98DAE8F02BC71CF700738E02 /* Probe.swift in Sources */,
+				98DAE9002BC8163700738E02 /* DriveWall.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
