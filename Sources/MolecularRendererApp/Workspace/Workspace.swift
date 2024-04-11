@@ -16,18 +16,34 @@ import OpenMM
 // Extract each logic rod, remove the hydrogens on one side, and place the
 // finished products on the silicon surface. If we can compile a build
 // sequence for one, compiling sequences for the rest should be trivial.
+//
+// Finally, try rewriting the unfinished CLA with the new layout & synthesis.
 
 // Drafting the housing here. Drive walls might need their own type object.
-func createGeometry() -> [MM4RigidBody] {
-  // Design a housing object that accepts some rod positions, then creates the
-  // appropriate holes automatically.
-  let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 20 * h + 20 * k + 20 * l }
-    Material { .elemental(.carbon) }
-  }
-  let housing = LogicHousing(lattice: lattice)
+func createGeometry() -> [Entity] {
+  var housingDesc = LogicHousingDescriptor()
+  housingDesc.dimensions = SIMD3(20, 20, 20)
   
-  return [housing.rigidBody]
+  // TODO: Create a similar API for constructing drive walls from patterns.
+  let pattern: HolePattern = { h, k, l in
+    Concave {
+      Concave {
+        Origin { 3 * h + 3 * k }
+        Plane { h }
+        Plane { k }
+      }
+      Concave {
+        Origin { 7.5 * h + 7.75 * k }
+        Plane { -h }
+        Plane { -k }
+      }
+    }
+    Replace { .empty }
+  }
+  housingDesc.patterns.append(pattern)
+  
+  let lattice = LogicHousing.createLattice(descriptor: housingDesc)
+  return lattice.atoms
 }
 
 // Drafting the logic rods here.

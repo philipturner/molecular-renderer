@@ -23,3 +23,10 @@ typealias HolePattern = (
 typealias KnobPattern = (
   SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
 ) -> Void
+
+// A snippet of HDL that specifies an actuator on a drive wall.
+// - inputs: h, k, l
+// - scope: called inside a 'Volume'
+typealias RampPattern = (
+  SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
+) -> Void
