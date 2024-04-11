@@ -1,5 +1,5 @@
 //
-//  Housing.swift
+//  DriveSystemHousing.swift
 //  MolecularRendererApp
 //
 //  Created by Philip Turner on 4/1/24.
@@ -10,7 +10,7 @@ import HDL
 import MM4
 import Numerics
 
-struct Housing {
+struct DriveSystemHousing {
   var rigidBody: MM4RigidBody
   
   init() {

@@ -14,7 +14,7 @@ import OpenMM
 struct DriveSystem {
   var connectingRod: ConnectingRod
   var flywheel: Flywheel
-  var housing: Housing
+  var housing: DriveSystemHousing
   var piston: Piston
   
   // Initialization sequence:
@@ -25,7 +25,7 @@ struct DriveSystem {
   init() {
     connectingRod = ConnectingRod()
     flywheel = Flywheel()
-    housing = Housing()
+    housing = DriveSystemHousing()
     piston = Piston()
     
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
