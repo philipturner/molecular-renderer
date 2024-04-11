@@ -17,18 +17,15 @@ import OpenMM
 // finished products on the silicon surface. If we can compile a build
 // sequence for one, compiling sequences for the rest should be trivial.
 
-// Finally, try rewriting the unfinished CLA with the new layout & synthesis.
-// TODO: What if I can simplify the knob / dopant placement procedure? That was
-// the main barrier to finishing the CLA. Using parametric methods to locate an
-// integer multiple of the lattice constant.
-
 func createGeometry() -> [MM4RigidBody] {
   // TODO:
   // - Create 'HalfAdderUnit', which lays out all of the logic rods.
   // - Create the associated housing and drive wall objects. Find a good way to
   //   set up the data transfer from HalfAdderUnit -> LogicHousingDescriptor.
   // - Create the patterns for the logic rods, once you know the directions
-  //   they will move. TODO: See the note above about streamlining this.
+  //   they will move. TODO: What if I can simplify the knob / <s>dopant</s>
+  //   [NOT YET] placement procedure? Using parametric methods to locate an
+  //   integer multiple of the lattice constant.
   
   var driveWallDesc = DriveWallDescriptor()
   driveWallDesc.dimensions = SIMD3(20, 20, 10)
