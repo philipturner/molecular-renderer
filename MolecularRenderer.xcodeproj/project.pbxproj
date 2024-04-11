@@ -77,7 +77,7 @@
 		98DAE8F42BC744B100738E02 /* Supply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8F32BC744B100738E02 /* Supply.swift */; };
 		98DAE8F72BC7FFCC00738E02 /* Rod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8F62BC7FFCC00738E02 /* Rod.swift */; };
 		98DAE8F92BC7FFE500738E02 /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8F82BC7FFE500738E02 /* Pattern.swift */; };
-		98DAE8FB2BC8003300738E02 /* HalfAdder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FA2BC8003300738E02 /* HalfAdder.swift */; };
+		98DAE8FB2BC8003300738E02 /* HalfAdderUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FA2BC8003300738E02 /* HalfAdderUnit.swift */; };
 		98DAE8FE2BC8038E00738E02 /* LogicHousing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */; };
 		98DAE9002BC8163700738E02 /* DriveWall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DAE8FF2BC8163700738E02 /* DriveWall.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
@@ -316,7 +316,7 @@
 		98DAE8F32BC744B100738E02 /* Supply.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Supply.swift; sourceTree = "<group>"; };
 		98DAE8F62BC7FFCC00738E02 /* Rod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rod.swift; sourceTree = "<group>"; };
 		98DAE8F82BC7FFE500738E02 /* Pattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
-		98DAE8FA2BC8003300738E02 /* HalfAdder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalfAdder.swift; sourceTree = "<group>"; };
+		98DAE8FA2BC8003300738E02 /* HalfAdderUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalfAdderUnit.swift; sourceTree = "<group>"; };
 		98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicHousing.swift; sourceTree = "<group>"; };
 		98DAE8FF2BC8163700738E02 /* DriveWall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveWall.swift; sourceTree = "<group>"; };
 		98E23B1E2B4C7BAF00B5A7D5 /* MaterialHeatCapacities.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MaterialHeatCapacities.png; sourceTree = "<group>"; };
@@ -918,7 +918,7 @@
 		98DAE8FC2BC8006900738E02 /* Units */ = {
 			isa = PBXGroup;
 			children = (
-				98DAE8FA2BC8003300738E02 /* HalfAdder.swift */,
+				98DAE8FA2BC8003300738E02 /* HalfAdderUnit.swift */,
 			);
 			path = Units;
 			sourceTree = "<group>";
@@ -1400,7 +1400,7 @@
 				9855200B2B53215C00AB068D /* Workspace.swift in Sources */,
 				98AF5B2E2BC09D3B0015C7DC /* DriveSystemSurface.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
-				98DAE8FB2BC8003300738E02 /* HalfAdder.swift in Sources */,
+				98DAE8FB2BC8003300738E02 /* HalfAdderUnit.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				98AF5B102BBDB7060015C7DC /* DriveSystem.swift in Sources */,

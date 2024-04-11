@@ -4,8 +4,6 @@ import MM4
 import Numerics
 import OpenMM
 
-// Goal: Animate a build sequence for a small logic rod.
-
 // TODO: Compile a design for a half adder. Energy-minimize the housing with
 // positional constraints on the bulk atoms, and serialize the atoms as a
 // base64 string. Place the adder somewhere in the scene. Also, design the
@@ -18,9 +16,11 @@ import OpenMM
 // Extract each logic rod, remove the hydrogens on one side, and place the
 // finished products on the silicon surface. If we can compile a build
 // sequence for one, compiling sequences for the rest should be trivial.
-//
+
 // Finally, try rewriting the unfinished CLA with the new layout & synthesis.
-// The "unfinished CLA" is a test case for compiler engineering.
+// TODO: What if I can simplify the knob / dopant placement procedure? That was
+// the main barrier to finishing the CLA. Using parametric methods to locate an
+// integer multiple of the lattice constant.
 
 func createGeometry() -> [MM4RigidBody] {
   // TODO:
@@ -28,7 +28,7 @@ func createGeometry() -> [MM4RigidBody] {
   // - Create the associated housing and drive wall objects. Find a good way to
   //   set up the data transfer from HalfAdderUnit -> LogicHousingDescriptor.
   // - Create the patterns for the logic rods, once you know the directions
-  //   they will move.
+  //   they will move. TODO: See the note above about streamlining this.
   
   var driveWallDesc = DriveWallDescriptor()
   driveWallDesc.dimensions = SIMD3(20, 20, 10)
