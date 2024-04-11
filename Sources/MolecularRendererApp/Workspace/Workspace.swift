@@ -27,6 +27,7 @@ func createGeometry() -> [MM4RigidBody] {
   //   [NOT YET] placement procedure? Using parametric methods to locate an
   //   integer multiple of the lattice constant.
   
-  let unit = HalfAdderUnit()
-  return unit.rods.map(\.rigidBody)
+  let halfAdder = HalfAdder()
+  
+  return halfAdder.unit.rods.map(\.rigidBody)
 }

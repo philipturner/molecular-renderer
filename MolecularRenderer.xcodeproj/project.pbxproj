@@ -48,6 +48,7 @@
 		987507BE2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BB2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg */; };
 		987507BF2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BC2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg */; };
 		987507C02B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */; };
+		9885EF1E2BC88F4F007801BE /* HalfAdder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9885EF1D2BC88F4F007801BE /* HalfAdder.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -223,6 +224,7 @@
 		988259792B67D4B2001B1D71 /* HartreeFock_Experiment3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HartreeFock_Experiment3.swift; sourceTree = "<group>"; };
 		9882C63D2B9172730032823D /* HAbstAndHDon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAbstAndHDon.swift; sourceTree = "<group>"; };
 		9882C63E2B92BEA90032823D /* Graphene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Graphene.swift; sourceTree = "<group>"; };
+		9885EF1D2BC88F4F007801BE /* HalfAdder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalfAdder.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillatorSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillatorSimulation.swift; sourceTree = "<group>"; };
@@ -907,6 +909,7 @@
 			isa = PBXGroup;
 			children = (
 				98DAE8FF2BC8163700738E02 /* DriveWall.swift */,
+				9885EF1D2BC88F4F007801BE /* HalfAdder.swift */,
 				98DAE8FA2BC8003300738E02 /* HalfAdderUnit.swift */,
 				98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */,
 				98DAE8F82BC7FFE500738E02 /* Pattern.swift */,
@@ -1394,6 +1397,7 @@
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98DAE8FB2BC8003300738E02 /* HalfAdderUnit.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
+				9885EF1E2BC88F4F007801BE /* HalfAdder.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				98AF5B102BBDB7060015C7DC /* DriveSystem.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
