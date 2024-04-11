@@ -27,44 +27,6 @@ func createGeometry() -> [MM4RigidBody] {
   //   [NOT YET] placement procedure? Using parametric methods to locate an
   //   integer multiple of the lattice constant.
   
-  var driveWallDesc = DriveWallDescriptor()
-  driveWallDesc.dimensions = SIMD3(20, 20, 10)
-  
-  let pattern: RampPattern = { h, k, l in
-    Concave {
-      Concave {
-        Origin { 3 * h + 3 * k }
-        Plane { h }
-        Plane { k }
-      }
-      Concave {
-        Origin { 7.5 * h + 7.75 * k }
-        Plane { -h }
-        Plane { -k }
-      }
-      Concave {
-        Origin { 3 * k + 2 * l }
-        Plane { -k + l }
-      }
-    }
-    Replace { .empty }
-  }
-  driveWallDesc.patterns.append(pattern)
-  
-  let driveWall = DriveWall(descriptor: driveWallDesc)
-  return [driveWall.rigidBody]
+  let unit = HalfAdderUnit()
+  return unit.rods.map(\.rigidBody)
 }
-
-// Drafting the logic rods here.
-#if false
-func createGeometry() -> [Entity] {
-  let lattice = Lattice<Hexagonal> { h, k, l in
-    let h2k = h + 2 * k
-    Bounds { 30 * h + 2 * h2k + 2 * l }
-    Material { .elemental(.carbon) }
-  }
-  let rod = Rod(lattice: lattice)
-  
-  return [rod.rigidBody]
-}
-#endif

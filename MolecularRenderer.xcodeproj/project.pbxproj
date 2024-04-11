@@ -906,21 +906,13 @@
 		98DAE8F52BC7FF6100738E02 /* Logic */ = {
 			isa = PBXGroup;
 			children = (
-				98DAE8FC2BC8006900738E02 /* Units */,
 				98DAE8FF2BC8163700738E02 /* DriveWall.swift */,
+				98DAE8FA2BC8003300738E02 /* HalfAdderUnit.swift */,
 				98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */,
 				98DAE8F82BC7FFE500738E02 /* Pattern.swift */,
 				98DAE8F62BC7FFCC00738E02 /* Rod.swift */,
 			);
 			path = Logic;
-			sourceTree = "<group>";
-		};
-		98DAE8FC2BC8006900738E02 /* Units */ = {
-			isa = PBXGroup;
-			children = (
-				98DAE8FA2BC8003300738E02 /* HalfAdderUnit.swift */,
-			);
-			path = Units;
 			sourceTree = "<group>";
 		};
 		98E23B272B4CC5B900B5A7D5 /* Serialization */ = {
