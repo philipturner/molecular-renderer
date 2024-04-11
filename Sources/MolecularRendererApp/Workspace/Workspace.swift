@@ -16,7 +16,8 @@ func createGeometry() -> [Entity] {
   
   // TODO: Compile a design for a half adder. Energy-minimize the housing with
   // positional constraints on the bulk atoms, and serialize the atoms as a
-  // base64 string. Place the adder somewhere in the scene.
+  // base64 string. Place the adder somewhere in the scene. Also, design the
+  // drive wall that actuates the rods.
   //
   // Extract each logic rod, remove the hydrogens on one side, and place the
   // finished products on the silicon surface. If we can compile a build

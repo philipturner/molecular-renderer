@@ -28,11 +28,11 @@ struct Surface {
   
   static func createLattice() -> Lattice<Cubic> {
     Lattice<Cubic> { h, k, l in
-      Bounds { 40 * (h + k + l) }
+      Bounds { 80 * (h + k + l) }
       Material { .elemental(.silicon) }
       
       Volume {
-        Origin { 20 * (h + k + l) }
+        Origin { 40 * (h + k + l) }
         Convex {
           Origin { 0 * (h + k + l) }
           Plane { h + k + l }
@@ -47,7 +47,7 @@ struct Surface {
           Plane { -h + 2 * k - l }
         }
         Convex {
-          Origin { 10 * (h - l) }
+          Origin { 20 * (h - l) }
           Plane { h - l }
         }
         Convex {
@@ -93,7 +93,7 @@ struct Surface {
       latticeConstant *= Float(3).squareRoot()
       
       var atom = topology.atoms[atomID]
-      atom.position.y += Float(-20) * latticeConstant
+      atom.position.y += Float(-40) * latticeConstant
       topology.atoms[atomID] = atom
     }
   }
