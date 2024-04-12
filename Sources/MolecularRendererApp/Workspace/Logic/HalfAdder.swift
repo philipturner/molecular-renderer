@@ -67,6 +67,7 @@ struct HalfAdder {
     
     var driveWallDesc = DriveWallDescriptor()
     driveWallDesc.dimensions = SIMD3(23, 12, 6)
+    driveWallDesc.patterns = unit.backRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
     driveWallDesc.patterns.append { h, k, l in
       Origin { 13.75 * h }
@@ -86,10 +87,16 @@ struct HalfAdder {
     outputDriveWall.rigidBody.centerOfMass.z -= (6 + 1) * latticeConstant
     
     driveWallDesc = DriveWallDescriptor()
-    driveWallDesc.dimensions = SIMD3(6, 12, 15)
+    driveWallDesc.dimensions = SIMD3(23, 12, 15)
+    driveWallDesc.patterns = unit.rightRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 16.75 * h }
+      Plane { -h }
+      Replace { .empty }
+    }
     intermediateDriveWall = DriveWall(descriptor: driveWallDesc)
     intermediateDriveWall
-      .rigidBody.centerOfMass.x += (22.75 + 1) * latticeConstant
+      .rigidBody.centerOfMass.x += (6 + 1) * latticeConstant
   }
 }

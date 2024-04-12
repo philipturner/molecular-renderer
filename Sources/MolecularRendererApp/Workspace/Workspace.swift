@@ -22,10 +22,7 @@ import OpenMM
 
 func createGeometry() -> [MM4RigidBody] {
   // TODO:
-  // - Create 'HalfAdderUnit', which lays out all of the logic rods.
-  // - Create the associated housing and drive wall objects. Find a good way to
-  //   set up the data transfer from HalfAdderUnit -> LogicHousingDescriptor.
-  // - Create the patterns for the logic rods, once you know the directions
+  // - Create the patterns on the logic rods, once you know the directions
   //   they will move. TODO: What if I can simplify the knob / <s>dopant</s>
   //   [NOT YET] placement procedure? Using parametric methods to locate an
   //   integer multiple of the lattice constant.
