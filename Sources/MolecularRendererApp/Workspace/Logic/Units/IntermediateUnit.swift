@@ -26,7 +26,10 @@ struct IntermediateUnit {
   init() {
     // Create the source rod.
     var boundsSet: [SIMD2<Float>] = []
-    boundsSet.append(SIMD2(6, 12))
+    boundsSet.append(SIMD2(2.25, 6.25))
+    boundsSet.append(SIMD2(10.25, 14.25))
+    boundsSet.append(SIMD2(16.5, 20.5))
+    
     let lattice = Self.createLattice(boundsSet: boundsSet)
     var rod = Rod(lattice: lattice)
     rod.rigidBody.rotate(angle: -.pi, axis: [0, 1, 0])
@@ -138,7 +141,8 @@ extension IntermediateUnit {
   static func createKnobPattern(bounds: SIMD2<Float>) -> KnobPattern {
     let cubicConstant = Constant(.square) { .elemental(.carbon) }
     let hexagonalConstant = Constant(.hexagon) { .elemental(.carbon) }
-    let scaledBounds = bounds * cubicConstant / hexagonalConstant
+    let shrunkBounds = bounds + SIMD2(0.125, -0.125)
+    let scaledBounds = shrunkBounds * cubicConstant / hexagonalConstant
     
     return { h, h2k, l in
       Concave {
