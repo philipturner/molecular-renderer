@@ -59,8 +59,7 @@ struct IntermediateUnit {
       rodX.rigidBody.centerOfMass = center
     }
     
-    var holeOffsetsX: [SIMD3<Float>] = []
-    var rightRampOffsets: [SIMD3<Float>] = []
+    var holeOffsets: [SIMD3<Float>] = []
     
     do {
       var offset = SIMD3<Float>(0, 0.75 + 2.5, 0.75)
@@ -70,8 +69,7 @@ struct IntermediateUnit {
       propagate = Self.createLayers(source: source)
       
       offset += SIMD3(0, 1.5, 1.5)
-      holeOffsetsX.append(offset)
-      rightRampOffsets.append(offset)
+      holeOffsets.append(offset)
     }
     
     do {
@@ -82,11 +80,10 @@ struct IntermediateUnit {
       generate = Self.createLayers(source: source)
       
       offset += SIMD3(0, 1.5, 1.5)
-      holeOffsetsX.append(offset)
-      rightRampOffsets.append(offset)
+      holeOffsets.append(offset)
     }
     
-    for offset in holeOffsetsX {
+    for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
         let y = 6.25 * Float(layerID)
@@ -95,18 +92,16 @@ struct IntermediateUnit {
       }
     }
     
-    var rightRampPatterns: [RampPattern] = []
-    for var offset in rightRampOffsets {
-      offset.y -= 3.25
-      
+    var rampPatterns = HalfAdder.createBoundingPatterns()
+    for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
-        let y = 6.25 * Float(layerID)
-        rightRampPatterns.append(
+        let y = -3.25 + 6.25 * Float(layerID)
+        rampPatterns.append(
           Self.createRampPatternX(offset: SIMD3(22.75, y, 0) + offset))
       }
     }
-    driveWall = Self.createDriveWall(patterns: rightRampPatterns)
+    driveWall = Self.createDriveWall(patterns: rampPatterns)
   }
 }
 
@@ -175,8 +170,6 @@ extension IntermediateUnit {
     var driveWallDesc = DriveWallDescriptor()
     driveWallDesc.dimensions = SIMD3(23, 18, 15)
     driveWallDesc.patterns = patterns
-    driveWallDesc.patterns.append(
-      contentsOf: HalfAdder.createBoundingPatterns())
     driveWallDesc.patterns.append { h, k, l in
       Origin { 16.75 * h }
       Plane { -h }

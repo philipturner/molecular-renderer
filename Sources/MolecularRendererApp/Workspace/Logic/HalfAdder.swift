@@ -32,38 +32,14 @@ struct HalfAdder {
     inputUnit = InputUnit()
     intermediateUnit = IntermediateUnit()
     
-    // Create the housing.
-    
-    typealias BoundingPattern = (
-      SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
-    ) -> Void
-    
-    var boundingPatterns: [BoundingPattern] = []
-    boundingPatterns.append { h, k, l in
-      Origin { 22.75 * h }
-      Plane { h }
-      Replace { .empty }
-    }
-    boundingPatterns.append { h, k, l in
-      Origin { 17.75 * k }
-      Plane { k }
-      Replace { .empty }
-    }
-    boundingPatterns.append { h, k, l in
-      Origin { 14.75 * l }
-      Plane { l }
-      Replace { .empty }
-    }
-    
     var housingDesc = LogicHousingDescriptor()
     housingDesc.dimensions = SIMD3(23, 18, 15)
-    housingDesc.patterns = inputUnit.holePatterns + intermediateUnit.holePatterns
-    housingDesc.patterns.append(contentsOf: boundingPatterns)
+    housingDesc.patterns = Self.createBoundingPatterns()
+    housingDesc.patterns.append(contentsOf: inputUnit.holePatterns)
+    housingDesc.patterns.append(contentsOf: intermediateUnit.holePatterns)
     housing = LogicHousing(descriptor: housingDesc)
   }
-}
-
-extension HalfAdder {
+  
   typealias BoundingPattern = (
     SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
   ) -> Void

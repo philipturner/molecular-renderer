@@ -61,8 +61,7 @@ struct InputUnit {
       rodZ.rigidBody.centerOfMass = center
     }
     
-    var holeOffsetsZ: [SIMD3<Float>] = []
-    var backRampOffsets: [SIMD3<Float>] = []
+    var holeOffsets: [SIMD3<Float>] = []
     
     do {
       var offset = SIMD3<Float>(0.75, 0.75, 0)
@@ -72,8 +71,7 @@ struct InputUnit {
       operandA = Self.createLayers(source: source)
       
       offset += SIMD3(1.5, 1.5, 0)
-      holeOffsetsZ.append(offset)
-      backRampOffsets.append(offset)
+      holeOffsets.append(offset)
     }
     
     do {
@@ -84,8 +82,7 @@ struct InputUnit {
       operandB = Self.createLayers(source: source)
       
       offset += SIMD3(1.5, 1.5, 0)
-      holeOffsetsZ.append(offset)
-      backRampOffsets.append(offset)
+      holeOffsets.append(offset)
     }
     
     do {
@@ -99,11 +96,10 @@ struct InputUnit {
       sum = Self.createLayers(source: source)
       
       offset += SIMD3(1.5, 1.5, 0)
-      holeOffsetsZ.append(offset)
-      backRampOffsets.append(offset)
+      holeOffsets.append(offset)
     }
     
-    for offset in holeOffsetsZ {
+    for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
         let y = 6.25 * Float(layerID)
@@ -112,14 +108,12 @@ struct InputUnit {
       }
     }
     
-    var backRampPatterns: [RampPattern] = []
-    for var offset in backRampOffsets {
-      offset.y -= 3.25
-      
+    var rampPatterns = HalfAdder.createBoundingPatterns()
+    for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
-        let y = 6.25 * Float(layerID)
-        backRampPatterns.append(
+        let y = -3.25 + 6.25 * Float(layerID)
+        rampPatterns.append(
           Self.createRampPatternZ(offset: SIMD3(0, y, 0) + offset))
       }
     }
@@ -130,7 +124,7 @@ struct InputUnit {
       Replace { .empty }
     }
     operandDriveWall = Self.createDriveWall(
-      patterns: backRampPatterns + [operandPattern])
+      patterns: rampPatterns + [operandPattern])
     
     let sumPattern: RampPattern = { h, k, l in
       Origin { 15 * h }
@@ -138,7 +132,7 @@ struct InputUnit {
       Replace { .empty }
     }
     sumDriveWall = Self.createDriveWall(
-      patterns: backRampPatterns + [sumPattern])
+      patterns: rampPatterns + [sumPattern])
   }
 }
 
@@ -207,8 +201,6 @@ extension InputUnit {
     var driveWallDesc = DriveWallDescriptor()
     driveWallDesc.dimensions = SIMD3(23, 18, 15)
     driveWallDesc.patterns = patterns
-    driveWallDesc.patterns.append(
-      contentsOf: HalfAdder.createBoundingPatterns())
     driveWallDesc.patterns.append { h, k, l in
       Origin { 1 * l }
       Plane { -l }
