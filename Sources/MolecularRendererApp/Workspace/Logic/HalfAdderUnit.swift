@@ -35,12 +35,34 @@ struct HalfAdderUnit {
   init() {
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
     
+    let createDriveWallInterface: KnobPattern = { h, h2k, l in
+      Concave {
+        Concave {
+          Origin { 1 * h2k }
+          Plane { h2k }
+          Origin { 1 * h }
+          Plane { h2k - 3 * h } // k - h
+        }
+        Convex {
+          Origin { 1.5 * h2k }
+          Plane { h2k }
+          Origin { 0.5 * h }
+          Plane { -h }
+        }
+      }
+      Replace { .empty }
+    }
+    
     // MARK: - Lower Rods
     
     let latticeZ = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { 21 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
+      
+      Volume {
+        createDriveWallInterface(h, h2k, l)
+      }
     }
     
     var rodZ = Rod(lattice: latticeZ)
@@ -105,7 +127,9 @@ struct HalfAdderUnit {
         Self.createHolePatternZ(offset: SIMD3(0, 12, 0) + offset))
     }
     
-    for offset in backRampOffsets {
+    for var offset in backRampOffsets {
+      offset.y -= 3.25
+      
       // Emulate the presence of other layers in the logic unit.
       backRampPatterns.append(
         Self.createRampPatternZ(offset: SIMD3(0, -6, 0) + offset))
@@ -123,6 +147,10 @@ struct HalfAdderUnit {
       let h2k = h + 2 * k
       Bounds { 32 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
+      
+      Volume {
+        createDriveWallInterface(h, h2k, l)
+      }
     }
     
     var rodX = Rod(lattice: latticeX)
@@ -173,7 +201,9 @@ struct HalfAdderUnit {
         Self.createHolePatternX(offset: SIMD3(0, 12, 0) + offset))
     }
     
-    for offset in rightRampOffsets {
+    for var offset in rightRampOffsets {
+      offset.y -= 3.25
+      
       // Emulate the presence of other layers in the logic unit.
       rightRampPatterns.append(
         Self.createRampPatternX(offset: SIMD3(22.75, -6, 0) + offset))
@@ -256,9 +286,9 @@ extension HalfAdderUnit {
           Plane { -h }
         }
         Concave {
-          Origin { 1 * k + 1 * l }
-          Plane { l }
           Plane { -k + l }
+          Origin { 2 * l }
+          Plane { l }
         }
       }
       
@@ -280,9 +310,9 @@ extension HalfAdderUnit {
           Plane { -l }
         }
         Concave {
-          Origin { 1 * -h + 1 * k }
-          Plane { -h }
           Plane { -h - k }
+          Origin { 2 * -h }
+          Plane { -h }
         }
       }
       
