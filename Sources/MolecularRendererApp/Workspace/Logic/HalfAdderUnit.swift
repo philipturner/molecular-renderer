@@ -77,7 +77,7 @@ struct HalfAdderUnit {
     var backRampOffsets: [SIMD3<Float>] = []
     
     do {
-      var offset = SIMD3<Float>(1, 1, 0)
+      var offset = SIMD3<Float>(0.75, 0.75, 0)
       var source = rodZ
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
@@ -89,7 +89,7 @@ struct HalfAdderUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(1 + 5.75, 1, 0)
+      var offset = SIMD3<Float>(0.75 + 6.25, 0.75, 0)
       var source = rodZ
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
@@ -101,10 +101,10 @@ struct HalfAdderUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(1 + 5.75 * 2, 1, 0)
+      var offset = SIMD3<Float>(0.75 + 6.25 * 2, 0.75, 0)
       
       // Correct for the extra spacing at the barrier between drive walls.
-      offset.x += 2.25
+      offset.x += 1.75
       var source = rodZ
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
@@ -117,28 +117,22 @@ struct HalfAdderUnit {
     
     for offset in holeOffsetsZ {
       // Emulate the presence of other layers in the logic unit.
-      holePatterns.append(
-        Self.createHolePatternZ(offset: SIMD3(0, -6, 0) + offset))
-      holePatterns.append(
-        Self.createHolePatternZ(offset: SIMD3(0, 0, 0) + offset))
-      holePatterns.append(
-        Self.createHolePatternZ(offset: SIMD3(0, 6, 0) + offset))
-      holePatterns.append(
-        Self.createHolePatternZ(offset: SIMD3(0, 12, 0) + offset))
+      for layerID in -1...2 {
+        let y = 6.25 * Float(layerID)
+        holePatterns.append(
+          Self.createHolePatternZ(offset: SIMD3(0, y, 0) + offset))
+      }
     }
     
     for var offset in backRampOffsets {
       offset.y -= 3.25
       
       // Emulate the presence of other layers in the logic unit.
-      backRampPatterns.append(
-        Self.createRampPatternZ(offset: SIMD3(0, -6, 0) + offset))
-      backRampPatterns.append(
-        Self.createRampPatternZ(offset: SIMD3(0, 0, 0) + offset))
-      backRampPatterns.append(
-        Self.createRampPatternZ(offset: SIMD3(0, 6, 0) + offset))
-      backRampPatterns.append(
-        Self.createRampPatternZ(offset: SIMD3(0, 12, 0) + offset))
+      for layerID in -1...2 {
+        let y = 6.25 * Float(layerID)
+        backRampPatterns.append(
+          Self.createRampPatternZ(offset: SIMD3(0, y, 0) + offset))
+      }
     }
     
     // MARK: - Upper Rods
@@ -166,7 +160,7 @@ struct HalfAdderUnit {
     var rightRampOffsets: [SIMD3<Float>] = []
     
     do {
-      var offset = SIMD3<Float>(0, 1 + 2.5, 1)
+      var offset = SIMD3<Float>(0, 0.75 + 2.5, 0.75)
       var source = rodX
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
@@ -178,7 +172,7 @@ struct HalfAdderUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(0, 1 + 2.5, 1 + 5.75)
+      var offset = SIMD3<Float>(0, 0.75 + 2.5, 0.75 + 6.25)
       var source = rodX
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
@@ -191,28 +185,22 @@ struct HalfAdderUnit {
     
     for offset in holeOffsetsX {
       // Emulate the presence of other layers in the logic unit.
-      holePatterns.append(
-        Self.createHolePatternX(offset: SIMD3(0, -6, 0) + offset))
-      holePatterns.append(
-        Self.createHolePatternX(offset: SIMD3(0, 0, 0) + offset))
-      holePatterns.append(
-        Self.createHolePatternX(offset: SIMD3(0, 6, 0) + offset))
-      holePatterns.append(
-        Self.createHolePatternX(offset: SIMD3(0, 12, 0) + offset))
+      for layerID in -1...2 {
+        let y = 6.25 * Float(layerID)
+        holePatterns.append(
+          Self.createHolePatternX(offset: SIMD3(0, y, 0) + offset))
+      }
     }
     
     for var offset in rightRampOffsets {
       offset.y -= 3.25
       
       // Emulate the presence of other layers in the logic unit.
-      rightRampPatterns.append(
-        Self.createRampPatternX(offset: SIMD3(22.75, -6, 0) + offset))
-      rightRampPatterns.append(
-        Self.createRampPatternX(offset: SIMD3(22.75, 0, 0) + offset))
-      rightRampPatterns.append(
-        Self.createRampPatternX(offset: SIMD3(22.75, 6, 0) + offset))
-      rightRampPatterns.append(
-        Self.createRampPatternX(offset: SIMD3(22.75, 12, 0) + offset))
+      for layerID in -1...2 {
+        let y = 6.25 * Float(layerID)
+        rightRampPatterns.append(
+          Self.createRampPatternX(offset: SIMD3(22.75, y, 0) + offset))
+      }
     }
   }
 }
@@ -221,7 +209,7 @@ extension HalfAdderUnit {
   // Spawns the logic rods for all Y layers, from a single source rod.
   static func createLayers(source: Rod) -> [Rod] {
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
-    let spacing = 6 * latticeConstant
+    let spacing = 6.25 * latticeConstant
     
     var output: [Rod] = []
     for layerID in 0..<2 {

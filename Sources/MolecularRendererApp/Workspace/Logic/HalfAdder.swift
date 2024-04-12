@@ -70,13 +70,18 @@ struct HalfAdder {
     driveWallDesc.patterns = unit.backRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
     driveWallDesc.patterns.append { h, k, l in
+      Origin { 1 * l }
+      Plane { -l }
+      Replace { .empty }
+    }
+    driveWallDesc.patterns.append { h, k, l in
       Origin { 5.5 * l }
       Plane { l }
       Replace { .empty }
     }
     
     driveWallDesc.patterns.append { h, k, l in
-      Origin { 13.75 * h }
+      Origin { 14 * h }
       Plane { h }
       Replace { .empty }
     }
@@ -85,7 +90,7 @@ struct HalfAdder {
     
     driveWallDesc.patterns.removeLast()
     driveWallDesc.patterns.append { h, k, l in
-      Origin { 14.75 * h }
+      Origin { 15 * h }
       Plane { -h }
       Replace { .empty }
     }
@@ -104,6 +109,11 @@ struct HalfAdder {
     driveWallDesc.patterns.append { h, k, l in
       Origin { 17.25 * h }
       Plane { -h }
+      Replace { .empty }
+    }
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 21.75 * h }
+      Plane { h }
       Replace { .empty }
     }
     intermediateDriveWall = DriveWall(descriptor: driveWallDesc)
