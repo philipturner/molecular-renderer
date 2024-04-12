@@ -329,9 +329,9 @@ extension HalfAdderUnit {
 // 3 atomic layers | <2.5 to >6.5
 // 4 atomic layers | >6.5 to <8.25
 // 3 atomic layers | <8.25 to >12.25
-// 4 atomic layers | >12.25 to <16.25
-// 3 atomic layers | <16.25 to >20.25
-// 4 atomic layers | >20.25 to <22.75
+// 4 atomic layers | >12.25 to <14
+// 3 atomic layers | <14 to >18
+// 4 atomic layers | >18 to <20.5
 //
 // operand
 // --------------- | ----------------

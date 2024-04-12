@@ -32,6 +32,76 @@ func createGeometry() -> [MM4RigidBody] {
   // semi-automated procedure for getting the right lattice constant. Perhaps
   // SurfaceReconstruction already automates the required trimming.
   
-  let halfAdder = HalfAdder()
-  return halfAdder.rigidBodies
+  let createDriveWallInterface: KnobPattern = { h, h2k, l in
+    Concave {
+      Concave {
+        Origin { 1 * h2k }
+        Plane { h2k }
+        Origin { 1 * h }
+        Plane { h2k - 3 * h } // k - h
+      }
+      Convex {
+        Origin { 1.5 * h2k }
+        Plane { h2k }
+        Origin { 0.5 * h }
+        Plane { -h }
+      }
+    }
+    Replace { .empty }
+  }
+  
+  // Inclusive bounds for each indent, in cubic diamond unit cells.
+  var indents: [SIMD2<Float>] = []
+  indents.append(SIMD2(2.5, 6.5))
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 1)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 2)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 3)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 4)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 5)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 6)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 7)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 8)
+  indents.append(SIMD2(2.5, 6.5) + 6.25 * 9)
+  
+  let lattice = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 100 * h + 2 * h2k + 2 * l }
+    Material { .elemental(.carbon) }
+    
+    Volume {
+      createDriveWallInterface(h, h2k, l)
+    }
+    
+    Volume {
+      for indent in indents {
+        let cubicLatticeConstant = Constant(.square) {
+          .elemental(.carbon)
+        }
+        let hexagonalLatticeConstant = Constant(.hexagon) {
+          .elemental(.carbon)
+        }
+        let scaled = indent * cubicLatticeConstant / hexagonalLatticeConstant
+        
+        Concave {
+          Concave {
+            Origin { Float(scaled[0]).rounded(.down) * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 0.49 * h2k }
+            Plane { -h2k }
+          }
+          Concave {
+            Origin { Float(scaled[1]).rounded(.up) * h }
+            Plane { -h }
+          }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+  
+  let rod = Rod(lattice: lattice)
+  
+  return [rod.rigidBody]
 }
