@@ -31,7 +31,8 @@ struct InputUnit {
     
     // Create the operand rods.
     var operandBoundsSet: [SIMD2<Float>] = []
-    operandBoundsSet.append(SIMD2(6, 12))
+    operandBoundsSet.append(SIMD2(2.25, 6.25))
+    operandBoundsSet.append(3.25 + SIMD2(8.5, 12.5))
     
     let operandLattice = Self.createLattice(boundsSet: operandBoundsSet)
     var operandRod = Rod(lattice: operandLattice)
@@ -68,7 +69,8 @@ struct InputUnit {
     
     // Create the sum rods.
     var sumBoundsSet: [SIMD2<Float>] = []
-    sumBoundsSet.append(SIMD2(6, 12))
+    sumBoundsSet.append(SIMD2(2.25, 6.25))
+    sumBoundsSet.append(SIMD2(8.5, 12.5))
     
     let sumLattice = Self.createLattice(boundsSet: sumBoundsSet)
     var sumRod = Rod(lattice: sumLattice)
@@ -184,7 +186,8 @@ extension InputUnit {
   static func createKnobPattern(bounds: SIMD2<Float>) -> KnobPattern {
     let cubicConstant = Constant(.square) { .elemental(.carbon) }
     let hexagonalConstant = Constant(.hexagon) { .elemental(.carbon) }
-    let scaledBounds = bounds * cubicConstant / hexagonalConstant
+    let shrunkBounds = bounds + SIMD2(0.125, -0.125)
+    let scaledBounds = shrunkBounds * cubicConstant / hexagonalConstant
     
     return { h, h2k, l in
       Concave {
