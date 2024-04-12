@@ -136,18 +136,6 @@ struct Probe {
       atom.position.z = -atom.position.z
       topology.atoms[atomID] = atom
     }
-    
-    // Report the closest silicon atom to the origin.
-    var closestDistance: Float = .greatestFiniteMagnitude
-    var closestAtomID: Int = -1
-    for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      let distance = (atom.position * atom.position).sum().squareRoot()
-      if distance < closestDistance {
-        closestDistance = distance
-        closestAtomID = atomID
-      }
-    }
   }
   
   // WARNING: The probe must be pointing up, so that 99% have Y < 0.

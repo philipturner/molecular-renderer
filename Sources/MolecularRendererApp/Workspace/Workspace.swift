@@ -14,37 +14,32 @@ import OpenMM
 // for every rod.
 
 func createGeometry() -> [MM4RigidBody] {
-  let halfAdder = HalfAdder()
-  let output = halfAdder.rigidBodies
+  // TODO: Create a function that can minimize a rigid body in isolation, then
+  // retrieve the serialized one from disk. Keep the serialization and
+  // deserialization code entirely self-contained, and stored alongside the
+  // source string literal.
   
-  var forceFieldParameters = output[0].parameters
-  for rigidBody in output[1...] {
+  let halfAdder = HalfAdder()
+  var rigidBodies = halfAdder.rigidBodies
+  rigidBodies = Array(rigidBodies[0..<3])
+  
+  var forceFieldParameters = rigidBodies[0].parameters
+  for rigidBody in rigidBodies[1...] {
     let parameters = rigidBody.parameters
     forceFieldParameters.append(contentsOf: parameters)
   }
-  let atomCount = forceFieldParameters.atoms.count
-  
-  var bulkAtomCount: Int = .zero
   for atomID in forceFieldParameters.atoms.indices {
     let centerType = forceFieldParameters.atoms.centerTypes[atomID]
     if centerType == .quaternary {
-      bulkAtomCount += 1
+      forceFieldParameters.atoms.masses[atomID] = .zero
     }
   }
   
-  // housing + rods
-  // total atoms: 57846
-  // bulk atoms: 27618
-  // surface atoms: 30228
-  //
-  // housing
-  // total atoms: 46678
-  // bulk atoms: 24122
-  // surface atoms: 22556
-  //
-  // housing surface atoms: 22556 / 57846 = 39%
-  print(atomCount)
-  print(bulkAtomCount)
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.parameters = forceFieldParameters
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  forceField.positions = rigidBodies.flatMap(\.positions)
+  forceField.minimize()
   
-  return output
+  return rigidBodies
 }

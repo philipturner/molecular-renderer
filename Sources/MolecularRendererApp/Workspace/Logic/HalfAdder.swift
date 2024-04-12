@@ -17,14 +17,14 @@ struct HalfAdder {
   
   var rigidBodies: [MM4RigidBody] {
     var output: [MM4RigidBody] = []
-//    output.append(contentsOf: inputUnit.rods.map(\.rigidBody))
-//    output.append(contentsOf: intermediateUnit.rods.map(\.rigidBody))
     output += [
       housing.rigidBody,
       inputUnit.operandDriveWall.rigidBody,
       inputUnit.sumDriveWall.rigidBody,
       intermediateUnit.driveWall.rigidBody,
     ]
+    output.append(contentsOf: inputUnit.rods.map(\.rigidBody))
+    output.append(contentsOf: intermediateUnit.rods.map(\.rigidBody))
     return output
   }
   
