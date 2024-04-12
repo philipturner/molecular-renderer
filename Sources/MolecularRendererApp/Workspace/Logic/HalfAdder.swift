@@ -36,6 +36,7 @@ struct HalfAdder {
     housingDesc.dimensions = SIMD3(22, 17, 14)
     housingDesc.patterns.append(contentsOf: inputUnit.holePatterns)
     housingDesc.patterns.append(contentsOf: intermediateUnit.holePatterns)
+    housingDesc.surfaceAtomPositions = " "
     housing = LogicHousing(descriptor: housingDesc)
   }
 }
