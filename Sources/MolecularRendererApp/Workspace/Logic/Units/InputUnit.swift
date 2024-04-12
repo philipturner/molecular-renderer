@@ -27,45 +27,42 @@ struct InputUnit {
   }
   
   init() {
-    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
-    let latticeZ = Lattice<Hexagonal> { h, k, l in
+    // Create the source rod.
+    let lattice = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       Bounds { 21 * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
       
-      // Drive wall interface.
       Volume {
-        Concave {
-          Concave {
-            Origin { 1 * h2k }
-            Plane { h2k }
-            Origin { 1 * h }
-            Plane { h2k - 3 * h } // k - h
-          }
-          Convex {
-            Origin { 1.5 * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h }
-            Plane { -h }
-          }
+        let pattern = Self.createDriveWallInterface()
+        pattern(h, h2k, l)
+      }
+      
+      var boundsArray: [SIMD2<Float>] = []
+      boundsArray.append(SIMD2(6, 12))
+      for bounds in boundsArray {
+        let pattern = Self.createKnobPattern(bounds: bounds)
+        Volume {
+          pattern(h, h2k, l)
         }
-        Replace { .empty }
       }
     }
+    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
     
-    var rodZ = Rod(lattice: latticeZ)
-    rodZ.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
+    var rod = Rod(lattice: lattice)
+    rod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
     do {
-      var center = rodZ.rigidBody.centerOfMass
+      var center = rod.rigidBody.centerOfMass
       center = SIMD3(center.z, center.y, center.x)
-      rodZ.rigidBody.centerOfMass = center
+      rod.rigidBody.centerOfMass = center
     }
     
+    // Create the logic rods.
     var holeOffsets: [SIMD3<Float>] = []
     
     do {
       var offset = SIMD3<Float>(0.75, 0.75, 0)
-      var source = rodZ
+      var source = rod
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
       operandA = Self.createLayers(source: source)
@@ -76,7 +73,7 @@ struct InputUnit {
     
     do {
       var offset = SIMD3<Float>(0.75 + 6.25, 0.75, 0)
-      var source = rodZ
+      var source = rod
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
       operandB = Self.createLayers(source: source)
@@ -90,7 +87,7 @@ struct InputUnit {
       
       // Correct for the extra spacing at the barrier between drive walls.
       offset.x += 1.75
-      var source = rodZ
+      var source = rod
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
       sum = Self.createLayers(source: source)
@@ -99,25 +96,28 @@ struct InputUnit {
       holeOffsets.append(offset)
     }
     
+    // Create the hole patterns.
     for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
         let y = 6.25 * Float(layerID)
         holePatterns.append(
-          Self.createHolePatternZ(offset: SIMD3(0, y, 0) + offset))
+          Self.createHolePattern(offset: SIMD3(0, y, 0) + offset))
       }
     }
     
+    // Create the ramp patterns.
     var rampPatterns = HalfAdder.createBoundingPatterns()
     for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
         let y = -3.25 + 6.25 * Float(layerID)
         rampPatterns.append(
-          Self.createRampPatternZ(offset: SIMD3(0, y, 0) + offset))
+          Self.createRampPattern(offset: SIMD3(0, y, 0) + offset))
       }
     }
     
+    // Create the operand drive wall.
     let operandPattern: RampPattern = { h, k, l in
       Origin { 14 * h }
       Plane { h }
@@ -126,6 +126,7 @@ struct InputUnit {
     operandDriveWall = Self.createDriveWall(
       patterns: rampPatterns + [operandPattern])
     
+    // Create the sum drive wall.
     let sumPattern: RampPattern = { h, k, l in
       Origin { 15 * h }
       Plane { -h }
@@ -136,7 +137,54 @@ struct InputUnit {
   }
 }
 
+// MARK: - Rods
+
 extension InputUnit {
+  static func createDriveWallInterface() -> KnobPattern {
+    return { h, h2k, l in
+      Concave {
+        Concave {
+          Origin { 1 * h2k }
+          Plane { h2k }
+          Origin { 1 * h }
+          Plane { h2k - 3 * h } // k - h
+        }
+        Convex {
+          Origin { 1.5 * h2k }
+          Plane { h2k }
+          Origin { 0.5 * h }
+          Plane { -h }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+  
+  // Accepts bounds in multiples of the cubic diamond lattice constant.
+  static func createKnobPattern(bounds: SIMD2<Float>) -> KnobPattern {
+    let cubicConstant = Constant(.square) { .elemental(.carbon) }
+    let hexagonalConstant = Constant(.hexagon) { .elemental(.carbon) }
+    let scaledBounds = bounds * cubicConstant / hexagonalConstant
+    
+    return { h, h2k, l in
+      Concave {
+        Concave {
+          Origin { scaledBounds[0].rounded(.down) * h }
+          Plane { h }
+        }
+        Concave {
+          Origin { 1.5 * h2k }
+          Plane { h2k }
+        }
+        Concave {
+          Origin { scaledBounds[1].rounded(.up) * h }
+          Plane { -h }
+        }
+      }
+      Replace { .empty }
+    }
+  }
+  
   // Spawns the logic rods for all Y layers, from a single source rod.
   static func createLayers(source: Rod) -> [Rod] {
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
@@ -150,8 +198,12 @@ extension InputUnit {
     }
     return output
   }
-  
-  static func createHolePatternZ(offset: SIMD3<Float>) -> HolePattern {
+}
+
+// MARK: - Housing
+
+extension InputUnit {
+  static func createHolePattern(offset: SIMD3<Float>) -> HolePattern {
     { h, k, l in
       Origin { offset[0] * h + offset[1] * k + offset[2] * l }
       
@@ -170,8 +222,8 @@ extension InputUnit {
       Replace { .empty }
     }
   }
-  
-  static func createRampPatternZ(offset: SIMD3<Float>) -> RampPattern {
+
+  static func createRampPattern(offset: SIMD3<Float>) -> RampPattern {
     { h, k, l in
       Origin { offset[0] * h + offset[1] * k + offset[2] * l }
       
@@ -194,9 +246,7 @@ extension InputUnit {
       Replace { .empty }
     }
   }
-}
-
-extension InputUnit {
+  
   static func createDriveWall(patterns: [RampPattern]) -> DriveWall {
     var driveWallDesc = DriveWallDescriptor()
     driveWallDesc.dimensions = SIMD3(23, 18, 15)
