@@ -11,15 +11,19 @@ import MM4
 import Numerics
 
 struct HalfAdder {
-  var unit: HalfAdderUnit
+  var inputUnit: InputUnit
+  var intermediateUnit: IntermediateUnit
   var housing: LogicHousing
+  
+  // TODO: Move the drive walls into their respective units.
   var inputDriveWall: DriveWall
   var outputDriveWall: DriveWall
-  var intermediateDriveWall: DriveWall
+  var intermediateDriveWall: DriveWall // remove 'intermediate'
   
   var rigidBodies: [MM4RigidBody] {
     var output: [MM4RigidBody] = []
-    output.append(contentsOf: unit.rods.map(\.rigidBody))
+    output.append(contentsOf: inputUnit.rods.map(\.rigidBody))
+    output.append(contentsOf: intermediateUnit.rods.map(\.rigidBody))
     output += [
       housing.rigidBody,
       inputDriveWall.rigidBody,
@@ -30,7 +34,8 @@ struct HalfAdder {
   }
   
   init() {
-    unit = HalfAdderUnit()
+    inputUnit = InputUnit()
+    intermediateUnit = IntermediateUnit()
     
     // Create the housing.
     
@@ -57,7 +62,7 @@ struct HalfAdder {
     
     var housingDesc = LogicHousingDescriptor()
     housingDesc.dimensions = SIMD3(23, 18, 15)
-    housingDesc.patterns = unit.holePatterns
+    housingDesc.patterns = inputUnit.holePatterns + intermediateUnit.holePatterns
     housingDesc.patterns.append(contentsOf: boundingPatterns)
     housing = LogicHousing(descriptor: housingDesc)
     
@@ -67,7 +72,7 @@ struct HalfAdder {
     
     var driveWallDesc = DriveWallDescriptor()
     driveWallDesc.dimensions = SIMD3(23, 18, 6)
-    driveWallDesc.patterns = unit.backRampPatterns
+    driveWallDesc.patterns = inputUnit.backRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
     driveWallDesc.patterns.append { h, k, l in
       Origin { 1 * l }
@@ -99,7 +104,7 @@ struct HalfAdder {
     
     driveWallDesc = DriveWallDescriptor()
     driveWallDesc.dimensions = SIMD3(23, 18, 15)
-    driveWallDesc.patterns = unit.rightRampPatterns
+    driveWallDesc.patterns = intermediateUnit.rightRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
     driveWallDesc.patterns.append { h, k, l in
       Origin { 16.75 * h }
