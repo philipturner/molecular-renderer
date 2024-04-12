@@ -45,7 +45,7 @@ struct IntermediateUnit {
     var holeOffsets: [SIMD3<Float>] = []
     
     do {
-      var offset = SIMD3<Float>(0, 0.5 + 2.5, 0.5)
+      var offset = SIMD3<Float>(0, 2.75 + 0.5, 0.5)
       var source = rod
       let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
@@ -57,7 +57,7 @@ struct IntermediateUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(0, 0.5 + 2.5, 0.5 + 6)
+      var offset = SIMD3<Float>(0, 2.75 + 0.5, 0.5 + 6)
       var source = rod
       let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
@@ -79,7 +79,7 @@ struct IntermediateUnit {
     }
     
     // Create the ramp patterns.
-    var rampPatterns = HalfAdder.createBoundingPatterns()
+    var rampPatterns: [RampPattern] = []
     for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
@@ -227,20 +227,15 @@ extension IntermediateUnit {
   
   static func createDriveWall(patterns: [RampPattern]) -> DriveWall {
     var driveWallDesc = DriveWallDescriptor()
-    driveWallDesc.dimensions = SIMD3(23, 18, 15)
+    driveWallDesc.dimensions = SIMD3(22, 17, 14)
     driveWallDesc.patterns = patterns
     driveWallDesc.patterns.append { h, k, l in
-      Origin { 16.75 * h }
+      Origin { (22 - 5.5) * h }
       Plane { -h }
       Replace { .empty }
     }
     driveWallDesc.patterns.append { h, k, l in
-      Origin { 17.25 * h }
-      Plane { -h }
-      Replace { .empty }
-    }
-    driveWallDesc.patterns.append { h, k, l in
-      Origin { 21.75 * h }
+      Origin { (22 - 1) * h }
       Plane { h }
       Replace { .empty }
     }

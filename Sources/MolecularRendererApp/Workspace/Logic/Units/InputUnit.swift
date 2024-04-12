@@ -107,7 +107,7 @@ struct InputUnit {
     }
     
     // Create the ramp patterns.
-    var rampPatterns = HalfAdder.createBoundingPatterns()
+    var rampPatterns: [RampPattern] = []
     for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
@@ -119,7 +119,7 @@ struct InputUnit {
     
     // Create the operand drive wall.
     let operandPattern: RampPattern = { h, k, l in
-      Origin { 14 * h }
+      Origin { 13.5 * h }
       Plane { h }
       Replace { .empty }
     }
@@ -128,7 +128,7 @@ struct InputUnit {
     
     // Create the sum drive wall.
     let sumPattern: RampPattern = { h, k, l in
-      Origin { 15 * h }
+      Origin { 14.5 * h }
       Plane { -h }
       Replace { .empty }
     }
@@ -272,7 +272,7 @@ extension InputUnit {
   
   static func createDriveWall(patterns: [RampPattern]) -> DriveWall {
     var driveWallDesc = DriveWallDescriptor()
-    driveWallDesc.dimensions = SIMD3(23, 18, 15)
+    driveWallDesc.dimensions = SIMD3(22, 17, 14)
     driveWallDesc.patterns = patterns
     driveWallDesc.patterns.append { h, k, l in
       Origin { 1 * l }

@@ -33,34 +33,9 @@ struct HalfAdder {
     intermediateUnit = IntermediateUnit()
     
     var housingDesc = LogicHousingDescriptor()
-    housingDesc.dimensions = SIMD3(23, 18, 15)
-    housingDesc.patterns = Self.createBoundingPatterns()
+    housingDesc.dimensions = SIMD3(22, 17, 14)
     housingDesc.patterns.append(contentsOf: inputUnit.holePatterns)
     housingDesc.patterns.append(contentsOf: intermediateUnit.holePatterns)
     housing = LogicHousing(descriptor: housingDesc)
-  }
-  
-  typealias BoundingPattern = (
-    SIMD3<Float>, SIMD3<Float>, SIMD3<Float>
-  ) -> Void
-  
-  static func createBoundingPatterns() -> [BoundingPattern] {
-    var boundingPatterns: [BoundingPattern] = []
-    boundingPatterns.append { h, k, l in
-      Origin { 22.75 * h }
-      Plane { h }
-      Replace { .empty }
-    }
-    boundingPatterns.append { h, k, l in
-      Origin { 17.75 * k }
-      Plane { k }
-      Replace { .empty }
-    }
-    boundingPatterns.append { h, k, l in
-      Origin { 14.75 * l }
-      Plane { l }
-      Replace { .empty }
-    }
-    return boundingPatterns
   }
 }
