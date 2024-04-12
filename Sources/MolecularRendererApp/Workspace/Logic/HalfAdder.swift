@@ -45,7 +45,7 @@ struct HalfAdder {
       Replace { .empty }
     }
     boundingPatterns.append { h, k, l in
-      Origin { 11.75 * k }
+      Origin { 17.75 * k }
       Plane { k }
       Replace { .empty }
     }
@@ -56,7 +56,7 @@ struct HalfAdder {
     }
     
     var housingDesc = LogicHousingDescriptor()
-    housingDesc.dimensions = SIMD3(23, 12, 15)
+    housingDesc.dimensions = SIMD3(23, 18, 15)
     housingDesc.patterns = unit.holePatterns
     housingDesc.patterns.append(contentsOf: boundingPatterns)
     housing = LogicHousing(descriptor: housingDesc)
@@ -66,7 +66,7 @@ struct HalfAdder {
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
     
     var driveWallDesc = DriveWallDescriptor()
-    driveWallDesc.dimensions = SIMD3(23, 12, 6)
+    driveWallDesc.dimensions = SIMD3(23, 18, 6)
     driveWallDesc.patterns = unit.backRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
     driveWallDesc.patterns.append { h, k, l in
@@ -87,7 +87,7 @@ struct HalfAdder {
     outputDriveWall.rigidBody.centerOfMass.z -= (6 + 1) * latticeConstant
     
     driveWallDesc = DriveWallDescriptor()
-    driveWallDesc.dimensions = SIMD3(23, 12, 15)
+    driveWallDesc.dimensions = SIMD3(23, 18, 15)
     driveWallDesc.patterns = unit.rightRampPatterns
     driveWallDesc.patterns.append(contentsOf: boundingPatterns)
     driveWallDesc.patterns.append { h, k, l in

@@ -12,24 +12,24 @@ import Numerics
 
 // The logic rods for a half adder.
 struct HalfAdderUnit {
-  var operandA: Rod
-  var operandB: Rod
-  var output: Rod
-  var propagate: Rod
-  var generate: Rod
+  var operandA: [Rod]
+  var operandB: [Rod]
+  var sum: [Rod]
+  var propagate: [Rod]
+  var generate: [Rod]
   
   var holePatterns: [HolePattern] = []
   var backRampPatterns: [RampPattern] = []
   var rightRampPatterns: [RampPattern] = []
   
   var rods: [Rod] {
-    return [
-      operandA,
-      operandB,
-      output,
-      propagate,
-      generate,
-    ]
+    var output: [Rod] = []
+    output.append(contentsOf: operandA)
+    output.append(contentsOf: operandB)
+    output.append(contentsOf: sum)
+    output.append(contentsOf: propagate)
+    output.append(contentsOf: generate)
+    return output
   }
   
   init() {
@@ -56,9 +56,10 @@ struct HalfAdderUnit {
     
     do {
       var offset = SIMD3<Float>(1, 1, 0)
-      operandA = rodZ
-      operandA.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
-      operandA.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
+      var source = rodZ
+      source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
+      source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
+      operandA = Self.createLayers(source: source)
       
       offset += SIMD3(1.5, 1.5, 0)
       holeOffsetsZ.append(offset)
@@ -67,9 +68,10 @@ struct HalfAdderUnit {
     
     do {
       var offset = SIMD3<Float>(1 + 5.75, 1, 0)
-      operandB = rodZ
-      operandB.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
-      operandB.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
+      var source = rodZ
+      source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
+      source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
+      operandB = Self.createLayers(source: source)
       
       offset += SIMD3(1.5, 1.5, 0)
       holeOffsetsZ.append(offset)
@@ -81,9 +83,10 @@ struct HalfAdderUnit {
       
       // Correct for the extra spacing at the barrier between drive walls.
       offset.x += 2.25
-      output = rodZ
-      output.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
-      output.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
+      var source = rodZ
+      source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
+      source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
+      sum = Self.createLayers(source: source)
       
       offset += SIMD3(1.5, 1.5, 0)
       holeOffsetsZ.append(offset)
@@ -98,6 +101,8 @@ struct HalfAdderUnit {
         Self.createHolePatternZ(offset: SIMD3(0, 0, 0) + offset))
       holePatterns.append(
         Self.createHolePatternZ(offset: SIMD3(0, 6, 0) + offset))
+      holePatterns.append(
+        Self.createHolePatternZ(offset: SIMD3(0, 12, 0) + offset))
     }
     
     for offset in backRampOffsets {
@@ -108,6 +113,8 @@ struct HalfAdderUnit {
         Self.createRampPatternZ(offset: SIMD3(0, 0, 0) + offset))
       backRampPatterns.append(
         Self.createRampPatternZ(offset: SIMD3(0, 6, 0) + offset))
+      backRampPatterns.append(
+        Self.createRampPatternZ(offset: SIMD3(0, 12, 0) + offset))
     }
     
     // MARK: - Upper Rods
@@ -132,9 +139,10 @@ struct HalfAdderUnit {
     
     do {
       var offset = SIMD3<Float>(0, 1 + 2.5, 1)
-      propagate = rodX
-      propagate.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
-      propagate.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
+      var source = rodX
+      source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
+      source.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
+      propagate = Self.createLayers(source: source)
       
       offset += SIMD3(0, 1.5, 1.5)
       holeOffsetsX.append(offset)
@@ -143,9 +151,10 @@ struct HalfAdderUnit {
     
     do {
       var offset = SIMD3<Float>(0, 1 + 2.5, 1 + 5.75)
-      generate = rodX
-      generate.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
-      generate.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
+      var source = rodX
+      source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
+      source.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
+      generate = Self.createLayers(source: source)
       
       offset += SIMD3(0, 1.5, 1.5)
       holeOffsetsX.append(offset)
@@ -160,6 +169,8 @@ struct HalfAdderUnit {
         Self.createHolePatternX(offset: SIMD3(0, 0, 0) + offset))
       holePatterns.append(
         Self.createHolePatternX(offset: SIMD3(0, 6, 0) + offset))
+      holePatterns.append(
+        Self.createHolePatternX(offset: SIMD3(0, 12, 0) + offset))
     }
     
     for offset in rightRampOffsets {
@@ -170,11 +181,27 @@ struct HalfAdderUnit {
         Self.createRampPatternX(offset: SIMD3(22.75, 0, 0) + offset))
       rightRampPatterns.append(
         Self.createRampPatternX(offset: SIMD3(22.75, 6, 0) + offset))
+      rightRampPatterns.append(
+        Self.createRampPatternX(offset: SIMD3(22.75, 12, 0) + offset))
     }
   }
 }
 
 extension HalfAdderUnit {
+  // Spawns the logic rods for all Y layers, from a single source rod.
+  static func createLayers(source: Rod) -> [Rod] {
+    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
+    let spacing = 6 * latticeConstant
+    
+    var output: [Rod] = []
+    for layerID in 0..<2 {
+      var rod = source
+      rod.rigidBody.centerOfMass.y += spacing * Double(layerID)
+      output.append(rod)
+    }
+    return output
+  }
+  
   static func createHolePatternZ(offset: SIMD3<Float>) -> HolePattern {
     { h, k, l in
       Origin { offset[0] * h + offset[1] * k + offset[2] * l }
