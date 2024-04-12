@@ -27,6 +27,11 @@ func createGeometry() -> [MM4RigidBody] {
   //   [NOT YET] placement procedure? Using parametric methods to locate an
   //   integer multiple of the lattice constant.
   
+  // TODO: Visualize each design specification. Design it once, then throw away
+  // the code for designing it. Reformulate what you've learned into a
+  // semi-automated procedure for getting the right lattice constant. Perhaps
+  // SurfaceReconstruction already automates the required trimming.
+  
   let halfAdder = HalfAdder()
   return halfAdder.rigidBodies
 }

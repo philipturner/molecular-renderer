@@ -320,3 +320,30 @@ extension HalfAdderUnit {
     }
   }
 }
+
+// Pattern Design Specifications
+//
+// propagate & generate
+// --------------- | ----------------
+// 4 atomic layers | >0 to <2.5
+// 3 atomic layers | <2.5 to >6.5
+// 4 atomic layers | >6.5 to <8.25
+// 3 atomic layers | <8.25 to >12.25
+// 4 atomic layers | >12.25 to <16.25
+// 3 atomic layers | <16.25 to >20.25
+// 4 atomic layers | >20.25 to <22.75
+//
+// operand
+// --------------- | ----------------
+// 4 atomic layers | >0 to <2.5
+// 3 atomic layers | <2.5 to >6.5
+// 4 atomic layers | >6.5 to <11.5
+// 3 atomic layers | <11.5 to >14.75
+//
+// sum
+// --------------- | ----------------
+// 4 atomic layers | >0 to <2.5
+// 3 atomic layers | <2.5 to >6.5
+// 4 atomic layers | >6.5 to <8.25
+// 3 atomic layers | <8.25 to >12.25
+// 4 atomic layers | >12.25 to <14.75
