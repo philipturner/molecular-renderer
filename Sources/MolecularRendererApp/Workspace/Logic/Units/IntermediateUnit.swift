@@ -28,11 +28,10 @@ struct IntermediateUnit {
     var boundsSet: [SIMD2<Float>] = []
     boundsSet.append(SIMD2(6, 12))
     let lattice = Self.createLattice(boundsSet: boundsSet)
-    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
-    
     var rod = Rod(lattice: lattice)
     rod.rigidBody.rotate(angle: -.pi, axis: [0, 1, 0])
     do {
+      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       var center = rod.rigidBody.centerOfMass
       center = SIMD3(-center.x, center.y, center.z)
       center.x += 22.75 * latticeConstant
@@ -45,6 +44,7 @@ struct IntermediateUnit {
     do {
       var offset = SIMD3<Float>(0, 0.75 + 2.5, 0.75)
       var source = rod
+      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
       propagate = Self.createLayers(source: source)
@@ -56,6 +56,7 @@ struct IntermediateUnit {
     do {
       var offset = SIMD3<Float>(0, 0.75 + 2.5, 0.75 + 6.25)
       var source = rod
+      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
       generate = Self.createLayers(source: source)

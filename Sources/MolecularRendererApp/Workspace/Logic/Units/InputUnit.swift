@@ -27,42 +27,25 @@ struct InputUnit {
   }
   
   init() {
-    // Create the source rod.
-    let lattice = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      Bounds { 21 * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
-      
-      Volume {
-        let pattern = Self.createDriveWallInterface()
-        pattern(h, h2k, l)
-      }
-      
-      var boundsArray: [SIMD2<Float>] = []
-      boundsArray.append(SIMD2(6, 12))
-      for bounds in boundsArray {
-        let pattern = Self.createKnobPattern(bounds: bounds)
-        Volume {
-          pattern(h, h2k, l)
-        }
-      }
-    }
-    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
-    
-    var rod = Rod(lattice: lattice)
-    rod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
-    do {
-      var center = rod.rigidBody.centerOfMass
-      center = SIMD3(center.z, center.y, center.x)
-      rod.rigidBody.centerOfMass = center
-    }
-    
-    // Create the logic rods.
     var holeOffsets: [SIMD3<Float>] = []
+    
+    // Create the operand rods.
+    var operandBoundsSet: [SIMD2<Float>] = []
+    operandBoundsSet.append(SIMD2(6, 12))
+    
+    let operandLattice = Self.createLattice(boundsSet: operandBoundsSet)
+    var operandRod = Rod(lattice: operandLattice)
+    operandRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
+    do {
+      var center = operandRod.rigidBody.centerOfMass
+      center = SIMD3(center.z, center.y, center.x)
+      operandRod.rigidBody.centerOfMass = center
+    }
     
     do {
       var offset = SIMD3<Float>(0.75, 0.75, 0)
-      var source = rod
+      var source = operandRod
+      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
       operandA = Self.createLayers(source: source)
@@ -73,7 +56,8 @@ struct InputUnit {
     
     do {
       var offset = SIMD3<Float>(0.75 + 6.25, 0.75, 0)
-      var source = rod
+      var source = operandRod
+      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
       operandB = Self.createLayers(source: source)
@@ -82,12 +66,26 @@ struct InputUnit {
       holeOffsets.append(offset)
     }
     
+    // Create the sum rods.
+    var sumBoundsSet: [SIMD2<Float>] = []
+    sumBoundsSet.append(SIMD2(6, 12))
+    
+    let sumLattice = Self.createLattice(boundsSet: sumBoundsSet)
+    var sumRod = Rod(lattice: sumLattice)
+    sumRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
+    do {
+      var center = sumRod.rigidBody.centerOfMass
+      center = SIMD3(center.z, center.y, center.x)
+      sumRod.rigidBody.centerOfMass = center
+    }
+    
     do {
       var offset = SIMD3<Float>(0.75 + 6.25 * 2, 0.75, 0)
       
       // Correct for the extra spacing at the barrier between drive walls.
       offset.x += 1.75
-      var source = rod
+      var source = sumRod
+      let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
       source.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
       sum = Self.createLayers(source: source)
@@ -140,6 +138,28 @@ struct InputUnit {
 // MARK: - Rods
 
 extension InputUnit {
+  // Create a lattice for a logic rod.
+  static func createLattice(boundsSet: [SIMD2<Float>]) -> Lattice<Hexagonal> {
+    Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      Bounds { 21 * h + 2 * h2k + 2 * l }
+      Material { .elemental(.carbon) }
+      
+      Volume {
+        let pattern = Self.createDriveWallInterface()
+        pattern(h, h2k, l)
+      }
+      
+      for bounds in boundsSet {
+        let pattern = Self.createKnobPattern(bounds: bounds)
+        Volume {
+          pattern(h, h2k, l)
+        }
+      }
+    }
+  }
+  
+  // Create an interface to the drive wall.
   static func createDriveWallInterface() -> KnobPattern {
     return { h, h2k, l in
       Concave {
