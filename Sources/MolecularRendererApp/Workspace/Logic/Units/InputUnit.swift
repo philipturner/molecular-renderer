@@ -14,10 +14,10 @@ struct InputUnit {
   var operandA: [Rod]
   var operandB: [Rod]
   var sum: [Rod]
+  var operandDriveWall: DriveWall
+  var sumDriveWall: DriveWall
   
   var holePatterns: [HolePattern] = []
-  var backRampPatterns: [RampPattern] = []
-  
   var rods: [Rod] {
     var output: [Rod] = []
     output.append(contentsOf: operandA)
@@ -112,6 +112,7 @@ struct InputUnit {
       }
     }
     
+    var backRampPatterns: [RampPattern] = []
     for var offset in backRampOffsets {
       offset.y -= 3.25
       
@@ -122,6 +123,22 @@ struct InputUnit {
           Self.createRampPatternZ(offset: SIMD3(0, y, 0) + offset))
       }
     }
+    
+    let operandPattern: RampPattern = { h, k, l in
+      Origin { 14 * h }
+      Plane { h }
+      Replace { .empty }
+    }
+    operandDriveWall = Self.createDriveWall(
+      patterns: backRampPatterns + [operandPattern])
+    
+    let sumPattern: RampPattern = { h, k, l in
+      Origin { 15 * h }
+      Plane { -h }
+      Replace { .empty }
+    }
+    sumDriveWall = Self.createDriveWall(
+      patterns: backRampPatterns + [sumPattern])
   }
 }
 
@@ -182,5 +199,30 @@ extension InputUnit {
       
       Replace { .empty }
     }
+  }
+}
+
+extension InputUnit {
+  static func createDriveWall(patterns: [RampPattern]) -> DriveWall {
+    var driveWallDesc = DriveWallDescriptor()
+    driveWallDesc.dimensions = SIMD3(23, 18, 15)
+    driveWallDesc.patterns = patterns
+    driveWallDesc.patterns.append(
+      contentsOf: HalfAdder.createBoundingPatterns())
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 1 * l }
+      Plane { -l }
+      Replace { .empty }
+    }
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 5.5 * l }
+      Plane { l }
+      Replace { .empty }
+    }
+    
+    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
+    var driveWall = DriveWall(descriptor: driveWallDesc)
+    driveWall.rigidBody.centerOfMass.z -= (5.5 + 1) * latticeConstant
+    return driveWall
   }
 }

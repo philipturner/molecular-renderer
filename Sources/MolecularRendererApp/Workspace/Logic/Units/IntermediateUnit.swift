@@ -13,10 +13,9 @@ import Numerics
 struct IntermediateUnit {
   var propagate: [Rod]
   var generate: [Rod]
+  var driveWall: DriveWall
   
   var holePatterns: [HolePattern] = []
-  var rightRampPatterns: [RampPattern] = []
-  
   var rods: [Rod] {
     var output: [Rod] = []
     output.append(contentsOf: propagate)
@@ -96,6 +95,7 @@ struct IntermediateUnit {
       }
     }
     
+    var rightRampPatterns: [RampPattern] = []
     for var offset in rightRampOffsets {
       offset.y -= 3.25
       
@@ -106,6 +106,7 @@ struct IntermediateUnit {
           Self.createRampPatternX(offset: SIMD3(22.75, y, 0) + offset))
       }
     }
+    driveWall = Self.createDriveWall(patterns: rightRampPatterns)
   }
 }
 
@@ -166,5 +167,35 @@ extension IntermediateUnit {
       
       Replace { .empty }
     }
+  }
+}
+
+extension IntermediateUnit {
+  static func createDriveWall(patterns: [RampPattern]) -> DriveWall {
+    var driveWallDesc = DriveWallDescriptor()
+    driveWallDesc.dimensions = SIMD3(23, 18, 15)
+    driveWallDesc.patterns = patterns
+    driveWallDesc.patterns.append(
+      contentsOf: HalfAdder.createBoundingPatterns())
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 16.75 * h }
+      Plane { -h }
+      Replace { .empty }
+    }
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 17.25 * h }
+      Plane { -h }
+      Replace { .empty }
+    }
+    driveWallDesc.patterns.append { h, k, l in
+      Origin { 21.75 * h }
+      Plane { h }
+      Replace { .empty }
+    }
+    
+    let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
+    var driveWall = DriveWall(descriptor: driveWallDesc)
+    driveWall.rigidBody.centerOfMass.x += (5.5 + 1) * latticeConstant
+    return driveWall
   }
 }
