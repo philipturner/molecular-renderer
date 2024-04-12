@@ -31,8 +31,8 @@ struct InputUnit {
     
     // Create the operand rods.
     var operandBoundsSet: [SIMD2<Float>] = []
-    operandBoundsSet.append(SIMD2(2.25, 6.25))
-    operandBoundsSet.append(3.25 + SIMD2(8.5, 12.5))
+    operandBoundsSet.append(SIMD2(2, 6))
+    operandBoundsSet.append(3.25 + SIMD2(8, 12))
     
     let operandLattice = Self.createLattice(boundsSet: operandBoundsSet)
     var operandRod = Rod(lattice: operandLattice)
@@ -44,7 +44,7 @@ struct InputUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(0.75, 0.75, 0)
+      var offset = SIMD3<Float>(0.5, 0.5, 0)
       var source = operandRod
       let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
@@ -56,7 +56,7 @@ struct InputUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(0.75 + 6.25, 0.75, 0)
+      var offset = SIMD3<Float>(0.5 + 6, 0.5, 0)
       var source = operandRod
       let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
@@ -69,8 +69,8 @@ struct InputUnit {
     
     // Create the sum rods.
     var sumBoundsSet: [SIMD2<Float>] = []
-    sumBoundsSet.append(SIMD2(2.25, 6.25))
-    sumBoundsSet.append(SIMD2(8.5, 12.5))
+    sumBoundsSet.append(SIMD2(2, 6))
+    sumBoundsSet.append(SIMD2(8, 12))
     
     let sumLattice = Self.createLattice(boundsSet: sumBoundsSet)
     var sumRod = Rod(lattice: sumLattice)
@@ -82,10 +82,10 @@ struct InputUnit {
     }
     
     do {
-      var offset = SIMD3<Float>(0.75 + 6.25 * 2, 0.75, 0)
+      var offset = SIMD3<Float>(0.5 + 6 * 2, 0.5, 0)
       
       // Correct for the extra spacing at the barrier between drive walls.
-      offset.x += 1.75
+      offset.x += 2
       var source = sumRod
       let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
       source.rigidBody.centerOfMass += SIMD3(offset) * latticeConstant
@@ -100,7 +100,7 @@ struct InputUnit {
     for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
-        let y = 6.25 * Float(layerID)
+        let y = 6 * Float(layerID)
         holePatterns.append(
           Self.createHolePattern(offset: SIMD3(0, y, 0) + offset))
       }
@@ -111,7 +111,7 @@ struct InputUnit {
     for offset in holeOffsets {
       // Emulate the presence of other layers in the logic unit.
       for layerID in -1...2 {
-        let y = -3.25 + 6.25 * Float(layerID)
+        let y = -3.25 + 6 * Float(layerID)
         rampPatterns.append(
           Self.createRampPattern(offset: SIMD3(0, y, 0) + offset))
       }
@@ -211,7 +211,7 @@ extension InputUnit {
   // Spawns the logic rods for all Y layers, from a single source rod.
   static func createLayers(source: Rod) -> [Rod] {
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
-    let spacing = 6.25 * latticeConstant
+    let spacing = 6 * latticeConstant
     
     var output: [Rod] = []
     for layerID in 0..<2 {
