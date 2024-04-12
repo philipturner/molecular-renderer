@@ -17,22 +17,34 @@ func createGeometry() -> [MM4RigidBody] {
   let halfAdder = HalfAdder()
   let output = halfAdder.rigidBodies
   
-  var minPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
-  var maxPosition = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
-  for position in output.flatMap(\.positions) {
-    minPosition.replace(with: position, where: position .< minPosition)
-    maxPosition.replace(with: position, where: position .> maxPosition)
+  var forceFieldParameters = output[0].parameters
+  for rigidBody in output[1...] {
+    let parameters = rigidBody.parameters
+    forceFieldParameters.append(contentsOf: parameters)
+  }
+  let atomCount = forceFieldParameters.atoms.count
+  
+  var bulkAtomCount: Int = .zero
+  for atomID in forceFieldParameters.atoms.indices {
+    let centerType = forceFieldParameters.atoms.centerTypes[atomID]
+    if centerType == .quaternary {
+      bulkAtomCount += 1
+    }
   }
   
-  // atoms: 57846            | 4820 atoms/switch
-  // 10.5 nm x 6.5 nm x 8 nm | Fits within a 10 nm cube.
+  // housing + rods
+  // total atoms: 57846
+  // bulk atoms: 27618
+  // surface atoms: 30228
   //
-  // SIMD3<Float>(-0.31116438, -0.080884695, -2.0427346)
-  // SIMD3<Float>(9.890136, 6.144785, 5.3840904)
-  // SIMD3<Float>(10.5293, 6.55367, 7.754825)
-  print(minPosition)
-  print(maxPosition)
-  print(maxPosition - minPosition + 2 * 1.640 / 10)
+  // housing
+  // total atoms: 46678
+  // bulk atoms: 24122
+  // surface atoms: 22556
+  //
+  // housing surface atoms: 22556 / 57846 = 39%
+  print(atomCount)
+  print(bulkAtomCount)
   
   return output
 }
