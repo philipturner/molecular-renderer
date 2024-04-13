@@ -33,7 +33,7 @@ struct LogicHousing: LogicSerialization {
         splitBefore.append(atom)
       }
       
-      let splitAfter = Serialization.deserialize(string: surfaceAtoms)
+      let splitAfter = Serialization.deserialize(atoms: surfaceAtoms)
       rigidBody = Self.createRigidBody(
         bulkAtoms: splitBefore, surfaceAtoms: splitAfter)
     } else {

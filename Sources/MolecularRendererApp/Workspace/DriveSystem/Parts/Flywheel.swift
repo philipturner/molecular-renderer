@@ -14,9 +14,18 @@ struct Flywheel {
   var rigidBody: MM4RigidBody
   
   init() {
-    let lattice = Self.createLattice()
-    let topology = Self.createTopology(lattice: lattice)
-    rigidBody = Self.createRigidBody(topology: topology)
+    if let serializedString = Self.serializedAtoms {
+      var topology = Topology()
+      topology.atoms = Serialization.deserialize(atoms: serializedString)
+      Serialization.reconstructBonds(
+        topology: &topology, quaternaryAtomIDs: [6, 32])
+      rigidBody = Self.createRigidBody(topology: topology)
+    } else {
+      let lattice = Self.createLattice()
+      let topology = Self.createTopology(lattice: lattice)
+      rigidBody = Self.createRigidBody(topology: topology)
+      minimize()
+    }
   }
   
   static func createLattice() -> Lattice<Hexagonal> {
@@ -324,4 +333,20 @@ extension Flywheel {
     rigidBodyDesc.positions = Array(forceField.positions)
     rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
+  
+  // Extract the atoms from the rigid body.
+  func extractAtoms() -> [Entity] {
+    var atoms: [Entity] = []
+    for atomID in rigidBody.parameters.atoms.indices {
+      let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+      let position = rigidBody.positions[atomID]
+      let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
+      atoms.append(entity)
+    }
+    return atoms
+  }
+}
+
+extension Flywheel {
+  static let serializedAtoms: String? = nil
 }

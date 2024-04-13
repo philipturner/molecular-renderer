@@ -17,6 +17,15 @@ struct DriveSystem {
   var housing: DriveSystemHousing
   var piston: Piston
   
+  var rigidBodies: [MM4RigidBody] {
+    var output: [MM4RigidBody] = []
+    output.append(connectingRod.rigidBody)
+    output.append(flywheel.rigidBody)
+    output.append(housing.rigidBody)
+    output.append(piston.rigidBody)
+    return output
+  }
+  
   // Initialization sequence:
   // - call the system initializer
   // - minimize the connecting rod in isolation

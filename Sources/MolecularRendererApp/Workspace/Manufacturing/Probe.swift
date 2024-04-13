@@ -19,7 +19,7 @@ struct Probe {
     
     if let serializedString = Self.serializedString {
       topology = Topology()
-      topology.atoms = Serialization.deserialize(string: serializedString)
+      topology.atoms = Serialization.deserialize(atoms: serializedString)
       Serialization.reconstructBonds(
         topology: &topology, quaternaryAtomIDs: [14])
     } else {

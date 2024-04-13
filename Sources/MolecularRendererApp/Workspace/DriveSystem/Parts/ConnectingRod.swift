@@ -20,6 +20,7 @@ struct ConnectingRod {
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
     rigidBody.centerOfMass.y = .zero
+    minimize()
   }
   
   static func createLattice() -> Lattice<Cubic> {
