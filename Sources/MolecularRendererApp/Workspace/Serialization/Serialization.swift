@@ -13,8 +13,8 @@ import Numerics
 struct Serialization {
   // Recover the bond topology after serializing the atom positions.
   //
-  // Search algorithm uses a covalent bond scale of 1.4, instead of the value
-  // of 1.5 from the HDL.
+  // The search algorithm uses a covalent bond scale of 1.4, instead of the
+  // value of 1.5 from the HDL.
   static func reconstructBonds(
     topology: inout Topology,
     quaternaryAtomIDs: [UInt8]
@@ -219,8 +219,64 @@ struct Serialization {
     let compressedBondCount = UInt32(header[0])
     let decompressedBondCount = UInt32(header[1])
     
+    // Pad the compressable bonds to a multiple of four.
+    var paddedCompressedBondCount = compressedBondCount
+    while paddedCompressedBondCount % 4 != 0 {
+      paddedCompressedBondCount += 1
+    }
     
+    // Read the compressable bonds.
+    var compressedBonds: [SIMD2<UInt8>] = []
+    for groupID in 0..<paddedCompressedBondCount / 4 {
+      let castedVector = rawData[Int(1 + groupID)]
+      let vector = unsafeBitCast(castedVector, to: SIMD8<UInt8>.self)
+      for laneID in 0..<4 {
+        var compressedBond: SIMD2<UInt8> = .zero
+        compressedBond[0] = vector[laneID * 2 + 0]
+        compressedBond[1] = vector[laneID * 2 + 1]
+        compressedBonds.append(compressedBond)
+      }
+    }
     
-    exit(0)
+    // Restore the padded count to the original count.
+    while compressedBonds.count > compressedBondCount {
+      compressedBonds.removeLast()
+    }
+    
+    // Read the non-compressable bonds.
+    let decompressedRange = Int(1 + paddedCompressedBondCount / 4)...
+    let decompressedBonds = Array(rawData[decompressedRange])
+    
+    // Merge the bonds into a common array.
+    var lastAtomID: UInt32 = .zero
+    var bonds: [SIMD2<UInt32>] = []
+    for compressedBond in compressedBonds {
+      let startDelta = UInt32(compressedBond[0])
+      let lengthDelta = UInt32(compressedBond[1])
+      let bond = SIMD2(
+        lastAtomID + startDelta,
+        lastAtomID + startDelta + lengthDelta)
+      bonds.append(bond)
+      
+      // Update the atom cursor.
+      lastAtomID += startDelta
+    }
+    bonds.append(contentsOf: decompressedBonds)
+    
+    // Sort the array of bonds.
+    bonds.sort(by: { lhs, rhs in
+      if lhs[0] > rhs[0] {
+        return false
+      } else if lhs[0] < rhs[0] {
+        return true
+      }
+      if lhs[1] > rhs[1] {
+        return false
+      } else if lhs[1] < rhs[1] {
+        return true
+      }
+      return true
+    })
+    return bonds
   }
 }
