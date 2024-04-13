@@ -40,9 +40,11 @@ struct DriveSystem {
     flywheel.rigidBody.centerOfMass += flywheelOffset
     piston.rigidBody.centerOfMass += pistonOffset
     connectingRod.rigidBody.centerOfMass += connectingRodOffset
-    
     connectingRod.rigidBody.centerOfMass.x -= 0.2
     piston.rigidBody.centerOfMass.x += 0.35
+    
+    flywheel.findKnobAtoms()
+    piston.findKnobAtoms()
   }
   
   mutating func rotate(angle: Double, axis: SIMD3<Double>) {

@@ -12,6 +12,7 @@ import Numerics
 
 struct Flywheel {
   var rigidBody: MM4RigidBody
+  var knobAtomIDs: [UInt32] = []
   
   init() {
     if let serializedAtoms = Self.serializedAtoms,
@@ -25,6 +26,19 @@ struct Flywheel {
       let topology = Self.createTopology(lattice: lattice)
       rigidBody = Self.createRigidBody(topology: topology)
       minimize()
+    }
+  }
+  
+  mutating func findKnobAtoms() {
+    for atomID in rigidBody.parameters.atoms.indices {
+      let position = rigidBody.positions[atomID]
+      if position.z > 5.8 {
+        knobAtomIDs.append(UInt32(atomID))
+      }
+    }
+    guard knobAtomIDs.count > 150,
+          knobAtomIDs.count < 250 else {
+      fatalError("Could not locate knob: \(knobAtomIDs.count).")
     }
   }
   

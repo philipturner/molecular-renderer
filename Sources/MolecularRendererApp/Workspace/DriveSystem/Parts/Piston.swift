@@ -12,12 +12,26 @@ import Numerics
 
 struct Piston {
   var rigidBody: MM4RigidBody
+  var knobAtomIDs: [UInt32] = []
   
   init() {
     let lattice = Self.createLattice()
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
     rigidBody.centerOfMass.y = .zero
+  }
+  
+  mutating func findKnobAtoms() {
+    for atomID in rigidBody.parameters.atoms.indices {
+      let position = rigidBody.positions[atomID]
+      if position.z > 5.8 {
+        knobAtomIDs.append(UInt32(atomID))
+      }
+    }
+    guard knobAtomIDs.count > 150,
+          knobAtomIDs.count < 250 else {
+      fatalError("Could not locate knob: \(knobAtomIDs.count).")
+    }
   }
   
   static func createLattice() -> Lattice<Hexagonal> {
