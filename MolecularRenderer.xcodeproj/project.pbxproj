@@ -615,6 +615,7 @@
 		9885EF232BC9D3A6007801BE /* Units */ = {
 			isa = PBXGroup;
 			children = (
+				9885EF1D2BC88F4F007801BE /* HalfAdder.swift */,
 				9885EF1F2BC9D1BB007801BE /* InputUnit.swift */,
 				9885EF212BC9D1CE007801BE /* IntermediateUnit.swift */,
 			);
@@ -932,7 +933,6 @@
 			children = (
 				9885EF232BC9D3A6007801BE /* Units */,
 				98DAE8FF2BC8163700738E02 /* DriveWall.swift */,
-				9885EF1D2BC88F4F007801BE /* HalfAdder.swift */,
 				98DAE8FD2BC8038E00738E02 /* LogicHousing.swift */,
 				98DAE8F82BC7FFE500738E02 /* Pattern.swift */,
 				98DAE8F62BC7FFCC00738E02 /* Rod.swift */,

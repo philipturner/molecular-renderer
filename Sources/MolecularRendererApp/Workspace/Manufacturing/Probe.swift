@@ -20,8 +20,8 @@ struct Probe {
     if let serialized = Self.serializedString {
       topology = Topology()
       topology.atoms = Serialization.deserialize(string: serialized)
-      topology = Serialization.reconstructBonds(
-        topology: topology, quaternaryAtomIDs: [14])
+      Serialization.reconstructBonds(
+        topology: &topology, quaternaryAtomIDs: [14])
     } else {
       let lattice = Self.createLattice()
       topology = Self.createTopology(lattice: lattice)

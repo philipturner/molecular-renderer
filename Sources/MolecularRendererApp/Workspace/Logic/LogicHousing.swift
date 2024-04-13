@@ -15,7 +15,7 @@ struct LogicHousingDescriptor {
   var patterns: [HolePattern] = []
   
   // The positions of all non-quaternary atoms, as a base64 string.
-  var surfaceAtomPositions: String?
+  var surfaceAtoms: String?
 }
 
 struct LogicHousing {
@@ -25,29 +25,11 @@ struct LogicHousing {
     let lattice = Self.createLattice(descriptor: descriptor)
     let topology = Self.createTopology(lattice: lattice)
     
-    if let surfaceAtomPositions = descriptor.surfaceAtomPositions {
-      let split = Self.split(topology: topology)
-      print(split.bulk.count, split.surface.count)
-      
-      // TODO: Make serialize() operate on the rigid body, instead of on the
-      // atoms?
-      
-      rigidBody = Self.createRigidBody(topology: topology)
-      minimize()
-      
-      var topology = Topology()
-      var insertedAtoms: [Entity] = []
-      for atomID in rigidBody.parameters.atoms.indices {
-        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
-        let position = rigidBody.positions[atomID]
-        let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
-        insertedAtoms.append(entity)
-      }
-      topology.insert(atoms: insertedAtoms)
-      topology = Serialization.reconstructBonds(
-        topology: topology, quaternaryAtomIDs: [6])
-      
-      rigidBody = Self.createRigidBody(topology: topology)
+    if let surfaceAtoms = descriptor.surfaceAtoms {
+      let splitBefore = Self.split(topology: topology)
+      let splitAfter = Serialization.deserialize(string: surfaceAtoms)
+      rigidBody = Self.createRigidBody(
+        bulkAtoms: splitBefore.bulk, surfaceAtoms: splitAfter)
     } else {
       rigidBody = Self.createRigidBody(topology: topology)
       minimize()
@@ -98,7 +80,13 @@ struct LogicHousing {
     rigidBodyDesc.positions = topology.atoms.map(\.position)
     return try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
-  
+}
+
+// MARK: - Serialization
+
+// TODO: Move all of this into a protocol for serializing logic components.
+
+extension LogicHousing {
   mutating func minimize() {
     // Prevent the bulk atoms from moving.
     var forceFieldParameters = rigidBody.parameters
@@ -120,11 +108,7 @@ struct LogicHousing {
     rigidBodyDesc.positions = forceField.positions
     rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
-}
-
-// MARK: - Serialization
-
-extension LogicHousing {
+  
   // Splits the topology into bulk and surface atoms.
   static func split(
     topology: Topology
@@ -152,5 +136,35 @@ extension LogicHousing {
       }
     }
     return (bulkAtoms, surfaceAtoms)
+  }
+  
+  // Extracts the surface atoms for serialization.
+  func extractSurfaceAtoms() -> [Entity] {
+    var surfaceAtoms: [Entity] = []
+    var forceFieldParameters = rigidBody.parameters
+    for atomID in forceFieldParameters.atoms.indices {
+      let centerType = forceFieldParameters.atoms.centerTypes[atomID]
+      if centerType == .quaternary {
+        // This is a bulk atom.
+      } else {
+        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+        let position = rigidBody.positions[atomID]
+        let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
+        surfaceAtoms.append(entity)
+      }
+    }
+    return surfaceAtoms
+  }
+  
+  // Constructs the rigid body from deserialized build products.
+  static func createRigidBody(
+    bulkAtoms: [Entity], surfaceAtoms: [Entity]
+  ) -> MM4RigidBody {
+    var topology = Topology()
+    topology.insert(atoms: bulkAtoms)
+    topology.insert(atoms: surfaceAtoms)
+    Serialization.reconstructBonds(
+      topology: &topology, quaternaryAtomIDs: [6])
+    return Self.createRigidBody(topology: topology)
   }
 }

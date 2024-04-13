@@ -13,9 +13,9 @@ import Numerics
 struct Serialization {
   // Recover the bond topology after serializing the atom positions.
   static func reconstructBonds(
-    topology: Topology,
+    topology: inout Topology,
     quaternaryAtomIDs: [UInt8]
-  ) -> Topology {
+  ) {
     let matches = topology.match(
       topology.atoms, algorithm: .covalentBondLength(1.4))
     
@@ -39,10 +39,7 @@ struct Serialization {
         insertedBonds.append(bond)
       }
     }
-    
-    var newTopology = topology
-    newTopology.insert(bonds: insertedBonds)
-    return newTopology
+    topology.insert(bonds: insertedBonds)
   }
   
   // Stores the raw data as a base-64 string.
