@@ -39,6 +39,12 @@ struct LogicHousing: LogicSerialization {
     } else {
       rigidBody = Self.createRigidBody(topology: topology)
       minimize(bulkAtomIDs: bulkAtomIDs)
+      
+      let extracted = extractSurfaceAtoms(bulkAtomIDs: bulkAtomIDs)
+      guard extracted.count == topology.atoms.count - bulkAtomIDs.count else {
+        fatalError("Unexpected behavior.")
+      }
+      print(Serialization.serialize(atoms: extracted))
     }
   }
   
