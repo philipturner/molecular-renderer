@@ -16,15 +16,19 @@ func createGeometry() -> [MM4RigidBody] {
   // the flywheel and connecting rod as source literals. Then, you can analyze
   // the rigid body kinetic energies with fast feedback loops.
   
-  let inputUnit = InputUnit()
-  let intermediateUnit = IntermediateUnit()
+  let halfAdder = HalfAdder()
+//  let driveWall = halfAdder.intermediateUnit.driveWall
+//  let surfaceAtoms = driveWall.extractSurfaceAtoms()
+//  let serializedString = Serialization.serialize(atoms: surfaceAtoms)
+//  
+//  let totalAtoms = driveWall.rigidBody.parameters.atoms.count
+//  let ratio = 100 * Double(surfaceAtoms.count) / Double(totalAtoms)
+//  
+//  print()
+//  print("total atoms:", totalAtoms)
+//  print("surface atoms:", surfaceAtoms.count, "(\(Int(ratio.rounded()))%)")
+//  print("serialized string")
+//  print(serializedString)
   
-  var housingDesc = LogicHousingDescriptor()
-  housingDesc.dimensions = SIMD3(22, 17, 14)
-  housingDesc.patterns.append(contentsOf: inputUnit.holePatterns)
-  housingDesc.patterns.append(contentsOf: intermediateUnit.holePatterns)
-  housingDesc.surfaceAtoms = HalfAdder.serializedString
-  let housing = LogicHousing(descriptor: housingDesc)
-  
-  return [housing.rigidBody]
+  return halfAdder.rigidBodies
 }

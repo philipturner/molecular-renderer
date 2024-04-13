@@ -52,6 +52,7 @@
 		9885EF202BC9D1BB007801BE /* InputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9885EF1F2BC9D1BB007801BE /* InputUnit.swift */; };
 		9885EF222BC9D1CF007801BE /* IntermediateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9885EF212BC9D1CE007801BE /* IntermediateUnit.swift */; };
 		9885EF262BC9FCBA007801BE /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9885EF252BC9FCBA007801BE /* Serialization.swift */; };
+		9885EF2A2BCAE101007801BE /* LogicSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9885EF292BCAE101007801BE /* LogicSerialization.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -230,6 +231,7 @@
 		9885EF1F2BC9D1BB007801BE /* InputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputUnit.swift; sourceTree = "<group>"; };
 		9885EF212BC9D1CE007801BE /* IntermediateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntermediateUnit.swift; sourceTree = "<group>"; };
 		9885EF252BC9FCBA007801BE /* Serialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Serialization.swift; sourceTree = "<group>"; };
+		9885EF292BCAE101007801BE /* LogicSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogicSerialization.swift; sourceTree = "<group>"; };
 		988B257D2A1AC482007F18C1 /* Constants.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Constants.metal; sourceTree = "<group>"; };
 		988B25812A1AD3D3007F18C1 /* Lighting.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Lighting.metal; sourceTree = "<group>"; };
 		988EF0BB2A800130004879E5 /* VdwOscillatorSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillatorSimulation.swift; sourceTree = "<group>"; };
@@ -626,6 +628,7 @@
 			isa = PBXGroup;
 			children = (
 				9885EF252BC9FCBA007801BE /* Serialization.swift */,
+				9885EF292BCAE101007801BE /* LogicSerialization.swift */,
 			);
 			path = Serialization;
 			sourceTree = "<group>";
@@ -1420,6 +1423,7 @@
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				9885EF1E2BC88F4F007801BE /* HalfAdder.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
+				9885EF2A2BCAE101007801BE /* LogicSerialization.swift in Sources */,
 				98AF5B102BBDB7060015C7DC /* DriveSystem.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98AF5B302BC0ABA20015C7DC /* Animation.swift in Sources */,

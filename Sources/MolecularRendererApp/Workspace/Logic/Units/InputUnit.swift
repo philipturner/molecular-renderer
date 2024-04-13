@@ -291,3 +291,9 @@ extension InputUnit {
     return driveWall
   }
 }
+
+extension InputUnit {
+  static let operandDriveWallString: String? = nil
+  
+  static let sumDriveWallString: String? = nil
+}

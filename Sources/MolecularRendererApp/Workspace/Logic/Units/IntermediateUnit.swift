@@ -239,10 +239,15 @@ extension IntermediateUnit {
       Plane { h }
       Replace { .empty }
     }
+    driveWallDesc.surfaceAtoms = Self.driveWallString
     
     let latticeConstant = Double(Constant(.square) { .elemental(.carbon) })
     var driveWall = DriveWall(descriptor: driveWallDesc)
     driveWall.rigidBody.centerOfMass.x += (5.5 + 1) * latticeConstant
     return driveWall
   }
+}
+
+extension IntermediateUnit {
+  static let driveWallString: String? = nil
 }

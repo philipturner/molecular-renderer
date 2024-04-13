@@ -12,6 +12,8 @@ import Numerics
 
 struct Serialization {
   // Recover the bond topology after serializing the atom positions.
+  //
+  // WARNING: The search algorithm is fixed at '.covalentBondLength(1.4)'.
   static func reconstructBonds(
     topology: inout Topology,
     quaternaryAtomIDs: [UInt8]

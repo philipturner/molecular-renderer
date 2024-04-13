@@ -13,15 +13,33 @@ import Numerics
 struct DriveWallDescriptor {
   var dimensions: SIMD3<Int>?
   var patterns: [RampPattern] = []
+  
+  // The positions of all non-quaternary atoms, as a base64 string.
+  var surfaceAtoms: String?
 }
 
-struct DriveWall {
+struct DriveWall: LogicSerialization {
   var rigidBody: MM4RigidBody
   
   init(descriptor: DriveWallDescriptor) {
     let lattice = Self.createLattice(descriptor: descriptor)
     let topology = Self.createTopology(lattice: lattice)
-    rigidBody = Self.createRigidBody(topology: topology)
+    let bulkAtomIDs = Self.extractBulkAtomIDs(topology: topology)
+    
+    if let surfaceAtoms = descriptor.surfaceAtoms {
+      var splitBefore: [Entity] = []
+      for atomID in bulkAtomIDs {
+        let atom = topology.atoms[Int(atomID)]
+        splitBefore.append(atom)
+      }
+      
+      let splitAfter = Serialization.deserialize(string: surfaceAtoms)
+      rigidBody = Self.createRigidBody(
+        bulkAtoms: splitBefore, surfaceAtoms: splitAfter)
+    } else {
+      rigidBody = Self.createRigidBody(topology: topology)
+      minimize(bulkAtomIDs: bulkAtomIDs)
+    }
   }
   
   static func createLattice(

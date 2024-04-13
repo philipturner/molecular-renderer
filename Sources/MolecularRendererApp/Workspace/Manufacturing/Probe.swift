@@ -17,9 +17,9 @@ struct Probe {
   init() {
     tripod = Tripod(atoms: TripodCache.germaniumSet.radical)
     
-    if let serialized = Self.serializedString {
+    if let serializedString = Self.serializedString {
       topology = Topology()
-      topology.atoms = Serialization.deserialize(string: serialized)
+      topology.atoms = Serialization.deserialize(string: serializedString)
       Serialization.reconstructBonds(
         topology: &topology, quaternaryAtomIDs: [14])
     } else {

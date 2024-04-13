@@ -18,21 +18,27 @@ struct LogicHousingDescriptor {
   var surfaceAtoms: String?
 }
 
-struct LogicHousing {
+struct LogicHousing: LogicSerialization {
   var rigidBody: MM4RigidBody
   
   init(descriptor: LogicHousingDescriptor) {
     let lattice = Self.createLattice(descriptor: descriptor)
     let topology = Self.createTopology(lattice: lattice)
+    let bulkAtomIDs = Self.extractBulkAtomIDs(topology: topology)
     
     if let surfaceAtoms = descriptor.surfaceAtoms {
-      let splitBefore = Self.split(topology: topology)
+      var splitBefore: [Entity] = []
+      for atomID in bulkAtomIDs {
+        let atom = topology.atoms[Int(atomID)]
+        splitBefore.append(atom)
+      }
+      
       let splitAfter = Serialization.deserialize(string: surfaceAtoms)
       rigidBody = Self.createRigidBody(
-        bulkAtoms: splitBefore.bulk, surfaceAtoms: splitAfter)
+        bulkAtoms: splitBefore, surfaceAtoms: splitAfter)
     } else {
       rigidBody = Self.createRigidBody(topology: topology)
-      minimize()
+      minimize(bulkAtomIDs: bulkAtomIDs)
     }
   }
   
@@ -79,92 +85,5 @@ struct LogicHousing {
     rigidBodyDesc.parameters = parameters
     rigidBodyDesc.positions = topology.atoms.map(\.position)
     return try! MM4RigidBody(descriptor: rigidBodyDesc)
-  }
-}
-
-// MARK: - Serialization
-
-// TODO: Move all of this into a protocol for serializing logic components.
-
-extension LogicHousing {
-  mutating func minimize() {
-    // Prevent the bulk atoms from moving.
-    var forceFieldParameters = rigidBody.parameters
-    for atomID in forceFieldParameters.atoms.indices {
-      let centerType = forceFieldParameters.atoms.centerTypes[atomID]
-      if centerType == .quaternary {
-        forceFieldParameters.atoms.masses[atomID] = .zero
-      }
-    }
-    
-    var forceFieldDesc = MM4ForceFieldDescriptor()
-    forceFieldDesc.parameters = forceFieldParameters
-    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-    forceField.positions = rigidBody.positions
-    forceField.minimize(tolerance: 0.1)
-    
-    var rigidBodyDesc = MM4RigidBodyDescriptor()
-    rigidBodyDesc.parameters = rigidBody.parameters
-    rigidBodyDesc.positions = forceField.positions
-    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
-  }
-  
-  // Splits the topology into bulk and surface atoms.
-  static func split(
-    topology: Topology
-  ) -> (bulk: [Entity], surface: [Entity]) {
-    let atomsToAtomsMap = topology.map(.atoms, to: .atoms)
-    var bulkAtoms: [Entity] = []
-    var surfaceAtoms: [Entity] = []
-    
-    for atomID in topology.atoms.indices {
-      let atom = topology.atoms[atomID]
-      let neighborIDs = atomsToAtomsMap[atomID]
-      var carbonNeighborCount: Int = .zero
-      
-      for neighborID in neighborIDs {
-        let neighbor = topology.atoms[Int(neighborID)]
-        if neighbor.atomicNumber == 6 {
-          carbonNeighborCount += 1
-        }
-      }
-      
-      if carbonNeighborCount == 4 {
-        bulkAtoms.append(atom)
-      } else {
-        surfaceAtoms.append(atom)
-      }
-    }
-    return (bulkAtoms, surfaceAtoms)
-  }
-  
-  // Extracts the surface atoms for serialization.
-  func extractSurfaceAtoms() -> [Entity] {
-    var surfaceAtoms: [Entity] = []
-    var forceFieldParameters = rigidBody.parameters
-    for atomID in forceFieldParameters.atoms.indices {
-      let centerType = forceFieldParameters.atoms.centerTypes[atomID]
-      if centerType == .quaternary {
-        // This is a bulk atom.
-      } else {
-        let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
-        let position = rigidBody.positions[atomID]
-        let entity = Entity(storage: SIMD4(position, Float(atomicNumber)))
-        surfaceAtoms.append(entity)
-      }
-    }
-    return surfaceAtoms
-  }
-  
-  // Constructs the rigid body from deserialized build products.
-  static func createRigidBody(
-    bulkAtoms: [Entity], surfaceAtoms: [Entity]
-  ) -> MM4RigidBody {
-    var topology = Topology()
-    topology.insert(atoms: bulkAtoms)
-    topology.insert(atoms: surfaceAtoms)
-    Serialization.reconstructBonds(
-      topology: &topology, quaternaryAtomIDs: [6])
-    return Self.createRigidBody(topology: topology)
   }
 }
