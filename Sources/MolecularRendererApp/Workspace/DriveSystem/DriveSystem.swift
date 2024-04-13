@@ -26,11 +26,6 @@ struct DriveSystem {
     return output
   }
   
-  // Initialization sequence:
-  // - call the system initializer
-  // - minimize the connecting rod in isolation
-  // - minimize the flywheel in isolation
-  // - minimize the entire system
   init() {
     connectingRod = ConnectingRod()
     flywheel = Flywheel()
