@@ -5,6 +5,13 @@ import Numerics
 import OpenMM
 
 func createGeometry() -> [[MM4RigidBody]] {
+  // Declare a program constant for the flywheel start frequency.
+  let flywheelFrequencyInGHz: Double = 10
+  
+  // Declare a state variable that tracks energy drift.
+  var initialSystemEnergy: Double?
+  
+  // Compile the drive system.
   var driveSystem = DriveSystem()
   driveSystem.minimize()
   driveSystem.setVelocitiesToTemperature(2 * 298)
@@ -55,24 +62,33 @@ func createGeometry() -> [[MM4RigidBody]] {
   print("potential energy minimization")
   print("- accuracy: 10 zJ")
   
-  // Create a state variable that tracks energy drift.
-  var initialSystemEnergy: Double = .zero
-  
   // Loop over the simulation frames.
   var frames: [[MM4RigidBody]] = []
-  for frameID in -1...20 {
+  for frameID in -2...20 {
     // Report the frame ID.
     let timeStep: Double = 0.040
     print()
     print("simulation frame:", frameID)
     
     var timeStamp: Double
-    if frameID < 0 {
+    if frameID == -2 {
       // The first frame is the initial state.
-      timeStamp = -1
-    } else if frameID == 0 {
+      timeStamp = -1.000
+    } else if frameID == -1 {
       // The second frame is 1 ps of equilibriation.
       forceField.simulate(time: 1.000)
+      timeStamp = 0
+    } else if frameID == 0 {
+      // Start spinning the flywheel.
+      driveSystem.connectingRod.rigidBody = rigidBodies[0]
+      driveSystem.flywheel.rigidBody = rigidBodies[1]
+      driveSystem.housing.rigidBody = rigidBodies[2]
+      driveSystem.piston.rigidBody = rigidBodies[3]
+      driveSystem.initializeFlywheel(frequencyInGHz: flywheelFrequencyInGHz)
+      rigidBodies = driveSystem.rigidBodies
+      forceField.positions = rigidBodies.flatMap(\.positions)
+      forceField.velocities = rigidBodies.flatMap(\.velocities)
+      
       timeStamp = 0
     } else {
       forceField.simulate(time: timeStep)

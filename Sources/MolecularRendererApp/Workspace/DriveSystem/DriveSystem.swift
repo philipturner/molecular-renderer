@@ -196,4 +196,13 @@ extension DriveSystem {
     housing.rigidBody = rigidBodies[2]
     piston.rigidBody = rigidBodies[3]
   }
+  
+  // Initialize the flywheel's angular velocity and correct for the shift in
+  // net momentum.
+  //
+  // WARNING: Ensure the drive system's rigid bodies are overwritten with the
+  // current state, not just some copies in the calling program.
+  mutating func initializeFlywheel(frequencyInGHz: Double) {
+    let angularSpeedInRadPs = frequencyInGHz * 0.001 * (2 * .pi)
+  }
 }
