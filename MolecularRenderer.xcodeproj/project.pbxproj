@@ -37,6 +37,7 @@
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
+		986F8CE22BCC4C520098A8ED /* DriveSystemPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986F8CE12BCC4C520098A8ED /* DriveSystemPart.swift */; };
 		987507AC2B4A61330031A15E /* rigid_body_30yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507A82B4A61330031A15E /* rigid_body_30yj.jpg */; };
 		987507AD2B4A61330031A15E /* rigid_body_10yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507A92B4A61330031A15E /* rigid_body_10yj.jpg */; };
 		987507AE2B4A61330031A15E /* molecular_dynamics.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507AA2B4A61330031A15E /* molecular_dynamics.jpg */; };
@@ -204,6 +205,7 @@
 		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		986F8CE12BCC4C520098A8ED /* DriveSystemPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveSystemPart.swift; sourceTree = "<group>"; };
 		987234F02ABE860300E427E5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		987507A82B4A61330031A15E /* rigid_body_30yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_30yj.jpg; sourceTree = "<group>"; };
 		987507A92B4A61330031A15E /* rigid_body_10yj.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = rigid_body_10yj.jpg; sourceTree = "<group>"; };
@@ -619,8 +621,8 @@
 		9885EF242BC9FCA0007801BE /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
-				9885EF252BC9FCBA007801BE /* Serialization.swift */,
 				9885EF292BCAE101007801BE /* LogicSerialization.swift */,
+				9885EF252BC9FCBA007801BE /* Serialization.swift */,
 			);
 			path = Serialization;
 			sourceTree = "<group>";
@@ -724,6 +726,7 @@
 			isa = PBXGroup;
 			children = (
 				98AF5B0F2BBDB7060015C7DC /* DriveSystem.swift */,
+				986F8CE12BCC4C520098A8ED /* DriveSystemPart.swift */,
 				98AF5B052BBB5DEF0015C7DC /* Parts */,
 			);
 			path = DriveSystem;
@@ -1399,6 +1402,7 @@
 			files = (
 				9855200B2B53215C00AB068D /* Workspace.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
+				986F8CE22BCC4C520098A8ED /* DriveSystemPart.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				9885EF1E2BC88F4F007801BE /* HalfAdder.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,

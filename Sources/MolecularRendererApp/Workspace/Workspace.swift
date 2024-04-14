@@ -5,21 +5,35 @@ import Numerics
 import OpenMM
 
 func createGeometry() -> [MM4RigidBody] {
-  let driveSystem = DriveSystem()
-  let connectingRod = driveSystem.connectingRod
-  let flywheel = driveSystem.flywheel
-  let housing = driveSystem.housing
-  let piston = driveSystem.piston
+  // TODO: Jump right into experiments measuring flywheel system performance.
+  // Do not waste time creating a serializer.
+  //
+  // Set up the process for determining r and l. It can be scripted without
+  // the high-latency minimization, then recompiled with minimization included.
   
-  var forceFieldParameters = connectingRod.rigidBody.parameters
-  forceFieldParameters.append(contentsOf: flywheel.rigidBody.parameters)
-  forceFieldParameters.append(contentsOf: housing.rigidBody.parameters)
-  forceFieldParameters.append(contentsOf: piston.rigidBody.parameters)
+  var driveSystem = DriveSystem()
   
-  var forceFieldPositions = connectingRod.rigidBody.positions
-  forceFieldPositions += flywheel.rigidBody.positions
-  forceFieldPositions += housing.rigidBody.positions
-  forceFieldPositions += piston.rigidBody.positions
+  let flywheelData = DriveSystemPartData(source: driveSystem.flywheel)
+  let pistonData = DriveSystemPartData(source: driveSystem.piston)
+  let rotationAxis = driveSystem.flywheel.rigidBody.principalAxes.0
+  guard rotationAxis.z > 0.999 else {
+    fatalError("Flywheel was not aligned with expected reference frame.")
+  }
   
-  return driveSystem.rigidBodies
+  var rVector = flywheelData.knobCenter - flywheelData.bodyCenter
+  var lVector = flywheelData.knobCenter - pistonData.knobCenter
+  rVector -= (rVector * rotationAxis).sum() * rotationAxis
+  lVector -= (lVector * rotationAxis).sum() * rotationAxis
+  let r = (rVector * rVector).sum().squareRoot()
+  let l = (lVector * lVector).sum().squareRoot()
+  print("r:", r)
+  print("l:", l)
+  
+  let frequencyInGHz: Double = 10.0
+  let ω = frequencyInGHz * 0.001 * (2 * .pi)
+  print("ω_f:", ω)
+  
+  
+  
+  exit(0)
 }

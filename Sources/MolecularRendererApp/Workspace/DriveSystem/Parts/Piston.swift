@@ -10,7 +10,7 @@ import HDL
 import MM4
 import Numerics
 
-struct Piston {
+struct Piston: DriveSystemPart {
   var rigidBody: MM4RigidBody
   var knobAtomIDs: [UInt32] = []
   
