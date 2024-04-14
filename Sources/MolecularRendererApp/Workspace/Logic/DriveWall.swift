@@ -33,7 +33,9 @@ struct DriveWall: LogicSerialization {
         splitBefore.append(atom)
       }
       
-      let splitAfter = Serialization.deserialize(atoms: surfaceAtoms)
+      let surfaceData = Data(
+        base64Encoded: surfaceAtoms, options: .ignoreUnknownCharacters)
+      let splitAfter = Serialization.deserialize(atoms: surfaceData)
       rigidBody = Self.createRigidBody(
         bulkAtoms: splitBefore, surfaceAtoms: splitAfter)
     } else {

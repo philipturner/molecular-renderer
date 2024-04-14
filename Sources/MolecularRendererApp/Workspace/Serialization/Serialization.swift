@@ -52,7 +52,7 @@ struct Serialization {
   //
   // Compresses the information to within a factor of ~2x of the
   // information-theoretic limit.
-  static func serialize(atoms: [Entity]) -> String {
+  static func serialize(atoms: [Entity]) -> Data {
     // Allocate an array for the raw data.
     var rawData: [SIMD4<UInt16>] = []
     
@@ -79,15 +79,13 @@ struct Serialization {
       rawData.append(chunk)
     }
     
-    let data = Data(bytes: rawData, count: rawData.count * 8)
-    return data.base64EncodedString(options: .lineLength76Characters)
+    // Return the data for further processing in the caller.
+    return Data(bytes: rawData, count: rawData.count * 8)
   }
   
   // Retrieves the raw data from a base-64 string.
-  static func deserialize(atoms: String) -> [Entity] {
-    let data = Data(
-      base64Encoded: atoms, options: .ignoreUnknownCharacters)
-    guard let data else {
+  static func deserialize(atoms: Data?) -> [Entity] {
+    guard let data = atoms else {
       fatalError("Could not decode base64-encoded string.")
     }
     guard data.count % 8 == 0 else {
@@ -130,7 +128,7 @@ struct Serialization {
   //
   // The typical compression ratio is ~2.5x. This is close to the
   // information-theoretic limit of ~3.5x.
-  static func serialize(bonds: [SIMD2<UInt32>]) -> String {
+  static func serialize(bonds: [SIMD2<UInt32>]) -> Data {
     var lastAtomID: UInt32 = .zero
     
     // Sort the bonds into compressable and non-compressable groups.
@@ -190,16 +188,13 @@ struct Serialization {
     // Write the non-compressable bonds.
     rawData.append(contentsOf: decompressedBonds)
     
-    // Convert the bytes to base-64.
-    let data = Data(bytes: rawData, count: rawData.count * 8)
-    return data.base64EncodedString(options: .lineLength76Characters)
+    // Return the data for further processing in the caller.
+    return Data(bytes: rawData, count: rawData.count * 8)
   }
   
   // Retrieves the raw data from a base-64 string.
-  static func deserialize(bonds: String) -> [SIMD2<UInt32>] {
-    let data = Data(
-      base64Encoded: bonds, options: .ignoreUnknownCharacters)
-    guard let data else {
+  static func deserialize(bonds: Data?) -> [SIMD2<UInt32>] {
+    guard let data = bonds else {
       fatalError("Could not decode base64-encoded string.")
     }
     guard data.count % 8 == 0 else {
@@ -246,6 +241,9 @@ struct Serialization {
     // Read the non-compressable bonds.
     let decompressedRange = Int(1 + paddedCompressedBondCount / 4)...
     let decompressedBonds = Array(rawData[decompressedRange])
+    guard decompressedBonds.count == decompressedBondCount else {
+      fatalError("Could not decode decompressed bonds.")
+    }
     
     // Merge the bonds into a common array.
     var lastAtomID: UInt32 = .zero

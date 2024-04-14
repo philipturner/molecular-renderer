@@ -17,9 +17,14 @@ struct Flywheel {
   init() {
     if let serializedAtoms = Self.serializedAtoms,
        let serializedBonds = Self.serializedBonds {
+      let atomData = Data(
+        base64Encoded: serializedAtoms, options: .ignoreUnknownCharacters)
+      let bondData = Data(
+        base64Encoded: serializedBonds, options: .ignoreUnknownCharacters)
+      
       var topology = Topology()
-      topology.atoms = Serialization.deserialize(atoms: serializedAtoms)
-      topology.bonds = Serialization.deserialize(bonds: serializedBonds)
+      topology.atoms = Serialization.deserialize(atoms: atomData)
+      topology.bonds = Serialization.deserialize(bonds: bondData)
       rigidBody = Self.createRigidBody(topology: topology)
     } else {
       let lattice = Self.createLattice()
