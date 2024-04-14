@@ -19,12 +19,15 @@ struct Piston {
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
     rigidBody.centerOfMass.y = .zero
+    
+    // Set the knob atoms before any mutations are done to the reference frame.
+    findKnobAtoms()
   }
   
-  mutating func findKnobAtoms() {
+  private mutating func findKnobAtoms() {
     for atomID in rigidBody.parameters.atoms.indices {
       let position = rigidBody.positions[atomID]
-      if position.z > 5.8 {
+      if position.z > 2.13 {
         knobAtomIDs.append(UInt32(atomID))
       }
     }

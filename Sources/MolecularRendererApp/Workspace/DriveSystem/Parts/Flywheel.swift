@@ -27,12 +27,15 @@ struct Flywheel {
       rigidBody = Self.createRigidBody(topology: topology)
       minimize()
     }
+    
+    // Set the knob atoms before any mutations are done to the reference frame.
+    findKnobAtoms()
   }
   
-  mutating func findKnobAtoms() {
+  private mutating func findKnobAtoms() {
     for atomID in rigidBody.parameters.atoms.indices {
       let position = rigidBody.positions[atomID]
-      if position.z > 5.8 {
+      if position.z > 2.13 {
         knobAtomIDs.append(UInt32(atomID))
       }
     }
@@ -166,7 +169,21 @@ struct Flywheel {
     var paramsDesc = MM4ParametersDescriptor()
     paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
     paramsDesc.bonds = topology.bonds
-    let parameters = try! MM4Parameters(descriptor: paramsDesc)
+    var parameters = try! MM4Parameters(descriptor: paramsDesc)
+    
+    // Give germanium atoms the atomic mass of lead.
+    for atomID in parameters.atoms.indices {
+      let atomicNumber = parameters.atoms.atomicNumbers[atomID]
+      guard atomicNumber == 32 else {
+        continue
+      }
+      var mass = parameters.atoms.masses[atomID]
+      
+      let massDeltaInAmu: Float = 207.21 - 72.6308
+      let massDeltaInYg = massDeltaInAmu * Float(MM4YgPerAmu)
+      mass += massDeltaInYg
+      parameters.atoms.masses[atomID] = mass
+    }
     
     var rigidBodyDesc = MM4RigidBodyDescriptor()
     rigidBodyDesc.parameters = parameters

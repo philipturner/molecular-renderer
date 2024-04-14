@@ -43,8 +43,11 @@ struct DriveSystem {
     connectingRod.rigidBody.centerOfMass.x -= 0.2
     piston.rigidBody.centerOfMass.x += 0.35
     
-    flywheel.findKnobAtoms()
-    piston.findKnobAtoms()
+    let housingCenter = housing.rigidBody.centerOfMass
+    connectingRod.rigidBody.centerOfMass -= housingCenter
+    flywheel.rigidBody.centerOfMass -= housingCenter
+    housing.rigidBody.centerOfMass -= housingCenter
+    piston.rigidBody.centerOfMass -= housingCenter
   }
   
   mutating func rotate(angle: Double, axis: SIMD3<Double>) {
