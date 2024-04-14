@@ -9,10 +9,13 @@ func createGeometry() -> [[MM4RigidBody]] {
   driveSystem.minimize()
   driveSystem.setVelocitiesToTemperature(2 * 298)
   
-  // [0] = connectingRod
-  // [1] = flywheel
-  // [2] = housing
-  // [3] = piston
+  print("simulation of flywheel system")
+  print("- all quantities in nm-yg-ps system (see MM4 docs for info)")
+  print("- system components")
+  print("  - rigidBodies[0]: connecting rod")
+  print("  - rigidBodies[1]: flywheel")
+  print("  - rigidBodies[2]: housing")
+  print("  - rigidBodies[3]: piston")
   var rigidBodies = driveSystem.rigidBodies
   
   var forceFieldParameters = rigidBodies[0].parameters
@@ -24,5 +27,107 @@ func createGeometry() -> [[MM4RigidBody]] {
     forceFieldVelocities.append(contentsOf: rigidBody.velocities)
   }
   
+  // Create a system rigid body for zeroing out the entire system's momentum.
+  var systemRigidBodyDesc = MM4RigidBodyDescriptor()
+  systemRigidBodyDesc.parameters = forceFieldParameters
+  systemRigidBodyDesc.positions = forceFieldPositions
+  systemRigidBodyDesc.velocities = forceFieldVelocities
+  var systemRigidBody = try! MM4RigidBody(descriptor: systemRigidBodyDesc)
   
+  // Create the forcefield, using the system rigid body as the source of truth.
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.integrator = .multipleTimeStep
+  forceFieldDesc.parameters = systemRigidBody.parameters
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  forceField.positions = systemRigidBody.positions
+  forceField.velocities = systemRigidBody.velocities
+  
+  
+  
+  // Loop over the simulation frames.
+  var frames: [[MM4RigidBody]] = []
+  for frameID in -1...10 {
+    // Report the time.
+    let timeStep: Double = 0.040
+    print()
+    print("simulation frame:", frameID)
+    print("- time:", String(format: "%.3f", Double(frameID) * timeStep))
+    
+    if frameID > 0 {
+      forceField.simulate(time: timeStep)
+    }
+    
+    var systemRigidBodyDesc = MM4RigidBodyDescriptor()
+    systemRigidBodyDesc.parameters = systemRigidBody.parameters
+    systemRigidBodyDesc.positions = forceField.positions
+    systemRigidBodyDesc.velocities = forceField.velocities
+    systemRigidBody = try! MM4RigidBody(descriptor: systemRigidBodyDesc)
+    
+    var atomCursor: Int = .zero
+    for rigidBodyID in rigidBodies.indices {
+      var rigidBody = rigidBodies[rigidBodyID]
+      let atomCount = rigidBody.parameters.atoms.count
+      let range = atomCursor..<atomCursor + atomCount
+      
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.parameters = rigidBody.parameters
+      rigidBodyDesc.positions = Array(forceField.positions[range])
+      rigidBodyDesc.velocities = Array(forceField.velocities[range])
+      rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+      
+      rigidBodies[rigidBodyID] = rigidBody
+      atomCursor += atomCount
+    }
+    frames.append(rigidBodies)
+    
+    // Report the rigid body attributes.
+    print("- system rigid body")
+    display(rigidBody: systemRigidBody)
+    for rigidBodyID in rigidBodies.indices {
+      let rigidBody = rigidBodies[rigidBodyID]
+      print("- rigidBodies[\(rigidBodyID)]")
+      display(rigidBody: rigidBody)
+    }
+  }
+  return frames
+}
+
+// Display the bulk attributes of the rigid body.
+func display(rigidBody: MM4RigidBody) {
+  // Report the mass and center of mass.
+  let mass = rigidBody.mass
+  let centerOfMass = rigidBody.centerOfMass
+  print("  - mass:", String(format: "%.1f", mass))
+  print("  - center of mass: (\(String(format: "%.3f", centerOfMass.x)), \(String(format: "%.3f", centerOfMass.y)), \(String(format: "%.3f", centerOfMass.z)))")
+  
+  // Report the diagonalized inertia tensor matrix.
+  let (axis0, axis1, axis2) = rigidBody.principalAxes
+  let principalAxes = [axis0, axis1, axis2]
+  let momentOfInertia = rigidBody.momentOfInertia
+  print("  - moment of inertia:")
+  for axisID in 0..<3 {
+    let axis = principalAxes[axisID]
+    print("    - Σ[\(axisID)]: (\(String(format: "%.4f", axis.x)), \(String(format: "%.4f", axis.y)), \(String(format: "%.4f", axis.z)))")
+  }
+  print("    - Λ[0]: \(String(format: "%.1f", momentOfInertia[0]))")
+  print("    - Λ[1]: \(String(format: "%.1f", momentOfInertia[1]))")
+  print("    - Λ[2]: \(String(format: "%.1f", momentOfInertia[2]))")
+  
+  // Report the linear momentum.
+  let linearMomentum = rigidBody.linearMomentum
+  let linearVelocity = linearMomentum / rigidBody.mass
+  let linearVelocitySI = linearVelocity / 0.001
+  print("  - linear momentum:")
+  print("    - p: (\(Float(linearMomentum.x)), \(Float(linearMomentum.y)), \(Float(linearMomentum.z)))")
+  print("    - v: (\(Float(linearVelocity.x)), \(Float(linearVelocity.y)), \(Float(linearVelocity.z))) nm/ps")
+  print("    - v: (\(Float(linearVelocitySI.x)), \(Float(linearVelocitySI.y)), \(Float(linearVelocitySI.z))) m/s")
+  
+  // Report the angular momentum.
+  let angularMomentum = rigidBody.angularMomentum
+  let angularVelocity = angularMomentum / rigidBody.momentOfInertia
+  let angularVelocityGHz = angularVelocity / (2 * Double.pi * 0.001)
+  print("  - angular momentum:")
+  print("    - L: (\(Float(angularMomentum.x)), \(Float(angularMomentum.y)), \(Float(angularMomentum.z)))")
+  print("    - ω: (\(Float(angularVelocity.x)), \(Float(angularVelocity.y)), \(Float(angularVelocity.z))) rad/ps")
+  print("    - ω: (\(Float(angularVelocityGHz.x)), \(Float(angularVelocityGHz.y)), \(Float(angularVelocityGHz.z))) GHz")
 }
