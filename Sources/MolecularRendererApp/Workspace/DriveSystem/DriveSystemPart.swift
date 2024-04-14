@@ -47,6 +47,12 @@ struct DriveSystemPartEnergy {
   var thermalKinetic: Double
   var temperature: Double
   
+  var total: Double {
+    linearKinetic +
+    angularKinetic +
+    thermalKinetic
+  }
+  
   init(rigidBody: MM4RigidBody) {
     // Find the total kinetic energy of all atoms combined.
     var totalEnergy: Double = .zero
@@ -69,5 +75,72 @@ struct DriveSystemPartEnergy {
     let boltzmannConstantInJ = 1.380649e-23
     let boltzmannConstantInZJ = boltzmannConstantInJ / 1e-21
     temperature = thermalKinetic / (1.5 * n * boltzmannConstantInZJ)
+  }
+  
+  func display() {
+    print("  - energy:")
+    print("    - total:", String(format: "%.2f", total))
+    print("    - linear kinetic:", String(format: "%.2f", linearKinetic))
+    print("    - angular kinetic:", String(format: "%.2f", angularKinetic))
+    print("    - thermal kinetic:", String(format: "%.2f", thermalKinetic))
+    print("    - temperature:", String(format: "%.2f", temperature), "K")
+  }
+}
+
+// Summary of the energy analysis.
+struct DriveSystemEnergy {
+  var potential: Double
+  var kinetic: Double
+  var total: Double { potential + kinetic }
+  
+  var organizedKinetic: Double
+  var thermalKinetic: Double
+  var temperature: Double
+  
+  init(forceField: MM4ForceField, rigidBodies: [MM4RigidBody]) {
+    potential = forceField.energy.potential
+    kinetic = forceField.energy.kinetic
+    
+    organizedKinetic = .zero
+    thermalKinetic = .zero
+    for rigidBody in rigidBodies {
+      let energy = DriveSystemPartEnergy(rigidBody: rigidBody)
+      organizedKinetic += energy.linearKinetic
+      organizedKinetic += energy.angularKinetic
+      thermalKinetic += energy.thermalKinetic
+    }
+    
+    var atomCount: Int = .zero
+    for rigidBody in rigidBodies {
+      atomCount += rigidBody.parameters.atoms.count
+    }
+    
+    // E = 3/2 n kT
+    // T = E / (3/2 n k)
+    let n = Double(atomCount)
+    let boltzmannConstantInJ = 1.380649e-23
+    let boltzmannConstantInZJ = boltzmannConstantInJ / 1e-21
+    temperature = thermalKinetic / (1.5 * n * boltzmannConstantInZJ)
+  }
+  
+  func display(initialSystemEnergy: Double?) {
+    // Record the energy analysis from molecular dynamics.
+    print("- energy:")
+    print("  - total: \(String(format: "%.2f", total)) zJ", terminator: "")
+    if let initialSystemEnergy {
+      let drift = total - initialSystemEnergy
+      print(" (drift: \(String(format: "%.2f", drift)))")
+    } else {
+      print()
+    }
+    print("  - potential:", String(format: "%.2f", potential))
+    print("  - kinetic:", String(format: "%.2f", kinetic))
+    
+    // Record the kinetic energy reproduced from the rigid bodies.
+    let rigidBodyKinetic = organizedKinetic + thermalKinetic
+    print("  - kinetic:", String(format: "%.2f", rigidBodyKinetic), "(rigid body analysis)")
+    print("    - organized kinetic:", String(format: "%.2f", organizedKinetic))
+    print("    - thermal kinetic:", String(format: "%.2f", thermalKinetic))
+    print("    - temperature:", String(format: "%.2f", temperature), "K")
   }
 }

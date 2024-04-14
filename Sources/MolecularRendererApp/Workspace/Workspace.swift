@@ -42,19 +42,43 @@ func createGeometry() -> [[MM4RigidBody]] {
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   forceField.positions = systemRigidBody.positions
   forceField.velocities = systemRigidBody.velocities
+  print()
+  print("forcefield: MM4")
+  print("- integrator: MTS (single precision)")
+  print("- time step (bonded):", String(format: "%.5f", forceField.timeStep / 2))
+  print("- time step (nonbonded):", String(format: "%.5f", forceField.timeStep))
+  print("- nonbonded cutoff:", String(format: "%.2f", forceFieldDesc.cutoffDistance ?? 1.00))
+  print("- dielectric constant:", String(format: "%.2f", forceFieldDesc.dielectricConstant))
+  print("- forces: bend, external, nonbonded, stretch, stretch-bend")
+  
+  print()
+  print("potential energy minimization")
+  print("- accuracy: 10 zJ")
+  
+  // Create a state variable that tracks energy drift.
+  var initialSystemEnergy: Double = .zero
   
   // Loop over the simulation frames.
   var frames: [[MM4RigidBody]] = []
-  for frameID in -1...10 {
-    // Report the time.
+  for frameID in -1...20 {
+    // Report the frame ID.
     let timeStep: Double = 0.040
     print()
     print("simulation frame:", frameID)
-    print("- time:", String(format: "%.3f", Double(frameID) * timeStep))
     
-    if frameID > 0 {
+    var timeStamp: Double
+    if frameID < 0 {
+      // The first frame is the initial state.
+      timeStamp = -1
+    } else if frameID == 0 {
+      // The second frame is 1 ps of equilibriation.
+      forceField.simulate(time: 1.000)
+      timeStamp = 0
+    } else {
       forceField.simulate(time: timeStep)
+      timeStamp = Double(frameID) * timeStep
     }
+    print("- time:", String(format: "%.3f", timeStamp))
     
     var systemRigidBodyDesc = MM4RigidBodyDescriptor()
     systemRigidBodyDesc.parameters = systemRigidBody.parameters
@@ -79,6 +103,14 @@ func createGeometry() -> [[MM4RigidBody]] {
     }
     frames.append(rigidBodies)
     
+    // Report the energy.
+    let energy = DriveSystemEnergy(
+      forceField: forceField, rigidBodies: rigidBodies)
+    if frameID == 0 {
+      initialSystemEnergy = energy.total
+    }
+    energy.display(initialSystemEnergy: initialSystemEnergy)
+    
     // Report the net momentum of the system.
     print("- system")
     display(rigidBody: systemRigidBody)
@@ -90,7 +122,7 @@ func createGeometry() -> [[MM4RigidBody]] {
       
       print("- rigidBodies[\(rigidBodyID)]")
       display(rigidBody: rigidBody)
-      display(partEnergy: partEnergy)
+      partEnergy.display()
     }
   }
   return frames
@@ -135,18 +167,4 @@ func display(rigidBody: MM4RigidBody) {
   print("    - L: (\(Float(angularMomentum.x)), \(Float(angularMomentum.y)), \(Float(angularMomentum.z)))")
   print("    - ω: (\(Float(angularVelocity.x)), \(Float(angularVelocity.y)), \(Float(angularVelocity.z))) rad/ps")
   print("    - ω: (\(Float(angularVelocityGHz.x)), \(Float(angularVelocityGHz.y)), \(Float(angularVelocityGHz.z))) GHz")
-}
-
-// Display the energy of the rigid body.
-func display(partEnergy: DriveSystemPartEnergy) {
-  var totalEnergy: Double = .zero
-  totalEnergy += partEnergy.linearKinetic
-  totalEnergy += partEnergy.angularKinetic
-  totalEnergy += partEnergy.thermalKinetic
-  
-  print("  - energy:", String(format: "%.2f", totalEnergy), "zJ")
-  print("    - linear kinetic:", String(format: "%.2f", partEnergy.linearKinetic))
-  print("    - angular kinetic:", String(format: "%.2f", partEnergy.angularKinetic))
-  print("    - thermal kinetic:", String(format: "%.2f", partEnergy.thermalKinetic))
-  print("  - temperature:", String(format: "%.2f", partEnergy.temperature), "K")
 }
