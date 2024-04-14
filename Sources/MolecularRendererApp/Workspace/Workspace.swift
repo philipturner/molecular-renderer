@@ -9,6 +9,7 @@ func createGeometry() -> [[MM4RigidBody]] {
   driveSystem.minimize()
   driveSystem.setVelocitiesToTemperature(2 * 298)
   
+  // Header for the log file.
   print("simulation of flywheel system")
   print("- all quantities in nm-yg-ps system (see MM4 docs for info)")
   print("- system components")
@@ -41,8 +42,6 @@ func createGeometry() -> [[MM4RigidBody]] {
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
   forceField.positions = systemRigidBody.positions
   forceField.velocities = systemRigidBody.velocities
-  
-  
   
   // Loop over the simulation frames.
   var frames: [[MM4RigidBody]] = []
@@ -80,13 +79,18 @@ func createGeometry() -> [[MM4RigidBody]] {
     }
     frames.append(rigidBodies)
     
-    // Report the rigid body attributes.
-    print("- system rigid body")
+    // Report the net momentum of the system.
+    print("- system")
     display(rigidBody: systemRigidBody)
+    
+    // Report the rigid body attributes.
     for rigidBodyID in rigidBodies.indices {
       let rigidBody = rigidBodies[rigidBodyID]
+      let partEnergy = DriveSystemPartEnergy(rigidBody: rigidBody)
+      
       print("- rigidBodies[\(rigidBodyID)]")
       display(rigidBody: rigidBody)
+      display(partEnergy: partEnergy)
     }
   }
   return frames
@@ -97,6 +101,7 @@ func display(rigidBody: MM4RigidBody) {
   // Report the mass and center of mass.
   let mass = rigidBody.mass
   let centerOfMass = rigidBody.centerOfMass
+  print("  - atoms:", rigidBody.parameters.atoms.count)
   print("  - mass:", String(format: "%.1f", mass))
   print("  - center of mass: (\(String(format: "%.3f", centerOfMass.x)), \(String(format: "%.3f", centerOfMass.y)), \(String(format: "%.3f", centerOfMass.z)))")
   
@@ -130,4 +135,18 @@ func display(rigidBody: MM4RigidBody) {
   print("    - L: (\(Float(angularMomentum.x)), \(Float(angularMomentum.y)), \(Float(angularMomentum.z)))")
   print("    - ω: (\(Float(angularVelocity.x)), \(Float(angularVelocity.y)), \(Float(angularVelocity.z))) rad/ps")
   print("    - ω: (\(Float(angularVelocityGHz.x)), \(Float(angularVelocityGHz.y)), \(Float(angularVelocityGHz.z))) GHz")
+}
+
+// Display the energy of the rigid body.
+func display(partEnergy: DriveSystemPartEnergy) {
+  var totalEnergy: Double = .zero
+  totalEnergy += partEnergy.linearKinetic
+  totalEnergy += partEnergy.angularKinetic
+  totalEnergy += partEnergy.thermalKinetic
+  
+  print("  - energy:", String(format: "%.2f", totalEnergy), "zJ")
+  print("    - linear kinetic:", String(format: "%.2f", partEnergy.linearKinetic))
+  print("    - angular kinetic:", String(format: "%.2f", partEnergy.angularKinetic))
+  print("    - thermal kinetic:", String(format: "%.2f", partEnergy.thermalKinetic))
+  print("  - temperature:", String(format: "%.2f", partEnergy.temperature), "K")
 }

@@ -15,7 +15,7 @@ protocol DriveSystemPart {
   var knobAtomIDs: [UInt32] { get }
 }
 
-struct DriveSystemPartData {
+struct DriveSystemPartPosition {
   var bodyCenter: SIMD3<Double> = .zero
   var bodyMass: Double = .zero
   var knobCenter: SIMD3<Double> = .zero
@@ -38,5 +38,36 @@ struct DriveSystemPartData {
     }
     bodyCenter /= bodyMass
     knobCenter /= knobMass
+  }
+}
+
+struct DriveSystemPartEnergy {
+  var linearKinetic: Double
+  var angularKinetic: Double
+  var thermalKinetic: Double
+  var temperature: Double
+  
+  init(rigidBody: MM4RigidBody) {
+    // Find the total kinetic energy of all atoms combined.
+    var totalEnergy: Double = .zero
+    for atomID in rigidBody.parameters.atoms.indices {
+      let mass = rigidBody.parameters.atoms.masses[atomID]
+      let velocity = rigidBody.velocities[atomID]
+      totalEnergy += Double(0.5 * mass * (velocity * velocity).sum())
+    }
+    
+    // Decompose the energy into its principal components.
+    let v = rigidBody.linearMomentum / rigidBody.mass
+    let ω = rigidBody.angularMomentum / rigidBody.momentOfInertia
+    linearKinetic = 0.5 * rigidBody.mass * (v * v).sum()
+    angularKinetic = 0.5 * (ω * rigidBody.momentOfInertia * ω).sum()
+    thermalKinetic = totalEnergy - linearKinetic - angularKinetic
+    
+    // E = 3/2 n kT
+    // T = E / (3/2 n k)
+    let n = Double(rigidBody.parameters.atoms.count)
+    let boltzmannConstantInJ = 1.380649e-23
+    let boltzmannConstantInZJ = boltzmannConstantInJ / 1e-21
+    temperature = thermalKinetic / (1.5 * n * boltzmannConstantInZJ)
   }
 }
