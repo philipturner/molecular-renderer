@@ -125,6 +125,86 @@ struct DriveSystemHousing {
         }
       }
       
+      func correctWarp() {
+        Concave {
+          Concave {
+            Origin { 10 * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 50 * h }
+            Plane { -h }
+          }
+          Concave {
+            Origin { 0.25 * l }
+            Plane { -l }
+          }
+        }
+        Concave {
+          Concave {
+            Origin { 55 * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 75 * h }
+            Plane { -h }
+          }
+          Concave {
+            Origin { 0.25 * l }
+            Plane { -l }
+          }
+        }
+        Concave {
+          Concave {
+            Origin { 80 * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 0.25 * l }
+            Plane { -l }
+          }
+        }
+        
+        Concave {
+          Concave {
+            Origin { 30 * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 50 * h }
+            Plane { -h }
+          }
+          Concave {
+            Origin { 13.75 * l }
+            Plane { l }
+          }
+        }
+        Concave {
+          Concave {
+            Origin { 55 * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 75 * h }
+            Plane { -h }
+          }
+          Concave {
+            Origin { 13.75 * l }
+            Plane { l }
+          }
+        }
+        Concave {
+          Concave {
+            Origin { 80 * h }
+            Plane { h }
+          }
+          Concave {
+            Origin { 13.75 * l }
+            Plane { l }
+          }
+        }
+      }
+      
       Volume {
         Concave {
           createBoard()
@@ -147,6 +227,9 @@ struct DriveSystemHousing {
           
           Origin { 3.5 * l }
           Plane { -k - l }
+        }
+        Convex {
+          correctWarp()
         }
         Replace { .empty }
       }

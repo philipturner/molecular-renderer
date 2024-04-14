@@ -203,6 +203,113 @@ extension DriveSystem {
   // WARNING: Ensure the drive system's rigid bodies are overwritten with the
   // current state, not just some copies in the calling program.
   mutating func initializeFlywheel(frequencyInGHz: Double) {
-    let angularSpeedInRadPs = frequencyInGHz * 0.001 * (2 * .pi)
+    func destroyOrganizedKineticEnergy(rigidBody: inout MM4RigidBody) {
+      rigidBody.angularMomentum = .zero
+      rigidBody.linearMomentum = .zero
+    }
+    func destroyThermalKineticEnergy(rigidBody: inout MM4RigidBody) {
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.parameters = rigidBody.parameters
+      rigidBodyDesc.positions = rigidBody.positions
+      
+      let atomCount = rigidBody.parameters.atoms.count
+      let velocities = [SIMD3<Float>](repeating: .zero, count: atomCount)
+      rigidBodyDesc.velocities = velocities
+      rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+    }
+    func transferThermalKineticEnergy(
+      from source: MM4RigidBody,
+      to destination: inout MM4RigidBody
+    ) {
+
+      var rigidBodyDesc = MM4RigidBodyDescriptor()
+      rigidBodyDesc.parameters = destination.parameters
+      rigidBodyDesc.positions = destination.positions
+      
+      let atomCount = destination.parameters.atoms.count
+      var velocities = [SIMD3<Float>](repeating: .zero, count: atomCount)
+      for atomID in 0..<atomCount {
+        velocities[atomID] += source.velocities[atomID]
+        velocities[atomID] += destination.velocities[atomID]
+      }
+      rigidBodyDesc.velocities = velocities
+      destination = try! MM4RigidBody(descriptor: rigidBodyDesc)
+    }
+    
+    // Save a copy that contains the thermal velocities.
+    let copy = self
+    
+    // Zero out the net momentum in every rigid body.
+    destroyOrganizedKineticEnergy(rigidBody: &connectingRod.rigidBody)
+    destroyOrganizedKineticEnergy(rigidBody: &flywheel.rigidBody)
+    destroyOrganizedKineticEnergy(rigidBody: &housing.rigidBody)
+    destroyOrganizedKineticEnergy(rigidBody: &piston.rigidBody)
+    
+    // Destroy the thermal energy.
+    destroyThermalKineticEnergy(rigidBody: &connectingRod.rigidBody)
+    destroyThermalKineticEnergy(rigidBody: &flywheel.rigidBody)
+    destroyThermalKineticEnergy(rigidBody: &housing.rigidBody)
+    destroyThermalKineticEnergy(rigidBody: &piston.rigidBody)
+    
+    // Choose the axis that the flywheel will rotate around.
+    let rotationAxis = flywheel.rigidBody.principalAxes.0
+    guard rotationAxis.z > 0.999 else {
+      fatalError("Flywheel was not aligned to expected reference frame.")
+    }
+    
+    // Find the values of 'r' and 'l'.
+    let flywheelPosition = DriveSystemPartPosition(source: flywheel)
+    let pistonPosition = DriveSystemPartPosition(source: piston)
+    var rDelta = flywheelPosition.knobCenter - flywheelPosition.bodyCenter
+    var lDelta = flywheelPosition.knobCenter - pistonPosition.knobCenter
+    rDelta -= (rDelta * rotationAxis).sum() * rotationAxis
+    lDelta -= (lDelta * rotationAxis).sum() * rotationAxis
+    let r = (rDelta * rDelta).sum().squareRoot()
+    let l = (lDelta * lDelta).sum().squareRoot()
+    print("value of r:", r)
+    print("value of l:", l)
+    
+    // Set the flywheel's angular speed.
+    let ω_f = frequencyInGHz * 0.001 * (2 * .pi)
+    do {
+      let I = flywheel.rigidBody.momentOfInertia
+      let L_f = I * SIMD3(-ω_f, 0, 0)
+      flywheel.rigidBody.angularMomentum += L_f
+    }
+    
+    // Set the connecting rod's initial velocity.
+    do {
+      var rigidBody = connectingRod.rigidBody
+      let (axis0, axis1, axis2) = connectingRod.rigidBody.principalAxes
+      let principalAxes = [axis0, axis1, axis2]
+      
+      let v_c = (1.0 / 2) * (r * ω_f)
+      let p_c = rigidBody.mass * SIMD3<Double>(0, v_c, 0)
+      rigidBody.linearMomentum += p_c
+      
+      var ω_c: SIMD3<Double> = .zero
+      for axisID in 0..<3 {
+        let axis = principalAxes[axisID]
+        let component = (axis * rotationAxis).sum() * (-r / l) * ω_f
+        ω_c[axisID] = component
+      }
+      let L_c = rigidBody.momentOfInertia * ω_c
+      rigidBody.angularMomentum += L_c
+      
+      connectingRod.rigidBody = rigidBody
+    }
+    
+    // Restore the system's net momentum to zero.
+    // - what does this do when temperature is zero?
+    
+    // Add the thermal energy back in.
+    transferThermalKineticEnergy(
+      from: copy.connectingRod.rigidBody, to: &connectingRod.rigidBody)
+    transferThermalKineticEnergy(
+      from: copy.flywheel.rigidBody, to: &flywheel.rigidBody)
+    transferThermalKineticEnergy(
+      from: copy.housing.rigidBody, to: &housing.rigidBody)
+    transferThermalKineticEnergy(
+      from: copy.piston.rigidBody, to: &piston.rigidBody)
   }
 }

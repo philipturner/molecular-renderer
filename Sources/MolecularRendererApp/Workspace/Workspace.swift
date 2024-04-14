@@ -6,7 +6,10 @@ import OpenMM
 
 func createGeometry() -> [[MM4RigidBody]] {
   // Declare a program constant for the flywheel start frequency.
-  let flywheelFrequencyInGHz: Double = 10
+  let flywheelFrequencyInGHz: Double = 10.0
+  
+  // Declare a program constant for the equilibriation time.
+  let equilibriationTimeInPs: Double = 5.0
   
   // Declare a state variable that tracks energy drift.
   var initialSystemEnergy: Double?
@@ -64,7 +67,7 @@ func createGeometry() -> [[MM4RigidBody]] {
   
   // Loop over the simulation frames.
   var frames: [[MM4RigidBody]] = []
-  for frameID in -2...20 {
+  for frameID in -2...100 {
     // Report the frame ID.
     let timeStep: Double = 0.040
     print()
@@ -73,10 +76,10 @@ func createGeometry() -> [[MM4RigidBody]] {
     var timeStamp: Double
     if frameID == -2 {
       // The first frame is the initial state.
-      timeStamp = -1.000
+      timeStamp = -equilibriationTimeInPs
     } else if frameID == -1 {
       // The second frame is 1 ps of equilibriation.
-      forceField.simulate(time: 1.000)
+      forceField.simulate(time: equilibriationTimeInPs)
       timeStamp = 0
     } else if frameID == 0 {
       // Start spinning the flywheel.
@@ -85,13 +88,46 @@ func createGeometry() -> [[MM4RigidBody]] {
       driveSystem.housing.rigidBody = rigidBodies[2]
       driveSystem.piston.rigidBody = rigidBodies[3]
       driveSystem.initializeFlywheel(frequencyInGHz: flywheelFrequencyInGHz)
+      
+      // Update the forcefield and state variables.
       rigidBodies = driveSystem.rigidBodies
       forceField.positions = rigidBodies.flatMap(\.positions)
       forceField.velocities = rigidBodies.flatMap(\.velocities)
+      let energy = forceField.energy
+      initialSystemEnergy = energy.potential + energy.kinetic
       
       timeStamp = 0
     } else {
-      forceField.simulate(time: timeStep)
+//      forceField.simulate(time: timeStep)
+      
+      for i in rigidBodies.indices {
+        var rigidBody = rigidBodies[i]
+        rigidBody.centerOfMass += timeStep * rigidBody.linearMomentum / rigidBody.mass
+        
+        let angularVelocity = rigidBody.angularMomentum / rigidBody.momentOfInertia
+        var ω: SIMD3<Double> = .zero
+        ω += angularVelocity[0] * rigidBody.principalAxes.0
+        ω += angularVelocity[1] * rigidBody.principalAxes.1
+        ω += angularVelocity[2] * rigidBody.principalAxes.2
+        
+        let worldSpaceAngularSpeed = (ω * ω).sum().squareRoot()
+        var worldSpaceRotationAxis = ω / worldSpaceAngularSpeed
+        var isNaN = false
+        for i in 0..<3 {
+          if worldSpaceRotationAxis[i].isNaN || worldSpaceRotationAxis[i].isInfinite {
+            isNaN = true
+          }
+        }
+        if isNaN {
+          worldSpaceRotationAxis = .zero
+        }
+        rigidBody.rotate(angle: timeStep * worldSpaceAngularSpeed, axis: worldSpaceRotationAxis)
+        
+        rigidBodies[i] = rigidBody
+      }
+      forceField.positions = rigidBodies.flatMap(\.positions)
+      forceField.velocities = rigidBodies.flatMap(\.velocities)
+      
       timeStamp = Double(frameID) * timeStep
     }
     print("- time:", String(format: "%.3f", timeStamp))
@@ -122,9 +158,6 @@ func createGeometry() -> [[MM4RigidBody]] {
     // Report the energy.
     let energy = DriveSystemEnergy(
       forceField: forceField, rigidBodies: rigidBodies)
-    if frameID == 0 {
-      initialSystemEnergy = energy.total
-    }
     energy.display(initialSystemEnergy: initialSystemEnergy)
     
     // Report the net momentum of the system.
