@@ -19,9 +19,9 @@ struct Supply {
   
   init() {
     tripods.append(Tripod(atoms: TripodCache.carbonSet.radical))
-    tripods.append(Tripod(atoms: TripodCache.tinSet.hydrogen))
-    tripods.append(Tripod(atoms: TripodCache.tinSet.methylene))
-    tripods.append(Tripod(atoms: TripodCache.tinSet.carbene))
+    tripods.append(Tripod(atoms: TripodCache.germaniumSet.hydrogen))
+    tripods.append(Tripod(atoms: TripodCache.germaniumSet.methylene))
+    tripods.append(Tripod(atoms: TripodCache.germaniumSet.carbene))
     
     for tripodID in tripods.indices {
       let tripod = tripods[tripodID]

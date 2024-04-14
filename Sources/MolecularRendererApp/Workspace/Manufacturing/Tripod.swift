@@ -26,6 +26,10 @@ struct Tooltip {
     return output
   }
   
+  var apexAtomID: Int {
+    9
+  }
+  
   init(tripodAtoms: [Entity]) {
     topology.insert(atoms: tripodAtoms)
     topology.atoms.removeSubrange(22...)
