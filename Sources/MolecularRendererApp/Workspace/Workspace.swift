@@ -4,12 +4,66 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [[MM4RigidBody]] {
+func createGeometry() -> [[Entity]] {
+  decodeSimulation()
+}
+
+func decodeSimulation() -> [[Entity]] {
+  // Declare a program constant for the serialization path.
+  let serializationPath: String = "/Users/philipturner/Desktop/Simulation.data"
+  
+  // Read the serialized data.
+  let serializationURL = URL(fileURLWithPath: serializationPath)
+  let data = try! Data(contentsOf: serializationURL)
+  
+  var frames: [[Entity]] = []
+  var dataCursor: Int = .zero
+  while dataCursor < data.count {
+    print("frame:", frames.count)
+    
+    // Decode the frame size as SIMD8<UInt8>.
+    var frameSizeCasted: SIMD8<UInt8> = .zero
+    for laneID in 0..<8 {
+      let byte = data[dataCursor + laneID]
+      frameSizeCasted[laneID] = byte
+    }
+    dataCursor += 8
+    
+    // Cast the frame size to UInt64.
+    let frameSize = unsafeBitCast(frameSizeCasted, to: UInt64.self)
+    guard dataCursor + Int(frameSize) <= data.count else {
+      fatalError("Invalid frame size.")
+    }
+    
+    // Extract a range of the data.
+    let subData = Data(data[dataCursor..<dataCursor + Int(frameSize)])
+    let deserialized = Serialization.deserialize(atoms: subData)
+    frames.append(deserialized)
+    dataCursor += Int(frameSize)
+  }
+  guard dataCursor == data.count else {
+    fatalError("Invalid data cursor.")
+  }
+  return frames
+}
+
+// MARK: - Simulation
+
+func runSimulation() -> [[MM4RigidBody]] {
   // Declare a program constant for the flywheel start frequency.
   let flywheelFrequencyInGHz: Double = 10.0
   
   // Declare a program constant for the equilibriation time.
-  let equilibriationTimeInPs: Double = 5.0
+  // - The best results appear to be with 5.0 ps.
+  let equilibriationTimeInPs: Double = 1.0
+  
+  // Declare a program constant for the temperature.
+  let initialTemperature: Double = 298
+  
+  // Declare a program constant for the serialization path.
+  let serializationPath: String = "/Users/philipturner/Desktop/Simulation.data"
+  
+  // MARK: - Script
   
   // Declare a state variable that tracks energy drift.
   var initialSystemEnergy: Double?
@@ -17,7 +71,7 @@ func createGeometry() -> [[MM4RigidBody]] {
   // Compile the drive system.
   var driveSystem = DriveSystem()
   driveSystem.minimize()
-  driveSystem.setVelocitiesToTemperature(2 * 298)
+  driveSystem.setVelocitiesToTemperature(2 * initialTemperature)
   
   // Header for the log file.
   print("simulation of flywheel system")
@@ -67,9 +121,10 @@ func createGeometry() -> [[MM4RigidBody]] {
   
   // Loop over the simulation frames.
   var frames: [[MM4RigidBody]] = []
-  for frameID in -2...100 {
+  var serializedFrames: Data = .init()
+  for frameID in -2...10 {
     // Report the frame ID.
-    let timeStep: Double = 0.400
+    let timeStep: Double = 0.040
     print()
     print("simulation frame:", frameID)
     
@@ -98,35 +153,7 @@ func createGeometry() -> [[MM4RigidBody]] {
       
       timeStamp = 0
     } else {
-//      forceField.simulate(time: timeStep)
-      
-      for i in rigidBodies.indices {
-        var rigidBody = rigidBodies[i]
-        rigidBody.centerOfMass += timeStep * rigidBody.linearMomentum / rigidBody.mass
-        
-        let angularVelocity = rigidBody.angularMomentum / rigidBody.momentOfInertia
-        var ω: SIMD3<Double> = .zero
-        ω += angularVelocity[0] * rigidBody.principalAxes.0
-        ω += angularVelocity[1] * rigidBody.principalAxes.1
-        ω += angularVelocity[2] * rigidBody.principalAxes.2
-        
-        let worldSpaceAngularSpeed = (ω * ω).sum().squareRoot()
-        var worldSpaceRotationAxis = ω / worldSpaceAngularSpeed
-        var isNaN = false
-        for i in 0..<3 {
-          if worldSpaceRotationAxis[i].isNaN || worldSpaceRotationAxis[i].isInfinite {
-            isNaN = true
-          }
-        }
-        if isNaN {
-          worldSpaceRotationAxis = .zero
-        }
-        rigidBody.rotate(angle: timeStep * worldSpaceAngularSpeed, axis: worldSpaceRotationAxis)
-        
-        rigidBodies[i] = rigidBody
-      }
-      forceField.positions = rigidBodies.flatMap(\.positions)
-      forceField.velocities = rigidBodies.flatMap(\.velocities)
+      forceField.simulate(time: timeStep)
       
       timeStamp = Double(frameID) * timeStep
     }
@@ -137,6 +164,27 @@ func createGeometry() -> [[MM4RigidBody]] {
     systemRigidBodyDesc.positions = forceField.positions
     systemRigidBodyDesc.velocities = forceField.velocities
     systemRigidBody = try! MM4RigidBody(descriptor: systemRigidBodyDesc)
+    
+    // Serialize the system.
+    if frameID >= 0 {
+      var atoms: [Entity] = []
+      for atomID in systemRigidBody.parameters.atoms.indices {
+        let parameters = systemRigidBody.parameters
+        let atomicNumber = parameters.atoms.atomicNumbers[atomID]
+        let position = systemRigidBody.positions[atomID]
+        let atom = Entity(storage: SIMD4(position, Float(atomicNumber)))
+        atoms.append(atom)
+      }
+      
+      let serializedFrame = Serialization.serialize(atoms: atoms)
+      let frameSize = UInt64(serializedFrame.count)
+      let frameSizeCasted = unsafeBitCast(frameSize, to: SIMD8<UInt8>.self)
+      for laneID in 0..<8 {
+        let byte = frameSizeCasted[laneID]
+        serializedFrames.append(byte)
+      }
+      serializedFrames.append(contentsOf: serializedFrame)
+    }
     
     var atomCursor: Int = .zero
     for rigidBodyID in rigidBodies.indices {
@@ -174,6 +222,11 @@ func createGeometry() -> [[MM4RigidBody]] {
       partEnergy.display()
     }
   }
+  
+  // Write the serialized data.
+  let serializationURL = URL(fileURLWithPath: serializationPath)
+  try! serializedFrames.write(to: serializationURL, options: .atomic)
+  
   return frames
 }
 
