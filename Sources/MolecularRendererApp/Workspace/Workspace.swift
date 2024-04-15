@@ -69,7 +69,7 @@ func createGeometry() -> [[MM4RigidBody]] {
   var frames: [[MM4RigidBody]] = []
   for frameID in -2...100 {
     // Report the frame ID.
-    let timeStep: Double = 0.040
+    let timeStep: Double = 0.400
     print()
     print("simulation frame:", frameID)
     

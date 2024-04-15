@@ -236,14 +236,14 @@ extension DriveSystem {
       destination = try! MM4RigidBody(descriptor: rigidBodyDesc)
     }
     
-    // Save a copy that contains the thermal velocities.
-    let copy = self
-    
     // Zero out the net momentum in every rigid body.
     destroyOrganizedKineticEnergy(rigidBody: &connectingRod.rigidBody)
     destroyOrganizedKineticEnergy(rigidBody: &flywheel.rigidBody)
     destroyOrganizedKineticEnergy(rigidBody: &housing.rigidBody)
     destroyOrganizedKineticEnergy(rigidBody: &piston.rigidBody)
+    
+    // Save a copy that contains the thermal velocities.
+    let copy = self
     
     // Destroy the thermal energy.
     destroyThermalKineticEnergy(rigidBody: &connectingRod.rigidBody)
@@ -300,7 +300,103 @@ extension DriveSystem {
     }
     
     // Restore the system's net momentum to zero.
-    // - what does this do when temperature is zero?
+    // - What does this do when temperature is zero? Do the objects gain a
+    //   temperature that isn't 0 K?
+    do {
+      var forceFieldParameters = rigidBodies[0].parameters
+      var forceFieldPositions = rigidBodies[0].positions
+      var forceFieldVelocities = rigidBodies[0].velocities
+      for rigidBody in rigidBodies[1...] {
+        forceFieldParameters.append(contentsOf: rigidBody.parameters)
+        forceFieldPositions.append(contentsOf: rigidBody.positions)
+        forceFieldVelocities.append(contentsOf: rigidBody.velocities)
+      }
+      
+      // Create a system rigid body for zeroing out the entire system's momentum.
+      var systemRigidBodyDesc = MM4RigidBodyDescriptor()
+      systemRigidBodyDesc.parameters = forceFieldParameters
+      systemRigidBodyDesc.positions = forceFieldPositions
+      systemRigidBodyDesc.velocities = forceFieldVelocities
+      var systemRigidBody = try! MM4RigidBody(descriptor: systemRigidBodyDesc)
+      systemRigidBody.linearMomentum = .zero
+      // systemRigidBody.angularMomentum = .zero
+      
+      var atomCursor: Int = .zero
+      func save(rigidBody: inout MM4RigidBody) {
+        let atomCount = rigidBody.parameters.atoms.count
+        let range = atomCursor..<atomCursor + atomCount
+        
+        var rigidBodyDesc = MM4RigidBodyDescriptor()
+        rigidBodyDesc.parameters = rigidBody.parameters
+        rigidBodyDesc.positions = Array(systemRigidBody.positions[range])
+        rigidBodyDesc.velocities = Array(systemRigidBody.velocities[range])
+        rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+        
+        // TODO: Save these stats in a Git commit
+        /*
+         not zeroing system momentum
+         0.0017038408244047787 9.25970276134981e-06 
+         SIMD3<Double>(0.0008456707000732422, 17684.417320251465, 0.000394617673009634)
+         SIMD3<Double>(-48063.14855957031, 342.2458446472883, -30.85589838027954)
+         
+         -0.00010644568828865886 -4.375861183008864e-07 
+         SIMD3<Double>(-0.01177978515625, 0.359893798828125, 0.0019060969352722168)
+         SIMD3<Double>(-2015476.58203125, -0.0018298625946044922, -0.0024433135986328125)
+         
+         1.9116238601532217e-12 5.774583878371203e-16 
+         SIMD3<Double>(-0.0005048187086189593, 0.0009382661717216578, -2.96142016595613e-05)
+         SIMD3<Double>(0.024202661997378527, -0.0004710905840088486, 0.00023963549309891086)
+         
+         4.521011185116796e-15 1.2805236476023636e-17 
+         SIMD3<Double>(1.1681978143940341e-05, -9.348675955678232e-05, -7.286454021482314e-06)
+         SIMD3<Double>(-0.00018129698679025807, 2.629742545390279e-06, -1.466757803190305e-06)
+         
+         only zeroing linear momentum
+         0.0015588613985073607 8.471796772073958e-06 
+         SIMD3<Double>(0.0006515681743621826, 17150.900577545166, 0.0002763736993074417)
+         SIMD3<Double>(-48310.77996826172, 82.86233305931091, -22.64497995376587)
+         
+         -0.0021856362000107765 -8.984901842027118e-06 
+         SIMD3<Double>(0.02117919921875, -5750.9022216796875, 0.0017375946044921875)
+         SIMD3<Double>(-2015232.88671875, -0.0030548572540283203, 0.00514984130859375)
+         
+         0.00010343300244337444 3.1244773663432173e-08 
+         SIMD3<Double>(-0.005545767501018872, -10373.364794671535, -0.002157924074012385)
+         SIMD3<Double>(-0.005461079477072417, -7.177718078862916e-05, -0.00011689878473220006)
+         
+         9.091149477970732e-06 2.574961975045116e-08 
+         SIMD3<Double>(-0.0004905072541987465, -1026.5856609344482, -0.00020443643074941065)
+         SIMD3<Double>(-0.0004371463934376152, 7.4203999380628716e-06, -4.071759946100428e-06)
+         
+         zeroing both momenta
+         0.0009419636987502145 5.119201123412276e-06
+         SIMD3<Double>(-107.73126522451639, 13285.765525817871, -60.40103794634342)
+         SIMD3<Double>(-36231.08125305176, -66.87620458006859, 172.40568614006042)
+         
+         0.002447681217745412 1.0062139107097284e-05
+         SIMD3<Double>(22.30645751953125, -63636.8779296875, -301.8648986816406)
+         SIMD3<Double>(-1867757.64453125, 2075.125825405121, 27960.747409820557)
+         
+         0.0006813672544012661 2.058256566331115e-07
+         SIMD3<Double>(123.8844587802887, 43907.69394028187, 336.57002687454224)
+         SIMD3<Double>(1223462.7314510345, -10740.794848144054, 28726.509752333164)
+         
+         0.0001437471903713572 4.071471381289369e-07
+         SIMD3<Double>(-38.46467113494873, 6443.2836969047785, 25.695476353168488)
+         SIMD3<Double>(19299.79107284546, -213.65057826042175, 600.1659439676441)
+         */
+        print(DriveSystemPartEnergy(rigidBody: rigidBody).thermalKinetic,
+              DriveSystemPartEnergy(rigidBody: rigidBody).temperature,
+              rigidBody.linearMomentum,
+              rigidBody.angularMomentum)
+        
+        atomCursor += atomCount
+      }
+      save(rigidBody: &connectingRod.rigidBody)
+      save(rigidBody: &flywheel.rigidBody)
+      save(rigidBody: &housing.rigidBody)
+      save(rigidBody: &piston.rigidBody)
+    }
     
     // Add the thermal energy back in.
     transferThermalKineticEnergy(
