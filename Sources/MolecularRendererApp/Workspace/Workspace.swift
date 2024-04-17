@@ -4,13 +4,18 @@ import MM4
 import Numerics
 import OpenMM
 
+// TODO: Save the code for simulating this somewhere. Perhaps reformulate into
+// something more workable and object-oriented.
+//
+// Redesign the flywheel system to fix the problems encountered in simulations.
+
 func createGeometry() -> [[Entity]] {
   decodeSimulation()
 }
 
 func decodeSimulation() -> [[Entity]] {
   // Declare a program constant for the serialization path.
-  let serializationPath: String = "/Users/philipturner/Desktop/Simulation.data"
+  let serializationPath: String = "/Volumes/Samsung USB/Simulation.data"
   
   // Read the serialized data.
   let serializationURL = URL(fileURLWithPath: serializationPath)
