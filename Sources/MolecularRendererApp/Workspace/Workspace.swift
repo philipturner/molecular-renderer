@@ -9,28 +9,96 @@ func createGeometry() -> [Entity] {
   // - Keep the cylinder, but shrink it.
   // - Superimpose an H structure, then warp into a strained shell.
   // - Check the radius of curvature and curl of protrusions with Ge dopants.
+  //
   // - Create a piecewise function to only warp certain chunks of the structure,
   //   each at a slightly different center of curvature.
+  
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * h + 10 * k + 10 * l }
+    Bounds { 10 * h + 14 * k + 10 * l }
     Material { .elemental(.carbon) }
     
+    // TODO: Replace each instance of 'h' with a series of one-atomic-layer
+    // ledges.
     Volume {
-      Origin { 5 * h + 5 * k }
-      
-      for thetaDegrees in 0..<180 {
-        let angle = Float(2 * thetaDegrees) * .pi / 180
-        let direction = SIMD3(Float.cos(angle), Float.sin(angle), 0)
-        
+      Concave {
         Convex {
-          Origin { 5 * direction }
-          Plane { direction }
+          Origin { 1.25 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 6 * k }
+          Plane { -k }
+        }
+        Convex {
+          Origin { 8.75 * h }
+          Plane { -h }
+        }
+      }
+      
+      Concave {
+        Convex {
+          Origin { 1.25 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 8 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 8.75 * h }
+          Plane { -h }
         }
       }
       
       Replace { .empty }
     }
+    
+    Volume {
+//      for indexK in 0...20 {
+//        Concave {
+//          Origin { Float(indexK) * 1 * k }
+//          Origin { -0.125 * (h + k) }
+//          Plane { h }
+//          Plane { k }
+//          Origin { 0.25 * (h + k) }
+//          Plane { -h }
+//          Plane { -k }
+//        }
+//      }
+      
+      Convex {
+        Origin { 0.125 * h }
+        Plane { -h }
+      }
+      Convex {
+        Origin { 9.875 * h }
+        Plane { h }
+      }
+      
+      Replace { .atom(.germanium) }
+    }
   }
   
-  return lattice.atoms
+  var reconstruction = SurfaceReconstruction()
+  reconstruction.material = .elemental(.carbon)
+  reconstruction.topology.insert(atoms: lattice.atoms)
+  reconstruction.compile()
+  var topology = reconstruction.topology
+  
+  var paramsDesc = MM4ParametersDescriptor()
+  paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+  paramsDesc.bonds = topology.bonds
+  let parameters = try! MM4Parameters(descriptor: paramsDesc)
+  
+  var forceFieldDesc = MM4ForceFieldDescriptor()
+  forceFieldDesc.parameters = parameters
+  let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+  forceField.positions = topology.atoms.map(\.position)
+  forceField.minimize()
+  
+  for atomID in topology.atoms.indices {
+    let position = forceField.positions[atomID]
+    topology.atoms[atomID].position = position
+  }
+  return topology.atoms
 }
