@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		98129CDA2BD0905E00AE6A9B /* DriveSystemSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CD92BD0905E00AE6A9B /* DriveSystemSimulation.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -115,6 +116,7 @@
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
+		98129CD92BD0905E00AE6A9B /* DriveSystemSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveSystemSimulation.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -410,6 +412,14 @@
 			path = Bootstrapping;
 			sourceTree = "<group>";
 		};
+		98129CD82BD0904900AE6A9B /* Simulation */ = {
+			isa = PBXGroup;
+			children = (
+				98129CD92BD0905E00AE6A9B /* DriveSystemSimulation.swift */,
+			);
+			path = Simulation;
+			sourceTree = "<group>";
+		};
 		981360DD2B4883C40007D40F /* NCFMechanism */ = {
 			isa = PBXGroup;
 			children = (
@@ -676,8 +686,8 @@
 			isa = PBXGroup;
 			children = (
 				98AF5B0C2BBD834C0015C7DC /* ConnectingRod.swift */,
-				98AF5B082BBB69D00015C7DC /* Flywheel.swift */,
 				98AF5B062BBB5E090015C7DC /* DriveSystemHousing.swift */,
+				98AF5B082BBB69D00015C7DC /* Flywheel.swift */,
 				98AF5B0A2BBCBC390015C7DC /* Piston.swift */,
 			);
 			path = Parts;
@@ -686,6 +696,7 @@
 		98AF5B0E2BBDB6F40015C7DC /* DriveSystem */ = {
 			isa = PBXGroup;
 			children = (
+				98129CD82BD0904900AE6A9B /* Simulation */,
 				98AF5B0F2BBDB7060015C7DC /* DriveSystem.swift */,
 				986F8CE12BCC4C520098A8ED /* DriveSystemPart.swift */,
 				98AF5B052BBB5DEF0015C7DC /* Parts */,
@@ -1343,6 +1354,7 @@
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				98AF5B102BBDB7060015C7DC /* DriveSystem.swift in Sources */,
+				98129CDA2BD0905E00AE6A9B /* DriveSystemSimulation.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
