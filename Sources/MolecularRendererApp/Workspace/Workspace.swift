@@ -13,17 +13,59 @@ import OpenMM
 //     design of a single rotary bearing. Measure the friction and whether it
 //     can last for 3 cycles at 2-4 GHz.
 
-func createGeometry() -> [MM4RigidBody] {
-  let cylinder = Cylinder()
-  let housing = Housing()
+func createGeometry() -> [[MM4RigidBody]] {
+  var cylinder = Cylinder()
+  var housing = Housing()
   var simulation = Simulation(rigidBodies: [
-    cylinder.rigidBody, 
+    cylinder.rigidBody,
     housing.rigidBody
   ])
   simulation.withForceField { $0.minimize() }
   simulation.setVelocitiesToTemperature(2 * 77)
+  simulation.withForceField { $0.simulate(time: 5) }
   
-  return simulation.rigidBodies
+  do {
+    cylinder.rigidBody = simulation.rigidBodies[0]
+    let rotationAxis = cylinder.rigidBody.principalAxes.2
+    guard rotationAxis.z.magnitude > 0.999 else {
+      fatalError("Rotation axis not aligned with z-direction.")
+    }
+    
+    let frequencyInGHz: Double = 30
+    var ω = SIMD3<Double>(0, 0, frequencyInGHz * 0.001 * 2 * .pi)
+    if rotationAxis.z < 0 {
+      ω = -ω
+    }
+    let L = cylinder.rigidBody.momentOfInertia * ω
+    cylinder.rigidBody.angularMomentum = L
+    simulation.rigidBodies[0] = cylinder.rigidBody
+  }
+  
+  var frames: [[MM4RigidBody]] = []
+  frames.append(simulation.rigidBodies)
+  print("frame: 0")
+  for frameID in 1...1000 {
+    simulation.withForceField { $0.simulate(time: 0.25) }
+    frames.append(simulation.rigidBodies)
+    print("frame:", frameID, terminator: "")
+    
+    do {
+      cylinder.rigidBody = simulation.rigidBodies[0]
+      let rotationAxis = cylinder.rigidBody.principalAxes.2
+      var L = cylinder.rigidBody.angularMomentum
+      if rotationAxis.z < 0 {
+        L = -L
+      }
+      var ω = L / cylinder.rigidBody.momentOfInertia
+      let frequencyInGHz = ω.z / (0.001 * 2 * .pi)
+      print(" - \(Float(frequencyInGHz)) GHz")
+      
+      if rotationAxis.z.magnitude < 0.999 {
+        print("WARNING: Rotation axis not aligned with z-direction.")
+      }
+    }
+  }
+  return frames
 }
 
 struct Simulation {
