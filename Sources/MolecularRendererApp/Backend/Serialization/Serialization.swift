@@ -17,7 +17,7 @@ struct Serialization {
 // MARK: - Bonds
 
 extension Serialization {
-  // Compressed a bond topology into binary data.
+  // Compresses a bond topology into binary data.
   //
   // The typical compression ratio is ~2.5x. This is close to the
   // information-theoretic limit of ~3.5x.
@@ -167,11 +167,12 @@ extension Serialization {
 // MARK: - Atoms
 
 extension Serialization {
-  // Encode an array of atoms, whose block-sparse volume does not exceed
-  // 67 million cubic nanometers. Blocks are 64x64x64 nm.
+  // Compresses a list of atoms into binary data.
   //
-  // Compresses the information to within a factor of ~2x of the
-  // information-theoretic limit.
+  // Segments the volume into 64x64x64 nm blocks. The block-sparse volume must
+  // not exceed 67 million cubic nanometers.
+  //
+  // The compression is a factor of ~2x from the information-theoretic limit.
   static func serialize(atoms: [Entity]) -> Data {
     // Allocate a dictionary for the chunk indices.
     var chunkIDs: [SIMD3<UInt16>: UInt8] = [:]
