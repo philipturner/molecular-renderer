@@ -21,8 +21,16 @@ func createGeometry() -> [Entity] {
       
     }
     
-    // TODO: Replace each instance of 'h' with a series of one-atomic-layer
-    // ledges.
+    // Try switching over to hexagonal diamond, with (111) faces. Try something
+    // new, and use P dopants at rotating interfaces.
+    // - minimizes the expansion of axial thickness, because P is surface and
+    //   Ge is bulk
+    // - Ge can still be used for weights of the flywheel
+    // - can still use two-fold symmetry
+    //
+    // The gears will be perpendicular to a plane with the 'h2k' and 'l'
+    // vectors, which is a bit unfamiliar. The housing part of the bearing
+    // can be cubic diamond.
     Volume {
       Concave {
         Convex {
