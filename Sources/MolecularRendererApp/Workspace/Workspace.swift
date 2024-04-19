@@ -4,8 +4,7 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [Entity] {
-  // TODO:
-  // - Design an entirely new CLA system in a single evening.
-  return [Entity(position: .zero, type: .atom(.carbon))]
+func createGeometry() -> [MM4RigidBody] {
+  let inputUnit = CLAInputUnit()
+  return inputUnit.rods.map { $0.rigidBody }
 }

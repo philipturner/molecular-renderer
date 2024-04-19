@@ -13,6 +13,7 @@
 		98129CE82BD327B800AE6A9B /* DriveWall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CE72BD327B800AE6A9B /* DriveWall.swift */; };
 		98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CEA2BD32B0100AE6A9B /* GenericPart.swift */; };
 		98129CEE2BD32C7A00AE6A9B /* CLA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CED2BD32C7A00AE6A9B /* CLA.swift */; };
+		98129CF12BD32DFF00AE6A9B /* CLAInputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -121,6 +122,7 @@
 		98129CE72BD327B800AE6A9B /* DriveWall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveWall.swift; sourceTree = "<group>"; };
 		98129CEA2BD32B0100AE6A9B /* GenericPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericPart.swift; sourceTree = "<group>"; };
 		98129CED2BD32C7A00AE6A9B /* CLA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLA.swift; sourceTree = "<group>"; };
+		98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAInputUnit.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -433,8 +435,17 @@
 			isa = PBXGroup;
 			children = (
 				98129CED2BD32C7A00AE6A9B /* CLA.swift */,
+				98129CEF2BD32DEA00AE6A9B /* Units */,
 			);
 			path = CLA;
+			sourceTree = "<group>";
+		};
+		98129CEF2BD32DEA00AE6A9B /* Units */ = {
+			isa = PBXGroup;
+			children = (
+				98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */,
+			);
+			path = Units;
 			sourceTree = "<group>";
 		};
 		981360DD2B4883C40007D40F /* NCFMechanism */ = {
@@ -1346,6 +1357,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9855200B2B53215C00AB068D /* Workspace.swift in Sources */,
+				98129CF12BD32DFF00AE6A9B /* CLAInputUnit.swift in Sources */,
 				98129CE62BD327B100AE6A9B /* Rod.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,

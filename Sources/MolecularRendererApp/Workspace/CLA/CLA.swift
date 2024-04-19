@@ -10,7 +10,3 @@ import HDL
 import MM4
 import Numerics
 
-// A namespace for parts in the carry lookahead adder.
-enum CLA {
-  
-}
