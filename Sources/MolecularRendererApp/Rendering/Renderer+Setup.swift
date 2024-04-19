@@ -105,11 +105,6 @@ extension Renderer {
     descriptor.sceneSize = .large
     eventTracker.walkingSpeed = 2
     
-//    descriptor.sceneSize = .large
-//    descriptor.offline = true
-//    descriptor.width = 1280
-//    descriptor.height = 720
-    
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyleProvider(RendererStyle())
     renderingEngine.setQuality(
