@@ -1,0 +1,95 @@
+//
+//  GenericPart.swift
+//  MolecularRendererApp
+//
+//  Created by Philip Turner on 4/19/24.
+//
+
+import Foundation
+import HDL
+import MM4
+import Numerics
+
+// A convenience method for de-duplicating the most common pieces of code.
+protocol GenericPart {
+  var rigidBody: MM4RigidBody { get set }
+}
+
+extension GenericPart {
+  static func createTopology(lattice: Lattice<Cubic>) -> Topology {
+    var reconstruction = SurfaceReconstruction()
+    reconstruction.material = .elemental(.carbon)
+    reconstruction.topology.insert(atoms: lattice.atoms)
+    reconstruction.compile()
+    reconstruction.topology.sort()
+    return reconstruction.topology
+  }
+  
+  static func createRigidBody(topology: Topology) -> MM4RigidBody {
+    var paramsDesc = MM4ParametersDescriptor()
+    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+    paramsDesc.bonds = topology.bonds
+    let parameters = try! MM4Parameters(descriptor: paramsDesc)
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.parameters = parameters
+    rigidBodyDesc.positions = topology.atoms.map(\.position)
+    return try! MM4RigidBody(descriptor: rigidBodyDesc)
+  }
+  
+  // Extract the atoms that should be fixed during minimization.
+  static func extractBulkAtomIDs(topology: Topology) -> [UInt32] {
+    let atomsToAtomsMap = topology.map(.atoms, to: .atoms)
+    
+    var bulkAtomIDs: [UInt32] = []
+    for atomID in topology.atoms.indices {
+      let atom = topology.atoms[atomID]
+      let atomElement = Element(rawValue: atom.atomicNumber)!
+      let atomRadius = atomElement.covalentRadius
+      
+      let neighborIDs = atomsToAtomsMap[atomID]
+      var carbonNeighborCount: Int = .zero
+      var correctBondCount: Int = .zero
+      
+      for neighborID in neighborIDs {
+        let neighbor = topology.atoms[Int(neighborID)]
+        let neighborElement = Element(rawValue: neighbor.atomicNumber)!
+        let neighborRadius = neighborElement.covalentRadius
+        if neighbor.atomicNumber == 6 {
+          carbonNeighborCount += 1
+        }
+        
+        let delta = atom.position - neighbor.position
+        let bondLength = (delta * delta).sum().squareRoot()
+        let expectedBondLength = atomRadius + neighborRadius
+        if bondLength / expectedBondLength < 1.1 {
+          correctBondCount += 1
+        }
+      }
+      
+      if carbonNeighborCount == 4, correctBondCount == 4 {
+        bulkAtomIDs.append(UInt32(atomID))
+      }
+    }
+    return bulkAtomIDs
+  }
+  
+  // Finds the surface geometry with an accuracy of 0.1 zJ.
+  mutating func minimize(bulkAtomIDs: [UInt32]) {
+    var forceFieldParameters = rigidBody.parameters
+    for atomID in bulkAtomIDs {
+      forceFieldParameters.atoms.masses[Int(atomID)] = .zero
+    }
+    
+    var forceFieldDesc = MM4ForceFieldDescriptor()
+    forceFieldDesc.parameters = forceFieldParameters
+    let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+    forceField.positions = rigidBody.positions
+    forceField.minimize(tolerance: 0.1)
+    
+    var rigidBodyDesc = MM4RigidBodyDescriptor()
+    rigidBodyDesc.parameters = rigidBody.parameters
+    rigidBodyDesc.positions = forceField.positions
+    rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  }
+}

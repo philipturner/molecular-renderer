@@ -15,7 +15,7 @@ struct LogicHousingDescriptor {
   var patterns: [HolePattern] = []
 }
 
-struct LogicHousing {
+struct LogicHousing: GenericPart {
   var rigidBody: MM4RigidBody
   
   init(descriptor: LogicHousingDescriptor) {
@@ -46,26 +46,5 @@ struct LogicHousing {
       }
     }
     return lattice
-  }
-  
-  static func createTopology(lattice: Lattice<Cubic>) -> Topology {
-    var reconstruction = SurfaceReconstruction()
-    reconstruction.material = .elemental(.carbon)
-    reconstruction.topology.insert(atoms: lattice.atoms)
-    reconstruction.compile()
-    reconstruction.topology.sort()
-    return reconstruction.topology
-  }
-  
-  static func createRigidBody(topology: Topology) -> MM4RigidBody {
-    var paramsDesc = MM4ParametersDescriptor()
-    paramsDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
-    paramsDesc.bonds = topology.bonds
-    let parameters = try! MM4Parameters(descriptor: paramsDesc)
-    
-    var rigidBodyDesc = MM4RigidBodyDescriptor()
-    rigidBodyDesc.parameters = parameters
-    rigidBodyDesc.positions = topology.atoms.map(\.position)
-    return try! MM4RigidBody(descriptor: rigidBodyDesc)
   }
 }
