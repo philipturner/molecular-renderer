@@ -30,7 +30,12 @@ struct CLACarryUnit {
   }
   
   init() {
-    let horizontalRodLength: Int = (3 * 6) + (6 * 6) + 4
+    var horizontalRodLength: Float = .zero
+    horizontalRodLength += 3 * 6
+    horizontalRodLength += (6 * 6) + 4
+    
+    // Make the carry rod five atomic layers thick; the pattern will reduce it
+    // to four layers.
     let carryRodLattice = Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       
@@ -66,7 +71,7 @@ struct CLACarryUnit {
       var rod = carryRod
       rod.translate(x: 3 * 6)
       rod.translate(x: 3 * 8 + 4)
-      rod.translate(y: Double(layerID) * 6)
+      rod.translate(y: Float(layerID) * 6)
       rod.translate(y: 5.5)
       rod.translate(z: -3 * 6)
       signal.append(rod)
@@ -83,7 +88,7 @@ struct CLACarryUnit {
       rod.translate(x: 3 * 6)
       rod.translate(x: 3 * 8 + 4)
       rod.translate(x: 6)
-      rod.translate(y: Double(layerID) * 6)
+      rod.translate(y: Float(layerID) * 6)
       rod.translate(z: -3 * 6)
       xor.append(rod)
     }

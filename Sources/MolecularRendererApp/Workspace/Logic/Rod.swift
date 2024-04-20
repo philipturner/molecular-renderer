@@ -13,8 +13,8 @@ import Numerics
 struct Rod: GenericPart {
   var rigidBody: MM4RigidBody
   var boundingBox: (
-    minimum: SIMD3<Double>,
-    maximum: SIMD3<Double>)
+    minimum: SIMD3<Float>,
+    maximum: SIMD3<Float>)
   
   init(lattice: Lattice<Hexagonal>) {
     let topology = Self.createTopology(lattice: lattice)
@@ -28,7 +28,7 @@ struct Rod: GenericPart {
       SIMD3(1, 5.3670, 4.9488))
   }
   
-  static func createLattice(length: Int) -> Lattice<Hexagonal> {
+  static func createLattice(length: Float) -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
       
@@ -73,13 +73,15 @@ struct Rod: GenericPart {
 }
 
 extension Rod {
-  mutating func rotate(angle: Double, axis: SIMD3<Double>) {
-    let rotation = Quaternion<Double>(angle: angle, axis: axis)
-    rigidBody.centerOfMass = rotation.act(on: rigidBody.centerOfMass)
-    rigidBody.rotate(angle: angle, axis: axis)
+  mutating func rotate(angle: Float, axis: SIMD3<Float>) {
+    let rotation64 = Quaternion(angle: Double(angle), axis: SIMD3(axis))
+    rigidBody.centerOfMass = rotation64.act(on: rigidBody.centerOfMass)
+    rigidBody.rotate(angle: Double(angle), axis: SIMD3(axis))
+    
+    let rotation32 = Quaternion(angle: angle, axis: axis)
     boundingBox = (
-      rotation.act(on: boundingBox.minimum),
-      rotation.act(on: boundingBox.maximum))
+      rotation32.act(on: boundingBox.minimum),
+      rotation32.act(on: boundingBox.maximum))
     
     for laneID in 0..<3 {
       var lowerBound = boundingBox.minimum[laneID]
@@ -98,21 +100,23 @@ extension Rod {
       lowerBound += translation
       upperBound += translation
       
-      rigidBody.centerOfMass[laneID] += translation * 0.3567
+      rigidBody.centerOfMass[laneID] += Double(translation * 0.3567)
       boundingBox.minimum[laneID] = lowerBound
       boundingBox.maximum[laneID] = upperBound
     }
   }
   
   mutating func translate(
-    x: Double = .zero,
-    y: Double = .zero,
-    z: Double = .zero
+    x: Float = .zero,
+    y: Float = .zero,
+    z: Float = .zero
   ) {
-    let vector = SIMD3<Double>(x, y, z)
-    rigidBody.centerOfMass += vector * 0.3567
-    boundingBox.minimum += vector
-    boundingBox.maximum += vector
+    let vector64 = SIMD3(Double(x), Double(y), Double(z))
+    rigidBody.centerOfMass += vector64 * 0.3567
+    
+    let vector32 = SIMD3<Float>(x, y, z)
+    boundingBox.minimum += vector32
+    boundingBox.maximum += vector32
   }
   
   func createHolePattern() -> HolePattern {

@@ -33,15 +33,19 @@ struct CLAPropagateUnit {
   }
   
   init() {
+    var horizontalRodLength: Float = .zero
+    horizontalRodLength += 3 * 6
+    horizontalRodLength += 3 * 8 + 4
+    horizontalRodLength += (2 * 6) + 2
+    
     // Create the signal.
-    let horizontalRodLength: Int = (3 * 6) + (3 * 8 + 4) + (2 * 6) + 2
     let signalRodLattice = Rod.createLattice(
       length: horizontalRodLength)
     let signalRod = Rod(lattice: signalRodLattice)
     
     for layerID in 1...4 {
       var rod = signalRod
-      rod.translate(y: Double(layerID) * 6)
+      rod.translate(y: Float(layerID) * 6)
       rod.translate(y: 2.75)
       rod.translate(z: 5 * 6)
       rod.translate(z: 2.75)
@@ -58,7 +62,7 @@ struct CLAPropagateUnit {
     for positionX in 0..<3 {
       var rod = probeRod
       rod.translate(x: 2 * 6)
-      rod.translate(x: Double(positionX) * 8)
+      rod.translate(x: Float(positionX) * 8)
       rod.translate(x: 3.5)
       rod.translate(z: 5 * 6)
       
@@ -79,9 +83,9 @@ struct CLAPropagateUnit {
         if positionX == 3 {
           rod.translate(x: 3 * 8 - 2)
         } else {
-          rod.translate(x: Double(positionX) * 8)
+          rod.translate(x: Float(positionX) * 8)
         }
-        rod.translate(y: Double(layerID) * 6)
+        rod.translate(y: Float(layerID) * 6)
         
         let key = SIMD2(Int(positionX), Int(layerID))
         broadcast[key] = rod

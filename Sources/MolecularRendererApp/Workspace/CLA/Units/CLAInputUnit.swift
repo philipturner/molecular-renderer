@@ -34,7 +34,7 @@ struct CLAInputUnit {
     // Create the A input.
     for layerID in 1...4 {
       var rod = operandRod
-      rod.translate(y: Double(layerID) * 6)
+      rod.translate(y: Float(layerID) * 6)
       operandA.append(rod)
     }
     
@@ -42,7 +42,7 @@ struct CLAInputUnit {
     for layerID in 1...4 {
       var rod = operandRod
       rod.translate(x: 6)
-      rod.translate(y: Double(layerID) * 6)
+      rod.translate(y: Float(layerID) * 6)
       operandA.append(rod)
     }
   }
