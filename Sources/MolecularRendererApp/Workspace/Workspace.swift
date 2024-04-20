@@ -10,22 +10,9 @@ func createGeometry() -> [MM4RigidBody] {
   let propagateUnit = CLAPropagateUnit()
   
   var rods: [Rod] = []
-  rods.append(propagateUnit.signal[0])
-  rods.append(propagateUnit.probe[0]!)
-  
-  let initRigidBodies = rods.map { $0.rigidBody }
-  var simulation = GenericSimulation(rigidBodies: initRigidBodies)
-  
-  simulation.withForceField { forceField in
-    for offsetID in -10...10 {
-      var copies = rods.map { $0.rigidBody }
-      let offset = Double(offsetID) * 0.25 * 0.3567
-      copies[1].centerOfMass.z += offset
-      
-      forceField.positions = copies.flatMap(\.positions)
-      print(Double(offsetID) * 0.25, forceField.energy.potential)
-    }
-  }
+  rods += inputUnit.rods
+  rods += generateUnit.rods
+  rods += propagateUnit.rods
   
   return rods.map { $0.rigidBody }
 }

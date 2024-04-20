@@ -69,6 +69,35 @@ struct CLAPropagateUnit {
       let key = positionX
       probe[key] = rod
     }
+    
+    // Create the broadcast lines.
+    let broadcastRodLattice = Self.createLattice(length: 5 * 6 + 2 + 6 + 2)
+    var broadcastRod = Rod(lattice: broadcastRodLattice)
+    broadcastRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
+    broadcastRod.rigidBody.centerOfMass = SIMD3(
+      broadcastRod.rigidBody.centerOfMass.z,
+      broadcastRod.rigidBody.centerOfMass.y,
+      broadcastRod.rigidBody.centerOfMass.x)
+    
+    for layerID in 1...4 {
+      for positionX in 0..<layerID {
+        var rod = broadcastRod
+        
+        if layerID == 4 && positionX == 3 {
+          // Stack the final broadcast on the top layer, removing a large
+          // block of unnecessary housing.
+          continue
+        } else {
+          rod.rigidBody.centerOfMass.x += (2 * 6 + 2) * 0.3567
+          rod.rigidBody.centerOfMass.x += Double(positionX) * 8 * 0.3567
+          rod.rigidBody.centerOfMass.x += 2.5 * 0.3567
+          rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
+        }
+        
+        let key = SIMD2(Int(positionX), Int(layerID))
+        broadcast[key] = rod
+      }
+    }
   }
   
   static func createLattice(length: Int) -> Lattice<Hexagonal> {
@@ -83,13 +112,23 @@ struct CLAPropagateUnit {
       Material { .elemental(.carbon) }
       
       Volume {
-        Origin { 0.49 * l }
-        Plane { -l }
-        Replace { .empty }
+        Concave {
+          Origin { 20 * h }
+          Plane { -h }
+          
+          Origin { 1.51 * l }
+          Plane { l }
+          Replace { .atom(.silicon) }
+        }
         
-        Origin { 0.49 * h2k }
-        Plane { -h2k }
-        Replace { .empty }
+        Concave {
+          Origin { 40 * h }
+          Plane { h }
+          
+          Origin { 1.51 * l }
+          Plane { l }
+          Replace { .atom(.silicon) }
+        }
       }
     }
   }
