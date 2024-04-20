@@ -119,15 +119,33 @@ struct Rod: GenericPart {
     print()
     
     for laneID in 0..<3 {
-      print("lane:", laneID)
       var lowerBound = boundingBox.minimum[laneID]
       var upperBound = boundingBox.maximum[laneID]
-      print(lowerBound, upperBound)
-      if lowerBound > upperBound {
-        print("Bound is wrong.")
+      guard lowerBound > upperBound else {
+        continue
       }
+      let delta = upperBound - lowerBound
+      if (delta.magnitude - 2).magnitude < 0.001 {
+        fatalError("Attempted to flip the length dimension.")
+      }
+      
+      print("lane:", laneID)
+      print(lowerBound, upperBound)
+      swap(&lowerBound, &upperBound)
+      let projectedLowerBound = -lowerBound
+      let translation = projectedLowerBound - upperBound
+      lowerBound += translation
+      upperBound += translation
+      print(lowerBound, upperBound)
+      
+      rigidBody.centerOfMass[laneID] += translation * 0.3567
+      boundingBox.minimum[laneID] = lowerBound
+      boundingBox.maximum[laneID] = upperBound
     }
     
-    exit(0)
+//    exit(0)
   }
+  
+  // TODO: Functions for 'translate(x:)', y, z instead of operating directly on
+  // the rigid body. Also removes the need to multiply by 0.3567 in source code.
 }
