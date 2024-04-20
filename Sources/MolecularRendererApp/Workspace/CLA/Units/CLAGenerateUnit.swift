@@ -36,7 +36,7 @@ struct CLAGenerateUnit {
   }
   
   init() {
-    let signalRodLattice = Self.createLattice(length: 6 * 5)
+    let signalRodLattice = Self.createLattice(length: 6 * 5 + 2)
     let signalRod = Rod(lattice: signalRodLattice)
     
     // Create the carry in.
@@ -57,7 +57,7 @@ struct CLAGenerateUnit {
     }
     
     // Create the vertical probes.
-    let probeRodLattice = Self.createLattice(length: 6 * 5)
+    let probeRodLattice = Self.createLattice(length: 6 * 5 + 2)
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rigidBody.rotate(angle: .pi / 2, axis: [0, 0, 1])
     probeRod.rigidBody.centerOfMass = SIMD3(
@@ -86,12 +86,6 @@ struct CLAGenerateUnit {
       dimensionH.round(.up)
       Bounds { dimensionH * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
-      
-      Volume {
-        Origin { 0.49 * l }
-        Plane { -l }
-        Replace { .empty }
-      }
     }
   }
 }
