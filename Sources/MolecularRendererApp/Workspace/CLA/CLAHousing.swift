@@ -20,13 +20,19 @@ struct CLAHousing: GenericPart {
   
   init(descriptor: CLAHousingDescriptor) {
     let lattice = Self.createLattice(rods: descriptor.rods)
-    let topology = Self.createTopology(lattice: lattice)
+    var topology = Self.createTopology(lattice: lattice)
+    topology.bonds = Serialization.deserialize(bonds: Serialization.serialize(bonds: topology.bonds))
     rigidBody = Self.createRigidBody(topology: topology)
-    rigidBody.centerOfMass.z -= 18 * 0.3567
     
     if let cachePath = descriptor.cachePath {
-      let url = URL(fileURLWithPath: cachePath)
+      let key = Serialization.serialize(atoms: lattice.atoms)
+      let valueAtoms = Serialization.serialize(atoms: topology.atoms)
+      let valueBonds = Serialization.serialize(bonds: topology.bonds)
+      print(lattice.atoms.count, topology.atoms.count, topology.bonds.count)
+      print(key.count, valueAtoms.count, valueBonds.count)
     }
+    
+    rigidBody.centerOfMass.z -= 18 * 0.3567
   }
   
   static func createLattice(rods: [Rod]) -> Lattice<Cubic> {

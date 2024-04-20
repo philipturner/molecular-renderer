@@ -19,18 +19,19 @@ struct Serialization {
 extension Serialization {
   // Compresses a bond topology into binary data.
   //
-  // The typical compression ratio is ~2.5x. This is close to the
+  // The typical compression ratio is ~2.0x. This is close to the
   // information-theoretic limit of ~3.5x.
   static func serialize(bonds: [SIMD2<UInt32>]) -> Data {
     var lastAtomID: UInt32 = .zero
     
     // Sort the bonds into compressable and non-compressable groups.
-    var compressedBonds: [SIMD2<UInt8>] = []
+    var compressedBonds: [SIMD2<UInt16>] = []
     var decompressedBonds: [SIMD2<UInt32>] = []
     for bond in bonds {
       // We rely on there always being an 8-compressed atom nearby.
       guard bond[0] >= lastAtomID,
-            bond[0] - lastAtomID < 256 else {
+            bond[0] - lastAtomID < 65536 else {
+        print(compressedBonds.count, decompressedBonds.count, bonds.count)
         fatalError("Bond could not be compressed.")
       }
       guard bond[1] > bond[0] else {
@@ -38,9 +39,9 @@ extension Serialization {
       }
       
       let difference = bond[1] - bond[0]
-      if difference < 256 {
-        let startDelta = UInt8(bond[0] - lastAtomID)
-        let lengthDelta = UInt8(bond[1] - bond[0])
+      if difference < 65536 {
+        let startDelta = UInt16(bond[0] - lastAtomID)
+        let lengthDelta = UInt16(bond[1] - bond[0])
         let compressedBond = SIMD2(startDelta, lengthDelta)
         compressedBonds.append(compressedBond)
         
@@ -61,16 +62,16 @@ extension Serialization {
     header[1] = UInt32(decompressedBonds.count)
     rawData.append(header)
     
-    // Pad the compressable bonds to a multiple of four.
-    while compressedBonds.count % 4 != 0 {
-      compressedBonds.append(SIMD2<UInt8>.zero)
+    // Pad the compressable bonds to a multiple of two.
+    while compressedBonds.count % 2 != 0 {
+      compressedBonds.append(SIMD2<UInt16>.zero)
     }
     
     // Write the compressable bonds.
-    for groupID in 0..<compressedBonds.count / 4 {
-      var vector: SIMD8<UInt8> = .zero
-      for laneID in 0..<4 {
-        let compressedBond = compressedBonds[groupID * 4 + laneID]
+    for groupID in 0..<compressedBonds.count / 2 {
+      var vector: SIMD4<UInt16> = .zero
+      for laneID in 0..<2 {
+        let compressedBond = compressedBonds[groupID * 2 + laneID]
         vector[laneID * 2 + 0] = compressedBond[0]
         vector[laneID * 2 + 1] = compressedBond[1]
       }
@@ -99,19 +100,19 @@ extension Serialization {
     let compressedBondCount = UInt32(header[0])
     let decompressedBondCount = UInt32(header[1])
     
-    // Pad the compressable bonds to a multiple of four.
+    // Pad the compressable bonds to a multiple of two.
     var paddedCompressedBondCount = compressedBondCount
-    while paddedCompressedBondCount % 4 != 0 {
+    while paddedCompressedBondCount % 2 != 0 {
       paddedCompressedBondCount += 1
     }
     
     // Read the compressable bonds.
-    var compressedBonds: [SIMD2<UInt8>] = []
-    for groupID in 0..<paddedCompressedBondCount / 4 {
+    var compressedBonds: [SIMD2<UInt16>] = []
+    for groupID in 0..<paddedCompressedBondCount / 2 {
       let castedVector = rawData[Int(1 + groupID)]
-      let vector = unsafeBitCast(castedVector, to: SIMD8<UInt8>.self)
-      for laneID in 0..<4 {
-        var compressedBond: SIMD2<UInt8> = .zero
+      let vector = unsafeBitCast(castedVector, to: SIMD4<UInt16>.self)
+      for laneID in 0..<2 {
+        var compressedBond: SIMD2<UInt16> = .zero
         compressedBond[0] = vector[laneID * 2 + 0]
         compressedBond[1] = vector[laneID * 2 + 1]
         compressedBonds.append(compressedBond)
@@ -124,7 +125,7 @@ extension Serialization {
     }
     
     // Read the non-compressable bonds.
-    let decompressedRange = Int(1 + paddedCompressedBondCount / 4)...
+    let decompressedRange = Int(1 + paddedCompressedBondCount / 2)...
     let decompressedBonds = Array(rawData[decompressedRange])
     guard decompressedBonds.count == decompressedBondCount else {
       fatalError("Could not decode decompressed bonds.")
