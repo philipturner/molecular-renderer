@@ -40,7 +40,7 @@ struct CLAOutputUnit {
     
     // Create the nor.
     let norRodLattice = Rod.createLattice(
-      length: (3 * 6) + 2)
+      length: (3 * 6) + 6)
     var norRod = Rod(lattice: norRodLattice)
     shift(rod: &norRod)
     
@@ -53,7 +53,7 @@ struct CLAOutputUnit {
     
     // Create the and.
     let andRodLattice = Rod.createLattice(
-      length: (3 * 6) + 2)
+      length: (3 * 6) + 6)
     var andRod = Rod(lattice: andRodLattice)
     shift(rod: &andRod)
     
@@ -75,6 +75,7 @@ struct CLAOutputUnit {
     for layerID in 1...4 {
       var rod = sumRod
       rod.translate(x: 2 * 6)
+      rod.translate(x: 4)
       rod.translate(y: Float(layerID) * 6)
       sum.append(rod)
     }
