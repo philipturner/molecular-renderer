@@ -35,23 +35,7 @@ struct CLAPropagateUnit {
   init() {
     // Create the signal.
     let signalRodLattice = Rod.createLattice(
-      length: (3 * 6) + (3 * 8 + 4) + 6 + 2)
-//    let signalRodLattice = Lattice<Hexagonal> { h, k, l in
-//      let h2k = h + 2 * k
-//      
-//      var dimensionH = Float((3 * 6) + (3 * 8 + 4) + 6 + 2)
-//      dimensionH *= Constant(.square) { .elemental(.carbon) }
-//      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
-//      dimensionH.round(.up)
-//      Bounds { dimensionH * h + 2 * h2k + 2 * l }
-//      Material { .elemental(.carbon) }
-//      
-//      Volume {
-//        Origin { 1.51 * h2k }
-//        Plane { h2k }
-//        Replace { .empty }
-//      }
-//    }
+      length: (3 * 6) + (3 * 8 + 4) + (2 * 6) + 2)
     let signalRod = Rod(lattice: signalRodLattice)
     
     for layerID in 1...4 {

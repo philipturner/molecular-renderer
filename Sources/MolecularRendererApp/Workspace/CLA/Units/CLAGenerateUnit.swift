@@ -37,7 +37,7 @@ struct CLAGenerateUnit {
   
   init() {
     let signalRodLattice = Rod.createLattice(
-      length: (3 * 6) + (3 * 8 + 4) + 2)
+      length: (3 * 6) + (3 * 8 + 4) + (2 * 6) + 2)
     let signalRod = Rod(lattice: signalRodLattice)
     
     // Create the carry in.
@@ -76,7 +76,7 @@ struct CLAGenerateUnit {
     
     // Create the broadcast lines.
     let broadcastRodLattice = Rod.createLattice(
-      length: (3 * 6) + (3 * 8 + 4) + 2)
+      length: (3 * 6) + (3 * 8 + 4) + (2 * 6) + 2)
     let broadcastRod = Rod(lattice: broadcastRodLattice)
     
     for layerID in 1...4 {
