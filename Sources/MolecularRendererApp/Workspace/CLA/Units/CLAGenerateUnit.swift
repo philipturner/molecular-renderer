@@ -43,17 +43,17 @@ struct CLAGenerateUnit {
     // Create the carry in.
     do {
       var rod = signalRod
-      rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
-      rod.rigidBody.centerOfMass.z += 4 * 6 * 0.3567
+      rod.translate(y: 2.75)
+      rod.translate(z: 4 * 6)
       carryIn = rod
     }
     
     // Create the signal.
     for layerID in 1...4 {
       var rod = signalRod
-      rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-      rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
-      rod.rigidBody.centerOfMass.z += Double(4 - layerID) * 6 * 0.3567
+      rod.translate(y: Double(layerID) * 6)
+      rod.translate(y: 2.75)
+      rod.translate(z: Double(4 - layerID) * 6)
       signal.append(rod)
     }
     
@@ -71,16 +71,8 @@ struct CLAGenerateUnit {
     }
     
     var probeRod = Rod(lattice: probeRodLattice)
-    probeRod.rigidBody.rotate(angle: .pi / 2, axis: [0, 0, 1])
-    probeRod.rigidBody.centerOfMass = SIMD3(
-      -probeRod.rigidBody.centerOfMass.y,
-      probeRod.rigidBody.centerOfMass.x,
-      probeRod.rigidBody.centerOfMass.z)
-    probeRod.rigidBody.rotate(angle: .pi, axis: [0, 1, 0])
-    probeRod.rigidBody.centerOfMass = SIMD3(
-      -probeRod.rigidBody.centerOfMass.x,
-      probeRod.rigidBody.centerOfMass.y,
-      probeRod.rigidBody.centerOfMass.z)
+    probeRod.rotate(angle: .pi / 2, axis: [0, 0, 1])
+    probeRod.rotate(angle: .pi, axis: [0, 1, 0])
     
     for positionZ in 0...3 {
       var rod = probeRod
@@ -119,25 +111,6 @@ struct CLAGenerateUnit {
       dimensionH.round(.up)
       Bounds { dimensionH * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
-      
-//            Volume {
-//              Concave {
-//                Origin { 1.51 * l }
-//                Plane { l }
-//      
-//                Origin { 20 * h }
-//                Plane { -h }
-//              }
-//              Concave {
-//                Origin { 1.5 * h2k }
-//                Plane { h2k }
-//      
-//                Origin { 20 * h }
-//                Plane { -h }
-//              }
-//      
-//              Replace { .empty }
-//            }
     }
   }
 }

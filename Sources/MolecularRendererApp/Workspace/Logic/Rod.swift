@@ -107,16 +107,12 @@ struct Rod: GenericPart {
   }
   
   mutating func rotate(angle: Double, axis: SIMD3<Double>) {
-    rigidBody.rotate(angle: angle, axis: axis)
-    print(boundingBox)
-    print(angle / .pi, axis)
     let rotation = Quaternion<Double>(angle: angle, axis: axis)
     rigidBody.centerOfMass = rotation.act(on: rigidBody.centerOfMass)
+    rigidBody.rotate(angle: angle, axis: axis)
     boundingBox = (
       rotation.act(on: boundingBox.minimum),
       rotation.act(on: boundingBox.maximum))
-    print(boundingBox)
-    print()
     
     for laneID in 0..<3 {
       var lowerBound = boundingBox.minimum[laneID]
@@ -129,23 +125,26 @@ struct Rod: GenericPart {
         fatalError("Attempted to flip the length dimension.")
       }
       
-      print("lane:", laneID)
-      print(lowerBound, upperBound)
       swap(&lowerBound, &upperBound)
       let projectedLowerBound = -lowerBound
       let translation = projectedLowerBound - upperBound
       lowerBound += translation
       upperBound += translation
-      print(lowerBound, upperBound)
       
       rigidBody.centerOfMass[laneID] += translation * 0.3567
       boundingBox.minimum[laneID] = lowerBound
       boundingBox.maximum[laneID] = upperBound
     }
-    
-//    exit(0)
   }
   
-  // TODO: Functions for 'translate(x:)', y, z instead of operating directly on
-  // the rigid body. Also removes the need to multiply by 0.3567 in source code.
+  mutating func translate(
+    x: Double = .zero, 
+    y: Double = .zero,
+    z: Double = .zero
+  ) {
+    let vector = SIMD3<Double>(x, y, z)
+    rigidBody.centerOfMass += vector * 0.3567
+    boundingBox.minimum += vector
+    boundingBox.maximum += vector
+  }
 }
