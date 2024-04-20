@@ -36,7 +36,8 @@ struct CLAGenerateUnit {
   }
   
   init() {
-    let signalRodLattice = Self.createLattice(length: 6 * 5 + 2)
+    let signalRodLattice = Self.createLattice(
+      length: 6 * 3 + (6 + 2 + 6 + 2 + 6 + 6) + 2)
     let signalRod = Rod(lattice: signalRodLattice)
     
     // Create the carry in.
@@ -51,7 +52,7 @@ struct CLAGenerateUnit {
     for layerID in 1...4 {
       var rod = signalRod
       rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-      rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
+      rod.rigidBody.centerOfMass.y += 2.5 * 0.3567
       rod.rigidBody.centerOfMass.z += Double(4 - layerID) * 6 * 0.3567
       signal.append(rod)
     }
@@ -83,7 +84,7 @@ struct CLAGenerateUnit {
       for positionZ in ((4 - layerID) + 1)...4 {
         var rod = broadcastRod
         rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-        rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
+        rod.rigidBody.centerOfMass.y += 2.5 * 0.3567
         rod.rigidBody.centerOfMass.z += Double(positionZ) * 6 * 0.3567
         
         let key = SIMD2(Int(positionZ), Int(layerID))

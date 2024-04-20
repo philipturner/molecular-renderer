@@ -26,7 +26,8 @@ struct CLAInputUnit {
   }
   
   init() {
-    let operandRodLattice = Self.createLattice(length: 5 * 6 + 2 + 6 + 2)
+    let operandRodLattice = Self.createLattice(
+      length: 5 * 6 + (2 + 6) + 2)
     var operandRod = Rod(lattice: operandRodLattice)
     operandRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
     operandRod.rigidBody.centerOfMass = SIMD3(

@@ -40,7 +40,7 @@ struct CLAPropagateUnit {
     for layerID in 1...4 {
       var rod = signalRod
       rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-      rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
+      rod.rigidBody.centerOfMass.y += 2.5 * 0.3567
       rod.rigidBody.centerOfMass.z += (5 * 6 + 2) * 0.3567
       signal.append(rod)
     }
@@ -61,8 +61,9 @@ struct CLAPropagateUnit {
     
     for positionX in 0..<3 {
       var rod = probeRod
-      rod.rigidBody.centerOfMass.x += (2 * 6 + 2) * 0.3567
+      rod.rigidBody.centerOfMass.x += (2 * 6) * 0.3567
       rod.rigidBody.centerOfMass.x += Double(positionX) * 8 * 0.3567
+      rod.rigidBody.centerOfMass.x += 3.5 * 0.3567
       rod.rigidBody.centerOfMass.z += (4 * 6 + 2) * 0.3567
       rod.rigidBody.centerOfMass.z += 3.5 * 0.3567
       
@@ -71,7 +72,8 @@ struct CLAPropagateUnit {
     }
     
     // Create the broadcast lines.
-    let broadcastRodLattice = Self.createLattice(length: 5 * 6 + 2 + 6 + 2)
+    let broadcastRodLattice = Self.createLattice(
+      length: 5 * 6 + (2 + 6) + 2)
     var broadcastRod = Rod(lattice: broadcastRodLattice)
     broadcastRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
     broadcastRod.rigidBody.centerOfMass = SIMD3(
@@ -82,17 +84,12 @@ struct CLAPropagateUnit {
     for layerID in 1...4 {
       for positionX in 0..<layerID {
         var rod = broadcastRod
-        
+        rod.rigidBody.centerOfMass.x += (3 * 6) * 0.3567
+        rod.rigidBody.centerOfMass.x += Double(positionX) * 8 * 0.3567
         if layerID == 4 && positionX == 3 {
-          // Stack the final broadcast on the top layer, removing a large
-          // block of unnecessary housing.
-          continue
-        } else {
-          rod.rigidBody.centerOfMass.x += (2 * 6 + 2) * 0.3567
-          rod.rigidBody.centerOfMass.x += Double(positionX) * 8 * 0.3567
-          rod.rigidBody.centerOfMass.x += 2.5 * 0.3567
-          rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
+          rod.rigidBody.centerOfMass.x += Double(-2) * 0.3567
         }
+        rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
         
         let key = SIMD2(Int(positionX), Int(layerID))
         broadcast[key] = rod
@@ -110,26 +107,6 @@ struct CLAPropagateUnit {
       dimensionH.round(.up)
       Bounds { dimensionH * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
-      
-      Volume {
-        Concave {
-          Origin { 20 * h }
-          Plane { -h }
-          
-          Origin { 1.51 * l }
-          Plane { l }
-          Replace { .atom(.silicon) }
-        }
-        
-        Concave {
-          Origin { 40 * h }
-          Plane { h }
-          
-          Origin { 1.51 * l }
-          Plane { l }
-          Replace { .atom(.silicon) }
-        }
-      }
     }
   }
 }
