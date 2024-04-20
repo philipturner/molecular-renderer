@@ -67,12 +67,28 @@ struct CLAGenerateUnit {
     
     for positionZ in 0...3 {
       var rod = probeRod
-      rod.rigidBody.centerOfMass.x += 11 * 0.3567
+      rod.rigidBody.centerOfMass.x += 2 * 6 * 0.3567
       rod.rigidBody.centerOfMass.z += Double(positionZ) * 6 * 0.3567
       rod.rigidBody.centerOfMass.z += 3.5 * 0.3567
       
       let key = 2 - positionZ
       probe[key] = rod
+    }
+    
+    // Create the broadcast lines.
+    let broadcastRodLattice = Self.createLattice(length: 6 * 5 + 2)
+    let broadcastRod = Rod(lattice: broadcastRodLattice)
+    
+    for layerID in 1...4 {
+      for positionZ in ((4 - layerID) + 1)...4 {
+        var rod = broadcastRod
+        rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
+        rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
+        rod.rigidBody.centerOfMass.z += Double(positionZ) * 6 * 0.3567
+        
+        let key = SIMD2(Int(positionZ), Int(layerID))
+        broadcast[key] = rod
+      }
     }
   }
   
