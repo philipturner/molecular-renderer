@@ -54,7 +54,7 @@ struct CLAPropagateUnit {
     
     // Create the vertical probes.
     let probeRodLattice = Rod.createLattice(
-      length: (5 * 6) + 4)
+      length: (5 * 6) + 2)
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rotate(angle: .pi / 2, axis: [0, 0, 1])
     probeRod.rotate(angle: .pi / 2, axis: [0, 1, 0])
@@ -64,6 +64,7 @@ struct CLAPropagateUnit {
       rod.translate(x: 2 * 6)
       rod.translate(x: Float(positionX) * 8)
       rod.translate(x: 3.5)
+      rod.translate(y: 2)
       rod.translate(z: 5 * 6)
       
       let key = positionX

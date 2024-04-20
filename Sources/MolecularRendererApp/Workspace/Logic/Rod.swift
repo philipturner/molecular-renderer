@@ -72,6 +72,8 @@ struct Rod: GenericPart {
   }
 }
 
+// MARK: - Transforms
+
 extension Rod {
   mutating func rotate(angle: Float, axis: SIMD3<Float>) {
     let rotation64 = Quaternion(angle: Double(angle), axis: SIMD3(axis))
@@ -118,8 +120,14 @@ extension Rod {
     boundingBox.minimum += vector32
     boundingBox.maximum += vector32
   }
-  
-  func createHolePattern() -> HolePattern {
+}
+
+// MARK: - Patterns
+
+extension Rod {
+  func createExcludedVolume() -> (
+    minimum: SIMD3<Float>, maximum: SIMD3<Float>
+  ) {
     var minCarbonPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
     var maxCarbonPosition = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
     for atomID in rigidBody.parameters.atoms.indices {
@@ -139,31 +147,6 @@ extension Rod {
     minCarbonPosition -= SIMD3(1, 1, 1)
     maxCarbonPosition += SIMD3(1, 1, 1)
     
-    return { h, k, l in
-      Concave {
-        Concave {
-          Origin {
-            Float(minCarbonPosition[0]) * h +
-            Float(minCarbonPosition[1]) * k +
-            Float(minCarbonPosition[2]) * l
-          }
-          Plane { h }
-          Plane { k }
-          Plane { l }
-        }
-        
-        Concave {
-          Origin {
-            Float(maxCarbonPosition[0]) * h +
-            Float(maxCarbonPosition[1]) * k +
-            Float(maxCarbonPosition[2]) * l
-          }
-          Plane { -h }
-          Plane { -k }
-          Plane { -l }
-        }
-      }
-      Replace { .empty }
-    }
+    return (minCarbonPosition, maxCarbonPosition)
   }
 }

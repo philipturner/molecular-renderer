@@ -25,7 +25,9 @@ struct CLAOutputUnit {
   var sum: [Rod] = []
   
   var rods: [Rod] {
-    nor + and + sum
+    nor + 
+    and +
+    sum
   }
   
   init() {
