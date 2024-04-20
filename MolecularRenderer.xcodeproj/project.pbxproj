@@ -16,6 +16,7 @@
 		98129CF12BD32DFF00AE6A9B /* CLAInputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */; };
 		98129CF32BD3321400AE6A9B /* CLAGenerateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */; };
 		98129CF52BD34A2F00AE6A9B /* CLAPropagateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */; };
+		98129CF72BD3F21600AE6A9B /* GenericSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF62BD3F21600AE6A9B /* GenericSimulation.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -127,6 +128,7 @@
 		98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAInputUnit.swift; sourceTree = "<group>"; };
 		98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAGenerateUnit.swift; sourceTree = "<group>"; };
 		98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAPropagateUnit.swift; sourceTree = "<group>"; };
+		98129CF62BD3F21600AE6A9B /* GenericSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericSimulation.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -431,6 +433,7 @@
 			isa = PBXGroup;
 			children = (
 				98129CEA2BD32B0100AE6A9B /* GenericPart.swift */,
+				98129CF62BD3F21600AE6A9B /* GenericSimulation.swift */,
 			);
 			path = Generic;
 			sourceTree = "<group>";
@@ -1390,6 +1393,7 @@
 				98129CF32BD3321400AE6A9B /* CLAGenerateUnit.swift in Sources */,
 				98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
+				98129CF72BD3F21600AE6A9B /* GenericSimulation.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 			);
