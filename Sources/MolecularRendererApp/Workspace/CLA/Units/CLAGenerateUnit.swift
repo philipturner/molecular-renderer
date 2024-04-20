@@ -37,7 +37,7 @@ struct CLAGenerateUnit {
   
   init() {
     let signalRodLattice = Self.createLattice(
-      length: 6 * 3 + (6 + 2 + 6 + 2 + 6 + 6) + 2)
+      length: (3 * 6) + (3 * 8 + 4) + 2)
     let signalRod = Rod(lattice: signalRodLattice)
     
     // Create the carry in.
@@ -59,7 +59,7 @@ struct CLAGenerateUnit {
     
     // Create the vertical probes.
     let probeRodLattice = Self.createLattice(
-      length: 6 * 5 + 2)
+      length: (5 * 6) + 4)
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rotate(angle: .pi / 2, axis: [0, 0, 1])
     probeRod.rotate(angle: .pi, axis: [0, 1, 0])
@@ -75,7 +75,8 @@ struct CLAGenerateUnit {
     }
     
     // Create the broadcast lines.
-    let broadcastRodLattice = Self.createLattice(length: 6 * 5 + 2)
+    let broadcastRodLattice = Self.createLattice(
+      length: (3 * 6) + (3 * 8 + 4) + 2)
     let broadcastRod = Rod(lattice: broadcastRodLattice)
     
     for layerID in 1...4 {

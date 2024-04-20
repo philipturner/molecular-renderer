@@ -27,7 +27,7 @@ struct CLAInputUnit {
   
   init() {
     let operandRodLattice = Self.createLattice(
-      length: 5 * 6 + 2)
+      length: (6 * 6) + 4)
     var operandRod = Rod(lattice: operandRodLattice)
     operandRod.rotate(angle: -.pi / 2, axis: [0, 1, 0])
     
