@@ -15,6 +15,7 @@
 		98129CEE2BD32C7A00AE6A9B /* CLA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CED2BD32C7A00AE6A9B /* CLA.swift */; };
 		98129CF12BD32DFF00AE6A9B /* CLAInputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */; };
 		98129CF32BD3321400AE6A9B /* CLAGenerateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */; };
+		98129CF52BD34A2F00AE6A9B /* CLAPropagateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -125,6 +126,7 @@
 		98129CED2BD32C7A00AE6A9B /* CLA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLA.swift; sourceTree = "<group>"; };
 		98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAInputUnit.swift; sourceTree = "<group>"; };
 		98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAGenerateUnit.swift; sourceTree = "<group>"; };
+		98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAPropagateUnit.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -447,6 +449,7 @@
 			children = (
 				98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */,
 				98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */,
+				98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */,
 			);
 			path = Units;
 			sourceTree = "<group>";
@@ -1375,6 +1378,7 @@
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
 				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,
 				98129CEE2BD32C7A00AE6A9B /* CLA.swift in Sources */,
+				98129CF52BD34A2F00AE6A9B /* CLAPropagateUnit.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */,
