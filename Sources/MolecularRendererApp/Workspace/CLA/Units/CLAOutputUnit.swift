@@ -34,7 +34,7 @@ struct CLAOutputUnit {
     // Nested function for shifting into the local coordinate space.
     func shift(rod: inout Rod) {
       rod.translate(x: 3 * 6)
-      rod.translate(x: 3 * 8 + 4)
+      rod.translate(x: 3 * 8 + 8)
       rod.translate(z: -3 * 6)
     }
     

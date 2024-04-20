@@ -52,6 +52,14 @@ struct CLACarryUnit {
         Replace { .empty }
       }
     }
+    
+    // Nested function for shifting into the local coordinate space.
+    func shift(rod: inout Rod) {
+      rod.translate(x: 3 * 6)
+      rod.translate(x: 3 * 8 + 8)
+      rod.translate(z: -3 * 6)
+    }
+    
     var carryRod = Rod(lattice: carryRodLattice)
     carryRod.rotate(angle: -.pi / 2, axis: [0, 1, 0])
     carryRod.translate(y: -0.1)
@@ -59,21 +67,17 @@ struct CLACarryUnit {
     // Create the carry in.
     do {
       var rod = carryRod
-      rod.translate(x: 3 * 6)
-      rod.translate(x: 3 * 8 + 4)
+      shift(rod: &rod)
       rod.translate(y: 5.5)
-      rod.translate(z: -3 * 6)
       carryIn = rod
     }
     
     // Create the signal.
     for layerID in 1...4 {
       var rod = carryRod
-      rod.translate(x: 3 * 6)
-      rod.translate(x: 3 * 8 + 4)
+      shift(rod: &rod)
       rod.translate(y: Float(layerID) * 6)
       rod.translate(y: 5.5)
-      rod.translate(z: -3 * 6)
       signal.append(rod)
     }
     
@@ -85,11 +89,9 @@ struct CLACarryUnit {
     
     for layerID in 1...4 {
       var rod = xorRod
-      rod.translate(x: 3 * 6)
-      rod.translate(x: 3 * 8 + 4)
+      shift(rod: &rod)
       rod.translate(x: 6)
       rod.translate(y: Float(layerID) * 6)
-      rod.translate(z: -3 * 6)
       xor.append(rod)
     }
   }

@@ -35,7 +35,7 @@ struct CLAPropagateUnit {
   init() {
     var horizontalRodLength: Float = .zero
     horizontalRodLength += 3 * 6
-    horizontalRodLength += 3 * 8 + 4
+    horizontalRodLength += 3 * 8 + 8
     horizontalRodLength += (2 * 6) + 2
     
     // Create the signal.
