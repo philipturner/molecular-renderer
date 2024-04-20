@@ -102,7 +102,7 @@ extension Renderer {
     descriptor.height = Int(ContentView.size)
     descriptor.upscaleFactor = ContentView.upscaleFactor
 #endif
-    descriptor.sceneSize = .large
+    descriptor.sceneSize = .extreme
     eventTracker.walkingSpeed = 2
     
     renderingEngine = MRRenderer(descriptor: descriptor)
