@@ -15,13 +15,27 @@ struct LogicHousingDescriptor {
   var patterns: [HolePattern] = []
 }
 
-struct LogicHousing: GenericPart {
-  var rigidBody: MM4RigidBody
+struct LogicHousing {
+  var topology: Topology
   
   init(descriptor: LogicHousingDescriptor) {
+    let checkpoint0 = Date()
     let lattice = Self.createLattice(descriptor: descriptor)
-    let topology = Self.createTopology(lattice: lattice)
-    rigidBody = Self.createRigidBody(topology: topology)
+    let checkpoint1 = Date()
+    topology = Self.createTopology(lattice: lattice)
+//    let checkpoint2 = Date()
+//    rigidBody = Self.createRigidBody(topology: topology)
+//    let checkpoint3 = Date()
+//    
+//    let interval01 = checkpoint1.timeIntervalSince(checkpoint0) * 1e3
+//    let interval12 = checkpoint2.timeIntervalSince(checkpoint1) * 1e3
+//    let interval23 = checkpoint3.timeIntervalSince(checkpoint2) * 1e3
+//    
+//    print()
+//    print("compile time overview:")
+//    print("- lattice:", String(format: "%.1f", interval01), " ms")
+//    print("- topology:", String(format: "%.1f", interval12), " ms")
+//    print("- rigidBody:", String(format: "%.1f", interval23), " ms")
   }
   
   static func createLattice(
@@ -46,5 +60,14 @@ struct LogicHousing: GenericPart {
       }
     }
     return lattice
+  }
+  
+  static func createTopology(lattice: Lattice<Cubic>) -> Topology {
+    var reconstruction = SurfaceReconstruction()
+    reconstruction.material = .elemental(.carbon)
+    reconstruction.topology.insert(atoms: lattice.atoms)
+    reconstruction.compile()
+    reconstruction.topology.sort()
+    return reconstruction.topology
   }
 }

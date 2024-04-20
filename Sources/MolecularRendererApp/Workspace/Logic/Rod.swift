@@ -125,7 +125,7 @@ extension Rod {
 // MARK: - Patterns
 
 extension Rod {
-  func createExcludedVolume() -> (
+  private func createExcludedVolume() -> (
     minimum: SIMD3<Float>, maximum: SIMD3<Float>
   ) {
     var minCarbonPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
@@ -148,5 +148,26 @@ extension Rod {
     maxCarbonPosition += SIMD3(1, 1, 1)
     
     return (minCarbonPosition, maxCarbonPosition)
+  }
+  
+  func createExcludedVolume(padding: Float) -> (
+    minimum: SIMD3<Float>, maximum: SIMD3<Float>
+  ) {
+    var volume = createExcludedVolume()
+    
+    // Expand the volume.
+    let axis = rigidBody.principalAxes.2
+    for laneID in 0..<3 {
+      // Exclude the third principal axis.
+      let axisValue = axis[laneID]
+      if axisValue.magnitude > 0.999 {
+        continue
+      }
+      
+      volume.minimum[laneID] -= padding
+      volume.maximum[laneID] += padding
+    }
+    
+    return volume
   }
 }
