@@ -19,29 +19,36 @@ struct CLAHousing: GenericPart {
   var rigidBody: MM4RigidBody
   
   init(descriptor: CLAHousingDescriptor) {
-    // Load the structure from disk.
+    // Compile the lattice.
     let lattice = Self.createLattice(rods: descriptor.rods)
+    
+    // Load the structure from disk.
     var cachedStructure: Topology?
     if let cachePath = descriptor.cachePath {
       let key = Self.hash(lattice: lattice)
       cachedStructure = Self.load(key: key, cachePath: cachePath)
     }
     
-    // Assign the topology and rigid body.
-    var topology: Topology
+    // Assign the rigid body.
     if let cachedStructure {
-      topology = cachedStructure
+      let topology = cachedStructure
+      rigidBody = Self.createRigidBody(topology: topology)
     } else {
-      topology = Self.createTopology(lattice: lattice)
+      let topology = Self.createTopology(lattice: lattice)
+      rigidBody = Self.createRigidBody(topology: topology)
+      
+      // Run an energy minimization.
+      let bulkAtomIDs = Self.extractBulkAtomIDs(topology: topology)
+      minimize(bulkAtomIDs: bulkAtomIDs)
+      
+      // Save the structure to disk.
+      if let cachePath = descriptor.cachePath {
+        let key = Self.hash(lattice: lattice)
+        save(key: key, cachePath: cachePath)
+      }
     }
-    rigidBody = Self.createRigidBody(topology: topology)
     
-    // Save the structure to disk, regardless of whether it was already loaded.
-    if let cachePath = descriptor.cachePath {
-      let key = Self.hash(lattice: lattice)
-      save(key: key, cachePath: cachePath)
-    }
-    
+    // Shift the rigid body.
     rigidBody.centerOfMass.z -= 18 * 0.3567
   }
   
@@ -251,7 +258,7 @@ extension CLAHousing {
   static func load(key: Data, cachePath: String) -> Topology? {
     // Load the structure from the disk.
     let url = URL(fileURLWithPath: cachePath)
-    var data = try? Data(contentsOf: url)
+    let data = try? Data(contentsOf: url)
     guard let data else {
       print("[CLAHousing] Cache miss: file not found.")
       return nil
@@ -291,7 +298,7 @@ extension CLAHousing {
     
     // Extract the segments of the file.
     let cacheKey = Data(data[keyRange])
-    guard key.count == cacheKey.count else {
+    guard key == cacheKey else {
       print("[CLAHousing] Cache miss: key mismatch.")
       return nil
     }
