@@ -52,6 +52,8 @@
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
+		98AD35AE2BD48AE900CA52BB /* SurfaceReconstruction+ThreeWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35AD2BD48AE900CA52BB /* SurfaceReconstruction+ThreeWayCollisions.swift */; };
+		98AD35B02BD48AF400CA52BB /* SurfaceReconstruction+TwoWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35AF2BD48AF400CA52BB /* SurfaceReconstruction+TwoWayCollisions.swift */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
@@ -221,6 +223,8 @@
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_GFNFF_FailureMode.jpg; sourceTree = "<group>"; };
+		98AD35AD2BD48AE900CA52BB /* SurfaceReconstruction+ThreeWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SurfaceReconstruction+ThreeWayCollisions.swift"; sourceTree = "<group>"; };
+		98AD35AF2BD48AF400CA52BB /* SurfaceReconstruction+TwoWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SurfaceReconstruction+TwoWayCollisions.swift"; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
 		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
@@ -606,6 +610,35 @@
 			path = ../Systems/OctahedralSpring;
 			sourceTree = "<group>";
 		};
+		98AD35AA2BD48AA300CA52BB /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
+				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		98AD35AB2BD48ABB00CA52BB /* xtb */ = {
+			isa = PBXGroup;
+			children = (
+				981898062B91167B00013D4C /* XTBLibrary.swift */,
+				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
+				981897E62B910FE800013D4C /* xtb.h */,
+			);
+			path = xtb;
+			sourceTree = "<group>";
+		};
+		98AD35AC2BD48AC300CA52BB /* SurfaceReconstruction */ = {
+			isa = PBXGroup;
+			children = (
+				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
+				98AD35AD2BD48AE900CA52BB /* SurfaceReconstruction+ThreeWayCollisions.swift */,
+				98AD35AF2BD48AF400CA52BB /* SurfaceReconstruction+TwoWayCollisions.swift */,
+			);
+			path = SurfaceReconstruction;
+			sourceTree = "<group>";
+		};
 		98B25A1B2B391AB800081A61 /* ConvergentAssemblyArchitecture */ = {
 			isa = PBXGroup;
 			children = (
@@ -910,12 +943,9 @@
 		98F250032A130A65009AABDE /* Backend */ = {
 			isa = PBXGroup;
 			children = (
-				98325C552A6B512900A4D7BB /* MRAtomInterface.swift */,
-				986289E72ADF6784009CF919 /* PlatformCompatibility.swift */,
-				98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */,
-				981898062B91167B00013D4C /* XTBLibrary.swift */,
-				98EA89EA2B40759700DC5C7E /* XTBProcess.swift */,
-				981897E62B910FE800013D4C /* xtb.h */,
+				98AD35AC2BD48AC300CA52BB /* SurfaceReconstruction */,
+				98AD35AB2BD48ABB00CA52BB /* xtb */,
+				98AD35AA2BD48AA300CA52BB /* Utilities */,
 				981898082B91189A00013D4C /* MolecularRendererApp-Bridging-Header.h */,
 			);
 			path = Backend;
@@ -1266,7 +1296,9 @@
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
+				98AD35AE2BD48AE900CA52BB /* SurfaceReconstruction+ThreeWayCollisions.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,
+				98AD35B02BD48AF400CA52BB /* SurfaceReconstruction+TwoWayCollisions.swift in Sources */,
 				9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1368,7 +1400,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_OPTIMIZATION_LEVEL = "-Ounchecked";
 			};
 			name = Debug;
 		};
@@ -1432,7 +1464,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = singlefile;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Ounchecked";
 			};
 			name = Release;
 		};
@@ -1465,7 +1497,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Sources/MolecularRendererApp/Backend/MolecularRendererApp-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_OPTIMIZATION_LEVEL = "-Ounchecked";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
