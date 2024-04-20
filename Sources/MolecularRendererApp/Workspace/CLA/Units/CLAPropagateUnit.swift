@@ -34,8 +34,9 @@ struct CLAPropagateUnit {
   
   init() {
     // Create the signal.
+    let horizontalRodLength: Int = (3 * 6) + (3 * 8 + 4) + (2 * 6) + 2
     let signalRodLattice = Rod.createLattice(
-      length: (3 * 6) + (3 * 8 + 4) + (2 * 6) + 2)
+      length: horizontalRodLength)
     let signalRod = Rod(lattice: signalRodLattice)
     
     for layerID in 1...4 {
