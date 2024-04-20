@@ -49,4 +49,52 @@ struct Rod: GenericPart {
     topology.sort()
     return topology
   }
+  
+  func createHolePattern() -> HolePattern {
+    var minCarbonPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+    var maxCarbonPosition = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+    for atomID in rigidBody.parameters.atoms.indices {
+      let atomicNumber = rigidBody.parameters.atoms.atomicNumbers[atomID]
+      let position = rigidBody.positions[atomID]
+      guard atomicNumber == 6 else {
+        continue
+      }
+      
+      minCarbonPosition
+        .replace(with: position, where: position .< minCarbonPosition)
+      maxCarbonPosition
+        .replace(with: position, where: position .> maxCarbonPosition)
+    }
+    minCarbonPosition /= 0.3567
+    maxCarbonPosition /= 0.3567
+    minCarbonPosition -= SIMD3(1, 1, 1)
+    maxCarbonPosition += SIMD3(1, 1, 1)
+    
+    return { h, k, l in
+      Concave {
+        Concave {
+          Origin {
+            Float(minCarbonPosition[0]) * h +
+            Float(minCarbonPosition[1]) * k +
+            Float(minCarbonPosition[2]) * l
+          }
+          Plane { h }
+          Plane { k }
+          Plane { l }
+        }
+        
+        Concave {
+          Origin {
+            Float(maxCarbonPosition[0]) * h +
+            Float(maxCarbonPosition[1]) * k +
+            Float(maxCarbonPosition[2]) * l
+          }
+          Plane { -h }
+          Plane { -k }
+          Plane { -l }
+        }
+      }
+      Replace { .empty }
+    }
+  }
 }
