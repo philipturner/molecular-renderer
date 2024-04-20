@@ -86,6 +86,12 @@ struct CLAGenerateUnit {
       dimensionH.round(.up)
       Bounds { dimensionH * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
+      
+      Volume {
+        Origin { 0.49 * l }
+        Plane { -l }
+        Replace { .empty }
+      }
     }
   }
 }
