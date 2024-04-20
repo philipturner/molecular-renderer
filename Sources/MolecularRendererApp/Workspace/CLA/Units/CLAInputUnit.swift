@@ -26,29 +26,26 @@ struct CLAInputUnit {
   }
   
   init() {
-    let baseRodLattice = Self.createLattice(length: 6 * 5)
-    var baseRod = Rod(lattice: baseRodLattice)
-    baseRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
-    baseRod.rigidBody.centerOfMass = SIMD3(
-      baseRod.rigidBody.centerOfMass.z,
-      baseRod.rigidBody.centerOfMass.y,
-      baseRod.rigidBody.centerOfMass.x)
+    let operandRodLattice = Self.createLattice(length: 6 * 5)
+    var operandRod = Rod(lattice: operandRodLattice)
+    operandRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
+    operandRod.rigidBody.centerOfMass = SIMD3(
+      operandRod.rigidBody.centerOfMass.z,
+      operandRod.rigidBody.centerOfMass.y,
+      operandRod.rigidBody.centerOfMass.x)
     
     // Create the A input.
-    for layerID in 0..<4 {
-      var rod = baseRod
-      rod.rigidBody.centerOfMass += SIMD3(0.5, 0.5, 0) * 0.3567
-      rod.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
-      rod.rigidBody.centerOfMass.y += Double(layerID) * (6 * 0.3567)
+    for layerID in 1...4 {
+      var rod = operandRod
+      rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
       operandA.append(rod)
     }
     
     // Create the B input.
-    for layerID in 0..<4 {
-      var rod = baseRod
-      rod.rigidBody.centerOfMass += SIMD3(6.5, 0.5, 0) * 0.3567
-      rod.rigidBody.centerOfMass += SIMD3(0.91, 0.85, 0)
-      rod.rigidBody.centerOfMass.y += Double(layerID) * (6 * 0.3567)
+    for layerID in 1...4 {
+      var rod = operandRod
+      rod.rigidBody.centerOfMass.x += 6 * 0.3567
+      rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
       operandA.append(rod)
     }
   }

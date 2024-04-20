@@ -14,6 +14,7 @@
 		98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CEA2BD32B0100AE6A9B /* GenericPart.swift */; };
 		98129CEE2BD32C7A00AE6A9B /* CLA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CED2BD32C7A00AE6A9B /* CLA.swift */; };
 		98129CF12BD32DFF00AE6A9B /* CLAInputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */; };
+		98129CF32BD3321400AE6A9B /* CLAGenerateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -123,6 +124,7 @@
 		98129CEA2BD32B0100AE6A9B /* GenericPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericPart.swift; sourceTree = "<group>"; };
 		98129CED2BD32C7A00AE6A9B /* CLA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLA.swift; sourceTree = "<group>"; };
 		98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAInputUnit.swift; sourceTree = "<group>"; };
+		98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAGenerateUnit.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -444,6 +446,7 @@
 			isa = PBXGroup;
 			children = (
 				98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */,
+				98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */,
 			);
 			path = Units;
 			sourceTree = "<group>";
@@ -1380,6 +1383,7 @@
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
 				98129CE22BD3279E00AE6A9B /* Pattern.swift in Sources */,
+				98129CF32BD3321400AE6A9B /* CLAGenerateUnit.swift in Sources */,
 				98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */,

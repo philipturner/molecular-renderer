@@ -6,5 +6,10 @@ import OpenMM
 
 func createGeometry() -> [MM4RigidBody] {
   let inputUnit = CLAInputUnit()
-  return inputUnit.rods.map { $0.rigidBody }
+  let generateUnit = CLAGenerateUnit()
+  
+  var rods: [Rod] = []
+  rods += inputUnit.rods
+  rods += generateUnit.rods
+  return rods.map { $0.rigidBody }
 }

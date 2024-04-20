@@ -16,6 +16,8 @@ struct Rod: GenericPart {
   init(lattice: Lattice<Hexagonal>) {
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
+    rigidBody.centerOfMass += SIMD3(0, 0.5, 0.5) * 0.3567
+    rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
   }
   
   static func createTopology(lattice: Lattice<Hexagonal>) -> Topology {
