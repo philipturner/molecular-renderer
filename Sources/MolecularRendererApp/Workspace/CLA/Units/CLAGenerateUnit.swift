@@ -36,7 +36,7 @@ struct CLAGenerateUnit {
   }
   
   init() {
-    let signalRodLattice = Self.createLattice(
+    let signalRodLattice = Rod.createLattice(
       length: (3 * 6) + (3 * 8 + 4) + 2)
     let signalRod = Rod(lattice: signalRodLattice)
     
@@ -58,7 +58,7 @@ struct CLAGenerateUnit {
     }
     
     // Create the vertical probes.
-    let probeRodLattice = Self.createLattice(
+    let probeRodLattice = Rod.createLattice(
       length: (5 * 6) + 4)
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rotate(angle: .pi / 2, axis: [0, 0, 1])
@@ -75,7 +75,7 @@ struct CLAGenerateUnit {
     }
     
     // Create the broadcast lines.
-    let broadcastRodLattice = Self.createLattice(
+    let broadcastRodLattice = Rod.createLattice(
       length: (3 * 6) + (3 * 8 + 4) + 2)
     let broadcastRod = Rod(lattice: broadcastRodLattice)
     
@@ -89,19 +89,6 @@ struct CLAGenerateUnit {
         let key = SIMD2(Int(positionZ), Int(layerID))
         broadcast[key] = rod
       }
-    }
-  }
-  
-  static func createLattice(length: Int) -> Lattice<Hexagonal> {
-    Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      
-      var dimensionH = Float(length)
-      dimensionH *= Constant(.square) { .elemental(.carbon) }
-      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
-      dimensionH.round(.up)
-      Bounds { dimensionH * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
     }
   }
 }

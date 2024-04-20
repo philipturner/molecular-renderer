@@ -28,6 +28,19 @@ struct Rod: GenericPart {
       SIMD3(1, 5.3670, 4.9488))
   }
   
+  static func createLattice(length: Int) -> Lattice<Hexagonal> {
+    Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      
+      var dimensionH = Float(length)
+      dimensionH *= Constant(.square) { .elemental(.carbon) }
+      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
+      dimensionH.round(.up)
+      Bounds { dimensionH * h + 2 * h2k + 2 * l }
+      Material { .elemental(.carbon) }
+    }
+  }
+  
   static func createTopology(lattice: Lattice<Hexagonal>) -> Topology {
     var reconstruction = SurfaceReconstruction()
     reconstruction.material = .elemental(.carbon)
@@ -57,7 +70,9 @@ struct Rod: GenericPart {
     topology.sort()
     return topology
   }
-  
+}
+
+extension Rod {
   mutating func rotate(angle: Double, axis: SIMD3<Double>) {
     let rotation = Quaternion<Double>(angle: angle, axis: axis)
     rigidBody.centerOfMass = rotation.act(on: rigidBody.centerOfMass)
@@ -90,7 +105,7 @@ struct Rod: GenericPart {
   }
   
   mutating func translate(
-    x: Double = .zero, 
+    x: Double = .zero,
     y: Double = .zero,
     z: Double = .zero
   ) {

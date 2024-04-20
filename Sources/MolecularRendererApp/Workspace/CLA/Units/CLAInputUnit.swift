@@ -26,7 +26,7 @@ struct CLAInputUnit {
   }
   
   init() {
-    let operandRodLattice = Self.createLattice(
+    let operandRodLattice = Rod.createLattice(
       length: (6 * 6) + 4)
     var operandRod = Rod(lattice: operandRodLattice)
     operandRod.rotate(angle: -.pi / 2, axis: [0, 1, 0])
@@ -44,19 +44,6 @@ struct CLAInputUnit {
       rod.translate(x: 6)
       rod.translate(y: Double(layerID) * 6)
       operandA.append(rod)
-    }
-  }
-  
-  static func createLattice(length: Int) -> Lattice<Hexagonal> {
-    Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      
-      var dimensionH = Float(length)
-      dimensionH *= Constant(.square) { .elemental(.carbon) }
-      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
-      dimensionH.round(.up)
-      Bounds { dimensionH * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
     }
   }
 }

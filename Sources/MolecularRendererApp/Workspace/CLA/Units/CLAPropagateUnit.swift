@@ -34,8 +34,24 @@ struct CLAPropagateUnit {
   
   init() {
     // Create the signal.
-    let signalRodLattice = Self.createLattice(
-      length: (3 * 6) + (3 * 8 + 4) + 2)
+    let signalRodLattice = Rod.createLattice(
+      length: (3 * 6) + (3 * 8 + 4) + 6 + 2)
+//    let signalRodLattice = Lattice<Hexagonal> { h, k, l in
+//      let h2k = h + 2 * k
+//      
+//      var dimensionH = Float((3 * 6) + (3 * 8 + 4) + 6 + 2)
+//      dimensionH *= Constant(.square) { .elemental(.carbon) }
+//      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
+//      dimensionH.round(.up)
+//      Bounds { dimensionH * h + 2 * h2k + 2 * l }
+//      Material { .elemental(.carbon) }
+//      
+//      Volume {
+//        Origin { 1.51 * h2k }
+//        Plane { h2k }
+//        Replace { .empty }
+//      }
+//    }
     let signalRod = Rod(lattice: signalRodLattice)
     
     for layerID in 1...4 {
@@ -48,7 +64,7 @@ struct CLAPropagateUnit {
     }
     
     // Create the vertical probes.
-    let probeRodLattice = Self.createLattice(
+    let probeRodLattice = Rod.createLattice(
       length: (5 * 6) + 4)
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rotate(angle: .pi / 2, axis: [0, 0, 1])
@@ -66,7 +82,7 @@ struct CLAPropagateUnit {
     }
     
     // Create the broadcast lines.
-    let broadcastRodLattice = Self.createLattice(
+    let broadcastRodLattice = Rod.createLattice(
       length: (6 * 6) + 4)
     var broadcastRod = Rod(lattice: broadcastRodLattice)
     broadcastRod.rotate(angle: -.pi / 2, axis: [0, 1, 0])
@@ -85,19 +101,6 @@ struct CLAPropagateUnit {
         let key = SIMD2(Int(positionX), Int(layerID))
         broadcast[key] = rod
       }
-    }
-  }
-  
-  static func createLattice(length: Int) -> Lattice<Hexagonal> {
-    Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      
-      var dimensionH = Float(length)
-      dimensionH *= Constant(.square) { .elemental(.carbon) }
-      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
-      dimensionH.round(.up)
-      Bounds { dimensionH * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
     }
   }
 }
