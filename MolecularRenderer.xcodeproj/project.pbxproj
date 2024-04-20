@@ -10,7 +10,6 @@
 		98129CE22BD3279E00AE6A9B /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CE12BD3279E00AE6A9B /* Pattern.swift */; };
 		98129CE62BD327B100AE6A9B /* Rod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CE52BD327B100AE6A9B /* Rod.swift */; };
 		98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CEA2BD32B0100AE6A9B /* GenericPart.swift */; };
-		98129CEE2BD32C7A00AE6A9B /* CLA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CED2BD32C7A00AE6A9B /* CLA.swift */; };
 		98129CF12BD32DFF00AE6A9B /* CLAInputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */; };
 		98129CF32BD3321400AE6A9B /* CLAGenerateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */; };
 		98129CF52BD34A2F00AE6A9B /* CLAPropagateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */; };
@@ -18,6 +17,8 @@
 		98129CF92BD4280600AE6A9B /* CLACarryUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CF82BD4280600AE6A9B /* CLACarryUnit.swift */; };
 		98129CFB2BD4424C00AE6A9B /* CLAOutputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CFA2BD4424C00AE6A9B /* CLAOutputUnit.swift */; };
 		98129CFD2BD46DA600AE6A9B /* CLAHousing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CFC2BD46DA600AE6A9B /* CLAHousing.swift */; };
+		98129D002BD472E100AE6A9B /* CLALogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129CFF2BD472E100AE6A9B /* CLALogic.swift */; };
+		98129D022BD4731800AE6A9B /* CLA.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98129D012BD4731800AE6A9B /* CLA.swift */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -123,7 +124,6 @@
 		98129CE12BD3279E00AE6A9B /* Pattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
 		98129CE52BD327B100AE6A9B /* Rod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rod.swift; sourceTree = "<group>"; };
 		98129CEA2BD32B0100AE6A9B /* GenericPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericPart.swift; sourceTree = "<group>"; };
-		98129CED2BD32C7A00AE6A9B /* CLA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLA.swift; sourceTree = "<group>"; };
 		98129CF02BD32DFF00AE6A9B /* CLAInputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAInputUnit.swift; sourceTree = "<group>"; };
 		98129CF22BD3321400AE6A9B /* CLAGenerateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAGenerateUnit.swift; sourceTree = "<group>"; };
 		98129CF42BD34A2F00AE6A9B /* CLAPropagateUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAPropagateUnit.swift; sourceTree = "<group>"; };
@@ -131,6 +131,8 @@
 		98129CF82BD4280600AE6A9B /* CLACarryUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLACarryUnit.swift; sourceTree = "<group>"; };
 		98129CFA2BD4424C00AE6A9B /* CLAOutputUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAOutputUnit.swift; sourceTree = "<group>"; };
 		98129CFC2BD46DA600AE6A9B /* CLAHousing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLAHousing.swift; sourceTree = "<group>"; };
+		98129CFF2BD472E100AE6A9B /* CLALogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLALogic.swift; sourceTree = "<group>"; };
+		98129D012BD4731800AE6A9B /* CLA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLA.swift; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -441,7 +443,8 @@
 		98129CEC2BD32C6D00AE6A9B /* CLA */ = {
 			isa = PBXGroup;
 			children = (
-				98129CED2BD32C7A00AE6A9B /* CLA.swift */,
+				98129D012BD4731800AE6A9B /* CLA.swift */,
+				98129CFF2BD472E100AE6A9B /* CLALogic.swift */,
 				98129CFC2BD46DA600AE6A9B /* CLAHousing.swift */,
 				98129CEF2BD32DEA00AE6A9B /* Units */,
 			);
@@ -1373,6 +1376,7 @@
 				98129CE62BD327B100AE6A9B /* Rod.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
+				98129D002BD472E100AE6A9B /* CLALogic.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
@@ -1382,12 +1386,12 @@
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
 				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,
-				98129CEE2BD32C7A00AE6A9B /* CLA.swift in Sources */,
 				98129CF52BD34A2F00AE6A9B /* CLAPropagateUnit.swift in Sources */,
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
+				98129D022BD4731800AE6A9B /* CLA.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
 				98129CFB2BD4424C00AE6A9B /* CLAOutputUnit.swift in Sources */,

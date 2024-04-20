@@ -10,7 +10,25 @@ import HDL
 import MM4
 import Numerics
 
-struct CLAHousing {
+struct CLAHousingDescriptor {
+  var rods: [Rod] = []
+  var cachePath: String?
+}
+
+struct CLAHousing: GenericPart {
+  var rigidBody: MM4RigidBody
+  
+  init(descriptor: CLAHousingDescriptor) {
+    let lattice = Self.createLattice(rods: descriptor.rods)
+    let topology = Self.createTopology(lattice: lattice)
+    rigidBody = Self.createRigidBody(topology: topology)
+    rigidBody.centerOfMass.z -= 18 * 0.3567
+    
+    if let cachePath = descriptor.cachePath {
+      let url = URL(fileURLWithPath: cachePath)
+    }
+  }
+  
   static func createLattice(rods: [Rod]) -> Lattice<Cubic> {
     Lattice<Cubic> { h, k, l in
       Bounds { 74 * h + 38 * k + 59 * l }

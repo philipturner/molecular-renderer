@@ -12,6 +12,8 @@ import Numerics
 
 struct Rod: GenericPart {
   var rigidBody: MM4RigidBody
+  
+  // A bounding box for tracking the rigid body's orientation.
   var boundingBox: (
     minimum: SIMD3<Float>,
     maximum: SIMD3<Float>)
