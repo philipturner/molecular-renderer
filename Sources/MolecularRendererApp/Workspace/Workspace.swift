@@ -7,12 +7,14 @@ import OpenMM
 func createGeometry() -> [MM4RigidBody] {
   let inputUnit = CLAInputUnit()
   let generateUnit = CLAGenerateUnit()
-  let propagateUnit = CLAPropagateUnit()
+//  let propagateUnit = CLAPropagateUnit()
   
   var rods: [Rod] = []
   rods += inputUnit.rods
   rods += generateUnit.rods
-  rods += propagateUnit.rods
+//  rods += propagateUnit.rods
+  
+//  rods.append(propagateUnit.signal[0])
   
   return rods.map { $0.rigidBody }
 }

@@ -12,12 +12,20 @@ import Numerics
 
 struct Rod: GenericPart {
   var rigidBody: MM4RigidBody
+  var boundingBox: (
+    minimum: SIMD3<Double>,
+    maximum: SIMD3<Double>)
   
   init(lattice: Lattice<Hexagonal>) {
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
-    rigidBody.centerOfMass += SIMD3(0, 0.5, 0.5) * 0.3567
-    rigidBody.centerOfMass += SIMD3(0, 0.85, 0.91)
+    
+    // y: [0, 2.4840] -> [2.8830, 5.3670]
+    // z: [0, 1.8976] -> [3.0512, 4.9488]
+    rigidBody.centerOfMass += SIMD3(0, 2.8830, 3.0512) * 0.3567
+    boundingBox = (
+      SIMD3(-1, 2.8830, 3.0512),
+      SIMD3(1, 5.3670, 4.9488))
   }
   
   static func createTopology(lattice: Lattice<Hexagonal>) -> Topology {
@@ -96,5 +104,30 @@ struct Rod: GenericPart {
       }
       Replace { .empty }
     }
+  }
+  
+  mutating func rotate(angle: Double, axis: SIMD3<Double>) {
+    rigidBody.rotate(angle: angle, axis: axis)
+    print(boundingBox)
+    print(angle / .pi, axis)
+    let rotation = Quaternion<Double>(angle: angle, axis: axis)
+    rigidBody.centerOfMass = rotation.act(on: rigidBody.centerOfMass)
+    boundingBox = (
+      rotation.act(on: boundingBox.minimum),
+      rotation.act(on: boundingBox.maximum))
+    print(boundingBox)
+    print()
+    
+    for laneID in 0..<3 {
+      print("lane:", laneID)
+      var lowerBound = boundingBox.minimum[laneID]
+      var upperBound = boundingBox.maximum[laneID]
+      print(lowerBound, upperBound)
+      if lowerBound > upperBound {
+        print("Bound is wrong.")
+      }
+    }
+    
+    exit(0)
   }
 }

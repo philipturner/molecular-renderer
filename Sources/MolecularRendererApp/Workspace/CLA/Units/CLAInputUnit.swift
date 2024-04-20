@@ -27,13 +27,9 @@ struct CLAInputUnit {
   
   init() {
     let operandRodLattice = Self.createLattice(
-      length: 5 * 6 + (2 + 6) + 2)
+      length: 5 * 6 + 2)
     var operandRod = Rod(lattice: operandRodLattice)
-    operandRod.rigidBody.rotate(angle: -.pi / 2, axis: [0, 1, 0])
-    operandRod.rigidBody.centerOfMass = SIMD3(
-      operandRod.rigidBody.centerOfMass.z,
-      operandRod.rigidBody.centerOfMass.y,
-      operandRod.rigidBody.centerOfMass.x)
+    operandRod.rotate(angle: -.pi / 2, axis: [0, 1, 0])
     
     // Create the A input.
     for layerID in 1...4 {

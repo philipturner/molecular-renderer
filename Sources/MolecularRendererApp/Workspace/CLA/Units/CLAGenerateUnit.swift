@@ -52,18 +52,34 @@ struct CLAGenerateUnit {
     for layerID in 1...4 {
       var rod = signalRod
       rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-      rod.rigidBody.centerOfMass.y += 2.5 * 0.3567
+      rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
       rod.rigidBody.centerOfMass.z += Double(4 - layerID) * 6 * 0.3567
       signal.append(rod)
     }
     
     // Create the vertical probes.
-    let probeRodLattice = Self.createLattice(length: 6 * 5 + 2)
+    //    let probeRodLattice = Self.createLattice(length: 6 * 5 + 2)
+    let probeRodLattice = Lattice<Hexagonal> { h, k, l in
+      let h2k = h + 2 * k
+      
+      var dimensionH = Float(6 * 5 + 2)
+      dimensionH *= Constant(.square) { .elemental(.carbon) }
+      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
+      dimensionH.round(.up)
+      Bounds { dimensionH * h + 2 * h2k + 2 * l }
+      Material { .elemental(.carbon) }
+    }
+    
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rigidBody.rotate(angle: .pi / 2, axis: [0, 0, 1])
     probeRod.rigidBody.centerOfMass = SIMD3(
-      probeRod.rigidBody.centerOfMass.y,
+      -probeRod.rigidBody.centerOfMass.y,
       probeRod.rigidBody.centerOfMass.x,
+      probeRod.rigidBody.centerOfMass.z)
+    probeRod.rigidBody.rotate(angle: .pi, axis: [0, 1, 0])
+    probeRod.rigidBody.centerOfMass = SIMD3(
+      -probeRod.rigidBody.centerOfMass.x,
+      probeRod.rigidBody.centerOfMass.y,
       probeRod.rigidBody.centerOfMass.z)
     
     for positionZ in 0...3 {
@@ -84,7 +100,7 @@ struct CLAGenerateUnit {
       for positionZ in ((4 - layerID) + 1)...4 {
         var rod = broadcastRod
         rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-        rod.rigidBody.centerOfMass.y += 2.5 * 0.3567
+        rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
         rod.rigidBody.centerOfMass.z += Double(positionZ) * 6 * 0.3567
         
         let key = SIMD2(Int(positionZ), Int(layerID))
@@ -103,6 +119,25 @@ struct CLAGenerateUnit {
       dimensionH.round(.up)
       Bounds { dimensionH * h + 2 * h2k + 2 * l }
       Material { .elemental(.carbon) }
+      
+//            Volume {
+//              Concave {
+//                Origin { 1.51 * l }
+//                Plane { l }
+//      
+//                Origin { 20 * h }
+//                Plane { -h }
+//              }
+//              Concave {
+//                Origin { 1.5 * h2k }
+//                Plane { h2k }
+//      
+//                Origin { 20 * h }
+//                Plane { -h }
+//              }
+//      
+//              Replace { .empty }
+//            }
     }
   }
 }
