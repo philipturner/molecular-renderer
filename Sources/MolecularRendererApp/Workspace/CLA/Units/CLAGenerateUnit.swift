@@ -58,27 +58,17 @@ struct CLAGenerateUnit {
     }
     
     // Create the vertical probes.
-    //    let probeRodLattice = Self.createLattice(length: 6 * 5 + 2)
-    let probeRodLattice = Lattice<Hexagonal> { h, k, l in
-      let h2k = h + 2 * k
-      
-      var dimensionH = Float(6 * 5 + 2)
-      dimensionH *= Constant(.square) { .elemental(.carbon) }
-      dimensionH /= Constant(.hexagon) { .elemental(.carbon) }
-      dimensionH.round(.up)
-      Bounds { dimensionH * h + 2 * h2k + 2 * l }
-      Material { .elemental(.carbon) }
-    }
-    
+    let probeRodLattice = Self.createLattice(
+      length: 6 * 5 + 2)
     var probeRod = Rod(lattice: probeRodLattice)
     probeRod.rotate(angle: .pi / 2, axis: [0, 0, 1])
     probeRod.rotate(angle: .pi, axis: [0, 1, 0])
     
     for positionZ in 0...3 {
       var rod = probeRod
-      rod.rigidBody.centerOfMass.x += 2 * 6 * 0.3567
-      rod.rigidBody.centerOfMass.z += Double(positionZ) * 6 * 0.3567
-      rod.rigidBody.centerOfMass.z += 3.5 * 0.3567
+      rod.translate(x: 2 * 6)
+      rod.translate(z: Double(positionZ) * 6)
+      rod.translate(z: 3.5)
       
       let key = 2 - positionZ
       probe[key] = rod
@@ -91,9 +81,9 @@ struct CLAGenerateUnit {
     for layerID in 1...4 {
       for positionZ in ((4 - layerID) + 1)...4 {
         var rod = broadcastRod
-        rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
-        rod.rigidBody.centerOfMass.y += 2.75 * 0.3567
-        rod.rigidBody.centerOfMass.z += Double(positionZ) * 6 * 0.3567
+        rod.translate(y: Double(layerID) * 6)
+        rod.translate(y: 2.75)
+        rod.translate(z: Double(positionZ) * 6)
         
         let key = SIMD2(Int(positionZ), Int(layerID))
         broadcast[key] = rod

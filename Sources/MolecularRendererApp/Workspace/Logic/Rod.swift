@@ -58,6 +58,48 @@ struct Rod: GenericPart {
     return topology
   }
   
+  mutating func rotate(angle: Double, axis: SIMD3<Double>) {
+    let rotation = Quaternion<Double>(angle: angle, axis: axis)
+    rigidBody.centerOfMass = rotation.act(on: rigidBody.centerOfMass)
+    rigidBody.rotate(angle: angle, axis: axis)
+    boundingBox = (
+      rotation.act(on: boundingBox.minimum),
+      rotation.act(on: boundingBox.maximum))
+    
+    for laneID in 0..<3 {
+      var lowerBound = boundingBox.minimum[laneID]
+      var upperBound = boundingBox.maximum[laneID]
+      guard lowerBound > upperBound else {
+        continue
+      }
+      let delta = upperBound - lowerBound
+      if (delta.magnitude - 2).magnitude < 0.001 {
+        fatalError("Attempted to flip the length dimension.")
+      }
+      
+      swap(&lowerBound, &upperBound)
+      let projectedLowerBound = -lowerBound
+      let translation = projectedLowerBound - upperBound
+      lowerBound += translation
+      upperBound += translation
+      
+      rigidBody.centerOfMass[laneID] += translation * 0.3567
+      boundingBox.minimum[laneID] = lowerBound
+      boundingBox.maximum[laneID] = upperBound
+    }
+  }
+  
+  mutating func translate(
+    x: Double = .zero, 
+    y: Double = .zero,
+    z: Double = .zero
+  ) {
+    let vector = SIMD3<Double>(x, y, z)
+    rigidBody.centerOfMass += vector * 0.3567
+    boundingBox.minimum += vector
+    boundingBox.maximum += vector
+  }
+  
   func createHolePattern() -> HolePattern {
     var minCarbonPosition = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
     var maxCarbonPosition = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
@@ -104,47 +146,5 @@ struct Rod: GenericPart {
       }
       Replace { .empty }
     }
-  }
-  
-  mutating func rotate(angle: Double, axis: SIMD3<Double>) {
-    let rotation = Quaternion<Double>(angle: angle, axis: axis)
-    rigidBody.centerOfMass = rotation.act(on: rigidBody.centerOfMass)
-    rigidBody.rotate(angle: angle, axis: axis)
-    boundingBox = (
-      rotation.act(on: boundingBox.minimum),
-      rotation.act(on: boundingBox.maximum))
-    
-    for laneID in 0..<3 {
-      var lowerBound = boundingBox.minimum[laneID]
-      var upperBound = boundingBox.maximum[laneID]
-      guard lowerBound > upperBound else {
-        continue
-      }
-      let delta = upperBound - lowerBound
-      if (delta.magnitude - 2).magnitude < 0.001 {
-        fatalError("Attempted to flip the length dimension.")
-      }
-      
-      swap(&lowerBound, &upperBound)
-      let projectedLowerBound = -lowerBound
-      let translation = projectedLowerBound - upperBound
-      lowerBound += translation
-      upperBound += translation
-      
-      rigidBody.centerOfMass[laneID] += translation * 0.3567
-      boundingBox.minimum[laneID] = lowerBound
-      boundingBox.maximum[laneID] = upperBound
-    }
-  }
-  
-  mutating func translate(
-    x: Double = .zero, 
-    y: Double = .zero,
-    z: Double = .zero
-  ) {
-    let vector = SIMD3<Double>(x, y, z)
-    rigidBody.centerOfMass += vector * 0.3567
-    boundingBox.minimum += vector
-    boundingBox.maximum += vector
   }
 }

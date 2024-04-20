@@ -34,15 +34,15 @@ struct CLAInputUnit {
     // Create the A input.
     for layerID in 1...4 {
       var rod = operandRod
-      rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
+      rod.translate(y: Double(layerID) * 6)
       operandA.append(rod)
     }
     
     // Create the B input.
     for layerID in 1...4 {
       var rod = operandRod
-      rod.rigidBody.centerOfMass.x += 6 * 0.3567
-      rod.rigidBody.centerOfMass.y += Double(layerID) * 6 * 0.3567
+      rod.translate(x: 6)
+      rod.translate(y: Double(layerID) * 6)
       operandA.append(rod)
     }
   }
