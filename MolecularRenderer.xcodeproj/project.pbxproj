@@ -641,9 +641,9 @@
 		989F8A222B393D4900622946 /* Workspace */ = {
 			isa = PBXGroup;
 			children = (
+				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 				98AD35BE2BD5B38100CA52BB /* Logic */,
 				98AD35B12BD5B34600CA52BB /* Serialization */,
-				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 			);
 			path = Workspace;
 			sourceTree = "<group>";
