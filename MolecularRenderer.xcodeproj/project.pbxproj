@@ -50,7 +50,6 @@
 		987507BE2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BB2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg */; };
 		987507BF2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BC2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg */; };
 		987507C02B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */; };
-		9885EF262BC9FCBA007801BE /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9885EF252BC9FCBA007801BE /* Serialization.swift */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
@@ -625,7 +624,6 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
-				98129CE92BD32AF500AE6A9B /* Generic */,
 			);
 			path = Workspace;
 			sourceTree = "<group>";
@@ -977,6 +975,7 @@
 			isa = PBXGroup;
 			children = (
 				981898082B91189A00013D4C /* MolecularRendererApp-Bridging-Header.h */,
+				98129CE92BD32AF500AE6A9B /* Generic */,
 				9885EF242BC9FCA0007801BE /* Serialization */,
 				98AF5AFA2BBAF1EC0015C7DC /* SurfaceReconstruction */,
 				98AF5B002BBAF4580015C7DC /* Utilities */,
@@ -1325,7 +1324,6 @@
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
-				9885EF262BC9FCBA007801BE /* Serialization.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
 				98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */,

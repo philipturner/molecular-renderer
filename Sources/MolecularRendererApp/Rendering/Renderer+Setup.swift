@@ -100,18 +100,19 @@ extension Renderer {
     // Defaults for online rendering.
     descriptor.width = Int(ContentView.size)
     descriptor.height = Int(ContentView.size)
-    // descriptor.upscaleFactor = ContentView.upscaleFactor
-    descriptor.upscaleFactor = 2
+    descriptor.upscaleFactor = ContentView.upscaleFactor
+    // descriptor.upscaleFactor = 2
 #endif
-    descriptor.sceneSize = .extreme
+    descriptor.sceneSize = .large
+    // descriptor.sceneSize = .extreme
     eventTracker.walkingSpeed = 2
     
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyleProvider(RendererStyle())
-    // renderingEngine.setQuality(
-    //   MRQuality(minSamples: 3, maxSamples: 7, qualityCoefficient: 30))
     renderingEngine.setQuality(
-      MRQuality(minSamples: 7, maxSamples: 32, qualityCoefficient: 100))
+      MRQuality(minSamples: 3, maxSamples: 7, qualityCoefficient: 30))
+    // renderingEngine.setQuality(
+    //   MRQuality(minSamples: 7, maxSamples: 32, qualityCoefficient: 100))
   }
   
   func initializeOpenMM() {
