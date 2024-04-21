@@ -104,7 +104,6 @@ extension Renderer {
     // descriptor.upscaleFactor = 2
 #endif
     descriptor.sceneSize = .large
-    // descriptor.sceneSize = .extreme
     eventTracker.walkingSpeed = 2
     
     renderingEngine = MRRenderer(descriptor: descriptor)

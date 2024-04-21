@@ -54,6 +54,15 @@
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
 		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
+		98AD35B42BD5B37700CA52BB /* LogicSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35B22BD5B37700CA52BB /* LogicSerialization.swift */; };
+		98AD35B52BD5B37700CA52BB /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35B32BD5B37700CA52BB /* Serialization.swift */; };
+		98AD35BF2BD5B38100CA52BB /* HalfAdder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35B62BD5B38100CA52BB /* HalfAdder.swift */; };
+		98AD35C02BD5B38100CA52BB /* InputUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35B72BD5B38100CA52BB /* InputUnit.swift */; };
+		98AD35C12BD5B38100CA52BB /* IntermediateUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35B82BD5B38100CA52BB /* IntermediateUnit.swift */; };
+		98AD35C22BD5B38100CA52BB /* DriveWall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35BA2BD5B38100CA52BB /* DriveWall.swift */; };
+		98AD35C32BD5B38100CA52BB /* LogicHousing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35BB2BD5B38100CA52BB /* LogicHousing.swift */; };
+		98AD35C42BD5B38100CA52BB /* Pattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35BC2BD5B38100CA52BB /* Pattern.swift */; };
+		98AD35C52BD5B38100CA52BB /* Rod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AD35BD2BD5B38100CA52BB /* Rod.swift */; };
 		98AF5AFC2BBAF1FD0015C7DC /* TwoWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */; };
 		98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */; };
 		98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */; };
@@ -233,6 +242,15 @@
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_GFNFF_FailureMode.jpg; sourceTree = "<group>"; };
+		98AD35B22BD5B37700CA52BB /* LogicSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogicSerialization.swift; sourceTree = "<group>"; };
+		98AD35B32BD5B37700CA52BB /* Serialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Serialization.swift; sourceTree = "<group>"; };
+		98AD35B62BD5B38100CA52BB /* HalfAdder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HalfAdder.swift; sourceTree = "<group>"; };
+		98AD35B72BD5B38100CA52BB /* InputUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InputUnit.swift; sourceTree = "<group>"; };
+		98AD35B82BD5B38100CA52BB /* IntermediateUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntermediateUnit.swift; sourceTree = "<group>"; };
+		98AD35BA2BD5B38100CA52BB /* DriveWall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DriveWall.swift; sourceTree = "<group>"; };
+		98AD35BB2BD5B38100CA52BB /* LogicHousing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogicHousing.swift; sourceTree = "<group>"; };
+		98AD35BC2BD5B38100CA52BB /* Pattern.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pattern.swift; sourceTree = "<group>"; };
+		98AD35BD2BD5B38100CA52BB /* Rod.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rod.swift; sourceTree = "<group>"; };
 		98AF5AFB2BBAF1FD0015C7DC /* TwoWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoWayCollisions.swift; sourceTree = "<group>"; };
 		98AF5AFD2BBAF2030015C7DC /* ThreeWayCollisions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeWayCollisions.swift; sourceTree = "<group>"; };
 		98AF5B032BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceReconstructionTestCases.swift; sourceTree = "<group>"; };
@@ -623,6 +641,8 @@
 		989F8A222B393D4900622946 /* Workspace */ = {
 			isa = PBXGroup;
 			children = (
+				98AD35BE2BD5B38100CA52BB /* Logic */,
+				98AD35B12BD5B34600CA52BB /* Serialization */,
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 			);
 			path = Workspace;
@@ -638,6 +658,38 @@
 			);
 			name = OctahedralSpring;
 			path = ../Systems/OctahedralSpring;
+			sourceTree = "<group>";
+		};
+		98AD35B12BD5B34600CA52BB /* Serialization */ = {
+			isa = PBXGroup;
+			children = (
+				98AD35B22BD5B37700CA52BB /* LogicSerialization.swift */,
+				98AD35B32BD5B37700CA52BB /* Serialization.swift */,
+			);
+			path = Serialization;
+			sourceTree = "<group>";
+		};
+		98AD35B92BD5B38100CA52BB /* Units */ = {
+			isa = PBXGroup;
+			children = (
+				98AD35B62BD5B38100CA52BB /* HalfAdder.swift */,
+				98AD35B72BD5B38100CA52BB /* InputUnit.swift */,
+				98AD35B82BD5B38100CA52BB /* IntermediateUnit.swift */,
+			);
+			path = Units;
+			sourceTree = "<group>";
+		};
+		98AD35BE2BD5B38100CA52BB /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				98AD35B92BD5B38100CA52BB /* Units */,
+				98AD35BA2BD5B38100CA52BB /* DriveWall.swift */,
+				98AD35BB2BD5B38100CA52BB /* LogicHousing.swift */,
+				98AD35BC2BD5B38100CA52BB /* Pattern.swift */,
+				98AD35BD2BD5B38100CA52BB /* Rod.swift */,
+			);
+			name = Logic;
+			path = "../../../../../../Downloads/rod-logic-main/Manufacturing/Logic";
 			sourceTree = "<group>";
 		};
 		98AF5AFA2BBAF1EC0015C7DC /* SurfaceReconstruction */ = {
@@ -1320,9 +1372,16 @@
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */,
+				98AD35C22BD5B38100CA52BB /* DriveWall.swift in Sources */,
+				98AD35B52BD5B37700CA52BB /* Serialization.swift in Sources */,
+				98AD35C42BD5B38100CA52BB /* Pattern.swift in Sources */,
+				98AD35BF2BD5B38100CA52BB /* HalfAdder.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
+				98AD35C02BD5B38100CA52BB /* InputUnit.swift in Sources */,
+				98AD35C52BD5B38100CA52BB /* Rod.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
+				98AD35C12BD5B38100CA52BB /* IntermediateUnit.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
@@ -1330,8 +1389,10 @@
 				986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */,
 				9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */,
 				98AF5B042BBAFD6F0015C7DC /* SurfaceReconstructionTestCases.swift in Sources */,
+				98AD35C32BD5B38100CA52BB /* LogicHousing.swift in Sources */,
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
+				98AD35B42BD5B37700CA52BB /* LogicSerialization.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
 				98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
