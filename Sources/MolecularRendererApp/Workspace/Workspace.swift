@@ -141,28 +141,30 @@ func renderOffline(renderingEngine: MRRenderer) {
   // Render to GIF.
   let renderSemaphore: DispatchSemaphore = .init(value: 0)
   let renderQueue = DispatchQueue(label: "renderQueue")
-  var gif = GIF(width: 720, height: 640)
+  var gif = GIF(width: 360, height: 320)
   
   let checkpoint0 = Date()
   for frameID in 0..<atomProvider.atomFrames.count / 3 {
     print("rendering frame:", frameID * 3)
     
-    var pixelBuffer = [UInt16](repeating: 0, count: 4 * 720 * 640)
+    var pixelBuffer = [UInt16](repeating: 0, count: 4 * 360 * 320)
     
-    let time = MRTime(absolute: frameID * 3, relative: 1, frameRate: 120)
-    renderingEngine.setTime(time)
-    renderingEngine.render { pixels in
-      for pixelID in 0..<4 * 720 * 640 {
-        pixelBuffer[pixelID] &+= UInt16(pixels[pixelID]) * 3
+    for offset in 0..<3 {
+      let time = MRTime(absolute: frameID * 3 + offset, relative: 1, frameRate: 120)
+      renderingEngine.setTime(time)
+      renderingEngine.render { pixels in
+        for pixelID in 0..<4 * 360 * 320 {
+          pixelBuffer[pixelID] &+= UInt16(pixels[pixelID])
+        }
+        renderSemaphore.signal()
       }
-      renderSemaphore.signal()
+      renderSemaphore.wait()
     }
-    renderSemaphore.wait()
     
-    let image = try! CairoImage(width: 720, height: 640)
-    for y in 0..<640 {
-      for x in 0..<720 {
-        let address = y * 720 + x
+    let image = try! CairoImage(width: 360, height: 320)
+    for y in 0..<320 {
+      for x in 0..<360 {
+        let address = y * 360 + x
         let r = pixelBuffer[4 * address + 0]
         let g = pixelBuffer[4 * address + 1]
         let b = pixelBuffer[4 * address + 2]
@@ -179,7 +181,7 @@ func renderOffline(renderingEngine: MRRenderer) {
     let quantization = OctreeQuantization(fromImage: image)
     let frame = Frame(
       image: image,
-      delayTime: 5, // 20 FPS
+      delayTime: 3, // 33.3 FPS
       localQuantization: quantization)
     gif.frames.append(frame)
   }

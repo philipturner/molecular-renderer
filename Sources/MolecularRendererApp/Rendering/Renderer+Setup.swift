@@ -93,8 +93,8 @@ extension Renderer {
       forResource: "MolecularRendererGPU", withExtension: "metallib")!
 #if true
     // Defaults for offline rendering.
-    descriptor.width = 720
-    descriptor.height = 640
+    descriptor.width = 360
+    descriptor.height = 320
     descriptor.offline = true
 #else
     // Defaults for online rendering.
