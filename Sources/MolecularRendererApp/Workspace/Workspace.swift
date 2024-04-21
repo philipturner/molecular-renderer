@@ -32,6 +32,8 @@ func createGeometry() -> [[Entity]] {
     
     rod1.rigidBody.centerOfMass.x += progress * 3.25 * 0.3567
     rod2.rigidBody.centerOfMass.x += progress * 3.25 * 0.3567
+    rod1.rigidBody.centerOfMass.x -= 0.080
+    rod2.rigidBody.centerOfMass.x -= 0.080
     driveWall.rigidBody.centerOfMass.y += progress * 3.25 * 0.3567
     
     var rigidBodies: [MM4RigidBody] = []
@@ -54,18 +56,18 @@ func createGeometry() -> [[Entity]] {
     var frame = createFrame(rigidBodies: rigidBodies)
     
     // Reposition the scene, so the user doesn't have to move.
+    let shift: Float = -5
     for atomID in frame.indices {
       var atom = frame[atomID]
       atom.position = SIMD3(-atom.position.x, atom.position.y, -atom.position.z)
-      atom.position += SIMD3(7.5, -3.75, -2)
+      atom.position += SIMD3(7.7, -3.55, -2 + shift)
       frame[atomID] = atom
     }
-    
     
     // Filter out atoms with a certain coordinate.
     var newFrame: [Entity] = []
     for atom in frame {
-      if atom.position.z > -3 {
+      if atom.position.z > -3 + shift {
         continue
       }
       newFrame.append(atom)

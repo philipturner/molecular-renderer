@@ -50,8 +50,8 @@ extension Renderer {
     animationFrameID += animationDelta
     
     let playerState = eventTracker.playerState
-    let fov = playerState.fovDegrees(progress: eventTracker.fovHistory.progress)
-    // let fov: Float = 30
+    // let fov = playerState.fovDegrees(progress: eventTracker.fovHistory.progress)
+    let fov: Float = 30
     let (azimuth, zenith) = playerState.orientations
     let rotation = PlayerState.rotation(azimuth: azimuth, zenith: zenith)
     
