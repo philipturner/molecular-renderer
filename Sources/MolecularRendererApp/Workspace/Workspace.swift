@@ -13,26 +13,14 @@ import OpenMM
 
 func createGeometry() -> [MM4RigidBody] {
   let halfAdder = HalfAdder()
-  var rigidBodies = halfAdder.rigidBodies
   
-  // Create a setup for taking multiple similar images, which don't shift due
-  // to user movements.
-  for rigidBodyID in rigidBodies.indices {
-    var rigidBody = rigidBodies[rigidBodyID]
-    
-    let angle: Double = .pi / 2
-    let axis: SIMD3<Double> = [1, 0, 0]
-    rigidBody.rotate(angle: angle, axis: axis)
-    
-    let rotation = Quaternion(angle: angle, axis: axis)
-    var centerOfMass = rigidBody.centerOfMass
-    centerOfMass = rotation.act(on: centerOfMass)
-    rigidBody.centerOfMass = centerOfMass
-    
-    rigidBody.centerOfMass += SIMD3(-5, 1.5, -28)
-    
-    rigidBodies[rigidBodyID] = rigidBody
-  }
+  var rods: [Rod] = []
+  rods.append(halfAdder.inputUnit.operandA[0])
+  rods.append(halfAdder.intermediateUnit.propagate[0])
+
+  rods[0].rigidBody.rotate(angle: .pi / 2, axis: [0, 1, 0])
+  rods[1].rigidBody.rotate(angle: .pi, axis: [0, 1, 0])
+  rods[1].rigidBody.centerOfMass += SIMD3(-0.9, 0.8, 1.3)
   
-  return rigidBodies
+  return rods.map(\.rigidBody)
 }
