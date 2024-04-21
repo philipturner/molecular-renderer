@@ -23,6 +23,7 @@ class Renderer {
     initializeCompilation {
       createGeometry()
     }
+    renderOffline(renderingEngine: renderingEngine)
   }
 }
 

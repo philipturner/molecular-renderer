@@ -77,3 +77,136 @@ func createGeometry() -> [[Entity]] {
   
   return frames
 }
+
+// MARK: - Offline Rendering
+
+//
+//  OfflineRendering.swift
+//  MolecularRendererApp
+//
+//  Created by Philip Turner on 4/4/24.
+//
+
+import CairoGraphics
+import Foundation
+import GIF
+import HDL
+import MM4
+import MolecularRenderer
+import Numerics
+import OpenMM
+
+func renderOffline(renderingEngine: MRRenderer) {
+  struct Provider: MRAtomProvider {
+    var atomFrames: [[Entity]] = []
+    
+    init() {
+      atomFrames = createGeometry()
+    }
+    
+    func atoms(time: MolecularRenderer.MRTime) -> [MolecularRenderer.MRAtom] {
+      var frameID = time.absolute.frames
+      frameID = max(frameID, 0)
+      frameID = min(frameID, atomFrames.count - 1)
+      
+      let atomFrame = atomFrames[frameID]
+      return atomFrame.map {
+        MRAtom(origin: $0.position, element: $0.atomicNumber)
+      }
+    }
+  }
+  
+  // Set up the renderer.
+  let atomProvider = Provider()
+  renderingEngine.setAtomProvider(atomProvider)
+  renderingEngine.setQuality(
+    MRQuality(minSamples: 7, maxSamples: 32, qualityCoefficient: 100))
+  
+  let position: SIMD3<Float> = .init(0, 0, 1)
+  let rotation: (
+    SIMD3<Float>,
+    SIMD3<Float>,
+    SIMD3<Float>
+  ) = (
+    SIMD3(1, 0, 0),
+    SIMD3(0, 1, 0),
+    SIMD3(0, 0, 1)
+  )
+  renderingEngine.setCamera(
+    MRCamera(position: position, rotation: rotation, fovDegrees: 30))
+  renderingEngine.setLights([
+    MRLight(origin: position, diffusePower: 1, specularPower: 1)
+  ])
+  
+  // Render to GIF.
+  let renderSemaphore: DispatchSemaphore = .init(value: 0)
+  let renderQueue = DispatchQueue(label: "renderQueue")
+  var gif = GIF(width: 720, height: 640)
+  
+  let checkpoint0 = Date()
+  for frameID in 0..<atomProvider.atomFrames.count / 3 {
+    print("rendering frame:", frameID * 3)
+    
+    var pixelBuffer = [UInt16](repeating: 0, count: 4 * 720 * 640)
+    
+    let time = MRTime(absolute: frameID * 3, relative: 1, frameRate: 120)
+    renderingEngine.setTime(time)
+    renderingEngine.render { pixels in
+      for pixelID in 0..<4 * 720 * 640 {
+        pixelBuffer[pixelID] &+= UInt16(pixels[pixelID]) * 3
+      }
+      renderSemaphore.signal()
+    }
+    renderSemaphore.wait()
+    
+    let image = try! CairoImage(width: 720, height: 640)
+    for y in 0..<640 {
+      for x in 0..<720 {
+        let address = y * 720 + x
+        let r = pixelBuffer[4 * address + 0]
+        let g = pixelBuffer[4 * address + 1]
+        let b = pixelBuffer[4 * address + 2]
+        let a = pixelBuffer[4 * address + 3]
+        
+        let pixelVector16 = SIMD4(r, g, b, a)
+        let pixelVector8 = SIMD4<UInt8>(truncatingIfNeeded: pixelVector16 / 3)
+        let pixelScalar = unsafeBitCast(pixelVector8, to: UInt32.self)
+        let color = Color(argb: pixelScalar)
+        image[y, x] = color
+      }
+    }
+    
+    let quantization = OctreeQuantization(fromImage: image)
+    let frame = Frame(
+      image: image,
+      delayTime: 5, // 20 FPS
+      localQuantization: quantization)
+    gif.frames.append(frame)
+  }
+  
+  let checkpoint1 = Date()
+  
+  print("encoding GIF")
+  let data = try! gif.encoded()
+  print("encoded size")
+  print(data.count)
+  
+  let checkpoint2 = Date()
+  
+  print("saving to file")
+  let path = "/Users/philipturner/Desktop/Render.gif"
+  let url = URL(fileURLWithPath: path)
+  guard FileManager.default.createFile(atPath: path, contents: data) else {
+    fatalError("Could not create file at \(url.relativeString).")
+  }
+  
+  let checkpoint3 = Date()
+  
+  print()
+  print("latency overview:")
+  print("- checkpoint 0 -> 1 | \(checkpoint1.timeIntervalSince(checkpoint0))")
+  print("- checkpoint 1 -> 2 | \(checkpoint2.timeIntervalSince(checkpoint1))")
+  print("- checkpoint 2 -> 3 | \(checkpoint3.timeIntervalSince(checkpoint2))")
+  
+  exit(0)
+}
