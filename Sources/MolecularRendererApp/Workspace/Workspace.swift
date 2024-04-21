@@ -4,7 +4,6 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [MM4RigidBody] {
-  let cla = CLA()
-  return cla.rigidBodies
+func createGeometry() -> [Entity] {
+  return [Entity(position: .zero, type: .atom(.carbon))]
 }
