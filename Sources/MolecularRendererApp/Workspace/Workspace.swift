@@ -4,79 +4,17 @@ import MM4
 import Numerics
 import OpenMM
 
-
 // TODO: Energy-minimize each rod before the final render.
 
 func createGeometry() -> [MM4RigidBody] {
-  // The propagate signal.
-  //
-  // Ordered from bit 0 -> bit 3.
-  var signal: [[Entity]] = []
-  
   // The propagate signal, transmitted vertically.
   // - keys: The source layer.
   // - values: The associated logic rods.
   var probe: [Int: [Entity]] = [:]
   
-  // The propagate signal, broadcasted to every applicable carry chain.
-  // - keys: The source x-index (0) and the destination layer (1).
-  // - values: The associated logic rods.
-  var broadcast: [SIMD2<Int>: [Entity]] = [:]
-  
-  for layerID in 1...4 {
-    let y = 6 * Float(layerID)
-    
-    // Create 'signal'.
-    do {
-      let offset = SIMD3(0, y, 30.75)
-      let pattern = signalPattern(layerID: layerID)
-      let rod = createRodX(offset: offset, pattern: pattern)
-      signal.append(rod)
-    }
-    
-    // Create 'broadcast'.
-    for positionX in 0..<layerID {
-      var offset: SIMD3<Float>
-      var pattern: KnobPattern
-      
-      if layerID == 4 && positionX == 3 {
-        // Stack the final broadcast on the top layer, removing a large
-        // block of unnecessary housing.
-        let x = 7.5 * Float(positionX)
-        offset = SIMD3(x + 11, y + 2.75, 0)
-        pattern = { h, h2k, l in
-          Concave {
-            Convex {
-              Origin { 46 * h }
-              Plane { h }
-            }
-            Convex {
-              Origin { 0.5 * h2k }
-              Plane { -h2k }
-            }
-            Convex {
-              Origin { 51 * h }
-              Plane { -h }
-            }
-            Replace { .empty }
-          }
-        }
-      } else {
-        let x = 7.5 * Float(positionX)
-        offset = SIMD3(x + 16, y - 2.75, 0)
-        pattern = broadcastPattern()
-      }
-      let rod = createRodZ(offset: offset, pattern: pattern)
-      
-      let key = SIMD2(Int(positionX), Int(layerID))
-      broadcast[key] = rod
-    }
-  }
-  
   // Create 'probe'.
   for positionX in 0..<3 {
-    let x = 7.5 * Float(positionX)
-    let offset = SIMD3(x + 13.5, 0, 28)
+    let offset = SIMD3(0, 5 * Float(positionX), 0)
     let pattern = probePattern(positionX: positionX)
     let rod = createRodY(offset: offset, pattern: pattern)
     
@@ -86,15 +24,7 @@ func createGeometry() -> [MM4RigidBody] {
   
   // The rods in the unit, gathered into an array.
   let rods: [[Entity]] =
-//  signal +
   Array(probe.values)
-//  Array(broadcast.values)
-  
-  print(signal.count)
-  print(probe.values.count)
-  print(broadcast.values.count)
-  print(rods.count)
-  print(rods.flatMap { $0 }.count)
   
   return rods.map { Rod(atoms: $0).rigidBody }
 }
@@ -109,32 +39,6 @@ typealias KnobPattern = (
 ) -> Void
 
 // MARK: - Lattices
-
-func createRodX(
-  offset: SIMD3<Float>,
-  pattern: KnobPattern
-) -> [Entity] {
-  let rodLatticeX = Lattice<Hexagonal> { h, k, l in
-    let h2k = h + 2 * k
-    Bounds { 77 * h + 2 * h2k + 2 * l }
-    Material { .elemental(.carbon) }
-    
-    Volume {
-      pattern(h, h2k, l)
-    }
-  }
-  
-  let atoms = rodLatticeX.atoms.map {
-    var copy = $0
-    var position = copy.position
-    let latticeConstant = Constant(.square) { .elemental(.carbon) }
-    position += SIMD3(0, 0.85, 0.91)
-    position += offset * latticeConstant
-    copy.position = position
-    return copy
-  }
-  return atoms
-}
 
 func createRodY(
   offset: SIMD3<Float>,
@@ -154,38 +58,8 @@ func createRodY(
     var copy = $0
     var position = copy.position
     let latticeConstant = Constant(.square) { .elemental(.carbon) }
-    position = SIMD3(position.z, position.x, position.y)
-    position += SIMD3(0.91, 0, 0.85)
+    position += SIMD3(0.91, 0.85, 0.91)
     position += offset * latticeConstant
-    position = SIMD3(position.y, position.z, position.x)
-    copy.position = position
-    return copy
-  }
-  return atoms
-}
-
-func createRodZ(
-  offset: SIMD3<Float>,
-  pattern: KnobPattern
-) -> [Entity] {
-  let rodLatticeZ = Lattice<Hexagonal> { h, k, l in
-    let h2k = h + 2 * k
-    Bounds { 54 * h + 2 * h2k + 2 * l }
-    Material { .elemental(.carbon) }
-    
-    Volume {
-      pattern(h, h2k, l)
-    }
-  }
-  
-  let atoms = rodLatticeZ.atoms.map {
-    var copy = $0
-    var position = copy.position
-    let latticeConstant = Constant(.square) { .elemental(.carbon) }
-    position = SIMD3(position.z, position.y, position.x)
-    position += SIMD3(0.91, 0.85, 0)
-    position += offset * latticeConstant
-    position = SIMD3(position.z, position.y, position.x)
     copy.position = position
     return copy
   }
@@ -193,167 +67,6 @@ func createRodZ(
 }
 
 // MARK: - Patterns
-
-func signalPattern(layerID: Int) -> KnobPattern {
-  { h, h2k, l in
-    let clockingShift: Float = 4
-    
-    // Connect to operand A.
-    Volume {
-      Concave {
-        Convex {
-          Origin { 2 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 0.5 * h2k }
-          Plane { -h2k }
-        }
-        Convex {
-          Origin { 7 * h }
-          Plane { -h }
-        }
-        Replace { .empty }
-      }
-    }
-    
-    // Connect to operand B.
-    Volume {
-      Concave {
-        Convex {
-          Origin { 11 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 0.5 * h2k }
-          Plane { -h2k }
-        }
-        Convex {
-          Origin { 16 * h }
-          Plane { -h }
-        }
-        Replace { .empty }
-      }
-    }
-    
-    // Create a groove for interaction with 'probe'.
-    do {
-      let startOffset: Float = 17 + clockingShift
-      var endOffset: Float
-      switch layerID {
-      case 1: endOffset = 23 + clockingShift
-      case 2: endOffset = 33 + clockingShift
-      case 3: endOffset = 44 + clockingShift
-      case 4: endOffset = 48 + clockingShift
-      default: fatalError("Unexpected layer ID.")
-      }
-      
-      Volume {
-        Concave {
-          Convex {
-            Origin { startOffset * h }
-            Plane { h }
-          }
-          Convex {
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Convex {
-            Origin { endOffset * h }
-            Plane { -h }
-          }
-          Replace { .empty }
-        }
-      }
-      createPhosphorusDopant(position: SIMD3(startOffset + 0.0, 0.75, -0.15))
-      createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 1.75, 0.65))
-      createPhosphorusDopant(position: SIMD3(startOffset + 0.5, 0.25, 0.65))
-      createPhosphorusDopant(position: SIMD3(endOffset + 0.0, 0.75, -0.15))
-      createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 1.75, 0.65))
-      createPhosphorusDopant(position: SIMD3(endOffset - 0.5, 0.25, 0.65))
-    }
-    
-    // Create a groove to avoid interaction with 'probe' on other layers.
-    if layerID <= 2 {
-      var startOffset: Float
-      switch layerID {
-      case 1: startOffset = 27.5 + clockingShift
-      case 2: startOffset = 38.5 + clockingShift
-      default: fatalError("Unexpected layer ID.")
-      }
-      let endOffset: Float = 47.5 + clockingShift
-      
-      Volume {
-        Concave {
-          Convex {
-            Origin { startOffset * h }
-            Plane { h }
-          }
-          Convex {
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Convex {
-            Origin { endOffset * h }
-            Plane { -h }
-          }
-          Replace { .empty }
-        }
-      }
-      createPhosphorusDopant(position: SIMD3(startOffset, 1.25, -0.15))
-      createPhosphorusDopant(position: SIMD3(startOffset, 0.25, 0.65))
-      createPhosphorusDopant(position: SIMD3(endOffset, 1.25, -0.15))
-      createPhosphorusDopant(position: SIMD3(endOffset, 0.25, 0.65))
-    }
-    
-    // Create a groove to directly transmit signals to 'broadcast'.
-    if layerID == 4 {
-      Volume {
-        Concave {
-          Convex {
-            Origin { (46 + clockingShift) * h }
-            Plane { h }
-          }
-          Convex {
-            Origin { 1.5 * h2k }
-            Plane { h2k }
-          }
-          Convex {
-            Origin { (51 + clockingShift) * h }
-            Plane { -h }
-          }
-          Replace { .empty }
-        }
-      }
-    }
-    
-    func createPhosphorusDopant(position: SIMD3<Float>) {
-      Volume {
-        Concave {
-          Concave {
-            Origin { (position.x - 0.5) * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { (position.y - 0.25) * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Concave {
-            Origin { (position.z - 0.25) * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Replace { .atom(.carbon) }
-        }
-      }
-    }
-  }
-}
 
 func probePattern(positionX: Int) -> KnobPattern {
   { h, h2k, l in
@@ -552,78 +265,6 @@ func probePattern(positionX: Int) -> KnobPattern {
   }
 }
 
-// We haven't reached the level of detail where individual broadcasts get
-  // unique patterns.
-func broadcastPattern() -> KnobPattern {
-  { h, h2k, l in
-    // Create a groove to avoid interaction with 'signal'.
-    Volume {
-      Concave {
-        Convex {
-          Origin { 45 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 1.5 * h2k }
-          Plane { h2k }
-        }
-        Replace { .empty }
-      }
-    }
-    
-    // Create a groove to receive signals from 'probe'.
-    Volume {
-      Concave {
-        Convex {
-          Origin { 42 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 0.5 * l }
-          Plane { -l }
-        }
-        Convex {
-          Origin { 48 * h }
-          Plane { -h }
-        }
-        Replace { .empty }
-      }
-    }
-    createPhosphorusDopant(position: SIMD3(42.0, 0.75, -0.15))
-    createPhosphorusDopant(position: SIMD3(42.5, 1.75, 0.65))
-    createPhosphorusDopant(position: SIMD3(42.5, 0.25, 0.65))
-    createPhosphorusDopant(position: SIMD3(48.0, 0.75, -0.15))
-    createPhosphorusDopant(position: SIMD3(47.5, 1.75, 0.65))
-    createPhosphorusDopant(position: SIMD3(47.5, 0.25, 0.65))
-    
-    func createPhosphorusDopant(position: SIMD3<Float>) {
-      Volume {
-        Concave {
-          Concave {
-            Origin { (position.x - 0.5) * h }
-            Plane { h }
-            Origin { 1 * h }
-            Plane { -h }
-          }
-          Concave {
-            Origin { (position.y - 0.25) * h2k }
-            Plane { h2k }
-            Origin { 0.5 * h2k }
-            Plane { -h2k }
-          }
-          Concave {
-            Origin { (position.z - 0.25) * l }
-            Plane { l }
-            Origin { 0.5 * l }
-            Plane { -l }
-          }
-          Replace { .atom(.phosphorus) }
-        }
-      }
-    }
-  }
-}
-
 // MARK: - Rod
 
 struct Rod: GenericPart {
@@ -632,6 +273,7 @@ struct Rod: GenericPart {
   init(atoms: [Entity]) {
     let topology = Self.createTopology(atoms: atoms)
     rigidBody = Self.createRigidBody(topology: topology)
+    minimize(bulkAtomIDs: [])
   }
   
   // Adds hydrogens and reorders the atoms for efficient simulation.
