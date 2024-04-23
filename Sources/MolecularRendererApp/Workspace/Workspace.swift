@@ -21,5 +21,20 @@ func createGeometry() -> [Entity] {
     atoms.append(atom)
   }
   
+  for markerID in 0..<5 {
+    var atom = Entity(position: .zero, type: .atom(.oxygen))
+    
+    let θ = 2 * Float.pi * Float(markerID) / 5
+    var r = Float(1.33)
+    atom.position.x = r * Float.cos(θ)
+    atom.position.y = r * Float.sin(θ)
+    atoms.append(atom)
+    
+    r = Float(2.73)
+    atom.position.x = r * Float.cos(θ)
+    atom.position.y = r * Float.sin(θ)
+    atoms.append(atom)
+  }
+  
   return atoms
 }
