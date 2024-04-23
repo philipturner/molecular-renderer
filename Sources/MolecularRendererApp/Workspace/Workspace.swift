@@ -7,7 +7,7 @@ import OpenMM
 func createGeometry() -> [Entity] {
   let lattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
-    Bounds { 40 * h + 4 * h2k + 6 * l }
+    Bounds { 41 * h + 4 * h2k + 6 * l }
     Material { .checkerboard(.germanium, .carbon) }
     
     Volume {
@@ -50,6 +50,37 @@ func createGeometry() -> [Entity] {
   //   transformation. Anything outside of the range will overshoot and
   //   potentially overlap another chunk of matter.
   let perimeter = Float(40) * latticeConstant
+  
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    var position = atom.position
+    
+    let θ = 2 * Float.pi * position.x / perimeter
+    let r = position.y
+    position.x = r * Float.cos(θ)
+    position.y = r * Float.sin(θ)
+    
+    atom.position = position
+    topology.atoms[atomID] = atom
+  }
+  
+  topology = deduplicate(topology: topology)
+  
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    var position = atom.position
+    
+    let r = (position.x * position.x + position.y * position.y).squareRoot()
+    var θ = Float.atan2(y: position.y, x: position.x)
+    if θ <= 0 {
+      θ += 2 * .pi
+    }
+    position.x = (θ * perimeter) / (2 * Float.pi)
+    position.y = r
+    
+    atom.position = position
+    topology.atoms[atomID] = atom
+  }
   
   return topology.atoms
 }
