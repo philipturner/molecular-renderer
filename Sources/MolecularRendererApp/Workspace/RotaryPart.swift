@@ -10,15 +10,43 @@ import HDL
 import MM4
 import Numerics
 
+struct RotaryPartDescriptor {
+  var cachePath: String?
+}
+
 // The radius spans from 1.33 nm to 2.73 nm. The outer radius is larger than
 // the desired 2.00 nm. We can fix this some time later.
 struct RotaryPart: GenericPart {
   var rigidBody: MM4RigidBody
   
-  init() {
+  init(descriptor: RotaryPartDescriptor) {
+    // Compile the lattice.
     let lattice = Self.createLattice()
-    let topology = Self.createTopology(lattice: lattice)
-    rigidBody = Self.createRigidBody(topology: topology)
+    
+    // Load the structure from disk.
+    var cachedStructure: Topology?
+    if let cachePath = descriptor.cachePath {
+      let key = Self.hash(atoms: lattice.atoms)
+      cachedStructure = Self.load(key: key, cachePath: cachePath)
+    }
+    
+    // Assign the rigid body.
+    if let cachedStructure {
+      let topology = cachedStructure
+      rigidBody = Self.createRigidBody(topology: topology)
+    } else {
+      let topology = Self.createTopology(lattice: lattice)
+      rigidBody = Self.createRigidBody(topology: topology)
+      
+      // Run an energy minimization.
+      minimize(bulkAtomIDs: [])
+      
+      // Save the structure to disk.
+      if let cachePath = descriptor.cachePath {
+        let key = Self.hash(atoms: lattice.atoms)
+        save(key: key, cachePath: cachePath)
+      }
+    }
   }
   
   static func createLattice() -> Lattice<Hexagonal> {
@@ -138,6 +166,7 @@ struct RotaryPart: GenericPart {
     }
     
     topology = deduplicate(topology: topology)
+    topology.sort()
     
     return topology
   }

@@ -4,25 +4,22 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [MM4RigidBody] {
-  var part = RotaryPart()
-  part.minimize(bulkAtomIDs: [])
+func createGeometry() -> [Entity] {
+  var descriptor = RotaryPartDescriptor()
+  descriptor.cachePath =
+  "/Users/philipturner/Documents/OpenMM/cache/RotaryPart.data"
   
-  var minRadius: Float = .greatestFiniteMagnitude
-  var maxRadius: Float = .zero
-  let center = SIMD3<Float>(part.rigidBody.centerOfMass)
+  var part = RotaryPart(descriptor: descriptor)
   
-  for atomID in part.rigidBody.parameters.atoms.indices {
+  var atoms: [Entity] = []
+  let parameters = part.rigidBody.parameters
+  for atomID in parameters.atoms.indices {
+    let atomicNumber = parameters.atoms.atomicNumbers[atomID]
     let position = part.rigidBody.positions[atomID]
-    var delta = position - center
-    delta.z = .zero
-    
-    let r = (delta.x * delta.x + delta.y * delta.y).squareRoot()
-    minRadius = min(minRadius, r)
-    maxRadius = max(maxRadius, r)
+    let storage = SIMD4(position, Float(atomicNumber))
+    let atom = Entity(storage: storage)
+    atoms.append(atom)
   }
-  print(minRadius)
-  print(maxRadius)
   
-  exit(0)
+  return atoms
 }
