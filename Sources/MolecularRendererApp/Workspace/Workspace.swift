@@ -4,10 +4,13 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [Entity] {
-  let lattice = RotaryPart.createLattice()
-  let topology = RotaryPart.createTopology(lattice: lattice)
-  return topology.atoms
+func createGeometry() -> [MM4RigidBody] {
+//  let lattice = RotaryPart.createLattice()
+//  return lattice.atoms
+  
+  var part = RotaryPart()
+  part.minimize(bulkAtomIDs: [])
+  return [part.rigidBody]
 }
 
 struct RotaryPart: GenericPart {
@@ -25,18 +28,59 @@ struct RotaryPart: GenericPart {
       Bounds { 41 * h + 4 * h2k + 6 * l }
       Material { .checkerboard(.germanium, .carbon) }
       
+      // Replace the bottom part with air.
       Volume {
         Origin { 2 * h2k }
         Plane { -h2k }
         Replace { .empty }
       }
+      
+      // Replace some atoms with carbon.
       Volume {
-        Origin { 2.667 * h2k }
+        Origin { 2.5 * h2k }
         Plane { -h2k }
         Replace { .atom(.carbon) }
       }
       Volume {
-        Origin { 3.333 * h2k }
+        Concave {
+          Concave {
+            Origin { 2.667 * h2k }
+            Plane { -h2k }
+          }
+          Concave {
+            Origin { 1.5 * l }
+            Plane { l }
+          }
+          Concave {
+            Origin { 4.5 * l }
+            Plane { -l }
+          }
+        }
+        Replace { .atom(.carbon) }
+      }
+      
+      // Replace some atoms with germanium.
+      Volume {
+        Concave {
+          Convex {
+            Origin { 3.333 * h2k }
+            Plane { h2k }
+          }
+          Convex {
+            Convex {
+              Origin { 1.5 * l }
+              Plane { -l }
+            }
+            Convex {
+              Origin { 4.5 * l }
+              Plane { l }
+            }
+          }
+        }
+        Replace { .atom(.germanium) }
+      }
+      Volume {
+        Origin { 3.5 * h2k }
         Plane { h2k }
         Replace { .atom(.germanium) }
       }
