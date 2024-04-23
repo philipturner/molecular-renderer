@@ -4,11 +4,10 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [MM4RigidBody] {
-  var part = RotaryPart()
-  part.minimize(bulkAtomIDs: [])
-  
-  return [part.rigidBody]
+func createGeometry() -> [Entity] {
+  let lattice = RotaryPart.createLattice()
+  let topology = RotaryPart.createTopology(lattice: lattice)
+  return topology.atoms
 }
 
 struct RotaryPart: GenericPart {
@@ -23,7 +22,7 @@ struct RotaryPart: GenericPart {
   static func createLattice() -> Lattice<Hexagonal> {
     Lattice<Hexagonal> { h, k, l in
       let h2k = h + 2 * k
-      Bounds { 41 * h + 4 * h2k + 4 * l }
+      Bounds { 41 * h + 4 * h2k + 6 * l }
       Material { .checkerboard(.germanium, .carbon) }
       
       Volume {
@@ -40,6 +39,19 @@ struct RotaryPart: GenericPart {
         Origin { 3.333 * h2k }
         Plane { h2k }
         Replace { .atom(.germanium) }
+      }
+      
+      Volume {
+        Origin { 4 * h2k }
+        Origin { 1 * l }
+        Plane { 1 / 4 * h2k - 1 * l }
+        Replace { .empty }
+      }
+      Volume {
+        Origin { 4 * h2k }
+        Origin { 4.75 * l }
+        Plane { 1 / 4 * h2k + 1 * l }
+        Replace { .empty }
       }
     }
   }
