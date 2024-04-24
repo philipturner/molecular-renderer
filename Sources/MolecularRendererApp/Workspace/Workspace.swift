@@ -37,7 +37,7 @@ func createGeometry() -> [[MM4RigidBody]] {
   simulation.withForceField {
     print($0.energy.potential)
   }
-  simulation.setVelocitiesToTemperature(2 * 77)
+  simulation.setVelocitiesToTemperature(2 * 298)
   simulation.withForceField {
     $0.simulate(time: 2)
   }
@@ -90,7 +90,7 @@ func createGeometry() -> [[MM4RigidBody]] {
   frames.append(simulation.rigidBodies)
   
   for frameID in 1...500 {
-    let timeStep: Double = 0.100
+    let timeStep: Double = 1
     simulation.withForceField {
       $0.simulate(time: timeStep)
     }
