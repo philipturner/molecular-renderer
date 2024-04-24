@@ -14,8 +14,12 @@ struct RotaryPartDescriptor {
   var cachePath: String?
 }
 
+// Overall device dimensions: 5.46 nm x 5.46 nm x 2.87 nm.
+//
 // The radius spans from 1.33 nm to 2.73 nm. The outer radius is larger than
 // the desired 2.00 nm. We can fix this some time later.
+//
+// The thickness (z component) is 2.87 nm.
 struct RotaryPart: GenericPart {
   var rigidBody: MM4RigidBody
   
