@@ -8,8 +8,21 @@ func createGeometry() -> [Entity] {
   // MARK: - Create Lattice
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 1 * h + 20 * k + 20 * l }
+    Bounds { 3 * h + 38 * k + 40 * l }
     Material { .elemental(.carbon) }
+    
+    // Remove some material from the left and right sides.
+    Volume {
+      Convex {
+        Origin { 0.25 * h }
+        Plane { -h }
+      }
+      Convex {
+        Origin { 2.0 * h }
+        Plane { h }
+      }
+      Replace { .empty }
+    }
     
     // Remove some material, creating a cuboid at 45 degrees from the current
     // orientation.
@@ -20,8 +33,8 @@ func createGeometry() -> [Entity] {
         Plane { -k - l }
       }
       Convex {
-        Origin { 5 * k }
-        Origin { 20 * l }
+        Origin { 23 * k }
+        Origin { 38 * l }
         Plane { -k + l }
         Plane { k + l }
       }
@@ -30,17 +43,46 @@ func createGeometry() -> [Entity] {
     
     // Add sulfurs.
     Volume {
-      Origin { 0.25 * h }
+      Origin { 0.5 * h }
       Plane { -h }
-      Replace { .atom(.sulfur) }
+      Replace { .atom(.carbon) }
     }
     
     // Create grooves in the surface of sulfurs.
-    for diagonalID in -10...10 {
+    for diagonalID in -20...20 {
       Volume {
         Concave {
           Concave {
-            Origin { 0.25 * h }
+            Origin { 0.5 * h }
+            Plane { -h }
+          }
+          Origin { (Float(diagonalID) * 3 + 0.5) * (l - k) }
+          Concave {
+            Origin { -0.25 * (l - k) }
+            Plane { l - k }
+          }
+          Concave {
+            Origin { -0.25 * (k - l) }
+            Plane { k - l }
+          }
+        }
+        Replace { .atom(.germanium) }
+      }
+    }
+    
+    // Add sulfurs.
+    Volume {
+      Origin { 1.75 * h }
+      Plane { h }
+      Replace { .atom(.germanium) }
+    }
+    
+    // Create grooves in the surface of sulfurs.
+    for diagonalID in -20...20 {
+      Volume {
+        Concave {
+          Concave {
+            Origin { 0.5 * h }
             Plane { -h }
           }
           Origin { Float(diagonalID) * 1 * (l - k) }
@@ -58,7 +100,7 @@ func createGeometry() -> [Entity] {
     }
   }
   
-  
+//  return lattice.atoms
   
   // MARK: - Reconstruct Surface
   
