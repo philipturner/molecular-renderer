@@ -18,7 +18,7 @@ func createGeometry() -> [Entity] {
         Plane { -h }
       }
       Convex {
-        Origin { 2.0 * h }
+        Origin { 2.25 * h }
         Plane { h }
       }
       Replace { .empty }
@@ -28,12 +28,12 @@ func createGeometry() -> [Entity] {
     // orientation.
     Volume {
       Convex {
-        Origin { 15 * k }
+        Origin { 5 * k }
         Plane { k - l }
         Plane { -k - l }
       }
       Convex {
-        Origin { 23 * k }
+        Origin { 33 * k }
         Origin { 38 * l }
         Plane { -k + l }
         Plane { k + l }
@@ -46,35 +46,6 @@ func createGeometry() -> [Entity] {
       Origin { 0.5 * h }
       Plane { -h }
       Replace { .atom(.carbon) }
-    }
-    
-//    // Create grooves in the surface of sulfurs.
-//    for diagonalID in -20...20 {
-//      Volume {
-//        Concave {
-//          Concave {
-//            Origin { 0.5 * h }
-//            Plane { -h }
-//          }
-//          Origin { (Float(diagonalID) * 3 + 0.5) * (l - k) }
-//          Concave {
-//            Origin { -0.25 * (l - k) }
-//            Plane { l - k }
-//          }
-//          Concave {
-//            Origin { -0.25 * (k - l) }
-//            Plane { k - l }
-//          }
-//        }
-//        Replace { .atom(.germanium) }
-//      }
-//    }
-    
-    // Add sulfurs.
-    Volume {
-      Origin { 1.75 * h }
-      Plane { h }
-      Replace { .atom(.sulfur) }
     }
     
     // Create grooves in the surface of sulfurs.
@@ -98,9 +69,38 @@ func createGeometry() -> [Entity] {
         Replace { .empty }
       }
     }
+    
+    // Add sulfurs.
+    Volume {
+      Origin { 2.00 * h }
+      Plane { h }
+      Replace { .atom(.sulfur) }
+    }
+    
+    // Create grooves in the surface of sulfurs.
+    for diagonalID in -20...20 {
+      Volume {
+        Concave {
+          Concave {
+            Origin { 1.25 * h }
+            Plane { h }
+          }
+          Origin { (Float(diagonalID) * 1 + 0.5) * (k + l) }
+          Concave {
+            Origin { -0.5 * (k + l) }
+            Plane { k + l }
+          }
+          Concave {
+            Origin { -0.5 * (-k - l) }
+            Plane { -k - l }
+          }
+        }
+        Replace { .empty }
+      }
+    }
   }
   
-//  return lattice.atoms
+  return lattice.atoms
   
   // MARK: - Reconstruct Surface
   
