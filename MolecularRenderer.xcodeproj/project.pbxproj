@@ -66,9 +66,6 @@
 		98C757FE2B577BB7000B16B2 /* SurfaceReconstruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98C757FD2B577BB7000B16B2 /* SurfaceReconstruction.swift */; };
 		98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98EA89EA2B40759700DC5C7E /* XTBProcess.swift */; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
-		98F43BE42BD85EBE00E57C8F /* Deduplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F43BE32BD85EBE00E57C8F /* Deduplicate.swift */; };
-		98F43BE62BD866EF00E57C8F /* RotaryPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F43BE52BD866EF00E57C8F /* RotaryPart.swift */; };
-		98F43BE82BD88E2200E57C8F /* Axle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F43BE72BD88E2200E57C8F /* Axle.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
@@ -331,9 +328,6 @@
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
-		98F43BE32BD85EBE00E57C8F /* Deduplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deduplicate.swift; sourceTree = "<group>"; };
-		98F43BE52BD866EF00E57C8F /* RotaryPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryPart.swift; sourceTree = "<group>"; };
-		98F43BE72BD88E2200E57C8F /* Axle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Axle.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F638C42A34F78A00F51E95 /* MRAtom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtom.swift; sourceTree = "<group>"; };
@@ -631,9 +625,6 @@
 			isa = PBXGroup;
 			children = (
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
-				98F43BE32BD85EBE00E57C8F /* Deduplicate.swift */,
-				98F43BE52BD866EF00E57C8F /* RotaryPart.swift */,
-				98F43BE72BD88E2200E57C8F /* Axle.swift */,
 			);
 			path = Workspace;
 			sourceTree = "<group>";
@@ -1326,7 +1317,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				98F43BE42BD85EBE00E57C8F /* Deduplicate.swift in Sources */,
 				9855200B2B53215C00AB068D /* Workspace.swift in Sources */,
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
@@ -1334,7 +1324,6 @@
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
-				98F43BE62BD866EF00E57C8F /* RotaryPart.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
 				981FCFF429EF52E9009904A2 /* PlayerState.swift in Sources */,
 				98AF5AFE2BBAF2030015C7DC /* ThreeWayCollisions.swift in Sources */,
@@ -1345,7 +1334,6 @@
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
-				98F43BE82BD88E2200E57C8F /* Axle.swift in Sources */,
 				98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				98AD35C62BD5F0EB00CA52BB /* Serialization.swift in Sources */,
