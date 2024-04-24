@@ -47,6 +47,9 @@ struct RotaryPart: GenericPart {
         save(key: key, cachePath: cachePath)
       }
     }
+    
+    // Set the center of mass to zero.
+    rigidBody.centerOfMass = .zero
   }
   
   static func createLattice() -> Lattice<Hexagonal> {
