@@ -21,11 +21,22 @@ func createGeometry() -> [MM4RigidBody] {
   rotaryPart2.rigidBody.centerOfMass.x += 7.625 * 0.3567
   rotaryPart2.rigidBody.rotate(angle: 0.07, axis: [0, 0, 1])
   
-  return [
+  var simulation = GenericSimulation(rigidBodies: [
     carrier.rigidBody,
     rotaryPart1.rigidBody,
     rotaryPart2.rigidBody,
-  ]
+  ])
+  simulation.withForceField {
+    print($0.energy.potential)
+  }
+  simulation.withForceField {
+    $0.minimize(tolerance: 0.1)
+  }
+  simulation.withForceField {
+    print($0.energy.potential)
+  }
+  
+  return simulation.rigidBodies
 }
 
 struct Carrier: GenericPart {
@@ -35,6 +46,10 @@ struct Carrier: GenericPart {
     let lattice = Self.createLattice()
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
+    
+    // Run an energy minimization.
+    let bulkAtomIDs = Self.extractBulkAtomIDs(topology: topology)
+    minimize(bulkAtomIDs: bulkAtomIDs)
     
     // Set the center of mass to zero.
     rigidBody.centerOfMass = .zero
