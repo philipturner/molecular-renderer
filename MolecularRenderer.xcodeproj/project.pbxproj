@@ -68,6 +68,7 @@
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F43BE42BD85EBE00E57C8F /* Deduplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F43BE32BD85EBE00E57C8F /* Deduplicate.swift */; };
 		98F43BE62BD866EF00E57C8F /* RotaryPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F43BE52BD866EF00E57C8F /* RotaryPart.swift */; };
+		98F43BE82BD88E2200E57C8F /* Axle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F43BE72BD88E2200E57C8F /* Axle.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
@@ -332,6 +333,7 @@
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F43BE32BD85EBE00E57C8F /* Deduplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deduplicate.swift; sourceTree = "<group>"; };
 		98F43BE52BD866EF00E57C8F /* RotaryPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotaryPart.swift; sourceTree = "<group>"; };
+		98F43BE72BD88E2200E57C8F /* Axle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Axle.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F638C42A34F78A00F51E95 /* MRAtom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtom.swift; sourceTree = "<group>"; };
@@ -631,6 +633,7 @@
 				989CBA0B2B1D2AE200213CBE /* Workspace.swift */,
 				98F43BE32BD85EBE00E57C8F /* Deduplicate.swift */,
 				98F43BE52BD866EF00E57C8F /* RotaryPart.swift */,
+				98F43BE72BD88E2200E57C8F /* Axle.swift */,
 			);
 			path = Workspace;
 			sourceTree = "<group>";
@@ -1342,6 +1345,7 @@
 				98EA89EB2B40759700DC5C7E /* XTBProcess.swift in Sources */,
 				981FCFF229ECAF24009904A2 /* Coordinator.swift in Sources */,
 				981898072B91167B00013D4C /* XTBLibrary.swift in Sources */,
+				98F43BE82BD88E2200E57C8F /* Axle.swift in Sources */,
 				98129CEB2BD32B0100AE6A9B /* GenericPart.swift in Sources */,
 				98FB90702A5B19E100685E5C /* Key.swift in Sources */,
 				98AD35C62BD5F0EB00CA52BB /* Serialization.swift in Sources */,
