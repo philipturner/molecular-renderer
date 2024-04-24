@@ -25,10 +25,11 @@ func createGeometry() -> [[MM4RigidBody]] {
   var simulation = GenericSimulation(rigidBodies: [
     axle.rigidBody, rotaryPart.rigidBody
   ])
+  simulation.forceField.timeStep = 0.002
   simulation.withForceField {
     $0.minimize(tolerance: 0.1)
   }
-  simulation.setVelocitiesToTemperature(2 * 77)
+  simulation.setVelocitiesToTemperature(2 * 298)
   simulation.withForceField {
     $0.simulate(time: 2)
   }
@@ -71,8 +72,29 @@ func createGeometry() -> [[MM4RigidBody]] {
     var kineticEnergy = simulation.forceField.energy.kinetic
     
     // Subtract the axle's kinetic energy.
+    var axleEnergy: Double
     do {
+      let rigidBody = simulation.rigidBodies[0]
+      let I = rigidBody.momentOfInertia
+      let L = rigidBody.angularMomentum
+      let ω = L / I
       
+      let K = 0.5 * (ω * I * ω).sum()
+      kineticEnergy -= K
+      axleEnergy = K
+    }
+    
+    // Find the wheel's kinetic energy.
+    var wheelEnergy: Double
+    do {
+      let rigidBody = simulation.rigidBodies[1]
+      let I = rigidBody.momentOfInertia
+      let L = rigidBody.angularMomentum
+      let ω = L / I
+      
+      let K = 0.5 * (ω * I * ω).sum()
+      kineticEnergy -= K
+      wheelEnergy = K
     }
     
     // Compute the kinetic energy per atom.
@@ -84,7 +106,9 @@ func createGeometry() -> [[MM4RigidBody]] {
     print(
       "frame:", frameID, "|",
       String(format: "%.1f", time), "ps |",
-      String(format: "%.2f", energyPerAtom), "zJ/atom")
+      "temperature:", String(format: "%.2f", energyPerAtom), "zJ/atom |",
+      "axle energy:", String(format: "%.1f", axleEnergy), "zJ |",
+      "wheel energy:", String(format: "%.1f", wheelEnergy), "zJ")
     frames.append(simulation.rigidBodies)
   }
   
