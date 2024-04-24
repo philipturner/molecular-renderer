@@ -21,33 +21,12 @@ func createGeometry() -> [Entity] {
       }
       Convex {
         Origin { 5 * k }
-        Origin { 15 * l }
+        Origin { 20 * l }
         Plane { -k + l }
         Plane { k + l }
       }
       Replace { .empty }
     }
-    
-    // Remove an atomic layer, providing room for hydrogens.
-//    Volume {
-//      Concave {
-//        Concave {
-//          Origin { 0.25 * h }
-//          Plane { -h }
-//        }
-//        Convex {
-//          Convex {
-//            Origin { 1.00 * (l - k) }
-//            Plane { l - k }
-//          }
-//          Convex {
-//            Origin { 1.00 * (k - l) }
-//            Plane { k - l }
-//          }
-//        }
-//      }
-//      Replace { .empty }
-//    }
     
     // Add sulfurs.
     Volume {
@@ -55,9 +34,31 @@ func createGeometry() -> [Entity] {
       Plane { -h }
       Replace { .atom(.sulfur) }
     }
+    
+    // Create grooves in the surface of sulfurs.
+    for diagonalID in -10...10 {
+      Volume {
+        Concave {
+          Concave {
+            Origin { 0.25 * h }
+            Plane { -h }
+          }
+          Origin { Float(diagonalID) * 1 * (l - k) }
+          Concave {
+            Origin { -0.25 * (l - k) }
+            Plane { l - k }
+          }
+          Concave {
+            Origin { -0.25 * (k - l) }
+            Plane { k - l }
+          }
+        }
+        Replace { .empty }
+      }
+    }
   }
   
-//  return lattice.atoms
+  
   
   // MARK: - Reconstruct Surface
   
