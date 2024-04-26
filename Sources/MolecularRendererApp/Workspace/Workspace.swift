@@ -13,13 +13,13 @@ func createGeometry() -> [MM4RigidBody] {
   var simulation = GenericSimulation(rigidBodies: [
     sheetPart.rigidBody, axlePart.rigidBody
   ])
-  simulation.withForceField {
-    $0.minimize()
-  }
-  simulation.rigidBodies[1].centerOfMass.z -= 1.9
-  simulation.withForceField {
-    $0.minimize()
-  }
+  //  simulation.withForceField {
+  //    $0.minimize()
+  //  }
+  //  simulation.rigidBodies[1].centerOfMass.z -= 1.9
+  //  simulation.withForceField {
+  //    $0.minimize()
+  //  }
   
   // Prepare for rendering.
   for rigidBodyID in simulation.rigidBodies.indices {
@@ -27,7 +27,7 @@ func createGeometry() -> [MM4RigidBody] {
     
     // 0.3567 is the lattice constant of cubic diamond (in nm).
     rigidBody.centerOfMass += SIMD3(-20, -20, 0) * 0.3567
-    rigidBody.centerOfMass += SIMD3(0, 0, -120) * 0.3567
+    rigidBody.centerOfMass += SIMD3(0, 0, -35) * 0.3567
     simulation.rigidBodies[rigidBodyID] = rigidBody
   }
   
