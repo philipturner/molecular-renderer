@@ -17,6 +17,9 @@ struct AxlePart: GenericPart {
     let lattice = Self.createLattice()
     let topology = Self.createTopology(lattice: lattice)
     rigidBody = Self.createRigidBody(topology: topology)
+    
+    let bulkAtomIDs = Self.extractBulkAtomIDs(topology: topology)
+    minimize(bulkAtomIDs: bulkAtomIDs)
   }
   
   static func createLattice() -> Lattice<Cubic> {
