@@ -35,8 +35,8 @@ public:
     this->pixelCoords = pixelCoords;
     
     // Create a default color for the background.
-    this->color = half3(0.707, 0.707, 0.707);
-    // this->color = half3(1.000, 1.000, 1.000);
+    // this->color = half3(0.707, 0.707, 0.707);
+    this->color = half3(1.000, 1.000, 1.000);
     this->motionVector = half2(0);
     this->depth = -FLT_MAX;
     
