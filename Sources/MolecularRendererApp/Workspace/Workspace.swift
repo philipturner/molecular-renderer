@@ -4,11 +4,11 @@ import MM4
 import Numerics
 import OpenMM
 
-func createGeometry() -> [Entity] {
+func createGeometry() -> [MM4RigidBody] {
   // Compile an axle, and a sheet of diamond that will curl around it.
-  let lattice = SheetPart.createLattice()
-  let topology = SheetPart.createTopology(lattice: lattice)
-  return topology.atoms
+  var sheetPart = SheetPart()
+  sheetPart.minimize(bulkAtomIDs: [])
+  return [sheetPart.rigidBody]
 }
 
 struct SheetPart: GenericPart {
@@ -25,24 +25,34 @@ struct SheetPart: GenericPart {
   
   static func createLattice() -> Lattice<Cubic> {
     Lattice<Cubic> { h, k, l in
-      Bounds { 20 * h + 20 * k + 2 * l }
+      Bounds { 40 * h + 40 * k + 2 * l }
       Material { .elemental(.carbon) }
       
       // Trim away two opposing corners of the square.
       Volume {
         Convex {
-          Origin { 5 * k }
+          Origin { 30 * k }
           Plane { -h + k }
         }
         Convex {
-          Origin { 5 * h }
+          Origin { 30 * h }
           Plane { h - k }
         }
         Replace { .empty }
       }
       
       // Shorten the remaining points.
-      // TODO: Do this after checking the radius of curvature.
+      Volume {
+        Convex {
+          Origin { 15 * k }
+          Plane { -h - k }
+        }
+        Convex {
+          Origin { 40 * h + 25 * k }
+          Plane { h + k }
+        }
+        Replace { .empty }
+      }
       
       // Replace the back side with sulfur.
       Volume {
@@ -51,17 +61,9 @@ struct SheetPart: GenericPart {
         Replace { .atom(.sulfur) }
       }
       
-      // Replace the front side with sulfur.
-      Volume {
-        Origin { 2 * l }
-        Origin { -0.25 * l }
-        Plane { l }
-        Replace { .atom(.sulfur) }
-      }
-      
       // Replace the front side with a series of grooves.
       Volume {
-        for diagonalID in -5...5 {
+        for diagonalID in -20...20 {
           Concave {
             Origin { Float(diagonalID) * (h - k) }
             Origin { 2 * l }
@@ -136,32 +138,6 @@ struct SheetPart: GenericPart {
     }
     topology.remove(bonds: removedBonds)
     topology.remove(atoms: removedAtoms)
-    
-    let atomsToAtomsMap2 = topology.map(.atoms, to: .atoms)
-    
-    for i in topology.atoms.indices {
-      var atom = topology.atoms[i]
-      let neighbors = atomsToAtomsMap2[i]
-      
-      switch atom.atomicNumber {
-      case 1:
-        if neighbors.count < 1 {
-          atom.atomicNumber = 9
-        }
-      case 6:
-        if neighbors.count < 4 {
-          atom.atomicNumber = 14
-        }
-      case 16:
-        if neighbors.count < 2 {
-          atom.atomicNumber = 8
-        }
-      default:
-        fatalError()
-      }
-      
-      topology.atoms[i] = atom
-    }
     
     return topology
   }
