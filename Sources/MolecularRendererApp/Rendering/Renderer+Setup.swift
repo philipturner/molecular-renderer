@@ -104,7 +104,7 @@ extension Renderer {
     // descriptor.upscaleFactor = 2
 #endif
     descriptor.sceneSize = .large
-    eventTracker.walkingSpeed = 2
+    // eventTracker.walkingSpeed = 2
     
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyleProvider(RendererStyle())
