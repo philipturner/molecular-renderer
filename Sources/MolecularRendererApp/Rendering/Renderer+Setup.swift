@@ -155,8 +155,11 @@ private struct RendererStyle: MRAtomStyleProvider {
     // https://periodictable.com/Properties/A/LatticeConstants.html
     // 3.6149 (Cu) -> 4.0782 (Au)
     // 2.325 (Cu) * 4.0782/3.6149 = 2.623 (Au)
+    //
+    // Changing to 2.371, to match the ratio of C-C (1.545 Å) and Au-C
+    // (~2.057 Å) bond lengths. Makes the render look much more workable.
     radii += Array(repeating: 0, count: 79 - 50 - 1)
-    radii.append(2.623)
+    radii.append(2.371)
     
     // Extrapolating from the covalent radius ratio with tin:
     // https://en.wikipedia.org/wiki/Covalent_radius#Average_radii
