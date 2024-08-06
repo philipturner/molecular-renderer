@@ -139,9 +139,9 @@ private struct RendererStyle: MRAtomStyleProvider {
       2.093, // 31
       1.938, // 32
       1.705, // 33
-      1.628, // 34
-      1.550, // 35
-      1.472, // 36
+      1.705, // 34
+      1.662, // 35
+      1.565, // 36
     ]
     
     // Extrapolating from the lattice constant ratio with germanium:
