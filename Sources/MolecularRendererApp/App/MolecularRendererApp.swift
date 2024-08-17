@@ -25,15 +25,51 @@ struct ContentView: View {
   @ObservedObject var coordinator: Coordinator
   
   static let upscaleFactor: Int = {
-    if #available(macOS 14, iOS 17, tvOS 17, *) {
-      return 3
-    } else {
-      return 2
+    guard #available(macOS 14, iOS 17, tvOS 17, *) else {
+      fatalError("Unsupported OS version.")
     }
+    
+    // MetalFX only supports 3x temporal upscaling on macOS Sonoma.
+    return 3
   }()
   
+  // MARK: - Users, set this to match your device's display refresh rate.
+  // MacBooks with ProMotion are typically 120 Hz, but most over devices are
+  // 60 Hz. It is important to set the right framerate, because all
+  // animations require synchronization (Vsync) with integer multiples of the
+  // frame rate.
+  //
+  // This goes beyond just avoiding frame tearing (the common reason to use
+  // Vsync). It is for replaying timed animations where every frame is
+  // initialized beforehand. You plan out how many frames to generate based on
+  // the number of seconds, and the number of frames per second. The CFRunLoop
+  // is not called at exact integer multiples of the frame rate (often slightly
+  // off by an unpredictable fraction of a frame). Setting the correct frame
+  // rate is the only way to map the current frame index to the correct
+  // position in a pre-compiled sequence of frames.
   static let frameRate: Int = 120
   
+  // MARK: - Users, scale this down to match your device's GPU compute power.
+  // For example, the M1 Max (32 cores) can handle a 640 x 640 square window
+  // at 120 Hz. The M1 (8 cores) could suffice with half the pixel count
+  // (480 x 480) and half the framerate (60 Hz). Here is a loose recommendation
+  // for display setup.
+  //
+  // ## Laptops
+  //
+  // M1/M2/M3 (~8 cores), 60 Hz MacBook
+  // M1/M2/M3 (~8 cores), Mac mini, 60 Hz external monitor
+  // - 480 x 480 (upscales to 1440 x 1440)
+  //
+  //           M3  (10 cores), 120 Hz MacBook (14")
+  // M1/M2/M3 Pro (~16 cores), 120 Hz MacBook
+  // - 480 x 480 (upscales to 1440 x 1440)
+  //
+  // M2/M3 Pro      (~16 cores), Mac mini, 60 Hz external monitor
+  // M1/M2/M3 Max   (~32 cores), 120 Hz MacBook
+  // M1/M2/M3 Ultra (~64 cores), 60-144 Hz external monitor
+  // - 640 x 640 (upscales to 1920 x 1920)
+  //
   static let size: CGFloat = 640 * CGFloat(upscaleFactor)
   
   var body: some View {

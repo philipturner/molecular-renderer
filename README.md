@@ -3,14 +3,14 @@
 
 # Molecular Renderer
 
-Molecular Renderer is a CAD program for molecular nanotechnology. It enabled the development of several related projects. Some evolved into distinct libraries, while one contributes to a UI experience based on existing IDEs.
+Molecular Renderer is a minimal renderer for molecular nanotechnology. It does not have UI features like buttons and dropdowns; instead, the user codes the structures and trajectories to render. This design provides more flexibility and reduces the technical requirements to maintain the renderer. It enabled the development of several related projects.
 
 Projects:
 - [Hardware Catalog](./Sources/HardwareCatalog/README.md) - catalog of code samples and archived experiments (25,000 LoC)
 - [HDL](https://github.com/philipturner/HDL) - domain-specific language and geometry compiler (8,000 LoC)
 - [MM4](https://github.com/philipturner/MM4) - molecular mechanics simulator (13,000 LoC)
 - [Molecular Renderer](./Sources/MolecularRenderer/README.md) - programmable renderer with real-time ray tracing (3,000 LoC)
-- [Rod Logic](https://github.com/philipturner/rod-logic) - compact, efficient, and manufacturable computing (in progress)
+- [Rod Logic](https://github.com/philipturner/rod-logic) - compact, efficient, and manufacturable computing
 
 ## Overview
 
@@ -37,6 +37,7 @@ Dependencies (Mac)
 - macOS 14
 - Xcode
 - [Metal Plugin](https://github.com/philipturner/openmm-metal) for OpenMM
+- xTB dynamic library with [OpenBLAS replaced by Accelerate](https://github.com/philipturner/swift-xtb)
 
 Dependencies (Linux)
 - Ubuntu 18&ndash;22
@@ -47,3 +48,14 @@ Dependencies (Windows)
 - Windows 10&ndash;11
 - Visual Studio Code
 - [Swift Extension](https://www.swift.org/blog/vscode-extension) for Visual Studio Code
+
+The renderer itself <b>does not run on Linux or Windows</b>. Support for Windows is being planned, through Microsoft Direct3D and AMD FidelityFX.
+
+## Documentation
+
+TODO: Document the controls. Provide tutorials for professionals screenshots and GIF animations.
+
+Known issues:
+- The UI often freezes unpredictably. You then have to wait ~10 seconds for it to become responsive again. This is likely a symptom of requiring perfect synchronization with the frame refresh period.
+- There is a graphical glitch with high-quality screenshots, when objects are very far away.
+- MetalFX upscaling quality degrades when motion vectors are incorrect. Need better documentation of when this might happen.

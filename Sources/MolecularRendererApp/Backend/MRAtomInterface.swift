@@ -5,9 +5,7 @@
 //  Created by Philip Turner on 7/21/23.
 //
 
-import Foundation
 import HDL
-import OpenMM
 import MolecularRenderer
 
 // MARK: - MRAtom Interface with Array

@@ -9,6 +9,10 @@ import Foundation
 import Numerics
 import simd
 
+// MARK: - Users, this is the default player position. It is one nanometer
+// away from the world origin. This default was found to be more sensible, as
+// most structures are centered exactly at the origin. Thus, you would
+// spawn directly covered up by the structure's atoms, unable to see anything.
 fileprivate let defaultPlayerPosition: SIMD3<Float> = [0, 0, 1]
 
 struct PlayerState {

@@ -1,4 +1,5 @@
 {
+  "originHash" : "9cce59fe755f948a4e80859f86813afacb5a54dd6336efbdfd6703860a736cc2",
   "pins" : [
     {
       "identity" : "hdl",
@@ -62,7 +63,16 @@
         "branch" : "main",
         "revision" : "a1b454a8a1cd299dacecfdefe7dce4f75331d3f8"
       }
+    },
+    {
+      "identity" : "swift-xtb",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/philipturner/swift-xtb",
+      "state" : {
+        "branch" : "main",
+        "revision" : "f887f2ca1dfad9c2c284764eb6377a7889004f60"
+      }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
