@@ -31,7 +31,7 @@ There are only two simulator dependencies. Everything else is implemented from s
 | OpenMM  | Molecular Mechanics | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) | [Conda](https://anaconda.org/conda-forge/openmm) |
 | xTB     | Quantum Mechanics   | [Homebrew](https://github.com/grimme-lab/homebrew-qc) | [GitHub Releases](https://github.com/grimme-lab/xtb/releases) | [GitHub Releases](https://github.com/grimme-lab/xtb/releases) |
 
-There are also platform-specific dependencies. One lets OpenMM run on macOS. Others let Swift run on Linux and Windows.
+There are also platform-specific dependencies:
 
 Dependencies (Mac)
 - macOS 14
@@ -56,6 +56,10 @@ The renderer itself <b>does not run on Linux or Windows</b>. Support for Windows
 TODO: Document the controls. Provide tutorials for professionals screenshots and GIF animations.
 
 Known issues:
-- The UI often freezes unpredictably. You then have to wait ~10 seconds for it to become responsive again. This is likely a symptom of requiring perfect synchronization with the frame refresh period.
+- The UI often freezes unpredictably. You then have to wait ~10 seconds for it to become responsive again. The freeze is very difficult to reproduce.
 - There is a graphical glitch with high-quality screenshots, when objects are very far away.
 - MetalFX upscaling quality degrades when motion vectors are incorrect. Need better documentation of when this might happen.
+
+> Build failed because HDL.swiftmodule is not built for arm64e. Please try a run destination with a different architecture.
+
+This error occurs often when downloading the renderer from the internet. Click <b>Change run destination</b> to switch from <b>My Mac (arm64e)</b> to <b>My Mac (arm64)</b>.
