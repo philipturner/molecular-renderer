@@ -7,7 +7,7 @@
       "location" : "https://github.com/philipturner/HDL",
       "state" : {
         "branch" : "main",
-        "revision" : "79d3baa33539554d67c851b8b809b415c5376df6"
+        "revision" : "f59485152cb7ff83c1243b756cf07e2a623d354f"
       }
     },
     {
@@ -25,7 +25,7 @@
       "location" : "https://github.com/philipturner/MM4",
       "state" : {
         "branch" : "main",
-        "revision" : "b73d120cee43f0997ab34f55710c47d859cc7349"
+        "revision" : "2858fb24a8e9a2feba726278d0f040eb535b6bd9"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/philipturner/molecular-renderer",
       "state" : {
         "branch" : "main",
-        "revision" : "efe72189315e7861554d5c09717a2d25614d918d"
+        "revision" : "eedb06b825867183070e72aafb0d2fd3f252f05a"
       }
     },
     {
