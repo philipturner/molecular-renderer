@@ -81,7 +81,7 @@ public:
     
     float maxTargetDistance;
     if (params.get_has_max_time()) {
-      const float voxel_size = voxel_width_numer / voxel_width_denom;
+      const float voxel_size = 0.25;
       maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * voxel_size;
     }
     
@@ -98,11 +98,7 @@ public:
           dda.continue_loop = false;
         }
         
-#if SCENE_SIZE_EXTREME
-        uint voxel_count = voxel_data[0];
-#else
         uint voxel_count = voxel_data & voxel_count_mask;
-#endif
         if (voxel_count == 0) {
           continue_fast_forward = dda.continue_loop;
         } else {
@@ -119,13 +115,8 @@ public:
         }
         result.distance = target_distance;
         
-#if SCENE_SIZE_EXTREME
-        uint count = voxel_data[0] & 0xFF;
-        uint offset = voxel_data[1];
-#else
         uint count = reverse_bits(voxel_data & voxel_count_mask);
         uint offset = voxel_data & voxel_offset_mask;
-#endif
         uint upper_bound = offset + count;
         for (; offset < upper_bound; ++offset) {
           uint reference = grid.references[offset];

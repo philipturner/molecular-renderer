@@ -73,10 +73,6 @@ extension Renderer {
     descriptor.width = Int(ContentView.size)
     descriptor.height = Int(ContentView.size)
     descriptor.upscaleFactor = ContentView.upscaleFactor
-    
-    // Debugging performance of BVH construction.
-    descriptor.reportPerformance = true
-    descriptor.sceneSize = .small
 #endif
     
     renderingEngine = MRRenderer(descriptor: descriptor)

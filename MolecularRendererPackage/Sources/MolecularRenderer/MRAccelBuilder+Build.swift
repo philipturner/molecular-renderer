@@ -38,7 +38,6 @@ func denseGridStatistics(
     
     atoms.withUnsafeBufferPointer {
       let baseAddress = OpaquePointer($0.baseAddress!)
-      let voxelSizeInv = voxel_width_denom / voxel_width_numer
       let atomBuffer = UnsafeMutableRawPointer(baseAddress)
         .assumingMemoryBound(to: SIMD4<Float>.self)
       
@@ -49,8 +48,8 @@ func denseGridStatistics(
         elementInstances[elementsOffset &+ element] &+= 1
         
         let radius = Float(styles[element].radius) + epsilon
-        let lowerBound = ((atom - radius) * voxelSizeInv)
-        let upperBound = ((atom + radius) * voxelSizeInv)
+        let lowerBound = ((atom - radius) / 0.25)
+        let upperBound = ((atom + radius) / 0.25)
         return upperBound.rounded(.down) - lowerBound.rounded(.down) + 1
       }
       
@@ -142,7 +141,7 @@ func denseGridStatistics(
   for i in 0..<styles.count {
     let radius = Float(styles[i].radius)
     let cellSpan = 1 + ceil(
-      (2 * radius + epsilon) * voxel_width_denom / voxel_width_numer)
+      (2 * radius + epsilon) / 0.25)
     
     let instances = elementInstances[i]
     let presentMask: Float = (instances > 0) ? 1 : 0
@@ -159,17 +158,8 @@ extension MRAccelBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {
-    if sceneSize == .extreme, builtGrid {
-      return
-    }
-    builtGrid = true
-    
-    guard let sceneSize else {
-      fatalError("Voxel size denominator not set.")
-    }
-    
     let voxel_width_numer: Float = 4
-    let voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
+    let voxel_width_denom: Float = 16
     let preprocessingStart = CACurrentMediaTime()
     var statistics = denseGridStatistics(
       atoms: atoms,
@@ -188,17 +178,15 @@ extension MRAccelBuilder {
                                statistics.boundingBox.1.z)
     let maxMagnitude = simd_max(abs(minCoordinates), abs(maxCoordinates))
     self.gridDims = SIMD3<UInt16>(2 * ceil(
-      maxMagnitude * voxel_width_denom / voxel_width_numer))
+      maxMagnitude / 0.25))
     
     // If some atoms fly extremely far out of bounds, prevent the app from
     // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
     // creates a 2 GB memory allocation.
     self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
     let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
-    if sceneSize != .extreme {
-      guard statistics.references < 16 * 1024 * 1024 else {
-        fatalError("Too many references for a dense grid.")
-      }
+    guard statistics.references < 64 * 1024 * 1024 else {
+      fatalError("Too many references for a dense grid.")
     }
     
     // Allocate new memory.
@@ -212,10 +200,9 @@ extension MRAccelBuilder {
     // Add 8 to the number of slots, so the counters can be located at the start
     // of the buffer.
     let numSlots = (totalCells + 127) / 128 * 128
-    let atomicSpan = (sceneSize == .extreme) ? 2 : 1
     let dataBuffer = allocate(
       &denseGridData,
-      desiredElements: 8 + numSlots * atomicSpan,
+      desiredElements: 8 + numSlots,
       bytesPerElement: 4)
     let countersBuffer = allocate(
       &denseGridCounters,
@@ -282,7 +269,7 @@ extension MRAccelBuilder {
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)
     encoder.dispatchThreads(
-      MTLSizeMake(8 + numSlots * atomicSpan, 1, 1),
+      MTLSizeMake(8 + numSlots, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
     
     struct UniformGridArguments {
@@ -294,7 +281,7 @@ extension MRAccelBuilder {
     var arguments: UniformGridArguments = .init(
       gridDims: gridDims,
       cellSphereTest: 1,
-      worldToVoxelTransform: voxel_width_denom / voxel_width_numer)
+      worldToVoxelTransform: 1.0 / 0.25)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     

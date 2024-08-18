@@ -110,30 +110,6 @@ MRAtom {
       packed_float3(max)
     };
   }
-  
-  ushort hash() const {
-    uint3 upper12(as_type<uint>(origin.x),
-                  as_type<uint>(origin.y),
-                  as_type<uint>(origin.z));
-    uint hash32 = upper12[0] ^ upper12[1] ^ upper12[2];
-    
-    // Breaks commutativity among elements of the vector.
-    constexpr float multiplier_1 = 2.548385;
-    constexpr float multiplier_2 = 3.379348;
-    float fhash = fma(origin.y, multiplier_2, origin.z);
-    fhash = fma(origin.x, multiplier_1, fhash);
-    hash32 *= as_type<uint>(fhash);
-    
-    ushort2 halves = as_type<ushort2>(hash32);
-    ushort hash16 = halves[0] ^ halves[1];
-    
-    // If two elements have the same radius, we can theoretically overwrite the
-    // previous buffer in-place. No need to factor atomic number into the hash.
-    ushort upper2 = as_type<ushort>(radiusSquared);
-    hash32 = uint(hash16 * upper2);
-    halves = as_type<ushort2>(hash32);
-    return halves[1];
-  }
 };
 
 struct __attribute__((aligned(16)))

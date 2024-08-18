@@ -161,7 +161,6 @@ public class MRRenderer {
     let library = try! device.makeLibrary(URL: descriptor.url!)
     self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
     accelBuilder.reportPerformance = descriptor.reportPerformance
-    accelBuilder.sceneSize = descriptor.sceneSize
     
     if !offline {
       initUpscaler()
@@ -220,10 +219,7 @@ public class MRRenderer {
     var voxel_width_numer: Float = 4
     constants.setConstantValue(&voxel_width_numer, type: .float, index: 10)
     
-    guard let sceneSize = accelBuilder.sceneSize else {
-      fatalError("Voxel size denominator not set.")
-    }
-    var voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
+    var voxel_width_denom: Float = 16
     constants.setConstantValue(&voxel_width_denom, type: .float, index: 11)
     
     // Initialize the compute pipeline.

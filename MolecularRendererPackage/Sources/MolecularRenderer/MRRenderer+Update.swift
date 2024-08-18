@@ -51,10 +51,6 @@ extension MRRenderer {
   }
   
   func updateGeometry(time: MRTime) {
-    if accelBuilder.sceneSize == .extreme, accelBuilder.builtGrid {
-      return
-    }
-    
     var atoms = atomProvider.atoms(time: time)
     let styles = atomStyleProvider.styles
     let available = atomStyleProvider.available

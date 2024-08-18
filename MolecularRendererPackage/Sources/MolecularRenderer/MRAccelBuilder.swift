@@ -51,10 +51,8 @@ class MRAccelBuilder {
   static let frameReportHistorySize: Int = 10
   
   // Data for uniform grids.
-  var sceneSize: MRSceneSize?
   var gridDims: SIMD3<UInt16> = .zero
   var ringIndex: Int = 0
-  var builtGrid: Bool = false
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
@@ -160,9 +158,6 @@ extension MRAccelBuilder {
 // Only call these methods once per frame.
 extension MRAccelBuilder {
   func updateResources() {
-    if sceneSize == .extreme, builtGrid {
-      return
-    }
     ringIndex = (ringIndex + 1) % 3
     
     // Generate or fetch a buffer.

@@ -10,10 +10,8 @@
 #include "UniformGrid.metal"
 using namespace metal;
 
-#define PROFILE_OCCUPIED_CELLS 0
-
 #define DENSE_BOX_GENERATE(EXTREMUM) \
-box.EXTREMUM *= args.world_to_voxel_transform; \
+box.EXTREMUM /= 0.25; \
 box.EXTREMUM += float3(h_grid_dims) * 0.5; \
 ushort3 box_##EXTREMUM; \
 {\
@@ -25,12 +23,6 @@ box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 #define DENSE_BOX_LOOP(COORD) \
 for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
 
-#if SCENE_SIZE_EXTREME
-#define ATOMIC_SPAN 2
-#else
-#define ATOMIC_SPAN 1
-#endif
-
 struct Box {
   float3 min;
   float3 max;
@@ -39,7 +31,6 @@ struct Box {
 struct DenseGridArguments {
   ushort3 grid_dims;
   ushort cell_sphere_test;
-  float world_to_voxel_transform;
 };
 
 // MARK: - Pass 1
@@ -82,10 +73,9 @@ kernel void dense_grid_pass1
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
-  float3 origin = atom.origin * args.world_to_voxel_transform;
+  float3 origin = atom.origin / 0.25;
   origin += float3(h_grid_dims) * 0.5;
-  float radiusSquared = atom.radiusSquared * args.world_to_voxel_transform;
-  radiusSquared *= args.world_to_voxel_transform;
+  float radiusSquared = atom.radiusSquared / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_dims, box_min);
@@ -99,7 +89,7 @@ kernel void dense_grid_pass1
           mark = cube_sphere_intersection({ x, y, z }, origin, radiusSquared);
         }
         if (mark) {
-          atomic_fetch_add(dense_grid_data + address_x * ATOMIC_SPAN, 1);
+          atomic_fetch_add(dense_grid_data + address_x, 1);
         }
         address_x += VoxelAddress::increment_x(grid_dims);
       }
@@ -118,10 +108,6 @@ kernel void dense_grid_pass2
  device uint *dense_grid_counters [[buffer(4)]],
  device atomic_uint *global_counter [[buffer(5)]],
  
-#if PROFILE_OCCUPIED_CELLS
- device atomic_uint *global_counter_2 [[buffer(7)]],
-#endif
- 
  // 128 threads/threadgroup
  uint tid [[thread_position_in_grid]],
  ushort sidx [[simdgroup_index_in_threadgroup]],
@@ -129,23 +115,12 @@ kernel void dense_grid_pass2
 {
   // Allocate extra cells if the total number isn't divisible by 128. The first
   // pass should zero them out.
-  uint voxel_count = dense_grid_data[tid * ATOMIC_SPAN];
+  uint voxel_count = dense_grid_data[tid];
   uint prefix_sum_results = simd_prefix_exclusive_sum(voxel_count);
   
-#if PROFILE_OCCUPIED_CELLS
-  uint ballot = simd_vote::vote_t(simd_ballot(voxel_count > 0));
-  ballot = popcount(ballot);
-#endif
-  
   threadgroup uint group_results[4];
-#if PROFILE_OCCUPIED_CELLS
-  threadgroup uint group_results_2[4];
-#endif
   if (lane_id == 31) {
     group_results[sidx] = prefix_sum_results + voxel_count;
-#if PROFILE_OCCUPIED_CELLS
-    group_results_2[sidx] = ballot;
-#endif
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
@@ -153,11 +128,6 @@ kernel void dense_grid_pass2
   if (sidx == 0 && lane_id < 4) {
     uint voxel_count = group_results[lane_id];
     uint prefix_sum_results = quad_prefix_exclusive_sum(voxel_count);
-    
-#if PROFILE_OCCUPIED_CELLS
-    uint ballot = group_results_2[lane_id];
-    ballot = quad_sum(ballot);
-#endif
     
     // Increment device atomic.
 #pragma clang diagnostic push
@@ -168,10 +138,6 @@ kernel void dense_grid_pass2
       group_offset = atomic_fetch_add_explicit
       (
        global_counter, total_voxel_count, memory_order_relaxed);
-      
-#if PROFILE_OCCUPIED_CELLS
-      atomic_fetch_add_explicit(global_counter_2, ballot, memory_order_relaxed);
-#endif
     }
     prefix_sum_results += quad_broadcast(group_offset, 3);
 #pragma clang diagnostic pop
@@ -187,13 +153,9 @@ kernel void dense_grid_pass2
   voxel_count = next_offset - prefix_sum_results;
   
   // Overwrite contents of the grid.
-#if SCENE_SIZE_EXTREME
-  ((device uint2*)dense_grid_data)[tid] = { voxel_count, prefix_sum_results };
-#else
   uint count_part = reverse_bits(voxel_count) & voxel_count_mask;
   uint offset_part = prefix_sum_results & voxel_offset_mask;
   dense_grid_data[tid] = count_part | offset_part;
-#endif
   dense_grid_counters[tid] = prefix_sum_results;
 }
 
@@ -217,10 +179,9 @@ kernel void dense_grid_pass3
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
-  float3 origin = atom.origin * args.world_to_voxel_transform;
+  float3 origin = atom.origin / 0.25;
   origin += float3(h_grid_dims) * 0.5;
-  float radiusSquared = atom.radiusSquared * args.world_to_voxel_transform;
-  radiusSquared *= args.world_to_voxel_transform;
+  float radiusSquared = atom.radiusSquared / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_dims, box_min);

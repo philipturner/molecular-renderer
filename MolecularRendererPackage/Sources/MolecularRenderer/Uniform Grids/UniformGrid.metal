@@ -49,16 +49,6 @@ public:
   device MRAtom *atoms;
 };
 
-class ElectronGrid {
-public:
-  ushort3 dimensions;
-  short3 corner;
-  
-  // Probability density in electrons per cubic nanometer.
-  device float *density;
-  device half4 *colors;
-};
-
 // Sources:
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
@@ -86,7 +76,7 @@ public:
     
     // The grid's coordinate space is in half-nanometers.
     // NOTE: This scales `t` by a factor of 0.444/2.25.
-    ray.origin *= voxel_width_denom / voxel_width_numer;
+    ray.origin /= 0.25;
     
     // Dense grids start at an offset from the origin.
     // NOTE: This does not change `t`.
@@ -106,7 +96,7 @@ public:
     continue_loop = (tmin < tmax);
     ray.origin += tmin * float3(ray.direction);
     ray.origin = clamp(ray.origin, float(0), float3(h_grid_dims));
-    this->tmin = tmin * voxel_width_numer / voxel_width_denom;
+    this->tmin = tmin * 0.25;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
@@ -131,7 +121,7 @@ public:
   }
   
   float get_max_accepted_t() {
-    return tmin + voxel_tmax * voxel_width_numer / voxel_width_denom;
+    return tmin + voxel_tmax * 0.25;
   }
   
   void increment_position() {
