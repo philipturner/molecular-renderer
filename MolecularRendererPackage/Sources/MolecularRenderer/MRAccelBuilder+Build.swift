@@ -177,8 +177,7 @@ extension MRAccelBuilder {
                                statistics.boundingBox.1.y,
                                statistics.boundingBox.1.z)
     let maxMagnitude = simd_max(abs(minCoordinates), abs(maxCoordinates))
-    self.gridDims = SIMD3<UInt16>(2 * ceil(
-      maxMagnitude))
+    self.gridDims = SIMD3<Int16>(2 * ceil(maxMagnitude))
     
     // If some atoms fly extremely far out of bounds, prevent the app from
     // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
@@ -273,15 +272,15 @@ extension MRAccelBuilder {
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
     
     struct UniformGridArguments {
-      var gridDims: SIMD3<UInt16>
+      var worldOrigin: SIMD3<Int16>
+      var worldDimensions: SIMD3<Int16>
       var cellSphereTest: UInt16
-      var worldToVoxelTransform: Float
     }
     
     var arguments: UniformGridArguments = .init(
-      gridDims: gridDims,
-      cellSphereTest: 1,
-      worldToVoxelTransform: 1.0 / 0.25)
+      worldOrigin: -gridDims / 2,
+      worldDimensions: gridDims,
+      cellSphereTest: 1)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     

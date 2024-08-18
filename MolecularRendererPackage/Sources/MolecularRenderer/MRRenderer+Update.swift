@@ -28,7 +28,8 @@ struct Arguments {
   var minimumAmbientIllumination: Float
   var diffuseReflectanceScale: Float
   
-  var denseDims: SIMD3<UInt16>
+  var worldOrigin: SIMD3<Int16>
+  var worldDimensions: SIMD3<Int16>
 }
 
 extension MRRenderer {
@@ -163,7 +164,8 @@ extension MRRenderer {
       minimumAmbientIllumination: minimumAmbientIllumination,
       diffuseReflectanceScale: diffuseReflectanceScale,
       
-      denseDims: .zero)
+      worldOrigin: .zero,
+      worldDimensions: .zero)
     
     let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
     if lightsBuffer.length < desiredSize {

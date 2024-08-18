@@ -64,7 +64,8 @@ Arguments {
   float diffuseReflectanceScale;
   
   // Uniform grid arguments.
-  ushort3 world_dims;
+  short3 world_origin;
+  short3 world_dims;
 };
 
 #pragma clang diagnostic pop

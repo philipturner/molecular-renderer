@@ -44,7 +44,7 @@ kernel void renderAtoms
   
   // Initialize the uniform grid.
   DenseGrid grid {
-    args->world_dims,
+    ushort3(args->world_dims),
     dense_grid_data,
     dense_grid_references,
     atoms
