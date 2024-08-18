@@ -23,6 +23,8 @@ func createGeometry() -> [Entity] {
   paramsDesc.bonds = topology.bonds
   let parameters = try! MM4Parameters(descriptor: paramsDesc)
   
+  print(parameters.nonbondedExceptions13.count)
+  
   var forceFieldDesc = MM4ForceFieldDescriptor()
   forceFieldDesc.parameters = parameters
   let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
@@ -37,6 +39,19 @@ func createGeometry() -> [Entity] {
   // -550953.9609375
   // -550953.96875
   // -550953.96875
+  // -550953.953125
+  // -550953.9453125
+  // -550953.953125
+  //
+  // After the change:
+  //
+  // -550953.9609375
+  // -550953.953125
+  // -550953.9609375
+  // -550953.9609375
+  // -550953.9609375
+  // -550953.953125
+  // -550953.9609375
   // -550953.953125
   // -550953.9453125
   // -550953.953125
@@ -56,6 +71,19 @@ func createGeometry() -> [Entity] {
   // -559768.3671875
   // -559768.390625
   // -559768.3828125
+  //
+  // After the change:
+  //
+  // -559767.875
+  // -559768.3671875
+  // -559768.375
+  // -559768.0703125
+  // -559768.375
+  // -559768.359375
+  // -559768.0625
+  // -559768.3671875
+  // -559768.375
+  // -559768.0625
   print(forceField.energy.potential)
   
   for atomID in topology.atoms.indices {

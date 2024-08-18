@@ -1558,7 +1558,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/philipturner/MM4";
 			requirement = {
-				branch = main;
+				branch = "public-api-fixes";
 				kind = branch;
 			};
 		};
