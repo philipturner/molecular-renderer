@@ -20,19 +20,45 @@ func createGeometry() -> [Entity] {
   
   // Diamond
   //
-  //              | Cell Size |
-  // ------------ | --------- |
-  //  5 x  5 x  5 |
-  // 10 x 10 x 10 |
-  // 20 x 20 x 20 |
-  // 30 x 30 x 30 |
-  // 40 x 40 x 40 |
-  // 50 x 50 x 50 |
-  // 60 x 60 x 60 |
-  // 70 x 70 x 70 |
+  //              | Cell Size | Prep.  | Copy   | Geom.  | Render
+  // ------------ | --------- | ------ | ------ | ------ | ------
+  //  5 x  5 x  5 |   0.25 nm |     22 |      2 |     79 |   2018
+  // 10 x 10 x 10 |   0.25 nm |    119 |      9 |     91 |   2633
+  // 20 x 20 x 20 |   0.25 nm |    709 |     46 |    265 |   1781
+  // 30 x 30 x 30 |   0.25 nm |    358 |     68 |    742 |   2700
+  // 40 x 40 x 40 |   0.25 nm |    474 |    207 |   1474 |   2589
+  // 50 x 50 x 50 |   0.25 nm |    743 |    344 |   2513 |   2301
+  // 60 x 60 x 60 |   0.50 nm |   1080 |    580 |   2939 |   4093
+  // 70 x 70 x 70 |   0.50 nm |   1538 |    923 |   3550 |   2944
+  
+  // Silicon Carbide
+  //
+  //              | Cell Size | Prep.  | Copy   | Geom.  | Render
+  // ------------ | --------- | ------ | ------ | ------ | ------
+  //  5 x  5 x  5 |   0.25 nm |     45 |      5 |     89 |   1984
+  // 10 x 10 x 10 |   0.25 nm |    129 |      9 |    108 |   2428
+  // 20 x 20 x 20 |   0.25 nm |    693 |     48 |    342 |   1739
+  // 30 x 30 x 30 |   0.25 nm |    432 |     87 |    911 |   2389
+  // 40 x 40 x 40 |   0.25 nm |    471 |    210 |   1773 |   2034
+  // 50 x 50 x 50 |   0.25 nm |    754 |    356 |   2711 |   1942
+  // 60 x 60 x 60 |   0.50 nm |   1146 |    577 |   2986 |   3577
+  // 70 x 70 x 70 |   0.50 nm |   1625 |    908 |   3263 |   2501
+  
+  // Silicon
+  //
+  //              | Cell Size | Prep.  | Copy   | Geom.  | Render
+  // ------------ | --------- | ------ | ------ | ------ | ------
+  //  5 x  5 x  5 |   0.25 nm |     27 |      2 |     88 |   2060
+  // 10 x 10 x 10 |   0.25 nm |    118 |      8 |    116 |   2494
+  // 20 x 20 x 20 |   0.25 nm |    724 |     48 |    355 |   1932
+  // 30 x 30 x 30 |   0.25 nm |    340 |     78 |    868 |   1726
+  // 40 x 40 x 40 |   0.25 nm |    462 |    193 |   1900 |   1970
+  // 50 x 50 x 50 |   0.25 nm |    731 |    330 |   3289 |   1938
+  // 60 x 60 x 60 |   0.50 nm |   1057 |    565 |   3055 |   3678
+  // 70 x 70 x 70 |   0.50 nm |   1541 |    917 |   3626 |   2523
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 70 * (h + k + l) }
+    Bounds { 5 * (h + k + l) }
     Material { .elemental(.carbon) }
   }
   
@@ -61,58 +87,6 @@ func createGeometry() -> [Entity] {
     
     atom.position = position
     output.append(atom)
-  }
-  
-  if true {
-    print(lattice.atoms.count)
-    print()
-    
-    // Print the volume of the lattice, for various materials.
-    let materials: [MaterialType] = [
-      .elemental(.carbon),
-      .checkerboard(.silicon, .carbon),
-      .elemental(.silicon)
-    ]
-    print("", terminator: " ")
-    for materialID in materials.indices {
-      let material = materials[materialID]
-      
-      let latticeConstant = Constant(.square) { material }
-      let unitCellVolume = latticeConstant * latticeConstant * latticeConstant
-      let atomDensity = 8 / unitCellVolume
-      let volume = Float(lattice.atoms.count) / atomDensity
-      
-      // Use commas to show the number of decimal places.
-      var truncatedVolume = Int(volume.rounded(.toNearestOrEven))
-      var output = ""
-      while truncatedVolume > 0 {
-        // Take the remainder with one thousand.
-        var segment = "\(truncatedVolume % 1000)"
-        truncatedVolume /= 1000
-        
-        // Fill in zeroes.
-        if truncatedVolume > 0 {
-          while segment.count < 3 {
-            segment = "0" + segment
-          }
-        }
-        
-        // Prepend to the output.
-        if output.count > 0 {
-          output = segment + "," + output
-        } else {
-          output = segment + " nm^3"
-        }
-      }
-      
-      // Pad to a uniform spacing.
-      while output.count < 11 {
-        output = " \(output)"
-      }
-      
-      print(output, terminator: (materialID == 2) ? "\n" : " | ")
-    }
-    exit(0)
   }
   
   return output
