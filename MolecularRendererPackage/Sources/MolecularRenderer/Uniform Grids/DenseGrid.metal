@@ -31,6 +31,8 @@ struct Box {
 struct DenseGridArguments {
   short3 world_origin;
   short3 world_dims;
+  
+  // TODO: Wait to remove this. It might affect occupancy.
   ushort cell_sphere_test;
 };
 
@@ -70,12 +72,12 @@ kernel void dense_grid_pass1
   MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort3 grid_dims = ushort3(4 * args.world_dims);
-  half3 h_grid_dims = half3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
-  float3 origin = atom.origin / 0.25;
-  origin += float3(h_grid_dims) * 0.5;
+  float3 origin = atom.origin;
+  origin -= float3(args.world_origin);
+  origin /= 0.25;
   float radiusSquared = atom.radiusSquared / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
@@ -176,12 +178,12 @@ kernel void dense_grid_pass3
   MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
   ushort3 grid_dims = ushort3(4 * args.world_dims);
-  half3 h_grid_dims = half3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
-  float3 origin = atom.origin / 0.25;
-  origin += float3(h_grid_dims) * 0.5;
+  float3 origin = atom.origin;
+  origin -= float3(args.world_origin);
+  origin /= 0.25;
   float radiusSquared = atom.radiusSquared / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.

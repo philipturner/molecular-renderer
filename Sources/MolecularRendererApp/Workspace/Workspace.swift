@@ -3,11 +3,26 @@ import HDL
 import MM4
 import Numerics
 
-// TODO: First, remove all of the different modes. Clean up the code from
+// First, remove all of the different modes. Clean up the code from
 // previous profiling experiments. Make the voxel size being 0.25 nm
 // something hard-coded throughout the codebase. [DONE]
 //
-// Then, proceed with changing how the global bounding box is handled.
+// Then, proceed with changing how the global bounding box is handled. [DONE]
+//
+// Preparing for GPU offloading:
+// - Refactor MolecularRenderer to accept SIMD4<Float>.
+//   - Remove the unused flags feature. Retain the checkerboard texture for
+//     unrecognized elements.
+// - Convert to MRAtom in-place, on the GPU.
+//   - Add a new MRFrameReport section for GPU preprocessing.
+// - Allow the GPU to return early, resulting in a black screen.
+//   - Make the GPU return early when the reference count is too high.
+// - Allocate a fixed amount of memory for the grid.
+//   - Make the GPU return early when the cell count is too high.
+// - Perform reductions on the GPU.
+//   - Start out with one atom per thread, 256 threads per group, and one
+//     global atomic buffer.
+//   - Determine whether a more sophisticated parallel sum is necessary.
 
 func createGeometry() -> [Entity] {
   // Benchmarked Systems
@@ -22,6 +37,8 @@ func createGeometry() -> [Entity] {
   // 50 x 50 x 50 | 1,015,151 atoms |  5,759 nm^3 | 10,517 nm^3 | 20,327 nm^3
   // 60 x 60 x 60 | 1,749,781 atoms |  9,927 nm^3 | 18,128 nm^3 | 35,038 nm^3
   // 70 x 70 x 70 | 2,773,611 atoms | 15,735 nm^3 | 28,735 nm^3 | 55,539 nm^3
+  // 80 x 80 x 80 | 4,134,641 atoms |
+  // 90 x 90 x 90 | 5,880,871 atoms |
   
   // Diamond
   //
@@ -64,11 +81,26 @@ func createGeometry() -> [Entity] {
   
   // Maximum Atom Count
   //
-  //          | 256 atoms/voxel |  64 atoms/voxel |      compact BB |
-  // -------- | --------------- | --------------- | --------------- |
+  //          | 256 atoms/voxel |  64 atoms/voxel | GPU reduction |
+  // -------- | --------------- | --------------- | ------------- |
   //   C(100) |       1,664,096 |       6,697,971 |
   // SiC(100) |       1,423,913 |       5,687,546 |
   //  Si(100) |       1,208,030 |       4,784,221 |
+  
+  // Diamond (Compact Global BB)
+  //
+  //              | Prep.  | Copy   | Geom.  | Render | FPS
+  // ------------ | ------ | ------ | ------ | ------ | ---
+  //  5 x  5 x  5 |     39 |      4 |     89 |   2089 | 120
+  // 10 x 10 x 10 |    142 |     10 |     94 |   2418 | 120
+  // 20 x 20 x 20 |    513 |     46 |    321 |   2754 | 120
+  // 30 x 30 x 30 |    495 |     88 |    777 |   2665 | 120
+  // 40 x 40 x 40 |    483 |    205 |   1773 |   2181 | 120
+  // 50 x 50 x 50 |    726 |    362 |   2553 |   1762 | 120
+  // 60 x 60 x 60 |   1091 |    581 |   4739 |   2070 |  65
+  // 70 x 70 x 70 |   1567 |    943 |   6318 |   1891 |  42
+  // 80 x 80 x 80 |   2262 |   1361 |   9974 |   2158 |  31
+  // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 10 * (h + k + l) }

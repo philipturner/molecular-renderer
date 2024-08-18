@@ -43,7 +43,8 @@ public:
 
 class DenseGrid {
 public:
-  ushort3 dims;
+  short3 world_origin;
+  short3 world_dims;
   device VOXEL_DATA *data;
   device uint *references;
   device MRAtom *atoms;
@@ -69,25 +70,21 @@ public:
   bool continue_loop;
   
   // world_dims: Dimensions of the world bounding box (in nm).
-  DenseDDA(Ray<T> ray, ushort3 world_dims) {
-    half3 h_grid_dims = half3(4 * world_dims);
+  DenseDDA(Ray<T> ray, short3 world_origin, short3 world_dims) {
+    grid_dims = ushort3(4 * world_dims);
+    
     float tmin = 0;
     float tmax = INFINITY;
     dt = precise::divide(1, float3(ray.direction));
     
-    // The grid's coordinate space is in half-nanometers.
-    // NOTE: This scales `t` by a factor of 0.444/2.25.
+    ray.origin -= float3(world_origin);
     ray.origin /= 0.25;
-    
-    // Dense grids start at an offset from the origin.
-    // NOTE: This does not change `t`.
-    ray.origin += float3(h_grid_dims) * 0.5;
     
     // Perform a ray-box intersection test.
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float t1 = (0 - ray.origin[i]) * dt[i];
-      float t2 = (h_grid_dims[i] - ray.origin[i]) * dt[i];
+      float t2 = (float(grid_dims[i]) - ray.origin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
@@ -96,7 +93,7 @@ public:
     // NOTE: This translates `t` by an offset of `tmin`.
     continue_loop = (tmin < tmax);
     ray.origin += tmin * float3(ray.direction);
-    ray.origin = clamp(ray.origin, float(0), float3(h_grid_dims));
+    ray.origin = clamp(ray.origin, float3(0), float3(grid_dims));
     this->tmin = tmin * 0.25;
     
 #pragma clang loop unroll(full)
@@ -104,7 +101,7 @@ public:
       float origin = ray.origin[i];
       
       if (ray.direction[i] < 0) {
-        origin = h_grid_dims[i] - origin;
+        origin = float(grid_dims[i]) - origin;
       }
       position[i] = ushort(origin);
       
@@ -115,10 +112,9 @@ public:
       t[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
     }
     
-    this->grid_dims = 4 * world_dims;
-    ushort3 neg_position = this->grid_dims - 1 - position;
+    ushort3 neg_position = grid_dims - 1 - position;
     ushort3 actual_position = select(position, neg_position, dt < 0);
-    address = VoxelAddress::generate(4 * world_dims, actual_position);
+    address = VoxelAddress::generate(grid_dims, actual_position);
   }
   
   float get_max_accepted_t() {

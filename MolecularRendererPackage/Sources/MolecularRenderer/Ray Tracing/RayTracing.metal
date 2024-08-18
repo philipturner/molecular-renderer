@@ -76,7 +76,7 @@ public:
   (
    Ray<T> ray, DenseGrid grid, IntersectionParams params)
   {
-    DenseDDA<T> dda(ray, grid.dims);
+    DenseDDA<T> dda(ray, grid.world_origin, grid.world_dims);
     _IntersectionResult result { MAXFLOAT, false };
     
     float maxTargetDistance;

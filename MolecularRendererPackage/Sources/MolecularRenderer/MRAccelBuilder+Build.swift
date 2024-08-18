@@ -170,20 +170,32 @@ extension MRAccelBuilder {
     
     
     
-    let minCoordinates = SIMD3(statistics.boundingBox.0.x,
+    var minCoordinates = SIMD3(statistics.boundingBox.0.x,
                                statistics.boundingBox.0.y,
                                statistics.boundingBox.0.z)
-    let maxCoordinates = SIMD3(statistics.boundingBox.1.x,
+    var maxCoordinates = SIMD3(statistics.boundingBox.1.x,
                                statistics.boundingBox.1.y,
                                statistics.boundingBox.1.z)
-    let maxMagnitude = simd_max(abs(minCoordinates), abs(maxCoordinates))
-    self.gridDims = SIMD3<Int16>(2 * ceil(maxMagnitude))
+    minCoordinates.round(.down)
+    maxCoordinates.round(.up)
+    self.worldOrigin = SIMD3<Int16>(minCoordinates)
+    self.worldDimensions = SIMD3<Int16>(maxCoordinates - minCoordinates)
     
     // If some atoms fly extremely far out of bounds, prevent the app from
     // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
     // creates a 2 GB memory allocation.
-    self.gridDims = simd_min(self.gridDims, .init(repeating: 200))
-    let totalCells = 64 * Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
+    //
+    // This is a half-baked workaround. It may be eliminated once the BVH
+    // construction is offloaded entirely to the GPU.
+    worldOrigin.replace(
+      with: SIMD3(repeating: -100), where: worldOrigin .< -100)
+    worldDimensions.replace(
+      with: SIMD3(repeating: 200), where: worldDimensions .> 200)
+    
+    let totalCells = 64
+    * Int(worldDimensions[0])
+    * Int(worldDimensions[1])
+    * Int(worldDimensions[2])
     guard statistics.references < 64 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }
@@ -278,8 +290,8 @@ extension MRAccelBuilder {
     }
     
     var arguments: UniformGridArguments = .init(
-      worldOrigin: -gridDims / 2,
-      worldDimensions: gridDims,
+      worldOrigin: worldOrigin,
+      worldDimensions: worldDimensions,
       cellSphereTest: 1)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)

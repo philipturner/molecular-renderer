@@ -51,7 +51,8 @@ class MRAccelBuilder {
   static let frameReportHistorySize: Int = 10
   
   // Data for uniform grids.
-  var gridDims: SIMD3<Int16> = .zero
+  var worldOrigin: SIMD3<Int16> = .zero
+  var worldDimensions: SIMD3<Int16> = .zero
   var ringIndex: Int = 0
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
@@ -186,9 +187,10 @@ extension MRAccelBuilder {
 extension MRAccelBuilder {
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
-    precondition(all(gridDims .> 0), "Forgot to encode the grid construction.")
-    arguments.worldOrigin = -gridDims / 2
-    arguments.worldDimensions = gridDims
+    precondition(
+      all(worldDimensions .> 0), "Forgot to encode the grid construction.")
+    arguments.worldOrigin = worldOrigin
+    arguments.worldDimensions = worldDimensions
   }
   
   // For extreme systems, cell this repeatedly and only call 'buildDenseGrid'

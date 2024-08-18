@@ -73,7 +73,7 @@ extension Renderer {
     descriptor.width = Int(ContentView.size)
     descriptor.height = Int(ContentView.size)
     descriptor.upscaleFactor = ContentView.upscaleFactor
-    descriptor.reportPerformance = false
+    descriptor.reportPerformance = true
 #endif
     
     renderingEngine = MRRenderer(descriptor: descriptor)
