@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-func createGeometry() -> [Entity] {
+func createGeometry() -> [[Entity]] {
   let lattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
     Bounds { 10 * h + 10 * h2k + 5 * l }
@@ -93,5 +93,56 @@ func createGeometry() -> [Entity] {
     topology.atoms[atomID] = atom
   }
   
-  return topology.atoms
+  // MARK: - Set up a physics simulation.
+  
+  var rigidBodyDesc = MM4RigidBodyDescriptor()
+  rigidBodyDesc.masses = topology.atoms.map {
+    MM4Parameters.mass(atomicNumber: $0.atomicNumber)
+  }
+  rigidBodyDesc.positions = topology.atoms.map(\.position)
+  var rigidBody = try! MM4RigidBody(descriptor: rigidBodyDesc)
+  
+  // angular velocity
+  // - one revolution in 10 picoseconds
+  // - r is about 3 nm
+  // - v = 0.500 nm/ps
+  //
+  // v = wr
+  // w = v / r = 0.167 rad/ps
+  // 1 revolution in 37 picoseconds
+  // validate that this hypothesis is correct with an MD simulation
+  guard rigidBody.principalAxes.0.z.magnitude > 0.999 else {
+    fatalError("z axis was not the first principal axis.")
+  }
+  let angularVelocity = SIMD3<Double>(0.167, 0, 0)
+  rigidBody.angularMomentum = angularVelocity * rigidBody.momentOfInertia
+  
+  forceField.positions = rigidBody.positions
+  forceField.velocities = rigidBody.velocities
+  
+  // MARK: - Record simulation frames for playback.
+  
+  var frames: [[Entity]] = []
+  for frameID in 0...600 {
+    let time = Double(frameID) * 0.010
+    print("frame = \(frameID)", terminator: " | ")
+    print("time = \(String(format: "%.2f", time))")
+    
+    if frameID > 0 {
+      // 0.010 ps * 600
+      // 6 ps total, 1.2 ps/s playback rate
+      forceField.simulate(time: 0.010)
+    }
+    
+    var frame: [Entity] = []
+    for atomID in parameters.atoms.indices {
+      let atomicNumber = parameters.atoms.atomicNumbers[atomID]
+      let position = forceField.positions[atomID]
+      let storage = SIMD4(position, Float(atomicNumber))
+      frame.append(Entity(storage: storage))
+    }
+    frames.append(frame)
+  }
+  
+  return frames
 }
