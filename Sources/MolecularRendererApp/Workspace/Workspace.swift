@@ -123,7 +123,7 @@ func createGeometry() -> [[Entity]] {
   // MARK: - Record simulation frames for playback.
   
   var frames: [[Entity]] = []
-  for frameID in 0...600 {
+  for frameID in 0...100 {
     let time = Double(frameID) * 0.010
     print("frame = \(frameID)", terminator: " | ")
     print("time = \(String(format: "%.2f", time))")
