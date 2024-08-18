@@ -178,13 +178,13 @@ extension MRAccelBuilder {
                                statistics.boundingBox.1.z)
     let maxMagnitude = simd_max(abs(minCoordinates), abs(maxCoordinates))
     self.gridDims = SIMD3<UInt16>(2 * ceil(
-      maxMagnitude / 0.25))
+      maxMagnitude))
     
     // If some atoms fly extremely far out of bounds, prevent the app from
     // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
     // creates a 2 GB memory allocation.
-    self.gridDims = simd_min(self.gridDims, .init(repeating: 800))
-    let totalCells = Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
+    self.gridDims = simd_min(self.gridDims, .init(repeating: 200))
+    let totalCells = 64 * Int(gridDims[0]) * Int(gridDims[1]) * Int(gridDims[2])
     guard statistics.references < 64 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }

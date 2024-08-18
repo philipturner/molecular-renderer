@@ -21,9 +21,9 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 constant bool OFFLINE [[function_constant(2)]];
 
-// Max 16 million atoms/dense grid, including duplicated references.
+// Max 64 million atoms/dense grid, including duplicated references.
 // Max ~5 million atoms/dense grid, excluding duplicated references.
-// Max 256 references/voxel.
+// Max 64 references/voxel.
 constant uint dense_grid_reference_capacity = 64 * 1024 * 1024;
 
 // Count is stored in opposite-endian order to the offset.
@@ -64,7 +64,7 @@ Arguments {
   float diffuseReflectanceScale;
   
   // Uniform grid arguments.
-  ushort3 dense_dims;
+  ushort3 world_dims;
 };
 
 #pragma clang diagnostic pop

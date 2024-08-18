@@ -68,8 +68,9 @@ public:
   uint address;
   bool continue_loop;
   
-  DenseDDA(Ray<T> ray, ushort3 grid_dims) {
-    half3 h_grid_dims = half3(grid_dims);
+  // world_dims: Dimensions of the world bounding box (in nm).
+  DenseDDA(Ray<T> ray, ushort3 world_dims) {
+    half3 h_grid_dims = half3(4 * world_dims);
     float tmin = 0;
     float tmax = INFINITY;
     dt = precise::divide(1, float3(ray.direction));
@@ -114,10 +115,10 @@ public:
       t[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
     }
     
-    this->grid_dims = grid_dims;
+    this->grid_dims = 4 * world_dims;
     ushort3 neg_position = this->grid_dims - 1 - position;
     ushort3 actual_position = select(position, neg_position, dt < 0);
-    address = VoxelAddress::generate(grid_dims, actual_position);
+    address = VoxelAddress::generate(4 * world_dims, actual_position);
   }
   
   float get_max_accepted_t() {

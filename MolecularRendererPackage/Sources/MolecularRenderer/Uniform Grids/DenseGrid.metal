@@ -29,7 +29,7 @@ struct Box {
 };
 
 struct DenseGridArguments {
-  ushort3 grid_dims;
+  ushort3 world_dims;
   ushort cell_sphere_test;
 };
 
@@ -68,8 +68,8 @@ kernel void dense_grid_pass1
 {
   MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
-  ushort3 grid_dims = args.grid_dims;
-  half3 h_grid_dims = half3(args.grid_dims);
+  ushort3 grid_dims = 4 * args.world_dims;
+  half3 h_grid_dims = half3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
@@ -174,8 +174,8 @@ kernel void dense_grid_pass3
 {
   MRAtom atom(atoms + tid);
   MRBoundingBox box = atom.getBoundingBox(styles);
-  ushort3 grid_dims = args.grid_dims;
-  half3 h_grid_dims = half3(args.grid_dims);
+  ushort3 grid_dims = 4 * args.world_dims;
+  half3 h_grid_dims = half3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   

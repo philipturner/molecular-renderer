@@ -5,10 +5,9 @@ import Numerics
 
 // TODO: First, remove all of the different modes. Clean up the code from
 // previous profiling experiments. Make the voxel size being 0.25 nm
-// something hard-coded throughout the codebase.
+// something hard-coded throughout the codebase. [DONE]
 //
 // Then, proceed with changing how the global bounding box is handled.
-
 
 func createGeometry() -> [Entity] {
   // Benchmarked Systems
@@ -67,9 +66,9 @@ func createGeometry() -> [Entity] {
   //
   //          | 256 atoms/voxel |  64 atoms/voxel |      compact BB |
   // -------- | --------------- | --------------- | --------------- |
-  //   C(100) |       1,664,096 |
-  // SiC(100) |       1,423,913 |
-  //  Si(100) |       1,208,030 |
+  //   C(100) |       1,664,096 |       6,697,971 |
+  // SiC(100) |       1,423,913 |       5,687,546 |
+  //  Si(100) |       1,208,030 |       4,784,221 |
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 10 * (h + k + l) }
