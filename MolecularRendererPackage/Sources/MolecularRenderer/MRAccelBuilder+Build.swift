@@ -170,52 +170,15 @@ extension MRAccelBuilder {
     
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = (sceneSize == .small) ? 16 : 8
-    let statisticsStart = CACurrentMediaTime()
+    let preprocessingStart = CACurrentMediaTime()
     var statistics = denseGridStatistics(
       atoms: atoms,
       styles: styles,
       voxel_width_numer: voxel_width_numer,
       voxel_width_denom: voxel_width_denom)
-    let statisticsEnd = CACurrentMediaTime()
-    let statisticsDuration = statisticsEnd - statisticsStart
+    let preprocessingEnd = CACurrentMediaTime()
     
-    // The first rendered frame will have an ID of 1.
-    frameReportCounter += 1
-    let performance = frameReportQueue.sync { () -> SIMD3<Double> in
-      // Remove frames too far back in the history.
-      let minimumID = frameReportCounter - Self.frameReportHistorySize
-      while frameReports.count > 0, frameReports.first!.frameID < minimumID {
-        frameReports.removeFirst()
-      }
-      
-      var dataSize: Int = 0
-      var output: SIMD3<Double> = .zero
-      for report in frameReports {
-        if report.geometryTime >= 0, report.renderTime >= 0 {
-          dataSize += 1
-          output[0] += report.preprocessingTime
-          output[1] += report.geometryTime
-          output[2] += report.renderTime
-        }
-      }
-      if dataSize > 0 {
-        output /= Double(dataSize)
-      }
-      
-      let report = MRFrameReport(
-        frameID: frameReportCounter,
-        preprocessingTime: statisticsDuration,
-        geometryTime: 1,
-        renderTime: 1)
-      frameReports.append(report)
-      return output
-    }
-    if reportPerformance, any(performance .> 0) {
-      print(
-        Int(performance[0] * 1e6),
-        Int(performance[1] * 1e6),
-        Int(performance[2] * 1e6))
-    }
+    
     
     let minCoordinates = SIMD3(statistics.boundingBox.0.x,
                                statistics.boundingBox.0.y,
@@ -239,6 +202,7 @@ extension MRAccelBuilder {
     }
     
     // Allocate new memory.
+    let copyingStart = CACurrentMediaTime()
     let atomsBuffer = allocate(
       &denseGridAtoms[ringIndex],
       desiredElements: atoms.count,
@@ -261,6 +225,48 @@ extension MRAccelBuilder {
       &denseGridReferences,
       desiredElements: statistics.references,
       bytesPerElement: 4)
+    let copyingEnd = CACurrentMediaTime()
+    
+    // The first rendered frame will have an ID of 1.
+    frameReportCounter += 1
+    let performance = frameReportQueue.sync { () -> SIMD4<Double> in
+      // Remove frames too far back in the history.
+      let minimumID = frameReportCounter - Self.frameReportHistorySize
+      while frameReports.count > 0, frameReports.first!.frameID < minimumID {
+        frameReports.removeFirst()
+      }
+      
+      var dataSize: Int = 0
+      var output: SIMD4<Double> = .zero
+      for report in frameReports {
+        if report.geometryTime >= 0, report.renderTime >= 0 {
+          dataSize += 1
+          output[0] += report.preprocessingTime
+          output[1] += report.copyingTime
+          output[2] += report.geometryTime
+          output[3] += report.renderTime
+        }
+      }
+      if dataSize > 0 {
+        output /= Double(dataSize)
+      }
+      
+      let report = MRFrameReport(
+        frameID: frameReportCounter,
+        preprocessingTime: preprocessingEnd - preprocessingStart,
+        copyingTime: copyingEnd - copyingStart,
+        geometryTime: 1,
+        renderTime: 1)
+      frameReports.append(report)
+      return output
+    }
+    if reportPerformance, any(performance .> 0) {
+      print(
+        Int(performance[0] * 1e6),
+        Int(performance[1] * 1e6),
+        Int(performance[2] * 1e6),
+        Int(performance[3] * 1e6))
+    }
     
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)

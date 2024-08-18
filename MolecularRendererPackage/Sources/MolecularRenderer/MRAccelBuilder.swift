@@ -19,6 +19,9 @@ struct MRFrameReport {
   // CPU time spent preparing geometry.
   var preprocessingTime: Double
   
+  // CPU time spent copying geometry into GPU buffer.
+  var copyingTime: Double
+  
   // GPU time spent building the uniform grid.
   var geometryTime: Double
   
