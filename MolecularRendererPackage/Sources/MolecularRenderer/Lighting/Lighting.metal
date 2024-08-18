@@ -44,23 +44,8 @@ public:
     this->specularAmbient = 0;
   }
   
-  void setDiffuseColor(MRAtom atom, half3 normal) {
-    if (atom.tailStorage & 0x200) {
-      // Replace the diffuse color with black.
-      diffuseColor = { 0.000, 0.000, 0.000 };
-    } else {
-      diffuseColor = atom.getColor(styles);
-    }
-    
-    // Apply checkerboard to tagged atoms.
-    if (atom.tailStorage & 0x100) {
-      // Determine whether the axes are positive.
-      bool3 axes_pos(normal > 0);
-      bool is_magenta = axes_pos.x ^ axes_pos.y ^ axes_pos.z;
-      
-      half3 magenta(252.0 / 255, 0.0 / 255, 255.0 / 255);
-      diffuseColor = is_magenta ? magenta : diffuseColor;
-    }
+  void setDiffuseColor(MRAtom atom) {
+    diffuseColor = atom.getColor(styles);
   }
   
   void addAmbientContribution(IntersectionResult intersect) {

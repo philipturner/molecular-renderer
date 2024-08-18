@@ -10,19 +10,20 @@ import Numerics
 // Then, proceed with changing how the global bounding box is handled. [DONE]
 //
 // Preparing for GPU offloading:
-// - Refactor MolecularRenderer to accept SIMD4<Float>.
+// - Remove MRAtomStyle and MRAtom from the public API.
+//   - Remove the checkerboard texture and flags. [DONE]
+//   - Remove FP16 and alignment requirements from all public APIs.
+//   - Require users to specify SIMD4<Float> for MRAtom.
+// - Prepare a GPU kernel for the reduction.
 //   - Add a new MRFrameReport section for GPU preprocessing. [DONE]
-//   - Remove the checkerboard texture and flags.
-//   - Set the squared radius on the GPU.
-//   - Request SIMD4<Float> from the public API.
-// - Allow the GPU to return early, resulting in a black screen.
-//   - Make the GPU return early when the reference count is too high.
+//   - Convert atom styles from FP32 to FP16 on the GPU, removing the compiler
+//     error regarding x86_64.
+//   - Assign convert from SIMD4<Float> to MRAtom on the GPU.
 // - Allocate a fixed amount of memory for the grid.
+//   - Allow the GPU to return early, resulting in a black screen.
+//   - Make the GPU return early when the reference count is too high.
 //   - Make the GPU return early when the cell count is too high.
-// - Perform reductions on the GPU.
-//   - Start out with one atom per thread, 256 threads per group, and one
-//     global atomic buffer.
-//   - Determine whether a more sophisticated parallel sum is necessary.
+// - Reduce the global bounding box on the GPU.
 
 func createGeometry() -> [Entity] {
   // Benchmarked Systems
@@ -104,7 +105,7 @@ func createGeometry() -> [Entity] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 10 * (h + k + l) }
-    Material { .elemental(.carbon) }
+    Material { .checkerboard(.carbon, .silicon) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

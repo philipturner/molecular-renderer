@@ -68,7 +68,6 @@ extension MRAtom {
   init(entity: HDL.Entity) {
     if entity.storage.w == 0 {
       self = MRAtom(origin: entity.position, element: 0)
-      self.flags = 0x1
       return
     }
     

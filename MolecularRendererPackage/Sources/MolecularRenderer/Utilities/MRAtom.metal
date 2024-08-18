@@ -35,13 +35,8 @@ MRAtom {
   // Radius in nm.
   half radiusSquared;
   
-  // Flags to modify how the atom is rendered.
-  ushort tailStorage;
-  
   // Atomic number.
-  uchar get_element() {
-    return tailStorage % 128;
-  }
+  ushort element;
   
   MRAtom() {
     
@@ -52,7 +47,7 @@ MRAtom {
     float4 data = *(const device float4*)address;
     this->origin = data.xyz;
     this->radiusSquared = as_type<half2>(data.w)[0];
-    this->tailStorage = as_type<ushort2>(data.w)[1];
+    this->element = as_type<ushort2>(data.w)[1];
   }
   
   void store(device MRAtom* address) {
@@ -60,44 +55,18 @@ MRAtom {
       origin.x,
       origin.y,
       origin.z,
-      as_type<float>(half2(radiusSquared, as_type<half>(tailStorage)))
+      as_type<float>(half2(radiusSquared, as_type<half>(element)))
     };
     *((device float4*)address) = data;
   }
-  
-  MRAtom(float3 origin,
-         half radius,
-         uchar element,
-         uchar flags = 0)
-  {
-    this->origin = origin;
-    this->radiusSquared = radius * radius;
-    this->tailStorage = as_type<ushort>(uchar2(element, flags));
-  }
-  
-  MRAtom(float3 origin,
-         ushort tailStorage)
-  {
-    this->origin = origin;
-    this->tailStorage = tailStorage;
-  }
-  
-  MRAtom(float3 origin,
-         half radiusSquared,
-         ushort tailStorage)
-  {
-    this->origin = origin;
-    this->radiusSquared = radiusSquared;
-    this->tailStorage = tailStorage;
-  }
-  
+    
   half getRadius(const device MRAtomStyle* styles) {
-    auto styles_ptr = (device half4*)(styles + get_element());
+    auto styles_ptr = (device half4*)(styles + element);
     return styles_ptr[0].w;
   }
   
   half3 getColor(const device MRAtomStyle* styles) {
-    auto styles_ptr = (device half4*)(styles + get_element());
+    auto styles_ptr = (device half4*)(styles + element);
     return styles_ptr[0].xyz;
   }
   

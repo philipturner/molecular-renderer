@@ -61,12 +61,10 @@ extension MRRenderer {
       if available[element] {
         let radius = styles[element].radius
         atoms[i].radiusSquared = radius * radius
-        atoms[i].flags = 0
       } else {
         let radius = styles[0].radius
         atoms[i].element = 0
         atoms[i].radiusSquared = radius * radius
-        atoms[i].flags = 0x1 | 0x2
       }
     }
     

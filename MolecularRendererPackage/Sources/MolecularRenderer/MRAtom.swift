@@ -21,10 +21,7 @@ public struct MRAtom: Equatable {
   public var radiusSquared: Float16 = 0
   
   // Atomic number.
-  public var element: UInt8
-  
-  // Flags to modify how the atom is rendered.
-  public var flags: UInt8 = 0
+  public var element: UInt16
   
   @inlinable @inline(__always)
   public init(
@@ -34,7 +31,7 @@ public struct MRAtom: Equatable {
     self.x = origin.x
     self.y = origin.y
     self.z = origin.z
-    self.element = element
+    self.element = UInt16(element)
   }
   
   @inlinable @inline(__always)
@@ -45,7 +42,7 @@ public struct MRAtom: Equatable {
     self.x = origin.x
     self.y = origin.y
     self.z = origin.z
-    self.element = UInt8(element)
+    self.element = UInt16(element)
   }
   
   @inlinable @inline(__always)

@@ -61,7 +61,7 @@ kernel void renderAtoms
   if (intersect.accept) {
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
     half3 normal = half3(normalize(hitPoint - intersect.atom.origin));
-    colorCtx.setDiffuseColor(intersect.atom, normal);
+    colorCtx.setDiffuseColor(intersect.atom);
     
     // Cast the secondary rays.
     half minSamples = args->minSamples;

@@ -34,18 +34,6 @@ struct DenseGridArguments {
   ushort cell_sphere_test;
 };
 
-// MARK: - Preprocessing
-
-kernel void dense_grid_preprocessing
-(
- const device MRAtomStyle *styles [[buffer(1)]],
- device MRAtom *atoms [[buffer(2)]],
- 
- uint tid [[thread_position_in_grid]])
-{
-  
-}
-
 // MARK: - Pass 1
 
 METAL_FUNC bool cube_sphere_intersection(ushort3 cube_min,
