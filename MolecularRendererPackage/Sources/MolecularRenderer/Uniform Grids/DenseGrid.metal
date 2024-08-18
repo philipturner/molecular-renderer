@@ -31,10 +31,20 @@ struct Box {
 struct DenseGridArguments {
   short3 world_origin;
   short3 world_dims;
-  
-  // TODO: Wait to remove this. It might affect occupancy.
   ushort cell_sphere_test;
 };
+
+// MARK: - Preprocessing
+
+kernel void dense_grid_preprocessing
+(
+ const device MRAtomStyle *styles [[buffer(1)]],
+ device MRAtom *atoms [[buffer(2)]],
+ 
+ uint tid [[thread_position_in_grid]])
+{
+  
+}
 
 // MARK: - Pass 1
 
@@ -212,4 +222,3 @@ kernel void dense_grid_pass3
     address_z += VoxelAddress::increment_z(grid_dims);
   }
 }
-

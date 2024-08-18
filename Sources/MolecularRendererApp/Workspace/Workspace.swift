@@ -11,10 +11,10 @@ import Numerics
 //
 // Preparing for GPU offloading:
 // - Refactor MolecularRenderer to accept SIMD4<Float>.
-//   - Remove the unused flags feature. Retain the checkerboard texture for
-//     unrecognized elements.
-// - Convert to MRAtom in-place, on the GPU.
-//   - Add a new MRFrameReport section for GPU preprocessing.
+//   - Add a new MRFrameReport section for GPU preprocessing. [DONE]
+//   - Remove the checkerboard texture and flags.
+//   - Set the squared radius on the GPU.
+//   - Request SIMD4<Float> from the public API.
 // - Allow the GPU to return early, resulting in a black screen.
 //   - Make the GPU return early when the reference count is too high.
 // - Allocate a fixed amount of memory for the grid.

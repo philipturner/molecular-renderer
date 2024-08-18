@@ -17,10 +17,13 @@ struct MRFrameReport {
   var frameID: Int
   
   // CPU time spent preparing geometry.
-  var preprocessingTime: Double
+  var preprocessingTimeCPU: Double
   
   // CPU time spent copying geometry into GPU buffer.
   var copyingTime: Double
+  
+  // GPU time spent preparing geometry.
+  var preprocessingTimeGPU: Double
   
   // GPU time spent building the uniform grid.
   var geometryTime: Double
