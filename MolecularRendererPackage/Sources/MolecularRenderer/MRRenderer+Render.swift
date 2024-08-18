@@ -47,25 +47,22 @@ extension MRRenderer {
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
   ) {
-    guard let upscaler else {
-      fatalError("Attempted to upscale in offline mode.")
-    }
     resetTracker.update(time: time)
     
     // Bind the intermediate textures.
-    let currentTextures = self.currentTextures
+    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
     upscaler.reset = resetTracker.resetUpscaler
-    upscaler.colorTexture = currentTextures.color
-    upscaler.depthTexture = currentTextures.depth
-    upscaler.motionTexture = currentTextures.motion
-    upscaler.outputTexture = currentTextures.upscaled
-    upscaler.jitterOffsetX = -self.jitterOffsets.x
-    upscaler.jitterOffsetY = -self.jitterOffsets.y
+    upscaler.colorTexture = textures.color
+    upscaler.depthTexture = textures.depth
+    upscaler.motionTexture = textures.motion
+    upscaler.outputTexture = textures.upscaled
+    upscaler.jitterOffsetX = -jitterOffsets.x
+    upscaler.jitterOffsetY = -jitterOffsets.y
     upscaler.encode(commandBuffer: commandBuffer)
     
     // Metal is forcing me to copy the upscaled texture to the drawable.
     let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    blitEncoder.copy(from: currentTextures.upscaled!, to: drawableTexture)
+    blitEncoder.copy(from: textures.upscaled, to: drawableTexture)
     blitEncoder.endEncoding()
   }
   
@@ -131,9 +128,9 @@ extension MRRenderer {
     encoder.setBuffer(lightsBuffer, offset: lightsBufferOffset, index: 2)
     
     // Encode the output textures.
-    let textures = self.currentTextures
+    let textures = self.bufferedIntermediateTextures[jitterFrameID % 2]
     encoder.setTextures(
-      [textures.color, textures.depth!, textures.motion!], range: 0..<3)
+      [textures.color, textures.depth, textures.motion], range: 0..<3)
     
     // Dispatch an even number of threads (the shader will rearrange them).
     let numThreadgroupsX = (intermediateTextureSize + 7) / 8

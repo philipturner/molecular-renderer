@@ -20,7 +20,7 @@ kernel void renderAtoms
  device MRLight *lights [[buffer(2)]],
  
  device MRAtom *atoms [[buffer(3)]],
- device VOXEL_DATA *dense_grid_data [[buffer(4)]],
+ device uint *dense_grid_data [[buffer(4)]],
  device uint *dense_grid_references [[buffer(5)]],
  
  device float3 *motion_vectors [[buffer(6)]],
@@ -74,7 +74,7 @@ kernel void renderAtoms
       auto genCtx = GenerationContext(args, pixelCoords);
       for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples, hitPoint, normal);
-        IntersectionParams params { true, args->maxRayHitTime, false };
+        IntersectionParams params { true, MAX_RAY_HIT_TIME, false };
         auto intersect = RayIntersector::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);
       }

@@ -35,32 +35,21 @@ public class MRRenderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var accelBuilder: MRAccelBuilder!
-  var upscaler: MTLFXTemporalScaler?
+  var upscaler: MTLFXTemporalScaler!
   var renderPipeline: MTLComputePipelineState!
-  
-  var lastCommandBuffer: MTLCommandBuffer?
-  var lastHandledCommandBuffer: MTLCommandBuffer?
   
   struct IntermediateTextures {
     var color: MTLTexture
-    var depth: MTLTexture?
-    var motion: MTLTexture?
+    var depth: MTLTexture
+    var motion: MTLTexture
     
     // Metal is forcing me to make another texture for this, because the
     // drawable texture "must have private storage mode".
-    var upscaled: MTLTexture?
-    
-    // Buffer backing the texture for offline rendering.
-    var backingBuffer: MTLBuffer?
+    var upscaled: MTLTexture
   }
   
   // Double-buffer the textures to remove dependencies between frames.
-  static var framesInFlight: Int { 2 }
-  var textures: [IntermediateTextures] = []
-  var currentTextures: IntermediateTextures {
-    // TODO: Remove this computed property, index into the buffer explicitly.
-    self.textures[jitterFrameID % Self.framesInFlight]
-  }
+  var bufferedIntermediateTextures: [IntermediateTextures] = []
   
   // Cache previous arguments to generate motion vectors.
   var previousArguments: Arguments?
@@ -86,7 +75,8 @@ public class MRRenderer {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeBlitCommandEncoder()!
     
-    for _ in 0..<Self.framesInFlight {
+    // Initialize each texture twice, establishing a double buffer.
+    for _ in 0..<2 {
       let desc = MTLTextureDescriptor()
       desc.storageMode = .private
       desc.usage = [ .shaderWrite, .shaderRead ]
@@ -111,8 +101,9 @@ public class MRRenderer {
       let upscaled = device.makeTexture(descriptor: desc)!
       upscaled.label = "Upscaled Color"
       
-      textures.append(IntermediateTextures(
-        color: color, depth: depth, motion: motion, upscaled: upscaled))
+      let textures = IntermediateTextures(
+        color: color, depth: depth, motion: motion, upscaled: upscaled)
+      bufferedIntermediateTextures.append(textures)
       
       for texture in [color, depth, motion, upscaled] {
         encoder.optimizeContentsForGPUAccess(texture: texture)
@@ -139,9 +130,11 @@ public class MRRenderer {
     desc.inputHeight = intermediateTextureSize
     desc.outputWidth = intermediateTextureSize * upscaleFactor
     desc.outputHeight = intermediateTextureSize * upscaleFactor
-    desc.colorTextureFormat = textures[0].color.pixelFormat
-    desc.depthTextureFormat = textures[0].depth!.pixelFormat
-    desc.motionTextureFormat = textures[0].motion!.pixelFormat
+    
+    let textures = bufferedIntermediateTextures[0]
+    desc.colorTextureFormat = textures.color.pixelFormat
+    desc.depthTextureFormat = textures.depth.pixelFormat
+    desc.motionTextureFormat = textures.motion.pixelFormat
     desc.outputTextureFormat = desc.colorTextureFormat
     
     desc.isAutoExposureEnabled = false

@@ -53,10 +53,14 @@ public:
     float specularAmbient = 1;
     
     if (intersect.accept) {
-      float t = intersect.distance / args->maxRayHitTime;
-      float lambda = args->exponentialFalloffDecayConstant;
+      const float minimumAmbientIllumination = 0.07;
+      const float diffuseReflectanceScale = 0.5;
+      const float decayConstant = 2.0;
+      
+      float t = intersect.distance / MAX_RAY_HIT_TIME;
+      float lambda = decayConstant;
       float occlusion = exp(-lambda * t * t);
-      diffuseAmbient -= (1 - args->minimumAmbientIllumination) * occlusion;
+      diffuseAmbient -= (1 - minimumAmbientIllumination) * occlusion;
       
       // Diffuse interreflectance should affect the final diffuse term, but
       // not the final specular term.
@@ -76,7 +80,7 @@ public:
       luminance = (luminance + neighborLuminance) / 2;
       
       float kA = diffuseAmbient;
-      float rho = args->diffuseReflectanceScale * luminance;
+      float rho = diffuseReflectanceScale * luminance;
       diffuseAmbient = kA / (1 - rho * (1 - kA));
     }
     

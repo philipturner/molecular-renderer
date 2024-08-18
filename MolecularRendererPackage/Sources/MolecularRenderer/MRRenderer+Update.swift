@@ -23,11 +23,6 @@ struct Arguments {
   var maxSamples: Float16
   var qualityCoefficient: Float16
   
-  var maxRayHitTime: Float
-  var exponentialFalloffDecayConstant: Float
-  var minimumAmbientIllumination: Float
-  var diffuseReflectanceScale: Float
-  
   var worldOrigin: SIMD3<Int16>
   var worldDimensions: SIMD3<Int16>
 }
@@ -89,10 +84,11 @@ extension MRRenderer {
   ) {
     self.previousArguments = currentArguments
     
-    let maxRayHitTime: Float = 1.0 // range(0...100, 0.2)
-    let minimumAmbientIllumination: Float = 0.07 // range(0...1, 0.01)
-    let diffuseReflectanceScale: Float = 0.5 // range(0...1, 0.1)
-    let decayConstant: Float = 2.0 // range(0...20, 0.25)
+    // TODO: Bake these constants into the shader source.
+    let maxRayHitTime: Float = 1.0
+    let minimumAmbientIllumination: Float = 0.07
+    let diffuseReflectanceScale: Float = 0.5
+    let decayConstant: Float = 2.0
     
     var totalDiffuse: Float = 0
     var totalSpecular: Float = 0
@@ -147,11 +143,6 @@ extension MRRenderer {
       minSamples: Float16(quality.minSamples),
       maxSamples: Float16(quality.maxSamples),
       qualityCoefficient: Float16(qualityCoefficient),
-      
-      maxRayHitTime: maxRayHitTime,
-      exponentialFalloffDecayConstant: decayConstant,
-      minimumAmbientIllumination: minimumAmbientIllumination,
-      diffuseReflectanceScale: diffuseReflectanceScale,
       
       worldOrigin: .zero,
       worldDimensions: .zero)

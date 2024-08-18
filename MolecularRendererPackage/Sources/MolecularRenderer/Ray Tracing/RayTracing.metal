@@ -87,7 +87,7 @@ public:
     
     while (dda.continue_loop) {
       // To reduce divergence, fast forward through empty voxels.
-      VOXEL_DATA voxel_data = 0;
+      uint voxel_data = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
         voxel_data = grid.data[dda.address];

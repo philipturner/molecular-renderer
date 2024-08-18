@@ -29,7 +29,7 @@ constant uint dense_grid_reference_capacity = 64 * 1024 * 1024;
 constant uint voxel_offset_mask = dense_grid_reference_capacity - 1;
 constant uint voxel_count_mask = 0xFFFFFFFF - voxel_offset_mask;
 
-typedef uint VOXEL_DATA;
+constant float MAX_RAY_HIT_TIME = 1.0;
 
 // MARK: - Definitions
 
@@ -54,13 +54,7 @@ Arguments {
   // Constants for ray-traced ambient occlusion.
   half minSamples;
   half maxSamples;
-  half qualityCoefficient; // 30
-  
-  // Constants for the ambient occlusion cutoff.
-  float maxRayHitTime;
-  float exponentialFalloffDecayConstant;
-  float minimumAmbientIllumination;
-  float diffuseReflectanceScale;
+  half qualityCoefficient;
   
   // Uniform grid arguments.
   short3 world_origin;

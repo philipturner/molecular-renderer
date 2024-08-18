@@ -45,7 +45,7 @@ class DenseGrid {
 public:
   short3 world_origin;
   short3 world_dims;
-  device VOXEL_DATA *data;
+  device uint *data;
   device uint *references;
   device MRAtom *atoms;
 };
