@@ -57,6 +57,12 @@ func createGeometry() -> [Entity] {
   // 60 x 60 x 60 |   0.50 nm |   1057 |    565 |   3055 |   3678
   // 70 x 70 x 70 |   0.50 nm |   1541 |    917 |   3626 |   2523
   
+  // TODO: First, remove all of the different modes. Clean up the code from
+  // previous profiling experiments. Make the voxel size being 0.25 nm
+  // something hard-coded throughout the codebase.
+  //
+  // Then, proceed with changing how the global bounding box is handled.
+  
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 5 * (h + k + l) }
     Material { .elemental(.carbon) }
