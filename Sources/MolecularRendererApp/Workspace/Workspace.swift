@@ -10,15 +10,18 @@ import Numerics
 // Then, proceed with changing how the global bounding box is handled. [DONE]
 //
 // Preparing for GPU offloading:
-// - Remove MRAtomStyle and MRAtom from the public API.
+// - Refactor the API for MRAtomStyle.
 //   - Remove the checkerboard texture and flags. [DONE]
+//   - Accept styles as an array.
 //   - Remove FP16 and alignment requirements from all public APIs.
-//   - Require users to specify SIMD4<Float> for MRAtom.
+// - Refactor the API for entering atoms.
+//   - Remove MRAtom from the public API, replace with SIMD4<Float>.
+//   - Replace the MRAtomProvider API with something else.
 // - Prepare a GPU kernel for the reduction.
 //   - Add a new MRFrameReport section for GPU preprocessing. [DONE]
 //   - Convert atom styles from FP32 to FP16 on the GPU, removing the compiler
 //     error regarding x86_64.
-//   - Assign convert from SIMD4<Float> to MRAtom on the GPU.
+//   - Convert from SIMD4<Float> to MRAtom on the GPU.
 // - Allocate a fixed amount of memory for the grid.
 //   - Allow the GPU to return early, resulting in a black screen.
 //   - Make the GPU return early when the reference count is too high.

@@ -53,7 +53,7 @@ The renderer itself <b>does not run on Linux or Windows</b>. Support for Windows
 
 ## Documentation
 
-TODO: Document the controls. Provide tutorials for professionals screenshots and GIF animations.
+TODO: Document the controls.
 
 Known issues:
 - The UI often freezes unpredictably. You then have to wait ~10 seconds for it to become responsive again. The freeze is very difficult to reproduce.

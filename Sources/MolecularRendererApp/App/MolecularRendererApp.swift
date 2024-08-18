@@ -16,8 +16,8 @@ struct MolecularRendererApp: App {
     }
     .windowResizability(.contentSize)
     .defaultSize(
-      width: ContentView.size / NSScreen.main!.backingScaleFactor,
-      height: ContentView.size / NSScreen.main!.backingScaleFactor)
+      width: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor,
+      height: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor)
   }
 }
 
@@ -70,7 +70,7 @@ struct ContentView: View {
   // M1/M2/M3 Ultra (~64 cores), 60-144 Hz external monitor
   // - 640 x 640 (upscales to 1920 x 1920)
   //
-  static let size: CGFloat = 640 * CGFloat(upscaleFactor)
+  static let size: Int = 640 * upscaleFactor
   
   var body: some View {
     // A ZStack to overlay the crosshair over the scene view
@@ -79,11 +79,11 @@ struct ContentView: View {
       MetalView(coordinator: coordinator)
         .disabled(false)
         .frame(
-          width: ContentView.size / NSScreen.main!.backingScaleFactor,
-          height: ContentView.size / NSScreen.main!.backingScaleFactor)
+          width: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor,
+          height: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor)
         .position(
-          x: ContentView.size / 2 / NSScreen.main!.backingScaleFactor,
-          y: ContentView.size / 2 / NSScreen.main!.backingScaleFactor)
+          x: CGFloat(ContentView.size) / 2 / NSScreen.main!.backingScaleFactor,
+          y: CGFloat(ContentView.size) / 2 / NSScreen.main!.backingScaleFactor)
       
       // A conditional view to show or hide the crosshair
       if coordinator.showCrosshair {

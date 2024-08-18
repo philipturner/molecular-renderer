@@ -42,11 +42,7 @@ extension MRRenderer {
     self.accelBuilder.updateResources()
     
     self.jitterFrameID += 1
-    if offline {
-      self.jitterOffsets = SIMD2(repeating: 0)
-    } else {
-      self.jitterOffsets = makeJitterOffsets()
-    }
+    self.jitterOffsets = makeJitterOffsets()
     self.textureIndex = (self.textureIndex + 1) % 2
     self.renderIndex = (self.renderIndex + 1) % 3
   }
@@ -68,8 +64,7 @@ extension MRRenderer {
       }
     }
     
-    if useMotionVectors,
-       time.absolute.frames > 0,
+    if time.absolute.frames > 0,
        time.relative.frames > 0,
        accelBuilder.atoms.count == atoms.count {
       var newVectors = [SIMD3<Float>](repeating: .zero, count: atoms.count)
@@ -129,12 +124,8 @@ extension MRRenderer {
     
     // Quality coefficients are calibrated against 640x640 -> 1280x1280
     // resolution.
-    var screenMagnitude = Float(intermediateSize.x * intermediateSize.y)
-    if offline {
-      screenMagnitude /= 4
-    } else {
-      screenMagnitude *= Float(upscaleFactor! * upscaleFactor!)
-    }
+    var screenMagnitude = Float(intermediateTextureSize * upscaleFactor)
+    screenMagnitude *= screenMagnitude
     screenMagnitude = sqrt(screenMagnitude) / 1280
     let qualityCoefficient = quality.qualityCoefficient * screenMagnitude
     

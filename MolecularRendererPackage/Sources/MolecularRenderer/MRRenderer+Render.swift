@@ -16,20 +16,17 @@ extension MRRenderer {
     layer: CAMetalLayer,
     handler: @escaping () -> Void
   ) {
-    guard !offline else {
-      fatalError(
-        "Tried to render to a CAMetalLayer, but configured for offline rendering.")
-    }
-    
     var commandBuffer = self.render()
     commandBuffer.commit()
     commandBuffer = commandQueue.makeCommandBuffer()!
     
     // Acquire a reference to the drawable.
     let drawable = layer.nextDrawable()!
-    let upscaledSize = intermediateSize &* upscaleFactor!
-    precondition(drawable.texture.width == upscaledSize.x)
-    precondition(drawable.texture.height == upscaledSize.y)
+    let upscaledSize = intermediateTextureSize * upscaleFactor
+    guard drawable.texture.width == upscaledSize &&
+            drawable.texture.height == upscaledSize else {
+      fatalError("Drawable texture had incorrect dimensions.")
+    }
     
     // Encode the upscaling pass.
     upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
@@ -40,48 +37,6 @@ extension MRRenderer {
       handler()
     }
     commandBuffer.commit()
-  }
-  
-  public func render(
-    handler: @escaping (UnsafePointer<UInt8>) -> Void
-  ) {
-    guard offline else {
-      fatalError(
-        "Tried to render to a pixel buffer, but configured for real-time rendering.")
-    }
-    
-    let commandBuffer = render()
-    let textures = self.currentTextures
-    commandBuffer.addCompletedHandler { commandBuffer in
-      let backingBuffer = textures.backingBuffer!
-      let pixels = backingBuffer.contents().assumingMemoryBound(to: UInt8.self)
-      self.offlineEncodingQueue!.async {
-        handler(pixels)
-        self.lastHandledCommandBuffer = commandBuffer
-      }
-    }
-    commandBuffer.commit()
-    lastCommandBuffer = commandBuffer
-  }
-  
-  // Call this before accessing the contents of the offline-rendered buffer.
-  public func stopRendering() {
-    guard offline else {
-      fatalError(
-        "Tried to stop rendering, but configured for real-time rendering.")
-    }
-    
-    lastCommandBuffer!.waitUntilCompleted()
-    while lastHandledCommandBuffer !== lastCommandBuffer {
-      usleep(50)
-    }
-    lastHandledCommandBuffer!.waitUntilCompleted()
-    
-    let semaphore = DispatchSemaphore(value: 0)
-    self.offlineEncodingQueue!.sync {
-      _ = semaphore.signal()
-    }
-    semaphore.wait()
   }
 }
 
@@ -145,7 +100,7 @@ extension MRRenderer {
     commandBuffer = commandQueue.makeCommandBuffer()!
     
     encoder = commandBuffer.makeComputeCommandEncoder()!
-    encoder.setComputePipelineState(rayTracingPipeline)
+    encoder.setComputePipelineState(renderPipeline)
     accelBuilder.encodeGridArguments(encoder: encoder)
     accelBuilder.setGridWidth(arguments: &currentArguments!)
     
@@ -177,16 +132,12 @@ extension MRRenderer {
     
     // Encode the output textures.
     let textures = self.currentTextures
-    if offline {
-      encoder.setTexture(textures.color, index: 0)
-    } else {
-      encoder.setTextures(
-        [textures.color, textures.depth!, textures.motion!], range: 0..<3)
-    }
+    encoder.setTextures(
+      [textures.color, textures.depth!, textures.motion!], range: 0..<3)
     
     // Dispatch an even number of threads (the shader will rearrange them).
-    let numThreadgroupsX = (intermediateSize.x + 7) / 8
-    let numThreadgroupsY = (intermediateSize.y + 7) / 8
+    let numThreadgroupsX = (intermediateTextureSize + 7) / 8
+    let numThreadgroupsY = (intermediateTextureSize + 7) / 8
     encoder.dispatchThreadgroups(
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))

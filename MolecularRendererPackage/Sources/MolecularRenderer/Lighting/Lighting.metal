@@ -14,7 +14,7 @@ using namespace metal;
 // meaningful color contributions.
 class ColorContext {
   const device Arguments* args;
-  const device MRAtomStyle* styles;
+  const device half4* styles;
   
   ushort2 pixelCoords;
   half3 color;
@@ -29,7 +29,7 @@ class ColorContext {
   
 public:
   ColorContext(const device Arguments* args,
-               const device MRAtomStyle* styles, ushort2 pixelCoords) {
+               const device half4* styles, ushort2 pixelCoords) {
     this->args = args;
     this->styles = styles;
     this->pixelCoords = pixelCoords;

@@ -70,8 +70,11 @@ extension Renderer {
     descriptor.offline = true
 #else
     // Defaults for online rendering.
-    descriptor.width = Int(ContentView.size)
-    descriptor.height = Int(ContentView.size)
+    guard ContentView.size % ContentView.upscaleFactor == 0 else {
+      fatalError("Invalid content view size.")
+    }
+    descriptor.intermediateTextureSize = Int(
+      ContentView.size / ContentView.upscaleFactor)
     descriptor.upscaleFactor = ContentView.upscaleFactor
     descriptor.reportPerformance = true
 #endif

@@ -19,7 +19,6 @@ using namespace metal;
 // The MetalFX upscaler is currently configured with a static resolution.
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
-constant bool OFFLINE [[function_constant(2)]];
 
 // Max 64 million atoms/dense grid, including duplicated references.
 // Max ~5 million atoms/dense grid, excluding duplicated references.

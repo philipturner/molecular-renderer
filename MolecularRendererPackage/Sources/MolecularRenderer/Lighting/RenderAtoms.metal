@@ -13,12 +13,10 @@
 #include "../Uniform Grids/UniformGrid.metal"
 using namespace metal;
 
-constant bool not_offline = !OFFLINE;
-
 kernel void renderAtoms
 (
  const device Arguments *args [[buffer(0)]],
- const device MRAtomStyle *styles [[buffer(1)]],
+ const device half4 *styles [[buffer(1)]],
  device MRLight *lights [[buffer(2)]],
  
  device MRAtom *atoms [[buffer(3)]],
@@ -28,10 +26,8 @@ kernel void renderAtoms
  device float3 *motion_vectors [[buffer(6)]],
  
  texture2d<half, access::write> color_texture [[texture(0)]],
- texture2d<float, access::write> depth_texture [[
-   texture(1), function_constant(not_offline)]],
- texture2d<half, access::write> motion_texture [[
-   texture(2), function_constant(not_offline)]],
+ texture2d<float, access::write> depth_texture [[texture(1)]],
+ texture2d<half, access::write> motion_texture [[texture(2)]],
  
  ushort2 tid [[thread_position_in_grid]],
  ushort2 tgid [[threadgroup_position_in_grid]],
@@ -119,9 +115,5 @@ kernel void renderAtoms
     float3 motionVector = motion_vectors[intersect.reference];
     colorCtx.generateMotionVector(hitPoint - motionVector);
   }
-  if (OFFLINE) {
-    colorCtx.write_offline(color_texture);
-  } else {
-    colorCtx.write(color_texture, depth_texture, motion_texture);
-  }
+  colorCtx.write(color_texture, depth_texture, motion_texture);
 }

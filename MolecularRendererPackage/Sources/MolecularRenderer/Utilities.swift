@@ -44,11 +44,8 @@ extension MRRenderer {
   }
   
   func fovMultiplier(fovDegrees: Float) -> Float {
-    // NOTE: This currently assumes the image is square. We eventually need to
-    // support rectangular image sizes for e.g. 1920x1080 video.
-    
     // How many pixels exist in either direction.
-    let fov90Span = 0.5 * Float(intermediateSize.x)
+    let fov90Span = 0.5 * Float(intermediateTextureSize)
     
     // Larger FOV means the same ray will reach an angle farther away from the
     // center. 1 / fovSpan is larger, so fovSpan is smaller. The difference

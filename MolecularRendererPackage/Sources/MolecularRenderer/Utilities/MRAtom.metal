@@ -12,16 +12,6 @@
 using namespace metal;
 
 struct __attribute__((aligned(8)))
-MRAtomStyle {
-  // Color in RGB color space.
-  packed_half3 color;
-
-  // Radius in nm. We don't know the actual radius to 11 bits of precision, so
-  // Float16 is fine.
-  half radius;
-};
-
-struct __attribute__((aligned(8)))
 MRBoundingBox {
   packed_float3 min;
   packed_float3 max;
@@ -59,18 +49,16 @@ MRAtom {
     };
     *((device float4*)address) = data;
   }
+  
+  half3 getColor(const device half4* styles) {
+    return styles[element].xyz;
+  }
     
-  half getRadius(const device MRAtomStyle* styles) {
-    auto styles_ptr = (device half4*)(styles + element);
-    return styles_ptr[0].w;
+  half getRadius(const device half4* styles) {
+    return styles[element].w;
   }
   
-  half3 getColor(const device MRAtomStyle* styles) {
-    auto styles_ptr = (device half4*)(styles + element);
-    return styles_ptr[0].xyz;
-  }
-  
-  MRBoundingBox getBoundingBox(const device MRAtomStyle* styles) {
+  MRBoundingBox getBoundingBox(const device half4* styles) {
     half radius = this->getRadius(styles);
     auto min = origin - float(radius);
     auto max = origin + float(radius);
