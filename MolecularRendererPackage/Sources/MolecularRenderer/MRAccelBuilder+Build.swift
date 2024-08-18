@@ -261,11 +261,22 @@ extension MRAccelBuilder {
       return output
     }
     if reportPerformance, any(performance .> 0) {
-      print(
-        Int(performance[0] * 1e6),
-        Int(performance[1] * 1e6),
-        Int(performance[2] * 1e6),
-        Int(performance[3] * 1e6))
+      print("", terminator: " ")
+      
+      for laneID in 0..<4 {
+        // Pad the integer to a common width.
+        var repr = "\(Int(performance[laneID] * 1e6))"
+        while repr.count < 6 {
+          repr = " " + repr
+        }
+        
+        // Print the integer and column separator.
+        if laneID == 4 - 1 {
+          print(repr, terminator: "\n")
+        } else {
+          print(repr, terminator: " | ")
+        }
+      }
     }
     
     encoder.setComputePipelineState(memsetPipeline)
