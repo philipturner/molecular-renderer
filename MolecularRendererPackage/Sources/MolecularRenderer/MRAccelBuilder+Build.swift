@@ -163,7 +163,7 @@ extension MRAccelBuilder {
     let preprocessingStart = CACurrentMediaTime()
     var statistics = denseGridStatistics(
       atoms: atoms,
-      styles: styles,
+      styles: atomStyles,
       voxel_width_numer: voxel_width_numer,
       voxel_width_denom: voxel_width_denom)
     let preprocessingEnd = CACurrentMediaTime()
@@ -302,7 +302,7 @@ extension MRAccelBuilder {
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     
-    styles.withUnsafeBufferPointer {
+    atomStyles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }

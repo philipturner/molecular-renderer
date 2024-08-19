@@ -44,19 +44,11 @@ extension MRRenderer {
   
   func updateGeometry(time: MRTime) {
     var atoms = atomProvider.atoms(time: time)
-    let styles = atomStyleProvider.styles
-    let available = atomStyleProvider.available
     
     for i in atoms.indices {
       let element = Int(atoms[i].element)
-      if available[element] {
-        let radius = styles[element].radius
-        atoms[i].radiusSquared = radius * radius
-      } else {
-        let radius = styles[0].radius
-        atoms[i].element = 0
-        atoms[i].radiusSquared = radius * radius
-      }
+      let radius = atomStyles[element].radius
+      atoms[i].radiusSquared = radius * radius
     }
     
     if time.absolute.frames > 0,
@@ -74,7 +66,7 @@ extension MRRenderer {
     }
     
     self.accelBuilder.atoms = atoms
-    self.accelBuilder.styles = styles
+    self.accelBuilder.atomStyles = atomStyles
   }
   
   func updateCamera(

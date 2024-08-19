@@ -113,7 +113,7 @@ extension MRRenderer {
     encoder.setBytes(tempAllocation, length: 256, index: 0)
     free(tempAllocation)
     
-    accelBuilder.styles.withUnsafeBufferPointer {
+    accelBuilder.atomStyles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }

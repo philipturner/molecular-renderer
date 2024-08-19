@@ -102,13 +102,6 @@ public struct MRAtomStyle: Equatable {
   }
 }
 
-// Each array must contain enough elements to correspond to the filled slots in
-// `available`.
-public protocol MRAtomStyleProvider {
-  var styles: [MRAtomStyle] { get }
-  var available: [Bool] { get }
-}
-
 // MARK: - MRRenderer Methods
 
 extension MRRenderer {
@@ -116,7 +109,7 @@ extension MRRenderer {
     self.atomProvider = provider
   }
   
-  public func setAtomStyleProvider(_ provider: MRAtomStyleProvider) {
-    self.atomStyleProvider = provider
+  public func setAtomStyles(_ styles: [MRAtomStyle]) {
+    self.atomStyles = styles
   }
 }

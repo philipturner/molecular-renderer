@@ -24,6 +24,8 @@ Out of all the [ongoing efforts](https://astera.org/molecular-systems) to succee
 
 ## Installation
 
+> TODO: Don't make the simulators a hard dependency. The program should be capable of bootstrapping without them. The HDL alone is sufficient for an initial tutorial.
+
 There are only two simulator dependencies. Everything else is implemented from scratch in Swift.
 
 | Library | Type | Mac | Linux | Windows |

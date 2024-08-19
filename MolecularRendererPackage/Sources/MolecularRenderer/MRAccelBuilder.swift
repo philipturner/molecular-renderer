@@ -38,7 +38,7 @@ class MRAccelBuilder {
   var commandQueue: MTLCommandQueue
   unowned var renderer: MRRenderer
   var atoms: [MRAtom] = []
-  var styles: [MRAtomStyle] = []
+  var atomStyles: [MRAtomStyle] = []
   var motionVectors: [SIMD3<Float>] = []
   
   // Triple-buffer because the CPU accesses these.

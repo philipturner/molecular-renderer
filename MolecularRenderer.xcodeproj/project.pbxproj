@@ -53,6 +53,7 @@
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
+		98F12C8E2C72BE110045FAFB /* Renderer+AtomStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
@@ -300,6 +301,7 @@
 		98F012672B2671210037318D /* Bootstrapping_Surface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Surface.swift; sourceTree = "<group>"; };
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
+		98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+AtomStyles.swift"; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -467,6 +469,7 @@
 			children = (
 				986ED88929A6CF3600E0653B /* Renderer.swift */,
 				98B25A192B33666B00081A61 /* Renderer+Setup.swift */,
+				98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -1256,6 +1259,7 @@
 				98325C562A6B512900A4D7BB /* MRAtomInterface.swift in Sources */,
 				98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */,
 				981FCFF029ECAE36009904A2 /* CrosshairView.swift in Sources */,
+				98F12C8E2C72BE110045FAFB /* Renderer+AtomStyles.swift in Sources */,
 				98FB907C2A5B7B3C00685E5C /* RingBuffer.swift in Sources */,
 				986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */,
 				98FB907A2A5B6FC600685E5C /* VsyncHandler.swift in Sources */,
