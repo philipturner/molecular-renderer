@@ -34,7 +34,7 @@ extension MRRenderer {
   func updateResources() {
     self.updateCamera(camera: camera, lights: lights, quality: quality)
     self.updateGeometry(time: time)
-    self.accelBuilder.updateResources()
+    self.bvhBuilder.updateResources()
     
     self.jitterFrameID += 1
     self.jitterOffsets = makeJitterOffsets()
@@ -47,22 +47,22 @@ extension MRRenderer {
     
     if time.absolute.frames > 0,
        time.relative.frames > 0,
-       accelBuilder.atoms.count == atoms.count {
+       bvhBuilder.atoms.count == atoms.count {
       // TODO: Fuse this with the GPU kernel that reduces the bounding box.
       var newVectors = [SIMD3<Float>](repeating: .zero, count: atoms.count)
       for i in atoms.indices {
         let current = atoms[i]
-        let previous = accelBuilder.atoms[i]
+        let previous = bvhBuilder.atoms[i]
         let delta = current - previous
         newVectors[i] = unsafeBitCast(delta, to: SIMD3<Float>.self)
       }
-      accelBuilder.motionVectors = newVectors
+      bvhBuilder.motionVectors = newVectors
     } else {
-      accelBuilder.motionVectors = Array(repeating: .zero, count: atoms.count)
+      bvhBuilder.motionVectors = Array(repeating: .zero, count: atoms.count)
     }
     
-    self.accelBuilder.atoms = atoms
-    self.accelBuilder.atomStyles = atomStyles
+    self.bvhBuilder.atoms = atoms
+    self.bvhBuilder.atomStyles = atomStyles
   }
   
   func updateCamera(

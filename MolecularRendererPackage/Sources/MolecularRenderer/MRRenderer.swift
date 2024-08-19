@@ -34,7 +34,7 @@ public class MRRenderer {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var accelBuilder: MRAccelBuilder!
+  var bvhBuilder: BVHBuilder!
   var upscaler: MTLFXTemporalScaler!
   var renderPipeline: MTLComputePipelineState!
   
@@ -117,8 +117,8 @@ public class MRRenderer {
     self.lightsBuffer = device.makeBuffer(length: lightsBufferLength)!
     
     let library = try! device.makeLibrary(URL: descriptor.url!)
-    self.accelBuilder = MRAccelBuilder(renderer: self, library: library)
-    accelBuilder.reportPerformance = descriptor.reportPerformance
+    self.bvhBuilder = BVHBuilder(renderer: self, library: library)
+    bvhBuilder.reportPerformance = descriptor.reportPerformance
     
     initUpscaler()
     initRayTracer(library: library)

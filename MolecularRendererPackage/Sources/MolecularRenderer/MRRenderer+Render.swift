@@ -69,37 +69,33 @@ extension MRRenderer {
   private func render() -> MTLCommandBuffer {
     self.updateResources()
     
+    // TODO: Working on decoupling the BVH construction from the render pass.
     var commandBuffer = commandQueue.makeCommandBuffer()!
     var encoder = commandBuffer.makeComputeCommandEncoder()!
-    accelBuilder.buildDenseGrid(encoder: encoder)
+    bvhBuilder.buildDenseGrid(encoder: encoder)
     encoder.endEncoding()
     
-    let frameID = accelBuilder.frameReportCounter
-    func addHandler(
-      _ closure: @escaping (inout MRFrameReport, Double) -> Void
-    ) {
-      commandBuffer.addCompletedHandler { [self] commandBuffer in
-        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-        self.accelBuilder.frameReportQueue.sync {
-          for index in self.accelBuilder.frameReports.indices.reversed() {
-            guard self.accelBuilder.frameReports[index].frameID == frameID else {
-              continue
-            }
-            closure(&self.accelBuilder.frameReports[index], executionTime)
-            break
+    let frameID = bvhBuilder.frameReportCounter
+    commandBuffer.addCompletedHandler { [self] commandBuffer in
+      let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+      self.bvhBuilder.frameReportQueue.sync {
+        for index in self.bvhBuilder.frameReports.indices.reversed() {
+          guard self.bvhBuilder.frameReports[index].frameID == frameID else {
+            continue
           }
+          self.bvhBuilder.frameReports[index].geometryTime = executionTime
+          break
         }
       }
     }
     
-    addHandler { $0.geometryTime = $1 }
     commandBuffer.commit()
     commandBuffer = commandQueue.makeCommandBuffer()!
     
     encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(renderPipeline)
-    accelBuilder.encodeGridArguments(encoder: encoder)
-    accelBuilder.setGridWidth(arguments: &currentArguments!)
+    bvhBuilder.encodeGridArguments(encoder: encoder)
+    bvhBuilder.setGridWidth(arguments: &currentArguments!)
     
     // Encode the arguments.
     let tempAllocation = malloc(256)!
@@ -113,7 +109,7 @@ extension MRRenderer {
     encoder.setBytes(tempAllocation, length: 256, index: 0)
     free(tempAllocation)
     
-    accelBuilder.atomStyles.withUnsafeBufferPointer {
+    bvhBuilder.atomStyles.withUnsafeBufferPointer {
       let length = $0.count * MemoryLayout<MRAtomStyle>.stride
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
@@ -140,7 +136,19 @@ extension MRRenderer {
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
     encoder.endEncoding()
     
-    addHandler { $0.renderTime = $1 }
+    commandBuffer.addCompletedHandler { [self] commandBuffer in
+      let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+      self.bvhBuilder.frameReportQueue.sync {
+        for index in self.bvhBuilder.frameReports.indices.reversed() {
+          guard self.bvhBuilder.frameReports[index].frameID == frameID else {
+            continue
+          }
+          self.bvhBuilder.frameReports[index].renderTime = executionTime
+          break
+        }
+      }
+    }
+    
     return commandBuffer
   }
 }

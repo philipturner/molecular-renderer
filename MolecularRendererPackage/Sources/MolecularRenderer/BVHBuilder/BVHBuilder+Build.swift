@@ -1,5 +1,5 @@
 //
-//  MRAccelBuilder+Preprocessing.swift
+//  BVHBuilder+Preprocessing.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 10/27/23.
@@ -153,7 +153,7 @@ func denseGridStatistics(
   return ((minCoordinates, maxCoordinates), references)
 }
 
-extension MRAccelBuilder {
+extension BVHBuilder {
   func buildDenseGrid(
     encoder: MTLComputeCommandEncoder
   ) {

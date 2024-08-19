@@ -54,6 +54,7 @@
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F12C8E2C72BE110045FAFB /* Renderer+AtomStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */; };
+		98F12C902C72CEE20045FAFB /* Preprocessing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
@@ -94,7 +95,7 @@
 
 /* Begin PBXFileReference section */
 		980140E52A3E1F78009408BE /* MRRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRenderer.swift; sourceTree = "<group>"; };
-		980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAccelBuilder.swift; sourceTree = "<group>"; };
+		980140E62A3E1F9C009408BE /* BVHBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BVHBuilder.swift; sourceTree = "<group>"; };
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
 		98122D7029DFBDE6006200D1 /* MRAtom.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MRAtom.metal; sourceTree = "<group>"; };
@@ -235,7 +236,7 @@
 		98B3E4F12A3F6F9D00B02349 /* libc++.1.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.0.dylib"; path = "../../../miniforge3/lib/libc++.1.0.dylib"; sourceTree = "<group>"; };
 		98B3E4F62A3F700400B02349 /* libc++.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.1.dylib"; path = "../bypass_dependencies/libc++.1.dylib"; sourceTree = "<group>"; };
 		98B3E4FC2A3F854300B02349 /* HelloArgonInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloArgonInSwift.swift; sourceTree = "<group>"; };
-		98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRAccelBuilder+Build.swift"; sourceTree = "<group>"; };
+		98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Build.swift"; sourceTree = "<group>"; };
 		98B6BDFA2AEE85B000F8655C /* Renderer+Offline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Offline.swift"; sourceTree = "<group>"; };
 		98B6BE0A2AEF082000F8655C /* Nanosystems_Chapter12.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter12.swift; sourceTree = "<group>"; };
 		98B6BE0C2AEF0E0300F8655C /* Nanosystems_Chapter12_Figure1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nanosystems_Chapter12_Figure1.swift; sourceTree = "<group>"; };
@@ -302,6 +303,7 @@
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+AtomStyles.swift"; sourceTree = "<group>"; };
+		98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Preprocessing.metal; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -916,6 +918,26 @@
 			path = Diamondoid;
 			sourceTree = "<group>";
 		};
+		98F12C912C72D00C0045FAFB /* BVHBuilder */ = {
+			isa = PBXGroup;
+			children = (
+				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
+				98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */,
+			);
+			path = BVHBuilder;
+			sourceTree = "<group>";
+		};
+		98F12C922C72D01B0045FAFB /* Kernels */ = {
+			isa = PBXGroup;
+			children = (
+				981FCFED29ECADF5009904A2 /* Lighting */,
+				98FB907D2A5CF8FD00685E5C /* Ray Tracing */,
+				98FB907E2A5CF91A00685E5C /* Uniform Grids */,
+				98FB907F2A5CF94F00685E5C /* Utilities */,
+			);
+			path = Kernels;
+			sourceTree = "<group>";
+		};
 		98F250032A130A65009AABDE /* Backend */ = {
 			isa = PBXGroup;
 			children = (
@@ -940,12 +962,8 @@
 		98F638992A349F7300F51E95 /* MolecularRenderer */ = {
 			isa = PBXGroup;
 			children = (
-				981FCFED29ECADF5009904A2 /* Lighting */,
-				98FB907D2A5CF8FD00685E5C /* Ray Tracing */,
-				98FB907E2A5CF91A00685E5C /* Uniform Grids */,
-				98FB907F2A5CF94F00685E5C /* Utilities */,
-				980140E62A3E1F9C009408BE /* MRAccelBuilder.swift */,
-				98B6BDF92AEC9A8200F8655C /* MRAccelBuilder+Build.swift */,
+				98F12C922C72D01B0045FAFB /* Kernels */,
+				98F12C912C72D00C0045FAFB /* BVHBuilder */,
 				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
 				98B25A132B33478400081A61 /* MRCamera.swift */,
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
@@ -1058,6 +1076,7 @@
 			isa = PBXGroup;
 			children = (
 				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
+				98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */,
 				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
 			);
 			path = "Uniform Grids";
@@ -1289,6 +1308,7 @@
 				98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
+				98F12C902C72CEE20045FAFB /* Preprocessing.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

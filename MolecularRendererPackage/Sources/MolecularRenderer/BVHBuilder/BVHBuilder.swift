@@ -1,5 +1,5 @@
 //
-//  MRAccelBuilder.swift
+//  BVHBuilder.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 6/17/23.
@@ -32,7 +32,7 @@ struct MRFrameReport {
   var renderTime: Double
 }
 
-class MRAccelBuilder {
+class BVHBuilder {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
@@ -48,7 +48,7 @@ class MRAccelBuilder {
   // Safeguard access to these using a dispatch queue.
   var reportPerformance: Bool = false
   var frameReportQueue: DispatchQueue = .init(
-    label: "com.philipturner.MolecularRenderer.MRAccelBuilder.frameReportQueue")
+    label: "com.philipturner.MolecularRenderer.BVHBuilder.frameReportQueue")
   var frameReports: [MRFrameReport] = []
   var frameReportCounter: Int = 0
   static let frameReportHistorySize: Int = 10
@@ -98,7 +98,7 @@ class MRAccelBuilder {
   }
 }
 
-extension MRAccelBuilder {
+extension BVHBuilder {
   // The entire process of fetching, resizing, and nil-coalescing.
   func cycle(
     from buffers: inout [MTLBuffer?],
@@ -160,7 +160,7 @@ extension MRAccelBuilder {
 }
 
 // Only call these methods once per frame.
-extension MRAccelBuilder {
+extension BVHBuilder {
   func updateResources() {
     ringIndex = (ringIndex + 1) % 3
     
@@ -182,7 +182,7 @@ extension MRAccelBuilder {
   }
 }
 
-extension MRAccelBuilder {
+extension BVHBuilder {
   // Call this after encoding the grid construction.
   func setGridWidth(arguments: inout Arguments) {
     precondition(
