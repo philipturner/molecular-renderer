@@ -13,11 +13,11 @@ import Numerics
 // - Refactor the API for MRAtomStyle.
 //   - Remove the checkerboard texture and flags. [DONE]
 //   - Accept styles as an array. [DONE]
-//   - Change all public API initializers to have FP32 arguments.
 // - Refactor the API for entering atoms.
 //   - Remove MRAtom from the public API, replace with SIMD4<Float>.
 //   - Can we convert to MRAtom while memcpy'ing into the GPU buffer? How does
-//     that compare to the memory bandwidth limit?
+//     that compare to the memory bandwidth limit? [DONE]
+//     - It is double to triple the latency. This part must be offloaded.
 //   - Replace the MRAtomProvider API with something else.
 // - Prepare a GPU kernel for the reduction.
 //   - Add a new MRFrameReport section for GPU preprocessing. [DONE]
@@ -109,8 +109,8 @@ func createGeometry() -> [Entity] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 10 * (h + k + l) }
-    Material { .checkerboard(.silicon, .carbon) }
+    Bounds { 40 * (h + k + l) }
+    Material { .elemental(.carbon) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

@@ -45,15 +45,10 @@ extension MRRenderer {
   func updateGeometry(time: MRTime) {
     var atoms = atomProvider.atoms(time: time)
     
-    for i in atoms.indices {
-      let element = Int(atoms[i].element)
-      let radius = atomStyles[element].radius
-      atoms[i].radiusSquared = radius * radius
-    }
-    
     if time.absolute.frames > 0,
        time.relative.frames > 0,
        accelBuilder.atoms.count == atoms.count {
+      // TODO: Fuse this with the GPU kernel that reduces the bounding box.
       var newVectors = [SIMD3<Float>](repeating: .zero, count: atoms.count)
       for i in atoms.indices {
         let current = atoms[i].origin
@@ -75,12 +70,6 @@ extension MRRenderer {
     quality: MRQuality
   ) {
     self.previousArguments = currentArguments
-    
-    // TODO: Bake these constants into the shader source.
-    let maxRayHitTime: Float = 1.0
-    let minimumAmbientIllumination: Float = 0.07
-    let diffuseReflectanceScale: Float = 0.5
-    let decayConstant: Float = 2.0
     
     var totalDiffuse: Float = 0
     var totalSpecular: Float = 0

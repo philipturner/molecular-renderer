@@ -200,15 +200,13 @@ extension MRAccelBuilder {
       fatalError("Too many references for a dense grid.")
     }
     
-    
-    
     // Allocate new memory.
     let copyingStart = CACurrentMediaTime()
     let atomsBuffer = allocate(
       &denseGridAtoms[ringIndex],
       desiredElements: atoms.count,
       bytesPerElement: 16)
-    memcpy(denseGridAtoms[ringIndex]!.contents(), atoms, atoms.count * 16)
+    copyAtomsIntoBuffer()
     
     // Add 8 to the number of slots, so the counters can be located at the start
     // of the buffer.
@@ -245,7 +243,7 @@ extension MRAccelBuilder {
           dataSize += 1
           output[0] += report.preprocessingTimeCPU
           output[1] += report.copyingTime
-          output[2] += report.preprocessingTimeGPU
+          output[2] = 0 // unused right now
           output[3] += report.geometryTime
           output[4] += report.renderTime
         }
@@ -329,5 +327,40 @@ extension MRAccelBuilder {
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+  }
+  
+  // TODO: Fuse this with the GPU kernel that reduces the bounding box.
+  func copyAtomsIntoBuffer() {
+    let bufferContents = denseGridAtoms[ringIndex]!.contents()
+    let bufferContentsCasted = bufferContents
+      .assumingMemoryBound(to: SIMD8<Float16>.self)
+    
+    atoms.withUnsafeBufferPointer { atomPointer in
+      let source = atomPointer.baseAddress!
+      let sourceCasted = UnsafeRawPointer(source)
+        .assumingMemoryBound(to: SIMD8<Float16>.self)
+      
+      atomStyles.withUnsafeBufferPointer { stylePointer in
+        let styles = stylePointer.baseAddress!
+        let stylesCasted = UnsafeRawPointer(styles)
+          .assumingMemoryBound(to: Float16.self)
+        
+        for atomID in 0..<atomPointer.count {
+          var atom = sourceCasted[atomID]
+          
+          #if arch(x86_64)
+          fatalError()
+          #else
+          let atomicNumber = atom[7].bitPattern
+          let address = 4 &* atomicNumber &+ 3
+          let radius = stylesCasted[Int(truncatingIfNeeded: address)]
+          
+          atom[6] = radius * radius
+          bufferContentsCasted[atomID] = atom
+          #endif
+        }
+      }
+      
+    }
   }
 }
