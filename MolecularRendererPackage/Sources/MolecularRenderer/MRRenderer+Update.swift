@@ -51,9 +51,10 @@ extension MRRenderer {
       // TODO: Fuse this with the GPU kernel that reduces the bounding box.
       var newVectors = [SIMD3<Float>](repeating: .zero, count: atoms.count)
       for i in atoms.indices {
-        let current = atoms[i].origin
-        let previous = accelBuilder.atoms[i].origin
-        newVectors[i] = current - previous
+        let current = atoms[i]
+        let previous = accelBuilder.atoms[i]
+        let delta = current - previous
+        newVectors[i] = unsafeBitCast(delta, to: SIMD3<Float>.self)
       }
       accelBuilder.motionVectors = newVectors
     } else {

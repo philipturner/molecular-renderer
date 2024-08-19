@@ -22,7 +22,7 @@ extension Renderer {
     print("atoms:", atoms.count)
     print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
     
-    let provider = ArrayAtomProvider(atoms.map(MRAtom.init))
+    let provider = ArrayAtomProvider(atoms.map(\.storage))
     renderingEngine.setAtomProvider(provider)
   }
   
@@ -41,9 +41,7 @@ extension Renderer {
     
     var provider = AnimationAtomProvider([])
     for frame in frames {
-      let mapped = frame.map {
-        MRAtom(origin: $0.position, element: Int($0.atomicNumber))
-      }
+      let mapped = frame.map(\.storage)
       provider.frames.append(mapped)
     }
     renderingEngine.setAtomProvider(provider)

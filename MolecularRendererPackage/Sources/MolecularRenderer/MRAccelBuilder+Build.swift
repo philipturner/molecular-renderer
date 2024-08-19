@@ -11,7 +11,7 @@ import simd
 import func QuartzCore.CACurrentMediaTime
 
 func denseGridStatistics(
-  atoms: [MRAtom],
+  atoms: [SIMD4<Float>],
   styles: [MRAtomStyle],
   voxel_width_numer: Float,
   voxel_width_denom: Float
@@ -43,8 +43,7 @@ func denseGridStatistics(
       
       @inline(__always)
       func countCells(_ atom: SIMD4<Float>) -> SIMD4<Float> {
-        let element8 = unsafeBitCast(atom.w, to: SIMD4<UInt8>.self).z
-        let element = Int(truncatingIfNeeded: element8)
+        let element = Int(atom.w)
         elementInstances[elementsOffset &+ element] &+= 1
         
         let radius = Float(styles[element].radius) + epsilon
@@ -333,12 +332,12 @@ extension MRAccelBuilder {
   func copyAtomsIntoBuffer() {
     let bufferContents = denseGridAtoms[ringIndex]!.contents()
     let bufferContentsCasted = bufferContents
-      .assumingMemoryBound(to: SIMD8<Float16>.self)
+      .assumingMemoryBound(to: SIMD4<Float>.self)
     
     atoms.withUnsafeBufferPointer { atomPointer in
       let source = atomPointer.baseAddress!
       let sourceCasted = UnsafeRawPointer(source)
-        .assumingMemoryBound(to: SIMD8<Float16>.self)
+        .assumingMemoryBound(to: SIMD4<Float>.self)
       
       atomStyles.withUnsafeBufferPointer { stylePointer in
         let styles = stylePointer.baseAddress!
@@ -348,19 +347,18 @@ extension MRAccelBuilder {
         for atomID in 0..<atomPointer.count {
           var atom = sourceCasted[atomID]
           
-          #if arch(x86_64)
-          fatalError()
-          #else
-          let atomicNumber = atom[7].bitPattern
+          var atomicNumber = Int(atom[3])
           let address = 4 &* atomicNumber &+ 3
           let radius = stylesCasted[Int(truncatingIfNeeded: address)]
           
-          atom[6] = radius * radius
+          var tail: SIMD2<UInt16> = .zero
+          tail[0] = unsafeBitCast(radius * radius, to: UInt16.self)
+          tail[1] = UInt16(atomicNumber)
+          atom[3] = unsafeBitCast(tail, to: Float.self)
+          
           bufferContentsCasted[atomID] = atom
-          #endif
         }
       }
-      
     }
   }
 }

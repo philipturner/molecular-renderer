@@ -7,67 +7,8 @@
 
 import Foundation
 
-// MARK: - MRAtom
-
-// Stores the origin, radius squared, and atom type.
-@_alignment(16)
-public struct MRAtom: Equatable {
-  // Position in nm.
-  public var x: Float
-  public var y: Float
-  public var z: Float
-  
-  // Radius in nm. This will be set internally to the MRRenderer.
-  public var radiusSquared: Float16 = 0
-  
-  // Atomic number.
-  public var element: UInt16
-  
-  @inlinable @inline(__always)
-  public init(
-    origin: SIMD3<Float>,
-    element: UInt8
-  ) {
-    self.x = origin.x
-    self.y = origin.y
-    self.z = origin.z
-    self.element = UInt16(element)
-  }
-  
-  @inlinable @inline(__always)
-  public init(
-    origin: SIMD3<Float>,
-    element: Int
-  ) {
-    self.x = origin.x
-    self.y = origin.y
-    self.z = origin.z
-    self.element = UInt16(element)
-  }
-  
-  @inlinable @inline(__always)
-  public var origin: SIMD3<Float> {
-    get { SIMD3(x, y, z) }
-    set {
-      x = newValue.x
-      y = newValue.y
-      z = newValue.z
-    }
-  }
-  
-  @inlinable @inline(__always)
-  public func getRadius(styles: UnsafePointer<MRAtomStyle>) -> Float16 {
-    styles[Int(element)].radius
-  }
-  
-  @inlinable @inline(__always)
-  public func getColor(styles: UnsafePointer<MRAtomStyle>) -> SIMD3<Float16> {
-    styles[Int(element)].color
-  }
-}
-
 public protocol MRAtomProvider {
-  func atoms(time: MRTime) -> [MRAtom]
+  func atoms(time: MRTime) -> [SIMD4<Float>]
 }
 
 // MARK: - MRAtomStyle

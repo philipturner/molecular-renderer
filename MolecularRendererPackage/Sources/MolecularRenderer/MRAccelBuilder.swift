@@ -37,7 +37,7 @@ class MRAccelBuilder {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   unowned var renderer: MRRenderer
-  var atoms: [MRAtom] = []
+  var atoms: [SIMD4<Float>] = []
   var atomStyles: [MRAtomStyle] = []
   var motionVectors: [SIMD3<Float>] = []
   
@@ -165,13 +165,8 @@ extension MRAccelBuilder {
     ringIndex = (ringIndex + 1) % 3
     
     // Generate or fetch a buffer.
-    let atomSize = MemoryLayout<MRAtom>.stride
-    let atomBufferSize = atoms.count * atomSize
-    precondition(atomSize == 16, "Unexpected atom size.")
-    
-    let motionVectorSize = MemoryLayout<SIMD3<Float>>.stride
-    let motionVectorBufferSize = motionVectors.count * motionVectorSize
-    precondition(motionVectorSize == 16, "Unexpected motion vector size.")
+    let atomBufferSize = atoms.count * 16
+    let motionVectorBufferSize = motionVectors.count * 16
     let motionVectorBuffer = cycle(
       from: &motionVectorBuffers,
       index: ringIndex,
