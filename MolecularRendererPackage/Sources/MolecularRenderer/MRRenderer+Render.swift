@@ -16,9 +16,15 @@ extension MRRenderer {
     layer: CAMetalLayer,
     handler: @escaping () -> Void
   ) {
-    var commandBuffer = self.render()
-    commandBuffer.commit()
-    commandBuffer = commandQueue.makeCommandBuffer()!
+    updateResources()
+    
+    let frameID = bvhBuilder.frameReportCounter
+    bvhBuilder.buildDenseGrid(
+      commandQueue: commandQueue, frameID: frameID)
+    render(
+      commandQueue: commandQueue, frameID: frameID)
+    
+    let commandBuffer = commandQueue.makeCommandBuffer()!
     
     // Acquire a reference to the drawable.
     let drawable = layer.nextDrawable()!
@@ -43,56 +49,10 @@ extension MRRenderer {
 // MARK: - Metal Command Encoding
 
 extension MRRenderer {
-  private func upscale(
-    commandBuffer: MTLCommandBuffer,
-    drawableTexture: MTLTexture
-  ) {
-    resetTracker.update(time: time)
+  private func render(commandQueue: MTLCommandQueue, frameID: Int) {
+    let commandBuffer = commandQueue.makeCommandBuffer()!
+    let encoder = commandBuffer.makeComputeCommandEncoder()!
     
-    // Bind the intermediate textures.
-    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
-    upscaler.reset = resetTracker.resetUpscaler
-    upscaler.colorTexture = textures.color
-    upscaler.depthTexture = textures.depth
-    upscaler.motionTexture = textures.motion
-    upscaler.outputTexture = textures.upscaled
-    upscaler.jitterOffsetX = -jitterOffsets.x
-    upscaler.jitterOffsetY = -jitterOffsets.y
-    upscaler.encode(commandBuffer: commandBuffer)
-    
-    // Metal is forcing me to copy the upscaled texture to the drawable.
-    let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    blitEncoder.copy(from: textures.upscaled, to: drawableTexture)
-    blitEncoder.endEncoding()
-  }
-  
-  private func render() -> MTLCommandBuffer {
-    self.updateResources()
-    
-    // TODO: Working on decoupling the BVH construction from the render pass.
-    var commandBuffer = commandQueue.makeCommandBuffer()!
-    var encoder = commandBuffer.makeComputeCommandEncoder()!
-    bvhBuilder.buildDenseGrid(encoder: encoder)
-    encoder.endEncoding()
-    
-    let frameID = bvhBuilder.frameReportCounter
-    commandBuffer.addCompletedHandler { [self] commandBuffer in
-      let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-      self.bvhBuilder.frameReportQueue.sync {
-        for index in self.bvhBuilder.frameReports.indices.reversed() {
-          guard self.bvhBuilder.frameReports[index].frameID == frameID else {
-            continue
-          }
-          self.bvhBuilder.frameReports[index].geometryTime = executionTime
-          break
-        }
-      }
-    }
-    
-    commandBuffer.commit()
-    commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(renderPipeline)
     bvhBuilder.encodeGridArguments(encoder: encoder)
     bvhBuilder.setGridWidth(arguments: &currentArguments!)
@@ -134,8 +94,8 @@ extension MRRenderer {
     encoder.dispatchThreadgroups(
       MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
       threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
-    encoder.endEncoding()
     
+    encoder.endEncoding()
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
       self.bvhBuilder.frameReportQueue.sync {
@@ -148,8 +108,30 @@ extension MRRenderer {
         }
       }
     }
+    commandBuffer.commit()
+  }
+  
+  private func upscale(
+    commandBuffer: MTLCommandBuffer,
+    drawableTexture: MTLTexture
+  ) {
+    resetTracker.update(time: time)
     
-    return commandBuffer
+    // Bind the intermediate textures.
+    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
+    upscaler.reset = resetTracker.resetUpscaler
+    upscaler.colorTexture = textures.color
+    upscaler.depthTexture = textures.depth
+    upscaler.motionTexture = textures.motion
+    upscaler.outputTexture = textures.upscaled
+    upscaler.jitterOffsetX = -jitterOffsets.x
+    upscaler.jitterOffsetY = -jitterOffsets.y
+    upscaler.encode(commandBuffer: commandBuffer)
+    
+    // Metal is forcing me to copy the upscaled texture to the drawable.
+    let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
+    blitEncoder.copy(from: textures.upscaled, to: drawableTexture)
+    blitEncoder.endEncoding()
   }
 }
 

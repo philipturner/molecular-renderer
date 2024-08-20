@@ -154,9 +154,7 @@ func denseGridStatistics(
 }
 
 extension BVHBuilder {
-  func buildDenseGrid(
-    encoder: MTLComputeCommandEncoder
-  ) {
+  func buildDenseGrid(commandQueue: MTLCommandQueue, frameID: Int) {
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = 16
     let preprocessingStart = CACurrentMediaTime()
@@ -256,8 +254,8 @@ extension BVHBuilder {
         preprocessingTimeCPU: preprocessingEnd - preprocessingStart,
         copyingTime: copyingEnd - copyingStart,
         preprocessingTimeGPU: 1,
-        geometryTime: 1,
-        renderTime: 1)
+        geometryTime: 0,
+        renderTime: 0)
       frameReports.append(report)
       return output
     }
@@ -279,6 +277,9 @@ extension BVHBuilder {
         }
       }
     }
+    
+    let commandBuffer = commandQueue.makeCommandBuffer()!
+    let encoder = commandBuffer.makeComputeCommandEncoder()!
     
     encoder.setComputePipelineState(memsetPipeline)
     encoder.setBuffer(dataBuffer, offset: 0, index: 0)
@@ -326,6 +327,21 @@ extension BVHBuilder {
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    
+    encoder.endEncoding()
+    commandBuffer.addCompletedHandler { [self] commandBuffer in
+      let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+      self.frameReportQueue.sync {
+        for index in self.frameReports.indices.reversed() {
+          guard self.frameReports[index].frameID == frameID else {
+            continue
+          }
+          self.frameReports[index].geometryTime = executionTime
+          break
+        }
+      }
+    }
+    commandBuffer.commit()
   }
   
   // TODO: Fuse this with the GPU kernel that reduces the bounding box.
