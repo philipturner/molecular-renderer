@@ -16,5 +16,14 @@ kernel void preprocessAtoms
  uint tid [[thread_position_in_grid]])
 {
   float4 atom = atoms[tid];
+  
+  uint atomicNumber = uint(atom[3]);
+  half radius = styles[atomicNumber].w;
+  
+  ushort2 tail = as_type<ushort2>(atom[3]);
+  tail[0] = as_type<ushort>(half(radius * radius));
+  tail[1] = ushort(atomicNumber);
+  atom[3] = as_type<float>(tail);
+  
   atoms[tid] = atom;
 }

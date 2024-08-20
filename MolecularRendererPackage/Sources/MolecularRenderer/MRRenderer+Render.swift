@@ -19,6 +19,8 @@ extension MRRenderer {
     updateResources()
     
     let frameID = bvhBuilder.frameReportCounter
+    bvhBuilder.preprocessAtoms(
+      commandQueue: commandQueue, frameID: frameID)
     bvhBuilder.buildDenseGrid(
       commandQueue: commandQueue, frameID: frameID)
     render(

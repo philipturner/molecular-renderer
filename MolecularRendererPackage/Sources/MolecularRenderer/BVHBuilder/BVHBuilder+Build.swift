@@ -199,11 +199,8 @@ extension BVHBuilder {
     
     // Allocate new memory.
     let copyingStart = CACurrentMediaTime()
-    let atomsBuffer = allocate(
-      &denseGridAtoms[ringIndex],
-      desiredElements: atoms.count,
-      bytesPerElement: 16)
-    copyAtomsIntoBuffer()
+    let atomsBuffer = denseGridAtoms[ringIndex]!
+    
     
     // Add 8 to the number of slots, so the counters can be located at the start
     // of the buffer.
@@ -240,7 +237,7 @@ extension BVHBuilder {
           dataSize += 1
           output[0] += report.preprocessingTimeCPU
           output[1] += report.copyingTime
-          output[2] = 0 // unused right now
+          output[2] += report.preprocessingTimeGPU
           output[3] += report.geometryTime
           output[4] += report.renderTime
         }
@@ -252,8 +249,8 @@ extension BVHBuilder {
       let report = MRFrameReport(
         frameID: frameReportCounter,
         preprocessingTimeCPU: preprocessingEnd - preprocessingStart,
-        copyingTime: copyingEnd - copyingStart,
-        preprocessingTimeGPU: 1,
+        copyingTime: 0,
+        preprocessingTimeGPU: 0,
         geometryTime: 0,
         renderTime: 0)
       frameReports.append(report)
@@ -301,7 +298,7 @@ extension BVHBuilder {
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     
     atomStyles.withUnsafeBufferPointer {
-      let length = $0.count * MemoryLayout<MRAtomStyle>.stride
+      let length = $0.count * 8
       encoder.setBytes($0.baseAddress!, length: length, index: 1)
     }
     
@@ -342,39 +339,5 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-  }
-  
-  // TODO: Fuse this with the GPU kernel that reduces the bounding box.
-  func copyAtomsIntoBuffer() {
-    let bufferContents = denseGridAtoms[ringIndex]!.contents()
-    let bufferContentsCasted = bufferContents
-      .assumingMemoryBound(to: SIMD4<Float>.self)
-    
-    atoms.withUnsafeBufferPointer { atomPointer in
-      let source = atomPointer.baseAddress!
-      let sourceCasted = UnsafeRawPointer(source)
-        .assumingMemoryBound(to: SIMD4<Float>.self)
-      
-      atomStyles.withUnsafeBufferPointer { stylePointer in
-        let styles = stylePointer.baseAddress!
-        let stylesCasted = UnsafeRawPointer(styles)
-          .assumingMemoryBound(to: Float16.self)
-        
-        for atomID in 0..<atomPointer.count {
-          var atom = sourceCasted[atomID]
-          
-          var atomicNumber = Int(atom[3])
-          let address = 4 &* atomicNumber &+ 3
-          let radius = stylesCasted[Int(truncatingIfNeeded: address)]
-          
-          var tail: SIMD2<UInt16> = .zero
-          tail[0] = unsafeBitCast(radius * radius, to: UInt16.self)
-          tail[1] = UInt16(atomicNumber)
-          atom[3] = unsafeBitCast(tail, to: Float.self)
-          
-          bufferContentsCasted[atomID] = atom
-        }
-      }
-    }
   }
 }

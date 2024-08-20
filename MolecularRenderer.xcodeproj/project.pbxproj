@@ -258,6 +258,7 @@
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
+		98D26BAA2C754D01007B48FD /* BVHBuilder+Preprocess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Preprocess.swift"; sourceTree = "<group>"; };
 		98D975902AC088260052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image1.jpg; sourceTree = "<group>"; };
 		98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image2.jpg; sourceTree = "<group>"; };
@@ -923,6 +924,7 @@
 			children = (
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */,
+				98D26BAA2C754D01007B48FD /* BVHBuilder+Preprocess.swift */,
 			);
 			path = BVHBuilder;
 			sourceTree = "<group>";

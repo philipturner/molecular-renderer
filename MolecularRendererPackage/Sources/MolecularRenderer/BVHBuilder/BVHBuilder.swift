@@ -35,7 +35,6 @@ struct MRFrameReport {
 class BVHBuilder {
   // Main rendering resources.
   var device: MTLDevice
-  var commandQueue: MTLCommandQueue
   unowned var renderer: MRRenderer
   var atoms: [SIMD4<Float>] = []
   var atomStyles: [MRAtomStyle] = []
@@ -63,6 +62,7 @@ class BVHBuilder {
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
+  var preprocessPipeline: MTLComputePipelineState
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
@@ -72,7 +72,6 @@ class BVHBuilder {
     library: MTLLibrary
   ) {
     self.device = renderer.device
-    self.commandQueue = renderer.commandQueue
     self.renderer = renderer
     
     let constants = MTLFunctionConstantValues()
@@ -83,6 +82,10 @@ class BVHBuilder {
       name: "memset_pattern4", constantValues: constants)
     self.memsetPipeline = try! device
       .makeComputePipelineState(function: memsetFunction)
+    
+    let preprocessFunction = library.makeFunction(name: "preprocessAtoms")!
+    self.preprocessPipeline = try! device
+      .makeComputePipelineState(function: preprocessFunction)
     
     let densePass1Function = library.makeFunction(name: "dense_grid_pass1")!
     self.densePass1Pipeline = try! device
