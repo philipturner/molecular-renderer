@@ -173,17 +173,25 @@ extension BVHBuilder {
     var maxCoordinates = SIMD3(statistics.boundingBox.1.x,
                                statistics.boundingBox.1.y,
                                statistics.boundingBox.1.z)
-    minCoordinates.round(.down)
-    maxCoordinates.round(.up)
+    
+    // Round to the nearest multiple of 2 nm.
+    do {
+      minCoordinates /= 2
+      maxCoordinates /= 2
+      minCoordinates.round(.down)
+      maxCoordinates.round(.up)
+      minCoordinates *= 2
+      maxCoordinates *= 2
+    }
+    guard all(minCoordinates .>= -64),
+          all(maxCoordinates .<= 64) else {
+      fatalError("Some atoms will be omitted from the render.")
+    }
+    
     self.worldOrigin = SIMD3<Int16>(minCoordinates)
     self.worldDimensions = SIMD3<Int16>(maxCoordinates - minCoordinates)
     
-    // If some atoms fly extremely far out of bounds, prevent the app from
-    // crashing. No atom may have a coordinate larger than +/- ~100 nm, which
-    // creates a 2 GB memory allocation.
-    //
-    // This is a half-baked workaround. It may be eliminated once the BVH
-    // construction is offloaded entirely to the GPU.
+    
     worldOrigin.replace(
       with: SIMD3(repeating: -100), where: worldOrigin .< -100)
     worldDimensions.replace(

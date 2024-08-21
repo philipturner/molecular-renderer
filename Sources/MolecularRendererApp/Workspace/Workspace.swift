@@ -5,89 +5,6 @@ import Numerics
 
 #if true
 
-// Compile a hole 128 nm deep, and stare through it with the camera. Is the
-// cost of iterating through the DDA a bottleneck?
-func createGeometry() -> [Entity] {
-  let chamber = Lattice<Hexagonal> { h, k, l in
-    let h2k = h + 2 * k
-    Bounds { 22 * h + 13 * h2k + 100 * l }
-    Material { .elemental(.silicon) }
-    
-    Volume {
-      Convex {
-//        // Set the lower left corner.
-//        Convex {
-//          Origin { 4 * h + 2.5 * h2k }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 4 * h + 2.5 * h2k }
-//          Plane { h2k }
-//        }
-        
-        // Set the upper right corner.
-        Convex {
-          Origin { 18 * h + 10.5 * h2k }
-          Plane { -h }
-        }
-        Convex {
-          Origin { 18 * h + 10.5 * h2k }
-          Plane { -h2k }
-        }
-      }
-      
-      Replace { .empty }
-    }
-  }
-  
-  var chamberTopology: Topology
-  
-  // 14 unit cells -> 8 nm, 26k atoms
-  // 224 unit cells -> 128 nm, 390k atoms
-  var reconstruction = Reconstruction()
-  reconstruction.material = .elemental(.silicon)
-  reconstruction.topology.insert(atoms: chamber.atoms)
-  reconstruction.compile()
-  chamberTopology = reconstruction.topology
-  
-  // Compile a lattice for the surface.
-  let surfaceLattice = Lattice<Cubic> { h, k, l in
-    Bounds { 200 * h + 200 * k + 2 * l }
-    Material { .elemental(.silicon) }
-    
-    Volume {
-      Origin { 0.5 * l }
-      Plane { -l }
-      Replace { .empty }
-    }
-  }
-  
-  var surfaceTopology = Topology()
-  surfaceTopology.insert(atoms: surfaceLattice.atoms)
-  do {
-    let latticeConstant = Constant(.square) { .elemental(.silicon) }
-    let midPointXY = (200 * latticeConstant) / 2
-    let depth = 2 * latticeConstant
-    
-    for atomID in surfaceTopology.atoms.indices {
-      var atom = surfaceTopology.atoms[atomID]
-      atom.position += SIMD3(-midPointXY, -midPointXY, -depth)
-      surfaceTopology.atoms[atomID] = atom
-    }
-  }
-  
-  // Prevent the chamber from physically overlapping the surface.
-  for atomID in chamberTopology.atoms.indices {
-    var atom = chamberTopology.atoms[atomID]
-    atom.position += SIMD3(0.00, 0.00, 0.50)
-    chamberTopology.atoms[atomID] = atom
-  }
-  
-  return surfaceTopology.atoms + chamberTopology.atoms
-}
-
-#elseif false
-
 // First, remove all of the different modes. Clean up the code from
 // previous profiling experiments. Make the voxel size being 0.25 nm
 // something hard-coded throughout the codebase. [DONE]
@@ -102,7 +19,7 @@ func createGeometry() -> [Entity] {
 //   - Remove MRAtom from the public API, replace with SIMD4<Float>. [DONE]
 //   - Can we convert to MRAtom while memcpy'ing into the GPU buffer? How does
 //     that compare to the memory bandwidth limit? [DONE]
-//     - It is double to triple the latency. This part must be offloaded. [DONE]
+//     - It is 2-3x the latency. This part must be offloaded. [DONE]
 //   - Replace the MRAtomProvider API with something else. [WILL HAPPEN LATER]
 // - Prepare a GPU kernel for the reduction. [DONE]
 //   - Add a new MRFrameReport section for GPU preprocessing. [DONE]

@@ -12,7 +12,7 @@ import OpenMM
 import QuartzCore
 import xTB
 
-// MARK: - Code Invokation
+// MARK: - Code Invocation
 
 extension Renderer {
   func initializeCompilation(_ closure: () -> [Entity]) {
