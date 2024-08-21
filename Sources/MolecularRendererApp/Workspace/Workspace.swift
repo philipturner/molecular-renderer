@@ -5,6 +5,46 @@ import Numerics
 
 #if true
 
+func createGeometry() -> [Entity] {
+  let lattice = Lattice<Hexagonal> { h, k, l in
+    let h2k = h + 2 * k
+    Bounds { 7 * h + 5 * h2k + 3 * l }
+    Material { .checkerboard(.silicon, .carbon) }
+    
+    Volume {
+      Origin { 4.5 * h2k }
+      Plane { h2k }
+      Replace { .empty }
+    }
+  }
+  
+  var reconstruction = Reconstruction()
+  reconstruction.material = .checkerboard(.silicon, .carbon)
+  reconstruction.topology.insert(atoms: lattice.atoms)
+  reconstruction.compile()
+  let topology = reconstruction.topology
+  
+  var centerAtomCount: Int = .zero
+  var hydrogenAtomCount: Int = .zero
+  var backHydrogenCount: Int = .zero
+  for atom in topology.atoms {
+    if atom.atomicNumber == 1 {
+      hydrogenAtomCount += 1
+      if atom.position.z < 0.00 {
+        backHydrogenCount += 1
+      }
+    } else {
+      centerAtomCount += 1
+    }
+  }
+  print(centerAtomCount, hydrogenAtomCount, backHydrogenCount)
+  print(centerAtomCount + hydrogenAtomCount - 2 * backHydrogenCount)
+  
+  return topology.atoms
+}
+
+#elseif true
+
 // First, remove all of the different modes. Clean up the code from
 // previous profiling experiments. Make the voxel size being 0.25 nm
 // something hard-coded throughout the codebase. [DONE]

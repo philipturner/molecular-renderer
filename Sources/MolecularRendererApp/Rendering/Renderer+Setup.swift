@@ -70,7 +70,7 @@ extension Renderer {
     descriptor.intermediateTextureSize = Int(
       ContentView.size / ContentView.upscaleFactor)
     descriptor.upscaleFactor = ContentView.upscaleFactor
-    descriptor.reportPerformance = true
+    descriptor.reportPerformance = false
     
     renderingEngine = MRRenderer(descriptor: descriptor)
     renderingEngine.setAtomStyles(
