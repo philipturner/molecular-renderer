@@ -8,6 +8,35 @@
 import Metal
 import QuartzCore
 
+// Encode the "reduced complexity stepping stone"
+//
+// ## Step 1
+//
+// preallocate an array of 32-bit voxel data
+//
+// ## Step 2
+//
+// overwrite the 32-bit voxel data with zero (memset)
+//
+// ## Step 3
+//
+// bind memory allocations: 1, 2, 3
+// bind the pipeline state object:
+//
+// ```
+// read atom (1)
+// read exact atomic radius (2)
+// locate closest voxel
+// atomically increment the voxel's counter (3)
+// ```
+//
+// dispatch 'atoms.count' threads
+//
+// ## Step 4
+//
+// stall and dissect the outcome on the CPU
+// crash the program
+
 extension BVHBuilder {
   func preprocessAtoms(commandQueue: MTLCommandQueue, frameID: Int) {
     let atomsBuffer = allocate(

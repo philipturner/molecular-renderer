@@ -1078,6 +1078,7 @@
 			isa = PBXGroup;
 			children = (
 				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
+				98537EB22A62EA940037C392 /* Memory.metal */,
 				98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */,
 				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
 			);
@@ -1089,7 +1090,6 @@
 			children = (
 				98537EB62A63107F0037C392 /* Atomic.metal */,
 				988B257D2A1AC482007F18C1 /* Constants.metal */,
-				98537EB22A62EA940037C392 /* Memory.metal */,
 				98122D7029DFBDE6006200D1 /* MRAtom.metal */,
 			);
 			path = Utilities;
