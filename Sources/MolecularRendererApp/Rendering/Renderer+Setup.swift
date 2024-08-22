@@ -15,18 +15,18 @@ import xTB
 // MARK: - Code Invocation
 
 extension Renderer {
-  func initializeCompilation(_ closure: () -> [Entity]) {
+  func initializeCompilation(_ closure: () -> [Atom]) {
     let start = CACurrentMediaTime()
     let atoms = closure()
     let end = CACurrentMediaTime()
     print("atoms:", atoms.count)
     print("compile time:", String(format: "%.1f", (end - start) * 1e3), "ms")
     
-    let provider = ArrayAtomProvider(atoms.map(\.storage))
+    let provider = ArrayAtomProvider(atoms.map { $0 })
     renderingEngine.setAtomProvider(provider)
   }
   
-  func initializeCompilation(_ closure: () -> [[Entity]]) {
+  func initializeCompilation(_ closure: () -> [[Atom]]) {
     let start = CACurrentMediaTime()
     let frames = closure()
     let end = CACurrentMediaTime()
@@ -41,7 +41,7 @@ extension Renderer {
     
     var provider = AnimationAtomProvider([])
     for frame in frames {
-      let mapped = frame.map(\.storage)
+      let mapped = frame.map { $0 }
       provider.frames.append(mapped)
     }
     renderingEngine.setAtomProvider(provider)
