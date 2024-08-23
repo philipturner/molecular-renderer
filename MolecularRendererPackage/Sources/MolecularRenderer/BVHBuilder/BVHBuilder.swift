@@ -60,6 +60,9 @@ class BVHBuilder {
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
   
+  // Buffers for the new BVH building algorithm.
+  var voxelDataBuffer: MTLBuffer!
+  
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
   var preprocessPipeline: MTLComputePipelineState
@@ -98,6 +101,10 @@ class BVHBuilder {
     let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
     self.densePass3Pipeline = try! device
       .makeComputePipelineState(function: densePass3Function)
+    
+    // Allocate buffers
+    
+    voxelDataBuffer = BVHBuilder.createVoxelDataBuffer(device: device)
   }
 }
 
