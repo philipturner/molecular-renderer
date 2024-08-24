@@ -13,9 +13,6 @@ using namespace metal;
 
 // MARK: - Constants
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused"
-
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
@@ -32,21 +29,6 @@ constant float MAX_RAY_HIT_TIME = 1.0;
 
 // MARK: - Definitions
 
-struct RenderArguments {
-  // The jitter to apply to the pixel.
-  float2 jitter;
-  
-  // Seed for generating random numbers.
-  uint frameSeed;
-  
-  // Constants for ray-traced ambient occlusion.
-  float qualityCoefficient;
-  
-  // Uniform grid arguments.
-  short3 world_origin;
-  short3 world_dims;
-};
-
 struct CameraArguments {
   float4 positionAndFOVMultiplier;
   float3 rotationColumn1;
@@ -54,6 +36,15 @@ struct CameraArguments {
   float3 rotationColumn3;
 };
 
-#pragma clang diagnostic pop
+struct BVHArguments {
+  short3 worldOrigin;
+  short3 worldDimensions;
+};
+
+struct RenderArguments {
+  float2 jitter;
+  uint frameSeed;
+  float qualityCoefficient;
+};
 
 #endif

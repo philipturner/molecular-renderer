@@ -6,24 +6,25 @@
 //
 
 #include <metal_stdlib>
-#include "../Utilities/Constants.metal"
-#include "../Lighting/Lighting.metal"
-#include "../Ray Tracing/RayTracing.metal"
-#include "../Ray Tracing/RayGeneration.metal"
-#include "../Uniform Grids/DDA.metal"
+#include "Utilities/Constants.metal"
+#include "Lighting/Lighting.metal"
+#include "Ray Tracing/RayTracing.metal"
+#include "Ray Tracing/RayGeneration.metal"
+#include "Uniform Grids/DDA.metal"
 using namespace metal;
 
 kernel void renderAtoms
 (
- constant RenderArguments *renderArgs [[buffer(0)]],
- constant CameraArguments *cameraArgs [[buffer(1)]],
- const device float3 *atomColors [[buffer(2)]],
+ constant CameraArguments *cameraArgs [[buffer(0)]],
+ constant BVHArguments *bvhArgs [[buffer(1)]],
+ constant RenderArguments *renderArgs [[buffer(2)]],
  
- device uint *dense_grid_data [[buffer(4)]],
- device uint *dense_grid_references [[buffer(5)]],
+ device uint *dense_grid_data [[buffer(5)]],
+ device uint *dense_grid_references [[buffer(6)]],
  
- device float3 *motion_vectors [[buffer(6)]],
  device float4 *newAtoms [[buffer(10)]],
+ device float3 *atomColors [[buffer(11)]],
+ device float3 *motionVectors [[buffer(12)]],
  
  texture2d<half, access::write> color_texture [[texture(0)]],
  texture2d<float, access::write> depth_texture [[texture(1)]],
@@ -40,8 +41,7 @@ kernel void renderAtoms
   
   // Initialize the uniform grid.
   DenseGrid grid {
-    renderArgs->world_origin,
-    renderArgs->world_dims,
+    bvhArgs,
     dense_grid_data,
     dense_grid_references,
     newAtoms
@@ -93,12 +93,13 @@ kernel void renderAtoms
     colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.
+    //
     // TODO: Investigate whether MetalFX wants depth to be something different.
     float depth = ray.direction.z * intersect.distance;
     colorCtx.setDepth(depth);
     
     // Transform to the atom's position in the previous frame.
-    float3 motionVector = motion_vectors[intersect.reference];
+    float3 motionVector = motionVectors[intersect.reference];
     colorCtx.generateMotionVector(cameraArgs + 1,
                                   hitPoint - motionVector);
   }

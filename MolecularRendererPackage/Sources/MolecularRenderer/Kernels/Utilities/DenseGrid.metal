@@ -9,12 +9,12 @@
 #define DENSE_GRID_H
 
 #include <metal_stdlib>
+#include "Constants.metal"
 using namespace metal;
 
 class DenseGrid {
 public:
-  short3 world_origin;
-  short3 world_dims;
+  constant BVHArguments *bvhArgs;
   device uint *data;
   device uint *references;
   device float4 *newAtoms;

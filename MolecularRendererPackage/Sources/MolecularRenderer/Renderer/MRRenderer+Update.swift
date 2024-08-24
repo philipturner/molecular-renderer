@@ -28,9 +28,6 @@ struct Arguments {
 }
 
 extension MRRenderer {
-  // Perform any updating work that happens before encoding the rendering work.
-  // This should be called as early as possible each frame, to hide any latency
-  // between now and when it can encode the rendering work.
   func updateResources() {
     self.updateCamera(camera: camera)
     self.updateGeometry(time: time)
@@ -45,10 +42,10 @@ extension MRRenderer {
   func updateGeometry(time: MRTime) {
     var atoms = atomProvider.atoms(time: time)
     
+    // TODO: Fuse this with the GPU kernel that reduces the bounding box.
     if time.absolute.frames > 0,
        time.relative.frames > 0,
        bvhBuilder.atoms.count == atoms.count {
-      // TODO: Fuse this with the GPU kernel that reduces the bounding box.
       var newVectors = [SIMD3<Float>](repeating: .zero, count: atoms.count)
       for i in atoms.indices {
         let current = atoms[i]
