@@ -9,11 +9,12 @@
 #include "../Utilities/Atomic.metal"
 using namespace metal;
 
-kernel void preprocessAtoms
+// Converts the float4 atoms to two different formats (for now).
+kernel void preprocess
 (
- device float4 *atoms [[buffer(1)]],
+ device float4 *atoms [[buffer(0)]],
  device half4 *styles [[buffer(2)]],
- device uint *voxel_data [[buffer(4)]],
+ device float4 *newAtoms [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -30,13 +31,14 @@ kernel void preprocessAtoms
     atoms[tid].w = as_type<float>(tail);
   }
   
-  // Locate the closest voxel.
-  float3 position = atom.xyz;
-  float3 shiftedPosition = position + 64;
-  short3 voxelCoords = short3(floor(shiftedPosition / 2));
-  uint voxelAddress =
-  voxelCoords.z * (64 * 64) + voxelCoords.y * 64 + voxelCoords.x;
-  
-  // Atomically increment the voxel's counter.
-  atomic_fetch_add(voxel_data + voxelAddress, 1);
+  // Write the new format.
+  {
+    ushort2 tail;
+    tail[0] = as_type<ushort>(half(radius * radius));
+    tail[1] = ushort(atomicNumber);
+    
+    float4 newAtom = atom;
+    newAtom.w = as_type<float>(tail);
+    newAtoms[tid] = newAtom;
+  }
 }

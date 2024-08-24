@@ -5,31 +5,6 @@ import Numerics
 
 #if true
 
-// First, remove all of the different modes. Clean up the code from
-// previous profiling experiments. Make the voxel size being 0.25 nm
-// something hard-coded throughout the codebase. [DONE]
-//
-// Then, proceed with changing how the global bounding box is handled. [DONE]
-//
-// Preparing for GPU offloading:
-// - Refactor the API for MRAtomStyle. [DONE]
-//   - Remove the checkerboard texture and flags. [DONE]
-//   - Accept styles as an array. [DONE]
-// - Refactor the API for entering atoms. [DONE]
-//   - Remove MRAtom from the public API, replace with SIMD4<Float>. [DONE]
-//   - Can we convert to MRAtom while memcpy'ing into the GPU buffer? How does
-//     that compare to the memory bandwidth limit? [DONE]
-//     - It is 2-3x the latency. This part must be offloaded. [DONE]
-//   - Replace the MRAtomProvider API with something else. [WILL HAPPEN LATER]
-// - Prepare a GPU kernel for the reduction. [DONE]
-//   - Add a new MRFrameReport section for GPU preprocessing. [DONE]
-//   - Convert from SIMD4<Float> to MRAtom on the GPU. [DONE]
-// - Allocate a fixed amount of memory for the grid.
-//   - Allow the GPU to return early, resulting in a black screen.
-//   - Make the GPU return early when the reference count is too high.
-//   - Make the GPU return early when the cell count is too high.
-// - Reduce the global bounding box on the GPU.
-
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
   //
