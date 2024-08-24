@@ -1083,8 +1083,8 @@
 			children = (
 				98A263A82A543EEC00B69392 /* DDA.metal */,
 				98537EB22A62EA940037C392 /* Memory.metal */,
-				98537EAE2A62EA3D0037C392 /* OldBVH.metal */,
 				98F12C8F2C72CEE20045FAFB /* NewBVH.metal */,
+				98537EAE2A62EA3D0037C392 /* OldBVH.metal */,
 			);
 			path = "Uniform Grids";
 			sourceTree = "<group>";

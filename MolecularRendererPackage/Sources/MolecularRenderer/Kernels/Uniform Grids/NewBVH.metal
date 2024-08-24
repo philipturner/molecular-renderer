@@ -20,11 +20,12 @@ kernel void preprocess
 {
   // Fetch the atom from memory.
   float4 atom = atoms[tid];
-  ushort atomicNumber = ushort(atom[3]);
-  half radius = styles[atomicNumber].w;
   
   // Overwrite the atom's tail in memory.
   {
+    ushort atomicNumber = ushort(atom[3]);
+    half radius = styles[atomicNumber].w;
+    
     ushort2 tail;
     tail[0] = as_type<ushort>(half(radius * radius));
     tail[1] = ushort(atomicNumber);
@@ -33,12 +34,15 @@ kernel void preprocess
   
   // Write the new format.
   {
-    ushort2 tail;
-    tail[0] = as_type<ushort>(half(radius * radius));
-    tail[1] = ushort(atomicNumber);
+    uchar atomicNumber = uchar(atom[3]);
+    float radius = styles[atomicNumber].w;
     
-    float4 newAtom = atom;
-    newAtom.w = as_type<float>(tail);
-    newAtoms[tid] = newAtom;
+    uint packed = as_type<uint>(radius);
+    packed = packed & 0xFFFFFF00;
+    packed = packed | atomicNumber;
+    
+    float4 convertedAtom = atom;
+    convertedAtom.w = as_type<float>(packed);
+    newAtoms[tid] = convertedAtom;
   }
 }
