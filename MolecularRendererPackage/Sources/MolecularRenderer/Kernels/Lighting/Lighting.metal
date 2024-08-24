@@ -175,15 +175,13 @@ public:
   }
   
   void generateMotionVector(float3 hitPoint) {
-    auto arg1 = (device Arguments*)((device uchar*)args + 128);
-    
     // fovMultiplier = halfAngleTangentRatio / fov90Span
     // 1 / fovMultiplier = fov90Span / halfAngleTangentRatio
     // - 90°: simply transform direction vector back into pixel location
     // - 110°: halfAngleTangentRatio > 1; end result closer to center
-    float3 direction = normalize(hitPoint - arg1->position);
-    direction = transpose(arg1->rotation) * direction;
-    direction *= 1 / arg1->fovMultiplier / direction.z;
+    float3 direction = normalize(hitPoint - args->previousPosition);
+    direction = transpose(args->previousRotation) * direction;
+    direction *= 1 / args->previousFOVMultiplier / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.
     float2 prevCoords = direction.xy;

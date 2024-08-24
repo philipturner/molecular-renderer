@@ -54,6 +54,11 @@ Arguments {
   // Uniform grid arguments.
   short3 world_origin;
   short3 world_dims;
+  
+  // Previous position for motion vectors.
+  float3 previousPosition;
+  float3x3 previousRotation;
+  float previousFOVMultiplier;
 };
 
 #pragma clang diagnostic pop

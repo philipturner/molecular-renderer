@@ -67,17 +67,17 @@ extension MRRenderer {
     bvhBuilder.setGridWidth(arguments: &currentArguments!)
     
     // Encode the arguments.
-    let tempAllocation = malloc(256)!
-    if previousArguments == nil {
-      previousArguments = currentArguments
-    }
-    let stride = MemoryLayout<Arguments>.stride
-    precondition(stride <= 128)
-    memcpy(tempAllocation, &currentArguments!, stride)
-    memcpy(tempAllocation + 128, &previousArguments!, stride)
-    encoder.setBytes(tempAllocation, length: 256, index: 0)
-    free(tempAllocation)
+    let previousArguments = self.previousArguments ?? self.currentArguments!
+    var encodedArguments = self.currentArguments!
+    encodedArguments.previousPosition.x = previousArguments.positionX
+    encodedArguments.previousPosition.y = previousArguments.positionY
+    encodedArguments.previousPosition.z = previousArguments.positionZ
+    encodedArguments.previousRotation = previousArguments.rotation
+    encodedArguments.previousFOVMultiplier = previousArguments.fovMultiplier
+    self.previousArguments = self.currentArguments
     
+    let argumentStride = MemoryLayout<Arguments>.stride
+    encoder.setBytes(&encodedArguments, length: argumentStride, index: 0)
     bindAtomColors(to: encoder)
     
     // Encode the output textures.

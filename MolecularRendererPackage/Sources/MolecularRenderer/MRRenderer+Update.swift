@@ -21,6 +21,10 @@ struct Arguments {
   
   var worldOrigin: SIMD3<Int16>
   var worldDimensions: SIMD3<Int16>
+  
+  var previousPosition: SIMD3<Float>
+  var previousRotation: simd_float3x3
+  var previousFOVMultiplier: Float
 }
 
 extension MRRenderer {
@@ -89,6 +93,10 @@ extension MRRenderer {
       qualityCoefficient: qualityCoefficient,
       
       worldOrigin: .zero,
-      worldDimensions: .zero)
+      worldDimensions: .zero,
+    
+      previousPosition: .zero,
+      previousRotation: simd_float3x3(diagonal: .zero),
+      previousFOVMultiplier: .zero)
   }
 }
