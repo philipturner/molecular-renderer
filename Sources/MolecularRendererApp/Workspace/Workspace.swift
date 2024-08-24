@@ -5,6 +5,10 @@ import Numerics
 
 #if true
 
+// TODO: Refactor all of the code that deals with the camera. Make a
+// separate buffer that holds camera data for the current and previous
+// frame. Then, investigate the bugs with motion vectors.
+
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
   //
