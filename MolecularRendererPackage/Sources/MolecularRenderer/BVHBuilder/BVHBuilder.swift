@@ -211,5 +211,6 @@ extension BVHBuilder {
     encoder.setBuffer(denseGridData!, offset: 32, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
     encoder.setBuffer(motionVectorBuffers[ringIndex]!, offset: 0, index: 6)
+    encoder.setBuffer(newAtomsBuffer, offset: 0, index: 10)
   }
 }

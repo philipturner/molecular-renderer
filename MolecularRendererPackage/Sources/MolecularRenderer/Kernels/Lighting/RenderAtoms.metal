@@ -24,6 +24,7 @@ kernel void renderAtoms
  device uint *dense_grid_references [[buffer(5)]],
  
  device float3 *motion_vectors [[buffer(6)]],
+ device float4 *newAtoms [[buffer(10)]],
  
  texture2d<half, access::write> color_texture [[texture(0)]],
  texture2d<float, access::write> depth_texture [[texture(1)]],
@@ -44,7 +45,8 @@ kernel void renderAtoms
     args->world_dims,
     dense_grid_data,
     dense_grid_references,
-    atoms
+    atoms,
+    newAtoms
   };
   
   // Cast the primary ray.

@@ -19,6 +19,7 @@ public:
   device uint *data;
   device uint *references;
   device MRAtom *atoms;
+  device float4 *newAtoms;
 };
 
 #endif // DENSE_GRID_H
