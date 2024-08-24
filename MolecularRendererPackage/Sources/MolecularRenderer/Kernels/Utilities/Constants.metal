@@ -16,7 +16,6 @@ using namespace metal;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
 
-// The MetalFX upscaler is currently configured with a static resolution.
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
@@ -33,15 +32,7 @@ constant float MAX_RAY_HIT_TIME = 1.0;
 
 // MARK: - Definitions
 
-struct __attribute__((aligned(16)))
-Arguments {
-  // Transforms a pixel location on the screen into a ray direction vector.
-  float fovMultiplier;
-  
-  // This frame's position and orientation.
-  packed_float3 position;
-  float3x3 rotation;
-  
+struct RenderArguments {
   // The jitter to apply to the pixel.
   float2 jitter;
   
@@ -54,11 +45,13 @@ Arguments {
   // Uniform grid arguments.
   short3 world_origin;
   short3 world_dims;
-  
-  // Previous position for motion vectors.
-  float3 previousPosition;
-  float3x3 previousRotation;
-  float previousFOVMultiplier;
+};
+
+struct CameraArguments {
+  float4 positionAndFOVMultiplier;
+  float3 rotationColumn1;
+  float3 rotationColumn2;
+  float3 rotationColumn3;
 };
 
 #pragma clang diagnostic pop

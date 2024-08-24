@@ -52,16 +52,28 @@ public:
     return float3x3(x, y, z);
   }
   
-  static Ray<float> primaryRay(ushort2 pixelCoords, const device Arguments* args) {
+  static Ray<float> primaryRay(constant CameraArguments *cameraArgs,
+                               float2 jitter,
+                               ushort2 pixelCoords) {
+    // Apply the pixel position.
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
-    rayDirection.xy += args->jitter;
+    rayDirection.xy += jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     rayDirection.y = -rayDirection.y;
-    rayDirection.xy *= args->fovMultiplier;
-    rayDirection = normalize(rayDirection);
-    rayDirection = args->rotation * rayDirection;
     
-    float3 worldOrigin = args->position;
+    // Apply the camera FOV.
+    float fovMultiplier = cameraArgs->positionAndFOVMultiplier[3];
+    rayDirection.xy *= fovMultiplier;
+    rayDirection = normalize(rayDirection);
+    
+    // Apply the camera direction.
+    float3x3 rotation(cameraArgs->rotationColumn1,
+                      cameraArgs->rotationColumn2,
+                      cameraArgs->rotationColumn3);
+    rayDirection = rotation * rayDirection;
+    
+    // Apply the camera position.
+    float3 worldOrigin = cameraArgs->positionAndFOVMultiplier.xyz;
     return { worldOrigin, rayDirection };
   }
   
@@ -81,15 +93,17 @@ public:
 };
 
 class GenerationContext {
-  const device Arguments* args;
+  constant CameraArguments* cameraArgs;
   uchar seed;
   
 public:
-  GenerationContext(const device Arguments* args, ushort2 pixelCoords) {
-    this->args = args;
+  GenerationContext(constant CameraArguments* cameraArgs,
+                    uint frameSeed,
+                    ushort2 pixelCoords) {
+    this->cameraArgs = cameraArgs;
     
     uint pixelSeed = as_type<uint>(pixelCoords);
-    uint seed1 = Sampling::tea(pixelSeed, args->frameSeed);
+    uint seed1 = Sampling::tea(pixelSeed, frameSeed);
     ushort seed2 = as_type<ushort2>(seed1)[0];
     seed2 ^= as_type<ushort2>(seed1)[1];
     this->seed = seed2 ^ (seed2 / 256);
@@ -117,7 +131,9 @@ public:
     // Align the atoms' coordinate systems with each other, to minimize
     // divergence. Here is a primitive method that achieves that by aligning
     // the X and Y dimensions to a common coordinate space.
-    float3x3 rotation = args->rotation;
+    float3x3 rotation(cameraArgs->rotationColumn1,
+                      cameraArgs->rotationColumn2,
+                      cameraArgs->rotationColumn3);
     float3 modNormal = transpose(rotation) * float3(normal);
     float3x3 _axes = RayGeneration::makeBasis(modNormal);
     half3x3 axes = half3x3(rotation * _axes);

@@ -54,7 +54,7 @@ extension MRRenderer {
   func bindAtomColors(to encoder: MTLComputeCommandEncoder) {
     atomColors.withUnsafeBufferPointer {
       let length = $0.count * 16
-      encoder.setBytes($0.baseAddress!, length: length, index: 1)
+      encoder.setBytes($0.baseAddress!, length: length, index: 2)
     }
   }
   

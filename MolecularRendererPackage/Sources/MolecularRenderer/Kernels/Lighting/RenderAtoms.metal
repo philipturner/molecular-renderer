@@ -15,8 +15,9 @@ using namespace metal;
 
 kernel void renderAtoms
 (
- const device Arguments *args [[buffer(0)]],
- const device float3 *atomColors [[buffer(1)]],
+ constant RenderArguments *renderArgs [[buffer(0)]],
+ constant CameraArguments *cameraArgs [[buffer(1)]],
+ const device float3 *atomColors [[buffer(2)]],
  
  device uint *dense_grid_data [[buffer(4)]],
  device uint *dense_grid_references [[buffer(5)]],
@@ -39,20 +40,22 @@ kernel void renderAtoms
   
   // Initialize the uniform grid.
   DenseGrid grid {
-    args->world_origin,
-    args->world_dims,
+    renderArgs->world_origin,
+    renderArgs->world_dims,
     dense_grid_data,
     dense_grid_references,
     newAtoms
   };
   
   // Cast the primary ray.
-  auto ray = RayGeneration::primaryRay(pixelCoords, args);
+  auto ray = RayGeneration::primaryRay(cameraArgs,
+                                       renderArgs->jitter,
+                                       pixelCoords);
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayIntersector::traverse(ray, grid, params);
   
   // Calculate ambient occlusion, diffuse, and specular terms.
-  auto colorCtx = ColorContext(args, atomColors, pixelCoords);
+  auto colorCtx = ColorContext(atomColors, pixelCoords);
   if (intersect.accept) {
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
     half3 normal = half3(normalize(hitPoint - intersect.newAtom.xyz));
@@ -64,14 +67,16 @@ kernel void renderAtoms
       constexpr half maxSamples = 7.0;
       
       half samples = maxSamples;
-      float distanceCutoff = args->qualityCoefficient / maxSamples;
+      float distanceCutoff = renderArgs->qualityCoefficient / maxSamples;
       if (intersect.distance > distanceCutoff) {
         half proportion = distanceCutoff / intersect.distance;
         half newSamples = max(minSamples, samples * proportion);
         samples = clamp(ceil(newSamples), minSamples, maxSamples);
       }
       
-      auto genCtx = GenerationContext(args, pixelCoords);
+      auto genCtx = GenerationContext(cameraArgs,
+                                      renderArgs->frameSeed,
+                                      pixelCoords);
       for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples, hitPoint, normal);
         IntersectionParams params { true, MAX_RAY_HIT_TIME, false };
@@ -81,15 +86,21 @@ kernel void renderAtoms
       colorCtx.finishAmbientContributions(samples);
     }
     
+    // Apply the camera position.
+    float3 lightPosition = cameraArgs->positionAndFOVMultiplier.xyz;
     colorCtx.startLightContributions();
-    colorCtx.addLightContribution(hitPoint, normal, args->position);
+    colorCtx.addLightContribution(hitPoint, normal, lightPosition);
     colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.
+    // TODO: Investigate whether MetalFX wants depth to be something different.
     float depth = ray.direction.z * intersect.distance;
     colorCtx.setDepth(depth);
+    
+    // Transform to the atom's position in the previous frame.
     float3 motionVector = motion_vectors[intersect.reference];
-    colorCtx.generateMotionVector(hitPoint - motionVector);
+    colorCtx.generateMotionVector(cameraArgs + 1,
+                                  hitPoint - motionVector);
   }
   colorCtx.write(color_texture, depth_texture, motion_texture);
 }

@@ -13,7 +13,6 @@ using namespace metal;
 // Handle specular and diffuse color, and transform raw AO hits into
 // meaningful color contributions.
 class ColorContext {
-  const device Arguments* args;
   const device float3* atomColors;
   
   ushort2 pixelCoords;
@@ -28,9 +27,7 @@ class ColorContext {
   half specular;
   
 public:
-  ColorContext(const device Arguments* args,
-               const device float3* atomColors, ushort2 pixelCoords) {
-    this->args = args;
+  ColorContext(const device float3* atomColors, ushort2 pixelCoords) {
     this->atomColors = atomColors;
     this->pixelCoords = pixelCoords;
     
@@ -107,9 +104,9 @@ public:
   
   void addLightContribution(float3 hitPoint,
                             half3 normal,
-                            float3 lightOrigin) {
+                            float3 lightPosition) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
-    float3 lightDirection = lightOrigin - hitPoint;
+    float3 lightDirection = lightPosition - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
     
@@ -174,14 +171,22 @@ public:
     this->depth = depth;
   }
   
-  void generateMotionVector(float3 hitPoint) {
-    // fovMultiplier = halfAngleTangentRatio / fov90Span
-    // 1 / fovMultiplier = fov90Span / halfAngleTangentRatio
-    // - 90°: simply transform direction vector back into pixel location
-    // - 110°: halfAngleTangentRatio > 1; end result closer to center
-    float3 direction = normalize(hitPoint - args->previousPosition);
-    direction = transpose(args->previousRotation) * direction;
-    direction *= 1 / args->previousFOVMultiplier / direction.z;
+  // Enter the camera arguments from the previous frame.
+  void generateMotionVector(constant CameraArguments *cameraArgs,
+                            float3 hitPoint) {
+    // Apply the camera position.
+    float3 lightPosition = cameraArgs->positionAndFOVMultiplier.xyz;
+    float3 direction = normalize(hitPoint - lightPosition);
+    
+    // Apply the camera direction.
+    float3x3 rotation(cameraArgs->rotationColumn1,
+                      cameraArgs->rotationColumn2,
+                      cameraArgs->rotationColumn3);
+    direction = transpose(rotation) * direction;
+    
+    // Apply the camera FOV.
+    float fovMultiplier = cameraArgs->positionAndFOVMultiplier[3];
+    direction *= 1 / fovMultiplier / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.
     float2 prevCoords = direction.xy;
