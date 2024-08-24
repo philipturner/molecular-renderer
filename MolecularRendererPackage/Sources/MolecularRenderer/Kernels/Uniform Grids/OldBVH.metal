@@ -20,18 +20,9 @@ s_##EXTREMUM = clamp(s_##EXTREMUM, 0, short3(grid_dims)); \
 box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 }\
 
-#define DENSE_BOX_LOOP(COORD) \
-for (ushort COORD = box_min.COORD; COORD <= box_max.COORD; ++COORD) \
-
-struct Box {
-  float3 min;
-  float3 max;
-};
-
 struct DenseGridArguments {
   short3 world_origin;
   short3 world_dims;
-  ushort cell_sphere_test;
 };
 
 // MARK: - Pass 1
@@ -80,24 +71,19 @@ kernel void dense_grid_pass1
   float radiusSquared = (newAtom.w * newAtom.w) / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
-  uint address_z = VoxelAddress::generate(grid_dims, box_min);
-  DENSE_BOX_LOOP(z) {
-    uint address_y = address_z;
-    DENSE_BOX_LOOP(y) {
-      uint address_x = address_y;
-      DENSE_BOX_LOOP(x) {
-        bool mark = true;
-        if (args.cell_sphere_test) {
-          mark = cube_sphere_intersection({ x, y, z }, origin, radiusSquared);
-        }
+  for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
+    for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
+      for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
+        ushort3 cube_min { x, y, z };
+        
+        // Narrow down the cells with a cube-sphere intersection test.
+        bool mark = cube_sphere_intersection(cube_min, origin, radiusSquared);
         if (mark) {
-          atomic_fetch_add(dense_grid_data + address_x, 1);
+          uint address = VoxelAddress::generate(grid_dims, cube_min);
+          atomic_fetch_add(dense_grid_data + address, 1);
         }
-        address_x += VoxelAddress::increment_x(grid_dims);
       }
-      address_y += VoxelAddress::increment_y(grid_dims);
     }
-    address_z += VoxelAddress::increment_z(grid_dims);
   }
 }
 
@@ -186,28 +172,23 @@ kernel void dense_grid_pass3
   float radiusSquared = (newAtom.w * newAtom.w) / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
-  uint address_z = VoxelAddress::generate(grid_dims, box_min);
-  DENSE_BOX_LOOP(z) {
-    uint address_y = address_z;
-    DENSE_BOX_LOOP(y) {
-      uint address_x = address_y;
-      DENSE_BOX_LOOP(x) {
-        bool mark = true;
-        if (args.cell_sphere_test) {
-          mark = cube_sphere_intersection({ x, y, z }, origin, radiusSquared);
-        }
+  for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
+    for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
+      for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
+        ushort3 cube_min { x, y, z };
+        
+        // Narrow down the cells with a cube-sphere intersection test.
+        bool mark = cube_sphere_intersection(cube_min, origin, radiusSquared);
         if (mark) {
-          uint offset =
-          atomic_fetch_add(dense_grid_counters + address_x, 1);
+          ushort3 cube_min { x, y, z };
+          uint address = VoxelAddress::generate(grid_dims, cube_min);
+          uint offset = atomic_fetch_add(dense_grid_counters + address, 1);
           
           if (offset < dense_grid_reference_capacity) {
             references[offset] = uint(tid);
           }
         }
-        address_x += VoxelAddress::increment_x(grid_dims);
       }
-      address_y += VoxelAddress::increment_y(grid_dims);
     }
-    address_z += VoxelAddress::increment_z(grid_dims);
   }
 }

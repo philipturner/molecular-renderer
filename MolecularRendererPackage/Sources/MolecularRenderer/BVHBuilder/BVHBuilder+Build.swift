@@ -290,13 +290,11 @@ extension BVHBuilder {
     struct UniformGridArguments {
       var worldOrigin: SIMD3<Int16>
       var worldDimensions: SIMD3<Int16>
-      var cellSphereTest: UInt16
     }
     
     var arguments: UniformGridArguments = .init(
       worldOrigin: worldOrigin,
-      worldDimensions: worldDimensions,
-      cellSphereTest: 1)
+      worldDimensions: worldDimensions)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     
