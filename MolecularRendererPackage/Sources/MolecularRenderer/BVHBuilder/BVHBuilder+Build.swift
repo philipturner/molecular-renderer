@@ -317,6 +317,7 @@ extension BVHBuilder {
     encoder.setBuffer(dataBuffer, offset: ringIndex * 4, index: 5)
     encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
     encoder.setBuffer(dataBuffer, offset: ringIndex * 4 + 16, index: 7)
+    encoder.setBuffer(newAtomsBuffer, offset: 0, index: 10)
     
     encoder.setComputePipelineState(densePass1Pipeline)
     encoder.dispatchThreads(

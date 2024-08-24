@@ -61,22 +61,26 @@ METAL_FUNC bool cube_sphere_intersection(ushort3 cube_min,
 kernel void dense_grid_pass1
 (
  constant DenseGridArguments &args [[buffer(0)]],
- const device half4 *styles [[buffer(1)]],
- device MRAtom *atoms [[buffer(2)]],
  device atomic_uint *dense_grid_data [[buffer(3)]],
+ device float4 *newAtoms [[buffer(10)]],
  
  uint tid [[thread_position_in_grid]])
 {
-  MRAtom atom(atoms + tid);
-  MRBoundingBox box = atom.getBoundingBox(styles);
+  float4 newAtom = newAtoms[tid];
+  MRBoundingBox box;
+  {
+    box.min = newAtom.xyz - newAtom.w;
+    box.max = newAtom.xyz + newAtom.w;
+  }
+  
   ushort3 grid_dims = ushort3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
-  float3 origin = atom.origin;
+  float3 origin = newAtom.xyz;
   origin -= float3(args.world_origin);
   origin /= 0.25;
-  float radiusSquared = atom.radiusSquared / (0.25 * 0.25);
+  float radiusSquared = (newAtom.w * newAtom.w) / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_dims, box_min);
@@ -165,24 +169,27 @@ kernel void dense_grid_pass2
 kernel void dense_grid_pass3
 (
  constant DenseGridArguments &args [[buffer(0)]],
- const device half4 *styles [[buffer(1)]],
- device MRAtom *atoms [[buffer(2)]],
- 
  device atomic_uint *dense_grid_counters [[buffer(4)]],
  device uint *references [[buffer(6)]],
+ device float4 *newAtoms [[buffer(10)]],
  
  uint tid [[thread_position_in_grid]])
 {
-  MRAtom atom(atoms + tid);
-  MRBoundingBox box = atom.getBoundingBox(styles);
+  float4 newAtom = newAtoms[tid];
+  MRBoundingBox box;
+  {
+    box.min = newAtom.xyz - newAtom.w;
+    box.max = newAtom.xyz + newAtom.w;
+  }
+  
   ushort3 grid_dims = ushort3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
   DENSE_BOX_GENERATE(max)
   
-  float3 origin = atom.origin;
+  float3 origin = newAtom.xyz;
   origin -= float3(args.world_origin);
   origin /= 0.25;
-  float radiusSquared = atom.radiusSquared / (0.25 * 0.25);
+  float radiusSquared = (newAtom.w * newAtom.w) / (0.25 * 0.25);
   
   // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   uint address_z = VoxelAddress::generate(grid_dims, box_min);

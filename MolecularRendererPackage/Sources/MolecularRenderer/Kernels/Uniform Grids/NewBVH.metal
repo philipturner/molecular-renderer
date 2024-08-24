@@ -34,7 +34,7 @@ kernel void preprocess
   
   // Write the new format.
   {
-    uchar atomicNumber = uchar(atom[3]);
+    ushort atomicNumber = ushort(atom[3]);
     float radius = styles[atomicNumber].w;
     
     uint packed = as_type<uint>(radius);
