@@ -313,7 +313,7 @@
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
-		98F638C42A34F78A00F51E95 /* MRAtom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtom.swift; sourceTree = "<group>"; };
+		98F638C42A34F78A00F51E95 /* MRAtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtomProvider.swift; sourceTree = "<group>"; };
 		98F638CC2A34F97300F51E95 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
 		98F83E1E2AE4BF630037E31A /* Cargo.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
 		98F83E202AE4BF630037E31A /* mrsim_txt.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mrsim_txt.rs; sourceTree = "<group>"; };
@@ -970,7 +970,7 @@
 			children = (
 				98F12C922C72D01B0045FAFB /* Kernels */,
 				98F12C912C72D00C0045FAFB /* BVHBuilder */,
-				98F638C42A34F78A00F51E95 /* MRAtom.swift */,
+				98F638C42A34F78A00F51E95 /* MRAtomProvider.swift */,
 				98B25A132B33478400081A61 /* MRCamera.swift */,
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */,

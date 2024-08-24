@@ -12,13 +12,13 @@ import func QuartzCore.CACurrentMediaTime
 
 func denseGridStatistics(
   atoms: [SIMD4<Float>],
-  styles: [MRAtomStyle],
+  atomRadii: [Float],
   voxel_width_numer: Float,
   voxel_width_denom: Float
 ) -> (boundingBox: (SIMD3<Float>, SIMD3<Float>), references: Int) {
   precondition(atoms.count > 0, "Not enough atoms.")
-  precondition(styles.count > 0, "Not enough styles.")
-  precondition(styles.count < 255, "Too many styles.")
+  precondition(atomRadii.count > 0, "Not enough styles.")
+  precondition(atomRadii.count < 255, "Too many styles.")
   
   let epsilon: Float = 1e-4
   let workBlockSize: Int = 64 * 1024
@@ -46,7 +46,7 @@ func denseGridStatistics(
         let element = Int(atom.w)
         elementInstances[elementsOffset &+ element] &+= 1
         
-        let radius = Float(styles[element].radius) + epsilon
+        let radius = Float(atomRadii[element]) + epsilon
         let lowerBound = ((atom - radius) / 0.25)
         let upperBound = ((atom + radius) / 0.25)
         return upperBound.rounded(.down) - lowerBound.rounded(.down) + 1
@@ -137,8 +137,8 @@ func denseGridStatistics(
   }
   
   var maxRadius: Float = 0
-  for i in 0..<styles.count {
-    let radius = Float(styles[i].radius)
+  for i in 0..<atomRadii.count {
+    let radius = Float(atomRadii[i])
     let cellSpan = 1 + ceil(
       (2 * radius + epsilon) / 0.25)
     
@@ -160,7 +160,7 @@ extension BVHBuilder {
     let preprocessingStart = CACurrentMediaTime()
     var statistics = denseGridStatistics(
       atoms: atoms,
-      styles: atomStyles,
+      atomRadii: atomRadii,
       voxel_width_numer: voxel_width_numer,
       voxel_width_denom: voxel_width_denom)
     let preprocessingEnd = CACurrentMediaTime()
@@ -191,7 +191,6 @@ extension BVHBuilder {
     self.worldOrigin = SIMD3<Int16>(minCoordinates)
     self.worldDimensions = SIMD3<Int16>(maxCoordinates - minCoordinates)
     
-    
     worldOrigin.replace(
       with: SIMD3(repeating: -100), where: worldOrigin .< -100)
     worldDimensions.replace(
@@ -206,9 +205,6 @@ extension BVHBuilder {
     }
     
     // Allocate new memory.
-    let copyingStart = CACurrentMediaTime()
-    let atomsBuffer = denseGridAtoms[ringIndex]!
-    
     
     // Add 8 to the number of slots, so the counters can be located at the start
     // of the buffer.
@@ -225,7 +221,6 @@ extension BVHBuilder {
       &denseGridReferences,
       desiredElements: statistics.references,
       bytesPerElement: 4)
-    let copyingEnd = CACurrentMediaTime()
     
     // The first rendered frame will have an ID of 1.
     frameReportCounter += 1
@@ -305,13 +300,7 @@ extension BVHBuilder {
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     
-    atomStyles.withUnsafeBufferPointer {
-      let length = $0.count * 8
-      encoder.setBytes($0.baseAddress!, length: length, index: 1)
-    }
-    
     // Set the data at offset 32, to fit the counters before it.
-    encoder.setBuffer(atomsBuffer, offset: 0, index: 2)
     encoder.setBuffer(dataBuffer, offset: 32, index: 3)
     encoder.setBuffer(countersBuffer, offset: 0, index: 4)
     encoder.setBuffer(dataBuffer, offset: ringIndex * 4, index: 5)

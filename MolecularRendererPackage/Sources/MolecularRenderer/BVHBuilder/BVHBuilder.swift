@@ -37,7 +37,7 @@ class BVHBuilder {
   var device: MTLDevice
   unowned var renderer: MRRenderer
   var atoms: [SIMD4<Float>] = []
-  var atomStyles: [MRAtomStyle] = []
+  var atomRadii: [Float] = []
   var motionVectors: [SIMD3<Float>] = []
   
   // Triple-buffer because the CPU accesses these.
@@ -207,7 +207,6 @@ extension BVHBuilder {
   // memory, enabling extremely massive scenes.
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
     // Set the data at offset 32, to fit the counters before it.
-    encoder.setBuffer(denseGridAtoms[ringIndex]!, offset: 0, index: 3)
     encoder.setBuffer(denseGridData!, offset: 32, index: 4)
     encoder.setBuffer(denseGridReferences!, offset: 0, index: 5)
     encoder.setBuffer(motionVectorBuffers[ringIndex]!, offset: 0, index: 6)

@@ -16,7 +16,7 @@ using namespace metal;
 kernel void renderAtoms
 (
  const device Arguments *args [[buffer(0)]],
- const device half4 *styles [[buffer(1)]],
+ const device float3 *atomColors [[buffer(1)]],
  device MRLight *lights [[buffer(2)]],
  
  device uint *dense_grid_data [[buffer(4)]],
@@ -53,7 +53,7 @@ kernel void renderAtoms
   auto intersect = RayIntersector::traverse(ray, grid, params);
   
   // Calculate ambient occlusion, diffuse, and specular terms.
-  auto colorCtx = ColorContext(args, styles, pixelCoords);
+  auto colorCtx = ColorContext(args, atomColors, pixelCoords);
   if (intersect.accept) {
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
     half3 normal = half3(normalize(hitPoint - intersect.newAtom.xyz));

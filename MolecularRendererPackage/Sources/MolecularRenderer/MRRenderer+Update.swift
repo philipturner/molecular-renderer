@@ -62,7 +62,7 @@ extension MRRenderer {
     }
     
     self.bvhBuilder.atoms = atoms
-    self.bvhBuilder.atomStyles = atomStyles
+    self.bvhBuilder.atomRadii = atomRadii
   }
   
   func updateCamera(

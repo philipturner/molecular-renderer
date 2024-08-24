@@ -13,7 +13,7 @@ using namespace metal;
 kernel void preprocess
 (
  device float4 *atoms [[buffer(0)]],
- device half4 *styles [[buffer(2)]],
+ device float *atomRadii [[buffer(2)]],
  device float4 *newAtoms [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]])
@@ -24,7 +24,7 @@ kernel void preprocess
   // Write the new format.
   {
     ushort atomicNumber = ushort(atom[3]);
-    float radius = styles[atomicNumber].w;
+    float radius = atomRadii[atomicNumber];
     
     uint packed = as_type<uint>(radius);
     packed = packed & 0xFFFFFF00;

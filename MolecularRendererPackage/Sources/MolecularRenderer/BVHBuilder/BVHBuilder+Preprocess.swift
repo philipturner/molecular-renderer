@@ -27,9 +27,9 @@ extension BVHBuilder {
     return device.makeBuffer(length: bufferSize)!
   }
   
-  func bindAtomStyles(to encoder: MTLComputeCommandEncoder) {
-    atomStyles.withUnsafeBufferPointer {
-      let length = $0.count * 8
+  func bindAtomRadii(to encoder: MTLComputeCommandEncoder) {
+    atomRadii.withUnsafeBufferPointer {
+      let length = $0.count * 4
       encoder.setBytes($0.baseAddress!, length: length, index: 2)
     }
   }
@@ -53,7 +53,7 @@ extension BVHBuilder {
     // Encode the preprocessing command.
     encoder.setComputePipelineState(preprocessPipeline)
     encoder.setBuffer(atomsBuffer, offset: 0, index: 0)
-    bindAtomStyles(to: encoder)
+    bindAtomRadii(to: encoder)
     encoder.setBuffer(newAtomsBuffer, offset: 0, index: 3)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),

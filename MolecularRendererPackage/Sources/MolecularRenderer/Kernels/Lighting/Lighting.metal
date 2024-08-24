@@ -15,7 +15,7 @@ using namespace metal;
 // meaningful color contributions.
 class ColorContext {
   const device Arguments* args;
-  const device half4* styles;
+  const device float3* atomColors;
   
   ushort2 pixelCoords;
   half3 color;
@@ -30,9 +30,9 @@ class ColorContext {
   
 public:
   ColorContext(const device Arguments* args,
-               const device half4* styles, ushort2 pixelCoords) {
+               const device float3* atomColors, ushort2 pixelCoords) {
     this->args = args;
-    this->styles = styles;
+    this->atomColors = atomColors;
     this->pixelCoords = pixelCoords;
     
     // Create a default color for the background.
@@ -48,7 +48,8 @@ public:
   void setDiffuseColor(float4 newAtom) {
     uint packed = as_type<uint>(newAtom.w);
     uint atomicNumber = packed & 0x000000FF;
-    diffuseColor = styles[atomicNumber].xyz;
+    float3 atomColor = atomColors[atomicNumber];
+    diffuseColor = half3(atomColor);
   }
   
   void addAmbientContribution(IntersectionResult intersect) {
@@ -78,7 +79,7 @@ public:
       float4 newAtom = intersect.newAtom;
       uint packed = as_type<uint>(newAtom.w);
       uint atomicNumber = packed & 0x000000FF;
-      half3 neighborColor = styles[atomicNumber].xyz;
+      half3 neighborColor = half3(atomColors[atomicNumber]);
       float neighborLuminance = dot(neighborColor, gamut);
       
       // Use the arithmetic mean. There is no perceivable difference from

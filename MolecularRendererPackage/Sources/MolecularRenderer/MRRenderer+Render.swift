@@ -51,6 +51,13 @@ extension MRRenderer {
 // MARK: - Metal Command Encoding
 
 extension MRRenderer {
+  func bindAtomColors(to encoder: MTLComputeCommandEncoder) {
+    atomColors.withUnsafeBufferPointer {
+      let length = $0.count * 16
+      encoder.setBytes($0.baseAddress!, length: length, index: 1)
+    }
+  }
+  
   private func render(commandQueue: MTLCommandQueue, frameID: Int) {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -71,10 +78,7 @@ extension MRRenderer {
     encoder.setBytes(tempAllocation, length: 256, index: 0)
     free(tempAllocation)
     
-    bvhBuilder.atomStyles.withUnsafeBufferPointer {
-      let length = $0.count * MemoryLayout<MRAtomStyle>.stride
-      encoder.setBytes($0.baseAddress!, length: length, index: 1)
-    }
+    bindAtomColors(to: encoder)
     
     // Encode the lights.
     let lightsBufferOffset = renderIndex * (lightsBuffer.length / 3)

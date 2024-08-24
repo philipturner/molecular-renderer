@@ -25,7 +25,8 @@ public class MRRenderer {
   
   // Objects that supply data to the renderer.
   var atomProvider: MRAtomProvider!
-  var atomStyles: [MRAtomStyle] = []
+  var atomColors: [SIMD3<Float>] = []
+  var atomRadii: [Float] = []
   var camera: MRCamera!
   var lights: [MRLight]!
   var quality: MRQuality!
