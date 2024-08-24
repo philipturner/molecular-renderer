@@ -7,7 +7,6 @@
 
 #include <metal_stdlib>
 #include "../Utilities/Constants.metal"
-#include "../Utilities/MRLight.metal"
 #include "../Ray Tracing/RayTracing.metal"
 using namespace metal;
 
@@ -108,14 +107,14 @@ public:
   
   void addLightContribution(float3 hitPoint,
                             half3 normal,
-                            MRLight light) {
+                            float3 lightOrigin) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
-    float3 lightDirection = light.origin - hitPoint;
+    float3 lightDirection = lightOrigin - hitPoint;
     float rsqrtLightDst = rsqrt(length_squared(lightDirection));
     lightDirection *= rsqrtLightDst;
     
     float lambertian = max(dot(lightDirection, float3(normal)), 0.0);
-    this->lambertian += light.diffusePower * lambertian;
+    this->lambertian += lambertian;
     
     if (lambertian > 0.0) {
       // QuteMol preset 3 seemed most appropriate in a side-by-side comparison
@@ -128,7 +127,7 @@ public:
       
       // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
       float specAngle = lambertian;
-      float contribution = light.specularPower * specContribution;
+      float contribution = specContribution;
       this->specular += contribution * pow(specAngle, shininess);
     }
   }

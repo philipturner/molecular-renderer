@@ -64,12 +64,6 @@ extension Renderer {
       rotation: rotation,
       fovDegrees: fov))
     
-    renderingEngine.setLights([
-      MRLight(
-        origin: playerState.position,
-        diffusePower: 1, specularPower: 1)
-    ])
-    
     renderingEngine.render(layer: coordinator.view.metalLayer!) {
       self.renderSemaphore.signal()
     }

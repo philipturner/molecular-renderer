@@ -202,9 +202,6 @@ extension BVHBuilder {
     arguments.worldDimensions = worldDimensions
   }
   
-  // For extreme systems, cell this repeatedly and only call 'buildDenseGrid'
-  // one time. That ensures only a single instance of the grid is allocated in
-  // memory, enabling extremely massive scenes.
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
     // Set the data at offset 32, to fit the counters before it.
     encoder.setBuffer(denseGridData!, offset: 32, index: 4)

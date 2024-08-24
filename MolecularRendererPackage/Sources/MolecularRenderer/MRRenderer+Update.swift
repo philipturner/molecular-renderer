@@ -17,7 +17,6 @@ struct Arguments {
   var rotation: simd_float3x3
   var jitter: SIMD2<Float>
   var frameSeed: UInt32
-  var numLights: UInt16
   
   var minSamples: Float16
   var maxSamples: Float16
@@ -32,7 +31,7 @@ extension MRRenderer {
   // This should be called as early as possible each frame, to hide any latency
   // between now and when it can encode the rendering work.
   func updateResources() {
-    self.updateCamera(camera: camera, lights: lights, quality: quality)
+    self.updateCamera(camera: camera, quality: quality)
     self.updateGeometry(time: time)
     self.bvhBuilder.updateResources()
     
@@ -67,38 +66,9 @@ extension MRRenderer {
   
   func updateCamera(
     camera: MRCamera,
-    lights: [MRLight],
     quality: MRQuality
   ) {
     self.previousArguments = currentArguments
-    
-    var totalDiffuse: Float = 0
-    var totalSpecular: Float = 0
-    for light in lights {
-      totalDiffuse += Float(light.diffusePower)
-      totalSpecular += Float(light.specularPower)
-    }
-    
-    precondition(lights.count < UInt16.max, "Too many lights.")
-    self.lights = []
-    for var light in lights {
-      // Normalize so nothing causes oversaturation.
-      let diffuse = Float(light.diffusePower) / totalDiffuse
-      let specular = Float(light.specularPower) / totalSpecular
-      light.diffusePower = Float16(diffuse)
-      light.specularPower = Float16(specular)
-      light.resetMask()
-      
-      // Mark camera-centered lights as something to render more efficiently.
-      if sqrt(distance_squared(light.origin, camera.position)) < 1e-3 {
-        #if arch(arm64)
-        var diffuseMask = light.diffusePower.bitPattern
-        diffuseMask |= 0x1
-        light.diffusePower = Float16(bitPattern: diffuseMask)
-        #endif
-      }
-      self.lights.append(light)
-    }
     
     // Quality coefficients are calibrated against 640x640 -> 1280x1280
     // resolution.
@@ -120,7 +90,6 @@ extension MRRenderer {
       rotation: rotation,
       jitter: jitterOffsets,
       frameSeed: UInt32.random(in: 0...UInt32.max),
-      numLights: UInt16(lights.count),
       
       minSamples: Float16(quality.minSamples),
       maxSamples: Float16(quality.maxSamples),
@@ -128,14 +97,5 @@ extension MRRenderer {
       
       worldOrigin: .zero,
       worldDimensions: .zero)
-    
-    let desiredSize = 3 * lights.count * MemoryLayout<MRLight>.stride
-    if lightsBuffer.length < desiredSize {
-      var newLength = lightsBuffer.length
-      while newLength < desiredSize {
-        newLength = newLength << 1
-      }
-      lightsBuffer = device.makeBuffer(length: newLength)!
-    }
   }
 }

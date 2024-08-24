@@ -80,15 +80,6 @@ extension MRRenderer {
     
     bindAtomColors(to: encoder)
     
-    // Encode the lights.
-    let lightsBufferOffset = renderIndex * (lightsBuffer.length / 3)
-    let lightsRawPointer = lightsBuffer.contents() + lightsBufferOffset
-    let lightsPointer = lightsRawPointer.assumingMemoryBound(to: MRLight.self)
-    for i in 0..<lights.count {
-      lightsPointer[i] = lights[i]
-    }
-    encoder.setBuffer(lightsBuffer, offset: lightsBufferOffset, index: 2)
-    
     // Encode the output textures.
     let textures = self.bufferedIntermediateTextures[jitterFrameID % 2]
     encoder.setTextures(

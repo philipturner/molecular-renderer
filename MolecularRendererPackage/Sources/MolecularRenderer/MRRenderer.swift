@@ -28,7 +28,6 @@ public class MRRenderer {
   var atomColors: [SIMD3<Float>] = []
   var atomRadii: [Float] = []
   var camera: MRCamera!
-  var lights: [MRLight]!
   var quality: MRQuality!
   var time: MRTime!
   
@@ -55,7 +54,6 @@ public class MRRenderer {
   // Cache previous arguments to generate motion vectors.
   var previousArguments: Arguments?
   var currentArguments: Arguments?
-  var lightsBuffer: MTLBuffer
   
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
@@ -112,10 +110,6 @@ public class MRRenderer {
     }
     encoder.endEncoding()
     commandBuffer.commit()
-    
-    let lightsBufferLength = 3 * 8 * MemoryLayout<MRLight>.stride
-    precondition(MemoryLayout<MRLight>.stride == 16)
-    self.lightsBuffer = device.makeBuffer(length: lightsBufferLength)!
     
     let library = try! device.makeLibrary(URL: descriptor.url!)
     self.bvhBuilder = BVHBuilder(renderer: self, library: library)

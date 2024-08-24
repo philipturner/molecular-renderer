@@ -47,9 +47,6 @@ Arguments {
   
   // Seed for generating random numbers.
   uint frameSeed;
-
-  // Constants for Blinn-Phong shading.
-  ushort numLights;
   
   // Constants for ray-traced ambient occlusion.
   half minSamples;

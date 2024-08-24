@@ -17,7 +17,6 @@ kernel void renderAtoms
 (
  const device Arguments *args [[buffer(0)]],
  const device float3 *atomColors [[buffer(1)]],
- device MRLight *lights [[buffer(2)]],
  
  device uint *dense_grid_data [[buffer(4)]],
  device uint *dense_grid_references [[buffer(5)]],
@@ -82,32 +81,7 @@ kernel void renderAtoms
     }
     
     colorCtx.startLightContributions();
-    ushort numLights = args->numLights;
-    for (ushort i = 0; i < numLights; ++i) {
-      MRLight light(lights + i);
-      half hitAtomRadiusSquared = 0;
-      
-      ushort cameraFlag = as_type<ushort>(light.diffusePower) & 0x1;
-      if (cameraFlag) {
-        // This is a camera light.
-      } else {
-        // Cast a shadow ray.
-        float3 direction = light.origin - hitPoint;
-        float distance_sq = length_squared(direction);
-        direction *= rsqrt(distance_sq);
-        
-        Ray<float> ray { hitPoint + 0.0001 * float3(normal), direction };
-        IntersectionParams params { false, 0.3 + sqrt(distance_sq), true };
-        auto intersect = RayIntersector::traverse(ray, grid, params);
-        if (intersect.accept) {
-          float radius = intersect.newAtom.w;
-          hitAtomRadiusSquared = radius * radius;
-        }
-      }
-      if (hitAtomRadiusSquared == 0) {
-        colorCtx.addLightContribution(hitPoint, normal, light);
-      }
-    }
+    colorCtx.addLightContribution(hitPoint, normal, args->position);
     colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.
