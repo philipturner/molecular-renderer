@@ -35,4 +35,4 @@ atomic_load_explicit((device atomic_uint*)(OBJECT), memory_order_relaxed) \
 #define atomic_load_(OBJECT) \
 atomic_load_explicit((threadgroup atomic_uint*)(OBJECT), memory_order_relaxed) \
 
-#endif
+#endif // MR_ATOMIC_H

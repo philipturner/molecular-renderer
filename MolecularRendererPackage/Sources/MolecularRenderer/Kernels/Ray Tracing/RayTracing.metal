@@ -12,7 +12,7 @@
 #include "../Utilities/Constants.metal"
 #include "../Utilities/MRAtom.metal"
 #include "Ray.metal"
-#include "../Uniform Grids/UniformGrid.metal"
+#include "../Uniform Grids/DDA.metal"
 using namespace metal;
 
 struct _IntersectionResult {

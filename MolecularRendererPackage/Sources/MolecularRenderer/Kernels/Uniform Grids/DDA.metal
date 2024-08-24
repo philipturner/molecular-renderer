@@ -1,54 +1,24 @@
 //
-//  UniformGrid.metal
+//  DDA.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 7/4/23.
 //
 
-#ifndef UNIFORM_GRID_H
-#define UNIFORM_GRID_H
+#ifndef DDA_H
+#define DDA_H
 
 #include <metal_stdlib>
 #include "../Utilities/Constants.metal"
+#include "../Utilities/DenseGrid.metal"
 #include "../Utilities/MRAtom.metal"
+#include "../Utilities/VoxelAddress.metal"
 #include "../Ray Tracing/Ray.metal"
 using namespace metal;
 using namespace raytracing;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
-
-// Behavior is undefined when the position goes out-of-bounds.
-class VoxelAddress {
-public:
-  static uint generate(ushort3 grid_dims, ushort3 coords) {
-    uint grid_width_sq = grid_dims.y * grid_dims.x;
-    return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
-  }
-  
-  static int increment_x(ushort3 grid_dims, bool negative = false) {
-    return select(1, -1, negative);
-  }
-  
-  static int increment_y(ushort3 grid_dims, bool negative = false) {
-    short w = short(grid_dims.x);
-    return select(w, short(-w), negative);
-  }
-  
-  static int increment_z(ushort3 grid_dims, bool negative = false) {
-    int w_sq = grid_dims.y * grid_dims.x;
-    return select(w_sq, -w_sq, negative);
-  }
-};
-
-class DenseGrid {
-public:
-  short3 world_origin;
-  short3 world_dims;
-  device uint *data;
-  device uint *references;
-  device MRAtom *atoms;
-};
 
 // Sources:
 // - https://tavianator.com/2022/ray_box_boundary.html
@@ -154,5 +124,4 @@ public:
 
 #pragma clang diagnostic pop
 
-#endif
-
+#endif // DDA_H

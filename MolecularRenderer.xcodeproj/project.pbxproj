@@ -26,10 +26,12 @@
 		984160072B5DF38400A559AF /* DMSTooltips_ProductionSimulation2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 984160062B5DF38400A559AF /* DMSTooltips_ProductionSimulation2.jpg */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
-		98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* DenseGrid.metal */; };
+		98537EAF2A62EA3D0037C392 /* OldBVH.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* OldBVH.metal */; };
 		98537EB32A62EA940037C392 /* Memory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB22A62EA940037C392 /* Memory.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
 		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
+		985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */; };
+		985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE92C7A69900096A104 /* DenseGrid.metal */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -48,13 +50,13 @@
 		988E88F82C722BEC00AD507D /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 988E88F72C722BEC00AD507D /* MolecularRenderer */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
 		9898382829A6C08F00B4AA98 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382729A6C08F00B4AA98 /* MetalView.swift */; };
-		98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* UniformGrid.metal */; };
+		98A263A92A543EEC00B69392 /* DDA.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98A263A82A543EEC00B69392 /* DDA.metal */; };
 		98A8B72D2ABE6D5B003E62E8 /* libc++.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; };
 		98B25A1A2B33666B00081A61 /* Renderer+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B25A192B33666B00081A61 /* Renderer+Setup.swift */; };
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F12C8E2C72BE110045FAFB /* Renderer+AtomStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */; };
-		98F12C902C72CEE20045FAFB /* Preprocessing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */; };
+		98F12C902C72CEE20045FAFB /* NewBVH.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8F2C72CEE20045FAFB /* NewBVH.metal */; };
 		98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98122D7029DFBDE6006200D1 /* MRAtom.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
@@ -147,7 +149,7 @@
 		98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondoidCollision.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		98537EAE2A62EA3D0037C392 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
+		98537EAE2A62EA3D0037C392 /* OldBVH.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = OldBVH.metal; sourceTree = "<group>"; };
 		98537EB22A62EA940037C392 /* Memory.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Memory.metal; sourceTree = "<group>"; };
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
 		9855200D2B5443F900AB068D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -166,6 +168,8 @@
 		9855201B2B55E2F600AB068D /* GermaniumCarbide_Sidewall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GermaniumCarbide_Sidewall.jpg; sourceTree = "<group>"; };
 		9855201C2B55E54500AB068D /* DiAdamantasilane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiAdamantasilane.swift; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
+		985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VoxelAddress.metal; sourceTree = "<group>"; };
+		985BBEE92C7A69900096A104 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -210,7 +214,7 @@
 		989F8A212B393BD400622946 /* RendererStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererStyles.swift; sourceTree = "<group>"; };
 		98A07C242A2CBFCF00729897 /* PDBParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDBParser.swift; sourceTree = "<group>"; };
 		98A07C262A2CC11B00729897 /* ParsingUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingUtilities.swift; sourceTree = "<group>"; };
-		98A263A82A543EEC00B69392 /* UniformGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = UniformGrid.metal; sourceTree = "<group>"; };
+		98A263A82A543EEC00B69392 /* DDA.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DDA.metal; sourceTree = "<group>"; };
 		98A4A5772A81A65E00A74F87 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../bypass_dependencies/libfreetype.6.dylib; sourceTree = "<group>"; };
 		98A8B7682ABE75C3003E62E8 /* libcairo.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcairo.2.dylib; path = ../bypass_dependencies/libcairo.2.dylib; sourceTree = "<group>"; };
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
@@ -304,7 +308,7 @@
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+AtomStyles.swift"; sourceTree = "<group>"; };
-		98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Preprocessing.metal; sourceTree = "<group>"; };
+		98F12C8F2C72CEE20045FAFB /* NewBVH.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NewBVH.metal; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -1077,10 +1081,10 @@
 		98FB907E2A5CF91A00685E5C /* Uniform Grids */ = {
 			isa = PBXGroup;
 			children = (
-				98537EAE2A62EA3D0037C392 /* DenseGrid.metal */,
+				98A263A82A543EEC00B69392 /* DDA.metal */,
 				98537EB22A62EA940037C392 /* Memory.metal */,
-				98F12C8F2C72CEE20045FAFB /* Preprocessing.metal */,
-				98A263A82A543EEC00B69392 /* UniformGrid.metal */,
+				98537EAE2A62EA3D0037C392 /* OldBVH.metal */,
+				98F12C8F2C72CEE20045FAFB /* NewBVH.metal */,
 			);
 			path = "Uniform Grids";
 			sourceTree = "<group>";
@@ -1090,7 +1094,9 @@
 			children = (
 				98537EB62A63107F0037C392 /* Atomic.metal */,
 				988B257D2A1AC482007F18C1 /* Constants.metal */,
+				985BBEE92C7A69900096A104 /* DenseGrid.metal */,
 				98122D7029DFBDE6006200D1 /* MRAtom.metal */,
+				985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -1299,10 +1305,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				98F638AF2A34A33400F51E95 /* RayTracing.metal in Sources */,
-				98A263A92A543EEC00B69392 /* UniformGrid.metal in Sources */,
+				98A263A92A543EEC00B69392 /* DDA.metal in Sources */,
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
+				985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */,
+				985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
-				98537EAF2A62EA3D0037C392 /* DenseGrid.metal in Sources */,
+				98537EAF2A62EA3D0037C392 /* OldBVH.metal in Sources */,
 				98537EB32A62EA940037C392 /* Memory.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
@@ -1310,7 +1318,7 @@
 				98F638AB2A34A31000F51E95 /* MRAtom.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
-				98F12C902C72CEE20045FAFB /* Preprocessing.metal in Sources */,
+				98F12C902C72CEE20045FAFB /* NewBVH.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -10,7 +10,7 @@
 #include "../Lighting/Lighting.metal"
 #include "../Ray Tracing/RayTracing.metal"
 #include "../Ray Tracing/RayGeneration.metal"
-#include "../Uniform Grids/UniformGrid.metal"
+#include "../Uniform Grids/DDA.metal"
 using namespace metal;
 
 kernel void renderAtoms

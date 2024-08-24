@@ -1,5 +1,5 @@
 //
-//  DenseGrid.metal
+//  OldBVH.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 7/15/23.
@@ -7,7 +7,7 @@
 
 #include <metal_stdlib>
 #include "../Utilities/Atomic.metal"
-#include "UniformGrid.metal"
+#include "DDA.metal"
 using namespace metal;
 
 #define DENSE_BOX_GENERATE(EXTREMUM) \
