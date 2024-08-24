@@ -49,9 +49,7 @@ Arguments {
   uint frameSeed;
   
   // Constants for ray-traced ambient occlusion.
-  half minSamples;
-  half maxSamples;
-  half qualityCoefficient;
+  float qualityCoefficient;
   
   // Uniform grid arguments.
   short3 world_origin;

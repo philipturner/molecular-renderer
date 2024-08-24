@@ -59,10 +59,11 @@ kernel void renderAtoms
     colorCtx.setDiffuseColor(intersect.newAtom);
     
     // Cast the secondary rays.
-    half minSamples = args->minSamples;
-    half maxSamples = args->maxSamples;
-    if (maxSamples > 0) {
-      half samples = args->maxSamples;
+    {
+      constexpr half minSamples = 3.0;
+      constexpr half maxSamples = 7.0;
+      
+      half samples = maxSamples;
       float distanceCutoff = args->qualityCoefficient / maxSamples;
       if (intersect.distance > distanceCutoff) {
         half proportion = distanceCutoff / intersect.distance;

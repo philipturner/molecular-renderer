@@ -17,10 +17,7 @@ struct Arguments {
   var rotation: simd_float3x3
   var jitter: SIMD2<Float>
   var frameSeed: UInt32
-  
-  var minSamples: Float16
-  var maxSamples: Float16
-  var qualityCoefficient: Float16
+  var qualityCoefficient: Float
   
   var worldOrigin: SIMD3<Int16>
   var worldDimensions: SIMD3<Int16>
@@ -31,7 +28,7 @@ extension MRRenderer {
   // This should be called as early as possible each frame, to hide any latency
   // between now and when it can encode the rendering work.
   func updateResources() {
-    self.updateCamera(camera: camera, quality: quality)
+    self.updateCamera(camera: camera)
     self.updateGeometry(time: time)
     self.bvhBuilder.updateResources()
     
@@ -65,8 +62,7 @@ extension MRRenderer {
   }
   
   func updateCamera(
-    camera: MRCamera,
-    quality: MRQuality
+    camera: MRCamera
   ) {
     self.previousArguments = currentArguments
     
@@ -75,7 +71,7 @@ extension MRRenderer {
     var screenMagnitude = Float(intermediateTextureSize * upscaleFactor)
     screenMagnitude *= screenMagnitude
     screenMagnitude = sqrt(screenMagnitude) / 1280
-    let qualityCoefficient = quality.qualityCoefficient * screenMagnitude
+    let qualityCoefficient = 30 * screenMagnitude
     
     // Create the FOV and rotation matrix from user-supplied arguments.
     let fovMultiplier = self.fovMultiplier(fovDegrees: camera.fovDegrees)
@@ -90,10 +86,7 @@ extension MRRenderer {
       rotation: rotation,
       jitter: jitterOffsets,
       frameSeed: UInt32.random(in: 0...UInt32.max),
-      
-      minSamples: Float16(quality.minSamples),
-      maxSamples: Float16(quality.maxSamples),
-      qualityCoefficient: Float16(qualityCoefficient),
+      qualityCoefficient: qualityCoefficient,
       
       worldOrigin: .zero,
       worldDimensions: .zero)

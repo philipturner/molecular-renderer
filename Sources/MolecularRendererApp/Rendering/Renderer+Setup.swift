@@ -73,14 +73,11 @@ extension Renderer {
     descriptor.reportPerformance = true
     
     renderingEngine = MRRenderer(descriptor: descriptor)
-    renderingEngine.setQuality(
-      MRQuality(minSamples: 3, maxSamples: 7, qualityCoefficient: 30))
     
     let atomColors = Renderer.createColors()
     let atomRadii = Renderer.createRadii()
     renderingEngine.setAtomColors(atomColors)
     renderingEngine.setAtomRadii(atomRadii)
-    
   }
   
   // If OpenMM is not set up, comment out the call to this function in

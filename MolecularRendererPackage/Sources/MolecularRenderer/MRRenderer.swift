@@ -28,7 +28,6 @@ public class MRRenderer {
   var atomColors: [SIMD3<Float>] = []
   var atomRadii: [Float] = []
   var camera: MRCamera!
-  var quality: MRQuality!
   var time: MRTime!
   
   // Main rendering resources.
