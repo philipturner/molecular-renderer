@@ -288,13 +288,13 @@ extension BVHBuilder {
       threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
     
     struct UniformGridArguments {
-      var worldOrigin: SIMD3<Float>
+      var worldOrigin: SIMD3<Int16>
       var worldDimensions: SIMD3<Int16>
     }
     
     var arguments: UniformGridArguments = .init(
-      worldOrigin: SIMD3<Float>(worldOrigin),
-      worldDimensions: 4 &* worldDimensions)
+      worldOrigin: worldOrigin,
+      worldDimensions: worldDimensions)
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     

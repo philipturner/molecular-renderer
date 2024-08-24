@@ -11,16 +11,16 @@
 using namespace metal;
 
 struct DenseGridArguments {
-  float3 world_origin;
+  short3 world_origin;
   short3 world_dims;
 };
 
 // MARK: - Utility Functions
 
 // Quantize a position relative to the world origin.
-short3 quantize(float3 position, DenseGridArguments args) {
+short3 quantize(float3 position, short3 world_dims) {
   short3 output = short3(position);
-  output = clamp(output, 0, args.world_dims);
+  output = clamp(output, 0, world_dims);
   return output;
 }
 
@@ -56,12 +56,12 @@ kernel void dense_grid_pass1
 {
   // Transform the atom.
   float4 newAtom = newAtoms[tid];
-  newAtom.xyz -= args.world_origin;
-  newAtom *= 4;
+  newAtom.xyz = 4 * (newAtom.xyz - float3(args.world_origin));
+  newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
-  short3 box_min = quantize(newAtom.xyz - newAtom.w, args);
-  short3 box_max = quantize(newAtom.xyz + newAtom.w, args);
+  auto box_min = quantize(newAtom.xyz - newAtom.w, 4 * args.world_dims);
+  auto box_max = quantize(newAtom.xyz + newAtom.w, 4 * args.world_dims);
   
   // Iterate over the footprint on the 3D grid.
   for (short z = box_min[2]; z <= box_max[2]; ++z) {
@@ -73,7 +73,7 @@ kernel void dense_grid_pass1
         bool mark = cube_sphere_intersection(cube_min, newAtom);
         if (mark) {
           // Increment the voxel's counter.
-          uint address = VoxelAddress::generate(ushort3(args.world_dims),
+          uint address = VoxelAddress::generate(ushort3(4 * args.world_dims),
                                                 ushort3(cube_min));
           atomic_fetch_add(dense_grid_data + address, 1);
         }
@@ -154,12 +154,12 @@ kernel void dense_grid_pass3
 {
   // Transform the atom.
   float4 newAtom = newAtoms[tid];
-  newAtom.xyz -= args.world_origin;
-  newAtom *= 4;
+  newAtom.xyz = 4 * (newAtom.xyz - float3(args.world_origin));
+  newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
-  short3 box_min = quantize(newAtom.xyz - newAtom.w, args);
-  short3 box_max = quantize(newAtom.xyz + newAtom.w, args);
+  auto box_min = quantize(newAtom.xyz - newAtom.w, 4 * args.world_dims);
+  auto box_max = quantize(newAtom.xyz + newAtom.w, 4 * args.world_dims);
   
   // Iterate over the footprint on the 3D grid.
   for (short z = box_min[2]; z <= box_max[2]; ++z) {
@@ -171,7 +171,7 @@ kernel void dense_grid_pass3
         bool mark = cube_sphere_intersection(cube_min, newAtom);
         if (mark) {
           // Increment the voxel's counter.
-          uint address = VoxelAddress::generate(ushort3(args.world_dims),
+          uint address = VoxelAddress::generate(ushort3(4 * args.world_dims),
                                                 ushort3(cube_min));
           uint offset = atomic_fetch_add(dense_grid_counters + address, 1);
           
