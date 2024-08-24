@@ -11,7 +11,6 @@
 #include <metal_stdlib>
 #include "../Utilities/Constants.metal"
 #include "../Utilities/DenseGrid.metal"
-#include "../Utilities/MRAtom.metal"
 #include "../Utilities/VoxelAddress.metal"
 #include "../Ray Tracing/Ray.metal"
 using namespace metal;

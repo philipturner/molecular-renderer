@@ -9,7 +9,6 @@
 #define DENSE_GRID_H
 
 #include <metal_stdlib>
-#include "../Utilities/MRAtom.metal"
 using namespace metal;
 
 class DenseGrid {

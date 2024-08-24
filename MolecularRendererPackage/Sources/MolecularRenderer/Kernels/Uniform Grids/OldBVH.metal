@@ -11,11 +11,11 @@
 using namespace metal;
 
 #define DENSE_BOX_GENERATE(EXTREMUM) \
-box.EXTREMUM -= float3(args.world_origin); \
-box.EXTREMUM /= 0.25; \
+MRBox_##EXTREMUM -= float3(args.world_origin); \
+MRBox_##EXTREMUM /= 0.25; \
 ushort3 box_##EXTREMUM; \
 {\
-short3 s_##EXTREMUM = short3(box.EXTREMUM); \
+short3 s_##EXTREMUM = short3(MRBox_##EXTREMUM); \
 s_##EXTREMUM = clamp(s_##EXTREMUM, 0, short3(grid_dims)); \
 box_##EXTREMUM = ushort3(s_##EXTREMUM); \
 }\
@@ -67,11 +67,8 @@ kernel void dense_grid_pass1
  uint tid [[thread_position_in_grid]])
 {
   float4 newAtom = newAtoms[tid];
-  MRBoundingBox box;
-  {
-    box.min = newAtom.xyz - newAtom.w;
-    box.max = newAtom.xyz + newAtom.w;
-  }
+  float3 MRBox_min = newAtom.xyz - newAtom.w;
+  float3 MRBox_max = newAtom.xyz + newAtom.w;
   
   ushort3 grid_dims = ushort3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)
@@ -176,11 +173,8 @@ kernel void dense_grid_pass3
  uint tid [[thread_position_in_grid]])
 {
   float4 newAtom = newAtoms[tid];
-  MRBoundingBox box;
-  {
-    box.min = newAtom.xyz - newAtom.w;
-    box.max = newAtom.xyz + newAtom.w;
-  }
+  float3 MRBox_min = newAtom.xyz - newAtom.w;
+  float3 MRBox_max = newAtom.xyz + newAtom.w;
   
   ushort3 grid_dims = ushort3(4 * args.world_dims);
   DENSE_BOX_GENERATE(min)

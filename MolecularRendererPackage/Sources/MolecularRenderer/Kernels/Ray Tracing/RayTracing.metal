@@ -10,7 +10,6 @@
 
 #include <metal_stdlib>
 #include "../Utilities/Constants.metal"
-#include "../Utilities/MRAtom.metal"
 #include "Ray.metal"
 #include "../Uniform Grids/DDA.metal"
 using namespace metal;

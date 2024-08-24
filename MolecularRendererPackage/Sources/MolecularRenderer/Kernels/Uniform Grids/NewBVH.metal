@@ -21,17 +21,6 @@ kernel void preprocess
   // Fetch the atom from memory.
   float4 atom = atoms[tid];
   
-  // Overwrite the atom's tail in memory.
-  {
-    ushort atomicNumber = ushort(atom[3]);
-    half radius = styles[atomicNumber].w;
-    
-    ushort2 tail;
-    tail[0] = as_type<ushort>(half(radius * radius));
-    tail[1] = ushort(atomicNumber);
-    atoms[tid].w = as_type<float>(tail);
-  }
-  
   // Write the new format.
   {
     ushort atomicNumber = ushort(atom[3]);
