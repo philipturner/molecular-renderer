@@ -19,7 +19,6 @@ kernel void renderAtoms
  const device half4 *styles [[buffer(1)]],
  device MRLight *lights [[buffer(2)]],
  
- device MRAtom *atoms [[buffer(3)]],
  device uint *dense_grid_data [[buffer(4)]],
  device uint *dense_grid_references [[buffer(5)]],
  
@@ -45,7 +44,6 @@ kernel void renderAtoms
     args->world_dims,
     dense_grid_data,
     dense_grid_references,
-    atoms,
     newAtoms
   };
   
@@ -58,8 +56,8 @@ kernel void renderAtoms
   auto colorCtx = ColorContext(args, styles, pixelCoords);
   if (intersect.accept) {
     float3 hitPoint = ray.origin + ray.direction * intersect.distance;
-    half3 normal = half3(normalize(hitPoint - intersect.atom.origin));
-    colorCtx.setDiffuseColor(intersect.atom);
+    half3 normal = half3(normalize(hitPoint - intersect.newAtom.xyz));
+    colorCtx.setDiffuseColor(intersect.newAtom);
     
     // Cast the secondary rays.
     half minSamples = args->minSamples;
@@ -102,7 +100,8 @@ kernel void renderAtoms
         IntersectionParams params { false, 0.3 + sqrt(distance_sq), true };
         auto intersect = RayIntersector::traverse(ray, grid, params);
         if (intersect.accept) {
-          hitAtomRadiusSquared = intersect.atom.radiusSquared;
+          float radius = intersect.newAtom.w;
+          hitAtomRadiusSquared = radius * radius;
         }
       }
       if (hitAtomRadiusSquared == 0) {

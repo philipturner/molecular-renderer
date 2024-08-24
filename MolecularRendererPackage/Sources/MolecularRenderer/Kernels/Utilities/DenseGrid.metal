@@ -18,7 +18,6 @@ public:
   short3 world_dims;
   device uint *data;
   device uint *references;
-  device MRAtom *atoms;
   device float4 *newAtoms;
 };
 

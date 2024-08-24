@@ -17,6 +17,7 @@ MRBoundingBox {
   packed_float3 max;
 };
 
+#if 0
 struct __attribute__((aligned(16)))
 MRAtom {
   // Position in nm.
@@ -68,6 +69,7 @@ MRAtom {
     };
   }
 };
+#endif
 
 struct __attribute__((aligned(16)))
 MRLight {

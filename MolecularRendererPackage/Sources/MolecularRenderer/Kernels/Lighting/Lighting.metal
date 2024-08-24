@@ -44,8 +44,10 @@ public:
     this->specularAmbient = 0;
   }
   
-  void setDiffuseColor(MRAtom atom) {
-    diffuseColor = atom.getColor(styles);
+  void setDiffuseColor(float4 newAtom) {
+    uint packed = as_type<uint>(newAtom.w);
+    uint atomicNumber = packed & 0x000000FF;
+    diffuseColor = styles[atomicNumber].xyz;
   }
   
   void addAmbientContribution(IntersectionResult intersect) {
@@ -72,7 +74,10 @@ public:
       // Account for the color of the occluding atom. This decreases the
       // contrast between differing elements placed near each other. It also
       // makes the effect vary around the atom's surface.
-      half3 neighborColor = intersect.atom.getColor(styles);
+      float4 newAtom = intersect.newAtom;
+      uint packed = as_type<uint>(newAtom.w);
+      uint atomicNumber = packed & 0x000000FF;
+      half3 neighborColor = styles[atomicNumber].xyz;
       float neighborLuminance = dot(neighborColor, gamut);
       
       // Use the arithmetic mean. There is no perceivable difference from

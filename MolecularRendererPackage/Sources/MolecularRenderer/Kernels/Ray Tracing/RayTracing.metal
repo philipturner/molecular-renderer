@@ -24,7 +24,7 @@ struct _IntersectionResult {
 struct IntersectionResult {
   float distance;
   bool accept;
-  MRAtom atom;
+  float4 newAtom;
   uint reference;
 };
 
@@ -45,13 +45,13 @@ public:
   (
    thread _IntersectionResult *result,
    Ray<T> ray,
-   float4 sphere,
+   float4 newAtom,
    uint reference)
   {
     // Do not walk inside an atom; doing so will produce corrupted graphics.
-    float3 oc = ray.origin - sphere.xyz;
+    float3 oc = ray.origin - newAtom.xyz;
     float b2 = dot(oc, float3(ray.direction));
-    float c = fma(oc.x, oc.x, float(-as_type<half2>(sphere.w)[0]));
+    float c = fma(oc.x, oc.x, -newAtom.w * newAtom.w);
     c = fma(oc.y, oc.y, c);
     c = fma(oc.z, oc.z, c);
     
@@ -120,8 +120,8 @@ public:
         uint upper_bound = offset + count;
         for (; offset < upper_bound; ++offset) {
           uint reference = grid.references[offset];
-          float4 sphere = ((device float4*)grid.atoms)[reference];
-          RayIntersector::intersect(&result, ray, sphere, reference);
+          float4 newAtom = grid.newAtoms[reference];
+          RayIntersector::intersect(&result, ray, newAtom, reference);
         }
         if (result.distance < target_distance) {
           result.accept = true;
@@ -132,7 +132,7 @@ public:
     
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
-      out.atom = MRAtom(grid.atoms + result.atom);
+      out.newAtom = grid.newAtoms[result.atom];
       out.reference = result.atom;
     }
     return out;
