@@ -10,22 +10,12 @@
 #include "DDA.metal"
 using namespace metal;
 
-#define DENSE_BOX_GENERATE(EXTREMUM) \
-MRBox_##EXTREMUM -= float3(args.world_origin); \
-MRBox_##EXTREMUM /= 0.25; \
-ushort3 box_##EXTREMUM; \
-{\
-short3 s_##EXTREMUM = short3(MRBox_##EXTREMUM); \
-s_##EXTREMUM = clamp(s_##EXTREMUM, 0, short3(grid_dims)); \
-box_##EXTREMUM = ushort3(s_##EXTREMUM); \
-}\
-
 struct DenseGridArguments {
   short3 world_origin;
   short3 world_dims;
 };
 
-// MARK: - Pass 1
+// MARK: - Cube-Sphere Intersection
 
 METAL_FUNC bool cube_sphere_intersection(ushort3 cube_min,
                                          float3 origin,
@@ -49,6 +39,8 @@ METAL_FUNC bool cube_sphere_intersection(ushort3 cube_min,
   return dist_squared > 0;
 }
 
+// MARK: - Pass 1
+
 kernel void dense_grid_pass1
 (
  constant DenseGridArguments &args [[buffer(0)]],
@@ -58,19 +50,36 @@ kernel void dense_grid_pass1
  uint tid [[thread_position_in_grid]])
 {
   float4 newAtom = newAtoms[tid];
-  float3 MRBox_min = newAtom.xyz - newAtom.w;
-  float3 MRBox_max = newAtom.xyz + newAtom.w;
-  
   ushort3 grid_dims = ushort3(4 * args.world_dims);
-  DENSE_BOX_GENERATE(min)
-  DENSE_BOX_GENERATE(max)
   
+  // Generate the box minimum.
+  float3 MRBox_min = newAtom.xyz - newAtom.w;
+  MRBox_min -= float3(args.world_origin);
+  MRBox_min /= 0.25;
+  ushort3 box_min;
+  {
+    short3 s_min = short3(MRBox_min);
+    s_min = clamp(s_min, 0, short3(grid_dims));
+    box_min = ushort3(s_min);
+  }
+  
+  // Generate the box maximum.
+  float3 MRBox_max = newAtom.xyz + newAtom.w;
+  MRBox_max -= float3(args.world_origin);
+  MRBox_max /= 0.25;
+  ushort3 box_max;
+  {
+    short3 s_max = short3(MRBox_max);
+    s_max = clamp(s_max, 0, short3(grid_dims));
+    box_max = ushort3(s_max);
+  }
+  
+  // Transform the origin and radius.
   float3 origin = newAtom.xyz;
   origin -= float3(args.world_origin);
   origin /= 0.25;
   float radiusSquared = (newAtom.w * newAtom.w) / (0.25 * 0.25);
   
-  // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
     for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
       for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
@@ -159,19 +168,36 @@ kernel void dense_grid_pass3
  uint tid [[thread_position_in_grid]])
 {
   float4 newAtom = newAtoms[tid];
-  float3 MRBox_min = newAtom.xyz - newAtom.w;
-  float3 MRBox_max = newAtom.xyz + newAtom.w;
-  
   ushort3 grid_dims = ushort3(4 * args.world_dims);
-  DENSE_BOX_GENERATE(min)
-  DENSE_BOX_GENERATE(max)
   
+  // Generate the box minimum.
+  float3 MRBox_min = newAtom.xyz - newAtom.w;
+  MRBox_min -= float3(args.world_origin);
+  MRBox_min /= 0.25;
+  ushort3 box_min;
+  {
+    short3 s_min = short3(MRBox_min);
+    s_min = clamp(s_min, 0, short3(grid_dims));
+    box_min = ushort3(s_min);
+  }
+  
+  // Generate the box maximum.
+  float3 MRBox_max = newAtom.xyz + newAtom.w;
+  MRBox_max -= float3(args.world_origin);
+  MRBox_max /= 0.25;
+  ushort3 box_max;
+  {
+    short3 s_max = short3(MRBox_max);
+    s_max = clamp(s_max, 0, short3(grid_dims));
+    box_max = ushort3(s_max);
+  }
+  
+  // Transform the origin and radius.
   float3 origin = newAtom.xyz;
   origin -= float3(args.world_origin);
   origin /= 0.25;
   float radiusSquared = (newAtom.w * newAtom.w) / (0.25 * 0.25);
   
-  // Sparse grids: assume the atom doesn't intersect more than 8 dense grids.
   for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
     for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
       for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
