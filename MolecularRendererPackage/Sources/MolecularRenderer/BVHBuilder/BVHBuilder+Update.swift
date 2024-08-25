@@ -8,9 +8,6 @@
 extension BVHBuilder {
   func updateResources() {
     // Generate or fetch a buffer.
-    let atomBufferSize = atoms.count * 16
-    let motionVectorBufferSize = motionVectors.count * 16
-    
     let ringIndex = renderer.argumentContainer.tripleBufferIndex()
     let motionVectorBuffer = motionVectorBuffers[ringIndex]
     

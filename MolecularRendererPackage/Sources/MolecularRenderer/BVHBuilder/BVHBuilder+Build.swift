@@ -155,12 +155,14 @@ func denseGridStatistics(
 
 extension BVHBuilder {
   func buildDenseGrid(commandQueue: MTLCommandQueue, frameID: Int) {
+    let atoms = renderer.argumentContainer.currentAtoms
+    
     let voxel_width_numer: Float = 4
     let voxel_width_denom: Float = 16
     let preprocessingStart = CACurrentMediaTime()
     var statistics = denseGridStatistics(
       atoms: atoms,
-      atomRadii: atomRadii,
+      atomRadii: renderer.atomRadii,
       voxel_width_numer: voxel_width_numer,
       voxel_width_denom: voxel_width_denom)
     let preprocessingEnd = CACurrentMediaTime()

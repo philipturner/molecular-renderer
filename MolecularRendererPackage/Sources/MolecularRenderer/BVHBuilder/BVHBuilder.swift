@@ -36,8 +36,6 @@ class BVHBuilder {
   // Main rendering resources.
   var device: MTLDevice
   unowned var renderer: MRRenderer
-  var atoms: [SIMD4<Float>] = []
-  var atomRadii: [Float] = []
   var motionVectors: [SIMD3<Float>] = []
   
   // Safeguard access to these using a dispatch queue.

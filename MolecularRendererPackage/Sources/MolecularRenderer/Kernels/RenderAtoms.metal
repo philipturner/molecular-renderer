@@ -99,7 +99,12 @@ kernel void renderAtoms
     colorCtx.setDepth(depth);
     
     // Transform to the atom's position in the previous frame.
-    float3 motionVector = motionVectors[intersect.reference];
+    float3 motionVector;
+    if (renderArgs->useMotionVectors) {
+      motionVector = motionVectors[intersect.reference];
+    } else {
+      motionVector = float3(0);
+    }
     colorCtx.generateMotionVector(cameraArgs + 1,
                                   hitPoint - motionVector);
   }

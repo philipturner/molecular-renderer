@@ -11,6 +11,13 @@ struct ArgumentContainer {
   var intermediateTextureSize: Int = .zero
   var upscaleFactor: Int = .zero
   var frameID: Int = .zero
+  var upscaledTextureSize: Int {
+    intermediateTextureSize * upscaleFactor
+  }
+  
+  // Atom state variables.
+  var currentAtoms: [SIMD4<Float>] = []
+  var previousAtoms: [SIMD4<Float>] = []
   
   // Camera state variables.
   var currentCamera: CameraArguments?
@@ -19,10 +26,6 @@ struct ArgumentContainer {
   // Time state variables.
   var time: MRTime?
   var useMotionVectors: Bool?
-  
-  var upscaledTextureSize: Int {
-    intermediateTextureSize * upscaleFactor
-  }
 }
 
 extension ArgumentContainer {
@@ -30,9 +33,12 @@ extension ArgumentContainer {
     // Increment the frame counter.
     frameID += 1
     
-    // Invalidate the frame-specific state.
+    previousAtoms = currentAtoms
+    currentAtoms = []
+    
     previousCamera = currentCamera
     currentCamera = nil
+    
     time = nil
     useMotionVectors = nil
   }

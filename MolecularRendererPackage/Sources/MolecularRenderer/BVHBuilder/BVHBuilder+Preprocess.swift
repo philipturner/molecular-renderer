@@ -28,6 +28,7 @@ extension BVHBuilder {
   }
   
   func bindAtomRadii(to encoder: MTLComputeCommandEncoder) {
+    var atomRadii = renderer.atomRadii
     atomRadii.withUnsafeBufferPointer {
       let length = $0.count * 4
       encoder.setBytes($0.baseAddress!, length: length, index: 2)
@@ -37,6 +38,7 @@ extension BVHBuilder {
 
 extension BVHBuilder {
   func preprocessAtoms(commandQueue: MTLCommandQueue, frameID: Int) {
+    let atoms = renderer.argumentContainer.currentAtoms
     let ringIndex = renderer.argumentContainer.tripleBufferIndex()
     let atomsBuffer = denseGridAtoms[ringIndex]
     
