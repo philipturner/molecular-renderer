@@ -5,20 +5,23 @@ import Numerics
 
 #if true
 
-// TODO: Changing the BVH construction procedure.
+// Making the code easier to modify.
 // - Clean up the BVH builder.
 //   - De-obfuscate the atom buffers. [DONE]
 //   - Remove the CPU code that wrote motion vectors to memory. [DONE]
 //   - De-obfuscate the 'denseGridData' buffer. [DONE]
 //   - De-obfuscate the encoding of the old BVH building. [DONE]
-// - De-obfuscate the frame report.
+// - De-obfuscate the frame report. [DONE]
+// - Isolate the upscaler.
+//
+// Changing the BVH construction procedure.
 // - Offload the BB computation to the GPU.
 //   - Make everything except computation of Int32 BB be GPU-driven.
 //   - Offload the BB reduction to the GPU.
 //   - Clear a subregion matching the global BB every frame.
 // - Remove the dependency on the global bounding box.
 //
-// TODO: Next, perform some optimizations.
+// Optimizing the new BVH.
 // - Change the DDA, so the voxel address is computed every frame.
 //   - Not a lot of compute cost, since integer multiplications become
 //     bitshifts by log2(128).

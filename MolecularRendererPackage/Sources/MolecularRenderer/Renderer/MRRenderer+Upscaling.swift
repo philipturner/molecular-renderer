@@ -9,22 +9,6 @@ import Metal
 import MetalFX
 import protocol QuartzCore.CAMetalDrawable
 
-// Track when to reset the MetalFX upscaler.
-struct ResetTracker {
-  var currentFrameID: Int = -1
-  var resetUpscaler: Bool = false
-  
-  mutating func update(time: MRTime) {
-    let nextFrameID = time.absolute.frames
-    if nextFrameID == 0 && nextFrameID != currentFrameID {
-      resetUpscaler = true
-    } else {
-      resetUpscaler = false
-    }
-    currentFrameID = nextFrameID
-  }
-}
-
 extension MRRenderer {
   func initUpscaler() {
     let desc = MTLFXTemporalScalerDescriptor()
@@ -57,26 +41,14 @@ extension MRRenderer {
     upscaler.isDepthReversed = true
   }
   
-  func checkUpscaledSize(drawable: CAMetalDrawable) {
-    let upscaledSize = argumentContainer.upscaledTextureSize
-    guard drawable.texture.width == upscaledSize &&
-            drawable.texture.height == upscaledSize else {
-      fatalError("Drawable texture had incorrect dimensions.")
-    }
-  }
-  
-  func updateResetTracker() {
-    guard let time = argumentContainer.time else {
-      fatalError("Time was not specified.")
-    }
-    resetTracker.update(time: time)
-  }
-  
-  func updateUpscaler(reset: Bool) {
+  func updateUpscaler() {
+    // Reset the upscaler.
+    let resetUpscaler = argumentContainer.resetUpscaler
+    upscaler.reset = resetUpscaler
+    
     // Bind the intermediate textures.
     let textureIndex = argumentContainer.doubleBufferIndex()
     let textures = bufferedIntermediateTextures[textureIndex]
-    upscaler.reset = reset
     upscaler.colorTexture = textures.color
     upscaler.depthTexture = textures.depth
     upscaler.motionTexture = textures.motion
@@ -88,27 +60,25 @@ extension MRRenderer {
     upscaler.jitterOffsetY = -jitterOffsets.y
   }
   
-  func dispatchUpscalingWork(drawable: CAMetalDrawable) {
-    checkUpscaledSize(drawable: drawable)
-    updateResetTracker()
-    updateUpscaler(reset: resetTracker.resetUpscaler)
+  func dispatchUpscalingWork(texture: MTLTexture) {
+    let upscaledSize = argumentContainer.upscaledTextureSize
+    guard texture.width == upscaledSize,
+          texture.height == upscaledSize else {
+      fatalError("Drawable texture had incorrect dimensions.")
+    }
     
-    // Start a command buffer.
+    // Run the upscaling.
     let commandBuffer = commandQueue.makeCommandBuffer()!
+    updateUpscaler()
     upscaler.encode(commandBuffer: commandBuffer)
     
-    // Start a blit encoder.
-    let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    
-    // Bind the upscaled texture.
+    // Copy the upscaled texture to the drawable.
     let textureIndex = argumentContainer.doubleBufferIndex()
     let textures = bufferedIntermediateTextures[textureIndex]
-    blitEncoder.copy(from: textures.upscaled, to: drawable.texture)
-    
-    // Finish the blit encoder.
+    let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
+    blitEncoder.copy(from: textures.upscaled, to: texture)
     blitEncoder.endEncoding()
     
-    // Finish the command buffer.
     commandBuffer.commit()
   }
 }

@@ -23,12 +23,6 @@ public class MRRenderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var renderPipeline: MTLComputePipelineState!
-  
-  // TODO: Remove this!
-  var resetTracker: ResetTracker = .init()
-  
-  // TODO: Move into a separate object. It should encapsulate the upscaler,
-  // the myriad textures, and the drawable handling.
   var upscaler: MTLFXTemporalScaler!
   
   struct IntermediateTextures {
@@ -125,7 +119,7 @@ public class MRRenderer {
     
     // Dispatch the upscaling work.
     let drawable = layer.nextDrawable()!
-    dispatchUpscalingWork(drawable: drawable)
+    dispatchUpscalingWork(texture: drawable.texture)
     
     // Perform synchronization in an empty command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!

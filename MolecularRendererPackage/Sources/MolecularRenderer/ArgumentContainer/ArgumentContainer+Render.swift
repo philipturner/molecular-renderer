@@ -54,15 +54,23 @@ extension ArgumentContainer {
 }
 
 extension ArgumentContainer {
+  mutating func updateAtoms(provider: MRAtomProvider) {
+    guard let currentTime else {
+      fatalError("Time was not specified.")
+    }
+    currentAtoms = provider.atoms(time: currentTime)
+    
+    // Shrinking the limit on atom count to 4 million, for the time being.
+    guard currentAtoms.count < 4 * 1024 * 1024 else {
+      fatalError("Atom count was too large.")
+    }
+  }
+  
   func createRenderArguments() -> RenderArguments {
     var output = RenderArguments()
     output.jitter = createJitterOffsets()
     output.frameSeed = .random(in: 0..<UInt32.max)
     output.qualityCoefficient = createQualityCoefficient()
-    
-    guard let useAtomMotionVectors = self.useAtomMotionVectors else {
-      fatalError("Did not specify whether to use motion vectors.")
-    }
     output.useAtomMotionVectors = useAtomMotionVectors
     return output
   }

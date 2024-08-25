@@ -175,12 +175,12 @@
 		985BBEF22C7B625E0096A104 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Arguments.swift"; sourceTree = "<group>"; };
 		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
-		985BBEF62C7B894B0096A104 /* ArgumentContainer+Atoms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Atoms.swift"; sourceTree = "<group>"; };
 		985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+BoundingBox.swift"; sourceTree = "<group>"; };
 		985BBEF92C7BBAB70096A104 /* FrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReport.swift; sourceTree = "<group>"; };
 		985BBEFB2C7BBDB70096A104 /* FrameReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReporter.swift; sourceTree = "<group>"; };
 		985BBEFC2C7BC4BF0096A104 /* FrameReporter+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+Logging.swift"; sourceTree = "<group>"; };
 		985BBEFD2C7BC6120096A104 /* FrameReporter+FrameChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+FrameChange.swift"; sourceTree = "<group>"; };
+		985BBF002C7BCAF40096A104 /* ArgumentContainer+Upscale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Upscale.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -563,10 +563,10 @@
 			isa = PBXGroup;
 			children = (
 				985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */,
-				985BBEF62C7B894B0096A104 /* ArgumentContainer+Atoms.swift */,
 				985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */,
 				985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */,
 				985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */,
+				985BBF002C7BCAF40096A104 /* ArgumentContainer+Upscale.swift */,
 			);
 			path = ArgumentContainer;
 			sourceTree = "<group>";

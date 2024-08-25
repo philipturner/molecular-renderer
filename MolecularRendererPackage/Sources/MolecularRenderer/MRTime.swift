@@ -7,8 +7,6 @@
 
 import Foundation
 
-// MARK: - MRTime
-
 public struct MRTime {
   // Absolute time. Atom providers should check whether this jumps to zero.
   public var absolute: (frames: Int, seconds: Double)
@@ -18,8 +16,8 @@ public struct MRTime {
   public var relative: (frames: Int, seconds: Double)
   
   // MolecularRenderer measures time in integer quantities, allowing vsync and
-  // indexing into arrays of pre-recorded animation frames. The frame rate is the
-  // granularity of these measurements.
+  // indexing into arrays of pre-recorded animation frames. The frame rate is
+  // the granularity of these measurements.
   public init(absolute: Int, relative: Int, frameRate: Int) {
     func makeTime(frames: Int, frameRate: Int) -> (Int, Double) {
       let frames = frames
@@ -35,10 +33,8 @@ public struct MRTime {
   }
 }
 
-// MARK: - MRRenderer Methods
-
 extension MRRenderer {
   public func setTime(_ time: MRTime) {
-    argumentContainer.time = time
+    argumentContainer.currentTime = time
   }
 }
