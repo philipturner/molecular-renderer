@@ -39,6 +39,6 @@ public struct MRTime {
 
 extension MRRenderer {
   public func setTime(_ time: MRTime) {
-    self.time = time
+    argumentContainer.time = time
   }
 }

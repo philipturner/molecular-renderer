@@ -67,9 +67,10 @@ extension MRRenderer {
     }
   }
   
-  func updateResetTracker(time: MRTime) {
-    // TODO: Store the MRTime in the argument container, then invalidate when
-    // the frame completes.
+  func updateResetTracker() {
+    guard let time = argumentContainer.time else {
+      fatalError("Time was not specified.")
+    }
     resetTracker.update(time: time)
   }
   
@@ -93,7 +94,7 @@ extension MRRenderer {
     drawable: CAMetalDrawable
   ) {
     checkUpscaledSize(drawable: drawable)
-    updateResetTracker(time: time)
+    updateResetTracker()
     updateUpscaler(reset: resetTracker.resetUpscaler)
     
     // Start a new command buffer.

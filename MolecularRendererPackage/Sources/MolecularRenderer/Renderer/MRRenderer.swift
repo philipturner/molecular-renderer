@@ -22,7 +22,6 @@ public class MRRenderer {
   var atomProvider: MRAtomProvider!
   var atomColors: [SIMD3<Float>] = []
   var atomRadii: [Float] = []
-  var time: MRTime!
   
   // Main rendering resources.
   var device: MTLDevice
@@ -112,7 +111,12 @@ public class MRRenderer {
     layer: CAMetalLayer,
     handler: @escaping () -> Void
   ) {
-    updateResources()
+    // Update the BVH builder.
+    updateGeometry()
+    bvhBuilder.updateResources()
+    
+    // Update the counters.
+    updateCounters()
     
     // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
