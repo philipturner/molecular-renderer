@@ -62,7 +62,17 @@ kernel void reduceBBPart1
   atomID = min(atomID, atomCount - 1);
   float4 atom = convertedAtoms[atomID];
   
+  // Compute the bounding box.
+  float3 minimum = atom.xyz - atom.w;
+  float3 maximum = atom.xyz + atom.w;
+  minimum = 2 * floor(minimum / 2);
+  maximum = 2 * ceil(maximum / 2);
   
+  // Write something to memory.
+  int3 minimumInt = int3(minimum);
+  int3 maximumInt = int3(maximum);
+  partials[2 * tgid + 0] = minimumInt;
+  partials[2 * tgid + 1] = maximumInt;
 }
 
 // A single GPU thread encodes some GPU-driven work.

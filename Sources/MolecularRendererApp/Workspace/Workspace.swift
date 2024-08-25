@@ -19,7 +19,7 @@ import Numerics
 //   - Make everything except computation of Int32 BB be GPU-driven. [DONE]
 //   - Offload the BB reduction to the GPU, with a form almost exactly equal
 //     to the current CPU kernel.
-//     - Get feedback about whether it works (first pass).
+//     - Get feedback about whether it works (first pass). [DONE]
 //     - Get feedback about whether it works (second pass).
 //     - Substitute the CPU value with the GPU value.
 //   - Delete the CPU code for reducing the bounding box.
