@@ -19,16 +19,16 @@ kernel void renderAtoms
  constant BVHArguments *bvhArgs [[buffer(1)]],
  constant RenderArguments *renderArgs [[buffer(2)]],
  
- device uint *dense_grid_data [[buffer(5)]],
- device uint *dense_grid_references [[buffer(6)]],
+ device uint *smallCellMetadata [[buffer(5)]],
+ device uint *smallCellAtomReferences [[buffer(6)]],
  
- device float4 *newAtoms [[buffer(10)]],
+ device float4 *convertedAtoms [[buffer(10)]],
  device float4 *oldAtoms [[buffer(11)]],
  device float3 *atomColors [[buffer(12)]],
  
- texture2d<half, access::write> color_texture [[texture(0)]],
- texture2d<float, access::write> depth_texture [[texture(1)]],
- texture2d<half, access::write> motion_texture [[texture(2)]],
+ texture2d<half, access::write> colorTexture [[texture(0)]],
+ texture2d<float, access::write> depthTexture [[texture(1)]],
+ texture2d<half, access::write> motionTexture [[texture(2)]],
  
  ushort2 tid [[thread_position_in_grid]],
  ushort2 tgid [[threadgroup_position_in_grid]],
@@ -42,9 +42,9 @@ kernel void renderAtoms
   // Initialize the uniform grid.
   DenseGrid grid {
     bvhArgs,
-    dense_grid_data,
-    dense_grid_references,
-    newAtoms
+    smallCellMetadata,
+    smallCellAtomReferences,
+    convertedAtoms
   };
   
   // Cast the primary ray.
@@ -101,11 +101,11 @@ kernel void renderAtoms
     // Transform to the atom's position in the previous frame.
     float3 previousFramePosition = hitPoint;
     if (renderArgs->useAtomMotionVectors) {
-      float3 currentNucleus = newAtoms[intersect.reference].xyz;
+      float3 currentNucleus = convertedAtoms[intersect.reference].xyz;
       float3 previousNucleus = oldAtoms[intersect.reference].xyz;
       previousFramePosition += previousNucleus - currentNucleus;
     }
     colorCtx.generateMotionVector(cameraArgs + 1, previousFramePosition);
   }
-  colorCtx.write(color_texture, depth_texture, motion_texture);
+  colorCtx.write(colorTexture, depthTexture, motionTexture);
 }

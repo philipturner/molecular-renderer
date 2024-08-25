@@ -25,20 +25,6 @@ extension MRRenderer {
       descriptor: desc, options: [], reflection: nil)
   }
   
-  // Dispatch threadgroups for the render command.
-  func dispatchThreadgroups(to encoder: MTLComputeCommandEncoder) {
-    // Dispatch an even number of threads (the shader will rearrange them).
-    var dispatchGrid = MTLSize(width: 1, height: 1, depth: 1)
-    dispatchGrid.width = (argumentContainer.intermediateTextureSize + 7) / 8
-    dispatchGrid.height = (argumentContainer.intermediateTextureSize + 7) / 8
-    
-    var threadgroupGrid = MTLSize(width: 1, height: 1, depth: 1)
-    threadgroupGrid.width = 8
-    threadgroupGrid.height = 8
-    encoder.dispatchThreadgroups(
-      dispatchGrid, threadsPerThreadgroup: threadgroupGrid)
-  }
-  
   // Encode the GPU command for ray tracing.
   func render(commandQueue: MTLCommandQueue, frameID: Int) {
     let commandBuffer = commandQueue.makeCommandBuffer()!
@@ -98,7 +84,19 @@ extension MRRenderer {
       encoder.setTexture(textures.motion, index: 2)
     }
     
-    dispatchThreadgroups(to: encoder)
+    // Dispatch
+    do {
+      // Dispatch an even number of threads (the shader will rearrange them).
+      var dispatchGrid = MTLSize(width: 1, height: 1, depth: 1)
+      dispatchGrid.width = (argumentContainer.intermediateTextureSize + 7) / 8
+      dispatchGrid.height = (argumentContainer.intermediateTextureSize + 7) / 8
+      
+      var threadgroupGrid = MTLSize(width: 1, height: 1, depth: 1)
+      threadgroupGrid.width = 8
+      threadgroupGrid.height = 8
+      encoder.dispatchThreadgroups(
+        dispatchGrid, threadsPerThreadgroup: threadgroupGrid)
+    }
     
     encoder.endEncoding()
     commandBuffer.addCompletedHandler { [self] commandBuffer in

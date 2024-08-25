@@ -186,15 +186,15 @@ extension BVHBuilder {
     return (minCoordinates, maxCoordinates)
   }
   
-  func buildDenseGrid(commandQueue: MTLCommandQueue, frameID: Int) {
-    let atoms = renderer.argumentContainer.currentAtoms
-    
+  func incrementFrameReportCounter() {
+    frameReportCounter += 1
+  }
+  
+  func logBoundingBoxCreation() {
     let preprocessingStart = CACurrentMediaTime()
     (worldMinimum, worldMaximum) = reduceBoundingBox()
     let preprocessingEnd = CACurrentMediaTime()
     
-    // The first rendered frame will have an ID of 1.
-    frameReportCounter += 1
     let performance = frameReportQueue.sync { () -> SIMD8<Double> in
       // Remove frames too far back in the history.
       let minimumID = frameReportCounter - Self.frameReportHistorySize
@@ -248,6 +248,16 @@ extension BVHBuilder {
         }
       }
     }
+  }
+}
+
+extension BVHBuilder {
+  func buildDenseGrid(commandQueue: MTLCommandQueue, frameID: Int) {
+    let atoms = renderer.argumentContainer.currentAtoms
+    
+    // The first rendered frame will have an ID of 1.
+    incrementFrameReportCounter()
+    logBoundingBoxCreation()
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -264,7 +274,6 @@ extension BVHBuilder {
     // Clear the small cell metadata.
     do {
       let totalCells = createSmallVoxelCount()
-      
       encoder.setComputePipelineState(memsetPipeline)
       encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
       encoder.dispatchThreadgroups(
@@ -272,42 +281,12 @@ extension BVHBuilder {
         threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
     }
     
-    // Bind the uniform grid arguments.
-    do {
-      var bvhArguments = createBVHArguments()
-      let bvhArgumentsLength = MemoryLayout<BVHArguments>.stride
-      encoder.setBytes(&bvhArguments, length: bvhArgumentsLength, index: 0)
-    }
-    
-    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 3)
-    encoder.setBuffer(smallCellCounters, offset: 0, index: 4)
-    encoder.setBuffer(globalAtomicCounters, offset: tripleIndex * 4, index: 5)
-    encoder.setBuffer(smallCellAtomReferences, offset: 0, index: 6)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 10)
-    
-    // Encode the first pass.
-    encoder.setComputePipelineState(densePass1Pipeline)
-    encoder.dispatchThreads(
-      MTLSizeMake(atoms.count, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-    
-    // Encode the second pass.
-    do {
-      let totalCells = createSmallVoxelCount()
-      encoder.setComputePipelineState(densePass2Pipeline)
-      encoder.dispatchThreadgroups(
-        MTLSizeMake((totalCells + 127) / 128, 1, 1),
-        threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-    }
-    
-    // Encode the third pass.
-    encoder.setComputePipelineState(densePass3Pipeline)
-    encoder.dispatchThreads(
-      MTLSizeMake(atoms.count, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    encodePass1(to: encoder)
+    encodePass2(to: encoder)
+    encodePass3(to: encoder)
     
     encoder.endEncoding()
+    
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
       self.frameReportQueue.sync {
@@ -321,5 +300,81 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+  }
+  
+  /// Encode the function `dense_grid_pass1`.
+  func encodePass1(to encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    do {
+      var bvhArguments = createBVHArguments()
+      let bvhArgumentsLength = MemoryLayout<BVHArguments>.stride
+      encoder.setBytes(&bvhArguments, length: bvhArgumentsLength, index: 0)
+    }
+    
+    // Arguments 1 - 2
+    do {
+      encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
+      encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    }
+    
+    // Dispatch
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      encoder.setComputePipelineState(densePass1Pipeline)
+      encoder.dispatchThreads(
+        MTLSizeMake(atoms.count, 1, 1),
+        threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    }
+  }
+  
+  /// Encode the function `dense_grid_pass2`.
+  func encodePass2(to encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
+    do {
+      encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
+      encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
+    }
+    
+    // Argument 2
+    do {
+      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+      let offset = 4 * tripleIndex
+      encoder.setBuffer(globalAtomicCounters, offset: offset, index: 2)
+    }
+    
+    // Dispatch
+    do {
+      let totalCells = createSmallVoxelCount()
+      encoder.setComputePipelineState(densePass2Pipeline)
+      encoder.dispatchThreadgroups(
+        MTLSizeMake((totalCells + 127) / 128, 1, 1),
+        threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    }
+  }
+  
+  /// Encode the function `dense_grid_pass3`.
+  func encodePass3(to encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    do {
+      var bvhArguments = createBVHArguments()
+      let bvhArgumentsLength = MemoryLayout<BVHArguments>.stride
+      encoder.setBytes(&bvhArguments, length: bvhArgumentsLength, index: 0)
+    }
+    
+    // Arguments 1 - 3
+    do {
+      encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
+      encoder.setBuffer(smallCellAtomReferences, offset: 0, index: 2)
+      encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 3)
+    }
+    
+    // Dispatch
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      encoder.setComputePipelineState(densePass3Pipeline)
+      encoder.dispatchThreads(
+        MTLSizeMake(atoms.count, 1, 1),
+        threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    }
   }
 }

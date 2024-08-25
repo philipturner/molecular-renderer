@@ -44,13 +44,13 @@ bool cube_sphere_intersection(ushort3 cube_min, float4 atom)
 kernel void dense_grid_pass1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *dense_grid_data [[buffer(3)]],
- device float4 *newAtoms [[buffer(10)]],
+ device atomic_uint *smallCellMetadata [[buffer(1)]],
+ device float4 *convertedAtoms [[buffer(2)]],
  
  uint tid [[thread_position_in_grid]])
 {
   // Transform the atom.
-  float4 newAtom = newAtoms[tid];
+  float4 newAtom = convertedAtoms[tid];
   newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
   newAtom.w = 4 * newAtom.w;
   
@@ -70,7 +70,7 @@ kernel void dense_grid_pass1
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          atomic_fetch_add(dense_grid_data + address, 1);
+          atomic_fetch_add(smallCellMetadata + address, 1);
         }
       }
     }
@@ -81,9 +81,9 @@ kernel void dense_grid_pass1
 
 kernel void dense_grid_pass2
 (
- device uint *dense_grid_data [[buffer(3)]],
- device uint *dense_grid_counters [[buffer(4)]],
- device atomic_uint *global_counter [[buffer(5)]],
+ device uint *smallCellMetadata [[buffer(0)]],
+ device uint *smallCellCounters [[buffer(1)]],
+ device atomic_uint *globalAtomicCounter [[buffer(2)]],
  
  // 128 threads/threadgroup
  uint tid [[thread_position_in_grid]],
@@ -92,7 +92,7 @@ kernel void dense_grid_pass2
 {
   // Allocate extra cells if the total number isn't divisible by 128. The first
   // pass should zero them out.
-  uint voxel_count = dense_grid_data[tid];
+  uint voxel_count = smallCellMetadata[tid];
   uint prefix_sum_results = simd_prefix_exclusive_sum(voxel_count);
   
   threadgroup uint group_results[4];
@@ -114,7 +114,7 @@ kernel void dense_grid_pass2
       uint total_voxel_count = prefix_sum_results + voxel_count;
       group_offset = atomic_fetch_add_explicit
       (
-       global_counter, total_voxel_count, memory_order_relaxed);
+       globalAtomicCounter, total_voxel_count, memory_order_relaxed);
     }
     prefix_sum_results += quad_broadcast(group_offset, 3);
 #pragma clang diagnostic pop
@@ -132,8 +132,8 @@ kernel void dense_grid_pass2
   // Overwrite contents of the grid.
   uint count_part = reverse_bits(voxel_count) & voxel_count_mask;
   uint offset_part = prefix_sum_results & voxel_offset_mask;
-  dense_grid_data[tid] = count_part | offset_part;
-  dense_grid_counters[tid] = prefix_sum_results;
+  smallCellMetadata[tid] = count_part | offset_part;
+  smallCellCounters[tid] = prefix_sum_results;
 }
 
 // MARK: - Pass 3
@@ -141,14 +141,14 @@ kernel void dense_grid_pass2
 kernel void dense_grid_pass3
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *dense_grid_counters [[buffer(4)]],
- device uint *references [[buffer(6)]],
- device float4 *newAtoms [[buffer(10)]],
+ device atomic_uint *smallCellCounters [[buffer(1)]],
+ device uint *smallCellAtomReferences [[buffer(2)]],
+ device float4 *convertedAtoms [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]])
 {
   // Transform the atom.
-  float4 newAtom = newAtoms[tid];
+  float4 newAtom = convertedAtoms[tid];
   newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
   newAtom.w = 4 * newAtom.w;
   
@@ -168,11 +168,11 @@ kernel void dense_grid_pass3
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          uint offset = atomic_fetch_add(dense_grid_counters + address, 1);
+          uint offset = atomic_fetch_add(smallCellCounters + address, 1);
           
           // Write the reference to the list.
           if (offset < dense_grid_reference_capacity) {
-            references[offset] = uint(tid);
+            smallCellAtomReferences[offset] = uint(tid);
           }
         }
       }

@@ -89,7 +89,7 @@ public:
       uint voxel_data = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
-        voxel_data = grid.data[dda.address];
+        voxel_data = grid.smallCellMetadata[dda.address];
         dda.increment_position();
         
         float target_distance = dda.get_max_accepted_t();
@@ -118,8 +118,8 @@ public:
         uint offset = voxel_data & voxel_offset_mask;
         uint upper_bound = offset + count;
         for (; offset < upper_bound; ++offset) {
-          uint reference = grid.references[offset];
-          float4 newAtom = grid.newAtoms[reference];
+          uint reference = grid.smallCellAtomReferences[offset];
+          float4 newAtom = grid.convertedAtoms[reference];
           RayIntersector::intersect(&result, ray, newAtom, reference);
         }
         if (result.distance < target_distance) {
@@ -131,7 +131,7 @@ public:
     
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
-      out.newAtom = grid.newAtoms[result.atom];
+      out.newAtom = grid.convertedAtoms[result.atom];
       out.reference = result.atom;
     }
     return out;

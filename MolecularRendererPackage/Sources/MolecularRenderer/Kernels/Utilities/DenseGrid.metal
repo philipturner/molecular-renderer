@@ -15,9 +15,9 @@ using namespace metal;
 class DenseGrid {
 public:
   constant BVHArguments *bvhArgs;
-  device uint *data;
-  device uint *references;
-  device float4 *newAtoms;
+  device uint *smallCellMetadata;
+  device uint *smallCellAtomReferences;
+  device float4 *convertedAtoms;
 };
 
 #endif // DENSE_GRID_H
