@@ -9,6 +9,17 @@
 #include "../Utilities/Constants.metal"
 using namespace metal;
 
+// Fills the memory allocation with the specified pattern.
+kernel void resetMemory1D
+(
+ device uint *b [[buffer(0)]],
+ constant uint &pattern [[buffer(1)]],
+ 
+ uint tid [[thread_position_in_grid]])
+{
+  b[tid] = pattern;
+}
+
 // Converts the float4 atoms to two different formats (for now).
 kernel void convert
 (
@@ -50,6 +61,9 @@ kernel void setIndirectArguments
   // Clamp the bounding box to the world volume.
   minimum = max(minimum, -64);
   maximum = min(maximum, 64);
+  
+  // Prevent undefined behavior when no atoms are present.
+  maximum = max(maximum, minimum);
   
   // Set the BVH arguments.
   {

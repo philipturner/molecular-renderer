@@ -13,8 +13,10 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    
+    setIndirectArguments(encoder: encoder)
+    setAllocationCounter(encoder: encoder)
     clearSmallCellMetadata(encoder: encoder)
+    
     encodePass1(to: encoder)
     encodePass2(to: encoder)
     encodePass3(to: encoder)
@@ -37,18 +39,60 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
+  func setIndirectArguments(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
+    do {
+      // TODO: Complete the GPU offloading by replacing what is bound here.
+      var boundingBoxMin = worldMinimum
+      var boundingBoxMax = worldMaximum
+      encoder.setBytes(&boundingBoxMin, length: 16, index: 0)
+      encoder.setBytes(&boundingBoxMax, length: 16, index: 1)
+    }
+    
+    // Arguments 2 - 3
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(smallCellDispatchArguments, offset: 0, index: 3)
+    
+    // Dispatch
+    let singleThread = MTLSize(width: 1, height: 1, depth: 1)
+    encoder.setComputePipelineState(setIndirectArgumentsPipeline)
+    encoder.dispatchThreads(
+      singleThread, threadsPerThreadgroup: singleThread)
+  }
+  
+  func setAllocationCounter(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    
+    // Argument 1
+    var pattern: UInt32 = .zero
+    encoder.setBytes(&pattern, length: 4, index: 1)
+    
+    // Dispatch
+    encoder.setComputePipelineState(resetMemory1DPipeline)
+    encoder.dispatchThreads(
+      MTLSizeMake(8, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+  }
+  
   func clearSmallCellMetadata(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
     
+    // Argument 1
+    var pattern: UInt32 = .zero
+    encoder.setBytes(&pattern, length: 4, index: 1)
+    
     // Dispatch
-    encoder.setComputePipelineState(memset0Pipeline)
+    encoder.setComputePipelineState(resetMemory1DPipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: smallCellDispatchArguments,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
-  
+}
+
+extension BVHBuilder {
   /// Encode the function `dense_grid_pass1`.
   func encodePass1(to encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2

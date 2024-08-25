@@ -17,8 +17,9 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encodeConvert(to: encoder)
-    setIndirectArguments(encoder: encoder)
-    clearGlobalAtomicCounters(encoder: encoder)
+    
+    
+    reduceBoundingBox(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -89,34 +90,32 @@ extension BVHBuilder {
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  func setIndirectArguments(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
-    do {
-      var boundingBoxMin = worldMinimum
-      var boundingBoxMax = worldMaximum
-      encoder.setBytes(&boundingBoxMin, length: 16, index: 0)
-      encoder.setBytes(&boundingBoxMax, length: 16, index: 1)
+  func setBoundingBoxCounters(encoder: MTLComputeCommandEncoder) {
+    func fillRegion(startSlotID: Int, value: Int32) {
+      // Argument 0
+      let offset = startSlotID * 4
+      encoder.setBuffer(globalAtomicCounters, offset: offset, index: 0)
+      
+      // Argument 1
+      var pattern: Int32 = value
+      encoder.setBytes(&pattern, length: 4, index: 1)
+      
+      // Dispatch four threads, to fill four slots.
+      encoder.setComputePipelineState(resetMemory1DPipeline)
+      encoder.dispatchThreads(
+        MTLSize(width: 4, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
     
-    // Arguments 2 - 3
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 2)
-    encoder.setBuffer(smallCellDispatchArguments, offset: 0, index: 3)
+    // Minimum counter: start at +infinity
+    fillRegion(startSlotID: 0, value: Int32.max)
     
-    // Dispatch
-    let singleThread = MTLSize(width: 1, height: 1, depth: 1)
-    encoder.setComputePipelineState(setIndirectArgumentsPipeline)
-    encoder.dispatchThreads(
-      singleThread, threadsPerThreadgroup: singleThread)
+    // Maximum counter: start at -infinity
+    fillRegion(startSlotID: 4, value: Int32.min)
   }
   
-  func clearGlobalAtomicCounters(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
-    
-    // Dispatch
-    encoder.setComputePipelineState(memset0Pipeline)
-    encoder.dispatchThreads(
-      MTLSizeMake(8, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+  func reduceBoundingBox(encoder: MTLComputeCommandEncoder) {
+    // TODO: Begin the GPU offloading by translating the Swift CPU kernel
+    // to Metal.
   }
 }

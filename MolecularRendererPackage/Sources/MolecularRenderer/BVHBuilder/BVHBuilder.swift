@@ -16,13 +16,12 @@ class BVHBuilder {
   var worldMinimum: SIMD3<Int32> = .zero
   var worldMaximum: SIMD3<Int32> = .zero
   
-  // Pipeline state objects (for blitting).
-  var memset0Pipeline: MTLComputePipelineState
-  var memset1Pipeline: MTLComputePipelineState
-  
-  // Pipeline state objects.
+  // Pipeline state objects (prepare).
   var convertPipeline: MTLComputePipelineState
+  var resetMemory1DPipeline: MTLComputePipelineState
   var setIndirectArgumentsPipeline: MTLComputePipelineState
+  
+  // Pipeline state objects (build).
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
@@ -49,19 +48,6 @@ class BVHBuilder {
     self.device = device
     self.renderer = renderer
     
-    // Initialize the memset kernels.
-    func createMemsetPipeline(value: UInt32) -> MTLComputePipelineState {
-      let constants = MTLFunctionConstantValues()
-      var pattern4 = value
-      constants.setConstantValue(&pattern4, type: .uint, index: 1000)
-      
-      let function = try! library.makeFunction(
-        name: "memset_pattern4", constantValues: constants)
-      return try! device.makeComputePipelineState(function: function)
-    }
-    memset0Pipeline = createMemsetPipeline(value: 0x0000_0000)
-    memset1Pipeline = createMemsetPipeline(value: 0xFFFF_FFFF)
-    
     // Initialize kernels for BVH construction.
     func createPipeline(name: String) -> MTLComputePipelineState {
       guard let function = library.makeFunction(name: name) else {
@@ -70,6 +56,7 @@ class BVHBuilder {
       return try! device.makeComputePipelineState(function: function)
     }
     convertPipeline = createPipeline(name: "convert")
+    resetMemory1DPipeline = createPipeline(name: "resetMemory1D")
     setIndirectArgumentsPipeline = createPipeline(name: "setIndirectArguments")
     densePass1Pipeline = createPipeline(name: "densePass1")
     densePass2Pipeline = createPipeline(name: "densePass2")
