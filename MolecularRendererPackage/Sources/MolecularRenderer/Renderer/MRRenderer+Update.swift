@@ -33,8 +33,7 @@ extension MRRenderer {
     self.updateGeometry(time: time)
     self.bvhBuilder.updateResources()
     
-    self.jitterFrameID += 1
-    self.jitterOffsets = makeJitterOffsets()
+    argumentContainer.jitterFrameID += 1
     self.textureIndex = (self.textureIndex + 1) % 2
     self.renderIndex = (self.renderIndex + 1) % 3
   }
@@ -74,8 +73,13 @@ extension MRRenderer {
     screenMagnitude = sqrt(screenMagnitude) / 1280
     let qualityCoefficient = 30 * screenMagnitude
     
-    // Create the FOV and rotation matrix from user-supplied arguments.
-    let fovMultiplier = self.fovMultiplier(fovDegrees: camera.fovDegrees)
+    let jitterOffsets = argumentContainer.createJitterOffsets()
+    
+    let fovMultiplier = ArgumentContainer
+      .createFOVMultiplier(
+        intermediateTextureSize: intermediateTextureSize,
+        fovDegrees: camera.fovDegrees)
+    
     let rotation = simd_float3x3(
       camera.rotation.0, camera.rotation.1, camera.rotation.2)
     

@@ -1,5 +1,5 @@
 //
-//  Utilities.swift
+//  ArgumentContainer+Utilities.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 12/20/23.
@@ -14,8 +14,8 @@ import Foundation
 public typealias Float16 = UInt16
 #endif
 
-extension MRRenderer {
-  func makeJitterOffsets() -> SIMD2<Float> {
+extension ArgumentContainer {
+  func createJitterOffsets() -> SIMD2<Float> {
     func halton(index: UInt32, base: UInt32) -> Float {
       var result: Float = 0.0
       var fractional: Float = 1.0
@@ -31,7 +31,7 @@ extension MRRenderer {
     // The sample uses a Halton sequence rather than purely random numbers to
     // generate the sample positions to ensure good pixel coverage. This has the
     // result of sampling a different point within each pixel every frame.
-    let jitterIndex = UInt32(self.jitterFrameID % 32 + 1)
+    let jitterIndex = UInt32(jitterFrameID % 32 + 1)
     
     // Return Halton samples (+/- 0.5, +/- 0.5) that represent offsets of up to
     // half a pixel.
@@ -43,7 +43,10 @@ extension MRRenderer {
     return SIMD2(x, y)
   }
   
-  func fovMultiplier(fovDegrees: Float) -> Float {
+  static func createFOVMultiplier(
+    intermediateTextureSize: Int,
+    fovDegrees: Float
+  ) -> Float {
     // How many pixels exist in either direction.
     let fov90Span = 0.5 * Float(intermediateTextureSize)
     

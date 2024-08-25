@@ -1,5 +1,5 @@
 //
-//  MRRenderer+Arguments.swift
+//  ArgumentContainer.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 8/24/24.
@@ -30,6 +30,8 @@
 
 // Finite state machine that encapsulates the argument state.
 struct ArgumentContainer {
+  var jitterFrameID: Int = .zero
+  
   func createCameraArguments() {
     
   }

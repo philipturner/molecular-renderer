@@ -15,8 +15,7 @@ public class MRRenderer {
   var upscaleFactor: Int
   
   // Per-frame state variables.
-  var jitterFrameID: Int = 0
-  var jitterOffsets: SIMD2<Float> = .zero
+  var argumentContainer: ArgumentContainer = .init()
   var textureIndex: Int = 0
   
   // Properties that track the frame ID.

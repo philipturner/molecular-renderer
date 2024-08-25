@@ -81,6 +81,7 @@ extension MRRenderer {
     bindAtomColors(to: encoder)
     
     // Encode the output textures.
+    let jitterFrameID = argumentContainer.jitterFrameID
     let textures = self.bufferedIntermediateTextures[jitterFrameID % 2]
     encoder.setTextures(
       [textures.color, textures.depth, textures.motion], range: 0..<3)
@@ -113,6 +114,9 @@ extension MRRenderer {
     drawableTexture: MTLTexture
   ) {
     resetTracker.update(time: time)
+    
+    let jitterFrameID = argumentContainer.jitterFrameID
+    let jitterOffsets = argumentContainer.createJitterOffsets()
     
     // Bind the intermediate textures.
     let textures = bufferedIntermediateTextures[jitterFrameID % 2]

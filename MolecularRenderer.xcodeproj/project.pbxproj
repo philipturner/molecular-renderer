@@ -168,7 +168,7 @@
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VoxelAddress.metal; sourceTree = "<group>"; };
 		985BBEE92C7A69900096A104 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
-		985BBEEC2C7AA6E50096A104 /* MRRenderer+Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Arguments.swift"; sourceTree = "<group>"; };
+		985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArgumentContainer.swift; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -220,7 +220,7 @@
 		98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_GFNFF_FailureMode.jpg; sourceTree = "<group>"; };
 		98B25A132B33478400081A61 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Descriptor.swift"; sourceTree = "<group>"; };
-		98B25A162B33562E00081A61 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		98B25A162B33562E00081A61 /* ArgumentContainer+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Utilities.swift"; sourceTree = "<group>"; };
 		98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Update.swift"; sourceTree = "<group>"; };
 		98B25A182B335F7600081A61 /* MRRenderer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Render.swift"; sourceTree = "<group>"; };
 		98B25A192B33666B00081A61 /* Renderer+Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Setup.swift"; sourceTree = "<group>"; };
@@ -544,12 +544,20 @@
 			isa = PBXGroup;
 			children = (
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
-				985BBEEC2C7AA6E50096A104 /* MRRenderer+Arguments.swift */,
 				98B25A142B334F6700081A61 /* MRRenderer+Descriptor.swift */,
 				98B25A182B335F7600081A61 /* MRRenderer+Render.swift */,
 				98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */,
 			);
 			path = Renderer;
+			sourceTree = "<group>";
+		};
+		985BBEED2C7AABA20096A104 /* ArgumentContainer */ = {
+			isa = PBXGroup;
+			children = (
+				985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */,
+				98B25A162B33562E00081A61 /* ArgumentContainer+Utilities.swift */,
+			);
+			path = ArgumentContainer;
 			sourceTree = "<group>";
 		};
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
@@ -979,13 +987,13 @@
 		98F638992A349F7300F51E95 /* MolecularRenderer */ = {
 			isa = PBXGroup;
 			children = (
+				985BBEED2C7AABA20096A104 /* ArgumentContainer */,
 				98F12C912C72D00C0045FAFB /* BVHBuilder */,
 				98F12C922C72D01B0045FAFB /* Kernels */,
 				985BBEEB2C7AA6710096A104 /* Renderer */,
 				98F638C42A34F78A00F51E95 /* MRAtomProvider.swift */,
 				98B25A132B33478400081A61 /* MRCamera.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
-				98B25A162B33562E00081A61 /* Utilities.swift */,
 				98E23B2E2B4CCCCB00B5A7D5 /* README.md */,
 			);
 			path = MolecularRenderer;
