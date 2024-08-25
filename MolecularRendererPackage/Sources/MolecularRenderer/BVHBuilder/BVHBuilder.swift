@@ -60,8 +60,8 @@ class BVHBuilder {
   var densePass3Pipeline: MTLComputePipelineState
   
   // Data buffers.
-  var denseGridAtoms: [MTLBuffer]
-  var newAtomsBuffers: [MTLBuffer]
+  var originalAtomsBuffers: [MTLBuffer]
+  var convertedAtomsBuffer: MTLBuffer
   
   public init(
     renderer: MRRenderer,
@@ -99,15 +99,12 @@ class BVHBuilder {
       let bufferSize: Int = (4 * 1024 * 1024) * 16
       return device.makeBuffer(length: bufferSize)!
     }
-    denseGridAtoms = [
+    originalAtomsBuffers = [
       createAtomBuffer(device: device),
       createAtomBuffer(device: device),
       createAtomBuffer(device: device),
     ]
-    newAtomsBuffers = [
-      createAtomBuffer(device: device),
-      createAtomBuffer(device: device),
-    ]
+    convertedAtomsBuffer = createAtomBuffer(device: device)
   }
 }
 

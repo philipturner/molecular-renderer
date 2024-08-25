@@ -303,14 +303,13 @@ extension BVHBuilder {
     let argumentsStride = MemoryLayout<UniformGridArguments>.stride
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     
-    let doubleIndex = renderer.argumentContainer.doubleBufferIndex()
     let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
     encoder.setBuffer(dataBuffer, offset: 32, index: 3)
     encoder.setBuffer(countersBuffer, offset: 0, index: 4)
     encoder.setBuffer(dataBuffer, offset: tripleIndex * 4, index: 5)
     encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
     encoder.setBuffer(dataBuffer, offset: tripleIndex * 4 + 16, index: 7)
-    encoder.setBuffer(newAtomsBuffers[doubleIndex], offset: 0, index: 10)
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 10)
     
     encoder.setComputePipelineState(densePass1Pipeline)
     encoder.dispatchThreads(

@@ -12,14 +12,14 @@ using namespace metal;
 // Converts the float4 atoms to two different formats (for now).
 kernel void preprocess
 (
- device float4 *atoms [[buffer(0)]],
+ device float4 *originalAtoms [[buffer(0)]],
  device float *atomRadii [[buffer(1)]],
- device float4 *newAtoms [[buffer(2)]],
+ device float4 *convertedAtoms [[buffer(2)]],
  
  uint tid [[thread_position_in_grid]])
 {
   // Fetch the atom from memory.
-  float4 atom = atoms[tid];
+  float4 atom = originalAtoms[tid];
   
   // Write the new format.
   {
@@ -32,6 +32,6 @@ kernel void preprocess
     
     float4 convertedAtom = atom;
     convertedAtom.w = as_type<float>(packed);
-    newAtoms[tid] = convertedAtom;
+    convertedAtoms[tid] = convertedAtom;
   }
 }

@@ -79,11 +79,14 @@ extension MRRenderer {
     
     // Arguments 10 - 12
     do {
-      // Bind the atoms.
-      let doubleIndex = argumentContainer.doubleBufferIndex()
-      let newAtomsBuffer = bvhBuilder.newAtomsBuffers[doubleIndex]
-      let oldAtomsBuffer = bvhBuilder.newAtomsBuffers[doubleIndex ^ 1]
+      // Bind the new atoms.
+      let newAtomsBuffer = bvhBuilder.convertedAtomsBuffer
       encoder.setBuffer(newAtomsBuffer, offset: 0, index: 10)
+      
+      // Bind the old atoms.
+      let currentIndex = argumentContainer.tripleBufferIndex()
+      let previousIndex = (currentIndex + 3 - 1) % 3
+      let oldAtomsBuffer = bvhBuilder.originalAtomsBuffers[previousIndex]
       encoder.setBuffer(oldAtomsBuffer, offset: 0, index: 11)
       
       // Bind the atom colors.
