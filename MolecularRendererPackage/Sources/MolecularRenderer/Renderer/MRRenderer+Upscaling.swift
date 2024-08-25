@@ -7,6 +7,23 @@
 
 import Metal
 import MetalFX
+import protocol QuartzCore.CAMetalDrawable
+
+// Track when to reset the MetalFX upscaler.
+struct ResetTracker {
+  var currentFrameID: Int = -1
+  var resetUpscaler: Bool = false
+  
+  mutating func update(time: MRTime) {
+    let nextFrameID = time.absolute.frames
+    if nextFrameID == 0 && nextFrameID != currentFrameID {
+      resetUpscaler = true
+    } else {
+      resetUpscaler = false
+    }
+    currentFrameID = nextFrameID
+  }
+}
 
 extension MRRenderer {
   func initUpscaler() {
@@ -42,29 +59,56 @@ extension MRRenderer {
     upscaler.isDepthReversed = true
   }
   
-  func upscale(
-    commandBuffer: MTLCommandBuffer,
-    drawableTexture: MTLTexture
-  ) {
+  func checkUpscaledSize(drawable: CAMetalDrawable) {
+    let upscaledSize = argumentContainer.upscaledTextureSize
+    guard drawable.texture.width == upscaledSize &&
+            drawable.texture.height == upscaledSize else {
+      fatalError("Drawable texture had incorrect dimensions.")
+    }
+  }
+  
+  func updateResetTracker(time: MRTime) {
+    // TODO: Store the MRTime in the argument container, then invalidate when
+    // the frame completes.
     resetTracker.update(time: time)
-    
+  }
+  
+  func updateUpscaler(reset: Bool) {
     let jitterFrameID = argumentContainer.jitterFrameID
     let jitterOffsets = argumentContainer.createJitterOffsets()
     
     // Bind the intermediate textures.
     let textures = bufferedIntermediateTextures[jitterFrameID % 2]
-    upscaler.reset = resetTracker.resetUpscaler
+    upscaler.reset = reset
     upscaler.colorTexture = textures.color
     upscaler.depthTexture = textures.depth
     upscaler.motionTexture = textures.motion
     upscaler.outputTexture = textures.upscaled
     upscaler.jitterOffsetX = -jitterOffsets.x
     upscaler.jitterOffsetY = -jitterOffsets.y
+  }
+  
+  func upscale(
+    commandQueue: MTLCommandQueue,
+    drawable: CAMetalDrawable
+  ) {
+    checkUpscaledSize(drawable: drawable)
+    updateResetTracker(time: time)
+    updateUpscaler(reset: resetTracker.resetUpscaler)
+    
+    // Start a new command buffer.
+    let commandBuffer = commandQueue.makeCommandBuffer()!
     upscaler.encode(commandBuffer: commandBuffer)
     
-    // Metal is forcing me to copy the upscaled texture to the drawable.
+    // Locate the upscaled texture.
+    let jitterFrameID = argumentContainer.jitterFrameID
+    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
+    
+    // Copy the upscaled texture to the drawable.
     let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    blitEncoder.copy(from: textures.upscaled, to: drawableTexture)
+    blitEncoder.copy(from: textures.upscaled, to: drawable.texture)
     blitEncoder.endEncoding()
+    
+    commandBuffer.commit()
   }
 }

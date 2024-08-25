@@ -114,28 +114,18 @@ public class MRRenderer {
   ) {
     updateResources()
     
+    // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
-    bvhBuilder.preprocessAtoms(
-      commandQueue: commandQueue, frameID: frameID)
-    bvhBuilder.buildDenseGrid(
-      commandQueue: commandQueue, frameID: frameID)
-    render(
-      commandQueue: commandQueue, frameID: frameID)
+    bvhBuilder.preprocessAtoms(commandQueue: commandQueue, frameID: frameID)
+    bvhBuilder.buildDenseGrid(commandQueue: commandQueue, frameID: frameID)
+    render(commandQueue: commandQueue, frameID: frameID)
     
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    // Acquire a reference to the drawable.
+    // Dispatch the upscaling work.
     let drawable = layer.nextDrawable()!
-    let upscaledSize = argumentContainer.upscaledTextureSize
-    guard drawable.texture.width == upscaledSize &&
-            drawable.texture.height == upscaledSize else {
-      fatalError("Drawable texture had incorrect dimensions.")
-    }
+    upscale(commandQueue: commandQueue, drawable: drawable)
     
-    // Encode the upscaling pass.
-    upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
-    
-    // Present the drawable and signal the semaphore.
+    // Perform synchronization in an empty command buffer.
+    let commandBuffer = commandQueue.makeCommandBuffer()!
     commandBuffer.present(drawable)
     commandBuffer.addCompletedHandler { _ in
       handler()

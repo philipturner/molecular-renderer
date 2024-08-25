@@ -35,21 +35,7 @@ public struct MRTime {
   }
 }
 
-// Track when to reset the MetalFX upscaler.
-struct ResetTracker {
-  var currentFrameID: Int = -1
-  var resetUpscaler: Bool = false
-  
-  mutating func update(time: MRTime) {
-    let nextFrameID = time.absolute.frames
-    if nextFrameID == 0 && nextFrameID != currentFrameID {
-      resetUpscaler = true
-    } else {
-      resetUpscaler = false
-    }
-    currentFrameID = nextFrameID
-  }
-}
+
 
 // MARK: - MRRenderer Methods
 
