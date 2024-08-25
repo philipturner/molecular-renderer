@@ -6,10 +6,9 @@ import Numerics
 #if true
 
 // TODO: Changing the BVH construction procedure.
-// - Restructure the BB reducer, to operate over a large-voxel grid.
 // - Adapt the ray tracing code, so the reference grid has a fixed size.
 //   - Clear a subregion matching the global BB every frame.
-// - Remove the dependency on the global bounding box, in the ray tracer.
+// - Remove the dependency on the global bounding box.
 //
 // Optimizations:
 // - Change the DDA, so the voxel address is computed every frame.
