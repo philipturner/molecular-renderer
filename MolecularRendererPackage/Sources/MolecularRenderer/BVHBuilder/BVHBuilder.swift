@@ -53,19 +53,17 @@ class BVHBuilder {
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
   
-  // Resources for the old BVH building algorithm.
-  var denseGridAtoms: [MTLBuffer] = []
-  var motionVectorBuffers: [MTLBuffer] = []
-  
-  // Resources for the new BVH building algorithm.
-  var preprocessPipeline: MTLComputePipelineState
-  var newAtomsBuffers: [MTLBuffer]
-  
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
+  var preprocessPipeline: MTLComputePipelineState
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
+  
+  // Data buffers.
+  var denseGridAtoms: [MTLBuffer]
+  var motionVectorBuffers: [MTLBuffer]
+  var newAtomsBuffers: [MTLBuffer]
   
   public init(
     renderer: MRRenderer,
@@ -74,7 +72,7 @@ class BVHBuilder {
     self.device = renderer.device
     self.renderer = renderer
     
-    // Initialize the memset shader.
+    // Initialize the memset kernel.
     let constants = MTLFunctionConstantValues()
     var pattern4: UInt32 = 0
     constants.setConstantValue(&pattern4, type: .uint, index: 1000)
@@ -84,18 +82,20 @@ class BVHBuilder {
     self.memsetPipeline = try! device
       .makeComputePipelineState(function: memsetFunction)
     
-    // Initialize shaders for the old BVH construction algorithm.
+    // Initialize kernels for BVH construction.
+    let preprocessFunction = library.makeFunction(name: "preprocess")!
     let densePass1Function = library.makeFunction(name: "dense_grid_pass1")!
     let densePass2Function = library.makeFunction(name: "dense_grid_pass2")!
     let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
-    self.densePass1Pipeline = try! device
+    preprocessPipeline = try! device
+      .makeComputePipelineState(function: preprocessFunction)
+    densePass1Pipeline = try! device
       .makeComputePipelineState(function: densePass1Function)
-    self.densePass2Pipeline = try! device
+    densePass2Pipeline = try! device
       .makeComputePipelineState(function: densePass2Function)
-    self.densePass3Pipeline = try! device
+    densePass3Pipeline = try! device
       .makeComputePipelineState(function: densePass3Function)
     
-    // Allocate resources for the old BVH building algorithm.
     func createAtomBuffer(device: MTLDevice) -> MTLBuffer {
       // Limited to 4 million atoms for now.
       let bufferSize: Int = (4 * 1024 * 1024) * 16
@@ -111,10 +111,6 @@ class BVHBuilder {
       createAtomBuffer(device: device),
       createAtomBuffer(device: device),
     ]
-    
-    // Allocate resources for the new BVH building algorithm.
-    preprocessPipeline = Self.createPreprocessFunction(
-      device: device, library: library)
     newAtomsBuffers = [
       createAtomBuffer(device: device),
       createAtomBuffer(device: device),

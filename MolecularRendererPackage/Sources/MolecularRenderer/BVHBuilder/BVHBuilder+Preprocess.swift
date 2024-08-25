@@ -9,17 +9,6 @@ import Metal
 import QuartzCore
 
 extension BVHBuilder {
-  static func createPreprocessFunction(
-    device: MTLDevice,
-    library: MTLLibrary
-  ) -> MTLComputePipelineState {
-    let preprocessFunction = library.makeFunction(name: "preprocess")!
-    return try! device.makeComputePipelineState(
-      function: preprocessFunction)
-  }
-}
-
-extension BVHBuilder {
   func preprocessAtoms(commandQueue: MTLCommandQueue, frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
     
