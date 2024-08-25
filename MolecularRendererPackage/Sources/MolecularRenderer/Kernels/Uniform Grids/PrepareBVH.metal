@@ -35,3 +35,4 @@ kernel void convert
     convertedAtoms[tid] = convertedAtom;
   }
 }
+

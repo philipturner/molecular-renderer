@@ -22,8 +22,11 @@ class BVHBuilder {
   var worldMinimum: SIMD3<Float> = .zero
   var worldMaximum: SIMD3<Float> = .zero
   
+  // Pipeline state objects (for blitting).
+  var memset0Pipeline: MTLComputePipelineState
+  var memset1Pipeline: MTLComputePipelineState
+  
   // Pipeline state objects.
-  var memsetPipeline: MTLComputePipelineState
   var convertPipeline: MTLComputePipelineState
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
@@ -47,18 +50,22 @@ class BVHBuilder {
     renderer: MRRenderer,
     library: MTLLibrary
   ) {
-    self.device = renderer.device
+    let device = MTLCreateSystemDefaultDevice()!
+    self.device = device
     self.renderer = renderer
     
-    // Initialize the memset kernel.
-    let constants = MTLFunctionConstantValues()
-    var pattern4: UInt32 = 0
-    constants.setConstantValue(&pattern4, type: .uint, index: 1000)
-    
-    let memsetFunction = try! library.makeFunction(
-      name: "memset_pattern4", constantValues: constants)
-    self.memsetPipeline = try! device
-      .makeComputePipelineState(function: memsetFunction)
+    // Initialize the memset kernels.
+    func createMemsetPipeline(value: UInt32) -> MTLComputePipelineState {
+      let constants = MTLFunctionConstantValues()
+      var pattern4 = value
+      constants.setConstantValue(&pattern4, type: .uint, index: 1000)
+      
+      let function = try! library.makeFunction(
+        name: "memset_pattern4", constantValues: constants)
+      return try! device.makeComputePipelineState(function: function)
+    }
+    memset0Pipeline = createMemsetPipeline(value: 0x0000_0000)
+    memset1Pipeline = createMemsetPipeline(value: 0xFFFF_FFFF)
     
     // Initialize kernels for BVH construction.
     let convertFunction = library.makeFunction(name: "convert")!
@@ -75,17 +82,17 @@ class BVHBuilder {
       .makeComputePipelineState(function: densePass3Function)
     
     // Allocate data buffers (per atom).
-    func createAtomBuffer(device: MTLDevice) -> MTLBuffer {
+    func createAtomBuffer() -> MTLBuffer {
       // Limited to 4 million atoms for now.
       let bufferSize: Int = (4 * 1024 * 1024) * 16
       return device.makeBuffer(length: bufferSize)!
     }
     originalAtomsBuffers = [
-      createAtomBuffer(device: device),
-      createAtomBuffer(device: device),
-      createAtomBuffer(device: device),
+      createAtomBuffer(),
+      createAtomBuffer(),
+      createAtomBuffer(),
     ]
-    convertedAtomsBuffer = createAtomBuffer(device: device)
+    convertedAtomsBuffer = createAtomBuffer()
     
     // Allocate data buffers (allocation).
     bvhArgumentsBuffer = device.makeBuffer(length: 1024)!
