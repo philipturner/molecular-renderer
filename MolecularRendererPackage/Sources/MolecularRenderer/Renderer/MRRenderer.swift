@@ -118,8 +118,8 @@ public class MRRenderer {
     
     // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
-    bvhBuilder.preprocessAtoms(commandQueue: commandQueue, frameID: frameID)
-    bvhBuilder.buildDenseGrid(commandQueue: commandQueue, frameID: frameID)
+    bvhBuilder.prepareBVH(commandQueue: commandQueue, frameID: frameID)
+    bvhBuilder.buildBVH(commandQueue: commandQueue, frameID: frameID)
     render(commandQueue: commandQueue, frameID: frameID)
     
     // Dispatch the upscaling work.

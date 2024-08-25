@@ -60,8 +60,12 @@ class BVHBuilder {
   var originalAtomsBuffers: [MTLBuffer]
   var convertedAtomsBuffer: MTLBuffer
   
-  // Data buffers (other).
+  // Data buffers (allocation).
+  var bvhArgumentsBuffer: MTLBuffer
+  var smallCellDispatchArguments: MTLBuffer
   var globalAtomicCounters: MTLBuffer
+  
+  // Data buffers (other).
   var smallCellMetadata: MTLBuffer
   var smallCellCounters: MTLBuffer
   var smallCellAtomReferences: MTLBuffer
@@ -110,8 +114,12 @@ class BVHBuilder {
     ]
     convertedAtomsBuffer = createAtomBuffer(device: device)
     
+    // Allocate data buffers (allocation).
+    bvhArgumentsBuffer = device.makeBuffer(length: 1024)!
+    smallCellDispatchArguments = device.makeBuffer(length: 1024)!
+    globalAtomicCounters = device.makeBuffer(length: 1024)!
+    
     // Allocate data buffers (other).
-    globalAtomicCounters = device.makeBuffer(length: 8 * 4)!
     smallCellMetadata = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
