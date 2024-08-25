@@ -25,8 +25,7 @@ extension MRRenderer {
       descriptor: desc, options: [], reflection: nil)
   }
   
-  // Encode the GPU command for ray tracing.
-  func render(commandQueue: MTLCommandQueue, frameID: Int) {
+  func dispatchRenderingWork(frameID: Int) {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(renderPipeline)

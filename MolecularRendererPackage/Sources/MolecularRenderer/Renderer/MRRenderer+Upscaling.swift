@@ -88,10 +88,7 @@ extension MRRenderer {
     upscaler.jitterOffsetY = -jitterOffsets.y
   }
   
-  func upscale(
-    commandQueue: MTLCommandQueue,
-    drawable: CAMetalDrawable
-  ) {
+  func dispatchUpscalingWork(drawable: CAMetalDrawable) {
     checkUpscaledSize(drawable: drawable)
     updateResetTracker()
     updateUpscaler(reset: resetTracker.resetUpscaler)

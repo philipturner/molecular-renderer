@@ -118,13 +118,13 @@ public class MRRenderer {
     
     // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
-    bvhBuilder.prepareBVH(commandQueue: commandQueue, frameID: frameID)
-    bvhBuilder.buildBVH(commandQueue: commandQueue, frameID: frameID)
-    render(commandQueue: commandQueue, frameID: frameID)
+    bvhBuilder.prepareBVH(frameID: frameID)
+    bvhBuilder.buildBVH(frameID: frameID)
+    dispatchRenderingWork(frameID: frameID)
     
     // Dispatch the upscaling work.
     let drawable = layer.nextDrawable()!
-    upscale(commandQueue: commandQueue, drawable: drawable)
+    dispatchUpscalingWork(drawable: drawable)
     
     // Perform synchronization in an empty command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!

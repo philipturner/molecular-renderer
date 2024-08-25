@@ -177,6 +177,7 @@
 		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
 		985BBEF62C7B894B0096A104 /* ArgumentContainer+Atoms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Atoms.swift"; sourceTree = "<group>"; };
 		985BBEF72C7BB2C60096A104 /* BVHBuilder+FrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+FrameReport.swift"; sourceTree = "<group>"; };
+		985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+BoundingBox.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -953,6 +954,7 @@
 			children = (
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
 				985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */,
+				985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */,
 				985BBEF72C7BB2C60096A104 /* BVHBuilder+FrameReport.swift */,
 				98D26BAA2C754D01007B48FD /* BVHBuilder+Preprocess.swift */,

@@ -10,7 +10,7 @@ import QuartzCore
 import simd
 
 extension BVHBuilder {
-  func prepareBVH(commandQueue: MTLCommandQueue, frameID: Int) {
+  func prepareBVH(frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
     
     let copyingStart = CACurrentMediaTime()
@@ -21,7 +21,7 @@ extension BVHBuilder {
     }
     let copyingEnd = CACurrentMediaTime()
     
-    let commandBuffer = commandQueue.makeCommandBuffer()!
+    let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encodePreprocess(to: encoder)
     encoder.endEncoding()
