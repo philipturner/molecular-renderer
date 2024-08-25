@@ -5,10 +5,21 @@ import Numerics
 
 #if true
 
-// TODO: Fixing some rendering bugs.
-// - Refactor the arguments and render state container.
-// - Investigate bugs with motion vectors.
-// - Investigate improper specification of depth for MetalFX.
+// TODO: Changing the BVH construction procedure.
+// - Restructure the BB reducer, to operate over a large-voxel grid.
+// - Adapt the ray tracing code, so the reference grid has a fixed size.
+//   - Clear a subregion matching the global BB every frame.
+// - Remove the dependency on the global bounding box, in the ray tracer.
+//
+// Optimizations:
+// - Change the DDA, so the voxel address is computed every frame.
+//   - Not a lot of compute cost, since integer multiplications become
+//     bitshifts by log2(128).
+// - Rearrange the reference grid in Morton order.
+//   - Migrate the BVH construction first, resulting in twice the GPU work.
+//   - Transform the new BVH into the old BVH.
+//   - Integrate the transformed old BVH into the ray tracer.
+//   - Migrate the ray tracer.
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems

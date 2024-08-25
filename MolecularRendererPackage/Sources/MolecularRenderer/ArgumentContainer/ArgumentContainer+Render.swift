@@ -24,10 +24,10 @@ extension ArgumentContainer {
   }
   
   func createJitterOffsets() -> SIMD2<Float> {
-    func halton(index: UInt32, base: UInt32) -> Float {
+    func halton(index: Int, base: Int) -> Float {
       var result: Float = 0.0
       var fractional: Float = 1.0
-      var currentIndex: UInt32 = index
+      var currentIndex: Int = index
       while currentIndex > 0 {
         fractional /= Float(base)
         result += fractional * Float(currentIndex % base)
@@ -39,12 +39,12 @@ extension ArgumentContainer {
     // The sample uses a Halton sequence rather than purely random numbers to
     // generate the sample positions to ensure good pixel coverage. This has the
     // result of sampling a different point within each pixel every frame.
-    let jitterIndex = UInt32(jitterFrameID % 32 + 1)
+    let index = haltonIndex()
     
     // Return Halton samples (+/- 0.5, +/- 0.5) that represent offsets of up to
     // half a pixel.
-    let x = halton(index: jitterIndex, base: 2) - 0.5
-    let y = halton(index: jitterIndex, base: 3) - 0.5
+    let x = halton(index: index, base: 2) - 0.5
+    let y = halton(index: index, base: 3) - 0.5
     
     // We're not sampling textures or working with multiple coordinate spaces.
     // No need to flip the Y coordinate to match another coordinate space.

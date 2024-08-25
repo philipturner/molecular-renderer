@@ -54,8 +54,6 @@ extension MRRenderer {
     // multiplies the vector by 'intermediateSize', which we don't want.
     upscaler.motionVectorScaleX = 1
     upscaler.motionVectorScaleY = 1
-    
-    // TODO: Investigate whether MetalFX wants depth to be something different.
     upscaler.isDepthReversed = true
   }
   

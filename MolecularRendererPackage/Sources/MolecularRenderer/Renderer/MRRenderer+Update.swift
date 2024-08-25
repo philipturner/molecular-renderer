@@ -9,12 +9,6 @@ import Foundation
 import simd
 
 extension MRRenderer {
-  func updateCounters() {
-    argumentContainer.jitterFrameID += 1
-    self.textureIndex = (self.textureIndex + 1) % 2
-    self.renderIndex = (self.renderIndex + 1) % 3
-  }
-  
   func updateGeometry() {
     guard let time = argumentContainer.time else {
       fatalError("Time was not specified.")

@@ -9,8 +9,8 @@
 struct ArgumentContainer {
   // Render state variables.
   var intermediateTextureSize: Int = .zero
-  var jitterFrameID: Int = .zero
   var upscaleFactor: Int = .zero
+  var frameID: Int = .zero
   
   // Camera state variables.
   var currentCamera: CameraArguments?
@@ -25,8 +25,11 @@ struct ArgumentContainer {
 }
 
 extension ArgumentContainer {
-  // Write current -> previous after the frame finishes.
   mutating func registerCompletedFrame() {
+    // Increment the frame counter.
+    frameID += 1
+    
+    // Invalidate the frame-specific state.
     previousCamera = currentCamera
     currentCamera = nil
     time = nil

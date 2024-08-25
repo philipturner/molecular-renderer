@@ -41,23 +41,6 @@ extension MRRenderer {
   
   // Encode the GPU command for ray tracing.
   func render(commandQueue: MTLCommandQueue, frameID: Int) {
-    /*
-     constant CameraArguments *cameraArgs [[buffer(0)]],
-     constant BVHArguments *bvhArgs [[buffer(1)]],
-     constant RenderArguments *renderArgs [[buffer(2)]],
-     
-     device uint *dense_grid_data [[buffer(5)]],
-     device uint *dense_grid_references [[buffer(6)]],
-     
-     device float4 *newAtoms [[buffer(10)]],
-     device float3 *atomColors [[buffer(11)]],
-     device float3 *motionVectors [[buffer(12)]],
-     
-     texture2d<half, access::write> color_texture [[texture(0)]],
-     texture2d<float, access::write> depth_texture [[texture(1)]],
-     texture2d<half, access::write> motion_texture [[texture(2)]],
-     */
-    
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(renderPipeline)
@@ -114,8 +97,8 @@ extension MRRenderer {
     
     // Textures 0 - 2
     do {
-      let jitterFrameID = argumentContainer.jitterFrameID
-      let textures = bufferedIntermediateTextures[jitterFrameID % 2]
+      let textureIndex = argumentContainer.doubleBufferIndex()
+      let textures = bufferedIntermediateTextures[textureIndex]
       encoder.setTexture(textures.color, index: 0)
       encoder.setTexture(textures.depth, index: 1)
       encoder.setTexture(textures.motion, index: 2)

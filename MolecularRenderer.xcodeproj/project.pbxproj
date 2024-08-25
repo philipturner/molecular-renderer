@@ -175,6 +175,7 @@
 		985BBEF22C7B625E0096A104 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		985BBEF32C7B649F0096A104 /* BVHBuilder+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Update.swift"; sourceTree = "<group>"; };
 		985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Arguments.swift"; sourceTree = "<group>"; };
+		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -560,6 +561,7 @@
 			children = (
 				985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */,
 				985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */,
+				985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */,
 				985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */,
 			);
 			path = ArgumentContainer;

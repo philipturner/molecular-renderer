@@ -12,10 +12,8 @@ import class QuartzCore.CAMetalLayer
 public class MRRenderer {
   // State variables.
   var argumentContainer: ArgumentContainer = .init()
-  var textureIndex: Int = 0
   
-  // Properties that track the frame ID.
-  var renderIndex: Int = 0
+  // TODO: Remove this!
   var resetTracker: ResetTracker = .init()
   
   // Objects that supply data to the renderer.
@@ -27,7 +25,11 @@ public class MRRenderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var bvhBuilder: BVHBuilder!
+  
+  // TODO: Move into a separate object. It should encapsulate the upscaler,
+  // the myriad textures, and the drawable handling.
   var upscaler: MTLFXTemporalScaler!
+  
   var renderPipeline: MTLComputePipelineState!
   
   struct IntermediateTextures {
