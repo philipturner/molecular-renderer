@@ -116,4 +116,3 @@ extension MRRenderer {
     commandBuffer.commit()
   }
 }
-

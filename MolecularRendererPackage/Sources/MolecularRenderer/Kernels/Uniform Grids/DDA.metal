@@ -38,16 +38,13 @@ public:
   uint address;
   bool continue_loop;
   
-  // world_dims: Dimensions of the world bounding box (in nm).
-  DenseDDA(Ray<T> ray, short3 world_origin, short3 world_dims) {
-    grid_dims = ushort3(4 * world_dims);
+  DenseDDA(Ray<T> ray, constant BVHArguments *bvhArgs) {
+    ray.origin = 4 * (ray.origin - bvhArgs->worldMinimum);
+    grid_dims = bvhArgs->smallVoxelCount;
     
     float tmin = 0;
     float tmax = INFINITY;
     dt = precise::divide(1, float3(ray.direction));
-    
-    ray.origin -= float3(world_origin);
-    ray.origin /= 0.25;
     
     // Perform a ray-box intersection test.
 #pragma clang loop unroll(full)

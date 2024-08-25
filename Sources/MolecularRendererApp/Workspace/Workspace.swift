@@ -11,7 +11,9 @@ import Numerics
 //   - Remove the CPU code that wrote motion vectors to memory. [DONE]
 //   - De-obfuscate the 'denseGridData' buffer.
 //   - De-obfuscate the encoding of the old BVH building.
-// - Adapt the ray tracing code, so the reference grid has a fixed size.
+// - Offload the BB computation to the GPU.
+//   - Make everything except computation of Int32 BB be GPU-driven.
+//   - Offload the BB reduction to the GPU.
 //   - Clear a subregion matching the global BB every frame.
 // - Remove the dependency on the global bounding box.
 //

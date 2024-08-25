@@ -10,12 +10,6 @@
 #include "DDA.metal"
 using namespace metal;
 
-struct DenseGridArguments {
-  float3 world_minimum;
-  float3 world_maximum;
-  ushort3 small_voxel_count;
-};
-
 // MARK: - Utility Functions
 
 // Quantize a position relative to the world origin.
@@ -49,7 +43,7 @@ bool cube_sphere_intersection(ushort3 cube_min, float4 atom)
 
 kernel void dense_grid_pass1
 (
- constant DenseGridArguments &args [[buffer(0)]],
+ constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *dense_grid_data [[buffer(3)]],
  device float4 *newAtoms [[buffer(10)]],
  
@@ -57,11 +51,11 @@ kernel void dense_grid_pass1
 {
   // Transform the atom.
   float4 newAtom = newAtoms[tid];
-  newAtom.xyz = 4 * (newAtom.xyz - args.world_minimum);
+  newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
   newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
-  ushort3 grid_dims = args.small_voxel_count;
+  ushort3 grid_dims = bvhArgs->smallVoxelCount;
   auto box_min = quantize(newAtom.xyz - newAtom.w, grid_dims);
   auto box_max = quantize(newAtom.xyz + newAtom.w, grid_dims);
   
@@ -146,7 +140,7 @@ kernel void dense_grid_pass2
 
 kernel void dense_grid_pass3
 (
- constant DenseGridArguments &args [[buffer(0)]],
+ constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *dense_grid_counters [[buffer(4)]],
  device uint *references [[buffer(6)]],
  device float4 *newAtoms [[buffer(10)]],
@@ -155,11 +149,11 @@ kernel void dense_grid_pass3
 {
   // Transform the atom.
   float4 newAtom = newAtoms[tid];
-  newAtom.xyz = 4 * (newAtom.xyz - args.world_minimum);
+  newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
   newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
-  ushort3 grid_dims = args.small_voxel_count;
+  ushort3 grid_dims = bvhArgs->smallVoxelCount;
   auto box_min = quantize(newAtom.xyz - newAtom.w, grid_dims);
   auto box_max = quantize(newAtom.xyz + newAtom.w, grid_dims);
   

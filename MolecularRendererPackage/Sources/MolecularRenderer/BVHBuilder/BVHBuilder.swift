@@ -46,8 +46,8 @@ class BVHBuilder {
   static let frameReportHistorySize: Int = 10
   
   // BVH state information.
-  var worldOrigin: SIMD3<Int16> = .zero
-  var worldDimensions: SIMD3<Int16> = .zero
+  var worldMinimum: SIMD3<Float> = .zero
+  var worldMaximum: SIMD3<Float> = .zero
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState

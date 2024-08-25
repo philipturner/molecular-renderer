@@ -37,8 +37,9 @@ struct CameraArguments {
 };
 
 struct BVHArguments {
-  short3 worldOrigin;
-  short3 worldDimensions;
+  float3 worldMinimum;
+  float3 worldMaximum;
+  ushort3 smallVoxelCount;
 };
 
 struct RenderArguments {
