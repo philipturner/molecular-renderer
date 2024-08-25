@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if false
+#if true
 
 // TODO: Changing the BVH construction procedure.
 // - Clean up the BVH builder.
