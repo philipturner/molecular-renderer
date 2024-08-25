@@ -18,6 +18,7 @@ struct ArgumentContainer {
   
   // Time state variables.
   var time: MRTime?
+  var useMotionVectors: Bool?
   
   var upscaledTextureSize: Int {
     intermediateTextureSize * upscaleFactor
@@ -33,5 +34,6 @@ extension ArgumentContainer {
     previousCamera = currentCamera
     currentCamera = nil
     time = nil
+    useMotionVectors = nil
   }
 }

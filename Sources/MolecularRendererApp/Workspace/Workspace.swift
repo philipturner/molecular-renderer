@@ -6,6 +6,10 @@ import Numerics
 #if false
 
 // TODO: Changing the BVH construction procedure.
+// - Clean up the BVH builder.
+//   - De-obfuscate the atom buffers.
+//   - Remove the CPU code that wrote motion vectors to memory.
+//   - De-obfuscate the 'denseGridData' buffer.
 // - Adapt the ray tracing code, so the reference grid has a fixed size.
 //   - Clear a subregion matching the global BB every frame.
 // - Remove the dependency on the global bounding box.

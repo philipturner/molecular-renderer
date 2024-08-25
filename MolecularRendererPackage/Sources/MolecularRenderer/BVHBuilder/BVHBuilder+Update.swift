@@ -12,11 +12,7 @@ extension BVHBuilder {
     let motionVectorBufferSize = motionVectors.count * 16
     
     let ringIndex = renderer.argumentContainer.tripleBufferIndex()
-    let motionVectorBuffer = cycle(
-      from: &motionVectorBuffers,
-      index: ringIndex,
-      desiredSize: motionVectorBufferSize,
-      name: "MotionVectors")
+    let motionVectorBuffer = motionVectorBuffers[ringIndex]
     
     // Write the motion vector buffer's contents.
     let motionVectorsPointer = motionVectorBuffer.contents()

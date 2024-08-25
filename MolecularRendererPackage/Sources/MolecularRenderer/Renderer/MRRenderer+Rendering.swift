@@ -89,9 +89,6 @@ extension MRRenderer {
       // Bind the atom motion vectors.
       let ringIndex = argumentContainer.tripleBufferIndex()
       let motionVectors = bvhBuilder.motionVectorBuffers[ringIndex]
-      guard let motionVectors else {
-        fatalError("Atom-wise motion vectors were not available.")
-      }
       encoder.setBuffer(motionVectors, offset: 0, index: 12)
     }
     

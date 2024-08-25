@@ -38,10 +38,7 @@ extension BVHBuilder {
 extension BVHBuilder {
   func preprocessAtoms(commandQueue: MTLCommandQueue, frameID: Int) {
     let ringIndex = renderer.argumentContainer.tripleBufferIndex()
-    let atomsBuffer = allocate(
-      &denseGridAtoms[ringIndex],
-      desiredElements: atoms.count,
-      bytesPerElement: 16)
+    let atomsBuffer = denseGridAtoms[ringIndex]
     
     let copyingStart = CACurrentMediaTime()
     memcpy(atomsBuffer.contents(), atoms, atoms.count * 16)

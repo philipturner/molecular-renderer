@@ -40,10 +40,6 @@ class BVHBuilder {
   var atomRadii: [Float] = []
   var motionVectors: [SIMD3<Float>] = []
   
-  // Triple-buffer because the CPU accesses these.
-  var motionVectorBuffers: [MTLBuffer?] = [nil, nil, nil]
-  var denseGridAtoms: [MTLBuffer?] = [nil, nil, nil]
-  
   // Safeguard access to these using a dispatch queue.
   var reportPerformance: Bool = false
   var frameReportQueue: DispatchQueue = .init(
@@ -58,6 +54,10 @@ class BVHBuilder {
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?
+  
+  // Resources for the old BVH building algorithm.
+  var denseGridAtoms: [MTLBuffer] = []
+  var motionVectorBuffers: [MTLBuffer] = []
   
   // Resources for the new BVH building algorithm.
   var preprocessPipeline: MTLComputePipelineState
@@ -76,6 +76,7 @@ class BVHBuilder {
     self.device = renderer.device
     self.renderer = renderer
     
+    // Initialize the memset shader.
     let constants = MTLFunctionConstantValues()
     var pattern4: UInt32 = 0
     constants.setConstantValue(&pattern4, type: .uint, index: 1000)
@@ -85,21 +86,33 @@ class BVHBuilder {
     self.memsetPipeline = try! device
       .makeComputePipelineState(function: memsetFunction)
     
-    let preprocessFunction = library.makeFunction(name: "preprocess")!
-    self.preprocessPipeline = try! device
-      .makeComputePipelineState(function: preprocessFunction)
-    
+    // Initialize shaders for the old BVH construction algorithm.
     let densePass1Function = library.makeFunction(name: "dense_grid_pass1")!
+    let densePass2Function = library.makeFunction(name: "dense_grid_pass2")!
+    let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
     self.densePass1Pipeline = try! device
       .makeComputePipelineState(function: densePass1Function)
-    
-    let densePass2Function = library.makeFunction(name: "dense_grid_pass2")!
     self.densePass2Pipeline = try! device
       .makeComputePipelineState(function: densePass2Function)
-    
-    let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
     self.densePass3Pipeline = try! device
       .makeComputePipelineState(function: densePass3Function)
+    
+    // Allocate resources for the old BVH building algorithm.
+    func createAtomBuffer(device: MTLDevice) -> MTLBuffer {
+      // Limited to 4 million atoms for now.
+      let bufferSize: Int = (4 * 1024 * 1024) * 16
+      return device.makeBuffer(length: bufferSize)!
+    }
+    denseGridAtoms = [
+      createAtomBuffer(device: device),
+      createAtomBuffer(device: device),
+      createAtomBuffer(device: device),
+    ]
+    motionVectorBuffers = [
+      createAtomBuffer(device: device),
+      createAtomBuffer(device: device),
+      createAtomBuffer(device: device),
+    ]
     
     // Allocate resources for the new BVH building algorithm.
     preprocessPipeline = Self.createPreprocessFunction(
@@ -109,45 +122,6 @@ class BVHBuilder {
 }
 
 extension BVHBuilder {
-  // The entire process of fetching, resizing, and nil-coalescing.
-  func cycle(
-    from buffers: inout [MTLBuffer?],
-    index: Int,
-    desiredSize: Int,
-    name: String
-  ) -> MTLBuffer {
-    // Either find a valid buffer or report the size of the existing one.
-    var previousSize = 0
-    var resource: MTLBuffer?
-    if let buffer = buffers[index] {
-      if buffer.allocatedSize < desiredSize {
-        previousSize = buffer.allocatedSize
-      } else {
-        resource = buffer
-      }
-    }
-    
-    // If necessary, create a new buffer.
-    if resource == nil {
-      var maximumSize = max(1, previousSize)
-      while maximumSize < desiredSize {
-        maximumSize = maximumSize << 1
-      }
-      
-      guard let buffer = device.makeBuffer(length: maximumSize) else {
-        fatalError(
-          "Could not create buffer with size \(maximumSize).")
-      }
-      resource = buffer
-      resource!.label = name
-    }
-    guard let resource else { fatalError("This should never happen.") }
-    
-    // Overwrite the existing reference with the returned one.
-    buffers[index] = resource
-    return resource
-  }
-  
   func allocate(
     _ buffer: inout MTLBuffer?,
     desiredElements: Int,
