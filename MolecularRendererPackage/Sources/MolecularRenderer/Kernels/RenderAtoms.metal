@@ -93,9 +93,9 @@ kernel void renderAtoms
     colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.
-    //
-    // TODO: Investigate whether MetalFX wants depth to be something different.
-    float depth = ray.direction.z * intersect.distance;
+    float3 cameraDirection = cameraArgs->rotationColumn3;
+    float rayDirectionComponent = dot(ray.direction, cameraDirection);
+    float depth = rayDirectionComponent * intersect.distance;
     colorCtx.setDepth(depth);
     
     // Transform to the atom's position in the previous frame.
