@@ -191,16 +191,6 @@ extension BVHBuilder {
       motionVectorsPointer[index] = motionVector
     }
   }
-}
-
-extension BVHBuilder {
-  // Call this after encoding the grid construction.
-  func setGridWidth(arguments: inout Arguments) {
-    precondition(
-      all(worldDimensions .> 0), "Forgot to encode the grid construction.")
-    arguments.worldOrigin = worldOrigin
-    arguments.worldDimensions = worldDimensions
-  }
   
   func encodeGridArguments(encoder: MTLComputeCommandEncoder) {
     // Set the data at offset 32, to fit the counters before it.

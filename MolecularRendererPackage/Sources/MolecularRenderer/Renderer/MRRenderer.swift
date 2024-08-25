@@ -26,7 +26,6 @@ public class MRRenderer {
   var atomProvider: MRAtomProvider!
   var atomColors: [SIMD3<Float>] = []
   var atomRadii: [Float] = []
-  var camera: MRCamera!
   var time: MRTime!
   
   // Main rendering resources.
@@ -48,10 +47,6 @@ public class MRRenderer {
   
   // Double-buffer the textures to remove dependencies between frames.
   var bufferedIntermediateTextures: [IntermediateTextures] = []
-  
-  // Cache previous arguments to generate motion vectors.
-  var previousArguments: Arguments?
-  var currentArguments: Arguments?
   
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.

@@ -30,32 +30,25 @@
 
 // Finite state machine that encapsulates the argument state.
 struct ArgumentContainer {
-  var jitterFrameID: Int = .zero
+  // BVH state variables.
+  var worldOrigin: SIMD3<Int16> = .zero
+  var worldDimension: SIMD3<Int16> = .zero
   
-  func createCameraArguments() {
-    
-  }
+  // Render state variables.
+  var jitterFrameID: Int = .zero
 }
 
 // Camera arguments data structure.
 struct CameraArguments {
-  var positionAndFOVMultiplier: SIMD4<Float>
-  var rotationColumn1: SIMD3<Float>
-  var rotationColumn2: SIMD3<Float>
-  var rotationColumn3: SIMD3<Float>
-}
-
-// BVH arguments data structure.
-struct BVHArguments {
-  var worldOrigin: SIMD3<Int16>
-  var worldDimensions: SIMD3<Int16>
+  var positionAndFOVMultiplier: SIMD4<Float> = .zero
+  var rotationColumn1: SIMD3<Float> = .zero
+  var rotationColumn2: SIMD3<Float> = .zero
+  var rotationColumn3: SIMD3<Float> = .zero
 }
 
 // Render arguments data structure.
 struct RenderArguments {
-  var jitter: SIMD2<Float>
-  var frameSeed: UInt32
-  var qualityCoefficient: Float
+  var jitter: SIMD2<Float> = .zero
+  var frameSeed: UInt32 = .zero
+  var qualityCoefficient: Float = .zero
 }
-
-

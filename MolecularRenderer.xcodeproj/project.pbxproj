@@ -169,6 +169,9 @@
 		985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VoxelAddress.metal; sourceTree = "<group>"; };
 		985BBEE92C7A69900096A104 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
 		985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArgumentContainer.swift; sourceTree = "<group>"; };
+		985BBEEE2C7AAE710096A104 /* ArgumentContainer+BVH.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+BVH.swift"; sourceTree = "<group>"; };
+		985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Camera.swift"; sourceTree = "<group>"; };
+		985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Render.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -555,6 +558,9 @@
 			isa = PBXGroup;
 			children = (
 				985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */,
+				985BBEEE2C7AAE710096A104 /* ArgumentContainer+BVH.swift */,
+				985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */,
+				985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */,
 				98B25A162B33562E00081A61 /* ArgumentContainer+Utilities.swift */,
 			);
 			path = ArgumentContainer;
