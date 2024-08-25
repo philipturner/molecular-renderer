@@ -58,12 +58,13 @@ extension ArgumentContainer {
     guard let currentTime else {
       fatalError("Time was not specified.")
     }
-    currentAtoms = provider.atoms(time: currentTime)
     
-    // Shrinking the limit on atom count to 4 million, for the time being.
-    guard currentAtoms.count < 4 * 1024 * 1024 else {
+    let providerAtoms = provider.atoms(time: currentTime)
+    guard providerAtoms.count < BVHBuilder.maxAtomCount else {
       fatalError("Atom count was too large.")
     }
+    
+    currentAtoms = providerAtoms
   }
   
   func createRenderArguments() -> RenderArguments {

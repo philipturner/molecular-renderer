@@ -47,6 +47,23 @@ kernel void convert
   }
 }
 
+// Condense the bounding box reduction to a smaller O(n) buffer of partials.
+kernel void reduceBBPart1
+(
+ constant uint &atomCount [[buffer(0)]],
+ device float4 *convertedAtoms [[buffer(1)]],
+ device int3 *partials [[buffer(2)]],
+ 
+ uint tgid [[threadgroup_position_in_grid]],
+ ushort thread_id [[thread_position_in_threadgroup]])
+{
+  // Fetch the atom from memory.
+  uint atomID = tgid * 128 + thread_id;
+  atomID = min(atomID, atomCount - 1);
+  float4 atom = convertedAtoms[atomID];
+}
+
+// A single GPU thread encodes some GPU-driven work.
 kernel void setIndirectArguments
 (
  device int3 *boundingBoxMin [[buffer(0)]],

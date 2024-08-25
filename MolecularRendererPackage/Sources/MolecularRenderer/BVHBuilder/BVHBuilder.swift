@@ -29,6 +29,7 @@ class BVHBuilder {
   // Data buffers (per atom).
   var originalAtomsBuffers: [MTLBuffer]
   var convertedAtomsBuffer: MTLBuffer
+  var boundingBoxPartialsBuffer: MTLBuffer
   
   // Data buffers (allocation).
   var bvhArgumentsBuffer: MTLBuffer
@@ -63,17 +64,26 @@ class BVHBuilder {
     densePass3Pipeline = createPipeline(name: "densePass3")
     
     // Allocate data buffers (per atom).
-    func createAtomBuffer() -> MTLBuffer {
-      // Limited to 4 million atoms for now.
-      let bufferSize: Int = (4 * 1024 * 1024) * 16
+    func createBuffer(atomCount: Int) -> MTLBuffer {
+      let bufferSize = atomCount * 16
+      return device.makeBuffer(length: bufferSize)!
+    }
+    func createPartialsBuffer() -> MTLBuffer {
+      let maxAtomCount = BVHBuilder.maxAtomCount
+      let maxPartialCount = maxAtomCount / 128
+      
+      // Each partial is six 32-bit integers, strided to eight.
+      let bufferSize = maxPartialCount * (8 * 4)
       return device.makeBuffer(length: bufferSize)!
     }
     originalAtomsBuffers = [
-      createAtomBuffer(),
-      createAtomBuffer(),
-      createAtomBuffer(),
+      createBuffer(atomCount: BVHBuilder.maxAtomCount),
+      createBuffer(atomCount: BVHBuilder.maxAtomCount),
+      createBuffer(atomCount: BVHBuilder.maxAtomCount),
     ]
-    convertedAtomsBuffer = createAtomBuffer()
+    convertedAtomsBuffer = createBuffer(
+      atomCount: 2 * BVHBuilder.maxAtomCount)
+    boundingBoxPartialsBuffer = createPartialsBuffer()
     
     // Allocate data buffers (allocation).
     bvhArgumentsBuffer = device.makeBuffer(length: 1024)!
@@ -84,5 +94,14 @@ class BVHBuilder {
     smallCellMetadata = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
+  }
+}
+
+extension BVHBuilder {
+  /// Hard limit on the maximum atom count. We'll eventually make the
+  /// program more sophisticated, enabling higher atom counts without the
+  /// bandwidth of 120 * (4 million) atoms per second.
+  static var maxAtomCount: Int {
+    4 * 1024 * 1024
   }
 }
