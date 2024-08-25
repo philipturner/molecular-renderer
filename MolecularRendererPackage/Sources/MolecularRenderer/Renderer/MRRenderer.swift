@@ -117,8 +117,8 @@ public class MRRenderer {
     argumentContainer.updateAtoms(provider: atomProvider)
     
     // Dispatch the compute work.
-    let frameID = bvhBuilder.frameReportCounter
-    bvhBuilder.logFrameReport()
+    let frameID = argumentContainer.frameID
+    bvhBuilder.logFrameReport(frameID: frameID)
     bvhBuilder.prepareBVH(frameID: frameID)
     bvhBuilder.buildBVH(frameID: frameID)
     dispatchRenderingWork(frameID: frameID)

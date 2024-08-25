@@ -8,10 +8,10 @@
 import QuartzCore
 
 extension BVHBuilder {
-  func queryPerformance() -> SIMD8<Double> {
+  func queryPerformance(frameID: Int) -> SIMD8<Double> {
     // Remove frames too far back in the history.
     frameReports.removeAll(where: {
-      $0.frameID <= frameReportCounter - 10
+      $0.frameID < frameID - 10
     })
     
     // Take the average of the rest.
@@ -23,48 +23,51 @@ extension BVHBuilder {
       average[3] += report.geometryTime
       average[4] += report.renderTime
     }
-    average /= Double(frameReports.count)
+    if frameReports.count == 0 {
+      average = .zero
+    } else {
+      average /= Double(frameReports.count)
+    }
+    
+    // Add a new frame report.
+    frameReports.append(
+      MRFrameReport(frameID: frameID))
     
     return average
   }
   
-  func startNewFrameReport() {
-    let report = MRFrameReport(
-      frameID: frameReportCounter,
-      preprocessingTimeCPU: 0,
-      copyingTime: 0,
-      preprocessingTimeGPU: 0,
-      geometryTime: 0,
-      renderTime: 0)
-    frameReports.append(report)
-  }
-  
-  func logFrameReport() {
+  func logFrameReport(frameID: Int) {
     let performance = frameReportQueue.sync {
-      let output = queryPerformance()
-      
-      frameReportCounter += 1
-      startNewFrameReport()
-      return output
+      queryPerformance(frameID: frameID)
+    }
+    guard reportPerformance else {
+      return
     }
     
-    if reportPerformance, any(performance .> 0) {
-      print("", terminator: " ")
-      
-      for laneID in 0..<5 {
-        // Pad the integer to a common width.
-        var repr = "\(Int(performance[laneID] * 1e6))"
-        while repr.count < 6 {
-          repr = " " + repr
-        }
-        
-        // Print the integer and column separator.
-        if laneID == 5 - 1 {
-          print(repr, terminator: "\n")
-        } else {
-          print(repr, terminator: " | ")
-        }
+    for laneID in 0..<5 {
+      // Prepend with a space.
+      if laneID == 0 {
+        print(" ", terminator: "")
       }
+      
+      // Acquire the data value.
+      let microseconds = performance[laneID] * 1e6
+      let microsecondsInt = Int(microseconds)
+      var microsecondsRepr = "\(microsecondsInt)"
+      
+      // Pad to a fixed width.
+      while microsecondsRepr.count < 6 {
+        microsecondsRepr = " " + microsecondsRepr
+      }
+      
+      // Display the data value.
+      var terminator: String
+      if laneID == 4 {
+        terminator = "\n"
+      } else {
+        terminator = " | "
+      }
+      print(microsecondsRepr, terminator: terminator)
     }
   }
 }

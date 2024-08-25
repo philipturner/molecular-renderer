@@ -11,26 +11,7 @@ import simd
 import QuartzCore
 
 // There should be an option to enable this performance reporting mechanism, in
-// the descriptor for 'MRRenderer'.
-struct MRFrameReport {
-  // The ID of the frame that owns this report.
-  var frameID: Int
-  
-  // CPU time spent preparing geometry.
-  var preprocessingTimeCPU: Double
-  
-  // CPU time spent copying geometry into GPU buffer.
-  var copyingTime: Double
-  
-  // GPU time spent preparing geometry.
-  var preprocessingTimeGPU: Double
-  
-  // GPU time spent building the uniform grid.
-  var geometryTime: Double
-  
-  // GPU time spent rendering.
-  var renderTime: Double
-}
+// the descriptor for 'MRRenderer'
 
 class BVHBuilder {
   // Main rendering resources.
@@ -42,7 +23,6 @@ class BVHBuilder {
   var frameReportQueue: DispatchQueue = .init(
     label: "com.philipturner.MolecularRenderer.BVHBuilder.frameReportQueue")
   var frameReports: [MRFrameReport] = []
-  var frameReportCounter: Int = 0
   
   // BVH state information.
   var worldMinimum: SIMD3<Float> = .zero
