@@ -30,10 +30,9 @@ extension MRRenderer {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(renderPipeline)
     
-    // Arguments 0 - 2
+    // Arguments 0 - 1
     do {
       let cameraArguments = argumentContainer.createCameraArguments()
-      let bvhArguments = [bvhBuilder.createBVHArguments()]
       let renderArguments = [argumentContainer.createRenderArguments()]
       
       func setBytes<T>(_ array: [T], index: Int) {
@@ -42,8 +41,13 @@ extension MRRenderer {
         encoder.setBytes(array, length: arrayLength, index: index)
       }
       setBytes(cameraArguments, index: 0)
-      setBytes(bvhArguments, index: 1)
-      setBytes(renderArguments, index: 2)
+      setBytes(renderArguments, index: 1)
+    }
+    
+    // Argument 2
+    do {
+      let bvhArgumentsBuffer = bvhBuilder.bvhArgumentsBuffer
+      encoder.setBuffer(bvhBuilder.bvhArgumentsBuffer, offset: 0, index: 2)
     }
     
     // Arguments 5 - 6

@@ -12,17 +12,10 @@ struct BVHArguments {
 }
 
 extension BVHBuilder {
-  func createBVHArguments() -> BVHArguments {
-    var output = BVHArguments()
-    output.worldMinimum = worldMinimum
-    output.worldMaximum = worldMaximum
-    output.smallVoxelCount = SIMD3<UInt16>(4 * (worldMaximum - worldMinimum))
-    return output
-  }
-  
   // A scalar, unlike the one in BVH arguments.
   func createSmallVoxelCount() -> Int {
-    let gridDimensions = SIMD3<Int>(4 * (worldMaximum - worldMinimum))
+    let gridDimensions = SIMD3<Int>(
+      truncatingIfNeeded: 4 &* (worldMaximum &- worldMinimum))
     
     var output: Int = 1
     output *= gridDimensions[0]

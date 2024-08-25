@@ -62,12 +62,8 @@ extension BVHBuilder {
   
   /// Encode the function `dense_grid_pass1`.
   func encodePass1(to encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    var bvhArguments = createBVHArguments()
-    let bvhArgumentsLength = MemoryLayout<BVHArguments>.stride
-    encoder.setBytes(&bvhArguments, length: bvhArgumentsLength, index: 0)
-    
-    // Arguments 1 - 2
+    // Arguments 0 - 2
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
     
@@ -96,12 +92,8 @@ extension BVHBuilder {
   
   /// Encode the function `dense_grid_pass3`.
   func encodePass3(to encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    var bvhArguments = createBVHArguments()
-    let bvhArgumentsLength = MemoryLayout<BVHArguments>.stride
-    encoder.setBytes(&bvhArguments, length: bvhArgumentsLength, index: 0)
-    
-    // Arguments 1 - 3
+    // Arguments 0 - 3
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
     encoder.setBuffer(smallCellAtomReferences, offset: 0, index: 2)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 3)

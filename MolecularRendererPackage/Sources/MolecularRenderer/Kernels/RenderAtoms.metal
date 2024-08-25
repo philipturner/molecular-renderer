@@ -16,8 +16,8 @@ using namespace metal;
 kernel void renderAtoms
 (
  constant CameraArguments *cameraArgs [[buffer(0)]],
- constant BVHArguments *bvhArgs [[buffer(1)]],
- constant RenderArguments *renderArgs [[buffer(2)]],
+ constant RenderArguments *renderArgs [[buffer(1)]],
+ constant BVHArguments *bvhArgs [[buffer(2)]],
  
  device uint *smallCellMetadata [[buffer(5)]],
  device uint *smallCellAtomReferences [[buffer(6)]],

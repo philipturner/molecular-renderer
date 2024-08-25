@@ -6,7 +6,7 @@
 //
 
 #include <metal_stdlib>
-#include "../Utilities/Atomic.metal"
+#include "../Utilities/Constants.metal"
 using namespace metal;
 
 // Converts the float4 atoms to two different formats (for now).
@@ -36,3 +36,25 @@ kernel void convert
   }
 }
 
+kernel void setIndirectArguments
+(
+ device int3 *boundingBoxMin [[buffer(0)]],
+ device int3 *boundingBoxMax [[buffer(1)]],
+ device BVHArguments *bvhArgs [[buffer(2)]])
+{
+  // Read the bounding box.
+  int3 minimum = *boundingBoxMin;
+  int3 maximum = *boundingBoxMax;
+  
+  // Clamp the bounding box to the world volume.
+//  minimum = max(minimum, -64);
+//  maximum = min(maximum, 64);
+  
+  // Set the BVH arguments.
+  {
+    ushort3 gridDimensions = ushort3(4 * (maximum - minimum));
+    bvhArgs->worldMinimum = float3(minimum);
+    bvhArgs->worldMaximum = float3(maximum);
+    bvhArgs->smallVoxelCount = gridDimensions;
+  }
+}

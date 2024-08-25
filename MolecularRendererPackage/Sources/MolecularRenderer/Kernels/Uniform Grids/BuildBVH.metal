@@ -19,7 +19,7 @@ ushort3 quantize(float3 position, ushort3 world_dims) {
   return ushort3(output);
 }
 
-bool cube_sphere_intersection(ushort3 cube_min, float4 atom)
+bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 {
   float3 c1 = float3(cube_min);
   float3 c2 = c1 + 1;
@@ -41,7 +41,7 @@ bool cube_sphere_intersection(ushort3 cube_min, float4 atom)
 
 // MARK: - Pass 1
 
-kernel void dense_grid_pass1
+kernel void densePass1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *smallCellMetadata [[buffer(1)]],
@@ -66,7 +66,7 @@ kernel void dense_grid_pass1
         ushort3 cube_min { x, y, z };
         
         // Narrow down the cells with a cube-sphere intersection test.
-        bool mark = cube_sphere_intersection(cube_min, newAtom);
+        bool mark = cubeSphereIntersection(cube_min, newAtom);
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
@@ -79,7 +79,7 @@ kernel void dense_grid_pass1
 
 // MARK: - Pass 2
 
-kernel void dense_grid_pass2
+kernel void densePass2
 (
  device uint *smallCellMetadata [[buffer(0)]],
  device uint *smallCellCounters [[buffer(1)]],
@@ -138,7 +138,7 @@ kernel void dense_grid_pass2
 
 // MARK: - Pass 3
 
-kernel void dense_grid_pass3
+kernel void densePass3
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *smallCellCounters [[buffer(1)]],
@@ -164,7 +164,7 @@ kernel void dense_grid_pass3
         ushort3 cube_min { x, y, z };
         
         // Narrow down the cells with a cube-sphere intersection test.
-        bool mark = cube_sphere_intersection(cube_min, newAtom);
+        bool mark = cubeSphereIntersection(cube_min, newAtom);
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);

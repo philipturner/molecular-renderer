@@ -153,7 +153,7 @@ func denseGridStatistics(
 }
 
 extension BVHBuilder {
-  func reduceBoundingBox() -> (SIMD3<Float>, SIMD3<Float>) {
+  func reduceBoundingBox() -> (SIMD3<Int32>, SIMD3<Int32>) {
     let atoms = renderer.argumentContainer.currentAtoms
     
     var statistics = denseGridStatistics(
@@ -168,20 +168,21 @@ extension BVHBuilder {
     var minCoordinates = statistics.boundingBox.0
     var maxCoordinates = statistics.boundingBox.1
     
-    // Round to the nearest multiple of 2 nm.
-    do {
-      minCoordinates /= 2
-      maxCoordinates /= 2
-      minCoordinates.round(.down)
-      maxCoordinates.round(.up)
-      minCoordinates *= 2
-      maxCoordinates *= 2
-    }
-    
     // Clamp to [-64, 64].
     minCoordinates.replace(with: -64, where: minCoordinates .< -64)
     maxCoordinates.replace(with: 64, where: maxCoordinates .> 64)
     
-    return (minCoordinates, maxCoordinates)
+    // Round to the nearest multiple of 2 nm.
+    minCoordinates /= 2
+    maxCoordinates /= 2
+    minCoordinates.round(.down)
+    maxCoordinates.round(.up)
+    minCoordinates *= 2
+    maxCoordinates *= 2
+    
+    // Convert from floating point to integer.
+    return (
+      SIMD3<Int32>(minCoordinates),
+      SIMD3<Int32>(maxCoordinates))
   }
 }

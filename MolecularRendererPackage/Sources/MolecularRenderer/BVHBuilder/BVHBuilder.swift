@@ -5,13 +5,7 @@
 //  Created by Philip Turner on 6/17/23.
 //
 
-import Accelerate
 import Metal
-import simd
-import QuartzCore
-
-// There should be an option to enable this performance reporting mechanism, in
-// the descriptor for 'MRRenderer'
 
 class BVHBuilder {
   // Main rendering resources.
@@ -19,8 +13,8 @@ class BVHBuilder {
   unowned var renderer: MRRenderer
   
   // BVH state information.
-  var worldMinimum: SIMD3<Float> = .zero
-  var worldMaximum: SIMD3<Float> = .zero
+  var worldMinimum: SIMD3<Int32> = .zero
+  var worldMaximum: SIMD3<Int32> = .zero
   
   // Pipeline state objects (for blitting).
   var memset0Pipeline: MTLComputePipelineState
@@ -28,6 +22,7 @@ class BVHBuilder {
   
   // Pipeline state objects.
   var convertPipeline: MTLComputePipelineState
+  var setIndirectArgumentsPipeline: MTLComputePipelineState
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
@@ -68,18 +63,17 @@ class BVHBuilder {
     memset1Pipeline = createMemsetPipeline(value: 0xFFFF_FFFF)
     
     // Initialize kernels for BVH construction.
-    let convertFunction = library.makeFunction(name: "convert")!
-    let densePass1Function = library.makeFunction(name: "dense_grid_pass1")!
-    let densePass2Function = library.makeFunction(name: "dense_grid_pass2")!
-    let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
-    convertPipeline = try! device
-      .makeComputePipelineState(function: convertFunction)
-    densePass1Pipeline = try! device
-      .makeComputePipelineState(function: densePass1Function)
-    densePass2Pipeline = try! device
-      .makeComputePipelineState(function: densePass2Function)
-    densePass3Pipeline = try! device
-      .makeComputePipelineState(function: densePass3Function)
+    func createPipeline(name: String) -> MTLComputePipelineState {
+      guard let function = library.makeFunction(name: name) else {
+        fatalError("Function \(name) was not found in the library.")
+      }
+      return try! device.makeComputePipelineState(function: function)
+    }
+    convertPipeline = createPipeline(name: "convert")
+    setIndirectArgumentsPipeline = createPipeline(name: "setIndirectArguments")
+    densePass1Pipeline = createPipeline(name: "densePass1")
+    densePass2Pipeline = createPipeline(name: "densePass2")
+    densePass3Pipeline = createPipeline(name: "densePass3")
     
     // Allocate data buffers (per atom).
     func createAtomBuffer() -> MTLBuffer {
