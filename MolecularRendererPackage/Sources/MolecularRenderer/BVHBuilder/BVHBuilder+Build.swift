@@ -11,10 +11,6 @@ extension BVHBuilder {
   func buildBVH(frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
     
-    // The first rendered frame will have an ID of 1.
-    incrementFrameReportCounter()
-    logBoundingBoxCreation()
-    
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     clearGlobalAtomicCounters(encoder: encoder)

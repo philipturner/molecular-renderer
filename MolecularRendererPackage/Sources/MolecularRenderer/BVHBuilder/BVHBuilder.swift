@@ -43,7 +43,6 @@ class BVHBuilder {
     label: "com.philipturner.MolecularRenderer.BVHBuilder.frameReportQueue")
   var frameReports: [MRFrameReport] = []
   var frameReportCounter: Int = 0
-  static let frameReportHistorySize: Int = 10
   
   // BVH state information.
   var worldMinimum: SIMD3<Float> = .zero

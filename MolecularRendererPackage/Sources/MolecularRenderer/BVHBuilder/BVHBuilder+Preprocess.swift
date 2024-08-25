@@ -13,6 +13,10 @@ extension BVHBuilder {
   func prepareBVH(frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
     
+    let preprocessingStart = CACurrentMediaTime()
+    (worldMinimum, worldMaximum) = reduceBoundingBox()
+    let preprocessingEnd = CACurrentMediaTime()
+    
     let copyingStart = CACurrentMediaTime()
     do {
       let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
@@ -33,6 +37,9 @@ extension BVHBuilder {
           guard self.frameReports[index].frameID == frameID else {
             continue
           }
+          
+          let preprocessingTimeCPU = preprocessingEnd - preprocessingStart
+          self.frameReports[index].preprocessingTimeCPU = preprocessingTimeCPU
           self.frameReports[index].copyingTime = copyingEnd - copyingStart
           self.frameReports[index].preprocessingTimeGPU = executionTime
           break

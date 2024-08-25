@@ -11,6 +11,7 @@ import Numerics
 //   - Remove the CPU code that wrote motion vectors to memory. [DONE]
 //   - De-obfuscate the 'denseGridData' buffer. [DONE]
 //   - De-obfuscate the encoding of the old BVH building. [DONE]
+// - De-obfuscate the frame report.
 // - Offload the BB computation to the GPU.
 //   - Make everything except computation of Int32 BB be GPU-driven.
 //   - Offload the BB reduction to the GPU.

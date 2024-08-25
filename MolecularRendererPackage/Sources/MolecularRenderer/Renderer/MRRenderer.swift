@@ -118,6 +118,7 @@ public class MRRenderer {
     
     // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
+    bvhBuilder.logFrameReport()
     bvhBuilder.prepareBVH(frameID: frameID)
     bvhBuilder.buildBVH(frameID: frameID)
     dispatchRenderingWork(frameID: frameID)
