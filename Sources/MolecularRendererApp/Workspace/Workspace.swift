@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if false
+#if true
 
 // TODO: Changing the BVH construction procedure.
 // - Clean up the BVH builder.
@@ -12,7 +12,6 @@ import Numerics
 //   - De-obfuscate the 'denseGridData' buffer. [DONE]
 //   - De-obfuscate the encoding of the old BVH building. [DONE]
 // - Offload the BB computation to the GPU.
-//   - De-obfuscate the frame report.
 //   - Make everything except computation of Int32 BB be GPU-driven.
 //   - Offload the BB reduction to the GPU.
 //   - Clear a subregion matching the global BB every frame.
