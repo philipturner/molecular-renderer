@@ -12,7 +12,7 @@ import Numerics
 //   - De-obfuscate the 'denseGridData' buffer. [DONE]
 //   - De-obfuscate the encoding of the old BVH building. [DONE]
 // - De-obfuscate the frame report. [DONE]
-// - Isolate the upscaler.
+// - De-obfuscate the resetting of the upscaler. [DONE]
 //
 // Changing the BVH construction procedure.
 // - Offload the BB computation to the GPU.

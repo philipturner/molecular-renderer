@@ -24,16 +24,13 @@ extension ArgumentContainer {
       fatalError("Current time was not specified.")
     }
     guard let previousTime else {
-      print("true (0)")
       return true
     }
     
     if currentTime.absolute.frames == 0,
        currentTime.absolute.frames != previousTime.absolute.frames {
-      print("true (1)")
       return true
     } else {
-      print("false")
       return false
     }
   }
