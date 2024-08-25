@@ -45,7 +45,7 @@ struct RenderArguments {
   float2 jitter;
   uint frameSeed;
   float qualityCoefficient;
-  bool useMotionVectors;
+  bool useAtomMotionVectors;
 };
 
 #endif

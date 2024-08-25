@@ -173,9 +173,9 @@
 		985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Render.swift"; sourceTree = "<group>"; };
 		985BBEF12C7B5E770096A104 /* MRRenderer+Upscaling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Upscaling.swift"; sourceTree = "<group>"; };
 		985BBEF22C7B625E0096A104 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
-		985BBEF32C7B649F0096A104 /* BVHBuilder+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Update.swift"; sourceTree = "<group>"; };
 		985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Arguments.swift"; sourceTree = "<group>"; };
 		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
+		985BBEF62C7B894B0096A104 /* ArgumentContainer+Atoms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Atoms.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -226,7 +226,6 @@
 		98A8B7692ABE75C3003E62E8 /* libfontconfig.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfontconfig.1.dylib; path = ../bypass_dependencies/libfontconfig.1.dylib; sourceTree = "<group>"; };
 		98AC7D432B5D7A6200EB39C6 /* DMSTooltips_GFNFF_FailureMode.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = DMSTooltips_GFNFF_FailureMode.jpg; sourceTree = "<group>"; };
 		98B25A142B334F6700081A61 /* MRRendererDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRRendererDescriptor.swift; sourceTree = "<group>"; };
-		98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Update.swift"; sourceTree = "<group>"; };
 		98B25A182B335F7600081A61 /* MRRenderer+Rendering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Rendering.swift"; sourceTree = "<group>"; };
 		98B25A192B33666B00081A61 /* Renderer+Setup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+Setup.swift"; sourceTree = "<group>"; };
 		98B25A1D2B391B6600081A61 /* ConvergentAssemblyArchitecture2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConvergentAssemblyArchitecture2.swift; sourceTree = "<group>"; };
@@ -550,7 +549,6 @@
 			children = (
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				98B25A182B335F7600081A61 /* MRRenderer+Rendering.swift */,
-				98B25A172B335F6F00081A61 /* MRRenderer+Update.swift */,
 				985BBEF12C7B5E770096A104 /* MRRenderer+Upscaling.swift */,
 			);
 			path = Renderer;
@@ -560,6 +558,7 @@
 			isa = PBXGroup;
 			children = (
 				985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */,
+				985BBEF62C7B894B0096A104 /* ArgumentContainer+Atoms.swift */,
 				985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */,
 				985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */,
 				985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */,
@@ -955,7 +954,6 @@
 				985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */,
 				98D26BAA2C754D01007B48FD /* BVHBuilder+Preprocess.swift */,
-				985BBEF32C7B649F0096A104 /* BVHBuilder+Update.swift */,
 			);
 			path = BVHBuilder;
 			sourceTree = "<group>";

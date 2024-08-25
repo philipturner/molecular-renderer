@@ -7,15 +7,16 @@ import Numerics
 
 // TODO: Changing the BVH construction procedure.
 // - Clean up the BVH builder.
-//   - De-obfuscate the atom buffers.
-//   - Remove the CPU code that wrote motion vectors to memory.
+//   - De-obfuscate the atom buffers. [DONE]
+//   - Remove the CPU code that wrote motion vectors to memory. [DONE]
 //   - Compress the atoms as 64-bit, profile the overhead of doing this.
+//     - If it works, raise the atom count limit to 8 million.
 //   - De-obfuscate the 'denseGridData' buffer.
 // - Adapt the ray tracing code, so the reference grid has a fixed size.
 //   - Clear a subregion matching the global BB every frame.
 // - Remove the dependency on the global bounding box.
 //
-// Optimizations:
+// TODO: Next, perform some optimizations.
 // - Change the DDA, so the voxel address is computed every frame.
 //   - Not a lot of compute cost, since integer multiplications become
 //     bitshifts by log2(128).

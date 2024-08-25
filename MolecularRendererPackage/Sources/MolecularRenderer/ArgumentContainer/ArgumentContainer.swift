@@ -25,7 +25,7 @@ struct ArgumentContainer {
   
   // Time state variables.
   var time: MRTime?
-  var useMotionVectors: Bool?
+  var useAtomMotionVectors: Bool?
 }
 
 extension ArgumentContainer {
@@ -40,6 +40,6 @@ extension ArgumentContainer {
     currentCamera = nil
     
     time = nil
-    useMotionVectors = nil
+    useAtomMotionVectors = nil
   }
 }

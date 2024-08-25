@@ -10,7 +10,7 @@ struct RenderArguments {
   var jitter: SIMD2<Float> = .zero
   var frameSeed: UInt32 = .zero
   var qualityCoefficient: Float = .zero
-  var useMotionVectors: Bool = false
+  var useAtomMotionVectors: Bool = false
 }
 
 extension ArgumentContainer {
@@ -60,10 +60,10 @@ extension ArgumentContainer {
     output.frameSeed = .random(in: 0..<UInt32.max)
     output.qualityCoefficient = createQualityCoefficient()
     
-    guard let useMotionVectors = self.useMotionVectors else {
+    guard let useAtomMotionVectors = self.useAtomMotionVectors else {
       fatalError("Did not specify whether to use motion vectors.")
     }
-    output.useMotionVectors = useMotionVectors
+    output.useAtomMotionVectors = useAtomMotionVectors
     return output
   }
 }

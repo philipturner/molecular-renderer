@@ -23,8 +23,8 @@ kernel void renderAtoms
  device uint *dense_grid_references [[buffer(6)]],
  
  device float4 *newAtoms [[buffer(10)]],
- device float3 *atomColors [[buffer(11)]],
- device float3 *motionVectors [[buffer(12)]],
+ device float4 *oldAtoms [[buffer(11)]],
+ device float3 *atomColors [[buffer(12)]],
  
  texture2d<half, access::write> color_texture [[texture(0)]],
  texture2d<float, access::write> depth_texture [[texture(1)]],
@@ -99,14 +99,13 @@ kernel void renderAtoms
     colorCtx.setDepth(depth);
     
     // Transform to the atom's position in the previous frame.
-    float3 motionVector;
-    if (renderArgs->useMotionVectors) {
-      motionVector = motionVectors[intersect.reference];
-    } else {
-      motionVector = float3(0);
+    float3 previousFramePosition = hitPoint;
+    if (renderArgs->useAtomMotionVectors) {
+      float3 currentNucleus = newAtoms[intersect.reference].xyz;
+      float3 previousNucleus = oldAtoms[intersect.reference].xyz;
+      previousFramePosition += previousNucleus - currentNucleus;
     }
-    colorCtx.generateMotionVector(cameraArgs + 1,
-                                  hitPoint - motionVector);
+    colorCtx.generateMotionVector(cameraArgs + 1, previousFramePosition);
   }
   colorCtx.write(color_texture, depth_texture, motion_texture);
 }

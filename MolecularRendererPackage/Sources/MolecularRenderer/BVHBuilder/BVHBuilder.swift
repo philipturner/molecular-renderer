@@ -36,7 +36,6 @@ class BVHBuilder {
   // Main rendering resources.
   var device: MTLDevice
   unowned var renderer: MRRenderer
-  var motionVectors: [SIMD3<Float>] = []
   
   // Safeguard access to these using a dispatch queue.
   var reportPerformance: Bool = false
@@ -62,7 +61,6 @@ class BVHBuilder {
   
   // Data buffers.
   var denseGridAtoms: [MTLBuffer]
-  var motionVectorBuffers: [MTLBuffer]
   var newAtomsBuffers: [MTLBuffer]
   
   public init(
@@ -102,11 +100,6 @@ class BVHBuilder {
       return device.makeBuffer(length: bufferSize)!
     }
     denseGridAtoms = [
-      createAtomBuffer(device: device),
-      createAtomBuffer(device: device),
-      createAtomBuffer(device: device),
-    ]
-    motionVectorBuffers = [
       createAtomBuffer(device: device),
       createAtomBuffer(device: device),
       createAtomBuffer(device: device),

@@ -113,9 +113,8 @@ public class MRRenderer {
     layer: CAMetalLayer,
     handler: @escaping () -> Void
   ) {
-    // Update the BVH builder.
-    updateGeometry()
-    bvhBuilder.updateResources()
+    // Fetch the atoms for the current frame.
+    argumentContainer.updateAtoms(provider: atomProvider)
     
     // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
@@ -135,7 +134,7 @@ public class MRRenderer {
     }
     commandBuffer.commit()
     
-    // Allow the current camera to be used in the next frame.
+    // Clear the state, setting the stage for the next frame.
     argumentContainer.registerCompletedFrame()
   }
 }
