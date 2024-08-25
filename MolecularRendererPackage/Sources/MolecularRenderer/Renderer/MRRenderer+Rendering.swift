@@ -99,15 +99,15 @@ extension MRRenderer {
     
     encoder.endEncoding()
     commandBuffer.addCompletedHandler { [self] commandBuffer in
-      let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-      self.bvhBuilder.frameReportQueue.sync {
-        for index in self.bvhBuilder.frameReports.indices.reversed() {
-          guard self.bvhBuilder.frameReports[index].frameID == frameID else {
-            continue
-          }
-          self.bvhBuilder.frameReports[index].renderTime = executionTime
-          break
+      let frameReporter = self.frameReporter!
+      frameReporter.queue.sync {
+        let index = frameReporter.index(of: frameID)
+        guard let index else {
+          return
         }
+        
+        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+        frameReporter.reports[index].renderTime = executionTime
       }
     }
     commandBuffer.commit()

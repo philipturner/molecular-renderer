@@ -18,19 +18,13 @@ class BVHBuilder {
   var device: MTLDevice
   unowned var renderer: MRRenderer
   
-  // Safeguard access to these using a dispatch queue.
-  var reportPerformance: Bool = false
-  var frameReportQueue: DispatchQueue = .init(
-    label: "com.philipturner.MolecularRenderer.BVHBuilder.frameReportQueue")
-  var frameReports: [MRFrameReport] = []
-  
   // BVH state information.
   var worldMinimum: SIMD3<Float> = .zero
   var worldMaximum: SIMD3<Float> = .zero
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
-  var preprocessPipeline: MTLComputePipelineState
+  var convertPipeline: MTLComputePipelineState
   var densePass1Pipeline: MTLComputePipelineState
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
@@ -67,12 +61,12 @@ class BVHBuilder {
       .makeComputePipelineState(function: memsetFunction)
     
     // Initialize kernels for BVH construction.
-    let preprocessFunction = library.makeFunction(name: "preprocess")!
+    let convertFunction = library.makeFunction(name: "convert")!
     let densePass1Function = library.makeFunction(name: "dense_grid_pass1")!
     let densePass2Function = library.makeFunction(name: "dense_grid_pass2")!
     let densePass3Function = library.makeFunction(name: "dense_grid_pass3")!
-    preprocessPipeline = try! device
-      .makeComputePipelineState(function: preprocessFunction)
+    convertPipeline = try! device
+      .makeComputePipelineState(function: convertFunction)
     densePass1Pipeline = try! device
       .makeComputePipelineState(function: densePass1Function)
     densePass2Pipeline = try! device

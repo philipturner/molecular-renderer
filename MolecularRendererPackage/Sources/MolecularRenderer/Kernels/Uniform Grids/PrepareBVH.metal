@@ -1,5 +1,5 @@
 //
-//  NewBVH.metal
+//  PrepareBVH.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 8/18/24.
@@ -10,7 +10,7 @@
 using namespace metal;
 
 // Converts the float4 atoms to two different formats (for now).
-kernel void preprocess
+kernel void convert
 (
  device float4 *originalAtoms [[buffer(0)]],
  device float *atomRadii [[buffer(1)]],

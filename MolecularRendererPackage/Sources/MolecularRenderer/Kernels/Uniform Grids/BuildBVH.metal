@@ -1,5 +1,5 @@
 //
-//  OldBVH.metal
+//  BuildBVH.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 7/15/23.

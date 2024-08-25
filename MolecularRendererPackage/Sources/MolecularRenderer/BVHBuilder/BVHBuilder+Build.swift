@@ -21,15 +21,15 @@ extension BVHBuilder {
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
-      let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-      self.frameReportQueue.sync {
-        for index in self.frameReports.indices.reversed() {
-          guard self.frameReports[index].frameID == frameID else {
-            continue
-          }
-          self.frameReports[index].geometryTime = executionTime
-          break
+      let frameReporter = self.renderer.frameReporter!
+      frameReporter.queue.sync {
+        let index = frameReporter.index(of: frameID)
+        guard let index else {
+          return
         }
+        
+        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+        frameReporter.reports[index].buildTime = executionTime
       }
     }
     commandBuffer.commit()

@@ -10,11 +10,9 @@ import MetalFX
 import class QuartzCore.CAMetalLayer
 
 public class MRRenderer {
-  // State variables.
   var argumentContainer: ArgumentContainer = .init()
-  
-  // TODO: Remove this!
-  var resetTracker: ResetTracker = .init()
+  var bvhBuilder: BVHBuilder!
+  var frameReporter: FrameReporter!
   
   // Objects that supply data to the renderer.
   var atomProvider: MRAtomProvider!
@@ -24,13 +22,14 @@ public class MRRenderer {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var bvhBuilder: BVHBuilder!
+  var renderPipeline: MTLComputePipelineState!
+  
+  // TODO: Remove this!
+  var resetTracker: ResetTracker = .init()
   
   // TODO: Move into a separate object. It should encapsulate the upscaler,
   // the myriad textures, and the drawable handling.
   var upscaler: MTLFXTemporalScaler!
-  
-  var renderPipeline: MTLComputePipelineState!
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -48,8 +47,8 @@ public class MRRenderer {
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
   public init(descriptor: MRRendererDescriptor) {
-    guard let url = descriptor.url,
-          let intermediateTextureSize = descriptor.intermediateTextureSize,
+    guard let intermediateTextureSize = descriptor.intermediateTextureSize,
+          let library = descriptor.library,
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
@@ -101,9 +100,8 @@ public class MRRenderer {
     encoder.endEncoding()
     commandBuffer.commit()
     
-    let library = try! device.makeLibrary(URL: descriptor.url!)
-    self.bvhBuilder = BVHBuilder(renderer: self, library: library)
-    bvhBuilder.reportPerformance = descriptor.reportPerformance
+    bvhBuilder = BVHBuilder(renderer: self, library: library)
+    frameReporter = FrameReporter()
     
     initUpscaler()
     initRayTracer(library: library)
@@ -113,12 +111,14 @@ public class MRRenderer {
     layer: CAMetalLayer,
     handler: @escaping () -> Void
   ) {
+    let frameID = argumentContainer.frameID
+    frameReporter.registerFrameChange(frameID: frameID)
+    frameReporter.log()
+    
     // Fetch the atoms for the current frame.
     argumentContainer.updateAtoms(provider: atomProvider)
     
-    // Dispatch the compute work.
-    let frameID = argumentContainer.frameID
-    bvhBuilder.logFrameReport(frameID: frameID)
+    // Encode the work.
     bvhBuilder.prepareBVH(frameID: frameID)
     bvhBuilder.buildBVH(frameID: frameID)
     dispatchRenderingWork(frameID: frameID)

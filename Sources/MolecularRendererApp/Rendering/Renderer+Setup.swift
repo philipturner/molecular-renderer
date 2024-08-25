@@ -60,24 +60,36 @@ extension Renderer {
   func initializeRenderingEngine() {
     let descriptor = MRRendererDescriptor()
     
-    // TODO: Fix this, so the client loads the shader library.
-    descriptor.url = Bundle.main.url(
-      forResource: "MolecularRendererGPU", withExtension: "metallib")!
-    
-    guard ContentView.size % ContentView.upscaleFactor == 0 else {
-      fatalError("Invalid content view size.")
+    // Set the shader library.
+    do {
+      let libraryURL = Bundle.main.url(
+        forResource: "MolecularRendererGPU", withExtension: "metallib")!
+      let device = MTLCreateSystemDefaultDevice()!
+      let library = try! device.makeLibrary(URL: libraryURL)
+      descriptor.library = library
     }
-    descriptor.intermediateTextureSize = Int(
-      ContentView.size / ContentView.upscaleFactor)
-    descriptor.upscaleFactor = ContentView.upscaleFactor
-    descriptor.reportPerformance = true
     
+    // Set the screen size.
+    do {
+      guard ContentView.size % ContentView.upscaleFactor == 0 else {
+        fatalError("Invalid content view size.")
+      }
+      descriptor.intermediateTextureSize = Int(
+        ContentView.size / ContentView.upscaleFactor)
+      descriptor.upscaleFactor = ContentView.upscaleFactor
+    }
+    
+    // Instantiate the rendering engine.
     renderingEngine = MRRenderer(descriptor: descriptor)
     
-    let atomColors = Renderer.createColors()
-    let atomRadii = Renderer.createRadii()
-    renderingEngine.setAtomColors(atomColors)
-    renderingEngine.setAtomRadii(atomRadii)
+    // Set the atom colors and radii.
+    do {
+      let atomColors = Renderer.createColors()
+      let atomRadii = Renderer.createRadii()
+      renderingEngine.setAtomColors(atomColors)
+      renderingEngine.setAtomRadii(atomRadii)
+      
+    }
   }
   
   // If OpenMM is not set up, comment out the call to this function in

@@ -26,7 +26,7 @@
 		984160072B5DF38400A559AF /* DMSTooltips_ProductionSimulation2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 984160062B5DF38400A559AF /* DMSTooltips_ProductionSimulation2.jpg */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
-		98537EAF2A62EA3D0037C392 /* OldBVH.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* OldBVH.metal */; };
+		98537EAF2A62EA3D0037C392 /* BuildBVH.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* BuildBVH.metal */; };
 		98537EB32A62EA940037C392 /* Memory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB22A62EA940037C392 /* Memory.metal */; };
 		98537EB72A63107F0037C392 /* Atomic.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EB62A63107F0037C392 /* Atomic.metal */; };
 		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
@@ -56,7 +56,7 @@
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F12C8E2C72BE110045FAFB /* Renderer+AtomStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */; };
-		98F12C902C72CEE20045FAFB /* NewBVH.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8F2C72CEE20045FAFB /* NewBVH.metal */; };
+		98F12C902C72CEE20045FAFB /* PrepareBVH.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8F2C72CEE20045FAFB /* PrepareBVH.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
 		98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */ = {isa = PBXBuildFile; fileRef = 981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */; };
@@ -147,7 +147,7 @@
 		98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondoidCollision.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		98537EAE2A62EA3D0037C392 /* OldBVH.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = OldBVH.metal; sourceTree = "<group>"; };
+		98537EAE2A62EA3D0037C392 /* BuildBVH.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BuildBVH.metal; sourceTree = "<group>"; };
 		98537EB22A62EA940037C392 /* Memory.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Memory.metal; sourceTree = "<group>"; };
 		98537EB62A63107F0037C392 /* Atomic.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Atomic.metal; sourceTree = "<group>"; };
 		9855200D2B5443F900AB068D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -176,9 +176,11 @@
 		985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Arguments.swift"; sourceTree = "<group>"; };
 		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
 		985BBEF62C7B894B0096A104 /* ArgumentContainer+Atoms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Atoms.swift"; sourceTree = "<group>"; };
-		985BBEF72C7BB2C60096A104 /* BVHBuilder+FrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+FrameReport.swift"; sourceTree = "<group>"; };
 		985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+BoundingBox.swift"; sourceTree = "<group>"; };
-		985BBEF92C7BBAB70096A104 /* MRFrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRFrameReport.swift; sourceTree = "<group>"; };
+		985BBEF92C7BBAB70096A104 /* FrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReport.swift; sourceTree = "<group>"; };
+		985BBEFB2C7BBDB70096A104 /* FrameReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReporter.swift; sourceTree = "<group>"; };
+		985BBEFC2C7BC4BF0096A104 /* FrameReporter+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+Logging.swift"; sourceTree = "<group>"; };
+		985BBEFD2C7BC6120096A104 /* FrameReporter+FrameChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+FrameChange.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -268,7 +270,7 @@
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
-		98D26BAA2C754D01007B48FD /* BVHBuilder+Preprocess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Preprocess.swift"; sourceTree = "<group>"; };
+		98D26BAA2C754D01007B48FD /* BVHBuilder+Prepare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Prepare.swift"; sourceTree = "<group>"; };
 		98D975902AC088260052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image1.jpg; sourceTree = "<group>"; };
 		98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image2.jpg; sourceTree = "<group>"; };
@@ -314,7 +316,7 @@
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+AtomStyles.swift"; sourceTree = "<group>"; };
-		98F12C8F2C72CEE20045FAFB /* NewBVH.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NewBVH.metal; sourceTree = "<group>"; };
+		98F12C8F2C72CEE20045FAFB /* PrepareBVH.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = PrepareBVH.metal; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -567,6 +569,17 @@
 				985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */,
 			);
 			path = ArgumentContainer;
+			sourceTree = "<group>";
+		};
+		985BBEFA2C7BBD940096A104 /* FrameReporter */ = {
+			isa = PBXGroup;
+			children = (
+				985BBEF92C7BBAB70096A104 /* FrameReport.swift */,
+				985BBEFB2C7BBDB70096A104 /* FrameReporter.swift */,
+				985BBEFD2C7BC6120096A104 /* FrameReporter+FrameChange.swift */,
+				985BBEFC2C7BC4BF0096A104 /* FrameReporter+Logging.swift */,
+			);
+			path = FrameReporter;
 			sourceTree = "<group>";
 		};
 		98610EAF2A9D7D9C006FAF95 /* HardwareCatalog */ = {
@@ -957,8 +970,7 @@
 				985BBEF42C7B64B70096A104 /* BVHBuilder+Arguments.swift */,
 				985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */,
-				985BBEF72C7BB2C60096A104 /* BVHBuilder+FrameReport.swift */,
-				98D26BAA2C754D01007B48FD /* BVHBuilder+Preprocess.swift */,
+				98D26BAA2C754D01007B48FD /* BVHBuilder+Prepare.swift */,
 			);
 			path = BVHBuilder;
 			sourceTree = "<group>";
@@ -1001,11 +1013,11 @@
 			children = (
 				985BBEED2C7AABA20096A104 /* ArgumentContainer */,
 				98F12C912C72D00C0045FAFB /* BVHBuilder */,
+				985BBEFA2C7BBD940096A104 /* FrameReporter */,
 				98F12C922C72D01B0045FAFB /* Kernels */,
 				985BBEEB2C7AA6710096A104 /* Renderer */,
 				98F638C42A34F78A00F51E95 /* MRAtomProvider.swift */,
 				985BBEF22C7B625E0096A104 /* MRCamera.swift */,
-				985BBEF92C7BBAB70096A104 /* MRFrameReport.swift */,
 				98B25A142B334F6700081A61 /* MRRendererDescriptor.swift */,
 				98FB90712A5B280D00685E5C /* MRTime.swift */,
 				98E23B2E2B4CCCCB00B5A7D5 /* README.md */,
@@ -1113,8 +1125,8 @@
 			children = (
 				98A263A82A543EEC00B69392 /* DDA.metal */,
 				98537EB22A62EA940037C392 /* Memory.metal */,
-				98F12C8F2C72CEE20045FAFB /* NewBVH.metal */,
-				98537EAE2A62EA3D0037C392 /* OldBVH.metal */,
+				98F12C8F2C72CEE20045FAFB /* PrepareBVH.metal */,
+				98537EAE2A62EA3D0037C392 /* BuildBVH.metal */,
 			);
 			path = "Uniform Grids";
 			sourceTree = "<group>";
@@ -1339,14 +1351,14 @@
 				985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */,
 				985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
-				98537EAF2A62EA3D0037C392 /* OldBVH.metal in Sources */,
+				98537EAF2A62EA3D0037C392 /* BuildBVH.metal in Sources */,
 				98537EB32A62EA940037C392 /* Memory.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
 				98537EB72A63107F0037C392 /* Atomic.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
-				98F12C902C72CEE20045FAFB /* NewBVH.metal in Sources */,
+				98F12C902C72CEE20045FAFB /* PrepareBVH.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
