@@ -30,25 +30,11 @@
 
 // Finite state machine that encapsulates the argument state.
 struct ArgumentContainer {
-  // BVH state variables.
-  var worldOrigin: SIMD3<Int16> = .zero
-  var worldDimension: SIMD3<Int16> = .zero
-  
   // Render state variables.
   var jitterFrameID: Int = .zero
-}
-
-// Camera arguments data structure.
-struct CameraArguments {
-  var positionAndFOVMultiplier: SIMD4<Float> = .zero
-  var rotationColumn1: SIMD3<Float> = .zero
-  var rotationColumn2: SIMD3<Float> = .zero
-  var rotationColumn3: SIMD3<Float> = .zero
-}
-
-// Render arguments data structure.
-struct RenderArguments {
-  var jitter: SIMD2<Float> = .zero
-  var frameSeed: UInt32 = .zero
-  var qualityCoefficient: Float = .zero
+  
+  // Camera state variables.
+  // TODO: Write current -> previous after the frame finishes.
+  var currentCamera: CameraArguments?
+  var previousCamera: CameraArguments?
 }

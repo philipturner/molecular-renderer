@@ -10,7 +10,6 @@ import simd
 
 extension MRRenderer {
   func updateResources() {
-    self.updateCamera(camera: camera)
     self.updateGeometry(time: time)
     self.bvhBuilder.updateResources()
     
@@ -40,45 +39,5 @@ extension MRRenderer {
     
     self.bvhBuilder.atoms = atoms
     self.bvhBuilder.atomRadii = atomRadii
-  }
-  
-  func updateCamera(
-    camera: MRCamera
-  ) {
-    self.previousArguments = currentArguments
-    
-    // Quality coefficients are calibrated against 640x640 -> 1280x1280
-    // resolution.
-    var screenMagnitude = Float(intermediateTextureSize * upscaleFactor)
-    screenMagnitude *= screenMagnitude
-    screenMagnitude = sqrt(screenMagnitude) / 1280
-    let qualityCoefficient = 30 * screenMagnitude
-    
-    let jitterOffsets = argumentContainer.createJitterOffsets()
-    
-    let fovMultiplier = ArgumentContainer
-      .createFOVMultiplier(
-        intermediateTextureSize: intermediateTextureSize,
-        fovDegrees: camera.fovDegrees)
-    
-    let rotation = simd_float3x3(
-      camera.rotation.0, camera.rotation.1, camera.rotation.2)
-    
-    self.currentArguments = Arguments(
-      fovMultiplier: fovMultiplier,
-      positionX: camera.position.x,
-      positionY: camera.position.y,
-      positionZ: camera.position.z,
-      rotation: rotation,
-      jitter: jitterOffsets,
-      frameSeed: UInt32.random(in: 0...UInt32.max),
-      qualityCoefficient: qualityCoefficient,
-      
-      worldOrigin: .zero,
-      worldDimensions: .zero,
-    
-      previousPosition: .zero,
-      previousRotation: simd_float3x3(diagonal: .zero),
-      previousFOVMultiplier: .zero)
   }
 }
