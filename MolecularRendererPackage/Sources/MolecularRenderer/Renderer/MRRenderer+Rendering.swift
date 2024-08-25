@@ -1,56 +1,30 @@
 //
-//  MRRenderer+Render.swift
+//  MRRenderer+Rendering.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 12/20/23.
 //
 
 import Metal
-import MetalFX
-import class QuartzCore.CAMetalLayer
-
-// MARK: - Public API
 
 extension MRRenderer {
-  public func render(
-    layer: CAMetalLayer,
-    handler: @escaping () -> Void
-  ) {
-    updateResources()
+  func initRayTracer(library: MTLLibrary) {
+    let constants = MTLFunctionConstantValues()
+    var screenWidth = UInt32(argumentContainer.intermediateTextureSize)
+    var screenHeight = UInt32(argumentContainer.intermediateTextureSize)
+    constants.setConstantValue(&screenWidth, type: .uint, index: 0)
+    constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     
-    let frameID = bvhBuilder.frameReportCounter
-    bvhBuilder.preprocessAtoms(
-      commandQueue: commandQueue, frameID: frameID)
-    bvhBuilder.buildDenseGrid(
-      commandQueue: commandQueue, frameID: frameID)
-    render(
-      commandQueue: commandQueue, frameID: frameID)
+    let function = try! library.makeFunction(
+      name: "renderAtoms", constantValues: constants)
     
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    // Acquire a reference to the drawable.
-    let drawable = layer.nextDrawable()!
-    let upscaledSize = argumentContainer.upscaledTextureSize
-    guard drawable.texture.width == upscaledSize &&
-            drawable.texture.height == upscaledSize else {
-      fatalError("Drawable texture had incorrect dimensions.")
-    }
-    
-    // Encode the upscaling pass.
-    upscale(commandBuffer: commandBuffer, drawableTexture: drawable.texture)
-    
-    // Present the drawable and signal the semaphore.
-    commandBuffer.present(drawable)
-    commandBuffer.addCompletedHandler { _ in
-      handler()
-    }
-    commandBuffer.commit()
+    let desc = MTLComputePipelineDescriptor()
+    desc.computeFunction = function
+    desc.maxTotalThreadsPerThreadgroup = 1024
+    self.renderPipeline = try! device.makeComputePipelineState(
+      descriptor: desc, options: [], reflection: nil)
   }
-}
-
-// MARK: - Metal Command Encoding
-
-extension MRRenderer {
+  
   // Dispatch threadgroups for the render command.
   func dispatchThreadgroups(to encoder: MTLComputeCommandEncoder) {
     // Dispatch an even number of threads (the shader will rearrange them).
@@ -66,7 +40,7 @@ extension MRRenderer {
   }
   
   // Encode the GPU command for ray tracing.
-  private func render(commandQueue: MTLCommandQueue, frameID: Int) {
+  func render(commandQueue: MTLCommandQueue, frameID: Int) {
     /*
      constant CameraArguments *cameraArgs [[buffer(0)]],
      constant BVHArguments *bvhArgs [[buffer(1)]],
@@ -154,33 +128,6 @@ extension MRRenderer {
       }
     }
     commandBuffer.commit()
-  }
-  
-  // TODO: Refactor everything regarding upscaling into a separate file.
-  private func upscale(
-    commandBuffer: MTLCommandBuffer,
-    drawableTexture: MTLTexture
-  ) {
-    resetTracker.update(time: time)
-    
-    let jitterFrameID = argumentContainer.jitterFrameID
-    let jitterOffsets = argumentContainer.createJitterOffsets()
-    
-    // Bind the intermediate textures.
-    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
-    upscaler.reset = resetTracker.resetUpscaler
-    upscaler.colorTexture = textures.color
-    upscaler.depthTexture = textures.depth
-    upscaler.motionTexture = textures.motion
-    upscaler.outputTexture = textures.upscaled
-    upscaler.jitterOffsetX = -jitterOffsets.x
-    upscaler.jitterOffsetY = -jitterOffsets.y
-    upscaler.encode(commandBuffer: commandBuffer)
-    
-    // Metal is forcing me to copy the upscaled texture to the drawable.
-    let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    blitEncoder.copy(from: textures.upscaled, to: drawableTexture)
-    blitEncoder.endEncoding()
   }
 }
 
