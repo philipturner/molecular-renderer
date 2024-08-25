@@ -80,15 +80,17 @@ extension MRRenderer {
     // Arguments 10 - 12
     do {
       // Bind the atoms.
-      encoder.setBuffer(bvhBuilder.newAtomsBuffer, offset: 0, index: 10)
+      let doubleIndex = argumentContainer.doubleBufferIndex()
+      let newAtomsBuffer = bvhBuilder.newAtomsBuffers[doubleIndex]
+      encoder.setBuffer(newAtomsBuffer, offset: 0, index: 10)
       
       // Bind the colors.
       let atomColorsLength = atomColors.count * 16
       encoder.setBytes(&atomColors, length: atomColorsLength, index: 11)
       
       // Bind the atom motion vectors.
-      let ringIndex = argumentContainer.tripleBufferIndex()
-      let motionVectors = bvhBuilder.motionVectorBuffers[ringIndex]
+      let tripleIndex = argumentContainer.tripleBufferIndex()
+      let motionVectors = bvhBuilder.motionVectorBuffers[tripleIndex]
       encoder.setBuffer(motionVectors, offset: 0, index: 12)
     }
     

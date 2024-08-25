@@ -9,6 +9,7 @@ import Numerics
 // - Clean up the BVH builder.
 //   - De-obfuscate the atom buffers.
 //   - Remove the CPU code that wrote motion vectors to memory.
+//   - Compress the atoms as 64-bit, profile the overhead of doing this.
 //   - De-obfuscate the 'denseGridData' buffer.
 // - Adapt the ray tracing code, so the reference grid has a fixed size.
 //   - Clear a subregion matching the global BB every frame.

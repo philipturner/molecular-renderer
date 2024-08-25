@@ -59,7 +59,7 @@ class BVHBuilder {
   
   // Resources for the new BVH building algorithm.
   var preprocessPipeline: MTLComputePipelineState
-  var newAtomsBuffer: MTLBuffer
+  var newAtomsBuffers: [MTLBuffer]
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
@@ -115,7 +115,10 @@ class BVHBuilder {
     // Allocate resources for the new BVH building algorithm.
     preprocessPipeline = Self.createPreprocessFunction(
       device: device, library: library)
-    newAtomsBuffer = Self.createNewAtomsBuffer(device: device)
+    newAtomsBuffers = [
+      createAtomBuffer(device: device),
+      createAtomBuffer(device: device),
+    ]
   }
 }
 

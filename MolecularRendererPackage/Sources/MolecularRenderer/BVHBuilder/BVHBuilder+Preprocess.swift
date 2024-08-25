@@ -17,49 +17,47 @@ extension BVHBuilder {
     return try! device.makeComputePipelineState(
       function: preprocessFunction)
   }
-  
-  static func createNewAtomsBuffer(
-    device: MTLDevice
-  ) -> MTLBuffer {
-    // Allocate enough memory for 8 million atoms.
-    // Don't throw an error when the atom count exceeds this.
-    let bufferSize: Int = (8 * 1024 * 1024) * 16
-    return device.makeBuffer(length: bufferSize)!
-  }
-  
-  func bindAtomRadii(to encoder: MTLComputeCommandEncoder) {
-    var atomRadii = renderer.atomRadii
-    atomRadii.withUnsafeBufferPointer {
-      let length = $0.count * 4
-      encoder.setBytes($0.baseAddress!, length: length, index: 2)
-    }
-  }
 }
 
 extension BVHBuilder {
   func preprocessAtoms(commandQueue: MTLCommandQueue, frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
-    let ringIndex = renderer.argumentContainer.tripleBufferIndex()
-    let atomsBuffer = denseGridAtoms[ringIndex]
-    
-    let copyingStart = CACurrentMediaTime()
-    memcpy(atomsBuffer.contents(), atoms, atoms.count * 16)
-    let copyingEnd = CACurrentMediaTime()
     
     // Start the encoder.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    
-    // Encode the preprocessing command.
     encoder.setComputePipelineState(preprocessPipeline)
-    encoder.setBuffer(atomsBuffer, offset: 0, index: 0)
-    bindAtomRadii(to: encoder)
-    encoder.setBuffer(newAtomsBuffer, offset: 0, index: 3)
+    
+    // Argument 0
+    let copyingStart = CACurrentMediaTime()
+    do {
+      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+      let beforeAtomsBuffer = denseGridAtoms[tripleIndex]
+      memcpy(beforeAtomsBuffer.contents(), atoms, atoms.count * 16)
+      encoder.setBuffer(beforeAtomsBuffer, offset: 0, index: 0)
+    }
+    let copyingEnd = CACurrentMediaTime()
+    
+    // Argument 1
+    do {
+      var atomRadii = renderer.atomRadii
+      atomRadii.withUnsafeBufferPointer {
+        let length = $0.count * 4
+        encoder.setBytes($0.baseAddress!, length: length, index: 1)
+      }
+    }
+    
+    // Argument 2
+    do {
+      let doubleIndex = renderer.argumentContainer.doubleBufferIndex()
+      let afterAtomsBuffer = newAtomsBuffers[doubleIndex]
+      encoder.setBuffer(afterAtomsBuffer, offset: 0, index: 2)
+    }
+    
+    // Finish the encoder.
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-    
-    // Finish the encoder.
     encoder.endEncoding()
     
     // Add the completed handler.

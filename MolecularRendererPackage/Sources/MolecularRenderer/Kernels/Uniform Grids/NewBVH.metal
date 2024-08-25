@@ -13,8 +13,8 @@ using namespace metal;
 kernel void preprocess
 (
  device float4 *atoms [[buffer(0)]],
- device float *atomRadii [[buffer(2)]],
- device float4 *newAtoms [[buffer(3)]],
+ device float *atomRadii [[buffer(1)]],
+ device float4 *newAtoms [[buffer(2)]],
  
  uint tid [[thread_position_in_grid]])
 {
