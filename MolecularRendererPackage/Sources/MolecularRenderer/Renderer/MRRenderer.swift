@@ -10,11 +10,7 @@ import MetalFX
 import class QuartzCore.CAMetalLayer
 
 public class MRRenderer {
-  // Renderer configuration variables.
-  var intermediateTextureSize: Int
-  var upscaleFactor: Int
-  
-  // Per-frame state variables.
+  // State variables.
   var argumentContainer: ArgumentContainer = .init()
   var textureIndex: Int = 0
   
@@ -56,8 +52,8 @@ public class MRRenderer {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
-    self.intermediateTextureSize = intermediateTextureSize
-    self.upscaleFactor = upscaleFactor
+    argumentContainer.intermediateTextureSize = intermediateTextureSize
+    argumentContainer.upscaleFactor = upscaleFactor
     
     // Initialize Metal resources.
     self.device = MTLCreateSystemDefaultDevice()!
@@ -73,8 +69,8 @@ public class MRRenderer {
       desc.storageMode = .private
       desc.usage = [ .shaderWrite, .shaderRead ]
       
-      desc.width = intermediateTextureSize
-      desc.height = intermediateTextureSize
+      desc.width = argumentContainer.intermediateTextureSize
+      desc.height = argumentContainer.intermediateTextureSize
       desc.pixelFormat = .rgb10a2Unorm
       let color = device.makeTexture(descriptor: desc)!
       color.label = "Intermediate Color"
@@ -88,8 +84,8 @@ public class MRRenderer {
       motion.label = "Intermediate Motion"
       
       desc.pixelFormat = .rgb10a2Unorm
-      desc.width = intermediateTextureSize * upscaleFactor
-      desc.height = intermediateTextureSize * upscaleFactor
+      desc.width = argumentContainer.upscaledTextureSize
+      desc.height = argumentContainer.upscaledTextureSize
       let upscaled = device.makeTexture(descriptor: desc)!
       upscaled.label = "Upscaled Color"
       
@@ -114,10 +110,10 @@ public class MRRenderer {
   
   func initUpscaler() {
     let desc = MTLFXTemporalScalerDescriptor()
-    desc.inputWidth = intermediateTextureSize
-    desc.inputHeight = intermediateTextureSize
-    desc.outputWidth = intermediateTextureSize * upscaleFactor
-    desc.outputHeight = intermediateTextureSize * upscaleFactor
+    desc.inputWidth = argumentContainer.intermediateTextureSize
+    desc.inputHeight = argumentContainer.intermediateTextureSize
+    desc.outputWidth = argumentContainer.upscaledTextureSize
+    desc.outputHeight = argumentContainer.upscaledTextureSize
     
     let textures = bufferedIntermediateTextures[0]
     desc.colorTextureFormat = textures.color.pixelFormat
@@ -127,8 +123,8 @@ public class MRRenderer {
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = Float(upscaleFactor)
-    desc.inputContentMaxScale = Float(upscaleFactor)
+    desc.inputContentMinScale = Float(argumentContainer.upscaleFactor)
+    desc.inputContentMaxScale = Float(argumentContainer.upscaleFactor)
     
     guard let upscaler = desc.makeTemporalScaler(device: device) else {
       fatalError("The temporal scaler effect is not usable!")
@@ -140,13 +136,15 @@ public class MRRenderer {
     // multiplies the vector by 'intermediateSize', which we don't want.
     upscaler.motionVectorScaleX = 1
     upscaler.motionVectorScaleY = 1
+    
+    // TODO: Investigate whether MetalFX wants depth to be something different.
     upscaler.isDepthReversed = true
   }
   
   func initRayTracer(library: MTLLibrary) {
     let constants = MTLFunctionConstantValues()
-    var screenWidth = UInt32(intermediateTextureSize)
-    var screenHeight = UInt32(intermediateTextureSize)
+    var screenWidth = UInt32(argumentContainer.intermediateTextureSize)
+    var screenHeight = UInt32(argumentContainer.intermediateTextureSize)
     constants.setConstantValue(&screenWidth, type: .uint, index: 0)
     constants.setConstantValue(&screenHeight, type: .uint, index: 1)
     

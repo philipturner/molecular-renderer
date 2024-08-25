@@ -5,9 +5,10 @@ import Numerics
 
 #if true
 
-// TODO: Refactor all of the code that deals with the camera. Make a
-// separate buffer that holds camera data for the current and previous
-// frame. Then, investigate the bugs with motion vectors.
+// TODO: Fixing some rendering bugs.
+// - Refactor the arguments and render state container.
+// - Investigate bugs with motion vectors.
+// - Investigate improper specification of depth for MetalFX.
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems

@@ -31,10 +31,15 @@
 // Finite state machine that encapsulates the argument state.
 struct ArgumentContainer {
   // Render state variables.
+  var intermediateTextureSize: Int = .zero
   var jitterFrameID: Int = .zero
+  var upscaleFactor: Int = .zero
   
   // Camera state variables.
-  // TODO: Write current -> previous after the frame finishes.
   var currentCamera: CameraArguments?
   var previousCamera: CameraArguments?
+  
+  var upscaledTextureSize: Int {
+    intermediateTextureSize * upscaleFactor
+  }
 }

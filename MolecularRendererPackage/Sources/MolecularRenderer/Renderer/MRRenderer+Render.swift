@@ -30,7 +30,7 @@ extension MRRenderer {
     
     // Acquire a reference to the drawable.
     let drawable = layer.nextDrawable()!
-    let upscaledSize = intermediateTextureSize * upscaleFactor
+    let upscaledSize = argumentContainer.upscaledTextureSize
     guard drawable.texture.width == upscaledSize &&
             drawable.texture.height == upscaledSize else {
       fatalError("Drawable texture had incorrect dimensions.")
@@ -51,47 +51,94 @@ extension MRRenderer {
 // MARK: - Metal Command Encoding
 
 extension MRRenderer {
-  func bindAtomColors(to encoder: MTLComputeCommandEncoder) {
-    atomColors.withUnsafeBufferPointer {
-      let length = $0.count * 16
-      encoder.setBytes($0.baseAddress!, length: length, index: 2)
-    }
+  // Dispatch threadgroups for the render command.
+  func dispatchThreadgroups(to encoder: MTLComputeCommandEncoder) {
+    // Dispatch an even number of threads (the shader will rearrange them).
+    var dispatchGrid = MTLSize(width: 1, height: 1, depth: 1)
+    dispatchGrid.width = (argumentContainer.intermediateTextureSize + 7) / 8
+    dispatchGrid.height = (argumentContainer.intermediateTextureSize + 7) / 8
+    
+    var threadgroupGrid = MTLSize(width: 1, height: 1, depth: 1)
+    threadgroupGrid.width = 8
+    threadgroupGrid.height = 8
+    encoder.dispatchThreadgroups(
+      dispatchGrid, threadsPerThreadgroup: threadgroupGrid)
   }
   
+  // Encode the GPU command for ray tracing.
   private func render(commandQueue: MTLCommandQueue, frameID: Int) {
+    /*
+     constant CameraArguments *cameraArgs [[buffer(0)]],
+     constant BVHArguments *bvhArgs [[buffer(1)]],
+     constant RenderArguments *renderArgs [[buffer(2)]],
+     
+     device uint *dense_grid_data [[buffer(5)]],
+     device uint *dense_grid_references [[buffer(6)]],
+     
+     device float4 *newAtoms [[buffer(10)]],
+     device float3 *atomColors [[buffer(11)]],
+     device float3 *motionVectors [[buffer(12)]],
+     
+     texture2d<half, access::write> color_texture [[texture(0)]],
+     texture2d<float, access::write> depth_texture [[texture(1)]],
+     texture2d<half, access::write> motion_texture [[texture(2)]],
+     */
+    
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    
     encoder.setComputePipelineState(renderPipeline)
-    bvhBuilder.encodeGridArguments(encoder: encoder)
-    bvhBuilder.setGridWidth(arguments: &currentArguments!)
     
-    // Encode the arguments.
-    let previousArguments = self.previousArguments ?? self.currentArguments!
-    var encodedArguments = self.currentArguments!
-    encodedArguments.previousPosition.x = previousArguments.positionX
-    encodedArguments.previousPosition.y = previousArguments.positionY
-    encodedArguments.previousPosition.z = previousArguments.positionZ
-    encodedArguments.previousRotation = previousArguments.rotation
-    encodedArguments.previousFOVMultiplier = previousArguments.fovMultiplier
-    self.previousArguments = self.currentArguments
+    // Arguments 0 - 2
+    do {
+      // cameraArgs: TODO
+      // bvhArgs: TODO
+      // renderArgs: TODO
+    }
     
-    let argumentStride = MemoryLayout<Arguments>.stride
-    encoder.setBytes(&encodedArguments, length: argumentStride, index: 0)
-    bindAtomColors(to: encoder)
+    // Arguments 5 - 6
+    do {
+      let denseGridData = bvhBuilder.denseGridData
+      let denseGridReferences = bvhBuilder.denseGridReferences
+      guard let denseGridData,
+            let denseGridReferences else {
+        fatalError("BVH was not available.")
+      }
+      
+      // Bind the dense grid data at offset 32.
+      encoder.setBuffer(denseGridData, offset: 32, index: 5)
+      
+      // Bind the dense grid references.
+      encoder.setBuffer(denseGridReferences, offset: 0, index: 6)
+    }
     
-    // Encode the output textures.
-    let jitterFrameID = argumentContainer.jitterFrameID
-    let textures = self.bufferedIntermediateTextures[jitterFrameID % 2]
-    encoder.setTextures(
-      [textures.color, textures.depth, textures.motion], range: 0..<3)
+    // Arguments 10 - 12
+    do {
+      // Bind the atoms.
+      encoder.setBuffer(bvhBuilder.newAtomsBuffer, offset: 0, index: 10)
+      
+      // Bind the colors.
+      let atomColorsLength = atomColors.count * 16
+      encoder.setBytes(&atomColors, length: atomColorsLength, index: 11)
+      
+      // Bind the atom motion vectors.
+      let ringIndex = bvhBuilder.ringIndex
+      let motionVectors = bvhBuilder.motionVectorBuffers[ringIndex]
+      guard let motionVectors else {
+        fatalError("Atom-wise motion vectors were not available.")
+      }
+      encoder.setBuffer(motionVectors, offset: 0, index: 12)
+    }
     
-    // Dispatch an even number of threads (the shader will rearrange them).
-    let numThreadgroupsX = (intermediateTextureSize + 7) / 8
-    let numThreadgroupsY = (intermediateTextureSize + 7) / 8
-    encoder.dispatchThreadgroups(
-      MTLSizeMake(numThreadgroupsX, numThreadgroupsY, 1),
-      threadsPerThreadgroup: MTLSizeMake(8, 8, 1))
+    // Textures 0 - 2
+    do {
+      let jitterFrameID = argumentContainer.jitterFrameID
+      let textures = bufferedIntermediateTextures[jitterFrameID % 2]
+      encoder.setTexture(textures.color, index: 0)
+      encoder.setTexture(textures.depth, index: 1)
+      encoder.setTexture(textures.motion, index: 2)
+    }
+    
+    dispatchThreadgroups(to: encoder)
     
     encoder.endEncoding()
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -109,6 +156,7 @@ extension MRRenderer {
     commandBuffer.commit()
   }
   
+  // TODO: Refactor everything regarding upscaling into a separate file.
   private func upscale(
     commandBuffer: MTLCommandBuffer,
     drawableTexture: MTLTexture
