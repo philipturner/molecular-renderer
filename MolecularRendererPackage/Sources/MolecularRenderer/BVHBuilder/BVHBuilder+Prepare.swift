@@ -17,8 +17,7 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encodeConvert(to: encoder)
-    
-    
+    setBoundingBoxCounters(encoder: encoder)
     reduceBoundingBox(encoder: encoder)
     encoder.endEncoding()
     
@@ -115,7 +114,25 @@ extension BVHBuilder {
   }
   
   func reduceBoundingBox(encoder: MTLComputeCommandEncoder) {
-    // TODO: Begin the GPU offloading by translating the Swift CPU kernel
-    // to Metal.
+    // Argument 0
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      var atomCount = UInt32(atoms.count)
+      encoder.setBytes(&atomCount, length: 4, index: 0)
+    }
+    
+    // Arguments 1 - 2
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 1)
+    encoder.setBuffer(boundingBoxPartialsBuffer, offset: 0, index: 2)
+    
+    // Dispatch
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      let threadgroupCount = (atoms.count + 127) / 128
+      encoder.setComputePipelineState(reduceBBPart1Pipeline)
+      encoder.dispatchThreadgroups(
+        MTLSize(width: threadgroupCount, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
   }
 }

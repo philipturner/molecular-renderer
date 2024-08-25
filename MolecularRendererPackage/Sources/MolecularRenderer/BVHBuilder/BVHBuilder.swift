@@ -17,8 +17,9 @@ class BVHBuilder {
   var worldMaximum: SIMD3<Int32> = .zero
   
   // Pipeline state objects (prepare).
-  var convertPipeline: MTLComputePipelineState
   var resetMemory1DPipeline: MTLComputePipelineState
+  var convertPipeline: MTLComputePipelineState
+  var reduceBBPart1Pipeline: MTLComputePipelineState
   var setIndirectArgumentsPipeline: MTLComputePipelineState
   
   // Pipeline state objects (build).
@@ -56,9 +57,11 @@ class BVHBuilder {
       }
       return try! device.makeComputePipelineState(function: function)
     }
-    convertPipeline = createPipeline(name: "convert")
     resetMemory1DPipeline = createPipeline(name: "resetMemory1D")
+    convertPipeline = createPipeline(name: "convert")
+    reduceBBPart1Pipeline = createPipeline(name: "reduceBBPart1")
     setIndirectArgumentsPipeline = createPipeline(name: "setIndirectArguments")
+    
     densePass1Pipeline = createPipeline(name: "densePass1")
     densePass2Pipeline = createPipeline(name: "densePass2")
     densePass3Pipeline = createPipeline(name: "densePass3")

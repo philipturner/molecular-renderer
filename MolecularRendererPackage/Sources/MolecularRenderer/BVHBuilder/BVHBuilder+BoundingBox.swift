@@ -11,9 +11,7 @@ import simd
 
 func denseGridStatistics(
   atoms: [SIMD4<Float>],
-  atomRadii: [Float],
-  voxel_width_numer: Float,
-  voxel_width_denom: Float
+  atomRadii: [Float]
 ) -> (boundingBox: (SIMD3<Float>, SIMD3<Float>), references: Int) {
   precondition(atoms.count > 0, "Not enough atoms.")
   precondition(atomRadii.count > 0, "Not enough styles.")
@@ -156,11 +154,8 @@ extension BVHBuilder {
   func reduceBoundingBox() -> (SIMD3<Int32>, SIMD3<Int32>) {
     let atoms = renderer.argumentContainer.currentAtoms
     
-    var statistics = denseGridStatistics(
-      atoms: atoms,
-      atomRadii: renderer.atomRadii,
-      voxel_width_numer: 4,
-      voxel_width_denom: 16)
+    let statistics = denseGridStatistics(
+      atoms: atoms, atomRadii: renderer.atomRadii)
     guard statistics.references < 64 * 1024 * 1024 else {
       fatalError("Too many references for a dense grid.")
     }

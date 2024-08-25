@@ -19,6 +19,10 @@ import Numerics
 //   - Make everything except computation of Int32 BB be GPU-driven. [DONE]
 //   - Offload the BB reduction to the GPU, with a form almost exactly equal
 //     to the current CPU kernel.
+//     - Get feedback about whether it works (first pass).
+//     - Get feedback about whether it works (second pass).
+//     - Substitute the CPU value with the GPU value.
+//   - Delete the CPU code for reducing the bounding box.
 // - Remove the dependency on the global bounding box.
 //   - Use a different function to clear / reduce the occupied cells. This one
 //     conforms to the stride of a 3D 512x512x512 cube.
