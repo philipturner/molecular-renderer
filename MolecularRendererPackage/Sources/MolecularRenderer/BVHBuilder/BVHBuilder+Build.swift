@@ -13,7 +13,7 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    clearGlobalAtomicCounters(encoder: encoder)
+    
     clearSmallCellMetadata(encoder: encoder)
     encodePass1(to: encoder)
     encodePass2(to: encoder)
@@ -37,26 +37,15 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
-  func clearGlobalAtomicCounters(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
-    
-    // Dispatch
-    encoder.setComputePipelineState(memset0Pipeline)
-    encoder.dispatchThreads(
-      MTLSizeMake(8, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-  }
-  
   func clearSmallCellMetadata(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
     
     // Dispatch
-    let totalCells = createSmallVoxelCount()
     encoder.setComputePipelineState(memset0Pipeline)
     encoder.dispatchThreadgroups(
-      MTLSizeMake((totalCells + 127) / 128, 1, 1),
+      indirectBuffer: smallCellDispatchArguments,
+      indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
@@ -83,10 +72,10 @@ extension BVHBuilder {
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
     
     // Dispatch
-    let totalCells = createSmallVoxelCount()
     encoder.setComputePipelineState(densePass2Pipeline)
     encoder.dispatchThreadgroups(
-      MTLSizeMake((totalCells + 127) / 128, 1, 1),
+      indirectBuffer: smallCellDispatchArguments,
+      indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   

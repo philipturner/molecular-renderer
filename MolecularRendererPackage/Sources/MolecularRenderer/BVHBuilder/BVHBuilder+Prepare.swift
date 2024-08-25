@@ -17,7 +17,8 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encodeConvert(to: encoder)
-    encodeSetIndirectArguments(to: encoder)
+    setIndirectArguments(encoder: encoder)
+    clearGlobalAtomicCounters(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -88,7 +89,7 @@ extension BVHBuilder {
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  func encodeSetIndirectArguments(to encoder: MTLComputeCommandEncoder) {
+  func setIndirectArguments(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 1
     do {
       var boundingBoxMin = worldMinimum
@@ -97,13 +98,25 @@ extension BVHBuilder {
       encoder.setBytes(&boundingBoxMax, length: 16, index: 1)
     }
     
-    // Argument 2
+    // Arguments 2 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(smallCellDispatchArguments, offset: 0, index: 3)
     
     // Dispatch
     let singleThread = MTLSize(width: 1, height: 1, depth: 1)
     encoder.setComputePipelineState(setIndirectArgumentsPipeline)
     encoder.dispatchThreads(
       singleThread, threadsPerThreadgroup: singleThread)
+  }
+  
+  func clearGlobalAtomicCounters(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    
+    // Dispatch
+    encoder.setComputePipelineState(memset0Pipeline)
+    encoder.dispatchThreads(
+      MTLSizeMake(8, 1, 1),
+      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
 }

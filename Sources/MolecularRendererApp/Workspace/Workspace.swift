@@ -16,10 +16,12 @@ import Numerics
 //
 // Changing the BVH construction procedure.
 // - Offload the BB computation to the GPU.
-//   - Make everything except computation of Int32 BB be GPU-driven.
-//   - Offload the BB reduction to the GPU.
-//   - Clear a subregion matching the global BB every frame.
+//   - Make everything except computation of Int32 BB be GPU-driven. [DONE]
+//   - Offload the BB reduction to the GPU, with a form almost exactly equal
+//     to the current CPU kernel.
 // - Remove the dependency on the global bounding box.
+//   - Use a different function to clear / reduce the occupied cells. This one
+//     conforms to the stride of a 3D 512x512x512 cube.
 //
 // Optimizing the new BVH.
 // - Change the DDA, so the voxel address is computed every frame.

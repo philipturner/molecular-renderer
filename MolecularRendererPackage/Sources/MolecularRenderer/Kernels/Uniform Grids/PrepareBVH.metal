@@ -40,15 +40,16 @@ kernel void setIndirectArguments
 (
  device int3 *boundingBoxMin [[buffer(0)]],
  device int3 *boundingBoxMax [[buffer(1)]],
- device BVHArguments *bvhArgs [[buffer(2)]])
+ device BVHArguments *bvhArgs [[buffer(2)]],
+ device uint3 *smallCellDispatchArguments [[buffer(3)]])
 {
   // Read the bounding box.
   int3 minimum = *boundingBoxMin;
   int3 maximum = *boundingBoxMax;
   
   // Clamp the bounding box to the world volume.
-//  minimum = max(minimum, -64);
-//  maximum = min(maximum, 64);
+  minimum = max(minimum, -64);
+  maximum = min(maximum, 64);
   
   // Set the BVH arguments.
   {
@@ -56,5 +57,18 @@ kernel void setIndirectArguments
     bvhArgs->worldMinimum = float3(minimum);
     bvhArgs->worldMaximum = float3(maximum);
     bvhArgs->smallVoxelCount = gridDimensions;
+  }
+  
+  // Set the small-cell dispatch arguments.
+  {
+    ushort3 gridDimensions = ushort3(4 * (maximum - minimum));
+    
+    uint smallVoxelCount = 1;
+    smallVoxelCount *= uint(gridDimensions[0]);
+    smallVoxelCount *= uint(gridDimensions[1]);
+    smallVoxelCount *= uint(gridDimensions[2]);
+    
+    uint threadgroupCount = (smallVoxelCount + 127) / 128;
+    *smallCellDispatchArguments = { threadgroupCount, 1, 1 };
   }
 }
