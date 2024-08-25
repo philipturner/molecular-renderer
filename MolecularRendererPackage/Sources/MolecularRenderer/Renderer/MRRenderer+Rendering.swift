@@ -64,9 +64,18 @@ extension MRRenderer {
     
     // Arguments 0 - 2
     do {
-      // cameraArgs: TODO
-      // bvhArgs: TODO
-      // renderArgs: TODO
+      let cameraArguments = argumentContainer.createCameraArguments()
+      let bvhArguments = [bvhBuilder.createBVHArguments()]
+      let renderArguments = [argumentContainer.createRenderArguments()]
+      
+      func setBytes<T>(_ array: [T], index: Int) {
+        let elementLength = MemoryLayout<T>.stride
+        let arrayLength = array.count * elementLength
+        encoder.setBytes(array, length: arrayLength, index: index)
+      }
+      setBytes(cameraArguments, index: 0)
+      setBytes(bvhArguments, index: 1)
+      setBytes(renderArguments, index: 2)
     }
     
     // Arguments 5 - 6

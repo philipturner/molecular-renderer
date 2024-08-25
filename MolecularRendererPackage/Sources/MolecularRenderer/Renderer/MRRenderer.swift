@@ -135,5 +135,8 @@ public class MRRenderer {
       handler()
     }
     commandBuffer.commit()
+    
+    // Allow the current camera to be used in the next frame.
+    argumentContainer.registerCompletedFrame()
   }
 }
