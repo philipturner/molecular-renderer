@@ -37,6 +37,7 @@ extension BVHBuilder {
 
 extension BVHBuilder {
   func preprocessAtoms(commandQueue: MTLCommandQueue, frameID: Int) {
+    let ringIndex = renderer.argumentContainer.tripleBufferIndex()
     let atomsBuffer = allocate(
       &denseGridAtoms[ringIndex],
       desiredElements: atoms.count,

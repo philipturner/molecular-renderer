@@ -117,9 +117,6 @@ public class MRRenderer {
     updateGeometry()
     bvhBuilder.updateResources()
     
-    // Update the counters.
-    updateCounters()
-    
     // Dispatch the compute work.
     let frameID = bvhBuilder.frameReportCounter
     bvhBuilder.preprocessAtoms(commandQueue: commandQueue, frameID: frameID)

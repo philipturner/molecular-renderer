@@ -55,7 +55,6 @@ class BVHBuilder {
   // Data for uniform grids.
   var worldOrigin: SIMD3<Int16> = .zero
   var worldDimensions: SIMD3<Int16> = .zero
-  var ringIndex: Int = 0
   var denseGridData: MTLBuffer?
   var denseGridCounters: MTLBuffer?
   var denseGridReferences: MTLBuffer?

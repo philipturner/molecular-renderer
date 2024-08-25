@@ -73,16 +73,17 @@ extension MRRenderer {
   }
   
   func updateUpscaler(reset: Bool) {
-    let jitterFrameID = argumentContainer.jitterFrameID
-    let jitterOffsets = argumentContainer.createJitterOffsets()
-    
     // Bind the intermediate textures.
-    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
+    let textureIndex = argumentContainer.doubleBufferIndex()
+    let textures = bufferedIntermediateTextures[textureIndex]
     upscaler.reset = reset
     upscaler.colorTexture = textures.color
     upscaler.depthTexture = textures.depth
     upscaler.motionTexture = textures.motion
     upscaler.outputTexture = textures.upscaled
+    
+    // Assign the jitter offsets.
+    let jitterOffsets = argumentContainer.createJitterOffsets()
     upscaler.jitterOffsetX = -jitterOffsets.x
     upscaler.jitterOffsetY = -jitterOffsets.y
   }
@@ -95,19 +96,22 @@ extension MRRenderer {
     updateResetTracker()
     updateUpscaler(reset: resetTracker.resetUpscaler)
     
-    // Start a new command buffer.
+    // Start a command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     upscaler.encode(commandBuffer: commandBuffer)
     
-    // Locate the upscaled texture.
-    let jitterFrameID = argumentContainer.jitterFrameID
-    let textures = bufferedIntermediateTextures[jitterFrameID % 2]
-    
-    // Copy the upscaled texture to the drawable.
+    // Start a blit encoder.
     let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
+    
+    // Bind the upscaled texture.
+    let textureIndex = argumentContainer.doubleBufferIndex()
+    let textures = bufferedIntermediateTextures[textureIndex]
     blitEncoder.copy(from: textures.upscaled, to: drawable.texture)
+    
+    // Finish the blit encoder.
     blitEncoder.endEncoding()
     
+    // Finish the command buffer.
     commandBuffer.commit()
   }
 }

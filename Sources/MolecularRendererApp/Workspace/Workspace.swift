@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if true
+#if false
 
 // TODO: Changing the BVH construction procedure.
 // - Adapt the ray tracing code, so the reference grid has a fixed size.
@@ -200,7 +200,7 @@ func createGeometry() -> [[Atom]] {
   // MARK: - Record simulation frames for playback.
   
   var frames: [[Atom]] = []
-  for frameID in 0...600 {
+  for frameID in 0...300 {
     let time = Double(frameID) * 0.010
     print("frame = \(frameID)", terminator: " | ")
     print("time = \(String(format: "%.2f", time))")

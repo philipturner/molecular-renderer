@@ -302,6 +302,7 @@ extension BVHBuilder {
     encoder.setBytes(&arguments, length: argumentsStride, index: 0)
     
     // Set the data at offset 32, to fit the counters before it.
+    let ringIndex = renderer.argumentContainer.tripleBufferIndex()
     encoder.setBuffer(dataBuffer, offset: 32, index: 3)
     encoder.setBuffer(countersBuffer, offset: 0, index: 4)
     encoder.setBuffer(dataBuffer, offset: ringIndex * 4, index: 5)
