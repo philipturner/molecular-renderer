@@ -63,17 +63,12 @@ extension MRRenderer {
     
     // Arguments 5 - 6
     do {
-      let denseGridData = bvhBuilder.denseGridData
-      let denseGridReferences = bvhBuilder.denseGridReferences
-      guard let denseGridData,
-            let denseGridReferences else {
-        fatalError("BVH was not available.")
-      }
-      
-      // Bind the dense grid data at offset 32.
-      encoder.setBuffer(denseGridData, offset: 32, index: 5)
+      // Bind the dense grid data.
+      let denseGridData = bvhBuilder.smallCellMetadata
+      encoder.setBuffer(denseGridData, offset: 0, index: 5)
       
       // Bind the dense grid references.
+      let denseGridReferences = bvhBuilder.smallCellAtomReferences
       encoder.setBuffer(denseGridReferences, offset: 0, index: 6)
     }
     

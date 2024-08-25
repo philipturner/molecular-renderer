@@ -154,27 +154,20 @@ func denseGridStatistics(
 }
 
 extension BVHBuilder {
-  func buildDenseGrid(commandQueue: MTLCommandQueue, frameID: Int) {
+  func reduceBoundingBox() -> (SIMD3<Float>, SIMD3<Float>) {
     let atoms = renderer.argumentContainer.currentAtoms
     
-    let voxel_width_numer: Float = 4
-    let voxel_width_denom: Float = 16
-    let preprocessingStart = CACurrentMediaTime()
     var statistics = denseGridStatistics(
       atoms: atoms,
       atomRadii: renderer.atomRadii,
-      voxel_width_numer: voxel_width_numer,
-      voxel_width_denom: voxel_width_denom)
-    let preprocessingEnd = CACurrentMediaTime()
+      voxel_width_numer: 4,
+      voxel_width_denom: 16)
+    guard statistics.references < 64 * 1024 * 1024 else {
+      fatalError("Too many references for a dense grid.")
+    }
     
-    
-    
-    var minCoordinates = SIMD3(statistics.boundingBox.0.x,
-                               statistics.boundingBox.0.y,
-                               statistics.boundingBox.0.z)
-    var maxCoordinates = SIMD3(statistics.boundingBox.1.x,
-                               statistics.boundingBox.1.y,
-                               statistics.boundingBox.1.z)
+    var minCoordinates = statistics.boundingBox.0
+    var maxCoordinates = statistics.boundingBox.1
     
     // Round to the nearest multiple of 2 nm.
     do {
@@ -185,44 +178,24 @@ extension BVHBuilder {
       minCoordinates *= 2
       maxCoordinates *= 2
     }
-    guard all(minCoordinates .>= -64),
-          all(maxCoordinates .<= 64) else {
-      fatalError("Some atoms will be omitted from the render.")
+    
+    // Clamp to [-64, 64].
+    minCoordinates.replace(with: -64, where: minCoordinates .< -64)
+    maxCoordinates.replace(with: 64, where: maxCoordinates .> 64)
+    
+    return (minCoordinates, maxCoordinates)
+  }
+  
+  func buildDenseGrid(commandQueue: MTLCommandQueue, frameID: Int) {
+    let atoms = renderer.argumentContainer.currentAtoms
+    
+    let preprocessingStart = CACurrentMediaTime()
+    do {
+      let boundingBox = reduceBoundingBox()
+      worldOrigin = SIMD3<Int16>(boundingBox.0)
+      worldDimensions = SIMD3<Int16>(boundingBox.1 - boundingBox.0)
     }
-    
-    self.worldOrigin = SIMD3<Int16>(minCoordinates)
-    self.worldDimensions = SIMD3<Int16>(maxCoordinates - minCoordinates)
-    
-    worldOrigin.replace(
-      with: SIMD3(repeating: -100), where: worldOrigin .< -100)
-    worldDimensions.replace(
-      with: SIMD3(repeating: 200), where: worldDimensions .> 200)
-    
-    let totalCells = 64
-    * Int(worldDimensions[0])
-    * Int(worldDimensions[1])
-    * Int(worldDimensions[2])
-    guard statistics.references < 64 * 1024 * 1024 else {
-      fatalError("Too many references for a dense grid.")
-    }
-    
-    // Allocate new memory.
-    
-    // Add 8 to the number of slots, so the counters can be located at the start
-    // of the buffer.
-    let numSlots = (totalCells + 127) / 128 * 128
-    let dataBuffer = allocate(
-      &denseGridData,
-      desiredElements: 8 + numSlots,
-      bytesPerElement: 4)
-    let countersBuffer = allocate(
-      &denseGridCounters,
-      desiredElements: totalCells,
-      bytesPerElement: 4)
-    let referencesBuffer = allocate(
-      &denseGridReferences,
-      desiredElements: statistics.references,
-      bytesPerElement: 4)
+    let preprocessingEnd = CACurrentMediaTime()
     
     // The first rendered frame will have an ID of 1.
     frameReportCounter += 1
@@ -283,44 +256,74 @@ extension BVHBuilder {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     
-    encoder.setComputePipelineState(memsetPipeline)
-    encoder.setBuffer(dataBuffer, offset: 0, index: 0)
-    encoder.dispatchThreads(
-      MTLSizeMake(8 + numSlots, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
-    
-    struct UniformGridArguments {
-      var worldMinimum: SIMD3<Float>
-      var worldMaximum: SIMD3<Float>
-      var smallVoxelCount: SIMD3<Int16>
+    // Clear the global atomic counters.
+    do {
+      encoder.setComputePipelineState(memsetPipeline)
+      encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+      encoder.dispatchThreads(
+        MTLSizeMake(8, 1, 1),
+        threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
     }
     
-    let smallVoxelCount = 4 &* worldDimensions
-    var arguments: UniformGridArguments = .init(
-      worldMinimum: SIMD3(worldOrigin),
-      worldMaximum: SIMD3(worldOrigin &+ worldDimensions),
-      smallVoxelCount: smallVoxelCount)
-    let argumentsStride = MemoryLayout<UniformGridArguments>.stride
-    encoder.setBytes(&arguments, length: argumentsStride, index: 0)
+    // Clear the small cell metadata.
+    do {
+      let totalCells = 64
+      * Int(worldDimensions[0])
+      * Int(worldDimensions[1])
+      * Int(worldDimensions[2])
+      
+      encoder.setComputePipelineState(memsetPipeline)
+      encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
+      encoder.dispatchThreadgroups(
+        MTLSizeMake((totalCells + 255) / 256, 1, 1),
+        threadsPerThreadgroup: MTLSizeMake(256, 1, 1))
+    }
+    
+    // Bind the uniform grid arguments.
+    do {
+      struct UniformGridArguments {
+        var worldMinimum: SIMD3<Float>
+        var worldMaximum: SIMD3<Float>
+        var smallVoxelCount: SIMD3<Int16>
+      }
+      
+      let smallVoxelCount = 4 &* worldDimensions
+      var arguments: UniformGridArguments = .init(
+        worldMinimum: SIMD3(worldOrigin),
+        worldMaximum: SIMD3(worldOrigin &+ worldDimensions),
+        smallVoxelCount: smallVoxelCount)
+      let argumentsStride = MemoryLayout<UniformGridArguments>.stride
+      encoder.setBytes(&arguments, length: argumentsStride, index: 0)
+    }
     
     let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-    encoder.setBuffer(dataBuffer, offset: 32, index: 3)
-    encoder.setBuffer(countersBuffer, offset: 0, index: 4)
-    encoder.setBuffer(dataBuffer, offset: tripleIndex * 4, index: 5)
-    encoder.setBuffer(referencesBuffer, offset: 0, index: 6)
-    encoder.setBuffer(dataBuffer, offset: tripleIndex * 4 + 16, index: 7)
+    encoder.setBuffer(smallCellMetadata, offset: 0, index: 3)
+    encoder.setBuffer(smallCellCounters, offset: 0, index: 4)
+    encoder.setBuffer(globalAtomicCounters, offset: tripleIndex * 4, index: 5)
+    encoder.setBuffer(smallCellAtomReferences, offset: 0, index: 6)
+    encoder.setBuffer(globalAtomicCounters, offset: tripleIndex * 4 + 16, index: 7)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 10)
     
+    // Encode the first pass.
     encoder.setComputePipelineState(densePass1Pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
     
-    encoder.setComputePipelineState(densePass2Pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSizeMake(numSlots / 128, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    // Encode the second pass.
+    do {
+      let totalCells = 64
+      * Int(worldDimensions[0])
+      * Int(worldDimensions[1])
+      * Int(worldDimensions[2])
+      
+      encoder.setComputePipelineState(densePass2Pipeline)
+      encoder.dispatchThreadgroups(
+        MTLSizeMake((totalCells + 127) / 128, 1, 1),
+        threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+    }
     
+    // Encode the third pass.
     encoder.setComputePipelineState(densePass3Pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),

@@ -45,12 +45,9 @@ class BVHBuilder {
   var frameReportCounter: Int = 0
   static let frameReportHistorySize: Int = 10
   
-  // Data for uniform grids.
+  // BVH state information.
   var worldOrigin: SIMD3<Int16> = .zero
   var worldDimensions: SIMD3<Int16> = .zero
-  var denseGridData: MTLBuffer?
-  var denseGridCounters: MTLBuffer?
-  var denseGridReferences: MTLBuffer?
   
   // Pipeline state objects.
   var memsetPipeline: MTLComputePipelineState
@@ -59,9 +56,15 @@ class BVHBuilder {
   var densePass2Pipeline: MTLComputePipelineState
   var densePass3Pipeline: MTLComputePipelineState
   
-  // Data buffers.
+  // Data buffers (per atom).
   var originalAtomsBuffers: [MTLBuffer]
   var convertedAtomsBuffer: MTLBuffer
+  
+  // Data buffers (other).
+  var globalAtomicCounters: MTLBuffer
+  var smallCellMetadata: MTLBuffer
+  var smallCellCounters: MTLBuffer
+  var smallCellAtomReferences: MTLBuffer
   
   public init(
     renderer: MRRenderer,
@@ -94,6 +97,7 @@ class BVHBuilder {
     densePass3Pipeline = try! device
       .makeComputePipelineState(function: densePass3Function)
     
+    // Allocate data buffers (per atom).
     func createAtomBuffer(device: MTLDevice) -> MTLBuffer {
       // Limited to 4 million atoms for now.
       let bufferSize: Int = (4 * 1024 * 1024) * 16
@@ -105,27 +109,11 @@ class BVHBuilder {
       createAtomBuffer(device: device),
     ]
     convertedAtomsBuffer = createAtomBuffer(device: device)
-  }
-}
-
-extension BVHBuilder {
-  func allocate(
-    _ buffer: inout MTLBuffer?,
-    desiredElements: Int,
-    bytesPerElement: Int
-  ) -> MTLBuffer {
-    if let buffer,
-       buffer.length >= desiredElements * bytesPerElement {
-      return buffer
-    }
-    var maxElements = (buffer?.length ?? 0) / bytesPerElement
-    while maxElements < desiredElements {
-      maxElements = max(1, maxElements << 1)
-    }
     
-    let bufferSize = maxElements * bytesPerElement
-    let newBuffer = device.makeBuffer(length: bufferSize)!
-    buffer = newBuffer
-    return newBuffer
+    // Allocate data buffers (other).
+    globalAtomicCounters = device.makeBuffer(length: 8 * 4)!
+    smallCellMetadata = device.makeBuffer(length: 512 * 512 * 512 * 4)!
+    smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
+    smallCellAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
   }
 }

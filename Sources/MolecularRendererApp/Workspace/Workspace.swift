@@ -3,13 +3,14 @@ import HDL
 import MM4
 import Numerics
 
-#if false
+#if true
 
 // TODO: Changing the BVH construction procedure.
 // - Clean up the BVH builder.
 //   - De-obfuscate the atom buffers. [DONE]
 //   - Remove the CPU code that wrote motion vectors to memory. [DONE]
 //   - De-obfuscate the 'denseGridData' buffer.
+//   - De-obfuscate the encoding of the old BVH building.
 // - Adapt the ray tracing code, so the reference grid has a fixed size.
 //   - Clear a subregion matching the global BB every frame.
 // - Remove the dependency on the global bounding box.
