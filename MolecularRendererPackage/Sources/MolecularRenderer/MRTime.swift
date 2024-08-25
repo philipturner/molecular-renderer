@@ -35,8 +35,6 @@ public struct MRTime {
   }
 }
 
-
-
 // MARK: - MRRenderer Methods
 
 extension MRRenderer {
