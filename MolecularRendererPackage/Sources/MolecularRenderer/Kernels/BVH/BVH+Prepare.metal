@@ -44,7 +44,9 @@ kernel void reduceBoxPart1
  device int3 *partials [[buffer(2)]],
  
  uint tgid [[threadgroup_position_in_grid]],
- ushort thread_id [[thread_position_in_threadgroup]])
+ ushort thread_id [[thread_position_in_threadgroup]],
+ ushort lane_id [[thread_index_in_simdgroup]],
+ ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Fetch the atom from memory.
   uint atomID = tgid * 128 + thread_id;
@@ -71,14 +73,13 @@ kernel void reduceBoxPart1
   threadgroup_barrier(mem_flags::mem_threadgroup);
   threadgroup int3 threadgroupMinimum[4];
   threadgroup int3 threadgroupMaximum[4];
-  if (thread_id % 32 == 0) {
-    ushort simdIndex = thread_id / 32;
-    threadgroupMinimum[simdIndex] = minimum;
-    threadgroupMaximum[simdIndex] = maximum;
+  if (lane_id == 0) {
+    threadgroupMinimum[simd_id] = minimum;
+    threadgroupMaximum[simd_id] = maximum;
   }
-  threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Reduce across the SIMD.
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   if (thread_id < 32) {
     minimum = threadgroupMinimum[thread_id % 4];
     minimum = simd_min(minimum);
@@ -88,10 +89,12 @@ kernel void reduceBoxPart1
   }
   
   // Store the result to memory.
-  if (thread_id == 0) {
-    partials[2 * tgid + 0] = minimum;
-  } else if (thread_id == 32) {
-    partials[2 * tgid + 1] = maximum;
+  if (lane_id == 0) {
+    if (simd_id == 0) {
+      partials[2 * tgid + 0] = minimum;
+    } else if (simd_id == 1) {
+      partials[2 * tgid + 1] = maximum;
+    }
   }
 }
 
@@ -116,7 +119,9 @@ kernel void reduceBoxPart2
  device atomic_int *boundingBoxCounters [[buffer(2)]],
  
  uint tgid [[threadgroup_position_in_grid]],
- ushort thread_id [[thread_position_in_threadgroup]])
+ ushort thread_id [[thread_position_in_threadgroup]],
+ ushort lane_id [[thread_index_in_simdgroup]],
+ ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Fetch the partial from memory.
   uint partialID = tgid * 128 + thread_id;
@@ -131,14 +136,13 @@ kernel void reduceBoxPart2
   // Reduce across the threadgroup.
   threadgroup int3 threadgroupMinimum[4];
   threadgroup int3 threadgroupMaximum[4];
-  if (thread_id % 32 == 0) {
-    ushort simdIndex = thread_id / 32;
-    threadgroupMinimum[simdIndex] = minimum;
-    threadgroupMaximum[simdIndex] = maximum;
+  if (lane_id == 0) {
+    threadgroupMinimum[simd_id] = minimum;
+    threadgroupMaximum[simd_id] = maximum;
   }
-  threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Reduce across the SIMD.
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   if (thread_id < 32) {
     minimum = threadgroupMinimum[thread_id % 4];
     minimum = simd_min(minimum);
@@ -148,8 +152,6 @@ kernel void reduceBoxPart2
   }
   
   // Store the result to memory.
-  ushort lane_id = thread_id % 32;
-  ushort simd_id = thread_id / 32;
   if (lane_id < 3) {
     if (simd_id == 0) {
       int minimumScalar = vectorSelect(minimum, lane_id);
