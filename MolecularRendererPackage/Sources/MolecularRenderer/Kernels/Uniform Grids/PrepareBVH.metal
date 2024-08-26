@@ -91,15 +91,30 @@ kernel void reduceBBPart1
   // Reduce across the SIMD.
   if (thread_id < 32) {
     minimum = threadgroupMinimum[thread_id % 8];
-    maximum = threadgroupMaximum[thread_id % 8];
     minimum = simd_min(minimum);
+  } else if (thread_id < 64) {
+    maximum = threadgroupMaximum[thread_id % 8];
     maximum = simd_max(maximum);
   }
   
   // Store the result to memory.
   if (thread_id == 0) {
     partials[2 * tgid + 0] = minimum;
+  } else if (thread_id == 1) {
     partials[2 * tgid + 1] = maximum;
+  }
+}
+
+// Utility for distributing different vector lanes to different threads.
+inline int vectorSelect(int3 vector, ushort lane) {
+  if (lane == 0) {
+    return vector[0];
+  } else if (lane == 1) {
+    return vector[1];
+  } else if (lane == 2) {
+    return vector[2];
+  } else {
+    return 0;
   }
 }
 
@@ -118,6 +133,40 @@ kernel void reduceBBPart2
   partialID = min(partialID, partialCount - 1);
   int3 minimum = partials[2 * partialID + 0];
   int3 maximum = partials[2 * partialID + 1];
+  
+  // Reduce across the SIMD.
+  minimum = simd_min(minimum);
+  maximum = simd_max(maximum);
+  
+  // Reduce across the threadgroup.
+  threadgroup int3 threadgroupMinimum[8];
+  threadgroup int3 threadgroupMaximum[8];
+  if (thread_id % 32 == 0) {
+    ushort simdIndex = thread_id / 32;
+    threadgroupMinimum[simdIndex] = minimum;
+    threadgroupMaximum[simdIndex] = maximum;
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  
+  // Reduce across the SIMD.
+  if (thread_id < 32) {
+    minimum = threadgroupMinimum[thread_id % 8];
+    minimum = simd_min(minimum);
+  } else if (thread_id < 64) {
+    maximum = threadgroupMaximum[thread_id % 8];
+    maximum = simd_max(maximum);
+  }
+  
+  // Store the result to memory.
+  if (thread_id % 32 < 3) {
+    ushort lane_id = thread_id;
+    
+    if (thread_id < 32) {
+      int minimumScalar = vectorSelect(minimum, lane_id);
+    } else if (thread_id < 64) {
+      int maximumScalar = vectorSelect(maximum, lane_id);
+    }
+  }
 }
 
 // A single GPU thread encodes some GPU-driven work.
