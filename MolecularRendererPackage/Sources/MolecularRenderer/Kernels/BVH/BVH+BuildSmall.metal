@@ -13,18 +13,16 @@ using namespace metal;
 kernel void clearSmallCellMetadata
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint *smallCellMetadata [[buffer(1)]],
+ device uint4 *smallCellMetadata [[buffer(1)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
-  ushort3 coordinates = tgid * 8;
-  coordinates += thread_id * ushort3(4, 1, 1);
-  
-  ushort3 grid_dims = bvhArgs->smallVoxelCount;
-  uint address = VoxelAddress::generate(grid_dims, coordinates);
-  auto pointer = (device uint4*)(smallCellMetadata + address);
-  *pointer = uint4(0);
+  ushort3 cellCoordinates = tgid * 8;
+  cellCoordinates += thread_id * ushort3(4, 1, 1);
+  uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
+                                            cellCoordinates);
+  smallCellMetadata[cellAddress / 4] = uint4(0);
 }
 
 // Quantize a position relative to the world origin.
@@ -98,8 +96,7 @@ kernel void buildSmallPart1
 // - The BVH arguments are bound to the buffer table.
 // - Use "densePass2v2" until the rewritten function is fully debugged.
 
-// TODO: Cleaning up references to SIMD ID and lane ID.
-#if 1
+#if 0
 kernel void buildSmallPart2
 (
  device uint *smallCellMetadata [[buffer(0)]],
@@ -158,8 +155,8 @@ kernel void buildSmallPart2
 kernel void buildSmallPart2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint *smallCellMetadata [[buffer(1)]],
- device uint *smallCellCounters [[buffer(2)]],
+ device uint4 *smallCellMetadata [[buffer(1)]],
+ device uint4 *smallCellCounters [[buffer(2)]],
  device atomic_uint *globalAtomicCounter [[buffer(3)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
@@ -167,17 +164,12 @@ kernel void buildSmallPart2
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Load the small-cell atom counts.
-  uint4 cellAtomCounts;
-  {
-    ushort3 coordinates = tgid * 8;
-    coordinates += thread_id * ushort3(4, 1, 1);
-    
-    ushort3 grid_dims = bvhArgs->smallVoxelCount;
-    uint address = VoxelAddress::generate(grid_dims, coordinates);
-    auto pointer = (device uint4*)(smallCellMetadata + address);
-    cellAtomCounts = *pointer;
-  }
+  // Load the cell atom counts.
+  ushort3 cellCoordinates = tgid * 8;
+  cellCoordinates += thread_id * ushort3(4, 1, 1);
+  uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
+                                            cellCoordinates);
+  uint4 cellAtomCounts = smallCellMetadata[cellAddress / 4];
   
   // Reduce across the thread.
   uint4 cellAtomOffsets;
@@ -185,28 +177,74 @@ kernel void buildSmallPart2
   cellAtomOffsets[1] = cellAtomOffsets[0] + cellAtomCounts[0];
   cellAtomOffsets[2] = cellAtomOffsets[1] + cellAtomCounts[1];
   cellAtomOffsets[3] = cellAtomOffsets[2] + cellAtomCounts[2];
+  uint threadAtomCount = cellAtomOffsets[3] + cellAtomOffsets[3];
   
   // Reduce across the SIMD.
-  uint simdAtomCount;
-  {
-    uint threadAtomCount = cellAtomOffsets[3] + cellAtomOffsets[3];
-    uint threadAtomOffset = simd_prefix_exclusive_sum(threadAtomCount);
-    simdAtomCount = simd_broadcast(threadAtomOffset + threadAtomCount, 31);
-    cellAtomOffsets += threadAtomOffset;
-  }
+  uint threadAtomOffset = simd_prefix_exclusive_sum(threadAtomCount);
+  uint simdAtomCount = simd_broadcast(threadAtomOffset + threadAtomCount, 31);
   
-  // Reduce across the threadgroup.
-  threadgroup uint threadgroupCellCounts[4];
-  threadgroup uint threadgroupCellOffsets[4];
+  // Reduce across the entire group.
+  threadgroup uint simdAtomCounts[4];
   if (lane_id == 0) {
-    threadgroupCellCounts[simd_id] = simdAtomCount;
+    simdAtomCounts[simd_id] = simdAtomCount;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // Reduce across the SIMD.
+  // Reduce across the entire GPU.
+  threadgroup uint simdAtomOffsets[4];
   if (simd_id == 0) {
+    uint simdAtomCount = simdAtomCounts[lane_id % 4];
+    uint simdAtomOffset = simd_prefix_exclusive_sum(simdAtomCount);
+    uint groupAtomCount = simd_broadcast(simdAtomOffset + simdAtomCount, 3);
     
+    // This part may be a parallelization bottleneck on large GPUs.
+    uint groupAtomOffset = 0;
+    if (lane_id == 0) {
+      groupAtomOffset =
+      atomic_fetch_add_explicit(globalAtomicCounter,
+                                groupAtomCount, memory_order_relaxed);
+    }
+    
+#if 0
+    groupAtomOffset = simd_broadcast(groupAtomOffset, 0);
+    
+    // Add the group offset to the SIMD offset.
+    if (lane_id < 3) {
+      simdAtomOffset += groupAtomOffset;
+      simdAtomOffsets[lane_id] = simdAtomOffset;
+    }
+#endif
   }
+  
+#if 0
+  
+  // Add the SIMD offset to the thread offset.
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  threadAtomOffset += simdAtomOffsets[lane_id];
+  cellAtomOffsets += threadAtomOffset;
+  
+  // Encode the offset and count into a single word.
+  uint4 cellMetadata = uint4(0);
+#pragma clang loop unroll(full)
+  for (uint cellID = 0; cellID < 4; ++cellID) {
+    uint atomOffset = cellAtomOffsets[cellID];
+    uint atomCount = cellAtomCounts[cellID];
+    if (atomOffset + atomCount > dense_grid_reference_capacity) {
+      atomOffset = 0;
+      atomCount = 0;
+    }
+    
+    uint countPart = reverse_bits(atomCount) & voxel_count_mask;
+    uint offsetPart = atomOffset & voxel_offset_mask;
+    uint metadata = countPart | offsetPart;
+    cellMetadata[cellID] = metadata;
+  }
+  
+  // Store the result to memory.
+  smallCellMetadata[cellAddress / 4] = cellMetadata;
+  smallCellCounters[cellAddress / 4] = cellAtomOffsets;
+  
+#endif
 }
 #endif
 

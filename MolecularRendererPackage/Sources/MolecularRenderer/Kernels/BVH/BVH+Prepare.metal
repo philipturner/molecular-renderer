@@ -48,7 +48,7 @@ kernel void reduceBoxPart1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Fetch the atom from memory.
+  // Load the atom.
   uint atomID = tgid * 128 + thread_id;
   atomID = min(atomID, atomCount - 1);
   float4 atom = convertedAtoms[atomID];
@@ -88,7 +88,7 @@ kernel void reduceBoxPart1
     maximum = simd_max(maximum);
   }
   
-  // Store the result to memory.
+  // Store the result.
   if (lane_id == 0) {
     if (simd_id == 0) {
       partials[2 * tgid + 0] = minimum;
@@ -123,7 +123,7 @@ kernel void reduceBoxPart2
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Fetch the partial from memory.
+  // Load the partially reduced values.
   uint partialID = tgid * 128 + thread_id;
   partialID = min(partialID, partialCount - 1);
   int3 minimum = partials[2 * partialID + 0];
@@ -151,7 +151,7 @@ kernel void reduceBoxPart2
     maximum = simd_max(maximum);
   }
   
-  // Store the result to memory.
+  // Store the result.
   if (lane_id < 3) {
     if (simd_id == 0) {
       int minimumScalar = vectorSelect(minimum, lane_id);

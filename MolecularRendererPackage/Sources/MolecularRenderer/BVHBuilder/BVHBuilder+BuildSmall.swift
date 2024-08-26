@@ -39,7 +39,6 @@ extension BVHBuilder {
     
     buildSmallPart1(encoder: encoder)
     buildSmallPart2(encoder: encoder)
-    buildSmallPart3(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -55,6 +54,21 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+    commandBuffer.waitUntilCompleted()
+    
+    let counter = globalAtomicCounters.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    print()
+    print(counter.pointee)
+    print()
+    
+    let dispatchArguments = smallCellDispatchArguments8x8x8.contents()
+      .assumingMemoryBound(to: SIMD3<UInt32>.self)
+    print()
+    print(dispatchArguments.pointee)
+    print()
+    
+    exit(0)
   }
 }
 
@@ -124,7 +138,7 @@ extension BVHBuilder {
   }
   
   func buildSmallPart2(encoder: MTLComputeCommandEncoder) {
-    
+    /*
     // Arguments 0 - 2
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
     encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
@@ -137,8 +151,8 @@ extension BVHBuilder {
       indirectBuffer: smallCellDispatchArguments128x1x1,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-     
-    /*
+     */
+    
     // Arguments 0 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
@@ -152,7 +166,6 @@ extension BVHBuilder {
       indirectBuffer: smallCellDispatchArguments8x8x8,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
-     */
   }
   
   func buildSmallPart3(encoder: MTLComputeCommandEncoder) {
