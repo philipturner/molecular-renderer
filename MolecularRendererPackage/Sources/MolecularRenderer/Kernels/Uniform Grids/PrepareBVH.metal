@@ -88,7 +88,15 @@ kernel void reduceBBPart1
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // Write something to memory.
+  // Reduce across the SIMD.
+  if (thread_id < 32) {
+    minimum = threadgroupMinimum[thread_id % 8];
+    maximum = threadgroupMaximum[thread_id % 8];
+    minimum = simd_min(minimum);
+    maximum = simd_max(maximum);
+  }
+  
+  // Store the result to memory.
   if (thread_id == 0) {
     partials[2 * tgid + 0] = minimum;
     partials[2 * tgid + 1] = maximum;
