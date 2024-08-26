@@ -62,17 +62,37 @@ kernel void reduceBBPart1
   atomID = min(atomID, atomCount - 1);
   float4 atom = convertedAtoms[atomID];
   
-  // Compute the bounding box.
-  float3 minimum = atom.xyz - atom.w;
-  float3 maximum = atom.xyz + atom.w;
-  minimum = 2 * floor(minimum / 2);
-  maximum = 2 * ceil(maximum / 2);
+  // Compute the atom's bounding box.
+  int3 minimum;
+  int3 maximum;
+  {
+    float3 lowerCorner = atom.xyz - atom.w;
+    float3 upperCorner = atom.xyz + atom.w;
+    lowerCorner = 2 * floor(lowerCorner / 2);
+    upperCorner = 2 * ceil(upperCorner / 2);
+    minimum = int3(lowerCorner);
+    maximum = int3(upperCorner);
+  }
+  
+  // Reduce across the SIMD.
+  minimum = simd_min(minimum);
+  maximum = simd_max(maximum);
+  
+  // Reduce across the threadgroup.
+  threadgroup int3 threadgroupMinimum[8];
+  threadgroup int3 threadgroupMaximum[8];
+  if (thread_id % 32 == 0) {
+    ushort simdIndex = thread_id / 32;
+    threadgroupMinimum[simdIndex] = minimum;
+    threadgroupMaximum[simdIndex] = maximum;
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Write something to memory.
-  int3 minimumInt = int3(minimum);
-  int3 maximumInt = int3(maximum);
-  partials[2 * tgid + 0] = minimumInt;
-  partials[2 * tgid + 1] = maximumInt;
+  if (thread_id == 0) {
+    partials[2 * tgid + 0] = minimum;
+    partials[2 * tgid + 1] = maximum;
+  }
 }
 
 // A single GPU thread encodes some GPU-driven work.

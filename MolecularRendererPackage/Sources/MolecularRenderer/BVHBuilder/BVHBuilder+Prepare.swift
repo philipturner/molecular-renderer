@@ -36,25 +36,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-    commandBuffer.waitUntilCompleted()
-    
-    let partials = boundingBoxPartialsBuffer.contents()
-      .assumingMemoryBound(to: SIMD3<Int32>.self)
-    let atoms = renderer.argumentContainer.currentAtoms
-    let groupCount = (atoms.count + 127) / 128
-    
-    for groupID in 0..<groupCount {
-      let minimum = partials[2 * groupID + 0]
-      let maximum = partials[2 * groupID + 1]
-      print("group \(groupID) | ", minimum, maximum)
-    }
-    
-    print()
-    print("true bounding box:")
-    print(worldMinimum)
-    print(worldMaximum)
-    
-    exit(0)
   }
 }
 
