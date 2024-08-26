@@ -5,9 +5,12 @@
 //  Created by Philip Turner on 5/21/23.
 //
 
+#ifndef LIGHTING_H
+#define LIGHTING_H
+
 #include <metal_stdlib>
+#include "../Ray/RayTraversal.metal"
 #include "../Utilities/Constants.metal"
-#include "../Ray Tracing/RayTracing.metal"
 using namespace metal;
 
 // Handle specular and diffuse color, and transform raw AO hits into
@@ -232,3 +235,5 @@ public:
     motionTexture.write(writtenMotionVector, pixelCoords);
   }
 };
+
+#endif // LIGHTING_H

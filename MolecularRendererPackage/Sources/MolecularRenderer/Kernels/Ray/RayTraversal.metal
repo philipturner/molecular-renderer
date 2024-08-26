@@ -1,17 +1,17 @@
 //
-//  RayTracing.metal
+//  RayTraversal.metal
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 4/14/23.
 //
 
-#ifndef RAY_TRACING_H
-#define RAY_TRACING_H
+#ifndef RAY_TRAVERSAL_H
+#define RAY_TRAVERSAL_H
 
 #include <metal_stdlib>
+#include "../Ray/DDA.metal"
+#include "../Ray/Ray.metal"
 #include "../Utilities/Constants.metal"
-#include "Ray.metal"
-#include "../Uniform Grids/DDA.metal"
 using namespace metal;
 
 struct _IntersectionResult {
@@ -138,4 +138,4 @@ public:
   }
 };
 
-#endif
+#endif // RAY_TRAVERSAL_H

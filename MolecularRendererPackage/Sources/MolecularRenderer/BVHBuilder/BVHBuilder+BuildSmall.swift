@@ -1,5 +1,5 @@
 //
-//  BVHBuilder+Preprocessing.swift
+//  BVHBuilder+BuildSmall.swift
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 10/27/23.
@@ -8,7 +8,7 @@
 import Metal
 
 extension BVHBuilder {
-  func buildBVH(frameID: Int) {
+  func buildSmallBVH(frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!

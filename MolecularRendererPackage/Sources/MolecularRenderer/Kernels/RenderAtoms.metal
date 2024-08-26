@@ -6,11 +6,10 @@
 //
 
 #include <metal_stdlib>
-#include "Utilities/Constants.metal"
 #include "Lighting/Lighting.metal"
-#include "Ray Tracing/RayTracing.metal"
-#include "Ray Tracing/RayGeneration.metal"
-#include "Uniform Grids/DDA.metal"
+#include "Ray/RayGeneration.metal"
+#include "Ray/RayTraversal.metal"
+#include "Utilities/Constants.metal"
 using namespace metal;
 
 kernel void renderAtoms

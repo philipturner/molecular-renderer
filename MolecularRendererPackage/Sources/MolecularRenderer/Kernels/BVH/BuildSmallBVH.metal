@@ -1,13 +1,13 @@
 //
-//  BuildBVH.metal
+//  BuildSmallBVH.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 7/15/23.
 //
 
 #include <metal_stdlib>
-#include "../Utilities/Atomic.metal"
-#include "DDA.metal"
+#include "../Utilities/Constants.metal"
+#include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
 // MARK: - Utility Functions
@@ -70,7 +70,8 @@ kernel void densePass1
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          atomic_fetch_add(smallCellMetadata + address, 1);
+          atomic_fetch_add_explicit(smallCellMetadata + address,
+                                    1, memory_order_relaxed);
         }
       }
     }
@@ -90,8 +91,6 @@ kernel void densePass2
  ushort sidx [[simdgroup_index_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]])
 {
-  // Allocate extra cells if the total number isn't divisible by 128. The first
-  // pass should zero them out.
   uint voxel_count = smallCellMetadata[tid];
   uint prefix_sum_results = simd_prefix_exclusive_sum(voxel_count);
   
@@ -107,17 +106,16 @@ kernel void densePass2
     uint prefix_sum_results = quad_prefix_exclusive_sum(voxel_count);
     
     // Increment device atomic.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuninitialized"
     uint group_offset;
     if (lane_id == 3) {
       uint total_voxel_count = prefix_sum_results + voxel_count;
-      group_offset = atomic_fetch_add_explicit
-      (
-       globalAtomicCounter, total_voxel_count, memory_order_relaxed);
+      group_offset = 
+      atomic_fetch_add_explicit(globalAtomicCounter,
+                                total_voxel_count, memory_order_relaxed);
+    } else {
+      group_offset = 0;
     }
     prefix_sum_results += quad_broadcast(group_offset, 3);
-#pragma clang diagnostic pop
     group_results[lane_id] = prefix_sum_results;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -168,7 +166,9 @@ kernel void densePass3
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          uint offset = atomic_fetch_add(smallCellCounters + address, 1);
+          uint offset =
+          atomic_fetch_add_explicit(smallCellCounters + address,
+                                    1, memory_order_relaxed);
           
           // Write the reference to the list.
           if (offset < dense_grid_reference_capacity) {

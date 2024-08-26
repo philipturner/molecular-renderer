@@ -5,10 +5,13 @@
 //  Created by Philip Turner on 4/22/23.
 //
 
+#ifndef RAY_GENERATION_H
+#define RAY_GENERATION_H
+
 #include <metal_stdlib>
+#include "../Ray/Ray.metal"
+#include "../Ray/Sampling.metal"
 #include "../Utilities/Constants.metal"
-#include "RayTracing.metal"
-#include "Sampling.metal"
 using namespace metal;
 
 // Partially sourced from:
@@ -143,3 +146,5 @@ public:
     return RayGeneration::secondaryRay(origin, basis);
   }
 };
+
+#endif // RAY_GENERATION_H

@@ -5,8 +5,8 @@
 //  Created by Philip Turner on 5/21/23.
 //
 
-#ifndef Constants_h
-#define Constants_h
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 #include <metal_stdlib>
 using namespace metal;
@@ -49,4 +49,4 @@ struct RenderArguments {
   bool useAtomMotionVectors;
 };
 
-#endif
+#endif // CONSTANTS_H

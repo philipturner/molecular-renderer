@@ -9,7 +9,7 @@
 #define DENSE_GRID_H
 
 #include <metal_stdlib>
-#include "Constants.metal"
+#include "../Utilities/Constants.metal"
 using namespace metal;
 
 class DenseGrid {

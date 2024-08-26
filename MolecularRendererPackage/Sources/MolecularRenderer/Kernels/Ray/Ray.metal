@@ -17,4 +17,4 @@ struct Ray {
   vec<T, 3> direction;
 };
 
-#endif
+#endif // RAY_H

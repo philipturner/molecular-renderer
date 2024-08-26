@@ -58,4 +58,4 @@ public:
 };
 
 
-#endif
+#endif // SAMPLING_H

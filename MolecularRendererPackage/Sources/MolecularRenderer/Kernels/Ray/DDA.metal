@@ -9,15 +9,12 @@
 #define DDA_H
 
 #include <metal_stdlib>
+#include "../Ray/Ray.metal"
 #include "../Utilities/Constants.metal"
 #include "../Utilities/DenseGrid.metal"
 #include "../Utilities/VoxelAddress.metal"
-#include "../Ray Tracing/Ray.metal"
 using namespace metal;
 using namespace raytracing;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused"
 
 // Sources:
 // - https://tavianator.com/2022/ray_box_boundary.html
@@ -117,7 +114,5 @@ public:
     }
   }
 };
-
-#pragma clang diagnostic pop
 
 #endif // DDA_H
