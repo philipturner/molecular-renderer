@@ -79,8 +79,9 @@ kernel void reduceBBPart1
   maximum = simd_max(maximum);
   
   // Reduce across the threadgroup.
-  threadgroup int3 threadgroupMinimum[8];
-  threadgroup int3 threadgroupMaximum[8];
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  threadgroup int3 threadgroupMinimum[4];
+  threadgroup int3 threadgroupMaximum[4];
   if (thread_id % 32 == 0) {
     ushort simdIndex = thread_id / 32;
     threadgroupMinimum[simdIndex] = minimum;
@@ -90,17 +91,17 @@ kernel void reduceBBPart1
   
   // Reduce across the SIMD.
   if (thread_id < 32) {
-    minimum = threadgroupMinimum[thread_id % 8];
+    minimum = threadgroupMinimum[thread_id % 4];
     minimum = simd_min(minimum);
   } else if (thread_id < 64) {
-    maximum = threadgroupMaximum[thread_id % 8];
+    maximum = threadgroupMaximum[thread_id % 4];
     maximum = simd_max(maximum);
   }
   
   // Store the result to memory.
   if (thread_id == 0) {
     partials[2 * tgid + 0] = minimum;
-  } else if (thread_id == 1) {
+  } else if (thread_id == 32) {
     partials[2 * tgid + 1] = maximum;
   }
 }
@@ -123,7 +124,7 @@ kernel void reduceBBPart2
 (
  constant uint &partialCount [[buffer(0)]],
  device int3 *partials [[buffer(1)]],
- device int3 *boundingBoxCounters [[buffer(2)]],
+ device atomic_int *boundingBoxCounters [[buffer(2)]],
  
  uint tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_position_in_threadgroup]])
@@ -139,8 +140,8 @@ kernel void reduceBBPart2
   maximum = simd_max(maximum);
   
   // Reduce across the threadgroup.
-  threadgroup int3 threadgroupMinimum[8];
-  threadgroup int3 threadgroupMaximum[8];
+  threadgroup int3 threadgroupMinimum[4];
+  threadgroup int3 threadgroupMaximum[4];
   if (thread_id % 32 == 0) {
     ushort simdIndex = thread_id / 32;
     threadgroupMinimum[simdIndex] = minimum;
@@ -150,21 +151,25 @@ kernel void reduceBBPart2
   
   // Reduce across the SIMD.
   if (thread_id < 32) {
-    minimum = threadgroupMinimum[thread_id % 8];
+    minimum = threadgroupMinimum[thread_id % 4];
     minimum = simd_min(minimum);
   } else if (thread_id < 64) {
-    maximum = threadgroupMaximum[thread_id % 8];
+    maximum = threadgroupMaximum[thread_id % 4];
     maximum = simd_max(maximum);
   }
   
   // Store the result to memory.
-  if (thread_id % 32 < 3) {
-    ushort lane_id = thread_id;
-    
-    if (thread_id < 32) {
+  ushort lane_id = thread_id % 32;
+  ushort simd_id = thread_id / 32;
+  if (lane_id < 3) {
+    if (simd_id == 0) {
       int minimumScalar = vectorSelect(minimum, lane_id);
-    } else if (thread_id < 64) {
+      atomic_fetch_min_explicit(boundingBoxCounters + lane_id,
+                                minimumScalar, memory_order_relaxed);
+    } else if (simd_id == 1) {
       int maximumScalar = vectorSelect(maximum, lane_id);
+      atomic_fetch_max_explicit(boundingBoxCounters + 4 + lane_id,
+                                maximumScalar, memory_order_relaxed);
     }
   }
 }

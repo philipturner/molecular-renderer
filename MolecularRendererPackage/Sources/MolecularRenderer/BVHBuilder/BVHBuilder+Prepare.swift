@@ -38,6 +38,29 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+    
+    
+    commandBuffer.waitUntilCompleted()
+    
+    let counters = globalAtomicCounters.contents()
+      .assumingMemoryBound(to: SIMD3<Int32>.self)
+    print()
+    print(counters[0])
+    print(counters[1])
+    print()
+    print(worldMinimum)
+    print(worldMaximum)
+    print()
+    
+    let partials = boundingBoxPartialsBuffer.contents()
+      .assumingMemoryBound(to: SIMD3<Int32>.self)
+    print()
+    for index in 0..<128 {
+      print(partials[2 * index + 0], partials[2 * index + 1])
+    }
+    print()
+    exit(0)
+     
   }
 }
 

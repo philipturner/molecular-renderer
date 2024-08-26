@@ -26,8 +26,8 @@ func denseGridStatistics(
   var referencesArray = [Double](repeating: .zero, count: numThreads)
   
   DispatchQueue.concurrentPerform(iterations: numThreads) { taskID in
-    var minCoordinates: SIMD4<Float> = .zero
-    var maxCoordinates: SIMD4<Float> = .zero
+    var minCoordinates = SIMD4<Float>(repeating: Float(Int32.max))
+    var maxCoordinates = SIMD4<Float>(repeating: Float(Int32.min))
     var references: Double = .zero
     var loopStart = atoms.count * taskID / numThreads
     var loopEnd = atoms.count * (taskID + 1) / numThreads
@@ -71,8 +71,8 @@ func denseGridStatistics(
       if loopStart % 4 == 0, loopEnd % 4 == 0 {
         let atomBuffer = UnsafeMutableRawPointer(baseAddress)
           .assumingMemoryBound(to: SIMD16<Float>.self)
-        var minCoordinatesVector: SIMD8<Float> = .zero
-        var maxCoordinatesVector: SIMD8<Float> = .zero
+        var minCoordinatesVector = SIMD8<Float>(repeating: Float(Int32.max))
+        var maxCoordinatesVector = SIMD8<Float>(repeating: Float(Int32.min))
         
         for vectorID in loopStart / 4..<loopEnd / 4 {
           let vector = atomBuffer[vectorID]
@@ -118,8 +118,8 @@ func denseGridStatistics(
     referencesArray[taskID] = references
   }
   
-  var minCoordinates: SIMD3<Float> = .zero
-  var maxCoordinates: SIMD3<Float> = .zero
+  var minCoordinates = SIMD3<Float>(repeating: Float(Int32.max))
+  var maxCoordinates = SIMD3<Float>(repeating: Float(Int32.min))
   for taskID in 0..<numThreads {
     minCoordinates = simd_min(minCoordinates, minCoordinatesArray[taskID])
     maxCoordinates = simd_max(maxCoordinates, maxCoordinatesArray[taskID])
@@ -143,9 +143,35 @@ func denseGridStatistics(
     let presentMask: Float = (instances > 0) ? 1 : 0
     maxRadius = max(radius * presentMask, maxRadius)
   }
+  
+  /*
+  print()
+  print(minCoordinates)
+  print(maxCoordinates)
+  print()
+  
+  print()
+  print(maxRadius)
+  print()
+   */
+  
   maxRadius += epsilon
+  
+  /*
+  print()
+  print(maxRadius)
+  print()
+   */
+  
   minCoordinates -= maxRadius
   maxCoordinates += maxRadius
+  
+  /*
+  print()
+  print(minCoordinates)
+  print(maxCoordinates)
+  print()
+   */
   
   return ((minCoordinates, maxCoordinates), references)
 }

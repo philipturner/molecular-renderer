@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if true
+#if false
 
 // Making the code easier to modify.
 // - Clean up the BVH builder.
@@ -20,7 +20,7 @@ import Numerics
 //   - Offload the BB reduction to the GPU, with a form almost exactly equal
 //     to the current CPU kernel.
 //     - Get feedback about whether it works (first pass). [DONE]
-//     - Get feedback about whether it works (second pass).
+//     - Get feedback about whether it works (second pass). [DONE]
 //       - Check both the diamond cube and the SiC MD simulation.
 //     - Substitute the CPU value with the GPU value.
 //       - Check both the diamond cube and the SiC MD simulation.
@@ -119,7 +119,7 @@ func createGeometry() -> [Atom] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 40 * (h + k + l) }
-    Material { .elemental(.carbon) }
+    Material { .checkerboard(.gallium, .arsenic) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
