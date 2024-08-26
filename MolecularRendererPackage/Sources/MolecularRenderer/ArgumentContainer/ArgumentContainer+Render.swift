@@ -60,8 +60,9 @@ extension ArgumentContainer {
     }
     
     let providerAtoms = provider.atoms(time: currentTime)
-    guard providerAtoms.count < BVHBuilder.maxAtomCount else {
-      fatalError("Atom count was too large.")
+    guard providerAtoms.count > 0,
+          providerAtoms.count < BVHBuilder.maxAtomCount else {
+      fatalError("Atom count was invalid.")
     }
     
     currentAtoms = providerAtoms

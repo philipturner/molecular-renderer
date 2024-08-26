@@ -113,7 +113,11 @@ kernel void reduceBBPart2
  uint tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_position_in_threadgroup]])
 {
-  
+  // Fetch the partial from memory.
+  uint partialID = tgid * 128 + thread_id;
+  partialID = min(partialID, partialCount - 1);
+  int3 minimum = partials[2 * partialID + 0];
+  int3 maximum = partials[2 * partialID + 1];
 }
 
 // A single GPU thread encodes some GPU-driven work.
