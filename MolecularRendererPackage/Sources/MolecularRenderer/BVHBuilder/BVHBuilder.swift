@@ -12,10 +12,6 @@ class BVHBuilder {
   var device: MTLDevice
   unowned var renderer: MRRenderer
   
-  // BVH state information.
-  var worldMinimum: SIMD3<Int32> = .zero
-  var worldMaximum: SIMD3<Int32> = .zero
-  
   // Pipeline state objects (prepare).
   var resetMemory1DPipeline: MTLComputePipelineState
   var convertPipeline: MTLComputePipelineState

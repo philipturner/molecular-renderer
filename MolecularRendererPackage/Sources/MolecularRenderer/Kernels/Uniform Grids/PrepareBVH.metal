@@ -191,7 +191,7 @@ kernel void setIndirectArguments
   maximum = min(maximum, 64);
   
   // Prevent undefined behavior when no atoms are present.
-  maximum = max(maximum, minimum);
+  maximum = max(minimum, maximum);
   
   // Set the BVH arguments.
   {

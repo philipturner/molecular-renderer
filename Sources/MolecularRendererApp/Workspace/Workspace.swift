@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if false
+#if true
 
 // Making the code easier to modify.
 // - Clean up the BVH builder.
@@ -22,22 +22,27 @@ import Numerics
 //     - Get feedback about whether it works (first pass). [DONE]
 //     - Get feedback about whether it works (second pass). [DONE]
 //       - Check both the diamond cube and the SiC MD simulation.
-//     - Substitute the CPU value with the GPU value.
+//     - Substitute the CPU value with the GPU value. [DONE]
 //       - Check both the diamond cube and the SiC MD simulation.
-//   - Delete the CPU code for reducing the bounding box.
-// - Remove the dependency on the global bounding box.
-//   - Use a different function to clear / reduce the occupied cells. This one
-//     conforms to the stride of a 3D 512x512x512 cube.
+//   - Delete the CPU code for reducing the bounding box. [DONE]
 //
 // Optimizing the new BVH.
-// - Change the DDA, so the voxel address is computed every frame.
-//   - Not a lot of compute cost, since integer multiplications become
-//     bitshifts by log2(128).
-// - Rearrange the reference grid in Morton order.
-//   - Migrate the BVH construction first, resulting in twice the GPU work.
-//   - Transform the new BVH into the old BVH.
-//   - Integrate the transformed old BVH into the ray tracer.
-//   - Migrate the ray tracer.
+// - Reduce the overhead of constructing a dense grid.
+//   - Use device atomics to find the number of atoms in each large voxel.
+//   - Find the sub-volume of each atom held in the large voxel, predict the
+//     number of small-cell references.
+//   - Construct the not-cache-friendly dense grid with threadgroup atomics.
+// - Rearrange the cell metadata in Morton order.
+//   - Create a second, 8-bit memory allocation that marks which small voxels
+//     are occupied.
+//   - Modify the DDA to traverse 8-bit cell metadata.
+//   - Rearrange the 32-bit cell metadata in Morton order.
+//   - Compact the 32-bit cell metadata, based on the <1/8 of large voxels
+//     that are occupied.
+// - Reduce the memory and bandwidth costs.
+//   - Shift to local, per-large sector reference lists (16-bit).
+//   - Fuse multiple per-atom kernels, resulting in atom conversion only when
+//     writing into the new reference list.
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -119,7 +124,7 @@ func createGeometry() -> [Atom] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 40 * (h + k + l) }
-    Material { .checkerboard(.gallium, .arsenic) }
+    Material { .elemental(.carbon) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

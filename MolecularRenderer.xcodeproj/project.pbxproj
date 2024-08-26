@@ -172,7 +172,6 @@
 		985BBEF12C7B5E770096A104 /* MRRenderer+Upscaling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Upscaling.swift"; sourceTree = "<group>"; };
 		985BBEF22C7B625E0096A104 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
 		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
-		985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+BoundingBox.swift"; sourceTree = "<group>"; };
 		985BBEF92C7BBAB70096A104 /* FrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReport.swift; sourceTree = "<group>"; };
 		985BBEFB2C7BBDB70096A104 /* FrameReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReporter.swift; sourceTree = "<group>"; };
 		985BBEFC2C7BC4BF0096A104 /* FrameReporter+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+Logging.swift"; sourceTree = "<group>"; };
@@ -964,7 +963,6 @@
 			isa = PBXGroup;
 			children = (
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
-				985BBEF82C7BB53D0096A104 /* BVHBuilder+BoundingBox.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+Build.swift */,
 				98D26BAA2C754D01007B48FD /* BVHBuilder+Prepare.swift */,
 			);

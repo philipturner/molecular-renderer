@@ -11,7 +11,6 @@ import simd
 
 extension BVHBuilder {
   func prepareBVH(frameID: Int) {
-    let preprocessingTimeCPU = reduceAndAssignBB()
     let copyingTime = copyAtoms()
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
@@ -21,6 +20,7 @@ extension BVHBuilder {
     setBoundingBoxCounters(encoder: encoder)
     reduceBBPart1(encoder: encoder)
     reduceBBPart2(encoder: encoder)
+    setIndirectArguments(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -32,46 +32,12 @@ extension BVHBuilder {
         }
         
         let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-        frameReporter.reports[index].reduceBBTime = preprocessingTimeCPU
+        frameReporter.reports[index].reduceBBTime = .zero
         frameReporter.reports[index].copyTime = copyingTime
         frameReporter.reports[index].prepareTime = executionTime
       }
     }
     commandBuffer.commit()
-    
-    
-    commandBuffer.waitUntilCompleted()
-    
-    let counters = globalAtomicCounters.contents()
-      .assumingMemoryBound(to: SIMD3<Int32>.self)
-    print()
-    print(counters[0])
-    print(counters[1])
-    print()
-    print(worldMinimum)
-    print(worldMaximum)
-    print()
-    
-    let partials = boundingBoxPartialsBuffer.contents()
-      .assumingMemoryBound(to: SIMD3<Int32>.self)
-    print()
-    for index in 0..<128 {
-      print(partials[2 * index + 0], partials[2 * index + 1])
-    }
-    print()
-    exit(0)
-     
-  }
-}
-
-extension BVHBuilder {
-  // Run and time the bounding box construction.
-  func reduceAndAssignBB() -> Double {
-    let preprocessingStart = CACurrentMediaTime()
-    (worldMinimum, worldMaximum) = reduceBoundingBox()
-    let preprocessingEnd = CACurrentMediaTime()
-    
-    return preprocessingEnd - preprocessingStart
   }
   
   // Run and time the copying into the GPU buffer.
@@ -183,5 +149,21 @@ extension BVHBuilder {
         MTLSize(width: threadgroupCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
+  }
+  
+  func setIndirectArguments(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
+    
+    // Arguments 2 - 3
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(smallCellDispatchArguments, offset: 0, index: 3)
+    
+    // Dispatch
+    let singleThread = MTLSize(width: 1, height: 1, depth: 1)
+    encoder.setComputePipelineState(setIndirectArgumentsPipeline)
+    encoder.dispatchThreads(
+      singleThread, threadsPerThreadgroup: singleThread)
   }
 }
