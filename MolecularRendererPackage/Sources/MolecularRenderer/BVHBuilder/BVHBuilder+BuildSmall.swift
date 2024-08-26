@@ -55,28 +55,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-//    commandBuffer.waitUntilCompleted()
-//    
-//    let denseGridReferenceCapacity = UInt32(64 * 1024 * 1024)
-//    let voxelOffsetMask = denseGridReferenceCapacity - 1
-//    let voxelCountMask = 0xFFFF_FFFF - voxelOffsetMask
-//    
-//    let metadata = smallCellMetadata.contents()
-//      .assumingMemoryBound(to: UInt32.self)
-//    
-//    print()
-//    print(metadata[0] & voxelOffsetMask)
-//    print(metadata[576 * 512 - 1] & voxelOffsetMask)
-//    print(metadata[576 * 512] & voxelOffsetMask)
-//    print()
-//    
-//    let counter = globalAtomicCounters.contents()
-//      .assumingMemoryBound(to: UInt32.self)
-//    print()
-//    print(counter.pointee)
-//    print()
-//    
-//    exit(0)
   }
 }
 
@@ -98,23 +76,6 @@ extension BVHBuilder {
   }
   
   func clearSmallCellMetadata(encoder: MTLComputeCommandEncoder) {
-    /*
-    // Argument 0
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
-    
-    // Argument 1
-    var pattern: UInt32 = .zero
-    encoder.setBytes(&pattern, length: 4, index: 1)
-    
-    // Dispatch
-    let pipeline = resetMemoryPipelines.resetMemory1D
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      indirectBuffer: smallCellDispatchArguments128x1x1,
-      indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
-     */
-    
     // Arguments 0 - 1
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
@@ -146,21 +107,6 @@ extension BVHBuilder {
   }
   
   func buildSmallPart2(encoder: MTLComputeCommandEncoder) {
-    /*
-    // Arguments 0 - 2
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
-    encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
-    
-    // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart2
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      indirectBuffer: smallCellDispatchArguments128x1x1,
-      indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-     */
-    
     // Arguments 0 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)

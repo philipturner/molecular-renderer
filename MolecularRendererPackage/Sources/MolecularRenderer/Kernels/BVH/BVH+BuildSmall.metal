@@ -10,21 +10,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-kernel void clearSmallCellMetadata
-(
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint4 *smallCellMetadata [[buffer(1)]],
- 
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]])
-{
-  ushort3 cellCoordinates = tgid * 8;
-  cellCoordinates += thread_id * ushort3(4, 1, 1);
-  uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
-                                            cellCoordinates);
-  smallCellMetadata[cellAddress / 4] = uint4(0);
-}
-
 // Quantize a position relative to the world origin.
 ushort3 quantize(float3 position, ushort3 world_dims) {
   short3 output = short3(position);
@@ -51,6 +36,21 @@ bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   }
   
   return dist_squared > 0;
+}
+
+kernel void clearSmallCellMetadata
+(
+ constant BVHArguments *bvhArgs [[buffer(0)]],
+ device uint4 *smallCellMetadata [[buffer(1)]],
+ 
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]])
+{
+  ushort3 cellCoordinates = tgid * 8;
+  cellCoordinates += thread_id * ushort3(4, 1, 1);
+  uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
+                                            cellCoordinates);
+  smallCellMetadata[cellAddress / 4] = uint4(0);
 }
 
 kernel void buildSmallPart1
@@ -89,68 +89,6 @@ kernel void buildSmallPart1
     }
   }
 }
-
-// TODO: Reorder this, making it a 3D reduction across threads. 
-// - The indices in memory are still X/Y/Z.
-// - The threadgroup dispatch goes by large voxel.
-// - The BVH arguments are bound to the buffer table.
-// - Use "densePass2v2" until the rewritten function is fully debugged.
-
-#if 0
-kernel void buildSmallPart2
-(
- device uint *smallCellMetadata [[buffer(0)]],
- device uint *smallCellCounters [[buffer(1)]],
- device atomic_uint *globalAtomicCounter [[buffer(2)]],
- 
- // 128 threads/threadgroup
- uint tid [[thread_position_in_grid]],
- ushort sidx [[simdgroup_index_in_threadgroup]],
- ushort lane_id [[thread_index_in_simdgroup]])
-{
-  uint atomCount = smallCellMetadata[tid];
-  uint reducedAtomCount = simd_prefix_exclusive_sum(atomCount);
-  
-  threadgroup uint threadgroupAtomCount[4];
-  if (lane_id == 31) {
-    threadgroupAtomCount[sidx] = reducedAtomCount + atomCount;
-  }
-  threadgroup_barrier(mem_flags::mem_threadgroup);
-  
-  // Prefix sum across simds.
-  if (sidx == 0 && lane_id < 4) {
-    uint atomCount = threadgroupAtomCount[lane_id];
-    uint reducedAtomCount = quad_prefix_exclusive_sum(atomCount);
-    
-    // Increment device atomic.
-    uint globalOffset;
-    if (lane_id == 3) {
-      uint totalAtomCount = reducedAtomCount + atomCount;
-      globalOffset =
-      atomic_fetch_add_explicit(globalAtomicCounter,
-                                totalAtomCount, memory_order_relaxed);
-    } else {
-      globalOffset = 0;
-    }
-    reducedAtomCount += quad_broadcast(globalOffset, 3);
-    threadgroupAtomCount[lane_id] = reducedAtomCount;
-  }
-  threadgroup_barrier(mem_flags::mem_threadgroup);
-  
-  reducedAtomCount += threadgroupAtomCount[sidx];
-  reducedAtomCount = min(reducedAtomCount, dense_grid_reference_capacity);
-  
-  uint nextCellOffset = reducedAtomCount + atomCount;
-  nextCellOffset = min(nextCellOffset, dense_grid_reference_capacity);
-  atomCount = nextCellOffset - reducedAtomCount;
-  
-  // Overwrite contents of the grid.
-  uint count_part = reverse_bits(atomCount) & voxel_count_mask;
-  uint offset_part = reducedAtomCount & voxel_offset_mask;
-  smallCellMetadata[tid] = count_part | offset_part;
-  smallCellCounters[tid] = reducedAtomCount;
-}
-#else
 
 kernel void buildSmallPart2
 (
@@ -239,7 +177,6 @@ kernel void buildSmallPart2
   smallCellMetadata[cellAddress / 4] = cellMetadata;
   smallCellCounters[cellAddress / 4] = cellAtomOffsets;
 }
-#endif
 
 kernel void buildSmallPart3
 (
