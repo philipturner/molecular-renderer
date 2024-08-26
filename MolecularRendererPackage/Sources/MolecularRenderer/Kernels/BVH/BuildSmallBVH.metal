@@ -91,47 +91,47 @@ kernel void densePass2
  ushort sidx [[simdgroup_index_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]])
 {
-  uint voxel_count = smallCellMetadata[tid];
-  uint prefix_sum_results = simd_prefix_exclusive_sum(voxel_count);
+  uint atomCount = smallCellMetadata[tid];
+  uint reducedAtomCount = simd_prefix_exclusive_sum(atomCount);
   
-  threadgroup uint group_results[4];
+  threadgroup uint threadgroupAtomCount[4];
   if (lane_id == 31) {
-    group_results[sidx] = prefix_sum_results + voxel_count;
+    threadgroupAtomCount[sidx] = reducedAtomCount + atomCount;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Prefix sum across simds.
   if (sidx == 0 && lane_id < 4) {
-    uint voxel_count = group_results[lane_id];
-    uint prefix_sum_results = quad_prefix_exclusive_sum(voxel_count);
+    uint atomCount = threadgroupAtomCount[lane_id];
+    uint reducedAtomCount = quad_prefix_exclusive_sum(atomCount);
     
     // Increment device atomic.
-    uint group_offset;
+    uint globalOffset;
     if (lane_id == 3) {
-      uint total_voxel_count = prefix_sum_results + voxel_count;
-      group_offset = 
+      uint totalAtomCount = reducedAtomCount + atomCount;
+      globalOffset =
       atomic_fetch_add_explicit(globalAtomicCounter,
-                                total_voxel_count, memory_order_relaxed);
+                                totalAtomCount, memory_order_relaxed);
     } else {
-      group_offset = 0;
+      globalOffset = 0;
     }
-    prefix_sum_results += quad_broadcast(group_offset, 3);
-    group_results[lane_id] = prefix_sum_results;
+    reducedAtomCount += quad_broadcast(globalOffset, 3);
+    threadgroupAtomCount[lane_id] = reducedAtomCount;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  prefix_sum_results += group_results[sidx];
-  prefix_sum_results = min(prefix_sum_results, dense_grid_reference_capacity);
+  reducedAtomCount += threadgroupAtomCount[sidx];
+  reducedAtomCount = min(reducedAtomCount, dense_grid_reference_capacity);
   
-  uint next_offset = prefix_sum_results + voxel_count;
-  next_offset = min(next_offset, dense_grid_reference_capacity);
-  voxel_count = next_offset - prefix_sum_results;
+  uint nextCellOffset = reducedAtomCount + atomCount;
+  nextCellOffset = min(nextCellOffset, dense_grid_reference_capacity);
+  atomCount = nextCellOffset - reducedAtomCount;
   
   // Overwrite contents of the grid.
-  uint count_part = reverse_bits(voxel_count) & voxel_count_mask;
-  uint offset_part = prefix_sum_results & voxel_offset_mask;
+  uint count_part = reverse_bits(atomCount) & voxel_count_mask;
+  uint offset_part = reducedAtomCount & voxel_offset_mask;
   smallCellMetadata[tid] = count_part | offset_part;
-  smallCellCounters[tid] = prefix_sum_results;
+  smallCellCounters[tid] = reducedAtomCount;
 }
 
 // MARK: - Pass 3
