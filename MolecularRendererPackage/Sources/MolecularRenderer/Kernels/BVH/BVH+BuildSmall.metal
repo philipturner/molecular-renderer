@@ -204,23 +204,18 @@ kernel void buildSmallPart2
       atomic_fetch_add_explicit(globalAtomicCounter,
                                 groupAtomCount, memory_order_relaxed);
     }
-    
-#if 0
     groupAtomOffset = simd_broadcast(groupAtomOffset, 0);
     
     // Add the group offset to the SIMD offset.
-    if (lane_id < 3) {
+    if (lane_id < 4) {
       simdAtomOffset += groupAtomOffset;
       simdAtomOffsets[lane_id] = simdAtomOffset;
     }
-#endif
   }
-  
-#if 0
   
   // Add the SIMD offset to the thread offset.
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  threadAtomOffset += simdAtomOffsets[lane_id];
+  threadAtomOffset += simdAtomOffsets[simd_id];
   cellAtomOffsets += threadAtomOffset;
   
   // Encode the offset and count into a single word.
@@ -243,8 +238,6 @@ kernel void buildSmallPart2
   // Store the result to memory.
   smallCellMetadata[cellAddress / 4] = cellMetadata;
   smallCellCounters[cellAddress / 4] = cellAtomOffsets;
-  
-#endif
 }
 #endif
 

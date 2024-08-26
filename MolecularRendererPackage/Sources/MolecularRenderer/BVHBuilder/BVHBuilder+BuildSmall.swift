@@ -56,27 +56,23 @@ extension BVHBuilder {
     commandBuffer.commit()
     commandBuffer.waitUntilCompleted()
     
+    let denseGridReferenceCapacity = UInt32(64 * 1024 * 1024)
+    let voxelOffsetMask = denseGridReferenceCapacity - 1
+    let voxelCountMask = 0xFFFF_FFFF - voxelOffsetMask
+    
+    let metadata = smallCellMetadata.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    
+    print()
+    print(metadata[0] & voxelOffsetMask)
+    print(metadata[576 * 512 - 1] & voxelOffsetMask)
+    print(metadata[576 * 512] & voxelOffsetMask)
+    print()
+    
     let counter = globalAtomicCounters.contents()
       .assumingMemoryBound(to: UInt32.self)
     print()
     print(counter.pointee)
-    print()
-    
-    let dispatchArguments = smallCellDispatchArguments8x8x8.contents()
-      .assumingMemoryBound(to: SIMD3<UInt32>.self)
-    print()
-    print(dispatchArguments.pointee)
-    print()
-    
-    let metadata = smallCellMetadata.contents()
-      .assumingMemoryBound(to: UInt32.self)
-    var referenceCount: Int = .zero
-    for cellID in 0..<(4608 * 512) {
-      let cellAtomCount = metadata[cellID]
-      referenceCount += Int(cellAtomCount)
-    }
-    print()
-    print(referenceCount)
     print()
     
     exit(0)
