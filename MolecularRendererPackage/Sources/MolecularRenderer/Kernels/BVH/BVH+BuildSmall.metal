@@ -10,6 +10,24 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+kernel void clearSmallCellMetadata
+(
+ constant BVHArguments *bvhArgs [[buffer(0)]],
+ device uint *smallCellMetadata [[buffer(1)]],
+ 
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]])
+{
+  ushort3 coordinates = tgid * 8;
+  coordinates += thread_id * ushort3(4, 1, 1);
+  
+  ushort3 grid_dims = bvhArgs->smallVoxelCount;
+  uint address = VoxelAddress::generate(grid_dims, coordinates);
+  
+  auto pointer = (device uint4*)(smallCellMetadata + address);
+  *pointer = uint4(0);
+}
+
 // Quantize a position relative to the world origin.
 ushort3 quantize(float3 position, ushort3 world_dims) {
   short3 output = short3(position);

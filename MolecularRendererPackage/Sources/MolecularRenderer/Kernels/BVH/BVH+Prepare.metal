@@ -179,34 +179,29 @@ kernel void setIndirectArguments
   // Clamp the bounding box to the world volume.
   minimum = max(minimum, -64);
   maximum = min(maximum, 64);
-  
-  // Prevent undefined behavior when no atoms are present.
   maximum = max(minimum, maximum);
   
+  // Compute the grid dimensions.
+  ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
+  ushort3 smallVoxelCount = ushort3(4 * (maximum - minimum));
+  
   // Set the BVH arguments.
-  {
-    ushort3 gridDimensions = ushort3(4 * (maximum - minimum));
-    bvhArgs->worldMinimum = float3(minimum);
-    bvhArgs->worldMaximum = float3(maximum);
-    bvhArgs->smallVoxelCount = gridDimensions;
-  }
+  bvhArgs->worldMinimum = float3(minimum);
+  bvhArgs->worldMaximum = float3(maximum);
+  bvhArgs->largeVoxelCount = largeVoxelCount;
+  bvhArgs->smallVoxelCount = smallVoxelCount;
   
   // Set the small-cell dispatch arguments (128x1x1).
   {
-    ushort3 gridDimensions = ushort3(4 * (maximum - minimum));
+    uint cellCount = 1;
+    cellCount *= smallVoxelCount[0];
+    cellCount *= smallVoxelCount[1];
+    cellCount *= smallVoxelCount[2];
     
-    uint smallVoxelCount = 1;
-    smallVoxelCount *= uint(gridDimensions[0]);
-    smallVoxelCount *= uint(gridDimensions[1]);
-    smallVoxelCount *= uint(gridDimensions[2]);
-    
-    uint threadgroupCount = (smallVoxelCount + 127) / 128;
+    uint threadgroupCount = (cellCount + 127) / 128;
     *smallCellDispatchArguments128x1x1 = { threadgroupCount, 1, 1 };
   }
   
   // Set the small-cell dispatch arguments (8x8x8).
-  {
-    ushort3 gridDimensions = ushort3((maximum - minimum) / 2);
-    *smallCellDispatchArguments8x8x8 = uint3(gridDimensions);
-  }
+  *smallCellDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }

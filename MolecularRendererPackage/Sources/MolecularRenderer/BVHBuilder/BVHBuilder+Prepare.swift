@@ -98,8 +98,8 @@ extension BVHBuilder {
     let pipeline = preparePipelines.convert
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
-      MTLSizeMake(atoms.count, 1, 1),
-      threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
+      MTLSize(width: atoms.count, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
   
   func setBoundingBoxCounters(encoder: MTLComputeCommandEncoder) {
