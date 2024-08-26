@@ -177,7 +177,7 @@ kernel void buildSmallPart2
   cellAtomOffsets[1] = cellAtomOffsets[0] + cellAtomCounts[0];
   cellAtomOffsets[2] = cellAtomOffsets[1] + cellAtomCounts[1];
   cellAtomOffsets[3] = cellAtomOffsets[2] + cellAtomCounts[2];
-  uint threadAtomCount = cellAtomOffsets[3] + cellAtomOffsets[3];
+  uint threadAtomCount = cellAtomOffsets[3] + cellAtomCounts[3];
   
   // Reduce across the SIMD.
   uint threadAtomOffset = simd_prefix_exclusive_sum(threadAtomCount);

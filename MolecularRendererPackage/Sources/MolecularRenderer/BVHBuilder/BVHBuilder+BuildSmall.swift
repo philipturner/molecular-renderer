@@ -68,6 +68,17 @@ extension BVHBuilder {
     print(dispatchArguments.pointee)
     print()
     
+    let metadata = smallCellMetadata.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    var referenceCount: Int = .zero
+    for cellID in 0..<(4608 * 512) {
+      let cellAtomCount = metadata[cellID]
+      referenceCount += Int(cellAtomCount)
+    }
+    print()
+    print(referenceCount)
+    print()
+    
     exit(0)
   }
 }
