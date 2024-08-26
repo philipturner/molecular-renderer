@@ -20,6 +20,7 @@ class BVHBuilder {
   var resetMemory1DPipeline: MTLComputePipelineState
   var convertPipeline: MTLComputePipelineState
   var reduceBBPart1Pipeline: MTLComputePipelineState
+  var reduceBBPart2Pipeline: MTLComputePipelineState
   var setIndirectArgumentsPipeline: MTLComputePipelineState
   
   // Pipeline state objects (build).
@@ -60,6 +61,7 @@ class BVHBuilder {
     resetMemory1DPipeline = createPipeline(name: "resetMemory1D")
     convertPipeline = createPipeline(name: "convert")
     reduceBBPart1Pipeline = createPipeline(name: "reduceBBPart1")
+    reduceBBPart2Pipeline = createPipeline(name: "reduceBBPart2")
     setIndirectArgumentsPipeline = createPipeline(name: "setIndirectArguments")
     
     densePass1Pipeline = createPipeline(name: "densePass1")

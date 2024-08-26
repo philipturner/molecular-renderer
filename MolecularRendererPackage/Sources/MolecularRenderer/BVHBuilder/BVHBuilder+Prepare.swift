@@ -17,8 +17,10 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encodeConvert(to: encoder)
+    
     setBoundingBoxCounters(encoder: encoder)
-    reduceBoundingBox(encoder: encoder)
+    reduceBBPart1(encoder: encoder)
+    reduceBBPart2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -113,7 +115,7 @@ extension BVHBuilder {
     fillRegion(startSlotID: 4, value: Int32.min)
   }
   
-  func reduceBoundingBox(encoder: MTLComputeCommandEncoder) {
+  func reduceBBPart1(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     do {
       let atoms = renderer.argumentContainer.currentAtoms
@@ -128,8 +130,32 @@ extension BVHBuilder {
     // Dispatch
     do {
       let atoms = renderer.argumentContainer.currentAtoms
-      let threadgroupCount = (atoms.count + 127) / 128
+      let partialCount = (atoms.count + 127) / 128
       encoder.setComputePipelineState(reduceBBPart1Pipeline)
+      encoder.dispatchThreadgroups(
+        MTLSize(width: partialCount, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
+  }
+  
+  func reduceBBPart2(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      var partialCount = (atoms.count + 127) / 128
+      encoder.setBytes(&partialCount, length: 4, index: 0)
+    }
+    
+    // Arguments 1 - 2
+    encoder.setBuffer(boundingBoxPartialsBuffer, offset: 0, index: 1)
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
+    
+    // Dispatch
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      let partialCount = (atoms.count + 127) / 128
+      let threadgroupCount = (partialCount + 127) / 128
+      encoder.setComputePipelineState(reduceBBPart2Pipeline)
       encoder.dispatchThreadgroups(
         MTLSize(width: threadgroupCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))

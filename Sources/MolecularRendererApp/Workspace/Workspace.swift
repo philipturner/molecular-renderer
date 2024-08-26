@@ -21,7 +21,9 @@ import Numerics
 //     to the current CPU kernel.
 //     - Get feedback about whether it works (first pass). [DONE]
 //     - Get feedback about whether it works (second pass).
+//       - Check both the diamond cube and the SiC MD simulation.
 //     - Substitute the CPU value with the GPU value.
+//       - Check both the diamond cube and the SiC MD simulation.
 //   - Delete the CPU code for reducing the bounding box.
 // - Remove the dependency on the global bounding box.
 //   - Use a different function to clear / reduce the occupied cells. This one

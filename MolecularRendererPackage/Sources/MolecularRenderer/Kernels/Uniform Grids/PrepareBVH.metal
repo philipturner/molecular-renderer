@@ -103,6 +103,19 @@ kernel void reduceBBPart1
   }
 }
 
+// Reduce the smaller list with atomics.
+kernel void reduceBBPart2
+(
+ constant uint &partialCount [[buffer(0)]],
+ device int3 *partials [[buffer(1)]],
+ device int3 *boundingBoxCounters [[buffer(2)]],
+ 
+ uint tgid [[threadgroup_position_in_grid]],
+ ushort thread_id [[thread_position_in_threadgroup]])
+{
+  
+}
+
 // A single GPU thread encodes some GPU-driven work.
 kernel void setIndirectArguments
 (
