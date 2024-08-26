@@ -1,5 +1,5 @@
 //
-//  PrepareBVH.metal
+//  BVH+Prepare.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 8/18/24.

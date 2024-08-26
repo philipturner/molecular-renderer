@@ -9,6 +9,27 @@ import Metal
 import QuartzCore
 import simd
 
+struct BVHPreparePipelines {
+  var convert: MTLComputePipelineState
+  var reduceBoxPart1: MTLComputePipelineState
+  var reduceBoxPart2: MTLComputePipelineState
+  var setIndirectArguments: MTLComputePipelineState
+  
+  init(library: MTLLibrary) {
+    func createPipeline(name: String) -> MTLComputePipelineState {
+      guard let function = library.makeFunction(name: name) else {
+        fatalError("Could not create function.")
+      }
+      let device = library.device
+      return try! device.makeComputePipelineState(function: function)
+    }
+    convert = createPipeline(name: "convert")
+    reduceBoxPart1 = createPipeline(name: "reduceBoxPart1")
+    reduceBoxPart2 = createPipeline(name: "reduceBoxPart2")
+    setIndirectArguments = createPipeline(name: "setIndirectArguments")
+  }
+}
+
 extension BVHBuilder {
   func prepareBVH(frameID: Int) {
     let copyingTime = copyAtoms()
@@ -74,7 +95,8 @@ extension BVHBuilder {
     
     // Dispatch
     let atoms = renderer.argumentContainer.currentAtoms
-    encoder.setComputePipelineState(convertPipeline)
+    let pipeline = preparePipelines.convert
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
@@ -91,7 +113,8 @@ extension BVHBuilder {
       encoder.setBytes(&pattern, length: 4, index: 1)
       
       // Dispatch four threads, to fill four slots.
-      encoder.setComputePipelineState(resetMemory1DPipeline)
+      let pipeline = resetMemoryPipelines.resetMemory1D
+      encoder.setComputePipelineState(pipeline)
       encoder.dispatchThreads(
         MTLSize(width: 4, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
@@ -118,9 +141,11 @@ extension BVHBuilder {
     
     // Dispatch
     do {
+      let pipeline = preparePipelines.reduceBoxPart1
+      encoder.setComputePipelineState(pipeline)
+      
       let atoms = renderer.argumentContainer.currentAtoms
       let partialCount = (atoms.count + 127) / 128
-      encoder.setComputePipelineState(reduceBoxPart1Pipeline)
       encoder.dispatchThreadgroups(
         MTLSize(width: partialCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
@@ -141,10 +166,12 @@ extension BVHBuilder {
     
     // Dispatch
     do {
+      let pipeline = preparePipelines.reduceBoxPart2
+      encoder.setComputePipelineState(pipeline)
+      
       let atoms = renderer.argumentContainer.currentAtoms
       let partialCount = (atoms.count + 127) / 128
       let threadgroupCount = (partialCount + 127) / 128
-      encoder.setComputePipelineState(reduceBoxPart2Pipeline)
       encoder.dispatchThreadgroups(
         MTLSize(width: threadgroupCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
@@ -161,9 +188,10 @@ extension BVHBuilder {
     encoder.setBuffer(smallCellDispatchArguments, offset: 0, index: 3)
     
     // Dispatch
-    let singleThread = MTLSize(width: 1, height: 1, depth: 1)
-    encoder.setComputePipelineState(setIndirectArgumentsPipeline)
+    let pipeline = preparePipelines.setIndirectArguments
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
-      singleThread, threadsPerThreadgroup: singleThread)
+      MTLSize(width: 1, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
   }
 }

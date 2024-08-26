@@ -26,6 +26,19 @@ import Numerics
 //       - Check both the diamond cube and the SiC MD simulation.
 //   - Delete the CPU code for reducing the bounding box. [DONE]
 //
+// Refactor into a hierarchy of delegate objects.
+// - Group each pass's pipelines into a data structure. [DONE]
+// - Divide the command encoding into 2-3 isolated objects.
+//   - Use a descriptor API to define the data dependencies.
+//   - Start by overhauling how 'resetMemory1D' is used.
+//   - Reconsider whether the rest of the code needs to be migrated to a
+//     descriptor API. Perhaps the problem rests in the buffers that are
+//     overwritten multiple times ('globalAtomicCounters').
+// - Remove the unowned reference to the renderer.
+//   - Specify the atom count through the descriptor.
+//   - Find another way to write to the frame report.
+// - Overhaul the second kernel of the small cells pass.
+//
 // Optimizing the new BVH.
 // - Reduce the overhead of constructing a dense grid.
 //   - Use device atomics to find number of atoms in each large voxel.

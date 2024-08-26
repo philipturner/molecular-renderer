@@ -12,17 +12,10 @@ class BVHBuilder {
   var device: MTLDevice
   unowned var renderer: MRRenderer
   
-  // Pipeline state objects (prepare).
-  var resetMemory1DPipeline: MTLComputePipelineState
-  var convertPipeline: MTLComputePipelineState
-  var reduceBoxPart1Pipeline: MTLComputePipelineState
-  var reduceBoxPart2Pipeline: MTLComputePipelineState
-  var setIndirectArgumentsPipeline: MTLComputePipelineState
-  
-  // Pipeline state objects (build).
-  var buildSmallPart1Pipeline: MTLComputePipelineState
-  var buildSmallPart2Pipeline: MTLComputePipelineState
-  var buildSmallPart3Pipeline: MTLComputePipelineState
+  // Pipeline state objects.
+  var resetMemoryPipelines: BVHResetMemoryPipelines
+  var preparePipelines: BVHPreparePipelines
+  var buildSmallPipelines: BVHBuildSmallPipelines
   
   // Data buffers (per atom).
   var originalAtomsBuffers: [MTLBuffer]
@@ -47,24 +40,9 @@ class BVHBuilder {
     self.device = device
     self.renderer = renderer
     
-    // Initialize kernels for BVH construction.
-    func createPipeline(name: String) -> MTLComputePipelineState {
-      guard let function = library.makeFunction(name: name) else {
-        fatalError("Function \(name) was not found in the library.")
-      }
-      return try! device.makeComputePipelineState(function: function)
-    }
-    
-    // TODO: Make container objects that encapsulate the numerous pipelines.
-    resetMemory1DPipeline = createPipeline(name: "resetMemory1D")
-    convertPipeline = createPipeline(name: "convert")
-    reduceBoxPart1Pipeline = createPipeline(name: "reduceBoxPart1")
-    reduceBoxPart2Pipeline = createPipeline(name: "reduceBoxPart2")
-    setIndirectArgumentsPipeline = createPipeline(name: "setIndirectArguments")
-    
-    buildSmallPart1Pipeline = createPipeline(name: "buildSmallPart1")
-    buildSmallPart2Pipeline = createPipeline(name: "buildSmallPart2")
-    buildSmallPart3Pipeline = createPipeline(name: "buildSmallPart3")
+    resetMemoryPipelines = BVHResetMemoryPipelines(library: library)
+    preparePipelines = BVHPreparePipelines(library: library)
+    buildSmallPipelines = BVHBuildSmallPipelines(library: library)
     
     // Allocate data buffers (per atom).
     func createBuffer(atomCount: Int) -> MTLBuffer {

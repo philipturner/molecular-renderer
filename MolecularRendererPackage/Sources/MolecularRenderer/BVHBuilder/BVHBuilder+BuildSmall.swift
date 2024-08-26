@@ -7,6 +7,25 @@
 
 import Metal
 
+struct BVHBuildSmallPipelines {
+  var buildSmallPart1: MTLComputePipelineState
+  var buildSmallPart2: MTLComputePipelineState
+  var buildSmallPart3: MTLComputePipelineState
+  
+  init(library: MTLLibrary) {
+    func createPipeline(name: String) -> MTLComputePipelineState {
+      guard let function = library.makeFunction(name: name) else {
+        fatalError("Could not create function.")
+      }
+      let device = library.device
+      return try! device.makeComputePipelineState(function: function)
+    }
+    buildSmallPart1 = createPipeline(name: "buildSmallPart1")
+    buildSmallPart2 = createPipeline(name: "buildSmallPart2")
+    buildSmallPart3 = createPipeline(name: "buildSmallPart3")
+  }
+}
+
 extension BVHBuilder {
   func buildSmallBVH(frameID: Int) {
     let atoms = renderer.argumentContainer.currentAtoms
@@ -47,7 +66,8 @@ extension BVHBuilder {
     encoder.setBytes(&pattern, length: 4, index: 1)
     
     // Dispatch
-    encoder.setComputePipelineState(resetMemory1DPipeline)
+    let pipeline = resetMemoryPipelines.resetMemory1D
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(8, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
@@ -62,7 +82,8 @@ extension BVHBuilder {
     encoder.setBytes(&pattern, length: 4, index: 1)
     
     // Dispatch
-    encoder.setComputePipelineState(resetMemory1DPipeline)
+    let pipeline = resetMemoryPipelines.resetMemory1D
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: smallCellDispatchArguments,
       indirectBufferOffset: 0,
@@ -79,7 +100,8 @@ extension BVHBuilder {
     
     // Dispatch
     let atoms = renderer.argumentContainer.currentAtoms
-    encoder.setComputePipelineState(buildSmallPart1Pipeline)
+    let pipeline = buildSmallPipelines.buildSmallPart1
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
@@ -92,7 +114,8 @@ extension BVHBuilder {
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
     
     // Dispatch
-    encoder.setComputePipelineState(buildSmallPart2Pipeline)
+    let pipeline = buildSmallPipelines.buildSmallPart2
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: smallCellDispatchArguments,
       indirectBufferOffset: 0,
@@ -108,7 +131,8 @@ extension BVHBuilder {
     
     // Dispatch
     let atoms = renderer.argumentContainer.currentAtoms
-    encoder.setComputePipelineState(buildSmallPart3Pipeline)
+    let pipeline = buildSmallPipelines.buildSmallPart3
+    encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
