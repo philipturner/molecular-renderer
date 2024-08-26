@@ -39,6 +39,7 @@ extension BVHBuilder {
     
     buildSmallPart1(encoder: encoder)
     buildSmallPart2(encoder: encoder)
+    buildSmallPart3(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -54,28 +55,28 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-    commandBuffer.waitUntilCompleted()
-    
-    let denseGridReferenceCapacity = UInt32(64 * 1024 * 1024)
-    let voxelOffsetMask = denseGridReferenceCapacity - 1
-    let voxelCountMask = 0xFFFF_FFFF - voxelOffsetMask
-    
-    let metadata = smallCellMetadata.contents()
-      .assumingMemoryBound(to: UInt32.self)
-    
-    print()
-    print(metadata[0] & voxelOffsetMask)
-    print(metadata[576 * 512 - 1] & voxelOffsetMask)
-    print(metadata[576 * 512] & voxelOffsetMask)
-    print()
-    
-    let counter = globalAtomicCounters.contents()
-      .assumingMemoryBound(to: UInt32.self)
-    print()
-    print(counter.pointee)
-    print()
-    
-    exit(0)
+//    commandBuffer.waitUntilCompleted()
+//    
+//    let denseGridReferenceCapacity = UInt32(64 * 1024 * 1024)
+//    let voxelOffsetMask = denseGridReferenceCapacity - 1
+//    let voxelCountMask = 0xFFFF_FFFF - voxelOffsetMask
+//    
+//    let metadata = smallCellMetadata.contents()
+//      .assumingMemoryBound(to: UInt32.self)
+//    
+//    print()
+//    print(metadata[0] & voxelOffsetMask)
+//    print(metadata[576 * 512 - 1] & voxelOffsetMask)
+//    print(metadata[576 * 512] & voxelOffsetMask)
+//    print()
+//    
+//    let counter = globalAtomicCounters.contents()
+//      .assumingMemoryBound(to: UInt32.self)
+//    print()
+//    print(counter.pointee)
+//    print()
+//    
+//    exit(0)
   }
 }
 
