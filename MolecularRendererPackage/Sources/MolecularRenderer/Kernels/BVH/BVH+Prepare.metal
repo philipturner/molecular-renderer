@@ -169,7 +169,8 @@ kernel void setIndirectArguments
  device int3 *boundingBoxMin [[buffer(0)]],
  device int3 *boundingBoxMax [[buffer(1)]],
  device BVHArguments *bvhArgs [[buffer(2)]],
- device uint3 *smallCellDispatchArguments [[buffer(3)]])
+ device uint3 *smallCellDispatchArguments128x1x1 [[buffer(3)]],
+ device uint3 *smallCellDispatchArguments8x8x8 [[buffer(4)]])
 {
   // Read the bounding box.
   int3 minimum = *boundingBoxMin;
@@ -190,7 +191,7 @@ kernel void setIndirectArguments
     bvhArgs->smallVoxelCount = gridDimensions;
   }
   
-  // Set the small-cell dispatch arguments.
+  // Set the small-cell dispatch arguments (128x1x1).
   {
     ushort3 gridDimensions = ushort3(4 * (maximum - minimum));
     
@@ -200,6 +201,12 @@ kernel void setIndirectArguments
     smallVoxelCount *= uint(gridDimensions[2]);
     
     uint threadgroupCount = (smallVoxelCount + 127) / 128;
-    *smallCellDispatchArguments = { threadgroupCount, 1, 1 };
+    *smallCellDispatchArguments128x1x1 = { threadgroupCount, 1, 1 };
+  }
+  
+  // Set the small-cell dispatch arguments (8x8x8).
+  {
+    ushort3 gridDimensions = ushort3((maximum - minimum) / 2);
+    *smallCellDispatchArguments8x8x8 = uint3(gridDimensions);
   }
 }

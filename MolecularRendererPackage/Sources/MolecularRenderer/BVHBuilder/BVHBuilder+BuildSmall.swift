@@ -49,7 +49,7 @@ extension BVHBuilder {
         }
         
         let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-        frameReporter.reports[index].buildTime = executionTime
+        frameReporter.reports[index].buildSmallTime = executionTime
       }
     }
     commandBuffer.commit()
@@ -85,7 +85,7 @@ extension BVHBuilder {
     let pipeline = resetMemoryPipelines.resetMemory1D
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      indirectBuffer: smallCellDispatchArguments,
+      indirectBuffer: smallCellDispatchArguments128x1x1,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
@@ -117,7 +117,7 @@ extension BVHBuilder {
     let pipeline = buildSmallPipelines.buildSmallPart2
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      indirectBuffer: smallCellDispatchArguments,
+      indirectBuffer: smallCellDispatchArguments128x1x1,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }

@@ -52,8 +52,8 @@ extension BVHBuilder {
           return
         }
         
-        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-        frameReporter.reports[index].reduceBBTime = .zero
+        let executionTime =
+        commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
         frameReporter.reports[index].copyTime = copyingTime
         frameReporter.reports[index].prepareTime = executionTime
       }
@@ -185,7 +185,8 @@ extension BVHBuilder {
     
     // Arguments 2 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 2)
-    encoder.setBuffer(smallCellDispatchArguments, offset: 0, index: 3)
+    encoder.setBuffer(smallCellDispatchArguments128x1x1, offset: 0, index: 3)
+    encoder.setBuffer(smallCellDispatchArguments8x8x8, offset: 0, index: 4)
     
     // Dispatch
     let pipeline = preparePipelines.setIndirectArguments
