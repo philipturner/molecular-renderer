@@ -28,9 +28,12 @@ import Numerics
 //
 // Optimizing the new BVH.
 // - Reduce the overhead of constructing a dense grid.
-//   - Use device atomics to find the number of atoms in each large voxel.
-//   - Find the sub-volume of each atom held in the large voxel, predict the
-//     number of small-cell references.
+//   - Use device atomics to find number of atoms in each large voxel.
+//   - Use the handwritten algorithm to also allocate small cell references,
+//     in a single pass.
+//   - Run a 3D parallel reduction across the large voxel grid.
+//   - Store references to original atoms in new voxels.
+//     - Eventually, we will also copy over the atoms themselves. (1)
 //   - Construct the not-cache-friendly dense grid with threadgroup atomics.
 // - Rearrange the cell metadata in Morton order.
 //   - Create a second, 8-bit memory allocation that marks which small voxels
@@ -43,6 +46,7 @@ import Numerics
 //   - Shift to local, per-large sector reference lists (16-bit).
 //   - Fuse multiple per-atom kernels, resulting in atom conversion only when
 //     writing into the new reference list.
+//     - (1) Revisit the large BVH construction, store both refs and atom data.
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -103,9 +107,9 @@ func createGeometry() -> [Atom] {
   //
   //          | 256 atoms/voxel |  64 atoms/voxel | GPU reduction |
   // -------- | --------------- | --------------- | ------------- |
-  //   C(100) |       1,664,096 |       6,697,971 |
-  // SiC(100) |       1,423,913 |       5,687,546 |
-  //  Si(100) |       1,208,030 |       4,784,221 |
+  //   C(100) |       1,664,096 |       6,697,971 |    ~8,100,000 |
+  // SiC(100) |       1,423,913 |       5,687,546 |    ~6,900,000 |
+  //  Si(100) |       1,208,030 |       4,784,221 |    ~4,900,000 |
   
   // Diamond (Compact Global BB)
   //
