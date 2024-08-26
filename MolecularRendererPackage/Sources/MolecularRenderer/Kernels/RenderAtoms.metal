@@ -64,6 +64,7 @@ kernel void renderAtoms
     {
       constexpr half minSamples = 3.0;
       constexpr half maxSamples = 7.0;
+      constexpr half maximumRayHitTime = 1.0;
       
       half samples = maxSamples;
       float distanceCutoff = renderArgs->qualityCoefficient / maxSamples;
@@ -78,7 +79,8 @@ kernel void renderAtoms
                                       pixelCoords);
       for (half i = 0; i < samples; ++i) {
         auto ray = genCtx.generate(i, samples, hitPoint, normal);
-        IntersectionParams params { true, MAX_RAY_HIT_TIME, false };
+        
+        IntersectionParams params { true, maximumRayHitTime, false };
         auto intersect = RayIntersector::traverse(ray, grid, params);
         colorCtx.addAmbientContribution(intersect);
       }

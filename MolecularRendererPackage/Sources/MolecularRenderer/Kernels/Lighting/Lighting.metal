@@ -56,11 +56,12 @@ public:
     float specularAmbient = 1;
     
     if (intersect.accept) {
-      const float minimumAmbientIllumination = 0.07;
-      const float diffuseReflectanceScale = 0.5;
       const float decayConstant = 2.0;
+      const float diffuseReflectanceScale = 0.5;
+      const float maximumRayHitTime = 1.0;
+      const float minimumAmbientIllumination = 0.07;
       
-      float t = intersect.distance / MAX_RAY_HIT_TIME;
+      float t = intersect.distance / maximumRayHitTime;
       float lambda = decayConstant;
       float occlusion = exp(-lambda * t * t);
       diffuseAmbient -= (1 - minimumAmbientIllumination) * occlusion;

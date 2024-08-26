@@ -25,8 +25,6 @@ constant uint dense_grid_reference_capacity = 64 * 1024 * 1024;
 constant uint voxel_offset_mask = dense_grid_reference_capacity - 1;
 constant uint voxel_count_mask = 0xFFFFFFFF - voxel_offset_mask;
 
-constant float MAX_RAY_HIT_TIME = 1.0;
-
 // MARK: - Definitions
 
 struct CameraArguments {

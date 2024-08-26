@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9805D7B12C7D3C3D004E180A /* BVH+BuildLarge.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -98,6 +99,7 @@
 		980140E62A3E1F9C009408BE /* BVHBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BVHBuilder.swift; sourceTree = "<group>"; };
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
+		9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildLarge.metal"; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -1120,6 +1122,7 @@
 		98FB907E2A5CF91A00685E5C /* BVH */ = {
 			isa = PBXGroup;
 			children = (
+				9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */,
 				98537EAE2A62EA3D0037C392 /* BVH+BuildSmall.metal */,
 				98F12C8F2C72CEE20045FAFB /* BVH+Prepare.metal */,
 				985BBF012C7CC97C0096A104 /* ResetMemory.metal */,
@@ -1349,6 +1352,7 @@
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
 				98537EAF2A62EA3D0037C392 /* BVH+BuildSmall.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,
+				9805D7B12C7D3C3D004E180A /* BVH+BuildLarge.metal in Sources */,
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
