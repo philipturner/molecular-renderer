@@ -10,8 +10,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// MARK: - Utility Functions
-
 // Quantize a position relative to the world origin.
 ushort3 quantize(float3 position, ushort3 world_dims) {
   short3 output = short3(position);
@@ -19,6 +17,7 @@ ushort3 quantize(float3 position, ushort3 world_dims) {
   return ushort3(output);
 }
 
+// Test whether an atom overlaps a 1x1x1 cube.
 bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 {
   float3 c1 = float3(cube_min);
@@ -39,9 +38,7 @@ bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   return dist_squared > 0;
 }
 
-// MARK: - Pass 1
-
-kernel void densePass1
+kernel void buildSmallPart1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *smallCellMetadata [[buffer(1)]],
@@ -78,9 +75,12 @@ kernel void densePass1
   }
 }
 
-// MARK: - Pass 2
-
-kernel void densePass2
+// TODO: Reorder this, making it a 3D reduction across threads. 
+// - The indices in memory are still X/Y/Z.
+// - The threadgroup dispatch goes by large voxel.
+// - The BVH arguments are bound to the buffer table.
+// - Use "densePass2v2" until the rewritten function is fully debugged.
+kernel void buildSmallPart2
 (
  device uint *smallCellMetadata [[buffer(0)]],
  device uint *smallCellCounters [[buffer(1)]],
@@ -134,9 +134,7 @@ kernel void densePass2
   smallCellCounters[tid] = reducedAtomCount;
 }
 
-// MARK: - Pass 3
-
-kernel void densePass3
+kernel void buildSmallPart3
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *smallCellCounters [[buffer(1)]],

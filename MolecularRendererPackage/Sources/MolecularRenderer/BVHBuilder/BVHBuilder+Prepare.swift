@@ -18,8 +18,8 @@ extension BVHBuilder {
     encodeConvert(to: encoder)
     
     setBoundingBoxCounters(encoder: encoder)
-    reduceBBPart1(encoder: encoder)
-    reduceBBPart2(encoder: encoder)
+    reduceBoxPart1(encoder: encoder)
+    reduceBoxPart2(encoder: encoder)
     setIndirectArguments(encoder: encoder)
     encoder.endEncoding()
     
@@ -104,7 +104,7 @@ extension BVHBuilder {
     fillRegion(startSlotID: 4, value: Int32.min)
   }
   
-  func reduceBBPart1(encoder: MTLComputeCommandEncoder) {
+  func reduceBoxPart1(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     do {
       let atoms = renderer.argumentContainer.currentAtoms
@@ -120,14 +120,14 @@ extension BVHBuilder {
     do {
       let atoms = renderer.argumentContainer.currentAtoms
       let partialCount = (atoms.count + 127) / 128
-      encoder.setComputePipelineState(reduceBBPart1Pipeline)
+      encoder.setComputePipelineState(reduceBoxPart1Pipeline)
       encoder.dispatchThreadgroups(
         MTLSize(width: partialCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
   }
   
-  func reduceBBPart2(encoder: MTLComputeCommandEncoder) {
+  func reduceBoxPart2(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     do {
       let atoms = renderer.argumentContainer.currentAtoms
@@ -144,7 +144,7 @@ extension BVHBuilder {
       let atoms = renderer.argumentContainer.currentAtoms
       let partialCount = (atoms.count + 127) / 128
       let threadgroupCount = (partialCount + 127) / 128
-      encoder.setComputePipelineState(reduceBBPart2Pipeline)
+      encoder.setComputePipelineState(reduceBoxPart2Pipeline)
       encoder.dispatchThreadgroups(
         MTLSize(width: threadgroupCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))

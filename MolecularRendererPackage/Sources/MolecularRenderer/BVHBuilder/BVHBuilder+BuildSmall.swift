@@ -16,9 +16,9 @@ extension BVHBuilder {
     setAllocationCounter(encoder: encoder)
     clearSmallCellMetadata(encoder: encoder)
     
-    encodePass1(to: encoder)
-    encodePass2(to: encoder)
-    encodePass3(to: encoder)
+    buildSmallPart1(encoder: encoder)
+    buildSmallPart2(encoder: encoder)
+    buildSmallPart3(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -71,8 +71,7 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
-  /// Encode the function `dense_grid_pass1`.
-  func encodePass1(to encoder: MTLComputeCommandEncoder) {
+  func buildSmallPart1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
@@ -80,29 +79,27 @@ extension BVHBuilder {
     
     // Dispatch
     let atoms = renderer.argumentContainer.currentAtoms
-    encoder.setComputePipelineState(densePass1Pipeline)
+    encoder.setComputePipelineState(buildSmallPart1Pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  /// Encode the function `dense_grid_pass2`.
-  func encodePass2(to encoder: MTLComputeCommandEncoder) {
+  func buildSmallPart2(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
     encoder.setBuffer(smallCellMetadata, offset: 0, index: 0)
     encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
     
     // Dispatch
-    encoder.setComputePipelineState(densePass2Pipeline)
+    encoder.setComputePipelineState(buildSmallPart2Pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: smallCellDispatchArguments,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))
   }
   
-  /// Encode the function `dense_grid_pass3`.
-  func encodePass3(to encoder: MTLComputeCommandEncoder) {
+  func buildSmallPart3(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
@@ -111,7 +108,7 @@ extension BVHBuilder {
     
     // Dispatch
     let atoms = renderer.argumentContainer.currentAtoms
-    encoder.setComputePipelineState(densePass3Pipeline)
+    encoder.setComputePipelineState(buildSmallPart3Pipeline)
     encoder.dispatchThreads(
       MTLSizeMake(atoms.count, 1, 1),
       threadsPerThreadgroup: MTLSizeMake(128, 1, 1))

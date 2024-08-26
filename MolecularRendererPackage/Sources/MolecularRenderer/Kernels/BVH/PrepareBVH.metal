@@ -37,7 +37,7 @@ kernel void convert
 }
 
 // Condense the per-atom boxes a smaller O(n) list of partials.
-kernel void reduceBBPart1
+kernel void reduceBoxPart1
 (
  constant uint &atomCount [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
@@ -109,7 +109,7 @@ inline int vectorSelect(int3 vector, ushort lane) {
 }
 
 // Reduce the smaller list with atomics.
-kernel void reduceBBPart2
+kernel void reduceBoxPart2
 (
  constant uint &partialCount [[buffer(0)]],
  device int3 *partials [[buffer(1)]],

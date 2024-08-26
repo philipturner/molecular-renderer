@@ -15,14 +15,14 @@ class BVHBuilder {
   // Pipeline state objects (prepare).
   var resetMemory1DPipeline: MTLComputePipelineState
   var convertPipeline: MTLComputePipelineState
-  var reduceBBPart1Pipeline: MTLComputePipelineState
-  var reduceBBPart2Pipeline: MTLComputePipelineState
+  var reduceBoxPart1Pipeline: MTLComputePipelineState
+  var reduceBoxPart2Pipeline: MTLComputePipelineState
   var setIndirectArgumentsPipeline: MTLComputePipelineState
   
   // Pipeline state objects (build).
-  var densePass1Pipeline: MTLComputePipelineState
-  var densePass2Pipeline: MTLComputePipelineState
-  var densePass3Pipeline: MTLComputePipelineState
+  var buildSmallPart1Pipeline: MTLComputePipelineState
+  var buildSmallPart2Pipeline: MTLComputePipelineState
+  var buildSmallPart3Pipeline: MTLComputePipelineState
   
   // Data buffers (per atom).
   var originalAtomsBuffers: [MTLBuffer]
@@ -54,15 +54,17 @@ class BVHBuilder {
       }
       return try! device.makeComputePipelineState(function: function)
     }
+    
+    // TODO: Make container objects that encapsulate the numerous pipelines.
     resetMemory1DPipeline = createPipeline(name: "resetMemory1D")
     convertPipeline = createPipeline(name: "convert")
-    reduceBBPart1Pipeline = createPipeline(name: "reduceBBPart1")
-    reduceBBPart2Pipeline = createPipeline(name: "reduceBBPart2")
+    reduceBoxPart1Pipeline = createPipeline(name: "reduceBoxPart1")
+    reduceBoxPart2Pipeline = createPipeline(name: "reduceBoxPart2")
     setIndirectArgumentsPipeline = createPipeline(name: "setIndirectArguments")
     
-    densePass1Pipeline = createPipeline(name: "densePass1")
-    densePass2Pipeline = createPipeline(name: "densePass2")
-    densePass3Pipeline = createPipeline(name: "densePass3")
+    buildSmallPart1Pipeline = createPipeline(name: "buildSmallPart1")
+    buildSmallPart2Pipeline = createPipeline(name: "buildSmallPart2")
+    buildSmallPart3Pipeline = createPipeline(name: "buildSmallPart3")
     
     // Allocate data buffers (per atom).
     func createBuffer(atomCount: Int) -> MTLBuffer {
