@@ -114,6 +114,7 @@ public class MRRenderer {
     
     // Encode the work.
     bvhBuilder.prepareBVH(frameID: frameID)
+    bvhBuilder.buildLargeBVH(frameID: frameID)
     bvhBuilder.buildSmallBVH(frameID: frameID)
     dispatchRenderingWork(frameID: frameID)
     

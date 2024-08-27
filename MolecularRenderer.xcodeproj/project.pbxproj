@@ -100,6 +100,7 @@
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
 		9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildLarge.metal"; sourceTree = "<group>"; };
+		9805D7B22C7DF518004E180A /* BVHBuilder+BuildLarge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+BuildLarge.swift"; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
 		981360DB2B4875D10007D40F /* NCFMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFMechanism.swift; sourceTree = "<group>"; };
@@ -966,6 +967,7 @@
 			isa = PBXGroup;
 			children = (
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
+				9805D7B22C7DF518004E180A /* BVHBuilder+BuildLarge.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+BuildSmall.swift */,
 				98D26BAA2C754D01007B48FD /* BVHBuilder+Prepare.swift */,
 				985BBF032C7CD6D30096A104 /* BVHBuilder+ResetMemory.swift */,

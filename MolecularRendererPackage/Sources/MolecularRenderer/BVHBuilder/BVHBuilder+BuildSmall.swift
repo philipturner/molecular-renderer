@@ -50,7 +50,8 @@ extension BVHBuilder {
           return
         }
         
-        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+        let executionTime = 
+        commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
         frameReporter.reports[index].buildSmallTime = executionTime
       }
     }

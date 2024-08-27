@@ -20,6 +20,7 @@ extension FrameReporter {
     for reportID in reports.indices {
       let report = reports[reportID]
       guard report.prepareTime > 0,
+            report.buildLargeTime > 0,
             report.buildSmallTime > 0,
             report.renderTime > 0 else {
         continue
@@ -28,6 +29,7 @@ extension FrameReporter {
       validFrameCount += 1
       sum[0] += report.copyTime
       sum[1] += report.prepareTime
+      sum[2] += report.buildLargeTime
       sum[3] += report.buildSmallTime
       sum[4] += report.renderTime
     }

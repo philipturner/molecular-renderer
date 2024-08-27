@@ -28,7 +28,6 @@ extension MRRenderer {
   func dispatchRenderingWork(frameID: Int) {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    encoder.setComputePipelineState(renderPipeline)
     
     // Arguments 0 - 1
     do {
@@ -89,16 +88,15 @@ extension MRRenderer {
     
     // Dispatch
     do {
-      // Dispatch an even number of threads (the shader will rearrange them).
-      var dispatchGrid = MTLSize(width: 1, height: 1, depth: 1)
-      dispatchGrid.width = (argumentContainer.intermediateTextureSize + 7) / 8
-      dispatchGrid.height = (argumentContainer.intermediateTextureSize + 7) / 8
+      let pipeline = renderPipeline!
+      encoder.setComputePipelineState(pipeline)
       
-      var threadgroupGrid = MTLSize(width: 1, height: 1, depth: 1)
-      threadgroupGrid.width = 8
-      threadgroupGrid.height = 8
+      // Dispatch an even number of threads (the shader will rearrange them).
+      var dispatchWidth = argumentContainer.intermediateTextureSize
+      dispatchWidth = (dispatchWidth + 7) / 8
       encoder.dispatchThreadgroups(
-        dispatchGrid, threadsPerThreadgroup: threadgroupGrid)
+        MTLSize(width: dispatchWidth, height: dispatchWidth, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
     }
     
     encoder.endEncoding()
@@ -110,7 +108,8 @@ extension MRRenderer {
           return
         }
         
-        let executionTime = commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+        let executionTime =
+        commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
         frameReporter.reports[index].renderTime = executionTime
       }
     }
