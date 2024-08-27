@@ -10,11 +10,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Start with a simple function that increments the atom count in
-// each large voxel.
-// - Multiple separate kernels for the time being.
-// - Later, fuse into a single kernel and prove there's a speedup.
-
 // Quantize a position relative to the world origin.
 inline ushort3 quantize(float3 position, ushort3 world_dims) {
   short3 output = short3(position);
@@ -23,41 +18,22 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
 }
 
 // Tasks:
-// - Replicate 'buildSmallPart1'.
+// - Replicate 'buildSmallPart1'. [DONE]
 // - Switch to generating the large voxel coordinate from the small voxel
-//   coordinate, and counting the atom's footprint in each of 8 voxels.
-//   Ensure the results are the exact same.
+//   coordinate.
+// - Count the atom's footprint in each of 8 voxels.
+//   - Match the reference count from the "bounding box" algorithm.
+// - Accumulate both metrics at the same time.
 kernel void buildLargePart1
 (
- constant uint &atomCount [[buffer(0)]],
- constant BVHArguments *bvhArgs [[buffer(1)]],
- device atomic_uint *largeCellMetadata [[buffer(2)]],
- device float4 *convertedAtoms [[buffer(3)]],
+ constant BVHArguments *bvhArgs [[buffer(0)]],
+ device atomic_uint *largeCellMetadata [[buffer(1)]],
+ device float4 *convertedAtoms [[buffer(2)]],
  
  uint tid [[thread_position_in_grid]])
 {
-  // Reorder the memory accesses.
-  uint atomID;
-  
-#if 0
-  atomID = tid;
-#else
-  {
-    uint reversedBits = 2;
-    uint reversedID = reverse_bits(tid);
-    reversedID >>= 32 - reversedBits;
-    
-    uint reverseMask = (1 << reversedBits) - 1;
-    atomID = (tid & ~reverseMask) | (reversedID & reverseMask);
-  }
-#endif
-  
-  if (atomID >= atomCount) {
-    return;
-  }
-  
   // Transform the atom.
-  float4 newAtom = convertedAtoms[atomID];
+  float4 newAtom = convertedAtoms[tid];
   newAtom.xyz = (newAtom.xyz - bvhArgs->worldMinimum) / 2;
   newAtom.w = newAtom.w / 2;
   

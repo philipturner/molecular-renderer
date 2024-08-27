@@ -27,7 +27,8 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    //clearLargeCellMetadata(encoder: encoder)
+    clearLargeCellMetadata(encoder: encoder)
+    
     buildLargePart1(encoder: encoder)
     encoder.endEncoding()
     
@@ -45,30 +46,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-    
-#if false
-    commandBuffer.waitUntilCompleted()
-    
-    let metadata = largeCellMetadata.contents()
-      .assumingMemoryBound(to: UInt32.self)
-    print()
-    print(metadata[0])
-    print(metadata[4 * 8 * 9 + 4 * 9 + 4])
-    print(metadata[8 * 8 * 9 - 1])
-    print(metadata[8 * 8 * 9])
-    print()
-    
-    var referenceCount: Int = .zero
-    for voxelID in 0..<largeCellMetadata.length / 4 {
-      let voxelAtomCount = metadata[voxelID]
-      referenceCount += Int(voxelAtomCount)
-    }
-    print()
-    print(referenceCount)
-    print()
-    
-    exit(0)
-#endif
   }
 }
 
@@ -94,17 +71,10 @@ extension BVHBuilder {
   }
   
   func buildLargePart1(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    do {
-      let atoms = renderer.argumentContainer.currentAtoms
-      var atomCount = UInt32(atoms.count)
-      encoder.setBytes(&atomCount, length: 4, index: 0)
-    }
-    
-    // Arguments 1 - 3
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 1)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 2)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 3)
+    // Arguments 0 - 2
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
     
     // Dispatch
     do {
@@ -112,14 +82,8 @@ extension BVHBuilder {
       encoder.setComputePipelineState(pipeline)
       
       let atoms = renderer.argumentContainer.currentAtoms
-      let reversedBits: Int = 2
-      
-      var atomsRounded = atoms.count
-      atomsRounded += (1 << reversedBits) - 1
-      atomsRounded /= 1 << reversedBits
-      atomsRounded *= 1 << reversedBits
       encoder.dispatchThreads(
-        MTLSize(width: atomsRounded, height: 1, depth: 1),
+        MTLSize(width: atoms.count, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
   }
