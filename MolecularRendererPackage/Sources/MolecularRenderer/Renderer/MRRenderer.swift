@@ -115,8 +115,8 @@ public class MRRenderer {
     // Encode the work.
     bvhBuilder.prepareBVH(frameID: frameID)
     bvhBuilder.buildLargeBVH(frameID: frameID)
-    bvhBuilder.buildSmallBVH(frameID: frameID)
-    dispatchRenderingWork(frameID: frameID)
+//    bvhBuilder.buildSmallBVH(frameID: frameID)
+//    dispatchRenderingWork(frameID: frameID)
     
     // Dispatch the upscaling work.
     let drawable = layer.nextDrawable()!

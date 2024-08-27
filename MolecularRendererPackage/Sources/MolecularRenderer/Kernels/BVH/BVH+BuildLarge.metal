@@ -29,14 +29,29 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
 //   Ensure the results are the exact same.
 kernel void buildLargePart1
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *largeCellMetadata [[buffer(1)]],
- device float4 *convertedAtoms [[buffer(2)]],
+ constant uint &atomCount [[buffer(0)]],
+ constant BVHArguments *bvhArgs [[buffer(1)]],
+ device atomic_uint *largeCellMetadata [[buffer(2)]],
+ device float4 *convertedAtoms [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]])
 {
+  // Reorder the memory accesses.
+  uint atomID;
+  {
+    uint reversedBits = 14;
+    uint reversedID = reverse_bits(tid);
+    reversedID >>= 32 - reversedBits;
+    
+    uint reverseMask = (1 << reversedBits) - 1;
+    atomID = (tid & ~reverseMask) | (reversedID & reverseMask);
+  }
+  if (atomID >= atomCount) {
+    return;
+  }
+  
   // Transform the atom.
-  float4 newAtom = convertedAtoms[tid];
+  float4 newAtom = convertedAtoms[atomID];
   newAtom.xyz = (newAtom.xyz - bvhArgs->worldMinimum) / 2;
   newAtom.w = newAtom.w / 2;
   

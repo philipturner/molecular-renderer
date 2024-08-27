@@ -21,8 +21,8 @@ extension FrameReporter {
       let report = reports[reportID]
       guard report.prepareTime > 0,
             report.buildLargeTime > 0,
-            report.buildSmallTime > 0,
-            report.renderTime > 0 else {
+            report.buildSmallTime >= 0,
+            report.renderTime >= 0 else {
         continue
       }
       

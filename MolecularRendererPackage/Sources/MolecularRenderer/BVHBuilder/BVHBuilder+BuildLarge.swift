@@ -39,12 +39,14 @@ extension BVHBuilder {
           return
         }
         
-        let executionTime = 
+        let executionTime =
         commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
         frameReporter.reports[index].buildLargeTime = executionTime
       }
     }
     commandBuffer.commit()
+    
+#if true
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeCellMetadata.contents()
@@ -57,7 +59,7 @@ extension BVHBuilder {
     print()
     
     var referenceCount: Int = .zero
-    for voxelID in 0..<(64 * 64 * 64) {
+    for voxelID in 0..<(8 * 8 * 9 * 2) {
       let voxelAtomCount = metadata[voxelID]
       referenceCount += Int(voxelAtomCount)
     }
@@ -66,6 +68,7 @@ extension BVHBuilder {
     print()
     
     exit(0)
+#endif
   }
 }
 
@@ -91,17 +94,35 @@ extension BVHBuilder {
   }
   
   func buildLargePart1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    // Argument 0
+    do {
+      let atoms = renderer.argumentContainer.currentAtoms
+      var atomCount = UInt32(atoms.count)
+      encoder.setBytes(&atomCount, length: 4, index: 0)
+    }
+    
+    // Arguments 1 - 3
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 1)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 2)
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 3)
     
     // Dispatch
-    let atoms = renderer.argumentContainer.currentAtoms
-    let pipeline = buildLargePipelines.buildLargePart1
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: atoms.count, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart1
+      encoder.setComputePipelineState(pipeline)
+      
+      let atoms = renderer.argumentContainer.currentAtoms
+      let reversedBits: Int = 14
+      
+      var atomsRounded = atoms.count
+      atomsRounded += (1 << reversedBits) - 1
+      atomsRounded /= 1 << reversedBits
+      atomsRounded *= 1 << reversedBits
+      print(atoms.count, atomsRounded)
+      
+      encoder.dispatchThreads(
+        MTLSize(width: atomsRounded, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
   }
 }
