@@ -38,14 +38,20 @@ kernel void buildLargePart1
 {
   // Reorder the memory accesses.
   uint atomID;
+  
+#if 1
+  atomID = tid;
+#else
   {
-    uint reversedBits = 14;
+    uint reversedBits = 0;
     uint reversedID = reverse_bits(tid);
     reversedID >>= 32 - reversedBits;
     
     uint reverseMask = (1 << reversedBits) - 1;
     atomID = (tid & ~reverseMask) | (reversedID & reverseMask);
   }
+#endif
+  
   if (atomID >= atomCount) {
     return;
   }

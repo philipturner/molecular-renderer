@@ -75,7 +75,7 @@ class BVHBuilder {
     globalAtomicCounters = device.makeBuffer(length: 1024)!
     
     // Allocate data buffers (other).
-    largeCellMetadata = device.makeBuffer(length: 64 * 64 * 64 * 4)!
+    largeCellMetadata = device.makeBuffer(length: 64 * 64 * 64 * 64 * 4)!
     smallCellMetadata = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!

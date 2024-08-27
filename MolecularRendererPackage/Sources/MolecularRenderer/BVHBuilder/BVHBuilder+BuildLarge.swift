@@ -25,11 +25,23 @@ struct BVHBuildLargePipelines {
 extension BVHBuilder {
   func buildLargeBVH(frameID: Int) {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
+    
+#if false
+    
+    let encoder = commandBuffer.makeBlitCommandEncoder()!
+    encoder.fill(
+      buffer: largeCellMetadata,
+      range: 0..<largeCellMetadata.length,
+      value: 0)
+    encoder.endEncoding()
+    
+#else
+    
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     clearLargeCellMetadata(encoder: encoder)
-    
-    buildLargePart1(encoder: encoder)
     encoder.endEncoding()
+    
+#endif
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let frameReporter = self.renderer.frameReporter!
@@ -46,7 +58,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-#if true
+#if false
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeCellMetadata.contents()
@@ -59,7 +71,7 @@ extension BVHBuilder {
     print()
     
     var referenceCount: Int = .zero
-    for voxelID in 0..<(8 * 8 * 9 * 2) {
+    for voxelID in 0..<(8 * 8 * 9) {
       let voxelAtomCount = metadata[voxelID]
       referenceCount += Int(voxelAtomCount)
     }
@@ -86,7 +98,7 @@ extension BVHBuilder {
       let pipeline = resetMemoryPipelines.resetMemory1D
       encoder.setComputePipelineState(pipeline)
       
-      let largeCellCount = 64 * 64 * 64
+      let largeCellCount = largeCellMetadata.length / 4
       encoder.dispatchThreadgroups(
         MTLSize(width: largeCellCount / 128, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
@@ -112,14 +124,12 @@ extension BVHBuilder {
       encoder.setComputePipelineState(pipeline)
       
       let atoms = renderer.argumentContainer.currentAtoms
-      let reversedBits: Int = 14
+      let reversedBits: Int = 0
       
       var atomsRounded = atoms.count
       atomsRounded += (1 << reversedBits) - 1
       atomsRounded /= 1 << reversedBits
       atomsRounded *= 1 << reversedBits
-      print(atoms.count, atomsRounded)
-      
       encoder.dispatchThreads(
         MTLSize(width: atomsRounded, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
