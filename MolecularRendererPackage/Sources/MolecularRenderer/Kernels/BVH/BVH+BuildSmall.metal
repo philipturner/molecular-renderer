@@ -11,14 +11,14 @@
 using namespace metal;
 
 // Quantize a position relative to the world origin.
-ushort3 quantize(float3 position, ushort3 world_dims) {
+inline ushort3 quantize(float3 position, ushort3 world_dims) {
   short3 output = short3(position);
   output = clamp(output, 0, short3(world_dims));
   return ushort3(output);
 }
 
 // Test whether an atom overlaps a 1x1x1 cube.
-bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
+inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 {
   float3 c1 = float3(cube_min);
   float3 c2 = c1 + 1;
