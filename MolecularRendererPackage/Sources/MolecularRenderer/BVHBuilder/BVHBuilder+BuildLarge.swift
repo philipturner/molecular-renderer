@@ -112,7 +112,7 @@ extension BVHBuilder {
       encoder.setComputePipelineState(pipeline)
       
       let atoms = renderer.argumentContainer.currentAtoms
-      let reversedBits: Int = 0
+      let reversedBits: Int = 2
       
       var atomsRounded = atoms.count
       atomsRounded += (1 << reversedBits) - 1

@@ -39,11 +39,11 @@ kernel void buildLargePart1
   // Reorder the memory accesses.
   uint atomID;
   
-#if 1
+#if 0
   atomID = tid;
 #else
   {
-    uint reversedBits = 0;
+    uint reversedBits = 2;
     uint reversedID = reverse_bits(tid);
     reversedID >>= 32 - reversedBits;
     
@@ -74,7 +74,7 @@ kernel void buildLargePart1
         
         // Increment the voxel's counter.
         uint address = VoxelAddress::generate(grid_dims, cube_min);
-        address = (address * 8) + (atomID % 8);
+        address = (address * 8) + (tid % 8);
         atomic_fetch_add_explicit(largeCellMetadata + address,
                                   1, memory_order_relaxed);
       }
