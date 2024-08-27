@@ -34,7 +34,7 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    setAllocationCounter(encoder: encoder)
+    clearSmallAllocationCounters(encoder: encoder)
     clearSmallCellMetadata(encoder: encoder)
     
     buildSmallPart1(encoder: encoder)
@@ -60,7 +60,7 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
-  func setAllocationCounter(encoder: MTLComputeCommandEncoder) {
+  func clearSmallAllocationCounters(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
     
@@ -89,9 +89,7 @@ extension BVHBuilder {
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
   }
-}
-
-extension BVHBuilder {
+  
   func buildSmallPart1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)

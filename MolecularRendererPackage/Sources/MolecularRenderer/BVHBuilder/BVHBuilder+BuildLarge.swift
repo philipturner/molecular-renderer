@@ -7,11 +7,28 @@
 
 import Metal
 
+struct BVHBuildLargePipelines {
+  var buildLargePart1: MTLComputePipelineState
+  
+  init(library: MTLLibrary) {
+    func createPipeline(name: String) -> MTLComputePipelineState {
+      guard let function = library.makeFunction(name: name) else {
+        fatalError("Could not create function.")
+      }
+      let device = library.device
+      return try! device.makeComputePipelineState(function: function)
+    }
+    buildLargePart1 = createPipeline(name: "buildLargePart1")
+  }
+}
+
 extension BVHBuilder {
   func buildLargeBVH(frameID: Int) {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     clearLargeCellMetadata(encoder: encoder)
+    
+    buildLargePart1(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -28,6 +45,27 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+    commandBuffer.waitUntilCompleted()
+    
+    let metadata = largeCellMetadata.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    print()
+    print(metadata[0])
+    print(metadata[4 * 8 * 9 + 4 * 9 + 4])
+    print(metadata[8 * 8 * 9 - 1])
+    print(metadata[8 * 8 * 9])
+    print()
+    
+    var referenceCount: Int = .zero
+    for voxelID in 0..<(64 * 64 * 64) {
+      let voxelAtomCount = metadata[voxelID]
+      referenceCount += Int(voxelAtomCount)
+    }
+    print()
+    print(referenceCount)
+    print()
+    
+    exit(0)
   }
 }
 
@@ -50,5 +88,20 @@ extension BVHBuilder {
         MTLSize(width: largeCellCount / 128, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
+  }
+  
+  func buildLargePart1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    
+    // Dispatch
+    let atoms = renderer.argumentContainer.currentAtoms
+    let pipeline = buildLargePipelines.buildLargePart1
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: atoms.count, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
 }

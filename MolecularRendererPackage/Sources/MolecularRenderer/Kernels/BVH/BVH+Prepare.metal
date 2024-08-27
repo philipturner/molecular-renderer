@@ -9,8 +9,8 @@
 #include "../Utilities/Constants.metal"
 using namespace metal;
 
-// Converts the float4 atoms to two different formats (for now).
-kernel void convert
+// Convert the float4 atoms to a different format.
+kernel void convertAtoms
 (
  device float4 *originalAtoms [[buffer(0)]],
  device float *atomRadii [[buffer(1)]],

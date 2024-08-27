@@ -15,6 +15,7 @@ class BVHBuilder {
   // Pipeline state objects.
   var resetMemoryPipelines: BVHResetMemoryPipelines
   var preparePipelines: BVHPreparePipelines
+  var buildLargePipelines: BVHBuildLargePipelines
   var buildSmallPipelines: BVHBuildSmallPipelines
   
   // Data buffers (per atom).
@@ -43,6 +44,7 @@ class BVHBuilder {
     
     resetMemoryPipelines = BVHResetMemoryPipelines(library: library)
     preparePipelines = BVHPreparePipelines(library: library)
+    buildLargePipelines = BVHBuildLargePipelines(library: library)
     buildSmallPipelines = BVHBuildSmallPipelines(library: library)
     
     // Allocate data buffers (per atom).

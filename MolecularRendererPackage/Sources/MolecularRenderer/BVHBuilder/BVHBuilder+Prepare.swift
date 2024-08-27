@@ -10,7 +10,7 @@ import QuartzCore
 import simd
 
 struct BVHPreparePipelines {
-  var convert: MTLComputePipelineState
+  var convertAtoms: MTLComputePipelineState
   var reduceBoxPart1: MTLComputePipelineState
   var reduceBoxPart2: MTLComputePipelineState
   var setIndirectArguments: MTLComputePipelineState
@@ -23,7 +23,7 @@ struct BVHPreparePipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
-    convert = createPipeline(name: "convert")
+    convertAtoms = createPipeline(name: "convertAtoms")
     reduceBoxPart1 = createPipeline(name: "reduceBoxPart1")
     reduceBoxPart2 = createPipeline(name: "reduceBoxPart2")
     setIndirectArguments = createPipeline(name: "setIndirectArguments")
@@ -36,9 +36,9 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    encodeConvert(to: encoder)
+    clearBoxCounters(encoder: encoder)
     
-    setBoundingBoxCounters(encoder: encoder)
+    convertAtoms(encoder: encoder)
     reduceBoxPart1(encoder: encoder)
     reduceBoxPart2(encoder: encoder)
     setIndirectArguments(encoder: encoder)
@@ -76,33 +76,7 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
-  func encodeConvert(to encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    do {
-      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-      let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
-      encoder.setBuffer(originalAtomsBuffer, offset: 0, index: 0)
-    }
-    
-    // Argument 1
-    renderer.atomRadii.withUnsafeBufferPointer {
-      let length = $0.count * 4
-      encoder.setBytes($0.baseAddress!, length: length, index: 1)
-    }
-    
-    // Argument 2
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
-    
-    // Dispatch
-    let atoms = renderer.argumentContainer.currentAtoms
-    let pipeline = preparePipelines.convert
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: atoms.count, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-  }
-  
-  func setBoundingBoxCounters(encoder: MTLComputeCommandEncoder) {
+  func clearBoxCounters(encoder: MTLComputeCommandEncoder) {
     func fillRegion(startSlotID: Int, value: Int32) {
       // Argument 0
       let offset = startSlotID * 4
@@ -125,6 +99,32 @@ extension BVHBuilder {
     
     // Maximum counter: start at -infinity
     fillRegion(startSlotID: 4, value: Int32.min)
+  }
+  
+  func convertAtoms(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    do {
+      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+      let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
+      encoder.setBuffer(originalAtomsBuffer, offset: 0, index: 0)
+    }
+    
+    // Argument 1
+    renderer.atomRadii.withUnsafeBufferPointer {
+      let length = $0.count * 4
+      encoder.setBytes($0.baseAddress!, length: length, index: 1)
+    }
+    
+    // Argument 2
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    
+    // Dispatch
+    let atoms = renderer.argumentContainer.currentAtoms
+    let pipeline = preparePipelines.convertAtoms
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: atoms.count, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
   
   func reduceBoxPart1(encoder: MTLComputeCommandEncoder) {
