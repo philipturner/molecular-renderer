@@ -26,22 +26,10 @@ extension BVHBuilder {
   func buildLargeBVH(frameID: Int) {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
-#if false
-    
-    let encoder = commandBuffer.makeBlitCommandEncoder()!
-    encoder.fill(
-      buffer: largeCellMetadata,
-      range: 0..<largeCellMetadata.length,
-      value: 0)
-    encoder.endEncoding()
-    
-#else
-    
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    clearLargeCellMetadata(encoder: encoder)
+    //clearLargeCellMetadata(encoder: encoder)
+    buildLargePart1(encoder: encoder)
     encoder.endEncoding()
-    
-#endif
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let frameReporter = self.renderer.frameReporter!
@@ -71,7 +59,7 @@ extension BVHBuilder {
     print()
     
     var referenceCount: Int = .zero
-    for voxelID in 0..<(8 * 8 * 9) {
+    for voxelID in 0..<largeCellMetadata.length / 4 {
       let voxelAtomCount = metadata[voxelID]
       referenceCount += Int(voxelAtomCount)
     }

@@ -74,6 +74,7 @@ kernel void buildLargePart1
         
         // Increment the voxel's counter.
         uint address = VoxelAddress::generate(grid_dims, cube_min);
+        address = (address * 8) + (atomID % 8);
         atomic_fetch_add_explicit(largeCellMetadata + address,
                                   1, memory_order_relaxed);
       }
