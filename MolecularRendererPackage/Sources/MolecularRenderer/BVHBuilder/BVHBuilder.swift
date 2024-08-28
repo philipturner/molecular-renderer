@@ -21,6 +21,7 @@ class BVHBuilder {
   // Data buffers (per atom).
   var originalAtomsBuffers: [MTLBuffer]
   var convertedAtomsBuffer: MTLBuffer
+  var relativeOffsetsBuffer: MTLBuffer
   var boundingBoxPartialsBuffer: MTLBuffer
   
   // Data buffers (indirect dispatch).
@@ -48,8 +49,8 @@ class BVHBuilder {
     buildSmallPipelines = BVHBuildSmallPipelines(library: library)
     
     // Allocate data buffers (per atom).
-    func createBuffer(atomCount: Int) -> MTLBuffer {
-      let bufferSize = atomCount * 16
+    func createAtomBuffer(_ bytesPerAtom: Int) -> MTLBuffer {
+      let bufferSize = BVHBuilder.maxAtomCount * bytesPerAtom
       return device.makeBuffer(length: bufferSize)!
     }
     func createPartialsBuffer() -> MTLBuffer {
@@ -61,12 +62,12 @@ class BVHBuilder {
       return device.makeBuffer(length: bufferSize)!
     }
     originalAtomsBuffers = [
-      createBuffer(atomCount: BVHBuilder.maxAtomCount),
-      createBuffer(atomCount: BVHBuilder.maxAtomCount),
-      createBuffer(atomCount: BVHBuilder.maxAtomCount),
+      createAtomBuffer(16),
+      createAtomBuffer(16),
+      createAtomBuffer(16),
     ]
-    convertedAtomsBuffer = createBuffer(
-      atomCount: 2 * BVHBuilder.maxAtomCount)
+    convertedAtomsBuffer = createAtomBuffer(32)
+    relativeOffsetsBuffer = createAtomBuffer(16)
     boundingBoxPartialsBuffer = createPartialsBuffer()
     
     // Allocate data buffers (indirect dispatch).
