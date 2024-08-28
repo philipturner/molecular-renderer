@@ -74,14 +74,8 @@ kernel void buildLargePart1
   
   // Allocate memory for the relative offsets.
   threadgroup ushort cachedRelativeOffsets[8 * 128];
-  for (ushort i = 0; i < 8; ++i) {
-    ushort address = i;
-    address = address * 128 + thread_id;
-    cachedRelativeOffsets[address] = 0xFFFF;
-  }
   
   // Iterate over the footprint on the 3D grid.
-  simdgroup_barrier(mem_flags::mem_threadgroup);
   for (ushort z = 0; z < loopEnd[2]; ++z) {
     for (ushort y = 0; y < loopEnd[1]; ++y) {
       for (ushort x = 0; x < loopEnd[0]; ++x) {
@@ -146,4 +140,38 @@ kernel void buildLargePart1
   if (loopEnd[2] == 2) {
     relativeOffsets2[tid] = output[1];
   }
+}
+
+// Inputs:
+// - bvhArgs
+// - largeReferenceCount
+//   - overwritten with zero
+// - smallReferenceCount
+//   - overwritten with zero
+// - inputMetadata (8x duplicate)
+//
+// Outputs:
+// - largeReferenceCount, storing large reference count
+// - smallReferenceCount, storing small reference count
+// - inputMetadata (8x duplicate)
+//   - overwritten with large ref. offset
+// - outputMetadata (1x duplicate)
+//   - large reference offset
+//   - large reference count
+//   - small reference offset
+//   - small reference count
+kernel void buildLargePart2
+(
+ constant BVHArguments *bvhArgs [[buffer(0)]],
+ device atomic_uint *largeReferenceCount [[buffer(1)]],
+ device atomic_uint *smallReferenceCount [[buffer(2)]],
+ device uint *inputMetadata [[buffer(3)]],
+ device uint4 *outputMetadata [[buffer(4)]],
+
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]],
+ ushort lane_id [[thread_index_in_simdgroup]],
+ ushort simd_id [[simdgroup_index_in_threadgroup]])
+{
+  
 }
