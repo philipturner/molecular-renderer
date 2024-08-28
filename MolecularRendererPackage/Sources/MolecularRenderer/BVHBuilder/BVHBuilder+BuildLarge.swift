@@ -81,36 +81,6 @@ extension BVHBuilder {
     print(smallReferenceCount)
     print()
     
-    let rawPointer1 = relativeOffsetsBuffer.contents()
-    let rawPointer2 = rawPointer1 + relativeOffsetsBuffer.length / 2
-    let offsets1 = rawPointer1.assumingMemoryBound(to: SIMD4<UInt16>.self)
-    let offsets2 = rawPointer2.assumingMemoryBound(to: SIMD4<UInt16>.self)
-    
-    /*
-     0 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     1 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     2 | SIMD8<UInt16>(0, 16383, 24, 16383, 16383, 16383, 16383, 16383)
-     3 | SIMD8<UInt16>(0, 16383, 17, 16383, 16383, 16383, 16383, 16383)
-     4 | SIMD8<UInt16>(0, 16383, 29, 16383, 16383, 16383, 16383, 16383)
-     5 | SIMD8<UInt16>(0, 16383, 22, 16383, 16383, 16383, 16383, 16383)
-     6 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     7 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     8 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     9 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     10 | SIMD8<UInt16>(1, 16383, 25, 16383, 16383, 16383, 16383, 16383)
-     11 | SIMD8<UInt16>(1, 16383, 18, 16383, 16383, 16383, 16383, 16383)
-     12 | SIMD8<UInt16>(1, 16383, 30, 16383, 16383, 16383, 16383, 16383)
-     13 | SIMD8<UInt16>(1, 16383, 23, 16383, 16383, 16383, 16383, 16383)
-     14 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     15 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
-     */
-    
-    print()
-    for offsetID in 0..<16 {
-      print(offsetID, "|", offsets1[offsetID], offsets2[offsetID])
-    }
-    print()
-    
     exit(0)
     #endif
   }

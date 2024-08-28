@@ -35,10 +35,10 @@ import Numerics
 //   - Use device atomics to find number of atoms in each large voxel. [DONE]
 //   - Also allocate small cell references, in a single pass. [DONE]
 //   - Try reducing divergence in the loop. [DONE]
-//   - Use threadgroup memory to store relative offsets.
-//     - Detect and fix bank conflicts.
-//     - Determine whether 16-bit values in TG memory are faster.
-//     - Halve the device memory bandwidth.
+//   - Use threadgroup memory to store relative offsets. [DONE]
+//     - Detect and fix bank conflicts. [DONE]
+//     - Determine whether 16-bit values in TG memory are faster. [DONE]
+//     - Halve the device memory bandwidth. [DONE]
 // - Run a 3D parallel reduction across the large voxel grid.
 // - Store references to original atoms in the large voxels' lists.
 //

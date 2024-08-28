@@ -49,34 +49,6 @@ kernel void buildLargePart1
   short3 footprintLow = dividingLine - smallVoxelMin;
   short3 footprintHigh = smallVoxelMax - dividingLine;
   
-  // Not unrolled             | 103 instructions
-  // ALU inefficiency: 16.30% | 67.396 million instructions issued
-  // ALU inefficiency: 16.30% | 67.397 million instructions issued
-  // ALU inefficiency: 16.30% | 67.396 million instructions issued
-  // ~140-160 microseconds
-  
-  // Unrolled                 | 174 instructions
-  // ALU inefficiency: 23.60% | 85.042 million instructions issued
-  // ALU inefficiency: 26.01% | 85.041 million instructions issued
-  // ALU inefficiency: 25.16% | 85.042 million instructions issued
-  // ~150-160 microseconds
-  
-  // Reordered                | 115 instructions
-  // ALU inefficiency: 18.48% | 77.399 million instructions issued
-  // ALU inefficiency: 18.48% | 77.398 million instructions issued
-  // ALU inefficiency: 18.48% | 77.400 million instructions issued
-  // ~90-140 microseconds
-  
-  // Un-optimized relative offsets
-  // 105 microseconds
-  // 110 microseconds
-  // 130 microseconds
-  
-  // Fixing the bank conflict
-  // 105 microseconds
-  // 125 microseconds
-  // 105 microseconds
-  
   // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
                            ushort3(2),
