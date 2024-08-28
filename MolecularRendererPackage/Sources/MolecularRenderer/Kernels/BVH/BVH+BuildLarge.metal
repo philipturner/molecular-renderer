@@ -20,7 +20,7 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
 kernel void buildLargePart1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *largeCellMetadata [[buffer(1)]],
+ device atomic_uint *largeInputMetadata [[buffer(1)]],
  device float4 *convertedAtoms [[buffer(2)]],
  device ushort4 *relativeOffsets1 [[buffer(3)]],
  device ushort4 *relativeOffsets2 [[buffer(4)]],
@@ -105,7 +105,7 @@ kernel void buildLargePart1
           uint word = (smallReferenceCount << 14) + 1;
           
           offset =
-          atomic_fetch_add_explicit(largeCellMetadata + address,
+          atomic_fetch_add_explicit(largeInputMetadata + address,
                                     word, memory_order_relaxed);
         }
         
@@ -144,30 +144,29 @@ kernel void buildLargePart1
 
 // Inputs:
 // - bvhArgs
-// - largeReferenceCount
-//   - overwritten with zero
-// - smallReferenceCount
-//   - overwritten with zero
-// - inputMetadata (8x duplicate)
+// - largeReferenceCount, set to zero
+// - smallReferenceCount, set to zero
+// - largeInputMetadata (8x duplicate)
 //
 // Outputs:
 // - largeReferenceCount, storing large reference count
 // - smallReferenceCount, storing small reference count
-// - inputMetadata (8x duplicate)
+// - largeInputMetadata (8x duplicate)
 //   - overwritten with large ref. offset
-// - outputMetadata (1x duplicate)
+// - largeOutputMetadata
+//   - large refcount (14 bits), small refcount (18 bits)
 //   - large reference offset
-//   - large reference count
 //   - small reference offset
-//   - small reference count
+//   - small voxel offset
 kernel void buildLargePart2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *largeReferenceCount [[buffer(1)]],
  device atomic_uint *smallReferenceCount [[buffer(2)]],
- device uint *inputMetadata [[buffer(3)]],
- device uint4 *outputMetadata [[buffer(4)]],
-
+ device atomic_uint *smallVoxelCount [[buffer(3)]],
+ device vec<uint, 8> *largeInputMetadata [[buffer(4)]],
+ device uint4 *largeOutputMetadata [[buffer(5)]],
+ 
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],

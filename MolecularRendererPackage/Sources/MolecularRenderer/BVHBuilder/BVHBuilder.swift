@@ -29,10 +29,13 @@ class BVHBuilder {
   var smallCellDispatchArguments8x8x8: MTLBuffer
   var globalAtomicCounters: MTLBuffer
   
-  // Data buffers (other).
-  var largeCellMetadata: MTLBuffer
+  // Data buffers (per cell).
+  var largeInputMetadata: MTLBuffer
+  var largeOutputMetadata: MTLBuffer
   var smallCellMetadata: MTLBuffer
   var smallCellCounters: MTLBuffer
+  
+  // Data buffers (other).
   var smallCellAtomReferences: MTLBuffer
   
   public init(
@@ -48,7 +51,6 @@ class BVHBuilder {
     buildLargePipelines = BVHBuildLargePipelines(library: library)
     buildSmallPipelines = BVHBuildSmallPipelines(library: library)
     
-    // Allocate data buffers (per atom).
     func createAtomBuffer(_ bytesPerAtom: Int) -> MTLBuffer {
       let bufferSize = BVHBuilder.maxAtomCount * bytesPerAtom
       return device.makeBuffer(length: bufferSize)!
@@ -61,6 +63,8 @@ class BVHBuilder {
       let bufferSize = maxPartialCount * (8 * 4)
       return device.makeBuffer(length: bufferSize)!
     }
+    
+    // Allocate data buffers (per atom).
     originalAtomsBuffers = [
       createAtomBuffer(16),
       createAtomBuffer(16),
@@ -71,14 +75,17 @@ class BVHBuilder {
     boundingBoxPartialsBuffer = createPartialsBuffer()
     
     // Allocate data buffers (indirect dispatch).
-    bvhArgumentsBuffer = device.makeBuffer(length: 1024)!
-    smallCellDispatchArguments8x8x8 = device.makeBuffer(length: 1024)!
-    globalAtomicCounters = device.makeBuffer(length: 1024)!
+    bvhArgumentsBuffer = device.makeBuffer(length: 1024 * 4)!
+    smallCellDispatchArguments8x8x8 = device.makeBuffer(length: 1024 * 4)!
+    globalAtomicCounters = device.makeBuffer(length: 1024 * 4)!
     
-    // Allocate data buffers (other).
-    largeCellMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!
+    // Allocate data buffers (per cell).
+    largeInputMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!
+    largeOutputMetadata = device.makeBuffer(length: 64 * 64 * 64 * 4 * 4)!
     smallCellMetadata = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
+    
+    // Allocate data buffers (other).
     smallCellAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
   }
 }

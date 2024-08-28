@@ -27,7 +27,7 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    clearLargeCellMetadata(encoder: encoder)
+    clearLargeInputMetadata(encoder: encoder)
     
     buildLargePart1(encoder: encoder)
     encoder.endEncoding()
@@ -50,12 +50,12 @@ extension BVHBuilder {
     #if true
     commandBuffer.waitUntilCompleted()
     
-    let metadata = largeCellMetadata.contents()
+    let metadata = largeInputMetadata.contents()
       .assumingMemoryBound(to: UInt32.self)
     
     var largeReferenceCount: Int = .zero
     var smallReferenceCount: Int = .zero
-    for cellID in 0..<(largeCellMetadata.length / 4) {
+    for cellID in 0..<(largeInputMetadata.length / 4) {
       let word = metadata[cellID]
       largeReferenceCount += Int(word) & Int(1 << 14 - 1)
       smallReferenceCount += Int(word) >> 14;
@@ -87,30 +87,10 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
-  func clearLargeCellMetadata(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 0)
-    
-    // Argument 1
-    var pattern: UInt32 = .zero
-    encoder.setBytes(&pattern, length: 4, index: 1)
-    
-    // Dispatch
-    do {
-      let pipeline = resetMemoryPipelines.resetMemory1D
-      encoder.setComputePipelineState(pipeline)
-      
-      let largeCellCount = largeCellMetadata.length / 4
-      encoder.dispatchThreadgroups(
-        MTLSize(width: largeCellCount / 128, height: 1, depth: 1),
-        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-    }
-  }
-  
   func buildLargePart1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 1)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
     
     // Arguments 3 - 4
