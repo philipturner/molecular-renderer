@@ -67,9 +67,14 @@ kernel void buildLargePart1
   // ~90-140 microseconds
   
   // Un-optimized relative offsets
-  // 100 microseconds
+  // 105 microseconds
   // 110 microseconds
   // 130 microseconds
+  
+  // Fixing the bank conflict
+  // 105 microseconds
+  // 125 microseconds
+  // 105 microseconds
   
   // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
@@ -95,11 +100,11 @@ kernel void buildLargePart1
   }
   
   // Allocate memory for the relative offsets.
-  threadgroup uint cachedRelativeOffsets[128 * 8];
+  threadgroup ushort cachedRelativeOffsets[8 * 128];
   for (ushort i = 0; i < 8; ++i) {
     ushort address = i;
-    address += thread_id * 8;
-    cachedRelativeOffsets[address] = 0xFFFFFFFF;
+    address = address * 128 + thread_id;
+    cachedRelativeOffsets[address] = 0xFFFF;
   }
   
   // Iterate over the footprint on the 3D grid.
@@ -139,9 +144,9 @@ kernel void buildLargePart1
         
         // Store to the cache.
         {
-          ushort address = actualXYZ[2] * 4 + actualXYZ[1] * 2 + actualXYZ[0];
-          address += thread_id * 8;
-          cachedRelativeOffsets[address] = offset;
+          ushort address = z * 4 + y * 2 + x;
+          address = address * 128 + thread_id;
+          cachedRelativeOffsets[address] = ushort(offset);
         }
       }
     }
@@ -153,10 +158,10 @@ kernel void buildLargePart1
 #pragma clang loop unroll(full)
   for (ushort i = 0; i < 8; ++i) {
     ushort address = i;
-    address += thread_id * 8;
+    address = address * 128 + thread_id;
     
-    uint offset = cachedRelativeOffsets[address];
-    output[i] = ushort(offset) & (ushort(1 << 14) - 1);
+    ushort offset = cachedRelativeOffsets[address];
+    output[i] = offset & (ushort(1 << 14) - 1);
   }
   
   // Workaround for Metal missing language-level support for 8-wide vectors.
