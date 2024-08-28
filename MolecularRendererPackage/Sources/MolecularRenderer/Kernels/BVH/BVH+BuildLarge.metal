@@ -10,13 +10,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Quantize a position relative to the world origin.
-inline ushort3 quantize(float3 position, ushort3 world_dims) {
-  short3 output = short3(position);
-  output = clamp(output, 0, short3(world_dims));
-  return ushort3(output);
-}
-
 // Tasks:
 // - Replicate 'buildSmallPart1'. [DONE]
 // - Switch to generating the large voxel coordinate from the small voxel
@@ -67,24 +60,57 @@ kernel void buildLargePart1
   newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
-  ushort3 small_grid_dims = bvhArgs->smallVoxelCount;
-  auto small_voxel_min = quantize(newAtom.xyz - newAtom.w, small_grid_dims);
-  auto small_voxel_max = quantize(newAtom.xyz + newAtom.w, small_grid_dims);
+  short3 small_voxel_min = short3(floor(newAtom.xyz - newAtom.w));
+  short3 small_voxel_max = short3(ceil(newAtom.xyz + newAtom.w));
+  small_voxel_min = max(small_voxel_min, 0);
+  small_voxel_max = max(small_voxel_max, 0);
+  small_voxel_min = min(small_voxel_min, short3(bvhArgs->smallVoxelCount));
+  small_voxel_max = min(small_voxel_max, short3(bvhArgs->smallVoxelCount));
+  
+  //auto small_voxel_min = quantize_floor(newAtom.xyz - newAtom.w, small_grid_dims);
+  //auto small_voxel_max = quantize_ceil(newAtom.xyz + newAtom.w, small_grid_dims);
   auto large_voxel_min = small_voxel_min / 8;
-  auto large_voxel_max = small_voxel_max / 8;
+  auto large_voxel_max = (small_voxel_max + 7) / 8;
+  
   
   // Iterate over the footprint on the 3D grid.
-  for (ushort z = large_voxel_min[2]; z <= large_voxel_max[2]; ++z) {
-    for (ushort y = large_voxel_min[1]; y <= large_voxel_max[1]; ++y) {
-      for (ushort x = large_voxel_min[0]; x <= large_voxel_max[0]; ++x) {
-        ushort3 cube_min { x, y, z };
+  //
+  // TODO: Manually unroll these loops and measure the performance improvement.
+  for (ushort z = 0; z < 2; ++z) {
+    for (ushort y = 0; y < 2; ++y) {
+      for (ushort x = 0; x < 2; ++x) {
+        ushort3 xyz(x, y, z);
         
-        // Increment the voxel's counter.
-        auto large_grid_dims = bvhArgs->largeVoxelCount;
-        uint address = VoxelAddress::generate(large_grid_dims, cube_min);
-        address = (address * 8) + (tid % 8);
-        atomic_fetch_add_explicit(largeCellMetadata + address,
-                                  1, memory_order_relaxed);
+        // What subregion of the atom's bounding box falls within this large
+        // voxel?
+        short3 footprint = short3(0);
+        for (ushort laneID = 0; laneID < 3; ++laneID) {
+          short dividingLine = large_voxel_max[laneID] * 8;
+          dividingLine = min(dividingLine, small_voxel_max[laneID]);
+          dividingLine = max(dividingLine, small_voxel_min[laneID]);
+          
+          if (xyz[laneID] == 1) {
+            footprint[laneID] = small_voxel_max[laneID] - dividingLine;
+          } else {
+            footprint[laneID] = dividingLine - small_voxel_min[laneID];
+          }
+        }
+        
+        // If included, move on to the next section.
+        //
+        // TODO: Determine whether a cleaner guard/continue statement harms
+        // the instruction count.
+        if (all(footprint > 0)) {
+          ushort3 cube_min = ushort3(large_voxel_min) + xyz;
+          ushort3 grid_dims = bvhArgs->largeVoxelCount;
+          uint address = VoxelAddress::generate(grid_dims, cube_min);
+          address = (address * 8) + (tid % 8);
+          
+          ushort smallReferenceCount =
+          footprint[0] * footprint[1] * footprint[2];
+          atomic_fetch_add_explicit(largeCellMetadata + address,
+                                    smallReferenceCount, memory_order_relaxed);
+        }
       }
     }
   }
