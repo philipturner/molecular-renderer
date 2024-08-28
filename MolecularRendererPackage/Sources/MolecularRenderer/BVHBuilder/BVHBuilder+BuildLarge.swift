@@ -51,10 +51,13 @@ extension BVHBuilder {
     let metadata = largeCellMetadata.contents()
       .assumingMemoryBound(to: UInt32.self)
     
-    var referenceCount: Int = .zero
+    
+    var largeReferenceCount: Int = .zero
+    var smallReferenceCount: Int = .zero
     for cellID in 0..<(largeCellMetadata.length / 4) {
-      let cellAtomCount = metadata[cellID]
-      referenceCount += Int(cellAtomCount)
+      let word = metadata[cellID]
+      largeReferenceCount += Int(word) & Int(1 << 14 - 1)
+      smallReferenceCount += Int(word) >> 14;
     }
     
     // C(100)
@@ -65,7 +68,8 @@ extension BVHBuilder {
     // 2.00 nm - 499950
     // 0.25 nm - 6406456
     print()
-    print(referenceCount)
+    print(largeReferenceCount)
+    print(smallReferenceCount)
     print()
     
     exit(0)

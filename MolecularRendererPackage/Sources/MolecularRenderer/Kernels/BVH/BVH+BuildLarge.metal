@@ -66,12 +66,8 @@ kernel void buildLargePart1
   small_voxel_max = max(small_voxel_max, 0);
   small_voxel_min = min(small_voxel_min, short3(bvhArgs->smallVoxelCount));
   small_voxel_max = min(small_voxel_max, short3(bvhArgs->smallVoxelCount));
-  
-  //auto small_voxel_min = quantize_floor(newAtom.xyz - newAtom.w, small_grid_dims);
-  //auto small_voxel_max = quantize_ceil(newAtom.xyz + newAtom.w, small_grid_dims);
   auto large_voxel_min = small_voxel_min / 8;
-  auto large_voxel_max = (small_voxel_max + 7) / 8;
-  
+  auto large_voxel_max = small_voxel_max / 8;
   
   // Iterate over the footprint on the 3D grid.
   //
@@ -106,10 +102,11 @@ kernel void buildLargePart1
           uint address = VoxelAddress::generate(grid_dims, cube_min);
           address = (address * 8) + (tid % 8);
           
-          ushort smallReferenceCount =
+          uint smallReferenceCount =
           footprint[0] * footprint[1] * footprint[2];
+          uint word = (smallReferenceCount << 14) + 1;
           atomic_fetch_add_explicit(largeCellMetadata + address,
-                                    smallReferenceCount, memory_order_relaxed);
+                                    word, memory_order_relaxed);
         }
       }
     }
