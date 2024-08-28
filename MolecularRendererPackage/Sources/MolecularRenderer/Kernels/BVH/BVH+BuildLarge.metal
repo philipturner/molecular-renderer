@@ -46,14 +46,27 @@ kernel void buildLargePart1
   short3 footprintLow = dividingLine - small_voxel_min;
   short3 footprintHigh = small_voxel_max - dividingLine;
   
+  // Not unrolled             | 103 instructions
+  // ALU inefficiency: 16.30% | 67.396 million instructions issued
+  // ALU inefficiency: 16.30% | 67.397 million instructions issued
+  // ALU inefficiency: 16.30% | 67.396 million instructions issued
+  
+  // Unrolled                 | 174 instructions
+  // ALU inefficiency: 23.60% | 85.042 million instructions issued
+  // ALU inefficiency: 26.01% | 85.041 million instructions issued
+  // ALU inefficiency: 25.16% | 85.042 million instructions issued
+  
   // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
                            ushort3(2),
                            footprintHigh > 0);
   
   // Iterate over the footprint on the 3D grid.
+#pragma clang loop unroll(full)
   for (ushort z = 0; z < loopEnd[2]; ++z) {
+#pragma clang loop unroll(full)
     for (ushort y = 0; y < loopEnd[1]; ++y) {
+#pragma clang loop unroll(full)
       for (ushort x = 0; x < loopEnd[0]; ++x) {
         ushort3 xyz(x, y, z);
         short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
