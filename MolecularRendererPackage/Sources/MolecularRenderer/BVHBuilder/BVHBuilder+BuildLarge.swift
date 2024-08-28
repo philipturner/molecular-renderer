@@ -81,12 +81,33 @@ extension BVHBuilder {
     print(smallReferenceCount)
     print()
     
-    let offsets = relativeOffsetsBuffer.contents()
-      .assumingMemoryBound(to: SIMD8<UInt16>.self)
-    let atomCount = renderer.argumentContainer.currentAtoms.count
+    let rawPointer1 = relativeOffsetsBuffer.contents()
+    let rawPointer2 = rawPointer1 + relativeOffsetsBuffer.length / 2
+    let offsets1 = rawPointer1.assumingMemoryBound(to: SIMD4<UInt16>.self)
+    let offsets2 = rawPointer2.assumingMemoryBound(to: SIMD4<UInt16>.self)
+    
+    /*
+     0 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     1 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     2 | SIMD8<UInt16>(0, 16383, 24, 16383, 16383, 16383, 16383, 16383)
+     3 | SIMD8<UInt16>(0, 16383, 17, 16383, 16383, 16383, 16383, 16383)
+     4 | SIMD8<UInt16>(0, 16383, 29, 16383, 16383, 16383, 16383, 16383)
+     5 | SIMD8<UInt16>(0, 16383, 22, 16383, 16383, 16383, 16383, 16383)
+     6 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     7 | SIMD8<UInt16>(0, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     8 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     9 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     10 | SIMD8<UInt16>(1, 16383, 25, 16383, 16383, 16383, 16383, 16383)
+     11 | SIMD8<UInt16>(1, 16383, 18, 16383, 16383, 16383, 16383, 16383)
+     12 | SIMD8<UInt16>(1, 16383, 30, 16383, 16383, 16383, 16383, 16383)
+     13 | SIMD8<UInt16>(1, 16383, 23, 16383, 16383, 16383, 16383, 16383)
+     14 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     15 | SIMD8<UInt16>(1, 16383, 16383, 16383, 16383, 16383, 16383, 16383)
+     */
+    
     print()
-    for offsetID in 0..<15 {
-      print(offsetID, "|", offsets[offsetID])
+    for offsetID in 0..<16 {
+      print(offsetID, "|", offsets1[offsetID], offsets2[offsetID])
     }
     print()
     
@@ -117,11 +138,18 @@ extension BVHBuilder {
   }
   
   func buildLargePart1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 3
+    // Arguments 0 - 2
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
-    encoder.setBuffer(relativeOffsetsBuffer, offset: 0, index: 3)
+    
+    // Arguments 3 - 4
+    do {
+      let offset1 = 0
+      let offset2 = relativeOffsetsBuffer.length / 2
+      encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 3)
+      encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 4)
+    }
     
     // Dispatch
     do {

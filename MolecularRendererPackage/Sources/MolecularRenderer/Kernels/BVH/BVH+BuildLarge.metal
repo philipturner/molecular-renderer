@@ -22,7 +22,8 @@ kernel void buildLargePart1
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *largeCellMetadata [[buffer(1)]],
  device float4 *convertedAtoms [[buffer(2)]],
- device uint4 *relativeOffsets [[buffer(3)]],
+ device ushort4 *relativeOffsets1 [[buffer(3)]],
+ device ushort4 *relativeOffsets2 [[buffer(4)]],
  
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
@@ -154,23 +155,25 @@ kernel void buildLargePart1
   
   // Retrieve the cached offsets.
   simdgroup_barrier(mem_flags::mem_threadgroup);
-  ushort output[8];
+  ushort4 output[2];
 #pragma clang loop unroll(full)
   for (ushort i = 0; i < 8; ++i) {
     ushort address = i;
     address = address * 128 + thread_id;
-    
     ushort offset = cachedRelativeOffsets[address];
-    output[i] = offset & (ushort(1 << 14) - 1);
+    output[i / 4][i % 4] = offset;
   }
   
-  // Workaround for Metal missing language-level support for 8-wide vectors.
-  uint4 castedOutput;
-  castedOutput[0] = as_type<uint>(ushort2(output[0], output[1]));
-  castedOutput[1] = as_type<uint>(ushort2(output[2], output[3]));
-  castedOutput[2] = as_type<uint>(ushort2(output[4], output[5]));
-  castedOutput[3] = as_type<uint>(ushort2(output[6], output[7]));
-  
-  // Finally, write to device memory.
-  relativeOffsets[tid] = castedOutput;
+  // Write to device memory.
+  //
+  // TODO: Perform the 14-masking here. Does it change the instruction count?
+  // Before:                           155 instructions
+  // After:                            155 instructions
+  // All masking instructions removed: 147 instructions
+  // Optimized masking:                151 instructions
+  constexpr ushort scalarMask = ushort(1 << 14) - 1;
+  constexpr uint vectorMask = as_type<uint>(ushort2(scalarMask));
+  *((thread uint4*)(output)) &= vectorMask;
+  relativeOffsets1[tid] = output[0];// & (ushort(1 << 14) - 1);
+  relativeOffsets2[tid] = output[1];// & (ushort(1 << 14) - 1);
 }
