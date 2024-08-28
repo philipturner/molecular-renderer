@@ -53,7 +53,6 @@ extension BVHBuilder {
     let metadata = largeCellMetadata.contents()
       .assumingMemoryBound(to: UInt32.self)
     
-    
     var largeReferenceCount: Int = .zero
     var smallReferenceCount: Int = .zero
     for cellID in 0..<(largeCellMetadata.length / 4) {
@@ -80,6 +79,15 @@ extension BVHBuilder {
     print()
     print(largeReferenceCount)
     print(smallReferenceCount)
+    print()
+    
+    let offsets = relativeOffsetsBuffer.contents()
+      .assumingMemoryBound(to: SIMD8<UInt16>.self)
+    let atomCount = renderer.argumentContainer.currentAtoms.count
+    print()
+    for offsetID in 0..<15 {
+      print(offsetID, "|", offsets[offsetID])
+    }
     print()
     
     exit(0)
@@ -109,10 +117,11 @@ extension BVHBuilder {
   }
   
   func buildLargePart1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
+    // Arguments 0 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(relativeOffsetsBuffer, offset: 0, index: 3)
     
     // Dispatch
     do {

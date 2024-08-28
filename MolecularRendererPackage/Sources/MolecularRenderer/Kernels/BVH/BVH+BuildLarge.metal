@@ -22,9 +22,10 @@ kernel void buildLargePart1
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *largeCellMetadata [[buffer(1)]],
  device float4 *convertedAtoms [[buffer(2)]],
- device ushort8 *relativeOffsets [[buffer(3)]],
+ device uint4 *relativeOffsets [[buffer(3)]],
  
- uint tid [[thread_position_in_grid]])
+ uint tid [[thread_position_in_grid]],
+ ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Transform the atom.
   float4 newAtom = convertedAtoms[tid];
@@ -88,7 +89,16 @@ kernel void buildLargePart1
     loopEnd = ushort3(loopEnd.x, loopEnd.y, loopEnd.z);
   }
   
+  // Allocate memory for the relative offsets.
+  threadgroup uint cachedRelativeOffsets[128 * 8];
+  for (ushort i = 0; i < 8; ++i) {
+    ushort address = i;
+    address += thread_id * 8;
+    cachedRelativeOffsets[address] = 0xFFFFFFFF;
+  }
+  
   // Iterate over the footprint on the 3D grid.
+  simdgroup_barrier(mem_flags::mem_threadgroup);
   for (ushort z = 0; z < loopEnd[2]; ++z) {
     for (ushort y = 0; y < loopEnd[1]; ++y) {
       for (ushort x = 0; x < loopEnd[0]; ++x) {
@@ -105,7 +115,8 @@ kernel void buildLargePart1
         short3 footprint =
         select(footprintLow, footprintHigh, bool3(actualXYZ));
         
-        // Perform the atomic addition.
+        // Perform the atomic fetch-add.
+        uint offset;
         {
           ushort3 gridDims = bvhArgs->largeVoxelCount;
           ushort3 cubeMin = ushort3(largeVoxelMin) + actualXYZ;
@@ -115,10 +126,41 @@ kernel void buildLargePart1
           uint smallReferenceCount =
           footprint[0] * footprint[1] * footprint[2];
           uint word = (smallReferenceCount << 14) + 1;
+          
+          offset =
           atomic_fetch_add_explicit(largeCellMetadata + address,
                                     word, memory_order_relaxed);
+        }
+        
+        // Store to the cache.
+        {
+          ushort address = actualXYZ[2] * 4 + actualXYZ[1] * 2 + actualXYZ[0];
+          address += thread_id * 8;
+          cachedRelativeOffsets[address] = offset;
         }
       }
     }
   }
+  
+  // Retrieve the cached offsets.
+  simdgroup_barrier(mem_flags::mem_threadgroup);
+  ushort output[8];
+#pragma clang loop unroll(full)
+  for (ushort i = 0; i < 8; ++i) {
+    ushort address = i;
+    address += thread_id * 8;
+    
+    uint offset = cachedRelativeOffsets[address];
+    output[i] = ushort(offset) & (ushort(1 << 14) - 1);
+  }
+  
+  // Workaround for Metal missing language-level support for 8-wide vectors.
+  uint4 castedOutput;
+  castedOutput[0] = as_type<uint>(ushort2(output[0], output[1]));
+  castedOutput[1] = as_type<uint>(ushort2(output[2], output[3]));
+  castedOutput[2] = as_type<uint>(ushort2(output[4], output[5]));
+  castedOutput[3] = as_type<uint>(ushort2(output[6], output[7]));
+  
+  // Finally, write to device memory.
+  relativeOffsets[tid] = castedOutput;
 }
