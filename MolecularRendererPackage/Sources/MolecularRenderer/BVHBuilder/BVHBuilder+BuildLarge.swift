@@ -47,7 +47,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if false
+    #if true
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeCellMetadata.contents()
@@ -65,6 +65,14 @@ extension BVHBuilder {
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
+    //
+    // SiC(100)
+    // 2.00 nm - 805380
+    // 0.25 nm - 6127888
+    //
+    // Si(100)
+    // 2.00 nm - 844074
+    // 0.25 nm - 7080208
     //
     // Au(100)
     // 2.00 nm - 499950

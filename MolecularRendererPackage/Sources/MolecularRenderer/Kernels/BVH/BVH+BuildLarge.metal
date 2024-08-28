@@ -37,40 +37,27 @@ kernel void buildLargePart1
   small_voxel_max = max(small_voxel_max, 0);
   small_voxel_min = min(small_voxel_min, short3(bvhArgs->smallVoxelCount));
   small_voxel_max = min(small_voxel_max, short3(bvhArgs->smallVoxelCount));
-  auto large_voxel_min = small_voxel_min / 8;
-  auto large_voxel_max = small_voxel_max / 8;
+  short3 large_voxel_min = small_voxel_min / 8;
   
   // Pre-compute the footprint.
-  short3 dividingLine = large_voxel_max * 8;
+  short3 dividingLine = (large_voxel_min + 1) * 8;
   dividingLine = min(dividingLine, small_voxel_max);
   dividingLine = max(dividingLine, small_voxel_min);
-
-#define FORCE_UNROLLED 0
-  
   short3 footprintLow = dividingLine - small_voxel_min;
   short3 footprintHigh = small_voxel_max - dividingLine;
-  ushort3 loopStart = select(ushort3(1),
-                             ushort3(0),
-                             footprintLow > 0);
+  
+  // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
                            ushort3(2),
                            footprintHigh > 0);
   
-//  ushort3 loopStart = 0;
-//  ushort3 loopEnd = 2;
-  
   // Iterate over the footprint on the 3D grid.
-  for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
-    for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
-      for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
+  for (ushort z = 0; z < loopEnd[2]; ++z) {
+    for (ushort y = 0; y < loopEnd[1]; ++y) {
+      for (ushort x = 0; x < loopEnd[0]; ++x) {
         ushort3 xyz(x, y, z);
         short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
         
-#if !FORCE_UNROLLED
-        
-#else
-        if (all(footprint > 0))
-#endif
         {
           ushort3 cube_min = ushort3(large_voxel_min) + xyz;
           ushort3 grid_dims = bvhArgs->largeVoxelCount;
@@ -79,7 +66,7 @@ kernel void buildLargePart1
           
           uint smallReferenceCount =
           footprint[0] * footprint[1] * footprint[2];
-          uint word = 1;//(smallReferenceCount << 14) + 1;
+          uint word = (smallReferenceCount << 14) + 1;
           atomic_fetch_add_explicit(largeCellMetadata + address,
                                     word, memory_order_relaxed);
         }
