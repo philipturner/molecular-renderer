@@ -22,6 +22,7 @@ kernel void buildLargePart1
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *largeCellMetadata [[buffer(1)]],
  device float4 *convertedAtoms [[buffer(2)]],
+ device ushort8 *relativeOffsets [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -31,20 +32,20 @@ kernel void buildLargePart1
   newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
-  short3 small_voxel_min = short3(floor(newAtom.xyz - newAtom.w));
-  short3 small_voxel_max = short3(ceil(newAtom.xyz + newAtom.w));
-  small_voxel_min = max(small_voxel_min, 0);
-  small_voxel_max = max(small_voxel_max, 0);
-  small_voxel_min = min(small_voxel_min, short3(bvhArgs->smallVoxelCount));
-  small_voxel_max = min(small_voxel_max, short3(bvhArgs->smallVoxelCount));
-  short3 large_voxel_min = small_voxel_min / 8;
+  short3 smallVoxelMin = short3(floor(newAtom.xyz - newAtom.w));
+  short3 smallVoxelMax = short3(ceil(newAtom.xyz + newAtom.w));
+  smallVoxelMin = max(smallVoxelMin, 0);
+  smallVoxelMax = max(smallVoxelMax, 0);
+  smallVoxelMin = min(smallVoxelMin, short3(bvhArgs->smallVoxelCount));
+  smallVoxelMax = min(smallVoxelMax, short3(bvhArgs->smallVoxelCount));
+  short3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.
-  short3 dividingLine = (large_voxel_min + 1) * 8;
-  dividingLine = min(dividingLine, small_voxel_max);
-  dividingLine = max(dividingLine, small_voxel_min);
-  short3 footprintLow = dividingLine - small_voxel_min;
-  short3 footprintHigh = small_voxel_max - dividingLine;
+  short3 dividingLine = (largeVoxelMin + 1) * 8;
+  dividingLine = min(dividingLine, smallVoxelMax);
+  dividingLine = max(dividingLine, smallVoxelMin);
+  short3 footprintLow = dividingLine - smallVoxelMin;
+  short3 footprintHigh = smallVoxelMax - dividingLine;
   
   // Not unrolled             | 103 instructions
   // ALU inefficiency: 16.30% | 67.396 million instructions issued
@@ -91,21 +92,24 @@ kernel void buildLargePart1
   for (ushort z = 0; z < loopEnd[2]; ++z) {
     for (ushort y = 0; y < loopEnd[1]; ++y) {
       for (ushort x = 0; x < loopEnd[0]; ++x) {
-        ushort3 xyz;
+        ushort3 actualXYZ;
         if (permutationID == 0) {
-          xyz = ushort3(z, x, y);
+          actualXYZ = ushort3(z, x, y);
         } else if (permutationID == 1) {
-          xyz = ushort3(x, z, y);
+          actualXYZ = ushort3(x, z, y);
         } else {
-          xyz = ushort3(x, y, z);
+          actualXYZ = ushort3(x, y, z);
         }
         
+        // Determine the number of small voxels within the large voxel.
+        short3 footprint =
+        select(footprintLow, footprintHigh, bool3(actualXYZ));
+        
         // Perform the atomic addition.
-        short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
         {
-          ushort3 cube_min = ushort3(large_voxel_min) + xyz;
-          ushort3 grid_dims = bvhArgs->largeVoxelCount;
-          uint address = VoxelAddress::generate(grid_dims, cube_min);
+          ushort3 gridDims = bvhArgs->largeVoxelCount;
+          ushort3 cubeMin = ushort3(largeVoxelMin) + actualXYZ;
+          uint address = VoxelAddress::generate(gridDims, cubeMin);
           address = (address * 8) + (tid % 8);
           
           uint smallReferenceCount =

@@ -34,8 +34,11 @@ import Numerics
 // - Get a head start on the first component of this pass.
 //   - Use device atomics to find number of atoms in each large voxel. [DONE]
 //   - Also allocate small cell references, in a single pass. [DONE]
-//   - Try reducing divergence in the loop.
+//   - Try reducing divergence in the loop. [DONE]
 //   - Use threadgroup memory to store relative offsets.
+//     - Detect and fix bank conflicts.
+//     - Determine whether 16-bit values in TG memory are faster.
+//     - Halve the device memory bandwidth.
 // - Run a 3D parallel reduction across the large voxel grid.
 // - Store references to original atoms in the large voxels' lists.
 //
@@ -45,7 +48,6 @@ import Numerics
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
 //   dwarfed by the small-cell sorting.
-//   - Re-enable the old codepath that unrolled the loops.
 //   - Optimizing the "store relative offset" path by halving bandwidth cost.
 //     - If this is faster than two-pass atomics would be, abort the idea.
 //     - If this is faster than single-pass atomics would be, abort the idea.
