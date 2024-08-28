@@ -164,16 +164,14 @@ kernel void buildLargePart1
     output[i / 4][i % 4] = offset;
   }
   
-  // Write to device memory.
-  //
-  // TODO: Perform the 14-masking here. Does it change the instruction count?
-  // Before:                           155 instructions
-  // After:                            155 instructions
-  // All masking instructions removed: 147 instructions
-  // Optimized masking:                151 instructions
+  // Apply the mask.
   constexpr ushort scalarMask = ushort(1 << 14) - 1;
   constexpr uint vectorMask = as_type<uint>(ushort2(scalarMask));
   *((thread uint4*)(output)) &= vectorMask;
-  relativeOffsets1[tid] = output[0];// & (ushort(1 << 14) - 1);
-  relativeOffsets2[tid] = output[1];// & (ushort(1 << 14) - 1);
+  
+  // Write to device memory.
+  relativeOffsets1[tid] = output[0];
+  if (loopEnd[2] == 2) {
+    relativeOffsets2[tid] = output[1];
+  }
 }

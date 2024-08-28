@@ -47,7 +47,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if false
+    #if true
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeCellMetadata.contents()
