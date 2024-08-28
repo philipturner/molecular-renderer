@@ -25,35 +25,6 @@ kernel void buildLargePart1
  
  uint tid [[thread_position_in_grid]])
 {
-  // Original code
-#if 0
-  // Transform the atom.
-  float4 newAtom = convertedAtoms[tid];
-  newAtom.xyz = (newAtom.xyz - bvhArgs->worldMinimum) / 2;
-  newAtom.w = newAtom.w / 2;
-  
-  // Generate the bounding box.
-  ushort3 grid_dims = bvhArgs->largeVoxelCount;
-  auto box_min = quantize(newAtom.xyz - newAtom.w, grid_dims);
-  auto box_max = quantize(newAtom.xyz + newAtom.w, grid_dims);
-  
-  // Iterate over the footprint on the 3D grid.
-  for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
-    for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
-      for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
-        ushort3 cube_min { x, y, z };
-        
-        // Increment the voxel's counter.
-        uint address = VoxelAddress::generate(grid_dims, cube_min);
-        address = (address * 8) + (tid % 8);
-        atomic_fetch_add_explicit(largeCellMetadata + address,
-                                  1, memory_order_relaxed);
-      }
-    }
-  }
-  
-  // New Code
-#else
   // Transform the atom.
   float4 newAtom = convertedAtoms[tid];
   newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
@@ -73,9 +44,11 @@ kernel void buildLargePart1
   short3 dividingLine = large_voxel_max * 8;
   dividingLine = min(dividingLine, small_voxel_max);
   dividingLine = max(dividingLine, small_voxel_min);
+
+#define FORCE_UNROLLED 0
+  
   short3 footprintLow = dividingLine - small_voxel_min;
   short3 footprintHigh = small_voxel_max - dividingLine;
-  
   ushort3 loopStart = select(ushort3(1),
                              ushort3(0),
                              footprintLow > 0);
@@ -83,20 +56,21 @@ kernel void buildLargePart1
                            ushort3(2),
                            footprintHigh > 0);
   
+//  ushort3 loopStart = 0;
+//  ushort3 loopEnd = 2;
+  
   // Iterate over the footprint on the 3D grid.
-#pragma clang loop unroll(full)
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
-#pragma clang loop unroll(full)
     for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
-#pragma clang loop unroll(full)
       for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
         ushort3 xyz(x, y, z);
-        
-        // What subregion of the atom's bounding box falls within this large
-        // voxel?
         short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
         
-        // If included, move on to the next section.
+#if !FORCE_UNROLLED
+        
+#else
+        if (all(footprint > 0))
+#endif
         {
           ushort3 cube_min = ushort3(large_voxel_min) + xyz;
           ushort3 grid_dims = bvhArgs->largeVoxelCount;
@@ -105,12 +79,11 @@ kernel void buildLargePart1
           
           uint smallReferenceCount =
           footprint[0] * footprint[1] * footprint[2];
-          uint word = (smallReferenceCount << 14) + 1;
+          uint word = 1;//(smallReferenceCount << 14) + 1;
           atomic_fetch_add_explicit(largeCellMetadata + address,
                                     word, memory_order_relaxed);
         }
       }
     }
   }
-#endif
 }

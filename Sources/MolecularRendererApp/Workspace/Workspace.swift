@@ -31,10 +31,10 @@ import Numerics
 // - Overhaul the second kernel of the small cells pass. [DONE]
 //
 // Get the large-cell sorting working at all.
-// - Reduce the overhead of constructing a dense grid.
+// - Get a head start on the first component of this pass.
 //   - Use device atomics to find number of atoms in each large voxel. [DONE]
 //   - Also allocate small cell references, in a single pass. [DONE]
-//   - Retain the slower de-unrolled codepath, and move on.
+//   - Try reducing divergence in the loop.
 //   - Use threadgroup memory to store relative offsets.
 // - Run a 3D parallel reduction across the large voxel grid.
 // - Store references to original atoms in the large voxels' lists.
