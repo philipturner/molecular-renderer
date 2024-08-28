@@ -32,6 +32,8 @@ kernel void buildLargePart1
  
  uint tid [[thread_position_in_grid]])
 {
+  // Original code
+#if 0
   // Transform the atom.
   float4 newAtom = convertedAtoms[tid];
   newAtom.xyz = (newAtom.xyz - bvhArgs->worldMinimum) / 2;
@@ -56,4 +58,35 @@ kernel void buildLargePart1
       }
     }
   }
+  
+  // New Code
+#else
+  // Transform the atom.
+  float4 newAtom = convertedAtoms[tid];
+  newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
+  newAtom.w = 4 * newAtom.w;
+  
+  // Generate the bounding box.
+  ushort3 small_grid_dims = bvhArgs->smallVoxelCount;
+  auto small_voxel_min = quantize(newAtom.xyz - newAtom.w, small_grid_dims);
+  auto small_voxel_max = quantize(newAtom.xyz + newAtom.w, small_grid_dims);
+  auto large_voxel_min = small_voxel_min / 8;
+  auto large_voxel_max = small_voxel_max / 8;
+  
+  // Iterate over the footprint on the 3D grid.
+  for (ushort z = large_voxel_min[2]; z <= large_voxel_max[2]; ++z) {
+    for (ushort y = large_voxel_min[1]; y <= large_voxel_max[1]; ++y) {
+      for (ushort x = large_voxel_min[0]; x <= large_voxel_max[0]; ++x) {
+        ushort3 cube_min { x, y, z };
+        
+        // Increment the voxel's counter.
+        auto large_grid_dims = bvhArgs->largeVoxelCount;
+        uint address = VoxelAddress::generate(large_grid_dims, cube_min);
+        address = (address * 8) + (tid % 8);
+        atomic_fetch_add_explicit(largeCellMetadata + address,
+                                  1, memory_order_relaxed);
+      }
+    }
+  }
+#endif
 }
