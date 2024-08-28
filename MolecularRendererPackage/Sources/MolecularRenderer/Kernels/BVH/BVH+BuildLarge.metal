@@ -66,6 +66,11 @@ kernel void buildLargePart1
   // ALU inefficiency: 18.48% | 77.400 million instructions issued
   // ~90-140 microseconds
   
+  // Un-optimized relative offsets
+  // 100 microseconds
+  // 110 microseconds
+  // 130 microseconds
+  
   // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
                            ushort3(2),
