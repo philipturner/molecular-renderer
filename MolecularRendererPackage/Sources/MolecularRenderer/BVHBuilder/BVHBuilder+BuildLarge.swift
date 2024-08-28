@@ -46,6 +46,29 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+    commandBuffer.waitUntilCompleted()
+    
+    let metadata = largeCellMetadata.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    
+    var referenceCount: Int = .zero
+    for cellID in 0..<(largeCellMetadata.length / 4) {
+      let cellAtomCount = metadata[cellID]
+      referenceCount += Int(cellAtomCount)
+    }
+    
+    // C(100)
+    // 2.00 nm - 783476
+    // 0.25 nm - 5118550
+    //
+    // Au(100)
+    // 2.00 nm - 499950
+    // 0.25 nm - 6406456
+    print()
+    print(referenceCount)
+    print()
+    
+    exit(0)
   }
 }
 
