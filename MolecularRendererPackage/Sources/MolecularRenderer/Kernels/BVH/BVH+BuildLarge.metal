@@ -50,27 +50,58 @@ kernel void buildLargePart1
   // ALU inefficiency: 16.30% | 67.396 million instructions issued
   // ALU inefficiency: 16.30% | 67.397 million instructions issued
   // ALU inefficiency: 16.30% | 67.396 million instructions issued
+  // ~140-160 microseconds
   
   // Unrolled                 | 174 instructions
   // ALU inefficiency: 23.60% | 85.042 million instructions issued
   // ALU inefficiency: 26.01% | 85.041 million instructions issued
   // ALU inefficiency: 25.16% | 85.042 million instructions issued
+  // ~150-160 microseconds
+  
+  // Reordered                | 115 instructions
+  // ALU inefficiency: 18.48% | 77.399 million instructions issued
+  // ALU inefficiency: 18.48% | 77.398 million instructions issued
+  // ALU inefficiency: 18.48% | 77.400 million instructions issued
+  // ~90-140 microseconds
   
   // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
                            ushort3(2),
                            footprintHigh > 0);
   
+  // Reorder the loop traversal.
+  ushort permutationID;
+  if (footprintHigh[0] == 0) {
+    permutationID = 0;
+  } else if (footprintHigh[1] == 0) {
+    permutationID = 1;
+  } else {
+    permutationID = 2;
+  }
+  
+  if (permutationID == 0) {
+    loopEnd = ushort3(loopEnd.y, loopEnd.z, loopEnd.x);
+  } else if (permutationID == 1) {
+    loopEnd = ushort3(loopEnd.x, loopEnd.z, loopEnd.y);
+  } else {
+    loopEnd = ushort3(loopEnd.x, loopEnd.y, loopEnd.z);
+  }
+  
   // Iterate over the footprint on the 3D grid.
-#pragma clang loop unroll(full)
   for (ushort z = 0; z < loopEnd[2]; ++z) {
-#pragma clang loop unroll(full)
     for (ushort y = 0; y < loopEnd[1]; ++y) {
-#pragma clang loop unroll(full)
       for (ushort x = 0; x < loopEnd[0]; ++x) {
-        ushort3 xyz(x, y, z);
-        short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
+        ushort3 xyz;
+        if (permutationID == 0) {
+          xyz = ushort3(z, x, y);
+        } else if (permutationID == 1) {
+          xyz = ushort3(x, z, y);
+        } else {
+          xyz = ushort3(x, y, z);
+        }
         
+        // Perform the atomic addition.
+        short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
         {
           ushort3 cube_min = ushort3(large_voxel_min) + xyz;
           ushort3 grid_dims = bvhArgs->largeVoxelCount;
