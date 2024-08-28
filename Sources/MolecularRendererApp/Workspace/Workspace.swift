@@ -30,15 +30,30 @@ import Numerics
 // - Group each pass's pipelines into a data structure. [DONE]
 // - Overhaul the second kernel of the small cells pass. [DONE]
 //
-// Optimizing the new BVH.
+// Get the large-cell sorting working at all.
 // - Reduce the overhead of constructing a dense grid.
-//   - Use device atomics to find number of atoms in each large voxel.
-//   - Use the handwritten algorithm to also allocate small cell references,
-//     in a single pass.
-//   - Run a 3D parallel reduction across the large voxel grid.
-//   - Store references to original atoms in new voxels.
-//     - Eventually, we will also copy over the atoms themselves. (1)
-//   - Construct the not-cache-friendly dense grid with threadgroup atomics.
+//   - Use device atomics to find number of atoms in each large voxel. [DONE]
+//   - Also allocate small cell references, in a single pass. [DONE]
+//   - Retain the slower de-unrolled codepath, and move on.
+//   - Use threadgroup memory to store relative offsets.
+// - Run a 3D parallel reduction across the large voxel grid.
+// - Store references to original atoms in the large voxels' lists.
+//
+// Get the small-cell sorting working at all.
+// - Construct the not-cache-friendly dense grid with threadgroup atomics.
+//
+// Optimizing the new BVH.
+// - Revisit the large-cell sorting pass, if the computation time is not
+//   dwarfed by the small-cell sorting.
+//   - Re-enable the old codepath that unrolled the loops.
+//   - Optimizing the "store relative offset" path by halving bandwidth cost.
+//     - If this is faster than two-pass atomics would be, abort the idea.
+//     - If this is faster than single-pass atomics would be, abort the idea.
+//   - Sorting in two passes with atomics.
+//   - Sorting in a single pass with atomics.
+//     - Set up all of the memory allocations.
+//     - Debug the failure modes of page allocation.
+//     - Look for an atomics contention bottleneck.
 // - Rearrange the cell metadata in Morton order.
 //   - Create a second, 8-bit memory allocation that marks which small voxels
 //     are occupied.

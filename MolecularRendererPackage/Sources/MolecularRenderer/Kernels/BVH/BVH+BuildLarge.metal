@@ -17,13 +17,6 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
   return ushort3(output);
 }
 
-// Tasks:
-// - Replicate 'buildSmallPart1'. [DONE]
-// - Switch to generating the large voxel coordinate from the small voxel
-//   coordinate.
-// - Count the atom's footprint in each of 8 voxels.
-//   - Match the reference count from the "bounding box" algorithm.
-// - Accumulate both metrics at the same time.
 kernel void buildLargePart1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -91,11 +84,6 @@ kernel void buildLargePart1
                            footprintHigh > 0);
   
   // Iterate over the footprint on the 3D grid.
-  //
-  // TODO: Manually unroll these loops and measure the performance improvement.
-  //
-  // unroll(full) - 124 instructions
-  // unroll(disable) - 124 instructions
 #pragma clang loop unroll(full)
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
 #pragma clang loop unroll(full)
