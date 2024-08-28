@@ -68,6 +68,9 @@ import Numerics
 //   - Fuse multiple per-atom kernels, resulting in atom conversion only when
 //     writing into the new reference list.
 //     - (1) Revisit the large BVH construction, store both refs and atom data.
+//   - With these optimizations, the limit of ~5 million atoms might be lifted.
+//     A new limit of ~8 million atoms should be enforced, and the user can
+//     decrease the limit to save memory.
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
