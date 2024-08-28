@@ -10,6 +10,13 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+// Quantize a position relative to the world origin.
+inline ushort3 quantize(float3 position, ushort3 world_dims) {
+  short3 output = short3(position);
+  output = clamp(output, 0, short3(world_dims));
+  return ushort3(output);
+}
+
 // Tasks:
 // - Replicate 'buildSmallPart1'. [DONE]
 // - Switch to generating the large voxel coordinate from the small voxel
@@ -69,26 +76,51 @@ kernel void buildLargePart1
   auto large_voxel_min = small_voxel_min / 8;
   auto large_voxel_max = small_voxel_max / 8;
   
+  // Pre-compute the footprint.
+  short3 dividingLine = large_voxel_max * 8;
+  dividingLine = min(dividingLine, small_voxel_max);
+  dividingLine = max(dividingLine, small_voxel_min);
+  short3 footprintLow = dividingLine - small_voxel_min;
+  short3 footprintHigh = small_voxel_max - dividingLine;
+  
+  ushort3 loopStart = select(ushort3(1),
+                             ushort3(0),
+                             footprintLow > 0);
+  ushort3 loopEnd = select(ushort3(1),
+                           ushort3(2),
+                           footprintHigh > 0);
+  
   // Iterate over the footprint on the 3D grid.
   //
   // TODO: Manually unroll these loops and measure the performance improvement.
-  for (ushort z = 0; z < 2; ++z) {
-    for (ushort y = 0; y < 2; ++y) {
-      for (ushort x = 0; x < 2; ++x) {
+#pragma clang loop unroll(disable)
+  for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
+//    if (z == 1 && footprintHigh.z <= 0) {
+//      continue;
+//    }
+    
+#pragma clang loop unroll(disable)
+    for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
+//      if (y == 1 && footprintHigh.y <= 0) {
+//        continue;
+//      }
+      
+#pragma clang loop unroll(disable)
+      for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
+//        if (x == 1 && footprintHigh.x <= 0) {
+//          continue;
+//        }
         ushort3 xyz(x, y, z);
         
         // What subregion of the atom's bounding box falls within this large
         // voxel?
         short3 footprint = short3(0);
+#pragma clang loop unroll(full)
         for (ushort laneID = 0; laneID < 3; ++laneID) {
-          short dividingLine = large_voxel_max[laneID] * 8;
-          dividingLine = min(dividingLine, small_voxel_max[laneID]);
-          dividingLine = max(dividingLine, small_voxel_min[laneID]);
-          
           if (xyz[laneID] == 1) {
-            footprint[laneID] = small_voxel_max[laneID] - dividingLine;
+            footprint[laneID] = footprintHigh[laneID];
           } else {
-            footprint[laneID] = dividingLine - small_voxel_min[laneID];
+            footprint[laneID] = footprintLow[laneID];
           }
         }
         
@@ -96,7 +128,8 @@ kernel void buildLargePart1
         //
         // TODO: Determine whether a cleaner guard/continue statement harms
         // the instruction count.
-        if (all(footprint > 0)) {
+        //if (all(footprint > 0))
+        {
           ushort3 cube_min = ushort3(large_voxel_min) + xyz;
           ushort3 grid_dims = bvhArgs->largeVoxelCount;
           uint address = VoxelAddress::generate(grid_dims, cube_min);
