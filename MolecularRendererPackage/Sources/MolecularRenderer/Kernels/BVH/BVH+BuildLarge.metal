@@ -93,42 +93,22 @@ kernel void buildLargePart1
   // Iterate over the footprint on the 3D grid.
   //
   // TODO: Manually unroll these loops and measure the performance improvement.
-#pragma clang loop unroll(disable)
+  //
+  // unroll(full) - 124 instructions
+  // unroll(disable) - 124 instructions
+#pragma clang loop unroll(full)
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
-//    if (z == 1 && footprintHigh.z <= 0) {
-//      continue;
-//    }
-    
-#pragma clang loop unroll(disable)
+#pragma clang loop unroll(full)
     for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
-//      if (y == 1 && footprintHigh.y <= 0) {
-//        continue;
-//      }
-      
-#pragma clang loop unroll(disable)
+#pragma clang loop unroll(full)
       for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
-//        if (x == 1 && footprintHigh.x <= 0) {
-//          continue;
-//        }
         ushort3 xyz(x, y, z);
         
         // What subregion of the atom's bounding box falls within this large
         // voxel?
-        short3 footprint = short3(0);
-#pragma clang loop unroll(full)
-        for (ushort laneID = 0; laneID < 3; ++laneID) {
-          if (xyz[laneID] == 1) {
-            footprint[laneID] = footprintHigh[laneID];
-          } else {
-            footprint[laneID] = footprintLow[laneID];
-          }
-        }
+        short3 footprint = select(footprintLow, footprintHigh, bool3(xyz));
         
         // If included, move on to the next section.
-        //
-        // TODO: Determine whether a cleaner guard/continue statement harms
-        // the instruction count.
-        //if (all(footprint > 0))
         {
           ushort3 cube_min = ushort3(large_voxel_min) + xyz;
           ushort3 grid_dims = bvhArgs->largeVoxelCount;
