@@ -40,7 +40,12 @@ import Numerics
 //     - Determine whether 16-bit values in TG memory are faster. [DONE]
 //     - Halve the device memory bandwidth. [DONE]
 // - Run a 3D parallel reduction across the large voxel grid.
+//   - Ensure the reference counts are summed correctly (+1).
+//   - Fuse the bounding box computation with this, rework / delete the kernels
+//     in the "prepare" pass.
 // - Store references to original atoms in the large voxels' lists.
+//   - Delete the final kernel of the "prepare" pass, "convertAtoms". Instead,
+//     write the copied atoms here. It's no different (order stays the same).
 //
 // Get the small-cell sorting working at all.
 // - Construct the not-cache-friendly dense grid with threadgroup atomics.
