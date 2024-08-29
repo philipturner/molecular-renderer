@@ -17,23 +17,6 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
   return ushort3(output);
 }
 
-kernel void buildLargePart1_0
-(
- device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
- 
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]])
-{
-  // Locate the cell metadata.
-  ushort3 cellCoordinates = tgid * 4;
-  cellCoordinates += thread_id;
-  ushort3 gridDims = ushort3(64);
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-  
-  // Set to zero.
-  largeInputMetadata[cellAddress] = vec<uint, 8>(0);
-}
-
 kernel void buildLargePart1_1
 (
  device atomic_uint *largeInputMetadata [[buffer(0)]],
@@ -204,20 +187,22 @@ kernel void buildLargePart2_1
  device atomic_uint *boundingBoxMin [[buffer(5)]],
  device atomic_uint *boundingBoxMax [[buffer(6)]],
  
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]],
+// ushort3 tgid [[threadgroup_position_in_grid]],
+// ushort3 thread_id [[thread_position_in_threadgroup]],
+ uint tid [[thread_position_in_grid]],
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Locate the cell metadata.
-  ushort3 cellCoordinates = tgid * 4;
-  cellCoordinates += thread_id;
-  ushort3 gridDims = ushort3(64);
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+//  ushort3 cellCoordinates = tgid * 4;
+//  cellCoordinates += thread_id;
+//  ushort3 gridDims = ushort3(64);
+//  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the cell metadata.
-  vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
+  vec<uint, 8> cellCounts = largeInputMetadata[tid];
   
+  /*
   // Reduce across the thread.
   vec<uint, 8> cellOffsets;
   cellOffsets[0] = 0;
@@ -227,22 +212,30 @@ kernel void buildLargePart2_1
     cellOffsets[i] = nextOffset;
   }
   uint threadCounts = cellOffsets[7] + cellCounts[7];
+   */
+  
+  uint threadCounts =
+  cellCounts[0] + cellCounts[1] +
+  cellCounts[2] + cellCounts[3] +
+  cellCounts[4] + cellCounts[5] +
+  cellCounts[6] + cellCounts[7];
   
   // Reduce across the SIMD.
   uint threadOffsets = simd_prefix_exclusive_sum(threadCounts);
-  uint simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
-  uint ballot = popcount(uint(ulong(simd_ballot(true))));
+  uint simdCounts = threadCounts & (uint(1 << 14) - 1);
+  simdCounts = simd_sum(simdCounts);
   
   // Reduce across the entire GPU.
-  if (lane_id == 0) {
+  if (lane_id == 0)
+  {
     uint simdLargeReferenceCount = simdCounts & (uint(1 << 14) - 1);
     uint simdSmallReferenceCount = simdCounts >> 14;
     
     atomic_fetch_add_explicit(largeReferenceCount,
-                              ballot,
+                              simdLargeReferenceCount,
                               memory_order_relaxed);
     atomic_fetch_add_explicit(smallReferenceCount,
-                              10,
+                              simdSmallReferenceCount,
                               memory_order_relaxed);
   }
   

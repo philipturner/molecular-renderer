@@ -8,7 +8,6 @@
 import Metal
 
 struct BVHBuildLargePipelines {
-  var buildLargePart1_0: MTLComputePipelineState
   var buildLargePart1_1: MTLComputePipelineState
   var buildLargePart2_0: MTLComputePipelineState
   var buildLargePart2_1: MTLComputePipelineState
@@ -21,7 +20,6 @@ struct BVHBuildLargePipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
-    buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
     buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
     buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
     buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
@@ -33,6 +31,8 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    buildLargePart1_1(encoder: encoder)
+    
     buildLargePart1_0(encoder: encoder)
     buildLargePart1_1(encoder: encoder)
     buildLargePart2_0(encoder: encoder)
@@ -60,8 +60,6 @@ extension BVHBuilder {
     let metadata = largeInputMetadata.contents()
       .assumingMemoryBound(to: UInt32.self)
     
-    // TODO: Accumulate the number of occupied large voxels. This requires
-    // some coordination across the 8 duplicated counters for each voxel.
     var largeReferenceCount: Int = .zero
     var smallReferenceCount: Int = .zero
     for cellID in 0..<(largeInputMetadata.length / 4) {
@@ -123,12 +121,16 @@ extension BVHBuilder {
     // Argument 0
     encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
     
+    // Argument 1
+    var pattern: UInt32 = 0
+    encoder.setBytes(&pattern, length: 4, index: 1)
+    
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart1_0
+    let pipeline = resetMemoryPipelines.resetMemory1D
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 16, height: 16, depth: 16),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+      MTLSize(width: 64 * 64 * 64 * 8 / 128, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
   
   func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
@@ -184,7 +186,7 @@ extension BVHBuilder {
     let pipeline = buildLargePipelines.buildLargePart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 16, height: 16, depth: 16),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+      MTLSize(width: 64 * 64 * 64 / 128, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
 }
