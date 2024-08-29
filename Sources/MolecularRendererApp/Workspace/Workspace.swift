@@ -39,10 +39,11 @@ import Numerics
 //     - Detect and fix bank conflicts. [DONE]
 //     - Determine whether 16-bit values in TG memory are faster. [DONE]
 //     - Halve the device memory bandwidth. [DONE]
-// - Run a 3D parallel reduction across the large voxel grid.
+// - Run a parallel reduction across the large voxel grid.
 //   - Ensure the reference counts are summed correctly (+1).
-//   - Fuse the bounding box computation with this, rework / delete the kernels
-//     in the "prepare" pass.
+//   - Fuse the bounding box computation.
+//   - Generate indirect dispatch arguments in the "build large" pass.
+//   - Delete the bounding box kernels from the "prepare" pass.
 // - Store references to original atoms in the large voxels' lists.
 //   - Delete the final kernel of the "prepare" pass, "convertAtoms". Instead,
 //     write the copied atoms here. It's no different (order stays the same).

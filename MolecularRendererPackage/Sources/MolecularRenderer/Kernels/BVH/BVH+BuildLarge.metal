@@ -17,7 +17,24 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
   return ushort3(output);
 }
 
-kernel void buildLargePart1
+kernel void buildLargePart1_0
+(
+ device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
+ 
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]])
+{
+  // Locate the cell metadata.
+  ushort3 cellCoordinates = tgid * 4;
+  cellCoordinates += thread_id;
+  ushort3 gridDims = ushort3(64);
+  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  
+  // Set to zero.
+  largeInputMetadata[cellAddress] = vec<uint, 8>(0);
+}
+
+kernel void buildLargePart1_1
 (
  device atomic_uint *largeInputMetadata [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
@@ -141,6 +158,26 @@ kernel void buildLargePart1
   }
 }
 
+kernel void buildLargePart2_0
+(
+ device uint *counters [[buffer(0)]])
+{
+  // Large voxel count.
+  counters[0] = 1;
+  
+  // Large reference count.
+  counters[1] = 1;
+  
+  // Small reference count.
+  counters[2] = 1;
+  
+  // Box minimum.
+  ((device uint4*)(counters + 4))[0] = 64;
+  
+  // Box maximum.
+  ((device uint4*)(counters + 4))[1] = 0;
+}
+
 // Inputs:
 // - bvhArgs
 // - largeReferenceCount, set to zero
@@ -158,7 +195,7 @@ kernel void buildLargePart1
 // - largeVoxelCount, storing occupied large voxel count
 // - largeReferenceCount, storing large reference count
 // - smallReferenceCount, storing small reference count
-kernel void buildLargePart2
+kernel void buildLargePart2_1
 (
  device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
  device uint4 *largeOutputMetadata [[buffer(1)]],
@@ -166,6 +203,8 @@ kernel void buildLargePart2
  device atomic_uint *largeVoxelCount [[buffer(2)]],
  device atomic_uint *largeReferenceCount [[buffer(3)]],
  device atomic_uint *smallReferenceCount [[buffer(4)]],
+ device atomic_uint *boundingBoxMin [[buffer(5)]],
+ device atomic_uint *boundingBoxMax [[buffer(6)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],

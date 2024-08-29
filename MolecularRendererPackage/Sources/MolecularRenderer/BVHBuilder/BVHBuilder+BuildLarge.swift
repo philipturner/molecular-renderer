@@ -8,8 +8,10 @@
 import Metal
 
 struct BVHBuildLargePipelines {
-  var buildLargePart1: MTLComputePipelineState
-  var buildLargePart2: MTLComputePipelineState
+  var buildLargePart1_0: MTLComputePipelineState
+  var buildLargePart1_1: MTLComputePipelineState
+  var buildLargePart2_0: MTLComputePipelineState
+  var buildLargePart2_1: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -19,8 +21,10 @@ struct BVHBuildLargePipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
-    buildLargePart1 = createPipeline(name: "buildLargePart1")
-    buildLargePart2 = createPipeline(name: "buildLargePart2")
+    buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
+    buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
+    buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
+    buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
   }
 }
 
@@ -29,11 +33,10 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    clearAllocationCounters(encoder: encoder)
-    clearLargeInputMetadata(encoder: encoder)
-    
-    buildLargePart1(encoder: encoder)
-    buildLargePart2(encoder: encoder)
+    buildLargePart1_0(encoder: encoder)
+    buildLargePart1_1(encoder: encoder)
+    buildLargePart2_0(encoder: encoder)
+    buildLargePart2_1(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -65,6 +68,11 @@ extension BVHBuilder {
       smallReferenceCount += Int(word) >> 14;
     }
     
+    print()
+    print(largeReferenceCount)
+    print(smallReferenceCount)
+    print()
+    
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
@@ -80,9 +88,25 @@ extension BVHBuilder {
     // Au(100)
     // 2.00 nm - 499950
     // 0.25 nm - 6406456
+    //
+    // C(100) Bounding Box
+    // minimum - [0, -8, -16]
+    // maximum - [16, 8, 2]
+    
+    let counters = globalAtomicCounters.contents()
+      .assumingMemoryBound(to: Int32.self)
+    
     print()
-    print(largeReferenceCount)
-    print(smallReferenceCount)
+    print(counters[0])
+    print(counters[1])
+    print(counters[2])
+    print(counters[3])
+    print(counters[4])
+    print(counters[5])
+    print(counters[6])
+    print(counters[7])
+    print(counters[8])
+    print(counters[9])
     print()
     
     exit(0)
@@ -91,12 +115,24 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
-  func buildLargePart1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
+  func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
+    
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart1_0
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreadgroups(
+      MTLSize(width: 16, height: 16, depth: 16),
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+  }
+  
+  func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
     encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 1)
     
-    // Arguments 3 - 4
+    // Arguments 2 - 3
     do {
       let offset1 = 0
       let offset2 = relativeOffsetsBuffer.length / 2
@@ -106,7 +142,7 @@ extension BVHBuilder {
     
     // Dispatch
     do {
-      let pipeline = buildLargePipelines.buildLargePart1
+      let pipeline = buildLargePipelines.buildLargePart1_1
       encoder.setComputePipelineState(pipeline)
       
       let atoms = renderer.argumentContainer.currentAtoms
@@ -116,18 +152,32 @@ extension BVHBuilder {
     }
   }
   
-  func buildLargePart2(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
+  func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart2_0
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: 1, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
+  }
+  
+  func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
     encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
     encoder.setBuffer(largeOutputMetadata, offset: 0, index: 1)
     
-    // Arguments 3 - 4
+    // Arguments 2 - 6
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
     encoder.setBuffer(globalAtomicCounters, offset: 4, index: 3)
     encoder.setBuffer(globalAtomicCounters, offset: 8, index: 4)
+    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 5)
+    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 6)
     
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart2
+    let pipeline = buildLargePipelines.buildLargePart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       MTLSize(width: 16, height: 16, depth: 16),
