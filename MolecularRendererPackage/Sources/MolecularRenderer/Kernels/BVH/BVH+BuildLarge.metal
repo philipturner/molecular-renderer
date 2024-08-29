@@ -149,7 +149,6 @@ kernel void buildLargePart1
 // - largeInputMetadata (8x duplicate)
 //
 // Outputs:
-
 // - largeInputMetadata (8x duplicate)
 //   - overwritten with large ref. offset
 // - largeOutputMetadata

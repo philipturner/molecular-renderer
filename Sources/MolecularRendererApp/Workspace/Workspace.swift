@@ -64,6 +64,7 @@ import Numerics
 //   - Compact the 32-bit cell metadata, based on the <1/8 of large voxels
 //     that are occupied.
 // - Reduce the memory and bandwidth costs.
+//   - Fuse the bounding box computation with the reduction across large cells.
 //   - Shift to local, per-large sector reference lists (16-bit).
 //   - Fuse multiple per-atom kernels, resulting in atom conversion only when
 //     writing into the new reference list.

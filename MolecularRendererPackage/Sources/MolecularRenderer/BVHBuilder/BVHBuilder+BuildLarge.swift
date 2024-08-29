@@ -27,6 +27,7 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    clearAllocationCounters(encoder: encoder)
     clearLargeInputMetadata(encoder: encoder)
     
     buildLargePart1(encoder: encoder)
@@ -115,6 +116,11 @@ extension BVHBuilder {
   }
   
   func buildLargePart2(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 1)
+    encoder.setBuffer(largeOutputMetadata, offset: 0, index: 2)
     
+    // Arguments 3 - 4
   }
 }

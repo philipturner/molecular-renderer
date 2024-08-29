@@ -34,7 +34,7 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    clearAdditionCounters(encoder: encoder)
+    clearAllocationCounters(encoder: encoder)
     clearSmallCellMetadata(encoder: encoder)
     
     buildSmallPart1(encoder: encoder)

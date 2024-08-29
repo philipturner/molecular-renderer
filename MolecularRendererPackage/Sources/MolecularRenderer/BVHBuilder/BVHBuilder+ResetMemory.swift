@@ -23,12 +23,15 @@ struct BVHResetMemoryPipelines {
 }
 
 extension BVHBuilder {
-  func clearAdditionCounters(encoder: MTLComputeCommandEncoder) {
+  func clearAllocationCounters(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
     
     // Argument 1
-    var pattern: UInt32 = .zero
+    //
+    // The first address should be 1, so that zeroes can be treated as null
+    // pointers.
+    var pattern: UInt32 = 1
     encoder.setBytes(&pattern, length: 4, index: 1)
     
     // Dispatch
