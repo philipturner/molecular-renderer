@@ -187,20 +187,28 @@ kernel void buildLargePart2_1
  device atomic_uint *boundingBoxMin [[buffer(5)]],
  device atomic_uint *boundingBoxMax [[buffer(6)]],
  
-// ushort3 tgid [[threadgroup_position_in_grid]],
-// ushort3 thread_id [[thread_position_in_threadgroup]],
- uint tid [[thread_position_in_grid]],
+ uint threadgroup_linear_id [[threadgroup_position_in_grid]],
+ uint thread_linear_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
+  ushort3 tgid(threadgroup_linear_id / 256,
+               (threadgroup_linear_id % 256) / 16,
+               threadgroup_linear_id % 16);
+  ushort3 thread_id(thread_linear_id / 16,
+                    (thread_linear_id % 16) / 4,
+                    thread_linear_id % 4);
+  
   // Locate the cell metadata.
-//  ushort3 cellCoordinates = tgid * 4;
-//  cellCoordinates += thread_id;
-//  ushort3 gridDims = ushort3(64);
-//  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  ushort3 cellCoordinates = tgid * 4;
+  cellCoordinates += thread_id;
+  ushort3 gridDims = ushort3(64);
+  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the cell metadata.
-  vec<uint, 8> cellCounts = largeInputMetadata[tid];
+  vec<uint, 8> cellCounts = largeInputMetadata
+  [VoxelAddress::generate(ushort3(16), tgid) * 64 +
+   VoxelAddress::generate(ushort3(4), thread_id)];
   
   /*
   // Reduce across the thread.
@@ -221,9 +229,7 @@ kernel void buildLargePart2_1
   cellCounts[6] + cellCounts[7];
   
   // Reduce across the SIMD.
-  uint threadOffsets = simd_prefix_exclusive_sum(threadCounts);
-  uint simdCounts = threadCounts & (uint(1 << 14) - 1);
-  simdCounts = simd_sum(simdCounts);
+  uint simdCounts = simd_sum(threadCounts);
   
   // Reduce across the entire GPU.
   if (lane_id == 0)

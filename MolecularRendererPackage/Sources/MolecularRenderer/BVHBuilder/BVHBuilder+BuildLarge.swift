@@ -186,7 +186,7 @@ extension BVHBuilder {
     let pipeline = buildLargePipelines.buildLargePart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 64 * 64 * 64 / 128, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+      MTLSize(width: 64 * 64 * 64 / 64, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 64, height: 1, depth: 1))
   }
 }
