@@ -60,6 +60,8 @@ extension BVHBuilder {
     let metadata = largeInputMetadata.contents()
       .assumingMemoryBound(to: UInt32.self)
     
+    // TODO: Accumulate the number of occupied large voxels. This requires
+    // some coordination across the 8 duplicated counters for each voxel.
     var largeReferenceCount: Int = .zero
     var smallReferenceCount: Int = .zero
     for cellID in 0..<(largeInputMetadata.length / 4) {
@@ -107,6 +109,8 @@ extension BVHBuilder {
     print(counters[7])
     print(counters[8])
     print(counters[9])
+    print(counters[10])
+    print(counters[11])
     print()
     
     exit(0)

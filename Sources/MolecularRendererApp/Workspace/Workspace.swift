@@ -42,6 +42,9 @@ import Numerics
 // - Run a parallel reduction across the large voxel grid.
 //   - Ensure the reference counts are summed correctly (+1).
 //   - Fuse the bounding box computation.
+//   - Optimizations:
+//     - Reduce register pressure.
+//     - Skip computations or atomics for unoccupied voxels.
 //   - Generate indirect dispatch arguments in the "build large" pass.
 //   - Delete the bounding box kernels from the "prepare" pass.
 // - Store references to original atoms in the large voxels' lists.

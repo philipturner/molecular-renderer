@@ -172,10 +172,10 @@ kernel void buildLargePart2_0
   counters[2] = 1;
   
   // Box minimum.
-  ((device uint4*)(counters + 4))[0] = 64;
+  *(device uint4*)(counters + 4) = uint4(64);
   
   // Box maximum.
-  ((device uint4*)(counters + 4))[1] = 0;
+  *(device uint4*)(counters + 8) = uint4(0);
 }
 
 // Inputs:
@@ -211,5 +211,41 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
+  // Locate the cell metadata.
+  ushort3 cellCoordinates = tgid * 4;
+  cellCoordinates += thread_id;
+  ushort3 gridDims = ushort3(64);
+  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
+  // Read the cell metadata.
+  vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
+  
+  // Reduce across the thread.
+  vec<uint, 8> cellOffsets;
+  cellOffsets[0] = 0;
+#pragma clang loop unroll(full)
+  for (ushort i = 1; i < 8; ++i) {
+    uint nextOffset = cellOffsets[i - 1] + cellCounts[i - 1];
+    cellOffsets[i] = nextOffset;
+  }
+  uint threadCounts = cellOffsets[7] + cellCounts[7];
+  
+  // Reduce across the SIMD.
+  uint threadOffsets = simd_prefix_exclusive_sum(threadCounts);
+  uint simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
+  uint simdVoxelMask = simd_vote::vote_t(threadOffsets > 0);
+  uint simdVoxelCount = popcount(simdVoxelMask);
+  
+  /*
+  // Reduce across the entire group.
+  threadgroup uint simdMetadataCounts[2];
+  if (lane_id == 0) {
+    simdMetadataCounts[simd_id] = simdMetadataCount;
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  
+  // Reduce across the entire GPU.
+  threadgroup uint simdVoxelOffsets[2];
+  threadgroup uint simdMetadataOffsets[2];
+   */
 }

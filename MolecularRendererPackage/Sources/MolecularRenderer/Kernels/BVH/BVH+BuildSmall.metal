@@ -107,6 +107,8 @@ kernel void buildSmallPart2
   cellCoordinates += thread_id * ushort3(4, 1, 1);
   uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
                                             cellCoordinates);
+  
+  // Read the cell atom counts.
   uint4 cellAtomCounts = smallCellMetadata[cellAddress / 4];
   
   // Reduce across the thread.
