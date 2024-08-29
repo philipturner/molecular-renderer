@@ -30,6 +30,7 @@ extension BVHBuilder {
     clearLargeInputMetadata(encoder: encoder)
     
     buildLargePart1(encoder: encoder)
+    buildLargePart2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -111,5 +112,9 @@ extension BVHBuilder {
         MTLSize(width: atoms.count, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
+  }
+  
+  func buildLargePart2(encoder: MTLComputeCommandEncoder) {
+    
   }
 }

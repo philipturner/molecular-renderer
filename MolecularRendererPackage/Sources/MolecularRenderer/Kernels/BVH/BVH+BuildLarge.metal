@@ -149,23 +149,26 @@ kernel void buildLargePart1
 // - largeInputMetadata (8x duplicate)
 //
 // Outputs:
-// - largeReferenceCount, storing large reference count
-// - smallReferenceCount, storing small reference count
+
 // - largeInputMetadata (8x duplicate)
 //   - overwritten with large ref. offset
 // - largeOutputMetadata
-//   - large refcount (14 bits), small refcount (18 bits)
+//   - compacted large voxel offset
 //   - large reference offset
 //   - small reference offset
-//   - small voxel offset
+//   - large refcount (14 bits), small refcount (18 bits)
+// - largeVoxelCount, storing occupied large voxel count
+// - largeReferenceCount, storing large reference count
+// - smallReferenceCount, storing small reference count
 kernel void buildLargePart2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *largeReferenceCount [[buffer(1)]],
- device atomic_uint *smallReferenceCount [[buffer(2)]],
- device atomic_uint *smallVoxelCount [[buffer(3)]],
- device vec<uint, 8> *largeInputMetadata [[buffer(4)]],
- device uint4 *largeOutputMetadata [[buffer(5)]],
+ device vec<uint, 8> *largeInputMetadata [[buffer(1)]],
+ device uint4 *largeOutputMetadata [[buffer(2)]],
+ 
+ device atomic_uint *largeVoxelCount [[buffer(3)]],
+ device atomic_uint *largeReferenceCount [[buffer(4)]],
+ device atomic_uint *smallReferenceCount [[buffer(5)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],

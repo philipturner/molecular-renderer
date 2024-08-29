@@ -18,16 +18,16 @@ class BVHBuilder {
   var buildLargePipelines: BVHBuildLargePipelines
   var buildSmallPipelines: BVHBuildSmallPipelines
   
+  // Data buffers (indirect dispatch).
+  var bvhArgumentsBuffer: MTLBuffer
+  var smallCellDispatchArguments8x8x8: MTLBuffer
+  var globalAtomicCounters: MTLBuffer
+  
   // Data buffers (per atom).
   var originalAtomsBuffers: [MTLBuffer]
   var convertedAtomsBuffer: MTLBuffer
   var relativeOffsetsBuffer: MTLBuffer
   var boundingBoxPartialsBuffer: MTLBuffer
-  
-  // Data buffers (indirect dispatch).
-  var bvhArgumentsBuffer: MTLBuffer
-  var smallCellDispatchArguments8x8x8: MTLBuffer
-  var globalAtomicCounters: MTLBuffer
   
   // Data buffers (per cell).
   var largeInputMetadata: MTLBuffer
@@ -64,6 +64,11 @@ class BVHBuilder {
       return device.makeBuffer(length: bufferSize)!
     }
     
+    // Allocate data buffers (indirect dispatch).
+    bvhArgumentsBuffer = device.makeBuffer(length: 1024 * 4)!
+    smallCellDispatchArguments8x8x8 = device.makeBuffer(length: 1024 * 4)!
+    globalAtomicCounters = device.makeBuffer(length: 1024 * 4)!
+    
     // Allocate data buffers (per atom).
     originalAtomsBuffers = [
       createAtomBuffer(16),
@@ -73,11 +78,6 @@ class BVHBuilder {
     convertedAtomsBuffer = createAtomBuffer(32)
     relativeOffsetsBuffer = createAtomBuffer(16)
     boundingBoxPartialsBuffer = createPartialsBuffer()
-    
-    // Allocate data buffers (indirect dispatch).
-    bvhArgumentsBuffer = device.makeBuffer(length: 1024 * 4)!
-    smallCellDispatchArguments8x8x8 = device.makeBuffer(length: 1024 * 4)!
-    globalAtomicCounters = device.makeBuffer(length: 1024 * 4)!
     
     // Allocate data buffers (per cell).
     largeInputMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!

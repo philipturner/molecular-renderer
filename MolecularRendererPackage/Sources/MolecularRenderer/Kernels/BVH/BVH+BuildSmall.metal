@@ -95,7 +95,7 @@ kernel void buildSmallPart2
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *smallCellMetadata [[buffer(1)]],
  device uint4 *smallCellCounters [[buffer(2)]],
- device atomic_uint *globalAtomicCounter [[buffer(3)]],
+ device atomic_uint *smallReferenceCount [[buffer(3)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -139,7 +139,7 @@ kernel void buildSmallPart2
     uint groupAtomOffset = 0;
     if (lane_id == 0) {
       groupAtomOffset =
-      atomic_fetch_add_explicit(globalAtomicCounter,
+      atomic_fetch_add_explicit(smallReferenceCount,
                                 groupAtomCount, memory_order_relaxed);
     }
     groupAtomOffset = simd_broadcast(groupAtomOffset, 0);
