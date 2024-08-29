@@ -31,8 +31,6 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    buildLargePart1_1(encoder: encoder)
-    
     buildLargePart1_0(encoder: encoder)
     buildLargePart1_1(encoder: encoder)
     buildLargePart2_0(encoder: encoder)
@@ -54,7 +52,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if true
+    #if false
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeInputMetadata.contents()

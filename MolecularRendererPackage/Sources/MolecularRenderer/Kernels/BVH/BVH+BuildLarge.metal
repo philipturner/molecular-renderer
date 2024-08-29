@@ -222,7 +222,7 @@ kernel void buildLargePart2_1
   }
   
   // Reduce across the SIMD.
-  uint simdVoxelMask = ulong(simd_ballot(threadLargeCount > 0));
+  uint simdVoxelCount = simd_sum(threadLargeCount > 0 ? 1 : 0);
   uint simdLargeCount = simd_sum(threadLargeCount);
   uint simdSmallCount = simd_sum(threadSmallCount);
   
@@ -244,7 +244,7 @@ kernel void buildLargePart2_1
   // Reduce across the entire GPU.
   if (lane_id == 0) {
     atomic_fetch_add_explicit(largeVoxelCount,
-                              popcount(simdVoxelMask),
+                              simdVoxelCount,
                               memory_order_relaxed);
     atomic_fetch_add_explicit(largeReferenceCount,
                               simdLargeCount,
@@ -270,17 +270,4 @@ kernel void buildLargePart2_1
                               boxMaxValue,
                               memory_order_relaxed);
   }
-  
-  /*
-  // Reduce across the entire group.
-  threadgroup uint simdMetadataCounts[2];
-  if (lane_id == 0) {
-    simdMetadataCounts[simd_id] = simdMetadataCount;
-  }
-  threadgroup_barrier(mem_flags::mem_threadgroup);
-  
-  // Reduce across the entire GPU.
-  threadgroup uint simdVoxelOffsets[2];
-  threadgroup uint simdMetadataOffsets[2];
-   */
 }
