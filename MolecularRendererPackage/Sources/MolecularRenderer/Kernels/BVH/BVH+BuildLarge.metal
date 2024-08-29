@@ -19,18 +19,17 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
 
 kernel void buildLargePart1
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *largeInputMetadata [[buffer(1)]],
- device float4 *convertedAtoms [[buffer(2)]],
- device ushort4 *relativeOffsets1 [[buffer(3)]],
- device ushort4 *relativeOffsets2 [[buffer(4)]],
+ device atomic_uint *largeInputMetadata [[buffer(0)]],
+ device float4 *convertedAtoms [[buffer(1)]],
+ device ushort4 *relativeOffsets1 [[buffer(2)]],
+ device ushort4 *relativeOffsets2 [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Transform the atom.
   float4 newAtom = convertedAtoms[tid];
-  newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
+  newAtom.xyz = 4 * (newAtom.xyz + 64);
   newAtom.w = 4 * newAtom.w;
   
   // Generate the bounding box.
@@ -38,8 +37,8 @@ kernel void buildLargePart1
   short3 smallVoxelMax = short3(ceil(newAtom.xyz + newAtom.w));
   smallVoxelMin = max(smallVoxelMin, 0);
   smallVoxelMax = max(smallVoxelMax, 0);
-  smallVoxelMin = min(smallVoxelMin, short3(bvhArgs->smallVoxelCount));
-  smallVoxelMax = min(smallVoxelMax, short3(bvhArgs->smallVoxelCount));
+  smallVoxelMin = min(smallVoxelMin, short3(512));
+  smallVoxelMax = min(smallVoxelMax, short3(512));
   short3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.
@@ -95,7 +94,7 @@ kernel void buildLargePart1
         // Perform the atomic fetch-add.
         uint offset;
         {
-          ushort3 gridDims = bvhArgs->largeVoxelCount;
+          ushort3 gridDims = ushort3(64);
           ushort3 cubeMin = ushort3(largeVoxelMin) + actualXYZ;
           uint address = VoxelAddress::generate(gridDims, cubeMin);
           address = (address * 8) + (tid % 8);
@@ -161,13 +160,12 @@ kernel void buildLargePart1
 // - smallReferenceCount, storing small reference count
 kernel void buildLargePart2
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device vec<uint, 8> *largeInputMetadata [[buffer(1)]],
- device uint4 *largeOutputMetadata [[buffer(2)]],
+ device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
+ device uint4 *largeOutputMetadata [[buffer(1)]],
  
- device atomic_uint *largeVoxelCount [[buffer(3)]],
- device atomic_uint *largeReferenceCount [[buffer(4)]],
- device atomic_uint *smallReferenceCount [[buffer(5)]],
+ device atomic_uint *largeVoxelCount [[buffer(2)]],
+ device atomic_uint *largeReferenceCount [[buffer(3)]],
+ device atomic_uint *smallReferenceCount [[buffer(4)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],

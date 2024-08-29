@@ -9,6 +9,7 @@ import Metal
 
 struct BVHBuildLargePipelines {
   var buildLargePart1: MTLComputePipelineState
+  var buildLargePart2: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -19,6 +20,7 @@ struct BVHBuildLargePipelines {
       return try! device.makeComputePipelineState(function: function)
     }
     buildLargePart1 = createPipeline(name: "buildLargePart1")
+    buildLargePart2 = createPipeline(name: "buildLargePart2")
   }
 }
 
@@ -49,7 +51,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if false
+    #if true
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeInputMetadata.contents()
@@ -91,16 +93,15 @@ extension BVHBuilder {
 extension BVHBuilder {
   func buildLargePart1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 1)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
+    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 1)
     
     // Arguments 3 - 4
     do {
       let offset1 = 0
       let offset2 = relativeOffsetsBuffer.length / 2
-      encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 3)
-      encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 4)
+      encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 2)
+      encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 3)
     }
     
     // Dispatch
@@ -117,10 +118,19 @@ extension BVHBuilder {
   
   func buildLargePart2(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 1)
-    encoder.setBuffer(largeOutputMetadata, offset: 0, index: 2)
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
+    encoder.setBuffer(largeOutputMetadata, offset: 0, index: 1)
     
     // Arguments 3 - 4
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
+    encoder.setBuffer(globalAtomicCounters, offset: 4, index: 3)
+    encoder.setBuffer(globalAtomicCounters, offset: 8, index: 4)
+    
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart2
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreadgroups(
+      MTLSize(width: 16, height: 16, depth: 16),
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
 }
