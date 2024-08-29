@@ -226,9 +226,15 @@ kernel void buildLargePart2_1
   }
   
   // Reduce across the SIMD.
-  uint simdVoxelCount = simd_sum(threadLargeCount > 0 ? 1 : 0);
-  uint simdLargeCount = simd_sum(threadLargeCount);
-  uint simdSmallCount = simd_sum(threadSmallCount);
+  uint3 simdCounts;
+  {
+    uint simdVoxelCount = simd_sum(threadLargeCount > 0 ? 1 : 0);
+    uint simdLargeCount = simd_sum(threadLargeCount);
+    uint simdSmallCount = simd_sum(threadSmallCount);
+    simdCounts = uint3(simdVoxelCount,
+                       simdLargeCount,
+                       simdSmallCount);
+  }
   
   // Find the bounding box.
   // - There's probably a more efficient way to do this, if the ALU cost ever
@@ -245,26 +251,53 @@ kernel void buildLargePart2_1
   int3 simdBoxMin = simd_min(threadBoxMin);
   int3 simdBoxMax = simd_max(threadBoxMax);
   
-  // Reduce across the entire GPU.
+  // Set up the atomics in threadgroup memory.
+  threadgroup int threadgroupCounters[9];
   if (lane_id < 3) {
-    uint3 simdMemoryValues(simdVoxelCount,
-                           simdLargeCount,
-                           simdSmallCount);
-    
-    // Distribute the work across three threads.
-    uint memoryValue = 0;
+    threadgroupCounters[lane_id] = 0;
+    threadgroupCounters[3 + lane_id] = 64;
+    threadgroupCounters[6 + lane_id] = -64;
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  
+  // Reduce across the threadgroup.
+  if (lane_id < 3) {
+    // Distribute the vector elements across three threads.
+    int countValue = 0;
     int boxMinValue = 64;
     int boxMaxValue = -64;
 #pragma clang loop unroll(full)
     for (ushort axisID = 0; axisID < 3; ++axisID) {
       if (lane_id == axisID) {
-        memoryValue = simdMemoryValues[axisID];
+        countValue = simdCounts[axisID];
         boxMinValue = simdBoxMin[axisID];
         boxMaxValue = simdBoxMax[axisID];
       }
     }
+    
+    auto counts = (threadgroup atomic_int*)(threadgroupCounters + 0);
+    auto boxMin = (threadgroup atomic_int*)(threadgroupCounters + 3);
+    auto boxMax = (threadgroup atomic_int*)(threadgroupCounters + 6);
+    atomic_fetch_add_explicit(counts + lane_id,
+                              countValue,
+                              memory_order_relaxed);
+    atomic_fetch_min_explicit(boxMin + lane_id,
+                              boxMinValue,
+                              memory_order_relaxed);
+    atomic_fetch_max_explicit(boxMax + lane_id,
+                              boxMaxValue,
+                              memory_order_relaxed);
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  
+  // Reduce across the entire GPU.
+  if (simd_id == 0 && lane_id < 3) {
+    int countValue = threadgroupCounters[lane_id];
+    int boxMinValue = threadgroupCounters[3 + lane_id];
+    int boxMaxValue = threadgroupCounters[6 + lane_id];
+    
     atomic_fetch_add_explicit(allocatedMemory + lane_id,
-                              memoryValue,
+                              countValue,
                               memory_order_relaxed);
     atomic_fetch_min_explicit(boundingBoxMin + lane_id,
                               boxMinValue,
