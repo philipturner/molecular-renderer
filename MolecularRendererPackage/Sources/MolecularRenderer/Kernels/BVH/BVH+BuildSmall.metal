@@ -140,9 +140,9 @@ kernel void buildSmallPart2
     // This part may be a parallelization bottleneck on large GPUs.
     uint groupAtomOffset = 0;
     if (lane_id == 0) {
-      groupAtomOffset =
-      atomic_fetch_add_explicit(smallReferenceCount,
-                                groupAtomCount, memory_order_relaxed);
+      groupAtomOffset = atomic_fetch_add_explicit(smallReferenceCount,
+                                                  groupAtomCount, 
+                                                  memory_order_relaxed);
     }
     groupAtomOffset = simd_broadcast(groupAtomOffset, 0);
     

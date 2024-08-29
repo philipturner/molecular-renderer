@@ -120,9 +120,8 @@ kernel void buildLargePart1_1
           footprint[0] * footprint[1] * footprint[2];
           uint word = (smallReferenceCount << 14) + 1;
           
-          offset =
-          atomic_fetch_add_explicit(largeInputMetadata + address,
-                                    word, memory_order_relaxed);
+          offset = atomic_fetch_add_explicit(largeInputMetadata + address,
+                                             word, memory_order_relaxed);
         }
         
         // Store to the cache.
@@ -232,6 +231,21 @@ kernel void buildLargePart2_1
   // Reduce across the SIMD.
   uint threadOffsets = simd_prefix_exclusive_sum(threadCounts);
   uint simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
+  simd_vote vote(threadCounts > 0);
+  uint ballot = popcount(uint(*reinterpret_cast<thread ulong*>(&vote)));
+  
+  // Reduce across the entire GPU.
+  if (lane_id == 0) {
+    uint simdLargeReferenceCount = simdCounts & (uint(1 << 14) - 1);
+    uint simdSmallReferenceCount = simdCounts >> 14;
+    
+    atomic_fetch_add_explicit(largeReferenceCount,
+                              ballot,
+                              memory_order_relaxed);
+    atomic_fetch_add_explicit(smallReferenceCount,
+                              10,
+                              memory_order_relaxed);
+  }
   
   /*
   // Reduce across the entire group.
