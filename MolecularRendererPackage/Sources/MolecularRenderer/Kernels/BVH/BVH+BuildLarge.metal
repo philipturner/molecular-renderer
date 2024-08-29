@@ -192,8 +192,8 @@ kernel void buildLargePart2_1
  device atomic_uint *largeVoxelCount [[buffer(2)]],
  device atomic_uint *largeReferenceCount [[buffer(3)]],
  device atomic_uint *smallReferenceCount [[buffer(4)]],
- device atomic_uint *boundingBoxMin [[buffer(5)]],
- device atomic_uint *boundingBoxMax [[buffer(6)]],
+ device atomic_int *boundingBoxMin [[buffer(5)]],
+ device atomic_int *boundingBoxMax [[buffer(6)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -233,7 +233,7 @@ kernel void buildLargePart2_1
   int3 threadBoxMax;
   if (threadLargeCount > 0) {
     threadBoxMin = int3(cellCoordinates) * 2 - 64;
-    threadBoxMax = threadBoxMin + 1;
+    threadBoxMax = threadBoxMin + 2;
   } else {
     threadBoxMin = int3(64);
     threadBoxMax = int3(-64);
@@ -263,8 +263,12 @@ kernel void buildLargePart2_1
         boxMaxValue = simdBoxMax[axisID];
       }
     }
-    
-    
+    atomic_fetch_min_explicit(boundingBoxMin + lane_id,
+                              boxMinValue,
+                              memory_order_relaxed);
+    atomic_fetch_max_explicit(boundingBoxMax + lane_id,
+                              boxMaxValue,
+                              memory_order_relaxed);
   }
   
   /*
