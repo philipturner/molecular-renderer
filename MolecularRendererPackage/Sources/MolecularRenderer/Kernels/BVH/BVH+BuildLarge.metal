@@ -19,22 +19,35 @@ inline ushort3 quantize(float3 position, ushort3 world_dims) {
 
 kernel void buildLargePart1_1
 (
- device atomic_uint *largeInputMetadata [[buffer(0)]],
- device float4 *convertedAtoms [[buffer(1)]],
+ // Per-element allocations.
+ device float *atomicRadii [[buffer(0)]],
+ 
+ // Per-atom allocations.
+ device float4 *originalAtoms [[buffer(1)]],
  device ushort4 *relativeOffsets1 [[buffer(2)]],
  device ushort4 *relativeOffsets2 [[buffer(3)]],
+ 
+ // Per-cell allocations.
+ device atomic_uint *largeInputMetadata [[buffer(4)]],
  
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
-  // Transform the atom.
-  float4 newAtom = convertedAtoms[tid];
-  newAtom.xyz = 4 * (newAtom.xyz + 64);
-  newAtom.w = 4 * newAtom.w;
+  // Materialize the atom.
+  float4 atom = originalAtoms[tid];
+  {
+    uint atomicNumber = uint(atom.w);
+    float atomicRadius = atomicRadii[atomicNumber];
+    atom.w = atomicRadius;
+  }
+  
+  // Place the atom in the grid of large cells.
+  atom.xyz = 4 * (atom.xyz + 64);
+  atom.w = 4 * atom.w;
   
   // Generate the bounding box.
-  short3 smallVoxelMin = short3(floor(newAtom.xyz - newAtom.w));
-  short3 smallVoxelMax = short3(ceil(newAtom.xyz + newAtom.w));
+  short3 smallVoxelMin = short3(floor(atom.xyz - atom.w));
+  short3 smallVoxelMax = short3(ceil(atom.xyz + atom.w));
   smallVoxelMin = max(smallVoxelMin, 0);
   smallVoxelMax = max(smallVoxelMax, 0);
   smallVoxelMin = min(smallVoxelMin, short3(512));
@@ -142,28 +155,23 @@ kernel void buildLargePart1_1
 
 kernel void buildLargePart2_0
 (
- device uint *counters [[buffer(0)]])
+ device int4 *counters [[buffer(0)]])
 {
-  // Large voxel count.
-  counters[0] = 1;
+  // The first three slots are allocators. We initialize them with the smallest
+  // acceptable pointer value.
+  // - Large voxel count.
+  // - Large reference count.
+  // - Small reference count.
+  counters[0] = int4(1);
   
-  // Large reference count.
-  counters[1] = 1;
-  
-  // Small reference count.
-  counters[2] = 1;
-  
-  // Box minimum.
-  *(device uint4*)(counters + 4) = uint4(64);
-  
-  // Box maximum.
-  *(device uint4*)(counters + 8) = uint4(0);
+  // Next, is the bounding box counter.
+  // - Minimum: initial value is +64 nm.
+  // - Maximum: initial value is -64 nm.
+  counters[1] = int4(64);
+  counters[2] = int4(-64);
 }
 
 // Inputs:
-// - bvhArgs
-// - largeReferenceCount, set to zero
-// - smallReferenceCount, set to zero
 // - largeInputMetadata (8x duplicate)
 //
 // Outputs:
@@ -174,9 +182,8 @@ kernel void buildLargePart2_0
 //   - large reference offset
 //   - small reference offset
 //   - large refcount (14 bits), small refcount (18 bits)
-// - largeVoxelCount, storing occupied large voxel count
-// - largeReferenceCount, storing large reference count
-// - smallReferenceCount, storing small reference count
+// - amount of memory allocated
+// - compact bounding box for dense DDA traversal
 kernel void buildLargePart2_1
 (
  device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
@@ -199,19 +206,24 @@ kernel void buildLargePart2_1
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the cell metadata.
-  //
-  // Try regenerating this to reduce register pressure / coupling.
-  vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
+  vec<uint, 8> cellMetadata = largeInputMetadata[cellAddress];
   
-  uint threadCounts =
-  cellCounts[0] + cellCounts[1] +
-  cellCounts[2] + cellCounts[3] +
-  cellCounts[4] + cellCounts[5] +
-  cellCounts[6] + cellCounts[7];
+  // Reduce across the thread.
+  uint threadLargeCount;
+  uint threadSmallCount;
+  {
+    uint threadTotalCount = 0;
+#pragma clang loop unroll(full)
+    for (ushort laneID = 0; laneID < 8; ++laneID) {
+      threadTotalCount += cellMetadata[laneID];
+    }
+    threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
+    threadSmallCount = threadTotalCount >> 14;
+  }
   
   // Reduce across the SIMD.
-  uint simdLargeCount = simd_sum(threadCounts & (uint(1 << 14) - 1));
-  uint simdSmallCount = simd_sum(threadCounts >> 14);
+  uint simdLargeCount = simd_sum(threadLargeCount);
+  uint simdSmallCount = simd_sum(threadSmallCount);
   
   // Reduce across the entire GPU.
   if (lane_id == 0)

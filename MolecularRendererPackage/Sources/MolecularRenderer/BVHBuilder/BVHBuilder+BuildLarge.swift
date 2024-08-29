@@ -134,9 +134,18 @@ extension BVHBuilder {
   }
   
   func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 1)
+    // Argument 0
+    renderer.atomRadii.withUnsafeBufferPointer {
+      let length = $0.count * 4
+      encoder.setBytes($0.baseAddress!, length: length, index: 0)
+    }
+    
+    // Argument 1
+    do {
+      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+      let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
+      encoder.setBuffer(originalAtomsBuffer, offset: 0, index: 1)
+    }
     
     // Arguments 2 - 3
     do {
@@ -145,6 +154,9 @@ extension BVHBuilder {
       encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 2)
       encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 3)
     }
+    
+    // Argument 4
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 4)
     
     // Dispatch
     do {
