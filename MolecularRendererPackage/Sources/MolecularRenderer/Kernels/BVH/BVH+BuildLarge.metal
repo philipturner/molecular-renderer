@@ -155,20 +155,25 @@ kernel void buildLargePart1_1
 
 kernel void buildLargePart2_0
 (
- device int4 *counters [[buffer(0)]])
+ // Global allocations.
+ device uint4 *allocatedMemory [[buffer(0)]],
+ device int4 *boundingBoxMin [[buffer(1)]],
+ device int4 *boundingBoxMax [[buffer(2)]],
+ 
+ uint tid [[thread_position_in_grid]])
 {
   // The first three slots are allocators. We initialize them with the smallest
   // acceptable pointer value.
   // - Large voxel count.
   // - Large reference count.
   // - Small reference count.
-  counters[0] = int4(1);
+  allocatedMemory[0] = uint4(1);
   
   // Next, is the bounding box counter.
   // - Minimum: initial value is +64 nm.
   // - Maximum: initial value is -64 nm.
-  counters[1] = int4(64);
-  counters[2] = int4(-64);
+  boundingBoxMin[0] = int4(64);
+  boundingBoxMax[0] = int4(-64);
 }
 
 // Inputs:
@@ -186,14 +191,14 @@ kernel void buildLargePart2_0
 // - compact bounding box for dense DDA traversal
 kernel void buildLargePart2_1
 (
- device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
- device uint4 *largeOutputMetadata [[buffer(1)]],
+ // Global allocations.
+ device atomic_uint *allocatedMemory [[buffer(0)]],
+ device atomic_int *boundingBoxMin [[buffer(1)]],
+ device atomic_int *boundingBoxMax [[buffer(2)]],
  
- device atomic_uint *largeVoxelCount [[buffer(2)]],
- device atomic_uint *largeReferenceCount [[buffer(3)]],
- device atomic_uint *smallReferenceCount [[buffer(4)]],
- device atomic_int *boundingBoxMin [[buffer(5)]],
- device atomic_int *boundingBoxMax [[buffer(6)]],
+ // Per-cell allocations.
+ device vec<uint, 8> *largeInputMetadata [[buffer(3)]],
+ device uint4 *largeOutputMetadata [[buffer(4)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -201,8 +206,7 @@ kernel void buildLargePart2_1
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Locate the cell metadata.
-  ushort3 cellCoordinates = tgid * 4;
-  cellCoordinates += thread_id;
+  ushort3 cellCoordinates = tgid * 8 + thread_id;
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
@@ -242,27 +246,26 @@ kernel void buildLargePart2_1
   int3 simdBoxMax = simd_max(threadBoxMax);
   
   // Reduce across the entire GPU.
-  if (lane_id == 0) {
-    atomic_fetch_add_explicit(largeVoxelCount,
-                              simdVoxelCount,
-                              memory_order_relaxed);
-    atomic_fetch_add_explicit(largeReferenceCount,
-                              simdLargeCount,
-                              memory_order_relaxed);
-    atomic_fetch_add_explicit(smallReferenceCount,
-                              simdSmallCount,
-                              memory_order_relaxed);
-  }
   if (lane_id < 3) {
+    uint3 simdMemoryValues(simdVoxelCount,
+                           simdLargeCount,
+                           simdSmallCount);
+    
+    // Distribute the work across three threads.
+    uint memoryValue = 0;
     int boxMinValue = 64;
     int boxMaxValue = -64;
 #pragma clang loop unroll(full)
     for (ushort axisID = 0; axisID < 3; ++axisID) {
       if (lane_id == axisID) {
+        memoryValue = simdMemoryValues[axisID];
         boxMinValue = simdBoxMin[axisID];
         boxMaxValue = simdBoxMax[axisID];
       }
     }
+    atomic_fetch_add_explicit(allocatedMemory + lane_id,
+                              memoryValue,
+                              memory_order_relaxed);
     atomic_fetch_min_explicit(boundingBoxMin + lane_id,
                               boxMinValue,
                               memory_order_relaxed);

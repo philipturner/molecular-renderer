@@ -52,7 +52,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if false
+    #if true
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeInputMetadata.contents()
@@ -92,21 +92,12 @@ extension BVHBuilder {
     // maximum - [16, 8, 2]
     
     let counters = globalAtomicCounters.contents()
-      .assumingMemoryBound(to: Int32.self)
+      .assumingMemoryBound(to: SIMD4<Int32>.self)
     
     print()
     print(counters[0])
     print(counters[1])
     print(counters[2])
-    print(counters[3])
-    print(counters[4])
-    print(counters[5])
-    print(counters[6])
-    print(counters[7])
-    print(counters[8])
-    print(counters[9])
-    print(counters[10])
-    print(counters[11])
     print()
     
     exit(0)
@@ -169,8 +160,10 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
+    // Arguments 0 - 2
     encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
+    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_0
@@ -181,22 +174,20 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
-    encoder.setBuffer(largeOutputMetadata, offset: 0, index: 1)
+    // Arguments 0 - 2
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
+    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
     
-    // Arguments 2 - 6
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 2)
-    encoder.setBuffer(globalAtomicCounters, offset: 4, index: 3)
-    encoder.setBuffer(globalAtomicCounters, offset: 8, index: 4)
-    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 5)
-    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 6)
+    // Arguments 3 - 4
+    encoder.setBuffer(largeInputMetadata, offset: 0, index: 3)
+    encoder.setBuffer(largeOutputMetadata, offset: 0, index: 4)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 16, height: 16, depth: 16),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+      MTLSize(width: 8, height: 8, depth: 8),
+      threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 8))
   }
 }
