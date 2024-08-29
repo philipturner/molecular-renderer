@@ -200,7 +200,6 @@ kernel void buildLargePart2_1
  device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
  device uint4 *largeOutputMetadata [[buffer(1)]],
  
- device atomic_uint *largeVoxelCount [[buffer(2)]],
  device atomic_uint *largeReferenceCount [[buffer(3)]],
  device atomic_uint *smallReferenceCount [[buffer(4)]],
  device atomic_uint *boundingBoxMin [[buffer(5)]],
@@ -233,8 +232,6 @@ kernel void buildLargePart2_1
   // Reduce across the SIMD.
   uint threadOffsets = simd_prefix_exclusive_sum(threadCounts);
   uint simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
-  uint simdVoxelMask = simd_vote::vote_t(threadOffsets > 0);
-  uint simdVoxelCount = popcount(simdVoxelMask);
   
   /*
   // Reduce across the entire group.
