@@ -231,8 +231,7 @@ kernel void buildLargePart2_1
   // Reduce across the SIMD.
   uint threadOffsets = simd_prefix_exclusive_sum(threadCounts);
   uint simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
-  simd_vote vote(threadCounts > 0);
-  uint ballot = popcount(uint(*reinterpret_cast<thread ulong*>(&vote)));
+  uint ballot = popcount(uint(ulong(simd_ballot(true))));
   
   // Reduce across the entire GPU.
   if (lane_id == 0) {
