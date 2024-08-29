@@ -189,6 +189,7 @@ kernel void buildLargePart2_1
  device vec<uint, 8> *largeInputMetadata [[buffer(0)]],
  device uint4 *largeOutputMetadata [[buffer(1)]],
  
+ device atomic_uint *largeVoxelCount [[buffer(2)]],
  device atomic_uint *largeReferenceCount [[buffer(3)]],
  device atomic_uint *smallReferenceCount [[buffer(4)]],
  device atomic_uint *boundingBoxMin [[buffer(5)]],
@@ -205,13 +206,12 @@ kernel void buildLargePart2_1
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
-  // Read the cell metadata.
-  vec<uint, 8> cellMetadata = largeInputMetadata[cellAddress];
-  
   // Reduce across the thread.
   uint threadLargeCount;
   uint threadSmallCount;
   {
+    vec<uint, 8> cellMetadata = largeInputMetadata[cellAddress];
+    
     uint threadTotalCount = 0;
 #pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 8; ++laneID) {
@@ -222,18 +222,49 @@ kernel void buildLargePart2_1
   }
   
   // Reduce across the SIMD.
+  uint simdVoxelMask = ulong(simd_ballot(threadLargeCount > 0));
   uint simdLargeCount = simd_sum(threadLargeCount);
   uint simdSmallCount = simd_sum(threadSmallCount);
   
+  // Find the bounding box.
+  // - There's probably a more efficient way to do this, if the ALU cost ever
+  //   becomes a bottleneck.
+  int3 threadBoxMin;
+  int3 threadBoxMax;
+  if (threadLargeCount > 0) {
+    threadBoxMin = int3(cellCoordinates) * 2 - 64;
+    threadBoxMax = threadBoxMin + 1;
+  } else {
+    threadBoxMin = int3(64);
+    threadBoxMax = int3(-64);
+  }
+  int3 simdBoxMin = simd_min(threadBoxMin);
+  int3 simdBoxMax = simd_max(threadBoxMax);
+  
   // Reduce across the entire GPU.
-  if (lane_id == 0)
-  {
+  if (lane_id == 0) {
+    atomic_fetch_add_explicit(largeVoxelCount,
+                              popcount(simdVoxelMask),
+                              memory_order_relaxed);
     atomic_fetch_add_explicit(largeReferenceCount,
                               simdLargeCount,
                               memory_order_relaxed);
     atomic_fetch_add_explicit(smallReferenceCount,
                               simdSmallCount,
                               memory_order_relaxed);
+  }
+  if (lane_id < 3) {
+    int boxMinValue = 64;
+    int boxMaxValue = -64;
+#pragma clang loop unroll(full)
+    for (ushort axisID = 0; axisID < 3; ++axisID) {
+      if (lane_id == axisID) {
+        boxMinValue = simdBoxMin[axisID];
+        boxMaxValue = simdBoxMax[axisID];
+      }
+    }
+    
+    
   }
   
   /*
