@@ -199,19 +199,9 @@ kernel void buildLargePart2_1
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the cell metadata.
+  //
+  // Try regenerating this to reduce register pressure / coupling.
   vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
-  
-  /*
-  // Reduce across the thread.
-  vec<uint, 8> cellOffsets;
-  cellOffsets[0] = 0;
-#pragma clang loop unroll(full)
-  for (ushort i = 1; i < 8; ++i) {
-    uint nextOffset = cellOffsets[i - 1] + cellCounts[i - 1];
-    cellOffsets[i] = nextOffset;
-  }
-  uint threadCounts = cellOffsets[7] + cellCounts[7];
-   */
   
   uint threadCounts =
   cellCounts[0] + cellCounts[1] +
