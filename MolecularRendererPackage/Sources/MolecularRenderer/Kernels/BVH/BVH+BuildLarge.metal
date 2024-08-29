@@ -187,18 +187,11 @@ kernel void buildLargePart2_1
  device atomic_uint *boundingBoxMin [[buffer(5)]],
  device atomic_uint *boundingBoxMax [[buffer(6)]],
  
- uint threadgroup_linear_id [[threadgroup_position_in_grid]],
- uint thread_linear_id [[thread_position_in_threadgroup]],
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  ushort3 tgid(threadgroup_linear_id / 256,
-               (threadgroup_linear_id % 256) / 16,
-               threadgroup_linear_id % 16);
-  ushort3 thread_id(thread_linear_id / 16,
-                    (thread_linear_id % 16) / 4,
-                    thread_linear_id % 4);
-  
   // Locate the cell metadata.
   ushort3 cellCoordinates = tgid * 4;
   cellCoordinates += thread_id;
@@ -206,9 +199,7 @@ kernel void buildLargePart2_1
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the cell metadata.
-  vec<uint, 8> cellCounts = largeInputMetadata
-  [VoxelAddress::generate(ushort3(16), tgid) * 64 +
-   VoxelAddress::generate(ushort3(4), thread_id)];
+  vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
   
   /*
   // Reduce across the thread.
@@ -229,19 +220,17 @@ kernel void buildLargePart2_1
   cellCounts[6] + cellCounts[7];
   
   // Reduce across the SIMD.
-  uint simdCounts = simd_sum(threadCounts);
+  uint simdLargeCount = simd_sum(threadCounts & (uint(1 << 14) - 1));
+  uint simdSmallCount = simd_sum(threadCounts >> 14);
   
   // Reduce across the entire GPU.
   if (lane_id == 0)
   {
-    uint simdLargeReferenceCount = simdCounts & (uint(1 << 14) - 1);
-    uint simdSmallReferenceCount = simdCounts >> 14;
-    
     atomic_fetch_add_explicit(largeReferenceCount,
-                              simdLargeReferenceCount,
+                              simdLargeCount,
                               memory_order_relaxed);
     atomic_fetch_add_explicit(smallReferenceCount,
-                              simdSmallReferenceCount,
+                              simdSmallCount,
                               memory_order_relaxed);
   }
   
