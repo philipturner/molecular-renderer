@@ -8,7 +8,6 @@
 import Metal
 
 class BVHBuilder {
-  // Main rendering resources.
   var device: MTLDevice
   unowned var renderer: MRRenderer
   
@@ -16,9 +15,8 @@ class BVHBuilder {
   var buildLargePipelines: BVHBuildLargePipelines
   var buildSmallPipelines: BVHBuildSmallPipelines
   
-  // Data buffers (indirect dispatch).
+  // Data buffers (global).
   var globalCounters: MTLBuffer
-  var bvhArguments: MTLBuffer
   var indirectDispatchArguments: MTLBuffer
   
   // Data buffers (per atom).
@@ -32,7 +30,7 @@ class BVHBuilder {
   var smallCounterMetadata: MTLBuffer
   var smallCellMetadata: MTLBuffer
   
-  // Data buffers (other).
+  // Data buffers (per reference).
   var largeAtomReferences: MTLBuffer
   var smallAtomReferences: MTLBuffer
   
@@ -47,42 +45,40 @@ class BVHBuilder {
     buildLargePipelines = BVHBuildLargePipelines(library: library)
     buildSmallPipelines = BVHBuildSmallPipelines(library: library)
     
-    func createBuffer(bytesPerAtom: Int) -> MTLBuffer {
-      let bufferSize = BVHBuilder.maxAtomCount * bytesPerAtom
-      return device.makeBuffer(length: bufferSize)!
+    func createBuffer(length: Int) -> MTLBuffer {
+      let buffer = device.makeBuffer(length: length)
+      guard let buffer else {
+        fatalError("Could not create buffer, likely ran out of memory.")
+      }
+      return buffer
     }
     
-    // Allocate data buffers (indirect dispatch).
-    globalCounters = device.makeBuffer(length: 1024 * 4)!
-    bvhArguments = device.makeBuffer(length: 1024 * 4)!
-    indirectDispatchArguments = device.makeBuffer(length: 1024 * 4)!
+    // Data buffers (global).
+    globalCounters = createBuffer(length: 1024 * 4)
+    indirectDispatchArguments = createBuffer(length: 1024 * 4)
     
-    // Allocate data buffers (per atom).
+    // Data buffers (per atom).
     originalAtoms = [
-      createBuffer(bytesPerAtom: 16),
-      createBuffer(bytesPerAtom: 16),
-      createBuffer(bytesPerAtom: 16),
+      createBuffer(length: BVHBuilder.maxAtomCount * 16),
+      createBuffer(length: BVHBuilder.maxAtomCount * 16),
+      createBuffer(length: BVHBuilder.maxAtomCount * 16),
     ]
-    convertedAtoms = createBuffer(bytesPerAtom: 2 * 16)
-    relativeOffsets = createBuffer(bytesPerAtom: 16)
+    convertedAtoms = createBuffer(length: BVHBuilder.maxAtomCount * 16)
+    relativeOffsets = createBuffer(length: BVHBuilder.maxAtomCount * 8 * 2)
     
-    // Allocate data buffers (per cell).
-    largeCounterMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!
-    largeCellMetadata = device.makeBuffer(length: 64 * 64 * 64 * 4 * 4)!
-    smallCounterMetadata = device.makeBuffer(length: 512 * 512 * 128 * 4 * 4)!
-    smallCellMetadata = device.makeBuffer(length: 512 * 512 * 128 * 4)!
+    // Data buffers (per cell).
+    let largeVoxelCount = 64 * 64 * 64
+    let smallVoxelCount = 512 * 512 * 512
+    largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
+    largeCellMetadata = createBuffer(length: largeVoxelCount * 4 * 4)
+    smallCounterMetadata = createBuffer(length: smallVoxelCount * 4)
+    smallCellMetadata = createBuffer(length: smallVoxelCount * 4)
     
-    // Allocate data buffers (other).
-    largeAtomReferences = createBuffer(bytesPerAtom: 2 * 4)
-    smallAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
+    // Data buffers (per reference).
+    let largeReferenceCount = BVHBuilder.maxAtomCount * 2
+    let smallReferenceCount = 64 * 1024 * 1024
+    largeAtomReferences = createBuffer(length: largeReferenceCount * 4)
+    smallAtomReferences = createBuffer(length: smallReferenceCount * 4)
   }
 }
 
-extension BVHBuilder {
-  /// Hard limit on the maximum atom count. We'll eventually make the
-  /// program more sophisticated, enabling higher atom counts without the
-  /// bandwidth of 120 * (4 million) atoms per second.
-  static var maxAtomCount: Int {
-    4 * 1024 * 1024
-  }
-}
