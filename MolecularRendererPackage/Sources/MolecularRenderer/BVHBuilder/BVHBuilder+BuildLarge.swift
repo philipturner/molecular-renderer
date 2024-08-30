@@ -128,7 +128,7 @@ extension BVHBuilder {
       
       var activeCellCount: Int = .zero
       for cellID in 0..<(64 * 64 * 64) {
-        let counterCounts = inputMetadata[cellID]
+        let counterCounts = outputMetadata[cellID]
         guard any(counterCounts .> 0) else {
           continue
         }
@@ -141,7 +141,7 @@ extension BVHBuilder {
       
       var activeCellCursor: Int = .zero
       for cellID in 0..<(64 * 64 * 64) {
-        let counterCounts = inputMetadata[cellID]
+        let counterCounts = outputMetadata[cellID]
         guard any(counterCounts .> 0) else {
           continue
         }

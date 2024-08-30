@@ -246,7 +246,7 @@ kernel void buildLargePart2_1
     simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
   }
   
-  // Return early if empty.
+  // If the entire SIMD is empty, return here.
   if (simdCounts[0] == 0) {
     largeOutputMetadata[cellAddress] = uint4(0);
     return;
@@ -301,19 +301,27 @@ kernel void buildLargePart2_1
   threadLargeOffset += simd_broadcast(simdOffsetValue, 1);
   threadSmallOffset += simd_broadcast(simdOffsetValue, 2);
   
+  // If just this thread is empty, return here.
+  if (threadTotalCount == 0) {
+    largeOutputMetadata[cellAddress] = uint4(0);
+    return;
+  }
+  
   // Store the thread metadata.
-  // ...
+  {
+    uint4 threadMetadata(threadVoxelOffset,
+                         threadLargeOffset,
+                         threadSmallOffset,
+                         threadTotalCount);
+    largeOutputMetadata[cellAddress] = threadMetadata;
+  }
   
   // Add the thread offset to the per-counter offset.
-  // - expand the 16-bit offset cached in registers
   {
     vec<uint, 8> counterOffsets32 = vec<uint, 8>(counterOffsets);
     counterOffsets32 += threadLargeOffset;
     largeDebugMetadata[cellAddress] = counterOffsets32;
   }
-  
-  // Store the per-counter metadata.
-  // ...
 }
 
 // Copy the atoms into a new buffer.
