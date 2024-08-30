@@ -185,10 +185,11 @@ kernel void buildLargePart2_0
 //
 // Inputs:
 // - largeInputMetadata (8x duplicate)
+//   - large refcount (14 bits), small refcount (18 bits)
 //
 // Outputs:
 // - largeInputMetadata (8x duplicate)
-//   - overwritten with large ref. offset
+//   - large reference offset
 // - largeOutputMetadata
 //   - compacted large voxel offset
 //   - large reference offset
@@ -217,16 +218,16 @@ kernel void buildLargePart2_1
   cellCoordinates += tgid * ushort3(4, 4, 4);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-  vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
+  vec<uint, 8> counterCounts = largeInputMetadata[cellAddress];
   
   // Reduce the counts across the thread.
-  vec<uint, 8> cellOffsets;
+  vec<ushort, 8> counterOffsets;
   uint threadTotalCount = 0;
 #pragma clang loop unroll(full)
   for (ushort laneID = 0; laneID < 8; ++laneID) {
-    uint cellLargeOffset = threadTotalCount & (uint(1 << 14) - 1);
-    cellOffsets[laneID] = cellLargeOffset;
-    threadTotalCount += cellCounts[laneID];
+    ushort counterOffset = ushort(threadTotalCount) & (ushort(1 << 14) - 1);
+    threadTotalCount += counterCounts[laneID];
+    counterOffsets[laneID] = counterOffset;
   }
   
   // Reduce the counts across the SIMD.
@@ -292,6 +293,20 @@ kernel void buildLargePart2_1
   }
   
   // Add the SIMD offset to the thread offset.
+  threadOffsets[0] += simd_broadcast(simdOffsetValue, 0);
+  threadOffsets[1] += simd_broadcast(simdOffsetValue, 1);
+  threadOffsets[2] += simd_broadcast(simdOffsetValue, 2);
+  
+  // Store the thread metadata.
+  // ...
+  
+  // Add the thread offset to the per-counter offset.
+  // - expand the 16-bit offset cached in registers
+  // - debug the local compaction of offsets before anything else.
+  
+  
+  // Store the per-counter metadata.
+  // ...
 }
 
 // Copy the atoms into a new buffer.
