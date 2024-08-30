@@ -58,7 +58,7 @@ import Numerics
 //
 // Prepare the small-cell sorting for threadgroup atomics.
 // - Swap the order of the small-cell-metadata and small-cell-counter buffers,
-//   so the former is always the atomically incremented one.
+//   so the former is always the atomically incremented one. [DONE]
 // - Change the indirect dispatch to 4x4x4, one cell per thread.
 // - Expand the small-counter metadata with ~4x duplication.
 // - Compact the small-counter counters, but not the small-cell metadata.

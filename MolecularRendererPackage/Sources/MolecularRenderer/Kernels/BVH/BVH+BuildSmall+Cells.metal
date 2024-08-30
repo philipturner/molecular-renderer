@@ -86,61 +86,63 @@ kernel void buildSmallPart2_1
                                             cellCoordinates);
   
   // Read the counter metadata.
-  uint4 cellAtomCounts = smallCounterMetadata[cellAddress / 4];
+  uint4 counterCounts = smallCounterMetadata[cellAddress / 4];
   
-  // Reduce across the thread.
-  uint4 cellAtomOffsets;
-  cellAtomOffsets[0] = 0;
-  cellAtomOffsets[1] = cellAtomOffsets[0] + cellAtomCounts[0];
-  cellAtomOffsets[2] = cellAtomOffsets[1] + cellAtomCounts[1];
-  cellAtomOffsets[3] = cellAtomOffsets[2] + cellAtomCounts[2];
-  uint threadAtomCount = cellAtomOffsets[3] + cellAtomCounts[3];
+  // Reduce the counts across the thread.
+  uint4 counterOffsets;
+  uint threadTotalCount = 0;
+#pragma clang loop unroll(full)
+  for (ushort laneID = 0; laneID < 4; ++laneID) {
+    ushort counterOffset = threadTotalCount;
+    threadTotalCount += counterCounts[laneID];
+    counterOffsets[laneID] = counterOffset;
+  }
   
   // Reduce across the SIMD.
-  uint threadAtomOffset = simd_prefix_exclusive_sum(threadAtomCount);
-  uint simdAtomCount = simd_broadcast(threadAtomOffset + threadAtomCount, 31);
+  uint threadOffset = simd_prefix_exclusive_sum(threadTotalCount);
+  uint simdCount = simd_broadcast(threadOffset + threadTotalCount, 31);
   
   // Reduce across the entire group.
-  threadgroup uint simdAtomCounts[4];
+  threadgroup uint simdCounts[4];
   if (lane_id == 0) {
-    simdAtomCounts[simd_id] = simdAtomCount;
+    simdCounts[simd_id] = simdCount;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Reduce across the entire GPU.
-  threadgroup uint simdAtomOffsets[4];
+  threadgroup uint simdOffsets[4];
   if (simd_id == 0) {
-    uint simdAtomCount = simdAtomCounts[lane_id % 4];
-    uint simdAtomOffset = simd_prefix_exclusive_sum(simdAtomCount);
-    uint groupAtomCount = simd_broadcast(simdAtomOffset + simdAtomCount, 3);
+    uint simdCount = simdCounts[lane_id % 4];
+    uint simdOffset = simd_prefix_exclusive_sum(simdCount);
+    uint groupCount = simd_broadcast(simdOffset + simdCount, 3);
     
     // This part may be a parallelization bottleneck on large GPUs.
-    uint groupAtomOffset = 0;
+    uint groupOffset = 0;
     if (lane_id == 0) {
-      groupAtomOffset = atomic_fetch_add_explicit(allocatedMemory,
-                                                  groupAtomCount,
-                                                  memory_order_relaxed);
+      groupOffset = atomic_fetch_add_explicit(allocatedMemory,
+                                              groupCount,
+                                              memory_order_relaxed);
     }
-    groupAtomOffset = simd_broadcast(groupAtomOffset, 0);
+    groupOffset = simd_broadcast(groupOffset, 0);
     
     // Add the group offset to the SIMD offset.
     if (lane_id < 4) {
-      simdAtomOffset += groupAtomOffset;
-      simdAtomOffsets[lane_id] = simdAtomOffset;
+      simdOffset += groupOffset;
+      simdOffsets[lane_id] = simdOffset;
     }
   }
   
   // Add the SIMD offset to the thread offset.
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  threadAtomOffset += simdAtomOffsets[simd_id];
-  cellAtomOffsets += threadAtomOffset;
+  threadOffset += simdOffsets[simd_id];
+  counterOffsets += threadOffset;
   
   // Encode the offset and count into a single word.
   uint4 cellMetadata = uint4(0);
 #pragma clang loop unroll(full)
   for (uint cellID = 0; cellID < 4; ++cellID) {
-    uint atomOffset = cellAtomOffsets[cellID];
-    uint atomCount = cellAtomCounts[cellID];
+    uint atomOffset = counterOffsets[cellID];
+    uint atomCount = counterCounts[cellID];
     if (atomOffset + atomCount > dense_grid_reference_capacity) {
       atomOffset = 0;
       atomCount = 0;
@@ -153,6 +155,6 @@ kernel void buildSmallPart2_1
   }
   
   // Store the result to memory.
-  smallCounterMetadata[cellAddress / 4] = cellAtomOffsets;
+  smallCounterMetadata[cellAddress / 4] = counterOffsets;
   smallCellMetadata[cellAddress / 4] = cellMetadata;
 }
