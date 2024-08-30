@@ -56,12 +56,10 @@ import Numerics
 //   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.
-// - Write to a list of compacted small-cell offsets.
-// - Convert the compacted memory format to the full, dense 3D grid in a
-//   second GPU kernel.
-// - Expand the small-cell counters with ~4x duplication.
-// - Replace the first kernel with something launched per-large-cell, which
-//   clamps the atoms' references to the large-cell bounds.
+// - Expand the small-cell counters with ~4x duplication. Accept that large
+//   enough grids will run out of memory.
+// - Convert the duplicated counters to once-per-cell metadata.
+// - Compact the small-cell counters allocation.
 // - Fuse into a single kernel, using threadgroup atomics instead of device
 //   atomics.
 //
