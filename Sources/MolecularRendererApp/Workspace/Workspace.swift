@@ -52,10 +52,13 @@ import Numerics
 //   - Store the per-cell offsets. [DONE]
 //   - Check the correctness of the per-cell offsets before writing atom
 //     references (if possible). [DONE]
+//   - [WILL RESUME THIS TASK AT A LATER DATE]
 //   - Abstract away the code for iterating over large cell footprint.
 //   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.
+// - Swap the order of the small-cell-metadata and small-cell-counter buffers,
+//   so the former is always the atomically incremented one.
 // - Expand the small-cell counters with ~4x duplication. Accept that large
 //   enough grids will run out of memory.
 // - Convert the duplicated counters to once-per-cell metadata.

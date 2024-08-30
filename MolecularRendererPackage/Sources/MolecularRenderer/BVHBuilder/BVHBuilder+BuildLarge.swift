@@ -58,7 +58,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if true
+    #if false
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
