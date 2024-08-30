@@ -43,7 +43,9 @@ struct BVHBuildLargePipelines {
 
 extension BVHBuilder {
   func buildLargeBVH(frameID: Int) {
-    let copyingTime = copyAtoms()
+    let copyStart = CACurrentMediaTime()
+    buildLargePart0_0()
+    let copyEnd = CACurrentMediaTime()
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -62,9 +64,11 @@ extension BVHBuilder {
           return
         }
         
+        let copyTime = copyEnd - copyStart
+        frameReporter.reports[index].copyTime = copyTime
+        
         let executionTime =
         commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-        frameReporter.reports[index].copyTime = copyingTime
         frameReporter.reports[index].buildLargeTime = executionTime
       }
     }
@@ -72,19 +76,28 @@ extension BVHBuilder {
   }
 }
 
+// MARK: - Part 0
+
 extension BVHBuilder {
-  // Run and time the copying into the GPU buffer.
-  func copyAtoms() -> Double {
-    let atoms = renderer.argumentContainer.currentAtoms
+  func buildLargePart0_0() {
+    // Destination
     let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-    let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
+    let destinationBuffer = originalAtoms[tripleIndex]
+    let destinationPointer = destinationBuffer.contents()
     
-    let copyingStart = CACurrentMediaTime()
-    memcpy(originalAtomsBuffer.contents(), atoms, atoms.count * 16)
-    let copyingEnd = CACurrentMediaTime()
+    // Source
+    let sourceArray = renderer.argumentContainer.currentAtoms
     
-    return copyingEnd - copyingStart
+    // Number of Bytes
+    let byteCount = sourceArray.count * 16
+    
+    // Function Call
+    memcpy(
+      /*__dst*/ destinationPointer,
+      /*__src*/ sourceArray,
+      /*__n*/   byteCount)
   }
+}
   
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
     // Argument 0
