@@ -19,12 +19,12 @@ import Metal
 // - Kernel 1: Compact the reference offset for each voxel.
 // - Kernel 2: Fill the reference list for each voxel.
 struct BVHBuildSmallPipelines {
-  var buildLargePart0_0: MTLComputePipelineState
-  var buildLargePart1_0: MTLComputePipelineState
-  var buildLargePart1_1: MTLComputePipelineState
-  var buildLargePart2_0: MTLComputePipelineState
-  var buildLargePart2_1: MTLComputePipelineState
-  var buildLargePart2_2: MTLComputePipelineState
+  var buildSmallPart0_0: MTLComputePipelineState
+  var buildSmallPart1_0: MTLComputePipelineState
+  var buildSmallPart1_1: MTLComputePipelineState
+  var buildSmallPart2_0: MTLComputePipelineState
+  var buildSmallPart2_1: MTLComputePipelineState
+  var buildSmallPart2_2: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -34,12 +34,12 @@ struct BVHBuildSmallPipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
-    buildLargePart0_0 = createPipeline(name: "buildLargePart1_0")
-    buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
-    buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
-    buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
-    buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
-    buildLargePart2_2 = createPipeline(name: "buildLargePart2_2")
+    buildSmallPart0_0 = createPipeline(name: "buildSmallPart0_0")
+    buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
+    buildSmallPart1_1 = createPipeline(name: "buildSmallPart1_1")
+    buildSmallPart2_0 = createPipeline(name: "buildSmallPart2_0")
+    buildSmallPart2_1 = createPipeline(name: "buildSmallPart2_1")
+    buildSmallPart2_2 = createPipeline(name: "buildSmallPart2_2")
   }
 }
 
@@ -66,89 +66,104 @@ extension BVHBuilder {
   }
 }
 
-// MARK: - New Kernels
+// MARK: - Atoms
 
 extension BVHBuilder {
-  func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
+  func buildSmallPart1_1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
-    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
-    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
-    
-    // Arguments 3 - 4
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 3)
-    encoder.setBuffer(smallCellDispatchArguments8x8x8, offset: 0, index: 4)
+    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 1)
+    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 2)
     
     // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart1_0
+    let pipeline = buildSmallPipelines.buildSmallPart1_1
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: currentAtomCount, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+  }
+  
+  func buildSmallPart2_2(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 3
+    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 1)
+    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 2)
+    encoder.setBuffer(smallAtomReferences, offset: 0, index: 3)
+    
+    // Dispatch
+    let pipeline = buildSmallPipelines.buildSmallPart2_2
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: currentAtomCount, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+  }
+}
+
+// MARK: - Cells
+
+extension BVHBuilder {
+  func buildSmallPart0_0(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
+    do {
+      let allocatedMemory = 0
+      let boundingBoxMin = 16
+      let boundingBoxMax = 32
+      encoder.setBuffer(globalCounters, offset: allocatedMemory, index: 0)
+      encoder.setBuffer(globalCounters, offset: boundingBoxMin, index: 1)
+      encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
+    }
+    
+    // Arguments 3 - 4
+    encoder.setBuffer(bvhArguments, offset: 0, index: 3)
+    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 4)
+    
+    // Dispatch
+    let pipeline = buildSmallPipelines.buildSmallPart0_0
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSize(width: 1, height: 1, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
   }
-}
-
-// MARK: - Old Kernels
-
-extension BVHBuilder {
-  func clearSmallCellMetadata(encoder: MTLComputeCommandEncoder) {
+  
+  func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 1
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
+    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
+    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 1)
     
     // Dispatch
-    let pipeline = buildSmallPipelines.clearSmallCellMetadata
+    let pipeline = buildSmallPipelines.buildSmallPart1_0
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      indirectBuffer: smallCellDispatchArguments8x8x8,
+      indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
   }
   
-  func buildSmallPart1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+  func buildSmallPart2_0(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    encoder.setBuffer(globalCounters, offset: 0, index: 0)
     
     // Dispatch
-    let atoms = renderer.argumentContainer.currentAtoms
-    let pipeline = buildSmallPipelines.buildSmallPart1
+    let pipeline = buildSmallPipelines.buildSmallPart2_0
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
-      MTLSize(width: atoms.count, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+      MTLSize(width: 1, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
   }
   
-  func buildSmallPart2(encoder: MTLComputeCommandEncoder) {
+  func buildSmallPart2_1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 3
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 1)
-    encoder.setBuffer(smallCellCounters, offset: 0, index: 2)
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 3)
+    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
+    encoder.setBuffer(globalCounters, offset: 0, index: 1)
+    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 2)
+    encoder.setBuffer(smallCellMetadata, offset: 0, index: 3)
     
     // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart2
+    let pipeline = buildSmallPipelines.buildSmallPart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      indirectBuffer: smallCellDispatchArguments8x8x8,
+      indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
-  }
-  
-  func buildSmallPart3(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 3
-    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
-    encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
-    encoder.setBuffer(smallAtomReferences, offset: 0, index: 2)
-    encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 3)
-    
-    // Dispatch
-    let atoms = renderer.argumentContainer.currentAtoms
-    let pipeline = buildSmallPipelines.buildSmallPart3
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: atoms.count, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
 }
