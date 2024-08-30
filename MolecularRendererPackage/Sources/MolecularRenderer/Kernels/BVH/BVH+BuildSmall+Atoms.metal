@@ -65,7 +65,7 @@ kernel void buildSmallPart1_1
         bool mark = cubeSphereIntersection(cube_min, newAtom);
         if (mark) {
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          address = address * 4;
+          address = (address * 4) + (tid % 4);
           
           // Increment the counter.
           atomic_fetch_add_explicit(smallCounterMetadata + address,
@@ -104,7 +104,7 @@ kernel void buildSmallPart2_2
         bool mark = cubeSphereIntersection(cube_min, newAtom);
         if (mark) {
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          address = address * 4;
+          address = (address * 4) + (tid % 4);
           
           // Increment the counter.
           uint offset =

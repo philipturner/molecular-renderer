@@ -121,7 +121,7 @@ public class MRRenderer {
     
     // Dispatch the upscaling work.
     let drawable = layer.nextDrawable()!
-    dispatchUpscalingWork(texture: drawable.texture)
+    // dispatchUpscalingWork(texture: drawable.texture)
     
     // Perform synchronization in an empty command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!
