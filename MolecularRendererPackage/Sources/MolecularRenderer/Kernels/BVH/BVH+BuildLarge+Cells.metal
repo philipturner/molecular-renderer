@@ -179,7 +179,7 @@ kernel void buildLargePart2_1
     largeCellMetadata[cellAddress] = threadMetadata;
   }
   
-  // Add the thread offset to the per-counter offset.
+  // Add the thread offset to the per-counter offsets.
   {
     vec<uint, 8> counterOffsets32 = vec<uint, 8>(counterOffsets);
     counterOffsets32 += threadLargeOffset;

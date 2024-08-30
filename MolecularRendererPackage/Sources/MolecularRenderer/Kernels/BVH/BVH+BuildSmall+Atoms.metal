@@ -64,8 +64,10 @@ kernel void buildSmallPart1_1
         // Narrow down the cells with a cube-sphere intersection test.
         bool mark = cubeSphereIntersection(cube_min, newAtom);
         if (mark) {
-          // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
+          address = address * 4;
+          
+          // Increment the counter.
           atomic_fetch_add_explicit(smallCounterMetadata + address,
                                     1, memory_order_relaxed);
         }
@@ -101,8 +103,10 @@ kernel void buildSmallPart2_2
         // Narrow down the cells with a cube-sphere intersection test.
         bool mark = cubeSphereIntersection(cube_min, newAtom);
         if (mark) {
-          // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
+          address = address * 4;
+          
+          // Increment the counter.
           uint offset =
           atomic_fetch_add_explicit(smallCounterMetadata + address,
                                     1, memory_order_relaxed);

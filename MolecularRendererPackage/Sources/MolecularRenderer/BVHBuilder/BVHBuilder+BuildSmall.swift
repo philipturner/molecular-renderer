@@ -142,7 +142,7 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
   
   func buildSmallPart2_0(encoder: MTLComputeCommandEncoder) {
@@ -170,6 +170,6 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
 }
