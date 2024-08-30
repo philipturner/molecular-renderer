@@ -148,7 +148,7 @@ kernel void buildLargePart1_1
 
 kernel void buildLargePart2_0
 (
- // Global allocations.
+ // Global counters.
  device uint3 *allocatedMemory [[buffer(0)]],
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]],
@@ -184,7 +184,7 @@ kernel void buildLargePart2_0
 // - compact bounding box for dense DDA traversal
 kernel void buildLargePart2_1
 (
- // Global allocations.
+ // Global counters.
  device atomic_uint *allocatedMemory [[buffer(0)]],
  device atomic_int *boundingBoxMin [[buffer(1)]],
  device atomic_int *boundingBoxMax [[buffer(2)]],
@@ -278,13 +278,15 @@ kernel void buildLargePart2_1
   }
 }
 
-// A single GPU thread encodes some GPU-driven work.
+// Encode the GPU-driven work in the next pass.
 kernel void buildLargePart2_2
 (
- // Global allocations.
+ // Global counters.
  device uint3 *allocatedMemory [[buffer(0)]],
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]],
+ 
+ // Indirect dispatch arguments.
  device BVHArguments *bvhArgs [[buffer(3)]],
  device uint3 *smallCellDispatchArguments8x8x8 [[buffer(4)]])
 {

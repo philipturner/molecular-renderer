@@ -11,6 +11,7 @@ struct BVHBuildLargePipelines {
   var buildLargePart1_1: MTLComputePipelineState
   var buildLargePart2_0: MTLComputePipelineState
   var buildLargePart2_1: MTLComputePipelineState
+  var buildLargePart2_2: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -23,6 +24,7 @@ struct BVHBuildLargePipelines {
     buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
     buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
     buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
+    buildLargePart2_2 = createPipeline(name: "buildLargePart2_2")
   }
 }
 
@@ -34,8 +36,10 @@ extension BVHBuilder {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildLargePart1_0(encoder: encoder)
     buildLargePart1_1(encoder: encoder)
+    
     buildLargePart2_0(encoder: encoder)
     buildLargePart2_1(encoder: encoder)
+    buildLargePart2_2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -54,7 +58,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if true
+    #if false
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
@@ -224,5 +228,22 @@ extension BVHBuilder {
       threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
   
-  
+  func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
+    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
+    
+    // Arguments 3 - 4
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 3)
+    encoder.setBuffer(smallCellDispatchArguments8x8x8, offset: 0, index: 4)
+    
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart2_2
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: 1, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
+  }
 }
+

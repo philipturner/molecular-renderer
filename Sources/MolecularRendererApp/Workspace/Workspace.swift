@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if true
+#if false
 
 // Making the code easier to modify.
 // - Clean up the BVH builder.
@@ -162,7 +162,7 @@ func createGeometry() -> [Atom] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 40 * (h + k + l) }
-    Material { .elemental(.carbon) }
+    Material { .elemental(.gold) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

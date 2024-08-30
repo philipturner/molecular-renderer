@@ -34,12 +34,12 @@ extension BVHBuilder {
   func prepareBVH(frameID: Int) {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    clearBoxCounters(encoder: encoder)
+//    clearBoxCounters(encoder: encoder)
     
     convertAtoms(encoder: encoder)
-    reduceBoxPart1(encoder: encoder)
-    reduceBoxPart2(encoder: encoder)
-    setIndirectArguments(encoder: encoder)
+//    reduceBoxPart1(encoder: encoder)
+//    reduceBoxPart2(encoder: encoder)
+//    setIndirectArguments(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
