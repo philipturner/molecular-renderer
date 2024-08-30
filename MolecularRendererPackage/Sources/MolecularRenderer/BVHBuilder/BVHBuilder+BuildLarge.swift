@@ -22,6 +22,7 @@ struct BVHBuildLargePipelines {
   // - Kernel 0: Reset the allocation and box counters.
   // - Kernel 1: Compact the reference offset for each voxel.
   // - Kernel 2: Copy atoms into converted format (for now).
+  var buildLargePart2_0: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -33,6 +34,7 @@ struct BVHBuildLargePipelines {
     }
     buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
     buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
+    buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
   }
 }
 
@@ -44,8 +46,6 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    buildLargePart1_0(encoder: encoder)
-    buildLargePart1_1(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -139,12 +139,24 @@ extension BVHBuilder {
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
   }
-  
+}
+
+// MARK: - Part 2
+
+extension BVHBuilder {
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
-    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
-    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
+    do {
+      let allocatedMemoryOffset = 0
+      let boundingBoxMinOffset = 16
+      let boundingBoxMaxOffset = 32
+      encoder.setBuffer(
+        globalCounters, offset: allocatedMemoryOffset, index: 0)
+      encoder.setBuffer(
+        globalCounters, offset: boundingBoxMinOffset, index: 1)
+      encoder.setBuffer(
+        globalCounters, offset: boundingBoxMaxOffset, index: 2)
+    }
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_0

@@ -19,7 +19,6 @@ kernel void buildLargePart1_0
 
 kernel void buildLargePart2_0
 (
- // Global counters.
  device uint3 *allocatedMemory [[buffer(0)]],
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]])
