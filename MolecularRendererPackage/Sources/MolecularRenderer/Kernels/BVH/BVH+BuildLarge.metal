@@ -206,7 +206,8 @@ kernel void buildLargePart2_1
  
  // Per-cell allocations.
  device vec<uint, 8> *largeInputMetadata [[buffer(3)]],
- device uint4 *largeOutputMetadata [[buffer(4)]],
+ device vec<ushort, 8> *largeDebugMetadata [[buffer(4)]],
+ device uint4 *largeOutputMetadata [[buffer(5)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -303,7 +304,7 @@ kernel void buildLargePart2_1
   // Add the thread offset to the per-counter offset.
   // - expand the 16-bit offset cached in registers
   // - debug the local compaction of offsets before anything else.
-  
+  largeDebugMetadata[cellAddress] = counterOffsets;
   
   // Store the per-counter metadata.
   // ...
