@@ -59,6 +59,7 @@ import Numerics
 // Get the small-cell sorting working at all.
 // - Swap the order of the small-cell-metadata and small-cell-counter buffers,
 //   so the former is always the atomically incremented one.
+// - Change the dispatch over small cells to be 4x4x4, and one cell per thread.
 // - Expand the small-cell counters with ~4x duplication. Accept that large
 //   enough grids will run out of memory.
 // - Convert the duplicated counters to once-per-cell metadata.

@@ -45,27 +45,28 @@ kernel void buildSmallPart1_0
   *smallCellDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }
 
-kernel void clearSmallCellMetadata
+// Reset the counters for memory allocation.
+kernel void buildSmallPart2_0
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint4 *smallCellMetadata [[buffer(1)]],
- 
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]])
+ // Global counters.
+ device uint *allocatedMemory [[buffer(0)]])
 {
-  ushort3 cellCoordinates = tgid * 8;
-  cellCoordinates += thread_id * ushort3(4, 1, 1);
-  uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
-                                            cellCoordinates);
-  smallCellMetadata[cellAddress / 4] = uint4(0);
+  // Initialize with the smallest acceptable pointer value.
+  allocatedMemory[0] = uint(1);
 }
 
-kernel void buildSmallPart2
+// Compact the list of reference offsets.
+kernel void buildSmallPart2_1
 (
+ // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint4 *smallCellMetadata [[buffer(1)]],
- device uint4 *smallCellCounters [[buffer(2)]],
- device atomic_uint *smallReferenceCount [[buffer(3)]],
+ 
+ // Global counters.
+ device atomic_uint *allocatedMemory [[buffer(1)]],
+ 
+ // Per-cell allocations.
+ device uint4 *smallCounterMetadata [[buffer(2)]],
+ device uint4 *smallCellMetadata [[buffer(3)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -110,7 +111,7 @@ kernel void buildSmallPart2
     // This part may be a parallelization bottleneck on large GPUs.
     uint groupAtomOffset = 0;
     if (lane_id == 0) {
-      groupAtomOffset = atomic_fetch_add_explicit(smallReferenceCount,
+      groupAtomOffset = atomic_fetch_add_explicit(allocatedMemory,
                                                   groupAtomCount,
                                                   memory_order_relaxed);
     }
@@ -146,6 +147,6 @@ kernel void buildSmallPart2
   }
   
   // Store the result to memory.
+  smallCounterMetadata[cellAddress / 4] = cellAtomOffsets;
   smallCellMetadata[cellAddress / 4] = cellMetadata;
-  smallCellCounters[cellAddress / 4] = cellAtomOffsets;
 }

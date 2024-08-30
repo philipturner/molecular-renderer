@@ -15,9 +15,7 @@ kernel void buildLargePart2_0
  // Global counters.
  device uint3 *allocatedMemory [[buffer(0)]],
  device int3 *boundingBoxMin [[buffer(1)]],
- device int3 *boundingBoxMax [[buffer(2)]],
- 
- uint tid [[thread_position_in_grid]])
+ device int3 *boundingBoxMax [[buffer(2)]])
 {
   // The first three slots are allocators. We initialize them with the smallest
   // acceptable pointer value.

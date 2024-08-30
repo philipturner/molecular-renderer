@@ -9,10 +9,10 @@ import Metal
 
 struct BVHBuildSmallPipelines {
   var buildSmallPart1_0: MTLComputePipelineState
-  var clearSmallCellMetadata: MTLComputePipelineState
-  var buildSmallPart1: MTLComputePipelineState
-  var buildSmallPart2: MTLComputePipelineState
-  var buildSmallPart3: MTLComputePipelineState
+  var buildSmallPart1_1: MTLComputePipelineState
+  var buildSmallPart1_2: MTLComputePipelineState
+  var buildSmallPart2_0: MTLComputePipelineState
+  var buildSmallPart3_0: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -23,10 +23,10 @@ struct BVHBuildSmallPipelines {
       return try! device.makeComputePipelineState(function: function)
     }
     buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
-    clearSmallCellMetadata = createPipeline(name: "clearSmallCellMetadata")
-    buildSmallPart1 = createPipeline(name: "buildSmallPart1")
-    buildSmallPart2 = createPipeline(name: "buildSmallPart2")
-    buildSmallPart3 = createPipeline(name: "buildSmallPart3")
+    buildSmallPart1_1 = createPipeline(name: "buildSmallPart1_1")
+    buildSmallPart1_2 = createPipeline(name: "buildSmallPart1_2")
+    buildSmallPart2_0 = createPipeline(name: "buildSmallPart2_0")
+    buildSmallPart3_0 = createPipeline(name: "buildSmallPart3_0")
   }
 }
 

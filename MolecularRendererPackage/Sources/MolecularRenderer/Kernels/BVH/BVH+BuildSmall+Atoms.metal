@@ -38,11 +38,16 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   return dist_squared > 0;
 }
 
-kernel void buildSmallPart1
+kernel void buildSmallPart1_2
 (
+ // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *smallCellMetadata [[buffer(1)]],
- device float4 *convertedAtoms [[buffer(2)]],
+ 
+ // Per-atom allocations.
+ device float4 *convertedAtoms [[buffer(1)]],
+ 
+ // Per-cell allocations.
+ device atomic_uint *smallCounterMetadata [[buffer(2)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -67,7 +72,7 @@ kernel void buildSmallPart1
         if (mark) {
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
-          atomic_fetch_add_explicit(smallCellMetadata + address,
+          atomic_fetch_add_explicit(smallCounterMetadata + address,
                                     1, memory_order_relaxed);
         }
       }
@@ -75,12 +80,20 @@ kernel void buildSmallPart1
   }
 }
 
-kernel void buildSmallPart3
+kernel void buildSmallPart3_0
 (
+ // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device atomic_uint *smallCellCounters [[buffer(1)]],
- device uint *smallAtomReferences [[buffer(2)]],
- device float4 *convertedAtoms [[buffer(3)]],
+ 
+ // Per-atom allocations.
+ device float4 *convertedAtoms [[buffer(1)]],
+ 
+ // Per-cell allocations.
+ device atomic_uint *smallCounterMetadata [[buffer(2)]],
+ 
+ // Other allocations.
+ device uint *smallAtomReferences [[buffer(3)]],
+ 
  
  uint tid [[thread_position_in_grid]])
 {
@@ -106,7 +119,7 @@ kernel void buildSmallPart3
           // Increment the voxel's counter.
           uint address = VoxelAddress::generate(grid_dims, cube_min);
           uint offset =
-          atomic_fetch_add_explicit(smallCellCounters + address,
+          atomic_fetch_add_explicit(smallCounterMetadata + address,
                                     1, memory_order_relaxed);
           
           // Write the reference to the list.
