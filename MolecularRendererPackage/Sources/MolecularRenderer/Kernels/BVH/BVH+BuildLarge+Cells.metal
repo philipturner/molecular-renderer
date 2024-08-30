@@ -53,15 +53,11 @@ kernel void buildLargePart2_0
 // - compact bounding box for dense DDA traversal
 kernel void buildLargePart2_1
 (
- // Global counters.
  device atomic_uint *allocatedMemory [[buffer(0)]],
  device atomic_int *boundingBoxMin [[buffer(1)]],
  device atomic_int *boundingBoxMax [[buffer(2)]],
- 
- // Per-cell allocations.
  device vec<uint, 8> *largeCounterMetadata [[buffer(3)]],
  device uint4 *largeCellMetadata [[buffer(4)]],
- 
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],

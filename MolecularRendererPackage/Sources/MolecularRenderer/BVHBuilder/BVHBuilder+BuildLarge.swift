@@ -24,6 +24,7 @@ struct BVHBuildLargePipelines {
   // - Kernel 2: Copy atoms into converted format (for now).
   var buildLargePart2_0: MTLComputePipelineState
   var buildLargePart2_1: MTLComputePipelineState
+  var buildLargePart2_2: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -37,6 +38,7 @@ struct BVHBuildLargePipelines {
     buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
     buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
     buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
+    buildLargePart2_2 = createPipeline(name: "buildLargePart2_2")
   }
 }
 
@@ -192,39 +194,36 @@ extension BVHBuilder {
   
   func buildLargePart3_0(encoder: MTLComputeCommandEncoder) {
     // Argument 0
-    renderer.atomRadii.withUnsafeBufferPointer {
-      let length = $0.count * 4
-      encoder.setBytes($0.baseAddress!, length: length, index: 0)
-    }
+    bindElementRadii(encoder: encoder, index: 0)
     
-    // Arguments 1 - 2
-    do {
-      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-      let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
-      encoder.setBuffer(originalAtomsBuffer, offset: 0, index: 1)
-      encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
-    }
+    // Argument 1
+    bindOriginalAtoms(encoder: encoder, index: 1)
     
-    // Arguments 3 - 4
+    // Arguments 2 - 3
     do {
       let offset1 = 0
-      let offset2 = relativeOffsetsBuffer.length / 2
-      encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 3)
-      encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 4)
+      let offset2 = relativeOffsets.length / 2
+      encoder.setBuffer(relativeOffsets, offset: offset1, index: 2)
+      encoder.setBuffer(relativeOffsets, offset: offset2, index: 3)
     }
     
-    // Arguments 5 - 6
+    // Argument 4
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 4)
+    
+    // Argument 5
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 5)
+    
+    // Argument 6
     encoder.setBuffer(largeAtomReferences, offset: 0, index: 6)
     
     // Dispatch
     do {
-      let pipeline = buildLargePipelines.buildLargePart3_0
+      let pipeline = buildLargePipelines.buildLargePart2_2
       encoder.setComputePipelineState(pipeline)
       
-      let atoms = renderer.argumentContainer.currentAtoms
+      let atomCount = currentAtomCount
       encoder.dispatchThreads(
-        MTLSize(width: atoms.count, height: 1, depth: 1),
+        MTLSize(width: atomCount, height: 1, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     }
   }

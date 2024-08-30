@@ -149,28 +149,21 @@ kernel void buildLargePart1_1
   }
 }
 
-// Copy the atoms into a new buffer.
-kernel void buildLargePart3_0
+kernel void buildLargePart2_2
 (
- // Per-element allocations.
- constant float *atomicRadii [[buffer(0)]],
- 
- // Per-atom allocations.
+ constant float *elementRadii [[buffer(0)]],
  device float4 *originalAtoms [[buffer(1)]],
- device float4 *convertedAtoms [[buffer(2)]],
- device ushort4 *relativeOffsets1 [[buffer(3)]],
- device ushort4 *relativeOffsets2 [[buffer(4)]],
- 
- // Per-cell allocations.
+ device ushort4 *relativeOffsets1 [[buffer(2)]],
+ device ushort4 *relativeOffsets2 [[buffer(3)]],
+ device float4 *convertedAtoms [[buffer(4)]],
  device uint *largeCounterMetadata [[buffer(5)]],
  device uint *largeAtomReferences [[buffer(6)]],
- 
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
   float4 atom = originalAtoms[tid];
-  atom = convert(atom, atomicRadii);
+  atom = convert(atom, elementRadii);
   
   // Write in the new format.
   convertedAtoms[tid] = atom;
