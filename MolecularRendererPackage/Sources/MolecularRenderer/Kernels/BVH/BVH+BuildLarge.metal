@@ -250,32 +250,7 @@ kernel void buildLargePart2_1
   int3 simdBoxMin = simd_min(threadBoxMin);
   int3 simdBoxMax = simd_max(threadBoxMax);
   
-  // Broadcast the partials to the first SIMD.
-  constexpr ushort simdsPerGroup = 1;
-  threadgroup uint3 broadcastedSIMDCounts[simdsPerGroup];
-  threadgroup int3 broadcastedSIMDBoxMin[simdsPerGroup];
-  threadgroup int3 broadcastedSIMDBoxMax[simdsPerGroup];
-  if (lane_id == 0) {
-    broadcastedSIMDCounts[simd_id] = simdCounts;
-    broadcastedSIMDBoxMin[simd_id] = simdBoxMin;
-    broadcastedSIMDBoxMax[simd_id] = simdBoxMax;
-  }
-  threadgroup_barrier(mem_flags::mem_threadgroup);
-  
-  // Reduce the partials in the first SIMD.
-  if (simd_id == 0) {
-    uint3 threadCounts = broadcastedSIMDCounts[lane_id % simdsPerGroup];
-    int3 threadBoxMin = broadcastedSIMDBoxMin[lane_id % simdsPerGroup];
-    int3 threadBoxMax = broadcastedSIMDBoxMax[lane_id % simdsPerGroup];
-    if (lane_id >= simdsPerGroup) {
-      threadCounts = 0;
-      threadBoxMin = 64;
-      threadBoxMax = -64;
-    }
-    uint3 simdCounts = simd_sum(threadCounts);
-    int3 simdBoxMin = simd_min(threadBoxMin);
-    int3 simdBoxMax = simd_max(threadBoxMax);
-    
+  if (lane_id < 3) {
     // Distribute the data across three threads.
     uint countValue = 0;
     int boxMinValue = 64;
@@ -290,7 +265,7 @@ kernel void buildLargePart2_1
     }
     
     // Allocate memory, using the global counters.
-    if (lane_id < 3) {
+    {
       if (simdCounts[0] > 0) {
         atomic_fetch_add_explicit(allocatedMemory + lane_id,
                                   countValue,
