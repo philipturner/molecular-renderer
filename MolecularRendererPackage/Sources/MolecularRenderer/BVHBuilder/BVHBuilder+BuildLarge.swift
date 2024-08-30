@@ -122,11 +122,11 @@ extension BVHBuilder {
       let inputMetadata = largeInputMetadata.contents()
         .assumingMemoryBound(to: SIMD8<UInt32>.self)
       let debugMetadata = largeDebugMetadata.contents()
-        .assumingMemoryBound(to: SIMD8<UInt16>.self)
+        .assumingMemoryBound(to: SIMD8<UInt32>.self)
       
       var activeCellCount: Int = .zero
       for cellID in 0..<(64 * 64 * 64) {
-        let counterCounts = inputMetadata[cellID]
+        let counterCounts = debugMetadata[cellID]
         guard any(counterCounts .> 0) else {
           continue
         }
@@ -139,19 +139,19 @@ extension BVHBuilder {
       
       var activeCellCursor: Int = .zero
       for cellID in 0..<(64 * 64 * 64) {
-        let counterCounts = inputMetadata[cellID]
+        let counterCounts = debugMetadata[cellID]
         guard any(counterCounts .> 0) else {
           continue
         }
         
         let compactedCellID = activeCellCursor
-        guard compactedCellID < 100 else {
+        guard compactedCellID < 700 else {
           continue
         }
         activeCellCursor += 1
         
-        func shorten(_ vector: SIMD8<UInt16>) -> [UInt16] {
-          var output: [UInt16] = []
+        func shorten(_ vector: SIMD8<UInt32>) -> [UInt32] {
+          var output: [UInt32] = []
           for laneID in 0..<8 {
             let element = vector[laneID]
             output.append(element)
@@ -160,9 +160,8 @@ extension BVHBuilder {
         }
         
         let offsets = debugMetadata[cellID]
-        let counts32 = inputMetadata[cellID]
-        var counts = SIMD8<UInt16>(truncatingIfNeeded: counts32)
-        counts = counts & UInt16(1 << 14 - 1)
+        var counts = inputMetadata[cellID]
+        counts = counts & UInt32(1 << 14 - 1)
         let total = counts.wrappedSum()
         
         let offsetsRepr = shorten(offsets)

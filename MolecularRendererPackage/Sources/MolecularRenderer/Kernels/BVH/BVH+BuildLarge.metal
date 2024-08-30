@@ -206,7 +206,7 @@ kernel void buildLargePart2_1
  
  // Per-cell allocations.
  device vec<uint, 8> *largeInputMetadata [[buffer(3)]],
- device vec<ushort, 8> *largeDebugMetadata [[buffer(4)]],
+ device vec<uint, 8> *largeDebugMetadata [[buffer(4)]],
  device uint4 *largeOutputMetadata [[buffer(5)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
@@ -294,17 +294,23 @@ kernel void buildLargePart2_1
   }
   
   // Add the SIMD offset to the thread offset.
-  threadOffsets[0] += simd_broadcast(simdOffsetValue, 0);
-  threadOffsets[1] += simd_broadcast(simdOffsetValue, 1);
-  threadOffsets[2] += simd_broadcast(simdOffsetValue, 2);
+  uint threadVoxelOffset = threadOffsets[0];
+  uint threadLargeOffset = threadOffsets[1];
+  uint threadSmallOffset = threadOffsets[2];
+  threadVoxelOffset += simd_broadcast(simdOffsetValue, 0);
+  threadLargeOffset += simd_broadcast(simdOffsetValue, 1);
+  threadSmallOffset += simd_broadcast(simdOffsetValue, 2);
   
   // Store the thread metadata.
   // ...
   
   // Add the thread offset to the per-counter offset.
   // - expand the 16-bit offset cached in registers
-  // - debug the local compaction of offsets before anything else.
-  largeDebugMetadata[cellAddress] = counterOffsets;
+  {
+    vec<uint, 8> counterOffsets32 = vec<uint, 8>(counterOffsets);
+    counterOffsets32 += threadLargeOffset;
+    largeDebugMetadata[cellAddress] = counterOffsets32;
+  }
   
   // Store the per-counter metadata.
   // ...
