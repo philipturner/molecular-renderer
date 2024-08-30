@@ -205,12 +205,13 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Locate the cell metadata.
-  ushort3 cellCoordinates = tgid * 8 + thread_id;
+  // Locate the eight counters spanned by this thread.
+  ushort3 cellCoordinates = thread_id;
+  cellCoordinates += tgid * ushort3(8, 8, 8);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
-  // Reduce across the thread.
+  // Reduce the counts across the thread.
   uint threadLargeCount;
   uint threadSmallCount;
   {
@@ -225,7 +226,7 @@ kernel void buildLargePart2_1
     threadSmallCount = threadTotalCount >> 14;
   }
   
-  // Reduce across the SIMD.
+  // Reduce the counts across the SIMD.
   uint3 simdCounts;
   {
     uint simdVoxelCount = simd_sum(threadLargeCount > 0 ? 1 : 0);
@@ -237,8 +238,6 @@ kernel void buildLargePart2_1
   }
   
   // Find the bounding box.
-  // - There's probably a more efficient way to do this, if the ALU cost ever
-  //   becomes a bottleneck.
   int3 threadBoxMin;
   int3 threadBoxMax;
   if (threadLargeCount > 0) {
@@ -251,59 +250,68 @@ kernel void buildLargePart2_1
   int3 simdBoxMin = simd_min(threadBoxMin);
   int3 simdBoxMax = simd_max(threadBoxMax);
   
-  // Set up the atomics in threadgroup memory.
-  threadgroup int threadgroupCounters[9];
-  if (lane_id < 3) {
-    threadgroupCounters[lane_id] = 0;
-    threadgroupCounters[3 + lane_id] = 64;
-    threadgroupCounters[6 + lane_id] = -64;
+  // Broadcast the partials to the first SIMD.
+  threadgroup uint3 broadcastedSIMDCounts[16];
+  threadgroup int3 broadcastedSIMDBoxMin[16];
+  threadgroup int3 broadcastedSIMDBoxMax[16];
+  if (lane_id == 0) {
+    broadcastedSIMDCounts[simd_id] = simdCounts;
+    broadcastedSIMDBoxMin[simd_id] = simdBoxMin;
+    broadcastedSIMDBoxMax[simd_id] = simdBoxMax;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // Reduce across the threadgroup.
-  if (lane_id < 3) {
-    // Distribute the vector elements across three threads.
-    int countValue = 0;
-    int boxMinValue = 64;
-    int boxMaxValue = -64;
-#pragma clang loop unroll(full)
-    for (ushort axisID = 0; axisID < 3; ++axisID) {
-      if (lane_id == axisID) {
-        countValue = simdCounts[axisID];
-        boxMinValue = simdBoxMin[axisID];
-        boxMaxValue = simdBoxMax[axisID];
-      }
+  // Reduce the partials in the first SIMD.
+  threadgroup uint3 threadgroupCounts[1];
+  threadgroup int3 threadgroupBoxMin[1];
+  threadgroup int3 threadgroupBoxMax[1];
+  if (simd_id == 0) {
+    uint3 threadCounts = broadcastedSIMDCounts[lane_id % 16];
+    int3 threadBoxMin = broadcastedSIMDBoxMin[lane_id % 16];
+    int3 threadBoxMax = broadcastedSIMDBoxMax[lane_id % 16];
+    if (lane_id < 16) {
+      threadCounts = 0;
+      threadBoxMin = 64;
+      threadBoxMax = -64;
     }
     
-    auto counts = (threadgroup atomic_int*)(threadgroupCounters + 0);
-    auto boxMin = (threadgroup atomic_int*)(threadgroupCounters + 3);
-    auto boxMax = (threadgroup atomic_int*)(threadgroupCounters + 6);
-    atomic_fetch_add_explicit(counts + lane_id,
-                              countValue,
-                              memory_order_relaxed);
-    atomic_fetch_min_explicit(boxMin + lane_id,
-                              boxMinValue,
-                              memory_order_relaxed);
-    atomic_fetch_max_explicit(boxMax + lane_id,
-                              boxMaxValue,
-                              memory_order_relaxed);
+    uint3 simdCounts = simd_sum(threadCounts);
+    int3 simdBoxMin = simd_min(threadBoxMin);
+    int3 simdBoxMax = simd_max(threadBoxMax);
+    if (lane_id == 0) {
+      threadgroupCounts[0] = simdCounts;
+      threadgroupBoxMin[0] = simdBoxMin;
+      threadgroupBoxMax[0] = simdBoxMax;
+    }
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Reduce across the entire GPU.
-  if (simd_id == 0 && lane_id < 3) {
-    int countValue = threadgroupCounters[lane_id];
-    int boxMinValue = threadgroupCounters[3 + lane_id];
-    int boxMaxValue = threadgroupCounters[6 + lane_id];
+  if (lane_id == 0) {
+    ushort slotID = simd_id % 3;
     
-    atomic_fetch_add_explicit(allocatedMemory + lane_id,
-                              countValue,
-                              memory_order_relaxed);
-    atomic_fetch_min_explicit(boundingBoxMin + lane_id,
-                              boxMinValue,
-                              memory_order_relaxed);
-    atomic_fetch_max_explicit(boundingBoxMax + lane_id,
-                              boxMaxValue,
-                              memory_order_relaxed);
+    if (simd_id < 3) {
+      uint countValue = ((threadgroup uint*)threadgroupCounts)[slotID];
+      atomic_fetch_add_explicit(allocatedMemory + slotID,
+                                countValue,
+                                memory_order_relaxed);
+    } else if (simd_id < 6) {
+      int boxMinValue = ((threadgroup int*)threadgroupBoxMin)[slotID];
+      atomic_fetch_min_explicit(boundingBoxMin + slotID,
+                                boxMinValue,
+                                memory_order_relaxed);
+    } else if (simd_id < 9) {
+      int boxMaxValue = ((threadgroup int*)threadgroupBoxMax)[slotID];
+      atomic_fetch_max_explicit(boundingBoxMax + slotID,
+                                boxMaxValue,
+                                memory_order_relaxed);
+    }
   }
+  
+  // Original:
+  // 81 microseconds
+  // 83 microseconds
+  // 87 microseconds
+  
+  // Using SIMD reductions instead of threadgroup atomics:
 }
