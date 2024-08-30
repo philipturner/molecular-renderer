@@ -8,6 +8,12 @@
 import Metal
 
 struct BVHBuildSmallPipelines {
+  // Part 0
+  // - Kernel 0: Encode the indirect dispatch arguments.
+  //
+  // Part 1
+  // - Kernel 0: 
+  
   var buildSmallPart1_0: MTLComputePipelineState
   var buildSmallPart1_2: MTLComputePipelineState
   var buildSmallPart2_0: MTLComputePipelineState

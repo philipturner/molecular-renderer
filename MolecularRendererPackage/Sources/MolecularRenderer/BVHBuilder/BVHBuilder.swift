@@ -20,6 +20,7 @@ class BVHBuilder {
   // Data buffers (indirect dispatch).
   var globalAtomicCounters: MTLBuffer
   var bvhArgumentsBuffer: MTLBuffer
+  var smallCellDispatchArguments1x1x128: MTLBuffer
   var smallCellDispatchArguments8x8x8: MTLBuffer
   
   // Data buffers (per atom).
@@ -57,6 +58,7 @@ class BVHBuilder {
     // Allocate data buffers (indirect dispatch).
     globalAtomicCounters = device.makeBuffer(length: 1024 * 4)!
     bvhArgumentsBuffer = device.makeBuffer(length: 1024 * 4)!
+    smallCellDispatchArguments1x1x128 = device.makeBuffer(length: 1024 * 4)!
     smallCellDispatchArguments8x8x8 = device.makeBuffer(length: 1024 * 4)!
     
     // Allocate data buffers (per atom).

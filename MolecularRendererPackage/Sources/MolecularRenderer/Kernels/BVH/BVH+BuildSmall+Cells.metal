@@ -11,7 +11,7 @@
 using namespace metal;
 
 // Encode the GPU-driven work in this pass.
-kernel void buildSmallPart1_0
+kernel void buildSmallPart0_0
 (
  // Global counters.
  device uint3 *allocatedMemory [[buffer(0)]],

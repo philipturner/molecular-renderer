@@ -9,6 +9,18 @@ import Metal
 import QuartzCore
 
 struct BVHBuildLargePipelines {
+  // Part 0
+  // - Kernel 0: Copy both static and updated atoms on CPU (for now).
+  
+  // Part 1
+  // - Kernel 0: Reset the large counter metadata.
+  // - Kernel 1: Accumulate the reference count for each voxel.
+  
+  // Part 2
+  // - Kernel 0: Reset the allocation and box counters.
+  // - Kernel 1: Compact the reference offset for each voxel.
+  // - Kernel 2: Copy atoms into converted format (for now).
+  
   var buildLargePart1_1: MTLComputePipelineState
   var buildLargePart2_0: MTLComputePipelineState
   var buildLargePart2_1: MTLComputePipelineState
