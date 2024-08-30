@@ -69,69 +69,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-    
-    #if false
-    // C(100)
-    // 2.00 nm - 783476
-    // 0.25 nm - 5118550
-    //
-    // SiC(100)
-    // 2.00 nm - 805380
-    // 0.25 nm - 6127888
-    //
-    // Si(100)
-    // 2.00 nm - 844074
-    // 0.25 nm - 7080208
-    //
-    // Au(100)
-    // 2.00 nm - 499950
-    // 0.25 nm - 6406456
-    //
-    // C(100) Bounding Box
-    // minimum - [0, -8, -16]
-    // maximum - [16, 8, 2]
-    //
-    // BVH Arguments:
-    // SIMD3<Float>(0.0, -8.0, -16.0)
-    // SIMD3<Float>(16.0, 8.0, 2.0)
-    // SIMD3<UInt16>(8, 8, 9)
-    // SIMD3<UInt16>(64, 64, 72)
-    //
-    // Indirect Dispatch Arguments:
-    // SIMD3<UInt32>(8, 8, 9)
-    commandBuffer.waitUntilCompleted()
-    
-    do {
-      let counters = globalAtomicCounters.contents()
-        .assumingMemoryBound(to: SIMD4<Int32>.self)
-      
-      print()
-      print("Counters:")
-      print(counters[0])
-      print(counters[1])
-      print(counters[2])
-    }
-    
-    do {
-      let metadata = largeCellMetadata.contents()
-        .assumingMemoryBound(to: SIMD4<UInt32>.self)
-      
-      var largeReferenceCount: Int = .zero
-      var smallReferenceCount: Int = .zero
-      for cellID in 0..<(largeCellMetadata.length / 16) {
-        let cellMetadata = metadata[cellID]
-        largeReferenceCount += Int(cellMetadata[3]) & Int(1 << 14 - 1)
-        smallReferenceCount += Int(cellMetadata[3]) >> 14;
-      }
-      
-      print()
-      print("Reduced metadata:")
-      print(largeReferenceCount)
-      print(smallReferenceCount)
-    }
-    
-    exit(0)
-    #endif
   }
 }
 
