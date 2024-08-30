@@ -32,8 +32,6 @@ struct BVHPreparePipelines {
 
 extension BVHBuilder {
   func prepareBVH(frameID: Int) {
-    let copyingTime = copyAtoms()
-    
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     clearBoxCounters(encoder: encoder)
@@ -54,7 +52,6 @@ extension BVHBuilder {
         
         let executionTime =
         commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
-        frameReporter.reports[index].copyTime = copyingTime
         frameReporter.reports[index].prepareTime = executionTime
       }
     }

@@ -28,8 +28,9 @@ struct BVHBuildLargePipelines {
 
 extension BVHBuilder {
   func buildLargeBVH(frameID: Int) {
-    let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
+    let copyingTime = copyAtoms()
     
+    let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildLargePart1_0(encoder: encoder)
     buildLargePart1_1(encoder: encoder)
@@ -47,30 +48,13 @@ extension BVHBuilder {
         
         let executionTime =
         commandBuffer.gpuEndTime - commandBuffer.gpuStartTime
+        frameReporter.reports[index].copyTime = copyingTime
         frameReporter.reports[index].buildLargeTime = executionTime
       }
     }
     commandBuffer.commit()
     
-    #if false
-    commandBuffer.waitUntilCompleted()
-    
-    let metadata = largeInputMetadata.contents()
-      .assumingMemoryBound(to: UInt32.self)
-    
-    var largeReferenceCount: Int = .zero
-    var smallReferenceCount: Int = .zero
-    for cellID in 0..<(largeInputMetadata.length / 4) {
-      let word = metadata[cellID]
-      largeReferenceCount += Int(word) & Int(1 << 14 - 1)
-      smallReferenceCount += Int(word) >> 14;
-    }
-    
-    print()
-    print(largeReferenceCount)
-    print(smallReferenceCount)
-    print()
-    
+    #if true
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
@@ -90,15 +74,64 @@ extension BVHBuilder {
     // C(100) Bounding Box
     // minimum - [0, -8, -16]
     // maximum - [16, 8, 2]
+    //
+    // BVH Arguments:
+    // SIMD3<Float>(0.0, -8.0, -16.0)
+    // SIMD3<Float>(16.0, 8.0, 2.0)
+    // SIMD3<UInt16>(8, 8, 9)
+    // SIMD3<UInt16>(64, 64, 72)
+    //
+    // Indirect Dispatch Arguments:
+    // SIMD3<UInt32>(8, 8, 9)
+    commandBuffer.waitUntilCompleted()
+    
+    let metadata = largeInputMetadata.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    
+    var largeReferenceCount: Int = .zero
+    var smallReferenceCount: Int = .zero
+    for cellID in 0..<(largeInputMetadata.length / 4) {
+      let word = metadata[cellID]
+      largeReferenceCount += Int(word) & Int(1 << 14 - 1)
+      smallReferenceCount += Int(word) >> 14;
+    }
+    
+    print()
+    print("Reduced metadata:")
+    print(largeReferenceCount)
+    print(smallReferenceCount)
     
     let counters = globalAtomicCounters.contents()
       .assumingMemoryBound(to: SIMD4<Int32>.self)
     
     print()
+    print("Counters:")
     print(counters[0])
     print(counters[1])
     print(counters[2])
+    
+    struct BVHArguments {
+      var worldMinimum: SIMD3<Float>
+      var worldMaximum: SIMD3<Float>
+      var largeVoxelCount: SIMD3<UInt16>
+      var smallVoxelCount: SIMD3<UInt16>
+      
+    }
+    let bvhArguments = bvhArgumentsBuffer.contents()
+      .assumingMemoryBound(to: BVHArguments.self)
     print()
+    print("BVH Arguments:")
+    print(bvhArguments.pointee.worldMinimum)
+    print(bvhArguments.pointee.worldMaximum)
+    print(bvhArguments.pointee.largeVoxelCount)
+    print(bvhArguments.pointee.smallVoxelCount)
+    
+    
+    let dispatchArguments = smallCellDispatchArguments8x8x8.contents()
+      .assumingMemoryBound(to: SIMD3<UInt32>.self)
+    print()
+    print("Indirect Dispatch Arguments:")
+    print(dispatchArguments.pointee)
     
     exit(0)
     #endif
@@ -190,4 +223,6 @@ extension BVHBuilder {
       MTLSize(width: 16, height: 16, depth: 16),
       threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
+  
+  
 }

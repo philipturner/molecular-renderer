@@ -149,9 +149,9 @@ kernel void buildLargePart1_1
 kernel void buildLargePart2_0
 (
  // Global allocations.
- device uint4 *allocatedMemory [[buffer(0)]],
- device int4 *boundingBoxMin [[buffer(1)]],
- device int4 *boundingBoxMax [[buffer(2)]],
+ device uint3 *allocatedMemory [[buffer(0)]],
+ device int3 *boundingBoxMin [[buffer(1)]],
+ device int3 *boundingBoxMax [[buffer(2)]],
  
  uint tid [[thread_position_in_grid]])
 {
@@ -160,13 +160,13 @@ kernel void buildLargePart2_0
   // - Large voxel count.
   // - Large reference count.
   // - Small reference count.
-  allocatedMemory[0] = uint4(1);
+  allocatedMemory[0] = uint3(1);
   
   // Next, is the bounding box counter.
   // - Minimum: initial value is +64 nm.
   // - Maximum: initial value is -64 nm.
-  boundingBoxMin[0] = int4(64);
-  boundingBoxMax[0] = int4(-64);
+  boundingBoxMin[0] = int3(64);
+  boundingBoxMax[0] = int3(-64);
 }
 
 // Inputs:
@@ -276,4 +276,37 @@ kernel void buildLargePart2_1
                               boxMaxValue,
                               memory_order_relaxed);
   }
+}
+
+// A single GPU thread encodes some GPU-driven work.
+kernel void buildLargePart2_2
+(
+ // Global allocations.
+ device uint3 *allocatedMemory [[buffer(0)]],
+ device int3 *boundingBoxMin [[buffer(1)]],
+ device int3 *boundingBoxMax [[buffer(2)]],
+ device BVHArguments *bvhArgs [[buffer(3)]],
+ device uint3 *smallCellDispatchArguments8x8x8 [[buffer(4)]])
+{
+  // Read the bounding box.
+  int3 minimum = *boundingBoxMin;
+  int3 maximum = *boundingBoxMax;
+  
+  // Clamp the bounding box to the world volume.
+  minimum = max(minimum, -64);
+  maximum = min(maximum, 64);
+  maximum = max(minimum, maximum);
+  
+  // Compute the grid dimensions.
+  ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
+  ushort3 smallVoxelCount = ushort3(4 * (maximum - minimum));
+  
+  // Set the BVH arguments.
+  bvhArgs->worldMinimum = float3(minimum);
+  bvhArgs->worldMaximum = float3(maximum);
+  bvhArgs->largeVoxelCount = largeVoxelCount;
+  bvhArgs->smallVoxelCount = smallVoxelCount;
+  
+  // Set the small-cell dispatch arguments.
+  *smallCellDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }

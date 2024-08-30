@@ -113,8 +113,8 @@ public class MRRenderer {
     argumentContainer.updateAtoms(provider: atomProvider)
     
     // Encode the work.
-    bvhBuilder.prepareBVH(frameID: frameID)
     bvhBuilder.buildLargeBVH(frameID: frameID)
+    // bvhBuilder.prepareBVH(frameID: frameID)
     // bvhBuilder.buildSmallBVH(frameID: frameID)
     // dispatchRenderingWork(frameID: frameID)
     
