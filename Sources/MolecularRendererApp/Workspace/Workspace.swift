@@ -56,12 +56,12 @@ import Numerics
 //   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.
-// - Change the iteration over small cells, so the size of the small cell
-//   footprint is clamped to a large cell.
-// - Use the large atom references from the previous pass, to dispatch the
-//   atoms (indirect dispatch).
 // - Write to a list of compacted small-cell offsets.
+// - Convert the compacted memory format to the full, dense 3D grid in a
+//   second GPU kernel.
 // - Expand the small-cell counters with ~4x duplication.
+// - Replace the first kernel with something launched per-large-cell, which
+//   clamps the atoms' references to the large-cell bounds.
 // - Fuse into a single kernel, using threadgroup atomics instead of device
 //   atomics.
 //
