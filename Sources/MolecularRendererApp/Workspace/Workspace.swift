@@ -52,6 +52,7 @@ import Numerics
 //   - Store the per-cell offsets. [DONE]
 //   - Check the correctness of the per-cell offsets before writing atom
 //     references (if possible). [DONE]
+//   - Abstract away the code for iterating over large cell footprint.
 //   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.

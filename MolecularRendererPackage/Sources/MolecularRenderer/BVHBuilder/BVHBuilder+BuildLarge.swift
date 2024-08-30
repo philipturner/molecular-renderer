@@ -58,7 +58,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if true
+    #if false
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
@@ -244,6 +244,10 @@ extension BVHBuilder {
       encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 3)
       encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 4)
     }
+    
+    // Arguments 5 - 6
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 5)
+    encoder.setBuffer(largeAtomReferences, offset: 0, index: 6)
     
     // Dispatch
     do {

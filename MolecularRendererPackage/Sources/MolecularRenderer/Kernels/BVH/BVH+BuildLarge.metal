@@ -335,6 +335,10 @@ kernel void buildLargePart3_0
  device ushort4 *relativeOffsets1 [[buffer(3)]],
  device ushort4 *relativeOffsets2 [[buffer(4)]],
  
+ // Per-cell allocations.
+ device uint *largeCounterMetadata [[buffer(5)]],
+ device uint *largeAtomReferences [[buffer(6)]],
+ 
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
@@ -344,4 +348,7 @@ kernel void buildLargePart3_0
   
   // Write in the new format.
   convertedAtoms[tid] = atom;
+  
+  // TODO: Set up all the necessary buffer bindings before refactoring any
+  // more GPU code.
 }

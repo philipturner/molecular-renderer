@@ -19,7 +19,7 @@ kernel void renderAtoms
  constant BVHArguments *bvhArgs [[buffer(2)]],
  
  device uint *smallCellMetadata [[buffer(5)]],
- device uint *smallCellAtomReferences [[buffer(6)]],
+ device uint *smallAtomReferences [[buffer(6)]],
  
  device float4 *convertedAtoms [[buffer(10)]],
  device float4 *oldAtoms [[buffer(11)]],
@@ -42,7 +42,7 @@ kernel void renderAtoms
   DenseGrid grid {
     bvhArgs,
     smallCellMetadata,
-    smallCellAtomReferences,
+    smallAtomReferences,
     convertedAtoms
   };
   

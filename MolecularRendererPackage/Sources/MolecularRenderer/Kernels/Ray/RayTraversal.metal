@@ -118,7 +118,7 @@ public:
         uint offset = voxel_data & voxel_offset_mask;
         uint upper_bound = offset + count;
         for (; offset < upper_bound; ++offset) {
-          uint reference = grid.smallCellAtomReferences[offset];
+          uint reference = grid.smallAtomReferences[offset];
           float4 newAtom = grid.convertedAtoms[reference];
           RayIntersector::intersect(&result, ray, newAtom, reference);
         }

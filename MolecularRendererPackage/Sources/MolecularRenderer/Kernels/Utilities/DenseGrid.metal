@@ -16,7 +16,7 @@ class DenseGrid {
 public:
   constant BVHArguments *bvhArgs;
   device uint *smallCellMetadata;
-  device uint *smallCellAtomReferences;
+  device uint *smallAtomReferences;
   device float4 *convertedAtoms;
 };
 

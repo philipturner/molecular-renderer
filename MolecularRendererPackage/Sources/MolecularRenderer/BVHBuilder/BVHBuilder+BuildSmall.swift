@@ -136,7 +136,7 @@ extension BVHBuilder {
     // Arguments 0 - 3
     encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 0)
     encoder.setBuffer(smallCellCounters, offset: 0, index: 1)
-    encoder.setBuffer(smallCellAtomReferences, offset: 0, index: 2)
+    encoder.setBuffer(smallAtomReferences, offset: 0, index: 2)
     encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 3)
     
     // Dispatch

@@ -34,7 +34,8 @@ class BVHBuilder {
   var smallCellCounters: MTLBuffer
   
   // Data buffers (other).
-  var smallCellAtomReferences: MTLBuffer
+  var largeAtomReferences: MTLBuffer
+  var smallAtomReferences: MTLBuffer
   
   public init(
     renderer: MRRenderer,
@@ -64,7 +65,7 @@ class BVHBuilder {
       createBuffer(bytesPerAtom: 16),
       createBuffer(bytesPerAtom: 16),
     ]
-    convertedAtomsBuffer = createBuffer(bytesPerAtom: 32)
+    convertedAtomsBuffer = createBuffer(bytesPerAtom: 2 * 16)
     relativeOffsetsBuffer = createBuffer(bytesPerAtom: 16)
     
     // Allocate data buffers (per cell).
@@ -74,7 +75,8 @@ class BVHBuilder {
     smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     
     // Allocate data buffers (other).
-    smallCellAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
+    largeAtomReferences = createBuffer(bytesPerAtom: 2 * 4)
+    smallAtomReferences = device.makeBuffer(length: 64 * 1024 * 1024 * 4)!
   }
 }
 

@@ -223,7 +223,7 @@ kernel void buildSmallPart3
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *smallCellCounters [[buffer(1)]],
- device uint *smallCellAtomReferences [[buffer(2)]],
+ device uint *smallAtomReferences [[buffer(2)]],
  device float4 *convertedAtoms [[buffer(3)]],
  
  uint tid [[thread_position_in_grid]])
@@ -255,7 +255,7 @@ kernel void buildSmallPart3
           
           // Write the reference to the list.
           if (offset < dense_grid_reference_capacity) {
-            smallCellAtomReferences[offset] = uint(tid);
+            smallAtomReferences[offset] = uint(tid);
           }
         }
       }
