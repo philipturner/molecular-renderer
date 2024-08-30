@@ -31,7 +31,11 @@ kernel void buildLargePart1_1
   {
     uint atomicNumber = uint(atom.w);
     float atomicRadius = atomicRadii[atomicNumber];
-    atom.w = atomicRadius;
+    
+    uint packed = as_type<uint>(atomicRadius);
+    packed = packed & 0xFFFFFF00;
+    packed |= atomicNumber & 0x000000FF;
+    atom.w = as_type<float>(packed);
   }
   
   // Place the atom in the grid of large cells.
@@ -311,4 +315,35 @@ kernel void buildLargePart2_2
   
   // Set the small-cell dispatch arguments.
   *smallCellDispatchArguments8x8x8 = uint3(largeVoxelCount);
+}
+
+kernel void buildLargePart3_0
+(
+ // Per-element allocations.
+ device float *atomicRadii [[buffer(0)]],
+ 
+ // Per-atom allocations.
+ device float4 *originalAtoms [[buffer(1)]],
+ device float4 *convertedAtoms [[buffer(2)]],
+ device ushort4 *relativeOffsets1 [[buffer(3)]],
+ device ushort4 *relativeOffsets2 [[buffer(4)]],
+ 
+ 
+ uint tid [[thread_position_in_grid]],
+ ushort thread_id [[thread_index_in_threadgroup]])
+{
+  // Materialize the atom.
+  float4 atom = originalAtoms[tid];
+  {
+    uint atomicNumber = uint(atom.w);
+    float atomicRadius = atomicRadii[atomicNumber];
+    
+    uint packed = as_type<uint>(atomicRadius);
+    packed = packed & 0xFFFFFF00;
+    packed |= atomicNumber & 0x000000FF;
+    atom.w = as_type<float>(packed);
+  }
+  
+  // Write in the new format.
+  convertedAtoms[tid] = atom;
 }

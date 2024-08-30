@@ -6,12 +6,14 @@
 //
 
 import Metal
+import QuartzCore
 
 struct BVHBuildLargePipelines {
   var buildLargePart1_1: MTLComputePipelineState
   var buildLargePart2_0: MTLComputePipelineState
   var buildLargePart2_1: MTLComputePipelineState
   var buildLargePart2_2: MTLComputePipelineState
+  var buildLargePart3_0: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -25,6 +27,7 @@ struct BVHBuildLargePipelines {
     buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
     buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
     buildLargePart2_2 = createPipeline(name: "buildLargePart2_2")
+    buildLargePart3_0 = createPipeline(name: "buildLargePart3_0")
   }
 }
 
@@ -40,6 +43,8 @@ extension BVHBuilder {
     buildLargePart2_0(encoder: encoder)
     buildLargePart2_1(encoder: encoder)
     buildLargePart2_2(encoder: encoder)
+    
+    buildLargePart3_0(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -143,6 +148,19 @@ extension BVHBuilder {
 }
 
 extension BVHBuilder {
+  // Run and time the copying into the GPU buffer.
+  func copyAtoms() -> Double {
+    let atoms = renderer.argumentContainer.currentAtoms
+    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+    let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
+    
+    let copyingStart = CACurrentMediaTime()
+    memcpy(originalAtomsBuffer.contents(), atoms, atoms.count * 16)
+    let copyingEnd = CACurrentMediaTime()
+    
+    return copyingEnd - copyingStart
+  }
+  
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
@@ -244,6 +262,41 @@ extension BVHBuilder {
     encoder.dispatchThreads(
       MTLSize(width: 1, height: 1, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
+  }
+  
+  func buildLargePart3_0(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    renderer.atomRadii.withUnsafeBufferPointer {
+      let length = $0.count * 4
+      encoder.setBytes($0.baseAddress!, length: length, index: 0)
+    }
+    
+    // Arguments 1 - 2
+    do {
+      let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+      let originalAtomsBuffer = originalAtomsBuffers[tripleIndex]
+      encoder.setBuffer(originalAtomsBuffer, offset: 0, index: 1)
+      encoder.setBuffer(convertedAtomsBuffer, offset: 0, index: 2)
+    }
+    
+    // Arguments 3 - 4
+    do {
+      let offset1 = 0
+      let offset2 = relativeOffsetsBuffer.length / 2
+      encoder.setBuffer(relativeOffsetsBuffer, offset: offset1, index: 3)
+      encoder.setBuffer(relativeOffsetsBuffer, offset: offset2, index: 4)
+    }
+    
+    // Dispatch
+    do {
+      let pipeline = buildLargePipelines.buildLargePart3_0
+      encoder.setComputePipelineState(pipeline)
+      
+      let atoms = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: atoms.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
   }
 }
 

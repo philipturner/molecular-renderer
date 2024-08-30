@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if false
+#if true
 
 // Making the code easier to modify.
 // - Clean up the BVH builder.
@@ -39,17 +39,20 @@ import Numerics
 //     - Detect and fix bank conflicts. [DONE]
 //     - Determine whether 16-bit values in TG memory are faster. [DONE]
 //     - Halve the device memory bandwidth. [DONE]
-// - Run a parallel reduction across the large voxel grid.
-//   - Ensure the reference counts are summed correctly (+1).
-//   - Fuse the bounding box computation.
+// - Run a parallel reduction across the large voxel grid. [DONE]
+//   - Ensure the reference counts are summed correctly (+1). [DONE]
+//   - Fuse the bounding box computation. [DONE]
 //   - Optimizations:
-//     - Reduce register pressure.
-//     - Skip computations or atomics for unoccupied voxels.
-//   - Generate indirect dispatch arguments in the "build large" pass.
-//   - Delete the bounding box kernels from the "prepare" pass.
+//     - Reduce register pressure. [DONE]
+//     - Skip computations or atomics for unoccupied voxels. [DONE]
+//   - Generate indirect dispatch arguments in the "build large" pass. [DONE]
+//   - Delete the bounding box kernels from the "prepare" pass. [DONE]
 // - Store references to original atoms in the large voxels' lists.
-//   - Delete the final kernel of the "prepare" pass, "convertAtoms". Instead,
-//     write the copied atoms here. It's no different (order stays the same).
+//   - Delete the final kernel of the "prepare" pass. [DONE]
+//   - Store the per-cell offsets.
+//   - Check the correctness of the per-cell offsets before writing atom
+//     references (if possible).
+//   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.
 // - Construct the not-cache-friendly dense grid with threadgroup atomics.
@@ -162,7 +165,7 @@ func createGeometry() -> [Atom] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 40 * (h + k + l) }
-    Material { .elemental(.gold) }
+    Material { .elemental(.carbon) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

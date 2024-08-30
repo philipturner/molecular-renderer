@@ -56,7 +56,6 @@
 		98B3E4F82A3F700400B02349 /* libc++.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 98B3E4F62A3F700400B02349 /* libc++.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		98EA89F12B408EBF00DC5C7E /* CBNTripod.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 98EA89F02B408EBF00DC5C7E /* CBNTripod.jpg */; };
 		98F12C8E2C72BE110045FAFB /* Renderer+AtomStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */; };
-		98F12C902C72CEE20045FAFB /* BVH+Prepare.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98F12C8F2C72CEE20045FAFB /* BVH+Prepare.metal */; };
 		98F638AC2A34A31300F51E95 /* Constants.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B257D2A1AC482007F18C1 /* Constants.metal */; };
 		98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */ = {isa = PBXBuildFile; fileRef = 988B25812A1AD3D3007F18C1 /* Lighting.metal */; };
 		98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */ = {isa = PBXBuildFile; fileRef = 981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */; };
@@ -270,7 +269,6 @@
 		98D0F18C2AB5118400BE267D /* Spring_Projectile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Projectile.swift; sourceTree = "<group>"; };
 		98D0F18E2AB5118D00BE267D /* Spring_Spring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Spring.swift; sourceTree = "<group>"; };
 		98D0F1902AB511AA00BE267D /* Spring_Springboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spring_Springboard.swift; sourceTree = "<group>"; };
-		98D26BAA2C754D01007B48FD /* BVHBuilder+Prepare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+Prepare.swift"; sourceTree = "<group>"; };
 		98D975902AC088260052EE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		98D975A02AC08BF10052EE6C /* VdwOscillator_Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image1.jpg; sourceTree = "<group>"; };
 		98D975A12AC08BF10052EE6C /* VdwOscillator_Image2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = VdwOscillator_Image2.jpg; sourceTree = "<group>"; };
@@ -316,7 +314,6 @@
 		98F012692B2671430037318D /* Bootstrapping_Animation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Animation.swift; sourceTree = "<group>"; };
 		98F0126B2B26A1C40037318D /* Bootstrapping_Probe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bootstrapping_Probe.swift; sourceTree = "<group>"; };
 		98F12C8D2C72BE110045FAFB /* Renderer+AtomStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Renderer+AtomStyles.swift"; sourceTree = "<group>"; };
-		98F12C8F2C72CEE20045FAFB /* BVH+Prepare.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+Prepare.metal"; sourceTree = "<group>"; };
 		98F2F5CE2A5F2DDC006216F4 /* PlanetaryGearBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanetaryGearBox.swift; sourceTree = "<group>"; };
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -969,7 +966,6 @@
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
 				9805D7B22C7DF518004E180A /* BVHBuilder+BuildLarge.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+BuildSmall.swift */,
-				98D26BAA2C754D01007B48FD /* BVHBuilder+Prepare.swift */,
 				985BBF032C7CD6D30096A104 /* BVHBuilder+ResetMemory.swift */,
 			);
 			path = BVHBuilder;
@@ -1126,7 +1122,6 @@
 			children = (
 				9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */,
 				98537EAE2A62EA3D0037C392 /* BVH+BuildSmall.metal */,
-				98F12C8F2C72CEE20045FAFB /* BVH+Prepare.metal */,
 				985BBF012C7CC97C0096A104 /* ResetMemory.metal */,
 			);
 			path = BVH;
@@ -1358,7 +1353,6 @@
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
-				98F12C902C72CEE20045FAFB /* BVH+Prepare.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
