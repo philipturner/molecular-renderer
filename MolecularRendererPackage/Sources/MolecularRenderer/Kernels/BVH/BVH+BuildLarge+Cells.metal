@@ -22,7 +22,8 @@ kernel void buildLargePart1_0
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Write the counter metadata.
-  largeCounterMetadata[cellAddress] = vec<uint, 8>(0);
+  vec<uint, 8> resetValue = vec<uint, 8>(0);
+  largeCounterMetadata[cellAddress] = resetValue;
 }
 
 kernel void buildLargePart2_0
@@ -36,13 +37,16 @@ kernel void buildLargePart2_0
   // - Large voxel count.
   // - Large reference count.
   // - Small reference count.
-  allocatedMemory[0] = uint3(1);
+  uint3 smallestPointer = uint3(1);
+  allocatedMemory[0] = smallestPointer;
   
   // Next, is the bounding box counter.
   // - Minimum: initial value is +64 nm.
   // - Maximum: initial value is -64 nm.
-  boundingBoxMin[0] = int3(64);
-  boundingBoxMax[0] = int3(-64);
+  int3 boxMin = int3(64);
+  int3 boxMax = int3(-64);
+  boundingBoxMin[0] = boxMin;
+  boundingBoxMax[0] = boxMax;
 }
 
 // Inputs:

@@ -48,38 +48,32 @@ kernel void buildSmallPart1_0
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
-  // Load the cell atom counts.
+  // Load the counter metadata.
   ushort3 cellCoordinates = tgid * 8;
   cellCoordinates += thread_id * ushort3(4, 1, 1);
   uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
                                             cellCoordinates);
   
-  // Write the cell atom counts.
-  smallCounterMetadata[cellAddress / 4] = 0;
+  // Write the counter metadata.
+  uint4 resetValue = uint4(0);
+  smallCounterMetadata[cellAddress / 4] = resetValue;
 }
 
 kernel void buildSmallPart2_0
 (
- // Global counters.
  device uint *allocatedMemory [[buffer(0)]])
 {
   // Initialize with the smallest acceptable pointer value.
-  allocatedMemory[0] = uint(1);
+  uint smallestPointer = uint(1);
+  allocatedMemory[0] = smallestPointer;
 }
 
-// Compact the list of reference offsets.
 kernel void buildSmallPart2_1
 (
- // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],
- 
- // Global counters.
  device atomic_uint *allocatedMemory [[buffer(1)]],
- 
- // Per-cell allocations.
  device uint4 *smallCounterMetadata [[buffer(2)]],
  device uint4 *smallCellMetadata [[buffer(3)]],
- 
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
