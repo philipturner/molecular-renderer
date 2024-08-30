@@ -23,6 +23,7 @@ struct BVHBuildLargePipelines {
   // - Kernel 1: Compact the reference offset for each voxel.
   // - Kernel 2: Copy atoms into converted format (for now).
   var buildLargePart2_0: MTLComputePipelineState
+  var buildLargePart2_1: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -35,6 +36,7 @@ struct BVHBuildLargePipelines {
     buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
     buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
     buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
+    buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
   }
 }
 
@@ -147,15 +149,12 @@ extension BVHBuilder {
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
     do {
-      let allocatedMemoryOffset = 0
-      let boundingBoxMinOffset = 16
-      let boundingBoxMaxOffset = 32
-      encoder.setBuffer(
-        globalCounters, offset: allocatedMemoryOffset, index: 0)
-      encoder.setBuffer(
-        globalCounters, offset: boundingBoxMinOffset, index: 1)
-      encoder.setBuffer(
-        globalCounters, offset: boundingBoxMaxOffset, index: 2)
+      let allocatedMemory = 0
+      let boundingBoxMin = 16
+      let boundingBoxMax = 32
+      encoder.setBuffer(globalCounters, offset: allocatedMemory, index: 0)
+      encoder.setBuffer(globalCounters, offset: boundingBoxMin, index: 1)
+      encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
     }
     
     // Dispatch
@@ -168,12 +167,19 @@ extension BVHBuilder {
   
   func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 2
-    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
-    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
-    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
+    do {
+      let allocatedMemory = 0
+      let boundingBoxMin = 16
+      let boundingBoxMax = 32
+      encoder.setBuffer(globalCounters, offset: allocatedMemory, index: 0)
+      encoder.setBuffer(globalCounters, offset: boundingBoxMin, index: 1)
+      encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
+    }
     
-    // Arguments 3 - 4
+    // Argument 3
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 3)
+    
+    // Argument 4
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 4)
     
     // Dispatch
