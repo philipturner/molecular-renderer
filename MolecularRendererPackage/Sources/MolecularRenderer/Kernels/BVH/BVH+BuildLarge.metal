@@ -251,9 +251,10 @@ kernel void buildLargePart2_1
   int3 simdBoxMax = simd_max(threadBoxMax);
   
   // Broadcast the partials to the first SIMD.
-  threadgroup uint3 broadcastedSIMDCounts[16];
-  threadgroup int3 broadcastedSIMDBoxMin[16];
-  threadgroup int3 broadcastedSIMDBoxMax[16];
+  constexpr ushort simdsPerGroup = 16;
+  threadgroup uint3 broadcastedSIMDCounts[simdsPerGroup];
+  threadgroup int3 broadcastedSIMDBoxMin[simdsPerGroup];
+  threadgroup int3 broadcastedSIMDBoxMax[simdsPerGroup];
   if (lane_id == 0) {
     broadcastedSIMDCounts[simd_id] = simdCounts;
     broadcastedSIMDBoxMin[simd_id] = simdBoxMin;
@@ -263,10 +264,10 @@ kernel void buildLargePart2_1
   
   // Reduce the partials in the first SIMD.
   if (simd_id == 0) {
-    uint3 threadCounts = broadcastedSIMDCounts[lane_id % 16];
-    int3 threadBoxMin = broadcastedSIMDBoxMin[lane_id % 16];
-    int3 threadBoxMax = broadcastedSIMDBoxMax[lane_id % 16];
-    if (lane_id < 16) {
+    uint3 threadCounts = broadcastedSIMDCounts[lane_id % simdsPerGroup];
+    int3 threadBoxMin = broadcastedSIMDBoxMin[lane_id % simdsPerGroup];
+    int3 threadBoxMax = broadcastedSIMDBoxMax[lane_id % simdsPerGroup];
+    if (lane_id >= simdsPerGroup) {
       threadCounts = 0;
       threadBoxMin = 64;
       threadBoxMax = -64;
@@ -293,11 +294,11 @@ kernel void buildLargePart2_1
       atomic_fetch_add_explicit(allocatedMemory + lane_id,
                                 countValue,
                                 memory_order_relaxed);
-
+      
       atomic_fetch_min_explicit(boundingBoxMin + lane_id,
                                 boxMinValue,
                                 memory_order_relaxed);
-
+      
       atomic_fetch_max_explicit(boundingBoxMax + lane_id,
                                 boxMaxValue,
                                 memory_order_relaxed);
