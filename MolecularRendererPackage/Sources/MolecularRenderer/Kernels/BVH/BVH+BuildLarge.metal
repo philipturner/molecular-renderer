@@ -207,7 +207,7 @@ kernel void buildLargePart2_1
 {
   // Locate the eight counters spanned by this thread.
   ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * ushort3(8, 4, 4);
+  cellCoordinates += tgid * ushort3(4, 4, 2);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
@@ -251,7 +251,7 @@ kernel void buildLargePart2_1
   int3 simdBoxMax = simd_max(threadBoxMax);
   
   // Broadcast the partials to the first SIMD.
-  constexpr ushort simdsPerGroup = 4;
+  constexpr ushort simdsPerGroup = 1;
   threadgroup uint3 broadcastedSIMDCounts[simdsPerGroup];
   threadgroup int3 broadcastedSIMDBoxMin[simdsPerGroup];
   threadgroup int3 broadcastedSIMDBoxMax[simdsPerGroup];
@@ -291,17 +291,19 @@ kernel void buildLargePart2_1
     
     // Allocate memory, using the global counters.
     if (lane_id < 3) {
-      atomic_fetch_add_explicit(allocatedMemory + lane_id,
-                                countValue,
-                                memory_order_relaxed);
-      
-      atomic_fetch_min_explicit(boundingBoxMin + lane_id,
-                                boxMinValue,
-                                memory_order_relaxed);
-      
-      atomic_fetch_max_explicit(boundingBoxMax + lane_id,
-                                boxMaxValue,
-                                memory_order_relaxed);
+      if (simdCounts[0] > 0) {
+        atomic_fetch_add_explicit(allocatedMemory + lane_id,
+                                  countValue,
+                                  memory_order_relaxed);
+        
+        atomic_fetch_min_explicit(boundingBoxMin + lane_id,
+                                  boxMinValue,
+                                  memory_order_relaxed);
+        
+        atomic_fetch_max_explicit(boundingBoxMax + lane_id,
+                                  boxMaxValue,
+                                  memory_order_relaxed);
+      }
     }
   }
   
