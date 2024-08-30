@@ -202,33 +202,32 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Locate the eight counters spanned by this thread.
+  // Locate the cell metadata.
   ushort3 cellCoordinates = thread_id;
   cellCoordinates += tgid * ushort3(4, 4, 4);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
-  // Reduce the counts across the thread.
-  uint threadLargeCount;
-  uint threadSmallCount;
-  {
-    vec<uint, 8> cellMetadata = largeInputMetadata[cellAddress];
-    
-    uint threadTotalCount = 0;
+  // Read the cell metadata.
+  vec<uint, 8> cellMetadata = largeInputMetadata[cellAddress];
+  
+  // Reduce counts across the thread.
+  uint threadTotalCount = 0;
 #pragma clang loop unroll(full)
-    for (ushort laneID = 0; laneID < 8; ++laneID) {
-      threadTotalCount += cellMetadata[laneID];
-    }
-    threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
-    threadSmallCount = threadTotalCount >> 14;
+  for (ushort laneID = 0; laneID < 8; ++laneID) {
+    threadTotalCount += cellMetadata[laneID];
   }
   
-  // Return early if the voxel is empty.
-  if (!simd_ballot(threadLargeCount > 0).any()) {
+  // Return early if empty.
+  if (simd_ballot(threadTotalCount == 0).all()) {
+    largeOutputMetadata[cellAddress] = uint4(0);
     return;
   }
+  largeOutputMetadata[cellAddress] = uint4(0, 0, 0, threadTotalCount);
   
-  // Reduce the counts across the SIMD.
+  // Reduce counts across the SIMD.
+  uint threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
+  uint threadSmallCount = threadTotalCount >> 14;
   uint3 simdCounts;
   {
     uint simdVoxelCount = simd_sum(threadLargeCount > 0 ? 1 : 0);
@@ -327,7 +326,6 @@ kernel void buildLargePart3_0
  device float4 *convertedAtoms [[buffer(2)]],
  device ushort4 *relativeOffsets1 [[buffer(3)]],
  device ushort4 *relativeOffsets2 [[buffer(4)]],
- 
  
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])

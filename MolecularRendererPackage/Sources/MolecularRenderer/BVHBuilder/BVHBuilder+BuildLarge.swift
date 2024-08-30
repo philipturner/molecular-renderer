@@ -63,7 +63,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if false
+    #if true
     // C(100)
     // 2.00 nm - 783476
     // 0.25 nm - 5118550
@@ -94,53 +94,34 @@ extension BVHBuilder {
     // SIMD3<UInt32>(8, 8, 9)
     commandBuffer.waitUntilCompleted()
     
-    let metadata = largeInputMetadata.contents()
-      .assumingMemoryBound(to: UInt32.self)
-    
-    var largeReferenceCount: Int = .zero
-    var smallReferenceCount: Int = .zero
-    for cellID in 0..<(largeInputMetadata.length / 4) {
-      let word = metadata[cellID]
-      largeReferenceCount += Int(word) & Int(1 << 14 - 1)
-      smallReferenceCount += Int(word) >> 14;
-    }
-    
-    print()
-    print("Reduced metadata:")
-    print(largeReferenceCount)
-    print(smallReferenceCount)
-    
-    let counters = globalAtomicCounters.contents()
-      .assumingMemoryBound(to: SIMD4<Int32>.self)
-    
-    print()
-    print("Counters:")
-    print(counters[0])
-    print(counters[1])
-    print(counters[2])
-    
-    struct BVHArguments {
-      var worldMinimum: SIMD3<Float>
-      var worldMaximum: SIMD3<Float>
-      var largeVoxelCount: SIMD3<UInt16>
-      var smallVoxelCount: SIMD3<UInt16>
+    do {
+      let counters = globalAtomicCounters.contents()
+        .assumingMemoryBound(to: SIMD4<Int32>.self)
       
+      print()
+      print("Counters:")
+      print(counters[0])
+      print(counters[1])
+      print(counters[2])
     }
-    let bvhArguments = bvhArgumentsBuffer.contents()
-      .assumingMemoryBound(to: BVHArguments.self)
-    print()
-    print("BVH Arguments:")
-    print(bvhArguments.pointee.worldMinimum)
-    print(bvhArguments.pointee.worldMaximum)
-    print(bvhArguments.pointee.largeVoxelCount)
-    print(bvhArguments.pointee.smallVoxelCount)
     
-    
-    let dispatchArguments = smallCellDispatchArguments8x8x8.contents()
-      .assumingMemoryBound(to: SIMD3<UInt32>.self)
-    print()
-    print("Indirect Dispatch Arguments:")
-    print(dispatchArguments.pointee)
+    do {
+      let metadata = largeOutputMetadata.contents()
+        .assumingMemoryBound(to: SIMD4<UInt32>.self)
+      
+      var largeReferenceCount: Int = .zero
+      var smallReferenceCount: Int = .zero
+      for cellID in 0..<(largeOutputMetadata.length / 16) {
+        let cellMetadata = metadata[cellID]
+        largeReferenceCount += Int(cellMetadata[3]) & Int(1 << 14 - 1)
+        smallReferenceCount += Int(cellMetadata[3]) >> 14;
+      }
+      
+      print()
+      print("Reduced metadata:")
+      print(largeReferenceCount)
+      print(smallReferenceCount)
+    }
     
     exit(0)
     #endif
