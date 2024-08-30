@@ -226,6 +226,11 @@ kernel void buildLargePart2_1
     threadSmallCount = threadTotalCount >> 14;
   }
   
+  // Return early if the voxel is empty.
+  if (!simd_ballot(threadLargeCount > 0).any()) {
+    return;
+  }
+  
   // Reduce the counts across the SIMD.
   uint3 simdCounts;
   {
@@ -237,7 +242,7 @@ kernel void buildLargePart2_1
                        simdSmallCount);
   }
   
-  // Find the bounding box.
+  // Reduce the bounding box across the SIMD.
   int3 threadBoxMin;
   int3 threadBoxMax;
   if (threadLargeCount > 0) {
@@ -250,6 +255,7 @@ kernel void buildLargePart2_1
   int3 simdBoxMin = simd_min(threadBoxMin);
   int3 simdBoxMax = simd_max(threadBoxMax);
   
+  // Reduce across the entire GPU.
   if (lane_id < 3) {
     // Distribute the data across three threads.
     uint countValue = 0;
@@ -265,20 +271,16 @@ kernel void buildLargePart2_1
     }
     
     // Allocate memory, using the global counters.
-    {
-      if (simdCounts[0] > 0) {
-        atomic_fetch_add_explicit(allocatedMemory + lane_id,
-                                  countValue,
-                                  memory_order_relaxed);
-        
-        atomic_fetch_min_explicit(boundingBoxMin + lane_id,
-                                  boxMinValue,
-                                  memory_order_relaxed);
-        
-        atomic_fetch_max_explicit(boundingBoxMax + lane_id,
-                                  boxMaxValue,
-                                  memory_order_relaxed);
-      }
-    }
+    atomic_fetch_add_explicit(allocatedMemory + lane_id,
+                              countValue,
+                              memory_order_relaxed);
+    
+    atomic_fetch_min_explicit(boundingBoxMin + lane_id,
+                              boxMinValue,
+                              memory_order_relaxed);
+    
+    atomic_fetch_max_explicit(boundingBoxMax + lane_id,
+                              boxMaxValue,
+                              memory_order_relaxed);
   }
 }
