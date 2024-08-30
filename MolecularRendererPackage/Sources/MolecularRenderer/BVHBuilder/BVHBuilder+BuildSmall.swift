@@ -12,7 +12,13 @@ struct BVHBuildSmallPipelines {
   // - Kernel 0: Encode the indirect dispatch arguments.
   //
   // Part 1
-  // - Kernel 0: 
+  // - Kernel 0: Reset the small counter metadata.
+  // - Kernel 1: Accumulate the reference count for each voxel.
+  //
+  // Part 2:
+  // - Kernel 0: Reset the allocation counter.
+  // - Kernel 1: Compact the reference offset for each voxel.
+  // - Kernel 2: Fill the reference list for each voxel.
   
   var buildSmallPart1_0: MTLComputePipelineState
   var buildSmallPart1_2: MTLComputePipelineState
