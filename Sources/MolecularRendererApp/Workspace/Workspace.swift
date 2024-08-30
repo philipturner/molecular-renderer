@@ -56,7 +56,14 @@ import Numerics
 //   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.
-// - Construct the not-cache-friendly dense grid with threadgroup atomics.
+// - Change the iteration over small cells, so the size of the small cell
+//   footprint is clamped to a large cell.
+// - Use the large atom references from the previous pass, to dispatch the
+//   atoms (indirect dispatch).
+// - Write to a list of compacted small-cell offsets.
+// - Expand the small-cell counters with ~4x duplication.
+// - Fuse into a single kernel, using threadgroup atomics instead of device
+//   atomics.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not

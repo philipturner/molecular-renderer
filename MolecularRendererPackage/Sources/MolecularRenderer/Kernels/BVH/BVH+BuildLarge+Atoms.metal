@@ -1,5 +1,5 @@
 //
-//  BVH+BuildLarge.metal
+//  BVH+BuildLarge+Atoms.metal
 //  MolecularRendererGPU
 //
 //  Created by Philip Turner on 8/26/24.
@@ -349,6 +349,7 @@ kernel void buildLargePart3_0
   // Write in the new format.
   convertedAtoms[tid] = atom;
   
-  // TODO: Set up all the necessary buffer bindings before refactoring any
-  // more GPU code.
+  // TODO: Next, abstract away the iteration over large cell footprint.
+  // - Split "buildLarge" into two files, one for per-atom iteration and
+  //   another for per-cell iteration.
 }

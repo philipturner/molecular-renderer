@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9805D7B12C7D3C3D004E180A /* BVH+BuildLarge.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */; };
+		9805D7B12C7D3C3D004E180A /* BVH+BuildLarge+Atoms.metal in Sources */ = {isa = PBXBuildFile; fileRef = 9805D7B02C7D3C3D004E180A /* BVH+BuildLarge+Atoms.metal */; };
 		981360D72B4753B90007D40F /* libOpenMM.8.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; };
 		981360D82B4753B90007D40F /* libOpenMM.8.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		981360E92B48F6070007D40F /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = 981360E82B48F6070007D40F /* ComplexModule */; };
@@ -27,7 +27,7 @@
 		984160072B5DF38400A559AF /* DMSTooltips_ProductionSimulation2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 984160062B5DF38400A559AF /* DMSTooltips_ProductionSimulation2.jpg */; };
 		9852E87B29EB6D1600D0E779 /* EventTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9852E87A29EB6D1600D0E779 /* EventTracker.swift */; };
 		9852E88329EB8CFA00D0E779 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 9852E88229EB8CFA00D0E779 /* README.md */; };
-		98537EAF2A62EA3D0037C392 /* BVH+BuildSmall.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* BVH+BuildSmall.metal */; };
+		98537EAF2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal */; };
 		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
 		985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */; };
 		985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE92C7A69900096A104 /* DenseGrid.metal */; };
@@ -46,6 +46,8 @@
 		987507BE2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BB2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg */; };
 		987507BF2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BC2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg */; };
 		987507C02B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */; };
+		987671E92C82383800121870 /* BVH+BuildLarge+Cells.metal in Sources */ = {isa = PBXBuildFile; fileRef = 987671E82C82383800121870 /* BVH+BuildLarge+Cells.metal */; };
+		987671EB2C82387E00121870 /* BVH+BuildSmall+Cells.metal in Sources */ = {isa = PBXBuildFile; fileRef = 987671EA2C82387E00121870 /* BVH+BuildSmall+Cells.metal */; };
 		988E88E72C70EDF600AD507D /* xTB in Frameworks */ = {isa = PBXBuildFile; productRef = 988E88E62C70EDF600AD507D /* xTB */; };
 		988E88F82C722BEC00AD507D /* MolecularRenderer in Frameworks */ = {isa = PBXBuildFile; productRef = 988E88F72C722BEC00AD507D /* MolecularRenderer */; };
 		9898382629A6C08F00B4AA98 /* MolecularRendererApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9898382529A6C08F00B4AA98 /* MolecularRendererApp.swift */; };
@@ -98,7 +100,7 @@
 		980140E62A3E1F9C009408BE /* BVHBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BVHBuilder.swift; sourceTree = "<group>"; };
 		9802CB2F2A71AA76004AFD03 /* Serialization.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Serialization.metal; sourceTree = "<group>"; };
 		9802CB312A71AA85004AFD03 /* MRSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRSimulation.swift; sourceTree = "<group>"; };
-		9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildLarge.metal"; sourceTree = "<group>"; };
+		9805D7B02C7D3C3D004E180A /* BVH+BuildLarge+Atoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildLarge+Atoms.metal"; sourceTree = "<group>"; };
 		9805D7B22C7DF518004E180A /* BVHBuilder+BuildLarge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+BuildLarge.swift"; sourceTree = "<group>"; };
 		981360D62B4753B90007D40F /* libOpenMM.8.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libOpenMM.8.1.dylib; path = ../bypass_dependencies/libOpenMM.8.1.dylib; sourceTree = "<group>"; };
 		981360D92B4861000007D40F /* NCFPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NCFPart.swift; sourceTree = "<group>"; };
@@ -148,7 +150,7 @@
 		98518AFC2A774F8E00CAD919 /* DiamondoidCollision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiamondoidCollision.swift; sourceTree = "<group>"; };
 		9852E87A29EB6D1600D0E779 /* EventTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTracker.swift; sourceTree = "<group>"; };
 		9852E88229EB8CFA00D0E779 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		98537EAE2A62EA3D0037C392 /* BVH+BuildSmall.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildSmall.metal"; sourceTree = "<group>"; };
+		98537EAE2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildSmall+Atoms.metal"; sourceTree = "<group>"; };
 		9855200D2B5443F900AB068D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9855200E2B54458B00AB068D /* DopedAdamantane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DopedAdamantane.swift; sourceTree = "<group>"; };
 		985520102B5446F900AB068D /* SiDopedAdamantane_Bridgehead.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = SiDopedAdamantane_Bridgehead.jpg; sourceTree = "<group>"; };
@@ -200,6 +202,8 @@
 		987507BB2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_3.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = inertia_tensor_eigendecomposition_3.jpg; sourceTree = "<group>"; };
 		987507BC2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = inertia_tensor_eigendecomposition_1.jpg; sourceTree = "<group>"; };
 		987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = inertia_tensor_eigendecomposition_2.jpg; sourceTree = "<group>"; };
+		987671E82C82383800121870 /* BVH+BuildLarge+Cells.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildLarge+Cells.metal"; sourceTree = "<group>"; };
+		987671EA2C82387E00121870 /* BVH+BuildSmall+Cells.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildSmall+Cells.metal"; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTraversal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTraversal.metal; sourceTree = "<group>"; };
 		988259792B67D4B2001B1D71 /* HartreeFock_Experiment3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HartreeFock_Experiment3.swift; sourceTree = "<group>"; };
@@ -1120,8 +1124,10 @@
 		98FB907E2A5CF91A00685E5C /* BVH */ = {
 			isa = PBXGroup;
 			children = (
-				9805D7B02C7D3C3D004E180A /* BVH+BuildLarge.metal */,
-				98537EAE2A62EA3D0037C392 /* BVH+BuildSmall.metal */,
+				9805D7B02C7D3C3D004E180A /* BVH+BuildLarge+Atoms.metal */,
+				987671E82C82383800121870 /* BVH+BuildLarge+Cells.metal */,
+				98537EAE2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal */,
+				987671EA2C82387E00121870 /* BVH+BuildSmall+Cells.metal */,
 				985BBF012C7CC97C0096A104 /* ResetMemory.metal */,
 			);
 			path = BVH;
@@ -1340,16 +1346,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				987671EB2C82387E00121870 /* BVH+BuildSmall+Cells.metal in Sources */,
 				98F638AF2A34A33400F51E95 /* RayTraversal.metal in Sources */,
 				98A263A92A543EEC00B69392 /* DDA.metal in Sources */,
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
+				987671E92C82383800121870 /* BVH+BuildLarge+Cells.metal in Sources */,
 				985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */,
 				985BBF022C7CC97C0096A104 /* ResetMemory.metal in Sources */,
 				985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
-				98537EAF2A62EA3D0037C392 /* BVH+BuildSmall.metal in Sources */,
+				98537EAF2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal in Sources */,
 				98F638AE2A34A33100F51E95 /* RayGeneration.metal in Sources */,
-				9805D7B12C7D3C3D004E180A /* BVH+BuildLarge.metal in Sources */,
+				9805D7B12C7D3C3D004E180A /* BVH+BuildLarge+Atoms.metal in Sources */,
 				98F638AD2A34A31600F51E95 /* Lighting.metal in Sources */,
 				98F638B02A34A33800F51E95 /* RenderAtoms.metal in Sources */,
 				98F638AC2A34A31300F51E95 /* Constants.metal in Sources */,
