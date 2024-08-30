@@ -13,25 +13,19 @@ extension FrameReporter {
     display(performance: performance)
   }
   
-  func queryPerformance() -> SIMD8<Double> {
+  func queryPerformance() -> SIMD4<Double> {
     var validFrameCount: Int = .zero
-    var sum: SIMD8<Double> = .zero
+    var sum: SIMD4<Double> = .zero
     
     for reportID in reports.indices {
       let report = reports[reportID]
-      guard report.prepareTime >= 0,
-            report.buildLargeTime > 0,
-            report.buildSmallTime >= 0,
-            report.renderTime >= 0 else {
+      guard report.buildLargeTime > 0 else {
         continue
       }
       
       validFrameCount += 1
       sum[0] += report.copyTime
-      sum[1] += report.prepareTime
-      sum[2] += report.buildLargeTime
-      sum[3] += report.buildSmallTime
-      sum[4] += report.renderTime
+      sum[1] += report.buildLargeTime
     }
     
     if validFrameCount > 0 {
@@ -41,8 +35,9 @@ extension FrameReporter {
     }
   }
   
-  func display(performance: SIMD8<Double>) {
-    for laneID in 0..<5 {
+  func display(performance: SIMD4<Double>) {
+    let laneCount: Int = 4
+    for laneID in 0..<laneCount {
       // Prepend with a space.
       if laneID == 0 {
         print(" ", terminator: "")
@@ -60,7 +55,7 @@ extension FrameReporter {
       
       // Display the data value.
       var terminator: String
-      if laneID == 4 {
+      if laneID == laneCount - 1 {
         terminator = "\n"
       } else {
         terminator = " | "

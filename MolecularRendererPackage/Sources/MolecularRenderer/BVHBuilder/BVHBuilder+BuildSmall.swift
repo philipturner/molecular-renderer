@@ -8,6 +8,7 @@
 import Metal
 
 struct BVHBuildSmallPipelines {
+  var buildSmallPart1_0: MTLComputePipelineState
   var clearSmallCellMetadata: MTLComputePipelineState
   var buildSmallPart1: MTLComputePipelineState
   var buildSmallPart2: MTLComputePipelineState
@@ -21,6 +22,7 @@ struct BVHBuildSmallPipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
+    buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
     clearSmallCellMetadata = createPipeline(name: "clearSmallCellMetadata")
     buildSmallPart1 = createPipeline(name: "buildSmallPart1")
     buildSmallPart2 = createPipeline(name: "buildSmallPart2")
@@ -34,9 +36,10 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    buildSmallPart1_0(encoder: encoder)
+    
     clearAllocationCounters(encoder: encoder)
     clearSmallCellMetadata(encoder: encoder)
-    
     buildSmallPart1(encoder: encoder)
     buildSmallPart2(encoder: encoder)
     buildSmallPart3(encoder: encoder)
@@ -58,6 +61,30 @@ extension BVHBuilder {
     commandBuffer.commit()
   }
 }
+
+// MARK: - New Kernels
+
+extension BVHBuilder {
+  func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
+    encoder.setBuffer(globalAtomicCounters, offset: 0, index: 0)
+    encoder.setBuffer(globalAtomicCounters, offset: 16, index: 1)
+    encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
+    
+    // Arguments 3 - 4
+    encoder.setBuffer(bvhArgumentsBuffer, offset: 0, index: 3)
+    encoder.setBuffer(smallCellDispatchArguments8x8x8, offset: 0, index: 4)
+    
+    // Dispatch
+    let pipeline = buildSmallPipelines.buildSmallPart1_0
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: 1, height: 1, depth: 1),
+      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
+  }
+}
+
+// MARK: - Old Kernels
 
 extension BVHBuilder {
   func clearSmallCellMetadata(encoder: MTLComputeCommandEncoder) {

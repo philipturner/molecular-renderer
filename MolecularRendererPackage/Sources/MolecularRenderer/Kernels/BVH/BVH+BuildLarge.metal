@@ -10,6 +10,7 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+// Accumulate the number of references per voxel.
 kernel void buildLargePart1_1
 (
  // Per-element allocations.
@@ -150,6 +151,7 @@ kernel void buildLargePart1_1
   }
 }
 
+// Reset the counters for memory allocation.
 kernel void buildLargePart2_0
 (
  // Global counters.
@@ -173,6 +175,8 @@ kernel void buildLargePart2_0
   boundingBoxMax[0] = int3(-64);
 }
 
+// Compact the list of reference offsets.
+//
 // Inputs:
 // - largeInputMetadata (8x duplicate)
 //
@@ -281,41 +285,7 @@ kernel void buildLargePart2_1
   }
 }
 
-// Encode the GPU-driven work in the next pass.
-kernel void buildLargePart2_2
-(
- // Global counters.
- device uint3 *allocatedMemory [[buffer(0)]],
- device int3 *boundingBoxMin [[buffer(1)]],
- device int3 *boundingBoxMax [[buffer(2)]],
- 
- // Indirect dispatch arguments.
- device BVHArguments *bvhArgs [[buffer(3)]],
- device uint3 *smallCellDispatchArguments8x8x8 [[buffer(4)]])
-{
-  // Read the bounding box.
-  int3 minimum = *boundingBoxMin;
-  int3 maximum = *boundingBoxMax;
-  
-  // Clamp the bounding box to the world volume.
-  minimum = max(minimum, -64);
-  maximum = min(maximum, 64);
-  maximum = max(minimum, maximum);
-  
-  // Compute the grid dimensions.
-  ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
-  ushort3 smallVoxelCount = ushort3(4 * (maximum - minimum));
-  
-  // Set the BVH arguments.
-  bvhArgs->worldMinimum = float3(minimum);
-  bvhArgs->worldMaximum = float3(maximum);
-  bvhArgs->largeVoxelCount = largeVoxelCount;
-  bvhArgs->smallVoxelCount = smallVoxelCount;
-  
-  // Set the small-cell dispatch arguments.
-  *smallCellDispatchArguments8x8x8 = uint3(largeVoxelCount);
-}
-
+// Copy the atoms into a new buffer.
 kernel void buildLargePart3_0
 (
  // Per-element allocations.

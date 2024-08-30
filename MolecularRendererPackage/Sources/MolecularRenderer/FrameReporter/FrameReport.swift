@@ -9,7 +9,6 @@ struct FrameReport {
   var frameID: Int
   
   var copyTime: Double = .zero
-  var prepareTime: Double = .zero
   var buildLargeTime: Double = .zero
   var buildSmallTime: Double = .zero
   var renderTime: Double = .zero
