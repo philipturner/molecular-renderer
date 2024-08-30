@@ -69,54 +69,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-//    commandBuffer.waitUntilCompleted()
-    
-//    let largeCounterMetadata = largeCounterMetadata.contents()
-//      .assumingMemoryBound(to: SIMD8<UInt32>.self)
-//    
-//    var largeVoxelCount: UInt32 = .zero
-//    var largeReferenceCount: UInt32 = .zero
-//    var smallReferenceCount: UInt32 = .zero
-//    for cellID in 0..<(64 * 64 * 64) {
-//      let counterCounts = largeCounterMetadata[cellID]
-//      let threadTotalCount = counterCounts.wrappedSum()
-//      largeVoxelCount += (threadTotalCount > 0) ? 1 : 0
-//      largeReferenceCount += threadTotalCount & (UInt32(1 << 14) - 1)
-//      smallReferenceCount += threadTotalCount >> 14
-//    }
-//    print()
-//    print(largeVoxelCount)
-//    print(largeReferenceCount)
-//    print(smallReferenceCount)
-//    print()
-    
-//    let counters = globalCounters.contents()
-//      .assumingMemoryBound(to: SIMD3<Int32>.self)
-//    print()
-//    print(counters[0])
-//    print(counters[1])
-//    print(counters[2])
-//    print()
-//    
-//    let dispatchArguments = indirectDispatchArguments.contents()
-//      .assumingMemoryBound(to: SIMD3<UInt32>.self)
-//    print()
-//    print(dispatchArguments[0])
-//    print()
-//    
-//    let smallCounterMetadata = smallCounterMetadata.contents()
-//      .assumingMemoryBound(to: UInt32.self)
-//    
-//    var smallReferenceCount: UInt32 = .zero
-//    for cellID in 0..<(576 * 512) {
-//      let counterCount = smallCounterMetadata[cellID]
-//      smallReferenceCount += counterCount
-//    }
-//    print()
-//    print(smallReferenceCount)
-//    print()
-//    
-//    exit(0)
   }
 }
 
