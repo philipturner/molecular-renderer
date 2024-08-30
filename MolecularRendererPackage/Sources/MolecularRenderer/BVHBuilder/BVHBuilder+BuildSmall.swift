@@ -47,6 +47,12 @@ extension BVHBuilder {
   func buildSmallBVH(frameID: Int) {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    buildSmallPart0_0(encoder: encoder)
+    buildSmallPart1_0(encoder: encoder)
+    buildSmallPart1_1(encoder: encoder)
+    buildSmallPart2_0(encoder: encoder)
+    buildSmallPart2_1(encoder: encoder)
+    buildSmallPart2_2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in

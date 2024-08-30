@@ -16,7 +16,7 @@ using namespace metal;
 // Handle specular and diffuse color, and transform raw AO hits into
 // meaningful color contributions.
 class ColorContext {
-  const device float3* atomColors;
+  constant float3* elementColors;
   
   ushort2 pixelCoords;
   half3 color;
@@ -30,8 +30,8 @@ class ColorContext {
   half specular;
   
 public:
-  ColorContext(const device float3* atomColors, ushort2 pixelCoords) {
-    this->atomColors = atomColors;
+  ColorContext(constant float3* elementColors, ushort2 pixelCoords) {
+    this->elementColors = elementColors;
     this->pixelCoords = pixelCoords;
     
     // Create a default color for the background.
@@ -47,8 +47,8 @@ public:
   void setDiffuseColor(float4 newAtom) {
     uint packed = as_type<uint>(newAtom.w);
     uint atomicNumber = packed & 0x000000FF;
-    float3 atomColor = atomColors[atomicNumber];
-    diffuseColor = half3(atomColor);
+    float3 color = elementColors[atomicNumber];
+    diffuseColor = half3(color);
   }
   
   void addAmbientContribution(IntersectionResult intersect) {
@@ -79,7 +79,7 @@ public:
       float4 newAtom = intersect.newAtom;
       uint packed = as_type<uint>(newAtom.w);
       uint atomicNumber = packed & 0x000000FF;
-      half3 neighborColor = half3(atomColors[atomicNumber]);
+      half3 neighborColor = half3(elementColors[atomicNumber]);
       float neighborLuminance = dot(neighborColor, gamut);
       
       // Use the arithmetic mean. There is no perceivable difference from

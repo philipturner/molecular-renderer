@@ -43,33 +43,27 @@ extension MRRenderer {
       setBytes(renderArguments, index: 1)
     }
     
-    // Argument 2
-    do {
-      let bvhArgumentsBuffer = bvhBuilder.bvhArgumentsBuffer
-      encoder.setBuffer(bvhBuilder.bvhArgumentsBuffer, offset: 0, index: 2)
-    }
-    
-    // Arguments 5 - 6
-    do {
-      encoder.setBuffer(bvhBuilder.smallCellMetadata, offset: 0, index: 5)
-      encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 6)
-    }
+    // Arguments 2 - 4
+    encoder.setBuffer(bvhBuilder.bvhArguments, offset: 0, index: 2)
+    encoder.setBuffer(bvhBuilder.smallCellMetadata, offset: 0, index: 3)
+    encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 4)
     
     // Arguments 10 - 12
     do {
       // Bind the new atoms.
-      let newAtomsBuffer = bvhBuilder.convertedAtomsBuffer
-      encoder.setBuffer(newAtomsBuffer, offset: 0, index: 10)
+      let newAtomsBuffer = bvhBuilder.convertedAtoms
+      encoder.setBuffer(newAtomsBuffer, offset: 0, index: 5)
       
       // Bind the old atoms.
       let currentIndex = argumentContainer.tripleBufferIndex()
       let previousIndex = (currentIndex + 3 - 1) % 3
-      let oldAtomsBuffer = bvhBuilder.originalAtomsBuffers[previousIndex]
-      encoder.setBuffer(oldAtomsBuffer, offset: 0, index: 11)
+      let oldAtomsBuffer = bvhBuilder.originalAtoms[previousIndex]
+      encoder.setBuffer(oldAtomsBuffer, offset: 0, index: 6)
       
-      // Bind the atom colors.
-      let atomColorsLength = atomColors.count * 16
-      encoder.setBytes(&atomColors, length: atomColorsLength, index: 12)
+      // Bind the element colors.
+      let elementColors = argumentContainer.elementColors
+      let byteCount = elementColors.count * 16
+      encoder.setBytes(elementColors, length: byteCount, index: 7)
     }
     
     // Textures 0 - 2
