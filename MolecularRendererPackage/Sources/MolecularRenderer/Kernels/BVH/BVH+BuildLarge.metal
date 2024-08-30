@@ -207,7 +207,7 @@ kernel void buildLargePart2_1
 {
   // Locate the eight counters spanned by this thread.
   ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * ushort3(8, 8, 8);
+  cellCoordinates += tgid * ushort3(8, 4, 4);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
@@ -251,7 +251,7 @@ kernel void buildLargePart2_1
   int3 simdBoxMax = simd_max(threadBoxMax);
   
   // Broadcast the partials to the first SIMD.
-  constexpr ushort simdsPerGroup = 16;
+  constexpr ushort simdsPerGroup = 4;
   threadgroup uint3 broadcastedSIMDCounts[simdsPerGroup];
   threadgroup int3 broadcastedSIMDBoxMin[simdsPerGroup];
   threadgroup int3 broadcastedSIMDBoxMax[simdsPerGroup];
@@ -314,4 +314,19 @@ kernel void buildLargePart2_1
   // 81 microseconds
   // 80 microseconds
   // 81 microseconds
+  
+  // Threadgroup size 32:
+  // 114 microseconds
+  // 115 microseconds
+  // 122 microseconds
+  
+  // Threadgroup size 64:
+  // 90 microseconds
+  // 98 microseconds
+  // 90 microseconds
+  
+  // Threadgroup size 128:
+  // 90 microseconds
+  // 80 microseconds
+  // 86 microseconds
 }

@@ -52,7 +52,7 @@ extension BVHBuilder {
     }
     commandBuffer.commit()
     
-    #if true
+    #if false
     commandBuffer.waitUntilCompleted()
     
     let metadata = largeInputMetadata.contents()
@@ -187,7 +187,7 @@ extension BVHBuilder {
     let pipeline = buildLargePipelines.buildLargePart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 8, height: 8, depth: 8),
-      threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 8))
+      MTLSize(width: 8, height: 16, depth: 16),
+      threadsPerThreadgroup: MTLSize(width: 8, height: 4, depth: 4))
   }
 }
