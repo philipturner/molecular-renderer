@@ -7,24 +7,24 @@
 
 import Metal
 
+// Part 0
+// - Kernel 0: Encode the indirect dispatch arguments.
+//
+// Part 1
+// - Kernel 0: Reset the small counter metadata.
+// - Kernel 1: Accumulate the reference count for each voxel.
+//
+// Part 2:
+// - Kernel 0: Reset the allocation counter.
+// - Kernel 1: Compact the reference offset for each voxel.
+// - Kernel 2: Fill the reference list for each voxel.
 struct BVHBuildSmallPipelines {
-  // Part 0
-  // - Kernel 0: Encode the indirect dispatch arguments.
-  //
-  // Part 1
-  // - Kernel 0: Reset the small counter metadata.
-  // - Kernel 1: Accumulate the reference count for each voxel.
-  //
-  // Part 2:
-  // - Kernel 0: Reset the allocation counter.
-  // - Kernel 1: Compact the reference offset for each voxel.
-  // - Kernel 2: Fill the reference list for each voxel.
-  
-  var buildSmallPart1_0: MTLComputePipelineState
-  var buildSmallPart1_2: MTLComputePipelineState
-  var buildSmallPart2_0: MTLComputePipelineState
-  var buildSmallPart2_1: MTLComputePipelineState
-  var buildSmallPart3_0: MTLComputePipelineState
+  var buildLargePart0_0: MTLComputePipelineState
+  var buildLargePart1_0: MTLComputePipelineState
+  var buildLargePart1_1: MTLComputePipelineState
+  var buildLargePart2_0: MTLComputePipelineState
+  var buildLargePart2_1: MTLComputePipelineState
+  var buildLargePart2_2: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -34,11 +34,12 @@ struct BVHBuildSmallPipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
-    buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
-    buildSmallPart1_2 = createPipeline(name: "buildSmallPart1_2")
-    buildSmallPart2_0 = createPipeline(name: "buildSmallPart2_0")
-    buildSmallPart2_1 = createPipeline(name: "buildSmallPart2_1")
-    buildSmallPart3_0 = createPipeline(name: "buildSmallPart3_0")
+    buildLargePart0_0 = createPipeline(name: "buildLargePart1_0")
+    buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
+    buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
+    buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
+    buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
+    buildLargePart2_2 = createPipeline(name: "buildLargePart2_2")
   }
 }
 

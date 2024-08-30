@@ -8,20 +8,20 @@
 import Metal
 import QuartzCore
 
+// Part 0
+// - Kernel 0: Copy both static and updated atoms on CPU (for now).
+//
+// Part 1
+// - Kernel 0: Reset the large counter metadata.
+// - Kernel 1: Accumulate the reference count for each voxel.
+//
+// Part 2
+// - Kernel 0: Reset the allocation and box counters.
+// - Kernel 1: Compact the reference offset for each voxel.
+// - Kernel 2: Copy atoms into converted format (for now).
 struct BVHBuildLargePipelines {
-  // Part 0
-  // - Kernel 0: Copy both static and updated atoms on CPU (for now).
-  
-  // Part 1
-  // - Kernel 0: Reset the large counter metadata.
-  // - Kernel 1: Accumulate the reference count for each voxel.
   var buildLargePart1_0: MTLComputePipelineState
   var buildLargePart1_1: MTLComputePipelineState
-  
-  // Part 2
-  // - Kernel 0: Reset the allocation and box counters.
-  // - Kernel 1: Compact the reference offset for each voxel.
-  // - Kernel 2: Copy atoms into converted format (for now).
   var buildLargePart2_0: MTLComputePipelineState
   var buildLargePart2_1: MTLComputePipelineState
   var buildLargePart2_2: MTLComputePipelineState
@@ -115,10 +115,8 @@ extension BVHBuilder {
   }
   
   func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
+    // Arguments 0 - 1
     bindElementRadii(encoder: encoder, index: 0)
-    
-    // Argument 1
     bindOriginalAtoms(encoder: encoder, index: 1)
     
     // Arguments 2 - 3
@@ -178,10 +176,8 @@ extension BVHBuilder {
       encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
     }
     
-    // Argument 3
+    // Arguments 3 - 4
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 3)
-    
-    // Argument 4
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 4)
     
     // Dispatch
@@ -192,11 +188,9 @@ extension BVHBuilder {
       threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
   
-  func buildLargePart3_0(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
+  func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
     bindElementRadii(encoder: encoder, index: 0)
-    
-    // Argument 1
     bindOriginalAtoms(encoder: encoder, index: 1)
     
     // Arguments 2 - 3
@@ -207,13 +201,9 @@ extension BVHBuilder {
       encoder.setBuffer(relativeOffsets, offset: offset2, index: 3)
     }
     
-    // Argument 4
+    // Arguments 4 - 6
     encoder.setBuffer(convertedAtoms, offset: 0, index: 4)
-    
-    // Argument 5
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 5)
-    
-    // Argument 6
     encoder.setBuffer(largeAtomReferences, offset: 0, index: 6)
     
     // Dispatch
