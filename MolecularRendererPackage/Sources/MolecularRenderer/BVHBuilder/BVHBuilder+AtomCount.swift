@@ -6,7 +6,7 @@
 //
 
 extension BVHBuilder {
-  /// Hard limit on the maximum atom count.
+  // Hard limit on the maximum atom count.
   static var maxAtomCount: Int {
     4 * 1024 * 1024
   }

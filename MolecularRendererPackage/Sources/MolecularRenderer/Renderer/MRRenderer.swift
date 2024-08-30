@@ -16,8 +16,6 @@ public class MRRenderer {
   
   // Objects that supply data to the renderer.
   var atomProvider: MRAtomProvider!
-  var atomColors: [SIMD3<Float>] = []
-  var atomRadii: [Float] = []
   
   // Main rendering resources.
   var device: MTLDevice
@@ -41,11 +39,15 @@ public class MRRenderer {
   // Enter the width and height of the texture to present, not the resolution
   // you expect the internal GPU shader to write to.
   public init(descriptor: MRRendererDescriptor) {
-    guard let intermediateTextureSize = descriptor.intermediateTextureSize,
+    guard let elementColors = descriptor.elementColors,
+          let elementRadii = descriptor.elementRadii,
+          let intermediateTextureSize = descriptor.intermediateTextureSize,
           let library = descriptor.library,
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
+    argumentContainer.elementColors = elementColors
+    argumentContainer.elementRadii = elementRadii
     argumentContainer.intermediateTextureSize = intermediateTextureSize
     argumentContainer.upscaleFactor = upscaleFactor
     

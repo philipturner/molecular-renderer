@@ -9,7 +9,10 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Reset the counters for memory allocation.
+kernel void buildLargePart1_0
+(
+ )
+
 kernel void buildLargePart2_0
 (
  // Global counters.
@@ -31,8 +34,6 @@ kernel void buildLargePart2_0
   boundingBoxMax[0] = int3(-64);
 }
 
-// Compact the list of reference offsets.
-//
 // Inputs:
 // - largeInputMetadata (8x duplicate)
 //   - large refcount (14 bits), small refcount (18 bits)

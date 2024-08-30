@@ -79,17 +79,16 @@ extension Renderer {
       descriptor.upscaleFactor = ContentView.upscaleFactor
     }
     
+    // Set the element colors and radii.
+    do {
+      let elementColors = Renderer.createColors()
+      let elementRadii = Renderer.createRadii()
+      descriptor.elementColors = elementColors
+      descriptor.elementRadii = elementRadii
+    }
+    
     // Instantiate the rendering engine.
     renderingEngine = MRRenderer(descriptor: descriptor)
-    
-    // Set the atom colors and radii.
-    do {
-      let atomColors = Renderer.createColors()
-      let atomRadii = Renderer.createRadii()
-      renderingEngine.setAtomColors(atomColors)
-      renderingEngine.setAtomRadii(atomRadii)
-      
-    }
   }
   
   // If OpenMM is not set up, comment out the call to this function in

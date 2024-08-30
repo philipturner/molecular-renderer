@@ -15,6 +15,10 @@ struct ArgumentContainer {
     intermediateTextureSize * upscaleFactor
   }
   
+  // Element state variables.
+  var elementColors: [SIMD3<Float>] = []
+  var elementRadii: [Float] = []
+  
   // Atom state variables.
   var currentAtoms: [SIMD4<Float>] = []
   var previousAtoms: [SIMD4<Float>] = []

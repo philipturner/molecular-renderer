@@ -98,7 +98,10 @@ extension BVHBuilder {
       /*__n*/   byteCount)
   }
 }
+
+// MARK: - Part 1
   
+extension BVHBuilder {
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
     // Argument 0
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 0)
@@ -223,4 +226,3 @@ extension BVHBuilder {
     }
   }
 }
-

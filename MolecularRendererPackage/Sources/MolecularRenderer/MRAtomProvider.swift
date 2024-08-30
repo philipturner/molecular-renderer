@@ -15,12 +15,4 @@ extension MRRenderer {
   public func setAtomProvider(_ provider: MRAtomProvider) {
     self.atomProvider = provider
   }
-  
-  public func setAtomColors(_ colors: [SIMD3<Float>]) {
-    self.atomColors = colors
-  }
-  
-  public func setAtomRadii(_ radii: [Float]) {
-    self.atomRadii = radii
-  }
 }
