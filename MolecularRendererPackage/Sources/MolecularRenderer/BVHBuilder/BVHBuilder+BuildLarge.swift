@@ -101,12 +101,12 @@ extension BVHBuilder {
     }
     
     do {
-      let metadata = largeOutputMetadata.contents()
+      let metadata = largeCellMetadata.contents()
         .assumingMemoryBound(to: SIMD4<UInt32>.self)
       
       var largeReferenceCount: Int = .zero
       var smallReferenceCount: Int = .zero
-      for cellID in 0..<(largeOutputMetadata.length / 16) {
+      for cellID in 0..<(largeCellMetadata.length / 16) {
         let cellMetadata = metadata[cellID]
         largeReferenceCount += Int(cellMetadata[3]) & Int(1 << 14 - 1)
         smallReferenceCount += Int(cellMetadata[3]) >> 14;
@@ -139,7 +139,7 @@ extension BVHBuilder {
   
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
     // Argument 0
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 0)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 0)
     
     // Argument 1
     var pattern: UInt32 = 0
@@ -176,7 +176,7 @@ extension BVHBuilder {
     }
     
     // Argument 4
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 4)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 4)
     
     // Dispatch
     do {
@@ -211,9 +211,8 @@ extension BVHBuilder {
     encoder.setBuffer(globalAtomicCounters, offset: 32, index: 2)
     
     // Arguments 3 - 4
-    encoder.setBuffer(largeInputMetadata, offset: 0, index: 3)
-    encoder.setBuffer(largeDebugMetadata, offset: 0, index: 4)
-    encoder.setBuffer(largeOutputMetadata, offset: 0, index: 5)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 3)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 4)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_1

@@ -28,9 +28,8 @@ class BVHBuilder {
   var relativeOffsetsBuffer: MTLBuffer
   
   // Data buffers (per cell).
-  var largeInputMetadata: MTLBuffer
-  var largeDebugMetadata: MTLBuffer
-  var largeOutputMetadata: MTLBuffer
+  var largeCounterMetadata: MTLBuffer
+  var largeCellMetadata: MTLBuffer
   var smallCellMetadata: MTLBuffer
   var smallCellCounters: MTLBuffer
   
@@ -69,9 +68,8 @@ class BVHBuilder {
     relativeOffsetsBuffer = createBuffer(bytesPerAtom: 16)
     
     // Allocate data buffers (per cell).
-    largeInputMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!
-    largeDebugMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!
-    largeOutputMetadata = device.makeBuffer(length: 64 * 64 * 64 * 4 * 4)!
+    largeCounterMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!
+    largeCellMetadata = device.makeBuffer(length: 64 * 64 * 64 * 4 * 4)!
     smallCellMetadata = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     smallCellCounters = device.makeBuffer(length: 512 * 512 * 512 * 4)!
     

@@ -36,7 +36,7 @@ kernel void buildLargePart1_1
  device ushort4 *relativeOffsets2 [[buffer(3)]],
  
  // Per-cell allocations.
- device atomic_uint *largeInputMetadata [[buffer(4)]],
+ device atomic_uint *largeCounterMetadata [[buffer(4)]],
  
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
@@ -120,7 +120,7 @@ kernel void buildLargePart1_1
           footprint[0] * footprint[1] * footprint[2];
           uint word = (smallReferenceCount << 14) + 1;
           
-          offset = atomic_fetch_add_explicit(largeInputMetadata + address,
+          offset = atomic_fetch_add_explicit(largeCounterMetadata + address,
                                              word, memory_order_relaxed);
         }
         
@@ -205,9 +205,8 @@ kernel void buildLargePart2_1
  device atomic_int *boundingBoxMax [[buffer(2)]],
  
  // Per-cell allocations.
- device vec<uint, 8> *largeInputMetadata [[buffer(3)]],
- device vec<uint, 8> *largeDebugMetadata [[buffer(4)]],
- device uint4 *largeOutputMetadata [[buffer(5)]],
+ device vec<uint, 8> *largeCounterMetadata [[buffer(3)]],
+ device uint4 *largeCellMetadata [[buffer(4)]],
  
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -219,7 +218,7 @@ kernel void buildLargePart2_1
   cellCoordinates += tgid * ushort3(4, 4, 4);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-  vec<uint, 8> counterCounts = largeInputMetadata[cellAddress];
+  vec<uint, 8> counterCounts = largeCounterMetadata[cellAddress];
   
   // Reduce the counts across the thread.
   vec<ushort, 8> counterOffsets;
@@ -248,7 +247,7 @@ kernel void buildLargePart2_1
   
   // If the entire SIMD is empty, return here.
   if (simdCounts[0] == 0) {
-    largeOutputMetadata[cellAddress] = uint4(0);
+    largeCellMetadata[cellAddress] = uint4(0);
     return;
   }
   
@@ -303,7 +302,7 @@ kernel void buildLargePart2_1
   
   // If just this thread is empty, return here.
   if (threadTotalCount == 0) {
-    largeOutputMetadata[cellAddress] = uint4(0);
+    largeCellMetadata[cellAddress] = uint4(0);
     return;
   }
   
@@ -313,14 +312,14 @@ kernel void buildLargePart2_1
                          threadLargeOffset,
                          threadSmallOffset,
                          threadTotalCount);
-    largeOutputMetadata[cellAddress] = threadMetadata;
+    largeCellMetadata[cellAddress] = threadMetadata;
   }
   
   // Add the thread offset to the per-counter offset.
   {
     vec<uint, 8> counterOffsets32 = vec<uint, 8>(counterOffsets);
     counterOffsets32 += threadLargeOffset;
-    largeDebugMetadata[cellAddress] = counterOffsets32;
+    largeCounterMetadata[cellAddress] = counterOffsets32;
   }
 }
 
