@@ -10,11 +10,11 @@
 using namespace metal;
 
 // Convert the atom from 'float4' to a custom format.
-float4 convert(float4 atom, constant float *atomicRadii) {
+float4 convert(float4 atom, constant float *elementRadii) {
   uint atomicNumber = uint(atom.w);
-  float atomicRadius = atomicRadii[atomicNumber];
+  float radius = elementRadii[atomicNumber];
   
-  uint packed = as_type<uint>(atomicRadius);
+  uint packed = as_type<uint>(radius);
   packed = packed & 0xFFFFFF00;
   packed |= atomicNumber & 0x000000FF;
   
@@ -23,26 +23,19 @@ float4 convert(float4 atom, constant float *atomicRadii) {
   return output;
 }
 
-// Accumulate the number of references per voxel.
 kernel void buildLargePart1_1
 (
- // Per-element allocations.
- constant float *atomicRadii [[buffer(0)]],
- 
- // Per-atom allocations.
+ constant float *elementRadii [[buffer(0)]],
  device float4 *originalAtoms [[buffer(1)]],
  device ushort4 *relativeOffsets1 [[buffer(2)]],
  device ushort4 *relativeOffsets2 [[buffer(3)]],
- 
- // Per-cell allocations.
  device atomic_uint *largeCounterMetadata [[buffer(4)]],
- 
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
   float4 atom = originalAtoms[tid];
-  atom = convert(atom, atomicRadii);
+  atom = convert(atom, elementRadii);
   
   // Place the atom in the grid of large cells.
   atom.xyz = 4 * (atom.xyz + 64);

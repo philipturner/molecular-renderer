@@ -17,6 +17,7 @@ class BVHBuilder {
   
   // Data buffers (global).
   var globalCounters: MTLBuffer
+  var bvhArguments: MTLBuffer
   var indirectDispatchArguments: MTLBuffer
   
   // Data buffers (per atom).
@@ -55,6 +56,7 @@ class BVHBuilder {
     
     // Data buffers (global).
     globalCounters = createBuffer(length: 1024 * 4)
+    bvhArguments = createBuffer(length: 1024 * 4)
     indirectDispatchArguments = createBuffer(length: 1024 * 4)
     
     // Data buffers (per atom).
@@ -82,3 +84,21 @@ class BVHBuilder {
   }
 }
 
+extension BVHBuilder {
+  func bindElementRadii(encoder: MTLComputeCommandEncoder, index: Int) {
+    let elementRadii = renderer.argumentContainer.elementRadii
+    let byteCount = elementRadii.count * 4
+    encoder.setBytes(elementRadii, length: byteCount, index: index)
+  }
+  
+  func bindOriginalAtoms(encoder: MTLComputeCommandEncoder, index: Int) {
+    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+    let buffer = originalAtoms[tripleIndex]
+    encoder.setBuffer(buffer, offset: 0, index: index)
+  }
+  
+  var currentAtomCount: Int {
+    let atoms = renderer.argumentContainer.currentAtoms
+    return atoms.count
+  }
+}
