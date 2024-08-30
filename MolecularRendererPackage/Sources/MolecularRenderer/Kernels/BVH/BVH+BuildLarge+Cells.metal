@@ -12,9 +12,17 @@ using namespace metal;
 kernel void buildLargePart1_0
 (
  device vec<uint, 8> *largeCounterMetadata [[buffer(0)]],
- uint tid [[thread_position_in_grid]])
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]])
 {
-  largeCounterMetadata[tid] = vec<uint, 8>(0);
+  // Locate the counter metadata.
+  ushort3 cellCoordinates = thread_id;
+  cellCoordinates += tgid * ushort3(4, 4, 4);
+  ushort3 gridDims = ushort3(64);
+  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  
+  // Write the counter metadata.
+  largeCounterMetadata[cellAddress] = vec<uint, 8>(0);
 }
 
 kernel void buildLargePart2_0
@@ -63,11 +71,13 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Read the counts.
+  // Locate the counter metadata.
   ushort3 cellCoordinates = thread_id;
   cellCoordinates += tgid * ushort3(4, 4, 4);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  
+  // Read the counter metadata.
   vec<uint, 8> counterCounts = largeCounterMetadata[cellAddress];
   
   // Reduce the counts across the thread.

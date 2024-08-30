@@ -10,15 +10,11 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Encode the GPU-driven work in this pass.
 kernel void buildSmallPart0_0
 (
- // Global counters.
  device uint3 *allocatedMemory [[buffer(0)]],
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]],
- 
- // Indirect dispatch arguments.
  device BVHArguments *bvhArgs [[buffer(3)]],
  device uint3 *smallCellDispatchArguments8x8x8 [[buffer(4)]])
 {
@@ -45,7 +41,23 @@ kernel void buildSmallPart0_0
   *smallCellDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }
 
-// Reset the counters for memory allocation.
+kernel void buildSmallPart1_0
+(
+ constant BVHArguments *bvhArgs [[buffer(0)]],
+ device uint4 *smallCounterMetadata [[buffer(1)]],
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]])
+{
+  // Load the cell atom counts.
+  ushort3 cellCoordinates = tgid * 8;
+  cellCoordinates += thread_id * ushort3(4, 1, 1);
+  uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
+                                            cellCoordinates);
+  
+  // Write the cell atom counts.
+  smallCounterMetadata[cellAddress / 4] = 0;
+}
+
 kernel void buildSmallPart2_0
 (
  // Global counters.
@@ -73,13 +85,13 @@ kernel void buildSmallPart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Load the cell atom counts.
+  // Locate the counter metadata.
   ushort3 cellCoordinates = tgid * 8;
   cellCoordinates += thread_id * ushort3(4, 1, 1);
   uint cellAddress = VoxelAddress::generate(bvhArgs->smallVoxelCount,
                                             cellCoordinates);
   
-  // Read the cell atom counts.
+  // Read the counter metadata.
   uint4 cellAtomCounts = smallCellMetadata[cellAddress / 4];
   
   // Reduce across the thread.
