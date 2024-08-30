@@ -52,16 +52,18 @@ import Numerics
 //   - Store the per-cell offsets. [DONE]
 //   - Check the correctness of the per-cell offsets before writing atom
 //     references (if possible). [DONE]
-//   - [WILL RESUME THIS TASK AT A LATER DATE]
 //   - Abstract away the code for iterating over large cell footprint.
-//   - Check the correctness of written atom references (if possible).
+//   - Check the correctness of written atom references. Use them as the source
+//     of the small-cell atoms kernels. This means the ray tracer will
+//     intersect some atoms twice.
 //
 // Prepare the small-cell sorting for threadgroup atomics.
 // - Swap the order of the small-cell-metadata and small-cell-counter buffers,
 //   so the former is always the atomically incremented one. [DONE]
 // - Change the indirect dispatch to 4x4x4, one cell per thread. [DONE]
 // - Expand the small-counter metadata with ~4x duplication. [DONE]
-// - Compact the small-counter counters, but not the small-cell metadata.
+//
+// Write the kernel with threadgroup atomics.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
