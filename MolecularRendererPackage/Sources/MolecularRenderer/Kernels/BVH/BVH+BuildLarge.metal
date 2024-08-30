@@ -10,13 +10,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Quantize a position relative to the world origin.
-inline ushort3 quantize(float3 position, ushort3 world_dims) {
-  short3 output = short3(position);
-  output = clamp(output, 0, short3(world_dims));
-  return ushort3(output);
-}
-
 kernel void buildLargePart1_1
 (
  // Per-element allocations.
