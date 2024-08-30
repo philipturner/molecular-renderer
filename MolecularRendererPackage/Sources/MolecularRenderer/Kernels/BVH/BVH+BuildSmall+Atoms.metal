@@ -80,7 +80,7 @@ kernel void buildSmallPart1_2
   }
 }
 
-kernel void buildSmallPart3_0
+kernel void buildSmallPart4_0
 (
  // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],

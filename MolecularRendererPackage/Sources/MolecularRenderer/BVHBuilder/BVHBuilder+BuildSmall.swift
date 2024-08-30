@@ -9,9 +9,9 @@ import Metal
 
 struct BVHBuildSmallPipelines {
   var buildSmallPart1_0: MTLComputePipelineState
-  var buildSmallPart1_1: MTLComputePipelineState
   var buildSmallPart1_2: MTLComputePipelineState
   var buildSmallPart2_0: MTLComputePipelineState
+  var buildSmallPart2_1: MTLComputePipelineState
   var buildSmallPart3_0: MTLComputePipelineState
   
   init(library: MTLLibrary) {
@@ -23,9 +23,9 @@ struct BVHBuildSmallPipelines {
       return try! device.makeComputePipelineState(function: function)
     }
     buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
-    buildSmallPart1_1 = createPipeline(name: "buildSmallPart1_1")
     buildSmallPart1_2 = createPipeline(name: "buildSmallPart1_2")
     buildSmallPart2_0 = createPipeline(name: "buildSmallPart2_0")
+    buildSmallPart2_1 = createPipeline(name: "buildSmallPart2_1")
     buildSmallPart3_0 = createPipeline(name: "buildSmallPart3_0")
   }
 }
@@ -37,9 +37,10 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildSmallPart1_0(encoder: encoder)
-    
-    clearAllocationCounters(encoder: encoder)
-    clearSmallCellMetadata(encoder: encoder)
+    buildSmallPart1_1(encoder: encoder)
+    buildSmallPart1_2(encoder: encoder)
+    buildSmallPart2_0(encoder: encoder)
+    buildSmallPart2_1(encoder: encoder)
     buildSmallPart1(encoder: encoder)
     buildSmallPart2(encoder: encoder)
     buildSmallPart3(encoder: encoder)
