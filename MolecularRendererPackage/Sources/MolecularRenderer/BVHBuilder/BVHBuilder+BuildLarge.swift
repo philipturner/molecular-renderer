@@ -15,16 +15,12 @@ struct BVHBuildLargePipelines {
   // Part 1
   // - Kernel 0: Reset the large counter metadata.
   // - Kernel 1: Accumulate the reference count for each voxel.
+  var buildLargePart1_0: MTLComputePipelineState
   
   // Part 2
   // - Kernel 0: Reset the allocation and box counters.
   // - Kernel 1: Compact the reference offset for each voxel.
   // - Kernel 2: Copy atoms into converted format (for now).
-  
-  var buildLargePart1_1: MTLComputePipelineState
-  var buildLargePart2_0: MTLComputePipelineState
-  var buildLargePart2_1: MTLComputePipelineState
-  var buildLargePart3_0: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -34,10 +30,7 @@ struct BVHBuildLargePipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
-    buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
-    buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
-    buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
-    buildLargePart3_0 = createPipeline(name: "buildLargePart3_0")
+    buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
   }
 }
 
@@ -50,10 +43,6 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildLargePart1_0(encoder: encoder)
-    buildLargePart1_1(encoder: encoder)
-    buildLargePart2_0(encoder: encoder)
-    buildLargePart2_1(encoder: encoder)
-    buildLargePart3_0(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -106,16 +95,16 @@ extension BVHBuilder {
     // Argument 0
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 0)
     
-    // Argument 1
-    var pattern: UInt32 = 0
-    encoder.setBytes(&pattern, length: 4, index: 1)
-    
     // Dispatch
-    let pipeline = resetMemoryPipelines.resetMemory1D
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSize(width: 64 * 64 * 64 * 8 / 128, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart1_0
+      encoder.setComputePipelineState(pipeline)
+      
+      let cellCount = largeCounterMetadata.length / (8 * 4)
+      encoder.dispatchThreadgroups(
+        MTLSize(width: cellCount / 128, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
   }
   
   func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {

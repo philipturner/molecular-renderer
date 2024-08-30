@@ -11,7 +11,11 @@ using namespace metal;
 
 kernel void buildLargePart1_0
 (
- )
+ device vec<uint, 8> *largeCounterMetadata [[buffer(0)]],
+ uint tid [[thread_position_in_grid]])
+{
+  largeCounterMetadata[tid] = vec<uint, 8>(0);
+}
 
 kernel void buildLargePart2_0
 (
