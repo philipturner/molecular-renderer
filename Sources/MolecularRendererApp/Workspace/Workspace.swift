@@ -49,9 +49,9 @@ import Numerics
 //   - Delete the bounding box kernels from the "prepare" pass. [DONE]
 // - Store references to original atoms in the large voxels' lists.
 //   - Delete the final kernel of the "prepare" pass. [DONE]
-//   - Store the per-cell offsets.
+//   - Store the per-cell offsets. [DONE]
 //   - Check the correctness of the per-cell offsets before writing atom
-//     references (if possible).
+//     references (if possible). [DONE]
 //   - Check the correctness of written atom references (if possible).
 //
 // Get the small-cell sorting working at all.
