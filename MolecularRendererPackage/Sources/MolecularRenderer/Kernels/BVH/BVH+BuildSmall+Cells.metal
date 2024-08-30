@@ -86,7 +86,7 @@ kernel void buildSmallPart2_1
                                             cellCoordinates);
   
   // Read the counter metadata.
-  uint4 cellAtomCounts = smallCellMetadata[cellAddress / 4];
+  uint4 cellAtomCounts = smallCounterMetadata[cellAddress / 4];
   
   // Reduce across the thread.
   uint4 cellAtomOffsets;
