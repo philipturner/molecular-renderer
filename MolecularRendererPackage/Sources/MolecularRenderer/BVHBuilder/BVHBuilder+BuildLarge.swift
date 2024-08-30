@@ -123,10 +123,12 @@ extension BVHBuilder {
         .assumingMemoryBound(to: SIMD8<UInt32>.self)
       let debugMetadata = largeDebugMetadata.contents()
         .assumingMemoryBound(to: SIMD8<UInt32>.self)
+      let outputMetadata = largeOutputMetadata.contents()
+        .assumingMemoryBound(to: SIMD4<UInt32>.self)
       
       var activeCellCount: Int = .zero
       for cellID in 0..<(64 * 64 * 64) {
-        let counterCounts = debugMetadata[cellID]
+        let counterCounts = inputMetadata[cellID]
         guard any(counterCounts .> 0) else {
           continue
         }
@@ -139,13 +141,13 @@ extension BVHBuilder {
       
       var activeCellCursor: Int = .zero
       for cellID in 0..<(64 * 64 * 64) {
-        let counterCounts = debugMetadata[cellID]
+        let counterCounts = inputMetadata[cellID]
         guard any(counterCounts .> 0) else {
           continue
         }
         
         let compactedCellID = activeCellCursor
-        guard compactedCellID < 700 else {
+        guard compactedCellID < 50 else {
           continue
         }
         activeCellCursor += 1
@@ -159,17 +161,35 @@ extension BVHBuilder {
           return output
         }
         
-        let offsets = debugMetadata[cellID]
-        var counts = inputMetadata[cellID]
-        counts = counts & UInt32(1 << 14 - 1)
-        let total = counts.wrappedSum()
+        do {
+          print("- cells[\(compactedCellID)]:")
+        }
         
-        let offsetsRepr = shorten(offsets)
-        let countsRepr = shorten(counts)
-        print("- cells[\(compactedCellID)]:")
-        print("  -  counts:", countsRepr)
-        print("  - offsets:", offsetsRepr)
-        print("  -   total:", total)
+        do {
+          let offsets = debugMetadata[cellID]
+          var counts = inputMetadata[cellID]
+          counts = counts & UInt32(1 << 14 - 1)
+          let total = counts.wrappedSum()
+          
+          let offsetsRepr = shorten(offsets)
+          let countsRepr = shorten(counts)
+          print("  - counter metadata:")
+          print("    -   total: \(total) atom references")
+          print("    -  counts:", countsRepr)
+          print("    - offsets:", offsetsRepr)
+          
+        }
+        
+        do {
+          let metadata = outputMetadata[cellID]
+          let largeRefCount = metadata[3] & UInt32(1 << 14 - 1)
+          let smallRefCount = metadata[3] >> 14
+          print("  - cell metadata:")
+          print("    - voxel offset: \(metadata[0])")
+          print("    - large offset: \(metadata[1])")
+          print("    - small offset: \(metadata[2])")
+          print("    - total counts: \(largeRefCount), \(smallRefCount)")
+        }
       }
     }
     
