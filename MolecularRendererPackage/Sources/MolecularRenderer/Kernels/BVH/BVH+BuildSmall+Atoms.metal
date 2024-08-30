@@ -38,17 +38,11 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   return dist_squared > 0;
 }
 
-kernel void buildSmallPart1_2
+kernel void buildSmallPart1_1
 (
- // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],
- 
- // Per-atom allocations.
  device float4 *convertedAtoms [[buffer(1)]],
- 
- // Per-cell allocations.
  device atomic_uint *smallCounterMetadata [[buffer(2)]],
- 
  uint tid [[thread_position_in_grid]])
 {
   // Transform the atom.
@@ -80,21 +74,12 @@ kernel void buildSmallPart1_2
   }
 }
 
-kernel void buildSmallPart4_0
+kernel void buildSmallPart2_2
 (
- // Dispatch arguments.
  constant BVHArguments *bvhArgs [[buffer(0)]],
- 
- // Per-atom allocations.
  device float4 *convertedAtoms [[buffer(1)]],
- 
- // Per-cell allocations.
  device atomic_uint *smallCounterMetadata [[buffer(2)]],
- 
- // Other allocations.
  device uint *smallAtomReferences [[buffer(3)]],
- 
- 
  uint tid [[thread_position_in_grid]])
 {
   // Transform the atom.
