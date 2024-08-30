@@ -14,25 +14,29 @@ extension FrameReporter {
   }
   
   func queryPerformance() -> SIMD4<Double> {
-    var validFrameCount: Int = .zero
+    // Initialize the accumulators.
     var sum: SIMD4<Double> = .zero
+    var validFrameCount: SIMD4<Double> = .zero
     
+    // Iterate over the reports.
     for reportID in reports.indices {
       let report = reports[reportID]
-      guard report.buildLargeTime > 0 else {
-        continue
-      }
       
-      validFrameCount += 1
-      sum[0] += report.copyTime
-      sum[1] += report.buildLargeTime
+      var reportData: SIMD4<Double> = .zero
+      reportData[0] = report.copyTime
+      reportData[1] = report.buildLargeTime
+      reportData[2] = report.buildSmallTime
+      reportData[3] = report.renderTime
+      
+      sum += reportData
+      validFrameCount += reportData.replacing(
+        with: .one, where: reportData .> 0)
     }
     
-    if validFrameCount > 0 {
-      return sum / Double(validFrameCount)
-    } else {
-      return .zero
-    }
+    // Take the average.
+    sum /= validFrameCount
+    sum.replace(with: SIMD4.zero, where: validFrameCount .== 0)
+    return sum
   }
   
   func display(performance: SIMD4<Double>) {

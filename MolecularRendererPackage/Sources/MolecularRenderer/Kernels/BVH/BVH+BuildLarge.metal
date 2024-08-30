@@ -10,11 +10,25 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+// Convert the atom from 'float4' to a custom format.
+float4 convert(float4 atom, constant float *atomicRadii) {
+  uint atomicNumber = uint(atom.w);
+  float atomicRadius = atomicRadii[atomicNumber];
+  
+  uint packed = as_type<uint>(atomicRadius);
+  packed = packed & 0xFFFFFF00;
+  packed |= atomicNumber & 0x000000FF;
+  
+  float4 output = atom;
+  output.w = as_type<float>(packed);
+  return output;
+}
+
 // Accumulate the number of references per voxel.
 kernel void buildLargePart1_1
 (
  // Per-element allocations.
- device float *atomicRadii [[buffer(0)]],
+ constant float *atomicRadii [[buffer(0)]],
  
  // Per-atom allocations.
  device float4 *originalAtoms [[buffer(1)]],
@@ -29,15 +43,7 @@ kernel void buildLargePart1_1
 {
   // Materialize the atom.
   float4 atom = originalAtoms[tid];
-  {
-    uint atomicNumber = uint(atom.w);
-    float atomicRadius = atomicRadii[atomicNumber];
-    
-    uint packed = as_type<uint>(atomicRadius);
-    packed = packed & 0xFFFFFF00;
-    packed |= atomicNumber & 0x000000FF;
-    atom.w = as_type<float>(packed);
-  }
+  atom = convert(atom, atomicRadii);
   
   // Place the atom in the grid of large cells.
   atom.xyz = 4 * (atom.xyz + 64);
@@ -206,46 +212,48 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Locate the cell metadata.
+  // Read the counts.
   ushort3 cellCoordinates = thread_id;
   cellCoordinates += tgid * ushort3(4, 4, 4);
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  vec<uint, 8> cellCounts = largeInputMetadata[cellAddress];
   
-  // Read the cell metadata.
-  vec<uint, 8> cellMetadata = largeInputMetadata[cellAddress];
-  
-  // Reduce counts across the thread.
+  // Reduce the counts across the thread.
+  vec<uint, 8> cellOffsets;
   uint threadTotalCount = 0;
 #pragma clang loop unroll(full)
   for (ushort laneID = 0; laneID < 8; ++laneID) {
-    threadTotalCount += cellMetadata[laneID];
+    uint cellLargeOffset = threadTotalCount & (uint(1 << 14) - 1);
+    cellOffsets[laneID] = cellLargeOffset;
+    threadTotalCount += cellCounts[laneID];
+  }
+  
+  // Reduce the counts across the SIMD.
+  uint3 threadOffsets;
+  uint3 simdCounts;
+  {
+    uint threadVoxelCount = (threadTotalCount > 0) ? 1 : 0;
+    uint threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
+    uint threadSmallCount = threadTotalCount >> 14;
+    uint3 threadCounts(threadVoxelCount,
+                       threadLargeCount,
+                       threadSmallCount);
+    
+    threadOffsets = simd_prefix_exclusive_sum(threadCounts);
+    simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
   }
   
   // Return early if empty.
-  if (simd_ballot(threadTotalCount == 0).all()) {
+  if (simdCounts[0] == 0) {
     largeOutputMetadata[cellAddress] = uint4(0);
     return;
-  }
-  largeOutputMetadata[cellAddress] = uint4(0, 0, 0, threadTotalCount);
-  
-  // Reduce counts across the SIMD.
-  uint threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
-  uint threadSmallCount = threadTotalCount >> 14;
-  uint3 simdCounts;
-  {
-    uint simdVoxelCount = simd_sum(threadLargeCount > 0 ? 1 : 0);
-    uint simdLargeCount = simd_sum(threadLargeCount);
-    uint simdSmallCount = simd_sum(threadSmallCount);
-    simdCounts = uint3(simdVoxelCount,
-                       simdLargeCount,
-                       simdSmallCount);
   }
   
   // Reduce the bounding box across the SIMD.
   int3 threadBoxMin;
   int3 threadBoxMax;
-  if (threadLargeCount > 0) {
+  if (threadTotalCount > 0) {
     threadBoxMin = int3(cellCoordinates) * 2 - 64;
     threadBoxMax = threadBoxMin + 2;
   } else {
@@ -256,6 +264,7 @@ kernel void buildLargePart2_1
   int3 simdBoxMax = simd_max(threadBoxMax);
   
   // Reduce across the entire GPU.
+  uint simdOffsetValue = 0;
   if (lane_id < 3) {
     // Distribute the data across three threads.
     uint countValue = 0;
@@ -271,25 +280,25 @@ kernel void buildLargePart2_1
     }
     
     // Allocate memory, using the global counters.
+    simdOffsetValue =
     atomic_fetch_add_explicit(allocatedMemory + lane_id,
-                              countValue,
-                              memory_order_relaxed);
+                              countValue, memory_order_relaxed);
     
+    // Reduce the dense boounding box.
     atomic_fetch_min_explicit(boundingBoxMin + lane_id,
-                              boxMinValue,
-                              memory_order_relaxed);
-    
+                              boxMinValue, memory_order_relaxed);
     atomic_fetch_max_explicit(boundingBoxMax + lane_id,
-                              boxMaxValue,
-                              memory_order_relaxed);
+                              boxMaxValue, memory_order_relaxed);
   }
+  
+  // Add the SIMD offset to the thread offset.
 }
 
 // Copy the atoms into a new buffer.
 kernel void buildLargePart3_0
 (
  // Per-element allocations.
- device float *atomicRadii [[buffer(0)]],
+ constant float *atomicRadii [[buffer(0)]],
  
  // Per-atom allocations.
  device float4 *originalAtoms [[buffer(1)]],
@@ -302,15 +311,7 @@ kernel void buildLargePart3_0
 {
   // Materialize the atom.
   float4 atom = originalAtoms[tid];
-  {
-    uint atomicNumber = uint(atom.w);
-    float atomicRadius = atomicRadii[atomicNumber];
-    
-    uint packed = as_type<uint>(atomicRadius);
-    packed = packed & 0xFFFFFF00;
-    packed |= atomicNumber & 0x000000FF;
-    atom.w = as_type<float>(packed);
-  }
+  atom = convert(atom, atomicRadii);
   
   // Write in the new format.
   convertedAtoms[tid] = atom;
