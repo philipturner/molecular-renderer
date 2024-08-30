@@ -13,20 +13,18 @@ class BVHBuilder {
   unowned var renderer: MRRenderer
   
   // Pipeline state objects.
-  var resetMemoryPipelines: BVHResetMemoryPipelines
   var buildLargePipelines: BVHBuildLargePipelines
   var buildSmallPipelines: BVHBuildSmallPipelines
   
   // Data buffers (indirect dispatch).
-  var globalAtomicCounters: MTLBuffer
-  var bvhArgumentsBuffer: MTLBuffer
-  var smallCellDispatchArguments1x1x128: MTLBuffer
-  var smallCellDispatchArguments8x8x8: MTLBuffer
+  var globalCounters: MTLBuffer
+  var bvhArguments: MTLBuffer
+  var indirectDispatchArguments: MTLBuffer
   
   // Data buffers (per atom).
-  var originalAtomsBuffers: [MTLBuffer]
-  var convertedAtomsBuffer: MTLBuffer
-  var relativeOffsetsBuffer: MTLBuffer
+  var originalAtoms: [MTLBuffer]
+  var convertedAtoms: MTLBuffer
+  var relativeOffsets: MTLBuffer
   
   // Data buffers (per cell).
   var largeCounterMetadata: MTLBuffer
@@ -46,7 +44,6 @@ class BVHBuilder {
     self.device = device
     self.renderer = renderer
     
-    resetMemoryPipelines = BVHResetMemoryPipelines(library: library)
     buildLargePipelines = BVHBuildLargePipelines(library: library)
     buildSmallPipelines = BVHBuildSmallPipelines(library: library)
     
@@ -56,19 +53,18 @@ class BVHBuilder {
     }
     
     // Allocate data buffers (indirect dispatch).
-    globalAtomicCounters = device.makeBuffer(length: 1024 * 4)!
-    bvhArgumentsBuffer = device.makeBuffer(length: 1024 * 4)!
-    smallCellDispatchArguments1x1x128 = device.makeBuffer(length: 1024 * 4)!
-    smallCellDispatchArguments8x8x8 = device.makeBuffer(length: 1024 * 4)!
+    globalCounters = device.makeBuffer(length: 1024 * 4)!
+    bvhArguments = device.makeBuffer(length: 1024 * 4)!
+    indirectDispatchArguments = device.makeBuffer(length: 1024 * 4)!
     
     // Allocate data buffers (per atom).
-    originalAtomsBuffers = [
+    originalAtoms = [
       createBuffer(bytesPerAtom: 16),
       createBuffer(bytesPerAtom: 16),
       createBuffer(bytesPerAtom: 16),
     ]
-    convertedAtomsBuffer = createBuffer(bytesPerAtom: 2 * 16)
-    relativeOffsetsBuffer = createBuffer(bytesPerAtom: 16)
+    convertedAtoms = createBuffer(bytesPerAtom: 2 * 16)
+    relativeOffsets = createBuffer(bytesPerAtom: 16)
     
     // Allocate data buffers (per cell).
     largeCounterMetadata = device.makeBuffer(length: 64 * 64 * 64 * 8 * 4)!

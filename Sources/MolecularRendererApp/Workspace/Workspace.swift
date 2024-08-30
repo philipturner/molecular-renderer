@@ -56,16 +56,12 @@ import Numerics
 //   - Abstract away the code for iterating over large cell footprint.
 //   - Check the correctness of written atom references (if possible).
 //
-// Get the small-cell sorting working at all.
+// Prepare the small-cell sorting for threadgroup atomics.
 // - Swap the order of the small-cell-metadata and small-cell-counter buffers,
 //   so the former is always the atomically incremented one.
-// - Change the dispatch over small cells to be 4x4x4, and one cell per thread.
-// - Expand the small-cell counters with ~4x duplication. Accept that large
-//   enough grids will run out of memory.
-// - Convert the duplicated counters to once-per-cell metadata.
-// - Compact the small-cell counters allocation.
-// - Fuse into a single kernel, using threadgroup atomics instead of device
-//   atomics.
+// - Change the indirect dispatch to 4x4x4, one cell per thread.
+// - Expand the small-counter metadata with ~4x duplication.
+// - Compact the small-counter counters, but not the small-cell metadata.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not

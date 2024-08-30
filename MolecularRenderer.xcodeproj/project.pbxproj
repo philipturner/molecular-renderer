@@ -31,7 +31,6 @@
 		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
 		985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */; };
 		985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE92C7A69900096A104 /* DenseGrid.metal */; };
-		985BBF022C7CC97C0096A104 /* ResetMemory.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBF012C7CC97C0096A104 /* ResetMemory.metal */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -180,8 +179,6 @@
 		985BBEFC2C7BC4BF0096A104 /* FrameReporter+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+Logging.swift"; sourceTree = "<group>"; };
 		985BBEFD2C7BC6120096A104 /* FrameReporter+FrameChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+FrameChange.swift"; sourceTree = "<group>"; };
 		985BBF002C7BCAF40096A104 /* ArgumentContainer+Upscale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Upscale.swift"; sourceTree = "<group>"; };
-		985BBF012C7CC97C0096A104 /* ResetMemory.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ResetMemory.metal; sourceTree = "<group>"; };
-		985BBF032C7CD6D30096A104 /* BVHBuilder+ResetMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+ResetMemory.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -970,7 +967,6 @@
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
 				9805D7B22C7DF518004E180A /* BVHBuilder+BuildLarge.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+BuildSmall.swift */,
-				985BBF032C7CD6D30096A104 /* BVHBuilder+ResetMemory.swift */,
 			);
 			path = BVHBuilder;
 			sourceTree = "<group>";
@@ -1128,7 +1124,6 @@
 				987671E82C82383800121870 /* BVH+BuildLarge+Cells.metal */,
 				98537EAE2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal */,
 				987671EA2C82387E00121870 /* BVH+BuildSmall+Cells.metal */,
-				985BBF012C7CC97C0096A104 /* ResetMemory.metal */,
 			);
 			path = BVH;
 			sourceTree = "<group>";
@@ -1352,7 +1347,6 @@
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				987671E92C82383800121870 /* BVH+BuildLarge+Cells.metal in Sources */,
 				985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */,
-				985BBF022C7CC97C0096A104 /* ResetMemory.metal in Sources */,
 				985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
 				98537EAF2A62EA3D0037C392 /* BVH+BuildSmall+Atoms.metal in Sources */,
