@@ -50,6 +50,11 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    buildLargePart1_0(encoder: encoder)
+    buildLargePart1_1(encoder: encoder)
+    buildLargePart2_0(encoder: encoder)
+    buildLargePart2_1(encoder: encoder)
+    buildLargePart2_2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in

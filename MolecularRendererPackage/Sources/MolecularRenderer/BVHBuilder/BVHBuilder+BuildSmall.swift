@@ -45,18 +45,8 @@ struct BVHBuildSmallPipelines {
 
 extension BVHBuilder {
   func buildSmallBVH(frameID: Int) {
-    let atoms = renderer.argumentContainer.currentAtoms
-    
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
-    buildSmallPart1_0(encoder: encoder)
-    buildSmallPart1_1(encoder: encoder)
-    buildSmallPart1_2(encoder: encoder)
-    buildSmallPart2_0(encoder: encoder)
-    buildSmallPart2_1(encoder: encoder)
-    buildSmallPart1(encoder: encoder)
-    buildSmallPart2(encoder: encoder)
-    buildSmallPart3(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
