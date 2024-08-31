@@ -83,6 +83,8 @@ kernel void buildSmallPart0_0
 // Dispatch over 128 threads: 750 μs + 1800 μs
 // Dispatch over 256 threads: 710 μs + 1600 μs
 // Threadgroup atomics:       440 μs + 1200 μs
+//
+// Fusion into a single kernel: 1290 μs
 kernel void buildSmallPart1_0
 (
  device atomic_uint *allocatedMemory [[buffer(0)]],

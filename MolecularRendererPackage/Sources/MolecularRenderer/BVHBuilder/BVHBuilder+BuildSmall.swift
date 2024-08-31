@@ -98,6 +98,5 @@ extension BVHBuilder {
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
-    
   }
 }
