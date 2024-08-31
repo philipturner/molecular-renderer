@@ -96,6 +96,9 @@ kernel void buildSmallPart1_1
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
+  // Allocate memory for the relative offsets.
+  threadgroup uchar cachedRelativeOffsets[savedRefs * 128];
+  
   // Materialize the atom.
   float4 atom = convertedAtoms[tid];
   
@@ -120,11 +123,9 @@ kernel void buildSmallPart1_1
   loopStart = reorderForward(loopStart, permutationID);
   loopEnd = reorderForward(loopEnd, permutationID);
   
-  // Allocate memory for the relative offsets.
-  threadgroup uchar cachedRelativeOffsets[savedRefs * 128];
-  ushort offsetCursor = 0;
-  
   // Iterate over the footprint on the 3D grid.
+  simdgroup_barrier(mem_flags::mem_threadgroup);
+  ushort offsetCursor = 0;
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
     for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
       for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
@@ -199,6 +200,9 @@ kernel void buildSmallPart2_2
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
+  // Allocate memory for the relative offsets.
+  threadgroup uchar cachedRelativeOffsets[savedRefs * 128];
+  
   // Materialize the atom.
   float4 atom = convertedAtoms[tid];
   
@@ -223,16 +227,13 @@ kernel void buildSmallPart2_2
   loopStart = reorderForward(loopStart, permutationID);
   loopEnd = reorderForward(loopEnd, permutationID);
   
-  // Allocate memory for the relative offsets.
-  threadgroup uchar cachedRelativeOffsets[savedRefs * 128];
-  ushort offsetCursor = 0;
-  
   {
     // Read from device memory.
     vec<uchar, savedRefs> input;
     input = relativeOffsets[tid];
     
     // Store the cached offsets.
+    simdgroup_barrier(mem_flags::mem_threadgroup);
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < savedRefs; ++i) {
       ushort address = i;
@@ -244,6 +245,7 @@ kernel void buildSmallPart2_2
   
   // Iterate over the footprint on the 3D grid.
   simdgroup_barrier(mem_flags::mem_threadgroup);
+  ushort offsetCursor = 0;
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
     for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
       for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {

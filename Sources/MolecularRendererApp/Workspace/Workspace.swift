@@ -66,9 +66,10 @@ import Numerics
 // - Expand the small-counter metadata with ~4x duplication. [DONE]
 //   - Revert this change. [DONE]
 // - Try reducing divergence in the loops over small cells. [DONE]
-// - Try storing the small-cell relative offsets to memory.
+// - Try storing the small-cell relative offsets to memory. [DONE]
 //
 // Write the kernel with threadgroup atomics.
+// - Make the kernels iterate over the atoms within a threadgroup.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
