@@ -98,6 +98,25 @@ kernel void buildSmallPart1_1
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
+  // Initialize the small-cell counters.
+  threadgroup uint threadgroupCounters[512];
+  for (ushort smallCellID = thread_id;
+       smallCellID < 512;
+       smallCellID += 128)
+  {
+    ushort3 localCoordinates(smallCellID % 8,
+                             (smallCellID % 64) / 8,
+                             smallCellID / 64);
+    ushort3 localGridDims = 8;
+    ushort localCellAddress = VoxelAddress::generate(localGridDims,
+                                                     localCoordinates);
+    
+    // Write the counter metadata.
+    uint resetValue = uint(0);
+    threadgroupCounters[localCellAddress] = resetValue;
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  
   // Materialize the lower corner in registers.
   float3 lowerCorner = bvhArgs->worldMinimum;
   lowerCorner += float3(tgid) * 2;
@@ -158,16 +177,48 @@ kernel void buildSmallPart1_1
             continue;
           }
           
+          // Run a smoke test.
+          short3 smokeTest = short3(actualXYZ) - short3(tgid) * 8;
+          if (any(smokeTest < 0) || any(smokeTest >= 8)) {
+            continue;
+          }
+          
           // Generate the address.
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, actualXYZ);
+          ushort3 gridDims = ushort3(8);
+          ushort3 cellCoordinates = actualXYZ - tgid * 8;
+          ushort address = VoxelAddress::generate(gridDims, cellCoordinates);
           
           // Perform the atomic fetch-add.
-          atomic_fetch_add_explicit(smallCounterMetadata + address,
+          auto castedCounters =
+          (threadgroup atomic_uint*)threadgroupCounters;
+          atomic_fetch_add_explicit(castedCounters + address,
                                     1, memory_order_relaxed);
         }
       }
     }
+  }
+  
+  // Write the small-cell counters.
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  for (ushort smallCellID = thread_id;
+       smallCellID < 512;
+       smallCellID += 128)
+  {
+    ushort3 localCoordinates(smallCellID % 8,
+                            (smallCellID % 64) / 8,
+                            smallCellID / 64);
+    ushort3 localGridDims = 8;
+    ushort localCellAddress = VoxelAddress::generate(localGridDims,
+                                                     localCoordinates);
+    
+    ushort3 globalCoordinates = tgid * 8 + localCoordinates;
+    ushort3 globalGridDims = bvhArgs->smallVoxelCount;
+    uint globalCellAddress = VoxelAddress::generate(globalGridDims,
+                                                    globalCoordinates);
+    
+    uint offset = threadgroupCounters[localCellAddress];
+    atomic_fetch_add_explicit(smallCounterMetadata + globalCellAddress,
+                              offset, memory_order_relaxed);
   }
 }
 
@@ -275,6 +326,12 @@ kernel void buildSmallPart2_2
           // Narrow down the cells with a cube-sphere intersection test.
           bool intersected = cubeSphereIntersection(actualXYZ, atom);
           if (!intersected) {
+            continue;
+          }
+          
+          // Run a smoke test.
+          short3 smokeTest = short3(actualXYZ) - short3(tgid) * 8;
+          if (any(smokeTest < 0) || any(smokeTest >= 8)) {
             continue;
           }
           
