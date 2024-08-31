@@ -177,12 +177,6 @@ kernel void buildSmallPart1_1
             continue;
           }
           
-          // Run a smoke test.
-          short3 smokeTest = short3(actualXYZ) - short3(tgid) * 8;
-          if (any(smokeTest < 0) || any(smokeTest >= 8)) {
-            continue;
-          }
-          
           // Generate the address.
           ushort3 gridDims = ushort3(8);
           ushort3 cellCoordinates = actualXYZ - tgid * 8;
@@ -217,8 +211,13 @@ kernel void buildSmallPart1_1
                                                     globalCoordinates);
     
     uint offset = threadgroupCounters[localCellAddress];
-    atomic_fetch_add_explicit(smallCounterMetadata + globalCellAddress,
-                              offset, memory_order_relaxed);
+    if (any(globalCoordinates >= globalGridDims)) {
+      atomic_fetch_add_explicit(smallCounterMetadata + globalCellAddress,
+                                offset, memory_order_relaxed);
+    } else {
+      auto casted = (device uint*)smallCounterMetadata;
+      casted[globalCellAddress] = offset;
+    }
   }
 }
 
@@ -326,12 +325,6 @@ kernel void buildSmallPart2_2
           // Narrow down the cells with a cube-sphere intersection test.
           bool intersected = cubeSphereIntersection(actualXYZ, atom);
           if (!intersected) {
-            continue;
-          }
-          
-          // Run a smoke test.
-          short3 smokeTest = short3(actualXYZ) - short3(tgid) * 8;
-          if (any(smokeTest < 0) || any(smokeTest >= 8)) {
             continue;
           }
           

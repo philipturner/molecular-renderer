@@ -30,16 +30,15 @@ kernel void buildSmallPart0_0
   
   // Compute the grid dimensions.
   ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
-  ushort3 smallVoxelCount = ushort3(4 * (maximum - minimum));
   
   // Set the BVH arguments.
   bvhArgs->worldMinimum = float3(minimum);
   bvhArgs->worldMaximum = float3(maximum);
   bvhArgs->largeVoxelCount = largeVoxelCount;
-  bvhArgs->smallVoxelCount = smallVoxelCount;
+  bvhArgs->smallVoxelCount = largeVoxelCount * 8;;
   
   // Set the small-cell dispatch arguments.
-  *smallCellDispatchArguments4x4x4 = uint3(2 * largeVoxelCount);
+  *smallCellDispatchArguments4x4x4 = uint3(largeVoxelCount) * 2;
   *atomDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }
 
