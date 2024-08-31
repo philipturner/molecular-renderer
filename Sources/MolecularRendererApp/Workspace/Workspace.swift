@@ -62,6 +62,8 @@ import Numerics
 //   so the former is always the atomically incremented one. [DONE]
 // - Change the indirect dispatch to 4x4x4, one cell per thread. [DONE]
 // - Expand the small-counter metadata with ~4x duplication. [DONE]
+//   - Revert this change.
+// - Try reducing divergence in the loops over small cells.
 //
 // Write the kernel with threadgroup atomics.
 //

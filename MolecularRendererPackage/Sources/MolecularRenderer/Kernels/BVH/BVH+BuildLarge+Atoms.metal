@@ -37,7 +37,7 @@ kernel void buildLargePart1_1
   float4 atom = originalAtoms[tid];
   atom = convert(atom, elementRadii);
   
-  // Place the atom in the grid of large cells.
+  // Place the atom in the grid of small cells.
   atom.xyz = 4 * (atom.xyz + 64);
   atom.w = 4 * atom.w;
   

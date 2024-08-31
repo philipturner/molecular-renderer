@@ -38,6 +38,7 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   return dist_squared > 0;
 }
 
+// Before: 380 microseconds
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -45,37 +46,51 @@ kernel void buildSmallPart1_1
  device atomic_uint *smallCounterMetadata [[buffer(2)]],
  uint tid [[thread_position_in_grid]])
 {
-  // Transform the atom.
-  float4 newAtom = convertedAtoms[tid];
-  newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
-  newAtom.w = 4 * newAtom.w;
+  // Materialize the atom.
+  float4 atom = convertedAtoms[tid];
+  
+  // Place the atom in the grid of small cells.
+  atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
+  atom.w = 4 * atom.w;
   
   // Generate the bounding box.
-  ushort3 grid_dims = bvhArgs->smallVoxelCount;
-  auto box_min = quantize(newAtom.xyz - newAtom.w, grid_dims);
-  auto box_max = quantize(newAtom.xyz + newAtom.w, grid_dims);
+  ushort3 loopStart;
+  ushort3 loopEnd;
+  {
+    ushort3 gridDims = bvhArgs->smallVoxelCount;
+    ushort3 smallVoxelMin = quantize(atom.xyz - atom.w, gridDims);
+    ushort3 smallVoxelMax = quantize(atom.xyz + atom.w, gridDims);
+    
+    loopStart = smallVoxelMin;
+    loopEnd = smallVoxelMax;
+  }
   
   // Iterate over the footprint on the 3D grid.
-  for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
-    for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
-      for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
-        ushort3 cube_min { x, y, z };
+  for (ushort z = loopStart[2]; z <= loopEnd[2]; ++z) {
+    for (ushort y = loopStart[1]; y <= loopEnd[1]; ++y) {
+      for (ushort x = loopStart[0]; x <= loopEnd[0]; ++x) {
+        ushort3 actualXYZ;
+        actualXYZ = ushort3(x, y, z);
         
         // Narrow down the cells with a cube-sphere intersection test.
-        bool mark = cubeSphereIntersection(cube_min, newAtom);
-        if (mark) {
-          uint address = VoxelAddress::generate(grid_dims, cube_min);
-          address = (address * 4) + (tid % 4);
-          
-          // Increment the counter.
-          atomic_fetch_add_explicit(smallCounterMetadata + address,
-                                    1, memory_order_relaxed);
+        bool intersected = cubeSphereIntersection(actualXYZ, atom);
+        if (!intersected) {
+          continue;
         }
+        
+        // Locate the counter.
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        uint address = VoxelAddress::generate(gridDims, actualXYZ);
+        
+        // Increment the counter.
+        atomic_fetch_add_explicit(smallCounterMetadata + address,
+                                  1, memory_order_relaxed);
       }
     }
   }
 }
 
+// Before: 1.1 milliseconds
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -84,37 +99,50 @@ kernel void buildSmallPart2_2
  device uint *smallAtomReferences [[buffer(3)]],
  uint tid [[thread_position_in_grid]])
 {
-  // Transform the atom.
-  float4 newAtom = convertedAtoms[tid];
-  newAtom.xyz = 4 * (newAtom.xyz - bvhArgs->worldMinimum);
-  newAtom.w = 4 * newAtom.w;
+  // Materialize the atom.
+  float4 atom = convertedAtoms[tid];
+  
+  // Place the atom in the grid of small cells.
+  atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
+  atom.w = 4 * atom.w;
   
   // Generate the bounding box.
-  ushort3 grid_dims = bvhArgs->smallVoxelCount;
-  auto box_min = quantize(newAtom.xyz - newAtom.w, grid_dims);
-  auto box_max = quantize(newAtom.xyz + newAtom.w, grid_dims);
+  ushort3 loopStart;
+  ushort3 loopEnd;
+  {
+    ushort3 gridDims = bvhArgs->smallVoxelCount;
+    ushort3 smallVoxelMin = quantize(atom.xyz - atom.w, gridDims);
+    ushort3 smallVoxelMax = quantize(atom.xyz + atom.w, gridDims);
+    
+    loopStart = smallVoxelMin;
+    loopEnd = smallVoxelMax;
+  }
   
   // Iterate over the footprint on the 3D grid.
-  for (ushort z = box_min[2]; z <= box_max[2]; ++z) {
-    for (ushort y = box_min[1]; y <= box_max[1]; ++y) {
-      for (ushort x = box_min[0]; x <= box_max[0]; ++x) {
-        ushort3 cube_min { x, y, z };
+  for (ushort z = loopStart[2]; z <= loopEnd[2]; ++z) {
+    for (ushort y = loopStart[1]; y <= loopEnd[1]; ++y) {
+      for (ushort x = loopStart[0]; x <= loopEnd[0]; ++x) {
+        ushort3 actualXYZ;
+        actualXYZ = ushort3(x, y, z);
         
         // Narrow down the cells with a cube-sphere intersection test.
-        bool mark = cubeSphereIntersection(cube_min, newAtom);
-        if (mark) {
-          uint address = VoxelAddress::generate(grid_dims, cube_min);
-          address = (address * 4) + (tid % 4);
-          
-          // Increment the counter.
-          uint offset =
-          atomic_fetch_add_explicit(smallCounterMetadata + address,
-                                    1, memory_order_relaxed);
-          
-          // Write the reference to the list.
-          if (offset < dense_grid_reference_capacity) {
-            smallAtomReferences[offset] = uint(tid);
-          }
+        bool intersected = cubeSphereIntersection(actualXYZ, atom);
+        if (!intersected) {
+          continue;
+        }
+        
+        // Locate the counter.
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        uint address = VoxelAddress::generate(gridDims, actualXYZ);
+        
+        // Increment the counter.
+        uint offset =
+        atomic_fetch_add_explicit(smallCounterMetadata + address,
+                                  1, memory_order_relaxed);
+        
+        // Write the reference to the list.
+        if (offset < dense_grid_reference_capacity) {
+          smallAtomReferences[offset] = uint(tid);
         }
       }
     }

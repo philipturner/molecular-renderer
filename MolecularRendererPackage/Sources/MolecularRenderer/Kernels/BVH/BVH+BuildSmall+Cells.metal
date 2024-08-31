@@ -44,7 +44,7 @@ kernel void buildSmallPart0_0
 kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint4 *smallCounterMetadata [[buffer(1)]],
+ device uint *smallCounterMetadata [[buffer(1)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
@@ -55,7 +55,7 @@ kernel void buildSmallPart1_0
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Write the counter metadata.
-  uint4 resetValue = uint4(0);
+  uint resetValue = uint(0);
   smallCounterMetadata[cellAddress] = resetValue;
 }
 
@@ -72,7 +72,7 @@ kernel void buildSmallPart2_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *allocatedMemory [[buffer(1)]],
- device uint4 *smallCounterMetadata [[buffer(2)]],
+ device uint *smallCounterMetadata [[buffer(2)]],
  device uint *smallCellMetadata [[buffer(3)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -86,21 +86,11 @@ kernel void buildSmallPart2_1
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the counter metadata.
-  uint4 counterCounts = smallCounterMetadata[cellAddress];
-  
-  // Reduce the counts across the thread.
-  uint4 counterOffsets;
-  uint threadTotalCount = 0;
-#pragma clang loop unroll(full)
-  for (ushort laneID = 0; laneID < 4; ++laneID) {
-    ushort counterOffset = threadTotalCount;
-    threadTotalCount += counterCounts[laneID];
-    counterOffsets[laneID] = counterOffset;
-  }
+  uint threadCount = smallCounterMetadata[cellAddress];
   
   // Reduce across the SIMD.
-  uint threadOffset = simd_prefix_exclusive_sum(threadTotalCount);
-  uint simdCount = simd_broadcast(threadOffset + threadTotalCount, 31);
+  uint threadOffset = simd_prefix_exclusive_sum(threadCount);
+  uint simdCount = simd_broadcast(threadOffset + threadCount, 31);
   
   // Reduce across the entire group.
   constexpr uint simdsPerGroup = 2;
@@ -139,15 +129,12 @@ kernel void buildSmallPart2_1
   
   // Store the thread metadata.
   {
-    uint countPart = reverse_bits(threadTotalCount) & voxel_count_mask;
+    uint countPart = reverse_bits(threadCount) & voxel_count_mask;
     uint offsetPart = threadOffset & voxel_offset_mask;
     uint metadata = countPart | offsetPart;
     smallCellMetadata[cellAddress] = metadata;
   }
   
-  // Add the thread offset to the per-counter offsets.
-  {
-    counterOffsets += threadOffset;
-    smallCounterMetadata[cellAddress] = counterOffsets;
-  }
+  // Store the counter metadata.
+  smallCounterMetadata[cellAddress] = threadOffset;
 }
