@@ -172,11 +172,6 @@ kernel void buildLargePart1_1
   }
 }
 
-// First, load the cached offsets.
-// - We don't need to apply the mask.
-// - We don't need to zero-initialize the relative offsets to avoid
-//   compiler warnings.
-// - Start by regenerating the loop bounds.
 kernel void buildLargePart2_2
 (
  constant float *elementRadii [[buffer(0)]],

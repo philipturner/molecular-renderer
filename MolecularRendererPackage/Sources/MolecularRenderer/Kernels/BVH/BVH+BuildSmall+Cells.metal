@@ -16,7 +16,8 @@ kernel void buildSmallPart0_0
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]],
  device BVHArguments *bvhArgs [[buffer(3)]],
- device uint3 *smallCellDispatchArguments4x4x4 [[buffer(4)]])
+ device uint3 *smallCellDispatchArguments4x4x4 [[buffer(4)]],
+ device uint3 *atomDispatchArguments8x8x8 [[buffer(5)]])
 {
   // Read the bounding box.
   int3 minimum = *boundingBoxMin;
@@ -39,13 +40,13 @@ kernel void buildSmallPart0_0
   
   // Set the small-cell dispatch arguments.
   *smallCellDispatchArguments4x4x4 = uint3(2 * largeVoxelCount);
+  *atomDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }
 
 kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint *smallCounterMetadata1 [[buffer(1)]],
- device uint *smallCounterMetadata2 [[buffer(2)]],
+ device uint *smallCounterMetadata [[buffer(1)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
@@ -57,8 +58,7 @@ kernel void buildSmallPart1_0
   
   // Write the counter metadata.
   uint resetValue = uint(0);
-  smallCounterMetadata1[cellAddress] = resetValue;
-  smallCounterMetadata2[cellAddress] = resetValue;
+  smallCounterMetadata[cellAddress] = resetValue;
 }
 
 kernel void buildSmallPart2_0
@@ -74,9 +74,8 @@ kernel void buildSmallPart2_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device atomic_uint *allocatedMemory [[buffer(1)]],
- device uint *smallCounterMetadata1 [[buffer(2)]],
- device uint *smallCounterMetadata2 [[buffer(3)]],
- device uint *smallCellMetadata [[buffer(4)]],
+ device uint *smallCounterMetadata [[buffer(2)]],
+ device uint *smallCellMetadata [[buffer(3)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -89,12 +88,7 @@ kernel void buildSmallPart2_1
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the counter metadata.
-  uint2 counterCounts(smallCounterMetadata1[cellAddress],
-                      smallCounterMetadata2[cellAddress]);
-  
-  // Reduce the counts across the thread.
-  uint2 counterOffsets = uint2(0, counterCounts[0]);
-  uint threadCount = counterCounts[0] + counterCounts[1];
+  uint threadCount = smallCounterMetadata[cellAddress];
   
   // Reduce across the SIMD.
   uint threadOffset = simd_prefix_exclusive_sum(threadCount);
@@ -143,10 +137,6 @@ kernel void buildSmallPart2_1
     smallCellMetadata[cellAddress] = metadata;
   }
   
-  // Add the thread offset to the per-counter offsets.
-  {
-    counterOffsets += threadOffset;
-    smallCounterMetadata1[cellAddress] = counterOffsets[0];
-    smallCounterMetadata2[cellAddress] = counterOffsets[1];
-  }
+  // Store the counter offset.
+  smallCounterMetadata[cellAddress] = threadOffset;
 }
