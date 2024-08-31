@@ -102,26 +102,24 @@ kernel void buildSmallPart1_1
   float3 lowerCorner = bvhArgs->worldMinimum;
   lowerCorner += float3(tgid) * 2;
   
-  // Locate the threadgroup's metadata.
-  uint largeCellAddress;
+  // Read the large cell metadata.
+  uint4 metadata;
   {
-    short3 largeVoxelMin = short3(lowerCorner);
-    largeVoxelMin += 64;
-    largeVoxelMin /= 2;
-    ushort3 cubeMin = ushort3(largeVoxelMin);
+    ushort3 cellCoordinates = ushort3(lowerCorner + 64);
+    cellCoordinates /= 2;
     ushort3 gridDims = ushort3(64);
-    largeCellAddress = VoxelAddress::generate(gridDims, cubeMin);
+    uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+    metadata = largeCellMetadata[cellAddress];
   }
   
-  // Read the threadgroup's metadata.
-  uint4 cellMetadata = largeCellMetadata[largeCellAddress];
-  uint largeReferenceOffset = cellMetadata[1];
-  ushort largeReferenceCount = cellMetadata[3] & (uint(1 << 14) - 1);
-  
-  // Iterate over the large voxel's atoms.
-  ushort smallAtomID = thread_id;
-  for (; smallAtomID < largeReferenceCount; smallAtomID += 128) {
+  // Iterate over the atoms.
+  ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
+  for (ushort smallAtomID = thread_id;
+       smallAtomID < largeReferenceCount;
+       smallAtomID += 128)
+  {
     // Materialize the atom.
+    uint largeReferenceOffset = metadata[1];
     uint largeReferenceID = largeReferenceOffset + smallAtomID;
     uint largeAtomID = largeAtomReferences[largeReferenceID];
     float4 atom = convertedAtoms[largeAtomID];
@@ -192,35 +190,56 @@ kernel void buildSmallPart2_2
  device uint4 *largeCellMetadata [[buffer(1)]],
  device uint *largeAtomReferences [[buffer(2)]],
  device float4 *convertedAtoms [[buffer(3)]],
- device atomic_uint *smallCounterMetadata [[buffer(4)]],
+ device uint *smallCounterMetadata [[buffer(4)]],
  device uint *smallAtomReferences [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
+  // Read the small-cell counters.
+  threadgroup uint threadgroupCounters[512];
+  for (ushort smallCellID = thread_id;
+       smallCellID < 512;
+       smallCellID += 128)
+  {
+    ushort3 localCoordinates(smallCellID % 8,
+                            (smallCellID % 64) / 8,
+                            smallCellID / 64);
+    ushort3 localGridDims = 8;
+    ushort localCellAddress = VoxelAddress::generate(localGridDims,
+                                                     localCoordinates);
+    
+    ushort3 globalCoordinates = tgid * 8 + localCoordinates;
+    ushort3 globalGridDims = bvhArgs->smallVoxelCount;
+    uint globalCellAddress = VoxelAddress::generate(globalGridDims,
+                                                    globalCoordinates);
+    
+    uint offset = smallCounterMetadata[globalCellAddress];
+    threadgroupCounters[localCellAddress] = offset;
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  
   // Materialize the lower corner in registers.
   float3 lowerCorner = bvhArgs->worldMinimum;
   lowerCorner += float3(tgid) * 2;
   
-  // Locate the threadgroup's metadata.
-  uint largeCellAddress;
+  // Read the large cell metadata.
+  uint4 metadata;
   {
-    short3 largeVoxelMin = short3(lowerCorner);
-    largeVoxelMin += 64;
-    largeVoxelMin /= 2;
-    ushort3 cubeMin = ushort3(largeVoxelMin);
+    ushort3 cellCoordinates = ushort3(lowerCorner + 64);
+    cellCoordinates /= 2;
     ushort3 gridDims = ushort3(64);
-    largeCellAddress = VoxelAddress::generate(gridDims, cubeMin);
+    uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+    metadata = largeCellMetadata[cellAddress];
   }
   
-  // Read the threadgroup's metadata.
-  uint4 cellMetadata = largeCellMetadata[largeCellAddress];
-  uint largeReferenceOffset = cellMetadata[1];
-  ushort largeReferenceCount = cellMetadata[3] & (uint(1 << 14) - 1);
-  
-  // Iterate over the large voxel's atoms.
-  ushort smallAtomID = thread_id;
-  for (; smallAtomID < largeReferenceCount; smallAtomID += 128) {
+  // Iterate over the atoms.
+  ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
+  for (ushort smallAtomID = thread_id;
+       smallAtomID < largeReferenceCount;
+       smallAtomID += 128)
+  {
     // Materialize the atom.
+    uint largeReferenceOffset = metadata[1];
     uint largeReferenceID = largeReferenceOffset + smallAtomID;
     uint largeAtomID = largeAtomReferences[largeReferenceID];
     float4 atom = convertedAtoms[largeAtomID];
@@ -260,12 +279,15 @@ kernel void buildSmallPart2_2
           }
           
           // Generate the address.
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, actualXYZ);
+          ushort3 gridDims = ushort3(8);
+          ushort3 cellCoordinates = actualXYZ - tgid * 8;
+          ushort address = VoxelAddress::generate(gridDims, cellCoordinates);
           
           // Perform the atomic fetch-add.
+          auto castedCounters =
+          (threadgroup atomic_uint*)threadgroupCounters;
           uint offset =
-          atomic_fetch_add_explicit(smallCounterMetadata + address,
+          atomic_fetch_add_explicit(castedCounters + address,
                                     1, memory_order_relaxed);
           
           // Write the reference to the list.

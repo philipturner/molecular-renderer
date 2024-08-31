@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if false
+#if true
 
 // Making the code easier to modify.
 // - Clean up the BVH builder.
@@ -69,7 +69,9 @@ import Numerics
 // - Try storing the small-cell relative offsets to memory. [DONE]
 //
 // Write the kernel with threadgroup atomics.
-// - Make the kernels iterate over the atoms within a threadgroup.
+// - Make the kernels iterate over the atoms within a threadgroup. [DONE]
+// - Use threadgroup atomics to accumulate reference counts, but write the
+//   counters to device memory afterward.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
@@ -212,7 +214,7 @@ func createGeometry() -> [Atom] {
   return output
 }
 
-#elseif false
+#else
 
 // Test that animation functionality is working correctly.
 
@@ -305,6 +307,7 @@ func createGeometry() -> [[Atom]] {
 
 #endif
 
+#if false
 // Higher resolution means we can resolve much larger scenes. There is
 // motivation to support atom counts far exceeding 4 million.
 func createGeometry() -> [Atom] {
@@ -328,3 +331,4 @@ func createGeometry() -> [Atom] {
   
   return topology.atoms
 }
+#endif

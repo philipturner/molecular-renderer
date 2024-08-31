@@ -52,7 +52,7 @@ kernel void buildSmallPart1_0
 {
   // Locate the counter metadata.
   ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * ushort3(4, 4, 4);
+  cellCoordinates += tgid * 4;
   ushort3 gridDims = bvhArgs->smallVoxelCount;
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
@@ -83,7 +83,7 @@ kernel void buildSmallPart2_1
 {
   // Locate the counter metadata.
   ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * ushort3(4, 4, 4);
+  cellCoordinates += tgid * 4;
   ushort3 gridDims = bvhArgs->smallVoxelCount;
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
