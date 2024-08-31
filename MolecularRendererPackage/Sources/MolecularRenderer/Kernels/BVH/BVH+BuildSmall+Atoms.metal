@@ -80,12 +80,14 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device float4 *convertedAtoms [[buffer(1)]],
- device atomic_uint *smallCounterMetadata [[buffer(2)]],
+ device uint *largeAtomReferences [[buffer(1)]],
+ device float4 *convertedAtoms [[buffer(2)]],
+ device atomic_uint *smallCounterMetadata [[buffer(3)]],
  uint tid [[thread_position_in_grid]])
 {
   // Materialize the atom.
-  float4 atom = convertedAtoms[tid];
+  uint atomID = largeAtomReferences[tid];
+  float4 atom = convertedAtoms[atomID];
   
   // Place the atom in the grid of small cells.
   atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
@@ -138,13 +140,15 @@ kernel void buildSmallPart1_1
 kernel void buildSmallPart2_2
 (
  device BVHArguments *bvhArgs [[buffer(0)]],
- device float4 *convertedAtoms [[buffer(1)]],
- device atomic_uint *smallCounterMetadata [[buffer(2)]],
- device uint *smallAtomReferences [[buffer(3)]],
+ device uint *largeAtomReferences [[buffer(1)]],
+ device float4 *convertedAtoms [[buffer(2)]],
+ device atomic_uint *smallCounterMetadata [[buffer(3)]],
+ device uint *smallAtomReferences [[buffer(4)]],
  uint tid [[thread_position_in_grid]])
 {
   // Materialize the atom.
-  float4 atom = convertedAtoms[tid];
+  uint atomID = largeAtomReferences[tid];
+  float4 atom = convertedAtoms[atomID];
   
   // Place the atom in the grid of small cells.
   atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
@@ -190,7 +194,7 @@ kernel void buildSmallPart2_2
                                   1, memory_order_relaxed);
         
         // Write the reference to the list.
-        smallAtomReferences[offset] = tid;
+        smallAtomReferences[offset] = atomID;
       }
     }
   }
