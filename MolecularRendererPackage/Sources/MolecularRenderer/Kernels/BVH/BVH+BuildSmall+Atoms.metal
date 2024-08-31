@@ -115,6 +115,7 @@ kernel void buildSmallPart1_1
   
   // Allocate memory for the relative offsets.
   threadgroup uchar cachedRelativeOffsets[32 * 128];
+  ushort offsetCursor = 0;
   
   // Iterate over the footprint on the 3D grid.
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
@@ -140,8 +141,10 @@ kernel void buildSmallPart1_1
         
         // Store to the cache.
         {
-          ushort address = z * 9 + y * 3 + x;
+          ushort address = offsetCursor;
           address = address * 128 + thread_id;
+          offsetCursor += 1;
+          
           cachedRelativeOffsets[address] = uchar(offset);
         }
       }
@@ -174,7 +177,7 @@ kernel void buildSmallPart2_2
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
  device vec<uchar, 32> *relativeOffsets [[buffer(2)]],
- device atomic_uint *smallCounterMetadata [[buffer(3)]],
+ device uint *smallCounterMetadata [[buffer(3)]],
  device uint *smallAtomReferences [[buffer(4)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
@@ -205,6 +208,7 @@ kernel void buildSmallPart2_2
   
   // Allocate memory for the relative offsets.
   threadgroup uchar cachedRelativeOffsets[32 * 128];
+  ushort offsetCursor = 0;
   
   {
     // Read from device memory.
@@ -213,7 +217,7 @@ kernel void buildSmallPart2_2
     
     // Store the cached offsets.
 #pragma clang loop unroll(full)
-    for (ushort i = 0; i < 8; ++i) {
+    for (ushort i = 0; i < 32; ++i) {
       ushort address = i;
       address = address * 128 + thread_id;
       uchar offset = input[i];
@@ -235,6 +239,7 @@ kernel void buildSmallPart2_2
           continue;
         }
         
+#if 0
         // Perform the atomic fetch-add.
         uint offset;
         {
@@ -242,6 +247,25 @@ kernel void buildSmallPart2_2
           uint address = VoxelAddress::generate(gridDims, actualXYZ);
           offset = atomic_fetch_add_explicit(smallCounterMetadata + address,
                                              1, memory_order_relaxed);
+        }
+#endif
+        
+        // Read the compacted cell offset.
+        uint offset;
+        {
+          ushort3 gridDims = bvhArgs->smallVoxelCount;
+          uint address = VoxelAddress::generate(gridDims, actualXYZ);
+          offset = smallCounterMetadata[address];
+        }
+        
+        // Add the atom offset.
+        {
+          ushort address = offsetCursor;
+          address = address * 128 + thread_id;
+          offsetCursor += 1;
+          
+          uchar relativeOffset = cachedRelativeOffsets[address];
+          offset += relativeOffset;
         }
         
         // Write the reference to the list.
