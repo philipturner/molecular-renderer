@@ -35,7 +35,7 @@ kernel void buildSmallPart0_0
   bvhArgs->worldMinimum = float3(minimum);
   bvhArgs->worldMaximum = float3(maximum);
   bvhArgs->largeVoxelCount = largeVoxelCount;
-  bvhArgs->smallVoxelCount = largeVoxelCount * 8;;
+  bvhArgs->smallVoxelCount = largeVoxelCount * 8;
   
   // Set the small-cell dispatch arguments.
   *smallCellDispatchArguments4x4x4 = uint3(largeVoxelCount) * 2;

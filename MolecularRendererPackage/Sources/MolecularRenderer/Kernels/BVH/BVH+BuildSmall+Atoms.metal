@@ -94,26 +94,14 @@ kernel void buildSmallPart1_1
  device uint4 *largeCellMetadata [[buffer(1)]],
  device uint *largeAtomReferences [[buffer(2)]],
  device float4 *convertedAtoms [[buffer(3)]],
- device atomic_uint *smallCounterMetadata [[buffer(4)]],
+ device uint *smallCounterMetadata [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Initialize the small-cell counters.
   threadgroup uint threadgroupCounters[512];
-  for (ushort smallCellID = thread_id;
-       smallCellID < 512;
-       smallCellID += 128)
-  {
-    ushort3 localCoordinates(smallCellID % 8,
-                             (smallCellID % 64) / 8,
-                             smallCellID / 64);
-    ushort3 localGridDims = 8;
-    ushort localCellAddress = VoxelAddress::generate(localGridDims,
-                                                     localCoordinates);
-    
-    // Write the counter metadata.
-    uint resetValue = uint(0);
-    threadgroupCounters[localCellAddress] = resetValue;
+  for (ushort i = thread_id; i < 512; i += 128) {
+    threadgroupCounters[i] = 0;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
@@ -211,13 +199,7 @@ kernel void buildSmallPart1_1
                                                     globalCoordinates);
     
     uint offset = threadgroupCounters[localCellAddress];
-    if (any(globalCoordinates >= globalGridDims)) {
-      atomic_fetch_add_explicit(smallCounterMetadata + globalCellAddress,
-                                offset, memory_order_relaxed);
-    } else {
-      auto casted = (device uint*)smallCounterMetadata;
-      casted[globalCellAddress] = offset;
-    }
+    smallCounterMetadata[globalCellAddress] = offset;
   }
 }
 

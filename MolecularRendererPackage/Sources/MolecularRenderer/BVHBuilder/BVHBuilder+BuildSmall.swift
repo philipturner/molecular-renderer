@@ -88,7 +88,7 @@ extension BVHBuilder {
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 0,
+      indirectBufferOffset: 16,
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     
   }
@@ -107,7 +107,7 @@ extension BVHBuilder {
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 0,
+      indirectBufferOffset: 16,
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
 }
