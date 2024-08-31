@@ -79,7 +79,7 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 // After reducing divergence: 350 microseconds
 // Duplicating large atoms:   950 microseconds
 // Increasing divergence:     960 milliseconds
-// Consistently ~600 microseconds now, for an unknown reason.
+// Consistently ~600-650 microseconds now, for an unknown reason.
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -206,7 +206,23 @@ kernel void buildSmallPart2_2
   // Allocate memory for the relative offsets.
   threadgroup uchar cachedRelativeOffsets[32 * 128];
   
+  {
+    // Read from device memory.
+    vec<uchar, 32> input;
+    input = relativeOffsets[tid];
+    
+    // Store the cached offsets.
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 8; ++i) {
+      ushort address = i;
+      address = address * 128 + thread_id;
+      uchar offset = input[i];
+      cachedRelativeOffsets[address] = offset;
+    }
+  }
+  
   // Iterate over the footprint on the 3D grid.
+  simdgroup_barrier(mem_flags::mem_threadgroup);
   for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
     for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
       for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
@@ -219,14 +235,14 @@ kernel void buildSmallPart2_2
           continue;
         }
         
-        // Locate the counter.
-        ushort3 gridDims = bvhArgs->smallVoxelCount;
-        uint address = VoxelAddress::generate(gridDims, actualXYZ);
-        
-        // Increment the counter.
-        uint offset =
-        atomic_fetch_add_explicit(smallCounterMetadata + address,
-                                  1, memory_order_relaxed);
+        // Perform the atomic fetch-add.
+        uint offset;
+        {
+          ushort3 gridDims = bvhArgs->smallVoxelCount;
+          uint address = VoxelAddress::generate(gridDims, actualXYZ);
+          offset = atomic_fetch_add_explicit(smallCounterMetadata + address,
+                                             1, memory_order_relaxed);
+        }
         
         // Write the reference to the list.
         smallAtomReferences[offset] = tid;
