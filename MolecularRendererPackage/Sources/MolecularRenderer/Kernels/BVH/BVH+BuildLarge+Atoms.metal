@@ -191,4 +191,7 @@ kernel void buildLargePart2_2
   convertedAtoms[tid] = atom;
   
   // First, load the cached offsets.
+  // - We don't need to apply the mask.
+  // - We don't need to zero-initialize the relative offsets to avoid
+  //   compiler warnings.
 }
