@@ -129,6 +129,8 @@ kernel void buildSmallPart1_1
     {
       float3 smallVoxelMin = atom.xyz - atom.w;
       float3 smallVoxelMax = atom.xyz + atom.w;
+      smallVoxelMin = max(smallVoxelMin, lowerCorner);
+      smallVoxelMax = min(smallVoxelMax, lowerCorner + 2);
       smallVoxelMin = 4 * (smallVoxelMin - bvhArgs->worldMinimum);
       smallVoxelMax = 4 * (smallVoxelMax - bvhArgs->worldMinimum);
       smallVoxelMin = floor(smallVoxelMin);
@@ -223,6 +225,8 @@ kernel void buildSmallPart2_2
     {
       float3 smallVoxelMin = atom.xyz - atom.w;
       float3 smallVoxelMax = atom.xyz + atom.w;
+      smallVoxelMin = max(smallVoxelMin, lowerCorner);
+      smallVoxelMax = min(smallVoxelMax, lowerCorner + 2);
       smallVoxelMin = 4 * (smallVoxelMin - bvhArgs->worldMinimum);
       smallVoxelMax = 4 * (smallVoxelMax - bvhArgs->worldMinimum);
       smallVoxelMin = floor(smallVoxelMin);
