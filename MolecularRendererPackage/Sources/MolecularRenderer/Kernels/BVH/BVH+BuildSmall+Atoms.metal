@@ -55,17 +55,19 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 // Threadgroup atomics:       440 microseconds
 kernel void buildSmallPart1_1
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint4 *largeCellMetadata [[buffer(1)]],
- device uint *largeAtomReferences [[buffer(2)]],
- device float4 *convertedAtoms [[buffer(3)]],
- device uint *smallCounterMetadata [[buffer(4)]],
+ device atomic_uint *allocatedMemory [[buffer(0)]],
+ constant BVHArguments *bvhArgs [[buffer(1)]],
+ device uint4 *largeCellMetadata [[buffer(2)]],
+ device uint *largeAtomReferences [[buffer(3)]],
+ device float4 *convertedAtoms [[buffer(4)]],
+ device uint *smallCounterMetadata [[buffer(5)]],
+ device uint *smallCellMetadata [[buffer(6)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
- ushort thread_id [[thread_index_in_threadgroup]])
+ ushort thread_index [[thread_index_in_threadgroup]])
 {
   // Initialize the small-cell counters.
   threadgroup uint threadgroupCounters[512];
-  for (ushort i = thread_id; i < 512; i += 128) {
+  for (ushort i = thread_index; i < 512; i += 128) {
     threadgroupCounters[i] = 0;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -86,7 +88,7 @@ kernel void buildSmallPart1_1
   
   // Iterate over the atoms.
   ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
-  for (ushort smallAtomID = thread_id;
+  for (ushort smallAtomID = thread_index;
        smallAtomID < largeReferenceCount;
        smallAtomID += 128)
   {
@@ -151,7 +153,7 @@ kernel void buildSmallPart1_1
   
   // Write the small-cell counters.
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  for (ushort smallCellID = thread_id;
+  for (ushort smallCellID = thread_index;
        smallCellID < 512;
        smallCellID += 128)
   {
