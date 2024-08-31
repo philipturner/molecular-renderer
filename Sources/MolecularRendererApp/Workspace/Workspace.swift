@@ -57,15 +57,16 @@ import Numerics
 //     - It appears lower-effort to leave anything else duplicated.
 //   - Check the correctness of written atom references. Use them as the source
 //     of the small-cell atoms kernels. This means the ray tracer will
-//     intersect some atoms twice.
+//     intersect some atoms twice. [DONE]
 //
 // Prepare the small-cell sorting for threadgroup atomics.
 // - Swap the order of the small-cell-metadata and small-cell-counter buffers,
 //   so the former is always the atomically incremented one. [DONE]
 // - Change the indirect dispatch to 4x4x4, one cell per thread. [DONE]
 // - Expand the small-counter metadata with ~4x duplication. [DONE]
-//   - Revert this change.
+//   - Revert this change. [DONE]
 // - Try reducing divergence in the loops over small cells.
+// - Try storing the small-cell relative offsets to memory.
 //
 // Write the kernel with threadgroup atomics.
 //
