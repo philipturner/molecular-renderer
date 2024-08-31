@@ -53,6 +53,7 @@ kernel void buildSmallPart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
+#if 0
   // Locate the counter metadata.
   ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
   cellCoordinates += tgid * 8;
@@ -132,4 +133,5 @@ kernel void buildSmallPart2_1
     smallCellMetadata[cellAddress] = metadata;
     smallCounterMetadata[cellAddress] = offset;
   }
+#endif
 }

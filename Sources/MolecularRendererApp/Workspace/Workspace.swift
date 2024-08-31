@@ -74,7 +74,7 @@ import Numerics
 //   counters to device memory afterward. [DONE]
 // - Change the reduction over small cells to be scoped over 8x8x8. [DONE]
 // - Fuse the first atoms kernel with memory clearing. [DONE]
-// - Fuse the first atoms kernel with reduction over voxels.
+// - Fuse the first atoms kernel with reduction over voxels. [DONE]
 // - Fuse the first atoms kernel with the second kernel.
 // - Optimize away the unnecessary transfers to device memory.
 // - Try to reduce the compute cost of cell-sphere testing.

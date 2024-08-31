@@ -44,7 +44,7 @@ extension BVHBuilder {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildSmallPart0_0(encoder: encoder)
     buildSmallPart1_1(encoder: encoder)
-    buildSmallPart2_1(encoder: encoder)
+    // buildSmallPart2_1(encoder: encoder)
     buildSmallPart2_2(encoder: encoder)
     encoder.endEncoding()
     
@@ -83,7 +83,7 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
     
   }
   
@@ -101,7 +101,7 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
   }
 }
 
