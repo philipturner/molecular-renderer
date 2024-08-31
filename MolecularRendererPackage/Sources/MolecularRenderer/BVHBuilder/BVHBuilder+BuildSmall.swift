@@ -89,7 +89,7 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+      threadsPerThreadgroup: MTLSize(width: 256, height: 1, depth: 1))
     
   }
   
@@ -108,7 +108,7 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+      threadsPerThreadgroup: MTLSize(width: 256, height: 1, depth: 1))
   }
 }
 

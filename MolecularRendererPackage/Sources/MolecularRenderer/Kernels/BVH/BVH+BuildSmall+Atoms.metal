@@ -85,6 +85,9 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 // Saving 16 relative offsets:  770 microseconds
 // Saving 16, recomputing rest: 720 microseconds
 // Saving 8, recomputing rest:  650 microseconds
+//
+// Dispatch over 128 threads: 750 microseconds
+// Dispatch over 256 threads: 710 microseconds
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -117,7 +120,7 @@ kernel void buildSmallPart1_1
   
   // Iterate over the large voxel's atoms.
   ushort smallAtomID = thread_id;
-  for (; smallAtomID < largeReferenceCount; smallAtomID += 128) {
+  for (; smallAtomID < largeReferenceCount; smallAtomID += 256) {
     // Materialize the atom.
     uint largeReferenceID = largeReferenceOffset + smallAtomID;
     uint largeAtomID = largeAtomReferences[largeReferenceID];
@@ -180,6 +183,9 @@ kernel void buildSmallPart1_1
 // Saving 16 relative offsets:  620 microseconds
 // Saving 16, recomputing rest: 710 microseconds
 // Saving 8, recomputing rest:  610 microseconds
+//
+// Dispatch over 128 threads: 1.8 milliseconds
+// Dispatch over 256 threads: 1.6 milliseconds
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -213,7 +219,7 @@ kernel void buildSmallPart2_2
   
   // Iterate over the large voxel's atoms.
   ushort smallAtomID = thread_id;
-  for (; smallAtomID < largeReferenceCount; smallAtomID += 128) {
+  for (; smallAtomID < largeReferenceCount; smallAtomID += 256) {
     // Materialize the atom.
     uint largeReferenceID = largeReferenceOffset + smallAtomID;
     uint largeAtomID = largeAtomReferences[largeReferenceID];
