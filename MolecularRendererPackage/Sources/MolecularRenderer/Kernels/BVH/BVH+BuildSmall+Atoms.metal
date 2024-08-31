@@ -10,6 +10,18 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+inline ushort pickPermutation(ushort3 footprint) {
+  ushort output;
+  if (footprint[2] > footprint[0] && footprint[2] > footprint[1]) {
+    output = 0;
+  } else if (footprint[1] > footprint[0]) {
+    output = 1;
+  } else {
+    output = 2;
+  }
+  return output;
+}
+
 inline ushort3 reorderForward(ushort3 loopBound, ushort permutationID) {
   ushort3 output;
   if (permutationID == 0) {
@@ -34,7 +46,6 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
   return output;
 }
 
-// Quantize a position relative to the world origin.
 inline ushort3 clamp(short3 position, ushort3 world_dims) {
   short3 output = position;
   output = clamp(output, 0, short3(world_dims));
@@ -61,6 +72,8 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   
   return dist_squared > 0;
 }
+
+// MARK: - Kernels
 
 // Before:                    380 microseconds
 // After reducing divergence: 350 microseconds
@@ -91,17 +104,7 @@ kernel void buildSmallPart1_1
   }
   
   // Reorder the loop traversal.
-  ushort permutationID;
-  {
-    ushort3 footprint = loopEnd - loopStart;
-    if (footprint[2] > footprint[0] && footprint[2] > footprint[1]) {
-      permutationID = 0;
-    } else if (footprint[1] > footprint[0]) {
-      permutationID = 1;
-    } else {
-      permutationID = 2;
-    }
-  }
+  ushort permutationID = pickPermutation(loopEnd - loopStart);
   loopStart = reorderForward(loopStart, permutationID);
   loopEnd = reorderForward(loopEnd, permutationID);
   
@@ -160,17 +163,7 @@ kernel void buildSmallPart2_2
   }
   
   // Reorder the loop traversal.
-  ushort permutationID;
-  {
-    ushort3 footprint = loopEnd - loopStart;
-    if (footprint[2] > footprint[0] && footprint[2] > footprint[1]) {
-      permutationID = 0;
-    } else if (footprint[1] > footprint[0]) {
-      permutationID = 1;
-    } else {
-      permutationID = 2;
-    }
-  }
+  ushort permutationID = pickPermutation(loopEnd - loopStart);
   loopStart = reorderForward(loopStart, permutationID);
   loopEnd = reorderForward(loopEnd, permutationID);
   

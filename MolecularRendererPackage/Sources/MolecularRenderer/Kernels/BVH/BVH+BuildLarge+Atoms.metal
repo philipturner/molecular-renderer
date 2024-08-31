@@ -9,17 +9,15 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Convert the atom from 'float4' to a custom format.
-inline float4 convert(float4 atom, constant float *elementRadii) {
-  uint atomicNumber = uint(atom.w);
-  float radius = elementRadii[atomicNumber];
-  
-  uint packed = as_type<uint>(radius);
-  packed = packed & 0xFFFFFF00;
-  packed |= atomicNumber & 0x000000FF;
-  
-  float4 output = atom;
-  output.w = as_type<float>(packed);
+inline ushort pickPermutation(short3 footprintHigh) {
+  ushort output;
+  if (footprintHigh[0] == 0) {
+    output = 0;
+  } else if (footprintHigh[1] == 0) {
+    output = 1;
+  } else {
+    output = 2;
+  }
   return output;
 }
 
@@ -47,6 +45,28 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
   return output;
 }
 
+inline ushort3 clamp(short3 position) {
+  short3 output = position;
+  output = clamp(output, 0, short3(512));
+  return ushort3(output);
+}
+
+// Convert the atom from 'float4' to a custom format.
+inline float4 convert(float4 atom, constant float *elementRadii) {
+  uint atomicNumber = uint(atom.w);
+  float radius = elementRadii[atomicNumber];
+  
+  uint packed = as_type<uint>(radius);
+  packed = packed & 0xFFFFFF00;
+  packed |= atomicNumber & 0x000000FF;
+  
+  float4 output = atom;
+  output.w = as_type<float>(packed);
+  return output;
+}
+
+// MARK: - Kernels
+
 kernel void buildLargePart1_1
 (
  constant float *elementRadii [[buffer(0)]],
@@ -66,20 +86,18 @@ kernel void buildLargePart1_1
   atom.w = 4 * atom.w;
   
   // Generate the bounding box.
-  short3 smallVoxelMin = short3(floor(atom.xyz - atom.w));
-  short3 smallVoxelMax = short3(ceil(atom.xyz + atom.w));
-  smallVoxelMin = max(smallVoxelMin, 0);
-  smallVoxelMax = max(smallVoxelMax, 0);
-  smallVoxelMin = min(smallVoxelMin, short3(512));
-  smallVoxelMax = min(smallVoxelMax, short3(512));
-  short3 largeVoxelMin = smallVoxelMin / 8;
+  short3 boxMin = short3(floor(atom.xyz - atom.w));
+  short3 boxMax = short3(ceil(atom.xyz + atom.w));
+  ushort3 smallVoxelMin = clamp(boxMin);
+  ushort3 smallVoxelMax = clamp(boxMax);
+  ushort3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.
-  short3 dividingLine = (largeVoxelMin + 1) * 8;
+  ushort3 dividingLine = (largeVoxelMin + 1) * 8;
   dividingLine = min(dividingLine, smallVoxelMax);
   dividingLine = max(dividingLine, smallVoxelMin);
-  short3 footprintLow = dividingLine - smallVoxelMin;
-  short3 footprintHigh = smallVoxelMax - dividingLine;
+  short3 footprintLow = short3(dividingLine - smallVoxelMin);
+  short3 footprintHigh = short3(smallVoxelMax - dividingLine);
   
   // Determine the loop bounds.
   ushort3 loopEnd = select(ushort3(1),
@@ -87,14 +105,7 @@ kernel void buildLargePart1_1
                            footprintHigh > 0);
   
   // Reorder the loop traversal.
-  ushort permutationID;
-  if (footprintHigh[0] == 0) {
-    permutationID = 0;
-  } else if (footprintHigh[1] == 0) {
-    permutationID = 1;
-  } else {
-    permutationID = 2;
-  }
+  ushort permutationID = pickPermutation(footprintHigh);
   loopEnd = reorderForward(loopEnd, permutationID);
   
   // Allocate memory for the relative offsets.
@@ -178,4 +189,6 @@ kernel void buildLargePart2_2
   
   // Write in the new format.
   convertedAtoms[tid] = atom;
+  
+  // First, load the cached offsets.
 }
