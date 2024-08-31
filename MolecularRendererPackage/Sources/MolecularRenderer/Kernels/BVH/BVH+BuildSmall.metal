@@ -37,6 +37,38 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   return dist_squared > 0;
 }
 
+kernel void buildSmallPart0_0
+(
+ device uint3 *allocatedMemory [[buffer(0)]],
+ device int3 *boundingBoxMin [[buffer(1)]],
+ device int3 *boundingBoxMax [[buffer(2)]],
+ device BVHArguments *bvhArgs [[buffer(3)]],
+ device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
+{
+  // Initialize with the smallest acceptable pointer value.
+  uint smallestPointer = uint(1);
+  *allocatedMemory = smallestPointer;
+  
+  // Read the bounding box.
+  int3 minimum = *boundingBoxMin;
+  int3 maximum = *boundingBoxMax;
+  
+  // Clamp the bounding box to the world volume.
+  minimum = max(minimum, -64);
+  maximum = min(maximum, 64);
+  maximum = max(minimum, maximum);
+  bvhArgs->worldMinimum = float3(minimum);
+  bvhArgs->worldMaximum = float3(maximum);
+  
+  // Compute the grid dimensions.
+  ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
+  bvhArgs->largeVoxelCount = largeVoxelCount;
+  bvhArgs->smallVoxelCount = largeVoxelCount * 8;
+  
+  // Set the atom dispatch arguments.
+  *atomDispatchArguments8x8x8 = uint3(largeVoxelCount);
+}
+
 // MARK: - Kernels
 
 // Before:                    380 microseconds
@@ -62,6 +94,7 @@ kernel void buildSmallPart1_1
  device float4 *convertedAtoms [[buffer(4)]],
  device uint *smallCounterMetadata [[buffer(5)]],
  device uint *smallCellMetadata [[buffer(6)]],
+ device uint *smallAtomReferences [[buffer(7)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
