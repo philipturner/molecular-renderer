@@ -15,14 +15,11 @@ import Metal
 // - Kernel 1: Accumulate the reference count for each voxel.
 //
 // Part 2:
-// - Kernel 0: Reset the allocation counter.
 // - Kernel 1: Compact the reference offset for each voxel.
 // - Kernel 2: Fill the reference list for each voxel.
 struct BVHBuildSmallPipelines {
   var buildSmallPart0_0: MTLComputePipelineState
-  var buildSmallPart1_0: MTLComputePipelineState
   var buildSmallPart1_1: MTLComputePipelineState
-  var buildSmallPart2_0: MTLComputePipelineState
   var buildSmallPart2_1: MTLComputePipelineState
   var buildSmallPart2_2: MTLComputePipelineState
   
@@ -35,9 +32,7 @@ struct BVHBuildSmallPipelines {
       return try! device.makeComputePipelineState(function: function)
     }
     buildSmallPart0_0 = createPipeline(name: "buildSmallPart0_0")
-    buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
     buildSmallPart1_1 = createPipeline(name: "buildSmallPart1_1")
-    buildSmallPart2_0 = createPipeline(name: "buildSmallPart2_0")
     buildSmallPart2_1 = createPipeline(name: "buildSmallPart2_1")
     buildSmallPart2_2 = createPipeline(name: "buildSmallPart2_2")
   }
@@ -48,9 +43,7 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildSmallPart0_0(encoder: encoder)
-    buildSmallPart1_0(encoder: encoder)
     buildSmallPart1_1(encoder: encoder)
-    buildSmallPart2_0(encoder: encoder)
     buildSmallPart2_1(encoder: encoder)
     buildSmallPart2_2(encoder: encoder)
     encoder.endEncoding()
@@ -132,32 +125,6 @@ extension BVHBuilder {
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart0_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: 1, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
-  }
-  
-  func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
-    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
-    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 1)
-    
-    // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart1_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
-  }
-  
-  func buildSmallPart2_0(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    
-    // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart2_0
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSize(width: 1, height: 1, depth: 1),

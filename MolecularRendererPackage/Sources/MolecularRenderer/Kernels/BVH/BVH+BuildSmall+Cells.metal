@@ -18,6 +18,10 @@ kernel void buildSmallPart0_0
  device BVHArguments *bvhArgs [[buffer(3)]],
  device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
 {
+  // Initialize with the smallest acceptable pointer value.
+  uint smallestPointer = uint(1);
+  *allocatedMemory = smallestPointer;
+  
   // Read the bounding box.
   int3 minimum = *boundingBoxMin;
   int3 maximum = *boundingBoxMax;
@@ -26,51 +30,16 @@ kernel void buildSmallPart0_0
   minimum = max(minimum, -64);
   maximum = min(maximum, 64);
   maximum = max(minimum, maximum);
+  bvhArgs->worldMinimum = float3(minimum);
+  bvhArgs->worldMaximum = float3(maximum);
   
   // Compute the grid dimensions.
   ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
-  
-  // Set the BVH arguments.
-  bvhArgs->worldMinimum = float3(minimum);
-  bvhArgs->worldMaximum = float3(maximum);
   bvhArgs->largeVoxelCount = largeVoxelCount;
   bvhArgs->smallVoxelCount = largeVoxelCount * 8;
   
   // Set the atom dispatch arguments.
   *atomDispatchArguments8x8x8 = uint3(largeVoxelCount);
-}
-
-kernel void buildSmallPart1_0
-(
- constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint *smallCounterMetadata [[buffer(1)]],
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]])
-{
-  // Locate the counter metadata.
-  ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
-  cellCoordinates += tgid * 8;
-  ushort3 gridDims = bvhArgs->smallVoxelCount;
-  uint baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-  
-  // Write the counter metadata.
-#pragma clang loop unroll(full)
-  for (ushort laneID = 0; laneID < 4; ++laneID) {
-    uint cellAddress = baseAddress + laneID;
-    uint resetValue = uint(0);
-    smallCounterMetadata[cellAddress] = resetValue;
-  }
-}
-
-kernel void buildSmallPart2_0
-(
- device uint *allocatedMemory [[buffer(0)]])
-{
-  // TODO: Fuse this with buildSmallPart0_0.
-  
-  // Initialize with the smallest acceptable pointer value.
-  uint smallestPointer = uint(1);
-  allocatedMemory[0] = smallestPointer;
 }
 
 kernel void buildSmallPart2_1
