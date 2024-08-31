@@ -177,6 +177,7 @@ public:
   
   // Enter the camera arguments from the previous frame.
   void generateMotionVector(constant CameraArguments *cameraArgs,
+                            float2 jitter,
                             float3 hitPoint) {
     // Apply the camera position.
     float3 lightPosition = cameraArgs->positionAndFOVMultiplier.xyz;
@@ -198,6 +199,7 @@ public:
     
     // Recompute the current pixel coordinates (do not waste registers).
     float2 currCoords = float2(pixelCoords) + 0.5;
+    currCoords += jitter;
     currCoords.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     
     // Generate the motion vector from pixel coordinates.

@@ -56,11 +56,10 @@ public:
   }
   
   static Ray<float> primaryRay(constant CameraArguments *cameraArgs,
-                               float2 jitter,
                                ushort2 pixelCoords) {
     // Apply the pixel position.
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
-    rayDirection.xy += jitter;
+    rayDirection.xy += cameraArgs->jitter;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     rayDirection.y = -rayDirection.y;
     

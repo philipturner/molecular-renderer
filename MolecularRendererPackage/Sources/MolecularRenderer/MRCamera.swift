@@ -25,15 +25,18 @@ public struct MRCamera {
 // API for specifying camera state.
 extension MRRenderer {
   public func setCamera(_ camera: MRCamera) {
-    let fovMultiplier = argumentContainer.createFOVMultiplier(
-      fovDegrees: camera.fovDegrees)
-    
     var cameraArgs = CameraArguments()
-    cameraArgs.positionAndFOVMultiplier = SIMD4(
-      camera.position, fovMultiplier)
     cameraArgs.rotationColumn1 = camera.rotation.0
     cameraArgs.rotationColumn2 = camera.rotation.1
     cameraArgs.rotationColumn3 = camera.rotation.2
+    
+    let fovMultiplier = argumentContainer.createFOVMultiplier(
+      fovDegrees: camera.fovDegrees)
+    cameraArgs.positionAndFOVMultiplier = SIMD4(
+      camera.position, fovMultiplier)
+    
+    let jitter = argumentContainer.createJitterOffsets()
+    cameraArgs.jitter = jitter
     
     argumentContainer.currentCamera = cameraArgs
   }

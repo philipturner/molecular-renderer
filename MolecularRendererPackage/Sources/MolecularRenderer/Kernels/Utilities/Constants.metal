@@ -32,6 +32,7 @@ struct CameraArguments {
   float3 rotationColumn1;
   float3 rotationColumn2;
   float3 rotationColumn3;
+  float2 jitter;
 };
 
 struct BVHArguments {
@@ -42,7 +43,6 @@ struct BVHArguments {
 };
 
 struct RenderArguments {
-  float2 jitter;
   uint frameSeed;
   float qualityCoefficient;
   bool useAtomMotionVectors;

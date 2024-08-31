@@ -120,7 +120,7 @@ kernel void buildSmallPart1_1
   
   // Iterate over the large voxel's atoms.
   ushort smallAtomID = thread_id;
-  for (; smallAtomID < largeReferenceCount; smallAtomID += 256) {
+  for (; smallAtomID < largeReferenceCount; smallAtomID += 128) {
     // Materialize the atom.
     uint largeReferenceID = largeReferenceOffset + smallAtomID;
     uint largeAtomID = largeAtomReferences[largeReferenceID];
@@ -219,7 +219,7 @@ kernel void buildSmallPart2_2
   
   // Iterate over the large voxel's atoms.
   ushort smallAtomID = thread_id;
-  for (; smallAtomID < largeReferenceCount; smallAtomID += 256) {
+  for (; smallAtomID < largeReferenceCount; smallAtomID += 128) {
     // Materialize the atom.
     uint largeReferenceID = largeReferenceOffset + smallAtomID;
     uint largeAtomID = largeAtomReferences[largeReferenceID];

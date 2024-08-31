@@ -6,6 +6,20 @@
 //
 
 extension ArgumentContainer {
+  mutating func updateAtoms(provider: MRAtomProvider) {
+    guard let currentTime else {
+      fatalError("Time was not specified.")
+    }
+    
+    let providerAtoms = provider.atoms(time: currentTime)
+    guard providerAtoms.count > 0,
+          providerAtoms.count < BVHBuilder.maxAtomCount else {
+      fatalError("Atom count was invalid.")
+    }
+    
+    currentAtoms = providerAtoms
+  }
+  
   var useAtomMotionVectors: Bool {
     guard let currentTime else {
       fatalError("Current time was not specified")

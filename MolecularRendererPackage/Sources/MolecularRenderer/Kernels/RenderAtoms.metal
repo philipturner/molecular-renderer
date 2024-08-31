@@ -43,9 +43,7 @@ kernel void renderAtoms
   };
   
   // Cast the primary ray.
-  auto ray = RayGeneration::primaryRay(cameraArgs,
-                                       renderArgs->jitter,
-                                       pixelCoords);
+  auto ray = RayGeneration::primaryRay(cameraArgs, pixelCoords);
   IntersectionParams params { false, MAXFLOAT, false };
   auto intersect = RayIntersector::traverse(ray, grid, params);
   
@@ -95,14 +93,21 @@ kernel void renderAtoms
     float depth = rayDirectionComponent * intersect.distance;
     colorCtx.setDepth(depth);
     
-    // Transform to the atom's position in the previous frame.
+    // Find the atom's position in the previous frame.
     float3 previousFramePosition = hitPoint;
     if (renderArgs->useAtomMotionVectors) {
       float3 currentNucleus = convertedAtoms[intersect.reference].xyz;
       float3 previousNucleus = previousAtoms[intersect.reference].xyz;
       previousFramePosition += previousNucleus - currentNucleus;
     }
-    colorCtx.generateMotionVector(cameraArgs + 1, previousFramePosition);
+    
+    // Generate the motion vector, being careful to handle the camera
+    // arguments correctly.
+    auto previousCameraArgs = cameraArgs + 1;
+    float2 currentJitter = cameraArgs->jitter;
+    colorCtx.generateMotionVector(previousCameraArgs,
+                                  currentJitter,
+                                  previousFramePosition);
   }
   colorCtx.write(colorTexture, depthTexture, motionTexture);
 }

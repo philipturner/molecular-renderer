@@ -3,7 +3,7 @@ import HDL
 import MM4
 import Numerics
 
-#if true
+#if false
 
 // Making the code easier to modify.
 // - Clean up the BVH builder.
@@ -212,7 +212,7 @@ func createGeometry() -> [Atom] {
   return output
 }
 
-#else
+#elseif false
 
 // Test that animation functionality is working correctly.
 
@@ -304,3 +304,27 @@ func createGeometry() -> [[Atom]] {
 }
 
 #endif
+
+// Higher resolution means we can resolve much larger scenes. There is
+// motivation to support atom counts far exceeding 4 million.
+func createGeometry() -> [Atom] {
+  let lattice = Lattice<Cubic> { h, k, l in
+    Bounds { 100 * h + 100 * k + 8 * l }
+    Material { .elemental(.silicon) }
+  }
+  
+  var reconstruction = Reconstruction()
+  reconstruction.material = .elemental(.silicon)
+  reconstruction.topology.insert(atoms: lattice.atoms)
+  reconstruction.compile()
+  var topology = reconstruction.topology
+  
+  // Shift 50 nm toward negative Z.
+  for atomID in topology.atoms.indices {
+    var atom = topology.atoms[atomID]
+    atom.position += SIMD3(-30, -30, -60)
+    topology.atoms[atomID] = atom
+  }
+  
+  return topology.atoms
+}
