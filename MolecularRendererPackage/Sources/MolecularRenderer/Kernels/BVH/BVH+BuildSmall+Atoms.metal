@@ -75,18 +75,23 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 
 // MARK: - Kernels
 
+constexpr constant ushort savedRefs = 16;
+
 // Before:                    380 microseconds
 // After reducing divergence: 350 microseconds
 // Duplicating large atoms:   950 microseconds
 // Increasing divergence:     960 milliseconds
 //
 // Consistently ~600-650 microseconds now, for an unknown reason.
-// Saving 32 relative offsets: 750 microseconds
+// Saving 32 relative offsets:  750 microseconds
+// Saving 16 relative offsets:  770 microseconds
+// Saving 16, recomputing rest:
+// Saving 8, recomputing rest:
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
- device vec<uchar, 16> *relativeOffsets [[buffer(2)]],
+ device vec<uchar, savedRefs> *relativeOffsets [[buffer(2)]],
  device atomic_uint *smallCounterMetadata [[buffer(3)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
@@ -116,7 +121,7 @@ kernel void buildSmallPart1_1
   loopEnd = reorderForward(loopEnd, permutationID);
   
   // Allocate memory for the relative offsets.
-  threadgroup uchar cachedRelativeOffsets[16 * 128];
+  threadgroup uchar cachedRelativeOffsets[savedRefs * 128];
   ushort offsetCursor = 0;
   
   // Iterate over the footprint on the 3D grid.
@@ -132,17 +137,20 @@ kernel void buildSmallPart1_1
           continue;
         }
         
-        // Perform the atomic fetch-add.
-        uint offset;
-        {
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, actualXYZ);
-          offset = atomic_fetch_add_explicit(smallCounterMetadata + address,
-                                             1, memory_order_relaxed);
+        // Generate the address.
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        uint address = VoxelAddress::generate(gridDims, actualXYZ);
+        if (offsetCursor >= savedRefs) {
+          address += 512 * 512 * 256;
         }
         
+        // Perform the atomic fetch-add.
+        uint offset;
+        offset = atomic_fetch_add_explicit(smallCounterMetadata + address,
+                                           1, memory_order_relaxed);
+        
         // Store to the cache.
-        {
+        if (offsetCursor < savedRefs) {
           ushort address = offsetCursor;
           address = address * 128 + thread_id;
           offsetCursor += 1;
@@ -156,9 +164,9 @@ kernel void buildSmallPart1_1
   {
     // Retrieve the cached offsets.
     simdgroup_barrier(mem_flags::mem_threadgroup);
-    vec<uchar, 16> output;
+    vec<uchar, savedRefs> output;
 #pragma clang loop unroll(full)
-    for (ushort i = 0; i < 16; ++i) {
+    for (ushort i = 0; i < savedRefs; ++i) {
       ushort address = i;
       address = address * 128 + thread_id;
       uchar offset = cachedRelativeOffsets[address];
@@ -176,14 +184,18 @@ kernel void buildSmallPart1_1
 // Increasing divergence:     1.9 milliseconds
 //
 // Consistently ~1.2-1.3 milliseconds now, for an unknown reason.
-// Saving 32 relative offsets: 670 microseconds
+// Saving 32 relative offsets:  670 microseconds
+// Saving 16 relative offsets:  620 microseconds
+// Saving 16, recomputing rest:
+// Saving 8, recomputing rest:
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
- device vec<uchar, 16> *relativeOffsets [[buffer(2)]],
- device uint *smallCounterMetadata [[buffer(3)]],
- device uint *smallAtomReferences [[buffer(4)]],
+ device vec<uchar, savedRefs> *relativeOffsets [[buffer(2)]],
+ device uint *smallCounterMetadata1 [[buffer(3)]],
+ device atomic_uint *smallCounterMetadata2 [[buffer(4)]],
+ device uint *smallAtomReferences [[buffer(5)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
@@ -212,17 +224,17 @@ kernel void buildSmallPart2_2
   loopEnd = reorderForward(loopEnd, permutationID);
   
   // Allocate memory for the relative offsets.
-  threadgroup uchar cachedRelativeOffsets[16 * 128];
+  threadgroup uchar cachedRelativeOffsets[savedRefs * 128];
   ushort offsetCursor = 0;
   
   {
     // Read from device memory.
-    vec<uchar, 16> input;
+    vec<uchar, savedRefs> input;
     input = relativeOffsets[tid];
     
     // Store the cached offsets.
 #pragma clang loop unroll(full)
-    for (ushort i = 0; i < 16; ++i) {
+    for (ushort i = 0; i < savedRefs; ++i) {
       ushort address = i;
       address = address * 128 + thread_id;
       uchar offset = input[i];
@@ -244,27 +256,21 @@ kernel void buildSmallPart2_2
           continue;
         }
         
-#if 0
-        // Perform the atomic fetch-add.
-        uint offset;
-        {
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, actualXYZ);
-          offset = atomic_fetch_add_explicit(smallCounterMetadata + address,
-                                             1, memory_order_relaxed);
-        }
-#endif
+        // Generate the address.
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        uint address = VoxelAddress::generate(gridDims, actualXYZ);
         
-        // Read the compacted cell offset.
+        // Branch on whether the cache has overflowed.
         uint offset;
-        {
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, actualXYZ);
-          offset = smallCounterMetadata[address];
+        if (offsetCursor < savedRefs) {
+          offset = smallCounterMetadata1[address];
+        } else {
+          offset = atomic_fetch_add_explicit(smallCounterMetadata2 + address,
+                                             1, memory_order_relaxed);
         }
         
         // Add the atom offset.
-        {
+        if (offsetCursor < savedRefs) {
           ushort address = offsetCursor;
           address = address * 128 + thread_id;
           offsetCursor += 1;

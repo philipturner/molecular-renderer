@@ -96,8 +96,17 @@ extension BVHBuilder {
     encoder.setBuffer(bvhArguments, offset: 0, index: 0)
     encoder.setBuffer(convertedAtoms, offset: 0, index: 1)
     encoder.setBuffer(relativeOffsetsDebug, offset: 0, index: 2)
-    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 3)
-    encoder.setBuffer(smallAtomReferences, offset: 0, index: 4)
+    
+    // Arguments 3 - 4
+    do {
+      let offset1 = 0
+      let offset2 = smallCellMetadata.length / 2
+      encoder.setBuffer(smallCounterMetadata, offset: offset1, index: 3)
+      encoder.setBuffer(smallCounterMetadata, offset: offset2, index: 4)
+    }
+    
+    // Argument 5
+    encoder.setBuffer(smallAtomReferences, offset: 0, index: 5)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart2_2
@@ -135,9 +144,16 @@ extension BVHBuilder {
   }
   
   func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
+    // Argument 0
     encoder.setBuffer(bvhArguments, offset: 0, index: 0)
-    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 1)
+    
+    // Arguments 1 - 2
+    do {
+      let offset1 = 0
+      let offset2 = smallCellMetadata.length / 2
+      encoder.setBuffer(smallCounterMetadata, offset: offset1, index: 1)
+      encoder.setBuffer(smallCounterMetadata, offset: offset2, index: 2)
+    }
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart1_0
@@ -161,11 +177,20 @@ extension BVHBuilder {
   }
   
   func buildSmallPart2_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 3
+    // Arguments 0 - 1
     encoder.setBuffer(bvhArguments, offset: 0, index: 0)
     encoder.setBuffer(globalCounters, offset: 0, index: 1)
-    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 2)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 3)
+    
+    // Arguments 2 - 3
+    do {
+      let offset1 = 0
+      let offset2 = smallCellMetadata.length / 2
+      encoder.setBuffer(smallCounterMetadata, offset: offset1, index: 2)
+      encoder.setBuffer(smallCounterMetadata, offset: offset2, index: 3)
+    }
+    
+    // Argument 4
+    encoder.setBuffer(smallCellMetadata, offset: 0, index: 4)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart2_1
