@@ -79,7 +79,9 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 // After reducing divergence: 350 microseconds
 // Duplicating large atoms:   950 microseconds
 // Increasing divergence:     960 milliseconds
+//
 // Consistently ~600-650 microseconds now, for an unknown reason.
+// Saving 32 relative offsets: 750 microseconds
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -172,6 +174,9 @@ kernel void buildSmallPart1_1
 // After reducing divergence: 1.1 milliseconds
 // Duplicating large atoms:   2.0 milliseconds
 // Increasing divergence:     1.9 milliseconds
+//
+// Consistently ~1.2-1.3 milliseconds now, for an unknown reason.
+// Saving 32 relative offsets: 670 microseconds
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
