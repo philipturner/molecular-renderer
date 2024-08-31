@@ -60,7 +60,6 @@ kernel void buildSmallPart1_1
     ushort3 gridDims = bvhArgs->smallVoxelCount;
     ushort3 smallVoxelMin = quantize(atom.xyz - atom.w, gridDims);
     ushort3 smallVoxelMax = quantize(atom.xyz + atom.w, gridDims);
-    
     loopStart = smallVoxelMin;
     loopEnd = smallVoxelMax;
   }
@@ -113,7 +112,6 @@ kernel void buildSmallPart2_2
     ushort3 gridDims = bvhArgs->smallVoxelCount;
     ushort3 smallVoxelMin = quantize(atom.xyz - atom.w, gridDims);
     ushort3 smallVoxelMax = quantize(atom.xyz + atom.w, gridDims);
-    
     loopStart = smallVoxelMin;
     loopEnd = smallVoxelMax;
   }

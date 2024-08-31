@@ -73,11 +73,11 @@ kernel void buildLargePart1_1
   }
   
   if (permutationID == 0) {
-    loopEnd = ushort3(loopEnd.y, loopEnd.z, loopEnd.x);
+    loopEnd = ushort3(loopEnd[1], loopEnd[2], loopEnd[0]);
   } else if (permutationID == 1) {
-    loopEnd = ushort3(loopEnd.x, loopEnd.z, loopEnd.y);
+    loopEnd = ushort3(loopEnd[0], loopEnd[2], loopEnd[1]);
   } else {
-    loopEnd = ushort3(loopEnd.x, loopEnd.y, loopEnd.z);
+    loopEnd = ushort3(loopEnd[0], loopEnd[1], loopEnd[2]);
   }
   
   // Allocate memory for the relative offsets.
