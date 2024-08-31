@@ -75,7 +75,7 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 
 // MARK: - Kernels
 
-constexpr constant ushort savedRefs = 16;
+constexpr constant ushort savedRefs = 8;
 
 // Before:                    380 microseconds
 // After reducing divergence: 350 microseconds
@@ -85,8 +85,8 @@ constexpr constant ushort savedRefs = 16;
 // Consistently ~600-650 microseconds now, for an unknown reason.
 // Saving 32 relative offsets:  750 microseconds
 // Saving 16 relative offsets:  770 microseconds
-// Saving 16, recomputing rest:
-// Saving 8, recomputing rest:
+// Saving 16, recomputing rest: 720 microseconds
+// Saving 8, recomputing rest:  650 microseconds
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -186,8 +186,8 @@ kernel void buildSmallPart1_1
 // Consistently ~1.2-1.3 milliseconds now, for an unknown reason.
 // Saving 32 relative offsets:  670 microseconds
 // Saving 16 relative offsets:  620 microseconds
-// Saving 16, recomputing rest:
-// Saving 8, recomputing rest:
+// Saving 16, recomputing rest: 710 microseconds
+// Saving 8, recomputing rest:  610 microseconds
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
