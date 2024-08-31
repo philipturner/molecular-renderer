@@ -80,12 +80,16 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
- device uint *largeAtomReferences [[buffer(1)]],
- device float4 *convertedAtoms [[buffer(2)]],
- device atomic_uint *smallCounterMetadata [[buffer(3)]],
+ device float4 *convertedAtoms [[buffer(1)]],
+ device atomic_uint *smallCounterMetadata [[buffer(2)]],
+ constant uint *atomCount [[buffer(3)]],
+ device uint *largeAtomReferences [[buffer(4)]],
  uint tid [[thread_position_in_grid]])
 {
   // Materialize the atom.
+  if (tid >= *atomCount) {
+    return;
+  }
   uint atomID = largeAtomReferences[tid];
   float4 atom = convertedAtoms[atomID];
   
@@ -139,14 +143,18 @@ kernel void buildSmallPart1_1
 // After reducing divergence: 1.1 milliseconds
 kernel void buildSmallPart2_2
 (
- device BVHArguments *bvhArgs [[buffer(0)]],
- device uint *largeAtomReferences [[buffer(1)]],
- device float4 *convertedAtoms [[buffer(2)]],
- device atomic_uint *smallCounterMetadata [[buffer(3)]],
- device uint *smallAtomReferences [[buffer(4)]],
+ constant BVHArguments *bvhArgs [[buffer(0)]],
+ device float4 *convertedAtoms [[buffer(1)]],
+ device atomic_uint *smallCounterMetadata [[buffer(2)]],
+ device uint *smallAtomReferences [[buffer(3)]],
+ constant uint *atomCount [[buffer(4)]],
+ device uint *largeAtomReferences [[buffer(5)]],
  uint tid [[thread_position_in_grid]])
 {
   // Materialize the atom.
+  if (tid >= *atomCount) {
+    return;
+  }
   uint atomID = largeAtomReferences[tid];
   float4 atom = convertedAtoms[atomID];
   
