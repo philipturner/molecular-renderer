@@ -74,6 +74,41 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+    commandBuffer.waitUntilCompleted()
+    
+    let counters = globalCounters.contents()
+      .assumingMemoryBound(to: SIMD3<Int32>.self)
+    print()
+    print(counters[0])
+    print()
+    
+    let atomReferences = largeAtomReferences.contents()
+      .assumingMemoryBound(to: UInt32.self)
+    
+    print()
+    print(atomReferences[1])
+    print(atomReferences[500_000])
+    print(atomReferences[700_000])
+    print(atomReferences[783_475])
+    print(atomReferences[783_476])
+    print(atomReferences[783_477])
+    print()
+    
+    var atomZeroCount: Int = .zero
+    var atomOneCount: Int = .zero
+    for referenceID in 1..<783_477 {
+      let reference = atomReferences[referenceID]
+      if reference == .zero {
+        atomZeroCount += 1
+      } else if reference == 130301 {
+        atomOneCount += 1
+      }
+    }
+    print()
+    print(atomZeroCount)
+    print(atomOneCount)
+    
+    exit(0)
   }
 }
 
