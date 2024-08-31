@@ -98,16 +98,20 @@ kernel void buildSmallPart1_1
   // Materialize the lower corner in registers.
   float3 lowerCorner = bvhArgs->worldMinimum;
   lowerCorner += float3(tgid) * 2;
-  lowerCorner += 64;
   
   // Locate the threadgroup's metadata.
-  ushort3 cellCoordinates = ushort3(lowerCorner);
-  cellCoordinates /= 2;
-  ushort3 gridDims = ushort3(64);
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  uint largeCellAddress;
+  {
+    short3 largeVoxelMin = short3(lowerCorner);
+    largeVoxelMin += 64;
+    largeVoxelMin /= 2;
+    ushort3 cubeMin = ushort3(largeVoxelMin);
+    ushort3 gridDims = ushort3(64);
+    largeCellAddress = VoxelAddress::generate(gridDims, cubeMin);
+  }
   
   // Read the threadgroup's metadata.
-  uint4 cellMetadata = largeCellMetadata[cellAddress];
+  uint4 cellMetadata = largeCellMetadata[largeCellAddress];
   uint largeReferenceOffset = cellMetadata[1];
   ushort largeReferenceCount = cellMetadata[3] & (uint(1 << 14) - 1);
   
@@ -188,16 +192,20 @@ kernel void buildSmallPart2_2
   // Materialize the lower corner in registers.
   float3 lowerCorner = bvhArgs->worldMinimum;
   lowerCorner += float3(tgid) * 2;
-  lowerCorner += 64;
   
   // Locate the threadgroup's metadata.
-  ushort3 cellCoordinates = ushort3(lowerCorner);
-  cellCoordinates /= 2;
-  ushort3 gridDims = ushort3(64);
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  uint largeCellAddress;
+  {
+    short3 largeVoxelMin = short3(lowerCorner);
+    largeVoxelMin += 64;
+    largeVoxelMin /= 2;
+    ushort3 cubeMin = ushort3(largeVoxelMin);
+    ushort3 gridDims = ushort3(64);
+    largeCellAddress = VoxelAddress::generate(gridDims, cubeMin);
+  }
   
   // Read the threadgroup's metadata.
-  uint4 cellMetadata = largeCellMetadata[cellAddress];
+  uint4 cellMetadata = largeCellMetadata[largeCellAddress];
   uint largeReferenceOffset = cellMetadata[1];
   ushort largeReferenceCount = cellMetadata[3] & (uint(1 << 14) - 1);
   
