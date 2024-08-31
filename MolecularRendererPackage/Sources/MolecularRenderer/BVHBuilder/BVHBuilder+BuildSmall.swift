@@ -50,9 +50,9 @@ extension BVHBuilder {
     buildSmallPart0_0(encoder: encoder)
     buildSmallPart1_0(encoder: encoder)
     buildSmallPart1_1(encoder: encoder)
-//    buildSmallPart2_0(encoder: encoder)
-//    buildSmallPart2_1(encoder: encoder)
-//    buildSmallPart2_2(encoder: encoder)
+    buildSmallPart2_0(encoder: encoder)
+    buildSmallPart2_1(encoder: encoder)
+    buildSmallPart2_2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -69,53 +69,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-    commandBuffer.waitUntilCompleted()
-    
-    let debugData = relativeOffsetsDebug.contents()
-      .assumingMemoryBound(to: SIMD32<UInt16>.self)
-    let simdCount = (currentAtomCount + 31) / 32
-    
-    var singleThreadBins = [Int](repeating: 0, count: 129)
-    var entireSIMDBins = [Int](repeating: 0, count: 129)
-    let binThresholds: [Int] = [1, 2, 4, 8, 12, 16, 24, 32]
-    
-    // Skipping the last SIMD for safety.
-    for simdID in 0..<(simdCount - 1) {
-      let simdData = debugData[simdID]
-      
-      for binThreshold in binThresholds {
-        let promotedThreshold = SIMD32<UInt16>(
-          repeating: UInt16(binThreshold))
-        
-        var threadMask: SIMD32<UInt16> = .zero
-        threadMask.replace(
-          with: SIMD32.one, where: simdData .<= promotedThreshold)
-        
-        let threadCount = threadMask.wrappedSum()
-        let simdCount = all(threadMask .> 0) ? UInt16(1) : UInt16(0)
-        singleThreadBins[binThreshold] += Int(threadCount)
-        entireSIMDBins[binThreshold] += Int(simdCount)
-      }
-    }
-    
-    print()
-    for binThreshold in binThresholds {
-      let cumulative = singleThreadBins[Int(binThreshold)]
-      let proportion = Float(cumulative) / Float(currentAtomCount)
-      let repr = String(format: "%.3f", proportion)
-      print(repr, terminator: ", ")
-    }
-    print()
-    
-    for binThreshold in binThresholds {
-      let cumulative = entireSIMDBins[Int(binThreshold)]
-      let proportion = Float(cumulative) / Float(simdCount)
-      let repr = String(format: "%.3f", proportion)
-      print(repr, terminator: ", ")
-    }
-    print()
-    
-    exit(0)
   }
 }
 

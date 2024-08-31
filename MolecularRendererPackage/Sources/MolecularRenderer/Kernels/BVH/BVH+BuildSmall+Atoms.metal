@@ -86,7 +86,7 @@ kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
- device ushort *relativeOffsets [[buffer(2)]],
+ device vec<uchar, 16> *relativeOffsets [[buffer(2)]],
  device atomic_uint *smallCounterMetadata [[buffer(3)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
@@ -116,7 +116,7 @@ kernel void buildSmallPart1_1
   loopEnd = reorderForward(loopEnd, permutationID);
   
   // Allocate memory for the relative offsets.
-//  threadgroup uchar cachedRelativeOffsets[32 * 128];
+  threadgroup uchar cachedRelativeOffsets[16 * 128];
   ushort offsetCursor = 0;
   
   // Iterate over the footprint on the 3D grid.
@@ -147,7 +147,7 @@ kernel void buildSmallPart1_1
           address = address * 128 + thread_id;
           offsetCursor += 1;
           
-//          cachedRelativeOffsets[address] = uchar(offset);
+          cachedRelativeOffsets[address] = uchar(offset);
         }
       }
     }
@@ -156,17 +156,17 @@ kernel void buildSmallPart1_1
   {
     // Retrieve the cached offsets.
     simdgroup_barrier(mem_flags::mem_threadgroup);
-//    vec<uchar, 32> output;
-//#pragma clang loop unroll(full)
-//    for (ushort i = 0; i < 32; ++i) {
-//      ushort address = i;
-//      address = address * 128 + thread_id;
-//      uchar offset = cachedRelativeOffsets[address];
-//      output[i] = offset;
-//    }
+    vec<uchar, 16> output;
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 16; ++i) {
+      ushort address = i;
+      address = address * 128 + thread_id;
+      uchar offset = cachedRelativeOffsets[address];
+      output[i] = offset;
+    }
     
     // Write to device memory.
-    relativeOffsets[tid] = offsetCursor;
+    relativeOffsets[tid] = output;
   }
 }
 
@@ -181,7 +181,7 @@ kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
- device vec<uchar, 32> *relativeOffsets [[buffer(2)]],
+ device vec<uchar, 16> *relativeOffsets [[buffer(2)]],
  device uint *smallCounterMetadata [[buffer(3)]],
  device uint *smallAtomReferences [[buffer(4)]],
  uint tid [[thread_position_in_grid]],
@@ -212,17 +212,17 @@ kernel void buildSmallPart2_2
   loopEnd = reorderForward(loopEnd, permutationID);
   
   // Allocate memory for the relative offsets.
-  threadgroup uchar cachedRelativeOffsets[32 * 128];
+  threadgroup uchar cachedRelativeOffsets[16 * 128];
   ushort offsetCursor = 0;
   
   {
     // Read from device memory.
-    vec<uchar, 32> input;
+    vec<uchar, 16> input;
     input = relativeOffsets[tid];
     
     // Store the cached offsets.
 #pragma clang loop unroll(full)
-    for (ushort i = 0; i < 32; ++i) {
+    for (ushort i = 0; i < 16; ++i) {
       ushort address = i;
       address = address * 128 + thread_id;
       uchar offset = input[i];
