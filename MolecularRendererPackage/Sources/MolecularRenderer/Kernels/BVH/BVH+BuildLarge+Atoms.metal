@@ -133,7 +133,6 @@ kernel void buildLargePart1_1
           uint smallReferenceCount =
           footprint[0] * footprint[1] * footprint[2];
           uint word = (smallReferenceCount << 14) + 1;
-          
           offset = atomic_fetch_add_explicit(largeCounterMetadata + address,
                                              word, memory_order_relaxed);
         }
@@ -245,6 +244,7 @@ kernel void buildLargePart2_2
   }
   
   // Iterate over the footprint on the 3D grid.
+  simdgroup_barrier(mem_flags::mem_threadgroup);
   for (ushort z = 0; z < loopEnd[2]; ++z) {
     for (ushort y = 0; y < loopEnd[1]; ++y) {
       for (ushort x = 0; x < loopEnd[0]; ++x) {

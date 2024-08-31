@@ -65,7 +65,7 @@ import Numerics
 // - Change the indirect dispatch to 4x4x4, one cell per thread. [DONE]
 // - Expand the small-counter metadata with ~4x duplication. [DONE]
 //   - Revert this change. [DONE]
-// - Try reducing divergence in the loops over small cells.
+// - Try reducing divergence in the loops over small cells. [DONE]
 // - Try storing the small-cell relative offsets to memory.
 //
 // Write the kernel with threadgroup atomics.
