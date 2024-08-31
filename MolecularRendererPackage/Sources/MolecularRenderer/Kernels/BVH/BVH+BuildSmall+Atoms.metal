@@ -190,7 +190,7 @@ kernel void buildSmallPart2_2
                                   1, memory_order_relaxed);
         
         // Write the reference to the list.
-        smallAtomReferences[offset] = uint(tid);
+        smallAtomReferences[offset] = tid;
       }
     }
   }

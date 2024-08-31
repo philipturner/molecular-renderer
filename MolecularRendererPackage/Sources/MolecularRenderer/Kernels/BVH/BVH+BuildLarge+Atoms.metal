@@ -212,7 +212,6 @@ kernel void buildLargePart2_2
   ushort3 dividingLine = (largeVoxelMin + 1) * 8;
   dividingLine = min(dividingLine, smallVoxelMax);
   dividingLine = max(dividingLine, smallVoxelMin);
-  short3 footprintLow = short3(dividingLine - smallVoxelMin);
   short3 footprintHigh = short3(smallVoxelMax - dividingLine);
   
   // Determine the loop bounds.
@@ -242,6 +241,38 @@ kernel void buildLargePart2_2
       address = address * 128 + thread_id;
       ushort offset = input[i / 4][i % 4];
       cachedRelativeOffsets[address] = offset;
+    }
+  }
+  
+  // Iterate over the footprint on the 3D grid.
+  for (ushort z = 0; z < loopEnd[2]; ++z) {
+    for (ushort y = 0; y < loopEnd[1]; ++y) {
+      for (ushort x = 0; x < loopEnd[0]; ++x) {
+        ushort3 actualXYZ = ushort3(x, y, z);
+        actualXYZ = reorderBackward(actualXYZ, permutationID);
+        
+        // Read the compacted cell offset.
+        uint offset;
+        {
+          ushort3 gridDims = ushort3(64);
+          ushort3 cubeMin = ushort3(largeVoxelMin) + actualXYZ;
+          uint address = VoxelAddress::generate(gridDims, cubeMin);
+          address = (address * 8) + (tid % 8);
+          
+          offset = largeCounterMetadata[address];
+        }
+        
+        // Add the atom offset.
+        {
+          ushort address = z * 4 + y * 2 + x;
+          address = address * 128 + thread_id;
+          ushort relativeOffset = cachedRelativeOffsets[address];
+          offset += relativeOffset;
+        }
+        
+        // Write the reference to the list.
+        largeAtomReferences[offset] = tid;
+      }
     }
   }
 }
