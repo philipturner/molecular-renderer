@@ -9,6 +9,26 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+// Convert the atom from 'float4' to a custom format.
+inline float4 convert(float4 atom, constant float *elementRadii) {
+  uint atomicNumber = uint(atom.w);
+  float radius = elementRadii[atomicNumber];
+  
+  uint packed = as_type<uint>(radius);
+  packed = packed & 0xFFFFFF00;
+  packed |= atomicNumber & 0x000000FF;
+  
+  float4 output = atom;
+  output.w = as_type<float>(packed);
+  return output;
+}
+
+inline ushort3 clamp(short3 position, ushort3 gridDims) {
+  short3 output = position;
+  output = clamp(output, 0, short3(gridDims));
+  return ushort3(output);
+}
+
 inline ushort pickPermutation(short3 footprintHigh) {
   ushort output;
   if (footprintHigh[0] == 0) {
@@ -45,26 +65,6 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
   return output;
 }
 
-inline ushort3 clamp(short3 position) {
-  short3 output = position;
-  output = clamp(output, 0, short3(512));
-  return ushort3(output);
-}
-
-// Convert the atom from 'float4' to a custom format.
-inline float4 convert(float4 atom, constant float *elementRadii) {
-  uint atomicNumber = uint(atom.w);
-  float radius = elementRadii[atomicNumber];
-  
-  uint packed = as_type<uint>(radius);
-  packed = packed & 0xFFFFFF00;
-  packed |= atomicNumber & 0x000000FF;
-  
-  float4 output = atom;
-  output.w = as_type<float>(packed);
-  return output;
-}
-
 // MARK: - Kernels
 
 kernel void buildLargePart1_1
@@ -88,8 +88,9 @@ kernel void buildLargePart1_1
   // Generate the bounding box.
   short3 boxMin = short3(floor(atom.xyz - atom.w));
   short3 boxMax = short3(ceil(atom.xyz + atom.w));
-  ushort3 smallVoxelMin = clamp(boxMin);
-  ushort3 smallVoxelMax = clamp(boxMax);
+  ushort3 gridDims = ushort3(512);
+  ushort3 smallVoxelMin = clamp(boxMin, gridDims);
+  ushort3 smallVoxelMax = clamp(boxMax, gridDims);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.
@@ -198,8 +199,9 @@ kernel void buildLargePart2_2
   // Generate the bounding box.
   short3 boxMin = short3(floor(atom.xyz - atom.w));
   short3 boxMax = short3(ceil(atom.xyz + atom.w));
-  ushort3 smallVoxelMin = clamp(boxMin);
-  ushort3 smallVoxelMax = clamp(boxMax);
+  ushort3 gridDims = ushort3(512);
+  ushort3 smallVoxelMin = clamp(boxMin, gridDims);
+  ushort3 smallVoxelMax = clamp(boxMax, gridDims);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.

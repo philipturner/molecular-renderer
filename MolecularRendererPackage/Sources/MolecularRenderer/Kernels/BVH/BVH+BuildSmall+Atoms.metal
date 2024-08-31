@@ -10,6 +10,12 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+inline ushort3 clamp(float3 position, ushort3 gridDims) {
+  short3 output = short3(position);
+  output = clamp(output, 0, short3(gridDims));
+  return ushort3(output);
+}
+
 inline ushort pickPermutation(ushort3 footprint) {
   ushort output;
   if (footprint[0] < footprint[1] && footprint[0] < footprint[2]) {
@@ -44,12 +50,6 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
     output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
   }
   return output;
-}
-
-inline ushort3 clamp(float3 position, ushort3 world_dims) {
-  short3 output = short3(position);
-  output = clamp(output, 0, short3(world_dims));
-  return ushort3(output);
 }
 
 // Test whether an atom overlaps a 1x1x1 cube.
@@ -119,21 +119,25 @@ kernel void buildSmallPart1_1
     uint largeAtomID = largeAtomReferences[largeReferenceID];
     float4 atom = convertedAtoms[largeAtomID];
     
-    // Place the atom in the grid of small cells.
-    atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
-    atom.w = 4 * atom.w;
-    
     // Generate the bounding box.
     ushort3 loopStart;
     ushort3 loopEnd;
     {
-      float3 smallVoxelMin = floor(atom.xyz - atom.w);
-      float3 smallVoxelMax = ceil(atom.xyz + atom.w);
+      float3 smallVoxelMin = atom.xyz - atom.w;
+      float3 smallVoxelMax = atom.xyz + atom.w;
+      smallVoxelMin = 4 * (smallVoxelMin - bvhArgs->worldMinimum);
+      smallVoxelMax = 4 * (smallVoxelMax - bvhArgs->worldMinimum);
+      smallVoxelMin = floor(smallVoxelMin);
+      smallVoxelMax = ceil(smallVoxelMax);
       
       ushort3 gridDims = bvhArgs->smallVoxelCount;
       loopStart = clamp(smallVoxelMin, gridDims);
       loopEnd = clamp(smallVoxelMax, gridDims);
     }
+    
+    // Place the atom in the grid of small cells.
+    atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
+    atom.w = 4 * atom.w;
     
     // Iterate over the footprint on the 3D grid.
     for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
@@ -205,21 +209,25 @@ kernel void buildSmallPart2_2
     uint largeAtomID = largeAtomReferences[largeReferenceID];
     float4 atom = convertedAtoms[largeAtomID];
     
-    // Place the atom in the grid of small cells.
-    atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
-    atom.w = 4 * atom.w;
-    
     // Generate the bounding box.
     ushort3 loopStart;
     ushort3 loopEnd;
     {
-      float3 smallVoxelMin = floor(atom.xyz - atom.w);
-      float3 smallVoxelMax = ceil(atom.xyz + atom.w);
+      float3 smallVoxelMin = atom.xyz - atom.w;
+      float3 smallVoxelMax = atom.xyz + atom.w;
+      smallVoxelMin = 4 * (smallVoxelMin - bvhArgs->worldMinimum);
+      smallVoxelMax = 4 * (smallVoxelMax - bvhArgs->worldMinimum);
+      smallVoxelMin = floor(smallVoxelMin);
+      smallVoxelMax = ceil(smallVoxelMax);
       
       ushort3 gridDims = bvhArgs->smallVoxelCount;
       loopStart = clamp(smallVoxelMin, gridDims);
       loopEnd = clamp(smallVoxelMax, gridDims);
     }
+    
+    // Place the atom in the grid of small cells.
+    atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
+    atom.w = 4 * atom.w;
     
     // Iterate over the footprint on the 3D grid.
     for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
