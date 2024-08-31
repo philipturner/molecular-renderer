@@ -134,7 +134,7 @@ kernel void buildSmallPart1_1
 // After reducing divergence: 1.1 milliseconds
 kernel void buildSmallPart2_2
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
+ device BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
  device atomic_uint *smallCounterMetadata [[buffer(2)]],
  device uint *smallAtomReferences [[buffer(3)]],
@@ -197,9 +197,7 @@ kernel void buildSmallPart2_2
                                   1, memory_order_relaxed);
         
         // Write the reference to the list.
-        if (offset < dense_grid_reference_capacity) {
-          smallAtomReferences[offset] = uint(tid);
-        }
+        smallAtomReferences[offset] = uint(tid);
       }
     }
   }
