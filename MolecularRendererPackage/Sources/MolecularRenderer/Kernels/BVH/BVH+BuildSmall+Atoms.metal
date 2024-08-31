@@ -16,42 +16,6 @@ inline ushort3 clamp(float3 position, ushort3 gridDims) {
   return ushort3(output);
 }
 
-inline ushort pickPermutation(ushort3 footprint) {
-  ushort output;
-  if (footprint[0] < footprint[1] && footprint[0] < footprint[2]) {
-    output = 0;
-  } else if (footprint[1] < footprint[2]) {
-    output = 1;
-  } else {
-    output = 2;
-  }
-  return output;
-}
-
-inline ushort3 reorderForward(ushort3 loopBound, ushort permutationID) {
-  ushort3 output;
-  if (permutationID == 0) {
-    output = ushort3(loopBound[1], loopBound[2], loopBound[0]);
-  } else if (permutationID == 1) {
-    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
-  } else {
-    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
-  }
-  return output;
-}
-
-inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
-  ushort3 output;
-  if (permutationID == 0) {
-    output = ushort3(loopBound[2], loopBound[0], loopBound[1]);
-  } else if (permutationID == 1) {
-    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
-  } else {
-    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
-  }
-  return output;
-}
-
 // Test whether an atom overlaps a 1x1x1 cube.
 inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 {

@@ -71,8 +71,10 @@ import Numerics
 // Write the kernel with threadgroup atomics.
 // - Make the kernels iterate over the atoms within a threadgroup. [DONE]
 // - Use threadgroup atomics to accumulate reference counts, but write the
-//   counters to device memory afterward.
+//   counters to device memory afterward. [DONE]
+// - Change the reduction over small cells to be scoped over 8x8x8.
 // - Fuse the pass over small cells with the first pass over atoms.
+// - Fuse all of the passes into a single kernel.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not

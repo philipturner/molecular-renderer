@@ -88,7 +88,7 @@ extension BVHBuilder {
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 16,
+      indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     
   }
@@ -107,7 +107,7 @@ extension BVHBuilder {
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 16,
+      indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
 }
@@ -129,7 +129,6 @@ extension BVHBuilder {
     // Arguments 3 - 4
     encoder.setBuffer(bvhArguments, offset: 0, index: 3)
     encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 4)
-    encoder.setBuffer(indirectDispatchArguments, offset: 16, index: 5)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart0_0
@@ -150,7 +149,7 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
   }
   
   func buildSmallPart2_0(encoder: MTLComputeCommandEncoder) {
@@ -178,6 +177,6 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
   }
 }

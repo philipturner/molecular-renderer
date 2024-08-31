@@ -170,7 +170,7 @@ kernel void buildLargePart2_1
     return;
   }
   
-  // Store the thread metadata.
+  // Write the cell metadata.
   {
     uint4 threadMetadata(threadVoxelOffset,
                          threadLargeOffset,

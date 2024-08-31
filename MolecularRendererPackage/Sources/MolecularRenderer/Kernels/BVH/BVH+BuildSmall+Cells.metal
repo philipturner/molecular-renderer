@@ -16,8 +16,7 @@ kernel void buildSmallPart0_0
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]],
  device BVHArguments *bvhArgs [[buffer(3)]],
- device uint3 *smallCellDispatchArguments4x4x4 [[buffer(4)]],
- device uint3 *atomDispatchArguments8x8x8 [[buffer(5)]])
+ device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
 {
   // Read the bounding box.
   int3 minimum = *boundingBoxMin;
@@ -37,8 +36,7 @@ kernel void buildSmallPart0_0
   bvhArgs->largeVoxelCount = largeVoxelCount;
   bvhArgs->smallVoxelCount = largeVoxelCount * 8;
   
-  // Set the small-cell dispatch arguments.
-  *smallCellDispatchArguments4x4x4 = uint3(largeVoxelCount) * 2;
+  // Set the atom dispatch arguments.
   *atomDispatchArguments8x8x8 = uint3(largeVoxelCount);
 }
 
@@ -50,20 +48,26 @@ kernel void buildSmallPart1_0
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
   // Locate the counter metadata.
-  ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * 4;
+  ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
+  cellCoordinates += tgid * 8;
   ushort3 gridDims = bvhArgs->smallVoxelCount;
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  uint baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Write the counter metadata.
-  uint resetValue = uint(0);
-  smallCounterMetadata[cellAddress] = resetValue;
+#pragma clang loop unroll(full)
+  for (ushort laneID = 0; laneID < 4; ++laneID) {
+    uint cellAddress = baseAddress + laneID;
+    uint resetValue = uint(0);
+    smallCounterMetadata[cellAddress] = resetValue;
+  }
 }
 
 kernel void buildSmallPart2_0
 (
  device uint *allocatedMemory [[buffer(0)]])
 {
+  // TODO: Fuse this with buildSmallPart0_0.
+  
   // Initialize with the smallest acceptable pointer value.
   uint smallestPointer = uint(1);
   allocatedMemory[0] = smallestPointer;
@@ -81,20 +85,36 @@ kernel void buildSmallPart2_1
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Locate the counter metadata.
-  ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * 4;
+  ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
+  cellCoordinates += tgid * 8;
   ushort3 gridDims = bvhArgs->smallVoxelCount;
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  uint baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
   
   // Read the counter metadata.
-  uint threadCount = smallCounterMetadata[cellAddress];
+  uint4 counterCounts;
+#pragma clang loop unroll(full)
+  for (ushort laneID = 0; laneID < 4; ++laneID) {
+    uint cellAddress = baseAddress + laneID;
+    uint count = smallCounterMetadata[cellAddress];
+    counterCounts[laneID] = count;
+  }
+  
+  // Reduce across the thread.
+  uint4 counterOffsets;
+  uint threadCount = 0;
+#pragma clang loop unroll(full)
+  for (ushort laneID = 0; laneID < 4; ++laneID) {
+    uint counterOffset = threadCount;
+    threadCount += counterCounts[laneID];
+    counterOffsets[laneID] = counterOffset;
+  }
   
   // Reduce across the SIMD.
   uint threadOffset = simd_prefix_exclusive_sum(threadCount);
   uint simdCount = simd_broadcast(threadOffset + threadCount, 31);
   
   // Reduce across the entire group.
-  constexpr uint simdsPerGroup = 2;
+  constexpr uint simdsPerGroup = 4;
   threadgroup uint simdCounts[simdsPerGroup];
   if (lane_id == 0) {
     simdCounts[simd_id] = simdCount;
@@ -125,17 +145,22 @@ kernel void buildSmallPart2_1
   }
   
   // Add the SIMD offset to the thread offset.
+  // Add the thread offset to the cell offset.
   threadgroup_barrier(mem_flags::mem_threadgroup);
   threadOffset += simdOffsets[simd_id];
+  counterOffsets += threadOffset;
   
-  // Store the thread metadata.
-  {
-    uint countPart = reverse_bits(threadCount) & voxel_count_mask;
-    uint offsetPart = threadOffset & voxel_offset_mask;
+  // Write the cell metadata and counter metadata.
+#pragma clang loop unroll(full)
+  for (ushort laneID = 0; laneID < 4; ++laneID) {
+    uint count = counterCounts[laneID];
+    uint offset = counterOffsets[laneID];
+    uint countPart = reverse_bits(count) & voxel_count_mask;
+    uint offsetPart = offset & voxel_offset_mask;
     uint metadata = countPart | offsetPart;
+    
+    uint cellAddress = baseAddress + laneID;
     smallCellMetadata[cellAddress] = metadata;
+    smallCounterMetadata[cellAddress] = offset;
   }
-  
-  // Store the counter offset.
-  smallCounterMetadata[cellAddress] = threadOffset;
 }
