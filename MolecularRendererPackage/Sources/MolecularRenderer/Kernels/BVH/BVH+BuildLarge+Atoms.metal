@@ -148,29 +148,36 @@ kernel void buildLargePart1_1
     }
   }
   
-  // Retrieve the cached offsets.
-  simdgroup_barrier(mem_flags::mem_threadgroup);
-  ushort4 output[2];
+  {
+    // Retrieve the cached offsets.
+    simdgroup_barrier(mem_flags::mem_threadgroup);
+    ushort4 output[2];
 #pragma clang loop unroll(full)
-  for (ushort i = 0; i < 8; ++i) {
-    ushort address = i;
-    address = address * 128 + thread_id;
-    ushort offset = cachedRelativeOffsets[address];
-    output[i / 4][i % 4] = offset;
-  }
-  
-  // Apply the mask.
-  constexpr ushort scalarMask = ushort(1 << 14) - 1;
-  constexpr uint vectorMask = as_type<uint>(ushort2(scalarMask));
-  *((thread uint4*)(output)) &= vectorMask;
-  
-  // Write to device memory.
-  relativeOffsets1[tid] = output[0];
-  if (loopEnd[2] == 2) {
-    relativeOffsets2[tid] = output[1];
+    for (ushort i = 0; i < 8; ++i) {
+      ushort address = i;
+      address = address * 128 + thread_id;
+      ushort offset = cachedRelativeOffsets[address];
+      output[i / 4][i % 4] = offset;
+    }
+    
+    // Apply the mask.
+    constexpr ushort scalarMask = ushort(1 << 14) - 1;
+    constexpr uint vectorMask = as_type<uint>(ushort2(scalarMask));
+    *((thread uint4*)(output)) &= vectorMask;
+    
+    // Write to device memory.
+    relativeOffsets1[tid] = output[0];
+    if (loopEnd[2] == 2) {
+      relativeOffsets2[tid] = output[1];
+    }
   }
 }
 
+// First, load the cached offsets.
+// - We don't need to apply the mask.
+// - We don't need to zero-initialize the relative offsets to avoid
+//   compiler warnings.
+// - Start by regenerating the loop bounds.
 kernel void buildLargePart2_2
 (
  constant float *elementRadii [[buffer(0)]],
@@ -190,8 +197,51 @@ kernel void buildLargePart2_2
   // Write in the new format.
   convertedAtoms[tid] = atom;
   
-  // First, load the cached offsets.
-  // - We don't need to apply the mask.
-  // - We don't need to zero-initialize the relative offsets to avoid
-  //   compiler warnings.
+  // Place the atom in the grid of small cells.
+  atom.xyz = 4 * (atom.xyz + 64);
+  atom.w = 4 * atom.w;
+  
+  // Generate the bounding box.
+  short3 boxMin = short3(floor(atom.xyz - atom.w));
+  short3 boxMax = short3(ceil(atom.xyz + atom.w));
+  ushort3 smallVoxelMin = clamp(boxMin);
+  ushort3 smallVoxelMax = clamp(boxMax);
+  ushort3 largeVoxelMin = smallVoxelMin / 8;
+  
+  // Pre-compute the footprint.
+  ushort3 dividingLine = (largeVoxelMin + 1) * 8;
+  dividingLine = min(dividingLine, smallVoxelMax);
+  dividingLine = max(dividingLine, smallVoxelMin);
+  short3 footprintLow = short3(dividingLine - smallVoxelMin);
+  short3 footprintHigh = short3(smallVoxelMax - dividingLine);
+  
+  // Determine the loop bounds.
+  ushort3 loopEnd = select(ushort3(1),
+                           ushort3(2),
+                           footprintHigh > 0);
+  
+  // Reorder the loop traversal.
+  ushort permutationID = pickPermutation(footprintHigh);
+  loopEnd = reorderForward(loopEnd, permutationID);
+  
+  // Allocate memory for the relative offsets.
+  threadgroup ushort cachedRelativeOffsets[8 * 128];
+  
+  {
+    // Read from device memory.
+    ushort4 input[2];
+    input[0] = relativeOffsets1[tid];
+    if (loopEnd[2] == 2) {
+      input[1] = relativeOffsets2[tid];
+    }
+    
+    // Store the cached offsets.
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 8; ++i) {
+      ushort address = i;
+      address = address * 128 + thread_id;
+      ushort offset = input[i / 4][i % 4];
+      cachedRelativeOffsets[address] = offset;
+    }
+  }
 }
