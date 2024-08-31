@@ -88,6 +88,7 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 //
 // Dispatch over 128 threads: 750 microseconds
 // Dispatch over 256 threads: 710 microseconds
+// Threadgroup atomics:       440 microseconds
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -160,6 +161,10 @@ kernel void buildSmallPart1_1
           ushort3 actualXYZ = ushort3(x, y, z);
           
           // Narrow down the cells with a cube-sphere intersection test.
+          //
+          // TODO: Eliminate the first test, once it is possible to do so. We
+          // will need to re-compute the small-cell metadata with the revised
+          // atom count.
           bool intersected = cubeSphereIntersection(actualXYZ, atom);
           if (!intersected) {
             continue;
@@ -216,6 +221,7 @@ kernel void buildSmallPart1_1
 //
 // Dispatch over 128 threads: 1.8 milliseconds
 // Dispatch over 256 threads: 1.6 milliseconds
+// Threadgroup atomics:       1.2 milliseconds
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],

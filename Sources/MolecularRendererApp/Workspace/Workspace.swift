@@ -215,10 +215,11 @@ func createGeometry() -> [Atom] {
   return output
 }
 
-#else
+#endif
+
+#if false
 
 // Test that animation functionality is working correctly.
-
 func createGeometry() -> [[Atom]] {
   let lattice = Lattice<Hexagonal> { h, k, l in
     let h2k = h + 2 * k
