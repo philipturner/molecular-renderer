@@ -52,7 +52,9 @@ import Numerics
 //   - Store the per-cell offsets. [DONE]
 //   - Check the correctness of the per-cell offsets before writing atom
 //     references (if possible). [DONE]
-//   - Abstract away the code for iterating over large cell footprint.
+//   - Abstract away the code for iterating over large cell footprint. [DONE]
+//     - Factored out part of it, specifically anything with control flow.
+//     - It appears lower-effort to leave anything else duplicated.
 //   - Check the correctness of written atom references. Use them as the source
 //     of the small-cell atoms kernels. This means the ray tracer will
 //     intersect some atoms twice.
