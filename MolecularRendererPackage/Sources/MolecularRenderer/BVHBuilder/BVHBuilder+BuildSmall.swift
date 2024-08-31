@@ -12,15 +12,12 @@ import Metal
 //
 // Part 1
 // - Kernel 0: Reset the small counter metadata.
-// - Kernel 1: Accumulate the reference count for each voxel.
-//
-// Part 2:
-// - Kernel 1: Compact the reference offset for each voxel.
-// - Kernel 2: Fill the reference list for each voxel.
+//             Accumulate the reference count for each voxel.
+//             Compact the reference offset for each voxel.
+//             Fill the reference list for each voxel.
 struct BVHBuildSmallPipelines {
   var buildSmallPart0_0: MTLComputePipelineState
-  var buildSmallPart1_1: MTLComputePipelineState
-  var buildSmallPart2_2: MTLComputePipelineState
+  var buildSmallPart1_0: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -31,8 +28,7 @@ struct BVHBuildSmallPipelines {
       return try! device.makeComputePipelineState(function: function)
     }
     buildSmallPart0_0 = createPipeline(name: "buildSmallPart0_0")
-    buildSmallPart1_1 = createPipeline(name: "buildSmallPart1_1")
-    buildSmallPart2_2 = createPipeline(name: "buildSmallPart2_2")
+    buildSmallPart1_0 = createPipeline(name: "buildSmallPart1_0")
   }
 }
 
@@ -41,8 +37,7 @@ extension BVHBuilder {
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     buildSmallPart0_0(encoder: encoder)
-    buildSmallPart1_1(encoder: encoder)
-    buildSmallPart2_2(encoder: encoder)
+    buildSmallPart1_0(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -86,7 +81,7 @@ extension BVHBuilder {
       threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
   }
   
-  func buildSmallPart1_1(encoder: MTLComputeCommandEncoder) {
+  func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(globalCounters, offset: 0, index: 0)
     encoder.setBuffer(bvhArguments, offset: 0, index: 1)
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 2)
@@ -97,29 +92,12 @@ extension BVHBuilder {
     encoder.setBuffer(smallAtomReferences, offset: 0, index: 7)
     
     // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart1_1
+    let pipeline = buildSmallPipelines.buildSmallPart1_0
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,
       threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
     
-  }
-  
-  func buildSmallPart2_2(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
-    encoder.setBuffer(largeAtomReferences, offset: 0, index: 2)
-    encoder.setBuffer(convertedAtoms, offset: 0, index: 3)
-    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 4)
-    encoder.setBuffer(smallAtomReferences, offset: 0, index: 5)
-    
-    // Dispatch
-    let pipeline = buildSmallPipelines.buildSmallPart2_2
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 0,
-      threadsPerThreadgroup: MTLSize(width: 2, height: 8, depth: 8))
   }
 }

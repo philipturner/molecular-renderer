@@ -75,9 +75,11 @@ import Numerics
 // - Change the reduction over small cells to be scoped over 8x8x8. [DONE]
 // - Fuse the first atoms kernel with memory clearing. [DONE]
 // - Fuse the first atoms kernel with reduction over voxels. [DONE]
-// - Fuse the first atoms kernel with the second kernel.
+// - Fuse the first atoms kernel with the second atoms kernel. [DONE]
 // - Optimize away the unnecessary transfers to device memory.
-// - Try to reduce the compute cost of cell-sphere testing.
+//   - Remove the memory allocation for small-cell counters.
+// - Reduce the memory consumption of small references.
+// - Try to reduce the compute cost of cube-sphere testing.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
@@ -315,6 +317,7 @@ func createGeometry() -> [[Atom]] {
 #endif
 
 #if false
+
 // Higher resolution means we can resolve much larger scenes. There is
 // motivation to support atom counts far exceeding 4 million.
 func createGeometry() -> [Atom] {
