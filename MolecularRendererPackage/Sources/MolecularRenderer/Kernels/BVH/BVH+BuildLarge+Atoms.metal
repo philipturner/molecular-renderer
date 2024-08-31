@@ -10,7 +10,7 @@
 using namespace metal;
 
 // Convert the atom from 'float4' to a custom format.
-float4 convert(float4 atom, constant float *elementRadii) {
+inline float4 convert(float4 atom, constant float *elementRadii) {
   uint atomicNumber = uint(atom.w);
   float radius = elementRadii[atomicNumber];
   
@@ -20,6 +20,30 @@ float4 convert(float4 atom, constant float *elementRadii) {
   
   float4 output = atom;
   output.w = as_type<float>(packed);
+  return output;
+}
+
+inline ushort3 reorderForward(ushort3 loopBound, ushort permutationID) {
+  ushort3 output;
+  if (permutationID == 0) {
+    output = ushort3(loopBound[1], loopBound[2], loopBound[0]);
+  } else if (permutationID == 1) {
+    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
+  } else {
+    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
+  }
+  return output;
+}
+
+inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
+  ushort3 output;
+  if (permutationID == 0) {
+    output = ushort3(loopBound[2], loopBound[0], loopBound[1]);
+  } else if (permutationID == 1) {
+    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
+  } else {
+    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
+  }
   return output;
 }
 
@@ -71,14 +95,7 @@ kernel void buildLargePart1_1
   } else {
     permutationID = 2;
   }
-  
-  if (permutationID == 0) {
-    loopEnd = ushort3(loopEnd[1], loopEnd[2], loopEnd[0]);
-  } else if (permutationID == 1) {
-    loopEnd = ushort3(loopEnd[0], loopEnd[2], loopEnd[1]);
-  } else {
-    loopEnd = ushort3(loopEnd[0], loopEnd[1], loopEnd[2]);
-  }
+  loopEnd = reorderForward(loopEnd, permutationID);
   
   // Allocate memory for the relative offsets.
   threadgroup ushort cachedRelativeOffsets[8 * 128];
@@ -87,14 +104,8 @@ kernel void buildLargePart1_1
   for (ushort z = 0; z < loopEnd[2]; ++z) {
     for (ushort y = 0; y < loopEnd[1]; ++y) {
       for (ushort x = 0; x < loopEnd[0]; ++x) {
-        ushort3 actualXYZ;
-        if (permutationID == 0) {
-          actualXYZ = ushort3(z, x, y);
-        } else if (permutationID == 1) {
-          actualXYZ = ushort3(x, z, y);
-        } else {
-          actualXYZ = ushort3(x, y, z);
-        }
+        ushort3 actualXYZ = ushort3(x, y, z);
+        actualXYZ = reorderBackward(actualXYZ, permutationID);
         
         // Determine the number of small voxels within the large voxel.
         short3 footprint =

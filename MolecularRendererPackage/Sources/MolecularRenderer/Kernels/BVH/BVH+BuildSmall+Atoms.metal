@@ -10,9 +10,33 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+inline ushort3 reorderForward(ushort3 loopBound, ushort permutationID) {
+  ushort3 output;
+  if (permutationID == 0) {
+    output = ushort3(loopBound[1], loopBound[2], loopBound[0]);
+  } else if (permutationID == 1) {
+    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
+  } else {
+    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
+  }
+  return output;
+}
+
+inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
+  ushort3 output;
+  if (permutationID == 0) {
+    output = ushort3(loopBound[2], loopBound[0], loopBound[1]);
+  } else if (permutationID == 1) {
+    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
+  } else {
+    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
+  }
+  return output;
+}
+
 // Quantize a position relative to the world origin.
-inline ushort3 quantize(float3 position, ushort3 world_dims) {
-  short3 output = short3(position);
+inline ushort3 clamp(short3 position, ushort3 world_dims) {
+  short3 output = position;
   output = clamp(output, 0, short3(world_dims));
   return ushort3(output);
 }
@@ -38,7 +62,8 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
   return dist_squared > 0;
 }
 
-// Before: 380 microseconds
+// Before:                    380 microseconds
+// After reducing divergence: 350 microseconds
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -57,19 +82,35 @@ kernel void buildSmallPart1_1
   ushort3 loopStart;
   ushort3 loopEnd;
   {
+    short3 smallVoxelMin = short3(floor(atom.xyz - atom.w));
+    short3 smallVoxelMax = short3(ceil(atom.xyz + atom.w));
+    
     ushort3 gridDims = bvhArgs->smallVoxelCount;
-    ushort3 smallVoxelMin = quantize(atom.xyz - atom.w, gridDims);
-    ushort3 smallVoxelMax = quantize(atom.xyz + atom.w, gridDims);
-    loopStart = smallVoxelMin;
-    loopEnd = smallVoxelMax;
+    loopStart = clamp(smallVoxelMin, gridDims);
+    loopEnd = clamp(smallVoxelMax, gridDims);
   }
   
+  // Reorder the loop traversal.
+  ushort permutationID;
+  {
+    ushort3 footprint = loopEnd - loopStart;
+    if (footprint[2] > footprint[0] && footprint[2] > footprint[1]) {
+      permutationID = 0;
+    } else if (footprint[1] > footprint[0]) {
+      permutationID = 1;
+    } else {
+      permutationID = 2;
+    }
+  }
+  loopStart = reorderForward(loopStart, permutationID);
+  loopEnd = reorderForward(loopEnd, permutationID);
+  
   // Iterate over the footprint on the 3D grid.
-  for (ushort z = loopStart[2]; z <= loopEnd[2]; ++z) {
-    for (ushort y = loopStart[1]; y <= loopEnd[1]; ++y) {
-      for (ushort x = loopStart[0]; x <= loopEnd[0]; ++x) {
-        ushort3 actualXYZ;
-        actualXYZ = ushort3(x, y, z);
+  for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
+    for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
+      for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
+        ushort3 actualXYZ = ushort3(x, y, z);
+        actualXYZ = reorderBackward(actualXYZ, permutationID);
         
         // Narrow down the cells with a cube-sphere intersection test.
         bool intersected = cubeSphereIntersection(actualXYZ, atom);
@@ -89,7 +130,8 @@ kernel void buildSmallPart1_1
   }
 }
 
-// Before: 1.1 milliseconds
+// Before:                    1.1 milliseconds
+// After reducing divergence: 1.1 milliseconds
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
@@ -109,19 +151,35 @@ kernel void buildSmallPart2_2
   ushort3 loopStart;
   ushort3 loopEnd;
   {
+    short3 smallVoxelMin = short3(floor(atom.xyz - atom.w));
+    short3 smallVoxelMax = short3(ceil(atom.xyz + atom.w));
+    
     ushort3 gridDims = bvhArgs->smallVoxelCount;
-    ushort3 smallVoxelMin = quantize(atom.xyz - atom.w, gridDims);
-    ushort3 smallVoxelMax = quantize(atom.xyz + atom.w, gridDims);
-    loopStart = smallVoxelMin;
-    loopEnd = smallVoxelMax;
+    loopStart = clamp(smallVoxelMin, gridDims);
+    loopEnd = clamp(smallVoxelMax, gridDims);
   }
   
+  // Reorder the loop traversal.
+  ushort permutationID;
+  {
+    ushort3 footprint = loopEnd - loopStart;
+    if (footprint[2] > footprint[0] && footprint[2] > footprint[1]) {
+      permutationID = 0;
+    } else if (footprint[1] > footprint[0]) {
+      permutationID = 1;
+    } else {
+      permutationID = 2;
+    }
+  }
+  loopStart = reorderForward(loopStart, permutationID);
+  loopEnd = reorderForward(loopEnd, permutationID);
+  
   // Iterate over the footprint on the 3D grid.
-  for (ushort z = loopStart[2]; z <= loopEnd[2]; ++z) {
-    for (ushort y = loopStart[1]; y <= loopEnd[1]; ++y) {
-      for (ushort x = loopStart[0]; x <= loopEnd[0]; ++x) {
-        ushort3 actualXYZ;
-        actualXYZ = ushort3(x, y, z);
+  for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
+    for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
+      for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
+        ushort3 actualXYZ = ushort3(x, y, z);
+        actualXYZ = reorderBackward(actualXYZ, permutationID);
         
         // Narrow down the cells with a cube-sphere intersection test.
         bool intersected = cubeSphereIntersection(actualXYZ, atom);
