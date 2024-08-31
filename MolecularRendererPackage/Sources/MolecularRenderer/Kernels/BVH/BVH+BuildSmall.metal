@@ -92,19 +92,19 @@ kernel void buildSmallPart1_0
  device uint4 *largeCellMetadata [[buffer(2)]],
  device uint *largeAtomReferences [[buffer(3)]],
  device float4 *convertedAtoms [[buffer(4)]],
- device uint *smallCounterMetadata [[buffer(5)]],
- device uint *smallCellMetadata [[buffer(6)]],
- device uint *smallAtomReferences [[buffer(7)]],
+ device uint *smallCellMetadata [[buffer(5)]],
+ device uint *smallAtomReferences [[buffer(6)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]],
  ushort thread_index [[thread_index_in_threadgroup]])
 {
+  threadgroup uint threadgroupCounters[512];
+  
   // MARK: - buildSmallPart1_1
   {
     // Initialize the small-cell counters.
-    threadgroup uint threadgroupCounters[512];
     for (ushort i = thread_index; i < 512; i += 128) {
       threadgroupCounters[i] = 0;
     }
@@ -165,10 +165,6 @@ kernel void buildSmallPart1_0
             ushort3 actualXYZ = ushort3(x, y, z);
             
             // Narrow down the cells with a cube-sphere intersection test.
-            //
-            // TODO: Eliminate the first test, once it is possible to do so. We
-            // will need to re-compute the small-cell metadata with the revised
-            // atom count.
             bool intersected = cubeSphereIntersection(actualXYZ, atom);
             if (!intersected) {
               continue;
@@ -188,53 +184,31 @@ kernel void buildSmallPart1_0
         }
       }
     }
-    
-    // Write the small-cell counters.
-    threadgroup_barrier(mem_flags::mem_threadgroup);
-    for (ushort smallCellID = thread_index;
-         smallCellID < 512;
-         smallCellID += 128)
-    {
-      ushort3 localCoordinates(smallCellID % 8,
-                               (smallCellID % 64) / 8,
-                               smallCellID / 64);
-      ushort3 localGridDims = 8;
-      ushort localCellAddress = VoxelAddress::generate(localGridDims,
-                                                       localCoordinates);
-      
-      ushort3 globalCoordinates = tgid * 8 + localCoordinates;
-      ushort3 globalGridDims = bvhArgs->smallVoxelCount;
-      uint globalCellAddress = VoxelAddress::generate(globalGridDims,
-                                                      globalCoordinates);
-      
-      uint offset = threadgroupCounters[localCellAddress];
-      smallCounterMetadata[globalCellAddress] = offset;
-    }
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
   // MARK: - buildSmallPart2_1
   {
-    // Locate the counter metadata.
-    ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
-    cellCoordinates += tgid * 8;
-    ushort3 gridDims = bvhArgs->smallVoxelCount;
-    uint baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-    
     // Read the counter metadata.
     uint4 counterCounts;
-  #pragma clang loop unroll(full)
-    for (ushort laneID = 0; laneID < 4; ++laneID) {
-      uint cellAddress = baseAddress + laneID;
-      uint count = smallCounterMetadata[cellAddress];
-      counterCounts[laneID] = count;
+    {
+      ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
+      ushort3 gridDims = ushort3(8);
+      ushort baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+      
+#pragma clang loop unroll(full)
+      for (ushort laneID = 0; laneID < 4; ++laneID) {
+        ushort cellAddress = baseAddress + laneID;
+        uint count = threadgroupCounters[cellAddress];
+        counterCounts[laneID] = count;
+      }
     }
     
     // Reduce across the thread.
     uint4 counterOffsets;
     uint threadCount = 0;
-  #pragma clang loop unroll(full)
+#pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 4; ++laneID) {
       uint counterOffset = threadCount;
       threadCount += counterCounts[laneID];
@@ -246,19 +220,16 @@ kernel void buildSmallPart1_0
     uint simdCount = simd_broadcast(threadOffset + threadCount, 31);
     
     // Reduce across the entire group.
-    constexpr uint simdsPerGroup = 4;
-    threadgroup uint simdCounts[simdsPerGroup];
-    if (lane_id == 0) {
-      simdCounts[simd_id] = simdCount;
-    }
+    threadgroup uint simdCounts[4];
+    simdCounts[simd_id] = simdCount;
     threadgroup_barrier(mem_flags::mem_threadgroup);
     
     // Reduce across the entire GPU.
-    threadgroup uint simdOffsets[simdsPerGroup];
+    threadgroup uint simdOffsets[4];
     if (simd_id == 0) {
-      uint simdCount = simdCounts[lane_id % simdsPerGroup];
+      uint simdCount = simdCounts[lane_id % 4];
       uint simdOffset = simd_prefix_exclusive_sum(simdCount);
-      uint groupCount = simd_broadcast(simdOffset + simdCount, simdsPerGroup - 1);
+      uint groupCount = simd_broadcast(simdOffset + simdCount, 3);
       
       // This part may be a parallelization bottleneck on large GPUs.
       uint groupOffset = 0;
@@ -270,7 +241,7 @@ kernel void buildSmallPart1_0
       groupOffset = simd_broadcast(groupOffset, 0);
       
       // Add the group offset to the SIMD offset.
-      if (lane_id < simdsPerGroup) {
+      if (lane_id < 4) {
         simdOffset += groupOffset;
         simdOffsets[lane_id] = simdOffset;
       }
@@ -282,18 +253,38 @@ kernel void buildSmallPart1_0
     threadOffset += simdOffsets[simd_id];
     counterOffsets += threadOffset;
     
-    // Write the cell metadata and counter metadata.
-  #pragma clang loop unroll(full)
-    for (ushort laneID = 0; laneID < 4; ++laneID) {
-      uint count = counterCounts[laneID];
-      uint offset = counterOffsets[laneID];
-      uint countPart = reverse_bits(count) & voxel_count_mask;
-      uint offsetPart = offset & voxel_offset_mask;
-      uint metadata = countPart | offsetPart;
+    // Write the cell metadata.
+    {
+      ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
+      cellCoordinates += tgid * 8;
+      ushort3 gridDims = bvhArgs->smallVoxelCount;
+      uint baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
       
-      uint cellAddress = baseAddress + laneID;
-      smallCellMetadata[cellAddress] = metadata;
-      smallCounterMetadata[cellAddress] = offset;
+#pragma clang loop unroll(full)
+      for (ushort laneID = 0; laneID < 4; ++laneID) {
+        uint count = counterCounts[laneID];
+        uint offset = counterOffsets[laneID];
+        uint countPart = reverse_bits(count) & voxel_count_mask;
+        uint offsetPart = offset & voxel_offset_mask;
+        uint metadata = countPart | offsetPart;
+        
+        uint cellAddress = baseAddress + laneID;
+        smallCellMetadata[cellAddress] = metadata;
+      }
+    }
+    
+    // Write the counter metadata.
+    {
+      ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
+      ushort3 gridDims = ushort3(8);
+      ushort baseAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+      
+#pragma clang loop unroll(full)
+      for (ushort laneID = 0; laneID < 4; ++laneID) {
+        uint offset = counterOffsets[laneID];
+        uint cellAddress = baseAddress + laneID;
+        threadgroupCounters[cellAddress] = offset;
+      }
     }
   }
   
@@ -301,29 +292,6 @@ kernel void buildSmallPart1_0
   
   // MARK: - buildSmallPart2_2
   {
-    // Read the small-cell counters.
-    threadgroup uint threadgroupCounters[512];
-    for (ushort smallCellID = thread_index;
-         smallCellID < 512;
-         smallCellID += 128)
-    {
-      ushort3 localCoordinates(smallCellID % 8,
-                              (smallCellID % 64) / 8,
-                              smallCellID / 64);
-      ushort3 localGridDims = 8;
-      ushort localCellAddress = VoxelAddress::generate(localGridDims,
-                                                       localCoordinates);
-      
-      ushort3 globalCoordinates = tgid * 8 + localCoordinates;
-      ushort3 globalGridDims = bvhArgs->smallVoxelCount;
-      uint globalCellAddress = VoxelAddress::generate(globalGridDims,
-                                                      globalCoordinates);
-      
-      uint offset = smallCounterMetadata[globalCellAddress];
-      threadgroupCounters[localCellAddress] = offset;
-    }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
-    
     // Materialize the lower corner in registers.
     float3 lowerCorner = bvhArgs->worldMinimum;
     lowerCorner += float3(tgid) * 2;

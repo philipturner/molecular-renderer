@@ -76,8 +76,12 @@ import Numerics
 // - Fuse the first atoms kernel with memory clearing. [DONE]
 // - Fuse the first atoms kernel with reduction over voxels. [DONE]
 // - Fuse the first atoms kernel with the second atoms kernel. [DONE]
+//
+// Optimize the fused kernel.
 // - Optimize away the unnecessary transfers to device memory.
 //   - Remove the memory allocation for small-cell counters.
+// - Remove the cross-GPU reduction, as the previous pass already compacted
+//   the small atom references.
 // - Reduce the memory consumption of small references.
 // - Try to reduce the compute cost of cube-sphere testing.
 //

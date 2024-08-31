@@ -87,9 +87,8 @@ extension BVHBuilder {
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 2)
     encoder.setBuffer(largeAtomReferences, offset: 0, index: 3)
     encoder.setBuffer(convertedAtoms, offset: 0, index: 4)
-    encoder.setBuffer(smallCounterMetadata, offset: 0, index: 5)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 6)
-    encoder.setBuffer(smallAtomReferences, offset: 0, index: 7)
+    encoder.setBuffer(smallCellMetadata, offset: 0, index: 5)
+    encoder.setBuffer(smallAtomReferences, offset: 0, index: 6)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart1_0

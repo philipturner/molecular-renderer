@@ -28,7 +28,6 @@ class BVHBuilder {
   // Data buffers (per cell).
   var largeCounterMetadata: MTLBuffer
   var largeCellMetadata: MTLBuffer
-  var smallCounterMetadata: MTLBuffer
   var smallCellMetadata: MTLBuffer
   
   // Data buffers (per reference).
@@ -73,7 +72,6 @@ class BVHBuilder {
     let smallVoxelCount = 512 * 512 * 512
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
     largeCellMetadata = createBuffer(length: largeVoxelCount * 4 * 4)
-    smallCounterMetadata = createBuffer(length: smallVoxelCount * 4)
     smallCellMetadata = createBuffer(length: smallVoxelCount * 4)
     
     // Data buffers (per reference).
