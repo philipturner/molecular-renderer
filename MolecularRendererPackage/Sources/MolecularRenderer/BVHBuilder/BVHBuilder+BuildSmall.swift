@@ -81,16 +81,11 @@ extension BVHBuilder {
     encoder.setBuffer(convertedAtoms, offset: 0, index: 1)
     encoder.setBuffer(smallCounterMetadata, offset: 0, index: 2)
     
-    // Arguments 3 - 4
-    encoder.setBuffer(indirectDispatchArguments, offset: 16, index: 3)
-    encoder.setBuffer(largeAtomReferences, offset: 0, index: 4)
-    
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart1_1
     encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 32,
+    encoder.dispatchThreads(
+      MTLSize(width: currentAtomCount, height: 1, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
     
   }
@@ -102,16 +97,11 @@ extension BVHBuilder {
     encoder.setBuffer(smallCounterMetadata, offset: 0, index: 2)
     encoder.setBuffer(smallAtomReferences, offset: 0, index: 3)
     
-    // Arguments 4 - 5
-    encoder.setBuffer(indirectDispatchArguments, offset: 16, index: 4)
-    encoder.setBuffer(largeAtomReferences, offset: 0, index: 5)
-    
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart2_2
     encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      indirectBuffer: indirectDispatchArguments,
-      indirectBufferOffset: 32,
+    encoder.dispatchThreads(
+      MTLSize(width: currentAtomCount, height: 1, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
   }
 }
@@ -130,13 +120,9 @@ extension BVHBuilder {
       encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
     }
     
-    // Argument 3
+    // Arguments 3 - 4
     encoder.setBuffer(bvhArguments, offset: 0, index: 3)
-    
-    // Arguments 4 - 6
     encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 4)
-    encoder.setBuffer(indirectDispatchArguments, offset: 16, index: 5)
-    encoder.setBuffer(indirectDispatchArguments, offset: 32, index: 6)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart0_0

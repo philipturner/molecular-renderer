@@ -16,46 +16,29 @@ kernel void buildSmallPart0_0
  device int3 *boundingBoxMin [[buffer(1)]],
  device int3 *boundingBoxMax [[buffer(2)]],
  device BVHArguments *bvhArgs [[buffer(3)]],
- device uint3 *smallCellDispatchArguments4x4x4 [[buffer(4)]],
- device uint *atomCount [[buffer(5)]],
- device uint3 *atomDispatchArguments128x1x1 [[buffer(6)]])
+ device uint3 *smallCellDispatchArguments4x4x4 [[buffer(4)]])
 {
-  {
-    // Read the bounding box.
-    int3 minimum = *boundingBoxMin;
-    int3 maximum = *boundingBoxMax;
-    
-    // Clamp the bounding box to the world volume.
-    minimum = max(minimum, -64);
-    maximum = min(maximum, 64);
-    maximum = max(minimum, maximum);
-    
-    // Compute the grid dimensions.
-    ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
-    ushort3 smallVoxelCount = ushort3(4 * (maximum - minimum));
-    
-    // Set the BVH arguments.
-    bvhArgs->worldMinimum = float3(minimum);
-    bvhArgs->worldMaximum = float3(maximum);
-    bvhArgs->largeVoxelCount = largeVoxelCount;
-    bvhArgs->smallVoxelCount = smallVoxelCount;
-    
-    // Set the small-cell dispatch arguments.
-    *smallCellDispatchArguments4x4x4 = uint3(2 * largeVoxelCount);
-  }
+  // Read the bounding box.
+  int3 minimum = *boundingBoxMin;
+  int3 maximum = *boundingBoxMax;
   
-  {
-    // Read the atom counts.
-    uint3 globalCounts = *allocatedMemory;
-    uint largeReferenceCount = globalCounts[1];
-    
-    // Set the atom count.
-    *atomCount = largeReferenceCount;
-    
-    // Set the atom dispatch arguments.
-    uint groupCount = (largeReferenceCount + 127) / 128;
-    *atomDispatchArguments128x1x1 = uint3(groupCount, 1, 1);
-  }
+  // Clamp the bounding box to the world volume.
+  minimum = max(minimum, -64);
+  maximum = min(maximum, 64);
+  maximum = max(minimum, maximum);
+  
+  // Compute the grid dimensions.
+  ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
+  ushort3 smallVoxelCount = ushort3(4 * (maximum - minimum));
+  
+  // Set the BVH arguments.
+  bvhArgs->worldMinimum = float3(minimum);
+  bvhArgs->worldMaximum = float3(maximum);
+  bvhArgs->largeVoxelCount = largeVoxelCount;
+  bvhArgs->smallVoxelCount = smallVoxelCount;
+  
+  // Set the small-cell dispatch arguments.
+  *smallCellDispatchArguments4x4x4 = uint3(2 * largeVoxelCount);
 }
 
 kernel void buildSmallPart1_0

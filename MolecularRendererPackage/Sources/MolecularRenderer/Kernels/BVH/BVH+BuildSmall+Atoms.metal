@@ -12,9 +12,9 @@ using namespace metal;
 
 inline ushort pickPermutation(ushort3 footprint) {
   ushort output;
-  if (footprint[2] > footprint[0] && footprint[2] > footprint[1]) {
+  if (footprint[0] < footprint[1] && footprint[0] < footprint[2]) {
     output = 0;
-  } else if (footprint[1] > footprint[0]) {
+  } else if (footprint[1] < footprint[2]) {
     output = 1;
   } else {
     output = 2;
@@ -79,22 +79,15 @@ inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
 // After reducing divergence: 350 microseconds
 // Duplicating large atoms:   950 microseconds
 // Increasing divergence:     960 milliseconds
-// Using 2x small counters:
 kernel void buildSmallPart1_1
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
  device atomic_uint *smallCounterMetadata [[buffer(2)]],
- constant uint *atomCount [[buffer(3)]],
- device uint *largeAtomReferences [[buffer(4)]],
  uint tid [[thread_position_in_grid]])
 {
   // Materialize the atom.
-  if (tid >= *atomCount) {
-    return;
-  }
-  uint atomID = largeAtomReferences[tid];
-  float4 atom = convertedAtoms[atomID];
+  float4 atom = convertedAtoms[tid];
   
   // Place the atom in the grid of small cells.
   atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
@@ -146,23 +139,16 @@ kernel void buildSmallPart1_1
 // After reducing divergence: 1.1 milliseconds
 // Duplicating large atoms:   2.0 milliseconds
 // Increasing divergence:     1.9 milliseconds
-// Using 2x small counters:
 kernel void buildSmallPart2_2
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device float4 *convertedAtoms [[buffer(1)]],
  device atomic_uint *smallCounterMetadata [[buffer(2)]],
  device uint *smallAtomReferences [[buffer(3)]],
- constant uint *atomCount [[buffer(4)]],
- device uint *largeAtomReferences [[buffer(5)]],
  uint tid [[thread_position_in_grid]])
 {
   // Materialize the atom.
-  if (tid >= *atomCount) {
-    return;
-  }
-  uint atomID = largeAtomReferences[tid];
-  float4 atom = convertedAtoms[atomID];
+  float4 atom = convertedAtoms[tid];
   
   // Place the atom in the grid of small cells.
   atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
@@ -208,7 +194,7 @@ kernel void buildSmallPart2_2
                                   1, memory_order_relaxed);
         
         // Write the reference to the list.
-        smallAtomReferences[offset] = atomID;
+        smallAtomReferences[offset] = tid;
       }
     }
   }
