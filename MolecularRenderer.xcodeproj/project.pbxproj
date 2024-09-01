@@ -198,7 +198,6 @@
 		987507BC2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = inertia_tensor_eigendecomposition_1.jpg; sourceTree = "<group>"; };
 		987507BD2B4B7DEC0031A15E /* inertia_tensor_eigendecomposition_2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = inertia_tensor_eigendecomposition_2.jpg; sourceTree = "<group>"; };
 		987671E82C82383800121870 /* BVH+BuildLarge+Cells.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = "BVH+BuildLarge+Cells.metal"; sourceTree = "<group>"; };
-		987671EC2C824F1600121870 /* BVHBuilder+AtomCount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BVHBuilder+AtomCount.swift"; sourceTree = "<group>"; };
 		9879280E2A505A4300268AE2 /* HelloEthaneInSwift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloEthaneInSwift.swift; sourceTree = "<group>"; };
 		987C5CE329EA051400CE5EB7 /* RayTraversal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RayTraversal.metal; sourceTree = "<group>"; };
 		988259792B67D4B2001B1D71 /* HartreeFock_Experiment3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HartreeFock_Experiment3.swift; sourceTree = "<group>"; };
@@ -962,7 +961,6 @@
 			isa = PBXGroup;
 			children = (
 				980140E62A3E1F9C009408BE /* BVHBuilder.swift */,
-				987671EC2C824F1600121870 /* BVHBuilder+AtomCount.swift */,
 				9805D7B22C7DF518004E180A /* BVHBuilder+BuildLarge.swift */,
 				98B6BDF92AEC9A8200F8655C /* BVHBuilder+BuildSmall.swift */,
 			);

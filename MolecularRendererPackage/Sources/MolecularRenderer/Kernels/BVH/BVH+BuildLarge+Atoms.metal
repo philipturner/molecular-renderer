@@ -182,36 +182,39 @@ kernel void buildLargePart2_2
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
  device float4 *convertedAtoms [[buffer(6)]],
- device half3 *atomMotionVectors [[buffer(7)]],
- device uint *largeCounterMetadata [[buffer(8)]],
- device uint *largeAtomReferences [[buffer(9)]],
+ device float4 *convertedAtoms2 [[buffer(7)]],
+ device half3 *atomMotionVectors [[buffer(8)]],
+ device half3 *atomMotionVectors2 [[buffer(9)]],
+ device uint *largeCounterMetadata [[buffer(10)]],
+ device uint *largeAtomReferences [[buffer(11)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
-  float4 atom = currentAtoms[tid];
-  atom = convert(atom, elementRadii);
+  float4 convertedAtom = currentAtoms[tid];
+  convertedAtom = convert(convertedAtom, elementRadii);
   
   // Materialize the motion vector.
   half3 motionVector;
   if (*useAtomMotionVectors) {
     float4 previous = previousAtoms[tid];
-    motionVector = half3(atom.xyz - previous.xyz);
+    motionVector = half3(convertedAtom.xyz - previous.xyz);
   } else {
     motionVector = half3(0);
   }
   
   // Write in the format for rendering.
-  convertedAtoms[tid] = atom;
+  convertedAtoms[tid] = convertedAtom;
   atomMotionVectors[tid] = motionVector;
   
   // Place the atom in the grid of small cells.
-  atom.xyz = 4 * (atom.xyz + 64);
-  atom.w = 4 * atom.w;
+  float4 tranformedAtom;
+  tranformedAtom.xyz = 4 * (convertedAtom.xyz + 64);
+  tranformedAtom.w = 4 * convertedAtom.w;
   
   // Generate the bounding box.
-  short3 boxMin = short3(floor(atom.xyz - atom.w));
-  short3 boxMax = short3(ceil(atom.xyz + atom.w));
+  short3 boxMin = short3(floor(tranformedAtom.xyz - tranformedAtom.w));
+  short3 boxMax = short3(ceil(tranformedAtom.xyz + tranformedAtom.w));
   ushort3 gridDims = ushort3(512);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);
@@ -282,6 +285,8 @@ kernel void buildLargePart2_2
         
         // Write the reference to the list.
         largeAtomReferences[offset] = tid;
+        convertedAtoms2[offset] = convertedAtom;
+        atomMotionVectors2[offset] = motionVector;
       }
     }
   }

@@ -99,7 +99,7 @@ import Numerics
 //     the complexity of pointer redirection, for the time being. [DONE]
 //     - Accomplished this by writing motion vectors instead. [DONE]
 //     - Compress the motion vectors to half precision. We can use a more
-//       advanced format like rgb9e5 or rgb10 at a later date.
+//       advanced format like rgb9e5 or rgb10 at a later date. [DONE]
 //   - Write to a second, duplicate memory allocation.
 //     - Redirect the small-atom references, and switch memory allocations.
 //     - Delete the old memory allocations.

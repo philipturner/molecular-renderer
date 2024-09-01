@@ -22,9 +22,11 @@ class BVHBuilder {
   
   // Data buffers (per atom).
   var originalAtoms: [MTLBuffer]
-  var convertedAtoms: MTLBuffer
   var relativeOffsets: MTLBuffer
+  var convertedAtoms: MTLBuffer
+  var convertedAtoms2: MTLBuffer
   var atomMotionVectors: MTLBuffer
+  var atomMotionVectors2: MTLBuffer
   
   // Data buffers (per cell).
   var largeCounterMetadata: MTLBuffer
@@ -60,14 +62,17 @@ class BVHBuilder {
     indirectDispatchArguments = createBuffer(length: 1024 * 4)
     
     // Data buffers (per atom).
+    let atomCount = 4 * 1024 * 1024
     originalAtoms = [
-      createBuffer(length: BVHBuilder.maxAtomCount * 16),
-      createBuffer(length: BVHBuilder.maxAtomCount * 16),
-      createBuffer(length: BVHBuilder.maxAtomCount * 16),
+      createBuffer(length: atomCount * 16),
+      createBuffer(length: atomCount * 16),
+      createBuffer(length: atomCount * 16),
     ]
-    convertedAtoms = createBuffer(length: BVHBuilder.maxAtomCount * 16)
-    relativeOffsets = createBuffer(length: BVHBuilder.maxAtomCount * 8 * 2)
-    atomMotionVectors = createBuffer(length: BVHBuilder.maxAtomCount * 8)
+    relativeOffsets = createBuffer(length: atomCount * 8 * 2)
+    convertedAtoms = createBuffer(length: atomCount * 16)
+    convertedAtoms2 = createBuffer(length: 2 * atomCount * 16)
+    atomMotionVectors = createBuffer(length: atomCount * 8)
+    atomMotionVectors2 = createBuffer(length: 2 * atomCount * 8)
     
     // Data buffers (per cell).
     let largeVoxelCount = 64 * 64 * 64
@@ -77,7 +82,7 @@ class BVHBuilder {
     smallCellOffsets = createBuffer(length: smallVoxelCount * 4)
     
     // Data buffers (per reference).
-    let largeReferenceCount = BVHBuilder.maxAtomCount * 2
+    let largeReferenceCount = 2 * atomCount
     let smallReferenceCount = 64 * 1024 * 1024
     largeAtomReferences = createBuffer(length: largeReferenceCount * 4)
     smallAtomReferences = createBuffer(length: smallReferenceCount * 4)
