@@ -83,8 +83,15 @@ import Numerics
 //   the small atom references. [DONE}
 //
 // Preparing for 16-bit references.
-// - Remove the count from the cell metadata. Instead, use null-termination in
-//   the reference list.
+// - Add a null terminator to the reference lists.
+//   - Locate the place where the null terminator would be written.
+//   - Locate the place where the null terminator would be allocated.
+//   - Implement the null terminator.
+// - Remove the count from the cell metadata.
+//   - Add a guard to the traversal function, so it exits anyway after 64
+//     iterations.
+//   - Test integrity of rendering with the count ignored.
+//   - Remove the count and reformat the metadata.
 // - Write the converted atoms into a second buffer, whose length equals the
 //   large reference count.
 // - Change the small references, so they point to this buffer.
