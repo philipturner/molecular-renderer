@@ -90,7 +90,8 @@ extension BVHBuilder {
     let sourceArray = renderer.argumentContainer.currentAtoms
     
     // Number of Bytes
-    let byteCount = currentAtomCount * 16
+    let atomCount = sourceArray.count
+    let byteCount = atomCount * 16
     
     // Function Call
     memcpy(
@@ -104,34 +105,37 @@ extension BVHBuilder {
     bindElementRadii(encoder: encoder, index: 0)
     bindOriginalAtoms(encoder: encoder, index: 1)
     
-    // Arguments 2 - 3
+    // Arguments 2 - 4
     do {
       let offset1 = 0
       let offset2 = relativeOffsets.length / 2
       encoder.setBuffer(relativeOffsets, offset: offset1, index: 2)
       encoder.setBuffer(relativeOffsets, offset: offset2, index: 3)
     }
-    
-    // Argument 4
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 4)
     
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart1_1
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: currentAtomCount, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart1_1
+      encoder.setComputePipelineState(pipeline)
+      
+      let sourceArray = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: sourceArray.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
   }
   
   func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 1
     do {
-      var renderArguments = renderer.argumentContainer.createRenderArguments()
-      let elementLength = MemoryLayout<RenderArguments>.stride
-      encoder.setBytes(&renderArguments, length: elementLength, index: 0)
+      var useAtomMotionVectors =
+      renderer.argumentContainer.useAtomMotionVectors
+      encoder.setBytes(&useAtomMotionVectors, length: 1, index: 0)
     }
-    
     bindElementRadii(encoder: encoder, index: 1)
     
+    // Arguments 2 - 3
     do {
       let currentIndex = renderer.argumentContainer.tripleBufferIndex()
       let previousIndex = (currentIndex + 3 - 1) % 3
@@ -141,6 +145,7 @@ extension BVHBuilder {
       encoder.setBuffer(currentAtoms, offset: 0, index: 3)
     }
     
+    // Arguments 4 - 5
     do {
       let offset1 = 0
       let offset2 = relativeOffsets.length / 2
@@ -148,17 +153,22 @@ extension BVHBuilder {
       encoder.setBuffer(relativeOffsets, offset: offset2, index: 5)
     }
     
+    // Arguments 6 - 9
     encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
     encoder.setBuffer(atomMotionVectors, offset: 0, index: 7)
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
     encoder.setBuffer(largeAtomReferences, offset: 0, index: 9)
     
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart2_2
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: currentAtomCount, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart2_2
+      encoder.setComputePipelineState(pipeline)
+      
+      let sourceArray = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: sourceArray.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
   }
 }
 
@@ -217,5 +227,19 @@ extension BVHBuilder {
     encoder.dispatchThreadgroups(
       MTLSize(width: 16, height: 16, depth: 16),
       threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+  }
+}
+
+extension BVHBuilder {
+  fileprivate func bindElementRadii(encoder: MTLComputeCommandEncoder, index: Int) {
+    let elementRadii = renderer.argumentContainer.elementRadii
+    let byteCount = elementRadii.count * 4
+    encoder.setBytes(elementRadii, length: byteCount, index: index)
+  }
+  
+  fileprivate func bindOriginalAtoms(encoder: MTLComputeCommandEncoder, index: Int) {
+    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+    let buffer = originalAtoms[tripleIndex]
+    encoder.setBuffer(buffer, offset: 0, index: index)
   }
 }

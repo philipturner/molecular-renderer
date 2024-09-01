@@ -32,7 +32,6 @@ struct BVHArguments {
 struct RenderArguments {
   uint frameSeed;
   float qualityCoefficient;
-  bool useAtomMotionVectors;
 };
 
 #endif // CONSTANTS_H

@@ -6,7 +6,6 @@
 //
 
 #include <metal_stdlib>
-#include "../Utilities/Constants.metal"
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
@@ -176,14 +175,14 @@ kernel void buildLargePart1_1
 
 kernel void buildLargePart2_2
 (
- constant RenderArguments *renderArgs [[buffer(0)]],
+ constant bool *useAtomMotionVectors [[buffer(0)]],
  constant float *elementRadii [[buffer(1)]],
  device float4 *previousAtoms [[buffer(2)]],
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
  device float4 *convertedAtoms [[buffer(6)]],
- device float3 *atomMotionVectors [[buffer(7)]],
+ device half3 *atomMotionVectors [[buffer(7)]],
  device uint *largeCounterMetadata [[buffer(8)]],
  device uint *largeAtomReferences [[buffer(9)]],
  uint tid [[thread_position_in_grid]],
@@ -194,12 +193,12 @@ kernel void buildLargePart2_2
   atom = convert(atom, elementRadii);
   
   // Materialize the motion vector.
-  float3 motionVector;
-  if (renderArgs->useAtomMotionVectors) {
+  half3 motionVector;
+  if (*useAtomMotionVectors) {
     float4 previous = previousAtoms[tid];
-    motionVector = atom.xyz - previous.xyz;
+    motionVector = half3(atom.xyz - previous.xyz);
   } else {
-    motionVector = float3(0);
+    motionVector = half3(0);
   }
   
   // Write in the format for rendering.

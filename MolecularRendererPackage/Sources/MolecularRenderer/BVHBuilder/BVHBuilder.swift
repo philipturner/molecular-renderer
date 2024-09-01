@@ -67,7 +67,7 @@ class BVHBuilder {
     ]
     convertedAtoms = createBuffer(length: BVHBuilder.maxAtomCount * 16)
     relativeOffsets = createBuffer(length: BVHBuilder.maxAtomCount * 8 * 2)
-    atomMotionVectors = createBuffer(length: BVHBuilder.maxAtomCount * 16)
+    atomMotionVectors = createBuffer(length: BVHBuilder.maxAtomCount * 8)
     
     // Data buffers (per cell).
     let largeVoxelCount = 64 * 64 * 64
@@ -81,24 +81,5 @@ class BVHBuilder {
     let smallReferenceCount = 64 * 1024 * 1024
     largeAtomReferences = createBuffer(length: largeReferenceCount * 4)
     smallAtomReferences = createBuffer(length: smallReferenceCount * 4)
-  }
-}
-
-extension BVHBuilder {
-  func bindElementRadii(encoder: MTLComputeCommandEncoder, index: Int) {
-    let elementRadii = renderer.argumentContainer.elementRadii
-    let byteCount = elementRadii.count * 4
-    encoder.setBytes(elementRadii, length: byteCount, index: index)
-  }
-  
-  func bindOriginalAtoms(encoder: MTLComputeCommandEncoder, index: Int) {
-    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-    let buffer = originalAtoms[tripleIndex]
-    encoder.setBuffer(buffer, offset: 0, index: index)
-  }
-  
-  var currentAtomCount: Int {
-    let atoms = renderer.argumentContainer.currentAtoms
-    return atoms.count
   }
 }

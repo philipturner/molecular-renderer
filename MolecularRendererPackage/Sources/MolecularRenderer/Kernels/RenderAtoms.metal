@@ -20,7 +20,7 @@ kernel void renderAtoms
  device uint *smallCellOffsets [[buffer(3)]],
  device uint *smallAtomReferences [[buffer(4)]],
  device float4 *convertedAtoms [[buffer(5)]],
- device float3 *atomMotionVectors [[buffer(6)]],
+ device half3 *atomMotionVectors [[buffer(6)]],
  constant float3 *elementColors [[buffer(7)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
@@ -117,8 +117,8 @@ kernel void renderAtoms
     }
     
     // Find the hit point's position in the previous frame.
-    float3 motionVector = atomMotionVectors[intersect.reference];
-    float3 previousHitPoint = hitPoint - motionVector;
+    half3 motionVector = atomMotionVectors[intersect.reference];
+    float3 previousHitPoint = hitPoint - float3(motionVector);
     
     // Generate the pixel motion vector, being careful to handle the camera
     // arguments correctly.

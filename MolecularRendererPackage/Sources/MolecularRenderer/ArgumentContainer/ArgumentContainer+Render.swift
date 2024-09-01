@@ -9,10 +9,13 @@
 struct RenderArguments {
   var frameSeed: UInt32 = .zero
   var qualityCoefficient: Float = .zero
-  var useAtomMotionVectors: Bool = false
 }
 
 extension ArgumentContainer {
+  func createFrameSeed() -> UInt32 {
+    .random(in: 0..<UInt32.max)
+  }
+  
   func createQualityCoefficient() -> Float {
     var screenMagnitude = Float(upscaledTextureSize)
     screenMagnitude *= screenMagnitude
@@ -28,9 +31,8 @@ extension ArgumentContainer {
   
   func createRenderArguments() -> RenderArguments {
     var output = RenderArguments()
-    output.frameSeed = .random(in: 0..<UInt32.max)
+    output.frameSeed = createFrameSeed()
     output.qualityCoefficient = createQualityCoefficient()
-    output.useAtomMotionVectors = useAtomMotionVectors
     return output
   }
 }

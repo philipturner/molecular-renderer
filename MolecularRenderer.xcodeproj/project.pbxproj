@@ -171,13 +171,12 @@
 		985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Camera.swift"; sourceTree = "<group>"; };
 		985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Render.swift"; sourceTree = "<group>"; };
 		985BBEF12C7B5E770096A104 /* MRRenderer+Upscaling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MRRenderer+Upscaling.swift"; sourceTree = "<group>"; };
-		985BBEF22C7B625E0096A104 /* MRCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRCamera.swift; sourceTree = "<group>"; };
-		985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Counter.swift"; sourceTree = "<group>"; };
+		985BBEF52C7B6B450096A104 /* ArgumentContainer+Time.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Time.swift"; sourceTree = "<group>"; };
 		985BBEF92C7BBAB70096A104 /* FrameReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReport.swift; sourceTree = "<group>"; };
 		985BBEFB2C7BBDB70096A104 /* FrameReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameReporter.swift; sourceTree = "<group>"; };
 		985BBEFC2C7BC4BF0096A104 /* FrameReporter+Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+Logging.swift"; sourceTree = "<group>"; };
 		985BBEFD2C7BC6120096A104 /* FrameReporter+FrameChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FrameReporter+FrameChange.swift"; sourceTree = "<group>"; };
-		985BBF002C7BCAF40096A104 /* ArgumentContainer+Upscale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Upscale.swift"; sourceTree = "<group>"; };
+		985BBF002C7BCAF40096A104 /* ArgumentContainer+Atoms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Atoms.swift"; sourceTree = "<group>"; };
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
@@ -318,7 +317,6 @@
 		98F2F5D12A5F2E7B006216F4 /* MassiveDiamond.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MassiveDiamond.swift; sourceTree = "<group>"; };
 		98F638972A349EDA00F51E95 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		98F638A42A34A24E00F51E95 /* MolecularRendererGPU.metallib */ = {isa = PBXFileReference; explicitFileType = "archive.metal-library"; includeInIndex = 0; path = MolecularRendererGPU.metallib; sourceTree = BUILT_PRODUCTS_DIR; };
-		98F638C42A34F78A00F51E95 /* MRAtomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRAtomProvider.swift; sourceTree = "<group>"; };
 		98F638CC2A34F97300F51E95 /* Downloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloader.swift; sourceTree = "<group>"; };
 		98F83E1E2AE4BF630037E31A /* Cargo.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
 		98F83E202AE4BF630037E31A /* mrsim_txt.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = mrsim_txt.rs; sourceTree = "<group>"; };
@@ -335,7 +333,6 @@
 		98F852D02AF66B7C00986E61 /* NORGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NORGate.swift; sourceTree = "<group>"; };
 		98F852D32AF7269700986E61 /* NORGate_Image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NORGate_Image1.png; sourceTree = "<group>"; };
 		98FB906F2A5B19E100685E5C /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
-		98FB90712A5B280D00685E5C /* MRTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MRTime.swift; sourceTree = "<group>"; };
 		98FB90792A5B6FC600685E5C /* VsyncHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VsyncHandler.swift; sourceTree = "<group>"; };
 		98FB907B2A5B7B3C00685E5C /* RingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingBuffer.swift; sourceTree = "<group>"; };
 		98FE60D42B3C6B1E00D73E37 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -549,6 +546,7 @@
 		985BBEEB2C7AA6710096A104 /* Renderer */ = {
 			isa = PBXGroup;
 			children = (
+				98B25A142B334F6700081A61 /* MRRendererDescriptor.swift */,
 				980140E52A3E1F78009408BE /* MRRenderer.swift */,
 				98B25A182B335F7600081A61 /* MRRenderer+Rendering.swift */,
 				985BBEF12C7B5E770096A104 /* MRRenderer+Upscaling.swift */,
@@ -560,10 +558,10 @@
 			isa = PBXGroup;
 			children = (
 				985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */,
+				985BBF002C7BCAF40096A104 /* ArgumentContainer+Atoms.swift */,
 				985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */,
-				985BBEF52C7B6B450096A104 /* ArgumentContainer+Counter.swift */,
 				985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */,
-				985BBF002C7BCAF40096A104 /* ArgumentContainer+Upscale.swift */,
+				985BBEF52C7B6B450096A104 /* ArgumentContainer+Time.swift */,
 			);
 			path = ArgumentContainer;
 			sourceTree = "<group>";
@@ -1012,10 +1010,6 @@
 				985BBEFA2C7BBD940096A104 /* FrameReporter */,
 				98F12C922C72D01B0045FAFB /* Kernels */,
 				985BBEEB2C7AA6710096A104 /* Renderer */,
-				98F638C42A34F78A00F51E95 /* MRAtomProvider.swift */,
-				985BBEF22C7B625E0096A104 /* MRCamera.swift */,
-				98B25A142B334F6700081A61 /* MRRendererDescriptor.swift */,
-				98FB90712A5B280D00685E5C /* MRTime.swift */,
 				98E23B2E2B4CCCCB00B5A7D5 /* README.md */,
 			);
 			path = MolecularRenderer;

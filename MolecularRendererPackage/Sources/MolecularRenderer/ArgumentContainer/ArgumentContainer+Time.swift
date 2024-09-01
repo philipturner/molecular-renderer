@@ -1,11 +1,25 @@
 //
-//  MRTime.swift
+//  ArgumentContainer+Time.swift
 //  MolecularRenderer
 //
-//  Created by Philip Turner on 7/9/23.
+//  Created by Philip Turner on 8/25/24.
 //
 
-import Foundation
+extension ArgumentContainer {
+  func doubleBufferIndex() -> Int {
+    frameID % 2
+  }
+  
+  func tripleBufferIndex() -> Int {
+    frameID % 3
+  }
+  
+  func haltonIndex() -> Int {
+    (frameID % 32) + 1
+  }
+}
+
+// MARK: - API
 
 public struct MRTime {
   // Absolute time. Atom providers should check whether this jumps to zero.
