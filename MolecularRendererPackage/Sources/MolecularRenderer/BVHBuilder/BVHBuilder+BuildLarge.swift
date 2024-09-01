@@ -124,22 +124,33 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
-    bindElementRadii(encoder: encoder, index: 0)
-    bindOriginalAtoms(encoder: encoder, index: 1)
+    do {
+      var renderArguments = renderer.argumentContainer.createRenderArguments()
+      let elementLength = MemoryLayout<RenderArguments>.stride
+      encoder.setBytes(&renderArguments, length: elementLength, index: 0)
+    }
     
-    // Arguments 2 - 3
+    bindElementRadii(encoder: encoder, index: 1)
+    
+    do {
+      let currentIndex = renderer.argumentContainer.tripleBufferIndex()
+      let previousIndex = (currentIndex + 3 - 1) % 3
+      let previousAtoms = originalAtoms[previousIndex]
+      let currentAtoms = originalAtoms[currentIndex]
+      encoder.setBuffer(previousAtoms, offset: 0, index: 2)
+      encoder.setBuffer(currentAtoms, offset: 0, index: 3)
+    }
+    
     do {
       let offset1 = 0
       let offset2 = relativeOffsets.length / 2
-      encoder.setBuffer(relativeOffsets, offset: offset1, index: 2)
-      encoder.setBuffer(relativeOffsets, offset: offset2, index: 3)
+      encoder.setBuffer(relativeOffsets, offset: offset1, index: 4)
+      encoder.setBuffer(relativeOffsets, offset: offset2, index: 5)
     }
     
-    // Arguments 4 - 6
-    encoder.setBuffer(convertedAtoms, offset: 0, index: 4)
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 5)
-    encoder.setBuffer(largeAtomReferences, offset: 0, index: 6)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
+    encoder.setBuffer(largeAtomReferences, offset: 0, index: 9)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_2

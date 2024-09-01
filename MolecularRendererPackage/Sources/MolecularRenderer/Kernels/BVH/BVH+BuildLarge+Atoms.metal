@@ -6,6 +6,7 @@
 //
 
 #include <metal_stdlib>
+#include "../Utilities/Constants.metal"
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
@@ -175,18 +176,21 @@ kernel void buildLargePart1_1
 
 kernel void buildLargePart2_2
 (
- constant float *elementRadii [[buffer(0)]],
- device float4 *originalAtoms [[buffer(1)]],
- device ushort4 *relativeOffsets1 [[buffer(2)]],
- device ushort4 *relativeOffsets2 [[buffer(3)]],
- device float4 *convertedAtoms [[buffer(4)]],
- device uint *largeCounterMetadata [[buffer(5)]],
- device uint *largeAtomReferences [[buffer(6)]],
+ constant RenderArguments *renderArgs [[buffer(0)]],
+ constant float *elementRadii [[buffer(1)]],
+ device float4 *previousAtoms [[buffer(2)]],
+ device float4 *currentAtoms [[buffer(3)]],
+ device ushort4 *relativeOffsets1 [[buffer(4)]],
+ device ushort4 *relativeOffsets2 [[buffer(5)]],
+ device float4 *convertedAtoms [[buffer(6)]],
+ device float4 *atomMotionVectors [[buffer(7)]],
+ device uint *largeCounterMetadata [[buffer(8)]],
+ device uint *largeAtomReferences [[buffer(9)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
-  float4 atom = originalAtoms[tid];
+  float4 atom = currentAtoms[tid];
   atom = convert(atom, elementRadii);
   
   // Write in the new format.
