@@ -59,7 +59,6 @@ struct RayIntersector {
                   intersectionQuery.rayDirection,
                   bvhArgs,
                   &continueLoop);
-    float voxelMaximumTime;
     ushort3 progress = ushort3(0);
     
     IntersectionResult result;
@@ -69,40 +68,52 @@ struct RayIntersector {
     
     while (continueLoop) {
       // Search for the next occupied voxel.
-      uint smallCellOffset = 0;
+      float voxelMaximumTime;
+      ushort3 cellCoordinates;
       while (true) {
+        // Save the state for the current counter.
         ushort3 gridDims = bvhArgs->smallVoxelCount;
-        ushort3 cellCoordinates = dda.cellCoordinates(progress, gridDims);
-        uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-        smallCellOffset = smallCellOffsets[cellAddress];
-        
+        cellCoordinates = dda.cellCoordinates(progress, gridDims);
         voxelMaximumTime = dda.voxelMaximumTime(progress);
+        
+        // Change the counter to a different value.
         progress = dda.increment(progress);
+        
+        // Break out of the inner loop, if the next cell will be out of bounds.
         continueLoop = dda.continueLoop(progress, gridDims);
         
+        // Return if out of range.
         float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
         if (intersectionQuery.exceededAOTime(maximumHitTime)) {
           continueLoop = false;
         }
         
-        // WARNING: An infinite loop may occur here.
-        if (smallCellOffset > 0 || !continueLoop) {
+        // Break out of the inner loop, if there are atoms to test.
+        uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+        uint offset = smallCellOffsets[cellAddress];
+        if (offset > 0 || !continueLoop) {
           break;
         }
       }
       
+      // Return if out of range.
       float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
       if (intersectionQuery.exceededAOTime(maximumHitTime)) {
         continueLoop = false;
       } else {
         result.distance = maximumHitTime;
         
+        // Regenerate the cell address.
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+        uint referenceOffset = smallCellOffsets[cellAddress];
+        
         // Manually specifying the loop structure, to prevent the compiler
         // from unrolling it.
         ushort i = 0;
         while (true) {
           // Locate the atom.
-          uint reference = smallAtomReferences[smallCellOffset + i];
+          uint reference = smallAtomReferences[referenceOffset + i];
           if (reference == 0) {
             break;
           }
