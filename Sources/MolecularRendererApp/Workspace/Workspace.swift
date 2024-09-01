@@ -84,8 +84,8 @@ import Numerics
 //
 // Preparing for 16-bit references.
 // - Add a null terminator to the reference lists.
-//   - Locate the place where the null terminator would be written.
-//   - Locate the place where the null terminator would be allocated.
+//   - Locate the place where the null terminator would be written. [DONE]
+//   - Locate the place where the null terminator would be allocated. [DONE]
 //   - Implement the null terminator.
 // - Remove the count from the cell metadata.
 //   - Add a guard to the traversal function, so it exits anyway after 64

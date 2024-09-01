@@ -186,6 +186,10 @@ kernel void buildSmallPart1_0
     counterCounts[laneID] = count;
   }
   
+  // The null terminator would be allocated here. You are adding one to a
+  // conservative estimate of the reference count. However, you may only
+  // add one if the large voxel's total count exceeds zero.
+  
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
   // MARK: - buildSmallPart2_1
@@ -314,6 +318,10 @@ kernel void buildSmallPart1_0
     uint revisedCount = allocationEnd - allocationStart;
     counterCounts[laneID] = revisedCount;
   }
+  
+  // The null terminator would probably be written here. Because you know where
+  // the revised end of the list is. You would only write if the large voxel's
+  // total count is greater than zero.
   
   // Write the cell metadata.
   {
