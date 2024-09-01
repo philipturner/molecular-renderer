@@ -80,7 +80,7 @@ import Numerics
 //   - Remove the memory allocation for small-cell counters. [DONE]
 // - Reduce the compute cost of cube-sphere testing. [DONE]
 // - Remove the cross-GPU reduction, as the previous pass already compacted
-//   the small atom references. [DONE}
+//   the small atom references. [DONE]
 //
 // Preparing for 16-bit references.
 // - Add a null terminator to the reference lists.

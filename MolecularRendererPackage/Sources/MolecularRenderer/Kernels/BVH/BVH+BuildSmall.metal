@@ -303,7 +303,7 @@ kernel void buildSmallPart1_0
                                       1, memory_order_relaxed);
             
             // Write the reference to the list.
-            smallAtomReferences[offset] = largeAtomID;
+            smallAtomReferences[offset] = 1 + largeAtomID;
           }
         }
       }

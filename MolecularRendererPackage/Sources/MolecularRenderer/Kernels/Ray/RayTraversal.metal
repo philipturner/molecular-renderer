@@ -116,8 +116,13 @@ public:
         
         uint offset = voxel_data & voxel_offset_mask;
         ushort count = reverse_bits(voxel_data & voxel_count_mask);
-        for (ushort i = 0; i < count; ++i) {
+        for (ushort i = 0; i < 64; ++i) {
           uint reference = grid.smallAtomReferences[offset + i];
+          if (reference == 0) {
+            break;
+          }
+          reference -= 1;
+          
           float4 newAtom = grid.convertedAtoms[reference];
           RayIntersector::intersect(&result, ray, newAtom, reference);
         }
