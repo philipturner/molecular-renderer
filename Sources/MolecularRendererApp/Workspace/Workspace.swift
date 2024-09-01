@@ -94,11 +94,11 @@ import Numerics
 //   - Remove the count and reformat the metadata. [DONE]
 // - Write the converted atoms into a second buffer, whose length equals the
 //   large reference count.
-//   - Use one level of indirection to fetch the previous atom for motion
-//     vectors.
+//   - Write the previous atoms while writing the converted atoms. This avoids
+//     the complexity of pointer redirection, for the time being.
 //   - Write during the large cells pass, so it doesn't interfere with the
 //     benchmark of the small cells pass.
-//   - Redirect the small-atom references and previous-atom references.
+//   - Redirect the small-atom references.
 // - Load the large voxel's metadata in the ray tracer.
 //   - Subtract the large voxel's start from each small reference.
 //
