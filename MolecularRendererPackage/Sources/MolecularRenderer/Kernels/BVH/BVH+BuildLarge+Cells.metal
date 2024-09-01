@@ -183,10 +183,20 @@ kernel void buildLargePart2_1
     largeCellMetadata[cellAddress] = threadMetadata;
   }
   
-  // Add the thread offset to the per-counter offsets.
+  // Write the counter offsets.
   {
-    vec<uint, 8> counterOffsets32 = vec<uint, 8>(counterOffsets);
-    counterOffsets32 += threadLargeOffset;
-    largeCounterMetadata[cellAddress] = counterOffsets32;
+    vec<uint, 8> counterOffsets;
+    
+    // Padding for null termination.
+    uint counterCursor = 1;
+#pragma clang loop unroll(full)
+    for (ushort laneID = 0; laneID < 8; ++laneID) {
+      uint counterCount = counterCounts[laneID];
+      counterCount = counterCount & (uint(1 << 14) - 1);
+      counterOffsets[laneID] = counterCursor;
+      counterCursor += counterCount;
+    }
+    counterOffsets += threadLargeOffset;
+    largeCounterMetadata[cellAddress] = counterOffsets;
   }
 }

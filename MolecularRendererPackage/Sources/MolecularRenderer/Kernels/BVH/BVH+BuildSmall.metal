@@ -131,7 +131,7 @@ kernel void buildSmallPart1_0
     {
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
-      uint largeReferenceID = largeReferenceOffset + smallAtomID;
+      uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
       uint largeAtomID = largeAtomReferences[largeReferenceID];
       float4 atom = convertedAtoms[largeAtomID];
       
@@ -245,7 +245,7 @@ kernel void buildSmallPart1_0
     {
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
-      uint largeReferenceID = largeReferenceOffset + smallAtomID;
+      uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
       uint largeAtomID = largeAtomReferences[largeReferenceID];
       float4 atom = convertedAtoms[largeAtomID];
       
