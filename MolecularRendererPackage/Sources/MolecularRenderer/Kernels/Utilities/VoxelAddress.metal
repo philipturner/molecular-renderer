@@ -17,20 +17,6 @@ public:
     uint grid_width_sq = grid_dims.y * grid_dims.x;
     return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
   }
-  
-  static int increment_x(ushort3 grid_dims, bool negative = false) {
-    return select(1, -1, negative);
-  }
-  
-  static int increment_y(ushort3 grid_dims, bool negative = false) {
-    short w = short(grid_dims.x);
-    return select(w, short(-w), negative);
-  }
-  
-  static int increment_z(ushort3 grid_dims, bool negative = false) {
-    int w_sq = grid_dims.y * grid_dims.x;
-    return select(w_sq, -w_sq, negative);
-  }
 };
 
 #endif // VOXEL_ADDRESS_H

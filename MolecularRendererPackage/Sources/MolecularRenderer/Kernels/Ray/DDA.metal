@@ -27,17 +27,17 @@ class DDA {
   float voxel_tmax; // in the relative coordinate space
   
 public:
-  ushort3 grid_dims;
-  ushort3 maybeInvertedPosition;
-  bool continue_loop;
+  short3 gridDims;
+  short3 maybeInvertedPosition;
   
   DDA(float3 rayOrigin, 
       float3 rayDirection,
-      constant BVHArguments *bvhArgs)
+      constant BVHArguments *bvhArgs,
+      thread bool *canIntersectGrid)
   {
     float3 transformedRayOrigin;
     transformedRayOrigin = 4 * (rayOrigin - bvhArgs->worldMinimum);
-    grid_dims = bvhArgs->smallVoxelCount;
+    gridDims = short3(bvhArgs->smallVoxelCount);
     
     float tmin = 0;
     float tmax = INFINITY;
@@ -47,44 +47,34 @@ public:
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float t1 = (0 - transformedRayOrigin[i]) * dt[i];
-      float t2 = (float(grid_dims[i]) - transformedRayOrigin[i]) * dt[i];
+      float t2 = (float(gridDims[i]) - transformedRayOrigin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
     
     // Adjust the origin so it starts in the grid.
     // NOTE: This translates `t` by an offset of `tmin`.
-    continue_loop = (tmin < tmax);
+    *canIntersectGrid = (tmin < tmax);
     transformedRayOrigin += tmin * rayDirection;
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
-    transformedRayOrigin = min(transformedRayOrigin, float3(grid_dims));
+    transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
     this->tmin = tmin * 0.25;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float origin = transformedRayOrigin[i];
-      
-      if (rayDirection[i] < 0) {
-        origin = float(grid_dims[i]) - origin;
+      if (dt[i] < 0) {
+        origin = float(gridDims[i]) - origin;
       }
-      maybeInvertedPosition[i] = ushort(origin);
+      
       
       // `t` is actually the future `t`. When incrementing each dimension's `t`,
       // which one will produce the smallest `t`? This dimension gets the
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
       t[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
+      maybeInvertedPosition[i] = ushort(origin);
     }
-  }
-  
-  float get_max_accepted_t() {
-    return tmin + voxel_tmax * 0.25;
-  }
-  
-  uint createAddress() {
-    ushort3 neg_position = grid_dims - 1 - maybeInvertedPosition;
-    ushort3 actual_position = select(maybeInvertedPosition, neg_position, dt < 0);
-    return VoxelAddress::generate(grid_dims, actual_position);
   }
   
   void incrementPosition() {
@@ -98,20 +88,36 @@ public:
       t.x += abs(dt.x); // actually t + dt + dt
       
       maybeInvertedPosition.x += 1;
-      continue_loop = (maybeInvertedPosition.x < grid_dims.x);
     } else if (t.y < t.z) {
       voxel_tmax = t.y;
       t.y += abs(dt.y);
       
       maybeInvertedPosition.y += 1;
-      continue_loop = (maybeInvertedPosition.y < grid_dims.y);
     } else {
       voxel_tmax = t.z;
       t.z += abs(dt.z);
       
       maybeInvertedPosition.z += 1;
-      continue_loop = (maybeInvertedPosition.z < grid_dims.z);
     }
+  }
+  
+  float maximumAcceptedHitTime() const {
+    return tmin + voxel_tmax * 0.25;
+  }
+  
+  uint createAddress() const {
+    short3 invertedPosition = gridDims - 1 - maybeInvertedPosition;
+    short3 actualPosition = select(maybeInvertedPosition,
+                                   invertedPosition,
+                                   dt < 0);
+    return VoxelAddress::generate(ushort3(gridDims),
+                                  ushort3(actualPosition));
+  }
+  
+  bool createContinueLoop() const {
+    return (maybeInvertedPosition.x < gridDims.x) &&
+    (maybeInvertedPosition.y < gridDims.y) &&
+    (maybeInvertedPosition.z < gridDims.z);
   }
 };
 

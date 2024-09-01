@@ -21,14 +21,6 @@ struct IntersectionResult {
   float distance;
 };
 
-struct BVHDescriptor {
-  constant BVHArguments *bvhArgs;
-  device uint4 *largeCellMetadata;
-  device uint *smallCellOffsets;
-  device uint *smallAtomReferences;
-  device float4 *convertedAtoms;
-};
-
 struct IntersectionQuery {
   bool isAORay;
   float3 rayOrigin;
@@ -52,43 +44,47 @@ struct RayIntersector {
   
   __attribute__((__always_inline__))
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
+    bool continueLoop;
     DDA dda(intersectionQuery.rayOrigin,
             intersectionQuery.rayDirection,
-            bvhArgs);
+            bvhArgs,
+            &continueLoop);
     
     IntersectionResult result;
     result.accept = false;
     result.atomID = 0;
     result.distance = 1e38;
     
-    while (dda.continue_loop) {
-      // To reduce divergence, fast forward through empty voxels.
+    while (continueLoop) {
+      // Search for the next occupied voxel.
       uint smallCellOffset = 0;
-      bool continue_fast_forward = true;
-      while (continue_fast_forward) {
+      while (true) {
         uint address = dda.createAddress();
         smallCellOffset = smallCellOffsets[address];
-        dda.incrementPosition();
         
-        float targetDistance = dda.get_max_accepted_t();
+        dda.incrementPosition();
+        continueLoop = dda.createContinueLoop();
+        
+        float maximumAcceptedHitTime = dda.maximumAcceptedHitTime();
+        float maximumAODistance = createMaximumAODistance();
         if (intersectionQuery.isAORay &&
-            targetDistance > createMaximumAODistance()) {
-          dda.continue_loop = false;
+            maximumAcceptedHitTime > maximumAODistance) {
+          continueLoop = false;
         }
         
-        if (smallCellOffset == 0) {
-          continue_fast_forward = dda.continue_loop;
-        } else {
-          continue_fast_forward = false;
+        // WARNING: An infinite loop may occur here.
+        if (smallCellOffset > 0 || !continueLoop) {
+          break;
         }
       }
       
-      float targetDistance = dda.get_max_accepted_t();
+      float maximumAcceptedHitTime = dda.maximumAcceptedHitTime();
+      float maximumAODistance = createMaximumAODistance();
       if (intersectionQuery.isAORay &&
-          targetDistance > createMaximumAODistance()) {
-        dda.continue_loop = false;
+          maximumAcceptedHitTime > maximumAODistance) {
+        continueLoop = false;
       } else {
-        result.distance = targetDistance;
+        result.distance = maximumAcceptedHitTime;
         
         // Manually specifying the loop structure, to prevent the compiler
         // from unrolling it.
@@ -126,9 +122,9 @@ struct RayIntersector {
             break;
           }
         }
-        if (result.distance < targetDistance) {
+        if (result.distance < maximumAcceptedHitTime) {
           result.accept = true;
-          dda.continue_loop = false;
+          continueLoop = false;
         }
       }
     }
