@@ -116,7 +116,15 @@ kernel void buildSmallPart1_0
   // Initialize the small-cell counters.
   threadgroup uint threadgroupCounters[512];
   for (ushort i = thread_index; i < 512; i += 128) {
-    uint resetValue = (metadata[3] > 0) ? 0 : 0;
+    // TODO: To properly handle the null termination, I need to implement it
+    // somewhere else. I don't know where that "somewhere else" is yet.
+    // - The null terminator must be written explicitly. Otherwise, the ray
+    //   intersector may enter an infinite loop.
+    // - Add a guard to the traversal function, so it exits anyway after 64
+    //   iterations.
+    // - Note that null termination is a temporary solution. It exists to
+    //   de-obfuscate the small cell metadata, making it easier to change.
+    uint resetValue = uint(0);
     threadgroupCounters[i] = resetValue;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);

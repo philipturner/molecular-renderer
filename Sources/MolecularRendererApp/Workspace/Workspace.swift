@@ -86,7 +86,10 @@ import Numerics
 // - Remove the count from the cell metadata. Instead, use null-termination in
 //   the reference list.
 // - Write the converted atoms into a second buffer, whose length equals the
-//   larger reference count.
+//   large reference count.
+// - Change the small references, so they point to this buffer.
+// - Load the large voxel's metadata in the ray tracer.
+// - Subtract the large voxel's start from each small reference.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
