@@ -19,6 +19,9 @@ extension ArgumentContainer {
     
     // Quality coefficients are calibrated against 640x640 -> 1280x1280
     // resolution.
+    //
+    // TODO: Check whether the FOV factors into the quality coefficient. This
+    // may be the source of visual artifacts / unexpected behavior.
     screenMagnitude = screenMagnitude.squareRoot() / 1280
     return 30 * screenMagnitude
   }
