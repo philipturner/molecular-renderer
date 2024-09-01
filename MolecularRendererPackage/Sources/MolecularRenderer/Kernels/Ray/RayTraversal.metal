@@ -114,11 +114,10 @@ public:
         }
         result.distance = target_distance;
         
-        uint count = reverse_bits(voxel_data & voxel_count_mask);
         uint offset = voxel_data & voxel_offset_mask;
-        uint upper_bound = offset + count;
-        for (; offset < upper_bound; ++offset) {
-          uint reference = grid.smallAtomReferences[offset];
+        ushort count = reverse_bits(voxel_data & voxel_count_mask);
+        for (ushort i = 0; i < count; ++i) {
+          uint reference = grid.smallAtomReferences[offset + i];
           float4 newAtom = grid.convertedAtoms[reference];
           RayIntersector::intersect(&result, ray, newAtom, reference);
         }

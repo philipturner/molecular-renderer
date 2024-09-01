@@ -189,6 +189,9 @@ kernel void buildSmallPart1_0
   // The null terminator would be allocated here. You are adding one to a
   // conservative estimate of the reference count. However, you may only
   // add one if the large voxel's total count exceeds zero.
+  if (metadata[3] > 0) {
+    counterCounts += 1;
+  }
   
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
@@ -322,6 +325,13 @@ kernel void buildSmallPart1_0
   // The null terminator would probably be written here. Because you know where
   // the revised end of the list is. You would only write if the large voxel's
   // total count is greater than zero.
+  if (metadata[3] > 0) {
+    for (ushort laneID = 0; laneID < 4; ++laneID) {
+      ushort cellAddress = baseThreadgroupAddress + laneID;
+      uint offset = threadgroupCounters[cellAddress];
+      smallAtomReferences[offset] = 0;
+    }
+  }
   
   // Write the cell metadata.
   {
