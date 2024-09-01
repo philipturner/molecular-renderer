@@ -45,7 +45,7 @@ extension MRRenderer {
     
     // Arguments 2 - 4
     encoder.setBuffer(bvhBuilder.bvhArguments, offset: 0, index: 2)
-    encoder.setBuffer(bvhBuilder.smallCellMetadata, offset: 0, index: 3)
+    encoder.setBuffer(bvhBuilder.smallCellOffsets, offset: 0, index: 3)
     encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 4)
     
     // Arguments 10 - 12

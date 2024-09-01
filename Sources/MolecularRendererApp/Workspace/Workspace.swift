@@ -86,17 +86,21 @@ import Numerics
 // - Add a null terminator to the reference lists.
 //   - Locate the place where the null terminator would be written. [DONE]
 //   - Locate the place where the null terminator would be allocated. [DONE]
-//   - Implement the null terminator.
+//   - Implement the null terminator. [DONE]
 // - Remove the count from the cell metadata.
 //   - Add a guard to the traversal function, so it exits anyway after 64
-//     iterations.
-//   - Test integrity of rendering with the count ignored.
-//   - Remove the count and reformat the metadata.
+//     iterations. [DONE]
+//   - Test integrity of rendering with the count ignored. [DONE]
+//   - Remove the count and reformat the metadata. [DONE]
 // - Write the converted atoms into a second buffer, whose length equals the
 //   large reference count.
-// - Change the small references, so they point to this buffer.
+//   - Use one level of indirection to fetch the previous atom for motion
+//     vectors.
+//   - Write during the large cells pass, so it doesn't interfere with the
+//     benchmark of the small cells pass.
+//   - Redirect the small-atom references and previous-atom references.
 // - Load the large voxel's metadata in the ray tracer.
-// - Subtract the large voxel's start from each small reference.
+//   - Subtract the large voxel's start from each small reference.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not

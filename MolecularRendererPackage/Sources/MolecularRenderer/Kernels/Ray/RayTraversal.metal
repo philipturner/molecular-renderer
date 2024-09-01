@@ -86,10 +86,10 @@ public:
     
     while (dda.continue_loop) {
       // To reduce divergence, fast forward through empty voxels.
-      uint voxel_data = 0;
+      uint smallCellOffset = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
-        voxel_data = grid.smallCellMetadata[dda.address];
+        smallCellOffset = grid.smallCellOffsets[dda.address];
         dda.increment_position();
         
         float target_distance = dda.get_max_accepted_t();
@@ -97,8 +97,7 @@ public:
           dda.continue_loop = false;
         }
         
-        uint voxel_count = voxel_data & voxel_count_mask;
-        if (voxel_count == 0) {
+        if (smallCellOffset == 0) {
           continue_fast_forward = dda.continue_loop;
         } else {
           continue_fast_forward = false;
@@ -114,10 +113,8 @@ public:
         }
         result.distance = target_distance;
         
-        uint offset = voxel_data & voxel_offset_mask;
-        ushort count = reverse_bits(voxel_data & voxel_count_mask);
         for (ushort i = 0; i < 64; ++i) {
-          uint reference = grid.smallAtomReferences[offset + i];
+          uint reference = grid.smallAtomReferences[smallCellOffset + i];
           if (reference == 0) {
             break;
           }

@@ -87,7 +87,7 @@ kernel void buildSmallPart1_0
  device uint4 *largeCellMetadata [[buffer(1)]],
  device uint *largeAtomReferences [[buffer(2)]],
  device float4 *convertedAtoms [[buffer(3)]],
- device uint *smallCellMetadata [[buffer(4)]],
+ device uint *smallCellOffsets [[buffer(4)]],
  device uint *smallAtomReferences [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -178,19 +178,17 @@ kernel void buildSmallPart1_0
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
   // Read the counter metadata.
-  uint4 counterCounts;
+  uint4 conservativeCounts;
 #pragma clang loop unroll(full)
   for (ushort laneID = 0; laneID < 4; ++laneID) {
-    ushort cellAddress = baseThreadgroupAddress + laneID;
-    uint count = threadgroupCounters[cellAddress];
-    counterCounts[laneID] = count;
-  }
-  
-  // The null terminator would be allocated here. You are adding one to a
-  // conservative estimate of the reference count. However, you may only
-  // add one if the large voxel's total count exceeds zero.
-  if (metadata[3] > 0) {
-    counterCounts += 1;
+    ushort localAddress = baseThreadgroupAddress + laneID;
+    uint atomCount = threadgroupCounters[localAddress];
+    
+    // If there might be an atom in this voxel, insert a null terminator.
+    if (atomCount > 0) {
+      atomCount += 1;
+    }
+    conservativeCounts[laneID] = atomCount;
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
@@ -204,7 +202,7 @@ kernel void buildSmallPart1_0
 #pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 4; ++laneID) {
       uint counterOffset = threadCount;
-      threadCount += counterCounts[laneID];
+      threadCount += conservativeCounts[laneID];
       counterOffsets[laneID] = counterOffset;
     }
     
@@ -312,28 +310,6 @@ kernel void buildSmallPart1_0
   
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
-  // Revise the counter counts.
-#pragma clang loop unroll(full)
-  for (ushort laneID = 0; laneID < 4; ++laneID) {
-    ushort cellAddress = baseThreadgroupAddress + laneID;
-    uint allocationStart = counterOffsets[laneID];
-    uint allocationEnd = threadgroupCounters[cellAddress];
-    uint revisedCount = allocationEnd - allocationStart;
-    counterCounts[laneID] = revisedCount;
-  }
-  
-  // The null terminator would probably be written here. Because you know where
-  // the revised end of the list is. You would only write if the large voxel's
-  // total count is greater than zero.
-  if (metadata[3] > 0) {
-    for (ushort laneID = 0; laneID < 4; ++laneID) {
-      ushort cellAddress = baseThreadgroupAddress + laneID;
-      uint offset = threadgroupCounters[cellAddress];
-      smallAtomReferences[offset] = 0;
-    }
-  }
-  
-  // Write the cell metadata.
   {
     ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
     cellCoordinates += tgid * 8;
@@ -342,14 +318,26 @@ kernel void buildSmallPart1_0
     
 #pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 4; ++laneID) {
-      uint count = counterCounts[laneID];
-      uint offset = counterOffsets[laneID];
-      uint countPart = reverse_bits(count) & voxel_count_mask;
-      uint offsetPart = offset & voxel_offset_mask;
-      uint metadata = countPart | offsetPart;
+      ushort localAddress = baseThreadgroupAddress + laneID;
+      uint allocationStart = counterOffsets[laneID];
+      uint allocationEnd = threadgroupCounters[localAddress];
       
-      uint cellAddress = baseDeviceAddress + laneID;
-      smallCellMetadata[cellAddress] = metadata;
+      // Revise the reference count, with a tighter estimate.
+      uint atomCount = allocationEnd - allocationStart;
+      
+      // Write the null terminator.
+      if (atomCount > 0) {
+        smallAtomReferences[allocationEnd] = 0;
+      }
+      
+      // Flag this voxel as empty.
+      if (atomCount == 0) {
+        allocationStart = 0;
+      }
+      
+      // Write the cell metadata.
+      uint globalAddress = baseDeviceAddress + laneID;
+      smallCellOffsets[globalAddress] = allocationStart;
     }
   }
 }

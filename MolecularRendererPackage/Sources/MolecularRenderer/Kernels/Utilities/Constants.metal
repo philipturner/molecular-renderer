@@ -11,21 +11,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// MARK: - Constants
-
 constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
-
-// Max 64 million atoms/dense grid, including duplicated references.
-// Max ~5 million atoms/dense grid, excluding duplicated references.
-// Max 64 references/voxel.
-constant uint dense_grid_reference_capacity = 64 * 1024 * 1024;
-
-// Count is stored in opposite-endian order to the offset.
-constant uint voxel_offset_mask = dense_grid_reference_capacity - 1;
-constant uint voxel_count_mask = 0xFFFFFFFF - voxel_offset_mask;
-
-// MARK: - Definitions
 
 struct CameraArguments {
   float4 positionAndFOVMultiplier;

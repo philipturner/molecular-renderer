@@ -77,7 +77,7 @@ extension BVHBuilder {
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
     encoder.setBuffer(largeAtomReferences, offset: 0, index: 2)
     encoder.setBuffer(convertedAtoms, offset: 0, index: 3)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 4)
+    encoder.setBuffer(smallCellOffsets, offset: 0, index: 4)
     encoder.setBuffer(smallAtomReferences, offset: 0, index: 5)
     
     // Dispatch

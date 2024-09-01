@@ -104,10 +104,6 @@ kernel void buildLargePart2_1
     // Reserve room for null terminators.
     if (threadTotalCount > 0) {
       threadLargeCount += 1;
-      
-      // Null terminators have been allocated here, at the large-voxel level.
-      // We have yet to incorporate the null terminator into each small voxel's
-      // reference offset.
       threadSmallCount += 512;
     }
     threadCounts = uint3(threadVoxelCount,

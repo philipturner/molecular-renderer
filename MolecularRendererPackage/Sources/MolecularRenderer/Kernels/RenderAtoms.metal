@@ -17,7 +17,7 @@ kernel void renderAtoms
  constant CameraArguments *cameraArgs [[buffer(0)]],
  constant RenderArguments *renderArgs [[buffer(1)]],
  constant BVHArguments *bvhArgs [[buffer(2)]],
- device uint *smallCellMetadata [[buffer(3)]],
+ device uint *smallCellOffsets [[buffer(3)]],
  device uint *smallAtomReferences [[buffer(4)]],
  device float4 *convertedAtoms [[buffer(5)]],
  device float4 *previousAtoms [[buffer(6)]],
@@ -37,7 +37,7 @@ kernel void renderAtoms
   // Initialize the uniform grid.
   DenseGrid grid {
     bvhArgs,
-    smallCellMetadata,
+    smallCellOffsets,
     smallAtomReferences,
     convertedAtoms
   };
