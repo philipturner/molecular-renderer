@@ -9,7 +9,6 @@
 #define RAY_GENERATION_H
 
 #include <metal_stdlib>
-#include "../Ray/Ray.metal"
 #include "../Ray/Sampling.metal"
 #include "../Utilities/Constants.metal"
 using namespace metal;
@@ -42,25 +41,30 @@ public:
   }
   
   static float3x3 makeBasis(const float3 normal) {
-    // ZAP's default coordinate system for compatibility.
+    // Set the Z axis to the normal.
     float3 z = normal;
-    const float yz = -z.y * z.z;
-    float3 y = normalize
-    (
-     (abs(z.z) > 0.99999f)
-     ? float3(-z.x * z.y, 1.0f - z.y * z.y, yz)
-     : float3(-z.x * z.z, yz, 1.0f - z.z * z.z));
     
+    // Compute the Y axis.
+    float3 y;
+    if (abs(z.z) > 0.99999) {
+      y[0] = -z.x * z.y;
+      y[1] = 1 - z.y * z.y;
+      y[2] = -z.y * z.z;
+    } else {
+      y[0] = -z.x * z.z;
+      y[1] = -z.y * z.z;
+      y[2] = 1 - z.z * z.z;
+    }
+    y = normalize(y);
+    
+    // Compute the X axis through Gram-Schmidt orthogonalization.
     float3 x = cross(y, z);
     return float3x3(x, y, z);
   }
   
-  static Ray<float> primaryRay(constant CameraArguments *cameraArgs,
-                               constant RenderArguments *renderArgs,
-                               ushort2 pixelCoords) {
-    // Apply the camera position.
-    float3 rayOrigin = cameraArgs->position;
-    
+  static float3 primaryRayDirection(constant CameraArguments *cameraArgs,
+                                    constant RenderArguments *renderArgs,
+                                    ushort2 pixelCoords) {
     // Apply the pixel position.
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
     rayDirection.xy += renderArgs->jitterOffsets;
@@ -72,19 +76,15 @@ public:
     rayDirection = normalize(rayDirection);
     
     // Apply the camera direction.
-    //
-    // TODO: Manually specify the matrix-vector multiplication, instead of
-    // relying on MSL's built-in functionality. Make a wrapper for multiplying
-    // rotation matrices and their inverses.
     float3x3 rotation(cameraArgs->rotationColumn1,
                       cameraArgs->rotationColumn2,
                       cameraArgs->rotationColumn3);
     rayDirection = rotation * rayDirection;
     
-    return { rayOrigin, rayDirection };
+    return rayDirection;
   }
   
-  static Ray<half> secondaryRay(float3 origin, Basis basis) {
+  static float3 secondaryRayDirection(Basis basis) {
     // Transform the uniform distribution into the cosine distribution. This
     // creates a direction vector that's already normalized.
     float phi = 2 * M_PI_F * basis.random1;
@@ -95,7 +95,7 @@ public:
     
     // Apply the basis as a linear transformation.
     direction = float3x3(basis.axes) * direction;
-    return { origin, half3(direction) };
+    return direction;
   }
 };
 
@@ -118,7 +118,11 @@ public:
     this->seed = seed2 ^ (seed2 / 256);
   }
   
-  Ray<half> generate(ushort i, ushort samples, float3 hitPoint, half3 normal) {
+  float3 secondaryRayDirection(ushort i,
+                               ushort samples,
+                               float3 hitPoint,
+                               half3 normal)
+  {
     // Generate a random number and increment the seed.
     float random1 = Sampling::radinv3(seed);
     float random2 = Sampling::radinv2(seed);
@@ -132,11 +136,6 @@ public:
       random1 = mix(minimum, maximum, random1);
     }
     
-    // Move origin slightly away from the surface to avoid self-occlusion.
-    // Switching to a uniform grid acceleration structure should make it
-    // possible to ignore this parameter.
-    float3 origin = hitPoint + 0.0001 * float3(normal);
-    
     // Align the atoms' coordinate systems with each other, to minimize
     // divergence. Here is a primitive method that achieves that by aligning
     // the X and Y dimensions to a common coordinate space.
@@ -144,12 +143,12 @@ public:
                       cameraArgs->rotationColumn2,
                       cameraArgs->rotationColumn3);
     float3 modNormal = transpose(rotation) * float3(normal);
-    float3x3 _axes = RayGeneration::makeBasis(modNormal);
-    half3x3 axes = half3x3(rotation * _axes);
+    float3x3 axes32 = RayGeneration::makeBasis(modNormal);
+    half3x3 axes16 = half3x3(rotation * axes32);
     
     // Create a random ray from the cosine distribution.
-    RayGeneration::Basis basis { axes, random1, random2 };
-    return RayGeneration::secondaryRay(origin, basis);
+    RayGeneration::Basis basis { axes16, random1, random2 };
+    return RayGeneration::secondaryRayDirection(basis);
   }
 };
 

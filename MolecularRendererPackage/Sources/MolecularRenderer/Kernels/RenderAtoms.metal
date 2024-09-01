@@ -44,26 +44,28 @@ kernel void renderAtoms
   rayIntersector.convertedAtoms = convertedAtoms;
   
   // Spawn the primary ray.
-  auto primaryRay = RayGeneration::primaryRay(cameraArgs,
-                                              renderArgs,
-                                              pixelCoords);
+  float3 primaryRayOrigin = cameraArgs->position;
+  float3 primaryRayDirection =
+  RayGeneration::primaryRayDirection(cameraArgs,
+                                     renderArgs,
+                                     pixelCoords);
   
   // Intersect the primary ray.
   IntersectionQuery query;
   query.isAORay = false;
-  query.rayOrigin = primaryRay.origin;
-  query.rayDirection = primaryRay.direction;
+  query.rayOrigin = primaryRayOrigin;
+  query.rayDirection = primaryRayDirection;
   auto intersect = rayIntersector.intersect(query);
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
   if (intersect.accept) {
-    float3 hitPoint = primaryRay.origin;
-    hitPoint += primaryRay.direction * intersect.distance;
+    float3 hitPoint = primaryRayOrigin;
+    hitPoint += primaryRayDirection * intersect.distance;
     
     // Add the contribution from the primary ray.
     float4 hitAtom = convertedAtoms[intersect.atomID];
-    half3 normal = half3(normalize(hitPoint - hitAtom.xyz));
+    half3 hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
     colorCtx.setDiffuseColor(hitAtom);
     
     // Pick the number of AO samples.
@@ -85,23 +87,23 @@ kernel void renderAtoms
     }
     
     // Create a generation context.
-    auto genCtx = GenerationContext(cameraArgs,
-                                    renderArgs,
-                                    pixelCoords);
+    GenerationContext generationContext(cameraArgs,
+                                        renderArgs,
+                                        pixelCoords);
     
     // Iterate over the AO samples.
     for (half i = 0; i < sampleCount; ++i) {
       // Spawn a secondary ray.
-      auto secondaryRay = genCtx.generate(i, 
-                                          sampleCount,
-                                          hitPoint,
-                                          normal);
+      float3 secondaryRayOrigin;
+      secondaryRayOrigin = hitPoint + 0.0001 * float3(hitNormal);
+      float3 secondaryRayDirection = generationContext
+        .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
       
       // Intersect the secondary ray.
       IntersectionQuery query;
       query.isAORay = true;
-      query.rayOrigin = secondaryRay.origin;
-      query.rayDirection = float3(secondaryRay.direction);
+      query.rayOrigin = secondaryRayOrigin;
+      query.rayDirection = secondaryRayDirection;
       auto intersect = rayIntersector.intersect(query);
       
       // Add the secondary ray's AO contributions.
@@ -114,12 +116,14 @@ kernel void renderAtoms
     
     // Apply the camera position.
     colorCtx.startLightContributions();
-    colorCtx.addLightContribution(hitPoint, normal, cameraArgs->position);
+    colorCtx.addLightContribution(hitPoint,
+                                  hitNormal,
+                                  cameraArgs->position);
     colorCtx.applyContributions();
     
     // Write the depth as the intersection point's Z coordinate.
     {
-      float3 rayDirection = primaryRay.direction;
+      float3 rayDirection = primaryRayDirection;
       float3 cameraDirection = cameraArgs->rotationColumn3;
       float rayDirectionComponent = dot(rayDirection, cameraDirection);
       float depth = rayDirectionComponent * intersect.distance;

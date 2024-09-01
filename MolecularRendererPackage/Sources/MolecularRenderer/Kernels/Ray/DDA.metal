@@ -9,7 +9,6 @@
 #define DDA_H
 
 #include <metal_stdlib>
-#include "../Ray/Ray.metal"
 #include "../Utilities/Constants.metal"
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;

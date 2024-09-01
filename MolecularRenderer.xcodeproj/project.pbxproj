@@ -31,7 +31,6 @@
 		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
 		985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
-		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
 		987507AC2B4A61330031A15E /* rigid_body_30yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507A82B4A61330031A15E /* rigid_body_30yj.jpg */; };
 		987507AD2B4A61330031A15E /* rigid_body_10yj.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 987507A92B4A61330031A15E /* rigid_body_10yj.jpg */; };
@@ -178,7 +177,6 @@
 		98610EB02A9D7DA7006FAF95 /* VdwOscillator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VdwOscillator.swift; sourceTree = "<group>"; };
 		986289E72ADF6784009CF919 /* PlatformCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformCompatibility.swift; sourceTree = "<group>"; };
 		986348F72A73310F0053E714 /* Amplifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Amplifier.swift; sourceTree = "<group>"; };
-		986BBDDC2A5A5D20006F847B /* Ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Ray.metal; sourceTree = "<group>"; };
 		986ED88729A6CB0400E0653B /* RenderAtoms.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RenderAtoms.metal; sourceTree = "<group>"; };
 		986ED88929A6CF3600E0653B /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		987234F02ABE860300E427E5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1099,7 +1097,6 @@
 			isa = PBXGroup;
 			children = (
 				98A263A82A543EEC00B69392 /* DDA.metal */,
-				986BBDDC2A5A5D20006F847B /* Ray.metal */,
 				981E8F4829F4CA5B00F7BA21 /* RayGeneration.metal */,
 				987C5CE329EA051400CE5EB7 /* RayIntersector.metal */,
 				981E8F4629F4C99A00F7BA21 /* Sampling.metal */,
@@ -1331,7 +1328,6 @@
 			files = (
 				98F638AF2A34A33400F51E95 /* RayIntersector.metal in Sources */,
 				98A263A92A543EEC00B69392 /* DDA.metal in Sources */,
-				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				987671E92C82383800121870 /* BVH+BuildLarge+Cells.metal in Sources */,
 				985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
