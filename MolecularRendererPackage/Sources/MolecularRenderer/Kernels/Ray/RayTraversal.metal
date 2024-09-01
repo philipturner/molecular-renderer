@@ -43,6 +43,7 @@ struct IntersectionParams {
 
 struct BVHDescriptor {
   constant BVHArguments *bvhArgs;
+  device uint4 *largeCellMetadata;
   device uint *smallCellOffsets;
   device uint *smallAtomReferences;
   device float4 *convertedAtoms;
@@ -89,12 +90,12 @@ public:
   }
   
   METAL_FUNC
-  static IntersectionResult traverse(BVHDescriptor bvh,
+  static IntersectionResult traverse(BVHDescriptor bvhDescriptor,
                                      IntersectionQuery intersectionQuery)
   {
     DDA dda(intersectionQuery.rayOrigin,
             intersectionQuery.rayDirection,
-            bvh.bvhArgs);
+            bvhDescriptor.bvhArgs);
     _IntersectionResult result { MAXFLOAT, false };
     
     float maxTargetDistance;
@@ -109,8 +110,9 @@ public:
       uint smallCellOffset = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
-        smallCellOffset = bvh.smallCellOffsets[dda.address];
-        dda.increment_position();
+        uint address = dda.createAddress();
+        smallCellOffset = bvhDescriptor.smallCellOffsets[address];
+        dda.incrementPosition();
         
         float target_distance = dda.get_max_accepted_t();
         if (intersectionQuery.params.get_has_max_time() &&
@@ -141,13 +143,14 @@ public:
         ushort i = 0;
         while (true) {
           // Locate the atom.
-          uint reference = bvh.smallAtomReferences[smallCellOffset + i];
+          auto references = bvhDescriptor.smallAtomReferences;
+          uint reference = references[smallCellOffset + i];
           if (reference == 0) {
             break;
           }
           
           // Run the intersection test.
-          float4 atom = bvh.convertedAtoms[reference];
+          float4 atom = bvhDescriptor.convertedAtoms[reference];
           RayIntersector::intersect(&result,
                                     intersectionQuery.rayOrigin,
                                     intersectionQuery.rayDirection,
@@ -170,7 +173,7 @@ public:
     
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
-      out.newAtom = bvh.convertedAtoms[result.atom];
+      out.newAtom = bvhDescriptor.convertedAtoms[result.atom];
       out.reference = result.atom;
     }
     return out;

@@ -18,10 +18,11 @@ kernel void renderAtoms
  constant RenderArguments *renderArgs [[buffer(1)]],
  constant BVHArguments *bvhArgs [[buffer(2)]],
  constant float3 *elementColors [[buffer(3)]],
- device uint *smallCellOffsets [[buffer(4)]],
- device uint *smallAtomReferences [[buffer(5)]],
- device float4 *convertedAtoms [[buffer(6)]],
- device half3 *atomMotionVectors [[buffer(7)]],
+ device uint4 *largeCellMetadata [[buffer(4)]],
+ device uint *smallCellOffsets [[buffer(5)]],
+ device uint *smallAtomReferences [[buffer(6)]],
+ device float4 *convertedAtoms [[buffer(7)]],
+ device half3 *atomMotionVectors [[buffer(8)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -37,6 +38,7 @@ kernel void renderAtoms
   // Fill the BVH descriptor.
   BVHDescriptor bvhDescriptor;
   bvhDescriptor.bvhArgs = bvhArgs;
+  bvhDescriptor.largeCellMetadata = largeCellMetadata;
   bvhDescriptor.smallCellOffsets = smallCellOffsets;
   bvhDescriptor.smallAtomReferences = smallAtomReferences;
   bvhDescriptor.convertedAtoms = convertedAtoms;

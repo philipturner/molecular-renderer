@@ -21,7 +21,6 @@ using namespace raytracing;
 class DDA {
   float3 dt;
   float3 t;
-  ushort3 position;
   
   // Progress of the adjusted ray w.r.t. the original ray. This ensures closest
   // hits are recognized in the correct order.
@@ -30,7 +29,7 @@ class DDA {
   
 public:
   ushort3 grid_dims;
-  uint address;
+  ushort3 maybeInvertedPosition;
   bool continue_loop;
   
   DDA(float3 rayOrigin, 
@@ -69,7 +68,7 @@ public:
       if (rayDirection[i] < 0) {
         origin = float(grid_dims[i]) - origin;
       }
-      position[i] = ushort(origin);
+      maybeInvertedPosition[i] = ushort(origin);
       
       // `t` is actually the future `t`. When incrementing each dimension's `t`,
       // which one will produce the smallest `t`? This dimension gets the
@@ -77,17 +76,19 @@ public:
       // been tested yet.
       t[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
     }
-    
-    ushort3 neg_position = grid_dims - 1 - position;
-    ushort3 actual_position = select(position, neg_position, dt < 0);
-    address = VoxelAddress::generate(grid_dims, actual_position);
   }
   
   float get_max_accepted_t() {
     return tmin + voxel_tmax * 0.25;
   }
   
-  void increment_position() {
+  uint createAddress() {
+    ushort3 neg_position = grid_dims - 1 - maybeInvertedPosition;
+    ushort3 actual_position = select(maybeInvertedPosition, neg_position, dt < 0);
+    return VoxelAddress::generate(grid_dims, actual_position);
+  }
+  
+  void incrementPosition() {
     ushort2 cond_mask;
     cond_mask[0] = (t.x < t.y) ? 1 : 0;
     cond_mask[1] = (t.x < t.z) ? 1 : 0;
@@ -95,25 +96,22 @@ public:
     
     if (as_type<uint>(cond_mask) == desired) {
       voxel_tmax = t.x; // actually t + dt
-      address += VoxelAddress::increment_x(grid_dims, dt.x < 0);
       t.x += abs(dt.x); // actually t + dt + dt
       
-      position.x += 1;
-      continue_loop = (position.x < grid_dims.x);
+      maybeInvertedPosition.x += 1;
+      continue_loop = (maybeInvertedPosition.x < grid_dims.x);
     } else if (t.y < t.z) {
       voxel_tmax = t.y;
-      address += VoxelAddress::increment_y(grid_dims, dt.y < 0);
       t.y += abs(dt.y);
       
-      position.y += 1;
-      continue_loop = (position.y < grid_dims.y);
+      maybeInvertedPosition.y += 1;
+      continue_loop = (maybeInvertedPosition.y < grid_dims.y);
     } else {
       voxel_tmax = t.z;
-      address += VoxelAddress::increment_z(grid_dims, dt.z < 0);
       t.z += abs(dt.z);
       
-      position.z += 1;
-      continue_loop = (position.z < grid_dims.z);
+      maybeInvertedPosition.z += 1;
+      continue_loop = (maybeInvertedPosition.z < grid_dims.z);
     }
   }
 };

@@ -102,7 +102,7 @@ import Numerics
 //       advanced format like rgb9e5 or rgb10 at a later date. [DONE]
 //   - Write to a second, duplicate memory allocation. [DONE]
 //     - Redirect the small-atom references, switch memory allocations. [DONE]
-//     - Delete the old memory allocations.
+//     - Delete the old memory allocations. [DONE]
 // - Load the large voxel's metadata in the ray tracer.
 //   - Subtract the large voxel's start from each small reference.
 //
