@@ -128,11 +128,8 @@ extension BVHBuilder {
   
   func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
     // Arguments 0 - 1
-    do {
-      var useAtomMotionVectors =
-      renderer.argumentContainer.useAtomMotionVectors
-      encoder.setBytes(&useAtomMotionVectors, length: 1, index: 0)
-    }
+    var useAtomMotionVectors = renderer.argumentContainer.useAtomMotionVectors
+    encoder.setBytes(&useAtomMotionVectors, length: 1, index: 0)
     bindElementRadii(encoder: encoder, index: 1)
     
     // Arguments 2 - 3

@@ -11,7 +11,6 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// Behavior is undefined when the position goes out-of-bounds.
 class VoxelAddress {
 public:
   static uint generate(ushort3 grid_dims, ushort3 coords) {

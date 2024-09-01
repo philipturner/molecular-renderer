@@ -30,7 +30,6 @@
 		98537EAF2A62EA3D0037C392 /* BVH+BuildSmall.metal in Sources */ = {isa = PBXBuildFile; fileRef = 98537EAE2A62EA3D0037C392 /* BVH+BuildSmall.metal */; };
 		9855200B2B53215C00AB068D /* Workspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CBA0B2B1D2AE200213CBE /* Workspace.swift */; };
 		985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */; };
-		985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */ = {isa = PBXBuildFile; fileRef = 985BBEE92C7A69900096A104 /* DenseGrid.metal */; };
 		986289E82ADF6784009CF919 /* PlatformCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986289E72ADF6784009CF919 /* PlatformCompatibility.swift */; };
 		986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 986BBDDC2A5A5D20006F847B /* Ray.metal */; };
 		986ED88A29A6CF3600E0653B /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986ED88929A6CF3600E0653B /* Renderer.swift */; };
@@ -166,7 +165,6 @@
 		9855201C2B55E54500AB068D /* DiAdamantasilane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiAdamantasilane.swift; sourceTree = "<group>"; };
 		98570CF72A116BDC0078E023 /* NanoEngineerParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoEngineerParser.swift; sourceTree = "<group>"; };
 		985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VoxelAddress.metal; sourceTree = "<group>"; };
-		985BBEE92C7A69900096A104 /* DenseGrid.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = DenseGrid.metal; sourceTree = "<group>"; };
 		985BBEEC2C7AA6E50096A104 /* ArgumentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArgumentContainer.swift; sourceTree = "<group>"; };
 		985BBEEF2C7AAF110096A104 /* ArgumentContainer+Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Camera.swift"; sourceTree = "<group>"; };
 		985BBEF02C7AAF1B0096A104 /* ArgumentContainer+Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArgumentContainer+Render.swift"; sourceTree = "<group>"; };
@@ -1123,7 +1121,6 @@
 			isa = PBXGroup;
 			children = (
 				988B257D2A1AC482007F18C1 /* Constants.metal */,
-				985BBEE92C7A69900096A104 /* DenseGrid.metal */,
 				985BBEE72C7A68FB0096A104 /* VoxelAddress.metal */,
 			);
 			path = Utilities;
@@ -1336,7 +1333,6 @@
 				98A263A92A543EEC00B69392 /* DDA.metal in Sources */,
 				986BBDDD2A5A5D20006F847B /* Ray.metal in Sources */,
 				987671E92C82383800121870 /* BVH+BuildLarge+Cells.metal in Sources */,
-				985BBEEA2C7A69900096A104 /* DenseGrid.metal in Sources */,
 				985BBEE82C7A68FB0096A104 /* VoxelAddress.metal in Sources */,
 				98F638B12A34A33B00F51E95 /* Sampling.metal in Sources */,
 				98537EAF2A62EA3D0037C392 /* BVH+BuildSmall.metal in Sources */,

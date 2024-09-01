@@ -29,32 +29,44 @@ extension MRRenderer {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     
+    // Bind the camera arguments.
     do {
       let cameraArguments = argumentContainer.createCameraArguments()
-      let renderArguments = [argumentContainer.createRenderArguments()]
-      
-      func setBytes<T>(_ array: [T], index: Int) {
-        let elementLength = MemoryLayout<T>.stride
-        let arrayLength = array.count * elementLength
-        encoder.setBytes(array, length: arrayLength, index: index)
-      }
-      setBytes(cameraArguments, index: 0)
-      setBytes(renderArguments, index: 1)
+      let elementLength = MemoryLayout<CameraArguments>.stride
+      let arrayLength = 2 * elementLength
+      encoder.setBytes(cameraArguments, length: arrayLength, index: 0)
     }
     
-    encoder.setBuffer(bvhBuilder.bvhArguments, offset: 0, index: 2)
-    encoder.setBuffer(bvhBuilder.smallCellOffsets, offset: 0, index: 3)
-    encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 4)
-    encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 5)
-    encoder.setBuffer(bvhBuilder.atomMotionVectors, offset: 0, index: 6)
+    // Bind the render arguments.
+    do {
+      var renderArguments = argumentContainer.createRenderArguments()
+      let length = MemoryLayout<RenderArguments>.stride
+      encoder.setBytes(&renderArguments, length: length, index: 1)
+    }
     
+    // Bind the BVH arguments.
+    do {
+      encoder.setBuffer(bvhBuilder.bvhArguments, offset: 0, index: 2)
+    }
+    
+    // Bind the element colors.
     do {
       let elementColors = argumentContainer.elementColors
-      let byteCount = elementColors.count * 16
-      encoder.setBytes(elementColors, length: byteCount, index: 7)
+      let length = elementColors.count * 16
+      encoder.setBytes(elementColors, length: length, index: 3)
     }
     
-    // Textures 0 - 2
+    // Bind the remaining buffers.
+    do {
+      encoder.setBuffer(bvhBuilder.smallCellOffsets, offset: 0, index: 4)
+      encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 5)
+      encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 6)
+      encoder.setBuffer(bvhBuilder.convertedAtoms2, offset: 0, index: 7)
+      encoder.setBuffer(bvhBuilder.atomMotionVectors, offset: 0, index: 8)
+      encoder.setBuffer(bvhBuilder.atomMotionVectors2, offset: 0, index: 9)
+    }
+    
+    // Bind the textures.
     do {
       let textureIndex = argumentContainer.doubleBufferIndex()
       let textures = bufferedIntermediateTextures[textureIndex]
@@ -63,19 +75,19 @@ extension MRRenderer {
       encoder.setTexture(textures.motion, index: 2)
     }
     
-    // Dispatch
+    // Dispatch the correct number of threadgroups.
     do {
       let pipeline = renderPipeline!
       encoder.setComputePipelineState(pipeline)
       
-      // Dispatch an even number of threads (the shader will rearrange them).
-      var dispatchWidth = argumentContainer.intermediateTextureSize
-      dispatchWidth = (dispatchWidth + 7) / 8
+      let textureSize = argumentContainer.intermediateTextureSize
+      let dispatchSize = (textureSize + 7) / 8
       encoder.dispatchThreadgroups(
-        MTLSize(width: dispatchWidth, height: dispatchWidth, depth: 1),
+        MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
     }
     
+    // Submit the command buffer.
     encoder.endEncoding()
     commandBuffer.addCompletedHandler { [self] commandBuffer in
       let frameReporter = self.frameReporter!
