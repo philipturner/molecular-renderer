@@ -19,16 +19,18 @@ using namespace raytracing;
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
   float3 dt;
-  float3 t;
+  float3 originalTime;
+  float3 progressedTime;
   
   // Progress of the adjusted ray w.r.t. the original ray. This ensures closest
   // hits are recognized in the correct order.
-  float tmin; // in the original coordinate space
-  float voxel_tmax; // in the relative coordinate space
+  float minimumTime; // in the original coordinate space
+  float voxelMaximumTime; // in the relative coordinate space
   
 public:
   short3 gridDims;
-  short3 maybeInvertedPosition;
+  short3 originalMaybeInvertedPosition;
+  short3 progressedMaybeInvertedPosition;
   
   DDA(float3 rayOrigin, 
       float3 rayDirection,
@@ -58,7 +60,7 @@ public:
     transformedRayOrigin += tmin * rayDirection;
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
-    this->tmin = tmin * 0.25;
+    minimumTime = tmin * 0.25;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
@@ -67,45 +69,61 @@ public:
         origin = float(gridDims[i]) - origin;
       }
       
-      
       // `t` is actually the future `t`. When incrementing each dimension's `t`,
       // which one will produce the smallest `t`? This dimension gets the
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
-      t[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
-      maybeInvertedPosition[i] = ushort(origin);
+      originalTime[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
+      progressedTime[i] = float(0);
+      
+      originalMaybeInvertedPosition[i] = short(ushort(origin));
+      progressedMaybeInvertedPosition[i] = short(0);
+    }
+  }
+  
+  void updateVoxelMaximumTime() {
+    const float3 currentTime = createCurrentTime();
+    
+    if (currentTime.x < currentTime.y &&
+        currentTime.x < currentTime.z) {
+      voxelMaximumTime = currentTime.x;
+    } else if (currentTime.y < currentTime.z) {
+      voxelMaximumTime = currentTime.y;
+    } else {
+      voxelMaximumTime = currentTime.z;
     }
   }
   
   void incrementPosition() {
-    ushort2 cond_mask;
-    cond_mask[0] = (t.x < t.y) ? 1 : 0;
-    cond_mask[1] = (t.x < t.z) ? 1 : 0;
-    uint desired = as_type<uint>(ushort2(1, 1));
+    const float3 currentTime = createCurrentTime();
     
-    if (as_type<uint>(cond_mask) == desired) {
-      voxel_tmax = t.x; // actually t + dt
-      t.x += abs(dt.x); // actually t + dt + dt
-      
-      maybeInvertedPosition.x += 1;
-    } else if (t.y < t.z) {
-      voxel_tmax = t.y;
-      t.y += abs(dt.y);
-      
-      maybeInvertedPosition.y += 1;
+    if (currentTime.x < currentTime.y &&
+        currentTime.x < currentTime.z) {
+      progressedTime.x += abs(dt.x);
+      progressedMaybeInvertedPosition.x += 1;
+    } else if (currentTime.y < currentTime.z) {
+      progressedTime.y += abs(dt.y);
+      progressedMaybeInvertedPosition.y += 1;
     } else {
-      voxel_tmax = t.z;
-      t.z += abs(dt.z);
-      
-      maybeInvertedPosition.z += 1;
+      progressedTime.z += abs(dt.z);
+      progressedMaybeInvertedPosition.z += 1;
     }
   }
   
-  float maximumAcceptedHitTime() const {
-    return tmin + voxel_tmax * 0.25;
+  float3 createCurrentTime() const {
+    return originalTime + progressedTime;
+  }
+  
+  float createMaximumAcceptedHitTime() const {
+    return minimumTime + voxelMaximumTime * 0.25;
+  }
+  
+  short3 createMaybeInvertedPosition() const {
+    return originalMaybeInvertedPosition + progressedMaybeInvertedPosition;
   }
   
   uint createAddress() const {
+    short3 maybeInvertedPosition = createMaybeInvertedPosition();
     short3 invertedPosition = gridDims - 1 - maybeInvertedPosition;
     short3 actualPosition = select(maybeInvertedPosition,
                                    invertedPosition,
@@ -115,6 +133,7 @@ public:
   }
   
   bool createContinueLoop() const {
+    short3 maybeInvertedPosition = createMaybeInvertedPosition();
     return (maybeInvertedPosition.x < gridDims.x) &&
     (maybeInvertedPosition.y < gridDims.y) &&
     (maybeInvertedPosition.z < gridDims.z);

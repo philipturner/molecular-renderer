@@ -62,10 +62,11 @@ struct RayIntersector {
         uint address = dda.createAddress();
         smallCellOffset = smallCellOffsets[address];
         
+        dda.updateVoxelMaximumTime();
         dda.incrementPosition();
         continueLoop = dda.createContinueLoop();
         
-        float maximumAcceptedHitTime = dda.maximumAcceptedHitTime();
+        float maximumAcceptedHitTime = dda.createMaximumAcceptedHitTime();
         float maximumAODistance = createMaximumAODistance();
         if (intersectionQuery.isAORay &&
             maximumAcceptedHitTime > maximumAODistance) {
@@ -78,7 +79,7 @@ struct RayIntersector {
         }
       }
       
-      float maximumAcceptedHitTime = dda.maximumAcceptedHitTime();
+      float maximumAcceptedHitTime = dda.createMaximumAcceptedHitTime();
       float maximumAODistance = createMaximumAODistance();
       if (intersectionQuery.isAORay &&
           maximumAcceptedHitTime > maximumAODistance) {
