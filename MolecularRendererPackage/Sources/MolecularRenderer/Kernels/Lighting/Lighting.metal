@@ -179,13 +179,12 @@ public:
     this->depth = depth;
   }
   
-  // Enter the camera arguments from the previous frame.
   void generateMotionVector(constant CameraArguments *cameraArgs,
-                            float2 jitter,
+                            constant RenderArguments *renderArgs,
                             float3 hitPoint) {
     // Apply the camera position.
-    float3 lightPosition = cameraArgs->positionAndFOVMultiplier.xyz;
-    float3 direction = normalize(hitPoint - lightPosition);
+    float3 cameraPosition = cameraArgs->position;
+    float3 direction = normalize(hitPoint - cameraPosition);
     
     // Apply the camera direction.
     float3x3 rotation(cameraArgs->rotationColumn1,
@@ -194,7 +193,7 @@ public:
     direction = transpose(rotation) * direction;
     
     // Apply the camera FOV.
-    float fovMultiplier = cameraArgs->positionAndFOVMultiplier[3];
+    float fovMultiplier = cameraArgs->fovMultiplier;
     direction *= 1 / fovMultiplier / direction.z;
     
     // I have no idea why, but the X coordinate is flipped here.
@@ -203,7 +202,7 @@ public:
     
     // Recompute the current pixel coordinates (do not waste registers).
     float2 currCoords = float2(pixelCoords) + 0.5;
-    currCoords += jitter;
+    currCoords += renderArgs->jitterOffsets;
     currCoords.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     
     // Generate the motion vector from pixel coordinates.

@@ -15,11 +15,11 @@ constant uint SCREEN_WIDTH [[function_constant(0)]];
 constant uint SCREEN_HEIGHT [[function_constant(1)]];
 
 struct CameraArguments {
-  float4 positionAndFOVMultiplier;
+  float3 position;
   float3 rotationColumn1;
   float3 rotationColumn2;
   float3 rotationColumn3;
-  float2 jitter;
+  float fovMultiplier;
 };
 
 struct BVHArguments {
@@ -31,6 +31,7 @@ struct BVHArguments {
 
 struct RenderArguments {
   uint frameSeed;
+  float2 jitterOffsets;
   float qualityCoefficient;
 };
 

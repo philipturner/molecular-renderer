@@ -56,27 +56,32 @@ public:
   }
   
   static Ray<float> primaryRay(constant CameraArguments *cameraArgs,
+                               constant RenderArguments *renderArgs,
                                ushort2 pixelCoords) {
+    // Apply the camera position.
+    float3 rayOrigin = cameraArgs->position;
+    
     // Apply the pixel position.
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
-    rayDirection.xy += cameraArgs->jitter;
+    rayDirection.xy += renderArgs->jitterOffsets;
     rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
     rayDirection.y = -rayDirection.y;
     
     // Apply the camera FOV.
-    float fovMultiplier = cameraArgs->positionAndFOVMultiplier[3];
-    rayDirection.xy *= fovMultiplier;
+    rayDirection.xy *= cameraArgs->fovMultiplier;
     rayDirection = normalize(rayDirection);
     
     // Apply the camera direction.
+    //
+    // TODO: Manually specify the matrix-vector multiplication, instead of
+    // relying on MSL's built-in functionality. Make a wrapper for multiplying
+    // rotation matrices and their inverses.
     float3x3 rotation(cameraArgs->rotationColumn1,
                       cameraArgs->rotationColumn2,
                       cameraArgs->rotationColumn3);
     rayDirection = rotation * rayDirection;
     
-    // Apply the camera position.
-    float3 worldOrigin = cameraArgs->positionAndFOVMultiplier.xyz;
-    return { worldOrigin, rayDirection };
+    return { rayOrigin, rayDirection };
   }
   
   static Ray<half> secondaryRay(float3 origin, Basis basis) {
@@ -100,11 +105,13 @@ class GenerationContext {
   
 public:
   GenerationContext(constant CameraArguments* cameraArgs,
-                    uint frameSeed,
+                    constant RenderArguments *renderArgs,
                     ushort2 pixelCoords) {
     this->cameraArgs = cameraArgs;
     
+    uint frameSeed = renderArgs->frameSeed;
     uint pixelSeed = as_type<uint>(pixelCoords);
+    
     uint seed1 = Sampling::tea(pixelSeed, frameSeed);
     ushort seed2 = as_type<ushort2>(seed1)[0];
     seed2 ^= as_type<ushort2>(seed1)[1];

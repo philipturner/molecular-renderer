@@ -9,11 +9,11 @@ import func Foundation.tan
 
 // Camera arguments data structure.
 struct CameraArguments {
-  var positionAndFOVMultiplier: SIMD4<Float> = .zero
+  var position: SIMD3<Float> = .zero
   var rotationColumn1: SIMD3<Float> = .zero
   var rotationColumn2: SIMD3<Float> = .zero
   var rotationColumn3: SIMD3<Float> = .zero
-  var jitter: SIMD2<Float> = .zero
+  var fovMultiplier: Float = .zero
 }
 
 extension ArgumentContainer {
@@ -69,34 +69,6 @@ extension ArgumentContainer {
     return halfAngleTangentRatio / fov90Span
   }
   
-  func createJitterOffsets() -> SIMD2<Float> {
-    func halton(index: Int, base: Int) -> Float {
-      var result: Float = 0.0
-      var fractional: Float = 1.0
-      var currentIndex: Int = index
-      while currentIndex > 0 {
-        fractional /= Float(base)
-        result += fractional * Float(currentIndex % base)
-        currentIndex /= base
-      }
-      return result
-    }
-    
-    // The sample uses a Halton sequence rather than purely random numbers to
-    // generate the sample positions to ensure good pixel coverage. This has the
-    // result of sampling a different point within each pixel every frame.
-    let index = haltonIndex()
-    
-    // Return Halton samples (+/- 0.5, +/- 0.5) that represent offsets of up to
-    // half a pixel.
-    let x = halton(index: index, base: 2) - 0.5
-    let y = halton(index: index, base: 3) - 0.5
-    
-    // We're not sampling textures or working with multiple coordinate spaces.
-    // No need to flip the Y coordinate to match another coordinate space.
-    return SIMD2(x, y)
-  }
-  
   func createCameraArguments() -> [CameraArguments] {
     guard let currentCamera else {
       fatalError("Current camera was not specified.")
@@ -135,18 +107,14 @@ public struct MRCamera {
 extension MRRenderer {
   public func setCamera(_ camera: MRCamera) {
     var cameraArgs = CameraArguments()
+    cameraArgs.position = camera.position
     cameraArgs.rotationColumn1 = camera.rotation.0
     cameraArgs.rotationColumn2 = camera.rotation.1
     cameraArgs.rotationColumn3 = camera.rotation.2
     
-    let fovMultiplier = argumentContainer.createFOVMultiplier(
-      fovDegrees: camera.fovDegrees)
-    cameraArgs.positionAndFOVMultiplier = SIMD4(
-      camera.position, fovMultiplier)
-    
-    let jitter = argumentContainer.createJitterOffsets()
-    cameraArgs.jitter = jitter
-    
+    let fovMultiplier = argumentContainer
+      .createFOVMultiplier(fovDegrees: camera.fovDegrees)
+    cameraArgs.fovMultiplier = fovMultiplier
     argumentContainer.currentCamera = cameraArgs
   }
 }
