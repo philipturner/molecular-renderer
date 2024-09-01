@@ -20,17 +20,11 @@ using namespace raytracing;
 class DDA {
   float3 dt;
   float3 originalTime;
-  float3 progressedTime;
-  
-  // Progress of the adjusted ray w.r.t. the original ray. This ensures closest
-  // hits are recognized in the correct order.
-  float minimumTime; // in the original coordinate space
-  float voxelMaximumTime; // in the relative coordinate space
+  float minimumTime;
   
 public:
   short3 gridDims;
   short3 originalMaybeInvertedPosition;
-  short3 progressedMaybeInvertedPosition;
   
   DDA(float3 rayOrigin, 
       float3 rayDirection,
@@ -74,56 +68,60 @@ public:
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
       originalTime[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
-      progressedTime[i] = float(0);
       
       originalMaybeInvertedPosition[i] = short(ushort(origin));
-      progressedMaybeInvertedPosition[i] = short(0);
     }
   }
   
-  void updateVoxelMaximumTime() {
-    const float3 currentTime = createCurrentTime();
+  void updateVoxelMaximumTime(thread float *voxelMaximumTime,
+                              ushort3 progressCounter) const {
+    const float3 currentTime = createCurrentTime(progressCounter);
     
     if (currentTime.x < currentTime.y &&
         currentTime.x < currentTime.z) {
-      voxelMaximumTime = currentTime.x;
+      *voxelMaximumTime = currentTime.x;
     } else if (currentTime.y < currentTime.z) {
-      voxelMaximumTime = currentTime.y;
+      *voxelMaximumTime = currentTime.y;
     } else {
-      voxelMaximumTime = currentTime.z;
+      *voxelMaximumTime = currentTime.z;
     }
   }
   
-  void incrementPosition() {
-    const float3 currentTime = createCurrentTime();
+  void incrementProgressCounter(thread ushort3 *progressCounter) const {
+    const float3 currentTime = createCurrentTime(*progressCounter);
     
     if (currentTime.x < currentTime.y &&
         currentTime.x < currentTime.z) {
-      progressedTime.x += abs(dt.x);
-      progressedMaybeInvertedPosition.x += 1;
+      progressCounter->x += 1;
     } else if (currentTime.y < currentTime.z) {
-      progressedTime.y += abs(dt.y);
-      progressedMaybeInvertedPosition.y += 1;
+      progressCounter->y += 1;
     } else {
-      progressedTime.z += abs(dt.z);
-      progressedMaybeInvertedPosition.z += 1;
+      progressCounter->z += 1;
     }
   }
   
-  float3 createCurrentTime() const {
-    return originalTime + progressedTime;
+  float3 reconstructProgressedTime(ushort3 progressCounter) const {
+    return float3(progressCounter) * abs(dt);
   }
   
-  float createMaximumAcceptedHitTime() const {
+  short3 reconstructProgressedMaybeInvertedPosition(ushort3 progressCounter) const {
+    return short3(progressCounter);
+  }
+  
+  float3 createCurrentTime(ushort3 progressCounter) const {
+    return originalTime + reconstructProgressedTime(progressCounter);
+  }
+  
+  float createMaximumAcceptedHitTime(float voxelMaximumTime) const {
     return minimumTime + voxelMaximumTime * 0.25;
   }
   
-  short3 createMaybeInvertedPosition() const {
-    return originalMaybeInvertedPosition + progressedMaybeInvertedPosition;
+  short3 createMaybeInvertedPosition(ushort3 progressCounter) const {
+    return originalMaybeInvertedPosition + reconstructProgressedMaybeInvertedPosition(progressCounter);
   }
   
-  uint createAddress() const {
-    short3 maybeInvertedPosition = createMaybeInvertedPosition();
+  uint createAddress(ushort3 progressCounter) const {
+    short3 maybeInvertedPosition = createMaybeInvertedPosition(progressCounter);
     short3 invertedPosition = gridDims - 1 - maybeInvertedPosition;
     short3 actualPosition = select(maybeInvertedPosition,
                                    invertedPosition,
@@ -132,8 +130,8 @@ public:
                                   ushort3(actualPosition));
   }
   
-  bool createContinueLoop() const {
-    short3 maybeInvertedPosition = createMaybeInvertedPosition();
+  bool createContinueLoop(ushort3 progressCounter) const {
+    short3 maybeInvertedPosition = createMaybeInvertedPosition(progressCounter);
     return (maybeInvertedPosition.x < gridDims.x) &&
     (maybeInvertedPosition.y < gridDims.y) &&
     (maybeInvertedPosition.z < gridDims.z);

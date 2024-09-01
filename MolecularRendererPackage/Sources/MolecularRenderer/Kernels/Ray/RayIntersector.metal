@@ -45,10 +45,12 @@ struct RayIntersector {
   __attribute__((__always_inline__))
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
     bool continueLoop;
-    DDA dda(intersectionQuery.rayOrigin,
-            intersectionQuery.rayDirection,
-            bvhArgs,
-            &continueLoop);
+    const DDA dda(intersectionQuery.rayOrigin,
+                  intersectionQuery.rayDirection,
+                  bvhArgs,
+                  &continueLoop);
+    float voxelMaximumTime;
+    ushort3 progressCounter = ushort3(0);
     
     IntersectionResult result;
     result.accept = false;
@@ -59,14 +61,14 @@ struct RayIntersector {
       // Search for the next occupied voxel.
       uint smallCellOffset = 0;
       while (true) {
-        uint address = dda.createAddress();
+        uint address = dda.createAddress(progressCounter);
         smallCellOffset = smallCellOffsets[address];
         
-        dda.updateVoxelMaximumTime();
-        dda.incrementPosition();
-        continueLoop = dda.createContinueLoop();
+        dda.updateVoxelMaximumTime(&voxelMaximumTime, progressCounter);
+        dda.incrementProgressCounter(&progressCounter);
+        continueLoop = dda.createContinueLoop(progressCounter);
         
-        float maximumAcceptedHitTime = dda.createMaximumAcceptedHitTime();
+        float maximumAcceptedHitTime = dda.createMaximumAcceptedHitTime(voxelMaximumTime);
         float maximumAODistance = createMaximumAODistance();
         if (intersectionQuery.isAORay &&
             maximumAcceptedHitTime > maximumAODistance) {
@@ -79,7 +81,7 @@ struct RayIntersector {
         }
       }
       
-      float maximumAcceptedHitTime = dda.createMaximumAcceptedHitTime();
+      float maximumAcceptedHitTime = dda.createMaximumAcceptedHitTime(voxelMaximumTime);
       float maximumAODistance = createMaximumAODistance();
       if (intersectionQuery.isAORay &&
           maximumAcceptedHitTime > maximumAODistance) {
