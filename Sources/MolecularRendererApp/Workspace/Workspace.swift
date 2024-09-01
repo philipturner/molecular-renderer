@@ -134,7 +134,7 @@ import Numerics
 //     A new limit of ~8 million atoms should be enforced, and the user can
 //     decrease the limit to save memory.
 
-#if false
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -249,9 +249,7 @@ func createGeometry() -> [Atom] {
   return output
 }
 
-#endif
-
-#if true
+#else
 
 // Test that animation functionality is working correctly.
 func createGeometry() -> [[Atom]] {

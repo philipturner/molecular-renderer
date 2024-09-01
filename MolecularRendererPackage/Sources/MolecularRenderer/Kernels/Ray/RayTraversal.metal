@@ -46,7 +46,6 @@ struct BVHDescriptor {
   device uint *smallCellOffsets;
   device uint *smallAtomReferences;
   device float4 *convertedAtoms;
-  device float4 *convertedAtoms2;
 };
 
 struct IntersectionQuery {
@@ -146,10 +145,9 @@ public:
           if (reference == 0) {
             break;
           }
-//          reference -= 1;
           
           // Run the intersection test.
-          float4 atom = bvh.convertedAtoms2[reference];
+          float4 atom = bvh.convertedAtoms[reference];
           RayIntersector::intersect(&result,
                                     intersectionQuery.rayOrigin,
                                     intersectionQuery.rayDirection,
@@ -172,7 +170,7 @@ public:
     
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
-      out.newAtom = bvh.convertedAtoms2[result.atom];
+      out.newAtom = bvh.convertedAtoms[result.atom];
       out.reference = result.atom;
     }
     return out;

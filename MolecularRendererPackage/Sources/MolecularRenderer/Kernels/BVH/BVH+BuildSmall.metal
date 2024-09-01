@@ -85,11 +85,9 @@ kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
- device uint *largeAtomReferences [[buffer(2)]],
- device float4 *convertedAtoms [[buffer(3)]],
- device float4 *convertedAtoms2 [[buffer(4)]],
- device uint *smallCellOffsets [[buffer(5)]],
- device uint *smallAtomReferences [[buffer(6)]],
+ device float4 *convertedAtoms [[buffer(2)]],
+ device uint *smallCellOffsets [[buffer(3)]],
+ device uint *smallAtomReferences [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -133,8 +131,7 @@ kernel void buildSmallPart1_0
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
       uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
-      uint largeAtomID = largeAtomReferences[largeReferenceID];
-      float4 atom = convertedAtoms2[largeReferenceID];
+      float4 atom = convertedAtoms[largeReferenceID];
       
       // Generate the bounding box.
       ushort3 loopStart;
@@ -252,8 +249,7 @@ kernel void buildSmallPart1_0
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
       uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
-      uint largeAtomID = largeAtomReferences[largeReferenceID];
-      float4 atom = convertedAtoms2[largeReferenceID];
+      float4 atom = convertedAtoms[largeReferenceID];
       
       // Generate the bounding box.
       ushort3 loopStart;

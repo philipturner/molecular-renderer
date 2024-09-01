@@ -21,9 +21,7 @@ kernel void renderAtoms
  device uint *smallCellOffsets [[buffer(4)]],
  device uint *smallAtomReferences [[buffer(5)]],
  device float4 *convertedAtoms [[buffer(6)]],
- device float4 *convertedAtoms2 [[buffer(7)]],
- device half3 *atomMotionVectors [[buffer(8)]],
- device half3 *atomMotionVectors2 [[buffer(9)]],
+ device half3 *atomMotionVectors [[buffer(7)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -42,7 +40,6 @@ kernel void renderAtoms
   bvhDescriptor.smallCellOffsets = smallCellOffsets;
   bvhDescriptor.smallAtomReferences = smallAtomReferences;
   bvhDescriptor.convertedAtoms = convertedAtoms;
-  bvhDescriptor.convertedAtoms2 = convertedAtoms2;
   
   // Spawn the primary ray.
   auto primaryRay = RayGeneration::primaryRay(cameraArgs, pixelCoords);
@@ -131,7 +128,7 @@ kernel void renderAtoms
     }
     
     // Find the hit point's position in the previous frame.
-    half3 motionVector = atomMotionVectors2[intersect.reference];
+    half3 motionVector = atomMotionVectors[intersect.reference];
     float3 previousHitPoint = hitPoint - float3(motionVector);
     
     // Generate the pixel motion vector.
