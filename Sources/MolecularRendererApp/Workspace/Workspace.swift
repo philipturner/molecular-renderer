@@ -100,8 +100,8 @@ import Numerics
 //     - Accomplished this by writing motion vectors instead. [DONE]
 //     - Compress the motion vectors to half precision. We can use a more
 //       advanced format like rgb9e5 or rgb10 at a later date. [DONE]
-//   - Write to a second, duplicate memory allocation.
-//     - Redirect the small-atom references, and switch memory allocations.
+//   - Write to a second, duplicate memory allocation. [DONE]
+//     - Redirect the small-atom references, switch memory allocations. [DONE]
 //     - Delete the old memory allocations.
 // - Load the large voxel's metadata in the ray tracer.
 //   - Subtract the large voxel's start from each small reference.
@@ -134,7 +134,7 @@ import Numerics
 //     A new limit of ~8 million atoms should be enforced, and the user can
 //     decrease the limit to save memory.
 
-#if true
+#if false
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -251,7 +251,7 @@ func createGeometry() -> [Atom] {
 
 #endif
 
-#if false
+#if true
 
 // Test that animation functionality is working correctly.
 func createGeometry() -> [[Atom]] {

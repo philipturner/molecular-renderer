@@ -11,7 +11,6 @@
 #include <metal_stdlib>
 #include "../Ray/Ray.metal"
 #include "../Utilities/Constants.metal"
-#include "../Utilities/DenseGrid.metal"
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 using namespace raytracing;
@@ -19,8 +18,7 @@ using namespace raytracing;
 // Sources:
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
-template <typename T>
-class DenseDDA {
+class DDA {
   float3 dt;
   float3 t;
   ushort3 position;
@@ -35,19 +33,23 @@ public:
   uint address;
   bool continue_loop;
   
-  DenseDDA(Ray<T> ray, constant BVHArguments *bvhArgs) {
-    ray.origin = 4 * (ray.origin - bvhArgs->worldMinimum);
+  DDA(float3 rayOrigin, 
+      float3 rayDirection,
+      constant BVHArguments *bvhArgs)
+  {
+    float3 transformedRayOrigin;
+    transformedRayOrigin = 4 * (rayOrigin - bvhArgs->worldMinimum);
     grid_dims = bvhArgs->smallVoxelCount;
     
     float tmin = 0;
     float tmax = INFINITY;
-    dt = precise::divide(1, float3(ray.direction));
+    dt = precise::divide(1, rayDirection);
     
     // Perform a ray-box intersection test.
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
-      float t1 = (0 - ray.origin[i]) * dt[i];
-      float t2 = (float(grid_dims[i]) - ray.origin[i]) * dt[i];
+      float t1 = (0 - transformedRayOrigin[i]) * dt[i];
+      float t2 = (float(grid_dims[i]) - transformedRayOrigin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
@@ -55,15 +57,16 @@ public:
     // Adjust the origin so it starts in the grid.
     // NOTE: This translates `t` by an offset of `tmin`.
     continue_loop = (tmin < tmax);
-    ray.origin += tmin * float3(ray.direction);
-    ray.origin = clamp(ray.origin, float3(0), float3(grid_dims));
+    transformedRayOrigin += tmin * rayDirection;
+    transformedRayOrigin = max(transformedRayOrigin, float3(0));
+    transformedRayOrigin = min(transformedRayOrigin, float3(grid_dims));
     this->tmin = tmin * 0.25;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
-      float origin = ray.origin[i];
+      float origin = transformedRayOrigin[i];
       
-      if (ray.direction[i] < 0) {
+      if (rayDirection[i] < 0) {
         origin = float(grid_dims[i]) - origin;
       }
       position[i] = ushort(origin);

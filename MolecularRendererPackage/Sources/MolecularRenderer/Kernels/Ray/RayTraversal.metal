@@ -14,6 +14,8 @@
 #include "../Utilities/Constants.metal"
 using namespace metal;
 
+// MARK: - Old Data Structures
+
 struct _IntersectionResult {
   float distance;
   bool accept;
@@ -37,20 +39,37 @@ struct IntersectionParams {
   }
 };
 
+// MARK: - New Data Structures
+
+struct BVHDescriptor {
+  constant BVHArguments *bvhArgs;
+  device uint *smallCellOffsets;
+  device uint *smallAtomReferences;
+  device float4 *convertedAtoms;
+  device float4 *convertedAtoms2;
+};
+
+struct IntersectionQuery {
+  float3 rayOrigin;
+  float3 rayDirection;
+  IntersectionParams params;
+};
+
+// MARK: - Intersector Class
+
 class RayIntersector {
 public:
-  template <typename T>
-  METAL_FUNC static void intersect
-  (
-   thread _IntersectionResult *result,
-   Ray<T> ray,
-   float4 newAtom,
-   uint reference)
+  METAL_FUNC
+  static void intersect(thread _IntersectionResult *result,
+                        float3 rayOrigin,
+                        float3 rayDirection,
+                        float4 atom,
+                        uint reference)
   {
     // Do not walk inside an atom; doing so will produce corrupted graphics.
-    float3 oc = ray.origin - newAtom.xyz;
-    float b2 = dot(oc, float3(ray.direction));
-    float c = fma(oc.x, oc.x, -newAtom.w * newAtom.w);
+    float3 oc = rayOrigin - atom.xyz;
+    float b2 = dot(oc, rayDirection);
+    float c = fma(oc.x, oc.x, -atom.w * atom.w);
     c = fma(oc.y, oc.y, c);
     c = fma(oc.z, oc.z, c);
     
@@ -70,18 +89,20 @@ public:
     }
   }
   
-  template <typename T>
-  METAL_FUNC static IntersectionResult traverse
-  (
-   Ray<T> ray, DenseGrid grid, IntersectionParams params)
+  METAL_FUNC
+  static IntersectionResult traverse(BVHDescriptor bvh,
+                                     IntersectionQuery intersectionQuery)
   {
-    DenseDDA<T> dda(ray, grid.bvhArgs);
+    DDA dda(intersectionQuery.rayOrigin,
+            intersectionQuery.rayDirection,
+            bvh.bvhArgs);
     _IntersectionResult result { MAXFLOAT, false };
     
     float maxTargetDistance;
-    if (params.get_has_max_time()) {
-      const float voxel_size = 0.25;
-      maxTargetDistance = params.maxRayHitTime + sqrt(float(3)) * voxel_size;
+    if (intersectionQuery.params.get_has_max_time()) {
+      constexpr float voxel_size = 0.25;
+      float maxRayHitTime = intersectionQuery.params.maxRayHitTime;
+      maxTargetDistance = maxRayHitTime + sqrt(float(3)) * voxel_size;
     }
     
     while (dda.continue_loop) {
@@ -89,11 +110,12 @@ public:
       uint smallCellOffset = 0;
       bool continue_fast_forward = true;
       while (continue_fast_forward) {
-        smallCellOffset = grid.smallCellOffsets[dda.address];
+        smallCellOffset = bvh.smallCellOffsets[dda.address];
         dda.increment_position();
         
         float target_distance = dda.get_max_accepted_t();
-        if (params.get_has_max_time() && target_distance > maxTargetDistance) {
+        if (intersectionQuery.params.get_has_max_time() &&
+            target_distance > maxTargetDistance) {
           dda.continue_loop = false;
         }
         
@@ -105,11 +127,13 @@ public:
       }
       
       float target_distance = dda.get_max_accepted_t();
-      if (params.get_has_max_time() && target_distance > maxTargetDistance) {
+      if (intersectionQuery.params.get_has_max_time() &&
+          target_distance > maxTargetDistance) {
         dda.continue_loop = false;
       } else {
-        if (params.isShadowRay) {
-          target_distance = min(target_distance, params.maxRayHitTime);
+        if (intersectionQuery.params.isShadowRay) {
+          float maxRayHitTime = intersectionQuery.params.maxRayHitTime;
+          target_distance = min(target_distance, maxRayHitTime);
         }
         result.distance = target_distance;
         
@@ -118,15 +142,19 @@ public:
         ushort i = 0;
         while (true) {
           // Locate the atom.
-          uint reference = grid.smallAtomReferences[smallCellOffset + i];
+          uint reference = bvh.smallAtomReferences[smallCellOffset + i];
           if (reference == 0) {
             break;
           }
-          reference -= 1;
+//          reference -= 1;
           
           // Run the intersection test.
-          float4 newAtom = grid.convertedAtoms[reference];
-          RayIntersector::intersect(&result, ray, newAtom, reference);
+          float4 atom = bvh.convertedAtoms2[reference];
+          RayIntersector::intersect(&result,
+                                    intersectionQuery.rayOrigin,
+                                    intersectionQuery.rayDirection,
+                                    atom,
+                                    reference);
           
           // Prevent corrupted memory from causing an infinite loop. We'll
           // revisit this later, as the check probably harms performance.
@@ -144,7 +172,7 @@ public:
     
     IntersectionResult out { result.distance, result.accept };
     if (out.accept) {
-      out.newAtom = grid.convertedAtoms[result.atom];
+      out.newAtom = bvh.convertedAtoms2[result.atom];
       out.reference = result.atom;
     }
     return out;

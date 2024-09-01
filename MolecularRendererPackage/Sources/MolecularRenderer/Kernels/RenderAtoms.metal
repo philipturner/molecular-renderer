@@ -36,20 +36,25 @@ kernel void renderAtoms
   if ((SCREEN_WIDTH % 16 != 0) && (pixelCoords.x >= SCREEN_WIDTH)) return;
   if ((SCREEN_HEIGHT % 16 != 0) && (pixelCoords.y >= SCREEN_HEIGHT)) return;
   
-  // Initialize the uniform grid.
-  DenseGrid grid {
-    bvhArgs,
-    smallCellOffsets,
-    smallAtomReferences,
-    convertedAtoms
-  };
+  // Fill the BVH descriptor.
+  BVHDescriptor bvhDescriptor;
+  bvhDescriptor.bvhArgs = bvhArgs;
+  bvhDescriptor.smallCellOffsets = smallCellOffsets;
+  bvhDescriptor.smallAtomReferences = smallAtomReferences;
+  bvhDescriptor.convertedAtoms = convertedAtoms;
+  bvhDescriptor.convertedAtoms2 = convertedAtoms2;
   
   // Spawn the primary ray.
   auto primaryRay = RayGeneration::primaryRay(cameraArgs, pixelCoords);
   
   // Intersect the primary ray.
   IntersectionParams params { false, MAXFLOAT, false };
-  auto intersect = RayIntersector::traverse(primaryRay, grid, params);
+  IntersectionQuery query;
+  query.rayOrigin = primaryRay.origin;
+  query.rayDirection = primaryRay.direction;
+  query.params = params;
+  auto intersect = RayIntersector::traverse(bvhDescriptor,
+                                            query);
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
@@ -87,12 +92,19 @@ kernel void renderAtoms
     // Iterate over the AO samples.
     for (half i = 0; i < sampleCount; ++i) {
       // Spawn a secondary ray.
-      auto ray = genCtx.generate(i, sampleCount, hitPoint, normal);
+      auto secondaryRay = genCtx.generate(i, 
+                                          sampleCount,
+                                          hitPoint,
+                                          normal);
       
       // Intersect the secondary ray.
-      constexpr half maximumRayHitTime = 1.0;
-      IntersectionParams params { true, maximumRayHitTime, false };
-      auto intersect = RayIntersector::traverse(ray, grid, params);
+      IntersectionParams params { true, 1.0, false };
+      IntersectionQuery query;
+      query.rayOrigin = secondaryRay.origin;
+      query.rayDirection = float3(secondaryRay.direction);
+      query.params = params;
+      auto intersect = RayIntersector::traverse(bvhDescriptor,
+                                                query);
       
       // Add the secondary ray's AO contributions.
       colorCtx.addAmbientContribution(intersect);
@@ -119,11 +131,10 @@ kernel void renderAtoms
     }
     
     // Find the hit point's position in the previous frame.
-    half3 motionVector = atomMotionVectors[intersect.reference];
+    half3 motionVector = atomMotionVectors2[intersect.reference];
     float3 previousHitPoint = hitPoint - float3(motionVector);
     
-    // Generate the pixel motion vector, being careful to handle the camera
-    // arguments correctly.
+    // Generate the pixel motion vector.
     {
       auto previousCameraArgs = cameraArgs + 1;
       float2 currentJitter = cameraArgs->jitter;
