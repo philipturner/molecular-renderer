@@ -8,7 +8,7 @@
 #include <metal_stdlib>
 #include "Lighting/Lighting.metal"
 #include "Ray/RayGeneration.metal"
-#include "Ray/RayTraversal.metal"
+#include "Ray/RayIntersector.metal"
 #include "Utilities/Constants.metal"
 using namespace metal;
 
@@ -47,13 +47,11 @@ kernel void renderAtoms
   auto primaryRay = RayGeneration::primaryRay(cameraArgs, pixelCoords);
   
   // Intersect the primary ray.
-  IntersectionParams params { false, MAXFLOAT };
   IntersectionQuery query;
+  query.isAORay = false;
   query.rayOrigin = primaryRay.origin;
   query.rayDirection = primaryRay.direction;
-  query.params = params;
-  auto intersect = RayIntersector::traverse(bvhDescriptor,
-                                            query);
+  auto intersect = RayIntersector::traverse(bvhDescriptor, query);
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
@@ -98,13 +96,11 @@ kernel void renderAtoms
                                           normal);
       
       // Intersect the secondary ray.
-      IntersectionParams params { true, 1.0 };
       IntersectionQuery query;
+      query.isAORay = true;
       query.rayOrigin = secondaryRay.origin;
       query.rayDirection = float3(secondaryRay.direction);
-      query.params = params;
-      auto intersect = RayIntersector::traverse(bvhDescriptor,
-                                                query);
+      auto intersect = RayIntersector::traverse(bvhDescriptor, query);
       
       // Add the secondary ray's AO contributions.
       colorCtx.addAmbientContribution(intersect,

@@ -9,7 +9,7 @@
 #define LIGHTING_H
 
 #include <metal_stdlib>
-#include "../Ray/RayTraversal.metal"
+#include "../Ray/RayIntersector.metal"
 #include "../Utilities/Constants.metal"
 using namespace metal;
 
@@ -57,10 +57,10 @@ public:
     float specularAmbient = 1;
     
     if (intersect.accept) {
-      const float decayConstant = 2.0;
-      const float diffuseReflectanceScale = 0.5;
-      const float maximumRayHitTime = 1.0;
-      const float minimumAmbientIllumination = 0.07;
+      constexpr float decayConstant = 2.0;
+      constexpr float diffuseReflectanceScale = 0.5;
+      constexpr float maximumRayHitTime = 1.0;
+      constexpr float minimumAmbientIllumination = 0.07;
       
       float t = intersect.distance / maximumRayHitTime;
       float lambda = decayConstant;

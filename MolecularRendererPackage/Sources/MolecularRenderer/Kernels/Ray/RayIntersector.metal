@@ -1,5 +1,5 @@
 //
-//  RayTraversal.metal
+//  RayIntersector.metal
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 4/14/23.
@@ -14,20 +14,13 @@
 #include "../Utilities/Constants.metal"
 using namespace metal;
 
-// MARK: - Old Data Structures
+// MARK: - Data Structures
 
 struct IntersectionResult {
   bool accept;
   uint atomID;
   float distance;
 };
-
-struct IntersectionParams {
-  bool isAORay;
-  float maxRayHitTime;
-};
-
-// MARK: - New Data Structures
 
 struct BVHDescriptor {
   constant BVHArguments *bvhArgs;
@@ -38,15 +31,16 @@ struct BVHDescriptor {
 };
 
 struct IntersectionQuery {
+  bool isAORay;
   float3 rayOrigin;
   float3 rayDirection;
-  IntersectionParams params;
 };
 
 // MARK: - Intersector Class
 
 class RayIntersector {
 public:
+#if 0
   METAL_FUNC
   static void intersect(thread IntersectionResult *result,
                         float3 rayOrigin,
@@ -76,6 +70,7 @@ public:
       }
     }
   }
+#endif
   
   METAL_FUNC
   static IntersectionResult traverse(BVHDescriptor bvhDescriptor,
@@ -91,10 +86,10 @@ public:
     result.distance = MAXFLOAT;
     
     float maxTargetDistance;
-    if (intersectionQuery.params.isAORay) {
+    if (intersectionQuery.isAORay) {
+      constexpr float maximumRayHitTime = 1.0;
       constexpr float voxelDiagonalWidth = 0.25 * 1.73205;
-      float maxRayHitTime = intersectionQuery.params.maxRayHitTime;
-      maxTargetDistance = maxRayHitTime + voxelDiagonalWidth;
+      maxTargetDistance = maximumRayHitTime + voxelDiagonalWidth;
     }
     
     while (dda.continue_loop) {
@@ -107,7 +102,7 @@ public:
         dda.incrementPosition();
         
         float target_distance = dda.get_max_accepted_t();
-        if (intersectionQuery.params.isAORay &&
+        if (intersectionQuery.isAORay &&
             target_distance > maxTargetDistance) {
           dda.continue_loop = false;
         }
@@ -120,7 +115,7 @@ public:
       }
       
       float target_distance = dda.get_max_accepted_t();
-      if (intersectionQuery.params.isAORay &&
+      if (intersectionQuery.isAORay &&
           target_distance > maxTargetDistance) {
         dda.continue_loop = false;
       } else {
@@ -139,11 +134,36 @@ public:
           
           // Run the intersection test.
           float4 atom = bvhDescriptor.convertedAtoms[reference];
-          RayIntersector::intersect(&result,
-                                    intersectionQuery.rayOrigin,
-                                    intersectionQuery.rayDirection,
-                                    atom,
-                                    reference);
+          
+          // Before manually inlining: 798 instructions
+          // After manually inlining: 798 instructions
+//          RayIntersector::intersect(&result,
+//                                    intersectionQuery.rayOrigin,
+//                                    intersectionQuery.rayDirection,
+//                                    atom,
+//                                    reference);
+          
+//          static void intersect(thread IntersectionResult *result,
+//                                float3 rayOrigin,
+//                                float3 rayDirection,
+//                                float4 atom,
+//                                uint atomID)
+          {
+            float3 oc = intersectionQuery.rayOrigin - atom.xyz;
+            float b2 = dot(oc, intersectionQuery.rayDirection);
+            float c = fma(oc.x, oc.x, -atom.w * atom.w);
+            c = fma(oc.y, oc.y, c);
+            c = fma(oc.z, oc.z, c);
+            
+            float disc4 = b2 * b2 - c;
+            if (disc4 > 0) {
+              float distance = fma(-disc4, rsqrt(disc4), -b2);
+              if (distance >= 0 && distance < result.distance) {
+                result.distance = distance;
+                result.atomID = reference;
+              }
+            }
+          }
           
           // Prevent corrupted memory from causing an infinite loop. We'll
           // revisit this later, as the check probably harms performance.
