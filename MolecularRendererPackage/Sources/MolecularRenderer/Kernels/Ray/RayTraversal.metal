@@ -113,15 +113,27 @@ public:
         }
         result.distance = target_distance;
         
-        for (ushort i = 0; i < 64; ++i) {
+        // Manually specifying the loop structure, to prevent the compiler
+        // from unrolling it.
+        ushort i = 0;
+        while (true) {
+          // Locate the atom.
           uint reference = grid.smallAtomReferences[smallCellOffset + i];
           if (reference == 0) {
             break;
           }
           reference -= 1;
           
+          // Run the intersection test.
           float4 newAtom = grid.convertedAtoms[reference];
           RayIntersector::intersect(&result, ray, newAtom, reference);
+          
+          // Prevent corrupted memory from causing an infinite loop. We'll
+          // revisit this later, as the check probably harms performance.
+          i += 1;
+          if (i >= 64) {
+            break;
+          }
         }
         if (result.distance < target_distance) {
           result.accept = true;

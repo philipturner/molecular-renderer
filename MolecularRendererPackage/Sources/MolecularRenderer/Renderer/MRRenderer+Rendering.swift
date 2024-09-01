@@ -29,7 +29,6 @@ extension MRRenderer {
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     
-    // Arguments 0 - 1
     do {
       let cameraArguments = argumentContainer.createCameraArguments()
       let renderArguments = [argumentContainer.createRenderArguments()]
@@ -43,24 +42,13 @@ extension MRRenderer {
       setBytes(renderArguments, index: 1)
     }
     
-    // Arguments 2 - 4
     encoder.setBuffer(bvhBuilder.bvhArguments, offset: 0, index: 2)
     encoder.setBuffer(bvhBuilder.smallCellOffsets, offset: 0, index: 3)
     encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 4)
+    encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 5)
+    encoder.setBuffer(bvhBuilder.atomMotionVectors, offset: 0, index: 6)
     
-    // Arguments 10 - 12
     do {
-      // Bind the new atoms.
-      let newAtomsBuffer = bvhBuilder.convertedAtoms
-      encoder.setBuffer(newAtomsBuffer, offset: 0, index: 5)
-      
-      // Bind the old atoms.
-      let currentIndex = argumentContainer.tripleBufferIndex()
-      let previousIndex = (currentIndex + 3 - 1) % 3
-      let oldAtomsBuffer = bvhBuilder.originalAtoms[previousIndex]
-      encoder.setBuffer(oldAtomsBuffer, offset: 0, index: 6)
-      
-      // Bind the element colors.
       let elementColors = argumentContainer.elementColors
       let byteCount = elementColors.count * 16
       encoder.setBytes(elementColors, length: byteCount, index: 7)

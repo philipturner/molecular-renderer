@@ -149,6 +149,7 @@ extension BVHBuilder {
     }
     
     encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
+    encoder.setBuffer(atomMotionVectors, offset: 0, index: 7)
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
     encoder.setBuffer(largeAtomReferences, offset: 0, index: 9)
     

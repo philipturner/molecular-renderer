@@ -183,7 +183,7 @@ kernel void buildLargePart2_2
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
  device float4 *convertedAtoms [[buffer(6)]],
- device float4 *atomMotionVectors [[buffer(7)]],
+ device float3 *atomMotionVectors [[buffer(7)]],
  device uint *largeCounterMetadata [[buffer(8)]],
  device uint *largeAtomReferences [[buffer(9)]],
  uint tid [[thread_position_in_grid]],
@@ -193,8 +193,18 @@ kernel void buildLargePart2_2
   float4 atom = currentAtoms[tid];
   atom = convert(atom, elementRadii);
   
-  // Write in the new format.
+  // Materialize the motion vector.
+  float3 motionVector;
+  if (renderArgs->useAtomMotionVectors) {
+    float4 previous = previousAtoms[tid];
+    motionVector = atom.xyz - previous.xyz;
+  } else {
+    motionVector = float3(0);
+  }
+  
+  // Write in the format for rendering.
   convertedAtoms[tid] = atom;
+  atomMotionVectors[tid] = motionVector;
   
   // Place the atom in the grid of small cells.
   atom.xyz = 4 * (atom.xyz + 64);

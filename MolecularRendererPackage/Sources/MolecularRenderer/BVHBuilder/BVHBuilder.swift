@@ -24,6 +24,7 @@ class BVHBuilder {
   var originalAtoms: [MTLBuffer]
   var convertedAtoms: MTLBuffer
   var relativeOffsets: MTLBuffer
+  var atomMotionVectors: MTLBuffer
   
   // Data buffers (per cell).
   var largeCounterMetadata: MTLBuffer
@@ -66,6 +67,7 @@ class BVHBuilder {
     ]
     convertedAtoms = createBuffer(length: BVHBuilder.maxAtomCount * 16)
     relativeOffsets = createBuffer(length: BVHBuilder.maxAtomCount * 8 * 2)
+    atomMotionVectors = createBuffer(length: BVHBuilder.maxAtomCount * 16)
     
     // Data buffers (per cell).
     let largeVoxelCount = 64 * 64 * 64

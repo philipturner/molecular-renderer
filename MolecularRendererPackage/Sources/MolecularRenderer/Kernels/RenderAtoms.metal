@@ -20,7 +20,7 @@ kernel void renderAtoms
  device uint *smallCellOffsets [[buffer(3)]],
  device uint *smallAtomReferences [[buffer(4)]],
  device float4 *convertedAtoms [[buffer(5)]],
- device float4 *previousAtoms [[buffer(6)]],
+ device float3 *atomMotionVectors [[buffer(6)]],
  constant float3 *elementColors [[buffer(7)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
@@ -42,72 +42,93 @@ kernel void renderAtoms
     convertedAtoms
   };
   
-  // Cast the primary ray.
-  auto ray = RayGeneration::primaryRay(cameraArgs, pixelCoords);
-  IntersectionParams params { false, MAXFLOAT, false };
-  auto intersect = RayIntersector::traverse(ray, grid, params);
+  // Spawn the primary ray.
+  auto primaryRay = RayGeneration::primaryRay(cameraArgs, pixelCoords);
   
-  // Calculate ambient occlusion, diffuse, and specular terms.
+  // Intersect the primary ray.
+  IntersectionParams params { false, MAXFLOAT, false };
+  auto intersect = RayIntersector::traverse(primaryRay, grid, params);
+  
+  // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
   if (intersect.accept) {
-    float3 hitPoint = ray.origin + ray.direction * intersect.distance;
+    float3 hitPoint = primaryRay.origin;
+    hitPoint += primaryRay.direction * intersect.distance;
+    
+    // Add the contribution from the primary ray.
     half3 normal = half3(normalize(hitPoint - intersect.newAtom.xyz));
     colorCtx.setDiffuseColor(intersect.newAtom);
     
-    // Cast the secondary rays.
+    // Pick the number of AO samples.
+    half sampleCount;
     {
       constexpr half minSamples = 3.0;
       constexpr half maxSamples = 7.0;
-      constexpr half maximumRayHitTime = 1.0;
       
-      half samples = maxSamples;
       float distanceCutoff = renderArgs->qualityCoefficient / maxSamples;
       if (intersect.distance > distanceCutoff) {
         half proportion = distanceCutoff / intersect.distance;
-        half newSamples = max(minSamples, samples * proportion);
-        samples = clamp(ceil(newSamples), minSamples, maxSamples);
+        sampleCount = max(minSamples, maxSamples * proportion);
+        sampleCount = ceil(sampleCount);
+      } else {
+        sampleCount = maxSamples;
       }
-      
-      auto genCtx = GenerationContext(cameraArgs,
-                                      renderArgs->frameSeed,
-                                      pixelCoords);
-      for (half i = 0; i < samples; ++i) {
-        auto ray = genCtx.generate(i, samples, hitPoint, normal);
-        
-        IntersectionParams params { true, maximumRayHitTime, false };
-        auto intersect = RayIntersector::traverse(ray, grid, params);
-        colorCtx.addAmbientContribution(intersect);
-      }
-      colorCtx.finishAmbientContributions(samples);
+      sampleCount = max(sampleCount, minSamples);
+      sampleCount = min(sampleCount, maxSamples);
     }
+    
+    // Create a generation context.
+    auto genCtx = GenerationContext(cameraArgs,
+                                    renderArgs->frameSeed,
+                                    pixelCoords);
+    
+    // Iterate over the AO samples.
+    for (half i = 0; i < sampleCount; ++i) {
+      // Spawn a secondary ray.
+      auto ray = genCtx.generate(i, sampleCount, hitPoint, normal);
+      
+      // Intersect the secondary ray.
+      constexpr half maximumRayHitTime = 1.0;
+      IntersectionParams params { true, maximumRayHitTime, false };
+      auto intersect = RayIntersector::traverse(ray, grid, params);
+      
+      // Add the secondary ray's AO contributions.
+      colorCtx.addAmbientContribution(intersect);
+    }
+    
+    // Tell the context how many AO samples were taken.
+    colorCtx.finishAmbientContributions(sampleCount);
     
     // Apply the camera position.
-    float3 lightPosition = cameraArgs->positionAndFOVMultiplier.xyz;
-    colorCtx.startLightContributions();
-    colorCtx.addLightContribution(hitPoint, normal, lightPosition);
-    colorCtx.applyContributions();
-    
-    // Write the depth as the intersection point's Z coordinate.
-    float3 cameraDirection = cameraArgs->rotationColumn3;
-    float rayDirectionComponent = dot(ray.direction, cameraDirection);
-    float depth = rayDirectionComponent * intersect.distance;
-    colorCtx.setDepth(depth);
-    
-    // Find the atom's position in the previous frame.
-    float3 previousFramePosition = hitPoint;
-    if (renderArgs->useAtomMotionVectors) {
-      float3 currentNucleus = convertedAtoms[intersect.reference].xyz;
-      float3 previousNucleus = previousAtoms[intersect.reference].xyz;
-      previousFramePosition += previousNucleus - currentNucleus;
+    {
+      float3 lightPosition = cameraArgs->positionAndFOVMultiplier.xyz;
+      colorCtx.startLightContributions();
+      colorCtx.addLightContribution(hitPoint, normal, lightPosition);
+      colorCtx.applyContributions();
     }
     
-    // Generate the motion vector, being careful to handle the camera
+    // Write the depth as the intersection point's Z coordinate.
+    {
+      float3 rayDirection = primaryRay.direction;
+      float3 cameraDirection = cameraArgs->rotationColumn3;
+      float rayDirectionComponent = dot(rayDirection, cameraDirection);
+      float depth = rayDirectionComponent * intersect.distance;
+      colorCtx.setDepth(depth);
+    }
+    
+    // Find the hit point's position in the previous frame.
+    float3 motionVector = atomMotionVectors[intersect.reference];
+    float3 previousHitPoint = hitPoint - motionVector;
+    
+    // Generate the pixel motion vector, being careful to handle the camera
     // arguments correctly.
-    auto previousCameraArgs = cameraArgs + 1;
-    float2 currentJitter = cameraArgs->jitter;
-    colorCtx.generateMotionVector(previousCameraArgs,
-                                  currentJitter,
-                                  previousFramePosition);
+    {
+      auto previousCameraArgs = cameraArgs + 1;
+      float2 currentJitter = cameraArgs->jitter;
+      colorCtx.generateMotionVector(previousCameraArgs,
+                                    currentJitter,
+                                    previousHitPoint);
+    }
   }
   colorCtx.write(colorTexture, depthTexture, motionTexture);
 }
