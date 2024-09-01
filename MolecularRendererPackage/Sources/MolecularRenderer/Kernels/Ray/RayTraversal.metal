@@ -16,27 +16,15 @@ using namespace metal;
 
 // MARK: - Old Data Structures
 
-struct _IntersectionResult {
-  float distance;
-  bool accept;
-  uint atom;
-};
-
 struct IntersectionResult {
-  float distance;
   bool accept;
-  float4 newAtom;
-  uint reference;
+  uint atomID;
+  float distance;
 };
 
 struct IntersectionParams {
   bool isAORay;
   float maxRayHitTime;
-  bool isShadowRay;
-  
-  bool get_has_max_time() const {
-    return isAORay || isShadowRay;
-  }
 };
 
 // MARK: - New Data Structures
@@ -60,11 +48,11 @@ struct IntersectionQuery {
 class RayIntersector {
 public:
   METAL_FUNC
-  static void intersect(thread _IntersectionResult *result,
+  static void intersect(thread IntersectionResult *result,
                         float3 rayOrigin,
                         float3 rayDirection,
                         float4 atom,
-                        uint reference)
+                        uint atomID)
   {
     // Do not walk inside an atom; doing so will produce corrupted graphics.
     float3 oc = rayOrigin - atom.xyz;
@@ -84,7 +72,7 @@ public:
       // from the one passed into the ray intersector.
       if (distance >= 0 && distance < result->distance) {
         result->distance = distance;
-        result->atom = reference;
+        result->atomID = atomID;
       }
     }
   }
@@ -96,13 +84,17 @@ public:
     DDA dda(intersectionQuery.rayOrigin,
             intersectionQuery.rayDirection,
             bvhDescriptor.bvhArgs);
-    _IntersectionResult result { MAXFLOAT, false };
+    
+    IntersectionResult result;
+    result.accept = false;
+    result.atomID = 0;
+    result.distance = MAXFLOAT;
     
     float maxTargetDistance;
-    if (intersectionQuery.params.get_has_max_time()) {
-      constexpr float voxel_size = 0.25;
+    if (intersectionQuery.params.isAORay) {
+      constexpr float voxelDiagonalWidth = 0.25 * 1.73205;
       float maxRayHitTime = intersectionQuery.params.maxRayHitTime;
-      maxTargetDistance = maxRayHitTime + sqrt(float(3)) * voxel_size;
+      maxTargetDistance = maxRayHitTime + voxelDiagonalWidth;
     }
     
     while (dda.continue_loop) {
@@ -115,7 +107,7 @@ public:
         dda.incrementPosition();
         
         float target_distance = dda.get_max_accepted_t();
-        if (intersectionQuery.params.get_has_max_time() &&
+        if (intersectionQuery.params.isAORay &&
             target_distance > maxTargetDistance) {
           dda.continue_loop = false;
         }
@@ -128,14 +120,10 @@ public:
       }
       
       float target_distance = dda.get_max_accepted_t();
-      if (intersectionQuery.params.get_has_max_time() &&
+      if (intersectionQuery.params.isAORay &&
           target_distance > maxTargetDistance) {
         dda.continue_loop = false;
       } else {
-        if (intersectionQuery.params.isShadowRay) {
-          float maxRayHitTime = intersectionQuery.params.maxRayHitTime;
-          target_distance = min(target_distance, maxRayHitTime);
-        }
         result.distance = target_distance;
         
         // Manually specifying the loop structure, to prevent the compiler
@@ -171,12 +159,10 @@ public:
       }
     }
     
-    IntersectionResult out { result.distance, result.accept };
-    if (out.accept) {
-      out.newAtom = bvhDescriptor.convertedAtoms[result.atom];
-      out.reference = result.atom;
+    if (!result.accept) {
+      result.atomID = 0;
     }
-    return out;
+    return result;
   }
 };
 

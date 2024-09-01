@@ -16,7 +16,7 @@ using namespace metal;
 // Handle specular and diffuse color, and transform raw AO hits into
 // meaningful color contributions.
 class ColorContext {
-  constant float3* elementColors;
+  constant half3* elementColors;
   
   ushort2 pixelCoords;
   half3 color;
@@ -30,7 +30,7 @@ class ColorContext {
   half specular;
   
 public:
-  ColorContext(constant float3* elementColors, ushort2 pixelCoords) {
+  ColorContext(constant half3* elementColors, ushort2 pixelCoords) {
     this->elementColors = elementColors;
     this->pixelCoords = pixelCoords;
     
@@ -47,11 +47,12 @@ public:
   void setDiffuseColor(float4 newAtom) {
     uint packed = as_type<uint>(newAtom.w);
     uint atomicNumber = packed & 0x000000FF;
-    float3 color = elementColors[atomicNumber];
-    diffuseColor = half3(color);
+    half3 elementColor = elementColors[atomicNumber];
+    diffuseColor = elementColor;
   }
   
-  void addAmbientContribution(IntersectionResult intersect) {
+  void addAmbientContribution(IntersectionResult intersect,
+                              device float4 *atoms) {
     float diffuseAmbient = 1;
     float specularAmbient = 1;
     
@@ -76,11 +77,14 @@ public:
       // Account for the color of the occluding atom. This decreases the
       // contrast between differing elements placed near each other. It also
       // makes the effect vary around the atom's surface.
-      float4 newAtom = intersect.newAtom;
-      uint packed = as_type<uint>(newAtom.w);
-      uint atomicNumber = packed & 0x000000FF;
-      half3 neighborColor = half3(elementColors[atomicNumber]);
-      float neighborLuminance = dot(neighborColor, gamut);
+      float neighborLuminance;
+      {
+        float4 atom = atoms[intersect.atomID];
+        uint packed = as_type<uint>(atom.w);
+        uint atomicNumber = packed & 0x000000FF;
+        half3 elementColor = elementColors[atomicNumber];
+        neighborLuminance = dot(elementColor, gamut);
+      }
       
       // Use the arithmetic mean. There is no perceivable difference from
       // the (presumably more accurate) geometric mean.

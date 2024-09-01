@@ -17,7 +17,7 @@ kernel void renderAtoms
  constant CameraArguments *cameraArgs [[buffer(0)]],
  constant RenderArguments *renderArgs [[buffer(1)]],
  constant BVHArguments *bvhArgs [[buffer(2)]],
- constant float3 *elementColors [[buffer(3)]],
+ constant half3 *elementColors [[buffer(3)]],
  device uint4 *largeCellMetadata [[buffer(4)]],
  device uint *smallCellOffsets [[buffer(5)]],
  device uint *smallAtomReferences [[buffer(6)]],
@@ -47,7 +47,7 @@ kernel void renderAtoms
   auto primaryRay = RayGeneration::primaryRay(cameraArgs, pixelCoords);
   
   // Intersect the primary ray.
-  IntersectionParams params { false, MAXFLOAT, false };
+  IntersectionParams params { false, MAXFLOAT };
   IntersectionQuery query;
   query.rayOrigin = primaryRay.origin;
   query.rayDirection = primaryRay.direction;
@@ -62,8 +62,9 @@ kernel void renderAtoms
     hitPoint += primaryRay.direction * intersect.distance;
     
     // Add the contribution from the primary ray.
-    half3 normal = half3(normalize(hitPoint - intersect.newAtom.xyz));
-    colorCtx.setDiffuseColor(intersect.newAtom);
+    float4 hitAtom = convertedAtoms[intersect.atomID];
+    half3 normal = half3(normalize(hitPoint - hitAtom.xyz));
+    colorCtx.setDiffuseColor(hitAtom);
     
     // Pick the number of AO samples.
     half sampleCount;
@@ -97,7 +98,7 @@ kernel void renderAtoms
                                           normal);
       
       // Intersect the secondary ray.
-      IntersectionParams params { true, 1.0, false };
+      IntersectionParams params { true, 1.0 };
       IntersectionQuery query;
       query.rayOrigin = secondaryRay.origin;
       query.rayDirection = float3(secondaryRay.direction);
@@ -106,7 +107,8 @@ kernel void renderAtoms
                                                 query);
       
       // Add the secondary ray's AO contributions.
-      colorCtx.addAmbientContribution(intersect);
+      colorCtx.addAmbientContribution(intersect,
+                                      convertedAtoms);
     }
     
     // Tell the context how many AO samples were taken.
@@ -130,7 +132,7 @@ kernel void renderAtoms
     }
     
     // Find the hit point's position in the previous frame.
-    half3 motionVector = atomMotionVectors[intersect.reference];
+    half3 motionVector = atomMotionVectors[intersect.atomID];
     float3 previousHitPoint = hitPoint - float3(motionVector);
     
     // Generate the pixel motion vector.
