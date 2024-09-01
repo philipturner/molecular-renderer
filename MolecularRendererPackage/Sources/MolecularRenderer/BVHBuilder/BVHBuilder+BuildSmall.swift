@@ -59,19 +59,10 @@ extension BVHBuilder {
 
 extension BVHBuilder {
   func buildSmallPart0_0(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
-    do {
-      let allocatedMemory = 0
-      let boundingBoxMin = 16
-      let boundingBoxMax = 32
-      encoder.setBuffer(globalCounters, offset: allocatedMemory, index: 0)
-      encoder.setBuffer(globalCounters, offset: boundingBoxMin, index: 1)
-      encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
-    }
-    
-    // Arguments 3 - 4
-    encoder.setBuffer(bvhArguments, offset: 0, index: 3)
-    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 4)
+    encoder.setBuffer(globalCounters, offset: 16, index: 0)
+    encoder.setBuffer(globalCounters, offset: 32, index: 1)
+    encoder.setBuffer(bvhArguments, offset: 0, index: 2)
+    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 3)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart0_0
@@ -82,13 +73,12 @@ extension BVHBuilder {
   }
   
   func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    encoder.setBuffer(bvhArguments, offset: 0, index: 1)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 2)
-    encoder.setBuffer(largeAtomReferences, offset: 0, index: 3)
-    encoder.setBuffer(convertedAtoms, offset: 0, index: 4)
-    encoder.setBuffer(smallCellMetadata, offset: 0, index: 5)
-    encoder.setBuffer(smallAtomReferences, offset: 0, index: 6)
+    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
+    encoder.setBuffer(largeAtomReferences, offset: 0, index: 2)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 3)
+    encoder.setBuffer(smallCellMetadata, offset: 0, index: 4)
+    encoder.setBuffer(smallAtomReferences, offset: 0, index: 5)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart1_0

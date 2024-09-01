@@ -3,8 +3,6 @@ import HDL
 import MM4
 import Numerics
 
-#if true
-
 // Making the code easier to modify.
 // - Clean up the BVH builder.
 //   - De-obfuscate the atom buffers. [DONE]
@@ -77,13 +75,18 @@ import Numerics
 // - Fuse the first atoms kernel with reduction over voxels. [DONE]
 // - Fuse the first atoms kernel with the second atoms kernel. [DONE]
 //
-// Optimize the fused kernel.
-// - Optimize away the unnecessary transfers to device memory.
-//   - Remove the memory allocation for small-cell counters.
+// Removing complexity from the fused kernel.
+// - Optimize away the unnecessary transfers to device memory. [DONE]
+//   - Remove the memory allocation for small-cell counters. [DONE]
+// - Reduce the compute cost of cube-sphere testing. [DONE]
 // - Remove the cross-GPU reduction, as the previous pass already compacted
-//   the small atom references.
-// - Reduce the memory consumption of small references.
-// - Try to reduce the compute cost of cube-sphere testing.
+//   the small atom references. [DONE}
+//
+// Preparing for 16-bit references.
+// - Remove the count from the cell metadata. Instead, use null-termination in
+//   the reference list.
+// - Write the converted atoms into a second buffer, whose length equals the
+//   larger reference count.
 //
 // Optimizing the new BVH.
 // - Revisit the large-cell sorting pass, if the computation time is not
@@ -112,6 +115,8 @@ import Numerics
 //   - With these optimizations, the limit of ~5 million atoms might be lifted.
 //     A new limit of ~8 million atoms should be enforced, and the user can
 //     decrease the limit to save memory.
+
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems

@@ -94,22 +94,26 @@ kernel void buildLargePart2_1
     counterOffsets[laneID] = counterOffset;
   }
   
-  // Reduce the counts across the SIMD.
-  uint3 threadOffsets;
-  uint3 simdCounts;
+  // Reserve this much memory for the large voxel.
+  uint3 threadCounts;
   {
     uint threadVoxelCount = (threadTotalCount > 0) ? 1 : 0;
     uint threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
     uint threadSmallCount = threadTotalCount >> 14;
-    uint3 threadCounts(threadVoxelCount,
-                       threadLargeCount,
-                       threadSmallCount);
     
-    threadOffsets = simd_prefix_exclusive_sum(threadCounts);
-    simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
+    // Reserve room for null terminators.
+    if (threadTotalCount > 0) {
+      threadLargeCount += 1;
+      threadSmallCount += 512;
+    }
+    threadCounts = uint3(threadVoxelCount,
+                         threadLargeCount,
+                         threadSmallCount);
   }
   
-  // If the entire SIMD is empty, return here.
+  // Reduce the counts across the SIMD.
+  uint3 threadOffsets = simd_prefix_exclusive_sum(threadCounts);
+  uint3 simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
   if (simdCounts[0] == 0) {
     largeCellMetadata[cellAddress] = uint4(0);
     return;
