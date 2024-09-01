@@ -19,21 +19,19 @@ using namespace raytracing;
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
   float3 dt;
-  float3 originalTime;
   float minimumTime;
-  
-public:
-  short3 gridDims;
+  float3 originalTime;
   short3 originalMaybeInvertedPosition;
   
-  DDA(float3 rayOrigin, 
+public:
+  DDA(float3 rayOrigin,
       float3 rayDirection,
       constant BVHArguments *bvhArgs,
       thread bool *canIntersectGrid)
   {
     float3 transformedRayOrigin;
     transformedRayOrigin = 4 * (rayOrigin - bvhArgs->worldMinimum);
-    gridDims = short3(bvhArgs->smallVoxelCount);
+    ushort3 gridDims = bvhArgs->smallVoxelCount;
     
     float tmin = 0;
     float tmax = INFINITY;
@@ -47,6 +45,7 @@ public:
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
+    minimumTime = tmin * 0.25;
     
     // Adjust the origin so it starts in the grid.
     // NOTE: This translates `t` by an offset of `tmin`.
@@ -54,7 +53,6 @@ public:
     transformedRayOrigin += tmin * rayDirection;
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
-    minimumTime = tmin * 0.25;
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
@@ -68,73 +66,64 @@ public:
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
       originalTime[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
-      
       originalMaybeInvertedPosition[i] = short(ushort(origin));
     }
   }
   
-  void updateVoxelMaximumTime(thread float *voxelMaximumTime,
-                              ushort3 progressCounter) const {
-    const float3 currentTime = createCurrentTime(progressCounter);
+  ushort3 increment(ushort3 progressCounter) const {
+    const float3 currentTime = this->currentTime(progressCounter);
+    
+    ushort3 output = progressCounter;
+    if (currentTime.x < currentTime.y &&
+        currentTime.x < currentTime.z) {
+      output[0] += 1;
+    } else if (currentTime.y < currentTime.z) {
+      output[1] += 1;
+    } else {
+      output[2] += 1;
+    }
+    return output;
+  }
+  
+  float voxelMaximumTime(ushort3 progressCounter) const {
+    const float3 currentTime = this->currentTime(progressCounter);
     
     if (currentTime.x < currentTime.y &&
         currentTime.x < currentTime.z) {
-      *voxelMaximumTime = currentTime.x;
+      return currentTime.x;
     } else if (currentTime.y < currentTime.z) {
-      *voxelMaximumTime = currentTime.y;
+      return currentTime.y;
     } else {
-      *voxelMaximumTime = currentTime.z;
+      return currentTime.z;
     }
   }
   
-  void incrementProgressCounter(thread ushort3 *progressCounter) const {
-    const float3 currentTime = createCurrentTime(*progressCounter);
-    
-    if (currentTime.x < currentTime.y &&
-        currentTime.x < currentTime.z) {
-      progressCounter->x += 1;
-    } else if (currentTime.y < currentTime.z) {
-      progressCounter->y += 1;
-    } else {
-      progressCounter->z += 1;
-    }
-  }
-  
-  float3 reconstructProgressedTime(ushort3 progressCounter) const {
-    return float3(progressCounter) * abs(dt);
-  }
-  
-  short3 reconstructProgressedMaybeInvertedPosition(ushort3 progressCounter) const {
-    return short3(progressCounter);
-  }
-  
-  float3 createCurrentTime(ushort3 progressCounter) const {
-    return originalTime + reconstructProgressedTime(progressCounter);
-  }
-  
-  float createMaximumAcceptedHitTime(float voxelMaximumTime) const {
+  float maximumHitTime(float voxelMaximumTime) const {
     return minimumTime + voxelMaximumTime * 0.25;
   }
   
-  short3 createMaybeInvertedPosition(ushort3 progressCounter) const {
-    return originalMaybeInvertedPosition + reconstructProgressedMaybeInvertedPosition(progressCounter);
+  float3 currentTime(ushort3 progressCounter) const {
+    return originalTime + float3(progressCounter) * abs(dt);
   }
   
-  uint createAddress(ushort3 progressCounter) const {
-    short3 maybeInvertedPosition = createMaybeInvertedPosition(progressCounter);
-    short3 invertedPosition = gridDims - 1 - maybeInvertedPosition;
-    short3 actualPosition = select(maybeInvertedPosition,
-                                   invertedPosition,
-                                   dt < 0);
-    return VoxelAddress::generate(ushort3(gridDims),
-                                  ushort3(actualPosition));
+  short3 maybeInvertedPosition(ushort3 progressCounter) const {
+    return originalMaybeInvertedPosition + short3(progressCounter);
   }
   
-  bool createContinueLoop(ushort3 progressCounter) const {
-    short3 maybeInvertedPosition = createMaybeInvertedPosition(progressCounter);
+  bool continueLoop(ushort3 progressCounter, ushort3 gridDims) const {
+    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter);
     return (maybeInvertedPosition.x < gridDims.x) &&
     (maybeInvertedPosition.y < gridDims.y) &&
     (maybeInvertedPosition.z < gridDims.z);
+  }
+  
+  ushort3 cellCoordinates(ushort3 progressCounter, ushort3 gridDims) const {
+    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter);
+    short3 invertedPosition = short3(gridDims) - 1 - maybeInvertedPosition;
+    short3 actualPosition = select(maybeInvertedPosition,
+                                   invertedPosition,
+                                   dt < 0);
+    return ushort3(actualPosition);
   }
 };
 
