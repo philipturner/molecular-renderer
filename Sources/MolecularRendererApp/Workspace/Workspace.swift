@@ -110,23 +110,34 @@ import Numerics
 // - Store the atomic number with the motion vectors. [DONE]
 // - Remove the atomic number tag from the "converted" format. [DONE]
 // - Compute the large voxel's lower corner during ray tracing. [DONE]
-// - Subtract the large voxel's lpwer corner from the atom position. [DONE]
+// - Subtract the large voxel's lower corner from the atom position. [DONE]
 //
-// Optimizing the new BVH.
+// Sparsifying the BVH.
 // - Minimize the bandwidth cost of reading the large cells' counters during
-//   BVH construction.
+//   BVH construction. [DONE]
 //   - Write to a buffer of marks during the very first kernel, ensure it
-//     doesn't harm performance.
+//     doesn't harm performance. [DONE]
 //   - Change the "return early" clause during the kernel over large cells, so
-//     it reads from the marks.
+//     it reads from the marks. [DONE]
 // - Rearrange the cell metadata.
-//   - Create a second, 8-bit memory allocation that marks which small voxels
-//     are occupied.
-//   - Modify the DDA to traverse 8-bit cell metadata.
-//   - Write the small cells' 32-bit data at the compacted large voxel offsets.
-//     - Return early when the large voxel is vacant.
+//   - Write the small cells' metadata at the compacted large voxel offsets,
+//     in Morton order.
+//   - Bind this buffer to the render kernel.
+//     - Read from the compacted buffer.
+//     - Remove buffer bindings for the dense allocation.
+//   - Delete the dense small-cell metadata.
+//   - Change the indirect dispatch for the fused kernel, so threadgroups
+//     are only launched for occupied voxels.
+//     - Add a buffer of threadgroup IDs for occupied large voxels.
+//     - Make the dispatch 1D instead of 3D.
 //
-// Preparing for sparse ray tracing.
+// Implementing sparse ray tracing.
+// - Remove the dependency on the global bounding box.
+//   - Set the global bounding box to [-64, 64], overriding the reduced value.
+//   - Ensure rendering still happens with reasonable performance.
+//   - Hard-code [-64, 64] throughout the code base.
+//   - Eliminate the bounding box reduction and related allocations.
+// - Start with a highly divergent, extremely costly two-level DDA.
 
 #if true
 
@@ -209,10 +220,9 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-#if false
     Volume {
       Concave {
         Convex {
@@ -230,7 +240,6 @@ func createGeometry() -> [Atom] {
       }
       Replace { .empty }
     }
-#endif
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
