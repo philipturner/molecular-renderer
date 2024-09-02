@@ -133,11 +133,12 @@ import Numerics
 //   - Test the optimization to sphere-cell tests before making more changes
 //     that will affect performance. [DONE]
 //     - Take five samples of the existing kernel's performance in Google
-//       Sheets. Record the following for each sample:
+//       Sheets. Record the following for each sample: [DONE]
 //       - Instructions issued
 //       - Latency
 //       - Divergence
 //       - Line-by-line % for the sphere-cell test part.
+//     - Change the CPU-side code, to clamp radii to [0.001, 0.249].
 //   - Write the small cells' metadata at the compacted large voxel offsets,
 //     in Morton order.
 //   - Switch to reading compacted data.

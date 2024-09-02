@@ -150,9 +150,8 @@ kernel void buildSmallPart1_0
     uint resetValue = uint(0);
     threadgroupCounters[i] = resetValue;
   }
-  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // MARK: - buildSmallPart1_1
   {
     // Iterate over the atoms.
     ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
@@ -195,15 +194,11 @@ kernel void buildSmallPart1_0
     }
   }
   
-  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Read the counter metadata.
   uint4 conservativeCounts =
   *(threadgroup uint4*)(threadgroupCounters + baseThreadgroupAddress);
-  
-  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
-  
-  // MARK: - buildSmallPart2_1
   
   uint4 counterOffsets;
   {
@@ -240,6 +235,8 @@ kernel void buildSmallPart1_0
     counterOffsets += threadOffset;
     
     // Write the counter metadata.
+    // - The barrier for 'simdCounts' also serves as the barrier between
+    //   reading 'conservativeCounts' and writing 'offset'.
 #pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 4; ++laneID) {
       uint offset = counterOffsets[laneID];
@@ -248,9 +245,8 @@ kernel void buildSmallPart1_0
     }
   }
   
-  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // MARK: - buildSmallPart2_2
   {
     // Iterate over the atoms.
     ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
@@ -301,7 +297,7 @@ kernel void buildSmallPart1_0
     }
   }
   
-  threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
+  threadgroup_barrier(mem_flags::mem_threadgroup);
   
   {
     ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
