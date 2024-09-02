@@ -236,35 +236,34 @@ kernel void buildSmallPart1_0
       half3 smallVoxelMin = atom.xyz - atom.w;
       half3 smallVoxelMax = atom.xyz + atom.w;
       smallVoxelMin = max(smallVoxelMin, 0);
-      smallVoxelMax = min(smallVoxelMax, 8);
       smallVoxelMin = floor(smallVoxelMin);
-      smallVoxelMax = ceil(smallVoxelMax);
       
       // Iterate over the footprint on the 3D grid.
-      for (half z = smallVoxelMin[2]; z < smallVoxelMax[2]; ++z) {
-        for (half y = smallVoxelMin[1]; y < smallVoxelMax[1]; ++y) {
-          for (half x = smallVoxelMin[0]; x < smallVoxelMax[0]; ++x) {
-            half3 xyz = half3(x, y, z);
+#pragma clang loop unroll(disable)
+      for (half z = 0; z < 3; ++z) {
+#pragma clang loop unroll(full)
+        for (half y = 0; y < 3; ++y) {
+#pragma clang loop unroll(full)
+          for (half x = 0; x < 3; ++x) {
+            half3 xyz = smallVoxelMin + half3(x, y, z);
             
             // Narrow down the cells with a cube-sphere intersection test.
             bool intersected = cubeSphereIntersection(xyz, atom);
-            if (!intersected) {
-              continue;
+            if (intersected && all(xyz < 8)) {
+              // Generate the address.
+              ushort3 cellCoordinates = ushort3(xyz);
+              ushort address = VoxelAddress::generate(8, cellCoordinates);
+              
+              // Perform the atomic fetch-add.
+              auto castedCounters =
+              (threadgroup atomic_uint*)threadgroupCounters;
+              uint offset =
+              atomic_fetch_add_explicit(castedCounters + address,
+                                        1, memory_order_relaxed);
+              
+              // Write the reference to the list.
+              smallAtomReferences[offset] = smallAtomID;
             }
-            
-            // Generate the address.
-            ushort3 cellCoordinates = ushort3(xyz);
-            ushort address = VoxelAddress::generate(8, cellCoordinates);
-            
-            // Perform the atomic fetch-add.
-            auto castedCounters =
-            (threadgroup atomic_uint*)threadgroupCounters;
-            uint offset =
-            atomic_fetch_add_explicit(castedCounters + address,
-                                      1, memory_order_relaxed);
-            
-            // Write the reference to the list.
-            smallAtomReferences[offset] = smallAtomID;
           }
         }
       }
