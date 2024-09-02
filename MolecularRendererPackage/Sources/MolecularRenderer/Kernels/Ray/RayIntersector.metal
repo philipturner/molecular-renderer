@@ -19,7 +19,7 @@ struct IntersectionResult {
   bool accept;
   uint atomID;
   float distance;
-  ushort3 tgid;
+  uchar3 tgid;
 };
 
 struct IntersectionQuery {
@@ -69,7 +69,7 @@ struct RayIntersector {
     while (!result.accept) {
       float voxelMaximumTime;
       ushort2 smallMetadata;
-      ushort3 tgid;
+      uchar3 tgid;
       
       // Search for the next occupied voxel.
       while (true) {
@@ -81,7 +81,7 @@ struct RayIntersector {
           
           voxelMaximumTime = dda.voxelMaximumTime(progress);
           smallMetadata = smallCellMetadata[address];
-          tgid = cellCoordinates / 8;
+          tgid = uchar3(cellCoordinates / 8);
         }
         
         // Increment the counter.

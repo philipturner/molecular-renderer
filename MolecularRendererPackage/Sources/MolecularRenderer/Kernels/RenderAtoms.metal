@@ -63,7 +63,6 @@ kernel void renderAtoms
     float3 hitPoint = primaryRayOrigin;
     hitPoint += primaryRayDirection * intersect.distance;
     
-    // Add the contribution from the primary ray.
     float4 hitAtom = float4(convertedAtoms[intersect.atomID]);
     {
       float3 lowerCorner = bvhArgs->worldMinimum;
