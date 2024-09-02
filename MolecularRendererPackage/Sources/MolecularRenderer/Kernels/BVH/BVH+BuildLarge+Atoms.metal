@@ -14,12 +14,10 @@ inline float4 convert(float4 atom, constant float *elementRadii) {
   uint atomicNumber = uint(atom.w);
   float radius = elementRadii[atomicNumber];
   
-  uint packed = as_type<uint>(radius);
-  packed = packed & 0xFFFFFF00;
-  packed |= atomicNumber & 0x000000FF;
+  float4 output;
+  output.xyz = atom.xyz;
+  output.w = radius;
   
-  float4 output = atom;
-  output.w = as_type<float>(packed);
   return output;
 }
 
@@ -127,7 +125,7 @@ kernel void buildLargePart1_1
         uint offset;
         {
           ushort3 gridDims = ushort3(64);
-          ushort3 cubeMin = ushort3(largeVoxelMin) + actualXYZ;
+          ushort3 cubeMin = largeVoxelMin + actualXYZ;
           uint address = VoxelAddress::generate(gridDims, cubeMin);
           address = (address * 8) + (tid % 8);
           
@@ -182,23 +180,25 @@ kernel void buildLargePart2_2
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
  device float4 *convertedAtoms [[buffer(6)]],
- device half3 *atomMotionVectors [[buffer(7)]],
+ device half4 *atomMotionVectors [[buffer(7)]],
  device uint *largeCounterMetadata [[buffer(8)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
   float4 convertedAtom = currentAtoms[tid];
+  ushort atomicNumber = ushort(convertedAtom[3]);
   convertedAtom = convert(convertedAtom, elementRadii);
   
   // Materialize the motion vector.
-  half3 motionVector;
+  half4 motionVector;
   if (*useAtomMotionVectors) {
     float4 previous = previousAtoms[tid];
-    motionVector = half3(convertedAtom.xyz - previous.xyz);
+    motionVector.xyz = half3(convertedAtom.xyz - previous.xyz);
   } else {
-    motionVector = half3(0);
+    motionVector.xyz = half3(0);
   }
+  motionVector.w = as_type<half>(atomicNumber);
   
   // Place the atom in the grid of small cells.
   float4 tranformedAtom;
@@ -261,7 +261,7 @@ kernel void buildLargePart2_2
         uint offset;
         {
           ushort3 gridDims = ushort3(64);
-          ushort3 cubeMin = ushort3(largeVoxelMin) + actualXYZ;
+          ushort3 cubeMin = largeVoxelMin + actualXYZ;
           uint address = VoxelAddress::generate(gridDims, cubeMin);
           address = (address * 8) + (tid % 8);
           
@@ -277,7 +277,19 @@ kernel void buildLargePart2_2
         }
         
         // Write the atom to the new position in memory.
-        convertedAtoms[offset] = convertedAtom;
+        {
+          ushort3 cubeMin = largeVoxelMin + actualXYZ;
+          float3 lowerCorner = float3(-64);
+          lowerCorner += 2 * float3(cubeMin);
+          
+          float4 writtenAtom = convertedAtom;
+          writtenAtom.xyz -= lowerCorner;
+          writtenAtom.xyz = float3(half3(writtenAtom.xyz));
+          
+          convertedAtoms[offset] = writtenAtom;
+        }
+        
+        // Write the motion vector and atomic number.
         atomMotionVectors[offset] = motionVector;
       }
     }

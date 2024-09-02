@@ -206,7 +206,7 @@ func createGeometry() -> [Atom] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 40 * (h + k + l) }
-    Material { .elemental(.carbon) }
+    Material { .elemental(.silicon) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

@@ -170,6 +170,7 @@ kernel void buildSmallPart1_0
       uint largeReferenceOffset = metadata[1];
       uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
       float4 atom = convertedAtoms[largeReferenceID];
+      atom.xyz += lowerCorner;
       
       // Generate the bounding box.
       ushort3 loopStart;
@@ -288,6 +289,7 @@ kernel void buildSmallPart1_0
       uint largeReferenceOffset = metadata[1];
       uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
       float4 atom = convertedAtoms[largeReferenceID];
+      atom.xyz += lowerCorner;
       
       // Generate the bounding box.
       ushort3 loopStart;

@@ -967,9 +967,9 @@
 			isa = PBXGroup;
 			children = (
 				986ED88729A6CB0400E0653B /* RenderAtoms.metal */,
+				98FB907E2A5CF91A00685E5C /* BVH */,
 				981FCFED29ECADF5009904A2 /* Lighting */,
 				98FB907D2A5CF8FD00685E5C /* Ray */,
-				98FB907E2A5CF91A00685E5C /* BVH */,
 				98FB907F2A5CF94F00685E5C /* Utilities */,
 			);
 			path = Kernels;

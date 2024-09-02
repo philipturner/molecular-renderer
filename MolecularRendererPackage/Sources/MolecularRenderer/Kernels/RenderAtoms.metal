@@ -22,7 +22,7 @@ kernel void renderAtoms
  device uint *smallCellOffsets [[buffer(5)]],
  device ushort *smallAtomReferences [[buffer(6)]],
  device float4 *convertedAtoms [[buffer(7)]],
- device half3 *atomMotionVectors [[buffer(8)]],
+ device half4 *atomMotionVectors [[buffer(8)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -65,8 +65,18 @@ kernel void renderAtoms
     
     // Add the contribution from the primary ray.
     float4 hitAtom = convertedAtoms[intersect.atomID];
+    {
+      float3 lowerCorner = bvhArgs->worldMinimum;
+      lowerCorner += float3(intersect.tgid) * 2;
+      hitAtom.xyz += lowerCorner;
+    }
+    
     half3 hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
-    colorCtx.setDiffuseColor(hitAtom);
+    {
+      half4 motionVector = atomMotionVectors[intersect.atomID];
+      ushort atomicNumber = as_type<ushort>(motionVector.w);
+      colorCtx.setDiffuseColor(atomicNumber);
+    }
     
     // Pick the number of AO samples.
     half sampleCount;
@@ -108,7 +118,7 @@ kernel void renderAtoms
       
       // Add the secondary ray's AO contributions.
       colorCtx.addAmbientContribution(intersect,
-                                      convertedAtoms);
+                                      atomMotionVectors);
     }
     
     // Tell the context how many AO samples were taken.
@@ -132,8 +142,8 @@ kernel void renderAtoms
     
     // Generate the pixel motion vector.
     {
-      half3 atomMotionVector = atomMotionVectors[intersect.atomID];
-      float3 previousHitPoint = hitPoint - float3(atomMotionVector);
+      half4 atomMotionVector = atomMotionVectors[intersect.atomID];
+      float3 previousHitPoint = hitPoint - float3(atomMotionVector.xyz);
       colorCtx.generateMotionVector(cameraArgs + 1,
                                     renderArgs,
                                     previousHitPoint);

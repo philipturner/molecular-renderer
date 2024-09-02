@@ -19,6 +19,7 @@ struct IntersectionResult {
   bool accept;
   uint atomID;
   float distance;
+  ushort3 tgid;
 };
 
 struct IntersectionQuery {
@@ -50,7 +51,6 @@ struct RayIntersector {
   device ushort *smallAtomReferences;
   device float4 *convertedAtoms;
   
-  __attribute__((__always_inline__))
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
     bool continueLoop;
     const DDA dda(intersectionQuery.rayOrigin,
@@ -120,13 +120,14 @@ struct RayIntersector {
           smallReferenceOffset = smallCellOffsets[address];
         }
         
+        // Retrieve the large voxel's lower corner.
+        ushort3 tgid = smallCellCoordinates / 8;
+        float3 lowerCorner = bvhArgs->worldMinimum;
+        lowerCorner += float3(tgid) * 2;
+        
         // Retrieve the large voxel's metadata.
         uint4 metadata;
         {
-          ushort3 tgid = smallCellCoordinates / 8;
-          float3 lowerCorner = bvhArgs->worldMinimum;
-          lowerCorner += float3(tgid) * 2;
-          
           ushort3 cellCoordinates = ushort3(lowerCorner + 64);
           cellCoordinates /= 2;
           ushort3 gridDims = ushort3(64);
@@ -146,8 +147,11 @@ struct RayIntersector {
           }
           uint atomID = metadata[1] + reference;
           
-          // Run the intersection test.
+          // Retrieve the atom.
           float4 atom = convertedAtoms[atomID];
+          atom.xyz += lowerCorner;
+          
+          // Run the intersection test.
           {
             float3 oc = intersectionQuery.rayOrigin - atom.xyz;
             float b2 = dot(oc, intersectionQuery.rayDirection);
@@ -159,8 +163,9 @@ struct RayIntersector {
             if (disc4 > 0) {
               float distance = fma(-disc4, rsqrt(disc4), -b2);
               if (distance >= 0 && distance < result.distance) {
-                result.distance = distance;
                 result.atomID = atomID;
+                result.distance = distance;
+                result.tgid = tgid;
               }
             }
           }
@@ -181,6 +186,7 @@ struct RayIntersector {
     
     if (!result.accept) {
       result.atomID = 0;
+      result.tgid = 0;
     }
     return result;
   }

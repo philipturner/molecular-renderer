@@ -44,15 +44,13 @@ public:
     this->specularAmbient = 0;
   }
   
-  void setDiffuseColor(float4 newAtom) {
-    uint packed = as_type<uint>(newAtom.w);
-    uint atomicNumber = packed & 0x000000FF;
+  void setDiffuseColor(ushort atomicNumber) {
     half3 elementColor = elementColors[atomicNumber];
     diffuseColor = elementColor;
   }
   
   void addAmbientContribution(IntersectionResult intersect,
-                              device float4 *atoms) {
+                              device half4 *atomMotionVectors) {
     float diffuseAmbient = 1;
     float specularAmbient = 1;
     
@@ -79,9 +77,8 @@ public:
       // makes the effect vary around the atom's surface.
       float neighborLuminance;
       {
-        float4 atom = atoms[intersect.atomID];
-        uint packed = as_type<uint>(atom.w);
-        uint atomicNumber = packed & 0x000000FF;
+        half4 motionVector = atomMotionVectors[intersect.atomID];
+        ushort atomicNumber = as_type<ushort>(motionVector.w);
         half3 elementColor = elementColors[atomicNumber];
         neighborLuminance = dot(elementColor, gamut);
       }
