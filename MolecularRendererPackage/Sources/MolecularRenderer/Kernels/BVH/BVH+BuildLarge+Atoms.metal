@@ -284,6 +284,7 @@ kernel void buildLargePart2_2
           
           float4 writtenAtom = convertedAtom;
           writtenAtom.xyz -= lowerCorner;
+          writtenAtom.xyz = float3(short3(rint(writtenAtom.xyz * 1024))) / 1024;
           writtenAtom.xyz = float3(half3(writtenAtom.xyz));
           
           convertedAtoms[offset] = writtenAtom;
