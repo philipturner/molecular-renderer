@@ -131,7 +131,7 @@ import Numerics
 //     - Remove null termination from the reference list. [DONE]
 //     - Remove null termination from as many other places as possible. [DONE]
 //   - Test the optimization to sphere-cell tests before making more changes
-//     that will affect performance.
+//     that will affect performance. [DONE]
 //     - Take five samples of the existing kernel's performance in Google
 //       Sheets. Record the following for each sample:
 //       - Instructions issued

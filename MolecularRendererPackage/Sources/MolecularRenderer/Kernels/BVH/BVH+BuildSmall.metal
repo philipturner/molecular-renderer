@@ -270,7 +270,7 @@ kernel void buildSmallPart1_0
       smallVoxelMin = floor(smallVoxelMin);
       
       // Iterate over the footprint on the 3D grid.
-#pragma clang loop unroll(full)
+#pragma clang loop unroll(disable)
       for (half z = 0; z < 3; ++z) {
 #pragma clang loop unroll(full)
         for (half y = 0; y < 3; ++y) {
@@ -280,7 +280,7 @@ kernel void buildSmallPart1_0
             
             // Narrow down the cells with a cube-sphere intersection test.
             bool intersected = cubeSphereIntersection(xyz, atom);
-            if (intersected && xyz.x < 8 && xyz.y < 8 && xyz.z < 8) {
+            if (intersected && all(xyz < 8)) {
               // Generate the address.
               constexpr half3 addressStride(1, 8, 64);
               half address = dot(xyz, addressStride);
