@@ -9,6 +9,7 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
+// Before: 6 μs
 kernel void buildLargePart1_0
 (
  device vec<uint, 8> *largeCounterMetadata [[buffer(0)]],
@@ -48,6 +49,8 @@ kernel void buildLargePart2_0
   boundingBoxMin[0] = boxMin;
   boundingBoxMax[0] = boxMax;
 }
+
+// Before: 89 μs
 
 // Inputs:
 // - largeInputMetadata (8x duplicate)

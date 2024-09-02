@@ -68,6 +68,7 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 
 // MARK: - Kernels
 
+// Before: 126 μs
 kernel void buildLargePart1_1
 (
  constant float *elementRadii [[buffer(0)]],
@@ -174,6 +175,7 @@ kernel void buildLargePart1_1
   }
 }
 
+// Before: 281 μs
 kernel void buildLargePart2_2
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
