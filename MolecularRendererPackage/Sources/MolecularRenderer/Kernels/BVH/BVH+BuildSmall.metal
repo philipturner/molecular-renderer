@@ -119,6 +119,7 @@ kernel void buildSmallPart0_0
 // Removing the counters buffer:   1390 μs
 // Switching to 16-bit references: 1260 μs | 42.4% divergence
 // Reordering the second loop:     1210 μs | 41.6% divergence
+// Switching to 16-bit atoms:      1020 μs |
 kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
