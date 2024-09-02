@@ -270,58 +270,30 @@ kernel void buildSmallPart1_0
       
       // Generate the bounding box.
       half3 smallVoxelMin = atom.xyz - atom.w;
-      half3 smallVoxelMax = atom.xyz + atom.w;
       smallVoxelMin = max(smallVoxelMin, 0);
-      smallVoxelMax = min(smallVoxelMax, 8);
       smallVoxelMin = floor(smallVoxelMin);
-      smallVoxelMax = ceil(smallVoxelMax);
-      
-      // Reorder the loop traversal.
-      ushort permutationID;
-      half3 corner = smallVoxelMin;
-      half maximumZ;
-      {
-        half3 footprint = smallVoxelMax - smallVoxelMin;
-        if (footprint[0] < footprint[1] && footprint[0] < footprint[2]) {
-          permutationID = 0;
-          corner = half3(corner[1], corner[2], corner[0]);
-          atom.xyz = half3(atom[1], atom[2], atom[0]);
-          maximumZ = smallVoxelMax[0];
-        } else if (footprint[0] < footprint[1]) {
-          permutationID = 1;
-          corner = half3(corner[0], corner[2], corner[1]);
-          atom.xyz = half3(atom[0], atom[2], atom[1]);
-          maximumZ = smallVoxelMax[1];
-        } else {
-          permutationID = 2;
-          corner = half3(corner[0], corner[1], corner[2]);
-          atom.xyz = half3(atom[0], atom[1], atom[2]);
-          maximumZ = smallVoxelMax[2];
-        }
-      }
       
       // Iterate over the footprint on the 3D grid.
 #pragma clang loop unroll(disable)
-      for (half z = 0; z < maximumZ; ++z) {
+      for (half z = 0; z < 3; ++z) {
 #pragma clang loop unroll(full)
         for (half y = 0; y < 3; ++y) {
 #pragma clang loop unroll(full)
           for (half x = 0; x < 3; ++x) {
-            half3 xyz = corner + half3(x, y, z);
+            half3 xyz = smallVoxelMin + half3(x, y, z);
             
             // Narrow down the cells with a cube-sphere intersection test.
             bool intersected = cubeSphereIntersection(xyz, atom);
             if (intersected && all(xyz < 8)) {
               // Generate the address.
-              ushort3 coordinates = ushort3(xyz);
-              coordinates = reorderBackward(coordinates, permutationID);
-              ushort address = VoxelAddress::generate(8, coordinates);
+              constexpr half3 addressStride(1, 8, 64);
+              half address = dot(xyz, addressStride);
               
               // Perform the atomic fetch-add.
               auto castedCounters =
               (threadgroup atomic_uint*)threadgroupCounters;
               uint offset =
-              atomic_fetch_add_explicit(castedCounters + address,
+              atomic_fetch_add_explicit(castedCounters + ushort(address),
                                         1, memory_order_relaxed);
               
               // Write the reference to the list.
