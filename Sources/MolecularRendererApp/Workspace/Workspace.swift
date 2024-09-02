@@ -128,7 +128,7 @@ import Numerics
 //
 // Preparing for sparse ray tracing.
 
-#if false
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -209,9 +209,10 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
+#if false
     Volume {
       Concave {
         Convex {
@@ -229,6 +230,7 @@ func createGeometry() -> [Atom] {
       }
       Replace { .empty }
     }
+#endif
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

@@ -10,6 +10,7 @@
 using namespace metal;
 
 // Before: 6 μs
+// After:  4 μs
 kernel void buildLargePart1_0
 (
  device uchar *previousCellGroupMarks [[buffer(0)]],
@@ -80,6 +81,7 @@ kernel void buildLargePart2_0
 }
 
 // Before: 89 μs
+// After:  20 μs
 
 // Inputs:
 // - largeInputMetadata (8x duplicate)

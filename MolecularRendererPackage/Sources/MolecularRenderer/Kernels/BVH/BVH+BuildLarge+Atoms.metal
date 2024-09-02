@@ -68,7 +68,8 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 
 // MARK: - Kernels
 
-// Before: 126 μs
+// Before: 126 μs (likely a rare burst of high clock speed)
+// After:  165 μs
 kernel void buildLargePart1_1
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
@@ -192,7 +193,8 @@ kernel void buildLargePart1_1
   }
 }
 
-// Before: 281 μs
+// Before: 281 μs (likely a rare burst of high clock speed)
+// After:  445 μs
 kernel void buildLargePart2_2
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
