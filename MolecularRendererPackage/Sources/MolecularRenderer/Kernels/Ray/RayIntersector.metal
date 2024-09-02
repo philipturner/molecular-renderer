@@ -33,7 +33,8 @@ struct IntersectionQuery {
     return maximumRayHitTime + voxelDiagonalWidth;
   }
   
-  bool exceededAOTime(float maximumHitTime) {
+  bool exceededAOTime(DDA dda, float voxelMaximumTime) {
+    float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
     if (isAORay) {
       return maximumHitTime > maximumAODistance();
     } else {
@@ -87,8 +88,7 @@ struct RayIntersector {
         }
         
         // Return if out of range.
-        float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
-        if (intersectionQuery.exceededAOTime(maximumHitTime)) {
+        if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
           break;
         }
         
@@ -102,14 +102,14 @@ struct RayIntersector {
         }
         
         // Break out of the loop.
-        if (readOffset > 0 || !executeFutureIteration) {
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        if (readOffset > 0 || !dda.continueLoop(progress, gridDims)) {
           break;
         }
       }
       
       // Return early if out of range.
-      float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
-      if (intersectionQuery.exceededAOTime(maximumHitTime)) {
+      if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
         executeFutureIteration = false;
         continue;
       }
@@ -123,10 +123,16 @@ struct RayIntersector {
         readOffset = smallCellOffsets[address];
       }
       
-      if (readOffset == 0) {
-        // Don't do anything if the voxel has no contents.
-      } else {
-        result.distance = maximumHitTime;
+      // Break out of the loop.
+      ushort3 gridDims = bvhArgs->smallVoxelCount;
+      if (readOffset == 0 || !dda.continueLoop(progress, gridDims)) {
+        executeFutureIteration = false;
+        continue;
+      }
+      
+      // Run the intersection test.
+      {
+        result.distance = dda.maximumHitTime(voxelMaximumTime);
         
         // Retrieve the large voxel's lower corner.
         ushort3 tgid = smallCellCoordinates / 8;
@@ -187,7 +193,7 @@ struct RayIntersector {
         }
         
         // Return if we found a hit.
-        if (result.distance < maximumHitTime) {
+        if (result.distance < dda.maximumHitTime(voxelMaximumTime)) {
           result.accept = true;
           executeFutureIteration = false;
         }
