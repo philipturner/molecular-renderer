@@ -11,14 +11,14 @@
 using namespace metal;
 
 // Test whether an atom overlaps a 1x1x1 cube.
-inline bool cubeSphereIntersection(float3 cube_min, float4 atom)
+inline bool cubeSphereIntersection(half3 cube_min, half4 atom)
 {
-  float3 c1 = cube_min;
-  float3 c2 = c1 + 1;
-  float3 delta_c1 = atom.xyz - c1;
-  float3 delta_c2 = atom.xyz - c2;
+  half3 c1 = cube_min;
+  half3 c2 = c1 + 1;
+  half3 delta_c1 = atom.xyz - c1;
+  half3 delta_c2 = atom.xyz - c2;
   
-  float dist_squared = atom.w * atom.w;
+  half dist_squared = atom.w * atom.w;
 #pragma clang loop unroll(full)
   for (int dim = 0; dim < 3; ++dim) {
     if (atom[dim] < c1[dim]) {
@@ -127,25 +127,20 @@ kernel void buildSmallPart1_0
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
       uint largeReferenceID = largeReferenceOffset + smallAtomID;
-      float4 atom = float4(convertedAtoms[largeReferenceID]);
-      atom.xyz += lowerCorner;
+      half4 atom = convertedAtoms[largeReferenceID];
+      atom *= 4;
       
       // Generate the bounding box.
-      ushort3 loopStart;
-      ushort3 loopEnd;
-      {
-        float3 smallVoxelMin = atom.xyz - atom.w;
-        float3 smallVoxelMax = atom.xyz + atom.w;
-        smallVoxelMin = max(smallVoxelMin, lowerCorner);
-        smallVoxelMax = min(smallVoxelMax, lowerCorner + 2);
-        smallVoxelMin = 4 * (smallVoxelMin - lowerCorner);
-        smallVoxelMax = 4 * (smallVoxelMax - lowerCorner);
-        smallVoxelMin = floor(smallVoxelMin);
-        smallVoxelMax = ceil(smallVoxelMax);
-        
-        loopStart = ushort3(smallVoxelMin);
-        loopEnd = ushort3(smallVoxelMax);
-      }
+      half3 smallVoxelMin = atom.xyz - atom.w;
+      half3 smallVoxelMax = atom.xyz + atom.w;
+      smallVoxelMin = max(smallVoxelMin, 0);
+      smallVoxelMax = min(smallVoxelMax, 8);
+      smallVoxelMin = floor(smallVoxelMin);
+      smallVoxelMax = ceil(smallVoxelMax);
+      
+      // Set the loop bounds registers.
+      ushort3 loopStart = ushort3(smallVoxelMin);
+      ushort3 loopEnd = ushort3(smallVoxelMax);
       
       // Iterate over the footprint on the 3D grid.
       for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
@@ -234,35 +229,22 @@ kernel void buildSmallPart1_0
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
       uint largeReferenceID = largeReferenceOffset + smallAtomID;
-      float4 atom = float4(convertedAtoms[largeReferenceID]);
-      atom.xyz += lowerCorner;
+      half4 atom = convertedAtoms[largeReferenceID];
+      atom *= 4;
       
       // Generate the bounding box.
-      ushort3 loopStart;
-      ushort3 loopEnd;
-      {
-        float3 smallVoxelMin = atom.xyz - atom.w;
-        float3 smallVoxelMax = atom.xyz + atom.w;
-        smallVoxelMin = max(smallVoxelMin, lowerCorner);
-        smallVoxelMax = min(smallVoxelMax, lowerCorner + 2);
-        smallVoxelMin = 4 * (smallVoxelMin - lowerCorner);
-        smallVoxelMax = 4 * (smallVoxelMax - lowerCorner);
-        smallVoxelMin = floor(smallVoxelMin);
-        smallVoxelMax = ceil(smallVoxelMax);
-        
-        loopStart = ushort3(smallVoxelMin);
-        loopEnd = ushort3(smallVoxelMax);
-      }
-      
-      // Place the atom in the grid of small cells.
-      atom.xyz = 4 * (atom.xyz - lowerCorner);
-      atom.w = 4 * atom.w;
+      half3 smallVoxelMin = atom.xyz - atom.w;
+      half3 smallVoxelMax = atom.xyz + atom.w;
+      smallVoxelMin = max(smallVoxelMin, 0);
+      smallVoxelMax = min(smallVoxelMax, 8);
+      smallVoxelMin = floor(smallVoxelMin);
+      smallVoxelMax = ceil(smallVoxelMax);
       
       // Iterate over the footprint on the 3D grid.
-      for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
-        for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
-          for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
-            float3 xyz = float3(ushort3(x, y, z));
+      for (half z = smallVoxelMin[2]; z < smallVoxelMax[2]; ++z) {
+        for (half y = smallVoxelMin[1]; y < smallVoxelMax[1]; ++y) {
+          for (half x = smallVoxelMin[0]; x < smallVoxelMax[0]; ++x) {
+            half3 xyz = half3(x, y, z);
             
             // Narrow down the cells with a cube-sphere intersection test.
             bool intersected = cubeSphereIntersection(xyz, atom);
