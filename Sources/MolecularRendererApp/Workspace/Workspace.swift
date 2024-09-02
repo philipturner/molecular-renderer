@@ -103,36 +103,26 @@ import Numerics
 //   - Write to a second, duplicate memory allocation. [DONE]
 //     - Redirect the small-atom references, switch memory allocations. [DONE]
 //     - Delete the old memory allocations. [DONE]
-// - Load the large voxel's metadata in the ray tracer.
-//   - Subtract the large voxel's start from each small reference.
+// - Load the large voxel's metadata in the ray tracer. [DONE]
+//   - Subtract the large voxel's start from each small reference. [DONE]
+//
+// Preparing for 16-bit atoms.
+// - Store the atomic number with the motion vectors.
+// - Remove the atomic number tag from the "converted" format.
+// - Compute the large voxel's lower corner during ray tracing.
+// - Subtract the large voxel's lpwer corner from the atom position.
 //
 // Optimizing the new BVH.
-// - Revisit the large-cell sorting pass, if the computation time is not
-//   dwarfed by the small-cell sorting.
-//   - Optimizing the "store relative offset" path by halving bandwidth cost.
-//     - If this is faster than two-pass atomics would be, abort the idea.
-//     - If this is faster than single-pass atomics would be, abort the idea.
-//   - Sorting in two passes with atomics.
-//   - Sorting in a single pass with atomics.
-//     - Set up all of the memory allocations.
-//     - Debug the failure modes of page allocation.
-//     - Look for an atomics contention bottleneck.
-// - Rearrange the cell metadata in Morton order.
+// - Minimize the bandwidth cost of reading the large cells' counters during
+//   BVH construction.
+//   - Write to a buffer of marks during the very first kernel, ensure it
+//     doesn't harm performance.
+// - Rearrange the cell metadata.
 //   - Create a second, 8-bit memory allocation that marks which small voxels
 //     are occupied.
 //   - Modify the DDA to traverse 8-bit cell metadata.
-//   - Rearrange the 32-bit cell metadata in Morton order.
-//   - Compact the 32-bit cell metadata, based on the <1/8 of large voxels
-//     that are occupied.
-// - Reduce the memory and bandwidth costs.
-//   - Fuse the bounding box computation with the reduction across large cells.
-//   - Shift to local, per-large sector reference lists (16-bit).
-//   - Fuse multiple per-atom kernels, resulting in atom conversion only when
-//     writing into the new reference list.
-//     - (1) Revisit the large BVH construction, store both refs and atom data.
-//   - With these optimizations, the limit of ~5 million atoms might be lifted.
-//     A new limit of ~8 million atoms should be enforced, and the user can
-//     decrease the limit to save memory.
+//   - Write the small cells' 32-bit data at the compacted large voxel offsets.
+//     - Return early when the large voxel is vacant.
 
 #if true
 

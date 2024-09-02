@@ -125,8 +125,13 @@ struct RayIntersector {
         // Retrieve the large voxel's metadata.
         uint4 metadata;
         {
-          ushort3 cellCoordinates = smallCellCoordinates / 8;
-          ushort3 gridDims = bvhArgs->largeVoxelCount;
+          ushort3 tgid = smallCellCoordinates / 8;
+          float3 lowerCorner = bvhArgs->worldMinimum;
+          lowerCorner += float3(tgid) * 2;
+          
+          ushort3 cellCoordinates = ushort3(lowerCorner + 64);
+          cellCoordinates /= 2;
+          ushort3 gridDims = ushort3(64);
           uint address = VoxelAddress::generate(gridDims, cellCoordinates);
           metadata = largeCellMetadata[address];
         }
@@ -141,9 +146,10 @@ struct RayIntersector {
           if (reference == 0) {
             break;
           }
+          uint atomID = metadata[1] + reference;
           
           // Run the intersection test.
-          float4 atom = convertedAtoms[reference];
+          float4 atom = convertedAtoms[atomID];
           {
             float3 oc = intersectionQuery.rayOrigin - atom.xyz;
             float b2 = dot(oc, intersectionQuery.rayDirection);
@@ -156,7 +162,7 @@ struct RayIntersector {
               float distance = fma(-disc4, rsqrt(disc4), -b2);
               if (distance >= 0 && distance < result.distance) {
                 result.distance = distance;
-                result.atomID = reference;
+                result.atomID = atomID;
               }
             }
           }
