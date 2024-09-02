@@ -10,7 +10,7 @@
 using namespace metal;
 
 // Convert the atom from 'float4' to a custom format.
-inline float4 convert(float4 atom, constant float *elementRadii) {
+inline float4 convert(float4 atom, constant half *elementRadii) {
   uint atomicNumber = uint(atom.w);
   float radius = elementRadii[atomicNumber];
   
@@ -71,7 +71,7 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 kernel void buildLargePart1_1
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
- constant float *elementRadii [[buffer(1)]],
+ constant half *elementRadii [[buffer(1)]],
  device float4 *previousAtoms [[buffer(2)]],
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
@@ -192,7 +192,7 @@ kernel void buildLargePart1_1
 kernel void buildLargePart2_2
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
- constant float *elementRadii [[buffer(1)]],
+ constant half *elementRadii [[buffer(1)]],
  device float4 *previousAtoms [[buffer(2)]],
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],

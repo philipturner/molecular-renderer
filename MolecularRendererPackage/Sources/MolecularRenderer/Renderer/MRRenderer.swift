@@ -46,8 +46,10 @@ public class MRRenderer {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
-    argumentContainer.elementColors = elementColors
-    argumentContainer.elementRadii = elementRadii
+    argumentContainer.elementColors = ArgumentContainer
+      .createElementColors(elementColors)
+    argumentContainer.elementRadii = ArgumentContainer
+      .createElementRadii(elementRadii)
     argumentContainer.intermediateTextureSize = intermediateTextureSize
     argumentContainer.upscaleFactor = upscaleFactor
     
@@ -117,11 +119,11 @@ public class MRRenderer {
     // Encode the work.
     bvhBuilder.buildLargeBVH(frameID: frameID)
     bvhBuilder.buildSmallBVH(frameID: frameID)
-    // dispatchRenderingWork(frameID: frameID)
+    dispatchRenderingWork(frameID: frameID)
     
     // Dispatch the upscaling work.
     let drawable = layer.nextDrawable()!
-    // dispatchUpscalingWork(texture: drawable.texture)
+    dispatchUpscalingWork(texture: drawable.texture)
     
     // Perform synchronization in an empty command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!

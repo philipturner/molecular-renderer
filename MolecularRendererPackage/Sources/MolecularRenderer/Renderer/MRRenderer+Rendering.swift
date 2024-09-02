@@ -51,25 +51,9 @@ extension MRRenderer {
     
     // Bind the element colors.
     do {
-      let colors32 = argumentContainer.elementColors
-      
-      // Convert the colors from Float32 to Float16.
-      #if arch(x86_64)
-      fatalError("x86_64 is not supported.")
-      #else
-      var colors16: [SIMD3<Float16>] = []
-      for atomicNumber in 0...118 {
-        // Branch on whether the color was specified.
-        if atomicNumber < colors32.count {
-          let color32 = colors32[atomicNumber]
-          let color16 = SIMD3<Float16>(color32)
-          colors16.append(color16)
-        } else {
-          colors16.append(.zero)
-        }
-      }
-      encoder.setBytes(colors16, length: 119 * 8, index: 3)
-      #endif
+      let elementColors = argumentContainer.elementColors
+      let byteCount = elementColors.count * 8
+      encoder.setBytes(elementColors, length: byteCount, index: 3)
     }
     
     // Bind the remaining buffers.

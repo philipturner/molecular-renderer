@@ -138,7 +138,7 @@ import Numerics
 //       - Latency
 //       - Divergence
 //       - Line-by-line % for the sphere-cell test part.
-//     - Change the CPU-side code, to clamp radii to [0.001, 0.249].
+//     - Change the CPU-side code, to clamp radii to [0.001, 0.249]. [DONE]
 //   - Write the small cells' metadata at the compacted large voxel offsets,
 //     in Morton order.
 //   - Switch to reading compacted data.

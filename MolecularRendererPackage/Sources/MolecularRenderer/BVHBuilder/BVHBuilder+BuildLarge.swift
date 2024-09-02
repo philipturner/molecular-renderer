@@ -232,7 +232,7 @@ extension BVHBuilder {
     // Argument 1
     do {
       let elementRadii = renderer.argumentContainer.elementRadii
-      let byteCount = elementRadii.count * 4
+      let byteCount = elementRadii.count * 2
       encoder.setBytes(elementRadii, length: byteCount, index: 1)
     }
     
