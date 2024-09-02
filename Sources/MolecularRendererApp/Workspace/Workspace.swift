@@ -128,7 +128,7 @@ import Numerics
 //
 // Preparing for sparse ray tracing.
 
-#if true
+#if false
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems

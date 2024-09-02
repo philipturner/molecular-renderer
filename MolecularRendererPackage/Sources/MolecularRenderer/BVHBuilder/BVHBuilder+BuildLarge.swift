@@ -81,8 +81,18 @@ extension BVHBuilder {
   
 extension BVHBuilder {
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 0)
-    encoder.setBuffer(largeCellGroupMarks, offset: 0, index: 1)
+    // Arguments 0 - 1
+    do {
+      let currentIndex = renderer.argumentContainer.doubleBufferIndex()
+      let previousIndex = (currentIndex + 1) % 2
+      let previousMarks = cellGroupMarks[previousIndex]
+      let currentMarks = cellGroupMarks[currentIndex]
+      encoder.setBuffer(previousMarks, offset: 0, index: 0)
+      encoder.setBuffer(currentMarks, offset: 0, index: 1)
+    }
+    
+    // Argument 2
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart1_0
@@ -93,6 +103,7 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
     do {
       let allocatedMemory = 0
       let boundingBoxMin = 16
@@ -111,6 +122,7 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 2
     do {
       let allocatedMemory = 0
       let boundingBoxMin = 16
@@ -120,8 +132,15 @@ extension BVHBuilder {
       encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
     }
     
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 3)
-    encoder.setBuffer(largeCellGroupMarks, offset: 0, index: 4)
+    // Argument 3
+    do {
+      let currentIndex = renderer.argumentContainer.doubleBufferIndex()
+      let currentMarks = cellGroupMarks[currentIndex]
+      encoder.setBuffer(currentMarks, offset: 0, index: 3)
+    }
+    
+    // Arguments 4 - 5
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 4)
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 5)
     
     // Dispatch
@@ -157,8 +176,18 @@ extension BVHBuilder {
   }
   
   func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 5
     bindAtomArguments(encoder: encoder)
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 6)
+    
+    // Argument 6
+    do {
+      let currentIndex = renderer.argumentContainer.doubleBufferIndex()
+      let currentMarks = cellGroupMarks[currentIndex]
+      encoder.setBuffer(currentMarks, offset: 0, index: 6)
+    }
+    
+    // Argument 7
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 7)
     
     // Dispatch
     do {
@@ -173,7 +202,10 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 5
     bindAtomArguments(encoder: encoder)
+    
+    // Arguments 6 - 8
     encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
     encoder.setBuffer(atomMotionVectors, offset: 0, index: 7)
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
@@ -207,7 +239,7 @@ extension BVHBuilder {
     // Arguments 2 - 3
     do {
       let currentIndex = renderer.argumentContainer.tripleBufferIndex()
-      let previousIndex = (currentIndex + 3 - 1) % 3
+      let previousIndex = (currentIndex + 2) % 3
       let previousAtoms = originalAtoms[previousIndex]
       let currentAtoms = originalAtoms[currentIndex]
       encoder.setBuffer(previousAtoms, offset: 0, index: 2)

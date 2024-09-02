@@ -77,7 +77,8 @@ kernel void buildLargePart1_1
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
- device atomic_uint *largeCounterMetadata [[buffer(6)]],
+ device uchar *currentCellGroupMarks [[buffer(6)]],
+ device atomic_uint *largeCounterMetadata [[buffer(7)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
@@ -131,9 +132,9 @@ kernel void buildLargePart1_1
         // Perform the atomic fetch-add.
         uint offset;
         {
+          ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           ushort3 gridDims = ushort3(64);
-          ushort3 cubeMin = largeVoxelMin + actualXYZ;
-          uint address = VoxelAddress::generate(gridDims, cubeMin);
+          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           uint smallReferenceCount =
@@ -148,6 +149,19 @@ kernel void buildLargePart1_1
           ushort address = z * 4 + y * 2 + x;
           address = address * 128 + thread_id;
           cachedRelativeOffsets[address] = ushort(offset);
+        }
+        
+        // Write the cell-group mark.
+        {
+          // Locate the mark.
+          ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
+          cellCoordinates /= 4;
+          ushort3 gridDims = ushort3(16);
+          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+          
+          // Write the mark.
+          uchar activeValue = uchar(1);
+          currentCellGroupMarks[address] = activeValue;
         }
       }
     }
@@ -268,15 +282,17 @@ kernel void buildLargePart2_2
         // Read the compacted cell offset.
         uint offset;
         {
+          // Locate the large counter.
+          ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           ushort3 gridDims = ushort3(64);
-          ushort3 cubeMin = largeVoxelMin + actualXYZ;
-          uint address = VoxelAddress::generate(gridDims, cubeMin);
+          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
           address = (address * 8) + (tid % 8);
           
+          // Read from the large counter.
           offset = largeCounterMetadata[address];
         }
         
-        // Add the atom offset.
+        // Add the atom's relative offset.
         {
           ushort address = z * 4 + y * 2 + x;
           address = address * 128 + thread_id;
@@ -286,10 +302,12 @@ kernel void buildLargePart2_2
         
         // Write the atom to the new position in memory.
         {
-          ushort3 cubeMin = largeVoxelMin + actualXYZ;
+          // Materialize the lower corner.
+          ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           float3 lowerCorner = float3(-64);
-          lowerCorner += 2 * float3(cubeMin);
+          lowerCorner += 2 * float3(cellCoordinates);
           
+          // Subtract the lower corner.
           float4 writtenAtom = convertedAtom;
           writtenAtom.xyz -= lowerCorner;
           convertedAtoms[offset] = half4(writtenAtom);

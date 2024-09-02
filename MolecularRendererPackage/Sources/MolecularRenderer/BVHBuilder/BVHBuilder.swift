@@ -27,8 +27,8 @@ class BVHBuilder {
   var atomMotionVectors: MTLBuffer
   
   // Data buffers (per cell).
+  var cellGroupMarks: [MTLBuffer]
   var largeCounterMetadata: MTLBuffer
-  var largeCellGroupMarks: MTLBuffer
   var largeCellMetadata: MTLBuffer
   var smallCellOffsets: MTLBuffer
   
@@ -73,8 +73,11 @@ class BVHBuilder {
     // Data buffers (per cell).
     let largeVoxelCount = 64 * 64 * 64
     let smallVoxelCount = 512 * 512 * 512
+    cellGroupMarks = [
+      createBuffer(length: largeVoxelCount / (4 * 4 * 4) * 1),
+      createBuffer(length: largeVoxelCount / (4 * 4 * 4) * 1),
+    ]
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
-    largeCellGroupMarks = createBuffer(length: largeVoxelCount / 64 * 1)
     largeCellMetadata = createBuffer(length: largeVoxelCount * 4 * 4)
     smallCellOffsets = createBuffer(length: smallVoxelCount * 4)
     
