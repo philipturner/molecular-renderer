@@ -71,7 +71,7 @@ struct RayIntersector {
       ushort2 smallMetadata;
       uchar3 tgid;
       
-      // Search for the next occupied voxel.
+      // Inner 'while' loop to find the next voxel.
       while (true) {
         // Save the state for the current counter.
         {
@@ -99,17 +99,20 @@ struct RayIntersector {
         }
       }
       
-      // Exit the outer loop.
-      if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
-        break;
-      }
-      if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
-        break;
-      }
-      
-      // Don't let empty voxels affect the result.
-      if (smallMetadata[1] == 0) {
-        continue;
+      // Skip this iteration of the outer 'while' loop.
+      {
+        // Exit the outer loop.
+        if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
+          break;
+        }
+        if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
+          break;
+        }
+        
+        // Don't let empty voxels affect the result.
+        if (smallMetadata[1] == 0) {
+          continue;
+        }
       }
       
       // Retrieve the large voxel's lower corner.
@@ -121,17 +124,16 @@ struct RayIntersector {
       {
         ushort3 cellCoordinates = ushort3(lowerCorner + 64);
         cellCoordinates /= 2;
-        ushort3 gridDims = ushort3(64);
-        uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+        uint address = VoxelAddress::generate(64, cellCoordinates);
         largeMetadata = largeCellMetadata[address];
       }
-      
-      // Set the distance register.
-      result.distance = dda.maximumHitTime(voxelMaximumTime);
       
       // Set the loop bounds register.
       uint referenceCursor = largeMetadata[2] + smallMetadata[0];
       uint referenceEnd = referenceCursor + smallMetadata[1];
+      
+      // Set the distance register.
+      result.distance = dda.maximumHitTime(voxelMaximumTime);
       
       // Test every atom in the voxel.
       while (referenceCursor < referenceEnd) {

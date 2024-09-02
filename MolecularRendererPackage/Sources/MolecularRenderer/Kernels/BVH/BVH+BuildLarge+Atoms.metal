@@ -68,8 +68,6 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 
 // MARK: - Kernels
 
-// Before: 126 μs (likely a rare burst of high clock speed)
-// After:  165 μs
 kernel void buildLargePart1_1
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
@@ -134,8 +132,7 @@ kernel void buildLargePart1_1
         uint offset;
         {
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          ushort3 gridDims = ushort3(64);
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+          uint address = VoxelAddress::generate(64, cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           uint smallReferenceCount =
@@ -157,8 +154,7 @@ kernel void buildLargePart1_1
           // Locate the mark.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           cellCoordinates /= 4;
-          ushort3 gridDims = ushort3(16);
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+          uint address = VoxelAddress::generate(16, cellCoordinates);
           
           // Write the mark.
           uchar activeValue = uchar(1);
@@ -193,8 +189,6 @@ kernel void buildLargePart1_1
   }
 }
 
-// Before: 281 μs (likely a rare burst of high clock speed)
-// After:  445 μs
 kernel void buildLargePart2_2
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
@@ -286,8 +280,7 @@ kernel void buildLargePart2_2
         {
           // Locate the large counter.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          ushort3 gridDims = ushort3(64);
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+          uint address = VoxelAddress::generate(64, cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           // Read from the large counter.

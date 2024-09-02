@@ -230,11 +230,11 @@ public:
     auto motionVector = clamp(this->motionVector, -HALF_MAX, HALF_MAX);
     
     // Write the output depth.
-    float4 writtenDepth{ depth };
+    float4 writtenDepth = float4(depth);
     depthTexture.write(writtenDepth, pixelCoords);
     
     // Write the output motion vector.
-    half4 writtenMotionVector{ motionVector.x, motionVector.y };
+    half4 writtenMotionVector(motionVector.x, motionVector.y, 0, 0);
     motionTexture.write(writtenMotionVector, pixelCoords);
   }
 };

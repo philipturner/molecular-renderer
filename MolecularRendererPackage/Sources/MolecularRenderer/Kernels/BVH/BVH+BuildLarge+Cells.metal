@@ -9,8 +9,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Before: 6 μs
-// After:  4 μs
 kernel void buildLargePart1_0
 (
  device uchar *previousCellGroupMarks [[buffer(0)]],
@@ -24,8 +22,7 @@ kernel void buildLargePart1_0
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    ushort3 gridDims = ushort3(16);
-    uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+    uint address = VoxelAddress::generate(16, cellCoordinates);
     
     // Read the mark.
     previousMark = previousCellGroupMarks[address];
@@ -35,8 +32,7 @@ kernel void buildLargePart1_0
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    ushort3 gridDims = ushort3(16);
-    uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+    uint address = VoxelAddress::generate(16, cellCoordinates);
     
     // Write the mark.
     uchar resetValue = uchar(0);
@@ -48,8 +44,7 @@ kernel void buildLargePart1_0
     // Locate the metadata.
     ushort3 cellCoordinates = thread_id;
     cellCoordinates += tgid * 4;
-    ushort3 gridDims = ushort3(64);
-    uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+    uint address = VoxelAddress::generate(64, cellCoordinates);
     
     // Write the metadata.
     vec<uint, 8> resetValue = vec<uint, 8>(0);
@@ -79,9 +74,6 @@ kernel void buildLargePart2_0
   boundingBoxMin[0] = boxMin;
   boundingBoxMax[0] = boxMax;
 }
-
-// Before: 89 μs
-// After:  20 μs
 
 // Inputs:
 // - largeInputMetadata (8x duplicate)
@@ -115,8 +107,7 @@ kernel void buildLargePart2_1
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    ushort3 gridDims = ushort3(16);
-    uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+    uint address = VoxelAddress::generate(16, cellCoordinates);
     
     // Read the mark.
     currentMark = currentCellGroupMarks[address];
@@ -125,8 +116,7 @@ kernel void buildLargePart2_1
   // Locate the counter metadata.
   ushort3 cellCoordinates = thread_id;
   cellCoordinates += tgid * 4;
-  ushort3 gridDims = ushort3(64);
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  uint cellAddress = VoxelAddress::generate(64, cellCoordinates);
   
   // Return early for vacant voxels.
   if (currentMark == 0) {
@@ -138,13 +128,10 @@ kernel void buildLargePart2_1
   vec<uint, 8> counterCounts = largeCounterMetadata[cellAddress];
   
   // Reduce the counts across the thread.
-  vec<ushort, 8> counterOffsets;
   uint threadTotalCount = 0;
 #pragma clang loop unroll(full)
   for (ushort laneID = 0; laneID < 8; ++laneID) {
-    ushort counterOffset = ushort(threadTotalCount) & (ushort(1 << 14) - 1);
     threadTotalCount += counterCounts[laneID];
-    counterOffsets[laneID] = counterOffset;
   }
   
   // Reserve this much memory for the large voxel.
@@ -153,12 +140,6 @@ kernel void buildLargePart2_1
     uint threadVoxelCount = (threadTotalCount > 0) ? 1 : 0;
     uint threadLargeCount = threadTotalCount & (uint(1 << 14) - 1);
     uint threadSmallCount = threadTotalCount >> 14;
-    
-    // Reserve room for null terminators.
-    if (threadTotalCount > 0) {
-      threadLargeCount += 1;
-      threadSmallCount += 512;
-    }
     threadCounts = uint3(threadVoxelCount,
                          threadLargeCount,
                          threadSmallCount);
@@ -235,14 +216,13 @@ kernel void buildLargePart2_1
   // Write the counter offsets.
   {
     vec<uint, 8> counterOffsets;
-    
-    // Padding for null termination.
-    uint counterCursor = 1;
+    uint counterCursor = 0;
 #pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 8; ++laneID) {
+      counterOffsets[laneID] = counterCursor;
+      
       uint counterCount = counterCounts[laneID];
       counterCount = counterCount & (uint(1 << 14) - 1);
-      counterOffsets[laneID] = counterCursor;
       counterCursor += counterCount;
     }
     counterOffsets += threadLargeOffset;

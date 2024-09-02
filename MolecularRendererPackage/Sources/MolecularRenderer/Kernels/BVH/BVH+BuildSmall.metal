@@ -142,8 +142,7 @@ kernel void buildSmallPart1_0
   {
     ushort3 cellCoordinates = ushort3(lowerCorner + 64);
     cellCoordinates /= 2;
-    ushort3 gridDims = ushort3(64);
-    uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+    uint cellAddress = VoxelAddress::generate(64, cellCoordinates);
     metadata = largeCellMetadata[cellAddress];
   }
   
@@ -169,7 +168,7 @@ kernel void buildSmallPart1_0
     {
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
-      uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
+      uint largeReferenceID = largeReferenceOffset + smallAtomID;
       float4 atom = float4(convertedAtoms[largeReferenceID]);
       atom.xyz += lowerCorner;
       
@@ -198,9 +197,8 @@ kernel void buildSmallPart1_0
             ushort3 actualXYZ = ushort3(x, y, z);
             
             // Generate the address.
-            ushort3 gridDims = ushort3(8);
             ushort3 cellCoordinates = actualXYZ - tgid * 8;
-            ushort address = VoxelAddress::generate(gridDims, cellCoordinates);
+            ushort address = VoxelAddress::generate(8, cellCoordinates);
             
             // Perform the atomic fetch-add.
             auto castedCounters =
@@ -216,18 +214,8 @@ kernel void buildSmallPart1_0
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
   // Read the counter metadata.
-  uint4 conservativeCounts;
-#pragma clang loop unroll(full)
-  for (ushort laneID = 0; laneID < 4; ++laneID) {
-    ushort localAddress = baseThreadgroupAddress + laneID;
-    uint atomCount = threadgroupCounters[localAddress];
-    
-    // If there might be an atom in this voxel, insert a null terminator.
-    if (atomCount > 0) {
-      atomCount += 1;
-    }
-    conservativeCounts[laneID] = atomCount;
-  }
+  uint4 conservativeCounts =
+  *(threadgroup uint4*)(threadgroupCounters + baseThreadgroupAddress);
   
   threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
   
@@ -288,7 +276,7 @@ kernel void buildSmallPart1_0
     {
       // Materialize the atom.
       uint largeReferenceOffset = metadata[1];
-      uint largeReferenceID = largeReferenceOffset + 1 + smallAtomID;
+      uint largeReferenceID = largeReferenceOffset + smallAtomID;
       float4 atom = float4(convertedAtoms[largeReferenceID]);
       atom.xyz += lowerCorner;
       
@@ -333,9 +321,8 @@ kernel void buildSmallPart1_0
             }
             
             // Generate the address.
-            ushort3 gridDims = ushort3(8);
             ushort3 cellCoordinates = actualXYZ - tgid * 8;
-            ushort address = VoxelAddress::generate(gridDims, cellCoordinates);
+            ushort address = VoxelAddress::generate(8, cellCoordinates);
             
             // Perform the atomic fetch-add.
             auto castedCounters =
@@ -345,7 +332,7 @@ kernel void buildSmallPart1_0
                                       1, memory_order_relaxed);
             
             // Write the reference to the list.
-            smallAtomReferences[offset] = 1 + smallAtomID;
+            smallAtomReferences[offset] = smallAtomID;
           }
         }
       }
@@ -366,22 +353,14 @@ kernel void buildSmallPart1_0
       uint allocationStart = counterOffsets[laneID];
       uint allocationEnd = threadgroupCounters[localAddress];
       
-      // Revise the reference count, with a tighter estimate.
-      uint atomCount = allocationEnd - allocationStart;
-      
-      // Write the null terminator.
-      if (atomCount > 0) {
-        smallAtomReferences[allocationEnd] = 0;
-      }
-      
       ushort2 output;
-      if (atomCount > 0) {
+      if (allocationStart < allocationEnd) {
         // Make the offset relative to the large voxel's base address.
         output[0] = allocationStart - metadata[2];
         output[1] = allocationEnd - allocationStart;
       } else {
         // Flag this voxel as empty.
-        output = 0;
+        output = as_type<ushort2>(uint(0));
       }
       
       // Write the cell metadata.

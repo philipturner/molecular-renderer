@@ -128,8 +128,8 @@ import Numerics
 //       - Remove the addition/subtraction of one, as the count now
 //         indicates whether the small voxel is occupied. [DONE]
 //       - Remove the guard from the ray tracing loop. [DONE]
-//     - Remove null termination from the reference list.
-//     - Remove null termination from as many other places as possible.
+//     - Remove null termination from the reference list. [DONE]
+//     - Remove null termination from as many other places as possible. [DONE]
 //   - Test the optimization to sphere-cell tests before making more changes
 //     that will affect performance.
 //     - Take five samples of the existing kernel's performance in Google
