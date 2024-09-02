@@ -107,10 +107,10 @@ import Numerics
 //   - Subtract the large voxel's start from each small reference. [DONE]
 //
 // Preparing for 16-bit atoms.
-// - Store the atomic number with the motion vectors.
-// - Remove the atomic number tag from the "converted" format.
-// - Compute the large voxel's lower corner during ray tracing.
-// - Subtract the large voxel's lpwer corner from the atom position.
+// - Store the atomic number with the motion vectors. [DONE]
+// - Remove the atomic number tag from the "converted" format. [DONE]
+// - Compute the large voxel's lower corner during ray tracing. [DONE]
+// - Subtract the large voxel's lpwer corner from the atom position. [DONE]
 //
 // Optimizing the new BVH.
 // - Minimize the bandwidth cost of reading the large cells' counters during
@@ -206,7 +206,7 @@ func createGeometry() -> [Atom] {
   
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 40 * (h + k + l) }
-    Material { .elemental(.silicon) }
+    Material { .elemental(.carbon) }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

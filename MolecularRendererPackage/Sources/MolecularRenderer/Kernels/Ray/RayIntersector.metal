@@ -49,7 +49,7 @@ struct RayIntersector {
   device uint4 *largeCellMetadata;
   device uint *smallCellOffsets;
   device ushort *smallAtomReferences;
-  device float4 *convertedAtoms;
+  device half4 *convertedAtoms;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
     bool continueLoop;
@@ -148,7 +148,7 @@ struct RayIntersector {
           uint atomID = metadata[1] + reference;
           
           // Retrieve the atom.
-          float4 atom = convertedAtoms[atomID];
+          float4 atom = float4(convertedAtoms[atomID]);
           atom.xyz += lowerCorner;
           
           // Run the intersection test.

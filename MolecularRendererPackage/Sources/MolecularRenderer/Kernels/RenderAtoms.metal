@@ -21,7 +21,7 @@ kernel void renderAtoms
  device uint4 *largeCellMetadata [[buffer(4)]],
  device uint *smallCellOffsets [[buffer(5)]],
  device ushort *smallAtomReferences [[buffer(6)]],
- device float4 *convertedAtoms [[buffer(7)]],
+ device half4 *convertedAtoms [[buffer(7)]],
  device half4 *atomMotionVectors [[buffer(8)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
@@ -64,7 +64,7 @@ kernel void renderAtoms
     hitPoint += primaryRayDirection * intersect.distance;
     
     // Add the contribution from the primary ray.
-    float4 hitAtom = convertedAtoms[intersect.atomID];
+    float4 hitAtom = float4(convertedAtoms[intersect.atomID]);
     {
       float3 lowerCorner = bvhArgs->worldMinimum;
       lowerCorner += float3(intersect.tgid) * 2;

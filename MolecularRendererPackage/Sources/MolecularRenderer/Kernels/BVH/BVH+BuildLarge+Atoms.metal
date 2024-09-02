@@ -18,6 +18,9 @@ inline float4 convert(float4 atom, constant float *elementRadii) {
   output.xyz = atom.xyz;
   output.w = radius;
   
+  // Prevent issues when converting to half precision.
+  output.xyz = rint(output.xyz * 4096) / 4096;
+  
   return output;
 }
 
@@ -179,7 +182,7 @@ kernel void buildLargePart2_2
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
- device float4 *convertedAtoms [[buffer(6)]],
+ device half4 *convertedAtoms [[buffer(6)]],
  device half4 *atomMotionVectors [[buffer(7)]],
  device uint *largeCounterMetadata [[buffer(8)]],
  uint tid [[thread_position_in_grid]],
@@ -284,10 +287,7 @@ kernel void buildLargePart2_2
           
           float4 writtenAtom = convertedAtom;
           writtenAtom.xyz -= lowerCorner;
-          writtenAtom.xyz = float3(short3(rint(writtenAtom.xyz * 1024))) / 1024;
-          writtenAtom.xyz = float3(half3(writtenAtom.xyz));
-          
-          convertedAtoms[offset] = writtenAtom;
+          convertedAtoms[offset] = half4(writtenAtom);
         }
         
         // Write the motion vector and atomic number.
