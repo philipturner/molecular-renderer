@@ -78,6 +78,6 @@ class BVHBuilder {
     
     // Data buffers (per reference).
     let smallReferenceCount = 64 * 1024 * 1024
-    smallAtomReferences = createBuffer(length: smallReferenceCount * 4)
+    smallAtomReferences = createBuffer(length: smallReferenceCount * 2)
   }
 }

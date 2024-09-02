@@ -20,7 +20,7 @@ kernel void renderAtoms
  constant half3 *elementColors [[buffer(3)]],
  device uint4 *largeCellMetadata [[buffer(4)]],
  device uint *smallCellOffsets [[buffer(5)]],
- device uint *smallAtomReferences [[buffer(6)]],
+ device ushort *smallAtomReferences [[buffer(6)]],
  device float4 *convertedAtoms [[buffer(7)]],
  device half3 *atomMotionVectors [[buffer(8)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],

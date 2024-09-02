@@ -79,15 +79,16 @@ kernel void buildSmallPart0_0
 // Dispatch over 256 threads: 710 μs + 1600 μs
 // Threadgroup atomics:       440 μs + 1200 μs
 //
-// Fusion into a single kernel:  1290 μs
-// Removing the counters buffer: 1390 μs
+// Fusion into a single kernel:    1290 μs
+// Removing the counters buffer:   1390 μs
+// Switching to 16-bit references: 1260 μs
 kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
  device float4 *convertedAtoms [[buffer(2)]],
  device uint *smallCellOffsets [[buffer(3)]],
- device uint *smallAtomReferences [[buffer(4)]],
+ device ushort *smallAtomReferences [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -298,7 +299,7 @@ kernel void buildSmallPart1_0
                                       1, memory_order_relaxed);
             
             // Write the reference to the list.
-            smallAtomReferences[offset] = largeReferenceID - metadata[1];
+            smallAtomReferences[offset] = 1 + smallAtomID;
           }
         }
       }

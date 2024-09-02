@@ -47,10 +47,8 @@ struct RayIntersector {
   constant BVHArguments *bvhArgs;
   device uint4 *largeCellMetadata;
   device uint *smallCellOffsets;
-  device uint *smallAtomReferences;
+  device ushort *smallAtomReferences;
   device float4 *convertedAtoms;
-  
-  
   
   __attribute__((__always_inline__))
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
@@ -142,7 +140,7 @@ struct RayIntersector {
         while (true) {
           // Locate the atom.
           uint referenceID = smallReferenceOffset + i;
-          uint reference = smallAtomReferences[referenceID];
+          ushort reference = smallAtomReferences[referenceID];
           if (reference == 0) {
             break;
           }
