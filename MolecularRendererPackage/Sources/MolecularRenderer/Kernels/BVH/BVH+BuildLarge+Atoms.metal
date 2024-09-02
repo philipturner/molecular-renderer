@@ -71,25 +71,28 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 // Before: 126 μs
 kernel void buildLargePart1_1
 (
- constant float *elementRadii [[buffer(0)]],
- device float4 *originalAtoms [[buffer(1)]],
- device ushort4 *relativeOffsets1 [[buffer(2)]],
- device ushort4 *relativeOffsets2 [[buffer(3)]],
- device atomic_uint *largeCounterMetadata [[buffer(4)]],
+ constant bool *useAtomMotionVectors [[buffer(0)]],
+ constant float *elementRadii [[buffer(1)]],
+ device float4 *previousAtoms [[buffer(2)]],
+ device float4 *currentAtoms [[buffer(3)]],
+ device ushort4 *relativeOffsets1 [[buffer(4)]],
+ device ushort4 *relativeOffsets2 [[buffer(5)]],
+ device atomic_uint *largeCounterMetadata [[buffer(6)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
-  float4 atom = originalAtoms[tid];
-  atom = convert(atom, elementRadii);
+  float4 convertedAtom = currentAtoms[tid];
+  convertedAtom = convert(convertedAtom, elementRadii);
   
   // Place the atom in the grid of small cells.
-  atom.xyz = 4 * (atom.xyz + 64);
-  atom.w = 4 * atom.w;
+  float4 transformedAtom;
+  transformedAtom.xyz = 4 * (convertedAtom.xyz + 64);
+  transformedAtom.w = 4 * convertedAtom.w;
   
   // Generate the bounding box.
-  short3 boxMin = short3(floor(atom.xyz - atom.w));
-  short3 boxMax = short3(ceil(atom.xyz + atom.w));
+  short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
+  short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
   ushort3 gridDims = ushort3(512);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);
@@ -206,13 +209,13 @@ kernel void buildLargePart2_2
   motionVector.w = as_type<half>(atomicNumber);
   
   // Place the atom in the grid of small cells.
-  float4 tranformedAtom;
-  tranformedAtom.xyz = 4 * (convertedAtom.xyz + 64);
-  tranformedAtom.w = 4 * convertedAtom.w;
+  float4 transformedAtom;
+  transformedAtom.xyz = 4 * (convertedAtom.xyz + 64);
+  transformedAtom.w = 4 * convertedAtom.w;
   
   // Generate the bounding box.
-  short3 boxMin = short3(floor(tranformedAtom.xyz - tranformedAtom.w));
-  short3 boxMax = short3(ceil(tranformedAtom.xyz + tranformedAtom.w));
+  short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
+  short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
   ushort3 gridDims = ushort3(512);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);

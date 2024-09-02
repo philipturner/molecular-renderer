@@ -77,91 +77,6 @@ extension BVHBuilder {
   }
 }
 
-// MARK: - Atoms
-
-extension BVHBuilder {
-  func buildLargePart0_0() {
-    // Destination
-    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-    let destinationBuffer = originalAtoms[tripleIndex]
-    let destinationPointer = destinationBuffer.contents()
-    
-    // Source
-    let sourceArray = renderer.argumentContainer.currentAtoms
-    
-    // Number of Bytes
-    let atomCount = sourceArray.count
-    let byteCount = atomCount * 16
-    
-    // Function Call
-    memcpy(
-      /*__dst*/ destinationPointer,
-      /*__src*/ sourceArray,
-      /*__n*/   byteCount)
-  }
-  
-  func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
-    bindElementRadii(encoder: encoder, index: 0)
-    bindOriginalAtoms(encoder: encoder, index: 1)
-    
-    do {
-      let offset1 = 0
-      let offset2 = relativeOffsets.length / 2
-      encoder.setBuffer(relativeOffsets, offset: offset1, index: 2)
-      encoder.setBuffer(relativeOffsets, offset: offset2, index: 3)
-    }
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 4)
-    
-    // Dispatch
-    do {
-      let pipeline = buildLargePipelines.buildLargePart1_1
-      encoder.setComputePipelineState(pipeline)
-      
-      let sourceArray = renderer.argumentContainer.currentAtoms
-      encoder.dispatchThreads(
-        MTLSize(width: sourceArray.count, height: 1, depth: 1),
-        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-    }
-  }
-  
-  func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
-    var useAtomMotionVectors = renderer.argumentContainer.useAtomMotionVectors
-    encoder.setBytes(&useAtomMotionVectors, length: 1, index: 0)
-    bindElementRadii(encoder: encoder, index: 1)
-    
-    do {
-      let currentIndex = renderer.argumentContainer.tripleBufferIndex()
-      let previousIndex = (currentIndex + 3 - 1) % 3
-      let previousAtoms = originalAtoms[previousIndex]
-      let currentAtoms = originalAtoms[currentIndex]
-      encoder.setBuffer(previousAtoms, offset: 0, index: 2)
-      encoder.setBuffer(currentAtoms, offset: 0, index: 3)
-    }
-    
-    do {
-      let offset1 = 0
-      let offset2 = relativeOffsets.length / 2
-      encoder.setBuffer(relativeOffsets, offset: offset1, index: 4)
-      encoder.setBuffer(relativeOffsets, offset: offset2, index: 5)
-    }
-    
-    encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
-    encoder.setBuffer(atomMotionVectors, offset: 0, index: 7)
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
-    
-    // Dispatch
-    do {
-      let pipeline = buildLargePipelines.buildLargePart2_2
-      encoder.setComputePipelineState(pipeline)
-      
-      let sourceArray = renderer.argumentContainer.currentAtoms
-      encoder.dispatchThreads(
-        MTLSize(width: sourceArray.count, height: 1, depth: 1),
-        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-    }
-  }
-}
-
 // MARK: - Cells
   
 extension BVHBuilder {
@@ -218,16 +133,93 @@ extension BVHBuilder {
   }
 }
 
+// MARK: - Atoms
+
 extension BVHBuilder {
-  fileprivate func bindElementRadii(encoder: MTLComputeCommandEncoder, index: Int) {
-    let elementRadii = renderer.argumentContainer.elementRadii
-    let byteCount = elementRadii.count * 4
-    encoder.setBytes(elementRadii, length: byteCount, index: index)
+  func buildLargePart0_0() {
+    // Destination
+    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
+    let destinationBuffer = originalAtoms[tripleIndex]
+    let destinationPointer = destinationBuffer.contents()
+    
+    // Source
+    let sourceArray = renderer.argumentContainer.currentAtoms
+    
+    // Number of Bytes
+    let atomCount = sourceArray.count
+    let byteCount = atomCount * 16
+    
+    // Function Call
+    memcpy(
+      /*__dst*/ destinationPointer,
+      /*__src*/ sourceArray,
+      /*__n*/   byteCount)
   }
   
-  fileprivate func bindOriginalAtoms(encoder: MTLComputeCommandEncoder, index: Int) {
-    let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
-    let buffer = originalAtoms[tripleIndex]
-    encoder.setBuffer(buffer, offset: 0, index: index)
+  func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
+    bindAtomArguments(encoder: encoder)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 6)
+    
+    // Dispatch
+    do {
+      let pipeline = buildLargePipelines.buildLargePart1_1
+      encoder.setComputePipelineState(pipeline)
+      
+      let sourceArray = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: sourceArray.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
+  }
+  
+  func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
+    bindAtomArguments(encoder: encoder)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
+    encoder.setBuffer(atomMotionVectors, offset: 0, index: 7)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
+    
+    // Dispatch
+    do {
+      let pipeline = buildLargePipelines.buildLargePart2_2
+      encoder.setComputePipelineState(pipeline)
+      
+      let sourceArray = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: sourceArray.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
+  }
+  
+  func bindAtomArguments(encoder: MTLComputeCommandEncoder) {
+    // Argument 0
+    do {
+      var flag = renderer.argumentContainer.useAtomMotionVectors
+      encoder.setBytes(&flag, length: 1, index: 0)
+    }
+    
+    // Argument 1
+    do {
+      let elementRadii = renderer.argumentContainer.elementRadii
+      let byteCount = elementRadii.count * 4
+      encoder.setBytes(elementRadii, length: byteCount, index: 1)
+    }
+    
+    // Arguments 2 - 3
+    do {
+      let currentIndex = renderer.argumentContainer.tripleBufferIndex()
+      let previousIndex = (currentIndex + 3 - 1) % 3
+      let previousAtoms = originalAtoms[previousIndex]
+      let currentAtoms = originalAtoms[currentIndex]
+      encoder.setBuffer(previousAtoms, offset: 0, index: 2)
+      encoder.setBuffer(currentAtoms, offset: 0, index: 3)
+    }
+    
+    // Arguments 4 - 5
+    do {
+      let offset1 = 0
+      let offset2 = relativeOffsets.length / 2
+      encoder.setBuffer(relativeOffsets, offset: offset1, index: 4)
+      encoder.setBuffer(relativeOffsets, offset: offset2, index: 5)
+    }
   }
 }
