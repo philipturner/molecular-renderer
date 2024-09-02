@@ -120,12 +120,25 @@ import Numerics
 //   - Change the "return early" clause during the kernel over large cells, so
 //     it reads from the marks. [DONE]
 // - Rearrange the cell metadata.
+//   - Merge the atom count with the small-cell offset.
+//     - Make the small-cell ref. offsets relative to their corresponding
+//       large-cell offset.
+//       - Add/subtract one to start off.
+//       - Fuse the offset with the count, in a 32-bit word.
+//       - Remove the addition/subtraction of one, as the count now
+//         indicates whether the small voxel is occupied.
+//       - Remove the guard from the ray tracing loop.
+//     - Remove null termination from the reference list.
+//     - Remove null termination from as many other places as possible.
 //   - Write the small cells' metadata at the compacted large voxel offsets,
 //     in Morton order.
-//   - Bind this buffer to the render kernel.
-//     - Read from the compacted buffer.
-//     - Remove buffer bindings for the dense allocation.
+//   - Switch to reading compacted data.
+//     - Bind the compacted metadata to the render kernel.
+//     - Fetch the large voxel's metadata during DDA traversal.
+//     - Read from an offset specified with large voxel metadata.
 //   - Delete the dense small-cell metadata.
+//     - Remove the buffer bindings from the render kernel.
+//     - Stop writing to it in the fused kernel.
 //   - Change the indirect dispatch for the fused kernel, so threadgroups
 //     are only launched for occupied voxels.
 //     - Add a buffer of threadgroup IDs for occupied large voxels.
