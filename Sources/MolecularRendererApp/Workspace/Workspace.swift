@@ -132,12 +132,20 @@ import Numerics
 //     - Make the dispatch 1D instead of 3D.
 //
 // Implementing sparse ray tracing.
+// - Refactor the DDA, making it easier to modify.
 // - Remove the dependency on the global bounding box.
 //   - Set the global bounding box to [-64, 64], overriding the reduced value.
 //   - Ensure rendering still happens with reasonable performance.
 //   - Hard-code [-64, 64] throughout the code base.
 //   - Eliminate the bounding box reduction and related allocations.
-// - Start with a highly divergent, extremely costly two-level DDA.
+// - Start with a very expensive two-level DDA.
+//   - Don't make any attempts to fix divergence.
+//   - Reinitialize the small DDA upon entry to each large voxel.
+// - Rearrange the loop.
+//   - Two DDAs are still held in registers.
+//   - The divergence issue is fixed, but now any small loop iteration may
+//     suffer the cost of reinitializing a large DDA.
+// - Minimize the compute cost of jumping between large voxels.
 
 #if true
 
