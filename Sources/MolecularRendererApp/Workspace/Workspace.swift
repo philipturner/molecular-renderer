@@ -130,6 +130,14 @@ import Numerics
 //       - Remove the guard from the ray tracing loop. [DONE]
 //     - Remove null termination from the reference list.
 //     - Remove null termination from as many other places as possible.
+//   - Test the optimization to sphere-cell tests before making more changes
+//     that will affect performance.
+//     - Take five samples of the existing kernel's performance in Google
+//       Sheets. Record the following for each sample:
+//       - Instructions issued
+//       - Latency
+//       - Divergence
+//       - Line-by-line % for the sphere-cell test part.
 //   - Write the small cells' metadata at the compacted large voxel offsets,
 //     in Morton order.
 //   - Switch to reading compacted data.
@@ -241,26 +249,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
