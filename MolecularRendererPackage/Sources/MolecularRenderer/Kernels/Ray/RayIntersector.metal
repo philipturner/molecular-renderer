@@ -48,7 +48,7 @@ struct IntersectionQuery {
 struct RayIntersector {
   constant BVHArguments *bvhArgs;
   device uint4 *largeCellMetadata;
-  device uint *smallCellOffsets;
+  device ushort2 *smallCellMetadata;
   device ushort *smallAtomReferences;
   device half4 *convertedAtoms;
   
@@ -68,7 +68,7 @@ struct RayIntersector {
     ushort3 progress = ushort3(0);
     while (!result.accept) {
       float voxelMaximumTime;
-      uint readOffset;
+      ushort2 smallMetadata;
       ushort3 tgid;
       
       // Search for the next occupied voxel.
@@ -80,7 +80,7 @@ struct RayIntersector {
           uint address = VoxelAddress::generate(gridDims, cellCoordinates);
           
           voxelMaximumTime = dda.voxelMaximumTime(progress);
-          readOffset = smallCellOffsets[address];
+          smallMetadata = smallCellMetadata[address];
           tgid = cellCoordinates / 8;
         }
         
@@ -94,7 +94,7 @@ struct RayIntersector {
         if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
           break;
         }
-        if (readOffset > 0) {
+        if (smallMetadata[1] > 0) {
           break;
         }
       }
@@ -108,40 +108,37 @@ struct RayIntersector {
       }
       
       // Don't let empty voxels affect the result.
-      if (readOffset == 0) {
+      if (smallMetadata[1] == 0) {
         continue;
       }
+      
+      // Set the distance register to the maximum hit time.
+      result.distance = dda.maximumHitTime(voxelMaximumTime);
       
       // Retrieve the large voxel's lower corner.
       float3 lowerCorner = bvhArgs->worldMinimum;
       lowerCorner += float3(tgid) * 2;
       
       // Retrieve the large voxel's metadata.
-      uint4 metadata;
+      uint4 largeMetadata;
       {
         ushort3 cellCoordinates = ushort3(lowerCorner + 64);
         cellCoordinates /= 2;
         ushort3 gridDims = ushort3(64);
         uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-        metadata = largeCellMetadata[address];
+        largeMetadata = largeCellMetadata[address];
       }
       
-      // Set the distance register to the maximum hit time.
-      result.distance = dda.maximumHitTime(voxelMaximumTime);
-      
-      // Manually specifying the loop structure, to prevent the compiler
-      // from unrolling it.
-      ushort i = 0;
-      while (true) {
+      // Iterate over the atoms in this voxel.
+      uint referenceCursor = largeMetadata[2] + smallMetadata[0];
+      uint referenceEnd = referenceCursor + smallMetadata[1];
+      while (referenceCursor < referenceEnd) {
         // Locate the atom.
-        uint referenceID = readOffset + i;
-        ushort reference = smallAtomReferences[referenceID];
-        if (reference == 0) {
-          break;
-        }
+        ushort reference = smallAtomReferences[referenceCursor];
+        referenceCursor += 1;
         
         // Retrieve the atom.
-        uint atomID = metadata[1] + reference;
+        uint atomID = largeMetadata[1] + reference;
         float4 atom = float4(convertedAtoms[atomID]);
         atom.xyz += lowerCorner;
         
@@ -161,13 +158,6 @@ struct RayIntersector {
               result.distance = distance;
             }
           }
-        }
-        
-        // Prevent corrupted memory from causing an infinite loop. We'll
-        // revisit this later, as the check probably harms performance.
-        i += 1;
-        if (i >= 64) {
-          break;
         }
       }
       

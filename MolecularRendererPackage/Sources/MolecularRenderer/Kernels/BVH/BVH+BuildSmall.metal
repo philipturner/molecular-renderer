@@ -125,7 +125,7 @@ kernel void buildSmallPart1_0
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
  device half4 *convertedAtoms [[buffer(2)]],
- device uint *smallCellOffsets [[buffer(3)]],
+ device ushort2 *smallCellMetadata [[buffer(3)]],
  device ushort *smallAtomReferences [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -374,18 +374,19 @@ kernel void buildSmallPart1_0
         smallAtomReferences[allocationEnd] = 0;
       }
       
-      uint writtenOffset;
+      ushort2 output;
       if (atomCount > 0) {
         // Make the offset relative to the large voxel's base address.
-        writtenOffset = allocationStart;
+        output[0] = allocationStart - metadata[2];
+        output[1] = allocationEnd - allocationStart;
       } else {
         // Flag this voxel as empty.
-        writtenOffset = 0;
+        output = 0;
       }
       
       // Write the cell metadata.
       uint globalAddress = baseDeviceAddress + laneID;
-      smallCellOffsets[globalAddress] = writtenOffset;
+      smallCellMetadata[globalAddress] = output;
     }
   }
 }

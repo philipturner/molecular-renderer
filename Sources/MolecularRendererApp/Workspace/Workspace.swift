@@ -122,12 +122,12 @@ import Numerics
 // - Rearrange the cell metadata.
 //   - Merge the atom count with the small-cell offset.
 //     - Make the small-cell ref. offsets relative to their corresponding
-//       large-cell offset.
-//       - Add/subtract one to start off.
-//       - Fuse the offset with the count, in a 32-bit word.
+//       large-cell offset. [DONE]
+//       - Add/subtract one to start off. [DONE]
+//       - Fuse the offset with the count, in a 32-bit word. [DONE]
 //       - Remove the addition/subtraction of one, as the count now
-//         indicates whether the small voxel is occupied.
-//       - Remove the guard from the ray tracing loop.
+//         indicates whether the small voxel is occupied. [DONE]
+//       - Remove the guard from the ray tracing loop. [DONE]
 //     - Remove null termination from the reference list.
 //     - Remove null termination from as many other places as possible.
 //   - Write the small cells' metadata at the compacted large voxel offsets,
@@ -241,26 +241,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

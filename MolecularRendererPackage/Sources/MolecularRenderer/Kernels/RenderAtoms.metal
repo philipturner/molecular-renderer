@@ -19,7 +19,7 @@ kernel void renderAtoms
  constant BVHArguments *bvhArgs [[buffer(2)]],
  constant half3 *elementColors [[buffer(3)]],
  device uint4 *largeCellMetadata [[buffer(4)]],
- device uint *smallCellOffsets [[buffer(5)]],
+ device ushort2 *smallCellMetadata [[buffer(5)]],
  device ushort *smallAtomReferences [[buffer(6)]],
  device half4 *convertedAtoms [[buffer(7)]],
  device half4 *atomMotionVectors [[buffer(8)]],
@@ -39,7 +39,7 @@ kernel void renderAtoms
   RayIntersector rayIntersector;
   rayIntersector.bvhArgs = bvhArgs;
   rayIntersector.largeCellMetadata = largeCellMetadata;
-  rayIntersector.smallCellOffsets = smallCellOffsets;
+  rayIntersector.smallCellMetadata = smallCellMetadata;
   rayIntersector.smallAtomReferences = smallAtomReferences;
   rayIntersector.convertedAtoms = convertedAtoms;
   
