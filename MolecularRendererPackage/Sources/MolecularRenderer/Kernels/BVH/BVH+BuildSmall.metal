@@ -10,52 +10,10 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-inline ushort3 clamp(float3 position, ushort3 gridDims) {
-  short3 output = short3(position);
-  output = clamp(output, 0, short3(gridDims));
-  return ushort3(output);
-}
-
-inline ushort pickPermutation(ushort3 footprint) {
-  ushort output;
-  if (footprint[0] < footprint[1] && footprint[0] < footprint[2]) {
-    output = 0;
-  } else if (footprint[1] < footprint[2]) {
-    output = 1;
-  } else {
-    output = 2;
-  }
-  return output;
-}
-
-inline ushort3 reorderForward(ushort3 loopBound, ushort permutationID) {
-  ushort3 output;
-  if (permutationID == 0) {
-    output = ushort3(loopBound[1], loopBound[2], loopBound[0]);
-  } else if (permutationID == 1) {
-    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
-  } else {
-    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
-  }
-  return output;
-}
-
-inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
-  ushort3 output;
-  if (permutationID == 0) {
-    output = ushort3(loopBound[2], loopBound[0], loopBound[1]);
-  } else if (permutationID == 1) {
-    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
-  } else {
-    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
-  }
-  return output;
-}
-
 // Test whether an atom overlaps a 1x1x1 cube.
-inline bool cubeSphereIntersection(ushort3 cube_min, float4 atom)
+inline bool cubeSphereIntersection(float3 cube_min, float4 atom)
 {
-  float3 c1 = float3(cube_min);
+  float3 c1 = cube_min;
   float3 c2 = c1 + 1;
   float3 delta_c1 = atom.xyz - c1;
   float3 delta_c2 = atom.xyz - c2;
@@ -180,24 +138,23 @@ kernel void buildSmallPart1_0
         float3 smallVoxelMax = atom.xyz + atom.w;
         smallVoxelMin = max(smallVoxelMin, lowerCorner);
         smallVoxelMax = min(smallVoxelMax, lowerCorner + 2);
-        smallVoxelMin = 4 * (smallVoxelMin - bvhArgs->worldMinimum);
-        smallVoxelMax = 4 * (smallVoxelMax - bvhArgs->worldMinimum);
+        smallVoxelMin = 4 * (smallVoxelMin - lowerCorner);
+        smallVoxelMax = 4 * (smallVoxelMax - lowerCorner);
         smallVoxelMin = floor(smallVoxelMin);
         smallVoxelMax = ceil(smallVoxelMax);
         
-        ushort3 gridDims = bvhArgs->smallVoxelCount;
-        loopStart = clamp(smallVoxelMin, gridDims);
-        loopEnd = clamp(smallVoxelMax, gridDims);
+        loopStart = ushort3(smallVoxelMin);
+        loopEnd = ushort3(smallVoxelMax);
       }
       
       // Iterate over the footprint on the 3D grid.
       for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
         for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
           for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
-            ushort3 actualXYZ = ushort3(x, y, z);
+            ushort3 xyz = ushort3(x, y, z);
             
             // Generate the address.
-            ushort3 cellCoordinates = actualXYZ - tgid * 8;
+            ushort3 cellCoordinates = xyz;
             ushort address = VoxelAddress::generate(8, cellCoordinates);
             
             // Perform the atomic fetch-add.
@@ -288,40 +245,33 @@ kernel void buildSmallPart1_0
         float3 smallVoxelMax = atom.xyz + atom.w;
         smallVoxelMin = max(smallVoxelMin, lowerCorner);
         smallVoxelMax = min(smallVoxelMax, lowerCorner + 2);
-        smallVoxelMin = 4 * (smallVoxelMin - bvhArgs->worldMinimum);
-        smallVoxelMax = 4 * (smallVoxelMax - bvhArgs->worldMinimum);
+        smallVoxelMin = 4 * (smallVoxelMin - lowerCorner);
+        smallVoxelMax = 4 * (smallVoxelMax - lowerCorner);
         smallVoxelMin = floor(smallVoxelMin);
         smallVoxelMax = ceil(smallVoxelMax);
         
-        ushort3 gridDims = bvhArgs->smallVoxelCount;
-        loopStart = clamp(smallVoxelMin, gridDims);
-        loopEnd = clamp(smallVoxelMax, gridDims);
+        loopStart = ushort3(smallVoxelMin);
+        loopEnd = ushort3(smallVoxelMax);
       }
       
       // Place the atom in the grid of small cells.
-      atom.xyz = 4 * (atom.xyz - bvhArgs->worldMinimum);
+      atom.xyz = 4 * (atom.xyz - lowerCorner);
       atom.w = 4 * atom.w;
-      
-      // Reorder the loop traversal.
-      ushort permutationID = pickPermutation(loopEnd - loopStart);
-      loopStart = reorderForward(loopStart, permutationID);
-      loopEnd = reorderForward(loopEnd, permutationID);
       
       // Iterate over the footprint on the 3D grid.
       for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
         for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
           for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
-            ushort3 actualXYZ = ushort3(x, y, z);
-            actualXYZ = reorderBackward(actualXYZ, permutationID);
+            float3 xyz = float3(ushort3(x, y, z));
             
             // Narrow down the cells with a cube-sphere intersection test.
-            bool intersected = cubeSphereIntersection(actualXYZ, atom);
+            bool intersected = cubeSphereIntersection(xyz, atom);
             if (!intersected) {
               continue;
             }
             
             // Generate the address.
-            ushort3 cellCoordinates = actualXYZ - tgid * 8;
+            ushort3 cellCoordinates = ushort3(xyz);
             ushort address = VoxelAddress::generate(8, cellCoordinates);
             
             // Perform the atomic fetch-add.
