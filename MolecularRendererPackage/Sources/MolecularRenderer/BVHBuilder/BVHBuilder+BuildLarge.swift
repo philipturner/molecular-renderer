@@ -101,11 +101,9 @@ extension BVHBuilder {
   }
   
   func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
     bindElementRadii(encoder: encoder, index: 0)
     bindOriginalAtoms(encoder: encoder, index: 1)
     
-    // Arguments 2 - 4
     do {
       let offset1 = 0
       let offset2 = relativeOffsets.length / 2
@@ -127,12 +125,10 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
     var useAtomMotionVectors = renderer.argumentContainer.useAtomMotionVectors
     encoder.setBytes(&useAtomMotionVectors, length: 1, index: 0)
     bindElementRadii(encoder: encoder, index: 1)
     
-    // Arguments 2 - 3
     do {
       let currentIndex = renderer.argumentContainer.tripleBufferIndex()
       let previousIndex = (currentIndex + 3 - 1) % 3
@@ -142,7 +138,6 @@ extension BVHBuilder {
       encoder.setBuffer(currentAtoms, offset: 0, index: 3)
     }
     
-    // Arguments 4 - 5
     do {
       let offset1 = 0
       let offset2 = relativeOffsets.length / 2
@@ -150,7 +145,6 @@ extension BVHBuilder {
       encoder.setBuffer(relativeOffsets, offset: offset2, index: 5)
     }
     
-    // Arguments 6 - 9
     encoder.setBuffer(convertedAtoms, offset: 0, index: 6)
     encoder.setBuffer(atomMotionVectors, offset: 0, index: 7)
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 8)
@@ -172,8 +166,8 @@ extension BVHBuilder {
   
 extension BVHBuilder {
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 0)
+    encoder.setBuffer(largeCellGroupMarks, offset: 0, index: 1)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart1_0
@@ -184,7 +178,6 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
     do {
       let allocatedMemory = 0
       let boundingBoxMin = 16
@@ -203,7 +196,6 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
     do {
       let allocatedMemory = 0
       let boundingBoxMin = 16
@@ -213,9 +205,9 @@ extension BVHBuilder {
       encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
     }
     
-    // Arguments 3 - 4
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 3)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 4)
+    encoder.setBuffer(largeCellGroupMarks, offset: 0, index: 4)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 5)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_1

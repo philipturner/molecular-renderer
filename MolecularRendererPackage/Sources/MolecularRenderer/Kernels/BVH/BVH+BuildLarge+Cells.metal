@@ -13,18 +13,32 @@ using namespace metal;
 kernel void buildLargePart1_0
 (
  device vec<uint, 8> *largeCounterMetadata [[buffer(0)]],
+ device uchar *largeCellGroupMarks [[buffer(1)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
-  // Locate the counter metadata.
-  ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * 4;
-  ushort3 gridDims = ushort3(64);
-  uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  {
+    // Locate the counter metadata.
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
+    ushort3 gridDims = ushort3(64);
+    uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+    
+    // Write the counter metadata.
+    vec<uint, 8> resetValue = vec<uint, 8>(0);
+    largeCounterMetadata[cellAddress] = resetValue;
+  }
   
-  // Write the counter metadata.
-  vec<uint, 8> resetValue = vec<uint, 8>(0);
-  largeCounterMetadata[cellAddress] = resetValue;
+  {
+    // Locate the cell-group mark.
+    ushort3 cellCoordinates = tgid;
+    ushort3 gridDims = ushort3(16);
+    uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+    
+    // Write the cell-group mark.
+    uchar resetValue = uchar(1);
+    largeCellGroupMarks[cellAddress] = resetValue;
+  }
 }
 
 kernel void buildLargePart2_0
@@ -72,7 +86,8 @@ kernel void buildLargePart2_1
  device atomic_int *boundingBoxMin [[buffer(1)]],
  device atomic_int *boundingBoxMax [[buffer(2)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(3)]],
- device uint4 *largeCellMetadata [[buffer(4)]],
+ device uchar *largeCellGroupMarks [[buffer(4)]],
+ device uint4 *largeCellMetadata [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -83,6 +98,21 @@ kernel void buildLargePart2_1
   cellCoordinates += tgid * 4;
   ushort3 gridDims = ushort3(64);
   uint cellAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+  
+  // Return early clause.
+  {
+    // Locate the cell-group mark.
+    ushort3 cellCoordinates = tgid;
+    ushort3 gridDims = ushort3(16);
+    uint cellGroupAddress = VoxelAddress::generate(gridDims, cellCoordinates);
+    
+    // Read the cell-group mark.
+    uchar cellGroupMark = largeCellGroupMarks[cellGroupAddress];
+    if (cellGroupMark == 0) {
+      largeCellMetadata[cellAddress] = uint4(0);
+      return;
+    }
+  }
   
   // Read the counter metadata.
   vec<uint, 8> counterCounts = largeCounterMetadata[cellAddress];
@@ -117,10 +147,6 @@ kernel void buildLargePart2_1
   // Reduce the counts across the SIMD.
   uint3 threadOffsets = simd_prefix_exclusive_sum(threadCounts);
   uint3 simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
-  if (simdCounts[0] == 0) {
-    largeCellMetadata[cellAddress] = uint4(0);
-    return;
-  }
   
   // Reduce the bounding box across the SIMD.
   int3 threadBoxMin;
