@@ -52,11 +52,11 @@ struct RayIntersector {
   device half4 *convertedAtoms;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
-    bool continueLoop;
+    bool executeFutureIteration;
     const DDA dda(intersectionQuery.rayOrigin,
                   intersectionQuery.rayDirection,
                   bvhArgs,
-                  &continueLoop);
+                  &executeFutureIteration);
     ushort3 progress = ushort3(0);
     
     IntersectionResult result;
@@ -64,10 +64,11 @@ struct RayIntersector {
     result.atomID = 0;
     result.distance = 1e38;
     
-    while (continueLoop) {
-      // Search for the next occupied voxel.
+    while (executeFutureIteration) {
       float voxelMaximumTime;
       ushort3 smallCellCoordinates;
+      
+      // Search for the next occupied voxel.
       while (true) {
         // Save the state for the current counter.
         {
@@ -82,43 +83,50 @@ struct RayIntersector {
         // Break out of the inner loop, if the next cell will be out of bounds.
         {
           ushort3 gridDims = bvhArgs->smallVoxelCount;
-          continueLoop = dda.continueLoop(progress, gridDims);
+          executeFutureIteration = dda.continueLoop(progress, gridDims);
         }
         
         // Return if out of range.
         float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
         if (intersectionQuery.exceededAOTime(maximumHitTime)) {
-          continueLoop = false;
+          break;
         }
         
-        // Break out of the inner loop, if there are atoms to test.
-        uint smallReferenceOffset;
+        // Materialize the small-cell offset.
+        uint readOffset;
         {
           ushort3 cellCoordinates = smallCellCoordinates;
           ushort3 gridDims = bvhArgs->smallVoxelCount;
           uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-          smallReferenceOffset = smallCellOffsets[address];
+          readOffset = smallCellOffsets[address];
         }
-        if (smallReferenceOffset > 0 || !continueLoop) {
+        
+        // Break out of the loop.
+        if (readOffset > 0 || !executeFutureIteration) {
           break;
         }
       }
       
-      // Return if out of range.
+      // Return early if out of range.
       float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
       if (intersectionQuery.exceededAOTime(maximumHitTime)) {
-        continueLoop = false;
+        executeFutureIteration = false;
+        continue;
+      }
+      
+      // Materialize the small-cell offset.
+      uint readOffset;
+      {
+        ushort3 cellCoordinates = smallCellCoordinates;
+        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+        readOffset = smallCellOffsets[address];
+      }
+      
+      if (readOffset == 0) {
+        // Don't do anything if the voxel has no contents.
       } else {
         result.distance = maximumHitTime;
-        
-        // Retrieve the small voxel's metadata.
-        uint smallReferenceOffset;
-        {
-          ushort3 cellCoordinates = smallCellCoordinates;
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-          smallReferenceOffset = smallCellOffsets[address];
-        }
         
         // Retrieve the large voxel's lower corner.
         ushort3 tgid = smallCellCoordinates / 8;
@@ -140,7 +148,7 @@ struct RayIntersector {
         ushort i = 0;
         while (true) {
           // Locate the atom.
-          uint referenceID = smallReferenceOffset + i;
+          uint referenceID = readOffset + i;
           ushort reference = smallAtomReferences[referenceID];
           if (reference == 0) {
             break;
@@ -177,9 +185,11 @@ struct RayIntersector {
             break;
           }
         }
+        
+        // Return if we found a hit.
         if (result.distance < maximumHitTime) {
           result.accept = true;
-          continueLoop = false;
+          executeFutureIteration = false;
         }
       }
     }

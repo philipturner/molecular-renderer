@@ -374,14 +374,18 @@ kernel void buildSmallPart1_0
         smallAtomReferences[allocationEnd] = 0;
       }
       
-      // Flag this voxel as empty.
-      if (atomCount == 0) {
-        allocationStart = 0;
+      uint writtenOffset;
+      if (atomCount > 0) {
+        // Make the offset relative to the large voxel's base address.
+        writtenOffset = allocationStart;
+      } else {
+        // Flag this voxel as empty.
+        writtenOffset = 0;
       }
       
       // Write the cell metadata.
       uint globalAddress = baseDeviceAddress + laneID;
-      smallCellOffsets[globalAddress] = allocationStart;
+      smallCellOffsets[globalAddress] = writtenOffset;
     }
   }
 }
