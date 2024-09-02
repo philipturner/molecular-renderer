@@ -62,148 +62,119 @@ struct RayIntersector {
     
     IntersectionResult result;
     result.accept = false;
-    result.atomID = 0;
-    result.distance = 1e38;
     
-    while (executeFutureIteration) {
+    while (!result.accept) {
       float voxelMaximumTime;
-      ushort3 smallCellCoordinates;
+      uint readOffset;
+      ushort3 tgid;
       
       // Search for the next occupied voxel.
       while (true) {
         // Save the state for the current counter.
         {
           ushort3 gridDims = bvhArgs->smallVoxelCount;
-          smallCellCoordinates = dda.cellCoordinates(progress, gridDims);
+          ushort3 cellCoordinates = dda.cellCoordinates(progress, gridDims);
+          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
+          
           voxelMaximumTime = dda.voxelMaximumTime(progress);
+          readOffset = smallCellOffsets[address];
+          tgid = cellCoordinates / 8;
         }
         
-        // Change the counter to a different value.
+        // Increment the counter.
         progress = dda.increment(progress);
         
-        // Break out of the inner loop, if the next cell will be out of bounds.
-        {
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          executeFutureIteration = dda.continueLoop(progress, gridDims);
+        // Exit the inner loop.
+        if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
+          break;
         }
-        
-        // Return if out of range.
         if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
           break;
         }
-        
-        // Materialize the small-cell offset.
-        uint readOffset;
-        {
-          ushort3 cellCoordinates = smallCellCoordinates;
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-          readOffset = smallCellOffsets[address];
-        }
-        
-        // Break out of the loop.
-        ushort3 gridDims = bvhArgs->smallVoxelCount;
-        if (readOffset > 0 || !dda.continueLoop(progress, gridDims)) {
+        if (readOffset > 0) {
           break;
         }
       }
       
-      // Return early if out of range.
+      // Exit the outer loop.
+      if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
+        break;
+      }
       if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
-        executeFutureIteration = false;
+        break;
+      }
+      
+      // Don't let empty voxels affect the result.
+      if (readOffset == 0) {
         continue;
       }
       
-      // Materialize the small-cell offset.
-      uint readOffset;
+      // Retrieve the large voxel's lower corner.
+      float3 lowerCorner = bvhArgs->worldMinimum;
+      lowerCorner += float3(tgid) * 2;
+      
+      // Retrieve the large voxel's metadata.
+      uint4 metadata;
       {
-        ushort3 cellCoordinates = smallCellCoordinates;
-        ushort3 gridDims = bvhArgs->smallVoxelCount;
+        ushort3 cellCoordinates = ushort3(lowerCorner + 64);
+        cellCoordinates /= 2;
+        ushort3 gridDims = ushort3(64);
         uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-        readOffset = smallCellOffsets[address];
+        metadata = largeCellMetadata[address];
       }
       
-      // Break out of the loop.
-      ushort3 gridDims = bvhArgs->smallVoxelCount;
-      if (readOffset == 0 || !dda.continueLoop(progress, gridDims)) {
-        executeFutureIteration = false;
-        continue;
-      }
+      // Set the distance register to the maximum hit time.
+      result.distance = dda.maximumHitTime(voxelMaximumTime);
       
-      // Run the intersection test.
-      {
-        result.distance = dda.maximumHitTime(voxelMaximumTime);
-        
-        // Retrieve the large voxel's lower corner.
-        ushort3 tgid = smallCellCoordinates / 8;
-        float3 lowerCorner = bvhArgs->worldMinimum;
-        lowerCorner += float3(tgid) * 2;
-        
-        // Retrieve the large voxel's metadata.
-        uint4 metadata;
-        {
-          ushort3 cellCoordinates = ushort3(lowerCorner + 64);
-          cellCoordinates /= 2;
-          ushort3 gridDims = ushort3(64);
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-          metadata = largeCellMetadata[address];
+      // Manually specifying the loop structure, to prevent the compiler
+      // from unrolling it.
+      ushort i = 0;
+      while (true) {
+        // Locate the atom.
+        uint referenceID = readOffset + i;
+        ushort reference = smallAtomReferences[referenceID];
+        if (reference == 0) {
+          break;
         }
         
-        // Manually specifying the loop structure, to prevent the compiler
-        // from unrolling it.
-        ushort i = 0;
-        while (true) {
-          // Locate the atom.
-          uint referenceID = readOffset + i;
-          ushort reference = smallAtomReferences[referenceID];
-          if (reference == 0) {
-            break;
-          }
-          uint atomID = metadata[1] + reference;
+        // Retrieve the atom.
+        uint atomID = metadata[1] + reference;
+        float4 atom = float4(convertedAtoms[atomID]);
+        atom.xyz += lowerCorner;
+        
+        // Run the intersection test.
+        {
+          float3 oc = intersectionQuery.rayOrigin - atom.xyz;
+          float b2 = dot(oc, intersectionQuery.rayDirection);
+          float c = fma(oc.x, oc.x, -atom.w * atom.w);
+          c = fma(oc.y, oc.y, c);
+          c = fma(oc.z, oc.z, c);
           
-          // Retrieve the atom.
-          float4 atom = float4(convertedAtoms[atomID]);
-          atom.xyz += lowerCorner;
-          
-          // Run the intersection test.
-          {
-            float3 oc = intersectionQuery.rayOrigin - atom.xyz;
-            float b2 = dot(oc, intersectionQuery.rayDirection);
-            float c = fma(oc.x, oc.x, -atom.w * atom.w);
-            c = fma(oc.y, oc.y, c);
-            c = fma(oc.z, oc.z, c);
-            
-            float disc4 = b2 * b2 - c;
-            if (disc4 > 0) {
-              float distance = fma(-disc4, rsqrt(disc4), -b2);
-              if (distance >= 0 && distance < result.distance) {
-                result.atomID = atomID;
-                result.distance = distance;
-                result.tgid = tgid;
-              }
+          float disc4 = b2 * b2 - c;
+          if (disc4 > 0) {
+            float distance = fma(-disc4, rsqrt(disc4), -b2);
+            if (distance >= 0 && distance < result.distance) {
+              result.atomID = atomID;
+              result.distance = distance;
             }
           }
-          
-          // Prevent corrupted memory from causing an infinite loop. We'll
-          // revisit this later, as the check probably harms performance.
-          i += 1;
-          if (i >= 64) {
-            break;
-          }
         }
         
-        // Return if we found a hit.
-        if (result.distance < dda.maximumHitTime(voxelMaximumTime)) {
-          result.accept = true;
-          executeFutureIteration = false;
+        // Prevent corrupted memory from causing an infinite loop. We'll
+        // revisit this later, as the check probably harms performance.
+        i += 1;
+        if (i >= 64) {
+          break;
         }
+      }
+      
+      // Check whether we found a hit.
+      if (result.distance < dda.maximumHitTime(voxelMaximumTime)) {
+        result.accept = true;
+        result.tgid = tgid;
       }
     }
     
-    if (!result.accept) {
-      result.atomID = 0;
-      result.tgid = 0;
-    }
     return result;
   }
 };
