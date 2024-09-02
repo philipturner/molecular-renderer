@@ -174,24 +174,20 @@ kernel void buildSmallPart1_0
       smallVoxelMin = floor(smallVoxelMin);
       smallVoxelMax = ceil(smallVoxelMax);
       
-      // Set the loop bounds registers.
-      ushort3 loopStart = ushort3(smallVoxelMin);
-      ushort3 loopEnd = ushort3(smallVoxelMax);
-      
       // Iterate over the footprint on the 3D grid.
-      for (ushort z = loopStart[2]; z < loopEnd[2]; ++z) {
-        for (ushort y = loopStart[1]; y < loopEnd[1]; ++y) {
-          for (ushort x = loopStart[0]; x < loopEnd[0]; ++x) {
-            ushort3 xyz = ushort3(x, y, z);
+      for (half z = smallVoxelMin[2]; z < smallVoxelMax[2]; ++z) {
+        for (half y = smallVoxelMin[1]; y < smallVoxelMax[1]; ++y) {
+          for (half x = smallVoxelMin[0]; x < smallVoxelMax[0]; ++x) {
+            half3 xyz = half3(x, y, z);
             
             // Generate the address.
-            ushort3 cellCoordinates = xyz;
-            ushort address = VoxelAddress::generate(8, cellCoordinates);
+            constexpr half3 addressStride(1, 8, 64);
+            half address = dot(xyz, addressStride);
             
             // Perform the atomic fetch-add.
             auto castedCounters =
             (threadgroup atomic_uint*)threadgroupCounters;
-            atomic_fetch_add_explicit(castedCounters + address,
+            atomic_fetch_add_explicit(castedCounters + ushort(address),
                                       1, memory_order_relaxed);
           }
         }
@@ -274,7 +270,7 @@ kernel void buildSmallPart1_0
       smallVoxelMin = floor(smallVoxelMin);
       
       // Iterate over the footprint on the 3D grid.
-#pragma clang loop unroll(disable)
+#pragma clang loop unroll(full)
       for (half z = 0; z < 3; ++z) {
 #pragma clang loop unroll(full)
         for (half y = 0; y < 3; ++y) {
@@ -284,7 +280,7 @@ kernel void buildSmallPart1_0
             
             // Narrow down the cells with a cube-sphere intersection test.
             bool intersected = cubeSphereIntersection(xyz, atom);
-            if (intersected && all(xyz < 8)) {
+            if (intersected && xyz.x < 8 && xyz.y < 8 && xyz.z < 8) {
               // Generate the address.
               constexpr half3 addressStride(1, 8, 64);
               half address = dot(xyz, addressStride);
