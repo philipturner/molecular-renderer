@@ -117,12 +117,16 @@ import Numerics
 //   BVH construction.
 //   - Write to a buffer of marks during the very first kernel, ensure it
 //     doesn't harm performance.
+//   - Change the "return early" clause during the kernel over large cells, so
+//     it reads from the marks.
 // - Rearrange the cell metadata.
 //   - Create a second, 8-bit memory allocation that marks which small voxels
 //     are occupied.
 //   - Modify the DDA to traverse 8-bit cell metadata.
 //   - Write the small cells' 32-bit data at the compacted large voxel offsets.
 //     - Return early when the large voxel is vacant.
+//
+// Preparing for sparse ray tracing.
 
 #if true
 
@@ -205,8 +209,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
+    
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
