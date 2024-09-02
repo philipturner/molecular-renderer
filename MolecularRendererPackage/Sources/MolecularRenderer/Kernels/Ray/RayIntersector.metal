@@ -112,9 +112,6 @@ struct RayIntersector {
         continue;
       }
       
-      // Set the distance register to the maximum hit time.
-      result.distance = dda.maximumHitTime(voxelMaximumTime);
-      
       // Retrieve the large voxel's lower corner.
       float3 lowerCorner = bvhArgs->worldMinimum;
       lowerCorner += float3(tgid) * 2;
@@ -129,9 +126,55 @@ struct RayIntersector {
         largeMetadata = largeCellMetadata[address];
       }
       
-      // Iterate over the atoms in this voxel.
+      // Before optimizing the ray origin:
+      // - 3.550 billion instructions issued
+      // - 77.32% ALU active time
+      // - 14.98% ALU float instructions
+      // - 32 bytes spilled
+      // - 48.16% divergence
+      //
+      // 3.10 ms
+      // 2.94 ms
+      // 2.93 ms
+      // 3.07 ms
+      // 2.67 ms
+      //
+      // Average: 2.94 ms
+      
+      // After optimizing the ray origin:
+      // - 3.569 billion instructions issued
+      // - 77.68% ALU active time
+      // - 14.35% ALU float instructions
+      // - 32 bytes spilled
+      // - 48.30% divergence
+      //
+      // 3.04 ms
+      // 3.00 ms
+      // 3.22 ms
+      // 3.11 ms
+      // 3.19 ms
+      //
+      // Average: 3.11 ms
+      
+      // Converting the atom to float4 while reading:
+      // - 3.569 billion instructions issued
+      // - 77.19% ALU active time
+      // - 14.94% ALU float instructions
+      // - 32 bytes spilled
+      // - 48.30% divergence
+      
+      // Set the origin register.
+      float3 relativeOrigin = intersectionQuery.rayOrigin;
+      relativeOrigin -= lowerCorner;
+      
+      // Set the distance register.
+      result.distance = dda.maximumHitTime(voxelMaximumTime);
+      
+      // Set the loop bounds register.
       uint referenceCursor = largeMetadata[2] + smallMetadata[0];
       uint referenceEnd = referenceCursor + smallMetadata[1];
+      
+      // Test every atom in the voxel.
       while (referenceCursor < referenceEnd) {
         // Locate the atom.
         ushort reference = smallAtomReferences[referenceCursor];
@@ -139,14 +182,13 @@ struct RayIntersector {
         
         // Retrieve the atom.
         uint atomID = largeMetadata[1] + reference;
-        float4 atom = float4(convertedAtoms[atomID]);
-        atom.xyz += lowerCorner;
+        half4 atom = convertedAtoms[atomID];
         
         // Run the intersection test.
         {
-          float3 oc = intersectionQuery.rayOrigin - atom.xyz;
+          float3 oc = relativeOrigin - float3(atom.xyz);
           float b2 = dot(oc, intersectionQuery.rayDirection);
-          float c = fma(oc.x, oc.x, -atom.w * atom.w);
+          float c = fma(oc.x, oc.x, float(-atom.w * atom.w));
           c = fma(oc.y, oc.y, c);
           c = fma(oc.z, oc.z, c);
           
