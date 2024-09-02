@@ -53,16 +53,19 @@ struct RayIntersector {
   device half4 *convertedAtoms;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
-    bool executeFutureIteration;
+    bool returnEarly;
     const DDA dda(intersectionQuery.rayOrigin,
                   intersectionQuery.rayDirection,
                   bvhArgs,
-                  &executeFutureIteration);
-    ushort3 progress = ushort3(0);
+                  &returnEarly);
     
     IntersectionResult result;
     result.accept = false;
+    if (returnEarly) {
+      return result;
+    }
     
+    ushort3 progress = ushort3(0);
     while (!result.accept) {
       float voxelMaximumTime;
       uint readOffset;

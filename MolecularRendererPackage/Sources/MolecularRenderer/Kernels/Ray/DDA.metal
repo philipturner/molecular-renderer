@@ -27,7 +27,7 @@ public:
   DDA(float3 rayOrigin,
       float3 rayDirection,
       constant BVHArguments *bvhArgs,
-      thread bool *canIntersectGrid)
+      thread bool *returnEarly)
   {
     float3 transformedRayOrigin;
     transformedRayOrigin = 4 * (rayOrigin - bvhArgs->worldMinimum);
@@ -46,10 +46,10 @@ public:
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
     minimumTime = tmin * 0.25;
+    *returnEarly = (tmin >= tmax);
     
     // Adjust the origin so it starts in the grid.
     // NOTE: This translates `t` by an offset of `tmin`.
-    *canIntersectGrid = (tmin < tmax);
     transformedRayOrigin += tmin * rayDirection;
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
