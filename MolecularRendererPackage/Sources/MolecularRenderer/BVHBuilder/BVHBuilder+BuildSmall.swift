@@ -88,7 +88,7 @@ extension BVHBuilder {
     // Test system: 60x60x60 diamond lattice, hollow L-shape
     //
     // Before the change: 1728 threadgroups dispatched
-    // After the change:  ??? threadgroups dispatched
+    // After the change:   728 threadgroups dispatched
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,

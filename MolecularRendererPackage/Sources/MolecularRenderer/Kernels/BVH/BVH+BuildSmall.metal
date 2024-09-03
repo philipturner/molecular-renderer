@@ -92,7 +92,7 @@ kernel void buildSmallPart0_0
   bvhArgs->smallVoxelCount = largeVoxelCount * 8;
   
   // Set the atom dispatch arguments.
-  uint compactedThreadgroupCount = allocatedMemory[0];
+  uint compactedThreadgroupCount = allocatedMemory[0] - 1;
   uint3 threadgroupGridSize = uint3(compactedThreadgroupCount, 1, 1);
   *atomDispatchArguments8x8x8 = threadgroupGridSize;
 }
@@ -131,12 +131,8 @@ kernel void buildSmallPart1_0
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Materialize the lower corner in registers.
-  ushort3 largeCellID = ushort3(tgid % 64, (tgid % 4096) / 64, tgid / 4096);
-  float3 lowerCorner = bvhArgs->worldMinimum;
-  lowerCorner += float3(largeCellID) * 2;
-  if (compactedLargeCellIDs[tgid].x != largeCellID.x) {
-    return;
-  }
+  ushort3 cellCoordinates = compactedLargeCellIDs[1 + tgid];
+  float3 lowerCorner = float3(cellCoordinates) * 2 - 64;
   
   // Read the large cell metadata.
   uint4 largeMetadata;
