@@ -54,9 +54,7 @@ kernel void buildLargePart1_0
 
 kernel void buildLargePart2_0
 (
- device uint3 *allocatedMemory [[buffer(0)]],
- device int3 *boundingBoxMin [[buffer(1)]],
- device int3 *boundingBoxMax [[buffer(2)]])
+ device uint3 *allocatedMemory [[buffer(0)]])
 {
   // The first three slots are allocators. We initialize them with the smallest
   // acceptable pointer value.
@@ -65,14 +63,6 @@ kernel void buildLargePart2_0
   // - Small reference count.
   uint3 smallestPointer = uint3(1);
   allocatedMemory[0] = smallestPointer;
-  
-  // Next, is the bounding box counter.
-  // - Minimum: initial value is +64 nm.
-  // - Maximum: initial value is -64 nm.
-  int3 boxMin = int3(64);
-  int3 boxMax = int3(-64);
-  boundingBoxMin[0] = boxMin;
-  boundingBoxMax[0] = boxMax;
 }
 
 // Inputs:
@@ -92,12 +82,10 @@ kernel void buildLargePart2_0
 kernel void buildLargePart2_1
 (
  device atomic_uint *allocatedMemory [[buffer(0)]],
- device atomic_int *boundingBoxMin [[buffer(1)]],
- device atomic_int *boundingBoxMax [[buffer(2)]],
- device uchar *currentCellGroupMarks [[buffer(3)]],
- device vec<uint, 8> *largeCounterMetadata [[buffer(4)]],
- device uint4 *largeCellMetadata [[buffer(5)]],
- device uchar3 *compactedLargeCellIDs [[buffer(6)]],
+ device uchar *currentCellGroupMarks [[buffer(1)]],
+ device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
+ device uint4 *largeCellMetadata [[buffer(3)]],
+ device uchar3 *compactedLargeCellIDs [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -153,34 +141,15 @@ kernel void buildLargePart2_1
   uint3 threadOffsets = simd_prefix_exclusive_sum(threadCounts);
   uint3 simdCounts = simd_broadcast(threadOffsets + threadCounts, 31);
   
-  // Reduce the bounding box across the SIMD.
-  int3 threadBoxMin;
-  int3 threadBoxMax;
-  if (threadTotalCount > 0) {
-    ushort3 cellCoordinates = thread_id;
-    cellCoordinates += tgid * 4;
-    threadBoxMin = int3(cellCoordinates) * 2 - 64;
-    threadBoxMax = threadBoxMin + 2;
-  } else {
-    threadBoxMin = int3(64);
-    threadBoxMax = int3(-64);
-  }
-  int3 simdBoxMin = simd_min(threadBoxMin);
-  int3 simdBoxMax = simd_max(threadBoxMax);
-  
   // Reduce across the entire GPU.
   uint simdOffsetValue = 0;
   if (lane_id < 3) {
     // Distribute the data across three threads.
     uint countValue = 0;
-    int boxMinValue = 64;
-    int boxMaxValue = -64;
 #pragma clang loop unroll(full)
     for (ushort axisID = 0; axisID < 3; ++axisID) {
       if (lane_id == axisID) {
         countValue = simdCounts[axisID];
-        boxMinValue = simdBoxMin[axisID];
-        boxMaxValue = simdBoxMax[axisID];
       }
     }
     
@@ -188,12 +157,6 @@ kernel void buildLargePart2_1
     simdOffsetValue =
     atomic_fetch_add_explicit(allocatedMemory + lane_id,
                               countValue, memory_order_relaxed);
-    
-    // Reduce the dense boounding box.
-    atomic_fetch_min_explicit(boundingBoxMin + lane_id,
-                              boxMinValue, memory_order_relaxed);
-    atomic_fetch_max_explicit(boundingBoxMax + lane_id,
-                              boxMaxValue, memory_order_relaxed);
   }
   
   // Add the SIMD offset to the thread offset.

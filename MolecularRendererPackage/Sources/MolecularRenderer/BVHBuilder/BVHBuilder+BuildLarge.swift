@@ -103,15 +103,8 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
-    do {
-      let allocatedMemory = 0
-      let boundingBoxMin = 16
-      let boundingBoxMax = 32
-      encoder.setBuffer(globalCounters, offset: allocatedMemory, index: 0)
-      encoder.setBuffer(globalCounters, offset: boundingBoxMin, index: 1)
-      encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
-    }
+    // Argument 0
+    encoder.setBuffer(globalCounters, offset: 0, index: 0)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_0
@@ -122,27 +115,20 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 2
-    do {
-      let allocatedMemory = 0
-      let boundingBoxMin = 16
-      let boundingBoxMax = 32
-      encoder.setBuffer(globalCounters, offset: allocatedMemory, index: 0)
-      encoder.setBuffer(globalCounters, offset: boundingBoxMin, index: 1)
-      encoder.setBuffer(globalCounters, offset: boundingBoxMax, index: 2)
-    }
+    // Argument 0
+    encoder.setBuffer(globalCounters, offset: 0, index: 0)
     
-    // Argument 3
+    // Argument 1
     do {
       let currentIndex = renderer.argumentContainer.doubleBufferIndex()
       let currentMarks = cellGroupMarks[currentIndex]
-      encoder.setBuffer(currentMarks, offset: 0, index: 3)
+      encoder.setBuffer(currentMarks, offset: 0, index: 1)
     }
     
-    // Arguments 4 - 5
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 4)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 5)
-    encoder.setBuffer(compactedLargeCellIDs, offset: 0, index: 6)
+    // Arguments 2 - 4
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 3)
+    encoder.setBuffer(compactedLargeCellIDs, offset: 0, index: 4)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_1

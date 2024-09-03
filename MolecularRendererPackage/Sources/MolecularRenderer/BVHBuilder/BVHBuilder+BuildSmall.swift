@@ -60,10 +60,8 @@ extension BVHBuilder {
 extension BVHBuilder {
   func buildSmallPart0_0(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    encoder.setBuffer(globalCounters, offset: 16, index: 1)
-    encoder.setBuffer(globalCounters, offset: 32, index: 2)
-    encoder.setBuffer(bvhArguments, offset: 0, index: 3)
-    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 4)
+    encoder.setBuffer(bvhArguments, offset: 0, index: 1)
+    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 2)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart0_0
@@ -84,11 +82,6 @@ extension BVHBuilder {
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart1_0
     encoder.setComputePipelineState(pipeline)
-    
-    // Test system: 60x60x60 diamond lattice, hollow L-shape
-    //
-    // Before the change: 1728 threadgroups dispatched
-    // After the change:   728 threadgroups dispatched
     encoder.dispatchThreadgroups(
       indirectBuffer: indirectDispatchArguments,
       indirectBufferOffset: 0,

@@ -163,7 +163,7 @@ import Numerics
 //     - Found the increase was more like (6 ms -> 11 ms), and we already had
 //       6 ms for the most concerning scenes (which are not exposed to open
 //       void or world boundaries).
-//   - Eliminate the bounding box reduction.
+//   - Eliminate the bounding box reduction. [DONE]
 // - Refactor the DDA, making it easier to modify.
 // - Start with a very expensive two-level DDA.
 //   - Don't make any attempts to fix divergence.

@@ -70,10 +70,8 @@ inline bool cubeSphereIntersection(half3 cube_min, half4 atom)
 kernel void buildSmallPart0_0
 (
  device uint *allocatedMemory [[buffer(0)]],
- device int3 *boundingBoxMin [[buffer(1)]],
- device int3 *boundingBoxMax [[buffer(2)]],
- device BVHArguments *bvhArgs [[buffer(3)]],
- device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
+ device BVHArguments *bvhArgs [[buffer(1)]],
+ device uint3 *atomDispatchArguments8x8x8 [[buffer(2)]])
 {
   // Set the BVH arguments.
   bvhArgs->worldMinimum = -64;
