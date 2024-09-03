@@ -75,21 +75,11 @@ kernel void buildSmallPart0_0
  device BVHArguments *bvhArgs [[buffer(3)]],
  device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
 {
-  // Read the bounding box.
-  int3 minimum = *boundingBoxMin;
-  int3 maximum = *boundingBoxMax;
-  
-  // Clamp the bounding box to the world volume.
-  minimum = max(minimum, -64);
-  maximum = min(maximum, 64);
-  maximum = max(minimum, maximum);
-  bvhArgs->worldMinimum = float3(minimum);
-  bvhArgs->worldMaximum = float3(maximum);
-  
-  // Compute the grid dimensions.
-  ushort3 largeVoxelCount = ushort3((maximum - minimum) / 2);
-  bvhArgs->largeVoxelCount = largeVoxelCount;
-  bvhArgs->smallVoxelCount = largeVoxelCount * 8;
+  // Set the BVH arguments.
+  bvhArgs->worldMinimum = -64;
+  bvhArgs->worldMaximum = 64;
+  bvhArgs->largeVoxelCount = 64;
+  bvhArgs->smallVoxelCount = 512;
   
   // Set the atom dispatch arguments.
   uint compactedThreadgroupCount = allocatedMemory[0] - 1;
