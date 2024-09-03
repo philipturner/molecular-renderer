@@ -18,9 +18,18 @@ using namespace raytracing;
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
+  // Inverse of ray direction.
   float3 dt;
+  
+  // Always positive, unless ray origin falls within the domain (then zero).
   float minimumTime;
+  
+  // Always negative, unless ray origin falls on a cell border (then zero).
   float3 originalTime;
+  
+  // Cell where the origin lies, but properly handling negative directions and
+  // border cases.
+  // - What are all of the possible edge cases?
   short3 originalCorrectPosition;
   
 public:
