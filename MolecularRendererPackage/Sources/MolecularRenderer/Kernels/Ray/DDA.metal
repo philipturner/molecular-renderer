@@ -74,48 +74,49 @@ public:
     }
   }
   
-  ushort3 increment(ushort3 progressCounter) const {
-    const float3 currentTime = this->currentTime(progressCounter);
+  short3 increment(short3 progressCounter) const {
+    const float3 nextTimes = this->nextTimes(progressCounter);
     
-    ushort3 output = progressCounter;
-    if (currentTime.x < currentTime.y &&
-        currentTime.x < currentTime.z) {
-      output[0] += 1;
-    } else if (currentTime.y < currentTime.z) {
-      output[1] += 1;
+    short3 output = progressCounter;
+    if (nextTimes.x < nextTimes.y &&
+        nextTimes.x < nextTimes.z) {
+      output[0] += (dt[0] < 0 ? -1 : 1);
+    } else if (nextTimes.y < nextTimes.z) {
+      output[1] += (dt[1] < 0 ? -1 : 1);
     } else {
-      output[2] += 1;
+      output[2] += (dt[2] < 0 ? -1 : 1);
     }
     return output;
   }
   
-  float voxelMaximumTime(ushort3 progressCounter) const {
-    const float3 currentTime = this->currentTime(progressCounter);
+  float voxelMaximumTime(short3 progressCounter) const {
+    const float3 nextTimes = this->nextTimes(progressCounter);
     
-    if (currentTime.x < currentTime.y &&
-        currentTime.x < currentTime.z) {
-      return currentTime.x;
-    } else if (currentTime.y < currentTime.z) {
-      return currentTime.y;
+    if (nextTimes.x < nextTimes.y &&
+        nextTimes.x < nextTimes.z) {
+      return nextTimes.x;
+    } else if (nextTimes.y < nextTimes.z) {
+      return nextTimes.y;
     } else {
-      return currentTime.z;
+      return nextTimes.z;
     }
+  }
+  
+  float3 nextTimes(short3 progressCounter) const {
+    const float3 currentTimes = originalTime + float3(progressCounter) * dt;
+    const float3 nextTimes = currentTimes + abs(dt);
+    return nextTimes;
   }
   
   float maximumHitTime(float voxelMaximumTime) const {
     return minimumTime + voxelMaximumTime * 0.25;
   }
   
-  float3 currentTime(ushort3 progressCounter) const {
-    return originalTime + float3(progressCounter + 1) * abs(dt);
+  short3 cellCoordinates(short3 progressCounter, ushort3 gridDims) const {
+    return originalCorrectPosition + progressCounter;
   }
   
-  short3 cellCoordinates(ushort3 progressCounter, ushort3 gridDims) const {
-    short3 invertedCounter = select(short3(progressCounter), -short3(progressCounter), dt < 0);
-    return originalCorrectPosition + invertedCounter;
-  }
-  
-  bool continueLoop(ushort3 progressCounter, ushort3 gridDims) const {
+  bool continueLoop(short3 progressCounter, ushort3 gridDims) const {
     short3 correctPosition = cellCoordinates(progressCounter, gridDims);
     
     return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&

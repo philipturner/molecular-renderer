@@ -65,7 +65,7 @@ struct RayIntersector {
       return result;
     }
     
-    ushort3 progress = ushort3(0);
+    short3 progress = short3(0);
     while (!result.accept) {
       uint4 largeMetadata;
       ushort2 smallMetadata;
