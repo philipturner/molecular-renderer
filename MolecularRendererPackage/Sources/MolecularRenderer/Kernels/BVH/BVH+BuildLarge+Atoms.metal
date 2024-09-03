@@ -17,10 +17,6 @@ inline float4 convert(float4 atom, constant half *elementRadii) {
   float4 output;
   output.xyz = atom.xyz;
   output.w = radius;
-  
-  // Prevent issues when converting to half precision.
-  output.xyz = rint(output.xyz * 4096) / 4096;
-  
   return output;
 }
 
