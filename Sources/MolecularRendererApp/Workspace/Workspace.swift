@@ -174,7 +174,7 @@ import Numerics
 //     suffer the cost of reinitializing a large DDA.
 // - Minimize the compute cost of jumping between large voxels.
 
-#if false
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -307,7 +307,9 @@ func createGeometry() -> [Atom] {
   return output
 }
 
-#else
+#endif
+
+#if false
 
 // Test that animation functionality is working correctly.
 func createGeometry() -> [[Atom]] {

@@ -54,27 +54,24 @@ public:
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
     
-    short3 originalMaybeInvertedPosition;
+//    short3 originalMaybeInvertedPosition;
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
-      float origin = transformedRayOrigin[i];
       if (dt[i] < 0) {
-        origin = float(gridDims[i]) - origin;
+        float origin = transformedRayOrigin[i];
+        originalCorrectPosition[i] = ceil(origin) - 1;
+      } else {
+        float origin = transformedRayOrigin[i];
+        originalCorrectPosition[i] = floor(origin);
       }
       
-      // `t` is actually the future `t`. When incrementing each dimension's `t`,
-      // which one will produce the smallest `t`? This dimension gets the
-      // increment because we want to intersect the closest voxel, which hasn't
-      // been tested yet.
-      originalTime[i] = (floor(origin) - origin) * abs(dt[i]);
-      originalMaybeInvertedPosition[i] = short(ushort(origin));
-    }
-    
-    {
-      short3 invertedPosition = short3(gridDims) - 1 - originalMaybeInvertedPosition;
-      originalCorrectPosition = select(originalMaybeInvertedPosition,
-                                              invertedPosition,
-                                              dt < 0);
+      if (dt[i] < 0) {
+        float origin = transformedRayOrigin[i];
+        originalTime[i] = (ceil(origin) - origin) * dt[i];
+      } else {
+        float origin = transformedRayOrigin[i];
+        originalTime[i] = (floor(origin) - origin) * dt[i];
+      }
     }
   }
   
