@@ -120,7 +120,8 @@ kernel void buildSmallPart1_0
  device uint4 *largeCellMetadata [[buffer(1)]],
  device half4 *convertedAtoms [[buffer(2)]],
  device ushort2 *smallCellMetadata [[buffer(3)]],
- device ushort *smallAtomReferences [[buffer(4)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(4)]],
+ device ushort *smallAtomReferences [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -324,6 +325,10 @@ kernel void buildSmallPart1_0
       // Write the cell metadata.
       uint globalAddress = baseDeviceAddress + laneID;
       smallCellMetadata[globalAddress] = output;
+      
+      // Write the compacted cell metadat.
+      uint compactedGlobalAddress = metadata[0] * 512 + localAddress;
+      compactedSmallCellMetadata[compactedGlobalAddress] = output;
     }
   }
 }

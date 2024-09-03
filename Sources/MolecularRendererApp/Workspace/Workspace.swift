@@ -140,7 +140,7 @@ import Numerics
 //       - Line-by-line % for the sphere-cell test part.
 //     - Change the CPU-side code, to clamp radii to [0.001, 0.249]. [DONE]
 //   - Write the small cells' metadata at the compacted large voxel offsets,
-//     in Morton order.
+//     in Morton order. [DONE]
 //   - Switch to reading compacted data.
 //     - Bind the compacted metadata to the render kernel.
 //     - Fetch the large voxel's metadata during DDA traversal.
@@ -250,26 +250,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
