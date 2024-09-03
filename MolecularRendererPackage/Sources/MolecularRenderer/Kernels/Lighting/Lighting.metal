@@ -50,61 +50,73 @@ public:
   }
   
   void addAmbientContribution(IntersectionResult intersect,
-                              device half4 *atomMotionVectors,
-                              ushort2 pixelCoords) {
-    float diffuseAmbient = 1;
-    float specularAmbient = 1;
+                              device half4 *atomMotionVectors) {
+    float diffuseAmbient;
+    float specularAmbient;
     
-    bool acceptClause;
-    if (pixelCoords.x < 320) {
-      // Before: left
-      acceptClause = true;
-    } else {
-      // After: right
-      acceptClause = intersect.distance < 1.00;
-    }
-    
-    if (intersect.accept && acceptClause) {
-      constexpr float minimumAmbientIllumination = 0.07;
+    // Branch on whether the secondary ray hit an atom.
+    if (intersect.accept && intersect.distance < 1.000) {
+      // Gaussians function always returns something between 0 and 1.
+      // With the distance cutoff, it maps [0 nm, 1 nm] to [1.000, 0.135].
       float occlusion = exp(-2 * intersect.distance * intersect.distance);
-      diffuseAmbient -= (1 - minimumAmbientIllumination) * occlusion;
       
-      // Diffuse interreflectance should affect the final diffuse term, but
-      // not the final specular term.
-      specularAmbient = diffuseAmbient;
+      // A simple implementation is 'diffuseAmbient = 1 - occlusion'.
+      // This implementation would map [1.000, 0.135] to [0.000, 0.865].
+      //
+      // A complex implementation imposes a minimum ambient illumination.
+      // The actual implementation maps [1.000, 0.135] to [0.070, 0.874].
+      diffuseAmbient = 1 - 0.93 * occlusion;
+      specularAmbient = 1 - 0.93 * occlusion;
       
-      constexpr half3 gamut(0.212671, 0.715160, 0.072169); // sRGB/Rec.709
-      float luminance = dot(diffuseColor, gamut);
+      // Color at the primary hit point.
+      half3 primaryHitColor = diffuseColor;
       
-      // Account for the color of the occluding atom. This decreases the
-      // contrast between differing elements placed near each other. It also
-      // makes the effect vary around the atom's surface.
-      float neighborLuminance;
+      // Color at the secondary hit point.
+      half3 secondaryHitColor;
       {
         half4 motionVector = atomMotionVectors[intersect.atomID];
         ushort atomicNumber = as_type<ushort>(motionVector.w);
-        half3 elementColor = elementColors[atomicNumber];
-        neighborLuminance = dot(elementColor, gamut);
+        secondaryHitColor = elementColors[atomicNumber];
       }
       
-      // Use the arithmetic mean. There is no perceivable difference from
-      // the (presumably more accurate) geometric mean.
-      luminance = (luminance + neighborLuminance) / 2;
+      // Take the dot product of the color with the gamut.
+      // - Parameters taken from the sRGB/Rec.709 standard.
+      // - RGB (0.00, 0.00, 0.00) maps to luminance = 0.
+      // - RGB (1.00, 1.00, 1.00) maps to luminance = 1.
+      // - Other colors fall somewhere in between.
+      constexpr half3 gamut(0.212671, 0.715160, 0.072169);
+      half primaryHitLuminance = dot(primaryHitColor, gamut);
+      half secondaryHitLuminance = dot(secondaryHitColor, gamut);
       
-      constexpr float diffuseReflectanceScale = 0.5;
-      float kA = diffuseAmbient;
-      float rho = diffuseReflectanceScale * luminance;
-      diffuseAmbient = kA / (1 - rho * (1 - kA));
+      // Average the luminance at the primary and secondary hit points.
+      // - This implementation uses the arithmetic mean.
+      // - The original text used geometric mean, but arithmetic mean appears
+      //   to work just as well.
+      half averageLuminance = 0;
+      averageLuminance += primaryHitLuminance;
+      averageLuminance += secondaryHitLuminance;
+      averageLuminance /= 2;
+      
+      // Luminance [0, 1] maps to rho [0, 0.5].
+      half rho = 0.5 * averageLuminance;
+      
+      // Adjust the diffuse AO term, to simulate diffuse interreflectance
+      // between the primary and secondary hit point.
+      diffuseAmbient = diffuseAmbient / (1 - rho * (1 - diffuseAmbient));
+    } else {
+      diffuseAmbient = 1.000;
+      specularAmbient = 1.000;
     }
     
+    // Accumulate into the sum of AO samples.
     this->diffuseAmbient += diffuseAmbient;
     this->specularAmbient += specularAmbient;
   }
   
   void finishAmbientContributions(half samples) {
-    float sampleCountRecip = 1 / float(samples);
-    this->diffuseAmbient *= sampleCountRecip;
-    this->specularAmbient *= sampleCountRecip;
+    // Divide the sum by the AO sample count.
+    this->diffuseAmbient /= samples;
+    this->specularAmbient /= samples;
   }
   
   void startLightContributions() {

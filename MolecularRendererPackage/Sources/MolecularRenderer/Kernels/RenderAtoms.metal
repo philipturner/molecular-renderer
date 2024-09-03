@@ -117,8 +117,7 @@ kernel void renderAtoms
       
       // Add the secondary ray's AO contributions.
       colorCtx.addAmbientContribution(intersect,
-                                      atomMotionVectors,
-                                      pixelCoords);
+                                      atomMotionVectors);
     }
     
     // Tell the context how many AO samples were taken.
