@@ -62,25 +62,16 @@ kernel void renderAtoms
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
   if (intersect.accept) {
-    // Materalize the hit point.
-    float3 hitPoint = primaryRayOrigin;
-    hitPoint += intersect.distance * primaryRayDirection;
+    // Locate the hit atom.
+    uint hitAtomID = largeAtomReferences[intersect.atomID];
     
-    // Materialize the hit normal.
-    half3 hitNormal;
-    {
-      float4 atom = originalAtoms[intersect.atomID];
-      float3 normal = hitPoint - atom.xyz;
-      normal = normalize(normal);
-      hitNormal = half3(normal);
-    }
+    // Compute the hit point.
+    float4 hitAtom = originalAtoms[hitAtomID];
+    float3 hitPoint = primaryRayOrigin + intersect.distance * primaryRayDirection;
+    half3 hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
     
     // Set the diffuse color.
-    {
-      float4 hitAtom = originalAtoms[intersect.atomID];
-      ushort atomicNumber = ushort(hitAtom.w);
-      colorCtx.setDiffuseColor(atomicNumber);
-    }
+    colorCtx.setDiffuseColor(ushort(hitAtom[3]));
     
     // Pick the number of AO samples.
     half sampleCount;
@@ -108,8 +99,7 @@ kernel void renderAtoms
     // Iterate over the AO samples.
     for (half i = 0; i < sampleCount; ++i) {
       // Spawn a secondary ray.
-      float3 secondaryRayOrigin;
-      secondaryRayOrigin = hitPoint + 0.0001 * float3(hitNormal);
+      float3 secondaryRayOrigin = hitPoint + 1e-4 * float3(hitNormal);
       float3 secondaryRayDirection = generationContext
         .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
       
@@ -123,8 +113,9 @@ kernel void renderAtoms
       // Add the secondary ray's AO contributions.
       ushort atomicNumber;
       if (intersect.accept) {
-        float4 hitAtom = originalAtoms[intersect.atomID];
-        atomicNumber = ushort(hitAtom.w);
+        uint atomID = largeAtomReferences[intersect.atomID];
+        float4 atom = originalAtoms[atomID];
+        atomicNumber = ushort(atom[3]);
       } else {
         atomicNumber = 0;
       }
@@ -152,7 +143,7 @@ kernel void renderAtoms
     
     // Generate the pixel motion vector.
     {
-      half3 motionVector = atomMetadata[intersect.atomID];
+      half3 motionVector = atomMetadata[hitAtomID];
       float3 previousHitPoint = hitPoint - float3(motionVector);
       colorCtx.generateMotionVector(cameraArgs + 1,
                                     renderArgs,
