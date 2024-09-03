@@ -60,9 +60,7 @@ public:
       constexpr float maximumRayHitTime = 1.0;
       constexpr float minimumAmbientIllumination = 0.07;
       
-      float t = intersect.distance / maximumRayHitTime;
-      float lambda = decayConstant;
-      float occlusion = exp(-lambda * t * t);
+      float occlusion = exp(-2 * intersect.distance * intersect.distance);
       diffuseAmbient -= (1 - minimumAmbientIllumination) * occlusion;
       
       // Diffuse interreflectance should affect the final diffuse term, but

@@ -74,42 +74,40 @@ public:
     }
   }
   
-  short3 increment(short3 progressCounter) const {
-    const float3 nextTimes = this->nextTimes(progressCounter);
-    
-    short3 output = progressCounter;
-    if (nextTimes.x < nextTimes.y &&
-        nextTimes.x < nextTimes.z) {
-      output[0] += (dt[0] < 0 ? -1 : 1);
-    } else if (nextTimes.y < nextTimes.z) {
-      output[1] += (dt[1] < 0 ? -1 : 1);
-    } else {
-      output[2] += (dt[2] < 0 ? -1 : 1);
-    }
-    return output;
-  }
-  
-  float voxelMaximumTime(short3 progressCounter) const {
-    const float3 nextTimes = this->nextTimes(progressCounter);
-    
-    if (nextTimes.x < nextTimes.y &&
-        nextTimes.x < nextTimes.z) {
-      return nextTimes.x;
-    } else if (nextTimes.y < nextTimes.z) {
-      return nextTimes.y;
-    } else {
-      return nextTimes.z;
-    }
-  }
-  
   float3 nextTimes(short3 progressCounter) const {
     const float3 currentTimes = originalTime + float3(progressCounter) * dt;
     const float3 nextTimes = currentTimes + abs(dt);
     return nextTimes;
   }
   
-  float maximumHitTime(float voxelMaximumTime) const {
-    return minimumTime + voxelMaximumTime * 0.25;
+  short3 increment(short3 progressCounter) const {
+    const float3 nextTimes = this->nextTimes(progressCounter);
+    
+    short3 output = progressCounter;
+    if (nextTimes[0] < nextTimes[1] &&
+        nextTimes[0] < nextTimes[2]) {
+      output[0] += (dt[0] >= 0) ? 1 : -1;
+    } else if (nextTimes[1] < nextTimes[2]) {
+      output[1] += (dt[1] >= 0) ? 1 : -1;
+    } else {
+      output[2] += (dt[2] >= 0) ? 1 : -1;
+    }
+    return output;
+  }
+  
+  float voxelMaximumHitTime(short3 progressCounter) const {
+    const float3 nextTimes = this->nextTimes(progressCounter);
+    
+    float smallestNextTime;
+    if (nextTimes[0] < nextTimes[1] &&
+        nextTimes[0] < nextTimes[2]) {
+      smallestNextTime = nextTimes[0];
+    } else if (nextTimes[1] < nextTimes[2]) {
+      smallestNextTime = nextTimes[1];
+    } else {
+      smallestNextTime = nextTimes[2];
+    }
+    return minimumTime + smallestNextTime * 0.25;
   }
   
   short3 cellCoordinates(short3 progressCounter, ushort3 gridDims) const {

@@ -27,16 +27,9 @@ struct IntersectionQuery {
   float3 rayOrigin;
   float3 rayDirection;
   
-  float maximumAODistance() {
-    constexpr float maximumRayHitTime = 1.0;
-    constexpr float voxelDiagonalWidth = 0.25 * 1.73205;
-    return maximumRayHitTime + voxelDiagonalWidth;
-  }
-  
-  bool exceededAOTime(DDA dda, float voxelMaximumTime) {
-    float maximumHitTime = dda.maximumHitTime(voxelMaximumTime);
+  bool exceededAOTime(float voxelMaximumHitTime) {
     if (isAORay) {
-      return maximumHitTime > maximumAODistance();
+      return voxelMaximumHitTime > 1.435;
     } else {
       return false;
     }
@@ -70,7 +63,7 @@ struct RayIntersector {
       uint4 largeMetadata;
       ushort2 smallMetadata;
       uchar3 largeCellID;
-      float voxelMaximumTime;
+      float voxelMaximumHitTime;
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
@@ -97,7 +90,7 @@ struct RayIntersector {
         }
         
         // Save the voxel maximum time.
-        voxelMaximumTime = dda.voxelMaximumTime(progress);
+        voxelMaximumHitTime = dda.voxelMaximumHitTime(progress);
         
         // Increment to the next voxel.
         progress = dda.increment(progress);
@@ -109,7 +102,7 @@ struct RayIntersector {
         if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
           break;
         }
-        if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
+        if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
           break;
         }
       }
@@ -119,7 +112,7 @@ struct RayIntersector {
         if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
           break;
         }
-        if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
+        if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
           break;
         }
         
@@ -139,7 +132,7 @@ struct RayIntersector {
       uint referenceEnd = referenceCursor + smallMetadata[1];
       
       // Set the distance register.
-      result.distance = dda.maximumHitTime(voxelMaximumTime);
+      result.distance = voxelMaximumHitTime;
       
       // Test every atom in the voxel.
       while (referenceCursor < referenceEnd) {
@@ -174,7 +167,7 @@ struct RayIntersector {
       }
       
       // Check whether we found a hit.
-      if (result.distance < dda.maximumHitTime(voxelMaximumTime)) {
+      if (result.distance < voxelMaximumHitTime) {
         result.accept = true;
         result.largeCellID = largeCellID;
       }
