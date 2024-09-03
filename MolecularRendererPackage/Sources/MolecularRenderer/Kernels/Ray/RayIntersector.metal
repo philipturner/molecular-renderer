@@ -29,7 +29,11 @@ struct IntersectionQuery {
   
   bool exceededAOTime(float voxelMaximumHitTime) {
     if (isAORay) {
-      return voxelMaximumHitTime > 1.435;
+      // This cutoff is parameterized for small voxels, where the distance
+      // is 0.25 nm. If you switch to testing a different voxel size, the
+      // parameter must change.
+      constexpr float cutoff = 1 + 0.25 * 1.732051;
+      return voxelMaximumHitTime > cutoff;
     } else {
       return false;
     }
