@@ -109,7 +109,6 @@ kernel void buildSmallPart0_0
 // Switching to 16-bit atoms:      1020 μs |
 kernel void buildSmallPart1_0
 (
- constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
  device uchar3 *compactedLargeCellIDs [[buffer(2)]],
  device half4 *convertedAtoms [[buffer(3)]],
