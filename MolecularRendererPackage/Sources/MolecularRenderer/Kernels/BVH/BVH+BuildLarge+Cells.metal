@@ -86,7 +86,7 @@ kernel void buildLargePart2_0
 //   - compacted large voxel offset
 //   - large reference offset
 //   - small reference offset
-//   - large refcount (14 bits), small refcount (18 bits)
+//   - atom count
 // - amount of memory allocated
 // - compact bounding box for dense DDA traversal
 kernel void buildLargePart2_1
@@ -209,7 +209,7 @@ kernel void buildLargePart2_1
     uint4 threadMetadata(threadVoxelOffset,
                          threadLargeOffset,
                          threadSmallOffset,
-                         threadTotalCount);
+                         threadTotalCount & (uint(1 << 14) - 1));
     largeCellMetadata[cellAddress] = threadMetadata;
   }
   

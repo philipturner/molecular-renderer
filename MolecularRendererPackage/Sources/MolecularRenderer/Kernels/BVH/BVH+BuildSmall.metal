@@ -119,9 +119,8 @@ kernel void buildSmallPart1_0
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
  device half4 *convertedAtoms [[buffer(2)]],
- device ushort2 *smallCellMetadata [[buffer(3)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(4)]],
- device ushort *smallAtomReferences [[buffer(5)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(3)]],
+ device ushort *smallAtomReferences [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -133,12 +132,15 @@ kernel void buildSmallPart1_0
   lowerCorner += float3(tgid) * 2;
   
   // Read the large cell metadata.
-  uint4 metadata;
+  uint4 largeMetadata;
   {
     ushort3 cellCoordinates = ushort3(lowerCorner + 64);
     cellCoordinates /= 2;
     uint cellAddress = VoxelAddress::generate(64, cellCoordinates);
-    metadata = largeCellMetadata[cellAddress];
+    largeMetadata = largeCellMetadata[cellAddress];
+  }
+  if (largeMetadata[0] == 0) {
+    return;
   }
   
   // Materialize the base threadgroup address in registers.
@@ -153,43 +155,40 @@ kernel void buildSmallPart1_0
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
+  // Iterate over the atoms.
+  for (ushort smallAtomID = thread_index;
+       smallAtomID < largeMetadata[3];
+       smallAtomID += 128)
   {
-    // Iterate over the atoms.
-    ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
-    for (ushort smallAtomID = thread_index;
-         smallAtomID < largeReferenceCount;
-         smallAtomID += 128)
-    {
-      // Materialize the atom.
-      uint largeReferenceOffset = metadata[1];
-      uint largeReferenceID = largeReferenceOffset + smallAtomID;
-      half4 atom = convertedAtoms[largeReferenceID];
-      atom *= 4;
-      
-      // Generate the bounding box.
-      half3 smallVoxelMin = atom.xyz - atom.w;
-      half3 smallVoxelMax = atom.xyz + atom.w;
-      smallVoxelMin = max(smallVoxelMin, 0);
-      smallVoxelMax = min(smallVoxelMax, 8);
-      smallVoxelMin = floor(smallVoxelMin);
-      smallVoxelMax = ceil(smallVoxelMax);
-      
-      // Iterate over the footprint on the 3D grid.
-      for (half z = smallVoxelMin[2]; z < smallVoxelMax[2]; ++z) {
-        for (half y = smallVoxelMin[1]; y < smallVoxelMax[1]; ++y) {
-          for (half x = smallVoxelMin[0]; x < smallVoxelMax[0]; ++x) {
-            half3 xyz = half3(x, y, z);
-            
-            // Generate the address.
-            constexpr half3 addressStride(1, 8, 64);
-            half address = dot(xyz, addressStride);
-            
-            // Perform the atomic fetch-add.
-            auto castedCounters =
-            (threadgroup atomic_uint*)threadgroupCounters;
-            atomic_fetch_add_explicit(castedCounters + ushort(address),
-                                      1, memory_order_relaxed);
-          }
+    // Materialize the atom.
+    uint largeReferenceOffset = largeMetadata[1];
+    uint largeReferenceID = largeReferenceOffset + smallAtomID;
+    half4 atom = convertedAtoms[largeReferenceID];
+    atom *= 4;
+    
+    // Generate the bounding box.
+    half3 smallVoxelMin = atom.xyz - atom.w;
+    half3 smallVoxelMax = atom.xyz + atom.w;
+    smallVoxelMin = max(smallVoxelMin, 0);
+    smallVoxelMax = min(smallVoxelMax, 8);
+    smallVoxelMin = floor(smallVoxelMin);
+    smallVoxelMax = ceil(smallVoxelMax);
+    
+    // Iterate over the footprint on the 3D grid.
+    for (half z = smallVoxelMin[2]; z < smallVoxelMax[2]; ++z) {
+      for (half y = smallVoxelMin[1]; y < smallVoxelMax[1]; ++y) {
+        for (half x = smallVoxelMin[0]; x < smallVoxelMax[0]; ++x) {
+          half3 xyz = half3(x, y, z);
+          
+          // Generate the address.
+          constexpr half3 addressStride(1, 8, 64);
+          half address = dot(xyz, addressStride);
+          
+          // Perform the atomic fetch-add.
+          auto castedCounters =
+          (threadgroup atomic_uint*)threadgroupCounters;
+          atomic_fetch_add_explicit(castedCounters + ushort(address),
+                                    1, memory_order_relaxed);
         }
       }
     }
@@ -230,7 +229,7 @@ kernel void buildSmallPart1_0
     // - SIMD offset
     // - Thread offset
     // - Cell offset (small voxel offset)
-    uint groupOffset = metadata[2];
+    uint groupOffset = largeMetadata[2];
     threadOffset += groupOffset;
     threadOffset += simdOffset;
     counterOffsets += threadOffset;
@@ -248,50 +247,47 @@ kernel void buildSmallPart1_0
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
+  // Iterate over the atoms.
+  for (ushort smallAtomID = thread_index;
+       smallAtomID < largeMetadata[3];
+       smallAtomID += 128)
   {
-    // Iterate over the atoms.
-    ushort largeReferenceCount = metadata[3] & (uint(1 << 14) - 1);
-    for (ushort smallAtomID = thread_index;
-         smallAtomID < largeReferenceCount;
-         smallAtomID += 128)
-    {
-      // Materialize the atom.
-      uint largeReferenceOffset = metadata[1];
-      uint largeReferenceID = largeReferenceOffset + smallAtomID;
-      half4 atom = convertedAtoms[largeReferenceID];
-      atom *= 4;
-      
-      // Generate the bounding box.
-      half3 smallVoxelMin = atom.xyz - atom.w;
-      smallVoxelMin = max(smallVoxelMin, 0);
-      smallVoxelMin = floor(smallVoxelMin);
-      
-      // Iterate over the footprint on the 3D grid.
+    // Materialize the atom.
+    uint largeReferenceOffset = largeMetadata[1];
+    uint largeReferenceID = largeReferenceOffset + smallAtomID;
+    half4 atom = convertedAtoms[largeReferenceID];
+    atom *= 4;
+    
+    // Generate the bounding box.
+    half3 smallVoxelMin = atom.xyz - atom.w;
+    smallVoxelMin = max(smallVoxelMin, 0);
+    smallVoxelMin = floor(smallVoxelMin);
+    
+    // Iterate over the footprint on the 3D grid.
 #pragma clang loop unroll(disable)
-      for (half z = 0; z < 3; ++z) {
+    for (half z = 0; z < 3; ++z) {
 #pragma clang loop unroll(full)
-        for (half y = 0; y < 3; ++y) {
+      for (half y = 0; y < 3; ++y) {
 #pragma clang loop unroll(full)
-          for (half x = 0; x < 3; ++x) {
-            half3 xyz = smallVoxelMin + half3(x, y, z);
+        for (half x = 0; x < 3; ++x) {
+          half3 xyz = smallVoxelMin + half3(x, y, z);
+          
+          // Narrow down the cells with a cube-sphere intersection test.
+          bool intersected = cubeSphereIntersection(xyz, atom);
+          if (intersected && all(xyz < 8)) {
+            // Generate the address.
+            constexpr half3 addressStride(1, 8, 64);
+            half address = dot(xyz, addressStride);
             
-            // Narrow down the cells with a cube-sphere intersection test.
-            bool intersected = cubeSphereIntersection(xyz, atom);
-            if (intersected && all(xyz < 8)) {
-              // Generate the address.
-              constexpr half3 addressStride(1, 8, 64);
-              half address = dot(xyz, addressStride);
-              
-              // Perform the atomic fetch-add.
-              auto castedCounters =
-              (threadgroup atomic_uint*)threadgroupCounters;
-              uint offset =
-              atomic_fetch_add_explicit(castedCounters + ushort(address),
-                                        1, memory_order_relaxed);
-              
-              // Write the reference to the list.
-              smallAtomReferences[offset] = smallAtomID;
-            }
+            // Perform the atomic fetch-add.
+            auto castedCounters =
+            (threadgroup atomic_uint*)threadgroupCounters;
+            uint offset =
+            atomic_fetch_add_explicit(castedCounters + ushort(address),
+                                      1, memory_order_relaxed);
+            
+            // Write the reference to the list.
+            smallAtomReferences[offset] = smallAtomID;
           }
         }
       }
@@ -300,35 +296,24 @@ kernel void buildSmallPart1_0
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  {
-    ushort3 cellCoordinates = thread_id * ushort3(4, 1, 1);
-    cellCoordinates += tgid * 8;
-    ushort3 gridDims = bvhArgs->smallVoxelCount;
-    uint baseDeviceAddress = VoxelAddress::generate(gridDims, cellCoordinates);
-    
 #pragma clang loop unroll(full)
-    for (ushort laneID = 0; laneID < 4; ++laneID) {
-      ushort localAddress = baseThreadgroupAddress + laneID;
-      uint allocationStart = counterOffsets[laneID];
-      uint allocationEnd = threadgroupCounters[localAddress];
-      
-      ushort2 output;
-      if (allocationStart < allocationEnd) {
-        // Make the offset relative to the large voxel's base address.
-        output[0] = allocationStart - metadata[2];
-        output[1] = allocationEnd - allocationStart;
-      } else {
-        // Flag this voxel as empty.
-        output = as_type<ushort2>(uint(0));
-      }
-      
-      // Write the cell metadata.
-      uint globalAddress = baseDeviceAddress + laneID;
-      smallCellMetadata[globalAddress] = output;
-      
-      // Write the compacted cell metadat.
-      uint compactedGlobalAddress = metadata[0] * 512 + localAddress;
-      compactedSmallCellMetadata[compactedGlobalAddress] = output;
+  for (ushort laneID = 0; laneID < 4; ++laneID) {
+    ushort localAddress = baseThreadgroupAddress + laneID;
+    uint allocationStart = counterOffsets[laneID];
+    uint allocationEnd = threadgroupCounters[localAddress];
+    
+    ushort2 output;
+    if (allocationStart < allocationEnd) {
+      // Make the offset relative to the large voxel's base address.
+      output[0] = allocationStart - largeMetadata[2];
+      output[1] = allocationEnd - allocationStart;
+    } else {
+      // Flag this voxel as empty.
+      output = as_type<ushort2>(uint(0));
     }
+    
+    // Write the compacted cell metadata.
+    uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
+    compactedSmallCellMetadata[compactedGlobalAddress] = output;
   }
 }

@@ -141,13 +141,13 @@ import Numerics
 //     - Change the CPU-side code, to clamp radii to [0.001, 0.249]. [DONE]
 //   - Write the small cells' metadata at the compacted large voxel offsets,
 //     in Morton order. [DONE]
-//   - Switch to reading compacted data.
-//     - Bind the compacted metadata to the render kernel.
-//     - Fetch the large voxel's metadata during DDA traversal.
-//     - Read from an offset specified with large voxel metadata.
-//   - Delete the dense small-cell metadata.
-//     - Remove the buffer bindings from the render kernel.
-//     - Stop writing to it in the fused kernel.
+//   - Switch to reading compacted data. [DONE]
+//     - Bind the compacted metadata to the render kernel. [DONE]
+//     - Fetch the large voxel's metadata during DDA traversal. [DONE]
+//     - Read from an offset specified with large voxel metadata. [DONE]
+//   - Delete the dense small-cell metadata. [DONE]
+//     - Remove the buffer bindings from the render kernel. [DONE]
+//     - Stop writing to it in the fused kernel. [DONE]
 //   - Change the indirect dispatch for the fused kernel, so threadgroups
 //     are only launched for occupied voxels.
 //     - Add a buffer of threadgroup IDs for occupied large voxels.
