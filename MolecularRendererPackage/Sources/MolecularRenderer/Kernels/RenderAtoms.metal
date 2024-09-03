@@ -62,15 +62,17 @@ kernel void renderAtoms
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
   if (intersect.accept) {
-    // Materialize the hit point.
-    float3 hitPoint;
+    // Materalize the hit point.
+    float3 hitPoint = primaryRayOrigin;
+    hitPoint += intersect.distance * primaryRayDirection;
+    
+    // Materialize the hit normal.
     half3 hitNormal;
     {
-      hitPoint = primaryRayOrigin;
-      hitPoint += primaryRayDirection + intersect.distance;
-      
-      float4 hitAtom = originalAtoms[intersect.atomID];
-      hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
+      float4 atom = originalAtoms[intersect.atomID];
+      float3 normal = hitPoint - atom.xyz;
+      normal = normalize(normal);
+      hitNormal = half3(normal);
     }
     
     // Set the diffuse color.
