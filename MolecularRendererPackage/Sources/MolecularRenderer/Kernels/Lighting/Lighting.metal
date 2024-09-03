@@ -50,16 +50,22 @@ public:
   }
   
   void addAmbientContribution(IntersectionResult intersect,
-                              device half4 *atomMotionVectors) {
+                              device half4 *atomMotionVectors,
+                              ushort2 pixelCoords) {
     float diffuseAmbient = 1;
     float specularAmbient = 1;
     
-    if (intersect.accept) {
-      constexpr float decayConstant = 2.0;
-      constexpr float diffuseReflectanceScale = 0.5;
-      constexpr float maximumRayHitTime = 1.0;
+    bool acceptClause;
+    if (pixelCoords.x < 320) {
+      // Before: left
+      acceptClause = true;
+    } else {
+      // After: right
+      acceptClause = intersect.distance < 1.00;
+    }
+    
+    if (intersect.accept && acceptClause) {
       constexpr float minimumAmbientIllumination = 0.07;
-      
       float occlusion = exp(-2 * intersect.distance * intersect.distance);
       diffuseAmbient -= (1 - minimumAmbientIllumination) * occlusion;
       
@@ -85,6 +91,7 @@ public:
       // the (presumably more accurate) geometric mean.
       luminance = (luminance + neighborLuminance) / 2;
       
+      constexpr float diffuseReflectanceScale = 0.5;
       float kA = diffuseAmbient;
       float rho = diffuseReflectanceScale * luminance;
       diffuseAmbient = kA / (1 - rho * (1 - kA));
