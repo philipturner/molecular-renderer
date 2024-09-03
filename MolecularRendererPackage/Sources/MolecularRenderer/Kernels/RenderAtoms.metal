@@ -20,9 +20,10 @@ kernel void renderAtoms
  constant half3 *elementColors [[buffer(3)]],
  device uint4 *largeCellMetadata [[buffer(4)]],
  device ushort2 *smallCellMetadata [[buffer(5)]],
- device ushort *smallAtomReferences [[buffer(6)]],
- device half4 *convertedAtoms [[buffer(7)]],
- device half4 *atomMotionVectors [[buffer(8)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(6)]],
+ device ushort *smallAtomReferences [[buffer(7)]],
+ device half4 *convertedAtoms [[buffer(8)]],
+ device half4 *atomMotionVectors [[buffer(9)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -40,6 +41,7 @@ kernel void renderAtoms
   rayIntersector.bvhArgs = bvhArgs;
   rayIntersector.largeCellMetadata = largeCellMetadata;
   rayIntersector.smallCellMetadata = smallCellMetadata;
+  rayIntersector.compactedSmallCellMetadata = compactedSmallCellMetadata;
   rayIntersector.smallAtomReferences = smallAtomReferences;
   rayIntersector.convertedAtoms = convertedAtoms;
   

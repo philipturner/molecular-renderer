@@ -49,6 +49,7 @@ struct RayIntersector {
   constant BVHArguments *bvhArgs;
   device uint4 *largeCellMetadata;
   device ushort2 *smallCellMetadata;
+  device ushort2 *compactedSmallCellMetadata;
   device ushort *smallAtomReferences;
   device half4 *convertedAtoms;
   
@@ -67,22 +68,36 @@ struct RayIntersector {
     
     ushort3 progress = ushort3(0);
     while (!result.accept) {
-      float voxelMaximumTime;
+      uint4 largeMetadata;
       ushort2 smallMetadata;
       uchar3 tgid;
+      float voxelMaximumTime;
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
-        // Save the state for the current counter.
+        // Save the cell coordinates and metadata.
         {
-          ushort3 gridDims = bvhArgs->smallVoxelCount;
-          ushort3 cellCoordinates = dda.cellCoordinates(progress, gridDims);
-          uint address = VoxelAddress::generate(gridDims, cellCoordinates);
-          
-          voxelMaximumTime = dda.voxelMaximumTime(progress);
-          smallMetadata = smallCellMetadata[address];
+          ushort3 cellCoordinates = dda.cellCoordinates(progress, bvhArgs->smallVoxelCount);
           tgid = uchar3(cellCoordinates / 8);
+          
+          float3 lowerCorner = bvhArgs->worldMinimum;
+          lowerCorner += float3(tgid) * 2;
+          
+          {
+            ushort3 cellCoordinates = ushort3(lowerCorner + 64);
+            cellCoordinates /= 2;
+            uint address = VoxelAddress::generate(64, cellCoordinates);
+            largeMetadata = largeCellMetadata[address];
+          }
+          
+          ushort3 localOffset = cellCoordinates % 8;
+          ushort localAddress = VoxelAddress::generate(8, localOffset);
+          uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
+          smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
         }
+        
+        // Save the voxel maximum time.
+        voxelMaximumTime = dda.voxelMaximumTime(progress);
         
         // Increment the counter.
         progress = dda.increment(progress);
@@ -115,18 +130,11 @@ struct RayIntersector {
         }
       }
       
-      // Retrieve the large voxel's lower corner.
-      float3 lowerCorner = bvhArgs->worldMinimum;
-      lowerCorner += float3(tgid) * 2;
-      
-      // Retrieve the large voxel's metadata.
-      uint4 largeMetadata;
-      {
-        ushort3 cellCoordinates = ushort3(lowerCorner + 64);
-        cellCoordinates /= 2;
-        uint address = VoxelAddress::generate(64, cellCoordinates);
-        largeMetadata = largeCellMetadata[address];
-      }
+      // Set the origin register.
+      float3 origin32 = intersectionQuery.rayOrigin;
+      origin32 -= bvhArgs->worldMinimum;
+      origin32 -= float3(tgid) * 2;
+      half3 origin16 = half3(origin32);
       
       // Set the loop bounds register.
       uint referenceCursor = largeMetadata[2] + smallMetadata[0];
@@ -143,16 +151,18 @@ struct RayIntersector {
         
         // Retrieve the atom.
         uint atomID = largeMetadata[1] + reference;
-        float4 atom = float4(convertedAtoms[atomID]);
-        atom.xyz += lowerCorner;
+        half4 atom = convertedAtoms[atomID];
         
         // Run the intersection test.
         {
-          float3 oc = intersectionQuery.rayOrigin - atom.xyz;
-          float b2 = dot(oc, intersectionQuery.rayDirection);
-          float c = fma(oc.x, oc.x, -atom.w * atom.w);
-          c = fma(oc.y, oc.y, c);
-          c = fma(oc.z, oc.z, c);
+          half3 oc = origin16 - atom.xyz;
+          float b2 = dot(float3(oc), intersectionQuery.rayDirection);
+          
+          half radius = atom.w;
+          float c = float(-radius * radius);
+          c = fma(float(oc.x), float(oc.x), c);
+          c = fma(float(oc.y), float(oc.y), c);
+          c = fma(float(oc.z), float(oc.z), c);
           
           float disc4 = b2 * b2 - c;
           if (disc4 > 0) {
