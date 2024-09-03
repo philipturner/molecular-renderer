@@ -214,7 +214,7 @@ kernel void buildLargePart2_1
   {
     ushort3 cellCoordinates = thread_id;
     cellCoordinates += tgid * 4;
-    compactedLargeCellIDs[threadVoxelOffset] = ushort3(cellCoordinates);
+    compactedLargeCellIDs[threadVoxelOffset] = cellCoordinates;
   }
   
   // Write the cell metadata.

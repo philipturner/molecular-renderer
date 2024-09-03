@@ -131,9 +131,12 @@ kernel void buildSmallPart1_0
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Materialize the lower corner in registers.
-  ushort3 largeCellID = compactedLargeCellIDs[tgid];
+  ushort3 largeCellID = ushort3(tgid % 64, (tgid % 4096) / 64, tgid / 4096);
   float3 lowerCorner = bvhArgs->worldMinimum;
   lowerCorner += float3(largeCellID) * 2;
+  if (compactedLargeCellIDs[tgid].x != largeCellID.x) {
+    return;
+  }
   
   // Read the large cell metadata.
   uint4 largeMetadata;
