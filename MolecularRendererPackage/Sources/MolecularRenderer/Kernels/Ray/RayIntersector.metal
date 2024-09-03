@@ -48,7 +48,6 @@ struct IntersectionQuery {
 struct RayIntersector {
   constant BVHArguments *bvhArgs;
   device uint4 *largeCellMetadata;
-  device ushort2 *smallCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
   device ushort *smallAtomReferences;
   device half4 *convertedAtoms;
@@ -75,17 +74,18 @@ struct RayIntersector {
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
-        // Save the cell coordinates and metadata.
+        // Save the current voxel's metadata.
         {
           ushort3 cellCoordinates = dda.cellCoordinates(progress, bvhArgs->smallVoxelCount);
           tgid = uchar3(cellCoordinates / 8);
           
-          float3 lowerCorner = bvhArgs->worldMinimum;
-          lowerCorner += float3(tgid) * 2;
-          
           {
+            float3 lowerCorner = bvhArgs->worldMinimum;
+            lowerCorner += float3(tgid) * 2;
+            
             ushort3 cellCoordinates = ushort3(lowerCorner + 64);
             cellCoordinates /= 2;
+            
             uint address = VoxelAddress::generate(64, cellCoordinates);
             largeMetadata = largeCellMetadata[address];
           }
@@ -99,24 +99,23 @@ struct RayIntersector {
         // Save the voxel maximum time.
         voxelMaximumTime = dda.voxelMaximumTime(progress);
         
-        // Increment the counter.
+        // Increment to the next voxel.
         progress = dda.increment(progress);
         
         // Exit the inner loop.
+        if (smallMetadata[1] > 0) {
+          break;
+        }
         if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
           break;
         }
         if (intersectionQuery.exceededAOTime(dda, voxelMaximumTime)) {
-          break;
-        }
-        if (smallMetadata[1] > 0) {
           break;
         }
       }
       
-      // Skip this iteration of the outer 'while' loop.
       {
-        // Exit the outer loop.
+        // Exit the outer 'while' loop.
         if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
           break;
         }
@@ -124,17 +123,16 @@ struct RayIntersector {
           break;
         }
         
-        // Don't let empty voxels affect the result.
+        // Skip this iteration of the outer 'while' loop.
         if (smallMetadata[1] == 0) {
           continue;
         }
       }
       
       // Set the origin register.
-      float3 origin32 = intersectionQuery.rayOrigin;
-      origin32 -= bvhArgs->worldMinimum;
-      origin32 -= float3(tgid) * 2;
-      half3 origin16 = half3(origin32);
+      float3 origin = intersectionQuery.rayOrigin;
+      origin -= bvhArgs->worldMinimum;
+      origin -= float3(tgid) * 2;
       
       // Set the loop bounds register.
       uint referenceCursor = largeMetadata[2] + smallMetadata[0];
@@ -155,11 +153,11 @@ struct RayIntersector {
         
         // Run the intersection test.
         {
-          half3 oc = origin16 - atom.xyz;
+          float3 oc = origin - float3(atom.xyz);
           float b2 = dot(float3(oc), intersectionQuery.rayDirection);
           
-          half radius = atom.w;
-          float c = float(-radius * radius);
+          float radius = float(atom.w);
+          float c = -radius * radius;
           c = fma(float(oc.x), float(oc.x), c);
           c = fma(float(oc.y), float(oc.y), c);
           c = fma(float(oc.z), float(oc.z), c);
