@@ -97,7 +97,7 @@ kernel void buildLargePart2_1
  device uchar *currentCellGroupMarks [[buffer(3)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(4)]],
  device uint4 *largeCellMetadata [[buffer(5)]],
- device uchar3 *compactedLargeCellIDs [[buffer(6)]],
+ device ushort3 *compactedLargeCellIDs [[buffer(6)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -214,7 +214,7 @@ kernel void buildLargePart2_1
   {
     ushort3 cellCoordinates = thread_id;
     cellCoordinates += tgid * 4;
-    compactedLargeCellIDs[threadVoxelOffset] = uchar3(cellCoordinates);
+    compactedLargeCellIDs[threadVoxelOffset] = ushort3(cellCoordinates);
   }
   
   // Write the cell metadata.

@@ -80,7 +80,7 @@ class BVHBuilder {
     ]
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
     largeCellMetadata = createBuffer(length: largeVoxelCount * 4 * 4)
-    compactedLargeCellIDs = createBuffer(length: largeVoxelCount * 4)
+    compactedLargeCellIDs = createBuffer(length: largeVoxelCount * 4 * 10)
     compactedSmallCellMetadata = createBuffer(
       length: (smallVoxelCount / 8) * 2 * 2)
     

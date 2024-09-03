@@ -69,10 +69,11 @@ inline bool cubeSphereIntersection(half3 cube_min, half4 atom)
 
 kernel void buildSmallPart0_0
 (
- device int3 *boundingBoxMin [[buffer(0)]],
- device int3 *boundingBoxMax [[buffer(1)]],
- device BVHArguments *bvhArgs [[buffer(2)]],
- device uint3 *atomDispatchArguments8x8x8 [[buffer(3)]])
+ device uint *allocatedMemory [[buffer(0)]],
+ device int3 *boundingBoxMin [[buffer(1)]],
+ device int3 *boundingBoxMax [[buffer(2)]],
+ device BVHArguments *bvhArgs [[buffer(3)]],
+ device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
 {
   // Read the bounding box.
   int3 minimum = *boundingBoxMin;
@@ -91,7 +92,9 @@ kernel void buildSmallPart0_0
   bvhArgs->smallVoxelCount = largeVoxelCount * 8;
   
   // Set the atom dispatch arguments.
-  *atomDispatchArguments8x8x8 = uint3(largeVoxelCount);
+  uint compactedThreadgroupCount = allocatedMemory[0];
+  uint3 threadgroupGridSize = uint3(compactedThreadgroupCount, 1, 1);
+  *atomDispatchArguments8x8x8 = threadgroupGridSize;
 }
 
 // Before:                    380 μs + 1100 μs
@@ -118,19 +121,19 @@ kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
- device uchar3 *compactedLargeCellIds [[buffer(2)]],
+ device ushort3 *compactedLargeCellIDs [[buffer(2)]],
  device half4 *convertedAtoms [[buffer(3)]],
  device ushort2 *compactedSmallCellMetadata [[buffer(4)]],
  device ushort *smallAtomReferences [[buffer(5)]],
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]],
+ uint tgid [[threadgroup_position_in_grid]],
+ ushort thread_id [[thread_index_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
- ushort simd_id [[simdgroup_index_in_threadgroup]],
- ushort thread_index [[thread_index_in_threadgroup]])
+ ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Materialize the lower corner in registers.
+  ushort3 largeCellID = compactedLargeCellIDs[tgid];
   float3 lowerCorner = bvhArgs->worldMinimum;
-  lowerCorner += float3(tgid) * 2;
+  lowerCorner += float3(largeCellID) * 2;
   
   // Read the large cell metadata.
   uint4 largeMetadata;
@@ -144,20 +147,16 @@ kernel void buildSmallPart1_0
     return;
   }
   
-  // Materialize the base threadgroup address in registers.
-  ushort3 localCoordinates = thread_id * ushort3(4, 1, 1);
-  ushort baseThreadgroupAddress = VoxelAddress::generate(8, localCoordinates);
-  
   // Initialize the small-cell counters.
   threadgroup uint threadgroupCounters[512];
-  for (ushort i = thread_index; i < 512; i += 128) {
+  for (ushort i = thread_id; i < 512; i += 128) {
     uint resetValue = uint(0);
     threadgroupCounters[i] = resetValue;
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Iterate over the atoms.
-  for (ushort smallAtomID = thread_index;
+  for (ushort smallAtomID = thread_id;
        smallAtomID < largeMetadata[3];
        smallAtomID += 128)
   {
@@ -197,18 +196,19 @@ kernel void buildSmallPart1_0
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  // Read the counter metadata.
-  uint4 conservativeCounts =
-  *(threadgroup uint4*)(threadgroupCounters + baseThreadgroupAddress);
+  
   
   uint4 counterOffsets;
   {
+    // Read the counter metadata.
+    uint4 counts = ((threadgroup uint4*)threadgroupCounters)[thread_id];
+    
     // Reduce across the thread.
     uint threadCount = 0;
 #pragma clang loop unroll(full)
     for (ushort laneID = 0; laneID < 4; ++laneID) {
       uint counterOffset = threadCount;
-      threadCount += conservativeCounts[laneID];
+      threadCount += counts[laneID];
       counterOffsets[laneID] = counterOffset;
     }
     
@@ -238,18 +238,13 @@ kernel void buildSmallPart1_0
     // Write the counter metadata.
     // - The barrier for 'simdCounts' also serves as the barrier between
     //   reading 'conservativeCounts' and writing 'offset'.
-#pragma clang loop unroll(full)
-    for (ushort laneID = 0; laneID < 4; ++laneID) {
-      uint offset = counterOffsets[laneID];
-      ushort cellAddress = baseThreadgroupAddress + laneID;
-      threadgroupCounters[cellAddress] = offset;
-    }
+    ((threadgroup uint4*)threadgroupCounters)[thread_id] = counterOffsets;
   }
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
   // Iterate over the atoms.
-  for (ushort smallAtomID = thread_index;
+  for (ushort smallAtomID = thread_id;
        smallAtomID < largeMetadata[3];
        smallAtomID += 128)
   {
@@ -299,7 +294,7 @@ kernel void buildSmallPart1_0
   
 #pragma clang loop unroll(full)
   for (ushort laneID = 0; laneID < 4; ++laneID) {
-    ushort localAddress = baseThreadgroupAddress + laneID;
+    ushort localAddress = thread_id * 4 + laneID;
     uint allocationStart = counterOffsets[laneID];
     uint allocationEnd = threadgroupCounters[localAddress];
     
