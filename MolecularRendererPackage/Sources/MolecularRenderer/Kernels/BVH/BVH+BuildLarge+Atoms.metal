@@ -9,17 +9,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-// Convert the atom from 'float4' to a custom format.
-inline float4 convert(float4 atom, constant half *elementRadii) {
-  uint atomicNumber = uint(atom.w);
-  float radius = elementRadii[atomicNumber];
-  
-  float4 output;
-  output.xyz = atom.xyz;
-  output.w = radius;
-  return output;
-}
-
 inline ushort3 clamp(short3 position, ushort3 gridDims) {
   short3 output = position;
   output = clamp(output, 0, short3(gridDims));
@@ -78,13 +67,14 @@ kernel void buildLargePart1_1
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
-  float4 convertedAtom = currentAtoms[tid];
-  convertedAtom = convert(convertedAtom, elementRadii);
+  float4 atom = currentAtoms[tid];
+  ushort atomicNumber = ushort(atom.w);
+  half radius = elementRadii[atomicNumber];
   
   // Place the atom in the grid of small cells.
   float4 transformedAtom;
-  transformedAtom.xyz = 4 * (convertedAtom.xyz + 64);
-  transformedAtom.w = 4 * convertedAtom.w;
+  transformedAtom.xyz = 4 * (atom.xyz + 64);
+  transformedAtom.w = 4 * radius;
   
   // Generate the bounding box.
   short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
@@ -200,15 +190,15 @@ kernel void buildLargePart2_2
  ushort thread_id [[thread_index_in_threadgroup]])
 {
   // Materialize the atom.
-  float4 convertedAtom = currentAtoms[tid];
-  ushort atomicNumber = ushort(convertedAtom[3]);
-  convertedAtom = convert(convertedAtom, elementRadii);
+  float4 atom = currentAtoms[tid];
+  ushort atomicNumber = ushort(atom.w);
+  half radius = elementRadii[atomicNumber];
   
   // Materialize the motion vector.
   half4 motionVector;
   if (*useAtomMotionVectors) {
     float4 previous = previousAtoms[tid];
-    motionVector.xyz = half3(convertedAtom.xyz - previous.xyz);
+    motionVector.xyz = half3(atom.xyz - previous.xyz);
   } else {
     motionVector.xyz = half3(0);
   }
@@ -216,8 +206,8 @@ kernel void buildLargePart2_2
   
   // Place the atom in the grid of small cells.
   float4 transformedAtom;
-  transformedAtom.xyz = 4 * (convertedAtom.xyz + 64);
-  transformedAtom.w = 4 * convertedAtom.w;
+  transformedAtom.xyz = 4 * (atom.xyz + 64);
+  transformedAtom.w = 4 * radius;
   
   // Generate the bounding box.
   short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
@@ -299,9 +289,10 @@ kernel void buildLargePart2_2
           lowerCorner += 2 * float3(cellCoordinates);
           
           // Subtract the lower corner.
-          float4 writtenAtom = convertedAtom;
-          writtenAtom.xyz -= lowerCorner;
-          convertedAtoms[offset] = half4(writtenAtom);
+          half4 writtenAtom;
+          writtenAtom.xyz = half3(atom.xyz - lowerCorner);
+          writtenAtom.w = radius;
+          convertedAtoms[offset] = writtenAtom;
         }
         
         // Write the motion vector and atomic number.
