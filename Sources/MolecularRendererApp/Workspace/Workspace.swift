@@ -174,6 +174,13 @@ import Numerics
 //     suffer the cost of reinitializing a large DDA.
 // - Minimize the compute cost of jumping between large voxels.
 
+// TODO: -
+// - In the middle of cleaning up how atoms are represented.
+// - Shifted to storing motion vectors per-atom, and explicitly storing
+//   large atom references again.
+// - Need to modify 'RayIntersector.metal' and 'MRRenderer+Renderer.swift' to
+//   accomodate for the changes.
+
 #if true
 
 func createGeometry() -> [Atom] {
