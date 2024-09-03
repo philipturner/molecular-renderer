@@ -153,8 +153,8 @@ kernel void buildSmallPart1_0
     atom *= 4;
     
     // Generate the bounding box.
-    half3 smallVoxelMin = atom.xyz - atom.w - 0.001;
-    half3 smallVoxelMax = atom.xyz + atom.w + 0.001;
+    half3 smallVoxelMin = atom.xyz - atom.w;
+    half3 smallVoxelMax = atom.xyz + atom.w;
     smallVoxelMin = max(smallVoxelMin, 0);
     smallVoxelMax = min(smallVoxelMax, 8);
     smallVoxelMin = floor(smallVoxelMin);
@@ -240,12 +240,13 @@ kernel void buildSmallPart1_0
     half4 atom = convertedAtoms[largeReferenceID];
     atom *= 4;
     
-    /*
-    
     // Generate the bounding box.
     half3 smallVoxelMin = atom.xyz - atom.w;
+    half3 smallVoxelMax = atom.xyz + atom.w;
     smallVoxelMin = max(smallVoxelMin, 0);
+    smallVoxelMax = min(smallVoxelMax, 8);
     smallVoxelMin = floor(smallVoxelMin);
+    smallVoxelMax = ceil(smallVoxelMax);
     
     // Iterate over the footprint on the 3D grid.
 #pragma clang loop unroll(disable)
@@ -258,43 +259,7 @@ kernel void buildSmallPart1_0
           
           // Narrow down the cells with a cube-sphere intersection test.
           bool intersected = cubeSphereIntersection(xyz, atom);
-          if (intersected && all(xyz < 8)) {
-            // Generate the address.
-            constexpr half3 addressStride(1, 8, 64);
-            half address = dot(xyz, addressStride);
-            
-            // Perform the atomic fetch-add.
-            auto castedCounters =
-            (threadgroup atomic_uint*)threadgroupCounters;
-            uint offset =
-            atomic_fetch_add_explicit(castedCounters + ushort(address),
-                                      1, memory_order_relaxed);
-            
-            // Write the reference to the list.
-            smallAtomReferences[offset] = smallAtomID;
-          }
-        }
-      }
-    }
-     */
-    
-    // Generate the bounding box.
-    half3 smallVoxelMin = atom.xyz - atom.w;
-    half3 smallVoxelMax = atom.xyz + atom.w;
-    smallVoxelMin = max(smallVoxelMin, 0);
-    smallVoxelMax = min(smallVoxelMax, 8);
-    smallVoxelMin = floor(smallVoxelMin);
-    smallVoxelMax = ceil(smallVoxelMax);
-    
-    // Iterate over the footprint on the 3D grid.
-    for (half z = smallVoxelMin[2]; z < smallVoxelMax[2]; ++z) {
-      for (half y = smallVoxelMin[1]; y < smallVoxelMax[1]; ++y) {
-        for (half x = smallVoxelMin[0]; x < smallVoxelMax[0]; ++x) {
-          half3 xyz = half3(x, y, z);
-          
-          // Narrow down the cells with a cube-sphere intersection test.
-          bool intersected = cubeSphereIntersection(xyz, atom);
-          if (intersected && all(xyz < 8)) {
+          if (intersected && all(xyz < smallVoxelMax)) {
             // Generate the address.
             constexpr half3 addressStride(1, 8, 64);
             half address = dot(xyz, addressStride);
