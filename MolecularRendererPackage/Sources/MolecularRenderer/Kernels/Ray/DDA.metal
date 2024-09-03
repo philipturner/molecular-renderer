@@ -21,7 +21,7 @@ class DDA {
   float3 dt;
   float minimumTime;
   float3 originalTime;
-  short3 originalMaybeInvertedPosition;
+  short3 originalCorrectPosition;
   
 public:
   DDA(float3 rayOrigin,
@@ -54,6 +54,7 @@ public:
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
     
+    short3 originalMaybeInvertedPosition;
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float origin = transformedRayOrigin[i];
@@ -65,8 +66,15 @@ public:
       // which one will produce the smallest `t`? This dimension gets the
       // increment because we want to intersect the closest voxel, which hasn't
       // been tested yet.
-      originalTime[i] = (floor(origin) - origin) * abs(dt[i]) + abs(dt[i]);
+      originalTime[i] = (floor(origin) - origin) * abs(dt[i]);
       originalMaybeInvertedPosition[i] = short(ushort(origin));
+    }
+    
+    {
+      short3 invertedPosition = short3(gridDims) - 1 - originalMaybeInvertedPosition;
+      originalCorrectPosition = select(originalMaybeInvertedPosition,
+                                              invertedPosition,
+                                              dt < 0);
     }
   }
   
@@ -103,22 +111,32 @@ public:
   }
   
   float3 currentTime(ushort3 progressCounter) const {
-    return originalTime + float3(progressCounter) * abs(dt);
+    return originalTime + float3(progressCounter + 1) * abs(dt);
   }
   
-  short3 maybeInvertedPosition(ushort3 progressCounter) const {
-    return originalMaybeInvertedPosition + short3(progressCounter);
+  short3 maybeInvertedPosition(ushort3 progressCounter, ushort3 gridDims) const {
+    short3 invertedPosition = short3(gridDims) - 1 - originalCorrectPosition;
+    short3 maybeInvertedPosition2 = select(originalCorrectPosition, invertedPosition, dt < 0);
+    return maybeInvertedPosition2 + short3(progressCounter);
   }
   
   bool continueLoop(ushort3 progressCounter, ushort3 gridDims) const {
-    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter);
-    return (maybeInvertedPosition.x < gridDims.x) &&
-    (maybeInvertedPosition.y < gridDims.y) &&
-    (maybeInvertedPosition.z < gridDims.z);
+    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter, gridDims);
+    short3 correctPosition = short3(cellCoordinates(progressCounter, gridDims));
+    
+    short3 invertedPosition = short3(gridDims) - 1 - correctPosition;
+    short3 maybeInvertedPosition2 = select(correctPosition, invertedPosition, dt < 0);
+    
+//    return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&
+//    (correctPosition.y >= 0 && correctPosition.y < gridDims.y) &&
+//    (correctPosition.z >= 0 && correctPosition.z < gridDims.z);
+    return (maybeInvertedPosition2.x < gridDims.x) &&
+    (maybeInvertedPosition2.y < gridDims.y) &&
+    (maybeInvertedPosition2.z < gridDims.z);
   }
   
   ushort3 cellCoordinates(ushort3 progressCounter, ushort3 gridDims) const {
-    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter);
+    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter, gridDims);
     short3 invertedPosition = short3(gridDims) - 1 - maybeInvertedPosition;
     short3 actualPosition = select(maybeInvertedPosition,
                                    invertedPosition,

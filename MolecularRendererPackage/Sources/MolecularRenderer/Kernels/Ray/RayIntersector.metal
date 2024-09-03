@@ -158,9 +158,9 @@ struct RayIntersector {
           
           float radius = float(atom.w);
           float c = -radius * radius;
-          c = fma(float(oc.x), float(oc.x), c);
-          c = fma(float(oc.y), float(oc.y), c);
-          c = fma(float(oc.z), float(oc.z), c);
+          c = fma(oc.x, oc.x, c);
+          c = fma(oc.y, oc.y, c);
+          c = fma(oc.z, oc.z, c);
           
           float disc4 = b2 * b2 - c;
           if (disc4 > 0) {
