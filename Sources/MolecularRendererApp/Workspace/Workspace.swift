@@ -160,8 +160,10 @@ import Numerics
 //   - Ensure rendering still happens with reasonable performance. [DONE]
 //     - Performance is not acceptable for real-time viewing (3 ms -> 11 ms),
 //       but we'll investigate the issue when refactoring the DDA.
-//   - Hard-code [-64, 64] throughout the code base.
-//   - Eliminate the bounding box reduction and related allocations.
+//     - Found the increase was more like (6 ms -> 11 ms), and we already had
+//       6 ms for the most concerning scenes (which are not exposed to open
+//       void or world boundaries).
+//   - Eliminate the bounding box reduction.
 // - Refactor the DDA, making it easier to modify.
 // - Start with a very expensive two-level DDA.
 //   - Don't make any attempts to fix divergence.

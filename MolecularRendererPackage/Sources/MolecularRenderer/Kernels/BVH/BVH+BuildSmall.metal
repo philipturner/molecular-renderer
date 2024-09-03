@@ -76,16 +76,10 @@ kernel void buildSmallPart0_0
  device uint3 *atomDispatchArguments8x8x8 [[buffer(4)]])
 {
   // Set the BVH arguments.
-  int3 minimum = *boundingBoxMin;
-  int3 maximum = *boundingBoxMax;
-  bvhArgs->worldMinimum = float3(minimum);
-  bvhArgs->worldMaximum = float3(maximum);
-  bvhArgs->largeVoxelCount = ushort3(maximum - minimum) / 2;
-  bvhArgs->smallVoxelCount = ushort3(maximum - minimum) * 4;
-//  bvhArgs->worldMinimum = -64;
-//  bvhArgs->worldMaximum = 64;
-//  bvhArgs->largeVoxelCount = 64;
-//  bvhArgs->smallVoxelCount = 512;
+  bvhArgs->worldMinimum = -64;
+  bvhArgs->worldMaximum = 64;
+  bvhArgs->largeVoxelCount = 64;
+  bvhArgs->smallVoxelCount = 512;
   
   // Set the atom dispatch arguments.
   uint compactedThreadgroupCount = allocatedMemory[0] - 1;
