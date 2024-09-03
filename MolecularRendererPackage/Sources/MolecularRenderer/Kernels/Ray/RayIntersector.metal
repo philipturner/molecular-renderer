@@ -19,7 +19,7 @@ struct IntersectionResult {
   bool accept;
   uint atomID;
   float distance;
-  uchar3 tgid;
+  uchar3 largeCellID;
 };
 
 struct IntersectionQuery {
@@ -69,27 +69,27 @@ struct RayIntersector {
     while (!result.accept) {
       uint4 largeMetadata;
       ushort2 smallMetadata;
-      uchar3 tgid;
+      uchar3 largeCellID;
       float voxelMaximumTime;
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
-        // Save the current voxel's metadata.
+        ushort3 cellCoordinates = dda
+          .cellCoordinates(progress, bvhArgs->smallVoxelCount);
+        largeCellID = uchar3(cellCoordinates / 8);
+        
         {
-          ushort3 cellCoordinates = dda.cellCoordinates(progress, bvhArgs->smallVoxelCount);
-          tgid = uchar3(cellCoordinates / 8);
+          float3 lowerCorner = bvhArgs->worldMinimum;
+          lowerCorner += float3(largeCellID) * 2;
           
-          {
-            float3 lowerCorner = bvhArgs->worldMinimum;
-            lowerCorner += float3(tgid) * 2;
-            
-            ushort3 cellCoordinates = ushort3(lowerCorner + 64);
-            cellCoordinates /= 2;
-            
-            uint address = VoxelAddress::generate(64, cellCoordinates);
-            largeMetadata = largeCellMetadata[address];
-          }
+          ushort3 cellCoordinates = ushort3(lowerCorner + 64);
+          cellCoordinates /= 2;
           
+          uint address = VoxelAddress::generate(64, cellCoordinates);
+          largeMetadata = largeCellMetadata[address];
+        }
+        
+        {
           ushort3 localOffset = cellCoordinates % 8;
           ushort localAddress = VoxelAddress::generate(8, localOffset);
           uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
@@ -132,7 +132,7 @@ struct RayIntersector {
       // Set the origin register.
       float3 origin = intersectionQuery.rayOrigin;
       origin -= bvhArgs->worldMinimum;
-      origin -= float3(tgid) * 2;
+      origin -= float3(largeCellID) * 2;
       
       // Set the loop bounds register.
       uint referenceCursor = largeMetadata[2] + smallMetadata[0];
@@ -176,7 +176,7 @@ struct RayIntersector {
       // Check whether we found a hit.
       if (result.distance < dda.maximumHitTime(voxelMaximumTime)) {
         result.accept = true;
-        result.tgid = tgid;
+        result.largeCellID = largeCellID;
       }
     }
     

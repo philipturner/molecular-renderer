@@ -66,7 +66,7 @@ kernel void renderAtoms
     float4 hitAtom = float4(convertedAtoms[intersect.atomID]);
     {
       float3 lowerCorner = bvhArgs->worldMinimum;
-      lowerCorner += float3(intersect.tgid) * 2;
+      lowerCorner += float3(intersect.largeCellID) * 2;
       hitAtom.xyz += lowerCorner;
     }
     

@@ -30,6 +30,7 @@ class BVHBuilder {
   var cellGroupMarks: [MTLBuffer]
   var largeCounterMetadata: MTLBuffer
   var largeCellMetadata: MTLBuffer
+  var compactedLargeCellIDs: MTLBuffer
   var compactedSmallCellMetadata: MTLBuffer
   
   // Data buffers (per reference).
@@ -79,6 +80,7 @@ class BVHBuilder {
     ]
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
     largeCellMetadata = createBuffer(length: largeVoxelCount * 4 * 4)
+    compactedLargeCellIDs = createBuffer(length: largeVoxelCount * 4)
     compactedSmallCellMetadata = createBuffer(
       length: (smallVoxelCount / 8) * 2 * 2)
     

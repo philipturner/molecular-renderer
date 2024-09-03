@@ -97,6 +97,7 @@ kernel void buildLargePart2_1
  device uchar *currentCellGroupMarks [[buffer(3)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(4)]],
  device uint4 *largeCellMetadata [[buffer(5)]],
+ device uchar3 *compactedLargeCellIDs [[buffer(6)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -114,18 +115,21 @@ kernel void buildLargePart2_1
   }
   
   // Locate the counter metadata.
-  ushort3 cellCoordinates = thread_id;
-  cellCoordinates += tgid * 4;
-  uint cellAddress = VoxelAddress::generate(64, cellCoordinates);
+  uint largeCellAddress;
+  {
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
+    largeCellAddress = VoxelAddress::generate(64, cellCoordinates);
+  }
   
   // Return early for vacant voxels.
   if (currentMark == 0) {
-    largeCellMetadata[cellAddress] = uint4(0);
+    largeCellMetadata[largeCellAddress] = uint4(0);
     return;
   }
   
   // Read the counter metadata.
-  vec<uint, 8> counterCounts = largeCounterMetadata[cellAddress];
+  vec<uint, 8> counterCounts = largeCounterMetadata[largeCellAddress];
   
   // Reduce the counts across the thread.
   uint threadTotalCount = 0;
@@ -153,6 +157,8 @@ kernel void buildLargePart2_1
   int3 threadBoxMin;
   int3 threadBoxMax;
   if (threadTotalCount > 0) {
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
     threadBoxMin = int3(cellCoordinates) * 2 - 64;
     threadBoxMax = threadBoxMin + 2;
   } else {
@@ -200,8 +206,15 @@ kernel void buildLargePart2_1
   
   // If just this thread is empty, return here.
   if (threadTotalCount == 0) {
-    largeCellMetadata[cellAddress] = uint4(0);
+    largeCellMetadata[largeCellAddress] = uint4(0);
     return;
+  }
+  
+  // Write the compacted cell ID.
+  {
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
+    compactedLargeCellIDs[threadVoxelOffset] = uchar3(cellCoordinates);
   }
   
   // Write the cell metadata.
@@ -210,7 +223,7 @@ kernel void buildLargePart2_1
                          threadLargeOffset,
                          threadSmallOffset,
                          threadTotalCount & (uint(1 << 14) - 1));
-    largeCellMetadata[cellAddress] = threadMetadata;
+    largeCellMetadata[largeCellAddress] = threadMetadata;
   }
   
   // Write the counter offsets.
@@ -226,6 +239,6 @@ kernel void buildLargePart2_1
       counterCursor += counterCount;
     }
     counterOffsets += threadLargeOffset;
-    largeCounterMetadata[cellAddress] = counterOffsets;
+    largeCounterMetadata[largeCellAddress] = counterOffsets;
   }
 }

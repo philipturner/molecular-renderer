@@ -118,9 +118,10 @@ kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
- device half4 *convertedAtoms [[buffer(2)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(3)]],
- device ushort *smallAtomReferences [[buffer(4)]],
+ device uchar3 *compactedLargeCellIds [[buffer(2)]],
+ device half4 *convertedAtoms [[buffer(3)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(4)]],
+ device ushort *smallAtomReferences [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
