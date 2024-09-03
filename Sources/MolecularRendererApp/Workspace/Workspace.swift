@@ -149,9 +149,9 @@ import Numerics
 //     - Remove the buffer bindings from the render kernel. [DONE]
 //     - Stop writing to it in the fused kernel. [DONE]
 //   - Change the indirect dispatch for the fused kernel, so threadgroups
-//     are only launched for occupied voxels.
-//     - Add a buffer of threadgroup IDs for occupied large voxels.
-//     - Make the dispatch 1D instead of 3D.
+//     are only launched for occupied voxels. [DONE]
+//     - Add a buffer of threadgroup IDs for occupied large voxels. [DONE]
+//     - Make the dispatch 1D instead of 3D. [DONE]
 //
 // Implementing sparse ray tracing.
 // - Refactor the DDA, making it easier to modify.

@@ -121,7 +121,7 @@ kernel void buildSmallPart1_0
 (
  constant BVHArguments *bvhArgs [[buffer(0)]],
  device uint4 *largeCellMetadata [[buffer(1)]],
- device ushort3 *compactedLargeCellIDs [[buffer(2)]],
+ device uchar3 *compactedLargeCellIDs [[buffer(2)]],
  device half4 *convertedAtoms [[buffer(3)]],
  device ushort2 *compactedSmallCellMetadata [[buffer(4)]],
  device ushort *smallAtomReferences [[buffer(5)]],
@@ -131,7 +131,7 @@ kernel void buildSmallPart1_0
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Materialize the lower corner in registers.
-  ushort3 cellCoordinates = compactedLargeCellIDs[1 + tgid];
+  uchar3 cellCoordinates = compactedLargeCellIDs[1 + tgid];
   float3 lowerCorner = float3(cellCoordinates) * 2 - 64;
   
   // Read the large cell metadata.
