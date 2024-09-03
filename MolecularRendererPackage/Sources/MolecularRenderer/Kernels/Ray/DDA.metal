@@ -54,7 +54,6 @@ public:
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
     
-//    short3 originalMaybeInvertedPosition;
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       if (dt[i] < 0) {
@@ -111,34 +110,17 @@ public:
     return originalTime + float3(progressCounter + 1) * abs(dt);
   }
   
-  short3 maybeInvertedPosition(ushort3 progressCounter, ushort3 gridDims) const {
-    short3 invertedPosition = short3(gridDims) - 1 - originalCorrectPosition;
-    short3 maybeInvertedPosition2 = select(originalCorrectPosition, invertedPosition, dt < 0);
-    return maybeInvertedPosition2 + short3(progressCounter);
+  short3 cellCoordinates(ushort3 progressCounter, ushort3 gridDims) const {
+    short3 invertedCounter = select(short3(progressCounter), -short3(progressCounter), dt < 0);
+    return originalCorrectPosition + invertedCounter;
   }
   
   bool continueLoop(ushort3 progressCounter, ushort3 gridDims) const {
-    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter, gridDims);
-    short3 correctPosition = short3(cellCoordinates(progressCounter, gridDims));
+    short3 correctPosition = cellCoordinates(progressCounter, gridDims);
     
-    short3 invertedPosition = short3(gridDims) - 1 - correctPosition;
-    short3 maybeInvertedPosition2 = select(correctPosition, invertedPosition, dt < 0);
-    
-//    return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&
-//    (correctPosition.y >= 0 && correctPosition.y < gridDims.y) &&
-//    (correctPosition.z >= 0 && correctPosition.z < gridDims.z);
-    return (maybeInvertedPosition2.x < gridDims.x) &&
-    (maybeInvertedPosition2.y < gridDims.y) &&
-    (maybeInvertedPosition2.z < gridDims.z);
-  }
-  
-  ushort3 cellCoordinates(ushort3 progressCounter, ushort3 gridDims) const {
-    short3 maybeInvertedPosition = this->maybeInvertedPosition(progressCounter, gridDims);
-    short3 invertedPosition = short3(gridDims) - 1 - maybeInvertedPosition;
-    short3 actualPosition = select(maybeInvertedPosition,
-                                   invertedPosition,
-                                   dt < 0);
-    return ushort3(actualPosition);
+    return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&
+    (correctPosition.y >= 0 && correctPosition.y < gridDims.y) &&
+    (correctPosition.z >= 0 && correctPosition.z < gridDims.z);
   }
 };
 

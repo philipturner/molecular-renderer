@@ -74,9 +74,9 @@ struct RayIntersector {
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
-        ushort3 cellCoordinates = dda
+        short3 cellCoordinates = dda
           .cellCoordinates(progress, bvhArgs->smallVoxelCount);
-        largeCellID = uchar3(cellCoordinates / 8);
+        largeCellID = uchar3(ushort3(cellCoordinates) / 8);
         
         {
           float3 lowerCorner = bvhArgs->worldMinimum;
@@ -90,7 +90,7 @@ struct RayIntersector {
         }
         
         {
-          ushort3 localOffset = cellCoordinates % 8;
+          ushort3 localOffset = ushort3(cellCoordinates) % 8;
           ushort localAddress = VoxelAddress::generate(8, localOffset);
           uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
           smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
