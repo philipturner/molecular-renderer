@@ -182,8 +182,6 @@ kernel void buildSmallPart1_0
   
   threadgroup_barrier(mem_flags::mem_threadgroup);
   
-  
-  
   uint4 counterOffsets;
   {
     // Read the counter metadata.

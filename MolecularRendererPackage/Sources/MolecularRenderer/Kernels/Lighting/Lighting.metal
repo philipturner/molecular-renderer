@@ -49,16 +49,15 @@ public:
     diffuseColor = elementColor;
   }
   
-  void addAmbientContribution(IntersectionResult intersect,
-                              device half4 *atomMotionVectors) {
+  void addAmbientContribution(ushort atomicNumber, float distance) {
     float diffuseAmbient;
     float specularAmbient;
     
     // Branch on whether the secondary ray hit an atom.
-    if (intersect.accept && intersect.distance < 1.000) {
+    if (atomicNumber > 0 && distance < 1.000) {
       // Gaussians function always returns something between 0 and 1.
       // With the distance cutoff, it maps [0 nm, 1 nm] to [1.000, 0.135].
-      float occlusion = exp(-2 * intersect.distance * intersect.distance);
+      float occlusion = exp(-2 * distance * distance);
       
       // A simple implementation is 'diffuseAmbient = 1 - occlusion'.
       // This implementation would map [1.000, 0.135] to [0.000, 0.865].
@@ -72,12 +71,7 @@ public:
       half3 primaryHitColor = diffuseColor;
       
       // Color at the secondary hit point.
-      half3 secondaryHitColor;
-      {
-        half4 motionVector = atomMotionVectors[intersect.atomID];
-        ushort atomicNumber = as_type<ushort>(motionVector.w);
-        secondaryHitColor = elementColors[atomicNumber];
-      }
+      half3 secondaryHitColor = elementColors[atomicNumber];
       
       // Take the dot product of the color with the gamut.
       // - Parameters taken from the sRGB/Rec.709 standard.

@@ -18,11 +18,13 @@ kernel void renderAtoms
  constant RenderArguments *renderArgs [[buffer(1)]],
  constant BVHArguments *bvhArgs [[buffer(2)]],
  constant half3 *elementColors [[buffer(3)]],
- device uint4 *largeCellMetadata [[buffer(4)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(5)]],
- device ushort *smallAtomReferences [[buffer(6)]],
- device half4 *convertedAtoms [[buffer(7)]],
- device half4 *atomMotionVectors [[buffer(8)]],
+ device float4 *originalAtoms [[buffer(4)]],
+ device half3 *atomMetadata [[buffer(5)]],
+ device half4 *convertedAtoms [[buffer(6)]],
+ device uint *largeAtomReferences [[buffer(7)]],
+ device ushort *smallAtomReferences [[buffer(8)]],
+ device uint4 *largeCellMetadata [[buffer(9)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(10)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -60,20 +62,21 @@ kernel void renderAtoms
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
   if (intersect.accept) {
-    float3 hitPoint = primaryRayOrigin;
-    hitPoint += primaryRayDirection * intersect.distance;
-    
-    float4 hitAtom = float4(convertedAtoms[intersect.atomID]);
+    // Materialize the hit point.
+    float3 hitPoint;
+    half3 hitNormal;
     {
-      float3 lowerCorner = bvhArgs->worldMinimum;
-      lowerCorner += float3(intersect.largeCellID) * 2;
-      hitAtom.xyz += lowerCorner;
+      hitPoint = primaryRayOrigin;
+      hitPoint += primaryRayDirection + intersect.distance;
+      
+      float4 hitAtom = originalAtoms[intersect.atomID];
+      hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
     }
     
-    half3 hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
+    // Set the diffuse color.
     {
-      half4 motionVector = atomMotionVectors[intersect.atomID];
-      ushort atomicNumber = as_type<ushort>(motionVector.w);
+      float4 hitAtom = originalAtoms[intersect.atomID];
+      ushort atomicNumber = ushort(hitAtom.w);
       colorCtx.setDiffuseColor(atomicNumber);
     }
     
@@ -116,8 +119,14 @@ kernel void renderAtoms
       auto intersect = rayIntersector.intersect(query);
       
       // Add the secondary ray's AO contributions.
-      colorCtx.addAmbientContribution(intersect,
-                                      atomMotionVectors);
+      ushort atomicNumber;
+      if (intersect.accept) {
+        float4 hitAtom = originalAtoms[intersect.atomID];
+        atomicNumber = ushort(hitAtom.w);
+      } else {
+        atomicNumber = 0;
+      }
+      colorCtx.addAmbientContribution(atomicNumber, intersect.distance);
     }
     
     // Tell the context how many AO samples were taken.
@@ -141,8 +150,8 @@ kernel void renderAtoms
     
     // Generate the pixel motion vector.
     {
-      half4 atomMotionVector = atomMotionVectors[intersect.atomID];
-      float3 previousHitPoint = hitPoint - float3(atomMotionVector.xyz);
+      half3 motionVector = atomMetadata[intersect.atomID];
+      float3 previousHitPoint = hitPoint - float3(motionVector);
       colorCtx.generateMotionVector(cameraArgs + 1,
                                     renderArgs,
                                     previousHitPoint);

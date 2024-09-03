@@ -55,12 +55,11 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 
 kernel void buildLargePart1_1
 (
- constant bool *useAtomMotionVectors [[buffer(0)]],
  constant half *elementRadii [[buffer(1)]],
- device float4 *previousAtoms [[buffer(2)]],
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
+ 
  device uchar *currentCellGroupMarks [[buffer(6)]],
  device atomic_uint *largeCounterMetadata [[buffer(7)]],
  uint tid [[thread_position_in_grid]],
@@ -183,9 +182,11 @@ kernel void buildLargePart2_2
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
- device half4 *convertedAtoms [[buffer(6)]],
- device half4 *atomMotionVectors [[buffer(7)]],
- device uint *largeCounterMetadata [[buffer(8)]],
+ 
+ device half3 *atomMetadata [[buffer(6)]],
+ device half4 *convertedAtoms [[buffer(7)]],
+ device uint *largeAtomReferences [[buffer(8)]],
+ device uint *largeCounterMetadata [[buffer(9)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
 {
@@ -194,15 +195,19 @@ kernel void buildLargePart2_2
   ushort atomicNumber = ushort(atom.w);
   half radius = elementRadii[atomicNumber];
   
-  // Materialize the motion vector.
-  half4 motionVector;
-  if (*useAtomMotionVectors) {
-    float4 previous = previousAtoms[tid];
-    motionVector.xyz = half3(atom.xyz - previous.xyz);
-  } else {
-    motionVector.xyz = half3(0);
+  // Write the atom metadata.
+  {
+    float4 previousAtom;
+    if (*useAtomMotionVectors) {
+      previousAtom = previousAtom[tid];
+    } else {
+      previousAtom = atom;
+    }
+    
+    half3 metadata;
+    metadata.xyz = half3(atom.xyz - previousAtom.xyz);
+    atomMetadata[tid] = metadata;
   }
-  motionVector.w = as_type<half>(atomicNumber);
   
   // Place the atom in the grid of small cells.
   float4 transformedAtom;
@@ -281,7 +286,7 @@ kernel void buildLargePart2_2
           offset += relativeOffset;
         }
         
-        // Write the atom to the new position in memory.
+        // Write the atom.
         {
           // Materialize the lower corner.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
@@ -295,8 +300,8 @@ kernel void buildLargePart2_2
           convertedAtoms[offset] = writtenAtom;
         }
         
-        // Write the motion vector and atomic number.
-        atomMotionVectors[offset] = motionVector;
+        // Map the new array index to the old one.
+        largeAtomReferences[offset] = tid;
       }
     }
   }

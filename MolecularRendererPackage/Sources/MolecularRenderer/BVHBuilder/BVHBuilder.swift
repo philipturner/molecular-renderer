@@ -22,9 +22,8 @@ class BVHBuilder {
   
   // Data buffers (per atom).
   var originalAtoms: [MTLBuffer]
+  var atomMetadata: MTLBuffer
   var relativeOffsets: MTLBuffer
-  var convertedAtoms: MTLBuffer
-  var atomMotionVectors: MTLBuffer
   
   // Data buffers (per cell).
   var cellGroupMarks: [MTLBuffer]
@@ -34,6 +33,8 @@ class BVHBuilder {
   var compactedSmallCellMetadata: MTLBuffer
   
   // Data buffers (per reference).
+  var convertedAtoms: MTLBuffer
+  var largeAtomReferences: MTLBuffer
   var smallAtomReferences: MTLBuffer
   
   public init(
@@ -67,25 +68,26 @@ class BVHBuilder {
       createBuffer(length: atomCount * 16),
       createBuffer(length: atomCount * 16),
     ]
+    atomMetadata = createBuffer(length: atomCount * 8)
     relativeOffsets = createBuffer(length: atomCount * 8 * 2)
-    convertedAtoms = createBuffer(length: 2 * atomCount * 16)
-    atomMotionVectors = createBuffer(length: 2 * atomCount * 8)
     
     // Data buffers (per cell).
     let largeVoxelCount = 64 * 64 * 64
-    let smallVoxelCount = 512 * 512 * 512
+    let smallVoxelCount = 16 * 1024 * 1024
     cellGroupMarks = [
-      createBuffer(length: largeVoxelCount / (4 * 4 * 4) * 1),
-      createBuffer(length: largeVoxelCount / (4 * 4 * 4) * 1),
+      createBuffer(length: 16 * 16 * 16),
+      createBuffer(length:  16 * 16 * 16),
     ]
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
-    largeCellMetadata = createBuffer(length: largeVoxelCount * 4 * 4)
-    compactedLargeCellIDs = createBuffer(length: largeVoxelCount * 4 * 1)
-    compactedSmallCellMetadata = createBuffer(
-      length: (smallVoxelCount / 8) * 2 * 2)
+    largeCellMetadata = createBuffer(length: largeVoxelCount * 16)
+    compactedLargeCellIDs = createBuffer(length: largeVoxelCount * 4)
+    compactedSmallCellMetadata = createBuffer(length: smallVoxelCount * 4)
     
     // Data buffers (per reference).
+    let largeReferenceCount = 8 * 1024 * 1024
     let smallReferenceCount = 64 * 1024 * 1024
+    convertedAtoms = createBuffer(length: largeReferenceCount * 8)
+    largeAtomReferences = createBuffer(length: largeReferenceCount * 4)
     smallAtomReferences = createBuffer(length: smallReferenceCount * 2)
   }
 }
