@@ -72,7 +72,6 @@ extension BVHBuilder {
   }
   
   func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(bvhArguments, offset: 0, index: 0)
     encoder.setBuffer(largeCellMetadata, offset: 0, index: 1)
     encoder.setBuffer(compactedLargeCellIDs, offset: 0, index: 2)
     encoder.setBuffer(convertedAtoms, offset: 0, index: 3)

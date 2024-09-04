@@ -199,7 +199,7 @@ kernel void buildLargePart2_2
   {
     float4 previousAtom;
     if (*useAtomMotionVectors) {
-      previousAtom = previousAtom[tid];
+      previousAtom = previousAtoms[tid];
     } else {
       previousAtom = atom;
     }

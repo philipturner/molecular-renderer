@@ -44,10 +44,10 @@ struct IntersectionQuery {
 
 struct RayIntersector {
   constant BVHArguments *bvhArgs;
+  device half4 *convertedAtoms;
+  device ushort *smallAtomReferences;
   device uint4 *largeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
-  device ushort *smallAtomReferences;
-  device half4 *convertedAtoms;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
     bool returnEarly;

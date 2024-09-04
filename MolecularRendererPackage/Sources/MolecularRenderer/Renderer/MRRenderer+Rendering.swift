@@ -56,14 +56,22 @@ extension MRRenderer {
       encoder.setBytes(elementColors, length: byteCount, index: 3)
     }
     
+    // Bind the original atoms.
+    do {
+      let currentIndex = argumentContainer.tripleBufferIndex()
+      let currentAtoms = bvhBuilder.originalAtoms[currentIndex]
+      encoder.setBuffer(currentAtoms, offset: 0, index: 4)
+    }
+    
     // Bind the remaining buffers.
     do {
-      encoder.setBuffer(bvhBuilder.largeCellMetadata, offset: 0, index: 4)
+      encoder.setBuffer(bvhBuilder.atomMetadata, offset: 0, index: 5)
+      encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 6)
+      encoder.setBuffer(bvhBuilder.largeAtomReferences, offset: 0, index: 7)
+      encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 8)
+      encoder.setBuffer(bvhBuilder.largeCellMetadata, offset: 0, index: 9)
       encoder.setBuffer(
-        bvhBuilder.compactedSmallCellMetadata, offset: 0, index: 5)
-      encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 6)
-      encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 7)
-      encoder.setBuffer(bvhBuilder.atomMotionVectors, offset: 0, index: 8)
+        bvhBuilder.compactedSmallCellMetadata, offset: 0, index: 10)
     }
     
     // Bind the textures.

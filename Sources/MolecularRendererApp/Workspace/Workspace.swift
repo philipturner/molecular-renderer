@@ -181,7 +181,7 @@ import Numerics
 // - Need to modify 'RayIntersector.metal' and 'MRRenderer+Renderer.swift' to
 //   accomodate for the changes.
 
-#if true
+#if false
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -316,7 +316,7 @@ func createGeometry() -> [Atom] {
 
 #endif
 
-#if false
+#if true
 
 // Test that animation functionality is working correctly.
 func createGeometry() -> [[Atom]] {

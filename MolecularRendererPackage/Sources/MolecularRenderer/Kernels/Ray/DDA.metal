@@ -58,7 +58,6 @@ public:
     *returnEarly = (tmin >= tmax);
     
     // Adjust the origin so it starts in the grid.
-    // NOTE: This translates `t` by an offset of `tmin`.
     transformedRayOrigin += tmin * rayDirection;
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));

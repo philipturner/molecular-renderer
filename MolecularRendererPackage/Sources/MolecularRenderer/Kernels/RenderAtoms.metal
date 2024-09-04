@@ -40,10 +40,10 @@ kernel void renderAtoms
   // Initialize the ray intersector.
   RayIntersector rayIntersector;
   rayIntersector.bvhArgs = bvhArgs;
+  rayIntersector.convertedAtoms = convertedAtoms;
+  rayIntersector.smallAtomReferences = smallAtomReferences;
   rayIntersector.largeCellMetadata = largeCellMetadata;
   rayIntersector.compactedSmallCellMetadata = compactedSmallCellMetadata;
-  rayIntersector.smallAtomReferences = smallAtomReferences;
-  rayIntersector.convertedAtoms = convertedAtoms;
   
   // Spawn the primary ray.
   float3 primaryRayOrigin = cameraArgs->position;
@@ -63,10 +63,12 @@ kernel void renderAtoms
   auto colorCtx = ColorContext(elementColors, pixelCoords);
   if (intersect.accept) {
     // Locate the hit atom.
-    uint hitAtomID = largeAtomReferences[intersect.atomID];
+//    uint hitAtomID = largeAtomReferences[intersect.atomID];
     
     // Compute the hit point.
-    float4 hitAtom = originalAtoms[hitAtomID];
+    float4 hitAtom = float4(convertedAtoms[intersect.atomID]);
+    hitAtom.w = originalAtoms[largeAtomReferences[intersect.atomID]].w;
+    hitAtom.xyz += float3(intersect.largeCellID) * 2 - 64;
     float3 hitPoint = primaryRayOrigin + intersect.distance * primaryRayDirection;
     half3 hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
     
@@ -143,7 +145,7 @@ kernel void renderAtoms
     
     // Generate the pixel motion vector.
     {
-      half3 motionVector = atomMetadata[hitAtomID];
+      half3 motionVector = atomMetadata[largeAtomReferences[intersect.atomID]];
       float3 previousHitPoint = hitPoint - float3(motionVector);
       colorCtx.generateMotionVector(cameraArgs + 1,
                                     renderArgs,
