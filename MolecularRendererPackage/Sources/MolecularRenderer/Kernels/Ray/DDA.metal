@@ -39,60 +39,74 @@ public:
       thread bool *returnEarly)
   {
     // TODO: -
-    // - Is it possible to change the 'gridDims' variable to represent the
-    //   actual coordinates in nanometers? If not, why? Point to the specific
-    //   line of code that prevents this change from taking place.
-    float3 transformedRayOrigin;
-    transformedRayOrigin = 4 * (rayOrigin - bvhArgs->worldMinimum);
-    float3 gridDims = float3(bvhArgs->smallVoxelCount);
+    // - Continue with scaling 'gridDims' by a factor of 4. Then, re-implement
+    //   the guards for edge cases where the origin starts outside of the grid.
+    *returnEarly = false;
     
-    float tmin = 0;
-    float tmax = INFINITY;
+    float3 transformedRayOrigin = rayOrigin - bvhArgs->worldMinimum;
+    float3 gridDims = 0.25 * float3(bvhArgs->smallVoxelCount);
+    
     dt = precise::divide(1, rayDirection);
     dt *= 0.25;
+    minimumTime = 0;
     
-    // Perform a ray-box intersection test.
-#pragma clang loop unroll(full)
-    for (int i = 0; i < 3; ++i) {
-      // Here
-      float t1 = (0 - transformedRayOrigin[i]) * dt[i];
-      
-      // Here
-      float t2 = (gridDims[i] - transformedRayOrigin[i]) * dt[i];
-      tmin = max(tmin, min(min(t1, t2), tmax));
-      tmax = min(tmax, max(max(t1, t2), tmin));
-    }
-    minimumTime = tmin * 0.25;
-    *returnEarly = (tmax <= 0);
-    
-    // Adjust the origin so it starts in the grid.
-    transformedRayOrigin += tmin * rayDirection;
+    /*
+     float tmin = 0;
+     float tmax = INFINITY;
+     
+     // Perform a ray-box intersection test.
+     #pragma clang loop unroll(full)
+     for (int i = 0; i < 3; ++i) {
+     // Here
+     // - Already multiplied by 0.25
+     // - Solution: multiply by 4
+     float t1 = (0 - transformedRayOrigin[i]) * dt[i];
+     
+     // Here
+     // - Already multiplied by 0.25
+     // - Solution: multiply by 4
+     float t2 = (gridDims[i] - transformedRayOrigin[i]) * dt[i];
+     tmin = max(tmin, min(min(t1, t2), tmax));
+     tmax = min(tmax, max(max(t1, t2), tmin));
+     }
+     minimumTime = tmin * 0.25;
+     
+     // Adjust the origin so it starts in the grid.
+     transformedRayOrigin += tmin * rayDirection;
+     */
     
     // Here
+    // - No changes needed
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
     
     // Here
+    // - No changes needed
     transformedRayOrigin = min(transformedRayOrigin, gridDims);
+    
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       if (dt[i] < 0) {
         // Here
-        float origin = transformedRayOrigin[i];
+        // - Solution: multiply by 4 before rounding to integer
+        float origin = 4 * transformedRayOrigin[i];
         originalCorrectPosition[i] = ceil(origin) - 1;
       } else {
         // Here
-        float origin = transformedRayOrigin[i];
+        // - Solution: multiply by 4 before rounding to integer
+        float origin = 4 * transformedRayOrigin[i];
         originalCorrectPosition[i] = floor(origin);
       }
       
       if (dt[i] < 0) {
         // Here
-        float origin = transformedRayOrigin[i];
+        // - Solution: multiply by 4 before rounding to integer
+        float origin = 4 * transformedRayOrigin[i];
         originalTime[i] = (ceil(origin) - origin) * dt[i];
       } else {
         // Here
-        float origin = transformedRayOrigin[i];
+        // - Solution: multiply by 4 before rounding to integer
+        float origin = 4 * transformedRayOrigin[i] ;
         originalTime[i] = (floor(origin) - origin) * dt[i];
       }
     }
