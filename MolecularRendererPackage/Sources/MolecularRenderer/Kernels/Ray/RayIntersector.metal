@@ -49,13 +49,14 @@ struct RayIntersector {
   device ushort2 *compactedSmallCellMetadata;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
+    float3 progress;
     const DDA dda(intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection);
+                  intersectionQuery.rayDirection,
+                  &progress);
     
     IntersectionResult result;
     result.accept = false;
     
-    float3 progress = float3(0);
     while (!result.accept) {
       uchar3 largeCellID;
       uint4 largeMetadata;

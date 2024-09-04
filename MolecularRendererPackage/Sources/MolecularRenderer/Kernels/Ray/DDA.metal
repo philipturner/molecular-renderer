@@ -18,45 +18,35 @@ using namespace raytracing;
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
+  // The passed-in ray origin.
+  float3 rayOrigin;
+  
   // Inverse of ray direction.
   float3 dtdx;
   
   // How much to move when switching to a new cell.
   half3 dx;
   
-  // Cell where the origin lies.
-  float3 roundedOrigin;
-  
-  // Always negative, unless ray origin falls on a cell border (then zero).
-  float3 originalTime;
-  
 public:
-  DDA(float3 rayOrigin, float3 rayDirection) {
+  DDA(float3 rayOrigin, float3 rayDirection, thread float3 *progressCounter) {
+    this->rayOrigin = rayOrigin;
+    
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
-    roundedOrigin = rayOrigin;
-    roundedOrigin /= 0.25;
-    roundedOrigin = select(ceil(roundedOrigin),
-                           floor(roundedOrigin),
-                           dtdx >= 0);
-    roundedOrigin *= 0.25;
-    
-    // TODO: Change this, so the rounded origin is re-factored in every time
-    // the next time is requested. The ray's passed-in origin should be the
-    // only thing held in registers.
-    originalTime = (roundedOrigin - rayOrigin) * dtdx;
+    *progressCounter = rayOrigin;
+    *progressCounter /= 0.25;
+    *progressCounter = select(ceil(*progressCounter),
+                              floor(*progressCounter),
+                              dtdx >= 0);
+    *progressCounter *= 0.25;
   }
   
-  // TODO: Change the counter to nanometers.
   float3 nextTimes(float3 progressCounter) const {
-    float3 output = originalTime;
-    output += progressCounter * dtdx;
-    output += float3(dx) * dtdx;
-    return output;
+    float3 nextCounter = progressCounter + float3(dx);
+    return (nextCounter - rayOrigin) * dtdx;
   }
   
-  // TODO: Change the counter to nanometers.
   float3 increment(float3 progressCounter) const {
     const float3 nextTimes = this->nextTimes(progressCounter);
     
@@ -72,7 +62,6 @@ public:
     return output;
   }
   
-  // TODO: Change the counter to nanometers.
   float voxelMaximumHitTime(float3 progressCounter) const {
     const float3 nextTimes = this->nextTimes(progressCounter);
     
@@ -88,15 +77,12 @@ public:
     return smallestNextTime;
   }
   
-  // TODO: Change the counter to nanometers.
   short3 cellCoordinates(float3 progressCounter, ushort3 gridDims) const {
-    // Here
-    float3 output = 256 + (roundedOrigin + progressCounter) * 4;
+    float3 output = 256 + (progressCounter) * 4;
     output += select(float3(-1), float3(0), dtdx >= 0);
     return short3(output);
   }
   
-  // TODO: Change the counter to nanometers.
   bool continueLoop(float3 progressCounter, ushort3 gridDims) const {
     short3 correctPosition = cellCoordinates(progressCounter, gridDims);
     
