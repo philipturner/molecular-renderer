@@ -54,33 +54,44 @@ public:
     // Perform a ray-box intersection test.
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
+      // Here
       float t1 = (0 - transformedRayOrigin[i]) * dt[i];
+      
+      // Here
       float t2 = (gridDims[i] - transformedRayOrigin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
     minimumTime = tmin * 0.25;
-    *returnEarly = (tmin >= tmax);
+    *returnEarly = (tmax <= 0);
     
     // Adjust the origin so it starts in the grid.
     transformedRayOrigin += tmin * rayDirection;
+    
+    // Here
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
+    
+    // Here
     transformedRayOrigin = min(transformedRayOrigin, gridDims);
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       if (dt[i] < 0) {
+        // Here
         float origin = transformedRayOrigin[i];
         originalCorrectPosition[i] = ceil(origin) - 1;
       } else {
+        // Here
         float origin = transformedRayOrigin[i];
         originalCorrectPosition[i] = floor(origin);
       }
       
       if (dt[i] < 0) {
+        // Here
         float origin = transformedRayOrigin[i];
         originalTime[i] = (ceil(origin) - origin) * dt[i];
       } else {
+        // Here
         float origin = transformedRayOrigin[i];
         originalTime[i] = (floor(origin) - origin) * dt[i];
       }
@@ -126,6 +137,7 @@ public:
   }
   
   short3 cellCoordinates(short3 progressCounter, ushort3 gridDims) const {
+    // Here
     return originalCorrectPosition + progressCounter;
   }
   
