@@ -107,11 +107,11 @@ kernel void buildSmallPart0_0
 // Switching to 16-bit atoms:      1020 μs |
 kernel void buildSmallPart1_0
 (
- device uint4 *largeCellMetadata [[buffer(1)]],
- device uchar3 *compactedLargeCellIDs [[buffer(2)]],
- device half4 *convertedAtoms [[buffer(3)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(4)]],
- device ushort *smallAtomReferences [[buffer(5)]],
+ device uint4 *largeCellMetadata [[buffer(0)]],
+ device uchar3 *compactedLargeCellIDs [[buffer(1)]],
+ device half4 *convertedAtoms [[buffer(2)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(3)]],
+ device ushort *smallAtomReferences [[buffer(4)]],
  uint tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],

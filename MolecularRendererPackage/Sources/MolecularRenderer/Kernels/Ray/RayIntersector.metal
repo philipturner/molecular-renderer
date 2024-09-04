@@ -19,7 +19,6 @@ struct IntersectionResult {
   bool accept;
   uint atomID;
   float distance;
-  uchar3 largeCellID;
 };
 
 struct IntersectionQuery {
@@ -173,7 +172,6 @@ struct RayIntersector {
       // Check whether we found a hit.
       if (result.distance < voxelMaximumHitTime) {
         result.accept = true;
-        result.largeCellID = largeCellID;
       }
     }
     
