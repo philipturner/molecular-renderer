@@ -28,6 +28,18 @@ class DDA {
   half3 dx;
   
 public:
+  
+  // TODO: Rename the progress counter to the small cell border. It is not
+  // exactly the addressed small cell, because of the [-1, 0] increment based
+  // on ray direction.
+  
+  // TODO: Remove the ray origin from the DDA's instance members. Enter it as
+  // a function argument during every property access.
+  
+  // TODO: Remove the 'continueLoop' member. Instead, implement the logic in
+  // calling code. This may be important for detecting transitions between
+  // large cells.
+  
   DDA(float3 rayOrigin, float3 rayDirection, thread float3 *progressCounter) {
     this->rayOrigin = rayOrigin;
     
