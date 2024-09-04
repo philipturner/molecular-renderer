@@ -21,9 +21,6 @@ class DDA {
   // Inverse of ray direction.
   float3 dt;
   
-  // Always positive, unless ray origin falls within the domain (then zero).
-  float minimumTime;
-  
   // Always negative, unless ray origin falls on a cell border (then zero).
   float3 originalTime;
   
@@ -43,12 +40,11 @@ public:
     //   the guards for edge cases where the origin starts outside of the grid.
     *returnEarly = false;
     
-    float3 transformedRayOrigin = rayOrigin - bvhArgs->worldMinimum;
+    float3 origin = rayOrigin - bvhArgs->worldMinimum;
     float3 gridDims = 0.25 * float3(bvhArgs->smallVoxelCount);
     
     dt = precise::divide(1, rayDirection);
     dt *= 0.25;
-    minimumTime = 0;
     
     /*
      float tmin = 0;
@@ -73,48 +69,36 @@ public:
      
      // Adjust the origin so it starts in the grid.
      transformedRayOrigin += tmin * rayDirection;
+     
+     // Here
+     // - No changes needed
+     origin = max(origin, float3(0));
+     
+     // Here
+     // - No changes needed
+     origin = min(origin, gridDims);
      */
-    
-    // Here
-    // - No changes needed
-    transformedRayOrigin = max(transformedRayOrigin, float3(0));
-    
-    // Here
-    // - No changes needed
-    transformedRayOrigin = min(transformedRayOrigin, gridDims);
-    
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       if (dt[i] < 0) {
         // Here
         // - Solution: multiply by 4 before rounding to integer
-        float origin = 4 * transformedRayOrigin[i];
-        originalCorrectPosition[i] = ceil(origin) - 1;
+        float cellID = ceil(origin[i] / 0.25);
+        originalTime[i] = (cellID * 0.25 - origin[i]) * 4 * dt[i];
+        originalCorrectPosition[i] = short(cellID) - 1;
       } else {
         // Here
         // - Solution: multiply by 4 before rounding to integer
-        float origin = 4 * transformedRayOrigin[i];
-        originalCorrectPosition[i] = floor(origin);
-      }
-      
-      if (dt[i] < 0) {
-        // Here
-        // - Solution: multiply by 4 before rounding to integer
-        float origin = 4 * transformedRayOrigin[i];
-        originalTime[i] = (ceil(origin) - origin) * dt[i];
-      } else {
-        // Here
-        // - Solution: multiply by 4 before rounding to integer
-        float origin = 4 * transformedRayOrigin[i] ;
-        originalTime[i] = (floor(origin) - origin) * dt[i];
+        float cellID = floor(origin[i] / 0.25);
+        originalTime[i] = (cellID * 0.25 - origin[i]) * 4 * dt[i];
+        originalCorrectPosition[i] = short(cellID);
       }
     }
   }
   
   float3 nextTimes(short3 progressCounter) const {
-    float3 output = float3(minimumTime);
-    output += originalTime;
+    float3 output = originalTime;
     output += float3(progressCounter) * dt;
     output += abs(dt);
     return output;
