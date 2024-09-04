@@ -55,11 +55,11 @@ struct RayIntersector {
     IntersectionResult result;
     result.accept = false;
     
-    short3 progress = short3(0);
+    float3 progress = float3(0);
     while (!result.accept) {
+      uchar3 largeCellID;
       uint4 largeMetadata;
       ushort2 smallMetadata;
-      uchar3 largeCellID;
       float voxelMaximumHitTime;
       
       // Inner 'while' loop to find the next voxel.

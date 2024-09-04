@@ -26,43 +26,31 @@ class DDA {
   float3 originalTime;
   
   // Cell where the origin lies.
-  // - TODO: Can this be converted to floating point?
-  short3 originalCorrectPosition;
+  float3 roundedOrigin;
   
 public:
   DDA(float3 rayOrigin, float3 rayDirection) {
     dt = precise::divide(1, rayDirection);
     dt *= 0.25;
     
-#pragma clang loop unroll(full)
-    for (int i = 0; i < 3; ++i) {
-      float origin = rayOrigin[i] / 0.25;
-      float roundedOrigin;
-      if (dt[i] < 0) {
-        roundedOrigin = ceil(origin);
-      } else {
-        roundedOrigin = floor(origin);
-      }
-      
-      originalCorrectPosition[i] = short(roundedOrigin);
-      originalCorrectPosition[i] += (dt[i] >= 0) ? 0 : -1;
-      originalTime[i] = (roundedOrigin - origin) * dt[i];
-    }
+    float3 origin = rayOrigin / 0.25;
+    roundedOrigin = select(ceil(origin), floor(origin), dt >= 0);
+    originalTime = (roundedOrigin - origin) * dt;
   }
   
-  float3 nextTimes(short3 progressCounter) const {
+  float3 nextTimes(float3 progressCounter) const {
     float3 output = originalTime;
-    output += float3(progressCounter) * dt;
+    output += progressCounter * dt;
     
     float3 increment = select(float3(-1), float3(1), dt >= 0);
     output += increment * dt;
     return output;
   }
   
-  short3 increment(short3 progressCounter) const {
+  float3 increment(float3 progressCounter) const {
     const float3 nextTimes = this->nextTimes(progressCounter);
     
-    short3 output = progressCounter;
+    float3 output = progressCounter;
     if (nextTimes[0] < nextTimes[1] &&
         nextTimes[0] < nextTimes[2]) {
       output[0] += (dt[0] >= 0) ? 1 : -1;
@@ -74,7 +62,7 @@ public:
     return output;
   }
   
-  float voxelMaximumHitTime(short3 progressCounter) const {
+  float voxelMaximumHitTime(float3 progressCounter) const {
     const float3 nextTimes = this->nextTimes(progressCounter);
     
     float smallestNextTime;
@@ -89,12 +77,14 @@ public:
     return smallestNextTime;
   }
   
-  short3 cellCoordinates(short3 progressCounter, ushort3 gridDims) const {
+  short3 cellCoordinates(float3 progressCounter, ushort3 gridDims) const {
     // Here
-    return 256 + originalCorrectPosition + progressCounter;
+    float3 output = 256 + roundedOrigin + progressCounter;
+    output += select(float3(-1), float3(0), dt >= 0);
+    return short3(output);
   }
   
-  bool continueLoop(short3 progressCounter, ushort3 gridDims) const {
+  bool continueLoop(float3 progressCounter, ushort3 gridDims) const {
     short3 correctPosition = cellCoordinates(progressCounter, gridDims);
     
     return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&
