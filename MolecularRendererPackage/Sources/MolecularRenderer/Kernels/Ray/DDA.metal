@@ -19,88 +19,43 @@ using namespace raytracing;
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
   // Inverse of ray direction.
+  // - TODO: Can we also store the increment explicitly, in floating point?
   float3 dt;
   
   // Always negative, unless ray origin falls on a cell border (then zero).
   float3 originalTime;
   
-  // Cell where the origin lies, but properly handling negative directions and
-  // border cases.
-  // - What are all of the possible edge cases?
+  // Cell where the origin lies.
+  // - TODO: Can this be converted to floating point?
   short3 originalCorrectPosition;
   
 public:
-  DDA(float3 rayOrigin,
-      float3 rayDirection,
-      constant BVHArguments *bvhArgs,
-      thread bool *returnEarly)
-  {
-    // TODO: -
-    // - Continue with scaling 'gridDims' by a factor of 4. Then, re-implement
-    //   the guards for edge cases where the origin starts outside of the grid.
-    *returnEarly = false;
-    
-    float3 origin = rayOrigin - bvhArgs->worldMinimum;
-    float3 gridDims = 0.25 * float3(bvhArgs->smallVoxelCount);
-    
+  DDA(float3 rayOrigin, float3 rayDirection) {
     dt = precise::divide(1, rayDirection);
     dt *= 0.25;
     
-    /*
-     float tmin = 0;
-     float tmax = INFINITY;
-     
-     // Perform a ray-box intersection test.
-     #pragma clang loop unroll(full)
-     for (int i = 0; i < 3; ++i) {
-     // Here
-     // - Already multiplied by 0.25
-     // - Solution: multiply by 4
-     float t1 = (0 - transformedRayOrigin[i]) * dt[i];
-     
-     // Here
-     // - Already multiplied by 0.25
-     // - Solution: multiply by 4
-     float t2 = (gridDims[i] - transformedRayOrigin[i]) * dt[i];
-     tmin = max(tmin, min(min(t1, t2), tmax));
-     tmax = min(tmax, max(max(t1, t2), tmin));
-     }
-     minimumTime = tmin * 0.25;
-     
-     // Adjust the origin so it starts in the grid.
-     transformedRayOrigin += tmin * rayDirection;
-     
-     // Here
-     // - No changes needed
-     origin = max(origin, float3(0));
-     
-     // Here
-     // - No changes needed
-     origin = min(origin, gridDims);
-     */
-    
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
+      float origin = rayOrigin[i] / 0.25;
+      float roundedOrigin;
       if (dt[i] < 0) {
-        // Here
-        // - Solution: multiply by 4 before rounding to integer
-        float cellID = ceil(origin[i] / 0.25);
-        originalTime[i] = (cellID * 0.25 - origin[i]) * 4 * dt[i];
-        originalCorrectPosition[i] = short(cellID) - 1;
+        roundedOrigin = ceil(origin);
       } else {
-        // Here
-        // - Solution: multiply by 4 before rounding to integer
-        float cellID = floor(origin[i] / 0.25);
-        originalTime[i] = (cellID * 0.25 - origin[i]) * 4 * dt[i];
-        originalCorrectPosition[i] = short(cellID);
+        roundedOrigin = floor(origin);
       }
+      
+      originalCorrectPosition[i] = short(roundedOrigin);
+      originalCorrectPosition[i] += (dt[i] >= 0) ? 0 : -1;
+      originalTime[i] = (roundedOrigin - origin) * dt[i];
     }
   }
   
   float3 nextTimes(short3 progressCounter) const {
     float3 output = originalTime;
     output += float3(progressCounter) * dt;
-    output += abs(dt);
+    
+    float3 increment = select(float3(-1), float3(1), dt >= 0);
+    output += increment * dt;
     return output;
   }
   
@@ -136,7 +91,7 @@ public:
   
   short3 cellCoordinates(short3 progressCounter, ushort3 gridDims) const {
     // Here
-    return originalCorrectPosition + progressCounter;
+    return 256 + originalCorrectPosition + progressCounter;
   }
   
   bool continueLoop(short3 progressCounter, ushort3 gridDims) const {

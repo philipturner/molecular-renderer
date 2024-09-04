@@ -49,17 +49,11 @@ struct RayIntersector {
   device ushort2 *compactedSmallCellMetadata;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
-    bool returnEarly;
     const DDA dda(intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection,
-                  bvhArgs,
-                  &returnEarly);
+                  intersectionQuery.rayDirection);
     
     IntersectionResult result;
     result.accept = false;
-    if (returnEarly) {
-      return result;
-    }
     
     short3 progress = short3(0);
     while (!result.accept) {
