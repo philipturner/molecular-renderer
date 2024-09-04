@@ -19,14 +19,12 @@ using namespace raytracing;
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
   // Inverse of ray direction.
-  // - TODO: Change this to nanometers.
-  float3 dt;
+  float3 dtdx;
   
   // How much to move when switching to a new cell.
   half3 dx;
   
   // Cell where the origin lies.
-  // - TODO: Change this to nanometers.
   float3 roundedOrigin;
   
   // Always negative, unless ray origin falls on a cell border (then zero).
@@ -34,24 +32,27 @@ class DDA {
   
 public:
   DDA(float3 rayOrigin, float3 rayDirection) {
-    dt = precise::divide(1, rayDirection);
-    dt *= 0.25;
-    dx = select(half3(-1), half3(1), dt >= 0);
+    dtdx = precise::divide(1, rayDirection);
+    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
-    roundedOrigin = rayOrigin / 0.25;
-    roundedOrigin = select(ceil(roundedOrigin), 
+    roundedOrigin = rayOrigin;
+    roundedOrigin /= 0.25;
+    roundedOrigin = select(ceil(roundedOrigin),
                            floor(roundedOrigin),
-                           dt >= 0);
+                           dtdx >= 0);
     roundedOrigin *= 0.25;
     
-    originalTime = (roundedOrigin - rayOrigin) * (dt / 0.25);
+    // TODO: Change this, so the rounded origin is re-factored in every time
+    // the next time is requested. The ray's passed-in origin should be the
+    // only thing held in registers.
+    originalTime = (roundedOrigin - rayOrigin) * dtdx;
   }
   
   // TODO: Change the counter to nanometers.
   float3 nextTimes(float3 progressCounter) const {
     float3 output = originalTime;
-    output += progressCounter * dt;
-    output += float3(dx) * dt;
+    output += progressCounter * dtdx;
+    output += float3(dx) * dtdx;
     return output;
   }
   
@@ -90,8 +91,8 @@ public:
   // TODO: Change the counter to nanometers.
   short3 cellCoordinates(float3 progressCounter, ushort3 gridDims) const {
     // Here
-    float3 output = 256 + roundedOrigin * 4 + progressCounter;
-    output += select(float3(-1), float3(0), dt >= 0);
+    float3 output = 256 + (roundedOrigin + progressCounter) * 4;
+    output += select(float3(-1), float3(0), dtdx >= 0);
     return short3(output);
   }
   
