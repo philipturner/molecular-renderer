@@ -38,19 +38,24 @@ public:
       constant BVHArguments *bvhArgs,
       thread bool *returnEarly)
   {
+    // TODO: -
+    // - Is it possible to change the 'gridDims' variable to represent the
+    //   actual coordinates in nanometers? If not, why? Point to the specific
+    //   line of code that prevents this change from taking place.
     float3 transformedRayOrigin;
     transformedRayOrigin = 4 * (rayOrigin - bvhArgs->worldMinimum);
-    ushort3 gridDims = bvhArgs->smallVoxelCount;
+    float3 gridDims = float3(bvhArgs->smallVoxelCount);
     
     float tmin = 0;
     float tmax = INFINITY;
     dt = precise::divide(1, rayDirection);
+    dt *= 0.25;
     
     // Perform a ray-box intersection test.
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
       float t1 = (0 - transformedRayOrigin[i]) * dt[i];
-      float t2 = (float(gridDims[i]) - transformedRayOrigin[i]) * dt[i];
+      float t2 = (gridDims[i] - transformedRayOrigin[i]) * dt[i];
       tmin = max(tmin, min(min(t1, t2), tmax));
       tmax = min(tmax, max(max(t1, t2), tmin));
     }
@@ -60,7 +65,7 @@ public:
     // Adjust the origin so it starts in the grid.
     transformedRayOrigin += tmin * rayDirection;
     transformedRayOrigin = max(transformedRayOrigin, float3(0));
-    transformedRayOrigin = min(transformedRayOrigin, float3(gridDims));
+    transformedRayOrigin = min(transformedRayOrigin, gridDims);
     
 #pragma clang loop unroll(full)
     for (int i = 0; i < 3; ++i) {
@@ -83,9 +88,11 @@ public:
   }
   
   float3 nextTimes(short3 progressCounter) const {
-    const float3 currentTimes = originalTime + float3(progressCounter) * dt;
-    const float3 nextTimes = currentTimes + abs(dt);
-    return nextTimes;
+    float3 output = float3(minimumTime);
+    output += originalTime;
+    output += float3(progressCounter) * dt;
+    output += abs(dt);
+    return output;
   }
   
   short3 increment(short3 progressCounter) const {
@@ -115,7 +122,7 @@ public:
     } else {
       smallestNextTime = nextTimes[2];
     }
-    return minimumTime + smallestNextTime * 0.25;
+    return smallestNextTime;
   }
   
   short3 cellCoordinates(short3 progressCounter, ushort3 gridDims) const {
