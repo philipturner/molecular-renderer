@@ -80,7 +80,7 @@ struct RayIntersector {
         smallCellID = dda.cellCoordinates(cellBorder);
         
         // Exit the outer 'while' loop.
-        if (any(smallCellID <= 0) || any(smallCellID >= 512)) {
+        if (any(smallCellID <= -256) || any(smallCellID >= 256)) {
           exitOuterLoop = true;
           break;
         }
@@ -88,7 +88,7 @@ struct RayIntersector {
         // Save the large metadata.
         {
           float3 lowerCorner = bvhArgs->worldMinimum;
-          ushort3 largeCellID = ushort3(smallCellID) / 8;
+          ushort3 largeCellID = ushort3(smallCellID + 256) / 8;
           lowerCorner += float3(largeCellID) * 2;
           
           ushort3 cellCoordinates = ushort3(lowerCorner + 64);
@@ -100,7 +100,7 @@ struct RayIntersector {
         
         // Save the small metadata.
         {
-          ushort3 localOffset = ushort3(smallCellID) % 8;
+          ushort3 localOffset = ushort3(smallCellID + 256) % 8;
           ushort localAddress = VoxelAddress::generate(8, localOffset);
           uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
           smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
@@ -129,7 +129,7 @@ struct RayIntersector {
       // Set the origin register.
       float3 origin = intersectionQuery.rayOrigin;
       origin -= bvhArgs->worldMinimum;
-      ushort3 largeCellID = ushort3(smallCellID) / 8;
+      ushort3 largeCellID = ushort3(smallCellID + 256) / 8;
       origin -= float3(largeCellID) * 2;
       
       // Set the loop bounds register.
