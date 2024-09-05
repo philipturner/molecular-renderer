@@ -164,11 +164,11 @@ import Numerics
 //       6 ms for the most concerning scenes (which are not exposed to open
 //       void or world boundaries).
 //   - Eliminate the bounding box reduction. [DONE]
-// - Refactor the DDA, making it easier to modify.
+// - Refactor the DDA, making it easier to modify. [DONE]
 //   - Reduce the number of state variables. [DONE]
 //   - Remove the optimization that skips empty voxels. This is obfuscating
-//     some inner mechanics of DDA traversal.
-//   - Is real-time rendering still possible?
+//     some inner mechanics of DDA traversal. [DONE]
+//   - Is real-time rendering still possible? [DONE]
 // - Start with a very expensive two-level DDA.
 //   - Sketch out how to reinitialize an inner DDA and handle edge cases
 //     properly.

@@ -290,8 +290,7 @@ kernel void buildLargePart2_2
         {
           // Materialize the lower corner.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          float3 lowerCorner = float3(-64);
-          lowerCorner += 2 * float3(cellCoordinates);
+          float3 lowerCorner = float3(cellCoordinates) * 2 - 64;
           
           // Subtract the lower corner.
           half4 writtenAtom;

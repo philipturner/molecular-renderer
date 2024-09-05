@@ -58,55 +58,48 @@ struct RayIntersector {
     result.accept = false;
     
     while (!result.accept) {
-      // Save the voxel maximum time.
-      float voxelMaximumHitTime;
-      voxelMaximumHitTime = dda
+      // Compute the voxel maximum time.
+      float voxelMaximumHitTime = dda
         .voxelMaximumHitTime(cellBorder, intersectionQuery.rayOrigin);
       if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
         break;
       }
       
-      // Compute the cell's lower corner.
-      float3 cellLowerCorner = dda.cellLowerCorner(cellBorder);
-      if (any(cellLowerCorner < -64) || any(cellLowerCorner >= 64)) {
+      // Compute the lower corner.
+      float3 smallLowerCorner = dda.cellLowerCorner(cellBorder);
+      if (any(smallLowerCorner < -64) || any(smallLowerCorner >= 64)) {
         break;
       }
+      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       
-      // Compute the large cell ID.
-      float3 largeCellID = floor((64 + cellLowerCorner) / 2);
-      
-      // Save the lower corner.
-      float3 lowerCorner;
-      {
-        lowerCorner = -64;
-        lowerCorner += float3(largeCellID) * 2;
-      }
-      
-      // Save the large metadata.
+      // Retrieve the large metadata.
       uint4 largeMetadata;
       {
-        float address = VoxelAddress::generate<float, float>(64, largeCellID);
+        float3 coordinates = (largeLowerCorner + 64) / 2;
+        float address =
+        VoxelAddress::generate<float, float>(64, coordinates);
         largeMetadata = largeCellMetadata[uint(address)];
       }
       
-      // Save the small metadata.
+      // Retrieve the small metadata.
       ushort2 smallMetadata;
       if (largeMetadata[0] > 0) {
-        float3 smallCellID = 256 + cellLowerCorner / 0.25;
-        half3 localOffset = half3(smallCellID - largeCellID * 8);
-        half localAddress = VoxelAddress::generate<half, half>(8, localOffset);
+        float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
+        float localAddress =
+        VoxelAddress::generate<float, float>(8, coordinates);
         
         uint compactedGlobalAddress =
-        largeMetadata[0] * 512 + ushort(localAddress);
+        largeMetadata[0] * 512 + uint(localAddress);
         smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
       } else {
-        smallMetadata = 0;
+        smallMetadata = ushort2(0);
       }
       
+      // If the small cell has atoms, test them.
       if (smallMetadata[1] > 0) {
         // Set the origin register.
         float3 origin = intersectionQuery.rayOrigin;
-        origin -= lowerCorner;
+        origin -= largeLowerCorner;
         
         // Set the loop bounds register.
         uint referenceCursor = largeMetadata[2] + smallMetadata[0];
@@ -119,7 +112,6 @@ struct RayIntersector {
         while (referenceCursor < referenceEnd) {
           // Locate the atom.
           ushort reference = smallAtomReferences[referenceCursor];
-          referenceCursor += 1;
           
           // Retrieve the atom.
           uint atomID = largeMetadata[1] + reference;
@@ -145,6 +137,9 @@ struct RayIntersector {
               }
             }
           }
+          
+          // Increment to the next reference.
+          referenceCursor += 1;
         }
         
         // Check whether we found a hit.
