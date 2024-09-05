@@ -164,7 +164,7 @@ import Numerics
 //       6 ms for the most concerning scenes (which are not exposed to open
 //       void or world boundaries).
 //   - Eliminate the bounding box reduction. [DONE]
-// - Refactor the DDA, making it easier to modify.
+// - Refactor the DDA, making it easier to modify. [DONE]
 // - Start with a very expensive two-level DDA.
 //   - Don't make any attempts to fix divergence.
 //   - Reinitialize the small DDA upon entry to each large voxel.
