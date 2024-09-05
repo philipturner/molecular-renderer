@@ -49,10 +49,10 @@ struct RayIntersector {
   device ushort2 *compactedSmallCellMetadata;
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
-    float3 progress;
+    float3 cellBorder;
     const DDA dda(intersectionQuery.rayOrigin,
                   intersectionQuery.rayDirection,
-                  &progress);
+                  &cellBorder);
     
     IntersectionResult result;
     result.accept = false;
@@ -65,8 +65,7 @@ struct RayIntersector {
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
-        short3 cellCoordinates = dda
-          .cellCoordinates(progress, bvhArgs->smallVoxelCount);
+        short3 cellCoordinates = dda.cellCoordinates(cellBorder);
         largeCellID = uchar3(ushort3(cellCoordinates) / 8);
         
         {
@@ -88,16 +87,16 @@ struct RayIntersector {
         }
         
         // Save the voxel maximum time.
-        voxelMaximumHitTime = dda.voxelMaximumHitTime(progress);
+        voxelMaximumHitTime = dda.voxelMaximumHitTime(cellBorder);
         
         // Increment to the next voxel.
-        progress = dda.increment(progress);
+        cellBorder = dda.increment(cellBorder);
         
         // Exit the inner loop.
         if (smallMetadata[1] > 0) {
           break;
         }
-        if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
+        if (!dda.continueLoop(cellBorder, bvhArgs->smallVoxelCount)) {
           break;
         }
         if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
@@ -107,7 +106,7 @@ struct RayIntersector {
       
       {
         // Exit the outer 'while' loop.
-        if (!dda.continueLoop(progress, bvhArgs->smallVoxelCount)) {
+        if (!dda.continueLoop(cellBorder, bvhArgs->smallVoxelCount)) {
           break;
         }
         if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {

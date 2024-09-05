@@ -29,10 +29,6 @@ class DDA {
   
 public:
   
-  // TODO: Rename the progress counter to the small cell border. It is not
-  // exactly the addressed small cell, because of the [-1, 0] increment based
-  // on ray direction.
-  
   // TODO: Remove the ray origin from the DDA's instance members. Enter it as
   // a function argument during every property access.
   
@@ -40,29 +36,27 @@ public:
   // calling code. This may be important for detecting transitions between
   // large cells.
   
-  DDA(float3 rayOrigin, float3 rayDirection, thread float3 *progressCounter) {
+  DDA(float3 rayOrigin, float3 rayDirection, thread float3 *cellBorder) {
     this->rayOrigin = rayOrigin;
     
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
-    *progressCounter = rayOrigin;
-    *progressCounter /= 0.25;
-    *progressCounter = select(ceil(*progressCounter),
-                              floor(*progressCounter),
-                              dtdx >= 0);
-    *progressCounter *= 0.25;
+    *cellBorder = rayOrigin;
+    *cellBorder /= 0.25;
+    *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
+    *cellBorder *= 0.25;
   }
   
-  float3 nextTimes(float3 progressCounter) const {
-    float3 nextCounter = progressCounter + float3(dx);
-    return (nextCounter - rayOrigin) * dtdx;
+  float3 nextTimes(float3 cellBorder) const {
+    float3 nextBorder = cellBorder + float3(dx);
+    return (nextBorder - rayOrigin) * dtdx;
   }
   
-  float3 increment(float3 progressCounter) const {
-    const float3 nextTimes = this->nextTimes(progressCounter);
+  float3 increment(float3 cellBorder) const {
+    const float3 nextTimes = this->nextTimes(cellBorder);
     
-    float3 output = progressCounter;
+    float3 output = cellBorder;
     if (nextTimes[0] < nextTimes[1] &&
         nextTimes[0] < nextTimes[2]) {
       output[0] += dx[0];
@@ -74,8 +68,8 @@ public:
     return output;
   }
   
-  float voxelMaximumHitTime(float3 progressCounter) const {
-    const float3 nextTimes = this->nextTimes(progressCounter);
+  float voxelMaximumHitTime(float3 cellBorder) const {
+    const float3 nextTimes = this->nextTimes(cellBorder);
     
     float smallestNextTime;
     if (nextTimes[0] < nextTimes[1] &&
@@ -89,14 +83,14 @@ public:
     return smallestNextTime;
   }
   
-  short3 cellCoordinates(float3 progressCounter, ushort3 gridDims) const {
-    float3 output = 256 + (progressCounter) * 4;
+  short3 cellCoordinates(float3 cellBorder) const {
+    float3 output = 256 + (cellBorder) * 4;
     output += select(float3(-1), float3(0), dtdx >= 0);
     return short3(output);
   }
   
-  bool continueLoop(float3 progressCounter, ushort3 gridDims) const {
-    short3 correctPosition = cellCoordinates(progressCounter, gridDims);
+  bool continueLoop(float3 cellBorder, ushort3 gridDims) const {
+    short3 correctPosition = cellCoordinates(cellBorder);
     
     return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&
     (correctPosition.y >= 0 && correctPosition.y < gridDims.y) &&
