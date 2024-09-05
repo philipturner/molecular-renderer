@@ -87,10 +87,12 @@ struct RayIntersector {
         }
         
         // Save the voxel maximum time.
-        voxelMaximumHitTime = dda.voxelMaximumHitTime(cellBorder);
+        voxelMaximumHitTime = dda
+          .voxelMaximumHitTime(cellBorder, intersectionQuery.rayOrigin);
         
         // Increment to the next voxel.
-        cellBorder = dda.increment(cellBorder);
+        cellBorder = dda
+          .increment(cellBorder, intersectionQuery.rayOrigin);
         
         // Exit the inner loop.
         if (smallMetadata[1] > 0) {

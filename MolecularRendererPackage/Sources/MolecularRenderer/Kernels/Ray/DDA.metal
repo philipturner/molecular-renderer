@@ -18,9 +18,6 @@ using namespace raytracing;
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
 class DDA {
-  // The passed-in ray origin.
-  float3 rayOrigin;
-  
   // Inverse of ray direction.
   float3 dtdx;
   
@@ -29,16 +26,11 @@ class DDA {
   
 public:
   
-  // TODO: Remove the ray origin from the DDA's instance members. Enter it as
-  // a function argument during every property access.
-  
   // TODO: Remove the 'continueLoop' member. Instead, implement the logic in
   // calling code. This may be important for detecting transitions between
   // large cells.
   
   DDA(float3 rayOrigin, float3 rayDirection, thread float3 *cellBorder) {
-    this->rayOrigin = rayOrigin;
-    
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
@@ -48,13 +40,13 @@ public:
     *cellBorder *= 0.25;
   }
   
-  float3 nextTimes(float3 cellBorder) const {
+  float3 nextTimes(float3 cellBorder, float3 rayOrigin) const {
     float3 nextBorder = cellBorder + float3(dx);
     return (nextBorder - rayOrigin) * dtdx;
   }
   
-  float3 increment(float3 cellBorder) const {
-    const float3 nextTimes = this->nextTimes(cellBorder);
+  float3 increment(float3 cellBorder, float3 rayOrigin) const {
+    const float3 nextTimes = this->nextTimes(cellBorder, rayOrigin);
     
     float3 output = cellBorder;
     if (nextTimes[0] < nextTimes[1] &&
@@ -68,8 +60,8 @@ public:
     return output;
   }
   
-  float voxelMaximumHitTime(float3 cellBorder) const {
-    const float3 nextTimes = this->nextTimes(cellBorder);
+  float voxelMaximumHitTime(float3 cellBorder, float3 rayOrigin) const {
+    const float3 nextTimes = this->nextTimes(cellBorder, rayOrigin);
     
     float smallestNextTime;
     if (nextTimes[0] < nextTimes[1] &&
