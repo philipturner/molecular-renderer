@@ -117,7 +117,7 @@ kernel void buildLargePart1_1
         uint offset;
         {
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          uint address = VoxelAddress::generate(64, cellCoordinates);
+          uint address = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           uint smallReferenceCount =
@@ -139,7 +139,7 @@ kernel void buildLargePart1_1
           // Locate the mark.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           cellCoordinates /= 4;
-          uint address = VoxelAddress::generate(16, cellCoordinates);
+          uint address = VoxelAddress::generate<ushort, uint>(16, cellCoordinates);
           
           // Write the mark.
           uchar activeValue = uchar(1);
@@ -271,7 +271,7 @@ kernel void buildLargePart2_2
         {
           // Locate the large counter.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          uint address = VoxelAddress::generate(64, cellCoordinates);
+          uint address = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           // Read from the large counter.

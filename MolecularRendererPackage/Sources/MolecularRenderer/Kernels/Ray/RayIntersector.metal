@@ -95,14 +95,14 @@ struct RayIntersector {
         // Save the large metadata.
         {
           ushort3 coordinates = ushort3(largeCellID);
-          float address = VoxelAddress::generate(64, coordinates);
+          float address = VoxelAddress::generate<ushort, uint>(64, coordinates);
           largeMetadata = largeCellMetadata[uint(address)];
         }
         
         // Save the small metadata.
         {
           ushort3 localOffset = ushort3(smallCellID + 256 - 8 * largeCellID);
-          ushort localAddress = VoxelAddress::generate(8, localOffset);
+          ushort localAddress = VoxelAddress::generate<ushort, ushort>(8, localOffset);
           uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
           smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
         }

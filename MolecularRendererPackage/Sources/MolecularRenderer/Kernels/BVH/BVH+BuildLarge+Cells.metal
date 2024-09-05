@@ -22,7 +22,7 @@ kernel void buildLargePart1_0
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    uint address = VoxelAddress::generate(16, cellCoordinates);
+    uint address = VoxelAddress::generate<ushort, uint>(16, cellCoordinates);
     
     // Read the mark.
     previousMark = previousCellGroupMarks[address];
@@ -32,7 +32,7 @@ kernel void buildLargePart1_0
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    uint address = VoxelAddress::generate(16, cellCoordinates);
+    uint address = VoxelAddress::generate<ushort, uint>(16, cellCoordinates);
     
     // Write the mark.
     uchar resetValue = uchar(0);
@@ -44,7 +44,7 @@ kernel void buildLargePart1_0
     // Locate the metadata.
     ushort3 cellCoordinates = thread_id;
     cellCoordinates += tgid * 4;
-    uint address = VoxelAddress::generate(64, cellCoordinates);
+    uint address = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
     
     // Write the metadata.
     vec<uint, 8> resetValue = vec<uint, 8>(0);
@@ -96,7 +96,7 @@ kernel void buildLargePart2_1
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    uint address = VoxelAddress::generate(16, cellCoordinates);
+    uint address = VoxelAddress::generate<ushort, uint>(16, cellCoordinates);
     
     // Read the mark.
     currentMark = currentCellGroupMarks[address];
@@ -107,7 +107,7 @@ kernel void buildLargePart2_1
   {
     ushort3 cellCoordinates = thread_id;
     cellCoordinates += tgid * 4;
-    largeCellAddress = VoxelAddress::generate(64, cellCoordinates);
+    largeCellAddress = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
   }
   
   // Return early for vacant voxels.

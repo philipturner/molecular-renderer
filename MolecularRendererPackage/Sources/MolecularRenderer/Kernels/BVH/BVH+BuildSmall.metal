@@ -126,7 +126,7 @@ kernel void buildSmallPart1_0
   {
     ushort3 cellCoordinates = ushort3(lowerCorner + 64);
     cellCoordinates /= 2;
-    uint cellAddress = VoxelAddress::generate(64, cellCoordinates);
+    uint cellAddress = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
     largeMetadata = largeCellMetadata[cellAddress];
   }
   if (largeMetadata[0] == 0) {
@@ -167,8 +167,7 @@ kernel void buildSmallPart1_0
           half3 xyz = half3(x, y, z);
           
           // Generate the address.
-          constexpr half3 addressStride(1, 8, 64);
-          half address = dot(xyz, addressStride);
+          half address = VoxelAddress::generate<half, half>(8, xyz);
           
           // Perform the atomic fetch-add.
           auto castedCounters =
@@ -259,8 +258,7 @@ kernel void buildSmallPart1_0
           bool intersected = cubeSphereIntersection(xyz, atom);
           if (intersected && all(xyz < smallVoxelMax)) {
             // Generate the address.
-            constexpr half3 addressStride(1, 8, 64);
-            half address = dot(xyz, addressStride);
+            half address = VoxelAddress::generate<half, half>(8, xyz);
             
             // Perform the atomic fetch-add.
             auto castedCounters =

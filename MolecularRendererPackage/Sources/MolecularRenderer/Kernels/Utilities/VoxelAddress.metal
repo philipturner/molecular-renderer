@@ -13,8 +13,11 @@ using namespace metal;
 
 class VoxelAddress {
 public:
-  static uint generate(ushort3 grid_dims, ushort3 coords) {
-    uint grid_width_sq = grid_dims.y * grid_dims.x;
+  template <typename Input, typename Accumulator>
+  static Accumulator generate(vec<Input, 3> grid_dims,
+                              vec<Input, 3> coords)
+  {
+    Accumulator grid_width_sq = grid_dims.y * grid_dims.x;
     return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
   }
 };
