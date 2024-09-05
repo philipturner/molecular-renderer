@@ -65,8 +65,8 @@ struct RayIntersector {
       
       // Inner 'while' loop to find the next voxel.
       while (true) {
-        short3 cellCoordinates = dda.cellCoordinates(cellBorder);
-        largeCellID = uchar3(ushort3(cellCoordinates) / 8);
+        short3 smallCellID = dda.cellCoordinates(cellBorder);
+        largeCellID = uchar3(ushort3(smallCellID) / 8);
         
         {
           float3 lowerCorner = bvhArgs->worldMinimum;
@@ -80,7 +80,7 @@ struct RayIntersector {
         }
         
         {
-          ushort3 localOffset = ushort3(cellCoordinates) % 8;
+          ushort3 localOffset = ushort3(smallCellID) % 8;
           ushort localAddress = VoxelAddress::generate(8, localOffset);
           uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
           smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
@@ -94,21 +94,25 @@ struct RayIntersector {
         cellBorder = dda
           .increment(cellBorder, intersectionQuery.rayOrigin);
         
-        // Exit the inner loop.
-        if (smallMetadata[1] > 0) {
-          break;
-        }
-        if (!dda.continueLoop(cellBorder, bvhArgs->smallVoxelCount)) {
-          break;
-        }
-        if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
-          break;
+        // Exit the inner 'while' loop.
+        {
+          short3 smallCellID = dda.cellCoordinates(cellBorder);
+          if (any(smallCellID <= 0) || any(smallCellID >= 512)) {
+            break;
+          }
+          if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
+            break;
+          }
+          if (smallMetadata[1] > 0) {
+            break;
+          }
         }
       }
       
       {
         // Exit the outer 'while' loop.
-        if (!dda.continueLoop(cellBorder, bvhArgs->smallVoxelCount)) {
+        short3 smallCellID = dda.cellCoordinates(cellBorder);
+        if (any(smallCellID <= 0) || any(smallCellID >= 512)) {
           break;
         }
         if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {

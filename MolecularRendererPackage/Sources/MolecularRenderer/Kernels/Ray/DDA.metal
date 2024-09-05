@@ -25,11 +25,6 @@ class DDA {
   half3 dx;
   
 public:
-  
-  // TODO: Remove the 'continueLoop' member. Instead, implement the logic in
-  // calling code. This may be important for detecting transitions between
-  // large cells.
-  
   DDA(float3 rayOrigin, float3 rayDirection, thread float3 *cellBorder) {
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
@@ -79,14 +74,6 @@ public:
     float3 output = 256 + (cellBorder) * 4;
     output += select(float3(-1), float3(0), dtdx >= 0);
     return short3(output);
-  }
-  
-  bool continueLoop(float3 cellBorder, ushort3 gridDims) const {
-    short3 correctPosition = cellCoordinates(cellBorder);
-    
-    return (correctPosition.x >= 0 && correctPosition.x < gridDims.x) &&
-    (correctPosition.y >= 0 && correctPosition.y < gridDims.y) &&
-    (correctPosition.z >= 0 && correctPosition.z < gridDims.z);
   }
 };
 
