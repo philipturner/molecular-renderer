@@ -76,15 +76,17 @@ struct RayIntersector {
           break;
         }
         
-        // Retrieve the small cell ID.
+        // Compute the cell's lower corner.
         float3 cellLowerCorner = dda.cellLowerCorner(cellBorder);
-        float3 largeCellID = floor(32 + cellLowerCorner / 2);
         
         // Exit the outer 'while' loop.
-        if (any(largeCellID <= 0) || any(largeCellID >= 64)) {
+        if (any(cellLowerCorner < -64) || any(cellLowerCorner >= 64)) {
           exitOuterLoop = true;
           break;
         }
+        
+        // Compute the large cell ID.
+        float3 largeCellID = floor(32 + cellLowerCorner / 2);
         
         // Save the lower corner.
         {
