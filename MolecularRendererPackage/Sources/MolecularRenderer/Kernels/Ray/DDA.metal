@@ -70,10 +70,10 @@ public:
     return smallestNextTime;
   }
   
-  short3 cellCoordinates(float3 cellBorder) const {
+  float3 cellCoordinates(float3 cellBorder) const {
     float3 output = 256 + (cellBorder) * 4;
     output += select(float3(-1), float3(0), dtdx >= 0);
-    return short3(output);
+    return output;
   }
 };
 

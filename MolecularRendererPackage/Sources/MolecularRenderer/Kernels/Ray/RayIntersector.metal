@@ -58,18 +58,37 @@ struct RayIntersector {
     result.accept = false;
     
     while (!result.accept) {
-      uchar3 largeCellID;
+      float voxelMaximumHitTime;
+      float3 smallCellID;
       uint4 largeMetadata;
       ushort2 smallMetadata;
-      float voxelMaximumHitTime;
       
       // Inner 'while' loop to find the next voxel.
+      bool exitOuterLoop = false;
       while (true) {
-        short3 smallCellID = dda.cellCoordinates(cellBorder);
-        largeCellID = uchar3(ushort3(smallCellID) / 8);
+        // Save the voxel maximum time.
+        voxelMaximumHitTime = dda
+          .voxelMaximumHitTime(cellBorder, intersectionQuery.rayOrigin);
         
+        // Exit the outer 'while' loop.
+        if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
+          exitOuterLoop = true;
+          break;
+        }
+        
+        // Save the small cell ID.
+        smallCellID = dda.cellCoordinates(cellBorder);
+        
+        // Exit the outer 'while' loop.
+        if (any(smallCellID <= 0) || any(smallCellID >= 512)) {
+          exitOuterLoop = true;
+          break;
+        }
+        
+        // Save the large metadata.
         {
           float3 lowerCorner = bvhArgs->worldMinimum;
+          ushort3 largeCellID = ushort3(smallCellID) / 8;
           lowerCorner += float3(largeCellID) * 2;
           
           ushort3 cellCoordinates = ushort3(lowerCorner + 64);
@@ -79,6 +98,7 @@ struct RayIntersector {
           largeMetadata = largeCellMetadata[address];
         }
         
+        // Save the small metadata.
         {
           ushort3 localOffset = ushort3(smallCellID) % 8;
           ushort localAddress = VoxelAddress::generate(8, localOffset);
@@ -86,48 +106,30 @@ struct RayIntersector {
           smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
         }
         
-        // Save the voxel maximum time.
-        voxelMaximumHitTime = dda
-          .voxelMaximumHitTime(cellBorder, intersectionQuery.rayOrigin);
-        
         // Increment to the next voxel.
         cellBorder = dda
           .increment(cellBorder, intersectionQuery.rayOrigin);
         
         // Exit the inner 'while' loop.
-        {
-          short3 smallCellID = dda.cellCoordinates(cellBorder);
-          if (any(smallCellID <= 0) || any(smallCellID >= 512)) {
-            break;
-          }
-          if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
-            break;
-          }
-          if (smallMetadata[1] > 0) {
-            break;
-          }
+        if (smallMetadata[1] > 0) {
+          break;
         }
       }
       
-      {
-        // Exit the outer 'while' loop.
-        short3 smallCellID = dda.cellCoordinates(cellBorder);
-        if (any(smallCellID <= 0) || any(smallCellID >= 512)) {
-          break;
-        }
-        if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
-          break;
-        }
-        
-        // Skip this iteration of the outer 'while' loop.
-        if (smallMetadata[1] == 0) {
-          continue;
-        }
+      // Exit the outer 'while' loop.
+      if (exitOuterLoop) {
+        break;
+      }
+      
+      // Skip this iteration of the outer 'while' loop.
+      if (smallMetadata[1] == 0) {
+        continue;
       }
       
       // Set the origin register.
       float3 origin = intersectionQuery.rayOrigin;
       origin -= bvhArgs->worldMinimum;
+      ushort3 largeCellID = ushort3(smallCellID) / 8;
       origin -= float3(largeCellID) * 2;
       
       // Set the loop bounds register.
