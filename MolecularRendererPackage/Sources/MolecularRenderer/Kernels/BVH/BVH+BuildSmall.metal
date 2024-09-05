@@ -117,16 +117,11 @@ kernel void buildSmallPart1_0
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Materialize the lower corner in registers.
-  uchar3 cellCoordinates = compactedLargeCellIDs[1 + tgid];
-  float3 lowerCorner = float3(cellCoordinates) * 2 - 64;
-  
   // Read the large cell metadata.
   uint4 largeMetadata;
   {
-    ushort3 cellCoordinates = ushort3(lowerCorner + 64);
-    cellCoordinates /= 2;
-    uint cellAddress = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
+    uchar3 cellCoordinates = compactedLargeCellIDs[1 + tgid];
+    uint cellAddress = VoxelAddress::generate<uchar, uint>(64, cellCoordinates);
     largeMetadata = largeCellMetadata[cellAddress];
   }
   if (largeMetadata[0] == 0) {
