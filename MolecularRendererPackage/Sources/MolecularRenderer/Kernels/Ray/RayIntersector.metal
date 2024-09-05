@@ -59,7 +59,7 @@ struct RayIntersector {
     
     while (!result.accept) {
       float voxelMaximumHitTime;
-      float3 smallCellID;
+      float3 lowerCorner;
       uint4 largeMetadata;
       ushort2 smallMetadata;
       
@@ -76,31 +76,32 @@ struct RayIntersector {
           break;
         }
         
-        // Save the small cell ID.
-        smallCellID = dda.cellCoordinates(cellBorder);
+        // Retrieve the small cell ID.
+        float3 smallCellID = dda.cellCoordinates(cellBorder);
+        float3 largeCellID = floor((smallCellID + 256) / 8);
         
         // Exit the outer 'while' loop.
-        if (any(smallCellID <= -256) || any(smallCellID >= 256)) {
+        if (any(largeCellID <= 0) || any(largeCellID >= 64)) {
           exitOuterLoop = true;
           break;
         }
         
+        // Save the lower corner.
+        {
+          lowerCorner = bvhArgs->worldMinimum;
+          lowerCorner += float3(largeCellID) * 2;
+        }
+        
         // Save the large metadata.
         {
-          float3 lowerCorner = bvhArgs->worldMinimum;
-          ushort3 largeCellID = ushort3(smallCellID + 256) / 8;
-          lowerCorner += float3(largeCellID) * 2;
-          
-          ushort3 cellCoordinates = ushort3(lowerCorner + 64);
-          cellCoordinates /= 2;
-          
-          uint address = VoxelAddress::generate(64, cellCoordinates);
-          largeMetadata = largeCellMetadata[address];
+          ushort3 coordinates = ushort3(largeCellID);
+          float address = VoxelAddress::generate(64, coordinates);
+          largeMetadata = largeCellMetadata[uint(address)];
         }
         
         // Save the small metadata.
         {
-          ushort3 localOffset = ushort3(smallCellID + 256) % 8;
+          ushort3 localOffset = ushort3(smallCellID + 256 - 8 * largeCellID);
           ushort localAddress = VoxelAddress::generate(8, localOffset);
           uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
           smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
@@ -128,9 +129,7 @@ struct RayIntersector {
       
       // Set the origin register.
       float3 origin = intersectionQuery.rayOrigin;
-      origin -= bvhArgs->worldMinimum;
-      ushort3 largeCellID = ushort3(smallCellID + 256) / 8;
-      origin -= float3(largeCellID) * 2;
+      origin -= lowerCorner;
       
       // Set the loop bounds register.
       uint referenceCursor = largeMetadata[2] + smallMetadata[0];
