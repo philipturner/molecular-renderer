@@ -25,14 +25,17 @@ class DDA {
   half3 dx;
   
 public:
-  DDA(float3 rayOrigin, float3 rayDirection, thread float3 *cellBorder) {
+  DDA(float3 rayOrigin, 
+      float3 rayDirection,
+      float spacing,
+      thread float3 *cellBorder) {
     dtdx = precise::divide(1, rayDirection);
-    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
+    dx = select(half3(-spacing), half3(spacing), dtdx >= 0);
     
     *cellBorder = rayOrigin;
-    *cellBorder /= 0.25;
+    *cellBorder /= spacing;
     *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
-    *cellBorder *= 0.25;
+    *cellBorder *= spacing;
   }
   
   float3 nextTimes(float3 cellBorder, float3 rayOrigin) const {
