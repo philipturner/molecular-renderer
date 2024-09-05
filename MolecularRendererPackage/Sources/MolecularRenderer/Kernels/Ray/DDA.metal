@@ -70,9 +70,9 @@ public:
     return smallestNextTime;
   }
   
-  float3 cellCoordinates(float3 cellBorder) const {
-    float3 output = cellBorder * 4;
-    output += select(float3(-1), float3(0), dtdx >= 0);
+  float3 cellLowerCorner(float3 cellBorder) const {
+    float3 output = cellBorder;
+    output += select(float3(dx), float3(0), dtdx >= 0);
     return output;
   }
 };

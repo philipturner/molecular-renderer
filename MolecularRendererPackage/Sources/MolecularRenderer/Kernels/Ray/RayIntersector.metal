@@ -77,8 +77,8 @@ struct RayIntersector {
         }
         
         // Retrieve the small cell ID.
-        float3 smallCellID = dda.cellCoordinates(cellBorder);
-        float3 largeCellID = floor((smallCellID + 256) / 8);
+        float3 cellLowerCorner = dda.cellLowerCorner(cellBorder);
+        float3 largeCellID = floor(32 + cellLowerCorner / 2);
         
         // Exit the outer 'while' loop.
         if (any(largeCellID <= 0) || any(largeCellID >= 64)) {
@@ -100,7 +100,8 @@ struct RayIntersector {
         
         // Save the small metadata.
         {
-          half3 localOffset = half3(smallCellID + 256 - largeCellID * 8);
+          float3 smallCellID = 256 + cellLowerCorner / 0.25;
+          half3 localOffset = half3(smallCellID - largeCellID * 8);
           half localAddress = VoxelAddress::generate<half, half>(8, localOffset);
           
           uint compactedGlobalAddress =
@@ -121,11 +122,6 @@ struct RayIntersector {
       // Exit the outer 'while' loop.
       if (exitOuterLoop) {
         break;
-      }
-      
-      // Skip this iteration of the outer 'while' loop.
-      if (smallMetadata[1] == 0) {
-        continue;
       }
       
       // Set the origin register.
