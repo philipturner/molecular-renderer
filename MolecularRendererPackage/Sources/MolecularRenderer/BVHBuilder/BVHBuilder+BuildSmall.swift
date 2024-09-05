@@ -60,8 +60,7 @@ extension BVHBuilder {
 extension BVHBuilder {
   func buildSmallPart0_0(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    encoder.setBuffer(bvhArguments, offset: 0, index: 1)
-    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 2)
+    encoder.setBuffer(indirectDispatchArguments, offset: 0, index: 1)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart0_0

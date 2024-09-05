@@ -16,15 +16,14 @@ kernel void renderAtoms
 (
  constant CameraArguments *cameraArgs [[buffer(0)]],
  constant RenderArguments *renderArgs [[buffer(1)]],
- constant BVHArguments *bvhArgs [[buffer(2)]],
- constant half3 *elementColors [[buffer(3)]],
- device float4 *originalAtoms [[buffer(4)]],
- device half3 *atomMetadata [[buffer(5)]],
- device half4 *convertedAtoms [[buffer(6)]],
- device uint *largeAtomReferences [[buffer(7)]],
- device ushort *smallAtomReferences [[buffer(8)]],
- device uint4 *largeCellMetadata [[buffer(9)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(10)]],
+ constant half3 *elementColors [[buffer(2)]],
+ device float4 *originalAtoms [[buffer(3)]],
+ device half3 *atomMetadata [[buffer(4)]],
+ device half4 *convertedAtoms [[buffer(5)]],
+ device uint *largeAtomReferences [[buffer(6)]],
+ device ushort *smallAtomReferences [[buffer(7)]],
+ device uint4 *largeCellMetadata [[buffer(8)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(9)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -34,12 +33,13 @@ kernel void renderAtoms
 {
   // Return early if outside bounds.
   ushort2 pixelCoords = RayGeneration::makePixelID(tgid, lid);
-  if ((SCREEN_WIDTH % 16 != 0) && (pixelCoords.x >= SCREEN_WIDTH)) return;
-  if ((SCREEN_HEIGHT % 16 != 0) && (pixelCoords.y >= SCREEN_HEIGHT)) return;
+  if (pixelCoords.x >= renderArgs->screenWidth ||
+      pixelCoords.y >= renderArgs->screenWidth) {
+    return;
+  }
   
   // Initialize the ray intersector.
   RayIntersector rayIntersector;
-  rayIntersector.bvhArgs = bvhArgs;
   rayIntersector.convertedAtoms = convertedAtoms;
   rayIntersector.smallAtomReferences = smallAtomReferences;
   rayIntersector.largeCellMetadata = largeCellMetadata;

@@ -42,7 +42,6 @@ struct IntersectionQuery {
 // MARK: - Intersector Class
 
 struct RayIntersector {
-  constant BVHArguments *bvhArgs;
   device half4 *convertedAtoms;
   device ushort *smallAtomReferences;
   device uint4 *largeCellMetadata;
@@ -79,7 +78,7 @@ struct RayIntersector {
       // Save the lower corner.
       float3 lowerCorner;
       {
-        lowerCorner = bvhArgs->worldMinimum;
+        lowerCorner = -64;
         lowerCorner += float3(largeCellID) * 2;
       }
       

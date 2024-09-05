@@ -68,7 +68,7 @@ public:
     // Apply the pixel position.
     float3 rayDirection(float2(pixelCoords) + 0.5, -1);
     rayDirection.xy += renderArgs->jitterOffsets;
-    rayDirection.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
+    rayDirection.xy -= float(renderArgs->screenWidth) / 2;
     rayDirection.y = -rayDirection.y;
     
     // Apply the camera FOV.

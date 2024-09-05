@@ -10,42 +10,6 @@
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
-inline ushort pickPermutation(half3 footprint) {
-  ushort output;
-  if (footprint[0] < footprint[1] && footprint[0] < footprint[2]) {
-    output = 0;
-  } else if (footprint[0] < footprint[1]) {
-    output = 1;
-  } else {
-    output = 2;
-  }
-  return output;
-}
-
-inline half3 reorderForward(half3 loopBound, ushort permutationID) {
-  half3 output;
-  if (permutationID == 0) {
-    output = half3(loopBound[1], loopBound[2], loopBound[0]);
-  } else if (permutationID == 1) {
-    output = half3(loopBound[0], loopBound[2], loopBound[1]);
-  } else {
-    output = half3(loopBound[0], loopBound[1], loopBound[2]);
-  }
-  return output;
-}
-
-inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
-  ushort3 output;
-  if (permutationID == 0) {
-    output = ushort3(loopBound[2], loopBound[0], loopBound[1]);
-  } else if (permutationID == 1) {
-    output = ushort3(loopBound[0], loopBound[2], loopBound[1]);
-  } else {
-    output = ushort3(loopBound[0], loopBound[1], loopBound[2]);
-  }
-  return output;
-}
-
 // Test whether an atom overlaps a 1x1x1 cube.
 inline bool cubeSphereIntersection(half3 cube_min, half4 atom)
 {
@@ -70,41 +34,14 @@ inline bool cubeSphereIntersection(half3 cube_min, half4 atom)
 kernel void buildSmallPart0_0
 (
  device uint *allocatedMemory [[buffer(0)]],
- device BVHArguments *bvhArgs [[buffer(1)]],
- device uint3 *atomDispatchArguments8x8x8 [[buffer(2)]])
+ device uint3 *atomDispatchArguments8x8x8 [[buffer(1)]])
 {
-  // Set the BVH arguments.
-  bvhArgs->worldMinimum = -64;
-  bvhArgs->worldMaximum = 64;
-  bvhArgs->largeVoxelCount = 64;
-  bvhArgs->smallVoxelCount = 512;
-  
   // Set the atom dispatch arguments.
   uint compactedThreadgroupCount = allocatedMemory[0] - 1;
   uint3 threadgroupGridSize = uint3(compactedThreadgroupCount, 1, 1);
   *atomDispatchArguments8x8x8 = threadgroupGridSize;
 }
 
-// Before:                    380 μs + 1100 μs
-// After reducing divergence: 350 μs + 1100 μs
-// Duplicating large atoms:   950 μs + 2000 μs
-// Increasing divergence:     960 μs + 1900 μs
-//
-// Consistently 600-650 μs + 1200-1300 μs now, for an unknown reason.
-// Saving 32 relative offsets:  750 μs + 670 μs
-// Saving 16 relative offsets:  770 μs + 620 μs
-// Saving 16, recomputing rest: 720 μs + 710 μs
-// Saving 8, recomputing rest:  650 μs + 610 μs
-//
-// Dispatch over 128 threads: 750 μs + 1800 μs
-// Dispatch over 256 threads: 710 μs + 1600 μs
-// Threadgroup atomics:       440 μs + 1200 μs
-//
-// Fusion into a single kernel:    1290 μs
-// Removing the counters buffer:   1390 μs
-// Switching to 16-bit references: 1260 μs | 42.4% divergence
-// Reordering the second loop:     1210 μs | 41.6% divergence
-// Switching to 16-bit atoms:      1020 μs |
 kernel void buildSmallPart1_0
 (
  device uint4 *largeCellMetadata [[buffer(0)]],

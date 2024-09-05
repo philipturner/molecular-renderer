@@ -17,7 +17,6 @@ class BVHBuilder {
   
   // Data buffers (global).
   var globalCounters: MTLBuffer
-  var bvhArguments: MTLBuffer
   var indirectDispatchArguments: MTLBuffer
   
   // Data buffers (per atom).
@@ -58,7 +57,6 @@ class BVHBuilder {
     
     // Data buffers (global).
     globalCounters = createBuffer(length: 1024 * 4)
-    bvhArguments = createBuffer(length: 1024 * 4)
     indirectDispatchArguments = createBuffer(length: 1024 * 4)
     
     // Data buffers (per atom).

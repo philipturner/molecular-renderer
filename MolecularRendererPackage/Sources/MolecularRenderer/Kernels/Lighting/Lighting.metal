@@ -211,7 +211,7 @@ public:
     // Recompute the current pixel coordinates (do not waste registers).
     float2 currCoords = float2(pixelCoords) + 0.5;
     currCoords += renderArgs->jitterOffsets;
-    currCoords.xy -= float2(SCREEN_WIDTH, SCREEN_HEIGHT) / 2;
+    currCoords.xy -= float(renderArgs->screenWidth) / 2;
     
     // Generate the motion vector from pixel coordinates.
     motionVector = half2(currCoords - prevCoords);

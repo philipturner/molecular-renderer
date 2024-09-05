@@ -7,6 +7,7 @@
 
 // Render arguments data structure.
 struct RenderArguments {
+  var screenWidth: UInt16 = .zero
   var frameSeed: UInt32 = .zero
   var jitterOffsets: SIMD2<Float> = .zero
   var qualityCoefficient: Float = .zero
@@ -60,6 +61,7 @@ extension ArgumentContainer {
   
   func createRenderArguments() -> RenderArguments {
     var output = RenderArguments()
+    output.screenWidth = UInt16(intermediateTextureSize)
     output.frameSeed = createFrameSeed()
     output.jitterOffsets = createJitterOffsets()
     output.qualityCoefficient = createQualityCoefficient()

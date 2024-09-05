@@ -9,14 +9,9 @@ import Metal
 
 extension MRRenderer {
   func initRayTracer(library: MTLLibrary) {
-    let constants = MTLFunctionConstantValues()
-    var screenWidth = UInt32(argumentContainer.intermediateTextureSize)
-    var screenHeight = UInt32(argumentContainer.intermediateTextureSize)
-    constants.setConstantValue(&screenWidth, type: .uint, index: 0)
-    constants.setConstantValue(&screenHeight, type: .uint, index: 1)
-    
-    let function = try! library.makeFunction(
-      name: "renderAtoms", constantValues: constants)
+    guard let function = library.makeFunction(name: "renderAtoms") else {
+      fatalError("Failed to create Metal function 'renderAtoms'.")
+    }
     
     let desc = MTLComputePipelineDescriptor()
     desc.computeFunction = function
@@ -44,34 +39,29 @@ extension MRRenderer {
       encoder.setBytes(&renderArguments, length: length, index: 1)
     }
     
-    // Bind the BVH arguments.
-    do {
-      encoder.setBuffer(bvhBuilder.bvhArguments, offset: 0, index: 2)
-    }
-    
     // Bind the element colors.
     do {
       let elementColors = argumentContainer.elementColors
       let byteCount = elementColors.count * 8
-      encoder.setBytes(elementColors, length: byteCount, index: 3)
+      encoder.setBytes(elementColors, length: byteCount, index: 2)
     }
     
     // Bind the original atoms.
     do {
       let currentIndex = argumentContainer.tripleBufferIndex()
       let currentAtoms = bvhBuilder.originalAtoms[currentIndex]
-      encoder.setBuffer(currentAtoms, offset: 0, index: 4)
+      encoder.setBuffer(currentAtoms, offset: 0, index: 3)
     }
     
     // Bind the remaining buffers.
     do {
-      encoder.setBuffer(bvhBuilder.atomMetadata, offset: 0, index: 5)
-      encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 6)
-      encoder.setBuffer(bvhBuilder.largeAtomReferences, offset: 0, index: 7)
-      encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 8)
-      encoder.setBuffer(bvhBuilder.largeCellMetadata, offset: 0, index: 9)
+      encoder.setBuffer(bvhBuilder.atomMetadata, offset: 0, index: 4)
+      encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 5)
+      encoder.setBuffer(bvhBuilder.largeAtomReferences, offset: 0, index: 6)
+      encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 7)
+      encoder.setBuffer(bvhBuilder.largeCellMetadata, offset: 0, index: 8)
       encoder.setBuffer(
-        bvhBuilder.compactedSmallCellMetadata, offset: 0, index: 10)
+        bvhBuilder.compactedSmallCellMetadata, offset: 0, index: 9)
     }
     
     // Bind the textures.
