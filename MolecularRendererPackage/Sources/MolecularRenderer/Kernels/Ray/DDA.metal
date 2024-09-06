@@ -27,15 +27,14 @@ class DDA {
 public:
   DDA(float3 rayOrigin, 
       float3 rayDirection,
-      float spacing,
       thread float3 *cellBorder) {
     dtdx = precise::divide(1, rayDirection);
-    dx = select(half3(-spacing), half3(spacing), dtdx >= 0);
+    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
     *cellBorder = rayOrigin;
-    *cellBorder /= spacing;
+    *cellBorder /= 0.25;
     *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
-    *cellBorder *= spacing;
+    *cellBorder *= 0.25;
   }
   
   float3 cellLowerCorner(float3 cellBorder) const {
@@ -77,6 +76,36 @@ public:
   }
   
   float3 nextLargeBorder(float3 cellBorder, float3 rayOrigin) const {
+    // Round current coordinates down to 2.0 nm.
+    float3 nextBorder = cellBorder;
+    nextBorder /= 2.00;
+    nextBorder = select(ceil(nextBorder), floor(nextBorder), dtdx >= 0);
+    nextBorder *= 2.00;
+    
+    // Add 2.0 nm to each.
+    nextBorder += 8 * float3(dx);
+    
+    // Find the time for each.
+    float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
+    
+    // Pick the axis with the smallest time.
+    ushort axisID;
+    float t;
+    if (nextTimes[0] < nextTimes[1] &&
+        nextTimes[0] < nextTimes[2]) {
+      axisID = 0;
+      t = nextTimes[0];
+    } else if (nextTimes[1] < nextTimes[2]) {
+      axisID = 1;
+      t = nextTimes[1];
+    } else {
+      axisID = 2;
+      t = nextTimes[2];
+    }
+    
+    // Start by taking the maximum of the value here, and the next small-cell
+    // border. In theory, the large jump should include every small jump in
+    // between.
     return nextSmallBorder(cellBorder, rayOrigin);
   }
 };

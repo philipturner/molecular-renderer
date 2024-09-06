@@ -51,7 +51,6 @@ struct RayIntersector {
     float3 cellBorder;
     const DDA dda(intersectionQuery.rayOrigin,
                   intersectionQuery.rayDirection,
-                  0.25,
                   &cellBorder);
     
     IntersectionResult result;
