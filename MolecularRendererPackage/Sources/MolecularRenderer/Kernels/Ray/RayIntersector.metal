@@ -60,6 +60,7 @@ struct RayIntersector {
   void searchForNextCell(thread float3 &cursorCellBorder,
                          thread bool &acceptVoxel,
                          thread bool &outOfBounds,
+                         thread uint *acceptedBorderCode,
                          IntersectionQuery intersectionQuery,
                          const DDA dda)
   {
@@ -82,12 +83,10 @@ struct RayIntersector {
         
         float3 coordinates = (cursorCellBorder + 64) / 0.25;
         uint3 cellIndex = uint3(coordinates);
-        uint acceptedBorderCode = 0;
-        acceptedBorderCode += cellIndex[0] << 0;
-        acceptedBorderCode += cellIndex[1] << 9;
-        acceptedBorderCode += cellIndex[2] << 18;
-        
-        threadgroupMemory[threadIndex] = acceptedBorderCode;
+        *acceptedBorderCode = 0;
+        *acceptedBorderCode += cellIndex[0] << 0;
+        *acceptedBorderCode += cellIndex[1] << 9;
+        *acceptedBorderCode += cellIndex[2] << 18;
       }
       
       // Increment to the next small voxel.
@@ -165,11 +164,13 @@ struct RayIntersector {
     bool outOfBounds = false;
     while (!outOfBounds) {
       bool acceptVoxel = false;
+      uint acceptedBorderCode = 0;
       
       while (!acceptVoxel) {
         searchForNextCell(cursorCellBorder,
                           acceptVoxel,
                           outOfBounds,
+                          &acceptedBorderCode,
                           intersectionQuery,
                           dda);
         if (outOfBounds) {
@@ -177,11 +178,7 @@ struct RayIntersector {
         }
       }
       
-      simdgroup_barrier(mem_flags::mem_threadgroup);
-      
       if (acceptVoxel) {
-        uint acceptedBorderCode = threadgroupMemory[threadIndex];
-        
         uint3 cellIndex;
         cellIndex[0] = (acceptedBorderCode >> 0) & 511;
         cellIndex[1] = (acceptedBorderCode >> 9) & 511;

@@ -175,6 +175,17 @@ import Numerics
 //     arguments for an entire voxel. [DONE]
 //   - Give the functions different top-level names. [DONE]
 //   - Remove 'isAORay' from the intersection parameters. [DONE]
+// - Make a compacted list of large-voxel metadata, so smaller references can
+//   be stored in threadgroup memory.
+//   - Replace 'compactedLargeCellIDs' with this metadata.
+//   - Simplify the small-cells pass of BVH construction accordingly.
+//   - Bind the compacted large-cell metadata to the render kernel.
+//   - Modify the existing algorithm for compressing cell addresses.
+//   - Test for correctness and performance changes.
+// - Try speculative searching of the BVH.
+//   - Buffer up the next few small cells.
+//   - Revert to the code from before.
+//   - Buffer up the next few large cells in a separate DDA.
 
 #if true
 
