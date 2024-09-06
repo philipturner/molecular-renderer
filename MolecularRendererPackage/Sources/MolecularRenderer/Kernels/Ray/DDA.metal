@@ -122,18 +122,21 @@ public:
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
       if (i == axisID) {
-        
+        nextBorder[i] = roundedUpBorder[i];
       } else {
-        
+        if (dtdx[i] >= 0) {
+          nextBorder[i] = max(nextBorder[i], cellBorder[i]);
+        } else {
+          nextBorder[i] = min(nextBorder[i], cellBorder[i]);
+        }
       }
       
-      if (dtdx[i] >= 0) {
-        nextBorder[i] = max(nextBorder[i], nextSmallBorder[i]);
-      } else {
-        nextBorder[i] = min(nextBorder[i], nextSmallBorder[i]);
-      }
+//      if (dtdx[i] >= 0) {
+//        nextBorder[i] = max(nextBorder[i], nextSmallBorder[i]);
+//      } else {
+//        nextBorder[i] = min(nextBorder[i], nextSmallBorder[i]);
+//      }
     }
-    nextBorder = nextSmallBorder;
     
     // Start by taking the maximum of the value here, and the next small-cell
     // border. In theory, the large jump should include every small jump in
