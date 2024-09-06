@@ -82,12 +82,29 @@ struct RayIntersector {
       if (smallMetadata[1] > 0) {
         acceptVoxel = true;
         
-        float3 coordinates = (cursorCellBorder + 64) / 0.25;
-        uint3 cellIndex = uint3(coordinates);
-        *acceptedBorderCode = 0;
-        *acceptedBorderCode += cellIndex[0] << 0;
-        *acceptedBorderCode += cellIndex[1] << 9;
-        *acceptedBorderCode += cellIndex[2] << 18;
+        float3 coordinates1 = (largeLowerCorner + 64) / 2;
+        float3 coordinates2 = (smallLowerCorner - largeLowerCorner) / 0.25;
+        uint3 cellIndex1 = uint3(coordinates1);
+        uint3 cellIndex2 = uint3(coordinates2);
+        
+        uint borderCode1 = 0;
+        borderCode1 += cellIndex1[0] << 0;
+        borderCode1 += cellIndex1[1] << 6;
+        borderCode1 += cellIndex1[2] << 12;
+        
+        uint borderCode2 = 0;
+        borderCode2 += cellIndex2[0] << 0;
+        borderCode2 += cellIndex2[1] << 3;
+        borderCode2 += cellIndex2[2] << 6;
+        
+        *acceptedBorderCode = (borderCode1 << 9) | borderCode2;
+        
+//        float3 coordinates = (cursorCellBorder + 64) / 0.25;
+//        uint3 cellIndex = uint3(coordinates);
+//        *acceptedBorderCode = 0;
+//        *acceptedBorderCode += cellIndex[0] << 0;
+//        *acceptedBorderCode += cellIndex[1] << 9;
+//        *acceptedBorderCode += cellIndex[2] << 18;
       }
       
       // Increment to the next small voxel.
@@ -180,18 +197,39 @@ struct RayIntersector {
       }
       
       if (acceptVoxel) {
-        uint3 cellIndex;
-        cellIndex[0] = (acceptedBorderCode >> 0) & 511;
-        cellIndex[1] = (acceptedBorderCode >> 9) & 511;
-        cellIndex[2] = (acceptedBorderCode >> 18) & 511;
-        float3 coordinates = float3(cellIndex);
-        float3 acceptedSmallCellBorder = (coordinates * 0.25) - 64;
+//        uint3 cellIndex;
+//        cellIndex[0] = (acceptedBorderCode >> 0) & 511;
+//        cellIndex[1] = (acceptedBorderCode >> 9) & 511;
+//        cellIndex[2] = (acceptedBorderCode >> 18) & 511;
+//        float3 coordinates = float3(cellIndex);
+//        float3 acceptedSmallCellBorder = (coordinates * 0.25) - 64;
+        
+        uint borderCode1 = acceptedBorderCode >> 9;
+        uint borderCode2 = acceptedBorderCode & 511;
+        
+        uint3 cellIndex1;
+        cellIndex1[0] = (borderCode1 >> 0) & 63;
+        cellIndex1[1] = (borderCode1 >> 6) & 63;
+        cellIndex1[2] = (borderCode1 >> 12) & 63;
+        
+        uint3 cellIndex2;
+        cellIndex2[0] = (borderCode2 >> 0) & 7;
+        cellIndex2[1] = (borderCode2 >> 3) & 7;
+        cellIndex2[2] = (borderCode2 >> 6) & 7;
+        
+        float3 coordinates1 = float3(cellIndex1);
+        float3 coordinates2 = float3(cellIndex2);
+        float3 largeLowerCorner = coordinates1 * 2 - 64;
+        float3 smallLowerCorner = coordinates2 * 0.25 + largeLowerCorner;
+        float3 acceptedSmallCellBorder = smallLowerCorner;
+        acceptedSmallCellBorder +=
+        select(float3(-dda.dx), float3(0), dda.dtdx >= 0);
         
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(acceptedSmallCellBorder,
                                intersectionQuery.rayOrigin);
-        float3 smallLowerCorner = dda.cellLowerCorner(acceptedSmallCellBorder);
-        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+//        float3 smallLowerCorner = dda.cellLowerCorner(acceptedSmallCellBorder);
+//        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
         uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
         ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
                                                     smallLowerCorner,

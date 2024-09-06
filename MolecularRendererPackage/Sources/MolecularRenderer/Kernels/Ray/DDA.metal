@@ -17,14 +17,13 @@ using namespace raytracing;
 // Sources:
 // - https://tavianator.com/2022/ray_box_boundary.html
 // - https://ieeexplore.ieee.org/document/7349894
-class DDA {
+struct DDA {
   // Inverse of ray direction.
   float3 dtdx;
   
   // How much to move when switching to a new cell.
   half3 dx;
   
-public:
   DDA(thread float3 *cellBorder,
       float3 rayOrigin,
       float3 rayDirection) {
@@ -272,6 +271,9 @@ public:
     //   - 979 instructions
     //   - 4.947 billion instructions
     //   - 23.88% divergence
+    //
+    // Changing the codec for the border code.
+    // - 4.2 ms
     
     return output;
   }
