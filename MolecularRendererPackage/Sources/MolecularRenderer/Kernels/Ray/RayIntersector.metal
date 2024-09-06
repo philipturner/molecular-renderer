@@ -82,7 +82,7 @@ struct RayIntersector {
       bool acceptVoxel = false;
       uint acceptedBorderCode;
       
-      {
+      if (threadIndex < 64) {
         // Compute the voxel maximum time.
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(cursorCellBorder,

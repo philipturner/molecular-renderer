@@ -133,7 +133,7 @@ public:
     // - 2.7 ms at high clock speed
     //
     // After implementing fast forward:
-    // - 3.8 ms at low clock speed
+    // - 3.8 ms
     // - per-line statistics:
     //   - 70% ALU time
     //   - 25% control flow time
@@ -154,7 +154,14 @@ public:
     //
     // Compressing cell border and using thread index to gate the cell search
     // under a runtime conditional:
-    //
+    // - 4.7 ms
+    // - per-line statistics:
+    //  - 65% ALU time
+    //  - 35% control flow time
+    // - overall shader statistics:
+    //  - 1361 instructions
+    //  - 6.092 billion instructions issued
+    //  - 28.46% divergence
     return output;
   }
 };

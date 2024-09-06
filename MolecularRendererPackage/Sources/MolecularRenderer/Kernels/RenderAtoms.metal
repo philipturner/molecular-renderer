@@ -39,7 +39,6 @@ kernel void renderAtoms
       pixelCoords.y >= renderArgs->screenWidth) {
     return;
   }
-  threadgroupMemory[thread_index] = 0;
   
   // Initialize the ray intersector.
   RayIntersector rayIntersector;
