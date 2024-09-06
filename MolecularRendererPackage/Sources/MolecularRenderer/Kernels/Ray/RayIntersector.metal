@@ -49,7 +49,8 @@ struct RayIntersector {
   threadgroup uint *threadgroupMemory;
   ushort threadIndex;
   
-  uint4 largeMetadata(float3 largeLowerCorner) {
+  uint4 largeMetadata(float3 largeLowerCorner) const 
+  {
     float3 coordinates = (largeLowerCorner + 64) / 2;
     float address =
     VoxelAddress::generate<float, float>(64, coordinates);
@@ -58,7 +59,8 @@ struct RayIntersector {
   
   ushort2 smallMetadata(float3 largeLowerCorner,
                         float3 smallLowerCorner,
-                        uint4 largeMetadata) {
+                        uint4 largeMetadata) const 
+  {
     float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
     float localAddress =
     VoxelAddress::generate<float, float>(8, coordinates);
@@ -68,7 +70,63 @@ struct RayIntersector {
     return compactedSmallCellMetadata[compactedGlobalAddress];
   }
   
-  IntersectionResult intersect(IntersectionQuery intersectionQuery) {
+  void searchForNextCell(thread float3 &cursorCellBorder,
+                         thread bool &acceptVoxel,
+                         thread bool &outOfBounds,
+                         IntersectionQuery intersectionQuery,
+                         const DDA dda)
+  {
+    // Compute the voxel maximum time.
+    float voxelMaximumHitTime = dda
+      .voxelMaximumHitTime(cursorCellBorder,
+                           intersectionQuery.rayOrigin);
+    if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
+      outOfBounds = true;
+      return;
+    }
+    
+    // Compute the lower corner.
+    float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
+    float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+    if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
+      outOfBounds = true;
+      return;
+    }
+    
+    // If the large cell has small cells, proceed.
+    uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+    if (largeMetadata[0] > 0) {
+      // If the small cell has atoms, test them.
+      ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
+                                                  smallLowerCorner,
+                                                  largeMetadata);
+      if (smallMetadata[1] > 0) {
+        acceptVoxel = true;
+        
+        float3 coordinates = (cursorCellBorder + 64) / 0.25;
+        uint3 cellIndex = uint3(coordinates);
+        uint acceptedBorderCode = 0;
+        acceptedBorderCode += cellIndex[0] << 0;
+        acceptedBorderCode += cellIndex[1] << 9;
+        acceptedBorderCode += cellIndex[2] << 18;
+        
+        threadgroupMemory[threadIndex] = acceptedBorderCode;
+      }
+      
+      // Increment to the next small voxel.
+      cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
+                                             intersectionQuery.rayOrigin);
+    } else {
+      // Fast forward to the next large voxel.
+      cursorCellBorder = dda
+        .nextLargeBorder(cursorCellBorder,
+                         intersectionQuery.rayOrigin,
+                         intersectionQuery.rayDirection);
+    }
+  }
+  
+  IntersectionResult intersect(IntersectionQuery intersectionQuery) 
+  {
     float3 cursorCellBorder;
     const DDA dda(&cursorCellBorder,
                   intersectionQuery.rayOrigin,
@@ -81,53 +139,22 @@ struct RayIntersector {
     while (!outOfBounds) {
       bool acceptVoxel = false;
       
-      while (!acceptVoxel) {
-        // Compute the voxel maximum time.
-        float voxelMaximumHitTime = dda
-          .voxelMaximumHitTime(cursorCellBorder,
-                               intersectionQuery.rayOrigin);
-        if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
-          outOfBounds = true;
-          break;
-        }
-        
-        // Compute the lower corner.
-        float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
-        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-        if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
-          outOfBounds = true;
-          break;
-        }
-        
-        // If the large cell has small cells, proceed.
-        uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
-        if (largeMetadata[0] > 0) {
-          // If the small cell has atoms, test them.
-          ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                      smallLowerCorner,
-                                                      largeMetadata);
-          if (smallMetadata[1] > 0) {
-            acceptVoxel = true;
-            
-            float3 coordinates = (cursorCellBorder + 64) / 0.25;
-            uint3 cellIndex = uint3(coordinates);
-            uint acceptedBorderCode = 0;
-            acceptedBorderCode += cellIndex[0] << 0;
-            acceptedBorderCode += cellIndex[1] << 9;
-            acceptedBorderCode += cellIndex[2] << 18;
-            
-            threadgroupMemory[threadIndex] = acceptedBorderCode;
+      if (intersectionQuery.isAORay) {
+        searchForNextCell(cursorCellBorder,
+                          acceptVoxel,
+                          outOfBounds,
+                          intersectionQuery,
+                          dda);
+      } else {
+        while (!acceptVoxel) {
+          searchForNextCell(cursorCellBorder,
+                            acceptVoxel,
+                            outOfBounds,
+                            intersectionQuery,
+                            dda);
+          if (outOfBounds) {
+            break;
           }
-          
-          // Increment to the next small voxel.
-          cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
-                                                 intersectionQuery.rayOrigin);
-        } else {
-          // Fast forward to the next large voxel.
-          cursorCellBorder = dda
-            .nextLargeBorder(cursorCellBorder,
-                             intersectionQuery.rayOrigin,
-                             intersectionQuery.rayDirection);
         }
       }
       

@@ -154,24 +154,64 @@ public:
     //
     // Compressing cell border and using thread index to gate the cell search
     // under a runtime conditional:
-    // - 4.0 ms
+    // - 4.8 ms
     // - per-line statistics:
     //  - 65% ALU time
     //  - 35% control flow time
+    //  - 30.98% primary ray
+    //  - 50.63% secondary rays
     // - overall shader statistics:
-    //  - 1361 instructions
-    //  - 6.092 billion instructions issued
-    //  - 28.46% divergence
+    //  - 1181 instructions
+    //  - 6.314 billion instructions issued
+    //  - 29.22% divergence
     //
     // Implementing a full inner 'while' loop.
     // - 5.8 ms
     // - per-line statistics:
     //   - 65% ALU time
     //   - 35% control flow time
+    //   - 27.20% primary ray
+    //   - 65.99% secondary rays
     // - overall shader statistics:
     //   - 1150 instructions
     //   - 7.638 billion instructions issued
     //   - 42.81% divergence
+    //
+    // Only doing 'while' loop for primary rays.
+    // - 4.2 ms
+    // - per-line statistics:
+    //   - 70% ALU time
+    //   - 25% control flow time
+    //   - 33.98% primary ray
+    //   - 57.20% secondary rays
+    // - overall shader statistics:
+    //   - 1133 instructions
+    //   - 5.863 billion instructions issued
+    //   - 31.44% divergence
+    //
+    // Not skipping large voxels for secondary rays.
+    // - 4.6 ms
+    // - per-line statistics:
+    //   - 70% ALU time
+    //   - 25% control flow time
+    //   - 33.72% primary ray
+    //   - 58.24% secondary rays
+    // - overall shader statistics:
+    //   - 1054 instructions
+    //   - 5.563 billion instructions issued
+    //   - 26.56% divergence
+    //
+    // Not skipping large voxels for primary rays.
+    // - 9.5 ms
+    // - per-line statistics:
+    //   - 80% ALU time
+    //   - 15% control flow time
+    //   - 67.98% primary ray
+    //   - 28.13% secondary rays
+    // - overall shader statistics:
+    //   - 973 instructions
+    //   - 12.039 billion instructions issued
+    //   - 20.56% divergence
     
     return output;
   }
