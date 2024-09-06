@@ -76,13 +76,18 @@ struct RayIntersector {
     result.accept = false;
     
     bool outOfBounds = false;
-    while (!result.accept && !outOfBounds) {
+    while (!outOfBounds) {
       bool acceptVoxel = false;
       float3 acceptedSmallCellBorder;
       
+      float voxelMaximumHitTime;
+      float3 largeLowerCorner;
+      uint4 largeMetadata;
+      ushort2 smallMetadata;
+      
       while (!acceptVoxel) {
         // Compute the voxel maximum time.
-        float voxelMaximumHitTime = dda
+        voxelMaximumHitTime = dda
           .voxelMaximumHitTime(cursorCellBorder,
                                intersectionQuery.rayOrigin);
         if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
@@ -92,19 +97,19 @@ struct RayIntersector {
         
         // Compute the lower corner.
         float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
-        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+        largeLowerCorner = 2 * floor(smallLowerCorner / 2);
         if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
           outOfBounds = true;
           break;
         }
         
         // If the large cell has small cells, proceed.
-        uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+        largeMetadata = this->largeMetadata(largeLowerCorner);
         if (largeMetadata[0] > 0) {
           // If the small cell has atoms, test them.
-          ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                      smallLowerCorner,
-                                                      largeMetadata);
+          smallMetadata = this->smallMetadata(largeLowerCorner,
+                                              smallLowerCorner,
+                                              largeMetadata);
           if (smallMetadata[1] > 0) {
             acceptVoxel = true;
             acceptedSmallCellBorder = cursorCellBorder;
@@ -124,22 +129,6 @@ struct RayIntersector {
       
       // Test the atoms in the accepted voxel.
       if (acceptVoxel) {
-        // Compute the voxel maximum time.
-        float voxelMaximumHitTime = dda
-          .voxelMaximumHitTime(acceptedSmallCellBorder,
-                               intersectionQuery.rayOrigin);
-        
-        // Compute the lower corner.
-        float3 smallLowerCorner = dda.cellLowerCorner(acceptedSmallCellBorder);
-        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-        
-        // Retrieve the metadata.
-        uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
-        ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                    smallLowerCorner,
-                                                    largeMetadata);
-        
-        
         // Set the origin register.
         float3 origin = intersectionQuery.rayOrigin;
         origin -= largeLowerCorner;
@@ -188,6 +177,7 @@ struct RayIntersector {
         // Check whether we found a hit.
         if (result.distance < voxelMaximumHitTime) {
           result.accept = true;
+          outOfBounds = true;
         }
       }
     }
