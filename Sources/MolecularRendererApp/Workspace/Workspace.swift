@@ -169,15 +169,12 @@ import Numerics
 //   - Remove the optimization that skips empty voxels. This is obfuscating
 //     some inner mechanics of DDA traversal. [DONE]
 //   - Is real-time rendering still possible? [DONE]
-// - Start with a very expensive two-level DDA.
-//   - Sketch out how to reinitialize an inner DDA and handle edge cases
-//     properly.
-//   - Reinitialize the small DDA upon entry to each large voxel.
-// - Rearrange the loop.
-//   - Two DDAs are still held in registers.
-//   - The divergence issue is fixed, but now any small loop iteration may
-//     suffer the cost of reinitializing a large DDA.
-// - Minimize the compute cost of jumping between large voxels.
+// - Start with a very expensive two-level DDA. [DONE]
+// - Split into two separate traversal functions.
+//   - Re-encapsulate the sphere-cell intersection, but this time taking the
+//     arguments for an entire voxel.
+//   - Give the functions different top-level names.
+//   - Remove 'isAORay' from the intersection parameters.
 
 #if true
 
