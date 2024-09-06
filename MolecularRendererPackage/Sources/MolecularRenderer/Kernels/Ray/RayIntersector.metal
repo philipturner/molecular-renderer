@@ -47,6 +47,25 @@ struct RayIntersector {
   device uint4 *largeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
   
+  uint4 largeMetadata(float3 largeLowerCorner) {
+    float3 coordinates = (largeLowerCorner + 64) / 2;
+    float address =
+    VoxelAddress::generate<float, float>(64, coordinates);
+    return largeCellMetadata[uint(address)];
+  }
+  
+  ushort2 smallMetadata(float3 largeLowerCorner,
+                        float3 smallLowerCorner,
+                        uint4 largeMetadata) {
+    float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
+    float localAddress =
+    VoxelAddress::generate<float, float>(8, coordinates);
+    
+    uint compactedGlobalAddress =
+    largeMetadata[0] * 512 + uint(localAddress);
+    return compactedSmallCellMetadata[compactedGlobalAddress];
+  }
+  
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
     float3 cursorCellBorder;
     const DDA dda(&cursorCellBorder,
@@ -63,7 +82,7 @@ struct RayIntersector {
       {
         // Compute the voxel maximum time.
         float voxelMaximumHitTime = dda
-          .voxelMaximumHitTime(cursorCellBorder, 
+          .voxelMaximumHitTime(cursorCellBorder,
                                intersectionQuery.rayOrigin);
         if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
           break;
@@ -76,30 +95,13 @@ struct RayIntersector {
         }
         float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
         
-        // Retrieve the large metadata.
-        uint4 largeMetadata;
-        {
-          float3 coordinates = (largeLowerCorner + 64) / 2;
-          float address =
-          VoxelAddress::generate<float, float>(64, coordinates);
-          largeMetadata = largeCellMetadata[uint(address)];
-        }
-        
         // If the large cell has small cells, proceed.
+        uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
         if (largeMetadata[0] > 0) {
-          // Retrieve the small metadata.
-          ushort2 smallMetadata;
-          {
-            float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
-            float localAddress =
-            VoxelAddress::generate<float, float>(8, coordinates);
-            
-            uint compactedGlobalAddress =
-            largeMetadata[0] * 512 + uint(localAddress);
-            smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
-          }
-          
           // If the small cell has atoms, test them.
+          ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
+                                                      smallLowerCorner,
+                                                      largeMetadata);
           if (smallMetadata[1] > 0) {
             acceptVoxel = true;
             acceptedSmallCellBorder = cursorCellBorder;
@@ -117,33 +119,22 @@ struct RayIntersector {
         }
       }
       
+      // Test the atoms in the accepted voxel.
       if (acceptVoxel) {
+        // Compute the voxel maximum time.
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(acceptedSmallCellBorder,
                                intersectionQuery.rayOrigin);
+        
+        // Compute the lower corner.
         float3 smallLowerCorner = dda.cellLowerCorner(acceptedSmallCellBorder);
         float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
         
-        // Retrieve the large metadata.
-        uint4 largeMetadata;
-        {
-          float3 coordinates = (largeLowerCorner + 64) / 2;
-          float address =
-          VoxelAddress::generate<float, float>(64, coordinates);
-          largeMetadata = largeCellMetadata[uint(address)];
-        }
-        
-        // Retrieve the small metadata.
-        ushort2 smallMetadata;
-        {
-          float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
-          float localAddress =
-          VoxelAddress::generate<float, float>(8, coordinates);
-          
-          uint compactedGlobalAddress =
-          largeMetadata[0] * 512 + uint(localAddress);
-          smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
-        }
+        // Retrieve the metadata.
+        uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+        ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
+                                                    smallLowerCorner,
+                                                    largeMetadata);
         
         
         // Set the origin register.
