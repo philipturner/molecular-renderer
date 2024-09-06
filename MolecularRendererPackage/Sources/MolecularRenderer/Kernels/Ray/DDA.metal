@@ -118,7 +118,6 @@ public:
     nextBorder *= 0.25;
     
     // Guarantee forward progress.
-    float3 nextSmallBorder = this->nextSmallBorder(cellBorder, rayOrigin);
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
       if (i == axisID) {
@@ -130,12 +129,6 @@ public:
           nextBorder[i] = min(nextBorder[i], cellBorder[i]);
         }
       }
-      
-//      if (dtdx[i] >= 0) {
-//        nextBorder[i] = max(nextBorder[i], nextSmallBorder[i]);
-//      } else {
-//        nextBorder[i] = min(nextBorder[i], nextSmallBorder[i]);
-//      }
     }
     
     // Start by taking the maximum of the value here, and the next small-cell
@@ -145,6 +138,9 @@ public:
     // Before implementing fast forward:
     // - 7.5 ms at low clock speed
     // - 2.7 ms at high clock speed
+    //
+    // After implementing fast forward:
+    // - 4.0 ms at low clock speed
     return nextBorder;
   }
 };
