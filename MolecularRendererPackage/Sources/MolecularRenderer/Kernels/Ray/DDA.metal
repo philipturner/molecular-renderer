@@ -134,8 +134,27 @@ public:
     //
     // After implementing fast forward:
     // - 3.8 ms at low clock speed
-    // - 70% ALU time
-    // - 25% control flow time
+    // - per-line statistics:
+    //   - 70% ALU time
+    //   - 25% control flow time
+    // - overall shader statistics:
+    //   - 993 instructions
+    //   - 5.127 billion instructions issued
+    //   - 28.42% divergence
+    //
+    // Deferring atom testing to after the next cursor increment:
+    // - 4.4 ms
+    // - per-line statistics:
+    //   - 67% ALU time
+    //   - 28% control flow time
+    // - overall shader statistics:
+    //   - 1117 instructions
+    //   - 6.040 billion instructions issued
+    //   - 30.08% divergence
+    //
+    // Compressing cell border and using thread index to gate the cell search
+    // under a runtime conditional:
+    //
     return output;
   }
 };
