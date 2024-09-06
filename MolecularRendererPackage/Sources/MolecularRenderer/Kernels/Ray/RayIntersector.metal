@@ -46,6 +46,8 @@ struct RayIntersector {
   device ushort *smallAtomReferences;
   device uint4 *largeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
+  threadgroup uint *threadgroupMemory;
+  ushort threadIndex;
   
   uint4 largeMetadata(float3 largeLowerCorner) {
     float3 coordinates = (largeLowerCorner + 64) / 2;

@@ -73,6 +73,12 @@ extension MRRenderer {
       encoder.setTexture(textures.motion, index: 2)
     }
     
+    // Allocate threadgroup memory.
+    do {
+      let byteCount = 64 * 16 * 4
+      encoder.setThreadgroupMemoryLength(byteCount, index: 0)
+    }
+    
     // Dispatch the correct number of threadgroups.
     do {
       let pipeline = renderPipeline!

@@ -27,16 +27,19 @@ kernel void renderAtoms
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
+ threadgroup uint *threadgroupMemory [[threadgroup(0)]],
  ushort2 tid [[thread_position_in_grid]],
  ushort2 tgid [[threadgroup_position_in_grid]],
- ushort2 lid [[thread_position_in_threadgroup]])
+ ushort2 thread_id [[thread_position_in_threadgroup]],
+ ushort thread_index [[thread_index_in_threadgroup]])
 {
   // Return early if outside bounds.
-  ushort2 pixelCoords = RayGeneration::makePixelID(tgid, lid);
+  ushort2 pixelCoords = RayGeneration::makePixelID(tgid, thread_id);
   if (pixelCoords.x >= renderArgs->screenWidth ||
       pixelCoords.y >= renderArgs->screenWidth) {
     return;
   }
+  threadgroupMemory[thread_index] = 0;
   
   // Initialize the ray intersector.
   RayIntersector rayIntersector;
@@ -44,6 +47,8 @@ kernel void renderAtoms
   rayIntersector.smallAtomReferences = smallAtomReferences;
   rayIntersector.largeCellMetadata = largeCellMetadata;
   rayIntersector.compactedSmallCellMetadata = compactedSmallCellMetadata;
+  rayIntersector.threadgroupMemory = threadgroupMemory;
+  rayIntersector.threadIndex = thread_index;
   
   // Spawn the primary ray.
   float3 primaryRayOrigin = cameraArgs->position;
