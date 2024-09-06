@@ -154,7 +154,7 @@ public:
     //
     // Compressing cell border and using thread index to gate the cell search
     // under a runtime conditional:
-    // - 4.7 ms
+    // - 4.0 ms
     // - per-line statistics:
     //  - 65% ALU time
     //  - 35% control flow time
@@ -162,6 +162,17 @@ public:
     //  - 1361 instructions
     //  - 6.092 billion instructions issued
     //  - 28.46% divergence
+    //
+    // Implementing a full inner 'while' loop.
+    // - 5.8 ms
+    // - per-line statistics:
+    //   - 65% ALU time
+    //   - 35% control flow time
+    // - overall shader statistics:
+    //   - 1150 instructions
+    //   - 7.638 billion instructions issued
+    //   - 42.81% divergence
+    
     return output;
   }
 };

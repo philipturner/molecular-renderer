@@ -80,9 +80,8 @@ struct RayIntersector {
     bool outOfBounds = false;
     while (!outOfBounds) {
       bool acceptVoxel = false;
-      uint acceptedBorderCode;
       
-      if (threadIndex < 64) {
+      while (!acceptVoxel) {
         // Compute the voxel maximum time.
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(cursorCellBorder,
@@ -112,10 +111,12 @@ struct RayIntersector {
             
             float3 coordinates = (cursorCellBorder + 64) / 0.25;
             uint3 cellIndex = uint3(coordinates);
-            acceptedBorderCode = 0;
+            uint acceptedBorderCode = 0;
             acceptedBorderCode += cellIndex[0] << 0;
             acceptedBorderCode += cellIndex[1] << 9;
             acceptedBorderCode += cellIndex[2] << 18;
+            
+            threadgroupMemory[threadIndex] = acceptedBorderCode;
           }
           
           // Increment to the next small voxel.
@@ -130,8 +131,12 @@ struct RayIntersector {
         }
       }
       
+      simdgroup_barrier(mem_flags::mem_threadgroup);
+      
       // Test the atoms in the accepted voxel.
       if (acceptVoxel) {
+        uint acceptedBorderCode = threadgroupMemory[threadIndex];
+        
         uint3 cellIndex;
         cellIndex[0] = (acceptedBorderCode >> 0) & 511;
         cellIndex[1] = (acceptedBorderCode >> 9) & 511;
