@@ -82,7 +82,6 @@ struct RayIntersector {
     // If the large cell has small cells, proceed.
     uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
     if (largeMetadata[0] > 0) {
-      // If the small cell has atoms, test them.
       ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
                                                   smallLowerCorner,
                                                   largeMetadata);
@@ -188,7 +187,6 @@ struct RayIntersector {
       
       simdgroup_barrier(mem_flags::mem_threadgroup);
       
-      // Test the atoms in the accepted voxel.
       if (acceptVoxel) {
         uint acceptedBorderCode = threadgroupMemory[threadIndex];
         
@@ -212,6 +210,7 @@ struct RayIntersector {
         // Set the distance register.
         result.distance = voxelMaximumHitTime;
         
+        // Test the atoms in the accepted voxel.
         testCell(result,
                  largeLowerCorner,
                  largeMetadata,
@@ -240,14 +239,12 @@ struct RayIntersector {
     IntersectionResult result;
     result.accept = false;
     
-    bool outOfBounds = false;
-    while (!outOfBounds) {
+    while (!result.accept) {
       // Compute the voxel maximum time.
       float voxelMaximumHitTime = dda
         .voxelMaximumHitTime(cursorCellBorder,
                              intersectionQuery.rayOrigin);
       if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
-        outOfBounds = true;
         break;
       }
       
@@ -255,65 +252,30 @@ struct RayIntersector {
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
-        outOfBounds = true;
         break;
       }
       
       // If the large cell has small cells, proceed.
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
       if (largeMetadata[0] > 0) {
-        // If the small cell has atoms, test them.
         ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
                                                     smallLowerCorner,
                                                     largeMetadata);
         if (smallMetadata[1] > 0) {
-          float3 coordinates = (cursorCellBorder + 64) / 0.25;
-          uint3 cellIndex = uint3(coordinates);
-          uint acceptedBorderCode = 0;
-          acceptedBorderCode += cellIndex[0] << 0;
-          acceptedBorderCode += cellIndex[1] << 9;
-          acceptedBorderCode += cellIndex[2] << 18;
-          
-          threadgroupMemory[threadIndex] = acceptedBorderCode;
-          
-          simdgroup_barrier(mem_flags::mem_threadgroup);
+          // Set the distance register.
+          result.distance = voxelMaximumHitTime;
           
           // Test the atoms in the accepted voxel.
-          {
-            uint acceptedBorderCode = threadgroupMemory[threadIndex];
-            
-            uint3 cellIndex;
-            cellIndex[0] = (acceptedBorderCode >> 0) & 511;
-            cellIndex[1] = (acceptedBorderCode >> 9) & 511;
-            cellIndex[2] = (acceptedBorderCode >> 18) & 511;
-            float3 coordinates = float3(cellIndex);
-            float3 acceptedSmallCellBorder = (coordinates * 0.25) - 64;
-            
-            float voxelMaximumHitTime = dda
-              .voxelMaximumHitTime(acceptedSmallCellBorder,
-                                   intersectionQuery.rayOrigin);
-            float3 smallLowerCorner = dda.cellLowerCorner(acceptedSmallCellBorder);
-            float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-            uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
-            ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                        smallLowerCorner,
-                                                        largeMetadata);
-            
-            // Set the distance register.
-            result.distance = voxelMaximumHitTime;
-            
-            testCell(result,
-                     largeLowerCorner,
-                     largeMetadata,
-                     smallMetadata,
-                     intersectionQuery,
-                     dda);
-            
-            // Check whether we found a hit.
-            if (result.distance < voxelMaximumHitTime) {
-              result.accept = true;
-              outOfBounds = true;
-            }
+          testCell(result,
+                   largeLowerCorner,
+                   largeMetadata,
+                   smallMetadata,
+                   intersectionQuery,
+                   dda);
+          
+          // Check whether we found a hit.
+          if (result.distance < voxelMaximumHitTime) {
+            result.accept = true;
           }
         }
       }

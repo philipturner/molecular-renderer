@@ -212,6 +212,42 @@ public:
     //   - 973 instructions
     //   - 12.039 billion instructions issued
     //   - 20.56% divergence
+    //
+    // Removing skip-forward for AO rays.
+    // - 4.2 ms
+    // - per-line statistics:
+    //   - 70% ALU time
+    //   - 25% control flow time
+    //   - 36.45% primary ray
+    //   - 53.62% secondary rays
+    // - overall shader statistics:
+    //   - 986 instructions
+    //   - 5.098 billion instructions issued
+    //   - 24.37% divergence
+    //
+    // Simplifying control flow for AO rays (option 1).
+    // - 3.7 ms
+    // - per-line statistics:
+    //   - 75% ALU time
+    //   - 20% control flow time
+    //   - 36.71% primary ray
+    //   - 52.86% secondary rays
+    // - overall shader statistics:
+    //   - 998 instructions
+    //   - 5.081 billion instructions issued
+    //   - 25.38% divergence
+    //
+    // Simplifying control flow for AO rays (option 2).
+    // - 4.4 ms
+    // - per-line statistics:
+    //   - 75% ALU time
+    //   - 20% control flow time
+    //   - 37.64% primary ray
+    //   - 51.45% secondary rays
+    // - overall shader statistics:
+    //   - 989 instructions
+    //   - 4.964 billion instructions issued
+    //   - 24.33% divergence
     
     return output;
   }
