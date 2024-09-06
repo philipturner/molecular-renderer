@@ -22,20 +22,15 @@ struct IntersectionResult {
 };
 
 struct IntersectionQuery {
-  bool isAORay;
   float3 rayOrigin;
   float3 rayDirection;
   
   bool exceededAOTime(float voxelMaximumHitTime) {
-    if (isAORay) {
-      // This cutoff is parameterized for small voxels, where the distance
-      // is 0.25 nm. If you switch to testing a different voxel size, the
-      // parameter must change.
-      constexpr float cutoff = 1 + 0.25 * 1.732051;
-      return voxelMaximumHitTime > cutoff;
-    } else {
-      return false;
-    }
+    // This cutoff is parameterized for small voxels, where the distance
+    // is 0.25 nm. If you switch to testing a different voxel size, the
+    // parameter must change.
+    constexpr float cutoff = 1 + 0.25 * 1.732051;
+    return voxelMaximumHitTime > cutoff;
   }
 };
 
@@ -49,7 +44,7 @@ struct RayIntersector {
   threadgroup uint *threadgroupMemory;
   ushort threadIndex;
   
-  uint4 largeMetadata(float3 largeLowerCorner) const 
+  uint4 largeMetadata(float3 largeLowerCorner) const
   {
     float3 coordinates = (largeLowerCorner + 64) / 2;
     float address =
@@ -59,7 +54,7 @@ struct RayIntersector {
   
   ushort2 smallMetadata(float3 largeLowerCorner,
                         float3 smallLowerCorner,
-                        uint4 largeMetadata) const 
+                        uint4 largeMetadata) const
   {
     float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
     float localAddress =
@@ -70,11 +65,57 @@ struct RayIntersector {
     return compactedSmallCellMetadata[compactedGlobalAddress];
   }
   
-  void searchForNextCell(thread float3 &cursorCellBorder,
-                         thread bool &acceptVoxel,
-                         thread bool &outOfBounds,
-                         IntersectionQuery intersectionQuery,
-                         const DDA dda)
+  void searchForNextCellPrimary(thread float3 &cursorCellBorder,
+                                thread bool &acceptVoxel,
+                                thread bool &outOfBounds,
+                                IntersectionQuery intersectionQuery,
+                                const DDA dda)
+  {
+    // Compute the lower corner.
+    float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
+    float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+    if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
+      outOfBounds = true;
+      return;
+    }
+    
+    // If the large cell has small cells, proceed.
+    uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+    if (largeMetadata[0] > 0) {
+      // If the small cell has atoms, test them.
+      ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
+                                                  smallLowerCorner,
+                                                  largeMetadata);
+      if (smallMetadata[1] > 0) {
+        acceptVoxel = true;
+        
+        float3 coordinates = (cursorCellBorder + 64) / 0.25;
+        uint3 cellIndex = uint3(coordinates);
+        uint acceptedBorderCode = 0;
+        acceptedBorderCode += cellIndex[0] << 0;
+        acceptedBorderCode += cellIndex[1] << 9;
+        acceptedBorderCode += cellIndex[2] << 18;
+        
+        threadgroupMemory[threadIndex] = acceptedBorderCode;
+      }
+      
+      // Increment to the next small voxel.
+      cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
+                                             intersectionQuery.rayOrigin);
+    } else {
+      // Fast forward to the next large voxel.
+      cursorCellBorder = dda
+        .nextLargeBorder(cursorCellBorder,
+                         intersectionQuery.rayOrigin,
+                         intersectionQuery.rayDirection);
+    }
+  }
+  
+  void searchForNextCellAO(thread float3 &cursorCellBorder,
+                           thread bool &acceptVoxel,
+                           thread bool &outOfBounds,
+                           IntersectionQuery intersectionQuery,
+                           const DDA dda)
   {
     // Compute the voxel maximum time.
     float voxelMaximumHitTime = dda
@@ -201,7 +242,7 @@ struct RayIntersector {
     }
   }
   
-  IntersectionResult intersect(IntersectionQuery intersectionQuery) 
+  IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery)
   {
     float3 cursorCellBorder;
     const DDA dda(&cursorCellBorder,
@@ -215,24 +256,50 @@ struct RayIntersector {
     while (!outOfBounds) {
       bool acceptVoxel = false;
       
-      if (intersectionQuery.isAORay) {
-        searchForNextCell(cursorCellBorder,
+      while (!acceptVoxel) {
+        searchForNextCellPrimary(cursorCellBorder,
+                                 acceptVoxel,
+                                 outOfBounds,
+                                 intersectionQuery,
+                                 dda);
+        if (outOfBounds) {
+          break;
+        }
+      }
+      
+      simdgroup_barrier(mem_flags::mem_threadgroup);
+      
+      // Test the atoms in the accepted voxel.
+      if (acceptVoxel) {
+        testCell(result,
+                 outOfBounds,
+                 intersectionQuery,
+                 dda);
+      }
+    }
+    
+    return result;
+  }
+  
+  IntersectionResult intersectAO(IntersectionQuery intersectionQuery)
+  {
+    float3 cursorCellBorder;
+    const DDA dda(&cursorCellBorder,
+                  intersectionQuery.rayOrigin,
+                  intersectionQuery.rayDirection);
+    
+    IntersectionResult result;
+    result.accept = false;
+    
+    bool outOfBounds = false;
+    while (!outOfBounds) {
+      bool acceptVoxel = false;
+      
+      searchForNextCellAO(cursorCellBorder,
                           acceptVoxel,
                           outOfBounds,
                           intersectionQuery,
                           dda);
-      } else {
-        while (!acceptVoxel) {
-          searchForNextCell(cursorCellBorder,
-                            acceptVoxel,
-                            outOfBounds,
-                            intersectionQuery,
-                            dda);
-          if (outOfBounds) {
-            break;
-          }
-        }
-      }
       
       simdgroup_barrier(mem_flags::mem_threadgroup);
       

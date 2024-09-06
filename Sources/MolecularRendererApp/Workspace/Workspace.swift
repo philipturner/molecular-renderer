@@ -170,11 +170,11 @@ import Numerics
 //     some inner mechanics of DDA traversal. [DONE]
 //   - Is real-time rendering still possible? [DONE]
 // - Start with a very expensive two-level DDA. [DONE]
-// - Split into two separate traversal functions.
+// - Split into two separate traversal functions. [DONE]
 //   - Re-encapsulate the sphere-cell intersection, but this time taking the
 //     arguments for an entire voxel. [DONE]
-//   - Give the functions different top-level names.
-//   - Remove 'isAORay' from the intersection parameters.
+//   - Give the functions different top-level names. [DONE]
+//   - Remove 'isAORay' from the intersection parameters. [DONE]
 
 #if true
 

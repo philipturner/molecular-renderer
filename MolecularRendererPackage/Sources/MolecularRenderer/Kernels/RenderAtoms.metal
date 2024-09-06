@@ -58,10 +58,9 @@ kernel void renderAtoms
   
   // Intersect the primary ray.
   IntersectionQuery query;
-  query.isAORay = false;
   query.rayOrigin = primaryRayOrigin;
   query.rayDirection = primaryRayDirection;
-  auto intersect = rayIntersector.intersect(query);
+  auto intersect = rayIntersector.intersectPrimary(query);
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
@@ -109,10 +108,9 @@ kernel void renderAtoms
       
       // Intersect the secondary ray.
       IntersectionQuery query;
-      query.isAORay = true;
       query.rayOrigin = secondaryRayOrigin;
       query.rayDirection = secondaryRayDirection;
-      auto intersect = rayIntersector.intersect(query);
+      auto intersect = rayIntersector.intersectAO(query);
       
       // Add the secondary ray's AO contributions.
       ushort atomicNumber;
