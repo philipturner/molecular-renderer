@@ -38,13 +38,9 @@ public:
     *cellBorder *= spacing;
   }
   
-  float3 nextTimes(float3 cellBorder, float3 rayOrigin) const {
-    float3 nextBorder = cellBorder + float3(dx);
-    return (nextBorder - rayOrigin) * dtdx;
-  }
-  
   float3 increment(float3 cellBorder, float3 rayOrigin) const {
-    const float3 nextTimes = this->nextTimes(cellBorder, rayOrigin);
+    float3 nextBorder = cellBorder + float3(dx);
+    float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
     
     float3 output = cellBorder;
     if (nextTimes[0] < nextTimes[1] &&
@@ -59,7 +55,8 @@ public:
   }
   
   float voxelMaximumHitTime(float3 cellBorder, float3 rayOrigin) const {
-    const float3 nextTimes = this->nextTimes(cellBorder, rayOrigin);
+    float3 nextBorder = cellBorder + float3(dx);
+    float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
     
     float smallestNextTime;
     if (nextTimes[0] < nextTimes[1] &&

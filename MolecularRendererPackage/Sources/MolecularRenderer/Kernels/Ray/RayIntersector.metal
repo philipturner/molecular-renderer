@@ -81,76 +81,81 @@ struct RayIntersector {
         largeMetadata = largeCellMetadata[uint(address)];
       }
       
-      // Retrieve the small metadata.
-      ushort2 smallMetadata;
+      // If the large cell has small cells, proceed.
       if (largeMetadata[0] > 0) {
-        float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
-        float localAddress =
-        VoxelAddress::generate<float, float>(8, coordinates);
-        
-        uint compactedGlobalAddress =
-        largeMetadata[0] * 512 + uint(localAddress);
-        smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
-      } else {
-        smallMetadata = ushort2(0);
-      }
-      
-      // If the small cell has atoms, test them.
-      if (smallMetadata[1] > 0) {
-        // Set the origin register.
-        float3 origin = intersectionQuery.rayOrigin;
-        origin -= largeLowerCorner;
-        
-        // Set the loop bounds register.
-        uint referenceCursor = largeMetadata[2] + smallMetadata[0];
-        uint referenceEnd = referenceCursor + smallMetadata[1];
-        
-        // Set the distance register.
-        result.distance = voxelMaximumHitTime;
-        
-        // Test every atom in the voxel.
-        while (referenceCursor < referenceEnd) {
-          // Locate the atom.
-          ushort reference = smallAtomReferences[referenceCursor];
+        // Retrieve the small metadata.
+        ushort2 smallMetadata;
+        {
+          float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
+          float localAddress =
+          VoxelAddress::generate<float, float>(8, coordinates);
           
-          // Retrieve the atom.
-          uint atomID = largeMetadata[1] + reference;
-          half4 atom = convertedAtoms[atomID];
+          uint compactedGlobalAddress =
+          largeMetadata[0] * 512 + uint(localAddress);
+          smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
+        }
+        
+        // If the small cell has atoms, test them.
+        if (smallMetadata[1] > 0) {
+          // Set the origin register.
+          float3 origin = intersectionQuery.rayOrigin;
+          origin -= largeLowerCorner;
           
-          // Run the intersection test.
-          {
-            float3 oc = origin - float3(atom.xyz);
-            float b2 = dot(float3(oc), intersectionQuery.rayDirection);
+          // Set the loop bounds register.
+          uint referenceCursor = largeMetadata[2] + smallMetadata[0];
+          uint referenceEnd = referenceCursor + smallMetadata[1];
+          
+          // Set the distance register.
+          result.distance = voxelMaximumHitTime;
+          
+          // Test every atom in the voxel.
+          while (referenceCursor < referenceEnd) {
+            // Locate the atom.
+            ushort reference = smallAtomReferences[referenceCursor];
             
-            float radius = float(atom.w);
-            float c = -radius * radius;
-            c = fma(oc.x, oc.x, c);
-            c = fma(oc.y, oc.y, c);
-            c = fma(oc.z, oc.z, c);
+            // Retrieve the atom.
+            uint atomID = largeMetadata[1] + reference;
+            half4 atom = convertedAtoms[atomID];
             
-            float disc4 = b2 * b2 - c;
-            if (disc4 > 0) {
-              float distance = fma(-disc4, rsqrt(disc4), -b2);
-              if (distance >= 0 && distance < result.distance) {
-                result.atomID = atomID;
-                result.distance = distance;
+            // Run the intersection test.
+            {
+              float3 oc = origin - float3(atom.xyz);
+              float b2 = dot(float3(oc), intersectionQuery.rayDirection);
+              
+              float radius = float(atom.w);
+              float c = -radius * radius;
+              c = fma(oc.x, oc.x, c);
+              c = fma(oc.y, oc.y, c);
+              c = fma(oc.z, oc.z, c);
+              
+              float disc4 = b2 * b2 - c;
+              if (disc4 > 0) {
+                float distance = fma(-disc4, rsqrt(disc4), -b2);
+                if (distance >= 0 && distance < result.distance) {
+                  result.atomID = atomID;
+                  result.distance = distance;
+                }
               }
             }
+            
+            // Increment to the next reference.
+            referenceCursor += 1;
           }
           
-          // Increment to the next reference.
-          referenceCursor += 1;
+          // Check whether we found a hit.
+          if (result.distance < voxelMaximumHitTime) {
+            result.accept = true;
+          }
         }
         
-        // Check whether we found a hit.
-        if (result.distance < voxelMaximumHitTime) {
-          result.accept = true;
-        }
+        // Increment to the next small voxel.
+        cellBorder = dda
+          .increment(cellBorder, intersectionQuery.rayOrigin);
+      } else {
+        // Fast forward to the next large voxel.
+        cellBorder = dda
+          .increment(cellBorder, intersectionQuery.rayOrigin);
       }
-      
-      // Increment to the next voxel.
-      cellBorder = dda
-        .increment(cellBorder, intersectionQuery.rayOrigin);
     }
     
     return result;
