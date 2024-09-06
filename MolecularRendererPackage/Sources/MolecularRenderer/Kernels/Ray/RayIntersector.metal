@@ -75,25 +75,28 @@ struct RayIntersector {
     IntersectionResult result;
     result.accept = false;
     
-    while (!result.accept) {
+    bool outOfBounds = false;
+    while (!result.accept && !outOfBounds) {
       bool acceptVoxel = false;
       float3 acceptedSmallCellBorder;
       
-      {
+      while (!acceptVoxel) {
         // Compute the voxel maximum time.
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(cursorCellBorder,
                                intersectionQuery.rayOrigin);
         if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
+          outOfBounds = true;
           break;
         }
         
         // Compute the lower corner.
         float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
-        if (any(smallLowerCorner < -64) || any(smallLowerCorner >= 64)) {
+        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+        if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
+          outOfBounds = true;
           break;
         }
-        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
         
         // If the large cell has small cells, proceed.
         uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
