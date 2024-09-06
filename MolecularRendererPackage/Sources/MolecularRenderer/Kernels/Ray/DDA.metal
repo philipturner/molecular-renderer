@@ -78,6 +78,7 @@ public:
   float3 nextLargeBorder(float3 cellBorder, 
                          float3 rayOrigin,
                          float3 rayDirection) const {
+    float3 roundedUpBorder;
     ushort axisID;
     float t;
     {
@@ -105,6 +106,9 @@ public:
         axisID = 2;
         t = nextTimes[2];
       }
+      
+      // Save the 'nextBorder' variable with a different name.
+      roundedUpBorder = nextBorder;
     }
     
     // Make speculative next positions.
@@ -114,6 +118,22 @@ public:
     nextBorder *= 0.25;
     
     // Guarantee forward progress.
+    float3 nextSmallBorder = this->nextSmallBorder(cellBorder, rayOrigin);
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 3; ++i) {
+      if (i == axisID) {
+        
+      } else {
+        
+      }
+      
+      if (dtdx[i] >= 0) {
+        nextBorder[i] = max(nextBorder[i], nextSmallBorder[i]);
+      } else {
+        nextBorder[i] = min(nextBorder[i], nextSmallBorder[i]);
+      }
+    }
+    nextBorder = nextSmallBorder;
     
     // Start by taking the maximum of the value here, and the next small-cell
     // border. In theory, the large jump should include every small jump in
@@ -122,7 +142,7 @@ public:
     // Before implementing fast forward:
     // - 7.5 ms at low clock speed
     // - 2.7 ms at high clock speed
-    return nextSmallBorder(cellBorder, rayOrigin);
+    return nextBorder;
   }
 };
 
