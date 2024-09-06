@@ -32,6 +32,7 @@ struct RayIntersector {
   device half4 *convertedAtoms;
   device ushort *smallAtomReferences;
   device uint4 *largeCellMetadata;
+  device uint4 *compactedLargeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
   threadgroup uint *threadgroupMemory;
   ushort threadIndex;

@@ -179,13 +179,19 @@ import Numerics
 //   be stored in threadgroup memory.
 //   - Replace 'compactedLargeCellIDs' with this metadata. [DONE]
 //   - Simplify the small-cells pass of BVH construction accordingly. [DONE]
-//   - Bind the compacted large-cell metadata to the render kernel.
+//   - Bind the compacted large-cell metadata to the render kernel. [DONE]
 //   - Modify the existing algorithm for compressing cell addresses.
 //   - Test for correctness and performance changes.
 // - Try speculative searching of the BVH.
 //   - Buffer up the next few small cells.
 //   - Revert to the code from before.
 //   - Buffer up the next few large cells in a separate DDA.
+// - Re-implement the bounding box reduction, to decrease the number of
+//   far-away cells traversed for primary rays.
+//   - Properly handle the edge case where the user falls outside of the
+//     world grid.
+//   - Re-implement the bounding box reduction.
+//   - Find a good way to bind the bounding box to the render kernel.
 
 #if true
 

@@ -61,7 +61,9 @@ extension MRRenderer {
       encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 7)
       encoder.setBuffer(bvhBuilder.largeCellMetadata, offset: 0, index: 8)
       encoder.setBuffer(
-        bvhBuilder.compactedSmallCellMetadata, offset: 0, index: 9)
+        bvhBuilder.compactedLargeCellMetadata, offset: 0, index: 9)
+      encoder.setBuffer(
+        bvhBuilder.compactedSmallCellMetadata, offset: 0, index: 10)
     }
     
     // Bind the textures.

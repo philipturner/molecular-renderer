@@ -23,7 +23,8 @@ kernel void renderAtoms
  device uint *largeAtomReferences [[buffer(6)]],
  device ushort *smallAtomReferences [[buffer(7)]],
  device uint4 *largeCellMetadata [[buffer(8)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(9)]],
+ device uint4 *compactedLargeCellMetadata [[buffer(9)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(10)]],
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
@@ -45,6 +46,7 @@ kernel void renderAtoms
   rayIntersector.convertedAtoms = convertedAtoms;
   rayIntersector.smallAtomReferences = smallAtomReferences;
   rayIntersector.largeCellMetadata = largeCellMetadata;
+  rayIntersector.compactedLargeCellMetadata = compactedLargeCellMetadata;
   rayIntersector.compactedSmallCellMetadata = compactedSmallCellMetadata;
   rayIntersector.threadgroupMemory = threadgroupMemory;
   rayIntersector.threadIndex = thread_index;
