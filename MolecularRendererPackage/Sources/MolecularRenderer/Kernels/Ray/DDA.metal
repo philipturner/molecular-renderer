@@ -78,23 +78,23 @@ public:
   float3 nextLargeBorder(float3 cellBorder, 
                          float3 rayOrigin,
                          float3 rayDirection) const {
-    float3 roundedUpBorder;
+    // Round current coordinates down to 2.0 nm.
+    float3 nextBorder = cellBorder;
+    nextBorder /= 2.00;
+    nextBorder = select(ceil(nextBorder), floor(nextBorder), dtdx >= 0);
+    nextBorder *= 2.00;
+    
+    // Add 2.0 nm to each.
+    nextBorder += 8 * float3(dx);
+    
+    // Pick the axis with the smallest time.
     ushort axisID;
     float t;
     {
-      // Round current coordinates down to 2.0 nm.
-      float3 nextBorder = cellBorder;
-      nextBorder /= 2.00;
-      nextBorder = select(ceil(nextBorder), floor(nextBorder), dtdx >= 0);
-      nextBorder *= 2.00;
-      
-      // Add 2.0 nm to each.
-      nextBorder += 8 * float3(dx);
-      
       // Find the time for each.
       float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
       
-      // Pick the axis with the smallest time.
+      // Branch on which axis won.
       if (nextTimes[0] < nextTimes[1] &&
           nextTimes[0] < nextTimes[2]) {
         axisID = 0;
@@ -106,42 +106,35 @@ public:
         axisID = 2;
         t = nextTimes[2];
       }
-      
-      // Save the 'nextBorder' variable with a different name.
-      roundedUpBorder = nextBorder;
     }
     
     // Make speculative next positions.
-    float3 nextBorder = rayOrigin + t * rayDirection;
-    nextBorder /= 0.25;
-    nextBorder = select(ceil(nextBorder), floor(nextBorder), dtdx >= 0);
-    nextBorder *= 0.25;
+    float3 output = rayOrigin + t * rayDirection;
+    output /= 0.25;
+    output = select(ceil(output), floor(output), dtdx >= 0);
+    output *= 0.25;
     
     // Guarantee forward progress.
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
       if (i == axisID) {
-        nextBorder[i] = roundedUpBorder[i];
+        output[i] = nextBorder[i];
       } else {
         if (dtdx[i] >= 0) {
-          nextBorder[i] = max(nextBorder[i], cellBorder[i]);
+          output[i] = max(output[i], cellBorder[i]);
         } else {
-          nextBorder[i] = min(nextBorder[i], cellBorder[i]);
+          output[i] = min(output[i], cellBorder[i]);
         }
       }
     }
     
-    // Start by taking the maximum of the value here, and the next small-cell
-    // border. In theory, the large jump should include every small jump in
-    // between.
-    //
     // Before implementing fast forward:
     // - 7.5 ms at low clock speed
     // - 2.7 ms at high clock speed
     //
     // After implementing fast forward:
-    // - 4.0 ms at low clock speed
-    return nextBorder;
+    // - 3.8 ms at low clock speed
+    return output;
   }
 };
 
