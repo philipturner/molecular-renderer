@@ -53,8 +53,9 @@ struct RayIntersector {
     float localAddress =
     VoxelAddress::generate<float, float>(8, coordinates);
     
+    uint compactedLargeCellID = largeMetadata[0];
     uint compactedGlobalAddress =
-    largeMetadata[0] * 512 + uint(localAddress);
+    compactedLargeCellID * 512 + uint(localAddress);
     return compactedSmallCellMetadata[compactedGlobalAddress];
   }
   
@@ -82,29 +83,17 @@ struct RayIntersector {
       if (smallMetadata[1] > 0) {
         acceptVoxel = true;
         
-        float3 coordinates1 = (largeLowerCorner + 64) / 2;
+        // Encode the small cell coordinates.
         float3 coordinates2 = (smallLowerCorner - largeLowerCorner) / 0.25;
-        uint3 cellIndex1 = uint3(coordinates1);
         uint3 cellIndex2 = uint3(coordinates2);
-        
-        uint borderCode1 = 0;
-        borderCode1 += cellIndex1[0] << 0;
-        borderCode1 += cellIndex1[1] << 6;
-        borderCode1 += cellIndex1[2] << 12;
-        
         uint borderCode2 = 0;
         borderCode2 += cellIndex2[0] << 0;
         borderCode2 += cellIndex2[1] << 3;
         borderCode2 += cellIndex2[2] << 6;
         
+        // Encode the compacted large cell ID.
+        uint borderCode1 = largeMetadata[0];
         *acceptedBorderCode = (borderCode1 << 9) | borderCode2;
-        
-//        float3 coordinates = (cursorCellBorder + 64) / 0.25;
-//        uint3 cellIndex = uint3(coordinates);
-//        *acceptedBorderCode = 0;
-//        *acceptedBorderCode += cellIndex[0] << 0;
-//        *acceptedBorderCode += cellIndex[1] << 9;
-//        *acceptedBorderCode += cellIndex[2] << 18;
       }
       
       // Increment to the next small voxel.
@@ -197,43 +186,37 @@ struct RayIntersector {
       }
       
       if (acceptVoxel) {
-//        uint3 cellIndex;
-//        cellIndex[0] = (acceptedBorderCode >> 0) & 511;
-//        cellIndex[1] = (acceptedBorderCode >> 9) & 511;
-//        cellIndex[2] = (acceptedBorderCode >> 18) & 511;
-//        float3 coordinates = float3(cellIndex);
-//        float3 acceptedSmallCellBorder = (coordinates * 0.25) - 64;
+        // Retrieve the large cell metadata.
+        uint compactedLargeCellID = acceptedBorderCode >> 9;
+        uint4 largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
+        uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
+        uint3 cellIndex1 = uint3(compressedCellCoordinates.xyz);
         
-        uint borderCode1 = acceptedBorderCode >> 9;
+        // Decode the small cell coordinates.
         uint borderCode2 = acceptedBorderCode & 511;
-        
-        uint3 cellIndex1;
-        cellIndex1[0] = (borderCode1 >> 0) & 63;
-        cellIndex1[1] = (borderCode1 >> 6) & 63;
-        cellIndex1[2] = (borderCode1 >> 12) & 63;
-        
         uint3 cellIndex2;
         cellIndex2[0] = (borderCode2 >> 0) & 7;
         cellIndex2[1] = (borderCode2 >> 3) & 7;
         cellIndex2[2] = (borderCode2 >> 6) & 7;
         
+        // Decode the lower corner.
         float3 coordinates1 = float3(cellIndex1);
         float3 coordinates2 = float3(cellIndex2);
         float3 largeLowerCorner = coordinates1 * 2 - 64;
         float3 smallLowerCorner = coordinates2 * 0.25 + largeLowerCorner;
+        
+        // Compute the voxel maximum time.
         float3 acceptedSmallCellBorder = smallLowerCorner;
         acceptedSmallCellBorder +=
         select(float3(-dda.dx), float3(0), dda.dtdx >= 0);
-        
         float voxelMaximumHitTime = dda
           .voxelMaximumHitTime(acceptedSmallCellBorder,
                                intersectionQuery.rayOrigin);
-//        float3 smallLowerCorner = dda.cellLowerCorner(acceptedSmallCellBorder);
-//        float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-        uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
-        ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                    smallLowerCorner,
-                                                    largeMetadata);
+        
+        // Retrieve the small cell metadata.
+        uint compactedGlobalAddress =
+        compactedLargeCellID * 512 + borderCode2;
+        ushort2 smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
         
         // Set the distance register.
         result.distance = voxelMaximumHitTime;

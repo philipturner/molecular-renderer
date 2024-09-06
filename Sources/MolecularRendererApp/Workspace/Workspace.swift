@@ -180,8 +180,8 @@ import Numerics
 //   - Replace 'compactedLargeCellIDs' with this metadata. [DONE]
 //   - Simplify the small-cells pass of BVH construction accordingly. [DONE]
 //   - Bind the compacted large-cell metadata to the render kernel. [DONE]
-//   - Modify the existing algorithm for compressing cell addresses.
-//   - Test for correctness and performance changes.
+//   - Modify the existing algorithm for compressing cell addresses. [DONE]
+//   - Test for correctness and performance changes. [DONE]
 // - Try speculative searching of the BVH.
 //   - Buffer up the next few small cells.
 //   - Revert to the code from before.

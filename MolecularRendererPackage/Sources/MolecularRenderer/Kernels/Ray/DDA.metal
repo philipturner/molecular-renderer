@@ -269,11 +269,20 @@ struct DDA {
     //   - 52.38% secondary rays
     // - overall shader statistics:
     //   - 979 instructions
-    //   - 4.947 billion instructions
+    //   - 4.947 billion instructions issued
     //   - 23.88% divergence
     //
     // Changing the codec for the border code.
-    // - 4.2 ms
+    // - 4.4 ms
+    // - per-line statistics:
+    //   - 75% ALU time
+    //   - 20% control flow time
+    //   - 36.49% primary ray
+    //   - 53.69% secondary rays
+    // - overall shader statistics:
+    //   - 970 instructions
+    //   - 4.880 billion instructions issued
+    //   - 24.02% divergence
     
     return output;
   }
