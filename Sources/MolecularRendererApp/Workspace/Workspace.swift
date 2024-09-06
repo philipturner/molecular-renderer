@@ -172,7 +172,7 @@ import Numerics
 // - Start with a very expensive two-level DDA. [DONE]
 // - Split into two separate traversal functions.
 //   - Re-encapsulate the sphere-cell intersection, but this time taking the
-//     arguments for an entire voxel.
+//     arguments for an entire voxel. [DONE]
 //   - Give the functions different top-level names.
 //   - Remove 'isAORay' from the intersection parameters.
 
