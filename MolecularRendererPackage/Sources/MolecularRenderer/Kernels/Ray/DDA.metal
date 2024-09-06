@@ -38,19 +38,9 @@ public:
     *cellBorder *= spacing;
   }
   
-  float3 increment(float3 cellBorder, float3 rayOrigin) const {
-    float3 nextBorder = cellBorder + float3(dx);
-    float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
-    
+  float3 cellLowerCorner(float3 cellBorder) const {
     float3 output = cellBorder;
-    if (nextTimes[0] < nextTimes[1] &&
-        nextTimes[0] < nextTimes[2]) {
-      output[0] += dx[0];
-    } else if (nextTimes[1] < nextTimes[2]) {
-      output[1] += dx[1];
-    } else {
-      output[2] += dx[2];
-    }
+    output += select(float3(dx), float3(0), dtdx >= 0);
     return output;
   }
   
@@ -70,10 +60,24 @@ public:
     return smallestNextTime;
   }
   
-  float3 cellLowerCorner(float3 cellBorder) const {
+  float3 nextSmallBorder(float3 cellBorder, float3 rayOrigin) const {
+    float3 nextBorder = cellBorder + float3(dx);
+    float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
+    
     float3 output = cellBorder;
-    output += select(float3(dx), float3(0), dtdx >= 0);
+    if (nextTimes[0] < nextTimes[1] &&
+        nextTimes[0] < nextTimes[2]) {
+      output[0] += dx[0];
+    } else if (nextTimes[1] < nextTimes[2]) {
+      output[1] += dx[1];
+    } else {
+      output[2] += dx[2];
+    }
     return output;
+  }
+  
+  float3 nextLargeBorder(float3 cellBorder, float3 rayOrigin) const {
+    return nextSmallBorder(cellBorder, rayOrigin);
   }
 };
 

@@ -150,11 +150,11 @@ struct RayIntersector {
         
         // Increment to the next small voxel.
         cellBorder = dda
-          .increment(cellBorder, intersectionQuery.rayOrigin);
+          .nextSmallBorder(cellBorder, intersectionQuery.rayOrigin);
       } else {
         // Fast forward to the next large voxel.
         cellBorder = dda
-          .increment(cellBorder, intersectionQuery.rayOrigin);
+          .nextLargeBorder(cellBorder, intersectionQuery.rayOrigin);
       }
     }
     
