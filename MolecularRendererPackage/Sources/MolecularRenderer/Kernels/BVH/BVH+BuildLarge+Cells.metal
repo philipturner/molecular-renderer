@@ -85,7 +85,7 @@ kernel void buildLargePart2_1
  device uchar *currentCellGroupMarks [[buffer(1)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
  device uint4 *largeCellMetadata [[buffer(3)]],
- device uchar3 *compactedLargeCellIDs [[buffer(4)]],
+ device uint4 *compactedLargeCellMetadata [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -173,13 +173,6 @@ kernel void buildLargePart2_1
     return;
   }
   
-  // Write the compacted cell ID.
-  {
-    ushort3 cellCoordinates = thread_id;
-    cellCoordinates += tgid * 4;
-    compactedLargeCellIDs[threadVoxelOffset] = uchar3(cellCoordinates);
-  }
-  
   // Write the cell metadata.
   {
     uint4 threadMetadata(threadVoxelOffset,
@@ -187,6 +180,12 @@ kernel void buildLargePart2_1
                          threadSmallOffset,
                          threadTotalCount & (uint(1 << 14) - 1));
     largeCellMetadata[largeCellAddress] = threadMetadata;
+    
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
+    uchar4 compressedCellCoordinates(uchar3(cellCoordinates), 0);
+    threadMetadata[0] = as_type<uint>(compressedCellCoordinates);
+    compactedLargeCellMetadata[threadVoxelOffset] = threadMetadata;
   }
   
   // Write the counter offsets.

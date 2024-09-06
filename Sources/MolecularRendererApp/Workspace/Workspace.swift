@@ -177,8 +177,8 @@ import Numerics
 //   - Remove 'isAORay' from the intersection parameters. [DONE]
 // - Make a compacted list of large-voxel metadata, so smaller references can
 //   be stored in threadgroup memory.
-//   - Replace 'compactedLargeCellIDs' with this metadata.
-//   - Simplify the small-cells pass of BVH construction accordingly.
+//   - Replace 'compactedLargeCellIDs' with this metadata. [DONE]
+//   - Simplify the small-cells pass of BVH construction accordingly. [DONE]
 //   - Bind the compacted large-cell metadata to the render kernel.
 //   - Modify the existing algorithm for compressing cell addresses.
 //   - Test for correctness and performance changes.

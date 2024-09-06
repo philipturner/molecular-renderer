@@ -44,26 +44,17 @@ kernel void buildSmallPart0_0
 
 kernel void buildSmallPart1_0
 (
- device uint4 *largeCellMetadata [[buffer(0)]],
- device uchar3 *compactedLargeCellIDs [[buffer(1)]],
- device half4 *convertedAtoms [[buffer(2)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(3)]],
- device ushort *smallAtomReferences [[buffer(4)]],
+ device uint4 *compactedLargeCellMetadata [[buffer(0)]],
+ device half4 *convertedAtoms [[buffer(1)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(2)]],
+ device ushort *smallAtomReferences [[buffer(3)]],
  uint tgid [[threadgroup_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
   // Read the large cell metadata.
-  uint4 largeMetadata;
-  {
-    uchar3 cellCoordinates = compactedLargeCellIDs[1 + tgid];
-    uint cellAddress = VoxelAddress::generate<uchar, uint>(64, cellCoordinates);
-    largeMetadata = largeCellMetadata[cellAddress];
-  }
-  if (largeMetadata[0] == 0) {
-    return;
-  }
+  uint4 largeMetadata = compactedLargeCellMetadata[1 + tgid];
   
   // Initialize the small-cell counters.
   threadgroup uint threadgroupCounters[512];
@@ -226,7 +217,7 @@ kernel void buildSmallPart1_0
     }
     
     // Write the compacted cell metadata.
-    uint compactedGlobalAddress = largeMetadata[0] * 512 + localAddress;
+    uint compactedGlobalAddress = (1 + tgid) * 512 + localAddress;
     compactedSmallCellMetadata[compactedGlobalAddress] = output;
   }
 }

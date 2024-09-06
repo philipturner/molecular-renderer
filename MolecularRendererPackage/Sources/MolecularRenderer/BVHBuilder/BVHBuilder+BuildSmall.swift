@@ -71,11 +71,10 @@ extension BVHBuilder {
   }
   
   func buildSmallPart1_0(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 0)
-    encoder.setBuffer(compactedLargeCellIDs, offset: 0, index: 1)
-    encoder.setBuffer(convertedAtoms, offset: 0, index: 2)
-    encoder.setBuffer(compactedSmallCellMetadata, offset: 0, index: 3)
-    encoder.setBuffer(smallAtomReferences, offset: 0, index: 4)
+    encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 0)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 1)
+    encoder.setBuffer(compactedSmallCellMetadata, offset: 0, index: 2)
+    encoder.setBuffer(smallAtomReferences, offset: 0, index: 3)
     
     // Dispatch
     let pipeline = buildSmallPipelines.buildSmallPart1_0
