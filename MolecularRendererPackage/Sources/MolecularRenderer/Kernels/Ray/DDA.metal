@@ -134,6 +134,8 @@ public:
     //
     // After implementing fast forward:
     // - 3.8 ms at low clock speed
+    // - 70% ALU time
+    // - 25% control flow time
     return output;
   }
 };
