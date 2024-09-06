@@ -49,9 +49,9 @@ struct RayIntersector {
   
   IntersectionResult intersect(IntersectionQuery intersectionQuery) {
     float3 cellBorder;
-    const DDA dda(intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection,
-                  &cellBorder);
+    const DDA dda(&cellBorder,
+                  intersectionQuery.rayOrigin,
+                  intersectionQuery.rayDirection);
     
     IntersectionResult result;
     result.accept = false;
@@ -148,12 +148,13 @@ struct RayIntersector {
         }
         
         // Increment to the next small voxel.
-        cellBorder = dda
-          .nextSmallBorder(cellBorder, intersectionQuery.rayOrigin);
+        cellBorder = dda.nextSmallBorder(cellBorder,
+                                         intersectionQuery.rayOrigin);
       } else {
         // Fast forward to the next large voxel.
-        cellBorder = dda
-          .nextLargeBorder(cellBorder, intersectionQuery.rayOrigin);
+        cellBorder = dda.nextLargeBorder(cellBorder,
+                                         intersectionQuery.rayOrigin,
+                                         intersectionQuery.rayDirection);
       }
     }
     
