@@ -60,9 +60,8 @@ struct RayIntersector {
   }
   
   void searchForNextCell(thread float3 &cursorCellBorder,
-                         thread bool &acceptVoxel,
+                         thread ushort &acceptedVoxelCount,
                          thread bool &outOfBounds,
-                         thread uint *acceptedBorderCode,
                          IntersectionQuery intersectionQuery,
                          const DDA dda)
   {
@@ -81,8 +80,6 @@ struct RayIntersector {
                                                   smallLowerCorner,
                                                   largeMetadata);
       if (smallMetadata[1] > 0) {
-        acceptVoxel = true;
-        
         // Encode the small cell coordinates.
         float3 coordinates2 = (smallLowerCorner - largeLowerCorner) / 0.25;
         uint3 cellIndex2 = uint3(coordinates2);
@@ -93,7 +90,12 @@ struct RayIntersector {
         
         // Encode the compacted large cell ID.
         uint borderCode1 = largeMetadata[0];
-        *acceptedBorderCode = (borderCode1 << 9) | borderCode2;
+        uint acceptedBorderCode = (borderCode1 << 9) | borderCode2;
+        
+        // Store to threadgroup memory.
+        ushort threadgroupAddress = acceptedVoxelCount * 64 + threadIndex;
+        threadgroupMemory[threadgroupAddress] = acceptedBorderCode;
+        acceptedVoxelCount += 1;
       }
       
       // Increment to the next small voxel.
@@ -170,14 +172,11 @@ struct RayIntersector {
     
     bool outOfBounds = false;
     while (!outOfBounds) {
-      bool acceptVoxel = false;
-      uint acceptedBorderCode = 0;
-      
-      while (!acceptVoxel) {
+      ushort acceptedVoxelCount = 0;
+      while (acceptedVoxelCount < 16) {
         searchForNextCell(cursorCellBorder,
-                          acceptVoxel,
+                          acceptedVoxelCount,
                           outOfBounds,
-                          &acceptedBorderCode,
                           intersectionQuery,
                           dda);
         if (outOfBounds) {
@@ -185,7 +184,13 @@ struct RayIntersector {
         }
       }
       
-      if (acceptVoxel) {
+      simdgroup_barrier(mem_flags::mem_threadgroup);
+      
+      for (ushort i = 0; i < acceptedVoxelCount; ++i) {
+        // Read from threadgroup memory.
+        ushort threadgroupAddress = i * 64 + threadIndex;
+        uint acceptedBorderCode = threadgroupMemory[threadgroupAddress];
+        
         // Retrieve the large cell metadata.
         uint compactedLargeCellID = acceptedBorderCode >> 9;
         uint4 largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
@@ -233,6 +238,7 @@ struct RayIntersector {
         if (result.distance < voxelMaximumHitTime) {
           result.accept = true;
           outOfBounds = true;
+          break; // for loop
         }
       }
     }

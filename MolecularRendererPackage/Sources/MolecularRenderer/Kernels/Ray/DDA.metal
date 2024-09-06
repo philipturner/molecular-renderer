@@ -283,6 +283,18 @@ struct DDA {
     //   - 970 instructions
     //   - 4.880 billion instructions issued
     //   - 24.02% divergence
+    //
+    // Storing all of the intersected voxels in advance.
+    // - 4.2 ms
+    // - per-line statistics:
+    //   - 70% ALU time
+    //   - 25% control flow time
+    //   - 39.16% primary ray
+    //   - 50.69% secondary rays
+    // - overall shader statistics:
+    //   - 992 instructions
+    //   - 5.018 billion instructions issued
+    //   - 22.34% divergence
     
     return output;
   }

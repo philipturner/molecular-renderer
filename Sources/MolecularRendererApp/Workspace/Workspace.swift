@@ -183,7 +183,7 @@ import Numerics
 //   - Modify the existing algorithm for compressing cell addresses. [DONE]
 //   - Test for correctness and performance changes. [DONE]
 // - Try speculative searching of the BVH.
-//   - Buffer up the next few small cells.
+//   - Buffer up the next few small cells. [DONE]
 //   - Revert to the traversal method from before this change.
 //   - Buffer up the next few large cells in a separate DDA.
 // - Re-implement the bounding box reduction, to decrease the number of
