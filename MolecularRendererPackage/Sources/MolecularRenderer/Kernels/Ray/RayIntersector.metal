@@ -24,14 +24,6 @@ struct IntersectionResult {
 struct IntersectionQuery {
   float3 rayOrigin;
   float3 rayDirection;
-  
-  bool exceededAOTime(float voxelMaximumHitTime) {
-    // This cutoff is parameterized for small voxels, where the distance
-    // is 0.25 nm. If you switch to testing a different voxel size, the
-    // parameter must change.
-    constexpr float cutoff = 1 + 0.25 * 1.732051;
-    return voxelMaximumHitTime > cutoff;
-  }
 };
 
 // MARK: - Intersector Class
@@ -244,14 +236,20 @@ struct RayIntersector {
       float voxelMaximumHitTime = dda
         .voxelMaximumHitTime(cursorCellBorder,
                              intersectionQuery.rayOrigin);
-      if (intersectionQuery.exceededAOTime(voxelMaximumHitTime)) {
-        break;
-      }
+      
+      // This cutoff is parameterized for small voxels, where the distance
+      // is 0.25 nm. If you switch to testing a different voxel size, the
+      // parameter must change.
+      constexpr float cutoff = 1 + 0.25 * 1.732051;
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
+      
+      // Check whether the DDA has gone out of bounds.
+      if ((voxelMaximumHitTime > cutoff) ||
+          any(largeLowerCorner < -64) ||
+          any(largeLowerCorner >= 64)) {
         break;
       }
       

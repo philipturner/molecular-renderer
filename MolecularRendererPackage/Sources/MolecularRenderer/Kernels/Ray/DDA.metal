@@ -226,7 +226,7 @@ public:
     //   - 24.37% divergence
     //
     // Simplifying control flow for AO rays (option 1).
-    // - 3.7 ms
+    // - 4.5 ms
     // - per-line statistics:
     //   - 75% ALU time
     //   - 20% control flow time
@@ -248,6 +248,18 @@ public:
     //   - 989 instructions
     //   - 4.964 billion instructions issued
     //   - 24.33% divergence
+    //
+    // Simplifying control flow for AO rays (option 3).
+    // - 4.4 ms
+    // - per-line divergence:
+    //   - 75% ALU time
+    //   - 20% control flow time
+    //   - 37.57% primary ray
+    //   - 51.72% secondary ray
+    // - overall shader statistics:
+    //   - 989 instructions
+    //   - 4.946 billion instructions issued
+    //   - 24.13% divergence
     
     return output;
   }
