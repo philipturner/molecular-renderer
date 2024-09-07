@@ -183,7 +183,7 @@ struct RayIntersector {
     result.accept = false;
     
     bool outOfBounds = false;
-    while (!result.accept && !outOfBounds) {
+    while (!outOfBounds) {
       globalFaultCounter += 1;
       if (globalFaultCounter > maxFaultCounter()) {
         errorCode = 2;
@@ -211,7 +211,7 @@ struct RayIntersector {
       
       // Loop over ~128 small voxels.
       ushort acceptedVoxelCursor = 0;
-      while (!result.accept && acceptedVoxelCursor < acceptedVoxelCount) {
+      while (acceptedVoxelCursor < acceptedVoxelCount) {
         globalFaultCounter += 1;
         if (globalFaultCounter > maxFaultCounter()) {
           errorCode = 3;
@@ -231,14 +231,13 @@ struct RayIntersector {
           // Retrieve the large cell metadata.
           largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
           uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
-          uint3 cellIndex1 = uint3(compressedCellCoordinates.xyz);
+          float3 cellCoordinates = float3(compressedCellCoordinates.xyz);
           largeMetadata[0] = compactedLargeCellID;
           
           // Compute the voxel bounds.
-          float3 coordinates1 = float3(cellIndex1);
-          float3 largeLowerCorner = coordinates1 * 2 - 64;
           shiftedRayOrigin = intersectionQuery.rayOrigin;
-          shiftedRayOrigin -= largeLowerCorner;
+          shiftedRayOrigin -= -64;
+          shiftedRayOrigin -= cellCoordinates * 2;
           
           // Initialize the inner DDA.
           float3 direction = intersectionQuery.rayDirection;
@@ -253,46 +252,43 @@ struct RayIntersector {
         }
         
         // Test the current small voxel.
-        {
-          // Compute the lower corner.
-          float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
+        // Compute the lower corner.
+        float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
+        
+        // Check whether the DDA has gone out of bounds.
+        if (any(smallLowerCorner < 0) ||
+            any(smallLowerCorner >= 2)) {
+          initializedSmallDDA = false;
+          acceptedVoxelCursor += 1;
+          continue;
+        }
+        
+        // Retrieve the small cell metadata.
+        ushort2 smallMetadata = this->smallMetadata(0,
+                                                    smallLowerCorner,
+                                                    largeMetadata[0]);
+        
+        if (smallMetadata[1] > 0) {
+          // Compute the voxel maximum time.
+          float voxelMaximumHitTime = smallDDA
+            .voxelMaximumHitTime(smallCellBorder,
+                                 shiftedRayOrigin);
           
-          // Check whether the DDA has gone out of bounds.
-          if (any(smallLowerCorner < 0) ||
-              any(smallLowerCorner >= 2)) {
-            acceptedVoxelCursor += 1;
-            initializedSmallDDA = false;
-            continue; // while loop
-          }
+          // Set the distance register.
+          result.distance = voxelMaximumHitTime;
           
-          // Retrieve the small cell metadata.
-          ushort2 smallMetadata = this->smallMetadata(0,
-                                                      smallLowerCorner,
-                                                      largeMetadata[0]);
+          // Test the atoms in the accepted voxel.
+          testCell(result,
+                   shiftedRayOrigin,
+                   intersectionQuery.rayDirection,
+                   largeMetadata,
+                   smallMetadata);
           
-          if (smallMetadata[1] > 0) {
-            // Compute the voxel maximum time.
-            float3 acceptedSmallCellBorder = smallLowerCorner;
-            acceptedSmallCellBorder +=
-            select(float3(-smallDDA.dx), float3(0), smallDDA.dtdx >= 0);
-            float voxelMaximumHitTime = smallDDA
-              .voxelMaximumHitTime(acceptedSmallCellBorder,
-                                   shiftedRayOrigin);
-            
-            // Set the distance register.
-            result.distance = voxelMaximumHitTime;
-            
-            // Test the atoms in the accepted voxel.
-            testCell(result,
-                     shiftedRayOrigin,
-                     intersectionQuery.rayDirection,
-                     largeMetadata,
-                     smallMetadata);
-            
-            // Check whether we found a hit.
-            if (result.distance < voxelMaximumHitTime) {
-              result.accept = true;
-            }
+          // Check whether we found a hit.
+          if (result.distance < voxelMaximumHitTime) {
+            result.accept = true;
+            outOfBounds = true;
+            acceptedVoxelCursor = acceptedVoxelCount;
           }
         }
         
@@ -309,8 +305,8 @@ struct RayIntersector {
   // 1 nm, but their divergence can be extremely high.
   IntersectionResult intersectAO(IntersectionQuery intersectionQuery)
   {
-    float3 cursorCellBorder;
-    const DDA dda(&cursorCellBorder,
+    float3 smallCellBorder;
+    const DDA dda(&smallCellBorder,
                   intersectionQuery.rayOrigin,
                   intersectionQuery.rayDirection,
                   0.25);
@@ -321,7 +317,7 @@ struct RayIntersector {
     while (!result.accept) {
       // Compute the voxel maximum time.
       float voxelMaximumHitTime = dda
-        .voxelMaximumHitTime(cursorCellBorder,
+        .voxelMaximumHitTime(smallCellBorder,
                              intersectionQuery.rayOrigin);
       
       // This cutoff is parameterized for small voxels, where the distance
@@ -330,7 +326,7 @@ struct RayIntersector {
       constexpr float cutoff = 1 + 0.25 * 1.732051;
       
       // Compute the lower corner.
-      float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
+      float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       
       // Check whether the DDA has gone out of bounds.
@@ -369,8 +365,8 @@ struct RayIntersector {
       }
       
       // Increment to the next small voxel.
-      cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
-                                             intersectionQuery.rayOrigin);
+      smallCellBorder = dda.nextSmallBorder(smallCellBorder,
+                                            intersectionQuery.rayOrigin);
     }
     
     return result;

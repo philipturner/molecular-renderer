@@ -310,8 +310,7 @@ struct DDA {
   //   - 26.73% divergence
   //
   // Remaining optimizations to instruction count.
-  //
-  // Attempting to reduce load imbalance of divergent halting.
+  // - 961 instructions
 };
 
 #endif // DDA_H
