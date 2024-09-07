@@ -37,6 +37,7 @@ struct RayIntersector {
   threadgroup uint *threadgroupMemory;
   ushort threadIndex;
   
+  // Retrieves the large cell metadata from the uncompacted buffer.
   uint4 largeMetadata(float3 largeLowerCorner) const
   {
     float3 coordinates = (largeLowerCorner + 64) / 2;
@@ -45,6 +46,7 @@ struct RayIntersector {
     return largeCellMetadata[uint(address)];
   }
   
+  // Retrieves the small cell metadata from the compacted buffer.
   ushort2 smallMetadata(float3 largeLowerCorner,
                         float3 smallLowerCorner,
                         uint4 largeMetadata) const
@@ -59,6 +61,38 @@ struct RayIntersector {
     return compactedSmallCellMetadata[compactedGlobalAddress];
   }
   
+  // Fills the memory tape with large voxels.
+  void fillMemoryTape(thread float3 &cursorCellBorder,
+                      thread ushort &acceptedVoxelCount,
+                      thread bool &outOfBounds,
+                      IntersectionQuery intersectionQuery,
+                      const DDA dda)
+  {
+    while (acceptedVoxelCount < 16) {
+      // Compute the lower corner.
+      float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
+      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+      if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
+        outOfBounds = true;
+        return;
+      }
+      
+      // If the large cell has small cells, proceed.
+      uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+      if (largeMetadata[0] > 0) {
+        
+      }
+      
+      // Fast forward to the next large voxel.
+      cursorCellBorder = dda
+        .nextLargeBorder(cursorCellBorder,
+                         intersectionQuery.rayOrigin,
+                         intersectionQuery.rayDirection);
+    }
+  }
+  
+  // Finds the next small voxel, without checking small voxels in vacant large
+  // voxels.
   void searchForNextCell(thread float3 &cursorCellBorder,
                          thread ushort &acceptedVoxelCount,
                          thread bool &outOfBounds,
@@ -69,8 +103,7 @@ struct RayIntersector {
     // Compute the lower corner.
     float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
     float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-    if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64) ||
-        largeLowerCorner.x < 0 || largeLowerCorner.z >= 2) {
+    if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
       outOfBounds = true;
       return;
     }
@@ -108,6 +141,7 @@ struct RayIntersector {
     }
   }
   
+  // Intersects all of the atoms in a small voxel.
   void testCell(thread IntersectionResult &result,
                 float3 largeLowerCorner,
                 uint4 largeMetadata,
@@ -158,14 +192,14 @@ struct RayIntersector {
     }
   }
   
+  // BVH traversal algorithm for primary rays. These rays must jump very
+  // large distances, but have minimal divergence.
   IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery)
   {
     float3 cursorCellBorder;
     const DDA dda(&cursorCellBorder,
                   intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection,
-                  float3(0, -64, -64),
-                  float3(64, 64, 2));
+                  intersectionQuery.rayDirection);
     
     IntersectionResult result;
     result.accept = false;
@@ -242,6 +276,8 @@ struct RayIntersector {
     return result;
   }
   
+  // BVH traversal algorithm for AO rays. These rays terminate after traveling
+  // 1 nm, but their divergence can be extremely high.
   IntersectionResult intersectAO(IntersectionQuery intersectionQuery)
   {
     float3 cursorCellBorder;

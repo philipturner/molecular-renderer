@@ -187,12 +187,15 @@ import Numerics
 //   - Revert to the traversal method from before this change. [DONE]
 //   - Buffer up the next few large cells in a separate DDA.
 //     - The large DDA repeatedly calls 'nextLargeBorder'.
-//     - The small DDA properly handles bounds of the 2 nm large voxel.
 //     - Save each subsequently found large voxel in the memory tape.
-//     - The small DDA halts when it runs out of large voxels to test.
-//   - Make the large DDA iterate over a 2 nm grid with the same algorithm as
-//     'nextSmallBorder'.
-//   - Attempt to reduce the cost of divergent halting.
+//     - Each large voxel is iterated over in a loop. All of its small voxels
+//       are tested before moving to the next one.
+//     - The small DDA properly handles bounds of the 2 nm large voxel.
+//  - Optimize the large DDA iterations.
+//  - Reduce divergence of the small DDA iterations.
+//    - A new small DDA is reinitialized on the fly.
+//    - The small DDA loop halts when it runs out of large voxels to test.
+//    - Attempt to reduce the load imbalance of divergent halting.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the
