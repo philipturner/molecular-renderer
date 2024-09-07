@@ -204,6 +204,7 @@ struct RayIntersector {
           break;
         }
         
+        // Regenerate the small DDA.
         if (!initializedSmallDDA) {
           // Read from threadgroup memory.
           uint threadgroupAddress = acceptedVoxelCursor * 64 + threadIndex;
@@ -229,13 +230,8 @@ struct RayIntersector {
           initializedSmallDDA = true;
         }
         
-        while (!result.accept) {
-          globalFaultCounter += 1;
-          if (globalFaultCounter > maxFaultCounter()) {
-            errorCode = 4;
-            break;
-          }
-          
+        // Test the current small voxel.
+        {
           // Compute the lower corner.
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
           
@@ -243,7 +239,8 @@ struct RayIntersector {
           if (any(smallLowerCorner < largeLowerCorner) ||
               any(smallLowerCorner >= largeUpperCorner)) {
             acceptedVoxelCursor += 1;
-            break; // while loop
+            initializedSmallDDA = false;
+            continue; // while loop
           }
           
           // Retrieve the small cell metadata.
@@ -276,11 +273,11 @@ struct RayIntersector {
               result.accept = true;
             }
           }
-          
-          // Increment to the next small voxel.
-          smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
-                                                     intersectionQuery.rayOrigin);
         }
+        
+        // Increment to the next small voxel.
+        smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
+                                                   intersectionQuery.rayOrigin);
       }
     }
     

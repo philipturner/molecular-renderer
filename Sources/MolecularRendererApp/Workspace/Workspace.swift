@@ -193,8 +193,9 @@ import Numerics
 //     - The small DDA properly handles bounds of the 2 nm large voxel. [DONE]
 //  - Optimize the large DDA iterations. [DONE]
 //  - Reduce divergence of the small DDA iterations.
-//    - A new small DDA is reinitialized on the fly.
-//    - Small DDA loop halts when it runs out of large voxels to test.
+//    - A new small DDA is reinitialized on the fly. [DONE]
+//    - Small DDA loop halts when it runs out of large voxels to test. [DONE]
+//    - Minimize the cost of reinitializing the small DDA.
 //    - Attempt to reduce the load imbalance of divergent halting.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
