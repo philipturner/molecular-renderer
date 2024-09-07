@@ -74,11 +74,11 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (memoryTapeEnd < desiredMemoryTapeEnd) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 1;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 1;
+//        break;
+//      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
@@ -182,11 +182,11 @@ struct RayIntersector {
     ushort memoryTapeEnd = 0;
     
     while (!outOfBounds) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 2;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 2;
+//        break;
+//      }
       
       // Loop over ~8 large voxels.
       uint desiredMemoryTapeEnd = memoryTapeStart + 8;
@@ -209,16 +209,23 @@ struct RayIntersector {
       float3 shiftedRayOrigin;
       
       // Loop over ~64 small voxels.
-      while (memoryTapeStart < memoryTapeEnd) {
-        globalFaultCounter += 1;
-        if (globalFaultCounter > maxFaultCounter()) {
-          errorCode = 3;
-          break;
-        }
-        
-//        if (simd_any(memoryTapeStart >= memoryTapeEnd)) {
+      while (true) {
+//        globalFaultCounter += 1;
+//        if (globalFaultCounter > maxFaultCounter()) {
+//          errorCode = 3;
 //          break;
 //        }
+        
+        if (simd_all(memoryTapeStart >= memoryTapeEnd)) {
+          break;
+        }
+        if (simd_any(memoryTapeStart >= memoryTapeEnd && !outOfBounds)) {
+          // Fix divergence issue.
+          break;
+        }
+        if (memoryTapeStart >= memoryTapeEnd) {
+          continue;
+        }
         
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {

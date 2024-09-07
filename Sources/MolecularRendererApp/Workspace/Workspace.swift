@@ -197,7 +197,7 @@ import Numerics
 //    - Small DDA loop halts when it runs out of large voxels to test. [DONE]
 //    - Minimize the cost of reinitializing the small DDA. [DONE]
 // - Reduce divergence during intersection testing.
-//   - Reduce the cost of divergent halting.
+//   - Reduce the cost of divergent halting. [DONE]
 //   - Reduce divergence during atom intersection (primary ray).
 //   - Reduce divergence during atom intersection (secondary rays).
 //   - Granted these optimizations don't measurably harm performance, keep
@@ -293,26 +293,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

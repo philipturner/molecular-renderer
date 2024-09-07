@@ -336,7 +336,7 @@ struct DDA {
   //   - 4.054 billion instructions issued
   //   - 27.95% divergence
   //
-  // Memory tape, divergent.
+  // Memory tape, divergent (1).
   // - 3.7 ms
   // - per-line statistics:
   //   - 75% ALU time
@@ -348,8 +348,25 @@ struct DDA {
   //   - 4.052 billion instructions issued
   //   - 27.87% divergence
   //
+  // Memory tape, divergent (2).
+  // - 4.0 ms
+  // - per-line statistics:
+  //   - 37.76% primary ray
+  //   - 50.57% secondary rays
+  // - overall shader statistics:
+  //   - 940 instructions
+  //   - 4.093 billion instructions issued
+  //   - 27.69% divergence
+  //
   // Memory tape, convergent.
-  // - 
+  // - 3.8 ms
+  // - per-line statistics:
+  //   - 38.97% primary ray
+  //   - 49.67% secondary rays
+  // - overall shader statistics:
+  //   - 946 instructions
+  //   - 4.155 billion instructions issued
+  //   - 27.96% divergence
   
 };
 
