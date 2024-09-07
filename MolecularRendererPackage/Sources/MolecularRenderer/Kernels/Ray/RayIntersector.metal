@@ -202,12 +202,12 @@ struct RayIntersector {
         
         // Loop over all ~64 small voxels.
         while (acceptedSmallMetadata[1] == 0) {
-//          globalFaultCounter += 1;
-//          if (globalFaultCounter > maxFaultCounter()) {
-//            errorCode = 3;
-//            return result;
-//          }
-//          
+          globalFaultCounter += 1;
+          if (globalFaultCounter > maxFaultCounter()) {
+            errorCode = 3;
+            return result;
+          }
+          
           // Regenerate the small DDA.
           if (!initializedSmallDDA) {
             // Read from threadgroup memory.
@@ -306,11 +306,11 @@ struct RayIntersector {
     result.accept = false;
     
     while (!result.accept) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 1;
-//        return result;
-//      }
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 1;
+        return result;
+      }
       
       // Compute the voxel maximum time.
       float3 nextTimes = dda

@@ -58,6 +58,8 @@ class BVHBuilder {
     // Data buffers (global).
     globalCounters = createBuffer(length: 1024 * 4)
     indirectDispatchArguments = createBuffer(length: 1024 * 4)
+    globalCounters.label = "globalCounters"
+    indirectDispatchArguments.label = "indirectDispatchArguments"
     
     // Data buffers (per atom).
     let atomCount = 4 * 1024 * 1024
@@ -66,22 +68,41 @@ class BVHBuilder {
       createBuffer(length: atomCount * 16),
       createBuffer(length: atomCount * 16),
     ]
+    for i in 0..<3 {
+      let buffer = originalAtoms[i]
+      let label = "originalAtoms[\(i)]"
+      buffer.label = label
+    }
+    
     atomMetadata = createBuffer(length: atomCount * 8)
     relativeOffsets = createBuffer(length: atomCount * 8 * 2)
+    atomMetadata.label = "atomMetadata"
+    relativeOffsets.label = "relativeOffsets"
     
     // Data buffers (per cell).
-    let largeVoxelCount = 64 * 64 * 64
-    let occupiedLargeVoxelCount = 32 * 1024
+    let largeVoxelCount = 128 * 128 * 128
+    let occupiedLargeVoxelCount = largeVoxelCount / 8
+    let cellGroupCount = largeVoxelCount / (4 * 4 * 4)
     cellGroupMarks = [
-      createBuffer(length: 16 * 16 * 16),
-      createBuffer(length:  16 * 16 * 16),
+      createBuffer(length: cellGroupCount),
+      createBuffer(length: cellGroupCount),
     ]
+    for i in 0..<2 {
+      let buffer = cellGroupMarks[i]
+      let label = "cellGroupMarks[\(i)]"
+      buffer.label = label
+    }
+    
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
     largeCellMetadata = createBuffer(length: largeVoxelCount * 16)
     compactedLargeCellMetadata = createBuffer(
       length: occupiedLargeVoxelCount * 16)
     compactedSmallCellMetadata = createBuffer(
       length: occupiedLargeVoxelCount * 512 * 4)
+    largeCounterMetadata.label = "largeCounterMetadata"
+    largeCellMetadata.label = "largeCellMetadata"
+    compactedLargeCellMetadata.label = "compactedLargeCellMetadata"
+    compactedSmallCellMetadata.label = "compactedSmallCellMetadata"
     
     // Data buffers (per reference).
     let largeReferenceCount = 8 * 1024 * 1024
@@ -89,5 +110,8 @@ class BVHBuilder {
     convertedAtoms = createBuffer(length: largeReferenceCount * 8)
     largeAtomReferences = createBuffer(length: largeReferenceCount * 4)
     smallAtomReferences = createBuffer(length: smallReferenceCount * 2)
+    convertedAtoms.label = "convertedAtoms"
+    largeAtomReferences.label = "largeAtomReferences"
+    smallAtomReferences.label = "smallAtomReferences"
   }
 }
