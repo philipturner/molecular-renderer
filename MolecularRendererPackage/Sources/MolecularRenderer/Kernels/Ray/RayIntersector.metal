@@ -290,7 +290,7 @@ struct RayIntersector {
     result.accept = false;
     
     bool outOfBounds = false;
-    while (!outOfBounds) {
+    while (!result.accept && !outOfBounds) {
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
       fillMemoryTape(largeCellBorder,
@@ -327,8 +327,67 @@ struct RayIntersector {
                            intersectionQuery.rayDirection,
                            largeLowerCorner,
                            largeUpperCorner);
+        
+        while (!result.accept) {
+          // Compute the lower corner.
+          float3 smallRelativeCorner = smallDDA.cellLowerCorner(smallCellBorder);
+          
+          // Check whether the DDA has gone out of bounds.
+          if (any(smallRelativeCorner < 0) ||
+              any(smallRelativeCorner >= 2)) {
+            break;
+          }
+          
+          // Retrieve the small cell metadata.
+          float3 coordinates2 = smallRelativeCorner / 0.25;
+          uint3 cellIndex2 = uint3(coordinates2);
+          uint borderCode2 = 0;
+          borderCode2 += cellIndex2[0] << 0;
+          borderCode2 += cellIndex2[1] << 3;
+          borderCode2 += cellIndex2[2] << 6;
+          uint compactedGlobalAddress =
+          compactedLargeCellID * 512 + borderCode2;
+          ushort2 smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
+          
+          if (smallMetadata[1] > 0) {
+            // Compute the voxel maximum time.
+            float3 smallLowerCorner = smallRelativeCorner + largeLowerCorner;
+            float3 acceptedSmallCellBorder = smallLowerCorner;
+            acceptedSmallCellBorder +=
+            select(float3(-smallDDA.dx), float3(0), smallDDA.dtdx >= 0);
+            float voxelMaximumHitTime = smallDDA
+              .voxelMaximumHitTime(acceptedSmallCellBorder,
+                                   intersectionQuery.rayOrigin);
+            
+            // Set the distance register.
+            result.distance = voxelMaximumHitTime;
+            
+            // Test the atoms in the accepted voxel.
+            testCell(result,
+                     largeLowerCorner,
+                     largeMetadata,
+                     smallMetadata,
+                     intersectionQuery,
+                     smallDDA);
+            
+            // Check whether we found a hit.
+            if (result.distance < voxelMaximumHitTime) {
+              result.accept = true;
+            }
+          }
+        }
+        
+        // Increment to the next small voxel.
+        smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
+                                                   intersectionQuery.rayOrigin);
+        
+        if (result.accept) {
+          break; // for loop
+        }
       }
     }
+    
+    return result;
   }
   
   // BVH traversal algorithm for AO rays. These rays terminate after traveling
