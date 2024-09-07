@@ -43,7 +43,7 @@ struct RayIntersector {
     return 200;
   }
   
-  // Retrieves the large cell metadata from the uncompacted buffer.
+  // Retrieves the large cell metadata from the dense buffer.
   uint4 largeMetadata(float3 largeLowerCorner) const
   {
     float3 coordinates = (largeLowerCorner + 64) / 2;
@@ -81,8 +81,7 @@ struct RayIntersector {
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
-      if (any(smallLowerCorner <= -64) ||
-          any(smallLowerCorner >= 64)) {
+      if (any(smallLowerCorner < -64 || smallLowerCorner >= 64)) {
         outOfBounds = true;
         return;
       }
@@ -248,8 +247,7 @@ struct RayIntersector {
         
         // Check whether the DDA has gone out of bounds.
         float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
-        if (any(smallLowerCorner < 0) ||
-            any(smallLowerCorner >= 2)) {
+        if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
           initializedSmallDDA = false;
           acceptedVoxelCursor += 1;
           continue;
@@ -320,8 +318,7 @@ struct RayIntersector {
       // Check whether the DDA has gone out of bounds.
       float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
       if ((voxelMaximumHitTime > cutoff) ||
-          any(smallLowerCorner <= -64) ||
-          any(smallLowerCorner >= 64)) {
+          any(smallLowerCorner < -64 || smallLowerCorner >= 64)) {
         break;
       }
       

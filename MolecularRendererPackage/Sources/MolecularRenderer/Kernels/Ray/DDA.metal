@@ -321,6 +321,20 @@ struct DDA {
   // - 948 instructions / 4.046 billion issued
   // - 942 instructions / 3.984 billion issued
   // - 942 instructions / 3.961 billion issued
+  // - 942 instructions / 3.957 billion issued
+  // - 942 instructions / 3.991 billion issued
+  // - 936 instructions / 4.048 billion issued
+  //
+  // - 4.1 ms
+  // - per-line statistics:
+  //   - 70% ALU time
+  //   - 20% control flow time
+  //   - 37.86% primary ray
+  //   - 50.80% secondary rays
+  // - overall shader statistics:
+  //   - 936 instructions
+  //   - 4.054 billion issued
+  //   - 27.95% divergence
 };
 
 #endif // DDA_H

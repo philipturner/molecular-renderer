@@ -197,12 +197,12 @@ import Numerics
 //    - Small DDA loop halts when it runs out of large voxels to test. [DONE]
 //    - Minimize the cost of reinitializing the small DDA. [DONE]
 // - Reduce divergence during intersection testing.
-//   - Granted these optimizations don't measurably harm performance, keep
-//     them. They help the algorithm generalize to use cases outside the narrow
-//     validation set used for micro-optimizations.
 //   - Reduce the cost of divergent halting.
 //   - Reduce divergence during atom intersection (primary ray).
 //   - Reduce divergence during atom intersection (secondary rays).
+//   - Granted these optimizations don't measurably harm performance, keep
+//     them. They help the algorithm generalize to use cases outside the narrow
+//     validation set used for micro-optimizations.
 // - Upgrade from 128 nm to 512 nm world volume.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
