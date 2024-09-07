@@ -200,8 +200,8 @@ import Numerics
 //   - Reduce the cost of divergent halting. [DONE]
 //     - Undo this optimization, as primary rays all follow a similar path.
 //       The amortized sum of small voxels after hitting several large voxels,
-//       should be almost identical.
-//   - Reduce divergence during atom intersection (primary ray).
+//       should be almost identical. [DONE]
+//   - Reduce divergence during atom intersection (primary ray). [DONE]
 //   - Reduce divergence during atom intersection (secondary rays).
 //   - Granted these optimizations don't measurably harm performance, keep
 //     them. They help the algorithm generalize to use cases outside the narrow
