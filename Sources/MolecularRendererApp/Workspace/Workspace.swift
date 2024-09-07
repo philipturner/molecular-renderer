@@ -185,12 +185,12 @@ import Numerics
 // - Try speculative searching of the BVH.
 //   - Buffer up the next few small cells. [DONE]
 //   - Revert to the traversal method from before this change. [DONE]
-//   - Buffer up the next few large cells in a separate DDA.
-//     - The large DDA repeatedly calls 'nextLargeBorder'.
-//     - Save each subsequently found large voxel in the memory tape.
+//   - Buffer up the next few large cells in a separate DDA. [DONE]
+//     - The large DDA repeatedly calls 'nextLargeBorder'. [DONE]
+//     - Save each subsequently found large voxel in the memory tape. [DONE]
 //     - Each large voxel is iterated over in a loop. All of its small voxels
-//       are tested before moving to the next one.
-//     - The small DDA properly handles bounds of the 2 nm large voxel.
+//       are tested before moving to the next one. [DONE]
+//     - The small DDA properly handles bounds of the 2 nm large voxel. [DONE]
 //  - Optimize the large DDA iterations.
 //  - Reduce divergence of the small DDA iterations.
 //    - A new small DDA is reinitialized on the fly.
