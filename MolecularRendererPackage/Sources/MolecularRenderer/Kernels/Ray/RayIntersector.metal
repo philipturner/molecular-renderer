@@ -40,7 +40,7 @@ struct RayIntersector {
   uint globalFaultCounter = 0;
   uint errorCode = 0;
   static uint maxFaultCounter() {
-    return 100;
+    return 500;
   }
   
   // Retrieves the large cell metadata from the dense buffer.
@@ -202,6 +202,12 @@ struct RayIntersector {
         
         // Loop over all ~64 small voxels.
         while (acceptedSmallMetadata[1] == 0) {
+//          globalFaultCounter += 1;
+//          if (globalFaultCounter > maxFaultCounter()) {
+//            errorCode = 3;
+//            return result;
+//          }
+          
           // Regenerate the small DDA.
           if (!initializedSmallDDA) {
             // Read from threadgroup memory.
@@ -259,11 +265,6 @@ struct RayIntersector {
           
           // Increment to the next small voxel.
           smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder, nextTimes);
-          
-          // Exit the inner loop.
-          if (smallMetadata[1] > 0) {
-            break; // search for occupied voxel
-          }
         }
         
         // Test the atoms.
@@ -303,63 +304,80 @@ struct RayIntersector {
     
     IntersectionResult result;
     result.accept = false;
+    bool outOfBounds = false;
     
-    while (!result.accept) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 1;
-        break;
+    while (!outOfBounds) {
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 1;
+//        return result;
+//      }
+      
+      uint4 largeMetadata;
+      float3 largeLowerCorner;
+      ushort2 smallMetadata = 0;
+      float voxelMaximumHitTime;
+      
+      while (smallMetadata[1] == 0) {
+//        globalFaultCounter += 1;
+//        if (globalFaultCounter > maxFaultCounter()) {
+//          errorCode = 2;
+//          return result;
+//        }
+        
+        // Compute the voxel maximum time.
+        float3 nextTimes = dda
+          .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);
+        voxelMaximumHitTime = dda
+          .voxelMaximumHitTime(smallCellBorder, nextTimes);
+        
+        // This cutoff is parameterized for small voxels, where the distance
+        // is 0.25 nm. If you switch to testing a different voxel size, the
+        // parameter must change.
+        constexpr float cutoff = 1 + 0.25 * 1.732051;
+        
+        // Check whether the DDA has gone out of bounds.
+        float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
+        if ((voxelMaximumHitTime > cutoff) ||
+            any(smallLowerCorner < -64 || smallLowerCorner >= 64)) {
+          outOfBounds = true;
+          break; // search for occupied voxel
+        }
+        
+        // If the large cell has small cells, proceed.
+        largeLowerCorner = 2 * floor(smallLowerCorner / 2);
+        largeMetadata = this->largeMetadata(largeLowerCorner);
+        if (largeMetadata[0] > 0) {
+          float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
+          smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
+                                              largeMetadata[0]);
+        }
+        
+        // Increment to the next small voxel.
+        smallCellBorder = dda.nextSmallBorder(smallCellBorder, nextTimes);
       }
       
-      // Compute the voxel maximum time.
-      float3 nextTimes = dda
-        .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);
-      float voxelMaximumHitTime = dda
-        .voxelMaximumHitTime(smallCellBorder, nextTimes);
-      
-      // This cutoff is parameterized for small voxels, where the distance
-      // is 0.25 nm. If you switch to testing a different voxel size, the
-      // parameter must change.
-      constexpr float cutoff = 1 + 0.25 * 1.732051;
-      
-      // Check whether the DDA has gone out of bounds.
-      float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
-      if ((voxelMaximumHitTime > cutoff) ||
-          any(smallLowerCorner < -64 || smallLowerCorner >= 64)) {
-        break;
-      }
-      
-      // If the large cell has small cells, proceed.
-      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
-      if (largeMetadata[0] > 0) {
-        float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
-        ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
-                                                    largeMetadata[0]);
-        if (smallMetadata[1] > 0) {
-          // Set the origin register.
-          float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
-          shiftedRayOrigin -= largeLowerCorner;
-          
-          // Set the distance register.
-          result.distance = voxelMaximumHitTime;
-          
-          // Test the atoms in the accepted voxel.
-          testCell(result,
-                   shiftedRayOrigin,
-                   intersectionQuery.rayDirection,
-                   largeMetadata,
-                   smallMetadata);
-          
-          // Check whether we found a hit.
-          if (result.distance < voxelMaximumHitTime) {
-            result.accept = true;
-          }
+      if (smallMetadata[1] > 0) {
+        // Set the origin register.
+        float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
+        shiftedRayOrigin -= largeLowerCorner;
+        
+        // Set the distance register.
+        result.distance = voxelMaximumHitTime;
+        
+        // Test the atoms in the accepted voxel.
+        testCell(result,
+                 shiftedRayOrigin,
+                 intersectionQuery.rayDirection,
+                 largeMetadata,
+                 smallMetadata);
+        
+        // Check whether we found a hit.
+        if (result.distance < voxelMaximumHitTime) {
+          result.accept = true;
+          outOfBounds = true;
         }
       }
-      
-      // Increment to the next small voxel.
-      smallCellBorder = dda.nextSmallBorder(smallCellBorder, nextTimes);
     }
     
     return result;
