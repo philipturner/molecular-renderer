@@ -67,17 +67,18 @@ struct RayIntersector {
   
   // Fills the memory tape with large voxels.
   void fillMemoryTape(thread float3 &largeCellBorder,
-                      thread ushort &acceptedVoxelCount,
                       thread bool &outOfBounds,
+                      thread ushort &memoryTapeCursor,
+                      ushort memoryTapeTarget,
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
-    while (acceptedVoxelCount < 8) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 1;
-//        break;
-//      }
+    while (memoryTapeCursor < memoryTapeTarget) {
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 1;
+        break;
+      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
@@ -106,9 +107,10 @@ struct RayIntersector {
         largeKey[1] = as_type<uint>(minimumTime);
         
         // Write to threadgroup memory.
-        uint threadgroupAddress = acceptedVoxelCount * 64 + threadIndex;
+        ushort threadgroupAddress = memoryTapeCursor % 8;
+        threadgroupAddress = threadgroupAddress * 64 + threadIndex;
         threadgroupMemory[threadgroupAddress] = largeKey;
-        acceptedVoxelCount += 1;
+        memoryTapeCursor += 1;
       }
       
       // Fast forward to the next large voxel.
@@ -175,20 +177,22 @@ struct RayIntersector {
     
     IntersectionResult result;
     result.accept = false;
-    
     bool outOfBounds = false;
+    ushort memoryTapeCursor = 0;
+    
     while (!outOfBounds) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 2;
-//        break;
-//      }
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 2;
+        break;
+      }
       
-      // Loop over ~16 large voxels.
-      ushort acceptedVoxelCount = 0;
+      // Loop over ~8 large voxels.
+      ushort memoryTapeLagging = memoryTapeCursor;
       fillMemoryTape(largeCellBorder,
-                     acceptedVoxelCount,
                      outOfBounds,
+                     memoryTapeCursor,
+                     memoryTapeCursor + 8,
                      intersectionQuery,
                      largeDDA);
       
@@ -203,19 +207,19 @@ struct RayIntersector {
       uint4 largeMetadata;
       float3 shiftedRayOrigin;
       
-      // Loop over ~128 small voxels.
-      ushort acceptedVoxelCursor = 0;
-      while (acceptedVoxelCursor < acceptedVoxelCount) {
-//        globalFaultCounter += 1;
-//        if (globalFaultCounter > maxFaultCounter()) {
-//          errorCode = 3;
-//          break;
-//        }
+      // Loop over ~64 small voxels.
+      while (memoryTapeLagging < memoryTapeCursor) {
+        globalFaultCounter += 1;
+        if (globalFaultCounter > maxFaultCounter()) {
+          errorCode = 3;
+          break;
+        }
         
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {
           // Read from threadgroup memory.
-          uint threadgroupAddress = acceptedVoxelCursor * 64 + threadIndex;
+          ushort threadgroupAddress = memoryTapeLagging % 8;
+          threadgroupAddress = threadgroupAddress * 64 + threadIndex;
           uint2 largeKey = threadgroupMemory[threadgroupAddress];
           
           // Decode the key.
@@ -249,7 +253,7 @@ struct RayIntersector {
         float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
         if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
           initializedSmallDDA = false;
-          acceptedVoxelCursor += 1;
+          memoryTapeLagging += 1;
           continue;
         }
         
@@ -278,7 +282,7 @@ struct RayIntersector {
           if (result.distance < voxelMaximumHitTime) {
             result.accept = true;
             outOfBounds = true;
-            acceptedVoxelCursor = acceptedVoxelCount;
+            memoryTapeLagging = memoryTapeCursor;
           }
         }
         
