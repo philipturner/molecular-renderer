@@ -228,6 +228,14 @@ public:
     colorTexture.write(color_half, pixelCoords / 2);
   }
   
+  void registerErrorCode(uint errorCode) {
+    if (errorCode == 0) {
+      
+    } else if (errorCode == 1) {
+      color = half3(0.00, 1.00, 0.00);
+    }
+  }
+  
   void write(texture2d<half, access::write> colorTexture,
              texture2d<float, access::write> depthTexture,
              texture2d<half, access::write> motionTexture)

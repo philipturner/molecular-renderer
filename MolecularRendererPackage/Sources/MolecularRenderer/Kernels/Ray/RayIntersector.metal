@@ -37,6 +37,9 @@ struct RayIntersector {
   threadgroup uint *threadgroupMemory;
   ushort threadIndex;
   
+  uint globalFaultCounter = 0;
+  uint errorCode = 0;
+  
   // Retrieves the large cell metadata from the uncompacted buffer.
   uint4 largeMetadata(float3 largeLowerCorner) const
   {
@@ -69,6 +72,12 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedVoxelCount < 16) {
+      globalFaultCounter += 1;
+      if (globalFaultCounter > 100) {
+        errorCode = 1;
+        break;
+      }
+      
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
@@ -82,7 +91,7 @@ struct RayIntersector {
       if (largeMetadata[0] > 0) {
         uint compactedLargeCellID = largeMetadata[0];
         uint threadgroupAddress = acceptedVoxelCount * 64 + threadIndex;
-        threadgroupMemory[threadIndex] = compactedLargeCellID;
+        threadgroupMemory[threadgroupAddress] = compactedLargeCellID;
         acceptedVoxelCount += 1;
       }
       
@@ -291,6 +300,12 @@ struct RayIntersector {
     
     bool outOfBounds = false;
     while (!result.accept && !outOfBounds) {
+      globalFaultCounter += 1;
+      if (globalFaultCounter > 100) {
+        errorCode = 1;
+        break;
+      }
+      
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
       fillMemoryTape(largeCellBorder,
@@ -306,6 +321,12 @@ struct RayIntersector {
       
       // Loop over ~128 small voxels.
       for (ushort i = 0; i < acceptedVoxelCount; ++i) {
+        globalFaultCounter += 1;
+        if (globalFaultCounter > 100) {
+          errorCode = 1;
+          break;
+        }
+        
         // Read from threadgroup memory.
         uint threadgroupAddress = i * 64 + threadIndex;
         uint compactedLargeCellID = threadgroupMemory[threadgroupAddress];
@@ -329,17 +350,23 @@ struct RayIntersector {
                            largeUpperCorner);
         
         while (!result.accept) {
+          globalFaultCounter += 1;
+          if (globalFaultCounter > 100) {
+            errorCode = 1;
+            break;
+          }
+          
           // Compute the lower corner.
-          float3 smallRelativeCorner = smallDDA.cellLowerCorner(smallCellBorder);
+          float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
           
           // Check whether the DDA has gone out of bounds.
-          if (any(smallRelativeCorner < 0) ||
-              any(smallRelativeCorner >= 2)) {
+          if (any(smallLowerCorner < largeLowerCorner) ||
+              any(smallLowerCorner >= largeUpperCorner)) {
             break;
           }
           
           // Retrieve the small cell metadata.
-          float3 coordinates2 = smallRelativeCorner / 0.25;
+          float3 coordinates2 = (smallLowerCorner - largeLowerCorner) / 0.25;
           uint3 cellIndex2 = uint3(coordinates2);
           uint borderCode2 = 0;
           borderCode2 += cellIndex2[0] << 0;
@@ -351,7 +378,6 @@ struct RayIntersector {
           
           if (smallMetadata[1] > 0) {
             // Compute the voxel maximum time.
-            float3 smallLowerCorner = smallRelativeCorner + largeLowerCorner;
             float3 acceptedSmallCellBorder = smallLowerCorner;
             acceptedSmallCellBorder +=
             select(float3(-smallDDA.dx), float3(0), smallDDA.dtdx >= 0);
@@ -375,11 +401,11 @@ struct RayIntersector {
               result.accept = true;
             }
           }
+          
+          // Increment to the next small voxel.
+          smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
+                                                     intersectionQuery.rayOrigin);
         }
-        
-        // Increment to the next small voxel.
-        smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
-                                                   intersectionQuery.rayOrigin);
         
         if (result.accept) {
           break; // for loop
