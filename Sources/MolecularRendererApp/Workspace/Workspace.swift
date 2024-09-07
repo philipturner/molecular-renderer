@@ -209,9 +209,9 @@ import Numerics
 //     - Reducing divergence for AO rays significantly harmed performance.
 // - Upgrade from 128 nm to 512 nm world volume.
 //   - Measure rendering performance. [DONE]
-//   - Increase grid size to 256 nm, check for bottlenecks.
+//   - Increase world volume to 256 nm, check for bottlenecks.
 //   - Measure rendering performance.
-//   - Increase grid size to 512 nm, check for bottlenecks.
+//   - Increase world volume to 512 nm, check for bottlenecks.
 //   - Measure rendering performance.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.

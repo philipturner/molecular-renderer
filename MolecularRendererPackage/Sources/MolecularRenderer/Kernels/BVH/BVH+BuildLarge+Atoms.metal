@@ -7,6 +7,7 @@
 
 #include <metal_stdlib>
 #include "../Utilities/VoxelAddress.metal"
+#include "../Utilities/WorldVolume.metal"
 using namespace metal;
 
 inline ushort3 clamp(short3 position, ushort3 gridDims) {
@@ -72,13 +73,13 @@ kernel void buildLargePart1_1
   
   // Place the atom in the grid of small cells.
   float4 transformedAtom;
-  transformedAtom.xyz = 4 * (atom.xyz + 64);
+  transformedAtom.xyz = 4 * (atom.xyz + float(worldVolumeInNm / 2));
   transformedAtom.w = 4 * radius;
   
   // Generate the bounding box.
   short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
   short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
-  ushort3 gridDims = ushort3(512);
+  ushort3 gridDims = ushort3(smallVoxelGridWidth);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
@@ -117,7 +118,8 @@ kernel void buildLargePart1_1
         uint offset;
         {
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          uint address = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
+          uint address = VoxelAddress::generate(largeVoxelGridWidth,
+                                                cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           uint smallReferenceCount =
@@ -139,7 +141,8 @@ kernel void buildLargePart1_1
           // Locate the mark.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           cellCoordinates /= 4;
-          uint address = VoxelAddress::generate<ushort, uint>(16, cellCoordinates);
+          uint address = VoxelAddress::generate(largeVoxelGridWidth / 4,
+                                                cellCoordinates);
           
           // Write the mark.
           uchar activeValue = uchar(1);
@@ -211,13 +214,13 @@ kernel void buildLargePart2_2
   
   // Place the atom in the grid of small cells.
   float4 transformedAtom;
-  transformedAtom.xyz = 4 * (atom.xyz + 64);
+  transformedAtom.xyz = 4 * (atom.xyz + float(worldVolumeInNm / 2));
   transformedAtom.w = 4 * radius;
   
   // Generate the bounding box.
   short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
   short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
-  ushort3 gridDims = ushort3(512);
+  ushort3 gridDims = ushort3(smallVoxelGridWidth);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
@@ -271,7 +274,8 @@ kernel void buildLargePart2_2
         {
           // Locate the large counter.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          uint address = VoxelAddress::generate<ushort, uint>(64, cellCoordinates);
+          uint address = VoxelAddress::generate(largeVoxelGridWidth,
+                                                cellCoordinates);
           address = (address * 8) + (tid % 8);
           
           // Read from the large counter.
@@ -290,7 +294,8 @@ kernel void buildLargePart2_2
         {
           // Materialize the lower corner.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
-          float3 lowerCorner = float3(cellCoordinates) * 2 - 64;
+          float3 lowerCorner = -float(worldVolumeInNm / 2);
+          lowerCorner += float3(cellCoordinates) * 2;
           
           // Subtract the lower corner.
           half4 writtenAtom;

@@ -9,7 +9,7 @@
 #define DDA_H
 
 #include <metal_stdlib>
-#include "../Utilities/Constants.metal"
+#include "../Utilities/Arguments.metal"
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 using namespace raytracing;

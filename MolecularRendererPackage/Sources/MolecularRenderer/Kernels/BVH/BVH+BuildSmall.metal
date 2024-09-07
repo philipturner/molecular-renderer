@@ -6,7 +6,7 @@
 //
 
 #include <metal_stdlib>
-#include "../Utilities/Constants.metal"
+#include "../Utilities/Arguments.metal"
 #include "../Utilities/VoxelAddress.metal"
 using namespace metal;
 
@@ -90,7 +90,7 @@ kernel void buildSmallPart1_0
           half3 xyz = half3(x, y, z);
           
           // Generate the address.
-          half address = VoxelAddress::generate<half, half>(8, xyz);
+          half address = VoxelAddress::generate(8, xyz);
           
           // Perform the atomic fetch-add.
           auto castedCounters =
@@ -181,7 +181,7 @@ kernel void buildSmallPart1_0
           bool intersected = cubeSphereIntersection(xyz, atom);
           if (intersected && all(xyz < smallVoxelMax)) {
             // Generate the address.
-            half address = VoxelAddress::generate<half, half>(8, xyz);
+            half address = VoxelAddress::generate(8, xyz);
             
             // Perform the atomic fetch-add.
             auto castedCounters =

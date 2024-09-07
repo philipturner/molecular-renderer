@@ -1,12 +1,12 @@
 //
-//  Constants.metal
+//  Arguments.metal
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 5/21/23.
 //
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef ARGUMENTS_H
+#define ARGUMENTS_H
 
 #include <metal_stdlib>
 using namespace metal;
@@ -26,4 +26,4 @@ struct RenderArguments {
   float qualityCoefficient;
 };
 
-#endif // CONSTANTS_H
+#endif // ARGUMENTS_H

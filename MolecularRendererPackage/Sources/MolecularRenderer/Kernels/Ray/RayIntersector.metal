@@ -10,7 +10,8 @@
 
 #include <metal_stdlib>
 #include "../Ray/DDA.metal"
-#include "../Utilities/Constants.metal"
+#include "../Utilities/Arguments.metal"
+#include "../Utilities/WorldVolume.metal"
 using namespace metal;
 
 // MARK: - Data Structures
@@ -46,9 +47,10 @@ struct RayIntersector {
   // Retrieves the large cell metadata from the dense buffer.
   uint4 largeMetadata(float3 largeLowerCorner) const
   {
-    float3 coordinates = (largeLowerCorner + 64) / 2;
-    float address =
-    VoxelAddress::generate<float, float>(64, coordinates);
+    float3 coordinates = largeLowerCorner + float(worldVolumeInNm / 2);
+    coordinates /= 2;
+    float address = VoxelAddress::generate(largeVoxelGridWidth,
+                                           coordinates);
     return largeCellMetadata[uint(address)];
   }
   
@@ -57,8 +59,7 @@ struct RayIntersector {
                         uint compactedLargeCellID) const
   {
     float3 coordinates = relativeSmallLowerCorner / 0.25;
-    float localAddress =
-    VoxelAddress::generate<float, float>(8, coordinates);
+    float localAddress = VoxelAddress::generate(8, coordinates);
     
     uint compactedGlobalAddress =
     compactedLargeCellID * 512 + uint(localAddress);
@@ -73,11 +74,12 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedLargeVoxelCount < 8) {
-
+      
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
-      if (any(smallLowerCorner < -64 || smallLowerCorner >= 64)) {
+      if (any(smallLowerCorner < -float(worldVolumeInNm / 2) ||
+              smallLowerCorner >= float(worldVolumeInNm / 2))) {
         outOfBounds = true;
         return;
       }
@@ -227,7 +229,7 @@ struct RayIntersector {
             
             // Compute the voxel bounds.
             shiftedRayOrigin = intersectionQuery.rayOrigin;
-            shiftedRayOrigin -= -64;
+            shiftedRayOrigin += float(worldVolumeInNm / 2);
             shiftedRayOrigin -= cellCoordinates * 2;
             
             // Initialize the inner DDA.
@@ -326,7 +328,8 @@ struct RayIntersector {
       // Check whether the DDA has gone out of bounds.
       float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
       if ((voxelMaximumHitTime > cutoff) ||
-          any(smallLowerCorner < -64 || smallLowerCorner >= 64)) {
+          any(smallLowerCorner < -float(worldVolumeInNm / 2) ||
+              smallLowerCorner >= float(worldVolumeInNm / 2))) {
         break;
       }
       
@@ -336,7 +339,7 @@ struct RayIntersector {
       if (largeMetadata[0] > 0) {
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
-                                            largeMetadata[0]);
+                                                    largeMetadata[0]);
         
         if (smallMetadata[1] > 0) {
           // Set the origin register.

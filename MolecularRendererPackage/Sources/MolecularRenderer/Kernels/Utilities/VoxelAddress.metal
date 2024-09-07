@@ -13,11 +13,24 @@ using namespace metal;
 
 class VoxelAddress {
 public:
-  template <typename Input, typename Accumulator>
-  static Accumulator generate(vec<Input, 3> grid_dims,
-                              vec<Input, 3> coords)
+  static uint generate(vec<ushort, 3> grid_dims,
+                       vec<ushort, 3> coords)
   {
-    Accumulator grid_width_sq = grid_dims.y * grid_dims.x;
+    uint grid_width_sq = grid_dims.y * grid_dims.x;
+    return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
+  }
+  
+  static half generate(vec<half, 3> grid_dims,
+                       vec<half, 3> coords)
+  {
+    half grid_width_sq = grid_dims.y * grid_dims.x;
+    return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
+  }
+  
+  static float generate(vec<float, 3> grid_dims,
+                        vec<float, 3> coords)
+  {
+    float grid_width_sq = grid_dims.y * grid_dims.x;
     return coords.z * grid_width_sq + coords.y * grid_dims.x + coords.x;
   }
 };

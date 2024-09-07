@@ -10,7 +10,7 @@
 
 #include <metal_stdlib>
 #include "../Ray/RayIntersector.metal"
-#include "../Utilities/Constants.metal"
+#include "../Utilities/Arguments.metal"
 using namespace metal;
 
 // Handle specular and diffuse color, and transform raw AO hits into

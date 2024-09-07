@@ -9,7 +9,7 @@
 #include "Lighting/Lighting.metal"
 #include "Ray/RayGeneration.metal"
 #include "Ray/RayIntersector.metal"
-#include "Utilities/Constants.metal"
+#include "Utilities/Arguments.metal"
 using namespace metal;
 
 kernel void renderAtoms

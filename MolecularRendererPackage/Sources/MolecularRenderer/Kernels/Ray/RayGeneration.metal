@@ -10,7 +10,7 @@
 
 #include <metal_stdlib>
 #include "../Ray/Sampling.metal"
-#include "../Utilities/Constants.metal"
+#include "../Utilities/Arguments.metal"
 using namespace metal;
 
 // Partially sourced from:
