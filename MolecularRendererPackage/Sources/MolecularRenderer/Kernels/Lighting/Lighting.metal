@@ -229,10 +229,14 @@ public:
   }
   
   void registerErrorCode(uint errorCode) {
-    if (errorCode == 0) {
-      
-    } else if (errorCode == 1) {
+    if (errorCode == 1) {
+      color = half3(1.00, 0.00, 0.00);
+    } else if (errorCode == 2) {
       color = half3(0.00, 1.00, 0.00);
+    } else if (errorCode == 3) {
+      color = half3(0.00, 0.00, 1.00);
+    } else if (errorCode == 4) {
+      color = half3(1.00, 0.00, 1.00);
     }
   }
   

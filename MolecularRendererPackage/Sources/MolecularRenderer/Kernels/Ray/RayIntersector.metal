@@ -39,6 +39,9 @@ struct RayIntersector {
   
   uint globalFaultCounter = 0;
   uint errorCode = 0;
+  static uint maxFaultCounter() {
+    return 300;
+  }
   
   // Retrieves the large cell metadata from the uncompacted buffer.
   uint4 largeMetadata(float3 largeLowerCorner) const
@@ -73,7 +76,7 @@ struct RayIntersector {
   {
     while (acceptedVoxelCount < 16) {
       globalFaultCounter += 1;
-      if (globalFaultCounter > 100) {
+      if (globalFaultCounter > maxFaultCounter()) {
         errorCode = 1;
         break;
       }
@@ -301,8 +304,8 @@ struct RayIntersector {
     bool outOfBounds = false;
     while (!result.accept && !outOfBounds) {
       globalFaultCounter += 1;
-      if (globalFaultCounter > 100) {
-        errorCode = 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 2;
         break;
       }
       
@@ -313,17 +316,14 @@ struct RayIntersector {
                      outOfBounds,
                      intersectionQuery,
                      largeDDA);
-      if (acceptedVoxelCount > 1) {
-        acceptedVoxelCount = 1;
-      }
       
       simdgroup_barrier(mem_flags::mem_threadgroup);
       
       // Loop over ~128 small voxels.
       for (ushort i = 0; i < acceptedVoxelCount; ++i) {
         globalFaultCounter += 1;
-        if (globalFaultCounter > 100) {
-          errorCode = 1;
+        if (globalFaultCounter > maxFaultCounter()) {
+          errorCode = 3;
           break;
         }
         
@@ -351,8 +351,8 @@ struct RayIntersector {
         
         while (!result.accept) {
           globalFaultCounter += 1;
-          if (globalFaultCounter > 100) {
-            errorCode = 1;
+          if (globalFaultCounter > maxFaultCounter()) {
+            errorCode = 4;
             break;
           }
           
@@ -411,6 +411,10 @@ struct RayIntersector {
           break; // for loop
         }
       }
+    }
+    
+    if (result.accept) {
+      errorCode = 0;
     }
     
     return result;
