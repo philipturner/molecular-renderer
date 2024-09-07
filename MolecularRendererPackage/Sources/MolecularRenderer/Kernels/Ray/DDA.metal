@@ -310,7 +310,8 @@ struct DDA {
   //   - 26.73% divergence
   //
   // Remaining optimizations to instruction count.
-  // - 961 instructions
+  // - 961 instructions / 3.926 billion issued
+  // - 958 instructions / 3.882 billion issued
 };
 
 #endif // DDA_H

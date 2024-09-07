@@ -74,11 +74,11 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedVoxelCount < 8) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 1;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 1;
+//        break;
+//      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
@@ -184,11 +184,11 @@ struct RayIntersector {
     
     bool outOfBounds = false;
     while (!outOfBounds) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 2;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 2;
+//        break;
+//      }
       
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
@@ -212,11 +212,11 @@ struct RayIntersector {
       // Loop over ~128 small voxels.
       ushort acceptedVoxelCursor = 0;
       while (acceptedVoxelCursor < acceptedVoxelCount) {
-        globalFaultCounter += 1;
-        if (globalFaultCounter > maxFaultCounter()) {
-          errorCode = 3;
-          break;
-        }
+//        globalFaultCounter += 1;
+//        if (globalFaultCounter > maxFaultCounter()) {
+//          errorCode = 3;
+//          break;
+//        }
         
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {
@@ -331,8 +331,8 @@ struct RayIntersector {
       
       // Check whether the DDA has gone out of bounds.
       if ((voxelMaximumHitTime > cutoff) ||
-          any(largeLowerCorner < -64) ||
-          any(largeLowerCorner >= 64)) {
+          any(smallCellBorder <= -64) ||
+          any(smallCellBorder >= 64)) {
         break;
       }
       
