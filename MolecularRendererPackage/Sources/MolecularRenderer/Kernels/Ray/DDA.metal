@@ -47,38 +47,13 @@ struct DDA {
       float3 rayDirection,
       float3 gridLowerCorner,
       float3 gridUpperCorner,
-      float3 minimumTime2) {
+      float minimumTime) {
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
-    
-    float3 axisMinimumTimes;
-#pragma clang loop unroll(full)
-    for (ushort i = 0; i < 3; ++i) {
-      float t1 = (gridLowerCorner[i] - rayOrigin[i]) * dtdx[i];
-      float t2 = (gridUpperCorner[i] - rayOrigin[i]) * dtdx[i];
-      float tmin = min(t1, t2);
-      tmin = min(tmin, float(1e38));
-//      tmin = max(tmin, float(0));
-      axisMinimumTimes[i] = tmin;
-    }
-    
-    float minimumTime;
-    minimumTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
-    minimumTime = min(minimumTime, axisMinimumTimes[2]);
-//    minimumTime = 0;
-     
     float3 origin = rayOrigin + minimumTime * rayDirection;
-#pragma clang loop unroll(full)
-    for (ushort i = 0; i < 3; ++i) {
-      if (origin[i] < gridLowerCorner[i] &&
-          origin[i] > gridLowerCorner[i] - 0.25) {
-        origin[i] = gridLowerCorner[i];
-      }
-      if (origin[i] > gridUpperCorner[i]) {
-        origin[i] = gridUpperCorner[i];
-      }
-    }
+    origin = max(origin, gridLowerCorner);
+    origin = min(origin, gridUpperCorner);
     
     *cellBorder = origin;
     *cellBorder /= 0.25;
@@ -329,10 +304,19 @@ struct DDA {
   //   - 4.743 billion instructions issued
   //   - 24.41% divergence
   //
-  // Minimizing the cost of reinitializing the small DDA.
+  // Pre-computing the small DDA's minimum time.
+  // - 4.4 ms
+  // - per-line statistics:
+  //   - 70% ALU time
+  //   - 25% control flow time
+  //   - 37.88% primary ray
+  //   - 51.08% secondary rays
+  // - overall shader statistics:
+  //   - 1005 instructions
+  //   - 4.067 billion instructions issued
+  //   - 26.82% divergence
   //
-  // Fully optimizing the instruction count.
-  
+  // Merging the large lower corner with the ray's origin.
 };
 
 #endif // DDA_H

@@ -34,7 +34,7 @@ struct RayIntersector {
   device uint4 *largeCellMetadata;
   device uint4 *compactedLargeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
-  threadgroup uint *threadgroupMemory;
+  threadgroup uint2 *threadgroupMemory;
   ushort threadIndex;
   
   uint globalFaultCounter = 0;
@@ -73,12 +73,12 @@ struct RayIntersector {
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
-    while (acceptedVoxelCount < 16) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 1;
-        break;
-      }
+    while (acceptedVoxelCount < 8) {
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 1;
+//        break;
+//      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
@@ -91,9 +91,29 @@ struct RayIntersector {
       // If the large cell has small cells, proceed.
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
       if (largeMetadata[0] > 0) {
-        uint compactedLargeCellID = largeMetadata[0];
+        // Prepare the edge of the large cell.
+        float3 axisMinimumTimes =
+        (cursorCellBorder - intersectionQuery.rayOrigin) * dda.dtdx;
+        axisMinimumTimes = max(axisMinimumTimes, 0);
+        axisMinimumTimes = min(axisMinimumTimes, 1e38);
+        
+        // Find the minimum time.
+        float minimumTime;
+        if (all(axisMinimumTimes > 0)) {
+          minimumTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
+          minimumTime = min(minimumTime, axisMinimumTimes[2]);
+        } else {
+          minimumTime = 0;
+        }
+        
+        // Encode the key.
+        uint2 largeKey;
+        largeKey[0] = largeMetadata[0];
+        largeKey[1] = as_type<uint>(minimumTime);
+        
+        // Write to threadgroup memory.
         uint threadgroupAddress = acceptedVoxelCount * 64 + threadIndex;
-        threadgroupMemory[threadgroupAddress] = compactedLargeCellID;
+        threadgroupMemory[threadgroupAddress] = largeKey;
         acceptedVoxelCount += 1;
       }
       
@@ -169,11 +189,11 @@ struct RayIntersector {
     
     bool outOfBounds = false;
     while (!result.accept && !outOfBounds) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 2;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 2;
+//        break;
+//      }
       
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
@@ -198,17 +218,21 @@ struct RayIntersector {
       // Loop over ~128 small voxels.
       ushort acceptedVoxelCursor = 0;
       while (!result.accept && acceptedVoxelCursor < acceptedVoxelCount) {
-        globalFaultCounter += 1;
-        if (globalFaultCounter > maxFaultCounter()) {
-          errorCode = 3;
-          break;
-        }
+//        globalFaultCounter += 1;
+//        if (globalFaultCounter > maxFaultCounter()) {
+//          errorCode = 3;
+//          break;
+//        }
         
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {
           // Read from threadgroup memory.
           uint threadgroupAddress = acceptedVoxelCursor * 64 + threadIndex;
-          uint compactedLargeCellID = threadgroupMemory[threadgroupAddress];
+          uint2 largeKey = threadgroupMemory[threadgroupAddress];
+          
+          // Decode the key.
+          uint compactedLargeCellID = largeKey[0];
+          float minimumTime = as_type<float>(largeKey[1]);
           
           // Retrieve the large cell metadata.
           largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
@@ -220,24 +244,6 @@ struct RayIntersector {
           float3 coordinates1 = float3(cellIndex1);
           largeLowerCorner = coordinates1 * 2 - 64;
           largeUpperCorner = largeLowerCorner + 2;
-          
-          // Prepare the edge of the large cell.
-          float3 acceptedLargeCellBorder = largeLowerCorner;
-          acceptedLargeCellBorder +=
-          select(float3(-largeDDA.dx), float3(0), largeDDA.dtdx >= 0);
-          float3 axisMinimumTimes =
-          (acceptedLargeCellBorder - intersectionQuery.rayOrigin) * largeDDA.dtdx;
-          axisMinimumTimes = max(axisMinimumTimes, 0);
-          axisMinimumTimes = min(axisMinimumTimes, 1e38);
-          
-          // Find the minimum time.
-          float minimumTime;
-//          if (all(axisMinimumTimes > 0)) {
-//            minimumTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
-//            minimumTime = min(minimumTime, axisMinimumTimes[2]);
-//          } else {
-            minimumTime = 0;
-//          }
           
           // Initialize the inner DDA.
           smallDDA = DDA(&smallCellBorder,

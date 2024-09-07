@@ -28,7 +28,7 @@ kernel void renderAtoms
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
- threadgroup uint *threadgroupMemory [[threadgroup(0)]],
+ threadgroup uint2 *threadgroupMemory [[threadgroup(0)]],
  ushort2 tid [[thread_position_in_grid]],
  ushort2 tgid [[threadgroup_position_in_grid]],
  ushort2 thread_id [[thread_position_in_threadgroup]],

@@ -77,7 +77,7 @@ extension MRRenderer {
     
     // Allocate threadgroup memory.
     do {
-      let byteCount = 64 * 16 * 4
+      let byteCount = 64 * 8 * 8
       encoder.setThreadgroupMemoryLength(byteCount, index: 0)
     }
     
