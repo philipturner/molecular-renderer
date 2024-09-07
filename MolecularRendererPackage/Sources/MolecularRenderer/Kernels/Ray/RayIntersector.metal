@@ -80,7 +80,10 @@ struct RayIntersector {
       // If the large cell has small cells, proceed.
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
       if (largeMetadata[0] > 0) {
-        
+        uint compactedLargeCellID = largeMetadata[0];
+        uint threadgroupAddress = acceptedVoxelCount * 64 + threadIndex;
+        threadgroupMemory[threadIndex] = compactedLargeCellID;
+        acceptedVoxelCount += 1;
       }
       
       // Fast forward to the next large voxel.
@@ -274,6 +277,58 @@ struct RayIntersector {
     }
     
     return result;
+  }
+  
+  IntersectionResult intersectPrimary2(IntersectionQuery intersectionQuery) {
+    // Initialize the outer DDA.
+    float3 largeCellBorder;
+    const DDA largeDDA(&largeCellBorder,
+                       intersectionQuery.rayOrigin,
+                       intersectionQuery.rayDirection);
+    
+    IntersectionResult result;
+    result.accept = false;
+    
+    bool outOfBounds = false;
+    while (!outOfBounds) {
+      // Loop over ~16 large voxels.
+      ushort acceptedVoxelCount = 0;
+      fillMemoryTape(largeCellBorder,
+                     acceptedVoxelCount,
+                     outOfBounds,
+                     intersectionQuery,
+                     largeDDA);
+      if (acceptedVoxelCount > 1) {
+        acceptedVoxelCount = 1;
+      }
+      
+      simdgroup_barrier(mem_flags::mem_threadgroup);
+      
+      // Loop over ~128 small voxels.
+      for (ushort i = 0; i < acceptedVoxelCount; ++i) {
+        // Read from threadgroup memory.
+        uint threadgroupAddress = i * 64 + threadIndex;
+        uint compactedLargeCellID = threadgroupMemory[threadgroupAddress];
+        
+        // Retrieve the large cell metadata.
+        uint4 largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
+        uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
+        uint3 cellIndex1 = uint3(compressedCellCoordinates.xyz);
+        
+        // Compute the voxel bounds.
+        float3 coordinates1 = float3(cellIndex1);
+        float3 largeLowerCorner = coordinates1 * 2 - 64;
+        float3 largeUpperCorner = largeLowerCorner + 2;
+        
+        // Initialize the inner DDA.
+        float3 smallCellBorder;
+        const DDA smallDDA(&smallCellBorder,
+                           intersectionQuery.rayOrigin,
+                           intersectionQuery.rayDirection,
+                           largeLowerCorner,
+                           largeUpperCorner);
+      }
+    }
   }
   
   // BVH traversal algorithm for AO rays. These rays terminate after traveling
