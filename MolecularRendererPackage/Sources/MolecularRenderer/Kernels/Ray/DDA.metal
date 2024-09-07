@@ -46,10 +46,12 @@ struct DDA {
       float3 rayOrigin,
       float3 rayDirection,
       float3 gridLowerCorner,
-      float3 gridUpperCorner) {
+      float3 gridUpperCorner,
+      float3 axisMinimumTimes) {
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
+    /*
     float3 axisMinimumTimes = float3(0);
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
@@ -60,10 +62,11 @@ struct DDA {
       tmin = max(tmin, float(0));
       axisMinimumTimes[i] = tmin;
     }
-    
+     */
+     
     float3 origin;
     if (all(axisMinimumTimes > 0)) {
-      float3 minTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
+      float minTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
       minTime = min(minTime, axisMinimumTimes[2]);
       origin = rayOrigin + minTime * rayDirection;
     } else {

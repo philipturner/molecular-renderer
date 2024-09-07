@@ -221,12 +221,22 @@ struct RayIntersector {
           largeLowerCorner = coordinates1 * 2 - 64;
           largeUpperCorner = largeLowerCorner + 2;
           
+          // Prepare the edge of the large cell.
+          float3 acceptedLargeCellBorder = largeLowerCorner;
+          acceptedLargeCellBorder +=
+          select(float3(-largeDDA.dx), float3(0), largeDDA.dtdx >= 0);
+          float3 axisMinimumTimes =
+          (acceptedLargeCellBorder - intersectionQuery.rayOrigin) * largeDDA.dtdx;
+          axisMinimumTimes = max(axisMinimumTimes, 0);
+          axisMinimumTimes = min(axisMinimumTimes, 1e38);
+          
           // Initialize the inner DDA.
           smallDDA = DDA(&smallCellBorder,
                          intersectionQuery.rayOrigin,
                          intersectionQuery.rayDirection,
                          largeLowerCorner,
-                         largeUpperCorner);
+                         largeUpperCorner,
+                         axisMinimumTimes);
           initializedSmallDDA = true;
         }
         
