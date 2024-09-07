@@ -53,11 +53,10 @@ struct RayIntersector {
   }
   
   // Retrieves the small cell metadata from the compacted buffer.
-  ushort2 smallMetadata(float3 largeLowerCorner,
-                        float3 smallLowerCorner,
+  ushort2 smallMetadata(float3 relativeSmallLowerCorner,
                         uint compactedLargeCellID) const
   {
-    float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
+    float3 coordinates = relativeSmallLowerCorner / 0.25;
     float localAddress =
     VoxelAddress::generate<float, float>(8, coordinates);
     
@@ -82,14 +81,14 @@ struct RayIntersector {
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
-      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      if (any(largeCellBorder <= -64) ||
-          any(largeCellBorder >= 64)) {
+      if (any(smallLowerCorner <= -64) ||
+          any(smallLowerCorner >= 64)) {
         outOfBounds = true;
         return;
       }
       
       // Retrieve the large metadata.
+      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
       float3 currentTimes =
       (largeCellBorder - intersectionQuery.rayOrigin) * dda.dtdx;
@@ -247,11 +246,8 @@ struct RayIntersector {
           initializedSmallDDA = true;
         }
         
-        // Test the current small voxel.
-        // Compute the lower corner.
-        float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
-        
         // Check whether the DDA has gone out of bounds.
+        float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
         if (any(smallLowerCorner < 0) ||
             any(smallLowerCorner >= 2)) {
           initializedSmallDDA = false;
@@ -260,12 +256,11 @@ struct RayIntersector {
         }
         
         // Retrieve the small cell metadata.
-        ushort2 smallMetadata = this->smallMetadata(0,
-                                                    smallLowerCorner,
+        ushort2 smallMetadata = this->smallMetadata(smallLowerCorner,
                                                     largeMetadata[0]);
-        
         float3 nextTimes = smallDDA
           .nextTimes(smallCellBorder, shiftedRayOrigin);
+        
         if (smallMetadata[1] > 0) {
           // Compute the voxel maximum time.
           float voxelMaximumHitTime = smallDDA
@@ -322,22 +317,20 @@ struct RayIntersector {
       // parameter must change.
       constexpr float cutoff = 1 + 0.25 * 1.732051;
       
-      // Compute the lower corner.
-      float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
-      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      
       // Check whether the DDA has gone out of bounds.
+      float3 smallLowerCorner = dda.cellLowerCorner(smallCellBorder);
       if ((voxelMaximumHitTime > cutoff) ||
-          any(smallCellBorder <= -64) ||
-          any(smallCellBorder >= 64)) {
+          any(smallLowerCorner <= -64) ||
+          any(smallLowerCorner >= 64)) {
         break;
       }
       
       // If the large cell has small cells, proceed.
+      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
       if (largeMetadata[0] > 0) {
-        ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                    smallLowerCorner,
+        float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
+        ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
                                                     largeMetadata[0]);
         if (smallMetadata[1] > 0) {
           // Set the origin register.
