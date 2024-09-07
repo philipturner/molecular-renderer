@@ -74,11 +74,11 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedVoxelCount < 8) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 1;
-//        break;
-//      }
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 1;
+        break;
+      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
@@ -125,16 +125,11 @@ struct RayIntersector {
   
   // Intersects all of the atoms in a small voxel.
   void testCell(thread IntersectionResult &result,
-                float3 largeLowerCorner,
+                float3 origin,
+                float3 direction,
                 uint4 largeMetadata,
-                ushort2 smallMetadata,
-                IntersectionQuery intersectionQuery,
-                const DDA dda)
+                ushort2 smallMetadata)
   {
-    // Set the origin register.
-    float3 origin = intersectionQuery.rayOrigin;
-    origin -= largeLowerCorner;
-    
     // Set the loop bounds register.
     uint referenceCursor = largeMetadata[2] + smallMetadata[0];
     uint referenceEnd = referenceCursor + smallMetadata[1];
@@ -151,7 +146,7 @@ struct RayIntersector {
       // Run the intersection test.
       {
         float3 oc = origin - float3(atom.xyz);
-        float b2 = dot(float3(oc), intersectionQuery.rayDirection);
+        float b2 = dot(float3(oc), direction);
         
         float radius = float(atom.w);
         float c = -radius * radius;
@@ -189,11 +184,11 @@ struct RayIntersector {
     
     bool outOfBounds = false;
     while (!result.accept && !outOfBounds) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 2;
-//        break;
-//      }
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 2;
+        break;
+      }
       
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
@@ -212,17 +207,16 @@ struct RayIntersector {
       
       // Allocate the large cell metadata.
       uint4 largeMetadata;
-      float3 largeLowerCorner;
-      float3 largeUpperCorner;
+      float3 shiftedRayOrigin;
       
       // Loop over ~128 small voxels.
       ushort acceptedVoxelCursor = 0;
       while (!result.accept && acceptedVoxelCursor < acceptedVoxelCount) {
-//        globalFaultCounter += 1;
-//        if (globalFaultCounter > maxFaultCounter()) {
-//          errorCode = 3;
-//          break;
-//        }
+        globalFaultCounter += 1;
+        if (globalFaultCounter > maxFaultCounter()) {
+          errorCode = 3;
+          break;
+        }
         
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {
@@ -242,16 +236,19 @@ struct RayIntersector {
           
           // Compute the voxel bounds.
           float3 coordinates1 = float3(cellIndex1);
-          largeLowerCorner = coordinates1 * 2 - 64;
-          largeUpperCorner = largeLowerCorner + 2;
+          float3 largeLowerCorner = coordinates1 * 2 - 64;
+          shiftedRayOrigin = intersectionQuery.rayOrigin;
+          shiftedRayOrigin -= largeLowerCorner;
           
           // Initialize the inner DDA.
+          float3 direction = intersectionQuery.rayDirection;
+          float3 origin = shiftedRayOrigin + minimumTime * direction;
+          origin = max(origin, 0);
+          origin = min(origin, 2);
           smallDDA = DDA(&smallCellBorder,
-                         intersectionQuery.rayOrigin,
-                         intersectionQuery.rayDirection,
-                         largeLowerCorner,
-                         largeUpperCorner,
-                         minimumTime);
+                         origin,
+                         direction,
+                         0.25);
           initializedSmallDDA = true;
         }
         
@@ -261,15 +258,15 @@ struct RayIntersector {
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
           
           // Check whether the DDA has gone out of bounds.
-          if (any(smallLowerCorner < largeLowerCorner) ||
-              any(smallLowerCorner >= largeUpperCorner)) {
+          if (any(smallLowerCorner < 0) ||
+              any(smallLowerCorner >= 2)) {
             acceptedVoxelCursor += 1;
             initializedSmallDDA = false;
             continue; // while loop
           }
           
           // Retrieve the small cell metadata.
-          ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
+          ushort2 smallMetadata = this->smallMetadata(0,
                                                       smallLowerCorner,
                                                       largeMetadata[0]);
           
@@ -280,18 +277,17 @@ struct RayIntersector {
             select(float3(-smallDDA.dx), float3(0), smallDDA.dtdx >= 0);
             float voxelMaximumHitTime = smallDDA
               .voxelMaximumHitTime(acceptedSmallCellBorder,
-                                   intersectionQuery.rayOrigin);
+                                   shiftedRayOrigin);
             
             // Set the distance register.
             result.distance = voxelMaximumHitTime;
             
             // Test the atoms in the accepted voxel.
             testCell(result,
-                     largeLowerCorner,
+                     shiftedRayOrigin,
+                     intersectionQuery.rayDirection,
                      largeMetadata,
-                     smallMetadata,
-                     intersectionQuery,
-                     smallDDA);
+                     smallMetadata);
             
             // Check whether we found a hit.
             if (result.distance < voxelMaximumHitTime) {
@@ -302,7 +298,7 @@ struct RayIntersector {
         
         // Increment to the next small voxel.
         smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
-                                                   intersectionQuery.rayOrigin);
+                                                   shiftedRayOrigin);
       }
     }
     
@@ -351,16 +347,19 @@ struct RayIntersector {
                                                     smallLowerCorner,
                                                     largeMetadata[0]);
         if (smallMetadata[1] > 0) {
+          // Set the origin register.
+          float3 shiftedRayOrigin = intersectionQuery.rayOrigin;
+          shiftedRayOrigin -= largeLowerCorner;
+          
           // Set the distance register.
           result.distance = voxelMaximumHitTime;
           
           // Test the atoms in the accepted voxel.
           testCell(result,
-                   largeLowerCorner,
+                   shiftedRayOrigin,
+                   intersectionQuery.rayDirection,
                    largeMetadata,
-                   smallMetadata,
-                   intersectionQuery,
-                   dda);
+                   smallMetadata);
           
           // Check whether we found a hit.
           if (result.distance < voxelMaximumHitTime) {

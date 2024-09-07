@@ -42,25 +42,6 @@ struct DDA {
     *cellBorder *= cellSpacing;
   }
   
-  DDA(thread float3 *cellBorder,
-      float3 rayOrigin,
-      float3 rayDirection,
-      float3 gridLowerCorner,
-      float3 gridUpperCorner,
-      float minimumTime) {
-    dtdx = precise::divide(1, rayDirection);
-    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
-    
-    float3 origin = rayOrigin + minimumTime * rayDirection;
-    origin = max(origin, gridLowerCorner);
-    origin = min(origin, gridUpperCorner);
-    
-    *cellBorder = origin;
-    *cellBorder /= 0.25;
-    *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
-    *cellBorder *= 0.25;
-  }
-  
   float3 cellLowerCorner(float3 cellBorder) const {
     float3 output = cellBorder;
     output += select(float3(dx), float3(0), dtdx >= 0);
@@ -317,6 +298,20 @@ struct DDA {
   //   - 26.82% divergence
   //
   // Merging the large lower corner with the ray's origin.
+  // - 3.8 ms
+  // - per-line statistics:
+  //   - 70% ALU time
+  //   - 25% control flow time
+  //   - 38.29% primary ray
+  //   - 50.76% secondary rays
+  // - overall shader statistics:
+  //   - 993 instructions
+  //   - 4.005 billion instructions issued
+  //   - 26.73% divergence
+  //
+  // Remaining optimizations to instruction count.
+  //
+  // Attempting to reduce load imbalance of divergent halting.
 };
 
 #endif // DDA_H
