@@ -67,7 +67,7 @@ struct RayIntersector {
   }
   
   // Fills the memory tape with large voxels.
-  void fillMemoryTape(thread float3 &cursorCellBorder,
+  void fillMemoryTape(thread float3 &largeCellBorder,
                       thread ushort &acceptedVoxelCount,
                       thread bool &outOfBounds,
                       IntersectionQuery intersectionQuery,
@@ -81,30 +81,26 @@ struct RayIntersector {
 //      }
       
       // Compute the lower corner.
-      float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
+      float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
+      if (any(largeCellBorder <= -64) ||
+          any(largeCellBorder >= 64)) {
         outOfBounds = true;
         return;
       }
       
-      // If the large cell has small cells, proceed.
+      // Retrieve the large metadata.
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+      float3 currentTimes =
+      (largeCellBorder - intersectionQuery.rayOrigin) * dda.dtdx;
+      
       if (largeMetadata[0] > 0) {
-        // Prepare the edge of the large cell.
-        float3 axisMinimumTimes =
-        (cursorCellBorder - intersectionQuery.rayOrigin) * dda.dtdx;
-        axisMinimumTimes = max(axisMinimumTimes, 0);
-        axisMinimumTimes = min(axisMinimumTimes, 1e38);
-        
         // Find the minimum time.
-        float minimumTime;
-        if (all(axisMinimumTimes > 0)) {
-          minimumTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
-          minimumTime = min(minimumTime, axisMinimumTimes[2]);
-        } else {
-          minimumTime = 0;
-        }
+        float minimumTime = 1e38;
+        minimumTime = min(currentTimes[0], minimumTime);
+        minimumTime = min(currentTimes[1], minimumTime);
+        minimumTime = min(currentTimes[2], minimumTime);
+        minimumTime = max(minimumTime, float(0));
         
         // Encode the key.
         uint2 largeKey;
@@ -118,8 +114,8 @@ struct RayIntersector {
       }
       
       // Fast forward to the next large voxel.
-      cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
-                                             intersectionQuery.rayOrigin);
+      float3 nextTimes = currentTimes + float3(dda.dx) * dda.dtdx;
+      largeCellBorder = dda.nextSmallBorder(largeCellBorder, nextTimes);
     }
   }
   
@@ -268,11 +264,12 @@ struct RayIntersector {
                                                     smallLowerCorner,
                                                     largeMetadata[0]);
         
+        float3 nextTimes = smallDDA
+          .nextTimes(smallCellBorder, shiftedRayOrigin);
         if (smallMetadata[1] > 0) {
           // Compute the voxel maximum time.
           float voxelMaximumHitTime = smallDDA
-            .voxelMaximumHitTime(smallCellBorder,
-                                 shiftedRayOrigin);
+            .voxelMaximumHitTime(smallCellBorder, nextTimes);
           
           // Set the distance register.
           result.distance = voxelMaximumHitTime;
@@ -293,8 +290,7 @@ struct RayIntersector {
         }
         
         // Increment to the next small voxel.
-        smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder,
-                                                   shiftedRayOrigin);
+        smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder, nextTimes);
       }
     }
     
@@ -316,9 +312,10 @@ struct RayIntersector {
     
     while (!result.accept) {
       // Compute the voxel maximum time.
+      float3 nextTimes = dda
+        .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);
       float voxelMaximumHitTime = dda
-        .voxelMaximumHitTime(smallCellBorder,
-                             intersectionQuery.rayOrigin);
+        .voxelMaximumHitTime(smallCellBorder, nextTimes);
       
       // This cutoff is parameterized for small voxels, where the distance
       // is 0.25 nm. If you switch to testing a different voxel size, the
@@ -365,8 +362,7 @@ struct RayIntersector {
       }
       
       // Increment to the next small voxel.
-      smallCellBorder = dda.nextSmallBorder(smallCellBorder,
-                                            intersectionQuery.rayOrigin);
+      smallCellBorder = dda.nextSmallBorder(smallCellBorder, nextTimes);
     }
     
     return result;

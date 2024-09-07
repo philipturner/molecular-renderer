@@ -203,6 +203,7 @@ import Numerics
 //   - Reduce the cost of divergent halting.
 //   - Reduce divergence during atom intersection (primary ray).
 //   - Reduce divergence during atom intersection (secondary rays).
+// - Upgrade from 128 nm to 512 nm world volume.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the

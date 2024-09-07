@@ -48,10 +48,13 @@ struct DDA {
     return output;
   }
   
-  float voxelMaximumHitTime(float3 cellBorder, float3 rayOrigin) const {
+  float3 nextTimes(float3 cellBorder, float3 rayOrigin) const {
     float3 nextBorder = cellBorder + float3(dx);
     float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
-    
+    return nextTimes;
+  }
+  
+  float voxelMaximumHitTime(float3 cellBorder, float3 nextTimes) const {
     float smallestNextTime;
     if (nextTimes[0] < nextTimes[1] &&
         nextTimes[0] < nextTimes[2]) {
@@ -64,10 +67,7 @@ struct DDA {
     return smallestNextTime;
   }
   
-  float3 nextSmallBorder(float3 cellBorder, float3 rayOrigin) const {
-    float3 nextBorder = cellBorder + float3(dx);
-    float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
-    
+  float3 nextSmallBorder(float3 cellBorder, float3 nextTimes) const {
     float3 output = cellBorder;
     if (nextTimes[0] < nextTimes[1] &&
         nextTimes[0] < nextTimes[2]) {
@@ -312,6 +312,14 @@ struct DDA {
   // Remaining optimizations to instruction count.
   // - 961 instructions / 3.926 billion issued
   // - 958 instructions / 3.882 billion issued
+  // - 955 instructions / 3.829 billion issued
+  // - 955 instructions / 3.825 billion issued
+  //
+  // - 946 instructions / 4.057 billion issued
+  // - 949 instructions / 4.116 billion issued
+  // - 948 instructions / 4.039 billion issued
+  // - 948 instructions / 4.046 billion issued
+  // - 942 instructions / 3.984 billion issued
 };
 
 #endif // DDA_H
