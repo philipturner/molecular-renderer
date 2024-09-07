@@ -368,7 +368,7 @@ struct DDA {
   //   - 4.155 billion instructions issued
   //   - 27.96% divergence
   //
-  // Before expanding the world volume.
+  // Before expanding the world volume (128 nm).
   // - 3.6 ms
   // - per-line statistics:
   //   - 39.37% primary ray
@@ -377,6 +377,19 @@ struct DDA {
   //   - 945 instructions
   //   - 4.096 billion instructions issued
   //   - 27.94% divergence
+  //
+  // Expanding the world volume to 256 nm.
+  // - 4.1 ms
+  // - per-line statistics:
+  //   - 48.70% primary ray
+  //   - 41.52% secondary rays
+  // - overall shader statistics:
+  //   - 945 instructions
+  //   - 5.032 billion instructions issued
+  //   - 24.84% divergence
+  //
+  // 948 instructions / 4.926 billion instructions issued
+  // 949 instructions / 4.929 billion instructions issued
 };
 
 #endif // DDA_H
