@@ -216,6 +216,10 @@ struct RayIntersector {
           break;
         }
         
+//        if (simd_any(memoryTapeStart >= memoryTapeEnd)) {
+//          break;
+//        }
+        
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {
           // Read from threadgroup memory.
