@@ -182,7 +182,7 @@ struct RayIntersector {
 //      globalFaultCounter += 1;
 //      if (globalFaultCounter > maxFaultCounter()) {
 //        errorCode = 2;
-//        break;
+//        return result;
 //      }
       
       // Loop over ~8 large voxels.
@@ -201,91 +201,110 @@ struct RayIntersector {
       bool initializedSmallDDA = false;
       
       // Allocate the large cell metadata.
+      ushort largeVoxelCursor = 0;
       uint4 largeMetadata;
       float3 shiftedRayOrigin;
       
       // Loop over ~64 small voxels.
-      ushort voxelID = 0;
-      while (voxelID < acceptedLargeVoxelCount) {
+      while (largeVoxelCursor < acceptedLargeVoxelCount) {
 //        globalFaultCounter += 1;
 //        if (globalFaultCounter > maxFaultCounter()) {
 //          errorCode = 3;
-//          break;
+//          return result;
 //        }
         
-        // Regenerate the small DDA.
-        if (!initializedSmallDDA) {
-          // Read from threadgroup memory.
-          ushort threadgroupAddress = voxelID;
-          threadgroupAddress = threadgroupAddress * 64 + threadIndex;
-          uint2 largeKey = threadgroupMemory[threadgroupAddress];
+        ushort2 acceptedSmallMetadata = 0;
+        float acceptedVoxelMaximumHitTime;
+        while (acceptedSmallMetadata[1] == 0) {
+//          globalFaultCounter += 1;
+//          if (globalFaultCounter > maxFaultCounter()) {
+//            errorCode = 4;
+//            return result;
+//          }
           
-          // Decode the key.
-          uint compactedLargeCellID = largeKey[0];
-          float minimumTime = as_type<float>(largeKey[1]);
+          // Regenerate the small DDA.
+          if (!initializedSmallDDA) {
+            // Read from threadgroup memory.
+            ushort threadgroupAddress = largeVoxelCursor;
+            threadgroupAddress = threadgroupAddress * 64 + threadIndex;
+            uint2 largeKey = threadgroupMemory[threadgroupAddress];
+            
+            // Decode the key.
+            uint compactedLargeCellID = largeKey[0];
+            float minimumTime = as_type<float>(largeKey[1]);
+            
+            // Retrieve the large cell metadata.
+            largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
+            uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
+            float3 cellCoordinates = float3(compressedCellCoordinates.xyz);
+            largeMetadata[0] = compactedLargeCellID;
+            
+            // Compute the voxel bounds.
+            shiftedRayOrigin = intersectionQuery.rayOrigin;
+            shiftedRayOrigin -= -64;
+            shiftedRayOrigin -= cellCoordinates * 2;
+            
+            // Initialize the inner DDA.
+            float3 direction = intersectionQuery.rayDirection;
+            float3 origin = shiftedRayOrigin + minimumTime * direction;
+            origin = max(origin, 0);
+            origin = min(origin, 2);
+            smallDDA = DDA(&smallCellBorder,
+                           origin,
+                           direction,
+                           0.25);
+            initializedSmallDDA = true;
+          }
           
-          // Retrieve the large cell metadata.
-          largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
-          uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
-          float3 cellCoordinates = float3(compressedCellCoordinates.xyz);
-          largeMetadata[0] = compactedLargeCellID;
+          // Check whether the DDA has gone out of bounds.
+          float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
+          if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
+            largeVoxelCursor += 1;
+            initializedSmallDDA = false;
+            break; // search for occupied voxel
+          }
           
-          // Compute the voxel bounds.
-          shiftedRayOrigin = intersectionQuery.rayOrigin;
-          shiftedRayOrigin -= -64;
-          shiftedRayOrigin -= cellCoordinates * 2;
+          // Retrieve the small cell metadata.
+          ushort2 smallMetadata = this->smallMetadata(smallLowerCorner,
+                                                      largeMetadata[0]);
+          float3 nextTimes = smallDDA
+            .nextTimes(smallCellBorder, shiftedRayOrigin);
           
-          // Initialize the inner DDA.
-          float3 direction = intersectionQuery.rayDirection;
-          float3 origin = shiftedRayOrigin + minimumTime * direction;
-          origin = max(origin, 0);
-          origin = min(origin, 2);
-          smallDDA = DDA(&smallCellBorder,
-                         origin,
-                         direction,
-                         0.25);
-          initializedSmallDDA = true;
+          // Save the voxel maximum time.
+          if (smallMetadata[1] > 0) {
+            acceptedSmallMetadata = smallMetadata;
+            acceptedVoxelMaximumHitTime = smallDDA
+              .voxelMaximumHitTime(smallCellBorder, nextTimes);
+          }
+          
+          // Increment to the next small voxel.
+          smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder, nextTimes);
+          
+          // Exit the inner loop.
+          if (smallMetadata[1] > 0) {
+            break; // search for occupied voxel
+          }
         }
         
-        // Check whether the DDA has gone out of bounds.
-        float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
-        if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
-          initializedSmallDDA = false;
-          voxelID += 1;
-          continue;
-        }
-        
-        // Retrieve the small cell metadata.
-        ushort2 smallMetadata = this->smallMetadata(smallLowerCorner,
-                                                    largeMetadata[0]);
-        float3 nextTimes = smallDDA
-          .nextTimes(smallCellBorder, shiftedRayOrigin);
-        
-        if (smallMetadata[1] > 0) {
-          // Compute the voxel maximum time.
-          float voxelMaximumHitTime = smallDDA
-            .voxelMaximumHitTime(smallCellBorder, nextTimes);
-          
+        // Test the atoms.
+        if (acceptedSmallMetadata[1] > 0) {
           // Set the distance register.
-          result.distance = voxelMaximumHitTime;
+          result.distance = acceptedVoxelMaximumHitTime;
           
           // Test the atoms in the accepted voxel.
           testCell(result,
                    shiftedRayOrigin,
                    intersectionQuery.rayDirection,
                    largeMetadata,
-                   smallMetadata);
+                   acceptedSmallMetadata);
           
           // Check whether we found a hit.
-          if (result.distance < voxelMaximumHitTime) {
+          if (result.distance < acceptedVoxelMaximumHitTime) {
             result.accept = true;
             outOfBounds = true;
-            voxelID = acceptedLargeVoxelCount;
+            largeVoxelCursor = acceptedLargeVoxelCount;
           }
         }
-        
-        // Increment to the next small voxel.
-        smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder, nextTimes);
       }
     }
     
