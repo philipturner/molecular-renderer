@@ -62,7 +62,7 @@ kernel void renderAtoms
   IntersectionQuery query;
   query.rayOrigin = primaryRayOrigin;
   query.rayDirection = primaryRayDirection;
-  auto intersect = rayIntersector.intersectPrimary2(query);
+  auto intersect = rayIntersector.intersectPrimary(query);
   uint primaryErrorCode = rayIntersector.errorCode;
   
   // Calculate the contributions from diffuse, specular, and AO.

@@ -40,7 +40,7 @@ struct RayIntersector {
   uint globalFaultCounter = 0;
   uint errorCode = 0;
   static uint maxFaultCounter() {
-    return 300;
+    return 200;
   }
   
   // Retrieves the large cell metadata from the uncompacted buffer.
@@ -55,13 +55,12 @@ struct RayIntersector {
   // Retrieves the small cell metadata from the compacted buffer.
   ushort2 smallMetadata(float3 largeLowerCorner,
                         float3 smallLowerCorner,
-                        uint4 largeMetadata) const
+                        uint compactedLargeCellID) const
   {
     float3 coordinates = (smallLowerCorner - largeLowerCorner) / 0.25;
     float localAddress =
     VoxelAddress::generate<float, float>(8, coordinates);
     
-    uint compactedLargeCellID = largeMetadata[0];
     uint compactedGlobalAddress =
     compactedLargeCellID * 512 + uint(localAddress);
     return compactedSmallCellMetadata[compactedGlobalAddress];
@@ -98,56 +97,6 @@ struct RayIntersector {
         acceptedVoxelCount += 1;
       }
       
-      // Fast forward to the next large voxel.
-      cursorCellBorder = dda
-        .nextLargeBorder(cursorCellBorder,
-                         intersectionQuery.rayOrigin,
-                         intersectionQuery.rayDirection);
-    }
-  }
-  
-  // Finds the next small voxel, without checking small voxels in vacant large
-  // voxels.
-  void searchForNextCell(thread float3 &cursorCellBorder,
-                         thread ushort &acceptedVoxelCount,
-                         thread bool &outOfBounds,
-                         thread uint &acceptedBorderCode,
-                         IntersectionQuery intersectionQuery,
-                         const DDA dda)
-  {
-    // Compute the lower corner.
-    float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
-    float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-    if (any(largeLowerCorner < -64) || any(largeLowerCorner >= 64)) {
-      outOfBounds = true;
-      return;
-    }
-    
-    // If the large cell has small cells, proceed.
-    uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
-    if (largeMetadata[0] > 0) {
-      ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
-                                                  smallLowerCorner,
-                                                  largeMetadata);
-      if (smallMetadata[1] > 0) {
-        // Encode the small cell coordinates.
-        float3 coordinates2 = (smallLowerCorner - largeLowerCorner) / 0.25;
-        uint3 cellIndex2 = uint3(coordinates2);
-        uint borderCode2 = 0;
-        borderCode2 += cellIndex2[0] << 0;
-        borderCode2 += cellIndex2[1] << 3;
-        borderCode2 += cellIndex2[2] << 6;
-        
-        // Encode the compacted large cell ID.
-        uint borderCode1 = largeMetadata[0];
-        acceptedBorderCode = (borderCode1 << 9) | borderCode2;
-        acceptedVoxelCount = 1;
-      }
-      
-      // Increment to the next small voxel.
-      cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
-                                             intersectionQuery.rayOrigin);
-    } else {
       // Fast forward to the next large voxel.
       cursorCellBorder = dda
         .nextLargeBorder(cursorCellBorder,
@@ -209,89 +158,7 @@ struct RayIntersector {
   
   // BVH traversal algorithm for primary rays. These rays must jump very
   // large distances, but have minimal divergence.
-  IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery)
-  {
-    float3 cursorCellBorder;
-    const DDA dda(&cursorCellBorder,
-                  intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection);
-    
-    IntersectionResult result;
-    result.accept = false;
-    
-    bool outOfBounds = false;
-    while (!outOfBounds) {
-      ushort acceptedVoxelCount = 0;
-      uint acceptedBorderCode = 0;
-      while (acceptedVoxelCount == 0) {
-        searchForNextCell(cursorCellBorder,
-                          acceptedVoxelCount,
-                          outOfBounds,
-                          acceptedBorderCode,
-                          intersectionQuery,
-                          dda);
-        if (outOfBounds) {
-          break;
-        }
-      }
-      
-      if (acceptedVoxelCount > 0) {
-        // Retrieve the large cell metadata.
-        uint compactedLargeCellID = acceptedBorderCode >> 9;
-        uint4 largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
-        uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
-        uint3 cellIndex1 = uint3(compressedCellCoordinates.xyz);
-        
-        // Decode the small cell coordinates.
-        uint borderCode2 = acceptedBorderCode & 511;
-        uint3 cellIndex2;
-        cellIndex2[0] = (borderCode2 >> 0) & 7;
-        cellIndex2[1] = (borderCode2 >> 3) & 7;
-        cellIndex2[2] = (borderCode2 >> 6) & 7;
-        
-        // Decode the lower corner.
-        float3 coordinates1 = float3(cellIndex1);
-        float3 coordinates2 = float3(cellIndex2);
-        float3 largeLowerCorner = coordinates1 * 2 - 64;
-        float3 smallLowerCorner = coordinates2 * 0.25 + largeLowerCorner;
-        
-        // Compute the voxel maximum time.
-        float3 acceptedSmallCellBorder = smallLowerCorner;
-        acceptedSmallCellBorder +=
-        select(float3(-dda.dx), float3(0), dda.dtdx >= 0);
-        float voxelMaximumHitTime = dda
-          .voxelMaximumHitTime(acceptedSmallCellBorder,
-                               intersectionQuery.rayOrigin);
-        
-        // Retrieve the small cell metadata.
-        uint compactedGlobalAddress =
-        compactedLargeCellID * 512 + borderCode2;
-        ushort2 smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
-        
-        // Set the distance register.
-        result.distance = voxelMaximumHitTime;
-        
-        // Test the atoms in the accepted voxel.
-        testCell(result,
-                 largeLowerCorner,
-                 largeMetadata,
-                 smallMetadata,
-                 intersectionQuery,
-                 dda);
-        
-        // Check whether we found a hit.
-        if (result.distance < voxelMaximumHitTime) {
-          result.accept = true;
-          outOfBounds = true;
-          break; // for loop
-        }
-      }
-    }
-    
-    return result;
-  }
-  
-  IntersectionResult intersectPrimary2(IntersectionQuery intersectionQuery) {
+  IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery) {
     // Initialize the outer DDA.
     float3 largeCellBorder;
     const DDA largeDDA(&largeCellBorder,
@@ -459,7 +326,7 @@ struct RayIntersector {
       if (largeMetadata[0] > 0) {
         ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
                                                     smallLowerCorner,
-                                                    largeMetadata);
+                                                    largeMetadata[0]);
         if (smallMetadata[1] > 0) {
           // Set the distance register.
           result.distance = voxelMaximumHitTime;

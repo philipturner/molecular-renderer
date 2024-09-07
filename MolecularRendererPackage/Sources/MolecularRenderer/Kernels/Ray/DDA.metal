@@ -332,6 +332,22 @@ struct DDA {
     //   - 992 instructions
     //   - 5.018 billion instructions issued
     //   - 22.34% divergence
+    //
+    // Initial speculative searching.
+    // - 4.9 ms
+    // - per-line statistics:
+    //   - 75% ALU time
+    //   - 15% control flow time
+    //   - 43.08% primary ray
+    //   - 46.21% secondary rays
+    // - overall shader statistics:
+    //   - 1062 instructions
+    //   - 6.133 billion instructions issued
+    //   - 18.36% divergence
+    //
+    // Reducing the instruction count a little bit.
+    //
+    // Restructuring the loop to reduce divergence.
     
     return output;
   }
