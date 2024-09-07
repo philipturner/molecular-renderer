@@ -36,6 +36,43 @@ struct DDA {
     *cellBorder *= 0.25;
   }
   
+  DDA(thread float3 *cellBorder,
+      float3 rayOrigin,
+      float3 rayDirection,
+      float3 gridLowerCorner,
+      float3 gridUpperCorner) {
+    dtdx = precise::divide(1, rayDirection);
+    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
+    
+    float3 axisMinimumTimes = float3(0);
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 3; ++i) {
+      float t1 = (gridLowerCorner[i] - rayOrigin[i]) * dtdx[i];
+      float t2 = (gridUpperCorner[i] - rayOrigin[i]) * dtdx[i];
+      float tmin = min(t1, t2);
+      tmin = min(tmin, float(1e38));
+      tmin = max(tmin, float(0));
+      axisMinimumTimes[i] = tmin;
+    }
+    
+    float3 origin;
+    if (all(axisMinimumTimes > 0)) {
+      float3 minTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
+      minTime = min(minTime, axisMinimumTimes[2]);
+      origin = rayOrigin + minTime * rayDirection;
+    } else {
+      origin = rayOrigin;
+    }
+    
+    origin = max(origin, gridLowerCorner);
+    origin = min(origin, gridUpperCorner);
+    
+    *cellBorder = origin;
+    *cellBorder /= 0.25;
+    *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
+    *cellBorder *= 0.25;
+  }
+  
   float3 cellLowerCorner(float3 cellBorder) const {
     float3 output = cellBorder;
     output += select(float3(dx), float3(0), dtdx >= 0);

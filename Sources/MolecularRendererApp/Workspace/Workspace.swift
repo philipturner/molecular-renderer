@@ -184,14 +184,22 @@ import Numerics
 //   - Test for correctness and performance changes. [DONE]
 // - Try speculative searching of the BVH.
 //   - Buffer up the next few small cells. [DONE]
-//   - Revert to the traversal method from before this change.
+//   - Revert to the traversal method from before this change. [DONE]
 //   - Buffer up the next few large cells in a separate DDA.
+//     - The large DDA repeatedly calls 'nextLargeBorder'.
+//     - The small DDA properly handles bounds of the 2 nm large voxel.
+//     - Save each subsequently found large voxel in the memory tape.
+//     - The small DDA halts when it runs out of large voxels to test.
+//   - Make the large DDA iterate over a 2 nm grid with the same algorithm as
+//     'nextSmallBorder'.
+//   - Attempt to reduce the cost of divergent halting.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the
-//     world grid.
+//     world grid. [DONE]
 //   - Re-implement the bounding box reduction.
 //   - Find a good way to bind the bounding box to the render kernel.
+//   - Measure a performance improvement.
 
 #if true
 
