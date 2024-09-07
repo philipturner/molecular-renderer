@@ -74,11 +74,11 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedVoxelCount < 16) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 1;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 1;
+//        break;
+//      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
@@ -98,10 +98,8 @@ struct RayIntersector {
       }
       
       // Fast forward to the next large voxel.
-      cursorCellBorder = dda
-        .nextLargeBorder(cursorCellBorder,
-                         intersectionQuery.rayOrigin,
-                         intersectionQuery.rayDirection);
+      cursorCellBorder = dda.nextSmallBorder(cursorCellBorder,
+                                             intersectionQuery.rayOrigin);
     }
   }
   
@@ -163,18 +161,19 @@ struct RayIntersector {
     float3 largeCellBorder;
     const DDA largeDDA(&largeCellBorder,
                        intersectionQuery.rayOrigin,
-                       intersectionQuery.rayDirection);
+                       intersectionQuery.rayDirection,
+                       2.00);
     
     IntersectionResult result;
     result.accept = false;
     
     bool outOfBounds = false;
     while (!result.accept && !outOfBounds) {
-      globalFaultCounter += 1;
-      if (globalFaultCounter > maxFaultCounter()) {
-        errorCode = 2;
-        break;
-      }
+//      globalFaultCounter += 1;
+//      if (globalFaultCounter > maxFaultCounter()) {
+//        errorCode = 2;
+//        break;
+//      }
       
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
@@ -188,11 +187,11 @@ struct RayIntersector {
       
       // Loop over ~128 small voxels.
       for (ushort i = 0; i < acceptedVoxelCount; ++i) {
-        globalFaultCounter += 1;
-        if (globalFaultCounter > maxFaultCounter()) {
-          errorCode = 3;
-          break;
-        }
+//        globalFaultCounter += 1;
+//        if (globalFaultCounter > maxFaultCounter()) {
+//          errorCode = 3;
+//          break;
+//        }
         
         // Read from threadgroup memory.
         uint threadgroupAddress = i * 64 + threadIndex;
@@ -217,11 +216,11 @@ struct RayIntersector {
                            largeUpperCorner);
         
         while (!result.accept) {
-          globalFaultCounter += 1;
-          if (globalFaultCounter > maxFaultCounter()) {
-            errorCode = 4;
-            break;
-          }
+//          globalFaultCounter += 1;
+//          if (globalFaultCounter > maxFaultCounter()) {
+//            errorCode = 4;
+//            break;
+//          }
           
           // Compute the lower corner.
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
@@ -233,15 +232,9 @@ struct RayIntersector {
           }
           
           // Retrieve the small cell metadata.
-          float3 coordinates2 = (smallLowerCorner - largeLowerCorner) / 0.25;
-          uint3 cellIndex2 = uint3(coordinates2);
-          uint borderCode2 = 0;
-          borderCode2 += cellIndex2[0] << 0;
-          borderCode2 += cellIndex2[1] << 3;
-          borderCode2 += cellIndex2[2] << 6;
-          uint compactedGlobalAddress =
-          compactedLargeCellID * 512 + borderCode2;
-          ushort2 smallMetadata = compactedSmallCellMetadata[compactedGlobalAddress];
+          ushort2 smallMetadata = this->smallMetadata(largeLowerCorner,
+                                                      smallLowerCorner,
+                                                      compactedLargeCellID);
           
           if (smallMetadata[1] > 0) {
             // Compute the voxel maximum time.
@@ -280,10 +273,6 @@ struct RayIntersector {
       }
     }
     
-    if (result.accept) {
-      errorCode = 0;
-    }
-    
     return result;
   }
   
@@ -294,7 +283,8 @@ struct RayIntersector {
     float3 cursorCellBorder;
     const DDA dda(&cursorCellBorder,
                   intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection);
+                  intersectionQuery.rayDirection,
+                  0.25);
     
     IntersectionResult result;
     result.accept = false;

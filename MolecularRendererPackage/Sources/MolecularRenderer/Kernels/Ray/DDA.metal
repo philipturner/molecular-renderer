@@ -26,14 +26,15 @@ struct DDA {
   
   DDA(thread float3 *cellBorder,
       float3 rayOrigin,
-      float3 rayDirection) {
+      float3 rayDirection,
+      float cellSpacing) {
     dtdx = precise::divide(1, rayDirection);
-    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
+    dx = select(half3(-cellSpacing), half3(cellSpacing), dtdx >= 0);
     
     *cellBorder = rayOrigin;
-    *cellBorder /= 0.25;
+    *cellBorder /= cellSpacing;
     *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
-    *cellBorder *= 0.25;
+    *cellBorder *= cellSpacing;
   }
   
   DDA(thread float3 *cellBorder,
@@ -111,9 +112,9 @@ struct DDA {
     return output;
   }
   
-  float3 nextLargeBorder(float3 cellBorder, 
-                         float3 rayOrigin,
-                         float3 rayDirection) const {
+  float3 nextLargeBorderUnused(float3 cellBorder,
+                               float3 rayOrigin,
+                               float3 rayDirection) const {
     // Round current coordinates down to 2.0 nm.
     float3 nextBorder = cellBorder;
     nextBorder /= 2.00;
@@ -346,6 +347,16 @@ struct DDA {
     //   - 18.36% divergence
     //
     // Reducing the instruction count a little bit.
+    // - 4.2 ms
+    // - per-line statistics:
+    //   - 75% ALU time
+    //   - 20% control flow time
+    //   - 41.46% primary ray
+    //   - 47.01% secondary rays
+    // - overall shader statistics:
+    //   - 1005 instructions
+    //   - 4.599 billion instructions issued
+    //   - 23.84% divergence
     //
     // Restructuring the loop to reduce divergence.
     

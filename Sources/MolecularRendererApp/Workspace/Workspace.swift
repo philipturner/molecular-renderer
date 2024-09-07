@@ -182,7 +182,7 @@ import Numerics
 //   - Bind the compacted large-cell metadata to the render kernel. [DONE]
 //   - Modify the existing algorithm for compressing cell addresses. [DONE]
 //   - Test for correctness and performance changes. [DONE]
-// - Try speculative searching of the BVH.
+// - Try speculative searching of the BVH. [DONE]
 //   - Buffer up the next few small cells. [DONE]
 //   - Revert to the traversal method from before this change. [DONE]
 //   - Buffer up the next few large cells in a separate DDA. [DONE]
@@ -191,7 +191,7 @@ import Numerics
 //     - Each large voxel is iterated over in a loop. All of its small voxels
 //       are tested before moving to the next one. [DONE]
 //     - The small DDA properly handles bounds of the 2 nm large voxel. [DONE]
-//  - Optimize the large DDA iterations.
+//  - Optimize the large DDA iterations. [DONE]
 //  - Reduce divergence of the small DDA iterations.
 //    - A new small DDA is reinitialized on the fly.
 //    - The small DDA loop halts when it runs out of large voxels to test.

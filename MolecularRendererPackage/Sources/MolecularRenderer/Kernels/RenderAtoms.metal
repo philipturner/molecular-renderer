@@ -63,7 +63,6 @@ kernel void renderAtoms
   query.rayOrigin = primaryRayOrigin;
   query.rayDirection = primaryRayDirection;
   auto intersect = rayIntersector.intersectPrimary(query);
-  uint primaryErrorCode = rayIntersector.errorCode;
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
@@ -155,6 +154,6 @@ kernel void renderAtoms
                                     previousHitPoint);
     }
   }
-  colorCtx.registerErrorCode(primaryErrorCode);
+  colorCtx.registerErrorCode(rayIntersector.errorCode);
   colorCtx.write(colorTexture, depthTexture, motionTexture);
 }
