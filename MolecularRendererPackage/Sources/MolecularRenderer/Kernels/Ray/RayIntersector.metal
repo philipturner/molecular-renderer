@@ -68,25 +68,22 @@ struct RayIntersector {
   
   // Fills the memory tape with large voxels.
   void fillMemoryTape(thread float3 &nextTimes,
-                      thread float3 &smallLowerCorner,
+                      thread float3 &largeLowerCorner,
                       thread bool &outOfBounds,
                       thread ushort &acceptedLargeVoxelCount,
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
-    
-    
     while (acceptedLargeVoxelCount < 8) {
       // Compute the lower corner.
-      if (any(smallLowerCorner < -float(worldVolumeInNm / 2) ||
-              smallLowerCorner >= float(worldVolumeInNm / 2))) {
+      if (any(largeLowerCorner < 0 ||
+              largeLowerCorner >= float(worldVolumeInNm))) {
         outOfBounds = true;
         return;
       }
       
       // Retrieve the large metadata.
-      float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      float3 coordinates = largeLowerCorner + float(worldVolumeInNm / 2);
+      float3 coordinates = largeLowerCorner;
       coordinates /= 2;
       float address = VoxelAddress::generate(largeVoxelGridWidth,
                                              coordinates);
@@ -119,13 +116,13 @@ struct RayIntersector {
       if (nextTimes[0] < nextTimes[1] &&
           nextTimes[0] < nextTimes[2]) {
         nextTimes[0] += dda.dx[0] * dda.dtdx[0];
-        smallLowerCorner[0] += dda.dx[0];
+        largeLowerCorner[0] += dda.dx[0];
       } else if (nextTimes[1] < nextTimes[2]) {
         nextTimes[1] += dda.dx[1] * dda.dtdx[1];
-        smallLowerCorner[1] += dda.dx[1];
+        largeLowerCorner[1] += dda.dx[1];
       } else {
         nextTimes[2] += dda.dx[2] * dda.dtdx[2];
-        smallLowerCorner[2] += dda.dx[2];
+        largeLowerCorner[2] += dda.dx[2];
       }
     }
   }
@@ -180,21 +177,28 @@ struct RayIntersector {
   // large distances, but have minimal divergence.
   IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery) {
     // Initialize the outer DDA.
-    float3 _largeCellBorder;
-    const DDA largeDDA(&_largeCellBorder,
-                       intersectionQuery.rayOrigin,
-                       intersectionQuery.rayDirection,
-                       2.00);
+    float3 _nextTimes;
+    float3 _largeLowerCorner;
+    DDA largeDDA;
     
-    float3 borderOffset = float3(largeDDA.dx);
-    borderOffset -= intersectionQuery.rayOrigin;
-    borderOffset *= largeDDA.dtdx;
-    float3 _nextTimes = _largeCellBorder * largeDDA.dtdx + borderOffset;
-    
-    float3 _smallLowerCorner = _largeCellBorder;
-    _smallLowerCorner += select(float3(largeDDA.dx),
-                                float3(0),
-                                largeDDA.dtdx >= 0);
+    {
+      float3 largeCellBorder;
+      largeDDA = DDA(&largeCellBorder,
+                     intersectionQuery.rayOrigin,
+                     intersectionQuery.rayDirection,
+                     2.00);
+      
+      float3 borderOffset = float3(largeDDA.dx);
+      borderOffset -= intersectionQuery.rayOrigin;
+      borderOffset *= largeDDA.dtdx;
+      _nextTimes = largeCellBorder * largeDDA.dtdx + borderOffset;
+      
+      _largeLowerCorner = largeCellBorder;
+      _largeLowerCorner += select(float3(largeDDA.dx),
+                                  float3(0),
+                                  largeDDA.dtdx >= 0);
+      _largeLowerCorner += float(worldVolumeInNm / 2);
+    }
     
     IntersectionResult result;
     result.accept = false;
@@ -204,7 +208,7 @@ struct RayIntersector {
       // Loop over ~8 large voxels.
       ushort acceptedLargeVoxelCount = 0;
       fillMemoryTape(_nextTimes,
-                     _smallLowerCorner,
+                     _largeLowerCorner,
                      outOfBounds,
                      acceptedLargeVoxelCount,
                      intersectionQuery,
@@ -229,12 +233,6 @@ struct RayIntersector {
         
         // Loop over all ~64 small voxels.
         while (acceptedSmallMetadata[1] == 0) {
-//          globalFaultCounter += 1;
-//          if (globalFaultCounter > maxFaultCounter()) {
-//            errorCode = 3;
-//            return result;
-//          }
-          
           // Regenerate the small DDA.
           if (!initializedSmallDDA) {
             // Read from threadgroup memory.
@@ -333,12 +331,6 @@ struct RayIntersector {
     result.accept = false;
     
     while (!result.accept) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 1;
-//        return result;
-//      }
-      
       // Compute the voxel maximum time.
       float3 nextTimes = dda
         .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);

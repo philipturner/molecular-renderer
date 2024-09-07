@@ -388,9 +388,11 @@ struct DDA {
   //   - 5.032 billion instructions issued
   //   - 24.84% divergence
   //
-  // 948 instructions / 4.926 billion instructions issued
-  // 949 instructions / 4.929 billion instructions issued
-  // 950 instructions / 4.800 billion instructions issued
+  // 948 instructions / 4.926 billion issued
+  // 949 instructions / 4.929 billion issued
+  // 950 instructions / 4.800 billion issued
+  // 946 instructions / 4.665 billion issued
+  // 945 instructions / 4.562 billion issued
 };
 
 #endif // DDA_H
