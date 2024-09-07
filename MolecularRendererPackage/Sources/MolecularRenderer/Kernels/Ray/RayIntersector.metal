@@ -230,13 +230,22 @@ struct RayIntersector {
           axisMinimumTimes = max(axisMinimumTimes, 0);
           axisMinimumTimes = min(axisMinimumTimes, 1e38);
           
+          // Find the minimum time.
+          float minimumTime;
+//          if (all(axisMinimumTimes > 0)) {
+//            minimumTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
+//            minimumTime = min(minimumTime, axisMinimumTimes[2]);
+//          } else {
+            minimumTime = 0;
+//          }
+          
           // Initialize the inner DDA.
           smallDDA = DDA(&smallCellBorder,
                          intersectionQuery.rayOrigin,
                          intersectionQuery.rayDirection,
                          largeLowerCorner,
                          largeUpperCorner,
-                         axisMinimumTimes);
+                         minimumTime);
           initializedSmallDDA = true;
         }
         

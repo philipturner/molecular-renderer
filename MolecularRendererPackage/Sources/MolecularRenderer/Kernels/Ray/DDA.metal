@@ -47,34 +47,38 @@ struct DDA {
       float3 rayDirection,
       float3 gridLowerCorner,
       float3 gridUpperCorner,
-      float3 axisMinimumTimes) {
+      float3 minimumTime2) {
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
     
-    /*
-    float3 axisMinimumTimes = float3(0);
+    
+    float3 axisMinimumTimes;
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
       float t1 = (gridLowerCorner[i] - rayOrigin[i]) * dtdx[i];
       float t2 = (gridUpperCorner[i] - rayOrigin[i]) * dtdx[i];
       float tmin = min(t1, t2);
       tmin = min(tmin, float(1e38));
-      tmin = max(tmin, float(0));
+//      tmin = max(tmin, float(0));
       axisMinimumTimes[i] = tmin;
     }
-     */
-     
-    float3 origin;
-    if (all(axisMinimumTimes > 0)) {
-      float minTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
-      minTime = min(minTime, axisMinimumTimes[2]);
-      origin = rayOrigin + minTime * rayDirection;
-    } else {
-      origin = rayOrigin;
-    }
     
-    origin = max(origin, gridLowerCorner);
-    origin = min(origin, gridUpperCorner);
+    float minimumTime;
+    minimumTime = min(axisMinimumTimes[0], axisMinimumTimes[1]);
+    minimumTime = min(minimumTime, axisMinimumTimes[2]);
+//    minimumTime = 0;
+     
+    float3 origin = rayOrigin + minimumTime * rayDirection;
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 3; ++i) {
+      if (origin[i] < gridLowerCorner[i] &&
+          origin[i] > gridLowerCorner[i] - 0.25) {
+        origin[i] = gridLowerCorner[i];
+      }
+      if (origin[i] > gridUpperCorner[i]) {
+        origin[i] = gridUpperCorner[i];
+      }
+    }
     
     *cellBorder = origin;
     *cellBorder /= 0.25;
