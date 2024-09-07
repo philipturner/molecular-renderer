@@ -40,7 +40,7 @@ struct RayIntersector {
   uint globalFaultCounter = 0;
   uint errorCode = 0;
   static uint maxFaultCounter() {
-    return 200;
+    return 100;
   }
   
   // Retrieves the large cell metadata from the dense buffer.
@@ -73,11 +73,7 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedLargeVoxelCount < 8) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 1;
-//        break;
-//      }
+
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(largeCellBorder);
@@ -179,12 +175,6 @@ struct RayIntersector {
     bool outOfBounds = false;
     
     while (!outOfBounds) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 2;
-//        return result;
-//      }
-      
       // Loop over ~8 large voxels.
       ushort acceptedLargeVoxelCount = 0;
       fillMemoryTape(largeCellBorder,
@@ -205,23 +195,13 @@ struct RayIntersector {
       uint4 largeMetadata;
       float3 shiftedRayOrigin;
       
-      // Loop over ~64 small voxels.
+      // Loop over the few small voxels that are occupied.
       while (largeVoxelCursor < acceptedLargeVoxelCount) {
-//        globalFaultCounter += 1;
-//        if (globalFaultCounter > maxFaultCounter()) {
-//          errorCode = 3;
-//          return result;
-//        }
-        
         ushort2 acceptedSmallMetadata = 0;
         float acceptedVoxelMaximumHitTime;
+        
+        // Loop over all ~64 small voxels.
         while (acceptedSmallMetadata[1] == 0) {
-//          globalFaultCounter += 1;
-//          if (globalFaultCounter > maxFaultCounter()) {
-//            errorCode = 4;
-//            return result;
-//          }
-          
           // Regenerate the small DDA.
           if (!initializedSmallDDA) {
             // Read from threadgroup memory.
@@ -325,6 +305,12 @@ struct RayIntersector {
     result.accept = false;
     
     while (!result.accept) {
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 1;
+        break;
+      }
+      
       // Compute the voxel maximum time.
       float3 nextTimes = dda
         .nextTimes(smallCellBorder, intersectionQuery.rayOrigin);

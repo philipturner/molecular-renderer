@@ -207,6 +207,12 @@ import Numerics
 //     them. They help the algorithm generalize to use cases outside the narrow
 //     validation set used for micro-optimizations.
 // - Upgrade from 128 nm to 512 nm world volume.
+//   - Measure rendering performance before the change.
+//   - Avoid clearing/setting dense large-cell metadata that wasn't touched
+//     this frame.
+//   - Compact the groups of 4x4x4 cells that were touched.
+//   - Increase the grid size.
+//   - Measure rendering performance after the change.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the
