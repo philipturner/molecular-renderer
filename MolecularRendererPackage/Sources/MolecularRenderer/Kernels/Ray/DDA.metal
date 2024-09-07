@@ -24,6 +24,11 @@ struct DDA {
   // How much to move when switching to a new cell.
   half3 dx;
   
+  DDA() {
+    dtdx = float3(0);
+    dx = half3(0);
+  }
+  
   DDA(thread float3 *cellBorder,
       float3 rayOrigin,
       float3 rayDirection,

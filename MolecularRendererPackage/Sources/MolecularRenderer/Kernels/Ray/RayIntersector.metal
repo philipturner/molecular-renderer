@@ -74,11 +74,11 @@ struct RayIntersector {
                       const DDA dda)
   {
     while (acceptedVoxelCount < 16) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 1;
-//        break;
-//      }
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 1;
+        break;
+      }
       
       // Compute the lower corner.
       float3 smallLowerCorner = dda.cellLowerCorner(cursorCellBorder);
@@ -169,11 +169,11 @@ struct RayIntersector {
     
     bool outOfBounds = false;
     while (!result.accept && !outOfBounds) {
-//      globalFaultCounter += 1;
-//      if (globalFaultCounter > maxFaultCounter()) {
-//        errorCode = 2;
-//        break;
-//      }
+      globalFaultCounter += 1;
+      if (globalFaultCounter > maxFaultCounter()) {
+        errorCode = 2;
+        break;
+      }
       
       // Loop over ~16 large voxels.
       ushort acceptedVoxelCount = 0;
@@ -185,16 +185,20 @@ struct RayIntersector {
       
       simdgroup_barrier(mem_flags::mem_threadgroup);
       
+      // Allocate the small DDA.
+      DDA smallDDA;
+      ushort acceptedVoxelCursor = 0;
+      
       // Loop over ~128 small voxels.
-      for (ushort i = 0; i < acceptedVoxelCount; ++i) {
-//        globalFaultCounter += 1;
-//        if (globalFaultCounter > maxFaultCounter()) {
-//          errorCode = 3;
-//          break;
-//        }
+      while (acceptedVoxelCursor < acceptedVoxelCount) {
+        globalFaultCounter += 1;
+        if (globalFaultCounter > maxFaultCounter()) {
+          errorCode = 3;
+          break;
+        }
         
         // Read from threadgroup memory.
-        uint threadgroupAddress = i * 64 + threadIndex;
+        uint threadgroupAddress = acceptedVoxelCursor * 64 + threadIndex;
         uint compactedLargeCellID = threadgroupMemory[threadgroupAddress];
         
         // Retrieve the large cell metadata.
@@ -216,11 +220,11 @@ struct RayIntersector {
                            largeUpperCorner);
         
         while (!result.accept) {
-//          globalFaultCounter += 1;
-//          if (globalFaultCounter > maxFaultCounter()) {
-//            errorCode = 4;
-//            break;
-//          }
+          globalFaultCounter += 1;
+          if (globalFaultCounter > maxFaultCounter()) {
+            errorCode = 4;
+            break;
+          }
           
           // Compute the lower corner.
           float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
@@ -228,7 +232,8 @@ struct RayIntersector {
           // Check whether the DDA has gone out of bounds.
           if (any(smallLowerCorner < largeLowerCorner) ||
               any(smallLowerCorner >= largeUpperCorner)) {
-            break;
+            acceptedVoxelCursor += 1;
+            break; // while loop
           }
           
           // Retrieve the small cell metadata.
@@ -268,7 +273,7 @@ struct RayIntersector {
         }
         
         if (result.accept) {
-          break; // for loop
+          acceptedVoxelCursor = acceptedVoxelCount;
         }
       }
     }
