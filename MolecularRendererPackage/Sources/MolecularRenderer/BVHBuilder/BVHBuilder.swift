@@ -62,11 +62,11 @@ class BVHBuilder {
     indirectDispatchArguments.label = "indirectDispatchArguments"
     
     // Data buffers (per atom).
-    let atomCount = 4 * 1024 * 1024
+    let movingAtomCount = 2 * 1024 * 1024
     originalAtoms = [
-      createBuffer(length: atomCount * 16),
-      createBuffer(length: atomCount * 16),
-      createBuffer(length: atomCount * 16),
+      createBuffer(length: movingAtomCount * 16),
+      createBuffer(length: movingAtomCount * 16),
+      createBuffer(length: movingAtomCount * 16),
     ]
     for i in 0..<3 {
       let buffer = originalAtoms[i]
@@ -74,15 +74,15 @@ class BVHBuilder {
       buffer.label = label
     }
     
-    atomMetadata = createBuffer(length: atomCount * 8)
-    relativeOffsets = createBuffer(length: atomCount * 8 * 2)
+    atomMetadata = createBuffer(length: movingAtomCount * 8)
+    relativeOffsets = createBuffer(length: movingAtomCount * 8 * 2)
     atomMetadata.label = "atomMetadata"
     relativeOffsets.label = "relativeOffsets"
     
     // Data buffers (per cell).
-    let largeVoxelCount = 128 * 128 * 128
-    let occupiedLargeVoxelCount = largeVoxelCount / 8
+    let largeVoxelCount = 256 * 256 * 256
     let cellGroupCount = largeVoxelCount / (4 * 4 * 4)
+    let occupiedLargeVoxelCount = 128 * 1024
     cellGroupMarks = [
       createBuffer(length: cellGroupCount),
       createBuffer(length: cellGroupCount),
@@ -105,8 +105,9 @@ class BVHBuilder {
     compactedSmallCellMetadata.label = "compactedSmallCellMetadata"
     
     // Data buffers (per reference).
-    let largeReferenceCount = 8 * 1024 * 1024
-    let smallReferenceCount = 64 * 1024 * 1024
+    let staticAtomCount = 64 * 1024 * 1024
+    let largeReferenceCount = staticAtomCount * 2
+    let smallReferenceCount = staticAtomCount * 16
     convertedAtoms = createBuffer(length: largeReferenceCount * 8)
     largeAtomReferences = createBuffer(length: largeReferenceCount * 4)
     smallAtomReferences = createBuffer(length: smallReferenceCount * 2)
