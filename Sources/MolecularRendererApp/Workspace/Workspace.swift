@@ -202,17 +202,17 @@ import Numerics
 //       The amortized sum of small voxels after hitting several large voxels,
 //       should be almost identical. [DONE]
 //   - Reduce divergence during atom intersection (primary ray). [DONE]
-//   - Reduce divergence during atom intersection (secondary rays).
+//   - Reduce divergence during atom intersection (secondary rays). [DONE]
 //   - Granted these optimizations don't measurably harm performance, keep
 //     them. They help the algorithm generalize to use cases outside the narrow
 //     validation set used for micro-optimizations.
+//     - Reducing divergence for AO rays significantly harmed performance.
 // - Upgrade from 128 nm to 512 nm world volume.
-//   - Measure rendering performance before the change.
-//   - Avoid clearing/setting dense large-cell metadata that wasn't touched
-//     this frame.
-//   - Compact the groups of 4x4x4 cells that were touched.
-//   - Increase the grid size.
-//   - Measure rendering performance after the change.
+//   - Measure rendering performance. [DONE]
+//   - Increase grid size to 256 nm, check for bottlenecks.
+//   - Measure rendering performance.
+//   - Increase grid size to 512 nm, check for bottlenecks.
+//   - Measure rendering performance.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the
@@ -302,26 +302,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
