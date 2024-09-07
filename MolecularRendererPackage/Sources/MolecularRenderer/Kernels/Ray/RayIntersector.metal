@@ -68,12 +68,12 @@ struct RayIntersector {
   // Fills the memory tape with large voxels.
   void fillMemoryTape(thread float3 &largeCellBorder,
                       thread bool &outOfBounds,
-                      thread ushort &memoryTapeCursor,
-                      ushort memoryTapeTarget,
+                      thread ushort &memoryTapeEnd,
+                      ushort desiredMemoryTapeEnd,
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
-    while (memoryTapeCursor < memoryTapeTarget) {
+    while (memoryTapeEnd < desiredMemoryTapeEnd) {
       globalFaultCounter += 1;
       if (globalFaultCounter > maxFaultCounter()) {
         errorCode = 1;
@@ -107,10 +107,10 @@ struct RayIntersector {
         largeKey[1] = as_type<uint>(minimumTime);
         
         // Write to threadgroup memory.
-        ushort threadgroupAddress = memoryTapeCursor % 8;
+        ushort threadgroupAddress = memoryTapeEnd % 8;
         threadgroupAddress = threadgroupAddress * 64 + threadIndex;
         threadgroupMemory[threadgroupAddress] = largeKey;
-        memoryTapeCursor += 1;
+        memoryTapeEnd += 1;
       }
       
       // Fast forward to the next large voxel.
@@ -178,7 +178,8 @@ struct RayIntersector {
     IntersectionResult result;
     result.accept = false;
     bool outOfBounds = false;
-    ushort memoryTapeCursor = 0;
+    ushort memoryTapeStart = 0;
+    ushort memoryTapeEnd = 0;
     
     while (!outOfBounds) {
       globalFaultCounter += 1;
@@ -188,11 +189,11 @@ struct RayIntersector {
       }
       
       // Loop over ~8 large voxels.
-      ushort memoryTapeLagging = memoryTapeCursor;
+      uint desiredMemoryTapeEnd = memoryTapeStart + 8;
       fillMemoryTape(largeCellBorder,
                      outOfBounds,
-                     memoryTapeCursor,
-                     memoryTapeCursor + 8,
+                     memoryTapeEnd,
+                     desiredMemoryTapeEnd,
                      intersectionQuery,
                      largeDDA);
       
@@ -208,7 +209,7 @@ struct RayIntersector {
       float3 shiftedRayOrigin;
       
       // Loop over ~64 small voxels.
-      while (memoryTapeLagging < memoryTapeCursor) {
+      while (memoryTapeStart < memoryTapeEnd) {
         globalFaultCounter += 1;
         if (globalFaultCounter > maxFaultCounter()) {
           errorCode = 3;
@@ -218,7 +219,7 @@ struct RayIntersector {
         // Regenerate the small DDA.
         if (!initializedSmallDDA) {
           // Read from threadgroup memory.
-          ushort threadgroupAddress = memoryTapeLagging % 8;
+          ushort threadgroupAddress = memoryTapeStart % 8;
           threadgroupAddress = threadgroupAddress * 64 + threadIndex;
           uint2 largeKey = threadgroupMemory[threadgroupAddress];
           
@@ -253,7 +254,7 @@ struct RayIntersector {
         float3 smallLowerCorner = smallDDA.cellLowerCorner(smallCellBorder);
         if (any(smallLowerCorner < 0 || smallLowerCorner >= 2)) {
           initializedSmallDDA = false;
-          memoryTapeLagging += 1;
+          memoryTapeStart += 1;
           continue;
         }
         
@@ -282,7 +283,7 @@ struct RayIntersector {
           if (result.distance < voxelMaximumHitTime) {
             result.accept = true;
             outOfBounds = true;
-            memoryTapeLagging = memoryTapeCursor;
+            memoryTapeStart = memoryTapeEnd;
           }
         }
         
