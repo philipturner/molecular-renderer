@@ -54,10 +54,6 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 
 // MARK: - Kernels
 
-// Before optimizations: 203 μs
-//                       221 μs
-// Minimizing bandwidth: 244 μs
-//                       229 μs
 kernel void buildLargePart1_1
 (
  constant half *elementRadii [[buffer(1)]],
@@ -181,10 +177,6 @@ kernel void buildLargePart1_1
   }
 }
 
-// Before optimizations: 265 μs
-//                       264 μs
-// Minimizing bandwidth: 547 μs
-//                       627 μs
 kernel void buildLargePart2_2
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],

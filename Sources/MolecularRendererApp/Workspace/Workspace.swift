@@ -215,14 +215,18 @@ import Numerics
 // - Upgrade from 256 nm to 512 nm world volume.
 //   - Increase world volume to 512 nm, check for bottlenecks. [DONE]
 //   - Measure rendering performance. [DONE]
-// - Run a compaction operation to sparsely dispatch compute work for
-//   updating the large cells.
-//   - Measure performance before the change.
-//   - Figure out the state information that must be tracked from the previous
-//     frame.
-//   - Figure out which memory addresses will serve as bump allocators, and
-//     what subsequent kernels depend on them.
-//   - Measure performance after the change.
+// - Reduce the memory cost of large-cell metadata. [DONE]
+//   - One can defer the retrieval of complex large-cell metadata, until after
+//     one verifies that the small cell is occupied. [DONE]
+//   - Examine how much this harms performance for AO rays. [DONE]
+// - Sparsify the counters and reductions over large cells.
+//   - First atoms kernel was ~200-240 μs, with 40x40x40 lattice.
+//   - Second atoms kernel was ~260-550 μs, with 40x40x40 lattice.
+//   - Start by marking cell-group marks in a third atoms-scoped kernel.
+//     - Make the loop go over 8 nm grid cells.
+//     - Verify that the compute cost per-atom is reduced.
+//   - Make another cells-scoped kernel, to reduce over these marks.
+//     - Reduce a bounding box, check its integrity on the CPU.
 // - Try an optimization that exploits three hierarchy levels.
 //   - First, try optimizing address generation for primary rays.
 //   - Gather statistics before the change.
@@ -231,21 +235,30 @@ import Numerics
 //     commit.
 //   - Try changing to 8x8x8 groups of large cells (16 nm).
 //   - Gather statistics after the change.
-// - Reduce the memory cost of large-cell metadata.
-//   - One can defer the retrieval of complex large-cell metadata, until after
-//     one verifies that the small cell is occupied.
-//   - Examine how much this harms performance for AO rays.
 // - Properly handle the edge case where the user falls outside of the
 //   world grid.
-//   - Examine whether this is really necessary.
-//   - Make a good test case.
+//   - Make a bounding box at the granularity of large-cell groups.
+//   - Use the bounding box to test situations where the user falls outside
+//     the world volume.
+//   - Measure the performance improvement from eliding
 //
-// Allowing in-place updating of the BVH.
-// - Refactor the public API, to prepare for this change.
+// Reproduce the benchmarks in this file, of the CPU-side and GPU-side costs
+// of various per-frame operations. Compare how well the code is performing
+// after the rewrite of the renderer.
+// - Sum the two BVH construction passes, reporting as one metric.
+//
+// Refactor the renderer into a SwiftPM workflow.
+// - Commit the current branch to 'main', keeping the work breakdown
+//   structure and shader benchmark data.
+// - Refactor the public API, to prepare for incremental BVH modification.
 //   - Use explicit atom tracking to determine motion vectors, eliminating the
 //     need to 'guess' whether a frame can have motion vectors.
 //   - Minimize the bandwidth cost of writing static atoms.
-//   - Minimize the memory cost of triple buffering for moving atoms.
+//   - Minimize the memory cost of triple buffering for moving atoms, in a
+//     scene with many millions of atoms.
+// - Port the program to Windows.
+// - Finish implementing the incremental BVH modification, when you can
+//   profile performance on Windows as well.
 
 #if true
 

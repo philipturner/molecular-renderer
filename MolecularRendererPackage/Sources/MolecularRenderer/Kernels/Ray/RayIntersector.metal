@@ -74,7 +74,7 @@ struct RayIntersector {
         break;
       }
       
-      // Retrieve the large metadata.
+      // Retrieve the large cell offset.
       uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
       
       // Compute the next times.
@@ -320,8 +320,7 @@ struct RayIntersector {
         break;
       }
       
-      // TODO: Optimize by caching the previous voxel's large cell ID and large
-      // metadata. This may or may not backfire due to divergence.
+      // Retrieve the large cell offset.
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
       
@@ -330,7 +329,6 @@ struct RayIntersector {
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
                                                     largeCellOffset);
-        
         
         // The ray-sphere intersection tests may be highly divergent. All
         // measures to reduce divergence backfired, causing a significant

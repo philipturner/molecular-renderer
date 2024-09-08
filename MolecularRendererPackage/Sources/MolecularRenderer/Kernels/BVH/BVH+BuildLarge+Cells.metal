@@ -10,10 +10,6 @@
 #include "../Utilities/WorldVolume.metal"
 using namespace metal;
 
-// Before optimizations: 42 μs
-//                       42 μs
-// Minimizing bandwidth: 34 μs
-//                       41 μs
 kernel void buildLargePart1_0
 (
  device uchar *previousCellGroupMarks [[buffer(0)]],
@@ -72,11 +68,6 @@ kernel void buildLargePart2_0
   allocatedMemory[0] = smallestPointer;
 }
 
-// Before optimizations: 367 μs
-//                       309 μs
-// Minimizing bandwidth:  62 μs
-//                        54 μs
-//
 // Inputs:
 // - largeInputMetadata (8x duplicate)
 //   - large refcount (14 bits), small refcount (18 bits)

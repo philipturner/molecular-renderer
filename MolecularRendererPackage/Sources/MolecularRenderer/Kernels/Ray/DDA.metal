@@ -450,8 +450,6 @@ struct DDA {
   // - 39.20% / 49.28%
   // - 946 instructions
   // - 4.072 billion instructions issued
-  //
-  // Caching the large cell metadata for AO rays.
 };
 
 #endif // DDA_H
