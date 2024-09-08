@@ -211,23 +211,34 @@ import Numerics
 //   - Measure rendering performance. [DONE]
 //   - Increase world volume to 256 nm, check for bottlenecks. [DONE]
 //   - Measure rendering performance. [DONE]
-//   - Minimize the bandwidth of writing empty large cell metadata.
+//   - Minimize the bandwidth of writing empty large cell metadata. [DONE]
 // - Upgrade from 256 nm to 512 nm world volume.
-//   - Increase world volume to 512 nm, check for bottlenecks.
-//   - Measure rendering performance.
+//   - Increase world volume to 512 nm, check for bottlenecks. [DONE]
+//   - Measure rendering performance. [DONE]
 // - Run a compaction operation to sparsely dispatch compute work for
 //   updating the large cells.
+//   - Measure performance before the change.
 //   - Figure out the state information that must be tracked from the previous
 //     frame.
 //   - Figure out which memory addresses will serve as bump allocators, and
 //     what subsequent kernels depend on them.
-// - Re-implement the bounding box reduction, to decrease the number of
-//   far-away cells traversed for primary rays.
-//   - Properly handle the edge case where the user falls outside of the
-//     world grid. [DONE]
-//   - Re-implement the bounding box reduction.
-//   - Find a good way to bind the bounding box to the render kernel.
-//   - Measure a performance improvement.
+//   - Measure performance after the change.
+// - Try an optimization that exploits three hierarchy levels.
+//   - First, try optimizing address generation for primary rays.
+//   - Gather statistics before the change.
+//   - Undo the optimizations to DDA iteration.
+//   - Jump forward in "large cell groups". Retrieve the code from an older
+//     commit.
+//   - Try changing to 8x8x8 groups of large cells (16 nm).
+//   - Gather statistics after the change.
+// - Reduce the memory cost of large-cell metadata.
+//   - One can defer the retrieval of complex large-cell metadata, until after
+//     one verifies that the small cell is occupied.
+//   - Examine how much this harms performance for AO rays.
+// - Properly handle the edge case where the user falls outside of the
+//   world grid.
+//   - Examine whether this is really necessary.
+//   - Make a good test case.
 //
 // Allowing in-place updating of the BVH.
 // - Refactor the public API, to prepare for this change.
@@ -317,26 +328,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
