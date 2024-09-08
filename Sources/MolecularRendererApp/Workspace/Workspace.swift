@@ -236,7 +236,7 @@ import Numerics
 //   - Minimize the bandwidth cost of writing static atoms.
 //   - Minimize the memory cost of triple buffering for moving atoms.
 
-#if false
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -317,26 +317,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
@@ -371,7 +371,7 @@ func createGeometry() -> [Atom] {
 
 #endif
 
-#if true
+#if false
 
 // Test that animation functionality is working correctly.
 func createGeometry() -> [[Atom]] {

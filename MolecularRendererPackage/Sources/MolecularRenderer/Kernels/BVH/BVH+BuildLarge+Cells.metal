@@ -12,6 +12,8 @@ using namespace metal;
 
 // Before optimizations: 42 μs
 //                       42 μs
+// Minimizing bandwidth: 34 μs
+//                       41 μs
 kernel void buildLargePart1_0
 (
  device uchar *previousCellGroupMarks [[buffer(0)]],
@@ -72,6 +74,8 @@ kernel void buildLargePart2_0
 
 // Before optimizations: 367 μs
 //                       309 μs
+// Minimizing bandwidth:  62 μs
+//                        54 μs
 //
 // Inputs:
 // - largeInputMetadata (8x duplicate)
@@ -99,7 +103,6 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  // Read the current mark.
   uchar currentMark;
   {
     // Locate the mark.
@@ -107,8 +110,13 @@ kernel void buildLargePart2_1
     uint address = VoxelAddress::generate(largeVoxelGridWidth / 4,
                                           cellCoordinates);
     
-    // Read the mark.
+    // Read the current mark.
     currentMark = currentCellGroupMarks[address];
+  }
+  
+  // Return early for vacant voxels.
+  if (currentMark == 0) {
+    return;
   }
   
   // Locate the counter metadata.
@@ -118,12 +126,6 @@ kernel void buildLargePart2_1
     cellCoordinates += tgid * 4;
     largeCellAddress = VoxelAddress::generate(largeVoxelGridWidth,
                                               cellCoordinates);
-  }
-  
-  // Return early for vacant voxels.
-  if (currentMark == 0) {
-    largeCellMetadata[largeCellAddress] = uint4(0);
-    return;
   }
   
   // Read the counter metadata.
@@ -179,7 +181,6 @@ kernel void buildLargePart2_1
   
   // If just this thread is empty, return here.
   if (threadTotalCount == 0) {
-    largeCellMetadata[largeCellAddress] = uint4(0);
     return;
   }
   
