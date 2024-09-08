@@ -69,6 +69,14 @@ struct RayIntersector {
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
+    float3 sign = select(float3(-1), float3(1), dda.dtdx >= 0);
+    float3 rayOrigin = intersectionQuery.rayOrigin * sign;
+    float3 rayDirection = intersectionQuery.rayDirection * sign;
+    
+    // Pre-computing some quantities to reduce instruction count.
+    float3 rayOrigin1 = rayOrigin * abs(dda.dtdx);
+    float3 rayOrigin2 = rayOrigin / 2;
+    
     while (acceptedLargeVoxelCount < 8) {
       float3 largeLowerCorner = dda.cellLowerCorner(largeCellBorder);
       
@@ -129,9 +137,12 @@ struct RayIntersector {
         largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
       } else {
         // Jump forward to the next cell group.
+        largeCellBorder = largeCellBorder * sign;
         largeCellBorder = dda.nextCellGroup(largeCellBorder,
-                                            intersectionQuery.rayOrigin,
-                                            intersectionQuery.rayDirection);
+                                            rayOrigin1,
+                                            rayOrigin2,
+                                            rayDirection);
+        largeCellBorder = largeCellBorder * sign;
       }
     }
   }

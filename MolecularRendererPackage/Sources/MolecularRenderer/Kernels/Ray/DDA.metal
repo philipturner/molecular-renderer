@@ -81,33 +81,30 @@ struct DDA {
   }
   
   // Only call this when the cell spacing is 2.0 nm.
-  float3 nextCellGroup(float3 _cellBorder,
-                       float3 _rayOrigin,
-                       float3 _rayDirection) const {
+  float3 nextCellGroup(float3 cellBorder,
+                       float3 rayOrigin1,
+                       float3 rayOrigin2,
+                       float3 rayDirection) const {
     // Optimization:
     // - Flip the negative-pointing axes upside down.
     // - Reduces the divergence cost of the ceil/floor instructions by 2x.
     // - Correct the final value upon exit.
-    half3 sign = select(half3(-1), half3(1), dtdx >= 0);
-    float3 cellBorder = _cellBorder * float3(sign);
-    float3 rayOrigin = _rayOrigin * float3(sign);
-    float3 rayDirection = _rayDirection * float3(sign);
     
     // Round current coordinates down to 8.0 nm.
     float3 nextBorder = cellBorder;
-    nextBorder /= 8.00;
+    nextBorder /= 8;
     nextBorder = floor(nextBorder);
-    nextBorder *= 8.00;
+    nextBorder = nextBorder * 8;
     
     // Add 8.0 nm to each.
-    nextBorder += 8.00;
+    nextBorder += 8;
     
     // Pick the axis with the smallest time.
     ushort axisID;
     float t;
     {
       // Find the time for each.
-      float3 nextTimes = (nextBorder - rayOrigin) * abs(dtdx);
+      float3 nextTimes = nextBorder * abs(dtdx) - rayOrigin1;
       
       // Branch on which axis won.
       if (nextTimes[0] < nextTimes[1] &&
@@ -124,10 +121,9 @@ struct DDA {
     }
     
     // Make speculative next positions.
-    float3 output = rayOrigin + t * rayDirection;
-    output /= 2.00;
+    float3 output = rayOrigin2 + (t / 2) * rayDirection;
     output = floor(output);
-    output *= 2.00;
+    output *= 2;
     
     // Guarantee forward progress.
 #pragma clang loop unroll(full)
@@ -138,8 +134,8 @@ struct DDA {
       output[i] = max(output[i], cellBorder[i]);
     }
     
-    // Correct for the sign flipping.
-    return output * float3(sign);
+    // Correct for the sign flipping (caller does this).
+    return output;
   }
   
   // Before implementing fast forward:
@@ -537,6 +533,9 @@ struct DDA {
   // 35.82% / 52.13%, 1028 / 4.107 billion issued
   // 36.43% / 51.80%, 1026 / 4.082 billion issued
   // 34.92% / 52.87%, 1016 / 3.901 billion issued
+  // 35.04% / 52.32%, 1017 / 3.832 billion issued
+  // 34.62% / 52.64%, 1017 / 3.836 billion issued
+  // 34.77% / 52.99%, 1015 / 3.821 billion issued
 };
 
 #endif // DDA_H
