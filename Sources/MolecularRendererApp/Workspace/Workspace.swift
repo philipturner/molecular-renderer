@@ -207,10 +207,12 @@ import Numerics
 //     them. They help the algorithm generalize to use cases outside the narrow
 //     validation set used for micro-optimizations.
 //     - Reducing divergence for AO rays significantly harmed performance.
-// - Upgrade from 128 nm to 512 nm world volume.
+// - Upgrade from 128 nm to 256 nm world volume.
 //   - Measure rendering performance. [DONE]
-//   - Increase world volume to 256 nm, check for bottlenecks.
-//   - Measure rendering performance.
+//   - Increase world volume to 256 nm, check for bottlenecks. [DONE]
+//   - Measure rendering performance. [DONE]
+//   - Minimize the bandwidth of writing empty large cell metadata.
+// - Upgrade from 256 nm to 512 nm world volume.
 //   - Increase world volume to 512 nm, check for bottlenecks.
 //   - Measure rendering performance.
 // - Re-implement the bounding box reduction, to decrease the number of

@@ -397,6 +397,16 @@ struct DDA {
   // 960 instructions / 4.506 billion issued
   // 959 instructions / 4.411 billion issued
   // 957 instructions / 4.350 billion issued
+  //
+  // Optimizing the primary ray's DDA over 2 nm cells.
+  // - 4.7 ms
+  //   - per-line statistics:
+  //   - 44.54% primary ray
+  //   - 44.83% secondary rays
+  // - overall shader statistics:
+  //   - 957 instructions
+  //   - 4.350 billion issued
+  //   - 30.06% divergence
 };
 
 #endif // DDA_H
