@@ -204,8 +204,8 @@ import Numerics
 //   - Reduce divergence during atom intersection (primary ray). [DONE]
 //   - Reduce divergence during atom intersection (secondary rays). [DONE]
 //   - Granted these optimizations don't measurably harm performance, keep
-//     them. They help the algorithm generalize to use cases outside the narrow
-//     validation set used for micro-optimizations.
+//     them. They help the algorithm generalize to use cases outside the
+//     narrow validation set used for micro-optimizations.
 //     - Reducing divergence for AO rays significantly harmed performance.
 // - Upgrade from 128 nm to 256 nm world volume.
 //   - Measure rendering performance. [DONE]
@@ -223,7 +223,9 @@ import Numerics
 //   - First atoms kernel was ~200-240 μs, with 40x40x40 lattice.
 //   - Second atoms kernel was ~260-550 μs, with 40x40x40 lattice.
 // - Try an optimization that exploits three hierarchy levels.
-//   - Gather statistics before the change.
+//   - Gather statistics before the change. [DONE]
+//   - Use the cell group marks as just another conditional during the primary
+//     rays loop.
 //   - Jump forward in "large cell groups". Retrieve the code from an older
 //     commit.
 //   - Gather statistics after the change.
@@ -232,7 +234,7 @@ import Numerics
 //   - Use an artificial, hard-coded bounding box to test situations where the
 //     user falls outside the world volume.
 //
-// Defer incremental BVH modification to a later date (PR #1).
+// Defer support for giant atom counts to a later date (PR #1).
 // - Commit the current branch to 'main', keeping the work breakdown
 //   structure and shader benchmark data.
 //
@@ -251,7 +253,21 @@ import Numerics
 //   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
 //   - Test how 4-6x upscaling performs when the user or scene is moving.
 //
-// Port the program to Windows, and add tutorials (PR #3).
+// Port the program to Windows (PR #3).
+// - Start with a very basic smoke test of DirectX.
+// - Add ray tracing without a BVH or ambient occlusion.
+// - Add FidelityFX upscaling.
+//
+// Finish the GPU-side part of the support for giant atom counts. (PR #4).
+// - This is what differentiates my program from everything else. Ray tracing
+//   is the only way to reach ~300 million atoms with real-time updating of
+//   ~2 million per frame.
+// - Test Minecraft-like chunk loading.
+//
+// Add tutorials and launch the program for public use (PR #5).
+// - Demonstration of a >1000 atom build sequence in a far-term nanofactory.
+//
+// Estimated completion date: November 1, 2024 (after Foresight conference).
 
 #if true
 

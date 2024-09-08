@@ -14,20 +14,30 @@ using namespace metal;
 
 kernel void renderAtoms
 (
+ // Global buffers.
  constant CameraArguments *cameraArgs [[buffer(0)]],
  constant RenderArguments *renderArgs [[buffer(1)]],
  constant half3 *elementColors [[buffer(2)]],
+ 
+ // Per-atom buffers.
  device float4 *originalAtoms [[buffer(3)]],
  device half3 *atomMetadata [[buffer(4)]],
  device half4 *convertedAtoms [[buffer(5)]],
  device uint *largeAtomReferences [[buffer(6)]],
  device ushort *smallAtomReferences [[buffer(7)]],
- device uint *largeCellOffsets [[buffer(8)]],
- device uint4 *compactedLargeCellMetadata [[buffer(9)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(10)]],
+ 
+ // Per-cell buffers.
+ device uchar *cellGroupMarks [[buffer(8)]],
+ device uint *largeCellOffsets [[buffer(9)]],
+ device uint4 *compactedLargeCellMetadata [[buffer(10)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(11)]],
+ 
+ // Textures.
  texture2d<half, access::write> colorTexture [[texture(0)]],
  texture2d<float, access::write> depthTexture [[texture(1)]],
  texture2d<half, access::write> motionTexture [[texture(2)]],
+ 
+ // Other arguments.
  threadgroup uint2 *threadgroupMemory [[threadgroup(0)]],
  ushort2 tid [[thread_position_in_grid]],
  ushort2 tgid [[threadgroup_position_in_grid]],
