@@ -81,32 +81,33 @@ struct DDA {
   }
   
   // Only call this when the cell spacing is 2.0 nm.
-  //
-  // 'conservativeNextBorder' prevents infinite loops. It is the output of the
-  // next border from incrementing the DDA once.
-  float3 nextCellGroup(float3 cellBorder,
-                       float3 rayOrigin,
-                       float3 rayDirection,
-                       float3 conservativeNextBorder) const {
-    // Optimization idea:
+  float3 nextCellGroup(float3 _cellBorder,
+                       float3 _rayOrigin,
+                       float3 _rayDirection) const {
+    // Optimization:
     // - Flip the negative-pointing axes upside down.
     // - Reduces the divergence cost of the ceil/floor instructions by 2x.
+    // - Correct the final value upon exit.
+    half3 sign = select(half3(-1), half3(1), dtdx >= 0);
+    float3 cellBorder = _cellBorder * float3(sign);
+    float3 rayOrigin = _rayOrigin * float3(sign);
+    float3 rayDirection = _rayDirection * float3(sign);
     
     // Round current coordinates down to 8.0 nm.
     float3 nextBorder = cellBorder;
     nextBorder /= 8.00;
-    nextBorder = select(ceil(nextBorder), floor(nextBorder), dtdx >= 0);
+    nextBorder = floor(nextBorder);
     nextBorder *= 8.00;
     
     // Add 8.0 nm to each.
-    nextBorder += 4 * float3(dx);
+    nextBorder += 8.00;
     
     // Pick the axis with the smallest time.
     ushort axisID;
     float t;
     {
       // Find the time for each.
-      float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
+      float3 nextTimes = (nextBorder - rayOrigin) * abs(dtdx);
       
       // Branch on which axis won.
       if (nextTimes[0] < nextTimes[1] &&
@@ -125,7 +126,7 @@ struct DDA {
     // Make speculative next positions.
     float3 output = rayOrigin + t * rayDirection;
     output /= 2.00;
-    output = select(ceil(output), floor(output), dtdx >= 0);
+    output = floor(output);
     output *= 2.00;
     
     // Guarantee forward progress.
@@ -134,15 +135,11 @@ struct DDA {
       if (i == axisID) {
         output[i] = nextBorder[i];
       }
-      
-      if (dtdx[i] >= 0) {
-        output[i] = max(output[i], conservativeNextBorder[i]);
-      } else {
-        output[i] = min(output[i], conservativeNextBorder[i]);
-      }
+      output[i] = max(output[i], cellBorder[i]);
     }
     
-    return output;
+    // Correct for the sign flipping.
+    return output * float3(sign);
   }
   
   // Before implementing fast forward:
@@ -527,7 +524,6 @@ struct DDA {
   //   - 26.48% divergence
   //
   // After skipping ahead at the granularity of 4 large cells.
-  // [OVERWRITE]
   // - 3.5 ms
   // - per-line statistics:
   //   - 36.92% primary ray
@@ -539,7 +535,8 @@ struct DDA {
   //
   // After optimizing the instruction count.
   // 35.82% / 52.13%, 1028 / 4.107 billion issued
-  //
+  // 36.43% / 51.80%, 1026 / 4.082 billion issued
+  // 34.92% / 52.87%, 1016 / 3.901 billion issued
 };
 
 #endif // DDA_H

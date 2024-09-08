@@ -96,7 +96,6 @@ struct RayIntersector {
       // Compute the next times.
       float3 nextTimes = dda.nextTimes(largeCellBorder,
                                        intersectionQuery.rayOrigin);
-      float3 nextBorder = dda.nextBorder(largeCellBorder, nextTimes);
       
       // Branch on the mark.
       if (mark > 0) {
@@ -127,13 +126,12 @@ struct RayIntersector {
         }
         
         // Increment to the next large voxel.
-        largeCellBorder = nextBorder;
+        largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
       } else {
         // Jump forward to the next cell group.
         largeCellBorder = dda.nextCellGroup(largeCellBorder,
                                             intersectionQuery.rayOrigin,
-                                            intersectionQuery.rayDirection,
-                                            nextBorder);
+                                            intersectionQuery.rayDirection);
       }
     }
   }
