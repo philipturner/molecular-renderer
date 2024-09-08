@@ -393,6 +393,8 @@ struct DDA {
   // 950 instructions / 4.800 billion issued
   // 946 instructions / 4.665 billion issued
   // 945 instructions / 4.562 billion issued
+  // 948 instructions / 4.497 billion issued
+  // 960 instructions / 4.506 billion issued
 };
 
 #endif // DDA_H

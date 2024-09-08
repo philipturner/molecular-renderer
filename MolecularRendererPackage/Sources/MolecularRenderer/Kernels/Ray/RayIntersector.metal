@@ -68,27 +68,17 @@ struct RayIntersector {
   
   // Fills the memory tape with large voxels.
   void fillMemoryTape(thread float3 &nextTimes,
-                      thread float3 &largeLowerCorner,
+                      thread float3 &largeVoxelCoordinates,
                       thread bool &outOfBounds,
                       thread ushort &acceptedLargeVoxelCount,
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
     while (acceptedLargeVoxelCount < 8) {
-      // Compute the lower corner.
-      if (any(largeLowerCorner < 0 ||
-              largeLowerCorner >= float(worldVolumeInNm))) {
-        outOfBounds = true;
-        return;
-      }
-      
       // Retrieve the large metadata.
-      float3 coordinates = largeLowerCorner;
-      coordinates /= 2;
       float address = VoxelAddress::generate(largeVoxelGridWidth,
-                                             coordinates);
+                                             largeVoxelCoordinates);
       uint4 largeMetadata = largeCellMetadata[uint(address)];
-      
       
       if (largeMetadata[0] > 0) {
         float3 currentTimes = nextTimes - float3(dda.dx) * dda.dtdx;
@@ -116,13 +106,21 @@ struct RayIntersector {
       if (nextTimes[0] < nextTimes[1] &&
           nextTimes[0] < nextTimes[2]) {
         nextTimes[0] += dda.dx[0] * dda.dtdx[0];
-        largeLowerCorner[0] += dda.dx[0];
+        largeVoxelCoordinates[0] += dda.dx[0] / 2;
       } else if (nextTimes[1] < nextTimes[2]) {
         nextTimes[1] += dda.dx[1] * dda.dtdx[1];
-        largeLowerCorner[1] += dda.dx[1];
+        largeVoxelCoordinates[1] += dda.dx[1] / 2;
       } else {
         nextTimes[2] += dda.dx[2] * dda.dtdx[2];
-        largeLowerCorner[2] += dda.dx[2];
+        largeVoxelCoordinates[2] += dda.dx[2] / 2;
+      }
+      
+      if (any(largeVoxelCoordinates == 0 ||
+              largeVoxelCoordinates == float(largeVoxelGridWidth - 1))) {
+        outOfBounds = true;
+      }
+      if (outOfBounds) {
+        return;
       }
     }
   }
@@ -178,7 +176,7 @@ struct RayIntersector {
   IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery) {
     // Initialize the outer DDA.
     float3 _nextTimes;
-    float3 _largeLowerCorner;
+    float3 _largeVoxelCoordinates;
     DDA largeDDA;
     
     {
@@ -193,22 +191,28 @@ struct RayIntersector {
       borderOffset *= largeDDA.dtdx;
       _nextTimes = largeCellBorder * largeDDA.dtdx + borderOffset;
       
-      _largeLowerCorner = largeCellBorder;
-      _largeLowerCorner += select(float3(largeDDA.dx),
+      _largeVoxelCoordinates = largeCellBorder;
+      _largeVoxelCoordinates += select(float3(largeDDA.dx),
                                   float3(0),
                                   largeDDA.dtdx >= 0);
-      _largeLowerCorner += float(worldVolumeInNm / 2);
+      _largeVoxelCoordinates += float(worldVolumeInNm / 2);
+      _largeVoxelCoordinates /= 2;
     }
     
     IntersectionResult result;
     result.accept = false;
     bool outOfBounds = false;
     
+    if (any(_largeVoxelCoordinates < 0 ||
+            _largeVoxelCoordinates >= float(largeVoxelGridWidth))) {
+      outOfBounds = true;
+    }
+    
     while (!outOfBounds) {
       // Loop over ~8 large voxels.
       ushort acceptedLargeVoxelCount = 0;
       fillMemoryTape(_nextTimes,
-                     _largeLowerCorner,
+                     _largeVoxelCoordinates,
                      outOfBounds,
                      acceptedLargeVoxelCount,
                      intersectionQuery,
