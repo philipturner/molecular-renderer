@@ -154,6 +154,7 @@ kernel void renderAtoms
                                     previousHitPoint);
     }
   }
-  colorCtx.registerErrorCode(rayIntersector.errorCode);
+  
+  // Write the rendered pixel.
   colorCtx.write(colorTexture, depthTexture, motionTexture);
 }

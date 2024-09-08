@@ -215,6 +215,10 @@ import Numerics
 // - Upgrade from 256 nm to 512 nm world volume.
 //   - Increase world volume to 512 nm, check for bottlenecks.
 //   - Measure rendering performance.
+// - Run a compaction operation to sparsely dispatch compute work for
+//   updating the large cells.
+//   - Figure out the state information that must be tracked from the previous
+//     frame.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the
@@ -222,6 +226,13 @@ import Numerics
 //   - Re-implement the bounding box reduction.
 //   - Find a good way to bind the bounding box to the render kernel.
 //   - Measure a performance improvement.
+//
+// Allowing in-place updating of the BVH.
+// - Refactor the public API, to prepare for this change.
+//   - Use explicit atom tracking to determine motion vectors, eliminating the
+//     need to 'guess' whether a frame can have motion vectors.
+//   - Minimize the bandwidth cost of writing static atoms.
+//   - Minimize the memory cost of triple buffering for moving atoms.
 
 #if true
 
@@ -304,26 +315,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

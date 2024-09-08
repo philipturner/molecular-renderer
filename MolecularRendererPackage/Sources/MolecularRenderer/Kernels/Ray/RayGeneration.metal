@@ -87,11 +87,12 @@ public:
   static float3 secondaryRayDirection(Basis basis) {
     // Transform the uniform distribution into the cosine distribution. This
     // creates a direction vector that's already normalized.
-    float phi = 2 * M_PI_F * basis.random1;
+    float phi = float(6.28318530718) * basis.random1;
     float cosThetaSquared = basis.random2;
     float sinTheta = sqrt(1.0 - cosThetaSquared);
     float3 direction(cos(phi) * sinTheta,
-                     sin(phi) * sinTheta, sqrt(cosThetaSquared));
+                     sin(phi) * sinTheta, 
+                     sqrt(cosThetaSquared));
     
     // Apply the basis as a linear transformation.
     direction = float3x3(basis.axes) * direction;

@@ -38,12 +38,6 @@ struct RayIntersector {
   threadgroup uint2 *threadgroupMemory;
   ushort threadIndex;
   
-  uint globalFaultCounter = 0;
-  uint errorCode = 0;
-  static uint maxFaultCounter() {
-    return 500;
-  }
-  
   // Retrieves the large cell metadata from the dense buffer.
   uint4 largeMetadata(float3 largeLowerCorner) const
   {
@@ -231,6 +225,9 @@ struct RayIntersector {
       float3 shiftedRayOrigin;
       
       // Loop over the few small voxels that are occupied.
+      //
+      // This is a measure to minimize the divergence of the ray-sphere
+      // intersection tests.
       while (largeVoxelCursor < acceptedLargeVoxelCount) {
         ushort2 acceptedSmallMetadata = 0;
         float acceptedVoxelMaximumHitTime;
@@ -238,6 +235,9 @@ struct RayIntersector {
         // Loop over all ~64 small voxels.
         while (acceptedSmallMetadata[1] == 0) {
           // Regenerate the small DDA.
+          //
+          // This is a measure to minimize the divergence from the variation
+          // in number of intersected small voxels per large voxel.
           if (!initializedSmallDDA) {
             // Read from threadgroup memory.
             ushort threadgroupAddress = largeVoxelCursor;
@@ -354,14 +354,20 @@ struct RayIntersector {
         break;
       }
       
-      // If the large cell has small cells, proceed.
+      // TODO: Optimize by caching the previous voxel's large cell ID and large
+      // metadata. This may or may not backfire due to divergence.
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
       uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+      
+      // If the large cell has small cells, proceed.
       if (largeMetadata[0] > 0) {
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
                                                     largeMetadata[0]);
         
+        // The ray-sphere intersection tests may be highly divergent. All
+        // measures to reduce divergence backfired, causing a significant
+        // increase to execution time.
         if (smallMetadata[1] > 0) {
           // Set the origin register.
           float3 shiftedRayOrigin = intersectionQuery.rayOrigin;

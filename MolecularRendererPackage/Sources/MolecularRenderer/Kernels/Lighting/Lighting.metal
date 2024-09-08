@@ -37,7 +37,7 @@ public:
     // Create a default color for the background.
     this->color = half3(0.707, 0.707, 0.707);
     this->motionVector = half2(0);
-    this->depth = -FLT_MAX;
+    this->depth = -1e38;
     
     // Initialize the accumulators for lighting.
     this->diffuseAmbient = 0;
@@ -221,25 +221,6 @@ public:
     motionVector.x = -motionVector.x;
   }
   
-  void write_offline(texture2d<half, access::write> colorTexture) {
-    float3 color_float = float3(color);
-    color_float = quad_sum(color_float) / 4;
-    half4 color_half = half4(half3(color_float), 1);
-    colorTexture.write(color_half, pixelCoords / 2);
-  }
-  
-  void registerErrorCode(uint errorCode) {
-    if (errorCode == 1) {
-      color = half3(1.00, 0.00, 0.00);
-    } else if (errorCode == 2) {
-      color = half3(0.00, 1.00, 0.00);
-    } else if (errorCode == 3) {
-      color = half3(0.00, 0.00, 1.00);
-    } else if (errorCode == 4) {
-      color = half3(1.00, 0.00, 1.00);
-    }
-  }
-  
   void write(texture2d<half, access::write> colorTexture,
              texture2d<float, access::write> depthTexture,
              texture2d<half, access::write> motionTexture)
@@ -250,7 +231,7 @@ public:
     
     // Adjust the depth and motion vector.
     auto depth = 1 / float(1 - this->depth); // map (0, -infty) to (1, 0)
-    auto motionVector = clamp(this->motionVector, -HALF_MAX, HALF_MAX);
+    auto motionVector = clamp(this->motionVector, -66500, 66500);
     
     // Write the output depth.
     float4 writtenDepth = float4(depth);
