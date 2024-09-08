@@ -225,7 +225,7 @@ import Numerics
 // - Try an optimization that exploits three hierarchy levels.
 //   - Gather statistics before the change. [DONE]
 //   - Use the cell group marks as just another conditional during the primary
-//     rays loop.
+//     rays loop. [DONE]
 //   - Jump forward in "large cell groups". Retrieve the code from an older
 //     commit.
 //   - Gather statistics after the change.
@@ -257,17 +257,6 @@ import Numerics
 // - Start with a very basic smoke test of DirectX.
 // - Add ray tracing without a BVH or ambient occlusion.
 // - Add FidelityFX upscaling.
-//
-// Finish the GPU-side part of the support for giant atom counts. (PR #4).
-// - This is what differentiates my program from everything else. Ray tracing
-//   is the only way to reach ~300 million atoms with real-time updating of
-//   ~2 million per frame.
-// - Test Minecraft-like chunk loading.
-//
-// Add tutorials and launch the program for public use (PR #5).
-// - Demonstration of a >1000 atom build sequence in a far-term nanofactory.
-//
-// Estimated completion date: November 1, 2024 (after Foresight conference).
 
 #if true
 

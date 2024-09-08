@@ -55,9 +55,12 @@ kernel void renderAtoms
   RayIntersector rayIntersector;
   rayIntersector.convertedAtoms = convertedAtoms;
   rayIntersector.smallAtomReferences = smallAtomReferences;
+  
+  rayIntersector.cellGroupMarks = cellGroupMarks;
   rayIntersector.largeCellOffsets = largeCellOffsets;
   rayIntersector.compactedLargeCellMetadata = compactedLargeCellMetadata;
   rayIntersector.compactedSmallCellMetadata = compactedSmallCellMetadata;
+  
   rayIntersector.threadgroupMemory = threadgroupMemory;
   rayIntersector.threadIndex = thread_index;
   

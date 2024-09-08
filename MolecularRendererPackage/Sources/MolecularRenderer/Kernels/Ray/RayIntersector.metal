@@ -32,9 +32,12 @@ struct IntersectionQuery {
 struct RayIntersector {
   device half4 *convertedAtoms;
   device ushort *smallAtomReferences;
+  
+  device uchar *cellGroupMarks;
   device uint *largeCellOffsets;
   device uint4 *compactedLargeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
+  
   threadgroup uint2 *threadgroupMemory;
   ushort threadIndex;
   
@@ -74,34 +77,50 @@ struct RayIntersector {
         break;
       }
       
-      // Retrieve the large cell offset.
-      uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
-      
       // Compute the next times.
       float3 nextTimes = dda.nextTimes(largeCellBorder,
                                        intersectionQuery.rayOrigin);
       
-      // If the large cell has small cells, proceed.
-      if (largeCellOffset > 0) {
-        float3 currentTimes = nextTimes - float3(dda.dx) * dda.dtdx;
+      // Retrieve the mark.
+      uchar mark;
+      {
+        float3 coordinates = largeLowerCorner + float(worldVolumeInNm / 2);
+        coordinates /= 8;
+        coordinates = floor(coordinates);
+        float address = VoxelAddress::generate(cellGroupGridWidth,
+                                               coordinates);
+        mark = cellGroupMarks[uint(address)];
+      }
+      
+      // Branch on the mark.
+      if (mark > 0) {
+        // Retrieve the large cell offset.
+        uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
         
-        // Find the minimum time.
-        float minimumTime = 1e38;
-        minimumTime = min(currentTimes[0], minimumTime);
-        minimumTime = min(currentTimes[1], minimumTime);
-        minimumTime = min(currentTimes[2], minimumTime);
-        minimumTime = max(minimumTime, float(0));
+        // If the large cell has small cells, proceed.
+        if (largeCellOffset > 0) {
+          float3 currentTimes = nextTimes - float3(dda.dx) * dda.dtdx;
+          
+          // Find the minimum time.
+          float minimumTime = 1e38;
+          minimumTime = min(currentTimes[0], minimumTime);
+          minimumTime = min(currentTimes[1], minimumTime);
+          minimumTime = min(currentTimes[2], minimumTime);
+          minimumTime = max(minimumTime, float(0));
+          
+          // Encode the key.
+          uint2 largeKey;
+          largeKey[0] = largeCellOffset;
+          largeKey[1] = as_type<uint>(minimumTime);
+          
+          // Write to threadgroup memory.
+          ushort threadgroupAddress = acceptedLargeVoxelCount;
+          threadgroupAddress = threadgroupAddress * 64 + threadIndex;
+          threadgroupMemory[threadgroupAddress] = largeKey;
+          acceptedLargeVoxelCount += 1;
+        }
+      } else {
         
-        // Encode the key.
-        uint2 largeKey;
-        largeKey[0] = largeCellOffset;
-        largeKey[1] = as_type<uint>(minimumTime);
-        
-        // Write to threadgroup memory.
-        ushort threadgroupAddress = acceptedLargeVoxelCount;
-        threadgroupAddress = threadgroupAddress * 64 + threadIndex;
-        threadgroupMemory[threadgroupAddress] = largeKey;
-        acceptedLargeVoxelCount += 1;
       }
       
       // Increment to the next large voxel.
