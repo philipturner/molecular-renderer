@@ -81,9 +81,17 @@ struct DDA {
   }
   
   // Only call this when the cell spacing is 2.0 nm.
+  //
+  // 'conservativeNextBorder' prevents infinite loops. It is the output of the
+  // next border from incrementing the DDA once.
   float3 nextCellGroup(float3 cellBorder,
                        float3 rayOrigin,
-                       float3 rayDirection) const {
+                       float3 rayDirection,
+                       float3 conservativeNextBorder) const {
+    // Optimization idea:
+    // - Flip the negative-pointing axes upside down.
+    // - Reduces the divergence cost of the ceil/floor instructions by 2x.
+    
     // Round current coordinates down to 8.0 nm.
     float3 nextBorder = cellBorder;
     nextBorder /= 8.00;
@@ -120,21 +128,17 @@ struct DDA {
     output = select(ceil(output), floor(output), dtdx >= 0);
     output *= 2.00;
     
-    // Prevent infinite loops.
-    float3 nextTimes2 = this->nextTimes(cellBorder, rayOrigin);
-    float3 conservativeNextBorder = this->nextBorder(cellBorder, nextTimes2);
-    
     // Guarantee forward progress.
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
       if (i == axisID) {
         output[i] = nextBorder[i];
+      }
+      
+      if (dtdx[i] >= 0) {
+        output[i] = max(output[i], conservativeNextBorder[i]);
       } else {
-        if (dtdx[i] >= 0) {
-          output[i] = max(output[i], conservativeNextBorder[i]);
-        } else {
-          output[i] = min(output[i], conservativeNextBorder[i]);
-        }
+        output[i] = min(output[i], conservativeNextBorder[i]);
       }
     }
     
@@ -523,14 +527,19 @@ struct DDA {
   //   - 26.48% divergence
   //
   // After skipping ahead at the granularity of 4 large cells.
-  // - 4.1 ms
+  // [OVERWRITE]
+  // - 3.5 ms
   // - per-line statistics:
-  //   - 36.42% primary ray
-  //   - 52.37% secondary rays
+  //   - 36.92% primary ray
+  //   - 51.07% secondary rays
   // - overall shader statistics:
-  //   - 1054 instructions
-  //   - 4.234 billion instructions issued
-  //   - 26.40% divergence
+  //   - 1046 instructions
+  //   - 4.244 billion instructions issued
+  //   - 26.25% divergence
+  //
+  // After optimizing the instruction count.
+  // 35.82% / 52.13%, 1028 / 4.107 billion issued
+  //
 };
 
 #endif // DDA_H

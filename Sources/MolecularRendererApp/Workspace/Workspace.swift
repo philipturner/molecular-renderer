@@ -253,10 +253,7 @@ import Numerics
 //   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
 //   - Test how 4-6x upscaling performs when the user or scene is moving.
 //
-// Port the program to Windows (PR #3).
-// - Start with a very basic smoke test of DirectX.
-// - Add ray tracing without a BVH or ambient occlusion.
-// - Add FidelityFX upscaling.
+// Port to Windows.
 
 #if true
 

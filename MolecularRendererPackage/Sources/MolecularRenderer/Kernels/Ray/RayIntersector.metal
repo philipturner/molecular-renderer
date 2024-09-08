@@ -71,8 +71,16 @@ struct RayIntersector {
   {
     while (acceptedLargeVoxelCount < 8) {
       float3 largeLowerCorner = dda.cellLowerCorner(largeCellBorder);
-      if (any(largeLowerCorner < -float(worldVolumeInNm / 2) ||
-              largeLowerCorner >= float(worldVolumeInNm / 2))) {
+      
+      // Compute the cell group coordinates.
+      float3 cellGroupCoordinates = largeLowerCorner;
+      cellGroupCoordinates += float(worldVolumeInNm / 2);
+      cellGroupCoordinates /= 8;
+      cellGroupCoordinates = floor(cellGroupCoordinates);
+      
+      // Check whether the DDA has gone out of bounds.
+      if (any(cellGroupCoordinates < 0 ||
+              cellGroupCoordinates >= cellGroupGridWidth)) {
         outOfBounds = true;
         break;
       }
@@ -80,22 +88,20 @@ struct RayIntersector {
       // Retrieve the mark.
       uchar mark;
       {
-        float3 coordinates = largeLowerCorner + float(worldVolumeInNm / 2);
-        coordinates /= 8;
-        coordinates = floor(coordinates);
         float address = VoxelAddress::generate(cellGroupGridWidth,
-                                               coordinates);
+                                               cellGroupCoordinates);
         mark = cellGroupMarks[uint(address)];
       }
+      
+      // Compute the next times.
+      float3 nextTimes = dda.nextTimes(largeCellBorder,
+                                       intersectionQuery.rayOrigin);
+      float3 nextBorder = dda.nextBorder(largeCellBorder, nextTimes);
       
       // Branch on the mark.
       if (mark > 0) {
         // Retrieve the large cell offset.
         uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
-        
-        // Compute the next times.
-        float3 nextTimes = dda.nextTimes(largeCellBorder,
-                                         intersectionQuery.rayOrigin);
         
         // If the large cell has small cells, proceed.
         if (largeCellOffset > 0) {
@@ -121,12 +127,13 @@ struct RayIntersector {
         }
         
         // Increment to the next large voxel.
-        largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
+        largeCellBorder = nextBorder;
       } else {
         // Jump forward to the next cell group.
         largeCellBorder = dda.nextCellGroup(largeCellBorder,
                                             intersectionQuery.rayOrigin,
-                                            intersectionQuery.rayDirection);
+                                            intersectionQuery.rayDirection,
+                                            nextBorder);
       }
     }
   }
