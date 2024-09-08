@@ -120,6 +120,10 @@ struct DDA {
     output = select(ceil(output), floor(output), dtdx >= 0);
     output *= 2.00;
     
+    // Prevent infinite loops.
+    float3 nextTimes2 = this->nextTimes(cellBorder, rayOrigin);
+    float3 conservativeNextBorder = this->nextBorder(cellBorder, nextTimes2);
+    
     // Guarantee forward progress.
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
@@ -127,9 +131,9 @@ struct DDA {
         output[i] = nextBorder[i];
       } else {
         if (dtdx[i] >= 0) {
-          output[i] = max(output[i], cellBorder[i]);
+          output[i] = max(output[i], conservativeNextBorder[i]);
         } else {
-          output[i] = min(output[i], cellBorder[i]);
+          output[i] = min(output[i], conservativeNextBorder[i]);
         }
       }
     }
@@ -519,14 +523,14 @@ struct DDA {
   //   - 26.48% divergence
   //
   // After skipping ahead at the granularity of 4 large cells.
-  // - 3.8 ms
+  // - 4.1 ms
   // - per-line statistics:
-  //   - 35.19% primary ray
-  //   - 52.64% secondary rays
+  //   - 36.42% primary ray
+  //   - 52.37% secondary rays
   // - overall shader statistics:
-  //   - 1041 instructions
-  //   - 4.116 billion instructions issued
-  //   - 37.25% divergence
+  //   - 1054 instructions
+  //   - 4.234 billion instructions issued
+  //   - 26.40% divergence
 };
 
 #endif // DDA_H

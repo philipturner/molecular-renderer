@@ -88,14 +88,14 @@ struct RayIntersector {
         mark = cellGroupMarks[uint(address)];
       }
       
-      // Compute the next times.
-      float3 nextTimes = dda.nextTimes(largeCellBorder,
-                                       intersectionQuery.rayOrigin);
-      
       // Branch on the mark.
       if (mark > 0) {
         // Retrieve the large cell offset.
         uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
+        
+        // Compute the next times.
+        float3 nextTimes = dda.nextTimes(largeCellBorder,
+                                         intersectionQuery.rayOrigin);
         
         // If the large cell has small cells, proceed.
         if (largeCellOffset > 0) {
