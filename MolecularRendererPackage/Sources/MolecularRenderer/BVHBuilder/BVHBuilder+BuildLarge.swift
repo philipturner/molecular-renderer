@@ -9,22 +9,21 @@ import Metal
 import QuartzCore
 
 // Part 0
-// - Kernel 0: Copy both static and updated atoms on CPU (for now).
-//
-// Part 1
-// - Kernel 0: Reset the large counter metadata.
+// - Kernel 0: Reset the cell group marks and allocation counter.
 // - Kernel 1: Accumulate the reference count for each voxel.
 //
+// Part 1
+// - Kernel 0: Compact the reference offset for each voxel.
+// - Kernel 1: Copy atoms into converted format.
+//
 // Part 2
-// - Kernel 0: Reset the allocation and box counters.
-// - Kernel 1: Compact the reference offset for each voxel.
-// - Kernel 2: Copy atoms into converted format (for now).
+// - Kernel 0: Reset the large counter metadata.
 struct BVHBuildLargePipelines {
+  var buildLargePart0_0: MTLComputePipelineState
+  var buildLargePart0_1: MTLComputePipelineState
   var buildLargePart1_0: MTLComputePipelineState
   var buildLargePart1_1: MTLComputePipelineState
   var buildLargePart2_0: MTLComputePipelineState
-  var buildLargePart2_1: MTLComputePipelineState
-  var buildLargePart2_2: MTLComputePipelineState
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
@@ -34,18 +33,18 @@ struct BVHBuildLargePipelines {
       let device = library.device
       return try! device.makeComputePipelineState(function: function)
     }
+    buildLargePart0_0 = createPipeline(name: "buildLargePart0_0")
+    buildLargePart0_1 = createPipeline(name: "buildLargePart0_1")
     buildLargePart1_0 = createPipeline(name: "buildLargePart1_0")
     buildLargePart1_1 = createPipeline(name: "buildLargePart1_1")
     buildLargePart2_0 = createPipeline(name: "buildLargePart2_0")
-    buildLargePart2_1 = createPipeline(name: "buildLargePart2_1")
-    buildLargePart2_2 = createPipeline(name: "buildLargePart2_2")
   }
 }
 
 extension BVHBuilder {
   func buildLargeBVH(frameID: Int) {
     let copyStart = CACurrentMediaTime()
-    buildLargePart0_0()
+    copyAtomsIntoBuffer()
     let copyEnd = CACurrentMediaTime()
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
@@ -77,73 +76,10 @@ extension BVHBuilder {
   }
 }
 
-// MARK: - Cells
-  
-extension BVHBuilder {
-  func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 1
-    do {
-      let currentIndex = renderer.argumentContainer.doubleBufferIndex()
-      let previousIndex = (currentIndex + 1) % 2
-      let previousMarks = cellGroupMarks[previousIndex]
-      let currentMarks = cellGroupMarks[currentIndex]
-      encoder.setBuffer(previousMarks, offset: 0, index: 0)
-      encoder.setBuffer(currentMarks, offset: 0, index: 1)
-    }
-    
-    // Arguments 2 - 3
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
-    encoder.setBuffer(largeCellOffsets, offset: 0, index: 3)
-    
-    // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart1_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSize(width: 16, height: 16, depth: 16),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
-  }
-  
-  func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    
-    // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart2_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: 1, height: 1, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
-  }
-  
-  func buildLargePart2_1(encoder: MTLComputeCommandEncoder) {
-    // Argument 0
-    encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    
-    // Argument 1
-    do {
-      let currentIndex = renderer.argumentContainer.doubleBufferIndex()
-      let currentMarks = cellGroupMarks[currentIndex]
-      encoder.setBuffer(currentMarks, offset: 0, index: 1)
-    }
-    
-    // Arguments 2 - 4
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
-    encoder.setBuffer(largeCellOffsets, offset: 0, index: 3)
-    encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 4)
-    
-    // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart2_1
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSize(width: 16, height: 16, depth: 16),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
-  }
-}
-
 // MARK: - Atoms
 
 extension BVHBuilder {
-  func buildLargePart0_0() {
+  func copyAtomsIntoBuffer() {
     // Destination
     let tripleIndex = renderer.argumentContainer.tripleBufferIndex()
     let destinationBuffer = originalAtoms[tripleIndex]
@@ -161,54 +97,6 @@ extension BVHBuilder {
       /*__dst*/ destinationPointer,
       /*__src*/ sourceArray,
       /*__n*/   byteCount)
-  }
-  
-  func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 5
-    bindAtomArguments(encoder: encoder)
-    
-    // Argument 6
-    do {
-      let currentIndex = renderer.argumentContainer.doubleBufferIndex()
-      let currentMarks = cellGroupMarks[currentIndex]
-      encoder.setBuffer(currentMarks, offset: 0, index: 6)
-    }
-    
-    // Argument 7
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 7)
-    
-    // Dispatch
-    do {
-      let pipeline = buildLargePipelines.buildLargePart1_1
-      encoder.setComputePipelineState(pipeline)
-      
-      let sourceArray = renderer.argumentContainer.currentAtoms
-      encoder.dispatchThreads(
-        MTLSize(width: sourceArray.count, height: 1, depth: 1),
-        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-    }
-  }
-  
-  func buildLargePart2_2(encoder: MTLComputeCommandEncoder) {
-    // Arguments 0 - 5
-    bindAtomArguments(encoder: encoder)
-    
-    // Arguments 6 - 9
-    encoder.setBuffer(atomMetadata, offset: 0, index: 6)
-    encoder.setBuffer(convertedAtoms, offset: 0, index: 7)
-    encoder.setBuffer(largeAtomReferences, offset: 0, index: 8)
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 9)
-    
-    // Dispatch
-    do {
-      let pipeline = buildLargePipelines.buildLargePart2_2
-      encoder.setComputePipelineState(pipeline)
-      
-      let sourceArray = renderer.argumentContainer.currentAtoms
-      encoder.dispatchThreads(
-        MTLSize(width: sourceArray.count, height: 1, depth: 1),
-        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
-    }
   }
   
   func bindAtomArguments(encoder: MTLComputeCommandEncoder) {
@@ -242,5 +130,80 @@ extension BVHBuilder {
       encoder.setBuffer(relativeOffsets, offset: offset1, index: 4)
       encoder.setBuffer(relativeOffsets, offset: offset2, index: 5)
     }
+  }
+  
+  func buildLargePart0_1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 5
+    bindAtomArguments(encoder: encoder)
+    
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 6)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 7)
+    
+    // Dispatch
+    do {
+      let pipeline = buildLargePipelines.buildLargePart0_1
+      encoder.setComputePipelineState(pipeline)
+      
+      let sourceArray = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: sourceArray.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
+  }
+  
+  func buildLargePart1_1(encoder: MTLComputeCommandEncoder) {
+    // Arguments 0 - 5
+    bindAtomArguments(encoder: encoder)
+    
+    encoder.setBuffer(atomMetadata, offset: 0, index: 6)
+    encoder.setBuffer(convertedAtoms, offset: 0, index: 7)
+    encoder.setBuffer(largeAtomReferences, offset: 0, index: 8)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 9)
+    
+    // Dispatch
+    do {
+      let pipeline = buildLargePipelines.buildLargePart1_1
+      encoder.setComputePipelineState(pipeline)
+      
+      let sourceArray = renderer.argumentContainer.currentAtoms
+      encoder.dispatchThreads(
+        MTLSize(width: sourceArray.count, height: 1, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 128, height: 1, depth: 1))
+    }
+  }
+}
+
+// MARK: - Cells
+  
+extension BVHBuilder {
+  func buildLargePart0_0(encoder: MTLComputeCommandEncoder) {
+    encoder.setBuffer(globalCounters, offset: 0, index: 0)
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 1)
+    
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart0_0
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreads(
+      MTLSize(width: 32, height: 32, depth: 32),
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+  }
+  
+  func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
+    encoder.setBuffer(globalCounters, offset: 0, index: 0)
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 1)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
+    encoder.setBuffer(largeCellOffsets, offset: 0, index: 3)
+    encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 4)
+    
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart1_0
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreadgroups(
+      MTLSize(width: 32, height: 32, depth: 32),
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+  }
+  
+  func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
+    
   }
 }

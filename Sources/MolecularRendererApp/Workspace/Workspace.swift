@@ -226,42 +226,33 @@ import Numerics
 //     - Make the loop go over 8 nm grid cells.
 //     - Verify that the compute cost per-atom is reduced.
 //   - Make another cells-scoped kernel, to reduce over these marks.
-//     - Reduce a bounding box, check its integrity on the CPU.
 // - Try an optimization that exploits three hierarchy levels.
-//   - First, try optimizing address generation for primary rays.
 //   - Gather statistics before the change.
-//   - Undo the optimizations to DDA iteration.
 //   - Jump forward in "large cell groups". Retrieve the code from an older
 //     commit.
-//   - Try changing to 8x8x8 groups of large cells (16 nm).
 //   - Gather statistics after the change.
 // - Properly handle the edge case where the user falls outside of the
 //   world grid.
-//   - Make a bounding box at the granularity of large-cell groups.
-//   - Use the bounding box to test situations where the user falls outside
-//     the world volume.
-//   - Measure the performance improvement from eliding
+//   - Use an artificial, hard-coded bounding box to test situations where the
+//     user falls outside the world volume.
 //
-// Reproduce the benchmarks in this file, of the CPU-side and GPU-side costs
-// of various per-frame operations. Compare how well the code is performing
-// after the rewrite of the renderer.
-// - Sum the two BVH construction passes, reporting as one metric.
-//
-// Refactor the renderer into a SwiftPM workflow.
+// Defer incremental BVH modification to a later date (PR #1).
 // - Commit the current branch to 'main', keeping the work breakdown
-//   structure and shader benchmark data. (PR #1)
-// - Refactor the public API, to prepare for incremental BVH modification.
-//   - Use explicit atom tracking to determine motion vectors, eliminating the
-//     need to 'guess' whether a frame can have motion vectors.
+//   structure and shader benchmark data.
+//
+// Refactor the renderer into a SwiftPM workflow (PR #2).
 // - Overhaul the documentation.
 //   - Archive the hardware catalog.
 //   - Delete the references to the simulators.
-//   - Overhaul the API.
-// - Finish PR #2.
+// - Overhaul the API.
+//   - Use explicit atom tracking to determine motion vectors, eliminating the
+//     need to 'guess' whether a frame can have motion vectors.
+//   - Check whether CVDisplayLink timestamps have consistent spacing. If so,
+//     eliminate the dependency on discrete frame IDs.
+// - Test 4-6x upscale factors with NN, bilinear, and bicubic interpolation.
+//   - Test how well they hold up when the object or user is moving.
 //
 // Port the program to Windows, and add tutorials (PR #3).
-//
-// Defer the completion of incremental BVH modification to a later date.
 
 #if true
 

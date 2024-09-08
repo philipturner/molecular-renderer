@@ -10,62 +10,24 @@
 #include "../Utilities/WorldVolume.metal"
 using namespace metal;
 
-kernel void buildLargePart1_0
+kernel void buildLargePart0_0
 (
- device uchar *previousCellGroupMarks [[buffer(0)]],
- device uchar *currentCellGroupMarks [[buffer(1)]],
- device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
- device uint *largeCellOffsets [[buffer(3)]],
- ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]])
+ device uint3 *allocatedMemory [[buffer(0)]],
+ device uchar *cellGroupMarks [[buffer(1)]],
+ ushort3 tid [[thread_position_in_grid]])
 {
-  uchar previousMark;
-  {
-    // Locate the mark.
-    ushort3 cellCoordinates = tgid;
-    uint address = VoxelAddress::generate(largeVoxelGridWidth / 4,
-                                          cellCoordinates);
-    
-    // Read the previous mark.
-    previousMark = previousCellGroupMarks[address];
-    
-    // Write the current mark.
-    uchar resetValue = uchar(0);
-    currentCellGroupMarks[address] = resetValue;
-  }
-  
-  if (previousMark > 0) {
-    // Locate the metadata.
-    ushort3 cellCoordinates = thread_id;
-    cellCoordinates += tgid * 4;
-    uint address = VoxelAddress::generate(largeVoxelGridWidth,
-                                          cellCoordinates);
-    
-    // Write the large counter metadata.
-    {
-      vec<uint, 8> resetValue = vec<uint, 8>(0);
-      largeCounterMetadata[address] = resetValue;
-    }
-    
-    // Write the large cell metadata.
-    {
-      uint resetValue = 0;
-      largeCellOffsets[address] = resetValue;
-    }
-  }
-}
-
-kernel void buildLargePart2_0
-(
- device uint3 *allocatedMemory [[buffer(0)]])
-{
-  // The first three slots are allocators. We initialize them with the smallest
-  // acceptable pointer value.
-  // - Large voxel count.
-  // - Large reference count.
-  // - Small reference count.
+  // Write the smallest valid pointer.
   uint3 smallestPointer = uint3(1);
   allocatedMemory[0] = smallestPointer;
+  
+  // Locate the mark.
+  ushort3 cellCoordinates = tid;
+  uint address = VoxelAddress::generate(cellGroupGridWidth,
+                                        cellCoordinates);
+  
+  // Write the mark.
+  uchar resetValue = uchar(0);
+  cellGroupMarks[address] = resetValue;
 }
 
 // Inputs:
@@ -81,11 +43,10 @@ kernel void buildLargePart2_0
 //   - small reference offset
 //   - atom count
 // - amount of memory allocated
-// - compact bounding box for dense DDA traversal
-kernel void buildLargePart2_1
+kernel void buildLargePart1_0
 (
  device atomic_uint *allocatedMemory [[buffer(0)]],
- device uchar *currentCellGroupMarks [[buffer(1)]],
+ device uchar *cellGroupMarks [[buffer(1)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
  device uint *largeCellOffsets [[buffer(3)]],
  device uint4 *compactedLargeCellMetadata [[buffer(4)]],
@@ -94,20 +55,15 @@ kernel void buildLargePart2_1
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
-  uchar currentMark;
+  uchar mark;
   {
     // Locate the mark.
     ushort3 cellCoordinates = tgid;
-    uint address = VoxelAddress::generate(largeVoxelGridWidth / 4,
+    uint address = VoxelAddress::generate(cellGroupGridWidth,
                                           cellCoordinates);
     
     // Read the current mark.
-    currentMark = currentCellGroupMarks[address];
-  }
-  
-  // Return early for vacant voxels.
-  if (currentMark == 0) {
-    return;
+    mark = cellGroupMarks[address];
   }
   
   // Locate the counter metadata.
@@ -117,6 +73,12 @@ kernel void buildLargePart2_1
     cellCoordinates += tgid * 4;
     largeCellAddress = VoxelAddress::generate(largeVoxelGridWidth,
                                               cellCoordinates);
+  }
+  
+  // Return early for vacant voxels.
+  if (mark == 0) {
+    largeCellOffsets[largeCellAddress] = 0;
+    return;
   }
   
   // Read the counter metadata.
@@ -172,25 +134,11 @@ kernel void buildLargePart2_1
   
   // If just this thread is empty, return here.
   if (threadTotalCount == 0) {
+    largeCellOffsets[largeCellAddress] = 0;
     return;
   }
   
-  // Write the cell metadata.
-  {
-    uint4 threadMetadata(threadVoxelOffset,
-                         threadLargeOffset,
-                         threadSmallOffset,
-                         threadTotalCount & (uint(1 << 14) - 1));
-    largeCellOffsets[largeCellAddress] = threadMetadata[0];
-    
-    ushort3 cellCoordinates = thread_id;
-    cellCoordinates += tgid * 4;
-    uchar4 compressedCellCoordinates(uchar3(cellCoordinates), 0);
-    threadMetadata[0] = as_type<uint>(compressedCellCoordinates);
-    compactedLargeCellMetadata[threadVoxelOffset] = threadMetadata;
-  }
-  
-  // Write the counter offsets.
+  // Write the large counter metadata.
   {
     vec<uint, 8> counterOffsets;
     uint counterCursor = 0;
@@ -204,5 +152,57 @@ kernel void buildLargePart2_1
     }
     counterOffsets += threadLargeOffset;
     largeCounterMetadata[largeCellAddress] = counterOffsets;
+  }
+  
+  // Write the large cell offset.
+  largeCellOffsets[largeCellAddress] = threadVoxelOffset;
+  
+  // Write the large cell metadata.
+  {
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
+    uchar4 compressedCellCoordinates(uchar3(cellCoordinates), 0);
+    
+    uint4 threadMetadata(as_type<uint>(compressedCellCoordinates),
+                         threadLargeOffset,
+                         threadSmallOffset,
+                         threadTotalCount & (uint(1 << 14) - 1));
+    compactedLargeCellMetadata[threadVoxelOffset] = threadMetadata;
+  }
+}
+
+kernel void buildLargePart2_0
+(
+ device uchar *cellGroupMarks [[buffer(0)]],
+ device vec<uint, 8> *largeCounterMetadata [[buffer(1)]],
+ ushort3 tgid [[threadgroup_position_in_grid]],
+ ushort3 thread_id [[thread_position_in_threadgroup]])
+{
+  uchar mark;
+  {
+    // Locate the mark.
+    ushort3 cellCoordinates = tgid;
+    uint address = VoxelAddress::generate(cellGroupGridWidth,
+                                          cellCoordinates);
+    
+    // Read the mark.
+    mark = cellGroupMarks[address];
+  }
+  
+  // Return early if the voxel is empty.
+  if (mark == 0) {
+    return;
+  }
+  
+  {
+    // Locate the large counter metadata.
+    ushort3 cellCoordinates = thread_id;
+    cellCoordinates += tgid * 4;
+    uint address = VoxelAddress::generate(largeVoxelGridWidth,
+                                          cellCoordinates);
+    
+    // Write the large counter metadata.
+    vec<uint, 8> resetValue = vec<uint, 8>(0);
+    largeCounterMetadata[address] = resetValue;
   }
 }

@@ -54,14 +54,14 @@ inline ushort3 reorderBackward(ushort3 loopBound, ushort permutationID) {
 
 // MARK: - Kernels
 
-kernel void buildLargePart1_1
+kernel void buildLargePart0_1
 (
  constant half *elementRadii [[buffer(1)]],
  device float4 *currentAtoms [[buffer(3)]],
  device ushort4 *relativeOffsets1 [[buffer(4)]],
  device ushort4 *relativeOffsets2 [[buffer(5)]],
  
- device uchar *currentCellGroupMarks [[buffer(6)]],
+ device uchar *cellGroupMarks [[buffer(6)]],
  device atomic_uint *largeCounterMetadata [[buffer(7)]],
  uint tid [[thread_position_in_grid]],
  ushort thread_id [[thread_index_in_threadgroup]])
@@ -141,12 +141,12 @@ kernel void buildLargePart1_1
           // Locate the mark.
           ushort3 cellCoordinates = largeVoxelMin + actualXYZ;
           cellCoordinates /= 4;
-          uint address = VoxelAddress::generate(largeVoxelGridWidth / 4,
+          uint address = VoxelAddress::generate(cellGroupGridWidth,
                                                 cellCoordinates);
           
           // Write the mark.
           uchar activeValue = uchar(1);
-          currentCellGroupMarks[address] = activeValue;
+          cellGroupMarks[address] = activeValue;
         }
       }
     }
@@ -177,7 +177,7 @@ kernel void buildLargePart1_1
   }
 }
 
-kernel void buildLargePart2_2
+kernel void buildLargePart1_1
 (
  constant bool *useAtomMotionVectors [[buffer(0)]],
  constant half *elementRadii [[buffer(1)]],
