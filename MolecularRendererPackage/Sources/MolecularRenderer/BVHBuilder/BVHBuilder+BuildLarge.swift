@@ -91,8 +91,9 @@ extension BVHBuilder {
       encoder.setBuffer(currentMarks, offset: 0, index: 1)
     }
     
-    // Argument 2
+    // Arguments 2 - 3
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
+    encoder.setBuffer(largeCellMetadata, offset: 0, index: 3)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart1_0

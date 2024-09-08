@@ -219,6 +219,8 @@ import Numerics
 //   updating the large cells.
 //   - Figure out the state information that must be tracked from the previous
 //     frame.
+//   - Figure out which memory addresses will serve as bump allocators, and
+//     what subsequent kernels depend on them.
 // - Re-implement the bounding box reduction, to decrease the number of
 //   far-away cells traversed for primary rays.
 //   - Properly handle the edge case where the user falls outside of the
@@ -234,7 +236,7 @@ import Numerics
 //   - Minimize the bandwidth cost of writing static atoms.
 //   - Minimize the memory cost of triple buffering for moving atoms.
 
-#if true
+#if false
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -315,26 +317,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
@@ -369,7 +371,7 @@ func createGeometry() -> [Atom] {
 
 #endif
 
-#if false
+#if true
 
 // Test that animation functionality is working correctly.
 func createGeometry() -> [[Atom]] {
@@ -449,7 +451,9 @@ func createGeometry() -> [[Atom]] {
     var frame: [Atom] = []
     for atomID in parameters.atoms.indices {
       let atomicNumber = parameters.atoms.atomicNumbers[atomID]
-      let position = forceField.positions[atomID]
+      var position = forceField.positions[atomID]
+      position += SIMD3(0.500, 0.000, 0.000)
+      
       let atom = Atom(position: position, atomicNumber: atomicNumber)
       frame.append(atom)
     }
