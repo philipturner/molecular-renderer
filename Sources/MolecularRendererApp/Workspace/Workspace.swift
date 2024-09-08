@@ -249,16 +249,19 @@ import Numerics
 //
 // Refactor the renderer into a SwiftPM workflow.
 // - Commit the current branch to 'main', keeping the work breakdown
-//   structure and shader benchmark data.
+//   structure and shader benchmark data. (PR #1)
 // - Refactor the public API, to prepare for incremental BVH modification.
 //   - Use explicit atom tracking to determine motion vectors, eliminating the
 //     need to 'guess' whether a frame can have motion vectors.
-//   - Minimize the bandwidth cost of writing static atoms.
-//   - Minimize the memory cost of triple buffering for moving atoms, in a
-//     scene with many millions of atoms.
-// - Port the program to Windows.
-// - Finish implementing the incremental BVH modification, when you can
-//   profile performance on Windows as well.
+// - Overhaul the documentation.
+//   - Archive the hardware catalog.
+//   - Delete the references to the simulators.
+//   - Overhaul the API.
+// - Finish PR #2.
+//
+// Port the program to Windows, and add tutorials (PR #3).
+//
+// Defer the completion of incremental BVH modification to a later date.
 
 #if true
 
