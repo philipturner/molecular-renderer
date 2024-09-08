@@ -49,11 +49,11 @@ extension BVHBuilder {
     
     let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
+    buildLargePart0_0(encoder: encoder)
+    buildLargePart0_1(encoder: encoder)
     buildLargePart1_0(encoder: encoder)
     buildLargePart1_1(encoder: encoder)
     buildLargePart2_0(encoder: encoder)
-    buildLargePart2_1(encoder: encoder)
-    buildLargePart2_2(encoder: encoder)
     encoder.endEncoding()
     
     commandBuffer.addCompletedHandler { [self] commandBuffer in
@@ -185,7 +185,7 @@ extension BVHBuilder {
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreads(
       MTLSize(width: 32, height: 32, depth: 32),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+      threadsPerThreadgroup: MTLSize(width: 32, height: 4, depth: 1))
   }
   
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
@@ -204,6 +204,14 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 0)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 1)
     
+    // Dispatch
+    let pipeline = buildLargePipelines.buildLargePart2_0
+    encoder.setComputePipelineState(pipeline)
+    encoder.dispatchThreadgroups(
+      MTLSize(width: 32, height: 32, depth: 32),
+      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
 }

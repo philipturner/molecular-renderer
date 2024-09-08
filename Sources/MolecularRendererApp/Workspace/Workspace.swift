@@ -219,13 +219,9 @@ import Numerics
 //   - One can defer the retrieval of complex large-cell metadata, until after
 //     one verifies that the small cell is occupied. [DONE]
 //   - Examine how much this harms performance for AO rays. [DONE]
-// - Sparsify the counters and reductions over large cells.
+// - Fix the counters and reductions over large cells. [DONE]
 //   - First atoms kernel was ~200-240 μs, with 40x40x40 lattice.
 //   - Second atoms kernel was ~260-550 μs, with 40x40x40 lattice.
-//   - Start by marking cell-group marks in a third atoms-scoped kernel.
-//     - Make the loop go over 8 nm grid cells.
-//     - Verify that the compute cost per-atom is reduced.
-//   - Make another cells-scoped kernel, to reduce over these marks.
 // - Try an optimization that exploits three hierarchy levels.
 //   - Gather statistics before the change.
 //   - Jump forward in "large cell groups". Retrieve the code from an older
@@ -249,8 +245,11 @@ import Numerics
 //     need to 'guess' whether a frame can have motion vectors.
 //   - Check whether CVDisplayLink timestamps have consistent spacing. If so,
 //     eliminate the dependency on discrete frame IDs.
-// - Test 4-6x upscale factors with NN, bilinear, and bicubic interpolation.
-//   - Test how well they hold up when the object or user is moving.
+// - Fix everything related to upscaling.
+//   - Revise the heuristic for quality coefficient, to account for both
+//     upscale factor and FOV.
+//   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
+//   - Test how 4-6x upscaling performs when the user or scene is moving.
 //
 // Port the program to Windows, and add tutorials (PR #3).
 
