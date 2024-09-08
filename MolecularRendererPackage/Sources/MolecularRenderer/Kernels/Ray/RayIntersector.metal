@@ -77,10 +77,6 @@ struct RayIntersector {
         break;
       }
       
-      // Compute the next times.
-      float3 nextTimes = dda.nextTimes(largeCellBorder,
-                                       intersectionQuery.rayOrigin);
-      
       // Retrieve the mark.
       uchar mark;
       {
@@ -91,6 +87,10 @@ struct RayIntersector {
                                                coordinates);
         mark = cellGroupMarks[uint(address)];
       }
+      
+      // Compute the next times.
+      float3 nextTimes = dda.nextTimes(largeCellBorder,
+                                       intersectionQuery.rayOrigin);
       
       // Branch on the mark.
       if (mark > 0) {
@@ -119,12 +119,15 @@ struct RayIntersector {
           threadgroupMemory[threadgroupAddress] = largeKey;
           acceptedLargeVoxelCount += 1;
         }
-      } else {
         
+        // Increment to the next large voxel.
+        largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
+      } else {
+        // Jump forward to the next cell group.
+        largeCellBorder = dda.nextCellGroup(largeCellBorder,
+                                            intersectionQuery.rayOrigin,
+                                            intersectionQuery.rayDirection);
       }
-      
-      // Increment to the next large voxel.
-      largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
     }
   }
   

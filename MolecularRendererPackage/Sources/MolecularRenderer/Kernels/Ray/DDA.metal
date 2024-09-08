@@ -80,6 +80,63 @@ struct DDA {
     return smallestNextTime;
   }
   
+  // Only call this when the cell spacing is 2.0 nm.
+  float3 nextCellGroup(float3 cellBorder,
+                       float3 rayOrigin,
+                       float3 rayDirection) const {
+    // Round current coordinates down to 8.0 nm.
+    float3 nextBorder = cellBorder;
+    nextBorder /= 8.00;
+    nextBorder = select(ceil(nextBorder), floor(nextBorder), dtdx >= 0);
+    nextBorder *= 8.00;
+    
+    // Add 8.0 nm to each.
+    nextBorder += 4 * float3(dx);
+    
+    // Pick the axis with the smallest time.
+    ushort axisID;
+    float t;
+    {
+      // Find the time for each.
+      float3 nextTimes = (nextBorder - rayOrigin) * dtdx;
+      
+      // Branch on which axis won.
+      if (nextTimes[0] < nextTimes[1] &&
+          nextTimes[0] < nextTimes[2]) {
+        axisID = 0;
+        t = nextTimes[0];
+      } else if (nextTimes[1] < nextTimes[2]) {
+        axisID = 1;
+        t = nextTimes[1];
+      } else {
+        axisID = 2;
+        t = nextTimes[2];
+      }
+    }
+    
+    // Make speculative next positions.
+    float3 output = rayOrigin + t * rayDirection;
+    output /= 2.00;
+    output = select(ceil(output), floor(output), dtdx >= 0);
+    output *= 2.00;
+    
+    // Guarantee forward progress.
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 3; ++i) {
+      if (i == axisID) {
+        output[i] = nextBorder[i];
+      } else {
+        if (dtdx[i] >= 0) {
+          output[i] = max(output[i], cellBorder[i]);
+        } else {
+          output[i] = min(output[i], cellBorder[i]);
+        }
+      }
+    }
+    
+    return output;
+  }
+  
   // Before implementing fast forward:
   // - 7.5 ms at low clock speed
   // - 2.7 ms at high clock speed
@@ -460,6 +517,16 @@ struct DDA {
   //   - 946 instructions
   //   - 4.994 billion instructions issued
   //   - 26.48% divergence
+  //
+  // After skipping ahead at the granularity of 4 large cells.
+  // - 3.8 ms
+  // - per-line statistics:
+  //   - 35.19% primary ray
+  //   - 52.64% secondary rays
+  // - overall shader statistics:
+  //   - 1041 instructions
+  //   - 4.116 billion instructions issued
+  //   - 37.25% divergence
 };
 
 #endif // DDA_H
