@@ -74,6 +74,9 @@ struct RayIntersector {
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
+    float3 gridBounds =
+    select(float3(0), float3(largeVoxelGridWidth - 1), dda.dtdx >= 0);
+    
     while (acceptedLargeVoxelCount < 8) {
       // Retrieve the large metadata.
       float address = VoxelAddress::generate(largeVoxelGridWidth,
@@ -115,11 +118,8 @@ struct RayIntersector {
         largeVoxelCoordinates[2] += dda.dx[2] / 2;
       }
       
-      if (any(largeVoxelCoordinates == 0 ||
-              largeVoxelCoordinates == float(largeVoxelGridWidth - 1))) {
+      if (any(largeVoxelCoordinates == gridBounds)) {
         outOfBounds = true;
-      }
-      if (outOfBounds) {
         return;
       }
     }
