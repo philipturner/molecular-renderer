@@ -93,13 +93,13 @@ extension BVHBuilder {
     
     // Arguments 2 - 3
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 3)
+    encoder.setBuffer(largeCellOffsets, offset: 0, index: 3)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart1_0
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 64, height: 64, depth: 64),
+      MTLSize(width: 16, height: 16, depth: 16),
       threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
   
@@ -128,14 +128,14 @@ extension BVHBuilder {
     
     // Arguments 2 - 4
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
-    encoder.setBuffer(largeCellMetadata, offset: 0, index: 3)
+    encoder.setBuffer(largeCellOffsets, offset: 0, index: 3)
     encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 4)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_1
     encoder.setComputePipelineState(pipeline)
     encoder.dispatchThreadgroups(
-      MTLSize(width: 64, height: 64, depth: 64),
+      MTLSize(width: 16, height: 16, depth: 16),
       threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
   }
 }

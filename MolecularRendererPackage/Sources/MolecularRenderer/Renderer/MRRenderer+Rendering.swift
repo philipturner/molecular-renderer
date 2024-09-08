@@ -59,7 +59,7 @@ extension MRRenderer {
       encoder.setBuffer(bvhBuilder.convertedAtoms, offset: 0, index: 5)
       encoder.setBuffer(bvhBuilder.largeAtomReferences, offset: 0, index: 6)
       encoder.setBuffer(bvhBuilder.smallAtomReferences, offset: 0, index: 7)
-      encoder.setBuffer(bvhBuilder.largeCellMetadata, offset: 0, index: 8)
+      encoder.setBuffer(bvhBuilder.largeCellOffsets, offset: 0, index: 8)
       encoder.setBuffer(
         bvhBuilder.compactedLargeCellMetadata, offset: 0, index: 9)
       encoder.setBuffer(

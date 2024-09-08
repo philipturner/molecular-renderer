@@ -27,7 +27,7 @@ class BVHBuilder {
   // Data buffers (per cell).
   var cellGroupMarks: [MTLBuffer]
   var largeCounterMetadata: MTLBuffer
-  var largeCellMetadata: MTLBuffer
+  var largeCellOffsets: MTLBuffer
   var compactedLargeCellMetadata: MTLBuffer
   var compactedSmallCellMetadata: MTLBuffer
   
@@ -94,18 +94,18 @@ class BVHBuilder {
     }
     
     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
-    largeCellMetadata = createBuffer(length: largeVoxelCount * 16)
+    largeCellOffsets = createBuffer(length: largeVoxelCount * 4)
     compactedLargeCellMetadata = createBuffer(
       length: occupiedLargeVoxelCount * 16)
     compactedSmallCellMetadata = createBuffer(
       length: occupiedLargeVoxelCount * 512 * 4)
     largeCounterMetadata.label = "largeCounterMetadata"
-    largeCellMetadata.label = "largeCellMetadata"
+    largeCellOffsets.label = "largeCellOffsets"
     compactedLargeCellMetadata.label = "compactedLargeCellMetadata"
     compactedSmallCellMetadata.label = "compactedSmallCellMetadata"
     
     // Data buffers (per reference).
-    let staticAtomCount = 64 * 1024 * 1024
+    let staticAtomCount = 8 * 1024 * 1024
     let largeReferenceCount = staticAtomCount * 2
     let smallReferenceCount = staticAtomCount * 16
     convertedAtoms = createBuffer(length: largeReferenceCount * 8)

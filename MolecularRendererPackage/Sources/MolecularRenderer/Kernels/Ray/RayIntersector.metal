@@ -32,52 +32,57 @@ struct IntersectionQuery {
 struct RayIntersector {
   device half4 *convertedAtoms;
   device ushort *smallAtomReferences;
-  device uint4 *largeCellMetadata;
+  device uint *largeCellOffsets;
   device uint4 *compactedLargeCellMetadata;
   device ushort2 *compactedSmallCellMetadata;
   threadgroup uint2 *threadgroupMemory;
   ushort threadIndex;
   
   // Retrieves the large cell metadata from the dense buffer.
-  uint4 largeMetadata(float3 largeLowerCorner) const
+  uint largeCellOffset(float3 largeLowerCorner) const
   {
     float3 coordinates = largeLowerCorner + float(worldVolumeInNm / 2);
     coordinates /= 2;
     float address = VoxelAddress::generate(largeVoxelGridWidth,
                                            coordinates);
-    return largeCellMetadata[uint(address)];
+    return largeCellOffsets[uint(address)];
   }
   
   // Retrieves the small cell metadata from the compacted buffer.
   ushort2 smallMetadata(float3 relativeSmallLowerCorner,
-                        uint compactedLargeCellID) const
+                        uint largeCellOffset) const
   {
     float3 coordinates = relativeSmallLowerCorner / 0.25;
     float localAddress = VoxelAddress::generate(8, coordinates);
     
-    uint compactedGlobalAddress =
-    compactedLargeCellID * 512 + uint(localAddress);
-    return compactedSmallCellMetadata[compactedGlobalAddress];
+    uint globalAddress = largeCellOffset * 512 + uint(localAddress);
+    return compactedSmallCellMetadata[globalAddress];
   }
   
   // Fills the memory tape with large voxels.
-  void fillMemoryTape(thread float3 &nextTimes,
-                      thread float3 &largeVoxelCoordinates,
+  void fillMemoryTape(thread float3 &largeCellBorder,
                       thread bool &outOfBounds,
                       thread ushort &acceptedLargeVoxelCount,
                       IntersectionQuery intersectionQuery,
                       const DDA dda)
   {
-    float3 gridBounds =
-    select(float3(0), float3(largeVoxelGridWidth - 1), dda.dtdx >= 0);
-    
     while (acceptedLargeVoxelCount < 8) {
-      // Retrieve the large metadata.
-      float address = VoxelAddress::generate(largeVoxelGridWidth,
-                                             largeVoxelCoordinates);
-      uint4 largeMetadata = largeCellMetadata[uint(address)];
+      float3 largeLowerCorner = dda.cellLowerCorner(largeCellBorder);
+      if (any(largeLowerCorner < -float(worldVolumeInNm / 2) ||
+              largeLowerCorner >= float(worldVolumeInNm / 2))) {
+        outOfBounds = true;
+        break;
+      }
       
-      if (largeMetadata[0] > 0) {
+      // Retrieve the large metadata.
+      uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
+      
+      // Compute the next times.
+      float3 nextTimes = dda.nextTimes(largeCellBorder,
+                                       intersectionQuery.rayOrigin);
+      
+      // If the large cell has small cells, proceed.
+      if (largeCellOffset > 0) {
         float3 currentTimes = nextTimes - float3(dda.dx) * dda.dtdx;
         
         // Find the minimum time.
@@ -89,7 +94,7 @@ struct RayIntersector {
         
         // Encode the key.
         uint2 largeKey;
-        largeKey[0] = largeMetadata[0];
+        largeKey[0] = largeCellOffset;
         largeKey[1] = as_type<uint>(minimumTime);
         
         // Write to threadgroup memory.
@@ -99,23 +104,8 @@ struct RayIntersector {
         acceptedLargeVoxelCount += 1;
       }
       
-      // Fast forward to the next large voxel.
-      if (nextTimes[0] < nextTimes[1] &&
-          nextTimes[0] < nextTimes[2]) {
-        nextTimes[0] += dda.dx[0] * dda.dtdx[0];
-        largeVoxelCoordinates[0] += dda.dx[0] / 2;
-      } else if (nextTimes[1] < nextTimes[2]) {
-        nextTimes[1] += dda.dx[1] * dda.dtdx[1];
-        largeVoxelCoordinates[1] += dda.dx[1] / 2;
-      } else {
-        nextTimes[2] += dda.dx[2] * dda.dtdx[2];
-        largeVoxelCoordinates[2] += dda.dx[2] / 2;
-      }
-      
-      if (any(largeVoxelCoordinates == gridBounds)) {
-        outOfBounds = true;
-        return;
-      }
+      // Increment to the next large voxel.
+      largeCellBorder = dda.nextBorder(largeCellBorder, nextTimes);
     }
   }
   
@@ -169,44 +159,20 @@ struct RayIntersector {
   // large distances, but have minimal divergence.
   IntersectionResult intersectPrimary(IntersectionQuery intersectionQuery) {
     // Initialize the outer DDA.
-    float3 _nextTimes;
-    float3 _largeVoxelCoordinates;
-    DDA largeDDA;
-    
-    {
-      float3 largeCellBorder;
-      largeDDA = DDA(&largeCellBorder,
-                     intersectionQuery.rayOrigin,
-                     intersectionQuery.rayDirection,
-                     2.00);
-      
-      float3 borderOffset = float3(largeDDA.dx);
-      borderOffset -= intersectionQuery.rayOrigin;
-      borderOffset *= largeDDA.dtdx;
-      _nextTimes = largeCellBorder * largeDDA.dtdx + borderOffset;
-      
-      _largeVoxelCoordinates = largeCellBorder;
-      _largeVoxelCoordinates += select(float3(largeDDA.dx),
-                                  float3(0),
-                                  largeDDA.dtdx >= 0);
-      _largeVoxelCoordinates += float(worldVolumeInNm / 2);
-      _largeVoxelCoordinates /= 2;
-    }
+    float3 largeCellBorder;
+    DDA largeDDA(&largeCellBorder,
+                 intersectionQuery.rayOrigin,
+                 intersectionQuery.rayDirection,
+                 2.00);
     
     IntersectionResult result;
     result.accept = false;
     bool outOfBounds = false;
     
-    if (any(_largeVoxelCoordinates < 0 ||
-            _largeVoxelCoordinates >= float(largeVoxelGridWidth))) {
-      outOfBounds = true;
-    }
-    
     while (!outOfBounds) {
       // Loop over ~8 large voxels.
       ushort acceptedLargeVoxelCount = 0;
-      fillMemoryTape(_nextTimes,
-                     _largeVoxelCoordinates,
+      fillMemoryTape(largeCellBorder,
                      outOfBounds,
                      acceptedLargeVoxelCount,
                      intersectionQuery,
@@ -245,14 +211,14 @@ struct RayIntersector {
             uint2 largeKey = threadgroupMemory[threadgroupAddress];
             
             // Decode the key.
-            uint compactedLargeCellID = largeKey[0];
+            uint largeCellOffset = largeKey[0];
             float minimumTime = as_type<float>(largeKey[1]);
             
             // Retrieve the large cell metadata.
-            largeMetadata = compactedLargeCellMetadata[compactedLargeCellID];
+            largeMetadata = compactedLargeCellMetadata[largeCellOffset];
             uchar4 compressedCellCoordinates = as_type<uchar4>(largeMetadata[0]);
             float3 cellCoordinates = float3(compressedCellCoordinates.xyz);
-            largeMetadata[0] = compactedLargeCellID;
+            largeMetadata[0] = largeCellOffset;
             
             // Compute the voxel bounds.
             shiftedRayOrigin = intersectionQuery.rayOrigin;
@@ -293,7 +259,7 @@ struct RayIntersector {
           }
           
           // Increment to the next small voxel.
-          smallCellBorder = smallDDA.nextSmallBorder(smallCellBorder, nextTimes);
+          smallCellBorder = smallDDA.nextBorder(smallCellBorder, nextTimes);
         }
         
         // Test the atoms.
@@ -357,13 +323,14 @@ struct RayIntersector {
       // TODO: Optimize by caching the previous voxel's large cell ID and large
       // metadata. This may or may not backfire due to divergence.
       float3 largeLowerCorner = 2 * floor(smallLowerCorner / 2);
-      uint4 largeMetadata = this->largeMetadata(largeLowerCorner);
+      uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
       
       // If the large cell has small cells, proceed.
-      if (largeMetadata[0] > 0) {
+      if (largeCellOffset > 0) {
         float3 relativeSmallLowerCorner = smallLowerCorner - largeLowerCorner;
         ushort2 smallMetadata = this->smallMetadata(relativeSmallLowerCorner,
-                                                    largeMetadata[0]);
+                                                    largeCellOffset);
+        
         
         // The ray-sphere intersection tests may be highly divergent. All
         // measures to reduce divergence backfired, causing a significant
@@ -375,6 +342,9 @@ struct RayIntersector {
           
           // Set the distance register.
           result.distance = voxelMaximumHitTime;
+          
+          // Retrieve the large-cell metadata.
+          uint4 largeMetadata = compactedLargeCellMetadata[largeCellOffset];
           
           // Test the atoms in the accepted voxel.
           testCell(result,
@@ -391,7 +361,7 @@ struct RayIntersector {
       }
       
       // Increment to the next small voxel.
-      smallCellBorder = dda.nextSmallBorder(smallCellBorder, nextTimes);
+      smallCellBorder = dda.nextBorder(smallCellBorder, nextTimes);
     }
     
     return result;

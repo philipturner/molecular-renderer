@@ -19,7 +19,7 @@ kernel void buildLargePart1_0
  device uchar *previousCellGroupMarks [[buffer(0)]],
  device uchar *currentCellGroupMarks [[buffer(1)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
- device uint4 *largeCellMetadata [[buffer(3)]],
+ device uint *largeCellOffsets [[buffer(3)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]])
 {
@@ -53,8 +53,8 @@ kernel void buildLargePart1_0
     
     // Write the large cell metadata.
     {
-      uint4 resetValue = uint4(0);
-      largeCellMetadata[address] = resetValue;
+      uint resetValue = 0;
+      largeCellOffsets[address] = resetValue;
     }
   }
 }
@@ -96,7 +96,7 @@ kernel void buildLargePart2_1
  device atomic_uint *allocatedMemory [[buffer(0)]],
  device uchar *currentCellGroupMarks [[buffer(1)]],
  device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
- device uint4 *largeCellMetadata [[buffer(3)]],
+ device uint *largeCellOffsets [[buffer(3)]],
  device uint4 *compactedLargeCellMetadata [[buffer(4)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
@@ -190,7 +190,7 @@ kernel void buildLargePart2_1
                          threadLargeOffset,
                          threadSmallOffset,
                          threadTotalCount & (uint(1 << 14) - 1));
-    largeCellMetadata[largeCellAddress] = threadMetadata;
+    largeCellOffsets[largeCellAddress] = threadMetadata[0];
     
     ushort3 cellCoordinates = thread_id;
     cellCoordinates += tgid * 4;

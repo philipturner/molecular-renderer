@@ -54,6 +54,19 @@ struct DDA {
     return nextTimes;
   }
   
+  float3 nextBorder(float3 cellBorder, float3 nextTimes) const {
+    float3 output = cellBorder;
+    if (nextTimes[0] < nextTimes[1] &&
+        nextTimes[0] < nextTimes[2]) {
+      output[0] += dx[0];
+    } else if (nextTimes[1] < nextTimes[2]) {
+      output[1] += dx[1];
+    } else {
+      output[2] += dx[2];
+    }
+    return output;
+  }
+  
   float voxelMaximumHitTime(float3 cellBorder, float3 nextTimes) const {
     float smallestNextTime;
     if (nextTimes[0] < nextTimes[1] &&
@@ -65,19 +78,6 @@ struct DDA {
       smallestNextTime = nextTimes[2];
     }
     return smallestNextTime;
-  }
-  
-  float3 nextSmallBorder(float3 cellBorder, float3 nextTimes) const {
-    float3 output = cellBorder;
-    if (nextTimes[0] < nextTimes[1] &&
-        nextTimes[0] < nextTimes[2]) {
-      output[0] += dx[0];
-    } else if (nextTimes[1] < nextTimes[2]) {
-      output[1] += dx[1];
-    } else {
-      output[2] += dx[2];
-    }
-    return output;
   }
   
   // Before implementing fast forward:
@@ -417,6 +417,41 @@ struct DDA {
   //   - 957 instructions
   //   - 5.578 billion instructions issued
   //   - 27.87% divergence
+  //
+  // Reverting to 128 nm.
+  // - 3.1 ms
+  // - per-line statistics:
+  //   - 36.09% primary ray
+  //   - 51.67% secondary rays
+  // - overall shader statistics:
+  //   - 956 instructions
+  //   - 3.723 billion instructions issued
+  //   - 31.49% divergence
+  //
+  // Undoing some optimizations to primary rays.
+  // - 3.9 ms
+  // - per-line statistics:
+  //   - 39.37% primary ray
+  //   - 49.46% secondary rays
+  // - overall shader statistics:
+  //   - 944 instructions
+  //   - 4.077 billion instructions issued
+  //   - 29.03% divergence
+  //
+  // Reducing the memory consumption of large cell metadata.
+  // - 39.04% / 49.31%
+  // - 946 instructions
+  // - 4.078 billion instructions issued
+  //
+  // - 38.71% / 49.45%
+  // - 946 instructions
+  // - 4.080 billion instructions issued
+  //
+  // - 39.20% / 49.28%
+  // - 946 instructions
+  // - 4.072 billion instructions issued
+  //
+  // Caching the large cell metadata for AO rays.
 };
 
 #endif // DDA_H
