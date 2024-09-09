@@ -82,32 +82,31 @@ kernel void renderAtoms
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
-  half sampleCount = 0;
   if (intersect.accept) {
     // Locate the hit atom.
     uint hitAtomID = largeAtomReferences[intersect.atomID];
     
     // Compute the hit point.
     float4 hitAtom = float4(originalAtoms[hitAtomID]);
-    float3 hitPoint = primaryRayOrigin + intersect.distance * primaryRayDirection;
+    float3 hitPoint = primaryRayOrigin;
+    hitPoint += intersect.distance * primaryRayDirection;
     half3 hitNormal = half3(normalize(hitPoint - hitAtom.xyz));
     
     // Set the diffuse color.
     colorCtx.setDiffuseColor(ushort(hitAtom[3]));
     
     // Pick the number of AO samples.
-    {
-      if (intersect.distance > renderArgs->criticalDistance) {
-        // The proportion is always less than one.
-        half proportion = renderArgs->criticalDistance / intersect.distance;
-        sampleCount = max(half(3), 7 * proportion);
-        sampleCount = ceil(sampleCount);
-      } else {
-        sampleCount = 7;
-      }
-      sampleCount = max(sampleCount, half(3));
-      sampleCount = min(sampleCount, half(7));
+    half sampleCount;
+    if (intersect.distance > renderArgs->criticalDistance) {
+      // The proportion is always less than one.
+      half proportion = renderArgs->criticalDistance / intersect.distance;
+      sampleCount = proportion * 7;
+      sampleCount = ceil(sampleCount);
+    } else {
+      sampleCount = 7;
     }
+    sampleCount = max(sampleCount, half(3));
+    sampleCount = min(sampleCount, half(7));
     
     // Create a generation context.
     GenerationContext generationContext(cameraArgs,
@@ -167,8 +166,6 @@ kernel void renderAtoms
                                     previousHitPoint);
     }
   }
-  
-  colorCtx.color = half3(sampleCount / 7);
   
   // Write the rendered pixel.
   colorCtx.write(colorTexture, depthTexture, motionTexture);

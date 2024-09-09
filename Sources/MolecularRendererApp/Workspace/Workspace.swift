@@ -265,7 +265,7 @@ import Numerics
 // Port to Windows, before adding the complexity of support for giant atom
 // counts.
 
-#if true
+#if false
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -494,7 +494,7 @@ func createGeometry() -> [[Atom]] {
 
 #endif
 
-#if false
+#if true
 
 // Higher resolution means we can resolve much larger scenes. There is
 // motivation to support atom counts far exceeding 4 million.
