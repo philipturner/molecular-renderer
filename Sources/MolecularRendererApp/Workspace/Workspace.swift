@@ -239,7 +239,7 @@ import Numerics
 //     - Before the change, 40x40x40 was 30% / 56%. [DONE]
 //     - After the change, 40x40x40 was 21% / 65%. [DONE]
 //   - Clamp the large DDA to the bounding box's range. [DONE]
-// - Return early for any atoms that fall outside the world bounds.
+// - Return early for any atoms that fall outside the world bounds. [DONE]
 //   - Make the world bounds artificially small. [DONE]
 //   - Check that atoms are omitted with some reasonably sized lattices.
 //   - Clamp the atoms to positions at least 0.25 nm inside the world bounds.
@@ -250,12 +250,12 @@ import Numerics
 //   - Test how 4-6x upscaling performs when the user or scene is moving.
 //
 // Merge the new ray tracer into the main branch (PR #1).
-// - Archive the hardware catalog.
 // - Delete the references to the simulators. [DONE]
 // - Commit the current branch to 'main', keeping the work breakdown
 //   structure and shader benchmark data.
 //
 // Refactor the renderer into a SwiftPM workflow (PR #2).
+// - Archive the hardware catalog.
 // - Overhaul the API.
 //   - Use explicit atom tracking to determine motion vectors, eliminating the
 //     need to 'guess' whether a frame can have motion vectors.
@@ -346,26 +346,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

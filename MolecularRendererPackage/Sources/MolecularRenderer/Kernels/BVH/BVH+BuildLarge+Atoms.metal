@@ -10,12 +10,6 @@
 #include "../Utilities/WorldVolume.metal"
 using namespace metal;
 
-inline ushort3 clamp(short3 position, ushort3 gridDims) {
-  short3 output = position;
-  output = clamp(output, 0, short3(gridDims));
-  return ushort3(output);
-}
-
 inline ushort pickPermutation(short3 footprintHigh) {
   ushort output;
   if (footprintHigh[0] == 0) {
@@ -72,22 +66,21 @@ kernel void buildLargePart0_1
   half radius = elementRadii[atomicNumber];
   
   // Place the atom in the grid of small cells.
-  float4 transformedAtom;
-  transformedAtom.xyz = 4 * (atom.xyz + float(worldVolumeInNm / 2));
-  transformedAtom.w = 4 * radius;
+  float3 scaledPosition = atom.xyz + float(worldVolumeInNm / 2);
+  scaledPosition /= 0.25;
+  float scaledRadius = radius / 0.25;
   
   // Generate the bounding box.
-  short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
-  short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
+  float3 boxMin = floor(scaledPosition - scaledRadius);
+  float3 boxMax = ceil(scaledPosition + scaledRadius);
   
   // Return early if out of bounds.
   if (any(boxMin < 0 ||
-          boxMax > short(smallVoxelGridWidth))) {
+          boxMax > float(smallVoxelGridWidth))) {
     return;
   }
   
   // Generate the voxel coordinates.
-  ushort3 gridDims = ushort3(smallVoxelGridWidth);
   ushort3 smallVoxelMin = ushort3(boxMin);
   ushort3 smallVoxelMax = ushort3(boxMax);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
@@ -204,7 +197,7 @@ kernel void buildLargePart1_1
   // Materialize the atom.
   float4 atom = currentAtoms[tid];
   ushort atomicNumber = ushort(atom.w);
-  half radius = elementRadii[atomicNumber];
+  float radius = elementRadii[atomicNumber];
   
   // Write the atom metadata.
   {
@@ -221,22 +214,21 @@ kernel void buildLargePart1_1
   }
   
   // Place the atom in the grid of small cells.
-  float4 transformedAtom;
-  transformedAtom.xyz = 4 * (atom.xyz + float(worldVolumeInNm / 2));
-  transformedAtom.w = 4 * radius;
+  float3 scaledPosition = atom.xyz + float(worldVolumeInNm / 2);
+  scaledPosition /= 0.25;
+  half scaledRadius = radius / 0.25;
   
   // Generate the bounding box.
-  short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
-  short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
+  float3 boxMin = floor(scaledPosition - scaledRadius);
+  float3 boxMax = ceil(scaledPosition + scaledRadius);
   
   // Return early if out of bounds.
   if (any(boxMin < 0 ||
-          boxMax > short(smallVoxelGridWidth))) {
+          boxMax > float(smallVoxelGridWidth))) {
     return;
   }
   
   // Generate the voxel coordinates.
-  ushort3 gridDims = ushort3(smallVoxelGridWidth);
   ushort3 smallVoxelMin = ushort3(boxMin);
   ushort3 smallVoxelMax = ushort3(boxMax);
   ushort3 largeVoxelMin = smallVoxelMin / 8;

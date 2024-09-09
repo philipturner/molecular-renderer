@@ -183,7 +183,7 @@ extension BVHBuilder {
   // The dimensions must not exceed 256 nm, because that's how much memory we
   // have allocated. It must not go smaller than 32 nm, because then we have
   // some glitches with SIMD lanes being inactive.
-  private static var worldVolumeInNm: Int { 64 }
+  private static var worldVolumeInNm: Int { 256 }
   private static var cellGroupGridWidth: Int { worldVolumeInNm / 8 }
   private static var largeVoxelGridWidth: Int { worldVolumeInNm / 2 }
   private static var smallVoxelGridWidth: Int { worldVolumeInNm * 4 }

@@ -15,7 +15,7 @@ using namespace metal;
 //
 // The world volume is a 256 nm cube, centered at the origin. Atom coordinates
 // may span from -128 to +128.
-constexpr constant ushort worldVolumeInNm = 64;
+constexpr constant ushort worldVolumeInNm = 256;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused"
