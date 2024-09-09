@@ -227,12 +227,20 @@ import Numerics
 //   - Use the cell group marks as just another conditional during the primary
 //     rays loop. [DONE]
 //   - Jump forward in "large cell groups". Retrieve the code from an older
-//     commit.
-//   - Gather statistics after the change.
+//     commit. [DONE]
+//   - Gather statistics after the change. [DONE]
 // - Properly handle the edge case where the user falls outside of the
 //   world grid.
-//   - Use an artificial, hard-coded bounding box to test situations where the
-//     user falls outside the world volume.
+//   - Reduce a bounding box of cell groups.
+//     - Make two new GPU kernels and a new "Part 3" for this purpose.
+//     - Validate correctness on the CPU.
+//     - Double-check that GPU time is negligible.
+//   - Return early when outside of this bounding box.
+//     - Bind the bounding box buffer to the render kernel.
+//     - Record rendering performance after the change.
+//   - Validate that performance improved for both 40x40x40 and 60x60x60.
+//     - Before the change, 40x40x40 was 30% / 56%.
+//   - Clamp the large DDA to the bounding box's range.
 //
 // Defer support for giant atom counts to a later date (PR #1).
 // - Commit the current branch to 'main', keeping the work breakdown
@@ -336,26 +344,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

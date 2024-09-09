@@ -81,17 +81,11 @@ struct DDA {
   }
   
   // Only call this when the cell spacing is 2.0 nm.
-  float3 nextCellGroup(float3 cellBorder,
-                       float3 rayOrigin1,
-                       float3 rayOrigin2,
-                       float3 rayDirection) const {
-    // Optimization:
-    // - Flip the negative-pointing axes upside down.
-    // - Reduces the divergence cost of the ceil/floor instructions by 2x.
-    // - Correct the final value upon exit.
-    
+  float3 nextCellGroup(float3 flippedCellBorder,
+                       float3 flippedRayOrigin,
+                       float3 flippedRayDirection) const {
     // Round current coordinates down to 8.0 nm.
-    float3 nextBorder = cellBorder;
+    float3 nextBorder = flippedCellBorder;
     nextBorder /= 8;
     nextBorder = floor(nextBorder);
     nextBorder = nextBorder * 8;
@@ -104,7 +98,7 @@ struct DDA {
     float t;
     {
       // Find the time for each.
-      float3 nextTimes = nextBorder * abs(dtdx) - rayOrigin1;
+      float3 nextTimes = (nextBorder - flippedRayOrigin) * abs(dtdx);
       
       // Branch on which axis won.
       if (nextTimes[0] < nextTimes[1] &&
@@ -121,7 +115,8 @@ struct DDA {
     }
     
     // Make speculative next positions.
-    float3 output = rayOrigin2 + (t / 2) * rayDirection;
+    float3 output = flippedRayOrigin + t * flippedRayDirection;
+    output /= 2;
     output = floor(output);
     output *= 2;
     
@@ -131,10 +126,9 @@ struct DDA {
       if (i == axisID) {
         output[i] = nextBorder[i];
       }
-      output[i] = max(output[i], cellBorder[i]);
+      output[i] = max(output[i], flippedCellBorder[i]);
     }
     
-    // Correct for the sign flipping (caller does this).
     return output;
   }
   
@@ -536,6 +530,14 @@ struct DDA {
   // 35.04% / 52.32%, 1017 / 3.832 billion issued
   // 34.62% / 52.64%, 1017 / 3.836 billion issued
   // 34.77% / 52.99%, 1015 / 3.821 billion issued
+  // - 3.3 ms
+  // - per-line statistics:
+  //   - 34.87% primary ray
+  //   - 52.63% secondary rays
+  // - overall shader statistics:
+  //   - 1017 instructions
+  //   - 3.833 billion instructions issued
+  //   - 28.63%
 };
 
 #endif // DDA_H
