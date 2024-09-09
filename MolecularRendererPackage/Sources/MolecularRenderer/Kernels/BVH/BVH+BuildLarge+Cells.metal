@@ -17,6 +17,7 @@ kernel void buildLargePart0_0
  device uchar *cellGroupMarks [[buffer(2)]],
  ushort3 tid [[thread_position_in_grid]])
 {
+  // A sub-section of the threads prepares the bounding box.
   if (all(tid == 0)) {
     // Write the smallest valid pointer.
     uint3 smallestPointer = uint3(1);
@@ -62,27 +63,58 @@ kernel void buildLargePart1_0
  device uint4 *compactedLargeCellMetadata [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
+ ushort3 tid [[thread_position_in_grid]],
  ushort lane_id [[thread_index_in_simdgroup]],
  ushort simd_id [[simdgroup_index_in_threadgroup]])
 {
+  // A sub-section of the threads accumulates the bounding box.
+  if (all(tid < cellGroupGridWidth)) {
+    // Locate the mark.
+    uint address = VoxelAddress::generate(cellGroupGridWidth, tid);
+    
+    // Read the current mark.
+    uchar mark = cellGroupMarks[address];
+    
+    // Generate the thread's contributions to the bounding box.
+    ushort3 boxMinimum = ushort3(cellGroupGridWidth);
+    ushort3 boxMaximum = ushort3(0);
+    boxMinimum = select(boxMinimum, tid, mark > 0);
+    boxMaximum = select(boxMaximum, tid + 1, mark > 0);
+    
+    // Reduce across the SIMD.
+    boxMinimum = simd_min(boxMinimum);
+    boxMaximum = simd_max(boxMaximum);
+    
+    // Distribute the data across three threads.
+    ushort minimumValue = ushort(cellGroupGridWidth);
+    ushort maximumValue = ushort(0);
+#pragma clang loop unroll(full)
+    for (ushort axisID = 0; axisID < 3; ++axisID) {
+      if (lane_id == axisID) {
+        minimumValue = boxMinimum[axisID];
+        maximumValue = boxMaximum[axisID];
+      }
+    }
+    
+    // Reduce across the entire GPU.
+    if (lane_id < 3) {
+      atomic_fetch_min_explicit(boundingBox + lane_id,
+                                minimumValue, memory_order_relaxed);
+      atomic_fetch_max_explicit(boundingBox + 4 + lane_id,
+                                maximumValue, memory_order_relaxed);
+    }
+  }
+  
+  // Locate the large cell metadata.
+  uint largeCellAddress = VoxelAddress::generate(largeVoxelGridWidth, tid);
+  
   uchar mark;
   {
     // Locate the mark.
-    ushort3 cellCoordinates = tgid;
-    uint address = VoxelAddress::generate(cellGroupGridWidth,
-                                          cellCoordinates);
+    uint address = VoxelAddress::generate(cellGroupGridWidth, tgid);
     
     // Read the current mark.
     mark = cellGroupMarks[address];
-  }
-  
-  // Locate the counter metadata.
-  uint largeCellAddress;
-  {
-    ushort3 cellCoordinates = thread_id;
-    cellCoordinates += tgid * 4;
-    largeCellAddress = VoxelAddress::generate(largeVoxelGridWidth,
-                                              cellCoordinates);
   }
   
   // Return early for vacant voxels.
@@ -183,11 +215,24 @@ kernel void buildLargePart1_0
 
 kernel void buildLargePart2_0
 (
- device uchar *cellGroupMarks [[buffer(0)]],
- device vec<uint, 8> *largeCounterMetadata [[buffer(1)]],
+ device uint3 *boundingBox [[buffer(0)]],
+ device uchar *cellGroupMarks [[buffer(1)]],
+ device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
- ushort3 thread_id [[thread_position_in_threadgroup]])
+ ushort3 thread_id [[thread_position_in_threadgroup]],
+ ushort3 tid [[thread_position_in_grid]])
 {
+  // A sub-section of the threads converts the bounding box to FP32.
+  if (all(tid == 0)) {
+    uint3 boxMinimum = boundingBox[0];
+    uint3 boxMaximum = boundingBox[1];
+    boxMaximum = max(boxMinimum, boxMaximum);
+    
+    auto boundingBoxCasted = (device float3*)boundingBox;
+    boundingBoxCasted[0] = float3(boxMinimum);
+    boundingBoxCasted[1] = float3(boxMaximum);
+  }
+  
   uchar mark;
   {
     // Locate the mark.

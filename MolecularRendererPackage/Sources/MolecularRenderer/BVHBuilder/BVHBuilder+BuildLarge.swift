@@ -77,6 +77,15 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
+    commandBuffer.waitUntilCompleted()
+    
+    let counters = globalCounters.contents().assumingMemoryBound(to: Float.self)
+    
+    for i in 32..<40 {
+      print(Int(counters[i]) * 8 - 128)
+    }
+    
+    exit(0)
   }
 }
 
@@ -210,8 +219,9 @@ extension BVHBuilder {
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
-    encoder.setBuffer(cellGroupMarks, offset: 0, index: 0)
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 1)
+    encoder.setBuffer(globalCounters, offset: 128, index: 0)
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 1)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart2_0
