@@ -180,17 +180,28 @@ extension BVHBuilder {
 // MARK: - Cells
   
 extension BVHBuilder {
+  // The dimensions must not exceed 256 nm, because that's how much memory we
+  // have allocated.
+  private static var worldVolumeInNm: Int { 32 }
+  private static var cellGroupGridWidth: Int { worldVolumeInNm / 8 }
+  private static var largeVoxelGridWidth: Int { worldVolumeInNm / 2 }
+  private static var smallVoxelGridWidth: Int { worldVolumeInNm * 4 }
+  
   func buildLargePart0_0(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(globalCounters, offset: 0, index: 0)
     encoder.setBuffer(globalCounters, offset: 128, index: 1)
     encoder.setBuffer(cellGroupMarks, offset: 0, index: 2)
     
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart0_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreads(
-      MTLSize(width: 32, height: 32, depth: 32),
-      threadsPerThreadgroup: MTLSize(width: 32, height: 4, depth: 1))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart0_0
+      encoder.setComputePipelineState(pipeline)
+      
+      let gridSize = Self.cellGroupGridWidth
+      encoder.dispatchThreads(
+        MTLSize(width: gridSize, height: gridSize, depth: gridSize),
+        threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+    }
   }
   
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
@@ -202,11 +213,15 @@ extension BVHBuilder {
     encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 5)
     
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart1_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSize(width: 32, height: 32, depth: 32),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart1_0
+      encoder.setComputePipelineState(pipeline)
+      
+      let gridSize = Self.cellGroupGridWidth
+      encoder.dispatchThreadgroups(
+        MTLSize(width: gridSize, height: gridSize, depth: gridSize),
+        threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+    }
   }
   
   func buildLargePart2_0(encoder: MTLComputeCommandEncoder) {
@@ -215,10 +230,14 @@ extension BVHBuilder {
     encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
     
     // Dispatch
-    let pipeline = buildLargePipelines.buildLargePart2_0
-    encoder.setComputePipelineState(pipeline)
-    encoder.dispatchThreadgroups(
-      MTLSize(width: 32, height: 32, depth: 32),
-      threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+    do {
+      let pipeline = buildLargePipelines.buildLargePart2_0
+      encoder.setComputePipelineState(pipeline)
+      
+      let gridSize = Self.cellGroupGridWidth
+      encoder.dispatchThreadgroups(
+        MTLSize(width: gridSize, height: gridSize, depth: gridSize),
+        threadsPerThreadgroup: MTLSize(width: 4, height: 4, depth: 4))
+    }
   }
 }

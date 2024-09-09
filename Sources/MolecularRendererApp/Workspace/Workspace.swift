@@ -240,7 +240,7 @@ import Numerics
 //     - After the change, 40x40x40 was 21% / 65%. [DONE]
 //   - Clamp the large DDA to the bounding box's range. [DONE]
 // - Return early for any atoms that fall outside the world bounds.
-//   - Make the world bounds artificially small.
+//   - Make the world bounds artificially small. [DONE]
 //   - Check that atoms are omitted with some reasonably sized lattices.
 //   - Clamp the atoms to positions at least 0.25 nm inside the world bounds.
 // - Fix everything related to upscaling.
@@ -346,26 +346,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
