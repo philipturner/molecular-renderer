@@ -23,7 +23,7 @@ struct RenderArguments {
   ushort screenWidth;
   uint frameSeed;
   float2 jitterOffsets;
-  float qualityCoefficient;
+  float criticalDistance;
 };
 
 #endif // ARGUMENTS_H

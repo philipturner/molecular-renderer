@@ -82,6 +82,7 @@ kernel void renderAtoms
   
   // Calculate the contributions from diffuse, specular, and AO.
   auto colorCtx = ColorContext(elementColors, pixelCoords);
+  half sampleCount = 0;
   if (intersect.accept) {
     // Locate the hit atom.
     uint hitAtomID = largeAtomReferences[intersect.atomID];
@@ -95,21 +96,17 @@ kernel void renderAtoms
     colorCtx.setDiffuseColor(ushort(hitAtom[3]));
     
     // Pick the number of AO samples.
-    half sampleCount;
     {
-      constexpr half minSamples = 3.0;
-      constexpr half maxSamples = 7.0;
-      
-      float distanceCutoff = renderArgs->qualityCoefficient / maxSamples;
-      if (intersect.distance > distanceCutoff) {
-        half proportion = distanceCutoff / intersect.distance;
-        sampleCount = max(minSamples, maxSamples * proportion);
+      if (intersect.distance > renderArgs->criticalDistance) {
+        // The proportion is always less than one.
+        half proportion = renderArgs->criticalDistance / intersect.distance;
+        sampleCount = max(half(3), 7 * proportion);
         sampleCount = ceil(sampleCount);
       } else {
-        sampleCount = maxSamples;
+        sampleCount = 7;
       }
-      sampleCount = max(sampleCount, minSamples);
-      sampleCount = min(sampleCount, maxSamples);
+      sampleCount = max(sampleCount, half(3));
+      sampleCount = min(sampleCount, half(7));
     }
     
     // Create a generation context.
@@ -170,6 +167,8 @@ kernel void renderAtoms
                                     previousHitPoint);
     }
   }
+  
+  colorCtx.color = half3(sampleCount / 7);
   
   // Write the rendered pixel.
   colorCtx.write(colorTexture, depthTexture, motionTexture);

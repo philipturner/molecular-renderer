@@ -27,16 +27,17 @@ struct ArgumentContainer {
   var elementRadii: [Float16] = []
   
   // Atom state variables.
-  var currentAtoms: [SIMD4<Float>] = []
   var previousAtoms: [SIMD4<Float>] = []
+  var currentAtoms: [SIMD4<Float>] = []
   
   // Camera state variables.
-  var currentCamera: CameraArguments?
   var previousCamera: CameraArguments?
+  var currentCamera: CameraArguments?
+  var currentFOVDegrees: Float = .zero
   
   // Time state variables.
-  var currentTime: MRTime?
   var previousTime: MRTime?
+  var currentTime: MRTime?
 }
 
 extension ArgumentContainer {
