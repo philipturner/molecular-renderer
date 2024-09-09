@@ -30,6 +30,7 @@ struct IntersectionQuery {
 // MARK: - Intersector Class
 
 struct RayIntersector {
+  constant float3 *boundingBox;
   device half4 *convertedAtoms;
   device ushort *smallAtomReferences;
   
@@ -76,42 +77,42 @@ struct RayIntersector {
     while (acceptedLargeVoxelCount < 8) {
       float3 largeLowerCorner = dda.cellLowerCorner(largeCellBorder);
       
-      // Compute the cell group coordinates.
-      float3 cellGroupCoordinates = largeLowerCorner;
-      cellGroupCoordinates += float(worldVolumeInNm / 2);
-      cellGroupCoordinates /= 8;
-      cellGroupCoordinates = floor(cellGroupCoordinates);
-      
       // Check whether the DDA has gone out of bounds.
-      if (any(cellGroupCoordinates < 0 ||
-              cellGroupCoordinates >= cellGroupGridWidth)) {
+      if (any(largeLowerCorner < boundingBox[0] ||
+              largeLowerCorner >= boundingBox[1])) {
         outOfBounds = true;
         break;
       }
       
-      // Retrieve the mark.
       uchar mark;
       {
+        // Locate the mark.
+        float3 cellGroupCoordinates = largeLowerCorner;
+        cellGroupCoordinates += float(worldVolumeInNm / 2);
+        cellGroupCoordinates /= 8;
+        cellGroupCoordinates = floor(cellGroupCoordinates);
+        
+        // Read the mark.
         float address = VoxelAddress::generate(cellGroupGridWidth,
                                                cellGroupCoordinates);
         mark = cellGroupMarks[uint(address)];
       }
-      
-      // Compute the next times.
-      float3 nextTimes = dda.nextTimes(largeCellBorder,
-                                       intersectionQuery.rayOrigin);
       
       // Branch on the mark.
       if (mark > 0) {
         // Retrieve the large cell offset.
         uint largeCellOffset = this->largeCellOffset(largeLowerCorner);
         
+        // Compute the next times.
+        float3 nextTimes = dda.nextTimes(largeCellBorder,
+                                         intersectionQuery.rayOrigin);
+        
         // If the large cell has small cells, proceed.
         if (largeCellOffset > 0) {
           float3 currentTimes = nextTimes - float3(dda.dx) * dda.dtdx;
           
           // Find the minimum time.
-          float minimumTime = 1e38;
+          float minimumTime = float(1e38);
           minimumTime = min(currentTimes[0], minimumTime);
           minimumTime = min(currentTimes[1], minimumTime);
           minimumTime = min(currentTimes[2], minimumTime);
@@ -201,7 +202,7 @@ struct RayIntersector {
     DDA largeDDA(&largeCellBorder,
                  intersectionQuery.rayOrigin,
                  intersectionQuery.rayDirection,
-                 2.00);
+                 boundingBox);
     
     IntersectionResult result;
     result.accept = false;
@@ -270,8 +271,7 @@ struct RayIntersector {
             origin = min(origin, 2);
             smallDDA = DDA(&smallCellBorder,
                            origin,
-                           direction,
-                           0.25);
+                           direction);
             initializedSmallDDA = true;
           }
           
@@ -332,8 +332,7 @@ struct RayIntersector {
     float3 smallCellBorder;
     const DDA dda(&smallCellBorder,
                   intersectionQuery.rayOrigin,
-                  intersectionQuery.rayDirection,
-                  0.25);
+                  intersectionQuery.rayDirection);
     
     IntersectionResult result;
     result.accept = false;

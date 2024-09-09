@@ -29,17 +29,48 @@ struct DDA {
     dx = half3(0);
   }
   
+  // Cell spacing is 0.25 nm.
+  DDA(thread float3 *cellBorder,
+      float3 rayOrigin,
+      float3 rayDirection) {
+    dtdx = precise::divide(1, rayDirection);
+    dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
+    
+    *cellBorder = rayOrigin;
+    *cellBorder /= 0.25;
+    *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
+    *cellBorder *= 0.25;
+  }
+  
+  // Cell spacing is 2.00 nm.
+  //
+  // Clamps to a bounding box measured in 8 nm voxels, starting at the
+  // lower corner of (-128, -128, -128) nm.
   DDA(thread float3 *cellBorder,
       float3 rayOrigin,
       float3 rayDirection,
-      float cellSpacing) {
+      constant float3 *boundingBox) {
     dtdx = precise::divide(1, rayDirection);
-    dx = select(half3(-cellSpacing), half3(cellSpacing), dtdx >= 0);
+    dx = select(half3(-2.00), half3(2.00), dtdx >= 0);
     
-    *cellBorder = rayOrigin;
-    *cellBorder /= cellSpacing;
+    float minimumTime = float(1e38);
+#pragma clang loop unroll(full)
+    for (ushort i = 0; i < 3; ++i) {
+      float t1 = (boundingBox[0][i] - rayOrigin[i]) * dtdx[i];
+      float t2 = (boundingBox[1][i] - rayOrigin[i]) * dtdx[i];
+      float tmin = min(t1, t2);
+      minimumTime = min(tmin, minimumTime);
+    }
+    minimumTime = max(minimumTime, float(0));
+    
+    float3 origin = rayOrigin + minimumTime * rayDirection;
+    origin = max(origin, boundingBox[0]);
+    origin = min(origin, boundingBox[1]);
+    
+    *cellBorder = origin;
+    *cellBorder /= 2.00;
     *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
-    *cellBorder *= cellSpacing;
+    *cellBorder *= 2.00;
   }
   
   float3 cellLowerCorner(float3 cellBorder) const {

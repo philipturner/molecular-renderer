@@ -231,10 +231,7 @@ import Numerics
 //   - Gather statistics after the change. [DONE]
 // - Properly handle the edge case where the user falls outside of the
 //   world grid.
-//   - Reduce a bounding box of cell groups.
-//     - Make two new GPU kernels and a new "Part 3" for this purpose.
-//     - Validate correctness on the CPU.
-//     - Double-check that GPU time is negligible.
+//   - Reduce a bounding box of cell groups. [DONE]
 //   - Return early when outside of this bounding box.
 //     - Bind the bounding box buffer to the render kernel.
 //     - Record rendering performance after the change.
@@ -350,26 +347,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)

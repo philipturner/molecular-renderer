@@ -224,13 +224,21 @@ kernel void buildLargePart2_0
 {
   // A sub-section of the threads converts the bounding box to FP32.
   if (all(tid == 0)) {
+    // Read the bounding box.
     uint3 boxMinimum = boundingBox[0];
     uint3 boxMaximum = boundingBox[1];
     boxMaximum = max(boxMinimum, boxMaximum);
     
+    // Convert the bounding box to floating point.
+    float3 boxMinimumF = float3(boxMinimum);
+    float3 boxMaximumF = float3(boxMaximum);
+    boxMinimumF = boxMinimumF * 8 - float(worldVolumeInNm / 2);
+    boxMaximumF = boxMaximumF * 8 - float(worldVolumeInNm / 2);
+    
+    // Write the bounding box.
     auto boundingBoxCasted = (device float3*)boundingBox;
-    boundingBoxCasted[0] = float3(boxMinimum);
-    boundingBoxCasted[1] = float3(boxMaximum);
+    boundingBoxCasted[0] = boxMinimumF;
+    boundingBoxCasted[1] = boxMaximumF;
   }
   
   uchar mark;

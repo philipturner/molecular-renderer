@@ -37,7 +37,7 @@ public:
     // Create a default color for the background.
     this->color = half3(0.707, 0.707, 0.707);
     this->motionVector = half2(0);
-    this->depth = -1e38;
+    this->depth = float(-1e38);
     
     // Initialize the accumulators for lighting.
     this->diffuseAmbient = 0;

@@ -77,15 +77,6 @@ extension BVHBuilder {
       }
     }
     commandBuffer.commit()
-    commandBuffer.waitUntilCompleted()
-    
-    let counters = globalCounters.contents().assumingMemoryBound(to: Float.self)
-    
-    for i in 32..<40 {
-      print(Int(counters[i]) * 8 - 128)
-    }
-    
-    exit(0)
   }
 }
 

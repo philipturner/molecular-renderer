@@ -17,20 +17,21 @@ kernel void renderAtoms
  // Global buffers.
  constant CameraArguments *cameraArgs [[buffer(0)]],
  constant RenderArguments *renderArgs [[buffer(1)]],
- constant half3 *elementColors [[buffer(2)]],
+ constant float3 *boundingBox [[buffer(2)]],
+ constant half3 *elementColors [[buffer(3)]],
  
  // Per-atom buffers.
- device float4 *originalAtoms [[buffer(3)]],
- device half3 *atomMetadata [[buffer(4)]],
- device half4 *convertedAtoms [[buffer(5)]],
- device uint *largeAtomReferences [[buffer(6)]],
- device ushort *smallAtomReferences [[buffer(7)]],
+ device float4 *originalAtoms [[buffer(4)]],
+ device half3 *atomMetadata [[buffer(5)]],
+ device half4 *convertedAtoms [[buffer(6)]],
+ device uint *largeAtomReferences [[buffer(7)]],
+ device ushort *smallAtomReferences [[buffer(8)]],
  
  // Per-cell buffers.
- device uchar *cellGroupMarks [[buffer(8)]],
- device uint *largeCellOffsets [[buffer(9)]],
- device uint4 *compactedLargeCellMetadata [[buffer(10)]],
- device ushort2 *compactedSmallCellMetadata [[buffer(11)]],
+ device uchar *cellGroupMarks [[buffer(9)]],
+ device uint *largeCellOffsets [[buffer(10)]],
+ device uint4 *compactedLargeCellMetadata [[buffer(11)]],
+ device ushort2 *compactedSmallCellMetadata [[buffer(12)]],
  
  // Textures.
  texture2d<half, access::write> colorTexture [[texture(0)]],
@@ -53,6 +54,7 @@ kernel void renderAtoms
   
   // Initialize the ray intersector.
   RayIntersector rayIntersector;
+  rayIntersector.boundingBox = boundingBox;
   rayIntersector.convertedAtoms = convertedAtoms;
   rayIntersector.smallAtomReferences = smallAtomReferences;
   
