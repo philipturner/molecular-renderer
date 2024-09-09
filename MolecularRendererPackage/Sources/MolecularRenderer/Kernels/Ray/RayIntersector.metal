@@ -30,7 +30,8 @@ struct IntersectionQuery {
 // MARK: - Intersector Class
 
 struct RayIntersector {
-  constant float3 *boundingBox;
+  float3 boxMinimum;
+  float3 boxMaximum;
   device half4 *convertedAtoms;
   device ushort *smallAtomReferences;
   
@@ -78,8 +79,8 @@ struct RayIntersector {
       float3 largeLowerCorner = dda.cellLowerCorner(largeCellBorder);
       
       // Check whether the DDA has gone out of bounds.
-      if (any(largeLowerCorner < boundingBox[0] ||
-              largeLowerCorner >= boundingBox[1])) {
+      if (any(largeLowerCorner < boxMinimum ||
+              largeLowerCorner >= boxMaximum)) {
         outOfBounds = true;
         break;
       }
@@ -202,7 +203,8 @@ struct RayIntersector {
     DDA largeDDA(&largeCellBorder,
                  intersectionQuery.rayOrigin,
                  intersectionQuery.rayDirection,
-                 boundingBox);
+                 boxMinimum,
+                 boxMaximum);
     
     IntersectionResult result;
     result.accept = false;

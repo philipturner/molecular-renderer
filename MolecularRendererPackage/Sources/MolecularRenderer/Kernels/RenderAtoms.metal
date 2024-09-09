@@ -54,7 +54,8 @@ kernel void renderAtoms
   
   // Initialize the ray intersector.
   RayIntersector rayIntersector;
-  rayIntersector.boundingBox = boundingBox;
+  rayIntersector.boxMinimum = boundingBox[0];
+  rayIntersector.boxMaximum = boundingBox[1];
   rayIntersector.convertedAtoms = convertedAtoms;
   rayIntersector.smallAtomReferences = smallAtomReferences;
   

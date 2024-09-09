@@ -49,23 +49,24 @@ struct DDA {
   DDA(thread float3 *cellBorder,
       float3 rayOrigin,
       float3 rayDirection,
-      constant float3 *boundingBox) {
+      float3 boxMinimum,
+      float3 boxMaximum) {
     dtdx = precise::divide(1, rayDirection);
     dx = select(half3(-2.00), half3(2.00), dtdx >= 0);
     
     float minimumTime = float(1e38);
 #pragma clang loop unroll(full)
     for (ushort i = 0; i < 3; ++i) {
-      float t1 = (boundingBox[0][i] - rayOrigin[i]) * dtdx[i];
-      float t2 = (boundingBox[1][i] - rayOrigin[i]) * dtdx[i];
+      float t1 = (boxMinimum[i] - rayOrigin[i]) * dtdx[i];
+      float t2 = (boxMaximum[i] - rayOrigin[i]) * dtdx[i];
       float tmin = min(t1, t2);
       minimumTime = min(tmin, minimumTime);
     }
     minimumTime = max(minimumTime, float(0));
     
     float3 origin = rayOrigin + minimumTime * rayDirection;
-    origin = max(origin, boundingBox[0]);
-    origin = min(origin, boundingBox[1]);
+    origin = max(origin, boxMinimum);
+    origin = min(origin, boxMaximum);
     
     *cellBorder = origin;
     *cellBorder /= 2.00;
@@ -569,6 +570,16 @@ struct DDA {
   //   - 1017 instructions
   //   - 3.833 billion instructions issued
   //   - 28.63%
+  //
+  // After using a global bounding box.
+  // - 2.9 ms
+  // - per-line statistics:
+  //   - 26.21% primary ray
+  //   - 60.29% secondary rays
+  // - overall shader statistics:
+  //   - 1049 instructions
+  //   - 3.230 billion issued
+  //   - 32.78% divergence
 };
 
 #endif // DDA_H

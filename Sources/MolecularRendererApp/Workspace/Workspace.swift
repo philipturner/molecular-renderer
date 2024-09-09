@@ -232,37 +232,35 @@ import Numerics
 // - Properly handle the edge case where the user falls outside of the
 //   world grid.
 //   - Reduce a bounding box of cell groups. [DONE]
-//   - Return early when outside of this bounding box.
-//     - Bind the bounding box buffer to the render kernel.
-//     - Record rendering performance after the change.
+//   - Return early when outside of this bounding box. [DONE]
+//     - Bind the bounding box buffer to the render kernel. [DONE]
+//     - Record rendering performance after the change. [DONE]
 //   - Validate that performance improved for both 40x40x40 and 60x60x60.
-//     - Before the change, 40x40x40 was 30% / 56%.
-//   - Clamp the large DDA to the bounding box's range.
+//     - Before the change, 40x40x40 was 30% / 56%. [DONE]
+//     - After the change, 40x40x40 was 21% / 65%. [DONE]
+//   - Clamp the large DDA to the bounding box's range. [DONE]
 // - Return early for any atoms that fall outside the world bounds.
 //   - Make the world bounds artificially small.
 //   - Check that atoms are omitted with some reasonably sized lattices.
-//   - If the clamping function already solves the problem, we have no work to
-//     do here. It is simply a "far lands" graphical glitch. It doesn't cause
-//     infinite loops or out-of-bounds memory accesses.
-//
-// Defer support for giant atom counts to a later date (PR #1).
-// - Commit the current branch to 'main', keeping the work breakdown
-//   structure and shader benchmark data.
-//
-// Refactor the renderer into a SwiftPM workflow (PR #2).
-// - Overhaul the documentation.
-//   - Archive the hardware catalog.
-//   - Delete the references to the simulators.
-// - Overhaul the API.
-//   - Use explicit atom tracking to determine motion vectors, eliminating the
-//     need to 'guess' whether a frame can have motion vectors.
-//   - Check whether CVDisplayLink timestamps have consistent spacing. If so,
-//     eliminate the dependency on discrete frame IDs.
+//   - Clamp the atoms to positions at least 0.25 nm inside the world bounds.
 // - Fix everything related to upscaling.
 //   - Revise the heuristic for quality coefficient, to account for both
 //     upscale factor and FOV.
 //   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
 //   - Test how 4-6x upscaling performs when the user or scene is moving.
+//
+// Defer support for giant atom counts to a later date (PR #1).
+// - Archive the hardware catalog.
+// - Delete the references to the simulators. [DONE]
+// - Commit the current branch to 'main', keeping the work breakdown
+//   structure and shader benchmark data.
+//
+// Refactor the renderer into a SwiftPM workflow (PR #2).
+// - Overhaul the API.
+//   - Use explicit atom tracking to determine motion vectors, eliminating the
+//     need to 'guess' whether a frame can have motion vectors.
+//   - Check whether CVDisplayLink timestamps have consistent spacing. If so,
+//     eliminate the dependency on discrete frame IDs.
 //
 // Port to Windows.
 
@@ -347,26 +345,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
