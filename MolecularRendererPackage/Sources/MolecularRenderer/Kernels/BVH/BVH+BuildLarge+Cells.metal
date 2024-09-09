@@ -13,12 +13,21 @@ using namespace metal;
 kernel void buildLargePart0_0
 (
  device uint3 *allocatedMemory [[buffer(0)]],
- device uchar *cellGroupMarks [[buffer(1)]],
+ device uint3 *boundingBox [[buffer(1)]],
+ device uchar *cellGroupMarks [[buffer(2)]],
  ushort3 tid [[thread_position_in_grid]])
 {
-  // Write the smallest valid pointer.
-  uint3 smallestPointer = uint3(1);
-  allocatedMemory[0] = smallestPointer;
+  if (all(tid == 0)) {
+    // Write the smallest valid pointer.
+    uint3 smallestPointer = uint3(1);
+    allocatedMemory[0] = smallestPointer;
+    
+    // Prepare the bounding box counters.
+    uint3 boxMinimum = uint3(cellGroupGridWidth);
+    uint3 boxMaximum = uint3(0);
+    boundingBox[0] = boxMinimum;
+    boundingBox[1] = boxMaximum;
+  }
   
   // Locate the mark.
   ushort3 cellCoordinates = tid;
@@ -46,10 +55,11 @@ kernel void buildLargePart0_0
 kernel void buildLargePart1_0
 (
  device atomic_uint *allocatedMemory [[buffer(0)]],
- device uchar *cellGroupMarks [[buffer(1)]],
- device vec<uint, 8> *largeCounterMetadata [[buffer(2)]],
- device uint *largeCellOffsets [[buffer(3)]],
- device uint4 *compactedLargeCellMetadata [[buffer(4)]],
+ device atomic_uint *boundingBox [[buffer(1)]],
+ device uchar *cellGroupMarks [[buffer(2)]],
+ device vec<uint, 8> *largeCounterMetadata [[buffer(3)]],
+ device uint *largeCellOffsets [[buffer(4)]],
+ device uint4 *compactedLargeCellMetadata [[buffer(5)]],
  ushort3 tgid [[threadgroup_position_in_grid]],
  ushort3 thread_id [[thread_position_in_threadgroup]],
  ushort lane_id [[thread_index_in_simdgroup]],
@@ -206,3 +216,4 @@ kernel void buildLargePart2_0
     largeCounterMetadata[address] = resetValue;
   }
 }
+

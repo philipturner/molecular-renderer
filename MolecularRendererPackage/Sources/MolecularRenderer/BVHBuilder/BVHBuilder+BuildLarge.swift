@@ -9,15 +9,19 @@ import Metal
 import QuartzCore
 
 // Part 0
-// - Kernel 0: Reset the cell group marks and allocation counter.
+// - Kernel 0: Reset the allocation counter.
+//             Reset the bounding box counter.
+//             Reset the cell group marks.
 // - Kernel 1: Accumulate the reference count for each voxel.
 //
 // Part 1
-// - Kernel 0: Compact the reference offset for each voxel.
+// - Kernel 0: Reduce the bounding box.
+//             Compact the reference offset for each voxel.
 // - Kernel 1: Copy atoms into converted format.
 //
 // Part 2
-// - Kernel 0: Reset the large counter metadata.
+// - Kernel 0: Convert the bounding box to FP32.
+//             Reset the large counter metadata.
 struct BVHBuildLargePipelines {
   var buildLargePart0_0: MTLComputePipelineState
   var buildLargePart0_1: MTLComputePipelineState
@@ -178,7 +182,8 @@ extension BVHBuilder {
 extension BVHBuilder {
   func buildLargePart0_0(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    encoder.setBuffer(cellGroupMarks, offset: 0, index: 1)
+    encoder.setBuffer(globalCounters, offset: 128, index: 1)
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 2)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart0_0
@@ -190,10 +195,11 @@ extension BVHBuilder {
   
   func buildLargePart1_0(encoder: MTLComputeCommandEncoder) {
     encoder.setBuffer(globalCounters, offset: 0, index: 0)
-    encoder.setBuffer(cellGroupMarks, offset: 0, index: 1)
-    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 2)
-    encoder.setBuffer(largeCellOffsets, offset: 0, index: 3)
-    encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 4)
+    encoder.setBuffer(globalCounters, offset: 128, index: 1)
+    encoder.setBuffer(cellGroupMarks, offset: 0, index: 2)
+    encoder.setBuffer(largeCounterMetadata, offset: 0, index: 3)
+    encoder.setBuffer(largeCellOffsets, offset: 0, index: 4)
+    encoder.setBuffer(compactedLargeCellMetadata, offset: 0, index: 5)
     
     // Dispatch
     let pipeline = buildLargePipelines.buildLargePart1_0

@@ -241,6 +241,12 @@ import Numerics
 //   - Validate that performance improved for both 40x40x40 and 60x60x60.
 //     - Before the change, 40x40x40 was 30% / 56%.
 //   - Clamp the large DDA to the bounding box's range.
+// - Return early for any atoms that fall outside the world bounds.
+//   - Make the world bounds artificially small.
+//   - Check that atoms are omitted with some reasonably sized lattices.
+//   - If the clamping function already solves the problem, we have no work to
+//     do here. It is simply a "far lands" graphical glitch. It doesn't cause
+//     infinite loops or out-of-bounds memory accesses.
 //
 // Defer support for giant atom counts to a later date (PR #1).
 // - Commit the current branch to 'main', keeping the work breakdown
