@@ -79,6 +79,14 @@ kernel void buildLargePart0_1
   // Generate the bounding box.
   short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
   short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
+  
+  // Return early if out of bounds.
+  if (any(boxMin < 0 ||
+          boxMax > short(smallVoxelGridWidth))) {
+    return;
+  }
+  
+  // Generate the voxel coordinates.
   ushort3 gridDims = ushort3(smallVoxelGridWidth);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);
@@ -220,6 +228,14 @@ kernel void buildLargePart1_1
   // Generate the bounding box.
   short3 boxMin = short3(floor(transformedAtom.xyz - transformedAtom.w));
   short3 boxMax = short3(ceil(transformedAtom.xyz + transformedAtom.w));
+  
+  // Return early if out of bounds.
+  if (any(boxMin < 0 ||
+          boxMax > short(smallVoxelGridWidth))) {
+    return;
+  }
+  
+  // Generate the voxel coordinates.
   ushort3 gridDims = ushort3(smallVoxelGridWidth);
   ushort3 smallVoxelMin = clamp(boxMin, gridDims);
   ushort3 smallVoxelMax = clamp(boxMax, gridDims);
