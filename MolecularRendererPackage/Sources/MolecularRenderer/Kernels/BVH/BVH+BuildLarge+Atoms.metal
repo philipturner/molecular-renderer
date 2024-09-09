@@ -88,8 +88,8 @@ kernel void buildLargePart0_1
   
   // Generate the voxel coordinates.
   ushort3 gridDims = ushort3(smallVoxelGridWidth);
-  ushort3 smallVoxelMin = clamp(boxMin, gridDims);
-  ushort3 smallVoxelMax = clamp(boxMax, gridDims);
+  ushort3 smallVoxelMin = ushort3(boxMin);
+  ushort3 smallVoxelMax = ushort3(boxMax);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.
@@ -237,8 +237,8 @@ kernel void buildLargePart1_1
   
   // Generate the voxel coordinates.
   ushort3 gridDims = ushort3(smallVoxelGridWidth);
-  ushort3 smallVoxelMin = clamp(boxMin, gridDims);
-  ushort3 smallVoxelMax = clamp(boxMax, gridDims);
+  ushort3 smallVoxelMin = ushort3(boxMin);
+  ushort3 smallVoxelMax = ushort3(boxMax);
   ushort3 largeVoxelMin = smallVoxelMin / 8;
   
   // Pre-compute the footprint.
