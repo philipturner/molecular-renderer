@@ -249,7 +249,7 @@ import Numerics
 //   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
 //   - Test how 4-6x upscaling performs when the user or scene is moving.
 //
-// Defer support for giant atom counts to a later date (PR #1).
+// Merge the new ray tracer into the main branch (PR #1).
 // - Archive the hardware catalog.
 // - Delete the references to the simulators. [DONE]
 // - Commit the current branch to 'main', keeping the work breakdown
@@ -262,7 +262,8 @@ import Numerics
 //   - Check whether CVDisplayLink timestamps have consistent spacing. If so,
 //     eliminate the dependency on discrete frame IDs.
 //
-// Port to Windows.
+// Port to Windows, before adding the complexity of support for giant atom
+// counts.
 
 #if true
 
