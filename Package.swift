@@ -4,6 +4,9 @@ import PackageDescription
 
 let package = Package(
   name: "molecular-renderer",
+  platforms: [
+    .macOS(.v14),
+  ],
   products: [
     .library(
       name: "MolecularRenderer",
