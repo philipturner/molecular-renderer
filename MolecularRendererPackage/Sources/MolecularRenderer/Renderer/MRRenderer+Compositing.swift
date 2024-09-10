@@ -21,26 +21,27 @@ extension MRRenderer {
   }
   
   func dispatchCompositingWork(drawable: CAMetalDrawable) {
-    let renderTargetSize = argumentContainer.renderTargetSize
-    guard drawable.texture.width == renderTargetSize,
-          drawable.texture.height == renderTargetSize else {
+    guard drawable.texture.width == argumentContainer.compositedSize,
+          drawable.texture.height == argumentContainer.compositedSize else {
       fatalError("Drawable texture had incorrect dimensions.")
     }
     
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     
-    let textureIndex = argumentContainer.doubleBufferIndex()
-    let textures = bufferedIntermediateTextures[textureIndex]
-    encoder.setTexture(textures.upscaled, index: 0)
-    encoder.setTexture(drawable.texture, index: 1)
+    do {
+      let textureIndex = argumentContainer.doubleBufferIndex()
+      let textures = bufferedIntermediateTextures[textureIndex]
+      encoder.setTexture(textures.upscaled, index: 0)
+      encoder.setTexture(drawable.texture, index: 1)
+    }
     
     // Dispatch
     do {
       let pipeline = compositePipeline
       encoder.setComputePipelineState(pipeline)
       
-      let dispatchSize = argumentContainer.renderTargetSize
+      let dispatchSize = argumentContainer.compositedSize
       encoder.dispatchThreads(
         MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))

@@ -17,9 +17,12 @@ struct ArgumentContainer {
   // Render state variables.
   var frameID: Int = .zero
   var rayTracedTextureSize: Int {
-    renderTargetSize / 3
+    compositedSize / 4
   }
-  var renderTargetSize: Int = .zero
+  var upscaledSize: Int {
+    compositedSize * 3 / 4
+  }
+  var compositedSize: Int = .zero
   
   // Element state variables.
   var elementColors: [SIMD3<Float16>] = []

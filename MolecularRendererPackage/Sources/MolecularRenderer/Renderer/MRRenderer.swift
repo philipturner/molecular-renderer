@@ -50,11 +50,7 @@ public class MRRenderer {
       .createElementColors(elementColors)
     argumentContainer.elementRadii = ArgumentContainer
       .createElementRadii(elementRadii)
-    
-    guard renderTargetSize % 6 == 0 else {
-      fatalError("Render target dimensions must be divisible by 6.")
-    }
-    argumentContainer.renderTargetSize = renderTargetSize
+    argumentContainer.compositedSize = renderTargetSize
     
     // Initialize Metal resources.
     self.device = MTLCreateSystemDefaultDevice()!
@@ -82,8 +78,8 @@ public class MRRenderer {
       let motion = device.makeTexture(descriptor: desc)!
       
       desc.pixelFormat = .rgb10a2Unorm
-      desc.width = argumentContainer.renderTargetSize
-      desc.height = argumentContainer.renderTargetSize
+      desc.width = argumentContainer.upscaledSize
+      desc.height = argumentContainer.upscaledSize
       let upscaled = device.makeTexture(descriptor: desc)!
       
       let textures = IntermediateTextures(

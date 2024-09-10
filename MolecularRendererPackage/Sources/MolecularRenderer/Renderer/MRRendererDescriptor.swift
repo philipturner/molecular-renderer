@@ -24,8 +24,6 @@ public class MRRendererDescriptor {
   public var library: MTLLibrary?
   
   /// Required. The width of the render target before upscaling.
-  ///
-  /// This must be divisible by 6.
   public var renderTargetSize: Int?
   
   public init() {

@@ -246,8 +246,10 @@ import Numerics
 // - Fix everything related to upscaling.
 //   - Revise the heuristic for quality coefficient, to account for both
 //     upscale factor and FOV. [DONE]
-//   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
-//   - Test how 4-6x upscaling performs when the user or scene is moving.
+//   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation. [DONE]
+//   - Test how 4-6x upscaling performs when the user or scene is moving. [DONE]
+//   - Conclusion: we need 4x upscaling with bicubic interpolation. But we can
+//     squeeze a final ounce of performance out of upscaling.
 //
 // Merge the new ray tracer into the main branch (PR #1).
 // - Delete the references to the simulators. [DONE]
@@ -265,7 +267,7 @@ import Numerics
 // Port to Windows, before adding the complexity of support for giant atom
 // counts.
 
-#if true
+#if false
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -346,26 +348,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 60 * (h + k + l) }
+    Bounds { 40 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-    Volume {
-      Concave {
-        Convex {
-          Origin { 5 * h }
-          Plane { h }
-        }
-        Convex {
-          Origin { 5 * k }
-          Plane { k }
-        }
-        Convex {
-          Origin { 5 * l }
-          Plane { l }
-        }
-      }
-      Replace { .empty }
-    }
+//    Volume {
+//      Concave {
+//        Convex {
+//          Origin { 5 * h }
+//          Plane { h }
+//        }
+//        Convex {
+//          Origin { 5 * k }
+//          Plane { k }
+//        }
+//        Convex {
+//          Origin { 5 * l }
+//          Plane { l }
+//        }
+//      }
+//      Replace { .empty }
+//    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
@@ -494,10 +496,13 @@ func createGeometry() -> [[Atom]] {
 
 #endif
 
-#if false
+#if true
 
 // Higher resolution means we can resolve much larger scenes. There is
 // motivation to support atom counts far exceeding 4 million.
+//
+// Alternatively, it is justification for going even higher in upscale factors.
+// From 3x to 4x.
 func createGeometry() -> [Atom] {
   let lattice = Lattice<Cubic> { h, k, l in
     Bounds { 100 * h + 100 * k + 8 * l }

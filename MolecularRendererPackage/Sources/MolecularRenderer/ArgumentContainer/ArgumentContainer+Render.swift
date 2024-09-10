@@ -55,7 +55,11 @@ extension ArgumentContainer {
     let pixelCount: Int = 150
     
     var output = distanceInNm / Float(pixelCount)
-    output *= Float(renderTargetSize)
+    
+    // Use the texture size for how it will be on-screen. The critical distance
+    // heuristic determines how many pixels the atom will span on-screen. If
+    // it's very large, the noisiness of low sample counts will be noticeable.
+    output *= Float(compositedSize)
     output /= tangentFactor
     return output
   }

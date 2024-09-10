@@ -16,8 +16,8 @@ extension MRRenderer {
     let desc = MTLFXTemporalScalerDescriptor()
     desc.inputWidth = argumentContainer.rayTracedTextureSize
     desc.inputHeight = argumentContainer.rayTracedTextureSize
-    desc.outputWidth = argumentContainer.renderTargetSize
-    desc.outputHeight = argumentContainer.renderTargetSize
+    desc.outputWidth = argumentContainer.upscaledSize
+    desc.outputHeight = argumentContainer.upscaledSize
     
     desc.colorTextureFormat = .rgb10a2Unorm
     desc.depthTextureFormat = .r32Float
