@@ -20,10 +20,20 @@
 
 import AppKit
 
+// MARK: - AAPLAppDelegate
+
+class AAPLAppDelegate: NSObject, NSApplicationDelegate {
+  func applicationShouldTerminateAfterLastWindowClosed(
+    _ app: NSApplication
+  ) -> Bool {
+    return true
+  }
+}
+
 // MARK: - AAPLView
 
 protocol AAPLViewDelegate {
-  func drawableResize(size: CGSize)
+  func resizeDrawable(_ size: CGSize)
   func renderToMetalLayer(metalLayer: CAMetalLayer)
 }
 
@@ -38,10 +48,12 @@ class AAPLView: NSView, CALayerDelegate {
   }
   
   func resizeDrawable(_ scaleFactor: CGFloat) {
+    // Fetch the bounds and multiply by the scale factor.
     var size = self.bounds.size
     size.width *= scaleFactor
     size.height *= scaleFactor
     
+    // Check that the resolved size is what we want.
     if size.width != CGFloat(1920) ||
         size.height != CGFloat(1920) {
       if size.width != 0 ||
@@ -49,6 +61,9 @@ class AAPLView: NSView, CALayerDelegate {
         fatalError("Size cannot change.")
       }
     }
+    
+    metalLayer.drawableSize = size
+    delegate.resizeDrawable(size)
   }
   
   func render() {
@@ -56,11 +71,88 @@ class AAPLView: NSView, CALayerDelegate {
   }
 }
 
-// MARK: - AAPLAppDelegate
+// MARK: - AAPLViewController
 
-final class AAPLAppDelegate: NSObject, NSApplicationDelegate {
-  override init() {
+//class AAPLViewController: NSViewController, AAPLViewDelegate {
+//  var renderer: AAPLRenderer!
+//}
+
+// MARK: - AAPLRenderer
+
+class AAPLRenderer: NSObject {
+  var device: MTLDevice!
+  var commandQueue: MTLCommandQueue!
+  var computePipelineState: MTLComputePipelineState!
+  
+  var viewportSize: SIMD2<UInt32> = .zero
+  var frameNumber: Int = .zero
+  
+  init(
+    device: MTLDevice,
+    drawablePixelFormat: MTLPixelFormat
+  ) {
+    // Initialize the NSObject.
     super.init()
+    
+    // Set the device property.
+    self.device = device
+    
+    // Set the command queue property.
+    guard let commandQueue = device.makeCommandQueue() else {
+      fatalError("Failed to make command queue.")
+    }
+    self.commandQueue = commandQueue
+    
+    // Set the PSO property.
+    self.computePipelineState = AAPLShaders
+      .createComputePipelineState(device: device)
+  }
+  
+  func renderToMetalLayer(metalLayer: CAMetalLayer) {
+    
+  }
+  
+  func resizeDrawable(_ drawableSize: CGSize) {
+    
+  }
+}
+
+// MARK: - AAPLShaders
+
+class AAPLShaders {
+  static func createSource() -> String {
+    """
+    
+    #include <metal_stdlib>
+    using namespace metal;
+    
+    kernel void renderImage(
+      texture2d<half, access::write> drawableTexture [[texture(0)]],
+      ushort2 tid [[thread_position_in_grid]]
+    ) {
+      half4 color = half4(1.00, 0.00, 0.00, 1.00);
+      drawableTexture.write(color, tid);
+    }
+    
+    """
+  }
+  
+  static func createComputePipelineState(
+    device: MTLDevice
+  ) -> MTLComputePipelineState {
+    // JIT-compile the shader code into a library.
+    let shaderSource = AAPLShaders.createSource()
+    let library = try! device.makeLibrary(source: shaderSource, options: nil)
+    
+    // Load the Metal function.
+    let function = library.makeFunction(name: "renderImage")
+    guard let function else {
+      fatalError("Could not make function.")
+    }
+    
+    // Initialize the pipeline state object.
+    let pipeline = try! device.makeComputePipelineState(function: function)
+    return pipeline
   }
 }
 
