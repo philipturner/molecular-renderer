@@ -12,7 +12,7 @@ import MolecularRenderer
 // by imperfect sampling. This decreases nausea and perceived stuttering. The
 // motion lag is (N - 1)/2 and the noise scales with rsqrt(N). However, the
 // reference system only needs 2 samples to smooth out most noise.
-struct RingBuffer{
+struct RingBuffer {
   private var history: [Orientation]
   private var index: Int = 0
   var last: Orientation

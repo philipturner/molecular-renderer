@@ -46,6 +46,7 @@ class VsyncHandler {
         mainThreadSemaphore.signal()
       }
       
+      // https://stackoverflow.com/a/33216760
       let currentTimeStamp = $2.pointee
       _ = ($0, $1, $3, $4)
       previousTimeStamp = currentTimeStamp
@@ -77,26 +78,26 @@ extension VsyncHandler {
   }
   
   func frames(start: CVTimeStamp, end: CVTimeStamp) -> Double {
-#if arch(arm64)
     let ticksPerSecond: Int = 24 * 1000 * 1000
     let ticksPerFrame = ticksPerSecond / 120
-#else
-#error("This does not work on x86.")
-#endif
-    
     let deltaTicks = max(0, Int(end.hostTime) - Int(start.hostTime))
-    return Double(deltaTicks) / Double(ticksPerFrame)
-  }
-  
-  func seconds(start: CVTimeStamp, end: CVTimeStamp) -> Double {
-#if arch(arm64)
-    let ticksPerSecond: Int = 24 * 1000 * 1000
-#else
-#error("This does not work on x86.")
-#endif
+    let output = Double(deltaTicks) / Double(ticksPerFrame)
     
-    let deltaTicks = max(0, Int(end.hostTime) - Int(start.hostTime))
-    return Double(deltaTicks) / Double(ticksPerSecond)
+    // hostTime - non-integral timestamp
+    // videoTime - discrete timestamp
+    // rateScalar - almost 1.0, seems to accumulate the lag since the start
+    // videoRefreshPeriod - 200_000
+    // videoTimeScale - 24_000_000
+    
+    let hostTimeDelta = end.hostTime - start.hostTime
+    let videoTimeDelta = end.videoTime - start.videoTime
+    
+    print()
+    print(output)
+    print(Double(hostTimeDelta) / Double(end.videoRefreshPeriod))
+    print(Double(videoTimeDelta) / Double(end.videoRefreshPeriod))
+    
+    return output
   }
   
   // Time per frame in multiples of 120 Hz.
@@ -156,6 +157,7 @@ extension VsyncHandler {
       sustainedAlignmentDuration += 1
     }
     adjustedFrameID = nextFrameID
+    print(nextFrameID, adjustedFrameID)
     
     return nextFrameID - previousFrameID
   }

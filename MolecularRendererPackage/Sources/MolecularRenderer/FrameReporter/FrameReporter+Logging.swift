@@ -10,7 +10,7 @@ extension FrameReporter {
     let performance = queue.sync {
       queryPerformance()
     }
-    display(performance: performance)
+    // display(performance: performance)
   }
   
   func queryPerformance() -> SIMD4<Double> {

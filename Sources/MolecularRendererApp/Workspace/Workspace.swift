@@ -3,271 +3,52 @@ import HDL
 import MM4
 import Numerics
 
-// Making the code easier to modify.
-// - Clean up the BVH builder.
-//   - De-obfuscate the atom buffers. [DONE]
-//   - Remove the CPU code that wrote motion vectors to memory. [DONE]
-//   - De-obfuscate the 'denseGridData' buffer. [DONE]
-//   - De-obfuscate the encoding of the old BVH building. [DONE]
-// - De-obfuscate the frame report. [DONE]
-// - De-obfuscate the resetting of the upscaler. [DONE]
+// Overhaul the API.
+// - Check whether CVDisplayLink timestamps have consistent spacing. If so,
+//   eliminate the dependency on discrete frame IDs.
+//   - If you use 'videoTime' instead of 'hostTime', frames are spaced very
+//     evenly.
+// - Use explicit atom tracking to determine motion vectors, eliminating the
+//   need to 'guess' whether a frame can have motion vectors.
 //
-// Changing the BVH construction procedure.
-// - Offload the BB computation to the GPU.
-//   - Make everything except computation of Int32 BB be GPU-driven. [DONE]
-//   - Offload the BB reduction to the GPU, with a form almost exactly equal
-//     to the current CPU kernel.
-//     - Get feedback about whether it works (first pass). [DONE]
-//     - Get feedback about whether it works (second pass). [DONE]
-//       - Check both the diamond cube and the SiC MD simulation.
-//     - Substitute the CPU value with the GPU value. [DONE]
-//       - Check both the diamond cube and the SiC MD simulation.
-//   - Delete the CPU code for reducing the bounding box. [DONE]
+// Target the low tens of millions of atoms.
+// - Figure out the state tracking needed for incremental BVH modification.
 //
-// Additional refactoring.
-// - Group each pass's pipelines into a data structure. [DONE]
-// - Overhaul the second kernel of the small cells pass. [DONE]
-//
-// Get the large-cell sorting working at all.
-// - Get a head start on the first component of this pass.
-//   - Use device atomics to find number of atoms in each large voxel. [DONE]
-//   - Also allocate small cell references, in a single pass. [DONE]
-//   - Try reducing divergence in the loop. [DONE]
-//   - Use threadgroup memory to store relative offsets. [DONE]
-//     - Detect and fix bank conflicts. [DONE]
-//     - Determine whether 16-bit values in TG memory are faster. [DONE]
-//     - Halve the device memory bandwidth. [DONE]
-// - Run a parallel reduction across the large voxel grid. [DONE]
-//   - Ensure the reference counts are summed correctly (+1). [DONE]
-//   - Fuse the bounding box computation. [DONE]
-//   - Optimizations:
-//     - Reduce register pressure. [DONE]
-//     - Skip computations or atomics for unoccupied voxels. [DONE]
-//   - Generate indirect dispatch arguments in the "build large" pass. [DONE]
-//   - Delete the bounding box kernels from the "prepare" pass. [DONE]
-// - Store references to original atoms in the large voxels' lists.
-//   - Delete the final kernel of the "prepare" pass. [DONE]
-//   - Store the per-cell offsets. [DONE]
-//   - Check the correctness of the per-cell offsets before writing atom
-//     references (if possible). [DONE]
-//   - Abstract away the code for iterating over large cell footprint. [DONE]
-//     - Factored out part of it, specifically anything with control flow.
-//     - It appears lower-effort to leave anything else duplicated.
-//   - Check the correctness of written atom references. Use them as the source
-//     of the small-cell atoms kernels. This means the ray tracer will
-//     intersect some atoms twice. [DONE]
-//
-// Prepare the small-cell sorting for threadgroup atomics.
-// - Swap the order of the small-cell-metadata and small-cell-counter buffers,
-//   so the former is always the atomically incremented one. [DONE]
-// - Change the indirect dispatch to 4x4x4, one cell per thread. [DONE]
-// - Expand the small-counter metadata with ~4x duplication. [DONE]
-//   - Revert this change. [DONE]
-// - Try reducing divergence in the loops over small cells. [DONE]
-// - Try storing the small-cell relative offsets to memory. [DONE]
-//
-// Write the kernel with threadgroup atomics.
-// - Make the kernels iterate over the atoms within a threadgroup. [DONE]
-// - Use threadgroup atomics to accumulate reference counts, but write the
-//   counters to device memory afterward. [DONE]
-// - Change the reduction over small cells to be scoped over 8x8x8. [DONE]
-// - Fuse the first atoms kernel with memory clearing. [DONE]
-// - Fuse the first atoms kernel with reduction over voxels. [DONE]
-// - Fuse the first atoms kernel with the second atoms kernel. [DONE]
-//
-// Removing complexity from the fused kernel.
-// - Optimize away the unnecessary transfers to device memory. [DONE]
-//   - Remove the memory allocation for small-cell counters. [DONE]
-// - Reduce the compute cost of cube-sphere testing. [DONE]
-// - Remove the cross-GPU reduction, as the previous pass already compacted
-//   the small atom references. [DONE]
-//
-// Preparing for 16-bit references.
-// - Add a null terminator to the reference lists.
-//   - Locate the place where the null terminator would be written. [DONE]
-//   - Locate the place where the null terminator would be allocated. [DONE]
-//   - Implement the null terminator. [DONE]
-// - Remove the count from the cell metadata.
-//   - Add a guard to the traversal function, so it exits anyway after 64
-//     iterations. [DONE]
-//   - Test integrity of rendering with the count ignored. [DONE]
-//   - Remove the count and reformat the metadata. [DONE]
-// - Write the converted atoms into a second buffer, whose length equals the
-//   large reference count. Write during the large cells pass, so it doesn't
-//   interfere with the benchmark of the small cells pass.
-//   - Write the previous atoms while writing the converted atoms. This avoids
-//     the complexity of pointer redirection, for the time being. [DONE]
-//     - Accomplished this by writing motion vectors instead. [DONE]
-//     - Compress the motion vectors to half precision. We can use a more
-//       advanced format like rgb9e5 or rgb10 at a later date. [DONE]
-//   - Write to a second, duplicate memory allocation. [DONE]
-//     - Redirect the small-atom references, switch memory allocations. [DONE]
-//     - Delete the old memory allocations. [DONE]
-// - Load the large voxel's metadata in the ray tracer. [DONE]
-//   - Subtract the large voxel's start from each small reference. [DONE]
-//
-// Preparing for 16-bit atoms.
-// - Store the atomic number with the motion vectors. [DONE]
-// - Remove the atomic number tag from the "converted" format. [DONE]
-// - Compute the large voxel's lower corner during ray tracing. [DONE]
-// - Subtract the large voxel's lower corner from the atom position. [DONE]
-//
-// Sparsifying the BVH.
-// - Minimize the bandwidth cost of reading the large cells' counters during
-//   BVH construction. [DONE]
-//   - Write to a buffer of marks during the very first kernel, ensure it
-//     doesn't harm performance. [DONE]
-//   - Change the "return early" clause during the kernel over large cells, so
-//     it reads from the marks. [DONE]
-// - Rearrange the cell metadata.
-//   - Merge the atom count with the small-cell offset.
-//     - Make the small-cell ref. offsets relative to their corresponding
-//       large-cell offset. [DONE]
-//       - Add/subtract one to start off. [DONE]
-//       - Fuse the offset with the count, in a 32-bit word. [DONE]
-//       - Remove the addition/subtraction of one, as the count now
-//         indicates whether the small voxel is occupied. [DONE]
-//       - Remove the guard from the ray tracing loop. [DONE]
-//     - Remove null termination from the reference list. [DONE]
-//     - Remove null termination from as many other places as possible. [DONE]
-//   - Test the optimization to sphere-cell tests before making more changes
-//     that will affect performance. [DONE]
-//     - Take five samples of the existing kernel's performance in Google
-//       Sheets. Record the following for each sample: [DONE]
-//       - Instructions issued
-//       - Latency
-//       - Divergence
-//       - Line-by-line % for the sphere-cell test part.
-//     - Change the CPU-side code, to clamp radii to [0.001, 0.249]. [DONE]
-//   - Write the small cells' metadata at the compacted large voxel offsets,
-//     in Morton order. [DONE]
-//   - Switch to reading compacted data. [DONE]
-//     - Bind the compacted metadata to the render kernel. [DONE]
-//     - Fetch the large voxel's metadata during DDA traversal. [DONE]
-//     - Read from an offset specified with large voxel metadata. [DONE]
-//   - Delete the dense small-cell metadata. [DONE]
-//     - Remove the buffer bindings from the render kernel. [DONE]
-//     - Stop writing to it in the fused kernel. [DONE]
-//   - Change the indirect dispatch for the fused kernel, so threadgroups
-//     are only launched for occupied voxels. [DONE]
-//     - Add a buffer of threadgroup IDs for occupied large voxels. [DONE]
-//     - Make the dispatch 1D instead of 3D. [DONE]
-//
-// Implementing sparse ray tracing.
-// - Remove the dependency on the global bounding box.
-//   - Set the global bounding box to [-64, 64], overriding the reduced
-//     value. [DONE]
-//   - Ensure rendering still happens with reasonable performance. [DONE]
-//     - Performance is not acceptable for real-time viewing (3 ms -> 11 ms),
-//       but we'll investigate the issue when refactoring the DDA.
-//     - Found the increase was more like (6 ms -> 11 ms), and we already had
-//       6 ms for the most concerning scenes (which are not exposed to open
-//       void or world boundaries).
-//   - Eliminate the bounding box reduction. [DONE]
-// - Refactor the DDA, making it easier to modify. [DONE]
-//   - Reduce the number of state variables. [DONE]
-//   - Remove the optimization that skips empty voxels. This is obfuscating
-//     some inner mechanics of DDA traversal. [DONE]
-//   - Is real-time rendering still possible? [DONE]
-// - Start with a very expensive two-level DDA. [DONE]
-// - Split into two separate traversal functions. [DONE]
-//   - Re-encapsulate the sphere-cell intersection, but this time taking the
-//     arguments for an entire voxel. [DONE]
-//   - Give the functions different top-level names. [DONE]
-//   - Remove 'isAORay' from the intersection parameters. [DONE]
-// - Make a compacted list of large-voxel metadata, so smaller references can
-//   be stored in threadgroup memory.
-//   - Replace 'compactedLargeCellIDs' with this metadata. [DONE]
-//   - Simplify the small-cells pass of BVH construction accordingly. [DONE]
-//   - Bind the compacted large-cell metadata to the render kernel. [DONE]
-//   - Modify the existing algorithm for compressing cell addresses. [DONE]
-//   - Test for correctness and performance changes. [DONE]
-// - Try speculative searching of the BVH. [DONE]
-//   - Buffer up the next few small cells. [DONE]
-//   - Revert to the traversal method from before this change. [DONE]
-//   - Buffer up the next few large cells in a separate DDA. [DONE]
-//     - The large DDA repeatedly calls 'nextLargeBorder'. [DONE]
-//     - Save each subsequently found large voxel in the memory tape. [DONE]
-//     - Each large voxel is iterated over in a loop. All of its small voxels
-//       are tested before moving to the next one. [DONE]
-//     - The small DDA properly handles bounds of the 2 nm large voxel. [DONE]
-//  - Optimize the large DDA iterations. [DONE]
-//  - Reduce divergence of the small DDA iterations.
-//    - A new small DDA is reinitialized on the fly. [DONE]
-//    - Small DDA loop halts when it runs out of large voxels to test. [DONE]
-//    - Minimize the cost of reinitializing the small DDA. [DONE]
-// - Reduce divergence during intersection testing.
-//   - Reduce the cost of divergent halting. [DONE]
-//     - Undo this optimization, as primary rays all follow a similar path.
-//       The amortized sum of small voxels after hitting several large voxels,
-//       should be almost identical. [DONE]
-//   - Reduce divergence during atom intersection (primary ray). [DONE]
-//   - Reduce divergence during atom intersection (secondary rays). [DONE]
-//   - Granted these optimizations don't measurably harm performance, keep
-//     them. They help the algorithm generalize to use cases outside the
-//     narrow validation set used for micro-optimizations.
-//     - Reducing divergence for AO rays significantly harmed performance.
-// - Upgrade from 128 nm to 256 nm world volume.
-//   - Measure rendering performance. [DONE]
-//   - Increase world volume to 256 nm, check for bottlenecks. [DONE]
-//   - Measure rendering performance. [DONE]
-//   - Minimize the bandwidth of writing empty large cell metadata. [DONE]
-// - Upgrade from 256 nm to 512 nm world volume.
-//   - Increase world volume to 512 nm, check for bottlenecks. [DONE]
-//   - Measure rendering performance. [DONE]
-// - Reduce the memory cost of large-cell metadata. [DONE]
-//   - One can defer the retrieval of complex large-cell metadata, until after
-//     one verifies that the small cell is occupied. [DONE]
-//   - Examine how much this harms performance for AO rays. [DONE]
-// - Fix the counters and reductions over large cells. [DONE]
-//   - First atoms kernel was ~200-240 μs, with 40x40x40 lattice.
-//   - Second atoms kernel was ~260-550 μs, with 40x40x40 lattice.
-// - Try an optimization that exploits three hierarchy levels.
-//   - Gather statistics before the change. [DONE]
-//   - Use the cell group marks as just another conditional during the primary
-//     rays loop. [DONE]
-//   - Jump forward in "large cell groups". Retrieve the code from an older
-//     commit. [DONE]
-//   - Gather statistics after the change. [DONE]
-// - Properly handle the edge case where the user falls outside of the
-//   world grid.
-//   - Reduce a bounding box of cell groups. [DONE]
-//   - Return early when outside of this bounding box. [DONE]
-//     - Bind the bounding box buffer to the render kernel. [DONE]
-//     - Record rendering performance after the change. [DONE]
-//   - Validate that performance improved for both 40x40x40 and 60x60x60.
-//     - Before the change, 40x40x40 was 30% / 56%. [DONE]
-//     - After the change, 40x40x40 was 21% / 65%. [DONE]
-//   - Clamp the large DDA to the bounding box's range. [DONE]
-// - Return early for any atoms that fall outside the world bounds. [DONE]
-//   - Make the world bounds artificially small. [DONE]
-//   - Check that atoms are omitted with some reasonably sized lattices.
-//   - Clamp the atoms to positions at least 0.25 nm inside the world bounds.
-// - Fix everything related to upscaling.
-//   - Revise the heuristic for quality coefficient, to account for both
-//     upscale factor and FOV. [DONE]
-//   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation. [DONE]
-//   - Test how 4-6x upscaling performs when the user or scene is moving. [DONE]
-//   - Conclusion: we need 4x upscaling with bicubic interpolation. But we can
-//     squeeze a final ounce of performance out of upscaling.
-//
-// Merge the new ray tracer into the main branch (PR #1).
-// - Delete the references to the simulators. [DONE]
-// - Commit the current branch to 'main', keeping the work breakdown
-//   structure and shader benchmark data.
-//
-// Refactor the renderer into a SwiftPM workflow (PR #2).
+// Refactor into SwiftPM workflow.
 // - Archive the hardware catalog.
-// - Overhaul the API.
-//   - Use explicit atom tracking to determine motion vectors, eliminating the
-//     need to 'guess' whether a frame can have motion vectors.
-//   - Check whether CVDisplayLink timestamps have consistent spacing. If so,
-//     eliminate the dependency on discrete frame IDs.
-//
-// Port to Windows, before adding the complexity of support for giant atom
-// counts.
+// - Wait until you've supported high atom counts. It may be harder to use
+//   Metal Frame Capture now.
 
-#if false
+// Change of plans:
+// - Quit work on the "large atom counts" branch.
+// - Make a new branch "windows-port" with these notes on the README.
+//
+// - Delete every file in the repository.
+//   - Don't worry about the hardware catalog. We'll archive it in a separate
+//     repository before merging the new branch with 'main'.
+// - Restart with a SwiftPM workflow, building again from the very foundations.
+//   - Resolves the issue that all of the UI controls were coupled with the
+//     timebase in integer multiples of frame rate.
+//
+// - Work your way up to a CLI-launched application on macOS.
+//   - Start with a "Hello World" triangle and testing frame synchronization.
+//   - Only supporting ~20 atoms for now, every sphere is tested every frame.
+//     - Hard-code the NanoEngineer colors and radii.
+//   - No ambient occlusion yet.
+//   - No upscaling.
+// - Port the new application to Windows.
+//
+// - Unsure at which point I'll add UI controls.
+//
+// - Add upscaling.
+//   - Use per-atom tracking to facilitate motion vectors.
+//   - Add MetalFX and FidelityFX upscaling.
+//
+// - Add the BVH.
+//   - Use the new ray tracer as reference code.
+//   - Add ambient occlusion and support for ~2 million atoms.
+
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -348,26 +129,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
@@ -496,7 +277,7 @@ func createGeometry() -> [[Atom]] {
 
 #endif
 
-#if true
+#if false
 
 // Higher resolution means we can resolve much larger scenes. There is
 // motivation to support atom counts far exceeding 4 million.
