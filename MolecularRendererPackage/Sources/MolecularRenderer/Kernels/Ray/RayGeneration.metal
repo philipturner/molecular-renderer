@@ -28,6 +28,7 @@ public:
     float random2;
   };
   
+  // Rearrange the threads in Morton order.
   static ushort2 makePixelID(ushort2 tgid, ushort2 lid) {
     ushort local_linear_id = lid.y * 8 + lid.x;
     ushort new_y = (local_linear_id >= 32) ? 4 : 0;

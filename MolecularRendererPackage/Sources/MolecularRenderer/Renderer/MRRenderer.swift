@@ -20,8 +20,9 @@ public class MRRenderer {
   // Main rendering resources.
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
-  var renderPipeline: MTLComputePipelineState!
-  var upscaler: MTLFXTemporalScaler!
+  var renderPipeline: MTLComputePipelineState
+  var upscaler: MTLFXTemporalScaler
+  var compositePipeline: MTLComputePipelineState
   
   struct IntermediateTextures {
     var color: MTLTexture
@@ -96,13 +97,13 @@ public class MRRenderer {
     encoder.endEncoding()
     commandBuffer.commit()
     
-    bvhBuilder = BVHBuilder(renderer: self, library: library)
-    frameReporter = FrameReporter()
-    
-    renderPipeline = Self.createRenderPipeline(
-      device: device, library: library)
+    renderPipeline = Self.createRenderPipeline(library: library)
     upscaler = Self.createUpscaler(
       device: device, argumentContainer: argumentContainer)
+    compositePipeline = Self.createCompositePipeline(library: library)
+    
+    bvhBuilder = BVHBuilder(renderer: self, library: library)
+    frameReporter = FrameReporter()
   }
   
   public func render(
@@ -124,7 +125,7 @@ public class MRRenderer {
     
     // Encode the compositing pass.
     let drawable = layer.nextDrawable()!
-    dispatchCompositingWork(texture: drawable.texture)
+    dispatchCompositingWork(drawable: drawable)
     
     // Perform synchronization in an empty command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!

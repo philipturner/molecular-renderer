@@ -63,7 +63,6 @@ extension MRRenderer {
   }
   
   func dispatchUpscalingWork() {
-    // Run the upscaling.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     updateUpscaler()
     upscaler.encode(commandBuffer: commandBuffer)

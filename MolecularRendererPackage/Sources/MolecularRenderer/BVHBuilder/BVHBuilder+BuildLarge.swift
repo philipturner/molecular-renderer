@@ -31,7 +31,8 @@ struct BVHBuildLargePipelines {
   
   init(library: MTLLibrary) {
     func createPipeline(name: String) -> MTLComputePipelineState {
-      guard let function = library.makeFunction(name: name) else {
+      let function = library.makeFunction(name: name)
+      guard let function else {
         fatalError("Could not create function.")
       }
       let device = library.device
