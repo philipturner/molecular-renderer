@@ -125,8 +125,7 @@ public:
                             float3 lightPosition) {
     // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
     float3 lightDirection = lightPosition - hitPoint;
-    float rsqrtLightDst = rsqrt(length_squared(lightDirection));
-    lightDirection *= rsqrtLightDst;
+    lightDirection = normalize(lightDirection);
     
     float lambertian = max(dot(lightDirection, float3(normal)), 0.0);
     this->lambertian += lambertian;
@@ -231,9 +230,11 @@ public:
     half4 writtenColor(color, 1);
     colorTexture.write(writtenColor, pixelCoords);
     
-    // Adjust the depth and motion vector.
-    auto depth = 1 / float(1 - this->depth); // map (0, -infty) to (1, 0)
-    auto motionVector = clamp(this->motionVector, -66500, 66500);
+    // Map the depth from [0, -infty] to [1, 0].
+    auto depth = 1 / float(1 - this->depth);
+    
+    // Clamp the motion vector to within the dynamic range of FP16.
+    auto motionVector = clamp(this->motionVector, -65000, 65000);
     
     // Write the output depth.
     float4 writtenDepth = float4(depth);
