@@ -69,23 +69,10 @@ extension Renderer {
       descriptor.library = library
     }
     
-    // Set the screen size.
-    do {
-      guard ContentView.size % ContentView.upscaleFactor == 0 else {
-        fatalError("Invalid content view size.")
-      }
-      descriptor.intermediateTextureSize = Int(
-        ContentView.size / ContentView.upscaleFactor)
-      descriptor.upscaleFactor = ContentView.upscaleFactor
-    }
-    
-    // Set the element colors and radii.
-    do {
-      let elementColors = Renderer.createColors()
-      let elementRadii = Renderer.createRadii()
-      descriptor.elementColors = elementColors
-      descriptor.elementRadii = elementRadii
-    }
+    // Set the other properties.
+    descriptor.renderTargetSize = Int(ContentView.size)
+    descriptor.elementColors = Renderer.createColors()
+    descriptor.elementRadii = Renderer.createRadii()
     
     // Instantiate the rendering engine.
     renderingEngine = MRRenderer(descriptor: descriptor)

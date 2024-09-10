@@ -20,14 +20,13 @@ public class MRRendererDescriptor {
   /// supported element.
   public var elementRadii: [Float]?
   
-  /// Required. The width of the render target before upscaling.
-  public var intermediateTextureSize: Int?
-  
   /// Required. The pre-compiled shader library.
   public var library: MTLLibrary?
   
-  /// Required. The upscale factor for temporal antialiased upscaling.
-  public var upscaleFactor: Int?
+  /// Required. The width of the render target before upscaling.
+  ///
+  /// This must be divisible by 6.
+  public var renderTargetSize: Int?
   
   public init() {
     

@@ -19,7 +19,7 @@ class ColorContext {
   constant half3* elementColors;
   
   ushort2 pixelCoords;
- 
+  half3 color;
   half2 motionVector;
   float depth;
   
@@ -30,8 +30,6 @@ class ColorContext {
   half specular;
   
 public:
-  half3 color;
-  
   ColorContext(constant half3* elementColors, ushort2 pixelCoords) {
     this->elementColors = elementColors;
     this->pixelCoords = pixelCoords;

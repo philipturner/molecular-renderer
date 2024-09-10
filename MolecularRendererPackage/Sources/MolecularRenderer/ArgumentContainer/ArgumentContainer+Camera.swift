@@ -20,7 +20,7 @@ extension ArgumentContainer {
   func createFOVMultiplier() -> Float {
     let fovRadians = currentFOVDegrees * .pi / 180
     let tangentFactor = 2 * tan(fovRadians / 2)
-    return tangentFactor / Float(intermediateTextureSize)
+    return tangentFactor / Float(rayTracedTextureSize)
   }
   
   func createCameraArguments() -> [CameraArguments] {

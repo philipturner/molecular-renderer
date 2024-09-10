@@ -15,12 +15,11 @@ typealias Float16 = Float64
 // Finite state machine that encapsulates the argument state.
 struct ArgumentContainer {
   // Render state variables.
-  var intermediateTextureSize: Int = .zero
-  var upscaleFactor: Int = .zero
   var frameID: Int = .zero
-  var upscaledTextureSize: Int {
-    intermediateTextureSize * upscaleFactor
+  var rayTracedTextureSize: Int {
+    renderTargetSize / 3
   }
+  var renderTargetSize: Int = .zero
   
   // Element state variables.
   var elementColors: [SIMD3<Float16>] = []

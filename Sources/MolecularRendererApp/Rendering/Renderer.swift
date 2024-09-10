@@ -62,7 +62,7 @@ extension Renderer {
     renderingEngine.setCamera(MRCamera(
       position: playerState.position,
       rotation: rotation,
-      fovDegrees: 30))
+      fovDegrees: fov))
     
     renderingEngine.render(layer: coordinator.view.metalLayer!) {
       self.renderSemaphore.signal()

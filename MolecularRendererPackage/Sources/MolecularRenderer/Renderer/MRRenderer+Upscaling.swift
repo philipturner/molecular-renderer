@@ -7,38 +7,40 @@
 
 import Metal
 import MetalFX
-import protocol QuartzCore.CAMetalDrawable
 
 extension MRRenderer {
-  func initUpscaler() {
+  static func createUpscaler(
+    device: MTLDevice,
+    argumentContainer: ArgumentContainer
+  ) -> MTLFXTemporalScaler {
     let desc = MTLFXTemporalScalerDescriptor()
-    desc.inputWidth = argumentContainer.intermediateTextureSize
-    desc.inputHeight = argumentContainer.intermediateTextureSize
-    desc.outputWidth = argumentContainer.upscaledTextureSize
-    desc.outputHeight = argumentContainer.upscaledTextureSize
+    desc.inputWidth = argumentContainer.rayTracedTextureSize
+    desc.inputHeight = argumentContainer.rayTracedTextureSize
+    desc.outputWidth = argumentContainer.renderTargetSize
+    desc.outputHeight = argumentContainer.renderTargetSize
     
-    let textures = bufferedIntermediateTextures[0]
-    desc.colorTextureFormat = textures.color.pixelFormat
-    desc.depthTextureFormat = textures.depth.pixelFormat
-    desc.motionTextureFormat = textures.motion.pixelFormat
-    desc.outputTextureFormat = desc.colorTextureFormat
+    desc.colorTextureFormat = .rgb10a2Unorm
+    desc.depthTextureFormat = .r32Float
+    desc.motionTextureFormat = .rg16Float
+    desc.outputTextureFormat = .rgb10a2Unorm
     
     desc.isAutoExposureEnabled = false
     desc.isInputContentPropertiesEnabled = false
-    desc.inputContentMinScale = Float(argumentContainer.upscaleFactor)
-    desc.inputContentMaxScale = Float(argumentContainer.upscaleFactor)
+    desc.inputContentMinScale = 3
+    desc.inputContentMaxScale = 3
     
-    guard let upscaler = desc.makeTemporalScaler(device: device) else {
+    let upscaler = desc.makeTemporalScaler(device: device)
+    guard let upscaler else {
       fatalError("The temporal scaler effect is not usable!")
     }
-    
-    self.upscaler = upscaler
     
     // We already store motion vectors in units of pixels. The default value
     // multiplies the vector by 'intermediateSize', which we don't want.
     upscaler.motionVectorScaleX = 1
     upscaler.motionVectorScaleY = 1
     upscaler.isDepthReversed = true
+    
+    return upscaler
   }
   
   func updateUpscaler() {
@@ -60,25 +62,11 @@ extension MRRenderer {
     upscaler.jitterOffsetY = -jitterOffsets.y
   }
   
-  func dispatchUpscalingWork(texture: MTLTexture) {
-    let upscaledSize = argumentContainer.upscaledTextureSize
-    guard texture.width == upscaledSize,
-          texture.height == upscaledSize else {
-      fatalError("Drawable texture had incorrect dimensions.")
-    }
-    
+  func dispatchUpscalingWork() {
     // Run the upscaling.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     updateUpscaler()
     upscaler.encode(commandBuffer: commandBuffer)
-    
-    // Copy the upscaled texture to the drawable.
-    let textureIndex = argumentContainer.doubleBufferIndex()
-    let textures = bufferedIntermediateTextures[textureIndex]
-    let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
-    blitEncoder.copy(from: textures.upscaled, to: texture)
-    blitEncoder.endEncoding()
-    
     commandBuffer.commit()
   }
 }

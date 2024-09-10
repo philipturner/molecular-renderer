@@ -245,7 +245,7 @@ import Numerics
 //   - Clamp the atoms to positions at least 0.25 nm inside the world bounds.
 // - Fix everything related to upscaling.
 //   - Revise the heuristic for quality coefficient, to account for both
-//     upscale factor and FOV.
+//     upscale factor and FOV. [DONE]
 //   - Test 4-6x upscaling with NN, bilinear, and bicubic interpolation.
 //   - Test how 4-6x upscaling performs when the user or scene is moving.
 //
@@ -265,7 +265,7 @@ import Numerics
 // Port to Windows, before adding the complexity of support for giant atom
 // counts.
 
-#if false
+#if true
 
 func createGeometry() -> [Atom] {
   // Benchmarked Systems
@@ -346,26 +346,26 @@ func createGeometry() -> [Atom] {
   // 90 x 90 x 90 |   3163 |   1981 |  12936 |   2059 |  22
   
   let lattice = Lattice<Cubic> { h, k, l in
-    Bounds { 40 * (h + k + l) }
+    Bounds { 60 * (h + k + l) }
     Material { .elemental(.carbon) }
     
-//    Volume {
-//      Concave {
-//        Convex {
-//          Origin { 5 * h }
-//          Plane { h }
-//        }
-//        Convex {
-//          Origin { 5 * k }
-//          Plane { k }
-//        }
-//        Convex {
-//          Origin { 5 * l }
-//          Plane { l }
-//        }
-//      }
-//      Replace { .empty }
-//    }
+    Volume {
+      Concave {
+        Convex {
+          Origin { 5 * h }
+          Plane { h }
+        }
+        Convex {
+          Origin { 5 * k }
+          Plane { k }
+        }
+        Convex {
+          Origin { 5 * l }
+          Plane { l }
+        }
+      }
+      Replace { .empty }
+    }
   }
   
   var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
@@ -494,7 +494,7 @@ func createGeometry() -> [[Atom]] {
 
 #endif
 
-#if true
+#if false
 
 // Higher resolution means we can resolve much larger scenes. There is
 // motivation to support atom counts far exceeding 4 million.

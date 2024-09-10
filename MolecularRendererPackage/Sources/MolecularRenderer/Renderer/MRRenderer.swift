@@ -41,17 +41,19 @@ public class MRRenderer {
   public init(descriptor: MRRendererDescriptor) {
     guard let elementColors = descriptor.elementColors,
           let elementRadii = descriptor.elementRadii,
-          let intermediateTextureSize = descriptor.intermediateTextureSize,
           let library = descriptor.library,
-          let upscaleFactor = descriptor.upscaleFactor else {
+          let renderTargetSize = descriptor.renderTargetSize else {
       fatalError("Descriptor was incomplete.")
     }
     argumentContainer.elementColors = ArgumentContainer
       .createElementColors(elementColors)
     argumentContainer.elementRadii = ArgumentContainer
       .createElementRadii(elementRadii)
-    argumentContainer.intermediateTextureSize = intermediateTextureSize
-    argumentContainer.upscaleFactor = upscaleFactor
+    
+    guard renderTargetSize % 6 == 0 else {
+      fatalError("Render target dimensions must be divisible by 6.")
+    }
+    argumentContainer.renderTargetSize = renderTargetSize
     
     // Initialize Metal resources.
     self.device = MTLCreateSystemDefaultDevice()!
@@ -67,25 +69,21 @@ public class MRRenderer {
       desc.storageMode = .private
       desc.usage = [ .shaderWrite, .shaderRead ]
       
-      desc.width = argumentContainer.intermediateTextureSize
-      desc.height = argumentContainer.intermediateTextureSize
+      desc.width = argumentContainer.rayTracedTextureSize
+      desc.height = argumentContainer.rayTracedTextureSize
       desc.pixelFormat = .rgb10a2Unorm
       let color = device.makeTexture(descriptor: desc)!
-      color.label = "Intermediate Color"
       
       desc.pixelFormat = .r32Float
       let depth = device.makeTexture(descriptor: desc)!
-      depth.label = "Intermediate Depth"
       
       desc.pixelFormat = .rg16Float
       let motion = device.makeTexture(descriptor: desc)!
-      motion.label = "Intermediate Motion"
       
       desc.pixelFormat = .rgb10a2Unorm
-      desc.width = argumentContainer.upscaledTextureSize
-      desc.height = argumentContainer.upscaledTextureSize
+      desc.width = argumentContainer.renderTargetSize
+      desc.height = argumentContainer.renderTargetSize
       let upscaled = device.makeTexture(descriptor: desc)!
-      upscaled.label = "Upscaled Color"
       
       let textures = IntermediateTextures(
         color: color, depth: depth, motion: motion, upscaled: upscaled)
@@ -101,8 +99,10 @@ public class MRRenderer {
     bvhBuilder = BVHBuilder(renderer: self, library: library)
     frameReporter = FrameReporter()
     
-    initUpscaler()
-    initRayTracer(library: library)
+    renderPipeline = Self.createRenderPipeline(
+      device: device, library: library)
+    upscaler = Self.createUpscaler(
+      device: device, argumentContainer: argumentContainer)
   }
   
   public func render(
@@ -116,14 +116,15 @@ public class MRRenderer {
     // Fetch the atoms for the current frame.
     argumentContainer.updateAtoms(provider: atomProvider)
     
-    // Encode the work.
+    // Encode the geometry, render, and upscaling passes.
     bvhBuilder.buildLargeBVH(frameID: frameID)
     bvhBuilder.buildSmallBVH(frameID: frameID)
     dispatchRenderingWork(frameID: frameID)
+    dispatchUpscalingWork()
     
-    // Dispatch the upscaling work.
+    // Encode the compositing pass.
     let drawable = layer.nextDrawable()!
-    dispatchUpscalingWork(texture: drawable.texture)
+    dispatchCompositingWork(texture: drawable.texture)
     
     // Perform synchronization in an empty command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!

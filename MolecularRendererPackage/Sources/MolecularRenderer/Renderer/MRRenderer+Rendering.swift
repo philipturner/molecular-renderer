@@ -8,7 +8,10 @@
 import Metal
 
 extension MRRenderer {
-  func initRayTracer(library: MTLLibrary) {
+  static func createRenderPipeline(
+    device: MTLDevice,
+    library: MTLLibrary
+  ) -> MTLComputePipelineState {
     guard let function = library.makeFunction(name: "renderAtoms") else {
       fatalError("Failed to create Metal function 'renderAtoms'.")
     }
@@ -16,7 +19,7 @@ extension MRRenderer {
     let desc = MTLComputePipelineDescriptor()
     desc.computeFunction = function
     desc.maxTotalThreadsPerThreadgroup = 1024
-    self.renderPipeline = try! device.makeComputePipelineState(
+    return try! device.makeComputePipelineState(
       descriptor: desc, options: [], reflection: nil)
   }
   
@@ -92,8 +95,7 @@ extension MRRenderer {
       let pipeline = renderPipeline!
       encoder.setComputePipelineState(pipeline)
       
-      let textureSize = argumentContainer.intermediateTextureSize
-      let dispatchSize = (textureSize + 7) / 8
+      let dispatchSize = (argumentContainer.rayTracedTextureSize + 7) / 8
       encoder.dispatchThreadgroups(
         MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))

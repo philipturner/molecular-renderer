@@ -55,14 +55,14 @@ extension ArgumentContainer {
     let pixelCount: Int = 150
     
     var output = distanceInNm / Float(pixelCount)
-    output *= Float(upscaledTextureSize)
+    output *= Float(renderTargetSize)
     output /= tangentFactor
     return output
   }
   
   func createRenderArguments() -> RenderArguments {
     var output = RenderArguments()
-    output.screenWidth = UInt16(intermediateTextureSize)
+    output.screenWidth = UInt16(rayTracedTextureSize)
     output.frameSeed = createFrameSeed()
     output.jitterOffsets = createJitterOffsets()
     output.criticalDistance = createCriticalDistance()

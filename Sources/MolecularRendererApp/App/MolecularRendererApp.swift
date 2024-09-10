@@ -24,15 +24,6 @@ struct MolecularRendererApp: App {
 struct ContentView: View {
   @ObservedObject var coordinator: Coordinator
   
-  static let upscaleFactor: Int = {
-    guard #available(macOS 14, iOS 17, tvOS 17, *) else {
-      fatalError("Unsupported OS version.")
-    }
-    
-    // MetalFX only supports 3x temporal upscaling on macOS Sonoma.
-    return 3
-  }()
-  
   // MARK: - Users, set this to match your device's display refresh rate.
   // MacBooks with ProMotion are typically 120 Hz, but most over devices are
   // 60 Hz. It is important to set the right framerate, because all
@@ -70,7 +61,7 @@ struct ContentView: View {
   // M1/M2/M3 Ultra (~64 cores), 60-144 Hz external monitor
   // - 640 x 640 (upscales to 1920 x 1920)
   //
-  static let size: Int = 640 * upscaleFactor
+  static let size: Int = 1920
   
   var body: some View {
     // A ZStack to overlay the crosshair over the scene view

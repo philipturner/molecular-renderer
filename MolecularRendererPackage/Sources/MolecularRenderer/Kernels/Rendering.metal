@@ -1,5 +1,5 @@
 //
-//  RenderAtoms.metal
+//  Rendering.metal
 //  MolecularRenderer
 //
 //  Created by Philip Turner on 2/22/23.
