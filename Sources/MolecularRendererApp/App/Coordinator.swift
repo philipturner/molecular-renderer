@@ -63,15 +63,13 @@ class Coordinator: NSResponder, ObservableObject {
     fatalError("init(coder:) has not been implemented")
   }
   
-  // This function would adapt to user-specific sizes, but for now we disallow
-  // resizing.
   func drawableResize(_ size: CGSize) {
-    if size.width != ContentView.size || size.height != ContentView.size {
+    if size.width != CGFloat(ContentView.size) ||
+        size.height != CGFloat(ContentView.size) {
       fatalError("Size cannot change.")
     }
   }
   
-  // TODO: Try merging this function with `showCursor()`.
   @objc func disconnectMouse() {
     CGDisplayShowCursor(CGMainDisplayID())
     CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
@@ -93,7 +91,7 @@ extension Coordinator {
       let centerY = bestScreen.visibleFrame.midY
       let scaleFactor = bestScreen.backingScaleFactor
 
-      let windowSize = ContentView.size / scaleFactor
+      let windowSize = CGFloat(ContentView.size) / scaleFactor
       let leftX = centerX - windowSize / 2
       let upperY = centerY - windowSize / 2
       let origin = CGPoint(x: leftX, y: upperY)

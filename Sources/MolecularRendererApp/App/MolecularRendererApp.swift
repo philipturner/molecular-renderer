@@ -16,22 +16,13 @@ struct MolecularRendererApp: App {
     }
     .windowResizability(.contentSize)
     .defaultSize(
-      width: ContentView.size / NSScreen.main!.backingScaleFactor,
-      height: ContentView.size / NSScreen.main!.backingScaleFactor)
+      width: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor,
+      height: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor)
   }
 }
 
 struct ContentView: View {
   @ObservedObject var coordinator: Coordinator
-  
-  static let upscaleFactor: Int = {
-    guard #available(macOS 14, iOS 17, tvOS 17, *) else {
-      fatalError("Unsupported OS version.")
-    }
-    
-    // MetalFX only supports 3x temporal upscaling on macOS Sonoma.
-    return 3
-  }()
   
   // MARK: - Users, set this to match your device's display refresh rate.
   // MacBooks with ProMotion are typically 120 Hz, but most over devices are
@@ -70,7 +61,7 @@ struct ContentView: View {
   // M1/M2/M3 Ultra (~64 cores), 60-144 Hz external monitor
   // - 640 x 640 (upscales to 1920 x 1920)
   //
-  static let size: CGFloat = 640 * CGFloat(upscaleFactor)
+  static let size: Int = 1920
   
   var body: some View {
     // A ZStack to overlay the crosshair over the scene view
@@ -79,11 +70,11 @@ struct ContentView: View {
       MetalView(coordinator: coordinator)
         .disabled(false)
         .frame(
-          width: ContentView.size / NSScreen.main!.backingScaleFactor,
-          height: ContentView.size / NSScreen.main!.backingScaleFactor)
+          width: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor,
+          height: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor)
         .position(
-          x: ContentView.size / 2 / NSScreen.main!.backingScaleFactor,
-          y: ContentView.size / 2 / NSScreen.main!.backingScaleFactor)
+          x: CGFloat(ContentView.size) / 2 / NSScreen.main!.backingScaleFactor,
+          y: CGFloat(ContentView.size) / 2 / NSScreen.main!.backingScaleFactor)
       
       // A conditional view to show or hide the crosshair
       if coordinator.showCrosshair {

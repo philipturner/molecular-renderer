@@ -57,11 +57,11 @@ final class RendererView: NSView, CALayerDelegate {
       width: ContentView.size, height: ContentView.size)
     
     self.bounds.size = CGSize(
-      width: ContentView.size / NSScreen.main!.backingScaleFactor,
-      height: ContentView.size / NSScreen.main!.backingScaleFactor)
+      width: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor,
+      height: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor)
     self.frame.size = CGSize(
-      width: ContentView.size / NSScreen.main!.backingScaleFactor,
-      height: ContentView.size / NSScreen.main!.backingScaleFactor)
+      width: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor,
+      height: CGFloat(ContentView.size) / NSScreen.main!.backingScaleFactor)
     self.layer!.delegate = self
   }
   
@@ -92,8 +92,11 @@ final class RendererView: NSView, CALayerDelegate {
     var size = self.bounds.size
     size.width *= scaleFactor
     size.height *= scaleFactor
-    if size.width != ContentView.size || size.height != ContentView.size {
-      if size.width != 0 || size.height != 0 {
+    
+    if size.width != CGFloat(ContentView.size) ||
+        size.height != CGFloat(ContentView.size) {
+      if size.width != 0 ||
+          size.height != 0 {
         fatalError("Size cannot change.")
       }
     }
