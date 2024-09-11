@@ -14,6 +14,9 @@ let package = Package(
   ],
   dependencies: [
     .package(
+      url: "https://github.com/apple/swift-atomics",
+      .upToNextMajor(from: "1.2.0")),
+    .package(
       url: "https://github.com/philipturner/HDL",
       branch: "main"),
     .package(
@@ -24,6 +27,7 @@ let package = Package(
     .executableTarget(
       name: "Workspace",
       dependencies: [
+        .product(name: "Atomics", package: "swift-atomics"),
         .product(name: "HDL", package: "HDL"),
         "MolecularRenderer",
         .product(name: "Numerics", package: "swift-numerics"),

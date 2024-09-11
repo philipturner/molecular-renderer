@@ -6,17 +6,19 @@
 // https://www.polpiella.dev/launching-a-swiftui-view-from-the-terminal
 
 // Next steps:
-// - Copying the code.
+// - Copying the code. [DONE]
 //    - Save the code to a GitHub gist for reference.
 //    - Make a cleaned molecular-renderer branch.
 //    - Copy the above code into the branch.
 //    - Test the code.
 //    - Commit the files to Git.
 // - Access the GPU.
-//   - Modify it to get Metal rendering.
-//   - Integrate a CVDisplayLink to get information about the time each frame.
-//   - Run a test of timestamp synchronization.
+//   - Modify it to get Metal rendering. [DONE]
+//   - Integrate a CVDisplayLink to get information about the timestamp. [DONE]
+//   - Clean up and simplify the code as much as possible.
+//   - Run a test of timestamp synchronization (rainbow triangle).
 // - Repeat the same process with COM / D3D12 on Windows.
+//   - Another single-file Swift script that does the same thing.
 
 import AppKit
 
@@ -38,11 +40,17 @@ class AAPLAppDelegate: NSObject, NSApplicationDelegate {
     defer: false,
     screen: NSScreen.fastest)
   
+  var responder: AAPLResponder!
+  
   func applicationDidFinishLaunching(_ notification: Notification) {
     window.contentViewController = AAPLViewController()
     window.makeKey()
     window.center()
     window.orderFrontRegardless()
+    
+    responder = AAPLResponder()
+    responder.registerResponses(window: window)
+    window.makeFirstResponder(responder)
   }
   
   func applicationShouldTerminateAfterLastWindowClosed(
@@ -229,19 +237,6 @@ class AAPLNSView: AAPLView {
         fatalError("CVReturn was not success.")
       }
     }
-    
-    // Register to be notified when the window closes.
-    let notificationCenter = NotificationCenter.default
-    notificationCenter.addObserver(
-      self,
-      selector: #selector(windowWillClose(notification:)),
-      name: NSWindow.willCloseNotification,
-      object: self.window!)
-  }
-  
-  @objc
-  func windowWillClose(notification: NSNotification) {
-    exit(0)
   }
   
   override func viewDidChangeBackingProperties() {
@@ -383,6 +378,45 @@ class AAPLShaders {
     // Initialize the pipeline state object.
     let pipeline = try! device.makeComputePipelineState(function: function)
     return pipeline
+  }
+}
+
+// MARK: - AAPLResponder
+
+// For now, the responder simply coordinates the shutdown of the application.
+// It automatically registers a shutdown event when the user pressed the
+// "X" button. For the Cmd + W modifier, we have to code this explicitly.
+//
+// As we build up more low-level UI event handling capabilities, we'll expand
+// this to responding to more keys. And eventually mouse movements. All sent
+// asynchronously with atomics. 'MolecularRenderer' should only encapsulate
+// the Mac and Windows low-level infrastructure for attaining UI events. The
+// actual GUI implementation should be deferred to a calling library.
+class AAPLResponder: NSResponder {
+  func registerResponses(window: NSWindow) {
+    // Register to be notified when the window closes.
+    let notificationCenter = NotificationCenter.default
+    notificationCenter.addObserver(
+      self,
+      selector: #selector(windowWillClose(notification:)),
+      name: NSWindow.willCloseNotification,
+      object: window)
+  }
+  
+  @objc
+  func windowWillClose(notification: NSNotification) {
+    exit(0)
+  }
+  
+  override func keyDown(with event: NSEvent) {
+    if event.modifierFlags.contains(.command) {
+      switch event.charactersIgnoringModifiers! {
+      case "w":
+        exit(0)
+      default:
+        break
+      }
+    }
   }
 }
 
