@@ -19,6 +19,54 @@
 // - Repeat the same process with COM / D3D12 on Windows.
 //   - Another single-file Swift script that does the same thing.
 
+//- app.run
+//  - AAPLAppDelegate.applicationDidFinishLaunching
+//    - AAPLViewController.init
+//    - window.contentViewController
+//      - AAPLViewController.viewDidLoad
+//        - AAPLNSView.init
+//          - AAPLView.init(frame:)
+//            - AAPLNSView.initCommon
+//              - self.wantsLayer
+//                - AAPLNSView.makeBackingLayer
+//              - self.layerContentsRedrawPolicy
+//              - AAPLView.initCommon
+//              - metalLayer.drawableSize
+//              - self.bounds.size
+//                - AAPLNSView.setBoundsSize [960.0x960.0]
+//                  - AAPLView.resizeDrawable [1920x1920]
+//                - AAPLNSView.viewDidChangeBackingProperties
+//              - self.frame.size
+//                - AAPLNSView.setFrameSize [960.0x960.0]
+//                  - AAPLView.resizeDrawable [1920x1920]
+//        - self.view
+//        - view.metalLayer.device
+//        - view.delegate
+//        - view.frameBufferOnly
+//        - view.metalLayer.pixelFormat
+//        - AAPLRenderer.init
+//      - AAPLNSView.setFrameSize [960.0x960.0]
+//        - AAPLView.resizeDrawable [1920x1920]
+//      - AAPLNSView.viewDidMoveToWindow
+//        - AAPLNSView.setupCVDisplayLinkForScreen
+//      - AAPLNSView.viewDidChangeBackingProperties
+//    - window.makeKey
+//    - window.center
+//    - window.orderFrontRegardless
+//    - AAPLResponder.init
+//    - responder.registerResponses
+//    - window.makeFirstResponder
+//  - AAPLView.render
+//    - AAPLViewController.renderToMetalLayer
+//      - AAPLRenderer.renderToMetalLayer
+//        - commandQueue.makeCommandBuffer
+//        - metalLayer.nextDrawable
+//        - commandBuffer.present
+//        - commandBuffer.commit
+//  - AAPLNSView.setFrameSize [986.0x985.0]
+//    - AAPLView.resizeDrawable [1972x1970]
+// Workspace/main.swift:134: Fatal error: Not allowed to resize window.
+
 import AppKit
 
 extension NSScreen {
