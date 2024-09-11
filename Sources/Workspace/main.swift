@@ -131,21 +131,18 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
   }
   
   func resizeDrawable(_ size: CGSize) {
+    // TODO: Ignore the resize events. The renderer isn't always initialized
+    // when this function is called.
     if let renderer = self.renderer {
-      print("Renderer alive.")
       renderer.resizeDrawable(size)
-    } else {
-      print("Renderer does not exist. Ignoring resize event: \(size)")
     }
   }
   
   func renderToMetalLayer(metalLayer layer: CAMetalLayer) {
-    if let renderer = self.renderer {
-      print("Renderer alive.")
-      renderer.renderToMetalLayer(metalLayer: layer)
-    } else {
-      print("Renderer does not exist. Ignoring render event: \(layer)")
+    guard let renderer else {
+      fatalError("Rendered to Metal layer when renderer was not initialized.")
     }
+    renderer.renderToMetalLayer(metalLayer: layer)
   }
 }
 
@@ -153,8 +150,6 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
 
 class AAPLNSView: AAPLView {
   var displayLink: CVDisplayLink!
-  var mainThreadSemaphore: DispatchSemaphore!
-  var forcedToMain = false
   
   var backingScaleFactor: CGFloat {
     if let window = self.window,
@@ -172,7 +167,6 @@ class AAPLNSView: AAPLView {
     super.initCommon()
     
     metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
-    mainThreadSemaphore = DispatchSemaphore(value: 1)
     
     self.bounds.size = CGSize(
       width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
@@ -264,36 +258,6 @@ class AAPLNSView: AAPLView {
     super.setBoundsSize(newSize)
     resizeDrawable(backingScaleFactor)
   }
-  
-  // This function should be called on the main thread to avoid a crash.
-  func updateUI() {
-    if !forcedToMain {
-      forcedToMain = true
-      
-//      let bestScreen = NSScreen.screens.max(by: {
-//        $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
-//      })!
-//      let centerX = bestScreen.visibleFrame.midX
-//      let centerY = bestScreen.visibleFrame.midY
-//      let scaleFactor = bestScreen.backingScaleFactor
-//      
-//      let windowSize = CGFloat(1920) / scaleFactor
-//      let leftX = centerX - windowSize / 2
-//      let upperY = centerY - windowSize / 2
-//      let origin = CGPoint(x: leftX, y: upperY)
-//      let size = CGSize(width: windowSize, height: windowSize)
-//      let frame = CGRect(origin: origin, size: size)
-//      
-//      if let window = self.window {
-//        print("Window alive.")
-//        print(frame)
-//        window.setFrame(frame, display: true)
-//        print("Window alive (2).")
-//      } else {
-//        print("Could not fetch window.")
-//      }
-    }
-  }
 }
 
 // Must be declared in the global scope to get @convention(c) status.
@@ -310,19 +274,6 @@ func DispatchRenderLoop(
   }
   let unmanaged = Unmanaged<AAPLNSView>.fromOpaque(displayLinkContext)
   let customView = unmanaged.takeUnretainedValue()
-  
-  do {
-    guard let semaphore = customView.mainThreadSemaphore else {
-      fatalError("Could not retrieve semaphore.")
-    }
-    semaphore.wait()
-    
-    DispatchQueue.main.async {
-      customView.updateUI()
-      semaphore.signal()
-    }
-  }
-  
   customView.render()
   
   return kCVReturnSuccess
@@ -367,8 +318,6 @@ class AAPLRenderer: NSObject {
     guard let currentDrawable else {
       fatalError("Could not retrieve next drawable.")
     }
-    
-    print("Rendering to texture [width = \(currentDrawable.texture.width), height = \(currentDrawable.texture.height)].")
     
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(computePipelineState)
