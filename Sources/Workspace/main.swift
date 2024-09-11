@@ -42,14 +42,40 @@ class AAPLAppDelegate: NSObject, NSApplicationDelegate {
   var responder: AAPLResponder!
   
   func applicationDidFinishLaunching(_ notification: Notification) {
-    window.contentViewController = AAPLViewController()
-    window.makeKey()
-    window.center()
-    window.orderFrontRegardless()
-    
-    responder = AAPLResponder()
-    responder.registerResponses(window: window)
-    window.makeFirstResponder(responder)
+    AAPLEventStack.withCall("AAPLAppDelegate.applicationDidFinishLaunching") {
+      // Set up the view controller.
+      let viewController = AAPLEventStack.withCall("AAPLViewController.init") {
+        AAPLViewController()
+      }
+      AAPLEventStack.withCall("window.contentViewController") {
+        window.contentViewController = viewController
+      }
+      AAPLEventStack.withCall("window.makeKey") {
+        window.makeKey()
+      }
+      AAPLEventStack.withCall("window.center") {
+        window.center()
+      }
+      AAPLEventStack.withCall("window.orderFrontRegardless") {
+        window.orderFrontRegardless()
+      }
+      
+      // Set up the first responder.
+      responder = AAPLEventStack.withCall("AAPLResponder.init") {
+        AAPLResponder()
+      }
+      AAPLEventStack.withCall("responder.registerResponses") {
+        responder.registerResponses(window: window)
+      }
+      do {
+        let succeeded = AAPLEventStack.withCall("window.makeFirstResponder") {
+          window.makeFirstResponder(responder)
+        }
+        guard succeeded else {
+          fatalError("Could not set the window's first responder.")
+        }
+      }
+    }
   }
   
   func applicationShouldTerminateAfterLastWindowClosed(
@@ -72,7 +98,9 @@ class AAPLView: NSView, CALayerDelegate {
   
   override init(frame: CGRect) {
     super.init(frame: frame)
-    initCommon()
+    AAPLEventStack.withCall("AAPLView.init(frame:)") {
+      initCommon()
+    }
   }
   
   required init(coder: NSCoder) {
@@ -80,10 +108,12 @@ class AAPLView: NSView, CALayerDelegate {
   }
   
   func initCommon() {
-    metalLayer = self.layer! as? CAMetalLayer
-    self.layer!.delegate = self
-    
-    delegate = AAPLViewController()
+    AAPLEventStack.withCall("AAPLView.initCommon") {
+      metalLayer = self.layer! as? CAMetalLayer
+      self.layer!.delegate = self
+      
+      delegate = AAPLViewController()
+    }
   }
   
   func resizeDrawable(_ scaleFactor: CGFloat) {
@@ -92,16 +122,20 @@ class AAPLView: NSView, CALayerDelegate {
     size.width *= scaleFactor
     size.height *= scaleFactor
     
-    // Check that the resolved size is what we want.
-    switch (size.width, size.height) {
-    case (0, 0):
-      // The window is still opening.
-      break
-    case (1920, 1920):
-      // Rendering content to the screen.
-      break
-    default:
-      fatalError("Not allowed to resize window.")
+    let width = Int(size.width)
+    let height = Int(size.height)
+    AAPLEventStack.withCall("AAPLView.resizeDrawable [\(width)x\(height)]") {
+      // Check that the resolved size is what we want.
+      switch (size.width, size.height) {
+      case (0, 0):
+        // The window is still opening.
+        break
+      case (1920, 1920):
+        // Rendering content to the screen.
+        break
+      default:
+        fatalError("Not allowed to resize window.")
+      }
     }
   }
   
@@ -116,24 +150,38 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
   var renderer: AAPLRenderer!
   
   override func viewDidLoad() {
-    super.viewDidLoad()
-    
-    do {
-      let view = AAPLNSView()
-      self.view = view
+    AAPLEventStack.withCall("AAPLViewController.viewDidLoad") {
+      super.viewDidLoad()
+      
+      do {
+        AAPLEventStack.withCall("AAPLNSView.init") {
+          let view = AAPLNSView()
+          self.view = view
+        }
+      }
+      
+      let device = MTLCreateSystemDefaultDevice()!
+      let view = AAPLEventStack.withCall("self.view") {
+        self.view as! AAPLView
+      }
+      AAPLEventStack.withCall("view.metalLayer.device") {
+        view.metalLayer.device = device
+      }
+      AAPLEventStack.withCall("view.delegate") {
+        view.delegate = self
+      }
+      
+      AAPLEventStack.withCall("view.frameBufferOnly") {
+        view.metalLayer.framebufferOnly = false
+      }
+      AAPLEventStack.withCall("view.metalLayer.pixelFormat") {
+        view.metalLayer.pixelFormat = .rgb10a2Unorm
+      }
+      
+      renderer = AAPLRenderer(
+        device: device,
+        drawablePixelFormat: view.metalLayer.pixelFormat)
     }
-    
-    let device = MTLCreateSystemDefaultDevice()!
-    let view = self.view as! AAPLView
-    view.metalLayer.device = device
-    view.delegate = self
-    
-    view.metalLayer.framebufferOnly = false
-    view.metalLayer.pixelFormat = .rgb10a2Unorm
-    
-    renderer = AAPLRenderer(
-      device: device,
-      drawablePixelFormat: view.metalLayer.pixelFormat)
   }
   
   func renderToMetalLayer(metalLayer layer: CAMetalLayer) {
@@ -160,86 +208,110 @@ class AAPLNSView: AAPLView {
   }
   
   override func initCommon() {
-    self.wantsLayer = true
-    self.layerContentsRedrawPolicy =  .duringViewResize
-    super.initCommon()
-    
-    metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
-    self.bounds.size = CGSize(
-      width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
-      height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
-    self.frame.size = CGSize(
-      width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
-      height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
+    AAPLEventStack.withCall("AAPLNSView.initCommon") {
+      AAPLEventStack.withCall("self.wantsLayer") {
+        self.wantsLayer = true
+      }
+      AAPLEventStack.withCall("self.layerContentsRedrawPolicy") {
+        self.layerContentsRedrawPolicy = .duringViewResize
+      }
+      super.initCommon()
+      
+      AAPLEventStack.withCall("metalLayer.drawableSize") {
+        metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
+      }
+      AAPLEventStack.withCall("self.bounds.size") {
+        self.bounds.size = CGSize(
+          width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
+          height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
+      }
+      AAPLEventStack.withCall("self.frame.size") {
+        self.frame.size = CGSize(
+          width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
+          height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
+      }
+    }
   }
   
   override func makeBackingLayer() -> CALayer {
-    return CAMetalLayer()
+    AAPLEventStack.withCall("AAPLNSView.makeBackingLayer") {
+      return CAMetalLayer()
+    }
   }
   
   override func viewDidMoveToWindow() {
-    super.viewDidMoveToWindow()
-    setupCVDisplayLinkForScreen()
-    resizeDrawable(backingScaleFactor)
+    AAPLEventStack.withCall("AAPLNSView.viewDidMoveToWindow") {
+      super.viewDidMoveToWindow()
+      setupCVDisplayLinkForScreen()
+      resizeDrawable(backingScaleFactor)
+    }
   }
   
   func setupCVDisplayLinkForScreen() {
-    // Initialize a display link that can be used with all of the displays.
-    do {
-      let cvReturn = CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
-      guard cvReturn == kCVReturnSuccess else {
-        fatalError("CVReturn was not success.")
+    AAPLEventStack.withCall("AAPLNSView.setupCVDisplayLinkForScreen") {
+      // Initialize a display link that can be used with all of the displays.
+      do {
+        let cvReturn = CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
+        guard cvReturn == kCVReturnSuccess else {
+          fatalError("CVReturn was not success.")
+        }
       }
-    }
-    
-    // Set the callback function, supplying this view as its argument.
-    do {
-      let unmanaged = Unmanaged<AAPLNSView>.passUnretained(self)
-      let selfPointer = unmanaged.toOpaque()
-      let cvReturn = CVDisplayLinkSetOutputCallback(
-        displayLink, DispatchRenderLoop, selfPointer)
-      guard cvReturn == kCVReturnSuccess else {
-        fatalError("CVReturn was not success.")
+      
+      // Set the callback function, supplying this view as its argument.
+      do {
+        let unmanaged = Unmanaged<AAPLNSView>.passUnretained(self)
+        let selfPointer = unmanaged.toOpaque()
+        let cvReturn = CVDisplayLinkSetOutputCallback(
+          displayLink, DispatchRenderLoop, selfPointer)
+        guard cvReturn == kCVReturnSuccess else {
+          fatalError("CVReturn was not success.")
+        }
       }
-    }
-    
-    // Associate the display link with the display where the view is.
-    do {
-      let screen = NSScreen.fastest
-      let key = NSDeviceDescriptionKey("NSScreenNumber")
-      guard let screenNumberAny = screen.deviceDescription[key],
-            let screenNumber = screenNumberAny as? NSNumber else {
-        fatalError("Could not retrieve screen number.")
+      
+      // Associate the display link with the display where the view is.
+      do {
+        let screen = NSScreen.fastest
+        let key = NSDeviceDescriptionKey("NSScreenNumber")
+        guard let screenNumberAny = screen.deviceDescription[key],
+              let screenNumber = screenNumberAny as? NSNumber else {
+          fatalError("Could not retrieve screen number.")
+        }
+        let cvReturn = CVDisplayLinkSetCurrentCGDisplay(
+          displayLink, screenNumber.uint32Value)
+        guard cvReturn == kCVReturnSuccess else {
+          fatalError("CVReturn was not success.")
+        }
       }
-      let cvReturn = CVDisplayLinkSetCurrentCGDisplay(
-        displayLink, screenNumber.uint32Value)
-      guard cvReturn == kCVReturnSuccess else {
-        fatalError("CVReturn was not success.")
-      }
-    }
-    
-    // Start the display link.
-    do {
-      let cvReturn = CVDisplayLinkStart(displayLink)
-      guard cvReturn == kCVReturnSuccess else {
-        fatalError("CVReturn was not success.")
+      
+      // Start the display link.
+      do {
+        let cvReturn = CVDisplayLinkStart(displayLink)
+        guard cvReturn == kCVReturnSuccess else {
+          fatalError("CVReturn was not success.")
+        }
       }
     }
   }
   
   override func viewDidChangeBackingProperties() {
-    super.viewDidChangeBackingProperties()
-    resizeDrawable(backingScaleFactor)
+    AAPLEventStack.withCall("AAPLNSView.viewDidChangeBackingProperties") {
+      super.viewDidChangeBackingProperties()
+      resizeDrawable(backingScaleFactor)
+    }
   }
   
   override func setFrameSize(_ newSize: NSSize) {
-    super.setFrameSize(newSize)
-    resizeDrawable(backingScaleFactor)
+    AAPLEventStack.withCall("AAPLNSView.setFrameSize") {
+      super.setFrameSize(newSize)
+      resizeDrawable(backingScaleFactor)
+    }
   }
   
   override func setBoundsSize(_ newSize: NSSize) {
-    super.setBoundsSize(newSize)
-    resizeDrawable(backingScaleFactor)
+    AAPLEventStack.withCall("AAPLNSView.setBoundsSize") {
+      super.setBoundsSize(newSize)
+      resizeDrawable(backingScaleFactor)
+    }
   }
 }
 
@@ -278,18 +350,20 @@ class AAPLRenderer: NSObject {
     // Initialize the NSObject.
     super.init()
     
-    // Set the device property.
-    self.device = device
-    
-    // Set the command queue property.
-    guard let commandQueue = device.makeCommandQueue() else {
-      fatalError("Failed to make command queue.")
+    AAPLEventStack.withCall("AAPLRenderer.init") {
+      // Set the device property.
+      self.device = device
+      
+      // Set the command queue property.
+      guard let commandQueue = device.makeCommandQueue() else {
+        fatalError("Failed to make command queue.")
+      }
+      self.commandQueue = commandQueue
+      
+      // Set the PSO property.
+      self.computePipelineState = AAPLShaders
+        .createComputePipelineState(device: device)
     }
-    self.commandQueue = commandQueue
-    
-    // Set the PSO property.
-    self.computePipelineState = AAPLShaders
-      .createComputePipelineState(device: device)
   }
   
   func renderToMetalLayer(metalLayer: CAMetalLayer) {
@@ -410,14 +484,14 @@ class AAPLResponder: NSResponder {
 // MARK: - AAPLEventStack
 
 class AAPLEventStack {
-  var callStack: [String] = []
+  static var callStack: [String] = []
   
   init() {
     
   }
   
   // Note function calls or other important events.
-  func withStackElement<T>(
+  static func withCall<T>(
     _ element: String,
     _ closure: () -> T
   ) -> T {
@@ -431,31 +505,24 @@ class AAPLEventStack {
     callStack.removeLast()
     return output
   }
-  
-  static let global = AAPLEventStack()
 }
 
 // MARK: - Launching the Application
 
-// Initialize the rendering resources.
-let appDelegate = AAPLEventStack.global.withStackElement("AAPLAppDelegate.init") {
-  AAPLAppDelegate()
-}
-
-// Keep the renderer alive while the app runs.
+// Keep the delegate alive while the app runs.
+let appDelegate = AAPLAppDelegate()
 withExtendedLifetime(appDelegate) {
   // Set up the application.
   let app = NSApplication.shared
-  AAPLEventStack.global.withStackElement("app setup") {
-    app.delegate = appDelegate
-    guard app.setActivationPolicy(.regular) else {
-      fatalError("Failed to set activation policy.")
-    }
-    app.activate(ignoringOtherApps: true)
+  app.delegate = appDelegate
+  guard app.setActivationPolicy(.regular) else {
+    fatalError("Failed to set activation policy.")
   }
   
+  app.activate(ignoringOtherApps: true)
+  
   // Launch the application.
-  AAPLEventStack.global.withStackElement("app.run") {
+  AAPLEventStack.withCall("app.run") {
     app.run()
   }
 }
