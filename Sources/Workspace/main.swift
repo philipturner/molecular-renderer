@@ -116,9 +116,9 @@ class AAPLView: NSView, CALayerDelegate {
     }
   }
   
-  func resizeDrawable(_ scaleFactor: CGFloat) {
+  func resizeDrawable(_ newSize: NSSize, scaleFactor: CGFloat) {
     // Resolve the actual size.
-    var size = self.bounds.size
+    var size = newSize
     size.width *= scaleFactor
     size.height *= scaleFactor
     
@@ -127,9 +127,6 @@ class AAPLView: NSView, CALayerDelegate {
     AAPLEventStack.withCall("AAPLView.resizeDrawable [\(width)x\(height)]") {
       // Check that the resolved size is what we want.
       switch (size.width, size.height) {
-      case (0, 0):
-        // The window is still opening.
-        break
       case (1920, 1920):
         // Rendering content to the screen.
         break
@@ -225,11 +222,13 @@ class AAPLNSView: AAPLView {
         metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
       }
       AAPLEventStack.withCall("self.bounds.size") {
+        // Call AAPLView.resizeDrawable with size = 0x0
         self.bounds.size = CGSize(
           width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
           height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
       }
       AAPLEventStack.withCall("self.frame.size") {
+        // Call AAPLView.resizeDrawable with size = 1920x1920
         self.frame.size = CGSize(
           width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
           height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
@@ -247,7 +246,6 @@ class AAPLNSView: AAPLView {
     AAPLEventStack.withCall("AAPLNSView.viewDidMoveToWindow") {
       super.viewDidMoveToWindow()
       setupCVDisplayLinkForScreen()
-      resizeDrawable(backingScaleFactor)
     }
   }
   
@@ -300,21 +298,20 @@ class AAPLNSView: AAPLView {
   override func viewDidChangeBackingProperties() {
     AAPLEventStack.withCall("AAPLNSView.viewDidChangeBackingProperties") {
       super.viewDidChangeBackingProperties()
-      resizeDrawable(backingScaleFactor)
     }
   }
   
   override func setFrameSize(_ newSize: NSSize) {
-    AAPLEventStack.withCall("AAPLNSView.setFrameSize") {
+    AAPLEventStack.withCall("AAPLNSView.setFrameSize [\(newSize.width)x\(newSize.height)]") {
       super.setFrameSize(newSize)
-      resizeDrawable(backingScaleFactor)
+      resizeDrawable(newSize, scaleFactor: backingScaleFactor)
     }
   }
   
   override func setBoundsSize(_ newSize: NSSize) {
-    AAPLEventStack.withCall("AAPLNSView.setBoundsSize") {
+    AAPLEventStack.withCall("AAPLNSView.setBoundsSize [\(newSize.width)x\(newSize.height)]") {
       super.setBoundsSize(newSize)
-      resizeDrawable(backingScaleFactor)
+      resizeDrawable(newSize, scaleFactor: backingScaleFactor)
     }
   }
 }
