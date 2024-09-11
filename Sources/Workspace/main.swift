@@ -140,7 +140,9 @@ class AAPLView: NSView, CALayerDelegate {
   }
   
   func render() {
-    delegate.renderToMetalLayer(metalLayer: metalLayer)
+    AAPLEventStack.withCall("AAPLView.render") {
+      delegate.renderToMetalLayer(metalLayer: metalLayer)
+    }
   }
 }
 
@@ -185,10 +187,12 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
   }
   
   func renderToMetalLayer(metalLayer layer: CAMetalLayer) {
-    guard let renderer else {
-      fatalError("Rendered to Metal layer when renderer was not initialized.")
+    AAPLEventStack.withCall("AAPLViewController.renderToMetalLayer") {
+      guard let renderer else {
+        fatalError("Rendered to Metal layer when renderer was not initialized.")
+      }
+      renderer.renderToMetalLayer(metalLayer: layer)
     }
-    renderer.renderToMetalLayer(metalLayer: layer)
   }
 }
 
@@ -367,30 +371,40 @@ class AAPLRenderer: NSObject {
   }
   
   func renderToMetalLayer(metalLayer: CAMetalLayer) {
-    frameNumber += 1
-    
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    let currentDrawable = metalLayer.nextDrawable()
-    guard let currentDrawable else {
-      fatalError("Could not retrieve next drawable.")
+    AAPLEventStack.withCall("AAPLRenderer.renderToMetalLayer") {
+      frameNumber += 1
+      
+      let commandBuffer = AAPLEventStack.withCall("commandQueue.makeCommandBuffer") {
+        commandQueue.makeCommandBuffer()!
+      }
+      let currentDrawable = AAPLEventStack.withCall("metalLayer.nextDrawable") {
+        metalLayer.nextDrawable()
+      }
+      guard let currentDrawable else {
+        fatalError("Could not retrieve next drawable.")
+      }
+      
+      let encoder = commandBuffer.makeComputeCommandEncoder()!
+      encoder.setComputePipelineState(computePipelineState)
+      
+      do {
+        var bytes = UInt32(frameNumber)
+        encoder.setBytes(&bytes, length: 4, index: 0)
+      }
+      
+      encoder.setTexture(currentDrawable.texture, index: 0)
+      encoder.dispatchThreads(
+        MTLSize(width: 1920, height: 1920, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
+      
+      encoder.endEncoding()
+      AAPLEventStack.withCall("commandBuffer.present") {
+        commandBuffer.present(currentDrawable)
+      }
+      AAPLEventStack.withCall("commandBuffer.commit") {
+        commandBuffer.commit()
+      }
     }
-    
-    let encoder = commandBuffer.makeComputeCommandEncoder()!
-    encoder.setComputePipelineState(computePipelineState)
-    
-    do {
-      var bytes = UInt32(frameNumber)
-      encoder.setBytes(&bytes, length: 4, index: 0)
-    }
-    
-    encoder.setTexture(currentDrawable.texture, index: 0)
-    encoder.dispatchThreads(
-      MTLSize(width: 1920, height: 1920, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
-    
-    encoder.endEncoding()
-    commandBuffer.present(currentDrawable)
-    commandBuffer.commit()
   }
 }
 
