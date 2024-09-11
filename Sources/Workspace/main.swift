@@ -22,6 +22,39 @@
 
 import AppKit
 
+struct Screen {
+  static var desired: NSScreen {
+    let screens = NSScreen.screens
+    let fastest = screens.max(by: {
+      $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
+    })!
+    return fastest
+  }
+  
+  static var renderTargetSize: Int {
+    1920
+  }
+  
+  static var backingScaleFactor: Float {
+    var scaleFactors: [Float] = []
+    for screen in NSScreen.screens {
+      let scaleFactor = screen.backingScaleFactor
+      scaleFactors.append(Float(scaleFactor))
+    }
+    
+    if scaleFactors.count > 1 {
+      let allAreEqual = scaleFactors.allSatisfy { scaleFactor in
+        let expected = scaleFactors[0]
+        return scaleFactor == expected
+      }
+      guard allAreEqual else {
+        fatalError("Scale factors were not consistent across displays.")
+      }
+    }
+    return scaleFactors[0]
+  }
+}
+
 class Renderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
@@ -48,8 +81,10 @@ class Renderer {
     encoder.setComputePipelineState(computePipelineState)
     encoder.setBytes(&frameID, length: 4, index: 0)
     encoder.setTexture(drawable.texture, index: 0)
+    
+    let dispatchSize = Screen.renderTargetSize
     encoder.dispatchThreads(
-      MTLSize(width: 1920, height: 1920, depth: 1),
+      MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
     
     encoder.endEncoding()
@@ -101,7 +136,107 @@ extension Renderer {
 }
 
 class RendererView: NSView, CALayerDelegate {
+  var displayLink: CVDisplayLink!
+  var metalLayer: CAMetalLayer!
+  var delegate: RendererViewController!
   
+  required init(coder: NSCoder) {
+    fatalError("Not implemented.")
+  }
+  
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+    
+    self.layerContentsRedrawPolicy = .duringViewResize
+    self.wantsLayer = true
+    metalLayer = self.layer! as? CAMetalLayer
+    
+    let renderTargetSize = Float(Screen.renderTargetSize)
+    let windowSize = renderTargetSize / Screen.backingScaleFactor
+    metalLayer.drawableSize = CGSize(
+      width: Double(renderTargetSize),
+      height: Double(renderTargetSize))
+    
+    metalLayer.delegate = self
+    self.bounds.size = CGSize(
+      width: Double(windowSize),
+      height: Double(windowSize))
+    self.frame.size = CGSize(
+      width: Double(windowSize),
+      height: Double(windowSize))
+    
+    metalLayer.device = MTLCreateSystemDefaultDevice()!
+    metalLayer.framebufferOnly = false
+    metalLayer.pixelFormat = .rgb10a2Unorm
+  }
+  
+  override func makeBackingLayer() -> CALayer {
+    let layer = CAMetalLayer()
+    return layer
+  }
+  
+  override func viewDidMoveToWindow() {
+    super.viewDidMoveToWindow()
+    
+    CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
+    CVDisplayLinkSetOutputHandler(displayLink) {
+      [self]
+      displayLink,
+      now,
+      outputTime,
+      flagsIn,
+      flagsOut in
+      
+      self.render()
+      return kCVReturnSuccess
+    }
+    
+    let screen = Screen.desired
+    let key = NSDeviceDescriptionKey("NSScreenNumber")
+    let screenNumberAny = screen.deviceDescription[key]!
+    let screenNumber = screenNumberAny as! NSNumber
+    CVDisplayLinkSetCurrentCGDisplay(displayLink, screenNumber.uint32Value)
+    CVDisplayLinkStart(displayLink)
+  }
+  
+  func render() {
+    
+  }
+}
+
+extension RendererView {
+  func checkDrawableSize(_ newSize: NSSize) {
+    var expectedSize = Float(Screen.renderTargetSize)
+    expectedSize /= Screen.backingScaleFactor
+    print("Checking drawable size \(newSize) against \(expectedSize).")
+    
+    let width = Float(newSize.width)
+    let height = Float(newSize.height)
+    guard width == expectedSize,
+          height == expectedSize else {
+      fatalError("Not allowed to resize window.")
+    }
+  }
+  
+  override func setBoundsSize(_ newSize: NSSize) {
+    super.setBoundsSize(newSize)
+    checkDrawableSize(newSize)
+  }
+  
+  override func setFrameSize(_ newSize: NSSize) {
+    super.setFrameSize(newSize)
+    checkDrawableSize(newSize)
+  }
+}
+
+class RendererViewController: NSViewController {
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    let view = RendererView()
+    self.view = view
+    view.delegate = self
+  }
 }
 
 class EventResponder: NSResponder {
