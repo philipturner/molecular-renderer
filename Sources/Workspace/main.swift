@@ -23,6 +23,20 @@ import AppKit
 // MARK: - AAPLAppDelegate
 
 class AAPLAppDelegate: NSObject, NSApplicationDelegate {
+  let window = NSWindow(
+    contentRect: .zero,
+    styleMask: [.closable, .fullSizeContentView],
+    backing: .buffered,
+    defer: false)
+  
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    let viewController = AAPLViewController()
+    window.contentViewController = viewController
+    window.makeKey()
+    window.center()
+    window.orderFrontRegardless()
+  }
+  
   func applicationShouldTerminateAfterLastWindowClosed(
     _ app: NSApplication
   ) -> Bool {
@@ -71,7 +85,7 @@ class AAPLView: NSView, CALayerDelegate {
       }
     }
     
-    metalLayer.drawableSize = size
+    metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
     delegate.resizeDrawable(size)
   }
   
@@ -87,6 +101,11 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    do {
+      let view = AAPLNSView()
+      self.view = view
+    }
     
     let device = MTLCreateSystemDefaultDevice()!
     let view = self.view as! AAPLView
@@ -114,11 +133,14 @@ class AAPLNSView: AAPLView {
   var displayLink: CVDisplayLink!
   
   var backingScaleFactor: CGFloat {
-    guard let window = self.window,
-          let screen = window.screen else {
-      fatalError("Could not retrieve screen.")
+    if let window = self.window,
+       let screen = window.screen {
+      return screen.backingScaleFactor
+    } else if let screen = NSScreen.main {
+      return screen.backingScaleFactor
+    } else {
+      fatalError("Could not retrieve backing scale factor.")
     }
-    return screen.backingScaleFactor
   }
   
   override func initCommon() {
@@ -134,15 +156,11 @@ class AAPLNSView: AAPLView {
   override func viewDidMoveToWindow() {
     super.viewDidMoveToWindow()
     
-    guard let window = self.window,
-          let screen = window.screen else {
-      fatalError("Could not retrieve screen.")
-    }
-    setupCVDisplayLinkForScreen(screen: screen)
+    setupCVDisplayLinkForScreen()
     resizeDrawable(backingScaleFactor)
   }
   
-  func setupCVDisplayLinkForScreen(screen: NSScreen) {
+  func setupCVDisplayLinkForScreen() {
     // Initialize a display link that can be used with all of the displays.
     do {
       let cvReturn = CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
@@ -164,7 +182,7 @@ class AAPLNSView: AAPLView {
     
     // Associate the display link with the display where the view is.
     do {
-      let screen = self.window!.screen!
+      let screen = NSScreen.main!
       let key = NSDeviceDescriptionKey("NSScreenNumber")
       guard let screenNumberAny = screen.deviceDescription[key],
             let screenNumber = screenNumberAny as? NSNumber else {
@@ -338,7 +356,10 @@ let appDelegate = AAPLAppDelegate()
 withExtendedLifetime(appDelegate) {
   let app = NSApplication.shared
   app.delegate = appDelegate
-  app.setActivationPolicy(.regular)
+  
+  guard app.setActivationPolicy(.regular) else {
+    fatalError("Failed to set activation policy.")
+  }
   app.activate(ignoringOtherApps: true)
   app.run()
 }
