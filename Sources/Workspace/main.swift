@@ -160,38 +160,27 @@ class AAPLNSView: AAPLView {
   }
   
   override func initCommon() {
-    print("checkpoint 3.0")
     self.wantsLayer = true
     self.layerContentsRedrawPolicy =  .duringViewResize
-    print("checkpoint 3.1")
     super.initCommon()
     
-    print("checkpoint 3.2")
     metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
-    print("checkpoint 3.3")
     self.bounds.size = CGSize(
       width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
       height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
-    print("checkpoint 3.4")
     self.frame.size = CGSize(
       width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
       height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
-    print("checkpoint 3.5")
   }
   
   override func makeBackingLayer() -> CALayer {
-    print("checkpoint 4.0")
     return CAMetalLayer()
   }
   
   override func viewDidMoveToWindow() {
-    print("checkpoint 5.0")
     super.viewDidMoveToWindow()
-    print("checkpoint 5.1")
     setupCVDisplayLinkForScreen()
-    print("checkpoint 5.2")
     resizeDrawable(backingScaleFactor)
-    print("checkpoint 5.3")
   }
   
   func setupCVDisplayLinkForScreen() {
@@ -239,27 +228,18 @@ class AAPLNSView: AAPLView {
   }
   
   override func viewDidChangeBackingProperties() {
-    print("checkpoint 0.0")
     super.viewDidChangeBackingProperties()
-    print("checkpoint 0.1")
     resizeDrawable(backingScaleFactor)
-    print("checkpoint 0.2")
   }
   
   override func setFrameSize(_ newSize: NSSize) {
-    print("checkpoint 1.0")
     super.setFrameSize(newSize)
-    print("checkpoint 1.1")
     resizeDrawable(backingScaleFactor)
-    print("checkpoint 1.2")
   }
   
   override func setBoundsSize(_ newSize: NSSize) {
-    print("checkpoint 2.0")
     super.setBoundsSize(newSize)
-    print("checkpoint 2.1")
     resizeDrawable(backingScaleFactor)
-    print("checkpoint 2.2")
   }
 }
 
@@ -427,21 +407,55 @@ class AAPLResponder: NSResponder {
   }
 }
 
+// MARK: - AAPLEventStack
+
+class AAPLEventStack {
+  var callStack: [String] = []
+  
+  init() {
+    
+  }
+  
+  // Note function calls or other important events.
+  func withStackElement<T>(
+    _ element: String,
+    _ closure: () -> T
+  ) -> T {
+    let stackSize = callStack.count
+    let padding = String(repeating: " ", count: 2 * stackSize)
+    let line = padding + "- " + element
+    print(line)
+    
+    callStack.append(element)
+    let output = closure()
+    callStack.removeLast()
+    return output
+  }
+  
+  static let global = AAPLEventStack()
+}
+
 // MARK: - Launching the Application
 
 // Initialize the rendering resources.
-let appDelegate = AAPLAppDelegate()
+let appDelegate = AAPLEventStack.global.withStackElement("AAPLAppDelegate.init") {
+  AAPLAppDelegate()
+}
 
 // Keep the renderer alive while the app runs.
 withExtendedLifetime(appDelegate) {
   // Set up the application.
   let app = NSApplication.shared
-  app.delegate = appDelegate
-  guard app.setActivationPolicy(.regular) else {
-    fatalError("Failed to set activation policy.")
+  AAPLEventStack.global.withStackElement("app setup") {
+    app.delegate = appDelegate
+    guard app.setActivationPolicy(.regular) else {
+      fatalError("Failed to set activation policy.")
+    }
+    app.activate(ignoringOtherApps: true)
   }
-  app.activate(ignoringOtherApps: true)
   
   // Launch the application.
-  app.run()
+  AAPLEventStack.global.withStackElement("app.run") {
+    app.run()
+  }
 }
