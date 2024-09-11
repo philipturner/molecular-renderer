@@ -14,9 +14,8 @@
 //    - Commit the files to Git.
 // - Access the GPU.
 //   - Modify it to get Metal rendering. [DONE]
-//   - Integrate a CVDisplayLink to get information about the timestamp. [DONE]
 //   - Clean up and simplify the code as much as possible.
-//   - Run a test of timestamp synchronization (rainbow triangle).
+//   - Get timestamps synchronizing properly (moving rainbow banner scene).
 // - Repeat the same process with COM / D3D12 on Windows.
 //   - Another single-file Swift script that does the same thing.
 
@@ -35,7 +34,7 @@ extension NSScreen {
 class AAPLAppDelegate: NSObject, NSApplicationDelegate {
   let window = NSWindow(
     contentRect: .zero,
-    styleMask: [.closable, .fullSizeContentView, .titled],
+    styleMask: [.closable, .resizable, .titled],
     backing: .buffered,
     defer: false,
     screen: NSScreen.fastest)
@@ -63,7 +62,6 @@ class AAPLAppDelegate: NSObject, NSApplicationDelegate {
 // MARK: - AAPLView
 
 protocol AAPLViewDelegate {
-  func resizeDrawable(_ size: CGSize)
   func renderToMetalLayer(metalLayer: CAMetalLayer)
 }
 
@@ -89,22 +87,22 @@ class AAPLView: NSView, CALayerDelegate {
   }
   
   func resizeDrawable(_ scaleFactor: CGFloat) {
-    // Fetch the bounds and multiply by the scale factor.
+    // Resolve the actual size.
     var size = self.bounds.size
     size.width *= scaleFactor
     size.height *= scaleFactor
     
     // Check that the resolved size is what we want.
-    if size.width != CGFloat(1920) ||
-        size.height != CGFloat(1920) {
-      if size.width != 0 ||
-          size.height != 0 {
-        fatalError("Size cannot change [bounds = \(self.bounds), size = \(size), scaleFactor = \(scaleFactor)].")
-      }
+    switch (size.width, size.height) {
+    case (0, 0):
+      // The window is still opening.
+      break
+    case (1920, 1920):
+      // Rendering content to the screen.
+      break
+    default:
+      fatalError("Not allowed to resize window.")
     }
-    
-    metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
-    delegate.resizeDrawable(size)
   }
   
   func render() {
@@ -138,14 +136,6 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
       drawablePixelFormat: view.metalLayer.pixelFormat)
   }
   
-  func resizeDrawable(_ size: CGSize) {
-    // TODO: Ignore the resize events. The renderer isn't always initialized
-    // when this function is called.
-    if let renderer = self.renderer {
-      renderer.resizeDrawable(size)
-    }
-  }
-  
   func renderToMetalLayer(metalLayer layer: CAMetalLayer) {
     guard let renderer else {
       fatalError("Rendered to Metal layer when renderer was not initialized.")
@@ -170,29 +160,38 @@ class AAPLNSView: AAPLView {
   }
   
   override func initCommon() {
+    print("checkpoint 3.0")
     self.wantsLayer = true
     self.layerContentsRedrawPolicy =  .duringViewResize
+    print("checkpoint 3.1")
     super.initCommon()
     
+    print("checkpoint 3.2")
     metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
-    
+    print("checkpoint 3.3")
     self.bounds.size = CGSize(
       width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
       height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
+    print("checkpoint 3.4")
     self.frame.size = CGSize(
       width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
       height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
+    print("checkpoint 3.5")
   }
   
   override func makeBackingLayer() -> CALayer {
+    print("checkpoint 4.0")
     return CAMetalLayer()
   }
   
   override func viewDidMoveToWindow() {
+    print("checkpoint 5.0")
     super.viewDidMoveToWindow()
-    
+    print("checkpoint 5.1")
     setupCVDisplayLinkForScreen()
+    print("checkpoint 5.2")
     resizeDrawable(backingScaleFactor)
+    print("checkpoint 5.3")
   }
   
   func setupCVDisplayLinkForScreen() {
@@ -240,18 +239,27 @@ class AAPLNSView: AAPLView {
   }
   
   override func viewDidChangeBackingProperties() {
+    print("checkpoint 0.0")
     super.viewDidChangeBackingProperties()
+    print("checkpoint 0.1")
     resizeDrawable(backingScaleFactor)
+    print("checkpoint 0.2")
   }
   
   override func setFrameSize(_ newSize: NSSize) {
+    print("checkpoint 1.0")
     super.setFrameSize(newSize)
+    print("checkpoint 1.1")
     resizeDrawable(backingScaleFactor)
+    print("checkpoint 1.2")
   }
   
   override func setBoundsSize(_ newSize: NSSize) {
+    print("checkpoint 2.0")
     super.setBoundsSize(newSize)
+    print("checkpoint 2.1")
     resizeDrawable(backingScaleFactor)
+    print("checkpoint 2.2")
   }
 }
 
@@ -281,7 +289,6 @@ class AAPLRenderer: NSObject {
   var commandQueue: MTLCommandQueue!
   var computePipelineState: MTLComputePipelineState!
   
-  var viewportSize: SIMD2<UInt32> = .zero
   var frameNumber: Int = .zero
   
   init(
@@ -331,11 +338,6 @@ class AAPLRenderer: NSObject {
     commandBuffer.present(currentDrawable)
     commandBuffer.commit()
   }
-  
-  func resizeDrawable(_ drawableSize: CGSize) {
-    viewportSize.x = UInt32(drawableSize.width)
-    viewportSize.y = UInt32(drawableSize.height)
-  }
 }
 
 // MARK: - AAPLShaders
@@ -352,10 +354,15 @@ class AAPLShaders {
       texture2d<half, access::write> drawableTexture [[texture(0)]],
       ushort2 tid [[thread_position_in_grid]]
     ) {
-      uint frameModulo = *frameID % 120;
-      half frameNormalized = half(frameModulo) / 120;
+      half4 color;
+      if (tid.x == tid.y || tid.x == 1920 - tid.y) {
+        color = half4(0.00, 0.00, 0.00, 1.00);
+      } else {
+        uint frameModulo = *frameID % 120;
+        half frameNormalized = half(frameModulo) / 120;
+        color = half4(frameNormalized, 0.00, 0.00, 1.00);
+      }
     
-      half4 color = half4(frameNormalized, 0.00, 0.00, 1.00);
       drawableTexture.write(color, tid);
     }
     
@@ -422,15 +429,19 @@ class AAPLResponder: NSResponder {
 
 // MARK: - Launching the Application
 
-// Run the application.
+// Initialize the rendering resources.
 let appDelegate = AAPLAppDelegate()
+
+// Keep the renderer alive while the app runs.
 withExtendedLifetime(appDelegate) {
+  // Set up the application.
   let app = NSApplication.shared
   app.delegate = appDelegate
-  
   guard app.setActivationPolicy(.regular) else {
     fatalError("Failed to set activation policy.")
   }
   app.activate(ignoringOtherApps: true)
+  
+  // Launch the application.
   app.run()
 }
