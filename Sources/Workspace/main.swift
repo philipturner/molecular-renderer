@@ -33,15 +33,15 @@ extension NSScreen {
 class AAPLAppDelegate: NSObject, NSApplicationDelegate {
   let window = NSWindow(
     contentRect: .zero,
-    styleMask: [.closable, .fullSizeContentView],
+    styleMask: [.closable, .fullSizeContentView, .titled],
     backing: .buffered,
     defer: false,
     screen: NSScreen.fastest)
   
   func applicationDidFinishLaunching(_ notification: Notification) {
-    let frame = CGRect(x: 0, y: 0, width: 1920, height: 1920)
     window.contentViewController = AAPLViewController()
     window.makeKey()
+    window.center()
     window.orderFrontRegardless()
   }
   
@@ -91,7 +91,7 @@ class AAPLView: NSView, CALayerDelegate {
         size.height != CGFloat(1920) {
       if size.width != 0 ||
           size.height != 0 {
-        fatalError("Size cannot change.")
+        fatalError("Size cannot change [bounds = \(self.bounds), size = \(size), scaleFactor = \(scaleFactor)].")
       }
     }
     
@@ -121,6 +121,8 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
     let view = self.view as! AAPLView
     view.metalLayer.device = device
     view.delegate = self
+    
+    view.metalLayer.framebufferOnly = false
     view.metalLayer.pixelFormat = .rgb10a2Unorm
     
     renderer = AAPLRenderer(
@@ -151,6 +153,8 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
 
 class AAPLNSView: AAPLView {
   var displayLink: CVDisplayLink!
+  var mainThreadSemaphore: DispatchSemaphore!
+  var forcedToMain = false
   
   var backingScaleFactor: CGFloat {
     if let window = self.window,
@@ -168,6 +172,7 @@ class AAPLNSView: AAPLView {
     super.initCommon()
     
     metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
+    mainThreadSemaphore = DispatchSemaphore(value: 1)
     
     self.bounds.size = CGSize(
       width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
@@ -259,6 +264,36 @@ class AAPLNSView: AAPLView {
     super.setBoundsSize(newSize)
     resizeDrawable(backingScaleFactor)
   }
+  
+  // This function should be called on the main thread to avoid a crash.
+  func updateUI() {
+    if !forcedToMain {
+      forcedToMain = true
+      
+//      let bestScreen = NSScreen.screens.max(by: {
+//        $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
+//      })!
+//      let centerX = bestScreen.visibleFrame.midX
+//      let centerY = bestScreen.visibleFrame.midY
+//      let scaleFactor = bestScreen.backingScaleFactor
+//      
+//      let windowSize = CGFloat(1920) / scaleFactor
+//      let leftX = centerX - windowSize / 2
+//      let upperY = centerY - windowSize / 2
+//      let origin = CGPoint(x: leftX, y: upperY)
+//      let size = CGSize(width: windowSize, height: windowSize)
+//      let frame = CGRect(origin: origin, size: size)
+//      
+//      if let window = self.window {
+//        print("Window alive.")
+//        print(frame)
+//        window.setFrame(frame, display: true)
+//        print("Window alive (2).")
+//      } else {
+//        print("Could not fetch window.")
+//      }
+    }
+  }
 }
 
 // Must be declared in the global scope to get @convention(c) status.
@@ -276,30 +311,17 @@ func DispatchRenderLoop(
   let unmanaged = Unmanaged<AAPLNSView>.fromOpaque(displayLinkContext)
   let customView = unmanaged.takeUnretainedValue()
   
-//  do {
-//    let bestScreen = NSScreen.screens.max(by: {
-//      $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
-//    })!
-//    let centerX = bestScreen.visibleFrame.midX
-//    let centerY = bestScreen.visibleFrame.midY
-//    let scaleFactor = bestScreen.backingScaleFactor
-//    
-//    let windowSize = CGFloat(1920) / scaleFactor
-//    let leftX = centerX - windowSize / 2
-//    let upperY = centerY - windowSize / 2
-//    let origin = CGPoint(x: leftX, y: upperY)
-//    let size = CGSize(width: windowSize, height: windowSize)
-//    let frame = CGRect(origin: origin, size: size)
-//    
-//    if let window = customView.window {
-//      print("Window alive.")
-//      print(frame)
-//      window.setFrame(frame, display: true)
-//      print("Window alive (2).")
-//    } else {
-//      print("Could not fetch window.")
-//    }
-//  }
+  do {
+    guard let semaphore = customView.mainThreadSemaphore else {
+      fatalError("Could not retrieve semaphore.")
+    }
+    semaphore.wait()
+    
+    DispatchQueue.main.async {
+      customView.updateUI()
+      semaphore.signal()
+    }
+  }
   
   customView.render()
   
@@ -353,7 +375,7 @@ class AAPLRenderer: NSObject {
     
     do {
       var bytes = UInt32(frameNumber)
-      encoder.setBytes(&bytes, length: 1, index: 0)
+      encoder.setBytes(&bytes, length: 4, index: 0)
     }
     
     encoder.setTexture(currentDrawable.texture, index: 0)
