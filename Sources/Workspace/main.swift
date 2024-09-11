@@ -20,6 +20,14 @@
 
 import AppKit
 
+extension NSScreen {
+  static var fastest: NSScreen {
+    screens.max(by: {
+      $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
+    })!
+  }
+}
+
 // MARK: - AAPLAppDelegate
 
 class AAPLAppDelegate: NSObject, NSApplicationDelegate {
@@ -27,13 +35,13 @@ class AAPLAppDelegate: NSObject, NSApplicationDelegate {
     contentRect: .zero,
     styleMask: [.closable, .fullSizeContentView],
     backing: .buffered,
-    defer: false)
+    defer: false,
+    screen: NSScreen.fastest)
   
   func applicationDidFinishLaunching(_ notification: Notification) {
-    let viewController = AAPLViewController()
-    window.contentViewController = viewController
+    let frame = CGRect(x: 0, y: 0, width: 1920, height: 1920)
+    window.contentViewController = AAPLViewController()
     window.makeKey()
-    window.center()
     window.orderFrontRegardless()
   }
   
@@ -68,6 +76,8 @@ class AAPLView: NSView, CALayerDelegate {
   func initCommon() {
     metalLayer = self.layer! as? CAMetalLayer
     self.layer!.delegate = self
+    
+    delegate = AAPLViewController()
   }
   
   func resizeDrawable(_ scaleFactor: CGFloat) {
@@ -119,11 +129,21 @@ class AAPLViewController: NSViewController, AAPLViewDelegate {
   }
   
   func resizeDrawable(_ size: CGSize) {
-    renderer.resizeDrawable(size)
+    if let renderer = self.renderer {
+      print("Renderer alive.")
+      renderer.resizeDrawable(size)
+    } else {
+      print("Renderer does not exist. Ignoring resize event: \(size)")
+    }
   }
   
   func renderToMetalLayer(metalLayer layer: CAMetalLayer) {
-    renderer.renderToMetalLayer(metalLayer: layer)
+    if let renderer = self.renderer {
+      print("Renderer alive.")
+      renderer.renderToMetalLayer(metalLayer: layer)
+    } else {
+      print("Renderer does not exist. Ignoring render event: \(layer)")
+    }
   }
 }
 
@@ -136,17 +156,25 @@ class AAPLNSView: AAPLView {
     if let window = self.window,
        let screen = window.screen {
       return screen.backingScaleFactor
-    } else if let screen = NSScreen.main {
-      return screen.backingScaleFactor
     } else {
-      fatalError("Could not retrieve backing scale factor.")
+      let screen = NSScreen.fastest
+      return screen.backingScaleFactor
     }
   }
   
   override func initCommon() {
     self.wantsLayer = true
-    self.layerContentsRedrawPolicy = .duringViewResize
+    self.layerContentsRedrawPolicy =  .duringViewResize
     super.initCommon()
+    
+    metalLayer.drawableSize = CGSize(width: 1920, height: 1920)
+    
+    self.bounds.size = CGSize(
+      width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
+      height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
+    self.frame.size = CGSize(
+      width: CGFloat(1920) / NSScreen.fastest.backingScaleFactor,
+      height: CGFloat(1920) / NSScreen.fastest.backingScaleFactor)
   }
   
   override func makeBackingLayer() -> CALayer {
@@ -182,7 +210,7 @@ class AAPLNSView: AAPLView {
     
     // Associate the display link with the display where the view is.
     do {
-      let screen = NSScreen.main!
+      let screen = NSScreen.fastest
       let key = NSDeviceDescriptionKey("NSScreenNumber")
       guard let screenNumberAny = screen.deviceDescription[key],
             let screenNumber = screenNumberAny as? NSNumber else {
@@ -247,6 +275,32 @@ func DispatchRenderLoop(
   }
   let unmanaged = Unmanaged<AAPLNSView>.fromOpaque(displayLinkContext)
   let customView = unmanaged.takeUnretainedValue()
+  
+//  do {
+//    let bestScreen = NSScreen.screens.max(by: {
+//      $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
+//    })!
+//    let centerX = bestScreen.visibleFrame.midX
+//    let centerY = bestScreen.visibleFrame.midY
+//    let scaleFactor = bestScreen.backingScaleFactor
+//    
+//    let windowSize = CGFloat(1920) / scaleFactor
+//    let leftX = centerX - windowSize / 2
+//    let upperY = centerY - windowSize / 2
+//    let origin = CGPoint(x: leftX, y: upperY)
+//    let size = CGSize(width: windowSize, height: windowSize)
+//    let frame = CGRect(origin: origin, size: size)
+//    
+//    if let window = customView.window {
+//      print("Window alive.")
+//      print(frame)
+//      window.setFrame(frame, display: true)
+//      print("Window alive (2).")
+//    } else {
+//      print("Could not fetch window.")
+//    }
+//  }
+  
   customView.render()
   
   return kCVReturnSuccess
@@ -292,8 +346,16 @@ class AAPLRenderer: NSObject {
       fatalError("Could not retrieve next drawable.")
     }
     
+    print("Rendering to texture [width = \(currentDrawable.texture.width), height = \(currentDrawable.texture.height)].")
+    
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(computePipelineState)
+    
+    do {
+      var bytes = UInt32(frameNumber)
+      encoder.setBytes(&bytes, length: 1, index: 0)
+    }
+    
     encoder.setTexture(currentDrawable.texture, index: 0)
     encoder.dispatchThreads(
       MTLSize(width: 1920, height: 1920, depth: 1),
@@ -320,10 +382,14 @@ class AAPLShaders {
     using namespace metal;
     
     kernel void renderImage(
+      constant uint *frameID [[buffer(0)]],
       texture2d<half, access::write> drawableTexture [[texture(0)]],
       ushort2 tid [[thread_position_in_grid]]
     ) {
-      half4 color = half4(1.00, 0.00, 0.00, 1.00);
+      uint frameModulo = *frameID % 120;
+      half frameNormalized = half(frameModulo) / 120;
+    
+      half4 color = half4(frameNormalized, 0.00, 0.00, 1.00);
       drawableTexture.write(color, tid);
     }
     
