@@ -287,3 +287,24 @@ extension RendererViewController {
     }
   }
 }
+
+// MARK: - RendererApplication
+
+class RendererApplication {
+  var viewController: RendererViewController
+  
+  init() {
+    viewController = RendererViewController()
+  }
+  
+  func launch() {
+    let app = NSApplication.shared
+    app.delegate = viewController
+    app.setActivationPolicy(.regular)
+    app.activate(ignoringOtherApps: true)
+    app.run()
+  }
+}
+
+let app = RendererApplication()
+app.launch()
