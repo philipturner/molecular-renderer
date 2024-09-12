@@ -14,7 +14,7 @@
 //    - Commit the files to Git.
 // - Access the GPU.
 //   - Modify it to get Metal rendering. [DONE]
-//   - Clean up and simplify the code as much as possible.
+//   - Clean up and simplify the code as much as possible. [DONE]
 //   - Get timestamps synchronizing properly (moving rainbow banner
 //     scene).
 // - Repeat the same process with COM / D3D12 on Windows.
@@ -212,7 +212,6 @@ extension RendererView {
   func checkDrawableSize(_ newSize: NSSize) {
     var expectedSize = Float(Screen.renderTargetSize)
     expectedSize /= Screen.backingScaleFactor
-    print("Checking drawable size \(newSize) against \(expectedSize).")
     
     let width = Float(newSize.width)
     let height = Float(newSize.height)
@@ -255,8 +254,10 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
     window.makeFirstResponder(self)
     window.contentViewController = self
     
-    window.makeKey()
+    // 'window.center' forces the window to initially appear on the main
+    // display.
     window.center()
+    window.makeKey()
     window.orderFrontRegardless()
     
     let notificationCenter = NotificationCenter.default
@@ -269,7 +270,6 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
   
   @objc
   func windowWillClose(notification: NSNotification) {
-    print("Window closed (1)")
     exit(0)
   }
 }
@@ -277,12 +277,9 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
 extension RendererViewController {
   override func keyDown(with event: NSEvent) {
     if event.modifierFlags.contains(.command) {
-      switch event.charactersIgnoringModifiers! {
-      case "w":
-        print("Window closed (2)")
+      let characters = event.charactersIgnoringModifiers!
+      if characters == "w" {
         exit(0)
-      default:
-        break
       }
     }
   }
