@@ -52,7 +52,7 @@ class Renderer {
   var computePipelineState: MTLComputePipelineState
   
   var startTime: Double?
-  var frameID: Int = .zero
+  var startTimeStamp: CVTimeStamp?
   
   init() {
     device = MTLCreateSystemDefaultDevice()!
@@ -61,12 +61,18 @@ class Renderer {
       .createComputePipelineState(device: device)
   }
   
-  func render(layer: CAMetalLayer) {
+  func render(
+    layer: CAMetalLayer,
+    now: CVTimeStamp,
+    outputTime: CVTimeStamp
+  ) {
     // Update the time.
     if startTime == nil {
       startTime = CACurrentMediaTime()
     }
-    frameID += 1
+    if startTimeStamp == nil {
+      startTimeStamp = now
+    }
     
     // Fetch the drawable.
     let drawable = layer.nextDrawable()
@@ -81,10 +87,16 @@ class Renderer {
     
     // Bind the arguments.
     do {
-      var time0: Float = .zero
-      var time1: Float = 0.200
-      encoder.setBytes(&time0, length: 4, index: 0)
-      encoder.setBytes(&time1, length: 4, index: 1)
+      var wallClockTime = Float(CACurrentMediaTime() - startTime!)
+      encoder.setBytes(&wallClockTime, length: 4, index: 0)
+      
+      let videoTimeDelta: Int64 = now.videoTime - startTimeStamp!.videoTime
+      let videoTimeScale = Double(now.videoTimeScale)
+      var videoTime = Double(videoTimeDelta) / videoTimeScale
+      videoTime /= now.rateScalar
+      
+      var videoTimeFP32 = Float(videoTime)
+      encoder.setBytes(&videoTimeFP32, length: 4, index: 1)
     }
     encoder.setTexture(drawable.texture, index: 0)
     
@@ -227,10 +239,23 @@ class RendererView: NSView, CALayerDelegate {
     let screenNumberAny = screen.deviceDescription[key]!
     let screenNumber = screenNumberAny as! NSNumber
     CVDisplayLinkCreateWithCGDisplay(screenNumber.uint32Value, &displayLink)
-    
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
-      renderer.render(layer: metalLayer)
+      
+      let nominalRate = 
+      CVDisplayLinkGetNominalOutputVideoRefreshPeriod(displayLink)
+      let nominalTimeInterval =
+      Double(nominalRate.timeValue) / Double(nominalRate.timeScale)
+      let actualTimeInterval =
+      CVDisplayLinkGetActualOutputVideoRefreshPeriod(displayLink)
+      
+      print(outputTime.pointee.rateScalar, actualTimeInterval / nominalTimeInterval)
+      
+      renderer.render(
+        layer: metalLayer,
+        now: now.pointee,
+        outputTime: outputTime.pointee)
+      
       return kCVReturnSuccess
     }
     CVDisplayLinkStart(displayLink)
