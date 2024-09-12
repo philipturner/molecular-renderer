@@ -8,14 +8,13 @@
 //   - Another single-file Swift script that does the same thing.
 
 import AppKit
-import CoreAudio
 
 // MARK: - Screen
 
 struct Screen {
   static var desired: NSScreen {
     let screens = NSScreen.screens
-    let fastest = screens.max(by: {
+    let fastest = screens.min(by: {
       $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
     })!
     return fastest
@@ -109,18 +108,17 @@ class Renderer {
     }
     do {
       let currentTimeStamp = outputTime
-      let smpteTime = currentTimeStamp.smpteTime
       
       print()
-      print("subframes:", smpteTime.subframes)
-      print("subframeDivisor:", smpteTime.subframeDivisor)
-      print("counter:", smpteTime.counter)
-      print("type", smpteTime.type)
-      print("flags", smpteTime.flags)
-      print("hours", smpteTime.hours)
-      print("minutes", smpteTime.minutes)
-      print("seconds", smpteTime.seconds)
-      print("frames", smpteTime.frames)
+      print("flags:", currentTimeStamp.flags)
+      print("hostTime:", currentTimeStamp.hostTime)
+      print("rateScalar:", currentTimeStamp.rateScalar)
+      print("reserved:", currentTimeStamp.reserved)
+      print("smpteTime:", currentTimeStamp.smpteTime)
+      print("version:", currentTimeStamp.version)
+      print("videoRefreshPeriod:", currentTimeStamp.videoRefreshPeriod)
+      print("videoTime:", currentTimeStamp.videoTime)
+      print("videoTimeScale:", currentTimeStamp.videoTimeScale)
       
       setTime(Double.zero, index: 2)
     }
@@ -271,6 +269,43 @@ class RendererView: NSView, CALayerDelegate {
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
       
+      // There is a bug where CVDisplayLink doesn't reflect transitions to an
+      // external display. We detect when this is happening, by first
+      // querying the screen for the 'NSWindow'. Then, comparing it to the
+      // screen from 'CVDisplayLinkGetCurrentCGDisplay'. The latter is always
+      // the same as the screen it was initialized with (which is the bug).
+      // The app crashes upon realizing that the correct screen does not match
+      // what CVDisplayLink thinks the screen is.
+      //
+      // The fix does not solve the issues with Vsync on macOS:
+      // https://thume.ca/2017/12/09/cvdisplaylink-doesnt-link-to-your-display/
+      //
+      // But it is important for the error correction scheme for frame
+      // misalignment. Previously, it was only parameterized for 120 Hz
+      // displays, where the app might become unstable on the 60 Hz monitor.
+      // With the intentional crashing, I removed the need for the heuristic
+      // to handle display transitions. It is one display throughout the
+      // entire session, whose framerate is known a priori. Apparently Vsync
+      // is much better on Windows, so I will not/should not apply the
+      // heuristic there.
+      let supposedDisplay = CVDisplayLinkGetCurrentCGDisplay(displayLink)
+      DispatchQueue.main.async {
+        let window = RendererViewController.globalWindowReference
+        guard let window else {
+          fatalError("Could not retrieve window.")
+        }
+        let screen = window.screen!
+        
+        let key = NSDeviceDescriptionKey("NSScreenNumber")
+        let screenNumberAny = screen.deviceDescription[key]!
+        let screenNumber = screenNumberAny as! NSNumber
+        let correctDisplay = screenNumber.uint32Value
+        
+        if supposedDisplay != correctDisplay {
+          fatalError("Molecular Renderer cannot switch displays on macOS.")
+        }
+      }
+      
       renderer.render(
         layer: metalLayer,
         now: now.pointee,
@@ -311,6 +346,8 @@ extension RendererView {
 class RendererViewController: NSViewController, NSApplicationDelegate {
   var window: NSWindow!
   
+  static var globalWindowReference: NSWindow?
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     
@@ -330,7 +367,9 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
     
     // 'window.center' forces the window to initially appear on the main
     // display.
-    window.center()
+    //
+    // TODO: Make an alternative to window.center(), so we can accurately test
+    // the application on 60 Hz displays.
     window.makeKey()
     window.orderFrontRegardless()
     
@@ -340,6 +379,8 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
       selector: #selector(windowWillClose(notification:)),
       name: NSWindow.willCloseNotification,
       object: window)
+    
+    RendererViewController.globalWindowReference = window
   }
   
   @objc
