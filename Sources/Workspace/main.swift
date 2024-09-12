@@ -1,17 +1,4 @@
-// swift package init --type executable
-// Copy the following code into 'main.swift'.
-// Change the platforms to '[.macOS(.v14)]' in the package manifest.
-// swift run -Xswiftc -Ounchecked
-
-// https://www.polpiella.dev/launching-a-swiftui-view-from-the-terminal
-
 // Next steps:
-// - Copying the code. [DONE]
-//    - Save the code to a GitHub gist for reference.
-//    - Make a cleaned molecular-renderer branch.
-//    - Copy the above code into the branch.
-//    - Test the code.
-//    - Commit the files to Git.
 // - Access the GPU.
 //   - Modify it to get Metal rendering. [DONE]
 //   - Clean up and simplify the code as much as possible. [DONE]
@@ -63,6 +50,8 @@ class Renderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var computePipelineState: MTLComputePipelineState
+  
+  var startTime: Double?
   var frameID: Int = .zero
   
   init() {
@@ -73,24 +62,39 @@ class Renderer {
   }
   
   func render(layer: CAMetalLayer) {
+    // Update the time.
+    if startTime == nil {
+      startTime = CACurrentMediaTime()
+    }
     frameID += 1
     
+    // Fetch the drawable.
     let drawable = layer.nextDrawable()
     guard let drawable else {
       fatalError("Drawable timed out after 1 second.")
     }
     
+    // Start the command buffer.
     let commandBuffer = commandQueue.makeCommandBuffer()!
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(computePipelineState)
-    encoder.setBytes(&frameID, length: 4, index: 0)
+    
+    // Bind the arguments.
+    do {
+      var time0: Float = .zero
+      var time1: Float = 0.200
+      encoder.setBytes(&time0, length: 4, index: 0)
+      encoder.setBytes(&time1, length: 4, index: 1)
+    }
     encoder.setTexture(drawable.texture, index: 0)
     
+    // Dispatch.
     let dispatchSize = Screen.renderTargetSize
     encoder.dispatchThreads(
       MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
     
+    // Finish the command buffer.
     encoder.endEncoding()
     commandBuffer.present(drawable)
     commandBuffer.commit()
@@ -104,20 +108,52 @@ extension Renderer {
     #include <metal_stdlib>
     using namespace metal;
     
+    half convertToChannel(
+      half hue,
+      half saturation, 
+      half lightness,
+      ushort n
+    ) {
+      half k = half(n) + hue / 30;
+      k -= 12 * floor(k / 12);
+      
+      half a = saturation;
+      a *= min(lightness, 1 - lightness);
+    
+      half output = min(k - 3, 9 - k);
+      output = max(output, half(-1));
+      output = min(output, half(1));
+      output = lightness - a * output;
+      return output;
+    }
+    
     kernel void renderImage(
-      constant uint *frameID [[buffer(0)]],
+      constant float *time0 [[buffer(0)]],
+      constant float *time1 [[buffer(1)]],
       texture2d<half, access::write> drawableTexture [[texture(0)]],
       ushort2 tid [[thread_position_in_grid]]
     ) {
       half4 color;
-      if (tid.x == tid.y || tid.x == 1920 - tid.y) {
-        color = half4(0.00, 0.00, 0.00, 1.00);
+      if (tid.y < 1600) {
+        color = half4(0.707, 0.707, 0.00, 1.00);
       } else {
-        uint frameModulo = *frameID % 120;
-        half frameNormalized = half(frameModulo) / 120;
-        color = half4(frameNormalized, 0.00, 0.00, 1.00);
+        float progress = float(tid.x) / 1920;
+        if (tid.y < 1760) {
+          progress += *time0;
+        } else {
+          progress += *time1;
+        }
+        
+        half hue = half(progress) * 360;
+        half saturation = 1.0;
+        half lightness = 0.5;
+        
+        half red = convertToChannel(hue, saturation, lightness, 0);
+        half green = convertToChannel(hue, saturation, lightness, 8);
+        half blue = convertToChannel(hue, saturation, lightness, 4);
+        color = half4(red, green, blue, 1.00);
       }
-    
+      
       drawableTexture.write(color, tid);
     }
     
@@ -186,24 +222,17 @@ class RendererView: NSView, CALayerDelegate {
   override func viewDidMoveToWindow() {
     super.viewDidMoveToWindow()
     
-    CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
-    CVDisplayLinkSetOutputHandler(displayLink) {
-      [self]
-      displayLink,
-      now,
-      outputTime,
-      flagsIn,
-      flagsOut in
-      
-      renderer.render(layer: metalLayer)
-      return kCVReturnSuccess
-    }
-    
     let screen = Screen.desired
     let key = NSDeviceDescriptionKey("NSScreenNumber")
     let screenNumberAny = screen.deviceDescription[key]!
     let screenNumber = screenNumberAny as! NSNumber
-    CVDisplayLinkSetCurrentCGDisplay(displayLink, screenNumber.uint32Value)
+    CVDisplayLinkCreateWithCGDisplay(screenNumber.uint32Value, &displayLink)
+    
+    CVDisplayLinkSetOutputHandler(displayLink) {
+      [self] displayLink, now, outputTime, _, _ in
+      renderer.render(layer: metalLayer)
+      return kCVReturnSuccess
+    }
     CVDisplayLinkStart(displayLink)
   }
 }
