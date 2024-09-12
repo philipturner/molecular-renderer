@@ -8,6 +8,7 @@
 //   - Another single-file Swift script that does the same thing.
 
 import AppKit
+import CoreAudio
 
 // MARK: - Screen
 
@@ -53,6 +54,7 @@ class Renderer {
   
   var startDate: Date?
   var startContinuousTime: UInt64?
+  var startTimeStamp: CVTimeStamp?
   
   init() {
     device = MTLCreateSystemDefaultDevice()!
@@ -72,6 +74,9 @@ class Renderer {
     }
     if startContinuousTime == nil {
       startContinuousTime = mach_continuous_time()
+    }
+    if startTimeStamp == nil {
+      startTimeStamp = outputTime
     }
     
     // Fetch the drawable.
@@ -103,6 +108,20 @@ class Renderer {
       setTime(deltaContinuousTimeSeconds, index: 1)
     }
     do {
+      let currentTimeStamp = outputTime
+      let smpteTime = currentTimeStamp.smpteTime
+      
+      print()
+      print("subframes:", smpteTime.subframes)
+      print("subframeDivisor:", smpteTime.subframeDivisor)
+      print("counter:", smpteTime.counter)
+      print("type", smpteTime.type)
+      print("flags", smpteTime.flags)
+      print("hours", smpteTime.hours)
+      print("minutes", smpteTime.minutes)
+      print("seconds", smpteTime.seconds)
+      print("frames", smpteTime.frames)
+      
       setTime(Double.zero, index: 2)
     }
     encoder.setTexture(drawable.texture, index: 0)
