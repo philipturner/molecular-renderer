@@ -51,8 +51,8 @@ class Renderer {
   var commandQueue: MTLCommandQueue
   var computePipelineState: MTLComputePipelineState
   
-  var startTime: Double?
-  var startTimeStamp: CVTimeStamp?
+  var startDate: Date?
+  var startContinuousTime: UInt64?
   
   init() {
     device = MTLCreateSystemDefaultDevice()!
@@ -67,11 +67,11 @@ class Renderer {
     outputTime: CVTimeStamp
   ) {
     // Update the time.
-    if startTime == nil {
-      startTime = CACurrentMediaTime()
+    if startDate == nil {
+      startDate = Date()
     }
-    if startTimeStamp == nil {
-      startTimeStamp = now
+    if startContinuousTime == nil {
+      startContinuousTime = mach_continuous_time()
     }
     
     // Fetch the drawable.
@@ -86,20 +86,24 @@ class Renderer {
     encoder.setComputePipelineState(computePipelineState)
     
     // Bind the arguments.
+    func setTime(_ time: Double, index: Int) {
+      let fractionalTime = time - floor(time)
+      var time32 = Float(fractionalTime)
+      encoder.setBytes(&time32, length: 4, index: index)
+    }
     do {
-      func setTime(_ time: Double, index: Int) {
-        var time32 = Float(time)
-        encoder.setBytes(&time32, length: 4, index: index)
-      }
-      
-      let wallClockTime = CACurrentMediaTime() - startTime!
-      setTime(wallClockTime, index: 0)
-      
-      let videoTimeDelta: Int64 = now.videoTime - startTimeStamp!.videoTime
-      let videoTimeScale = Double(now.videoTimeScale)
-      var videoTime = Double(videoTimeDelta) / videoTimeScale
-      setTime(videoTime * now.rateScalar, index: 1)
-      setTime(videoTime / now.rateScalar, index: 2)
+      let currentDate = Date()
+      let deltaDate = currentDate.timeIntervalSince(startDate!)
+      setTime(deltaDate, index: 0)
+    }
+    do {
+      let currentContinuousTime = mach_continuous_time()
+      let deltaContinuousTime = currentContinuousTime - startContinuousTime!
+      let deltaContinuousTimeSeconds = Double(deltaContinuousTime) / 24_000_000
+      setTime(deltaContinuousTimeSeconds, index: 1)
+    }
+    do {
+      setTime(Double.zero, index: 2)
     }
     encoder.setTexture(drawable.texture, index: 0)
     
