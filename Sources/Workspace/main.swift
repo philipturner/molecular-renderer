@@ -87,16 +87,19 @@ class Renderer {
     
     // Bind the arguments.
     do {
-      var wallClockTime = Float(CACurrentMediaTime() - startTime!)
-      encoder.setBytes(&wallClockTime, length: 4, index: 0)
+      func setTime(_ time: Double, index: Int) {
+        var time32 = Float(time)
+        encoder.setBytes(&time32, length: 4, index: index)
+      }
+      
+      let wallClockTime = CACurrentMediaTime() - startTime!
+      setTime(wallClockTime, index: 0)
       
       let videoTimeDelta: Int64 = now.videoTime - startTimeStamp!.videoTime
       let videoTimeScale = Double(now.videoTimeScale)
       var videoTime = Double(videoTimeDelta) / videoTimeScale
-      videoTime /= now.rateScalar
-      
-      var videoTimeFP32 = Float(videoTime)
-      encoder.setBytes(&videoTimeFP32, length: 4, index: 1)
+      setTime(videoTime * now.rateScalar, index: 1)
+      setTime(videoTime / now.rateScalar, index: 2)
     }
     encoder.setTexture(drawable.texture, index: 0)
     
@@ -142,6 +145,7 @@ extension Renderer {
     kernel void renderImage(
       constant float *time0 [[buffer(0)]],
       constant float *time1 [[buffer(1)]],
+      constant float *time2 [[buffer(2)]],
       texture2d<half, access::write> drawableTexture [[texture(0)]],
       ushort2 tid [[thread_position_in_grid]]
     ) {
@@ -150,10 +154,12 @@ extension Renderer {
         color = half4(0.707, 0.707, 0.00, 1.00);
       } else {
         float progress = float(tid.x) / 1920;
-        if (tid.y < 1760) {
+        if (tid.y < 1600 + 107) {
           progress += *time0;
-        } else {
+        } else if (tid.y < 1600 + 213) {
           progress += *time1;
+        } else {
+          progress += *time2;
         }
         
         half hue = half(progress) * 360;
@@ -241,15 +247,6 @@ class RendererView: NSView, CALayerDelegate {
     CVDisplayLinkCreateWithCGDisplay(screenNumber.uint32Value, &displayLink)
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
-      
-      let nominalRate = 
-      CVDisplayLinkGetNominalOutputVideoRefreshPeriod(displayLink)
-      let nominalTimeInterval =
-      Double(nominalRate.timeValue) / Double(nominalRate.timeScale)
-      let actualTimeInterval =
-      CVDisplayLinkGetActualOutputVideoRefreshPeriod(displayLink)
-      
-      print(outputTime.pointee.rateScalar, actualTimeInterval / nominalTimeInterval)
       
       renderer.render(
         layer: metalLayer,
