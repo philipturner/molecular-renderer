@@ -14,7 +14,7 @@ import AppKit
 struct Screen {
   static var desired: NSScreen {
     let screens = NSScreen.screens
-    let fastest = screens.min(by: {
+    let fastest = screens.max(by: {
       $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
     })!
     return fastest
@@ -37,6 +37,8 @@ struct Screen {
         return scaleFactor == expected
       }
       guard allAreEqual else {
+        // TODO: Change this once we can enforce a 1:1 mapping between
+        // the program instance and a particular display.
         fatalError("Scale factors were not consistent across displays.")
       }
     }
@@ -326,7 +328,7 @@ extension RendererView {
     let height = Float(newSize.height)
     guard width == expectedSize,
           height == expectedSize else {
-      fatalError("Not allowed to resize window.")
+      fatalError("Not allowed to resize window: newSize = \(newSize), expectedSize = \(expectedSize).")
     }
   }
   
@@ -362,6 +364,8 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
       backing: .buffered,
       defer: false,
       screen: Screen.desired)
+    RendererViewController.globalWindowReference = window
+    
     window.makeFirstResponder(self)
     window.contentViewController = self
     
@@ -370,6 +374,16 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
     //
     // TODO: Make an alternative to window.center(), so we can accurately test
     // the application on 60 Hz displays.
+    //
+    // window.frame:
+    // - not centered:
+    //   -  60 Hz: (1968.0, 681.0, 960.0, 988.0)
+    //   - 120 Hz: (218.0, 0.0, 960.0, 988.0)
+    // - centered:
+    //   -  60 Hz: (2752.0, 1047.0, 960.0, 988.0) (my heuristic)
+    //   - 120 Hz: (384.0, 72.0, 960.0, 988.0)
+    //             (384.0, 62.0, 960.0, 988.0) (my heuristic)
+    RendererViewController.centerWindow(window)
     window.makeKey()
     window.orderFrontRegardless()
     
@@ -380,12 +394,37 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
       name: NSWindow.willCloseNotification,
       object: window)
     
-    RendererViewController.globalWindowReference = window
+    print(window.frame)
   }
   
   @objc
   func windowWillClose(notification: NSNotification) {
     exit(0)
+  }
+  
+  static func centerWindow(_ window: NSWindow) {
+    guard let screen = window.screen else {
+      fatalError("Could not retrieve the window's screen.")
+    }
+    let centerX = screen.visibleFrame.midX
+    let centerY = screen.visibleFrame.midY
+    let scaleFactor = screen.backingScaleFactor
+    
+    let renderRegionSize = Double(Screen.renderTargetSize) / scaleFactor
+    let leftX = centerX - renderRegionSize / 2
+    let upperY = centerY - renderRegionSize / 2
+    let origin = CGPoint(x: leftX, y: upperY)
+    
+    let windowSize = window.frame.size
+    guard windowSize.width == renderRegionSize else {
+      fatalError("Render region had incorrect dimensions.")
+    }
+    guard windowSize.height > renderRegionSize else {
+      fatalError("Title bar was missing.")
+    }
+    
+    let frame = CGRect(origin: origin, size: windowSize)
+    window.setFrame(frame, display: true)
   }
 }
 
