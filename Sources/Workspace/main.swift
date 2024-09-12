@@ -22,6 +22,8 @@
 
 import AppKit
 
+// MARK: - Screen
+
 struct Screen {
   static var desired: NSScreen {
     let screens = NSScreen.screens
@@ -54,6 +56,8 @@ struct Screen {
     return scaleFactors[0]
   }
 }
+
+// MARK: - Renderer
 
 class Renderer {
   var device: MTLDevice
@@ -135,10 +139,12 @@ extension Renderer {
   }
 }
 
+// MARK: - RendererView
+
 class RendererView: NSView, CALayerDelegate {
   var displayLink: CVDisplayLink!
   var metalLayer: CAMetalLayer!
-  var delegate: RendererViewController!
+  var renderer: Renderer!
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -168,6 +174,8 @@ class RendererView: NSView, CALayerDelegate {
     metalLayer.device = MTLCreateSystemDefaultDevice()!
     metalLayer.framebufferOnly = false
     metalLayer.pixelFormat = .rgb10a2Unorm
+    
+    renderer = Renderer()
   }
   
   override func makeBackingLayer() -> CALayer {
@@ -187,7 +195,7 @@ class RendererView: NSView, CALayerDelegate {
       flagsIn,
       flagsOut in
       
-      self.render()
+      renderer.render(layer: metalLayer)
       return kCVReturnSuccess
     }
     
@@ -197,10 +205,6 @@ class RendererView: NSView, CALayerDelegate {
     let screenNumber = screenNumberAny as! NSNumber
     CVDisplayLinkSetCurrentCGDisplay(displayLink, screenNumber.uint32Value)
     CVDisplayLinkStart(displayLink)
-  }
-  
-  func render() {
-    
   }
 }
 
@@ -229,16 +233,57 @@ extension RendererView {
   }
 }
 
-class RendererViewController: NSViewController {
+// MARK: - RendererViewController
+
+class RendererViewController: NSViewController, NSApplicationDelegate {
+  var window: NSWindow!
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     
     let view = RendererView()
     self.view = view
-    view.delegate = self
+  }
+  
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    window = NSWindow(
+      contentRect: NSRect.zero,
+      styleMask: [.closable, .resizable, .titled],
+      backing: .buffered,
+      defer: false,
+      screen: Screen.desired)
+    window.makeFirstResponder(self)
+    window.contentViewController = self
+    
+    window.makeKey()
+    window.center()
+    window.orderFrontRegardless()
+    
+    let notificationCenter = NotificationCenter.default
+    notificationCenter.addObserver(
+      self,
+      selector: #selector(windowWillClose(notification:)),
+      name: NSWindow.willCloseNotification,
+      object: window)
+  }
+  
+  @objc
+  func windowWillClose(notification: NSNotification) {
+    print("Window closed (1)")
+    exit(0)
   }
 }
 
-class EventResponder: NSResponder {
-  
+extension RendererViewController {
+  override func keyDown(with event: NSEvent) {
+    if event.modifierFlags.contains(.command) {
+      switch event.charactersIgnoringModifiers! {
+      case "w":
+        print("Window closed (2)")
+        exit(0)
+      default:
+        break
+      }
+    }
+  }
 }
