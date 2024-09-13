@@ -12,37 +12,29 @@ import AppKit
 // MARK: - Screen
 
 struct Screen {
-  static var desired: NSScreen {
+  // The screen chosen for rendering at program startup.
+  static let selected: NSScreen = {
     let screens = NSScreen.screens
     let fastest = screens.max(by: {
       $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
     })!
     return fastest
-  }
+  }()
   
+  // The view resolution chosen at program startup.
   static var renderTargetSize: Int {
     1920
   }
   
-  static var backingScaleFactor: Float {
-    var scaleFactors: [Float] = []
-    for screen in NSScreen.screens {
-      let scaleFactor = screen.backingScaleFactor
-      scaleFactors.append(Float(scaleFactor))
+  // The resolution of the rendering region, according to the OS's display
+  // scaling factor.
+  static var windowSize: Int {
+    var output = Double(renderTargetSize)
+    output /= Screen.selected.backingScaleFactor
+    guard output == floor(output) else {
+      fatalError("Resolution was not evenly divisible by scaling factor.")
     }
-    
-    if scaleFactors.count > 1 {
-      let allAreEqual = scaleFactors.allSatisfy { scaleFactor in
-        let expected = scaleFactors[0]
-        return scaleFactor == expected
-      }
-      guard allAreEqual else {
-        // TODO: Change this once we can enforce a 1:1 mapping between
-        // the program instance and a particular display.
-        fatalError("Scale factors were not consistent across displays.")
-      }
-    }
-    return scaleFactors[0]
+    return Int(output)
   }
 }
 
@@ -110,18 +102,6 @@ class Renderer {
     }
     do {
       let currentTimeStamp = outputTime
-      
-      print()
-      print("flags:", currentTimeStamp.flags)
-      print("hostTime:", currentTimeStamp.hostTime)
-      print("rateScalar:", currentTimeStamp.rateScalar)
-      print("reserved:", currentTimeStamp.reserved)
-      print("smpteTime:", currentTimeStamp.smpteTime)
-      print("version:", currentTimeStamp.version)
-      print("videoRefreshPeriod:", currentTimeStamp.videoRefreshPeriod)
-      print("videoTime:", currentTimeStamp.videoTime)
-      print("videoTimeScale:", currentTimeStamp.videoTimeScale)
-      
       setTime(Double.zero, index: 2)
     }
     encoder.setTexture(drawable.texture, index: 0)
@@ -233,14 +213,14 @@ class RendererView: NSView, CALayerDelegate {
     self.layerContentsRedrawPolicy = .duringViewResize
     self.wantsLayer = true
     metalLayer = self.layer! as? CAMetalLayer
-    
-    let renderTargetSize = Float(Screen.renderTargetSize)
-    let windowSize = renderTargetSize / Screen.backingScaleFactor
     metalLayer.drawableSize = CGSize(
-      width: Double(renderTargetSize),
-      height: Double(renderTargetSize))
+      width: Double(Screen.renderTargetSize),
+      height: Double(Screen.renderTargetSize))
     
     metalLayer.delegate = self
+    
+    var windowSize = Double(Screen.renderTargetSize)
+    windowSize /= Screen.selected.backingScaleFactor
     self.bounds.size = CGSize(
       width: Double(windowSize),
       height: Double(windowSize))
@@ -263,17 +243,19 @@ class RendererView: NSView, CALayerDelegate {
   override func viewDidMoveToWindow() {
     super.viewDidMoveToWindow()
     
-    let screen = Screen.desired
+    // Initialize the display link with the chosen screen.
     let key = NSDeviceDescriptionKey("NSScreenNumber")
-    let screenNumberAny = screen.deviceDescription[key]!
+    let screenNumberAny = Screen.selected.deviceDescription[key]!
     let screenNumber = screenNumberAny as! NSNumber
     CVDisplayLinkCreateWithCGDisplay(screenNumber.uint32Value, &displayLink)
+    
+    // Set the function pointer for the render loop.
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
       
-      // There is a bug where CVDisplayLink doesn't reflect transitions to an
-      // external display. We detect when this is happening, by first
-      // querying the screen for the 'NSWindow'. Then, comparing it to the
+      // There is a bug where CVDisplayLink doesn't register transitions to an
+      // external display. We detect this bug by first
+      // querying the screen of the 'NSWindow'. Then, comparing it to the
       // screen from 'CVDisplayLinkGetCurrentCGDisplay'. The latter is always
       // the same as the screen it was initialized with (which is the bug).
       // The app crashes upon realizing that the correct screen does not match
@@ -290,7 +272,7 @@ class RendererView: NSView, CALayerDelegate {
       // entire session, whose framerate is known a priori. Apparently Vsync
       // is much better on Windows, so I will not/should not apply the
       // heuristic there.
-      let supposedDisplay = CVDisplayLinkGetCurrentCGDisplay(displayLink)
+      let registeredDisplay = CVDisplayLinkGetCurrentCGDisplay(displayLink)
       DispatchQueue.main.async {
         let window = RendererViewController.globalWindowReference
         guard let window else {
@@ -301,10 +283,10 @@ class RendererView: NSView, CALayerDelegate {
         let key = NSDeviceDescriptionKey("NSScreenNumber")
         let screenNumberAny = screen.deviceDescription[key]!
         let screenNumber = screenNumberAny as! NSNumber
-        let correctDisplay = screenNumber.uint32Value
+        let actualDisplay = screenNumber.uint32Value
         
-        if supposedDisplay != correctDisplay {
-          fatalError("Molecular Renderer cannot switch displays on macOS.")
+        if registeredDisplay != actualDisplay {
+          fatalError("Attempted to move the window to a different display.")
         }
       }
       
@@ -315,20 +297,17 @@ class RendererView: NSView, CALayerDelegate {
       
       return kCVReturnSuccess
     }
+    
+    // Start the display link.
     CVDisplayLinkStart(displayLink)
   }
 }
 
 extension RendererView {
   func checkDrawableSize(_ newSize: NSSize) {
-    var expectedSize = Float(Screen.renderTargetSize)
-    expectedSize /= Screen.backingScaleFactor
-    
-    let width = Float(newSize.width)
-    let height = Float(newSize.height)
-    guard width == expectedSize,
-          height == expectedSize else {
-      fatalError("Not allowed to resize window: newSize = \(newSize), expectedSize = \(expectedSize).")
+    guard newSize.width == Double(Screen.windowSize),
+          newSize.height == Double(Screen.windowSize) else {
+      fatalError("Attempted to resize the window.")
     }
   }
   
@@ -363,26 +342,12 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
       styleMask: [.closable, .resizable, .titled],
       backing: .buffered,
       defer: false,
-      screen: Screen.desired)
+      screen: Screen.selected)
     RendererViewController.globalWindowReference = window
     
     window.makeFirstResponder(self)
     window.contentViewController = self
     
-    // 'window.center' forces the window to initially appear on the main
-    // display.
-    //
-    // TODO: Make an alternative to window.center(), so we can accurately test
-    // the application on 60 Hz displays.
-    //
-    // window.frame:
-    // - not centered:
-    //   -  60 Hz: (1968.0, 681.0, 960.0, 988.0)
-    //   - 120 Hz: (218.0, 0.0, 960.0, 988.0)
-    // - centered:
-    //   -  60 Hz: (2752.0, 1047.0, 960.0, 988.0) (my heuristic)
-    //   - 120 Hz: (384.0, 72.0, 960.0, 988.0)
-    //             (384.0, 62.0, 960.0, 988.0) (my heuristic)
     RendererViewController.centerWindow(window)
     window.makeKey()
     window.orderFrontRegardless()
@@ -393,8 +358,6 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
       selector: #selector(windowWillClose(notification:)),
       name: NSWindow.willCloseNotification,
       object: window)
-    
-    print(window.frame)
   }
   
   @objc
@@ -402,6 +365,8 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
     exit(0)
   }
   
+  // An alternative to 'NSWindow.center()' that doesn't make the window migrate
+  // to the main display.
   static func centerWindow(_ window: NSWindow) {
     guard let screen = window.screen else {
       fatalError("Could not retrieve the window's screen.")
