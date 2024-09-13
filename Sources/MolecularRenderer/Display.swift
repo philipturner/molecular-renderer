@@ -74,23 +74,23 @@ extension Display {
 }
 
 extension Display {
-  // The number of frames issued per second.
+  /// The number of frames issued per second.
   public var frameRate: Int {
     _screen.maximumFramesPerSecond
   }
   
-  // The resolution of the rendering region, in pixels.
+  /// The resolution of the rendering region, in pixels.
   public var renderTargetSize: Int {
     _renderTargetSize
   }
   
-  // The display chosen for rendering at program startup.
+  /// The display chosen for rendering at program startup.
   public var screen: NSScreen {
     _screen
   }
   
-  // The resolution of the rendering region, according to the operating
-  // system's scale factor.
+  /// The resolution of the rendering region, according to the operating
+  /// system's scale factor.
   public var windowSize: Int {
     var output = Double(_renderTargetSize)
     output /= _screen.backingScaleFactor

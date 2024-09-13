@@ -10,82 +10,6 @@
 import AppKit
 import MolecularRenderer
 
-// MARK: - Clock
-
-struct TimeStamp {
-  // The Mach continuous time for now.
-  var host: UInt64
-  
-  // The Core Video time for when the frame will be presented.
-  var video: UInt64
-  
-  init(vsyncTimeStamp: CVTimeStamp) {
-    host = mach_continuous_time()
-    video = UInt64(truncatingIfNeeded: vsyncTimeStamp.videoTime)
-  }
-}
-
-struct Clock {
-  private var start: TimeStamp?
-  private var latest: TimeStamp?
-  
-  // The true wall time since rendering started.
-  //
-  // We will eventually replace this with an approximate wall time, as the
-  // frames will be jittery.
-  var seconds: Double {
-    guard let start,
-          let latest else {
-      fatalError("Timestamps were not set.")
-    }
-  }
-  
-  // The current estimate of the discrete multiple of the display's refresh
-  // period.
-  var frames: Int {
-    guard let start,
-          let latest else {
-      fatalError("Timestamps were not set.")
-    }
-    
-    let latestTimeTicks = latest.video - start.video
-    let latestTimeSeconds = Double(latestTimeTicks) / 24_000_000
-    
-    let frameRate: Int = Screen.selected.maximumFramesPerSecond
-    let latestTimeFrames = latestTimeSeconds * Double(frameRate)
-    return
-  }
-}
-
-extension Clock {
-  func increment(vsyncTimeStamp: CVTimeStamp) {
-    let current = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
-    
-    guard let start,
-          let previous = latest else {
-      self.start = current
-      self.latest = current
-      return
-    }
-    
-    // Validate that the vsync frame index is an integer multiple.
-    do {
-      let currentTimeTicks = current.video - start.video
-      let currentTimeSeconds = Double(currentTimeTicks) / 24_000_000
-      
-      let frameRate: Int = Screen.selected.maximumFramesPerSecond
-      let currentTimeFrames = currentTimeSeconds * Double(frameRate)
-      let remainderTimeFrames = currentTimeFrames - rint(currentTimeFrames)
-      guard remainderTimeFrames.magnitude < 0.001 else {
-        fatalError("Vsync timestamp was not integer multiple of refresh rate.")
-      }
-    }
-    
-    // Store the current timestamp as the latest.
-    self.latest = current
-  }
-}
-
 // MARK: - Renderer
 
 class Renderer {
@@ -99,56 +23,6 @@ class Renderer {
     computePipelineState = Renderer
       .createComputePipelineState(device: device)
   }
-  
-  // Commented out reference code.
-  /*
-  func registerFrameStart(
-    now: CVTimeStamp,
-    outputTime: CVTimeStamp
-  ) {
-    if startDate == nil {
-      startDate = Date()
-    }
-    if startContinuousTime == nil {
-      startContinuousTime = mach_continuous_time()
-    }
-    if startTimeStamp == nil {
-      startTimeStamp = outputTime
-    }
-    currentVideoTime = outputTime
-    
-    let currentTimeStamp = outputTime
-    let currentTimeTicks: Int64 = 
-    currentTimeStamp.videoTime - startTimeStamp!.videoTime
-    let currentTimeSeconds = Double(currentTimeTicks) / 24_000_000
-    
-    let frameRate: Int = Screen.selected.maximumFramesPerSecond
-    let currentTimeFrames = currentTimeSeconds * Double(frameRate)
-    let roundedTimeFrames = rint(currentTimeFrames)
-    let remainderTimeFrames = currentTimeFrames - roundedTimeFrames
-    guard remainderTimeFrames.magnitude < 0.001 else {
-      fatalError(
-        "Timestamp was not integer multiple of refresh rate: \(currentTimeFrames).")
-    }
-    
-    // Bring into alignment with the wall clock time.
-    let currentContinuousTime = mach_continuous_time()
-    let wallTime = currentContinuousTime - startContinuousTime!
-    let wallTimeSeconds = Double(wallTime) / 24_000_000
-    let wallTimeFrames = wallTimeSeconds * Double(frameRate)
-    print(wallTimeFrames, roundedTimeFrames)
-    
-    currentFrameID = Int(roundedTimeFrames)
-  }
-  
-  func registerFrameEnd(
-    now: CVTimeStamp,
-    outputTime: CVTimeStamp
-  ) {
-    previousVideoTime = currentVideoTime
-    currentVideoTime = nil
-  }
-   */
   
   func render(
     layer: CAMetalLayer
@@ -164,51 +38,33 @@ class Renderer {
     let encoder = commandBuffer.makeComputeCommandEncoder()!
     encoder.setComputePipelineState(computePipelineState)
     
-    // Bind the arguments.
-    func setTime(_ time: Double, index: Int) {
-      let fractionalTime = time - floor(time)
-      var time32 = Float(fractionalTime)
-      encoder.setBytes(&time32, length: 4, index: index)
+    // Bind the buffers.
+    do {
+      func setTime(_ time: Double, index: Int) {
+        let fractionalTime = time - floor(time)
+        var time32 = Float(fractionalTime)
+        encoder.setBytes(&time32, length: 4, index: index)
+      }
+      setTime(Double.zero, index: 0)
+      setTime(Double.zero, index: 1)
+      setTime(Double.zero, index: 2)
     }
     
-    // Commented out reference code.
-    /*
-    print()
-    do {
-      let currentDate = Date()
-      let deltaDate = currentDate.timeIntervalSince(startDate!)
-      print(deltaDate, deltaDate * 120)
-      setTime(deltaDate, index: 0)
-    }
-    do {
-      let currentContinuousTime = mach_continuous_time()
-      let deltaContinuousTime = currentContinuousTime - startContinuousTime!
-      let deltaContinuousTimeSeconds = Double(deltaContinuousTime) / 24_000_000
-      print(deltaContinuousTimeSeconds, deltaContinuousTimeSeconds * 120)
-      setTime(deltaContinuousTimeSeconds, index: 1)
-    }
-    do {
-      let currentTimeStamp = outputTime
-      let currentTime = currentTimeStamp.hostTime - startTimeStamp!.hostTime
-      let currentTimeSeconds = Double(currentTime) / 24_000_000
-      print(currentTimeSeconds, currentTimeSeconds * 120)
-    }
-    do {
-      let currentTimeStamp = outputTime
-      let currentTime = currentTimeStamp.videoTime - startTimeStamp!.videoTime
-      let currentTimeSeconds = Double(currentTime) / 24_000_000
-      print(currentTimeSeconds, currentTimeSeconds * 120)
-      setTime(currentTimeSeconds, index: 2)
-    }
-     */
-    
+    // Bind the textures.
     encoder.setTexture(drawable.texture, index: 0)
     
     // Dispatch.
-    let dispatchSize = Screen.renderTargetSize
-    encoder.dispatchThreads(
-      MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
+    do {
+      let drawableSize = layer.drawableSize
+      guard drawable.texture.width == drawable.texture.height else {
+        fatalError("Could not establish dispatch grid size.")
+      }
+      
+      let dispatchSize = Int(drawable.texture.width)
+      encoder.dispatchThreads(
+        MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
+        threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
+    }
     
     // Finish the command buffer.
     encoder.endEncoding()
