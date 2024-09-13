@@ -38,7 +38,7 @@ struct Screen {
   }
 }
 
-// MARK: - TimeStamp
+// MARK: - Time
 
 struct TimeStamp {
   // The Mach continuous time for now.
@@ -48,11 +48,41 @@ struct TimeStamp {
   var video: CVTimeStamp
 }
 
-// Ergonomic API for accessing times.
-class RendererTimes {
-  var start: TimeStamp?
-  var previous: TimeStamp?
-  var current: TimeStamp?
+class TimeCounter {
+  private var start: TimeStamp?
+  private var previous: TimeStamp?
+  private var current: TimeStamp?
+  
+  init() {
+    
+  }
+  
+  func increment(vsyncFrameIndex: CVTimeStamp) {
+    let currentHostTime = mach_continuous_time()
+    let currentTimeStamp = TimeStamp(
+      host: currentHostTime,
+      video: vsyncFrameIndex)
+    
+    // TODO: The names of the variables are getting ambiguous here. It's hard
+    // to clean up this code and make progress on it.
+    if let start = start,
+       let previousTimeStamp = current {
+      self.start = start
+      self.previous = previous
+      self.current = currentTimeStamp
+    } else {
+      self.start = currentTimeStamp
+      self.previous = nil
+      self.current = currentTimeStamp
+    }
+    
+    guard let start,
+          let current else {
+      fatalError("Invalid time counter state.")
+    }
+    
+    // Validate that the vsync frame index is an integer multiple.
+  }
 }
 
 // MARK: - Renderer
