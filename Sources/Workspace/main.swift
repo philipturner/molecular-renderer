@@ -38,19 +38,29 @@ struct Screen {
   }
 }
 
+// MARK: - TimeStamp
+
+struct TimeStamp {
+  // The Mach continuous time for now.
+  var host: UInt64
+  
+  // The Core Video time for when the frame will be presented.
+  var video: CVTimeStamp
+}
+
+// Ergonomic API for accessing times.
+class RendererTimes {
+  var start: TimeStamp?
+  var previous: TimeStamp?
+  var current: TimeStamp?
+}
+
 // MARK: - Renderer
 
 class Renderer {
   var device: MTLDevice
   var commandQueue: MTLCommandQueue
   var computePipelineState: MTLComputePipelineState
-  
-  var startDate: Date?
-  var startContinuousTime: UInt64?
-  var startTimeStamp: CVTimeStamp?
-  
-  var previousVideoTime: CVTimeStamp?
-  var currentVideoTime: CVTimeStamp?
   
   init() {
     device = MTLCreateSystemDefaultDevice()!
@@ -59,6 +69,8 @@ class Renderer {
       .createComputePipelineState(device: device)
   }
   
+  // Commented out reference code.
+  /*
   func registerFrameStart(
     now: CVTimeStamp,
     outputTime: CVTimeStamp
@@ -105,12 +117,11 @@ class Renderer {
     previousVideoTime = currentVideoTime
     currentVideoTime = nil
   }
+   */
   
   func render(
     layer: CAMetalLayer
   ) {
-    registerFrameStart(now: now, outputTime: outputTime)
-    
     // Fetch the drawable.
     let drawable = layer.nextDrawable()
     guard let drawable else {
@@ -129,6 +140,8 @@ class Renderer {
       encoder.setBytes(&time32, length: 4, index: index)
     }
     
+    // Commented out reference code.
+    /*
     print()
     do {
       let currentDate = Date()
@@ -156,6 +169,8 @@ class Renderer {
       print(currentTimeSeconds, currentTimeSeconds * 120)
       setTime(currentTimeSeconds, index: 2)
     }
+     */
+    
     encoder.setTexture(drawable.texture, index: 0)
     
     // Dispatch.
@@ -168,8 +183,6 @@ class Renderer {
     encoder.endEncoding()
     commandBuffer.present(drawable)
     commandBuffer.commit()
-    
-    registerFrameEnd(now: now, outputTime: outputTime)
   }
 }
 
