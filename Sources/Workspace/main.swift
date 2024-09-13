@@ -152,7 +152,7 @@ extension Renderer {
 
 // MARK: - RendererView
 
-class RendererView: NSView, CALayerDelegate {
+class View: NSView, CALayerDelegate {
   var displayLink: CVDisplayLink!
   var metalLayer: CAMetalLayer!
   var renderer: Renderer!
@@ -278,7 +278,7 @@ extension RendererView {
 
 // MARK: - RendererViewController
 
-class RendererViewController: NSViewController, NSApplicationDelegate {
+class Window: NSViewController, NSApplicationDelegate {
   var window: NSWindow!
   
   static var globalWindowReference: NSWindow?
@@ -319,6 +319,15 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
     exit(0)
   }
   
+  override func keyDown(with event: NSEvent) {
+    if event.modifierFlags.contains(.command) {
+      let characters = event.charactersIgnoringModifiers!
+      if characters == "w" {
+        exit(0)
+      }
+    }
+  }
+  
   // An alternative to 'NSWindow.center()' that doesn't make the window migrate
   // to the main display.
   static func centerWindow(_ window: NSWindow) {
@@ -347,24 +356,15 @@ class RendererViewController: NSViewController, NSApplicationDelegate {
   }
 }
 
-extension RendererViewController {
-  override func keyDown(with event: NSEvent) {
-    if event.modifierFlags.contains(.command) {
-      let characters = event.charactersIgnoringModifiers!
-      if characters == "w" {
-        exit(0)
-      }
-    }
-  }
-}
+// MARK: - Application
 
-// MARK: - RendererApplication
-
-class RendererApplication {
-  var viewController: RendererViewController
+class Application {
+  var clock: Clock
+  var display: Display
+  var window: Window
   
   init() {
-    viewController = RendererViewController()
+    
   }
   
   func launch() {
