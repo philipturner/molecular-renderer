@@ -8,80 +8,81 @@
 //   - Another single-file Swift script that does the same thing.
 
 import AppKit
+import MolecularRenderer
 
-// MARK: - Screen
-
-struct Screen {
-  // The screen chosen for rendering at program startup.
-  static let selected: NSScreen = {
-    let screens = NSScreen.screens
-    let fastest = screens.max(by: {
-      $0.maximumFramesPerSecond < $1.maximumFramesPerSecond
-    })!
-    return fastest
-  }()
-  
-  // The view resolution chosen at program startup.
-  static var renderTargetSize: Int {
-    1920
-  }
-  
-  // The resolution of the rendering region, according to the OS's display
-  // scaling factor.
-  static var windowSize: Int {
-    var output = Double(renderTargetSize)
-    output /= Screen.selected.backingScaleFactor
-    guard output == floor(output) else {
-      fatalError("Resolution was not evenly divisible by scaling factor.")
-    }
-    return Int(output)
-  }
-}
-
-// MARK: - Time
+// MARK: - Clock
 
 struct TimeStamp {
   // The Mach continuous time for now.
   var host: UInt64
   
   // The Core Video time for when the frame will be presented.
-  var video: CVTimeStamp
+  var video: UInt64
+  
+  init(vsyncTimeStamp: CVTimeStamp) {
+    host = mach_continuous_time()
+    video = UInt64(truncatingIfNeeded: vsyncTimeStamp.videoTime)
+  }
 }
 
-class TimeCounter {
+struct Clock {
   private var start: TimeStamp?
-  private var previous: TimeStamp?
-  private var current: TimeStamp?
+  private var latest: TimeStamp?
   
-  init() {
-    
+  // The true wall time since rendering started.
+  //
+  // We will eventually replace this with an approximate wall time, as the
+  // frames will be jittery.
+  var seconds: Double {
+    guard let start,
+          let latest else {
+      fatalError("Timestamps were not set.")
+    }
   }
   
-  func increment(vsyncFrameIndex: CVTimeStamp) {
-    let currentHostTime = mach_continuous_time()
-    let currentTimeStamp = TimeStamp(
-      host: currentHostTime,
-      video: vsyncFrameIndex)
-    
-    // TODO: The names of the variables are getting ambiguous here. It's hard
-    // to clean up this code and make progress on it.
-    if let start = start,
-       let previousTimeStamp = current {
-      self.start = start
-      self.previous = previous
-      self.current = currentTimeStamp
-    } else {
-      self.start = currentTimeStamp
-      self.previous = nil
-      self.current = currentTimeStamp
+  // The current estimate of the discrete multiple of the display's refresh
+  // period.
+  var frames: Int {
+    guard let start,
+          let latest else {
+      fatalError("Timestamps were not set.")
     }
     
+    let latestTimeTicks = latest.video - start.video
+    let latestTimeSeconds = Double(latestTimeTicks) / 24_000_000
+    
+    let frameRate: Int = Screen.selected.maximumFramesPerSecond
+    let latestTimeFrames = latestTimeSeconds * Double(frameRate)
+    return
+  }
+}
+
+extension Clock {
+  func increment(vsyncTimeStamp: CVTimeStamp) {
+    let current = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
+    
     guard let start,
-          let current else {
-      fatalError("Invalid time counter state.")
+          let previous = latest else {
+      self.start = current
+      self.latest = current
+      return
     }
     
     // Validate that the vsync frame index is an integer multiple.
+    do {
+      let currentTimeTicks = current.video - start.video
+      let currentTimeSeconds = Double(currentTimeTicks) / 24_000_000
+      
+      let frameRate: Int = Screen.selected.maximumFramesPerSecond
+      let currentTimeFrames = currentTimeSeconds * Double(frameRate)
+      let remainderTimeFrames = currentTimeFrames - rint(currentTimeFrames)
+      guard remainderTimeFrames.magnitude < 0.001 else {
+        fatalError("Vsync timestamp was not integer multiple of refresh rate.")
+      }
+    }
+    
+    // Store the current timestamp as the latest.
+    self.latest = current
   }
 }
 
