@@ -49,6 +49,9 @@ class Renderer {
   var startContinuousTime: UInt64?
   var startTimeStamp: CVTimeStamp?
   
+  var previousVideoTime: CVTimeStamp?
+  var currentVideoTime: CVTimeStamp?
+  
   init() {
     device = MTLCreateSystemDefaultDevice()!
     commandQueue = device.makeCommandQueue()!
@@ -56,12 +59,10 @@ class Renderer {
       .createComputePipelineState(device: device)
   }
   
-  func render(
-    layer: CAMetalLayer,
+  func registerFrameStart(
     now: CVTimeStamp,
     outputTime: CVTimeStamp
   ) {
-    // Update the time.
     if startDate == nil {
       startDate = Date()
     }
@@ -71,6 +72,44 @@ class Renderer {
     if startTimeStamp == nil {
       startTimeStamp = outputTime
     }
+    currentVideoTime = outputTime
+    
+    let currentTimeStamp = outputTime
+    let currentTimeTicks: Int64 = 
+    currentTimeStamp.videoTime - startTimeStamp!.videoTime
+    let currentTimeSeconds = Double(currentTimeTicks) / 24_000_000
+    
+    let frameRate: Int = Screen.selected.maximumFramesPerSecond
+    let currentTimeFrames = currentTimeSeconds * Double(frameRate)
+    let roundedTimeFrames = rint(currentTimeFrames)
+    let remainderTimeFrames = currentTimeFrames - roundedTimeFrames
+    guard remainderTimeFrames.magnitude < 0.001 else {
+      fatalError(
+        "Timestamp was not integer multiple of refresh rate: \(currentTimeFrames).")
+    }
+    
+    // Bring into alignment with the wall clock time.
+    let currentContinuousTime = mach_continuous_time()
+    let wallTime = currentContinuousTime - startContinuousTime!
+    let wallTimeSeconds = Double(wallTime) / 24_000_000
+    let wallTimeFrames = wallTimeSeconds * Double(frameRate)
+    print(wallTimeFrames, roundedTimeFrames)
+    
+    currentFrameID = Int(roundedTimeFrames)
+  }
+  
+  func registerFrameEnd(
+    now: CVTimeStamp,
+    outputTime: CVTimeStamp
+  ) {
+    previousVideoTime = currentVideoTime
+    currentVideoTime = nil
+  }
+  
+  func render(
+    layer: CAMetalLayer
+  ) {
+    registerFrameStart(now: now, outputTime: outputTime)
     
     // Fetch the drawable.
     let drawable = layer.nextDrawable()
@@ -89,20 +128,33 @@ class Renderer {
       var time32 = Float(fractionalTime)
       encoder.setBytes(&time32, length: 4, index: index)
     }
+    
+    print()
     do {
       let currentDate = Date()
       let deltaDate = currentDate.timeIntervalSince(startDate!)
+      print(deltaDate, deltaDate * 120)
       setTime(deltaDate, index: 0)
     }
     do {
       let currentContinuousTime = mach_continuous_time()
       let deltaContinuousTime = currentContinuousTime - startContinuousTime!
       let deltaContinuousTimeSeconds = Double(deltaContinuousTime) / 24_000_000
+      print(deltaContinuousTimeSeconds, deltaContinuousTimeSeconds * 120)
       setTime(deltaContinuousTimeSeconds, index: 1)
     }
     do {
       let currentTimeStamp = outputTime
-      setTime(Double.zero, index: 2)
+      let currentTime = currentTimeStamp.hostTime - startTimeStamp!.hostTime
+      let currentTimeSeconds = Double(currentTime) / 24_000_000
+      print(currentTimeSeconds, currentTimeSeconds * 120)
+    }
+    do {
+      let currentTimeStamp = outputTime
+      let currentTime = currentTimeStamp.videoTime - startTimeStamp!.videoTime
+      let currentTimeSeconds = Double(currentTime) / 24_000_000
+      print(currentTimeSeconds, currentTimeSeconds * 120)
+      setTime(currentTimeSeconds, index: 2)
     }
     encoder.setTexture(drawable.texture, index: 0)
     
@@ -116,6 +168,8 @@ class Renderer {
     encoder.endEncoding()
     commandBuffer.present(drawable)
     commandBuffer.commit()
+    
+    registerFrameEnd(now: now, outputTime: outputTime)
   }
 }
 
