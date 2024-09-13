@@ -10,20 +10,16 @@ public struct DisplayDescriptor {
 }
 
 public class Display {
-  private var _screen: NSScreen
   private var _renderTargetSize: Int
+  private var _screen: NSScreen
   
   public init(descriptor: DisplayDescriptor) {
-    guard let renderTargetSize = descriptor.renderTargetSize else {
+    guard let renderTargetSize = descriptor.renderTargetSize,
+          let screenNumber = descriptor.screenNumber else {
       fatalError("Descriptor was incomplete.")
     }
     _renderTargetSize = renderTargetSize
-    
-    if let screenNumber = descriptor.screenNumber {
-      _screen = Display.findScreen(screenNumber: screenNumber)
-    } else {
-      _screen = Display.findFastestScreen()
-    }
+    _screen = Display.findScreen(screenNumber: screenNumber)
   }
 }
 
@@ -36,7 +32,7 @@ extension Display {
     return screenNumber
   }
   
-  static func findScreen(screenNumber: UInt32) -> NSScreen {
+  public static func findScreen(screenNumber: UInt32) -> NSScreen {
     let screens = NSScreen.screens
     
     var matchedScreen: NSScreen?
@@ -53,7 +49,7 @@ extension Display {
     return matchedScreen
   }
   
-  static func findFastestScreen() -> NSScreen {
+  public static func findFastestScreen() -> NSScreen {
     let screens = NSScreen.screens
     
     var fastestScreen: NSScreen?
