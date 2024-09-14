@@ -50,8 +50,8 @@ extension Application {
     var displayLink: CVDisplayLink!
     
     // Initialize the display link with the chosen screen.
-    let screenNumber = Display.screenNumber(screen: display.screen)
-    CVDisplayLinkCreateWithCGDisplay(screenNumber, &displayLink)
+    let screenID = Display.screenID(screen: display.screen)
+    CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
     
     return displayLink
   }
@@ -60,6 +60,8 @@ extension Application {
     // Set the function pointer for the render loop.
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
+      
+      // TODO: Move all of this into a method of Window.
       
       // There is a bug where CVDisplayLink doesn't register transitions to an
       // external display. We detect this bug by first
@@ -84,19 +86,20 @@ extension Application {
       // Using the original specified display instead of the value returned
       // by 'CVDisplayLinkGetCurrentCGDisplay'. That way, if the CVDisplayLink
       // bug is fixed, we still have the same behavior.
-      let registeredDisplay = Display.screenNumber(screen: display.screen)
+      let registeredDisplay = Display.screenID(screen: display.screen)
       
       // Access the window on the main queue to prevent a crash.
       DispatchQueue.main.async { [self] in
         let screen = window.window.screen!
         
-        let actualDisplay = Display.screenNumber(screen: screen)
+        let actualDisplay = Display.screenID(screen: screen)
         if registeredDisplay != actualDisplay {
           fatalError("Attempted to move the window to a different display.")
         }
       }
       
-      
+      // TODO: Render to a 'Drawable', and provide a public API for fetching
+      // the drawable. This API encapsulates the failure upon waiting 1 second.
       renderer.render(layer: view.metalLayer)
       
       // Return an error code indicating success.

@@ -14,11 +14,11 @@ import MolecularRenderer
 var display: Display
 do {
   let screen = Display.findFastestScreen()
-  let screenNumber = Display.screenNumber(screen: screen)
+  let screenID = Display.screenID(screen: screen)
   
   var displayDesc = DisplayDescriptor()
   displayDesc.renderTargetSize = 1920
-  displayDesc.screenNumber = screenNumber
+  displayDesc.screenID = screenID
   display = Display(descriptor: displayDesc)
 }
 
@@ -29,8 +29,6 @@ do {
   applicationDesc.display = display
   application = Application(descriptor: applicationDesc)
 }
-
-print("hi13")
 
 // Run the application.
 application.run()

@@ -2,7 +2,7 @@ import AppKit
 
 public struct DisplayDescriptor {
   public var renderTargetSize: Int?
-  public var screenNumber: UInt32?
+  public var screenID: Int?
   
   public init() {
     
@@ -18,36 +18,36 @@ public class Display {
   
   public init(descriptor: DisplayDescriptor) {
     guard let renderTargetSize = descriptor.renderTargetSize,
-          let screenNumber = descriptor.screenNumber else {
+          let screenID = descriptor.screenID else {
       fatalError("Descriptor was incomplete.")
     }
     self.renderTargetSize = renderTargetSize
-    self.screen = Display.findScreen(screenNumber: screenNumber)
+    self.screen = Display.screen(screenID: screenID)
   }
 }
 
 extension Display {
-  public static func screenNumber(screen: NSScreen) -> UInt32 {
+  public static func screenID(screen: NSScreen) -> Int {
     let key = NSDeviceDescriptionKey("NSScreenNumber")
     let screenNumberAny = screen.deviceDescription[key]!
     let screenNumberNSNumber = screenNumberAny as! NSNumber
     let screenNumber = screenNumberNSNumber.uint32Value
-    return screenNumber
+    return Int(screenNumber)
   }
   
-  public static func findScreen(screenNumber: UInt32) -> NSScreen {
+  public static func screen(screenID: Int) -> NSScreen {
     let screens = NSScreen.screens
     
     var matchedScreen: NSScreen?
     for screen in screens {
-      let candidateScreenNumber = Display.screenNumber(screen: screen)
-      if screenNumber == candidateScreenNumber {
+      let candidateScreenID = Display.screenID(screen: screen)
+      if screenID == candidateScreenID {
         matchedScreen = screen
       }
     }
     
     guard let matchedScreen else {
-      fatalError("Failed to find screen matching number: \(screenNumber)")
+      fatalError("Failed to find screen matching ID: \(screenID)")
     }
     return matchedScreen
   }
@@ -73,6 +73,11 @@ extension Display {
 }
 
 extension Display {
+  /// The number of frames issued per second.
+  public var frameRate: Int {
+    screen.maximumFramesPerSecond
+  }
+  
   /// The resolution of the rendering region, according to the operating
   /// system's scale factor.
   public var windowSize: Int {

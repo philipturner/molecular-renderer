@@ -43,25 +43,20 @@ extension Window {
     guard let screen = window.screen else {
       fatalError("Could not retrieve the window's screen.")
     }
-    let centerX = screen.visibleFrame.midX
-    let centerY = screen.visibleFrame.midY
-    let scaleFactor = screen.backingScaleFactor
-    print(screen.visibleFrame)
-    
-    let renderRegionSize = windowSize
-    let leftX = centerX - renderRegionSize / 2
-    let upperY = centerY - renderRegionSize / 2
-    let origin = CGPoint(x: leftX, y: upperY)
-    
-    let windowSize = window.frame.size
-    guard windowSize.width == renderRegionSize else {
-      fatalError("Render region had incorrect dimensions.")
+    guard window.frame.size.width == Double(windowSize) else {
+      fatalError("Window had incorrect size.")
     }
-    guard windowSize.height > renderRegionSize else {
+    guard window.frame.size.height > Double(windowSize) else {
       fatalError("Title bar was missing.")
     }
     
-    let frame = CGRect(origin: origin, size: windowSize)
+    let centerX = screen.visibleFrame.midX
+    let centerY = screen.visibleFrame.midY
+    let leftX = centerX - Double(windowSize) / 2
+    let upperY = centerY - Double(windowSize) / 2
+    let origin = CGPoint(x: leftX, y: upperY)
+    
+    let frame = CGRect(origin: origin, size: window.frame.size)
     window.setFrame(frame, display: true)
   }
   
