@@ -84,37 +84,3 @@ extension Window {
     }
   }
 }
-
-extension Window {
-  // There is a bug where CVDisplayLink doesn't register transitions to an
-  // external display. We detect this bug by first
-  // querying the screen of the 'NSWindow'. Then, comparing it to the
-  // screen from 'CVDisplayLinkGetCurrentCGDisplay'. The latter is always
-  // the same as the screen it was initialized with (which is the bug).
-  // The app crashes upon realizing that the correct screen does not match
-  // what CVDisplayLink thinks the screen is.
-  //
-  // The fix does not solve the issues with Vsync on macOS:
-  // https://thume.ca/2017/12/09/cvdisplaylink-doesnt-link-to-your-display/
-  //
-  // But it is important for the error correction scheme for frame
-  // misalignment. Previously, it was only parameterized for 120 Hz
-  // displays, where the app might become unstable on the 60 Hz monitor.
-  // With the intentional crashing, I removed the need for the heuristic
-  // to handle display transitions. It is one display throughout the
-  // entire session, whose framerate is known a priori. Apparently Vsync
-  // is much better on Windows, so I will not/should not apply the
-  // heuristic there.
-  func checkScreen(displayLink: CVDisplayLink) {
-    let expectedID = Int(CVDisplayLinkGetCurrentCGDisplay(displayLink))
-    
-    // Access the NSWindow on the main queue to prevent a crash.
-    DispatchQueue.main.async { [self] in
-      let windowScreen = window.screen!
-      let actualID = Display.screenID(screen: windowScreen)
-      guard actualID == expectedID else {
-        fatalError("Attempted to move the window to a different display.")
-      }
-    }
-  }
-}

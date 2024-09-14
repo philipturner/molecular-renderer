@@ -11,12 +11,27 @@
 import Metal
 import MolecularRenderer
 
-// Set up the GPU context.
-var gpuContextDesc = GPUContextDescriptor()
-gpuContextDesc.deviceID = GPUContext.fastestDeviceID
-let gpuContext = GPUContext(descriptor: gpuContextDesc)
+func createApplication() -> Application {
+  // Set up the display.
+  var displayDesc = DisplayDescriptor()
+  displayDesc.renderTargetSize = 1920
+  displayDesc.screenID = 3
+  let display = Display(descriptor: displayDesc)
+  
+  // Set up the GPU context.
+  var gpuContextDesc = GPUContextDescriptor()
+  gpuContextDesc.deviceID = GPUContext.fastestDeviceID
+  let gpuContext = GPUContext(descriptor: gpuContextDesc)
+  
+  // Set up the application.
+  var applicationDesc = ApplicationDescriptor()
+  applicationDesc.display = display
+  applicationDesc.gpuContext = gpuContext
+  let application = Application(descriptor: applicationDesc)
+  
+  return application
+}
 
-// Set up the render pipeline.
 func createShaderSource() -> String {
   """
   
@@ -77,11 +92,13 @@ func createShaderSource() -> String {
   
   """
 }
+
 func createRenderPipeline(
-  gpuContext: GPUContext
+  application: Application,
+  shaderSource: String
 ) -> MTLComputePipelineState {
+  let device = application.gpuContext.device
   let shaderSource = createShaderSource()
-  let device = gpuContext.device
   let library = try! device.makeLibrary(source: shaderSource, options: nil)
   
   let function = library.makeFunction(name: "renderImage")
@@ -91,22 +108,17 @@ func createRenderPipeline(
   let pipeline = try! device.makeComputePipelineState(function: function)
   return pipeline
 }
-let renderPipeline = createRenderPipeline(gpuContext: gpuContext)
 
-// Set up the display.
-var displayDesc = DisplayDescriptor()
-displayDesc.renderTargetSize = 1920
-displayDesc.screenID = Display.fastestScreenID
-let display = Display(descriptor: displayDesc)
+// Set up the resources.
+let application = createApplication()
+let shaderSource = createShaderSource()
+let renderPipeline = createRenderPipeline(
+  application: application,
+  shaderSource: shaderSource)
 
-// Set up the application.
-var applicationDesc = ApplicationDescriptor()
-applicationDesc.display = display
-applicationDesc.gpuContext = gpuContext
-let application = Application(descriptor: applicationDesc)
-
-// Run the application.
 var frameID: Int = .zero
+
+// Enter the run loop.
 application.run { renderTarget in
   frameID += 1
   

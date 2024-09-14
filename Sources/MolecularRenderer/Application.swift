@@ -32,38 +32,15 @@ public class Application {
   }
   
   public func run(
-    _ runLoop: @escaping (MTLTexture) -> Void
+    _ closure: @escaping (MTLTexture) -> Void
   ) {
-    // Use CVDisplayLink to facilitate the run loop.
-    var displayLink: CVDisplayLink!
-    let screenID = display.screenID
-    CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
-    CVDisplayLinkSetOutputHandler(displayLink) {
-      [self] displayLink, now, outputTime, _, _ in
-      
-      // Check that the screen is valid.
-      window.checkScreen(displayLink: displayLink)
-      
-      // Retrieve the framebuffer.
-      let drawable = view.metalLayer.nextDrawable()
-      guard let drawable else {
-        fatalError("Drawable timed out after 1 second.")
-      }
-      
-      // Invoke the user-supplied closure.
-      runLoop(drawable.texture)
-      
-      // Present the framebuffer.
-      do {
-        let commandBuffer = gpuContext.commandQueue.makeCommandBuffer()!
-        commandBuffer.present(drawable)
-        commandBuffer.commit()
-      }
-      
-      // Return an error code indicating success.
-      return kCVReturnSuccess
-    }
-    CVDisplayLinkStart(displayLink)
+    var runLoopDesc = RunLoopDescriptor()
+    runLoopDesc.closure = closure
+    runLoopDesc.display = display
+    
+    let runLoop = RunLoop(descriptor: runLoopDesc)
+    runLoop.setOutputHandler(application: self)
+    runLoop.start()
     
     // Launch the UI window with NSApplication.
     let application = NSApplication.shared
