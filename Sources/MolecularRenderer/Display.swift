@@ -1,6 +1,8 @@
 import AppKit
 
 public struct DisplayDescriptor {
+  // TODO: Allow the view to be rectangular. We have a specification for
+  // handling FOV on rectangular screens: https://minecraft.fandom.com/wiki/Options
   public var renderTargetSize: Int?
   public var screenID: Int?
   
