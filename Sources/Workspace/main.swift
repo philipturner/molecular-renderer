@@ -30,5 +30,6 @@ do {
   application = Application(descriptor: applicationDesc)
 }
 
+print("hi3")
 // Run the application.
 application.run()

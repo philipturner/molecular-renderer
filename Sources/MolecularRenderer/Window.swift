@@ -1,27 +1,24 @@
 import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
-  unowned var display: Display
+  var display: Display
   var window: NSWindow
+  
+  required init(coder: NSCoder) {
+    fatalError("Not implemented.")
+  }
   
   init(display: Display) {
     self.display = display
-    window = NSWindow(
+    self.window = NSWindow(
       contentRect: NSRect.zero,
       styleMask: [.closable, .resizable, .titled],
       backing: .buffered,
       defer: false,
       screen: display.screen)
-    
     super.init(nibName: nil, bundle: nil)
   }
   
-  required init(coder: NSCoder) {
-    fatalError("Not implemented.")
-  }
-}
-
-extension Window {
   func applicationDidFinishLaunching(_ notification: Notification) {
     window.makeFirstResponder(self)
     window.contentViewController = self
@@ -37,14 +34,17 @@ extension Window {
       name: NSWindow.willCloseNotification,
       object: window)
   }
-  
+}
+
+extension Window {
   // An alternative to 'NSWindow.center()' that doesn't make the window migrate
   // to the main display.
-  //
-  // TODO: Try forcing these bounds to be set during the initializer.
   static func center(window: NSWindow, display: Display) {
     guard let screen = window.screen else {
       fatalError("Could not retrieve the window's screen.")
+    }
+    guard screen == display.screen else {
+      fatalError("Incorrect screen.")
     }
     let centerX = screen.visibleFrame.midX
     let centerY = screen.visibleFrame.midY
@@ -57,7 +57,7 @@ extension Window {
     
     let windowSize = window.frame.size
     guard windowSize.width == renderRegionSize else {
-      fatalError("Render region had incorrect dimensions..")
+      fatalError("Render region had incorrect dimensions.")
     }
     guard windowSize.height > renderRegionSize else {
       fatalError("Title bar was missing.")

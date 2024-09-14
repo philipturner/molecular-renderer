@@ -11,6 +11,7 @@ public struct ApplicationDescriptor {
 public class Application {
   public var clock: Clock
   public var display: Display
+  var view: View
   var window: Window
   
   public init(descriptor: ApplicationDescriptor) {
@@ -20,7 +21,11 @@ public class Application {
     self.display = display
     
     clock = Clock()
+    view = View(display: display)
     window = Window(display: display)
+    
+    window.view = view
+    view.windowReference = window
   }
   
   public func run() {
