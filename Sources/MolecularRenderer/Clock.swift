@@ -63,9 +63,8 @@ public struct Clock {
     current: TimeStamp
   ) {
     // Validate that the vsync timestamp is divisible by the refresh period.
-    let previousVideoTicks = previous.video - start.video
-    let currentVideoTicks = current.video - start.video
     do {
+      let currentVideoTicks = current.video - start.video
       let refreshPeriod = 24_000_000 / frameRate
       guard currentVideoTicks % refreshPeriod == 0 else {
         fatalError("Vsync timestamp is not divisible by refresh period.")
@@ -73,14 +72,18 @@ public struct Clock {
     }
     
     // Validate that the vsync timestamp is monotonically increasing.
-    let previousFrames = frames(ticks: previousVideoTicks)
-    let currentFrames = frames(ticks: currentVideoTicks)
+    let previousFrames = frames(ticks: previous.video - start.video)
+    let currentFrames = frames(ticks: current.video - start.video)
     guard currentFrames > previousFrames else {
       fatalError("Vsync timestamp is not monotonically increasing.")
     }
     
     // Update the frame counter.
     frameCounter += currentFrames - previousFrames
+    
+    // Generate the target frame ID.
+    let targetFrameID = frames(ticks: current.host - start.host)
+    print("misalignment:", frameCounter - targetFrameID)
     
     // Validate that the frame counter is not lagging behind the actual
     // timestamp. If anything, it should be ahead of the actual timestamp
