@@ -96,7 +96,7 @@ extension Application {
         }
       }
       
-      // TODO: Make this part scripted by the user.
+      
       renderer.render(layer: view.metalLayer)
       
       // Return an error code indicating success.

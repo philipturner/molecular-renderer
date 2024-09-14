@@ -10,16 +10,19 @@ public struct DisplayDescriptor {
 }
 
 public class Display {
-  private var _renderTargetSize: Int
-  private var _screen: NSScreen
+  /// The resolution of the rendering region, in pixels.
+  public private(set) var renderTargetSize: Int
+  
+  /// The display chosen for rendering at program startup.
+  public private(set) var screen: NSScreen
   
   public init(descriptor: DisplayDescriptor) {
     guard let renderTargetSize = descriptor.renderTargetSize,
           let screenNumber = descriptor.screenNumber else {
       fatalError("Descriptor was incomplete.")
     }
-    _renderTargetSize = renderTargetSize
-    _screen = Display.findScreen(screenNumber: screenNumber)
+    self.renderTargetSize = renderTargetSize
+    self.screen = Display.findScreen(screenNumber: screenNumber)
   }
 }
 
@@ -70,26 +73,11 @@ extension Display {
 }
 
 extension Display {
-  /// The number of frames issued per second.
-  public var frameRate: Int {
-    _screen.maximumFramesPerSecond
-  }
-  
-  /// The resolution of the rendering region, in pixels.
-  public var renderTargetSize: Int {
-    _renderTargetSize
-  }
-  
-  /// The display chosen for rendering at program startup.
-  public var screen: NSScreen {
-    _screen
-  }
-  
   /// The resolution of the rendering region, according to the operating
   /// system's scale factor.
   public var windowSize: Int {
-    var output = Double(_renderTargetSize)
-    output /= _screen.backingScaleFactor
+    var output = Double(renderTargetSize)
+    output /= screen.backingScaleFactor
     
     guard output == floor(output) else {
       fatalError("Resolution was not evenly divisible by scaling factor.")

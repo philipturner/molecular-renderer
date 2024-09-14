@@ -1,21 +1,21 @@
 import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
-  var display: Display
   var window: NSWindow
+  var windowSize: Int
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
   }
   
   init(display: Display) {
-    self.display = display
-    self.window = NSWindow(
+    window = NSWindow(
       contentRect: NSRect.zero,
       styleMask: [.closable, .resizable, .titled],
       backing: .buffered,
       defer: false,
       screen: display.screen)
+    windowSize = display.windowSize
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -23,7 +23,7 @@ class Window: NSViewController, NSApplicationDelegate {
     window.makeFirstResponder(self)
     window.contentViewController = self
     
-    Window.center(window: window, display: display)
+    center()
     window.makeKey()
     window.orderFrontRegardless()
     
@@ -39,18 +39,16 @@ class Window: NSViewController, NSApplicationDelegate {
 extension Window {
   // An alternative to 'NSWindow.center()' that doesn't make the window migrate
   // to the main display.
-  static func center(window: NSWindow, display: Display) {
+  func center() {
     guard let screen = window.screen else {
       fatalError("Could not retrieve the window's screen.")
-    }
-    guard screen == display.screen else {
-      fatalError("Incorrect screen.")
     }
     let centerX = screen.visibleFrame.midX
     let centerY = screen.visibleFrame.midY
     let scaleFactor = screen.backingScaleFactor
+    print(screen.visibleFrame)
     
-    let renderRegionSize = Double(display.renderTargetSize) / scaleFactor
+    let renderRegionSize = windowSize
     let leftX = centerX - renderRegionSize / 2
     let upperY = centerY - renderRegionSize / 2
     let origin = CGPoint(x: leftX, y: upperY)
