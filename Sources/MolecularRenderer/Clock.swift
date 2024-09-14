@@ -17,7 +17,7 @@ public class Clock {
   var start: TimeStamp?
   var latest: TimeStamp?
   
-  public init() {
+  init() {
     
   }
   
