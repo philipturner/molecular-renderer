@@ -1,38 +1,34 @@
 import AppKit
 
 class View: NSView, CALayerDelegate {
-  var display: Display
   var metalLayer: CAMetalLayer
+  var windowSize: Int
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
   }
   
   init(display: Display) {
-    self.display = display
     metalLayer = CAMetalLayer()
+    windowSize = display.windowSize
     super.init(frame: .zero)
     
-    self.layerContentsRedrawPolicy = .duringViewResize
-    self.wantsLayer = true
-    metalLayer.drawableSize = CGSize(
-      width: Double(display.renderTargetSize),
-      height: Double(display.renderTargetSize))
+    func createCGSize(_ width: Int) -> CGSize {
+      let widthDouble = Double(width)
+      let cgSize = CGSize(width: widthDouble, height: widthDouble)
+      return cgSize
+    }
     
     metalLayer.delegate = self
-    
-    var windowSize = Double(display.renderTargetSize)
-    windowSize /= display.screen.backingScaleFactor
-    self.bounds.size = CGSize(
-      width: Double(windowSize),
-      height: Double(windowSize))
-    self.frame.size = CGSize(
-      width: Double(windowSize),
-      height: Double(windowSize))
-    
     metalLayer.device = MTLCreateSystemDefaultDevice()!
+    metalLayer.drawableSize = createCGSize(display.renderTargetSize)
     metalLayer.framebufferOnly = false
     metalLayer.pixelFormat = .rgb10a2Unorm
+    
+    self.bounds.size = createCGSize(display.windowSize)
+    self.frame.size = createCGSize(display.windowSize)
+    self.layerContentsRedrawPolicy = .never
+    self.wantsLayer = true
   }
   
   override func makeBackingLayer() -> CALayer {
@@ -42,8 +38,8 @@ class View: NSView, CALayerDelegate {
 
 extension View {
   func checkDrawableSize(_ newSize: NSSize) {
-    guard newSize.width == Double(display.windowSize),
-          newSize.height == Double(display.windowSize) else {
+    guard newSize.width == Double(windowSize),
+          newSize.height == Double(windowSize) else {
       fatalError("Attempted to resize the window.")
     }
   }
