@@ -15,7 +15,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.renderTargetSize = 1920
-  displayDesc.screenID = 3
+  displayDesc.screenID = 1
   let display = Display(descriptor: displayDesc)
   
   // Set up the GPU context.
@@ -116,12 +116,14 @@ let renderPipeline = createRenderPipeline(
   application: application,
   shaderSource: shaderSource)
 
+var startTime: UInt64?
 var frameID: Int = .zero
 
 // Enter the run loop.
 application.run { renderTarget in
   frameID += 1
   
+  // Start the command encoder.
   let commandQueue = application.gpuContext.commandQueue
   let commandBuffer = commandQueue.makeCommandBuffer()!
   let encoder = commandBuffer.makeComputeCommandEncoder()!
@@ -134,10 +136,21 @@ application.run { renderTarget in
       encoder.setBytes(&time32, length: 4, index: index)
     }
     
-    let frameIDTime = Double(frameID) / 120
+    if let startTime {
+      let currentTime = mach_continuous_time()
+      let timeSeconds = Double(currentTime - startTime) / 24_000_000
+      setTime(timeSeconds, index: 0)
+    } else {
+      startTime = mach_continuous_time()
+      setTime(Double.zero, index: 0)
+    }
     
-    setTime(frameIDTime, index: 0)
-    setTime(Double.zero, index: 1)
+    let clock = application.clock
+    let timeInFrames = clock.frames
+    let framesPerSecond = application.display.frameRate
+    let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
+    setTime(timeInSeconds, index: 1)
+    
     setTime(Double.zero, index: 2)
   }
   
@@ -155,6 +168,7 @@ application.run { renderTarget in
       threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
   }
   
+  // End the command encoder.
   encoder.endEncoding()
   commandBuffer.commit()
 }

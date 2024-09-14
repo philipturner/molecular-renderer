@@ -32,6 +32,10 @@ class RunLoop {
     CVDisplayLinkSetOutputHandler(displayLink) {
       [application] displayLink, now, outputTime, flagsIn, flagsOut in
       
+      // Increment the frame counter.
+      application.clock.increment(
+        vsyncTimeStamp: outputTime.pointee)
+      
       // There is a bug where CVDisplayLink doesn't register transitions to an
       // external display. We detect this bug by first
       // querying the screen of the 'NSWindow'. Then, comparing it to the

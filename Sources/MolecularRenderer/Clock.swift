@@ -2,84 +2,96 @@ import QuartzCore
 
 struct TimeStamp {
   // The Mach continuous time for now.
-  var host: UInt64
+  var host: Int
   
   // The Core Video time for when the frame will be presented.
-  var video: UInt64
+  var video: Int
   
   init(vsyncTimeStamp: CVTimeStamp) {
-    host = mach_continuous_time()
-    video = UInt64(truncatingIfNeeded: vsyncTimeStamp.videoTime)
+    host = Int(mach_continuous_time())
+    video = Int(vsyncTimeStamp.videoTime)
   }
 }
 
-public class Clock {
-  var start: TimeStamp?
-  var latest: TimeStamp?
+struct ClockTimeStamps {
+  var start: TimeStamp
+  var latest: TimeStamp
+}
+
+public struct Clock {
+  var frameCounter: Int
+  var frameRate: Int
+  var timeStamps: ClockTimeStamps?
   
-  init() {
-    
+  init(display: Display) {
+    frameCounter = .zero
+    frameRate = display.frameRate
   }
   
-  public func increment(
-    display: Display,
+  func frames(ticks: Int) -> Int {
+    let seconds = Double(ticks) / 24_000_000
+    var frames = seconds * Double(frameRate)
+    frames = frames.rounded(.toNearestOrEven)
+    return Int(frames)
+  }
+  
+  mutating func increment(
     vsyncTimeStamp: CVTimeStamp
   ) {
-    let current = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
-    guard let start,
-          let previous = latest else {
-      self.start = current
-      self.latest = current
+    guard let timeStamps else {
+      let timeStamp = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
+      self.timeStamps = ClockTimeStamps(
+        start: timeStamp,
+        latest: timeStamp)
       return
     }
     
-    // Validate that the vsync frame index is an integer multiple.
+    let start = timeStamps.start
+    let previous = timeStamps.latest
+    let current = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
+    incrementFrameCounter(
+      start: start,
+      previous: previous,
+      current: current)
+    
+    self.timeStamps!.latest = current
+  }
+  
+  mutating func incrementFrameCounter(
+    start: TimeStamp,
+    previous: TimeStamp,
+    current: TimeStamp
+  ) {
+    // Validate that the vsync timestamp is divisible by the refresh period.
+    let previousVideoTicks = previous.video - start.video
+    let currentVideoTicks = current.video - start.video
     do {
-      let currentTimeTicks = current.video - start.video
-      let currentTimeSeconds = Double(currentTimeTicks) / 24_000_000
-      let currentTimeFrames = currentTimeSeconds * Double(display.frameRate)
-      
-      let roundedTimeFrames = rint(currentTimeFrames)
-      let remainderTimeFrames = currentTimeFrames - roundedTimeFrames
-      guard remainderTimeFrames.magnitude < 0.001 else {
-        fatalError("Vsync timestamp was not integer multiple of refresh rate.")
+      let refreshPeriod = 24_000_000 / frameRate
+      guard currentVideoTicks % refreshPeriod == 0 else {
+        fatalError("Vsync timestamp is not divisible by refresh period.")
       }
     }
     
-    // Store the current timestamp as the latest.
-    self.latest = current
+    // Validate that the vsync timestamp is monotonically increasing.
+    let previousFrames = frames(ticks: previousVideoTicks)
+    let currentFrames = frames(ticks: currentVideoTicks)
+    guard currentFrames > previousFrames else {
+      fatalError("Vsync timestamp is not monotonically increasing.")
+    }
+    
+    // Update the frame counter.
+    frameCounter += currentFrames - previousFrames
+    
+    // Validate that the frame counter is not lagging behind the actual
+    // timestamp. If anything, it should be ahead of the actual timestamp
+    // (the bug that seems to trouble macOS).
   }
 }
 
 extension Clock {
-  /// The true wall time since rendering started.
-  ///
-  /// We will eventually replace this with an approximate wall time, as the
-  /// frames will be jittery.
-  public var seconds: Double {
-    guard let start,
-          let latest else {
-      fatalError("Timestamps were not set.")
-    }
-    
-    let latestTimeTicks = latest.host - start.host
-    let latestTimeSeconds = Double(latestTimeTicks) / 24_000_000
-    return latestTimeSeconds
-  }
-  
   /// The current estimate of the discrete multiple of the display's refresh
   /// period.
-  public func frames(display: Display) -> Int {
-    guard let start,
-          let latest else {
-      fatalError("Timestamps were not set.")
-    }
-    
-    let latestTimeTicks = latest.video - start.video
-    let latestTimeSeconds = Double(latestTimeTicks) / 24_000_000
-    let latestTimeFrames = latestTimeSeconds * Double(display.frameRate)
-    
-    let roundedTimeFrames = rint(latestTimeFrames)
-    return Int(roundedTimeFrames)
+  public var frames: Int {
+    frameCounter
   }
 }

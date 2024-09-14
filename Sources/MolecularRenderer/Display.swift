@@ -91,7 +91,7 @@ extension Display {
     var output = Double(renderTargetSize)
     output /= screen.backingScaleFactor
     
-    guard output == floor(output) else {
+    guard output == output.rounded(.down) else {
       fatalError("Resolution was not evenly divisible by scaling factor.")
     }
     return Int(output)

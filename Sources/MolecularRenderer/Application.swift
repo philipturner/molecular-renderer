@@ -24,7 +24,7 @@ public class Application {
     self.display = display
     self.gpuContext = gpuContext
     
-    clock = Clock()
+    clock = Clock(display: display)
     view = View(display: display)
     window = Window(display: display)
     
