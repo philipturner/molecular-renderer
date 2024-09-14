@@ -15,7 +15,7 @@ public class Application {
   var view: View
   var window: Window
   
-  var displayLink: CVDisplayLink!
+  var displayLink: CVDisplayLink
   
   public init(descriptor: ApplicationDescriptor) {
     guard let display = descriptor.display else {
@@ -29,7 +29,10 @@ public class Application {
     window = Window(display: display)
     
     window.view = view
-    displayLink = createDisplayLink()
+    
+    // TODO: Wrap this code in something cleaner.
+    displayLink = Application.createDisplayLink(display: display)
+    setOutputHandler(displayLink)
     CVDisplayLinkStart(displayLink)
   }
   
@@ -43,13 +46,17 @@ public class Application {
 }
 
 extension Application {
-  func createDisplayLink() -> CVDisplayLink {
+  static func createDisplayLink(display: Display) -> CVDisplayLink {
     var displayLink: CVDisplayLink!
     
     // Initialize the display link with the chosen screen.
     let screenNumber = Display.screenNumber(screen: display.screen)
     CVDisplayLinkCreateWithCGDisplay(screenNumber, &displayLink)
     
+    return displayLink
+  }
+  
+  func setOutputHandler(_ displayLink: CVDisplayLink) {
     // Set the function pointer for the render loop.
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
@@ -73,7 +80,13 @@ extension Application {
       // entire session, whose framerate is known a priori. Apparently Vsync
       // is much better on Windows, so I will not/should not apply the
       // heuristic there.
-      let registeredDisplay = CVDisplayLinkGetCurrentCGDisplay(displayLink)
+      
+      // Using the original specified display instead of the value returned
+      // by 'CVDisplayLinkGetCurrentCGDisplay'. That way, if the CVDisplayLink
+      // bug is fixed, we still have the same behavior.
+      let registeredDisplay = Display.screenNumber(screen: display.screen)
+      
+      // Access the window on the main queue to prevent a crash.
       DispatchQueue.main.async { [self] in
         let screen = window.window.screen!
         
@@ -83,11 +96,11 @@ extension Application {
         }
       }
       
+      // TODO: Make this part scripted by the user.
       renderer.render(layer: view.metalLayer)
       
+      // Return an error code indicating success.
       return kCVReturnSuccess
     }
-    
-    return displayLink
   }
 }
