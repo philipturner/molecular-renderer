@@ -50,7 +50,7 @@ extension Application {
     var displayLink: CVDisplayLink!
     
     // Initialize the display link with the chosen screen.
-    let screenID = Display.screenID(screen: display.screen)
+    let screenID = display.screenID
     CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
     
     return displayLink
@@ -86,7 +86,7 @@ extension Application {
       // Using the original specified display instead of the value returned
       // by 'CVDisplayLinkGetCurrentCGDisplay'. That way, if the CVDisplayLink
       // bug is fixed, we still have the same behavior.
-      let registeredDisplay = Display.screenID(screen: display.screen)
+      let registeredDisplay = display.screenID
       
       // Access the window on the main queue to prevent a crash.
       DispatchQueue.main.async { [self] in

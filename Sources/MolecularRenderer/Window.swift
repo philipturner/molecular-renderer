@@ -9,12 +9,14 @@ class Window: NSViewController, NSApplicationDelegate {
   }
   
   init(display: Display) {
+    let screenID = display.screenID
+    let screen = Display.screen(screenID: screenID)
     window = NSWindow(
       contentRect: NSRect.zero,
       styleMask: [.closable, .resizable, .titled],
       backing: .buffered,
       defer: false,
-      screen: display.screen)
+      screen: screen)
     windowSize = display.windowSize
     super.init(nibName: nil, bundle: nil)
   }

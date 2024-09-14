@@ -14,7 +14,7 @@ public class Display {
   public private(set) var renderTargetSize: Int
   
   /// The display chosen for rendering at program startup.
-  public private(set) var screen: NSScreen
+  private var screen: NSScreen
   
   public init(descriptor: DisplayDescriptor) {
     guard let renderTargetSize = descriptor.renderTargetSize,
@@ -27,7 +27,7 @@ public class Display {
 }
 
 extension Display {
-  public static func screenID(screen: NSScreen) -> Int {
+  static func screenID(screen: NSScreen) -> Int {
     let key = NSDeviceDescriptionKey("NSScreenNumber")
     let screenNumberAny = screen.deviceDescription[key]!
     let screenNumberNSNumber = screenNumberAny as! NSNumber
@@ -35,7 +35,7 @@ extension Display {
     return Int(screenNumber)
   }
   
-  public static func screen(screenID: Int) -> NSScreen {
+  static func screen(screenID: Int) -> NSScreen {
     let screens = NSScreen.screens
     
     var matchedScreen: NSScreen?
@@ -52,7 +52,8 @@ extension Display {
     return matchedScreen
   }
   
-  public static func findFastestScreen() -> NSScreen {
+  /// The identifier for the screen with the highest refresh rate.
+  public static var fastestScreenID: Int {
     let screens = NSScreen.screens
     
     var fastestScreen: NSScreen?
@@ -68,7 +69,8 @@ extension Display {
     guard let fastestScreen else {
       fatalError("Failed to find fastest screen.")
     }
-    return fastestScreen
+    let output = Display.screenID(screen: fastestScreen)
+    return output
   }
 }
 
@@ -76,6 +78,11 @@ extension Display {
   /// The number of frames issued per second.
   public var frameRate: Int {
     screen.maximumFramesPerSecond
+  }
+  
+  /// The identifier for the screen.
+  public var screenID: Int {
+    Display.screenID(screen: screen)
   }
   
   /// The resolution of the rendering region, according to the operating
