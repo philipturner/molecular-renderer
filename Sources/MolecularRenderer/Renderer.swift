@@ -16,20 +16,10 @@ public class Renderer {
   }
   
   public func render(
-    layer: CAMetalLayer
+    encoder: MTLComputeCommandEncoder,
+    renderTarget: MTLTexture
   ) {
     frameID += 1
-    
-    // Fetch the drawable.
-    let drawable = layer.nextDrawable()
-    guard let drawable else {
-      fatalError("Drawable timed out after 1 second.")
-    }
-    
-    // Start the command buffer.
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    let encoder = commandBuffer.makeComputeCommandEncoder()!
-    encoder.setComputePipelineState(computePipelineState)
     
     // Bind the buffers.
     do {
@@ -47,24 +37,18 @@ public class Renderer {
     }
     
     // Bind the textures.
-    encoder.setTexture(drawable.texture, index: 0)
+    encoder.setTexture(renderTarget, index: 0)
     
-    // Dispatch.
+    // Dispatch
     do {
-      guard drawable.texture.width == drawable.texture.height else {
-        fatalError("Could not establish dispatch grid size.")
-      }
+      encoder.setComputePipelineState(computePipelineState)
       
-      let dispatchSize = Int(drawable.texture.width)
+      let width = Int(renderTarget.width)
+      let height = Int(renderTarget.height)
       encoder.dispatchThreads(
-        MTLSize(width: dispatchSize, height: dispatchSize, depth: 1),
+        MTLSize(width: width, height: height, depth: 1),
         threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
     }
-    
-    // Finish the command buffer.
-    encoder.endEncoding()
-    commandBuffer.present(drawable)
-    commandBuffer.commit()
   }
 }
 

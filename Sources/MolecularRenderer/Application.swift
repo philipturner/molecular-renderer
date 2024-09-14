@@ -15,8 +15,6 @@ public class Application {
   var view: View
   var window: Window
   
-  var displayLink: CVDisplayLink
-  
   public init(descriptor: ApplicationDescriptor) {
     guard let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")
@@ -29,11 +27,6 @@ public class Application {
     window = Window(display: display)
     
     window.view = view
-    
-    // TODO: Wrap this code in something cleaner.
-    displayLink = Application.createDisplayLink(display: display)
-    setOutputHandler(displayLink)
-    CVDisplayLinkStart(displayLink)
   }
   
   public func run() {
@@ -41,66 +34,42 @@ public class Application {
     application.delegate = window
     application.setActivationPolicy(.regular)
     application.activate(ignoringOtherApps: true)
+    
+    setOutputHandler(window.displayLink)
+    CVDisplayLinkStart(window.displayLink)
     application.run()
   }
 }
 
 extension Application {
-  static func createDisplayLink(display: Display) -> CVDisplayLink {
-    var displayLink: CVDisplayLink!
-    
-    // Initialize the display link with the chosen screen.
-    let screenID = display.screenID
-    CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
-    
-    return displayLink
-  }
-  
   func setOutputHandler(_ displayLink: CVDisplayLink) {
     // Set the function pointer for the render loop.
     CVDisplayLinkSetOutputHandler(displayLink) {
       [self] displayLink, now, outputTime, _, _ in
       
-      // TODO: Move all of this into a method of Window.
+      // Check that the correct screen is linked.
+      let expectedID = display.screenID
+      window.checkScreen(expectedID: expectedID)
       
-      // There is a bug where CVDisplayLink doesn't register transitions to an
-      // external display. We detect this bug by first
-      // querying the screen of the 'NSWindow'. Then, comparing it to the
-      // screen from 'CVDisplayLinkGetCurrentCGDisplay'. The latter is always
-      // the same as the screen it was initialized with (which is the bug).
-      // The app crashes upon realizing that the correct screen does not match
-      // what CVDisplayLink thinks the screen is.
-      //
-      // The fix does not solve the issues with Vsync on macOS:
-      // https://thume.ca/2017/12/09/cvdisplaylink-doesnt-link-to-your-display/
-      //
-      // But it is important for the error correction scheme for frame
-      // misalignment. Previously, it was only parameterized for 120 Hz
-      // displays, where the app might become unstable on the 60 Hz monitor.
-      // With the intentional crashing, I removed the need for the heuristic
-      // to handle display transitions. It is one display throughout the
-      // entire session, whose framerate is known a priori. Apparently Vsync
-      // is much better on Windows, so I will not/should not apply the
-      // heuristic there.
-      
-      // Using the original specified display instead of the value returned
-      // by 'CVDisplayLinkGetCurrentCGDisplay'. That way, if the CVDisplayLink
-      // bug is fixed, we still have the same behavior.
-      let registeredDisplay = display.screenID
-      
-      // Access the window on the main queue to prevent a crash.
-      DispatchQueue.main.async { [self] in
-        let screen = window.window.screen!
-        
-        let actualDisplay = Display.screenID(screen: screen)
-        if registeredDisplay != actualDisplay {
-          fatalError("Attempted to move the window to a different display.")
-        }
+      // Fetch the drawable.
+      let layer = view.metalLayer
+      let drawable = layer.nextDrawable()
+      guard let drawable else {
+        fatalError("Drawable timed out after 1 second.")
       }
       
-      // TODO: Render to a 'Drawable', and provide a public API for fetching
-      // the drawable. This API encapsulates the failure upon waiting 1 second.
-      renderer.render(layer: view.metalLayer)
+      // Start the command buffer.
+      let commandBuffer = renderer.commandQueue.makeCommandBuffer()!
+      let encoder = commandBuffer.makeComputeCommandEncoder()!
+      
+      renderer.render(
+        encoder: encoder,
+        renderTarget: drawable.texture)
+      
+      // Finish the command buffer.
+      encoder.endEncoding()
+      commandBuffer.present(drawable)
+      commandBuffer.commit()
       
       // Return an error code indicating success.
       return kCVReturnSuccess
