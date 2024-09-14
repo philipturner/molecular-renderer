@@ -66,6 +66,15 @@ extension View {
   override func viewDidMoveToWindow() {
     super.viewDidMoveToWindow()
     
+    displayLink = createDisplayLink()
+    
+    // Start the display link.
+    CVDisplayLinkStart(displayLink)
+  }
+  
+  func createDisplayLink() -> CVDisplayLink {
+    var displayLink: CVDisplayLink!
+    
     // Initialize the display link with the chosen screen.
     let key = NSDeviceDescriptionKey("NSScreenNumber")
     let screenNumberAny = display.screen.deviceDescription[key]!
@@ -115,8 +124,7 @@ extension View {
       return kCVReturnSuccess
     }
     
-    // Start the display link.
-    CVDisplayLinkStart(displayLink)
+    return displayLink
   }
 }
 

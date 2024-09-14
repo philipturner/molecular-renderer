@@ -6,6 +6,8 @@ public class Renderer {
   var commandQueue: MTLCommandQueue
   var computePipelineState: MTLComputePipelineState
   
+  var frameID: Int = .zero
+  
   init() {
     device = MTLCreateSystemDefaultDevice()!
     commandQueue = device.makeCommandQueue()!
@@ -16,6 +18,8 @@ public class Renderer {
   public func render(
     layer: CAMetalLayer
   ) {
+    frameID += 1
+    
     // Fetch the drawable.
     let drawable = layer.nextDrawable()
     guard let drawable else {
@@ -34,7 +38,10 @@ public class Renderer {
         var time32 = Float(fractionalTime)
         encoder.setBytes(&time32, length: 4, index: index)
       }
-      setTime(Double.zero, index: 0)
+      
+      let frameIDTime = Double(frameID) / 120
+      
+      setTime(frameIDTime, index: 0)
       setTime(Double.zero, index: 1)
       setTime(Double.zero, index: 2)
     }
