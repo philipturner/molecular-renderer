@@ -83,23 +83,15 @@ public struct Clock {
     
     // Generate the frame delta.
     var frameDelta = currentFrameID - previousFrameID
-    if frameCounter + frameDelta > targetFrameID {
-      frameDelta = targetFrameID - frameCounter
+    let misalignment = targetFrameID - (frameCounter + frameDelta)
+    if misalignment.magnitude >= 2 {
+      print("Exponential gravitation: \(frameDelta) -> \(frameDelta + misalignment / 2)")
+      frameDelta += misalignment / 2
     }
-    
-    // Ensure the frame counter increases every frame.
-    frameDelta = max(frameDelta, 1)
     
     // Update the frame counter.
-    frameCounter += frameDelta
-    
-    // Validate that the frame counter is not lagging behind the actual
-    // timestamp.
-    let misalignment = frameCounter - targetFrameID
-    if misalignment < -1 {
-      fatalError("Heuristic failed: \(misalignment) | \(frameDelta)")
-    }
-    print("\(misalignment) | \(frameDelta)")
+    frameCounter = frameCounter + frameDelta
+    print("\(frameCounter - targetFrameID) | \(frameDelta)")
   }
 }
 
