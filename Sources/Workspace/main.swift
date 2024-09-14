@@ -3,7 +3,7 @@
 //   - Modify it to get Metal rendering. [DONE]
 //   - Clean up and simplify the code as much as possible. [DONE]
 //   - Get timestamps synchronizing properly (moving rainbow banner
-//     scene).
+//     scene). [DONE]
 // - Repeat the same process with COM / D3D12 on Windows.
 //   - Get some general experience with C++ DirectX sample code.
 //   - Modify the files one-by-one to support Windows.
@@ -15,7 +15,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.renderTargetSize = 1920
-  displayDesc.screenID = 1
+  displayDesc.screenID = Display.fastestScreenID
   let display = Display(descriptor: displayDesc)
   
   // Set up the GPU context.

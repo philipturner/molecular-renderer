@@ -81,37 +81,28 @@ public struct Clock {
       fatalError("Vsync timestamp is not monotonically increasing.")
     }
     
+    // Predict the next frame.
     let targetCounter = frames(ticks: current.host - start.host)
     var nextCounter = frameCounter + (currentVsyncFrame - previousVsyncFrame)
+    var nextMisalignmentDuration: Int = .zero
     
-    var newMisalignmentDuration: Int
+    // Correct for the error in the prediction.
     if (targetCounter - nextCounter).magnitude >= 2 {
-      print("exponential gravitation: \(nextCounter - targetCounter)", terminator: " ")
       nextCounter += (targetCounter - nextCounter) / 2
-      print("-> \(nextCounter - targetCounter)")
-      
-      newMisalignmentDuration = 0
     } else if (targetCounter - nextCounter).magnitude == 1 {
       if sustainedMisalignmentDuration >= 10 {
-        print("snapping: \(nextCounter - targetCounter)", terminator: " ")
         nextCounter = targetCounter
-        print("-> \(nextCounter - targetCounter)")
-        
-        newMisalignmentDuration = 0
       } else if (targetCounter - nextCounter) == sustainedMisalignedValue {
-        newMisalignmentDuration = sustainedMisalignmentDuration + 1
-      } else {
-        newMisalignmentDuration = 0
+        nextMisalignmentDuration = sustainedMisalignmentDuration + 1
       }
-    } else {
-      newMisalignmentDuration = 0
     }
     
-    sustainedMisalignmentDuration = newMisalignmentDuration
+    // Update the two state variables for noise-free alignment with the wall
+    // clock time.
+    sustainedMisalignmentDuration = nextMisalignmentDuration
     sustainedMisalignedValue = targetCounter - nextCounter
     
     // Update the frame counter.
-    print("\(nextCounter - targetCounter) | \(nextCounter - frameCounter) || \(sustainedMisalignmentDuration)")
     frameCounter = nextCounter
   }
 }
