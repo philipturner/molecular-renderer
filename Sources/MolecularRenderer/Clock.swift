@@ -72,22 +72,34 @@ public struct Clock {
     }
     
     // Validate that the vsync timestamp is monotonically increasing.
-    let previousFrames = frames(ticks: previous.video - start.video)
-    let currentFrames = frames(ticks: current.video - start.video)
-    guard currentFrames > previousFrames else {
+    let previousFrameID = frames(ticks: previous.video - start.video)
+    let currentFrameID = frames(ticks: current.video - start.video)
+    guard currentFrameID > previousFrameID else {
       fatalError("Vsync timestamp is not monotonically increasing.")
     }
     
-    // Update the frame counter.
-    frameCounter += currentFrames - previousFrames
-    
     // Generate the target frame ID.
     let targetFrameID = frames(ticks: current.host - start.host)
-    print("misalignment:", frameCounter - targetFrameID)
+    
+    // Generate the frame delta.
+    var frameDelta = currentFrameID - previousFrameID
+    if frameCounter + frameDelta > targetFrameID {
+      frameDelta = targetFrameID - frameCounter
+    }
+    
+    // Ensure the frame counter increases every frame.
+    frameDelta = max(frameDelta, 1)
+    
+    // Update the frame counter.
+    frameCounter += frameDelta
     
     // Validate that the frame counter is not lagging behind the actual
-    // timestamp. If anything, it should be ahead of the actual timestamp
-    // (the bug that seems to trouble macOS).
+    // timestamp.
+    let misalignment = frameCounter - targetFrameID
+    if misalignment < -1 {
+      fatalError("Heuristic failed: \(misalignment) | \(frameDelta)")
+    }
+    print("\(misalignment) | \(frameDelta)")
   }
 }
 
