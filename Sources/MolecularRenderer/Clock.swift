@@ -23,6 +23,9 @@ public struct Clock {
   var frameRate: Int
   var timeStamps: ClockTimeStamps?
   
+  var sustainedMisalignmentDuration: Int = .zero
+  var sustainedMisalignedValue: Int = .zero
+  
   init(display: Display) {
     frameCounter = .zero
     frameRate = display.frameRate
@@ -72,26 +75,44 @@ public struct Clock {
     }
     
     // Validate that the vsync timestamp is monotonically increasing.
-    let previousFrameID = frames(ticks: previous.video - start.video)
-    let currentFrameID = frames(ticks: current.video - start.video)
-    guard currentFrameID > previousFrameID else {
+    let previousVsyncFrame = frames(ticks: previous.video - start.video)
+    let currentVsyncFrame = frames(ticks: current.video - start.video)
+    guard currentVsyncFrame > previousVsyncFrame else {
       fatalError("Vsync timestamp is not monotonically increasing.")
     }
     
-    // Generate the target frame ID.
-    let targetFrameID = frames(ticks: current.host - start.host)
+    let targetCounter = frames(ticks: current.host - start.host)
+    var nextCounter = frameCounter + (currentVsyncFrame - previousVsyncFrame)
     
-    // Generate the frame delta.
-    var frameDelta = currentFrameID - previousFrameID
-    let misalignment = targetFrameID - (frameCounter + frameDelta)
-    if misalignment.magnitude >= 2 {
-      print("Exponential gravitation: \(frameDelta) -> \(frameDelta + misalignment / 2)")
-      frameDelta += misalignment / 2
+    var newMisalignmentDuration: Int
+    if (targetCounter - nextCounter).magnitude >= 2 {
+      print("exponential gravitation: \(nextCounter - targetCounter)", terminator: " ")
+      nextCounter += (targetCounter - nextCounter) / 2
+      print("-> \(nextCounter - targetCounter)")
+      
+      newMisalignmentDuration = 0
+    } else if (targetCounter - nextCounter).magnitude == 1 {
+      if sustainedMisalignmentDuration >= 10 {
+        print("snapping: \(nextCounter - targetCounter)", terminator: " ")
+        nextCounter = targetCounter
+        print("-> \(nextCounter - targetCounter)")
+        
+        newMisalignmentDuration = 0
+      } else if (targetCounter - nextCounter) == sustainedMisalignedValue {
+        newMisalignmentDuration = sustainedMisalignmentDuration + 1
+      } else {
+        newMisalignmentDuration = 0
+      }
+    } else {
+      newMisalignmentDuration = 0
     }
     
+    sustainedMisalignmentDuration = newMisalignmentDuration
+    sustainedMisalignedValue = targetCounter - nextCounter
+    
     // Update the frame counter.
-    frameCounter = frameCounter + frameDelta
-    print("\(frameCounter - targetFrameID) | \(frameDelta)")
+    print("\(nextCounter - targetCounter) | \(nextCounter - frameCounter) || \(sustainedMisalignmentDuration)")
+    frameCounter = nextCounter
   }
 }
 
