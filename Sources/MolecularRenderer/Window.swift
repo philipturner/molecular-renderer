@@ -9,6 +9,7 @@ class Window: NSViewController, NSApplicationDelegate {
   }
   
   init(display: Display) {
+    // Initialize the window.
     let screenID = display.screenID
     let screen = Display.screen(screenID: screenID)
     window = NSWindow(
@@ -17,34 +18,23 @@ class Window: NSViewController, NSApplicationDelegate {
       backing: .buffered,
       defer: false,
       screen: screen)
+    
+    // Prepare the window's bounds.
+    let origin = Window.centeredOrigin(display: display)
+    window.setFrameOrigin(origin)
     windowSize = display.windowSize
+    
     super.init(nibName: nil, bundle: nil)
   }
   
   func applicationDidFinishLaunching(_ notification: Notification) {
+    // Register the UI event handlers.
     window.makeFirstResponder(self)
+    registerCloseNotification()
+    
+    // Initialize the window's dimensions (which are slightly larger than the
+    // render target).
     window.contentViewController = self
-    
-    center()
-    window.makeKey()
-    window.orderFrontRegardless()
-    
-    let notificationCenter = NotificationCenter.default
-    notificationCenter.addObserver(
-      self,
-      selector: #selector(windowWillClose(notification:)),
-      name: NSWindow.willCloseNotification,
-      object: window)
-  }
-}
-
-extension Window {
-  // An alternative to 'NSWindow.center()' that doesn't make the window migrate
-  // to the main display.
-  func center() {
-    guard let screen = window.screen else {
-      fatalError("Could not retrieve the window's screen.")
-    }
     guard window.frame.size.width == Double(windowSize) else {
       fatalError("Window had incorrect size.")
     }
@@ -52,60 +42,26 @@ extension Window {
       fatalError("Title bar was missing.")
     }
     
-    let centerX = screen.visibleFrame.midX
-    let centerY = screen.visibleFrame.midY
-    let leftX = centerX - Double(windowSize) / 2
-    let upperY = centerY - Double(windowSize) / 2
-    let origin = CGPoint(x: leftX, y: upperY)
-    
-    let frame = CGRect(origin: origin, size: window.frame.size)
-    window.setFrame(frame, display: true)
-  }
-  
-  @objc
-  func windowWillClose(notification: NSNotification) {
-    exit(0)
-  }
-  
-  override func keyDown(with event: NSEvent) {
-    if event.modifierFlags.contains(.command) {
-      let characters = event.charactersIgnoringModifiers!
-      if characters == "w" {
-        exit(0)
-      }
-    }
+    // Make the window visible to the user.
+    window.makeKey()
+    window.orderFrontRegardless()
   }
 }
 
-#if false
-class Window: NSViewController, NSApplicationDelegate {
-  var window: NSWindow!
-  
-  static var globalWindowReference: NSWindow?
-  
-  override func viewDidLoad() {
-    super.viewDidLoad()
+extension Window {
+  static func centeredOrigin(display: Display) -> CGPoint {
+    let screenID = display.screenID
+    let screen = Display.screen(screenID: screenID)
     
-    let view = RendererView()
-    self.view = view
+    let centerX = screen.visibleFrame.midX
+    let centerY = screen.visibleFrame.midY
+    let leftX = centerX - Double(display.windowSize) / 2
+    let upperY = centerY - Double(display.windowSize) / 2
+    let origin = CGPoint(x: leftX, y: upperY)
+    return origin
   }
   
-  func applicationDidFinishLaunching(_ notification: Notification) {
-    window = NSWindow(
-      contentRect: NSRect.zero,
-      styleMask: [.closable, .resizable, .titled],
-      backing: .buffered,
-      defer: false,
-      screen: Screen.selected)
-    RendererViewController.globalWindowReference = window
-    
-    window.makeFirstResponder(self)
-    window.contentViewController = self
-    
-    RendererViewController.centerWindow(window)
-    window.makeKey()
-    window.orderFrontRegardless()
-    
+  func registerCloseNotification() {
     let notificationCenter = NotificationCenter.default
     notificationCenter.addObserver(
       self,
@@ -127,32 +83,4 @@ class Window: NSViewController, NSApplicationDelegate {
       }
     }
   }
-  
-  // An alternative to 'NSWindow.center()' that doesn't make the window migrate
-  // to the main display.
-  static func centerWindow(_ window: NSWindow) {
-    guard let screen = window.screen else {
-      fatalError("Could not retrieve the window's screen.")
-    }
-    let centerX = screen.visibleFrame.midX
-    let centerY = screen.visibleFrame.midY
-    let scaleFactor = screen.backingScaleFactor
-    
-    let renderRegionSize = Double(Screen.renderTargetSize) / scaleFactor
-    let leftX = centerX - renderRegionSize / 2
-    let upperY = centerY - renderRegionSize / 2
-    let origin = CGPoint(x: leftX, y: upperY)
-    
-    let windowSize = window.frame.size
-    guard windowSize.width == renderRegionSize else {
-      fatalError("Render region had incorrect dimensions.")
-    }
-    guard windowSize.height > renderRegionSize else {
-      fatalError("Title bar was missing.")
-    }
-    
-    let frame = CGRect(origin: origin, size: windowSize)
-    window.setFrame(frame, display: true)
-  }
 }
-#endif

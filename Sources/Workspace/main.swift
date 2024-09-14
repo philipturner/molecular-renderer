@@ -13,7 +13,7 @@ import MolecularRenderer
 // Set up the display.
 var displayDesc = DisplayDescriptor()
 displayDesc.renderTargetSize = 1920
-displayDesc.screenID = Display.fastestScreenID
+displayDesc.screenID = 1
 let display = Display(descriptor: displayDesc)
 
 // Set up the application.
