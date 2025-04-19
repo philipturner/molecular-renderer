@@ -35,11 +35,10 @@ public class Application {
     _ closure: @escaping (MTLTexture) -> Void
   ) {
     var runLoopDesc = RunLoopDescriptor()
+    runLoopDesc.application = self
     runLoopDesc.closure = closure
-    runLoopDesc.display = display
     
     let runLoop = RunLoop(descriptor: runLoopDesc)
-    runLoop.setOutputHandler(application: self)
     runLoop.start()
     
     // Launch the UI window with NSApplication.

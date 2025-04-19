@@ -1,24 +1,28 @@
 import QuartzCore
 
 struct RunLoopDescriptor {
+  var application: Application?
   var closure: ((MTLTexture) -> Void)?
-  var display: Display?
 }
 
 class RunLoop {
+  unowned let application: Application
   var closure: (MTLTexture) -> Void
   var displayLink: CVDisplayLink
   
   init(descriptor: RunLoopDescriptor) {
-    guard let closure = descriptor.closure,
-          let display = descriptor.display else {
+    guard let application = descriptor.application,
+          let closure = descriptor.closure else {
       fatalError("Descriptor was incomplete.")
     }
+    self.application = application
     self.closure = closure
     
     let displayLink = RunLoop
-      .createDisplayLink(display: display)
+      .createDisplayLink(display: application.display)
     self.displayLink = displayLink
+    
+    setOutputHandler()
   }
   
   static func createDisplayLink(display: Display) -> CVDisplayLink {
@@ -28,7 +32,7 @@ class RunLoop {
     return displayLink
   }
   
-  func setOutputHandler(application: Application) {
+  private func setOutputHandler() {
     CVDisplayLinkSetOutputHandler(displayLink) {
       [application] displayLink, now, outputTime, flagsIn, flagsOut in
       
