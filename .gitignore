@@ -97,3 +97,7 @@ DerivedData/
 .swiftpm/xcode
 Package.resolved
 /.vscode
+
+# Temporary workaround for locating libraries for SwiftPM to detect.
+/*.dll
+/*.lib
