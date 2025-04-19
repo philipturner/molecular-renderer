@@ -1,3 +1,4 @@
+import AppKit
 import QuartzCore
 
 struct RunLoopDescriptor {
@@ -8,7 +9,7 @@ struct RunLoopDescriptor {
 class RunLoop {
   unowned let application: Application
   var closure: (MTLTexture) -> Void
-  var displayLink: CVDisplayLink
+  var displayLink: CVDisplayLink?
   
   init(descriptor: RunLoopDescriptor) {
     guard let application = descriptor.application,
@@ -18,22 +19,21 @@ class RunLoop {
     self.application = application
     self.closure = closure
     
-    let displayLink = RunLoop
-      .createDisplayLink(display: application.display)
-    self.displayLink = displayLink
+    // Fetching the screen.
+    let screenID = application.display.screenID
     
-    setOutputHandler()
-  }
-  
-  static func createDisplayLink(display: Display) -> CVDisplayLink {
-    var displayLink: CVDisplayLink!
-    let screenID = display.screenID
+    // Old method for initializing the display link.
     CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
-    return displayLink
+    CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
+    CVDisplayLinkStart(displayLink!)
+    
+    // New method for initializing the display link.
+    let screen = Display.screen(screenID: screenID)
+//    NSScreen.displayLink(target: 2 as Any, selector: outputHandler)
   }
   
-  private func setOutputHandler() {
-    CVDisplayLinkSetOutputHandler(displayLink) {
+  private var outputHandler: CVDisplayLinkOutputHandler {
+    {
       [application] displayLink, now, outputTime, flagsIn, flagsOut in
       
       // Increment the frame counter.
@@ -93,9 +93,5 @@ class RunLoop {
       
       return kCVReturnSuccess
     }
-  }
-  
-  func start() {
-    CVDisplayLinkStart(displayLink)
   }
 }

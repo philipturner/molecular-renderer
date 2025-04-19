@@ -39,13 +39,13 @@ public class Application {
     runLoopDesc.closure = closure
     
     let runLoop = RunLoop(descriptor: runLoopDesc)
-    runLoop.start()
-    
-    // Launch the UI window with NSApplication.
-    let application = NSApplication.shared
-    application.delegate = window
-    application.setActivationPolicy(.regular)
-    application.activate(ignoringOtherApps: true)
-    application.run()
+    withExtendedLifetime(runLoop) {
+      // Launch the UI window with NSApplication.
+      let application = NSApplication.shared
+      application.delegate = window
+      application.setActivationPolicy(.regular)
+      application.activate(ignoringOtherApps: true)
+      application.run()
+    }
   }
 }
