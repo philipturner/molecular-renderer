@@ -1,7 +1,7 @@
 import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
-  var window: NSWindow
+  nonisolated(unsafe) var window: NSWindow
   var windowSize: Int
   
   required init(coder: NSCoder) {

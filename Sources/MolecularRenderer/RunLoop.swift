@@ -5,8 +5,8 @@ struct RunLoopDescriptor {
   var closure: ((MTLTexture) -> Void)?
 }
 
-class RunLoop {
-  unowned let application: Application
+class RunLoop: @unchecked Sendable {
+  var application: Application
   var closure: (MTLTexture) -> Void
   var displayLink: CVDisplayLink?
   
@@ -22,7 +22,6 @@ class RunLoop {
     let screenID = application.display.screenID
     CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
     CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
-    CVDisplayLinkStart(displayLink!)
   }
   
   private func outputHandler(
@@ -62,8 +61,8 @@ class RunLoop {
     }
     
     // Access the NSWindow on the main queue to prevent a crash.
+    let window = application.window.window
     DispatchQueue.main.async {
-      let window = self.application.window.window
       let screen = window.screen!
       let actualID = Display.screenID(screen: screen)
       guard actualID == originalID else {
@@ -88,5 +87,13 @@ class RunLoop {
     commandBuffer.commit()
     
     return kCVReturnSuccess
+  }
+  
+  func start() {
+    CVDisplayLinkStart(displayLink!)
+  }
+  
+  func stop() {
+    CVDisplayLinkStop(displayLink!)
   }
 }

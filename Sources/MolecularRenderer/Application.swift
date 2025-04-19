@@ -16,6 +16,7 @@ public class Application {
   var view: View
   var window: Window
   
+  @MainActor
   public init(descriptor: ApplicationDescriptor) {
     guard let display = descriptor.display,
           let gpuContext = descriptor.gpuContext else {
@@ -31,6 +32,7 @@ public class Application {
     window.view = view
   }
   
+  @MainActor
   public func run(
     _ closure: @escaping (MTLTexture) -> Void
   ) {
@@ -39,13 +41,14 @@ public class Application {
     runLoopDesc.closure = closure
     
     let runLoop = RunLoop(descriptor: runLoopDesc)
-    withExtendedLifetime(runLoop) {
-      // Launch the UI window with NSApplication.
-      let application = NSApplication.shared
-      application.delegate = window
-      application.setActivationPolicy(.regular)
-      application.activate(ignoringOtherApps: true)
-      application.run()
-    }
+    runLoop.start()
+    
+    let application = NSApplication.shared
+    application.delegate = window
+    application.setActivationPolicy(.regular)
+    application.activate(ignoringOtherApps: true)
+    application.run()
+    
+    runLoop.stop()
   }
 }

@@ -1,7 +1,7 @@
 import AppKit
 
 class View: NSView, CALayerDelegate {
-  var metalLayer: CAMetalLayer
+  nonisolated(unsafe) var metalLayer: CAMetalLayer
   var windowSize: Int
   
   required init(coder: NSCoder) {

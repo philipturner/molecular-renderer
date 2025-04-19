@@ -1,11 +1,11 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 6.1
 
 import PackageDescription
 
 let package = Package(
   name: "molecular-renderer",
   platforms: [
-    .macOS(.v14),
+    .macOS(.v15),
   ],
   products: [
     .library(

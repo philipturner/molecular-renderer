@@ -11,6 +11,7 @@
 import Metal
 import MolecularRenderer
 
+@MainActor
 func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
