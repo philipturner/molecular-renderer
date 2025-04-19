@@ -173,3 +173,6 @@ application.run { renderTarget in
   encoder.endEncoding()
   commandBuffer.commit()
 }
+
+// TODO: Next, fix the bug where the window appears 3 times when launched from
+// Xcode.
