@@ -1,3 +1,4 @@
+#if os(macOS)
 import Metal
 
 public struct GPUContextDescriptor {
@@ -39,3 +40,4 @@ extension GPUContext {
     return 0
   }
 }
+#endif

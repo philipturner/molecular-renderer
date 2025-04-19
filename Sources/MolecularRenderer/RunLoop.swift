@@ -1,3 +1,4 @@
+#if os(macOS)
 import QuartzCore
 
 struct RunLoopDescriptor {
@@ -102,3 +103,4 @@ class RunLoop: @unchecked Sendable {
       .CVDisplayLinkStop(displayLink!)
   }
 }
+#endif

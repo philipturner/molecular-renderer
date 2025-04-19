@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
@@ -84,3 +85,4 @@ extension Window {
     }
   }
 }
+#endif

@@ -8,6 +8,7 @@
 //   - Get some general experience with C++ DirectX sample code.
 //   - Modify the files one-by-one to support Windows.
 
+#if os(macOS)
 import Metal
 import MolecularRenderer
 
@@ -173,3 +174,8 @@ application.run { renderTarget in
   encoder.endEncoding()
   commandBuffer.commit()
 }
+#endif
+
+#if os(Windows)
+print("Hello, world.")
+#endif

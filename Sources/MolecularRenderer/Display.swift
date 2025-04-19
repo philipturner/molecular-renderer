@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 public struct DisplayDescriptor {
@@ -97,3 +98,4 @@ extension Display {
     return Int(output)
   }
 }
+#endif

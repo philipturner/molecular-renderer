@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 class View: NSView, CALayerDelegate {
@@ -54,3 +55,4 @@ extension View {
     checkDrawableSize(newSize)
   }
 }
+#endif

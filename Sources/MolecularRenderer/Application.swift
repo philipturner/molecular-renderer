@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 public struct ApplicationDescriptor {
@@ -74,3 +75,4 @@ public class Application {
     runLoop.stop()
   }
 }
+#endif

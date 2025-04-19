@@ -1,3 +1,4 @@
+#if os(macOS)
 import QuartzCore
 
 struct TimeStamp {
@@ -114,3 +115,4 @@ extension Clock {
     frameCounter
   }
 }
+#endif

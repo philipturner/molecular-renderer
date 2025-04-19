@@ -1,3 +1,4 @@
+#if os(macOS)
 import QuartzCore
 
 // Suppressing warnings:
@@ -52,3 +53,4 @@ struct CVDisplayLinkStruct: CVDisplayLinkProtocol {
     QuartzCore.CVDisplayLinkStop(displayLink)
   }
 }
+#endif
