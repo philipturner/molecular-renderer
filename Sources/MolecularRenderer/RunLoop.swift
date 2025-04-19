@@ -20,8 +20,10 @@ class RunLoop: @unchecked Sendable {
     
     // Initialize the display link.
     let screenID = application.display.screenID
-    CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
-    CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
+    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
+    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
   }
   
   private func outputHandler(
@@ -55,7 +57,8 @@ class RunLoop: @unchecked Sendable {
     // is much better on Windows, so I will not/should not apply the
     // heuristic there.
     let originalID = application.display.screenID
-    let registeredID = Int(CVDisplayLinkGetCurrentCGDisplay(displayLink))
+    let registeredID = (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkGetCurrentCGDisplay(displayLink)
     guard registeredID == originalID else {
       fatalError("The bug's behavior has changed.")
     }
@@ -90,10 +93,12 @@ class RunLoop: @unchecked Sendable {
   }
   
   func start() {
-    CVDisplayLinkStart(displayLink!)
+    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkStart(displayLink!)
   }
   
   func stop() {
-    CVDisplayLinkStop(displayLink!)
+    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkStop(displayLink!)
   }
 }
