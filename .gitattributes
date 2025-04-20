@@ -1,4 +1,23 @@
-# Ensure consistent line endings on Windows.
-* text=auto eol=lf
+# Issue with the console about LF vs CLRF:
+# https://github.com/orgs/community/discussions/66838#discussioncomment-12436463
+#gi
+# It only affects Bash scripts.
+#
+# The issue disappears when 'core.autocrlf' is set to 'false'. This is
+# supposedly the default value when Git isn't tampered with, but on my system
+# it was already set to 'true'. I'll keep the patch for Bash scripts, because
+# other users following my workflow may have the same problem.
+# https://stackoverflow.com/a/49207740
+
+*.sh text=auto eof=lf
+
+
+
+
+
+
+
+
+
 
 
