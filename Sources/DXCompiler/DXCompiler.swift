@@ -21,6 +21,21 @@ public func DxcCreateInstance<Interface: SwiftCOM.IUnknown>(
   return Interface(pUnk: pointer)
 }
 
+public func DxcCreateInstance2<Interface: SwiftCOM.IUnknown>(
+  malloc: SwiftCOM.IMalloc,
+  `class` clsid: CLSID
+) throws -> Interface {
+  try malloc.perform(as: WinSDK.IMalloc.self) { pMalloc in
+    var clsid: CLSID = clsid
+    var iid: IID = Interface.IID
+    
+    var pointer: UnsafeMutableRawPointer?
+    try SwiftCOM.CHECKED(DxcCreateInstance2(pMalloc, &clsid, &iid, &pointer))
+    return Interface(pUnk: pointer)
+  }
+  
+}
+
 // MARK: - Simple Data Structures
 
 @_exported import struct CDXCompiler.DxcShaderHash
@@ -80,6 +95,16 @@ public class IDxcBlobEncoding: IDxcBlob {
       }
       return codePage
     }
+  }
+  
+  public func intReturnFunction() throws -> Int {
+    let intReturn = try perform(as: WinSDK.IUnknown.self) {   pThis in
+      print(pThis.pointee.lpVtbl.pointee.AddRef)
+      
+      print(pThis.pointee.lpVtbl.pointee.AddRef(pThis))
+      return Int(2)
+    }
+    return intReturn
   }
 }
 
@@ -153,6 +178,16 @@ public class IDxcUtils: SwiftCOM.IUnknown {
         OpaquePointer(pEncoding))
       return IDxcBlobEncoding(pUnk: casted.pointee)
     }
+  }
+  
+  public func intReturnFunction() throws -> Int {
+    let intReturn = try perform(as: WinSDK.IUnknown.self) {   pThis in
+      print(pThis.pointee.lpVtbl.pointee.AddRef)
+      
+      print(pThis.pointee.lpVtbl.pointee.AddRef(pThis))
+      return Int(2)
+    }
+    return intReturn
   }
 }
 

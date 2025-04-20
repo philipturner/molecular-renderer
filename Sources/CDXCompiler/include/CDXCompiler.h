@@ -40,10 +40,21 @@ struct IMalloc;
 typedef HRESULT(__stdcall *DxcCreateInstanceProc)(_In_ REFCLSID rclsid,
                                                   _In_ REFIID riid,
                                                   _Out_ LPVOID *ppv);
+                                                  
+typedef HRESULT(__stdcall *DxcCreateInstance2Proc)(struct IMalloc *pMalloc,
+                                                   _In_ REFCLSID rclsid,
+                                                   _In_ REFIID riid,
+                                                   _Out_ LPVOID *ppv);
 
 DXC_API_IMPORT
     HRESULT __stdcall DxcCreateInstance(_In_ REFCLSID rclsid, _In_ REFIID riid,
                                         _Out_ LPVOID *ppv);
+
+DXC_API_IMPORT
+    HRESULT __stdcall DxcCreateInstance2(struct IMalloc *pMalloc,
+                                         _In_ REFCLSID rclsid,
+                                         _In_ REFIID riid,
+                                         _Out_ LPVOID *ppv);
 
 #define DXC_CP_UTF8 65001
 #define DXC_CP_UTF16 1200

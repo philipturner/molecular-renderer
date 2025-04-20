@@ -327,20 +327,33 @@ print(upscaleContext!)
 
 print(DXC_CP_UTF90)
 
-let shaderSource: String = """
+// let shaderSource: String = """
+// hjk
 
+// """
 
-"""
+let shaderSource = UnsafeMutablePointer<CChar>.allocate(capacity: 5)
+shaderSource[0] = Int8(Character("h").asciiValue!)
+shaderSource[1] = Int8(Character("j").asciiValue!)
+shaderSource[2] = Int8(Character("k").asciiValue!)
+shaderSource[3] = Int8(Character("\n").asciiValue!)
+shaderSource[4] = Int8(0)
+
+let malloc = try! CoGetMalloc()
+print(malloc)
+let allocation = try! malloc.Alloc(10)
+print(allocation)
+print(try! malloc.GetSize(allocation))
 
 // Find the APIs necessary to create a blob and get feedback about it. We still
 // haven't confirmed that the 'dxcompiler' DLL actually links and runs.
 // - IDxcBlobEncoding
 // - IDxcUtils
 //   - IDxcUtils->CreateBlob
-let utils: IDxcUtils = try! DxcCreateInstance(
-  class: CLSID_DxcUtils)
+let utils: IDxcUtils = try! DxcCreateInstance2(
+  malloc: malloc, class: CLSID_DxcUtils)
 let source: IDxcBlobEncoding = try! utils.CreateBlob(
-  shaderSource, UInt32(shaderSource.count), UInt32(CP_UTF8))
+  shaderSource, UInt32(4), UInt32(CP_UTF8))
 print(utils)
 print(source)
 
@@ -357,15 +370,18 @@ print(source)
 // - IDxcBlobUtf8
 //   - IDcBlobUtf8->GetBufferPointer()
 
-let compiler: IDxcCompiler3 = try! DxcCreateInstance(
-  class: CLSID_DxcCompiler)
-print(compiler)
+//let compiler: IDxcCompiler3 = try! DxcCreateInstance(
+//  class: CLSID_DxcCompiler)
+//print(compiler)
 
 //var sourceBuffer = DxcBuffer()
 //print(try? source.GetBufferPointer())
 //print(try? source.GetBufferSize())
 //print(try? source.GetEncoding())
 
+try source.intReturnFunction()
+
 print(DXC_OUT_ERRORS)
+print(source)
 
 #endif
