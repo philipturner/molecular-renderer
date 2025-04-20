@@ -1,0 +1,4 @@
+# Ensure consistent line endings on Windows.
+* text=auto eol=lf
+
+

@@ -18,7 +18,6 @@ workspaceDependencies += [
 
 #if os(Windows)
 workspaceDependencies += [
-  "DXCompiler",
   "FidelityFX",
   .product(name: "SwiftCOM", package: "swift-com"),
 ]
@@ -59,20 +58,6 @@ targets.append(.executableTarget(
 dependencies.append(.package(
   url: "https://github.com/philipturner/swift-com",
   branch: "main"))
-
-targets.append(.target(
-  name: "CDXCompiler",
-  dependencies: [],
-  linkerSettings: [
-    .linkedLibrary("dxcompiler"),
-  ]))
-
-targets.append(.target(
-  name: "DXCompiler",
-  dependencies: [
-    "CDXCompiler",
-    .product(name: "SwiftCOM", package: "swift-com"),
-  ]))
 
 targets.append(.target(
   name: "FidelityFX",
