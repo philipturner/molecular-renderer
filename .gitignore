@@ -98,6 +98,7 @@ DerivedData/
 Package.resolved
 /.vscode
 
-# Temporary workaround for locating libraries for SwiftPM to detect.
+# Workaround for issue with the linker on Windows: binaries must all reside
+# in the top-level folder.
 /*.dll
 /*.lib

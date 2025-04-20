@@ -47,6 +47,14 @@ targets.append(.executableTarget(
 
 // MARK: - Windows Targets
 
+// Strange: once you add binary dependences, the 'Workspace' executable stops
+// working correctly when you call 'swift run' from Git Bash. But it works just
+// fine when you call 'swift run' from inside the terminal in VSCode. The
+// terminal inside VSCode can be annoying, because it keeps refreshing when you
+// make any changes to the code. Nonetheless, it's workable.
+//
+// WARNING: Do not launch the application from Git Bash on Windows.
+
 #if os(Windows)
 dependencies.append(.package(
   url: "https://github.com/philipturner/swift-com",
@@ -70,7 +78,7 @@ targets.append(.target(
   name: "FidelityFX",
   dependencies: [],
   linkerSettings: [
-    // .linkedLibrary("amd_fidelityfx_dx12"),
+    .linkedLibrary("amd_fidelityfx_dx12"),
   ]))
 #endif
 
