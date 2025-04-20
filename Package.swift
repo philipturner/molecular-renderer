@@ -18,6 +18,7 @@ workspaceDependencies += [
 
 #if os(Windows)
 workspaceDependencies += [
+  "DXCWrapper",
   "FidelityFX",
   .product(name: "SwiftCOM", package: "swift-com"),
 ]
@@ -58,6 +59,14 @@ targets.append(.executableTarget(
 dependencies.append(.package(
   url: "https://github.com/philipturner/swift-com",
   branch: "main"))
+
+targets.append(.target(
+  name: "DXCWrapper",
+  dependencies: [],
+  linkerSettings: [
+    
+  ]
+))
 
 targets.append(.target(
   name: "FidelityFX",

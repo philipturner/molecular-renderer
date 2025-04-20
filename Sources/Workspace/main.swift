@@ -179,6 +179,7 @@ application.run { renderTarget in
 
 
 #if os(Windows)
+import DXCWrapper
 import FidelityFX
 import SwiftCOM
 import WinSDK
@@ -322,7 +323,7 @@ print(upscaleContext!)
 
 
 
-//MARK: - DXCWrapper Experimentation
+// MARK: - DXCWrapper Experimentation
 
 
 
