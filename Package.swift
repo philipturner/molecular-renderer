@@ -61,7 +61,10 @@ targets.append(.target(
 
 targets.append(.target(
   name: "DXCompiler",
-  dependencies: ["CDXCompiler"]))
+  dependencies: [
+    "CDXCompiler",
+    .product(name: "SwiftCOM", package: "swift-com"),
+  ]))
 
 targets.append(.target(
   name: "FidelityFX",

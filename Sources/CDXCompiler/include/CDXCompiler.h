@@ -51,7 +51,7 @@ DXC_API_IMPORT
 #define DXC_CP_ACP 0
 
 /// Feedback that SwiftPM is registering changes.
-#define DXC_CP_UTF88 16
+#define DXC_CP_UTF89 89
 
 // MARK: - Simple Data Structures
 

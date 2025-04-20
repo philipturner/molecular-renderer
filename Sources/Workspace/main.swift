@@ -176,6 +176,106 @@ application.run { renderTarget in
 }
 #endif
 
+
+
 #if os(Windows)
-print("Hello, world.")
+import DXCompiler
+import SwiftCOM
+import WinSDK
+
+// MARK: - DirectX Experimentation
+
+// Choose the best GPU out of the two that appear.
+func createAdapter(
+  factory: SwiftCOM.IDXGIFactory4
+) -> SwiftCOM.IDXGIAdapter4 {
+  var adapters: [SwiftCOM.IDXGIAdapter4] = []
+  while true {
+    let adapterID = adapters.count
+    let adapter: SwiftCOM.IDXGIAdapter4? =
+      try? factory.EnumAdapters(UInt32(adapterID)).QueryInterface()
+    guard let adapter else {
+      break
+    }
+    adapters.append(adapter)
+  }
+
+  // Choose the GPU with the greatest amount of memory. This is a relatively
+  // crude heuristic for finding the fastest GPU.
+  var maxAdapter: SwiftCOM.IDXGIAdapter4?
+  var maxAdapterMemory: Int = .zero
+  for adapterID in adapters.indices {
+    let adapter = adapters[adapterID]
+    let description = try! adapter.GetDesc()
+    let dedicatedVideoMemory = description.DedicatedVideoMemory
+
+    if dedicatedVideoMemory > maxAdapterMemory {
+      maxAdapter = adapter
+      maxAdapterMemory = Int(dedicatedVideoMemory)
+    }
+  }
+
+  guard let maxAdapter else {
+    fatalError("Could not find the fastest GPU.")
+  }
+  return maxAdapter
+}
+
+let factory: SwiftCOM.IDXGIFactory4 =
+  try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+print(factory)
+
+let adapter = createAdapter(factory: factory)
+print(adapter)
+
+let device: SwiftCOM.ID3D12Device =
+  try! D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_0)
+print(device)
+
+var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
+commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE
+let commandQueue: SwiftCOM.ID3D12CommandQueue =
+  try! device.CreateCommandQueue(commandQueueDesc)
+print(commandQueue)
+
+
+
+// MARK: - DXCompiler Experimentation
+
+print(DXC_CP_UTF89)
+
+let shaderSource: String = """
+
+
+"""
+
+// Find the APIs necessary to create a blob and get feedback about it. We still
+// haven't confirmed that the 'dxcompiler' DLL actually links and runs.
+// - IDxcBlobEncoding
+// - IDxcUtils
+//   - IDxcUtils->CreateBlob
+let utils: IDxcUtils = try! DxcCreateInstance(
+  class: CLSID_DxcUtils)
+let source: IDxcBlobEncoding = try! utils.CreateBlob(
+  shaderSource, UInt32(shaderSource.count), UInt32(CP_UTF8))
+print(utils)
+print(source)
+
+// The subsequent step would be calling the "compile" function on an empty
+// string. Determine whether the compiler has thrown an error.
+// - DxcBuffer
+//   - DxcBuffer.Ptr
+//   - DxcBuffer.Size
+//   - DxcBuffer.Encoding
+// - IDxcResult
+//   - IDxcResult->GetOutput
+// - IDxcCompiler3
+//   - IDxcCompiler3->Compile
+// - IDxcBlobUtf8
+//   - IDcBlobUtf8->GetBufferPointer()
+
+let compiler: IDxcCompiler3 = try! DxcCreateInstance(
+  class: CLSID_DxcCompiler)
+print(compiler)
+
 #endif
