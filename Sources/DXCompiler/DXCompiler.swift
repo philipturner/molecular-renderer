@@ -6,7 +6,7 @@ import SwiftCOM
 import WinSDK
 
 // Single source file with all the bindings needed to use the HLSL JIT compiler.
-// Complements the customized 'dxcapi.h' header in the 'DXCompiler' Clang
+// Complements the customized 'dxcapi.h' header in the 'CDXCompiler' Clang
 // module.
 
 // Similar to 'IUnknown.CreateInstance', but not an instance member.
@@ -20,6 +20,12 @@ public func DxcCreateInstance<Interface: SwiftCOM.IUnknown>(
   try SwiftCOM.CHECKED(DxcCreateInstance(&clsid, &iid, &pointer))
   return Interface(pUnk: pointer)
 }
+
+// MARK: - Simple Data Structures
+
+@_exported import struct CDXCompiler.DxcShaderHash
+@_exported import struct CDXCompiler.DxcBuffer
+@_exported import struct CDXCompiler.DxcDefine
 
 // MARK: - IDxcBlob
 

@@ -360,6 +360,12 @@ print(source)
 let compiler: IDxcCompiler3 = try! DxcCreateInstance(
   class: CLSID_DxcCompiler)
 print(compiler)
+
+//var sourceBuffer = DxcBuffer()
+//print(try? source.GetBufferPointer())
+//print(try? source.GetBufferSize())
+//print(try? source.GetEncoding())
+
 print(DXC_OUT_ERRORS)
 
 #endif
