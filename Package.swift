@@ -63,6 +63,7 @@ dependencies.append(.package(
 targets.append(.target(
   name: "DXCWrapper",
   dependencies: [],
+  exclude: ["dxcapi.h", "DXCWrapper.cpp"],
   linkerSettings: [
     
   ]
