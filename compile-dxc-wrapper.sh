@@ -9,20 +9,3 @@ echo "Output of 'clang++ --version':"
 echo ""
 $clang_executable_path --version
 echo ""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
