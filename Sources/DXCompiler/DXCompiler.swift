@@ -1,6 +1,6 @@
 // Be careful which symbols are exposed to the client. There are name conflicts
 // with several COM objects in the CDXCompiler module.
-@_exported import var CDXCompiler.DXC_CP_UTF89
+@_exported import var CDXCompiler.DXC_CP_UTF90
 import CDXCompiler
 import SwiftCOM
 import WinSDK
@@ -149,6 +149,23 @@ public class IDxcUtils: SwiftCOM.IUnknown {
     }
   }
 }
+
+// MARK: - DXC_OUT_KIND
+
+@_exported import var CDXCompiler.DXC_OUT_NONE
+@_exported import var CDXCompiler.DXC_OUT_OBJECT
+@_exported import var CDXCompiler.DXC_OUT_ERRORS
+@_exported import var CDXCompiler.DXC_OUT_PDB
+@_exported import var CDXCompiler.DXC_OUT_SHADER_HASH
+@_exported import var CDXCompiler.DXC_OUT_DISASSEMBLY
+@_exported import var CDXCompiler.DXC_OUT_HLSL
+@_exported import var CDXCompiler.DXC_OUT_TEXT
+@_exported import var CDXCompiler.DXC_OUT_REFLECTION
+@_exported import var CDXCompiler.DXC_OUT_ROOT_SIGNATURE
+@_exported import var CDXCompiler.DXC_OUT_EXTRA_OUTPUTS
+@_exported import var CDXCompiler.DXC_OUT_REMARKS
+@_exported import var CDXCompiler.DXC_OUT_TIME_REPORT
+@_exported import var CDXCompiler.DXC_OUT_TIME_TRACE
 
 // MARK: - IDxcResult
 

@@ -51,7 +51,7 @@ DXC_API_IMPORT
 #define DXC_CP_ACP 0
 
 /// Feedback that SwiftPM is registering changes.
-#define DXC_CP_UTF89 89
+#define DXC_CP_UTF90 90
 
 // MARK: - Simple Data Structures
 
@@ -132,6 +132,40 @@ typedef struct IDxcBlobEncoding {
 // MARK: - IDxcBlobWide
 
 struct IDxcBlobWide;
+
+typedef struct IDxcBlobWideVtbl {
+  // IUnknown
+  HRESULT (STDMETHODCALLTYPE *QueryInterface)(
+    struct IDxcBlobWide *pThis,
+    REFIID riid,
+    void **ppvObject);
+  ULONG (STDMETHODCALLTYPE *AddRef)(
+    struct IDxcBlobWide *pThis);
+  ULONG (STDMETHODCALLTYPE *Release)(
+    struct IDxcBlobWide *pThis);
+
+  // IDxcBlob
+  LPVOID (STDMETHODCALLTYPE *GetBufferPointer)(
+    struct IDxcBlobWide *pThis);
+  SIZE_T (STDMETHODCALLTYPE *GetBufferSize)(
+    struct IDxcBlobWide *pThis);
+
+  // IDxcBlobEncoding
+  HRESULT (STDMETHODCALLTYPE *GetEncoding)(
+    struct IDxcBlobWide *pThis,
+    BOOL *pKnown,
+    UINT32 *pCodePage);
+
+  // IDxcBlobWide
+  LPCWSTR (STDMETHODCALLTYPE *GetStringPointer)(
+    struct IDxcBlobWide *pThis);
+  SIZE_T (STDMETHODCALLTYPE *GetStringLength)(
+    struct IDxcBlobWide *pThis);
+} IDxcBlobWideVtbl;
+
+typedef struct IDxcBlobWide {
+  const struct IDxcBlobWideVtbl *lpVtbl;
+} IDxcBlobWide;
 
 // MARK: - IDxcBlobUtf8
 
@@ -381,6 +415,13 @@ typedef struct IDxcResultVtbl {
     REFIID iid,
     void **ppvObject,
     struct IDxcBlobWide **ppOutputName);
+  UINT32 (STDMETHODCALLTYPE *GetNumOutputs)(
+    struct IDxcResult *pThis);
+  DXC_OUT_KIND (STDMETHODCALLTYPE *GetOutputByIndex)(
+    struct IDxcResult *pThis,
+    UINT32 Index);
+  DXC_OUT_KIND (STDMETHODCALLTYPE *PrimaryOutput)(
+    struct IDxcResult *pThis);
 } IDxcResultVtbl;
 
 typedef struct IDxcResult {

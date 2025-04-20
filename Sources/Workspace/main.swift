@@ -319,13 +319,13 @@ createUpscale.withMemoryRebound(
     fatalError("Failed to create context. Received error code \(error).")
   }
 }
-print(upscaleContext)
+print(upscaleContext!)
 
 
 
 // MARK: - DXCompiler Experimentation
 
-print(DXC_CP_UTF89)
+print(DXC_CP_UTF90)
 
 let shaderSource: String = """
 
@@ -360,5 +360,6 @@ print(source)
 let compiler: IDxcCompiler3 = try! DxcCreateInstance(
   class: CLSID_DxcCompiler)
 print(compiler)
+print(DXC_OUT_ERRORS)
 
 #endif
