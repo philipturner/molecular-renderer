@@ -184,6 +184,8 @@ import FidelityFX
 import SwiftCOM
 import WinSDK
 
+#if false
+
 // MARK: - DirectX Experimentation
 
 // Choose the best GPU out of the two that appear.
@@ -321,6 +323,8 @@ createUpscale.withMemoryRebound(
 }
 print(upscaleContext!)
 
+#endif
+
 
 
 // MARK: - DXCompiler Experimentation
@@ -353,9 +357,12 @@ print(try! malloc.GetSize(allocation))
 let utils: IDxcUtils = try! DxcCreateInstance2(
   malloc: malloc, class: CLSID_DxcUtils)
 let source: IDxcBlobEncoding = try! utils.CreateBlob(
-  shaderSource, UInt32(4), UInt32(CP_UTF8))
+  shaderSource, UInt32(5), UInt32(CP_UTF8))
 print(utils)
 print(source)
+
+// TODO: Next, reproduce the crash in C++ code importing dxcompiler.
+// - How do I compile a C++ project importing dxcompiler?
 
 // The subsequent step would be calling the "compile" function on an empty
 // string. Determine whether the compiler has thrown an error.
