@@ -144,9 +144,24 @@ int8_t function(int8_t argument) {
     std::cout << (char*)pErrors->GetBufferPointer() << std::endl;
   }
   
-  // Next steps:
-  // - Proceed to the parts of the tutorial about stripping debug data and
-  //   shader reflection.
+  // MARK: - Code Snippet 3
+  
+  ComPtr<IDxcBlob> pDebugData;
+  ComPtr<IDxcBlobUtf16> pDebugDataPath;
+  pCompileResult->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pDebugData.GetAddressOf()), pDebugDataPath.GetAddressOf());
+  std::cout << "pDebugData = " << pDebugData.Get() << std::endl;
+  std::cout << "pDebugDataPath = " << pDebugDataPath.Get() << std::endl;
+  std::cout << "pDebugData->GetBufferSize() = " << pDebugData->GetBufferSize() << std::endl;
+  std::cout << (char*)pDebugData->GetBufferPointer() << std::endl;
+  std::cout << "pDebugDataPath->GetBufferSize() = " << pDebugDataPath->GetBufferSize() << std::endl;
+  std::cout << "pDebugDataPath->GetStringLength() = " << pDebugDataPath->GetStringLength() << std::endl;
+  std::cout << pDebugDataPath->GetBufferPointer() << std::endl;
+  {
+    std::wstring string1((wchar_t*)pDebugDataPath->GetBufferPointer());
+    std::wstring string2(pDebugDataPath->GetStringPointer());
+    std::wcout << string1 << std::endl;
+    std::wcout << string2 << std::endl;
+  }
   
   return argument * argument;
 }
