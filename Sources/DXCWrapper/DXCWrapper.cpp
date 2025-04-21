@@ -47,6 +47,12 @@ int8_t function(int8_t argument) {
   // Initialize the arguments used in subsequent code.
   std::vector<LPWSTR> arguments;
   
+  // Initialize the defines used in subsequent code.
+  std::vector<std::wstring> defines = {
+    L"MACRO1",
+    L"MACRO2,"
+  };
+  
   // Initialize the compiler used in subsequent code.
   ComPtr<IDxcCompiler3> pCompiler;
   DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(pCompiler.GetAddressOf()));
@@ -66,25 +72,19 @@ int8_t function(int8_t argument) {
 
   arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS); // -WX
   arguments.push_back(DXC_ARG_DEBUG); // -Zi
-
-  // TODO: Fix the issue with compiling this part.
-    // std::vector<std::wstring> defines = {
-  //   "MACRO1", "MACRO2"
-  // };
-  /*
+  
   for (const std::wstring& define : defines)
   {
       arguments.push_back(L"-D");
-      arguments.push_back((LPWSTR)define.c_str());
+      arguments.push_back(const_cast<LPWSTR>(define.c_str()));
   }
-  */
-
+  
   DxcBuffer sourceBuffer;
   sourceBuffer.Ptr = pSource->GetBufferPointer();
   sourceBuffer.Size = pSource->GetBufferSize();
   sourceBuffer.Encoding = 0;
   
-/*
+  /*
   ComPtr<IDxcResult> pCompileResult;
   HR(pCompiler->Compile(&sourceBuffer, arguments.data(), (uint32)arguments.size(), nullptr, IID_PPV_ARGS(pCompileResult.GetAddressOf())));
 
