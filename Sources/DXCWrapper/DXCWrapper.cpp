@@ -14,19 +14,17 @@ extern "C"
 __declspec(dllexport)
 int8_t function(int8_t argument) {
   // Specify the shader source code.
-  int8_t* shaderSource = (int8_t*)malloc(5);
-  shaderSource[0] = 'h';
-  shaderSource[1] = 'j';
-  shaderSource[2] = 'k';
-  shaderSource[3] = '\n';
-  shaderSource[4] = '0';
+  std::string shaderSource = R"(
+  hjk
+  
+  )";
   
   // MARK: - Code Snippet 1
   
   ComPtr<IDxcUtils> pUtils;
   DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(pUtils.GetAddressOf()));
   ComPtr<IDxcBlobEncoding> pSource;
-  pUtils->CreateBlob(shaderSource, 4, CP_UTF8, pSource.GetAddressOf());
+  pUtils->CreateBlob(shaderSource.data(), shaderSource.size(), CP_UTF8, pSource.GetAddressOf());
   std::cout << "pUtils = " << pUtils.Get() << std::endl;
   std::cout << "pSource = " << pSource.Get() << std::endl;
   
@@ -45,12 +43,12 @@ int8_t function(int8_t argument) {
   // MARK: - Code Snippet 2
   
   // Initialize the arguments used in subsequent code.
-  std::vector<LPWSTR> arguments;
+  std::vector<LPCWSTR> arguments;
   
   // Initialize the defines used in subsequent code.
   std::vector<std::wstring> defines = {
     L"MACRO1",
-    L"MACRO2,"
+    L"MACRO2",
   };
   
   // Initialize the compiler used in subsequent code.
@@ -73,10 +71,9 @@ int8_t function(int8_t argument) {
   arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS); // -WX
   arguments.push_back(DXC_ARG_DEBUG); // -Zi
   
-  for (const std::wstring& define : defines)
-  {
-      arguments.push_back(L"-D");
-      arguments.push_back(const_cast<LPWSTR>(define.c_str()));
+  for (const std::wstring& define : defines) {
+    arguments.push_back(L"-D");
+    arguments.push_back(define.c_str());
   }
   
   DxcBuffer sourceBuffer;
@@ -84,16 +81,27 @@ int8_t function(int8_t argument) {
   sourceBuffer.Size = pSource->GetBufferSize();
   sourceBuffer.Encoding = 0;
   
-  /*
   ComPtr<IDxcResult> pCompileResult;
-  HR(pCompiler->Compile(&sourceBuffer, arguments.data(), (uint32)arguments.size(), nullptr, IID_PPV_ARGS(pCompileResult.GetAddressOf())));
-
+  {
+    HRESULT result = pCompiler->Compile(&sourceBuffer, arguments.data(), (UINT32)arguments.size(), nullptr, IID_PPV_ARGS(pCompileResult.GetAddressOf()));
+    std::cout << "pCompiler->Compile = " << result << std::endl;
+  }
+  std::cout << "pCompileResult = " << pCompileResult.Get() << std::endl;
+  
   // Error Handling. Note that this will also include warnings unless disabled.
   ComPtr<IDxcBlobUtf8> pErrors;
   pCompileResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
+  std::cout << "pErrors = " << pErrors.Get() << std::endl;
+  
   if (pErrors && pErrors->GetStringLength() > 0) {
     std::cout << "There was an error." << std::endl;
+    std::cout << (char*)pErrors->GetBufferPointer() << std::endl;
   }
-  */
+  
+  // Next steps:
+  // - Create a valid HLSL shader.
+  // - Proceed to the parts of the tutorial about stripping debug data and
+  //   shader reflection.
+  
   return argument * argument;
 }
