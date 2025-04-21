@@ -1,5 +1,6 @@
 // Imports for DXC symbols.
 #include "dxcapi.h"
+#include <d3d12shader.h>
 
 // Imports for ComPtr<>.
 #include <wrl.h>
@@ -162,6 +163,24 @@ int8_t function(int8_t argument) {
     std::wcout << string1 << std::endl;
     std::wcout << string2 << std::endl;
   }
+  
+  // MARK: - Code Snippet 4
+  
+  ComPtr<IDxcBlob> pReflectionData;
+  pCompileResult->GetOutput(DXC_OUT_REFLECTION, IID_PPV_ARGS(pReflectionData.GetAddressOf()), nullptr);
+  std::cout << "pReflectionData = " << pReflectionData.Get() << std::endl;
+  std::cout << "pReflectionData->GetBufferSize() = " << pReflectionData->GetBufferSize() << std::endl;
+  std::cout << (char*)pReflectionData->GetBufferPointer() << std::endl;
+  
+  DxcBuffer reflectionBuffer;
+  reflectionBuffer.Ptr = pReflectionData->GetBufferPointer();
+  reflectionBuffer.Size = pReflectionData->GetBufferSize();
+  reflectionBuffer.Encoding = 0;
+  ComPtr<ID3D12ShaderReflection> pShaderReflection;
+  pUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(pShaderReflection.GetAddressOf()));
+  std::cout << "pShaderReflection = " << pShaderReflection.Get() << std::endl;
+  
+  
   
   return argument * argument;
 }
