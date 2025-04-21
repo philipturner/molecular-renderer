@@ -5,8 +5,8 @@ using namespace Microsoft::WRL;
 
 
 
-// extern "C" ???
-// __attribute__((__visibility__("default"))) ???
+extern "C"
+__declspec(dllexport)
 int8_t function(int8_t argument) {
   int8_t* shaderSource = (int8_t*)malloc(5);
   shaderSource[0] = 'h';

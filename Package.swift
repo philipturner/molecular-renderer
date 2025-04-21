@@ -65,7 +65,7 @@ targets.append(.target(
   dependencies: [],
   exclude: ["dxcapi.h", "DXCWrapper.cpp"],
   linkerSettings: [
-    
+    .linkedLibrary("dxcompiler_wrapper"),
   ]
 ))
 

@@ -101,4 +101,5 @@ Package.resolved
 # Workaround for issue with the linker on Windows: binaries must all reside
 # in the top-level folder.
 /*.dll
+/*.exp
 /*.lib

@@ -325,8 +325,8 @@ print(upscaleContext!)
 
 // MARK: - DXCWrapper Experimentation
 
-//let argument: Int8 = 2
-//let returnValue = DXCWrapper.function(argument)
-//print(returnValue)
+let argument: Int8 = 3
+let returnValue = DXCWrapper.function(argument)
+print(returnValue)
 
 #endif
