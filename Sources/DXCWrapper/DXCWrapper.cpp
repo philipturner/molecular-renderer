@@ -180,7 +180,18 @@ int8_t function(int8_t argument) {
   pUtils->CreateReflection(&reflectionBuffer, IID_PPV_ARGS(pShaderReflection.GetAddressOf()));
   std::cout << "pShaderReflection = " << pShaderReflection.Get() << std::endl;
   
+  // MARK: - Code Snippet 5
   
+  ComPtr<IDxcBlob> pHash;
+  if (SUCCEEDED(pCompileResult->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(pHash.GetAddressOf()), nullptr)))
+  {
+    DxcShaderHash* pHashBuf = (DxcShaderHash*)pHash->GetBufferPointer();
+    std::cout << "pHashBuf->Flags = " << pHashBuf->Flags << std::endl;
+    for (int i = 0; i < 16; i++) {
+      std::cout << "pHashBuf->HashDigest[" << i << "] = ";
+      std::cout << uint16_t(pHashBuf->HashDigest[i]) << std::endl;
+    }
+  }
   
   return argument * argument;
 }
