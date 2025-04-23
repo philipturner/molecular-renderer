@@ -41,11 +41,6 @@ int8_t function(const char *shaderSource, uint32_t shaderSourceLength) {
   // Initialize the arguments used in subsequent code.
   std::vector<LPCWSTR> arguments;
   
-  // Initialize the defines used in subsequent code.
-  std::vector<std::wstring> defines = {
-    L"USE_STRUCTURED_BUFFERS",
-  };
-  
   // Initialize the compiler used in subsequent code.
   ComPtr<IDxcCompiler3> pCompiler;
   DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(pCompiler.GetAddressOf()));
@@ -53,7 +48,7 @@ int8_t function(const char *shaderSource, uint32_t shaderSourceLength) {
   
   // -E for the entry point (eg. 'main')
   arguments.push_back(L"-E");
-  arguments.push_back(L"CSMain");
+  arguments.push_back(L"main");
   
   // -T for the target profile (eg. 'ps_6_6')
   arguments.push_back(L"-T");
@@ -65,11 +60,6 @@ int8_t function(const char *shaderSource, uint32_t shaderSourceLength) {
   
   arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS); // -WX
   arguments.push_back(DXC_ARG_DEBUG); // -Zi
-  
-  for (const std::wstring& define : defines) {
-    arguments.push_back(L"-D");
-    arguments.push_back(define.c_str());
-  }
   
   DxcBuffer sourceBuffer;
   sourceBuffer.Ptr = pSource->GetBufferPointer();
