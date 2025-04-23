@@ -14,65 +14,13 @@ using namespace Microsoft::WRL;
 // https://simoncoenen.com/blog/programming/graphics/DxcCompiling
 extern "C"
 __declspec(dllexport)
-int8_t function(int8_t argument) {
-  // Specify the shader source code.
-  std::string shaderSource = R"(
-  //--------------------------------------------------------------------------------------
-  // File: BasicCompute11.hlsl
-  //
-  // This file contains the Compute Shader to perform array A + array B
-  //
-  // Copyright (c) Microsoft Corporation.
-  // Licensed under the MIT License (MIT).
-  //--------------------------------------------------------------------------------------
-  
-  #ifdef USE_STRUCTURED_BUFFERS
-  
-  struct BufType
-  {
-      int i;
-      float f;
-  };
-  
-  StructuredBuffer<BufType> Buffer0 : register(t0);
-  StructuredBuffer<BufType> Buffer1 : register(t1);
-  RWStructuredBuffer<BufType> BufferOut : register(u0);
-  
-  [numthreads(1, 1, 1)]
-  void CSMain( uint3 DTid : SV_DispatchThreadID )
-  {
-      BufferOut[DTid.x].i = Buffer0[DTid.x].i + Buffer1[DTid.x].i;
-      BufferOut[DTid.x].f = Buffer0[DTid.x].f + Buffer1[DTid.x].f;
-  }
-  
-  #else // The following code is for raw buffers
-  
-  ByteAddressBuffer Buffer0 : register(t0);
-  ByteAddressBuffer Buffer1 : register(t1);
-  RWByteAddressBuffer BufferOut : register(u0);
-  
-  [numthreads(1, 1, 1)]
-  void CSMain( uint3 DTid : SV_DispatchThreadID )
-  {
-      int i0 = asint( Buffer0.Load( DTid.x*8 ) );
-      float f0 = asfloat( Buffer0.Load( DTid.x*8+4 ) );
-      int i1 = asint( Buffer1.Load( DTid.x*8 ) );
-      float f1 = asfloat( Buffer1.Load( DTid.x*8+4 ) );
-      
-      BufferOut.Store( DTid.x*8, asuint(i0 + i1) );
-      BufferOut.Store( DTid.x*8+4, asuint(f0 + f1) );
-  }
-  
-  #endif // USE_STRUCTURED_BUFFERS
-  
-  )";
-  
+int8_t function(const char *shaderSource, uint32_t shaderSourceLength) {
   // MARK: - Code Snippet 1
   
   ComPtr<IDxcUtils> pUtils;
   DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(pUtils.GetAddressOf()));
   ComPtr<IDxcBlobEncoding> pSource;
-  pUtils->CreateBlob(shaderSource.data(), shaderSource.size(), CP_UTF8, pSource.GetAddressOf());
+  pUtils->CreateBlob(shaderSource, shaderSourceLength, CP_UTF8, pSource.GetAddressOf());
   std::cout << "pUtils = " << pUtils.Get() << std::endl;
   std::cout << "pSource = " << pSource.Get() << std::endl;
   
@@ -193,5 +141,5 @@ int8_t function(int8_t argument) {
     }
   }
   
-  return argument * argument;
+  return 0;
 }
