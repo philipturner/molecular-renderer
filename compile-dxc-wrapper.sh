@@ -15,7 +15,7 @@ echo ""
 #
 # The '.build' folder should already exist, if the 'dxcompiler' binaries have
 # been downloaded.
-$clang_executable_path -c -o ".build/dxcompiler_wrapper.o" "Sources/DXCWrapper/DXCWrapper.cpp"
+$clang_executable_path -c -o ".build/dxcompiler_wrapper.o" "Sources/DXC/DXCWrapper.cpp"
 $clang_executable_path -shared -ldxcompiler -o dxcompiler_wrapper.dll ".build/dxcompiler_wrapper.o"
 $ar_executable_path r dxcompiler_wrapper.lib ".build/dxcompiler_wrapper.o"
 

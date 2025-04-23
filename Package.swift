@@ -6,22 +6,27 @@ import PackageDescription
 
 // These dependencies are likely platform-specific.
 var rendererDependencies: [Target.Dependency] = []
+var rendererLinkerSettings: [LinkerSetting] = []
 
 // These are all the libraries to link to the Workspace executable.
 var workspaceDependencies: [Target.Dependency] = []
+var workspaceLinkerSettings: [LinkerSetting] = []
 
+// Common dependencies.
 workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
   .product(name: "Numerics", package: "swift-numerics"),
   "MolecularRenderer"
 ]
 
+// Windows dependencies.
 #if os(Windows)
 workspaceDependencies += [
-  "DXCWrapper",
   "FidelityFX",
   .product(name: "SwiftCOM", package: "swift-com"),
 ]
+workspaceLinkerSettings.append(
+  .linkedLibrary("dxcompiler_wrapper"))
 #endif
 
 // MARK: - Common Targets
@@ -39,11 +44,13 @@ dependencies.append(.package(
 
 targets.append(.target(
   name: "MolecularRenderer",
-  dependencies: rendererDependencies))
+  dependencies: rendererDependencies,
+  linkerSettings: rendererLinkerSettings))
 
 targets.append(.executableTarget(
   name: "Workspace",
-  dependencies: workspaceDependencies))
+  dependencies: workspaceDependencies,
+  linkerSettings: workspaceLinkerSettings))
 
 // MARK: - Windows Targets
 
@@ -59,15 +66,6 @@ targets.append(.executableTarget(
 dependencies.append(.package(
   url: "https://github.com/philipturner/swift-com",
   branch: "main"))
-
-targets.append(.target(
-  name: "DXCWrapper",
-  dependencies: [],
-  exclude: ["dxcapi.h", "DXCWrapper.cpp"],
-  linkerSettings: [
-    .linkedLibrary("dxcompiler_wrapper"),
-  ]
-))
 
 targets.append(.target(
   name: "FidelityFX",

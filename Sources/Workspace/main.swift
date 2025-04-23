@@ -179,7 +179,6 @@ application.run { renderTarget in
 
 
 #if os(Windows)
-import DXCWrapper
 import FidelityFX
 import SwiftCOM
 import WinSDK
@@ -323,10 +322,10 @@ print(upscaleContext!)
 
 
 
-// MARK: - DXCWrapper Experimentation
+// MARK: - DXC Experimentation
 
 let argument: Int8 = 3
-let returnValue = DXCWrapper.function(argument)
+let returnValue = function(argument)
 print(returnValue)
 
 #endif
