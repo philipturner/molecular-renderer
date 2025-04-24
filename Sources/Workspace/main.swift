@@ -516,6 +516,12 @@ print(returnValue)
 
 // TODO: Query the remaining features, and finally, the types of UAV loads
 // supported.
+//
+// Resume investigation with these links in the browser:
+// https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#unordered-access-resources
+// https://logins.github.io/graphics/2020/07/31/DX12ResourceHandling.html
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/capability-querying
 
 
 
