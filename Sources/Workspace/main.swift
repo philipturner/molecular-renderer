@@ -405,6 +405,9 @@ struct Shader {
   }
 }
 
+// Pausing progress on the C utility for now.
+/*
+
 // Set up the shader.
 var shaderDesc = ShaderDescriptor()
 shaderDesc.useStructuredBuffers = true
@@ -415,5 +418,41 @@ let shaderSource = shader.createSource()
 let returnValue = function(
   shaderSource, UInt32(shaderSource.count))
 print(returnValue)
+
+*/
+
+// Before creating a compute shader, you need a root signature.
+// Guide: logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html
+//
+// Resources in HLSL:
+// - RWBuffer
+//   - RWStructuredBuffer<>
+//   - RWByteAddressBuffer
+// - RWTexture
+// Resources in the DirectX API:
+// - Unordered access resource, can be read/written from multiple GPU threads
+// - Unordered access view
+//   - Referenced buffer
+//   - Referenced texture
+//   - Specify usage in compute pipeline
+//   - Ability to perform thread-safe reading and
+// - UAV loads
+//   - 8-bit scalar types
+//   - 16-bit scalar types
+//   - 32-bit scalar types
+//   - 4x8-bit vector types
+//   - 4x16-bit vector types
+//   - 4x32-bit vector types
+
+// Optional formats supported on the GTX 970:
+
+// Reproducing code from:
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
+
+// Executes the code currently in the function, and prints the result to the
+// console for your recording.
+func queryCapability(device: SwiftCOM.ID3D12Device) {
+  
+}
 
 #endif
