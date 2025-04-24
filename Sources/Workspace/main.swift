@@ -448,11 +448,46 @@ print(returnValue)
 
 // Reproducing code from:
 // https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
+//
+// D3D12_FEATURE_DATA_D3D12_OPTIONS(
+//   DoublePrecisionFloatShaderOps: true,
+//   OutputMergerLogicOp: true,
+//   MinPrecisionSupport: __C.D3D12_SHADER_MIN_PRECISION_SUPPORT(rawValue: 0),
+//   TiledResourcesTier: __C.D3D12_TILED_RESOURCES_TIER(rawValue: 3),
+//   ResourceBindingTier: __C.D3D12_RESOURCE_BINDING_TIER(rawValue: 3),
+//   PSSpecifiedStencilRefSupported: false,
+//   TypedUAVLoadAdditionalFormats: true,
+//   ROVsSupported: true,
+//   ConservativeRasterizationTier: __C.D3D12_CONSERVATIVE_RASTERIZATION_TIER(rawValue: 1),
+//   MaxGPUVirtualAddressBitsPerResource: 40,
+//   StandardSwizzle64KBSupported: false,
+//   CrossNodeSharingTier: __C.D3D12_CROSS_NODE_SHARING_TIER(rawValue: 0),
+//   CrossAdapterRowMajorTextureSupported: false,
+//   VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation: true,
+//   ResourceHeapTier: __C.D3D12_RESOURCE_HEAP_TIER(rawValue: 1))
+// D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT(
+//   MaxGPUVirtualAddressBitsPerResource: 40,
+//   MaxGPUVirtualAddressBitsPerProcess: 40)
+// Resource heap tier:
+// - All resources in a heap must be the same type:
+//   - [Mutually exclusive category] All buffers
+//   - [Mutually exclusive category] All non-render textures
+//   - [Mutually exclusive category] Render target textures
+
 
 // Executes the code currently in the function, and prints the result to the
 // console for your recording.
 func queryCapability(device: SwiftCOM.ID3D12Device) {
+  var featureSupport = D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT()
+  try! device.CheckFeatureSupport(
+    D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT,
+    &featureSupport,
+    UInt32(MemoryLayout<D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT>.stride))
   
+  print(featureSupport)
+  
+  print("Hello, world.")
 }
+queryCapability(device: device)
 
 #endif
