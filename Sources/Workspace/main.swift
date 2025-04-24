@@ -443,12 +443,22 @@ print(returnValue)
 //   - 4x8-bit vector types
 //   - 4x16-bit vector types
 //   - 4x32-bit vector types
-
-// Optional formats supported on the GTX 970:
+// - Optional UAV load formats supported on the GTX 970:
+//   - TODO
+// - Resource heap tier 1: all resources in a heap must be the same type.
+//   - [Mutually exclusive category] All buffers
+//   - [Mutually exclusive category] All non-render textures
+//   - [Mutually exclusive category] Render target textures
 
 // Reproducing code from:
 // https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
 //
+// D3D12_FEATURE_DATA_ARCHITECTURE1(
+//   NodeIndex: 0,
+//   TileBasedRenderer: false,
+//   UMA: false,
+//   CacheCoherentUMA: false,
+//   IsolatedMMU: true)
 // D3D12_FEATURE_DATA_D3D12_OPTIONS(
 //   DoublePrecisionFloatShaderOps: true,
 //   OutputMergerLogicOp: true,
@@ -465,25 +475,58 @@ print(returnValue)
 //   CrossAdapterRowMajorTextureSupported: false,
 //   VPAndRTArrayIndexFromAnyShaderFeedingRasterizerSupportedWithoutGSEmulation: true,
 //   ResourceHeapTier: __C.D3D12_RESOURCE_HEAP_TIER(rawValue: 1))
+// D3D12_FEATURE_DATA_D3D12_OPTIONS1(
+//   WaveOps: true,
+//   WaveLaneCountMin: 32,
+//   WaveLaneCountMax: 32,
+//   TotalLaneCount: 1664,
+//   ExpandedComputeResourceStates: true,
+//   Int64ShaderOps: true)
+// D3D12_FEATURE_DATA_D3D12_OPTIONS3(
+//   CopyQueueTimestampQueriesSupported: true,
+//   CastingFullyTypedFormatSupported: true,
+//   WriteBufferImmediateSupportFlags: __C.D3D12_COMMAND_LIST_SUPPORT_FLAGS(rawValue: 127),
+//     This includes all possible values for D3D12_COMMAND_LIST_SUPPORT_FLAGS.
+//   ViewInstancingTier: __C.D3D12_VIEW_INSTANCING_TIER(rawValue: 2),
+//   BarycentricsSupported: false)
+// D3D12_FEATURE_DATA_D3D12_OPTIONS4(
+//   MSAA64KBAlignedTextureSupported: true,
+//   SharedResourceCompatibilityTier: __C.D3D12_SHARED_RESOURCE_COMPATIBILITY_TIER(rawValue: 2),
+//     DXGI 8-bit scalar types
+//     DXGI 16-bit scalar types
+//     DXGI 32-bit scalar types
+//     DXGI 2x8-bit vector types
+//     DXGI 2x16-bit vector types
+//     DXGI 4x8-bit vector types
+//     DXGI 4x16-bit vector types
+//     DXGI rgb10a2 packed format
+//   Native16BitShaderOpsSupported: false)
+//     There is no hardware support for 16-bit floating point and 16-bit integer
+//     operations, except perhaps packing 16-bit integers into a 32-bit register.
+// D3D12_FEATURE_DATA_D3D12_OPTIONS5(
+//   SRVOnlyTiledResourceTier3: true,
+//   RenderPassesTier: __C.D3D12_RENDER_PASS_TIER(rawValue: 0),
+//     Render passes are provided via software emulation.
+//   RaytracingTier: __C.D3D12_RAYTRACING_TIER(rawValue: 0))
+//     DirectX API for ray tracing is not supported (irrelevant to my
+//     application of pure software ray tracing).
 // D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT(
 //   MaxGPUVirtualAddressBitsPerResource: 40,
 //   MaxGPUVirtualAddressBitsPerProcess: 40)
-// Resource heap tier:
-// - All resources in a heap must be the same type:
-//   - [Mutually exclusive category] All buffers
-//   - [Mutually exclusive category] All non-render textures
-//   - [Mutually exclusive category] Render target textures
+
+// TODO: Query the remaining features, and finally, the types of UAV loads
+// supported.
+
 
 
 // Executes the code currently in the function, and prints the result to the
 // console for your recording.
 func queryCapability(device: SwiftCOM.ID3D12Device) {
-  var featureSupport = D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT()
+  var featureSupport = D3D12_FEATURE_DATA_D3D12_OPTIONS5()
   try! device.CheckFeatureSupport(
-    D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT,
+    D3D12_FEATURE_D3D12_OPTIONS5,
     &featureSupport,
-    UInt32(MemoryLayout<D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT>.stride))
-  
+    UInt32(MemoryLayout<D3D12_FEATURE_DATA_D3D12_OPTIONS5>.stride))
   print(featureSupport)
   
   print("Hello, world.")
