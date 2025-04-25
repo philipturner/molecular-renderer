@@ -510,9 +510,55 @@ print(returnValue)
 //   RaytracingTier: __C.D3D12_RAYTRACING_TIER(rawValue: 0))
 //     DirectX API for ray tracing is not supported (irrelevant to my
 //     application of pure software ray tracing).
+// D3D12_FEATURE_DATA_EXISTING_HEAPS(
+//   Supported: true)
+// D3D12_FEATURE_DATA_FEATURE_LEVELS(
+//   NumFeatureLevels: 10,
+//   pFeatureLevelsRequested: Optional(0x00000199192594b0),
+//   MaxSupportedFeatureLevel: __C.D3D_FEATURE_LEVEL(rawValue: 49408))
+//     D3D_FEATURE_LEVEL_12_1
 // D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT(
 //   MaxGPUVirtualAddressBitsPerResource: 40,
 //   MaxGPUVirtualAddressBitsPerProcess: 40)
+// D3D12_FEATURE_DATA_ROOT_SIGNATURE(
+//   HighestVersion: __C.D3D_ROOT_SIGNATURE_VERSION(rawValue: 2))
+//     Version 1.1
+// D3D12_FEATURE_DATA_SERIALIZATION(
+//   NodeIndex: 0,
+//   HeapSerializationTier: __C.D3D12_HEAP_SERIALIZATION_TIER(rawValue: 0))
+//     Tier 0, meaning heap serialization is not supported.
+// D3D12_FEATURE_DATA_SHADER_CACHE(
+//   SupportFlags: __C.D3D12_SHADER_CACHE_SUPPORT_FLAGS(rawValue: 3))
+//     Supports CachedPSO member of the compute pipeline descriptor.
+//     Supports application-controlled PSO grouping and caching.
+//     Does not support OS-managed shader cache, in any form.
+//     Does not support 'DRIVER_MANAGED_CACHE' (not documented).
+//     Does not support 'SHADER_CONTROL_CLEAR' (not documented).
+//     Does not support 'SHADER_SESSION_DELETE' (not documented).
+//     This is interesting, because we know Metal uses a system shader cache
+//     on Apple platforms. Meanwhile, DXC is open-source and might not have
+//     access to a proprietary built-in cache from the Windows OS.
+// D3D12_FEATURE_DATA_SHADER_MODEL(
+//   HighestShaderModel: __C.D3D_SHADER_MODEL(rawValue: 101)
+//     Shader Model 6.5
+//     Strange. According to Wikipedia, Shader Model 6.8 just barely includes
+//     Maxwell 2+ and RDNA 1+ in the list of supported architectures. However,
+//     Shader Model 6.6 requires WDDM 3.0 from Windows 11. Perhaps it reports
+//     Shader Model 6.5 because it is running under Windows 10.
+//
+// Shader Model 6.6 introduces:
+// - 64-bit and floating point atomics (not needed)
+// - Dynamic resources (looks useful)
+// - IsHelperLane() (not needed because not using pixel shaders)
+// - Derivative Operations (2x2 quad functionality not needed)
+// - Pack/Unpack Intrinsics (interesting, but not needed)
+// - WaveSize (interesting, this feature will result in a compiler warning)
+// - Raytracing PAQs (not needed)
+//
+// Shader Model 6.6 functionality was the problem blocking Unreal Engine 5
+// Nanite support on M1-series Apple GPUs.
+
+
 
 // TODO: Query the remaining features, and finally, the types of UAV loads
 // supported.
@@ -528,14 +574,33 @@ print(returnValue)
 // Executes the code currently in the function, and prints the result to the
 // console for your recording.
 func queryCapability(device: SwiftCOM.ID3D12Device) {
-  var featureSupport = D3D12_FEATURE_DATA_D3D12_OPTIONS5()
+  let shaderModels: [D3D_SHADER_MODEL] = [
+    D3D_SHADER_MODEL_5_1,
+    D3D_SHADER_MODEL_6_0,
+    D3D_SHADER_MODEL_6_1,
+    D3D_SHADER_MODEL_6_2,
+    D3D_SHADER_MODEL_6_3,
+    D3D_SHADER_MODEL_6_4,
+    D3D_SHADER_MODEL_6_5,
+    D3D_SHADER_MODEL_6_6,
+    D3D_SHADER_MODEL_6_7,
+    D3D_HIGHEST_SHADER_MODEL,
+  ]
+  for shaderModel in shaderModels {
+    print(shaderModel)
+  }
+  
+  var featureSupport = D3D12_FEATURE_DATA_SHADER_MODEL()
+  featureSupport.HighestShaderModel = D3D_SHADER_MODEL_6_6
+  
   try! device.CheckFeatureSupport(
-    D3D12_FEATURE_D3D12_OPTIONS5,
+    D3D12_FEATURE_SHADER_MODEL,
     &featureSupport,
-    UInt32(MemoryLayout<D3D12_FEATURE_DATA_D3D12_OPTIONS5>.stride))
+    UInt32(MemoryLayout<D3D12_FEATURE_DATA_SHADER_MODEL>.stride))
   print(featureSupport)
   
-  print("Hello, world.")
+  
+
 }
 queryCapability(device: device)
 
