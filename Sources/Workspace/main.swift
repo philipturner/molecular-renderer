@@ -444,7 +444,8 @@ print(returnValue)
 //   - 4x16-bit vector types
 //   - 4x32-bit vector types
 // - Optional UAV load formats supported on the GTX 970:
-//   - TODO
+//   - See the code below.
+//   - All of the formats except 16-bit packed color formats.
 // - Resource heap tier 1: all resources in a heap must be the same type.
 //   - [Mutually exclusive category] All buffers
 //   - [Mutually exclusive category] All non-render textures
@@ -558,18 +559,64 @@ print(returnValue)
 // Shader Model 6.6 functionality was the problem blocking Unreal Engine 5
 // Nanite support on M1-series Apple GPUs.
 
-
-
-// TODO: Query the remaining features, and finally, the types of UAV loads
-// supported.
+// ## Support for Formats for UAVs
 //
-// Resume investigation with these links in the browser:
-// https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#unordered-access-resources
-// https://logins.github.io/graphics/2020/07/31/DX12ResourceHandling.html
-// https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
-// https://learn.microsoft.com/en-us/windows/win32/direct3d12/capability-querying
-
-
+// Legend:
+// - 2xx = TILED
+// - 3xx = TILED, OUTPUT_MERGER_LOGIC_OP
+// - xCx = UAV_TYPED_STORE, UAV_TYPED_LOAD
+// - xFx = UAV_TYPED_STORE, UAV_TYPED_LOAD,
+//         UAV_ATOMIC_UNSIGNED_MIN_OR_MAX,
+//         UAV_ATOMIC_SIGNED_MIN_OR_MAX
+// - xx8 = ATOMIC_EXCHANGE
+// - xxF = ATOMIC_EXCHANGE, ATOMIC_COMPARE_STORE_OR_COMPARE_EXCHANGE,
+//         ATOMIC_BITWISE_OPS, ATOMIC_ADD
+//
+// R32_FLOAT          | 1  | true  | 2C8  |
+// R32_UINT           | 1  | true  | 3FF  |
+// R32_SINT           | 1  | true  | 2FF  |
+//
+// R32G32B32A32_FLOAT | 1  | true  | 2C0  |
+// R32G32B32A32_UINT  | 1  | true  | 3C0  |
+// R32G32B32A32_SINT  | 1  | true  | 2C0  |
+// R16G16B16A16_FLOAT | 1  | true  | 2C0  |
+// R16G16B16A16_UINT  | 1  | true  | 3C0  |
+// R16G16B16A16_SINT  | 1  | true  | 2C0  |
+// R8G8B8A8_UNORM     | 1  | true  | 2C0  |
+// R8G8B8A8_UINT      | 1  | true  | 3C0  |
+// R8G8B8A8_SINT      | 1  | true  | 2C0  |
+// R16_FLOAT          | 1  | true  | 2C0  |
+// R16_UINT           | 1  | true  | 3C0  |
+// R16_SINT           | 1  | true  | 2C0  |
+// R8_UNORM           | 1  | true  | 2C0  |
+// R8_UINT            | 1  | true  | 3C0  |
+// R8_SINT            | 1  | true  | 2C0  |
+//
+// R16G16B16A16_UNORM | 1  | true  | 2C0  |
+// R16G16B16A16_SNORM | 1  | true  | 2C0  |
+// R32G32_FLOAT       | 1  | true  | 2C0  |
+// R32G32_UINT        | 1  | true  | 3C0  |
+// R32G32_SINT        | 1  | true  | 2C0  |
+// R10G10B10A2_UNORM  | 1  | true  | 2C0  |
+// R10G10B10A2_UINT   | 1  | true  | 3C0  |
+// R11G11B10_FLOAT    | 1  | true  | 2C0  |
+// R8G8B8A8_SNORM     | 1  | true  | 2C0  |
+// R16G16_FLOAT       | 1  | true  | 2C0  |
+// R16G16_UNORM       | 1  | true  | 2C0  |
+// R16G16_UINT        | 1  | true  | 3C0  |
+// R16G16_SNORM       | 1  | true  | 2C0  |
+// R16G16_SINT        | 1  | true  | 2C0  |
+// R8G8_UNORM         | 1  | true  | 2C0  |
+// R8G8_UINT          | 1  | true  | 3C0  |
+// R8G8_SNORM         | 1  | true  | 2C0  |
+// R8G8_SINT          | 1  | true  | 2C0  |
+// R16_UNORM          | 1  | true  | 2C0  |
+// R16_SNORM          | 1  | true  | 2C0  |
+// R8_SNORM           | 1  | true  | 2C0  |
+// A8_UNORM           | 1  | true  | 2C0  |
+// B5G6R5_UNORM       | 1  | false | 200  |
+// B5G5R5A1_UNORM     | 1  | false | 200  |
+// B4G4R4A4_UNORM     | 1  | false | 200  |
 
 // Executes the code currently in the function, and prints the result to the
 // console for your recording.
@@ -624,7 +671,51 @@ func queryCapability3(
 
 // Specify the formats.
 let formatPairs: [(String, DXGI_FORMAT)] = [
-  ("R32_FLOAT", DXGI_FORMAT_R32_FLOAT)
+  ("R32_FLOAT", DXGI_FORMAT_R32_FLOAT),
+  ("R32_UINT", DXGI_FORMAT_R32_UINT),
+  ("R32_SINT", DXGI_FORMAT_R32_SINT),
+  
+  ("R32G32B32A32_FLOAT", DXGI_FORMAT_R32G32B32A32_FLOAT),
+  ("R32G32B32A32_UINT", DXGI_FORMAT_R32G32B32A32_UINT),
+  ("R32G32B32A32_SINT", DXGI_FORMAT_R32G32B32A32_SINT),
+  ("R16G16B16A16_FLOAT", DXGI_FORMAT_R16G16B16A16_FLOAT),
+  ("R16G16B16A16_UINT", DXGI_FORMAT_R16G16B16A16_UINT),
+  ("R16G16B16A16_SINT", DXGI_FORMAT_R16G16B16A16_SINT),
+  ("R8G8B8A8_UNORM", DXGI_FORMAT_R8G8B8A8_UNORM),
+  ("R8G8B8A8_UINT", DXGI_FORMAT_R8G8B8A8_UINT),
+  ("R8G8B8A8_SINT", DXGI_FORMAT_R8G8B8A8_SINT),
+  ("R16_FLOAT", DXGI_FORMAT_R16_FLOAT),
+  ("R16_UINT", DXGI_FORMAT_R16_UINT),
+  ("R16_SINT", DXGI_FORMAT_R16_SINT),
+  ("R8_UNORM", DXGI_FORMAT_R8_UNORM),
+  ("R8_UINT", DXGI_FORMAT_R8_UINT),
+  ("R8_SINT", DXGI_FORMAT_R8_SINT),
+  
+  ("R16G16B16A16_UNORM", DXGI_FORMAT_R16G16B16A16_UNORM),
+  ("R16G16B16A16_SNORM", DXGI_FORMAT_R16G16B16A16_SNORM),
+  ("R32G32_FLOAT", DXGI_FORMAT_R32G32_FLOAT),
+  ("R32G32_UINT", DXGI_FORMAT_R32G32_UINT),
+  ("R32G32_SINT", DXGI_FORMAT_R32G32_SINT),
+  ("R10G10B10A2_UNORM", DXGI_FORMAT_R10G10B10A2_UNORM),
+  ("R10G10B10A2_UINT", DXGI_FORMAT_R10G10B10A2_UINT),
+  ("R11G11B10_FLOAT", DXGI_FORMAT_R11G11B10_FLOAT),
+  ("R8G8B8A8_SNORM", DXGI_FORMAT_R8G8B8A8_SNORM),
+  ("R16G16_FLOAT", DXGI_FORMAT_R16G16_FLOAT),
+  ("R16G16_UNORM", DXGI_FORMAT_R16G16_UNORM),
+  ("R16G16_UINT", DXGI_FORMAT_R16G16_UINT),
+  ("R16G16_SNORM", DXGI_FORMAT_R16G16_SNORM),
+  ("R16G16_SINT", DXGI_FORMAT_R16G16_SINT),
+  ("R8G8_UNORM", DXGI_FORMAT_R8G8_UNORM),
+  ("R8G8_UINT", DXGI_FORMAT_R8G8_UINT),
+  ("R8G8_SNORM", DXGI_FORMAT_R8G8_SNORM),
+  ("R8G8_SINT", DXGI_FORMAT_R8G8_SINT),
+  ("R16_UNORM", DXGI_FORMAT_R16_UNORM),
+  ("R16_SNORM", DXGI_FORMAT_R16_SNORM),
+  ("R8_SNORM", DXGI_FORMAT_R8_SNORM),
+  ("A8_UNORM", DXGI_FORMAT_A8_UNORM),
+  ("B5G6R5_UNORM", DXGI_FORMAT_B5G6R5_UNORM),
+  ("B5G5R5A1_UNORM", DXGI_FORMAT_B5G5R5A1_UNORM),
+  ("B4G4R4A4_UNORM", DXGI_FORMAT_B4G4R4A4_UNORM),
 ]
 
 // Iterate over the formats.
@@ -638,8 +729,11 @@ for (description, format) in formatPairs {
     print(output, terminator: " | ")
   }
   
+  // Comment
+  print("// ", terminator: "")
+  
   // Description
-  print_(description, length: 11)
+  print_(description, length: 18)
   
   // Plane Count
   let capability1 = queryCapability1(device: device, format: format)
@@ -656,6 +750,14 @@ for (description, format) in formatPairs {
   // New Line
   print()
 }
+
+
+
+// Resume investigation with these links in the browser:
+// https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#unordered-access-resources
+// https://logins.github.io/graphics/2020/07/31/DX12ResourceHandling.html
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/capability-querying
 
 
 
