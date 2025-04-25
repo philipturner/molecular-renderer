@@ -576,7 +576,7 @@ print(returnValue)
 func queryCapability1(
   device: SwiftCOM.ID3D12Device,
   format: DXGI_FORMAT
-) {
+) -> String {
   var featureSupport = D3D12_FEATURE_DATA_FORMAT_INFO()
   featureSupport.Format = format
   
@@ -584,7 +584,8 @@ func queryCapability1(
     D3D12_FEATURE_FORMAT_INFO,
     &featureSupport,
     UInt32(MemoryLayout<D3D12_FEATURE_DATA_FORMAT_INFO>.stride))
-  print(featureSupport.PlaneCount)
+  
+  return String(featureSupport.PlaneCount)
 }
 
 // Executes the code currently in the function, and prints the result to the
@@ -592,7 +593,7 @@ func queryCapability1(
 func queryCapability2(
   device: SwiftCOM.ID3D12Device,
   format: DXGI_FORMAT
-) {
+) -> String {
   var featureSupport = D3D12_FEATURE_DATA_FORMAT_SUPPORT()
   featureSupport.Format = format
   
@@ -600,7 +601,8 @@ func queryCapability2(
     D3D12_FEATURE_FORMAT_SUPPORT,
     &featureSupport,
     UInt32(MemoryLayout<D3D12_FEATURE_DATA_FORMAT_SUPPORT>.stride))
-  print(featureSupport.Support1.rawValue & 0x2000000 > 0)
+  
+  return String(featureSupport.Support1.rawValue & 0x2000000 > 0)
 }
 
 // Executes the code currently in the function, and prints the result to the
@@ -608,7 +610,7 @@ func queryCapability2(
 func queryCapability3(
   device: SwiftCOM.ID3D12Device,
   format: DXGI_FORMAT
-) {
+) -> String {
   var featureSupport = D3D12_FEATURE_DATA_FORMAT_SUPPORT()
   featureSupport.Format = format
   
@@ -616,20 +618,45 @@ func queryCapability3(
     D3D12_FEATURE_FORMAT_SUPPORT,
     &featureSupport,
     UInt32(MemoryLayout<D3D12_FEATURE_DATA_FORMAT_SUPPORT>.stride))
-  print(String(featureSupport.Support2.rawValue, radix: 16, uppercase: true))
+  
+  return String(featureSupport.Support2.rawValue, radix: 16, uppercase: true)
 }
 
 // Specify the formats.
+let formatPairs: [(String, DXGI_FORMAT)] = [
+  ("R32_FLOAT", DXGI_FORMAT_R32_FLOAT)
+]
 
-let format: DXGI_FORMAT = DXGI_FORMAT_R32_FLOAT
+// Iterate over the formats.
+for (description, format) in formatPairs {
+  // Utility for aligning data in a table.
+  func print_(_ string: String, length: Int) {
+    var output = string
+    while output.count < length {
+      output = output + " "
+    }
+    print(output, terminator: " | ")
+  }
+  
+  // Description
+  print_(description, length: 11)
+  
+  // Plane Count
+  let capability1 = queryCapability1(device: device, format: format)
+  print_(capability1, length: 2)
+  
+  // Typed Unordered Access View
+  let capability2 = queryCapability2(device: device, format: format)
+  print_(capability2, length: 5)
+  
+  // UAV Typed Load
+  let capability3 = queryCapability3(device: device, format: format)
+  print_(capability3, length: 4)
+  
+  // New Line
+  print()
+}
 
-// Plane Count
-queryCapability1(device: device, format: format)
 
-// Typed Unordered Access View
-queryCapability2(device: device, format: format)
-
-// UAV Typed Load
-queryCapability3(device: device, format: format)
 
 #endif
