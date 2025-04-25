@@ -573,35 +573,63 @@ print(returnValue)
 
 // Executes the code currently in the function, and prints the result to the
 // console for your recording.
-func queryCapability(device: SwiftCOM.ID3D12Device) {
-  let shaderModels: [D3D_SHADER_MODEL] = [
-    D3D_SHADER_MODEL_5_1,
-    D3D_SHADER_MODEL_6_0,
-    D3D_SHADER_MODEL_6_1,
-    D3D_SHADER_MODEL_6_2,
-    D3D_SHADER_MODEL_6_3,
-    D3D_SHADER_MODEL_6_4,
-    D3D_SHADER_MODEL_6_5,
-    D3D_SHADER_MODEL_6_6,
-    D3D_SHADER_MODEL_6_7,
-    D3D_HIGHEST_SHADER_MODEL,
-  ]
-  for shaderModel in shaderModels {
-    print(shaderModel)
-  }
-  
-  var featureSupport = D3D12_FEATURE_DATA_SHADER_MODEL()
-  featureSupport.HighestShaderModel = D3D_SHADER_MODEL_6_6
+func queryCapability1(
+  device: SwiftCOM.ID3D12Device,
+  format: DXGI_FORMAT
+) {
+  var featureSupport = D3D12_FEATURE_DATA_FORMAT_INFO()
+  featureSupport.Format = format
   
   try! device.CheckFeatureSupport(
-    D3D12_FEATURE_SHADER_MODEL,
+    D3D12_FEATURE_FORMAT_INFO,
     &featureSupport,
-    UInt32(MemoryLayout<D3D12_FEATURE_DATA_SHADER_MODEL>.stride))
-  print(featureSupport)
-  
-  
-
+    UInt32(MemoryLayout<D3D12_FEATURE_DATA_FORMAT_INFO>.stride))
+  print(featureSupport.PlaneCount)
 }
-queryCapability(device: device)
+
+// Executes the code currently in the function, and prints the result to the
+// console for your recording.
+func queryCapability2(
+  device: SwiftCOM.ID3D12Device,
+  format: DXGI_FORMAT
+) {
+  var featureSupport = D3D12_FEATURE_DATA_FORMAT_SUPPORT()
+  featureSupport.Format = format
+  
+  try! device.CheckFeatureSupport(
+    D3D12_FEATURE_FORMAT_SUPPORT,
+    &featureSupport,
+    UInt32(MemoryLayout<D3D12_FEATURE_DATA_FORMAT_SUPPORT>.stride))
+  print(featureSupport.Support1.rawValue & 0x2000000 > 0)
+}
+
+// Executes the code currently in the function, and prints the result to the
+// console for your recording.
+func queryCapability3(
+  device: SwiftCOM.ID3D12Device,
+  format: DXGI_FORMAT
+) {
+  var featureSupport = D3D12_FEATURE_DATA_FORMAT_SUPPORT()
+  featureSupport.Format = format
+  
+  try! device.CheckFeatureSupport(
+    D3D12_FEATURE_FORMAT_SUPPORT,
+    &featureSupport,
+    UInt32(MemoryLayout<D3D12_FEATURE_DATA_FORMAT_SUPPORT>.stride))
+  print(String(featureSupport.Support2.rawValue, radix: 16, uppercase: true))
+}
+
+// Specify the formats.
+
+let format: DXGI_FORMAT = DXGI_FORMAT_R32_FLOAT
+
+// Plane Count
+queryCapability1(device: device, format: format)
+
+// Typed Unordered Access View
+queryCapability2(device: device, format: format)
+
+// UAV Typed Load
+queryCapability3(device: device, format: format)
 
 #endif
