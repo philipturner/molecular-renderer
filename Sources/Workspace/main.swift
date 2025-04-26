@@ -618,6 +618,8 @@ print(returnValue)
 // B5G5R5A1_UNORM     | 1  | false | 200  |
 // B4G4R4A4_UNORM     | 1  | false | 200  |
 
+#if false
+
 // Executes the code currently in the function, and prints the result to the
 // console for your recording.
 func queryCapability1(
@@ -751,11 +753,23 @@ for (description, format) in formatPairs {
   print()
 }
 
+#endif
+
 
 
 // Articles to investigate next, as precursor to setting up compute PSO:
 // https://logins.github.io/graphics/2020/06/26/DX12RootSignatureObject.html
 // https://logins.github.io/graphics/2020/07/31/DX12ResourceHandling.html
 // https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#practical-usage
+
+var rootParams = UnsafeMutablePointer<D3D12_ROOT_PARAMETER1>.allocate(capacity: 1)
+var staticSamplers = UnsafeMutablePointer<D3D12_STATIC_SAMPLER_DESC>.allocate(capacity: 1)
+
+var rootSignatureDesc = D3D12_ROOT_SIGNATURE_DESC1()
+rootSignatureDesc.NumParameters = 1
+rootSignatureDesc.pParameters = UnsafePointer(rootParams)
+rootSignatureDesc.NumStaticSamplers = 1
+rootSignatureDesc.pStaticSamplers = UnsafePointer(staticSamplers)
+rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE
 
 #endif
