@@ -758,18 +758,34 @@ for (description, format) in formatPairs {
 
 
 // Articles to investigate next, as precursor to setting up compute PSO:
-// https://logins.github.io/graphics/2020/06/26/DX12RootSignatureObject.html
 // https://logins.github.io/graphics/2020/07/31/DX12ResourceHandling.html
 // https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#practical-usage
 
-var rootParams = UnsafeMutablePointer<D3D12_ROOT_PARAMETER1>.allocate(capacity: 1)
+var rootParams = UnsafeMutablePointer<D3D12_ROOT_PARAMETER1>.allocate(capacity: 2)
 var staticSamplers = UnsafeMutablePointer<D3D12_STATIC_SAMPLER_DESC>.allocate(capacity: 1)
 
 var rootSignatureDesc = D3D12_ROOT_SIGNATURE_DESC1()
-rootSignatureDesc.NumParameters = 1
+rootSignatureDesc.NumParameters = 2
 rootSignatureDesc.pParameters = UnsafePointer(rootParams)
-rootSignatureDesc.NumStaticSamplers = 1
+rootSignatureDesc.NumStaticSamplers = 0
 rootSignatureDesc.pStaticSamplers = UnsafePointer(staticSamplers)
 rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE
+
+var rootConstants = D3D12_ROOT_CONSTANTS()
+rootConstants.ShaderRegister = 1;
+rootConstants.RegisterSpace = 0;
+rootConstants.Num32BitValues = 2;
+rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS
+rootParams[0].Constants = rootConstants
+rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
+
+var rootDescriptor = D3D12_ROOT_DESCRIPTOR1()
+rootDescriptor.ShaderRegister = 6;
+rootDescriptor.RegisterSpace = 0;
+rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV
+rootParams[1].Descriptor = rootDescriptor
+rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
+
+
 
 #endif
