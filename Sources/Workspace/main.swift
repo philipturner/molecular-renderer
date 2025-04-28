@@ -788,4 +788,18 @@ rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
 
 
 
+// D3D12_RESOURCE_DESC
+// ID3D12Device::CreateCommittedResource
+// ID3D12Resource
+// View object
+// bind to the root signature
+//
+// types of resource
+// - buffer
+//   - constant buffer
+//   - unordered access resource
+// - texture
+//   - unordered access texture
+//   - treated in standalone blog post
+
 #endif
