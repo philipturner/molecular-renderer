@@ -1156,18 +1156,23 @@ inline UINT64 UpdateSubresources(
 // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-resource-barriers-to-synchronize-resource-states-in-direct3d-12
 
 // First deliverable: creating a buffer.
-func createUploadBuffer(device: SwiftCOM.ID3D12Device) {
+
+func createHeapProperties(type: D3D12_HEAP_TYPE) -> D3D12_HEAP_PROPERTIES {
   var heapProperties = D3D12_HEAP_PROPERTIES()
-  heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD
+  heapProperties.Type = type
   heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN
   heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN
   heapProperties.CreationNodeMask = 0
   heapProperties.VisibleNodeMask = 0
   
-  var resourceDesc = D3D12_RESOURCE_DESC1()
+  return heapProperties
+}
+
+func createResourceDesc(size: Int) -> D3D12_RESOURCE_DESC {
+  var resourceDesc = D3D12_RESOURCE_DESC()
   resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER
   resourceDesc.Alignment = 0
-  resourceDesc.Width = 2 * 1024 * 1024
+  resourceDesc.Width = UINT64(size)
   resourceDesc.Height = 1
   resourceDesc.DepthOrArraySize = 1
   resourceDesc.MipLevels = 1
@@ -1176,8 +1181,43 @@ func createUploadBuffer(device: SwiftCOM.ID3D12Device) {
   resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR
   resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE
   
-  
+  return resourceDesc
 }
+
+func createUploadBuffer(
+  device: SwiftCOM.ID3D12Device
+) -> SwiftCOM.ID3D12Resource {
+  let heapProperties = createHeapProperties(type: D3D12_HEAP_TYPE_UPLOAD)
+  let resourceDesc = createResourceDesc(size: 2 * 1024 * 1024)
+  
+  let resource: SwiftCOM.ID3D12Resource = try! device.CreateCommittedResource(
+    heapProperties,
+    D3D12_HEAP_FLAG_NONE,
+    resourceDesc,
+    D3D12_RESOURCE_STATE_GENERIC_READ,
+    nil)
+  return resource
+}
+
+func createDefaultBuffer(
+  device: SwiftCOM.ID3D12Device
+) -> SwiftCOM.ID3D12Resource {
+  let heapProperties = createHeapProperties(type: D3D12_HEAP_TYPE_DEFAULT)
+  let resourceDesc = createResourceDesc(size: 2 * 1024 * 1024)
+  
+  let resource: SwiftCOM.ID3D12Resource = try! device.CreateCommittedResource(
+    heapProperties,
+    D3D12_HEAP_FLAG_NONE,
+    resourceDesc,
+    D3D12_RESOURCE_STATE_COPY_DEST,
+    nil)
+  return resource
+}
+
+let uploadBuffer = createUploadBuffer(device: device)
+let defaultBuffer = createDefaultBuffer(device: device)
+print(uploadBuffer)
+print(defaultBuffer)
 
 // Second deliverable: copying the data with subresource or whatever.
 
