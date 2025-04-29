@@ -1151,10 +1151,34 @@ inline UINT64 UpdateSubresources(
 // - Looks like a good idea to just start reading the article from the beginning
 // - This is a targeted, narrowly scoped learning experience. Do not spend time
 //   on lessons 1, 2, and 4 of the series. Upon completion, return to the
-//   article about compute shaders by Ricardo Loggini.
+//   article about compute shaders by Riccardo Loggini.
 // - Additional good link to keep in the browser:
 // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-resource-barriers-to-synchronize-resource-states-in-direct3d-12
 
+// First deliverable: creating a buffer.
+func createUploadBuffer(device: SwiftCOM.ID3D12Device) {
+  var heapProperties = D3D12_HEAP_PROPERTIES()
+  heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD
+  heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN
+  heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN
+  heapProperties.CreationNodeMask = 0
+  heapProperties.VisibleNodeMask = 0
+  
+  var resourceDesc = D3D12_RESOURCE_DESC1()
+  resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER
+  resourceDesc.Alignment = 0
+  resourceDesc.Width = 2 * 1024 * 1024
+  resourceDesc.Height = 1
+  resourceDesc.DepthOrArraySize = 1
+  resourceDesc.MipLevels = 1
+  resourceDesc.Format = DXGI_FORMAT_UNKNOWN
+  resourceDesc.SampleDesc = DXGI_SAMPLE_DESC(Count: 1, Quality: 0)
+  resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR
+  resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE
+  
+  
+}
 
+// Second deliverable: copying the data with subresource or whatever.
 
 #endif
