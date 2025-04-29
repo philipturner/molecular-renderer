@@ -801,5 +801,42 @@ rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
 // - texture
 //   - unordered access texture
 //   - treated in standalone blog post
+//
+// resource view
+// - resources are stored with general purpose formats
+// - switching between RGBA_FLOAT and RGBA_UINT
+// - unordered access view, which supports atomic operations
+//
+// descriptor
+// - memory storage for a resource view
+// - allocated on both CPU and GPU
+// - root signature
+//   - uses descriptors
+//     - application responsible for validity
+//     - contains views
+//       - reference resources
+//       - reference type of usage
+// - special cases:
+//   - null descriptor
+//   - default descriptor
+//
+// descriptor heaps
+// - set the heap flag for "shader visible"
+// - manually synchronize changes between CPU and GPU
+// - use the CBV_SRC_UAV type
+// - only one heap may be bound to a command list
+//
+// descriptor handle
+// - output of method for generating view
+// - wraps memory address where descriptor is stored
+// - often perform pointer arithmetic
+//   - query the descriptor size, usually 32-64 B
+//   - move from one descriptor to another in memory
+//
+// copying descriptors
+// - create ranges of descriptors and view objects on CPU
+// - copy descriptor ranges to heap on GPU:
+//   - shader visible
+//   - currently bound to command list
 
 #endif
