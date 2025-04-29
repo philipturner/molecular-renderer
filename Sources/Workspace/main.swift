@@ -1220,5 +1220,30 @@ print(uploadBuffer)
 print(defaultBuffer)
 
 // Second deliverable: copying the data with subresource or whatever.
+do {
+  let pSrcData = UnsafeMutablePointer<UInt8>.allocate(capacity: 2 * 1024 * 1024)
+  let pData = try! uploadBuffer.Map(0, nil)
+  guard let pData else {
+    fatalError("pData was invalid.")
+  }
+  print(pSrcData)
+  print(pData)
+  
+  memcpy(pData, pSrcData, 2 * 1024 * 1024)
+  
+  // TODO: Make the command list once you're that far along in the tutorial.
+  // pCmdList->CopyBufferRegion(...)
+  
+  // Inspect the GPU pointer.
+  let uploadGPUPtr = try! uploadBuffer.GetGPUVirtualAddress()
+  let defaultGPUPtr = try! defaultBuffer.GetGPUVirtualAddress()
+  print(uploadGPUPtr)
+  print(defaultGPUPtr)
+  
+  // Remember to unmap the CPU pointer once it's no longer needed.
+  try! uploadBuffer.Unmap(0, nil)
+}
+
+
 
 #endif
