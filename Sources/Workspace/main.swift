@@ -1108,6 +1108,53 @@ inline UINT64 UpdateSubresources(
 // That was a lot of research and external code review. Now, I can return to
 // the article and fill in the gaps in its code snippets.
 
+// Summary of the article's text (w/o the code snippets)
+// - First, create an "upload buffer"
+// - Map the buffer to CPU memory
+//   - Declare the range of memory open for read from the CPU
+//   - Set that region to 'nil' because we only want to write
+//   - Gives a pointer to CPU allocated data
+// - Most of the complexity in the code above, might come from subresource
+//   functionality that we don't actually need.
+//   - It looks silly:
+//     - Heaps contain multiple resources
+//     - Resources contain multiple subresources
+//   - Two levels of indirection?
+// - Copy to an upload heap, then a default heap
+
+// Fences
+// - Fence operation inserted into command stream before dispatching
+// - Notifies the fence object, so the CPU can react
+//   - CommandQueue::Signal specifies the integer value that identifies the signal
+//   - Fence::GetCompletedValue can be polled until the signal is found
+//   - Fence::SetEventOnCompletion is more complicated
+//
+// Ring buffer scenario
+// - Ring buffer as way to manage upload heap
+// - Frame offset queue tracks each frame
+// - CPU stalls until a past frame is rendered, by waiting on a fence
+
+// Resource state transitions
+// - Manually transition a resource's state
+// - Decoupled from resource binding
+// - Shaders expect each specific resource to have a determined state
+// - Can transition individual subresources within a resource
+// - Transition barriers:
+//   - Perform the state description
+//   - Entered into a command list
+// - 32 different possible states
+// - D3D12 runtime's debug layer warns of improper state
+// - Insert a D3D12_RESOURCE_UAV_BARRIER between consecutive compute commands
+//
+// Might be a good resource:
+// https://www.3dgep.com/learning-directx-12-3/
+// - Looks like a good idea to just start reading the article from the beginning
+// - This is a targeted, narrowly scoped learning experience. Do not spend time
+//   on lessons 1, 2, and 4 of the series. Upon completion, return to the
+//   article about compute shaders by Ricardo Loggini.
+// - Additional good link to keep in the browser:
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-resource-barriers-to-synchronize-resource-states-in-direct3d-12
+
 
 
 #endif
