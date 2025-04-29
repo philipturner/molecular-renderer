@@ -870,6 +870,34 @@ rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
 // - custom heap types probably not useful
 //
 // resource allocation types
+// - committed (creates entire heap to fit the resource)
+// - placed (on existing heap), more lightweight resource creation method
+// - reserved (not yet allocated), probably not useful
+//   - virtual address space > physical memory size
+//   - virtual address can be held while resource is non-resident?
+//
+// resource mapping
+// - not trivial; "write combining is not your friend" (2013)
+//   - cache coherency protocols exist between CPU cores
+//   - CPU communicates with external devices through memory mapping
+//   - originally, each memory access was an individual transaction (slow)
+//   - write combining: reads aren't cached, but writes are temporally batched
+//   - for bulk, one-way transactions (not atomics/synchronization)
+//   - ensures all writes finish before the command is dispatched
+// - write combined: WC looks like tungsten carbide (lol)
+// - you're not supposed to read from memory that is written to
+//   - x86 architecture has no notion of write-only memory
+//   - all writes are flushed the instant any address is read from (perf. drop)
+//   - high latency for these types of reads
+// - older processors have restrictive rules
+//   - writes must have specific sizes
+//   - writes must have specific alignment
+//   - accesses must be sequential (difficult with C compiler reordering)
+// - newer processors (2002 onward) tolerate out-of-order writes
+// - write contiguous blocks
+//   - a small hole forces the transaction to split into two blocks
+//   - write to every member of a struct, organized in order in source code
+
 
 print(D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT)
 print(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
