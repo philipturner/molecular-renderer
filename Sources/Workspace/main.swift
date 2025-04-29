@@ -857,11 +857,93 @@ rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
 // - can use D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, or set the field to 0
 // - constant buffer resources are aligned to 256 B
 // - 'tight alignment' introduced in Dec 2024, but unlikely to use in my app
-
+//
+// heap types
+// - residency applies at the granularity of the entire heap
+// - abstracted heap types
+//   - default (dedicated video memory)
+//   - upload (shared system memory)
+//   - readback (shared system memory)
+// - resource mapping:
+//   - upload heap (CPU -> GPU)
+//   - default heap (GPU -> GPU)
+// - custom heap types probably not useful
+//
+// resource allocation types
 
 print(D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT)
 print(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
 
+
+
+// Querying adapter description to find amount of shared memory for uploading
+// new data each frame.
+//
+// DXGI_ADAPTER_DESC(
+//   VendorId: 4318,
+//   DeviceId: 5058,
+//   SubSysId: 695482434,
+//   Revision: 161,
+//   DedicatedVideoMemory: 4233756672,
+//   DedicatedSystemMemory: 0,
+//   SharedSystemMemory: 8509143040,
+//   AdapterLuid: __C._LUID(LowPart: 41008, HighPart: 0))
+//
+// DXGI_ADAPTER_DESC1(
+//   VendorId: 4318,
+//   DeviceId: 5058,
+//   SubSysId: 695482434,
+//   Revision: 161,
+//   DedicatedVideoMemory: 4233756672,
+//   DedicatedSystemMemory: 0,
+//   SharedSystemMemory: 8509143040,
+//   AdapterLuid: __C._LUID(LowPart: 41008, HighPart: 0), Flags: 0)
+//
+// DXGI_ADAPTER_DESC2(
+//   VendorId: 4318,
+//   DeviceId: 5058,
+//   SubSysId: 695482434,
+//   Revision: 161,
+//   DedicatedVideoMemory: 4233756672,
+//   DedicatedSystemMemory: 0,
+//   SharedSystemMemory: 8509143040,
+//   AdapterLuid: __C._LUID(LowPart: 41008, HighPart: 0),
+//   Flags: 0,
+//   GraphicsPreemptionGranularity: __C.DXGI_GRAPHICS_PREEMPTION_GRANULARITY(rawValue: 0),
+//   ComputePreemptionGranularity: __C.DXGI_COMPUTE_PREEMPTION_GRANULARITY(rawValue: 0))
+//
+// DXGI_ADAPTER_DESC3(
+//   VendorId: 4318,
+//   DeviceId: 5058,
+//   SubSysId: 695482434,
+//   Revision: 161,
+//   DedicatedVideoMemory: 4233756672,
+//   DedicatedSystemMemory: 0,
+//   SharedSystemMemory: 8509143040,
+//   AdapterLuid: __C._LUID(LowPart: 41008, HighPart: 0),
+//   Flags: __C.DXGI_ADAPTER_FLAG3(rawValue: 44),
+//   GraphicsPreemptionGranularity: __C.DXGI_GRAPHICS_PREEMPTION_GRANULARITY(rawValue: 0),
+//   ComputePreemptionGranularity: __C.DXGI_COMPUTE_PREEMPTION_GRANULARITY(rawValue: 0))
+//
+// System CPU RAM:         16 GB (15.8 GB usable)
+// Expected GPU RAM:       3.5-4.0 GB
+// Dedicated Video Memory: 3.94 GB
+// Shared System Memory:   7.92 GB
+
+do {
+  let adapterDesc = try! adapter.GetDesc()
+  let adapterDesc1 = try! adapter.GetDesc1()
+  let adapterDesc2 = try! adapter.GetDesc2()
+  let adapterDesc3 = try! adapter.GetDesc3()
+  print()
+  print(adapterDesc)
+  print()
+  print(adapterDesc1)
+  print()
+  print(adapterDesc2)
+  print()
+  print(adapterDesc3)
+}
 
 
 #endif
