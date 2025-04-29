@@ -838,5 +838,30 @@ rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
 // - copy descriptor ranges to heap on GPU:
 //   - shader visible
 //   - currently bound to command list
+//
+// memory management
+// - three types
+//   - dedicated video memory
+//   - dedicated system memory (inaccessible)
+//   - shared system memory (slow)
+// - resident when accessed, non-resident when deleted
+// - wait to deallocate a resource until all dependent commands have finished
+// - resources allocated in GPU virtual address space
+// - DX12 manages resources to a 'subresource' granularity
+//   - buffers: different linear subdivisions of memory
+//   - textures: different mip levels
+//
+// alignment
+// - allocation size is greater than resource size
+// - heap resource alignment is 64 KB
+// - can use D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, or set the field to 0
+// - constant buffer resources are aligned to 256 B
+// - 'tight alignment' introduced in Dec 2024, but unlikely to use in my app
+
+
+print(D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT)
+print(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
+
+
 
 #endif
