@@ -898,9 +898,10 @@ rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL
 //   - a small hole forces the transaction to split into two blocks
 //   - write to every member of a struct, organized in order in source code
 
-
+#if false
 print(D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT)
 print(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
+#endif
 
 
 
@@ -958,6 +959,7 @@ print(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT)
 // Dedicated Video Memory: 3.94 GB
 // Shared System Memory:   7.92 GB
 
+#if false
 do {
   let adapterDesc = try! adapter.GetDesc()
   let adapterDesc1 = try! adapter.GetDesc1()
@@ -972,6 +974,140 @@ do {
   print()
   print(adapterDesc3)
 }
+#endif
+
+
+
+// reference code: logins/FirstDX12Renderer/lib/3DGEP/Source/Graphics/D3D12
+//
+// general approach:
+// - create committed resources
+//   - method of ID3D12Device
+//   - requests heap properties and heap flags
+//   - requests resource descriptor and resource state
+//   - clear value should be 'nil' for buffers?
+//
+// - destination ID3D12Resource
+//   - heap properties:
+//     - heap type: D3D12_HEAP_TYPE_DEFAULT
+//     - CPU page property: D3D12_CPU_PAGE_PROPERTY_UNKNOWN
+//     - memory pool preference: D3D12_MEMORY_POOL_UNKNOWN
+//     - node masks: 0
+//   - heap flags: D3D12_HEAP_FLAG_NONE
+//   - resource desc:
+//     - dimension: D3D12_RESOURCE_DIMENSION_BUFFER
+//     - alignment: 0
+//     - width: input byte count specified as argument
+//     - height: 1
+//     - depth or array size: 1
+//     - mip levels: 1
+//     - format: DXGI_FORMAT_UNKNOWN
+//     - sample desc: (Count = 1, Quality = 0)
+//     - layout: D3D12_TEXTURE_LAYOUT_ROW_MAJOR
+//     - flags: D3D12_RESOURCE_FLAG_NONE
+//   - resource states: D3D12_RESOURCE_STATE_COPY_DEST
+//   - clear value: nil
+//
+// - intermediate ID3D12Resource
+//   - heap properties:
+//     - heap type: D3D12_HEAP_TYPE_UPLOAD
+//     - CPU page property: D3D12_CPU_PAGE_PROPERTY_UNKNOWN
+//     - memory pool preference: D3D12_MEMORY_POOL_UNKNOWN
+//     - node masks: 0
+//   - heap flags: D3D12_HEAP_FLAG_NONE
+//   - resource desc:
+//     - dimension: D3D12_RESOURCE_DIMENSION_BUFFER
+//     - alignment: 0
+//     - width: input byte count specified as argument
+//     - height: 1
+//     - depth or array size: 1
+//     - mip levels: 1
+//     - format: DXGI_FORMAT_UNKNOWN
+//     - sample desc: (Count = 1, Quality = 0)
+//     - layout: D3D12_TEXTURE_LAYOUT_ROW_MAJOR
+//     - flags: input flags specified as argument
+//   - resource states: D3D12_RESOURCE_STATE_GENERIC_READ
+//   - clear value: nil
+//
+// - update subresources
+//   - subresource data:
+//     - pData: input pointer specified as argument
+//     - RowPitch: input byte count specified as argument
+//     - SlicePitch: input byte count specified as argument
+//   - 6 different utility functions with the same name
+//     - argument 0: input command list
+//     - argument 1: pointer to destination ID3D12Resource
+//     - argument 2: pointer to intermediate ID3D12Resource
+//     - argument 3: 0 (intermediate offset)
+//     - argument 4: 0 (first subresource)
+//     - argument 5: 1 (number of subresources)
+//     - argument 6: reference to subresource data
+//   - candidate: Heap-allocating UpdateSubresources implementation
+//   - candidate: Stack-allocating UpdateSubresources implementation
+//   - both candidates look similar:
+
+/*
+inline UINT64 UpdateSubresources(
+    _In_ ID3D12GraphicsCommandList* pCmdList,
+    _In_ ID3D12Resource* pDestinationResource,
+    _In_ ID3D12Resource* pIntermediate,
+    UINT64 IntermediateOffset,
+    _In_range_(0,D3D12_REQ_SUBRESOURCES) UINT FirstSubresource,
+    _In_range_(0,D3D12_REQ_SUBRESOURCES-FirstSubresource) UINT NumSubresources,
+    _In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData) noexcept
+    
+template <UINT MaxSubresources>
+inline UINT64 UpdateSubresources(
+    _In_ ID3D12GraphicsCommandList* pCmdList,
+    _In_ ID3D12Resource* pDestinationResource,
+    _In_ ID3D12Resource* pIntermediate,
+    UINT64 IntermediateOffset,
+    _In_range_(0,MaxSubresources) UINT FirstSubresource,
+    _In_range_(1,MaxSubresources-FirstSubresource) UINT NumSubresources,
+    _In_reads_(NumSubresources) const D3D12_SUBRESOURCE_DATA* pSrcData) noexcept
+*/
+//
+// - approach for update subresources:
+//   - allocate memory with 'HeapAlloc(GetProcessHeap())'
+//   - make typed pointers to 'layouts, rowSizesInBytes, NumRows'
+//   - get the descriptor for the destination resource
+//   - get the device of the destination resource
+//   - call ID3D12Device::GetCopyableFootprints to get resource layout
+//     - this is a function for sub-allocating space in heaps
+//     - also gets the required size
+//   - call another function for 'UpdateSubresources'
+//
+// - first function in the file called 'UpdateSubresources':
+//   - can ignore the validation part in the source code
+//   - pIntermediate->Map(0, nullptr, pData)
+//   - MemcpySubresource(pData, pSrcData)
+//   - pIntermediate->Unmap(0, nullptr)
+//   - function exclusive to ID3D12GraphicsCommandList?
+//     - pDstBuffer: pDestinationResource
+//     - DstOffset: 0
+//     - pSrcBuffer: pIntermediate
+//     - SrcOffset: defined elsewhere in the function
+//   - there is no 'ID3D12ComputeCommandList'
+//     - instead, there might be some specialization with D3D12_COMMAND_LIST_TYPE
+//     - direct vs. bundle
+//     - compute (perhaps mutually exclusive with the rest)
+//     - copy (perhaps mutually exclusive with the rest)
+//   - the sample code uses COMMAND_LIST_TYPE_DIRECT
+//   - typical modern GPUs supposedly have:
+//     - hardware queue for graphics that maps to "DIRECT"
+//     - hardware queue for compute that maps "COMPUTE"
+//     - hardware queue for DMA engine that maps to "COPY"
+//   - DIRECT queues and lists accept any command
+//   - COMPUTE queues and lists accept only compute, copy commands
+//   - COPY queues and lists accept only copy commands
+//
+// - utility functions using this structure:
+//   - D3D12GraphicsAllocator::AllocateBufferCommittedResource
+//   - D3D12GEPUtils::UpdateBufferResource
+//
+// That was a lot of research and external code review. Now, I can return to
+// the article and fill in the gaps in its code snippets.
+
 
 
 #endif
