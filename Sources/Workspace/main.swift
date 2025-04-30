@@ -190,8 +190,6 @@ application.run { renderTarget in
 //   - Create a DirectX device
 //   - DXC symbol linking
 //   - FidelityFX symbol linking
-// - Invoke the scripts that download the library dependencies and allow the
-//   codebase to compile
 //
 // After that:
 // - Implement the CommandQueue exercise to try a prototype for mixing with the
@@ -200,7 +198,7 @@ application.run { renderTarget in
 //   rename 'GPUContext' to 'Device'.
 
 let shaderSource = "Hello, world."
-_ = Compiler.init(device:)
-_ = (2 as Any as! Compiler).compile(source:)
+print(Compiler.init(device:))
+print(Compiler.compile(source:))
 
 #endif
