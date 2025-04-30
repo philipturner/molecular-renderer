@@ -1244,6 +1244,39 @@ do {
   try! uploadBuffer.Unmap(0, nil)
 }
 
+// Third deliverable: execute an empty command list.
+func executeEmptyCommandList(
+  device: SwiftCOM.ID3D12Device,
+  commandQueue: SwiftCOM.ID3D12CommandQueue
+) {
+  let commandAllocator: SwiftCOM.ID3D12CommandAllocator = try! device
+    .CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE)
+  let commandList: SwiftCOM.ID3D12GraphicsCommandList = try! device
+    .CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, commandAllocator, nil)
+  try! commandList.Close()
+  print(commandList)
+  
+  let fence: SwiftCOM.ID3D12Fence = try! device
+    .CreateFence(0, D3D12_FENCE_FLAG_NONE)
+  let fenceEvent = CreateEventA(nil, false, false, nil)
+  guard let fenceEvent else {
+    fatalError("Could not create 'fenceEvent'.")
+  }
+  print(fence)
+  print(fenceEvent)
+  
+  print(try! fence.GetCompletedValue())
+  try! commandQueue.Signal(fence, 3)
+  try! fence.SetEventOnCompletion(2, fenceEvent)
+  
+  let waitResult = WaitForSingleObject(fenceEvent, 5000)
+  print("wait result:", waitResult)
+  print(try! fence.GetCompletedValue())
+}
+executeEmptyCommandList(device: device, commandQueue: commandQueue)
 
+// Next:
+// - Inspect CommandQueue from the 2nd tutorial.
+// - Retroactively encode into the command list for the 1st deliverable.
 
 #endif
