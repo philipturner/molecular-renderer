@@ -8,9 +8,10 @@
 //   - Get some general experience with C++ DirectX sample code.
 //   - Modify the files one-by-one to support Windows.
 
+import MolecularRenderer
+
 #if os(macOS)
 import Metal
-import MolecularRenderer
 
 @MainActor
 func createApplication() -> Application {
@@ -184,15 +185,13 @@ application.run { renderTarget in
 // - Reorganize the files in molecular-renderer to a loose grouping of what
 //   "should be" common vs. macOS vs. Windows [DONE]
 // - Redirect the executable links in the package manifest to
-//   molecular-renderer
+//   molecular-renderer [DONE]
 // - Create utility files that can smoke test the following:
 //   - Create a DirectX device
 //   - DXC symbol linking
 //   - FidelityFX symbol linking
 // - Invoke the scripts that download the library dependencies and allow the
 //   codebase to compile
-//
-// Invoke 'swift build' / 'swift run' for the first time in a while.
 //
 // After that:
 // - Implement the CommandQueue exercise to try a prototype for mixing with the
@@ -201,5 +200,7 @@ application.run { renderTarget in
 //   rename 'GPUContext' to 'Device'.
 
 let shaderSource = "Hello, world."
+_ = Compiler.init(device:)
+_ = (2 as Any as! Compiler).compile(source:)
 
 #endif

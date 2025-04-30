@@ -17,7 +17,7 @@ public struct Compiler {
   
   public func compile(source: String) -> Int8 {
     let sourceCount = UInt32(source.count)
-    let result = dxcompiler_compile(source, source.count)
+    let result = dxcompiler_compile(source, sourceCount)
     return result
   }
 }

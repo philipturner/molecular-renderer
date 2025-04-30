@@ -1,7 +1,7 @@
 // swift-tools-version: 6.1
 
 import PackageDescription
-
+ 
 // MARK: - Inter-Module Dependencies
 
 // These dependencies are likely platform-specific.
@@ -21,11 +21,11 @@ workspaceDependencies += [
 
 // Windows dependencies.
 #if os(Windows)
-workspaceDependencies += [
+rendererDependencies += [
   "FidelityFX",
   .product(name: "SwiftCOM", package: "swift-com"),
 ]
-workspaceLinkerSettings.append(
+rendererLinkerSettings.append(
   .linkedLibrary("dxcompiler_wrapper"))
 #endif
 
@@ -61,6 +61,10 @@ targets.append(.executableTarget(
 // make any changes to the code. Nonetheless, it's workable.
 //
 // WARNING: Do not launch the application from Git Bash on Windows.
+//
+// The problem may have been fixed by migrating the raw binary dependencies to
+// the 'MolecularRenderer' module. I have not tested this hypothesis, and am
+// sticking with the guidance above.
 
 #if os(Windows)
 dependencies.append(.package(
