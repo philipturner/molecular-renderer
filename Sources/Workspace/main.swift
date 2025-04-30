@@ -180,26 +180,26 @@ application.run { renderTarget in
 
 #if os(Windows)
 
-import SwiftCOM
-import WinSDK
-
 // Next steps to refactor the codebase:
 // - Reorganize the files in molecular-renderer to a loose grouping of what
-//   "should be" common vs. macOS vs. Windows
-// - Redirect the executable links in the package manifest to molecular-renderer
+//   "should be" common vs. macOS vs. Windows [DONE]
+// - Redirect the executable links in the package manifest to
+//   molecular-renderer
 // - Create utility files that can smoke test the following:
-//   - DXC symbol linking
-//   - FidelityFX symbolinking
 //   - Create a DirectX device
-// - Migrate CommandQueue.swift to the molecular-renderer module
+//   - DXC symbol linking
+//   - FidelityFX symbol linking
 // - Invoke the scripts that download the library dependencies and allow the
 //   codebase to compile
 //
 // No need to invoke 'swift build' until the above steps are completed.
+//
+// Then:
+// - Merge the code for DX12 device initialization with that for Metal,
+//   rename 'GPUContext' to 'Device'.
+// - Implement the CommandQueue exercise to try a prototype for mixing with the
+//   'Device' common API.
 
 let shaderSource = "Hello, world."
-let shaderSourceCount = UInt32(shaderSource.count)
-let result = dxcompiler_compile(shaderSource, shaderSourceCount)
-print(result)
 
 #endif
