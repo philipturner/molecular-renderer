@@ -200,13 +200,4 @@ let device = DirectXDevice()
 let d3d12Device = device.d3d12Device
 print(d3d12Device)
 
-let shaderSource = "Hello, world."
-let compiler = Compiler(device: device)
-let compilerResult = compiler.compile(source: shaderSource)
-print(compilerResult)
-
-let upscaler = Upscaler(device: device)
-let context = upscaler.createContext()
-print(context)
-
 #endif

@@ -67,9 +67,8 @@ public class CommandQueue {
       // Remove the first element from the queue.
       let frontEntry = commandAllocatorQueue.first!
       commandAllocatorQueue.removeFirst()
-      
-      // Assign the allocator to the local variable.
       commandAllocator = frontEntry.commandAllocator
+      
       try! commandAllocator.Reset()
     } else {
       commandAllocator = CreateCommandAllocator()
@@ -77,8 +76,22 @@ public class CommandQueue {
     
     // Materialize a command list.
     var commandList: SwiftCOM.ID3D12GraphicsCommandList
+    if commandListQueue.count > 0 {
+      // Remove the first element from the queue.
+      commandList = commandListQueue.first!
+      commandListQueue.removeFirst()
+      
+      try! commandList.Reset(commandAllocator, nil)
+    } else {
+      commandList = CreateCommandList(allocator: commandAllocator)
+    }
     
-    fatalError("Not implemented.")
+    // Associate the command allocator with the command list so that it can be
+    // retrieved when the command list is executed.
+    var guid: _GUID = ID3D12CommandAllocator.IID
+    try! commandList.SetPrivateDataInterface(&guid, commandAllocator)
+    
+    return commandList
   }
   
   /// Execute a command list.
