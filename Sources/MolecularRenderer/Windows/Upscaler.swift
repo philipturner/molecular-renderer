@@ -3,7 +3,7 @@ import FidelityFX
 import SwiftCOM
 import WinSDK
 
-public struct Upscaler {
+public class Upscaler {
   private var device: DirectXDevice
   
   public init(device: DirectXDevice) {
@@ -25,6 +25,8 @@ public struct Upscaler {
       // bad is probably going to happen eventually. I would like to wait until
       // after the `ffxContext` is created. Otherwise, semantically, the
       // device could be deallocated before reaching that function.
+      //
+      // Probably best solved with a deinitializer, once this code matures.
       let d3d12Device = self.device.d3d12Device
       let iid = SwiftCOM.ID3D12Device.IID
       let interface = try! d3d12Device.QueryInterface(iid: iid)

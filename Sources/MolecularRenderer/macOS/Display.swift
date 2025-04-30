@@ -10,11 +10,6 @@ public struct DisplayDescriptor {
   }
 }
 
-// TODO: Consider changing this to 'struct' on macOS, if the code for
-// reference capture is scoped at whatever owns the display instance.
-//
-// On second thought, 'class' might seem more appropriate. Give this decision
-// some more thought.
 public class Display {
   /// The resolution of the rendering region, in pixels.
   public private(set) var renderTargetSize: Int

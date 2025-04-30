@@ -8,7 +8,7 @@ private func dxcompiler_compile(
   _ shaderSourceLength: UInt32
 ) -> Int8
 
-public struct Compiler {
+public class Compiler {
   private var device: DirectXDevice
   
   public init(device: DirectXDevice) {

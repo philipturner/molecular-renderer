@@ -5,7 +5,7 @@ import WinSDK
 // Temporary file to ensure the code for DirectX device initialization stays
 // encapsulated within molecular-renderer.
 
-public struct DirectXDevice {
+public class DirectXDevice {
   public private(set) var d3d12Device: SwiftCOM.ID3D12Device
   
   public init() {
