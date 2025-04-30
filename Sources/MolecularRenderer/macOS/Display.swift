@@ -10,6 +10,8 @@ public struct DisplayDescriptor {
   }
 }
 
+// TODO: Consider changing this to 'struct' on macOS, if the code for
+// reference capture is scoped at whatever owns the display instance.
 public class Display {
   /// The resolution of the rendering region, in pixels.
   public private(set) var renderTargetSize: Int

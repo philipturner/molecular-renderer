@@ -8,17 +8,11 @@ private func dxcompiler_compile(
   _ shaderSourceLength: UInt32
 ) -> Int8
 
-public struct CompilerDescriptor {
-  public var device: SwiftCOM.ID3D12Device?
+public struct Compiler {
+  private var device: SwiftCOM.ID3D12Device
   
-  public init() {
-    
-  }
-}
-
-public class Compiler {
   public init(device: SwiftCOM.ID3D12Device) {
-    
+    self.device = device
   }
   
   public func compile(source: String) -> Int8 {

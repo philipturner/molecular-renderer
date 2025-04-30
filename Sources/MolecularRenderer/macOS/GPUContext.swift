@@ -9,6 +9,8 @@ public struct GPUContextDescriptor {
   }
 }
 
+// This should probably be changed to 'struct'. However, the entire data type
+// will be removed once we split it into common 'CommandQueue' and 'Device'.
 public class GPUContext {
   /// The GPU chosen for rendering at program startup.
   public private(set) var device: MTLDevice

@@ -192,13 +192,13 @@ application.run { renderTarget in
 // - Invoke the scripts that download the library dependencies and allow the
 //   codebase to compile
 //
-// No need to invoke 'swift build' until the above steps are completed.
+// Invoke 'swift build' / 'swift run' for the first time in a while.
 //
-// Then:
-// - Merge the code for DX12 device initialization with that for Metal,
-//   rename 'GPUContext' to 'Device'.
+// After that:
 // - Implement the CommandQueue exercise to try a prototype for mixing with the
 //   'Device' common API.
+// - Merge the code for DX12 device initialization with that for Metal,
+//   rename 'GPUContext' to 'Device'.
 
 let shaderSource = "Hello, world."
 
