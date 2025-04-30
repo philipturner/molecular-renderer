@@ -1279,4 +1279,12 @@ executeEmptyCommandList(device: device, commandQueue: commandQueue)
 // - Inspect CommandQueue from the 2nd tutorial.
 // - Retroactively encode into the command list for the 1st deliverable.
 
+print(D3D12_COMMAND_QUEUE_PRIORITY_NORMAL)
+print(D3D12_COMMAND_QUEUE_FLAG_NONE)
+
+// Clean up the code base. Erase all of the code (the large mess) accumulated
+// for the Windows side. Take a fresh, principled approach to practicing usage
+// of the DirectX API. These exercises will evolve toward rendering arbitrary
+// content to the screen.
+
 #endif
