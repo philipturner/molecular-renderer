@@ -187,18 +187,26 @@ application.run { renderTarget in
 // - Redirect the executable links in the package manifest to
 //   molecular-renderer [DONE]
 // - Create utility files that can smoke test the following:
-//   - Create a DirectX device
-//   - DXC symbol linking
-//   - FidelityFX symbol linking
+//   - Create a DirectX device [DONE]
+//   - DXC symbol linking [DONE]
+//   - FidelityFX symbol linking [DONE]
 //
 // After that:
-// - Implement the CommandQueue exercise to try a prototype for mixing with the
-//   'Device' common API.
-// - Merge the code for DX12 device initialization with that for Metal,
-//   rename 'GPUContext' to 'Device'.
+// - Do not jump ahead to merging any code with that for Apple yet. Need more
+//   experience with the entirety of the command dispatching workflow.
+// - Implement the CommandQueue exercise.
+
+let device = DirectXDevice()
+let d3d12Device = device.d3d12Device
+print(d3d12Device)
 
 let shaderSource = "Hello, world."
-print(Compiler.init(device:))
-print(Compiler.compile(source:))
+let compiler = Compiler(device: device)
+let compilerResult = compiler.compile(source: shaderSource)
+print(compilerResult)
+
+let upscaler = Upscaler(device: device)
+let context = upscaler.createContext()
+print(context)
 
 #endif

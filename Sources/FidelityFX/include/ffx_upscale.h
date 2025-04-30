@@ -31,6 +31,10 @@ extern "C" {
 
 enum FfxApiUpscaleQualityMode
 {
+    FFX_UPSCALE_QUALITY_MODE_NATIVEAA          = 0, ///< Perform upscaling with a per-dimension upscaling ratio of 1.0x.
+    FFX_UPSCALE_QUALITY_MODE_QUALITY           = 1, ///< Perform upscaling with a per-dimension upscaling ratio of 1.5x.
+    FFX_UPSCALE_QUALITY_MODE_BALANCED          = 2, ///< Perform upscaling with a per-dimension upscaling ratio of 1.7x.
+    FFX_UPSCALE_QUALITY_MODE_PERFORMANCE       = 3, ///< Perform upscaling with a per-dimension upscaling ratio of 2.0x.
     FFX_UPSCALE_QUALITY_MODE_ULTRA_PERFORMANCE = 4  ///< Perform upscaling with a per-dimension upscaling ratio of 3.0x.
 };
 

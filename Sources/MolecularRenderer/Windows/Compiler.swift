@@ -9,9 +9,9 @@ private func dxcompiler_compile(
 ) -> Int8
 
 public struct Compiler {
-  private var device: SwiftCOM.ID3D12Device
+  private var device: DirectXDevice
   
-  public init(device: SwiftCOM.ID3D12Device) {
+  public init(device: DirectXDevice) {
     self.device = device
   }
   
