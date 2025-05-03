@@ -97,6 +97,23 @@ public class CommandQueue {
   /// Execute a command list.
   /// - Returns: A fence value to wait for for this command list.
   public func ExecuteCommandList(_ commandList: SwiftCOM.ID3D12GraphicsCommandList) -> UInt64 {
+    try! commandList.Close()
+    
+    // Get the private data for the command allocator.
+    func getPrivateData() -> SwiftCOM.ID3D12CommandAllocator {
+      var guid: _GUID = ID3D12CommandAllocator.IID
+      var dataSize: UInt32 = 8
+      var pData = UnsafeMutableRawPointer(bitPattern: 0).unsafelyUnwrapped
+      try! commandList.GetPrivateData(&guid, &dataSize, &pData)
+      
+      // Inspect the object pointer you were handed.
+      guard Int(bitPattern: pData) != 0 else {
+        fatalError("pData was invalid.")
+      }
+      let interface = SwiftCOM.ID3D12CommandAllocator(pUnk: pData)
+      return interface
+    }
+    
     fatalError("Not implemented.")
   }
   
