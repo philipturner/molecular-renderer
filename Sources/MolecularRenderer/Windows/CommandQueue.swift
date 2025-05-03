@@ -146,20 +146,35 @@ public class CommandQueue {
     return fenceValue
   }
   
+  // Increments the internal counter for the fence value.
   public func Signal() -> UInt64 {
-    fatalError("Not implemented.")
+    fenceValue += 1
+    try! d3d12CommandQueue.Signal(d3d12Fence, fenceValue)
+    return fenceValue
   }
   
   public func IsFenceComplete(fenceValue: UInt64) -> Bool {
-    fatalError("Not implemented.")
+    let fenceCompletedValue = try! d3d12Fence.GetCompletedValue()
+    return fenceCompletedValue >= fenceValue
   }
   
   public func WaitForFenceValue(_ fenceValue: UInt64) {
-    fatalError("Not implemented.")
+    let fenceCompletedValue = try! d3d12Fence.GetCompletedValue()
+    if fenceCompletedValue < fenceValue {
+      try! d3d12Fence.SetEventOnCompletion(fenceValue, fenceEvent)
+      
+      // Determine the wait time in milliseconds.
+      //
+      // Using a wait time of 1000 seconds (~20 minutes)
+      let waitTimeInMilliseconds: UInt32 = 1000 * 1000
+      WaitForSingleObject(fenceEvent, waitTimeInMilliseconds)
+    }
   }
   
+  // Increments the internal counter for the fence value.
   public func Flush() {
-    fatalError("Not implemented.")
+    let newFenceValue = Signal()
+    WaitForFenceValue(newFenceValue)
   }
   
   // MARK: - Protected

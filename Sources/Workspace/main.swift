@@ -200,4 +200,7 @@ let device = DirectXDevice()
 let d3d12Device = device.d3d12Device
 print(d3d12Device)
 
+// The CommandQueue class has finished being translated. Next, how do we test
+// it? Start by searching the code base for unit tests.
+
 #endif
