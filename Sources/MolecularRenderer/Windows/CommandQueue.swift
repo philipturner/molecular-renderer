@@ -100,7 +100,9 @@ public class CommandQueue {
     try! commandList.Close()
     
     // Get the private data for the command allocator.
-    func getPrivateData() -> SwiftCOM.ID3D12CommandAllocator {
+    func getPrivateData(
+      commandList: SwiftCOM.ID3D12GraphicsCommandList
+    ) -> SwiftCOM.ID3D12CommandAllocator {
       var guid: _GUID = ID3D12CommandAllocator.IID
       var dataSize: UInt32 = 8
       var pData = UnsafeMutableRawPointer(bitPattern: 0).unsafelyUnwrapped
@@ -110,11 +112,38 @@ public class CommandQueue {
       guard Int(bitPattern: pData) != 0 else {
         fatalError("pData was invalid.")
       }
+      
+      // Create an IUnknown with the 'consuming' initializer, where the
+      // reference count will change by -1 once it eventually deinitializes.
       let interface = SwiftCOM.ID3D12CommandAllocator(pUnk: pData)
       return interface
     }
+    let commandAllocator = getPrivateData(commandList: commandList)
     
-    fatalError("Not implemented.")
+    // Execute an array of command lists
+    do {
+      let commandListArray = [commandList]
+      try! d3d12CommandQueue.ExecuteCommandLists(commandListArray)
+    }
+    
+    // Retrieve the fence value.
+    let fenceValue = Signal()
+    
+    // Append to the command allocator queue.
+    do {
+      let entry = CommandAllocatorEntry(
+        fenceValue: fenceValue,
+        commandAllocator: commandAllocator)
+      commandAllocatorQueue.append(entry)
+    }
+    
+    // Append to the command list queue.
+    commandListQueue.append(commandList)
+    
+    // No need to explicitly call 'Release()', as done in the tutorial. The
+    // C++ version explicitly managed COM references, while the Swift version
+    // already has the deinit primed to happen.
+    return fenceValue
   }
   
   public func Signal() -> UInt64 {
