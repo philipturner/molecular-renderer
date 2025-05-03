@@ -201,6 +201,9 @@ let d3d12Device = device.d3d12Device
 print(d3d12Device)
 
 // The CommandQueue class has finished being translated. Next, how do we test
-// it? Start by searching the code base for unit tests.
+// it? The code base does not have good unit tests.
+//
+// Start by studying the tutorials. What is the first function I should call
+// to initiate a testing procedure?
 
 #endif
