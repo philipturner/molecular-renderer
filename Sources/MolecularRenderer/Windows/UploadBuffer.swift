@@ -22,7 +22,7 @@ public class UploadBuffer {
   /// Use to upload data to the GPU.
   public struct Allocation {
     public var CPU: UnsafeMutableRawPointer?
-    public var GPU: UInt64
+    public var GPU: UInt64 = 0
   }
   
   /// - Parameter pageSize: The size to use to allocate new pages in GPU memory.
@@ -197,7 +197,9 @@ extension UploadBuffer {
     }
     
     deinit {
-      fatalError("Not implemented.")
+      try! d3d12Resource.Unmap(0, nil)
+      CPUPtr = nil
+      GPUPtr = 0
     }
     
     // Check to see if the page has room to satisfy the requested allocation.
@@ -205,7 +207,24 @@ extension UploadBuffer {
       sizeInBytes: Int,
       alignment: Int
     ) -> Bool {
-      fatalError("Not implemented.")
+      // Utility function for rounding integers up.
+      func alignUp(size: Int, alignment: Int) -> Int {
+        guard alignment > 0,
+              alignment.nonzeroBitCount == 1 else {
+          fatalError("Invalid alignment.")
+        }
+        
+        let mask = alignment - 1
+        return (size + mask) & ~mask
+      }
+      
+      let alignedSize = alignUp(
+        size: sizeInBytes, alignment: alignment)
+      let alignedOffset = alignUp(
+        size: offset, alignment: alignment)
+      
+      let allocationEnd = alignedOffset + alignedSize
+      return allocationEnd <= pageSize
     }
     
     // Allocate memory from the page.
@@ -213,12 +232,61 @@ extension UploadBuffer {
       sizeInBytes: Int,
       alignment: Int
     ) -> Allocation {
-      fatalError("Not implemented.")
+      // It would be better to just have an internal utility that reports the
+      // end of buffer. That way, the boolean comparison can be made explicitly
+      // in the caller.
+      let canAllocateSpace = HasSpace(
+        sizeInBytes: sizeInBytes, alignment: alignment)
+      guard canAllocateSpace else {
+        fatalError("Can't allocate space from page.")
+      }
+      
+      // Utility function for rounding integers up.
+      func alignUp(size: Int, alignment: Int) -> Int {
+        guard alignment > 0,
+              alignment.nonzeroBitCount == 1 else {
+          fatalError("Invalid alignment.")
+        }
+        
+        let mask = alignment - 1
+        return (size + mask) & ~mask
+      }
+      
+      // Utility function for adding to a CPU pointer.
+      func addCPUPtr(
+        _ CPUPtr: UnsafeMutableRawPointer?,
+        offset: Int
+      ) -> UnsafeMutableRawPointer {
+        // This API ought to be refactored, so the CPU pointer is not nullable.
+        guard let CPUPtr else {
+          fatalError("CPU pointer was invalid.")
+        }
+        
+        let casted = CPUPtr.assumingMemoryBound(to: UInt8.self)
+        let incremented = casted + offset
+        return UnsafeMutableRawPointer(casted)
+      }
+      
+      // First, round up the internal offset.
+      let alignedSize = alignUp(
+        size: sizeInBytes, alignment: alignment)
+      self.offset = alignUp(
+        size: offset, alignment: alignment)
+      
+      // Assign the internal offst to the pointers.
+      var allocation = Allocation()
+      allocation.CPU = addCPUPtr(CPUPtr, offset: offset)
+      allocation.GPU = GPUPtr + UInt64(offset)
+      
+      // Then, add the allocation size to the internal offset.
+      self.offset += alignedSize
+      
+      return allocation
     }
     
     // Reset the page for reuse.
     func Reset() {
-      fatalError("Not implemented.")
+      self.offset = 0
     }
   }
 }
