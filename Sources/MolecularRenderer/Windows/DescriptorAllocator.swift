@@ -10,6 +10,13 @@ import WinSDK
 public struct DescriptorAllocator {
   // MARK: - Private
   
+  private var heapType: D3D12_DESCRIPTOR_HEAP_TYPE
+  private var numDescriptorsPerHeap: UInt32
+  private var heapPool: [DescriptorAllocatorPage] = []
+  
+  // Indices of available heaps in the pool.
+  private var availableHeaps: Set<Int> = []
+  
   // MARK: - Public
   
   public init(
@@ -39,6 +46,7 @@ public struct DescriptorAllocator {
   
   // MARK: - Private
   
+  // Create a new heap with a specific number of descriptors.
   private mutating func CreateAllocatorPage() -> DescriptorAllocatorPage {
     fatalError("Not implemented.")
   }
