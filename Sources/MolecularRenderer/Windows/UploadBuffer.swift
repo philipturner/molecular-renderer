@@ -134,7 +134,66 @@ extension UploadBuffer {
     // MARK: - Public
     
     init(sizeInBytes: Int) {
-      fatalError("Not implemented.")
+      self.pageSize = sizeInBytes
+      self.offset = 0
+      self.CPUPtr = nil
+      self.GPUPtr = 0
+      
+      // Not concerning myself with how to reference the global DirectX device.
+      func createGlobalDevice() -> SwiftCOM.ID3D12Device {
+        fatalError("Ignoring the implementation.")
+      }
+      
+      // Utility function for creating a committed resource.
+      func createHeapProperties(
+        type: D3D12_HEAP_TYPE
+      ) -> D3D12_HEAP_PROPERTIES {
+        var heapProperties = D3D12_HEAP_PROPERTIES()
+        heapProperties.Type = type
+        heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN
+        heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN
+        heapProperties.CreationNodeMask = 0
+        heapProperties.VisibleNodeMask = 0
+        
+        return heapProperties
+      }
+      
+      // Utility function for creating a committed resource.
+      func createResourceDesc(size: Int) -> D3D12_RESOURCE_DESC {
+        var resourceDesc = D3D12_RESOURCE_DESC()
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER
+        resourceDesc.Alignment = 0
+        resourceDesc.Width = UINT64(size)
+        resourceDesc.Height = 1
+        resourceDesc.DepthOrArraySize = 1
+        resourceDesc.MipLevels = 1
+        resourceDesc.Format = DXGI_FORMAT_UNKNOWN
+        resourceDesc.SampleDesc = DXGI_SAMPLE_DESC(Count: 1, Quality: 0)
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE
+        
+        return resourceDesc
+      }
+            
+      // Create the committed resource.
+      func createCommittedResource(size: Int) -> SwiftCOM.ID3D12Resource {
+        let device = createGlobalDevice()
+        let heapProperties = createHeapProperties(type: D3D12_HEAP_TYPE_UPLOAD)
+        let resourceDesc = createResourceDesc(size: size)
+        
+        let resource: SwiftCOM.ID3D12Resource =
+        try! device.CreateCommittedResource(
+          heapProperties,
+          D3D12_HEAP_FLAG_NONE,
+          resourceDesc,
+          D3D12_RESOURCE_STATE_GENERIC_READ,
+          nil)
+        return resource
+      }
+      
+      self.d3d12Resource = createCommittedResource(size: pageSize)
+      self.CPUPtr = try! d3d12Resource.Map(0, nil)
+      self.GPUPtr = try! d3d12Resource.GetGPUVirtualAddress()
     }
     
     deinit {
