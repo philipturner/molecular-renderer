@@ -205,5 +205,39 @@ print(d3d12Device)
 //
 // Start by studying the tutorials. What is the first function I should call
 // to initiate a testing procedure?
+//
+// Study the functions, what they're supposed to do, and how they're supposed to
+// affect the internal state variables. There will be tests that monitor the
+// internal state variables and check for unexpected behavior.
+// - Ensure the tests cover the case where lists grow to >1 in size.
+// - Ensure there are no memory leaks. This is a good question; I wonder how to
+//   debug/search for memory leaks in practice.
+
+// var commandListType
+// var d3d12Device
+// var d3d12CommandQueue
+// var d3d12Fence
+// var fenceEvent
+// var fenceValue
+// var commandAllocatorQueue: []
+// var commandListQueue: []
+//
+// init(device:type:)
+// func GetCommandList()
+// func ExecuteCommandList()
+// func Signal()
+// func IsFenceComplete(fenceValue:)
+// func WaitForFenceValue()
+// func Flush()
+// func CreateCommandAllocator()
+// func CreateCommandList(allocator:)
+
+// I don't need to invest time testing and debugging this functionality. Just
+// read along through the tutorials. The translation exercise will reinforce my
+// knowledge of DirectX. Once it's complete, I can devise simpler tests.
+//
+// In a later tutorial, the command allocator is refactored out into the
+// 'CommandList' class. There is less risk for memory leaks from manual COM
+// memory management. Debugging the code above would waste time unnecessarily.
 
 #endif
