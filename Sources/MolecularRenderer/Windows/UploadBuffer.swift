@@ -27,12 +27,12 @@ public class UploadBuffer {
   
   /// - Parameter pageSize: The size to use to allocate new pages in GPU memory.
   public init(pageSize: Int = 2 * 1024 * 1024) {
-    fatalError("Not implemented.")
+    self.pageSize = pageSize
   }
   
   /// The maximum size of an allocation is the size of a single page.
   public func GetPageSize() -> Int {
-    fatalError("Not implemented.")
+    return pageSize
   }
   
   /// Allocate memory in an Upload heap.
@@ -44,13 +44,49 @@ public class UploadBuffer {
     sizeInBytes: Int,
     alignment: Int
   ) -> Allocation {
-    fatalError("Not implemented.")
+    guard sizeInBytes <= pageSize else {
+      fatalError("Allocation size exceeded page size.")
+    }
+    
+    // If there is no current page, or the requested allocation exceeds the
+    // remaining space in the current page, request a new page.
+    var shouldRequestPage = true
+    if let currentPage {
+      let hasSpace = currentPage.HasSpace(
+        sizeInBytes: sizeInBytes, alignment: alignment)
+      
+      if hasSpace {
+        shouldRequestPage = false
+      }
+    }
+    if shouldRequestPage {
+      currentPage = RequestPage()
+    }
+    
+    // Avoid confusion from a name conflict with the stored property,
+    // 'currentPage'.
+    guard let requestedPage = currentPage else {
+      fatalError("This should never happen.")
+    }
+    let allocation = requestedPage.Allocate(
+      sizeInBytes: sizeInBytes, alignment: alignment)
+    return allocation
   }
   
   /// Release all allocated pages. This should only be done when the command
   /// list is finished executing on the CommandQueue.
   public func Reset() {
-    fatalError("Not implemented.")
+    currentPage = nil
+    
+    // Reset all available pages.
+    availablePages = pagePool
+    
+    // Pages are reference types ('class'), so you can mutate their contents
+    // while outside the list. This design choice doesn't mesh well with Swift.
+    for page in availablePages {
+      // Reset the page for new allocations.
+      page.Reset()
+    }
   }
   
   // MARK: - Private
@@ -58,7 +94,23 @@ public class UploadBuffer {
   // Request a page from the pool of available pages or create a new page if
   // there are no available pages.
   private func RequestPage() -> Page {
-    fatalError("Not implemented.")
+    var output: Page
+    
+    if availablePages.count > 0 {
+      // Retrieve a page from the cache.
+      let removedPage = availablePages.first!
+      availablePages.removeFirst()
+      
+      output = removedPage
+    } else {
+      // Add a new page to the cache.
+      let newPage = Page(sizeInBytes: pageSize)
+      pagePool.append(newPage)
+      
+      output = newPage
+    }
+    
+    return output
   }
 }
 
