@@ -8,6 +8,23 @@ import WinSDK
 // As literal of a translation as possible from the C++ origin.
 
 public struct DescriptorAllocatorPage {
+  // MARK: - Private
+  
+  // A map that lists the free blocks by the offset within the descriptor heap.
+  var freeListByOffset: [OffsetType: FreeBlockInfo]
+  
+  // A map that lists the free blocks by size.
+  //
+  // Needs to be a multimap since multiple blocks can have the same size.
+  var freeListBySize: [SizeType: [OffsetType]]
+  
+  // Stale descriptors are queued for release until the frame that they were
+  // freed has completed.
+  var staleDescriptors: [StaleDescriptorInfo]
+  
+  // TODO: Continue where you left off by adding the remaining stored
+  // properties.
+  
   // MARK: - Public
   
   public init(
@@ -96,22 +113,21 @@ extension DescriptorAllocatorPage {
   
   // The number of descriptors that are available.
   typealias SizeType = UInt32
-  
-  // A map that lists the free blocks by the offset within the descriptor heap.
-  typealias FreeListByOffset = [OffsetType: FreeBlockInfo]
-  
-  // A map that lists the free blocks by size.
-  //
-  // Needs to be a multimap since multiple blocks can have the same size.
-  typealias FreeListBySize = [SizeType: [OffsetType]]
-  
-  struct FreeBlockInfo {
-    var Size: SizeType
-    var FreeListBySizeIt: OffsetType = 0
     
-    init(size: SizeType) {
-      self.Size = size
-    }
+  struct FreeBlockInfo {
+    var size: SizeType
+    var freeListBySizeIt: OffsetType = 0
+  }
+  
+  struct StaleDescriptorInfo {
+    // The offset within the descriptor heap.
+    var offset: OffsetType
+    
+    // The number of descriptors
+    var size: SizeType
+    
+    // The frame number that the descriptor was freed.
+    var frameNumber: UInt64
   }
 }
 
