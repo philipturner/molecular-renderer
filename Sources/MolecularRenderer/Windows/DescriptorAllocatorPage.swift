@@ -72,20 +72,28 @@ public class DescriptorAllocatorPage {
   }
   
   public func GetHeapType() -> D3D12_DESCRIPTOR_HEAP_TYPE {
-    fatalError("Not implemented.")
+    return heapType
   }
   
   /// Check to see if this descriptor page has a contiguous block of descriptors
   /// large enough to satisfy the request.
   public func HasSpace(
     numDescriptors: UInt32
-  ) -> Bool{
-    fatalError("Not implemented.")
+  ) -> Bool {
+    // Retrieve the offsets.
+    let offsetsForSize = freeListBySize[numDescriptors]
+    
+    // Branch on whether the offsets are nil.
+    if let offsetsForSize {
+      return offsetsForSize.count > 0
+    } else {
+      return false
+    }
   }
   
   /// Get the number of available handles in the heap.
   public func NumFreeHandles() -> UInt32 {
-    fatalError("Not implemented.")
+    return numFreeHandles
   }
   
   /// Allocate a number of descriptors from this descriptor heap.
@@ -129,7 +137,41 @@ public class DescriptorAllocatorPage {
     offset: UInt32,
     numDescriptors: UInt32
   ) {
-    fatalError("Not implemented.")
+    // If a block list for the specified size doesn't exist, create a new one.
+    do {
+      let sizeList = freeListBySize[numDescriptors]
+      if sizeList == nil {
+        freeListBySize[numDescriptors] = []
+      }
+    }
+    
+    var freeListBySizeIt: UInt32
+    
+    do {
+      // Retrieve the list of blocks.
+      let sizeList = freeListBySize[numDescriptors]
+      guard var sizeList else {
+        fatalError("This size list should exist.")
+      }
+      
+      // Retrieve the new block's position in the size list.
+      freeListBySizeIt = UInt32(sizeList.count)
+      
+      // Append the new entry.
+      sizeList.append(offset)
+      
+      // Return the list to its origin.
+      freeListBySize[numDescriptors] = sizeList
+    }
+    
+     // Create a new block, with an undefined 'freeListBySizeIt'.
+    let newFreeBlock = FreeBlockInfo(
+      size: numDescriptors,
+      freeListBySizeIt: freeListBySizeIt)
+    
+    // Add a new entry at the specified offset. We assume that the caller has
+    // already ensured it's okay to insert here.
+    freeListByOffset[offset] = newFreeBlock
   }
   
   // Free a block of descriptors.
@@ -153,7 +195,7 @@ extension DescriptorAllocatorPage {
     
   struct FreeBlockInfo {
     var size: SizeType
-    var freeListBySizeIt: OffsetType = 0
+    var freeListBySizeIt: UInt32
   }
   
   struct StaleDescriptorInfo {

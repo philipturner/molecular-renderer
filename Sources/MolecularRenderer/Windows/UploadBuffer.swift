@@ -264,7 +264,7 @@ extension UploadBuffer {
         
         let casted = CPUPtr.assumingMemoryBound(to: UInt8.self)
         let incremented = casted + offset
-        return UnsafeMutableRawPointer(casted)
+        return UnsafeMutableRawPointer(incremented)
       }
       
       // First, round up the internal offset.

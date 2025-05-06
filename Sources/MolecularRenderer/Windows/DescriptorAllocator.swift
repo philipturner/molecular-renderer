@@ -114,9 +114,9 @@ public class DescriptorAllocator {
     let newPage = DescriptorAllocatorPage(
       type: heapType,
       numDescriptors: numDescriptorsPerHeap)
-    heapPool.append(newPage)
+    let availableHeapID = heapPool.count
     
-    let availableHeapID = heapPool.count - 1
+    heapPool.append(newPage)
     availableHeaps.insert(availableHeapID)
     
     return newPage
