@@ -93,7 +93,18 @@ public class DescriptorAllocator {
   public func ReleaseStaleDescriptors(
     frameNumber: UInt64
   ) {
-    fatalError("Not implemented.")
+    // Iterate through all of the heaps.
+    for heapID in heapPool.indices {
+      // Retrieve the page.
+      let page = heapPool[heapID]
+      
+      // Modify the page.
+      page.ReleaseStaleDescriptors(
+        frameNumber: frameNumber)
+    }
+    
+    // Garbage collect the heaps after possibly modifying one of them.
+    RefreshAvailableHeaps()
   }
   
   // MARK: - Private
@@ -111,6 +122,9 @@ public class DescriptorAllocator {
     return newPage
   }
   
+  // TODO: Merge these two methods into one. Or, even better, transform the
+  // 'available heaps' set into a computed property.
+  
   // Separate pass to clean up the heaps list.
   private func PurgeAvailableHeaps() {
     // Iterate through the available pages.
@@ -120,7 +134,7 @@ public class DescriptorAllocator {
       let allocatorPage = heapPool[availableHeapID]
       
       // Inspect the allocator page.
-      if allocatorPage.NumFreeHandles() == 0{
+      if allocatorPage.NumFreeHandles() == 0 {
         removedFromAvailable.append(availableHeapID)
       }
     }
@@ -128,6 +142,26 @@ public class DescriptorAllocator {
     // Remove the invalid heaps.
     for removedHeapID in removedFromAvailable {
       availableHeaps.remove(removedHeapID)
+    }
+  }
+  
+  // Separate pass to clean up the heaps list.
+  private func RefreshAvailableHeaps() {
+    // Iterate through all of the heaps.
+    var addedToAvailable: [Int] = []
+    for heapID in heapPool.indices {
+      // Retrieve the page.
+      let page = heapPool[heapID]
+      
+      // Inspect the page.
+      if page.NumFreeHandles() > 0 {
+        addedToAvailable.append(heapID)
+      }
+    }
+    
+    // Add the valid heaps.
+    for addedHeapID in addedToAvailable {
+      availableHeaps.insert(addedHeapID)
     }
   }
 }
