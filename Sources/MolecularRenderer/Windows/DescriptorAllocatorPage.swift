@@ -11,19 +11,23 @@ public struct DescriptorAllocatorPage {
   // MARK: - Private
   
   // A map that lists the free blocks by the offset within the descriptor heap.
-  var freeListByOffset: [OffsetType: FreeBlockInfo]
+  private var freeListByOffset: [OffsetType: FreeBlockInfo]
   
   // A map that lists the free blocks by size.
   //
   // Needs to be a multimap since multiple blocks can have the same size.
-  var freeListBySize: [SizeType: [OffsetType]]
+  private var freeListBySize: [SizeType: [OffsetType]]
   
   // Stale descriptors are queued for release until the frame that they were
   // freed has completed.
-  var staleDescriptors: [StaleDescriptorInfo]
+  private var staleDescriptors: [StaleDescriptorInfo]
   
-  // TODO: Continue where you left off by adding the remaining stored
-  // properties.
+  private var d3d12DescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
+  private var heapType: D3D12_DESCRIPTOR_HEAP_TYPE
+  private var baseDescriptor: D3D12_CPU_DESCRIPTOR_HANDLE
+  private var descriptorHandleIncrementSize: UInt32
+  private var numDescriptorsInHeap: UInt32
+  private var numFreeHandles: UInt32
   
   // MARK: - Public
   
