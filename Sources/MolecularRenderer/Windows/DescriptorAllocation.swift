@@ -20,7 +20,7 @@ public class DescriptorAllocation {
   var descriptorSize: UInt32
   
   // A pointer back to the original page where this allocation came from.
-  var page: UnsafeMutablePointer<DescriptorAllocatorPage>
+  var page: DescriptorAllocatorPage
   
   // MARK: - Public
   
@@ -29,23 +29,17 @@ public class DescriptorAllocation {
     fatalError("Not implemented.")
   }
   
-  // Unsure what to do regarding DescriptorAllocatorPage being a reference type.
   public init(
     descriptor: D3D12_CPU_DESCRIPTOR_HANDLE,
     numHandles: UInt32,
     descriptorSize: UInt32,
-    page: UnsafeMutablePointer<DescriptorAllocatorPage>
+    page: DescriptorAllocatorPage
   ) {
     fatalError("Not implemented.")
   }
   
   /// The destructor will automatically free the allocation.
   deinit {
-    fatalError("Not implemented.")
-  }
-  
-  /// Check if this is a valid descriptor.
-  public func IsNull() -> Bool {
     fatalError("Not implemented.")
   }
   
@@ -64,8 +58,7 @@ public class DescriptorAllocation {
   /// Get the heap that this allocation came from.
   ///
   /// For internal use only.
-  public func GetDescriptorAllocatorPage()
-  -> UnsafeMutablePointer<DescriptorAllocatorPage> {
+  public func GetDescriptorAllocatorPage() -> DescriptorAllocatorPage {
     fatalError("Not implemented.")
   }
   

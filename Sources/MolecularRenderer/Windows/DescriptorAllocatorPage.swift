@@ -7,7 +7,7 @@ import WinSDK
 // https://www.3dgep.com/learning-directx-12-3/#Descriptor_Allocator
 // As literal of a translation as possible from the C++ origin.
 
-public struct DescriptorAllocatorPage {
+public class DescriptorAllocatorPage {
   // MARK: - Private
   
   // A map that lists the free blocks by the offset within the descriptor heap.
@@ -58,9 +58,9 @@ public struct DescriptorAllocatorPage {
   /// Allocate a number of descriptors from this descriptor heap.
   ///
   /// If the allocation cannot be satisfied, then a NULL descriptor is returned.
-  public mutating func Allocate(
+  public func Allocate(
     numDescriptors: UInt32
-  ) -> DescriptorAllocation {
+  ) -> DescriptorAllocation? {
     fatalError("Not implemented.")
   }
   
@@ -68,7 +68,7 @@ public struct DescriptorAllocatorPage {
   /// - Parameter frameNumber: Stale descriptors are not freed directly, but put
   ///   on a stale allocations queue. Stale allocations are returned to the heap
   ///   using the DescriptorAllocatorPage::ReleaseStaleAllocations method.
-  public mutating func Free(
+  public func Free(
     descriptorHandle: inout DescriptorAllocation,
     frameNumber: UInt64
   ) {
@@ -76,7 +76,7 @@ public struct DescriptorAllocatorPage {
   }
   
   /// Returned the stale descriptors back to the descriptor heap.
-  public mutating func ReleaseStaleDescriptors(
+  public func ReleaseStaleDescriptors(
     frameNumber: UInt64
   ) {
     fatalError("Not implemented.")
@@ -92,7 +92,7 @@ public struct DescriptorAllocatorPage {
   }
   
   // Adds a new block to the free list.
-  private mutating func AddNewBlock(
+  private func AddNewBlock(
     offset: UInt32,
     numDescriptors: UInt32
   ) {
@@ -103,7 +103,7 @@ public struct DescriptorAllocatorPage {
   //
   // This will also merge free blocks in the free list to form larger blocks
   // that can be reused.
-  private mutating func FreeBlock(
+  private func FreeBlock(
     offset: UInt32,
     numDescriptors: UInt32
   ) {
