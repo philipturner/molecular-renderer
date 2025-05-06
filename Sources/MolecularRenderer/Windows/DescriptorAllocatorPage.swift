@@ -11,16 +11,16 @@ public class DescriptorAllocatorPage {
   // MARK: - Private
   
   // A map that lists the free blocks by the offset within the descriptor heap.
-  private var freeListByOffset: [OffsetType: FreeBlockInfo]
+  private var freeListByOffset: [OffsetType: FreeBlockInfo] = [:]
   
   // A map that lists the free blocks by size.
   //
   // Needs to be a multimap since multiple blocks can have the same size.
-  private var freeListBySize: [SizeType: [OffsetType]]
+  private var freeListBySize: [SizeType: [OffsetType]] = [:]
   
   // Stale descriptors are queued for release until the frame that they were
   // freed has completed.
-  private var staleDescriptors: [StaleDescriptorInfo]
+  private var staleDescriptors: [StaleDescriptorInfo] = []
   
   private var d3d12DescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   private var heapType: D3D12_DESCRIPTOR_HEAP_TYPE
@@ -35,7 +35,40 @@ public class DescriptorAllocatorPage {
     type: D3D12_DESCRIPTOR_HEAP_TYPE,
     numDescriptors: UInt32
   ) {
-    fatalError("Not implemented.")
+    self.heapType = type
+    self.numDescriptorsInHeap = numDescriptors
+    
+    // Not concerning myself with how to reference the global DirectX device.
+    func createGlobalDevice() -> SwiftCOM.ID3D12Device {
+      fatalError("Ignoring the implementation.")
+    }
+    
+    do {
+      // Create a heap descriptor.
+      var heapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
+      heapDesc.Type = type
+      heapDesc.NumDescriptors = numDescriptors
+      
+      // Create the descriptor heap.
+      let device = createGlobalDevice()
+      d3d12DescriptorHeap = try! device.CreateDescriptorHeap(
+        heapDesc)
+    }
+    
+    // Assign the remaining stored properties.
+    do {
+      baseDescriptor = try! d3d12DescriptorHeap
+        .GetCPUDescriptorHandleForHeapStart()
+      
+      let device = createGlobalDevice()
+      descriptorHandleIncrementSize = try! device
+        .GetDescriptorHandleIncrementSize(heapType)
+      
+      numFreeHandles = numDescriptorsInHeap
+    }
+    
+    // Initialize the free lists.
+    AddNewBlock(offset: 0, numDescriptors: numFreeHandles)
   }
   
   public func GetHeapType() -> D3D12_DESCRIPTOR_HEAP_TYPE {
