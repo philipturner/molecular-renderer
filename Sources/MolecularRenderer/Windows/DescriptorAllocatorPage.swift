@@ -102,7 +102,25 @@ public class DescriptorAllocatorPage {
   public func Allocate(
     numDescriptors: UInt32
   ) -> DescriptorAllocation? {
-    fatalError("Not implemented.")
+    // There are less than the requested number of descriptors left in the heap.
+    // Return a NULL descriptor and try another heap.
+    if numDescriptors > numFreeHandles {
+      return nil
+    }
+    
+    // Get the first block that is large enough to satisfy the request.
+    do {
+      // The C++ std::map::lower_bound function is too complex for now.
+      // Reverting from an O(logn) to an O(nlogn) algorithm for simplicity.
+      let unsortedKeys = Array(freeListBySize.keys)
+      
+      // Sort the keys in ascending order.
+      let sortedKeys = unsortedKeys.sorted(by: { $0 < $1 })
+      
+      // Iterate over the keys, searching for the smallest size whose list
+      // contains elements.
+      fatalError("Not implemented.")
+    }
   }
   
   /// Return a descriptor back to the heap.
@@ -164,7 +182,7 @@ public class DescriptorAllocatorPage {
       freeListBySize[numDescriptors] = sizeList
     }
     
-     // Create a new block, with an undefined 'freeListBySizeIt'.
+    // Create a new block, with an undefined 'freeListBySizeIt'.
     let newFreeBlock = FreeBlockInfo(
       size: numDescriptors,
       freeListBySizeIt: freeListBySizeIt)
