@@ -240,4 +240,34 @@ print(d3d12Device)
 // 'CommandList' class. There is less risk for memory leaks from manual COM
 // memory management. Debugging the code above would waste time unnecessarily.
 
+
+
+// Pausing progress on translating the 3DGEP tutorials. I don't feel
+// motivated to work on it right now. Instead, I'm returning to the 'logins'
+// tutorial about compute shaders. Perhaps there's a faster way to achieve
+// 'hello world' for vector addition.
+//
+// https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#compute-shaders-in-d3d12
+
+// Issues:
+// - How to create resources
+// - How to create pipelines
+// - What the heck is going on with descriptors
+// - What the heck is going on with root signatures
+// - How to bind resources to commands
+// - How to dispatch GPU threads
+// - What the heck is going on with resource state (transitions)
+// - How to test the results of GPU execution
+//
+// Can I do this without reading/translating the 3DGEP tutorials? Can I just
+// read them without copying the code? There's a lot of non-DirectX stuff there,
+// like boilerplate logic for memory allocation algorithms. I only care about
+// the API calls.
+// - The 'logins' code in FirstDX12Renderer relies on the utilities in the
+//   3DGEP tutorials, so there's a Catch 22. You can't escape the dependency
+//   on the utilities.
+//
+// Sort through all of these issues and find a way to proceed, without wasting
+// time unnecessarily.
+
 #endif

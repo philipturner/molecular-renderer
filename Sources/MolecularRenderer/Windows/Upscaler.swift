@@ -12,7 +12,7 @@ public class Upscaler {
   
   public func createContext() -> ffxContext {
     // Set the backend header.
-    var createBackend = UnsafeMutablePointer<ffxCreateBackendDX12Desc>
+    let createBackend = UnsafeMutablePointer<ffxCreateBackendDX12Desc>
       .allocate(capacity: 1)
     createBackend.pointee.header.type = UInt64(
       FFX_API_CREATE_CONTEXT_DESC_TYPE_BACKEND_DX12)

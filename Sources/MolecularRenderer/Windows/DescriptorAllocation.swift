@@ -1,4 +1,4 @@
-#if os(Windows)
+#if false
 import SwiftCOM
 import WinSDK
 
