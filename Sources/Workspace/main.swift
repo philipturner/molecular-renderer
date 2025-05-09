@@ -197,6 +197,41 @@ application.run { renderTarget in
 // approach this goal in practice. Next, I must elaborate on and refactor the
 // ideas. I've started by purging this repository of the C++ translations.
 
-print("Hello, world.")
+// ## Initiation
+//
+// My goal is to execute a proof of concept compute-only workflow on the GPU.
+// I will create three UAV buffers of type FP32. They will be read and written
+// from GPU-native memory during a compute shader. The CPU will supply input
+// data and test the output data.
+//
+// Additional requirements:
+// - Correct/conventional usage of the DirectX 12 API
+// - No memory leaks from mishandling COM objects
+// - Shader is compiled entirely at runtime
+// - Root signature is specified in HLSL, not on the CPU
+// - Resources are bound in separate 'root descriptor' entries
+// - Resources are not sub-resources of another resource
+// - All objects for encoding commands are regenerated for each command list
+//
+// Resource states:
+// - 'COPY_DEST' while moving from CPU -> GPU
+// - 'UAV' while executing the compute shader
+// - 'COPY_SRC' while moving from GPU -> CPU
+// - There are no constant buffers or inlined 32-bit constants.
+//
+// Additional small details:
+// - Compile the shader with the SM 6.5 target.
+// - Dispatch 128 threads per group.
+// - Each buffer is 1024 elements.
+//   - First input is 0 to 1023, in ascending order.
+//   - Second input is 1024 to 2047, in ascending order.
+//   - Report the results for the first 10 entries explicitly.
+//   - To cover the remaining entries, count the number that did/didn't match
+//     results of an analytical formula.
+
+// ## First Steps
+//
+// Author the HLSL shader. Then, modify the DXCWrapper utility to provide the
+// compiled blob.
 
 #endif
