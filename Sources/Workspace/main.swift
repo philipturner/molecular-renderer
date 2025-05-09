@@ -181,74 +181,8 @@ application.run { renderTarget in
 
 #if os(Windows)
 
-// Next steps to refactor the codebase:
-// - Reorganize the files in molecular-renderer to a loose grouping of what
-//   "should be" common vs. macOS vs. Windows [DONE]
-// - Redirect the executable links in the package manifest to
-//   molecular-renderer [DONE]
-// - Create utility files that can smoke test the following:
-//   - Create a DirectX device [DONE]
-//   - DXC symbol linking [DONE]
-//   - FidelityFX symbol linking [DONE]
+// I want to achieve 'hello world' for vector addition.
 //
-// After that:
-// - Do not jump ahead to merging any code with that for Apple yet. Need more
-//   experience with the entirety of the command dispatching workflow.
-// - Implement the CommandQueue exercise.
-
-let device = DirectXDevice()
-let d3d12Device = device.d3d12Device
-print(d3d12Device)
-
-// The CommandQueue class has finished being translated. Next, how do we test
-// it? The code base does not have good unit tests.
-//
-// Start by studying the tutorials. What is the first function I should call
-// to initiate a testing procedure?
-//
-// Study the functions, what they're supposed to do, and how they're supposed to
-// affect the internal state variables. There will be tests that monitor the
-// internal state variables and check for unexpected behavior.
-// - Ensure the tests cover the case where lists grow to >1 in size.
-// - Ensure there are no memory leaks. This is a good question; I wonder how to
-//   debug/search for memory leaks in practice.
-
-// var commandListType
-// var d3d12Device
-// var d3d12CommandQueue
-// var d3d12Fence
-// var fenceEvent
-// var fenceValue
-// var commandAllocatorQueue: []
-// var commandListQueue: []
-//
-// init(device:type:)
-// func GetCommandList()
-// func ExecuteCommandList()
-// func Signal()
-// func IsFenceComplete(fenceValue:)
-// func WaitForFenceValue()
-// func Flush()
-// func CreateCommandAllocator()
-// func CreateCommandList(allocator:)
-
-// I don't need to invest time testing and debugging this functionality. Just
-// read along through the tutorials. The translation exercise will reinforce my
-// knowledge of DirectX. Once it's complete, I can devise simpler tests.
-//
-// In a later tutorial, the command allocator is refactored out into the
-// 'CommandList' class. There is less risk for memory leaks from manual COM
-// memory management. Debugging the code above would waste time unnecessarily.
-
-
-
-// Pausing progress on translating the 3DGEP tutorials. I don't feel
-// motivated to work on it right now. Instead, I'm returning to the 'logins'
-// tutorial about compute shaders. Perhaps there's a faster way to achieve
-// 'hello world' for vector addition.
-//
-// https://logins.github.io/graphics/2020/10/31/D3D12ComputeShaders.html#compute-shaders-in-d3d12
-
 // Issues:
 // - How to create resources
 // - How to create pipelines
@@ -259,16 +193,10 @@ print(d3d12Device)
 // - What the heck is going on with resource state (transitions)
 // - How to test the results of GPU execution
 //
-// Can I do this without reading/translating the 3DGEP tutorials? Can I just
-// read them without copying the code? There's a lot of non-DirectX stuff there,
-// like boilerplate logic for memory allocation algorithms. I only care about
-// the API calls.
-// - The 'logins' code in FirstDX12Renderer relies on the utilities in the
-//   3DGEP tutorials, so there's a Catch 22. You can't escape the dependency
-//   on the utilities.
-//
-// Sort through all of these issues and find a way to proceed, without wasting
-// time unnecessarily.
+// The above notes are the start of a brainstorming session about how to
+// approach this goal in practice. Next, I must elaborate on and refactor the
+// ideas. I've started by purging this repository of the C++ translations.
 
+print("Hello, world.")
 
 #endif
