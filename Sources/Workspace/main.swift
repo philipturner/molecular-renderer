@@ -228,10 +228,24 @@ application.run { renderTarget in
 //   - Report the results for the first 10 entries explicitly.
 //   - To cover the remaining entries, count the number that did/didn't match
 //     results of an analytical formula.
+// - In root signature v1.1, the UAV's flag is 'DATA_VOLATILE' by default.
 
 // ## First Steps
 //
 // Author the HLSL shader. Then, modify the DXCWrapper utility to provide the
 // compiled blob.
+
+// TODO: Check that the escape sequences for \ are okay, when the string prints
+// to the console.
+let shaderSource: String = """
+RWStructuredBuffer<float> Buffer0 : register(u0);
+RWStructuredBuffer<float> Buffer1 : register(u1);
+RWStructuredBuffer<float> Buffer2 : register(u2);
+
+#define vectorAddRS "UAV(u0), " \\
+                    "UAV(u1), " \\
+                    "UAV(U2)
+
+"""
 
 #endif
