@@ -235,17 +235,30 @@ application.run { renderTarget in
 // Author the HLSL shader. Then, modify the DXCWrapper utility to provide the
 // compiled blob.
 
-// TODO: Check that the escape sequences for \ are okay, when the string prints
-// to the console.
 let shaderSource: String = """
-RWStructuredBuffer<float> Buffer0 : register(u0);
-RWStructuredBuffer<float> Buffer1 : register(u1);
-RWStructuredBuffer<float> Buffer2 : register(u2);
+RWStructuredBuffer<float> buffer0 : register(u0);
+RWStructuredBuffer<float> buffer1 : register(u1);
+RWStructuredBuffer<float> buffer2 : register(u2);
 
-#define vectorAddRS "UAV(u0), " \\
-                    "UAV(u1), " \\
-                    "UAV(U2)
+#define mainRS "UAV(u0), " \\
+               "UAV(u1), " \\
+               "UAV(u2)"
+
+[numthreads(128, 1, 1)]
+[RootSignature(mainRS)]
+void main(
+  uint3 tid : SV_DispatchThreadID
+) {
+  uint slotID = tid.x;
+  float input0 = buffer0[slotID];
+  float input1 = buffer1[slotID];
+  
+  float output = input0 + input1;
+  buffer2[slotID] = output;
+}
 
 """
+
+print(shaderSource)
 
 #endif
