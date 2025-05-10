@@ -11,6 +11,13 @@ using namespace Microsoft::WRL;
 #include <iostream>
 #include <vector>
 
+// Reduce the boilerplate for checking HRESULT values.
+#define CHECK_HRESULT(message) \
+if (errorCode != 0) { \
+  std::cerr << message << std::endl; \
+  return errorCode; \
+} \
+
 // Compiles the function and returns an error code.
 //
 // WARNING: The caller must deallocate any pointers returned by this function.
@@ -18,7 +25,7 @@ using namespace Microsoft::WRL;
 // '.free'.
 extern "C"
 __declspec(dllexport)
-uint8_t dxcompiler_compile(
+int32_t dxcompiler_compile(
   const char *source,
   uint32_t sourceLength,
   uint8_t **object,
@@ -26,6 +33,8 @@ uint8_t dxcompiler_compile(
   uint8_t **rootSignature,
   uint32_t *rootSignatureLength
 ) {
+  // Initialize the resources.
+  
   ComPtr<IDxcUtils> utils;
   DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf()));
   
@@ -34,6 +43,46 @@ uint8_t dxcompiler_compile(
   
   ComPtr<IDxcCompiler3> compiler;
   DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf()));
+  
+  // Specify the compiler arguments.
+  
+  std::vector<LPCWSTR> arguments;
+  arguments.push_back(L"-E");
+  arguments.push_back(L"main");
+  arguments.push_back(L"-T");
+  arguments.push_back(L"cs_6_5");
+  arguments.push_back(L"-Qstrip_debug");
+  arguments.push_back(L"-Qstrip_reflect");
+  arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);
+  arguments.push_back(DXC_ARG_DEBUG);
+  
+  // Invoke the compile function.
+  
+  DxcBuffer sourceBuffer;
+  sourceBuffer.Ptr = sourceBlob->GetBufferPointer();
+  sourceBuffer.Size = sourceBlob->GetBufferSize();
+  sourceBuffer.Encoding = 0;
+  
+  ComPtr<IDxcResult> result;
+  {
+    HRESULT errorCode = compiler->Compile(&sourceBuffer, arguments.data(), uint32_t(arguments.size()), nullptr, IID_PPV_ARGS(result.GetAddressOf()));
+    CHECK_HRESULT("IDxcCompiler3::Compile failed.")
+  }
+  
+  // Check for errors. If there are any, return an error code.
+  
+  ComPtr<IDxcBlobUtf8> errorsBlob;
+  {
+    HRESULT errorCode = result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errorsBlob.GetAddressOf()), nullptr);
+    CHECK_HRESULT("IDxcResult::GetOutput(DXC_OUT_ERRORS) failed.")
+  }
+  
+  if (errorsBlob->GetStringLength() > 0) {
+    std::cerr << (char*)errorsBlob->GetBufferPointer() << std::endl;
+    return 1;
+  }
+  
+  // Retrieve the object. Copy its contents to a fresh pointer.
   
   return 0;
 }

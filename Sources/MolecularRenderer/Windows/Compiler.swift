@@ -13,7 +13,7 @@ private func dxcompiler_compile(
   _ objectLength: UnsafeMutablePointer<UInt32>,
   _ rootSignature: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
   _ rootSignatureLength: UnsafeMutablePointer<UInt32>
-) -> UInt8
+) -> Int32
 
 public class Compiler {
   private var device: DirectXDevice
