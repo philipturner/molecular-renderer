@@ -2,10 +2,17 @@
 import SwiftCOM
 import WinSDK
 
+// For Data
+import Foundation
+
 @_silgen_name("dxcompiler_compile")
 private func dxcompiler_compile(
-  _ shaderSource: UnsafePointer<CChar>,
-  _ shaderSourceLength: UInt32
+  _ source: UnsafePointer<CChar>,
+  _ sourceLength: UInt32,
+  _ object: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+  _ objectLength: UnsafeMutablePointer<UInt32>,
+  _ rootSignature: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+  _ rootSignatureLength: UnsafeMutablePointer<UInt32>
 ) -> UInt8
 
 public class Compiler {
@@ -16,17 +23,21 @@ public class Compiler {
   }
   
   public func compile(source: String) -> ShaderBytecode {
+    // Declare the function arguments and return values.
     let sourceCount = UInt32(source.count)
     var object: UnsafeMutablePointer<UInt8>?
     var objectLength: UInt32 = .zero
     var rootSignature: UnsafeMutablePointer<UInt8>?
     var rootSignatureLength: UInt32 = .zero
     
-    
-    
+    // Invoke the function from the DXC wrapper.
     let errorCode = dxcompiler_compile(
       source,
-      sourceCount)
+      sourceCount,
+      &object,
+      &objectLength,
+      &rootSignature,
+      &rootSignatureLength)
     if errorCode != 0 {
       fatalError("dxcompiler_compile failed with error code \(errorCode).")
     }
