@@ -11,18 +11,29 @@ using namespace Microsoft::WRL;
 #include <iostream>
 #include <vector>
 
-// Prototype for the final form of the C interface.
+// Compiles the function and returns an error code.
+//
+// WARNING: The caller must deallocate any pointers returned by this function.
+// On the Swift side, use 'Data.init(bytesNoCopy:)' with the deallocator set to
+// '.free'.
 extern "C"
 __declspec(dllexport)
-int8_t dxcompiler_compile(const char *shaderSource, uint32_t shaderSourceLength) {
-  ComPtr<IDxcUtils> pUtils;
-  DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(pUtils.GetAddressOf()));
+uint8_t dxcompiler_compile(
+  const char *source,
+  uint32_t sourceLength,
+  uint8_t **object,
+  uint32_t *objectLength,
+  uint8_t **rootSignature,
+  uint32_t *rootSignatureLength
+) {
+  ComPtr<IDxcUtils> utils;
+  DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf()));
   
-  ComPtr<IDxcBlobEncoding> pSource;
-  pUtils->CreateBlob(shaderSource, shaderSourceLength, CP_UTF8, pSource.GetAddressOf());
+  ComPtr<IDxcBlobEncoding> sourceBlob;
+  utils->CreateBlob(source, sourceLength, CP_UTF8, sourceBlob.GetAddressOf());
   
-  ComPtr<IDxcCompiler3> pCompiler;
-  DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(pCompiler.GetAddressOf()));
+  ComPtr<IDxcCompiler3> compiler;
+  DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf()));
   
-  return shaderSourceLength;
+  return 0;
 }

@@ -259,6 +259,9 @@ void main(
 
 """
 
-print(shaderSource)
+let device = DirectXDevice()
+let compiler = Compiler(device: device)
+let errorCode = compiler.compile(source: shaderSource)
+print(errorCode)
 
 #endif
