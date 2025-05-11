@@ -410,14 +410,30 @@ func createInputBuffer(size: Int) -> SwiftCOM.ID3D12Resource {
 //
 // The object may have utilities regarding descriptors, once we get there.
 
-// Allocate buffer0.
-var buffer0: Buffer
-do {
-  var bufferDesc = BufferDescriptor()
-  bufferDesc.device = device
-  bufferDesc.size = 1024 * 4
-  bufferDesc.type = .input
-  buffer0 = Buffer(descriptor: bufferDesc)
-}
+// Fill the descriptor properties common to all buffers.
+var bufferDesc = BufferDescriptor()
+bufferDesc.device = device
+bufferDesc.size = 1024 * 4
+
+// Create the input buffers.
+bufferDesc.type = .input
+let inputBuffer0 = Buffer(descriptor: bufferDesc)
+let inputBuffer1 = Buffer(descriptor: bufferDesc)
+print("inputBuffer0:", inputBuffer0)
+print("inputBuffer1:", inputBuffer1)
+
+// Create the native buffers.
+bufferDesc.type = .native
+let nativeBuffer0 = Buffer(descriptor: bufferDesc)
+let nativeBuffer1 = Buffer(descriptor: bufferDesc)
+let nativeBuffer2 = Buffer(descriptor: bufferDesc)
+print("nativeBuffer0:", nativeBuffer0)
+print("nativeBuffer1:", nativeBuffer1)
+print("nativeBuffer2:", nativeBuffer2)
+
+// Create the output buffers.
+bufferDesc.type = .output
+let outputBuffer2 = Buffer(descriptor: bufferDesc)
+print("outputBuffer2:", outputBuffer2)
 
 #endif

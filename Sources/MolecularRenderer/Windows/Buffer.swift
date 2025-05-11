@@ -12,14 +12,34 @@ public struct BufferDescriptor {
   }
 }
 
+// How to get data on/off the GPU:
+//
+// input buffer:
+// - always in state GENERIC_READ
+// - resource flags NONE
+//
+// native buffer:
+// - state can vary based on the operation
+//   - Most elegant approach: never assume it is in STATE_UNORDERED_ACCESS
+//     before the shader starts.
+//   - Can be in state COPY_SOURCE or COPY_DEST during copy operations. This can
+//     be a bit frustrating, as '.input' buffers in the same situation are
+//     'GENERIC_READ'. Might be easiest to just set all sources of copies to
+//     'GENERIC_READ', as that includes the flag 'COPY_SOURCE'.
+// - resource flags ALLOW_UNORDERED_ACCESS
+//
+// output buffer:
+// - always in state COPY_DEST
+// - resource flags NONE
+
 public enum BufferType {
-  // CPU can write, GPU memory accesses are slow.
+  // CPU can write, GPU cannot access in a compute shader.
   case input
   
   // GPU memory accesses are fast.
   case native
   
-  // CPU can read, GPU memory accesses are slow.
+  // CPU can read, GPU cannot access in a compute shader.
   case output
   
   var heapType: D3D12_HEAP_TYPE {
@@ -33,37 +53,31 @@ public enum BufferType {
     }
   }
   
-  var resourceStates: D3D12_RESOURCE_STATES {
-    // Declare the unique state.
-    var uniqueState: D3D12_RESOURCE_STATES
-    
-    // Select the unique state.
+  var initialResourceStates: D3D12_RESOURCE_STATES {
     switch self {
     case .input:
-      uniqueState = D3D12_RESOURCE_STATE_GENERIC_READ
+      return D3D12_RESOURCE_STATE_GENERIC_READ
     case .native:
-      uniqueState = D3D12_RESOURCE_STATE_COMMON
+      return D3D12_RESOURCE_STATE_COMMON
     case .output:
-      uniqueState = D3D12_RESOURCE_STATE_COPY_DEST
+      return D3D12_RESOURCE_STATE_COPY_DEST
     }
-    
-    // Declare the common state.
-    let commonState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-    
-    // Merge the raw values.
-    var rawValue: Int32 = .zero
-    rawValue |= uniqueState.rawValue
-    rawValue |= commonState.rawValue
-    
-    // Return a combined set of states.
-    let output = D3D12_RESOURCE_STATES(rawValue: rawValue)
-    return output
+  }
+  
+  var resourceFlags: D3D12_RESOURCE_FLAGS {
+    switch self {
+    case .input:
+      return D3D12_RESOURCE_FLAG_NONE
+    case .native:
+      return D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
+    case .output:
+      return D3D12_RESOURCE_FLAG_NONE
+    }
   }
 }
 
 public class Buffer {
-  // public let resource
-  
+  public let d3d12Resource: SwiftCOM.ID3D12Resource
   public let size: Int
   public let type: BufferType
   
@@ -99,12 +113,16 @@ public class Buffer {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN
     resourceDesc.SampleDesc = DXGI_SAMPLE_DESC(Count: 1, Quality: 0)
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR
-    resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
+    resourceDesc.Flags = type.resourceFlags
     
-    // Retrieve the resource states.
-    let resourceStates = type.resourceStates
-    
-    
+    // Create the resource.
+    let d3d12Device = device.d3d12Device
+    self.d3d12Resource = try! d3d12Device.CreateCommittedResource(
+      heapProperties,
+      D3D12_HEAP_FLAG_NONE,
+      resourceDesc,
+      type.initialResourceStates,
+      nil)
   }
 }
 
