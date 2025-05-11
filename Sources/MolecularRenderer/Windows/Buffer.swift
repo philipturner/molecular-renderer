@@ -81,6 +81,9 @@ public class Buffer {
   public let size: Int
   public let type: BufferType
   
+  // Temporarily making this public for debugging purposes.
+  public let mappedPointer: UnsafeMutableRawPointer?
+  
   public init(descriptor: BufferDescriptor) {
     guard let device = descriptor.device,
           let type = descriptor.type else {
@@ -123,6 +126,23 @@ public class Buffer {
       resourceDesc,
       type.initialResourceStates,
       nil)
+    
+    // Map the pointer for CPU access.
+    if type == .input || type == .output {
+      let mappedPointer = try! d3d12Resource.Map(0, nil)
+      self.mappedPointer = mappedPointer
+      print("Successfully mapped.")
+    } else {
+      self.mappedPointer = nil
+    }
+  }
+  
+  deinit {
+    if type == .input || type == .output {
+      try! d3d12Resource.Unmap(0, nil)
+      print("Successfully unmapped.")
+    }
+    print("Hello, world.")
   }
   
   // Next: add the functionality regarding mapping/unmapping of data. Perhaps

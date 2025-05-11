@@ -415,25 +415,27 @@ var bufferDesc = BufferDescriptor()
 bufferDesc.device = device
 bufferDesc.size = 1024 * 4
 
+do {
 // Create the input buffers.
 bufferDesc.type = .input
 let inputBuffer0 = Buffer(descriptor: bufferDesc)
 let inputBuffer1 = Buffer(descriptor: bufferDesc)
-print("inputBuffer0:", inputBuffer0)
-print("inputBuffer1:", inputBuffer1)
+print("inputBuffer0:", inputBuffer0.mappedPointer)
+print("inputBuffer1:", inputBuffer1.mappedPointer)
 
 // Create the native buffers.
 bufferDesc.type = .native
 let nativeBuffer0 = Buffer(descriptor: bufferDesc)
 let nativeBuffer1 = Buffer(descriptor: bufferDesc)
 let nativeBuffer2 = Buffer(descriptor: bufferDesc)
-print("nativeBuffer0:", nativeBuffer0)
-print("nativeBuffer1:", nativeBuffer1)
-print("nativeBuffer2:", nativeBuffer2)
+print("nativeBuffer0:", nativeBuffer0.mappedPointer)
+print("nativeBuffer1:", nativeBuffer1.mappedPointer)
+print("nativeBuffer2:", nativeBuffer2.mappedPointer)
 
 // Create the output buffers.
 bufferDesc.type = .output
 let outputBuffer2 = Buffer(descriptor: bufferDesc)
-print("outputBuffer2:", outputBuffer2)
+print("outputBuffer2:", outputBuffer2.mappedPointer)
+}
 
 #endif
