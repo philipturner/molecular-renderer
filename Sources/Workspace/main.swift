@@ -230,6 +230,8 @@ application.run { renderTarget in
 //     results of an analytical formula.
 // - In root signature v1.1, the UAV's flag is 'DATA_VOLATILE' by default.
 
+
+
 // ## First Steps
 //
 // Author the HLSL shader. Then, modify the DXCWrapper utility to provide the
@@ -263,5 +265,51 @@ let device = DirectXDevice()
 let compiler = Compiler(device: device)
 let shaderBytecode = compiler.compile(source: shaderSource)
 print(shaderBytecode)
+
+
+
+// ## Second Steps
+//
+// See whether I can jump directly to creating a PSO and root signature object.
+
+import SwiftCOM
+import WinSDK
+
+// Create the root signature.
+var rootSignature: SwiftCOM.ID3D12RootSignature?
+shaderBytecode.rootSignature.withUnsafeBytes { bufferPointer in
+  let d3d12Device = device.d3d12Device
+  rootSignature = try! d3d12Device.CreateRootSignature(
+    0,
+    bufferPointer.baseAddress,
+    UInt64(bufferPointer.count))
+}
+guard let rootSignature else {
+  fatalError("Could not create root signature.")
+}
+
+// Create the pipeline state.
+var pipelineState: SwiftCOM.ID3D12PipelineState?
+shaderBytecode.object.withUnsafeBytes { bufferPointer in
+  var computeShader = D3D12_SHADER_BYTECODE()
+  computeShader.pShaderBytecode = bufferPointer.baseAddress
+  computeShader.BytecodeLength = UInt64(bufferPointer.count)
+  
+  var cachedPipelineState = D3D12_CACHED_PIPELINE_STATE()
+  cachedPipelineState.pCachedBlob = nil
+  cachedPipelineState.CachedBlobSizeInBytes = 0
+  
+  var computePipelineStateDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC()
+  try! rootSignature.perform(
+    as: WinSDK.ID3D12RootSignature.self
+  ) { pUnk in
+    computePipelineStateDesc.pRootSignature = pUnk
+  }
+  computePipelineStateDesc.CS = computeShader
+  computePipelineStateDesc.NodeMask = 0
+  computePipelineStateDesc.CachedPSO = cachedPipelineState
+  computePipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE
+  
+}
 
 #endif
