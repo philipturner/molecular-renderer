@@ -45,6 +45,11 @@ int32_t dxcompiler_compile(
   DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf()));
   
   // Specify the compiler arguments.
+  //
+  // Note: "-T rootsig_1_1" might be needed. In some documentation for FXC, it
+  // says that compiling the regular shader ends up compiling the root signature
+  // as well:
+  // https://learn.microsoft.com/en-us/windows/win32/direct3d12/specifying-root-signatures-in-hlsl
   
   std::vector<LPCWSTR> arguments;
   arguments.push_back(L"-E");
@@ -83,6 +88,28 @@ int32_t dxcompiler_compile(
   }
   
   // Retrieve the object. Copy its contents to a fresh pointer.
+  
+  ComPtr<IDxcBlob> objectBlob;
+  {
+    HRESULT errorCode = result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(objectBlob.GetAddressOf()), nullptr);
+    CHECK_HRESULT("IDxcResult::GetOutput(DXC_OUT_OBJECT) failed.")
+  }
+  
+  {
+    // Retrieve the length of the object.
+    *objectLength = objectBlob->GetBufferSize();
+    if (*objectLength == 0) {
+      std::cerr << "Object blob was empty." << std::endl;
+      return 1;
+    }
+    
+    // Create a pointer for the object.
+    *object = (uint8_t*)malloc(*objectLength);
+    
+    // Copy the blob's contents to the pointer.
+    void *blobPointer = objectBlob->GetBufferPointer();
+    memcpy(*object, blobPointer, *objectLength);
+  }
   
   return 0;
 }
