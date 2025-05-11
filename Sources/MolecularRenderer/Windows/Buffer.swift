@@ -124,6 +124,13 @@ public class Buffer {
       type.initialResourceStates,
       nil)
   }
+  
+  // Next: add the functionality regarding mapping/unmapping of data. Perhaps
+  // create CPU pointers that will be unmapped upon deallocation.
+  //
+  // After creating the appropriate stored property, make two utility functions.
+  // They accept a raw pointer, with no indication of its size. They either
+  // read or write the entire buffer's worth of data from the pointer.
 }
 
 #endif
