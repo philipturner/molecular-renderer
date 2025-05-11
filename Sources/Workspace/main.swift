@@ -323,92 +323,9 @@ guard let pipelineState else {
 
 
 
-#if false
-
 // ## Third Step
 //
-// Create the buffer objects and descriptors/handles (if needed).
-//
-// buffer0, buffer1:
-//   D3D12_HEAP_TYPE_UPLOAD
-//   D3D12_RESOURCE_STATE_GENERIC_READ
-// buffer2:
-//   D3D12_HEAP_TYPE_READBACK
-//   D3D12_RESOURCE_STATE_COPY_DEST
-
-// Utility function for creating a committed resource.
-func createHeapProperties(
-  type: D3D12_HEAP_TYPE
-) -> D3D12_HEAP_PROPERTIES {
-  var heapProperties = D3D12_HEAP_PROPERTIES()
-  heapProperties.Type = type
-  heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN
-  heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN
-  heapProperties.CreationNodeMask = 0
-  heapProperties.VisibleNodeMask = 0
-  
-  return heapProperties
-}
-
-// Utility function for creating a committed resource.
-func createResourceDesc(size: Int) -> D3D12_RESOURCE_DESC {
-  var resourceDesc = D3D12_RESOURCE_DESC()
-  resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER
-  resourceDesc.Alignment = 0
-  resourceDesc.Width = UINT64(size)
-  resourceDesc.Height = 1
-  resourceDesc.DepthOrArraySize = 1
-  resourceDesc.MipLevels = 1
-  resourceDesc.Format = DXGI_FORMAT_UNKNOWN
-  resourceDesc.SampleDesc = DXGI_SAMPLE_DESC(Count: 1, Quality: 0)
-  resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR
-  resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE
-  
-  return resourceDesc
-}
-
-// Create an input buffer.
-func createInputBuffer(size: Int) -> SwiftCOM.ID3D12Resource {
-  let heapProperties = createHeapProperties(type: D3D12_HEAP_TYPE_UPLOAD)
-  let resourceDesc = createResourceDesc(size: size)
-  
-  let d3d12Device = device.d3d12Device
-  return try! d3d12Device.CreateCommittedResource(
-    heapProperties,
-    D3D12_HEAP_FLAG_NONE,
-    resourceDesc,
-    D3D12_RESOURCE_STATE_GENERIC_READ,
-    nil)
-}
-
-// Create an output buffer.
-
-
-
-// ## Fourth Step
-//
-// Upload the input data to the GPU-native buffer allocations.
-
-#endif
-
-
-
-// Next step: encapsulate the above code into a utility of MolecularRenderer.
-//
-// Object name: Buffer (later on, we will have a separate class for Texture)
-//
-// Enumeration allows selection between Input, Native, Output.
-//
-// Descriptor takes the following arguments:
-// - device: DirectXDevice
-// - size: heap + resource allocation size in bytes
-// - type: enumeration (specified above)
-//
-// The object has utility functions for inputting and outputting data. These
-// functions check whether the object's type is compatible with such an
-// operation.
-//
-// The object may have utilities regarding descriptors, once we get there.
+// Create buffer objects and test the API for accessing mapped pointers.
 
 // Fill the descriptor properties common to all buffers.
 var bufferDesc = BufferDescriptor()
@@ -419,24 +336,57 @@ bufferDesc.size = 1024 * 4
 bufferDesc.type = .input
 let inputBuffer0 = Buffer(descriptor: bufferDesc)
 let inputBuffer1 = Buffer(descriptor: bufferDesc)
-print("inputBuffer0:", inputBuffer0)
-print("inputBuffer1:", inputBuffer1)
 
 // Create the native buffers.
 bufferDesc.type = .native
 let nativeBuffer0 = Buffer(descriptor: bufferDesc)
 let nativeBuffer1 = Buffer(descriptor: bufferDesc)
 let nativeBuffer2 = Buffer(descriptor: bufferDesc)
-print("nativeBuffer0:", nativeBuffer0)
-print("nativeBuffer1:", nativeBuffer1)
-print("nativeBuffer2:", nativeBuffer2)
 
 // Create the output buffers.
 bufferDesc.type = .output
 let outputBuffer2 = Buffer(descriptor: bufferDesc)
-print("outputBuffer2:", outputBuffer2)
 
+// Generate the input data for the shader.
+do {
+  var inputData0: [Float] = []
+  var inputData1: [Float] = []
+  for i in 0..<1024 {
+    let value0 = Float(i)
+    let value1 = 1024 + Float(i)
+    inputData0.append(value0)
+    inputData1.append(value1)
+  }
+  
+  inputData0.withUnsafeBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    inputBuffer0.write(input: baseAddress)
+  }
+  
+  inputData1.withUnsafeBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    inputBuffer1.write(input: baseAddress)
+  }
+}
 
+// Read the initial contents of the output buffer.
+do {
+  var outputData2: [Float] = []
+  for i in 0..<1024 {
+    let value2 = Float(i)
+    outputData2.append(value2)
+  }
+  
+  outputData2.withUnsafeMutableBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    outputBuffer2.read(output: baseAddress)
+  }
+  
+  for slotID in 0..<10 {
+    let value2 = outputData2[slotID]
+    print("outputBuffer2[\(slotID)] =", value2)
+  }
+}
 
 // Next steps:
 // - Test the code for reading/writing mapped pointers. Set the input data to
@@ -451,5 +401,14 @@ print("outputBuffer2:", outputBuffer2)
 //   commands must pass through a GPU private buffer(s) as an intermediate.
 // - After that is done, proceed with the descriptors necessary to bind UAVs to
 //   a compute command.
+
+
+
+// ## Fourth Step
+//
+// Set up the command queue, command list, and anything else needed for copying
+// buffers.
+
+
 
 #endif
