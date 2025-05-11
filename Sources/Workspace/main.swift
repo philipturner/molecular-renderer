@@ -323,6 +323,8 @@ guard let pipelineState else {
 
 
 
+#if false
+
 // ## Third Step
 //
 // Create the buffer objects and descriptors/handles (if needed).
@@ -386,6 +388,8 @@ func createInputBuffer(size: Int) -> SwiftCOM.ID3D12Resource {
 // ## Fourth Step
 //
 // Upload the input data to the GPU-native buffer allocations.
+
+#endif
 
 
 
