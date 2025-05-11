@@ -379,7 +379,7 @@ func createInputBuffer(size: Int) -> SwiftCOM.ID3D12Resource {
     nil)
 }
 
-// Create and output buffer.
+// Create an output buffer.
 
 
 
