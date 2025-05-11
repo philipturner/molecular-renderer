@@ -40,15 +40,15 @@ public enum BufferType {
     // Select the unique state.
     switch self {
     case .input:
-      uniqueState = D3D12_RESOURCE_STATE_GENERIC_READ // 2755
+      uniqueState = D3D12_RESOURCE_STATE_GENERIC_READ
     case .native:
-      uniqueState = D3D12_RESOURCE_STATE_COMMON // 0
+      uniqueState = D3D12_RESOURCE_STATE_COMMON
     case .output:
-      uniqueState = D3D12_RESOURCE_STATE_COPY_DEST // 1024
+      uniqueState = D3D12_RESOURCE_STATE_COPY_DEST
     }
     
     // Declare the common state.
-    let commonState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS // 8
+    let commonState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS
     
     // Merge the raw values.
     var rawValue: Int32 = .zero
@@ -63,7 +63,7 @@ public enum BufferType {
 
 public class Buffer {
   public init(descriptor: BufferDescriptor) {
-    
+    // Note: must set D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
   }
 }
 
