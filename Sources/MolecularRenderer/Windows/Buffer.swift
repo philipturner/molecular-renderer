@@ -131,7 +131,6 @@ public class Buffer {
     if type == .input || type == .output {
       let mappedPointer = try! d3d12Resource.Map(0, nil)
       self.mappedPointer = mappedPointer
-      print("Successfully mapped.")
     } else {
       self.mappedPointer = nil
     }
@@ -140,17 +139,32 @@ public class Buffer {
   deinit {
     if type == .input || type == .output {
       try! d3d12Resource.Unmap(0, nil)
-      print("Successfully unmapped.")
     }
-    print("Hello, world.")
   }
   
-  // Next: add the functionality regarding mapping/unmapping of data. Perhaps
-  // create CPU pointers that will be unmapped upon deallocation.
-  //
-  // After creating the appropriate stored property, make two utility functions.
-  // They accept a raw pointer, with no indication of its size. They either
-  // read or write the entire buffer's worth of data from the pointer.
+  /// Write data to the buffer.
+  ///
+  /// The entered memory allocation must span at least 'size' bytes.
+  ///
+  /// The data must be the input to a future GPU copy command.
+  public func write(input: UnsafeRawPointer) {
+    guard type == .input else {
+      fatalError("Can only write to input buffers.")
+    }
+    memcpy(mappedPointer, input, size)
+  }
+  
+  /// Read data from the buffer.
+  ///
+  /// The entered memory allocation must span at least 'size' bytes.
+  ///
+  /// The data must be the output of a previous GPU copy command.
+  public func read(output: UnsafeMutableRawPointer) {
+    guard type == .output else {
+      fatalError("Can only read from output buffers.")
+    }
+    memcpy(output, mappedPointer, size)
+  }
 }
 
 #endif

@@ -415,27 +415,41 @@ var bufferDesc = BufferDescriptor()
 bufferDesc.device = device
 bufferDesc.size = 1024 * 4
 
-do {
 // Create the input buffers.
 bufferDesc.type = .input
 let inputBuffer0 = Buffer(descriptor: bufferDesc)
 let inputBuffer1 = Buffer(descriptor: bufferDesc)
-print("inputBuffer0:", inputBuffer0.mappedPointer)
-print("inputBuffer1:", inputBuffer1.mappedPointer)
+print("inputBuffer0:", inputBuffer0)
+print("inputBuffer1:", inputBuffer1)
 
 // Create the native buffers.
 bufferDesc.type = .native
 let nativeBuffer0 = Buffer(descriptor: bufferDesc)
 let nativeBuffer1 = Buffer(descriptor: bufferDesc)
 let nativeBuffer2 = Buffer(descriptor: bufferDesc)
-print("nativeBuffer0:", nativeBuffer0.mappedPointer)
-print("nativeBuffer1:", nativeBuffer1.mappedPointer)
-print("nativeBuffer2:", nativeBuffer2.mappedPointer)
+print("nativeBuffer0:", nativeBuffer0)
+print("nativeBuffer1:", nativeBuffer1)
+print("nativeBuffer2:", nativeBuffer2)
 
 // Create the output buffers.
 bufferDesc.type = .output
 let outputBuffer2 = Buffer(descriptor: bufferDesc)
-print("outputBuffer2:", outputBuffer2.mappedPointer)
-}
+print("outputBuffer2:", outputBuffer2)
+
+
+
+// Next steps:
+// - Test the code for reading/writing mapped pointers. Set the input data to
+//   an increasing list of floating point numbers. Study the results of reading
+//   from the output buffer. It should at least overwrite the previous contents
+//   of the CPU memory allocation.
+// - Redefine the "3rd step" and "4th step". The third step is shortened to just
+//   summarize what we've done above. The fourth step is to create a command
+//   queue, command list, and set up the resources for copying.
+// - "Hello world" will come from shifting the data through various buffers.
+//   The output will match either buffer0 or buffer1 (of my choosing). The copy
+//   commands must pass through a GPU private buffer(s) as an intermediate.
+// - After that is done, proceed with the descriptors necessary to bind UAVs to
+//   a compute command.
 
 #endif
