@@ -45,14 +45,6 @@ int32_t dxcompiler_compile(
   DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf()));
   
   // Specify the compiler arguments.
-  //
-  // Note: "-T rootsig_1_1" might be needed. In some documentation for FXC, it
-  // says that compiling the regular shader ends up compiling the root signature
-  // as well:
-  // https://learn.microsoft.com/en-us/windows/win32/direct3d12/specifying-root-signatures-in-hlsl
-  //
-  // Remove this comment once you've validated the integrity of a root signature
-  // created alongside a shader object.
   
   std::vector<LPCWSTR> arguments;
   arguments.push_back(L"-E");

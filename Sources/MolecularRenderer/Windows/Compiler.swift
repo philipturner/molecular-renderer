@@ -2,8 +2,7 @@
 import SwiftCOM
 import WinSDK
 
-// For Data
-import Foundation
+import struct Foundation.Data
 
 @_silgen_name("dxcompiler_compile")
 private func dxcompiler_compile(
@@ -48,7 +47,23 @@ public class Compiler {
       fatalError("This should never happen.")
     }
     
-    fatalError("Not implemented.")
+    var shaderBytecode: ShaderBytecode
+    do {
+      let objectData = Data(
+        bytesNoCopy: object,
+        count: Int(objectLength),
+        deallocator: .free)
+      let rootSignatureData = Data(
+        bytesNoCopy: rootSignature,
+        count: Int(rootSignatureLength),
+        deallocator: .free)
+      
+      shaderBytecode = ShaderBytecode(
+        object: objectData,
+        rootSignature: rootSignatureData)
+    }
+    
+    return shaderBytecode
   }
 }
 

@@ -261,7 +261,7 @@ void main(
 
 let device = DirectXDevice()
 let compiler = Compiler(device: device)
-let errorCode = compiler.compile(source: shaderSource)
-print(errorCode)
+let shaderBytecode = compiler.compile(source: shaderSource)
+print(shaderBytecode)
 
 #endif
