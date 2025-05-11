@@ -15,7 +15,7 @@ private func dxcompiler_compile(
 ) -> Int32
 
 public class Compiler {
-  private var device: DirectXDevice
+  private let device: DirectXDevice
   
   public init(device: DirectXDevice) {
     self.device = device

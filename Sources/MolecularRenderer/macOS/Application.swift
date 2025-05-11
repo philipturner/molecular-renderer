@@ -12,10 +12,10 @@ public struct ApplicationDescriptor {
 
 public class Application {
   public var clock: Clock
-  public var display: Display
-  public var gpuContext: GPUContext
-  var view: View
-  var window: Window
+  public let display: Display
+  public let gpuContext: GPUContext
+  let view: View
+  let window: Window
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {

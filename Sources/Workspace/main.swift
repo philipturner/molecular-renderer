@@ -391,10 +391,6 @@ func createInputBuffer(size: Int) -> SwiftCOM.ID3D12Resource {
 
 #endif
 
-let bufferType: BufferType = .output
-let resourceStates = bufferType.resourceStates
-print(resourceStates)
-
 
 
 // Next step: encapsulate the above code into a utility of MolecularRenderer.
@@ -414,6 +410,14 @@ print(resourceStates)
 //
 // The object may have utilities regarding descriptors, once we get there.
 
-
+// Allocate buffer0.
+var buffer0: Buffer
+do {
+  var bufferDesc = BufferDescriptor()
+  bufferDesc.device = device
+  bufferDesc.size = 1024 * 4
+  bufferDesc.type = .input
+  buffer0 = Buffer(descriptor: bufferDesc)
+}
 
 #endif

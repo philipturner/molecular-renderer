@@ -7,8 +7,8 @@ struct RunLoopDescriptor {
 }
 
 class RunLoop: @unchecked Sendable {
-  var application: Application
-  var closure: (MTLTexture) -> Void
+  let application: Application
+  let closure: (MTLTexture) -> Void
   var displayLink: CVDisplayLink?
   
   init(descriptor: RunLoopDescriptor) {

@@ -6,7 +6,7 @@ import WinSDK
 // encapsulated within molecular-renderer.
 
 public class DirectXDevice {
-  public private(set) var d3d12Device: SwiftCOM.ID3D12Device
+  public let d3d12Device: SwiftCOM.ID3D12Device
   
   public init() {
     // Choose the best GPU out of the two that appear.

@@ -12,10 +12,10 @@ public struct DisplayDescriptor {
 
 public class Display {
   /// The resolution of the rendering region, in pixels.
-  public private(set) var renderTargetSize: Int
+  public let renderTargetSize: Int
   
   /// The display chosen for rendering at program startup.
-  private var screen: NSScreen
+  private let screen: NSScreen
   
   public init(descriptor: DisplayDescriptor) {
     guard let renderTargetSize = descriptor.renderTargetSize,

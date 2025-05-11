@@ -4,7 +4,7 @@ import SwiftCOM
 import WinSDK
 
 public class Upscaler {
-  private var device: DirectXDevice
+  private let device: DirectXDevice
   
   public init(device: DirectXDevice) {
     self.device = device
