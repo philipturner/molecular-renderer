@@ -310,6 +310,15 @@ shaderBytecode.object.withUnsafeBytes { bufferPointer in
   computePipelineStateDesc.CachedPSO = cachedPipelineState
   computePipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE
   
+  let d3d12Device = device.d3d12Device
+  var iid = SwiftCOM.ID3D12PipelineState.IID
+  let pUnk = try! d3d12Device.CreateComputePipelineState(
+    &computePipelineStateDesc, &iid)
+  pipelineState = SwiftCOM.ID3D12PipelineState(
+    pUnk: pUnk)
+}
+guard let pipelineState else {
+  fatalError("Could not create pipeline state.")
 }
 
 #endif
