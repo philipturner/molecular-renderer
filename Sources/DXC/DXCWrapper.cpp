@@ -50,6 +50,9 @@ int32_t dxcompiler_compile(
   // says that compiling the regular shader ends up compiling the root signature
   // as well:
   // https://learn.microsoft.com/en-us/windows/win32/direct3d12/specifying-root-signatures-in-hlsl
+  //
+  // Remove this comment once you've validated the integrity of a root signature
+  // created alongside a shader object.
   
   std::vector<LPCWSTR> arguments;
   arguments.push_back(L"-E");
@@ -109,6 +112,30 @@ int32_t dxcompiler_compile(
     // Copy the blob's contents to the pointer.
     void *blobPointer = objectBlob->GetBufferPointer();
     memcpy(*object, blobPointer, *objectLength);
+  }
+  
+  // Retrieve the root signature. Copy its contents to a fresh pointer.
+  
+  ComPtr<IDxcBlob> rootSignatureBlob;
+  {
+    HRESULT errorCode = result->GetOutput(DXC_OUT_ROOT_SIGNATURE, IID_PPV_ARGS(rootSignatureBlob.GetAddressOf()), nullptr);
+    CHECK_HRESULT("IDxcResult::GetOutput(DXC_OUT_ROOT_SIGNATURE) failed.")
+  }
+  
+  {
+    // Retrieve the length of the root signature.
+    *rootSignatureLength = rootSignatureBlob->GetBufferSize();
+    if (*rootSignatureLength == 0) {
+      std::cerr << "Root signature blob was empty." << std::endl;
+      return 1;
+    }
+    
+    // Create a pointer for the object.
+    *rootSignature = (uint8_t*)malloc(*rootSignatureLength);
+    
+    // Copy the blob's contents to the pointer.
+    void *blobPointer = rootSignatureBlob->GetBufferPointer();
+    memcpy(*rootSignature, blobPointer, *rootSignatureLength);
   }
   
   return 0;
