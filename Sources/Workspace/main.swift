@@ -469,8 +469,159 @@ func createCommandQueue(
   return try! device.CreateCommandQueue(commandQueueDesc)
 }
 
+func createCommandList(
+  device: SwiftCOM.ID3D12Device
+) -> SwiftCOM.ID3D12GraphicsCommandList {
+  // Create the command allocator.
+  let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
+  try! device.CreateCommandAllocator(
+    D3D12_COMMAND_LIST_TYPE_COMPUTE)
+  
+  // Create the command list from the command allocator.
+  let commandList: SwiftCOM.ID3D12GraphicsCommandList =
+  try! device.CreateCommandList(
+    0,
+    D3D12_COMMAND_LIST_TYPE_COMPUTE,
+    commandAllocator,
+    nil)
+  
+  // The command list increments the command allocator's reference, as long as
+  // the command list is alive.
+  return commandList
+}
+
+func createFence(
+  device: SwiftCOM.ID3D12Device
+) -> SwiftCOM.ID3D12Fence {
+  return try! device.CreateFence(
+    0,
+    D3D12_FENCE_FLAG_NONE)
+}
+
+func createEvent() -> UnsafeMutableRawPointer {
+  let output = CreateEventA(nil, false, false, nil)
+  guard let output else {
+    fatalError("Failed to create event handle.")
+  }
+  return output
+}
+
 let commandQueue = createCommandQueue(
   device: device.d3d12Device)
+
+let commandList = createCommandList(
+  device: device.d3d12Device)
+
+let fence = createFence(
+  device: device.d3d12Device)
+
+let event = createEvent()
+
 print(commandQueue)
+print(commandList)
+print(fence)
+print(event)
+
+// `ID3D12CommandQueue.ExecuteCommandLists` is like `MTLCommandBuffer.commit` in
+// Metal applications. It sends commands to the GPU.
+//
+// Fences are similar to `MTLCommandBuffer.waitUntilCompleted` and
+// `DispatchSemaphore` in Metal applications. They wait until a specific command
+// buffer has completed. In Metal, one of the functions can facilitate triple-
+// buffering without retaining a reference to the command buffer.
+//
+// API for quickly freezing the queue until all commands have finished, and it
+// is safe to read contents from the CPU:
+// - Metal: commandBuffer.waitUntilCompleted()
+// - DirectX: immediately create, signal, and wait on a fence
+//
+// API for triple buffering:
+// - Metal: DispatchSemaphore and commandBuffer.setCompletedHandler()
+// - DirectX: increment a fence counter after an entire frame, remember the
+//            counter's value until a future frame that needs a resource
+//
+// Both APIs require an entire command list to be committed before waiting on
+// a chunk of GPU work. It's not clear at what granularity you can gather
+// execution latency data.
+//
+// MTLSharedEvent has similarities to ID3D12Fence. Especially the method
+// `MTLSharedEvent.wait(untilSignaledValue:timeoutMS:)`. It is virtually
+// identical to `WaitForSingleObject` on Windows.
+//
+// I don't know whether there's a Windows API for callbacks, similar to the Mac
+// paradigm of using semaphores.
+//
+// I don't know whether using MTLSharedEvent causes performance issues on Mac.
+
+// For the time being, we don't actually need to worry about triple-buffering
+// of resources. The Mac side of the new codebase hasn't gotten that far yet.
+// So just use fences as a means to immediately stall until a command buffer
+// has completed.
+//
+// Option 1:
+// - Every command buffer gets a unique ID, monotonically increasing from when
+//   the command queue was first created.
+// - You can wait for GPU work at the granularity of previous command buffers.
+//   So, asynchronous compute.
+//
+// Option 2:
+// - The command queue has an internal fence + event object created once at
+//   initialization.
+// - Every instance of CPU-side stalling blocks at the latest command dispatched
+//   on that specific queue.
+//
+// Choose option 2.
+
+// Another concern is the ability to profile GPU command execution time. In
+// DirectX 12, ID3D12GraphicsCommandList.BeginQuery cannot be called on a
+// timestamp query. Instead, call `EndQuery`.
+//
+// Source: https://pavelsmejkal.net/Posts/
+//
+// The DX12 'Query' paradigm for measuring time looks similar to the Metal
+// 'MTLCounterSampleBuffer' paradigm. There is an additional step, where one
+// must store timestamps in a special buffer. Not as easy as the Metal API for
+// retrieving the '.gpuStartTime' and '.gpuEndTime' of a command buffer.
+//
+// In both APIs, you must be careful about the step size of timestamp counters.
+// On Mac, it could be Mach absolute time (24 MHz) instead of nanoseconds.
+// On Windows, you must call `ID3D12CommandQueue.GetTimestampFrequency.`
+//
+// One difference might be that Windows allows finer granularity of timestamp
+// sampling. On Mac, `.gpuStartTime` and `.gpuEndTime` are scoped to the entire
+// command buffer. The counter sample buffers API looks scoped to an entire
+// compute command encoder, which has just as much latency as creating a new
+// command buffer. Windows might allow finer granularity, because you can
+// inject timestamps at any point within the command list. Including between
+// subsequent compute commands, without a severe latency penalty.
+//
+// For the time being, neglect the ability to profile GPU-side execution time.
+
+
+
+// ## Fourth Step (2nd Iteration)
+//
+// Create an ergonomic API for generating and waiting on empty GPU command
+// buffers. Design the API with the intent to wrap a Metal backend in the
+// future.
+// - CommandQueue utility class
+//   - 'flush' member function
+//     - Windows: increment the fence counter, use a fence created when the
+//                command queue initializes
+//     - Mac: store a reference to the latest command buffer submitted to the
+//            command queue
+// - CommandBuffer utility class
+//   - 'commit' member function
+//     - Sends the command list to the command queue (perhaps this member
+//       belongs in CommandQueue, and there is no utility class for
+//       CommandBuffer).
+//     - Closes the command list.
+//   - No analogue to Metal 'waitUntilCompleted'
+//
+// To ease the prototyping process, just create an API for 'CommandQueue'. It
+// creates and commits instances of 'ID3D12GraphicsCommandList'. The creation
+// method abstracts away the 'ID3D12CommandAllocator'. The commit method
+// abstracts away both 'commandList.Close()' and 'commandQueue.
+// ExecuteCommandLists()'. The flush method works as described above.
 
 #endif
