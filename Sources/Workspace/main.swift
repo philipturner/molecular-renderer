@@ -457,6 +457,11 @@ do {
 // - Dispatch an empty command buffer.
 // - Close or clean up the objects.
 
+// Reference code. Will be cleaned up when the repo is purged to a new GitHub
+// gist. In addition, all of the helpful comments on 'main.swift' will be
+// preserved on the gist.
+#if false
+
 func createCommandQueue(
   device: SwiftCOM.ID3D12Device
 ) -> SwiftCOM.ID3D12CommandQueue {
@@ -521,6 +526,8 @@ print(commandQueue)
 print(commandList)
 print(fence)
 print(event)
+
+#endif
 
 // `ID3D12CommandQueue.ExecuteCommandLists` is like `MTLCommandBuffer.commit` in
 // Metal applications. It sends commands to the GPU.
