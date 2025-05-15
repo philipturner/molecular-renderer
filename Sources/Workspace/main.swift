@@ -562,8 +562,6 @@ do {
 // ExecuteCommandLists()'. The flush method works as described above.
 
 let commandQueue = CommandQueue(device: device)
-print(commandQueue)
-
 commandQueue.flush()
 commandQueue.flush()
 
@@ -573,13 +571,62 @@ commandQueue.flush()
 // 'command list'. I have no solution at the moment.
 do {
   let commandList = commandQueue.createCommandList()
-  print(commandList)
-  
   commandQueue.commit(commandList)
 }
-
 commandQueue.flush()
 
-print("The program completed.")
+
+
+// ## Fifth Step
+//
+// Encode the copy commands into the command list.
+
+let commandList = commandQueue.createCommandList()
+
+// To start, copy inputBuffer0 to nativeBuffer0.
+//
+// Components of this task:
+// - Identify methods of 'ID3D12(Graphics)CommandList' that bind the buffers
+//   to the 'src' or 'dst' slots of a copy operation.
+// - Identify the DirectX APIs for changing resource states.
+// - Acknowledge the state of each buffer prior to the transition (or don't).
+//
+// Where to start: the 3DGEP tutorial series.
+// - D3D12_RESOURCE_BARRIER
+//   - D3D12_RESOURCE_BARRIER_TYPE
+//     - Don't want to use '_TRANSITION', because we're not splitting individual
+//       resources into subresources.
+//     - Don't think '_UAV' applies to copy commands.
+//   - D3D12_RESOURCE_FLAGS
+//     - The '_BEGIN_ONLY' and '_END_ONLY' flags seem strange.
+//   - union of the 3 possible types
+//     - '_UAV_BARRIER' has the simplest data structure, just a pointer to the
+//       resource.
+//     - '_TRANSITION_BARRIER' also makes sense. I would use the 0xFFFFFFFF
+//       flag because we don't have subresources (?).
+// - D3D12_RESOURCE_STATES
+// - Many members of 'ResourceStateTracker' just invoke the same method,
+//   'ResourceBarrier'.
+// - Microsoft documentation encourages batching multiple resource barriers
+//   into a single call. If all of the 2 transitions are scoped to one utility
+//   function for copying buffers, I can write the boilerplate code for this.
+//   No need to design a general API for easing the creation of barrier objects.
+//
+// Call: d3d12CommandList.ResourceBarrier(numBarriers, resourceBarriers.data())
+// - 'D3D12_RESOURCE_BARRIER' is a value type, not a COM reference type. This
+//   fact makes barriers easier to aggregate and send through a C interface.
+//
+// Based on the 3DGEP tutorial series, we might have to know the resource's
+// prior/current state to encode a barrier. This makes things more complicated;
+// we must implement state tracking and carry it around everywhere.
+//
+// For the 'hello world' demonstration, we can ignore the state tracking. We
+// know every resource's specific state ahead of time. It becomes an issue
+// when we create an API that generalizes to arbitrary code. Something to
+// possibly defer to after the 'hello world' demonstration.
+
+// I may have figured out resource state transitions. Next, figure out the
+// DirectX API function that encodes the copy command. And whether it requires
+// additional calls to bind buffers to slots.
 
 #endif
