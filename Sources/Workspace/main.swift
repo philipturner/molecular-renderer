@@ -442,5 +442,19 @@ do {
 //   - Copy inputBuffer1 to nativeBuffer1
 //   - Copy either [nativeBuffer0, nativeBuffer1] to nativeBuffer2
 //   - Copy nativeBuffer2 to outputBuffer2
+//
+// Regarding the command queue/list/fence, what object creates what?
+// - ID3D12Device
+//   - ID3D12CommandQueue
+//   - ID3D12CommandAllocator
+//     - ID3D12CommandList
+//   - ID3D12Fence
+// - CreateEventA
+//   - HANDLE
+
+// Let's start with a simple deliverable:
+// - Create the above objects, without using utility classes.
+// - Dispatch an empty command buffer.
+// - Close or clean up the objects.
 
 #endif
