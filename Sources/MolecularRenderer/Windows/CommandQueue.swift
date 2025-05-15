@@ -38,9 +38,22 @@ public class CommandQueue {
   }
   
   public func createCommandList() -> SwiftCOM.ID3D12GraphicsCommandList {
-    // Objectives:
-    // - abstract away the command allocator
-    fatalError("Not implemented.")
+    // Create the command allocator.
+    let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
+    try! d3d12Device.CreateCommandAllocator(
+      D3D12_COMMAND_LIST_TYPE_COMPUTE)
+    
+    // Create the command list from the command allocator.
+    let commandList: SwiftCOM.ID3D12GraphicsCommandList =
+    try! d3d12Device.CreateCommandList(
+      0,
+      D3D12_COMMAND_LIST_TYPE_COMPUTE,
+      commandAllocator,
+      nil)
+    
+    // The command list increments the command allocator's reference, as long as
+    // the command list is alive.
+    return commandList
   }
   
   public func commit(_ commandList: SwiftCOM.ID3D12GraphicsCommandList) {

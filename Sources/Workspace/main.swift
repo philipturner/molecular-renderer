@@ -457,77 +457,7 @@ do {
 // - Dispatch an empty command buffer.
 // - Close or clean up the objects.
 
-// Reference code. Will be cleaned up when the repo is purged to a new GitHub
-// gist. In addition, all of the helpful comments on 'main.swift' will be
-// preserved on the gist.
-#if false
 
-func createCommandQueue(
-  device: SwiftCOM.ID3D12Device
-) -> SwiftCOM.ID3D12CommandQueue {
-  var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
-  commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE
-  commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL.rawValue
-  commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE
-  commandQueueDesc.NodeMask = 0
-  
-  return try! device.CreateCommandQueue(commandQueueDesc)
-}
-
-func createCommandList(
-  device: SwiftCOM.ID3D12Device
-) -> SwiftCOM.ID3D12GraphicsCommandList {
-  // Create the command allocator.
-  let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
-  try! device.CreateCommandAllocator(
-    D3D12_COMMAND_LIST_TYPE_COMPUTE)
-  
-  // Create the command list from the command allocator.
-  let commandList: SwiftCOM.ID3D12GraphicsCommandList =
-  try! device.CreateCommandList(
-    0,
-    D3D12_COMMAND_LIST_TYPE_COMPUTE,
-    commandAllocator,
-    nil)
-  
-  // The command list increments the command allocator's reference, as long as
-  // the command list is alive.
-  return commandList
-}
-
-func createFence(
-  device: SwiftCOM.ID3D12Device
-) -> SwiftCOM.ID3D12Fence {
-  return try! device.CreateFence(
-    0,
-    D3D12_FENCE_FLAG_NONE)
-}
-
-func createEvent() -> UnsafeMutableRawPointer {
-  let output = CreateEventA(nil, false, false, nil)
-  guard let output else {
-    fatalError("Failed to create event handle.")
-  }
-  return output
-}
-
-let commandQueue = createCommandQueue(
-  device: device.d3d12Device)
-
-let commandList = createCommandList(
-  device: device.d3d12Device)
-
-let fence = createFence(
-  device: device.d3d12Device)
-
-let event = createEvent()
-
-print(commandQueue)
-print(commandList)
-print(fence)
-print(event)
-
-#endif
 
 // `ID3D12CommandQueue.ExecuteCommandLists` is like `MTLCommandBuffer.commit` in
 // Metal applications. It sends commands to the GPU.
