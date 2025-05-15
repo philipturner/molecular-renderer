@@ -561,4 +561,25 @@ do {
 // abstracts away both 'commandList.Close()' and 'commandQueue.
 // ExecuteCommandLists()'. The flush method works as described above.
 
+let commandQueue = CommandQueue(device: device)
+print(commandQueue)
+
+commandQueue.flush()
+commandQueue.flush()
+
+// Encapsulate the command buffer in a scope, so it can deinitialize itself.
+//
+// There is currently a problem with naming things both 'command buffer' and
+// 'command list'. I have no solution at the moment.
+do {
+  let commandList = commandQueue.createCommandList()
+  print(commandList)
+  
+  commandQueue.commit(commandList)
+}
+
+commandQueue.flush()
+
+print("The program completed.")
+
 #endif
