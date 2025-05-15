@@ -57,19 +57,29 @@ public class CommandQueue {
   }
   
   public func commit(_ commandList: SwiftCOM.ID3D12GraphicsCommandList) {
-    // Objectives:
-    // - close the command list
-    // - call 'ExecuteCommandLists()' on the command queue
-    fatalError("Not implemented.")
+    // Close the compute encoder and commit the command buffer.
+    try! commandList.Close()
+    try! d3d12CommandQueue.ExecuteCommandLists([commandList])
+    
+    // Hold a reference to the latest command buffer.
+    fenceValue += 1
+    try! d3d12CommandQueue.Signal(d3d12Fence, fenceValue)
   }
   
   /// Stall until all GPU commands have completed, and the contents of GPU
   /// buffers are safe to read from the CPU.
   public func flush() {
-    // Objectives:
-    // - increment the fence counter
-    // - use the fence created when this was initialized
-    fatalError("Not implemented.")
+    // Do not follow the fastpath that checks whether the fence's value is
+    // already good enough. This is a simpler approach, but it may incur
+    // additional CPU-side latency for DirectX. This extra latency is trivial;
+    // any command stalling on GPU work is ultra-high latency.
+    try! d3d12Fence.SetEventOnCompletion(fenceValue, eventHandle)
+    
+    // Determine the wait time in milliseconds.
+    //
+    // Using a wait time of 1000 seconds (~20 minutes)
+    let waitTimeInMilliseconds: UInt32 = 1000 * 1000
+    WaitForSingleObject(eventHandle, waitTimeInMilliseconds)
   }
 }
 
