@@ -457,4 +457,20 @@ do {
 // - Dispatch an empty command buffer.
 // - Close or clean up the objects.
 
+func createCommandQueue(
+  device: SwiftCOM.ID3D12Device
+) -> SwiftCOM.ID3D12CommandQueue {
+  var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
+  commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE
+  commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL.rawValue
+  commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE
+  commandQueueDesc.NodeMask = 0
+  
+  return try! device.CreateCommandQueue(commandQueueDesc)
+}
+
+let commandQueue = createCommandQueue(
+  device: device.d3d12Device)
+print(commandQueue)
+
 #endif
