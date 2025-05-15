@@ -264,7 +264,6 @@ void main(
 let device = DirectXDevice()
 let compiler = Compiler(device: device)
 let shaderBytecode = compiler.compile(source: shaderSource)
-print(shaderBytecode)
 
 
 
@@ -384,7 +383,9 @@ do {
   
   for slotID in 0..<10 {
     let value2 = outputData2[slotID]
-    print("outputBuffer2[\(slotID)] =", value2)
+    guard value2 == 0 else {
+      fatalError("Output buffer was initialized to nonzero value.")
+    }
   }
 }
 
@@ -409,6 +410,37 @@ do {
 // Set up the command queue, command list, and anything else needed for copying
 // buffers.
 
-
+// List all the components needed to make this happen:
+// - ID3D12CommandQueue
+// - ID3D12CommandList
+// - ID3D12CommandAllocator
+// - ID3D12Fence
+// - Windows OS event
+//
+// References to get started:
+// - My worked examples of C++ translations
+// - DirectX tutorials
+// - Microsoft's online documentation
+//
+// Describe everything that will happen in the procedure, qualitatively, in
+// chronological order. At the moment, we don't actually know the correct
+// chronological order.
+//
+// - Create the command queue
+// - Create the command allocator
+// - Create the command list from the command allocator
+// - Close the command allocator and command list
+//
+// - Bind the buffers
+// - Encode the copy commands
+// - Encode the fence signaling
+// - Wait on the fence on the CPU
+// - Read the contents of the output buffer
+//
+// - Copy commands:
+//   - Copy inputBuffer0 to nativeBuffer0
+//   - Copy inputBuffer1 to nativeBuffer1
+//   - Copy either [nativeBuffer0, nativeBuffer1] to nativeBuffer2
+//   - Copy nativeBuffer2 to outputBuffer2
 
 #endif
