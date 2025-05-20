@@ -696,5 +696,11 @@ let commandList = commandQueue.createCommandList()
 // }
 
 // The task has now been specified in enough detail that I can do it.
+//
+// Or not. What's going on with COMMON?
+// - Does the 3DGEP tutorial correct the pending commands, replacing the
+//   'COMMON' placeholder with the true value?
+// - If performance is not a concern, is it ideal to post-transition every
+//   single resource back to 'COMMON' after every command?
 
 #endif
