@@ -629,4 +629,72 @@ let commandList = commandQueue.createCommandList()
 // DirectX API function that encodes the copy command. And whether it requires
 // additional calls to bind buffers to slots.
 
+// ## Copy command(s) in the DirectX 12 API
+//
+// Object that calls the member functions: ID3D12GraphicsCommandList
+//
+// Member: CopyBufferRegion(ID3D12Resource *pDstBuffer,
+//                          UINT64         DstOffset,
+//                          ID3D12Resource *pSrcBuffer,
+//                          UINT64         SrcOffset,
+//                          UINT64         NumBytes)
+//
+// Member: CopyResource(ID3D12Resource *pDstResource,
+//                      ID3D12Resource *pSrcResource)
+//
+// Member: CopyTextureRegion(const D3D12_TEXTURE_COPY_LOCATION *pDst,
+//                           UINT                              DstX,
+//                           UINT                              DstY,
+//                           UINT                              DstZ,
+//                           const D3D12_TEXTURE_COPY_LOCATION *pSrc,
+//                           const D3D12_BOX                   *pSrcBox)
+//
+// Member: CopyTiles(const D3D12_TEXTURE_COPY_LOCATION *pDst,
+//                   UINT                              DstX,
+//                   UINT                              DstY,
+//                   UINT                              DstZ,
+//                   const D3D12_TEXTURE_COPY_LOCATION *pSrc,
+//                   const D3D12_BOX                   *pSrcBox)
+
+// I think I have figured out the copy command. Next, document the DirectX 12
+// API functions associated with 'TransitionBarrier' and 'TrackResource'.
+
+// ## ResourceStateTracker::FlushResourceBarriers
+//
+// Takes a 'CommandList' helper class as an argument. References a list of
+// resource barrier objects. These objects are in fact value types, making the
+// code easier to implement. Invokes the 'ResourceBarrier' method of
+// 'ID3D12GraphicsCommandList' with the barrier count and barrier pointer.
+// Deletes all entries in the barrier list.
+//
+// ## CommandList::TransitionBarrier
+//
+// Takes a reference to the 'ID3D12Resource'. Pretends the initial state is
+// 'COMMON'. Sets the final state to the specified state. Appends the newly
+// created 'D3D12_RESOURCE_BARRIER' value type to the list.
+//
+// ## CommandList::TrackResource
+//
+// Takes an 'ID3D12Resource' as an argument. Casts it to 'ID3D12Object' and
+// appends it to an internal list.
+
+// Finally, the whole source code snippet where 3DGEP performed a copy
+// operation. This is a high-level guide for how to proceed with coding a copy
+// operation in DirectX.
+//
+// void CommandList::CopyResource( Resource& dstRes, const Resource& srcRes )
+// {
+//     TransitionBarrier( dstRes, D3D12_RESOURCE_STATE_COPY_DEST );
+//     TransitionBarrier( srcRes, D3D12_RESOURCE_STATE_COPY_SOURCE );
+//
+//     FlushResourceBarriers();
+//
+//     m_d3d12CommandList->CopyResource( dstRes.GetD3D12Resource().Get(), srcRes.GetD3D12Resource().Get() );
+//
+//     TrackResource(dstRes);
+//     TrackResource(srcRes);
+// }
+
+// The task has now been specified in enough detail that I can do it.
+
 #endif
