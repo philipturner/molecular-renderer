@@ -702,5 +702,47 @@ let commandList = commandQueue.createCommandList()
 //   'COMMON' placeholder with the true value?
 // - If performance is not a concern, is it ideal to post-transition every
 //   single resource back to 'COMMON' after every command?
+//
+// Ignore the common state. I think it skips calls to 'ResourceBarrier'
+// entirely. Instead, start by specifying all the transitions that ought to
+// occur throughout all 3 buffers.
+
+// Initial states:
+// inputBuffer0 - GENERIC_READ
+// inputBuffer1 - GENERIC_READ
+// nativeBuffer0 - COMMON
+// nativeBuffer1 - COMMON
+// nativeBuffer2 - COMMON
+// outputBuffer2 - COPY_DEST
+//
+// Ideal states for a copy command:
+// input - GENERIC_READ
+// output - COPY_DEST
+//
+// Copy commands:
+// - inputBuffer0 -> nativeBuffer0
+//   - inputBuffer0: GENERIC_READ -> GENERIC_READ [omitted]
+//   - nativeBuffer0: COMMON -> COPY_DEST
+// - inputBuffer1 -> nativeBuffer1
+//   - inputBuffer1: GENERIC_READ -> GENERIC_READ [omitted]
+//   - nativeBuffer1: COMMON -> COPY_DEST
+// - nativeBuffer0 -> nativeBuffer2
+//   - nativeBuffer0: COPY_DEST -> GENERIC_READ
+//   - nativeBuffer2: COMMON -> COPY_DEST
+// - nativeBuffer2 -> outputBuffer2
+//   - nativeBuffer2: COPY_DEST -> GENERIC_READ
+//   - outputBUffer2: COPY_DEST -> COPY_DEST [omitted]
+
+var barrier00 = D3D12_RESOURCE_BARRIER()
+barrier00.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION
+barrier00.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+barrier00.Transition.pResource = nil // nativeBuffer0
+barrier00.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+barrier00.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON
+barrier00.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST
+print(barrier00)
+
+// Next, create a utility function to minimize the boilerplate of creating
+// barrier structs multiple times.
 
 #endif
