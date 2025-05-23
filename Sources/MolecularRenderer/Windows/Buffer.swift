@@ -77,8 +77,9 @@ public class Buffer {
   public let size: Int
   public let type: BufferType
   
-  // Temporarily making this public for debugging purposes.
-  public let mappedPointer: UnsafeMutableRawPointer?
+  // There is no way to query the state right now. You must know it beforehand.
+  private var resourceStates: D3D12_RESOURCE_STATES
+  private let mappedPointer: UnsafeMutableRawPointer?
   
   public init(descriptor: BufferDescriptor) {
     guard let device = descriptor.device,
@@ -123,6 +124,9 @@ public class Buffer {
       type.initialResourceStates,
       nil)
     
+    // Initialize the state.
+    self.resourceStates = type.initialResourceStates
+    
     // Map the pointer for CPU access.
     if type == .input || type == .output {
       let mappedPointer = try! d3d12Resource.Map(0, nil)
@@ -161,6 +165,8 @@ public class Buffer {
     }
     memcpy(output, mappedPointer, size)
   }
+  
+  // Don't inspect whether the before and after states are the same.
 }
 
 #endif
