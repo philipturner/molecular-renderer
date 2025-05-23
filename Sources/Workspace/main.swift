@@ -277,13 +277,11 @@ do {
   let interface = try! d3d12Device.QueryInterface(iid: iid)
   infoQueue = .init(pUnk: interface)
 }
-/*
 try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true)
 try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true)
 try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true)
 try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, true)
 try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_MESSAGE, true)
-*/
 
 
 
@@ -851,18 +849,22 @@ do {
   let barrier2 = createBarrier(
     resource: nativeBuffer2.d3d12Resource,
     stateBefore: D3D12_RESOURCE_STATE_COMMON,
-    stateAfter: D3D12_RESOURCE_STATE_COPY_SOURCE)
+    stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
   let barriers: [D3D12_RESOURCE_BARRIER] = [barrier0, barrier2]
   
   // Encode the barriers.
+  print("start:", try! infoQueue.GetNumStoredMessages())
   try! commandList.ResourceBarrier(
     UInt32(barriers.count),
     barriers)
+  print("end:", try! infoQueue.GetNumStoredMessages())
   
+  print("start:", try! infoQueue.GetNumStoredMessages())
   // Encode the copy command.
   try! commandList.CopyResource(
     nativeBuffer2.d3d12Resource,
     nativeBuffer0.d3d12Resource)
+  print("end:", try! infoQueue.GetNumStoredMessages())
 }
 
 // Copy command: nativeBuffer2 -> outputBuffer2
@@ -874,9 +876,11 @@ do {
   let barriers: [D3D12_RESOURCE_BARRIER] = [barrier]
   
   // Encode the barriers.
+  print("start:", try! infoQueue.GetNumStoredMessages())
   try! commandList.ResourceBarrier(
     UInt32(barriers.count),
     barriers)
+  print("end:", try! infoQueue.GetNumStoredMessages())
   
   // Encode the copy command.
   try! commandList.CopyResource(
@@ -917,7 +921,8 @@ do {
 //
 // After this step is complete, I should purge the 'main' file to a gist.
 // Incorporate resource state tracking into the 'Buffer' API, and write new
-// tests for this functionality from scratch.
+// tests for this functionality from scratch. Activate the debug layer by
+// default, possibly storing an info queue inside the 'DirectXDevice'.
 //
 // After that task, I can return to focusing on a 'hello world' compute shader.
 
