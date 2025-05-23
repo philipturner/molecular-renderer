@@ -190,4 +190,7 @@ application.run { renderTarget in
 // (4) Reproduce the previous code for copy commands, and verify that the debug
 //     layer is working as expected.
 
+let device = DirectXDevice()
+print(device.d3d12Device)
+
 #endif
