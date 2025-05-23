@@ -783,9 +783,36 @@ do {
 
 // Copy command: inputBuffer0 -> nativeBuffer0
 do {
+  let stateRawValue: D3D12_RESOURCE_STATES.RawValue =
+  D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER.rawValue |
+  D3D12_RESOURCE_STATE_COPY_SOURCE.rawValue |
+  D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE.rawValue |
+  D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT.rawValue
+  let state = D3D12_RESOURCE_STATES(rawValue: stateRawValue)
+  
   // Create the barriers.
   let barrier = createBarrier(
     resource: nativeBuffer0.d3d12Resource,
+    stateBefore: D3D12_RESOURCE_STATE_COMMON,
+    stateAfter: state)
+  let barriers: [D3D12_RESOURCE_BARRIER] = [barrier]
+  
+  // Encode the barriers.
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count),
+    barriers)
+  
+  // Encode the copy command.
+  //try! commandList.CopyResource(
+  //  nativeBuffer0.d3d12Resource,
+  //  inputBuffer0.d3d12Resource)
+}
+
+// Copy command: inputBuffer1 -> nativeBuffer1
+if false {
+  // Create the barriers.
+  let barrier = createBarrier(
+    resource: nativeBuffer1.d3d12Resource,
     stateBefore: D3D12_RESOURCE_STATE_COMMON,
     stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
   let barriers: [D3D12_RESOURCE_BARRIER] = [barrier]
@@ -797,12 +824,46 @@ do {
   
   // Encode the copy command.
   try! commandList.CopyResource(
-    nativeBuffer0.d3d12Resource,
-    inputBuffer0.d3d12Resource)
+    nativeBuffer1.d3d12Resource,
+    inputBuffer1.d3d12Resource)
+}
+
+// Copy command: nativeBuffer0 -> nativeBuffer2
+if false {
+  // Create the barriers.
+  let barrier0 = createBarrier(
+    resource: nativeBuffer0.d3d12Resource,
+    stateBefore: D3D12_RESOURCE_STATE_COMMON,
+    stateAfter: D3D12_RESOURCE_STATE_GENERIC_READ)
+  let barrier2 = createBarrier(
+    resource: nativeBuffer2.d3d12Resource,
+    stateBefore: D3D12_RESOURCE_STATE_COMMON,
+    stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers: [D3D12_RESOURCE_BARRIER] = [barrier0]
+  
+  // Encode the barriers.
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count),
+    barriers)
+  
+  // Encode the copy command.
+  //try! commandList.CopyResource(
+  //  nativeBuffer2.d3d12Resource,
+  //  nativeBuffer0.d3d12Resource)
 }
 
 // Run the commands on the GPU.
 commandQueue.commit(commandList)
 commandQueue.flush()
+
+/*
+D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+D3D12_RESOURCE_STATE_INDEX_BUFFER
+D3D12_RESOURCE_STATE_COPY_SOURCE
+D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
+D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
+*/
+
 
 #endif
