@@ -191,6 +191,8 @@ application.run { renderTarget in
 //     layer is working as expected.
 
 let device = DirectXDevice()
+print(device.d3d12Debug)
 print(device.d3d12Device)
+print(device.d3d12InfoQueue)
 
 #endif

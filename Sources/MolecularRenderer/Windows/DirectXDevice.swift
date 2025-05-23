@@ -6,18 +6,34 @@ import WinSDK
 // encapsulated within molecular-renderer.
 
 public class DirectXDevice {
+  public let d3d12Debug: SwiftCOM.ID3D12Debug
   public let d3d12Device: SwiftCOM.ID3D12Device
+  public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
   
   public init() {
+    // Create the debug layer.
+    //
+    // Turn on the debug layer, so that errors will be registered.
+    let debug: SwiftCOM.ID3D12Debug =
+      try! D3D12GetDebugInterface()
+    try! debug.EnableDebugLayer()
+    self.d3d12Debug = debug
+    
+    // Create the device.
     let factory: SwiftCOM.IDXGIFactory4 =
       try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
-    
     let adapter = Self.createAdapter(factory: factory)
-    
     let device: SwiftCOM.ID3D12Device =
       try! D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1)
-    
     self.d3d12Device = device
+    
+    // Create the info queue.
+    //
+    // Set the info queue to break only on 'ERROR'.
+    let infoQueue = Self.createInfoQueue(device: device)
+    try! infoQueue.SetBreakOnSeverity(
+      D3D12_MESSAGE_SEVERITY_ERROR, true)
+    self.d3d12InfoQueue = infoQueue
   }
 }
 
@@ -57,6 +73,16 @@ extension DirectXDevice {
       fatalError("Could not find the fastest GPU.")
     }
     return maxAdapter
+  }
+  
+  // Create an info queue.
+  private static func createInfoQueue(
+    device: SwiftCOM.ID3D12Device
+  ) -> SwiftCOM.ID3D12InfoQueue {
+    let iid = SwiftCOM.ID3D12InfoQueue.IID
+    let interface = try! device.QueryInterface(iid: iid)
+    let infoQueue = SwiftCOM.ID3D12InfoQueue(pUnk: interface)
+    return infoQueue
   }
 }
 
