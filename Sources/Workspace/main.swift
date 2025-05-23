@@ -961,4 +961,19 @@ do {
 // ID3D12Device. It makes sense that you'd need a special technique to cast
 // something between these two types.
 
+print()
+print("Debug layer not initialized.")
+print(device.d3d12Device)
+
+let debugInterface: SwiftCOM.ID3D12Debug =
+try! D3D12GetDebugInterface()
+print()
+print(debugInterface)
+print(device.d3d12Device)
+
+try! debugInterface.EnableDebugLayer()
+print()
+print(debugInterface)
+print(device.d3d12Device)
+
 #endif
