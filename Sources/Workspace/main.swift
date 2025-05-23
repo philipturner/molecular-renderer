@@ -740,7 +740,6 @@ barrier00.Transition.pResource = nil // nativeBuffer0
 barrier00.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
 barrier00.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON
 barrier00.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST
-print(barrier00)
 
 // Next, create a utility function to minimize the boilerplate of creating
 // barrier structs multiple times.
@@ -776,11 +775,34 @@ do {
     resource: nativeBuffer0.d3d12Resource,
     stateBefore: D3D12_RESOURCE_STATE_COMMON,
     stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
-  print(barrier.Transition)
 }
 
 // Next, encode a full copy command onto the command list. Commit the command
 // list onto the command queue, then wait until it has completed. Verify that
 // the code doesn't crash.
+
+// Copy command: inputBuffer0 -> nativeBuffer0
+do {
+  // Create the barriers.
+  let barrier = createBarrier(
+    resource: nativeBuffer0.d3d12Resource,
+    stateBefore: D3D12_RESOURCE_STATE_COMMON,
+    stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers: [D3D12_RESOURCE_BARRIER] = [barrier]
+  
+  // Encode the barriers.
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count),
+    barriers)
+  
+  // Encode the copy command.
+  try! commandList.CopyResource(
+    nativeBuffer0.d3d12Resource,
+    inputBuffer0.d3d12Resource)
+}
+
+// Run the commands on the GPU.
+commandQueue.commit(commandList)
+commandQueue.flush()
 
 #endif
