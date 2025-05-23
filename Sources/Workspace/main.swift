@@ -887,9 +887,41 @@ do {
   }
 }
 
-// Next, activate the debug layer in DirectX. Try omitting all resource
-// barriers. Mess with the commands by using 'COMMON' as the source state.
-// Either the code should crash, or the output buffer should have incorrect
-// data.
+
+
+// ## Sixth Step
+//
+// Activate the debug layer in DirectX. Try omitting all resource barriers.
+// Mess with the commands by using 'COMMON' as the source state. Either the
+// code should crash, or the output buffer should have incorrect data.
+//
+// After this step is complete, I should purge the 'main' file to a gist.
+// Incorporate resource state tracking into the 'Buffer' API, and write new
+// tests for this functionality from scratch.
+//
+// After that task, I can return to focusing on a 'hello world' compute shader.
+
+// ## Known Information about the Debug Layer
+//
+// Most commands in the DirectX spec have specific errors related to the debug
+// layer. Without the debug layer, these errors don't trigger. One particularly
+// relevant error involves resource barriers.
+//
+// The first 3DGEP tutorial mentioned and invoked the debug layer.
+//
+// The DirectX spec doesn't reference the 'ID3D12Debug' object directly.
+// Microsoft's online documentation doesn't describe it in much detail, either.
+// This makes it difficult to understand the purpose and/or how to use the
+// debug layer.
+//
+// There are 7 iterations of the 'ID3D12Debug' interface. Some other interfaces,
+// such as 'ID3D12DebugCommandList' and 'ID3D12DebugDevice', do not inherit
+// from the non-debug versions. This fact differs from the Metal API design,
+// where debug versions of API objects conform to the same protocol as the
+// vanilla objects.
+//
+// The DirectX debug layer is different from the Metal validation layer. I am
+// unfamiliar with the purpose of all the objects. Therefore, I am going to read
+// up on how to instantiate each one.
 
 #endif
