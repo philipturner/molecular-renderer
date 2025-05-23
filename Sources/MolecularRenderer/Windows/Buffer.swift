@@ -26,6 +26,11 @@ public struct BufferDescriptor {
 //     be a bit frustrating, as '.input' buffers in the same situation are
 //     'GENERIC_READ'. Might be easiest to just set all sources of copies to
 //     'GENERIC_READ', as that includes the flag 'COPY_SOURCE'.
+//   - I figured it out. The API forces CPU-visible buffers to be
+//     'GENERIC_READ' when serving as a copy source. The API forces GPU-visible
+//     buffers to be 'COPY_SOURCE' when serving as a copy source. The two types
+//     of resources must have these exact flags, and cannot have the flags of
+//     the other resource type.
 // - resource flags ALLOW_UNORDERED_ACCESS
 //
 // output buffer:

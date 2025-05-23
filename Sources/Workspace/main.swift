@@ -783,18 +783,11 @@ do {
 
 // Copy command: inputBuffer0 -> nativeBuffer0
 do {
-  let stateRawValue: D3D12_RESOURCE_STATES.RawValue =
-  D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER.rawValue |
-  D3D12_RESOURCE_STATE_COPY_SOURCE.rawValue |
-  D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE.rawValue |
-  D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT.rawValue
-  let state = D3D12_RESOURCE_STATES(rawValue: stateRawValue)
-  
   // Create the barriers.
   let barrier = createBarrier(
     resource: nativeBuffer0.d3d12Resource,
     stateBefore: D3D12_RESOURCE_STATE_COMMON,
-    stateAfter: state)
+    stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
   let barriers: [D3D12_RESOURCE_BARRIER] = [barrier]
   
   // Encode the barriers.
@@ -803,13 +796,13 @@ do {
     barriers)
   
   // Encode the copy command.
-  //try! commandList.CopyResource(
-  //  nativeBuffer0.d3d12Resource,
-  //  inputBuffer0.d3d12Resource)
+  try! commandList.CopyResource(
+    nativeBuffer0.d3d12Resource,
+    inputBuffer0.d3d12Resource)
 }
 
 // Copy command: inputBuffer1 -> nativeBuffer1
-if false {
+do {
   // Create the barriers.
   let barrier = createBarrier(
     resource: nativeBuffer1.d3d12Resource,
@@ -829,17 +822,17 @@ if false {
 }
 
 // Copy command: nativeBuffer0 -> nativeBuffer2
-if false {
+do {
   // Create the barriers.
   let barrier0 = createBarrier(
     resource: nativeBuffer0.d3d12Resource,
-    stateBefore: D3D12_RESOURCE_STATE_COMMON,
-    stateAfter: D3D12_RESOURCE_STATE_GENERIC_READ)
+    stateBefore: D3D12_RESOURCE_STATE_COPY_DEST,
+    stateAfter: D3D12_RESOURCE_STATE_COPY_SOURCE)
   let barrier2 = createBarrier(
     resource: nativeBuffer2.d3d12Resource,
     stateBefore: D3D12_RESOURCE_STATE_COMMON,
     stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
-  let barriers: [D3D12_RESOURCE_BARRIER] = [barrier0]
+  let barriers: [D3D12_RESOURCE_BARRIER] = [barrier0, barrier2]
   
   // Encode the barriers.
   try! commandList.ResourceBarrier(
@@ -847,23 +840,56 @@ if false {
     barriers)
   
   // Encode the copy command.
-  //try! commandList.CopyResource(
-  //  nativeBuffer2.d3d12Resource,
-  //  nativeBuffer0.d3d12Resource)
+  try! commandList.CopyResource(
+    nativeBuffer2.d3d12Resource,
+    nativeBuffer0.d3d12Resource)
+}
+
+// Copy command: nativeBuffer2 -> outputBuffer2
+do {
+  let barrier = createBarrier(
+    resource: nativeBuffer2.d3d12Resource,
+    stateBefore: D3D12_RESOURCE_STATE_COPY_DEST,
+    stateAfter: D3D12_RESOURCE_STATE_COPY_SOURCE)
+  let barriers: [D3D12_RESOURCE_BARRIER] = [barrier]
+  
+  // Encode the barriers.
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count),
+    barriers)
+  
+  // Encode the copy command.
+  try! commandList.CopyResource(
+    outputBuffer2.d3d12Resource,
+    nativeBuffer2.d3d12Resource)
 }
 
 // Run the commands on the GPU.
 commandQueue.commit(commandList)
 commandQueue.flush()
 
-/*
-D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
-D3D12_RESOURCE_STATE_INDEX_BUFFER
-D3D12_RESOURCE_STATE_COPY_SOURCE
-D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
-D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
-*/
+// Check the data in the output buffer.
+do {
+  var outputData2: [Float] = []
+  for i in 0..<1024 {
+    let value2 = Float(i)
+    outputData2.append(value2)
+  }
+  
+  outputData2.withUnsafeMutableBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    outputBuffer2.read(output: baseAddress)
+  }
+  
+  for slotID in 0..<10 {
+    let value2 = outputData2[slotID]
+    print("outputBuffer[\(slotID)] = \(value2)")
+  }
+}
 
+// Next, activate the debug layer in DirectX. Try omitting all resource
+// barriers. Mess with the commands by using 'COMMON' as the source state.
+// Either the code should crash, or the output buffer should have incorrect
+// data.
 
 #endif
