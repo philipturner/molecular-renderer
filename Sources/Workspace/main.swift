@@ -924,4 +924,41 @@ do {
 // unfamiliar with the purpose of all the objects. Therefore, I am going to read
 // up on how to instantiate each one.
 
+// ## ID3D12Debug
+//
+// This looks like the only component of the API represented in SwiftCOM.
+// Therefore, I probably won't actually use any of the other interfaces.
+//
+// Initializer: D3D12GetDebugInterface()
+//
+// Instance method: EnableDebugLayer()
+//
+// ## ID3D12InfoQueue
+//
+// Most instance members are ported in SwiftCOM. It is created by calling
+// 'IUnknown::QueryInterface' on 'ID3D12Device', which sounds like a strange
+// way to create an object. Have I seen this before?
+//
+// ## IDXGIDebug
+//
+// Not part of the 'direct3d-12-sdklayers-interfaces' document, but potentially
+// relevant.
+//
+// Initializer: DXGIGetDebugInterface1()
+//
+// Instance method: ReportLiveObjects(GUID, DXGI_DEBUG_RLO_FLAGS)
+
+// Useful advice about how to initialize several debug interfaces:
+// http://gamedev.net/forums/topic/672268-d3d12-debug-layers-how-to-get-id3d12debugdevice/5255763/
+//
+// Steps:
+// 1) Enable the debug layer
+// 2) Create the regular device, command queue, command list
+// 3) Extract the debug versions of each object through 'QueryInterface'
+//
+// The QueryInterface path might mean a COM object conforms to multiple
+// interfaces. It doesn't look like ID3D12DebugDevice inherits from
+// ID3D12Device. It makes sense that you'd need a special technique to cast
+// something between these two types.
+
 #endif
