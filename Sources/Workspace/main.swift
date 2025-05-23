@@ -731,7 +731,7 @@ let commandList = commandQueue.createCommandList()
 //   - nativeBuffer2: COMMON -> COPY_DEST
 // - nativeBuffer2 -> outputBuffer2
 //   - nativeBuffer2: COPY_DEST -> GENERIC_READ
-//   - outputBUffer2: COPY_DEST -> COPY_DEST [omitted]
+//   - outputBuffer2: COPY_DEST -> COPY_DEST [omitted]
 
 var barrier00 = D3D12_RESOURCE_BARRIER()
 barrier00.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION
@@ -744,5 +744,43 @@ print(barrier00)
 
 // Next, create a utility function to minimize the boilerplate of creating
 // barrier structs multiple times.
+
+// Helper function for creating barriers.
+func createBarrier(
+  resource: SwiftCOM.ID3D12Resource,
+  stateBefore: D3D12_RESOURCE_STATES,
+  stateAfter: D3D12_RESOURCE_STATES
+) -> D3D12_RESOURCE_BARRIER {
+  // Specify the type of barrier.
+  var output = D3D12_RESOURCE_BARRIER()
+  output.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION
+  output.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+  
+  // Specify the transition's parameters.
+  try! resource.perform(
+    as: WinSDK.ID3D12Resource.self
+  ) { pUnk in
+    output.Transition.pResource = pUnk
+  }
+  output.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+  output.Transition.StateBefore = stateBefore
+  output.Transition.StateAfter = stateAfter
+  
+  // Return the barrier.
+  return output
+}
+
+// Test out the utility function.
+do {
+  let barrier = createBarrier(
+    resource: nativeBuffer0.d3d12Resource,
+    stateBefore: D3D12_RESOURCE_STATE_COMMON,
+    stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
+  print(barrier.Transition)
+}
+
+// Next, encode a full copy command onto the command list. Commit the command
+// list onto the command queue, then wait until it has completed. Verify that
+// the code doesn't crash.
 
 #endif
