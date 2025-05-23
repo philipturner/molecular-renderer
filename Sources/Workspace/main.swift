@@ -230,6 +230,10 @@ application.run { renderTarget in
 //     results of an analytical formula.
 // - In root signature v1.1, the UAV's flag is 'DATA_VOLATILE' by default.
 
+let debugInterface: SwiftCOM.ID3D12Debug =
+try! D3D12GetDebugInterface()
+try! debugInterface.EnableDebugLayer()
+
 
 
 // ## First Step
@@ -264,6 +268,22 @@ void main(
 let device = DirectXDevice()
 let compiler = Compiler(device: device)
 let shaderBytecode = compiler.compile(source: shaderSource)
+
+// Retrieve the info queue from the device.
+var infoQueue: SwiftCOM.ID3D12InfoQueue
+do {
+  let d3d12Device = device.d3d12Device
+  let iid = SwiftCOM.ID3D12InfoQueue.IID
+  let interface = try! d3d12Device.QueryInterface(iid: iid)
+  infoQueue = .init(pUnk: interface)
+}
+/*
+try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true)
+try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true)
+try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true)
+try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, true)
+try! infoQueue.SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_MESSAGE, true)
+*/
 
 
 
@@ -831,7 +851,7 @@ do {
   let barrier2 = createBarrier(
     resource: nativeBuffer2.d3d12Resource,
     stateBefore: D3D12_RESOURCE_STATE_COMMON,
-    stateAfter: D3D12_RESOURCE_STATE_COPY_DEST)
+    stateAfter: D3D12_RESOURCE_STATE_COPY_SOURCE)
   let barriers: [D3D12_RESOURCE_BARRIER] = [barrier0, barrier2]
   
   // Encode the barriers.
@@ -961,19 +981,35 @@ do {
 // ID3D12Device. It makes sense that you'd need a special technique to cast
 // something between these two types.
 
-print()
-print("Debug layer not initialized.")
-print(device.d3d12Device)
+// One potential reason the debug layer isn't working: need to use dxcpl
+// https://nvidia.custhelp.com/app/answers/detail/a_id/5604/~/how-to-capture-d3d-debug-layer-logs-to-detect-application-or-runtime-bugs
+//
+// Another potential reason: debug logging occurs through D3D12InfoQueue.
+// I'm going to try the latter before resorting to the former.
 
-let debugInterface: SwiftCOM.ID3D12Debug =
-try! D3D12GetDebugInterface()
-print()
-print(debugInterface)
-print(device.d3d12Device)
+print(try! infoQueue.GetMessageCountLimit())
+print(try! infoQueue.GetMuteDebugOutput())
+print(try! infoQueue.GetNumMessagesAllowedByStorageFilter())
+print(try! infoQueue.GetNumMessagesDeniedByStorageFilter())
+print(try! infoQueue.GetNumMessagesDiscardedByMessageCountLimit())
+print(try! infoQueue.GetNumStoredMessages())
+print(try! infoQueue.GetNumStoredMessagesAllowedByRetrievalFilter())
 
-try! debugInterface.EnableDebugLayer()
-print()
-print(debugInterface)
-print(device.d3d12Device)
+// Display the stored messages.
+do {
+  let messageCount = try! infoQueue.GetNumStoredMessages()
+  for messageID in 0..<messageCount {
+    print("Working on message \(messageID)")
+    let (message, size) =
+    try! infoQueue.GetMessage(messageID)
+    
+    print("messages[\(messageID)] = (\(message), \(size))")
+  }
+}
+
+// I cannot retrieve the contents of a message. That causes a runtime crash,
+// due to the 'GetMessage' C interface being messed up. Instead, just inspect
+// 'GetNumStoredMessages()' after every API command that might trigger a debug
+// layer error.
 
 #endif
