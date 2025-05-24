@@ -49,7 +49,7 @@ public enum BufferType {
     }
   }
   
-  var initialResourceStates: D3D12_RESOURCE_STATES {
+  var initialState: D3D12_RESOURCE_STATES {
     switch self {
     case .input:
       return D3D12_RESOURCE_STATE_GENERIC_READ
@@ -78,7 +78,7 @@ public class Buffer {
   public let type: BufferType
   
   // There is no way to query the state right now. You must know it beforehand.
-  private var resourceStates: D3D12_RESOURCE_STATES
+  private var state: D3D12_RESOURCE_STATES
   private let mappedPointer: UnsafeMutableRawPointer?
   
   public init(descriptor: BufferDescriptor) {
@@ -121,11 +121,11 @@ public class Buffer {
       heapProperties,
       D3D12_HEAP_FLAG_NONE,
       resourceDesc,
-      type.initialResourceStates,
+      type.initialState,
       nil)
     
     // Initialize the state.
-    self.resourceStates = type.initialResourceStates
+    self.state = type.initialState
     
     // Map the pointer for CPU access.
     if type == .input || type == .output {
@@ -166,7 +166,42 @@ public class Buffer {
     memcpy(output, mappedPointer, size)
   }
   
-  // Don't inspect whether the before and after states are the same.
+  /// Transition the buffer's state to the specified value, then return a
+  /// barrier representing the transition.
+  ///
+  /// Never call this function if it will transition between two identical
+  /// states. As of writing, it is assumed that client code will always be able
+  /// to anticipate the resource state.
+  public func transition(
+    state: D3D12_RESOURCE_STATES
+  ) -> D3D12_RESOURCE_BARRIER {
+    // Inspect whether the before and after states are the same.
+    guard state != self.state else {
+      fatalError(
+        "Attempted a redundant transition between two identical states.")
+    }
+    
+    // Specify the type of barrier.
+    var barrier = D3D12_RESOURCE_BARRIER()
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+    
+    // Specify the transition's parameters.
+    try! d3d12Resource.perform(
+      as: WinSDK.ID3D12Resource.self
+    ) { pUnk in
+      barrier.Transition.pResource = pUnk
+    }
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+    barrier.Transition.StateBefore = self.state
+    barrier.Transition.StateAfter = state
+    
+    // Overwrite the current state with the new state.
+    self.state = state
+    
+    // Return the barrier.
+    return barrier
+  }
 }
 
 #endif

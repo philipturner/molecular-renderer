@@ -188,7 +188,8 @@ application.run { renderTarget in
 // (3) Create an instance member of Buffer called 'transition', which returns
 //     a DirectX resource barrier value type.
 // (4) Reproduce the previous code for copy commands, and verify that the debug
-//     layer is working as expected.
+//     layer is working as expected. No need to fill the buffers with defined
+//     values and check whether the GPU executed the commands correctly.
 
 let device = DirectXDevice()
 print(device.d3d12Debug)
