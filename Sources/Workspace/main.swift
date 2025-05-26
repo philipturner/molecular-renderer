@@ -387,7 +387,6 @@ do {
 // - Microsoft documentation looks wrong / misworded
 // ID3D12GraphicsCommandList::Close
 //
-//
 // Functions for creating the GPU virtual address / CPU descriptor handle...
 // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-descriptors-directly-in-the-root-signature
 //
