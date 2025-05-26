@@ -245,4 +245,41 @@ do {
 }
 print("Encoded command 3 successfully.")
 
+// Copy command: nativeBuffer2 -> outputBuffer2
+do {
+  let barrier = vectorAddition.nativeBuffer2
+    .transition(state: D3D12_RESOURCE_STATE_COPY_SOURCE)
+  let barriers = [barrier]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.outputBuffer2.d3d12Resource,
+    vectorAddition.nativeBuffer2.d3d12Resource)
+}
+print("Encoded command 4 successfully.")
+
+commandQueue.commit(commandList)
+commandQueue.flush()
+print("The commands completed on the GPU.")
+
+// Check the data in the output buffer.
+do {
+  var outputData2: [Float] = []
+  for i in 0..<1024 {
+    outputData2.append(0)
+  }
+  
+  outputData2.withUnsafeMutableBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    vectorAddition.outputBuffer2
+      .read(output: baseAddress)
+  }
+  
+  for slotID in 0..<10 {
+    let value2 = outputData2[slotID]
+    print("outputBuffer[\(slotID)] = \(value2)")
+  }
+}
+
 #endif
