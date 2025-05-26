@@ -180,6 +180,8 @@ application.run { renderTarget in
 
 
 #if os(Windows)
+import SwiftCOM
+import WinSDK
 
 // Objectives:
 // (1) Integrate the debug layer into device initialization. Set it to break
@@ -195,21 +197,52 @@ print(device.d3d12Debug)
 print(device.d3d12Device)
 print(device.d3d12InfoQueue)
 
-let commandQueue = CommandQueue(device: device)
-commandQueue.flush()
-print(commandQueue)
-
-let commandList = commandQueue.createCommandList()
-commandQueue.commit(commandList)
-commandQueue.flush()
-print(commandList)
-
 let vectorAddition = VectorAddition(device: device)
-print(vectorAddition.inputBuffer0)
-print(vectorAddition.inputBuffer1)
-print(vectorAddition.nativeBuffer0)
-print(vectorAddition.nativeBuffer1)
-print(vectorAddition.nativeBuffer2)
-print(vectorAddition.outputBuffer2)
+let commandQueue = CommandQueue(device: device)
+let commandList = commandQueue.createCommandList()
+
+// Copy command: inputBuffer0 -> nativeBuffer0
+do {
+  let barrier = vectorAddition.nativeBuffer0
+    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers = [barrier]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.nativeBuffer0.d3d12Resource,
+    vectorAddition.inputBuffer0.d3d12Resource)
+}
+print("Encoded command 1 successfully.")
+
+// Copy command: inputBuffer1 -> nativeBuffer1
+do {
+  let barrier = vectorAddition.nativeBuffer1
+    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers = [barrier]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.nativeBuffer1.d3d12Resource,
+    vectorAddition.inputBuffer1.d3d12Resource)
+}
+print("Encoded command 2 successfully.")
+
+// Copy command: nativeBuffer0 -> nativeBuffer2
+do {
+  let barrier0 = vectorAddition.nativeBuffer0
+    .transition(state: D3D12_RESOURCE_STATE_COPY_SOURCE)
+  let barrier2 = vectorAddition.nativeBuffer2
+    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers = [barrier0, barrier2]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.nativeBuffer2.d3d12Resource,
+    vectorAddition.nativeBuffer0.d3d12Resource)
+}
+print("Encoded command 3 successfully.")
 
 #endif
