@@ -188,12 +188,28 @@ application.run { renderTarget in
 // (3) Create an instance member of Buffer called 'transition', which returns
 //     a DirectX resource barrier value type.
 // (4) Reproduce the previous code for copy commands, and verify that the debug
-//     layer is working as expected. No need to fill the buffers with defined
-//     values and check whether the GPU executed the commands correctly.
+//     layer is working as expected.
 
 let device = DirectXDevice()
 print(device.d3d12Debug)
 print(device.d3d12Device)
 print(device.d3d12InfoQueue)
+
+let commandQueue = CommandQueue(device: device)
+commandQueue.flush()
+print(commandQueue)
+
+let commandList = commandQueue.createCommandList()
+commandQueue.commit(commandList)
+commandQueue.flush()
+print(commandList)
+
+let vectorAddition = VectorAddition(device: device)
+print(vectorAddition.inputBuffer0)
+print(vectorAddition.inputBuffer1)
+print(vectorAddition.nativeBuffer0)
+print(vectorAddition.nativeBuffer1)
+print(vectorAddition.nativeBuffer2)
+print(vectorAddition.outputBuffer2)
 
 #endif
