@@ -373,5 +373,30 @@ do {
 
 // I still need more information about resource binding. Check Microsoft's
 // online documentation.
+//
+// ID3D12GraphicsCommandList::SetPipelineState
+// - programs most of the fixed-function state of the GPU pipeline
+// ID3D12GraphicsCommandList::SetComputeRootSignature
+// - sets the layout of the compute root signaturer
+// ID3D12GraphicsCommandList::ResourceBarrier
+// ID3D12GraphicsCommandList::SetComputeRootUnorderedAccessView
+// ID3D12GraphicsCommandList::SetComputeRootUnorderedAccessView
+// ID3D12GraphicsCommandList::SetComputeRootUnorderedAccessView
+// - sets a CPU descriptor handle for the UAV resource in the root signature
+// ID3D12GraphicsCommandList::Dispatch
+// - Microsoft documentation looks wrong / misworded
+// ID3D12GraphicsCommandList::Close
+//
+//
+// Functions for creating the GPU virtual address / CPU descriptor handle...
+// https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-descriptors-directly-in-the-root-signature
+//
+// Looks like it really is as easy as specifying the GPU address. Let's see if
+// we can do that and bypass the DirectX debug layer that demands a resource
+// state transition.
+
+// Before that, clean up the process of initializing a shader. There's
+// boilerplate code in the previous reference that ought to go into a utility
+// class.
 
 #endif

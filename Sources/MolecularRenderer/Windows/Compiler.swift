@@ -67,6 +67,14 @@ public class Compiler {
   }
 }
 
+// TODO: Change ShaderBytecode to ShaderDescriptor, but make the descriptor
+// and the Shader initializer internal. Change 'Compiler' to just
+// 'DirectXDevice', and put 'compile' in an 'extension'. Keep all of that, as
+// well as the 'dxcompiler_compile' reference, in the same file as 'Shader'.
+//
+// And finally, change DirectXDevice to just Device. This brings it closer to
+// merging with the Metal backend in the future.
+
 // Unsure whether DXIL is a bitcode or a bytecode.
 public struct ShaderBytecode {
   public let object: Data
