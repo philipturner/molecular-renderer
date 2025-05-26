@@ -320,5 +320,58 @@ do {
 //
 // Start the search by reading through the 3DGEP tutorials and reference code.
 // Then, finish off the search by reading Microsoft's online documentation.
+//
+// D3D12_VERTEX_BUFFER_VIEW exists.
+// D3D12_INDEX_BUFFER_VIEW exists.
+// D3D12_DEPTH_STENCIL_VIEW_DESC & device->CreateDepthStencilView, m_DSVHeap
+//   relies on CPU descriptor handle.
+// commandList->ClearDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+//
+// commandList->SetPipelineState(...)
+// commandList->SetGraphicsRootSignature(...)
+// commandList->IASetVertexBuffers(m_VertexBufferView)
+// commandList->IASetIndexBuffer(m_IndexBufferView)
+// commandList->DrawIndexedInstanced(...)
+//
+// SetGraphicsDynamicConstantBuffer(uint32_t index, void* data)
+//   allocate space in UploadBuffer "heap"
+//   copy data from pointer to D3D resource
+//   ID3D12GraphicsCommandList::SetGraphicsRootConstantBufferView
+//   using root parameter index and GPU virtual address
+//
+// SetShaderResourceView
+//   just uses the dynamic descriptor heap helper
+//   resource must be under a 'DESCRIPTOR_TABLE' root parameter
+//
+// CommitStagedDescriptorsForDraw
+//   commandList.SetDescriptorHeap(...)
+//   device->CopyDescriptors(...)
+//
+// CopyDescriptor
+//   commandList.SetDescriptorHeap(...)
+//   device->CopyDescriptorsSimple(CPU handle, CPU descriptor)
+//
+// Additional notes upon inspecting CommandList.cpp:
+//   ID3D12GraphicsCommandList::SetPipelineState(pipelineState.Get())
+//   ID3D12GraphicsCommandList::SetComputeRootSignature(m_RootSignature)
+//   SetUnorderedAccessView just does the descriptor table stuff, not what I'm
+//     looking for.
+//   ID3D12GraphicsCommandList::Dispatch(numGroupsX, numGroupsY, numGroupsZ)
+//   ID3D12GraphicsCommandList::SetDescriptorHeaps(uint32_t count, void *heaps)
+//
+// Riccardo Loggini compute shaders tutorial:
+// - Binds a texture to a descriptor table
+// - Set the "descriptor heaps" (sic) of a command list
+// - Creates a UAV desc on the CPU side for the texture
+// - Encodes a barrier to transition the texture to UAV
+// - Fetches a CPU descriptor handle from a heap, presumably for the UAV
+//
+// device->CreateUnorderedAccessView(myTexture.Get(), nullptr, uavDesc,
+//   myHeapUavDescriptor.GetDescriptorHandle());
+// copies the descriptor between two CPU handles
+// m_d3d12CommandList->SetComputeRootDescriptorTable(0, GPU descriptor handle)
+
+// I still need more information about resource binding. Check Microsoft's
+// online documentation.
 
 #endif
