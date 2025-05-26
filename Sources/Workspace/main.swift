@@ -286,8 +286,39 @@ do {
 
 #endif
 
-// On to the next task. Before, remind myself:
+// On to the next task. Before doing it, remind myself:
 // - What is the ultimate goal?
 // - What is the next step after this one, toward the ultimate goal?
+//
+// Task 1: How do I "bind buffers" to the root signature?
+// Task 2: What are the UAV barriers and should resources explicitly transition
+//         to the UAV state?
+
+
+
+// ## Task 1
+//
+// The root signature is specified in HLSL. It declares that:
+// - The buffer at location 'u0' is UAV.
+// - The buffer at location 'u1' is UAV.
+// - The buffer at location 'u2' is UAV.
+//
+// Here is how the root signature and PSO are initialized:
+// - Compile the shader source code.
+// - Extract the root signature and shader blobs.
+// - Call 'ID3D12Device.CreateRootSignature' on the root signature blob.
+// - Fill a PSO descriptor with:
+//   - The shader blob.
+//   - The root signature object.
+//   - An absence of a cached pipeline state.
+// - Call 'ID3D12Device.CreatePipelineState' on the descriptor.
+//
+// Questions:
+// - How do I bind the buffers to the command list?
+// - How do I bind the pipeline state?
+// - Must the root signature be explicitly bound as well?
+//
+// Start the search by reading through the 3DGEP tutorials and reference code.
+// Then, finish off the search by reading Microsoft's online documentation.
 
 #endif
