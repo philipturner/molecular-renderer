@@ -197,6 +197,8 @@ print(device.d3d12Debug)
 print(device.d3d12Device)
 print(device.d3d12InfoQueue)
 
+#if false
+
 let vectorAddition = VectorAddition(device: device)
 let commandQueue = CommandQueue(device: device)
 let commandList = commandQueue.createCommandList()
@@ -281,5 +283,11 @@ do {
     print("outputBuffer[\(slotID)] = \(value2)")
   }
 }
+
+#endif
+
+// On to the next task. Before, remind myself:
+// - What is the ultimate goal?
+// - What is the next step after this one, toward the ultimate goal?
 
 #endif
