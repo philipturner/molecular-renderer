@@ -433,6 +433,13 @@ do {
 // goal will be to merge the DirectX and Metal helper classes. At least for
 // GPU compute work. After that's done, we can take steps to incorporate UI
 // or app launching code on Windows.
+// - The Metal and DirectX backends will still diverge on lack of support for
+//   textures. Thus, the next task for the DirectX backend is to render to a
+//   texture on the screen. Once this is done, we can start to merge the
+//   backends.
+// - The Metal and DirectX backends differ in how threadgroup sizes are
+//   specified. Make the threadgroup size specified as part of the shader.
+//   Then, the Metal backend can reference it when ready to execute a command.
 
 
 
@@ -471,7 +478,7 @@ func createShaderSource() -> String {
     float input0 = buffer0[slotID];
     float input1 = buffer1[slotID];
     
-    float output = input0 + input1;
+    float output = input1 / input0;
     buffer2[slotID] = output;
   }
   
@@ -485,9 +492,44 @@ let shader = Shader(descriptor: shaderDesc)
 print(shader.d3d12PipelineState)
 print(shader.d3d12RootSignature)
 
-// MARK: - Everything Before the Buffer Binding
-
 let commandList = commandQueue.createCommandList()
+
+
+
+// MARK: - Copy Commands (CPU -> GPU)
+
+// Copy command: inputBuffer0 -> nativeBuffer0
+do {
+  let barrier = vectorAddition.nativeBuffer0
+    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers = [barrier]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.nativeBuffer0.d3d12Resource,
+    vectorAddition.inputBuffer0.d3d12Resource)
+}
+print("Encoded command 1 successfully.")
+
+// Copy command: inputBuffer1 -> nativeBuffer1
+do {
+  let barrier = vectorAddition.nativeBuffer1
+    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+  let barriers = [barrier]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.nativeBuffer1.d3d12Resource,
+    vectorAddition.inputBuffer1.d3d12Resource)
+}
+print("Encoded command 2 successfully.")
+
+
+
+// MARK: - Compute Command
+
 try! commandList.SetPipelineState(shader.d3d12PipelineState)
 try! commandList.SetComputeRootSignature(shader.d3d12RootSignature)
 print("Set the pipeline and root signature.")
@@ -504,7 +546,8 @@ do {
   // The final barrier is a UAV barrier. I think you only need this between
   // two compute commands, not before a string of them. It effectively
   // marks every resource as UAV sensitive, flushing the cache before the
-  // command executes.
+  // command executes. We include it here to get experience with encoding
+  // UAV barriers.
   var uavBarrier = D3D12_RESOURCE_BARRIER()
   uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV
   uavBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
@@ -534,5 +577,61 @@ print("Set the buffer bindings.")
 // Dispatch 1024 threads, in 8 groups of 128.
 try! commandList.Dispatch(8, 1, 1)
 print("Encoded the kernel invocation.")
+
+
+
+// MARK: - Copy Commands (GPU -> CPU)
+
+// Copy command: nativeBuffer2 -> outputBuffer2
+do {
+  let barrier = vectorAddition.nativeBuffer2
+    .transition(state: D3D12_RESOURCE_STATE_COPY_SOURCE)
+  let barriers = [barrier]
+  
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+  try! commandList.CopyResource(
+    vectorAddition.outputBuffer2.d3d12Resource,
+    vectorAddition.nativeBuffer2.d3d12Resource)
+}
+print("Encoded command 4 successfully.")
+
+commandQueue.commit(commandList)
+print("The commands were submitted.")
+
+commandQueue.flush()
+print("The commands finished executing.")
+
+
+
+// MARK: - Checking Results
+
+// Check the data in the output buffer.
+do {
+  var outputData2: [Float] = []
+  for _ in 0..<1024 {
+    outputData2.append(0)
+  }
+  
+  outputData2.withUnsafeMutableBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    let outputBuffer2 = vectorAddition.outputBuffer2
+    outputBuffer2.read(output: baseAddress)
+  }
+  
+  for slotID in 0..<10 {
+    let value2 = outputData2[slotID]
+    print("outputBuffer[\(slotID)] = \(value2)")
+  }
+}
+
+
+
+// The "hello world" compute demo works! Next, render an image to the screen
+// using only compute shaders.
+//
+// First research question: can you create a texture that's backed by a buffer?
+// Is the drawable for rendering backed by a buffer? If not, each texture
+// should own a unique descriptor table, encapsulated in the utility 'Texture'.
 
 #endif
