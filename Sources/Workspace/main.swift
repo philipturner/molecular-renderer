@@ -190,4 +190,51 @@ import WinSDK
 // Is the drawable for rendering backed by a buffer? If not, each texture
 // should own a unique descriptor table, encapsulated in the utility 'Texture'.
 
+// Notes from the 3DGEP tutorial #4
+//
+// Texture2D<float4> SrcMip : register(t0);
+// RWTexture2D<float4> OutMip1 : register(u0);
+//
+// "DescriptorTable(SRV(t0, numDescriptors = 1)), " \
+// "DescriptorTable(UAV(u0, numDescriptors = 4)), " \
+//
+// float2 UV;
+// Src1 = SrcMip.SampleLevel(LinearClampSampler, UV, SrcMipLevel);
+// OutMip1[DispatchThreadID.xy] = PackColor(Src1);
+//
+// D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+// uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+// uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+// uavDesc.Texture2D.MipSlice = i;
+// uavDesc.Texture2D.PlaneSlice = 0;
+//
+// device->CreateUnorderedAccessView(
+//   nullptr, nullptr, &uavDesc,
+//   m_DefaultUAV.GetDescriptorHandle(i));
+//
+// There is no actual backing resource for the UAV, so the resource and the
+// counter resource are specified as 'nullptr'.
+//
+// ID3D12Device::CreateShaderResourceView and
+// ID3D12Device::CreateUnorderedAccessView only relate to the case where
+// resources are stored indirectly as descriptors in tables?
+//
+// Resources that will be used as a UAV must be created with
+// 'UNORDERED_ACCESS' and may not be 'RENDER_TARGET'. Does that mean a
+// drawable texture on windows is completely incompatible with writing from a
+// compute shader? That sounds like a silly restriction.
+//
+// It might be possible to copy between textures with a copy command.
+//
+// The tutorial created textures in a heap. I won't need to do that, because
+// the DXGI API supplies me with drawable textures.
+//
+// I'll have to implement triple buffering somehow. Perhaps with a fence that
+// *isn't* the fence used internally during 'CommandQueue.flush()'.
+
+// I'll have to come back to this another day, with a fresh mindset, to make
+// more progress.
+
+
+
 #endif
