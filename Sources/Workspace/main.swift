@@ -516,8 +516,23 @@ do {
 }
 print("Set the resource barriers.")
 
-// How do I get the GPU pointer of a buffer? Perhaps restrict the public API
-// to only provide the 'gpuAddress' when it's a native buffer. It crashes on
-// other buffer types.
+// Bind the buffers to the buffer table.
+do {
+  func setUAV(index: UInt32, buffer: Buffer) {
+    let d3d12Resource = buffer.d3d12Resource
+    let gpuAddress = try! d3d12Resource.GetGPUVirtualAddress()
+    try! commandList
+      .SetComputeRootUnorderedAccessView(index, gpuAddress)
+  }
+  
+  setUAV(index: 0, buffer: vectorAddition.nativeBuffer0)
+  setUAV(index: 1, buffer: vectorAddition.nativeBuffer1)
+  setUAV(index: 2, buffer: vectorAddition.nativeBuffer2)
+}
+print("Set the buffer bindings.")
+
+// Dispatch 1024 threads, in 8 groups of 128.
+try! commandList.Dispatch(8, 1, 1)
+print("Encoded the kernel invocation.")
 
 #endif
