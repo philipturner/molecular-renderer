@@ -424,6 +424,8 @@ do {
 // - If only a single variable is required, and it's obvious, the initializer
 //   uses that. I had several nested functions in code that just required the
 //   'device'.
+//   - The code for macOS just uses this rule in internal initializers.
+//   - Public initializers should always use a descriptor.
 // - If two or more variables are required, always use a descriptor. Even if
 //   'compile' looked familiar in previous code. Based on judgment, sometimes
 //   use a descriptor if there's just one variable.
