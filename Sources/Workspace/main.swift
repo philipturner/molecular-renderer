@@ -192,11 +192,6 @@ import WinSDK
 // (4) Reproduce the previous code for copy commands, and verify that the debug
 //     layer is working as expected.
 
-let device = DirectXDevice()
-print(device.d3d12Debug)
-print(device.d3d12Device)
-print(device.d3d12InfoQueue)
-
 #if false
 
 let vectorAddition = VectorAddition(device: device)
@@ -438,5 +433,13 @@ do {
 // goal will be to merge the DirectX and Metal helper classes. At least for
 // GPU compute work. After that's done, we can take steps to incorporate UI
 // or app launching code on Windows.
+
+let device = Device()
+print(device)
+
+var commandQueueDesc = CommandQueueDescriptor()
+commandQueueDesc.device = device
+let commandQueue = CommandQueue(descriptor: commandQueueDesc)
+print(commandQueue)
 
 #endif

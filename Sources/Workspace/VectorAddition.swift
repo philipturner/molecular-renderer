@@ -12,7 +12,7 @@ class VectorAddition {
   
   let outputBuffer2: Buffer
   
-  init(device: DirectXDevice) {
+  init(device: Device) {
     // Fill the descriptor properties common to all buffers.
     var bufferDesc = BufferDescriptor()
     bufferDesc.device = device
