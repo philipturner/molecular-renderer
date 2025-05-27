@@ -23,7 +23,7 @@ public struct ShaderDescriptor {
   }
 }
 
-public struct Shader {
+public class Shader {
   public let d3d12PipelineState: SwiftCOM.ID3D12PipelineState
   public let d3d12RootSignature: SwiftCOM.ID3D12RootSignature
   
@@ -52,13 +52,14 @@ public struct Shader {
       fatalError("dxcompiler_compile failed with error code \(errorCode).")
     }
     
-    // Check that the data pointers are not nil, and handle their deallocation.
+    // Handle the deallocation of the blobs. For some reason, 'free' works just
+    // fine, but '.deallocate' causes a crash.
     guard let objectBlob,
           let rootSignatureBlob else {
       fatalError("This should never happen.")
     }
-    defer { objectBlob.deallocate() }
-    defer { rootSignatureBlob.deallocate() }
+    defer { free(objectBlob) }
+    defer { free(rootSignatureBlob) }
     
     // Create the root signature.
     do {
@@ -91,6 +92,7 @@ public struct Shader {
       var iid = SwiftCOM.ID3D12PipelineState.IID
       let pUnk = try! d3d12Device.CreateComputePipelineState(
         &pipelineStateDesc, &iid)
+      
       self.d3d12PipelineState =
       SwiftCOM.ID3D12PipelineState(pUnk: pUnk)
     }
