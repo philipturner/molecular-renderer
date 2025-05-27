@@ -394,8 +394,42 @@ do {
 // we can do that and bypass the DirectX debug layer that demands a resource
 // state transition.
 
+
+
 // Before that, clean up the process of initializing a shader. There's
 // boilerplate code in the previous reference that ought to go into a utility
 // class.
+
+// TODO: Change ShaderBytecode to ShaderDescriptor, but make the descriptor
+// and the Shader initializer internal. Change 'Compiler' to just
+// 'DirectXDevice', and put 'compile' in an 'extension'. Keep all of that, as
+// well as the 'dxcompiler_compile' reference, in the same file as 'Shader'.
+//
+// And finally, change DirectXDevice to just Device. This brings it closer to
+// merging with the Metal backend in the future.
+//
+// Remove '.compile' and just make it a public API of ShaderDescriptor? There
+// is something interesting about one-line functions to initialize an object.
+// It creates less code on the front-end. But from an API design standpoint,
+// it would be more consistent to have everything made with a descriptor.
+//
+// What is the paradigm for MM4?
+// - MM4ForceField.init(descriptor:)
+// - MM4Parameters.init(descriptor:)
+// - MM4RigidBody.init(descriptor:)
+//
+// It's valid to have a descriptor where the user sets one or no options.
+//
+// How about this rule:
+// - If only a single variable is required, and it's obvious, the initializer
+//   uses that. I had several nested functions in code that just required the
+//   'device'.
+// - If two or more variables are required, always use a descriptor. Even if
+//   'compile' looked familiar in previous code. Based on judgment, sometimes
+//   use a descriptor if there's just one variable.
+//
+// Task 1: Fix the existing code in the helpers.
+// Task 2: Augment the 'Shader' class, making the blobs transient and instead
+//         exposing DirectX API objects to the public API.
 
 #endif
