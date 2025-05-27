@@ -2,6 +2,14 @@
 import SwiftCOM
 import WinSDK
 
+public struct CommandQueueDescriptor {
+  public var device: Device?
+  
+  public init() {
+    
+  }
+}
+
 public class CommandQueue {
   let d3d12Device: SwiftCOM.ID3D12Device
   let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
@@ -10,7 +18,10 @@ public class CommandQueue {
   let eventHandle: UnsafeMutableRawPointer
   var fenceValue: UInt64 = .zero
   
-  public init(device: DirectXDevice) {
+  public init(descriptor: CommandQueueDescriptor) {
+    guard let device = descriptor.device else {
+      fatalError("Descriptor was incomplete.")
+    }
     self.d3d12Device = device.d3d12Device
     
     // Fill the command queue descriptor.

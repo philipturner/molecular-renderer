@@ -433,5 +433,10 @@ do {
 // Task 1: Fix the existing code in the helpers.
 // Task 2: Augment the 'Shader' class, making the blobs transient and instead
 //         exposing DirectX API objects to the public API.
+//
+// Remember: After all of this "Hello world" compute stuff is done, the next
+// goal will be to merge the DirectX and Metal helper classes. At least for
+// GPU compute work. After that's done, we can take steps to incorporate UI
+// or app launching code on Windows.
 
 #endif

@@ -3,11 +3,22 @@ import FidelityFX
 import SwiftCOM
 import WinSDK
 
-public class Upscaler {
-  private let device: DirectXDevice
+public struct UpscalerDescriptor {
+  public var device: Device?
   
-  public init(device: DirectXDevice) {
-    self.device = device
+  public init() {
+    
+  }
+}
+
+public class Upscaler {
+  let d3d12Device: SwiftCOM.ID3D12Device
+  
+  public init(descriptor: UpscalerDescriptor) {
+    guard let device = descriptor.device else {
+      fatalError("Descriptor was incomplete.")
+    }
+    self.d3d12Device = device.d3d12Device
   }
   
   public func createContext() -> ffxContext {
@@ -27,7 +38,6 @@ public class Upscaler {
       // device could be deallocated before reaching that function.
       //
       // Probably best solved with a deinitializer, once this code matures.
-      let d3d12Device = self.device.d3d12Device
       let iid = SwiftCOM.ID3D12Device.IID
       let interface = try! d3d12Device.QueryInterface(iid: iid)
       let device = interface!.assumingMemoryBound(to: WinSDK.ID3D12Device.self)

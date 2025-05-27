@@ -3,7 +3,7 @@ import SwiftCOM
 import WinSDK
 
 public struct BufferDescriptor {
-  public var device: DirectXDevice?
+  public var device: Device?
   public var size: Int = .zero
   public var type: BufferType?
   

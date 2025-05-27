@@ -14,14 +14,28 @@ private func dxcompiler_compile(
   _ rootSignatureLength: UnsafeMutablePointer<UInt32>
 ) -> Int32
 
-public class Compiler {
-  private let device: DirectXDevice
+// NOTE: This file will be changed drastically soon.
+//
+// The existing code doesn't require an ID3D12Device yet, so don't provide one
+// in the initializer.
+
+public struct ShaderDescriptor {
+  public var source: String?
   
-  public init(device: DirectXDevice) {
-    self.device = device
+  public init() {
+    
   }
+}
+
+public struct Shader {
+  public let object: Data
+  public let rootSignature: Data
   
-  public func compile(source: String) -> ShaderBytecode {
+  public init(descriptor: ShaderDescriptor) {
+    guard let source = descriptor.source else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
     // Declare the function arguments and return values.
     let sourceCount = UInt32(source.count)
     var object: UnsafeMutablePointer<UInt8>?
@@ -41,40 +55,20 @@ public class Compiler {
       fatalError("dxcompiler_compile failed with error code \(errorCode).")
     }
     
-    // Create the shader bytecode struct.
+    // Create data objects to encapsulate the blobs' contents.
     guard let object,
           let rootSignature else {
       fatalError("This should never happen.")
     }
-    
-    var shaderBytecode: ShaderBytecode
-    do {
-      let objectData = Data(
-        bytesNoCopy: object,
-        count: Int(objectLength),
-        deallocator: .free)
-      let rootSignatureData = Data(
-        bytesNoCopy: rootSignature,
-        count: Int(rootSignatureLength),
-        deallocator: .free)
-      
-      shaderBytecode = ShaderBytecode(
-        object: objectData,
-        rootSignature: rootSignatureData)
-    }
-    
-    return shaderBytecode
+    self.object = Data(
+      bytesNoCopy: object,
+      count: Int(objectLength),
+      deallocator: .free)
+    self.rootSignature = Data(
+      bytesNoCopy: rootSignature,
+      count: Int(rootSignatureLength),
+      deallocator: .free)
   }
-}
-
-
-
-// Unsure whether DXIL is a bitcode or a bytecode.
-public struct ShaderBytecode {
-  public let object: Data
-  public let rootSignature: Data
-  
-  // Use the internal initializer (auto-generated) for now.
 }
 
 #endif

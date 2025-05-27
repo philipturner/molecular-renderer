@@ -2,13 +2,22 @@
 import SwiftCOM
 import WinSDK
 
-// Temporary file to ensure the code for DirectX device initialization stays
-// encapsulated within molecular-renderer.
+// This file encapsulates the code for DirectX device selection. Will
+// eventually merge with the code for Metal device selection. On Apple silicon,
+// there is only ever one GPU, so the code is redundant. But there can be a
+// single API that works cross-platform, and assumes multiple GPUs.
 
-public class DirectXDevice {
-  public let d3d12Debug: SwiftCOM.ID3D12Debug
-  public let d3d12Device: SwiftCOM.ID3D12Device
-  public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
+public class Device {
+  // Do any of these need to be public? The helper classes may be advanced
+  // enough (should be at this point) to make 'd3d12Device' private.
+  //
+  // For the other APIs, keep the 'd3d12X' variables, e.g. pipelines, public.
+  // We're gradually phasing in the encapsulation of platform-specific types.
+  // Some D3D12-specific types have no clear path to encapsulation at the
+  // moment, such as D3D12_RESOURCE_STATES for resource barriers.
+  let d3d12Debug: SwiftCOM.ID3D12Debug
+  let d3d12Device: SwiftCOM.ID3D12Device
+  let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
   
   public init() {
     // Create the debug layer.
@@ -38,7 +47,7 @@ public class DirectXDevice {
 }
 
 // Utility functions called in the initializer.
-extension DirectXDevice {
+extension Device {
   // Choose the best GPU out of the two that appear.
   private static func createAdapter(
     factory: SwiftCOM.IDXGIFactory4
