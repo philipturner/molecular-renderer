@@ -434,6 +434,10 @@ do {
 // GPU compute work. After that's done, we can take steps to incorporate UI
 // or app launching code on Windows.
 
+
+
+// MARK: - Initialize Most of the Resources
+
 let device = Device()
 print(device)
 
@@ -444,6 +448,8 @@ print(commandQueue)
 
 let vectorAddition = VectorAddition(device: device)
 print(vectorAddition)
+
+// MARK: - Create the Shader
 
 func createShaderSource() -> String {
   """
@@ -478,5 +484,40 @@ shaderDesc.source = createShaderSource()
 let shader = Shader(descriptor: shaderDesc)
 print(shader.d3d12PipelineState)
 print(shader.d3d12RootSignature)
+
+// MARK: - Everything Before the Buffer Binding
+
+let commandList = commandQueue.createCommandList()
+try! commandList.SetPipelineState(shader.d3d12PipelineState)
+try! commandList.SetComputeRootSignature(shader.d3d12RootSignature)
+print("Set the pipeline and root signature.")
+
+// Encode all of the barriers.
+do {
+  let barrier0 = vectorAddition.nativeBuffer0
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+  let barrier1 = vectorAddition.nativeBuffer1
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+  let barrier2 = vectorAddition.nativeBuffer2
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+    
+  // The final barrier is a UAV barrier. I think you only need this between
+  // two compute commands, not before a string of them. It effectively
+  // marks every resource as UAV sensitive, flushing the cache before the
+  // command executes.
+  var uavBarrier = D3D12_RESOURCE_BARRIER()
+  uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV
+  uavBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+  uavBarrier.UAV.pResource = nil
+  
+  let barriers = [barrier0, barrier1, barrier2, uavBarrier]
+  try! commandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+}
+print("Set the resource barriers.")
+
+// How do I get the GPU pointer of a buffer? Perhaps restrict the public API
+// to only provide the 'gpuAddress' when it's a native buffer. It crashes on
+// other buffer types.
 
 #endif
