@@ -380,6 +380,60 @@ import WinSDK
 //
 // 'ALT' + 'ENTER' can force a window to fullscreen. I don't want that for my
 // use case. There is a way to prevent that from happening.
+//
+// The tutorial uses 'ClearRenderTargetView', but one can probably get away
+// with 'ClearUnorderedAccessViewXxx'. It's still not clear whether the back
+// buffer's resource can be set to a buffer instead of a texture.
+//
+// 'Present' should use a sync interval of 1.
+//
+// The tutorial issues a 'Signal' between 'ExecuteCommandLists' and 'Present'.
+// My existing helper class makes this use case impossible. Except... the fence
+// inside this utility is not the fence for triple-buffer semaphores. So it is
+// not a concern.
+
+
+
+// Window Message Procedure
+//
+// Events:
+// - Repaint a portion of the window's contents.
+// - Respond to key presses when the window is in focus.
+// - Respond to resize events (which shouldn't happen for my application).
+//
+// Not fixing the annoying sound in response to SYSCHAR. But what is the sound?
+// It's the standard Windows error chime.
+//
+// It is important to respond to WM_DESTROY. Call 'PostQuitMessage(0)', which
+// terminates the current process. It may be similar to 'exit(0)' on macOS.
+// Both 'PostQuitMessage' and 'exit' exist on Windows, but the former doesn't
+// actually terminate the application. It looks reasonable to just call
+// 'exit(0)' on Windows.
+//
+// I wonder what happens if I don't call 'DefWindowProc' for messages that
+// aren't relevant. There should be nothing wrong with skipping this function
+// call.
+
+// SetThreadDpiAwarenessContext
+//
+// The documentation mentions 'DPI_AWARENESS_CONTEXT' and 'DPI_AWARENESS'. But
+// it seems that only 'DPI_AWARENESS_CONTEXT' has any relevance.
+//
+// What is the old 'dpiContext' returned on my computer?
+// existing             0x0000000080006010
+// UNAWARE              0x0000000000006010
+// SYSTEM_AWARE         0x0000000000009011
+// PER_MONITOR_AWARE    0x0000000000000012
+// PER_MONITOR_AWARE_V2 0x0000000000000022
+// UNAWARE_GDISCALED    0x0000000040006010
+//
+// The pointer passed out does not equal the pointer entered in. It doesn't
+// even correspond to the input pointer arithmetically. I would expect it to be
+// UInt64.max - (input pointer).
+//
+// DPI_AWARENESS_CONTEXT = UnsafeMutablePointer<DPI_AWARENESS_CONTEXT__>
+// DPI_AWARENESS_CONTEXT = struct type, has property 'unused' of type Int32
+// DPI_AWARENESS = enumeration, has raw value of type Int32
 
 
 
