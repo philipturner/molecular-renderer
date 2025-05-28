@@ -301,6 +301,31 @@ import WinSDK
 
 
 // Next region of the tutorial: description of the OS windowing API.
+//
+// Do not create an icon (HICON) for my application. Leave it as the OS default
+// icon, all the way through production. I will create an application that
+// generalizes beyond the myriad permutations for company names and company
+// logos.
+//
+// There is a cursor class specified in WNDCLASSEXW. For the foreseeable future,
+// I prefer to avoid any GUI functionality besides Ctrl+W to close the window.
+// The current macOS implementation does not reference mouse events.
+//
+// The tutorial makes an effort to measure the screen dimensions and center the
+// window. The macOS code does this as well. I don't know if Windows has the
+// issue of falsifying screen dimensions to satisfy OS text scale factors. My
+// PC uses 150%.
+//
+// A good starting point is to work with the OS-specific APIs for querying
+// screen properties.
+//
+// I don't know what a 'class atom' is.
+//
+// 'CW_USEDEFAULT' is mentioned multiple times. I do not know how important
+// it is.
+//
+// A window is first created. Then the DirectX resources are created. Finally,
+// the window is shown.
 
 
 
