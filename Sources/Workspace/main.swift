@@ -241,4 +241,67 @@ import WinSDK
 
 
 
+// Notes on the 1st 3DGEP tutorial:
+//
+// DXGI 1.6 adds functionality in order to detect HDR displays.
+//
+// 'chrono::high_resolution_clock' is used to perform timing in between calls
+// to the 'Update' function.
+//
+// 'Vsync' is referenced in the file 'Window.h' from the tutorial's repository.
+//
+// The swap chain uses 3 back buffers.
+//
+// Windows Advanced Rasterization Platform is not used.
+//
+// Notable DirectX API objects:
+// - ID3D12Device2
+// - IDXGISwapChain4
+// - ID3D12Resource g_BackBuffers[3]
+// - ID3D12DescriptorHeap
+//
+// Although the back buffers of the swap chain are actually textures, all
+// buffer and texture resources are referenced using the 'ID3D12Resource'
+// interface in DirectX 12.
+//
+// The tutorial uses RTVs to clear the back buffers of the render target. The
+// RTVs are created in descriptor heaps, and they describe instances of
+// 'ID3D12Resource' that reside in GPU memory.
+//
+// A view in DirectX 12 is also called a descriptor. One descriptor is needed
+// to describe each back buffer texture. The RTVs for the back buffers are
+// stored in a descriptor heap.
+//
+// You must query the size of a descriptor in a descriptor heap. It may vary
+// depending on the vendor.
+//
+// The index of the current back buffer in the swap chain may not be
+// sequential (???).
+//
+// Method of GPU synchronization:
+// - ID3D12Fence fence
+// - uint64_t fenceValue
+//   - The next fence value to signal the command queue.
+// - uint64_t frameFenceValues[3]
+//   - Keeps track of the fence values that were used to signal the command
+//     queue for a particular frame. Guarantees that any resources still being
+//     referenced by the command queue are not overwritten.
+// - HANDLE fenceEvent
+//
+// VSync and tearing can be toggled. Use windowed instead of fullscreen mode.
+//
+// By default, the swap chain's present method will block (???) until the next
+// vertical refresh of the screen.
+//
+// Some displays support 'variable refresh rates', which has implications for
+// Vsync.
+//
+// A callback function is used to register the window class.
+
+
+
+// Next region of the tutorial: description of the OS windowing API.
+
+
+
 #endif
