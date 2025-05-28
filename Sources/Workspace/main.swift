@@ -234,6 +234,10 @@ import WinSDK
 
 // I'll have to come back to this another day, with a fresh mindset, to make
 // more progress.
+//
+// Let's understand the swapchain before exploring whether textures can be
+// backed with buffers. I feel more comfortable with exploring this order of
+// priorities.
 
 
 
