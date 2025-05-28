@@ -342,6 +342,44 @@ import WinSDK
 // dedicated video memory is a good indicator of GPU performance. Perhaps
 // integrated GPUs have access to significant memory, but it isn't
 // "dedicated memory".
+//
+// Variable refresh-rate displays require tearing (vsync-off) for an app to
+// function correctly. I am testing on a fixed refresh-rate display. Tearing
+// support was introduced in DXGI 1.5. The tutorial queries whether a computer
+// supports tearing. I will not add any explicit support for variable refresh
+// rate displays on Windows.
+//
+// 'IDXGISwapChain' exists, and it has an instance member, 'Present'.
+//
+// Upon 'Present', the swap chain increments everything in a ring buffer of
+// pointers.
+//
+// 'FLIP_SEQUENTIAL' looks simpler. Presentation lag shouldn't exist if buffers
+// are properly guarded with a 3-frame semaphore? This may need to be rigorously
+// tested. Or perhaps latency heuristics guarantee it won't cause problems. The
+// tutorial uses 'FLIP_DISCARD'.
+//
+// From the Microsoft docs, 'FLIP_DISCARD' may permit certain optimizations in
+// the driver that reduce the amount of copying. These optimizations apply when
+// the app is not the only window on the screen (not in fullscreen mode).
+//
+// The tutorial appears to initialize the 'IDXGIFactory4' multiple times. These
+// initializations are redundant, but could be important for encapsulating code.
+//
+// The back buffer's pixel format is specified in 'DXGI_SWAP_CHAIN_DESC1'.
+// 'DXGI_SWAP_CHAIN_DESC' also allows the pixel format to be specified. And it
+// is the only one that lets you specify the refresh rate. However, this one
+// has been deprecated since DirectX 11.1.
+//
+// Another thing to note: on Mac, I can test setups with multiple displays,
+// and automatically choose the one with the fastest refresh rate. On Windows,
+// I cannot test such a feature.
+//
+// 'IDXGIFactory2::CreateSwapChainForHwnd' requires the swap chain descriptor
+// to be 'DXGI_SWAP_CHAIN_DESC1'.
+//
+// 'ALT' + 'ENTER' can force a window to fullscreen. I don't want that for my
+// use case. There is a way to prevent that from happening.
 
 
 
