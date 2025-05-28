@@ -329,4 +329,20 @@ import WinSDK
 
 
 
+// Next region of the tutorial: creation of DXGI resources.
+//
+// 'DXGI_CREATE_FACTORY_DEBUG' should supposedly be omitted in 'production
+// builds'.
+//
+// It seems that both WARP and non-WARP adapters apply equally to
+// 'IDXGIAdapter1' and 'IDXGIAdapter4'.
+//
+// The tutorial uses the heuristic of selecting the GPU with the largest memory,
+// just like my code. Generally speaking, the GPU with the largest amount of
+// dedicated video memory is a good indicator of GPU performance. Perhaps
+// integrated GPUs have access to significant memory, but it isn't
+// "dedicated memory".
+
+
+
 #endif
