@@ -437,4 +437,7 @@ import WinSDK
 
 
 
+// Tomorrow, with a fresh mindset, I can do something about this. Start by
+// inspecting the functions that report screen properties.
+
 #endif
