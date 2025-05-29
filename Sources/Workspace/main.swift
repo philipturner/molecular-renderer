@@ -547,6 +547,9 @@ print(GetSystemMetrics(SM_CYSCREEN))
 // There is an issue with the HINSTANCE. When I use the instance from the
 // Workspace executable, it will be different than when the function is
 // encapsulated in a library. Try setting 'hInstance' to 'nullptr' for now.
+//
+// #define MAKEINTRESOURCEA(i) ((LPSTR)((ULONG_PTR)((WORD)(i))))
+// #define IDC_ARROW           MAKEINTRESOURCE(32512)
 
 func messageProcedure(
   hwnd: HWND?,
@@ -559,7 +562,31 @@ func messageProcedure(
   return 0
 }
 
-print(WNDPROC.self)
-print(messageProcedure as WNDPROC)
+let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
+let cursor = LoadCursorA(nil, cursorName)
+print(cursor)
+
+let className = StaticString("DX12WindowClass")
+let classNameUInt8 = className.utf8Start
+let classNameInt8 = UnsafeRawPointer(classNameUInt8)
+  .assumingMemoryBound(to: Int8.self)
+
+var windowClass = WNDCLASSEXA()
+windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
+windowClass.lpfnWndProc = messageProcedure
+windowClass.hInstance = nil
+windowClass.hCursor = cursor
+windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
+windowClass.lpszClassName = classNameInt8
+print(windowClass)
+
+do {
+  let atom = RegisterClassExA(&windowClass)
+  guard atom > 0 else {
+    fatalError("Could not create window class.")
+  }
+}
+
+// This worked. Next, create the window.
 
 #endif
