@@ -562,31 +562,78 @@ func messageProcedure(
   return 0
 }
 
-let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
-let cursor = LoadCursorA(nil, cursorName)
-print(cursor)
+// WARNING: Captures 'messageProcedure' from the outer scope. Encapsulate this
+// better when you migrate this to the helper library.
+func registerWindowClass(name: String) {
+  var windowClass = WNDCLASSEXA()
+  windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
+  windowClass.lpfnWndProc = messageProcedure
+  windowClass.hInstance = nil
+  
+  let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
+  let cursor = LoadCursorA(nil, cursorName)
+  windowClass.hCursor = cursor
+  windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
+  
+  name.withCString { cString in
+    windowClass.lpszClassName = cString
+  }
+  print(windowClass)
 
-let className = StaticString("DX12WindowClass")
-let classNameUInt8 = className.utf8Start
-let classNameInt8 = UnsafeRawPointer(classNameUInt8)
-  .assumingMemoryBound(to: Int8.self)
-
-var windowClass = WNDCLASSEXA()
-windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
-windowClass.lpfnWndProc = messageProcedure
-windowClass.hInstance = nil
-windowClass.hCursor = cursor
-windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
-windowClass.lpszClassName = classNameInt8
-print(windowClass)
-
-do {
   let atom = RegisterClassExA(&windowClass)
   guard atom > 0 else {
     fatalError("Could not create window class.")
   }
 }
+registerWindowClass(name: "DX12WindowClass")
 
 // This worked. Next, create the window.
+//
+// OVERLAPPEDWINDOW is a combination of styles.
+// - OVERLAPPED: top-level window, application's main window
+// - CAPTION: has a title bar
+// - SYSMENU: perhaps something only visible upon pressing ALT + SPACE? I don't
+//   want 'File', 'Edit', etc. to show. If this is a pop-up window, hopefully
+//   it is a temporary window.
+// - THICKFRAME: has a sizing border. I want to eliminate this, because the
+//   user should not be able to resize the window. Perhaps keep the border for
+//   now, to identify all possible sources of resizing events. A window must
+//   have CAPTION or THICKFRAME to receive a WM_GETMINMAXINFO message.
+// - WS_MINIMIZEBOX: the title bar has a minimize button. This option can only
+//   be specified if SYSMENU is also specified.
+// - WS_MAXIMIZEBOX: the title bar has a maximize button. This option can only
+//   be specified if SYSMENU is also specified. I don't want the user to be
+//   able to enlarge the window to fullscreen / near-fullscreen. Keep this
+//   option available and diagnose it as a source of resize events. Also, try
+//   to keep consistency with the window structure on macOS.
+//
+// dwExStyle = 0
+// windowClassName = "DX12WindowClass"
+// windowTitle = "Learning DirectX 12"
+// dwStyle = WS_OVERLAPPEDWINDOW
+// X = defined in other code (TODO)
+// Y = defined in other code (TODO)
+// windowWidth = defined in other code (TODO)
+// windowHeight = defined in other code (TODO)
+// hWndParent = NULL
+// hMenu = NULL
+// hInstance = TODO
+// lpParam = nullptr
+//
+// Interesting note: 'NULL' is not exactly the same as 'nullptr'. NULL is a
+// macro that substitutes for the value '0'. It could apply to any integer
+// type. Meanwhile, nullptr applies exclusively to pointer types.
+
+// Returns the window size and position.
+// Lane 0: x
+// Lane 1: y
+// Lane 2: width
+// Lane 3: height
+func createWindowDimensions() -> SIMD4<UInt32> {
+  
+  
+  fatalError("Not implemented.")
+}
+createWindowDimensions()
 
 #endif
