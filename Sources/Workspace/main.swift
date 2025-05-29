@@ -439,5 +439,127 @@ import WinSDK
 
 // Tomorrow, with a fresh mindset, I can do something about this. Start by
 // inspecting the functions that report screen properties.
+//
+// Screen dimensions with different awareness contexts:
+// existing             2560x1440
+// UNAWARE              2560x1440
+// SYSTEM_AWARE         3840x2160
+// PER_MONITOR_AWARE    3840x2160
+// PER_MONITOR_AWARE_V2 3840x2160
+// UNAWARE_GDISCALED    2560x1440
+
+SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+print(GetSystemMetrics(SM_CXSCREEN))
+print(GetSystemMetrics(SM_CYSCREEN))
+
+// TODO: Set the Window name on macOS to match the one on Windows? Or reserve
+// that GUI decision to one that generalizes to custom UIs. For now, just copy
+// the names from the 3DGEP tutorial.
+//
+// I learned something interesting. Some OS functions have two variants, one
+// suffixed with "A" and the other suffixed with "ExW/EXW". The former employs
+// strings with 8-bit characters. The latter employs strings with 16-bit
+// characters.
+//
+// Wait...there might be distinct concerns here:
+// - "A" vs "W"
+// - "Ex" vs not "Ex"
+// - 32-bit vs 64-bit operating systems
+//
+// typedef struct tagWNDCLASSA {
+//   UINT      style;
+//   WNDPROC   lpfnWndProc;
+//   int       cbClsExtra;
+//   int       cbWndExtra;
+//   HINSTANCE hInstance;
+//   HICON     hIcon;
+//   HCURSOR   hCursor;
+//   HBRUSH    hbrBackground;
+//   LPCSTR    lpszMenuName;
+//   LPCSTR    lpszClassName;
+// } WNDCLASSA, *PWNDCLASSA, *NPWNDCLASSA, *LPWNDCLASSA;
+//
+// typedef struct tagWNDCLASSEXA {
+//   UINT      cbSize;
+//   UINT      style;
+//   WNDPROC   lpfnWndProc;
+//   int       cbClsExtra;
+//   int       cbWndExtra;
+//   HINSTANCE hInstance;
+//   HICON     hIcon;
+//   HCURSOR   hCursor;
+//   HBRUSH    hbrBackground;
+//   LPCSTR    lpszMenuName;
+//   LPCSTR    lpszClassName;
+//   HICON     hIconSm;
+// } WNDCLASSEXA, *PWNDCLASSEXA, *NPWNDCLASSEXA, *LPWNDCLASSEXA;
+//
+// The "ATOM" return type is a 16-bit integer. The user can't do anything with
+// the value, except check that it's not 0.
+//
+// HWND CreateWindowA(
+//   [in, optional] LPCSTR    lpClassName,
+//   [in, optional] LPCSTR    lpWindowName,
+//   [in]           DWORD     dwStyle,
+//   [in]           int       x,
+//   [in]           int       y,
+//   [in]           int       nWidth,
+//   [in]           int       nHeight,
+//   [in, optional] HWND      hWndParent,
+//   [in, optional] HMENU     hMenu,
+//   [in, optional] HINSTANCE hInstance,
+//   [in, optional] LPVOID    lpParam
+// );
+//
+// HWND CreateWindowExA(
+//   [in]           DWORD     dwExStyle,
+//   [in, optional] LPCSTR    lpClassName,
+//   [in, optional] LPCSTR    lpWindowName,
+//   [in]           DWORD     dwStyle,
+//   [in]           int       X,
+//   [in]           int       Y,
+//   [in]           int       nWidth,
+//   [in]           int       nHeight,
+//   [in, optional] HWND      hWndParent,
+//   [in, optional] HMENU     hMenu,
+//   [in, optional] HINSTANCE hInstance,
+//   [in, optional] LPVOID    lpParam
+// );
+
+// Choices for 'WNDCLASS':
+//
+// Use 'WNDCLASSEX' instead of 'WNDCLASS'.
+// Use 'A' instead of 'W'.
+//
+// cbSize = sizeof(WNDCLASSEXA)
+// style = 0
+// lpfnWndProc = TODO
+// hInstance = TODO
+// hIcon = nullptr
+// hCursor = LoadCursor(nullptr, IDC_ARROW)
+// hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
+// lpszClassName = "DX12WindowClass"
+// hSmIcon = nullptr
+//
+// In the default initializer for the struct, everything is initialized to 0.
+// The code can be made shorter by just not mentioning these members.
+//
+// There is an issue with the HINSTANCE. When I use the instance from the
+// Workspace executable, it will be different than when the function is
+// encapsulated in a library. Try setting 'hInstance' to 'nullptr' for now.
+
+func messageProcedure(
+  hwnd: HWND?,
+  message: UInt32,
+  wParam: WPARAM,
+  lParam: LPARAM
+) -> LRESULT {
+  print("Called the message procedure.")
+  
+  return 0
+}
+
+print(WNDPROC.self)
+print(messageProcedure as WNDPROC)
 
 #endif
