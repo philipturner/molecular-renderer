@@ -630,10 +630,49 @@ registerWindowClass(name: "DX12WindowClass")
 // Lane 2: width
 // Lane 3: height
 func createWindowDimensions() -> SIMD4<UInt32> {
+  // (3840, 2160)
+  let screenWidth = Int32(GetSystemMetrics(SM_CXSCREEN))
+  let screenHeight = Int32(GetSystemMetrics(SM_CYSCREEN))
   
+  // (0, 0, 1440, 1440) -> (-11, -45, 1451, 1451)
+  var windowRect = RECT()
+  windowRect.left = 0
+  windowRect.top = 0
+  windowRect.right = 1440
+  windowRect.bottom = 1440
+  AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false)
   
-  fatalError("Not implemented.")
+  // (1462, 1496)
+  let windowSizeX = Int32(windowRect.right - windowRect.left)
+  let windowSizeY = Int32(windowRect.bottom - windowRect.top)
+  
+  // (1920, 1080)
+  let centerX = screenWidth / 2
+  let centerY = screenHeight / 2
+  
+  // (1189, 332)
+  let leftX = centerX - windowSizeX / 2
+  let upperY = centerY - windowSizeY / 2
+  
+  // Not clamping because we don't do this on Mac either. Instead, crashing if
+  // we detect an out-of-bounds error. May remove this check in the future.
+  guard leftX >= 0,
+        upperY >= 0 else {
+    fatalError("Window origin was out of bounds.")
+  }
+  
+  let outputSigned = SIMD4<Int32>(
+    leftX, upperY, windowSizeX, windowSizeY)
+  let outputUnsigned = SIMD4<UInt32>(
+    truncatingIfNeeded: outputSigned)
+  return outputUnsigned
 }
-createWindowDimensions()
+
+// new function:
+// createWindow(dimensions: SIMD4<UInt32>)
+
+// (1189, 332, 1462, 1496)
+let windowDimensions = createWindowDimensions()
+print(windowDimensions)
 
 #endif
