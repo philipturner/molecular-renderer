@@ -557,7 +557,8 @@ func messageProcedure(
 ) -> LRESULT {
   print("Called the message procedure.")
   
-  return 0
+  // Defer to the OS default function.
+  return DefWindowProcA(hwnd, message, wParam, lParam)
 }
 
 // WARNING: Captures 'messageProcedure' from the outer scope. Encapsulate this
@@ -713,20 +714,24 @@ func createWindow(descriptor: WindowDescriptor) -> HWND {
   
   let hInstance: HINSTANCE = GetModuleHandleA(nil)
   
-  className.withCString { c}
-  let output = CreateWindowExA(
-    0, // dwExStyle
-    className, // lpClassName
-    title, // lpWindowName
-    WS_OVERLAPPEDWINDOW, // dwStyle
-    Int32(dimensions[0]), // X
-    Int32(dimensions[1]), // Y
-    Int32(dimensions[2]), // nWidth
-    Int32(dimensions[3]), // nHeight
-    nil, // hWndParent
-    nil, // hMenu
-    hInstance, // hInstance
-    nil) // lpParam
+  var output: HWND?
+  className.withCString { classNamePtr in
+    title.withCString { titlePtr in
+      output = CreateWindowExA(
+        0, // dwExStyle
+        className, // lpClassName
+        title, // lpWindowName
+        WS_OVERLAPPEDWINDOW, // dwStyle
+        Int32(dimensions[0]), // X
+        Int32(dimensions[1]), // Y
+        Int32(dimensions[2]), // nWidth
+        Int32(dimensions[3]), // nHeight
+        nil, // hWndParent
+        nil, // hMenu
+        hInstance, // hInstance
+        nil) // lpParam
+    }
+  }
   
   guard let output else {
     let errorCode = GetLastError()
