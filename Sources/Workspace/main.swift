@@ -581,7 +581,7 @@ func registerWindowClass(name: String) {
   windowClass.cbClsExtra = 0
   windowClass.cbWndExtra = 0
   windowClass.hInstance = hInstance
-  windowClass.hIcon = hIcon
+  windowClass.hIcon = nil
   
   // Guarantee that the cursor is not the thing causing the crash.
   do {
@@ -598,7 +598,7 @@ func registerWindowClass(name: String) {
   windowClass.lpszMenuName = nil
   name.withCString { cString in
     windowClass.lpszClassName = cString
-    windowClass.hIconSm = hIcon
+    windowClass.hIconSm = nil
     
     let atom = RegisterClassExA(&windowClass)
     guard atom > 0 else {
@@ -711,6 +711,9 @@ func createWindow(descriptor: WindowDescriptor) -> HWND {
     fatalError("Descriptor was incomplete.")
   }
   
+  let hInstance: HINSTANCE = GetModuleHandleA(nil)
+  
+  className.withCString { c}
   let output = CreateWindowExA(
     0, // dwExStyle
     className, // lpClassName
@@ -722,7 +725,7 @@ func createWindow(descriptor: WindowDescriptor) -> HWND {
     Int32(dimensions[3]), // nHeight
     nil, // hWndParent
     nil, // hMenu
-    nil, // hInstance
+    hInstance, // hInstance
     nil) // lpParam
   
   guard let output else {
@@ -732,5 +735,12 @@ func createWindow(descriptor: WindowDescriptor) -> HWND {
   }
   return output
 }
+
+// Test the window creation procedure.
+var windowDesc = WindowDescriptor()
+windowDesc.className = "DX12WindowClass"
+windowDesc.title = "Learning DirectX 12"
+windowDesc.dimensions = createWindowDimensions()
+let hWnd = createWindow(descriptor: windowDesc)
 
 #endif
