@@ -594,21 +594,22 @@ func registerWindowClass(name: String) {
   }
   windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
   
+  // Specify the window name.
   windowClass.lpszMenuName = nil
   name.withCString { cString in
     windowClass.lpszClassName = cString
     windowClass.hIconSm = hIcon
     
-    
-  }
-  
-  // Specify the window name.
     let atom = RegisterClassExA(&windowClass)
     guard atom > 0 else {
       let errorCode = GetLastError()
       fatalError(
         "Could not create window class. Atom was \(atom). Received error code \(errorCode).")
     }
+  }
+  
+  // TODO: Clean up all of this code once we verify that the window can be
+  // created.
 }
 registerWindowClass(name: "DX12WindowClass")
 
