@@ -449,8 +449,6 @@ import WinSDK
 // UNAWARE_GDISCALED    2560x1440
 
 SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-print(GetSystemMetrics(SM_CXSCREEN))
-print(GetSystemMetrics(SM_CYSCREEN))
 
 // TODO: Set the Window name on macOS to match the one on Windows? Or reserve
 // that GUI decision to one that generalizes to custom UIs. For now, just copy
@@ -565,25 +563,52 @@ func messageProcedure(
 // WARNING: Captures 'messageProcedure' from the outer scope. Encapsulate this
 // better when you migrate this to the helper library.
 func registerWindowClass(name: String) {
+  // Get the HINSTANCE for the current program.
+  let hInstance: HINSTANCE = GetModuleHandleA(nil)
+  print("Created hInstance.")
+  
+  // Get the default icon.
+  let iconName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
+  let hIcon: HICON = LoadIconA(nil, iconName)
+  print("Created hIcon.")
+  print(hIcon)
+  
+  // Specify the first few parameters of the window class descriptor.
   var windowClass = WNDCLASSEXA()
   windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
+  windowClass.style = UInt32(CS_HREDRAW | CS_VREDRAW)
   windowClass.lpfnWndProc = messageProcedure
-  windowClass.hInstance = nil
+  windowClass.cbClsExtra = 0
+  windowClass.cbWndExtra = 0
+  windowClass.hInstance = hInstance
+  windowClass.hIcon = hIcon
   
-  let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
-  let cursor = LoadCursorA(nil, cursorName)
-  windowClass.hCursor = cursor
+  // Guarantee that the cursor is not the thing causing the crash.
+  do {
+    let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
+    let cursor = LoadCursorA(nil, cursorName)
+    guard let cursor else {
+      fatalError("Failed to create cursor.")
+    }
+    windowClass.hCursor = cursor
+  }
   windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
   
+  windowClass.lpszMenuName = nil
   name.withCString { cString in
     windowClass.lpszClassName = cString
+    windowClass.hIconSm = hIcon
+    
+    
   }
-  print(windowClass)
-
-  let atom = RegisterClassExA(&windowClass)
-  guard atom > 0 else {
-    fatalError("Could not create window class.")
-  }
+  
+  // Specify the window name.
+    let atom = RegisterClassExA(&windowClass)
+    guard atom > 0 else {
+      let errorCode = GetLastError()
+      fatalError(
+        "Could not create window class. Atom was \(atom). Received error code \(errorCode).")
+    }
 }
 registerWindowClass(name: "DX12WindowClass")
 
@@ -655,7 +680,9 @@ func createWindowDimensions() -> SIMD4<UInt32> {
   let upperY = centerY - windowSizeY / 2
   
   // Not clamping because we don't do this on Mac either. Instead, crashing if
-  // we detect an out-of-bounds error. May remove this check in the future.
+  // we detect an out-of-bounds error. May remove this check in the future. It
+  // feels fair to also check if the bottom right corner is out of bounds, but
+  // that goes beyond the spirit of the 3DGEP tutorial.
   guard leftX >= 0,
         upperY >= 0 else {
     fatalError("Window origin was out of bounds.")
@@ -668,11 +695,41 @@ func createWindowDimensions() -> SIMD4<UInt32> {
   return outputUnsigned
 }
 
-// new function:
-// createWindow(dimensions: SIMD4<UInt32>)
 
-// (1189, 332, 1462, 1496)
-let windowDimensions = createWindowDimensions()
-print(windowDimensions)
+
+struct WindowDescriptor {
+  var className: String?
+  var title: String?
+  var dimensions: SIMD4<UInt32>?
+}
+
+func createWindow(descriptor: WindowDescriptor) -> HWND {
+  guard let className = descriptor.className,
+        let title = descriptor.title,
+        let dimensions = descriptor.dimensions else {
+    fatalError("Descriptor was incomplete.")
+  }
+  
+  let output = CreateWindowExA(
+    0, // dwExStyle
+    className, // lpClassName
+    title, // lpWindowName
+    WS_OVERLAPPEDWINDOW, // dwStyle
+    Int32(dimensions[0]), // X
+    Int32(dimensions[1]), // Y
+    Int32(dimensions[2]), // nWidth
+    Int32(dimensions[3]), // nHeight
+    nil, // hWndParent
+    nil, // hMenu
+    nil, // hInstance
+    nil) // lpParam
+  
+  guard let output else {
+    let errorCode = GetLastError()
+    fatalError(
+      "Failed to create window. Received error code \(errorCode).")
+  }
+  return output
+}
 
 #endif
