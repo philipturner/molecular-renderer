@@ -549,9 +549,6 @@ SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 // #define MAKEINTRESOURCEA(i) ((LPSTR)((ULONG_PTR)((WORD)(i))))
 // #define IDC_ARROW           MAKEINTRESOURCE(32512)
 
-// Check that changes to the file are actually being registered.
-print("Hello world 5")
-
 func messageProcedure(
   hwnd: HWND?,
   message: UInt32,
@@ -566,13 +563,18 @@ func messageProcedure(
 
 // WARNING: Captures 'messageProcedure' from the outer scope. Encapsulate this
 // better when you migrate this to the helper library.
+//
+// Leaving all of the null variables explicitly initialized, to ease the pain
+// of explicitly checking them when tracing down a bug.
 func registerWindowClass(name: String) {
   // Specify the first few parameters of the window class descriptor.
   var windowClass = WNDCLASSEXA()
   windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
   windowClass.style = UInt32(CS_HREDRAW | CS_VREDRAW)
   windowClass.lpfnWndProc = messageProcedure
-  windowClass.hInstance = GetModuleHandleA(nil)
+  windowClass.cbClsExtra = 0
+  windowClass.cbWndExtra = 0
+  windowClass.hInstance = nil
   
   // Generate the cursor object.
   let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
@@ -590,6 +592,7 @@ func registerWindowClass(name: String) {
   // pointer exists. Otherwise, cString becomes a zombie pointer and the
   // function fails with error code 123.
   name.withCString { cString in
+    windowClass.lpszMenuName = nil
     windowClass.lpszClassName = cString
     
     let atom = RegisterClassExA(&windowClass)
@@ -599,8 +602,6 @@ func registerWindowClass(name: String) {
         "Could not create window class. Received error code \(errorCode).")
     }
   }
-  
-  // TODO: Clean up the code after fixing the new bug.
 }
 registerWindowClass(name: "DX12WindowClass")
 
@@ -704,7 +705,7 @@ func createWindow(descriptor: WindowDescriptor) -> HWND {
   
   let output = CreateWindowExA(
     0, // dwExStyle
-    nil, // lpClassName
+    className, // lpClassName
     title, // lpWindowName
     WS_OVERLAPPEDWINDOW, // dwStyle
     Int32(dimensions[0]), // X
@@ -713,7 +714,7 @@ func createWindow(descriptor: WindowDescriptor) -> HWND {
     Int32(dimensions[3]), // nHeight
     nil, // hWndParent
     nil, // hMenu
-    GetModuleHandleA(nil), // hInstance
+    nil, // hInstance
     nil) // lpParam
   
   guard let output else {
