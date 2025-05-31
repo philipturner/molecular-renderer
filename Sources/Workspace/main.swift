@@ -734,4 +734,6 @@ let hWnd = createWindow(descriptor: windowDesc)
 
 
 
+// I think the next task is setting up the swap chain.
+
 #endif
