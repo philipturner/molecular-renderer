@@ -939,4 +939,24 @@ do {
   }
 }
 
+for dxgiDebugID in dxgiDebugIDs {
+  print("DXGI debug ID: \(dxgiDebugID)")
+  
+  let messageCount = try! infoQueue2.GetNumStoredMessages(dxgiDebugID)
+  for messageID in 0..<messageCount {
+    let message =
+    try! infoQueue2.GetMessage(dxgiDebugID, UInt64(messageID))
+    print("- messages[\(messageID)]:")
+    print("  - category:", message.pointee.Category)
+    print("  - severity:", message.pointee.Severity)
+    print("  - ID:", message.pointee.ID)
+    
+    let description = String(cString: message.pointee.pDescription)
+    print("  - description:", description)
+    print("  - byte length:", message.pointee.DescriptionByteLength)
+    
+    free(message)
+  }
+}
+
 #endif

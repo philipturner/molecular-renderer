@@ -23,6 +23,26 @@ public class IDXGIInfoQueue: SwiftCOM.IUnknown {
     }
   }
   
+  /// See `ID3D12InfoQueue::GetMessage` for documentation.
+  public func GetMessage(_ Producer: DXGI_DEBUG_ID, _ MessageIndex: UINT64) throws -> UnsafeMutablePointer<DXGI_INFO_QUEUE_MESSAGE> {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      // Call the function the first time.
+      var messageByteLength: SIZE_T = SIZE_T()
+      try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, Producer, MessageIndex, nil, &messageByteLength))
+      
+      // Allocate memory, then cast to a non-null, typed pointer.
+      let rawPointer = malloc(Int(messageByteLength))
+      guard let rawPointer else {
+        fatalError("Failed to allocate memory for DXGI_INFO_QUEUE_MESSAGE.")
+      }
+      let pMessage = rawPointer.assumingMemoryBound(to: DXGI_INFO_QUEUE_MESSAGE.self)
+      
+      // Call the function the second time.
+      try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, Producer, MessageIndex, pMessage, &messageByteLength))
+      return pMessage
+    }
+  }
+  
   public func GetMessageCountLimit(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
     return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
       return pThis.pointee.lpVtbl.pointee.GetMessageCountLimit(pThis, Producer)
