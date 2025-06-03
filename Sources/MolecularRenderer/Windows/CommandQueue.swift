@@ -29,7 +29,7 @@ public class CommandQueue {
     
     // Fill the command queue descriptor.
     var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
-    commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE
+    commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT
     commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL.rawValue
     commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE
     commandQueueDesc.NodeMask = 0

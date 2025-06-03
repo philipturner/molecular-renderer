@@ -779,8 +779,8 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   swapChainDesc.Flags = 0
   
   // Get the swap chain as IDXGISwapChain1.
-  var swapChain1: SwiftCOM.IDXGISwapChain1?
-  swapChain1 = try? factory.CreateSwapChainForHwnd(
+  var swapChain1: SwiftCOM.IDXGISwapChain1
+  swapChain1 = try! factory.CreateSwapChainForHwnd(
     commandQueue.d3d12CommandQueue, // pDevice
     window, // hWnd
     swapChainDesc, // pDesc
@@ -920,6 +920,8 @@ print("End of Section 2")
 
 
 
+#if false
+
 // Show the debug messages.
 do {
   let messageCount = try! infoQueue.GetNumStoredMessages()
@@ -958,5 +960,7 @@ for dxgiDebugID in dxgiDebugIDs {
     free(message)
   }
 }
+
+#endif
 
 #endif
