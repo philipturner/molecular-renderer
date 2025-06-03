@@ -13,9 +13,9 @@ public class ID3D12InfoQueue1: SwiftCOM.IUnknown {
   // Windows 10.
   public override class var IID: IID { IID_ID3D12InfoQueue }
   
-  /// Modified binding for ID3D12InfoQueue::GetMessage.
+  /// Modified binding for `ID3D12InfoQueue::GetMessage`.
   ///
-  /// The API creates a combined memory allocation, with the D3D12_MESSAGE
+  /// DirectX creates a combined memory allocation, with the `D3D12_MESSAGE`
   /// struct in the first 32 bytes, and the string in the rest. You can
   /// calculate the total allocation size as 32 + `DescriptionByteLength`.
   ///
