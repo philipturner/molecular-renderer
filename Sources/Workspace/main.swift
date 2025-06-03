@@ -792,14 +792,7 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   
 }
 
-// Create the device.
-let device = Device()
-let infoQueue = device.d3d12InfoQueue
-try! infoQueue.ClearStorageFilter()
 
-// Initialize the DXGI info queue.
-var infoQueue2: IDXGIInfoQueue
-infoQueue2 = try! DXGIGetDebugInterface1(0)
 
 // List all of the DXGI debug IDs for reference.
 let dxgiDebugIDs: [DXGI_DEBUG_ID] = [
@@ -809,6 +802,39 @@ let dxgiDebugIDs: [DXGI_DEBUG_ID] = [
   DXGI_DEBUG_APP,
   DXGI_DEBUG_D3D11
 ]
+
+// Create the device.
+let device = Device()
+let infoQueue = device.d3d12InfoQueue
+try! infoQueue.ClearStorageFilter()
+
+// Initialize the DXGI info queue.
+var infoQueue2: IDXGIInfoQueue
+infoQueue2 = try! DXGIGetDebugInterface1(0)
+
+print()
+print("Info Queue 2 - break on severity")
+
+print()
+print(try! infoQueue.GetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR))
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetBreakOnSeverity(dxgiDebugID, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR))
+}
+
+for dxgiDebugID in dxgiDebugIDs {
+  try! infoQueue2.SetBreakOnSeverity(dxgiDebugID, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true)
+}
+
+print()
+print(try! infoQueue.GetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR))
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetBreakOnSeverity(dxgiDebugID, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR))
+}
+
+print()
+print("Info Queue 2 - break on severity - end")
+
+
 
 try! infoQueue.ClearRetrievalFilter()
 for dxgiDebugID in dxgiDebugIDs {

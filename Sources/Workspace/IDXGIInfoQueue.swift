@@ -17,6 +17,12 @@ public class IDXGIInfoQueue: SwiftCOM.IUnknown {
     }
   }
   
+  public func GetBreakOnSeverity(_ Producer: DXGI_DEBUG_ID, _ Severity: DXGI_INFO_QUEUE_MESSAGE_SEVERITY) throws -> Bool {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      return pThis.pointee.lpVtbl.pointee.GetBreakOnSeverity(pThis, Producer, Severity) == true
+    }
+  }
+  
   public func GetMessageCountLimit(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
     return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
       return pThis.pointee.lpVtbl.pointee.GetMessageCountLimit(pThis, Producer)
@@ -62,6 +68,12 @@ public class IDXGIInfoQueue: SwiftCOM.IUnknown {
   public func GetStorageFilterStackSize(_ Producer: DXGI_DEBUG_ID) throws -> UINT {
     return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
       return pThis.pointee.lpVtbl.pointee.GetStorageFilterStackSize(pThis, Producer)
+    }
+  }
+  
+  public func SetBreakOnSeverity(_ Producer: DXGI_DEBUG_ID, _ Severity: DXGI_INFO_QUEUE_MESSAGE_SEVERITY, _ bEnabled: WindowsBool) throws {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      try CHECKED(pThis.pointee.lpVtbl.pointee.SetBreakOnSeverity(pThis, Producer, Severity, bEnabled))
     }
   }
 }
