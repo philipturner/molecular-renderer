@@ -810,11 +810,18 @@ do {
   castedObject = try! infoQueue.QueryInterface()
 
   for messageID in 0..<2 {
-    let (message, messageByteLength) = try! castedObject
-      .GetMessage(UInt64(messageID))
+    let message =
+    try! castedObject.GetMessage(UInt64(messageID))
     print("messages[\(messageID)]:")
-    print("- message:", message)
-    print("- message byte length:", messageByteLength)
+    print("- category:", message.pointee.Category)
+    print("- severity:", message.pointee.Severity)
+    print("- ID:", message.pointee.ID)
+    
+    let description = String(cString: message.pointee.pDescription)
+    print("- description:", description)
+    print("- byte length:", message.pointee.DescriptionByteLength)
+    
+    free(message)
   }
 }
 
@@ -832,5 +839,14 @@ swapChainDesc.window = window
 //createSwapChain(descriptor: swapChainDesc)
 
 */
+
+
+
+// Next tasks:
+// (1) Fix the function signature of the GetMessage binding.
+// (2) Upstream into my fork of SwiftCOM.
+// (3) Test that the upstream actually registered.
+// (4) Clean up the mess that is 'ID3D12InfoQueue1' in my codebase.
+// (5) Work on support for 'IDXGIInfoQueue'.
 
 #endif

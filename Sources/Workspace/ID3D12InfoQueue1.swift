@@ -13,48 +13,30 @@ public class ID3D12InfoQueue1: SwiftCOM.IUnknown {
   // Windows 10.
   public override class var IID: IID { IID_ID3D12InfoQueue }
   
-  public func GetMessage(_ MessageIndex: UINT64) throws -> (D3D12_MESSAGE, SIZE_T) {
+  /// Modified binding for ID3D12InfoQueue::GetMessage.
+  ///
+  /// The API creates a combined memory allocation, with the D3D12_MESSAGE
+  /// struct in the first 32 bytes, and the string in the rest. You can
+  /// calculate the total allocation size as 32 + `DescriptionByteLength`.
+  ///
+  /// The caller is responsible for deallocating the pointer. Use `free`
+  /// instead of `UnsafeMutablePointer.deallocate`.
+  public func GetMessage(_ MessageIndex: UINT64) throws -> UnsafeMutablePointer<D3D12_MESSAGE> {
     return try perform(as: WinSDK.ID3D12InfoQueue.self) { pThis in
-      // The fix for the crash: use two function calls. The first has the
-      // message pointer set to nil. The second has the message pointer set to
-      // an actual pointer.
-      //
-      // // Get the size of the message
-      // SIZE_T messageLength = 0;
-      // HRESULT hr = pInfoQueue->GetMessage(0, NULL, &messageLength);
-      //
-      // // Allocate space and get the message
-      // D3D12_MESSAGE * pMessage = (D3D12_MESSAGE*)malloc(messageLength);
-      // hr = pInfoQueue->GetMessage(0, pMessage, &messageLength);
-      
+      // Call the function the first time.
       var messageByteLength: SIZE_T = SIZE_T()
       try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, MessageIndex, nil, &messageByteLength))
       
-      // The string length is (returned byte length) - (theoretical byte length).
-      print()
-      print("Queried message.")
-      print("returned byte length:", messageByteLength)
-      print("theoretical byte length:", MemoryLayout<D3D12_MESSAGE>.stride)
-      print("theoretical byte length:", MemoryLayout<D3D12_MESSAGE>.size)
-      print("component byte length:", MemoryLayout<D3D12_MESSAGE_ID>.stride)
+      // Allocate memory, then cast to a non-null, typed pointer.
+      let rawPointer = malloc(Int(messageByteLength))
+      guard let rawPointer else {
+        fatalError("Failed to allocate memory for D3D12_MESSAGE.")
+      }
+      let pMessage = rawPointer.assumingMemoryBound(to: D3D12_MESSAGE.self)
       
-      let pMessage = malloc(Int(messageByteLength)).assumingMemoryBound(to: D3D12_MESSAGE.self)
-      print("pMessage =", pMessage)
+      // Call the function the second time.
       try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, MessageIndex, pMessage, &messageByteLength))
-      
-      print()
-      print("Passed second function call.")
-      print("returned byte length:", messageByteLength)
-      print("message =", pMessage.pointee)
-      
-      // The string is allocated in the region of the memory allocation
-      // immediately after the 'D3D12_MESSAGE' struct.
-      print("pointer pair: (\(pMessage), \(pMessage.pointee.pDescription))")
-      
-      let string = String(cString: pMessage.pointee.pDescription)
-      print("string =", string)
-      
-      return (pMessage.pointee, messageByteLength)
+      return pMessage
     }
   }
   
