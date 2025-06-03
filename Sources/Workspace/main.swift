@@ -798,8 +798,13 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
 try! infoQueue.ClearStorageFilter()
-print("stack size:", try! infoQueue.GetStorageFilterStackSize())
-print("limit:", try! infoQueue.GetMessageCountLimit())
+
+// Set the error callback.
+do {
+  let iid = ID3D12InfoQueue.IID
+  let comObject = try! infoQueue.QueryInterface(iid: iid)
+  print("passed test:", comObject)
+}
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -810,26 +815,6 @@ let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
 var swapChainDesc = SwapChainDescriptor()
 swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
-createSwapChain(descriptor: swapChainDesc)
-
-
-let storedMessageCount = try! infoQueue.GetNumStoredMessages()
-let deniedMessageCount = try! infoQueue.GetNumMessagesDeniedByStorageFilter()
-let allowedMessageCount = try! infoQueue.GetNumMessagesAllowedByStorageFilter()
-print("stored message count:", storedMessageCount)
-print("denied message count:", deniedMessageCount)
-print("allowed message count:", allowedMessageCount)
-
-print(WinSDK.ID3D12InfoQueue1.self)
-
-for messageID in 0..<allowedMessageCount {
-  let (message, messageByteLength) = try! infoQueue
-    .GetMessage(messageID)
-  
-  print()
-  print("message \(messageID):")
-  print("- message:", message)
-  print("- messageByteLength:", messageByteLength)
-}
+//createSwapChain(descriptor: swapChainDesc)
 
 #endif

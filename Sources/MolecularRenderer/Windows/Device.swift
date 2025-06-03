@@ -88,10 +88,12 @@ extension Device {
   private static func createInfoQueue(
     device: SwiftCOM.ID3D12Device
   ) -> SwiftCOM.ID3D12InfoQueue {
-    let iid = SwiftCOM.ID3D12InfoQueue.IID
+    let iid = WinSDK.IID_ID3D12InfoQueue1
     let interface = try! device.QueryInterface(iid: iid)
-    let infoQueue = SwiftCOM.ID3D12InfoQueue(pUnk: interface)
-    return infoQueue
+    print("Query interface passed:", interface)
+    
+    // let infoQueue = SwiftCOM.ID3D12InfoQueue(pUnk: interface)
+    fatalError("Not implemented.")
   }
 }
 
