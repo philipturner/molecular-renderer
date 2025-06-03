@@ -779,8 +779,8 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   swapChainDesc.Flags = 0
   
   // Get the swap chain as IDXGISwapChain1.
-  var swapChain1: SwiftCOM.IDXGISwapChain1
-  swapChain1 = try! factory.CreateSwapChainForHwnd(
+  var swapChain1: SwiftCOM.IDXGISwapChain1?
+  swapChain1 = try? factory.CreateSwapChainForHwnd(
     commandQueue.d3d12CommandQueue, // pDevice
     window, // hWnd
     swapChainDesc, // pDesc
@@ -797,36 +797,6 @@ let device = Device()
 let infoQueue = device.d3d12InfoQueue
 try! infoQueue.ClearStorageFilter()
 
-// Create the command queue.
-var commandQueueDescriptor = CommandQueueDescriptor()
-commandQueueDescriptor.device = device
-let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
-
-// Create the swap chain.
-var swapChainDesc = SwapChainDescriptor()
-swapChainDesc.commandQueue = commandQueue
-swapChainDesc.window = window
-// createSwapChain(descriptor: swapChainDesc)
-
-// Show the debug messages.
-let messageCount = try! infoQueue.GetNumStoredMessages()
-for messageID in 0..<messageCount {
-  let message =
-  try! infoQueue.GetMessage(UInt64(messageID))
-  print("messages[\(messageID)]:")
-  print("- category:", message.pointee.Category)
-  print("- severity:", message.pointee.Severity)
-  print("- ID:", message.pointee.ID)
-  
-  let description = String(cString: message.pointee.pDescription)
-  print("- description:", description)
-  print("- byte length:", message.pointee.DescriptionByteLength)
-  
-  free(message)
-}
-
-
-
 // Initialize the DXGI info queue.
 var infoQueue2: IDXGIInfoQueue
 infoQueue2 = try! DXGIGetDebugInterface1(0)
@@ -840,8 +810,6 @@ let dxgiDebugIDs: [DXGI_DEBUG_ID] = [
   DXGI_DEBUG_D3D11
 ]
 
-// MARK: - Section 1 of Implemented Methods
-
 try! infoQueue.ClearRetrievalFilter()
 for dxgiDebugID in dxgiDebugIDs {
   try! infoQueue2.ClearRetrievalFilter(dxgiDebugID)
@@ -851,6 +819,19 @@ try! infoQueue.ClearStorageFilter()
 for dxgiDebugID in dxgiDebugIDs {
   try! infoQueue2.ClearStorageFilter(dxgiDebugID)
 }
+
+// Create the command queue.
+var commandQueueDescriptor = CommandQueueDescriptor()
+commandQueueDescriptor.device = device
+let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
+
+// Create the swap chain.
+var swapChainDesc = SwapChainDescriptor()
+swapChainDesc.commandQueue = commandQueue
+swapChainDesc.window = window
+createSwapChain(descriptor: swapChainDesc)
+
+// MARK: - Section 1 of Implemented Methods
 
 print()
 print(try! infoQueue.GetRetrievalFilterStackSize())
@@ -907,5 +888,29 @@ for dxgiDebugID in dxgiDebugIDs {
 
 print()
 print("End of Section 2")
+
+// Next task:
+// Test whether the info queue catches the errors for IDXGISwapChain.
+
+
+
+// Show the debug messages.
+do {
+  let messageCount = try! infoQueue.GetNumStoredMessages()
+  for messageID in 0..<messageCount {
+    let message =
+    try! infoQueue.GetMessage(UInt64(messageID))
+    print("messages[\(messageID)]:")
+    print("- category:", message.pointee.Category)
+    print("- severity:", message.pointee.Severity)
+    print("- ID:", message.pointee.ID)
+    
+    let description = String(cString: message.pointee.pDescription)
+    print("- description:", description)
+    print("- byte length:", message.pointee.DescriptionByteLength)
+    
+    free(message)
+  }
+}
 
 #endif

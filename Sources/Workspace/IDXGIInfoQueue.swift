@@ -28,7 +28,7 @@ public class IDXGIInfoQueue: SwiftCOM.IUnknown {
       return pThis.pointee.lpVtbl.pointee.GetMuteDebugOutput(pThis, Producer) == true
     }
   }
-  
+   
   public func GetNumMessagesAllowedByStorageFilter(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
     return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
       return pThis.pointee.lpVtbl.pointee.GetNumMessagesAllowedByStorageFilter(pThis, Producer)
