@@ -741,7 +741,9 @@ struct SwapChainDescriptor {
   var window: HWND?
 }
 
-func createSwapChain(descriptor: SwapChainDescriptor) {
+func createSwapChain(
+  descriptor: SwapChainDescriptor
+) -> SwiftCOM.IDXGISwapChain4? {
   guard let commandQueue = descriptor.commandQueue,
         let window = descriptor.window else {
     fatalError("Descriptor was incomplete.")
@@ -778,29 +780,34 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED
   swapChainDesc.Flags = 0
   
-  // Get the swap chain as IDXGISwapChain1.
-  var swapChain1: SwiftCOM.IDXGISwapChain1
-  swapChain1 = try! factory.CreateSwapChainForHwnd(
+  // Get the swap chain as 'IDXGISwapChain1'.
+  var swapChain1: SwiftCOM.IDXGISwapChain1?
+  swapChain1 = try? factory.CreateSwapChainForHwnd(
     commandQueue.d3d12CommandQueue, // pDevice
     window, // hWnd
     swapChainDesc, // pDesc
     nil, // pFullscreenDesc,
     nil) // pRestrictToOutput
   print(swapChain1)
+  guard let swapChain1 else {
+    return nil
+  }
   
-  // Test COM pointer casts to obviously invalid objects.
-  
+  // Perform a cast using 'IUnknown::QueryInterface'.
+  var swapChain4: SwiftCOM.IDXGISwapChain4
+  swapChain4 = try! swapChain1.QueryInterface()
+  return swapChain4
 }
 
 
 
 // List all of the DXGI debug IDs for reference.
 let dxgiDebugIDs: [DXGI_DEBUG_ID] = [
-  DXGI_DEBUG_ALL,
-  DXGI_DEBUG_DX,
+  //DXGI_DEBUG_ALL,
+  //DXGI_DEBUG_DX,
   DXGI_DEBUG_DXGI,
-  DXGI_DEBUG_APP,
-  DXGI_DEBUG_D3D11
+  //DXGI_DEBUG_APP,
+  //DXGI_DEBUG_D3D11
 ]
 
 // Create the device.
@@ -836,6 +843,7 @@ print("Info Queue 2 - break on severity - end")
 
 
 
+/*
 try! infoQueue.ClearRetrievalFilter()
 for dxgiDebugID in dxgiDebugIDs {
   try! infoQueue2.ClearRetrievalFilter(dxgiDebugID)
@@ -845,6 +853,7 @@ try! infoQueue.ClearStorageFilter()
 for dxgiDebugID in dxgiDebugIDs {
   try! infoQueue2.ClearStorageFilter(dxgiDebugID)
 }
+*/
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -855,7 +864,7 @@ let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
 var swapChainDesc = SwapChainDescriptor()
 swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
-createSwapChain(descriptor: swapChainDesc)
+let swapChain = createSwapChain(descriptor: swapChainDesc)
 
 // MARK: - Section 1 of Implemented Methods
 
@@ -920,7 +929,7 @@ print("End of Section 2")
 
 
 
-#if false
+#if true
 
 // Show the debug messages.
 do {
