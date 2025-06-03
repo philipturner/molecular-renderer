@@ -10,7 +10,7 @@ public class IDXGIInfoQueue: SwiftCOM.IUnknown {
       pThis.pointee.lpVtbl.pointee.ClearRetrievalFilter(pThis, Producer)
     }
   }
-
+  
   public func ClearStorageFilter(_ Producer: DXGI_DEBUG_ID) throws {
     return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
       pThis.pointee.lpVtbl.pointee.ClearStorageFilter(pThis, Producer)
@@ -26,6 +26,30 @@ public class IDXGIInfoQueue: SwiftCOM.IUnknown {
   public func GetMuteDebugOutput(_ Producer: DXGI_DEBUG_ID) throws -> Bool {
     return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
       return pThis.pointee.lpVtbl.pointee.GetMuteDebugOutput(pThis, Producer) == true
+    }
+  }
+  
+  public func GetNumMessagesAllowedByStorageFilter(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      return pThis.pointee.lpVtbl.pointee.GetNumMessagesAllowedByStorageFilter(pThis, Producer)
+    }
+  }
+  
+  public func GetNumMessagesDeniedByStorageFilter(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      return pThis.pointee.lpVtbl.pointee.GetNumMessagesDeniedByStorageFilter(pThis, Producer)
+    }
+  }
+  
+  public func GetNumStoredMessages(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      return pThis.pointee.lpVtbl.pointee.GetNumStoredMessages(pThis, Producer)
+    }
+  }
+  
+  public func GetNumStoredMessagesAllowedByRetrievalFilters(_ Producer: DXGI_DEBUG_ID) throws -> UINT64 {
+    return try perform(as: WinSDK.IDXGIInfoQueue.self) { pThis in
+      return pThis.pointee.lpVtbl.pointee.GetNumStoredMessagesAllowedByRetrievalFilters(pThis, Producer)
     }
   }
   

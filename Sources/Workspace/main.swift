@@ -795,6 +795,7 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
 // Create the device.
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
+try! infoQueue.ClearStorageFilter()
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -824,16 +825,7 @@ for messageID in 0..<messageCount {
   free(message)
 }
 
-// Try to get some feedback from the debug layer.
-//
-/*
-    IDXGIDebug1* pDebug = nullptr;
-    if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
-    {
-        pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
-        pDebug->Release();
-    }
-*/
+
 
 // Initialize the DXGI info queue.
 var infoQueue2: IDXGIInfoQueue
@@ -885,5 +877,35 @@ for dxgiDebugID in dxgiDebugIDs {
 }
 
 // MARK: - Section 2 of Implemented Methods
+
+print()
+print("Start of Section 2")
+
+print()
+print(try! infoQueue.GetNumMessagesAllowedByStorageFilter())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetNumMessagesAllowedByStorageFilter(dxgiDebugID))
+}
+
+print()
+print(try! infoQueue.GetNumMessagesDeniedByStorageFilter())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetNumMessagesDeniedByStorageFilter(dxgiDebugID))
+}
+
+print()
+print(try! infoQueue.GetNumStoredMessages())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetNumStoredMessages(dxgiDebugID))
+}
+
+print()
+print(try! infoQueue.GetNumStoredMessagesAllowedByRetrievalFilter())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetNumStoredMessagesAllowedByRetrievalFilters(dxgiDebugID))
+}
+
+print()
+print("End of Section 2")
 
 #endif
