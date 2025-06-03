@@ -792,13 +792,6 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   
 }
 
-var debug: SwiftCOM.IDXGIDebug
-debug = try! DXGIGetDebugInterface1(0)
-print()
-print("debug:", debug)
-
-try! debug.ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL)
-
 // Create the device.
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
@@ -842,7 +835,55 @@ for messageID in 0..<messageCount {
     }
 */
 
+// Initialize the DXGI info queue.
+var infoQueue2: IDXGIInfoQueue
+infoQueue2 = try! DXGIGetDebugInterface1(0)
 
-try! debug.ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL)
+// List all of the DXGI debug IDs for reference.
+let dxgiDebugIDs: [DXGI_DEBUG_ID] = [
+  DXGI_DEBUG_ALL,
+  DXGI_DEBUG_DX,
+  DXGI_DEBUG_DXGI,
+  DXGI_DEBUG_APP,
+  DXGI_DEBUG_D3D11
+]
+
+// MARK: - Section 1 of Implemented Methods
+
+try! infoQueue.ClearRetrievalFilter()
+for dxgiDebugID in dxgiDebugIDs {
+  try! infoQueue2.ClearRetrievalFilter(dxgiDebugID)
+}
+
+try! infoQueue.ClearStorageFilter()
+for dxgiDebugID in dxgiDebugIDs {
+  try! infoQueue2.ClearStorageFilter(dxgiDebugID)
+}
+
+print()
+print(try! infoQueue.GetRetrievalFilterStackSize())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetRetrievalFilterStackSize(dxgiDebugID))
+}
+
+print()
+print(try! infoQueue.GetStorageFilterStackSize())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetStorageFilterStackSize(dxgiDebugID))
+}
+
+print()
+print(try! infoQueue.GetMessageCountLimit())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetMessageCountLimit(dxgiDebugID))
+}
+
+print()
+print(try! infoQueue.GetMuteDebugOutput())
+for dxgiDebugID in dxgiDebugIDs {
+  print("-", try! infoQueue2.GetMuteDebugOutput(dxgiDebugID))
+}
+
+// MARK: - Section 2 of Implemented Methods
 
 #endif
