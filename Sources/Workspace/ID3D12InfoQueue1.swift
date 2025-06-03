@@ -15,13 +15,46 @@ public class ID3D12InfoQueue1: SwiftCOM.IUnknown {
   
   public func GetMessage(_ MessageIndex: UINT64) throws -> (D3D12_MESSAGE, SIZE_T) {
     return try perform(as: WinSDK.ID3D12InfoQueue.self) { pThis in
-      var pMessage: D3D12_MESSAGE = D3D12_MESSAGE()
-      var pMessageByteLength: SIZE_T = SIZE_T()
-      // FIXME(compnerd) GetMessage is also a free function which has a unicode
-      // and ascii version.  As a result, `GetMessage` is a macro which happens
-      // to expand incorrectly to `GetMessageA` here.
-      try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, MessageIndex, nil, &pMessageByteLength))
-      return (pMessage, pMessageByteLength)
+      // The fix for the crash: use two function calls. The first has the
+      // message pointer set to nil. The second has the message pointer set to
+      // an actual pointer.
+      //
+      // // Get the size of the message
+      // SIZE_T messageLength = 0;
+      // HRESULT hr = pInfoQueue->GetMessage(0, NULL, &messageLength);
+      //
+      // // Allocate space and get the message
+      // D3D12_MESSAGE * pMessage = (D3D12_MESSAGE*)malloc(messageLength);
+      // hr = pInfoQueue->GetMessage(0, pMessage, &messageLength);
+      
+      var messageByteLength: SIZE_T = SIZE_T()
+      try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, MessageIndex, nil, &messageByteLength))
+      
+      // The string length is (returned byte length) - (theoretical byte length).
+      print()
+      print("Queried message.")
+      print("returned byte length:", messageByteLength)
+      print("theoretical byte length:", MemoryLayout<D3D12_MESSAGE>.stride)
+      print("theoretical byte length:", MemoryLayout<D3D12_MESSAGE>.size)
+      print("component byte length:", MemoryLayout<D3D12_MESSAGE_ID>.stride)
+      
+      let pMessage = malloc(Int(messageByteLength)).assumingMemoryBound(to: D3D12_MESSAGE.self)
+      print("pMessage =", pMessage)
+      try CHECKED(pThis.pointee.lpVtbl.pointee.GetMessageA(pThis, MessageIndex, pMessage, &messageByteLength))
+      
+      print()
+      print("Passed second function call.")
+      print("returned byte length:", messageByteLength)
+      print("message =", pMessage.pointee)
+      
+      // The string is allocated in the region of the memory allocation
+      // immediately after the 'D3D12_MESSAGE' struct.
+      print("pointer pair: (\(pMessage), \(pMessage.pointee.pDescription))")
+      
+      let string = String(cString: pMessage.pointee.pDescription)
+      print("string =", string)
+      
+      return (pMessage.pointee, messageByteLength)
     }
   }
   

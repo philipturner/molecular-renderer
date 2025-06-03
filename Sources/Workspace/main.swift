@@ -809,7 +809,13 @@ do {
   var castedObject: ID3D12InfoQueue1
   castedObject = try! infoQueue.QueryInterface()
 
-  try! castedObject.GetMessage(0)
+  for messageID in 0..<2 {
+    let (message, messageByteLength) = try! castedObject
+      .GetMessage(UInt64(messageID))
+    print("messages[\(messageID)]:")
+    print("- message:", message)
+    print("- message byte length:", messageByteLength)
+  }
 }
 
 /*
