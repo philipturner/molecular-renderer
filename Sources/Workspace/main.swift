@@ -730,10 +730,70 @@ var windowDesc = WindowDescriptor()
 windowDesc.className = "DX12WindowClass"
 windowDesc.title = "Learning DirectX 12"
 windowDesc.dimensions = createWindowDimensions()
-let hWnd = createWindow(descriptor: windowDesc)
+let window = createWindow(descriptor: windowDesc)
 
 
 
 // I think the next task is setting up the swap chain.
+
+struct SwapChainDescriptor {
+  var commandQueue: CommandQueue?
+  var window: HWND?
+}
+
+func createSwapChain(descriptor: SwapChainDescriptor) {
+  guard let commandQueue = descriptor.commandQueue,
+        let window = descriptor.window else {
+    fatalError("Descriptor was incomplete.")
+  }
+  
+  // Instantiate the factory.
+  let factory: SwiftCOM.IDXGIFactory4 =
+    try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+  
+  // Fill the swap chain descriptor.
+  var swapChainDesc = DXGI_SWAP_CHAIN_DESC1()
+  swapChainDesc.Width = 1440
+  swapChainDesc.Height = 1440
+  swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+  swapChainDesc.Stereo = false
+  
+  // Specify the multisampling descriptor.
+  var sampleDesc = DXGI_SAMPLE_DESC()
+  sampleDesc.Count = 1
+  sampleDesc.Quality = 0
+  swapChainDesc.SampleDesc = sampleDesc
+  swapChainDesc.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS
+  swapChainDesc.BufferCount = 3
+  swapChainDesc.Scaling = DXGI_SCALING_NONE
+  
+  // I'm choosing flip discard, although I'm still troubled over whether this
+  // is the option I want.
+  swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD
+  
+  // I'm also troubled over the best option for the alpha mode.
+  swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED
+  swapChainDesc.Flags = 0
+  
+  // Get the swap chain as IDXGISwapChain1.
+  
+  // Test COM pointer casts to obviously invalid objects.
+  
+  print("Set swap chain desc flags.")
+}
+
+// Create the device.
+let device = Device()
+
+// Create the command queue.
+var commandQueueDescriptor = CommandQueueDescriptor()
+commandQueueDescriptor.device = device
+let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
+
+// Create the swap chain.
+var swapChainDesc = SwapChainDescriptor()
+swapChainDesc.commandQueue = commandQueue
+swapChainDesc.window = window
+createSwapChain(descriptor: swapChainDesc)
 
 #endif
