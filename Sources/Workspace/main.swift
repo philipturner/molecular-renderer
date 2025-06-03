@@ -792,6 +792,13 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   
 }
 
+var debug: SwiftCOM.IDXGIDebug
+debug = try! DXGIGetDebugInterface1(0)
+print()
+print("debug:", debug)
+
+try! debug.ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL)
+
 // Create the device.
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
@@ -805,7 +812,7 @@ let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
 var swapChainDesc = SwapChainDescriptor()
 swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
-createSwapChain(descriptor: swapChainDesc)
+// createSwapChain(descriptor: swapChainDesc)
 
 // Show the debug messages.
 let messageCount = try! infoQueue.GetNumStoredMessages()
@@ -823,5 +830,19 @@ for messageID in 0..<messageCount {
   
   free(message)
 }
+
+// Try to get some feedback from the debug layer.
+//
+/*
+    IDXGIDebug1* pDebug = nullptr;
+    if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+    {
+        pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+        pDebug->Release();
+    }
+*/
+
+
+try! debug.ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL)
 
 #endif
