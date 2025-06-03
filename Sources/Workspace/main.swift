@@ -797,33 +797,43 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
 // Create the device.
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
-
 // IDXGIInfoQueue != ID3D12InfoQueue!!!!
 
-try! infoQueue.AddApplicationMessage(D3D12_MESSAGE_SEVERITY_WARNING, "Test warning.")
-try! infoQueue.AddMessage(D3D12_MESSAGE_CATEGORY_STATE_GETTING, D3D12_MESSAGE_SEVERITY_WARNING, D3D12_MESSAGE_ID_LIVE_SWAPCHAIN, "Test warning 2.")
+// Create the command queue.
+var commandQueueDescriptor = CommandQueueDescriptor()
+commandQueueDescriptor.device = device
+let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
+
+// Create the swap chain.
+var swapChainDesc = SwapChainDescriptor()
+swapChainDesc.commandQueue = commandQueue
+swapChainDesc.window = window
+createSwapChain(descriptor: swapChainDesc)
 
 displayInfoQueueContents(infoQueue)
 
-do {
-  var castedObject: ID3D12InfoQueue1
-  castedObject = try! infoQueue.QueryInterface()
-
-  for messageID in 0..<2 {
-    let message =
-    try! castedObject.GetMessage(UInt64(messageID))
-    print("messages[\(messageID)]:")
-    print("- category:", message.pointee.Category)
-    print("- severity:", message.pointee.Severity)
-    print("- ID:", message.pointee.ID)
-    
-    let description = String(cString: message.pointee.pDescription)
-    print("- description:", description)
-    print("- byte length:", message.pointee.DescriptionByteLength)
-    
-    free(message)
-  }
+for messageID in 0..<3 {
+  let message =
+  try! infoQueue.GetMessage(UInt64(messageID))
+  print("messages[\(messageID)]:")
+  print("- category:", message.pointee.Category)
+  print("- severity:", message.pointee.Severity)
+  print("- ID:", message.pointee.ID)
+  
+  let description = String(cString: message.pointee.pDescription)
+  print("- description:", description)
+  print("- byte length:", message.pointee.DescriptionByteLength)
+  
+  free(message)
 }
+
+print("severities:")
+print("- CORRUPTION:", D3D12_MESSAGE_SEVERITY_CORRUPTION)
+print("- ERROR:", D3D12_MESSAGE_SEVERITY_ERROR)
+print("- WARNING:", D3D12_MESSAGE_SEVERITY_WARNING)
+print("- INFO:", D3D12_MESSAGE_SEVERITY_INFO)
+print("- MESSAGE:", D3D12_MESSAGE_SEVERITY_MESSAGE)
+print(D3D12_MESSAGE_CATEGORY_STATE_CREATION)
 
 /*
 
