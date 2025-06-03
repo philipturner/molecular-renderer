@@ -797,14 +797,22 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
 // Create the device.
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
-try! infoQueue.ClearStorageFilter()
 
-// Set the error callback.
+// IDXGIInfoQueue != ID3D12InfoQueue!!!!
+
+try! infoQueue.AddApplicationMessage(D3D12_MESSAGE_SEVERITY_WARNING, "Test warning.")
+try! infoQueue.AddMessage(D3D12_MESSAGE_CATEGORY_STATE_GETTING, D3D12_MESSAGE_SEVERITY_WARNING, D3D12_MESSAGE_ID_LIVE_SWAPCHAIN, "Test warning 2.")
+
+displayInfoQueueContents(infoQueue)
+
 do {
-  let iid = ID3D12InfoQueue.IID
-  let comObject = try! infoQueue.QueryInterface(iid: iid)
-  print("passed test:", comObject)
+  var castedObject: ID3D12InfoQueue1
+  castedObject = try! infoQueue.QueryInterface()
+
+  try! castedObject.GetMessage(0)
 }
+
+/*
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -816,5 +824,7 @@ var swapChainDesc = SwapChainDescriptor()
 swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
 //createSwapChain(descriptor: swapChainDesc)
+
+*/
 
 #endif

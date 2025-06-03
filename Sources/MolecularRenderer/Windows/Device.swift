@@ -88,13 +88,25 @@ extension Device {
   private static func createInfoQueue(
     device: SwiftCOM.ID3D12Device
   ) -> SwiftCOM.ID3D12InfoQueue {
-    let iid = WinSDK.IID_ID3D12InfoQueue1
+    let iid = SwiftCOM.ID3D12InfoQueue.IID
     let interface = try! device.QueryInterface(iid: iid)
-    print("Query interface passed:", interface)
+    let infoQueue = SwiftCOM.ID3D12InfoQueue(pUnk: interface)
     
-    // let infoQueue = SwiftCOM.ID3D12InfoQueue(pUnk: interface)
-    fatalError("Not implemented.")
+    try! infoQueue.ClearStorageFilter()
+    displayInfoQueueContents(infoQueue)
+    return infoQueue
   }
+}
+
+// Utility function for debugging.
+public func displayInfoQueueContents(_ infoQueue: SwiftCOM.ID3D12InfoQueue) {
+  print()
+  print("GetNumMessagesAllowedByStorageFilter", try! infoQueue.GetNumMessagesAllowedByStorageFilter())
+  print("GetNumMessagesDeniedByStorageFilter", try! infoQueue.GetNumMessagesDeniedByStorageFilter())
+  print("GetNumMessagesDiscardedByMessageCountLimit", try! infoQueue.GetNumMessagesDiscardedByMessageCountLimit())
+  print("GetNumStoredMessages", try! infoQueue.GetNumStoredMessages())
+  print("GetNumStoredMessagesAllowedByRetrievalFilter", try! infoQueue.GetNumStoredMessagesAllowedByRetrievalFilter())
+  print("GetMessageCountLimit", try! infoQueue.GetMessageCountLimit())
 }
 
 #endif
