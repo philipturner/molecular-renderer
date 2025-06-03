@@ -755,7 +755,7 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   var swapChainDesc = DXGI_SWAP_CHAIN_DESC1()
   swapChainDesc.Width = 1440
   swapChainDesc.Height = 1440
-  swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+  swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM // DXGI_FORMAT_R10G10B10A2_UNORM
   swapChainDesc.Stereo = false
   
   // Specify the multisampling descriptor.
@@ -763,9 +763,12 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   sampleDesc.Count = 1
   sampleDesc.Quality = 0
   swapChainDesc.SampleDesc = sampleDesc
-  swapChainDesc.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS
+  
+  // I'm using unordered for now, but will probably have to revert to
+  // render target to complete the tutorial.
+  swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT // UNORDERED_ACCESS
   swapChainDesc.BufferCount = 3
-  swapChainDesc.Scaling = DXGI_SCALING_NONE
+  swapChainDesc.Scaling = DXGI_SCALING_STRETCH // NONE
   
   // I'm choosing flip discard, although I'm still troubled over whether this
   // is the option I want.
@@ -776,6 +779,15 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   swapChainDesc.Flags = 0
   
   // Get the swap chain as IDXGISwapChain1.
+  print("What2")
+  var swapChain1: SwiftCOM.IDXGISwapChain1?
+  swapChain1 = try? factory.CreateSwapChainForHwnd(
+    commandQueue.d3d12CommandQueue, // pDevice
+    window, // hWnd
+    swapChainDesc, // pDesc
+    nil, // pFullscreenDesc,
+    nil) // pRestrictToOutput
+  print(swapChain1)
   
   // Test COM pointer casts to obviously invalid objects.
   
@@ -784,6 +796,10 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
 
 // Create the device.
 let device = Device()
+let infoQueue = device.d3d12InfoQueue
+try! infoQueue.ClearStorageFilter()
+print("stack size:", try! infoQueue.GetStorageFilterStackSize())
+print("limit:", try! infoQueue.GetMessageCountLimit())
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -795,5 +811,25 @@ var swapChainDesc = SwapChainDescriptor()
 swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
 createSwapChain(descriptor: swapChainDesc)
+
+
+let storedMessageCount = try! infoQueue.GetNumStoredMessages()
+let deniedMessageCount = try! infoQueue.GetNumMessagesDeniedByStorageFilter()
+let allowedMessageCount = try! infoQueue.GetNumMessagesAllowedByStorageFilter()
+print("stored message count:", storedMessageCount)
+print("denied message count:", deniedMessageCount)
+print("allowed message count:", allowedMessageCount)
+
+print(WinSDK.ID3D12InfoQueue1.self)
+
+for messageID in 0..<allowedMessageCount {
+  let (message, messageByteLength) = try! infoQueue
+    .GetMessage(messageID)
+  
+  print()
+  print("message \(messageID):")
+  print("- message:", message)
+  print("- messageByteLength:", messageByteLength)
+}
 
 #endif

@@ -12,7 +12,10 @@ public struct CommandQueueDescriptor {
 
 public class CommandQueue {
   let d3d12Device: SwiftCOM.ID3D12Device
-  let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
+  
+  // Public for the current swap chain initializer. Return to internal in the
+  // future.
+  public let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
   
   let eventHandle: UnsafeMutableRawPointer
