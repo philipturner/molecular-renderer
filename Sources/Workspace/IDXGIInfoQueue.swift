@@ -2,6 +2,8 @@
 import SwiftCOM
 import WinSDK
 
+// TODO: Upstream this into my fork of swift-com.
+
 public class IDXGIInfoQueue: SwiftCOM.IUnknown {
   public override class var IID: IID { IID_IDXGIInfoQueue }
   

@@ -757,7 +757,7 @@ func createSwapChain(
   var swapChainDesc = DXGI_SWAP_CHAIN_DESC1()
   swapChainDesc.Width = 1440
   swapChainDesc.Height = 1440
-  swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM // DXGI_FORMAT_R10G10B10A2_UNORM
+  swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
   swapChainDesc.Stereo = false
   
   // Specify the multisampling descriptor.
@@ -766,11 +766,13 @@ func createSwapChain(
   sampleDesc.Quality = 0
   swapChainDesc.SampleDesc = sampleDesc
   
-  // I'm using unordered for now, but will probably have to revert to
-  // render target to complete the tutorial.
-  swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT // UNORDERED_ACCESS
+  // Compute-centric workflow: write to a custom UAV resource in the shader,
+  // copy to the back buffer with 'ID3D12GraphicsCommandList::CopyResource'.
+  //
+  // https://stackoverflow.com/a/78501260
+  swapChainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER
   swapChainDesc.BufferCount = 3
-  swapChainDesc.Scaling = DXGI_SCALING_STRETCH // NONE
+  swapChainDesc.Scaling = DXGI_SCALING_NONE
   
   // I'm choosing flip discard, although I'm still troubled over whether this
   // is the option I want.
@@ -781,17 +783,14 @@ func createSwapChain(
   swapChainDesc.Flags = 0
   
   // Get the swap chain as 'IDXGISwapChain1'.
-  var swapChain1: SwiftCOM.IDXGISwapChain1?
-  swapChain1 = try? factory.CreateSwapChainForHwnd(
+  var swapChain1: SwiftCOM.IDXGISwapChain1
+  swapChain1 = try! factory.CreateSwapChainForHwnd(
     commandQueue.d3d12CommandQueue, // pDevice
     window, // hWnd
     swapChainDesc, // pDesc
     nil, // pFullscreenDesc,
     nil) // pRestrictToOutput
   print(swapChain1)
-  guard let swapChain1 else {
-    return nil
-  }
   
   // Perform a cast using 'IUnknown::QueryInterface'.
   var swapChain4: SwiftCOM.IDXGISwapChain4
@@ -929,7 +928,7 @@ print("End of Section 2")
 
 
 
-#if true
+#if false
 
 // Show the debug messages.
 do {
@@ -949,6 +948,10 @@ do {
     free(message)
   }
 }
+
+#endif
+
+#if false
 
 for dxgiDebugID in dxgiDebugIDs {
   print("DXGI debug ID: \(dxgiDebugID)")
@@ -971,5 +974,13 @@ for dxgiDebugID in dxgiDebugIDs {
 }
 
 #endif
+
+
+
+// Next steps:
+// (1) Migrate 'IDXGIInfoQueue' to the fork of swift-com.
+// (2) Continue developing the above code as-is, until the tutorial is finished.
+// (3) Organize the code regarding 'IDXGISwapChain' and 'HWND' into a helper
+//     class(es).
 
 #endif
