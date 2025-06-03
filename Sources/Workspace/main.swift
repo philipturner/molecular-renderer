@@ -779,9 +779,8 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   swapChainDesc.Flags = 0
   
   // Get the swap chain as IDXGISwapChain1.
-  print("What2")
-  var swapChain1: SwiftCOM.IDXGISwapChain1?
-  swapChain1 = try? factory.CreateSwapChainForHwnd(
+  var swapChain1: SwiftCOM.IDXGISwapChain1
+  swapChain1 = try! factory.CreateSwapChainForHwnd(
     commandQueue.d3d12CommandQueue, // pDevice
     window, // hWnd
     swapChainDesc, // pDesc
@@ -791,13 +790,11 @@ func createSwapChain(descriptor: SwapChainDescriptor) {
   
   // Test COM pointer casts to obviously invalid objects.
   
-  print("Set swap chain desc flags.")
 }
 
 // Create the device.
 let device = Device()
 let infoQueue = device.d3d12InfoQueue
-// IDXGIInfoQueue != ID3D12InfoQueue!!!!
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -810,9 +807,9 @@ swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
 createSwapChain(descriptor: swapChainDesc)
 
-displayInfoQueueContents(infoQueue)
-
-for messageID in 0..<3 {
+// Show the debug messages.
+let messageCount = try! infoQueue.GetNumStoredMessages()
+for messageID in 0..<messageCount {
   let message =
   try! infoQueue.GetMessage(UInt64(messageID))
   print("messages[\(messageID)]:")
@@ -826,37 +823,5 @@ for messageID in 0..<3 {
   
   free(message)
 }
-
-print("severities:")
-print("- CORRUPTION:", D3D12_MESSAGE_SEVERITY_CORRUPTION)
-print("- ERROR:", D3D12_MESSAGE_SEVERITY_ERROR)
-print("- WARNING:", D3D12_MESSAGE_SEVERITY_WARNING)
-print("- INFO:", D3D12_MESSAGE_SEVERITY_INFO)
-print("- MESSAGE:", D3D12_MESSAGE_SEVERITY_MESSAGE)
-print(D3D12_MESSAGE_CATEGORY_STATE_CREATION)
-
-/*
-
-// Create the command queue.
-var commandQueueDescriptor = CommandQueueDescriptor()
-commandQueueDescriptor.device = device
-let commandQueue = CommandQueue(descriptor: commandQueueDescriptor)
-
-// Create the swap chain.
-var swapChainDesc = SwapChainDescriptor()
-swapChainDesc.commandQueue = commandQueue
-swapChainDesc.window = window
-//createSwapChain(descriptor: swapChainDesc)
-
-*/
-
-
-
-// Next tasks:
-// (1) Fix the function signature of the GetMessage binding.
-// (2) Upstream into my fork of SwiftCOM.
-// (3) Test that the upstream actually registered.
-// (4) Clean up the mess that is 'ID3D12InfoQueue1' in my codebase.
-// (5) Work on support for 'IDXGIInfoQueue'.
 
 #endif

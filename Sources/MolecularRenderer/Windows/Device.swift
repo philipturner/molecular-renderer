@@ -91,22 +91,8 @@ extension Device {
     let iid = SwiftCOM.ID3D12InfoQueue.IID
     let interface = try! device.QueryInterface(iid: iid)
     let infoQueue = SwiftCOM.ID3D12InfoQueue(pUnk: interface)
-    
-    try! infoQueue.ClearStorageFilter()
-    displayInfoQueueContents(infoQueue)
     return infoQueue
   }
-}
-
-// Utility function for debugging.
-public func displayInfoQueueContents(_ infoQueue: SwiftCOM.ID3D12InfoQueue) {
-  print()
-  print("GetNumMessagesAllowedByStorageFilter", try! infoQueue.GetNumMessagesAllowedByStorageFilter())
-  print("GetNumMessagesDeniedByStorageFilter", try! infoQueue.GetNumMessagesDeniedByStorageFilter())
-  print("GetNumMessagesDiscardedByMessageCountLimit", try! infoQueue.GetNumMessagesDiscardedByMessageCountLimit())
-  print("GetNumStoredMessages", try! infoQueue.GetNumStoredMessages())
-  print("GetNumStoredMessagesAllowedByRetrievalFilter", try! infoQueue.GetNumStoredMessagesAllowedByRetrievalFilter())
-  print("GetMessageCountLimit", try! infoQueue.GetMessageCountLimit())
 }
 
 #endif
