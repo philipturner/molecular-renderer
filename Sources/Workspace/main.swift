@@ -770,7 +770,7 @@ func createSwapChain(
   // copy to the back buffer with 'ID3D12GraphicsCommandList::CopyResource'.
   //
   // https://stackoverflow.com/a/78501260
-  swapChainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER
+  swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT
   swapChainDesc.BufferCount = 3
   swapChainDesc.Scaling = DXGI_SCALING_NONE
   
@@ -817,42 +817,8 @@ try! infoQueue.ClearStorageFilter()
 // Initialize the DXGI info queue.
 var infoQueue2: SwiftCOM.IDXGIInfoQueue
 infoQueue2 = try! DXGIGetDebugInterface1(0)
-
-print()
-print("Info Queue 2 - break on severity")
-
-print()
-print(try! infoQueue.GetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR))
-for dxgiDebugID in dxgiDebugIDs {
-  print("-", try! infoQueue2.GetBreakOnSeverity(dxgiDebugID, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR))
-}
-
-for dxgiDebugID in dxgiDebugIDs {
-  try! infoQueue2.SetBreakOnSeverity(dxgiDebugID, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true)
-}
-
-print()
-print(try! infoQueue.GetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR))
-for dxgiDebugID in dxgiDebugIDs {
-  print("-", try! infoQueue2.GetBreakOnSeverity(dxgiDebugID, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR))
-}
-
-print()
-print("Info Queue 2 - break on severity - end")
-
-
-
-/*
-try! infoQueue.ClearRetrievalFilter()
-for dxgiDebugID in dxgiDebugIDs {
-  try! infoQueue2.ClearRetrievalFilter(dxgiDebugID)
-}
-
-try! infoQueue.ClearStorageFilter()
-for dxgiDebugID in dxgiDebugIDs {
-  try! infoQueue2.ClearStorageFilter(dxgiDebugID)
-}
-*/
+try! infoQueue2.SetBreakOnSeverity(
+  DXGI_DEBUG_DXGI, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true)
 
 // Create the command queue.
 var commandQueueDescriptor = CommandQueueDescriptor()
@@ -864,6 +830,8 @@ var swapChainDesc = SwapChainDescriptor()
 swapChainDesc.commandQueue = commandQueue
 swapChainDesc.window = window
 let swapChain = createSwapChain(descriptor: swapChainDesc)
+
+#if false
 
 // MARK: - Section 1 of Implemented Methods
 
@@ -926,6 +894,8 @@ print("End of Section 2")
 // Next task:
 // Test whether the info queue catches the errors for IDXGISwapChain.
 
+#endif
+
 
 
 #if false
@@ -980,7 +950,8 @@ for dxgiDebugID in dxgiDebugIDs {
 // Next steps:
 // (1) Migrate 'IDXGIInfoQueue' to the fork of swift-com.
 // (2) Continue developing the above code as-is, until the tutorial is finished.
-// (3) Organize the code regarding 'IDXGISwapChain' and 'HWND' into a helper
-//     class(es).
+// (3) Archive and purge 'main.swift' and 'VectorAddition.swift'.
+// (4) Incorporate code handling 'HWND', 'IDXGISwapChain', and 'IDXGIInfoQueue'
+//     into the helper library.
 
 #endif
