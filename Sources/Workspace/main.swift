@@ -1025,6 +1025,9 @@ print("Hello world.")
 // wrapping code into library utility classes. Best to leave any utilities
 // centered around RTV, then transition to compute/UAV workflows when the
 // code base is better suited for this.
+//
+// I could also leave some code in the "Workspace" module when it's not
+// developed enough to go into the library.
 
 // Issue with swift-com: IDXGISwapChain doesn't show proper class inheritance.
 // Fixing that before proceeding.
