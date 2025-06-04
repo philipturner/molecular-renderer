@@ -52,20 +52,16 @@ public class CommandQueue {
   }
   
   public func createCommandList() -> SwiftCOM.ID3D12GraphicsCommandList {
-    // Leaving the command list type as "direct" to cause less trouble when
-    // going through the 1st 3DGEP tutorial. There seems to be no harm in
-    // doing this.
-    
     // Create the command allocator.
     let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
     try! d3d12Device.CreateCommandAllocator(
-      D3D12_COMMAND_LIST_TYPE_DIRECT)
+      D3D12_COMMAND_LIST_TYPE_COMPUTE)
     
     // Create the command list from the command allocator.
     let commandList: SwiftCOM.ID3D12GraphicsCommandList =
     try! d3d12Device.CreateCommandList(
       0,
-      D3D12_COMMAND_LIST_TYPE_DIRECT,
+      D3D12_COMMAND_LIST_TYPE_COMPUTE,
       commandAllocator,
       nil)
     
