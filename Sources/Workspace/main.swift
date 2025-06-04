@@ -557,6 +557,16 @@ func messageProcedure(
 ) -> LRESULT {
   print("Called the message procedure with message code \(message).")
   
+  switch message {
+  case UInt32(WM_PAINT): print("Called WM_PAINT")
+  case UInt32(WM_SYSKEYDOWN): print("Called WM_SYSKEYDOWN")
+  case UInt32(WM_KEYDOWN): print("Called WM_KEYDOWN")
+  case UInt32(WM_SYSCHAR): print("Called WM_SYSCHAR")
+  case UInt32(WM_SIZE): print("Called WM_SIZE")
+  case UInt32(WM_DESTROY): print("Called WM_DESTROY")
+  default: print("Called unknown message")
+  }
+  
   // Defer to the OS default function.
   return DefWindowProcA(hwnd, message, wParam, lParam)
 }
@@ -1003,5 +1013,22 @@ for backBufferID in 0..<3 {
     rtvHandle) // DestDescriptor
 }
 print("Hello world.")
+
+
+
+// Next task: set up the render loop.
+//
+// This is a precursor to encoding any commands, render or compute.
+//
+// Need to wrap up several objects into a global "Application" or other state
+// tracker. This means some amount of purging. Unsure how far to go regarding
+// wrapping code into library utility classes. Best to leave any utilities
+// centered around RTV, then transition to compute/UAV workflows when the
+// code base is better suited for this.
+
+// Issue with swift-com: IDXGISwapChain doesn't show proper class inheritance.
+// Fixing that before proceeding.
+let currentBackBufferIndex = try! swapChain.GetCurrentBackBufferIndex()
+print(currentBackBufferIndex)
 
 #endif
