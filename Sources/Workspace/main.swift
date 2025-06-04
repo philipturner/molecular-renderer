@@ -743,7 +743,7 @@ struct SwapChainDescriptor {
 
 func createSwapChain(
   descriptor: SwapChainDescriptor
-) -> SwiftCOM.IDXGISwapChain4? {
+) -> SwiftCOM.IDXGISwapChain4 {
   guard let commandQueue = descriptor.commandQueue,
         let window = descriptor.window else {
     fatalError("Descriptor was incomplete.")
@@ -790,7 +790,6 @@ func createSwapChain(
     swapChainDesc, // pDesc
     nil, // pFullscreenDesc,
     nil) // pRestrictToOutput
-  print(swapChain1)
   
   // Perform a cast using 'IUnknown::QueryInterface'.
   var swapChain4: SwiftCOM.IDXGISwapChain4
@@ -950,8 +949,11 @@ for dxgiDebugID in dxgiDebugIDs {
 // Next steps:
 // (1) Migrate 'IDXGIInfoQueue' to the fork of swift-com.
 // (2) Continue developing the above code as-is, until the tutorial is finished.
-// (3) Archive and purge 'main.swift' and 'VectorAddition.swift'.
-// (4) Incorporate code handling 'HWND', 'IDXGISwapChain', and 'IDXGIInfoQueue'
+// (3) Clear the render target with a compute shader + copy command, instead of
+//     render commands. This provides a clearer vision of the functionality
+//     needed in a utility library.
+// (4) Archive and purge 'main.swift' and 'VectorAddition.swift'.
+// (5) Incorporate code handling 'HWND', 'IDXGISwapChain', and 'IDXGIInfoQueue'
 //     into the helper library.
 
 // Descriptor heap:
@@ -973,6 +975,33 @@ func createDescriptorHeap(device: Device) -> SwiftCOM.ID3D12DescriptorHeap {
   return descriptorHeap
 }
 let descriptorHeap = createDescriptorHeap(device: device)
-print("descriptor heap:", descriptorHeap)
+
+// Two objectives:
+// - Fetch the resource objects for the backing buffers.
+// - Write the render target views into the descriptor heap.
+//
+// Back buffers should be grouped with the swap chain in a utility class.
+var backBuffers: [SwiftCOM.ID3D12Resource] = []
+for backBufferID in 0..<3 {
+  // Retrieve the back buffer.
+  var backBuffer: SwiftCOM.ID3D12Resource
+  backBuffer = try! swapChain
+    .GetBuffer(UInt32(backBufferID))
+  backBuffers.append(backBuffer)
+  
+  // Compute the address of the CPU descriptor handle.
+  let rtvDescriptorSize = try! device.d3d12Device
+    .GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
+  var rtvHandle = try! descriptorHeap
+    .GetCPUDescriptorHandleForHeapStart()
+  rtvHandle.ptr += UInt64(backBufferID) * UInt64(rtvDescriptorSize)
+  
+  // Write to a location in the descriptor heap.
+  try! device.d3d12Device.CreateRenderTargetView(
+    backBuffer, // pResource
+    nil, // pDesc
+    rtvHandle) // DestDescriptor
+}
+print("Hello world.")
 
 #endif
