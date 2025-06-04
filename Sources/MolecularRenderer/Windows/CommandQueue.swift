@@ -2,29 +2,15 @@
 import SwiftCOM
 import WinSDK
 
-public struct CommandQueueDescriptor {
-  public var device: Device?
-  
-  public init() {
-    
-  }
-}
-
 public class CommandQueue {
   let d3d12Device: SwiftCOM.ID3D12Device
-  
-  // Public for the current swap chain initializer. Return to internal in the
-  // future.
   public let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
   
   let eventHandle: UnsafeMutableRawPointer
   var fenceValue: UInt64 = .zero
   
-  public init(descriptor: CommandQueueDescriptor) {
-    guard let device = descriptor.device else {
-      fatalError("Descriptor was incomplete.")
-    }
+  public init(device: Device) {
     self.d3d12Device = device.d3d12Device
     
     // Fill the command queue descriptor.
@@ -55,13 +41,13 @@ public class CommandQueue {
     // Create the command allocator.
     let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
     try! d3d12Device.CreateCommandAllocator(
-      D3D12_COMMAND_LIST_TYPE_COMPUTE)
+      D3D12_COMMAND_LIST_TYPE_DIRECT)
     
     // Create the command list from the command allocator.
     let commandList: SwiftCOM.ID3D12GraphicsCommandList =
     try! d3d12Device.CreateCommandList(
       0,
-      D3D12_COMMAND_LIST_TYPE_COMPUTE,
+      D3D12_COMMAND_LIST_TYPE_DIRECT,
       commandAllocator,
       nil)
     

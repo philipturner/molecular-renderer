@@ -189,9 +189,18 @@ import WinSDK
 //
 // Abstract goals and time-consuming API development are not helpful at this
 // point. Look for little, specific things and unanswered questions. Don't add
-// code to the helper library until it's needed for a specific task at hand.
-//
-// First question: what type of command list is needed to present a drawable?
+// code to the helper library until it's needed for the current task.
+
+// First question: What type of command list is needed to present a drawable?
 // Can it be COMPUTE, or must it be DIRECT?
+//
+// Answer: It must be DIRECT, otherwise the debug layer throws an error.
+
+// Second question: Should I create a helper class called 'Texture'?
+//
+// Answer: No, because the reference implementation
+// (https://stackoverflow.com/a/78501260) just extracts the resource
+// descriptor from a swapchain buffer. It might be tractable to keep the
+// texture initialization code separate between Metal and DirectX.
 
 #endif

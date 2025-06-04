@@ -8,13 +8,6 @@ import WinSDK
 // single API that works cross-platform, and assumes multiple GPUs.
 
 public class Device {
-  // Do any of these need to be public? The helper classes may be advanced
-  // enough (should be at this point) to make 'd3d12Device' private.
-  //
-  // For the other APIs, keep the 'd3d12X' variables, e.g. pipelines, public.
-  // We're gradually phasing in the encapsulation of platform-specific types.
-  // Some D3D12-specific types have no clear path to encapsulation at the
-  // moment, such as D3D12_RESOURCE_STATES for resource barriers.
   let d3d12Debug: SwiftCOM.ID3D12Debug
   public let d3d12Device: SwiftCOM.ID3D12Device
   public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
