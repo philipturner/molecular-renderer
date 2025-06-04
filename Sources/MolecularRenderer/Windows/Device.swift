@@ -16,7 +16,7 @@ public class Device {
   // Some D3D12-specific types have no clear path to encapsulation at the
   // moment, such as D3D12_RESOURCE_STATES for resource barriers.
   let d3d12Debug: SwiftCOM.ID3D12Debug
-  let d3d12Device: SwiftCOM.ID3D12Device
+  public let d3d12Device: SwiftCOM.ID3D12Device
   public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
   
   public init() {

@@ -954,4 +954,25 @@ for dxgiDebugID in dxgiDebugIDs {
 // (4) Incorporate code handling 'HWND', 'IDXGISwapChain', and 'IDXGIInfoQueue'
 //     into the helper library.
 
+// Descriptor heap:
+// - NumDescriptors: 3
+// - Type: D3D12_DESCRIPTOR_HEAP_TYPE_RTV
+func createDescriptorHeap(device: Device) -> SwiftCOM.ID3D12DescriptorHeap {
+  // Fill the descriptor.
+  var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
+  descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV
+  descriptorHeapDesc.NumDescriptors = 3
+  descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
+  descriptorHeapDesc.NodeMask = 0
+  
+  // Create the descriptor heap.
+  let d3d12Device = device.d3d12Device
+  var descriptorHeap: SwiftCOM.ID3D12DescriptorHeap
+  descriptorHeap = try! d3d12Device
+    .CreateDescriptorHeap(descriptorHeapDesc)
+  return descriptorHeap
+}
+let descriptorHeap = createDescriptorHeap(device: device)
+print("descriptor heap:", descriptorHeap)
+
 #endif
