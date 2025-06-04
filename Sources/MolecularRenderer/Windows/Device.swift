@@ -11,11 +11,10 @@ public class Device {
   let d3d12Debug: SwiftCOM.ID3D12Debug
   public let d3d12Device: SwiftCOM.ID3D12Device
   public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
+  public let dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue
   
   public init() {
     // Create the debug layer.
-    //
-    // Turn on the debug layer, so that errors will be registered.
     let debug: SwiftCOM.ID3D12Debug =
       try! D3D12GetDebugInterface()
     try! debug.EnableDebugLayer()
@@ -30,12 +29,15 @@ public class Device {
     self.d3d12Device = device
     
     // Create the info queue.
-    //
-    // Set the info queue to break only on 'ERROR'.
     let infoQueue = Self.createInfoQueue(device: device)
     try! infoQueue.SetBreakOnSeverity(
       D3D12_MESSAGE_SEVERITY_ERROR, true)
     self.d3d12InfoQueue = infoQueue
+    
+    // Create the DXGI info queue.
+    self.dxgiInfoQueue = try! DXGIGetDebugInterface1(0)
+    try! dxgiInfoQueue.SetBreakOnSeverity(
+      DXGI_DEBUG_DXGI, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true)
   }
 }
 

@@ -225,8 +225,4 @@ import WinSDK
 // "global" instance of App (or similar). Now there is no ambiguity about
 // what owns each entity.
 
-// An obvious next task is to include IDXGIInfoQueue into the Device utility.
-// Merging other objects into a common object is not straightforward yet.
-// Partly due to a name conflict with 'Window' in the macOS code.
-
 #endif
