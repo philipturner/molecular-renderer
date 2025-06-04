@@ -815,7 +815,7 @@ let infoQueue = device.d3d12InfoQueue
 try! infoQueue.ClearStorageFilter()
 
 // Initialize the DXGI info queue.
-var infoQueue2: IDXGIInfoQueue
+var infoQueue2: SwiftCOM.IDXGIInfoQueue
 infoQueue2 = try! DXGIGetDebugInterface1(0)
 
 print()
