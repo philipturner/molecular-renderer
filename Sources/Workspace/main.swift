@@ -225,4 +225,13 @@ import WinSDK
 // "global" instance of App (or similar). Now there is no ambiguity about
 // what owns each entity.
 
+// The state variables and per-message function are not enough to start a
+// window. You must also call or poll the following functions:
+// - ShowWindow
+// - PeekMessage
+// - TranslateMessage
+// - DispatchMessage
+//
+// Understand these four functions before writing any more code.
+
 #endif
