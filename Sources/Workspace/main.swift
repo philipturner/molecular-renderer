@@ -203,4 +203,30 @@ import WinSDK
 // descriptor from a swapchain buffer. It might be tractable to keep the
 // texture initialization code separate between Metal and DirectX.
 
+// What are all the specific resources / state variables that must be held in
+// context between frames?
+//
+// Device
+//   IDXGIInfoQueue
+// CommandQueue
+// Shader
+// HWND
+// ID3D12SwapChain4
+//
+// ID3D12Resource for 1 frame buffer
+// ID3D12Resource for each of 3 swap chain buffers
+// ID3D12DescriptorHeap with 1 slot
+// ID3D12Fence where you wait for the fence value from 2 frames ago, immediately
+// after the current frame is dispatched
+//
+// WndProc should be a static function at the global level, or a closure that
+// redirects all arguments to the static function. The App (or similar) class
+// references WndProc as a static type variable. WndProc calls into a static
+// "global" instance of App (or similar). Now there is no ambiguity about
+// what owns each entity.
+
+// An obvious next task is to include IDXGIInfoQueue into the Device utility.
+// Merging other objects into a common object is not straightforward yet.
+// Partly due to a name conflict with 'Window' in the macOS code.
+
 #endif
