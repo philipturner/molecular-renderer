@@ -57,6 +57,20 @@ struct WindowUtilities {
     }
   }
   
+  // Returns WS_OVERLAPPEDWINDOW, but without the ability to resize the window.
+  static func createWindowStyle() -> DWORD {
+    var output: Int32 = .zero
+    output |= WS_OVERLAPPED
+    output |= WS_CAPTION
+    output |= WS_SYSMENU
+    
+    // Minimizing the window sets the client rect to (0, 0), which triggers
+    // our mechanism for detecting a resize event. Therefore, we don't allow
+    // window minimizing on Windows.
+    
+    return DWORD(output)
+  }
+  
   // Returns appropriate window dimensions at the center of the screen.
   //
   // Lane 0: x
@@ -64,37 +78,32 @@ struct WindowUtilities {
   // Lane 2: width
   // Lane 3: height
   static func createWindowDimensions() -> SIMD4<UInt32> {
-    // (3840, 2160)
     let screenWidth = Int32(GetSystemMetrics(SM_CXSCREEN))
     let screenHeight = Int32(GetSystemMetrics(SM_CYSCREEN))
     
-    // (0, 0, 1440, 1440) -> (-11, -45, 1451, 1451)
     var windowRect = RECT()
     windowRect.left = 0
     windowRect.top = 0
     windowRect.right = 1440
     windowRect.bottom = 1440
-    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false)
+    AdjustWindowRect(
+      &windowRect, // lpRect
+      createWindowStyle(), // dwStyle
+      false) // bMenu
     
-    // (1462, 1496)
     let windowSizeX = Int32(windowRect.right - windowRect.left)
     let windowSizeY = Int32(windowRect.bottom - windowRect.top)
     
-    // (1920, 1080)
-    let centerX = screenWidth / 2
-    let centerY = screenHeight / 2
-    
-    // (1189, 332)
-    let leftX = centerX - windowSizeX / 2
-    let upperY = centerY - windowSizeY / 2
+    let leftX = screenWidth / 2 - windowSizeX / 2
+    let upperY = screenHeight / 2 - windowSizeY / 2
     
     // Check validity of the dimensions.
     let outputSigned = SIMD4<Int32>(
       leftX, upperY, windowSizeX, windowSizeY)
     guard outputSigned[0] >= 0,
           outputSigned[1] >= 0,
-          outputSigned[0] + outputSigned[2] < screenWidth,
-          outputSigned[1] + outputSigned[3] < screenHeight else {
+          outputSigned[0] + outputSigned[2] <= screenWidth,
+          outputSigned[1] + outputSigned[3] <= screenHeight else {
       fatalError("The window spawned off-screen.")
     }
     
@@ -112,7 +121,7 @@ struct WindowUtilities {
       0, // dwExStyle
       className, // lpClassName
       title, // lpWindowName
-      WS_OVERLAPPEDWINDOW, // dwStyle
+      createWindowStyle(), // dwStyle
       Int32(dimensions[0]), // X
       Int32(dimensions[1]), // Y
       Int32(dimensions[2]), // nWidth

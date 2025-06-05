@@ -190,11 +190,9 @@ import WinSDK
 // Abstract goals and time-consuming API development are not helpful at this
 // point. Look for little, specific things and unanswered questions. Don't add
 // code to the helper library until it's needed for the current task.
-
-// First question: What type of command list is needed to present a drawable?
-// Can it be COMPUTE, or must it be DIRECT?
 //
-// Answer: It must be DIRECT, otherwise the debug layer throws an error.
+// Periodically purge the main file in small bits, instead of all at once to a
+// GitHub gist. That removes the need for any more tedious archival events.
 
 // Second question: Should I create a helper class called 'Texture'?
 //
@@ -203,40 +201,25 @@ import WinSDK
 // descriptor from a swapchain buffer. It might be tractable to keep the
 // texture initialization code separate between Metal and DirectX.
 
-// What are all the specific resources / state variables that must be held in
-// context between frames?
-//
-// Device
-//   IDXGIInfoQueue
-// CommandQueue
-// Shader
-// HWND
-// ID3D12SwapChain4
-//
-// ID3D12Resource for 1 frame buffer
-// ID3D12Resource for each of 3 swap chain buffers
-// ID3D12DescriptorHeap with 1 slot
-// ID3D12Fence where you wait for the fence value from 2 frames ago, immediately
-// after the current frame is dispatched
-//
-// WndProc should be a static function at the global level, or a closure that
-// redirects all arguments to the static function. The App (or similar) class
-// references WndProc as a static type variable. WndProc calls into a static
-// "global" instance of App (or similar). Now there is no ambiguity about
-// what owns each entity.
+let window = Application.global.window
+ShowWindow(window, SW_SHOW)
 
-// The state variables and per-message function are not enough to start a
-// window. You must also call or poll the following functions:
-// - ShowWindow
-// - PeekMessage
-// - TranslateMessage
-// - DispatchMessage
-//
-// Understand these four functions before writing any more code.
-
-print("Started the program.")
-
-let window = WindowUtilities.createWindow()
-print("window:", window)
+// Invoke the game loop.
+while true {
+  var message = MSG()
+  PeekMessageA(
+    &message, // lpMsg
+    nil, // hWnd
+    0, // wMsgFilterMin
+    0, // wMsgFilterMax
+    UInt32(PM_REMOVE)) // wRemoveMsg
+  
+  if message.message == WM_QUIT {
+    break
+  } else {
+    TranslateMessage(&message)
+    DispatchMessageA(&message)
+  }
+}
 
 #endif

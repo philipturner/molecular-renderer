@@ -10,10 +10,35 @@ class MessageProcedure {
     _ wParam: WPARAM,
     _ lParam: LPARAM
   ) -> LRESULT {
-    print("Called the message procedure with message code \(message).")
+    // Branch over the possible message types.
+    switch Int32(message) {
+    case WM_PAINT:
+      break
+      
+    case WM_SIZE:
+      // Retrieve the window size.
+      let window = Application.global.window
+      var clientRect = RECT()
+      GetClientRect(window, &clientRect)
+      
+      // Assert that the size is correct.
+      guard clientRect.left == 0,
+            clientRect.top == 0,
+            clientRect.right == 1440,
+            clientRect.bottom == 1440 else {
+        fatalError("Attempted to resize the window.")
+      }
+      
+    case WM_DESTROY:
+      PostQuitMessage(0)
+      
+    default:
+      // Defer to the OS default function.
+      print("Received message code \(message).")
+      return DefWindowProcA(hwnd, message, wParam, lParam)
+    }
     
-    // Defer to the OS default function.
-    return DefWindowProcA(hwnd, message, wParam, lParam)
+    return 0
   }
 }
 
