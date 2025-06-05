@@ -11,7 +11,12 @@ class Application {
   let window: HWND
   
   init() {
-    self.device = Device()
+    // Create the device.
+    var deviceDesc = DeviceDescriptor()
+    deviceDesc.deviceID = Device.fastestDeviceID
+    self.device = Device(descriptor: deviceDesc)
+    
+    // Create the other resources.
     self.window = WindowUtilities.createWindow()
   }
 }

@@ -1,17 +1,24 @@
-#if os(Windows)
+#if os(macOS)
+import Metal
+#else
 import SwiftCOM
 import WinSDK
+#endif
 
 public class CommandQueue {
+  #if os(macOS)
+  let mtlCommandQueue: MTLCommandQueue
+  var lastCommandBuffer: MTLCommandBuffer?
+  #else
   let d3d12Device: SwiftCOM.ID3D12Device
-  public let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
+  let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
-  
   let eventHandle: UnsafeMutableRawPointer
   var fenceValue: UInt64 = .zero
+  #endif
   
-  public init(device: Device) {
-    self.d3d12Device = device.d3d12Device
+  init(device: Device) {
+    self.d3d12Device = d3d12Device
     
     // Fill the command queue descriptor.
     var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
@@ -36,7 +43,10 @@ public class CommandQueue {
     }
     self.eventHandle = eventHandle
   }
-  
+}
+#endif
+
+extension Device {
   public func createCommandList() -> SwiftCOM.ID3D12GraphicsCommandList {
     // Create the command allocator.
     let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
@@ -82,5 +92,3 @@ public class CommandQueue {
     WaitForSingleObject(eventHandle, waitTimeInMilliseconds)
   }
 }
-
-#endif
