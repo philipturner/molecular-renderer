@@ -234,4 +234,9 @@ import WinSDK
 //
 // Understand these four functions before writing any more code.
 
+print("Started the program.")
+
+let window = WindowUtilities.createWindow()
+print("window:", window)
+
 #endif

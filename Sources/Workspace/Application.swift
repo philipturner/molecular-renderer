@@ -3,7 +3,7 @@ import MolecularRenderer
 import SwiftCOM
 import WinSDK
 
-class Context {
+class Application {
   var device: Device
   var commandQueue: CommandQueue
   var shader: Shader
@@ -19,4 +19,5 @@ class Context {
     fatalError("Not implemented.")
   }
 }
+
 #endif
