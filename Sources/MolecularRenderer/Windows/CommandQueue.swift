@@ -3,7 +3,6 @@ import SwiftCOM
 import WinSDK
 
 public class CommandQueue {
-  let d3d12Device: SwiftCOM.ID3D12Device
   public let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
   
@@ -11,8 +10,6 @@ public class CommandQueue {
   var fenceValue: UInt64 = .zero
   
   public init(device: Device) {
-    self.d3d12Device = device.d3d12Device
-    
     // Fill the command queue descriptor.
     var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
     commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT
@@ -21,6 +18,7 @@ public class CommandQueue {
     commandQueueDesc.NodeMask = 0
     
     // Create the command queue.
+    let d3d12Device = device.d3d12Device
     self.d3d12CommandQueue = try! d3d12Device.CreateCommandQueue(
       commandQueueDesc)
     

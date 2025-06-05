@@ -7,18 +7,17 @@ class Application {
   nonisolated(unsafe)
   static let global = Application()
   
-  // var device: Device
-  // var commandQueue: CommandQueue
-  // var shader: Shader
-  var window: HWND
-  // var swapChain: SwiftCOM.IDXGISwapChain4
+  let device: Device
+  let commandQueue: CommandQueue
+  let window: HWND
   
-  // var frameBuffer: SwiftCOM.ID3D12Resource
-  // var swapChainBuffers: [SwiftCOM.ID3D12Resource] = []
-  // var descriptorHeap: SwiftCOM.ID3D12DescriptorHeap
-  // var ringBufferFence: SwiftCOM.ID3D12Fence
+  // var shader: Shader
+  
+  
   
   init() {
+    self.device = Device()
+    self.commandQueue = CommandQueue()
     self.window = WindowUtilities.createWindow()
   }
   
