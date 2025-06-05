@@ -10,10 +10,7 @@ public struct GPUContextDescriptor {
 }
 
 public class GPUContext {
-  /// The GPU chosen for rendering at program startup.
   public let mtlDevice: MTLDevice
-  
-  /// The command queue that issues GPU commands.
   public let mtlCommandQueue: MTLCommandQueue
   
   public init(descriptor: GPUContextDescriptor) {
@@ -22,12 +19,12 @@ public class GPUContext {
     }
     
     // Create the device.
-    let devices = MTLCopyAllDevices()
+    let adapters = MTLCopyAllDevices()
     guard deviceID >= 0,
-          deviceID < devices.count else {
+          deviceID < adapters.count else {
       fatalError("Device ID was out of range.")
     }
-    self.device = devices[deviceID]
+    self.device = adapters[deviceID]
     
     // Create the command queue.
     self.commandQueue = device.makeCommandQueue()!

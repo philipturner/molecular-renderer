@@ -19,13 +19,18 @@ public class Device {
     try! d3d12Debug.EnableDebugLayer()
     
     // Create the device.
-    let adapter = Self.createFastestAdapter()
-    let device: SwiftCOM.ID3D12Device =
-      try! D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1)
-    self.d3d12Device = device
+    let deviceID = Self.fastestDeviceID
+    let adapters = Self.createAdapters()
+    guard deviceID >= 0,
+          deviceID < adapters.count else {
+      fatalError("Device ID was out of range.")
+    }
+    self.d3d12Device = try! D3D12CreateDevice(
+      adapters[deviceID], D3D_FEATURE_LEVEL_12_1)
     
     // Create the info queue.
-    self.d3d12InfoQueue = Self.createInfoQueue(device: device)
+    self.d3d12InfoQueue = Self
+      .createInfoQueue(device: d3d12Device)
     try! d3d12InfoQueue.SetBreakOnSeverity(
       D3D12_MESSAGE_SEVERITY_ERROR, true)
         
@@ -36,15 +41,7 @@ public class Device {
   }
 }
 
-// Utility functions called in the initializer.
 extension Device {
-  // Choose the best GPU out of the two that appear.
-  //
-  // Refactor this code to match the API for macOS. Split it into multiple
-  // functions:
-  // - Generating all the adapters (internal)
-  // - Selecting the best adapter ID (public)
-  
   static func createAdapters() -> [SwiftCOM.IDXGIAdapter4] {
     // Create the factory.
     let factory: SwiftCOM.IDXGIFactory4 =
@@ -69,12 +66,12 @@ extension Device {
     return adapters
   }
   
-  static func fastestAdapter() -> SwiftCOM.IDXGIAdapter4 {
+  public static var fastestDeviceID: Int {
     let adapters = createAdapters()
     
     // Choose the GPU with the greatest amount of memory. This is a relatively
     // crude heuristic for finding the fastest GPU.
-    var maxAdapter: SwiftCOM.IDXGIAdapter4?
+    var selectedAdapterID: Int?
     var maxAdapterMemory: Int = .zero
     for adapterID in adapters.indices {
       let adapter = adapters[adapterID]
@@ -82,15 +79,15 @@ extension Device {
       let dedicatedVideoMemory = description.DedicatedVideoMemory
       
       if dedicatedVideoMemory > maxAdapterMemory {
-        maxAdapter = adapter
+        selectedAdapterID = adapterID
         maxAdapterMemory = Int(dedicatedVideoMemory)
       }
     }
     
-    guard let maxAdapter else {
+    guard let selectedAdapterID else {
       fatalError("Could not find the fastest GPU.")
     }
-    return maxAdapter
+    return selectedAdapterID
   }
   
   // Create an info queue from an ID3D12Device.
