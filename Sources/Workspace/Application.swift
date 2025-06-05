@@ -21,6 +21,8 @@ class Application {
   init() {
     self.window = WindowUtilities.createWindow()
   }
+  
+  // TODO: Next, set up the swap chain.
 }
 
 #endif

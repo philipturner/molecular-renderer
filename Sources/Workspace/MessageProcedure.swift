@@ -15,6 +15,12 @@ class MessageProcedure {
     case WM_PAINT:
       break
       
+    case WM_KEYDOWN:
+      print("Identified KEYDOWN message.")
+    
+    case WM_CHAR:
+      print("Identified CHAR message.")
+      
     case WM_SIZE:
       // Retrieve the window size.
       let window = Application.global.window
@@ -34,7 +40,6 @@ class MessageProcedure {
       
     default:
       // Defer to the OS default function.
-      print("Received message code \(message).")
       return DefWindowProcA(hwnd, message, wParam, lParam)
     }
     
