@@ -8,20 +8,12 @@ class Application {
   static let global = Application()
   
   let device: Device
-  let commandQueue: CommandQueue
   let window: HWND
-  
-  // var shader: Shader
-  
-  
   
   init() {
     self.device = Device()
-    self.commandQueue = CommandQueue()
     self.window = WindowUtilities.createWindow()
   }
-  
-  // TODO: Next, set up the swap chain.
 }
 
 #endif

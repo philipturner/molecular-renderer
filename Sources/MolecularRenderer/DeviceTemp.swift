@@ -11,30 +11,30 @@ public struct GPUContextDescriptor {
 
 public class GPUContext {
   /// The GPU chosen for rendering at program startup.
-  public let device: MTLDevice
+  public let mtlDevice: MTLDevice
   
   /// The command queue that issues GPU commands.
-  public let commandQueue: MTLCommandQueue
+  public let mtlCommandQueue: MTLCommandQueue
   
   public init(descriptor: GPUContextDescriptor) {
     guard let deviceID = descriptor.deviceID else {
       fatalError("Descriptor was incomplete.")
     }
-    self.device = GPUContext.device(deviceID: deviceID)
+    
+    // Create the device.
+    let devices = MTLCopyAllDevices()
+    guard deviceID >= 0,
+          deviceID < devices.count else {
+      fatalError("Device ID was out of range.")
+    }
+    self.device = devices[deviceID]
+    
+    // Create the command queue.
     self.commandQueue = device.makeCommandQueue()!
   }
 }
 
 extension GPUContext {
-  static func device(deviceID: Int) -> MTLDevice {
-    let devices = MTLCopyAllDevices()
-    guard deviceID >= 0,
-          deviceID < devices.count else {
-      fatalError("GPU ID was out of range.")
-    }
-    return devices[deviceID]
-  }
-  
   /// The identifier for the GPU with the most processing power.
   public static var fastestDeviceID: Int {
     return 0

@@ -223,11 +223,12 @@ while true {
 }
 
 // Next steps:
-// - Rename 'GPUContext' to 'Device' and bring out of macOS
-// - Merge the Windows code for 'Device' and 'CommandQueue'
-//   - Create a new file called 'Device+CommandQueue'
+// - Rename 'GPUContext' to 'Device' and bring out of macOS.
+// - Merge the Windows code for 'Device' and 'CommandQueue'.
+//   - Createa  new file called 'Device+ID'.
+//   - Create a new file called 'Device+CommandQueue'.
 //   - Get the code to compile and work on Windows.
-// - Correct the areas of the Mac code that still call it 'gpuContext'
+// - Correct the areas of the Mac code that still call it 'gpuContext'.
 //   - Get the code to compile and work on Mac.
 
 #endif

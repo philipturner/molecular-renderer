@@ -15,25 +15,20 @@ public class Device {
   
   public init() {
     // Create the debug layer.
-    let debug: SwiftCOM.ID3D12Debug =
-      try! D3D12GetDebugInterface()
-    try! debug.EnableDebugLayer()
-    self.d3d12Debug = debug
+    self.d3d12Debug = try! D3D12GetDebugInterface()
+    try! d3d12Debug.EnableDebugLayer()
     
     // Create the device.
-    let factory: SwiftCOM.IDXGIFactory4 =
-      try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
-    let adapter = Self.createAdapter(factory: factory)
+    let adapter = Self.createFastestAdapter()
     let device: SwiftCOM.ID3D12Device =
       try! D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_12_1)
     self.d3d12Device = device
     
     // Create the info queue.
-    let infoQueue = Self.createInfoQueue(device: device)
-    try! infoQueue.SetBreakOnSeverity(
+    self.d3d12InfoQueue = Self.createInfoQueue(device: device)
+    try! d3d12InfoQueue.SetBreakOnSeverity(
       D3D12_MESSAGE_SEVERITY_ERROR, true)
-    self.d3d12InfoQueue = infoQueue
-    
+        
     // Create the DXGI info queue.
     self.dxgiInfoQueue = try! DXGIGetDebugInterface1(0)
     try! dxgiInfoQueue.SetBreakOnSeverity(
@@ -44,19 +39,38 @@ public class Device {
 // Utility functions called in the initializer.
 extension Device {
   // Choose the best GPU out of the two that appear.
-  private static func createAdapter(
-    factory: SwiftCOM.IDXGIFactory4
-  ) -> SwiftCOM.IDXGIAdapter4 {
+  //
+  // Refactor this code to match the API for macOS. Split it into multiple
+  // functions:
+  // - Generating all the adapters (internal)
+  // - Selecting the best adapter ID (public)
+  
+  static func createAdapters() -> [SwiftCOM.IDXGIAdapter4] {
+    // Create the factory.
+    let factory: SwiftCOM.IDXGIFactory4 =
+      try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+    
+    // Create the adapters.
     var adapters: [SwiftCOM.IDXGIAdapter4] = []
     while true {
-      let adapterID = adapters.count
-      let adapter: SwiftCOM.IDXGIAdapter4? =
-        try? factory.EnumAdapters(UInt32(adapterID)).QueryInterface()
+      // Check whether the next adapter exists.
+      let adapterID = UInt32(adapters.count)
+      let adapter = try? factory.EnumAdapters(adapterID)
       guard let adapter else {
         break
       }
-      adapters.append(adapter)
+      
+      // Assume every adapter conforms to IDXGIAdapter4.
+      let adapter4: SwiftCOM.IDXGIAdapter4 =
+      try! adapter.QueryInterface()
+      adapters.append(adapter4)
     }
+    
+    return adapters
+  }
+  
+  static func fastestAdapter() -> SwiftCOM.IDXGIAdapter4 {
+    let adapters = createAdapters()
     
     // Choose the GPU with the greatest amount of memory. This is a relatively
     // crude heuristic for finding the fastest GPU.
@@ -79,8 +93,8 @@ extension Device {
     return maxAdapter
   }
   
-  // Create an info queue.
-  private static func createInfoQueue(
+  // Create an info queue from an ID3D12Device.
+  static func createInfoQueue(
     device: SwiftCOM.ID3D12Device
   ) -> SwiftCOM.ID3D12InfoQueue {
     let iid = SwiftCOM.ID3D12InfoQueue.IID
