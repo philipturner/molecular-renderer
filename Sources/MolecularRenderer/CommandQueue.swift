@@ -8,9 +8,9 @@ import WinSDK
 public class CommandQueue {
   #if os(macOS)
   let mtlCommandQueue: MTLCommandQueue
+  var currentCommandBuffer: MTLCommandBuffer?
   var lastCommandBuffer: MTLCommandBuffer?
   #else
-  let d3d12Device: SwiftCOM.ID3D12Device
   let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
   let eventHandle: UnsafeMutableRawPointer
@@ -18,23 +18,27 @@ public class CommandQueue {
   #endif
   
   init(device: Device) {
-    self.d3d12Device = d3d12Device
-    
     // Fill the command queue descriptor.
+    #if os(Windows)
     var commandQueueDesc = D3D12_COMMAND_QUEUE_DESC()
     commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT
     commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL.rawValue
     commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE
     commandQueueDesc.NodeMask = 0
+    #endif
     
     // Create the command queue.
-    self.d3d12CommandQueue = try! d3d12Device.CreateCommandQueue(
-      commandQueueDesc)
+    #if os(macOS)
+    self.mtlCommandQueue = device.mtlDevice.makeCommandQueue()!
+    #else
+    self.d3d12CommandQueue = try! device.d3d12Device
+      .CreateCommandQueue(commandQueueDesc)
+    #endif
     
     // Create the fence.
-    self.d3d12Fence = try! d3d12Device.CreateFence(
-      0,
-      D3D12_FENCE_FLAG_NONE)
+    #if os(Windows)
+    self.d3d12Fence = try! device.d3d12Device
+      .CreateFence(0, D3D12_FENCE_FLAG_NONE)
     
     // Create the event handle.
     let eventHandle = CreateEventA(nil, false, false, nil)
@@ -42,11 +46,30 @@ public class CommandQueue {
       fatalError("Failed to create event handle.")
     }
     self.eventHandle = eventHandle
+    #endif
   }
 }
-#endif
 
 extension Device {
+  #if os(macOS)
+  public func createCommandList() -> MTLComputeCommandEncoder {
+    // Check that the current command buffer does not exist.
+    guard commandQueue.currentCommandBuffer == nil else {
+      fatalError("""
+        Attempted to open a new command list while the previous one was still
+        being encoded.
+        """)
+    }
+    
+    // Open the command buffer.
+    let commandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
+    commandQueue.currentCommandBuffer = commandBuffer
+    
+    // Open the command encoder.
+    let commandEncoder = commandBuffer.makeComputeCommandEncoder()!
+    return commandEncoder
+  }
+  #else
   public func createCommandList() -> SwiftCOM.ID3D12GraphicsCommandList {
     // Create the command allocator.
     let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
@@ -61,34 +84,64 @@ extension Device {
       commandAllocator,
       nil)
     
-    // The command list increments the command allocator's reference, as long as
-    // the command list is alive.
+    // The command list increments the command allocator's reference, as long
+    // as the command list is alive.
     return commandList
   }
+  #endif
   
-  public func commit(_ commandList: SwiftCOM.ID3D12GraphicsCommandList) {
-    // Close the compute encoder and commit the command buffer.
-    try! commandList.Close()
-    try! d3d12CommandQueue.ExecuteCommandLists([commandList])
+  #if os(macOS)
+  public func commit(_ commandList: MTLComputeCommandEncoder) {
+    // Close the command encoder.
+    commandList.endEncoding()
     
-    // Hold a reference to the latest command buffer.
-    fenceValue += 1
-    try! d3d12CommandQueue.Signal(d3d12Fence, fenceValue)
+    // Fetch and purge the current command buffer.
+    let currentCommandBuffer = commandQueue.currentCommandBuffer
+    guard let currentCommandBuffer else {
+      fatalError("This should never happen.")
+    }
+    commandQueue.currentCommandBuffer = nil
+    
+    // Close the command buffer.
+    currentCommandBuffer.commit()
+    commandQueue.lastCommandBuffer = currentCommandBuffer
   }
+  #else
+  public func commit(_ commandList: SwiftCOM.ID3D12GraphicsCommandList) {
+    // Close the command list.
+    try! commandList.Close()
+    
+    // Submit the command list to the queue.
+    try! commandQueue.d3d12CommandQueue
+      .ExecuteCommandLists([commandList])
+    
+    // Add a fence to the command stream, so we can wait on it later.
+    commandQueue.fenceValue += 1
+    try! commandQueue.d3d12CommandQueue.Signal(
+      commandQueue.d3d12Fence,
+      commandQueue.fenceValue)
+  }
+  #endif
   
   /// Stall until all GPU commands have completed, and the contents of GPU
   /// buffers are safe to read from the CPU.
   public func flush() {
+    #if os(macOS)
+    commandQueue.lastCommandBuffer.waitUntilCompleted()
+    #else
     // Do not follow the fastpath that checks whether the fence's value is
     // already good enough. This is a simpler approach, but it may incur
     // additional CPU-side latency for DirectX. This extra latency is trivial;
     // any command stalling on GPU work is ultra-high latency.
-    try! d3d12Fence.SetEventOnCompletion(fenceValue, eventHandle)
+    try! commandQueue.d3d12Fence.SetEventOnCompletion(
+      commandQueue.fenceValue,
+      commandQueue.eventHandle)
     
-    // Determine the wait time in milliseconds.
-    //
-    // Using a wait time of 1000 seconds (~20 minutes)
+    // Wait for 1000 seconds (~20 minutes).
     let waitTimeInMilliseconds: UInt32 = 1000 * 1000
-    WaitForSingleObject(eventHandle, waitTimeInMilliseconds)
+    WaitForSingleObject(
+      commandQueue.eventHandle,
+      waitTimeInMilliseconds)
+    #endif
   }
 }

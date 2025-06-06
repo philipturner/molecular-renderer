@@ -25,20 +25,7 @@ public class Device {
   #endif
   
   // Stored properties for the command queue.
-  
-  
-  #if os(macOS)
-  // We shouldn't need this to be public if there's a utility for creating
-  // command buffers.
-  public let mtlCommandQueue: MTLCommandQueue
-  #else
-  let commandQueue: CommandQueue
-  
-  // We shouldn't need this if the utility library encapsulates the swap chain.
-  public var d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue {
-    commandQueue.d3d12CommandQueue
-  }
-  #endif
+  var commandQueue: CommandQueue!
   
   public init(descriptor: DeviceDescriptor) {
     guard let deviceID = descriptor.deviceID else {
@@ -82,11 +69,7 @@ public class Device {
     #endif
     
     // Create the command queue.
-    #if os(macOS)
-    self.mtlCommandQueue = mtlDevice.makeCommandQueue()!
-    #else
-    self.commandQueue = CommandQueue(d3d12Device: d3d12Device)
-    #endif
+    self.commandQueue = CommandQueue(device: self)
   }
 }
 

@@ -85,10 +85,13 @@ class RunLoop: @unchecked Sendable {
     self.closure(drawable.texture)
     
     // Present the framebuffer.
+    //
+    // TODO: Check that the current command buffer is empty beforehand.
     let commandQueue = application.gpuContext.commandQueue
     let commandBuffer = commandQueue.makeCommandBuffer()!
     commandBuffer.present(drawable)
     commandBuffer.commit()
+    // TODO: Set the last command buffer to this one.
     
     return kCVReturnSuccess
   }

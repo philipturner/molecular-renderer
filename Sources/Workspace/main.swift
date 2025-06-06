@@ -223,15 +223,18 @@ while true {
 }
 
 // Next steps:
-// - Rename 'GPUContext' to 'Device' and bring out of macOS.
+// - Rename 'GPUContext' to 'Device' and bring out of macOS. [DONE]
 // - Merge the Windows code for 'Device' and 'CommandQueue'.
-//   - Create a new file called 'Device+CommandQueue'.
-//   - Get the code to compile and work on Windows.
+//   - Bring 'CommandQueue' into the common files. [DONE]
+//   - Get the code to compile on Windows. [DONE]
 // - Correct the areas of the Mac code that still call it 'gpuContext'.
-//   - Get the code to compile and work on Mac.
+//   - Get the code to compile on Mac.
 //
 // After that:
 // - Add utility code on Mac for initializing shaders. Merge it with the
 //   respective Windows code and bring Shader into the common files.
+// - Use the vector addition example to check that all 3 new APIs (Device,
+//   CommandQueue, Shader) work correctly at runtime. Especially the
+//   functionality that flushes a command queue.
 
 #endif
