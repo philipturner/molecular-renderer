@@ -8,8 +8,6 @@ import MolecularRenderer
 #if os(macOS)
 import Metal
 
-#if false
-
 @MainActor
 func createApplication() -> Application {
   // Set up the display.
@@ -31,6 +29,8 @@ func createApplication() -> Application {
   
   return application
 }
+
+#if false
 
 func createShaderSource() -> String {
   """
@@ -150,7 +150,7 @@ application.run { renderTarget in
     let height = Int(renderTarget.height)
     commandList.dispatchThreads(
       MTLSize(width: width, height: height, depth: 1),
-      threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
+      threadsPerThreadgroup: shader.threadsPerGroup)
   }
   
   // End the command list.
@@ -178,12 +178,16 @@ import WinSDK
 // Periodically purge the main file in small bits, instead of all at once to a
 // GitHub gist. That removes the need for any more tedious archival events.
 
-// Second question: Should I create a helper class called 'Texture'?
+// Should I create a helper class called 'Texture'?
 //
 // Answer: No, because the reference implementation
 // (https://stackoverflow.com/a/78501260) just extracts the resource
 // descriptor from a swapchain buffer. It might be tractable to keep the
 // texture initialization code separate between Metal and DirectX.
+//
+// Rule of thumb: don't create utility code or "cross-platform abstractions"
+// until the boilerplate gets so tedious that you need them. At that point,
+// you'll probably be better informed about the optimal API form.
 
 #if false
 let window = Application.global.window
@@ -209,19 +213,6 @@ while true {
 
 #endif
 
-// Next steps: [DONE]
-// - Rename 'GPUContext' to 'Device' and bring out of macOS. [DONE]
-// - Merge the Windows code for 'Device' and 'CommandQueue'. [DONE]
-//   - Bring 'CommandQueue' into the common files. [DONE]
-//   - Get the code to compile on Windows. [DONE]
-//   - Remove the title ('lpWindowName') from the window. [DONE]
-//   - Change the window clas ('lpClassName') to "Window". [DONE]
-// - Correct the areas of the Mac code that still call it 'gpuContext'. [DONE]
-//   - Get the code to compile on Mac. [DONE]
-//   - Address the TODOs regarding command buffers in RunLoop. [DONE]
-//
-
-
 #endif
 
 
@@ -230,46 +221,73 @@ while true {
 //
 // Code for vector addition, written in a cross-platform style.
 
-// TODO: Add MTLSize to the shader for threadgroup size.
 // TODO: Port 'Buffer' to macOS, but restrict the enumeration to only have the
 // type '.native'.
 
-func createShaderSource() -> String {
-  #if os(macOS)
+func createVectorAdditionSource() -> String {
+  let shaderBody = """
   
-  #else
+  uint slotID = tid.x;
+  float input0 = buffer0[slotID];
+  float input1 = buffer1[slotID];
+  
+  float output = input0 + input1;
+  buffer2[slotID] = output;
+  
   """
+  
+  #if os(macOS)
+  return """
+  
+  #include <metal_stdlib>
+  using namespace metal;
+  
+  kernel void vectorAddition(
+    device float *buffer0 [[buffer(0)]],
+    device float *buffer1 [[buffer(1)]],
+    device float *buffer2 [[buffer(2)]],
+    uint tid [[thread_position_in_grid]]
+  ) {
+    \(shaderBody)
+  }
+  
+  """
+  #else
+  return """
   
   RWStructuredBuffer<float> buffer0 : register(u0);
   RWStructuredBuffer<float> buffer1 : register(u1);
   RWStructuredBuffer<float> buffer2 : register(u2);
   
-  #define mainRS "UAV(u0), " \\
-                "UAV(u1), " \\
-                "UAV(u2)"
+  #define kernelRootSignature "UAV(u0), " \\
+                              "UAV(u1), " \\
+                              "UAV(u2)"
   
-  // Still no solution to the difference in how each API encodes the number
-  // of threads. Perhaps it's better to specify differently on macOS vs Windows,
-  // as they might have different GPU architectures. But we'll eventually
-  // need a utility to abstract away the process of specifying shader dispatch
-  // size.
-  //
-  // Shader function name is already being included in the descriptor. It's
-  // redundant, and requires conscious checking from the user. By that logic,
-  // it's completely sensible to specify the dispatch size.
   [numthreads(128, 1, 1)]
-  [RootSignature(mainRS)]
-  void main(
+  [RootSignature(kernelRootSignature)]
+  void vectorAddition(
     uint3 tid : SV_DispatchThreadID
   ) {
-    uint slotID = tid.x;
-    float input0 = buffer0[slotID];
-    float input1 = buffer1[slotID];
-    
-    float output = input1 / input0;
-    buffer2[slotID] = output;
+    \(shaderBody)
   }
   
   """
   #endif
 }
+
+// Set up the application.
+#if os(macOS)
+let application = createApplication()
+#else
+let application = Application.global
+#endif
+
+// Set up the shader.
+var shaderDesc = ShaderDescriptor()
+shaderDesc.device = application.device
+shaderDesc.name = "vectorAddition"
+shaderDesc.source = createVectorAdditionSource()
+#if os(macOS)
+shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+#endif
+let shader = Shader(descriptor: shaderDesc)

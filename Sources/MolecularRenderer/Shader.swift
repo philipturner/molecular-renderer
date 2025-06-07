@@ -25,6 +25,9 @@ public struct ShaderDescriptor {
   public var device: Device?
   public var name: String?
   public var source: String?
+  #if os(macOS)
+  public var threadsPerGroup: SIMD3<UInt16>?
+  #endif
   
   public init() {
     
@@ -34,6 +37,7 @@ public struct ShaderDescriptor {
 public class Shader {
   #if os(macOS)
   public let mtlComputePipelineState: MTLComputePipelineState
+  public let threadsPerGroup: MTLSize
   #else
   public let d3d12PipelineState: SwiftCOM.ID3D12PipelineState
   public let d3d12RootSignature: SwiftCOM.ID3D12RootSignature
@@ -45,6 +49,11 @@ public class Shader {
           let source = descriptor.source else {
       fatalError("Descriptor was incomplete.")
     }
+    #if os(macOS)
+    guard let threadsPerGroup = descriptor.threadsPerGroup else {
+      fatalError("Descriptor was incomplete.")
+    }
+    #endif
     
     #if os(macOS)
     // Create the library.
@@ -60,6 +69,13 @@ public class Shader {
     // Create the pipeline state.
     self.mtlComputePipelineState = try! device.mtlDevice
       .makeComputePipelineState(function: function)
+    
+    // Store the number of threads per threadgroup.
+    let mtlSize = MTLSize(
+      width: UInt32(threadsPerGroup[0]),
+      height: UInt32(threadsPerGroup[1]),
+      depth: UInt32(threadsPerGroup[2]))
+    self.threadsPerGroup = mtlSize
     #else
     // Declare the function arguments and return values.
     let sourceLength = UInt32(source.count)
