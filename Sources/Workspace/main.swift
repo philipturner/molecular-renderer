@@ -306,4 +306,12 @@ let shader = Shader(descriptor: shaderDesc)
 //     *at the level of CommandList*.
 // - Port 'VectorAddition' to macOS.
 
+// Set up the buffers.
+let vectorAddition = VectorAddition(
+  device: application.device)
+let results = vectorAddition.results
+for slotID in 0..<10 {
+  print(results[slotID])
+}
+
 #endif
