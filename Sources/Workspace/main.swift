@@ -198,22 +198,6 @@ import WinSDK
 // descriptor from a swapchain buffer. It might be tractable to keep the
 // texture initialization code separate between Metal and DirectX.
 
-let originalString: String = "main"
-print(originalString.utf8.count)
-print(originalString.utf16.count)
-originalString.withCString(encodedAs: UTF16.self) { cString in
-  let convertedBack = String.decodeCString(cString, as: UTF16.self)
-  let character: UInt16 = cString[4]
-  print(character)
-  print(convertedBack?.result, convertedBack?.repairsMade)
-}
-
-var shaderDesc = ShaderDescriptor()
-shaderDesc.device = Application.global.device
-shaderDesc.name = "main"
-shaderDesc.source = "test source"
-let shader = Shader(descriptor: shaderDesc)
-
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 

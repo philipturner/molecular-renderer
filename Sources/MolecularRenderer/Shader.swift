@@ -31,27 +31,6 @@ public struct ShaderDescriptor {
   }
 }
 
-/* macOS code
-
-func createRenderPipeline(
-  application: Application,
-  shaderSource: String
-) -> MTLComputePipelineState {
-  let device = application.device
-  let shaderSource = createShaderSource()
-  let library = try! device.mtlDevice
-    .makeLibrary(source: shaderSource, options: nil)
-  
-  let function = library.makeFunction(name: "renderImage")
-  guard let function else {
-    fatalError("Could not make function.")
-  }
-  let pipeline = try! device.mtlDevice
-    .makeComputePipelineState(function: function)
-  return pipeline
-}
-*/
-
 public class Shader {
   #if os(macOS)
   public let mtlComputePipelineState: MTLComputePipelineState
@@ -68,9 +47,19 @@ public class Shader {
     }
     
     #if os(macOS)
+    // Create the library.
     let library = try! device.mtlDevice
       .makeLibrary(source: source, options: nil)
     
+    // Create the function.
+    let function = library.makeFunction(name: name)
+    guard let function else {
+      fatalError("Could not create MTLFunction.")
+    }
+    
+    // Create the pipeline state.
+    self.mtlComputePipelineState = try! device.mtlDevice
+      .makeComputePipelineState(function: function)
     #else
     // Declare the function arguments and return values.
     let sourceLength = UInt32(source.count)
@@ -80,7 +69,7 @@ public class Shader {
     var rootSignatureBlob: UnsafeMutablePointer<UInt8>?
     var rootSignatureLength: UInt32 = .zero
     
-    // Invoke the function from the DXC wrapper.
+    // Call into the DXC wrapper.
     name.withCString(encodedAs: UTF16.self) { name in
       let errorCode = dxcompiler_compile(
         source,
