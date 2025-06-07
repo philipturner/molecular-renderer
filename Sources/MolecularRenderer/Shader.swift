@@ -71,11 +71,13 @@ public class Shader {
       .makeComputePipelineState(function: function)
     
     // Store the number of threads per threadgroup.
-    let mtlSize = MTLSize(
-      width: Int(threadsPerGroup[0]),
-      height: Int(threadsPerGroup[1]),
-      depth: Int(threadsPerGroup[2]))
-    self.threadsPerGroup = mtlSize
+    do {
+      var mtlSize = MTLSize()
+      mtlSize.width = Int(threadsPerGroup[0])
+      mtlSize.height = Int(threadsPerGroup[1])
+      mtlSize.depth = Int(threadsPerGroup[2])
+      self.threadsPerGroup = mtlSize
+    }
     #else
     // Declare the function arguments and return values.
     let sourceLength = UInt32(source.count)

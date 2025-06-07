@@ -192,6 +192,11 @@ import WinSDK
 // until the boilerplate gets so tedious that you need them. At that point,
 // you'll probably be better informed about the optimal API form.
 
+// Keep every API as 'class' by default, unless you absolutely need the mutable
+// value semantics of 'struct' for API design. While the HDL defaults
+// everything, including 'Lattice', to a 'struct', the default choice is
+// different for MolecularRenderer.
+
 #if false
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
