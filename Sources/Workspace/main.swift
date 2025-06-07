@@ -222,8 +222,14 @@ while true {
 //
 // Code for vector addition, written in a cross-platform style.
 
-// TODO: Port 'Buffer' to macOS, but restrict the enumeration to only have the
-// type '.native'.
+// Tasks:
+// - Port 'Buffer' to macOS, but restrict the enumeration to only have the
+//   type '.native'.
+// - Create a 'CommandList' utility.
+//   - Expose the underlying MTLCommandEncoder or ID3D12CommandList to the
+//     public API.
+//   - Encapsulate the process of binding pipeline states and dispatching
+//     threads. Hide the respective utility class members from the public API.
 
 func createVectorAdditionSource() -> String {
   let shaderBody = """

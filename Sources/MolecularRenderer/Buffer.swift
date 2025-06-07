@@ -1,6 +1,9 @@
-#if os(Windows)
+#if os(macOS)
+import Metal
+#else
 import SwiftCOM
 import WinSDK
+#endif
 
 public struct BufferDescriptor {
   public var device: Device?
@@ -12,32 +15,21 @@ public struct BufferDescriptor {
   }
 }
 
-// How to get data on/off the GPU:
-//
-// input buffer:
-// - always in state GENERIC_READ
-// - resource flags NONE
-//
-// native buffer:
-// - state can vary based on the operation
-//   - compute shader: UNORDERED_ACCESS
-//   - copy command: COPY_SOURCE or COPY_DEST
-// - resource flags ALLOW_UNORDERED_ACCESS
-//
-// output buffer:
-// - always in state COPY_DEST
-// - resource flags NONE
-
 public enum BufferType {
-  // CPU can write, GPU cannot access in a compute shader.
+  #if os(Windows)
+  /// CPU can write, GPU cannot access in a compute shader.
   case input
+  #endif
   
-  // GPU memory accesses are fast.
+  /// GPU memory accesses are fast.
   case native
   
-  // CPU can read, GPU cannot access in a compute shader.
+  #if os(Windows)
+  /// CPU can read, GPU cannot access in a compute shader.
   case output
+  #endif
   
+  #if os(Windows)
   var heapType: D3D12_HEAP_TYPE {
     switch self {
     case .input:
@@ -70,16 +62,23 @@ public enum BufferType {
       return D3D12_RESOURCE_FLAG_NONE
     }
   }
+  #endif
 }
 
 public class Buffer {
+  #if os(macOS)
+  public let mtlBuffer: MTLBuffer
+  #else
   public let d3d12Resource: SwiftCOM.ID3D12Resource
+  #endif
   public let size: Int
   public let type: BufferType
   
   // There is no way to query the state right now. You must know it beforehand.
+  #if os(Windows)
   private var state: D3D12_RESOURCE_STATES
   private let mappedPointer: UnsafeMutableRawPointer?
+  #endif
   
   public init(descriptor: BufferDescriptor) {
     guard let device = descriptor.device,
@@ -94,6 +93,11 @@ public class Buffer {
     }
     self.size = descriptor.size
     
+    #if os(macOS)
+    // Create the buffer.
+    let buffer = device.mtlDevice.makeBuffer(length: <#T##Int#>)
+    
+    #else
     // Fill the heap descriptor.
     var heapProperties = D3D12_HEAP_PROPERTIES()
     heapProperties.Type = type.heapType
@@ -134,6 +138,7 @@ public class Buffer {
     } else {
       self.mappedPointer = nil
     }
+    #endif
   }
   
   deinit {
@@ -203,5 +208,3 @@ public class Buffer {
     return barrier
   }
 }
-
-#endif
