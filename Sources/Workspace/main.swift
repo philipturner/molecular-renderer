@@ -96,31 +96,17 @@ func createShaderSource() -> String {
   """
 }
 
-func createRenderPipeline(
-  application: Application,
-  shaderSource: String
-) -> MTLComputePipelineState {
-  let device = application.device
-  let shaderSource = createShaderSource()
-  let library = try! device.mtlDevice
-    .makeLibrary(source: shaderSource, options: nil)
-  
-  let function = library.makeFunction(name: "renderImage")
-  guard let function else {
-    fatalError("Could not make function.")
-  }
-  let pipeline = try! device.mtlDevice
-    .makeComputePipelineState(function: function)
-  return pipeline
-}
-
-// Set up the resources.
+// Set up the application.
 let application = createApplication()
-let shaderSource = createShaderSource()
-let renderPipeline = createRenderPipeline(
-  application: application,
-  shaderSource: shaderSource)
 
+// Set up the shader.
+var shaderDesc = ShaderDescriptor()
+shaderDesc.device = application.device
+shaderDesc.name = "renderImage"
+shaderDesc.source = createShaderSource()
+let shader = Shader(descriptor: shaderDesc)
+
+// Define the state variables.
 var startTime: UInt64?
 
 // Enter the run loop.
@@ -158,10 +144,11 @@ application.run { renderTarget in
   // Bind the textures.
   commandList.setTexture(renderTarget, index: 0)
   
-  // Dispatch the command.
+  // Bind the pipeline state.
+  commandList.setComputePipelineState(shader.mtlComputePipelineState)
+  
+  // Encode the dispatch.
   do {
-    commandList.setComputePipelineState(renderPipeline)
-    
     let width = Int(renderTarget.width)
     let height = Int(renderTarget.height)
     commandList.dispatchThreads(
@@ -232,7 +219,7 @@ while true {
 //
 // After that:
 // - Add utility code on Mac for initializing shaders. Merge it with the
-//   respective Windows code and bring Shader into the common files.
+//   respective Windows code and bring Shader into the common files. [DONE]
 // - Use the vector addition example to check that all 3 new APIs (Device,
 //   CommandQueue, Shader) work correctly at runtime. Especially the
 //   functionality that flushes a command queue.
