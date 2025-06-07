@@ -11,4 +11,6 @@ public struct CommandList {
   #else
   public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   #endif
+  
+  public func setPipelineState
 }

@@ -51,7 +51,6 @@ public class CommandQueue {
 }
 
 extension Device {
-  
   public func createCommandList() -> CommandList {
     #if os(macOS)
     // Check that the current command buffer does not exist.
