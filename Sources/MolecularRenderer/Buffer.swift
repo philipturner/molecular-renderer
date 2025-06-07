@@ -95,7 +95,12 @@ public class Buffer {
     
     #if os(macOS)
     // Create the buffer.
-    let buffer = device.mtlDevice.makeBuffer(length: <#T##Int#>)
+    let mtlBuffer = device.mtlDevice
+      .makeBuffer(length: size)
+    guard let mtlBuffer else {
+      fatalError("Failed to create buffer.")
+    }
+    self.mtlBuffer = mtlBuffer
     
     #else
     // Fill the heap descriptor.
@@ -142,9 +147,11 @@ public class Buffer {
   }
   
   deinit {
+    #if os(Windows)
     if type == .input || type == .output {
       try! d3d12Resource.Unmap(0, nil)
     }
+    #endif
   }
   
   /// Write data to the buffer.
@@ -153,9 +160,13 @@ public class Buffer {
   ///
   /// The data must be the input to a future GPU copy command.
   public func write(input: UnsafeRawPointer) {
+    #if os(macOS)
+    let mappedPointer = mtlBuffer.contents()
+    #else
     guard type == .input else {
       fatalError("Can only write to input buffers.")
     }
+    #endif
     memcpy(mappedPointer, input, size)
   }
   
@@ -165,9 +176,13 @@ public class Buffer {
   ///
   /// The data must be the output of a previous GPU copy command.
   public func read(output: UnsafeMutableRawPointer) {
+    #if os(macOS)
+    let mappedPointer = mtlBuffer.contents()
+    #else
     guard type == .output else {
       fatalError("Can only read from output buffers.")
     }
+    #endif
     memcpy(output, mappedPointer, size)
   }
   
@@ -177,6 +192,7 @@ public class Buffer {
   /// Never call this function if it will transition between two identical
   /// states. As of writing, it is assumed that client code will always be able
   /// to anticipate the resource state.
+  #if os(Windows)
   public func transition(
     state: D3D12_RESOURCE_STATES
   ) -> D3D12_RESOURCE_BARRIER {
@@ -207,4 +223,5 @@ public class Buffer {
     // Return the barrier.
     return barrier
   }
+  #endif
 }
