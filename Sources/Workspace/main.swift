@@ -219,13 +219,13 @@ while true {
   }
 }
 
-// Next steps:
+// Next steps: [DONE]
 // - Rename 'GPUContext' to 'Device' and bring out of macOS. [DONE]
-// - Merge the Windows code for 'Device' and 'CommandQueue'.
+// - Merge the Windows code for 'Device' and 'CommandQueue'. [DONE]
 //   - Bring 'CommandQueue' into the common files. [DONE]
 //   - Get the code to compile on Windows. [DONE]
-//   - Remove the title ('lpWindowName') from the window.
-//   - Change the window clas ('lpClassName') to "Window".
+//   - Remove the title ('lpWindowName') from the window. [DONE]
+//   - Change the window clas ('lpClassName') to "Window". [DONE]
 // - Correct the areas of the Mac code that still call it 'gpuContext'. [DONE]
 //   - Get the code to compile on Mac. [DONE]
 //   - Address the TODOs regarding command buffers in RunLoop. [DONE]

@@ -3,7 +3,10 @@ import MolecularRenderer
 import SwiftCOM
 import WinSDK
 
+// This file will merge with 'Window', currently under 'macOS'.
+
 struct WindowUtilities {
+  // Create a window using the utilities in this file.
   static func createWindow() -> HWND {
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
     registerWindowClass()
@@ -13,7 +16,7 @@ struct WindowUtilities {
     return window
   }
   
-  // Registers the window class for the application's window.
+  // Register the window class for the application's window.
   static func registerWindowClass() {
     var windowClass = WNDCLASSEXA()
     windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
@@ -33,17 +36,13 @@ struct WindowUtilities {
     let cursor = LoadCursorA(nil, cursorName)
     windowClass.hCursor = cursor
     windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
-    
-    // Set the icon properties.
-    let iconName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
-    let icon = LoadIconA(nil, iconName)
-    windowClass.hIcon = icon
-    windowClass.hIconSm = icon
+    windowClass.hIcon = nil
+    windowClass.hIconSm = nil
     
     // 'RegisterClassExA' must be called within the same scope where the cString
     // pointer exists. Otherwise, cString becomes a zombie pointer and the
     // function fails with error code 123.
-    let name: String = "DX12WindowClass"
+    let name: String = "Window"
     name.withCString { cString in
       windowClass.lpszMenuName = nil
       windowClass.lpszClassName = cString
@@ -107,15 +106,18 @@ struct WindowUtilities {
     return outputUnsigned
   }
   
-  // Creates a window from the specified dimensions.
+  // Create a window from the specified dimensions.
   static func createWindow(dimensions: SIMD4<UInt32>) -> HWND {
-    let className: String = "DX12WindowClass"
-    let title: String = "Learning DirectX 12"
+    // Show the close button, but hide the icon.
+    //
+    // Source: https://stackoverflow.com/a/4905502
+    let dwExStyle = UInt32(WS_EX_DLGMODALFRAME)
+    let className: String = "Window"
     
     let output = CreateWindowExA(
-      0, // dwExStyle
+      dwExStyle, // dwExStyle
       className, // lpClassName
-      title, // lpWindowName
+      nil, // lpWindowName
       createWindowStyle(), // dwStyle
       Int32(dimensions[0]), // X
       Int32(dimensions[1]), // Y

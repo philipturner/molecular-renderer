@@ -2,6 +2,8 @@
 import SwiftCOM
 import WinSDK
 
+// This file will merge with 'View', currently under 'macOS'.
+
 public struct SwapChainDescriptor {
   public var commandQueue: CommandQueue?
   public var window: HWND?
