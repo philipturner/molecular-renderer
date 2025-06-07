@@ -12,5 +12,15 @@ public struct CommandList {
   public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   #endif
   
-  public func setPipelineState
+  public func setPipelineState(_ shader: Shader) {
+    #if os(macOS)
+    mtlCommandEncoder.setComputePipelineState(
+      shader.mtlComputePipelineState)
+    #else
+    try! d3d12CommandList.SetPipelineState(
+      shader.d3d12PipelineState)
+    try! d3d12CommandList.SetComputeRootSignature(
+      shader.d3d12RootSignature)
+    #endif
+  }
 }

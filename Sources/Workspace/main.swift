@@ -145,8 +145,7 @@ application.run { renderTarget in
     .setTexture(renderTarget, index: 0)
   
   // Bind the pipeline state.
-  commandList.mtlCommandEncoder
-    .setComputePipelineState(shader.mtlComputePipelineState)
+  commandList.setPipelineState(shader)
   
   // Encode the dispatch.
   do {
@@ -231,7 +230,7 @@ while true {
 //     public API. [DONE]
 //   - Encapsulate the process of binding pipeline states and dispatching
 //     threads. Hide the respective utility class members from the public API.
-//     - Encapsulate the process of binding pipeline states.
+//     - Encapsulate the process of binding pipeline states. [DONE]
 //     - Encapsulate the process of binding buffers to compute commands.
 //     - Encapsulate the process of dispatching threads.
 //  - Not yet sure how/if to encapsulate the process of copying buffers for
