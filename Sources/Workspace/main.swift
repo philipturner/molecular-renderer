@@ -1,17 +1,14 @@
 // Next steps:
-// - Access the GPU.
-//   - Modify it to get Metal rendering. [DONE]
-//   - Clean up and simplify the code as much as possible. [DONE]
-//   - Get timestamps synchronizing properly (moving rainbow banner
-//     scene). [DONE]
-// - Repeat the same process with COM / D3D12 on Windows.
-//   - Get some general experience with C++ DirectX sample code. [DONE]
-//   - Modify the files one-by-one to support Windows.
+// - Use the vector addition example to check that all 3 new APIs (Device,
+//   CommandQueue, Shader) work correctly at runtime. Especially the
+//   functionality that flushes a command queue.
 
 import MolecularRenderer
 
 #if os(macOS)
 import Metal
+
+#if false
 
 @MainActor
 func createApplication() -> Application {
@@ -159,6 +156,9 @@ application.run { renderTarget in
   // End the command list.
   application.device.commit(commandList)
 }
+
+#endif
+
 #endif
 
 
@@ -185,6 +185,7 @@ import WinSDK
 // descriptor from a swapchain buffer. It might be tractable to keep the
 // texture initialization code separate between Metal and DirectX.
 
+#if false
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -206,6 +207,8 @@ while true {
   }
 }
 
+#endif
+
 // Next steps: [DONE]
 // - Rename 'GPUContext' to 'Device' and bring out of macOS. [DONE]
 // - Merge the Windows code for 'Device' and 'CommandQueue'. [DONE]
@@ -217,11 +220,56 @@ while true {
 //   - Get the code to compile on Mac. [DONE]
 //   - Address the TODOs regarding command buffers in RunLoop. [DONE]
 //
-// After that:
-// - Add utility code on Mac for initializing shaders. Merge it with the
-//   respective Windows code and bring Shader into the common files. [DONE]
-// - Use the vector addition example to check that all 3 new APIs (Device,
-//   CommandQueue, Shader) work correctly at runtime. Especially the
-//   functionality that flushes a command queue.
+
 
 #endif
+
+
+
+// MARK: - Vector Addition
+//
+// Code for vector addition, written in a cross-platform style.
+
+// TODO: Add MTLSize to the shader for threadgroup size.
+// TODO: Port 'Buffer' to macOS, but restrict the enumeration to only have the
+// type '.native'.
+
+func createShaderSource() -> String {
+  #if os(macOS)
+  
+  #else
+  """
+  
+  RWStructuredBuffer<float> buffer0 : register(u0);
+  RWStructuredBuffer<float> buffer1 : register(u1);
+  RWStructuredBuffer<float> buffer2 : register(u2);
+  
+  #define mainRS "UAV(u0), " \\
+                "UAV(u1), " \\
+                "UAV(u2)"
+  
+  // Still no solution to the difference in how each API encodes the number
+  // of threads. Perhaps it's better to specify differently on macOS vs Windows,
+  // as they might have different GPU architectures. But we'll eventually
+  // need a utility to abstract away the process of specifying shader dispatch
+  // size.
+  //
+  // Shader function name is already being included in the descriptor. It's
+  // redundant, and requires conscious checking from the user. By that logic,
+  // it's completely sensible to specify the dispatch size.
+  [numthreads(128, 1, 1)]
+  [RootSignature(mainRS)]
+  void main(
+    uint3 tid : SV_DispatchThreadID
+  ) {
+    uint slotID = tid.x;
+    float input0 = buffer0[slotID];
+    float input1 = buffer1[slotID];
+    
+    float output = input1 / input0;
+    buffer2[slotID] = output;
+  }
+  
+  """
+  #endif
+}
