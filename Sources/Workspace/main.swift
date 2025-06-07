@@ -148,13 +148,11 @@ application.run { renderTarget in
   commandList.setPipelineState(shader)
   
   // Encode the dispatch.
-  do {
-    let width: Int = renderTarget.width
-    let height: Int = renderTarget.height
-    commandList.mtlCommandEncoder.dispatchThreads(
-      MTLSize(width: width, height: height, depth: 1),
-      threadsPerThreadgroup: shader.threadsPerGroup)
-  }
+  let groups = SIMD3<UInt32>(
+    UInt32(renderTarget.width) / 8,
+    UInt32(renderTarget.height) / 8,
+    1)
+  commandList.dispatch(groups: groups)
   
   // End the command list.
   application.device.commit(commandList)
@@ -237,10 +235,12 @@ while true {
 //     threads. Hide the respective utility class members from the public API.
 //     - Encapsulate the process of binding pipeline states. [DONE]
 //     - Encapsulate the process of binding buffers to compute commands. [DONE]
-//     - Encapsulate the process of dispatching threads.
-//  - Not yet sure how/if to encapsulate the process of copying buffers for
-//    DirectX. Best to leave the boilerplate for now, address the problem when
-//    it becomes a major pain.
+//     - Encapsulate the process of dispatching threads. [DONE]
+//     - Get all of this to compile on Windows.
+//   - Not yet sure how/if to encapsulate the process of copying buffers for
+//     DirectX. Best to leave the boilerplate for now, address the problem when
+//     it becomes a major pain.
+// - Resume the "hello world" demonstration.
 
 func createVectorAdditionSource() -> String {
   let shaderBody = """
