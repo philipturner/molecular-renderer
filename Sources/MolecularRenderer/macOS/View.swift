@@ -55,4 +55,5 @@ extension View {
     checkDrawableSize(newSize)
   }
 }
+
 #endif

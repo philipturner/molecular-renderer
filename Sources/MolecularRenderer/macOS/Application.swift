@@ -2,8 +2,8 @@
 import AppKit
 
 public struct ApplicationDescriptor {
+  public var device: Device?
   public var display: Display?
-  public var gpuContext: GPUContext?
   
   public init() {
     
@@ -12,19 +12,19 @@ public struct ApplicationDescriptor {
 
 public class Application {
   public var clock: Clock
+  public let device: Device
   public let display: Display
-  public let gpuContext: GPUContext
   let view: View
   let window: Window
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
-    guard let display = descriptor.display,
-          let gpuContext = descriptor.gpuContext else {
+    guard let device = descriptor.device,
+          let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")
     }
+    self.device = device
     self.display = display
-    self.gpuContext = gpuContext
     
     clock = Clock(display: display)
     view = View(display: display)
@@ -75,4 +75,5 @@ public class Application {
     runLoop.stop()
   }
 }
+
 #endif

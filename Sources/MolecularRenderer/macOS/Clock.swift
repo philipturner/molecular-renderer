@@ -115,4 +115,5 @@ extension Clock {
     frameCounter
   }
 }
+
 #endif

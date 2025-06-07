@@ -85,13 +85,7 @@ class RunLoop: @unchecked Sendable {
     self.closure(drawable.texture)
     
     // Present the framebuffer.
-    //
-    // TODO: Check that the current command buffer is empty beforehand.
-    let commandQueue = application.gpuContext.commandQueue
-    let commandBuffer = commandQueue.makeCommandBuffer()!
-    commandBuffer.present(drawable)
-    commandBuffer.commit()
-    // TODO: Set the last command buffer to this one.
+    present(drawable: drawable)
     
     return kCVReturnSuccess
   }
@@ -105,5 +99,33 @@ class RunLoop: @unchecked Sendable {
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkStop(displayLink!)
   }
+  
+  // Utility function to encapsulate the process of encoding a drawable.
+  //
+  // This is rather complex because it must carefully preserve the internal
+  // state of the command queue, to ensure flushing happens correctly.
+  func present(drawable: MTLDrawable) {
+    // Check that the current command buffer does not exist.
+    let commandQueue = application.device.commandQueue!
+    guard commandQueue.currentCommandBuffer == nil else {
+      fatalError("""
+        Attempted to open a new command list while the previous one was still
+        being encoded.
+        """)
+    }
+    
+    // Open the command buffer.
+    let commandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
+    commandQueue.currentCommandBuffer = commandBuffer
+    
+    // Present the framebuffer.
+    commandBuffer.present(drawable)
+    
+    // Close the command buffer.
+    commandBuffer.commit()
+    commandQueue.currentCommandBuffer = nil
+    commandQueue.lastCommandBuffer = commandBuffer
+  }
 }
+
 #endif

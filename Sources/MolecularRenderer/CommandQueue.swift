@@ -127,7 +127,7 @@ extension Device {
   /// buffers are safe to read from the CPU.
   public func flush() {
     #if os(macOS)
-    commandQueue.lastCommandBuffer.waitUntilCompleted()
+    commandQueue.lastCommandBuffer?.waitUntilCompleted()
     #else
     // Do not follow the fastpath that checks whether the fence's value is
     // already good enough. This is a simpler approach, but it may incur

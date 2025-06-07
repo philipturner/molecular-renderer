@@ -5,7 +5,7 @@
 //   - Get timestamps synchronizing properly (moving rainbow banner
 //     scene). [DONE]
 // - Repeat the same process with COM / D3D12 on Windows.
-//   - Get some general experience with C++ DirectX sample code.
+//   - Get some general experience with C++ DirectX sample code. [DONE]
 //   - Modify the files one-by-one to support Windows.
 
 import MolecularRenderer
@@ -21,15 +21,15 @@ func createApplication() -> Application {
   displayDesc.screenID = Display.fastestScreenID
   let display = Display(descriptor: displayDesc)
   
-  // Set up the GPU context.
-  var gpuContextDesc = GPUContextDescriptor()
-  gpuContextDesc.deviceID = GPUContext.fastestDeviceID
-  let gpuContext = GPUContext(descriptor: gpuContextDesc)
+  // Set up the device.
+  var deviceDesc = DeviceDescriptor()
+  deviceDesc.deviceID = Device.fastestDeviceID
+  let device = Device(descriptor: deviceDesc)
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
+  applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.gpuContext = gpuContext
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -229,6 +229,7 @@ while true {
 //   - Get the code to compile on Windows. [DONE]
 // - Correct the areas of the Mac code that still call it 'gpuContext'.
 //   - Get the code to compile on Mac.
+//   - Address the TODOs regarding command buffers in RunLoop. [DONE]
 //
 // After that:
 // - Add utility code on Mac for initializing shaders. Merge it with the
