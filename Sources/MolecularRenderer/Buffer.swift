@@ -101,8 +101,9 @@ public class Buffer {
       fatalError("Failed to create buffer.")
     }
     self.mtlBuffer = mtlBuffer
+    #endif
     
-    #else
+    #if os(Windows)
     // Fill the heap descriptor.
     var heapProperties = D3D12_HEAP_PROPERTIES()
     heapProperties.Type = type.heapType

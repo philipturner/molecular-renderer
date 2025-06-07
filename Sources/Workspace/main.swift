@@ -30,7 +30,7 @@ func createApplication() -> Application {
   return application
 }
 
-#if false
+#if true
 
 func createShaderSource() -> String {
   """
@@ -116,7 +116,8 @@ application.run { renderTarget in
   func setTime(_ time: Double, index: Int) {
     let fractionalTime = time - floor(time)
     var time32 = Float(fractionalTime)
-    commandList.setBytes(&time32, length: 4, index: index)
+    commandList.mtlCommandEncoder
+      .setBytes(&time32, length: 4, index: index)
   }
   
   // Bind buffer 0.
@@ -140,16 +141,18 @@ application.run { renderTarget in
   }
   
   // Bind the textures.
-  commandList.setTexture(renderTarget, index: 0)
+  commandList.mtlCommandEncoder
+    .setTexture(renderTarget, index: 0)
   
   // Bind the pipeline state.
-  commandList.setComputePipelineState(shader.mtlComputePipelineState)
+  commandList.mtlCommandEncoder
+    .setComputePipelineState(shader.mtlComputePipelineState)
   
   // Encode the dispatch.
   do {
     let width: Int = renderTarget.width
     let height: Int = renderTarget.height
-    commandList.dispatchThreads(
+    commandList.mtlCommandEncoder.dispatchThreads(
       MTLSize(width: width, height: height, depth: 1),
       threadsPerThreadgroup: shader.threadsPerGroup)
   }
@@ -223,8 +226,6 @@ while true {
 // Code for vector addition, written in a cross-platform style.
 
 // Tasks:
-// - Port 'Buffer' to macOS, but restrict the enumeration to only have the
-//   type '.native'.
 // - Create a 'CommandList' utility.
 //   - Expose the underlying MTLCommandEncoder or ID3D12CommandList to the
 //     public API.
@@ -283,7 +284,8 @@ func createVectorAdditionSource() -> String {
   #endif
 }
 
-#if true
+#if false
+
 // Set up the application.
 #if os(macOS)
 let application = createApplication()
@@ -300,4 +302,5 @@ shaderDesc.source = createVectorAdditionSource()
 shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
+
 #endif

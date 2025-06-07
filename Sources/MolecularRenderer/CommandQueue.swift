@@ -51,8 +51,9 @@ public class CommandQueue {
 }
 
 extension Device {
-  #if os(macOS)
-  public func createCommandList() -> MTLComputeCommandEncoder {
+  
+  public func createCommandList() -> CommandList {
+    #if os(macOS)
     // Check that the current command buffer does not exist.
     guard commandQueue.currentCommandBuffer == nil else {
       fatalError("""
@@ -62,38 +63,38 @@ extension Device {
     }
     
     // Open the command buffer.
-    let commandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
-    commandQueue.currentCommandBuffer = commandBuffer
+    let mtlCommandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
+    commandQueue.currentCommandBuffer = mtlCommandBuffer
     
     // Open the command encoder.
-    let commandEncoder = commandBuffer.makeComputeCommandEncoder()!
-    return commandEncoder
-  }
-  #else
-  public func createCommandList() -> SwiftCOM.ID3D12GraphicsCommandList {
+    let mtlCommandEncoder = mtlCommandBuffer.makeComputeCommandEncoder()!
+    return CommandList(mtlCommandEncoder: mtlCommandEncoder)
+    #endif
+    
+    #if os(Windows)
     // Create the command allocator.
-    let commandAllocator: SwiftCOM.ID3D12CommandAllocator =
+    let d3d12CommandAllocator: SwiftCOM.ID3D12CommandAllocator =
     try! d3d12Device.CreateCommandAllocator(
       D3D12_COMMAND_LIST_TYPE_DIRECT)
     
     // Create the command list from the command allocator.
-    let commandList: SwiftCOM.ID3D12GraphicsCommandList =
+    let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList =
     try! d3d12Device.CreateCommandList(
       0,
       D3D12_COMMAND_LIST_TYPE_DIRECT,
-      commandAllocator,
+      d3d12CommandAllocator,
       nil)
     
     // The command list increments the command allocator's reference, as long
     // as the command list is alive.
-    return commandList
+    return CommandList(d3d12CommandList: d3d12CommandList)
+    #endif
   }
-  #endif
   
-  #if os(macOS)
-  public func commit(_ commandList: MTLComputeCommandEncoder) {
+  public func commit(_ commandList: CommandList) {
+    #if os(macOS)
     // Close the command encoder.
-    commandList.endEncoding()
+    commandList.mtlCommandEncoder.endEncoding()
     
     // Fetch and purge the current command buffer.
     let currentCommandBuffer = commandQueue.currentCommandBuffer
@@ -105,23 +106,24 @@ extension Device {
     // Close the command buffer.
     currentCommandBuffer.commit()
     commandQueue.lastCommandBuffer = currentCommandBuffer
-  }
-  #else
-  public func commit(_ commandList: SwiftCOM.ID3D12GraphicsCommandList) {
+    #endif
+    
+    #if os(Windows)
     // Close the command list.
-    try! commandList.Close()
+    try! commandList.d3d12CommandList.Close()
     
     // Submit the command list to the queue.
+    let commandLists = [commandList.d3d12CommandList]
     try! commandQueue.d3d12CommandQueue
-      .ExecuteCommandLists([commandList])
+      .ExecuteCommandLists(commandLists)
     
     // Add a fence to the command stream, so we can wait on it later.
     commandQueue.fenceValue += 1
     try! commandQueue.d3d12CommandQueue.Signal(
       commandQueue.d3d12Fence,
       commandQueue.fenceValue)
+    #endif
   }
-  #endif
   
   /// Stall until all GPU commands have completed, and the contents of GPU
   /// buffers are safe to read from the CPU.
