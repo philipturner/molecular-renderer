@@ -74,9 +74,8 @@ public class Buffer {
   public let size: Int
   public let type: BufferType
   
-  // There is no way to query the state right now. You must know it beforehand.
   #if os(Windows)
-  private var state: D3D12_RESOURCE_STATES
+  private(set) var state: D3D12_RESOURCE_STATES
   private let mappedPointer: UnsafeMutableRawPointer?
   #endif
   

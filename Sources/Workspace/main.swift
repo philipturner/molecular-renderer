@@ -227,21 +227,6 @@ while true {
 //
 // Code for vector addition, written in a cross-platform style.
 
-// Tasks:
-// - Create a 'CommandList' utility.
-//   - Expose the underlying MTLCommandEncoder or ID3D12CommandList to the
-//     public API. [DONE]
-//   - Encapsulate the process of binding pipeline states and dispatching
-//     threads. Hide the respective utility class members from the public API.
-//     - Encapsulate the process of binding pipeline states. [DONE]
-//     - Encapsulate the process of binding buffers to compute commands. [DONE]
-//     - Encapsulate the process of dispatching threads. [DONE]
-//     - Get all of this to compile on Windows.
-//   - Not yet sure how/if to encapsulate the process of copying buffers for
-//     DirectX. Best to leave the boilerplate for now, address the problem when
-//     it becomes a major pain.
-// - Resume the "hello world" demonstration.
-
 func createVectorAdditionSource() -> String {
   let shaderBody = """
   
@@ -312,5 +297,13 @@ shaderDesc.source = createVectorAdditionSource()
 shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
+
+// Next tasks:
+// - Make 'upload' and 'download' utilities for Windows.
+//   - Don't need any utilities for copying between two native buffers at
+//     runtime. That was just a placeholder for the compute command.
+//   - Employ state tracking on the buffer, to avoid issuing a barrier
+//     *at the level of CommandList*.
+// - Port 'VectorAddition' to macOS.
 
 #endif
