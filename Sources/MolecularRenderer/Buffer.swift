@@ -186,13 +186,13 @@ public class Buffer {
     memcpy(output, mappedPointer, size)
   }
   
+  #if os(Windows)
   /// Transition the buffer's state to the specified value, then return a
   /// barrier representing the transition.
   ///
   /// Never call this function if it will transition between two identical
   /// states. As of writing, it is assumed that client code will always be able
   /// to anticipate the resource state.
-  #if os(Windows)
   public func transition(
     state: D3D12_RESOURCE_STATES
   ) -> D3D12_RESOURCE_BARRIER {
