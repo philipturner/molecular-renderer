@@ -13,9 +13,6 @@ var workspaceDependencies: [Target.Dependency] = []
 var workspaceLinkerSettings: [LinkerSetting] = []
 
 // Common dependencies.
-rendererDependencies += [
-  .product(name: "SystemPackage", package: "swift-system"),
-]
 workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
   .product(name: "Numerics", package: "swift-numerics"),
@@ -44,10 +41,6 @@ dependencies.append(.package(
 dependencies.append(.package(
   url: "https://github.com/philipturner/swift-numerics",
   branch: "Quaternions"))
-
-dependencies.append(.package(
-  url: "https://github.com/apple/swift-system",
-  from: "1.5.0"))
 
 targets.append(.target(
   name: "MolecularRenderer",

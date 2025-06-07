@@ -28,6 +28,8 @@ __declspec(dllexport)
 int32_t dxcompiler_compile(
   const char *source,
   uint32_t sourceLength,
+  const wchar_t *name,
+  uint32_t nameLength,
   uint8_t **object,
   uint32_t *objectLength,
   uint8_t **rootSignature,
@@ -48,7 +50,7 @@ int32_t dxcompiler_compile(
   
   std::vector<LPCWSTR> arguments;
   arguments.push_back(L"-E");
-  arguments.push_back(L"main");
+  arguments.push_back(name);
   arguments.push_back(L"-T");
   arguments.push_back(L"cs_6_5");
   arguments.push_back(L"-Qstrip_debug");

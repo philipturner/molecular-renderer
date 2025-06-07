@@ -12,6 +12,8 @@ import WinSDK
 private func dxcompiler_compile(
   _ source: UnsafePointer<CChar>,
   _ sourceLength: UInt32,
+  _ name: UnsafePointer<UInt16>,
+  _ nameLength: UInt32,
   _ object: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
   _ objectLength: UnsafeMutablePointer<UInt32>,
   _ rootSignature: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
@@ -21,6 +23,7 @@ private func dxcompiler_compile(
 
 public struct ShaderDescriptor {
   public var device: Device?
+  public var name: String?
   public var source: String?
   
   public init() {
@@ -59,6 +62,7 @@ public class Shader {
   
   public init(descriptor: ShaderDescriptor) {
     guard let device = descriptor.device,
+          let name = descriptor.name,
           let source = descriptor.source else {
       fatalError("Descriptor was incomplete.")
     }
@@ -69,22 +73,27 @@ public class Shader {
     
     #else
     // Declare the function arguments and return values.
-    let sourceCount = UInt32(source.count)
+    let sourceLength = UInt32(source.count)
+    let nameLength = UInt32(name.count)
     var objectBlob: UnsafeMutablePointer<UInt8>?
     var objectLength: UInt32 = .zero
     var rootSignatureBlob: UnsafeMutablePointer<UInt8>?
     var rootSignatureLength: UInt32 = .zero
     
     // Invoke the function from the DXC wrapper.
-    let errorCode = dxcompiler_compile(
-      source,
-      sourceCount,
-      &objectBlob,
-      &objectLength,
-      &rootSignatureBlob,
-      &rootSignatureLength)
-    if errorCode != 0 {
-      fatalError("dxcompiler_compile failed with error code \(errorCode).")
+    name.withCString(encodedAs: UTF16.self) { name in
+      let errorCode = dxcompiler_compile(
+        source,
+        sourceLength,
+        name,
+        nameLength,
+        &objectBlob,
+        &objectLength,
+        &rootSignatureBlob,
+        &rootSignatureLength)
+      if errorCode != 0 {
+        fatalError("dxcompiler_compile failed with error code \(errorCode).")
+      }
     }
     
     // Handle the deallocation of the blobs. For some reason, 'free' works just
