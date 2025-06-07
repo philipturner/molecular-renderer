@@ -228,7 +228,7 @@ while true {
 // Tasks:
 // - Create a 'CommandList' utility.
 //   - Expose the underlying MTLCommandEncoder or ID3D12CommandList to the
-//     public API.
+//     public API. [DONE]
 //   - Encapsulate the process of binding pipeline states and dispatching
 //     threads. Hide the respective utility class members from the public API.
 
