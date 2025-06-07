@@ -11,14 +11,11 @@ class Window: NSViewController, NSApplicationDelegate {
   
   init(display: Display) {
     // Initialize the window.
-    //
-    // I assume the window is left resizable so we can catch situations where
-    // the user incorrectly resizes the window.
     let screenID = display.screenID
     let screen = Display.screen(screenID: screenID)
     window = NSWindow(
       contentRect: NSRect.zero,
-      styleMask: [.closable, .resizable, .titled],
+      styleMask: [.closable, .titled],
       backing: .buffered,
       defer: false,
       screen: screen)

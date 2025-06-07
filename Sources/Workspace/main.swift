@@ -100,15 +100,17 @@ func createRenderPipeline(
   application: Application,
   shaderSource: String
 ) -> MTLComputePipelineState {
-  let device = application.gpuContext.device
+  let device = application.device
   let shaderSource = createShaderSource()
-  let library = try! device.makeLibrary(source: shaderSource, options: nil)
+  let library = try! device.mtlDevice
+    .makeLibrary(source: shaderSource, options: nil)
   
   let function = library.makeFunction(name: "renderImage")
   guard let function else {
     fatalError("Could not make function.")
   }
-  let pipeline = try! device.makeComputePipelineState(function: function)
+  let pipeline = try! device.mtlDevice
+    .makeComputePipelineState(function: function)
   return pipeline
 }
 
@@ -120,60 +122,55 @@ let renderPipeline = createRenderPipeline(
   shaderSource: shaderSource)
 
 var startTime: UInt64?
-var frameID: Int = .zero
 
 // Enter the run loop.
 application.run { renderTarget in
-  frameID += 1
+  // Start the command list.
+  let commandList = application.device.createCommandList()
   
-  // Start the command encoder.
-  let commandQueue = application.gpuContext.commandQueue
-  let commandBuffer = commandQueue.makeCommandBuffer()!
-  let encoder = commandBuffer.makeComputeCommandEncoder()!
+  // Utility function for encoding constants.
+  func setTime(_ time: Double, index: Int) {
+    let fractionalTime = time - floor(time)
+    var time32 = Float(fractionalTime)
+    commandList.setBytes(&time32, length: 4, index: index)
+  }
   
-  // Bind the buffers.
+  // Bind buffer 0.
+  if let startTime {
+    let currentTime = mach_continuous_time()
+    let timeSeconds = Double(currentTime - startTime) / 24_000_000
+    setTime(timeSeconds, index: 0)
+  } else {
+    startTime = mach_continuous_time()
+    setTime(Double.zero, index: 0)
+  }
+  
+  // Bind buffers 1 and 2.
   do {
-    func setTime(_ time: Double, index: Int) {
-      let fractionalTime = time - floor(time)
-      var time32 = Float(fractionalTime)
-      encoder.setBytes(&time32, length: 4, index: index)
-    }
-    
-    if let startTime {
-      let currentTime = mach_continuous_time()
-      let timeSeconds = Double(currentTime - startTime) / 24_000_000
-      setTime(timeSeconds, index: 0)
-    } else {
-      startTime = mach_continuous_time()
-      setTime(Double.zero, index: 0)
-    }
-    
     let clock = application.clock
     let timeInFrames = clock.frames
     let framesPerSecond = application.display.frameRate
     let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
     setTime(timeInSeconds, index: 1)
-    
     setTime(Double.zero, index: 2)
   }
   
   // Bind the textures.
-  encoder.setTexture(renderTarget, index: 0)
+  commandList.setTexture(renderTarget, index: 0)
   
-  // Dispatch
+  // Dispatch the command.
   do {
-    encoder.setComputePipelineState(renderPipeline)
+    commandList.setComputePipelineState(renderPipeline)
     
     let width = Int(renderTarget.width)
     let height = Int(renderTarget.height)
-    encoder.dispatchThreads(
+    commandList.dispatchThreads(
       MTLSize(width: width, height: height, depth: 1),
       threadsPerThreadgroup: MTLSize(width: 8, height: 8, depth: 1))
   }
   
-  // End the command encoder.
-  encoder.endEncoding()
-  commandBuffer.commit()
+  // End the command list.
+  application.device.commit(commandList)
 }
 #endif
 
@@ -227,8 +224,10 @@ while true {
 // - Merge the Windows code for 'Device' and 'CommandQueue'.
 //   - Bring 'CommandQueue' into the common files. [DONE]
 //   - Get the code to compile on Windows. [DONE]
-// - Correct the areas of the Mac code that still call it 'gpuContext'.
-//   - Get the code to compile on Mac.
+//   - Remove the title ('lpWindowName') from the window.
+//   - Change the window clas ('lpClassName') to "Window".
+// - Correct the areas of the Mac code that still call it 'gpuContext'. [DONE]
+//   - Get the code to compile on Mac. [DONE]
 //   - Address the TODOs regarding command buffers in RunLoop. [DONE]
 //
 // After that:

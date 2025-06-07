@@ -63,11 +63,6 @@ struct WindowUtilities {
     output |= WS_OVERLAPPED
     output |= WS_CAPTION
     output |= WS_SYSMENU
-    
-    // Minimizing the window sets the client rect to (0, 0), which triggers
-    // our mechanism for detecting a resize event. Therefore, we don't allow
-    // window minimizing on Windows.
-    
     return DWORD(output)
   }
   

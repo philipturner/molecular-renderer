@@ -27,6 +27,16 @@ class RunLoop: @unchecked Sendable {
       .CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
   }
   
+  func start() {
+    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkStart(displayLink!)
+  }
+  
+  func stop() {
+    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
+      .CVDisplayLinkStop(displayLink!)
+  }
+  
   private func outputHandler(
     displayLink: CVDisplayLink,
     now: UnsafePointer<CVTimeStamp>,
@@ -88,16 +98,6 @@ class RunLoop: @unchecked Sendable {
     present(drawable: drawable)
     
     return kCVReturnSuccess
-  }
-  
-  func start() {
-    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
-      .CVDisplayLinkStart(displayLink!)
-  }
-  
-  func stop() {
-    (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
-      .CVDisplayLinkStop(displayLink!)
   }
   
   // Utility function to encapsulate the process of encoding a drawable.
