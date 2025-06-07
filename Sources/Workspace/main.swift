@@ -101,6 +101,7 @@ var shaderDesc = ShaderDescriptor()
 shaderDesc.device = application.device
 shaderDesc.name = "renderImage"
 shaderDesc.source = createShaderSource()
+shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 let shader = Shader(descriptor: shaderDesc)
 
 // Define the state variables.
@@ -146,8 +147,8 @@ application.run { renderTarget in
   
   // Encode the dispatch.
   do {
-    let width = Int(renderTarget.width)
-    let height = Int(renderTarget.height)
+    let width: Int = renderTarget.width
+    let height: Int = renderTarget.height
     commandList.dispatchThreads(
       MTLSize(width: width, height: height, depth: 1),
       threadsPerThreadgroup: shader.threadsPerGroup)
@@ -227,7 +228,6 @@ while true {
 func createVectorAdditionSource() -> String {
   let shaderBody = """
   
-  uint slotID = tid.x;
   float input0 = buffer0[slotID];
   float input1 = buffer1[slotID];
   
@@ -248,6 +248,7 @@ func createVectorAdditionSource() -> String {
     device float *buffer2 [[buffer(2)]],
     uint tid [[thread_position_in_grid]]
   ) {
+    uint slotID = tid;
     \(shaderBody)
   }
   
@@ -268,6 +269,7 @@ func createVectorAdditionSource() -> String {
   void vectorAddition(
     uint3 tid : SV_DispatchThreadID
   ) {
+    uint slotID = tid.x;
     \(shaderBody)
   }
   
@@ -275,6 +277,7 @@ func createVectorAdditionSource() -> String {
   #endif
 }
 
+#if true
 // Set up the application.
 #if os(macOS)
 let application = createApplication()
@@ -291,3 +294,4 @@ shaderDesc.source = createVectorAdditionSource()
 shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
+#endif

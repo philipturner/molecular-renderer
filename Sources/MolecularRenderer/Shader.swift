@@ -72,9 +72,9 @@ public class Shader {
     
     // Store the number of threads per threadgroup.
     let mtlSize = MTLSize(
-      width: UInt32(threadsPerGroup[0]),
-      height: UInt32(threadsPerGroup[1]),
-      depth: UInt32(threadsPerGroup[2]))
+      width: Int(threadsPerGroup[0]),
+      height: Int(threadsPerGroup[1]),
+      depth: Int(threadsPerGroup[2]))
     self.threadsPerGroup = mtlSize
     #else
     // Declare the function arguments and return values.
