@@ -180,6 +180,9 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+import Foundation
+//import SystemPackage
+
 // Before proceeding, let's get a high-level understanding of the various API
 // objects and their relationships. How should one organize them? I can
 // "complete" the 3DGEP tutorial by just using its code as reference.
@@ -197,6 +200,16 @@ import WinSDK
 // (https://stackoverflow.com/a/78501260) just extracts the resource
 // descriptor from a swapchain buffer. It might be tractable to keep the
 // texture initialization code separate between Metal and DirectX.
+
+let originalString: String = "main"
+print(originalString.utf8.count)
+print(originalString.utf16.count)
+originalString.withCString(encodedAs: UTF16.self) { cString in
+  let convertedBack = String.decodeCString(cString, as: UTF16.self)
+  let character: UInt16 = cString[300]
+  print(character)
+  print(convertedBack?.result, convertedBack?.repairsMade)
+}
 
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)

@@ -50,8 +50,12 @@ func createRenderPipeline(
 */
 
 public class Shader {
+  #if os(macOS)
+  public let mtlComputePipelineState: MTLComputePipelineState
+  #else
   public let d3d12PipelineState: SwiftCOM.ID3D12PipelineState
   public let d3d12RootSignature: SwiftCOM.ID3D12RootSignature
+  #endif
   
   public init(descriptor: ShaderDescriptor) {
     guard let device = descriptor.device,
@@ -59,6 +63,11 @@ public class Shader {
       fatalError("Descriptor was incomplete.")
     }
     
+    #if os(macOS)
+    let library = try! device.mtlDevice
+      .makeLibrary(source: source, options: nil)
+    
+    #else
     // Declare the function arguments and return values.
     let sourceCount = UInt32(source.count)
     var objectBlob: UnsafeMutablePointer<UInt8>?
@@ -113,14 +122,6 @@ public class Shader {
     // Create the pipeline state.
     self.d3d12PipelineState = try! device.d3d12Device
       .CreateComputePipelineState(pipelineStateDesc)
-  }
-}
-
-// Move this into swift-com, where it belongs.
-extension SwiftCOM.ID3D12Device {
-  public func CreateComputePipelineState<PSO: SwiftCOM.IUnknown>(_ Desc: D3D12_COMPUTE_PIPELINE_STATE_DESC) throws -> PSO {
-    var Desc = Desc
-    var iid: IID = PSO.IID
-    return try PSO(pUnk: CreateComputePipelineState(&Desc, &iid))
+    #endif
   }
 }
