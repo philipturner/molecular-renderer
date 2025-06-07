@@ -45,12 +45,16 @@ public class CommandList {
   ) {
     #if os(macOS)
     mtlCommandEncoder.setBuffer(
-      buffer.mtlBuffer, offset: offset, index: index)
+      buffer.mtlBuffer,
+      offset: offset,
+      index: index)
     #else
     var gpuAddress = try! buffer.d3d12Resource.GetGPUVirtualAddress()
     gpuAddress += UInt64(offset)
+    
     try! d3d12CommandList.SetComputeRootUnorderedAccessView(
-      index, gpuAddress)
+      UInt32(index),
+      gpuAddress)
     #endif
   }
   

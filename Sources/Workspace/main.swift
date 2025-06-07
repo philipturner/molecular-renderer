@@ -30,7 +30,7 @@ func createApplication() -> Application {
   return application
 }
 
-#if true
+#if false
 
 func createShaderSource() -> String {
   """
@@ -294,7 +294,7 @@ func createVectorAdditionSource() -> String {
   #endif
 }
 
-#if false
+#if true
 
 // Set up the application.
 #if os(macOS)
