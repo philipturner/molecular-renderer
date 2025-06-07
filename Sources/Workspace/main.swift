@@ -301,9 +301,36 @@ let shader = Shader(descriptor: shaderDesc)
 // Set up the buffers.
 let vectorAddition = VectorAddition(
   device: application.device)
+
+// Open the command list.
+let commandList = application.device.createCommandList()
+
+// Upload the data to the GPU.
+#if os(Windows)
+commandList.upload(
+  inputBuffer: vectorAddition.inputBuffer0,
+  nativeBuffer: vectorAddition.nativeBuffer0)
+commandList.upload(
+  inputBuffer: vectorAddition.inputBuffer1,
+  nativeBuffer: vectorAddition.nativeBuffer1)
+#endif
+
+// Download the data from the GPU.
+#if os(Windows)
+commandList.download(
+  nativeBuffer: vectorAddition.nativeBuffer2,
+  outputBuffer: vectorAddition.outputBuffer2)
+#endif
+
+// Close the command list.
+application.device.commit(commandList)
+
+// Check the results.
+application.device.flush()
 let results = vectorAddition.results
 for slotID in 0..<10 {
-  print(results[slotID])
+  let result = results[slotID]
+  print(result)
 }
 
 #endif
