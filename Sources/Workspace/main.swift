@@ -315,6 +315,29 @@ commandList.upload(
   nativeBuffer: vectorAddition.nativeBuffer1)
 #endif
 
+// Encode the resource barriers that precede the compute command.
+#if os(Windows)
+do {
+  let barrier0 = vectorAddition.nativeBuffer0
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+  let barrier1 = vectorAddition.nativeBuffer1
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+  let barrier2 = vectorAddition.nativeBuffer2
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+  
+  let barriers = [barrier0, barrier1, barrier2]
+  try! commandList.d3d12CommandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
+}
+#endif
+
+// Encode the compute command.
+commandList.setPipelineState(shader)
+commandList.setBuffer(vectorAddition.nativeBuffer0, index: 0)
+commandList.setBuffer(vectorAddition.nativeBuffer1, index: 1)
+commandList.setBuffer(vectorAddition.nativeBuffer2, index: 2)
+commandList.dispatch(groups: SIMD3(8, 1, 1))
+
 // Download the data from the GPU.
 #if os(Windows)
 commandList.download(
