@@ -1,9 +1,13 @@
-#if os(Windows)
+#if os(macOS)
+import Metal
+#else
 import SwiftCOM
 import WinSDK
+#endif
 
-import struct Foundation.Data
-
+// Entry point into the C library that uses the C++ API for
+// DirectXShaderCompiler.
+#if os(Windows)
 @_silgen_name("dxcompiler_compile")
 private func dxcompiler_compile(
   _ source: UnsafePointer<CChar>,
@@ -13,6 +17,7 @@ private func dxcompiler_compile(
   _ rootSignature: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
   _ rootSignatureLength: UnsafeMutablePointer<UInt32>
 ) -> Int32
+#endif
 
 public struct ShaderDescriptor {
   public var device: Device?
@@ -22,6 +27,27 @@ public struct ShaderDescriptor {
     
   }
 }
+
+/* macOS code
+
+func createRenderPipeline(
+  application: Application,
+  shaderSource: String
+) -> MTLComputePipelineState {
+  let device = application.device
+  let shaderSource = createShaderSource()
+  let library = try! device.mtlDevice
+    .makeLibrary(source: shaderSource, options: nil)
+  
+  let function = library.makeFunction(name: "renderImage")
+  guard let function else {
+    fatalError("Could not make function.")
+  }
+  let pipeline = try! device.mtlDevice
+    .makeComputePipelineState(function: function)
+  return pipeline
+}
+*/
 
 public class Shader {
   public let d3d12PipelineState: SwiftCOM.ID3D12PipelineState
@@ -62,24 +88,22 @@ public class Shader {
     defer { free(rootSignatureBlob) }
     
     // Create the root signature.
-    do {
-      let d3d12Device = device.d3d12Device
-      self.d3d12RootSignature =
-      try! d3d12Device.CreateRootSignature(
-        0, rootSignatureBlob, UInt64(rootSignatureLength))
+    self.d3d12RootSignature =
+    try! device.d3d12Device.CreateRootSignature(
+      0, // nodeMask
+      rootSignatureBlob, // pBlobWithRootSignature
+      UInt64(rootSignatureLength)) // blobLengthInBytes
+    
+    // Specify the root signature.
+    var pipelineStateDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC()
+    try! d3d12RootSignature.perform(
+      as: WinSDK.ID3D12RootSignature.self
+    ) { pUnk in
+      pipelineStateDesc.pRootSignature = pUnk
     }
     
-    // Fill the pipeline state descriptor.
-    var pipelineStateDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC()
-    do  {
-      // Set the 'pRootSignature' property.
-      try! d3d12RootSignature.perform(
-        as: WinSDK.ID3D12RootSignature.self
-      ) { pUnk in
-        pipelineStateDesc.pRootSignature = pUnk
-      }
-      
-      // Set the 'CS' property.
+    // Specify the compute shader.
+    do {
       var shaderBytecode = D3D12_SHADER_BYTECODE()
       shaderBytecode.pShaderBytecode = UnsafeRawPointer(objectBlob)
       shaderBytecode.BytecodeLength = UInt64(objectLength)
@@ -87,16 +111,16 @@ public class Shader {
     }
     
     // Create the pipeline state.
-    do {
-      let d3d12Device = device.d3d12Device
-      var iid = SwiftCOM.ID3D12PipelineState.IID
-      let pUnk = try! d3d12Device.CreateComputePipelineState(
-        &pipelineStateDesc, &iid)
-      
-      self.d3d12PipelineState =
-      SwiftCOM.ID3D12PipelineState(pUnk: pUnk)
-    }
+    self.d3d12PipelineState = try! device.d3d12Device
+      .CreateComputePipelineState(pipelineStateDesc)
   }
 }
 
-#endif
+// Move this into swift-com, where it belongs.
+extension SwiftCOM.ID3D12Device {
+  public func CreateComputePipelineState<PSO: SwiftCOM.IUnknown>(_ Desc: D3D12_COMPUTE_PIPELINE_STATE_DESC) throws -> PSO {
+    var Desc = Desc
+    var iid: IID = PSO.IID
+    return try PSO(pUnk: CreateComputePipelineState(&Desc, &iid))
+  }
+}
