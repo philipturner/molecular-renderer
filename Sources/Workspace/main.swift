@@ -299,7 +299,7 @@ shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
 let shader = Shader(descriptor: shaderDesc)
 
 // Next tasks:
-// - Make 'upload' and 'download' utilities for Windows.
+// - Make 'upload' and 'download' utilities for Windows. [DONE]
 //   - Don't need any utilities for copying between two native buffers at
 //     runtime. That was just a placeholder for the compute command.
 //   - Employ state tracking on the buffer, to avoid issuing a barrier

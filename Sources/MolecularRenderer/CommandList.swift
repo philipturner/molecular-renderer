@@ -81,3 +81,51 @@ public class CommandList {
     #endif
   }
 }
+
+extension CommandList {
+  #if os(Windows)
+  public func upload(
+    inputBuffer: Buffer,
+    nativeBuffer: Buffer
+  ) {
+    // Verify the state of the input buffer.
+    guard inputBuffer.state == BufferType.input.initialState else {
+      fatalError("Input buffer had an unexpected state.")
+    }
+    
+    // Set the state of the native buffer.
+    let desiredNativeState = D3D12_RESOURCE_STATE_COPY_DEST
+    if nativeBuffer.state != desiredNativeState {
+      let barrier = nativeBuffer.transition(state: desiredNativeState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
+    
+    // Encode the copy command.
+    try! d3d12CommandList.CopyResource(
+      nativeBuffer.d3d12Resource, // pDstResource
+      inputBuffer.d3d12Resource) // pSrcResource
+  }
+  
+  public func download(
+    nativeBuffer: Buffer,
+    outputBuffer: Buffer
+  ) {
+    // Verify the state of the output buffer.
+    guard outputBuffer.state == BufferType.output.initialState else {
+      fatalError("Output buffer had an unexpected state.")
+    }
+    
+    // Set the state of the native buffer.
+    let desiredNativeState = D3D12_RESOURCE_STATE_COPY_SOURCE
+    if nativeBuffer.state != desiredNativeState {
+      let barrier = nativeBuffer.transition(state: desiredNativeState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
+    
+    // Encode the copy command.
+    try! d3d12CommandList.CopyResource(
+      outputBuffer.d3d12Resource, // pDstResource
+      nativeBuffer.d3d12Resource) // pSrcResource
+  }
+  #endif
+}
