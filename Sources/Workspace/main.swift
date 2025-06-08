@@ -1,7 +1,8 @@
 // Next steps:
-// - Use the vector addition example to check that all 3 new APIs (Device,
-//   CommandQueue, Shader) work correctly at runtime. Especially the
-//   functionality that flushes a command queue.
+// - Write the SwapChain utility for Windows.
+// - Reproduce the 1st 3DGEP tutorial using empty render passes.
+// - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
+//   about rendering with entirely compute commands.
 
 import MolecularRenderer
 
@@ -29,8 +30,6 @@ func createApplication() -> Application {
   
   return application
 }
-
-#if false
 
 func createShaderSource() -> String {
   """
@@ -160,8 +159,6 @@ application.run { renderTarget in
 
 #endif
 
-#endif
-
 
 
 #if os(Windows)
@@ -195,7 +192,6 @@ import WinSDK
 // everything, including 'Lattice', to a 'struct', the default choice is
 // different for MolecularRenderer.
 
-#if false
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -217,143 +213,27 @@ while true {
   }
 }
 
-#endif
-
-#endif
-
-
-
-// MARK: - Vector Addition
+// Source: https://github.com/walbourn/directx-vs-templates/blob/main/d3d12game_win32/Game.cpp
 //
-// Code for vector addition, written in a cross-platform style.
+// The first argument instructs DXGI to block until VSync, putting the application
+// to sleep until the next VSync. This ensures we don't waste any cycles rendering
+// frames that will never be displayed to the screen.
+// HRESULT hr = m_swapChain->Present(1, 0)
+//
+// The tutorial dispatches the GPU commands before it calls 'Present'. This is
+// counterintuitive to macOS, where I might use a semaphore or Vsync callback
+// preceding command encoding. And then return immediately after dispatching
+// the GPU commands, without blocking.
+//
+// m_timer.Tick([&](){}); doesn't perform any blocking operations, or wait
+// until an invocation of an interrupt running in the background. It just
+// computes the internal timestamp for the physics engine.
+//
+// Walbourn calls g_game->Tick() any time PeekMessage returns 0. When the
+// WM_PAINT message is called, nothing actually happens. But there's a dead
+// branch of the code that calls game->Tick().
 
-func createVectorAdditionSource() -> String {
-  let shaderBody = """
-  
-  float input0 = buffer0[slotID];
-  float input1 = buffer1[slotID];
-  
-  float output = input0 + input1;
-  buffer2[slotID] = output;
-  
-  """
-  
-  #if os(macOS)
-  return """
-  
-  #include <metal_stdlib>
-  using namespace metal;
-  
-  kernel void vectorAddition(
-    device float *buffer0 [[buffer(0)]],
-    device float *buffer1 [[buffer(1)]],
-    device float *buffer2 [[buffer(2)]],
-    uint tid [[thread_position_in_grid]]
-  ) {
-    uint slotID = tid;
-    \(shaderBody)
-  }
-  
-  """
-  #else
-  return """
-  
-  RWStructuredBuffer<float> buffer0 : register(u0);
-  RWStructuredBuffer<float> buffer1 : register(u1);
-  RWStructuredBuffer<float> buffer2 : register(u2);
-  
-  #define kernelRootSignature "UAV(u0), " \\
-                              "UAV(u1), " \\
-                              "UAV(u2)"
-  
-  [numthreads(128, 1, 1)]
-  [RootSignature(kernelRootSignature)]
-  void vectorAddition(
-    uint3 tid : SV_DispatchThreadID
-  ) {
-    uint slotID = tid.x;
-    \(shaderBody)
-  }
-  
-  """
-  #endif
-}
-
-#if true
-
-// Set up the application.
-#if os(macOS)
-let application = createApplication()
-#else
-let application = Application.global
-#endif
-
-// Set up the shader.
-var shaderDesc = ShaderDescriptor()
-shaderDesc.device = application.device
-shaderDesc.name = "vectorAddition"
-shaderDesc.source = createVectorAdditionSource()
-#if os(macOS)
-shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-#endif
-let shader = Shader(descriptor: shaderDesc)
-
-// Set up the buffers.
-let vectorAddition = VectorAddition(
-  device: application.device)
-
-// Open the command list.
-let commandList = application.device.createCommandList()
-
-// Upload the data to the GPU.
-#if os(Windows)
-commandList.upload(
-  inputBuffer: vectorAddition.inputBuffer0,
-  nativeBuffer: vectorAddition.nativeBuffer0)
-commandList.upload(
-  inputBuffer: vectorAddition.inputBuffer1,
-  nativeBuffer: vectorAddition.nativeBuffer1)
-#endif
-
-// Encode the resource barriers that precede the compute command.
-#if os(Windows)
-do {
-  let barrier0 = vectorAddition.nativeBuffer0
-    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-  let barrier1 = vectorAddition.nativeBuffer1
-    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-  let barrier2 = vectorAddition.nativeBuffer2
-    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-  
-  let barriers = [barrier0, barrier1, barrier2]
-  try! commandList.d3d12CommandList.ResourceBarrier(
-    UInt32(barriers.count), barriers)
-}
-#endif
-
-// Encode the compute command.
-commandList.setPipelineState(shader)
-commandList.setBuffer(vectorAddition.nativeBuffer0, index: 0)
-commandList.setBuffer(vectorAddition.nativeBuffer1, index: 1)
-commandList.setBuffer(vectorAddition.nativeBuffer2, index: 2)
-commandList.dispatch(groups: SIMD3(8, 1, 1))
-
-// Download the data from the GPU.
-#if os(Windows)
-commandList.download(
-  nativeBuffer: vectorAddition.nativeBuffer2,
-  outputBuffer: vectorAddition.outputBuffer2)
-#endif
-
-// Close the command list.
-application.device.commit(commandList)
-
-// Check the results.
-application.device.flush()
-let results = vectorAddition.results
-for slotID in 0..<10 {
-  let result = results[slotID]
-  print(result)
-}
+// Next: study the 3DGEP (both v1 and final repo state) and StackOverflow
+// examples. Compare them to how the Walbourn example handles the run loop.
 
 #endif
