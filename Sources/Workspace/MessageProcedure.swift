@@ -13,8 +13,16 @@ class MessageProcedure {
     // Branch over the possible message types.
     switch Int32(message) {
     case WM_PAINT:
-    
-      break
+      var largeInteger = LARGE_INTEGER()
+      QueryPerformanceCounter(&largeInteger)
+      let currentTime = largeInteger.QuadPart
+      
+      let startTime = Application.global.startTime
+      let elapsedTime = Double(currentTime - startTime) / 10e6
+      let elapsedFrames = Int(elapsedTime * 60)
+      print("WM_PAINT @ \(elapsedFrames)")
+      
+      return DefWindowProcA(hwnd, message, wParam, lParam)
       
     case WM_KEYDOWN:
       print("Identified KEYDOWN message.")
