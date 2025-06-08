@@ -13,6 +13,7 @@ class MessageProcedure {
     // Branch over the possible message types.
     switch Int32(message) {
     case WM_PAINT:
+    
       break
       
     case WM_KEYDOWN:

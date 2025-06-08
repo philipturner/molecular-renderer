@@ -192,8 +192,21 @@ import WinSDK
 // everything, including 'Lattice', to a 'struct', the default choice is
 // different for MolecularRenderer.
 
+func getTimestamp() -> Int64 {
+  var output = LARGE_INTEGER()
+  QueryPerformanceCounter(&output)
+  return output.QuadPart
+}
+
 let window = Application.global.window
+let start = getTimestamp()
 ShowWindow(window, SW_SHOW)
+let end = getTimestamp()
+
+
+
+let elapsedTime = Double(end - start) / Double(10e6)
+print("elapsed time:", elapsedTime, "seconds")
 
 // Invoke the game loop.
 while true {
