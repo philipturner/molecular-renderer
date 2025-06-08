@@ -1,4 +1,5 @@
 // Next steps:
+// - Understand the structure of the run loop better. [DONE]
 // - Write the SwapChain utility for Windows.
 // - Reproduce the 1st 3DGEP tutorial using empty render passes.
 // - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
@@ -308,6 +309,7 @@ while true {
 // WndProc responds to WM_PAINT, calling Window::OnUpdate.
 //
 // Window::OnUpdate() calls an arbitrarily defined function, Update().
+
 
 
 #endif
