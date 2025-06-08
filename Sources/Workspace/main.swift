@@ -286,4 +286,28 @@ while true {
 //
 // 3DGEP tutorial 1 follows the same run loop structure.
 
+// Final state of the 3DGEP repository:
+//
+// Tutorial5::OnRender()
+// - encode commands
+// - OnGUI(SwapChain->GetRenderTarget())
+//   - uses BackBufferTextures[CurrentBackBufferIndex]
+// - SwapChain->Present()
+//   - references BackBufferTextures[CurrentBackBufferIndex]
+//   - transition the back buffer to PRESENT
+//   - execute the command list
+//   - dxgiSwapChain->Present(1, 0)
+//   - FenceValues[CurrentBackBufferIndex] = CommandQueue.Signal()
+//   - CurrentBackBufferIndex = dxgiSwapChain->GetCurrentBackBufferIndex()
+//   - auto fenceValue = FenceValues[CurrentBackBufferIndex]
+//   - CommandQueue.WaitForFenceValue(fenceValue)
+//
+// GameFramework::Run() doesn't do any actions in the PeekMessage loop, other
+// than forward messages to TranslateMessage and DispatchMessage.
+//
+// WndProc responds to WM_PAINT, calling Window::OnUpdate.
+//
+// Window::OnUpdate() calls an arbitrarily defined function, Update().
+
+
 #endif
