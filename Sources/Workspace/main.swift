@@ -236,4 +236,54 @@ while true {
 // Next: study the 3DGEP (both v1 and final repo state) and StackOverflow
 // examples. Compare them to how the Walbourn example handles the run loop.
 
+// StackOverflow example:
+// - relies on glfw for some UI stuff
+//
+// Order of operations each runloop:
+// - get the back buffer index
+// - encode and submit the GPU commands
+// - swapchain->Present(0, 0)
+// - fence_value += 1
+// - direct_command_queue->Signal(fence, fence_value)
+// - fence->SetEventOnCompletion(fence_value, fence_event)
+// - WaitForSingleObject(fence_event, INFINITE)
+// - poll for events from glfw
+
+// 3DGEP tutorial 1:
+// - [to fill in]
+// - submit the GPU commands
+// - m_SwapChain->Present(value depends, value depends)
+// - fenceValues[current backbuffer ID] = app.Signal()
+// - current backbuffer ID = SwapChain->GetCurrentBackBufferIndex()
+// - WaitForFenceValue(fenceValues[current backbuffer ID])
+
+// Great source:
+// https://paminerva.github.io/LearnDirectX/Tutorials/01-HelloWorld/hello-frame-buffering.html
+//
+// Use DXGI_SWAP_EFFECT_FLIP_DISCARD
+//
+// Underlying memory for command list objects is being synchronized with
+// fences, but memory for swap chain buffers is being synchronized by the API
+// and driver.
+//
+// This source copies off of:
+// https://github.com/microsoft/DirectX-Graphics-Samples/blob/master/Samples/Desktop/D3D12HelloWorld/src/HelloFrameBuffering
+//
+// Run loop structure:
+// - loop on PeekMessage, but do nothing else in the PeekMessage loop
+// - upon receiving a WM_PAINT message, call pSample->OnRender()
+//   - populate command list
+//     - transition renderTargets[frameIndex] from PRESENT to RENDER_TARGET
+//     - encode blank (or not) render command
+//     - transition renderTargets[frameIndex] from RENDER_TARGET to PRESENT
+//   - execute command list
+//   - swapChain->Present(1, 0)
+//   - MoveToNextFrame()
+//     - encode Signal(fenceValues[frameIndex])
+//     - frameIndex = new value chosen by swapChain
+//     - wait on the fence, using fenceValues[new frame index]
+//     - assign a larger value to fenceValues[new frame index]
+//
+// 3DGEP tutorial 1 follows the same run loop structure.
+
 #endif
