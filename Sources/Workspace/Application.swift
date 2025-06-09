@@ -10,8 +10,6 @@ class Application {
   let device: Device
   let window: HWND
   
-  let startTime: Int64
-  
   init() {
     // Create the device.
     var deviceDesc = DeviceDescriptor()
@@ -20,10 +18,6 @@ class Application {
     
     // Create the other resources.
     self.window = WindowUtilities.createWindow()
-    
-    var largeInteger = LARGE_INTEGER()
-    QueryPerformanceCounter(&largeInteger)
-    self.startTime = largeInteger.QuadPart
   }
 }
 
