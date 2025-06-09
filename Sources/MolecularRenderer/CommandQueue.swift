@@ -5,7 +5,7 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public class CommandQueue {
+class CommandQueue {
   #if os(macOS)
   let mtlCommandQueue: MTLCommandQueue
   var currentCommandBuffer: MTLCommandBuffer?

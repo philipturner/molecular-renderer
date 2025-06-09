@@ -165,7 +165,6 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
-print("Hello, world.")
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
