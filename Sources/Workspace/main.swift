@@ -1,4 +1,7 @@
 // Next steps:
+// - Overhaul CommandList and CommandQueue.
+//   - Get the new code working on Windows.
+//   - Get the new code working on Mac.
 // - Reproduce the 1st 3DGEP tutorial using empty render passes.
 // - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
 //   about rendering with entirely compute commands.
@@ -164,6 +167,7 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+/*
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -184,21 +188,18 @@ while true {
     DispatchMessageA(&message)
   }
 }
+*/
 
-/*
 let device = Application.global.device
 
-var commandLists: [CommandList] = []
 for frameID in 0..<100 {
   print("frame ID:", frameID)
   
   let commandList = device.createCommandList()
   device.commit(commandList)
-  commandLists.append(commandList)
 }
 
 device.flush()
 print("Finished the program.")
-*/
 
 #endif

@@ -5,12 +5,23 @@ import SwiftCOM
 import WinSDK
 #endif
 
+struct CommandListDescriptor {
+  #if os(macOS)
+  var mtlCommandBuffer: MTLCommandBuffer
+  #else
+  var
+}
+
 public class CommandList {
   #if os(macOS)
-  public let mtlCommandEncoder: MTLComputeCommandEncoder
+  let mtlCommandBuffer: MTLCommandBuffer
+  public let mtlCommandEncoder: MTLComputeCommandEncoder!
   private var threadsPerGroup: MTLSize?
   #else
   public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
+  
+  // The fence value in the command queue that created this.
+  let fenceValue: UInt64
   #endif
   
   #if os(macOS)

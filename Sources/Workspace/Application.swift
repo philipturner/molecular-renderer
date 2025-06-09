@@ -12,7 +12,6 @@ class Application {
   let swapChain: SwapChain
   
   let startTime: Int64
-  var commandLists: [CommandList] = []
   
   init() {
     // Create the device.
@@ -92,7 +91,6 @@ class Application {
     
     // Close the command list.
     device.commit(commandList)
-    commandLists.append(commandList)
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
