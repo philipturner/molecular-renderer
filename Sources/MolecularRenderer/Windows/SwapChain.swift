@@ -18,12 +18,12 @@ public class SwapChain {
   
   // Hold the render targets as a state variable, just to follow the tutorials.
   // I feel inclined to change this API in the future.
-  var renderTargets: [SwiftCOM.ID3D12Resource] = []
+  var renderTargets: [SwiftCOM.ID3D12Resource]
   
   // For simplicity, a separate descriptor heap per render target. I don't
   // see why we can't just reuse the same heap slot for each successive frame.
   // I want to try that at some point.
-  var descriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap] = []
+  var descriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
   
   public init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
@@ -35,7 +35,7 @@ public class SwapChain {
     let factory: SwiftCOM.IDXGIFactory4 =
       try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
     
-    // Create the swap chain descritor.
+    // Create the swap chain descriptor.
     let swapChainDesc = Self.createSwapChainDescriptor()
     
     // Create the swap chain.
@@ -47,16 +47,31 @@ public class SwapChain {
       nil) // pRestrictToOutput
     self.swapChain = try! swapChain1.QueryInterface()
     
-    // Create the render targets.
+    // Fill the list of render targets.
+    renderTargets = []
     for ringIndex in 0..<3 {
+      // Create the render target.
       var renderTarget: SwiftCOM.ID3D12Resource
       renderTarget = try! swapChain
         .GetBuffer(UInt32(ringIndex))
+      
+      // Append the render target to the list.
       renderTargets.append(renderTarget)
     }
     
-    // Create the descriptor heaps and fill them with RTVs.
+    // Fill the list of descriptor heaps.
+    descriptorHeaps = []
     for ringIndex in 0..<3 {
+      // Fill the heap descriptor.
+      var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
+      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV
+      descriptorHeapDesc.NumDescriptors = 1
+      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
+      
+      // Create the descriptor heap.
+      var descriptorHeap: SwiftCOM.ID3D12DescriptorHeap
+      descriptorHeap = try! device.d3d12Device
+        .CreateDescriptorHeap(descriptorHeapDesc)
       
       // void CreateRenderTargetView(
       //   [in, optional] ID3D12Resource                      *pResource,
@@ -64,6 +79,8 @@ public class SwapChain {
       //   [in]           D3D12_CPU_DESCRIPTOR_HANDLE         DestDescriptor
       // );
       
+      // Append the descriptor heap to the list.
+      descriptorHeaps.append(descriptorHeap)
     }
     
   }
