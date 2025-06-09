@@ -48,9 +48,37 @@ class Application {
     // Fetch the ring index.
     let ringIndex = Int(
       try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
+      
+    // Run an empty command list.
+    let commandList = device.createCommandList()
+    device.commit(commandList)
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
+    
+    // Check for errors.
+    let messageCount = try! device.d3d12InfoQueue.GetNumStoredMessages()
+    if messageCount > 1 {
+      print("Message count:", messageCount)
+      
+      for messageID in 0..<messageCount {
+        let message = try! device.d3d12InfoQueue
+          .GetMessage(messageID)
+        print(
+          message.pointee.Category,
+          message.pointee.Severity,
+          message.pointee.ID)
+        print(
+          D3D12_MESSAGE_CATEGORY_EXECUTION,
+          D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC)
+        
+        let string: String = String(cString: message.pointee.pDescription)
+        print(string)
+        free(message)
+      }
+      
+      fatalError("Encountered error messages.")
+    }
   }
 }
 

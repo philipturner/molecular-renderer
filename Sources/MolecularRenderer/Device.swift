@@ -60,7 +60,7 @@ public class Device {
     self.d3d12InfoQueue = Self
       .createInfoQueue(device: d3d12Device)
     try! d3d12InfoQueue.SetBreakOnSeverity(
-      D3D12_MESSAGE_SEVERITY_ERROR, true)
+      D3D12_MESSAGE_SEVERITY_ERROR, false)
     
     // Create the DXGI info queue.
     self.dxgiInfoQueue = try! DXGIGetDebugInterface1(0)
