@@ -72,9 +72,16 @@ extension Device {
     
     #if os(Windows)
     // Create the command allocator.
+    //
+    // The DirectX API will often regenerate a pointer to the same region of
+    // memory for the command allocator. One command allocator may be shared by
+    // multiple command lists, causing errors like #552.
+    //
+    // But this reuse of memory isn't what triggers the error.
     let d3d12CommandAllocator: SwiftCOM.ID3D12CommandAllocator =
     try! d3d12Device.CreateCommandAllocator(
       D3D12_COMMAND_LIST_TYPE_DIRECT)
+    print("command allocator:", d3d12CommandAllocator.pUnk.pUnk)
     
     // Create the command list from the command allocator.
     let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList =

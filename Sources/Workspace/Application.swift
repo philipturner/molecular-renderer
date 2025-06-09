@@ -48,13 +48,33 @@ class Application {
     // Fetch the ring index.
     let ringIndex = Int(
       try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
-      
-    // Run an empty command list.
+    
+    // Open the command list.
     let commandList = device.createCommandList()
+    
+    // Clear the render target.
+    do {
+      let renderTarget = swapChain.renderTargets[ringIndex]
+      let descriptorHeap = swapChain.descriptorHeaps[ringIndex]
+      
+      let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
+      let cpuDescriptorHandle = try! descriptorHeap
+        .GetCPUDescriptorHandleForHeapStart()
+      
+      try! commandList.d3d12CommandList.ClearRenderTargetView(
+        cpuDescriptorHandle, // RenderTargetView
+        color, // ColorRGBA
+        0, // NumRects
+        nil) // pRects
+    }
+    
+    // Close the command list.
     device.commit(commandList)
     
     // Send the render target to the DWM.
-    try! swapChain.d3d12SwapChain.Present(1, 0)
+    //try! swapChain.d3d12SwapChain.Present(1, 0)
+    
+    
     
     // Check for errors.
     let messageCount = try! device.d3d12InfoQueue.GetNumStoredMessages()

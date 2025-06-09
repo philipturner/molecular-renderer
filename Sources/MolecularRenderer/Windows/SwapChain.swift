@@ -17,10 +17,10 @@ public class SwapChain {
   public var d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   
   // Hold the render targets as a state variable.
-  var renderTargets: [SwiftCOM.ID3D12Resource]
+  public var renderTargets: [SwiftCOM.ID3D12Resource]
   
   // Create a separate descriptor heap per render target.
-  var descriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
+  public var descriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
   
   public init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
