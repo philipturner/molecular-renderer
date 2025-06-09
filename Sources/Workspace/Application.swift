@@ -49,12 +49,23 @@ class Application {
     let ringIndex = Int(
       try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
     
+    for _ in 0..<4 {
     // Open the command list.
     let commandList = device.createCommandList()
     
-    // Clear the render target.
+    // Transition from PRESENT to RENDER_TARGET.
     do {
       let renderTarget = swapChain.renderTargets[ringIndex]
+      let barrier = Self.transitionRenderTarget(
+        renderTarget,
+        before: D3D12_RESOURCE_STATE_PRESENT,
+        after: D3D12_RESOURCE_STATE_RENDER_TARGET)
+      try! commandList.d3d12CommandList
+        .ResourceBarrier(1, [barrier])
+    }
+    
+    // Clear the render target.
+    do {
       let descriptorHeap = swapChain.descriptorHeaps[ringIndex]
       
       let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
@@ -68,11 +79,23 @@ class Application {
         nil) // pRects
     }
     
+    // Transition from RENDER_TARGET to PRESENT.
+    do {
+      let renderTarget = swapChain.renderTargets[ringIndex]
+      let barrier = Self.transitionRenderTarget(
+        renderTarget,
+        before: D3D12_RESOURCE_STATE_RENDER_TARGET,
+        after: D3D12_RESOURCE_STATE_PRESENT)
+      try! commandList.d3d12CommandList
+        .ResourceBarrier(1, [barrier])
+    }
+    
     // Close the command list.
     device.commit(commandList)
+    }
     
     // Send the render target to the DWM.
-    //try! swapChain.d3d12SwapChain.Present(1, 0)
+    try! swapChain.d3d12SwapChain.Present(1, 0)
     
     
     
@@ -99,6 +122,29 @@ class Application {
       
       fatalError("Encountered error messages.")
     }
+  }
+  
+  static func transitionRenderTarget(
+    _ renderTarget: SwiftCOM.ID3D12Resource,
+    before: D3D12_RESOURCE_STATES,
+    after: D3D12_RESOURCE_STATES
+  ) -> D3D12_RESOURCE_BARRIER {
+    // Specify the type of barrier.
+    var barrier = D3D12_RESOURCE_BARRIER()
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+    
+    // Specify the transition's parameters.
+    try! renderTarget.perform(
+      as: WinSDK.ID3D12Resource.self
+    ) { pUnk in
+      barrier.Transition.pResource = pUnk
+    }
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+    barrier.Transition.StateBefore = before
+    barrier.Transition.StateAfter = after
+    
+    return barrier
   }
 }
 
