@@ -91,8 +91,6 @@ extension Device {
       d3d12CommandAllocator,
       nil)
     
-    // The command list increments the command allocator's reference, as long
-    // as the command list is alive.
     return CommandList(d3d12CommandList: d3d12CommandList)
     #endif
   }

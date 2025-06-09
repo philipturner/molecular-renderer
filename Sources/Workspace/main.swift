@@ -185,4 +185,20 @@ while true {
   }
 }
 
+/*
+let device = Application.global.device
+
+var commandLists: [CommandList] = []
+for frameID in 0..<100 {
+  print("frame ID:", frameID)
+  
+  let commandList = device.createCommandList()
+  device.commit(commandList)
+  commandLists.append(commandList)
+}
+
+device.flush()
+print("Finished the program.")
+*/
+
 #endif

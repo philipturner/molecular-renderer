@@ -12,6 +12,7 @@ class Application {
   let swapChain: SwapChain
   
   let startTime: Int64
+  var commandLists: [CommandList] = []
   
   init() {
     // Create the device.
@@ -49,7 +50,6 @@ class Application {
     let ringIndex = Int(
       try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
     
-    for _ in 0..<4 {
     // Open the command list.
     let commandList = device.createCommandList()
     
@@ -92,12 +92,10 @@ class Application {
     
     // Close the command list.
     device.commit(commandList)
-    }
+    commandLists.append(commandList)
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
-    
-    
     
     // Check for errors.
     let messageCount = try! device.d3d12InfoQueue.GetNumStoredMessages()
