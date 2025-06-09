@@ -1,5 +1,4 @@
 // Next steps:
-// - Write the SwapChain utility for Windows.
 // - Reproduce the 1st 3DGEP tutorial using empty render passes.
 // - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
 //   about rendering with entirely compute commands.
