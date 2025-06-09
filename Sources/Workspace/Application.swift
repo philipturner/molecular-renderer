@@ -26,6 +26,12 @@ class Application {
     swapChainDesc.window = window
     self.swapChain = SwapChain(descriptor: swapChainDesc)
   }
+  
+  func renderFrame() {
+    let ringIndex = Int(
+      try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
+    print("ring index:", ringIndex)
+  }
 }
 
 #endif

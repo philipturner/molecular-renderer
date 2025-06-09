@@ -14,7 +14,7 @@ public struct SwapChainDescriptor {
 }
 
 public class SwapChain {
-  var swapChain: SwiftCOM.IDXGISwapChain4
+  public var d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   
   // Hold the render targets as a state variable.
   var renderTargets: [SwiftCOM.ID3D12Resource]
@@ -30,26 +30,26 @@ public class SwapChain {
     
     // Create the factory.
     let factory: SwiftCOM.IDXGIFactory4 =
-      try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+    try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
     
     // Create the swap chain descriptor.
     let swapChainDesc = Self.createSwapChainDescriptor()
     
     // Create the swap chain.
-    let swapChain1 = try! factory.CreateSwapChainForHwnd(
+    let d3d12SwapChain1 = try! factory.CreateSwapChainForHwnd(
       device.commandQueue.d3d12CommandQueue, // pDevice
       window, // hWnd
       swapChainDesc, // pDesc
       nil, // pFullscreenDesc
       nil) // pRestrictToOutput
-    self.swapChain = try! swapChain1.QueryInterface()
+    self.d3d12SwapChain = try! d3d12SwapChain1.QueryInterface()
     
     // Fill the list of render targets.
     renderTargets = []
     for ringIndex in 0..<3 {
       // Create the render target.
       var renderTarget: SwiftCOM.ID3D12Resource
-      renderTarget = try! swapChain
+      renderTarget = try! d3d12SwapChain
         .GetBuffer(UInt32(ringIndex))
       
       // Append the render target to the list.

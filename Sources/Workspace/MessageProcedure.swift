@@ -13,7 +13,11 @@ class MessageProcedure {
     // Branch over the possible message types.
     switch Int32(message) {
     case WM_PAINT:
-      // Not yet responding to PAINT messages with render commands.
+      // Render the window's contents for this frame.
+      Application.global.renderFrame()
+      
+      // Modify this once you're confident a stream of messages will not spam
+      // the console (or the messages will be 1/frame and labeled by frame).
       print("Identified WM_PAINT message.")
       return DefWindowProcA(hwnd, message, wParam, lParam)
       

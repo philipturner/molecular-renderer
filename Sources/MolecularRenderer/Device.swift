@@ -108,7 +108,7 @@ extension Device {
   static func createAdapters() -> [SwiftCOM.IDXGIAdapter4] {
     // Create the factory.
     let factory: SwiftCOM.IDXGIFactory4 =
-      try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+    try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
     
     // Create the adapters.
     var adapters: [SwiftCOM.IDXGIAdapter4] = []
