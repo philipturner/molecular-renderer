@@ -310,6 +310,13 @@ while true {
 //
 // Window::OnUpdate() calls an arbitrarily defined function, Update().
 
-
+// There are two possible run loop structures. I should experiment with each
+// and find the one that produces the most stable frame rate.
+// - Render frames in response to WM_PAINT
+// - Queue up frames in a call scoped at the PeekMessage loop
+//
+// It will be a very long time until the codebase supports the functionality
+// for testing frame rate consistency. Therefore, choose the first option for
+// now.
 
 #endif
