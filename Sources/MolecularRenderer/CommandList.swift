@@ -7,32 +7,46 @@ import WinSDK
 
 struct CommandListDescriptor {
   #if os(macOS)
-  var mtlCommandBuffer: MTLCommandBuffer
+  var mtlCommandBuffer: MTLCommandBuffer?
   #else
-  var
+  var d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList?
+  var fenceValue: UInt64?
 }
 
 public class CommandList {
   #if os(macOS)
-  let mtlCommandBuffer: MTLCommandBuffer
-  public let mtlCommandEncoder: MTLComputeCommandEncoder!
+  internal let mtlCommandBuffer: MTLCommandBuffer
+  
+  public let mtlCommandEncoder: MTLComputeCommandEncoder
+  
   private var threadsPerGroup: MTLSize?
   #else
   public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   
   // The fence value in the command queue that created this.
-  let fenceValue: UInt64
+  internal let fenceValue: UInt64
   #endif
   
-  #if os(macOS)
-  init(mtlCommandEncoder: MTLComputeCommandEncoder) {
-    self.mtlCommandEncoder = mtlCommandEncoder
-  }
-  #else
-  init(d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList) {
+  init(descriptor: CommandListDescriptor) {
+    #if os(macOS)
+    guard let mtlCommandBuffer = descriptor.mtlCommandBuffer else {
+      fatalError("Descriptor was incomplete.")
+    }
+    #else
+    guard let d3d12CommandList = descriptor.d3d12CommandList,
+          let fenceValue = descriptor.fenceValue else {
+      fatalError("Descriptor was incomplete.")
+    }
+    #endif
+    
+    #if os(macOS)
+    self.mtlCommandBuffer = mtlCommandBuffer
+    self.mtlCommandEncoder = mtlCommandBuffer.makeComputeCommandEncoder()!
+    #else
     self.d3d12CommandList = d3d12CommandList
+    self.fenceValue = fenceValue
+    #endif
   }
-  #endif
   
   /// Bind a pipeline state object.
   public func setPipelineState(_ shader: Shader) {

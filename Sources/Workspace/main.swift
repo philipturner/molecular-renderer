@@ -1,5 +1,10 @@
 // Next steps:
 // - Overhaul CommandList and CommandQueue.
+//   - On Windows, establish a FIFO queue that's garbage collected from start
+//     to end, every time a new command list is created. In addition, there's
+//     a limit (~128) to the number of in-flight command lists before the
+//     class crashes. Note that this is a temporary safeguard, to catch memory
+//     leaks and similar bugs in the utility code.
 //   - Get the new code working on Windows.
 //   - Get the new code working on Mac.
 // - Reproduce the 1st 3DGEP tutorial using empty render passes.
