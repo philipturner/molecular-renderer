@@ -31,20 +31,41 @@ public class SwapChain {
       fatalError("Descriptor was incomplete.")
     }
     
-    // Create the swap chain [encapsulating in a temporary scope].
-    do {
-      // Create the swap chain descritor.
-      let swapChainDesc = Self.createSwapChainDescriptor()
+    // Create the factory.
+    let factory: SwiftCOM.IDXGIFactory4 =
+      try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+    
+    // Create the swap chain descritor.
+    let swapChainDesc = Self.createSwapChainDescriptor()
+    
+    // Create the swap chain.
+    let swapChain1 = try! factory.CreateSwapChainForHwnd(
+      device.commandQueue.d3d12CommandQueue, // pDevice
+      window, // hWnd
+      swapChainDesc, // pDesc
+      nil, // pFullscreenDesc
+      nil) // pRestrictToOutput
+    self.swapChain = try! swapChain1.QueryInterface()
+    
+    // Create the render targets.
+    for ringIndex in 0..<3 {
+      var renderTarget: SwiftCOM.ID3D12Resource
+      renderTarget = try! swapChain
+        .GetBuffer(UInt32(ringIndex))
+      renderTargets.append(renderTarget)
+    }
+    
+    // Create the descriptor heaps and fill them with RTVs.
+    for ringIndex in 0..<3 {
       
-      // Create the factory.
-      let factory: SwiftCOM.IDXGIFactory4 =
-        try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
-      
-      // Create the swap chain.
+      // void CreateRenderTargetView(
+      //   [in, optional] ID3D12Resource                      *pResource,
+      //   [in, optional] const D3D12_RENDER_TARGET_VIEW_DESC *pDesc,
+      //   [in]           D3D12_CPU_DESCRIPTOR_HANDLE         DestDescriptor
+      // );
       
     }
     
-    fatalError("Not implemented.")
   }
 }
 
