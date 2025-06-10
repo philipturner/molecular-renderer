@@ -8,14 +8,18 @@ import WinSDK
 class CommandQueue {
   #if os(macOS)
   let mtlCommandQueue: MTLCommandQueue
-  var currentCommandBuffer: MTLCommandBuffer?
-  var lastCommandBuffer: MTLCommandBuffer?
   #else
   let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
   let eventHandle: UnsafeMutableRawPointer
   var fenceValue: UInt64 = .zero
   #endif
+  
+  // This is inching closer to the design for Windows, which tracks the entire
+  // history of in-flight command lists. This alone might solve the crash I'm
+  // currently experiencing in the run loop.
+  var currentCommandList: CommandList?
+  var previousCommandList: CommandList?
   
   init(device: Device) {
     // Fill the command queue descriptor.
@@ -52,22 +56,19 @@ class CommandQueue {
 
 extension Device {
   public func createCommandList() -> CommandList {
-    #if os(macOS)
-    // Check that the current command buffer does not exist.
-    guard commandQueue.currentCommandBuffer == nil else {
+    guard commandQueue.currentCommandList == nil else {
       fatalError("""
         Attempted to open a new command list while the previous one was still
         being encoded.
         """)
     }
     
-    // Open the command buffer.
-    let mtlCommandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
-    commandQueue.currentCommandBuffer = mtlCommandBuffer
+    var commandListDesc = CommandListDescriptor()
     
-    // Open the command encoder.
-    let mtlCommandEncoder = mtlCommandBuffer.makeComputeCommandEncoder()!
-    return CommandList(mtlCommandEncoder: mtlCommandEncoder)
+    #if os(macOS)
+    // Create the command buffer.
+    let mtlCommandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
+    commandListDesc.mtlCommandBuffer = mtlCommandBuffer
     #endif
     
     #if os(Windows)
@@ -78,6 +79,9 @@ extension Device {
     // multiple command lists, causing errors like #552.
     //
     // But this reuse of memory isn't what triggers the error.
+    //
+    // On the other hand, holding a reference to every previously submitted
+    // ID3D12GraphicsCommandList stops to crash from happening.
     let d3d12CommandAllocator: SwiftCOM.ID3D12CommandAllocator =
     try! d3d12Device.CreateCommandAllocator(
       D3D12_COMMAND_LIST_TYPE_DIRECT)

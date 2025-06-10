@@ -18,13 +18,16 @@ public class CommandList {
   internal let mtlCommandBuffer: MTLCommandBuffer
   
   public let mtlCommandEncoder: MTLComputeCommandEncoder
-  
-  private var threadsPerGroup: MTLSize?
   #else
   public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   
   // The fence value in the command queue that created this.
   internal let fenceValue: UInt64
+  #endif
+  
+  // Internally tracked state variable, associated with a bound pipeline.
+  #if os(macOS)
+  private var threadsPerGroup: MTLSize?
   #endif
   
   init(descriptor: CommandListDescriptor) {
