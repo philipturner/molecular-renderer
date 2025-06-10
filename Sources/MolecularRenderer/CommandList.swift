@@ -49,8 +49,11 @@ public class CommandList {
     self.fenceValue = fenceValue
     #endif
   }
-  
-  /// Bind a pipeline state object.
+}
+
+// MARK: - Compute Commands
+
+extension CommandList {
   public func withPipelineState(
     _ shader: Shader,
     _ closure: () -> Void
@@ -125,6 +128,8 @@ public class CommandList {
     #endif
   }
 }
+
+// MARK: - Copy Commands
 
 extension CommandList {
   #if os(Windows)

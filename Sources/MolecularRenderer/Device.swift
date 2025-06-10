@@ -25,7 +25,10 @@ public class Device {
   #endif
   
   // Stored properties for the command queue.
-  var commandQueue: CommandQueue!
+  private var _commandQueue: CommandQueue!
+  public var commandQueue: CommandQueue {
+    self._commandQueue
+  }
   
   public init(descriptor: DeviceDescriptor) {
     guard let deviceID = descriptor.deviceID else {
@@ -69,7 +72,7 @@ public class Device {
     #endif
     
     // Create the command queue.
-    self.commandQueue = CommandQueue(device: self)
+    self._commandQueue = CommandQueue(device: self)
   }
 }
 
