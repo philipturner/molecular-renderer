@@ -84,7 +84,7 @@ class RunLoop: @unchecked Sendable {
       }
     }
     
-    // Retrieve the framebuffer.
+    // Retrieve the frame buffer.
     let layer = application.view.metalLayer
     let drawable = layer.nextDrawable()
     guard let drawable else {
@@ -94,37 +94,15 @@ class RunLoop: @unchecked Sendable {
     // Invoke the user-supplied closure.
     self.closure(drawable.texture)
     
-    // Present the framebuffer.
-    present(drawable: drawable)
-    
-    return kCVReturnSuccess
-  }
-  
-  // Utility function to encapsulate the process of encoding a drawable.
-  //
-  // This is rather complex because it must carefully preserve the internal
-  // state of the command queue, to ensure flushing happens correctly.
-  func present(drawable: MTLDrawable) {
-    // Check that the current command buffer does not exist.
-    let commandQueue = application.device.commandQueue!
-    guard commandQueue.currentCommandBuffer == nil else {
-      fatalError("""
-        Attempted to open a new command list while the previous one was still
-        being encoded.
-        """)
+    // Present the frame buffer.
+    application.device.commandQueue.withCommandList { commandList in
+      commandList.mtlCommandEncoder.endEncoding()
+      commandList.mtlCommandBuffer.present(drawable)
+      commandList.mtlCommandEncoder =
+        commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     }
     
-    // Open the command buffer.
-    let commandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
-    commandQueue.currentCommandBuffer = commandBuffer
-    
-    // Present the framebuffer.
-    commandBuffer.present(drawable)
-    
-    // Close the command buffer.
-    commandBuffer.commit()
-    commandQueue.currentCommandBuffer = nil
-    commandQueue.lastCommandBuffer = commandBuffer
+    return kCVReturnSuccess
   }
 }
 

@@ -18,7 +18,7 @@ public class CommandList {
   #if os(macOS)
   internal let mtlCommandBuffer: MTLCommandBuffer
   
-  public let mtlCommandEncoder: MTLComputeCommandEncoder
+  public internal(set) var mtlCommandEncoder: MTLComputeCommandEncoder
   #else
   public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   

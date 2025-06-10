@@ -64,7 +64,7 @@ extension CommandQueue {
     
     #if os(macOS)
     // Create the command buffer.
-    let mtlCommandBuffer = commandQueue.mtlCommandQueue.makeCommandBuffer()!
+    let mtlCommandBuffer = mtlCommandQueue.makeCommandBuffer()!
     commandListDesc.mtlCommandBuffer = mtlCommandBuffer
     #endif
     
@@ -133,7 +133,7 @@ extension CommandQueue {
     }
     
     #if os(macOS)
-    previousCommandList.waitUntilCompleted()
+    previousCommandList.mtlCommandBuffer.waitUntilCompleted()
     #else
     try! d3d12Fence.SetEventOnCompletion(
       previousCommandList.fenceValue, eventHandle)

@@ -115,53 +115,48 @@ var startTime: UInt64?
 
 // Enter the run loop.
 application.run { renderTarget in
-  // Start the command list.
-  let commandList = application.device.createCommandList()
-  
-  // Utility function for encoding constants.
-  func setTime(_ time: Double, index: Int) {
-    let fractionalTime = time - floor(time)
-    var time32 = Float(fractionalTime)
+  application.device.commandQueue.withCommandList { commandList in
+    // Utility function for encoding constants.
+    func setTime(_ time: Double, index: Int) {
+      let fractionalTime = time - floor(time)
+      var time32 = Float(fractionalTime)
+      commandList.mtlCommandEncoder
+        .setBytes(&time32, length: 4, index: index)
+    }
+    
+    // Bind buffer 0.
+    if let startTime {
+      let currentTime = mach_continuous_time()
+      let timeSeconds = Double(currentTime - startTime) / 24_000_000
+      setTime(timeSeconds, index: 0)
+    } else {
+      startTime = mach_continuous_time()
+      setTime(Double.zero, index: 0)
+    }
+    
+    // Bind buffers 1 and 2.
+    do {
+      let clock = application.clock
+      let timeInFrames = clock.frames
+      let framesPerSecond = application.display.frameRate
+      let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
+      setTime(timeInSeconds, index: 1)
+      setTime(Double.zero, index: 2)
+    }
+    
+    // Bind the textures.
     commandList.mtlCommandEncoder
-      .setBytes(&time32, length: 4, index: index)
+      .setTexture(renderTarget, index: 0)
+    
+    // Encode the dispatch.
+    commandList.withPipelineState(shader) {
+      let groups = SIMD3<UInt32>(
+        UInt32(renderTarget.width) / 8,
+        UInt32(renderTarget.height) / 8,
+        1)
+      commandList.dispatch(groups: groups)
+    }
   }
-  
-  // Bind buffer 0.
-  if let startTime {
-    let currentTime = mach_continuous_time()
-    let timeSeconds = Double(currentTime - startTime) / 24_000_000
-    setTime(timeSeconds, index: 0)
-  } else {
-    startTime = mach_continuous_time()
-    setTime(Double.zero, index: 0)
-  }
-  
-  // Bind buffers 1 and 2.
-  do {
-    let clock = application.clock
-    let timeInFrames = clock.frames
-    let framesPerSecond = application.display.frameRate
-    let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
-    setTime(timeInSeconds, index: 1)
-    setTime(Double.zero, index: 2)
-  }
-  
-  // Bind the textures.
-  commandList.mtlCommandEncoder
-    .setTexture(renderTarget, index: 0)
-  
-  // Bind the pipeline state.
-  commandList.setPipelineState(shader)
-  
-  // Encode the dispatch.
-  let groups = SIMD3<UInt32>(
-    UInt32(renderTarget.width) / 8,
-    UInt32(renderTarget.height) / 8,
-    1)
-  commandList.dispatch(groups: groups)
-  
-  // End the command list.
-  application.device.commit(commandList)
 }
 
 #endif
