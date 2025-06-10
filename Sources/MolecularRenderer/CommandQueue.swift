@@ -16,10 +16,10 @@ public class CommandQueue {
   let eventHandle: UnsafeMutableRawPointer
   #endif
   
-  // This is inching closer to the target design on Windows, which tracks the
-  // entire history of in-flight command lists. This alone might solve the
-  // crash I'm currently experiencing in the run loop.
   var previousCommandList: CommandList?
+  #if os(Windows)
+  var uncompletedCommandLists: [CommandList] = []
+  #endif
   
   init(device: Device) {
     self.device = device
@@ -57,6 +57,24 @@ public class CommandQueue {
 }
 
 extension CommandQueue {
+  #if os(Windows)
+  // Remove references to command lists that finished executing.
+  private func newUncompletedCommandLists() -> [CommandList] {
+    let currentFenceValue = try! d3d12Fence.GetCompletedValue()
+    
+    // Iterate over the command lists, in increasing chronological order.
+    var output: [CommandList] = []
+    for commandList in uncompletedCommandLists {
+      if currentFenceValue >= commandList.fenceValue {
+        continue
+      } else {
+        output.append(commandList)
+      }
+    }
+    return output
+  }
+  #endif
+  
   public func withCommandList(
     _ closure: (CommandList) -> Void
   ) {
@@ -70,15 +88,6 @@ extension CommandQueue {
     
     #if os(Windows)
     // Create the command allocator.
-    //
-    // The DirectX API will often regenerate a pointer to the same region of
-    // memory for the command allocator. One command allocator may be shared by
-    // multiple command lists, causing errors like #552.
-    //
-    // But this reuse of memory isn't what triggers the error.
-    //
-    // On the other hand, holding a reference to every previously submitted
-    // ID3D12GraphicsCommandList stops to crash from happening.
     var d3d12CommandAllocator: SwiftCOM.ID3D12CommandAllocator
     d3d12CommandAllocator = try! device.d3d12Device
       .CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT)
@@ -98,7 +107,7 @@ extension CommandQueue {
       if let previousCommandList {
         fenceValue = previousCommandList.fenceValue + 1
       } else {
-        fenceValue = 0
+        fenceValue = 1
       }
       commandListDesc.fenceValue = fenceValue
     }
@@ -123,6 +132,15 @@ extension CommandQueue {
     
     // Save a reference to the command list.
     previousCommandList = commandList
+    #if os(Windows)
+    uncompletedCommandLists.append(commandList)
+    
+    // Garbage collect the completed command lists.
+    if uncompletedCommandLists.count > 64 {
+      fatalError("Too many command lists were in the queue.")
+    }
+    uncompletedCommandLists = newUncompletedCommandLists()
+    #endif
   }
   
   /// Stall until all GPU commands have completed, and the contents of GPU

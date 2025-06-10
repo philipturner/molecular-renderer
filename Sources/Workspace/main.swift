@@ -4,10 +4,10 @@
 //     the list of command buffers on Mac; this is redundant functionality.
 //     Only track on Windows. But limit the array to 64 command buffers. It's
 //     not a ring buffer now, but we'll worry about performance issues if/when
-//     it becomes a problem.
-//   - Get the new code working on Windows.
+//     it becomes a problem. [DONE]
+//   - Get the new code working on Windows. [DONE]
 //   - Get the new code working on Mac.
-// - Reproduce the 1st 3DGEP tutorial using empty render passes.
+// - Reproduce the 1st 3DGEP tutorial using empty render passes. [DONE]
 // - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
 //   about rendering with entirely compute commands.
 
@@ -167,7 +167,6 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
-/*
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -188,8 +187,8 @@ while true {
     DispatchMessageA(&message)
   }
 }
-*/
 
+/*
 let application = Application.global
 
 for frameID in 0..<100 {
@@ -202,5 +201,6 @@ for frameID in 0..<100 {
 
 application.device.commandQueue.flush()
 print("Finished the program.")
+*/
 
 #endif
