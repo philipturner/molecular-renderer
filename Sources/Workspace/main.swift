@@ -1,10 +1,10 @@
 // Next steps:
 // - Overhaul CommandList and CommandQueue.
-//   - On Windows, establish a FIFO queue that's garbage collected from start
-//     to end, every time a new command list is created. In addition, there's
-//     a limit (~128) to the number of in-flight command lists before the
-//     class crashes. Note that this is a temporary safeguard, to catch memory
-//     leaks and similar bugs in the utility code.
+//   - Maximum command buffer count for a MTLCommandQueue is 64. Don't track
+//     the list of command buffers on Mac; this is redundant functionality.
+//     Only track on Windows. But limit the array to 64 command buffers. It's
+//     not a ring buffer now, but we'll worry about performance issues if/when
+//     it becomes a problem.
 //   - Get the new code working on Windows.
 //   - Get the new code working on Mac.
 // - Reproduce the 1st 3DGEP tutorial using empty render passes.
