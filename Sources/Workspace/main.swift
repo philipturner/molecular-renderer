@@ -200,11 +200,12 @@ let device = Application.global.device
 for frameID in 0..<100 {
   print("frame ID:", frameID)
   
-  let commandList = device.createCommandList()
-  device.commit(commandList)
+  device.commandQueue.withCommandList { commandList in
+    _ = commandList
+  }
 }
 
-device.flush()
+device.commandQueue.flush()
 print("Finished the program.")
 
 #endif

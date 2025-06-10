@@ -49,48 +49,43 @@ class Application {
     let ringIndex = Int(
       try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
     
-    // Open the command list.
-    let commandList = device.createCommandList()
-    
-    // Transition from PRESENT to RENDER_TARGET.
-    do {
-      let renderTarget = swapChain.renderTargets[ringIndex]
-      let barrier = Self.transitionRenderTarget(
-        renderTarget,
-        before: D3D12_RESOURCE_STATE_PRESENT,
-        after: D3D12_RESOURCE_STATE_RENDER_TARGET)
-      try! commandList.d3d12CommandList
-        .ResourceBarrier(1, [barrier])
-    }
-    
-    // Clear the render target.
-    do {
-      let descriptorHeap = swapChain.descriptorHeaps[ringIndex]
+    // Encode the GPU commands.
+    device.commandQueue.withCommandList { commandList in
+      // Transition from PRESENT to RENDER_TARGET.
+      do {
+        let renderTarget = swapChain.renderTargets[ringIndex]
+        let barrier = Self.transitionRenderTarget(
+          renderTarget,
+          before: D3D12_RESOURCE_STATE_PRESENT,
+          after: D3D12_RESOURCE_STATE_RENDER_TARGET)
+        try! commandList.d3d12CommandList
+          .ResourceBarrier(1, [barrier])
+      }
       
-      let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
-      let cpuDescriptorHandle = try! descriptorHeap
-        .GetCPUDescriptorHandleForHeapStart()
+      // Clear the render target.
+      do {
+        let descriptorHeap = swapChain.descriptorHeaps[ringIndex]
+        let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
+        let cpuDescriptorHandle = try! descriptorHeap
+          .GetCPUDescriptorHandleForHeapStart()
+        try! commandList.d3d12CommandList.ClearRenderTargetView(
+          cpuDescriptorHandle, // RenderTargetView
+          color, // ColorRGBA
+          0, // NumRects
+          nil) // pRects
+      }
       
-      try! commandList.d3d12CommandList.ClearRenderTargetView(
-        cpuDescriptorHandle, // RenderTargetView
-        color, // ColorRGBA
-        0, // NumRects
-        nil) // pRects
+      // Transition from RENDER_TARGET to PRESENT.
+      do {
+        let renderTarget = swapChain.renderTargets[ringIndex]
+        let barrier = Self.transitionRenderTarget(
+          renderTarget,
+          before: D3D12_RESOURCE_STATE_RENDER_TARGET,
+          after: D3D12_RESOURCE_STATE_PRESENT)
+        try! commandList.d3d12CommandList
+          .ResourceBarrier(1, [barrier])
+      }
     }
-    
-    // Transition from RENDER_TARGET to PRESENT.
-    do {
-      let renderTarget = swapChain.renderTargets[ringIndex]
-      let barrier = Self.transitionRenderTarget(
-        renderTarget,
-        before: D3D12_RESOURCE_STATE_RENDER_TARGET,
-        after: D3D12_RESOURCE_STATE_PRESENT)
-      try! commandList.d3d12CommandList
-        .ResourceBarrier(1, [barrier])
-    }
-    
-    // Close the command list.
-    device.commit(commandList)
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
