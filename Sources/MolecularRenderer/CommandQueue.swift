@@ -93,13 +93,15 @@ extension CommandQueue {
     commandListDesc.d3d12CommandList = d3d12CommandList
     
     // Assign a fence value.
-    var fenceValue: UInt64
-    if let previousCommandList {
-      fenceValue = previousCommandList.fenceValue
-    } else {
-      fenceValue = 0
+    do {
+      var fenceValue: UInt64
+      if let previousCommandList {
+        fenceValue = previousCommandList.fenceValue + 1
+      } else {
+        fenceValue = 0
+      }
+      commandListDesc.fenceValue = fenceValue
     }
-    commandListDesc.fenceValue = fenceValue
     #endif
     
     // Create the command list.
@@ -114,20 +116,18 @@ extension CommandQueue {
     try! d3d12CommandQueue
       .ExecuteCommandLists([commandList.d3d12CommandList])
     
-    // Add a fence to the command stream, so we can wait on it later.
-    commandQueue.fenceValue += 1
-    try! commandQueue.d3d12CommandQueue.Signal(
-      commandQueue.d3d12Fence,
-      commandQueue.fenceValue)
+    // Signal the fence value, so we can wait on it later.
+    try! d3d12CommandQueue.Signal(
+      d3d12Fence, commandList.fenceValue)
     #endif
+    
+    // Save a reference to the command list.
+    previousCommandList = commandList
   }
   
   /// Stall until all GPU commands have completed, and the contents of GPU
   /// buffers are safe to read from the CPU.
   public func flush() {
-    guard currentCommandList == nil else {
-      fatalError("Cannot flush while a command list is being encoded.")
-    }
     guard let previousCommandList else {
       return
     }
@@ -135,17 +135,9 @@ extension CommandQueue {
     #if os(macOS)
     previousCommandList.waitUntilCompleted()
     #else
-    
-    
-    try! commandQueue.d3d12Fence.SetEventOnCompletion(
-      commandQueue.fenceValue,
-      commandQueue.eventHandle)
-    
-    // Wait for 1000 seconds (~20 minutes).
-    let waitTimeInMilliseconds: UInt32 = 1000 * 1000
-    WaitForSingleObject(
-      commandQueue.eventHandle,
-      waitTimeInMilliseconds)
+    try! d3d12Fence.SetEventOnCompletion(
+      previousCommandList.fenceValue, eventHandle)
+    WaitForSingleObject(eventHandle, UInt32.max)
     #endif
   }
 }
