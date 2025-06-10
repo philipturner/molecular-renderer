@@ -11,6 +11,7 @@ struct CommandListDescriptor {
   #else
   var d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList?
   var fenceValue: UInt64?
+  #endif
 }
 
 public class CommandList {
@@ -25,10 +26,8 @@ public class CommandList {
   internal let fenceValue: UInt64
   #endif
   
-  // Internally tracked state variable, associated with a bound pipeline.
-  #if os(macOS)
-  private var threadsPerGroup: MTLSize?
-  #endif
+  // Internally tracked pipeline state, necessary for dispatching threads.
+  private var shader: Shader?
   
   init(descriptor: CommandListDescriptor) {
     #if os(macOS)
@@ -89,10 +88,16 @@ public class CommandList {
   /// Launch a kernel with the specified number of groups.
   public func dispatch(groups: SIMD3<UInt32>) {
     #if os(macOS)
-    guard let threadsPerGroup else {
-      fatalError("Forgot to set the pipeline state.")
+    guard let shader else {
+      fatalError("Pipeline state was not set.")
     }
+    #else
+    guard shader != nil else {
+      fatalError("Pipeline state was not set.")
+    }
+    #endif
     
+    #if os(macOS)
     var mtlSize = MTLSize()
     mtlSize.width = Int(groups[0])
     mtlSize.height = Int(groups[1])
@@ -100,7 +105,7 @@ public class CommandList {
     
     mtlCommandEncoder.dispatchThreadgroups(
       mtlSize, // threadgroupsPerGrid
-      threadsPerThreadgroup: threadsPerGroup)
+      threadsPerThreadgroup: shader.threadsPerGroup)
     #else
     try! d3d12CommandList.Dispatch(
       groups[0], // ThreadGroupCountX
@@ -116,6 +121,11 @@ extension CommandList {
     inputBuffer: Buffer,
     nativeBuffer: Buffer
   ) {
+    guard shader == nil else {
+      fatalError(
+        "Cannot encode copy commands in the middle of a compute command.")
+    }
+    
     // Verify the state of the input buffer.
     guard inputBuffer.state == BufferType.input.initialState else {
       fatalError("Input buffer had an unexpected state.")
@@ -138,6 +148,11 @@ extension CommandList {
     nativeBuffer: Buffer,
     outputBuffer: Buffer
   ) {
+    guard shader == nil else {
+      fatalError(
+        "Cannot encode copy commands in the middle of a compute command.")
+    }
+    
     // Verify the state of the output buffer.
     guard outputBuffer.state == BufferType.output.initialState else {
       fatalError("Output buffer had an unexpected state.")
