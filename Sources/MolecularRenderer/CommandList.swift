@@ -51,17 +51,28 @@ public class CommandList {
   }
   
   /// Bind a pipeline state object.
-  public func setPipelineState(_ shader: Shader) {
+  public func withPipelineState(
+    _ shader: Shader,
+    _ closure: () -> Void
+  ) {
+    guard self.shader == nil else {
+      fatalError(
+        "Cannot start a new command in the middle of a previous command.")
+    }
+    
     #if os(macOS)
     mtlCommandEncoder.setComputePipelineState(
       shader.mtlComputePipelineState)
-    threadsPerGroup = shader.threadsPerGroup
     #else
     try! d3d12CommandList.SetPipelineState(
       shader.d3d12PipelineState)
     try! d3d12CommandList.SetComputeRootSignature(
       shader.d3d12RootSignature)
     #endif
+    
+    self.shader = shader
+    closure()
+    self.shader = nil
   }
   
   /// Bind a UAV buffer to the buffer table.
