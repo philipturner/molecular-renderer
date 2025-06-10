@@ -1,13 +1,4 @@
 // Next steps:
-// - Overhaul CommandList and CommandQueue.
-//   - Maximum command buffer count for a MTLCommandQueue is 64. Don't track
-//     the list of command buffers on Mac; this is redundant functionality.
-//     Only track on Windows. But limit the array to 64 command buffers. It's
-//     not a ring buffer now, but we'll worry about performance issues if/when
-//     it becomes a problem. [DONE]
-//   - Get the new code working on Windows. [DONE]
-//   - Get the new code working on Mac.
-// - Reproduce the 1st 3DGEP tutorial using empty render passes. [DONE]
 // - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
 //   about rendering with entirely compute commands.
 
@@ -187,20 +178,5 @@ while true {
     DispatchMessageA(&message)
   }
 }
-
-/*
-let application = Application.global
-
-for frameID in 0..<100 {
-  print("frame ID:", frameID)
-  
-  application.device.commandQueue.withCommandList { commandList in
-    _ = commandList
-  }
-}
-
-application.device.commandQueue.flush()
-print("Finished the program.")
-*/
 
 #endif
