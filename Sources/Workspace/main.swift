@@ -197,6 +197,7 @@ while true {
 
 let device = Application.global.device
 
+// TODO: Verify that this test procedure works on Mac.
 for frameID in 0..<100 {
   print("frame ID:", frameID)
   
