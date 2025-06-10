@@ -190,18 +190,17 @@ while true {
 }
 */
 
-let device = Application.global.device
+let application = Application.global
 
-// TODO: Verify that this test procedure works on Mac.
 for frameID in 0..<100 {
   print("frame ID:", frameID)
   
-  device.commandQueue.withCommandList { commandList in
+  application.device.commandQueue.withCommandList { commandList in
     _ = commandList
   }
 }
 
-device.commandQueue.flush()
+application.device.commandQueue.flush()
 print("Finished the program.")
 
 #endif
