@@ -64,7 +64,7 @@ class Application {
       
       // Clear the render target.
       do {
-        let descriptorHeap = swapChain.descriptorHeaps[ringIndex]
+        let descriptorHeap = swapChain.backBufferDescriptorHeaps[ringIndex]
         let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
         let cpuDescriptorHandle = try! descriptorHeap
           .GetCPUDescriptorHandleForHeapStart()
