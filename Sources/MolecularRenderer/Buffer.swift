@@ -103,7 +103,7 @@ public class Buffer {
     #endif
     
     #if os(Windows)
-    // Fill the heap descriptor.
+    // Fill the heap properties.
     var heapProperties = D3D12_HEAP_PROPERTIES()
     heapProperties.Type = type.heapType
     heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN
@@ -125,13 +125,13 @@ public class Buffer {
     resourceDesc.Flags = type.resourceFlags
     
     // Create the resource.
-    let d3d12Device = device.d3d12Device
-    self.d3d12Resource = try! d3d12Device.CreateCommittedResource(
-      heapProperties,
-      D3D12_HEAP_FLAG_NONE,
-      resourceDesc,
-      type.initialState,
-      nil)
+    self.d3d12Resource =
+    try! device.d3d12Device.CreateCommittedResource(
+      heapProperties, // pHeapProperties
+      D3D12_HEAP_FLAG_NONE, // HeapFlags
+      resourceDesc, // pDesc
+      type.initialState, // InitialResourceState
+      nil) // pOptimizedClearValue
     
     // Initialize the state.
     self.state = type.initialState

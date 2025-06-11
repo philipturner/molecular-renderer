@@ -22,6 +22,8 @@ public class SwapChain {
   // Create a separate descriptor heap per render target.
   public var descriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
   
+  public var frameBuffer: SwiftCOM.ID3D12Resource
+  
   public init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
           let window = descriptor.window else {
@@ -83,26 +85,28 @@ public class SwapChain {
       descriptorHeaps.append(descriptorHeap)
     }
     
-    // Inspect the 1st back buffer.
+    // Set up the frame buffer.
     do {
-      let backBuffer = backBuffers[0]
-      let resourceDesc = try! backBuffer.GetDesc()
-      print(resourceDesc)
+      // Fill the heap properties.
+      var heapProperties = D3D12_HEAP_PROPERTIES()
+      heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT
       
-      // D3D12_RESOURCE_DESC(
-      //   Dimension: __C.D3D12_RESOURCE_DIMENSION(rawValue: 3),
-      //   Alignment: 65536,
-      //   Width: 1440,
-      //   Height: 1440,
-      //   DepthOrArraySize: 1,
-      //   MipLevels: 1,
-      //   Format: __C.DXGI_FORMAT(rawValue: 24),
-      //   SampleDesc: __C.DXGI_SAMPLE_DESC(Count: 1, Quality: 0),
-      //   Layout: __C.D3D12_TEXTURE_LAYOUT(rawValue: 0),
-      //   Flags: __C.D3D12_RESOURCE_FLAGS(rawValue: 1))
+      // Fill the resource descriptor.
+      let backBuffer = backBuffers[0]
+      var resourceDesc = try! backBuffer.GetDesc()
+      var flagsRawValue = resourceDesc.Flags.rawValue
+      flagsRawValue |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.rawValue
+      resourceDesc.Flags = D3D12_RESOURCE_FLAGS(rawValue: flagsRawValue)
+      
+      // Create the resource.
+      self.frameBuffer =
+      try! device.d3d12Device.CreateCommittedResource(
+        heapProperties, // pHeapProperties
+        D3D12_HEAP_FLAG_NONE, // HeapFlags
+        resourceDesc, // pDesc
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+        nil) // pOptimizedClearValue
     }
-    
-    fatalError("Not implemented.")
   }
 }
 
