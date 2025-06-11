@@ -53,9 +53,9 @@ class Application {
     device.commandQueue.withCommandList { commandList in
       // Transition from PRESENT to RENDER_TARGET.
       do {
-        let renderTarget = swapChain.renderTargets[ringIndex]
-        let barrier = Self.transitionRenderTarget(
-          renderTarget,
+        let backBuffer = swapChain.backBuffers[ringIndex]
+        let barrier = Self.transition(
+          resource: backBuffer,
           before: D3D12_RESOURCE_STATE_PRESENT,
           after: D3D12_RESOURCE_STATE_RENDER_TARGET)
         try! commandList.d3d12CommandList
@@ -77,9 +77,9 @@ class Application {
       
       // Transition from RENDER_TARGET to PRESENT.
       do {
-        let renderTarget = swapChain.renderTargets[ringIndex]
-        let barrier = Self.transitionRenderTarget(
-          renderTarget,
+        let backBuffer = swapChain.backBuffers[ringIndex]
+        let barrier = Self.transition(
+          resource: backBuffer,
           before: D3D12_RESOURCE_STATE_RENDER_TARGET,
           after: D3D12_RESOURCE_STATE_PRESENT)
         try! commandList.d3d12CommandList
@@ -89,34 +89,11 @@ class Application {
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
-    
-    // Check for errors.
-    let messageCount = try! device.d3d12InfoQueue.GetNumStoredMessages()
-    if messageCount > 1 {
-      print("Message count:", messageCount)
-      
-      for messageID in 0..<messageCount {
-        let message = try! device.d3d12InfoQueue
-          .GetMessage(messageID)
-        print(
-          message.pointee.Category,
-          message.pointee.Severity,
-          message.pointee.ID)
-        print(
-          D3D12_MESSAGE_CATEGORY_EXECUTION,
-          D3D12_MESSAGE_ID_COMMAND_ALLOCATOR_SYNC)
-        
-        let string: String = String(cString: message.pointee.pDescription)
-        print(string)
-        free(message)
-      }
-      
-      fatalError("Encountered error messages.")
-    }
   }
   
-  static func transitionRenderTarget(
-    _ renderTarget: SwiftCOM.ID3D12Resource,
+  // Utility function for transitioning resources.
+  private static func transition(
+    resource: SwiftCOM.ID3D12Resource,
     before: D3D12_RESOURCE_STATES,
     after: D3D12_RESOURCE_STATES
   ) -> D3D12_RESOURCE_BARRIER {
@@ -126,7 +103,7 @@ class Application {
     barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
     
     // Specify the transition's parameters.
-    try! renderTarget.perform(
+    try! resource.perform(
       as: WinSDK.ID3D12Resource.self
     ) { pUnk in
       barrier.Transition.pResource = pUnk

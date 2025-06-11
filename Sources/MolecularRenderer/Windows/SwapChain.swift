@@ -17,7 +17,7 @@ public class SwapChain {
   public var d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   
   // Hold the render targets as a state variable.
-  public var renderTargets: [SwiftCOM.ID3D12Resource]
+  public var backBuffers: [SwiftCOM.ID3D12Resource]
   
   // Create a separate descriptor heap per render target.
   public var descriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
@@ -45,15 +45,15 @@ public class SwapChain {
     self.d3d12SwapChain = try! d3d12SwapChain1.QueryInterface()
     
     // Fill the list of render targets.
-    renderTargets = []
+    backBuffers = []
     for ringIndex in 0..<3 {
       // Create the render target.
-      var renderTarget: SwiftCOM.ID3D12Resource
-      renderTarget = try! d3d12SwapChain
+      var backBuffer: SwiftCOM.ID3D12Resource
+      backBuffer = try! d3d12SwapChain
         .GetBuffer(UInt32(ringIndex))
       
       // Append the render target to the list.
-      renderTargets.append(renderTarget)
+      backBuffers.append(backBuffer)
     }
     
     // Fill the list of descriptor heaps.
@@ -71,7 +71,7 @@ public class SwapChain {
         .CreateDescriptorHeap(descriptorHeapDesc)
       
       // Create the RTV.
-      let resource = renderTargets[ringIndex]
+      let resource = backBuffers[ringIndex]
       let cpuDescriptorHandle = try! descriptorHeap
         .GetCPUDescriptorHandleForHeapStart()
       try! device.d3d12Device.CreateRenderTargetView(
@@ -83,6 +83,26 @@ public class SwapChain {
       descriptorHeaps.append(descriptorHeap)
     }
     
+    // Inspect the 1st back buffer.
+    do {
+      let backBuffer = backBuffers[0]
+      let resourceDesc = try! backBuffer.GetDesc()
+      print(resourceDesc)
+      
+      // D3D12_RESOURCE_DESC(
+      //   Dimension: __C.D3D12_RESOURCE_DIMENSION(rawValue: 3),
+      //   Alignment: 65536,
+      //   Width: 1440,
+      //   Height: 1440,
+      //   DepthOrArraySize: 1,
+      //   MipLevels: 1,
+      //   Format: __C.DXGI_FORMAT(rawValue: 24),
+      //   SampleDesc: __C.DXGI_SAMPLE_DESC(Count: 1, Quality: 0),
+      //   Layout: __C.D3D12_TEXTURE_LAYOUT(rawValue: 0),
+      //   Flags: __C.D3D12_RESOURCE_FLAGS(rawValue: 1))
+    }
+    
+    fatalError("Not implemented.")
   }
 }
 
