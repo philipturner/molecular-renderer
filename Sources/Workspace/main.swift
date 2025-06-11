@@ -183,49 +183,4 @@ while true {
   }
 }
 
-/*
-func createShaderSource() -> String {
-  """
-  
-  RWTexture2D<float4> frameBuffer : register(u0);
-  
-  #define kernelRootSignature \\
-  "DescriptorTable(UAV(u0))"
-  
-  [numthreads(8, 8, 1)]
-  [RootSignature(kernelRootSignature)]
-  void renderImage(
-    uint2 tid : SV_DispatchThreadID
-  ) {
-    uint screenWidth;
-    uint screenHeight;
-    frameBuffer.GetDimensions(screenWidth, screenHeight);
-    
-    uint2 center = uint2(
-      screenWidth / 2,
-      screenHeight / 2);
-    
-    float radius = 200;
-    float distance = length(float2(tid - center));
-    if (distance <= radius) {
-      float4 circleColor = float4(1, 0, 1, 0);
-      frameBuffer[tid] = circleColor;
-    }
-  }
-  
-  """
-}
-
-// Set up the application.
-let application = Application.global
-
-// Set up the shader.
-var shaderDesc = ShaderDescriptor()
-shaderDesc.device = application.device
-shaderDesc.name = "renderImage"
-shaderDesc.source = createShaderSource()
-let shader = Shader(descriptor: shaderDesc)
-print(shader)
-*/
-
 #endif

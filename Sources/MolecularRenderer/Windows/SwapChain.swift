@@ -96,7 +96,7 @@ public class SwapChain {
       let backBuffer = backBuffers[0]
       var resourceDesc = try! backBuffer.GetDesc()
       var flagsRawValue = resourceDesc.Flags.rawValue
-      //flagsRawValue |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.rawValue
+      flagsRawValue |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.rawValue
       resourceDesc.Flags = D3D12_RESOURCE_FLAGS(rawValue: flagsRawValue)
       
       // Create the resource.
@@ -105,15 +105,15 @@ public class SwapChain {
         heapProperties, // pHeapProperties
         D3D12_HEAP_FLAG_NONE, // HeapFlags
         resourceDesc, // pDesc
-        D3D12_RESOURCE_STATE_RENDER_TARGET, // InitialResourceState
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
         nil) // pOptimizedClearValue
     }
     do {
       // Fill the heap descriptor.
       var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
-      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV // CBV_SRV_UAV
+      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
       descriptorHeapDesc.NumDescriptors = 1
-      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // SHADER_VISIBLE
+      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
       
       // Create the descriptor heap.
       self.frameBufferDescriptorHeap = try! device.d3d12Device
@@ -122,9 +122,9 @@ public class SwapChain {
       // Create the UAV.
       let cpuDescriptorHandle = try! frameBufferDescriptorHeap
         .GetCPUDescriptorHandleForHeapStart()
-      try! device.d3d12Device.CreateRenderTargetView(
+      try! device.d3d12Device.CreateUnorderedAccessView(
         frameBuffer, // pResource
-        //nil, // pCounterResource,
+        nil, // pCounterResource,
         nil, // pDesc
         cpuDescriptorHandle) // DestDescriptor
     }

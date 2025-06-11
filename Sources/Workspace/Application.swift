@@ -10,6 +10,7 @@ class Application {
   let device: Device
   let window: HWND
   let swapChain: SwapChain
+  let shader: Shader
   
   let startTime: Int64
   
@@ -28,10 +29,49 @@ class Application {
     swapChainDesc.window = window
     self.swapChain = SwapChain(descriptor: swapChainDesc)
     
+    // Create the shader.
+    var shaderDesc = ShaderDescriptor()
+    shaderDesc.device = device
+    shaderDesc.name = "renderImage"
+    shaderDesc.source = Self.createShaderSource()
+    self.shader = Shader(descriptor: shaderDesc)
+    
     // Create the start time, for reference.
     var largeInteger = LARGE_INTEGER()
     QueryPerformanceCounter(&largeInteger)
     self.startTime = largeInteger.QuadPart
+  }
+  
+  static func createShaderSource() -> String {
+    """
+    
+    RWTexture2D<float4> frameBuffer : register(u0);
+    
+    #define kernelRootSignature \\
+    "DescriptorTable(UAV(u0))"
+    
+    [numthreads(8, 8, 1)]
+    [RootSignature(kernelRootSignature)]
+    void renderImage(
+      uint2 tid : SV_DispatchThreadID
+    ) {
+      uint screenWidth;
+      uint screenHeight;
+      frameBuffer.GetDimensions(screenWidth, screenHeight);
+      
+      uint2 center = uint2(
+        screenWidth / 2,
+        screenHeight / 2);
+      
+      float radius = 200;
+      float distance = length(float2(tid - center));
+      if (distance <= radius) {
+        float4 circleColor = float4(1, 0, 1, 0);
+        frameBuffer[tid] = circleColor;
+      }
+    }
+    
+    """
   }
   
   func renderFrame() {
@@ -51,24 +91,11 @@ class Application {
     
     // Encode the GPU commands.
     device.commandQueue.withCommandList { commandList in
-      // Clear the render target.
-      do {
-        let descriptorHeap = swapChain.frameBufferDescriptorHeap
-        let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
-        let cpuDescriptorHandle = try! descriptorHeap
-          .GetCPUDescriptorHandleForHeapStart()
-        try! commandList.d3d12CommandList.ClearRenderTargetView(
-          cpuDescriptorHandle, // RenderTargetView
-          color, // ColorRGBA
-          0, // NumRects
-          nil) // pRects
-      }
-      
       // Transitions before the copy command.
       do {
         let barrier1 = Self.transition(
           resource: swapChain.frameBuffer,
-          before: D3D12_RESOURCE_STATE_RENDER_TARGET,
+          before: D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
           after: D3D12_RESOURCE_STATE_COPY_SOURCE)
         let barrier2 = Self.transition(
           resource: swapChain.backBuffers[ringIndex],
@@ -82,7 +109,9 @@ class Application {
       
       // Copy the frame buffer into the back buffer.
       do {
-        
+        try! commandList.d3d12CommandList.CopyResource(
+          swapChain.backBuffers[ringIndex], // pDstResource
+          swapChain.frameBuffer) // pSrcResource
       }
       
       // Transition after the copy command.
@@ -90,7 +119,7 @@ class Application {
         let barrier1 = Self.transition(
           resource: swapChain.frameBuffer,
           before: D3D12_RESOURCE_STATE_COPY_SOURCE,
-          after: D3D12_RESOURCE_STATE_RENDER_TARGET)
+          after: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
         let barrier2 = Self.transition(
           resource: swapChain.backBuffers[ringIndex],
           before: D3D12_RESOURCE_STATE_COPY_DEST,
