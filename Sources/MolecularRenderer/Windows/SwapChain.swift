@@ -111,9 +111,9 @@ public class SwapChain {
     do {
       // Fill the heap descriptor.
       var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
-      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV // CBV_SRV_UAV
       descriptorHeapDesc.NumDescriptors = 1
-      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE // SHADER_VISIBLE
       
       // Create the descriptor heap.
       self.frameBufferDescriptorHeap = try! device.d3d12Device

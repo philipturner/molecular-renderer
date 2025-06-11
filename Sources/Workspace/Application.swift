@@ -51,20 +51,9 @@ class Application {
     
     // Encode the GPU commands.
     device.commandQueue.withCommandList { commandList in
-      // Transition from PRESENT to RENDER_TARGET.
-      do {
-        let backBuffer = swapChain.backBuffers[ringIndex]
-        let barrier = Self.transition(
-          resource: backBuffer,
-          before: D3D12_RESOURCE_STATE_PRESENT,
-          after: D3D12_RESOURCE_STATE_RENDER_TARGET)
-        try! commandList.d3d12CommandList
-          .ResourceBarrier(1, [barrier])
-      }
-      
       // Clear the render target.
       do {
-        let descriptorHeap = swapChain.backBufferDescriptorHeaps[ringIndex]
+        let descriptorHeap = swapChain.frameBufferDescriptorHeap
         let color = (Float(0.4), Float(0.6), Float(0.9), Float(1.0))
         let cpuDescriptorHandle = try! descriptorHeap
           .GetCPUDescriptorHandleForHeapStart()
@@ -75,15 +64,41 @@ class Application {
           nil) // pRects
       }
       
-      // Transition from RENDER_TARGET to PRESENT.
+      // Transitions before the copy command.
       do {
-        let backBuffer = swapChain.backBuffers[ringIndex]
-        let barrier = Self.transition(
-          resource: backBuffer,
+        let barrier1 = Self.transition(
+          resource: swapChain.frameBuffer,
           before: D3D12_RESOURCE_STATE_RENDER_TARGET,
+          after: D3D12_RESOURCE_STATE_COPY_SOURCE)
+        let barrier2 = Self.transition(
+          resource: swapChain.backBuffers[ringIndex],
+          before: D3D12_RESOURCE_STATE_PRESENT,
+          after: D3D12_RESOURCE_STATE_COPY_DEST)
+        let barriers = [barrier1, barrier2]
+        
+        try! commandList.d3d12CommandList.ResourceBarrier(
+          UInt32(barriers.count), barriers)
+      }
+      
+      // Copy the frame buffer into the back buffer.
+      do {
+        
+      }
+      
+      // Transition after the copy command.
+      do {
+        let barrier1 = Self.transition(
+          resource: swapChain.frameBuffer,
+          before: D3D12_RESOURCE_STATE_COPY_SOURCE,
+          after: D3D12_RESOURCE_STATE_RENDER_TARGET)
+        let barrier2 = Self.transition(
+          resource: swapChain.backBuffers[ringIndex],
+          before: D3D12_RESOURCE_STATE_COPY_DEST,
           after: D3D12_RESOURCE_STATE_PRESENT)
-        try! commandList.d3d12CommandList
-          .ResourceBarrier(1, [barrier])
+        let barriers = [barrier1, barrier2]
+        
+        try! commandList.d3d12CommandList.ResourceBarrier(
+          UInt32(barriers.count), barriers)
       }
     }
     
