@@ -64,7 +64,7 @@ class Application {
         screenHeight / 2);
       
       float radius = 200;
-      float distance = length(float2(tid - center));
+      float distance = length(float2(tid) - float2(center));
       if (distance <= radius) {
         float4 circleColor = float4(1, 0, 1, 0);
         frameBuffer[tid] = circleColor;
@@ -91,6 +91,21 @@ class Application {
     
     // Encode the GPU commands.
     device.commandQueue.withCommandList { commandList in
+      // Encode the compute command.
+      commandList.withPipelineState(shader) {
+        let descriptorHeap = swapChain.frameBufferDescriptorHeap
+        try! commandList.d3d12CommandList
+          .SetDescriptorHeaps([descriptorHeap])
+          
+        let gpuDescriptorHandle = try! descriptorHeap
+          .GetGPUDescriptorHandleForHeapStart()
+        try! commandList.d3d12CommandList
+          .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
+        
+        let groups = SIMD3<UInt32>(1440 / 8, 1440 / 8, 1)
+        commandList.dispatch(groups: groups)
+      }
+      
       // Transitions before the copy command.
       do {
         let barrier1 = Self.transition(

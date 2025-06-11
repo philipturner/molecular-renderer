@@ -17,9 +17,14 @@ public class SwapChain {
   public var d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   
   // Hold the render targets as a state variable.
+  //
+  // TODO: Change the swap chain initializer, so these are BACK_BUFFER instead
+  // of RENDER_TARGET_OUTPUT.
   public var backBuffers: [SwiftCOM.ID3D12Resource]
   
   // Create a separate descriptor heap per render target.
+  //
+  // TODO: Remove these.
   public var backBufferDescriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
   
   public var frameBuffer: SwiftCOM.ID3D12Resource
