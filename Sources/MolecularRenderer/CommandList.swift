@@ -98,7 +98,7 @@ extension CommandList {
       try! d3d12CommandList.SetComputeRoot32BitConstants(
         UInt32(index), // RootParameterIndex
         UInt32(byteCount / 4), // Num32BitValuesToSet
-        &timeArgs, // pSrcData
+        pConstants, // pSrcData
         0) // DestOffsetIn32BitValues
       #endif
     }
