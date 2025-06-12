@@ -102,6 +102,10 @@ class Application {
     // Update the frame ID.
     self.frameID += 1
     
+    // Fetch the ring index.
+    let ringIndex = Int(
+      try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
+    
     // Fetch the current time.
     var largeInteger = LARGE_INTEGER()
     QueryPerformanceCounter(&largeInteger)
@@ -111,9 +115,23 @@ class Application {
     let elapsedTime = Double(currentTime - startTime) / Double(10e6)
     let elapsedFrames = Int(elapsedTime * 60)
     
-    // Fetch the ring index.
-    let ringIndex = Int(
-      try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
+    // Calculate the progress values.
+    let frameIDs = SIMD3<UInt32>(
+      UInt32(elapsedFrames),
+      UInt32(self.frameID),
+      UInt32(0))
+    let times = SIMD3<Float>(frameIDs % 60) / Float(60)
+    
+    // Fill the arguments data structure.
+    struct TimeArguments {
+      var time0: Float = .zero
+      var time1: Float = .zero
+      var time2: Float = .zero
+    }
+    var timeArgs = TimeArguments()
+    timeArgs.time0 = times[0]
+    timeArgs.time1 = times[1]
+    timeArgs.time2 = times[2]
     
     // Encode the GPU commands.
     device.commandQueue.withCommandList { commandList in
@@ -122,16 +140,11 @@ class Application {
         let descriptorHeap = swapChain.frameBufferDescriptorHeap
         try! commandList.d3d12CommandList
           .SetDescriptorHeaps([descriptorHeap])
-          
-        let frameIDs = SIMD3<UInt32>(
-          UInt32(elapsedFrames),
-          UInt32(self.frameID),
-          UInt32(0))
-        var times = SIMD3<Float>(frameIDs % 60) / Float(60)
+        
         try! commandList.d3d12CommandList.SetComputeRoot32BitConstants(
           0, // RootParameterIndex
           3, // Num32BitValuesToSet
-          &times, // pSrcData
+          &timeArgs, // pSrcData
           0) // DestOffsetIn32BitValues
         
         let gpuDescriptorHandle = try! descriptorHeap

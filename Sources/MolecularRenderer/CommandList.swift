@@ -78,6 +78,13 @@ extension CommandList {
     self.shader = nil
   }
   
+  public func set32BitConstants<T>(
+    _ constants: T,
+    index: Int
+  ) {
+    print(MemoryLayout<T>.stride)
+  }
+  
   /// Bind a UAV buffer to the buffer table.
   public func setBuffer(
     _ buffer: Buffer,

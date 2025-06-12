@@ -1,6 +1,8 @@
 // Next steps:
 // - Learn how to set 32-bit constants in DirectX. [DONE]
 //   - Create a utility shared across Mac and Windows for inline constants.
+//     - Use the type object of a data structure, providing information
+//       on byte count without the user explicitly defining it.
 // - Port the non-trivial shader function for converting HSL to RGB.
 
 import MolecularRenderer
@@ -112,7 +114,7 @@ var startTime: UInt64?
 // Enter the run loop.
 application.run { renderTarget in
   application.device.commandQueue.withCommandList { commandList in
-    // Utility function for encoding times.
+    // Utility function for calculating progress values.
     var times: SIMD3<Float> = .zero
     func setTime(_ time: Double, index: Int) {
       let fractionalTime = time - floor(time)
@@ -139,10 +141,22 @@ application.run { renderTarget in
       setTime(Double.zero, index: 2)
     }
     
+    // Fill the arguments data structure.
+    struct TimeArguments {
+      var time0: Float = .zero
+      var time1: Float = .zero
+      var time2: Float = .zero
+    }
+    var timeArgs = TimeArguments()
+    timeArgs.time0 = times[0]
+    timeArgs.time1 = times[1]
+    timeArgs.time2 = times[2]
+    
     // Encode the compute command.
     commandList.withPipelineState(shader) {
-      commandList.mtlCommandEncoder
-        .setBytes(&times, length: 12, index: 0)
+//      commandList.mtlCommandEncoder
+//        .setBytes(&times, length: 12, index: 0)
+      commandList.set32BitConstants(timeArgs, index: 0)
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 1)
       
