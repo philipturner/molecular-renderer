@@ -13,6 +13,7 @@ class Application {
   let shader: Shader
   
   let startTime: Int64
+  var frameID: Int = .zero
   
   init() {
     // Create the device.
@@ -43,14 +44,20 @@ class Application {
   }
   
   static func createShaderSource() -> String {
-    // Don't need to add a back-slash once this is upgraded to multiple
-    // arguments.
     let rootSignature = """
+    "RootConstants(num32BitConstants = 3, b0),"
     "DescriptorTable(UAV(u0, numDescriptors = 1)),"
     """
     
     return """
     
+    struct TimeArguments {
+      float time0;
+      float time1;
+      float time2;
+    };
+    
+    ConstantBuffer<TimeArguments> timeArgs : register(b0);
     RWTexture2D<float4> frameBuffer : register(u0);
     
     [numthreads(8, 8, 1)]
@@ -58,35 +65,51 @@ class Application {
     void renderImage(
       uint2 tid : SV_DispatchThreadID
     ) {
+      // Query the screen's dimensions.
       uint screenWidth;
       uint screenHeight;
       frameBuffer.GetDimensions(screenWidth, screenHeight);
       
+      // Define the center of the screen.
       uint2 center = uint2(
         screenWidth / 2,
         screenHeight / 2);
       
+      // Render something based on the radial distance from the center.
       float radius = 200;
       float distance = length(float2(tid) - float2(center));
+      float4 pixelColor;
       if (distance <= radius) {
-        float4 circleColor = float4(1, 0, 1, 0);
-        frameBuffer[tid] = circleColor;
+        float progress;
+        if (tid.y < center.y) {
+          progress = timeArgs.time0;
+        } else {
+          progress = timeArgs.time1;
+        }
+        pixelColor = float4(progress, progress, 1, 0);
+      } else {
+        pixelColor = float4(0, 0, 0, 0);
       }
+      
+      // Write the pixel to the screen.
+      frameBuffer[tid] = pixelColor;
     }
     
     """
   }
   
   func renderFrame() {
+    // Update the frame ID.
+    self.frameID += 1
+    
     // Fetch the current time.
     var largeInteger = LARGE_INTEGER()
     QueryPerformanceCounter(&largeInteger)
     let currentTime = largeInteger.QuadPart
     
-    // Display the time difference.
+    // Calculate the time difference.
     let elapsedTime = Double(currentTime - startTime) / Double(10e6)
-    let frameID = Int(elapsedTime * 60)
-    print("frame ID:", frameID)
+    let elapsedFrames = Int(elapsedTime * 60)
     
     // Fetch the ring index.
     let ringIndex = Int(
@@ -99,11 +122,22 @@ class Application {
         let descriptorHeap = swapChain.frameBufferDescriptorHeap
         try! commandList.d3d12CommandList
           .SetDescriptorHeaps([descriptorHeap])
+          
+        let frameIDs = SIMD3<UInt32>(
+          UInt32(elapsedFrames),
+          UInt32(self.frameID),
+          UInt32(0))
+        var times = SIMD3<Float>(frameIDs % 60) / Float(60)
+        try! commandList.d3d12CommandList.SetComputeRoot32BitConstants(
+          0, // RootParameterIndex
+          3, // Num32BitValuesToSet
+          &times, // pSrcData
+          0) // DestOffsetIn32BitValues
         
         let gpuDescriptorHandle = try! descriptorHeap
           .GetGPUDescriptorHandleForHeapStart()
         try! commandList.d3d12CommandList
-          .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
+          .SetComputeRootDescriptorTable(1, gpuDescriptorHandle)
         
         let groups = SIMD3<UInt32>(1440 / 8, 1440 / 8, 1)
         commandList.dispatch(groups: groups)

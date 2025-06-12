@@ -1,5 +1,6 @@
 // Next steps:
-// - Learn how to set 32-bit constants in DirectX.
+// - Learn how to set 32-bit constants in DirectX. [DONE]
+//   - Create a utility shared across Mac and Windows for inline constants.
 // - Port the non-trivial shader function for converting HSL to RGB.
 
 import MolecularRenderer
