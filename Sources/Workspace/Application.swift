@@ -57,6 +57,25 @@ class Application {
       float time2;
     };
     
+    float convertToChannel(
+      float hue,
+      float saturation,
+      float lightness,
+      uint n
+    ) {
+      float k = float(n) + hue / 30;
+      k -= 12 * floor(k / 12);
+    
+      float a = saturation;
+      a *= min(lightness, 1 - lightness);
+    
+      float output = min(k - 3, 9 - k);
+      output = max(output, float(-1));
+      output = min(output, float(1));
+      output = lightness - a * output;
+      return output;
+    }
+    
     ConstantBuffer<TimeArguments> timeArgs : register(b0);
     RWTexture2D<float4> frameBuffer : register(u0);
     
@@ -86,7 +105,16 @@ class Application {
         } else {
           progress = timeArgs.time1;
         }
-        pixelColor = float4(progress, progress, 1, 0);
+        progress = 0.9;
+        
+        float hue = float(progress) * 360;
+        float saturation = 1.0;
+        float lightness = 0.5;
+    
+        float red = convertToChannel(hue, saturation, lightness, 0);
+        float green = convertToChannel(hue, saturation, lightness, 8);
+        float blue = convertToChannel(hue, saturation, lightness, 4);
+        pixelColor = float4(red, green, blue, 1.00);
       } else {
         pixelColor = float4(0, 0, 0, 0);
       }
