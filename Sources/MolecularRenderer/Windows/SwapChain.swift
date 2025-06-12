@@ -2,8 +2,6 @@
 import SwiftCOM
 import WinSDK
 
-// This file will merge with 'View', currently under 'macOS'.
-
 public struct SwapChainDescriptor {
   public var device: Device?
   public var window: HWND?
@@ -16,17 +14,7 @@ public struct SwapChainDescriptor {
 public class SwapChain {
   public var d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   
-  // Hold the render targets as a state variable.
-  //
-  // TODO: Change the swap chain initializer, so these are BACK_BUFFER instead
-  // of RENDER_TARGET_OUTPUT.
-  public var backBuffers: [SwiftCOM.ID3D12Resource]
-  
-  // Create a separate descriptor heap per render target.
-  //
-  // TODO: Remove these.
-  public var backBufferDescriptorHeaps: [SwiftCOM.ID3D12DescriptorHeap]
-  
+  public var backBuffers: [SwiftCOM.ID3D12Resource] = []
   public var frameBuffer: SwiftCOM.ID3D12Resource
   public var frameBufferDescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
@@ -52,43 +40,15 @@ public class SwapChain {
       nil) // pRestrictToOutput
     self.d3d12SwapChain = try! d3d12SwapChain1.QueryInterface()
     
-    // Fill the list of render targets.
-    backBuffers = []
+    // Set up the back buffers.
     for ringIndex in 0..<3 {
-      // Create the render target.
+      // Create the back buffer.
       var backBuffer: SwiftCOM.ID3D12Resource
       backBuffer = try! d3d12SwapChain
         .GetBuffer(UInt32(ringIndex))
       
-      // Append the render target to the list.
+      // Append the back buffer to the list.
       backBuffers.append(backBuffer)
-    }
-    
-    // Fill the list of descriptor heaps.
-    backBufferDescriptorHeaps = []
-    for ringIndex in 0..<3 {
-      // Fill the heap descriptor.
-      var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
-      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV
-      descriptorHeapDesc.NumDescriptors = 1
-      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
-      
-      // Create the descriptor heap.
-      var descriptorHeap: SwiftCOM.ID3D12DescriptorHeap
-      descriptorHeap = try! device.d3d12Device
-        .CreateDescriptorHeap(descriptorHeapDesc)
-      
-      // Create the RTV.
-      let resource = backBuffers[ringIndex]
-      let cpuDescriptorHandle = try! descriptorHeap
-        .GetCPUDescriptorHandleForHeapStart()
-      try! device.d3d12Device.CreateRenderTargetView(
-        resource, // pResource
-        nil, // pDesc
-        cpuDescriptorHandle) // DestDescriptor
-      
-      // Append the descriptor heap to the list.
-      backBufferDescriptorHeaps.append(descriptorHeap)
     }
     
     // Set up the frame buffer.
@@ -113,6 +73,8 @@ public class SwapChain {
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
         nil) // pOptimizedClearValue
     }
+    
+    // Set up the frame buffer's descriptor heap.
     do {
       // Fill the heap descriptor.
       var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
@@ -145,7 +107,7 @@ extension SwapChain {
     swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
     swapChainDesc.Stereo = false
     swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC(Count: 1, Quality: 0)
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT
+    swapChainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER
     swapChainDesc.BufferCount = 3
     swapChainDesc.Scaling = DXGI_SCALING_NONE
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD

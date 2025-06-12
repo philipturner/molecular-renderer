@@ -1,10 +1,5 @@
 // Next steps:
-// - Reproduce the StackOverflow comment (https://stackoverflow.com/a/78501260)
-//   about rendering with entirely compute commands.
-//   - Draft the shader. [DONE]
-//   - Change the existing render workflow, to 1 frame buffer + copying to the
-//     3 back buffers. Delete the descriptor heaps per back buffer.
-//   - Change the render command to a compute command.
+// - TODO. Figure out next time I return to this.
 
 import MolecularRenderer
 
