@@ -65,10 +65,10 @@ class Application {
     ) {
       float k = float(n) + hue / 30;
       k -= 12 * floor(k / 12);
-    
+      
       float a = saturation;
       a *= min(lightness, 1 - lightness);
-    
+      
       float output = min(k - 3, 9 - k);
       output = max(output, float(-1));
       output = min(output, float(1));
@@ -110,7 +110,7 @@ class Application {
         float hue = float(progress) * 360;
         float saturation = 1.0;
         float lightness = 0.5;
-    
+        
         float red = convertToChannel(hue, saturation, lightness, 0);
         float green = convertToChannel(hue, saturation, lightness, 8);
         float blue = convertToChannel(hue, saturation, lightness, 4);

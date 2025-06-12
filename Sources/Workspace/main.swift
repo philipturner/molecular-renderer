@@ -44,33 +44,33 @@ func createShaderSource() -> String {
     float time2;
   };
   
-  half convertToChannel(
-    half hue,
-    half saturation,
-    half lightness,
-    ushort n
+  float convertToChannel(
+    float hue,
+    float saturation,
+    float lightness,
+    uint n
   ) {
-    half k = half(n) + hue / 30;
+    float k = float(n) + hue / 30;
     k -= 12 * floor(k / 12);
-  
-    half a = saturation;
+    
+    float a = saturation;
     a *= min(lightness, 1 - lightness);
-  
-    half output = min(k - 3, 9 - k);
-    output = max(output, half(-1));
-    output = min(output, half(1));
+    
+    float output = min(k - 3, 9 - k);
+    output = max(output, float(-1));
+    output = min(output, float(1));
     output = lightness - a * output;
     return output;
   }
   
   kernel void renderImage(
     constant TimeArguments &timeArgs [[buffer(0)]],
-    texture2d<half, access::write> frameBuffer [[texture(1)]],
-    ushort2 tid [[thread_position_in_grid]]
+    texture2d<float, access::write> frameBuffer [[texture(1)]],
+    uint2 tid [[thread_position_in_grid]]
   ) {
-    half4 color;
+    float4 color;
     if (tid.y < 1600) {
-      color = half4(0.707, 0.707, 0.00, 1.00);
+      color = float4(0.707, 0.707, 0.00, 1.00);
     } else {
       float progress = float(tid.x) / 1920;
       if (tid.y < 1600 + 107) {
@@ -80,17 +80,17 @@ func createShaderSource() -> String {
       } else {
         progress += timeArgs.time2;
       }
-  
-      half hue = half(progress) * 360;
-      half saturation = 1.0;
-      half lightness = 0.5;
-  
-      half red = convertToChannel(hue, saturation, lightness, 0);
-      half green = convertToChannel(hue, saturation, lightness, 8);
-      half blue = convertToChannel(hue, saturation, lightness, 4);
-      color = half4(red, green, blue, 1.00);
+      
+      float hue = float(progress) * 360;
+      float saturation = 1.0;
+      float lightness = 0.5;
+      
+      float red = convertToChannel(hue, saturation, lightness, 0);
+      float green = convertToChannel(hue, saturation, lightness, 8);
+      float blue = convertToChannel(hue, saturation, lightness, 4);
+      color = float4(red, green, blue, 1.00);
     }
-  
+    
     frameBuffer.write(color, tid);
   }
   
