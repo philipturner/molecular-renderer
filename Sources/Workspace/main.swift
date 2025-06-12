@@ -36,6 +36,12 @@ func createShaderSource() -> String {
   #include <metal_stdlib>
   using namespace metal;
   
+  struct TimeArguments {
+    float time0;
+    float time1;
+    float time2;
+  };
+  
   half convertToChannel(
     half hue,
     half saturation,
@@ -56,10 +62,8 @@ func createShaderSource() -> String {
   }
   
   kernel void renderImage(
-    constant float *time0 [[buffer(0)]],
-    constant float *time1 [[buffer(1)]],
-    constant float *time2 [[buffer(2)]],
-    texture2d<half, access::write> drawableTexture [[texture(0)]],
+    constant TimeArguments &timeArgs [[buffer(0)]],
+    texture2d<half, access::write> frameBuffer [[texture(1)]],
     ushort2 tid [[thread_position_in_grid]]
   ) {
     half4 color;
@@ -68,11 +72,11 @@ func createShaderSource() -> String {
     } else {
       float progress = float(tid.x) / 1920;
       if (tid.y < 1600 + 107) {
-        progress += *time0;
+        progress += timeArgs.time0;
       } else if (tid.y < 1600 + 213) {
-        progress += *time1;
+        progress += timeArgs.time1;
       } else {
-        progress += *time2;
+        progress += timeArgs.time2;
       }
   
       half hue = half(progress) * 360;
@@ -85,7 +89,7 @@ func createShaderSource() -> String {
       color = half4(red, green, blue, 1.00);
     }
   
-    drawableTexture.write(color, tid);
+    frameBuffer.write(color, tid);
   }
   
   """
@@ -108,15 +112,14 @@ var startTime: UInt64?
 // Enter the run loop.
 application.run { renderTarget in
   application.device.commandQueue.withCommandList { commandList in
-    // Utility function for encoding constants.
+    // Utility function for encoding times.
+    var times: SIMD3<Float> = .zero
     func setTime(_ time: Double, index: Int) {
       let fractionalTime = time - floor(time)
-      var time32 = Float(fractionalTime)
-      commandList.mtlCommandEncoder
-        .setBytes(&time32, length: 4, index: index)
+      times[index] = Float(fractionalTime)
     }
     
-    // Bind buffer 0.
+    // Write the absolute time.
     if let startTime {
       let currentTime = mach_continuous_time()
       let timeSeconds = Double(currentTime - startTime) / 24_000_000
@@ -126,7 +129,7 @@ application.run { renderTarget in
       setTime(Double.zero, index: 0)
     }
     
-    // Bind buffers 1 and 2.
+    // Write the time according to the counter.
     do {
       let clock = application.clock
       let timeInFrames = clock.frames
@@ -136,12 +139,13 @@ application.run { renderTarget in
       setTime(Double.zero, index: 2)
     }
     
-    // Bind the textures.
-    commandList.mtlCommandEncoder
-      .setTexture(renderTarget, index: 0)
-    
-    // Encode the dispatch.
+    // Encode the compute command.
     commandList.withPipelineState(shader) {
+      commandList.mtlCommandEncoder
+        .setBytes(&times, length: 12, index: 0)
+      commandList.mtlCommandEncoder
+        .setTexture(renderTarget, index: 1)
+      
       let groups = SIMD3<UInt32>(
         UInt32(renderTarget.width) / 8,
         UInt32(renderTarget.height) / 8,
