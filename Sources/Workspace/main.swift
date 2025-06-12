@@ -68,14 +68,24 @@ func createShaderSource() -> String {
     texture2d<float, access::write> frameBuffer [[texture(1)]],
     uint2 tid [[thread_position_in_grid]]
   ) {
+    // Query the screen's dimensions.
+    uint screenWidth = frameBuffer.get_width();
+    uint screenHeight = frameBuffer.get_height();
+    
+    // Specify the arrangement of the bars.
+    float line0 = float(screenHeight) * float(15) / 18;
+    float line1 = float(screenHeight) * float(16) / 18;
+    float line2 = float(screenHeight) * float(17) / 18;
+    
+    // Render something based on the pixel's position.
     float4 color;
-    if (tid.y < 1600) {
+    if (float(tid.y) < line0) {
       color = float4(0.707, 0.707, 0.00, 1.00);
     } else {
-      float progress = float(tid.x) / 1920;
-      if (tid.y < 1600 + 107) {
+      float progress = float(tid.x) / float(screenWidth);
+      if (float(tid.y) < line1) {
         progress += timeArgs.time0;
-      } else if (tid.y < 1600 + 213) {
+      } else if (float(tid.y) < line2) {
         progress += timeArgs.time1;
       } else {
         progress += timeArgs.time2;
