@@ -88,9 +88,20 @@ extension CommandList {
       fatalError("Could not determine number of 32-bit constants.")
     }
     
-//    guard byteCount % 4 == 0 else {
-//      fatalError("")
-//    }
+    withUnsafePointer(to: constants) { pConstants in
+      #if os(macOS)
+      mtlCommandEncoder.setBytes(
+        pConstants,
+        length: byteCount,
+        index: index)
+      #else
+      try! d3d12CommandList.SetComputeRoot32BitConstants(
+        UInt32(index), // RootParameterIndex
+        UInt32(byteCount / 4), // Num32BitValuesToSet
+        &timeArgs, // pSrcData
+        0) // DestOffsetIn32BitValues
+      #endif
+    }
   }
   
   /// Bind a UAV buffer to the buffer table.
@@ -109,8 +120,8 @@ extension CommandList {
     gpuAddress += UInt64(offset)
     
     try! d3d12CommandList.SetComputeRootUnorderedAccessView(
-      UInt32(index),
-      gpuAddress)
+      UInt32(index), // RootParameterIndex
+      gpuAddress) // BufferLocation
     #endif
   }
   

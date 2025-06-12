@@ -141,11 +141,7 @@ class Application {
         try! commandList.d3d12CommandList
           .SetDescriptorHeaps([descriptorHeap])
         
-        try! commandList.d3d12CommandList.SetComputeRoot32BitConstants(
-          0, // RootParameterIndex
-          3, // Num32BitValuesToSet
-          &timeArgs, // pSrcData
-          0) // DestOffsetIn32BitValues
+        commandList.set32BitConstants(timeArgs, index: 0)
         
         let gpuDescriptorHandle = try! descriptorHeap
           .GetGPUDescriptorHandleForHeapStart()

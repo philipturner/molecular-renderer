@@ -154,8 +154,6 @@ application.run { renderTarget in
     
     // Encode the compute command.
     commandList.withPipelineState(shader) {
-//      commandList.mtlCommandEncoder
-//        .setBytes(&times, length: 12, index: 0)
       commandList.set32BitConstants(timeArgs, index: 0)
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 1)
