@@ -119,21 +119,15 @@ public class Shader {
       rootSignatureBlob, // pBlobWithRootSignature
       UInt64(rootSignatureLength)) // blobLengthInBytes
     
-    // Specify the root signature.
+    // Fill the pipeline state descriptor.
     var pipelineStateDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC()
     try! d3d12RootSignature.perform(
       as: WinSDK.ID3D12RootSignature.self
     ) { pUnk in
       pipelineStateDesc.pRootSignature = pUnk
     }
-    
-    // Specify the compute shader.
-    do {
-      var shaderBytecode = D3D12_SHADER_BYTECODE()
-      shaderBytecode.pShaderBytecode = UnsafeRawPointer(objectBlob)
-      shaderBytecode.BytecodeLength = UInt64(objectLength)
-      pipelineStateDesc.CS = shaderBytecode
-    }
+    pipelineStateDesc.CS.pShaderBytecode = UnsafeRawPointer(objectBlob)
+    pipelineStateDesc.CS.BytecodeLength = UInt64(objectLength)
     
     // Create the pipeline state.
     self.d3d12PipelineState = try! device.d3d12Device

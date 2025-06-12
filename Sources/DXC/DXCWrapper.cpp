@@ -20,9 +20,7 @@ if (errorCode != 0) { \
 
 // Compiles the function and returns an error code.
 //
-// WARNING: The caller must deallocate any pointers returned by this function.
-// On the Swift side, use 'Data.init(bytesNoCopy:)' with the deallocator set to
-// '.free'.
+// The caller must deallocate any pointers returned by this function.
 extern "C"
 __declspec(dllexport)
 int32_t dxcompiler_compile(

@@ -43,15 +43,18 @@ class Application {
   }
   
   static func createShaderSource() -> String {
+    // Don't need to add a back-slash once this is upgraded to multiple
+    // arguments.
+    let rootSignature = """
+    "DescriptorTable(UAV(u0, numDescriptors = 1)),"
     """
+    
+    return """
     
     RWTexture2D<float4> frameBuffer : register(u0);
     
-    #define kernelRootSignature \\
-    "DescriptorTable(UAV(u0))"
-    
     [numthreads(8, 8, 1)]
-    [RootSignature(kernelRootSignature)]
+    [RootSignature(\(rootSignature))]
     void renderImage(
       uint2 tid : SV_DispatchThreadID
     ) {
@@ -96,7 +99,7 @@ class Application {
         let descriptorHeap = swapChain.frameBufferDescriptorHeap
         try! commandList.d3d12CommandList
           .SetDescriptorHeaps([descriptorHeap])
-          
+        
         let gpuDescriptorHandle = try! descriptorHeap
           .GetGPUDescriptorHandleForHeapStart()
         try! commandList.d3d12CommandList

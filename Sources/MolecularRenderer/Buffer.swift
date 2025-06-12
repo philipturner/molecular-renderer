@@ -108,8 +108,6 @@ public class Buffer {
     heapProperties.Type = type.heapType
     heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN
     heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN
-    heapProperties.CreationNodeMask = 0
-    heapProperties.VisibleNodeMask = 0
     
     // Fill the resource descriptor.
     var resourceDesc = D3D12_RESOURCE_DESC()

@@ -60,9 +60,7 @@ public class SwapChain {
       // Fill the resource descriptor.
       let backBuffer = backBuffers[0]
       var resourceDesc = try! backBuffer.GetDesc()
-      var flagsRawValue = resourceDesc.Flags.rawValue
-      flagsRawValue |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS.rawValue
-      resourceDesc.Flags = D3D12_RESOURCE_FLAGS(rawValue: flagsRawValue)
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
       
       // Create the resource.
       self.frameBuffer =
