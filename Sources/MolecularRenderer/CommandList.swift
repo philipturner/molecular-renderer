@@ -82,7 +82,15 @@ extension CommandList {
     _ constants: T,
     index: Int
   ) {
-    print(MemoryLayout<T>.stride)
+    // Compute the byte count based on the size, not the stride.
+    let byteCount = MemoryLayout<T>.size
+    guard byteCount % 4 == 0 else {
+      fatalError("Could not determine number of 32-bit constants.")
+    }
+    
+//    guard byteCount % 4 == 0 else {
+//      fatalError("")
+//    }
   }
   
   /// Bind a UAV buffer to the buffer table.
