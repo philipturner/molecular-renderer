@@ -12,8 +12,8 @@ class Application {
   let swapChain: SwapChain
   let shader: Shader
   
-  let startTime: Int64
   var frameID: Int = .zero
+  var startTime: Int64?
   
   init() {
     // Create the device.
@@ -36,11 +36,6 @@ class Application {
     shaderDesc.name = "renderImage"
     shaderDesc.source = Self.createShaderSource()
     self.shader = Shader(descriptor: shaderDesc)
-    
-    // Create the start time, for reference.
-    var largeInteger = LARGE_INTEGER()
-    QueryPerformanceCounter(&largeInteger)
-    self.startTime = largeInteger.QuadPart
   }
   
   static func createShaderSource() -> String {
@@ -89,23 +84,24 @@ class Application {
       uint screenHeight;
       frameBuffer.GetDimensions(screenWidth, screenHeight);
       
-      // Define the center of the screen.
-      uint2 center = uint2(
-        screenWidth / 2,
-        screenHeight / 2);
+      // Specify the arrangement of the bars.
+      float line0 = float(screenHeight) * float(15) / 18;
+      float line1 = float(screenHeight) * float(16) / 18;
+      float line2 = float(screenHeight) * float(17) / 18;
       
-      // Render something based on the radial distance from the center.
-      float radius = 200;
-      float distance = length(float2(tid) - float2(center));
-      float4 pixelColor;
-      if (distance <= radius) {
-        float progress;
-        if (tid.y < center.y) {
-          progress = timeArgs.time0;
+      // Render something based on the pixel's position.
+      float4 color;
+      if (float(tid.y) < line0) {
+        color = float4(0.707, 0.707, 0.00, 1.00);
+      } else {
+        float progress = float(tid.x) / float(screenWidth);
+        if (float(tid.y) < line1) {
+          progress += timeArgs.time0;
+        } else if (float(tid.y) < line2) {
+          progress += timeArgs.time1;
         } else {
-          progress = timeArgs.time1;
+          progress += timeArgs.time2;
         }
-        progress = 0.9;
         
         float hue = float(progress) * 360;
         float saturation = 1.0;
@@ -114,13 +110,11 @@ class Application {
         float red = convertToChannel(hue, saturation, lightness, 0);
         float green = convertToChannel(hue, saturation, lightness, 8);
         float blue = convertToChannel(hue, saturation, lightness, 4);
-        pixelColor = float4(red, green, blue, 1.00);
-      } else {
-        pixelColor = float4(0, 0, 0, 0);
+        color = float4(red, green, blue, 1.00);
       }
       
       // Write the pixel to the screen.
-      frameBuffer[tid] = pixelColor;
+      frameBuffer[tid] = color;
     }
     
     """
@@ -134,35 +128,43 @@ class Application {
     let ringIndex = Int(
       try! swapChain.d3d12SwapChain.GetCurrentBackBufferIndex())
     
-    // Fetch the current time.
-    var largeInteger = LARGE_INTEGER()
-    QueryPerformanceCounter(&largeInteger)
-    let currentTime = largeInteger.QuadPart
-    
-    // Calculate the time difference.
-    let elapsedTime = Double(currentTime - startTime) / Double(10e6)
-    let elapsedFrames = Int(elapsedTime * 60)
-    
-    // Calculate the progress values.
-    let frameIDs = SIMD3<UInt32>(
-      UInt32(elapsedFrames),
-      UInt32(self.frameID),
-      UInt32(0))
-    let times = SIMD3<Float>(frameIDs % 60) / Float(60)
-    
-    // Fill the arguments data structure.
-    struct TimeArguments {
-      var time0: Float = .zero
-      var time1: Float = .zero
-      var time2: Float = .zero
-    }
-    var timeArgs = TimeArguments()
-    timeArgs.time0 = times[0]
-    timeArgs.time1 = times[1]
-    timeArgs.time2 = times[2]
-    
     // Encode the GPU commands.
     device.commandQueue.withCommandList { commandList in
+      // Utility function for calculating progress values.
+      var times: SIMD3<Float> = .zero
+      func setTime(_ time: Double, index: Int) {
+        let fractionalTime = time - floor(time)
+        times[index] = Float(fractionalTime)
+      }
+      
+      // Write the absolute time.
+      if let startTime {
+        let currentTime = Self.getContinuousTime()
+        let timeSeconds = Double(currentTime - startTime) / 10_000_000
+        setTime(timeSeconds, index: 0)
+      } else {
+        startTime = Self.getContinuousTime()
+        setTime(Double.zero, index: 0)
+      }
+      
+      // Write the time according to the counter.
+      do {
+        let timeInSeconds = Double(frameID) / Double(60)
+        setTime(timeInSeconds, index: 1)
+        setTime(Double.zero, index: 2)
+      }
+      
+      // Fill the arguments data structure.
+      struct TimeArguments {
+        var time0: Float = .zero
+        var time1: Float = .zero
+        var time2: Float = .zero
+      }
+      var timeArgs = TimeArguments()
+      timeArgs.time0 = times[0]
+      timeArgs.time1 = times[1]
+      timeArgs.time2 = times[2]
+      
       // Encode the compute command.
       commandList.withPipelineState(shader) {
         let descriptorHeap = swapChain.frameBufferDescriptorHeap
@@ -222,6 +224,13 @@ class Application {
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
+  }
+  
+  // Utility function for querying time.
+  private static func getContinuousTime() -> Int64 {
+    var largeInteger = LARGE_INTEGER()
+    QueryPerformanceCounter(&largeInteger)
+    return largeInteger.QuadPart
   }
   
   // Utility function for transitioning resources.
