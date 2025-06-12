@@ -12,11 +12,11 @@ public struct SwapChainDescriptor {
 }
 
 public class SwapChain {
-  public var d3d12SwapChain: SwiftCOM.IDXGISwapChain4
+  public let d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   
-  public var backBuffers: [SwiftCOM.ID3D12Resource] = []
-  public var frameBuffer: SwiftCOM.ID3D12Resource
-  public var frameBufferDescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
+  public private(set) var backBuffers: [SwiftCOM.ID3D12Resource] = []
+  public let frameBuffer: SwiftCOM.ID3D12Resource
+  public let frameBufferDescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
   public init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
