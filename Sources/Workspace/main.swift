@@ -47,6 +47,9 @@
 //     - Major (+1 frames) desynchronization during a stutter is not the norm.
 //       I only observed it during one 5-frame stutter, in a program launch
 //       with ~10 total stutters.
+//   - Spacing between consecutive frames when "catching up":
+//     - At program startup: 0.2-0.5 frames
+//     - Jitters after startup: 0.05-0.1 frames
 // - Revise how the window and swap chain are initialized, ensuring the window
 //   always appears on the monitor with the highest refresh rate.
 //   - Reference article: Microsoft documentation, "Positioning Objects on
@@ -259,3 +262,5 @@ while true {
 }
 
 #endif
+
+// Plans for Clock implementation on Windows: the heuristic
