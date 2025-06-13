@@ -12,7 +12,7 @@ class Application {
   let swapChain: SwapChain
   let shader: Shader
   
-  var frameID: Int = .zero
+  var frameID: Int?
   var startTime: Int64?
   
   init() {
@@ -122,7 +122,13 @@ class Application {
   
   func renderFrame() {
     // Update the frame ID.
-    self.frameID += 1
+    var currentFrameID: Int
+    if let frameID {
+      currentFrameID = frameID + 1
+    } else {
+      currentFrameID = 0
+    }
+    self.frameID = currentFrameID
     
     // Fetch the ring index.
     let ringIndex = Int(
@@ -149,7 +155,7 @@ class Application {
       
       // Write the time according to the counter.
       do {
-        let timeInSeconds = Double(frameID) / Double(60)
+        let timeInSeconds = Double(currentFrameID) / Double(60)
         setTime(timeInSeconds, index: 1)
         setTime(Double.zero, index: 2)
       }

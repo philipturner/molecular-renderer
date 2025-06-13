@@ -1,10 +1,17 @@
 // Next steps:
 // - Get frame ID synchronization correct on Windows.
-//   - Try a different run loop structure, dispatching a command immediately
-//     instead of waiting for WM_PAINT. Use the two possible structures as
-//     stringest test cases for the synchronization algorithm.
 //   - See whether Microsoft lets you query the next "video" timestamp,
-//     compared to the "host" timestamp, like with Apple CoreVideo.
+//     compared to the "host" timestamp, like with Apple CoreVideo. [DONE]
+//   - Inspect all of the following APIs:
+//     - IDXGISwapChain::GetContainingOutput
+//     - IDXGIOutput::GetDisplayModeList
+//       - Inspect all of the modes.
+//       - DXGI_MODE_DESC.RefreshRate
+//     - IDXGISwapChain::GetFrameStatistics
+//       - DXGI_FRAME_STATISTICS.PresentCount
+//       - DXGI_FRAME_STATISTICS.PresentRefreshCount
+//       - DXGI_FRAME_STATISTICS.SyncRefreshCount
+//       - DXGI_FRAME_STATISTICS.SyncQPCTime
 
 import MolecularRenderer
 
