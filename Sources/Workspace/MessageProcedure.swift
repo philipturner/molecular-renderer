@@ -12,6 +12,18 @@ class MessageProcedure {
   ) -> LRESULT {
     // Branch over the possible message types.
     switch Int32(message) {
+    case WM_CREATE:
+      print("Encountered WM_CREATE.")
+    
+    case WM_ACTIVATE:
+      print("Encountered WM_ACTIVATE: \(wParam) \(lParam).")
+      
+    case WM_ACTIVATEAPP:
+      print("Encountered WM_ACTIVATEAPP: \(wParam) \(lParam).")
+      
+    case WM_POWERBROADCAST:
+      print("Encountered WM_POWERBROADCAST.")
+      
     case WM_PAINT:
       // Fake paint operation to get the OS to start rendering.
       let window = Application.global.window

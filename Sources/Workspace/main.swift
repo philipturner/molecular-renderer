@@ -196,6 +196,11 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+// TODO: Try boosting the process and thread priorities to fix the lag.
+print(SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS)))
+print(GetLastError())
+print(GetPriorityClass(GetCurrentProcess()))
+
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
