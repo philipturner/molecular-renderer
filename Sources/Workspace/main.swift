@@ -14,6 +14,8 @@
 //       - DXGI_FRAME_STATISTICS.PresentRefreshCount
 //       - DXGI_FRAME_STATISTICS.SyncRefreshCount
 //       - DXGI_FRAME_STATISTICS.SyncQPCTime
+//   - Inspect the consistency of time tracking during the first few frames,
+//     where 'GetFrameStatistics()' doesn't return anything.
 // - Revise how the window and swap chain are initialized, ensuring the window
 //   always appears on the monitor with the highest refresh rate.
 //   - Reference article: Microsoft documentation, "Positioning Objects on

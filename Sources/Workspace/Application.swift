@@ -15,8 +15,7 @@ class Application {
   var frameID: Int?
   var startTime: Int64?
   var previousFrameStatistics: DXGI_FRAME_STATISTICS?
-  
-  var inSizeMove: Bool = false
+  var inInitialFrames: Bool = true
   
   init() {
     // Create the device.
@@ -137,10 +136,12 @@ class Application {
       let diffSyncRefreshCount = frameStatistics.SyncRefreshCount - previousFrameStatistics.SyncRefreshCount
       let diffSyncQPCTime = frameStatistics.SyncQPCTime.QuadPart - previousFrameStatistics.SyncQPCTime.QuadPart
       
-      do {
-        //print(diffPresentCount, diffPresentRefreshCount, diffSyncRefreshCount, diffSyncQPCTime)
+      if diffPresentCount != 1 {
+        print(diffPresentCount, diffPresentRefreshCount, diffSyncRefreshCount, diffSyncQPCTime)
       }
-      
+      if frameStatistics.PresentCount >= 5 {
+        inInitialFrames = false
+      }
     } else {
       print("nil")
     }
@@ -162,9 +163,11 @@ class Application {
     device.commandQueue.withCommandList { commandList in
       // Utility function for calculating progress values.
       var times: SIMD3<Float> = .zero
+      var times2: SIMD3<Float> = .zero
       func setTime(_ time: Double, index: Int) {
         let fractionalTime = time - floor(time)
         times[index] = Float(fractionalTime)
+        times2[index] = Float(time)
       }
       
       // Write the absolute time.
@@ -182,6 +185,13 @@ class Application {
         let timeInSeconds = Double(currentFrameID) / Double(60)
         setTime(timeInSeconds, index: 1)
         setTime(Double.zero, index: 2)
+      }
+      
+      if inInitialFrames {
+        print("In the initial frames: \(times2 * 60)")
+        if let frameStatistics {
+          print(frameStatistics.PresentCount, frameStatistics.PresentRefreshCount, frameStatistics.SyncRefreshCount, frameStatistics.SyncQPCTime.QuadPart)
+        }
       }
       
       // Fill the arguments data structure.
