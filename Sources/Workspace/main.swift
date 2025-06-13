@@ -306,3 +306,13 @@ while true {
 // Start out by not incorporating the special cases for program startup or
 // streams of 0-frames. The robust algorithm from macOS should stabilize the
 // application; these are just touch-ups.
+
+// Notes
+//
+// The macOS algorithms is remarkably good at stabilizing the application's
+// time keeping. However, both streams of 0-frames produce a noticeable blank
+// or flash in the animation. This happens both at app startup and during the
+// jitters later on.
+//
+// Hypothesis: The proposed heuristic components for startup should mend the
+// flash artifact there.

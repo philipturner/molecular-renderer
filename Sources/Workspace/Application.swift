@@ -14,6 +14,7 @@ class Application {
   
   var frameID: Int?
   var startTime: Int64?
+  var clock: Clock
   
   init() {
     // Create the device.
@@ -36,6 +37,9 @@ class Application {
     shaderDesc.name = "renderImage"
     shaderDesc.source = Self.createShaderSource()
     self.shader = Shader(descriptor: shaderDesc)
+    
+    // Create the clock.
+    self.clock = Clock()
   }
   
   static func createShaderSource() -> String {
@@ -121,6 +125,13 @@ class Application {
   }
   
   func renderFrame() {
+    // Update the clock.
+    do {
+      let frameStatistics = try? swapChain.d3d12SwapChain
+        .GetFrameStatistics()
+      clock.increment(frameStatistics: frameStatistics)
+    }
+    
     // Update the frame ID.
     var currentFrameID: Int
     if let frameID {
@@ -157,9 +168,10 @@ class Application {
       
       // Write the time according to the counter.
       do {
-        let timeInSeconds = Double(currentFrameID) / Double(60)
-        setTime(timeInSeconds, index: 1)
-        setTime(Double.zero, index: 2)
+        let timeInSeconds1 = Double(currentFrameID) / Double(60)
+        let timeInSeconds2 = Double(clock.frameCounter) / Double(60)
+        setTime(timeInSeconds1, index: 1)
+        setTime(timeInSeconds2, index: 2)
       }
       
       // Fill the arguments data structure.
