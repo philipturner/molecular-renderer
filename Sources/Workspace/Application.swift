@@ -14,11 +14,6 @@ class Application {
   
   var frameID: Int?
   var startTime: Int64?
-  var firstFrameStatistics: DXGI_FRAME_STATISTICS?
-  var previousFrameStatistics: DXGI_FRAME_STATISTICS?
-  var jitterTimer: Int = .zero
-  
-  var history: [(SIMD4<Float>, SIMD4<Float>, SIMD4<Float>)] = []
   
   init() {
     // Create the device.
@@ -126,39 +121,6 @@ class Application {
   }
   
   func renderFrame() {
-    let frameStatistics = try? swapChain.d3d12SwapChain.GetFrameStatistics()
-    
-    var absoluteTimeComparison: SIMD4<Float>
-    var stepComparison: SIMD4<Float>
-    if let frameStatistics,
-       frameStatistics.PresentCount > 0,
-       frameStatistics.PresentRefreshCount > 0,
-       frameStatistics.SyncRefreshCount > 0 {
-      let start = self.firstFrameStatistics ?? frameStatistics
-      let previous = self.previousFrameStatistics ?? frameStatistics
-      let current = frameStatistics
-      
-      absoluteTimeComparison = Self.compareFrameStatistics(
-        start: start,
-        end: current)
-      stepComparison = Self.compareFrameStatistics(
-        start: previous,
-        end: current)
-    } else {
-      absoluteTimeComparison = .zero
-      stepComparison = .zero
-    }
-    
-    if let frameStatistics,
-       frameStatistics.PresentCount > 0,
-       frameStatistics.PresentRefreshCount > 0,
-       frameStatistics.SyncRefreshCount > 0 {
-      if firstFrameStatistics == nil {
-        self.firstFrameStatistics = frameStatistics
-      }
-      self.previousFrameStatistics = frameStatistics
-    }
-    
     // Update the frame ID.
     var currentFrameID: Int
     if let frameID {
@@ -198,32 +160,6 @@ class Application {
         let timeInSeconds = Double(currentFrameID) / Double(60)
         setTime(timeInSeconds, index: 1)
         setTime(Double.zero, index: 2)
-      }
-      
-      if stepComparison[0] != 1 {
-        if jitterTimer == 0 {
-          print()
-          print("jitter detected")
-          if history.count > 3 {
-            print(history[history.count - 3])
-            print(history[history.count - 2])
-            print(history[history.count - 1])
-          }
-        }
-        jitterTimer = 5
-      } else if jitterTimer > 0 {
-        jitterTimer -= 1
-      }
-      
-      do {
-        let numbers1 = SIMD4(times2 * 60, 0)
-        let numbers2 = absoluteTimeComparison
-        let numbers3 = stepComparison
-        history.append((numbers1, numbers2, numbers3))
-        
-        if jitterTimer > 0 {
-          print(numbers1, numbers2, numbers3)
-        }
       }
       
       // Fill the arguments data structure.
@@ -296,29 +232,6 @@ class Application {
     
     // Send the render target to the DWM.
     try! swapChain.d3d12SwapChain.Present(1, 0)
-  }
-  
-  // Utility for comparing frame statistics (DXGI equivalent of CVTimeStamp).
-  private static func compareFrameStatistics(
-    start: DXGI_FRAME_STATISTICS,
-    end: DXGI_FRAME_STATISTICS
-  ) -> SIMD4<Float> {
-    func asIntVector(_ statistics: DXGI_FRAME_STATISTICS) -> SIMD4<Int64> {
-      SIMD4(
-        Int64(statistics.PresentCount),
-        Int64(statistics.PresentRefreshCount),
-        Int64(statistics.SyncRefreshCount),
-        Int64(statistics.SyncQPCTime.QuadPart))
-    }
-    
-    let startIntVector = asIntVector(start)
-    let endIntVector = asIntVector(end)
-    let diffIntVector = endIntVector &- startIntVector
-    
-    var diffFloatVector = SIMD4<Float>(diffIntVector)
-    diffFloatVector[3] /= 10_000_000
-    diffFloatVector[3] *= 60
-    return diffFloatVector
   }
   
   // Utility function for querying time.
