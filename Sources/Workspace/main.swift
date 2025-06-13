@@ -202,7 +202,7 @@ ShowWindow(window, SW_SHOW)
 // Invoke the game loop.
 while true {
   var message = MSG()
-  PeekMessageA(
+  let peekMessageOutput = PeekMessageA(
     &message, // lpMsg
     nil, // hWnd
     0, // wMsgFilterMin
@@ -211,9 +211,12 @@ while true {
   
   if message.message == WM_QUIT {
     break
-  } else {
+  } else if peekMessageOutput {
     TranslateMessage(&message)
     DispatchMessageA(&message)
+  } else {
+    // Render the window's contents for this frame.
+    Application.global.renderFrame()
   }
 }
 

@@ -135,8 +135,8 @@ class Application {
       let diffSyncRefreshCount = frameStatistics.SyncRefreshCount - previousFrameStatistics.SyncRefreshCount
       let diffSyncQPCTime = frameStatistics.SyncQPCTime.QuadPart - previousFrameStatistics.SyncQPCTime.QuadPart
       
-      if diffPresentCount != 1 {
-        print(diffPresentCount, diffPresentRefreshCount, diffSyncRefreshCount, diffSyncQPCTime)
+      do {
+        //print(diffPresentCount, diffPresentRefreshCount, diffSyncRefreshCount, diffSyncQPCTime)
       }
       
     } else {

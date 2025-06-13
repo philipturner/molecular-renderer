@@ -13,8 +13,11 @@ class MessageProcedure {
     // Branch over the possible message types.
     switch Int32(message) {
     case WM_PAINT:
-      // Render the window's contents for this frame.
-      Application.global.renderFrame()
+      // Fake paint operation to get the OS to start rendering.
+      let window = Application.global.window
+      var ps = PAINTSTRUCT()
+      BeginPaint(window, &ps)
+      EndPaint(window, &ps)
       
     case WM_SIZE:
       // Retrieve the window size.
