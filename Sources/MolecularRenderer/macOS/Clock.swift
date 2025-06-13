@@ -27,6 +27,9 @@ public struct Clock {
   var sustainedMisalignmentDuration: Int = .zero
   var sustainedMisalignedValue: Int = .zero
   
+  // Temporary; debugging.
+  var timesCalledIncrement: Int = .zero
+  
   init(display: Display) {
     frameCounter = .zero
     frameRate = display.frameRate
@@ -42,6 +45,8 @@ public struct Clock {
   mutating func increment(
     vsyncTimeStamp: CVTimeStamp
   ) {
+    timesCalledIncrement += 1
+    
     guard let timeStamps else {
       let timeStamp = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
       self.timeStamps = ClockTimeStamps(
@@ -59,6 +64,14 @@ public struct Clock {
       current: current)
     
     self.timeStamps!.latest = current
+    
+    if timesCalledIncrement <= 10 {
+      let hostTicks = current.host - start.host
+      let videoTicks = current.video - start.video
+      let hostTime = Double(hostTicks) / 24_000_000
+      let videoTime = Double(videoTicks) / 24_000_000
+      print(Float(hostTime * 120), timesCalledIncrement, Float(videoTime * 120), Float(frameCounter))
+    }
   }
   
   mutating func incrementFrameCounter(
