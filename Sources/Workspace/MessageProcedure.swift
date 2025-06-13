@@ -24,12 +24,25 @@ class MessageProcedure {
     case WM_POWERBROADCAST:
       print("Encountered WM_POWERBROADCAST.")
       
+    case WM_ENTERSIZEMOVE:
+      print("Encountered WM_ENTERSIZEMOVE.")
+      Application.global.inSizeMove = true
+      
+    case WM_EXITSIZEMOVE:
+      print("Encountered WM_EXITSIZEMOVE.")
+      Application.global.inSizeMove = false
+      
     case WM_PAINT:
-      // Fake paint operation to get the OS to start rendering.
-      let window = Application.global.window
-      var ps = PAINTSTRUCT()
-      BeginPaint(window, &ps)
-      EndPaint(window, &ps)
+      if Application.global.inSizeMove {
+        print("Hello world")
+        Application.global.renderFrame()
+      } else {
+        // Fake paint operation to get the OS to start rendering.
+        let window = Application.global.window
+        var ps = PAINTSTRUCT()
+        BeginPaint(window, &ps)
+        EndPaint(window, &ps)
+      }
       
     case WM_SIZE:
       // Retrieve the window size.

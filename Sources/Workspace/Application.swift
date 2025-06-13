@@ -16,6 +16,8 @@ class Application {
   var startTime: Int64?
   var previousFrameStatistics: DXGI_FRAME_STATISTICS?
   
+  var inSizeMove: Bool = false
+  
   init() {
     // Create the device.
     var deviceDesc = DeviceDescriptor()
