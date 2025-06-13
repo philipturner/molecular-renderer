@@ -264,3 +264,45 @@ while true {
 #endif
 
 // Plans for Clock implementation on Windows: the heuristic
+//
+// Ignore all properties of the frame statistics except PresentCount.
+//
+// ## Issue of several 0-frames
+//
+// Cannot afford to flood the GPU timeline with "catching up" frames.
+//
+// macOS almost never deals with 0-frame steps, especially not several in a
+// row. This warrants modifications to the timekeeping algorithm.
+//
+// Start out with a timekeeping algorithm that processes 0-frames just as
+// normal. Then, introduce intentional delays into the render loop via
+// usleep(...).
+//
+// # Lack of data at program start
+//
+// There should be a state variable that's 'true' upon initialization, but set
+// to 'false' upon encountering frame statistics with PresentCount >= 2.
+//
+// A guard statement should ensure the first non-zero present count is less
+// than or equal to 3.
+//
+// Follow the CPU time exactly, rounding it down. This technique would
+// product lots of jitter in a real-time application as fractional parts of
+// numbers jostled across '.000'.
+// - Adds intentional 0-frames or jumps much larger than 1 frame, depending
+//   on the nature of CPU time samples.
+//
+// # Other
+//
+// Follow the macOS implementation very closely, porting it line-by-line.
+// Begin with a class in 'Workspace'. Gradually migrate related time-tracking
+// data and utilities from 'Application'. Eventually, it will look similar to
+// macOS and be ready for migration into the utility library.
+//
+// Use the Clock utility as the 3rd data stream in the rendering demo, along
+// with the actual CPU time (tracked independently from Clock's host
+// time stamp) and a naive frame counter.
+//
+// Start out by not incorporating the special cases for program startup or
+// streams of 0-frames. The robust algorithm from macOS should stabilize the
+// application; these are just touch-ups.
