@@ -5,8 +5,10 @@
 //   - Inspect all of the following APIs:
 //     - IDXGISwapChain::GetContainingOutput
 //     - IDXGIOutput::GetDisplayModeList
-//       - Inspect all of the modes.
-//       - DXGI_MODE_DESC.RefreshRate
+//       - Reject all modes with scaling.
+//       - Find the highest display resolution available.
+//       - Reject all modes with lower resolution.
+//       - Find the highest refresh rate available.
 //     - IDXGISwapChain::GetFrameStatistics
 //       - DXGI_FRAME_STATISTICS.PresentCount
 //       - DXGI_FRAME_STATISTICS.PresentRefreshCount
@@ -194,6 +196,7 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+#if false
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -213,6 +216,23 @@ while true {
     TranslateMessage(&message)
     DispatchMessageA(&message)
   }
+}
+#endif
+
+let application = Application.global
+
+let output = try! application.swapChain.d3d12SwapChain
+  .GetContainingOutput()
+print(output)
+
+let displayModes = try! output.GetDisplayModeList(
+  DXGI_FORMAT_R10G10B10A2_UNORM, 0)
+for displayMode in displayModes {
+  let refreshRate =
+  Float(displayMode.RefreshRate.Numerator) /
+  Float(displayMode.RefreshRate.Denominator)
+  
+  print("\(displayMode.Width)x\(displayMode.Height)", displayMode.Scaling.rawValue, refreshRate)
 }
 
 #endif
