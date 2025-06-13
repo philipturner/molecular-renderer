@@ -33,9 +33,9 @@
 //         'renderFrame()', that approximately shows up in frame statistics.
 //       - If the present queue is "catching up", the frame statistics shows
 //         that zero refresh intervals passed since the last frame.
-//   - PresentCount gradually lags behind PresentFreshCount and
+//   - PresentCount gradually lags behind PresentRefreshCount and
 //     SyncRefreshCount.
-//     - When the between-frame deltas conflict, PresentFreshCount and
+//     - When the between-frame deltas conflict, PresentRefreshCount and
 //       SyncRefreshCount consistently agree with SyncQPCTime.
 //   - While the app's counter for number of 'renderFrame' invocations
 //     generally starts out ahead of 'startTime', it eventually falls behind
