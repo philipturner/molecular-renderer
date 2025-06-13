@@ -16,6 +16,16 @@
 //       - DXGI_FRAME_STATISTICS.SyncQPCTime
 //   - Inspect the consistency of time tracking during the first few frames,
 //     where 'GetFrameStatistics()' doesn't return anything.
+//     - PresentCount always starts from 0, then going to a very small integer
+//       (<10) and increasing afterward. Always assert that this is the case,
+//       and it doesn't reflect number of frames since the computer booted.
+//     - Spacing between calls to 'renderFrame()' stabilizes after the
+//       frame statistics shows PresentCount = 2.
+//     - Until this stabilization happens, clamp 'clock.frames' to the host
+//       timestamp, rounded toward negative infinity.
+//   - Inspect the consistency when PresentCount between two successive frames
+//     differs by a number other than 1.
+//     - TODO
 // - Revise how the window and swap chain are initialized, ensuring the window
 //   always appears on the monitor with the highest refresh rate.
 //   - Reference article: Microsoft documentation, "Positioning Objects on
