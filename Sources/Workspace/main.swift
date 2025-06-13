@@ -196,20 +196,11 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
-// TODO: Try boosting the process and thread priorities to fix the lag.
-print("priority diagnostics start")
-print(SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS)))
-print(GetLastError())
-print(GetPriorityClass(GetCurrentProcess()))
-// print(SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST))
-// print(GetLastError())
-// print(GetThreadPriority(GetCurrentThread()))
-print("priority diagnostics end")
-
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
 // Invoke the game loop.
+SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
 while true {
   var message = MSG()
   let peekMessageOutput = PeekMessageA(
@@ -224,9 +215,6 @@ while true {
   } else if peekMessageOutput {
     TranslateMessage(&message)
     DispatchMessageA(&message)
-  } else {
-    // Render the window's contents for this frame.
-    Application.global.renderFrame()
   }
 }
 

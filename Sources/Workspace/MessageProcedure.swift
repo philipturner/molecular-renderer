@@ -12,37 +12,9 @@ class MessageProcedure {
   ) -> LRESULT {
     // Branch over the possible message types.
     switch Int32(message) {
-    case WM_CREATE:
-      print("Encountered WM_CREATE.")
-    
-    case WM_ACTIVATE:
-      print("Encountered WM_ACTIVATE: \(wParam) \(lParam).")
-      
-    case WM_ACTIVATEAPP:
-      print("Encountered WM_ACTIVATEAPP: \(wParam) \(lParam).")
-      
-    case WM_POWERBROADCAST:
-      print("Encountered WM_POWERBROADCAST.")
-      
-    case WM_ENTERSIZEMOVE:
-      print("Encountered WM_ENTERSIZEMOVE.")
-      Application.global.inSizeMove = true
-      
-    case WM_EXITSIZEMOVE:
-      print("Encountered WM_EXITSIZEMOVE.")
-      Application.global.inSizeMove = false
-      
     case WM_PAINT:
-      if Application.global.inSizeMove {
-        print("Hello world")
-        Application.global.renderFrame()
-      } else {
-        // Fake paint operation to get the OS to start rendering.
-        let window = Application.global.window
-        var ps = PAINTSTRUCT()
-        BeginPaint(window, &ps)
-        EndPaint(window, &ps)
-      }
+      // Render the window's contents for this frame.
+      Application.global.renderFrame()
       
     case WM_SIZE:
       // Retrieve the window size.
