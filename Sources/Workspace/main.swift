@@ -3,9 +3,9 @@
 //   - See whether Microsoft lets you query the next "video" timestamp,
 //     compared to the "host" timestamp, like with Apple CoreVideo. [DONE]
 //   - Inspect all of the following APIs:
-//     - IDXGISwapChain::GetContainingOutput
-//     - IDXGIOutput::GetDisplayModeList
-//       - Reject all modes with scaling.
+//     - IDXGISwapChain::GetContainingOutput [DONE]
+//     - IDXGIAdapter::EnumOutputs [DONE]
+//     - IDXGIOutput::GetDisplayModeList [DONE]
 //       - Find the highest display resolution available.
 //       - Reject all modes with lower resolution.
 //       - Find the highest refresh rate available.
@@ -22,16 +22,16 @@ import Metal
 
 @MainActor
 func createApplication() -> Application {
+  // Set up the device.
+  var deviceDesc = DeviceDescriptor()
+  deviceDesc.deviceID = Device.fastestDeviceID
+  let device = Device(descriptor: deviceDesc)
+  
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.renderTargetSize = 1920
   displayDesc.screenID = Display.fastestScreenID
   let display = Display(descriptor: displayDesc)
-  
-  // Set up the device.
-  var deviceDesc = DeviceDescriptor()
-  deviceDesc.deviceID = Device.fastestDeviceID
-  let device = Device(descriptor: deviceDesc)
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
@@ -196,7 +196,6 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
-#if false
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -217,22 +216,139 @@ while true {
     DispatchMessageA(&message)
   }
 }
-#endif
 
 let application = Application.global
 
-let output = try! application.swapChain.d3d12SwapChain
-  .GetContainingOutput()
-print(output)
+// Reference code for selecting the fastest display.
 
-let displayModes = try! output.GetDisplayModeList(
-  DXGI_FORMAT_R10G10B10A2_UNORM, 0)
-for displayMode in displayModes {
-  let refreshRate =
-  Float(displayMode.RefreshRate.Numerator) /
-  Float(displayMode.RefreshRate.Denominator)
+/*
+func createAdapters() -> [SwiftCOM.IDXGIAdapter4] {
+  // Create the factory.
+  let factory: SwiftCOM.IDXGIFactory4 =
+  try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
   
-  print("\(displayMode.Width)x\(displayMode.Height)", displayMode.Scaling.rawValue, refreshRate)
+  // Create the adapters.
+  var adapters: [SwiftCOM.IDXGIAdapter4] = []
+  while true {
+    // Check whether the next adapter exists.
+    let adapterID = UInt32(adapters.count)
+    let adapter = try? factory.EnumAdapters(adapterID)
+    guard let adapter else {
+      break
+    }
+    
+    // Assume every adapter conforms to IDXGIAdapter4.
+    let adapter4: SwiftCOM.IDXGIAdapter4 =
+    try! adapter.QueryInterface()
+    adapters.append(adapter4)
+  }
+  
+  return adapters
 }
+
+let adapters = createAdapters()
+for adapter in adapters {
+  let desc = try! adapter.GetDesc()
+  
+  var descriptionCString: [CChar] = []
+  withUnsafePointer(to: desc) { pRaw in
+    let pDescription = UnsafeRawPointer(pRaw)
+      .assumingMemoryBound(to: UInt16.self)
+    for laneID in 0..<128 {
+      let wideCharacter = pDescription[laneID]
+      let character = CChar(wideCharacter)
+      if character != 0 {
+        descriptionCString.append(character)
+      }
+    }
+  }
+  descriptionCString.append(0)
+  
+  let descriptionString = String(cString: descriptionCString)
+  print()
+  print(descriptionString, terminator: ", ")
+  
+  let memorySizes: [UInt64] = [
+    desc.DedicatedVideoMemory,
+    desc.DedicatedSystemMemory,
+    desc.SharedSystemMemory
+  ]
+  for memorySize in memorySizes {
+    let memorySizeInMB = memorySize / 1024 / 1024
+    let memorySizeInGB = Float16(Float(memorySizeInMB) / Float(1024))
+    print("\(memorySize) B", terminator: ", ")
+  }
+  print()
+  
+  var outputs: [SwiftCOM.IDXGIOutput] = []
+  var outputID: UInt32 = .zero
+  while true {
+    let output = try? adapter.EnumOutputs(outputID)
+    if let output {
+      outputs.append(output)
+      outputID += 1
+    } else {
+      break
+    }
+  }
+  print(outputs.count)
+  
+  for output in outputs {
+    print("display mode")
+    var displayModes = try! output.GetDisplayModeList(
+      DXGI_FORMAT_R10G10B10A2_UNORM, 0)
+    guard displayModes.count > 0 else {
+      fatalError("Count not find display modes.")
+    }
+    print(displayModes.count)
+    
+    // Find the highest display resolution available.
+    var highestResolution: SIMD2<UInt32> = .zero
+    for displayMode in displayModes {
+      let candidateResolution = SIMD2(
+        UInt32(displayMode.Width),
+        UInt32(displayMode.Height)
+      )
+      
+      let highestPixels = highestResolution[0] * highestResolution[1]
+      let candidatePixels = candidateResolution[0] * candidateResolution[1]
+      if candidatePixels > highestPixels {
+        highestResolution = candidateResolution
+      }
+    }
+    let highestPixels = highestResolution[0] * highestResolution[1]
+    guard highestPixels > 0 else {
+      fatalError("Could not find highest resolution.")
+    }
+    print(highestResolution)
+    
+    // Reject all modes with lower resolution.
+    displayModes = displayModes.filter {
+      $0.Width == highestResolution[0] &&
+      $0.Height == highestResolution[1]
+    }
+    print(displayModes.count)
+    
+    // Find the highest refresh rate available.
+    var highestRefreshRate: Int = .zero
+    for displayMode in displayModes {
+      let numerator = Double(displayMode.RefreshRate.Numerator)
+      let denominator = Double(displayMode.RefreshRate.Denominator)
+      
+      var refreshRateFP64 = numerator / denominator
+      refreshRateFP64.round(.toNearestOrEven)
+      let refreshRateInt = Int(refreshRateFP64)
+      
+      if refreshRateInt > highestRefreshRate {
+        highestRefreshRate = refreshRateInt
+      }
+    }
+    guard highestRefreshRate > 0 else {
+      fatalError("Could not find highest refresh rate.")
+    }
+    print(highestRefreshRate)
+  }
+}
+*/
 
 #endif
