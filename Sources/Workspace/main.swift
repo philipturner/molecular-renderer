@@ -217,8 +217,6 @@ while true {
   }
 }
 
-let application = Application.global
-
 // Reference code for selecting the fastest display.
 
 /*

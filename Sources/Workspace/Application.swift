@@ -14,6 +14,7 @@ class Application {
   
   var frameID: Int?
   var startTime: Int64?
+  var previousFrameStatistics: DXGI_FRAME_STATISTICS?
   
   init() {
     // Create the device.
@@ -121,6 +122,27 @@ class Application {
   }
   
   func renderFrame() {
+    let frameStatistics = try? swapChain.d3d12SwapChain.GetFrameStatistics()
+    if let frameStatistics,
+       frameStatistics.PresentCount > 0,
+       frameStatistics.PresentRefreshCount > 0,
+       frameStatistics.SyncRefreshCount > 0 {
+      let previousFrameStatistics = self.previousFrameStatistics ?? frameStatistics
+      self.previousFrameStatistics = frameStatistics
+      
+      let diffPresentCount = frameStatistics.PresentCount - previousFrameStatistics.PresentCount
+      let diffPresentRefreshCount = frameStatistics.PresentRefreshCount - previousFrameStatistics.PresentRefreshCount
+      let diffSyncRefreshCount = frameStatistics.SyncRefreshCount - previousFrameStatistics.SyncRefreshCount
+      let diffSyncQPCTime = frameStatistics.SyncQPCTime.QuadPart - previousFrameStatistics.SyncQPCTime.QuadPart
+      
+      if diffPresentCount != 1 {
+        print(diffPresentCount, diffPresentRefreshCount, diffSyncRefreshCount, diffSyncQPCTime)
+      }
+      
+    } else {
+      print("nil")
+    }
+    
     // Update the frame ID.
     var currentFrameID: Int
     if let frameID {
