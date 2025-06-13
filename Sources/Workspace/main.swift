@@ -25,7 +25,28 @@
 //       timestamp, rounded toward negative infinity.
 //   - Inspect the consistency when PresentCount between two successive frames
 //     differs by a number other than 1.
-//     - TODO
+//     - The "catching up" phenomenon from the first few frames also occurs
+//       after every jitter. I do not recall seeing this behavior on macOS.
+//     - The time delta from GetFrameStatistics matches the time delta from
+//       measured CPU time.
+//       - If there was a long wait between the current and previous calls to
+//         'renderFrame()', that approximately shows up in frame statistics.
+//       - If the present queue is "catching up", the frame statistics shows
+//         that zero refresh intervals passed since the last frame.
+//   - PresentCount gradually lags behind PresentFreshCount and
+//     SyncRefreshCount.
+//     - When the between-frame deltas conflict, PresentFreshCount and
+//       SyncRefreshCount consistently agree with SyncQPCTime.
+//   - While the app's counter for number of 'renderFrame' invocations
+//     generally starts out ahead of 'startTime', it eventually falls behind
+//     due to dropped frames.
+//   - After the initialization strangeness, 'startTime' and the last 3
+//     members of the frame statistics are perfectly synchronized.
+//     - For a brief moment, in the middle of a stutter, they may fall out of
+//       sync. But they catch back up perfectly.
+//     - Major (+1 frames) desynchronization during a stutter is not the norm.
+//       I only observed it during one 5-frame stutter, in a program launch
+//       with ~10 total stutters.
 // - Revise how the window and swap chain are initialized, ensuring the window
 //   always appears on the monitor with the highest refresh rate.
 //   - Reference article: Microsoft documentation, "Positioning Objects on
