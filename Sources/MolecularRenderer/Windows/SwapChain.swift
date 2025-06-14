@@ -48,6 +48,8 @@ public class SwapChain {
         fatalError("Waitable object was nil.")
       }
       self.waitableObject = waitableObject
+      
+      try! d3d12SwapChain.SetMaximumFrameLatency(1)
     }
     
     // Set up the back buffers.
