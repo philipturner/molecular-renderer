@@ -24,7 +24,7 @@ struct TimeStamp {
 
 struct ClockTimeStamps {
   var start: TimeStamp
-  var latest: TimeStamp
+  var previous: TimeStamp
 }
 
 public struct Clock {
@@ -32,6 +32,7 @@ public struct Clock {
   var frameRate: Int
   var timeStamps: ClockTimeStamps?
   
+  var isInitializing: Bool = true
   var sustainedMisalignmentDuration: Int = .zero
   var sustainedMisalignedValue: Int = .zero
   
@@ -50,23 +51,20 @@ public struct Clock {
   mutating func increment(
     frameStatistics: DXGI_FRAME_STATISTICS?
   ) {
+    let current = TimeStamp(frameStatistics: frameStatistics)
     guard let timeStamps else {
-      let timeStamp = TimeStamp(frameStatistics: frameStatistics)
       self.timeStamps = ClockTimeStamps(
-        start: timeStamp,
-        latest: timeStamp)
+        start: current,
+        previous: current)
       return
     }
     
-    let start = timeStamps.start
-    let previous = timeStamps.latest
-    let current = TimeStamp(frameStatistics: frameStatistics)
     incrementFrameCounter(
-      start: start,
-      previous: previous,
+      start: timeStamps.start,
+      previous: timeStamps.previous,
       current: current)
     
-    self.timeStamps!.latest = current
+    self.timeStamps!.previous = current
   }
   
   mutating func incrementFrameCounter(
