@@ -50,6 +50,7 @@
 //   - Spacing between consecutive frames when "catching up":
 //     - At program startup: 0.2-0.5 frames
 //     - Jitters after startup: 0.05-0.1 frames
+// - Purge the 'main.swift' file.
 // - Revise how the window and swap chain are initialized, ensuring the window
 //   always appears on the monitor with the highest refresh rate.
 //   - Reference article: Microsoft documentation, "Positioning Objects on
@@ -57,6 +58,7 @@
 //   - We need to inspect more functions to find the fastest monitor in a
 //     multi-display system. This might be independent of the ID3D12Device,
 //     removing the dependency of 'Display' on 'Device'.
+// - Merge the macOS and Windows implementations of Clock.
 
 import MolecularRenderer
 
@@ -424,3 +426,123 @@ while true {
 // It is legal, and does not increase the number of frames dropped.
 
 // paminerva.github.io was the website I was looking for!
+
+// ## Startup with no waitable object
+//
+// 0 0 0 0
+// 1 0 0 0
+// 1 0 0 0
+// 2 0 1 0
+// 2 1 2 1
+// 3 2 3 1
+// 4 3 4 1
+// 5 4 5 1
+// 6 5 6 1
+// 7 6 7 1
+// 8 7 8 1
+// 9 8 9 1
+// 10 9 10 1
+//
+// 0 0 0 0
+// 2 0 1 0
+// 2 1 2 1
+// 2 2 2 0
+// 2 2 2 0
+// 3 2 3 1
+// 4 3 4 1
+// 5 4 5 1
+// 6 5 6 1
+// 7 6 7 1
+// 8 7 8 1
+// 9 8 9 1
+// 10 9 10 1
+//
+// 0 0 0 0
+// 1 0 0 0
+// 1 0 0 0
+// 1 0 0 0
+// 2 0 1 1
+// 2 1 2 1
+// 3 2 3 1
+// 4 3 4 1
+// 5 4 5 1
+// 6 5 6 1
+// 7 6 7 1
+// 8 7 8 1
+// 9 8 9 1
+// 10 9 10 1
+
+// Startup with maximum latency of 2
+//
+// 0 0 0 0
+// 1 0 0 0
+// 2 0 1 1
+// 3 1 2 1
+// 4 2 3 1
+// 5 3 4 1
+// 6 4 5 1
+// 7 5 6 1
+// 8 6 7 1
+// 9 7 8 1
+// 10 8 9 1
+// 11 9 10 1
+//
+// 0 0 0 0
+// 1 0 0 0
+// 1 0 1 1
+// 2 1 2 1
+// 3 2 3 1
+// 4 3 4 1
+// 5 4 5 1
+// 6 5 6 1
+// 7 6 7 1
+// 8 7 8 1
+// 9 8 9 1
+// 10 9 10 1
+//
+// 0 0 0 0
+// 1 0 0 0
+// 2 0 1 1
+// 3 1 2 1
+// 4 2 3 1
+// 5 3 4 1
+// 6 4 5 1
+// 7 5 6 1
+// 8 6 7 1
+// 9 7 8 1
+// 10 8 9 1
+// 11 9 10 1
+
+// Startup with maximum latency of 1
+//
+// 1 0 0 0
+// 2 0 1 1
+// 3 1 2 1
+// 4 2 3 1
+// 8 3 6 1
+// 11 6 9 1
+// 13 9 11 1
+//
+// 1 0 0 0
+// 2 0 1 1
+// 3 1 2 1
+// 4 2 3 1
+// 5 3 4 1
+// 6 4 5 1
+// 7 5 6 1
+// 8 6 7 1
+// 9 7 8 1
+// 10 8 9 1
+// 11 9 10 1
+//
+// 1 0 0 0
+// 2 0 1 1
+// 3 1 2 1
+// 4 2 3 1
+// 5 3 4 1
+// 6 4 5 1
+// 7 5 6 1
+// 8 6 7 1
+// 9 7 8 1
+// 10 8 9 1
+// 11 9 10 1
