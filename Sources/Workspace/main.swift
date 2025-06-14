@@ -3,6 +3,8 @@
 //   always appears on the monitor with the highest refresh rate.
 //   - Reference article: Microsoft documentation, "Positioning Objects on
 //     Multiple Display Monitors"
+//     - Reading the sub-articles of "About Multiple Display Monitors".
+//     - Next one to read: "Using Multiple Monitors as Independent Displays".
 //   - We need to inspect more functions to find the fastest monitor in a
 //     multi-display system. This might be independent of the ID3D12Device,
 //     removing the dependency of 'Display' on 'Device'.
