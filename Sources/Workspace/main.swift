@@ -189,6 +189,7 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+#if false
 let window = Application.global.window
 ShowWindow(window, SW_SHOW)
 
@@ -210,5 +211,45 @@ while true {
     DispatchMessageA(&message)
   }
 }
+#endif
+
+func monitorEnumProcedure(
+  _ unnamedParam1: HMONITOR?,
+  _ unnamedParam2: HDC?,
+  _ unnamedParam3: LPRECT?,
+  _ unnamedParam4: LPARAM
+) -> WindowsBool {
+  print(
+    "MONITORENUMPROC:",
+    unnamedParam1!,
+    unnamedParam2,
+    unnamedParam3!.pointee,
+    unnamedParam4)
+  return true
+}
+
+SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+let output = EnumDisplayMonitors(nil, nil, monitorEnumProcedure, 0)
+print("Result of EnumDisplayMonitors:", output)
+
+/*
+`- error: cannot convert value of type
+
+'@Sendable (HMONITOR?, HDC, LPRECT, LPARAM) -> WindowsBool' (
+
+aka '(
+  Optional<UnsafeMutablePointer<HMONITOR__>>,
+  UnsafeMutablePointer<HDC__>,
+  UnsafeMutablePointer<tagRECT>,
+  Int64
+) -> WindowsBool')
+
+aka '(
+  Optional<UnsafeMutablePointer<HMONITOR__>>,
+  Optional<UnsafeMutablePointer<HDC__>>,
+  Optional<UnsafeMutablePointer<tagRECT>>,
+  Int64
+) -> WindowsBool')
+*/
 
 #endif
