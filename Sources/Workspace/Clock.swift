@@ -115,9 +115,6 @@ public struct Clock {
     sustainedMisalignedValue = targetCounter - nextCounter
     
     // Update the frame counter.
-    if (currentVsyncFrame - previousVsyncFrame) != 1 || frameCounter < 10 {
-      //print(targetCounter, frameCounter, nextCounter, currentVsyncFrame - previousVsyncFrame)
-    }
     if isInitializing {
       frameCounter = targetCounter
     } else {

@@ -11,10 +11,9 @@ class Application {
   let window: HWND
   let swapChain: SwapChain
   let shader: Shader
-  
-  var frameID: Int?
-  var startTime: Int64?
   var clock: Clock
+  
+  var startTime: Int64?
   
   init() {
     // Create the device.
@@ -134,6 +133,9 @@ class Application {
       guard result == 0 else {
         fatalError("Failed to wait for object: \(result)")
       }
+      
+      // Register any queued mouse and keyboard events that appeared after
+      // the above blocking operation.
     }
     
     // Update the clock.
@@ -142,15 +144,6 @@ class Application {
         .GetFrameStatistics()
       clock.increment(frameStatistics: frameStatistics)
     }
-    
-    // Update the frame ID.
-    var currentFrameID: Int
-    if let frameID {
-      currentFrameID = frameID + 1
-    } else {
-      currentFrameID = 0
-    }
-    self.frameID = currentFrameID
     
     // Fetch the ring index.
     let ringIndex = Int(
@@ -173,16 +166,15 @@ class Application {
         let timeSeconds = Double(currentTime - startTime) / 10_000_000
         setTime(timeSeconds, index: 0)
       } else {
-        startTime = Self.getContinuousTime()
+        self.startTime = Self.getContinuousTime()
         setTime(Double.zero, index: 0)
       }
       
       // Write the time according to the counter.
       do {
-        let timeInSeconds1 = Double(clock.frameCounter) / Double(60)
-        let timeInSeconds2 = Double(currentFrameID) / Double(60)
-        setTime(timeInSeconds1, index: 1)
-        setTime(timeInSeconds2, index: 2)
+        let timeInSeconds = Double(clock.frameCounter) / Double(60)
+        setTime(timeInSeconds, index: 1)
+        setTime(Double.zero, index: 2)
       }
       
       // Fill the arguments data structure.

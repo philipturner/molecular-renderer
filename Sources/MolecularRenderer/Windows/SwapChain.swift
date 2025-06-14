@@ -45,11 +45,10 @@ public class SwapChain {
     do {
       let waitableObject = try! d3d12SwapChain.GetFrameLatencyWaitableObject()
       guard let waitableObject else {
-        fatalError("Waitable object was nil.")
+        fatalError("Could not create waitable object.")
       }
       self.waitableObject = waitableObject
       
-      print("2")
       try! d3d12SwapChain.SetMaximumFrameLatency(2)
     }
     
