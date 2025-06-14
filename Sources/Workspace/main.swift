@@ -307,7 +307,7 @@ while true {
 // streams of 0-frames. The robust algorithm from macOS should stabilize the
 // application; these are just touch-ups.
 
-// Notes
+// # Notes
 //
 // The macOS algorithms is remarkably good at stabilizing the application's
 // time keeping. However, both streams of 0-frames produce a noticeable blank
@@ -319,3 +319,14 @@ while true {
 //
 // Start by adding a way to inspect the frame statistics, and check whether we
 // have crossed over the initialization period.
+//
+// I've fixed the issues with program startup.
+
+// # 0-frame catchups after startup
+//
+// General idea:
+// - Increase the host time by actually waiting
+// - Increase the GPU time artificially
+// - Host and GPU time stay in alignment
+//
+// Is there a better approach?
