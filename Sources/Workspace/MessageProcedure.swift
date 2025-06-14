@@ -10,18 +10,6 @@ class MessageProcedure {
     _ wParam: WPARAM,
     _ lParam: LPARAM
   ) -> LRESULT {
-    
-    switch Int32(message) {
-    case WM_PAINT:
-      print("(2) Received WM_PAINT")
-    case WM_SIZE:
-      print("(2) Received WM_SIZE")
-    case WM_DESTROY:
-      print("(2) Received WM_DESTROY")
-    default:
-      print("(2) Received unknown message: \(message)")
-    }
-    
     // Branch over the possible message types.
     switch Int32(message) {
     case WM_PAINT:
@@ -29,6 +17,16 @@ class MessageProcedure {
       //
       // We must render immediately in response to WM_PAINT messages, from
       // within this callback. Otherwise, the window freezes when being moved.
+      //Application.global.renderFrame()
+      
+      let window = Application.global.window
+      var ps = PAINTSTRUCT()
+      BeginPaint(window, &ps)
+      EndPaint(window, &ps)
+      
+      //return DefWindowProcA(hwnd, message, wParam, lParam)
+      
+    case WM_MOVE:
       Application.global.renderFrame()
       
     case WM_SIZE:

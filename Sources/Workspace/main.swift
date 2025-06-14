@@ -244,7 +244,6 @@ ShowWindow(window, SW_SHOW)
 
 // Invoke the game loop.
 SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
-print("(1) Run loop starts")
 while true {
   var message = MSG()
   let peekMessageOutput = PeekMessageA(
@@ -254,25 +253,13 @@ while true {
     0, // wMsgFilterMax
     UInt32(PM_REMOVE)) // wRemoveMsg
   
-  switch Int32(message.message) {
-  case WM_PAINT:
-    print("(1) Received WM_PAINT")
-  case WM_SIZE:
-    print("(1) Received WM_SIZE")
-  case WM_DESTROY:
-    print("(1) Received WM_DESTROY")
-  default:
-    print("(1) Received unknown message: \(message.message)")
-  }
-  
   if message.message == WM_QUIT {
     break
   } else if peekMessageOutput {
     let returnValue = TranslateMessage(&message)
-    if returnValue {
-      print("(1) Translated a message")
-    }
     DispatchMessageA(&message)
+  } else {
+    Application.global.renderFrame()
   }
 }
 
@@ -419,3 +406,19 @@ while true {
 // 642
 // 674
 // WM_DESTROY
+
+// Most stable run loop structure:
+//
+// The freezing issue during window move disappears when I invoke
+// 'renderFrame()' in the message procedure, in response to WM_MOVE. However,
+// there is an increased rate of dropped frames. I might be able to solve this
+// by finding and selecting more specific messages to handle. However, this
+// effort would get quite tedious.
+//
+// A better approach is to just re-poll PeekMessageA after the latency waitable
+// object. The messages polled here include all keyboard events. Just stop
+// looking when you encounter WM_PAINT.
+//
+// Next step:
+//
+// Is it even legal to call PeekMessageA inside of WndProc?
