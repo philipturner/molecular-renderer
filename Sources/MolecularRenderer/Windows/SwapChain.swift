@@ -49,7 +49,8 @@ public class SwapChain {
       }
       self.waitableObject = waitableObject
       
-      try! d3d12SwapChain.SetMaximumFrameLatency(1)
+      print("2")
+      try! d3d12SwapChain.SetMaximumFrameLatency(2)
     }
     
     // Set up the back buffers.

@@ -179,8 +179,8 @@ class Application {
       
       // Write the time according to the counter.
       do {
-        let timeInSeconds1 = Double(currentFrameID) / Double(60)
-        let timeInSeconds2 = Double(clock.frameCounter) / Double(60)
+        let timeInSeconds1 = Double(clock.frameCounter) / Double(60)
+        let timeInSeconds2 = Double(currentFrameID) / Double(60)
         setTime(timeInSeconds1, index: 1)
         setTime(timeInSeconds2, index: 2)
       }
