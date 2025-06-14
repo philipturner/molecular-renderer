@@ -256,10 +256,8 @@ while true {
   if message.message == WM_QUIT {
     break
   } else if peekMessageOutput {
-    let returnValue = TranslateMessage(&message)
+    TranslateMessage(&message)
     DispatchMessageA(&message)
-  } else {
-    Application.global.renderFrame()
   }
 }
 
