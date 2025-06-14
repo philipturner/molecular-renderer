@@ -213,43 +213,68 @@ while true {
 }
 #endif
 
-func monitorEnumProcedure(
-  _ unnamedParam1: HMONITOR?,
-  _ unnamedParam2: HDC?,
-  _ unnamedParam3: LPRECT?,
-  _ unnamedParam4: LPARAM
-) -> WindowsBool {
-  print(
-    "MONITORENUMPROC:",
-    unnamedParam1!,
-    unnamedParam2,
-    unnamedParam3!.pointee,
-    unnamedParam4)
-  return true
-}
+
 
 SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-let output = EnumDisplayMonitors(nil, nil, monitorEnumProcedure, 0)
-print("Result of EnumDisplayMonitors:", output)
 
-/*
-`- error: cannot convert value of type
+var displayDevice = DISPLAY_DEVICE()
+displayDevice.cb = UInt32(MemoryLayout<DISPLAY_DEVICE>.size)
 
-'@Sendable (HMONITOR?, HDC, LPRECT, LPARAM) -> WindowsBool' (
+// 0, 1, 2, 3 - NVIDIA GeForce GTX 970
+// 4, 5, 6 - Intel(R) HD Graphics 4600
+// Only device 0 has non-zero flags.
 
-aka '(
-  Optional<UnsafeMutablePointer<HMONITOR__>>,
-  UnsafeMutablePointer<HDC__>,
-  UnsafeMutablePointer<tagRECT>,
-  Int64
-) -> WindowsBool')
+// \\.\DISPLAY1
+//
+// \\.\DISPLAY1\Monitor0
+// Generic PnP Monitor
 
-aka '(
-  Optional<UnsafeMutablePointer<HMONITOR__>>,
-  Optional<UnsafeMutablePointer<HDC__>>,
-  Optional<UnsafeMutablePointer<tagRECT>>,
-  Int64
-) -> WindowsBool')
-*/
+let lpDevice = "\\\\.\\DISPLAY1"
+let output = EnumDisplayDevicesA(
+  lpDevice,
+  0,
+  &displayDevice,
+  0) // UInt32(EDD_GET_DEVICE_INTERFACE_NAME))
+print("Result of EnumDisplayDevices:", output)
+
+print()
+withUnsafePointer(to: displayDevice.DeviceName) { pointer in
+  let opaque = UnsafeRawPointer(pointer)
+  let casted = opaque.assumingMemoryBound(to: Int8.self)
+  print(String(cString: casted))
+}
+
+print()
+withUnsafePointer(to: displayDevice.DeviceString) { pointer in
+  let opaque = UnsafeRawPointer(pointer)
+  let casted = opaque.assumingMemoryBound(to: Int8.self)
+  print(String(cString: casted))
+}
+
+print()
+print(displayDevice.StateFlags)
+print("---")
+print(DISPLAY_DEVICE_ACTIVE)
+print(DISPLAY_DEVICE_MIRRORING_DRIVER)
+print(DISPLAY_DEVICE_MODESPRUNED)
+print(DISPLAY_DEVICE_PRIMARY_DEVICE)
+print(DISPLAY_DEVICE_REMOVABLE)
+print(DISPLAY_DEVICE_VGA_COMPATIBLE)
+print(DISPLAY_DEVICE_ATTACHED)
+print(DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
+
+print()
+withUnsafePointer(to: displayDevice.DeviceID) { pointer in
+  let opaque = UnsafeRawPointer(pointer)
+  let casted = opaque.assumingMemoryBound(to: Int8.self)
+  print(String(cString: casted))
+}
+
+print()
+withUnsafePointer(to: displayDevice.DeviceKey) { pointer in
+  let opaque = UnsafeRawPointer(pointer)
+  let casted = opaque.assumingMemoryBound(to: Int8.self)
+  print(String(cString: casted))
+}
 
 #endif
