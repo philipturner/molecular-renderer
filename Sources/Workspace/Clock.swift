@@ -118,9 +118,6 @@ public struct Clock {
     if isInitializing {
       frameCounter = targetCounter
     } else {
-      if currentVsyncFrame - previousVsyncFrame != 1 {
-        print(targetCounter, frameCounter, nextCounter)
-      }
       frameCounter = nextCounter
     }
   }

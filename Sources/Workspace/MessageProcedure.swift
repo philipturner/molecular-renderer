@@ -10,10 +10,25 @@ class MessageProcedure {
     _ wParam: WPARAM,
     _ lParam: LPARAM
   ) -> LRESULT {
+    
+    switch Int32(message) {
+    case WM_PAINT:
+      print("(2) Received WM_PAINT")
+    case WM_SIZE:
+      print("(2) Received WM_SIZE")
+    case WM_DESTROY:
+      print("(2) Received WM_DESTROY")
+    default:
+      print("(2) Received unknown message: \(message)")
+    }
+    
     // Branch over the possible message types.
     switch Int32(message) {
     case WM_PAINT:
       // Render the window's contents for this frame.
+      //
+      // We must render immediately in response to WM_PAINT messages, from
+      // within this callback. Otherwise, the window freezes when being moved.
       Application.global.renderFrame()
       
     case WM_SIZE:

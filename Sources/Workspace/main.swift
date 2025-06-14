@@ -244,6 +244,7 @@ ShowWindow(window, SW_SHOW)
 
 // Invoke the game loop.
 SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
+print("(1) Run loop starts")
 while true {
   var message = MSG()
   let peekMessageOutput = PeekMessageA(
@@ -253,10 +254,24 @@ while true {
     0, // wMsgFilterMax
     UInt32(PM_REMOVE)) // wRemoveMsg
   
+  switch Int32(message.message) {
+  case WM_PAINT:
+    print("(1) Received WM_PAINT")
+  case WM_SIZE:
+    print("(1) Received WM_SIZE")
+  case WM_DESTROY:
+    print("(1) Received WM_DESTROY")
+  default:
+    print("(1) Received unknown message: \(message.message)")
+  }
+  
   if message.message == WM_QUIT {
     break
   } else if peekMessageOutput {
-    TranslateMessage(&message)
+    let returnValue = TranslateMessage(&message)
+    if returnValue {
+      print("(1) Translated a message")
+    }
     DispatchMessageA(&message)
   }
 }
@@ -338,3 +353,69 @@ while true {
 // What's going on with Microsoft frame latency waitable object?
 // - Seems like a good idea to try.
 // - Read over the sample code for "DirectX latency sample".
+
+// # Altered Run Loop Structure
+//
+// Messages received before program start:
+// 1
+// 3
+// 6
+// 7
+// 20
+// 24
+// 28
+// 36
+// 70
+// 71
+// 127
+// 129
+// 131
+// 133
+// 134
+// 641
+// 642
+// WM_SIZE
+//
+// Messages forwarded by run loop:
+// 160
+// 161
+// 256 (translated)
+// 257 (translated)
+// 258
+// 512
+// 513
+// 514
+// 674
+// 799
+// 49419
+// WM_PAINT
+//
+// Messages unique to run loop:
+// 18
+// 96
+//
+// Messages unique to WndProc:
+// 3
+// 6
+// 8
+// 16
+// 20
+// 28
+// 32
+// 36
+// 70
+// 71
+// 127
+// 130
+// 132
+// 133
+// 134
+// 144
+// 274
+// 533
+// 534
+// 561
+// 641
+// 642
+// 674
+// WM_DESTROY
