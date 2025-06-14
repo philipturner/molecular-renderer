@@ -287,7 +287,7 @@ while true {
 // than or equal to 3.
 //
 // Follow the CPU time exactly, rounding it down. This technique would
-// product lots of jitter in a real-time application as fractional parts of
+// produce lots of jitter in a real-time application as fractional parts of
 // numbers jostled across '.000'.
 // - Adds intentional 0-frames or jumps much larger than 1 frame, depending
 //   on the nature of CPU time samples.
@@ -316,3 +316,6 @@ while true {
 //
 // Hypothesis: The proposed heuristic components for startup should mend the
 // flash artifact there.
+//
+// Start by adding a way to inspect the frame statistics, and check whether we
+// have crossed over the initialization period.
