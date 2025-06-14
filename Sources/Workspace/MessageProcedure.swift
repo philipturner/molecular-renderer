@@ -16,29 +16,6 @@ class MessageProcedure {
       // Render the window's contents for this frame.
       Application.global.renderFrame()
       
-      let PM_QS: UInt32 = QS_INPUT << 16
-      
-      var message = MSG()
-      let peekMessageOutput = PeekMessageA(
-        &message, // lpMsg
-        nil, // hWnd
-        0, // wMsgFilterMin
-        0, // wMsgFilterMax
-        UInt32(PM_NOREMOVE) | PM_QS) // wRemoveMsg
-      
-      if peekMessageOutput,
-         message.message == WM_KEYDOWN ||
-         message.message == WM_NCMOUSEMOVE ||
-         message.message == WM_MOUSEMOVE {
-        var message = MSG()
-        let peekMessageOutput = PeekMessageA(
-          &message, // lpMsg
-          nil, // hWnd
-          0, // wMsgFilterMin
-          0, // wMsgFilterMax
-          UInt32(PM_REMOVE) | PM_QS) // wRemoveMsg
-      }
-      
     case WM_SIZE:
       // Retrieve the window size.
       let window = Application.global.window

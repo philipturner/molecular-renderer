@@ -420,3 +420,5 @@ while true {
 // Next step:
 //
 // Is it even legal to call PeekMessageA inside of WndProc?
+//
+// It is legal, and does not increase the number of frames dropped.
