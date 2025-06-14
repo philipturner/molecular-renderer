@@ -330,3 +330,11 @@ while true {
 // - Host and GPU time stay in alignment
 //
 // Is there a better approach?
+// - We don't want to actually wait, because that causes missed opportunities
+//   to fill in gaps in the GPU timeline.
+// - We don't want to enter an unstable loop where CPU time increases by
+//   more than 1 frame/frame.
+//
+// What's going on with Microsoft frame latency waitable object?
+// - Seems like a good idea to try.
+// - Read over the sample code for "DirectX latency sample".
