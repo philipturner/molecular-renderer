@@ -217,9 +217,6 @@ while true {
 
 SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 
-var displayDevice = DISPLAY_DEVICE()
-displayDevice.cb = UInt32(MemoryLayout<DISPLAY_DEVICE>.size)
-
 // 0, 1, 2, 3 - NVIDIA GeForce GTX 970
 // 4, 5, 6 - Intel(R) HD Graphics 4600
 // Only device 0 has non-zero flags.
@@ -229,52 +226,41 @@ displayDevice.cb = UInt32(MemoryLayout<DISPLAY_DEVICE>.size)
 // \\.\DISPLAY1\Monitor0
 // Generic PnP Monitor
 
-let lpDevice = "\\\\.\\DISPLAY1"
-let output = EnumDisplayDevicesA(
-  lpDevice,
-  0,
-  &displayDevice,
-  0) // UInt32(EDD_GET_DEVICE_INTERFACE_NAME))
-print("Result of EnumDisplayDevices:", output)
+// iModeNum = UInt32.max
+// devMode.dmBitsPerPel = 32
+// devMode.dmPelsWidth = 3840
+// devMode.dmPelsHeight = 2160
+// devMode.dmDisplayFlags = 0
+// devMode.dmDisplayFrequency = 60
+
+let lpszDeviceName = "\\\\.\\DISPLAY1"
+var devMode = DEVMODE()
+devMode.dmSize = UInt16(MemoryLayout<DEVMODE>.size)
+let output = EnumDisplaySettingsA(
+  lpszDeviceName,
+  UInt32.max,
+  &devMode)
+print("Return value:", output)
 
 print()
-withUnsafePointer(to: displayDevice.DeviceName) { pointer in
+withUnsafePointer(to: devMode.dmDeviceName) { pointer in
   let opaque = UnsafeRawPointer(pointer)
   let casted = opaque.assumingMemoryBound(to: Int8.self)
   print(String(cString: casted))
 }
 
 print()
-withUnsafePointer(to: displayDevice.DeviceString) { pointer in
-  let opaque = UnsafeRawPointer(pointer)
-  let casted = opaque.assumingMemoryBound(to: Int8.self)
-  print(String(cString: casted))
-}
+print(devMode.dmSpecVersion)
+print(devMode.dmDriverVersion)
+print(devMode.dmSize)
+print(devMode.dmDriverExtra)
+print(devMode.dmFields)
 
 print()
-print(displayDevice.StateFlags)
-print("---")
-print(DISPLAY_DEVICE_ACTIVE)
-print(DISPLAY_DEVICE_MIRRORING_DRIVER)
-print(DISPLAY_DEVICE_MODESPRUNED)
-print(DISPLAY_DEVICE_PRIMARY_DEVICE)
-print(DISPLAY_DEVICE_REMOVABLE)
-print(DISPLAY_DEVICE_VGA_COMPATIBLE)
-print(DISPLAY_DEVICE_ATTACHED)
-print(DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
-
-print()
-withUnsafePointer(to: displayDevice.DeviceID) { pointer in
-  let opaque = UnsafeRawPointer(pointer)
-  let casted = opaque.assumingMemoryBound(to: Int8.self)
-  print(String(cString: casted))
-}
-
-print()
-withUnsafePointer(to: displayDevice.DeviceKey) { pointer in
-  let opaque = UnsafeRawPointer(pointer)
-  let casted = opaque.assumingMemoryBound(to: Int8.self)
-  print(String(cString: casted))
-}
+print(devMode.dmBitsPerPel)
+print(devMode.dmPelsWidth)
+print(devMode.dmPelsHeight)
+print(devMode.dmDisplayFlags)
+print(devMode.dmDisplayFrequency)
 
 #endif
