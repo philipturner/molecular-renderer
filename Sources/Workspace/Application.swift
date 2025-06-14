@@ -125,6 +125,17 @@ class Application {
   }
   
   func renderFrame() {
+    // Wait on the waitable object.
+    do {
+      let result = WaitForSingleObjectEx(
+        swapChain.waitableObject, // hHandle
+        1000, // dwMilliseconds
+        true) // bAlertable
+      guard result == 0 else {
+        fatalError("Failed to wait for object: \(result)")
+      }
+    }
+    
     // Update the clock.
     do {
       let frameStatistics = try? swapChain.d3d12SwapChain

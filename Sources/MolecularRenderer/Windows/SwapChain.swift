@@ -13,6 +13,7 @@ public struct SwapChainDescriptor {
 
 public class SwapChain {
   public let d3d12SwapChain: SwiftCOM.IDXGISwapChain4
+  public let waitableObject: HANDLE
   
   public private(set) var backBuffers: [SwiftCOM.ID3D12Resource] = []
   public let frameBuffer: SwiftCOM.ID3D12Resource
@@ -39,6 +40,15 @@ public class SwapChain {
       nil, // pFullscreenDesc
       nil) // pRestrictToOutput
     self.d3d12SwapChain = try! d3d12SwapChain1.QueryInterface()
+    
+    // Set up the frame latency waitable object.
+    do {
+      let waitableObject = try! d3d12SwapChain.GetFrameLatencyWaitableObject()
+      guard let waitableObject else {
+        fatalError("Waitable object was nil.")
+      }
+      self.waitableObject = waitableObject
+    }
     
     // Set up the back buffers.
     for ringIndex in 0..<3 {
@@ -104,13 +114,15 @@ extension SwapChain {
     swapChainDesc.Height = 1440
     swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
     swapChainDesc.Stereo = false
-    swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC(Count: 1, Quality: 0)
+    swapChainDesc.SampleDesc.Count = 1
+    swapChainDesc.SampleDesc.Quality = 0
     swapChainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER
     swapChainDesc.BufferCount = 3
     swapChainDesc.Scaling = DXGI_SCALING_NONE
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD
     swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED
-    swapChainDesc.Flags = 0
+    swapChainDesc.Flags = UInt32(
+      DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT.rawValue)
     
     return swapChainDesc
   }
