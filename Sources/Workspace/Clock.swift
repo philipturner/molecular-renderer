@@ -15,7 +15,7 @@ struct TimeStamp {
     host = Int(largeInteger.QuadPart)
     
     if let frameStatistics {
-      video = Int(frameStatistics.PresentCount) * 10_000_000
+      video = Int(frameStatistics.PresentCount)
     } else {
       video = 0
     }
@@ -59,10 +59,33 @@ public struct Clock {
       return
     }
     
-    incrementFrameCounter(
-      start: timeStamps.start,
-      previous: timeStamps.previous,
-      current: current)
+    if isInitializing {
+      // Increment frame counter based on host time.
+      incrementFrameCounter(
+        start: timeStamps.start,
+        previous: timeStamps.previous,
+        current: current)
+      
+      // While initialization is complete, video time n - 1 is not valid.
+      // Only permit use of video times on the next function call after
+      // this one (n and n + 1).
+      if current.video > 0 {
+        guard current.video <= 3 else {
+          fatalError("""
+            DXGI may be tracking present intervals since the computer booted.
+            """)
+        }
+        
+        self.isInitializing = false
+      }
+    } else {
+      // Increment frame counter based on difference between last two video
+      // times.
+      incrementFrameCounter(
+        start: timeStamps.start,
+        previous: timeStamps.previous,
+        current: current)
+    }
     
     self.timeStamps!.previous = current
   }
@@ -73,8 +96,8 @@ public struct Clock {
     current: TimeStamp
   ) {
     // Fetch the vsync timestamp, which may not increase from frame to frame.
-    let previousVsyncFrame = frames(ticks: previous.video - start.video)
-    let currentVsyncFrame = frames(ticks: current.video - start.video)
+    let previousVsyncFrame = previous.video - start.video
+    let currentVsyncFrame = current.video - start.video
     
     // Predict the next frame.
     let targetCounter = frames(ticks: current.host - start.host)

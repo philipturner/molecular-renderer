@@ -173,8 +173,6 @@ class Application {
         setTime(timeInSeconds1, index: 1)
         setTime(timeInSeconds2, index: 2)
       }
-      setTime(Double.zero, index: 0)
-      setTime(Double.zero, index: 1)
       
       // Fill the arguments data structure.
       struct TimeArguments {
