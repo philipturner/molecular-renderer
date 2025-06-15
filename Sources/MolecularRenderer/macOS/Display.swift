@@ -3,7 +3,7 @@ import AppKit
 
 public struct DisplayDescriptor {
   /// The actual size of the window (in pixels) on the screen.
-  public var renderTargetSize: SIMD2<Int>?
+  public var frameBufferSize: SIMD2<Int>?
   
   /// The identifier for the screen.
   public var screenID: Int?
@@ -15,7 +15,7 @@ public struct DisplayDescriptor {
 
 public class Display {
   // The resolution of the rendering region, in pixels.
-  let renderTargetSize: SIMD2<Int>
+  let frameBufferSize: SIMD2<Int>
   
   private let screen: NSScreen
   
