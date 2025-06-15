@@ -1,20 +1,3 @@
-// Next steps:
-// - Revise how the window and swap chain are initialized, ensuring the window
-//   always appears on the monitor with the highest refresh rate.
-//   - Reference article: Microsoft documentation, "Positioning Objects on
-//     Multiple Display Monitors"
-//     - Reading the sub-articles of "About Multiple Display Monitors".
-//     - Next one to read: "Using Multiple Monitors as Independent Displays".
-//   - We need to inspect more functions to find the fastest monitor in a
-//     multi-display system. This might be independent of the ID3D12Device,
-//     removing the dependency of 'Display' on 'Device'.
-// - Mark a commit in the Git history as "important", instead of archiving in
-//   another tedious GitHub gist.
-// - Merge all of the utility code between macOS and Windows.
-//   - This will be severely API-breaking, and the source tree won't compile
-//     correctly for most of the process.
-//   - Exception: too early to merge 'Upscaler' from Windows.
-
 import MolecularRenderer
 
 #if os(macOS)
