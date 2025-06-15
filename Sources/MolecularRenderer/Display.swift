@@ -73,18 +73,6 @@ public class Display {
   }
 }
 
-extension Display {
-  #if os(macOS)
-  static func number(screen: NSScreen) -> Int {
-    let key = NSDeviceDescriptionKey("NSScreenNumber")
-    let screenNumberAny = screen.deviceDescription[key]!
-    let screenNumberNSNumber = screenNumberAny as! NSNumber
-    let screenNumber = screenNumberNSNumber.uint32Value
-    return Int(screenNumber)
-  }
-  #endif
-}
-
 extension Device {
   #if os(Windows)
   var outputs: [SwiftCOM.IDXGIOutput] {
@@ -94,7 +82,7 @@ extension Device {
   #endif
   
   /// The identifier for the monitor with the highest refresh rate.
-  public static var fastestMonitorID: Int {
+  public var fastestMonitorID: Int {
     // Prefer the monitor with the highest frame rate. If there's a tie,
     // choose the monitor that appears first in the list. It's probably the
     // primary monitor.
@@ -135,6 +123,14 @@ extension Display {
       fatalError("Resolution was not evenly divisible by scaling factor.")
     }
     return SIMD2<Int>(output)
+  }
+  
+  static func number(screen: NSScreen) -> Int {
+    let key = NSDeviceDescriptionKey("NSScreenNumber")
+    let screenNumberAny = screen.deviceDescription[key]!
+    let screenNumberNSNumber = screenNumberAny as! NSNumber
+    let screenNumber = screenNumberNSNumber.uint32Value
+    return Int(screenNumber)
   }
   #endif
 }

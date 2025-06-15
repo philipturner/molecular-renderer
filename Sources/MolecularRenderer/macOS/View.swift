@@ -3,7 +3,7 @@ import AppKit
 
 class View: NSView, CALayerDelegate {
   nonisolated(unsafe) var metalLayer: CAMetalLayer
-  var windowSize: Int
+  var windowSize: SIMD2<Int>
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -14,15 +14,15 @@ class View: NSView, CALayerDelegate {
     windowSize = display.windowSize
     super.init(frame: .zero)
     
-    func createCGSize(_ width: Int) -> CGSize {
-      let widthDouble = Double(width)
-      let cgSize = CGSize(width: widthDouble, height: widthDouble)
-      return cgSize
+    func createCGSize(_ size: SIMD2<Int>) -> CGSize {
+      CGSize(
+        width: Double(size[0]),
+        height: Double(size[1]))
     }
     
     metalLayer.delegate = self
     metalLayer.device = MTLCreateSystemDefaultDevice()!
-    metalLayer.drawableSize = createCGSize(display.renderTargetSize)
+    metalLayer.drawableSize = createCGSize(display.frameBufferSize)
     metalLayer.framebufferOnly = false
     metalLayer.pixelFormat = .rgb10a2Unorm
     
@@ -39,8 +39,8 @@ class View: NSView, CALayerDelegate {
 
 extension View {
   func checkDrawableSize(_ newSize: NSSize) {
-    guard newSize.width == Double(windowSize),
-          newSize.height == Double(windowSize) else {
+    guard newSize.width == Double(windowSize[0]),
+          newSize.height == Double(windowSize[1]) else {
       fatalError("Attempted to resize the window.")
     }
   }

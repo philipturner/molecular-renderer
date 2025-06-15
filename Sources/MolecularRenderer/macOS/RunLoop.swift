@@ -20,9 +20,10 @@ class RunLoop: @unchecked Sendable {
     self.closure = closure
     
     // Initialize the display link.
-    let screenID = application.display.screenID
+    let screen = application.display.nsScreen
+    let monitorID = Display.number(screen: screen)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
-      .CVDisplayLinkCreateWithCGDisplay(UInt32(screenID), &displayLink)
+      .CVDisplayLinkCreateWithCGDisplay(UInt32(monitorID), &displayLink)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
   }
@@ -67,7 +68,8 @@ class RunLoop: @unchecked Sendable {
     // entire session, whose framerate is known a priori. Apparently Vsync
     // is much better on Windows, so I will not/should not apply the
     // heuristic there.
-    let originalID = application.display.screenID
+    let originalScreen = application.display.nsScreen
+    let originalID = Display.number(screen: originalScreen)
     let registeredID = (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkGetCurrentCGDisplay(displayLink)
     guard registeredID == originalID else {
@@ -75,10 +77,10 @@ class RunLoop: @unchecked Sendable {
     }
     
     // Access the NSWindow on the main queue to prevent a crash.
-    let window = application.window.window
+    let window = application.window.nsWindow
     DispatchQueue.main.async {
       let screen = window.screen!
-      let actualID = Display.screenID(screen: screen)
+      let actualID = Display.number(screen: screen)
       guard actualID == originalID else {
         fatalError("Attempted to move the window to a different display.")
       }
