@@ -8,7 +8,12 @@
 //   - We need to inspect more functions to find the fastest monitor in a
 //     multi-display system. This might be independent of the ID3D12Device,
 //     removing the dependency of 'Display' on 'Device'.
+// - Mark a commit in the Git history as "important", instead of archiving in
+//   another tedious GitHub gist.
 // - Merge all of the utility code between macOS and Windows.
+//   - This will be severely API-breaking, and the source tree won't compile
+//     correctly for most of the process.
+//   - Exception: too early to merge 'Upscaler' from Windows.
 
 import MolecularRenderer
 
@@ -219,50 +224,113 @@ while true {
 
 SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 
+// EnumDisplayDevices
+//
 // 0, 1, 2, 3 - NVIDIA GeForce GTX 970
 // 4, 5, 6 - Intel(R) HD Graphics 4600
 // Only device 0 has non-zero flags.
 
+// EnumDisplayDevices
+//
 // \\.\DISPLAY1
 //
 // \\.\DISPLAY1\Monitor0
 // Generic PnP Monitor
 
+// EnumDisplaySettings
+//
+// This function supposedly does not participate in DPI virtualization.
+//
+// lpszDeviceName = "\\.\DISPLAY1"
 // iModeNum = UInt32.max
+//
 // devMode.dmBitsPerPel = 32
 // devMode.dmPelsWidth = 3840
 // devMode.dmPelsHeight = 2160
 // devMode.dmDisplayFlags = 0
 // devMode.dmDisplayFrequency = 60
 
-let lpszDeviceName = "\\\\.\\DISPLAY1"
-var devMode = DEVMODE()
-devMode.dmSize = UInt16(MemoryLayout<DEVMODE>.size)
-let output = EnumDisplaySettingsA(
-  lpszDeviceName,
-  UInt32.max,
-  &devMode)
-print("Return value:", output)
+// EnumDisplayMonitors
+//
+// Only enumerates over a single monitor. Fetches a valid HMONITOR pointer.
+// The LPRECT changes from 2560x1440 to 3840x2160 based on the DPI awareness
+// context.
 
-print()
-withUnsafePointer(to: devMode.dmDeviceName) { pointer in
-  let opaque = UnsafeRawPointer(pointer)
-  let casted = opaque.assumingMemoryBound(to: Int8.self)
-  print(String(cString: casted))
+// GetMonitorInfo
+//
+// Returns "\\.\DISPLAY1" for the device name.
+//
+// DPI awareness off:
+// rcMonitor = (0, 0, 2560, 1440)
+// rcWork = (0, 0, 2560, 1400)
+//
+// DPI awareness on:
+// rcMonitor = (0, 0, 3840, 2160)
+// rcWork = (0, 0, 3840, 2100)
+
+// # Conclusion
+//
+// IDXGIAdapter -> IDXGIOutput -> GetDesc -> HMONITOR
+// A system have multiple adapters, each of which maps to a 'Device'. A
+// device has multiple outputs, each of which maps to a 'Display'. Modify the
+// existing utilities so that '.fastestScreenID' belongs to an instance of
+// 'Device', not the 'Display' type object. This creates an inevitable
+// inconsistency between the appearance of the two APIs for "fastest" IDs.
+//
+// For window dimensions, use HMONITOR -> GetMonitorInfo -> rcWork
+// Use rcWork for consistency with macOS, which centers the window in the
+// "work area" of the screen.
+//
+// For device name, there are two paths:
+// GetDesc -> DeviceName -> convert WCHAR to CHAR
+// HMONITOR -> GetMonitorInfo -> MONITORINFOEXA -> szDevice
+// The first seems easiest.
+//
+// For refresh rate, there are two paths:
+// IDXGIOutput -> GetDisplayModeList -> filter based on resolution -> RefreshRate
+// device name -> EnumDisplaySettings -> iModeNum = UInt32.max -> dmDisplayFrequency
+// The latter seems more appropriate because it reflects the system's current
+// refresh rate.
+
+func monitorInfoProcedure(
+  _ unnamedParam1: HMONITOR?,
+  _ unnamedParam2: HDC?,
+  _ unnamedParam3: LPRECT?,
+  _ unnamedParam4: LPARAM
+) -> WindowsBool {
+  guard let hMonitor = unnamedParam1 else {
+    return false
+  }
+  
+  withUnsafeTemporaryAllocation(
+    byteCount: MemoryLayout<MONITORINFOEX>.size,
+    alignment: MemoryLayout<MONITORINFOEX>.alignment
+  ) { pRaw in
+    let pMonitorInfo = pRaw.assumingMemoryBound(to: MONITORINFO.self)
+    pMonitorInfo[0].cbSize = UInt32(MemoryLayout<MONITORINFOEX>.size)
+    
+    let output = GetMonitorInfoA(hMonitor, pMonitorInfo.baseAddress)
+    print("output of GetMonitorInfoA:", output)
+    
+    let pMonitorInfoEx = pRaw.assumingMemoryBound(to: MONITORINFOEX.self)
+    print(pMonitorInfoEx[0].cbSize)
+    print(pMonitorInfoEx[0].rcMonitor)
+    print(pMonitorInfoEx[0].rcWork)
+    print(pMonitorInfoEx[0].dwFlags)
+    print(pMonitorInfoEx[0].szDevice)
+    
+    let deviceName = pMonitorInfoEx[0].szDevice
+    withUnsafePointer(to: deviceName) { pointer in
+      let opaque = UnsafeRawPointer(pointer)
+      let casted = opaque.assumingMemoryBound(to: Int8.self)
+      print(String(cString: casted))
+    }
+  }
+  
+  return true
 }
 
-print()
-print(devMode.dmSpecVersion)
-print(devMode.dmDriverVersion)
-print(devMode.dmSize)
-print(devMode.dmDriverExtra)
-print(devMode.dmFields)
-
-print()
-print(devMode.dmBitsPerPel)
-print(devMode.dmPelsWidth)
-print(devMode.dmPelsHeight)
-print(devMode.dmDisplayFlags)
-print(devMode.dmDisplayFrequency)
+EnumDisplayMonitors(nil, nil, monitorInfoProcedure, 0)
+print("Safely exited EnumDisplayMonitors.")
 
 #endif
