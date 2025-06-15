@@ -3,7 +3,7 @@ import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var window: NSWindow
-  var windowSize: Int
+  var windowSize: SIMD2<Int>
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -11,14 +11,12 @@ class Window: NSViewController, NSApplicationDelegate {
   
   init(display: Display) {
     // Initialize the window.
-    let screenID = display.screenID
-    let screen = Display.screen(screenID: screenID)
     window = NSWindow(
       contentRect: NSRect.zero,
       styleMask: [.closable, .titled],
       backing: .buffered,
       defer: false,
-      screen: screen)
+      screen: display.screen)
     
     // Prepare the window's bounds.
     let origin = Window.centeredOrigin(display: display)
@@ -36,10 +34,10 @@ class Window: NSViewController, NSApplicationDelegate {
     // Initialize the window's dimensions (which are slightly larger than the
     // render target).
     window.contentViewController = self
-    guard window.frame.size.width == Double(windowSize) else {
+    guard window.frame.size.width == Double(windowSize[0]) else {
       fatalError("Window had incorrect size.")
     }
-    guard window.frame.size.height > Double(windowSize) else {
+    guard window.frame.size.height > Double(windowSize[1]) else {
       fatalError("Title bar was missing.")
     }
     
@@ -51,15 +49,14 @@ class Window: NSViewController, NSApplicationDelegate {
 
 extension Window {
   static func centeredOrigin(display: Display) -> CGPoint {
-    let screenID = display.screenID
-    let screen = Display.screen(screenID: screenID)
+    let center = SIMD2<Double>(
+      display.screen.visibleFrame.midX,
+      display.screen.visibleFrame.midY)
     
-    let centerX = screen.visibleFrame.midX
-    let centerY = screen.visibleFrame.midY
-    let leftX = centerX - Double(display.windowSize) / 2
-    let upperY = centerY - Double(display.windowSize) / 2
-    let origin = CGPoint(x: leftX, y: upperY)
-    return origin
+    let upperLeft = center - SIMD2<Double>(display.windowSize) / 2
+    return CGPoint(
+      x: upperLeft[0],
+      y: upperLeft[1])
   }
   
   func registerCloseNotification() {
