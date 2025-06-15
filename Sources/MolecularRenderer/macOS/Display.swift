@@ -61,6 +61,10 @@ extension Display {
     var fastestFrameRate: Int = .zero
     for screen in screens {
       let candidateFrameRate = screen.maximumFramesPerSecond
+      
+      // Prefer the screen with the highest frame rate. If there's a tie,
+      // choose the screen that appears first in the list. It's probably the
+      // primary display.
       if candidateFrameRate > fastestFrameRate {
         fastestScreen = screen
         fastestFrameRate = candidateFrameRate

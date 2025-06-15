@@ -18,8 +18,11 @@ public class Device {
   #if os(macOS)
   public let mtlDevice: MTLDevice
   #else
-  let d3d12Debug: SwiftCOM.ID3D12Debug
+  let dxgiAdapter: SwiftCOM.IDXGIAdapter
   public let d3d12Device: SwiftCOM.ID3D12Device
+  
+  // Stored properties for the debug layer.
+  let d3d12Debug: SwiftCOM.ID3D12Debug
   public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
   public let dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue
   #endif
@@ -36,26 +39,34 @@ public class Device {
     }
     
     // Create the debug layer.
+    //
+    // The debug layer must be turned on before any DirectX resources are
+    // initialized.
     #if os(Windows)
     self.d3d12Debug = try! D3D12GetDebugInterface()
     try! d3d12Debug.EnableDebugLayer()
     #endif
     
-    // Create the device.
+    // Create the device (macOS).
     #if os(macOS)
-    let adapters = MTLCopyAllDevices()
-    #else
-    let adapters = Self.createAdapters()
+    let devices = MTLCopyAllDevices()
+    guard deviceID == 0,
+          devices.count == 1 else {
+      fatalError("Apple silicon should have only one GPU.")
+    }
+    self.mtlDevice = devices[deviceID]
     #endif
+    
+    // Create the device (Windows).
+    #if os(Windows)
+    let adapters = Self.createAdapters()
     guard deviceID >= 0,
           deviceID < adapters.count else {
       fatalError("Device ID was out of range.")
     }
-    #if os(macOS)
-    self.mtlDevice = adapters[deviceID]
-    #else
+    self.dxgiAdapter = adapters[deviceID]
     self.d3d12Device = try! D3D12CreateDevice(
-      adapters[deviceID], D3D_FEATURE_LEVEL_12_1)
+      dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
     #endif
     
     // Create the info queue.
@@ -106,8 +117,8 @@ extension Device {
     #endif
   }
   
-  // List the available adapters.
   #if os(Windows)
+  // List the available adapters.
   static func createAdapters() -> [SwiftCOM.IDXGIAdapter4] {
     // Create the factory.
     let factory: SwiftCOM.IDXGIFactory4 =
