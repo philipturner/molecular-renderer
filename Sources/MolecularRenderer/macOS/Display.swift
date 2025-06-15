@@ -1,13 +1,35 @@
 #if os(macOS)
 import AppKit
 
+// IDXGIAdapter -> IDXGIOutput -> GetDesc -> HMONITOR
+// A system have multiple adapters, each of which maps to a 'Device'. A
+// device has multiple outputs, each of which maps to a 'Display'. Modify the
+// existing utilities so that '.fastestScreenID' belongs to an instance of
+// 'Device', not the 'Display' type object. This creates an inevitable
+// inconsistency between the appearance of the two APIs for "fastest" IDs.
+//
+// For window dimensions, use HMONITOR -> GetMonitorInfo -> rcWork
+// Use rcWork for consistency with macOS, which centers the window in the
+// "work area" of the screen.
+//
+// For device name, there are two paths:
+// GetDesc -> DeviceName -> convert WCHAR to CHAR
+// HMONITOR -> GetMonitorInfo -> MONITORINFOEXA -> szDevice
+// The first seems easiest.
+//
+// For refresh rate, there are two paths:
+// IDXGIOutput -> GetDisplayModeList -> filter based on resolution -> Refresh...
+// device name -> EnumDisplaySettings -> iModeNum = UInt32.max -> dmDisplayFr...
+// The latter seems more appropriate because it reflects the system's current
+// refresh rate.
+
 public struct DisplayDescriptor {
   /// The actual size of the window (in pixels) on the screen.
   public var frameBufferSize: SIMD2<Int>?
   
   /// The identifier for the screen.
   public var screenID: Int?
-    
+  
   public init() {
     
   }
