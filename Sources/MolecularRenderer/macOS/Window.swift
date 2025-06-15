@@ -2,7 +2,7 @@
 import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
-  nonisolated(unsafe) var window: NSWindow
+  nonisolated(unsafe) var nsWindow: NSWindow
   var windowSize: SIMD2<Int>
   
   required init(coder: NSCoder) {
@@ -11,16 +11,16 @@ class Window: NSViewController, NSApplicationDelegate {
   
   init(display: Display) {
     // Initialize the window.
-    window = NSWindow(
+    nsWindow = NSWindow(
       contentRect: NSRect.zero,
       styleMask: [.closable, .titled],
       backing: .buffered,
       defer: false,
-      screen: display.screen)
+      screen: display.nsScreen)
     
     // Prepare the window's bounds.
     let origin = Window.centeredOrigin(display: display)
-    window.setFrameOrigin(origin)
+    nsWindow.setFrameOrigin(origin)
     windowSize = display.windowSize
     
     super.init(nibName: nil, bundle: nil)
@@ -28,30 +28,30 @@ class Window: NSViewController, NSApplicationDelegate {
   
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Register the UI event handlers.
-    window.makeFirstResponder(self)
+    nsWindow.makeFirstResponder(self)
     registerCloseNotification()
     
     // Initialize the window's dimensions (which are slightly larger than the
     // render target).
-    window.contentViewController = self
-    guard window.frame.size.width == Double(windowSize[0]) else {
+    nsWindow.contentViewController = self
+    guard nsWindow.frame.size.width == Double(windowSize[0]) else {
       fatalError("Window had incorrect size.")
     }
-    guard window.frame.size.height > Double(windowSize[1]) else {
+    guard nsWindow.frame.size.height > Double(windowSize[1]) else {
       fatalError("Title bar was missing.")
     }
     
     // Make the window visible to the user.
-    window.makeKey()
-    window.orderFrontRegardless()
+    nsWindow.makeKey()
+    nsWindow.orderFrontRegardless()
   }
 }
 
 extension Window {
   static func centeredOrigin(display: Display) -> CGPoint {
     let center = SIMD2<Double>(
-      display.screen.visibleFrame.midX,
-      display.screen.visibleFrame.midY)
+      display.nsScreen.visibleFrame.midX,
+      display.nsScreen.visibleFrame.midY)
     
     let upperLeft = center - SIMD2<Double>(display.windowSize) / 2
     return CGPoint(
@@ -65,7 +65,7 @@ extension Window {
       self,
       selector: #selector(windowWillClose(notification:)),
       name: NSWindow.willCloseNotification,
-      object: window)
+      object: nsWindow)
   }
   
   @objc

@@ -31,8 +31,8 @@ public struct DisplayDescriptor {
   /// The actual size of the window (in pixels) on the screen.
   public var frameBufferSize: SIMD2<Int>?
   
-  /// The identifier for the screen.
-  public var screenID: Int?
+  /// The identifier for the monitor.
+  public var monitorID: Int?
   
   public init() {
     
@@ -44,14 +44,14 @@ public class Display {
   let frameBufferSize: SIMD2<Int>
   
   #if os(macOS)
-  let screen: NSScreen
+  let nsScreen: NSScreen
   #else
-  let output: SwiftCOM.IDXGIOutput
+  let dxgiOutput: SwiftCOM.IDXGIOutput
   #endif
   
   public init(descriptor: DisplayDescriptor) {
     guard let frameBufferSize = descriptor.frameBufferSize,
-          let screenID = descriptor.screenID else {
+          let monitorID = descriptor.monitorID else {
       fatalError("Descriptor was incomplete.")
     }
     self.frameBufferSize = frameBufferSize
@@ -59,23 +59,23 @@ public class Display {
     #if os(macOS)
     var matchedScreen: NSScreen?
     for screen in NSScreen.screens {
-      let candidateScreenID = Display.screenID(screen: screen)
-      if screenID == candidateScreenID {
+      let candidateMonitorID = Display.number(screen: screen)
+      if monitorID == candidateMonitorID {
         matchedScreen = screen
         break
       }
     }
     guard let matchedScreen else {
-      fatalError("Failed to find screen matching ID: \(screenID)")
+      fatalError("Could not find the screen.")
     }
-    self.screen = matchedScreen
+    self.nsScreen = matchedScreen
     #endif
   }
 }
 
 extension Display {
   #if os(macOS)
-  static func screenID(screen: NSScreen) -> Int {
+  static func number(screen: NSScreen) -> Int {
     let key = NSDeviceDescriptionKey("NSScreenNumber")
     let screenNumberAny = screen.deviceDescription[key]!
     let screenNumberNSNumber = screenNumberAny as! NSNumber
@@ -88,16 +88,16 @@ extension Display {
 extension Device {
   #if os(Windows)
   var outputs: [SwiftCOM.IDXGIOutput] {
-    // Fetch the outputs for the adapter.
+    // Enumerate the outputs for the adapter.
     fatalError("Not implemented.")
   }
   #endif
   
-  /// The identifier for the screen with the highest refresh rate.
-  public static var fastestScreenID: Int {
-    // Prefer the screen with the highest frame rate. If there's a tie,
-    // choose the screen that appears first in the list. It's probably the
-    // primary display.
+  /// The identifier for the monitor with the highest refresh rate.
+  public static var fastestMonitorID: Int {
+    // Prefer the monitor with the highest frame rate. If there's a tie,
+    // choose the monitor that appears first in the list. It's probably the
+    // primary monitor.
     
     #if os(macOS)
     var fastestScreen: NSScreen?
@@ -113,7 +113,7 @@ extension Device {
     guard let fastestScreen else {
       fatalError("Failed to find fastest screen.")
     }
-    return Display.screenID(screen: fastestScreen)
+    return Display.number(screen: fastestScreen)
     #endif
   }
 }
@@ -121,7 +121,7 @@ extension Device {
 extension Display {
   /// The number of frames issued per second.
   public var frameRate: Int {
-    screen.maximumFramesPerSecond
+    nsScreen.maximumFramesPerSecond
   }
   
   #if os(macOS)
@@ -129,7 +129,7 @@ extension Display {
   // system's scale factor.
   var windowSize: SIMD2<Int> {
     var output = SIMD2<Double>(frameBufferSize)
-    output /= screen.backingScaleFactor
+    output /= nsScreen.backingScaleFactor
     
     guard output == output.rounded(.down) else {
       fatalError("Resolution was not evenly divisible by scaling factor.")
