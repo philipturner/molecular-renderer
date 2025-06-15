@@ -2,19 +2,21 @@
 import AppKit
 
 public struct DisplayDescriptor {
-  public var renderTargetSize: Int?
-  public var screenID: Int?
+  /// The actual size of the window (in pixels) on the screen.
+  public var renderTargetSize: SIMD2<Int>?
   
+  /// The identifier for the screen.
+  public var screenID: Int?
+    
   public init() {
     
   }
 }
 
 public class Display {
-  /// The resolution of the rendering region, in pixels.
-  public let renderTargetSize: Int
+  // The resolution of the rendering region, in pixels.
+  let renderTargetSize: SIMD2<Int>
   
-  /// The display chosen for rendering at program startup.
   private let screen: NSScreen
   
   public init(descriptor: DisplayDescriptor) {
@@ -54,6 +56,8 @@ extension Display {
   }
   
   /// The identifier for the screen with the highest refresh rate.
+  ///
+  /// Revise this to be a property of the device.
   public static var fastestScreenID: Int {
     let screens = NSScreen.screens
     
@@ -85,14 +89,10 @@ extension Display {
     screen.maximumFramesPerSecond
   }
   
-  /// The identifier for the screen.
-  public var screenID: Int {
-    Display.screenID(screen: screen)
-  }
-  
-  /// The resolution of the rendering region, according to the operating
-  /// system's scale factor.
-  public var windowSize: Int {
+  #if os(macOS)
+  // The resolution of the rendering region, according to the operating
+  // system's scale factor.
+  var windowSize: SIMD2<Int> {
     var output = Double(renderTargetSize)
     output /= screen.backingScaleFactor
     
@@ -101,6 +101,7 @@ extension Display {
     }
     return Int(output)
   }
+  #endif
 }
 
 #endif

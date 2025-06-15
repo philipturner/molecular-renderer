@@ -6,6 +6,7 @@ import WinSDK
 #endif
 
 public struct DeviceDescriptor {
+  /// The identifier for the device.
   public var deviceID: Int?
   
   public init() {
