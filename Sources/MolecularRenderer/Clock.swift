@@ -1,17 +1,45 @@
 #if os(macOS)
 import QuartzCore
+#else
+import SwiftCOM
+import WinSDK
+#endif
 
 struct TimeStamp {
+  #if os(macOS)
   // The Mach continuous time for now.
   var host: Int
+  #else
+  // The QPC time for now.
+  var host: Int
+  #endif
   
+  #if os(macOS)
   // The Core Video time for when the frame will be presented.
   var video: Int
+  #else
+  // The present count from DXGI frame statistics.
+  var presentCount: Int
+  #endif
   
+  #if os(macOS)
   init(vsyncTimeStamp: CVTimeStamp) {
     host = Int(mach_continuous_time())
     video = Int(vsyncTimeStamp.videoTime)
   }
+  #else
+  init(frameStatistics: DXGI_FRAME_STATISTICS?) {
+    var largeInteger = LARGE_INTEGER()
+    QueryPerformanceCounter(&largeInteger)
+    host = Int(largeInteger.QuadPart)
+    
+    if let frameStatistics {
+      presentCount = Int(frameStatistics.PresentCount)
+    } else {
+      presentCount = 0
+    }
+  }
+  #endif
 }
 
 struct ClockTimeStamps {
@@ -19,6 +47,7 @@ struct ClockTimeStamps {
   var latest: TimeStamp
 }
 
+#if os(macOS)
 public struct Clock {
   var frameCounter: Int
   var frameRate: Int
@@ -115,5 +144,4 @@ extension Clock {
     frameCounter
   }
 }
-
 #endif
