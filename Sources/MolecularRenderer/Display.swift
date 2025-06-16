@@ -70,6 +70,13 @@ public class Display {
     }
     self.nsScreen = matchedScreen
     #endif
+    
+    // select device.outputs[screenID]
+    //
+    // This might be an isolable stepping stone before working on the other
+    // sub-goals of the Display API. Just explicitly specify screenID = 0
+    // throughout the process.
+    fatalError("Not implemented.")
   }
 }
 
@@ -102,6 +109,8 @@ extension Device {
       fatalError("Failed to find fastest screen.")
     }
     return Display.number(screen: fastestScreen)
+    #else
+    fatalError("Not implemented.")
     #endif
   }
 }
@@ -109,7 +118,11 @@ extension Device {
 extension Display {
   /// The number of frames issued per second.
   public var frameRate: Int {
+    #if os(macOS)
     nsScreen.maximumFramesPerSecond
+    #else
+    fatalError("Not implemented.")
+    #endif
   }
   
   #if os(macOS)
