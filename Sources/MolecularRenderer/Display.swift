@@ -91,11 +91,6 @@ public class Display {
     
     // Materialize the IDXGIOutput (Windows).
     #if os(Windows)
-    // select device.outputs[screenID]
-    //
-    // This might be an isolable stepping stone before working on the other
-    // sub-goals of the Display API. Just explicitly specify screenID = 0
-    // throughout the process.
     let outputs = device.outputs
     guard monitorID >= 0,
           monitorID < outputs.count else {
@@ -103,7 +98,10 @@ public class Display {
     }
     self.dxgiOutput = outputs[monitorID]
     
-    print(Display.deviceName(output: dxgiOutput))
+    let deviceName = Display.deviceName(output: dxgiOutput)
+    let frameRate = Display.frameRate(deviceName: deviceName)
+    print(deviceName)
+    print(frameRate)
     #endif
   }
 }
@@ -209,7 +207,20 @@ extension Display {
   }
   
   static func frameRate(deviceName: String) -> Int {
-    fatalError("TODO")
+    // Bypass a compiler error.
+    let ENUM_CURRENT_SETTINGS = UInt32(bitPattern: -1)
+    
+    var devMode = DEVMODEA()
+    devMode.dmSize = UInt16(MemoryLayout<DEVMODEA>.size)
+    let returnValue = EnumDisplaySettingsA(
+      deviceName, // lpszDeviceName
+      ENUM_CURRENT_SETTINGS, // iModeNum
+      &devMode) // lpDevMode
+    guard returnValue else {
+      fatalError("Could not retrieve display settings.")
+    }
+    
+    return Int(devMode.dmDisplayFrequency)
   }
   #endif
   
