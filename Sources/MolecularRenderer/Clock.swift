@@ -6,13 +6,8 @@ import WinSDK
 #endif
 
 struct TimeStamp {
-  #if os(macOS)
-  // The Mach continuous time for now.
+  // The Mach continuous time or QPC time for now.
   var host: Int
-  #else
-  // The QPC time for now.
-  var host: Int
-  #endif
   
   #if os(macOS)
   // The Core Video time for when the frame will be presented.
@@ -22,37 +17,44 @@ struct TimeStamp {
   var presentCount: Int
   #endif
   
-  #if os(macOS)
-  init(vsyncTimeStamp: CVTimeStamp) {
-    host = Int(mach_continuous_time())
-    video = Int(vsyncTimeStamp.videoTime)
-  }
-  #else
-  init(frameStatistics: DXGI_FRAME_STATISTICS?) {
+  init(frameStatistics: Clock.FrameStatistics) {
+    #if os(macOS)
+    self.host = Int(mach_continuous_time())
+    #else
     var largeInteger = LARGE_INTEGER()
     QueryPerformanceCounter(&largeInteger)
-    host = Int(largeInteger.QuadPart)
+    self.host = Int(largeInteger.QuadPart)
+    #endif
     
+    #if os(macOS)
+    self.video = Int(frameStatistics.videoTime)
+    #else
     if let frameStatistics {
-      presentCount = Int(frameStatistics.PresentCount)
+      self.presentCount = Int(frameStatistics.PresentCount)
     } else {
-      presentCount = 0
+      self.presentCount = 0
     }
+    #endif
   }
-  #endif
 }
 
-struct ClockTimeStamps {
+fileprivate struct ClockTimeStamps {
   var start: TimeStamp
-  var latest: TimeStamp
+  var previous: TimeStamp
 }
 
 public struct Clock {
+  #if os(macOS)
+  typealias FrameStatistics = CVTimeStamp
+  #else
+  typealias FrameStatistics = DXGI_FRAME_STATISTICS?
+  #endif
+  
   var frameCounter: Int
   var frameRate: Int
-  var timeStamps: ClockTimeStamps?
+  private var timeStamps: ClockTimeStamps?
   
-  #if os(Window)
+  #if os(Windows)
   var isInitializing: Bool = true
   #endif
   var sustainedMisalignmentDuration: Int = .zero
@@ -76,27 +78,39 @@ public struct Clock {
     return Int(frames)
   }
   
-  #if os(macOS)
-  mutating func increment(
-    vsyncTimeStamp: CVTimeStamp
-  ) {
+  mutating func increment(frameStatistics: FrameStatistics) {
     guard let timeStamps else {
-      let timeStamp = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
+      let start = TimeStamp(frameStatistics: frameStatistics)
       self.timeStamps = ClockTimeStamps(
-        start: timeStamp,
-        latest: timeStamp)
+        start: start,
+        previous: start)
       return
     }
     
     let start = timeStamps.start
-    let previous = timeStamps.latest
-    let current = TimeStamp(vsyncTimeStamp: vsyncTimeStamp)
+    let previous = timeStamps.previous
+    let current = TimeStamp(frameStatistics: frameStatistics)
     incrementFrameCounter(
       start: start,
       previous: previous,
       current: current)
     
-    self.timeStamps!.latest = current
+    #if os(Windows)
+    if isInitializing,
+       current.presentCount > 0 {
+      guard current.presentCount < 10 else {
+        fatalError("May be tracking intervals since the computer booted.")
+      }
+      
+      // Wait for a small period, to ensure the GPU's present queue has
+      // stabilized.
+      if current.presentCount >= 5 {
+        self.isInitializing = false
+      }
+    }
+    #endif
+    
+    self.timeStamps!.previous = current
   }
   
   mutating func incrementFrameCounter(
@@ -104,6 +118,16 @@ public struct Clock {
     previous: TimeStamp,
     current: TimeStamp
   ) {
+    // Option to return early on Windows.
+    let targetCounter = frames(ticks: current.host - start.host)
+    #if os(Windows)
+    if isInitializing {
+      frameCounter = targetCounter
+      return
+    }
+    #endif
+    
+    #if os(macOS)
     // Validate that the vsync timestamp is divisible by the refresh period.
     do {
       let currentVideoTicks = current.video - start.video
@@ -119,9 +143,13 @@ public struct Clock {
     guard currentVsyncFrame > previousVsyncFrame else {
       fatalError("Vsync timestamp is not monotonically increasing.")
     }
+    #else
+    // Fetch the vsync timestamp, which may not increase from frame to frame.
+    let previousVsyncFrame = previous.presentCount - start.presentCount
+    let currentVsyncFrame = current.presentCount - start.presentCount
+    #endif
     
     // Predict the next frame.
-    let targetCounter = frames(ticks: current.host - start.host)
     var nextCounter = frameCounter + (currentVsyncFrame - previousVsyncFrame)
     var nextMisalignmentDuration: Int = .zero
     
@@ -144,7 +172,6 @@ public struct Clock {
     // Update the frame counter.
     frameCounter = nextCounter
   }
-  #endif
 }
 
 extension Clock {
