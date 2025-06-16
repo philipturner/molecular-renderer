@@ -97,11 +97,15 @@ public class Display {
       fatalError("Monitor ID was out of range.")
     }
     self.dxgiOutput = outputs[monitorID]
-    
-    let deviceName = Display.deviceName(output: dxgiOutput)
-    let frameRate = Display.frameRate(deviceName: deviceName)
-    print(deviceName)
-    print(frameRate)
+    #endif
+  }
+  
+  /// The number of frames issued per second.
+  public var frameRate: Int {
+    #if os(macOS)
+    nsScreen.maximumFramesPerSecond
+    #else
+    fatalError("Not implemented.")
     #endif
   }
 }
@@ -163,15 +167,6 @@ extension Display {
   }
   #endif
   
-  /// The number of frames issued per second.
-  public var frameRate: Int {
-    #if os(macOS)
-    nsScreen.maximumFramesPerSecond
-    #else
-    fatalError("Not implemented.")
-    #endif
-  }
-  
   #if os(macOS)
   // The resolution of the rendering region, according to the operating
   // system's scale factor.
@@ -224,8 +219,10 @@ extension Display {
   }
   #endif
   
-  // Cross-platform function
+  // The coordinates of the work area, according to the operating system's
+  // scale factor.
   // static func workArea(screen: NSScreen) -> SIMD4<Int>
+  
   // static func monitor(output: SwiftCOM.IDXGIOutput) -> HMONITOR
   // static func workArea(monitor: HMONITOR) -> SIMD4<Int>
 }
