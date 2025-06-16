@@ -28,6 +28,9 @@ import WinSDK
 // refresh rate.
 
 public struct DisplayDescriptor {
+  /// The graphics device to which monitors are connected.
+  public var device: Device?
+  
   /// The actual size of the window (in pixels) on the screen.
   public var frameBufferSize: SIMD2<Int>?
   
@@ -50,12 +53,27 @@ public class Display {
   #endif
   
   public init(descriptor: DisplayDescriptor) {
+    // Check the properties whose necessity depends on the platform. On Mac,
+    // the user-facing API requires that you specify the device, for consistency
+    // across platforms.
+    #if os(macOS)
+    guard descriptor.device != nil else {
+      fatalError("Descriptor was incomplete.")
+    }
+    #else
+    guard let device = descriptor.device else {
+      fatalError("Descriptor was incomplete.")
+    }
+    #endif
+    
+    // Check the other properties.
     guard let frameBufferSize = descriptor.frameBufferSize,
           let monitorID = descriptor.monitorID else {
       fatalError("Descriptor was incomplete.")
     }
     self.frameBufferSize = frameBufferSize
     
+    // Materialize the NSScreen (macOS).
     #if os(macOS)
     var matchedScreen: NSScreen?
     for screen in NSScreen.screens {
@@ -71,12 +89,15 @@ public class Display {
     self.nsScreen = matchedScreen
     #endif
     
+    // Materialize the IDXGIOutput (Windows).
+    #if os(Windows)
     // select device.outputs[screenID]
     //
     // This might be an isolable stepping stone before working on the other
     // sub-goals of the Display API. Just explicitly specify screenID = 0
     // throughout the process.
     fatalError("Not implemented.")
+    #endif
   }
 }
 

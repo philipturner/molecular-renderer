@@ -12,6 +12,7 @@ func createApplication() -> Application {
   
   // Set up the display.
   var displayDesc = DisplayDescriptor()
+  displayDesc.device = device
   displayDesc.frameBufferSize = SIMD2<Int>(1920, 1920)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
@@ -182,9 +183,9 @@ import WinSDK
 var deviceDesc = DeviceDescriptor()
 deviceDesc.deviceID = Device.fastestDeviceID
 let device = Device(descriptor: deviceDesc)
-print(device)
 
 var displayDesc = DisplayDescriptor()
+displayDesc.device = device
 displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
 displayDesc.monitorID = 0
 let display = Display(descriptor: displayDesc)
