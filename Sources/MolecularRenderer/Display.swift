@@ -102,6 +102,8 @@ public class Display {
       fatalError("Monitor ID was out of range.")
     }
     self.dxgiOutput = outputs[monitorID]
+    
+    print(Display.name(output: dxgiOutput))
     #endif
   }
 }
@@ -191,7 +193,32 @@ extension Display {
   // - get the legible name for the IDXGIOutput
   // - get the current display frequency through EnumDisplaySettings
   
+  #if os(Windows)
+  static func name(output: SwiftCOM.IDXGIOutput) -> String {
+    let descriptor = try! output.GetDesc()
+    
+    return withUnsafePointer(to: descriptor.DeviceName) { tuplePointer in
+      let rawPointer = UnsafeRawPointer(tuplePointer)
+      let wcharPointer = rawPointer.assumingMemoryBound(to: UInt16.self)
+      
+      // DXGI_OUTPUT_DESC has a C-style array with 32 members.
+      var ccharPointer: [UInt8] = []
+      for characterID in 0..<32 {
+        let wchar = wcharPointer[characterID]
+        let cchar = UInt8(wchar)
+        ccharPointer.append(cchar)
+      }
+      
+      return String(decoding: ccharPointer, as: UTF8.self)
+    }
+  }
+  #endif
+  
   // Cross-platform function
   // static func workArea(screen: NSScreen) -> SIMD4<Int>
   // static func workArea(output: SwiftCOM.IDXGIOutput) -> Int
+  //
+  // Broken up into two parts:
+  // - get the HMONITOR for the IDXGIOutput
+  // - get the work area for the HMONITOR
 }
