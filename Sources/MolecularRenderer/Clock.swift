@@ -47,12 +47,14 @@ struct ClockTimeStamps {
   var latest: TimeStamp
 }
 
-#if os(macOS)
 public struct Clock {
   var frameCounter: Int
   var frameRate: Int
   var timeStamps: ClockTimeStamps?
   
+  #if os(Window)
+  var isInitializing: Bool = true
+  #endif
   var sustainedMisalignmentDuration: Int = .zero
   var sustainedMisalignedValue: Int = .zero
   
@@ -62,12 +64,19 @@ public struct Clock {
   }
   
   func frames(ticks: Int) -> Int {
-    let seconds = Double(ticks) / 24_000_000
+    #if os(macOS)
+    let ticksPerSecond: Int = 24_000_000
+    #else
+    let ticksPerSecond: Int = 10_000_000
+    #endif
+    
+    let seconds = Double(ticks) / Double(ticksPerSecond)
     var frames = seconds * Double(frameRate)
     frames = frames.rounded(.toNearestOrEven)
     return Int(frames)
   }
   
+  #if os(macOS)
   mutating func increment(
     vsyncTimeStamp: CVTimeStamp
   ) {
@@ -135,6 +144,7 @@ public struct Clock {
     // Update the frame counter.
     frameCounter = nextCounter
   }
+  #endif
 }
 
 extension Clock {
@@ -144,4 +154,3 @@ extension Clock {
     frameCounter
   }
 }
-#endif

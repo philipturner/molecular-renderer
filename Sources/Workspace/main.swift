@@ -201,29 +201,7 @@ import WinSDK
 import SwiftCOM
 import WinSDK
 
-
 public struct Clock {
-  var frameCounter: Int
-  var frameRate: Int
-  var timeStamps: ClockTimeStamps?
-  
-  var isInitializing: Bool = true
-  var sustainedMisalignmentDuration: Int = .zero
-  var sustainedMisalignedValue: Int = .zero
-  
-  init() {
-    frameCounter = .zero
-    frameRate = 60
-  }
-  
-  func frames(ticks: Int) -> Int {
-    let ticksPerSecond: Int = 10_000_000
-    let seconds = Double(ticks) / Double(ticksPerSecond)
-    var frames = seconds * Double(frameRate)
-    frames = frames.rounded(.toNearestOrEven)
-    return Int(frames)
-  }
-  
   mutating func increment(
     frameStatistics: DXGI_FRAME_STATISTICS?
   ) {
