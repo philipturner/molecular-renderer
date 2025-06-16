@@ -5,28 +5,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-// IDXGIAdapter -> IDXGIOutput -> GetDesc -> HMONITOR
-// A system have multiple adapters, each of which maps to a 'Device'. A
-// device has multiple outputs, each of which maps to a 'Display'. Modify the
-// existing utilities so that '.fastestScreenID' belongs to an instance of
-// 'Device', not the 'Display' type object. This creates an inevitable
-// inconsistency between the appearance of the two APIs for "fastest" IDs.
-//
-// For window dimensions, use HMONITOR -> GetMonitorInfo -> rcWork
-// Use rcWork for consistency with macOS, which centers the window in the
-// "work area" of the screen.
-//
-// For device name, there are two paths:
-// GetDesc -> DeviceName -> convert WCHAR to CHAR
-// HMONITOR -> GetMonitorInfo -> MONITORINFOEXA -> szDevice
-// The first seems easiest.
-//
-// For refresh rate, there are two paths:
-// IDXGIOutput -> GetDisplayModeList -> filter based on resolution -> Refresh...
-// device name -> EnumDisplaySettings -> iModeNum = UInt32.max -> dmDisplayFr...
-// The latter seems more appropriate because it reflects the system's current
-// refresh rate.
-
 public struct DisplayDescriptor {
   /// The graphics device to which monitors are connected.
   public var device: Device?
@@ -97,20 +75,16 @@ public class Display {
       fatalError("Monitor ID was out of range.")
     }
     self.dxgiOutput = outputs[monitorID]
-    
-    let monitor = Display.monitor(output: dxgiOutput)
-    let workArea = Display.workArea(monitor: monitor)
-    print(monitor)
-    print(workArea)
     #endif
   }
   
   /// The number of frames issued per second.
   public var frameRate: Int {
     #if os(macOS)
-    nsScreen.maximumFramesPerSecond
+    return nsScreen.maximumFramesPerSecond
     #else
-    fatalError("Not implemented.")
+    let deviceName = Display.deviceName(output: dxgiOutput)
+    return Display.frameRate(deviceName: deviceName)
     #endif
   }
 }

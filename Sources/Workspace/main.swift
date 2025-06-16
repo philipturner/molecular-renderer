@@ -190,5 +190,6 @@ displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
 displayDesc.monitorID = 0
 let display = Display(descriptor: displayDesc)
 print(display)
+print(display.frameRate)
 
 #endif
