@@ -96,7 +96,12 @@ public class Display {
     // This might be an isolable stepping stone before working on the other
     // sub-goals of the Display API. Just explicitly specify screenID = 0
     // throughout the process.
-    fatalError("Not implemented.")
+    let outputs = device.outputs
+    guard monitorID >= 0,
+          monitorID < outputs.count else {
+      fatalError("Monitor ID was out of range.")
+    }
+    self.dxgiOutput = outputs[monitorID]
     #endif
   }
 }
@@ -104,8 +109,19 @@ public class Display {
 extension Device {
   #if os(Windows)
   var outputs: [SwiftCOM.IDXGIOutput] {
-    // Enumerate the outputs for the adapter.
-    fatalError("Not implemented.")
+    var dxgiOutputs: [SwiftCOM.IDXGIOutput] = []
+    
+    var outputID: UInt32 = .zero
+    while true {
+      let dxgiOutput = try? dxgiAdapter.EnumOutputs(outputID)
+      if let dxgiOutput {
+        dxgiOutputs.append(dxgiOutput)
+        outputID += 1
+      } else {
+        break
+      }
+    }
+    return dxgiOutputs
   }
   #endif
   
@@ -167,4 +183,15 @@ extension Display {
     return Int(screenNumber)
   }
   #endif
+  
+  // Windows-specific function
+  // static func frameRate(output: SwiftCOM.IDXGIOutput) -> Int
+  //
+  // Broken up into two parts:
+  // - get the legible name for the IDXGIOutput
+  // - get the current display frequency through EnumDisplaySettings
+  
+  // Cross-platform function
+  // static func workArea(screen: NSScreen) -> SIMD4<Int>
+  // static func workArea(output: SwiftCOM.IDXGIOutput) -> Int
 }

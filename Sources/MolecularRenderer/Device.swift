@@ -19,7 +19,7 @@ public class Device {
   #if os(macOS)
   public let mtlDevice: MTLDevice
   #else
-  let dxgiAdapter: SwiftCOM.IDXGIAdapter
+  let dxgiAdapter: SwiftCOM.IDXGIAdapter4
   public let d3d12Device: SwiftCOM.ID3D12Device
   
   // Stored properties for the debug layer.
