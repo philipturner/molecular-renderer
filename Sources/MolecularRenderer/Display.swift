@@ -103,7 +103,7 @@ public class Display {
     }
     self.dxgiOutput = outputs[monitorID]
     
-    print(Display.name(output: dxgiOutput))
+    print(Display.deviceName(output: dxgiOutput))
     #endif
   }
 }
@@ -155,6 +155,16 @@ extension Device {
 }
 
 extension Display {
+  #if os(macOS)
+  static func number(screen: NSScreen) -> Int {
+    let key = NSDeviceDescriptionKey("NSScreenNumber")
+    let screenNumberAny = screen.deviceDescription[key]!
+    let screenNumberNSNumber = screenNumberAny as! NSNumber
+    let screenNumber = screenNumberNSNumber.uint32Value
+    return Int(screenNumber)
+  }
+  #endif
+  
   /// The number of frames issued per second.
   public var frameRate: Int {
     #if os(macOS)
@@ -176,25 +186,10 @@ extension Display {
     }
     return SIMD2<Int>(output)
   }
-  
-  static func number(screen: NSScreen) -> Int {
-    let key = NSDeviceDescriptionKey("NSScreenNumber")
-    let screenNumberAny = screen.deviceDescription[key]!
-    let screenNumberNSNumber = screenNumberAny as! NSNumber
-    let screenNumber = screenNumberNSNumber.uint32Value
-    return Int(screenNumber)
-  }
   #endif
   
-  // Windows-specific function
-  // static func frameRate(output: SwiftCOM.IDXGIOutput) -> Int
-  //
-  // Broken up into two parts:
-  // - get the legible name for the IDXGIOutput
-  // - get the current display frequency through EnumDisplaySettings
-  
   #if os(Windows)
-  static func name(output: SwiftCOM.IDXGIOutput) -> String {
+  static func deviceName(output: SwiftCOM.IDXGIOutput) -> String {
     let descriptor = try! output.GetDesc()
     
     return withUnsafePointer(to: descriptor.DeviceName) { tuplePointer in
@@ -212,13 +207,14 @@ extension Display {
       return String(decoding: ccharPointer, as: UTF8.self)
     }
   }
+  
+  static func frameRate(deviceName: String) -> Int {
+    fatalError("TODO")
+  }
   #endif
   
   // Cross-platform function
   // static func workArea(screen: NSScreen) -> SIMD4<Int>
-  // static func workArea(output: SwiftCOM.IDXGIOutput) -> Int
-  //
-  // Broken up into two parts:
-  // - get the HMONITOR for the IDXGIOutput
-  // - get the work area for the HMONITOR
+  // static func monitor(output: SwiftCOM.IDXGIOutput) -> HMONITOR
+  // static func workArea(monitor: HMONITOR) -> SIMD4<Int>
 }
