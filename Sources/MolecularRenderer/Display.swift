@@ -97,6 +97,11 @@ public class Display {
       fatalError("Monitor ID was out of range.")
     }
     self.dxgiOutput = outputs[monitorID]
+    
+    let monitor = Display.monitor(output: dxgiOutput)
+    let workArea = Display.workArea(monitor: monitor)
+    print(monitor)
+    print(workArea)
     #endif
   }
   
@@ -219,10 +224,53 @@ extension Display {
   }
   #endif
   
+  #if os(macOS)
   // The coordinates of the work area, according to the operating system's
   // scale factor.
-  // static func workArea(screen: NSScreen) -> SIMD4<Int>
+  static func workArea(screen: NSScreen) -> SIMD4<Int> {
+    let visibleFrame = screen.visibleFrame
+    guard let x = Int(exactly: visibleFrame.origin.x),
+          let y = Int(exactly: visibleFrame.origin.y),
+          let width = Int(exactly: visibleFrame.size.width),
+          let height = Int(exactly: visibleFrame.size.height) else {
+      fatalError("Visible frame had a non-integer number of pixels.")
+    }
+    
+    // Convert from (x, y, width, height) to (left, top, right, bottom).
+    return SIMD4(
+      x,
+      y,
+      x + width,
+      y + height)
+  }
+  #else
+  static func monitor(output: SwiftCOM.IDXGIOutput) -> HMONITOR {
+    let descriptor = try! output.GetDesc()
+    guard let monitor = descriptor.Monitor else {
+      fatalError("Could not get monitor.")
+    }
+    return monitor
+  }
   
-  // static func monitor(output: SwiftCOM.IDXGIOutput) -> HMONITOR
-  // static func workArea(monitor: HMONITOR) -> SIMD4<Int>
+  // The coordinates of the work area, in pixels.
+  static func workArea(monitor: HMONITOR) -> SIMD4<Int> {
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+    
+    var monitorInfo = MONITORINFO()
+    monitorInfo.cbSize = UInt32(MemoryLayout<MONITORINFO>.size)
+    let returnValue = GetMonitorInfoA(
+      monitor, // hMonitor
+      &monitorInfo) // lpmi
+    guard returnValue else {
+      fatalError("Could not retrieve monitor info.")
+    }
+    
+    let rcWork = monitorInfo.rcWork
+    return SIMD4(
+      Int(rcWork.left),
+      Int(rcWork.top),
+      Int(rcWork.right),
+      Int(rcWork.bottom))
+  }
+  #endif
 }
