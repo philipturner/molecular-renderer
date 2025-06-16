@@ -130,7 +130,25 @@ extension Device {
     }
     return Display.number(screen: fastestScreen)
     #else
-    fatalError("Not implemented.")
+    let outputs = self.outputs
+    
+    var fastestMonitorID: Int?
+    var fastestFrameRate: Int = .zero
+    for outputID in outputs.indices {
+      let output = outputs[outputID]
+      
+      let deviceName = Display.deviceName(output: output)
+      let candidateFrameRate = Display.frameRate(deviceName: deviceName)
+      if candidateFrameRate > fastestFrameRate {
+        fastestMonitorID = outputID
+        fastestFrameRate = candidateFrameRate
+      }
+    }
+    
+    guard let fastestMonitorID else {
+      fatalError("Failed to find fastest monitor ID.")
+    }
+    return fastestMonitorID
     #endif
   }
 }

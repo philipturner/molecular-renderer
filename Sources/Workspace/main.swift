@@ -187,9 +187,18 @@ let device = Device(descriptor: deviceDesc)
 var displayDesc = DisplayDescriptor()
 displayDesc.device = device
 displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
-displayDesc.monitorID = 0
+displayDesc.monitorID = device.fastestMonitorID
 let display = Display(descriptor: displayDesc)
 print(display)
 print(display.frameRate)
+
+// Next step:
+//
+// Merge the Clock utility.
+// - Easy because just copying reference code.
+// - If something goes wrong, it can be corrected when the bug appears in the
+//   future.
+// - Temporarily expose different APIs to the public API for testing (if
+//   needed).
 
 #endif
