@@ -8,9 +8,8 @@
 //   - Start by inspecting the screen coordinates of the frame rect vs.
 //     content rect on macOS.
 // - Allow the run loop to end without crashing the calling program.
-//   - Provide some way to quit the run loop programmatically? Need to think
-//     about the API structure for this. Perhaps mark this task as "out of
-//     scope" for now.
+//   - Do not provide a way to end the run loop programmatically. Only add
+//     functionality for closing via UI events.
 
 import MolecularRenderer
 
