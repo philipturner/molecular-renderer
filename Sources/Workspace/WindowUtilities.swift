@@ -5,62 +5,6 @@ import SwiftCOM
 import WinSDK
 
 struct WindowUtilities {
-  // Create a window using the utilities in this file.
-  static func createWindow() -> HWND {
-    registerWindowClass()
-    
-    let dimensions = createWindowDimensions()
-    let window = createWindow(dimensions: dimensions)
-    return window
-  }
-  
-  // Register the window class for the application's window.
-  static func registerWindowClass() {
-    var windowClass = WNDCLASSEXA()
-    windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
-    windowClass.style = 0
-    
-    // Link to the message procedure, which is defined in a different file.
-    windowClass.lpfnWndProc = nil
-    windowClass.cbClsExtra = 0
-    windowClass.cbWndExtra = 0
-    windowClass.hInstance = nil
-    windowClass.hIcon = nil
-    
-    // Generate the cursor object.
-    let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
-    let cursor = LoadCursorA(nil, cursorName)
-    guard let cursor else {
-      fatalError("Could not load cursor.")
-    }
-    windowClass.hCursor = cursor
-    windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
-    
-    // 'RegisterClassExA' must be called within the same scope where the cString
-    // pointer exists. Otherwise, cString becomes a zombie pointer and the
-    // function fails with error code 123.
-    let name: String = "Window"
-    name.withCString { cString in
-      windowClass.lpszMenuName = nil
-      windowClass.lpszClassName = cString
-      windowClass.hIconSm = nil
-      
-      let atom = RegisterClassExA(&windowClass)
-      guard atom > 0 else {
-        fatalError("Could not create window class.")
-      }
-    }
-  }
-  
-  // Returns WS_OVERLAPPEDWINDOW, but without the ability to resize the window.
-  static func createWindowStyle() -> DWORD {
-    var output: Int32 = .zero
-    output |= WS_OVERLAPPED
-    output |= WS_CAPTION
-    output |= WS_SYSMENU
-    return DWORD(output)
-  }
-  
   // Returns appropriate window dimensions at the center of the screen.
   //
   // Lane 0: x
@@ -82,7 +26,7 @@ struct WindowUtilities {
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
     let succeeded = AdjustWindowRect(
       &windowRect, // lpRect
-      createWindowStyle(), // dwStyle
+      DWORD(), // createWindowStyle(), // dwStyle
       false) // bMenu
     guard succeeded else {
       fatalError("Could not adjust window rect.")
@@ -116,7 +60,7 @@ struct WindowUtilities {
       dwExStyle, // dwExStyle
       className, // lpClassName
       nil, // lpWindowName
-      createWindowStyle(), // dwStyle
+      DWORD(), // createWindowStyle(), // dwStyle
       Int32(dimensions[0]), // X
       Int32(dimensions[1]), // Y
       Int32(dimensions[2]), // nWidth

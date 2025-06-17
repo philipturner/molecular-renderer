@@ -69,12 +69,65 @@ class Window: NSViewController, NSApplicationDelegate {
 // TODO: Remove all 'public' modifiers after smoke testing object creation
 // in the workspace script.
 //
-// Use 'nil' for the WndProc while drafting the class. Later, implement the
-// event handler on Windows and reference it there.
+// TODO: Fix the two places where createWindowStyle() should be called.
 
 public class Window {
   public init(display: Display) {
+    Self.registerWindowClass()
     
+    // Rework everything about how dimensions are done. As the next task, just
+    // try to replicate the process of setting the various rects on macOS.
+  }
+}
+
+extension Window {
+  // Register the window class for the application's window.
+  static func registerWindowClass() {
+    var windowClass = WNDCLASSEXA()
+    windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
+    windowClass.style = 0
+    
+    // Link to the message procedure, which is defined in a different file.
+    windowClass.lpfnWndProc = { hWnd, uMsg, wParam, lParam in
+      Window.windowProcedure(hWnd, uMsg, wParam, lParam)
+    }
+    windowClass.cbClsExtra = 0
+    windowClass.cbWndExtra = 0
+    windowClass.hInstance = nil
+    windowClass.hIcon = nil
+    
+    // Generate the cursor object.
+    let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
+    let cursor = LoadCursorA(nil, cursorName)
+    guard let cursor else {
+      fatalError("Could not load cursor.")
+    }
+    windowClass.hCursor = cursor
+    windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
+    
+    // 'RegisterClassExA' must be called within the same scope where the cString
+    // pointer exists. Otherwise, cString becomes a zombie pointer and the
+    // function fails with error code 123.
+    let name: String = "Window"
+    name.withCString { cString in
+      windowClass.lpszMenuName = nil
+      windowClass.lpszClassName = cString
+      windowClass.hIconSm = nil
+      
+      let atom = RegisterClassExA(&windowClass)
+      guard atom > 0 else {
+        fatalError("Could not create window class.")
+      }
+    }
+  }
+  
+  // Returns WS_OVERLAPPEDWINDOW, but without the ability to resize the window.
+  static func createWindowStyle() -> DWORD {
+    var output: Int32 = .zero
+    output |= WS_OVERLAPPED
+    output |= WS_CAPTION
+    output |= WS_SYSMENU
+    return DWORD(output)
   }
 }
 
