@@ -3,7 +3,6 @@ import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var nsWindow: NSWindow
-  var contentSize: SIMD2<Int>
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -31,24 +30,23 @@ class Window: NSViewController, NSApplicationDelegate {
     windowSize = display.windowSize
      */
     
-    let workArea = Display.workArea(
-      screen: display.nsScreen)
-    let workAreaCenter = (workArea.lowHalf &+ workArea.highHalf) / 2
-    let contentOrigin = workAreaCenter &- display.contentSize / 2
+    let workArea = display.nsScreen.visibleFrame
+    let workAreaCenter = SIMD2<Double>(workArea.midX, workArea.midY)
+    let contentSize = display.contentSize
+    let contentBottomLeft = workAreaCenter - contentSize / 2
     
     let contentRect = NSRect(
-      x: contentOrigin[0],
-      y: contentOrigin[1],
-      width: display.contentSize[0],
-      height: display.contentSize[1])
+      origin: CGPointMake(contentBottomLeft[0], contentBottomLeft[1]),
+      size: CGSizeMake(contentSize[0], contentSize[1]))
     let frameRect = nsWindow.frameRect(forContentRect: contentRect)
+    nsWindow.setFrameOrigin(frameRect.origin)
     
     print(workArea)
     print(workAreaCenter)
-    print(contentOrigin)
+    print(contentSize)
+    print(contentBottomLeft)
     print(contentRect)
     print(frameRect)
-    fatalError("Not implemented.")
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -59,6 +57,10 @@ class Window: NSViewController, NSApplicationDelegate {
     // Register the UI event handlers.
     nsWindow.makeFirstResponder(self)
     registerCloseNotification()
+    
+    print("nsWindow.frame:", nsWindow.frame)
+    nsWindow.contentViewController = self
+    print("nsWindow.frame:", nsWindow.frame)
     
     /*
     // Initialize the window's dimensions (which are slightly larger than the

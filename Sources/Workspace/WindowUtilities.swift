@@ -91,16 +91,8 @@ struct WindowUtilities {
     let leftX = screenWidth / 2 - windowSizeX / 2
     let upperY = screenHeight / 2 - windowSizeY / 2
     
-    // Check validity of the dimensions.
     let outputSigned = SIMD4<Int32>(
       leftX, upperY, windowSizeX, windowSizeY)
-    guard outputSigned[0] >= 0,
-          outputSigned[1] >= 0,
-          outputSigned[0] + outputSigned[2] <= screenWidth,
-          outputSigned[1] + outputSigned[3] <= screenHeight else {
-      fatalError("The window spawned off-screen.")
-    }
-    
     let outputUnsigned = SIMD4<UInt32>(
       truncatingIfNeeded: outputSigned)
     return outputUnsigned
