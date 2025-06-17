@@ -3,7 +3,7 @@ import AppKit
 
 class View: NSView, CALayerDelegate {
   nonisolated(unsafe) var metalLayer: CAMetalLayer
-  var contentSize: SIMD2<Double>
+  private var contentSize: SIMD2<Double>
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")

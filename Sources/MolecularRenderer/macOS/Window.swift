@@ -3,6 +3,7 @@ import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var nsWindow: NSWindow
+  private var frameSize: SIMD2<Double>
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -20,16 +21,6 @@ class Window: NSViewController, NSApplicationDelegate {
       defer: false,
       screen: display.nsScreen)
     
-    /*
-    // Prepare the window's bounds.
-    let origin = Window.centeredOrigin(display: display)
-    let originPoint = CGPoint(
-      x: origin[0],
-      y: origin[1])
-    nsWindow.setFrameOrigin(originPoint)
-    windowSize = display.windowSize
-     */
-    
     let workArea = display.nsScreen.visibleFrame
     let workAreaCenter = SIMD2<Double>(workArea.midX, workArea.midY)
     let contentSize = display.contentSize
@@ -40,39 +31,25 @@ class Window: NSViewController, NSApplicationDelegate {
       size: CGSizeMake(contentSize[0], contentSize[1]))
     let frameRect = nsWindow.frameRect(forContentRect: contentRect)
     nsWindow.setFrameOrigin(frameRect.origin)
-    
-    print(workArea)
-    print(workAreaCenter)
-    print(contentSize)
-    print(contentBottomLeft)
-    print(contentRect)
-    print(frameRect)
+    self.frameSize = SIMD2(
+      frameRect.size.width,
+      frameRect.size.height)
     
     super.init(nibName: nil, bundle: nil)
   }
   
-  // The content rect is set by the OS, between initialization and the call to
-  // this function.
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Register the UI event handlers.
     nsWindow.makeFirstResponder(self)
     registerCloseNotification()
     
-    print("nsWindow.frame:", nsWindow.frame)
+    // Materialize the window's content rect, expanding its frame size to the
+    // expected value.
     nsWindow.contentViewController = self
-    print("nsWindow.frame:", nsWindow.frame)
-    
-    /*
-    // Initialize the window's dimensions (which are slightly larger than the
-    // render target).
-    nsWindow.contentViewController = self
-    guard nsWindow.frame.size.width == Double(windowSize[0]) else {
-      fatalError("Window had incorrect size.")
+    guard nsWindow.frame.size.width == frameSize[0],
+          nsWindow.frame.size.height == frameSize[1] else {
+      fatalError("Window had unexpected size.")
     }
-    guard nsWindow.frame.size.height > Double(windowSize[1]) else {
-      fatalError("Title bar was missing.")
-    }
-     */
     
     // Make the window visible to the user.
     nsWindow.makeKey()
@@ -81,22 +58,6 @@ class Window: NSViewController, NSApplicationDelegate {
 }
 
 extension Window {
-  /*
-  static func centeredOrigin(display: Display) -> SIMD2<Double> {
-    let workArea = Display.workArea(
-      screen: display.nsScreen)
-    
-    let center = (
-      SIMD2<Double>(workArea.lowHalf) +
-      SIMD2<Double>(workArea.highHalf)
-    ) / 2
-    
-    let upperLeft = center - SIMD2<Double>(display.windowSize) / 2
-    
-    return upperLeft
-  }
-   */
-  
   func registerCloseNotification() {
     let notificationCenter = NotificationCenter.default
     notificationCenter.addObserver(
