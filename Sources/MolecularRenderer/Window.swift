@@ -58,6 +58,7 @@ class Window: NSViewController, NSApplicationDelegate {
   }
 }
 
+// TODO: Move this extension into a dedicated file for event handling.
 extension Window {
   func registerCloseNotification() {
     let notificationCenter = NotificationCenter.default
@@ -92,5 +93,8 @@ import WinSDK
 
 // TODO: Remove all 'public' modifiers after smoke testing object creation
 // in the workspace script.
+
+// Use 'nil' for the WndProc while drafting the class. Later, implement the
+// event handler on Windows and reference it there.
 
 #endif
