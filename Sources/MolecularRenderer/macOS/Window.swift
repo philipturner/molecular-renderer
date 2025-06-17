@@ -4,6 +4,7 @@ import AppKit
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var nsWindow: NSWindow
   private var frameSize: SIMD2<Double>
+  nonisolated(unsafe) var launched: Bool = false
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -55,6 +56,7 @@ class Window: NSViewController, NSApplicationDelegate {
     // Make the window visible to the user.
     nsWindow.makeKey()
     nsWindow.orderFrontRegardless()
+    launched = true
   }
 }
 
@@ -70,17 +72,13 @@ extension Window {
   
   @objc
   func windowWillClose(notification: NSNotification) {
-    print("event 1")
-    let application = NSApplication.shared
-    application.stop(nil)
-//    exit(0)
+    exit(0)
   }
   
   override func keyDown(with event: NSEvent) {
     if event.modifierFlags.contains(.command) {
       let characters = event.charactersIgnoringModifiers!
       if characters == "w" {
-        print("event 2")
         exit(0)
       }
     }

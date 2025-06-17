@@ -79,7 +79,10 @@ class RunLoop: @unchecked Sendable {
     // Access the NSWindow on the main queue to prevent a crash.
     let window = application.window.nsWindow
     DispatchQueue.main.async {
-      let screen = window.screen!
+      guard let screen = window.screen else {
+        fatalError("Failed to retrieve the window's screen.")
+      }
+      
       let actualID = Display.number(screen: screen)
       guard actualID == originalID else {
         fatalError("Attempted to move the window to a different display.")

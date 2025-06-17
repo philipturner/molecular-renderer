@@ -10,6 +10,28 @@ public struct ApplicationDescriptor {
   }
 }
 
+// Issues with Application
+//
+// On macOS, 'NSApplication.shared' is a singleton. When I create an instance
+// of 'Application' and call 'run()', it seems to irreversibly modify the
+// singleton. Repeating the process a second time causes wierd behavior and
+// ultimately the program cannot function.
+//
+// Therefore, the following restriction is imposed on all users, on all
+// platforms:
+// - Never create more than 1 instance of Application in a top-level program.
+// - Never call 'run()' more than once.
+//
+// In addition, terminating the program normally on Mac is difficult in the UI.
+// The terminal is minimized if Stage Manager is enabled. After the program
+// ends, the terminal doesn't return to focus. You have to click the minimized
+// window to make it return. This is very annoying.
+//
+// Instead, I forcefully terminate on macOS via 'exit(0)'. This makes the
+// observation about 'RunLoop.stop()' obsolete, because the program crashes
+// before it can be called. I'm leaving the code and comment there for now.
+// Less code churn to worry about.
+
 public class Application {
   public var clock: Clock
   public let device: Device
@@ -33,7 +55,6 @@ public class Application {
     window.view = view
   }
   
-  /// Only call this one time after the application is created.
   @MainActor
   public func run(
     _ closure: @escaping (MTLTexture) -> Void
@@ -67,13 +88,11 @@ public class Application {
     //
     // No.
     
-    print("starting...")
     let application = NSApplication.shared
     application.delegate = window
     application.setActivationPolicy(.regular)
     application.activate(ignoringOtherApps: true)
     application.run()
-    print("stopping...")
     
     // This is needed. On some app launches, it makes no difference. On others,
     // the output handler is called dozens of times after the NSApplication

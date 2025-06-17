@@ -119,84 +119,81 @@ func createShaderSource() -> String {
   """
 }
 
-for _ in 0..<2 {
-  // Set up the application.
-  let application = createApplication()
-  
-  // Set up the shader.
-  var shaderDesc = ShaderDescriptor()
-  shaderDesc.device = application.device
-  shaderDesc.name = "renderImage"
-  shaderDesc.source = createShaderSource()
-  shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-  let shader = Shader(descriptor: shaderDesc)
-  
-  // Define the state variables.
-  var startTime: UInt64?
-  
-  // Enter the run loop.
-  application.run { renderTarget in
-    application.device.commandQueue.withCommandList { commandList in
-      // Utility function for calculating progress values.
-      var times: SIMD3<Float> = .zero
-      func setTime(_ time: Double, index: Int) {
-        let fractionalTime = time - floor(time)
-        times[index] = Float(fractionalTime)
-      }
+// Set up the application.
+let application = createApplication()
+
+// Set up the shader.
+var shaderDesc = ShaderDescriptor()
+shaderDesc.device = application.device
+shaderDesc.name = "renderImage"
+shaderDesc.source = createShaderSource()
+shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
+let shader = Shader(descriptor: shaderDesc)
+
+// Define the state variables.
+var startTime: UInt64?
+
+// Enter the run loop.
+application.run { renderTarget in
+  application.device.commandQueue.withCommandList { commandList in
+    // Utility function for calculating progress values.
+    var times: SIMD3<Float> = .zero
+    func setTime(_ time: Double, index: Int) {
+      let fractionalTime = time - floor(time)
+      times[index] = Float(fractionalTime)
+    }
+    
+    // Write the absolute time.
+    if let startTime {
+      let currentTime = mach_continuous_time()
+      let timeSeconds = Double(currentTime - startTime) / 24_000_000
+      setTime(timeSeconds, index: 0)
+    } else {
+      startTime = mach_continuous_time()
+      setTime(Double.zero, index: 0)
+    }
+    
+    // Write the time according to the counter.
+    do {
+      let clock = application.clock
+      let timeInFrames = clock.frames
+      let framesPerSecond = application.display.frameRate
+      let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
+      setTime(timeInSeconds, index: 1)
+      setTime(Double.zero, index: 2)
+    }
+    
+    // Fill the arguments data structure.
+    struct TimeArguments {
+      var time0: Float = .zero
+      var time1: Float = .zero
+      var time2: Float = .zero
+    }
+    var timeArgs = TimeArguments()
+    timeArgs.time0 = times[0]
+    timeArgs.time1 = times[1]
+    timeArgs.time2 = times[2]
+    
+    // Encode the compute command.
+    commandList.withPipelineState(shader) {
+      commandList.set32BitConstants(timeArgs, index: 0)
+      commandList.mtlCommandEncoder
+        .setTexture(renderTarget, index: 1)
       
-      // Write the absolute time.
-      if let startTime {
-        let currentTime = mach_continuous_time()
-        let timeSeconds = Double(currentTime - startTime) / 24_000_000
-        setTime(timeSeconds, index: 0)
-      } else {
-        startTime = mach_continuous_time()
-        setTime(Double.zero, index: 0)
-      }
+      let frameBufferSize = application.display.frameBufferSize
+      let groupSize = SIMD2<Int>(8, 8)
       
-      // Write the time according to the counter.
-      do {
-        let clock = application.clock
-        let timeInFrames = clock.frames
-        let framesPerSecond = application.display.frameRate
-        let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
-        setTime(timeInSeconds, index: 1)
-        setTime(Double.zero, index: 2)
-      }
+      var groupCount = frameBufferSize
+      groupCount &+= groupSize &- 1
+      groupCount /= groupSize
       
-      // Fill the arguments data structure.
-      struct TimeArguments {
-        var time0: Float = .zero
-        var time1: Float = .zero
-        var time2: Float = .zero
-      }
-      var timeArgs = TimeArguments()
-      timeArgs.time0 = times[0]
-      timeArgs.time1 = times[1]
-      timeArgs.time2 = times[2]
-      
-      // Encode the compute command.
-      commandList.withPipelineState(shader) {
-        commandList.set32BitConstants(timeArgs, index: 0)
-        commandList.mtlCommandEncoder
-          .setTexture(renderTarget, index: 1)
-        
-        let frameBufferSize = application.display.frameBufferSize
-        let groupSize = SIMD2<Int>(8, 8)
-        
-        var groupCount = frameBufferSize
-        groupCount &+= groupSize &- 1
-        groupCount /= groupSize
-        
-        let groupCount32 = SIMD3<UInt32>(
-          UInt32(groupCount[0]),
-          UInt32(groupCount[1]),
-          UInt32(1))
-        commandList.dispatch(groups: groupCount32)
-      }
+      let groupCount32 = SIMD3<UInt32>(
+        UInt32(groupCount[0]),
+        UInt32(groupCount[1]),
+        UInt32(1))
+      commandList.dispatch(groups: groupCount32)
     }
   }
-  print("return to the program")
 }
 
 #endif
