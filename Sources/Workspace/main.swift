@@ -1,15 +1,5 @@
 // Next steps:
 // - Merge Window (macOS) with WindowUtilities (Windows).
-//
-// Current objectives:
-// - Rewrite the macOS code to prepare for merging with Windows.
-// - Handle the window rect vs. client rect (frame rect vs. contect rect) with
-//   less ambiguity.
-//   - Start by inspecting the screen coordinates of the frame rect vs.
-//     content rect on macOS.
-// - Allow the run loop to end without crashing the calling program.
-//   - Do not provide a way to end the run loop programmatically. Only add
-//     functionality for closing via UI events.
 
 import MolecularRenderer
 
