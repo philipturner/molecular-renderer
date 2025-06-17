@@ -1,3 +1,12 @@
+// Next steps:
+// - Merge Window (macOS) with WindowUtilities (Windows).
+//
+// Current objectives:
+// - Rewrite the macOS code to prepare for merging with Windows.
+// - Handle the window rect vs. client rect (frame rect vs. contect rect) with
+//   less ambiguity.
+// - Allow the run loop to end without crashing the calling program.
+
 import MolecularRenderer
 
 #if os(macOS)
@@ -191,7 +200,6 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
-// Next step:
-// - Merge Window (macOS) with WindowUtilities (Windows).
+
 
 #endif

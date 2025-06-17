@@ -12,7 +12,7 @@ class Window: NSViewController, NSApplicationDelegate {
   init(display: Display) {
     // Initialize the window.
     nsWindow = NSWindow(
-      contentRect: NSRect.zero,
+      contentRect: NSRect.zero, // ???
       styleMask: [.closable, .titled],
       backing: .buffered,
       defer: false,
