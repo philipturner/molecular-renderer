@@ -191,5 +191,7 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+// Next step:
+// - Merge Window (macOS) with WindowUtilities (Windows).
 
 #endif
