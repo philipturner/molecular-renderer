@@ -11,12 +11,22 @@ class Window: NSViewController, NSApplicationDelegate {
   
   init(display: Display) {
     // Initialize the window.
+    //
+    // The content rectangle is set to zero, because its value at this time
+    // has no effect on the final value.
     nsWindow = NSWindow(
-      contentRect: NSRect.zero, // ???
+      contentRect: NSRect.zero,
       styleMask: [.closable, .titled],
       backing: .buffered,
       defer: false,
       screen: display.nsScreen)
+    print("nsWindow.contentLayoutRect:", nsWindow.contentLayoutRect)
+    print("nsWindow.frame:", nsWindow.frame)
+    
+    do {
+      let contentRect = nsWindow.contentRect(forFrameRect: nsWindow.frame)
+      print("nsWindow.contentRect(frame):", contentRect)
+    }
     
     // Prepare the window's bounds.
     let origin = Window.centeredOrigin(display: display)
@@ -25,10 +35,20 @@ class Window: NSViewController, NSApplicationDelegate {
       y: origin[1])
     nsWindow.setFrameOrigin(originPoint)
     windowSize = display.windowSize
+    print("originPoint:", originPoint)
+    print("nsWindow.frame:", nsWindow.frame)
+    print("windowSize:", windowSize)
+    
+    do {
+      let contentRect = nsWindow.contentRect(forFrameRect: nsWindow.frame)
+      print("nsWindow.contentRect(frame):", contentRect)
+    }
     
     super.init(nibName: nil, bundle: nil)
   }
   
+  // The content rect is set by the OS, between initialization and the call to
+  // this function.
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Register the UI event handlers.
     nsWindow.makeFirstResponder(self)
@@ -43,6 +63,11 @@ class Window: NSViewController, NSApplicationDelegate {
     guard nsWindow.frame.size.height > Double(windowSize[1]) else {
       fatalError("Title bar was missing.")
     }
+    print("application did finish launching")
+    print("nsWindow.frame:", nsWindow.frame)
+    
+    let contentRect = nsWindow.contentRect(forFrameRect: nsWindow.frame)
+    print("nsWindow.contentRect(frame):", contentRect)
     
     // Make the window visible to the user.
     nsWindow.makeKey()
