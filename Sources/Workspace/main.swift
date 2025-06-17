@@ -5,6 +5,9 @@
 // - Rewrite the macOS code to prepare for merging with Windows.
 // - Handle the window rect vs. client rect (frame rect vs. contect rect) with
 //   less ambiguity.
+//   - Start by inspecting the screen coordinates of the frame rect vs.
+//     content rect on macOS.
+//   - What happens when you make the initial contectRect nonzero?
 // - Allow the run loop to end without crashing the calling program.
 
 import MolecularRenderer
@@ -22,7 +25,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1920)
+  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1080)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
