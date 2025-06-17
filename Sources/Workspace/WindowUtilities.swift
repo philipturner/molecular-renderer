@@ -24,10 +24,7 @@ struct WindowUtilities {
     windowClass.style = UInt32(CS_HREDRAW | CS_VREDRAW)
     
     // Link to the message procedure, which is defined in a different file.
-    windowClass.lpfnWndProc = { hWnd, uMsg, wParam, lParam in
-      return MessageProcedure.windowProcedure(
-        hWnd, uMsg, wParam, lParam)
-    }
+    windowClass.lpfnWndProc = nil
     windowClass.cbClsExtra = 0
     windowClass.cbWndExtra = 0
     windowClass.hInstance = nil

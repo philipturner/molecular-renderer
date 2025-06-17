@@ -1,10 +1,39 @@
-// Reference code
-#if os(Windows)
-import MolecularRenderer
+#if os(macOS)
+import AppKit
+#else
 import SwiftCOM
 import WinSDK
+#endif
 
-class MessageProcedure {
+#if os(macOS)
+extension Window {
+  func registerCloseNotification() {
+    let notificationCenter = NotificationCenter.default
+    notificationCenter.addObserver(
+      self,
+      selector: #selector(windowWillClose(notification:)),
+      name: NSWindow.willCloseNotification,
+      object: nsWindow)
+  }
+  
+  @objc
+  func windowWillClose(notification: NSNotification) {
+    exit(0)
+  }
+  
+  override func keyDown(with event: NSEvent) {
+    if event.modifierFlags.contains(.command) {
+      let characters = event.charactersIgnoringModifiers!
+      if characters == "w" {
+        exit(0)
+      }
+    }
+  }
+}
+#endif
+
+#if os(Windows)
+extension Window {
   static func windowProcedure(
     _ hWnd: HWND?,
     _ uMsg: UInt32,
@@ -55,5 +84,4 @@ class MessageProcedure {
     return 0
   }
 }
-
 #endif

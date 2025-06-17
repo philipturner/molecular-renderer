@@ -1,6 +1,11 @@
 #if os(macOS)
 import AppKit
+#else
+import SwiftCOM
+import WinSDK
+#endif
 
+#if os(macOS)
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var nsWindow: NSWindow
   private var frameSize: SIMD2<Double>
@@ -57,44 +62,20 @@ class Window: NSViewController, NSApplicationDelegate {
     nsWindow.orderFrontRegardless()
   }
 }
-
-// TODO: Move this extension into a dedicated file for event handling.
-extension Window {
-  func registerCloseNotification() {
-    let notificationCenter = NotificationCenter.default
-    notificationCenter.addObserver(
-      self,
-      selector: #selector(windowWillClose(notification:)),
-      name: NSWindow.willCloseNotification,
-      object: nsWindow)
-  }
-  
-  @objc
-  func windowWillClose(notification: NSNotification) {
-    exit(0)
-  }
-  
-  override func keyDown(with event: NSEvent) {
-    if event.modifierFlags.contains(.command) {
-      let characters = event.charactersIgnoringModifiers!
-      if characters == "w" {
-        exit(0)
-      }
-    }
-  }
-}
 #endif
 
-
-
 #if os(Windows)
-import SwiftCOM
-import WinSDK
 
 // TODO: Remove all 'public' modifiers after smoke testing object creation
 // in the workspace script.
-
+//
 // Use 'nil' for the WndProc while drafting the class. Later, implement the
 // event handler on Windows and reference it there.
+
+public class Window {
+  public init(display: Display) {
+    
+  }
+}
 
 #endif
