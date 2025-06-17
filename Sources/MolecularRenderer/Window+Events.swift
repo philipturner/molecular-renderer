@@ -50,7 +50,11 @@ extension Window {
       // Render the window's contents for this frame.
       
       // Need a reference to the app's resources to invoke the render function.
-      fatalError("Not implemented.")
+      print("WM_PAINT not implemented.")
+      
+      var ps = PAINTSTRUCT()
+      BeginPaint(hWnd, &ps)
+      EndPaint(hWnd, &ps)
       
     case WM_SIZE:
       // Retrieve the window size.
@@ -69,7 +73,8 @@ extension Window {
       */
       
       // Need a reference to the app's resources to retrieve expected size.
-      fatalError("Not implemented.")
+      print("WM_SIZE not implemented.")
+      return DefWindowProcA(hWnd, uMsg, wParam, lParam)
       
     case WM_DESTROY:
       // End the application elegantly, unlike on macOS. It is too early to be

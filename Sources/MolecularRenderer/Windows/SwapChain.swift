@@ -4,7 +4,8 @@ import WinSDK
 
 public struct SwapChainDescriptor {
   public var device: Device?
-  public var window: HWND?
+  public var display: Display?
+  public var window: Window?
   
   public init() {
     
@@ -21,6 +22,7 @@ public class SwapChain {
   
   public init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
+          let display = descriptor.display,
           let window = descriptor.window else {
       fatalError("Descriptor was incomplete.")
     }
@@ -30,15 +32,16 @@ public class SwapChain {
     try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
     
     // Create the swap chain descriptor.
-    let swapChainDesc = Self.createSwapChainDescriptor()
+    let swapChainDesc = Self.createSwapChainDescriptor(
+      frameBufferSize: display.frameBufferSize)
     
     // Create the swap chain.
     let d3d12SwapChain1 = try! factory.CreateSwapChainForHwnd(
       device.commandQueue.d3d12CommandQueue, // pDevice
-      window, // hWnd
+      window.hWnd, // hWnd
       swapChainDesc, // pDesc
       nil, // pFullscreenDesc
-      nil) // pRestrictToOutput
+      display.dxgiOutput) // pRestrictToOutput
     self.d3d12SwapChain = try! d3d12SwapChain1.QueryInterface()
     
     // Set up the frame latency waitable object.
@@ -110,10 +113,12 @@ public class SwapChain {
 
 extension SwapChain {
   // Abstract away some code that appears unwieldy otherwise.
-  static func createSwapChainDescriptor() -> DXGI_SWAP_CHAIN_DESC1 {
+  static func createSwapChainDescriptor(
+    frameBufferSize: SIMD2<Int>
+  ) -> DXGI_SWAP_CHAIN_DESC1 {
     var swapChainDesc = DXGI_SWAP_CHAIN_DESC1()
-    swapChainDesc.Width = 1440
-    swapChainDesc.Height = 1440
+    swapChainDesc.Width = UInt32(frameBufferSize[0])
+    swapChainDesc.Height = UInt32(frameBufferSize[1])
     swapChainDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
     swapChainDesc.Stereo = false
     swapChainDesc.SampleDesc.Count = 1

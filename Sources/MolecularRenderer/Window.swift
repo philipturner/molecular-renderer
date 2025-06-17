@@ -66,10 +66,10 @@ class Window: NSViewController, NSApplicationDelegate {
 
 #if os(Windows)
 
-class Window {
-  let hWnd: HWND
+public class Window {
+  public let hWnd: HWND
   
-  init(display: Display) {
+  public init(display: Display) {
     Self.registerWindowClass()
     
     let monitor = Display.monitor(output: display.dxgiOutput)

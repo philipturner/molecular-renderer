@@ -1,12 +1,15 @@
 // Next steps:
-// - Modify SwapChain to respect the source of truth for frame buffer size.
+// - Major issue: the need for a global singleton to reference in WndProc.
+//   - Troubleshoot 'static var singleton: Application?' on Mac.
+//     Detect duplicate calls to Application.init, and temporarily enable
+//     the elegant application stop.
 // - Copy the reference code for 'Application' into the utilities.
 // - Gradually refactor the code to take the same form as on macOS.
-//   - Major issue: the need for a global singleton to reference in WndProc.
 //   - Bring the run loop structure into the utility code.
 //   - Bring the compute command out, but leave the Present calls inside the
 //     utilities.
-//   - Remove the 'public' modifier from everywhere it's no longer needed.
+//   - 'application.run()' should call ShowWindow.
+// - Remove the 'public' modifier from everywhere it's no longer needed.
 
 import MolecularRenderer
 
@@ -209,9 +212,22 @@ let device = Device(descriptor: deviceDesc)
 // Set up the display.
 var displayDesc = DisplayDescriptor()
 displayDesc.device = device
-displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
 displayDesc.monitorID = device.fastestMonitorID
 let display = Display(descriptor: displayDesc)
+
+let window = Window(display: display)
+
+// Set up the swap chain.
+var swapChainDesc = SwapChainDescriptor()
+swapChainDesc.device = device
+swapChainDesc.display = display
+swapChainDesc.window = window
+let swapChain = SwapChain(descriptor: swapChainDesc)
+print(swapChain.backBuffers.count)
+
+ShowWindow(window.hWnd, SW_SHOW)
+print("Finished ShowWindow")
 
 #endif
 
