@@ -77,6 +77,30 @@ public class Window {
     
     // Rework everything about how dimensions are done. As the next task, just
     // try to replicate the process of setting the various rects on macOS.
+    
+    // extract frame origin offset from frameRect
+    // - combine with center of workArea - contentSize / 2
+    // extract nWidth/nHeight from frameRect
+    
+    let monitor = Display.monitor(output: display.dxgiOutput)
+    let workArea = Display.workArea(monitor: monitor)
+    let workAreaCenter = (workArea.lowHalf &+ workArea.highHalf) / 2
+    
+    let contentSize = display.frameBufferSize
+    let contentTopLeft = workAreaCenter &- contentSize / 2
+    
+    // Add the origin of the frame rect, which is the offset from a perfectly
+    // aligned content rect.
+    let frameRect = Self.createFrameRect(contentSize: contentSize)
+    let frameTopLeft = contentTopLeft &+ frameRect.lowHalf
+    let frameSize = frameRect.highHalf &- frameRect.lowHalf
+    
+    
+    
+    print(workArea)
+    print(workAreaCenter)
+    print(contentTopLeft, contentSize)
+    print(frameTopLeft, frameSize)
   }
 }
 
@@ -128,6 +152,29 @@ extension Window {
     output |= WS_CAPTION
     output |= WS_SYSMENU
     return DWORD(output)
+  }
+  
+  static func createFrameRect(contentSize: SIMD2<Int>) -> SIMD4<Int> {
+    var frameRect = RECT()
+    frameRect.left = 0
+    frameRect.top = 0
+    frameRect.right = Int32(contentSize[0])
+    frameRect.bottom = Int32(contentSize[1])
+    
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+    let succeeded = AdjustWindowRect(
+      &frameRect, // lpRect
+      createWindowStyle(), // dwStyle
+      false) // bMenu
+    guard succeeded else {
+      fatalError("Could not adjust frame rect.")
+    }
+    
+    return SIMD4(
+      Int(frameRect.left),
+      Int(frameRect.top),
+      Int(frameRect.right),
+      Int(frameRect.bottom))
   }
 }
 
