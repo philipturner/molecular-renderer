@@ -14,18 +14,19 @@ class MessageProcedure {
     guard let hWnd else {
       fatalError("hWnd was null.")
     }
-    print("Invoked the message procedure with message \(uMsg).")
     
     // Branch over the possible message types.
     switch Int32(uMsg) {
     case WM_PAINT:
       // Render the window's contents for this frame.
-      var ps = PAINTSTRUCT()
-      BeginPaint(hWnd, &ps)
-      EndPaint(hWnd, &ps)
+      
+      // Need a reference to the app's resources to invoke the render function.
+      fatalError("Not implemented.")
       
     case WM_SIZE:
       // Retrieve the window size.
+      
+      /*
       var clientRect = RECT()
       GetClientRect(hWnd, &clientRect)
       
@@ -36,8 +37,14 @@ class MessageProcedure {
             clientRect.bottom == 1440 else {
         fatalError("Attempted to resize the window.")
       }
+      */
+      
+      // Need a reference to the app's resources to retrieve expected size.
+      fatalError("Not implemented.")
       
     case WM_DESTROY:
+      // End the application elegantly, unlike on macOS. It is too early to be
+      // able to reason about divergent program behavior after app launch.
       PostQuitMessage(0)
       
     default:
