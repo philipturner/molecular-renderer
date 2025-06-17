@@ -167,10 +167,13 @@ extension Display {
   #if os(macOS)
   // The resolution of the rendering region, according to the operating
   // system's scale factor.
-  var windowSize: SIMD2<Int> {
+  //
+  // Perhaps change the data type to SIMD2<Double>.
+  var contentSize: SIMD2<Int> {
     var output = SIMD2<Double>(frameBufferSize)
     output /= nsScreen.backingScaleFactor
     
+    // Why must we work with integers?
     guard output == output.rounded(.down) else {
       fatalError("Resolution was not evenly divisible by scaling factor.")
     }
@@ -219,6 +222,8 @@ extension Display {
   #if os(macOS)
   // The coordinates of the work area, according to the operating system's
   // scale factor.
+  //
+  // This entire function might need to be deleted.
   static func workArea(screen: NSScreen) -> SIMD4<Int> {
     let visibleFrame = screen.visibleFrame
     guard let x = Int(exactly: visibleFrame.origin.x),
@@ -228,7 +233,11 @@ extension Display {
       fatalError("Visible frame had a non-integer number of pixels.")
     }
     
-    // Convert from (x, y, width, height) to (left, top, right, bottom).
+    // Convert from (x, y, width, height) to (left, bottom, right, top).
+    //
+    // On macOS, the coordinates start from the bottom left. On Windows, they
+    // start from the top left. This may lead to confusion when sharing code
+    // between the platforms.
     return SIMD4(
       x,
       y,

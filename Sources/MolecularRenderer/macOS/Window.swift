@@ -3,7 +3,7 @@ import AppKit
 
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var nsWindow: NSWindow
-  var windowSize: SIMD2<Int>
+  var contentSize: SIMD2<Int>
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -20,14 +20,8 @@ class Window: NSViewController, NSApplicationDelegate {
       backing: .buffered,
       defer: false,
       screen: display.nsScreen)
-    print("nsWindow.contentLayoutRect:", nsWindow.contentLayoutRect)
-    print("nsWindow.frame:", nsWindow.frame)
     
-    do {
-      let contentRect = nsWindow.contentRect(forFrameRect: nsWindow.frame)
-      print("nsWindow.contentRect(frame):", contentRect)
-    }
-    
+    /*
     // Prepare the window's bounds.
     let origin = Window.centeredOrigin(display: display)
     let originPoint = CGPoint(
@@ -35,14 +29,26 @@ class Window: NSViewController, NSApplicationDelegate {
       y: origin[1])
     nsWindow.setFrameOrigin(originPoint)
     windowSize = display.windowSize
-    print("originPoint:", originPoint)
-    print("nsWindow.frame:", nsWindow.frame)
-    print("windowSize:", windowSize)
+     */
     
-    do {
-      let contentRect = nsWindow.contentRect(forFrameRect: nsWindow.frame)
-      print("nsWindow.contentRect(frame):", contentRect)
-    }
+    let workArea = Display.workArea(
+      screen: display.nsScreen)
+    let workAreaCenter = (workArea.lowHalf &+ workArea.highHalf) / 2
+    let contentOrigin = workAreaCenter &- display.contentSize / 2
+    
+    let contentRect = NSRect(
+      x: contentOrigin[0],
+      y: contentOrigin[1],
+      width: display.contentSize[0],
+      height: display.contentSize[1])
+    let frameRect = nsWindow.frameRect(forContentRect: contentRect)
+    
+    print(workArea)
+    print(workAreaCenter)
+    print(contentOrigin)
+    print(contentRect)
+    print(frameRect)
+    fatalError("Not implemented.")
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -54,6 +60,7 @@ class Window: NSViewController, NSApplicationDelegate {
     nsWindow.makeFirstResponder(self)
     registerCloseNotification()
     
+    /*
     // Initialize the window's dimensions (which are slightly larger than the
     // render target).
     nsWindow.contentViewController = self
@@ -63,11 +70,7 @@ class Window: NSViewController, NSApplicationDelegate {
     guard nsWindow.frame.size.height > Double(windowSize[1]) else {
       fatalError("Title bar was missing.")
     }
-    print("application did finish launching")
-    print("nsWindow.frame:", nsWindow.frame)
-    
-    let contentRect = nsWindow.contentRect(forFrameRect: nsWindow.frame)
-    print("nsWindow.contentRect(frame):", contentRect)
+     */
     
     // Make the window visible to the user.
     nsWindow.makeKey()
@@ -76,6 +79,7 @@ class Window: NSViewController, NSApplicationDelegate {
 }
 
 extension Window {
+  /*
   static func centeredOrigin(display: Display) -> SIMD2<Double> {
     let workArea = Display.workArea(
       screen: display.nsScreen)
@@ -89,6 +93,7 @@ extension Window {
     
     return upperLeft
   }
+   */
   
   func registerCloseNotification() {
     let notificationCenter = NotificationCenter.default
