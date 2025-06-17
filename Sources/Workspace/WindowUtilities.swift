@@ -1,5 +1,5 @@
 // Reference code
-#if os(macOS)
+#if os(Windows)
 import MolecularRenderer
 import SwiftCOM
 import WinSDK
@@ -24,9 +24,9 @@ struct WindowUtilities {
     windowClass.style = UInt32(CS_HREDRAW | CS_VREDRAW)
     
     // Link to the message procedure, which is defined in a different file.
-    windowClass.lpfnWndProc = { hwnd, message, wParam, lParam in
-      return MessageProcedure.globalProcedure(
-        hwnd, message, wParam, lParam)
+    windowClass.lpfnWndProc = { hWnd, uMsg, wParam, lParam in
+      return MessageProcedure.windowProcedure(
+        hWnd, uMsg, wParam, lParam)
     }
     windowClass.cbClsExtra = 0
     windowClass.cbWndExtra = 0

@@ -204,7 +204,20 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+// Set up the device.
+var deviceDesc = DeviceDescriptor()
+deviceDesc.deviceID = Device.fastestDeviceID
+let device = Device(descriptor: deviceDesc)
 
+// Set up the display.
+var displayDesc = DisplayDescriptor()
+displayDesc.device = device
+displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
+displayDesc.monitorID = device.fastestMonitorID
+let display = Display(descriptor: displayDesc)
+
+let window = WindowUtilities.createWindow()
+ShowWindow(window, SW_SHOW)
 
 #endif
 

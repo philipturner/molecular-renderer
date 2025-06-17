@@ -4,7 +4,6 @@ import AppKit
 class Window: NSViewController, NSApplicationDelegate {
   nonisolated(unsafe) var nsWindow: NSWindow
   private var frameSize: SIMD2<Double>
-  nonisolated(unsafe) var launched: Bool = false
   
   required init(coder: NSCoder) {
     fatalError("Not implemented.")
@@ -56,7 +55,6 @@ class Window: NSViewController, NSApplicationDelegate {
     // Make the window visible to the user.
     nsWindow.makeKey()
     nsWindow.orderFrontRegardless()
-    launched = true
   }
 }
 
@@ -84,4 +82,15 @@ extension Window {
     }
   }
 }
+#endif
+
+
+
+#if os(Windows)
+import SwiftCOM
+import WinSDK
+
+// TODO: Remove all 'public' modifiers after smoke testing object creation
+// in the workspace script.
+
 #endif
