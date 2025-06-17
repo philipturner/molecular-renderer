@@ -202,13 +202,12 @@ let device = Device(descriptor: deviceDesc)
 // Set up the display.
 var displayDesc = DisplayDescriptor()
 displayDesc.device = device
-displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
+displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
 displayDesc.monitorID = device.fastestMonitorID
 let display = Display(descriptor: displayDesc)
 
 // Set up the window.
 let window = Window(display: display)
-print(window)
 
 #endif
 

@@ -68,19 +68,12 @@ class Window: NSViewController, NSApplicationDelegate {
 
 // TODO: Remove all 'public' modifiers after smoke testing object creation
 // in the workspace script.
-//
-// TODO: Fix the two places where createWindowStyle() should be called.
 
 public class Window {
+  public let hWnd: HWND
+  
   public init(display: Display) {
     Self.registerWindowClass()
-    
-    // Rework everything about how dimensions are done. As the next task, just
-    // try to replicate the process of setting the various rects on macOS.
-    
-    // extract frame origin offset from frameRect
-    // - combine with center of workArea - contentSize / 2
-    // extract nWidth/nHeight from frameRect
     
     let monitor = Display.monitor(output: display.dxgiOutput)
     let workArea = Display.workArea(monitor: monitor)
@@ -95,12 +88,9 @@ public class Window {
     let frameTopLeft = contentTopLeft &+ frameRect.lowHalf
     let frameSize = frameRect.highHalf &- frameRect.lowHalf
     
-    
-    
-    print(workArea)
-    print(workAreaCenter)
-    print(contentTopLeft, contentSize)
-    print(frameTopLeft, frameSize)
+    self.hWnd = Self.createWindow(
+      origin: frameTopLeft,
+      size: frameSize)
   }
 }
 
@@ -175,6 +165,37 @@ extension Window {
       Int(frameRect.top),
       Int(frameRect.right),
       Int(frameRect.bottom))
+  }
+  
+  static func createWindow(
+    origin: SIMD2<Int>,
+    size: SIMD2<Int>
+  ) -> HWND {
+    // Show the close button, but hide the icon.
+    //
+    // Source: https://stackoverflow.com/a/4905502
+    let dwExStyle = UInt32(WS_EX_DLGMODALFRAME)
+    let className: String = "Window"
+    
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+    let output = CreateWindowExA(
+      dwExStyle, // dwExStyle
+      className, // lpClassName
+      nil, // lpWindowName
+      createWindowStyle(), // dwStyle
+      Int32(origin[0]), // X
+      Int32(origin[1]), // Y
+      Int32(size[0]), // nWidth
+      Int32(size[1]), // nHeight
+      nil, // hWndParent
+      nil, // hMenu
+      nil, // hInstance
+      nil) // lpParam
+    
+    guard let output else {
+      fatalError("Could not create window.")
+    }
+    return output
   }
 }
 
