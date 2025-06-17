@@ -66,13 +66,10 @@ class Window: NSViewController, NSApplicationDelegate {
 
 #if os(Windows)
 
-// TODO: Remove all 'public' modifiers after smoke testing object creation
-// in the workspace script.
-
-public class Window {
-  public let hWnd: HWND
+class Window {
+  let hWnd: HWND
   
-  public init(display: Display) {
+  init(display: Display) {
     Self.registerWindowClass()
     
     let monitor = Display.monitor(output: display.dxgiOutput)

@@ -1,5 +1,12 @@
 // Next steps:
-// - Merge Window (macOS) with WindowUtilities (Windows).
+// - Modify SwapChain to respect the source of truth for frame buffer size.
+// - Copy the reference code for 'Application' into the utilities.
+// - Gradually refactor the code to take the same form as on macOS.
+//   - Major issue: the need for a global singleton to reference in WndProc.
+//   - Bring the run loop structure into the utility code.
+//   - Bring the compute command out, but leave the Present calls inside the
+//     utilities.
+//   - Remove the 'public' modifier from everywhere it's no longer needed.
 
 import MolecularRenderer
 
@@ -205,9 +212,6 @@ displayDesc.device = device
 displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
 displayDesc.monitorID = device.fastestMonitorID
 let display = Display(descriptor: displayDesc)
-
-// Set up the window.
-let window = Window(display: display)
 
 #endif
 
