@@ -18,7 +18,7 @@ struct WindowUtilities {
   static func registerWindowClass() {
     var windowClass = WNDCLASSEXA()
     windowClass.cbSize = UInt32(MemoryLayout<WNDCLASSEXA>.stride)
-    windowClass.style = UInt32(CS_HREDRAW | CS_VREDRAW)
+    windowClass.style = 0
     
     // Link to the message procedure, which is defined in a different file.
     windowClass.lpfnWndProc = nil
