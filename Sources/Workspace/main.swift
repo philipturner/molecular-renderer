@@ -228,3 +228,41 @@ while true {
 }
 
 #endif
+
+// # Initialization procedure and data dependencies
+//
+// Display
+// - source of truth for frame buffer size
+// - source of truth for content rect
+//   - frame buffer size (Windows)
+//   - DPI-scaled window size (macOS)
+// - source of truth for work area (DPI-scaled depending on OS)
+// - source of truth for frame rate
+//
+// Clock
+// - depends on frame rate
+//
+// Window
+// - depends on content rect
+// - depends on 'AdjustWindowRect' for window rect (Windows)
+// - depends on 'NSWindow.init' for frame rect (macOS)
+// - applicationDidFinishLaunching (macOS) depends on:
+//   - expected frame rect
+//
+// View (macOS)
+// - depends on 'Device'
+// - depends on frame buffer size
+// - depends on content rect
+// - assigned as the underlying 'NSView' of the 'NSViewController'
+// - setBoundsSize/setFrameSize depends on:
+//   - expected content rect
+//
+// SwapChain (Windows)
+// - depends on 'Device'
+// - depends on frame buffer size
+// - depends on HWND
+//
+// MessageProcedure (Windows)
+// - WM_SIZE response depends on:
+//   - HWND to query content rect
+//   - expected content rect
