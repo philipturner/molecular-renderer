@@ -1,4 +1,5 @@
-#if os(Windows)
+// Reference code
+#if os(macOS)
 import MolecularRenderer
 import SwiftCOM
 import WinSDK

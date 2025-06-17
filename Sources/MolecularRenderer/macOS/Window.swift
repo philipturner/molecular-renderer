@@ -84,5 +84,4 @@ extension Window {
     }
   }
 }
-
 #endif

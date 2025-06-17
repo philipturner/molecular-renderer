@@ -204,27 +204,7 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
-let window = Application.global.window
-ShowWindow(window, SW_SHOW)
 
-// Invoke the game loop.
-SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
-while true {
-  var message = MSG()
-  let peekMessageOutput = PeekMessageA(
-    &message, // lpMsg
-    nil, // hWnd
-    0, // wMsgFilterMin
-    0, // wMsgFilterMax
-    UInt32(PM_REMOVE)) // wRemoveMsg
-  
-  if message.message == WM_QUIT {
-    break
-  } else if peekMessageOutput {
-    TranslateMessage(&message)
-    DispatchMessageA(&message)
-  }
-}
 
 #endif
 
