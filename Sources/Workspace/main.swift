@@ -206,9 +206,6 @@ displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
 displayDesc.monitorID = device.fastestMonitorID
 let display = Display(descriptor: displayDesc)
 
-let window = WindowUtilities.createWindow()
-ShowWindow(window, SW_SHOW)
-
 #endif
 
 // # Initialization procedure and data dependencies

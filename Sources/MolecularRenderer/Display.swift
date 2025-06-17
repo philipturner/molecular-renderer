@@ -200,11 +200,11 @@ extension Display {
     
     var devMode = DEVMODEA()
     devMode.dmSize = UInt16(MemoryLayout<DEVMODEA>.size)
-    let returnValue = EnumDisplaySettingsA(
+    let succeeded = EnumDisplaySettingsA(
       deviceName, // lpszDeviceName
       ENUM_CURRENT_SETTINGS, // iModeNum
       &devMode) // lpDevMode
-    guard returnValue else {
+    guard succeeded else {
       fatalError("Could not retrieve display settings.")
     }
     
@@ -223,14 +223,14 @@ extension Display {
   
   // The coordinates of the work area, in pixels.
   static func workArea(monitor: HMONITOR) -> SIMD4<Int> {
-    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-    
     var monitorInfo = MONITORINFO()
     monitorInfo.cbSize = UInt32(MemoryLayout<MONITORINFO>.size)
-    let returnValue = GetMonitorInfoA(
+    
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+    let succeeded = GetMonitorInfoA(
       monitor, // hMonitor
       &monitorInfo) // lpmi
-    guard returnValue else {
+    guard succeeded else {
       fatalError("Could not retrieve monitor info.")
     }
     

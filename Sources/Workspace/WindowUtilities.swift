@@ -4,12 +4,9 @@ import MolecularRenderer
 import SwiftCOM
 import WinSDK
 
-// This file will merge with 'Window', currently under 'macOS'.
-
 struct WindowUtilities {
   // Create a window using the utilities in this file.
   static func createWindow() -> HWND {
-    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
     registerWindowClass()
     
     let dimensions = createWindowDimensions()
@@ -32,6 +29,9 @@ struct WindowUtilities {
     // Generate the cursor object.
     let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
     let cursor = LoadCursorA(nil, cursorName)
+    guard let cursor else {
+      fatalError("Could not load cursor.")
+    }
     windowClass.hCursor = cursor
     windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
     windowClass.hIcon = nil
@@ -47,9 +47,7 @@ struct WindowUtilities {
       
       let atom = RegisterClassExA(&windowClass)
       guard atom > 0 else {
-        let errorCode = GetLastError()
-        fatalError(
-          "Could not create window class. Received error code \(errorCode).")
+        fatalError("Could not create window class.")
       }
     }
   }
@@ -70,19 +68,28 @@ struct WindowUtilities {
   // Lane 2: width
   // Lane 3: height
   static func createWindowDimensions() -> SIMD4<UInt32> {
+    // This should use the actual work area.
     let screenWidth = Int32(GetSystemMetrics(SM_CXSCREEN))
     let screenHeight = Int32(GetSystemMetrics(SM_CYSCREEN))
     
+    // This should use Display.frameBufferSize
     var windowRect = RECT()
     windowRect.left = 0
     windowRect.top = 0
     windowRect.right = 1440
     windowRect.bottom = 1440
-    AdjustWindowRect(
+    
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+    let succeeded = AdjustWindowRect(
       &windowRect, // lpRect
       createWindowStyle(), // dwStyle
       false) // bMenu
+    guard succeeded else {
+      fatalError("Could not adjust window rect.")
+    }
     
+    // Change this so the center of the content rect aligns with the center
+    // of the work area.
     let windowSizeX = Int32(windowRect.right - windowRect.left)
     let windowSizeY = Int32(windowRect.bottom - windowRect.top)
     
@@ -104,6 +111,7 @@ struct WindowUtilities {
     let dwExStyle = UInt32(WS_EX_DLGMODALFRAME)
     let className: String = "Window"
     
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
     let output = CreateWindowExA(
       dwExStyle, // dwExStyle
       className, // lpClassName
@@ -119,9 +127,7 @@ struct WindowUtilities {
       nil) // lpParam
     
     guard let output else {
-      let errorCode = GetLastError()
-      fatalError(
-        "Failed to create window. Received error code \(errorCode).")
+      fatalError("Could not create window.")
     }
     return output
   }
