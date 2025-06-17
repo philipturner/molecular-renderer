@@ -47,7 +47,7 @@ class RunLoop: @unchecked Sendable {
   ) -> CVReturn {
     // Increment the frame counter.
     application.clock.increment(
-      vsyncTimeStamp: outputTime.pointee)
+      frameStatistics: outputTime.pointee)
     
     // There is a bug where CVDisplayLink doesn't register transitions to an
     // external display. We detect this bug by first

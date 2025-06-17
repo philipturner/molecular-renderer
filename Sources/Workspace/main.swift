@@ -65,6 +65,10 @@ func createShaderSource() -> String {
     // Query the screen's dimensions.
     uint screenWidth = frameBuffer.get_width();
     uint screenHeight = frameBuffer.get_height();
+    if ((tid.x >= screenWidth) ||
+        (tid.y >= screenHeight)) {
+      return;
+    }
     
     // Specify the arrangement of the bars.
     float line0 = float(screenHeight) * float(15) / 18;
@@ -163,11 +167,18 @@ application.run { renderTarget in
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 1)
       
-      let groups = SIMD3<UInt32>(
-        UInt32(renderTarget.width) / 8,
-        UInt32(renderTarget.height) / 8,
-        1)
-      commandList.dispatch(groups: groups)
+      let frameBufferSize = application.display.frameBufferSize
+      let groupSize = SIMD2<Int>(8, 8)
+      
+      var groupCount = frameBufferSize
+      groupCount &+= groupSize &- 1
+      groupCount /= groupSize
+      
+      let groupCount32 = SIMD3<UInt32>(
+        UInt32(groupCount[0]),
+        UInt32(groupCount[1]),
+        UInt32(1))
+      commandList.dispatch(groups: groupCount32)
     }
   }
 }

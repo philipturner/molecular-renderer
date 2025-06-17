@@ -20,7 +20,10 @@ class Window: NSViewController, NSApplicationDelegate {
     
     // Prepare the window's bounds.
     let origin = Window.centeredOrigin(display: display)
-    nsWindow.setFrameOrigin(origin)
+    let originPoint = CGPoint(
+      x: origin[0],
+      y: origin[1])
+    nsWindow.setFrameOrigin(originPoint)
     windowSize = display.windowSize
     
     super.init(nibName: nil, bundle: nil)
@@ -48,15 +51,18 @@ class Window: NSViewController, NSApplicationDelegate {
 }
 
 extension Window {
-  static func centeredOrigin(display: Display) -> CGPoint {
-    let center = SIMD2<Double>(
-      display.nsScreen.visibleFrame.midX,
-      display.nsScreen.visibleFrame.midY)
+  static func centeredOrigin(display: Display) -> SIMD2<Double> {
+    let workArea = Display.workArea(
+      screen: display.nsScreen)
+    
+    let center = (
+      SIMD2<Double>(workArea.lowHalf) +
+      SIMD2<Double>(workArea.highHalf)
+    ) / 2
     
     let upperLeft = center - SIMD2<Double>(display.windowSize) / 2
-    return CGPoint(
-      x: upperLeft[0],
-      y: upperLeft[1])
+    
+    return upperLeft
   }
   
   func registerCloseNotification() {
