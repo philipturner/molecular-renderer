@@ -16,7 +16,9 @@ protocol CVDisplayLinkProtocol {
   )
   
   func CVDisplayLinkGetCurrentCGDisplay(_ displayLink: CVDisplayLink) -> Int
+  
   func CVDisplayLinkStart(_ displayLink: CVDisplayLink)
+  
   func CVDisplayLinkStop(_ displayLink: CVDisplayLink)
 }
 

@@ -33,6 +33,7 @@ public class Application {
     window.view = view
   }
   
+  /// Only call this one time after the application is created.
   @MainActor
   public func run(
     _ closure: @escaping (MTLTexture) -> Void
@@ -66,12 +67,17 @@ public class Application {
     //
     // No.
     
+    print("starting...")
     let application = NSApplication.shared
     application.delegate = window
     application.setActivationPolicy(.regular)
     application.activate(ignoringOtherApps: true)
     application.run()
+    print("stopping...")
     
+    // This is needed. On some app launches, it makes no difference. On others,
+    // the output handler is called dozens of times after the NSApplication
+    // stops running.
     runLoop.stop()
   }
 }

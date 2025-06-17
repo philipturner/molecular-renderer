@@ -23,12 +23,13 @@ class Window: NSViewController, NSApplicationDelegate {
     
     let workArea = display.nsScreen.visibleFrame
     let workAreaCenter = SIMD2<Double>(workArea.midX, workArea.midY)
+    
     let contentSize = display.contentSize
     let contentBottomLeft = workAreaCenter - contentSize / 2
-    
     let contentRect = NSRect(
       origin: CGPointMake(contentBottomLeft[0], contentBottomLeft[1]),
       size: CGSizeMake(contentSize[0], contentSize[1]))
+    
     let frameRect = nsWindow.frameRect(forContentRect: contentRect)
     nsWindow.setFrameOrigin(frameRect.origin)
     self.frameSize = SIMD2(
@@ -69,13 +70,17 @@ extension Window {
   
   @objc
   func windowWillClose(notification: NSNotification) {
-    exit(0)
+    print("event 1")
+    let application = NSApplication.shared
+    application.stop(nil)
+//    exit(0)
   }
   
   override func keyDown(with event: NSEvent) {
     if event.modifierFlags.contains(.command) {
       let characters = event.charactersIgnoringModifiers!
       if characters == "w" {
+        print("event 2")
         exit(0)
       }
     }
