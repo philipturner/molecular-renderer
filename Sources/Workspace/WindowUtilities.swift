@@ -25,6 +25,7 @@ struct WindowUtilities {
     windowClass.cbClsExtra = 0
     windowClass.cbWndExtra = 0
     windowClass.hInstance = nil
+    windowClass.hIcon = nil
     
     // Generate the cursor object.
     let cursorName = UnsafeMutablePointer<Int8>(bitPattern: UInt(32512))
@@ -34,8 +35,6 @@ struct WindowUtilities {
     }
     windowClass.hCursor = cursor
     windowClass.hbrBackground = HBRUSH(bitPattern: Int(COLOR_WINDOW + 1))
-    windowClass.hIcon = nil
-    windowClass.hIconSm = nil
     
     // 'RegisterClassExA' must be called within the same scope where the cString
     // pointer exists. Otherwise, cString becomes a zombie pointer and the
@@ -44,6 +43,7 @@ struct WindowUtilities {
     name.withCString { cString in
       windowClass.lpszMenuName = nil
       windowClass.lpszClassName = cString
+      windowClass.hIconSm = nil
       
       let atom = RegisterClassExA(&windowClass)
       guard atom > 0 else {
