@@ -68,16 +68,6 @@ public class Application {
     Application.singleton = self
   }
   
-  // This declaration will eventually be migrated to the RunLoop file.
-  #if os(macOS)
-  // MTLTexture is the frame buffer texture.
-  public typealias RunClosure = (MTLTexture) -> Void
-  #else
-  // ID3D12DescriptorHeap contains the texture in slot 0. The heap is shader
-  // visible.
-  public typealias RunClosure = (SwiftCOM.ID3D12DescriptorHeap) -> Void
-  #endif
-  
   @MainActor
   public func run(
     _ closure: @escaping RunClosure

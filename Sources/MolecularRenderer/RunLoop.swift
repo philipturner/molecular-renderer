@@ -1,6 +1,20 @@
 #if os(macOS)
 import QuartzCore
+#else
+import SwiftCOM
+import WinSDK
+#endif
 
+#if os(macOS)
+/// MTLTexture is the frame buffer texture.
+public typealias RunClosure = (MTLTexture) -> Void
+#else
+/// ID3D12DescriptorHeap contains the texture in slot 0. The heap is shader
+/// visible.
+public typealias RunClosure = (SwiftCOM.ID3D12DescriptorHeap) -> Void
+#endif
+
+#if os(macOS)
 struct RunLoopDescriptor {
   var closure: ((MTLTexture) -> Void)?
   var display: Display?
@@ -112,5 +126,4 @@ class RunLoop: @unchecked Sendable {
     return kCVReturnSuccess
   }
 }
-
 #endif
