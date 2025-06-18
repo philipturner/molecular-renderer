@@ -48,19 +48,24 @@ public struct ApplicationDescriptor {
 // about in more detail.
 
 public class Application {
-  @MainActor
-  static var singleton: Application?
+  nonisolated(unsafe) static var singleton: Application?
   var didRun: Bool = false
   
   public let device: Device
   public let display: Display
   public var clock: Clock
+  
+  #if os(macOS)
+  let window: Window
+  #else
   public let window: Window
+  #endif
+  
   #if os(macOS)
   let view: View
   #endif
-    
-  @MainActor
+  
+  // Don't need @MainActor on Windows.
   public init(descriptor: ApplicationDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display else {

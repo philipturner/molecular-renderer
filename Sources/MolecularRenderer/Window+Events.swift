@@ -18,6 +18,7 @@ extension Window {
   
   @objc
   func windowWillClose(notification: NSNotification) {
+    // End the application elegantly.
     let application = NSApplication.shared
     application.stop(nil)
   }
@@ -26,6 +27,7 @@ extension Window {
     if event.modifierFlags.contains(.command) {
       let characters = event.charactersIgnoringModifiers!
       if characters == "w" {
+        // End the application elegantly.
         let application = NSApplication.shared
         application.stop(nil)
       }
@@ -59,28 +61,26 @@ extension Window {
       EndPaint(hWnd, &ps)
       
     case WM_SIZE:
-      // Retrieve the window size.
+      // Retrieve the expected size.
+      guard let application = Application.singleton else {
+        fatalError("Could not retrieve the application.")
+      }
+      let frameBufferSize = application.display.frameBufferSize
       
-      /*
-      var clientRect = RECT()
-      GetClientRect(hWnd, &clientRect)
+      // Retrieve the actual size.
+      var contentRect = RECT()
+      GetClientRect(hWnd, &contentRect)
       
       // Assert that the size is correct.
-      guard clientRect.left == 0,
-            clientRect.top == 0,
-            clientRect.right == 1440,
-            clientRect.bottom == 1440 else {
+      guard contentRect.left == 0,
+            contentRect.top == 0,
+            contentRect.right == frameBufferSize[0],
+            contentRect.bottom == frameBufferSize[1] else {
         fatalError("Attempted to resize the window.")
       }
-      */
-      
-      // Need a reference to the app's resources to retrieve expected size.
-      print("WM_SIZE not implemented.")
-      return DefWindowProcA(hWnd, uMsg, wParam, lParam)
       
     case WM_DESTROY:
-      // End the application elegantly, unlike on macOS. It is too early to be
-      // able to reason about divergent program behavior after app launch.
+      // End the application elegantly.
       PostQuitMessage(0)
       
     default:

@@ -189,11 +189,33 @@ shaderDesc.source = createShaderSource()
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
-print(shader)
 
 
+
+#if os(Windows)
 let hWnd = application.window.hWnd
 ShowWindow(hWnd, SW_SHOW)
+
+// Invoke the game loop.
+SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
+while true {
+  var message = MSG()
+  let peekMessageOutput = PeekMessageA(
+    &message, // lpMsg
+    nil, // hWnd
+    0, // wMsgFilterMin
+    0, // wMsgFilterMax
+    UInt32(PM_REMOVE)) // wRemoveMsg
+  
+  if message.message == WM_QUIT {
+    break
+  } else if peekMessageOutput {
+    TranslateMessage(&message)
+    DispatchMessageA(&message)
+  }
+}
+#endif
+
 
 
 #if os(macOS)
