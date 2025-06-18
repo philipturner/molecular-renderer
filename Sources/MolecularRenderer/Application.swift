@@ -68,6 +68,9 @@ public class Application {
     Application.singleton = self
   }
   
+  // macOS: MTLTexture is the frame buffer texture.
+  // Windows: ID3D12DescriptorHeap contains the texture in slot 0. The heap is
+  // shader visible.
   #if os(macOS)
   @MainActor
   public func run(
