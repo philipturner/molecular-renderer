@@ -194,7 +194,9 @@ let shader = Shader(descriptor: shaderDesc)
 
 #if os(Windows)
 
-application.run { _ in }
+application.run { _ in
+  print("Invoked the user-supplied closure.")
+}
 
 #endif
 

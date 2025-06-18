@@ -200,6 +200,88 @@ extension RunLoop {
   #else
   func outputHandler() {
     print("Invoked the output handler on Windows.")
+    guard let application = Application.singleton else {
+      fatalError("Could not retrieve the application.")
+    }
+    
+    // WARNING: Handle any queued mouse and keyboard events that appeared
+    // during this blocking operation.
+    func waitOnObject() {
+      let result = WaitForSingleObjectEx(
+        application.swapChain.waitableObject, // hHandle
+        1000, // dwMilliseconds
+        true) // bAlertable
+      guard result == 0 else {
+        fatalError("Failed to wait for object: \(result)")
+      }
+    }
+    
+    func updateClock() {
+      let frameStatistics =
+      try? application.swapChain.d3d12SwapChain
+        .GetFrameStatistics()
+      application.clock.increment(frameStatistics: frameStatistics)
+    }
+    
+    waitOnObject()
+    updateClock()
+    
+    func createBackBuffer() -> SwiftCOM.ID3D12Resource {
+      let ringIndex =
+      try! application.swapChain.d3d12SwapChain
+        .GetCurrentBackBufferIndex()
+      return application.swapChain.backBuffers[Int(ringIndex)]
+    }
+    
+    let frameBuffer = application.swapChain.frameBuffer
+    let backBuffer = createBackBuffer()
+    application.device.commandQueue.withCommandList { commandList in
+      // Invoke the user-supplied closure.
+      let descriptorHeap = application.swapChain.frameBufferDescriptorHeap
+      self.closure(descriptorHeap)
+      
+      // Transitions before the copy command.
+      do {
+        let barrier1 = Self.transition(
+          resource: frameBuffer,
+          before: D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+          after: D3D12_RESOURCE_STATE_COPY_SOURCE)
+        let barrier2 = Self.transition(
+          resource: backBuffer,
+          before: D3D12_RESOURCE_STATE_PRESENT,
+          after: D3D12_RESOURCE_STATE_COPY_DEST)
+        let barriers = [barrier1, barrier2]
+        
+        try! commandList.d3d12CommandList.ResourceBarrier(
+          UInt32(barriers.count), barriers)
+      }
+      
+      // Copy the frame buffer into the back buffer.
+      do {
+        try! commandList.d3d12CommandList.CopyResource(
+          backBuffer, // pDstResource
+          frameBuffer) // pSrcResource
+      }
+      
+      // Transition after the copy command.
+      do {
+        let barrier1 = Self.transition(
+          resource: frameBuffer,
+          before: D3D12_RESOURCE_STATE_COPY_SOURCE,
+          after: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+        let barrier2 = Self.transition(
+          resource: backBuffer,
+          before: D3D12_RESOURCE_STATE_COPY_DEST,
+          after: D3D12_RESOURCE_STATE_PRESENT)
+        let barriers = [barrier1, barrier2]
+        
+        try! commandList.d3d12CommandList.ResourceBarrier(
+          UInt32(barriers.count), barriers)
+      }
+    }
+    
+    // Send the render target to the DWM.
+    try! application.swapChain.d3d12SwapChain.Present(1, 0)
   }
   #endif
   
