@@ -16,7 +16,6 @@ public struct ApplicationDescriptor {
 
 public class Application {
   nonisolated(unsafe) static var singleton: Application?
-  var didRun: Bool = false
   
   public let device: Device
   public let display: Display
@@ -33,6 +32,8 @@ public class Application {
   #else
   let swapChain: SwapChain
   #endif
+  
+  var runLoop: RunLoop?
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
@@ -72,17 +73,19 @@ public class Application {
   public func run(
     _ closure: @escaping RunClosure
   ) {
-    guard !didRun else {
-      fatalError("Can only run an application one time.")
-    }
-    didRun = true
-    
-    #if os(macOS)
     var runLoopDesc = RunLoopDescriptor()
     runLoopDesc.closure = closure
+    #if os(macOS)
     runLoopDesc.display = display
-    
+    #endif
     let runLoop = RunLoop(descriptor: runLoopDesc)
+    
+    guard self.runLoop == nil else {
+      fatalError("Can only run an application one time.")
+    }
+    self.runLoop = runLoop
+    
+    #if os(macOS)
     runLoop.start()
     
     // WARNING: Do not launch the application from the Xcode UI on macOS 15.

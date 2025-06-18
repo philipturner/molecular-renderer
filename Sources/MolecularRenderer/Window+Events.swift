@@ -52,10 +52,13 @@ extension Window {
     switch Int32(uMsg) {
     case WM_PAINT:
       // Render the window's contents for this frame.
+      guard let application = Application.singleton,
+            let runLoop = application.runLoop else {
+        fatalError("Could not retrieve run loop.")
+      }
+      runLoop.outputHandler()
       
-      // Need a reference to the app's resources to invoke the render function.
-      print("WM_PAINT not implemented.")
-      
+      // Delete this once you're actually rendering commands.
       var ps = PAINTSTRUCT()
       BeginPaint(hWnd, &ps)
       EndPaint(hWnd, &ps)

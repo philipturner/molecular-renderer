@@ -14,22 +14,31 @@ public typealias RunClosure = (MTLTexture) -> Void
 public typealias RunClosure = (SwiftCOM.ID3D12DescriptorHeap) -> Void
 #endif
 
-#if os(macOS)
 struct RunLoopDescriptor {
-  var closure: ((MTLTexture) -> Void)?
+  var closure: RunClosure?
+  #if os(macOS)
   var display: Display?
+  #endif
 }
 
 class RunLoop: @unchecked Sendable {
-  let closure: (MTLTexture) -> Void
+  let closure: RunClosure
+  #if os(macOS)
   var displayLink: CVDisplayLink?
+  #endif
   
   init(descriptor: RunLoopDescriptor) {
-    guard let closure = descriptor.closure,
-          let display = descriptor.display else {
+    // Check the closure argument.
+    guard let closure = descriptor.closure else {
       fatalError("Descriptor was incomplete.")
     }
     self.closure = closure
+    
+    // Check the display argument.
+    #if os(macOS)
+    guard let display = descriptor.display else {
+      fatalError("Descriptor was incomplete.")
+    }
     
     // Initialize the display link.
     let monitorID = Display.number(
@@ -38,8 +47,10 @@ class RunLoop: @unchecked Sendable {
       .CVDisplayLinkCreateWithCGDisplay(UInt32(monitorID), &displayLink)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkSetOutputHandler(displayLink!, outputHandler)
+    #endif
   }
   
+  #if os(macOS)
   func start() {
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkStart(displayLink!)
@@ -49,8 +60,12 @@ class RunLoop: @unchecked Sendable {
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkStop(displayLink!)
   }
-  
-  private func outputHandler(
+  #endif
+}
+
+extension RunLoop {
+  #if os(macOS)
+  func outputHandler(
     displayLink: CVDisplayLink,
     now: UnsafePointer<CVTimeStamp>,
     outputTime: UnsafePointer<CVTimeStamp>,
@@ -125,5 +140,35 @@ class RunLoop: @unchecked Sendable {
     
     return kCVReturnSuccess
   }
+  #else
+  func outputHandler() {
+    print("Invoked the output handler on Windows.")
+  }
+  #endif
+  
+  #if os(Windows)
+  // Utility function for transitioning resources.
+  static func transition(
+    resource: SwiftCOM.ID3D12Resource,
+    before: D3D12_RESOURCE_STATES,
+    after: D3D12_RESOURCE_STATES
+  ) -> D3D12_RESOURCE_BARRIER {
+    // Specify the type of barrier.
+    var barrier = D3D12_RESOURCE_BARRIER()
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+    
+    // Specify the transition's parameters.
+    try! resource.perform(
+      as: WinSDK.ID3D12Resource.self
+    ) { pUnk in
+      barrier.Transition.pResource = pUnk
+    }
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
+    barrier.Transition.StateBefore = before
+    barrier.Transition.StateAfter = after
+    
+    return barrier
+  }
+  #endif
 }
-#endif

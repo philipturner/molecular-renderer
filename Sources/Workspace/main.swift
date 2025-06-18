@@ -193,12 +193,11 @@ let shader = Shader(descriptor: shaderDesc)
 
 
 #if os(Windows)
-application.run { _ in
 
-}
 
 let hWnd = application.window.hWnd
 ShowWindow(hWnd, SW_SHOW)
+//application.run { _ in }
 
 // Invoke the game loop.
 SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
