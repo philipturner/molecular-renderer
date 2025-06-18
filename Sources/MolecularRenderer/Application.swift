@@ -1,6 +1,4 @@
-#if os(macOS)
-import AppKit
-#else
+#if os(Windows)
 import SwiftCOM
 import WinSDK
 #endif

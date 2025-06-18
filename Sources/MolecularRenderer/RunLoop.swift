@@ -1,15 +1,15 @@
 #if os(macOS)
-import QuartzCore
+import AppKit
 #else
 import SwiftCOM
 import WinSDK
 #endif
 
 #if os(macOS)
-/// MTLTexture is the frame buffer texture.
+/// `MTLTexture` is the frame buffer texture.
 public typealias RunClosure = (MTLTexture) -> Void
 #else
-/// ID3D12DescriptorHeap contains the texture in slot 0. The heap is shader
+/// `ID3D12DescriptorHeap` contains the texture in slot 0. The heap is shader
 /// visible.
 public typealias RunClosure = (SwiftCOM.ID3D12DescriptorHeap) -> Void
 #endif
@@ -50,6 +50,7 @@ class RunLoop: @unchecked Sendable {
     #endif
   }
   
+  @MainActor
   func start(window: Window) {
     #if os(macOS)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
@@ -81,6 +82,9 @@ class RunLoop: @unchecked Sendable {
     application.delegate = window
     application.setActivationPolicy(.regular)
     application.activate(ignoringOtherApps: true)
+    
+    // This invocation is the reason the code must be within a @MainActor
+    // scope on macOS.
     application.run()
     #else
     ShowWindow(window.hWnd, SW_SHOW)
