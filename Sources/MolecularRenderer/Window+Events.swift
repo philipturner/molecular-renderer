@@ -18,14 +18,16 @@ extension Window {
   
   @objc
   func windowWillClose(notification: NSNotification) {
-    exit(0)
+    let application = NSApplication.shared
+    application.stop(nil)
   }
   
   override func keyDown(with event: NSEvent) {
     if event.modifierFlags.contains(.command) {
       let characters = event.charactersIgnoringModifiers!
       if characters == "w" {
-        exit(0)
+        let application = NSApplication.shared
+        application.stop(nil)
       }
     }
   }

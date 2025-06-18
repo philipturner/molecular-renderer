@@ -32,6 +32,17 @@ public struct ApplicationDescriptor {
 // before it can be called. I'm leaving the code and comment there for now.
 // Less code churn to worry about.
 
+// It gets stranger:
+//
+// Calling NSApplication.stop inside of 'windowWillClose', the terminal doesn't
+// pop back into focus.
+//
+// Calling NSApplication.stop inside of 'keyDown(with:)', the terminal does
+// pop back into focus.
+//
+// Therefore, I'm keeping the elegant exit for now. But this should be thought
+// about in more detail.
+
 public class Application {
   public var clock: Clock
   public let device: Device
