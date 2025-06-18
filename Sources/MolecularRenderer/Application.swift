@@ -30,6 +30,8 @@ public class Application {
   
   #if os(macOS)
   let view: View
+  #else
+  let swapChain: SwapChain
   #endif
   
   @MainActor
@@ -50,6 +52,13 @@ public class Application {
     // This assignment is the reason the code must be within a @MainActor
     // scope on macOS.
     window.view = view
+    #else
+    // Create the swap chain.
+    var swapChainDesc = SwapChainDescriptor()
+    swapChainDesc.device = device
+    swapChainDesc.display = display
+    swapChainDesc.window = window
+    self.swapChain = SwapChain(descriptor: swapChainDesc)
     #endif
     
     guard Application.singleton == nil else {
