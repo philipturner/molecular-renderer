@@ -150,10 +150,6 @@ func createShaderSource() -> String {
   #endif
 }
 
-
-
-#if os(macOS)
-
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
@@ -164,7 +160,11 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
+  #if os(macOS)
   displayDesc.frameBufferSize = SIMD2<Int>(1920, 1920)
+  #else
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  #endif
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -185,9 +185,18 @@ var shaderDesc = ShaderDescriptor()
 shaderDesc.device = application.device
 shaderDesc.name = "renderImage"
 shaderDesc.source = createShaderSource()
+#if os(macOS)
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
+#endif
 let shader = Shader(descriptor: shaderDesc)
+print(shader)
 
+
+let hWnd = application.window.hWnd
+ShowWindow(hWnd, SW_SHOW)
+
+
+#if os(macOS)
 // Define the state variables.
 var startTime: UInt64?
 
@@ -253,31 +262,5 @@ application.run { renderTarget in
     }
   }
 }
-
-#endif
-
-
-
-#if os(Windows)
-
-// Set up the device.
-var deviceDesc = DeviceDescriptor()
-deviceDesc.deviceID = Device.fastestDeviceID
-let device = Device(descriptor: deviceDesc)
-
-// Set up the display.
-var displayDesc = DisplayDescriptor()
-displayDesc.device = device
-displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
-displayDesc.monitorID = device.fastestMonitorID
-let display = Display(descriptor: displayDesc)
-
-// Set up the shader.
-var shaderDesc = ShaderDescriptor()
-shaderDesc.device = device
-shaderDesc.name = "renderImage"
-shaderDesc.source = createShaderSource()
-let shader = Shader(descriptor: shaderDesc)
-print(shader)
 
 #endif

@@ -1,5 +1,9 @@
 #if os(macOS)
 import AppKit
+#else
+import SwiftCOM
+import WinSDK
+#endif
 
 public struct ApplicationDescriptor {
   public var device: Device?
@@ -48,12 +52,14 @@ public class Application {
   static var singleton: Application?
   var didRun: Bool = false
   
-  public var clock: Clock
   public let device: Device
   public let display: Display
+  public var clock: Clock
+  public let window: Window
+  #if os(macOS)
   let view: View
-  let window: Window
-  
+  #endif
+    
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
     guard let device = descriptor.device,
@@ -63,11 +69,13 @@ public class Application {
     self.device = device
     self.display = display
     
-    clock = Clock(display: display)
-    view = View(display: display)
-    window = Window(display: display)
+    self.clock = Clock(display: display)
+    self.window = Window(display: display)
     
+    #if os(macOS)
+    self.view = View(display: display)
     window.view = view
+    #endif
     
     guard Application.singleton == nil else {
       fatalError(
@@ -76,6 +84,7 @@ public class Application {
     Application.singleton = self
   }
   
+  #if os(macOS)
   @MainActor
   public func run(
     _ closure: @escaping (MTLTexture) -> Void
@@ -125,6 +134,5 @@ public class Application {
     // stops running.
     runLoop.stop()
   }
+  #endif
 }
-
-#endif
