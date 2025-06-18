@@ -8,9 +8,149 @@
 // - Remove the 'public' modifier from everywhere it's no longer needed.
 
 import MolecularRenderer
-
 #if os(macOS)
 import Metal
+#else
+import SwiftCOM
+import WinSDK
+#endif
+
+func createShaderSource() -> String {
+  func includes() -> String {
+    """
+    
+    struct TimeArguments {
+      float time0;
+      float time1;
+      float time2;
+    };
+    
+    float convertToChannel(
+      float hue,
+      float saturation,
+      float lightness,
+      uint n
+    ) {
+      float k = float(n) + hue / 30;
+      k -= 12 * floor(k / 12);
+      
+      float a = saturation;
+      a *= min(lightness, 1 - lightness);
+      
+      float output = min(k - 3, 9 - k);
+      output = max(output, float(-1));
+      output = min(output, float(1));
+      output = lightness - a * output;
+      return output;
+    }
+    
+    """
+  }
+  
+  func shaderBody() -> String {
+    """
+    
+    // Specify the arrangement of the bars.
+    float line0 = float(screenHeight) * float(15) / 18;
+    float line1 = float(screenHeight) * float(16) / 18;
+    float line2 = float(screenHeight) * float(17) / 18;
+    
+    // Render something based on the pixel's position.
+    float4 color;
+    if (float(tid.y) < line0) {
+      color = float4(0.707, 0.707, 0.00, 1.00);
+    } else {
+      float progress = float(tid.x) / float(screenWidth);
+      if (float(tid.y) < line1) {
+        progress += timeArgs.time0;
+      } else if (float(tid.y) < line2) {
+        progress += timeArgs.time1;
+      } else {
+        progress += timeArgs.time2;
+      }
+      
+      float hue = float(progress) * 360;
+      float saturation = 1.0;
+      float lightness = 0.5;
+      
+      float red = convertToChannel(hue, saturation, lightness, 0);
+      float green = convertToChannel(hue, saturation, lightness, 8);
+      float blue = convertToChannel(hue, saturation, lightness, 4);
+      color = float4(red, green, blue, 1.00);
+    }
+    
+    """
+  }
+  
+  #if os(macOS)
+  return """
+  
+  #include <metal_stdlib>
+  using namespace metal;
+  
+  \(includes())
+  
+  kernel void renderImage(
+    constant TimeArguments &timeArgs [[buffer(0)]],
+    texture2d<float, access::write> frameBuffer [[texture(1)]],
+    uint2 tid [[thread_position_in_grid]]
+  ) {
+    // Query the screen's dimensions.
+    uint screenWidth = frameBuffer.get_width();
+    uint screenHeight = frameBuffer.get_height();
+    if ((tid.x >= screenWidth) ||
+        (tid.y >= screenHeight)) {
+      return;
+    }
+    
+    \(shaderBody())
+    
+    // Write the pixel to the screen.
+    frameBuffer.write(color, tid);
+  }
+  
+  """
+  #else
+  func rootSignature() -> String {
+    """
+    "RootConstants(num32BitConstants = 3, b0),"
+    "DescriptorTable(UAV(u0, numDescriptors = 1)),"
+    """
+  }
+  
+  return """
+  
+  \(includes())
+  
+  ConstantBuffer<TimeArguments> timeArgs : register(b0);
+  RWTexture2D<float4> frameBuffer : register(u0);
+  
+  [numthreads(8, 8, 1)]
+  [RootSignature(\(rootSignature()))]
+  void renderImage(
+    uint2 tid : SV_DispatchThreadID
+  ) {
+    // Query the screen's dimensions.
+    uint screenWidth;
+    uint screenHeight;
+    frameBuffer.GetDimensions(screenWidth, screenHeight);
+    if ((tid.x >= screenWidth) ||
+        (tid.y >= screenHeight)) {
+      return;
+    }
+    
+    \(shaderBody())
+    
+    // Write the pixel to the screen.
+    frameBuffer[tid] = color;
+  }
+  
+  """
+  
+  #endif
+}
+
+#if os(macOS)
 
 @MainActor
 func createApplication() -> Application {
@@ -35,6 +175,7 @@ func createApplication() -> Application {
   return application
 }
 
+#if false
 func createShaderSource() -> String {
   """
   
@@ -114,6 +255,7 @@ func createShaderSource() -> String {
   
   """
 }
+#endif
 
 // Set up the application.
 let application = createApplication()
@@ -197,9 +339,8 @@ application.run { renderTarget in
 
 
 #if os(Windows)
-import SwiftCOM
-import WinSDK
 
+#if false
 func createShaderSource() -> String {
   let rootSignature = """
   "RootConstants(num32BitConstants = 3, b0),"
@@ -285,6 +426,7 @@ func createShaderSource() -> String {
   
   """
 }
+#endif
 
 // Set up the device.
 var deviceDesc = DeviceDescriptor()
