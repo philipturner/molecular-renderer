@@ -14,39 +14,6 @@ public struct ApplicationDescriptor {
   }
 }
 
-// Issues with Application
-//
-// On macOS, 'NSApplication.shared' is a singleton. When I create an instance
-// of 'Application' and call 'run()', it seems to irreversibly modify the
-// singleton. Repeating the process a second time causes wierd behavior and
-// ultimately the program cannot function.
-//
-// Therefore, the following restriction is imposed on all users, on all
-// platforms:
-// - Never create more than 1 instance of Application in a top-level program.
-// - Never call 'run()' more than once.
-//
-// In addition, terminating the program normally on Mac is difficult in the UI.
-// The terminal is minimized if Stage Manager is enabled. After the program
-// ends, the terminal doesn't return to focus. You have to click the minimized
-// window to make it return. This is very annoying.
-//
-// Instead, I forcefully terminate on macOS via 'exit(0)'. This makes the
-// observation about 'RunLoop.stop()' obsolete, because the program crashes
-// before it can be called. I'm leaving the code and comment there for now.
-// Less code churn to worry about.
-
-// It gets stranger:
-//
-// Calling NSApplication.stop inside of 'windowWillClose', the terminal doesn't
-// pop back into focus.
-//
-// Calling NSApplication.stop inside of 'keyDown(with:)', the terminal does
-// pop back into focus.
-//
-// Therefore, I'm keeping the elegant exit for now. But this should be thought
-// about in more detail.
-
 public class Application {
   nonisolated(unsafe) static var singleton: Application?
   var didRun: Bool = false
@@ -65,7 +32,7 @@ public class Application {
   let view: View
   #endif
   
-  // Don't need @MainActor on Windows.
+  @MainActor
   public init(descriptor: ApplicationDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display else {
@@ -79,6 +46,9 @@ public class Application {
     
     #if os(macOS)
     self.view = View(display: display)
+    
+    // This assignment is the reason the code must be within a @MainActor
+    // scope on macOS.
     window.view = view
     #endif
     
@@ -100,8 +70,8 @@ public class Application {
     didRun = true
     
     var runLoopDesc = RunLoopDescriptor()
-    runLoopDesc.application = self
     runLoopDesc.closure = closure
+    runLoopDesc.display = display
     
     let runLoop = RunLoop(descriptor: runLoopDesc)
     runLoop.start()

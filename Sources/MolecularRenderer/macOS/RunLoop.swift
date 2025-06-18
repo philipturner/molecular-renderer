@@ -2,26 +2,24 @@
 import QuartzCore
 
 struct RunLoopDescriptor {
-  var application: Application?
   var closure: ((MTLTexture) -> Void)?
+  var display: Display?
 }
 
 class RunLoop: @unchecked Sendable {
-  let application: Application
   let closure: (MTLTexture) -> Void
   var displayLink: CVDisplayLink?
   
   init(descriptor: RunLoopDescriptor) {
-    guard let application = descriptor.application,
-          let closure = descriptor.closure else {
+    guard let closure = descriptor.closure,
+          let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")
     }
-    self.application = application
     self.closure = closure
     
     // Initialize the display link.
-    let screen = application.display.nsScreen
-    let monitorID = Display.number(screen: screen)
+    let monitorID = Display.number(
+      screen: display.nsScreen)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkCreateWithCGDisplay(UInt32(monitorID), &displayLink)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
@@ -45,6 +43,10 @@ class RunLoop: @unchecked Sendable {
     flagsIn: CVOptionFlags,
     flagsOut: UnsafeMutablePointer<CVOptionFlags>,
   ) -> CVReturn {
+    guard let application = Application.singleton else {
+      fatalError("Could not retrieve the application.")
+    }
+    
     // Increment the frame counter.
     application.clock.increment(
       frameStatistics: outputTime.pointee)
