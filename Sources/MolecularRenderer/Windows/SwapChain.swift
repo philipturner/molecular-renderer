@@ -2,25 +2,21 @@
 import SwiftCOM
 import WinSDK
 
-public struct SwapChainDescriptor {
-  public var device: Device?
-  public var display: Display?
-  public var window: Window?
-  
-  public init() {
-    
-  }
+struct SwapChainDescriptor {
+  var device: Device?
+  var display: Display?
+  var window: Window?
 }
 
-public class SwapChain {
-  public let d3d12SwapChain: SwiftCOM.IDXGISwapChain4
-  public let waitableObject: HANDLE
+class SwapChain {
+  let d3d12SwapChain: SwiftCOM.IDXGISwapChain4
+  let waitableObject: HANDLE
   
-  public private(set) var backBuffers: [SwiftCOM.ID3D12Resource] = []
-  public let frameBuffer: SwiftCOM.ID3D12Resource
-  public let frameBufferDescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
+  private(set) var backBuffers: [SwiftCOM.ID3D12Resource] = []
+  let frameBuffer: SwiftCOM.ID3D12Resource
+  let frameBufferDescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
-  public init(descriptor: SwapChainDescriptor) {
+  init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display,
           let window = descriptor.window else {

@@ -18,13 +18,7 @@ public class Application {
   public let device: Device
   public let display: Display
   public var clock: Clock
-  
-  #if os(macOS)
   let window: Window
-  #else
-  public let window: Window
-  #endif
-  
   #if os(macOS)
   let view: View
   #else
