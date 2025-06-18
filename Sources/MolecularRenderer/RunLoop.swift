@@ -50,17 +50,70 @@ class RunLoop: @unchecked Sendable {
     #endif
   }
   
-  #if os(macOS)
-  func start() {
+  func start(window: Window) {
+    #if os(macOS)
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkStart(displayLink!)
+    
+    // WARNING: Do not launch the application from the Xcode UI on macOS 15.
+    // There is a bug that makes it launch the application 3 times:
+    // https://www.reddit.com/r/Xcode/comments/1g7640w/xcode_starting_running_my_programs_twice/
+    // https://developer.apple.com/forums/thread/765445
+    //
+    // Remedies:
+    // - Unchecking 'debug executable' in the Xcode scheme for 'Workspace':
+    //   - Reduces the number of launches from 3 to 2.
+    // - Delaying with sleep:
+    //   - sleep(1) from the forums is 1 s (1000 ms), an incredibly large delay.
+    //     Duplicated windows stop appearing once the delay approaches ~350 ms
+    //     on my machine. Use usleep(400_000) for 400 ms delay, or refine to
+    //     50 ms above the value that consistently works on your machine.
+    // - Switching to release mode in the Xcode scheme for 'Workspace':
+    //   - The number of launches is still 3.
+    // - Only launching from a SwiftPM console workflow ('swift run'):
+    //   - Effectively solves the problem.
+    //
+    // Can you auto-detect whether it's being launched from SwiftPM?
+    //
+    // No.
+    
+    let application = NSApplication.shared
+    application.delegate = window
+    application.setActivationPolicy(.regular)
+    application.activate(ignoringOtherApps: true)
+    application.run()
+    #else
+    ShowWindow(window.hWnd, SW_SHOW)
+    
+    SetPriorityClass(GetCurrentProcess(), UInt32(HIGH_PRIORITY_CLASS))
+    while true {
+      var message = MSG()
+      let peekMessageOutput = PeekMessageA(
+        &message, // lpMsg
+        nil, // hWnd
+        0, // wMsgFilterMin
+        0, // wMsgFilterMax
+        UInt32(PM_REMOVE)) // wRemoveMsg
+      
+      if message.message == WM_QUIT {
+        break
+      } else if peekMessageOutput {
+        TranslateMessage(&message)
+        DispatchMessageA(&message)
+      }
+    }
+    #endif
   }
   
   func stop() {
+    #if os(macOS)
+    // This is needed. On some app launches, it makes no difference. On others,
+    // the output handler is called dozens of times after the NSApplication
+    // stops running.
     (CVDisplayLinkStruct() as CVDisplayLinkProtocol)
       .CVDisplayLinkStop(displayLink!)
+    #endif
   }
-  #endif
 }
 
 extension RunLoop {
