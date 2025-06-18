@@ -1,11 +1,7 @@
 // Next steps:
-// - Copy the reference code for 'Application' into the utilities.
-// - Gradually refactor the code to take the same form as on macOS.
-//   - Bring the run loop structure into the utility code.
-//   - Bring the compute command out, but leave the Present calls inside the
-//     utilities.
-//   - 'application.run()' should call ShowWindow.
-// - Remove the 'public' modifier from everywhere it's no longer needed.
+// - Allow the window to be closed with "Ctrl + W" on Windows.
+// - Track keyboard and mouse events, establishing a prototype of the
+//   'UserInterface' utility.
 
 import MolecularRenderer
 #if os(macOS)
@@ -285,76 +281,3 @@ application.run { renderTarget in
     }
   }
 }
-
-
-
-/*
-#if os(macOS)
-// Define the state variables.
-var startTicks: UInt64?
-
-// Enter the run loop.
-application.run { renderTarget in
-  application.device.commandQueue.withCommandList { commandList in
-    // Utility function for calculating progress values.
-    var times: SIMD3<Float> = .zero
-    func setTime(_ time: Double, index: Int) {
-      let fractionalTime = time - time.rounded(.down)
-      times[index] = Float(fractionalTime)
-    }
-    
-    // Write the absolute time.
-    if let startTicks {
-      let elapsedTicks = queryTickCount() - startTicks
-      let timeSeconds = Double(elapsedTicks) / Double(ticksPerFrame())
-      setTime(timeSeconds, index: 0)
-    } else {
-      startTime = queryTickCount()
-      setTime(Double.zero, index: 0)
-    }
-    
-    // Write the time according to the counter.
-    do {
-      let clock = application.clock
-      let timeInFrames = clock.frames
-      let framesPerSecond = application.display.frameRate
-      let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
-      setTime(timeInSeconds, index: 1)
-      setTime(Double.zero, index: 2)
-    }
-    
-    // Fill the arguments data structure.
-    struct TimeArguments {
-      var time0: Float = .zero
-      var time1: Float = .zero
-      var time2: Float = .zero
-    }
-    var timeArgs = TimeArguments()
-    timeArgs.time0 = times[0]
-    timeArgs.time1 = times[1]
-    timeArgs.time2 = times[2]
-    
-    // Encode the compute command.
-    commandList.withPipelineState(shader) {
-      commandList.set32BitConstants(timeArgs, index: 0)
-      commandList.mtlCommandEncoder
-        .setTexture(renderTarget, index: 1)
-      
-      let frameBufferSize = application.display.frameBufferSize
-      let groupSize = SIMD2<Int>(8, 8)
-      
-      var groupCount = frameBufferSize
-      groupCount &+= groupSize &- 1
-      groupCount /= groupSize
-      
-      let groupCount32 = SIMD3<UInt32>(
-        UInt32(groupCount[0]),
-        UInt32(groupCount[1]),
-        UInt32(1))
-      commandList.dispatch(groups: groupCount32)
-    }
-  }
-}
-
-#endif
-*/
