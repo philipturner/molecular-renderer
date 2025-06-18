@@ -68,19 +68,26 @@ public class Application {
     Application.singleton = self
   }
   
-  // macOS: MTLTexture is the frame buffer texture.
-  // Windows: ID3D12DescriptorHeap contains the texture in slot 0. The heap is
-  // shader visible.
+  // This declaration will eventually be migrated to the RunLoop file.
   #if os(macOS)
+  // MTLTexture is the frame buffer texture.
+  public typealias RunClosure = (MTLTexture) -> Void
+  #else
+  // ID3D12DescriptorHeap contains the texture in slot 0. The heap is shader
+  // visible.
+  public typealias RunClosure = (SwiftCOM.ID3D12DescriptorHeap) -> Void
+  #endif
+  
   @MainActor
   public func run(
-    _ closure: @escaping (MTLTexture) -> Void
+    _ closure: @escaping RunClosure
   ) {
     guard !didRun else {
       fatalError("Can only run an application one time.")
     }
     didRun = true
     
+    #if os(macOS)
     var runLoopDesc = RunLoopDescriptor()
     runLoopDesc.closure = closure
     runLoopDesc.display = display
@@ -120,6 +127,6 @@ public class Application {
     // the output handler is called dozens of times after the NSApplication
     // stops running.
     runLoop.stop()
+    #endif
   }
-  #endif
 }

@@ -193,6 +193,10 @@ let shader = Shader(descriptor: shaderDesc)
 
 
 #if os(Windows)
+application.run { _ in
+
+}
+
 let hWnd = application.window.hWnd
 ShowWindow(hWnd, SW_SHOW)
 
