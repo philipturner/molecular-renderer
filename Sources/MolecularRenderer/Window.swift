@@ -65,7 +65,6 @@ class Window: NSViewController, NSApplicationDelegate {
 #endif
 
 #if os(Windows)
-
 public class Window {
   public let hWnd: HWND
   
@@ -195,5 +194,4 @@ extension Window {
     return output
   }
 }
-
 #endif

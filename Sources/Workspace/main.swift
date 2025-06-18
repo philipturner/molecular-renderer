@@ -1,8 +1,4 @@
 // Next steps:
-// - Major issue: the need for a global singleton to reference in WndProc.
-//   - Troubleshoot 'static var singleton: Application?' on Mac.
-//     Detect duplicate calls to Application.init, and temporarily enable
-//     the elegant application stop.
 // - Copy the reference code for 'Application' into the utilities.
 // - Gradually refactor the code to take the same form as on macOS.
 //   - Bring the run loop structure into the utility code.

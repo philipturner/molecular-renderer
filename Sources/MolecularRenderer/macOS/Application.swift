@@ -44,6 +44,10 @@ public struct ApplicationDescriptor {
 // about in more detail.
 
 public class Application {
+  @MainActor
+  static var singleton: Application?
+  var didRun: Bool = false
+  
   public var clock: Clock
   public let device: Device
   public let display: Display
@@ -64,12 +68,23 @@ public class Application {
     window = Window(display: display)
     
     window.view = view
+    
+    guard Application.singleton == nil else {
+      fatalError(
+        "Can only create one instance of Application in a program run.")
+    }
+    Application.singleton = self
   }
   
   @MainActor
   public func run(
     _ closure: @escaping (MTLTexture) -> Void
   ) {
+    guard !didRun else {
+      fatalError("Can only run an application one time.")
+    }
+    didRun = true
+    
     var runLoopDesc = RunLoopDescriptor()
     runLoopDesc.application = self
     runLoopDesc.closure = closure
