@@ -200,6 +200,92 @@ application.run { renderTarget in
 import SwiftCOM
 import WinSDK
 
+func createShaderSource() -> String {
+  let rootSignature = """
+  "RootConstants(num32BitConstants = 3, b0),"
+  "DescriptorTable(UAV(u0, numDescriptors = 1)),"
+  """
+  
+  return """
+  
+  struct TimeArguments {
+    float time0;
+    float time1;
+    float time2;
+  };
+  
+  float convertToChannel(
+    float hue,
+    float saturation,
+    float lightness,
+    uint n
+  ) {
+    float k = float(n) + hue / 30;
+    k -= 12 * floor(k / 12);
+    
+    float a = saturation;
+    a *= min(lightness, 1 - lightness);
+    
+    float output = min(k - 3, 9 - k);
+    output = max(output, float(-1));
+    output = min(output, float(1));
+    output = lightness - a * output;
+    return output;
+  }
+  
+  ConstantBuffer<TimeArguments> timeArgs : register(b0);
+  RWTexture2D<float4> frameBuffer : register(u0);
+  
+  [numthreads(8, 8, 1)]
+  [RootSignature(\(rootSignature))]
+  void renderImage(
+    uint2 tid : SV_DispatchThreadID
+  ) {
+    // Query the screen's dimensions.
+    uint screenWidth;
+    uint screenHeight;
+    frameBuffer.GetDimensions(screenWidth, screenHeight);
+    if ((tid.x >= screenWidth) ||
+        (tid.y >= screenHeight)) {
+      return;
+    }
+    
+    // Specify the arrangement of the bars.
+    float line0 = float(screenHeight) * float(15) / 18;
+    float line1 = float(screenHeight) * float(16) / 18;
+    float line2 = float(screenHeight) * float(17) / 18;
+    
+    // Render something based on the pixel's position.
+    float4 color;
+    if (float(tid.y) < line0) {
+      color = float4(0.707, 0.707, 0.00, 1.00);
+    } else {
+      float progress = float(tid.x) / float(screenWidth);
+      if (float(tid.y) < line1) {
+        progress += timeArgs.time0;
+      } else if (float(tid.y) < line2) {
+        progress += timeArgs.time1;
+      } else {
+        progress += timeArgs.time2;
+      }
+      
+      float hue = float(progress) * 360;
+      float saturation = 1.0;
+      float lightness = 0.5;
+      
+      float red = convertToChannel(hue, saturation, lightness, 0);
+      float green = convertToChannel(hue, saturation, lightness, 8);
+      float blue = convertToChannel(hue, saturation, lightness, 4);
+      color = float4(red, green, blue, 1.00);
+    }
+    
+    // Write the pixel to the screen.
+    frameBuffer[tid] = color;
+  }
+  
+  """
+}
+
 // Set up the device.
 var deviceDesc = DeviceDescriptor()
 deviceDesc.deviceID = Device.fastestDeviceID
@@ -212,55 +298,12 @@ displayDesc.frameBufferSize = SIMD2<Int>(1440, 810)
 displayDesc.monitorID = device.fastestMonitorID
 let display = Display(descriptor: displayDesc)
 
-let window = Window(display: display)
-
-// Set up the swap chain.
-var swapChainDesc = SwapChainDescriptor()
-swapChainDesc.device = device
-swapChainDesc.display = display
-swapChainDesc.window = window
-let swapChain = SwapChain(descriptor: swapChainDesc)
-print(swapChain.backBuffers.count)
-
-ShowWindow(window.hWnd, SW_SHOW)
-print("Finished ShowWindow")
+// Set up the shader.
+var shaderDesc = ShaderDescriptor()
+shaderDesc.device = device
+shaderDesc.name = "renderImage"
+shaderDesc.source = createShaderSource()
+let shader = Shader(descriptor: shaderDesc)
+print(shader)
 
 #endif
-
-// # Initialization procedure and data dependencies
-//
-// Display
-// - source of truth for frame buffer size
-// - source of truth for content rect
-//   - frame buffer size (Windows)
-//   - DPI-scaled window size (macOS)
-// - source of truth for work area (DPI-scaled depending on OS)
-// - source of truth for frame rate
-//
-// Clock
-// - depends on frame rate
-//
-// Window
-// - depends on content rect
-// - depends on 'AdjustWindowRect' for window rect (Windows)
-// - depends on 'NSWindow.init' for frame rect (macOS)
-// - applicationDidFinishLaunching (macOS) depends on:
-//   - expected frame rect
-//
-// View (macOS)
-// - depends on 'Device'
-// - depends on frame buffer size
-// - depends on content rect
-// - assigned as the underlying 'NSView' of the 'NSViewController'
-// - setBoundsSize/setFrameSize depends on:
-//   - expected content rect
-//
-// SwapChain (Windows)
-// - depends on 'Device'
-// - depends on frame buffer size
-// - depends on HWND
-//
-// MessageProcedure (Windows)
-// - WM_SIZE response depends on:
-//   - HWND to query content rect
-//   - expected content rect
