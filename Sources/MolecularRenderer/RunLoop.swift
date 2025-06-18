@@ -199,7 +199,6 @@ extension RunLoop {
   }
   #else
   func outputHandler() {
-    print("Invoked the output handler on Windows.")
     guard let application = Application.singleton else {
       fatalError("Could not retrieve the application.")
     }
@@ -233,13 +232,14 @@ extension RunLoop {
       return application.swapChain.backBuffers[Int(ringIndex)]
     }
     
+    // Invoke the user-supplied closure.
+    let descriptorHeap = application.swapChain.frameBufferDescriptorHeap
+    self.closure(descriptorHeap)
+    
+    // Present the frame buffer.
     let frameBuffer = application.swapChain.frameBuffer
     let backBuffer = createBackBuffer()
     application.device.commandQueue.withCommandList { commandList in
-      // Invoke the user-supplied closure.
-      let descriptorHeap = application.swapChain.frameBufferDescriptorHeap
-      self.closure(descriptorHeap)
-      
       // Transitions before the copy command.
       do {
         let barrier1 = Self.transition(

@@ -58,11 +58,6 @@ extension Window {
       }
       runLoop.outputHandler()
       
-      // Delete this once you're actually rendering commands.
-     /* var ps = PAINTSTRUCT()
-      BeginPaint(hWnd, &ps)
-      EndPaint(hWnd, &ps)
-      */
     case WM_SIZE:
       // Retrieve the expected size.
       guard let application = Application.singleton else {

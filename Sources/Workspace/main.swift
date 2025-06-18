@@ -192,19 +192,26 @@ let shader = Shader(descriptor: shaderDesc)
 
 
 
-#if os(Windows)
-
-application.run { _ in
-  print("Invoked the user-supplied closure.")
+func queryTickCount() -> UInt64 {
+  #if os(macOS)
+  return mach_continuous_time()
+  #else
+  var largeInteger = LARGE_INTEGER()
+  QueryPerformanceCounter(&largeInteger)
+  return UInt64(largeInteger.QuadPart)
+  #endif
 }
 
-#endif
+func ticksPerFrame() -> Int {
+  #if os(macOS)
+  return 24_000_000
+  #else
+  return 10_000_000
+  #endif
+}
 
-
-
-#if os(macOS)
 // Define the state variables.
-var startTime: UInt64?
+var startTicks: UInt64?
 
 // Enter the run loop.
 application.run { renderTarget in
@@ -212,17 +219,97 @@ application.run { renderTarget in
     // Utility function for calculating progress values.
     var times: SIMD3<Float> = .zero
     func setTime(_ time: Double, index: Int) {
-      let fractionalTime = time - floor(time)
+      let fractionalTime = time - time.rounded(.down)
       times[index] = Float(fractionalTime)
     }
     
     // Write the absolute time.
-    if let startTime {
-      let currentTime = mach_continuous_time()
-      let timeSeconds = Double(currentTime - startTime) / 24_000_000
+    if let startTicks {
+      let elapsedTicks = queryTickCount() - startTicks
+      let timeSeconds = Double(elapsedTicks) / Double(ticksPerFrame())
       setTime(timeSeconds, index: 0)
     } else {
-      startTime = mach_continuous_time()
+      startTicks = queryTickCount()
+      setTime(Double.zero, index: 0)
+    }
+    
+    // Write the time according to the counter.
+    do {
+      let clock = application.clock
+      let timeInFrames = clock.frames
+      let framesPerSecond = application.display.frameRate
+      let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
+      setTime(timeInSeconds, index: 1)
+      setTime(Double.zero, index: 2)
+    }
+    
+    // Fill the arguments data structure.
+    struct TimeArguments {
+      var time0: Float = .zero
+      var time1: Float = .zero
+      var time2: Float = .zero
+    }
+    var timeArgs = TimeArguments()
+    timeArgs.time0 = times[0]
+    timeArgs.time1 = times[1]
+    timeArgs.time2 = times[2]
+    
+    // Encode the compute command.
+    commandList.withPipelineState(shader) {
+      commandList.set32BitConstants(timeArgs, index: 0)
+      
+      #if os(macOS)
+      commandList.mtlCommandEncoder
+        .setTexture(renderTarget, index: 1)
+      #else
+      try! commandList.d3d12CommandList
+        .SetDescriptorHeaps([renderTarget])
+      let gpuDescriptorHandle = try! renderTarget
+        .GetGPUDescriptorHandleForHeapStart()
+      try! commandList.d3d12CommandList
+        .SetComputeRootDescriptorTable(1, gpuDescriptorHandle)
+      #endif
+      
+      let frameBufferSize = application.display.frameBufferSize
+      let groupSize = SIMD2<Int>(8, 8)
+      
+      var groupCount = frameBufferSize
+      groupCount &+= groupSize &- 1
+      groupCount /= groupSize
+      
+      let groupCount32 = SIMD3<UInt32>(
+        UInt32(groupCount[0]),
+        UInt32(groupCount[1]),
+        UInt32(1))
+      commandList.dispatch(groups: groupCount32)
+    }
+  }
+}
+
+
+
+/*
+#if os(macOS)
+// Define the state variables.
+var startTicks: UInt64?
+
+// Enter the run loop.
+application.run { renderTarget in
+  application.device.commandQueue.withCommandList { commandList in
+    // Utility function for calculating progress values.
+    var times: SIMD3<Float> = .zero
+    func setTime(_ time: Double, index: Int) {
+      let fractionalTime = time - time.rounded(.down)
+      times[index] = Float(fractionalTime)
+    }
+    
+    // Write the absolute time.
+    if let startTicks {
+      let elapsedTicks = queryTickCount() - startTicks
+      let timeSeconds = Double(elapsedTicks) / Double(ticksPerFrame())
+      setTime(timeSeconds, index: 0)
+    } else {
+      startTime = queryTickCount()
       setTime(Double.zero, index: 0)
     }
     
@@ -270,3 +357,4 @@ application.run { renderTarget in
 }
 
 #endif
+*/
