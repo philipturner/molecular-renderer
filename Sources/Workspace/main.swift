@@ -268,7 +268,7 @@ func queryTickCount() -> UInt64 {
   #endif
 }
 
-func ticksPerFrame() -> Int {
+func ticksPerSecond() -> Int {
   #if os(macOS)
   return 24_000_000
   #else
@@ -292,7 +292,7 @@ application.run { renderTarget in
     // Write the absolute time.
     if let startTicks {
       let elapsedTicks = queryTickCount() - startTicks
-      let timeSeconds = Double(elapsedTicks) / Double(ticksPerFrame())
+      let timeSeconds = Double(elapsedTicks) / Double(ticksPerSecond())
       setTime(timeSeconds, index: 0)
     } else {
       startTicks = queryTickCount()
