@@ -53,6 +53,9 @@
 //
 // Plan:
 // - Get a minimum programmatic, hands-off renderer on macOS.
+//   - Hard-code the background color from the old renderer (for now).
+//   - Render a circle proportional to screen size.
+//   - Retrieve the atom radii and colors from the old renderer.
 // - If needed, migrate some code from 'Workspace' to the main library.
 // - Switch over to Windows, repair the 'run' script, and port the code
 //   developed on macOS.
@@ -72,14 +75,7 @@ func createShaderSource() -> String {
   #include <metal_stdlib>
   using namespace metal;
   
-  struct TimeArguments {
-    float time0;
-    float time1;
-    float time2;
-  };
-  
   kernel void renderImage(
-    constant TimeArguments &timeArgs [[buffer(0)]],
     texture2d<float, access::write> frameBuffer [[texture(1)]],
     uint2 tid [[thread_position_in_grid]]
   ) {
@@ -141,74 +137,11 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
 
-
-
-func queryTickCount() -> UInt64 {
-  #if os(macOS)
-  return mach_continuous_time()
-  #else
-  var largeInteger = LARGE_INTEGER()
-  QueryPerformanceCounter(&largeInteger)
-  return UInt64(largeInteger.QuadPart)
-  #endif
-}
-
-func ticksPerSecond() -> Int {
-  #if os(macOS)
-  return 24_000_000
-  #else
-  return 10_000_000
-  #endif
-}
-
-// Define the state variables.
-var startTicks: UInt64?
-
 // Enter the run loop.
 application.run { renderTarget in
   application.device.commandQueue.withCommandList { commandList in
-    // Utility function for calculating progress values.
-    var times: SIMD3<Float> = .zero
-    func setTime(_ time: Double, index: Int) {
-      let fractionalTime = time - time.rounded(.down)
-      times[index] = Float(fractionalTime)
-    }
-    
-    // Write the absolute time.
-    if let startTicks {
-      let elapsedTicks = queryTickCount() - startTicks
-      let timeSeconds = Double(elapsedTicks) / Double(ticksPerSecond())
-      setTime(timeSeconds, index: 0)
-    } else {
-      startTicks = queryTickCount()
-      setTime(Double.zero, index: 0)
-    }
-    
-    // Write the time according to the counter.
-    do {
-      let clock = application.clock
-      let timeInFrames = clock.frames
-      let framesPerSecond = application.display.frameRate
-      let timeInSeconds = Double(timeInFrames) / Double(framesPerSecond)
-      setTime(timeInSeconds, index: 1)
-      setTime(Double.zero, index: 2)
-    }
-    
-    // Fill the arguments data structure.
-    struct TimeArguments {
-      var time0: Float = .zero
-      var time1: Float = .zero
-      var time2: Float = .zero
-    }
-    var timeArgs = TimeArguments()
-    timeArgs.time0 = times[0]
-    timeArgs.time1 = times[1]
-    timeArgs.time2 = times[2]
-    
     // Encode the compute command.
     commandList.withPipelineState(shader) {
-      commandList.set32BitConstants(timeArgs, index: 0)
-      
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 1)
       
