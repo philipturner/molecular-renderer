@@ -67,78 +67,16 @@ import WinSDK
 #endif
 
 func createShaderSource() -> String {
-  func includes() -> String {
-    """
-    
-    struct TimeArguments {
-      float time0;
-      float time1;
-      float time2;
-    };
-    
-    float convertToChannel(
-      float hue,
-      float saturation,
-      float lightness,
-      uint n
-    ) {
-      float k = float(n) + hue / 30;
-      k -= 12 * floor(k / 12);
-      
-      float a = saturation;
-      a *= min(lightness, 1 - lightness);
-      
-      float output = min(k - 3, 9 - k);
-      output = max(output, float(-1));
-      output = min(output, float(1));
-      output = lightness - a * output;
-      return output;
-    }
-    
-    """
-  }
-  
-  func shaderBody() -> String {
-    """
-    
-    // Specify the arrangement of the bars.
-    float line0 = float(screenHeight) * float(15) / 18;
-    float line1 = float(screenHeight) * float(16) / 18;
-    float line2 = float(screenHeight) * float(17) / 18;
-    
-    // Render something based on the pixel's position.
-    float4 color;
-    if (float(tid.y) < line0) {
-      color = float4(0.707, 0.707, 0.00, 1.00);
-    } else {
-      float progress = float(tid.x) / float(screenWidth);
-      if (float(tid.y) < line1) {
-        progress += timeArgs.time0;
-      } else if (float(tid.y) < line2) {
-        progress += timeArgs.time1;
-      } else {
-        progress += timeArgs.time2;
-      }
-      
-      float hue = float(progress) * 360;
-      float saturation = 1.0;
-      float lightness = 0.5;
-      
-      float red = convertToChannel(hue, saturation, lightness, 0);
-      float green = convertToChannel(hue, saturation, lightness, 8);
-      float blue = convertToChannel(hue, saturation, lightness, 4);
-      color = float4(red, green, blue, 1.00);
-    }
-    
-    """
-  }
-  
   return """
   
   #include <metal_stdlib>
   using namespace metal;
   
-  \(includes())
+  struct TimeArguments {
+    float time0;
+    float time1;
+    float time2;
+  };
   
   kernel void renderImage(
     constant TimeArguments &timeArgs [[buffer(0)]],
@@ -153,7 +91,8 @@ func createShaderSource() -> String {
       return;
     }
     
-    \(shaderBody())
+    // Render something based on the pixel's position.
+    float4 color = float4(0.707, 0.707, 0.00, 1.00);
     
     // Write the pixel to the screen.
     frameBuffer.write(color, tid);
