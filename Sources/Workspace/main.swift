@@ -53,9 +53,9 @@
 //
 // Plan:
 // - Get a minimum programmatic, hands-off renderer on macOS.
-//   - Hard-code the background color from the old renderer (for now).
-//   - Render a circle proportional to screen size.
-//   - Retrieve the atom radii and colors from the old renderer.
+//   - Render a circle proportional to screen size, with the color of carbon.
+//   - Retrieve the atom radii and colors from the old renderer. Put them in
+//     the workspace for now, until we figure out everything else.
 // - If needed, migrate some code from 'Workspace' to the main library.
 // - Switch over to Windows, repair the 'run' script, and port the code
 //   developed on macOS.
@@ -88,7 +88,7 @@ func createShaderSource() -> String {
     }
     
     // Render something based on the pixel's position.
-    float4 color = float4(0.707, 0.707, 0.00, 1.00);
+    float4 color = float4(0.707, 0.707, 0.707, 0.00);
     
     // Write the pixel to the screen.
     frameBuffer.write(color, tid);
