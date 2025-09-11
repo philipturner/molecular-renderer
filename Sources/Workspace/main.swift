@@ -52,7 +52,6 @@
 //   by the need to decouple unrelated software modules.
 //
 // Plan:
-// - Archive the current contents of 'main' to a GitHub Gist for good measure.
 // - Get a minimum programmatic, hands-off renderer on macOS.
 // - If needed, migrate some code from 'Workspace' to the main library.
 // - Switch over to Windows, repair the 'run' script, and port the code
@@ -134,7 +133,6 @@ func createShaderSource() -> String {
     """
   }
   
-  #if os(macOS)
   return """
   
   #include <metal_stdlib>
@@ -162,44 +160,6 @@ func createShaderSource() -> String {
   }
   
   """
-  #else
-  func rootSignature() -> String {
-    """
-    "RootConstants(num32BitConstants = 3, b0),"
-    "DescriptorTable(UAV(u0, numDescriptors = 1)),"
-    """
-  }
-  
-  return """
-  
-  \(includes())
-  
-  ConstantBuffer<TimeArguments> timeArgs : register(b0);
-  RWTexture2D<float4> frameBuffer : register(u0);
-  
-  [numthreads(8, 8, 1)]
-  [RootSignature(\(rootSignature()))]
-  void renderImage(
-    uint2 tid : SV_DispatchThreadID
-  ) {
-    // Query the screen's dimensions.
-    uint screenWidth;
-    uint screenHeight;
-    frameBuffer.GetDimensions(screenWidth, screenHeight);
-    if ((tid.x >= screenWidth) ||
-        (tid.y >= screenHeight)) {
-      return;
-    }
-    
-    \(shaderBody())
-    
-    // Write the pixel to the screen.
-    frameBuffer[tid] = color;
-  }
-  
-  """
-  
-  #endif
 }
 
 @MainActor
@@ -310,17 +270,8 @@ application.run { renderTarget in
     commandList.withPipelineState(shader) {
       commandList.set32BitConstants(timeArgs, index: 0)
       
-      #if os(macOS)
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 1)
-      #else
-      try! commandList.d3d12CommandList
-        .SetDescriptorHeaps([renderTarget])
-      let gpuDescriptorHandle = try! renderTarget
-        .GetGPUDescriptorHandleForHeapStart()
-      try! commandList.d3d12CommandList
-        .SetComputeRootDescriptorTable(1, gpuDescriptorHandle)
-      #endif
       
       let frameBufferSize = application.display.frameBufferSize
       let groupSize = SIMD2<Int>(8, 8)
