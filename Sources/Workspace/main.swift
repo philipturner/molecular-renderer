@@ -50,6 +50,13 @@
 // - Host the UserInterface utility in a GitHub gist or other appropriate
 //   location, intentionally outside the library code. This choice is justified
 //   by the need to decouple unrelated software modules.
+//
+// Plan:
+// - Archive the current contents of 'main' to a GitHub Gist for good measure.
+// - Get a minimum programmatic, hands-off renderer on macOS.
+// - If needed, migrate some code from 'Workspace' to the main library.
+// - Switch over to Windows, repair the 'run' script, and port the code
+//   developed on macOS.
 
 import HDL
 import MolecularRenderer
