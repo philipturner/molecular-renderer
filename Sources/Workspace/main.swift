@@ -56,6 +56,13 @@
 //   - Render a circle proportional to screen size, with the color of carbon.
 //   - Retrieve the atom radii and colors from the old renderer. Put them in
 //     the workspace for now, until we figure out everything else.
+//   - I think I can go all the way to visually correct ambient occlusion.
+//     Probably prioritize the low-level ray tracing anyway, UI is just an
+//     afterthought and too complex as a prerequisite. Just script the camera
+//     movements while developing the acceleration structure.
+//   - Still get the Ctrl+W on Windows, but nothing beyond that for UI.
+//   - Major discovery! Delete the point and click mouse interface! Don't
+//     invest effort developing this, ever.
 // - If needed, migrate some code from 'Workspace' to the main library.
 // - Switch over to Windows, repair the 'run' script, and port the code
 //   developed on macOS.
