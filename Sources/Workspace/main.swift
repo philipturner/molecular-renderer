@@ -21,14 +21,8 @@
 //       long-term, I haven't settled on an optimal API.
 //     - Defer this decision until I have a functioning 'UserInterface' API
 //       that can be selectively activated under user control.
-// - Too early to integrate 'HDL' for generating test structures and debugging
-//   the new feature for 2D crystals ('Planar' basis). First, need a
-//   functioning renderer that can visualize atoms.
 //
 // Major restructuring of plans:
-// - Focus on core hands-off rendering capability first, to enable testing of
-//   external libraries. This will unlock the latest round of planned
-//   maintenance on the libraries, especially a new crystal basis in HDL.
 // - Structure the UI capability to give the user complete control over how
 //   events are handled.
 //   - If they want a pure offline movie, they don't trigger any interactions
@@ -47,31 +41,6 @@
 //     in reference code in an external library, just like energy minimization,
 //     caching on disk, and encoding raw image buffers to serialized video
 //     formats.
-// - In a similar spirit, the deletion of built-in energy minimization from MM4
-//   will unlock more user control.
-// - Omitting a 2D basis from the HDL will not provide more user control.
-//   Instead, it just makes stuff more tedious. There is a distinct basis with
-//   only 2 vectors. And the C-H bonds should not have to shrink away from
-//   nominal values as a side effect of originally working in the lonsdaleite
-//   basis. Only include the extremely stable graphene and h-BN crystals.
-//   Silicene seems to be technical debt, not a stable or useful compound. And
-//   transition metal dichalcogenides are out of scope because of the lack of
-//   support for the transition metal atoms.
-//   - Reconstruction can proceed differently when the underlying basis is
-//     2D graphene. The bond topology is respecting pi bonds, not sigma bonds.
-//     In addition, the C-H bonds can be made shorter than the sum of atomic
-//     radii. Or not; there are valid reasons for either choice.
-//   - Wait...the default C-H bond length is already appropriate:
-//     - 76 pm + 31 pm = 107 pm
-//     - alkanes in MM3: 111.20 pm
-//     - alkenes in MM3: 110.10 pm
-//     - benzene in MM3: 110.10 pm
-//
-// Keep these notes around for a little bit, before deleting or archiving them
-// in a future commit. It's quite organized to have the plans kept in two
-// locations:
-// - molecular-renderer/windows-port currently planning renderer + HDL
-// - swift-xtb/intercept-linear-algebra currently planning xTB + MM4
 
 import HDL
 import MolecularRenderer
