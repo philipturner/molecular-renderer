@@ -41,6 +41,15 @@
 //     in reference code in an external library, just like energy minimization,
 //     caching on disk, and encoding raw image buffers to serialized video
 //     formats.
+//
+// Two conclusions from the above plans:
+// - Establish the low-level UI event handling or forwarding
+// - Need a minimum, bare-bones programmatic renderer like the earliest
+//   iteration of molecular-renderer. Doesn't need to be optimized or visually
+//   pleasing, just good enough to see movements in 3D.
+// - Host the UserInterface utility in a GitHub gist or other appropriate
+//   location, intentionally outside the library code. This choice is justified
+//   by the need to decouple unrelated software modules.
 
 import HDL
 import MolecularRenderer
