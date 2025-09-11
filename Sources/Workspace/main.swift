@@ -73,6 +73,7 @@
 // - molecular-renderer/windows-port currently planning renderer + HDL
 // - swift-xtb/intercept-linear-algebra currently planning xTB + MM4
 
+import HDL
 import MolecularRenderer
 #if os(macOS)
 import Metal

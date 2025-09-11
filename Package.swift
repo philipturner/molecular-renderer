@@ -15,8 +15,9 @@ var workspaceLinkerSettings: [LinkerSetting] = []
 // Common dependencies.
 workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
+  .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
-  "MolecularRenderer"
+  "MolecularRenderer",
 ]
 
 // Windows dependencies.
@@ -37,6 +38,10 @@ var targets: [Target] = []
 dependencies.append(.package(
   url: "https://github.com/apple/swift-atomics",
   .upToNextMajor(from: "1.3.0")))
+
+dependencies.append(.package(
+  url: "https://github.com/philipturner/HDL",
+  branch: "main"))
 
 dependencies.append(.package(
   url: "https://github.com/philipturner/swift-numerics",
