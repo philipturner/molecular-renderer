@@ -66,6 +66,10 @@
 // - If needed, migrate some code from 'Workspace' to the main library.
 // - Switch over to Windows, repair the 'run' script, and port the code
 //   developed on macOS.
+//
+// Immediate next task before working on rendering atoms:
+// - Get the current state of the code working on Windows again.
+// - Achieve parity in the Ctrl+W window closing functionality.
 
 import HDL
 import MolecularRenderer
