@@ -78,12 +78,16 @@ extension Window {
       }
       
     case WM_KEYDOWN:
+      // Implementation of 'Ctrl + W' shortcut:
+      //
       // VK_W = 0x57
       if UInt64(wParam) == Int32(0x57) {
         // Check whether 'Ctrl' was pressed.
         let ctrlState = GetKeyState(VK_CONTROL)
-        let ctrlPressed = (ctrlState < 0)
-        print(ctrlPressed)
+        if ctrlState < 0 {
+          // End the application elegantly.
+          PostQuitMessage(0)
+        }
       }
       
     case WM_DESTROY:
