@@ -28,7 +28,7 @@ Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once,
 
 Open the source code in VS Code by double-clicking `Package.swift`. Navigate to the file tree and open the package's parent directory.
 
-Go to `Terminal` in the top menu bar, then `TERMINAL` in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
+Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINAL</b> in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
 
 ### Renderer Window
 
