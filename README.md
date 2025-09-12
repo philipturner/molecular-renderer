@@ -2,6 +2,26 @@
 
 # Molecular Renderer
 
+Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the `Workspace` directory. These files compile on every program startup.
+
+You open a renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file. You incorporate external Swift modules through `Package.swift`. `run.sh` can be edited to link external C libraries and set environment variables.
+
+### macOS Instructions
+
+Open the source code in Xcode by double-clicking `Package.swift`. However, do not actually run the code from the Xcode UI.
+
+Open a Terminal window at the package directory, and run `bash run.sh`.
+
+### Windows Instructions
+
 Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
 
 Run `./run.bat` in the VS Code terminal. Run on every program startup.
+
+### Renderer Window
+
+With the renderer API (NOT YET CREATED), a window of your chosen resolution appears at program startup. You specify the monitor on which it appears, TAAU upscale factor (2 or 3), and resolution after upscaling.
+
+To close the window, press the "X" button. You can also use `Cmd + W` (macOS) or `Ctrl + W` (Windows).
+
+The window does not register keyboard/mouse events or forward them to the program. This may change in the distant future, to allow interactive WASD-type navigation of a scene.
