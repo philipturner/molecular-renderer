@@ -4,5 +4,5 @@
 :: startup. Perhaps Batch scripting has logic capabilities of Bash, and can do
 :: this inside 'install-libraries.bat'.
 CALL install-libraries.bat
-
+powershell -c "& 'C:\Program Files\Git\bin\bash.exe' compile-dxc-wrapper.sh"
 powershell -c "& 'C:\Program Files\Git\bin\bash.exe' run.sh"

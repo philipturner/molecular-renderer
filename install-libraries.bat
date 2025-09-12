@@ -9,6 +9,7 @@ powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSD
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/PrebuiltSignedDLL/amd_fidelityfx_dx12.lib' -OutFile 'amd_fidelityfx_dx12.lib'"
 
 :: Decompress each ZIP file into a hierarchy of folders.
+powershell -c "Import-Module Microsoft.Powershell.Archive"
 powershell -c "Expand-Archive -Force 'dxc_2025_02_20.zip' 'dxc_2025_02_20'"
 
 :: Workaround for issue with the linker on Windows: binaries must all reside
