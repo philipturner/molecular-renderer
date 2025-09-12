@@ -56,6 +56,7 @@ func createApplication() -> Application {
 
 // Set up the application.
 let application = createApplication()
+print(createRenderImage())
 
 // Set up the shader.
 var shaderDesc = ShaderDescriptor()

@@ -8,7 +8,6 @@ func createRenderImage() -> String {
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
       uint2 tid [[thread_position_in_grid]])
-    
     """
     #else
     """
@@ -19,7 +18,6 @@ func createRenderImage() -> String {
       "DescriptorTable(UAV(u0, numDescriptors = 1))")]
     void renderImage(
       uint2 tid : SV_DispatchThreadID)
-    
     """
     #endif
   }
@@ -29,14 +27,12 @@ func createRenderImage() -> String {
     """
     uint screenWidth = frameBuffer.get_width();
     uint screenHeight = frameBuffer.get_height();
-    
     """
     #else
     """
     uint screenWidth;
     uint screenHeight;
     frameBuffer.GetDimensions(screenWidth, screenHeight);
-    
     """
     #endif
   }
