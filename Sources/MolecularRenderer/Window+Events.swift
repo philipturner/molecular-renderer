@@ -77,13 +77,14 @@ extension Window {
         fatalError("Attempted to resize the window.")
       }
       
-    case WM_CHAR:
-      let unicodeScalar = Unicode.Scalar(UInt32(wParam))
-      guard let unicodeScalar else {
-        fatalError("Could not create unicode scalar.")
+    case WM_KEYDOWN:
+      // VK_W = 0x57
+      if UInt64(wParam) == Int32(0x57) {
+        // Check whether 'Ctrl' was pressed.
+        let ctrlState = GetKeyState(VK_CONTROL)
+        let ctrlPressed = (ctrlState < 0)
+        print(ctrlPressed)
       }
-      let character: Character = Character(unicodeScalar)
-      print("received WM_CHAR message: \(character == "w")")
       
     case WM_DESTROY:
       // End the application elegantly.
