@@ -77,8 +77,13 @@ extension Window {
         fatalError("Attempted to resize the window.")
       }
       
-    // respond to WM_KEYDOWN and WM_KEYUP,
-    // but not WM_SYSKEYDOWN and WM_SYSKEYUP
+    case WM_CHAR:
+      let unicodeScalar = Unicode.Scalar(UInt32(wParam))
+      guard let unicodeScalar else {
+        fatalError("Could not create unicode scalar.")
+      }
+      let character: Character = Character(unicodeScalar)
+      print("received WM_CHAR message: \(character == "w")")
       
     case WM_DESTROY:
       // End the application elegantly.
