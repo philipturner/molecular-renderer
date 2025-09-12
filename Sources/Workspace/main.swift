@@ -28,15 +28,34 @@ import WinSDK
 #endif
 
 func createShaderSource() -> String {
+  func functionSignature() -> String {
+    #if os(macOS)
+    """
+    #include <metal_stdlib>
+    using namespace metal;
+    
+    kernel void renderImage(
+      texture2d<float, access::write> frameBuffer [[texture(0)]],
+      uint2 tid [[thread_position_in_grid]])
+    
+    """
+    #else
+    """
+    RWTexture2D<float4> frameBuffer : register(u0);
+    
+    [numthreads(8, 8, 1)]
+    [RootSignature(
+      "DescriptorTable(UAV(u0, numDescriptors = 1))")]
+    void renderImage(
+      uint2 tid : SV_DispatchThreadID)
+    
+    """
+    #endif
+  }
+  
   return """
-  
-  #include <metal_stdlib>
-  using namespace metal;
-  
-  kernel void renderImage(
-    texture2d<float, access::write> frameBuffer [[texture(1)]],
-    uint2 tid [[thread_position_in_grid]]
-  ) {
+  \(functionSignature())
+  {
     // Query the screen's dimensions.
     uint screenWidth = frameBuffer.get_width();
     uint screenHeight = frameBuffer.get_height();
@@ -102,14 +121,14 @@ application.run { renderTarget in
     commandList.withPipelineState(shader) {
       #if os(macOS)
       commandList.mtlCommandEncoder
-        .setTexture(renderTarget, index: 1)
+        .setTexture(renderTarget, index: 0)
       #else
       try! commandList.d3d12CommandList
         .SetDescriptorHeaps([renderTarget])
       let gpuDescriptorHandle = try! renderTarget
         .GetGPUDescriptorHandleForHeapStart()
       try! commandList.d3d12CommandList
-        .SetComputeRootDescriptorTable(1, gpuDescriptorHandle)
+        .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
       #endif
       
       let frameBufferSize = application.display.frameBufferSize
