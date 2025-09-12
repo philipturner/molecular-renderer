@@ -1,3 +1,8 @@
+# Automatic caching feature: return early if already compiled.
+if [ -f dxcompiler_wrapper.dll ]; then
+  exit 0
+fi
+
 # Select the right Clang executable. There could be many on the system, for
 # example if AMD ROCm is installed.
 swift_executable_path=$(which swift)
