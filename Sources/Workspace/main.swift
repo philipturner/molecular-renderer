@@ -153,8 +153,17 @@ application.run { renderTarget in
   application.device.commandQueue.withCommandList { commandList in
     // Encode the compute command.
     commandList.withPipelineState(shader) {
+      #if os(macOS)
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 1)
+      #else
+      try! commandList.d3d12CommandList
+        .SetDescriptorHeaps([renderTarget])
+      let gpuDescriptorHandle = try! renderTarget
+        .GetGPUDescriptorHandleForHeapStart()
+      try! commandList.d3d12CommandList
+        .SetComputeRootDescriptorTable(1, gpuDescriptorHandle)
+      #endif
       
       let frameBufferSize = application.display.frameBufferSize
       let groupSize = SIMD2<Int>(8, 8)
