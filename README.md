@@ -6,17 +6,29 @@ Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift
 
 You open a renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file. You incorporate external Swift modules through `Package.swift`. `run.sh` can be edited to link external C libraries and set environment variables.
 
+## Usage
+
+> TODO: Document the prerequisite of installing Swift, Xcode, VS Code, Git Bash.
+
+Open a terminal in a location convenient for accessing in the File Explorer. Download the source code:
+
+```
+git clone --single-branch --branch windows-port https://github.com/philipturner/molecular-renderer
+```
+
 ### macOS Instructions
 
-Open the source code in Xcode by double-clicking `Package.swift`. However, do not actually run the code from the Xcode UI.
+Open the source code in Xcode by double-clicking `Package.swift`. Do not run the code from within the Xcode UI.
 
-Open a Terminal window at the package directory, and run `bash run.sh`.
+Instead, open a Terminal window at the package directory. Run `bash run.sh` on every program startup.
 
 ### Windows Instructions
 
 Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
 
-Run `./run.bat` in the VS Code terminal. Run on every program startup.
+Open the source code in VS Code by double-clicking `Package.swift`. Navigate to the file tree and open the package's parent directory.
+
+Go to `Terminal` in the top menu bar, then `TERMINAL` in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
 
 ### Renderer Window
 
