@@ -56,7 +56,20 @@ func createRenderImage() -> String {
     }
     
     // Render something based on the pixel's position.
-    float4 color = float4(0.707, 0.707, 0.707, 0.00);
+    float4 color = float4(0.707, 0.707, 0.707, 0.000);
+    
+    {
+      float2 normalizedPosition = float2(tid);
+      normalizedPosition /= float2(screenWidth, screenHeight);
+      
+      float2 center = float2(0.5, 0.5);
+      float2 delta = normalizedPosition - center;
+      float distance = sqrt(dot(delta, delta));
+      
+      if (distance < 0.1) {
+        color = float4(0.500, 0.500, 0.500, 0.000);
+      }
+    }
     
     // Write the pixel to the screen.
     \(writeColor())
