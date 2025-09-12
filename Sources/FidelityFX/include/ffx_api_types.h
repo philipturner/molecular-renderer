@@ -1,6 +1,6 @@
 // This file is part of the FidelityFX SDK.
 //
-// Copyright (C) 2024 Advanced Micro Devices, Inc.
+// Copyright (C) 2025 Advanced Micro Devices, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
@@ -23,8 +23,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
-/// An enumeration of surface formats.
+/// An enumeration of surface formats. Needs to match enum FfxApiSurfaceFormat
 enum FfxApiSurfaceFormat
 {
     FFX_API_SURFACE_FORMAT_UNKNOWN,                     ///< Unknown format
@@ -55,11 +56,21 @@ enum FfxApiSurfaceFormat
     FFX_API_SURFACE_FORMAT_R8_UNORM,                    ///<  8 bit per channel, 1 channel unsigned normalized format
     FFX_API_SURFACE_FORMAT_R8G8_UNORM,                  ///<  8 bit per channel, 2 channel unsigned normalized format
     FFX_API_SURFACE_FORMAT_R8G8_UINT,                   ///<  8 bit per channel, 2 channel unsigned integer format
-    FFX_API_SURFACE_FORMAT_R32_FLOAT                    ///< 32 bit per channel, 1 channel float format
+    FFX_API_SURFACE_FORMAT_R32_FLOAT,                   ///< 32 bit per channel, 1 channel float format
+    FFX_API_SURFACE_FORMAT_R9G9B9E5_SHAREDEXP,          ///<  9 bit per channel, 5 bit exponent format
+
+    FFX_API_SURFACE_FORMAT_R16G16B16A16_TYPELESS,       ///< 16 bit per channel, 4 channel typeless format
+    FFX_API_SURFACE_FORMAT_R32G32_TYPELESS,             ///< 32 bit per channel, 2 channel typeless format
+    FFX_API_SURFACE_FORMAT_R10G10B10A2_TYPELESS,        ///< 10 bit per 3 channel, 2 bit for 1 channel typeless format
+    FFX_API_SURFACE_FORMAT_R16G16_TYPELESS,             ///< 16 bit per channel, 2 channel typless format
+    FFX_API_SURFACE_FORMAT_R16_TYPELESS,                ///< 16 bit per channel, 1 channel typeless format
+    FFX_API_SURFACE_FORMAT_R8_TYPELESS,                 ///<  8 bit per channel, 1 channel typeless format
+    FFX_API_SURFACE_FORMAT_R8G8_TYPELESS,               ///<  8 bit per channel, 2 channel typeless format
+    FFX_API_SURFACE_FORMAT_R32_TYPELESS,                ///< 32 bit per channel, 1 channel typeless format
 };
 
 /// An enumeration of resource usage.
-enum FfxApiResorceUsage
+enum FfxApiResourceUsage
 {
     FFX_API_RESOURCE_USAGE_READ_ONLY = 0,                   ///< No usage flags indicate a resource is read only.
     FFX_API_RESOURCE_USAGE_RENDERTARGET = (1<<0),           ///< Indicates a resource will be used as render target.
@@ -67,7 +78,11 @@ enum FfxApiResorceUsage
     FFX_API_RESOURCE_USAGE_DEPTHTARGET = (1<<2),            ///< Indicates a resource will be used as depth target.
     FFX_API_RESOURCE_USAGE_INDIRECT = (1<<3),               ///< Indicates a resource will be used as indirect argument buffer
     FFX_API_RESOURCE_USAGE_ARRAYVIEW = (1<<4),              ///< Indicates a resource that will generate array views. Works on 2D and cubemap textures
+    FFX_API_RESOURCE_USAGE_STENCILTARGET = (1<<5),          ///< Indicates a resource will be used as stencil target.
+
+    FFX_API_RESOURCE_USAGE_DCC_RENDERTARGET = (1<<15),      ///< Indicates a resource that should specify optimal render target memory access flags (for console use)
 };
+
 
 /// An enumeration of resource states.
 enum FfxApiResourceState
@@ -83,6 +98,7 @@ enum FfxApiResourceState
     FFX_API_RESOURCE_STATE_INDIRECT_ARGUMENT    = (1 << 6), ///< Indicates a resource is in the state to be used as an indirect command argument
     FFX_API_RESOURCE_STATE_PRESENT              = (1 << 7), ///< Indicates a resource is in the state to be used to present to the swap chain
     FFX_API_RESOURCE_STATE_RENDER_TARGET        = (1 << 8), ///< Indicates a resource is in the state to be used as render target
+    FFX_API_RESOURCE_STATE_DEPTH_ATTACHMENT     = (1 << 9), ///< Indicates a resource is in the state to be used as depth attachment
 };
 
 /// An enumeration of surface dimensions.
@@ -173,3 +189,10 @@ struct FfxApiResource
     struct FfxApiResourceDescription description;
     uint32_t state;
 };
+
+//struct definition matches FfxApiEffectMemoryUsage
+typedef struct FfxApiEffectMemoryUsage
+{
+    uint64_t totalUsageInBytes;
+    uint64_t aliasableUsageInBytes;
+} FfxApiEffectMemoryUsage;

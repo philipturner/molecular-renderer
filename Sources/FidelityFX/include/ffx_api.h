@@ -1,6 +1,6 @@
 // This file is part of the FidelityFX SDK.
 //
-// Copyright (C) 2024 Advanced Micro Devices, Inc.
+// Copyright (C) 2025 Advanced Micro Devices, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
@@ -27,6 +27,7 @@ extern "C" {
 #endif  // #if defined(__cplusplus)
 
 #define FFX_API_ENTRY __declspec(dllexport)
+
 #include <stdint.h>
 
 enum FfxApiReturnCodes
@@ -38,6 +39,7 @@ enum FfxApiReturnCodes
     FFX_API_RETURN_NO_PROVIDER            = 4, ///< No provider was found for the given structure type. This is likely a programming error.
     FFX_API_RETURN_ERROR_MEMORY           = 5, ///< A memory allocation failed.
     FFX_API_RETURN_ERROR_PARAMETER        = 6, ///< A parameter was invalid, e.g. a null pointer, empty resource or out-of-bounds enum value.
+    FFX_API_RETURN_PROVIDER_NO_SUPPORT_NEW_DESCTYPE = 7, ///< The structure type given is new and not supported in the old provider. This is likely fixed with driver upgrade or effect DLL upgrade.
 };
 
 typedef void* ffxContext;
@@ -98,6 +100,14 @@ struct ffxOverrideVersion
 {
     ffxApiHeader header;
     uint64_t versionId;  ///< Id of version to use. Must be a value returned from a query in ffxQueryDescGetVersions.versionIds array.
+};
+
+#define FFX_API_QUERY_DESC_TYPE_GET_PROVIDER_VERSION 6u
+struct ffxQueryGetProviderVersion
+{
+    ffxQueryDescHeader header;
+    uint64_t versionId;      ///< Id of provider being used for queried context. 0 if invalid.
+    const char* versionName; ///< Version name for display. If nullptr, the query was invalid.
 };
 
 // Memory allocation function. Must return a valid pointer to at least size bytes of memory aligned to hold any type.
