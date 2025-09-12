@@ -41,8 +41,8 @@ extension Window {
   static func windowProcedure(
     _ hWnd: HWND?,
     _ uMsg: UInt32,
-    _ wParam: WPARAM,
-    _ lParam: LPARAM
+    _ wParam: WPARAM, // UInt64
+    _ lParam: LPARAM // Int64
   ) -> LRESULT {
     guard let hWnd else {
       fatalError("hWnd was null.")
@@ -76,6 +76,9 @@ extension Window {
             contentRect.bottom == frameBufferSize[1] else {
         fatalError("Attempted to resize the window.")
       }
+      
+    // respond to WM_KEYDOWN and WM_KEYUP,
+    // but not WM_SYSKEYDOWN and WM_SYSKEYUP
       
     case WM_DESTROY:
       // End the application elegantly.
