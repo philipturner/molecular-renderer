@@ -5,8 +5,8 @@ cd .build
 
 :: Download each binary dependency from the Internet.
 powershell -c "Invoke-WebRequest -Uri 'https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2502/dxc_2025_02_20.zip' -OutFile 'dxc_2025_02_20.zip'"
-powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/PrebuiltSignedDLL/amd_fidelityfx_dx12.dll' -OutFile 'amd_fidelityfx_dx12.dll'"
-powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/PrebuiltSignedDLL/amd_fidelityfx_dx12.lib' -OutFile 'amd_fidelityfx_dx12.lib'"
+powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.dll' -OutFile 'amd_fidelityfx_upscaler_dx12.dll'"
+powershell -c "Invoke-WebRequest -Uri 'https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/raw/main/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.lib' -OutFile 'amd_fidelityfx_upscaler_dx12.lib'"
 
 :: Decompress each ZIP file into a hierarchy of folders.
 powershell -c "Import-Module Microsoft.Powershell.Archive"
