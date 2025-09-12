@@ -80,7 +80,7 @@ targets.append(.target(
   name: "FidelityFX",
   dependencies: [],
   linkerSettings: [
-    .linkedLibrary("amd_fidelityfx_dx12"),
+    .linkedLibrary("amd_fidelityfx_upscaler_dx12"),
   ]))
 #endif
 
