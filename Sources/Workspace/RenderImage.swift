@@ -37,6 +37,14 @@ func createRenderImage() -> String {
     #endif
   }
   
+  func writeColor() -> String {
+    #if os(macOS)
+    "frameBuffer.write(color, tid);"
+    #else
+    "frameBuffer[tid] = color;"
+    #endif
+  }
+  
   return """
   \(functionSignature())
   {
@@ -51,8 +59,7 @@ func createRenderImage() -> String {
     float4 color = float4(0.707, 0.707, 0.707, 0.00);
     
     // Write the pixel to the screen.
-    frameBuffer.write(color, tid);
+    \(writeColor())
   }
-  
   """
 }
