@@ -81,14 +81,6 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     #endif
   }
   
-  // H: (0.780, 0.780, 0.780), 0.0930 nm
-  // C: (0.388, 0.388, 0.388), 0.1426 nm
-  // O: (0.502, 0.000, 0.000), 0.1349 nm
-  
-  // TODO: Load the atom colors and radii into shader source.
-  // Colors deserve to be a separate array. In many shaders for building the
-  // acceleration structure, we only need the radii.
-  
   return """
   \(moleculeCoordinates())
   
@@ -115,7 +107,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     // Raster the atoms in order of depth.
     float maximumDepth = -1e38;
-    uint8_t atomicNumber = 0;
+    uint16_t atomicNumber = 0;
     for (uint16_t atomID = 0; atomID < \(atoms.count); ++atomID)
     {
       float4 atom = moleculeCoordinates[atomID];
