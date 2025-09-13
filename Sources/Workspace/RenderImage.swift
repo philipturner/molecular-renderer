@@ -126,11 +126,6 @@ func createRenderImage() -> String {
     screenCoords /= float2(screenWidth, screenHeight);
     screenCoords -= float2(0.5, 0.5);
     
-    // GOOD, OBVIOUS IDEA NOW:
-    // Option to render in a view without perspective warping.
-    // Especially since it's less like an interactive UI replicating Minecraft.
-    // Perspective options can always be integrated later.
-    
     // Raster the atoms in order of depth.
     
     // Write the pixel to the screen.
