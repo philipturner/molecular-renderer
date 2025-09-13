@@ -121,10 +121,12 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
       if (distance > radius) {
         continue;
       }
+      float depthCorrection = sqrt(radius * radius - distance * distance);
       
       // The most crude search: a single Z coordinate for the entire atom,
       // just like the impostor method.
-      float atomDepth = -atom.z;
+      float atomDepth = atom.z;
+      atomDepth += depthCorrection;
       if (atomDepth > maximumDepth) {
         maximumDepth = atomDepth;
         hitAtomicNumber = atomicNumber;
