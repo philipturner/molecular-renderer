@@ -158,3 +158,29 @@ private func createAtomColors(_ colors: [SIMD3<Float>]) -> String {
   """
   #endif
 }
+
+// Generate the shader code for the atom radii.
+private func createAtomRadii(_ radii: [Float]) -> String {
+  func createList() -> String {
+    var output: String = ""
+    for radius in radii {
+      output += String(format: "%.3f", radius)
+      output += ",\n"
+    }
+    return output
+  }
+  
+  #if os(macOS)
+  return """
+  constant float atomRadii[\(radii.count)] = {
+    \(createList())
+  };
+  """
+  #else
+  return """
+  static const float atomRadii[\(radii.count)] = {
+    \(createList())
+  };
+  """
+  #endif
+}

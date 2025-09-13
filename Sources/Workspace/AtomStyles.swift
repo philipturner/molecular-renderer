@@ -1,5 +1,5 @@
 struct AtomStyles {
-  static func createColors() -> [SIMD3<Float>] {
+  static var colors: [SIMD3<Float>] {
     // Neutronium to argon: copied verbatim from NanoEngineer.
     //
     // The noble gases (Z=2, Z=10, Z=18, Z=36) and transition metals (Z=21-30)
@@ -77,7 +77,7 @@ struct AtomStyles {
     return colors
   }
   
-  static func createRadii() -> [Float] {
+  static var radii: [Float] {
     // Neutronium to argon: copied verbatim from NanoEngineer.
     var radii: [Float] = [
       0.853, // 0
