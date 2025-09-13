@@ -87,6 +87,8 @@ public class Shader {
     var rootSignatureBlob: UnsafeMutablePointer<UInt8>?
     var rootSignatureLength: UInt32 = .zero
     
+    print("checkpoint 0")
+    
     // Call into the DXC wrapper.
     name.withCString(encodedAs: UTF16.self) { name in
       let errorCode = dxcompiler_compile(
@@ -103,6 +105,8 @@ public class Shader {
       }
     }
     
+    print("checkpoint 1")
+    
     // Handle the deallocation of the blobs. For some reason, 'free' works just
     // fine, but '.deallocate' causes a crash.
     guard let objectBlob,
@@ -112,12 +116,16 @@ public class Shader {
     defer { free(objectBlob) }
     defer { free(rootSignatureBlob) }
     
+    print("checkpoint 2")
+    
     // Create the root signature.
     self.d3d12RootSignature =
     try! device.d3d12Device.CreateRootSignature(
       0, // nodeMask
       rootSignatureBlob, // pBlobWithRootSignature
       UInt64(rootSignatureLength)) // blobLengthInBytes
+    
+    print("checkpoint 3")
     
     // Fill the pipeline state descriptor.
     var pipelineStateDesc = D3D12_COMPUTE_PIPELINE_STATE_DESC()
@@ -129,9 +137,13 @@ public class Shader {
     pipelineStateDesc.CS.pShaderBytecode = UnsafeRawPointer(objectBlob)
     pipelineStateDesc.CS.BytecodeLength = UInt64(objectLength)
     
+    print("checkpoint 4")
+    
     // Create the pipeline state.
     self.d3d12PipelineState = try! device.d3d12Device
       .CreateComputePipelineState(pipelineStateDesc)
+    
+    print("checkpoint 5")
     #endif
   }
 }

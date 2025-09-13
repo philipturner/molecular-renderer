@@ -75,9 +75,9 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   
   func writeColor() -> String {
     #if os(macOS)
-    "frameBuffer.write(float4(color, 0.000), tid);"
+    "frameBuffer.write(float4(color[0], color[1], color[2], 0), tid);"
     #else
-    "frameBuffer[tid] = float4(color, 0.000);"
+    "frameBuffer[tid] = float4(color[0], color[1], color[2], 0);"
     #endif
   }
   
