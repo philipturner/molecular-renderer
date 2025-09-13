@@ -53,15 +53,9 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
 
+// H: (0.780, 0.780, 0.780), 0.0930 nm
 // C: (0.388, 0.388, 0.388), 0.1426 nm
 // O: (0.502, 0.000, 0.000), 0.1349 nm
-
-do {
-  let colors = AtomStyles.createColors()
-  let radii = AtomStyles.createRadii()
-  // print(colors[8])
-  // print(radii[8])
-}
 
 // Enter the run loop.
 application.run { renderTarget in
