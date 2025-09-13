@@ -8,6 +8,7 @@
 // - https://www.gamedev.net/forums/topic/678018-rwbuffer-vs-rwstructuredbuffer-or-rwbyteaddressbuffer/
 // - https://gist.github.com/philipturner/7f2b3da4ae719bb28d3b60ebfc1e0f60
 // - https://gist.github.com/philipturner/ec3138aaf69d44a46e610a4a0a7a6af2
+// - https://darkcorners.dev/buffers-vs-structuredbuffers
 
 import HDL
 import MolecularRenderer
@@ -67,7 +68,7 @@ let atoms = createAtoms()
 // Set up the atom buffer.
 var bufferDesc = BufferDescriptor()
 bufferDesc.device = application.device
-bufferDesc.size = atoms.count * 4
+bufferDesc.size = atoms.count * 2
 
 #if os(Windows)
 bufferDesc.type = .input
@@ -79,9 +80,9 @@ let nativeAtomBuffer = Buffer(descriptor: bufferDesc)
 
 // Write the contents of the atom buffer.
 do {
-  var contents: [UInt32] = []
+  var contents: [UInt16] = []
   for atom in atoms {
-    let atomicNumber = UInt32(atom[3])
+    let atomicNumber = UInt16(atom[3])
     contents.append(atomicNumber)
   }
   

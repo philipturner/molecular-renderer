@@ -47,7 +47,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     #else
     """
     RWTexture2D<float4> frameBuffer : register(u0);
-    RWStructuredBuffer<uint32_t> atomicNumbers : register(u1);
+    RWBuffer<float4> atomicNumbers : register(u1);
     
     [numthreads(8, 8, 1)]
     [RootSignature(
@@ -112,7 +112,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     for (uint32_t atomID = 0; atomID < \(atoms.count); ++atomID)
     {
       float3 atom = moleculeCoordinates[atomID];
-      uint32_t atomicNumber = atomicNumbers[atomID];
+      uint32_t atomicNumber = atomicNumbers[atomID].x;
       
       // Perform a point-circle intersection test.
       float radius = atomRadii[atomicNumber];
