@@ -51,7 +51,7 @@ int32_t dxcompiler_compile(
   arguments.push_back(name);
   arguments.push_back(L"-T");
   arguments.push_back(L"cs_6_5");
-  // arguments.push_back(L"-enable-16bit-types");
+  // disabled 16-bit types because of GTX 970 driver crash
   arguments.push_back(L"-Qstrip_debug");
   arguments.push_back(L"-Qstrip_reflect");
   arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);
