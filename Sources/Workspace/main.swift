@@ -1,5 +1,4 @@
 // Get a minimum programmatic, hands-off renderer:
-// - Render a circle proportional to screen size, with the color of 0.500.
 // - Retrieve the atom radii and colors ("atom styles") from the old renderer.
 //   Put them in the workspace for now, until we figure out everything else.
 // - I think I can go all the way to visually correct ambient occlusion.
