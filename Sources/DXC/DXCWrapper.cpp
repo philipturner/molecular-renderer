@@ -33,9 +33,6 @@ int32_t dxcompiler_compile(
   uint8_t **rootSignature,
   uint32_t *rootSignatureLength
 ) {
-  std::cout << "Hello world from C++" << std::endl;
-  return 1;
-  
   // Initialize the resources.
   
   ComPtr<IDxcUtils> utils;
@@ -102,8 +99,6 @@ int32_t dxcompiler_compile(
       return 1;
     }
     
-    std::cout << "Object length is " << *objectLength << std::endl;
-    
     // Create a pointer for the object.
     *object = (uint8_t*)malloc(*objectLength);
     
@@ -127,8 +122,6 @@ int32_t dxcompiler_compile(
       std::cerr << "Root signature blob was empty." << std::endl;
       return 1;
     }
-    
-    std::cout << "Root signature length is " << *objectLength << std::endl;
     
     // Create a pointer for the object.
     *rootSignature = (uint8_t*)malloc(*rootSignatureLength);
