@@ -1,10 +1,8 @@
-// Get a minimum programmatic, hands-off renderer:
+// Tasks:
 // - Retrieve the atom radii and colors ("atom styles") from the old renderer.
 //   Put them in the workspace for now, until we figure out everything else.
-// - I think I can go all the way to visually correct ambient occlusion.
-//   Script the camera movements while developing the acceleration structure.
-//
-// Thus begins the iteration loop that ends with real-time RTAO!
+// - Render the 2D ethylene molecule in this paradigm, starting out with a
+//   qualitative static representation baked into shader code.
 
 import HDL
 import MolecularRenderer
