@@ -108,16 +108,16 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     // Raster the atoms in order of depth.
     float maximumDepth = -1e38;
     uint32_t hitAtomicNumber = 0;
-    for (uint32_t atomID = 0; atomID < \(atoms.count); ++atomID)
+    for (float16_t atomID = 0; atomID < \(atoms.count); ++atomID)
     {
-      float4 atom = moleculeCoordinates[atomID];
+      float4 atom = moleculeCoordinates[(uint32_t(tid.x) + float(0) * 0.5) % 12];
       uint32_t atomicNumber = uint32_t(atom[3]);
       
       // Perform a point-circle intersection test.
       float radius = atomRadii[atomicNumber];
       float2 atomPosition = atom.xy;
       float2 delta = screenCoords - atomPosition;
-      float distance = sqrt(dot(delta, delta));
+      float distance = sqrt(dot(delta, delta)) + atomID;
       if (distance > radius) {
         continue;
       }
