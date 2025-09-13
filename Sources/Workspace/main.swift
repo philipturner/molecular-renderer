@@ -137,6 +137,12 @@ application.run { renderTarget in
         .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
       #endif
       
+      // TODO: Figure out how to make a single global descriptor heap.
+      //   Hint: do it in 'main.swift' for now.
+      // TODO: Figure out how to pass the render target ID3D12Resource directly,
+      // and create a new unordered access view every frame.
+      // TODO: Figure out how to (maybe) create a PackedBuffer utility.
+      
       // Bind the atoms.
       commandList.setBuffer(
         nativeAtomBuffer, index: 1)
