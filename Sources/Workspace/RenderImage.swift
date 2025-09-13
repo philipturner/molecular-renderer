@@ -121,6 +121,19 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
       if (distance > radius) {
         continue;
       }
+      
+      // The most crude search: a single Z coordinate for the entire atom,
+      // just like the impostor method.
+      float atomDepth = atom.z;
+      if (atomDepth > maximumDepth) {
+        maximumDepth = atomDepth;
+        hitAtomicNumber = atomicNumber;
+      }
+    }
+    
+    // Use the color of the hit atom.
+    if (hitAtomicNumber > 0) {
+      color = atomColors[hitAtomicNumber];
     }
     
     // Write the pixel to the screen.
