@@ -1,6 +1,10 @@
 import HDL
 
 func createRenderImage() -> String {
+  // H: (0.780, 0.780, 0.780), 0.0930 nm
+  // C: (0.388, 0.388, 0.388), 0.1426 nm
+  // O: (0.502, 0.000, 0.000), 0.1349 nm
+  
   func moleculeCoordinates() -> String {
     func createAtoms() -> [SIMD4<Float>] {
       return [
@@ -100,9 +104,9 @@ func createRenderImage() -> String {
     #endif
   }
   
-  print(moleculeCoordinates())
-  
   return """
+  \(moleculeCoordinates())
+  
   \(functionSignature())
   {
     // Query the screen's dimensions.
