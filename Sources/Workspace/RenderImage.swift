@@ -54,7 +54,7 @@ func createRenderImage() -> String {
     return """
     static const float4 moleculeCoordinates[\(atoms.count)] = {
       \(list)
-    }:
+    };
     """
     #endif
   }
