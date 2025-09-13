@@ -18,6 +18,14 @@ func createRenderImage() -> String {
       Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
     ]
     
+    func repr(atom: SIMD4<Float>) -> String {
+      let x = String(format: "%.3f", atom[0])
+      let y = String(format: "%.3f", atom[1])
+      let z = String(format: "%.3f", atom[2])
+      let w = String(format: "%.3f", atom[3])
+      return "float4(\(x), \(y), \(z), \(w))"
+    }
+    
     return ""
   }
   
