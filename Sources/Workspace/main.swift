@@ -1,8 +1,8 @@
 // Tasks:
 // - Retrieve the atom radii and colors ("atom styles") from the old renderer.
 //   Put them in the workspace for now, until we figure out everything else.
-// - Render the 2D ethylene molecule in this paradigm, starting out with a
-//   qualitative static representation baked into shader code.
+// - Render an isopropanol molecule in this paradigm:
+//   https://github.com/nutjunkie/IQmol/blob/master/share/fragments/Molecules/Alcohols/Isopropanol.xyz
 
 import HDL
 import MolecularRenderer

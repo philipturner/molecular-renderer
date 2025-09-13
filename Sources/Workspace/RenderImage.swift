@@ -55,19 +55,31 @@ func createRenderImage() -> String {
       return;
     }
     
-    // Render something based on the pixel's position.
+    // Background color.
     float4 color = float4(0.707, 0.707, 0.707, 0.000);
     
-    {
-      float2 normalizedPosition = float2(tid);
-      normalizedPosition /= float2(screenWidth, screenHeight);
-      
-      float2 center = float2(0.5, 0.5);
+    // Render a CO molecule.
+    float bondLength = 0.1128;
+    float2 normalizedPosition = float2(tid);
+    normalizedPosition /= float2(screenWidth, screenHeight);
+    
+    if (normalizedPosition.x < 0.5) {
+      float2 center = float2(0.5 - bondLength / 2, 0.5);
       float2 delta = normalizedPosition - center;
       float distance = sqrt(dot(delta, delta));
       
-      if (distance < 0.1) {
-        color = float4(0.500, 0.500, 0.500, 0.000);
+      // Render the carbon atom.
+      if (distance < 0.1426) {
+        color = float4(0.388, 0.388, 0.388, 0.000);
+      }
+    } else {
+      float2 center = float2(0.5 - bondLength / 2, 0.5);
+      float2 delta = normalizedPosition - center;
+      float distance = sqrt(dot(delta, delta));
+      
+      // Render the oxygen atom.
+      if (distance < 0.1426) {
+        color = float4(0.388, 0.388, 0.388, 0.000);
       }
     }
     
