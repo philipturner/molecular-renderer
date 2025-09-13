@@ -2,10 +2,6 @@ import Foundation // String.init(format:_:)
 import HDL
 
 func createRenderImage() -> String {
-  // H: (0.780, 0.780, 0.780), 0.0930 nm
-  // C: (0.388, 0.388, 0.388), 0.1426 nm
-  // O: (0.502, 0.000, 0.000), 0.1349 nm
-  
   func moleculeCoordinates() -> String {
     func createAtoms() -> [SIMD4<Float>] {
       return [
@@ -105,6 +101,10 @@ func createRenderImage() -> String {
     #endif
   }
   
+  // H: (0.780, 0.780, 0.780), 0.0930 nm
+  // C: (0.388, 0.388, 0.388), 0.1426 nm
+  // O: (0.502, 0.000, 0.000), 0.1349 nm
+  
   return """
   \(moleculeCoordinates())
   
@@ -120,30 +120,18 @@ func createRenderImage() -> String {
     // Background color.
     float4 color = float4(0.707, 0.707, 0.707, 0.000);
     
-    // Render a CO molecule.
-    float bondLength = 0.1128;
-    float2 normalizedPosition = float2(tid);
-    normalizedPosition /= float2(screenWidth, screenHeight);
+    // Prepare the screen-space coordinates.
+    // [-0.5 nm, 0.5 nm] along the two axes of the screen.
+    float2 screenCoords = float2(tid);
+    screenCoords /= float2(screenWidth, screenHeight);
+    screenCoords -= float2(0.5, 0.5);
     
-    if (normalizedPosition.x < 0.51) {
-      float2 center = float2(0.5 - bondLength / 2, 0.5);
-      float2 delta = normalizedPosition - center;
-      float distance = sqrt(dot(delta, delta));
-      
-      // Render the carbon atom.
-      if (distance < 0.1426) {
-        color = float4(0.388, 0.388, 0.388, 0.000);
-      }
-    } else {
-      float2 center = float2(0.5 + bondLength / 2, 0.5);
-      float2 delta = normalizedPosition - center;
-      float distance = sqrt(dot(delta, delta));
-      
-      // Render the oxygen atom.
-      if (distance < 0.1349) {
-        color = float4(0.502, 0.000, 0.000, 0.000);
-      }
-    }
+    // GOOD, OBVIOUS IDEA NOW:
+    // Option to render in a view without perspective warping.
+    // Especially since it's less like an interactive UI replicating Minecraft.
+    // Perspective options can always be integrated later.
+    
+    // Raster the atoms in order of depth.
     
     // Write the pixel to the screen.
     \(writeColor())
