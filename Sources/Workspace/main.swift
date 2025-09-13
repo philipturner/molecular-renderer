@@ -123,6 +123,7 @@ application.run { renderTarget in
   application.device.commandQueue.withCommandList { commandList in
     // Encode the compute command.
     commandList.withPipelineState(shader) {
+      // Bind the texture.
       #if os(macOS)
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 0)
@@ -135,6 +136,11 @@ application.run { renderTarget in
         .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
       #endif
       
+      // Bind the atoms.
+      commandList.setBuffer(
+        nativeAtomBuffer, index: 1)
+      
+      // Determine the dispatch grid size.
       let frameBufferSize = application.display.frameBufferSize
       let groupSize = SIMD2<Int>(8, 8)
       
