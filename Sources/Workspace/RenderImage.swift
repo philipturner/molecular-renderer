@@ -1,3 +1,4 @@
+import Foundation // String.init(format:_:)
 import HDL
 
 func createRenderImage() -> String {
