@@ -1,8 +1,13 @@
-// Tasks:
-// - Retrieve the atom radii and colors ("atom styles") from the old renderer.
-//   Put them in the workspace for now, until we figure out everything else.
-// - Render an isopropanol molecule in this paradigm:
-//   https://github.com/nutjunkie/IQmol/blob/master/share/fragments/Molecules/Alcohols/Isopropanol.xyz
+// Goal:
+// - Start with a UInt32 buffer holding the atomic numbers, read instead of the
+//   actual atomic numbers baked into shader code.
+// - Migrate to R16_UINT / R16_FLOAT testing with RWBuffer.
+// - Migrate the rest of the data and make atom count defined at runtime.
+//
+// Sources:
+// - https://www.gamedev.net/forums/topic/678018-rwbuffer-vs-rwstructuredbuffer-or-rwbyteaddressbuffer/
+// - https://gist.github.com/philipturner/7f2b3da4ae719bb28d3b60ebfc1e0f60
+// - https://gist.github.com/philipturner/ec3138aaf69d44a46e610a4a0a7a6af2
 
 import HDL
 import MolecularRenderer
@@ -69,12 +74,6 @@ shaderDesc.source = createRenderImage(atoms: createAtoms())
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
-
-// Goal:
-// - Start with a UInt32 buffer holding the atomic numbers, read instead of the
-//   actual atomic numbers baked into shader code.
-// - Migrate to R16_UINT / R16_FLOAT testing with RWBuffer.
-// - Migrate the rest of the data and make atom count defined at runtime.
 
 // Enter the run loop.
 application.run { renderTarget in
