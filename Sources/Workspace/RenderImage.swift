@@ -127,6 +127,7 @@ func createRenderImage() -> String {
     screenCoords -= float2(0.5, 0.5);
     
     // Raster the atoms in order of depth.
+    float maximumDepth = -1e38;
     
     // Write the pixel to the screen.
     \(writeColor())
