@@ -108,6 +108,10 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     // Raster the atoms in order of depth.
     float maximumDepth = -1e38;
+    for (int16_t atomID = 0; atomID < \(atoms.count); ++atomID)
+    {
+      // TODO
+    }
     
     // Write the pixel to the screen.
     \(writeColor())
