@@ -44,6 +44,7 @@ func createApplication() -> Application {
   
   return application
 }
+let application = createApplication()
 
 func createAtoms() -> [SIMD4<Float>] {
   return [
@@ -61,15 +62,57 @@ func createAtoms() -> [SIMD4<Float>] {
     Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
   ]
 }
+let atoms = createAtoms()
 
-// Set up the application.
-let application = createApplication()
+// Set up the atom buffer.
+var bufferDesc = BufferDescriptor()
+bufferDesc.device = application.device
+bufferDesc.size = atoms.count * 4
+
+#if os(Windows)
+bufferDesc.type = .input
+let inputAtomBuffer = Buffer(descriptor: bufferDesc)
+#endif
+
+bufferDesc.type = .native
+let nativeAtomBuffer = Buffer(descriptor: bufferDesc)
+
+// Write the contents of the atom buffer.
+do {
+  var contents: [UInt32] = []
+  for atom in atoms {
+    let atomicNumber = UInt32(atom[3])
+    contents.append(atomicNumber)
+  }
+  
+  contents.withUnsafeBytes { bufferPointer in
+    let baseAddress = bufferPointer.baseAddress!
+    #if os(macOS)
+    nativeAtomBuffer.write(input: baseAddress)
+    #else
+    inputAtomBuffer.write(input: baseAddress)
+    #endif
+  }
+}
+
+#if os(Windows)
+application.device.commandQueue.withCommandList { commandList in
+  commandList.upload(
+    inputBuffer: inputAtomBuffer,
+    nativeBuffer: nativeAtomBuffer)
+  
+  let unorderedAccessBarrier = nativeAtomBuffer
+    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+  try! commandList.d3d12CommandList.ResourceBarrier(
+    1, [unorderedAccessBarrier])
+}
+#endif
 
 // Set up the shader.
 var shaderDesc = ShaderDescriptor()
 shaderDesc.device = application.device
 shaderDesc.name = "renderImage"
-shaderDesc.source = createRenderImage(atoms: createAtoms())
+shaderDesc.source = createRenderImage(atoms: atoms)
 #if os(macOS)
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
