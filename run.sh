@@ -1,2 +1,2 @@
 # Run in release mode with incremental compilation.
-swift run
+swift run -Xswiftc -Ounchecked

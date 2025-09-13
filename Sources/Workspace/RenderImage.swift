@@ -75,9 +75,9 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   
   func writeColor() -> String {
     #if os(macOS)
-    "frameBuffer.write(float4(color[0], color[1], color[2], 0), tid);"
+    "frameBuffer.write(float4(color, 0), tid);"
     #else
-    "frameBuffer[tid] = float4(color[0], color[1], color[2], 0);"
+    "frameBuffer[tid] = float4(color, 0);"
     #endif
   }
   
@@ -107,11 +107,11 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     // Raster the atoms in order of depth.
     float maximumDepth = -1e38;
-    uint16_t hitAtomicNumber = 0;
-    for (uint16_t atomID = 0; atomID < \(atoms.count); ++atomID)
+    uint32_t hitAtomicNumber = 0;
+    for (uint32_t atomID = 0; atomID < \(atoms.count); ++atomID)
     {
       float4 atom = moleculeCoordinates[atomID];
-      uint16_t atomicNumber = uint16_t(atom[3]);
+      uint32_t atomicNumber = uint32_t(atom[3]);
       
       // Perform a point-circle intersection test.
       float radius = atomRadii[atomicNumber];
