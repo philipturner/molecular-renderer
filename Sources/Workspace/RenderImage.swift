@@ -75,9 +75,9 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   
   func writeColor() -> String {
     #if os(macOS)
-    "frameBuffer.write(color, tid);"
+    "frameBuffer.write(float4(color, 0.000), tid);"
     #else
-    "frameBuffer[tid] = color;"
+    "frameBuffer[tid] = float4(color, 0.000);"
     #endif
   }
   
@@ -97,7 +97,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     }
     
     // Background color.
-    float4 color = float4(0.707, 0.707, 0.707, 0.000);
+    float3 color = float3(0.707, 0.707, 0.707);
     
     // Prepare the screen-space coordinates.
     // [-0.5 nm, 0.5 nm] along the two axes of the screen.
@@ -124,7 +124,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
       
       // The most crude search: a single Z coordinate for the entire atom,
       // just like the impostor method.
-      float atomDepth = atom.z;
+      float atomDepth = -atom.z;
       if (atomDepth > maximumDepth) {
         maximumDepth = atomDepth;
         hitAtomicNumber = atomicNumber;
