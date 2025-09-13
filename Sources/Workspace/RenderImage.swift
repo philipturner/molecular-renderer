@@ -125,3 +125,36 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   }
   """
 }
+
+// Generate the shader code for the atom colors.
+private func createAtomColors(_ colors: [SIMD3<Float>]) -> String {
+  func createList() -> String {
+    func repr(color: SIMD3<Float>) -> String {
+      let r = String(format: "%.3f", color[0])
+      let g = String(format: "%.3f", color[1])
+      let b = String(format: "%.3f", color[2])
+      return "float3(\(r), \(g), \(b))"
+    }
+    
+    var output: String = ""
+    for color in colors {
+      output += repr(color: color)
+      output += ",\n"
+    }
+    return output
+  }
+  
+  #if os(macOS)
+  return """
+  constant float3 atomColors[\(colors.count)] = {
+    \(createList())
+  };
+  """
+  #else
+  return """
+  static const float3 atomColors[\(colors.count)] = {
+    \(createList())
+  };
+  """
+  #endif
+}
