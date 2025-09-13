@@ -36,7 +36,22 @@ func createRenderImage() -> String {
       return output
     }
     
-    return ""
+    let atoms = createAtoms()
+    let list = createList(atoms: atoms)
+    
+    #if os(macOS)
+    return """
+    constant float4 moleculeCoordinates[\(atoms.count)] = {
+      \(list)
+    };
+    """
+    #else
+    return """
+    static const float4 moleculeCoordinates[\(atoms.count)] = {
+      \(list)
+    }:
+    """
+    #endif
   }
   
   func functionSignature() -> String {
