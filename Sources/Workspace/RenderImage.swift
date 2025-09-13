@@ -92,6 +92,9 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   return """
   \(moleculeCoordinates())
   
+  \(createAtomColors(AtomStyles.colors))
+  \(createAtomRadii(AtomStyles.radii))
+  
   \(functionSignature())
   {
     // Query the screen's dimensions.
@@ -117,7 +120,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     {
       float4 atom = moleculeCoordinates[atomID];
       
-      // Perform a point-sphere intersection test.
+      // Perform a point-circle intersection test.
     }
     
     // Write the pixel to the screen.

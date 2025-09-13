@@ -69,6 +69,7 @@ shaderDesc.source = createRenderImage(atoms: createAtoms())
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
+print(shaderDesc.source!)
 
 // Enter the run loop.
 application.run { renderTarget in
