@@ -69,8 +69,8 @@ public class Device {
     self.d3d12Device = try! D3D12CreateDevice(
       dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
     
-    var featureSupportData = D3D12_FEATURE_DATA_D3D12_OPTIONS4()
-    try! self.d3d12Device.CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS4, &featureSupportData, UInt32(MemoryLayout<D3D12_FEATURE_DATA_D3D12_OPTIONS4>.stride))
+    var featureSupportData = D3D12_FEATURE_DATA_D3D12_OPTIONS()
+    try! self.d3d12Device.CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &featureSupportData, UInt32(MemoryLayout<D3D12_FEATURE_DATA_D3D12_OPTIONS>.stride))
     print("feature support data:", featureSupportData)
     #endif
     
