@@ -63,7 +63,7 @@ func createRenderImage() -> String {
     float2 normalizedPosition = float2(tid);
     normalizedPosition /= float2(screenWidth, screenHeight);
     
-    if (normalizedPosition.x < 0.5) {
+    if (normalizedPosition.x < 0.51) {
       float2 center = float2(0.5 - bondLength / 2, 0.5);
       float2 delta = normalizedPosition - center;
       float distance = sqrt(dot(delta, delta));
@@ -73,13 +73,13 @@ func createRenderImage() -> String {
         color = float4(0.388, 0.388, 0.388, 0.000);
       }
     } else {
-      float2 center = float2(0.5 - bondLength / 2, 0.5);
+      float2 center = float2(0.5 + bondLength / 2, 0.5);
       float2 delta = normalizedPosition - center;
       float distance = sqrt(dot(delta, delta));
       
       // Render the oxygen atom.
-      if (distance < 0.1426) {
-        color = float4(0.388, 0.388, 0.388, 0.000);
+      if (distance < 0.1349) {
+        color = float4(0.502, 0.000, 0.000, 0.000);
       }
     }
     
