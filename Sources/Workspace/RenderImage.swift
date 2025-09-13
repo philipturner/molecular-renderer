@@ -29,7 +29,11 @@ func createRenderImage() -> String {
     
     func createList(atoms: [SIMD4<Float>]) -> String {
       var output: String = ""
-      for atom in atoms
+      for atom in atoms {
+        output += repr(atom: atom)
+        output += ",\n"
+      }
+      return output
     }
     
     return ""
@@ -80,6 +84,8 @@ func createRenderImage() -> String {
     "frameBuffer[tid] = color;"
     #endif
   }
+  
+  print(moleculeCoordinates())
   
   return """
   \(functionSignature())
