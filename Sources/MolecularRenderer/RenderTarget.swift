@@ -5,13 +5,9 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public struct RenderTargetDescriptor {
-  public var device: Device?
-  public var display: Display?
-  
-  public init() {
-    
-  }
+struct RenderTargetDescriptor {
+  var device: Device?
+  var display: Display?
 }
 
 public class RenderTarget {
@@ -24,7 +20,7 @@ public class RenderTarget {
   public internal(set) var colorTextures: [SwiftCOM.ID3D12Resource] = []
   #endif
   
-  public init(descriptor: RenderTargetDescriptor) {
+  init(descriptor: RenderTargetDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")

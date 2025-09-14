@@ -24,6 +24,7 @@ public class Application {
   #else
   let swapChain: SwapChain
   #endif
+  public let renderTarget: RenderTarget
   
   var runLoop: RunLoop?
   
@@ -38,7 +39,6 @@ public class Application {
     
     self.clock = Clock(display: display)
     self.window = Window(display: display)
-    
     #if os(macOS)
     self.view = View(display: display)
     
@@ -53,6 +53,12 @@ public class Application {
     swapChainDesc.window = window
     self.swapChain = SwapChain(descriptor: swapChainDesc)
     #endif
+    
+    // Create the render target.
+    var renderTargetDesc = RenderTargetDescriptor()
+    renderTargetDesc.device = device
+    renderTargetDesc.display = display
+    self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
     
     guard Application.singleton == nil else {
       fatalError(
