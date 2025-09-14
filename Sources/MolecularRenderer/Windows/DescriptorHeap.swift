@@ -83,7 +83,8 @@ extension CommandList {
   public func setDescriptorHeap(_ descriptorHeap: DescriptorHeap) {
     self.descriptorHeap = descriptorHeap
     
-    
+    try! d3d12CommandList.SetDescriptorHeaps(
+      [descriptorHeap.d3d12DescriptorHeap])
   }
   
   public func setDescriptor(handleID: Int, index: Int) {
