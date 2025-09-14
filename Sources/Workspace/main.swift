@@ -1,8 +1,8 @@
 import HDL
 import MolecularRenderer
-#if os(macOS)
-import Metal
-#else
+import QuaternionModule
+
+#if os(Windows)
 import SwiftCOM
 import WinSDK
 #endif
@@ -96,8 +96,11 @@ let descriptorHeap = createDescriptorHeap(
 
 // Enter the run loop.
 application.run {
-  // TODO: Perform some transform on the atoms with Quaternion and Clock.frames.
+  func createRotatedAtoms(frames: Int) -> [SIMD4<Float>] {
+    return []
+  }
   let atoms = createAtoms()
+  print(application.display.frameRate)
   
   // Write the atoms to the GPU buffer.
   let inFlightFrameID = application.frameID % 3
