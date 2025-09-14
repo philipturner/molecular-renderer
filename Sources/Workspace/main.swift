@@ -1,13 +1,3 @@
-// Goal:
-// - Migrate the rest of the data and make atom count defined at runtime.
-// - Render an isopropanol molecule rotating and take a video.
-//
-// Sources:
-// - https://www.gamedev.net/forums/topic/678018-rwbuffer-vs-rwstructuredbuffer-or-rwbyteaddressbuffer/
-// - https://gist.github.com/philipturner/7f2b3da4ae719bb28d3b60ebfc1e0f60
-// - https://gist.github.com/philipturner/ec3138aaf69d44a46e610a4a0a7a6af2
-// - https://darkcorners.dev/buffers-vs-structuredbuffers
-
 import HDL
 import MolecularRenderer
 #if os(macOS)
