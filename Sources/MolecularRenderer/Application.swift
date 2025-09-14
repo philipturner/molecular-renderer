@@ -69,7 +69,7 @@ public class Application {
   
   @MainActor
   public func run(
-    _ closure: @escaping RunClosure
+    _ closure: @escaping () -> Void
   ) {
     var runLoopDesc = RunLoopDescriptor()
     runLoopDesc.closure = closure

@@ -5,24 +5,15 @@ import SwiftCOM
 import WinSDK
 #endif
 
-#if os(macOS)
-/// `MTLTexture` is the frame buffer texture.
-public typealias RunClosure = (MTLTexture) -> Void
-#else
-/// `ID3D12DescriptorHeap` contains the texture in slot 0. The heap is shader
-/// visible.
-public typealias RunClosure = (SwiftCOM.ID3D12DescriptorHeap) -> Void
-#endif
-
 struct RunLoopDescriptor {
-  var closure: RunClosure?
+  var closure: (() -> Void)?
   #if os(macOS)
   var display: Display?
   #endif
 }
 
 class RunLoop: @unchecked Sendable {
-  let closure: RunClosure
+  let closure: () -> Void
   #if os(macOS)
   var displayLink: CVDisplayLink?
   #endif
@@ -34,8 +25,8 @@ class RunLoop: @unchecked Sendable {
     }
     self.closure = closure
     
-    // Check the display argument.
     #if os(macOS)
+    // Check the display argument.
     guard let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")
     }
@@ -187,9 +178,12 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure(drawable.texture)
     
-    // Present the frame buffer.
+    // Post-processing on the front buffer.
     application.device.commandQueue.withCommandList { commandList in
       commandList.mtlCommandEncoder.endEncoding()
+      
+      // TODO: Blit
+      
       commandList.mtlCommandBuffer.present(drawable)
       commandList.mtlCommandEncoder =
       commandList.mtlCommandBuffer.makeComputeCommandEncoder()!

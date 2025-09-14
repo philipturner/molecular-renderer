@@ -185,7 +185,7 @@ func createDescriptorHeap(
 }
 let descriptorHeap = createDescriptorHeap(
   device: application.device,
-  renderTarget: renderTarget)
+  renderTarget: application.renderTarget)
 #endif
 
 // Enter the run loop.
