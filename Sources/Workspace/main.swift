@@ -120,11 +120,7 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 let shader = Shader(descriptor: shaderDesc)
 
 // Enter the run loop.
-#if os(macOS)
-application.run { _ in
-#else
 application.run { renderTarget in
-#endif
   application.device.commandQueue.withCommandList { commandList in
     // Encode the compute command.
     commandList.withPipelineState(shader) {
@@ -147,6 +143,10 @@ application.run { renderTarget in
       // - Remove the macOS-specific 'renderTarget' argument from
       //   application.run. We can always change this later for pipelined
       //   offline rendering. But for now, simplicity matters more.
+      // - Double-buffer the frame buffer textures, as on macOS that reduced
+      //   some possible stalls between frames. Might also be a good idea for
+      //   allowing asynchrony in TAAU? Just implement double buffering and
+      //   move on.
       //
       // DescriptorHeapDescriptor
       // - specify the number of descriptors
