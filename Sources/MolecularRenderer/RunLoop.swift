@@ -209,6 +209,7 @@ extension RunLoop {
     return kCVReturnSuccess
   }
   #else
+  
   func outputHandler() {
     guard let application = Application.singleton else {
       fatalError("Could not retrieve the application.")
@@ -241,7 +242,7 @@ extension RunLoop {
     self.closure()
     
     // Retrieve the front buffer.
-    func retrieveFrontBuffer() -> MTLTexture {
+    func retrieveFrontBuffer() -> SwiftCOM.ID3D12Resource {
       let bufferIndex = application.renderTarget.currentBufferIndex
       return application.renderTarget.colorTextures[bufferIndex]
     }
@@ -255,14 +256,12 @@ extension RunLoop {
     }
     let backBuffer = retrieveBackBuffer()
     
-    // Present the frame buffer.
-    let frameBuffer = application.swapChain.frameBuffer
-    let backBuffer = createBackBuffer()
+    // Copy the front buffer to the back buffer.
     application.device.commandQueue.withCommandList { commandList in
       // Transitions before the copy command.
       do {
         let barrier1 = Self.transition(
-          resource: frameBuffer,
+          resource: frontBuffer,
           before: D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
           after: D3D12_RESOURCE_STATE_COPY_SOURCE)
         let barrier2 = Self.transition(
@@ -275,15 +274,14 @@ extension RunLoop {
           UInt32(barriers.count), barriers)
       }
       
-      // Copy the frame buffer into the back buffer.
       try! commandList.d3d12CommandList.CopyResource(
         backBuffer, // pDstResource
-        frameBuffer) // pSrcResource
+        frontBuffer) // pSrcResource
       
       // Transition after the copy command.
       do {
         let barrier1 = Self.transition(
-          resource: frameBuffer,
+          resource: frontBuffer,
           before: D3D12_RESOURCE_STATE_COPY_SOURCE,
           after: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
         let barrier2 = Self.transition(
@@ -297,7 +295,7 @@ extension RunLoop {
       }
     }
     
-    // Send the render target to the DWM.
+    // Present the back buffer.
     try! application.swapChain.d3d12SwapChain.Present(1, 0)
   }
   #endif
