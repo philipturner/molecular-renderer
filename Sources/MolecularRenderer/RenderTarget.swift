@@ -65,4 +65,17 @@ public class RenderTarget {
  }
  encoder.endEncoding()
  commandBuffer.commit()
+ 
+ var resourceDesc = D3D12_RESOURCE_DESC()
+ resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D
+ resourceDesc.Alignment = 64 * 1024
+ resourceDesc.Width = UInt64(display.frameBufferSize[0])
+ resourceDesc.Height = UInt32(display.frameBufferSize[1])
+ resourceDesc.DepthOrArraySize = UInt16(1)
+ resourceDesc.MipLevels = UInt16(1)
+ resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+ resourceDesc.SampleDesc.Count = 1
+ resourceDesc.SampleDesc.Quality = 0
+ resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
+ resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
  */
