@@ -43,17 +43,21 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
       device half *atomicNumbers [[buffer(1)]],
+      constant AtomCountArgs *atomCountArgs [[buffer(2)]],
       uint2 tid [[thread_position_in_grid]])
     """
     #else
     """
     RWTexture2D<float4> frameBuffer : register(u0);
     RWBuffer<float> atomicNumbers : register(u1);
+    ConstantBuffer<AtomCountArgs> atomCountArgs : register(b2);
     
     [numthreads(8, 8, 1)]
     [RootSignature(
       "DescriptorTable(UAV(u0, numDescriptors = 1)),"
-      "DescriptorTable(UAV(u1, numDescriptors = 1))")]
+      "DescriptorTable(UAV(u1, numDescriptors = 1)),"
+      "RootConstants(num32BitConstants = 1, b2),"
+    )]
     void renderImage(
       uint2 tid : SV_DispatchThreadID)
     """
@@ -88,6 +92,11 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   
   \(createAtomColors(AtomStyles.colors))
   \(createAtomRadii(AtomStyles.radii))
+  
+  // Bypass errors in the HLSL compiler.
+  struct AtomCountArgs {
+    uint atomCount;
+  };
   
   \(functionSignature())
   {

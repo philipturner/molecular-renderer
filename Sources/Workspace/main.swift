@@ -1,5 +1,4 @@
 // Goal:
-// - Migrate to R16_UINT / R16_FLOAT testing with RWBuffer.
 // - Migrate the rest of the data and make atom count defined at runtime.
 //
 // Sources:
