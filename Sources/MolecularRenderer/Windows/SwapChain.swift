@@ -11,10 +11,7 @@ struct SwapChainDescriptor {
 class SwapChain {
   let d3d12SwapChain: SwiftCOM.IDXGISwapChain4
   let waitableObject: HANDLE
-  
   private(set) var backBuffers: [SwiftCOM.ID3D12Resource] = []
-  let frameBuffer: SwiftCOM.ID3D12Resource
-  let frameBufferDescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
   init(descriptor: SwapChainDescriptor) {
     guard let device = descriptor.device,
@@ -60,49 +57,6 @@ class SwapChain {
       
       // Append the back buffer to the list.
       backBuffers.append(backBuffer)
-    }
-    
-    // Set up the frame buffer.
-    do {
-      // Fill the heap properties.
-      var heapProperties = D3D12_HEAP_PROPERTIES()
-      heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT
-      
-      // Fill the resource descriptor.
-      let backBuffer = backBuffers[0]
-      var resourceDesc = try! backBuffer.GetDesc()
-      resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
-      
-      // Create the resource.
-      self.frameBuffer =
-      try! device.d3d12Device.CreateCommittedResource(
-        heapProperties, // pHeapProperties
-        D3D12_HEAP_FLAG_NONE, // HeapFlags
-        resourceDesc, // pDesc
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
-        nil) // pOptimizedClearValue
-    }
-    
-    // Set up the frame buffer's descriptor heap.
-    do {
-      // Fill the heap descriptor.
-      var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
-      descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-      descriptorHeapDesc.NumDescriptors = 1
-      descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-      
-      // Create the descriptor heap.
-      self.frameBufferDescriptorHeap = try! device.d3d12Device
-        .CreateDescriptorHeap(descriptorHeapDesc)
-      
-      // Create the UAV.
-      let cpuDescriptorHandle = try! frameBufferDescriptorHeap
-        .GetCPUDescriptorHandleForHeapStart()
-      try! device.d3d12Device.CreateUnorderedAccessView(
-        frameBuffer, // pResource
-        nil, // pCounterResource,
-        nil, // pDesc
-        cpuDescriptorHandle) // DestDescriptor
     }
   }
 }
