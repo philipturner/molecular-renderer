@@ -23,6 +23,9 @@ struct RenderTargetDescriptor {
 public class RenderTarget {
   // This number cycles through the range 0..<2. RunLoop manages it.
   public internal(set) var currentBufferIndex: Int = 0
+  
+  // TODO: Create a D3D12_RESOURCE_DESC from scratch, instead of relying on the
+  // swapchain back buffer to copy a descriptor from.
 }
 
 /*
