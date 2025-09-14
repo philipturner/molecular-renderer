@@ -41,9 +41,32 @@ public class DescriptorHeap {
   // Encode a CPU descriptor and return its index in the heap.
   func createUAV(
     resource: SwiftCOM.ID3D12Resource,
-    uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC
+    uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC?
   ) -> Int {
+    guard offset < count else {
+      fatalError("Exceeded number of allocated descriptors.")
+    }
     
+    var cpuHandle = try! d3d12DescriptorHeap
+      .GetCPUDescriptorHandleForHeapStart()
+    cpuHandle.ptr += UInt64(offset * incrementSize)
+    
+    if let uavDesc {
+      var uavDescCopy = uavDesc
+      try! device.d3d12Device.CreateUnorderedAccessView(
+        resource, // pResource
+        nil, // pCounterResource,
+        &uavDescCopy, // pDesc
+        cpuHandle) // DestDescriptor
+    } else {
+      try! device.d3d12Device.CreateUnorderedAccessView(
+        resource, // pResource
+        nil, // pCounterResource,
+        nil, // pDesc
+        cpuHandle) // DestDescriptor
+    }
+    
+    return 0
   }
 }
 

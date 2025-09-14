@@ -50,6 +50,8 @@
 // - Re-bind UAVs on the fly, removing the need to statically declare them
 //   beforehand
 // - Quite similar in spirit to the utility from 3DGEP
+//
+// TODO: Test the offset functionality of the descriptor heap rigorously.
 
 import HDL
 import MolecularRenderer
