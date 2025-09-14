@@ -1,6 +1,4 @@
 // Goal:
-// - Start with a UInt32 buffer holding the atomic numbers, read instead of the
-//   actual atomic numbers baked into shader code.
 // - Migrate to R16_UINT / R16_FLOAT testing with RWBuffer.
 // - Migrate the rest of the data and make atom count defined at runtime.
 //
