@@ -9,6 +9,41 @@
 // - https://gist.github.com/philipturner/7f2b3da4ae719bb28d3b60ebfc1e0f60
 // - https://gist.github.com/philipturner/ec3138aaf69d44a46e610a4a0a7a6af2
 // - https://darkcorners.dev/buffers-vs-structuredbuffers
+//
+// Conventions:
+// - one descriptor table per UAV
+// - lazily initialize the handle ID in client code
+// - Remove the macOS-specific 'renderTarget' argument from
+//   application.run. We can always change this later for pipelined
+//   offline rendering. But for now, simplicity matters more.
+// - Double-buffer the frame buffer textures, as on macOS that reduced
+//   some possible stalls between frames. Might also be a good idea for
+//   allowing asynchrony in TAAU? Just implement double buffering and
+//   move on.
+// - Include a copying pass on macOS, just like what exist on Windows.
+//   That will fully remove the need for the user to access the drawable
+//   texture.
+//
+// DescriptorHeapDescriptor
+// - specify the number of descriptors
+// DescriptorHeap
+// - createView(ID3D12Resource, D3D12_UAV_DESC) -> Int
+// commandList.setDescriptorHeap
+// commandList.setDescriptor(handleID: Int, index: Int)
+// - under the hood, retrieves the GPU descriptor handle from the heap
+//   bound to the command list
+//
+// First step:
+// - Implement double buffering of the texture, using the existing paradigm
+//   (with imperfect / confusing DescriptorHeap usage).
+//   - Remove the renderTarget argument from 'application.run()'.
+//   - Migrate the frameBuffer code out of 'SwapChain' and into a cross-platform
+//     utility with a different name. There must be separation because this
+//     new utility is placed before upscaling, while View / SwapChain are after.
+//     Or, if there are restrictions on output format for Upscaler output (like
+//     might be true on macOS, definitely true on Windows), there's a separation
+//     between render targets + upscaler outputs vs. back buffers / drawables.
+//   - Perhaps name it 'RenderTarget'.
 
 import HDL
 import MolecularRenderer
@@ -136,33 +171,6 @@ application.run { renderTarget in
       try! commandList.d3d12CommandList
         .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
       #endif
-      
-      // Conventions:
-      // - one descriptor table per UAV
-      // - lazily initialize the handle ID in client code
-      // - Remove the macOS-specific 'renderTarget' argument from
-      //   application.run. We can always change this later for pipelined
-      //   offline rendering. But for now, simplicity matters more.
-      // - Double-buffer the frame buffer textures, as on macOS that reduced
-      //   some possible stalls between frames. Might also be a good idea for
-      //   allowing asynchrony in TAAU? Just implement double buffering and
-      //   move on.
-      // - Include a copying pass on macOS, just like what exist on Windows.
-      //   That will fully remove the need for the user to access the drawable
-      //   texture.
-      //
-      // DescriptorHeapDescriptor
-      // - specify the number of descriptors
-      // DescriptorHeap
-      // - createView(ID3D12Resource, D3D12_UAV_DESC) -> Int
-      // commandList.setDescriptorHeap
-      // commandList.setDescriptor(handleID: Int, index: Int)
-      // - under the hood, retrieves the GPU descriptor handle from the heap
-      //   bound to the command list
-      
-      // Bind the atoms.
-      commandList.setBuffer(
-        nativeAtomBuffer, index: 1)
       
       // Determine the dispatch grid size.
       let frameBufferSize = application.display.frameBufferSize
