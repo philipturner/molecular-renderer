@@ -88,12 +88,6 @@ renderTargetDesc.device = application.device
 renderTargetDesc.display = application.display
 let renderTarget = RenderTarget(descriptor: renderTargetDesc)
 
-do {
-  let bufferIndex = renderTarget.currentBufferIndex
-  print(renderTarget.colorTextures[bufferIndex])
-  print(renderTarget.colorTextures[(bufferIndex + 1) % 2])
-}
-
 func createAtoms() -> [SIMD4<Float>] {
   return [
     Atom(position: SIMD3( 2.0186, -0.2175,  0.7985) * 0.1, element: .hydrogen),
@@ -166,6 +160,7 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
 
+#if os(Windows)
 // Temporary utility for extracting the descriptor heap out of SwapChain.
 func createDescriptorHeap(
   device: Device,
@@ -183,11 +178,21 @@ func createDescriptorHeap(
   for i in 0..<2 {
     var cpuHandle = cpuBaseHandle
     cpuHandle.ptr += UInt64(i * 152)
-    print(try! device.d3d12Device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
+    
+    let colorTexture = renderTarget.colorTextures[i]
+    try! device.d3d12Device.CreateUnorderedAccessView(
+      colorTexture, // pResource
+      nil, // pCounterResource,
+      nil, // pDesc
+      cpuHandle) // DestDescriptor
   }
   
   return descriptorHeap
 }
+let descriptorHeap = createDescriptorHeap(
+  device: application.device,
+  renderTarget: renderTarget)
+#endif
 
 // Enter the run loop.
 application.run { renderTarget in
