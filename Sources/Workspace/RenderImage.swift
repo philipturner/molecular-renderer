@@ -8,7 +8,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
         let x = String(format: "%.3f", atom[0])
         let y = String(format: "%.3f", atom[1])
         let z = String(format: "%.3f", atom[2])
-        let w = String(format: "%.3f", atom[2])
+        let w = String(format: "%.3f", atom[3])
         return "float4(\(x), \(y), \(z), \(w))"
       }
       
