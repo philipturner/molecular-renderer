@@ -163,11 +163,31 @@ let shader = Shader(descriptor: shaderDesc)
 
 #if os(Windows)
 // Set up the descriptor heap.
-func createDescriptorHeap() -> DescriptorHeap {
+func createDescriptorHeap(
+  device: Device,
+  renderTarget: RenderTarget
+) -> DescriptorHeap {
   var descriptorHeapDesc = DescriptorHeapDescriptor()
-  descriptorHeapDesc.device = application.device
-  descriptorHeapDesc.count = 1
+  descriptorHeapDesc.device = device
+  descriptorHeapDesc.count = 200
+  let descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
+  
+  for i in 0..<2 {
+    let colorTexture = renderTarget.colorTextures[i]
+    let handleID = descriptorHeap.createUAV(
+      resource: colorTexture,
+      uavDesc: nil)
+    print("created UAV for color texture: \(i), \(handleID)")
+    guard i == handleID else {
+      fatalError("This should never happen.")
+    }
+  }
+  
+  return descriptorHeap
 }
+let descriptorHeap = createDescriptorHeap(
+  device: application.device,
+  renderTarget: application.renderTarget)
 #endif
 
 // Enter the run loop.
@@ -179,8 +199,7 @@ application.run {
   application.device.commandQueue.withCommandList { commandList in
     // Bind the descriptor heap.
     #if os(Windows)
-    try! commandList.d3d12CommandList
-      .SetDescriptorHeaps([descriptorHeap])
+    commandList.setDescriptorHeap(descriptorHeap)
     #endif
     
     // Encode the compute command.
@@ -190,10 +209,8 @@ application.run {
       commandList.mtlCommandEncoder
         .setTexture(frontBuffer, index: 0)
       #else
-      var gpuHandle = try! descriptorHeap.GetGPUDescriptorHandleForHeapStart()
-      gpuHandle.ptr += UInt64(frontBufferID * 152)
-      try! commandList.d3d12CommandList
-        .SetComputeRootDescriptorTable(0, gpuHandle)
+      commandList.setDescriptor(
+        handleID: frontBufferID, index: 0)
       #endif
       
       // Determine the dispatch grid size.

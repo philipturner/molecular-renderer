@@ -13,7 +13,7 @@ public struct DescriptorHeapDescriptor {
 
 public class DescriptorHeap {
   unowned let device: Device
-  private var offset: Int = 0
+  private(set) var offset: Int = 0
   let count: Int
   let incrementSize: Int
   
@@ -82,6 +82,8 @@ public class DescriptorHeap {
 extension CommandList {
   public func setDescriptorHeap(_ descriptorHeap: DescriptorHeap) {
     self.descriptorHeap = descriptorHeap
+    
+    
   }
   
   public func setDescriptor(handleID: Int, index: Int) {
