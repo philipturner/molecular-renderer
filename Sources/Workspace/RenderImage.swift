@@ -42,20 +42,20 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
-      device half *atomicNumbers [[buffer(1)]],
+      device float4 *atoms [[buffer(1)]],
       constant AtomCountArgs &atomCountArgs [[buffer(2)]],
       uint2 tid [[thread_position_in_grid]])
     """
     #else
     """
     RWTexture2D<float4> frameBuffer : register(u0);
-    RWBuffer<float> atomicNumbers : register(u1);
+    RWStructuredBuffer<float4> atoms : register(u1);
     ConstantBuffer<AtomCountArgs> atomCountArgs : register(b2);
     
     [numthreads(8, 8, 1)]
     [RootSignature(
       "DescriptorTable(UAV(u0, numDescriptors = 1)),"
-      "DescriptorTable(UAV(u1, numDescriptors = 1)),"
+      "UAV(u1, numDescriptors = 1),"
       "RootConstants(b2, num32BitConstants = 1),"
     )]
     void renderImage(
@@ -122,8 +122,8 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     uint32_t atomCount = atomCountArgs.atomCount;
     for (uint32_t atomID = 0; atomID < atomCount; ++atomID)
     {
-      float3 atom = moleculeCoordinates[atomID];
-      uint32_t atomicNumber = atomicNumbers[atomID];
+      float4 atom = atoms[atomID];
+      uint32_t atomicNumber = uint32_t(atom[3]);
       
       // Perform a point-circle intersection test.
       float radius = atomRadii[atomicNumber];
