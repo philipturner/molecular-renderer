@@ -214,13 +214,10 @@ application.run {
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 0)
       #else
-      var gpuHandle = try! descriptor.GetGPUDescriptorHandleForHeapStart()
-      gpuHandle.ptr += UInt64(frontBufferIndex)
-      
-      let gpuDescriptorHandle = try! renderTarget
-        .GetGPUDescriptorHandleForHeapStart()
+      var gpuHandle = try! descriptorHeap.GetGPUDescriptorHandleForHeapStart()
+      gpuHandle.ptr += UInt64(frontBufferIndex * 152)
       try! commandList.d3d12CommandList
-        .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
+        .SetComputeRootDescriptorTable(0, gpuHandle)
       #endif
       
       // Determine the dispatch grid size.
