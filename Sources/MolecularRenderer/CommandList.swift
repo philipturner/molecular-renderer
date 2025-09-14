@@ -29,6 +29,11 @@ public class CommandList {
   // Internally tracked pipeline state, necessary for dispatching threads.
   private var shader: Shader?
   
+  #if os(Windows)
+  // Internally tracked descriptor heap.
+  internal var descriptorHeap: DescriptorHeap?
+  #endif
+  
   init(descriptor: CommandListDescriptor) {
     #if os(macOS)
     guard let mtlCommandBuffer = descriptor.mtlCommandBuffer else {
