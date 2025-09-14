@@ -219,7 +219,6 @@ application.run {
       try! commandList.d3d12CommandList
         .SetComputeRootDescriptorTable(0, gpuHandle)
       #endif
-      print(frontBufferID)
       
       // Determine the dispatch grid size.
       let frameBufferSize = application.display.frameBufferSize

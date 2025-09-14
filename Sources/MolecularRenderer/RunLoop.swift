@@ -242,7 +242,7 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure()
     
-    // Retrieve the front buffer.
+    // Retrieve the front buffer, increment the buffer index.
     func retrieveFrontBuffer() -> SwiftCOM.ID3D12Resource {
       let frontBufferID = application.renderTarget.bufferIndex
       application.renderTarget.incrementBufferIndex()
