@@ -51,48 +51,9 @@ func createAtoms() -> [SIMD4<Float>] {
     Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
   ]
 }
-let atoms = createAtoms()
-
-// Set up the atom buffer.
-var bufferDesc = BufferDescriptor()
-bufferDesc.device = application.device
-bufferDesc.size = atoms.count * 16
-
-#if os(Windows)
-bufferDesc.type = .input
-let inputAtomBuffer = Buffer(descriptor: bufferDesc)
-#endif
-
-bufferDesc.type = .native
-let nativeAtomBuffer = Buffer(descriptor: bufferDesc)
-
-// Write the contents of the atom buffer.
-atoms.withUnsafeBytes { bufferPointer in
-  let baseAddress = bufferPointer.baseAddress!
-  #if os(macOS)
-  nativeAtomBuffer.write(input: baseAddress)
-  #else
-  inputAtomBuffer.write(input: baseAddress)
-  #endif
-}
-
-#if os(Windows)
-application.device.commandQueue.withCommandList { commandList in
-  let copyDestBarrier = nativeAtomBuffer
-    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
-  try! commandList.d3d12CommandList.ResourceBarrier(
-    1, [copyDestBarrier])
-  
-  commandList.upload(
-    inputBuffer: inputAtomBuffer,
-    nativeBuffer: nativeAtomBuffer)
-  
-  let unorderedAccessBarrier = nativeAtomBuffer
-    .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-  try! commandList.d3d12CommandList.ResourceBarrier(
-    1, [unorderedAccessBarrier])
-}
-#endif
+let atomBuffer = AtomBuffer(
+  device: application.device,
+  atomCount: createAtoms().count)
 
 // Set up the shader.
 var shaderDesc = ShaderDescriptor()
