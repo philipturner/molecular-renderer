@@ -79,9 +79,25 @@ public class DescriptorHeap {
   }
 }
 
-// commandList.setDescriptorHeap
-// commandList.setDescriptor(handleID: Int, index: Int)
-// - under the hood, retrieves the GPU descriptor handle from the heap
-//   bound to the command list
+extension CommandList {
+  public func setDescriptorHeap(_ descriptorHeap: DescriptorHeap) {
+    self.descriptorHeap = descriptorHeap
+  }
+  
+  public func setDescriptor(handleID: Int, index: Int) {
+    guard let descriptorHeap else {
+      fatalError("Descriptor heap was not set.")
+    }
+    
+    // Retrieve the GPU descriptor handle.
+    var gpuHandle = try! descriptorHeap.d3d12DescriptorHeap
+      .GetGPUDescriptorHandleForHeapStart()
+    gpuHandle.ptr += UInt64(handleID * descriptorHeap.incrementSize)
+    
+    // Bind to the specified index in the root signature.
+    try! d3d12CommandList
+      .SetComputeRootDescriptorTable(UInt32(index), gpuHandle)
+  }
+}
 
 #endif
