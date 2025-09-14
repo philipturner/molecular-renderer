@@ -51,7 +51,7 @@ func createAtoms() -> [SIMD4<Float>] {
     Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
   ]
 }
-let atomBuffer = AtomBuffer(
+var atomBuffer = AtomBuffer(
   device: application.device,
   atomCount: createAtoms().count)
 
@@ -96,11 +96,26 @@ let descriptorHeap = createDescriptorHeap(
 
 // Enter the run loop.
 application.run {
+  // TODO: Perform some transform on the atoms with Quaternion and Clock.frames.
+  let atoms = createAtoms()
+  
+  // Write the atoms to the GPU buffer.
+  let inFlightFrameID = application.frameID % 3
+  atomBuffer.write(
+    atoms: atoms,
+    inFlightFrameID: inFlightFrameID)
+  
   // Retrieve the front buffer.
   let frontBufferID = application.frameID % 2
   let frontBuffer = application.renderTarget.colorTextures[frontBufferID]
   
   application.device.commandQueue.withCommandList { commandList in
+    #if os(Windows)
+    atomBuffer.copy(
+      commandList: commandList,
+      inFlightFrameID: inFlightFrameID)
+    #endif
+    
     // Bind the descriptor heap.
     #if os(Windows)
     commandList.setDescriptorHeap(descriptorHeap)
@@ -118,7 +133,8 @@ application.run {
       #endif
       
       // Bind the atom buffer.
-      commandList.setBuffer(nativeAtomBuffer, index: 1)
+      let nativeBuffer = atomBuffer.nativeBuffers[inFlightFrameID]
+      commandList.setBuffer(nativeBuffer, index: 1)
       
       // Bind the constant arguments.
       let atomCount = UInt32(atoms.count)
