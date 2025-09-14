@@ -212,7 +212,7 @@ application.run {
       // Bind the texture.
       #if os(macOS)
       commandList.mtlCommandEncoder
-        .setTexture(renderTarget, index: 0)
+        .setTexture(frontBuffer, index: 0)
       #else
       var gpuHandle = try! descriptorHeap.GetGPUDescriptorHandleForHeapStart()
       gpuHandle.ptr += UInt64(frontBufferID * 152)
