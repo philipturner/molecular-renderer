@@ -5,6 +5,26 @@
 //  Created by Philip Turner on 9/14/25.
 //
 
+#if os(macOS)
+import Metal
+#else
+import SwiftCOM
+import WinSDK
+#endif
+
+struct RenderTargetDescriptor {
+  var device: Device?
+  var display: Display?
+  #if os(Windows)
+  var swapChain: SwapChain?
+  #endif
+}
+
+public class RenderTarget {
+  // This number cycles through the range 0..<2. RunLoop manages it.
+  public internal(set) var currentBufferIndex: Int = 0
+}
+
 /*
  // Ensure the textures use lossless compression.
  let commandBuffer = commandQueue.makeCommandBuffer()!

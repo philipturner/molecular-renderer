@@ -257,11 +257,9 @@ extension RunLoop {
       }
       
       // Copy the frame buffer into the back buffer.
-      do {
-        try! commandList.d3d12CommandList.CopyResource(
-          backBuffer, // pDstResource
-          frameBuffer) // pSrcResource
-      }
+      try! commandList.d3d12CommandList.CopyResource(
+        backBuffer, // pDstResource
+        frameBuffer) // pSrcResource
       
       // Transition after the copy command.
       do {
