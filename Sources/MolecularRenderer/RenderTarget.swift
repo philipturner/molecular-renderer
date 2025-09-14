@@ -12,7 +12,7 @@ struct RenderTargetDescriptor {
 
 public class RenderTarget {
   // This number cycles through the range 0..<2. RunLoop manages it.
-  public internal(set) var currentBufferIndex: Int = 0
+  public internal(set) var bufferIndex: Int = 0
   
   #if os(macOS)
   public internal(set) var colorTextures: [MTLTexture] = []
@@ -86,5 +86,9 @@ public class RenderTarget {
       colorTextures.append(colorTexture)
     }
     #endif
+  }
+  
+  func incrementBufferIndex() {
+    bufferIndex = (bufferIndex + 1) % 2
   }
 }
