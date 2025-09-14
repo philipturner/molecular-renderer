@@ -161,7 +161,14 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
 
+#if os(Windows)
 // Set up the descriptor heap.
+func createDescriptorHeap() -> DescriptorHeap {
+  var descriptorHeapDesc = DescriptorHeapDescriptor()
+  descriptorHeapDesc.device = application.device
+  descriptorHeapDesc.count = 1
+}
+#endif
 
 // Enter the run loop.
 application.run {

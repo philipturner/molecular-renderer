@@ -88,6 +88,9 @@ extension CommandList {
     guard let descriptorHeap else {
       fatalError("Descriptor heap was not set.")
     }
+    guard handleID < descriptorHeap.offset else {
+      fatalError("Exceeded number of written descriptors.")
+    }
     
     // Retrieve the GPU descriptor handle.
     var gpuHandle = try! descriptorHeap.d3d12DescriptorHeap
