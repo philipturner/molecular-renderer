@@ -31,7 +31,7 @@ public class Application {
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
-    guard let device = descriptor.device,
+    guard let device: Device = descriptor.device,
           let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")
     }

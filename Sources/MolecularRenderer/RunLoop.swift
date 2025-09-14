@@ -123,8 +123,7 @@ extension RunLoop {
     guard let application = Application.singleton else {
       fatalError("Could not retrieve the application.")
     }
-    
-    // Increment the frame counter.
+    application.frameID += 1
     application.clock.increment(
       frameStatistics: outputTime.pointee)
     
@@ -214,6 +213,7 @@ extension RunLoop {
     guard let application = Application.singleton else {
       fatalError("Could not retrieve the application.")
     }
+    application.frameID += 1
     
     // WARNING: Handle any queued mouse and keyboard events that appeared
     // during this blocking operation.
