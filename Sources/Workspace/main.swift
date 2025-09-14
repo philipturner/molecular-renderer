@@ -78,6 +78,11 @@ atoms.withUnsafeBytes { bufferPointer in
 
 #if os(Windows)
 application.device.commandQueue.withCommandList { commandList in
+  let copyDestBarrier = nativeAtomBuffer
+    .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+  try! commandList.d3d12CommandList.ResourceBarrier(
+    1, [copyDestBarrier])
+  
   commandList.upload(
     inputBuffer: inputAtomBuffer,
     nativeBuffer: nativeAtomBuffer)
