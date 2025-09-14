@@ -47,10 +47,12 @@ public class DescriptorHeap {
       fatalError("Exceeded number of allocated descriptors.")
     }
     
+    // Retrieve the CPU descriptor handle.
     var cpuHandle = try! d3d12DescriptorHeap
       .GetCPUDescriptorHandleForHeapStart()
     cpuHandle.ptr += UInt64(offset * incrementSize)
     
+    // Create the UAV.
     if let uavDesc {
       var uavDescCopy = uavDesc
       try! device.d3d12Device.CreateUnorderedAccessView(
@@ -66,7 +68,10 @@ public class DescriptorHeap {
         cpuHandle) // DestDescriptor
     }
     
-    return 0
+    // Process the offset / descriptor index.
+    let output = offset
+    offset += 1
+    return output
   }
 }
 
