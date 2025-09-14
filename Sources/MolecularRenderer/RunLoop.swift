@@ -192,7 +192,7 @@ extension RunLoop {
       commandList.mtlCommandEncoder.endEncoding()
       commandList.mtlCommandBuffer.present(drawable)
       commandList.mtlCommandEncoder =
-        commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+      commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     }
     
     return kCVReturnSuccess

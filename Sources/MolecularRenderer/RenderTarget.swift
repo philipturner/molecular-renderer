@@ -19,6 +19,7 @@ public class RenderTarget {
   public internal(set) var currentBufferIndex: Int = 0
   
   #if os(macOS)
+  public internal(set) var colorTextures: [MTLTexture] = []
   #else
   public internal(set) var colorTextures: [SwiftCOM.ID3D12Resource] = []
   #endif
@@ -30,6 +31,37 @@ public class RenderTarget {
     }
     
     #if os(macOS)
+    // Ensure the textures use lossless compression.
+    device.commandQueue.withCommandList { commandList in
+      commandList.mtlCommandEncoder.endEncoding()
+      let commandEncoder: MTLBlitCommandEncoder =
+      commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
+      
+      for _ in 0..<2 {
+        let textureDesc = MTLTextureDescriptor()
+        textureDesc.textureType = .type2D
+        textureDesc.width = display.frameBufferSize[0]
+        textureDesc.height = display.frameBufferSize[1]
+        textureDesc.depth = 1
+        textureDesc.mipmapLevelCount = 1
+        textureDesc.sampleCount = 1
+        textureDesc.arrayLength = 1
+        textureDesc.storageMode = .private
+        textureDesc.usage = [.shaderRead, .shaderWrite]
+        textureDesc.compressionType = .lossless
+        
+        textureDesc.pixelFormat = .rgb10a2Unorm
+        let colorTexture = device.mtlDevice.makeTexture(
+          descriptor: textureDesc)!
+        colorTextures.append(colorTexture)
+        
+        commandEncoder.optimizeContentsForGPUAccess(texture: colorTexture)
+      }
+      
+      commandEncoder.endEncoding()
+      commandList.mtlCommandEncoder =
+      commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+    }
     #else
     for _ in 0..<2 {
       var heapProperties = D3D12_HEAP_PROPERTIES()
@@ -42,12 +74,12 @@ public class RenderTarget {
       resourceDesc.Height = UInt32(display.frameBufferSize[1])
       resourceDesc.DepthOrArraySize = UInt16(1)
       resourceDesc.MipLevels = UInt16(1)
-      resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
       resourceDesc.SampleDesc.Count = 1
       resourceDesc.SampleDesc.Quality = 0
       resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
       resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
       
+      resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
       let colorTexture: SwiftCOM.ID3D12Resource =
       try! device.d3d12Device.CreateCommittedResource(
         heapProperties, // pHeapProperties
