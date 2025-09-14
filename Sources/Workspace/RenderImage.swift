@@ -47,12 +47,12 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     #else
     """
     RWTexture2D<float4> frameBuffer : register(u0);
-    RWBuffer<float4> atomicNumbers : register(u1);
+    RWBuffer<uint4> atomicNumbers : register(u1);
     
     [numthreads(8, 8, 1)]
     [RootSignature(
       "DescriptorTable(UAV(u0, numDescriptors = 1)),"
-      "UAV(u1)")]
+      "DescriptorTable(UAV(u1, numDescriptors = 1))")]
     void renderImage(
       uint2 tid : SV_DispatchThreadID)
     """

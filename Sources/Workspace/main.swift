@@ -68,7 +68,7 @@ let atoms = createAtoms()
 // Set up the atom buffer.
 var bufferDesc = BufferDescriptor()
 bufferDesc.device = application.device
-bufferDesc.size = atoms.count * 2
+bufferDesc.size = atoms.count * 4
 
 #if os(Windows)
 bufferDesc.type = .input
@@ -80,9 +80,9 @@ let nativeAtomBuffer = Buffer(descriptor: bufferDesc)
 
 // Write the contents of the atom buffer.
 do {
-  var contents: [UInt16] = []
+  var contents: [UInt32] = []
   for atom in atoms {
-    let atomicNumber = UInt16(atom[3])
+    let atomicNumber = UInt32(atom[3])
     contents.append(atomicNumber)
   }
   
@@ -120,7 +120,11 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 let shader = Shader(descriptor: shaderDesc)
 
 // Enter the run loop.
+#if os(macOS)
+application.run { _ in
+#else
 application.run { renderTarget in
+#endif
   application.device.commandQueue.withCommandList { commandList in
     // Encode the compute command.
     commandList.withPipelineState(shader) {
@@ -137,11 +141,21 @@ application.run { renderTarget in
         .SetComputeRootDescriptorTable(0, gpuDescriptorHandle)
       #endif
       
-      // TODO: Figure out how to make a single global descriptor heap.
-      //   Hint: do it in 'main.swift' for now.
-      // TODO: Figure out how to pass the render target ID3D12Resource directly,
-      // and create a new unordered access view every frame.
-      // TODO: Figure out how to (maybe) create a PackedBuffer utility.
+      // Conventions:
+      // - one descriptor table per UAV
+      // - lazily initialize the handle ID in client code
+      // - Remove the macOS-specific 'renderTarget' argument from
+      //   application.run. We can always change this later for pipelined
+      //   offline rendering. But for now, simplicity matters more.
+      //
+      // DescriptorHeapDescriptor
+      // - specify the number of descriptors
+      // DescriptorHeap
+      // - createView(ID3D12Resource, D3D12_UAV_DESC) -> Int
+      // commandList.setDescriptorHeap
+      // commandList.setDescriptor(handleID: Int, index: Int)
+      // - under the hood, retrieves the GPU descriptor handle from the heap
+      //   bound to the command list
       
       // Bind the atoms.
       commandList.setBuffer(
