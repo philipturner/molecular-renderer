@@ -179,11 +179,15 @@ extension RunLoop {
     let frontBuffer = retrieveFrontBuffer()
     
     // Retrieve the back buffer.
-    let layer = application.view.metalLayer
-    let drawable = layer.nextDrawable()
-    guard let drawable else {
-      fatalError("Drawable timed out after 1 second.")
+    func retrieveDrawable() -> CAMetalDrawable {
+      let layer = application.view.metalLayer
+      let drawable = layer.nextDrawable()
+      guard let drawable else {
+        fatalError("Drawable timed out after 1 second.")
+      }
+      return drawable
     }
+    let drawable = retrieveDrawable()
     
     // Copy the front buffer to the back buffer and present.
     application.device.commandQueue.withCommandList { commandList in
@@ -229,19 +233,27 @@ extension RunLoop {
       application.clock.increment(frameStatistics: frameStatistics)
     }
     
+    // Synchronize and update the clock.
     waitOnObject()
     updateClock()
     
-    func createBackBuffer() -> SwiftCOM.ID3D12Resource {
-      let ringIndex =
-      try! application.swapChain.d3d12SwapChain
-        .GetCurrentBackBufferIndex()
-      return application.swapChain.backBuffers[Int(ringIndex)]
-    }
-    
     // Invoke the user-supplied closure.
-    let descriptorHeap = application.swapChain.frameBufferDescriptorHeap
-    self.closure(descriptorHeap)
+    self.closure()
+    
+    // Retrieve the front buffer.
+    func retrieveFrontBuffer() -> MTLTexture {
+      let bufferIndex = application.renderTarget.currentBufferIndex
+      return application.renderTarget.colorTextures[bufferIndex]
+    }
+    let frontBuffer = retrieveFrontBuffer()
+    
+    // Retrieve the back buffer.
+    func retrieveBackBuffer() -> SwiftCOM.ID3D12Resource {
+      let bufferIndex = try! application.swapChain.d3d12SwapChain
+        .GetCurrentBackBufferIndex()
+      return application.swapChain.backBuffers[Int(bufferIndex)]
+    }
+    let backBuffer = retrieveBackBuffer()
     
     // Present the frame buffer.
     let frameBuffer = application.swapChain.frameBuffer
