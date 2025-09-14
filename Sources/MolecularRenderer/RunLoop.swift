@@ -171,6 +171,13 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure()
     
+    // Retrieve the front buffer.
+    func retrieveFrontBuffer() -> MTLTexture {
+      let bufferIndex = application.renderTarget.currentBufferIndex
+      return application.renderTarget.colorTextures[bufferIndex]
+    }
+    let frontBuffer = retrieveFrontBuffer()
+    
     // Retrieve the back buffer.
     let layer = application.view.metalLayer
     let drawable = layer.nextDrawable()
@@ -181,13 +188,16 @@ extension RunLoop {
     // Copy the front buffer to the back buffer and present.
     application.device.commandQueue.withCommandList { commandList in
       commandList.mtlCommandEncoder.endEncoding()
+      
       let commandEncoder: MTLBlitCommandEncoder =
       commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
-      
-      // TODO: Blit
-      
+      commandEncoder.copy(
+        from: frontBuffer,
+        to: drawable.texture)
       commandEncoder.endEncoding()
+      
       commandList.mtlCommandBuffer.present(drawable)
+      
       commandList.mtlCommandEncoder =
       commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     }
