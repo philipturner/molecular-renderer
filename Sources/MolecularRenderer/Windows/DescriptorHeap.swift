@@ -2,9 +2,13 @@
 import SwiftCOM
 import WinSDK
 
-struct DescriptorHeapDescriptor {
-  var device: Device?
-  var count: Int?
+public struct DescriptorHeapDescriptor {
+  public var device: Device?
+  public var count: Int?
+  
+  public init() {
+    
+  }
 }
 
 public class DescriptorHeap {
@@ -15,7 +19,7 @@ public class DescriptorHeap {
   
   public let d3d12DescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
-  init(descriptor: DescriptorHeapDescriptor) {
+  public init(descriptor: DescriptorHeapDescriptor) {
     guard let device = descriptor.device,
           let count = descriptor.count else {
       fatalError("Descriptor was incomplete.")
@@ -34,12 +38,12 @@ public class DescriptorHeap {
       descriptorHeapDesc)
   }
   
-  func reset() {
+  public func reset() {
     offset = 0
   }
   
   // Encode a CPU descriptor and return its index in the heap.
-  func createUAV(
+  public func createUAV(
     resource: SwiftCOM.ID3D12Resource,
     uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC?
   ) -> Int {
@@ -74,5 +78,10 @@ public class DescriptorHeap {
     return output
   }
 }
+
+// commandList.setDescriptorHeap
+// commandList.setDescriptor(handleID: Int, index: Int)
+// - under the hood, retrieves the GPU descriptor handle from the heap
+//   bound to the command list
 
 #endif

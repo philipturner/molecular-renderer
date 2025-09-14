@@ -52,6 +52,9 @@
 // - Quite similar in spirit to the utility from 3DGEP
 //
 // TODO: Test the offset functionality of the descriptor heap rigorously.
+// - Idea: make it public for now, while validating the internal tracking
+//   functionality. After debugging, revert it back to private and implement
+//   triple buffering + public API encapsulation to a single "current" heap.
 
 import HDL
 import MolecularRenderer
