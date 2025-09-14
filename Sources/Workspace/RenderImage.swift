@@ -1,39 +1,7 @@
 import Foundation // String.init(format:_:)
 import HDL
 
-func createRenderImage(atoms: [SIMD4<Float>]) -> String {
-  func moleculeCoordinates() -> String {
-    func createList() -> String {
-      func repr(atom: SIMD4<Float>) -> String {
-        let x = String(format: "%.3f", atom[0])
-        let y = String(format: "%.3f", atom[1])
-        let z = String(format: "%.3f", atom[2])
-        return "float3(\(x), \(y), \(z))"
-      }
-      
-      var output: String = ""
-      for atom in atoms {
-        output += repr(atom: atom)
-        output += ",\n"
-      }
-      return output
-    }
-    
-    #if os(macOS)
-    return """
-    constant float3 moleculeCoordinates[\(atoms.count)] = {
-      \(createList())
-    };
-    """
-    #else
-    return """
-    static const float3 moleculeCoordinates[\(atoms.count)] = {
-      \(createList())
-    };
-    """
-    #endif
-  }
-  
+func createRenderImage() -> String {
   func functionSignature() -> String {
     #if os(macOS)
     """
@@ -55,7 +23,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     [numthreads(8, 8, 1)]
     [RootSignature(
       "DescriptorTable(UAV(u0, numDescriptors = 1)),"
-      "UAV(u1, numDescriptors = 1),"
+      "UAV(u1),"
       "RootConstants(b2, num32BitConstants = 1),"
     )]
     void renderImage(
@@ -88,8 +56,6 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
   }
   
   return """
-  \(moleculeCoordinates())
-  
   \(createAtomColors(AtomStyles.colors))
   \(createAtomRadii(AtomStyles.radii))
   

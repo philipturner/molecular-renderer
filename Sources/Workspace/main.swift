@@ -66,7 +66,7 @@ let atoms = createAtoms()
 // Set up the atom buffer.
 var bufferDesc = BufferDescriptor()
 bufferDesc.device = application.device
-bufferDesc.size = atoms.count * 2
+bufferDesc.size = atoms.count * 16
 
 #if os(Windows)
 bufferDesc.type = .input
@@ -77,21 +77,13 @@ bufferDesc.type = .native
 let nativeAtomBuffer = Buffer(descriptor: bufferDesc)
 
 // Write the contents of the atom buffer.
-do {
-  var contents: [Float16] = []
-  for atom in atoms {
-    let atomicNumber = Float16(atom[3])
-    contents.append(atomicNumber)
-  }
-  
-  contents.withUnsafeBytes { bufferPointer in
-    let baseAddress = bufferPointer.baseAddress!
-    #if os(macOS)
-    nativeAtomBuffer.write(input: baseAddress)
-    #else
-    inputAtomBuffer.write(input: baseAddress)
-    #endif
-  }
+atoms.withUnsafeBytes { bufferPointer in
+  let baseAddress = bufferPointer.baseAddress!
+  #if os(macOS)
+  nativeAtomBuffer.write(input: baseAddress)
+  #else
+  inputAtomBuffer.write(input: baseAddress)
+  #endif
 }
 
 #if os(Windows)
@@ -111,7 +103,7 @@ application.device.commandQueue.withCommandList { commandList in
 var shaderDesc = ShaderDescriptor()
 shaderDesc.device = application.device
 shaderDesc.name = "renderImage"
-shaderDesc.source = createRenderImage(atoms: atoms)
+shaderDesc.source = createRenderImage()
 #if os(macOS)
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
@@ -121,12 +113,11 @@ let shader = Shader(descriptor: shaderDesc)
 // Set up the descriptor heap.
 func createDescriptorHeap(
   device: Device,
-  renderTarget: RenderTarget,
-  nativeAtomBuffer: Buffer
+  renderTarget: RenderTarget
 ) -> DescriptorHeap {
   var descriptorHeapDesc = DescriptorHeapDescriptor()
   descriptorHeapDesc.device = device
-  descriptorHeapDesc.count = 3
+  descriptorHeapDesc.count = 2
   let descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
   
   // Set up the textures for rendering.
@@ -140,29 +131,11 @@ func createDescriptorHeap(
     }
   }
   
-  // Set up the buffers with compressed memory formats.
-  do {
-    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-    uavDesc.Format = DXGI_FORMAT_R16_FLOAT
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-    uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(nativeAtomBuffer.size / 2)
-    uavDesc.Buffer.StructureByteStride = 0
-    
-    let handleID = descriptorHeap.createUAV(
-      resource: nativeAtomBuffer.d3d12Resource,
-      uavDesc: uavDesc)
-    guard handleID == 2 else {
-      fatalError("This should never happen.")
-    }
-  }
-  
   return descriptorHeap
 }
 let descriptorHeap = createDescriptorHeap(
   device: application.device,
-  renderTarget: application.renderTarget,
-  nativeAtomBuffer: nativeAtomBuffer)
+  renderTarget: application.renderTarget)
 #endif
 
 // Enter the run loop.
@@ -189,11 +162,7 @@ application.run {
       #endif
       
       // Bind the atom buffer.
-      #if os(macOS)
       commandList.setBuffer(nativeAtomBuffer, index: 1)
-      #else
-      commandList.setDescriptor(handleID: 2, index: 1)
-      #endif
       
       // Bind the constant arguments.
       let atomCount = UInt32(atoms.count)
