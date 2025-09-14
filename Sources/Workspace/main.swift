@@ -147,6 +147,9 @@ application.run { renderTarget in
       //   some possible stalls between frames. Might also be a good idea for
       //   allowing asynchrony in TAAU? Just implement double buffering and
       //   move on.
+      // - Include a copying pass on macOS, just like what exist on Windows.
+      //   That will fully remove the need for the user to access the drawable
+      //   texture.
       //
       // DescriptorHeapDescriptor
       // - specify the number of descriptors
