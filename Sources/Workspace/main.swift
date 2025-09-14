@@ -1,5 +1,6 @@
 // Goal:
 // - Migrate the rest of the data and make atom count defined at runtime.
+// - Render an isopropanol molecule rotating and take a video.
 //
 // Sources:
 // - https://www.gamedev.net/forums/topic/678018-rwbuffer-vs-rwstructuredbuffer-or-rwbyteaddressbuffer/
@@ -193,6 +194,10 @@ application.run {
       #else
       commandList.setDescriptor(handleID: 2, index: 1)
       #endif
+      
+      // Bind the constant arguments.
+      let atomCount = UInt32(atoms.count)
+      commandList.set32BitConstants(atomCount, index: 2)
       
       // Determine the dispatch grid size.
       let frameBufferSize = application.display.frameBufferSize

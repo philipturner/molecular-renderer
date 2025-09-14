@@ -43,7 +43,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
       device half *atomicNumbers [[buffer(1)]],
-      constant AtomCountArgs *atomCountArgs [[buffer(2)]],
+      constant AtomCountArgs &atomCountArgs [[buffer(2)]],
       uint2 tid [[thread_position_in_grid]])
     """
     #else
@@ -56,7 +56,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     [RootSignature(
       "DescriptorTable(UAV(u0, numDescriptors = 1)),"
       "DescriptorTable(UAV(u1, numDescriptors = 1)),"
-      "RootConstants(num32BitConstants = 1, b2),"
+      "RootConstants(b2, num32BitConstants = 1),"
     )]
     void renderImage(
       uint2 tid : SV_DispatchThreadID)
@@ -119,7 +119,8 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     // Raster the atoms in order of depth.
     float maximumDepth = -1e38;
     uint32_t hitAtomicNumber = 0;
-    for (uint32_t atomID = 0; atomID < \(atoms.count); ++atomID)
+    uint32_t atomCount = atomCountArgs.atomCount;
+    for (uint32_t atomID = 0; atomID < atomCount; ++atomID)
     {
       float3 atom = moleculeCoordinates[atomID];
       uint32_t atomicNumber = atomicNumbers[atomID];
