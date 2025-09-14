@@ -172,7 +172,7 @@ extension RunLoop {
     
     // Retrieve the front buffer.
     func retrieveFrontBuffer() -> MTLTexture {
-      let frontBufferID = application.renderTarget.bufferIndex
+      let frontBufferID = application.frameID % 2
       return application.renderTarget.colorTextures[frontBufferID]
     }
     let frontBuffer = retrieveFrontBuffer()
@@ -243,7 +243,7 @@ extension RunLoop {
     
     // Retrieve the front buffer.
     func retrieveFrontBuffer() -> SwiftCOM.ID3D12Resource {
-      let frontBufferID = application.renderTarget.bufferIndex
+      let frontBufferID = application.frameID % 2
       return application.renderTarget.colorTextures[frontBufferID]
     }
     let frontBuffer = retrieveFrontBuffer()

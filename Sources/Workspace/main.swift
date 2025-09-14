@@ -197,7 +197,7 @@ let descriptorHeap = createDescriptorHeap(
 // Enter the run loop.
 application.run {
   // Retrieve the front buffer.
-  let frontBufferID = application.renderTarget.bufferIndex
+  let frontBufferID = application.frameID % 2
   let frontBuffer = application.renderTarget.colorTextures[frontBufferID]
   
   application.device.commandQueue.withCommandList { commandList in
@@ -219,6 +219,7 @@ application.run {
       try! commandList.d3d12CommandList
         .SetComputeRootDescriptorTable(0, gpuHandle)
       #endif
+      print(frontBufferID)
       
       // Determine the dispatch grid size.
       let frameBufferSize = application.display.frameBufferSize
