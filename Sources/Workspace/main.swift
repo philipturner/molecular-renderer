@@ -189,7 +189,11 @@ let descriptorHeap = createDescriptorHeap(
 #endif
 
 // Enter the run loop.
-application.run { renderTarget in
+application.run {
+  // Retrieve the front buffer.
+  let frontBufferIndex = application.renderTarget.currentBufferIndex
+  let frontBuffer = application.renderTarget.colorTextures[frontBufferIndex]
+  
   application.device.commandQueue.withCommandList { commandList in
     // Encode the compute command.
     commandList.withPipelineState(shader) {
