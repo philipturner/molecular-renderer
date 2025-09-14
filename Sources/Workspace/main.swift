@@ -78,9 +78,9 @@ let nativeAtomBuffer = Buffer(descriptor: bufferDesc)
 
 // Write the contents of the atom buffer.
 do {
-  var contents: [UInt16] = []
+  var contents: [Float16] = []
   for atom in atoms {
-    let atomicNumber = UInt16(atom[3])
+    let atomicNumber = Float16(atom[3])
     contents.append(atomicNumber)
   }
   
@@ -143,7 +143,7 @@ func createDescriptorHeap(
   // Set up the buffers with compressed memory formats.
   do {
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-    uavDesc.Format = DXGI_FORMAT_R16_UINT
+    uavDesc.Format = DXGI_FORMAT_R16_FLOAT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
     uavDesc.Buffer.FirstElement = 0
     uavDesc.Buffer.NumElements = UInt32(nativeAtomBuffer.size / 2)

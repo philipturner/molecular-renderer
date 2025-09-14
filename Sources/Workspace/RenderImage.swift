@@ -42,13 +42,13 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
-      device uint16_t *atomicNumbers [[buffer(1)]],
+      device half *atomicNumbers [[buffer(1)]],
       uint2 tid [[thread_position_in_grid]])
     """
     #else
     """
     RWTexture2D<float4> frameBuffer : register(u0);
-    RWBuffer<uint32_t> atomicNumbers : register(u1);
+    RWBuffer<float> atomicNumbers : register(u1);
     
     [numthreads(8, 8, 1)]
     [RootSignature(
