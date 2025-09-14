@@ -44,6 +44,12 @@
 //     might be true on macOS, definitely true on Windows), there's a separation
 //     between render targets + upscaler outputs vs. back buffers / drawables.
 //   - Perhaps name it 'RenderTarget'.
+//
+// Change of plans:
+// - 3-fold buffer of descriptor heaps, one for each frame in flight
+// - Re-bind UAVs on the fly, removing the need to statically declare them
+//   beforehand
+// - Quite similar in spirit to the utility from 3DGEP
 
 import HDL
 import MolecularRenderer
@@ -195,6 +201,12 @@ application.run {
   let frontBuffer = application.renderTarget.colorTextures[frontBufferIndex]
   
   application.device.commandQueue.withCommandList { commandList in
+    // Bind the descriptor heap.
+    #if os(Windows)
+    try! commandList.d3d12CommandList
+      .SetDescriptorHeaps([descriptorHeap])
+    #endif
+    
     // Encode the compute command.
     commandList.withPipelineState(shader) {
       // Bind the texture.
@@ -202,8 +214,9 @@ application.run {
       commandList.mtlCommandEncoder
         .setTexture(renderTarget, index: 0)
       #else
-      try! commandList.d3d12CommandList
-        .SetDescriptorHeaps([renderTarget])
+      var gpuHandle = try! descriptor.GetGPUDescriptorHandleForHeapStart()
+      gpuHandle.ptr += UInt64(frontBufferIndex)
+      
       let gpuDescriptorHandle = try! renderTarget
         .GetGPUDescriptorHandleForHeapStart()
       try! commandList.d3d12CommandList
