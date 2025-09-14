@@ -82,6 +82,18 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
+// Set up the render target.
+var renderTargetDesc = RenderTargetDescriptor()
+renderTargetDesc.device = application.device
+renderTargetDesc.display = application.display
+let renderTarget = RenderTarget(descriptor: renderTargetDesc)
+
+do {
+  let bufferIndex = renderTarget.currentBufferIndex
+  print(renderTarget.colorTextures[bufferIndex])
+  print(renderTarget.colorTextures[(bufferIndex + 1) % 2])
+}
+
 func createAtoms() -> [SIMD4<Float>] {
   return [
     Atom(position: SIMD3( 2.0186, -0.2175,  0.7985) * 0.1, element: .hydrogen),

@@ -1,10 +1,3 @@
-//
-//  RenderTarget.swift
-//  molecular-renderer
-//
-//  Created by Philip Turner on 9/14/25.
-//
-
 #if os(macOS)
 import Metal
 #else
@@ -12,20 +5,60 @@ import SwiftCOM
 import WinSDK
 #endif
 
-struct RenderTargetDescriptor {
-  var device: Device?
-  var display: Display?
-  #if os(Windows)
-  var swapChain: SwapChain?
-  #endif
+public struct RenderTargetDescriptor {
+  public var device: Device?
+  public var display: Display?
+  
+  public init() {
+    
+  }
 }
 
 public class RenderTarget {
   // This number cycles through the range 0..<2. RunLoop manages it.
   public internal(set) var currentBufferIndex: Int = 0
   
-  // TODO: Create a D3D12_RESOURCE_DESC from scratch, instead of relying on the
-  // swapchain back buffer to copy a descriptor from.
+  #if os(macOS)
+  #else
+  public internal(set) var colorTextures: [SwiftCOM.ID3D12Resource] = []
+  #endif
+  
+  public init(descriptor: RenderTargetDescriptor) {
+    guard let device = descriptor.device,
+          let display = descriptor.display else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
+    #if os(macOS)
+    #else
+    for _ in 0..<2 {
+      var heapProperties = D3D12_HEAP_PROPERTIES()
+      heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT
+      
+      var resourceDesc = D3D12_RESOURCE_DESC()
+      resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D
+      resourceDesc.Alignment = 64 * 1024
+      resourceDesc.Width = UInt64(display.frameBufferSize[0])
+      resourceDesc.Height = UInt32(display.frameBufferSize[1])
+      resourceDesc.DepthOrArraySize = UInt16(1)
+      resourceDesc.MipLevels = UInt16(1)
+      resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+      resourceDesc.SampleDesc.Count = 1
+      resourceDesc.SampleDesc.Quality = 0
+      resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
+      
+      let colorTexture: SwiftCOM.ID3D12Resource =
+      try! device.d3d12Device.CreateCommittedResource(
+        heapProperties, // pHeapProperties
+        D3D12_HEAP_FLAG_NONE, // HeapFlags
+        resourceDesc, // pDesc
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+        nil) // pOptimizedClearValue
+      colorTextures.append(colorTexture)
+    }
+    #endif
+  }
 }
 
 /*
