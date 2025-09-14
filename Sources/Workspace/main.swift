@@ -96,11 +96,26 @@ let descriptorHeap = createDescriptorHeap(
 
 // Enter the run loop.
 application.run {
-  func createRotatedAtoms(frames: Int) -> [SIMD4<Float>] {
-    return []
+  func createRotatedAtoms(application: Application) -> [SIMD4<Float>] {
+    let elapsedFrames = application.clock.frames
+    let frameRate = application.display.frameRate
+    let seconds = Float(elapsedFrames) / Float(frameRate)
+    
+    // 0.5 Hz rotation rate
+    let angle = 0.5 * seconds * (2 * Float.pi)
+    let rotation = Quaternion<Float>(
+      angle: angle,
+      axis: SIMD3(0.00, 1.00, 0.00))
+    
+    var output = createAtoms()
+    for atomID in output.indices {
+      var atom = output[atomID]
+      atom.position = rotation.act(on: atom.position)
+      output[atomID] = atom
+    }
+    return output
   }
-  let atoms = createAtoms()
-  print(application.display.frameRate)
+  let atoms = createRotatedAtoms(application: application)
   
   // Write the atoms to the GPU buffer.
   let inFlightFrameID = application.frameID % 3
