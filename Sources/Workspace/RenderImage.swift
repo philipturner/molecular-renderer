@@ -8,8 +8,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
         let x = String(format: "%.3f", atom[0])
         let y = String(format: "%.3f", atom[1])
         let z = String(format: "%.3f", atom[2])
-        let w = String(format: "%.3f", atom[3])
-        return "float4(\(x), \(y), \(z), \(w))"
+        return "float3(\(x), \(y), \(z))"
       }
       
       var output: String = ""
@@ -22,13 +21,13 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     #if os(macOS)
     return """
-    constant float4 moleculeCoordinates[\(atoms.count)] = {
+    constant float3 moleculeCoordinates[\(atoms.count)] = {
       \(createList())
     };
     """
     #else
     return """
-    static const float4 moleculeCoordinates[\(atoms.count)] = {
+    static const float3 moleculeCoordinates[\(atoms.count)] = {
       \(createList())
     };
     """
@@ -43,15 +42,18 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
+      device uint32_t *atomicNumbers [[buffer(1)]],
       uint2 tid [[thread_position_in_grid]])
     """
     #else
     """
     RWTexture2D<float4> frameBuffer : register(u0);
+    RWBuffer<uint32_t> atomicNumbers : register(u1);
     
     [numthreads(8, 8, 1)]
     [RootSignature(
-      "DescriptorTable(UAV(u0, numDescriptors = 1))")]
+      "DescriptorTable(UAV(u0, numDescriptors = 1)),"
+      "DescriptorTable(UAV(u1, numDescriptors = 1))")]
     void renderImage(
       uint2 tid : SV_DispatchThreadID)
     """
@@ -110,8 +112,8 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     uint32_t hitAtomicNumber = 0;
     for (uint32_t atomID = 0; atomID < \(atoms.count); ++atomID)
     {
-      float4 atom = moleculeCoordinates[atomID];
-      uint32_t atomicNumber = uint32_t(atom[3]);
+      float3 atom = moleculeCoordinates[atomID];
+      uint32_t atomicNumber = atomicNumbers[atomID];
       
       // Perform a point-circle intersection test.
       float radius = atomRadii[atomicNumber];

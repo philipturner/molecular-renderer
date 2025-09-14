@@ -123,19 +123,38 @@ let shader = Shader(descriptor: shaderDesc)
 // Set up the descriptor heap.
 func createDescriptorHeap(
   device: Device,
-  renderTarget: RenderTarget
+  renderTarget: RenderTarget,
+  nativeAtomBuffer: Buffer
 ) -> DescriptorHeap {
   var descriptorHeapDesc = DescriptorHeapDescriptor()
   descriptorHeapDesc.device = device
-  descriptorHeapDesc.count = 200
+  descriptorHeapDesc.count = 3
   let descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
   
+  // Set up the textures for rendering.
   for i in 0..<2 {
     let colorTexture = renderTarget.colorTextures[i]
     let handleID = descriptorHeap.createUAV(
       resource: colorTexture,
       uavDesc: nil)
-    guard i == handleID else {
+    guard handleID == i else {
+      fatalError("This should never happen.")
+    }
+  }
+  
+  // Set up the buffers with compressed memory formats.
+  do {
+    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+    uavDesc.Format = DXGI_FORMAT_R32_UINT
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+    uavDesc.Buffer.FirstElement = 0
+    uavDesc.Buffer.NumElements = UInt32(nativeAtomBuffer.size / 4)
+    uavDesc.Buffer.StructureByteStride = 0
+    
+    let handleID = descriptorHeap.createUAV(
+      resource: nativeAtomBuffer.d3d12Resource,
+      uavDesc: uavDesc)
+    guard handleID == 2 else {
       fatalError("This should never happen.")
     }
   }
@@ -144,7 +163,8 @@ func createDescriptorHeap(
 }
 let descriptorHeap = createDescriptorHeap(
   device: application.device,
-  renderTarget: application.renderTarget)
+  renderTarget: application.renderTarget,
+  nativeAtomBuffer: nativeAtomBuffer)
 #endif
 
 // Enter the run loop.
@@ -168,6 +188,13 @@ application.run {
       #else
       commandList.setDescriptor(
         handleID: frontBufferID, index: 0)
+      #endif
+      
+      // Bind the atom buffer.
+      #if os(macOS)
+      commandList.setBuffer(nativeAtomBuffer, index: 1)
+      #else
+      commandList.setDescriptor(handleID: 2, index: 1)
       #endif
       
       // Determine the dispatch grid size.
