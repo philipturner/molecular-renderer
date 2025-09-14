@@ -168,22 +168,25 @@ extension RunLoop {
       }
     }
     
-    // Retrieve the frame buffer.
+    // Invoke the user-supplied closure.
+    self.closure()
+    
+    // Retrieve the back buffer.
     let layer = application.view.metalLayer
     let drawable = layer.nextDrawable()
     guard let drawable else {
       fatalError("Drawable timed out after 1 second.")
     }
     
-    // Invoke the user-supplied closure.
-    self.closure(drawable.texture)
-    
-    // Post-processing on the front buffer.
+    // Copy the front buffer to the back buffer and present.
     application.device.commandQueue.withCommandList { commandList in
       commandList.mtlCommandEncoder.endEncoding()
+      let commandEncoder: MTLBlitCommandEncoder =
+      commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
       
       // TODO: Blit
       
+      commandEncoder.endEncoding()
       commandList.mtlCommandBuffer.present(drawable)
       commandList.mtlCommandEncoder =
       commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
