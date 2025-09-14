@@ -27,6 +27,7 @@ public class Application {
   public let renderTarget: RenderTarget
   
   var runLoop: RunLoop?
+  public internal(set) var frameID: Int = -1
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {

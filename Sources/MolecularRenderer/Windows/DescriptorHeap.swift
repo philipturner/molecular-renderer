@@ -2,6 +2,7 @@
 import SwiftCOM
 import WinSDK
 
+#if false
 struct DescriptorHeapDescriptor {
   
 }
@@ -14,5 +15,6 @@ class DescriptorHeap {
   
   
 }
+#endif
 
 #endif
