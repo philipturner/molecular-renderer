@@ -46,15 +46,11 @@
 //   - Perhaps name it 'RenderTarget'.
 //
 // Change of plans:
-// - 3-fold buffer of descriptor heaps, one for each frame in flight
 // - Re-bind UAVs on the fly, removing the need to statically declare them
 //   beforehand
 // - Quite similar in spirit to the utility from 3DGEP
 //
 // TODO: Test the offset functionality of the descriptor heap rigorously.
-// - Idea: make it public for now, while validating the internal tracking
-//   functionality. After debugging, revert it back to private and implement
-//   triple buffering + public API encapsulation to a single "current" heap.
 
 import HDL
 import MolecularRenderer
@@ -165,39 +161,7 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
 
-#if os(Windows)
-// Temporary utility for extracting the descriptor heap out of SwapChain.
-func createDescriptorHeap(
-  device: Device,
-  renderTarget: RenderTarget
-) -> SwiftCOM.ID3D12DescriptorHeap {
-  var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
-  descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-  descriptorHeapDesc.NumDescriptors = 2
-  descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-  let descriptorHeap: SwiftCOM.ID3D12DescriptorHeap =
-  try! device.d3d12Device.CreateDescriptorHeap(
-    descriptorHeapDesc)
-  
-  let cpuBaseHandle = try! descriptorHeap.GetCPUDescriptorHandleForHeapStart()
-  for i in 0..<2 {
-    var cpuHandle = cpuBaseHandle
-    cpuHandle.ptr += UInt64(i * 152)
-    
-    let colorTexture = renderTarget.colorTextures[i]
-    try! device.d3d12Device.CreateUnorderedAccessView(
-      colorTexture, // pResource
-      nil, // pCounterResource,
-      nil, // pDesc
-      cpuHandle) // DestDescriptor
-  }
-  
-  return descriptorHeap
-}
-let descriptorHeap = createDescriptorHeap(
-  device: application.device,
-  renderTarget: application.renderTarget)
-#endif
+// Set up the descriptor heap.
 
 // Enter the run loop.
 application.run {
