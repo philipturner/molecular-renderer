@@ -171,10 +171,9 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure()
     
-    // Retrieve the front buffer, increment the buffer index.
+    // Retrieve the front buffer.
     func retrieveFrontBuffer() -> MTLTexture {
       let frontBufferID = application.renderTarget.bufferIndex
-      application.renderTarget.incrementBufferIndex()
       return application.renderTarget.colorTextures[frontBufferID]
     }
     let frontBuffer = retrieveFrontBuffer()
@@ -242,10 +241,9 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure()
     
-    // Retrieve the front buffer, increment the buffer index.
+    // Retrieve the front buffer.
     func retrieveFrontBuffer() -> SwiftCOM.ID3D12Resource {
       let frontBufferID = application.renderTarget.bufferIndex
-      application.renderTarget.incrementBufferIndex()
       return application.renderTarget.colorTextures[frontBufferID]
     }
     let frontBuffer = retrieveFrontBuffer()
