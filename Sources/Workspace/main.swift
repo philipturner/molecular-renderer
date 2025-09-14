@@ -166,6 +166,29 @@ shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
 let shader = Shader(descriptor: shaderDesc)
 
+// Temporary utility for extracting the descriptor heap out of SwapChain.
+func createDescriptorHeap(
+  device: Device,
+  renderTarget: RenderTarget
+) -> SwiftCOM.ID3D12DescriptorHeap {
+  var descriptorHeapDesc = D3D12_DESCRIPTOR_HEAP_DESC()
+  descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+  descriptorHeapDesc.NumDescriptors = 2
+  descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+  let descriptorHeap: SwiftCOM.ID3D12DescriptorHeap =
+  try! device.d3d12Device.CreateDescriptorHeap(
+    descriptorHeapDesc)
+  
+  let cpuBaseHandle = try! descriptorHeap.GetCPUDescriptorHandleForHeapStart()
+  for i in 0..<2 {
+    var cpuHandle = cpuBaseHandle
+    cpuHandle.ptr += UInt64(i * 152)
+    print(try! device.d3d12Device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV))
+  }
+  
+  return descriptorHeap
+}
+
 // Enter the run loop.
 application.run { renderTarget in
   application.device.commandQueue.withCommandList { commandList in
