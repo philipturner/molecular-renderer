@@ -42,7 +42,7 @@ func createRenderImage(atoms: [SIMD4<Float>]) -> String {
     
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
-      device uint32_t *atomicNumbers [[buffer(1)]],
+      device uint16_t *atomicNumbers [[buffer(1)]],
       uint2 tid [[thread_position_in_grid]])
     """
     #else
