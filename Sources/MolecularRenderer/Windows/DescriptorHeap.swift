@@ -8,9 +8,10 @@ struct DescriptorHeapDescriptor {
 }
 
 public class DescriptorHeap {
+  unowned let device: Device
   private var offset: Int = 0
-  private let count: Int
-  private let incrementSize: Int
+  let count: Int
+  let incrementSize: Int
   
   public let d3d12DescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
@@ -19,6 +20,7 @@ public class DescriptorHeap {
           let count = descriptor.count else {
       fatalError("Descriptor was incomplete.")
     }
+    self.device = device
     self.count = count
     self.incrementSize = Int(
       try! device.d3d12Device.GetDescriptorHandleIncrementSize(
@@ -30,6 +32,18 @@ public class DescriptorHeap {
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
     self.d3d12DescriptorHeap = try! device.d3d12Device.CreateDescriptorHeap(
       descriptorHeapDesc)
+  }
+  
+  func reset() {
+    offset = 0
+  }
+  
+  // Encode a CPU descriptor and return its index in the heap.
+  func createUAV(
+    resource: SwiftCOM.ID3D12Resource,
+    uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC
+  ) -> Int {
+    
   }
 }
 
