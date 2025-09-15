@@ -2,7 +2,7 @@ func createLightingUtility() -> String {
   return """
   // Handle specular and diffuse color, and transform raw AO hits into
   // meaningful color contributions.
-  class ColorContext {
+  struct ColorContext {
     // Save register space by storing diffuse color indirectly.
     // Save register space by explicitly preventing color from materializing
     // until the last moment.
@@ -12,7 +12,6 @@ func createLightingUtility() -> String {
     float lambertian;
     float specular;
     
-  public:
     ColorContext() {
       // Make this default to 0 (neutronium), which indicates no intersection.
       this->diffuseAtomicNumber = 0;
