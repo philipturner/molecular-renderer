@@ -2,12 +2,20 @@ import Foundation // String.init(format:_:)
 import HDL
 
 func createRenderImage() -> String {
-  func functionSignature() -> String {
+  func importStandardLibrary() -> String {
     #if os(macOS)
     """
     #include <metal_stdlib>
     using namespace metal;
-    
+    """
+    #else
+    ""
+    #endif
+  }
+  
+  func functionSignature() -> String {
+    #if os(macOS)
+    """
     kernel void renderImage(
       texture2d<float, access::write> frameBuffer [[texture(0)]],
       device float4 *atoms [[buffer(1)]],
@@ -56,6 +64,8 @@ func createRenderImage() -> String {
   }
   
   return """
+  \(importStandardLibrary())
+  
   \(createAtomColors(AtomStyles.colors))
   \(createAtomRadii(AtomStyles.radii))
   \(createIntersectUtility())
