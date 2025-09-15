@@ -59,7 +59,7 @@ var atomBuffer = AtomBuffer(
 var shaderDesc = ShaderDescriptor()
 shaderDesc.device = application.device
 shaderDesc.name = "renderImage"
-shaderDesc.source = createRenderImage()
+shaderDesc.source = RenderImage.createSource()
 #if os(macOS)
 shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
 #endif
