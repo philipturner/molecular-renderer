@@ -1,35 +1,17 @@
 func createLightingUtility() -> String {
   return """
-  //
-  //  Lighting.metal
-  //  MolecularRenderer
-  //
-  //  Created by Philip Turner on 5/21/23.
-  //
-  
-  #ifndef LIGHTING_H
-  #define LIGHTING_H
-  
-  #include <metal_stdlib>
-  #include "../Ray/RayIntersector.metal"
-  #include "../Utilities/Arguments.metal"
-  using namespace metal;
-  
   // Handle specular and diffuse color, and transform raw AO hits into
   // meaningful color contributions.
   class ColorContext {
-    constant half3* elementColors;
-    
     // Save register space by storing diffuse color indirectly.
     // Save register space by explicitly preventing color from materializing
     // until the last moment.
-    half3 color;
     
     uint diffuseAtomicNumber; // make this default to 0, or no intersection
-    half diffuseAmbient;
-    half specularAmbient;
-    half lambertian;
-    half specular;
+    float diffuseAmbient;
+    float specularAmbient;
+    float lambertian;
+    float specular;
     
   public:
     ColorContext(constant half3* elementColors, ushort2 pixelCoords) {
@@ -46,13 +28,8 @@ func createLightingUtility() -> String {
       this->specularAmbient = 0;
     }
     
-    void setDiffuseAtomicNumber(ushort atomicNumber) {
-      half3 elementColor = elementColors[atomicNumber];
-      diffuseColor = elementColor;
-    }
-    
-    float3 getDiffuseColor() {
-      return atomColors[diffuseAtomicNumber];
+    void setDiffuseAtomicNumber(uint atomicNumber) {
+      this->diffuseAtomicNumber = atomicNumber;
     }
     
     void addAmbientContribution(ushort atomicNumber, float distance) {
@@ -74,7 +51,7 @@ func createLightingUtility() -> String {
         specularAmbient = 1 - 0.93 * occlusion;
         
         // Color at the primary hit point.
-        half3 primaryHitColor = diffuseColor;
+        half3 primaryHitColor = atomColors[diffuseAtomicNumber];
         
         // Color at the secondary hit point.
         half3 secondaryHitColor = elementColors[atomicNumber];
@@ -182,13 +159,11 @@ func createLightingUtility() -> String {
         specularOcclusion = saturate(specularOcclusion);
       }
       
-      // Store color in single precision while calculating.
-      float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
-      color += specular * specularOcclusion;
+      float3 color = atomColors[diffuseAtomicNumber];
+      color *= float(lambertian * ambientOcclusion);
+      color += float3(specular * specularOcclusion);
       this->color = half3(saturate(color));
     }
   };
-  
-  #endif // LIGHTING_H
   """
 }
