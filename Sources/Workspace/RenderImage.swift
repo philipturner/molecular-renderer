@@ -83,6 +83,17 @@ func createRenderImage() -> String {
     screenCoords /= float2(screenWidth, screenHeight);
     screenCoords -= float2(0.5, 0.5);
     
+    // Prepare the intersection query.
+    // origin:
+    //   XY = screen coords
+    //   Z = +10 nm
+    // direction:
+    //   XY = 0.00
+    //   Z = -1.00
+    IntersectionQuery query;
+    query.rayOrigin = float3(screenCoords, 10);
+    query.rayDirection = float3(0, 0, -1);
+    
     // Raster the atoms in order of depth.
     float maximumDepth = -1e38;
     uint32_t hitAtomicNumber = 0;
