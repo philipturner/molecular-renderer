@@ -14,15 +14,7 @@ func createLightingUtility() -> String {
     float specular;
     
   public:
-    ColorContext(constant half3* elementColors, ushort2 pixelCoords) {
-      this->elementColors = elementColors;
-      this->pixelCoords = pixelCoords;
-      
-      // Create a default color for the background.
-      this->color = half3(0.707, 0.707, 0.707);
-      this->motionVector = half2(0);
-      this->depth = float(-1e38);
-      
+    ColorContext() {
       // Initialize the accumulators for lighting.
       this->diffuseAmbient = 0;
       this->specularAmbient = 0;
@@ -32,7 +24,7 @@ func createLightingUtility() -> String {
       this->diffuseAtomicNumber = atomicNumber;
     }
     
-    void addAmbientContribution(ushort atomicNumber, float distance) {
+    void addAmbientContribution(uint atomicNumber, float distance) {
       float diffuseAmbient;
       float specularAmbient;
       
@@ -51,31 +43,31 @@ func createLightingUtility() -> String {
         specularAmbient = 1 - 0.93 * occlusion;
         
         // Color at the primary hit point.
-        half3 primaryHitColor = atomColors[diffuseAtomicNumber];
+        float3 primaryHitColor = atomColors[diffuseAtomicNumber];
         
         // Color at the secondary hit point.
-        half3 secondaryHitColor = elementColors[atomicNumber];
+        float3 secondaryHitColor = atomColors[atomicNumber];
         
         // Take the dot product of the color with the gamut.
         // - Parameters taken from the sRGB/Rec.709 standard.
         // - RGB (0.00, 0.00, 0.00) maps to luminance = 0.
         // - RGB (1.00, 1.00, 1.00) maps to luminance = 1.
         // - Other colors fall somewhere in between.
-        constexpr half3 gamut(0.212671, 0.715160, 0.072169);
-        half primaryHitLuminance = dot(primaryHitColor, gamut);
-        half secondaryHitLuminance = dot(secondaryHitColor, gamut);
+        float3 gamut = float3(0.212671, 0.715160, 0.072169);
+        float primaryHitLuminance = dot(primaryHitColor, gamut);
+        float secondaryHitLuminance = dot(secondaryHitColor, gamut);
         
         // Average the luminance at the primary and secondary hit points.
         // - This implementation uses the arithmetic mean.
         // - The original text used geometric mean, but arithmetic mean appears
         //   to work just as well.
-        half averageLuminance = 0;
+        float averageLuminance = 0;
         averageLuminance += primaryHitLuminance;
         averageLuminance += secondaryHitLuminance;
         averageLuminance /= 2;
         
         // Luminance [0, 1] maps to rho [0, 0.5].
-        half rho = 0.5 * averageLuminance;
+        float rho = 0.5 * averageLuminance;
         
         // Adjust the diffuse AO term, to simulate diffuse interreflectance
         // between the primary and secondary hit point.
