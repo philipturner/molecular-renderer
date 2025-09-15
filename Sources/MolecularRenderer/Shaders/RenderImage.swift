@@ -68,8 +68,11 @@ public struct RenderImage {
     
     \(createAtomColors(AtomStyles.colors))
     \(createAtomRadii(AtomStyles.radii))
-    \(createLightingUtility())
     \(createIntersectUtility())
+    \(createLightingUtility())
+    
+    // TODO: Migrate this import to the internals of the ray gen utility.
+    \(createSamplingUtility())
     
     // Bypass errors in the HLSL compiler.
     struct AtomCountArgs {

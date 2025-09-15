@@ -43,7 +43,7 @@ func createSamplingUtility() -> String {
     float radinv3(uint n) {
       uint n_copy = n;
       float val = 0;
-      float invBase = \(Float(1) / 3));
+      float invBase = \(Float(1) / 3);
       float invBi = invBase;
       
       while (n_copy > 0) {
