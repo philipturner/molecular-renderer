@@ -6,8 +6,7 @@ func createLightingUtility() -> String {
     // Save register space by storing diffuse color indirectly.
     // Save register space by explicitly preventing color from materializing
     // until the last moment.
-    
-    uint diffuseAtomicNumber; // make this default to 0, or no intersection
+    uint diffuseAtomicNumber;
     float diffuseAmbient;
     float specularAmbient;
     float lambertian;
@@ -15,6 +14,9 @@ func createLightingUtility() -> String {
     
   public:
     ColorContext() {
+      // Make this default to 0 (neutronium), which indicates no intersection.
+      this->diffuseAtomicNumber = 0;
+      
       // Initialize the accumulators for ambient occlusion.
       this->diffuseAmbient = 0;
       this->specularAmbient = 0;
@@ -22,6 +24,10 @@ func createLightingUtility() -> String {
     
     void setDiffuseAtomicNumber(uint atomicNumber) {
       this->diffuseAtomicNumber = atomicNumber;
+    }
+    
+    uint getDiffuseAtomicNumber() const {
+      return diffuseAtomicNumber;
     }
     
     void addAmbientContribution(uint atomicNumber, float distance) {
