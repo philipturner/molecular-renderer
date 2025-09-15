@@ -6,18 +6,17 @@ func createRayGeneration() -> String {
   // https://github.com/nvpro-samples/gl_vk_raytrace_interop/blob/master/shaders/raygen.rgen
   // https://github.com/microsoft/DirectX-Graphics-Samples/tree/master/Samples/Desktop/D3D12Raytracing/src/D3D12RaytracingRealTimeDenoisedAmbientOcclusion/RTAO
   
-  class RayGeneration {
-  public:
+  namespace RayGeneration {
     struct Basis {
       // Basis for the coordinate system around the normal vector.
-      half3x3 axes;
+      float3x3 axes;
       
       // Uniformly distributed random numbers for determining angles.
       float random1;
       float random2;
     };
     
-    static float3x3 makeBasis(const float3 normal) {
+    float3x3 makeBasis(float3 normal) {
       // Set the Z axis to the normal.
       float3 z = normal;
       
@@ -39,39 +38,32 @@ func createRayGeneration() -> String {
       return float3x3(x, y, z);
     }
     
-    static float3 secondaryRayDirection(Basis basis) {
+    float3 secondaryRayDirection(Basis basis) {
       // Transform the uniform distribution into the cosine distribution. This
       // creates a direction vector that's already normalized.
-      float phi = float(6.28318530718) * basis.random1;
+      float phi = \(2 * Float.pi) * basis.random1;
       float cosThetaSquared = basis.random2;
       float sinTheta = sqrt(1.0 - cosThetaSquared);
       float3 direction(cos(phi) * sinTheta,
-                      sin(phi) * sinTheta,
-                      sqrt(cosThetaSquared));
+                       sin(phi) * sinTheta,
+                       sqrt(cosThetaSquared));
       
       // Apply the basis as a linear transformation.
       direction = float3x3(basis.axes) * direction;
       return direction;
     }
-  };
-  
-  class GenerationContext {
-    constant CameraArguments* cameraArgs;
-    uchar seed;
     
-  public:
-    GenerationContext(constant CameraArguments* cameraArgs,
-                      constant RenderArguments *renderArgs,
-                      ushort2 pixelCoords) {
-      this->cameraArgs = cameraArgs;
-      
+    uint createSeed(uint2 pixelCoords,
+                    uint frameSeed)
+    {
       uint frameSeed = renderArgs->frameSeed;
-      uint pixelSeed = as_type<uint>(pixelCoords);
-      
+      uint pixelSeed = pixelCoords.x + (pixelCoords.y << 16);
       uint seed1 = Sampling::tea(pixelSeed, frameSeed);
-      ushort seed2 = as_type<ushort2>(seed1)[0];
-      seed2 ^= as_type<ushort2>(seed1)[1];
-      this->seed = seed2 ^ (seed2 / 256);
+      
+      // Compress the seed from 32 bits to 8 bits.
+      uint seed2 = (seed1 & 0xFFFF) ^ (seed1 >> 16);
+      uint seed3 = (seed2 & 0xFF) ^ (seed2 >> 8);
+      return seed3;
     }
     
     float3 secondaryRayDirection(ushort i,
