@@ -1,12 +1,10 @@
 func createLightingUtility() -> String {
   return """
   struct AmbientOcclusion {
-    // Make this default to 0 (neutronium), which indicates no intersection.
-    uint diffuseAtomicNumber = 0;
-    
-    // Initialize the accumulators for ambient occlusion.
-    float diffuseAccumulator = 0;
-    float specularAccumulator = 0;
+    // WARNING: Explicitly initialize all of these to 0.
+    uint diffuseAtomicNumber;
+    float diffuseAccumulator;
+    float specularAccumulator;
     
     void addAmbientContribution(uint atomicNumber, float distance) {
       float diffuseAmbient;
@@ -74,8 +72,9 @@ func createLightingUtility() -> String {
   };
   
   struct BlinnPhongLighting {
-    float lambertianAccumulator = 0;
-    float specularAccumulator = 0;
+    // WARNING: Explicitly initialize all of these to 0.
+    float lambertianAccumulator;
+    float specularAccumulator;
     
     // Add the contributions from a single light (this function allows for a
     // scene to have many).
@@ -131,15 +130,15 @@ func createLightingUtility() -> String {
         // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
         // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
         
-        specularTerm = lambertian + ambientOcclusion.specularAccumulator;
+        specularTerm = lambertianAccumulator + ambientOcclusion.specularAccumulator;
         specularTerm = specularTerm * specularTerm;
         specularTerm += ambientOcclusion.specularAccumulator - 1;
         specularTerm = saturate(specularTerm);
       }
       
       float3 color = atomColors[ambientOcclusion.diffuseAtomicNumber];
-      color *= float(lambertianAccumulator * diffuseTerm);
-      color += float3(specularAccumulator * specularTerm);
+      color *= lambertianAccumulator * diffuseTerm;
+      color += specularAccumulator * specularTerm;
       return saturate(color);
     }
   };

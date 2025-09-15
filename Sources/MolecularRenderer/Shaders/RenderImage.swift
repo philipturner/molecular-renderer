@@ -68,6 +68,7 @@ public struct RenderImage {
     
     \(createAtomColors(AtomStyles.colors))
     \(createAtomRadii(AtomStyles.radii))
+    \(createLightingUtility())
     \(createIntersectUtility())
     
     // Bypass errors in the HLSL compiler.
