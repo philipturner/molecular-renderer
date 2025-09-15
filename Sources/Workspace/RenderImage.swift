@@ -94,38 +94,31 @@ func createRenderImage() -> String {
     query.rayOrigin = float3(screenCoords, 10);
     query.rayDirection = float3(0, 0, -1);
     
-    // Raster the atoms in order of depth.
-    float maximumDepth = -1e38;
-    uint32_t hitAtomicNumber = 0;
-    uint32_t atomCount = atomCountArgs.atomCount;
-    for (uint32_t atomID = 0; atomID < atomCount; ++atomID)
+    // Prepare the intersection result.
+    IntersectionResult result;
+    result.accept = false;
+    result.distance = 1e38;
+    
+    // Test every atom.
+    for (uint atomID = 0; atomID < atomCountArgs.atomCount; ++atomID)
     {
       float4 atom = atoms[atomID];
-      uint32_t atomicNumber = uint32_t(atom[3]);
-      
-      // Perform a point-circle intersection test.
-      float radius = atomRadii[atomicNumber];
-      float2 atomPosition = atom.xy;
-      float2 delta = screenCoords - atomPosition;
-      float distance = sqrt(dot(delta, delta));
-      if (distance > radius) {
-        continue;
-      }
-      float depthCorrection = sqrt(radius * radius - distance * distance);
-      
-      // The most crude search: a single Z coordinate for the entire atom,
-      // just like the impostor method.
-      float atomDepth = atom.z;
-      atomDepth += depthCorrection;
-      if (atomDepth > maximumDepth) {
-        maximumDepth = atomDepth;
-        hitAtomicNumber = atomicNumber;
-      }
+      intersect(result,
+                query,
+                atom,
+                atomID);
+    }
+    
+    // Check whether we found a hit.
+    if (result.distance < 1e38) {
+      result.accept = true;
     }
     
     // Use the color of the hit atom.
-    if (hitAtomicNumber > 0) {
-      color = atomColors[hitAtomicNumber];
+    if (result.accept) {
+      float4 atom = atoms[result.atomID];
+      uint atomicNumber = uint(atom[3]);
+      color = atomColors[atomicNumber];
     }
     
     // Write the pixel to the screen.
