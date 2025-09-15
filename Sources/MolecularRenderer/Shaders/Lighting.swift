@@ -15,7 +15,7 @@ func createLightingUtility() -> String {
     
   public:
     ColorContext() {
-      // Initialize the accumulators for lighting.
+      // Initialize the accumulators for ambient occlusion.
       this->diffuseAmbient = 0;
       this->specularAmbient = 0;
     }
@@ -82,10 +82,10 @@ func createLightingUtility() -> String {
       this->specularAmbient += specularAmbient;
     }
     
-    void finishAmbientContributions(half samples) {
+    void finishAmbientContributions(uint sampleCount) {
       // Divide the sum by the AO sample count.
-      this->diffuseAmbient /= samples;
-      this->specularAmbient /= samples;
+      this->diffuseAmbient /= float(sampleCount);
+      this->specularAmbient /= float(sampleCount);
     }
     
     void startLightContributions() {
@@ -93,8 +93,10 @@ func createLightingUtility() -> String {
       this->specular = 0;
     }
     
+    // Add the contributions from a single light (this function allows for a
+    // scene to have many).
     void addLightContribution(float3 hitPoint,
-                              half3 normal,
+                              float3 normal,
                               float3 lightPosition) {
       // From https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model:
       float3 lightDirection = lightPosition - hitPoint;
@@ -109,8 +111,8 @@ func createLightingUtility() -> String {
         // https://github.com/zulman/qutemol/blob/master/src/presets/qutemol3.preset
         //
         // Changing the 0.5 specular contribution to 0.25.
-        constexpr float specContribution = 0.25;
-        constexpr float shininess = 64;
+        float specContribution = 0.25;
+        float shininess = 64;
         
         // 'halfDir' equals 'viewDir' equals 'lightDir' in this case.
         float specAngle = lambertian;
@@ -119,15 +121,15 @@ func createLightingUtility() -> String {
       }
     }
     
-    void applyContributions() {
+    float3 createColor() const {
       // Combining using heuristics from:
       // http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
-      float ambientOcclusion = 1;
-      float specularOcclusion = 1;
+      float diffuseTerm = 1;
+      float specularTerm = 1;
       
-      {
-        ambientOcclusion = this->diffuseAmbient;
-        specularOcclusion = this->specularAmbient;
+      // Disabled for now because the sample count is 0.
+      if (false) {
+        diffuseTerm = diffuseAmbient;
         
         // This seems to only be applied to a "specular ambient" term, not the
         // "specular direct" term. We are applying it to the latter. However, it
@@ -145,16 +147,16 @@ func createLightingUtility() -> String {
         // L = 0.3 | 1        | 0.7      | 0.14     | 0        | 0        |
         // L = 0.1 | 0.9      | 0.34     | 0        | 0        | 0        |
         
-        specularOcclusion = lambertian + specularAmbient;
-        specularOcclusion = specularOcclusion * specularOcclusion;
-        specularOcclusion += specularAmbient - 1;
-        specularOcclusion = saturate(specularOcclusion);
+        specularTerm = lambertian + specularAmbient;
+        specularTerm = specularTerm * specularTerm;
+        specularTerm += specularAmbient - 1;
+        specularTerm = saturate(specularTerm);
       }
       
       float3 color = atomColors[diffuseAtomicNumber];
-      color *= float(lambertian * ambientOcclusion);
-      color += float3(specular * specularOcclusion);
-      this->color = half3(saturate(color));
+      color *= float(lambertian * diffuseTerm);
+      color += float3(specular * specularTerm);
+      return saturate(color);
     }
   };
   """
