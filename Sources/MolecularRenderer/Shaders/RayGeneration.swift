@@ -7,6 +7,17 @@ func createRayGeneration() -> String {
     #endif
   }
   
+  func mul(
+    _ lhs: String,
+    _ rhs: String
+  ) -> String {
+    #if os(macOS)
+    "\(lhs) * \(rhs)"
+    #else
+    "mul(\(lhs), \(rhs))"
+    #endif
+  }
+  
   return """
   \(createSamplingUtility())
   
@@ -52,19 +63,19 @@ func createRayGeneration() -> String {
       float phi = \(2 * Float.pi) * basis.random1;
       float cosThetaSquared = basis.random2;
       float sinTheta = sqrt(1.0 - cosThetaSquared);
-      float3 direction(cos(phi) * sinTheta,
-                       sin(phi) * sinTheta,
-                       sqrt(cosThetaSquared));
+      float3 direction = float3(
+        cos(phi) * sinTheta,
+        sin(phi) * sinTheta,
+        sqrt(cosThetaSquared));
       
       // Apply the basis as a linear transformation.
-      direction = float3x3(basis.axes) * direction;
+      direction = \(mul("float3x3(basis.axes)", "direction"));
       return direction;
     }
     
     uint createSeed(uint2 pixelCoords,
                     uint frameSeed)
     {
-      uint frameSeed = renderArgs->frameSeed;
       uint pixelSeed = pixelCoords.x + (pixelCoords.y << 16);
       uint seed1 = Sampling::tea(pixelSeed, frameSeed);
       
@@ -73,6 +84,11 @@ func createRayGeneration() -> String {
       uint seed3 = (seed2 & 0xFF) ^ (seed2 >> 8);
       return seed3;
     }
+  };
+  
+  struct GenerationContext {
+    // WARNING: Remember to initialize this.
+    uint seed;
     
     float3 secondaryRayDirection(uint i,
                                  uint sampleCount,
@@ -97,15 +113,18 @@ func createRayGeneration() -> String {
       // the X and Y dimensions to a common coordinate space.
       
       // In both MSL and HLSL, matrices are column-major.
-      float3x3 rotation(float3(1, 0, 0),
-                        float3(0, 1, 0),
-                        float3(0, 0, 1));
-      float3 modNormal = transpose(rotation) * float3(normal);
+      float3x3 rotation = float3x3(float3(1, 0, 0),
+                                   float3(0, 1, 0),
+                                   float3(0, 0, 1));
+      float3 modNormal = \(mul("transpose(rotation)", "float3(normal)"));
       float3x3 axes32 = RayGeneration::createAxes(modNormal);
       float3x3 axes16 = float3x3(rotation * axes32);
       
       // Create a random ray from the cosine distribution.
-      RayGeneration::Basis basis { axes16, random1, random2 };
+      RayGeneration::Basis basis;
+      basis.axes = axes16;
+      basis.random1 = random1;
+      basis.random2 = random2;
       return RayGeneration::secondaryRayDirection(basis);
     }
   };

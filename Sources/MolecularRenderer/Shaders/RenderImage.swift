@@ -70,6 +70,7 @@ public struct RenderImage {
     \(createAtomRadii(AtomStyles.radii))
     \(createIntersectUtility())
     \(createLightingUtility())
+    \(createRayGeneration())
     
     struct ConstantArgs {
       uint atomCount;
