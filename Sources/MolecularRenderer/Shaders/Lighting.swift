@@ -20,9 +20,12 @@ func createLightingUtility() -> String {
   class ColorContext {
     constant half3* elementColors;
     
+    // Save register space by storing diffuse color indirectly.
+    // Save register space by explicitly preventing color from materializing
+    // until the last moment.
     half3 color;
     
-    uint diffuseColor; // Save register space by storing color indirectly.
+    uint diffuseAtomicNumber; // make this default to 0, or no intersection
     half diffuseAmbient;
     half specularAmbient;
     half lambertian;
@@ -43,12 +46,14 @@ func createLightingUtility() -> String {
       this->specularAmbient = 0;
     }
     
-    void setDiffuseColor(ushort atomicNumber) {
+    void setDiffuseAtomicNumber(ushort atomicNumber) {
       half3 elementColor = elementColors[atomicNumber];
       diffuseColor = elementColor;
     }
     
-    void getDiffuse
+    float3 getDiffuseColor() {
+      return atomColors[diffuseAtomicNumber];
+    }
     
     void addAmbientContribution(ushort atomicNumber, float distance) {
       float diffuseAmbient;
