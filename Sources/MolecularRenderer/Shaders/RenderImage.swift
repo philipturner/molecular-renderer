@@ -71,9 +71,6 @@ public struct RenderImage {
     \(createIntersectUtility())
     \(createLightingUtility())
     
-    // TODO: Migrate this import to the internals of the ray gen utility.
-    \(createSamplingUtility())
-    
     struct ConstantArgs {
       uint atomCount;
       uint frameSeed;
