@@ -1,4 +1,20 @@
 func createSamplingUtility() -> String {
+  func asFloat() -> String {
+    #if os(macOS)
+    "as_type<float>"
+    #else
+    "asfloat"
+    #endif
+  }
+  
+  func reverseBits() -> String {
+    #if os(macOS)
+    "reverse_bits"
+    #else
+    "reversebits"
+    #endif
+  }
+  
   return """
   // Partially sourced from:
   // https://github.com/nvpro-samples/gl_vk_raytrace_interop/blob/master/shaders/sampling.h
@@ -20,14 +36,14 @@ func createSamplingUtility() -> String {
     
     // Compute radical inverse of n to the base 2.
     float radinv2(uint n) {
-      return as_type<float>(0x3F800000 | ((reverse_bits(n)) >> 9)) - 1.0f;
+      return \(asFloat())(0x3F800000 | (\(reverseBits())(n) >> 9)) - 1;
     }
     
     // Faure-Lemieux scrambled radical inverse
     float radinv3(uint n) {
       uint n_copy = n;
-      float val = 0.f;
-      const float invBase = 1.f / float(3);
+      float val = 0;
+      float invBase = \(Float(1) / 3));
       float invBi = invBase;
       
       while (n_copy > 0) {
