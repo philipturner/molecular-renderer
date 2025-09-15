@@ -1,4 +1,12 @@
 func createRayGeneration() -> String {
+  func lerp() -> String {
+    #if os(macOS)
+    "mix"
+    #else
+    "lerp"
+    #endif
+  }
+  
   return """
   \(createSamplingUtility())
   
@@ -16,7 +24,7 @@ func createRayGeneration() -> String {
       float random2;
     };
     
-    float3x3 makeBasis(float3 normal) {
+    float3x3 createAxes(float3 normal) {
       // Set the Z axis to the normal.
       float3 z = normal;
       
@@ -66,33 +74,35 @@ func createRayGeneration() -> String {
       return seed3;
     }
     
-    float3 secondaryRayDirection(ushort i,
-                                ushort samples,
-                                float3 hitPoint,
-                                half3 normal)
+    float3 secondaryRayDirection(uint i,
+                                 uint sampleCount,
+                                 float3 hitPoint,
+                                 float3 normal)
     {
       // Generate a random number and increment the seed.
       float random1 = Sampling::radinv3(seed);
       float random2 = Sampling::radinv2(seed);
-      seed += 1;
+      seed = (seed + 1) % 256;
       
-      if (samples >= 3) {
-        float sampleCountRecip = fast::divide(1, float(samples));
+      if (sampleCount >= 3) {
+        float sampleCountRecip = 1 / float(sampleCount);
         float minimum = float(i) * sampleCountRecip;
         float maximum = minimum + sampleCountRecip;
-        maximum = (i == samples - 1) ? 1 : maximum;
-        random1 = mix(minimum, maximum, random1);
+        maximum = (i == sampleCount - 1) ? 1 : maximum;
+        random1 = \(lerp())(minimum, maximum, random1);
       }
       
       // Align the atoms' coordinate systems with each other, to minimize
       // divergence. Here is a primitive method that achieves that by aligning
       // the X and Y dimensions to a common coordinate space.
-      float3x3 rotation(cameraArgs->rotationColumn1,
-                        cameraArgs->rotationColumn2,
-                        cameraArgs->rotationColumn3);
+      
+      // In both MSL and HLSL, matrices are column-major.
+      float3x3 rotation(float3(1, 0, 0),
+                        float3(0, 1, 0),
+                        float3(0, 0, 1));
       float3 modNormal = transpose(rotation) * float3(normal);
-      float3x3 axes32 = RayGeneration::makeBasis(modNormal);
-      half3x3 axes16 = half3x3(rotation * axes32);
+      float3x3 axes32 = RayGeneration::createAxes(modNormal);
+      float3x3 axes16 = float3x3(rotation * axes32);
       
       // Create a random ray from the cosine distribution.
       RayGeneration::Basis basis { axes16, random1, random2 };
