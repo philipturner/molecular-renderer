@@ -1,23 +1,12 @@
 func createLightingUtility() -> String {
   return """
-  struct ColorContext {
+  struct AmbientOcclusion {
     // Make this default to 0 (neutronium), which indicates no intersection.
     uint diffuseAtomicNumber = 0;
     
     // Initialize the accumulators for ambient occlusion.
-    float diffuseAmbient = 0;
-    float specularAmbient = 0;
-    
-    float lambertian;
-    float specular;
-    
-    void setDiffuseAtomicNumber(uint atomicNumber) {
-      this->diffuseAtomicNumber = atomicNumber;
-    }
-    
-    uint getDiffuseAtomicNumber() const {
-      return diffuseAtomicNumber;
-    }
+    float diffuseAccumulator = 0;
+    float specularAccumulator = 0;
     
     void addAmbientContribution(uint atomicNumber, float distance) {
       float diffuseAmbient;
@@ -73,15 +62,18 @@ func createLightingUtility() -> String {
       }
       
       // Accumulate into the sum of AO samples.
-      this->diffuseAmbient += diffuseAmbient;
-      this->specularAmbient += specularAmbient;
+      diffuseAccumulator += diffuseAmbient;
+      specularAccumulator += specularAmbient;
     }
     
     void finishAmbientContributions(uint sampleCount) {
       // Divide the sum by the AO sample count.
-      this->diffuseAmbient /= float(sampleCount);
-      this->specularAmbient /= float(sampleCount);
+      diffuseAccumulator /= float(sampleCount);
+      this- /= float(sampleCount);
     }
+    
+    float lambertian;
+    float specular;
     
     void startLightContributions() {
       this->lambertian = 0;
