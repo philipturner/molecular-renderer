@@ -127,9 +127,28 @@ public struct RenderImage {
       
       // Use the color of the hit atom.
       if (intersect.accept) {
-        float4 atom = atoms[intersect.atomID];
-        uint atomicNumber = uint(atom[3]);
-        color = atomColors[atomicNumber];
+        // Compute the hit point.
+        float4 hitAtom = atoms[intersect.atomID];
+        float3 hitPoint = query.rayOrigin;
+        hitPoint += intersect.distance * query.rayDirection;
+        float3 hitNormal = normalize(hitPoint - hitAtom.xyz);
+        
+        // Prepare the ambient occlusion.
+        AmbientOcclusion ambientOcclusion;
+        ambientOcclusion.diffuseAtomicNumber = uint(hitAtom[3]);
+        ambientOcclusion.diffuseAccumulator = 0;
+        ambientOcclusion.specularAccumulator = 0;
+        
+        // Prepare the Blinn-Phong lighting.
+        BlinnPhongLighting blinnPhong;
+        blinnPhong.lambertianAccumulator = 0;
+        blinnPhong.specularAccumulator = 0;
+        
+        // Apply the camera position.
+        blinnPhong.addLightContribution(hitPoint,
+                                        hitNormal,
+                                        query.rayOrigin);
+        color = blinnPhong.createColor(ambientOcclusion);
       }
       
       // Write the pixel to the screen.
