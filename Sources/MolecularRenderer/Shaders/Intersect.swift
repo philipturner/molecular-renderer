@@ -21,10 +21,10 @@ func createIntersectUtility() -> String {
   
   // For now, the 'atom' vector contains its atomic number in the 4th lane. In
   // the future, this will become the radius.
-  void intersect(\(resultArgument()),
-                 IntersectionQuery query,
-                 float4 atom,
-                 uint atomID)
+  void intersectAtom(\(resultArgument()),
+                     IntersectionQuery query,
+                     float4 atom,
+                     uint atomID)
   {
     float3 oc = query.rayOrigin - atom.xyz;
     float b2 = dot(float3(oc), query.rayDirection);

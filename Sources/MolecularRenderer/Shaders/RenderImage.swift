@@ -106,28 +106,28 @@ public struct RenderImage {
       query.rayDirection = float3(0, 0, -1);
       
       // Prepare the intersection result.
-      IntersectionResult result;
-      result.accept = false;
-      result.distance = 1e38;
+      IntersectionResult intersect;
+      intersect.accept = false;
+      intersect.distance = 1e38;
       
       // Test every atom.
       for (uint atomID = 0; atomID < atomCountArgs.atomCount; ++atomID)
       {
         float4 atom = atoms[atomID];
-        intersect(result,
-                  query,
-                  atom,
-                  atomID);
+        intersectAtom(intersect,
+                      query,
+                      atom,
+                      atomID);
       }
       
       // Check whether we found a hit.
-      if (result.distance < 1e38) {
-        result.accept = true;
+      if (intersect.distance < 1e38) {
+        intersect.accept = true;
       }
       
       // Use the color of the hit atom.
-      if (result.accept) {
-        float4 atom = atoms[result.atomID];
+      if (intersect.accept) {
+        float4 atom = atoms[intersect.atomID];
         uint atomicNumber = uint(atom[3]);
         color = atomColors[atomicNumber];
       }
