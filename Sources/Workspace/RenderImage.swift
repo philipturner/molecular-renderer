@@ -58,6 +58,7 @@ func createRenderImage() -> String {
   return """
   \(createAtomColors(AtomStyles.colors))
   \(createAtomRadii(AtomStyles.radii))
+  \(createIntersectUtility())
   
   // Bypass errors in the HLSL compiler.
   struct AtomCountArgs {
