@@ -155,8 +155,14 @@ application.run {
       commandList.setBuffer(nativeBuffer, index: 1)
       
       // Bind the constant arguments.
-      let atomCount = UInt32(atoms.count)
-      commandList.set32BitConstants(atomCount, index: 2)
+      struct ConstantArgs {
+        var atomCount: UInt32
+        var frameSeed: UInt32
+      }
+      let constantArgs = ConstantArgs(
+        atomCount: UInt32(atoms.count),
+        frameSeed: .random(in: 0..<UInt32.max))
+      commandList.set32BitConstants(constantArgs, index: 2)
       
       // Determine the dispatch grid size.
       let frameBufferSize = application.display.frameBufferSize

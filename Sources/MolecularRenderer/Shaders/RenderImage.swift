@@ -19,20 +19,20 @@ public struct RenderImage {
       kernel void renderImage(
         texture2d<float, access::write> frameBuffer [[texture(0)]],
         device float4 *atoms [[buffer(1)]],
-        constant AtomCountArgs &atomCountArgs [[buffer(2)]],
+        constant ConstantArgs &constantArgs [[buffer(2)]],
         uint2 tid [[thread_position_in_grid]])
       """
       #else
       """
       RWTexture2D<float4> frameBuffer : register(u0);
       RWStructuredBuffer<float4> atoms : register(u1);
-      ConstantBuffer<AtomCountArgs> atomCountArgs : register(b2);
+      ConstantBuffer<ConstantArgs> constantArgs : register(b2);
       
       [numthreads(8, 8, 1)]
       [RootSignature(
         "DescriptorTable(UAV(u0, numDescriptors = 1)),"
         "UAV(u1),"
-        "RootConstants(b2, num32BitConstants = 1),"
+        "RootConstants(b2, num32BitConstants = 2),"
       )]
       void renderImage(
         uint2 tid : SV_DispatchThreadID)
@@ -74,9 +74,9 @@ public struct RenderImage {
     // TODO: Migrate this import to the internals of the ray gen utility.
     \(createSamplingUtility())
     
-    // Bypass errors in the HLSL compiler.
-    struct AtomCountArgs {
+    struct ConstantArgs {
       uint atomCount;
+      uint frameSeed;
     };
     
     \(functionSignature())
@@ -114,7 +114,7 @@ public struct RenderImage {
       intersect.distance = 1e38;
       
       // Test every atom.
-      for (uint atomID = 0; atomID < atomCountArgs.atomCount; ++atomID)
+      for (uint atomID = 0; atomID < constantArgs.atomCount; ++atomID)
       {
         float4 atom = atoms[atomID];
         intersectAtom(intersect,
