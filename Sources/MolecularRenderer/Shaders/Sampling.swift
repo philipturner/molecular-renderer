@@ -1,25 +1,10 @@
 func createSamplingUtility() -> String {
   return """
-  //
-  //  Sampling.metal
-  //  MolecularRenderer
-  //
-  //  Created by Philip Turner on 4/22/23.
-  //
-  
-  #ifndef SAMPLING_H
-  #define SAMPLING_H
-  
-  #include <metal_stdlib>
-  using namespace metal;
-  
   // Partially sourced from:
   // https://github.com/nvpro-samples/gl_vk_raytrace_interop/blob/master/shaders/sampling.h
   
-  class Sampling {
-  public:
-    static uint tea(uint val0, uint val1)
-    {
+  namespace Sampling {
+    uint tea(uint val0, uint val1) {
       uint v0 = val0;
       uint v1 = val1;
       uint s0 = 0;
@@ -34,12 +19,12 @@ func createSamplingUtility() -> String {
     }
     
     // Compute radical inverse of n to the base 2.
-    static float radinv2(uint n) {
+    float radinv2(uint n) {
       return as_type<float>(0x3F800000 | ((reverse_bits(n)) >> 9)) - 1.0f;
     }
     
     // Faure-Lemieux scrambled radical inverse
-    static float radinv3(uint n) {
+    float radinv3(uint n) {
       uint n_copy = n;
       float val = 0.f;
       const float invBase = 1.f / float(3);
@@ -50,15 +35,12 @@ func createSamplingUtility() -> String {
         uint d_i = n_copy - nDiv * 3;
         n_copy = nDiv;
         
-        // Ensure this doesn't go out-of-bounds (saturating the result of FADD or
-        // FFMA is zero-cost on Apple GPUs).
+        // Ensure this doesn't go out-of-bounds.
         val = saturate(val + float(d_i) * invBi);
         invBi *= invBase;
       }
       return val;
     }
   };
-  
-  #endif // SAMPLING_H
   """
 }
