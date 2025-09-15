@@ -20,12 +20,9 @@ func createLightingUtility() -> String {
   class ColorContext {
     constant half3* elementColors;
     
-    ushort2 pixelCoords;
     half3 color;
-    half2 motionVector;
-    float depth;
     
-    half3 diffuseColor;
+    uint diffuseColor; // Save register space by storing color indirectly.
     half diffuseAmbient;
     half specularAmbient;
     half lambertian;
@@ -50,6 +47,8 @@ func createLightingUtility() -> String {
       half3 elementColor = elementColors[atomicNumber];
       diffuseColor = elementColor;
     }
+    
+    void getDiffuse
     
     void addAmbientContribution(ushort atomicNumber, float distance) {
       float diffuseAmbient;
@@ -182,67 +181,6 @@ func createLightingUtility() -> String {
       float3 color = float3(diffuseColor) * lambertian * ambientOcclusion;
       color += specular * specularOcclusion;
       this->color = half3(saturate(color));
-    }
-    
-    void setDepth(float depth) {
-      this->depth = depth;
-    }
-    
-    void generateMotionVector(constant CameraArguments *cameraArgs,
-                              constant RenderArguments *renderArgs,
-                              float3 hitPoint) {
-      // Apply the camera position.
-      float3 cameraPosition = cameraArgs->position;
-      float3 direction = normalize(hitPoint - cameraPosition);
-      
-      // Apply the camera direction.
-      float3x3 rotation(cameraArgs->rotationColumn1,
-                        cameraArgs->rotationColumn2,
-                        cameraArgs->rotationColumn3);
-      direction = transpose(rotation) * direction;
-      
-      // Apply the camera FOV.
-      float fovMultiplier = cameraArgs->fovMultiplier;
-      direction *= 1 / fovMultiplier / direction.z;
-      
-      // I have no idea why, but the X coordinate is flipped here.
-      float2 prevCoords = direction.xy;
-      prevCoords.x = -prevCoords.x;
-      
-      // Recompute the current pixel coordinates (do not waste registers).
-      float2 currCoords = float2(pixelCoords) + 0.5;
-      currCoords += renderArgs->jitterOffsets;
-      currCoords.xy -= float(renderArgs->screenWidth) / 2;
-      
-      // Generate the motion vector from pixel coordinates.
-      motionVector = half2(currCoords - prevCoords);
-      
-      // I have no idea why, but the coordinates are flipped here.
-      motionVector.y = -motionVector.y;
-      motionVector.x = -motionVector.x;
-    }
-    
-    void write(texture2d<half, access::write> colorTexture,
-              texture2d<float, access::write> depthTexture,
-              texture2d<half, access::write> motionTexture)
-    {
-      // Write the output color.
-      half4 writtenColor(color, 1);
-      colorTexture.write(writtenColor, pixelCoords);
-      
-      // Map the depth from [0, -infty] to [1, 0].
-      auto depth = 1 / float(1 - this->depth);
-      
-      // Clamp the motion vector to within the dynamic range of FP16.
-      auto motionVector = clamp(this->motionVector, -65000, 65000);
-      
-      // Write the output depth.
-      float4 writtenDepth = float4(depth);
-      depthTexture.write(writtenDepth, pixelCoords);
-      
-      // Write the output motion vector.
-      half4 writtenMotionVector(motionVector.x, motionVector.y, 0, 0);
-      motionTexture.write(writtenMotionVector, pixelCoords);
     }
   };
   
