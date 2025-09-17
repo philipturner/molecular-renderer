@@ -41,7 +41,8 @@ func createRayGeneration() -> String {
       
       // Compute the Y axis.
       float3 y;
-      if (abs(z.z) > 0.999) {
+      //if (abs(z.z) > 0.999) {
+      if (false) {
         y[0] = -z.x * z.y;
         y[1] = 1 - z.y * z.y;
         y[2] = -z.y * z.z;
