@@ -68,9 +68,9 @@ public struct RenderImage {
     
     \(createAtomColors(AtomStyles.colors))
     \(createAtomRadii(AtomStyles.radii))
-    \(createIntersectUtility())
     \(createLightingUtility())
     \(createRayGeneration())
+    \(createRayIntersector())
     
     struct ConstantArgs {
       uint atomCount;

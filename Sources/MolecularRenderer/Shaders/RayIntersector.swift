@@ -1,9 +1,17 @@
-func createIntersectUtility() -> String {
+func createRayIntersector() -> String {
   func resultArgument() -> String {
     #if os(macOS)
     "thread IntersectionResult &result"
     #else
     "inout IntersectionResult result"
+    #endif
+  }
+  
+  func atomsBuffer() -> String {
+    #if os(macOS)
+    "device float4 *atoms"
+    #else
+    "RWStructuredBuffer<float4> atoms"
     #endif
   }
   
@@ -42,5 +50,34 @@ func createIntersectUtility() -> String {
       }
     }
   }
+  
+  struct RayIntersector {
+    \(atomsBuffer());
+    uint atomCount;
+    
+    IntersectionResult intersect(IntersectionQuery query) {
+      // Prepare the intersection result.
+      IntersectionResult intersect;
+      intersect.accept = false;
+      intersect.distance = 1e38;
+      
+      // Test every atom.
+      for (uint atomID = 0; atomID < atomCount; ++atomID)
+      {
+        float4 atom = atoms[atomID];
+        intersectAtom(intersect,
+                      query,
+                      atom,
+                      atomID);
+      }
+      
+      // Check whether we found a hit.
+      if (intersect.distance < 1e38) {
+        intersect.accept = true;
+      }
+      
+      return intersect;
+    }
+  };
   """
 }
