@@ -55,7 +55,7 @@ func createRayGeneration() -> String {
       
       // Compute the X axis through Gram-Schmidt orthogonalization.
       float3 x = cross(y, z);
-      return float3x3(x, y, z);
+      return transpose(float3x3(x, y, z));
     }
     
     float3 secondaryRayDirection(Basis basis) {
