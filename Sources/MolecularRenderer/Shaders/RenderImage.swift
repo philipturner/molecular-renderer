@@ -133,6 +133,7 @@ public struct RenderImage {
         GenerationContext generationContext;
         generationContext.seed = RayGeneration::createSeed(
           tid, constantArgs.frameSeed);
+        generationContext.seed = 200;
         
         // Iterate over the AO samples.
         for (uint i = 0; i < sampleCount; ++i) {

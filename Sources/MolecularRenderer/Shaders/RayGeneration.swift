@@ -122,7 +122,7 @@ func createRayGeneration() -> String {
       
       // Create a random ray from the cosine distribution.
       RayGeneration::Basis basis;
-      basis.axes = axes16;
+      basis.axes = RayGeneration::createAxes(normal);
       basis.random1 = random1;
       basis.random2 = random2;
       return RayGeneration::secondaryRayDirection(basis);
