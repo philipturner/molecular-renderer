@@ -107,7 +107,7 @@ public struct RenderImage {
       IntersectionQuery query;
       query.rayOrigin = float3(screenCoords, 10);
       query.rayDirection = float3(0, 0, -1);
-      auto intersect = rayIntersector.intersect(query);
+      IntersectionResult intersect = rayIntersector.intersect(query);
       
       // Background color.
       float3 color = float3(0.707, 0.707, 0.707);
@@ -127,7 +127,7 @@ public struct RenderImage {
         ambientOcclusion.specularAccumulator = 0;
         
         // Pick the number of AO samples.
-        uint sampleCount = 3;
+        uint sampleCount = 7;
         
         // Create a generation context.
         GenerationContext generationContext;
@@ -145,7 +145,7 @@ public struct RenderImage {
           IntersectionQuery query;
           query.rayOrigin = secondaryRayOrigin;
           query.rayDirection = secondaryRayDirection;
-          auto intersect = rayIntersector.intersect(query);
+          IntersectionResult intersect = rayIntersector.intersect(query);
           
           // Add the secondary ray's AO contributions.
           uint atomicNumber;
