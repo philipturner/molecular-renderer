@@ -19,6 +19,7 @@ func createRayGeneration() -> String {
   }
   
   return """
+  \(createMatrixUtility())
   \(createSamplingUtility())
   
   // Partially sourced from:
