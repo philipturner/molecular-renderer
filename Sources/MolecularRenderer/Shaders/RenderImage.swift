@@ -126,6 +126,39 @@ public struct RenderImage {
         ambientOcclusion.diffuseAccumulator = 0;
         ambientOcclusion.specularAccumulator = 0;
         
+        // Pick the number of AO samples.
+        uint sampleCount = 3;
+        
+        // Create a generation context.
+        GenerationContext generationContext;
+        generationContext.seed = RayGeneration::createSeed(
+          tid, constantArgs.frameSeed);
+        
+        // Iterate over the AO samples.
+        for (uint i = 0; i < sampleCount; ++i) {
+          // Spawn a secondary ray.
+          float3 secondaryRayOrigin = hitPoint + 1e-4 * float3(hitNormal);
+          float3 secondaryRayDirection = generationContext
+            .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
+          
+          // Intersect the secondary ray.
+          IntersectionQuery query;
+          query.rayOrigin = secondaryRayOrigin;
+          query.rayDirection = secondaryRayDirection;
+          auto intersect = rayIntersector.intersect(query);
+          
+          // Add the secondary ray's AO contributions.
+          uint atomicNumber;
+          if (intersect.accept) {
+            float4 atom = atoms[intersect.atomID];
+            atomicNumber = uint(atom[3]);
+          } else {
+            atomicNumber = 0;
+          }
+          //ambientOcclusion.addAmbientContribution(
+          //  atomicNumber, intersect.distance);
+        }
+        
         // Prepare the Blinn-Phong lighting.
         BlinnPhongLighting blinnPhong;
         blinnPhong.lambertianAccumulator = 0;
