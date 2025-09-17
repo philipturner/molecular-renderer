@@ -86,8 +86,10 @@ public struct RenderImage {
         return;
       }
       
-      // Background color.
-      float3 color = float3(0.707, 0.707, 0.707);
+      // Prepare the ray intersector.
+      RayIntersector rayIntersector;
+      rayIntersector.atoms = atoms;
+      rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the screen-space coordinates.
       // [-0.5 nm, 0.5 nm] along the two axes of the screen.
@@ -95,7 +97,7 @@ public struct RenderImage {
       screenCoords /= float2(screenWidth, screenHeight);
       screenCoords -= float2(0.5, 0.5);
       
-      // Prepare the intersection query.
+      // Intersect the primary ray.
       // origin:
       //   XY = screen coords
       //   Z = +10 nm
@@ -105,26 +107,10 @@ public struct RenderImage {
       IntersectionQuery query;
       query.rayOrigin = float3(screenCoords, 10);
       query.rayDirection = float3(0, 0, -1);
+      auto intersect = rayIntersector.intersect(query);
       
-      // Prepare the intersection result.
-      IntersectionResult intersect;
-      intersect.accept = false;
-      intersect.distance = 1e38;
-      
-      // Test every atom.
-      for (uint atomID = 0; atomID < constantArgs.atomCount; ++atomID)
-      {
-        float4 atom = atoms[atomID];
-        intersectAtom(intersect,
-                      query,
-                      atom,
-                      atomID);
-      }
-      
-      // Check whether we found a hit.
-      if (intersect.distance < 1e38) {
-        intersect.accept = true;
-      }
+      // Background color.
+      float3 color = float3(0.707, 0.707, 0.707);
       
       // Use the color of the hit atom.
       if (intersect.accept) {
