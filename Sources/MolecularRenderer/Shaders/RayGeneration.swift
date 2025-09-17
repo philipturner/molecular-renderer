@@ -69,7 +69,7 @@ func createRayGeneration() -> String {
         sqrt(cosThetaSquared));
       
       // Apply the basis as a linear transformation.
-      direction = \(mul("float3x3(basis.axes)", "direction"));
+      direction = \(mul("basis.axes", "direction"));
       return direction;
     }
     
@@ -118,7 +118,7 @@ func createRayGeneration() -> String {
                                    float3(0, 0, 1));
       float3 modNormal = \(mul("transpose(rotation)", "float3(normal)"));
       float3x3 axes32 = RayGeneration::createAxes(modNormal);
-      float3x3 axes16 = float3x3(rotation * axes32);
+      float3x3 axes16 = \(mul("rotation", "axes32"));
       
       // Create a random ray from the cosine distribution.
       RayGeneration::Basis basis;
