@@ -111,7 +111,7 @@ func createLightingUtility() -> String {
       float specularTerm = 1;
       
       // Disabled for now because the sample count is 0.
-      if (false) {
+      if (true) {
         diffuseTerm = ambientOcclusion.diffuseAccumulator;
         
         // This seems to only be applied to a "specular ambient" term, not the

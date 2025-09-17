@@ -155,9 +155,12 @@ public struct RenderImage {
           } else {
             atomicNumber = 0;
           }
-          //ambientOcclusion.addAmbientContribution(
-          //  atomicNumber, intersect.distance);
+          ambientOcclusion.addAmbientContribution(
+            atomicNumber, intersect.distance);
         }
+        
+        // Tell the context how many AO samples were taken.
+        ambientOcclusion.finishAmbientContributions(sampleCount);
         
         // Prepare the Blinn-Phong lighting.
         BlinnPhongLighting blinnPhong;
