@@ -29,14 +29,14 @@ func createRayGeneration() -> String {
   namespace RayGeneration {
     struct Basis {
       // Basis for the coordinate system around the normal vector.
-      float3x3 axes;
+      Matrix3x3 axes;
       
       // Uniformly distributed random numbers for determining angles.
       float random1;
       float random2;
     };
     
-    float3x3 createAxes(float3 normal) {
+    Matrix3x3 createAxes(float3 normal) {
       // Set the Z axis to the normal.
       float3 z = normal;
       
@@ -55,7 +55,12 @@ func createRayGeneration() -> String {
       
       // Compute the X axis through Gram-Schmidt orthogonalization.
       float3 x = cross(y, z);
-      return float3x3(x, y, z);
+      
+      Matrix3x3 output;
+      output.col0 = x;
+      output.col1 = y;
+      output.col2 = z;
+      return output;
     }
     
     float3 secondaryRayDirection(Basis basis) {
@@ -70,7 +75,7 @@ func createRayGeneration() -> String {
         sqrt(cosThetaSquared));
       
       // Apply the basis as a linear transformation.
-      direction = \(mul("basis.axes", "direction"));
+      direction = basis.axes.multiply(direction);
       return direction;
     }
     
@@ -114,12 +119,12 @@ func createRayGeneration() -> String {
       // the X and Y dimensions to a common coordinate space.
       
       // In both MSL and HLSL, matrices are column-major.
-      float3x3 rotation = float3x3(float3(1, 0, 0),
-                                   float3(0, 1, 0),
-                                   float3(0, 0, 1));
-      float3 modNormal = \(mul("transpose(rotation)", "float3(normal)"));
-      float3x3 axes32 = RayGeneration::createAxes(modNormal);
-      float3x3 axes16 = \(mul("rotation", "axes32"));
+      //float3x3 rotation = float3x3(float3(1, 0, 0),
+      //                             float3(0, 1, 0),
+      //                             float3(0, 0, 1));
+      //float3 modNormal = \(mul("transpose(rotation)", "float3(normal)"));
+      //float3x3 axes32 = RayGeneration::createAxes(modNormal);
+      //float3x3 axes16 = \(mul("rotation", "axes32"));
       
       // Create a random ray from the cosine distribution.
       RayGeneration::Basis basis;
