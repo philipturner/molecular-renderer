@@ -118,17 +118,18 @@ func createRayGeneration() -> String {
       // divergence. Here is a primitive method that achieves that by aligning
       // the X and Y dimensions to a common coordinate space.
       
-      // In both MSL and HLSL, matrices are column-major.
-      //float3x3 rotation = float3x3(float3(1, 0, 0),
-      //                             float3(0, 1, 0),
-      //                             float3(0, 0, 1));
-      //float3 modNormal = \(mul("transpose(rotation)", "float3(normal)"));
-      //float3x3 axes32 = RayGeneration::createAxes(modNormal);
-      //float3x3 axes16 = \(mul("rotation", "axes32"));
+      Matrix3x3 rotation;
+      rotation.col0 = float3(1, 0, 0);
+      rotation.col1 = float3(0, 1, 0);
+      rotation.col2 = float3(0, 0, 1);
+      
+      float3 modNormal = rotation.transpose().multiply(normal);
+      Matrix3x3 axes32 = RayGeneration::createAxes(modNormal);
+      Matrix3x3 axes16 = rotation.multiply(axes32);
       
       // Create a random ray from the cosine distribution.
       RayGeneration::Basis basis;
-      basis.axes = RayGeneration::createAxes(normal);
+      basis.axes = axes16;
       basis.random1 = random1;
       basis.random2 = random2;
       return RayGeneration::secondaryRayDirection(basis);
