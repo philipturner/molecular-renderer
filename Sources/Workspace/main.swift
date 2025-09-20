@@ -1,3 +1,14 @@
+// Tasks:
+// - Next, add perspective projection and force it to be enabled for all
+//   renders. FidelityFX requires parameters about FOV and near/far distance.
+// - Eventual ergonomic API should accept an angle in radians instead of
+//   degrees, with a simpler name than "fov***InDegrees".
+//   'cameraFovAngleVertical', copied from the AMD FidelityFX API, is a great
+//   idea.
+// - The critical distance heuristic from the original renderer is actually
+//   quite based. Include it and correct / delete / migrate the documentation
+//   currently on the README.
+
 import HDL
 import MolecularRenderer
 import QuaternionModule
