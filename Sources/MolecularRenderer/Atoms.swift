@@ -88,23 +88,29 @@ public class Atoms {
       }
       blocksModified[blockID] = false
       
-      let startAtomID = blockID * Self.blockSize
-      let endAtomID = startAtomID + Self.blockSize
+      let startAtomID = UInt32(blockID * Self.blockSize)
+      let endAtomID = startAtomID + UInt32(Self.blockSize)
       for atomID in startAtomID..<endAtomID {
         // Reset positionsModified
-        guard positionsModified[atomID] else {
+        guard positionsModified[Int(atomID)] else {
           continue
         }
-        positionsModified[atomID] = false
+        positionsModified[Int(atomID)] = false
         
         // Read occupied
-        let atomPreviousOccupied = previousOccupied[atomID]
-        let atomOccupied = occupied[atomID]
+        let atomPreviousOccupied = previousOccupied[Int(atomID)]
+        let atomOccupied = occupied[Int(atomID)]
         
         // Save changes to previousOccupied
-        previousOccupied[atomID] = atomOccupied
+        previousOccupied[Int(atomID)] = atomOccupied
         
-        
+        if !atomOccupied {
+          if atomPreviousOccupied {
+            output.removedIDs.append(atomID)
+          }
+        } else {
+          // Read positions
+        }
       }
     }
     
