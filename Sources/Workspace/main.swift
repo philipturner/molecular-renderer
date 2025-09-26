@@ -54,7 +54,7 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-func createAtoms() -> [SIMD4<Float>] {
+func createIsopropanol() -> [SIMD4<Float>] {
   return [
     Atom(position: SIMD3( 2.0186, -0.2175,  0.7985) * 0.1, element: .hydrogen),
     Atom(position: SIMD3( 1.4201, -0.2502, -0.1210) * 0.1, element: .carbon),
@@ -72,7 +72,7 @@ func createAtoms() -> [SIMD4<Float>] {
 }
 var atomBuffer = AtomBuffer(
   device: application.device,
-  atomCount: createAtoms().count)
+  atomCount: 1000)
 
 // Set up the shader.
 var shaderDesc = ShaderDescriptor()
@@ -115,7 +115,7 @@ let descriptorHeap = createDescriptorHeap(
 
 // Enter the run loop.
 application.run {
-  func createRotatedAtoms(application: Application) -> [SIMD4<Float>] {
+  func createRotatedIsopropanol(application: Application) -> [SIMD4<Float>] {
     let elapsedFrames = application.clock.frames
     let frameRate = application.display.frameRate
     let seconds = Float(elapsedFrames) / Float(frameRate)
@@ -126,7 +126,7 @@ application.run {
       angle: angle,
       axis: SIMD3(0.00, 1.00, 0.00))
     
-    var output = createAtoms()
+    var output = createIsopropanol()
     for atomID in output.indices {
       var atom = output[atomID]
       atom.position = rotation.act(on: atom.position)
@@ -134,7 +134,7 @@ application.run {
     }
     return output
   }
-  let atoms = createRotatedAtoms(application: application)
+  let atoms = createRotatedIsopropanol(application: application)
   
   // Run changes through the new 'applications.atoms' API.
   do {
