@@ -40,10 +40,22 @@ public class Atoms {
   // introducing an API for modifying subranges at a time.
   public subscript(index: Int) -> SIMD4<Float>? {
     get {
-      fatalError("Not implemented.")
+      if occupied[index] {
+        return positions[index]
+      } else {
+        return nil
+      }
     }
     set {
-      fatalError("Not implemented.")
+      blocksModified[index / Self.blockSize] = true
+      positionsModified[index] = true
+      
+      if let newValue {
+        occupied[index] = true
+        positions[index] = newValue
+      } else {
+        occupied[index] = false
+      }
     }
   }
   
