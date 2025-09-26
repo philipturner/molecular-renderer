@@ -1,20 +1,15 @@
 // Tasks:
 // - Flesh out the notion of transactions (.add, .remove, .move, none) and
-//   how they materialize on the CPU-side API.
-// - Create GPU code to simply compile the transactions into a linear list of
-//   atoms as the "acceleration structure" for now.
+//   how they materialize on the CPU-side API. [DONE]
+// - Add 'application.atoms' into the public API, as well as its initialization
+//   process. Not yet implementing the heuristic that chooses atom count based
+//   on a partitioning of GPU memory. Nonetheless, the API goes by a mapping
+//   of allocated memory -> number of atom blocks able to hold. This establishes
+//   the future anticipation of not directly specifying max atom count.
+// - Simply compile the transactions into a linear list of atoms as the
+//   "acceleration structure" for now.
 // - Create a simple test that switches between isopropanol and methane to
 //   demonstrate correct functioning of .add and .remove.
-//
-// First concept: allocating fixed "address space" for atoms at startup
-// - atom count determined by GPU memory allocation and partitioning between
-//   atoms and voxels
-// - for now, just specify CPU-side memory allocation size for
-//   'ApplicationDescriptor.allocationSize'
-// - create a property to retrieve the maximum atom count:
-//   'Application.atoms.addressSpaceSize'
-// Second concept: the CPU-side API for entering / modifying atoms
-// Third concept: making this CPU-side API computationally efficient
 
 // Changes to the acceleration structure in a single frame.
 struct Transaction {
@@ -35,13 +30,19 @@ public class Atoms {
   private let positionsModified: UnsafeMutablePointer<Bool>
   private let blocksModified: UnsafeMutablePointer<Bool>
   
+  // /// Size (in bytes) of the giant memory allocation that stores both
+  // /// atoms and voxel data on the GPU.
+  // ApplicationDescriptor.allocationSize
   init() {
     fatalError("Not implemented.")
   }
   
   deinit {
-    // TODO: Deallocate all pointers.
-    // Write the deinitializer once the implementation has matured / finalized.
+    positions.deallocate()
+    previousOccupied.deallocate()
+    occupied.deallocate()
+    positionsModified.deallocate()
+    blocksModified.deallocate()
   }
   
   // This is probably a bottleneck in CPU-side code (1 function call for
@@ -68,17 +69,6 @@ public class Atoms {
     }
   }
   
-  // There will be another function that resets the pointers at modified blocks
-  // (migrate current occupied to previous occupied, clear positionsModified).
-  // This function should simultaneously output a set of transactions. The
-  // transactions can be scoped to per individual atom. Ideally, they would
-  // be sorted too. The GPU likes to know the atoms to remove, then the atoms
-  // to add, in that exact order.
-  //
-  // Order:
-  // .remove
-  // .move (GPU recognizes as part of both remove and add sub-tasks)
-  // .add
   func registerChanges() -> Transaction {
     var output = Transaction()
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
@@ -110,10 +100,19 @@ public class Atoms {
           }
         } else {
           // Read positions
+          let position = positions[Int(atomID)]
+          
+          if atomPreviousOccupied {
+            output.movedIDs.append(atomID)
+            output.movedPositions.append(position)
+          } else {
+            output.addedIDs.append(atomID)
+            output.addedPositions.append(position)
+          }
         }
       }
     }
     
-    fatalError("Not implemented.")
+    return output
   }
 }
