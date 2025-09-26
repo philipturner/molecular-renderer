@@ -124,6 +124,14 @@ let descriptorHeap = createDescriptorHeap(
   renderTarget: application.renderTarget)
 #endif
 
+// State variable to facilitate atom transactions for the animation.
+enum AnimationState {
+  case isopropanol
+  case silane
+}
+nonisolated(unsafe)
+var animationState: AnimationState?
+
 // Enter the run loop.
 application.run {
   func createTime(application: Application) -> Float {
@@ -167,6 +175,7 @@ application.run {
   
   func createAtoms(application: Application) -> [SIMD4<Float>] {
     let time = createTime(application: application)
+    animationState = nil
     
     let roundedDownTime = Int(time.rounded(.down))
     if roundedDownTime % 2 == 0 {
