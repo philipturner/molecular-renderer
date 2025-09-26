@@ -65,4 +65,9 @@ public class Atoms {
   // transactions can be scoped to per individual atom. Ideally, they would
   // be sorted too. The GPU likes to know the atoms to remove, then the atoms
   // to add, in that exact order.
+  //
+  // Order:
+  // .remove
+  // .move (GPU recognizes as part of both remove and add sub-tasks)
+  // .add
 }
