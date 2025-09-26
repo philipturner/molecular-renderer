@@ -179,18 +179,45 @@ application.run {
     return seconds
   }
   
-  func createAtoms(application: Application) -> [SIMD4<Float>] {
+  func modifyAtoms(application: Application) {
     let time = createTime(application: application)
-    animationState = nil
     
     let roundedDownTime = Int(time.rounded(.down))
     if roundedDownTime % 2 == 0 {
-      return createRotatedIsopropanol(time: time)
+      let isopropanol = createRotatedIsopropanol(time: time)
+      if animationState == .silane {
+        for atomID in 12..<17 {
+          application.atoms[atomID] = nil
+        }
+      }
+      
+      animationState = .isopropanol
+      for i in isopropanol.indices {
+        let atomID = 0 + i
+        let atom = isopropanol[i]
+        application.atoms[atomID] = atom
+      }
     } else {
-      return createRotatedSilane(time: time)
+      let silane = createRotatedSilane(time: time)
+      if animationState == .isopropanol {
+        for atomID in 0..<12 {
+          application.atoms[atomID] = nil
+        }
+      }
+      
+      animationState = .silane
+      for i in silane.indices {
+        let atomID = 12 + i
+        let atom = silane[i]
+        application.atoms[atomID] = atom
+      }
     }
   }
-  let atoms = createAtoms(application: application)
+  
+  modifyAtoms(application: application)
+  let transaction = application.atoms.registerChanges()
+  transactionTracker.register(transaction: transaction)
+  let atoms = transactionTracker.compactedAtoms()
   
 //  // Run changes through the new 'applications.atoms' API.
 //  do {
