@@ -54,37 +54,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-func createIsopropanol() -> [SIMD4<Float>] {
-  return [
-    Atom(position: SIMD3( 2.0186, -0.2175,  0.7985) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3( 1.4201, -0.2502, -0.1210) * 0.1, element: .carbon),
-    Atom(position: SIMD3( 1.6783,  0.6389, -0.7114) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3( 1.7345, -1.1325, -0.6927) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.0726, -0.3145,  0.1833) * 0.1, element: .carbon),
-    Atom(position: SIMD3(-0.2926, -1.2317,  0.7838) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.3758,  0.8195,  0.9774) * 0.1, element: .oxygen),
-    Atom(position: SIMD3(-1.3159,  0.8236,  1.0972) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.8901, -0.3435, -1.1071) * 0.1, element: .carbon),
-    Atom(position: SIMD3(-0.7278,  0.5578, -1.7131) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.6126, -1.2088, -1.7220) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
-  ]
-}
-
-func createSilane() -> [SIMD4<Float>] {
-  return [
-    Atom(position: SIMD3( 0.0000,  0.0000,  0.0000) * 0.1, element: .silicon),
-    Atom(position: SIMD3( 0.8544,  0.8544,  0.8544) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.8544, -0.8544,  0.8544) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3(-0.8544,  0.8544, -0.8544) * 0.1, element: .hydrogen),
-    Atom(position: SIMD3( 0.8544, -0.8544, -0.8544) * 0.1, element: .hydrogen),
-  ]
-}
-
-var atomBuffer = AtomBuffer(
-  device: application.device,
-  atomCount: 1000)
-
 // Set up the shader.
 var shaderDesc = ShaderDescriptor()
 shaderDesc.device = application.device
@@ -124,6 +93,12 @@ let descriptorHeap = createDescriptorHeap(
   renderTarget: application.renderTarget)
 #endif
 
+var atomBuffer = AtomBuffer(
+  device: application.device,
+  atomCount: 1000)
+
+// MARK: - Rendered Content
+
 // State variable to facilitate atom transactions for the animation.
 enum AnimationState {
   case isopropanol
@@ -131,6 +106,69 @@ enum AnimationState {
 }
 nonisolated(unsafe)
 var animationState: AnimationState?
+nonisolated(unsafe)
+var transactionTracker = TransactionTracker(atomCount: 1000)
+
+func createIsopropanol() -> [SIMD4<Float>] {
+  return [
+    Atom(position: SIMD3( 2.0186, -0.2175,  0.7985) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3( 1.4201, -0.2502, -0.1210) * 0.1, element: .carbon),
+    Atom(position: SIMD3( 1.6783,  0.6389, -0.7114) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3( 1.7345, -1.1325, -0.6927) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.0726, -0.3145,  0.1833) * 0.1, element: .carbon),
+    Atom(position: SIMD3(-0.2926, -1.2317,  0.7838) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.3758,  0.8195,  0.9774) * 0.1, element: .oxygen),
+    Atom(position: SIMD3(-1.3159,  0.8236,  1.0972) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.8901, -0.3435, -1.1071) * 0.1, element: .carbon),
+    Atom(position: SIMD3(-0.7278,  0.5578, -1.7131) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.6126, -1.2088, -1.7220) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
+  ]
+}
+
+func createSilane() -> [SIMD4<Float>] {
+  return [
+    Atom(position: SIMD3( 0.0000,  0.0000,  0.0000) * 0.1, element: .silicon),
+    Atom(position: SIMD3( 0.8544,  0.8544,  0.8544) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.8544, -0.8544,  0.8544) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.8544,  0.8544, -0.8544) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3( 0.8544, -0.8544, -0.8544) * 0.1, element: .hydrogen),
+  ]
+}
+
+func createRotatedIsopropanol(time: Float) -> [SIMD4<Float>] {
+  // 0.5 Hz rotation rate
+  let angle = 0.5 * time * (2 * Float.pi)
+  let rotation = Quaternion<Float>(
+    angle: angle,
+    axis: SIMD3(0.00, 1.00, 0.00))
+  
+  var output = createIsopropanol()
+  for atomID in output.indices {
+    var atom = output[atomID]
+    atom.position = rotation.act(on: atom.position)
+    output[atomID] = atom
+  }
+  return output
+}
+
+func createRotatedSilane(time: Float) -> [SIMD4<Float>] {
+  // 0.5 Hz rotation rate
+  let angle = 0.5 * time * (2 * Float.pi)
+  let rotation = Quaternion<Float>(
+    angle: angle,
+    axis: SIMD3(0.00, 1.00, 0.00))
+  
+  var output = createSilane()
+  for atomID in output.indices {
+    var atom = output[atomID]
+    atom.position = rotation.act(on: atom.position)
+    output[atomID] = atom
+  }
+  return output
+}
+
+// MARK: - Run Loop
 
 // Enter the run loop.
 application.run {
@@ -139,38 +177,6 @@ application.run {
     let frameRate = application.display.frameRate
     let seconds = Float(elapsedFrames) / Float(frameRate)
     return seconds
-  }
-  
-  func createRotatedIsopropanol(time: Float) -> [SIMD4<Float>] {
-    // 0.5 Hz rotation rate
-    let angle = 0.5 * time * (2 * Float.pi)
-    let rotation = Quaternion<Float>(
-      angle: angle,
-      axis: SIMD3(0.00, 1.00, 0.00))
-    
-    var output = createIsopropanol()
-    for atomID in output.indices {
-      var atom = output[atomID]
-      atom.position = rotation.act(on: atom.position)
-      output[atomID] = atom
-    }
-    return output
-  }
-  
-  func createRotatedSilane(time: Float) -> [SIMD4<Float>] {
-    // 0.5 Hz rotation rate
-    let angle = 0.5 * time * (2 * Float.pi)
-    let rotation = Quaternion<Float>(
-      angle: angle,
-      axis: SIMD3(0.00, 1.00, 0.00))
-    
-    var output = createSilane()
-    for atomID in output.indices {
-      var atom = output[atomID]
-      atom.position = rotation.act(on: atom.position)
-      output[atomID] = atom
-    }
-    return output
   }
   
   func createAtoms(application: Application) -> [SIMD4<Float>] {
