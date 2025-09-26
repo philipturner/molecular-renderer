@@ -30,8 +30,19 @@ public class Atoms {
   private let positionsModified: UnsafeMutablePointer<Bool>
   private let blocksModified: UnsafeMutablePointer<Bool>
   
-  init() {
-    fatalError("Not implemented.")
+  init(allocationSize: Int) {
+    let allocationAtomCount = allocationSize / 16
+    let allocationBlockCount = allocationAtomCount / Self.blockSize
+    guard allocationBlockCount > 0 else {
+      fatalError("Allocation could not hold any atoms.")
+    }
+    self.addressSpaceSize = allocationBlockCount * Self.blockSize
+    
+    self.positions = .allocate(capacity: addressSpaceSize)
+    self.previousOccupied = .allocate(capacity: addressSpaceSize)
+    self.occupied = .allocate(capacity: addressSpaceSize)
+    self.positionsModified = .allocate(capacity: addressSpaceSize)
+    self.blocksModified = .allocate(capacity: allocationBlockCount)
   }
   
   deinit {
