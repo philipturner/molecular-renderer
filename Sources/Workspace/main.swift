@@ -16,6 +16,18 @@
 // - Figure out the right API for entering atoms, which can support the
 //   far-future option of in-place modification to an acceleration structure.
 
+// Plan:
+// - Migrate AtomBuffer and TransactionTracker into the library, under a
+//   folder titled 'Atoms'. Make these data types 'public' to facilitate the
+//   step-wise migration.
+// - Bring out the place there the MTLDrawable is presented to a dedicated
+//   public API function. Don't yet create the syntax that emulates
+//   operations on an image like a physical object tossed around in client code.
+// - Migrate much of the code in this file into the library.
+// - Restructure the function signatures of the public functions for rendering
+//   and presenting.
+// - Keep the APIs 'public' scoped for the time being.
+
 import HDL
 import MolecularRenderer
 import QuaternionModule
