@@ -80,6 +80,34 @@ public class Atoms {
   // .move (GPU recognizes as part of both remove and add sub-tasks)
   // .add
   func registerChanges() -> Transaction {
+    var output = Transaction()
+    for blockID in 0..<(addressSpaceSize / Self.blockSize) {
+      // Reset blocksModified
+      guard blocksModified[blockID] else {
+        continue
+      }
+      blocksModified[blockID] = false
+      
+      let startAtomID = blockID * Self.blockSize
+      let endAtomID = startAtomID + Self.blockSize
+      for atomID in startAtomID..<endAtomID {
+        // Reset positionsModified
+        guard positionsModified[atomID] else {
+          continue
+        }
+        positionsModified[atomID] = false
+        
+        // Read occupied
+        let atomPreviousOccupied = previousOccupied[atomID]
+        let atomOccupied = occupied[atomID]
+        
+        // Save changes to previousOccupied
+        previousOccupied[atomID] = atomOccupied
+        
+        
+      }
+    }
+    
     fatalError("Not implemented.")
   }
 }
