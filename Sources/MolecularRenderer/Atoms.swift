@@ -11,15 +11,6 @@
 // - Create a simple test that switches between isopropanol and methane to
 //   demonstrate correct functioning of .add and .remove.
 
-// Changes to the acceleration structure in a single frame.
-struct Transaction {
-  var removedIDs: [UInt32] = []
-  var movedIDs: [UInt32] = []
-  var movedPositions: [SIMD4<Float>] = []
-  var addedIDs: [UInt32] = []
-  var addedPositions: [SIMD4<Float>] = []
-}
-
 public class Atoms {
   public let addressSpaceSize: Int
   private static let blockSize: Int = 512
@@ -77,7 +68,17 @@ public class Atoms {
     }
   }
   
-  func registerChanges() -> Transaction {
+  // Changes to the acceleration structure in a single frame.
+  public struct Transaction {
+    public var removedIDs: [UInt32] = []
+    public var movedIDs: [UInt32] = []
+    public var movedPositions: [SIMD4<Float>] = []
+    public var addedIDs: [UInt32] = []
+    public var addedPositions: [SIMD4<Float>] = []
+  }
+  
+  // Acceleration structure building is scripted from the public API for now.
+  public func registerChanges() -> Transaction {
     var output = Transaction()
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
       // Reset blocksModified

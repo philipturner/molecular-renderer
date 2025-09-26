@@ -136,6 +136,21 @@ application.run {
   }
   let atoms = createRotatedAtoms(application: application)
   
+  // Run changes through the new 'applications.atoms' API.
+  do {
+    for atomID in atoms.indices {
+      let atom = atoms[atomID]
+      application.atoms[atomID] = atom
+    }
+    
+    let transaction = application.atoms.registerChanges()
+    print(
+      application.clock.frames,
+      transaction.removedIDs.count,
+      transaction.movedIDs.count,
+      transaction.addedIDs.count)
+  }
+  
   // Write the atoms to the GPU buffer.
   let inFlightFrameID = application.frameID % 3
   atomBuffer.write(
