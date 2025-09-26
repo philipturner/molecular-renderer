@@ -165,8 +165,17 @@ application.run {
     return output
   }
   
-  let time = createTime(application: application)
-  let atoms = createRotatedSilane(time: time)
+  func createAtoms(application: Application) -> [SIMD4<Float>] {
+    let time = createTime(application: application)
+    
+    let roundedDownTime = Int(time.rounded(.down))
+    if roundedDownTime % 2 == 0 {
+      return createRotatedIsopropanol(time: time)
+    } else {
+      return createRotatedSilane(time: time)
+    }
+  }
+  let atoms = createAtoms(application: application)
   
 //  // Run changes through the new 'applications.atoms' API.
 //  do {
