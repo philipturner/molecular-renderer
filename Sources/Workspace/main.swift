@@ -70,6 +70,17 @@ func createIsopropanol() -> [SIMD4<Float>] {
     Atom(position: SIMD3(-1.9673, -0.4150, -0.9062) * 0.1, element: .hydrogen),
   ]
 }
+
+func createSilane() -> [SIMD4<Float>] {
+  return [
+    Atom(position: SIMD3( 0.0000,  0.0000,  0.0000) * 0.1, element: .silicon),
+    Atom(position: SIMD3( 0.8544,  0.8544,  0.8544) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.8544, -0.8544,  0.8544) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3(-0.8544,  0.8544, -0.8544) * 0.1, element: .hydrogen),
+    Atom(position: SIMD3( 0.8544, -0.8544, -0.8544) * 0.1, element: .hydrogen),
+  ]
+}
+
 var atomBuffer = AtomBuffer(
   device: application.device,
   atomCount: 1000)
@@ -115,13 +126,16 @@ let descriptorHeap = createDescriptorHeap(
 
 // Enter the run loop.
 application.run {
-  func createRotatedIsopropanol(application: Application) -> [SIMD4<Float>] {
+  func createTime(application: Application) -> Float {
     let elapsedFrames = application.clock.frames
     let frameRate = application.display.frameRate
     let seconds = Float(elapsedFrames) / Float(frameRate)
-    
+    return seconds
+  }
+  
+  func createRotatedIsopropanol(time: Float) -> [SIMD4<Float>] {
     // 0.5 Hz rotation rate
-    let angle = 0.5 * seconds * (2 * Float.pi)
+    let angle = 0.5 * time * (2 * Float.pi)
     let rotation = Quaternion<Float>(
       angle: angle,
       axis: SIMD3(0.00, 1.00, 0.00))
@@ -134,17 +148,35 @@ application.run {
     }
     return output
   }
-  let atoms = createRotatedIsopropanol(application: application)
   
-  // Run changes through the new 'applications.atoms' API.
-  do {
-    for atomID in atoms.indices {
-      let atom = atoms[atomID]
-      application.atoms[atomID] = atom
-    }
+  func createRotatedSilane(time: Float) -> [SIMD4<Float>] {
+    // 0.5 Hz rotation rate
+    let angle = 0.5 * time * (2 * Float.pi)
+    let rotation = Quaternion<Float>(
+      angle: angle,
+      axis: SIMD3(0.00, 1.00, 0.00))
     
-    let transaction = application.atoms.registerChanges()
+    var output = createSilane()
+    for atomID in output.indices {
+      var atom = output[atomID]
+      atom.position = rotation.act(on: atom.position)
+      output[atomID] = atom
+    }
+    return output
   }
+  
+  let time = createTime(application: application)
+  let atoms = createRotatedSilane(time: time)
+  
+//  // Run changes through the new 'applications.atoms' API.
+//  do {
+//    for atomID in atoms.indices {
+//      let atom = atoms[atomID]
+//      application.atoms[atomID] = atom
+//    }
+//    
+//    let transaction = application.atoms.registerChanges()
+//  }
   
   // Write the atoms to the GPU buffer.
   let inFlightFrameID = application.frameID % 3
