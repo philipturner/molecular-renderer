@@ -45,6 +45,7 @@ func createApplication() -> Application {
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
+  applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
   let application = Application(descriptor: applicationDesc)

@@ -4,6 +4,9 @@ import WinSDK
 #endif
 
 public struct ApplicationDescriptor {
+  /// Size (in bytes) of the giant memory allocation that stores both atoms and
+  /// voxel data on the GPU.
+  public var allocationSize: Int?
   public var device: Device?
   public var display: Display?
   
@@ -31,7 +34,8 @@ public class Application {
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
-    guard let device: Device = descriptor.device,
+    guard let allocationSize = descriptor.allocationSize,
+          let device = descriptor.device,
           let display = descriptor.display else {
       fatalError("Descriptor was incomplete.")
     }

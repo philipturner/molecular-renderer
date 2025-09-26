@@ -30,9 +30,6 @@ public class Atoms {
   private let positionsModified: UnsafeMutablePointer<Bool>
   private let blocksModified: UnsafeMutablePointer<Bool>
   
-  // /// Size (in bytes) of the giant memory allocation that stores both
-  // /// atoms and voxel data on the GPU.
-  // ApplicationDescriptor.allocationSize
   init() {
     fatalError("Not implemented.")
   }
