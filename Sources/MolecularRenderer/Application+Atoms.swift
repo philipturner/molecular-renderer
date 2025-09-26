@@ -7,5 +7,11 @@
 //   demonstrate correct functioning of .add and .remove.
 //
 // First concept: allocating fixed "address space" for atoms at startup
+// - atom count determined by GPU memory allocation and partitioning between
+//   atoms and voxels
+// - for now, just specify CPU-side memory allocation size for
+//   'ApplicationDescriptor.allocationSize'
+// - create a property to retrieve the maximum atom count:
+//   'Application.atoms.addressSpaceSize'
 // Second concept: the CPU-side API for entering / modifying atoms
 // Third concept: making this CPU-side API computationally efficient
