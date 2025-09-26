@@ -15,3 +15,23 @@
 //   'Application.atoms.addressSpaceSize'
 // Second concept: the CPU-side API for entering / modifying atoms
 // Third concept: making this CPU-side API computationally efficient
+
+public class Atoms {
+  public let addressSpaceSize: Int
+  private static let blockSize: Int = 512
+  
+  private let positions: UnsafeMutablePointer<SIMD4<Float>>
+  private let previousOccupied: UnsafeMutablePointer<Bool>
+  private let occupied: UnsafeMutablePointer<Bool>
+  private let positionsModified: UnsafeMutablePointer<Bool>
+  private let blocksModified: UnsafeMutablePointer<Bool>
+  
+  init() {
+    fatalError("Not implemented.")
+  }
+  
+  deinit {
+    // TODO: Deallocate all pointers.
+    // Write the deinitializer once the implementation has matured / finalized.
+  }
+}
