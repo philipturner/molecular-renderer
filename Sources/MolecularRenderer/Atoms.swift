@@ -34,6 +34,12 @@ public class Atoms {
     self.occupied = .allocate(capacity: addressSpaceSize)
     self.positionsModified = .allocate(capacity: addressSpaceSize)
     self.blocksModified = .allocate(capacity: allocationBlockCount)
+    
+    // Clear the initial values of all buffers.
+    previousOccupied.initialize(repeating: false, count: addressSpaceSize)
+    occupied.initialize(repeating: false, count: addressSpaceSize)
+    positionsModified.initialize(repeating: false, count: addressSpaceSize)
+    blocksModified.initialize(repeating: false, count: allocationBlockCount)
   }
   
   deinit {

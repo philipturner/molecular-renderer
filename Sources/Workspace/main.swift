@@ -144,11 +144,6 @@ application.run {
     }
     
     let transaction = application.atoms.registerChanges()
-    print(
-      application.clock.frames,
-      transaction.removedIDs.count,
-      transaction.movedIDs.count,
-      transaction.addedIDs.count)
   }
   
   // Write the atoms to the GPU buffer.
