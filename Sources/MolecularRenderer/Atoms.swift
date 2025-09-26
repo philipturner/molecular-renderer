@@ -34,4 +34,23 @@ public class Atoms {
     // TODO: Deallocate all pointers.
     // Write the deinitializer once the implementation has matured / finalized.
   }
+  
+  // This is probably a bottleneck in CPU-side code (1 function call for
+  // each access in -Xswiftc -Ounchecked). We can work around this by
+  // introducing an API for modifying subranges at a time.
+  public subscript(index: Int) -> SIMD4<Float>? {
+    get {
+      fatalError("Not implemented.")
+    }
+    set {
+      fatalError("Not implemented.")
+    }
+  }
+  
+  // There will be another function that resets the pointers at modified blocks
+  // (migrate current occupied to previous occupied, clear positionsModified).
+  // This function should simultaneously output a set of transactions. The
+  // transactions can be scoped to per individual atom. Ideally, they would
+  // be sorted too. The GPU likes to know the atoms to remove, then the atoms
+  // to add, in that exact order.
 }
