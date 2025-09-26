@@ -16,6 +16,15 @@
 // Second concept: the CPU-side API for entering / modifying atoms
 // Third concept: making this CPU-side API computationally efficient
 
+// Changes to the acceleration structure in a single frame.
+struct Transaction {
+  var removedIDs: [UInt32] = []
+  var movedIDs: [UInt32] = []
+  var movedPositions: [SIMD4<Float>] = []
+  var addedIDs: [UInt32] = []
+  var addedPositions: [SIMD4<Float>] = []
+}
+
 public class Atoms {
   public let addressSpaceSize: Int
   private static let blockSize: Int = 512
@@ -70,4 +79,7 @@ public class Atoms {
   // .remove
   // .move (GPU recognizes as part of both remove and add sub-tasks)
   // .add
+  func registerChanges() -> Transaction {
+    fatalError("Not implemented.")
+  }
 }
