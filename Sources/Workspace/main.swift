@@ -219,16 +219,6 @@ application.run {
   transactionTracker.register(transaction: transaction)
   let atoms = transactionTracker.compactedAtoms()
   
-//  // Run changes through the new 'applications.atoms' API.
-//  do {
-//    for atomID in atoms.indices {
-//      let atom = atoms[atomID]
-//      application.atoms[atomID] = atom
-//    }
-//    
-//    let transaction = application.atoms.registerChanges()
-//  }
-  
   // Write the atoms to the GPU buffer.
   let inFlightFrameID = application.frameID % 3
   atomBuffer.write(
