@@ -65,6 +65,16 @@ struct TransactionTracker {
   }
   
   func compactedAtoms() -> [SIMD4<Float>] {
-    fatalError("Not implemented.")
+    var output: [SIMD4<Float>] = []
+    for atomID in 0..<atomCount {
+      guard occupied[atomID] else {
+        continue
+      }
+      
+      let position = positions[atomID]
+      output.append(position)
+    }
+    
+    return output
   }
 }
