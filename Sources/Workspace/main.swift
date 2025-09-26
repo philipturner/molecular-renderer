@@ -8,6 +8,13 @@
 // - The critical distance heuristic from the original renderer is actually
 //   quite based. Include it and correct / delete / migrate the documentation
 //   currently on the README.
+//
+// Precursor task:
+// - Restructure the user-side API into something much closer to the final form.
+// - Not yet supporting offline / flexible workflows that expose the raw image
+//   pixel data.
+// - Figure out the right API for entering atoms, which can support the
+//   far-future option of in-place modification to an acceleration structure.
 
 import HDL
 import MolecularRenderer
