@@ -1,16 +1,15 @@
-import MolecularRenderer
 #if os(Windows)
 import SwiftCOM
 import WinSDK
 #endif
 
-struct AtomBuffer {
+public struct AtomBuffer {
   #if os(Windows)
-  var inputBuffers: [Buffer] = []
+  public var inputBuffers: [Buffer] = []
   #endif
-  var nativeBuffers: [Buffer] = []
+  public var nativeBuffers: [Buffer] = []
   
-  init(
+  public init(
     device: Device,
     atomCount: Int
   ) {
@@ -31,7 +30,7 @@ struct AtomBuffer {
     }
   }
   
-  mutating func write(
+  public mutating func write(
     atoms: [SIMD4<Float>],
     inFlightFrameID: Int
   ) {
@@ -48,7 +47,7 @@ struct AtomBuffer {
   }
   
   #if os(Windows)
-  func copy(
+  public func copy(
     commandList: CommandList,
     inFlightFrameID: Int
   ) {

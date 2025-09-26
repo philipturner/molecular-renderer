@@ -1,19 +1,17 @@
-import MolecularRenderer
-
 // Mock acceleration structure to facilitate testing of the 'application.atoms'
 // API.
-struct TransactionTracker {
-  let atomCount: Int
-  var positions: [SIMD4<Float>]
-  var occupied: [Bool]
+public struct TransactionTracker {
+  public let atomCount: Int
+  public var positions: [SIMD4<Float>]
+  public var occupied: [Bool]
   
-  init(atomCount: Int) {
+  public init(atomCount: Int) {
     self.atomCount = atomCount
     self.positions = Array(repeating: .zero, count: atomCount)
     self.occupied = Array(repeating: false, count: atomCount)
   }
   
-  mutating func register(transaction: Atoms.Transaction) {
+  public mutating func register(transaction: Atoms.Transaction) {
     for i in transaction.removedIDs.indices {
       let atomID = transaction.removedIDs[i]
       guard atomID < atomCount else {
@@ -64,7 +62,7 @@ struct TransactionTracker {
     }
   }
   
-  func compactedAtoms() -> [SIMD4<Float>] {
+  public func compactedAtoms() -> [SIMD4<Float>] {
     var output: [SIMD4<Float>] = []
     for atomID in 0..<atomCount {
       guard occupied[atomID] else {
