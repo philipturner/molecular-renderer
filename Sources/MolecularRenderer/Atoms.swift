@@ -5,7 +5,7 @@
 //   process. Not yet implementing the heuristic that chooses atom count based
 //   on a partitioning of GPU memory. Nonetheless, the API goes by a mapping
 //   of allocated memory -> number of atom blocks able to hold. This establishes
-//   the future anticipation of not directly specifying max atom count.
+//   the future anticipation of not directly specifying max atom count. [DONE]
 // - Simply compile the transactions into a linear list of atoms as the
 //   "acceleration structure" for now.
 // - Create a simple test that switches between isopropanol and methane to
