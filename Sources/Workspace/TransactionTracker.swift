@@ -20,7 +20,10 @@ struct TransactionTracker {
         fatalError("Out of bounds memory access.")
       }
       
-      // TODO: work
+      guard occupied[Int(atomID)] else {
+        fatalError("Incorrect remove transaction was registered.")
+      }
+      occupied[Int(atomID)] = false
     }
     
     guard transaction.movedIDs.count ==
@@ -33,8 +36,12 @@ struct TransactionTracker {
       guard atomID < atomCount else {
         fatalError("Out of bounds memory access.")
       }
+      let position = transaction.movedPositions[i]
       
-      // TODO: work
+      guard occupied[Int(atomID)] else {
+        fatalError("Incorrect move transaction was registered.")
+      }
+      positions[Int(atomID)] = position
     }
     
     guard transaction.addedIDs.count ==
@@ -47,8 +54,13 @@ struct TransactionTracker {
       guard atomID < atomCount else {
         fatalError("Out of bounds memory access.")
       }
+      let position = transaction.addedPositions[i]
       
-      // TODO: work
+      guard !occupied[Int(atomID)] else {
+        fatalError("Incorrect add transaction was registered.")
+      }
+      occupied[Int(atomID)] = true
+      positions[Int(atomID)] = position
     }
   }
   
