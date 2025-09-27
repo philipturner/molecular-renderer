@@ -135,11 +135,28 @@ func modifyAtoms() {
   }
 }
 
+@MainActor
+func modifyCamera() {
+  // 0.1 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.1 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(-1, 0, 0))
+  
+  // Place the camera 1.0 nm away from the origin.
+  application.camera.position = rotation.act(on: SIMD3(0, 0, 1.00))
+  
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  application.camera.fovAngleVertical = Float.pi / 180 * 40
+}
+
 // Enter the run loop.
 application.run {
   modifyAtoms()
-  application.camera.position = SIMD3(0, 0, 1)
-  application.camera.fovAngleVertical = Float.pi / 180 * 40
+  modifyCamera()
   
   let image = application.render()
   application.present(image: image)
