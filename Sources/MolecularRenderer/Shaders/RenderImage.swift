@@ -75,6 +75,9 @@ public struct RenderImage {
     struct ConstantArgs {
       uint atomCount;
       uint frameSeed;
+      float tangentFactor;
+      float3 cameraPosition;
+      Matrix3x3 cameraBasis;
     };
     
     \(functionSignature())
@@ -92,20 +95,15 @@ public struct RenderImage {
       rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the ray direction.
-      float tangentFactor = \(tan(Float.pi / 180 * 20));
-      Matrix3x3 cameraBasis;
-      cameraBasis.col0 = float3(1, 0, 0);
-      cameraBasis.col1 = float3(0, 1, 0);
-      cameraBasis.col2 = float3(0, 0, 1);
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
-                                         tangentFactor,
-                                         cameraBasis);
+                                         constantArgs.tangentFactor,
+                                         constantArgs.cameraBasis);
       
       // Intersect the primary ray.
       IntersectionQuery query;
-      query.rayOrigin = float3(0, 0, 1);
+      query.rayOrigin = constantArgs.cameraPosition;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
