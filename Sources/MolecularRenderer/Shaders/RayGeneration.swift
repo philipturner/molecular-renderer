@@ -63,6 +63,28 @@ func createRayGeneration() -> String {
       return output;
     }
     
+    float3 primaryRayDirection(uint2 pixelCoords,
+                               uint2 screenDimensions,
+                               float tangentFactor,
+                               Matrix3x3 cameraBasis)
+    {
+      // Prepare the screen-space coordinates.
+      float2 screenCoords = float2(pixelCoords) + 0.5;
+      screenCoords /= float2(screenDimensions);
+      screenCoords = screenCoords * 2 - 1;
+      screenCoords.x *= float(screenDimensions.x) / float(screenDimensions.y);
+      screenCoords.y = -screenCoords.y;
+      
+      // Apply the tangent factor.
+      screenCoords *= tangentFactor;
+      
+      // Prepare the ray direction.
+      float3 rayDirection = float3(screenCoords, -1);
+      rayDirection = normalize(rayDirection);
+      rayDirection = cameraBasis.multiply(rayDirection);
+      return rayDirection;
+    }
+    
     float3 secondaryRayDirection(Basis basis) {
       // Transform the uniform distribution into the cosine distribution. This
       // creates a direction vector that's already normalized.

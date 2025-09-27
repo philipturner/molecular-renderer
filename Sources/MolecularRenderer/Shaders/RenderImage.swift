@@ -91,25 +91,23 @@ public struct RenderImage {
       rayIntersector.atoms = atoms;
       rayIntersector.atomCount = constantArgs.atomCount;
       
-      // Prepare the screen-space coordinates.
-      float2 screenCoords = float2(tid) + 0.5;
-      screenCoords /= float2(screenWidth, screenHeight);
-      screenCoords = screenCoords * 2 - 1;
-      screenCoords.x *= float(screenWidth) / float(screenHeight);
-      screenCoords.y = -screenCoords.y;
-      
-      // Apply the tangent factor.
-      float tangentFactor = \(tan(Float.pi / 180 * 20));
-      screenCoords *= tangentFactor;
-      
       // Prepare the ray direction.
-      float3 rayDirection = float3(screenCoords, -1);
-      rayDirection = normalize(rayDirection);
+      uint2 screenDimensions = uint2(screenWidth, screenHeight);
+      float tangentFactor = \(tan(Float.pi / 180 * 20));
+      Matrix3x3 cameraBasis;
+      cameraBasis.col0 = float3(1, 0, 0);
+      cameraBasis.col1 = float3(0, 1, 0);
+      cameraBasis.col2 = float3(0, 0, 1);
+      float3 primaryRayDirection =
+      RayGeneration::primaryRayDirection(tid,
+                                         screenDimensions,
+                                         tangentFactor,
+                                         cameraBasis);
       
       // Intersect the primary ray.
       IntersectionQuery query;
       query.rayOrigin = float3(0, 0, 1);
-      query.rayDirection = rayDirection;
+      query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
       // Background color.
