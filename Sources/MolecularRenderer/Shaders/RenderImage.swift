@@ -20,7 +20,7 @@ public struct RenderImage {
         texture2d<float, access::write> frameBuffer [[texture(0)]],
         device float4 *atoms [[buffer(1)]],
         constant ConstantArgs &constantArgs [[buffer(2)]],
-        uint2 tid [[thread_position_in_grid]])
+        uint2 pixelCoords [[thread_position_in_grid]])
       """
       #else
       """
@@ -35,7 +35,7 @@ public struct RenderImage {
         "RootConstants(b2, num32BitConstants = 2),"
       )]
       void renderImage(
-        uint2 tid : SV_DispatchThreadID)
+        uint2 pixelCoords : SV_DispatchThreadID)
       """
       #endif
     }
@@ -43,23 +43,23 @@ public struct RenderImage {
     func queryScreenDimensions() -> String {
       #if os(macOS)
       """
-      uint screenWidth = frameBuffer.get_width();
-      uint screenHeight = frameBuffer.get_height();
+      uint2 screenDimensions(frameBuffer.get_width(),
+                             frameBuffer.get_height());
       """
       #else
       """
-      uint screenWidth;
-      uint screenHeight;
-      frameBuffer.GetDimensions(screenWidth, screenHeight);
+      uint2 screenDimensions;
+      frameBuffer.GetDimensions(screenDimensions.x,
+                                screenDimensions.y);
       """
       #endif
     }
     
     func writeColor() -> String {
       #if os(macOS)
-      "frameBuffer.write(float4(color, 0), tid);"
+      "frameBuffer.write(float4(color, 0), pixelCoords);"
       #else
-      "frameBuffer[tid] = float4(color, 0);"
+      "frameBuffer[pixelCoords] = float4(color, 0);"
       #endif
     }
     
@@ -81,8 +81,8 @@ public struct RenderImage {
     {
       // Query the screen's dimensions.
       \(queryScreenDimensions())
-      if ((tid.x >= screenWidth) ||
-          (tid.y >= screenHeight)) {
+      if ((pixelCoords.x >= screenDimensions.x) ||
+          (pixelCoords.y >= screenDimensions.y)) {
         return;
       }
       
@@ -92,14 +92,13 @@ public struct RenderImage {
       rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the ray direction.
-      uint2 screenDimensions = uint2(screenWidth, screenHeight);
       float tangentFactor = \(tan(Float.pi / 180 * 20));
       Matrix3x3 cameraBasis;
       cameraBasis.col0 = float3(1, 0, 0);
       cameraBasis.col1 = float3(0, 1, 0);
       cameraBasis.col2 = float3(0, 0, 1);
       float3 primaryRayDirection =
-      RayGeneration::primaryRayDirection(tid,
+      RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
                                          tangentFactor,
                                          cameraBasis);
@@ -133,7 +132,7 @@ public struct RenderImage {
         // Create a generation context.
         GenerationContext generationContext;
         generationContext.seed = RayGeneration::createSeed(
-          tid, constantArgs.frameSeed);
+          pixelCoords, constantArgs.frameSeed);
         
         // Iterate over the AO samples.
         for (uint i = 0; i < sampleCount; ++i) {
