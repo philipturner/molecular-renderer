@@ -96,6 +96,7 @@ public struct RenderImage {
       float2 screenCoords = float2(tid);
       screenCoords /= float2(screenWidth, screenHeight);
       screenCoords -= float2(0.5, 0.5);
+      screenCoords.y = -screenCoords.y;
       
       // Intersect the primary ray.
       // origin:
