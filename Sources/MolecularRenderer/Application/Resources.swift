@@ -7,6 +7,9 @@ struct ResourcesDescriptor {
 // formerly in 'main.swift'.
 public class Resources {
   public let shader: Shader
+  #if os(Windows)
+  public let descriptorHeap: DescriptorHeap
+  #endif
   
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -14,7 +17,7 @@ public class Resources {
       fatalError("Descriptor was incomplete.")
     }
     
-    // Set up the shader.
+    // Create the shader.
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
     shaderDesc.name = "renderImage"
@@ -23,5 +26,24 @@ public class Resources {
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
     self.shader = Shader(descriptor: shaderDesc)
+    
+    #if os(Windows)
+    // Create the descriptor heap.
+    var descriptorHeapDesc = DescriptorHeapDescriptor()
+    descriptorHeapDesc.device = device
+    descriptorHeapDesc.count = 2
+    self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
+    
+    // Set up the textures for rendering.
+    for i in 0..<2 {
+      let colorTexture = renderTarget.colorTextures[i]
+      let handleID = descriptorHeap.createUAV(
+        resource: colorTexture,
+        uavDesc: nil)
+      guard handleID == i else {
+        fatalError("This should never happen.")
+      }
+    }
+    #endif
   }
 }

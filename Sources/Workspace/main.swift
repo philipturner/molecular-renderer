@@ -66,35 +66,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-#if os(Windows)
-// Set up the descriptor heap.
-func createDescriptorHeap(
-  device: Device,
-  renderTarget: RenderTarget
-) -> DescriptorHeap {
-  var descriptorHeapDesc = DescriptorHeapDescriptor()
-  descriptorHeapDesc.device = device
-  descriptorHeapDesc.count = 2
-  let descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
-  
-  // Set up the textures for rendering.
-  for i in 0..<2 {
-    let colorTexture = renderTarget.colorTextures[i]
-    let handleID = descriptorHeap.createUAV(
-      resource: colorTexture,
-      uavDesc: nil)
-    guard handleID == i else {
-      fatalError("This should never happen.")
-    }
-  }
-  
-  return descriptorHeap
-}
-let descriptorHeap = createDescriptorHeap(
-  device: application.device,
-  renderTarget: application.renderTarget)
-#endif
-
 var atomBuffer = AtomBuffer(
   device: application.device,
   atomCount: 1000)
@@ -240,7 +211,7 @@ application.run {
     
     // Bind the descriptor heap.
     #if os(Windows)
-    commandList.setDescriptorHeap(descriptorHeap)
+    commandList.setDescriptorHeap(application.resources.descriptorHeap)
     #endif
     
     // Encode the compute command.
