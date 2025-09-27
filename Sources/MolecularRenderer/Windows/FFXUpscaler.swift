@@ -3,7 +3,9 @@ import FidelityFX
 import SwiftCOM
 import WinSDK
 
-public struct UpscalerDescriptor {
+// Old reference code that just exists to make sure FidelityFX links properly.
+
+public struct FFXUpscalerDescriptor {
   public var device: Device?
   
   public init() {
@@ -11,10 +13,10 @@ public struct UpscalerDescriptor {
   }
 }
 
-public class Upscaler {
+public class FFXUpscaler {
   let d3d12Device: SwiftCOM.ID3D12Device
   
-  public init(descriptor: UpscalerDescriptor) {
+  public init(descriptor: FFXUpscalerDescriptor) {
     guard let device = descriptor.device else {
       fatalError("Descriptor was incomplete.")
     }
