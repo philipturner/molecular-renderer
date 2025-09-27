@@ -96,10 +96,10 @@ public struct RenderImage {
       screenCoords /= float2(screenWidth, screenHeight);
       screenCoords = screenCoords * 2 - 1;
       screenCoords.x *= float(screenWidth) / float(screenHeight);
-      screenCoords.y = -screenCoords.y;  
+      screenCoords.y = -screenCoords.y;
       
       // Apply the tangent factor.
-      // tangent factor is tan(45°) = 1 right now
+      // tangent factor is tan(45 deg) = 1 right now
       
       // Prepare the ray direction.
       float3 rayDirection = float3(screenCoords, -1);
