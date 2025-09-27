@@ -170,40 +170,7 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure()
     
-    // Retrieve the front buffer.
-    func retrieveFrontBuffer() -> MTLTexture {
-      let frontBufferID = application.frameID % 2
-      return application.renderTarget.colorTextures[frontBufferID]
-    }
-    let frontBuffer = retrieveFrontBuffer()
-    
-    // Retrieve the back buffer.
-    func retrieveDrawable() -> CAMetalDrawable {
-      let layer = application.view.metalLayer
-      let drawable = layer.nextDrawable()
-      guard let drawable else {
-        fatalError("Drawable timed out after 1 second.")
-      }
-      return drawable
-    }
-    let drawable = retrieveDrawable()
-    
-    // Copy the front buffer to the back buffer and present.
-    application.device.commandQueue.withCommandList { commandList in
-      commandList.mtlCommandEncoder.endEncoding()
-      
-      let commandEncoder: MTLBlitCommandEncoder =
-      commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
-      commandEncoder.copy(
-        from: frontBuffer,
-        to: drawable.texture)
-      commandEncoder.endEncoding()
-      
-      commandList.mtlCommandBuffer.present(drawable)
-      
-      commandList.mtlCommandEncoder =
-      commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
-    }
+    displayImage()
     
     return kCVReturnSuccess
   }
@@ -240,6 +207,52 @@ extension RunLoop {
     
     // Invoke the user-supplied closure.
     self.closure()
+    
+    displayImage()
+  }
+  #endif
+  
+  func displayImage() {
+    guard let application = Application.singleton else {
+      fatalError("Could not retrieve the application.")
+    }
+    
+    #if os(macOS)
+    // Retrieve the front buffer.
+    func retrieveFrontBuffer() -> MTLTexture {
+      let frontBufferID = application.frameID % 2
+      return application.renderTarget.colorTextures[frontBufferID]
+    }
+    let frontBuffer = retrieveFrontBuffer()
+    
+    // Retrieve the back buffer.
+    func retrieveDrawable() -> CAMetalDrawable {
+      let layer = application.view.metalLayer
+      let drawable = layer.nextDrawable()
+      guard let drawable else {
+        fatalError("Drawable timed out after 1 second.")
+      }
+      return drawable
+    }
+    let drawable = retrieveDrawable()
+    
+    // Copy the front buffer to the back buffer and present.
+    application.device.commandQueue.withCommandList { commandList in
+      commandList.mtlCommandEncoder.endEncoding()
+      
+      let commandEncoder: MTLBlitCommandEncoder =
+      commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
+      commandEncoder.copy(
+        from: frontBuffer,
+        to: drawable.texture)
+      commandEncoder.endEncoding()
+      
+      commandList.mtlCommandBuffer.present(drawable)
+      
+      commandList.mtlCommandEncoder =
+      commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+    }
+    #else
     
     // Retrieve the front buffer.
     func retrieveFrontBuffer() -> SwiftCOM.ID3D12Resource {
@@ -297,8 +310,8 @@ extension RunLoop {
     
     // Present the back buffer.
     try! application.swapChain.d3d12SwapChain.Present(1, 0)
+    #endif
   }
-  #endif
   
   #if os(Windows)
   // Utility function for transitioning resources.
