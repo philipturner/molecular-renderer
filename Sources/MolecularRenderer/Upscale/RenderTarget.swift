@@ -33,22 +33,7 @@ class RenderTarget {
     }
     self.upscaleFactor = upscaleFactor
     
-    func createIntermediateSize() -> SIMD2<Int> {
-      var output = display.frameBufferSize
-      
-      switch upscaleFactor {
-      case 1:
-        break
-      case 2:
-        output /= 2
-      case 3:
-        output /= 3
-      default:
-        fatalError("Invalid upscale factor.")
-      }
-      return output
-    }
-    let intermediateSize = createIntermediateSize()
+    let intermediateSize = self.intermediateSize(display: display)
     
     #if os(macOS)
     // Ensure the textures use lossless compression.
@@ -169,6 +154,22 @@ class RenderTarget {
       upscaledTextures.append(upscaledTexture)
     }
     #endif
+  }
+  
+  func intermediateSize(display: Display) -> SIMD2<Int> {
+    var output = display.frameBufferSize
+    
+    switch upscaleFactor {
+    case 1:
+      break
+    case 2:
+      output /= 2
+    case 3:
+      output /= 3
+    default:
+      fatalError("Invalid upscale factor.")
+    }
+    return output
   }
   
   #if os(Windows)

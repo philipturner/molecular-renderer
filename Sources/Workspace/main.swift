@@ -11,6 +11,8 @@
 // - Debug motion vectors and camera orientation matrices changing between
 //   frames. Also establish depth textures; all the details except actual
 //   invocation of the upscaler.
+//   - Implement and validate the depth texture first, because it's the
+//     simplest process.
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
 

@@ -53,7 +53,7 @@ extension Application {
         func createGroupCount32() -> SIMD3<UInt32> {
           let groupSize = SIMD2<Int>(8, 8)
           
-          var groupCount = display.frameBufferSize
+          var groupCount = renderTarget.intermediateSize(display: display)
           groupCount &+= groupSize &- 1
           groupCount /= groupSize
           
