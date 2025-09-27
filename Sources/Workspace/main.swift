@@ -293,4 +293,6 @@ application.run {
       commandList.dispatch(groups: groupCount32)
     }
   }
+  
+  application.present()
 }

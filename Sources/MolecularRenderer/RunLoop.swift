@@ -170,8 +170,6 @@ extension RunLoop {
     // Invoke the user-supplied closure.
     self.closure()
     
-    application.present()
-    
     return kCVReturnSuccess
   }
   #else
@@ -207,8 +205,6 @@ extension RunLoop {
     
     // Invoke the user-supplied closure.
     self.closure()
-    
-    application.present()
   }
   #endif
 }
