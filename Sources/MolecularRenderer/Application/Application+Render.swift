@@ -1,7 +1,5 @@
 extension Application {
-  // NOTE: When the API structure changes, this function signature will
-  // become 'render() -> Image'.
-  public func render() {
+  public func render() -> Image {
     let transaction = atoms.registerChanges()
     resources.transactionTracker.register(transaction: transaction)
     let atoms = resources.transactionTracker.compactedAtoms()
@@ -67,5 +65,7 @@ extension Application {
         commandList.dispatch(groups: groupCount32)
       }
     }
+    
+    return Image()
   }
 }

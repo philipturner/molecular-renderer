@@ -32,9 +32,7 @@ private func presentImageTransition(
 #endif
 
 extension Application {
-  // NOTE: When the API structure changes, this function signature will
-  // become 'present(image: Image)'.
-  public func present() {
+  public func present(image: Image) {
     let frontBufferID = frameID % 2
     let frontBuffer = renderTarget.colorTextures[frontBufferID]
     
