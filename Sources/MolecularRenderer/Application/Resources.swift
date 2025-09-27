@@ -10,6 +10,8 @@ public class Resources {
   #if os(Windows)
   public let descriptorHeap: DescriptorHeap
   #endif
+  public var atomBuffer: AtomBuffer
+  public var transactionTracker: TransactionTracker
   
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -45,5 +47,11 @@ public class Resources {
       }
     }
     #endif
+    
+    self.atomBuffer = AtomBuffer(
+      device: device,
+      atomCount: 1000)
+    self.transactionTracker = TransactionTracker(
+      atomCount: 1000)
   }
 }

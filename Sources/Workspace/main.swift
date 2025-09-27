@@ -66,10 +66,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-var atomBuffer = AtomBuffer(
-  device: application.device,
-  atomCount: 1000)
-
 // MARK: - Rendered Content
 
 // State variable to facilitate atom transactions for the animation.
@@ -79,8 +75,6 @@ enum AnimationState {
 }
 nonisolated(unsafe)
 var animationState: AnimationState?
-nonisolated(unsafe)
-var transactionTracker = TransactionTracker(atomCount: 1000)
 
 func createIsopropanol() -> [SIMD4<Float>] {
   return [
@@ -189,12 +183,14 @@ application.run {
   
   modifyAtoms(application: application)
   let transaction = application.atoms.registerChanges()
-  transactionTracker.register(transaction: transaction)
-  let atoms = transactionTracker.compactedAtoms()
+  application.resources.transactionTracker
+    .register(transaction: transaction)
+  let atoms = application.resources.transactionTracker
+    .compactedAtoms()
   
   // Write the atoms to the GPU buffer.
   let inFlightFrameID = application.frameID % 3
-  atomBuffer.write(
+  application.resources.atomBuffer.write(
     atoms: atoms,
     inFlightFrameID: inFlightFrameID)
   
@@ -204,7 +200,7 @@ application.run {
   
   application.device.commandQueue.withCommandList { commandList in
     #if os(Windows)
-    atomBuffer.copy(
+    application.resources.atomBuffer.copy(
       commandList: commandList,
       inFlightFrameID: inFlightFrameID)
     #endif
@@ -226,7 +222,8 @@ application.run {
       #endif
       
       // Bind the atom buffer.
-      let nativeBuffer = atomBuffer.nativeBuffers[inFlightFrameID]
+      let nativeBuffer = application.resources.atomBuffer
+        .nativeBuffers[inFlightFrameID]
       commandList.setBuffer(nativeBuffer, index: 1)
       
       // Bind the constant arguments.
