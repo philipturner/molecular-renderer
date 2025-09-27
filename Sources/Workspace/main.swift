@@ -1,8 +1,3 @@
-// Tasks:
-// - Create an animation where the molecules are still, but the camera rotates
-//   to go above them and flip back around to the starting point, in a loop.
-//   - 0.5 Hz rotation rate, just like the previous animation where atoms moved.
-//
 // Implementation of upscaling:
 // - Start with a simple kernel that just copies the center pixel 2-3x to the
 //   final pixel (nearest neighbor sampling).
