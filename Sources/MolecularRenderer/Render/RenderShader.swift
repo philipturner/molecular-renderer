@@ -91,11 +91,14 @@ struct RenderShader {
       #endif
     }
     
-    func writeColor() -> String {
+    func write(
+      _ value: String,
+      texture: String
+    ) -> String {
       #if os(macOS)
-      "colorTexture.write(float4(color, 0), pixelCoords);"
+      "\(texture).write(\(value), pixelCoords);"
       #else
-      "colorTexture[pixelCoords] = float4(color, 0);"
+      "\(texture)[pixelCoords] = \(value);"
       #endif
     }
     
@@ -203,7 +206,7 @@ struct RenderShader {
       }
       
       // Write the pixel to the screen.
-      \(writeColor())
+      \(write("float4(color, 0)", texture: "colorTexture"))
     }
     """
   }
