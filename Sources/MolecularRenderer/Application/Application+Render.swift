@@ -51,20 +51,6 @@ extension Application {
       
       // Encode the compute command.
       commandList.withPipelineState(resources.renderShader) {
-        // Bind the texture.
-        #if os(macOS)
-        let colorTexture = renderTarget.colorTextures[frameID % 2]
-        commandList.mtlCommandEncoder
-          .setTexture(colorTexture, index: 0)
-        #else
-        commandList.setDescriptor(
-          handleID: frameID % 2, index: 0)
-        #endif
-        
-        // Bind the atom buffer.
-        let nativeBuffer = resources.atomBuffer.nativeBuffers[inFlightFrameID]
-        commandList.setBuffer(nativeBuffer, index: 1)
-        
         // Bind the constant arguments.
         var constantArgs = ConstantArgs()
         constantArgs.atomCount = UInt32(atoms.count)
@@ -72,7 +58,21 @@ extension Application {
         constantArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
         constantArgs.cameraPosition = camera.position
         constantArgs.cameraBasis = camera.basis
-        commandList.set32BitConstants(constantArgs, index: 2)
+        commandList.set32BitConstants(constantArgs, index: 0)
+        
+        // Bind the atom buffer.
+        let nativeBuffer = resources.atomBuffer.nativeBuffers[inFlightFrameID]
+        commandList.setBuffer(nativeBuffer, index: 1)
+        
+        // Bind the texture.
+        #if os(macOS)
+        let colorTexture = renderTarget.colorTextures[frameID % 2]
+        commandList.mtlCommandEncoder
+          .setTexture(colorTexture, index: 2)
+        #else
+        commandList.setDescriptor(
+          handleID: frameID % 2, index: 2)
+        #endif
         
         // Determine the dispatch grid size.
         func createGroupCount32() -> SIMD3<UInt32> {

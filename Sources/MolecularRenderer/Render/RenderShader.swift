@@ -17,24 +17,24 @@ struct RenderShader {
       #if os(macOS)
       return """
       kernel void render(
-        texture2d<float, access::write> colorTexture [[texture(0)]],
+        constant ConstantArgs &constantArgs [[buffer(0)]],
         device float4 *atoms [[buffer(1)]],
-        constant ConstantArgs &constantArgs [[buffer(2)]],
+        texture2d<float, access::write> colorTexture [[texture(2)]],
         uint2 pixelCoords [[thread_position_in_grid]])
       """
       #else
       let byteCount = MemoryLayout<ConstantArgs>.size
       
       return """
-      RWTexture2D<float4> colorTexture : register(u0);
+      ConstantBuffer<ConstantArgs> constantArgs : register(b0);
       RWStructuredBuffer<float4> atoms : register(u1);
-      ConstantBuffer<ConstantArgs> constantArgs : register(b2);
+      RWTexture2D<float4> colorTexture : register(u2);
       
       [numthreads(8, 8, 1)]
       [RootSignature(
-        "DescriptorTable(UAV(u0, numDescriptors = 1)),"
+        "RootConstants(b0, num32BitConstants = \(byteCount / 4)),"
         "UAV(u1),"
-        "RootConstants(b2, num32BitConstants = \(byteCount / 4)),"
+        "DescriptorTable(UAV(u2, numDescriptors = 1)),"
       )]
       void render(
         uint2 pixelCoords : SV_DispatchThreadID)
