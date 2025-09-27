@@ -66,8 +66,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// MARK: - Rendered Content
-
 // State variable to facilitate atom transactions for the animation.
 enum AnimationState {
   case isopropanol
@@ -135,54 +133,52 @@ func createRotatedSilane(time: Float) -> [SIMD4<Float>] {
   return output
 }
 
-// MARK: - Run Loop
+func createTime(application: Application) -> Float {
+  let elapsedFrames = application.clock.frames
+  let frameRate = application.display.frameRate
+  let seconds = Float(elapsedFrames) / Float(frameRate)
+  return seconds
+}
+
+@MainActor
+func modifyAtoms() {
+  let time = createTime(application: application)
+  
+  let roundedDownTime = Int(time.rounded(.down))
+  if roundedDownTime % 2 == 0 {
+    let isopropanol = createRotatedIsopropanol(time: time)
+    if animationState == .silane {
+      for atomID in 12..<17 {
+        application.atoms[atomID] = nil
+      }
+    }
+    
+    animationState = .isopropanol
+    for i in isopropanol.indices {
+      let atomID = 0 + i
+      let atom = isopropanol[i]
+      application.atoms[atomID] = atom
+    }
+  } else {
+    let silane = createRotatedSilane(time: time)
+    if animationState == .isopropanol {
+      for atomID in 0..<12 {
+        application.atoms[atomID] = nil
+      }
+    }
+    
+    animationState = .silane
+    for i in silane.indices {
+      let atomID = 12 + i
+      let atom = silane[i]
+      application.atoms[atomID] = atom
+    }
+  }
+}
 
 // Enter the run loop.
 application.run {
-  func createTime(application: Application) -> Float {
-    let elapsedFrames = application.clock.frames
-    let frameRate = application.display.frameRate
-    let seconds = Float(elapsedFrames) / Float(frameRate)
-    return seconds
-  }
-  
-  func modifyAtoms(application: Application) {
-    let time = createTime(application: application)
-    
-    let roundedDownTime = Int(time.rounded(.down))
-    if roundedDownTime % 2 == 0 {
-      let isopropanol = createRotatedIsopropanol(time: time)
-      if animationState == .silane {
-        for atomID in 12..<17 {
-          application.atoms[atomID] = nil
-        }
-      }
-      
-      animationState = .isopropanol
-      for i in isopropanol.indices {
-        let atomID = 0 + i
-        let atom = isopropanol[i]
-        application.atoms[atomID] = atom
-      }
-    } else {
-      let silane = createRotatedSilane(time: time)
-      if animationState == .isopropanol {
-        for atomID in 0..<12 {
-          application.atoms[atomID] = nil
-        }
-      }
-      
-      animationState = .silane
-      for i in silane.indices {
-        let atomID = 12 + i
-        let atom = silane[i]
-        application.atoms[atomID] = atom
-      }
-    }
-  }
-  
-  modifyAtoms(application: application)
-  
+  modifyAtoms()
   application.render()
   application.present()
 }
