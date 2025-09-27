@@ -1,6 +1,6 @@
 import Foundation // String.init(format:_:)
 
-public struct RenderImage {
+public struct RenderShader {
   public static func createSource() -> String {
     func importStandardLibrary() -> String {
       #if os(macOS)
@@ -16,7 +16,7 @@ public struct RenderImage {
     func functionSignature() -> String {
       #if os(macOS)
       return """
-      kernel void renderImage(
+      kernel void render(
         texture2d<float, access::write> frameBuffer [[texture(0)]],
         device float4 *atoms [[buffer(1)]],
         constant ConstantArgs &constantArgs [[buffer(2)]],
@@ -36,7 +36,7 @@ public struct RenderImage {
         "UAV(u1),"
         "RootConstants(b2, num32BitConstants = \(byteCount / 4)),"
       )]
-      void renderImage(
+      void render(
         uint2 pixelCoords : SV_DispatchThreadID)
       """
       #endif

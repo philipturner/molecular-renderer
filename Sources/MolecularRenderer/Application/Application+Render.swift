@@ -25,7 +25,7 @@ extension Application {
       #endif
       
       // Encode the compute command.
-      commandList.withPipelineState(resources.shader) {
+      commandList.withPipelineState(resources.renderShader) {
         // Bind the texture.
         #if os(macOS)
         let colorTexture = renderTarget.colorTextures[frameID % 2]
