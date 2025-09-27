@@ -8,6 +8,20 @@
 // - The critical distance heuristic from the original renderer is actually
 //   quite based. Include it and correct / delete / migrate the documentation
 //   currently on the README.
+//
+// Implementation of upscaling:
+// - Start with a simple kernel that just copies the center pixel 2-3x to the
+//   final pixel (nearest neighbor sampling).
+// - Make the upscaling process optional to enable/disable. For example,
+//   'ApplicationDescriptor.upscaleFactor' with a default of 3. If the value
+//   is instead 1, an error will occur when the user calls
+//   'Application.upscale(image:)'. Conversely, when it is more than 1, an
+//   error will occur when this function is not called.
+// - Debug motion vectors and camera orientation matrices changing between
+//   frames. Also establish depth textures; all the details except actual
+//   invocation of the upscaler.
+// - Implement Apple MetalFX upscaling first, because more familiar (have
+//   correctly working reference code).
 
 import HDL
 import MolecularRenderer
