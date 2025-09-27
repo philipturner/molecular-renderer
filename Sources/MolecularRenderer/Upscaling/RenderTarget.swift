@@ -21,6 +21,9 @@ class RenderTarget {
   var upscaledTextures: [MTLTexture] = []
   #else
   var colorTextures: [SwiftCOM.ID3D12Resource] = []
+  var depthTextures: [SwiftCOM.ID3D12Resource] = []
+  var motionTextures: [SwiftCOM.ID3D12Resource] = []
+  var upscaledTextures: [SwiftCOM.ID3D12Resource] = []
   #endif
   
   init(descriptor: RenderTargetDescriptor) {
@@ -111,8 +114,8 @@ class RenderTarget {
       var resourceDesc = D3D12_RESOURCE_DESC()
       resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D
       resourceDesc.Alignment = 64 * 1024
-      resourceDesc.Width = UInt64(display.frameBufferSize[0])
-      resourceDesc.Height = UInt32(display.frameBufferSize[1])
+      resourceDesc.Width = UInt64(intermediateSize[0])
+      resourceDesc.Height = UInt32(intermediateSize[1])
       resourceDesc.DepthOrArraySize = UInt16(1)
       resourceDesc.MipLevels = UInt16(1)
       resourceDesc.SampleDesc.Count = 1
@@ -129,7 +132,48 @@ class RenderTarget {
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
         nil) // pOptimizedClearValue
       colorTextures.append(colorTexture)
+      
+      guard upscaleFactor > 1 else {
+        continue
+      }
+      
+      resourceDesc.Format = DXGI_FORMAT_R32_FLOAT
+      let depthTexture: SwiftCOM.ID3D12Resource =
+      try! device.d3d12Device.CreateCommittedResource(
+        heapProperties, // pHeapProperties
+        D3D12_HEAP_FLAG_NONE, // HeapFlags
+        resourceDesc, // pDesc
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+        nil) // pOptimizedClearValue
+      depthTextures.append(depthTexture)
+      
+      resourceDesc.Format = DXGI_FORMAT_R16G16_FLOAT
+      let motionTexture: SwiftCOM.ID3D12Resource =
+      try! device.d3d12Device.CreateCommittedResource(
+        heapProperties, // pHeapProperties
+        D3D12_HEAP_FLAG_NONE, // HeapFlags
+        resourceDesc, // pDesc
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+        nil) // pOptimizedClearValue
+      motionTextures.append(motionTexture)
+      
+      resourceDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM
+      resourceDesc.Width = UInt64(display.frameBufferSize[0])
+      resourceDesc.Height = UInt32(display.frameBufferSize[1])
+      let upscaledTexture: SwiftCOM.ID3D12Resource =
+      try! device.d3d12Device.CreateCommittedResource(
+        heapProperties, // pHeapProperties
+        D3D12_HEAP_FLAG_NONE, // HeapFlags
+        resourceDesc, // pDesc
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS, // InitialResourceState
+        nil) // pOptimizedClearValue
+      upscaledTextures.append(upscaledTexture)
     }
+    
+    print(colorTextures.count)
+    print(depthTextures.count)
+    print(motionTextures.count)
+    print(upscaledTextures.count)
     #endif
   }
   
