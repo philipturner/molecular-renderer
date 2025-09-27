@@ -17,7 +17,7 @@ public struct RenderShader {
       #if os(macOS)
       return """
       kernel void render(
-        texture2d<float, access::write> frameBuffer [[texture(0)]],
+        texture2d<float, access::write> colorTexture [[texture(0)]],
         device float4 *atoms [[buffer(1)]],
         constant ConstantArgs &constantArgs [[buffer(2)]],
         uint2 pixelCoords [[thread_position_in_grid]])
@@ -26,7 +26,7 @@ public struct RenderShader {
       let byteCount = MemoryLayout<ConstantArgs>.size
       
       return """
-      RWTexture2D<float4> frameBuffer : register(u0);
+      RWTexture2D<float4> colorTexture : register(u0);
       RWStructuredBuffer<float4> atoms : register(u1);
       ConstantBuffer<ConstantArgs> constantArgs : register(b2);
       
@@ -45,23 +45,23 @@ public struct RenderShader {
     func queryScreenDimensions() -> String {
       #if os(macOS)
       """
-      uint2 screenDimensions(frameBuffer.get_width(),
-                             frameBuffer.get_height());
+      uint2 screenDimensions(colorTexture.get_width(),
+                             colorTexture.get_height());
       """
       #else
       """
       uint2 screenDimensions;
-      frameBuffer.GetDimensions(screenDimensions.x,
-                                screenDimensions.y);
+      colorTexture.GetDimensions(screenDimensions.x,
+                                 screenDimensions.y);
       """
       #endif
     }
     
     func writeColor() -> String {
       #if os(macOS)
-      "frameBuffer.write(float4(color, 0), pixelCoords);"
+      "colorTexture.write(float4(color, 0), pixelCoords);"
       #else
-      "frameBuffer[pixelCoords] = float4(color, 0);"
+      "colorTexture[pixelCoords] = float4(color, 0);"
       #endif
     }
     
