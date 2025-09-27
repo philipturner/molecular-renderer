@@ -66,16 +66,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// Set up the shader.
-var shaderDesc = ShaderDescriptor()
-shaderDesc.device = application.device
-shaderDesc.name = "renderImage"
-shaderDesc.source = RenderImage.createSource()
-#if os(macOS)
-shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-#endif
-let shader = Shader(descriptor: shaderDesc)
-
 #if os(Windows)
 // Set up the descriptor heap.
 func createDescriptorHeap(
@@ -254,7 +244,7 @@ application.run {
     #endif
     
     // Encode the compute command.
-    commandList.withPipelineState(shader) {
+    commandList.withPipelineState(application.resources.shader) {
       // Bind the texture.
       #if os(macOS)
       commandList.mtlCommandEncoder

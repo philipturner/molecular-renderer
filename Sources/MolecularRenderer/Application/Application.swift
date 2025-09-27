@@ -30,6 +30,7 @@ public class Application {
   let swapChain: SwapChain
   #endif
   public let renderTarget: RenderTarget
+  public let resources: Resources
   
   var runLoop: RunLoop?
   public internal(set) var frameID: Int = -1
@@ -67,6 +68,12 @@ public class Application {
     renderTargetDesc.device = device
     renderTargetDesc.display = display
     self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
+    
+    // Create the resources container object.
+    var resourcesDesc = ResourcesDescriptor()
+    resourcesDesc.device = device
+    resourcesDesc.renderTarget = renderTarget
+    self.resources = Resources(descriptor: resourcesDesc)
     
     guard Application.singleton == nil else {
       fatalError(
