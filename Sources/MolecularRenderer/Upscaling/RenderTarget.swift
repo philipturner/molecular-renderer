@@ -8,6 +8,7 @@ import WinSDK
 struct RenderTargetDescriptor {
   var device: Device?
   var display: Display?
+  var upscaleFactor: Float?
 }
 
 public class RenderTarget {
@@ -19,7 +20,8 @@ public class RenderTarget {
   
   init(descriptor: RenderTargetDescriptor) {
     guard let device = descriptor.device,
-          let display = descriptor.display else {
+          let display = descriptor.display,
+          let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
     

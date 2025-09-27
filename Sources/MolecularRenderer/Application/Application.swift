@@ -42,7 +42,8 @@ public class Application {
   public init(descriptor: ApplicationDescriptor) {
     guard let allocationSize = descriptor.allocationSize,
           let device = descriptor.device,
-          let display = descriptor.display else {
+          let display = descriptor.display,
+          let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
     self.device = device
@@ -71,6 +72,7 @@ public class Application {
     var renderTargetDesc = RenderTargetDescriptor()
     renderTargetDesc.device = device
     renderTargetDesc.display = display
+    renderTargetDesc.upscaleFactor = upscaleFactor
     self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
     
     // Create the resources container object.
