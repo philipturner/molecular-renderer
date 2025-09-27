@@ -2,8 +2,8 @@
 // - Start with a simple kernel that just copies the center pixel 2-3x to the
 //   final pixel (nearest neighbor sampling).
 // - Make the upscaling process optional to enable/disable. For example,
-//   'ApplicationDescriptor.upscaleFactor' with a default of Float(3). If the
-//   value is instead 1, an error will occur when the user calls
+//   'ApplicationDescriptor.upscaleFactor'. If the value is instead 1, an error
+//   will occur when the user calls
 //   'Application.upscale(image:)'. Conversely, when it is more than 1, an
 //   error will occur when this function is not called.
 // - Only accepting integers for the upscale factor at the moment, although the

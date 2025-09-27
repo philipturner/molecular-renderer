@@ -7,8 +7,10 @@ public struct ApplicationDescriptor {
   /// Size (in bytes) of the giant memory allocation that stores both atoms and
   /// voxel data on the GPU.
   public var allocationSize: Int?
+  
   public var device: Device?
   public var display: Display?
+  public var upscaleFactor: Float?
   
   public init() {
     
