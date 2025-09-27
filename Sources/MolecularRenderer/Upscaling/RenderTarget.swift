@@ -25,6 +25,23 @@ public class RenderTarget {
       fatalError("Descriptor was incomplete.")
     }
     
+    func createIntermediateSize() -> SIMD2<Int> {
+      var output = display.frameBufferSize
+      
+      switch upscaleFactor {
+      case 1:
+        break
+      case 2:
+        output /= 2
+      case 3:
+        output /= 3
+      default:
+        fatalError("Invalid upscale factor.")
+      }
+      return output
+    }
+    let intermediateSize = createIntermediateSize()
+    
     #if os(macOS)
     // Ensure the textures use lossless compression.
     device.commandQueue.withCommandList { commandList in
@@ -35,8 +52,8 @@ public class RenderTarget {
       for _ in 0..<2 {
         let textureDesc = MTLTextureDescriptor()
         textureDesc.textureType = .type2D
-        textureDesc.width = display.frameBufferSize[0]
-        textureDesc.height = display.frameBufferSize[1]
+        textureDesc.width = intermediateSize[0]
+        textureDesc.height = intermediateSize[1]
         textureDesc.depth = 1
         textureDesc.mipmapLevelCount = 1
         textureDesc.sampleCount = 1
