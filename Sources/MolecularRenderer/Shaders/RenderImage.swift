@@ -92,7 +92,7 @@ public struct RenderImage {
       rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the screen-space coordinates.
-      float2 screenCoords = float2(tid) + 0.5; // TODO: Check this works in HLSL
+      float2 screenCoords = float2(tid) + 0.5;
       screenCoords /= float2(screenWidth, screenHeight);
       screenCoords = screenCoords * 2 - 1;
       screenCoords.x *= float(screenWidth) / float(screenHeight);

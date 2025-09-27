@@ -1,11 +1,13 @@
 // Tasks:
-// - Next, add perspective projection and force it to be enabled for all
-//   renders. FidelityFX requires parameters about FOV and near/far distance.
 // - Eventual ergonomic API should accept an angle in radians instead of
 //   degrees, with a simpler name than "fov***InDegrees".
 //   'cameraFovAngleVertical', copied from the AMD FidelityFX API, is a great
 //   idea.
-// - Test rectangular views (4:3, 16:9 aspect ratio).
+// - Extract the hard-coded camera logic into ::primaryRayDirection and a
+//   CPU-side API.
+// - Create an animation where the molecules are still, but the camera rotates
+//   to go above them and flip back around to the starting point, in a loop.
+//   - 0.5 Hz rotation rate, just like the previous animation where atoms moved.
 //
 // Implementation of upscaling:
 // - Start with a simple kernel that just copies the center pixel 2-3x to the
@@ -43,9 +45,9 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   #if os(macOS)
-  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1920)
+  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1440)
   #else
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
   #endif
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
@@ -95,38 +97,6 @@ func createSilane() -> [SIMD4<Float>] {
   ]
 }
 
-func createRotatedIsopropanol(time: Float) -> [SIMD4<Float>] {
-  // 0.5 Hz rotation rate
-  let angle = 0.5 * time * (2 * Float.pi)
-  let rotation = Quaternion<Float>(
-    angle: angle,
-    axis: SIMD3(0.00, 1.00, 0.00))
-  
-  var output = createIsopropanol()
-  for atomID in output.indices {
-    var atom = output[atomID]
-    atom.position = rotation.act(on: atom.position)
-    output[atomID] = atom
-  }
-  return output
-}
-
-func createRotatedSilane(time: Float) -> [SIMD4<Float>] {
-  // 0.5 Hz rotation rate
-  let angle = 0.5 * time * (2 * Float.pi)
-  let rotation = Quaternion<Float>(
-    angle: angle,
-    axis: SIMD3(0.00, 1.00, 0.00))
-  
-  var output = createSilane()
-  for atomID in output.indices {
-    var atom = output[atomID]
-    atom.position = rotation.act(on: atom.position)
-    output[atomID] = atom
-  }
-  return output
-}
-
 @MainActor
 func createTime() -> Float {
   let elapsedFrames = application.clock.frames
@@ -141,7 +111,7 @@ func modifyAtoms() {
   
   let roundedDownTime = Int(time.rounded(.down))
   if roundedDownTime % 2 == 0 {
-    let isopropanol = createRotatedIsopropanol(time: time)
+    let isopropanol = createIsopropanol()
     if animationState == .silane {
       for atomID in 12..<17 {
         application.atoms[atomID] = nil
@@ -155,7 +125,7 @@ func modifyAtoms() {
       application.atoms[atomID] = atom
     }
   } else {
-    let silane = createRotatedSilane(time: time)
+    let silane = createSilane()
     if animationState == .isopropanol {
       for atomID in 0..<12 {
         application.atoms[atomID] = nil
