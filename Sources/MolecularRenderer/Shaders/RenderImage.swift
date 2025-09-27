@@ -129,7 +129,7 @@ public struct RenderImage {
         ambientOcclusion.specularAccumulator = 0;
         
         // Pick the number of AO samples.
-        uint sampleCount = 7;
+        uint sampleCount = 15;
         
         // Create a generation context.
         GenerationContext generationContext;
