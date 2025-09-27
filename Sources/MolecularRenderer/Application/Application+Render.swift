@@ -12,11 +12,6 @@ extension Application {
       atoms: atoms,
       inFlightFrameID: inFlightFrameID)
     
-    // Retrieve the front buffer.
-    // TODO: Don't call this the front buffer.
-    let frontBufferID = frameID % 2
-    let frontBuffer = renderTarget.colorTextures[frontBufferID]
-    
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
       resources.atomBuffer.copy(
@@ -33,11 +28,12 @@ extension Application {
       commandList.withPipelineState(resources.shader) {
         // Bind the texture.
         #if os(macOS)
+        let colorTexture = renderTarget.colorTextures[frameID % 2]
         commandList.mtlCommandEncoder
-          .setTexture(frontBuffer, index: 0)
+          .setTexture(colorTexture, index: 0)
         #else
         commandList.setDescriptor(
-          handleID: frontBufferID, index: 0)
+          handleID: frameID % 2, index: 0)
         #endif
         
         // Bind the atom buffer.

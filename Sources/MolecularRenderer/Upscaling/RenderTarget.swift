@@ -15,16 +15,15 @@ class RenderTarget {
   let upscaleFactor: Float
   
   #if os(macOS)
-  var colorTextures: [MTLTexture] = []
-  var depthTextures: [MTLTexture] = []
-  var motionTextures: [MTLTexture] = []
-  var upscaledTextures: [MTLTexture] = []
+  typealias Texture = MTLTexture
   #else
-  var colorTextures: [SwiftCOM.ID3D12Resource] = []
-  var depthTextures: [SwiftCOM.ID3D12Resource] = []
-  var motionTextures: [SwiftCOM.ID3D12Resource] = []
-  var upscaledTextures: [SwiftCOM.ID3D12Resource] = []
+  typealias Texture = SwiftCOM.ID3D12Resource
   #endif
+  
+  var colorTextures: [Texture] = []
+  var depthTextures: [Texture] = []
+  var motionTextures: [Texture] = []
+  var upscaledTextures: [Texture] = []
   
   init(descriptor: RenderTargetDescriptor) {
     guard let device = descriptor.device,

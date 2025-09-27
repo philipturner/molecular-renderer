@@ -33,8 +33,15 @@ private func presentImageTransition(
 
 extension Application {
   public func present(image: Image) {
-    let frontBufferID = frameID % 2
-    let frontBuffer = renderTarget.colorTextures[frontBufferID]
+    func createFrontBuffer() -> RenderTarget.Texture {
+      let frontBufferID = frameID % 2
+      if renderTarget.upscaleFactor == 1 {
+        return renderTarget.colorTextures[frontBufferID]
+      } else {
+        return renderTarget.upscaledTextures[frontBufferID]
+      }
+    }
+    let frontBuffer = createFrontBuffer()
     
     #if os(macOS)
     func retrieveDrawable() -> CAMetalDrawable {
