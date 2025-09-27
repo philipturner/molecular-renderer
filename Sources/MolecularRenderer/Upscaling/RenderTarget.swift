@@ -12,10 +12,13 @@ struct RenderTargetDescriptor {
 }
 
 class RenderTarget {
-  private let upscaleFactor: Float
+  let upscaleFactor: Float
   
   #if os(macOS)
   var colorTextures: [MTLTexture] = []
+  var depthTextures: [MTLTexture] = []
+  var motionTextures: [MTLTexture] = []
+  var upscaledTextures: [MTLTexture] = []
   #else
   var colorTextures: [SwiftCOM.ID3D12Resource] = []
   #endif
@@ -74,6 +77,26 @@ class RenderTarget {
         guard upscaleFactor > 1 else {
           continue
         }
+        
+        textureDesc.pixelFormat = .r32Float
+        let depthTexture = device.mtlDevice.makeTexture(
+          descriptor: textureDesc)!
+        depthTextures.append(depthTexture)
+        commandEncoder.optimizeContentsForGPUAccess(texture: depthTexture)
+        
+        textureDesc.pixelFormat = .rg16Float
+        let motionTexture = device.mtlDevice.makeTexture(
+          descriptor: textureDesc)!
+        motionTextures.append(motionTexture)
+        commandEncoder.optimizeContentsForGPUAccess(texture: motionTexture)
+        
+        textureDesc.pixelFormat = .rgb10a2Unorm
+        textureDesc.width = display.frameBufferSize[0]
+        textureDesc.height = display.frameBufferSize[1]
+        let upscaledTexture = device.mtlDevice.makeTexture(
+          descriptor: textureDesc)!
+        upscaledTextures.append(upscaledTexture)
+        commandEncoder.optimizeContentsForGPUAccess(texture: upscaledTexture)
       }
       
       commandEncoder.endEncoding()

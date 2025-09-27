@@ -13,6 +13,7 @@ extension Application {
       inFlightFrameID: inFlightFrameID)
     
     // Retrieve the front buffer.
+    // TODO: Don't call this the front buffer.
     let frontBufferID = frameID % 2
     let frontBuffer = renderTarget.colorTextures[frontBufferID]
     
