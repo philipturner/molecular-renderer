@@ -38,16 +38,8 @@ public class Resources {
     descriptorHeapDesc.count = 2
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     
-    // Set up the textures for rendering.
-    for i in 0..<2 {
-      let colorTexture = renderTarget.colorTextures[i]
-      let handleID = descriptorHeap.createUAV(
-        resource: colorTexture,
-        uavDesc: nil)
-      guard handleID == i else {
-        fatalError("This should never happen.")
-      }
-    }
+    renderTarget.encode(
+      descriptorHeap: descriptorHeap, offset: 0)
     #endif
     
     self.atomBuffer = AtomBuffer(

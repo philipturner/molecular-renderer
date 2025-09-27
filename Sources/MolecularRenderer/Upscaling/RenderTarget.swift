@@ -84,4 +84,20 @@ public class RenderTarget {
     }
     #endif
   }
+  
+  #if os(Windows)
+  // Takes an offset as an argument, then returns the offset after encoding.
+  @discardableResult
+  func encode(descriptorHeap: DescriptorHeap, offset: Int) -> Int {
+    for i in 0..<2 {
+      let colorHandleID = descriptorHeap.createUAV(
+        resource: colorTextures[i],
+        uavDesc: nil)
+      guard colorHandleID == offset + i else {
+        fatalError("This should never happen.")
+      }
+    }
+    return offset + 2
+  }
+  #endif
 }
