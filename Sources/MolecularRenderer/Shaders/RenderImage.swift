@@ -92,22 +92,23 @@ public struct RenderImage {
       rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the screen-space coordinates.
-      // [-0.5 nm, 0.5 nm] along the two axes of the screen.
-      float2 screenCoords = float2(tid);
+      float2 screenCoords = float2(tid) + 0.5; // TODO: Check this works in HLSL
       screenCoords /= float2(screenWidth, screenHeight);
-      screenCoords -= float2(0.5, 0.5);
-      screenCoords.y = -screenCoords.y;
+      screenCoords = screenCoords * 2 - 1;
+      screenCoords.x *= float(screenWidth) / float(screenHeight);
+      screenCoords.y = -screenCoords.y;  
+      
+      // Apply the tangent factor.
+      // tangent factor is tan(45°) = 1 right now
+      
+      // Prepare the ray direction.
+      float3 rayDirection = float3(screenCoords, -1);
+      rayDirection = normalize(rayDirection);
       
       // Intersect the primary ray.
-      // origin:
-      //   XY = screen coords
-      //   Z = +10 nm
-      // direction:
-      //   XY = 0.00
-      //   Z = -1.00
       IntersectionQuery query;
-      query.rayOrigin = float3(screenCoords, 10);
-      query.rayDirection = float3(0, 0, -1);
+      query.rayOrigin = float3(0, 0, 1);
+      query.rayDirection = rayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
       // Background color.

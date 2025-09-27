@@ -5,8 +5,7 @@
 //   degrees, with a simpler name than "fov***InDegrees".
 //   'cameraFovAngleVertical', copied from the AMD FidelityFX API, is a great
 //   idea.
-// - Leave out the critical distance heuristic to simplify the code, until
-//   we start handling large atom counts and distances far from the user.
+// - Test rectangular views (4:3, 16:9 aspect ratio).
 //
 // Implementation of upscaling:
 // - Start with a simple kernel that just copies the center pixel 2-3x to the
