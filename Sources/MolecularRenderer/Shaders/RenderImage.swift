@@ -99,7 +99,8 @@ public struct RenderImage {
       screenCoords.y = -screenCoords.y;
       
       // Apply the tangent factor.
-      // tangent factor is tan(45 deg) = 1 right now
+      float tangentFactor = \(tan(Float.pi / 180 * 20));
+      screenCoords *= tangentFactor;
       
       // Prepare the ray direction.
       float3 rayDirection = float3(screenCoords, -1);
@@ -129,7 +130,7 @@ public struct RenderImage {
         ambientOcclusion.specularAccumulator = 0;
         
         // Pick the number of AO samples.
-        uint sampleCount = 15;
+        uint sampleCount = 7;
         
         // Create a generation context.
         GenerationContext generationContext;
