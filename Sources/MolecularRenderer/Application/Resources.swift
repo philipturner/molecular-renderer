@@ -35,7 +35,7 @@ public class Resources {
     // Create the descriptor heap.
     var descriptorHeapDesc = DescriptorHeapDescriptor()
     descriptorHeapDesc.device = device
-    descriptorHeapDesc.count = 2
+    descriptorHeapDesc.count = renderTarget.descriptorCount
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     
     renderTarget.encode(

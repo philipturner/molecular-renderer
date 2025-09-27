@@ -169,18 +169,11 @@ class RenderTarget {
         nil) // pOptimizedClearValue
       upscaledTextures.append(upscaledTexture)
     }
-    
-    print(colorTextures.count)
-    print(depthTextures.count)
-    print(motionTextures.count)
-    print(upscaledTextures.count)
     #endif
   }
   
   #if os(Windows)
-  // Takes an offset as an argument, then returns the offset after encoding.
-  @discardableResult
-  func encode(descriptorHeap: DescriptorHeap, offset: Int) -> Int {
+  func encode(descriptorHeap: DescriptorHeap, offset: Int) {
     for i in 0..<2 {
       let colorHandleID = descriptorHeap.createUAV(
         resource: colorTextures[i],
@@ -189,7 +182,45 @@ class RenderTarget {
         fatalError("This should never happen.")
       }
     }
-    return offset + 2
+    
+    guard upscaleFactor > 1 else {
+      return
+    }
+    
+    for i in 0..<2 {
+      let depthHandleID = descriptorHeap.createUAV(
+        resource: depthTextures[i],
+        uavDesc: nil)
+      guard depthHandleID == offset + 2 + i else {
+        fatalError("This should never happen.")
+      }
+    }
+    
+    for i in 0..<2 {
+      let motionHandleID = descriptorHeap.createUAV(
+        resource: motionTextures[i],
+        uavDesc: nil)
+      guard motionHandleID == offset + 4 + i else {
+        fatalError("This should never happen.")
+      }
+    }
+    
+    for i in 0..<2 {
+      let upscaledHandleID = descriptorHeap.createUAV(
+        resource: upscaledTextures[i],
+        uavDesc: nil)
+      guard upscaledHandleID == offset + 6 + i else {
+        fatalError("This should never happen.")
+      }
+    }
+  }
+  
+  var descriptorCount: Int {
+    if upscaleFactor == 1 {
+      return 2
+    } else {
+      return 8
+    }
   }
   #endif
 }
