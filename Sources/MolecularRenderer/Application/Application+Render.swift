@@ -48,7 +48,7 @@ extension Application {
           var atomCount: UInt32 = .zero
           var frameSeed: UInt32 = .zero
           var tangentFactor: Float = .zero
-          // var cameraPosition: SIMD3<Float> = .zero
+          var cameraPosition: SIMD3<Float> = .zero
           
           // var cameraBasis: (
           //   SIMD3<Float>,
@@ -60,7 +60,7 @@ extension Application {
         constantArgs.atomCount = UInt32(atoms.count)
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
         constantArgs.tangentFactor = tan(Float.pi / 180 * 20)
-        // constantArgs.cameraPosition = SIMD3(0, 0, 1)
+        constantArgs.cameraPosition = SIMD3(0, 0, 1)
         // constantArgs.cameraBasis = (
         //   SIMD3(1, 0, 0),
         //   SIMD3(0, -1, 0),

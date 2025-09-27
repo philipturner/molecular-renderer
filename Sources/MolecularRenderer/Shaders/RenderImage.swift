@@ -32,7 +32,7 @@ public struct RenderImage {
       [RootSignature(
         "DescriptorTable(UAV(u0, numDescriptors = 1)),"
         "UAV(u1),"
-        "RootConstants(b2, num32BitConstants = 3),"
+        "RootConstants(b2, num32BitConstants = 8),"
       )]
       void renderImage(
         uint2 pixelCoords : SV_DispatchThreadID)
@@ -74,10 +74,14 @@ public struct RenderImage {
     
     // Remember to synchronize the root signature with the number of
     // 32-bit constants in this data structure.
+    //
+    // TODO: Make this easier by bringing ConstantArgs into a separate file
+    // and referencing the MemoryLayout of that data type.
     struct ConstantArgs {
       uint atomCount;
       uint frameSeed;
       float tangentFactor;
+      float3 cameraPosition;
     };
     
     \(functionSignature())
@@ -107,7 +111,7 @@ public struct RenderImage {
       
       // Intersect the primary ray.
       IntersectionQuery query;
-      query.rayOrigin = float3(0, 0, 1);
+      query.rayOrigin = constantArgs.cameraPosition;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
