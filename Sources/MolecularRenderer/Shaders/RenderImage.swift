@@ -91,10 +91,6 @@ public struct RenderImage {
       rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the ray direction.
-      Matrix3x3 cameraBasis;
-      cameraBasis.col0 = float3(1, 0, 0);
-      cameraBasis.col1 = float3(0, 1, 0);
-      cameraBasis.col2 = float3(0, 0, 1);
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
