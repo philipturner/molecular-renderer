@@ -66,6 +66,8 @@ extension Application {
       }
     }
     
-    return Image()
+    var output = Image()
+    output.scaleFactor = 1
+    return output
   }
 }

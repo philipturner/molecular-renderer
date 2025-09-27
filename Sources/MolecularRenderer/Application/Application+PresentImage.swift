@@ -33,6 +33,10 @@ private func presentImageTransition(
 
 extension Application {
   public func present(image: Image) {
+    guard image.scaleFactor == renderTarget.upscaleFactor else {
+      fatalError("Received image with incorrect scale factor.")
+    }
+    
     func createFrontBuffer() -> RenderTarget.Texture {
       let frontBufferID = frameID % 2
       if renderTarget.upscaleFactor == 1 {
