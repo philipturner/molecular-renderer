@@ -102,6 +102,25 @@ struct RenderShader {
       #endif
     }
     
+    func computeDepth() -> String {
+      guard upscaleFactor > 1 else {
+        return ""
+      }
+      
+      return """
+      {
+        float3 rayDirection = primaryRayDirection;
+        float3 cameraDirection = constantArgs.cameraBasis.col2;
+        float rayDirectionComponent = dot(rayDirection, cameraDirection);
+        float depth = rayDirectionComponent * intersect.distance;
+        
+        // Map the depth from [0, -infinity] to [1, 0].
+        depth = 1 / (1 - depth);
+        \(write("depth", texture: "depthTexture"))
+      }
+      """
+    }
+    
     return """
     \(importStandardLibrary())
     
@@ -139,6 +158,9 @@ struct RenderShader {
       query.rayOrigin = constantArgs.cameraPosition;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
+      
+      // Write the depth and motion vector ASAP, reducing register pressure.
+      \(computeDepth())
       
       // Background color.
       float3 color = float3(0.707, 0.707, 0.707);
