@@ -71,7 +71,6 @@ enum AnimationState {
   case isopropanol
   case silane
 }
-nonisolated(unsafe)
 var animationState: AnimationState?
 
 func createIsopropanol() -> [SIMD4<Float>] {
@@ -133,7 +132,8 @@ func createRotatedSilane(time: Float) -> [SIMD4<Float>] {
   return output
 }
 
-func createTime(application: Application) -> Float {
+@MainActor
+func createTime() -> Float {
   let elapsedFrames = application.clock.frames
   let frameRate = application.display.frameRate
   let seconds = Float(elapsedFrames) / Float(frameRate)
@@ -142,7 +142,7 @@ func createTime(application: Application) -> Float {
 
 @MainActor
 func modifyAtoms() {
-  let time = createTime(application: application)
+  let time = createTime()
   
   let roundedDownTime = Int(time.rounded(.down))
   if roundedDownTime % 2 == 0 {
