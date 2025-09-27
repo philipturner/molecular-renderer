@@ -1,10 +1,4 @@
 // Tasks:
-// - Eventual ergonomic API should accept an angle in radians instead of
-//   degrees, with a simpler name than "fov***InDegrees".
-//   'cameraFovAngleVertical', copied from the AMD FidelityFX API, is a great
-//   idea.
-// - Extract the hard-coded camera logic into ::primaryRayDirection and a
-//   CPU-side API.
 // - Create an animation where the molecules are still, but the camera rotates
 //   to go above them and flip back around to the starting point, in a loop.
 //   - 0.5 Hz rotation rate, just like the previous animation where atoms moved.
@@ -144,6 +138,9 @@ func modifyAtoms() {
 // Enter the run loop.
 application.run {
   modifyAtoms()
+  application.camera.position = SIMD3(0, 0, 1)
+  application.camera.fovAngleVertical = Float.pi / 180 * 40
+  
   let image = application.render()
   application.present(image: image)
 }

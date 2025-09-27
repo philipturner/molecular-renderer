@@ -22,6 +22,7 @@ public class Application {
   public let display: Display
   
   public let atoms: Atoms
+  public var camera: Camera
   public var clock: Clock
   let window: Window
   #if os(macOS)
@@ -46,6 +47,7 @@ public class Application {
     self.display = display
     
     self.atoms = Atoms(allocationSize: allocationSize)
+    self.camera = Camera()
     self.clock = Clock(display: display)
     self.window = Window(display: display)
     #if os(macOS)

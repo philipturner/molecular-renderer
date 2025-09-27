@@ -47,12 +47,9 @@ extension Application {
         var constantArgs = ConstantArgs()
         constantArgs.atomCount = UInt32(atoms.count)
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
-        constantArgs.tangentFactor = tan(Float.pi / 180 * 20)
-        constantArgs.cameraPosition = SIMD3(0, 0, 1)
-        constantArgs.cameraBasis = (
-          SIMD3(1, 0, 0),
-          SIMD3(0, 1, 0),
-          SIMD3(0, 0, 1))
+        constantArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
+        constantArgs.cameraPosition = camera.position
+        constantArgs.cameraBasis = camera.basis
         commandList.set32BitConstants(constantArgs, index: 2)
         
         // Determine the dispatch grid size.
