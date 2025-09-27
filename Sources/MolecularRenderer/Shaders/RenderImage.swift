@@ -15,7 +15,7 @@ public struct RenderImage {
     
     func functionSignature() -> String {
       #if os(macOS)
-      """
+      return """
       kernel void renderImage(
         texture2d<float, access::write> frameBuffer [[texture(0)]],
         device float4 *atoms [[buffer(1)]],
@@ -23,7 +23,9 @@ public struct RenderImage {
         uint2 pixelCoords [[thread_position_in_grid]])
       """
       #else
-      """
+      let byteCount = MemoryLayout<ConstantArgs>.size
+      
+      return """
       RWTexture2D<float4> frameBuffer : register(u0);
       RWStructuredBuffer<float4> atoms : register(u1);
       ConstantBuffer<ConstantArgs> constantArgs : register(b2);
@@ -32,7 +34,7 @@ public struct RenderImage {
       [RootSignature(
         "DescriptorTable(UAV(u0, numDescriptors = 1)),"
         "UAV(u1),"
-        "RootConstants(b2, num32BitConstants = 8),"
+        "RootConstants(b2, num32BitConstants = \(byteCount / 4)),"
       )]
       void renderImage(
         uint2 pixelCoords : SV_DispatchThreadID)
@@ -72,17 +74,7 @@ public struct RenderImage {
     \(createRayGeneration())
     \(createRayIntersector())
     
-    // Remember to synchronize the root signature with the number of
-    // 32-bit constants in this data structure.
-    //
-    // TODO: Make this easier by bringing ConstantArgs into a separate file
-    // and referencing the MemoryLayout of that data type.
-    struct ConstantArgs {
-      uint atomCount;
-      uint frameSeed;
-      float tangentFactor;
-      float3 cameraPosition;
-    };
+    \(ConstantArgs.shaderDeclaration)
     
     \(functionSignature())
     {
@@ -107,7 +99,7 @@ public struct RenderImage {
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
                                          constantArgs.tangentFactor,
-                                         cameraBasis);
+                                         constantArgs.cameraBasis);
       
       // Intersect the primary ray.
       IntersectionQuery query;
