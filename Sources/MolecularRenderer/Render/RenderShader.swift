@@ -14,12 +14,44 @@ struct RenderShader {
     }
     
     func functionSignature() -> String {
+      func optionalFunctionArguments() -> String {
+        guard upscaleFactor > 1 else {
+          return ""
+        }
+        
+        #if os(macOS)
+        return """
+        texture2d<float, access::write> depthTexture [[texture(3)]],
+        texture2d<float, access::write> motionTexture [[texture(4)]],
+        """
+        #else
+        return """
+        RWTexture2D<float4> depthTexture : register(u3);
+        RWTexture2D<float4> motionTexture : register(u4);
+        """
+        #endif
+      }
+      
+      #if os(Windows)
+      func optionalRootSignatureArguments() -> String {
+        guard upscaleFactor > 1 else {
+          return ""
+        }
+        
+        return """
+        "DescriptorTable(UAV(u3, numDescriptors = 1)),"
+        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+        """
+      }
+      #endif
+      
       #if os(macOS)
       return """
       kernel void render(
         constant ConstantArgs &constantArgs [[buffer(0)]],
         device float4 *atoms [[buffer(1)]],
         texture2d<float, access::write> colorTexture [[texture(2)]],
+        \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
       """
       #else
@@ -29,12 +61,14 @@ struct RenderShader {
       ConstantBuffer<ConstantArgs> constantArgs : register(b0);
       RWStructuredBuffer<float4> atoms : register(u1);
       RWTexture2D<float4> colorTexture : register(u2);
+      \(optionalFunctionArguments())
       
       [numthreads(8, 8, 1)]
       [RootSignature(
         "RootConstants(b0, num32BitConstants = \(byteCount / 4)),"
         "UAV(u1),"
         "DescriptorTable(UAV(u2, numDescriptors = 1)),"
+        \(optionalRootSignatureArguments())
       )]
       void render(
         uint2 pixelCoords : SV_DispatchThreadID)
