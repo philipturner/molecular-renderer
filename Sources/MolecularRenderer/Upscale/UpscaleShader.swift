@@ -1,6 +1,6 @@
 // Placeholder until each platform has the actual upscaler implemented.
 struct UpscaleShader {
-  static func createSource(upscaleFactor: Int) -> String {
+  static func createSource(upscaleFactor: Float) -> String {
     func importStandardLibrary() -> String {
       #if os(macOS)
       """
@@ -58,7 +58,7 @@ struct UpscaleShader {
     \(functionSignature())
     {
       // Read from the input texture.
-      uint2 inputCoords = pixelCoords / \(upscaleFactor);
+      uint2 inputCoords = pixelCoords / \(Int(upscaleFactor));
       \(readColor())
       
       // Write to the output texture.

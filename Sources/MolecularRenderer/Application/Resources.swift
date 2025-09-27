@@ -28,13 +28,13 @@ class Resources {
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
     
-    shaderDesc.source = RenderShader.createSource()
+    shaderDesc.source = RenderShader.createSource(
+      upscaleFactor: renderTarget.upscaleFactor)
     shaderDesc.name = "render"
     self.renderShader = Shader(descriptor: shaderDesc)
     
-    let upscaleFactor = Int(renderTarget.upscaleFactor)
-    shaderDesc.source = UpscaleShader
-      .createSource(upscaleFactor: upscaleFactor)
+    shaderDesc.source = UpscaleShader.createSource(
+      upscaleFactor: renderTarget.upscaleFactor)
     shaderDesc.name = "upscale"
     self.upscaleShader = Shader(descriptor: shaderDesc)
     

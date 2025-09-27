@@ -1,7 +1,7 @@
 import Foundation // String.init(format:_:)
 
 struct RenderShader {
-  static func createSource() -> String {
+  static func createSource(upscaleFactor: Float) -> String {
     func importStandardLibrary() -> String {
       #if os(macOS)
       """
