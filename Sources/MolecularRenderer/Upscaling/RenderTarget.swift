@@ -11,11 +11,13 @@ struct RenderTargetDescriptor {
   var upscaleFactor: Float?
 }
 
-public class RenderTarget {
+class RenderTarget {
+  private let upscaleFactor: Float
+  
   #if os(macOS)
-  public internal(set) var colorTextures: [MTLTexture] = []
+  var colorTextures: [MTLTexture] = []
   #else
-  public internal(set) var colorTextures: [SwiftCOM.ID3D12Resource] = []
+  var colorTextures: [SwiftCOM.ID3D12Resource] = []
   #endif
   
   init(descriptor: RenderTargetDescriptor) {
@@ -24,6 +26,7 @@ public class RenderTarget {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
+    self.upscaleFactor = upscaleFactor
     
     func createIntermediateSize() -> SIMD2<Int> {
       var output = display.frameBufferSize
@@ -66,8 +69,11 @@ public class RenderTarget {
         let colorTexture = device.mtlDevice.makeTexture(
           descriptor: textureDesc)!
         colorTextures.append(colorTexture)
-        
         commandEncoder.optimizeContentsForGPUAccess(texture: colorTexture)
+        
+        guard upscaleFactor > 1 else {
+          continue
+        }
       }
       
       commandEncoder.endEncoding()

@@ -32,7 +32,7 @@ public class Application {
   #else
   let swapChain: SwapChain
   #endif
-  public let renderTarget: RenderTarget
+  let renderTarget: RenderTarget
   public let resources: Resources
   
   var runLoop: RunLoop?
