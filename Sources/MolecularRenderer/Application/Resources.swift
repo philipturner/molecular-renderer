@@ -1,5 +1,3 @@
-import Foundation // temporary import for debugging
-
 struct ResourcesDescriptor {
   var device: Device?
   var renderTarget: RenderTarget?
