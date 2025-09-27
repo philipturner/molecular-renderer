@@ -51,7 +51,7 @@ extension Application {
         constantArgs.cameraPosition = SIMD3(0, 0, 1)
         constantArgs.cameraBasis = (
           SIMD3(1, 0, 0),
-          SIMD3(0, -1, 0),
+          SIMD3(0, 1, 0),
           SIMD3(0, 0, 1))
         commandList.set32BitConstants(constantArgs, index: 2)
         
