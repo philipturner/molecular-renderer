@@ -32,7 +32,7 @@ public struct RenderImage {
       [RootSignature(
         "DescriptorTable(UAV(u0, numDescriptors = 1)),"
         "UAV(u1),"
-        "RootConstants(b2, num32BitConstants = 2),"
+        "RootConstants(b2, num32BitConstants = 3),"
       )]
       void renderImage(
         uint2 pixelCoords : SV_DispatchThreadID)
@@ -72,12 +72,12 @@ public struct RenderImage {
     \(createRayGeneration())
     \(createRayIntersector())
     
+    // Remember to synchronize the root signature with the number of
+    // 32-bit constants in this data structure.
     struct ConstantArgs {
       uint atomCount;
       uint frameSeed;
       float tangentFactor;
-      float3 cameraPosition;
-      Matrix3x3 cameraBasis;
     };
     
     \(functionSignature())
@@ -95,15 +95,19 @@ public struct RenderImage {
       rayIntersector.atomCount = constantArgs.atomCount;
       
       // Prepare the ray direction.
+      Matrix3x3 cameraBasis;
+      cameraBasis.col0 = float3(1, 0, 0);
+      cameraBasis.col1 = float3(0, 1, 0);
+      cameraBasis.col2 = float3(0, 0, 1);
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
                                          constantArgs.tangentFactor,
-                                         constantArgs.cameraBasis);
+                                         cameraBasis);
       
       // Intersect the primary ray.
       IntersectionQuery query;
-      query.rayOrigin = constantArgs.cameraPosition;
+      query.rayOrigin = float3(0, 0, 1);
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
