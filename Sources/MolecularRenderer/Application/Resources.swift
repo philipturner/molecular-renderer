@@ -5,13 +5,15 @@ struct ResourcesDescriptor {
 
 // A temporary measure to organize the large number of resources
 // formerly in 'main.swift'.
-public class Resources {
-  public let renderShader: Shader
+class Resources {
+  let renderShader: Shader
+  let upscaleShader: Shader
+  
   #if os(Windows)
-  public let descriptorHeap: DescriptorHeap
+  let descriptorHeap: DescriptorHeap
   #endif
-  public var atomBuffer: AtomBuffer
-  public var transactionTracker: TransactionTracker
+  var atomBuffer: AtomBuffer
+  var transactionTracker: TransactionTracker
   
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -19,15 +21,22 @@ public class Resources {
       fatalError("Descriptor was incomplete.")
     }
     
-    // Create the shader.
+    // Create the shaders.
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
-    shaderDesc.name = "render"
-    shaderDesc.source = RenderShader.createSource()
     #if os(macOS)
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
+    
+    shaderDesc.source = RenderShader.createSource()
+    shaderDesc.name = "render"
     self.renderShader = Shader(descriptor: shaderDesc)
+    
+    let upscaleFactor = Int(renderTarget.upscaleFactor)
+    shaderDesc.source = UpscaleShader
+      .createSource(upscaleFactor: upscaleFactor)
+    shaderDesc.name = "upscale"
+    self.upscaleShader = Shader(descriptor: shaderDesc)
     
     #if os(Windows)
     // Create the descriptor heap.

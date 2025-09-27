@@ -33,7 +33,7 @@ public class Application {
   let swapChain: SwapChain
   #endif
   let renderTarget: RenderTarget
-  public let resources: Resources
+  let resources: Resources
   
   var runLoop: RunLoop?
   public internal(set) var frameID: Int = -1
