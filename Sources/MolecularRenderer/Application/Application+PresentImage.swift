@@ -1,4 +1,7 @@
-#if os(Windows)
+#if os(macOS)
+import Metal
+import protocol QuartzCore.CAMetalDrawable
+#else
 import SwiftCOM
 import WinSDK
 #endif
@@ -37,7 +40,7 @@ extension Application {
     
     #if os(macOS)
     func retrieveDrawable() -> CAMetalDrawable {
-      let layer = application.view.metalLayer
+      let layer = view.metalLayer
       let drawable = layer.nextDrawable()
       guard let drawable else {
         fatalError("Drawable timed out after 1 second.")
