@@ -50,17 +50,19 @@ extension Application {
         commandList.set32BitConstants(constantArgs, index: 2)
         
         // Determine the dispatch grid size.
-        let groupSize = SIMD2<Int>(8, 8)
-        
-        var groupCount = display.frameBufferSize
-        groupCount &+= groupSize &- 1
-        groupCount /= groupSize
-        
-        let groupCount32 = SIMD3<UInt32>(
-          UInt32(groupCount[0]),
-          UInt32(groupCount[1]),
-          UInt32(1))
-        commandList.dispatch(groups: groupCount32)
+        func createGroupCount32() -> SIMD3<UInt32> {
+          let groupSize = SIMD2<Int>(8, 8)
+          
+          var groupCount = display.frameBufferSize
+          groupCount &+= groupSize &- 1
+          groupCount /= groupSize
+          
+          return SIMD3<UInt32>(
+            UInt32(groupCount[0]),
+            UInt32(groupCount[1]),
+            UInt32(1))
+        }
+        commandList.dispatch(groups: createGroupCount32())
       }
     }
     
