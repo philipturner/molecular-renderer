@@ -64,15 +64,32 @@ extension Application {
         let nativeBuffer = resources.atomBuffer.nativeBuffers[inFlightFrameID]
         commandList.setBuffer(nativeBuffer, index: 1)
         
-        // Bind the texture.
+        // Bind the color texture.
         #if os(macOS)
         let colorTexture = renderTarget.colorTextures[frameID % 2]
-        commandList.mtlCommandEncoder
-          .setTexture(colorTexture, index: 2)
+        commandList.mtlCommandEncoder.setTexture(
+          colorTexture, index: 2)
         #else
         commandList.setDescriptor(
           handleID: frameID % 2, index: 2)
         #endif
+        
+        // Bind the depth and motion textures.
+        if renderTarget.upscaleFactor > 1 {
+          #if os(macOS)
+          let depthTexture = renderTarget.depthTextures[frameID % 2]
+          let motionTexture = renderTarget.motionTextures[frameID % 2]
+          commandList.mtlCommandEncoder.setTexture(
+            depthTexture, index: 3)
+          commandList.mtlCommandEncoder.setTexture(
+            motionTexture, index: 4)
+          #else
+          commandList.setDescriptor(
+            handleID: 2 + frameID % 2, index: 3)
+          commandList.setDescriptor(
+            handleID: 4 + frameID % 2, index: 4)
+          #endif
+        }
         
         // Determine the dispatch grid size.
         func createGroupCount32() -> SIMD3<UInt32> {
