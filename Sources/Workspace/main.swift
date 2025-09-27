@@ -5,18 +5,19 @@
 //   degrees, with a simpler name than "fov***InDegrees".
 //   'cameraFovAngleVertical', copied from the AMD FidelityFX API, is a great
 //   idea.
-// - The critical distance heuristic from the original renderer is actually
-//   quite based. Include it and correct / delete / migrate the documentation
-//   currently on the README.
+// - Leave out the critical distance heuristic to simplify the code, until
+//   we start handling large atom counts and distances far from the user.
 //
 // Implementation of upscaling:
 // - Start with a simple kernel that just copies the center pixel 2-3x to the
 //   final pixel (nearest neighbor sampling).
 // - Make the upscaling process optional to enable/disable. For example,
-//   'ApplicationDescriptor.upscaleFactor' with a default of 3. If the value
-//   is instead 1, an error will occur when the user calls
+//   'ApplicationDescriptor.upscaleFactor' with a default of Float(3). If the
+//   value is instead 1, an error will occur when the user calls
 //   'Application.upscale(image:)'. Conversely, when it is more than 1, an
 //   error will occur when this function is not called.
+// - Only accepting integers for the upscale factor at the moment, although the
+//   appropriate data type is a floating-point number.
 // - Debug motion vectors and camera orientation matrices changing between
 //   frames. Also establish depth textures; all the details except actual
 //   invocation of the upscaler.

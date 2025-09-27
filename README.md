@@ -32,18 +32,18 @@ Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINA
 
 ### Renderer Window
 
-With the renderer API (NOT YET CREATED), a window of your chosen resolution appears at program startup. You specify the monitor on which it appears, TAAU upscale factor (2 or 3), and resolution after upscaling.
+With the renderer API, a window of your chosen resolution appears at program startup. You specify the monitor on which it appears, upscale factor (1x, 2x, 3x), and resolution after upscaling.
 
 To close the window, click the "X" button at the top. You can also use `Cmd + W` (macOS) or `Ctrl + W` (Windows). On macOS, the window is typically out of focus when it first appears. Do not use `Cmd + W` until you click the window and bring it into focus.
 
 The window does not register keyboard/mouse events or forward them to the program. This may change in the distant future, to allow interactive WASD-type navigation of a scene.
 
+### Render Process Diagram
+
+![Render Process Diagram](./Documentation/RenderProcessDiagram.png)
+
 ### Ambient Occlusion Sample Count
 
 The most computationally intensive part of rendering is estimating the degree of self-shadowing, or how "occluded" / crowded a location is. A place wedged between two atoms should appear darker than an unobstructed surface exposed directly to open space. In practice, this is achieved by randomly choosing a set of ray directions, then following the rays until they hit a nearby surface.
 
-A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. In the old renderer, divergence happened more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence. There was a highly tuned heuristic that reduced the sample count to 3, at a certain distance from the user. This particular case could afford lower rendering quality anyway.
-
-To simplify the implementation, the new renderer does not yet support perspective projections. There is no common point (human retina position) where all primary rays originate. There is no concept of FOV in degrees. As a result, atoms far from the camera plane appear the same size (in pixels) as very close atoms. The divergence disappears, and all atoms need 7 samples for acceptable rendering quality.
-
-In some cases, the user may wish to render a very wide area, where each atom covers a smaller number of pixels than usual. This situation could be similar to the old renderer, when rendering atoms very far away. In such a case, the user should search for the relevant shader code in the source tree. Change the sample count from 7 to 3 (or even a number in between, if they have the patience to inspect the rendering quality and tune this parameter).
+A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence. There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
