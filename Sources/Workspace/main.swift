@@ -5,6 +5,9 @@
 //   - Last component of this task is doing the motion vectors.
 //   - Choosing one of the auxiliary textures as input for upscaling is an
 //     incredible method to debug.
+//   - First do the camera projection matrix part, where atoms stay static.
+//     Then figure out tracking the motion delta when atoms may move over
+//     time (this is part of atom transactions).
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
 
