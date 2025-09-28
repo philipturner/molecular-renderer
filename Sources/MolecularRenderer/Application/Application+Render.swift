@@ -27,21 +27,24 @@ private func renderUAVBarrier(
 
 extension Application {
   public func render() -> Image {
+    // TODO: Process the camera args, handling previousCameraArgs.
+    
+    // Write the camera args to the GPU buffer.
+    
     let transaction = atoms.registerChanges()
     resources.transactionTracker.register(transaction: transaction)
     let atoms = resources.transactionTracker.compactedAtoms()
     
     // Write the atoms to the GPU buffer.
-    let inFlightFrameID = frameID % 3
     resources.atomBuffer.write(
       data: atoms,
-      inFlightFrameID: inFlightFrameID)
+      inFlightFrameID: frameID % 3)
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
       resources.atomBuffer.copy(
         commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
+        inFlightFrameID: frameID % 3)
       #endif
       
       // Bind the descriptor heap.
@@ -61,17 +64,17 @@ extension Application {
         commandList.set32BitConstants(constantArgs, index: 0)
         
         // Bind the atom buffer.
-        let nativeBuffer = resources.atomBuffer.nativeBuffers[inFlightFrameID]
-        commandList.setBuffer(nativeBuffer, index: 1)
+        let nativeBuffer = resources.atomBuffer.nativeBuffers[frameID % 3]
+        commandList.setBuffer(nativeBuffer, index: 2)
         
         // Bind the color texture.
         #if os(macOS)
         let colorTexture = renderTarget.colorTextures[frameID % 2]
         commandList.mtlCommandEncoder.setTexture(
-          colorTexture, index: 2)
+          colorTexture, index: 3)
         #else
         commandList.setDescriptor(
-          handleID: frameID % 2, index: 2)
+          handleID: frameID % 2, index: 3)
         #endif
         
         // Bind the depth and motion textures.
@@ -80,14 +83,14 @@ extension Application {
           let depthTexture = renderTarget.depthTextures[frameID % 2]
           let motionTexture = renderTarget.motionTextures[frameID % 2]
           commandList.mtlCommandEncoder.setTexture(
-            depthTexture, index: 3)
+            depthTexture, index: 4)
           commandList.mtlCommandEncoder.setTexture(
-            motionTexture, index: 4)
+            motionTexture, index: 5)
           #else
           commandList.setDescriptor(
-            handleID: 2 + frameID % 2, index: 3)
+            handleID: 2 + frameID % 2, index: 4)
           commandList.setDescriptor(
-            handleID: 4 + frameID % 2, index: 4)
+            handleID: 4 + frameID % 2, index: 5)
           #endif
         }
         

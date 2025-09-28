@@ -21,13 +21,13 @@ struct RenderShader {
         
         #if os(macOS)
         return """
-        texture2d<float, access::write> depthTexture [[texture(3)]],
-        texture2d<float, access::write> motionTexture [[texture(4)]],
+        texture2d<float, access::write> depthTexture [[texture(4)]],
+        texture2d<float, access::write> motionTexture [[texture(5)]],
         """
         #else
         return """
-        RWTexture2D<float4> depthTexture : register(u3);
-        RWTexture2D<float4> motionTexture : register(u4);
+        RWTexture2D<float4> depthTexture : register(u4);
+        RWTexture2D<float4> motionTexture : register(u5);
         """
         #endif
       }
@@ -39,8 +39,8 @@ struct RenderShader {
         }
         
         return """
-        "DescriptorTable(UAV(u3, numDescriptors = 1)),"
         "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
         """
       }
       #endif
@@ -49,8 +49,9 @@ struct RenderShader {
       return """
       kernel void render(
         constant ConstantArgs &constantArgs [[buffer(0)]],
-        device float4 *atoms [[buffer(1)]],
-        texture2d<float, access::write> colorTexture [[texture(2)]],
+        device CameraArgs *cameraArgs [[buffer(1)]],
+        device float4 *atoms [[buffer(2)]],
+        texture2d<float, access::write> colorTexture [[texture(3)]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
       """
@@ -59,15 +60,17 @@ struct RenderShader {
       
       return """
       ConstantBuffer<ConstantArgs> constantArgs : register(b0);
-      RWStructuredBuffer<float4> atoms : register(u1);
-      RWTexture2D<float4> colorTexture : register(u2);
+      RWStructuredBuffer<CameraArgs> cameraArgs : register(u1);
+      RWStructuredBuffer<float4> atoms : register(u2);
+      RWTexture2D<float4> colorTexture : register(u3);
       \(optionalFunctionArguments())
       
       [numthreads(8, 8, 1)]
       [RootSignature(
         "RootConstants(b0, num32BitConstants = \(byteCount / 4)),"
         "UAV(u1),"
-        "DescriptorTable(UAV(u2, numDescriptors = 1)),"
+        "UAV(u2),"
+        "DescriptorTable(UAV(u3, numDescriptors = 1)),"
         \(optionalRootSignatureArguments())
       )]
       void render(
@@ -131,6 +134,7 @@ struct RenderShader {
     \(createRayIntersector())
     
     \(ConstantArgs.shaderDeclaration)
+    \(CameraArgs.shaderDeclaration)
     
     \(functionSignature())
     {
