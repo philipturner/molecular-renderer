@@ -12,7 +12,7 @@ class Resources {
   #if os(Windows)
   let descriptorHeap: DescriptorHeap
   #endif
-  var atomBuffer: AtomBuffer
+  var atomBuffer: RingBuffer
   var transactionTracker: TransactionTracker
   
   init(descriptor: ResourcesDescriptor) {
@@ -49,9 +49,9 @@ class Resources {
       descriptorHeap: descriptorHeap, offset: 0)
     #endif
     
-    self.atomBuffer = AtomBuffer(
+    self.atomBuffer = RingBuffer(
       device: device,
-      atomCount: 1000)
+      byteCount: 1000 * 16)
     self.transactionTracker = TransactionTracker(
       atomCount: 1000)
   }

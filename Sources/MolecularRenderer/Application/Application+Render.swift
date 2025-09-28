@@ -34,7 +34,7 @@ extension Application {
     // Write the atoms to the GPU buffer.
     let inFlightFrameID = frameID % 3
     resources.atomBuffer.write(
-      atoms: atoms,
+      data: atoms,
       inFlightFrameID: inFlightFrameID)
     
     device.commandQueue.withCommandList { commandList in

@@ -3,7 +3,7 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public struct AtomBuffer {
+public struct RingBuffer {
   #if os(Windows)
   public var inputBuffers: [Buffer] = []
   #endif
@@ -11,12 +11,12 @@ public struct AtomBuffer {
   
   public init(
     device: Device,
-    atomCount: Int
+    byteCount: Int
   ) {
     for _ in 0..<3 {
       var bufferDesc = BufferDescriptor()
       bufferDesc.device = device
-      bufferDesc.size = atomCount * 16
+      bufferDesc.size = byteCount
       
       #if os(Windows)
       bufferDesc.type = .input
@@ -30,11 +30,11 @@ public struct AtomBuffer {
     }
   }
   
-  public mutating func write(
-    atoms: [SIMD4<Float>],
+  public mutating func write<T>(
+    data: [T],
     inFlightFrameID: Int
   ) {
-    atoms.withUnsafeBytes { bufferPointer in
+    data.withUnsafeBytes { bufferPointer in
       let baseAddress = bufferPointer.baseAddress!
       
       #if os(macOS)

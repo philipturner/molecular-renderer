@@ -1,6 +1,6 @@
 struct CameraArgs {
   var position: SIMD3<Float> = .zero
-  var basis:  (
+  var basis: (
     SIMD3<Float>,
     SIMD3<Float>,
     SIMD3<Float>
