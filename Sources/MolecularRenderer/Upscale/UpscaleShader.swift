@@ -62,7 +62,7 @@ struct UpscaleShader {
       \(readColor())
       
       // Divide per-pixel coordinates to a range that fits within viewable color.
-      color = color / 10;
+      color = color / 5;
       
       // Red = X motion, green = Y motion
       // Motion with the wrong sign should be clamped to 0 (black).
