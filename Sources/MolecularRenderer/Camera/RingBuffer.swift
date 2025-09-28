@@ -3,20 +3,29 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public struct RingBuffer {
+struct RingBufferDescriptor {
+  var accessLevel: BufferAccessLevel?
+  var device: Device?
+  var size: Int?
+}
+
+struct RingBuffer {
   #if os(Windows)
-  public var inputBuffers: [Buffer] = []
+  var inputBuffers: [Buffer] = []
   #endif
-  public var nativeBuffers: [Buffer] = []
+  var nativeBuffers: [Buffer] = []
   
-  public init(
-    device: Device,
-    byteCount: Int
-  ) {
+  init(descriptor: RingBufferDescriptor) {
+    guard let accessLevel = descriptor.accessLevel,
+          let device = descriptor.device,
+          let size = descriptor.size else {
+      fatalError("Descriptor was incomplete.")
+    }
+    
     for _ in 0..<3 {
       var bufferDesc = BufferDescriptor()
       bufferDesc.device = device
-      bufferDesc.size = byteCount
+      bufferDesc.size = size
       
       #if os(Windows)
       bufferDesc.type = .input
@@ -24,13 +33,13 @@ public struct RingBuffer {
       inputBuffers.append(inputBuffer)
       #endif
       
-      bufferDesc.type = .native(.device)
+      bufferDesc.type = .native(accessLevel)
       let nativeBuffer = Buffer(descriptor: bufferDesc)
       nativeBuffers.append(nativeBuffer)
     }
   }
   
-  public mutating func write<T>(
+  mutating func write<T>(
     data: [T],
     inFlightFrameID: Int
   ) {
@@ -47,7 +56,7 @@ public struct RingBuffer {
   }
   
   #if os(Windows)
-  public func copy(
+  func copy(
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
@@ -63,6 +72,7 @@ public struct RingBuffer {
       inputBuffer: inputBuffer,
       nativeBuffer: nativeBuffer)
     
+    // TODO: Change from unordered access to constant buffer.
     let unorderedAccessBarrier = nativeBuffer
       .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
     try! commandList.d3d12CommandList.ResourceBarrier(

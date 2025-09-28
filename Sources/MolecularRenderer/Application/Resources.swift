@@ -52,15 +52,30 @@ class Resources {
       descriptorHeap: descriptorHeap, offset: 0)
     #endif
     
-    self.atomBuffer = RingBuffer(
-      device: device,
-      byteCount: 1000 * 16)
-    self.transactionTracker = TransactionTracker(
-      atomCount: 1000)
+    self.atomBuffer = Self.createAtomBuffer(device: device)
+    self.transactionTracker = TransactionTracker(atomCount: 1000)
     
-    self.cameraArgsBuffer = RingBuffer(
-      device: device,
-      byteCount: MemoryLayout<CameraArgs>.stride * 2)
+    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
     self.previousCameraArgs = nil
+  }
+  
+  private static func createAtomBuffer(
+    device: Device
+  ) -> RingBuffer {
+    var ringBufferDesc = RingBufferDescriptor()
+    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.device = device
+    ringBufferDesc.size = 1000 * 16
+    return RingBuffer(descriptor: ringBufferDesc)
+  }
+  
+  private static func createCameraArgsBuffer(
+    device: Device
+  ) -> RingBuffer {
+    var ringBufferDesc = RingBufferDescriptor()
+    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.device = device
+    ringBufferDesc.size = MemoryLayout<CameraArgs>.stride * 2
+    return RingBuffer(descriptor: ringBufferDesc)
   }
 }

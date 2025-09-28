@@ -7,7 +7,7 @@ import WinSDK
 
 public struct BufferDescriptor {
   public var device: Device?
-  public var size: Int = .zero
+  public var size: Int?
   public var type: BufferType?
   
   public init() {
@@ -91,16 +91,17 @@ public class Buffer {
   
   public init(descriptor: BufferDescriptor) {
     guard let device = descriptor.device,
+          let size = descriptor.size,
           let type = descriptor.type else {
       fatalError("Descriptor was incomplete.")
     }
     self.type = type
     
     // Check that the size is valid.
-    guard descriptor.size > 0 else {
+    guard size > 0 else {
       fatalError("Buffer size must be nonzero.")
     }
-    self.size = descriptor.size
+    self.size = size
     
     #if os(macOS)
     // Create the buffer.
