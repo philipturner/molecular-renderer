@@ -81,9 +81,6 @@ extension Application {
         var constantArgs = ConstantArgs()
         constantArgs.atomCount = UInt32(atomCount)
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
-        constantArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
-        constantArgs.cameraPosition = camera.position
-        constantArgs.cameraBasis = camera.basis
         commandList.set32BitConstants(constantArgs, index: 0)
         
         // Bind the camera args buffer.
