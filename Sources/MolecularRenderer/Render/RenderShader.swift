@@ -124,6 +124,34 @@ struct RenderShader {
       """
     }
     
+    func computeMotionVector() -> String {
+      guard upscaleFactor > 1 else {
+        return ""
+      }
+      
+      return """
+      {
+        // Intersection of jittered ray (pixelCoords are jittered).
+        float3 currentHitPoint = query.rayOrigin;
+        currentHitPoint += intersect.distance * query.rayDirection;
+        
+        // Not yet implemented atom motion vector tracking.
+        float3 atomMotionVector = 0;
+        float3 previousHitPoint = currentHitPoint + atomMotionVector;
+        
+        // Invert mapping: ray intersection -> primary ray direction
+        float3 cameraPosition = cameraArgs.data[1].position;
+        float3 rayDirection = previousHitPoint - cameraPosition;
+        rayDirection = normalize(rayDirection);
+        
+        // Undo camera basis mapping.
+        Matrix3x3 cameraBasis = cameraArgs.data[1].basis;
+        rayDirection = cameraBasis.transpose().multiply(rayDirection);
+        
+      }
+      """
+    }
+    
     return """
     \(importStandardLibrary())
     
@@ -168,6 +196,7 @@ struct RenderShader {
       
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
+      \(computeMotionVector())
       
       // Background color.
       float3 color = float3(0.707, 0.707, 0.707);
