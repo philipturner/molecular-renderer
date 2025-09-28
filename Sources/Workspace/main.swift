@@ -15,9 +15,13 @@
 // motion vectors, from the camera projection matrix:
 // - Refactor 'ConstantArgs'. Create a separate data type for
 //   frame-specific camera args relevant to generating motion vectors.
+//   - Remove the properties belonging to CameraArgs *after* cameraArgs has been
+//     implemented. This process is more step-wise and an easier transition
+//     into the new change.
 // - Keep track of the camera arguments from the previous frame. For the very
 //   first frame rendered (frameID = 0), the arguments for the previous
 //   frame should just duplicate the current frame.
+//   - Buffer with 6 entries, 3 frames in flight * 2 args/frame
 // - Flesh out the pseudocode from my iPad, ensure it compiles on Mac & PC.
 // - Debug motion vector generation
 //   - Divide per-pixel coordinates to a range that fits within viewable color.
