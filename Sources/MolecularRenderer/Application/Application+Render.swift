@@ -26,11 +26,13 @@ private func renderUAVBarrier(
 #endif
 
 extension Application {
-  public func render() -> Image {
+  private func writeCameraArgs() {
     // TODO: Process the camera args, handling previousCameraArgs.
-    
     // Write the camera args to the GPU buffer.
-    
+  }
+  
+  // Returns the atom count for binding the constant arguments.
+  private func writeAtoms() -> Int {
     let transaction = atoms.registerChanges()
     resources.transactionTracker.register(transaction: transaction)
     let atoms = resources.transactionTracker.compactedAtoms()
@@ -39,6 +41,11 @@ extension Application {
     resources.atomBuffer.write(
       data: atoms,
       inFlightFrameID: frameID % 3)
+    return atoms.count
+  }
+  
+  public func render() -> Image {
+    let atomCount = writeAtoms()
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
@@ -56,7 +63,7 @@ extension Application {
       commandList.withPipelineState(resources.renderShader) {
         // Bind the constant arguments.
         var constantArgs = ConstantArgs()
-        constantArgs.atomCount = UInt32(atoms.count)
+        constantArgs.atomCount = UInt32(atomCount)
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
         constantArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
         constantArgs.cameraPosition = camera.position
