@@ -172,8 +172,7 @@ struct RenderShader {
         // Guarantee this doesn't cause issues from exceeding the dynamic
         // range of FP16.
         motionVector = clamp(motionVector, float(-65000), float(65000));
-        
-        // TODO: Write the actual motion vector to the texture.
+        \(write("float4(motionVector, 0, 0)", texture: "motionTexture"))
       }
       """
     }

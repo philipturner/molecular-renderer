@@ -13,9 +13,9 @@
 //
 // Implementing the majority of the shader code algorithm for generating
 // motion vectors, from the camera projection matrix:
-// - Flesh out the pseudocode from my iPad, ensure it compiles on Mac & PC.
 // - Debug motion vector generation
 //   - Divide per-pixel coordinates to a range that fits within viewable color.
+//     - Perhaps start with 10 pixels moved in a specific direction = 1
 //   - Red = X motion, green = Y motion
 //   - Motion with the wrong sign should be clamped to 0 (black).
 //   - Save the debug shader to a GitHub gist for use when implementing atom
