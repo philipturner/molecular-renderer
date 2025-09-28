@@ -113,7 +113,7 @@ struct RenderShader {
       return """
       {
         float3 rayDirection = primaryRayDirection;
-        float3 cameraDirection = constantArgs.cameraBasis.col2;
+        float3 cameraDirection = cameraArgs.data[0].basis.col2;
         float rayDirectionComponent = dot(rayDirection, cameraDirection);
         float depth = rayDirectionComponent * intersect.distance;
         
@@ -157,12 +157,12 @@ struct RenderShader {
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
-                                         cameraArgs.data[1].tangentFactor,
-                                         constantArgs.cameraBasis);
+                                         cameraArgs.data[0].tangentFactor,
+                                         cameraArgs.data[0].basis);
       
       // Intersect the primary ray.
       IntersectionQuery query;
-      query.rayOrigin = constantArgs.cameraPosition;
+      query.rayOrigin = cameraArgs.data[0].position;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
