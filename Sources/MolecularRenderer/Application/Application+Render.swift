@@ -28,10 +28,10 @@ private func renderUAVBarrier(
 extension Application {
   private func writeCameraArgs() {
     var currentCameraArgs = CameraArgs()
+    currentCameraArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
     currentCameraArgs.position = camera.position
     currentCameraArgs.basis = camera.basis
-    currentCameraArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
-        
+    
     let previousCameraArgs = resources.previousCameraArgs ?? currentCameraArgs
     let cameraArgsList = [currentCameraArgs, previousCameraArgs]
     resources.cameraArgsBuffer.write(
@@ -54,6 +54,7 @@ extension Application {
   }
   
   public func render() -> Image {
+    writeCameraArgs()
     let atomCount = writeAtoms()
     
     device.commandQueue.withCommandList { commandList in
