@@ -7,6 +7,11 @@
 //     works, otherwise it doesn't work correctly.
 //   - Migrate to an FP16 version that needs DescriptorHeap encoding.
 // - No need to run a test where the atoms and camera move simultaneously.
+//   Just copy the debug shader from the GitHub gist, and test motion
+//   vectors from atoms moving.
+// - Implement jitter offsets.
+//   - Fetch the official offsets from the FidelityFX API on Windows.
+//   - Write custom code to generate the same sequence of offsets on macOS.
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
 
