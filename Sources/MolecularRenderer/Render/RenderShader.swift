@@ -51,7 +51,7 @@ struct RenderShader {
         constant ConstantArgs &constantArgs [[buffer(\(Self.constantArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
-        device float3 *atomMotionVectors [[buffer(\(Self.atomMotionVectors))]],
+        device float4 *atomMotionVectors [[buffer(\(Self.atomMotionVectors))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
@@ -63,7 +63,7 @@ struct RenderShader {
       ConstantBuffer<ConstantArgs> constantArgs : register(b\(Self.constantArgs));
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
-      RWStructuredBuffer<float3> atomMotionVectors : register(u\(Self.atomMotionVectors));
+      RWStructuredBuffer<float4> atomMotionVectors : register(u\(Self.atomMotionVectors));
       RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
       
@@ -224,6 +224,15 @@ struct RenderShader {
       query.rayOrigin = cameraArgs.data[0].position;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
+      
+      if (intersect.accept) {
+        float4 atomMotionVector = float4(atomMotionVectors[intersect.atomID]);
+        if (atomMotionVector.x == 1) {
+          intersect.accept = true;
+        } else {
+          intersect.accept = false;
+        }
+      }
       
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
