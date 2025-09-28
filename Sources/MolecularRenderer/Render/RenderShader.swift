@@ -148,6 +148,32 @@ struct RenderShader {
         Matrix3x3 cameraBasis = cameraArgs.data[1].basis;
         rayDirection = cameraBasis.transpose().multiply(rayDirection);
         
+        // Invert operation: normalize(rayDirection)
+        rayDirection *= -1 / rayDirection.z;
+        
+        // Invert the preparation of screen-space coordinates.
+        float2 screenCoords = rayDirection.xy;
+        screenCoords /= cameraArgs.data[1].tangentFactor;
+        screenCoords.y = -screenCoords.y;
+        screenCoords.x *= float(screenDimensions.y) / float(screenDimensions.x);
+        screenCoords = (screenCoords + 1) / 2;
+        
+        // Important: dynamic resolution not allowed.
+        float2 previousPixelCoords = screenCoords * float2(screenDimensions);
+        
+        // Compare against current coordinates.
+        float2 jitterOffset = float2(0);
+        float2 currentPixelCoords = float2(pixelCoords) + 0.5;
+        currentPixelCoords += jitterOffset;
+        
+        // FidelityFX docs: encode motion from current frame to previous frame
+        float2 motionVector = previousPixelCoords - currentPixelCoords;
+        
+        // Guarantee this doesn't cause issues from exceeding the dynamic
+        // range of FP16.
+        motionVector = clamp(motionVector, float2(-65000), float2(65000));
+        
+        // TODO: Write the actual motion vector to the texture.
       }
       """
     }
