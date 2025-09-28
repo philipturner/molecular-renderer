@@ -162,7 +162,7 @@ struct RenderShader {
         float2 previousPixelCoords = screenCoords * float2(screenDimensions);
         
         // Compare against current coordinates.
-        float2 jitterOffset = float2(0);
+        float2 jitterOffset = 0;
         float2 currentPixelCoords = float2(pixelCoords) + 0.5;
         currentPixelCoords += jitterOffset;
         
@@ -171,7 +171,7 @@ struct RenderShader {
         
         // Guarantee this doesn't cause issues from exceeding the dynamic
         // range of FP16.
-        motionVector = clamp(motionVector, float2(-65000), float2(65000));
+        motionVector = clamp(motionVector, float(-65000), float(65000));
         
         // TODO: Write the actual motion vector to the texture.
       }
