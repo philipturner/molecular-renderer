@@ -130,7 +130,7 @@ struct RenderShader {
       }
       
       return """
-      {
+      if (intersect.accept) {
         // Intersection of jittered ray (pixelCoords are jittered).
         float3 currentHitPoint = query.rayOrigin;
         currentHitPoint += intersect.distance * query.rayDirection;
@@ -172,6 +172,9 @@ struct RenderShader {
         // Guarantee this doesn't cause issues from exceeding the dynamic
         // range of FP16.
         motionVector = clamp(motionVector, float(-65000), float(65000));
+        \(write("float4(motionVector, 0, 0)", texture: "motionTexture"))
+      } else {
+        float2 motionVector = 0;
         \(write("float4(motionVector, 0, 0)", texture: "motionTexture"))
       }
       """

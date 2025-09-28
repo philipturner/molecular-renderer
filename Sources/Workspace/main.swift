@@ -145,7 +145,7 @@ func modifyCamera() {
   let angleDegrees = 0.1 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(-1, 0, 0))
+    axis: SIMD3(0, 0, -1))
   
   // Place the camera 1.0 nm away from the origin.
   application.camera.position = rotation.act(on: SIMD3(0, 0, 1.00))
