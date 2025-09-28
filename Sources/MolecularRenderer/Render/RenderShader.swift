@@ -21,13 +21,13 @@ struct RenderShader {
         
         #if os(macOS)
         return """
-        texture2d<float, access::write> depthTexture [[texture(4)]],
-        texture2d<float, access::write> motionTexture [[texture(5)]],
+        texture2d<float, access::write> depthTexture [[texture(\(Self.depthTexture))]],
+        texture2d<float, access::write> motionTexture [[texture(\(Self.motionTexture))]],
         """
         #else
         return """
-        RWTexture2D<float4> depthTexture : register(u4);
-        RWTexture2D<float4> motionTexture : register(u5);
+        RWTexture2D<float4> depthTexture : register(u\(Self.depthTexture));
+        RWTexture2D<float4> motionTexture : register(u\(Self.motionTexture));
         """
         #endif
       }
@@ -39,8 +39,8 @@ struct RenderShader {
         }
         
         return """
-        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
-        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+        "DescriptorTable(UAV(u\(Self.depthTexture), numDescriptors = 1)),"
+        "DescriptorTable(UAV(u\(Self.motionTexture), numDescriptors = 1)),"
         """
       }
       #endif
@@ -48,10 +48,10 @@ struct RenderShader {
       #if os(macOS)
       return """
       kernel void render(
-        constant ConstantArgs &constantArgs [[buffer(0)]],
-        constant CameraArgsList &cameraArgs [[buffer(1)]],
-        device float4 *atoms [[buffer(2)]],
-        texture2d<float, access::write> colorTexture [[texture(3)]],
+        constant ConstantArgs &constantArgs [[buffer(\(Self.constantArgs))]],
+        constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
+        device float4 *atoms [[buffer(\(Self.atoms))]],
+        texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
       """
@@ -59,18 +59,18 @@ struct RenderShader {
       let byteCount = MemoryLayout<ConstantArgs>.size
       
       return """
-      ConstantBuffer<ConstantArgs> constantArgs : register(b0);
-      ConstantBuffer<CameraArgsList> cameraArgs : register(b1);
-      RWStructuredBuffer<float4> atoms : register(u2);
-      RWTexture2D<float4> colorTexture : register(u3);
+      ConstantBuffer<ConstantArgs> constantArgs : register(b\(Self.constantArgs));
+      ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
+      RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
+      RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
       
       [numthreads(8, 8, 1)]
       [RootSignature(
-        "RootConstants(b0, num32BitConstants = \(byteCount / 4)),"
-        "CBV(b1),"
-        "UAV(u2),"
-        "DescriptorTable(UAV(u3, numDescriptors = 1)),"
+        "RootConstants(b\(Self.constantArgs), num32BitConstants = \(byteCount / 4)),"
+        "CBV(b\(Self.cameraArgs)),"
+        "UAV(u\(Self.atoms)),"
+        "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(optionalRootSignatureArguments())
       )]
       void render(

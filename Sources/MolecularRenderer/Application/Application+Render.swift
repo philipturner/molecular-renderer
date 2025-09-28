@@ -81,26 +81,29 @@ extension Application {
         var constantArgs = ConstantArgs()
         constantArgs.atomCount = UInt32(atomCount)
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
-        commandList.set32BitConstants(constantArgs, index: 0)
+        commandList.set32BitConstants(
+          constantArgs, index: RenderShader.constantArgs)
         
         // Bind the camera args buffer.
         let cameraArgsBuffer = resources.cameraArgsBuffer
           .nativeBuffers[frameID % 3]
-        commandList.setBuffer(cameraArgsBuffer, index: 1)
+        commandList.setBuffer(
+          cameraArgsBuffer, index: RenderShader.cameraArgs)
         
         // Bind the atom buffer.
         let atomBuffer = resources.atomBuffer
           .nativeBuffers[frameID % 3]
-        commandList.setBuffer(atomBuffer, index: 2)
+        commandList.setBuffer(
+          atomBuffer, index: RenderShader.atoms)
         
         // Bind the color texture.
         #if os(macOS)
         let colorTexture = renderTarget.colorTextures[frameID % 2]
         commandList.mtlCommandEncoder.setTexture(
-          colorTexture, index: 3)
+          colorTexture, index: RenderShader.colorTexture)
         #else
         commandList.setDescriptor(
-          handleID: frameID % 2, index: 3)
+          handleID: frameID % 2, index: RenderShader.colorTexture)
         #endif
         
         // Bind the depth and motion textures.
@@ -109,14 +112,14 @@ extension Application {
           let depthTexture = renderTarget.depthTextures[frameID % 2]
           let motionTexture = renderTarget.motionTextures[frameID % 2]
           commandList.mtlCommandEncoder.setTexture(
-            depthTexture, index: 4)
+            depthTexture, index: RenderShader.depthTexture)
           commandList.mtlCommandEncoder.setTexture(
-            motionTexture, index: 5)
+            motionTexture, index: RenderShader.motionTexture)
           #else
           commandList.setDescriptor(
-            handleID: 2 + frameID % 2, index: 4)
+            handleID: 2 + frameID % 2, index: RenderShader.depthTexture)
           commandList.setDescriptor(
-            handleID: 4 + frameID % 2, index: 5)
+            handleID: 4 + frameID % 2, index: RenderShader.motionTexture)
           #endif
         }
         
