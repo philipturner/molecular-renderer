@@ -2,24 +2,11 @@
 // - Debug motion vectors and camera orientation matrices changing between
 //   frames. Also establish depth textures; all the details except actual
 //   invocation of the upscaler.
-//   - Last component of this task is doing the motion vectors.
-//   - Choosing one of the auxiliary textures as input for upscaling is an
-//     incredible method to debug.
-//   - First do the camera projection matrix part, where atoms stay static.
-//     Then figure out tracking the motion delta when atoms may move over
+//   - Figure out tracking the motion delta when atoms may move over
 //     time (this is part of atom transactions).
+// - No need to run a test where the atoms and camera move simultaneously.
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
-//
-// Implementing the majority of the shader code algorithm for generating
-// motion vectors, from the camera projection matrix:
-// - Debug motion vector generation
-//   - Divide per-pixel coordinates to a range that fits within viewable color.
-//     - Perhaps start with 10 pixels moved in a specific direction = 1
-//   - Red = X motion, green = Y motion
-//   - Motion with the wrong sign should be clamped to 0 (black).
-//   - Save the debug shader to a GitHub gist for use when implementing atom
-//     transactions for "atom motion vectors".
 
 import HDL
 import MolecularRenderer
@@ -104,7 +91,12 @@ func createTime() -> Float {
 
 @MainActor
 func modifyAtoms() {
+  // 0.5 Hz rotation rate
   let time = createTime()
+  let angleDegrees = 0.5 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(0, 1, 0))
   
   let roundedDownTime = Int(time.rounded(.down))
   if roundedDownTime % 2 == 0 {
@@ -118,7 +110,8 @@ func modifyAtoms() {
     animationState = .isopropanol
     for i in isopropanol.indices {
       let atomID = 0 + i
-      let atom = isopropanol[i]
+      var atom = isopropanol[i]
+      atom.position = rotation.act(on: atom.position)
       application.atoms[atomID] = atom
     }
   } else {
@@ -132,7 +125,8 @@ func modifyAtoms() {
     animationState = .silane
     for i in silane.indices {
       let atomID = 12 + i
-      let atom = silane[i]
+      var atom = silane[i]
+      atom.position = rotation.act(on: atom.position)
       application.atoms[atomID] = atom
     }
   }
@@ -140,19 +134,12 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  // 0.1 Hz rotation rate
-  let time = createTime()
-  let angleDegrees = 0.1 * time * 360
-  let rotation = Quaternion<Float>(
-    angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(0, 0, -1))
-  
   // Place the camera 1.0 nm away from the origin.
-  application.camera.position = rotation.act(on: SIMD3(0, 0, 1.00))
+  application.camera.position = SIMD3(0, 0, 1.00)
   
-  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
-  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
-  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
+  application.camera.basis.0 = SIMD3(1, 0, 0)
+  application.camera.basis.1 = SIMD3(0, 1, 0)
+  application.camera.basis.2 = SIMD3(0, 0, 1)
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 

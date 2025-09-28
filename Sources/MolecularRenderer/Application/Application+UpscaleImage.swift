@@ -17,7 +17,7 @@ extension Application {
       commandList.withPipelineState(resources.upscaleShader) {
         // Bind the textures.
         #if os(macOS)
-        let colorTexture = renderTarget.motionTextures[frameID % 2]
+        let colorTexture = renderTarget.colorTextures[frameID % 2]
         let upscaledTexture = renderTarget.upscaledTextures[frameID % 2]
         commandList.mtlCommandEncoder
           .setTexture(colorTexture, index: 0)
@@ -25,7 +25,7 @@ extension Application {
           .setTexture(upscaledTexture, index: 1)
         #else
         commandList.setDescriptor(
-          handleID: 4 + frameID % 2, index: 0)
+          handleID: frameID % 2, index: 0)
         commandList.setDescriptor(
           handleID: 6 + frameID % 2, index: 1)
         #endif
