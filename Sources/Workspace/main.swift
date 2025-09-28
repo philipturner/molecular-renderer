@@ -10,6 +10,21 @@
 //     time (this is part of atom transactions).
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
+//
+// Implementing the majority of the shader code algorithm for generating
+// motion vectors, from the camera projection matrix:
+// - Refactor 'ConstantArgs'. Create a separate data type for
+//   frame-specific camera args relevant to generating motion vectors.
+// - Keep track of the camera arguments from the previous frame. For the very
+//   first frame rendered (frameID = 0), the arguments for the previous
+//   frame should just duplicate the current frame.
+// - Flesh out the pseudocode from my iPad, ensure it compiles on Mac & PC.
+// - Debug motion vector generation
+//   - Divide per-pixel coordinates to a range that fits within viewable color.
+//   - Red = X motion, green = Y motion
+//   - Motion with the wrong sign should be clamped to 0 (black).
+//   - Save the debug shader to a GitHub gist for use when implementing atom
+//     transsactions for "atom motion vectors".
 
 import HDL
 import MolecularRenderer
