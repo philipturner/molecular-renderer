@@ -19,7 +19,7 @@
 //   - Red = X motion, green = Y motion
 //   - Motion with the wrong sign should be clamped to 0 (black).
 //   - Save the debug shader to a GitHub gist for use when implementing atom
-//     transsactions for "atom motion vectors".
+//     transactions for "atom motion vectors".
 
 import HDL
 import MolecularRenderer
