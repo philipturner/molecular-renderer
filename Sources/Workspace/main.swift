@@ -2,12 +2,9 @@
 // - Debug motion vectors and camera orientation matrices changing between
 //   frames. Also establish depth textures; all the details except actual
 //   invocation of the upscaler.
-//   - Change the RenderShader codegen depending on whether upscaling is
-//     enabled. If so, add more arguments for the extra textures. Rearrange
-//     the buffer table indices to be robust against certain textures
-//     not existing.
-//   - Implement and validate the depth texture first, because it's the
-//     simplest process.
+//   - Last component of this task is doing the motion vectors.
+//   - Choosing one of the auxiliary textures as input for upscaling is an
+//     incredible method to debug.
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
 
