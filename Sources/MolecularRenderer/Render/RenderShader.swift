@@ -154,12 +154,12 @@ struct RenderShader {
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
-                                         cameraArgs[0].tangentFactor,
+                                         constantArgs.tangentFactor,
                                          constantArgs.cameraBasis);
       
       // Intersect the primary ray.
       IntersectionQuery query;
-      query.rayOrigin = cameraArgs[0].position;
+      query.rayOrigin = constantArgs.cameraPosition;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       

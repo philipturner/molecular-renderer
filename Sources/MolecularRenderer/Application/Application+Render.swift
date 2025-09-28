@@ -28,9 +28,9 @@ private func renderUAVBarrier(
 extension Application {
   private func writeCameraArgs() {
     var currentCameraArgs = CameraArgs()
-    currentCameraArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
     currentCameraArgs.position = camera.position
     currentCameraArgs.basis = camera.basis
+    currentCameraArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
     
     let previousCameraArgs = resources.previousCameraArgs ?? currentCameraArgs
     let cameraArgsList = [currentCameraArgs, previousCameraArgs]
