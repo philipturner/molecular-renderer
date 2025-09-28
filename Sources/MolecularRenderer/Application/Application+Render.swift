@@ -58,6 +58,9 @@ extension Application {
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
+      resources.cameraArgsBuffer.copy(
+        commandList: commandList,
+        inFlightFrameID: frameID % 3)
       resources.atomBuffer.copy(
         commandList: commandList,
         inFlightFrameID: frameID % 3)
