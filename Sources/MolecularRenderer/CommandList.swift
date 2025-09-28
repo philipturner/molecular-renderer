@@ -109,7 +109,7 @@ extension CommandList {
     }
   }
   
-  /// Bind a UAV buffer to the buffer table.
+  /// Bind a CBV/UAV buffer to the buffer table.
   public func setBuffer(
     _ buffer: Buffer,
     index: Int,
@@ -124,9 +124,20 @@ extension CommandList {
     var gpuAddress = try! buffer.d3d12Resource.GetGPUVirtualAddress()
     gpuAddress += UInt64(offset)
     
-    try! d3d12CommandList.SetComputeRootUnorderedAccessView(
-      UInt32(index), // RootParameterIndex
-      gpuAddress) // BufferLocation
+    switch buffer.type {
+    case .native(.constant):
+      try! d3d12CommandList.SetComputeRootConstantBufferView(
+        UInt32(index), // RootParameterIndex
+        gpuAddress) // BufferLocation
+    case .native(.device):
+      try! d3d12CommandList.SetComputeRootUnorderedAccessView(
+        UInt32(index), // RootParameterIndex
+        gpuAddress) // BufferLocation
+    default:
+      fatalError("This should never happen.")
+    }
+    
+    
     #endif
   }
   

@@ -88,4 +88,6 @@ struct RingBuffer {
       1, [unorderedAccessBarrier])
   }
   #endif
+  
+  // This helper function is designed specifically
 }

@@ -43,32 +43,6 @@ public class DescriptorHeap {
   }
   
   // Encode a CPU descriptor and return its index in the heap.
-  public func createCBV(
-    resource: SwiftCOM.ID3D12Resource,
-    cbvDesc: D3D12_CONSTANT_BUFFER_VIEW_DESC
-  ) -> Int {
-    guard offset < count else {
-      fatalError("Exceeded number of allocated descriptors.")
-    }
-    
-    // Retrieve the CPU descriptor handle.
-    var cpuHandle = try! d3d12DescriptorHeap
-      .GetCPUDescriptorHandleForHeapStart()
-    cpuHandle.ptr += UInt64(offset * incrementSize)
-    
-    // Create the CBV.
-    var cbvDescCopy = cbvDesc
-    try! device.d3d12Device.CreateConstantBufferView(
-      &cbvDescCopy, // pDesc
-      cpuHandle) // DestDescriptor
-    
-    // Process the offset / descriptor index.
-    let output = offset
-    offset += 1
-    return output
-  }
-  
-  // Encode a CPU descriptor and return its index in the heap.
   public func createUAV(
     resource: SwiftCOM.ID3D12Resource,
     uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC?
