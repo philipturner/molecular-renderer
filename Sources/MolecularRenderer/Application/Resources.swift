@@ -13,6 +13,7 @@ class Resources {
   let descriptorHeap: DescriptorHeap
   #endif
   var atomBuffer: RingBuffer
+  var atomMotionVectorsBuffer: RingBuffer
   var transactionTracker: TransactionTracker
   
   var cameraArgsBuffer: RingBuffer
@@ -53,6 +54,8 @@ class Resources {
     #endif
     
     self.atomBuffer = Self.createAtomBuffer(device: device)
+    self.atomMotionVectorsBuffer = Self
+      .createAtomMotionVectorsBuffer(device: device)
     self.transactionTracker = TransactionTracker(atomCount: 1000)
     
     self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
@@ -66,6 +69,16 @@ class Resources {
     ringBufferDesc.accessLevel = .device
     ringBufferDesc.device = device
     ringBufferDesc.size = 1000 * 16
+    return RingBuffer(descriptor: ringBufferDesc)
+  }
+  
+  private static func createAtomMotionVectorsBuffer(
+    device: Device
+  ) -> RingBuffer {
+    var ringBufferDesc = RingBufferDescriptor()
+    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.device = device
+    ringBufferDesc.size = 1000 * 16 // TODO: Change to 1000 * 8
     return RingBuffer(descriptor: ringBufferDesc)
   }
   
