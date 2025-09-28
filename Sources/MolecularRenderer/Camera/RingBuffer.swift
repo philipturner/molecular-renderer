@@ -24,7 +24,7 @@ public struct RingBuffer {
       inputBuffers.append(inputBuffer)
       #endif
       
-      bufferDesc.type = .native
+      bufferDesc.type = .native(.device)
       let nativeBuffer = Buffer(descriptor: bufferDesc)
       nativeBuffers.append(nativeBuffer)
     }

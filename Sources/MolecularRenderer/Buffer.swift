@@ -15,6 +15,14 @@ public struct BufferDescriptor {
   }
 }
 
+public enum BufferAccessLevel {
+  // GPU can only read.
+  case constant
+  
+  // GPU can both read and write.
+  case device
+}
+
 public enum BufferType {
   #if os(Windows)
   /// CPU can write, GPU cannot access in a compute shader.
@@ -22,7 +30,7 @@ public enum BufferType {
   #endif
   
   /// GPU memory accesses are fast.
-  case native
+  case native(BufferAccessLevel)
   
   #if os(Windows)
   /// CPU can read, GPU cannot access in a compute shader.
@@ -56,7 +64,9 @@ public enum BufferType {
     switch self {
     case .input:
       return D3D12_RESOURCE_FLAG_NONE
-    case .native:
+    case .native(.constant):
+      return D3D12_RESOURCE_FLAG_NONE
+    case .native(.device):
       return D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS
     case .output:
       return D3D12_RESOURCE_FLAG_NONE
@@ -135,10 +145,11 @@ public class Buffer {
     self.state = type.initialState
     
     // Map the pointer for CPU access.
-    if type == .input || type == .output {
+    switch type {
+    case .input, .output:
       let mappedPointer = try! d3d12Resource.Map(0, nil)
       self.mappedPointer = mappedPointer
-    } else {
+    default:
       self.mappedPointer = nil
     }
     #endif
@@ -146,8 +157,11 @@ public class Buffer {
   
   deinit {
     #if os(Windows)
-    if type == .input || type == .output {
+    switch type {
+    case .input, .output:
       try! d3d12Resource.Unmap(0, nil)
+    default:
+      break
     }
     #endif
   }
@@ -161,7 +175,11 @@ public class Buffer {
     #if os(macOS)
     let mappedPointer = mtlBuffer.contents()
     #else
-    guard type == .input else {
+    
+    switch type {
+    case .input:
+      break
+    default:
       fatalError("Can only write to input buffers.")
     }
     #endif
@@ -177,7 +195,11 @@ public class Buffer {
     #if os(macOS)
     let mappedPointer = mtlBuffer.contents()
     #else
-    guard type == .output else {
+    
+    switch type {
+    case .output:
+      break
+    default:
       fatalError("Can only read from output buffers.")
     }
     #endif
