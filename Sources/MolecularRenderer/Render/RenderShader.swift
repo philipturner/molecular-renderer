@@ -159,7 +159,7 @@ struct RenderShader {
       
       // Intersect the primary ray.
       IntersectionQuery query;
-      query.rayOrigin = constantArgs.cameraPosition;
+      query.rayOrigin = cameraArgs[0].position;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
       
