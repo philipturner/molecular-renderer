@@ -15,6 +15,9 @@ class Resources {
   var atomBuffer: RingBuffer
   var transactionTracker: TransactionTracker
   
+  var cameraArgsBuffer: RingBuffer
+  var previousCameraArgs: CameraArgs?
+  
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
           let renderTarget = descriptor.renderTarget else {
@@ -54,5 +57,10 @@ class Resources {
       byteCount: 1000 * 16)
     self.transactionTracker = TransactionTracker(
       atomCount: 1000)
+    
+    self.cameraArgsBuffer = RingBuffer(
+      device: device,
+      byteCount: MemoryLayout<CameraArgs>.stride * 2)
+    self.previousCameraArgs = nil
   }
 }
