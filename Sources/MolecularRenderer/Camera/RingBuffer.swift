@@ -72,9 +72,18 @@ struct RingBuffer {
       inputBuffer: inputBuffer,
       nativeBuffer: nativeBuffer)
     
-    // TODO: Change from unordered access to constant buffer.
+    func createState() -> D3D12_RESOURCE_STATES {
+      switch nativeBuffer.type {
+      case .native(.constant):
+        return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+      case .native(.device):
+        return D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+      default:
+        fatalError("This should never happen.")
+      }
+    }
     let unorderedAccessBarrier = nativeBuffer
-      .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+      .transition(state: createState())
     try! commandList.d3d12CommandList.ResourceBarrier(
       1, [unorderedAccessBarrier])
   }

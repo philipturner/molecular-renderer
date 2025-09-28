@@ -49,7 +49,7 @@ struct RenderShader {
       return """
       kernel void render(
         constant ConstantArgs &constantArgs [[buffer(0)]],
-        device CameraArgs *cameraArgs [[buffer(1)]],
+        constant CameraArgsList &cameraArgs [[buffer(1)]],
         device float4 *atoms [[buffer(2)]],
         texture2d<float, access::write> colorTexture [[texture(3)]],
         \(optionalFunctionArguments())
@@ -60,7 +60,7 @@ struct RenderShader {
       
       return """
       ConstantBuffer<ConstantArgs> constantArgs : register(b0);
-      RWStructuredBuffer<CameraArgs> cameraArgs : register(u1);
+      ConstantBuffer<CameraArgsList> cameraArgs : register(b1);
       RWStructuredBuffer<float4> atoms : register(u2);
       RWTexture2D<float4> colorTexture : register(u3);
       \(optionalFunctionArguments())
@@ -68,7 +68,7 @@ struct RenderShader {
       [numthreads(8, 8, 1)]
       [RootSignature(
         "RootConstants(b0, num32BitConstants = \(byteCount / 4)),"
-        "UAV(u1),"
+        "CBV(b1),"
         "UAV(u2),"
         "DescriptorTable(UAV(u3, numDescriptors = 1)),"
         \(optionalRootSignatureArguments())
@@ -135,6 +135,9 @@ struct RenderShader {
     
     \(ConstantArgs.shaderDeclaration)
     \(CameraArgs.shaderDeclaration)
+    struct CameraArgsList {
+      CameraArgs data[2];
+    };
     
     \(functionSignature())
     {
@@ -154,7 +157,7 @@ struct RenderShader {
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
-                                         constantArgs.tangentFactor,
+                                         cameraArgs.data[1].tangentFactor,
                                          constantArgs.cameraBasis);
       
       // Intersect the primary ray.

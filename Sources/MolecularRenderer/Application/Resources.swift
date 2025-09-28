@@ -73,7 +73,7 @@ class Resources {
     device: Device
   ) -> RingBuffer {
     var ringBufferDesc = RingBufferDescriptor()
-    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.accessLevel = .constant
     ringBufferDesc.device = device
     ringBufferDesc.size = MemoryLayout<CameraArgs>.stride * 2
     return RingBuffer(descriptor: ringBufferDesc)
