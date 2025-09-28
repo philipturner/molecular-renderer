@@ -27,8 +27,18 @@ private func renderUAVBarrier(
 
 extension Application {
   private func writeCameraArgs() {
-    // TODO: Process the camera args, handling previousCameraArgs.
-    // Write the camera args to the GPU buffer.
+    var currentCameraArgs = CameraArgs()
+    currentCameraArgs.position = camera.position
+    currentCameraArgs.basis = camera.basis
+    currentCameraArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
+        
+    let previousCameraArgs = resources.previousCameraArgs ?? currentCameraArgs
+    let cameraArgsList = [currentCameraArgs, previousCameraArgs]
+    resources.cameraArgsBuffer.write(
+      data: cameraArgsList,
+      inFlightFrameID: frameID % 3)
+    
+    resources.previousCameraArgs = currentCameraArgs
   }
   
   // Returns the atom count for binding the constant arguments.
@@ -37,7 +47,6 @@ extension Application {
     resources.transactionTracker.register(transaction: transaction)
     let atoms = resources.transactionTracker.compactedAtoms()
     
-    // Write the atoms to the GPU buffer.
     resources.atomBuffer.write(
       data: atoms,
       inFlightFrameID: frameID % 3)
@@ -70,9 +79,15 @@ extension Application {
         constantArgs.cameraBasis = camera.basis
         commandList.set32BitConstants(constantArgs, index: 0)
         
+        // Bind the camera args buffer.
+        let cameraArgsBuffer = resources.cameraArgsBuffer
+          .nativeBuffers[frameID % 3]
+        commandList.setBuffer(cameraArgsBuffer, index: 1)
+        
         // Bind the atom buffer.
-        let nativeBuffer = resources.atomBuffer.nativeBuffers[frameID % 3]
-        commandList.setBuffer(nativeBuffer, index: 2)
+        let atomBuffer = resources.atomBuffer
+          .nativeBuffers[frameID % 3]
+        commandList.setBuffer(atomBuffer, index: 2)
         
         // Bind the color texture.
         #if os(macOS)
