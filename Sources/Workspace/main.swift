@@ -1,9 +1,11 @@
 // Implementation of upscaling:
-// - Debug motion vectors and camera orientation matrices changing between
-//   frames. Also establish depth textures; all the details except actual
-//   invocation of the upscaler.
-//   - Figure out tracking the motion delta when atoms may move over
-//     time (this is part of atom transactions).
+// - Figure out tracking the motion delta when atoms may move over
+//   time (this is part of atom transactions).
+//   - Start with a ring buffer that stores motion vectors in FP16.
+//   - Start with an FP32 version.
+//   - Perform some checks on whether the motion vector is 1, the shader
+//     works, otherwise it doesn't work correctly.
+//   - Migrate to an FP16 version that needs DescriptorHeap encoding.
 // - No need to run a test where the atoms and camera move simultaneously.
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
