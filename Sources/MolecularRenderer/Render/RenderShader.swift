@@ -51,6 +51,7 @@ struct RenderShader {
         constant ConstantArgs &constantArgs [[buffer(\(Self.constantArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
+        device float3 *atomMotionVectors [[buffer(\(Self.atomMotionVectors))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
@@ -62,6 +63,7 @@ struct RenderShader {
       ConstantBuffer<ConstantArgs> constantArgs : register(b\(Self.constantArgs));
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
+      RWStructuredBuffer<float3> atomMotionVectors : register(u\(Self.atomMotionVectors));
       RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
       
@@ -70,6 +72,7 @@ struct RenderShader {
         "RootConstants(b\(Self.constantArgs), num32BitConstants = \(byteCount / 4)),"
         "CBV(b\(Self.cameraArgs)),"
         "UAV(u\(Self.atoms)),"
+        "UAV(u\(Self.atomMotionVectors)),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(optionalRootSignatureArguments())
       )]

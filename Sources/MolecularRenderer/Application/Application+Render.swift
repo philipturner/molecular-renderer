@@ -48,11 +48,18 @@ extension Application {
   private func writeAtoms() -> Int {
     let transaction = atoms.registerChanges()
     resources.transactionTracker.register(transaction: transaction)
-    let atoms = resources.transactionTracker.compactedAtoms()
     
+    let atoms = resources.transactionTracker.compactedAtoms()
     resources.atomBuffer.write(
       data: atoms,
       inFlightFrameID: frameID % 3)
+    
+    let atomMotionVectors = [SIMD3<Float>](
+      repeating: SIMD3(0, 0, 0), count: atoms.count)
+    resources.atomMotionVectorsBuffer.write(
+      data: atomMotionVectors,
+      inFlightFrameID: frameID % 3)
+    
     return atoms.count
   }
   
@@ -66,6 +73,9 @@ extension Application {
         commandList: commandList,
         inFlightFrameID: frameID % 3)
       resources.atomBuffer.copy(
+        commandList: commandList,
+        inFlightFrameID: frameID % 3)
+      resources.atomMotionVectorsBuffer.copy(
         commandList: commandList,
         inFlightFrameID: frameID % 3)
       #endif
