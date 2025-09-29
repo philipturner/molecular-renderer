@@ -55,10 +55,8 @@ extension Application {
       data: atoms,
       inFlightFrameID: frameID % 3)
     
-    let actualMotionVectors = resources.transactionTracker
+    let motionVectors = resources.transactionTracker
       .compactedMotionVectors()
-    let motionVectors = [SIMD3<Float16>](
-      repeating: SIMD3(1, 0, 0), count: atoms.count)
     resources.motionVectorsBuffer.write(
       data: motionVectors,
       inFlightFrameID: frameID % 3)

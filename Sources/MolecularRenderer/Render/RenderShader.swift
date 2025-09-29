@@ -139,7 +139,7 @@ struct RenderShader {
         currentHitPoint += intersect.distance * query.rayDirection;
         
         // Not yet implemented atom motion vector tracking.
-        float3 atomMotionVector = 0;
+        float3 atomMotionVector = float3(motionVectors[intersect.atomID].xyz);
         float3 previousHitPoint = currentHitPoint + atomMotionVector;
         
         // Invert mapping: ray intersection -> primary ray direction
@@ -224,15 +224,6 @@ struct RenderShader {
       query.rayOrigin = cameraArgs.data[0].position;
       query.rayDirection = primaryRayDirection;
       IntersectionResult intersect = rayIntersector.intersect(query);
-      
-      if (intersect.accept) {
-        float3 motionVector = float3(motionVectors[intersect.atomID].xyz);
-        if (motionVector.x == 1) {
-          intersect.accept = true;
-        } else {
-          intersect.accept = false;
-        }
-      }
       
       // Write the depth and motion vector ASAP, reducing register pressure.
       \(computeDepth())
