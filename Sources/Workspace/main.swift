@@ -1,8 +1,6 @@
 // Implementation of upscaling:
 // - Figure out tracking the motion delta when atoms may move over
 //   time (this is part of atom transactions).
-//   - Draft atom motion vector tracking in TransactionTracker.
-//   - Step through the basic state of the first 20 buffer slots.
 //   - Then, forward the motion vector data to the GPU.
 // - No need to run a test where the atoms and camera move simultaneously.
 //   Just copy the debug shader from the GitHub gist, and test motion

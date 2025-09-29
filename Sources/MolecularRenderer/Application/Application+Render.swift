@@ -63,44 +63,6 @@ extension Application {
       data: motionVectors,
       inFlightFrameID: frameID % 3)
     
-    if false {
-      // Begin this frame's printout.
-      print()
-      
-      print("positions")
-      for i in 0..<20 {
-        let position = resources.transactionTracker.positions[i]
-        print("-", position)
-      }
-      
-      print("motion vectors")
-      for i in 0..<20 {
-        let motionVector = resources.transactionTracker.motionVectors[i]
-        print("-", motionVector)
-      }
-      
-      print("occupied")
-      for i in 0..<20 {
-        let occupied = resources.transactionTracker.occupied[i]
-        print("-", occupied)
-      }
-      
-      print("previous moved atom IDs")
-      for atomID in resources.transactionTracker.previousMovedAtomIDs {
-        print("-", atomID)
-      }
-      
-      print("compacted atoms")
-      for atom in atoms {
-        print("-", atom)
-      }
-      
-      print("compacted motion vectorsoooo")
-      for motionVector in actualMotionVectors {
-        print("-", motionVector)
-      }
-    }
-    
     return atoms.count
   }
   
