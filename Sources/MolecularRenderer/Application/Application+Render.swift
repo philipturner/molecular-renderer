@@ -63,7 +63,7 @@ extension Application {
       data: motionVectors,
       inFlightFrameID: frameID % 3)
     
-    if frameID < 5 {
+    if false {
       // Begin this frame's printout.
       print()
       
@@ -95,7 +95,7 @@ extension Application {
         print("-", atom)
       }
       
-      print("compacted motion vectors")
+      print("compacted motion vectorsoooo")
       for motionVector in actualMotionVectors {
         print("-", motionVector)
       }

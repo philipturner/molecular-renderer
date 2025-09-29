@@ -44,14 +44,12 @@ struct RingBuffer {
     inFlightFrameID: Int
   ) {
     data.withUnsafeBytes { bufferPointer in
-      let baseAddress = bufferPointer.baseAddress!
-      
       #if os(macOS)
       let buffer = nativeBuffers[inFlightFrameID]
       #else
       let buffer = inputBuffers[inFlightFrameID]
       #endif
-      buffer.write(input: baseAddress)
+      buffer.write(input: bufferPointer)
     }
   }
   
