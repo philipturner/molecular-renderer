@@ -9,15 +9,17 @@ class Resources {
   let renderShader: Shader
   let upscaleShader: Shader
   
-  #if os(Windows)
-  let descriptorHeap: DescriptorHeap
-  #endif
   var atomBuffer: RingBuffer
   var atomMotionVectorsBuffer: RingBuffer
   var transactionTracker: TransactionTracker
   
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
+  
+  #if os(Windows)
+  let descriptorHeap: DescriptorHeap
+  let atomMotionVectorsBaseHandleID: Int
+  #endif
   
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -42,6 +44,14 @@ class Resources {
     shaderDesc.name = "upscale"
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
+    self.atomBuffer = Self.createAtomBuffer(device: device)
+    self.atomMotionVectorsBuffer = Self
+      .createAtomMotionVectorsBuffer(device: device)
+    self.transactionTracker = TransactionTracker(atomCount: 1000)
+    
+    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
+    self.previousCameraArgs = nil
+    
     #if os(Windows)
     // Create the descriptor heap.
     var descriptorHeapDesc = DescriptorHeapDescriptor()
@@ -51,15 +61,13 @@ class Resources {
     
     renderTarget.encode(
       descriptorHeap: descriptorHeap, offset: 0)
+    self.atomMotionVectorsBaseHandleID = renderTarget.descriptorCount
+    
+    Self.encode(
+      atomMotionVectorsBuffer: atomMotionVectorsBuffer,
+      descriptorHeap: descriptorHeap,
+      offset: atomMotionVectorsBaseHandleID)
     #endif
-    
-    self.atomBuffer = Self.createAtomBuffer(device: device)
-    self.atomMotionVectorsBuffer = Self
-      .createAtomMotionVectorsBuffer(device: device)
-    self.transactionTracker = TransactionTracker(atomCount: 1000)
-    
-    self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
-    self.previousCameraArgs = nil
   }
   
   private static func createAtomBuffer(
@@ -90,5 +98,13 @@ class Resources {
     ringBufferDesc.device = device
     ringBufferDesc.size = MemoryLayout<CameraArgs>.stride * 2
     return RingBuffer(descriptor: ringBufferDesc)
+  }
+  
+  private static func encode(
+    atomMotionVectorsBuffer: RingBuffer,
+    descriptorHeap: DescriptorHeap,
+    offset: Int
+  ) {
+    
   }
 }
