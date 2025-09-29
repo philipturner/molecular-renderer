@@ -1,12 +1,8 @@
 // Implementation of upscaling:
-// - Figure out tracking the motion delta when atoms may move over
-//   time (this is part of atom transactions).
-//   - Then, forward the motion vector data to the GPU.
-// - No need to run a test where the atoms and camera move simultaneously.
-//   Just copy the debug shader from the GitHub gist, and test motion
-//   vectors from atoms moving.
 // - Implement jitter offsets.
 //   - Fetch the official offsets from the FidelityFX API on Windows.
+//   - Challenging open-ended question of where to put the code that invokes
+//     FidelityFX, during this first step.
 //   - Write custom code to generate the same sequence of offsets on macOS.
 // - Implement Apple MetalFX upscaling first, because more familiar (have
 //   correctly working reference code).
@@ -94,12 +90,12 @@ func createTime() -> Float {
 
 @MainActor
 func modifyAtoms() {
-  // 0.1 Hz rotation rate
+  // 0.5 Hz rotation rate
   let time = createTime()
-  let angleDegrees = 0.1 * time * 360
+  let angleDegrees = 0.5 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(0, 0, 1))
+    axis: SIMD3(0, 1, 0))
   
   let roundedDownTime = Int(time.rounded(.down))
   if roundedDownTime % 2 == 0 {
