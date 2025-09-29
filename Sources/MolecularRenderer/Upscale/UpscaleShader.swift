@@ -61,6 +61,13 @@ struct UpscaleShader {
       uint2 inputCoords = pixelCoords / \(Int(upscaleFactor));
       \(readColor())
       
+      // Divide per-pixel coordinates to a range that fits within viewable color.
+      color = color / 5;
+      
+      // Red = X motion, green = Y motion
+      // Motion with the wrong sign should be clamped to 0 (black).
+      color = saturate(color);
+      
       // Write to the output texture.
       \(writeColor())
     }

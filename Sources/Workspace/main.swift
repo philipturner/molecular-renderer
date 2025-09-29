@@ -94,12 +94,12 @@ func createTime() -> Float {
 
 @MainActor
 func modifyAtoms() {
-  // 0.5 Hz rotation rate
+  // 0.1 Hz rotation rate
   let time = createTime()
-  let angleDegrees = 0.5 * time * 360
+  let angleDegrees = 0.1 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
-    axis: SIMD3(0, 1, 0))
+    axis: SIMD3(0, 0, 1))
   
   let roundedDownTime = Int(time.rounded(.down))
   if roundedDownTime % 2 == 0 {
