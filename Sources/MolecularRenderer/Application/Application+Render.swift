@@ -54,7 +54,7 @@ extension Application {
       data: atoms,
       inFlightFrameID: frameID % 3)
     
-    let atomMotionVectors = [SIMD3<Float>](
+    let atomMotionVectors = [SIMD3<Float16>](
       repeating: SIMD3(1, 0, 0), count: atoms.count)
     resources.atomMotionVectorsBuffer.write(
       data: atomMotionVectors,
@@ -107,10 +107,17 @@ extension Application {
           atomBuffer, index: RenderShader.atoms)
         
         // Bind the atom motion vectors buffer.
+        #if os(macOS)
         let atomMotionVectorsBuffer = resources.atomMotionVectorsBuffer
           .nativeBuffers[frameID % 3]
         commandList.setBuffer(
           atomMotionVectorsBuffer, index: RenderShader.atomMotionVectors)
+        #else
+        let baseHandleID = resources.atomMotionVectorsBaseHandleID
+        commandList.setDescriptor(
+          handleID: baseHandleID + frameID % 3,
+          index: RenderShader.atomMotionVectors)
+        #endif
         
         // Bind the color texture.
         #if os(macOS)

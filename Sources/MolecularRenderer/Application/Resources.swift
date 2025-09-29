@@ -1,3 +1,8 @@
+#if os(Windows)
+import SwiftCOM
+import WinSDK
+#endif
+
 struct ResourcesDescriptor {
   var device: Device?
   var renderTarget: RenderTarget?
@@ -53,16 +58,21 @@ class Resources {
     self.previousCameraArgs = nil
     
     #if os(Windows)
+    // Prefix sum the offset of each descriptor.
+    self.atomMotionVectorsBaseHandleID = renderTarget.descriptorCount
+    let descriptorCount = atomMotionVectorsBaseHandleID + 3
+    
     // Create the descriptor heap.
     var descriptorHeapDesc = DescriptorHeapDescriptor()
     descriptorHeapDesc.device = device
-    descriptorHeapDesc.count = renderTarget.descriptorCount
+    descriptorHeapDesc.count = descriptorCount
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     
+    // Encode the render target.
     renderTarget.encode(
       descriptorHeap: descriptorHeap, offset: 0)
-    self.atomMotionVectorsBaseHandleID = renderTarget.descriptorCount
     
+    // Encode the atom motion vectors.
     Self.encode(
       atomMotionVectorsBuffer: atomMotionVectorsBuffer,
       descriptorHeap: descriptorHeap,
@@ -86,7 +96,7 @@ class Resources {
     var ringBufferDesc = RingBufferDescriptor()
     ringBufferDesc.accessLevel = .device
     ringBufferDesc.device = device
-    ringBufferDesc.size = 1000 * 16 // TODO: Change to 1000 * 8
+    ringBufferDesc.size = 1000 * 8
     return RingBuffer(descriptor: ringBufferDesc)
   }
   
@@ -100,11 +110,30 @@ class Resources {
     return RingBuffer(descriptor: ringBufferDesc)
   }
   
+  #if os(Windows)
   private static func encode(
     atomMotionVectorsBuffer: RingBuffer,
     descriptorHeap: DescriptorHeap,
     offset: Int
   ) {
+    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+    uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+    uavDesc.Buffer.FirstElement = 0
+    uavDesc.Buffer.NumElements = 1000 // WARNING: Manually sync with actual size.
+    uavDesc.Buffer.StructureByteStride = 0
+    uavDesc.Buffer.CounterOffsetInBytes = 0
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
+    for i in 0..<3 {
+      let nativeBuffer = atomMotionVectorsBuffer.nativeBuffers[i]
+      let handleID = descriptorHeap.createUAV(
+        resource: nativeBuffer.d3d12Resource,
+        uavDesc: uavDesc)
+      guard handleID == offset + i else {
+        fatalError("This should never happen.")
+      }
+    }
   }
+  #endif
 }
