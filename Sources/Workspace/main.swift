@@ -1,11 +1,9 @@
 // Implementation of upscaling:
 // - Figure out tracking the motion delta when atoms may move over
 //   time (this is part of atom transactions).
-//   - Start with a ring buffer that stores motion vectors in FP16.
-//   - Start with an FP32 version.
-//   - Perform some checks on whether the motion vector is 1, the shader
-//     works, otherwise it doesn't work correctly.
-//   - Migrate to an FP16 version that needs DescriptorHeap encoding.
+//   - Draft atom motion vector tracking in TransactionTracker.
+//   - Step through the basic state of the first 20 buffer slots.
+//   - Then, forward the motion vector data to the GPU.
 // - No need to run a test where the atoms and camera move simultaneously.
 //   Just copy the debug shader from the GitHub gist, and test motion
 //   vectors from atoms moving.

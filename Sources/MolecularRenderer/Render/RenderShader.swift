@@ -51,7 +51,7 @@ struct RenderShader {
         constant ConstantArgs &constantArgs [[buffer(\(Self.constantArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
-        device half4 *atomMotionVectors [[buffer(\(Self.atomMotionVectors))]],
+        device half3 *atomMotionVectors [[buffer(\(Self.atomMotionVectors))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
@@ -226,7 +226,7 @@ struct RenderShader {
       IntersectionResult intersect = rayIntersector.intersect(query);
       
       if (intersect.accept) {
-        float4 atomMotionVector = float4(atomMotionVectors[intersect.atomID]);
+        float3 atomMotionVector = float3(atomMotionVectors[intersect.atomID].xyz);
         if (atomMotionVector.x == 1) {
           intersect.accept = true;
         } else {
