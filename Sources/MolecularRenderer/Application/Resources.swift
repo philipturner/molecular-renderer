@@ -15,15 +15,15 @@ class Resources {
   let upscaleShader: Shader
   
   var atomBuffer: RingBuffer
-  var atomMotionVectorsBuffer: RingBuffer
+  var motionVectorsBuffer: RingBuffer
   var transactionTracker: TransactionTracker
   
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
   
   #if os(Windows)
+  let motionVectorsBaseHandleID: Int
   let descriptorHeap: DescriptorHeap
-  let atomMotionVectorsBaseHandleID: Int
   #endif
   
   init(descriptor: ResourcesDescriptor) {
@@ -50,8 +50,7 @@ class Resources {
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
     self.atomBuffer = Self.createAtomBuffer(device: device)
-    self.atomMotionVectorsBuffer = Self
-      .createAtomMotionVectorsBuffer(device: device)
+    self.motionVectorsBuffer = Self.createMotionVectorsBuffer(device: device)
     self.transactionTracker = TransactionTracker(atomCount: 1000)
     
     self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
@@ -59,8 +58,8 @@ class Resources {
     
     #if os(Windows)
     // Prefix sum the offset of each descriptor.
-    self.atomMotionVectorsBaseHandleID = renderTarget.descriptorCount
-    let descriptorCount = atomMotionVectorsBaseHandleID + 3
+    self.motionVectorsBaseHandleID = renderTarget.descriptorCount
+    let descriptorCount = motionVectorsBaseHandleID + 3
     
     // Create the descriptor heap.
     var descriptorHeapDesc = DescriptorHeapDescriptor()
@@ -72,11 +71,11 @@ class Resources {
     renderTarget.encode(
       descriptorHeap: descriptorHeap, offset: 0)
     
-    // Encode the atom motion vectors.
+    // Encode the motion vectors.
     Self.encode(
-      atomMotionVectorsBuffer: atomMotionVectorsBuffer,
+      motionVectorsBuffer: motionVectorsBuffer,
       descriptorHeap: descriptorHeap,
-      offset: atomMotionVectorsBaseHandleID)
+      offset: motionVectorsBaseHandleID)
     #endif
   }
   
@@ -90,7 +89,7 @@ class Resources {
     return RingBuffer(descriptor: ringBufferDesc)
   }
   
-  private static func createAtomMotionVectorsBuffer(
+  private static func createMotionVectorsBuffer(
     device: Device
   ) -> RingBuffer {
     var ringBufferDesc = RingBufferDescriptor()
@@ -112,7 +111,7 @@ class Resources {
   
   #if os(Windows)
   private static func encode(
-    atomMotionVectorsBuffer: RingBuffer,
+    motionVectorsBuffer: RingBuffer,
     descriptorHeap: DescriptorHeap,
     offset: Int
   ) {
@@ -126,7 +125,7 @@ class Resources {
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
     for i in 0..<3 {
-      let nativeBuffer = atomMotionVectorsBuffer.nativeBuffers[i]
+      let nativeBuffer = motionVectorsBuffer.nativeBuffers[i]
       let handleID = descriptorHeap.createUAV(
         resource: nativeBuffer.d3d12Resource,
         uavDesc: uavDesc)
