@@ -98,4 +98,17 @@ public struct TransactionTracker {
     
     return output
   }
+  
+  public func compactedMotionVectors() -> [SIMD3<Float16>] {
+    var output: [SIMD3<Float16>] = []
+    for atomID in 0..<atomCount {
+      guard occupied[atomID] else {
+        continue
+      }
+      
+      let motionVector = motionVectors[atomID]
+      output.append(motionVector)
+    }
+    return output
+  }
 }

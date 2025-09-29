@@ -49,16 +49,57 @@ extension Application {
     let transaction = atoms.registerChanges()
     resources.transactionTracker.register(transaction: transaction)
     
-    let atoms = resources.transactionTracker.compactedAtoms()
+    let atoms = resources.transactionTracker
+      .compactedAtoms()
     resources.atomBuffer.write(
       data: atoms,
       inFlightFrameID: frameID % 3)
     
+    let actualMotionVectors = resources.transactionTracker
+      .compactedMotionVectors()
     let motionVectors = [SIMD3<Float16>](
       repeating: SIMD3(1, 0, 0), count: atoms.count)
     resources.motionVectorsBuffer.write(
       data: motionVectors,
       inFlightFrameID: frameID % 3)
+    
+    if frameID < 5 {
+      // Begin this frame's printout.
+      print()
+      
+      print("positions")
+      for i in 0..<20 {
+        let position = resources.transactionTracker.positions[i]
+        print("-", position)
+      }
+      
+      print("motion vectors")
+      for i in 0..<20 {
+        let motionVector = resources.transactionTracker.motionVectors[i]
+        print("-", motionVector)
+      }
+      
+      print("occupied")
+      for i in 0..<20 {
+        let occupied = resources.transactionTracker.occupied[i]
+        print("-", occupied)
+      }
+      
+      print("previous moved atom IDs")
+      for atomID in resources.transactionTracker.previousMovedAtomIDs {
+        print("-", atomID)
+      }
+      
+      print("compacted atoms")
+      for atom in atoms {
+        print("-", atom)
+      }
+      
+      print("compacted motion vectors")
+      for motionVector in actualMotionVectors {
+        print("-", motionVector)
+      }
+    }
     
     return atoms.count
   }
