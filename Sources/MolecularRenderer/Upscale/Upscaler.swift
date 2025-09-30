@@ -1,6 +1,6 @@
 #if os(macOS)
 import MetalFX
-import QuartzCore
+#endif
 
 struct UpscalerDescriptor {
   var device: Device?
@@ -9,7 +9,11 @@ struct UpscalerDescriptor {
 }
 
 class Upscaler {
+  #if os(macOS)
   let scaler: MTLFXTemporalScaler
+  #else
+  let ffxContext: FFXContext
+  #endif
   
   init(descriptor: UpscalerDescriptor) {
     guard let device = descriptor.device,
@@ -17,6 +21,8 @@ class Upscaler {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
+    
+    #if os(macOS)
     let renderSize = display.frameBufferSize / Int(upscaleFactor)
     let upscaleSize = display.frameBufferSize
     
@@ -51,9 +57,15 @@ class Upscaler {
     scaler.motionVectorScaleX = 1
     scaler.motionVectorScaleY = 1
     scaler.isDepthReversed = true
+    #else
+    var ffxContextDesc = FFXContextDescriptor()
+    ffxContextDesc.device = device
+    ffxContextDesc.display = display
+    ffxContextDesc.upscaleFactor = upscaleFactor
+    self.ffxContext = FFXContext(descriptor: ffxContextDesc)
+    #endif
   }
   
   // TODO: Expose a method to the public API, where the upscaler can be reset
   // by something other than frameID being 0.
 }
-#endif

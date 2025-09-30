@@ -34,9 +34,7 @@ public class Application {
   #endif
   let renderTarget: RenderTarget
   let resources: Resources
-  #if os(macOS)
   let upscaler: Upscaler?
-  #endif
   
   var runLoop: RunLoop?
   public internal(set) var frameID: Int = -1
@@ -84,7 +82,6 @@ public class Application {
     resourcesDesc.renderTarget = renderTarget
     self.resources = Resources(descriptor: resourcesDesc)
     
-    #if os(macOS)
     // Create the upscaler.
     if upscaleFactor > 1 {
       var upscalerDesc = UpscalerDescriptor()
@@ -95,7 +92,6 @@ public class Application {
     } else {
       self.upscaler = nil
     }
-    #endif
     
     guard Application.singleton == nil else {
       fatalError(
