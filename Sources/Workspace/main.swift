@@ -139,6 +139,14 @@ func modifyCamera() {
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 
+#if os(Windows)
+var ffxContextDesc = FFXContextDescriptor()
+ffxContextDesc.device = application.device
+ffxContextDesc.display = application.display
+ffxContextDesc.upscaleFactor = 2
+let ffxContext = FFXContext(descriptor: ffxContextDesc)
+#endif
+
 // Enter the run loop.
 application.run {
   modifyAtoms()

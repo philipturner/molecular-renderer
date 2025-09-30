@@ -14,7 +14,7 @@ public struct FFXContextDescriptor {
 }
 
 public class FFXContext {
-  private let pContext: UnsafeMutablePointer<ffxContext>
+  private let pContext: UnsafeMutablePointer<ffxContext?>
   
   public init(descriptor: FFXContextDescriptor) {
     guard let device = descriptor.device,
@@ -80,16 +80,34 @@ public class FFXContext {
     createBackend.value.device = createID3D12Device()
     
     // Build the linked list.
-    // TODO
+    createContext.pNext = createBackend.pHeader
+    createBackend.pNext = nil
     
-    // TODO: ffxCreateContext
-    fatalError("Not implemented.")
+    // Create the context.
+    do {
+      let error = ffxCreateContext(
+        pContext, // context
+        createContext.pHeader, // desc
+        nil) // memCb
+      guard error == 0 else {
+        fatalError("Encountered error code \(error).")
+      }
+    }
+    print("Successfully created FidelityFX context.")
     
-    // withExtendedLifetime(all descriptors)
+    withExtendedLifetime(createContext) { }
+    withExtendedLifetime(createBackend) { }
   }
   
-  // TODO: ffxDestroyContext in deinit
   deinit {
+    let error = ffxDestroyContext(
+      pContext, // context
+      nil) // memCb
+    guard error == 0 else {
+      fatalError("Encountered error code \(error).")
+    }
+    print("Successfully destroyed FidelityFX context.")
+    
     pContext.deallocate()
   }
   
