@@ -55,7 +55,7 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  applicationDesc.upscaleFactor = 2
   let application = Application(descriptor: applicationDesc)
   
   return application

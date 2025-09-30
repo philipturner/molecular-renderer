@@ -74,11 +74,16 @@ extension Application {
     upscaler.scaler.outputTexture = renderTarget.upscaledTextures[frameID % 2]
     
     let jitterOffset = createJitterOffset()
-    upscaler.scaler.jitterOffsetX = jitterOffset[0]
-    upscaler.scaler.jitterOffsetY = jitterOffset[1]
+    upscaler.scaler.jitterOffsetX = -jitterOffset[0]
+    upscaler.scaler.jitterOffsetY = -jitterOffset[1]
     
-    device.commandQueue.withCommandList {
+    device.commandQueue.withCommandList { commandList in
+      commandList.mtlCommandEncoder.endEncoding()
       
+      upscaler.scaler.encode(commandBuffer: commandList.mtlCommandBuffer)
+      
+      commandList.mtlCommandEncoder =
+      commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     }
     
     #else
