@@ -1,12 +1,5 @@
 extension Application {
-  public func upscale(image: Image) -> Image {
-    guard renderTarget.upscaleFactor > 1 else {
-      fatalError("Upscaling is not allowed.")
-    }
-    guard image.scaleFactor == 1 else {
-      fatalError("Received image with incorrect scale factor.")
-    }
-    
+  private func fallbackUpscale() {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
@@ -46,6 +39,21 @@ extension Application {
         commandList.dispatch(groups: createGroupCount32())
       }
     }
+  }
+  
+  public func upscale(image: Image) -> Image {
+    guard renderTarget.upscaleFactor > 1 else {
+      fatalError("Upscaling is not allowed.")
+    }
+    guard image.scaleFactor == 1 else {
+      fatalError("Received image with incorrect scale factor.")
+    }
+    
+    #if os(macOS)
+    fatalError("Not implemented.")
+    #else
+    fallbackUpscale()
+    #endif
     
     var output = Image()
     output.scaleFactor = renderTarget.upscaleFactor
