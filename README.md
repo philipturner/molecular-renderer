@@ -47,3 +47,21 @@ The window does not register keyboard/mouse events or forward them to the progra
 The most computationally intensive part of rendering is estimating the degree of self-shadowing, or how "occluded" / crowded a location is. A place wedged between two atoms should appear darker than an unobstructed surface exposed directly to open space. In practice, this is achieved by randomly choosing a set of ray directions, then following the rays until they hit a nearby surface.
 
 A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence. There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
+
+### Atom Count Limitation
+
+In its current state, the cross-platform molecular-renderer package lacks an acceleration structure to speed up ray-sphere intersections. Therefore, the compute cost of rendering scales linearly with the atom count. Until an acceleration structure is implemented, you can try tweaking a few settings to render as many atoms as possible.
+
+The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. I designed the code base for a reasonable render target size, which could scale to millions of atoms.
+
+| Multiplicative Factor | Explanation |
+| --------------------- | ----------- |
+| GPU model             | More powerful GPUs render a scene faster |
+| FPS target            | Lower refresh-rate displays permit more render time (in ms/frame) |
+| Window resolution     | Less pixels means less compute cost |
+| Upscale factor        | Make this as high as possible without graphical quality issues |
+| Atom count            | $O(n)$ with the current implementation. In the future, more like $O(1)$ |
+| AO sample count       | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
+| Acceleration structure update | (In the future) GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count. |
+
+These combinations of settings are known to run smoothly (or predicted to):
