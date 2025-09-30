@@ -2,8 +2,7 @@
 // - Implement full upscaling.
 //   - First implement macOS, which is easy (lots of reference code).
 //   - Then implement Windows.
-// - Archive the placeholder code for UpscaleShader and CPU-side encoding.
-// - Delete the placeholder code.
+// - Delete the placeholder code without archiving it.
 //
 // Revisit every object declared as 'public' scoped in the MolecularRenderer
 // library, change most of them to 'internal'.
@@ -43,7 +42,7 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   #if os(macOS)
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1920)
   #else
   displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
   #endif
