@@ -2,6 +2,9 @@
 // - Implement full upscaling.
 //   - First implement macOS, which is easy (lots of reference code).
 //   - Then implement Windows.
+//     - Test the effect of moving objects and motion vectors.
+//   - Test for correct handling of motion from a *moving camera* on both
+//     platforms, not just a moving object.
 // - Delete the placeholder code without archiving it.
 //
 // Revisit every object declared as 'public' scoped in the MolecularRenderer
@@ -54,7 +57,7 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  applicationDesc.upscaleFactor = 2
   let application = Application(descriptor: applicationDesc)
   
   return application
