@@ -50,7 +50,7 @@ A default of 7 secondary rays results in sufficient quality for any general use 
 
 ### Atom Count Limitation
 
-In its current state, the cross-platform molecular-renderer package lacks an acceleration structure to speed up ray-sphere intersections. Therefore, the compute cost of rendering scales linearly with the atom count. Until an acceleration structure is implemented, you can try tweaking a few settings to render as many atoms as possible.
+In its current state, the cross-platform Molecular Renderer lacks an acceleration structure to speed up ray-sphere intersections. Therefore, the compute cost of rendering scales linearly with the atom count. Until an acceleration structure is implemented, you can try tweaking a few settings to render as many atoms as possible.
 
 The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. I designed the code base for a reasonable render target size, which could scale to millions of atoms.
 
@@ -60,8 +60,8 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | FPS target            | Lower refresh-rate displays permit more render time (in ms/frame) |
 | Window resolution     | Less pixels means less compute cost |
 | Upscale factor        | Make this as high as possible without graphical quality issues |
-| Atom count            | $O(n)$ with the current implementation. In the future, more like $O(1)$ |
+| Atom count            | $O(n)$ with the current implementation. In the future, more like $O(1)$. |
 | AO sample count       | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
-| Acceleration structure update | (In the future) GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count. |
+| Acceleration structure update | (In the future) GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). |
 
 These combinations of settings are known to run smoothly (or predicted to):
