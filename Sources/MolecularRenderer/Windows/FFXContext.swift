@@ -135,5 +135,14 @@ public class FFXContext {
       fatalError("Encountered error code \(error).")
     }
   }
+  
+  public static func query<T>(descriptor: FFXDescriptor<T>) {
+    let error = ffxQuery(
+      nil, // context
+      descriptor.pHeader) // desc
+    guard error == 0 else {
+      fatalError("Encountered error code \(error).")
+    }
+  }
 }
 #endif

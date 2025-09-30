@@ -167,7 +167,7 @@ do {
   jitterOffset.value.pOutX = pOut
   jitterOffset.value.pOutY = pOut + 1
   
-  ffxContext.query(descriptor: jitterOffset)
+  FFXContext.query(descriptor: jitterOffset)
   print(pOut[0])
   print(pOut[1])
   }
