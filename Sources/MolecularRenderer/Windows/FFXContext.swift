@@ -46,10 +46,10 @@ public class FFXContext {
       createContext.value.maxUpscaleSize = createFFXDimensions(upscaleSize)
     }
     
-     // Set the callback to crash on all warnings.
+    // Set the callback to crash on all warnings.
     createContext.value.fpMessage = { type, message in
       print("[FidelityFX] Encountered message of type \(type).")
-
+      
       if let message {
         let string = String(decodingCString: message, as: UTF16.self)
         print("[FidelityFX] \(string)")
@@ -58,6 +58,29 @@ public class FFXContext {
       }
       fatalError()
     }
+    
+    // Allocate the CreateBackendDX12Desc.
+    let createBackend = FFXDescriptor<ffxCreateBackendDX12Desc>()
+    createBackend.type = FFX_API_CREATE_CONTEXT_DESC_TYPE_BACKEND_DX12
+    
+    // Set the ID3D12Device.
+    func createID3D12Device() -> UnsafeMutablePointer<WinSDK.ID3D12Device> {
+      let d3d12Device = device.d3d12Device
+      let iid = SwiftCOM.ID3D12Device.IID
+      
+      // Fetch the underlying pointer without worrying about memory leaks.
+      let interface = try! d3d12Device.QueryInterface(iid: iid)
+      _ = try! d3d12Device.Release()
+      
+      guard let interface else {
+        fatalError("This should never happen.")
+      }
+      return interface.assumingMemoryBound(to: WinSDK.ID3D12Device.self)
+    }
+    createBackend.value.device = createID3D12Device()
+    
+    // Build the linked list.
+    // TODO
     
     // TODO: ffxCreateContext
     fatalError("Not implemented.")
