@@ -27,6 +27,10 @@
 // - Make a good backup of the main branch for reference
 // - Migrate archives of experiments to 'nanotech-code-archive' repo
 // - Push the windows-port branch to main
+//   - Last commit of windows-port will be to correct the 'git clone' command
+//     on the README. Remove the '--branch' commands and just download the
+//     main branch. Find the Git settings that result in the smallest possible
+//     download size.
 // - Integrate simulators into main as a separate branch / PR
 //   - During this task, the pending minor maintenance to the simulator code
 //     bases will be performed.

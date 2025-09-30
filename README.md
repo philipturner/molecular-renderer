@@ -52,7 +52,7 @@ A default of 7 secondary rays results in sufficient quality for any general use 
 
 In its current state, the cross-platform Molecular Renderer lacks an acceleration structure to speed up ray-sphere intersections. Therefore, the compute cost of rendering scales linearly with the atom count. Until an acceleration structure is implemented, you can try tweaking a few settings to render as many atoms as possible.
 
-The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. I designed the code base for a reasonable render target size, which could scale to millions of atoms.
+The time to render a frame is a multiplication of many variables. Like the Drake Equation, changing a few by 2x could change the end result by 10x. The code base has always been tested at a "reasonable" window size for general applications, but you can squint at a 480x480 window for structures in the 100&ndash;1000 atom range.
 
 | Multiplicative Factor | Explanation |
 | --------------------- | ----------- |
@@ -64,4 +64,13 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | AO sample count       | Number of rays cast/pixel = (1 + AO sample count). Primary ray will be more expensive than AO rays because it must travel extremely large distances through the uniform grid. |
 | Acceleration structure update | (In the future) GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). |
 
-These combinations of settings are known to run smoothly (or predicted to):
+These combinations of settings are known to run smoothly (or predicted to). For the Windows setup, the FPS target could not be met once AO sample count reached the range of 11&ndash;15.
+
+| Multiplicative Factor | macOS     | macOS (target audience) | Windows |
+| --------------------- | :-------: | :-------: | :-------: |
+| GPU model             | M1 Max    | M1        | GTX 970   |
+| FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
+| Window resolution     | 1920x1920 | 1440x1440 | 1440x1440 |
+| Upscale factor        | 1x        | 1x        | 1x        |
+| Atom count            | 12        | 12        | 12        |
+| AO sample count       | 7         | 7         | 7         |
