@@ -140,10 +140,8 @@ func modifyCamera() {
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 
-#if os(Windows)
 print(JitterOffset.createPhaseCount(upscaleFactor: 2))
 print(JitterOffset.createPhaseCount(upscaleFactor: 3))
-#endif
 
 // Enter the run loop.
 application.run {
