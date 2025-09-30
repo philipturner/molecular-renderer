@@ -4,6 +4,64 @@ import SwiftCOM
 import WinSDK
 #endif
 
+#if os(Windows)
+// Utility for binding DirectX resources.
+func createFFXResource(
+  _ d3d12Resource: SwiftCOM.ID3D12Resource
+) -> FfxApiResource {
+  let iid = SwiftCOM.ID3D12Resource.IID
+  
+  // Fetch the underlying pointer without worrying about memory leaks.
+  let interface = try! d3d12Resource.QueryInterface(iid: iid)
+  _ = try! d3d12Resource.Release()
+  guard let interface else {
+    fatalError("This should never happen.")
+  }
+  
+  // Cannot invoke ffxApiGetResourceDX12 from Clang header import.
+  var output = FfxApiResource()
+  output.resource = interface
+  output.state = UInt32(FFX_API_RESOURCE_STATE_UNORDERED_ACCESS.rawValue)
+  
+  // /// A structure describing a resource.
+  // ///
+  // /// @ingroup SDKTypes
+  // struct FfxApiResourceDescription
+  // {
+  //     uint32_t     type;      ///< The type of the resource.
+  //     uint32_t     format;    ///< The surface format.
+  //     union {
+  //         uint32_t width;     ///< The width of the texture resource.
+  //         uint32_t size;      ///< The size of the buffer resource.
+  //     };
+
+  //     union {
+  //         uint32_t height;    ///< The height of the texture resource.
+  //         uint32_t stride;    ///< The stride of the buffer resource.
+  //     };
+
+  //     union {
+  //         uint32_t depth;     ///< The depth of the texture resource.
+  //         uint32_t alignment; ///< The alignment of the buffer resource.
+  //     };
+
+  //     uint32_t     mipCount;  ///< Number of mips (or 0 for full mipchain).
+  //     uint32_t     flags;     ///< A set of resource flags.
+  //     uint32_t     usage;     ///< Resource usage flags.
+  // };
+  let desc = try! d3d12Resource.GetDesc()
+  output.description.flags = UInt32(
+    FFX_API_RESOURCE_FLAGS_NONE.rawValue)
+  output.description.usage = UInt32(
+    FFX_API_RESOURCE_USAGE_READ_ONLY.rawValue)
+  output.description.usage |= UInt32(
+    FFX_API_RESOURCE_USAGE_UAV.rawValue)
+  
+  
+  fatalError("Not yet written res.description.format.")
+}
+#endif
+
 extension Application {
   private func fallbackUpscale() {
     device.commandQueue.withCommandList { commandList in
@@ -92,53 +150,7 @@ extension Application {
     }
     
     #else
-    // Utility for binding DirectX resources.
-    func createFFXResource(
-      _ d3d12Resource: SwiftCOM.ID3D12Resource
-    ) -> FfxApiResource {
-      let iid = SwiftCOM.ID3D12Resource.IID
-      
-      // Fetch the underlying pointer without worrying about memory leaks.
-      let interface = try! d3d12Resource.QueryInterface(iid: iid)
-      _ = try! d3d12Resource.Release()
-      guard let interface else {
-        fatalError("This should never happen.")
-      }
-      
-      // Cannot invoke ffxApiGetResourceDX12 from Clang header import.
-      var output = FfxApiResource()
-      output.resource = interface
-      output.state = UInt32(FFX_API_RESOURCE_STATE_UNORDERED_ACCESS.rawValue)
-      
-      // /// A structure describing a resource.
-      // ///
-      // /// @ingroup SDKTypes
-      // struct FfxApiResourceDescription
-      // {
-      //     uint32_t     type;      ///< The type of the resource.
-      //     uint32_t     format;    ///< The surface format.
-      //     union {
-      //         uint32_t width;     ///< The width of the texture resource.
-      //         uint32_t size;      ///< The size of the buffer resource.
-      //     };
-
-      //     union {
-      //         uint32_t height;    ///< The height of the texture resource.
-      //         uint32_t stride;    ///< The stride of the buffer resource.
-      //     };
-
-      //     union {
-      //         uint32_t depth;     ///< The depth of the texture resource.
-      //         uint32_t alignment; ///< The alignment of the buffer resource.
-      //     };
-
-      //     uint32_t     mipCount;  ///< Number of mips (or 0 for full mipchain).
-      //     uint32_t     flags;     ///< A set of resource flags.
-      //     uint32_t     usage;     ///< Resource usage flags.
-      // };
-      
-      fatalError("Not yet written res.description.format.")
-    }
+    
     
     // Test createFFXResource on the four resources and print to console,
     // confirming that they were created.
