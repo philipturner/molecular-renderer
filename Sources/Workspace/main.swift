@@ -139,10 +139,10 @@ func modifyCamera() {
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 
-for index in 0..<72 {
+for index in 0..<75 {
   for upscaleFactor in [3, 2] {
     if upscaleFactor == 2 {
-      guard index < 32 else {
+      guard index < 35 else {
         continue
       }
     }

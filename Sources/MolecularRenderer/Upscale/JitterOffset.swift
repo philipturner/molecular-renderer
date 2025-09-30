@@ -59,8 +59,8 @@ public struct JitterOffset {
     
     // Return Halton samples (+/- 0.5, +/- 0.5) that represent offsets of up to
     // half a pixel.
-    let x = halton(index: (index + 1) % phaseCount, base: 2) - 0.5
-    let y = halton(index: (index + 1) % phaseCount, base: 3) - 0.5
+    let x = halton(index: (index % phaseCount) + 1, base: 2) - 0.5
+    let y = halton(index: (index % phaseCount) + 1, base: 3) - 0.5
     
     // We're not sampling textures or working with multiple coordinate spaces.
     // No need to flip the Y coordinate to match another coordinate space.
