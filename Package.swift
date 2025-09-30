@@ -22,8 +22,8 @@ workspaceDependencies += [
 
 // Windows dependencies.
 #if os(Windows)
-workspaceDependencies.append("FidelityFX")
 rendererDependencies += [
+  "FidelityFX",
   .product(name: "SwiftCOM", package: "swift-com"),
 ]
 rendererLinkerSettings.append(
