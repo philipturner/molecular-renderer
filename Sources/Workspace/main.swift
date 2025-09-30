@@ -58,9 +58,9 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   #if os(macOS)
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
+  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1440)
   #else
-  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1080)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
   #endif
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
@@ -70,7 +70,7 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 1
+  applicationDesc.upscaleFactor = 2
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -170,7 +170,7 @@ func modifyCamera() {
   application.camera.basis.0 = SIMD3(1, 0, 0)
   application.camera.basis.1 = SIMD3(0, 1, 0)
   application.camera.basis.2 = SIMD3(0, 0, 1)
-  application.camera.fovAngleVertical = Float.pi / 180 * 20
+  application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 
 // Enter the run loop.
@@ -178,7 +178,7 @@ application.run {
   modifyAtoms()
   modifyCamera()
   
-  let image = application.render()
-  //let upscaled = application.upscale(image: intermediate)
-  application.present(image: image)
+  let intermediate = application.render()
+  let upscaled = application.upscale(image: intermediate)
+  application.present(image: upscaled)
 }

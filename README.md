@@ -71,7 +71,7 @@ These combinations of settings are known to run smoothly (or predicted to).
 | --------------------- | :-------: | :-------: | :-------: |
 | GPU model             | M1 Max    | M1        | GTX 970   |
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
-| Window resolution     | 1920x1920 | 1080x1080 | 1080x1080 |
+| Window resolution     | 1920x1920 | 1200x1200 | 1200x1200 |
 | Upscale factor        | 1x        | 1x        | 1x        |
 | Atom count            | 12        | 12        | 12        |
 | AO sample count       | 7         | 7         | 7         |
