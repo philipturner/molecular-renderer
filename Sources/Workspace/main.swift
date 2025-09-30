@@ -1,8 +1,36 @@
 // Implementation of upscaling:
-// - Massively clean up the old 'FFXUpscaler' as 'FFXContext'.
-// - Implement jitter offsets.
-//   - Fetch the official offsets from the FidelityFX API on Windows.
-//   - Write custom code to generate the same sequence of offsets on macOS.
+// - Integrate jitter offset into the shader, but only when upscaling is
+//   enabled. Otherwise, the jitter offset is zero.
+//   - Confirm that the image looks jittery when upscaling is enabled.
+// - Implement full upscaling.
+//   - First implement macOS, which is easy (lots of reference code).
+//   - Then implement Windows.
+// - Archive the placeholder code for UpscaleShader and CPU-side encoding.
+// - Delete the placeholder code.
+//
+// Implement the "asynchronous raw pixel buffer handler" functionality promised
+// in the render process diagram.
+// - Handlers should be executed on a seqeuntial dispatch queue. Although it's
+//   not thread safe with the main or @MainActor thread, it's thread safe
+//   between sequential calls to itself.
+// - Implement an equivalent of 3 frames in flight DispatchSemaphore for the
+//   asynchronous handlers, to avoid overflowing the dispatch queue for this.
+// - Guarantee that all asynchronous handlers have executed before
+//   'application.run' returns.
+//
+// Revisit every object declared as 'public' scoped in the MolecularRenderer
+// library, change most of them to 'internal'.
+//
+// Clean up all repositories:
+// - Make a good backup of the main branch for reference
+// - Migrate archives of experiments to 'nanotech-code-archive' repo
+// - Push the windows-port branch to main
+// - Integrate simulators into main as a separate branch / PR
+//   - During this task, the pending minor maintenance to the simulator code
+//     bases will be performed.
+//   - Test simple molecular dynamics of adamantane with MM4.
+// - Implement the planned demo
+// - Begin the 'million-atom-scale' branch
 
 import HDL
 import MolecularRenderer
@@ -137,26 +165,6 @@ func modifyCamera() {
   application.camera.basis.1 = SIMD3(0, 1, 0)
   application.camera.basis.2 = SIMD3(0, 0, 1)
   application.camera.fovAngleVertical = Float.pi / 180 * 40
-}
-
-for index in 0..<75 {
-  for upscaleFactor in [3, 2] {
-    if upscaleFactor == 2 {
-      guard index < 35 else {
-        continue
-      }
-    }
-    
-    var jitterOffsetDesc = JitterOffsetDescriptor()
-    jitterOffsetDesc.index = index
-    jitterOffsetDesc.upscaleFactor = Float(upscaleFactor)
-    
-    let jitterOffset = JitterOffset.create(
-      descriptor: jitterOffsetDesc)
-    print(jitterOffset[0], jitterOffset[1], terminator: " | ")
-  }
-  
-  print()
 }
 
 // Enter the run loop.
