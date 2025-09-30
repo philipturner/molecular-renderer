@@ -36,113 +36,11 @@ class Upscaler {
     temporalScalerDesc.inputContentMinScale = upscaleFactor
     temporalScalerDesc.inputContentMaxScale = upscaleFactor
     
-    // ANECompilerService
-    //
-    //
-    //
-    // ## 2x Upscaling, 1920x1920
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 12.843     | 0.277
-    // 12.846     | 0.274
-    // 12.697     | 0.270
-    //
-    // ## 2x Upscaling, 1800x1800
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 10.894     | 0.270
-    // 12.234     | 0.267
-    // 12.013     | 0.271
-    //
-    // ## 2x Upscaling, 1620x1620
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 1.539      | 0.260
-    // 2.722      | 0.259
-    // 1.415      | 0.261
-    //
-    // ## 2x Upscaling, 1440x1440
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 2.065      | 0.251
-    // 2.129      | 0.251
-    // 2.034      | 0.251
-    //
-    // ## 2x Upscaling, 1200x1200
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 1.544      | 0.241
-    // 1.199      | 0.241
-    // 1.581      | 0.242
-    //
-    // ## 2x Upscaling, 1080x1080
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 0.767      | 0.239
-    // 0.709      | 0.237
-    // 0.747      | 0.237
-    //
-    //
-    //
-    // ## 3x Upscaling, 1920x1920
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 1.658      | 0.243
-    // 1.746      | 0.243
-    // 1.148      | 0.243
-    //
-    // ## 3x Upscaling, 1800x1800
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 1.436      | 0.242
-    // 1.641      | 0.241
-    // 1.928      | 0.242
-    //
-    // ## 3x Upscaling, 1620x1620
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 0.736      | 0.239
-    // 0.757      | 0.238
-    // 0.731      | 0.237
-    //
-    // ## 3x Upscaling, 1440x1440
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 0.696      | 0.234
-    // 0.701      | 0.243
-    // 0.776      | 0.228
-    //
-    // ## 3x Upscaling, 1200x1200
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 0.632      | 0.233
-    // 0.641      | 0.231
-    // 0.619      | 0.233
-    //
-    // ## 3x Upscaling, 1080x1080
-    //
-    // first time | second time
-    // ---------- | -----------
-    // 0.585      | 0.225
-    // 0.592      | 0.229
-    // 0.601      | 0.227
-    
-    let start = CACurrentMediaTime()
+    // Location of the massive delay from ANECompilerService, which can
+    // exceed 10 seconds for large textures. The delay happens whenever the
+    // Swift code recompiles from even the slightest change.
     let scaler = temporalScalerDesc.makeTemporalScaler(
       device: device.mtlDevice)
-    let end = CACurrentMediaTime()
-    print("time delay:", String(format: "%.3f", end - start))
     guard let scaler else {
       fatalError("The temporal scaler effect is not usable!")
     }

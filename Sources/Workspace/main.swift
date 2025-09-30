@@ -43,7 +43,7 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   #if os(macOS)
-  displayDesc.frameBufferSize = SIMD2<Int>(1800, 1800)
+  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1440)
   #else
   displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
   #endif
