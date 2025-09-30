@@ -55,12 +55,14 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 2
+  applicationDesc.upscaleFactor = 3
   let application = Application(descriptor: applicationDesc)
   
   return application
 }
+print("Hello world")
 let application = createApplication()
+print("Hello world2")
 
 // State variable to facilitate atom transactions for the animation.
 enum AnimationState {
@@ -159,6 +161,7 @@ func modifyCamera() {
 }
 
 // Enter the run loop.
+print("Hello world3")
 application.run {
   modifyAtoms()
   modifyCamera()

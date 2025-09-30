@@ -52,10 +52,13 @@ public class Application {
     self.device = device
     self.display = display
     
+    print("checkpoint 0")
+    
     self.atoms = Atoms(allocationSize: allocationSize)
     self.camera = Camera()
     self.clock = Clock(display: display)
     self.window = Window(display: display)
+    print("checkpoint 1")
     #if os(macOS)
     self.view = View(display: display)
     
@@ -71,6 +74,7 @@ public class Application {
     self.swapChain = SwapChain(descriptor: swapChainDesc)
     #endif
     
+    print("checkpoint 2")
     // Create the render target.
     var renderTargetDesc = RenderTargetDescriptor()
     renderTargetDesc.device = device
@@ -78,12 +82,14 @@ public class Application {
     renderTargetDesc.upscaleFactor = upscaleFactor
     self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
     
+    print("checkpoint 3")
     // Create the resources container.
     var resourcesDesc = ResourcesDescriptor()
     resourcesDesc.device = device
     resourcesDesc.renderTarget = renderTarget
     self.resources = Resources(descriptor: resourcesDesc)
     
+    print("checkpoint 4")
     #if os(macOS)
     // Create the upscaler.
     if upscaleFactor > 1 {
@@ -96,6 +102,7 @@ public class Application {
       self.upscaler = nil
     }
     #endif
+    print("checkpoint 5")
     
     guard Application.singleton == nil else {
       fatalError(

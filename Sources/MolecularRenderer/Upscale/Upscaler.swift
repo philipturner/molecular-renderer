@@ -1,5 +1,6 @@
 #if os(macOS)
 import MetalFX
+import QuartzCore
 
 struct UpscalerDescriptor {
   var device: Device?
@@ -16,6 +17,7 @@ class Upscaler {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
+    print("checkpoint 4.11")
     let renderSize = display.frameBufferSize / Int(upscaleFactor)
     let upscaleSize = display.frameBufferSize
     
@@ -34,19 +36,34 @@ class Upscaler {
     temporalScalerDesc.isInputContentPropertiesEnabled = false
     temporalScalerDesc.inputContentMinScale = upscaleFactor
     temporalScalerDesc.inputContentMaxScale = upscaleFactor
+    print(temporalScalerDesc.requiresSynchronousInitialization)
     
+    // ANECompilerService
+    //
+    // ## 2x Upscaling
+    //
+    // first time | second time
+    // ---------- | -----------
+    //
+    
+    print("checkpoint 4.2215999")
+    let start = CACurrentMediaTime()
     let scaler = temporalScalerDesc.makeTemporalScaler(
       device: device.mtlDevice)
+    let end = CACurrentMediaTime()
+    print("time delay:", end - start)
     guard let scaler else {
       fatalError("The temporal scaler effect is not usable!")
     }
     self.scaler = scaler
+    print("checkpoint 4.3")
     
     // We already store motion vectors in units of pixels. The default value
     // multiplies the vector by 'intermediateSize', which we don't want.
     scaler.motionVectorScaleX = 1
     scaler.motionVectorScaleY = 1
     scaler.isDepthReversed = true
+    print("checkpoint 4.4")
   }
   
   // TODO: Expose a method to the public API, where the upscaler can be reset
