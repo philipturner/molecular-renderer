@@ -93,7 +93,6 @@ public class FFXContext {
         fatalError("Encountered error code \(error).")
       }
     }
-    print("Successfully created FidelityFX context.")
     
     withExtendedLifetime(createContext) { }
     withExtendedLifetime(createBackend) { }
@@ -106,11 +105,14 @@ public class FFXContext {
     guard error == 0 else {
       fatalError("Encountered error code \(error).")
     }
-    print("Successfully destroyed FidelityFX context.")
     
     pContext.deallocate()
   }
   
-  // TODO: Implement ffxQuery, ffxConfigure, ffxDispatch
+  public func query<T>(descriptor: FFXDescriptor<T>) {
+    
+  }
+  
+  // TODO: Implement ffxConfigure, ffxDispatch
 }
 #endif

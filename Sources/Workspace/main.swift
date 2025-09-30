@@ -140,11 +140,17 @@ func modifyCamera() {
 }
 
 #if os(Windows)
-var ffxContextDesc = FFXContextDescriptor()
-ffxContextDesc.device = application.device
-ffxContextDesc.display = application.display
-ffxContextDesc.upscaleFactor = 2
-let ffxContext = FFXContext(descriptor: ffxContextDesc)
+do {
+  var ffxContextDesc = FFXContextDescriptor()
+  ffxContextDesc.device = application.device
+  ffxContextDesc.display = application.display
+  ffxContextDesc.upscaleFactor = 2
+  let ffxContext = FFXContext(descriptor: ffxContextDesc)
+  
+  // TODO: Query the API version as soon as the query utility is finished.
+  // Then investigate phase count and jitter, calling each function multiple
+  // times.
+}
 #endif
 
 // Enter the run loop.
