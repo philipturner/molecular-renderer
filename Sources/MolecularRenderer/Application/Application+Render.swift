@@ -60,8 +60,19 @@ extension Application {
     resources.motionVectorsBuffer.write(
       data: motionVectors,
       inFlightFrameID: frameID % 3)
-    
     return atoms.count
+  }
+  
+  private func createJitterOffset() -> SIMD2<Float> {
+    guard renderTarget.upscaleFactor > 1 else {
+      return SIMD2<Float>.zero
+    }
+    
+    var jitterOffsetDesc = JitterOffsetDescriptor()
+    jitterOffsetDesc.index = frameID
+    jitterOffsetDesc.upscaleFactor = renderTarget.upscaleFactor
+    
+    return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
   
   public func render() -> Image {
@@ -92,6 +103,7 @@ extension Application {
         var constantArgs = ConstantArgs()
         constantArgs.atomCount = UInt32(atomCount)
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
+        constantArgs.jitterOffset = createJitterOffset()
         commandList.set32BitConstants(
           constantArgs, index: RenderShader.constantArgs)
         

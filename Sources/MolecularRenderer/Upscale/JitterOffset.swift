@@ -71,7 +71,7 @@ public struct JitterOffset {
     jitterOffset.value.index = Int32(index)
     jitterOffset.value.phaseCount = Int32(phaseCount)
     
-    var pOut: UnsafeMutablePointer<Float> = .allocate(capacity: 2)
+    let pOut: UnsafeMutablePointer<Float> = .allocate(capacity: 2)
     defer { pOut.deallocate() }
     pOut[0] = 5
     pOut[1] = 5
