@@ -65,13 +65,13 @@ The time to render a frame is a multiplication of many variables. Like the Drake
 | Acceleration structure update | (In the future) GPU time spent updating the acceleration structure will eat into time available for rendering. The cost of this scales linearly with atom count (atoms that are moving, not atom count of the entire scene). |
 | Coverage of FOV       | Images with mostly empty space will not incur the cost of AO rays. This makes it look like the renderer supports larger atom counts than it actually does, in general applications. |
 
-These combinations of settings are known to run smoothly (or predicted to). For the Windows setup, the FPS target could not be met once AO sample count reached the range of 11&ndash;15.
+These combinations of settings are known to run smoothly (or predicted to).
 
 | Multiplicative Factor | macOS     | macOS (target audience) | Windows |
 | --------------------- | :-------: | :-------: | :-------: |
 | GPU model             | M1 Max    | M1        | GTX 970   |
 | FPS target            | 120 Hz    | 60 Hz     | 60 Hz     |
-| Window resolution     | TBD | 1080x1080 | 1080x1080 |
+| Window resolution     | 1920x1920 | 1080x1080 | 1080x1080 |
 | Upscale factor        | 1x        | 1x        | 1x        |
 | Atom count            | 12        | 12        | 12        |
 | AO sample count       | 7         | 7         | 7         |
