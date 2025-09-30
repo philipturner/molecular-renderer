@@ -145,7 +145,7 @@ do {
   var ffxContextDesc = FFXContextDescriptor()
   ffxContextDesc.device = application.device
   ffxContextDesc.display = application.display
-  ffxContextDesc.upscaleFactor = 3
+  ffxContextDesc.upscaleFactor = 2
   let ffxContext = FFXContext(descriptor: ffxContextDesc)
   
   // TODO: Query the API version as soon as the query utility is finished.
@@ -154,7 +154,23 @@ do {
   
   // TODO: Make and test a version of query that works on the static
   // member of FFXContext, passing null for the context pointer.
-  var jitterOffset = FFXDescriptor<ffxQueryDescUpscaleGetJitterOffset>()
+  for _ in 0..<5 {
+  let jitterOffset = FFXDescriptor<ffxQueryDescUpscaleGetJitterOffset>()
+  jitterOffset.type = FFX_API_QUERY_DESC_TYPE_UPSCALE_GETJITTEROFFSET
+  jitterOffset.value.index = 0
+  jitterOffset.value.phaseCount = 32
+  
+  var pOut: UnsafeMutablePointer<Float> = .allocate(capacity: 2)
+  defer { pOut.deallocate() }
+  pOut[0] = 5
+  pOut[1] = 5
+  jitterOffset.value.pOutX = pOut
+  jitterOffset.value.pOutY = pOut + 1
+  
+  ffxContext.query(descriptor: jitterOffset)
+  print(pOut[0])
+  print(pOut[1])
+  }
 }
 #endif
 
