@@ -57,6 +57,12 @@ func createFFXResource(
   output.description.usage |= UInt32(
     FFX_API_RESOURCE_USAGE_UAV.rawValue)
   
+  output.description.width = UInt32(desc.Width)
+  output.description.height = UInt32(desc.Height)
+  output.description.depth = UInt32(desc.DepthOrArraySize)
+  output.description.mipCount = UInt32(desc.MipLevels)
+  output.description.type = UInt32(
+    FFX_API_RESOURCE_TYPE_TEXTURE2D.rawValue)
   
   fatalError("Not yet written res.description.format.")
 }
