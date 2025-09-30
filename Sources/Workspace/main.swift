@@ -1,7 +1,4 @@
 // Implementation of upscaling:
-// - Integrate jitter offset into the shader, but only when upscaling is
-//   enabled. Otherwise, the jitter offset is zero.
-//   - Confirm that the image looks jittery when upscaling is enabled.
 // - Implement full upscaling.
 //   - First implement macOS, which is easy (lots of reference code).
 //   - Then implement Windows.
