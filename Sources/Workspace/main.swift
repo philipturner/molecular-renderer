@@ -9,6 +9,7 @@ import MolecularRenderer
 import QuaternionModule
 
 #if os(Windows)
+import FidelityFX
 import SwiftCOM
 import WinSDK
 #endif
@@ -144,12 +145,16 @@ do {
   var ffxContextDesc = FFXContextDescriptor()
   ffxContextDesc.device = application.device
   ffxContextDesc.display = application.display
-  ffxContextDesc.upscaleFactor = 2
+  ffxContextDesc.upscaleFactor = 3
   let ffxContext = FFXContext(descriptor: ffxContextDesc)
   
   // TODO: Query the API version as soon as the query utility is finished.
   // Then investigate phase count and jitter, calling each function multiple
   // times.
+  
+  // TODO: Make and test a version of query that works on the static
+  // member of FFXContext, passing null for the context pointer.
+  var jitterOffset = FFXDescriptor<ffxQueryDescUpscaleGetJitterOffset>()
 }
 #endif
 
