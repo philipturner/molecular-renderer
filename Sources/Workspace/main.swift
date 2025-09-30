@@ -9,7 +9,6 @@ import MolecularRenderer
 import QuaternionModule
 
 #if os(Windows)
-import FidelityFX
 import SwiftCOM
 import WinSDK
 #endif
@@ -140,8 +139,25 @@ func modifyCamera() {
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 
-print(JitterOffset.createPhaseCount(upscaleFactor: 2))
-print(JitterOffset.createPhaseCount(upscaleFactor: 3))
+for index in 0..<72 {
+  for upscaleFactor in [3, 2] {
+    if upscaleFactor == 2 {
+      guard index < 32 else {
+        continue
+      }
+    }
+    
+    var jitterOffsetDesc = JitterOffsetDescriptor()
+    jitterOffsetDesc.index = index
+    jitterOffsetDesc.upscaleFactor = Float(upscaleFactor)
+    
+    let jitterOffset = JitterOffset.create(
+      descriptor: jitterOffsetDesc)
+    print(jitterOffset[0], jitterOffset[1], terminator: " | ")
+  }
+  
+  print()
+}
 
 // Enter the run loop.
 application.run {
