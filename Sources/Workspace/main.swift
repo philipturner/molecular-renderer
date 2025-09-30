@@ -148,28 +148,74 @@ do {
   ffxContextDesc.upscaleFactor = 2
   let ffxContext = FFXContext(descriptor: ffxContextDesc)
   
-  // TODO: Query the API version as soon as the query utility is finished.
-  // Then investigate phase count and jitter, calling each function multiple
-  // times.
+  func halton(index: Int, base: Int) -> Float {
+    var result: Float = 0.0
+    var fractional: Float = 1.0
+    var currentIndex: Int = index
+    while currentIndex > 0 {
+      fractional /= Float(base)
+      result += fractional * Float(currentIndex % base)
+      currentIndex /= base
+    }
+    return result
+  }
   
-  // TODO: Make and test a version of query that works on the static
-  // member of FFXContext, passing null for the context pointer.
-  for _ in 0..<5 {
-  let jitterOffset = FFXDescriptor<ffxQueryDescUpscaleGetJitterOffset>()
-  jitterOffset.type = FFX_API_QUERY_DESC_TYPE_UPSCALE_GETJITTEROFFSET
-  jitterOffset.value.index = 0
-  jitterOffset.value.phaseCount = 32
+  func createJitterOffset(index: Int) -> SIMD2<Float> {
+    // The sample uses a Halton sequence rather than purely random numbers to
+    // generate the sample positions to ensure good pixel coverage. This has the
+    // result of sampling a different point within each pixel every frame.
+    
+    // Return Halton samples (+/- 0.5, +/- 0.5) that represent offsets of up to
+    // half a pixel.
+    let x = halton(index: index + 1, base: 2) - 0.5
+    let y = halton(index: index + 1, base: 3) - 0.5
+    
+    // We're not sampling textures or working with multiple coordinate spaces.
+    // No need to flip the Y coordinate to match another coordinate space.
+    return SIMD2(x, y)
+  }
   
-  var pOut: UnsafeMutablePointer<Float> = .allocate(capacity: 2)
-  defer { pOut.deallocate() }
-  pOut[0] = 5
-  pOut[1] = 5
-  jitterOffset.value.pOutX = pOut
-  jitterOffset.value.pOutY = pOut + 1
-  
-  FFXContext.query(descriptor: jitterOffset)
-  print(pOut[0])
-  print(pOut[1])
+  for index in 0..<72 {
+    do {
+      let jitterOffset = createJitterOffset(index: index)
+      print(jitterOffset[0], jitterOffset[1], terminator: " | ")
+    }
+    
+    do {
+      let jitterOffset = FFXDescriptor<ffxQueryDescUpscaleGetJitterOffset>()
+      jitterOffset.type = FFX_API_QUERY_DESC_TYPE_UPSCALE_GETJITTEROFFSET
+      jitterOffset.value.index = Int32(index)
+      jitterOffset.value.phaseCount = 72
+      
+      var pOut: UnsafeMutablePointer<Float> = .allocate(capacity: 2)
+      defer { pOut.deallocate() }
+      pOut[0] = 5
+      pOut[1] = 5
+      jitterOffset.value.pOutX = pOut
+      jitterOffset.value.pOutY = pOut + 1
+      
+      FFXContext.query(descriptor: jitterOffset)
+      print(pOut[0], pOut[1], terminator: " | ")
+    }
+    
+    if index < 32 {
+      let jitterOffset = FFXDescriptor<ffxQueryDescUpscaleGetJitterOffset>()
+      jitterOffset.type = FFX_API_QUERY_DESC_TYPE_UPSCALE_GETJITTEROFFSET
+      jitterOffset.value.index = Int32(index)
+      jitterOffset.value.phaseCount = 32
+      
+      var pOut: UnsafeMutablePointer<Float> = .allocate(capacity: 2)
+      defer { pOut.deallocate() }
+      pOut[0] = 5
+      pOut[1] = 5
+      jitterOffset.value.pOutX = pOut
+      jitterOffset.value.pOutY = pOut + 1
+      
+      FFXContext.query(descriptor: jitterOffset)
+      print(pOut[0], pOut[1], terminator: "")
+    }
+    
+    print()
   }
 }
 #endif
