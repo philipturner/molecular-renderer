@@ -1,6 +1,7 @@
 // Implementation of upscaling:
 // - Query the memory usage of a FidelityFX upscaler prior to creating it,
 //   for both 2x and 3x upscaling.
+// - Find the cause of the segmentation fault when doing the above task!
 // - Make a Swift utility that reduces the boilerplate for creating FidelityFX
 //   API descriptors, managing their headers, managing their deallocation.
 //   - '_read' and '_modify' to elevate a data structure stored deep inside
@@ -47,7 +48,7 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 2
+  applicationDesc.upscaleFactor = 3
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -175,7 +176,7 @@ do {
   }
   do {
     let maxRenderSize = createFFXDimensions(
-      application.display.frameBufferSize / 2)
+      application.display.frameBufferSize / 3)
     let maxUpscaleSize = createFFXDimensions(
       application.display.frameBufferSize)
     upscaleGetGPUMemoryUsageV2.pointee.maxRenderSize = maxRenderSize
@@ -188,6 +189,29 @@ do {
   // Allocate the EffectMemoryUsage, causing a memory leak.
   var effectMemoryUsage = UnsafeMutablePointer<FfxApiEffectMemoryUsage>.allocate(capacity: 1)
   upscaleGetGPUMemoryUsageV2.pointee.gpuMemoryUsageUpscaler = effectMemoryUsage
+  
+  // Obtain a pointer to the header.
+  upscaleGetGPUMemoryUsageV2.withMemoryRebound(
+    to: ffxApiHeader.self, capacity: 1
+  ) { pointer in
+    let error = ffxQuery(nil, pointer)
+    guard error == 0 else {
+      fatalError("Received error code \(error).")
+    }
+  }
+  
+  // 50% of the time, this crashes with a segmentation fault.
+  //
+  // 1440x1080, 2x upscaling
+  //   totalUsageInBytes 48_758_784
+  //   aliasableUsageInBytes 5_636_096
+  //
+  // 1440x1080, 3x upscaling
+  //   totalUsageInBytes 36_896_768
+  //   aliasableUsageInBytes 3_407_872
+  
+  print("Default Upscaler Query GPUMemoryUsageV2 totalUsageInBytes", effectMemoryUsage.pointee.totalUsageInBytes)
+  print("Default Upscaler Query GPUMemoryUsageV2 aliasableUsageInBytes", effectMemoryUsage.pointee.aliasableUsageInBytes)
 }
 #endif
 
