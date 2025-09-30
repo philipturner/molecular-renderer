@@ -24,18 +24,22 @@ private func createFFXSurfaceFormat(
 private func createFFXResource(
   _ d3d12Resource: SwiftCOM.ID3D12Resource
 ) -> FfxApiResource {
-  let iid = SwiftCOM.ID3D12Resource.IID
-  
-  // Fetch the underlying pointer without worrying about memory leaks.
-  let interface = try! d3d12Resource.QueryInterface(iid: iid)
-  _ = try! d3d12Resource.Release()
-  guard let interface else {
-    fatalError("This should never happen.")
+  func createID3D12Resource() -> UnsafeMutableRawPointer {
+    let iid = SwiftCOM.ID3D12Resource.IID
+    
+    // Fetch the underlying pointer without worrying about memory leaks.
+    let interface = try! d3d12Resource.QueryInterface(iid: iid)
+    _ = try! d3d12Resource.Release()
+    
+    guard let interface else {
+      fatalError("This should never happen.")
+    }
+    return interface
   }
   
   // Cannot invoke ffxApiGetResourceDX12 from Clang header import.
   var output = FfxApiResource()
-  output.resource = interface
+  output.resource = createID3D12Resource()
   output.state = UInt32(FFX_API_RESOURCE_STATE_UNORDERED_ACCESS.rawValue)
   
   // /// A structure describing a resource.
@@ -82,6 +86,24 @@ private func createFFXResource(
   let ffxSurfaceFormat = createFFXSurfaceFormat(desc.Format)
   output.description.format = UInt32(ffxSurfaceFormat.rawValue)
   
+  return output
+}
+
+private func createFFXFloatCoords(
+  _ input: SIMD2<Float>
+) -> FfxApiFloatCoords2D {
+  var output = FfxApiFloatCoords2D()
+  output.x = input[0]
+  output.y = input[0]
+  return output
+}
+
+private func createFFXDimensions(
+  _ input: SIMD2<Int>
+) -> FfxApiDimensions2D {
+  var output = FfxApiDimensions2D()
+  output.width = UInt32(input[0])
+  output.height = UInt32(input[1])
   return output
 }
 #endif
@@ -176,22 +198,42 @@ extension Application {
       commandList.mtlCommandEncoder =
       commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     }
-    
     #else
-    // Test createFFXResource on the four resources and print to console,
-    // confirming that they were created.
-    let color = createFFXResource(colorTexture)
-    let depth = createFFXResource(depthTexture)
-    let motion = createFFXResource(motionTexture)
-    let upscaled = createFFXResource(upscaledTexture)
-    
-    print()
-    print(color)
-    print(depth)
-    print(motion)
-    print(upscaled)
-    
-    fallbackUpscale()
+    device.commandQueue.withCommandList { commandList in
+      func createID3D12CommandList() -> UnsafeMutableRawPointer {
+        let d3d12CommandList = commandList.d3d12CommandList
+        let iid = SwiftCOM.ID3D12GraphicsCommandList.IID
+        
+        // Fetch the underlying pointer without worrying about memory leaks.
+        let interface = try! d3d12CommandList.QueryInterface(iid: iid)
+        _ = try! d3d12CommandList.Release()
+        
+        guard let interface else {
+          fatalError("This should never happen.")
+        }
+        return interface
+      }
+      
+      let dispatch = FFXDescriptor<ffxDispatchDescUpscale>()
+      dispatch.type = FFX_API_DISPATCH_DESC_TYPE_UPSCALE
+      dispatch.value.commandList = createID3D12CommandList()
+      
+      dispatch.value.color = createFFXResource(colorTexture)
+      dispatch.value.depth = createFFXResource(depthTexture)
+      dispatch.value.motionVectors = createFFXResource(motionTexture)
+      dispatch.value.output = createFFXResource(upscaledTexture)
+      
+      let jitterOffset = createJitterOffset()
+      let motionVectorScale = SIMD2<Float>(1, 1)
+      dispatch.value.jitterOffset = createFFXFloatCoords(jitterOffset)
+      dispatch.value.motionVectorScale = createFFXFloatCoords(motionVectorScale)
+      
+      let upscaleFactor = renderTarget.upscaleFactor
+      let renderSize = display.frameBufferSize / Int(upscaleFactor)
+      let upscaleSize = display.frameBufferSize
+      dispatch.value.renderSize = createFFXDimensions(renderSize)
+      dispatch.value.upscaleSize = createFFXDimensions(upscaleSize)
+    }
     #endif
     
     var output = Image()
