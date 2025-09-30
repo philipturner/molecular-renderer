@@ -152,18 +152,25 @@ func modifyCamera() {
 }
 
 #if os(Windows)
+print("checkpoint -1")
 do {
   // Allocate the UpscaleGetGPUMemoryUsageV2, causing a memory leak.
   let upscaleGetGPUMemoryUsageV2 = UnsafeMutablePointer<ffxQueryDescUpscaleGetGPUMemoryUsageV2>.allocate(capacity: 1)
   upscaleGetGPUMemoryUsageV2.pointee.header.type = UInt64(FFX_API_QUERY_DESC_TYPE_UPSCALE_GPU_MEMORY_USAGE_V2)
+  upscaleGetGPUMemoryUsageV2.pointee.header.pNext = nil
+  print("checkpoint 0")
   
   // Bind the device, causing a memory leak.
   do {
     let iid = SwiftCOM.ID3D12Device.IID
     let d3d12Device = application.device.d3d12Device
     let interface = try! d3d12Device.QueryInterface(iid: iid)
-    upscaleGetGPUMemoryUsageV2.pointee.device = interface!
+    guard let interface else {
+      fatalError("Could not get interface.")
+    }
+    upscaleGetGPUMemoryUsageV2.pointee.device = interface
   }
+  print("checkpoint 1")
   
   // Bind the texture dimensions.
   func createFFXDimensions(
@@ -182,23 +189,29 @@ do {
     upscaleGetGPUMemoryUsageV2.pointee.maxRenderSize = maxRenderSize
     upscaleGetGPUMemoryUsageV2.pointee.maxUpscaleSize = maxUpscaleSize
   }
+  print("checkpoint 2")
   
   upscaleGetGPUMemoryUsageV2.pointee.flags = UInt32(
     FFX_UPSCALE_ENABLE_DEPTH_INVERTED.rawValue)
+  print("checkpoint 3")
   
   // Allocate the EffectMemoryUsage, causing a memory leak.
   var effectMemoryUsage = UnsafeMutablePointer<FfxApiEffectMemoryUsage>.allocate(capacity: 1)
   upscaleGetGPUMemoryUsageV2.pointee.gpuMemoryUsageUpscaler = effectMemoryUsage
+  print("checkpoint 4")
   
   // Obtain a pointer to the header.
   upscaleGetGPUMemoryUsageV2.withMemoryRebound(
     to: ffxApiHeader.self, capacity: 1
   ) { pointer in
+    print("checkpoint 4.1")
     let error = ffxQuery(nil, pointer)
+    print("checkpoint 4.2")
     guard error == 0 else {
       fatalError("Received error code \(error).")
     }
   }
+  print("checkpoint 5")
   
   // 50% of the time, this crashes with a segmentation fault.
   //
