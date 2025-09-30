@@ -10,6 +10,8 @@
 //
 // Implement the "asynchronous raw pixel buffer handler" functionality promised
 // in the render process diagram.
+// - [IMPORTANT] Decide on the best name for the API function that exposes
+//   this functionality.
 // - Handlers should be executed on a seqeuntial dispatch queue. Although it's
 //   not thread safe with the main or @MainActor thread, it's thread safe
 //   between sequential calls to itself.
