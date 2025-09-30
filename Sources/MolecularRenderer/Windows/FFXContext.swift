@@ -109,10 +109,31 @@ public class FFXContext {
     pContext.deallocate()
   }
   
-  public func query<T>(descriptor: FFXDescriptor<T>) {
-    
+  public func configure<T>(descriptor: FFXDescriptor<T>) {
+    let error = ffxConfigure(
+      pContext, // context
+      descriptor.pHeader) // desc
+    guard error == 0 else {
+      fatalError("Encountered error code \(error).")
+    }
   }
   
-  // TODO: Implement ffxConfigure, ffxDispatch
+  public func query<T>(descriptor: FFXDescriptor<T>) {
+    let error = ffxQuery(
+      pContext, // context
+      descriptor.pHeader) // desc
+    guard error == 0 else {
+      fatalError("Encountered error code \(error).")
+    }
+  }
+  
+  public func dispatch<T>(descriptor: FFXDescriptor<T>) {
+    let error = ffxDispatch(
+      pContext, // context
+      descriptor.pHeader) // desc
+    guard error == 0 else {
+      fatalError("Encountered error code \(error).")
+    }
+  }
 }
 #endif
