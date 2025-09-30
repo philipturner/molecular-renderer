@@ -43,7 +43,7 @@ func createApplication() -> Application {
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
   #if os(macOS)
-  displayDesc.frameBufferSize = SIMD2<Int>(1920, 1440)
+  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1080)
   #else
   displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
   #endif
@@ -60,9 +60,7 @@ func createApplication() -> Application {
   
   return application
 }
-print("Hello world")
 let application = createApplication()
-print("Hello world2")
 
 // State variable to facilitate atom transactions for the animation.
 enum AnimationState {
@@ -161,7 +159,6 @@ func modifyCamera() {
 }
 
 // Enter the run loop.
-print("Hello world3")
 application.run {
   modifyAtoms()
   modifyCamera()

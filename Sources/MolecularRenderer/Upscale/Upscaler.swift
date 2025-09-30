@@ -17,7 +17,6 @@ class Upscaler {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
-    print("checkpoint 4.11")
     let renderSize = display.frameBufferSize / Int(upscaleFactor)
     let upscaleSize = display.frameBufferSize
     
@@ -36,34 +35,56 @@ class Upscaler {
     temporalScalerDesc.isInputContentPropertiesEnabled = false
     temporalScalerDesc.inputContentMinScale = upscaleFactor
     temporalScalerDesc.inputContentMaxScale = upscaleFactor
-    print(temporalScalerDesc.requiresSynchronousInitialization)
     
     // ANECompilerService
     //
-    // ## 2x Upscaling
+    // ## 2x Upscaling, 1920x1440
     //
     // first time | second time
     // ---------- | -----------
+    // 9.480      | 0.258
+    // 9.016      | 0.262
+    // 8.253      | 0.261
     //
+    // ## 2x Upscaling, 1080x1080
+    //
+    // first time | second time
+    // ---------- | -----------
+    // 0.767      | 0.239
+    // 0.709      | 0.237
+    // 0.747      | 0.237
+    //
+    // ## 3x Upscaling, 1920x1440
+    //
+    // first time | second time
+    // ---------- | -----------
+    // 0.728      | 0.237
+    // 0.718      | 0.237
+    // 0.681      | 0.237
+    //
+    // ## 3x Upscaling, 1080x1080
+    //
+    // first time | second time
+    // ---------- | -----------
+    // 0.585      | 0.225
+    // 0.592      | 0.229
+    // 0.601      | 0.227
     
-    print("checkpoint 4.2215999")
     let start = CACurrentMediaTime()
     let scaler = temporalScalerDesc.makeTemporalScaler(
       device: device.mtlDevice)
     let end = CACurrentMediaTime()
-    print("time delay:", end - start)
+    print("time delay:", String(format: "%.3f", end - start))
     guard let scaler else {
       fatalError("The temporal scaler effect is not usable!")
     }
     self.scaler = scaler
-    print("checkpoint 4.3")
     
     // We already store motion vectors in units of pixels. The default value
     // multiplies the vector by 'intermediateSize', which we don't want.
     scaler.motionVectorScaleX = 1
     scaler.motionVectorScaleY = 1
     scaler.isDepthReversed = true
-    print("checkpoint 4.4")
   }
   
   // TODO: Expose a method to the public API, where the upscaler can be reset
