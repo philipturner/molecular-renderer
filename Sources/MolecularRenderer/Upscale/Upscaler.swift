@@ -32,8 +32,8 @@ class Upscaler {
     
     temporalScalerDesc.isAutoExposureEnabled = false
     temporalScalerDesc.isInputContentPropertiesEnabled = false
-    temporalScalerDesc.inputContentMinScale = 3
-    temporalScalerDesc.inputContentMaxScale = 3
+    temporalScalerDesc.inputContentMinScale = upscaleFactor
+    temporalScalerDesc.inputContentMaxScale = upscaleFactor
     
     let scaler = temporalScalerDesc.makeTemporalScaler(
       device: device.mtlDevice)

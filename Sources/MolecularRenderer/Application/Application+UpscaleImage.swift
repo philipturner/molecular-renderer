@@ -41,6 +41,14 @@ extension Application {
     }
   }
   
+  private func createJitterOffset() -> SIMD2<Float> {
+    var jitterOffsetDesc = JitterOffsetDescriptor()
+    jitterOffsetDesc.index = frameID
+    jitterOffsetDesc.upscaleFactor = renderTarget.upscaleFactor
+    
+    return JitterOffset.create(descriptor: jitterOffsetDesc)
+  }
+  
   public func upscale(image: Image) -> Image {
     guard renderTarget.upscaleFactor > 1 else {
       fatalError("Upscaling is not allowed.")
@@ -50,7 +58,29 @@ extension Application {
     }
     
     #if os(macOS)
-    fatalError("Not implemented.")
+    guard let upscaler else {
+      fatalError("Upscaler was not present.")
+    }
+    
+    if frameID == 0 {
+      upscaler.scaler.reset = true
+    } else {
+      upscaler.scaler.reset = false
+    }
+    
+    upscaler.scaler.colorTexture = renderTarget.colorTextures[frameID % 2]
+    upscaler.scaler.depthTexture = renderTarget.depthTextures[frameID % 2]
+    upscaler.scaler.motionTexture = renderTarget.motionTextures[frameID % 2]
+    upscaler.scaler.outputTexture = renderTarget.upscaledTextures[frameID % 2]
+    
+    let jitterOffset = createJitterOffset()
+    upscaler.scaler.jitterOffsetX = jitterOffset[0]
+    upscaler.scaler.jitterOffsetY = jitterOffset[1]
+    
+    device.commandQueue.withCommandList {
+      
+    }
+    
     #else
     fallbackUpscale()
     #endif

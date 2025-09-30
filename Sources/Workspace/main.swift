@@ -5,18 +5,6 @@
 // - Archive the placeholder code for UpscaleShader and CPU-side encoding.
 // - Delete the placeholder code.
 //
-// Implement the "asynchronous raw pixel buffer handler" functionality promised
-// in the render process diagram.
-// - [IMPORTANT] Decide on the best name for the API function that exposes
-//   this functionality.
-// - Handlers should be executed on a seqeuntial dispatch queue. Although it's
-//   not thread safe with the main or @MainActor thread, it's thread safe
-//   between sequential calls to itself.
-// - Implement an equivalent of 3 frames in flight DispatchSemaphore for the
-//   asynchronous handlers, to avoid overflowing the dispatch queue for this.
-// - Guarantee that all asynchronous handlers have executed before
-//   'application.run' returns.
-//
 // Revisit every object declared as 'public' scoped in the MolecularRenderer
 // library, change most of them to 'internal'.
 //

@@ -42,6 +42,29 @@ The window does not register keyboard/mouse events or forward them to the progra
 
 ![Render Process Diagram](./Documentation/RenderProcessDiagram.png)
 
+<details>
+<summary>Personal notes about the async raw pixel buffer, which was out of scope for the latest PR</summary>
+
+```swift
+// Implement the "asynchronous raw pixel buffer handler" functionality promised
+// in the render process diagram.
+// - [IMPORTANT] Decide on the best name for the API function that exposes
+//   this functionality.
+// - Handlers should be executed on a seqeuntial dispatch queue. Although it's
+//   not thread safe with the main or @MainActor thread, it's thread safe
+//   between sequential calls to itself.
+// - Implement an equivalent of 3 frames in flight DispatchSemaphore for the
+//   asynchronous handlers, to avoid overflowing the dispatch queue for this.
+// - Guarantee that all asynchronous handlers have executed before
+//   'application.run' returns.
+//
+// Can probably make this feature very far down the priority list; offline
+// rendering is not the primary use case of interactive CAD programs. It will
+// be needed to make professional YouTube videos from rendered animations.
+```
+
+</details>
+
 ### Ambient Occlusion Sample Count
 
 The most computationally intensive part of rendering is estimating the degree of self-shadowing, or how "occluded" / crowded a location is. A place wedged between two atoms should appear darker than an unobstructed surface exposed directly to open space. In practice, this is achieved by randomly choosing a set of ray directions, then following the rays until they hit a nearby surface.
