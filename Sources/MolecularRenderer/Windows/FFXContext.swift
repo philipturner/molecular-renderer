@@ -24,8 +24,14 @@ public class FFXContext {
     }
     self.pContext = .allocate(capacity: 1)
     
+    // Allocate the CreateContextDescUpscale.
+    let createContext = FFXDescriptor<ffxCreateContextDescUpscale>()
+    createContext.type = FFX_API_CREATE_CONTEXT_DESC_TYPE_UPSCALE
+    
     // TODO: ffxCreateContext
     fatalError("Not implemented.")
+    
+    // withExtendedLifetime(all descriptors)
   }
   
   // TODO: ffxDestroyContext in deinit

@@ -21,10 +21,10 @@ public class FFXDescriptor<T> {
     return opaque.assumingMemoryBound(to: ffxApiHeader.self)
   }
   
-  public var type: Int32 {
+  public var type: UInt32 {
     get {
       let value64 = pHeader.pointee.type
-      return Int32(value64)
+      return UInt32(value64)
     }
     set {
       let value64 = UInt64(newValue)
