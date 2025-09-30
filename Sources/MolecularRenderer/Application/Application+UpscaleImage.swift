@@ -5,8 +5,23 @@ import WinSDK
 #endif
 
 #if os(Windows)
+private func createFFXSurfaceFormat(
+  _ format: DXGI_FORMAT
+) -> FfxApiSurfaceFormat {
+  switch format {
+  case DXGI_FORMAT_R10G10B10A2_UNORM:
+    return FFX_API_SURFACE_FORMAT_R10G10B10A2_UNORM
+  case DXGI_FORMAT_R32_FLOAT:
+    return FFX_API_SURFACE_FORMAT_R32_FLOAT
+  case DXGI_FORMAT_R16G16_FLOAT:
+    return FFX_API_SURFACE_FORMAT_R16G16_FLOAT
+  default:
+    fatalError("Unrecognized DXGI format.")
+  }
+}
+
 // Utility for binding DirectX resources.
-func createFFXResource(
+private func createFFXResource(
   _ d3d12Resource: SwiftCOM.ID3D12Resource
 ) -> FfxApiResource {
   let iid = SwiftCOM.ID3D12Resource.IID
@@ -64,7 +79,10 @@ func createFFXResource(
   output.description.type = UInt32(
     FFX_API_RESOURCE_TYPE_TEXTURE2D.rawValue)
   
-  fatalError("Not yet written res.description.format.")
+  let ffxSurfaceFormat = createFFXSurfaceFormat(desc.Format)
+  output.description.format = UInt32(ffxSurfaceFormat.rawValue)
+  
+  return output
 }
 #endif
 
@@ -129,6 +147,10 @@ extension Application {
     guard let upscaler else {
       fatalError("Upscaler was not present.")
     }
+    let colorTexture = renderTarget.colorTextures[frameID % 2]
+    let depthTexture = renderTarget.depthTextures[frameID % 2]
+    let motionTexture = renderTarget.motionTextures[frameID % 2]
+    let upscaledTexture = renderTarget.upscaledTextures[frameID % 2]
     
     #if os(macOS)
     if frameID == 0 {
@@ -137,10 +159,10 @@ extension Application {
       upscaler.scaler.reset = false
     }
     
-    upscaler.scaler.colorTexture = renderTarget.colorTextures[frameID % 2]
-    upscaler.scaler.depthTexture = renderTarget.depthTextures[frameID % 2]
-    upscaler.scaler.motionTexture = renderTarget.motionTextures[frameID % 2]
-    upscaler.scaler.outputTexture = renderTarget.upscaledTextures[frameID % 2]
+    upscaler.scaler.colorTexture = colorTexture
+    upscaler.scaler.depthTexture = depthTexture
+    upscaler.scaler.motionTexture = motionTexture
+    upscaler.scaler.outputTexture = upscaledTexture
     
     let jitterOffset = createJitterOffset()
     upscaler.scaler.jitterOffsetX = -jitterOffset[0]
@@ -156,10 +178,18 @@ extension Application {
     }
     
     #else
-    
-    
     // Test createFFXResource on the four resources and print to console,
     // confirming that they were created.
+    let color = createFFXResource(colorTexture)
+    let depth = createFFXResource(depthTexture)
+    let motion = createFFXResource(motionTexture)
+    let upscaled = createFFXResource(upscaledTexture)
+    
+    print()
+    print(color)
+    print(depth)
+    print(motion)
+    print(upscaled)
     
     fallbackUpscale()
     #endif
