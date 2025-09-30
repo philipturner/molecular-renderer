@@ -65,11 +65,13 @@ func createRayGeneration() -> String {
     
     float3 primaryRayDirection(uint2 pixelCoords,
                                uint2 screenDimensions,
+                               float2 jitterOffset,
                                float tangentFactor,
                                Matrix3x3 cameraBasis)
     {
       // Prepare the screen-space coordinates.
       float2 screenCoords = float2(pixelCoords) + 0.5;
+      screenCoords += jitterOffset;
       screenCoords /= float2(screenDimensions);
       screenCoords = screenCoords * 2 - 1;
       screenCoords.x *= float(screenDimensions.x) / float(screenDimensions.y);

@@ -70,7 +70,7 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 2
+  applicationDesc.upscaleFactor = 3
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -123,7 +123,7 @@ func createTime() -> Float {
 func modifyAtoms() {
   // 0.5 Hz rotation rate
   let time = createTime()
-  let angleDegrees = 0.5 * time * 360
+  let angleDegrees = 0.0 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
@@ -178,7 +178,7 @@ application.run {
   modifyAtoms()
   modifyCamera()
   
-  let intermediate = application.render()
-  let upscaled = application.upscale(image: intermediate)
-  application.present(image: upscaled)
+  var image = application.render()
+  image = application.upscale(image: image)
+  application.present(image: image)
 }
