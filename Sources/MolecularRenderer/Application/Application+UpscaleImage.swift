@@ -233,6 +233,23 @@ extension Application {
       let upscaleSize = display.frameBufferSize
       dispatch.value.renderSize = createFFXDimensions(renderSize)
       dispatch.value.upscaleSize = createFFXDimensions(upscaleSize)
+      
+      dispatch.value.enableSharpening = false
+      dispatch.value.sharpness = 0
+      dispatch.value.frameTimeDelta = 0
+      dispatch.value.preExposure = 1
+      
+      if frameID == 0 {
+        dispatch.value.reset = true
+      } else {
+        dispatch.value.reset = false
+      }
+      
+      dispatch.value.cameraNear = 1
+      dispatch.value.cameraFar = 0
+      dispatch.value.cameraFovAngleVertical = camera.fovAngleVertical
+      dispatch.value.viewSpaceToMetersFactor = 1
+      dispatch.value.flags = 0
     }
     #endif
     
