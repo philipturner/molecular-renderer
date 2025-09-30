@@ -1,8 +1,4 @@
 // Implementation of upscaling:
-// - Make a Swift utility that reduces the boilerplate for creating FidelityFX
-//   API descriptors, managing their headers, managing their deallocation.
-//   - '_read' and '_modify' to elevate a data structure stored deep inside
-//     (privately) instead of a public stored property.
 // - Massively clean up the old 'FFXUpscaler' as 'FFXContext'.
 // - Implement jitter offsets.
 //   - Fetch the official offsets from the FidelityFX API on Windows.
