@@ -19,6 +19,7 @@ import MolecularRenderer
 import QuaternionModule
 
 #if os(Windows)
+import FidelityFX
 import SwiftCOM
 import WinSDK
 #endif
@@ -148,6 +149,47 @@ func modifyCamera() {
   application.camera.basis.2 = SIMD3(0, 0, 1)
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
+
+#if os(Windows)
+do {
+  // Allocate the UpscaleGetGPUMemoryUsageV2, causing a memory leak.
+  let upscaleGetGPUMemoryUsageV2 = UnsafeMutablePointer<ffxQueryDescUpscaleGetGPUMemoryUsageV2>.allocate(capacity: 1)
+  upscaleGetGPUMemoryUsageV2.pointee.header.type = UInt64(FFX_API_QUERY_DESC_TYPE_UPSCALE_GPU_MEMORY_USAGE_V2)
+  
+  // Bind the device, causing a memory leak.
+  do {
+    let iid = SwiftCOM.ID3D12Device.IID
+    let d3d12Device = application.device.d3d12Device
+    let interface = try! d3d12Device.QueryInterface(iid: iid)
+    upscaleGetGPUMemoryUsageV2.pointee.device = interface!
+  }
+  
+  // Bind the texture dimensions.
+  func createFFXDimensions(
+    _ input: SIMD2<Int>
+  ) -> FfxApiDimensions2D {
+    var output = FfxApiDimensions2D()
+    output.width = UInt32(input[0])
+    output.height = UInt32(input[1])
+    return output
+  }
+  do {
+    let maxRenderSize = createFFXDimensions(
+      application.display.frameBufferSize / 2)
+    let maxUpscaleSize = createFFXDimensions(
+      application.display.frameBufferSize)
+    upscaleGetGPUMemoryUsageV2.pointee.maxRenderSize = maxRenderSize
+    upscaleGetGPUMemoryUsageV2.pointee.maxUpscaleSize = maxUpscaleSize
+  }
+  
+  upscaleGetGPUMemoryUsageV2.pointee.flags = UInt32(
+    FFX_UPSCALE_ENABLE_DEPTH_INVERTED.rawValue)
+  
+  // Allocate the EffectMemoryUsage, causing a memory leak.
+  var effectMemoryUsage = UnsafeMutablePointer<FfxApiEffectMemoryUsage>.allocate(capacity: 1)
+  upscaleGetGPUMemoryUsageV2.pointee.gpuMemoryUsageUpscaler = effectMemoryUsage
+}
+#endif
 
 // Enter the run loop.
 application.run {
