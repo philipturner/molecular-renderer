@@ -136,7 +136,9 @@ struct RenderShader {
         float3 cameraDirection = cameraArgs.data[0].basis.col2;
         float rayDirectionComponent = dot(rayDirection, cameraDirection);
         float depth = rayDirectionComponent * intersect.distance;
-        // TODO: If the intersect did not accept, force the depth to -1e38.
+        if (!intersect.accept) {
+          depth = -1e38;
+        }
         
         \(depthTransform())
         \(write("depth", texture: "depthTexture"))
