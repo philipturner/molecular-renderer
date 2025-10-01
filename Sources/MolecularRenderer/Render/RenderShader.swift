@@ -122,8 +122,8 @@ struct RenderShader {
         """
         #else
         """
-        // Map the depth from [-0.075, -1e35] to [1, 1e-38].
-        // FidelityFX internally reprojects this to [0.075, 1e38].
+        // Map the depth from [-0.075, -7.5e36] to [1, 1e-38].
+        // FidelityFX internally reprojects this to [0.075, 7.5e36].
         depth = 0.075 / (-depth);
         depth = saturate(depth);
         """
@@ -137,7 +137,7 @@ struct RenderShader {
         float rayDirectionComponent = dot(rayDirection, cameraDirection);
         float depth = rayDirectionComponent * intersect.distance;
         if (!intersect.accept) {
-          depth = -1e38;
+          depth = -1e34;
         }
         
         \(depthTransform())
