@@ -13,8 +13,9 @@
 // - Integrate simulators into main as a separate branch / PR
 //   - During this task, the pending minor maintenance to the simulator code
 //     bases will be performed.
+//   - Delete the built-in minimizer before the test.
 //   - Test simple molecular dynamics of adamantane with MM4.
-//   - Probably just keep the OpenMM energy minimizer for now.
+//   - Run the exact same test with GFN2-xTB and GFN-FF.
 // - Implement the planned demo
 // - Begin the 'million-atom-scale' branch
 
