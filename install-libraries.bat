@@ -1,5 +1,3 @@
-@echo off
-
 :: Step into the build folder, to isolate the immediate effects of file
 :: processing operations from the top-level folder.
 mkdir .build

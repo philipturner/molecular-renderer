@@ -28,8 +28,6 @@ Instead, open a Terminal window at the package directory. Run `bash run.sh` on e
 
 Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
 
-> It might take a few tens of seconds to download. The script doesn't give any progress indicators.
-
 Open the source code in VS Code by double-clicking `Package.swift`. Navigate to the file tree and open the package's parent directory.
 
 Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINAL</b> in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
