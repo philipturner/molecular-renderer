@@ -98,8 +98,12 @@ DerivedData/
 Package.resolved
 /.vscode
 
-# Workaround for issue with the linker on Windows: binaries must all reside
-# in the top-level folder.
+# Binaries must all reside in the top-level folder.
 /*.dll
+/*.dylib
 /*.exp
 /*.lib
+
+# Issue with xTB C API writing files I don't want.
+gfnff_topo
+gfnff_charges
