@@ -254,7 +254,7 @@ extension Application {
       
       dispatch.value.enableSharpening = false
       dispatch.value.sharpness = 0
-      dispatch.value.frameTimeDelta = 0
+      dispatch.value.frameTimeDelta = 16.666
       dispatch.value.preExposure = 1
       
       if frameID == 0 {
@@ -263,8 +263,8 @@ extension Application {
         dispatch.value.reset = false
       }
       
-      dispatch.value.cameraNear = 1
-      dispatch.value.cameraFar = 0
+      dispatch.value.cameraNear = Float.greatestFiniteMagnitude
+      dispatch.value.cameraFar = 0.075
       dispatch.value.cameraFovAngleVertical = camera.fovAngleVertical
       dispatch.value.viewSpaceToMetersFactor = 1
       dispatch.value.flags = 0

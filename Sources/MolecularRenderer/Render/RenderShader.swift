@@ -113,15 +113,32 @@ struct RenderShader {
         return ""
       }
       
+      func depthTransform() -> String {
+        #if os(macOS)
+        """
+        // Map the depth from [0, -infinity] to [1, 0].
+        // Loss of precision close to the near plane, compared to FidelityFX.
+        depth = 1 / (1 - depth);
+        """
+        #else
+        """
+        // Map the depth from [-0.075, -1e35] to [1, 1e-38].
+        // FidelityFX internally reprojects this to [0.075, 1e38].
+        depth = 0.075 / (-depth);
+        depth = saturate(depth);
+        """
+        #endif
+      }
+      
       return """
       {
         float3 rayDirection = primaryRayDirection;
         float3 cameraDirection = cameraArgs.data[0].basis.col2;
         float rayDirectionComponent = dot(rayDirection, cameraDirection);
         float depth = rayDirectionComponent * intersect.distance;
+        // TODO: If the intersect did not accept, force the depth to -1e38.
         
-        // Map the depth from [0, -infinity] to [1, 0].
-        depth = 1 / (1 - depth);
+        \(depthTransform())
         \(write("depth", texture: "depthTexture"))
       }
       """
