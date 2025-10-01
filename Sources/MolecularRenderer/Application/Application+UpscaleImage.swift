@@ -89,6 +89,21 @@ private func createFFXResource(
   return output
 }
 
+private func createEmptyFFXResource() -> FfxApiResource {
+  var output = FfxApiResource()
+  output.resource = nil
+  output.state = 0
+  output.description.type = 0
+  output.description.format = 0
+  output.description.width = 0
+  output.description.height = 0
+  output.description.depth = 0
+  output.description.mipCount = 0
+  output.description.flags = 0
+  output.description.usage = 0
+  return output
+}
+
 private func createFFXFloatCoords(
   _ input: SIMD2<Float>
 ) -> FfxApiFloatCoords2D {
@@ -221,6 +236,9 @@ extension Application {
       dispatch.value.color = createFFXResource(colorTexture)
       dispatch.value.depth = createFFXResource(depthTexture)
       dispatch.value.motionVectors = createFFXResource(motionTexture)
+      dispatch.value.exposure = createEmptyFFXResource()
+      dispatch.value.reactive = createEmptyFFXResource()
+      dispatch.value.transparencyAndComposition = createEmptyFFXResource()
       dispatch.value.output = createFFXResource(upscaledTexture)
       
       let jitterOffset = createJitterOffset()
