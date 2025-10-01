@@ -3,6 +3,7 @@
 //   - First implement macOS, which is easy (lots of reference code).
 //   - Then implement Windows.
 //     - Test the effect of moving objects and motion vectors.
+//     - Try the older FSR 2, if it supports 3x upscaling.
 //   - Test for correct handling of motion from a *moving camera* on both
 //     platforms, not just a moving object.
 // - Delete the placeholder code without archiving it.
@@ -64,7 +65,7 @@ func createApplication() -> Application {
   applicationDesc.allocationSize = 1_000_000
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 2
+  applicationDesc.upscaleFactor = 3
   let application = Application(descriptor: applicationDesc)
   
   return application
@@ -122,7 +123,7 @@ func modifyAtoms() {
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
   
-  let roundedDownTime = Int(time.rounded(.down))
+  let roundedDownTime = Int((time / 10).rounded(.down))
   if roundedDownTime % 2 == 0 {
     let isopropanol = createIsopropanol()
     if animationState == .silane {

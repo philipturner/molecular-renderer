@@ -243,7 +243,7 @@ extension Application {
       
       let jitterOffset = createJitterOffset()
       let motionVectorScale = SIMD2<Float>(1, 1)
-      dispatch.value.jitterOffset = createFFXFloatCoords(jitterOffset)
+      dispatch.value.jitterOffset = createFFXFloatCoords(jitterOffset * -1)
       dispatch.value.motionVectorScale = createFFXFloatCoords(motionVectorScale)
       
       let upscaleFactor = renderTarget.upscaleFactor
