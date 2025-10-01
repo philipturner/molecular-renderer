@@ -2,17 +2,13 @@
 import FidelityFX
 #endif
 
-public struct JitterOffsetDescriptor {
-  public var index: Int?
-  public var upscaleFactor: Float?
-  
-  public init() {
-    
-  }
+struct JitterOffsetDescriptor {
+  var index: Int?
+  var upscaleFactor: Float?
 }
 
-public struct JitterOffset {
-  public static func createPhaseCount(upscaleFactor: Float) -> Int {
+struct JitterOffset {
+  private static func createPhaseCount(upscaleFactor: Float) -> Int {
     #if os(macOS)
     return 8 * Int(upscaleFactor) * Int(upscaleFactor)
     #else
@@ -43,7 +39,7 @@ public struct JitterOffset {
     return result
   }
   
-  public static func create(
+  static func create(
     descriptor: JitterOffsetDescriptor
   ) -> SIMD2<Float> {
     guard let index = descriptor.index,

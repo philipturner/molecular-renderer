@@ -55,5 +55,4 @@ struct CVDisplayLinkStruct: CVDisplayLinkProtocol {
     QuartzCore.CVDisplayLinkStop(displayLink)
   }
 }
-
 #endif

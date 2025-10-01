@@ -181,8 +181,6 @@ struct RenderShader {
         screenCoords.y = -screenCoords.y;
         screenCoords.x *= float(screenDimensions.y) / float(screenDimensions.x);
         screenCoords = (screenCoords + 1) / 2;
-        
-        // Important: dynamic resolution not allowed.
         float2 previousPixelCoords = screenCoords * float2(screenDimensions);
         
         // Compare against current coordinates.

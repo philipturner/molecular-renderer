@@ -1,20 +1,20 @@
 // Mock acceleration structure to facilitate testing of the 'application.atoms'
 // API.
-public struct TransactionTracker {
-  public let atomCount: Int
-  public var positions: [SIMD4<Float>]
-  public var motionVectors: [SIMD3<Float16>]
-  public var occupied: [Bool]
-  public var previousMovedAtomIDs: [UInt32] = []
+struct TransactionTracker {
+  let atomCount: Int
+  var positions: [SIMD4<Float>]
+  var motionVectors: [SIMD3<Float16>]
+  var occupied: [Bool]
+  var previousMovedAtomIDs: [UInt32] = []
   
-  public init(atomCount: Int) {
+  init(atomCount: Int) {
     self.atomCount = atomCount
     self.positions = Array(repeating: .zero, count: atomCount)
     self.motionVectors = Array(repeating: .zero, count: atomCount)
     self.occupied = Array(repeating: false, count: atomCount)
   }
   
-  public mutating func register(transaction: Atoms.Transaction) {
+  mutating func register(transaction: Atoms.Transaction) {
     // Reset the motion vectors to zero.
     for atomID in previousMovedAtomIDs {
       let motionVector: SIMD3<Float16> = .zero
@@ -85,7 +85,7 @@ public struct TransactionTracker {
     self.previousMovedAtomIDs = transaction.movedIDs
   }
   
-  public func compactedAtoms() -> [SIMD4<Float>] {
+  func compactedAtoms() -> [SIMD4<Float>] {
     var output: [SIMD4<Float>] = []
     for atomID in 0..<atomCount {
       guard occupied[atomID] else {
@@ -99,7 +99,7 @@ public struct TransactionTracker {
     return output
   }
   
-  public func compactedMotionVectors() -> [SIMD3<Float16>] {
+  func compactedMotionVectors() -> [SIMD3<Float16>] {
     var output: [SIMD3<Float16>] = []
     for atomID in 0..<atomCount {
       guard occupied[atomID] else {

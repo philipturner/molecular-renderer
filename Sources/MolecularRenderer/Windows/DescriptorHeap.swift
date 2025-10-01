@@ -2,24 +2,20 @@
 import SwiftCOM
 import WinSDK
 
-public struct DescriptorHeapDescriptor {
-  public var device: Device?
-  public var count: Int?
-  
-  public init() {
-    
-  }
+struct DescriptorHeapDescriptor {
+  var device: Device?
+  var count: Int?
 }
 
-public class DescriptorHeap {
+class DescriptorHeap {
   unowned let device: Device
   private(set) var offset: Int = 0
   let count: Int
   let incrementSize: Int
   
-  public let d3d12DescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
+  let d3d12DescriptorHeap: SwiftCOM.ID3D12DescriptorHeap
   
-  public init(descriptor: DescriptorHeapDescriptor) {
+  init(descriptor: DescriptorHeapDescriptor) {
     guard let device = descriptor.device,
           let count = descriptor.count else {
       fatalError("Descriptor was incomplete.")
@@ -38,12 +34,12 @@ public class DescriptorHeap {
       descriptorHeapDesc)
   }
   
-  public func reset() {
+  func reset() {
     offset = 0
   }
   
   // Encode a CPU descriptor and return its index in the heap.
-  public func createUAV(
+  func createUAV(
     resource: SwiftCOM.ID3D12Resource,
     uavDesc: D3D12_UNORDERED_ACCESS_VIEW_DESC?
   ) -> Int {
@@ -80,14 +76,14 @@ public class DescriptorHeap {
 }
 
 extension CommandList {
-  public func setDescriptorHeap(_ descriptorHeap: DescriptorHeap) {
+  func setDescriptorHeap(_ descriptorHeap: DescriptorHeap) {
     self.descriptorHeap = descriptorHeap
     
     try! d3d12CommandList.SetDescriptorHeaps(
       [descriptorHeap.d3d12DescriptorHeap])
   }
   
-  public func setDescriptor(handleID: Int, index: Int) {
+  func setDescriptor(handleID: Int, index: Int) {
     guard let descriptorHeap else {
       fatalError("Descriptor heap was not set.")
     }
@@ -105,5 +101,4 @@ extension CommandList {
       .SetComputeRootDescriptorTable(UInt32(index), gpuHandle)
   }
 }
-
 #endif

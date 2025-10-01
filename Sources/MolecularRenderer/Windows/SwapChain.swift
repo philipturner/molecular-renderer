@@ -84,5 +84,4 @@ extension SwapChain {
     return swapChainDesc
   }
 }
-
 #endif
