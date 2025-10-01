@@ -9,10 +9,12 @@
 //     on the README. Remove the '--branch' commands and just download the
 //     main branch. Find the Git settings that result in the smallest possible
 //     download size.
+//   - Remove this TODO list from the top of 'main.swift'.
 // - Integrate simulators into main as a separate branch / PR
 //   - During this task, the pending minor maintenance to the simulator code
 //     bases will be performed.
 //   - Test simple molecular dynamics of adamantane with MM4.
+//   - Probably just keep the OpenMM energy minimizer for now.
 // - Implement the planned demo
 // - Begin the 'million-atom-scale' branch
 

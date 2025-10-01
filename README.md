@@ -50,7 +50,7 @@ The window does not register keyboard/mouse events or forward them to the progra
 // in the render process diagram.
 // - [IMPORTANT] Decide on the best name for the API function that exposes
 //   this functionality.
-// - Handlers should be executed on a seqeuntial dispatch queue. Although it's
+// - Handlers should be executed on a sequential dispatch queue. Although it's
 //   not thread safe with the main or @MainActor thread, it's thread safe
 //   between sequential calls to itself.
 // - Implement an equivalent of 3 frames in flight DispatchSemaphore for the
