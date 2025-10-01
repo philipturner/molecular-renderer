@@ -1,10 +1,10 @@
 #if os(Windows)
 import FidelityFX
 
-public class FFXDescriptor<T> {
+class FFXDescriptor<T> {
   private let pValue: UnsafeMutablePointer<T>
   
-  public init() {
+  init() {
     self.pValue = .allocate(capacity: 1)
     
     // Prevent an easy memory corruption bug from not manually setting pNext.
@@ -16,12 +16,12 @@ public class FFXDescriptor<T> {
     pHeader.deallocate()
   }
   
-  public var pHeader: UnsafeMutablePointer<ffxApiHeader> {
+  var pHeader: UnsafeMutablePointer<ffxApiHeader> {
     let opaque = UnsafeMutableRawPointer(pValue)
     return opaque.assumingMemoryBound(to: ffxApiHeader.self)
   }
   
-  public var type: UInt32 {
+  var type: UInt32 {
     get {
       let value64 = pHeader.pointee.type
       return UInt32(value64)
@@ -32,7 +32,7 @@ public class FFXDescriptor<T> {
     }
   }
   
-  public var pNext: UnsafeMutablePointer<ffxApiHeader>? {
+  var pNext: UnsafeMutablePointer<ffxApiHeader>? {
     get {
       pHeader.pointee.pNext
     }
@@ -41,7 +41,7 @@ public class FFXDescriptor<T> {
     }
   }
   
-  public var value: T {
+  var value: T {
     _read {
       yield pValue.pointee
     }

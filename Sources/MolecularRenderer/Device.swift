@@ -17,20 +17,20 @@ public struct DeviceDescriptor {
 public class Device {
   // Stored properties for the device.
   #if os(macOS)
-  public let mtlDevice: MTLDevice
+  let mtlDevice: MTLDevice
   #else
   let dxgiAdapter: SwiftCOM.IDXGIAdapter4
-  public let d3d12Device: SwiftCOM.ID3D12Device
+  let d3d12Device: SwiftCOM.ID3D12Device
   
   // Stored properties for the debug layer.
   let d3d12Debug: SwiftCOM.ID3D12Debug
-  public let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
-  public let dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue
+  let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
+  let dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue
   #endif
   
   // Stored properties for the command queue.
   private var _commandQueue: CommandQueue!
-  public var commandQueue: CommandQueue {
+  var commandQueue: CommandQueue {
     self._commandQueue
   }
   

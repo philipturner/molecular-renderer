@@ -3,20 +3,16 @@ import FidelityFX
 import SwiftCOM
 import WinSDK
 
-public struct FFXContextDescriptor {
-  public var device: Device?
-  public var display: Display?
-  public var upscaleFactor: Float?
-  
-  public init() {
-    
-  }
+struct FFXContextDescriptor {
+  var device: Device?
+  var display: Display?
+  var upscaleFactor: Float?
 }
 
-public class FFXContext {
+class FFXContext {
   private let pContext: UnsafeMutablePointer<ffxContext?>
   
-  public init(descriptor: FFXContextDescriptor) {
+  init(descriptor: FFXContextDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display,
           let upscaleFactor = descriptor.upscaleFactor else {
@@ -112,7 +108,7 @@ public class FFXContext {
     pContext.deallocate()
   }
   
-  public func configure<T>(descriptor: FFXDescriptor<T>) {
+  func configure<T>(descriptor: FFXDescriptor<T>) {
     let error = ffxConfigure(
       pContext, // context
       descriptor.pHeader) // desc
@@ -121,7 +117,7 @@ public class FFXContext {
     }
   }
   
-  public func query<T>(descriptor: FFXDescriptor<T>) {
+  func query<T>(descriptor: FFXDescriptor<T>) {
     let error = ffxQuery(
       pContext, // context
       descriptor.pHeader) // desc
@@ -130,7 +126,7 @@ public class FFXContext {
     }
   }
   
-  public func dispatch<T>(descriptor: FFXDescriptor<T>) {
+  func dispatch<T>(descriptor: FFXDescriptor<T>) {
     let error = ffxDispatch(
       pContext, // context
       descriptor.pHeader) // desc
@@ -139,7 +135,7 @@ public class FFXContext {
     }
   }
   
-  public static func query<T>(descriptor: FFXDescriptor<T>) {
+  static func query<T>(descriptor: FFXDescriptor<T>) {
     let error = ffxQuery(
       nil, // context
       descriptor.pHeader) // desc

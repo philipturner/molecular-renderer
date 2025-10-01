@@ -5,17 +5,13 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public struct BufferDescriptor {
-  public var device: Device?
-  public var size: Int?
-  public var type: BufferType?
-  
-  public init() {
-    
-  }
+struct BufferDescriptor {
+  var device: Device?
+  var size: Int?
+  var type: BufferType?
 }
 
-public enum BufferAccessLevel {
+enum BufferAccessLevel {
   // GPU can only read.
   case constant
   
@@ -23,7 +19,7 @@ public enum BufferAccessLevel {
   case device
 }
 
-public enum BufferType {
+enum BufferType {
   #if os(Windows)
   /// CPU can write, GPU cannot access in a compute shader.
   case input
@@ -75,21 +71,21 @@ public enum BufferType {
   #endif
 }
 
-public class Buffer {
+class Buffer {
   #if os(macOS)
-  public let mtlBuffer: MTLBuffer
+  let mtlBuffer: MTLBuffer
   #else
-  public let d3d12Resource: SwiftCOM.ID3D12Resource
+  let d3d12Resource: SwiftCOM.ID3D12Resource
   #endif
-  public let size: Int
-  public let type: BufferType
+  let size: Int
+  let type: BufferType
   
   #if os(Windows)
   private(set) var state: D3D12_RESOURCE_STATES
   private let mappedPointer: UnsafeMutableRawPointer?
   #endif
   
-  public init(descriptor: BufferDescriptor) {
+  init(descriptor: BufferDescriptor) {
     guard let device = descriptor.device,
           let size = descriptor.size,
           let type = descriptor.type else {
@@ -170,7 +166,7 @@ public class Buffer {
   /// Write data to the buffer.
   ///
   /// The data must be the input to a future GPU copy command.
-  public func write(input: UnsafeRawBufferPointer) {
+  func write(input: UnsafeRawBufferPointer) {
     guard let baseAddress = input.baseAddress else {
       fatalError("Input was invalid.")
     }
@@ -195,7 +191,7 @@ public class Buffer {
   /// Read data from the buffer.
   ///
   /// The data must be the output of a previous GPU copy command.
-  public func read(output: UnsafeMutableRawBufferPointer) {
+  func read(output: UnsafeMutableRawBufferPointer) {
     guard let baseAddress = output.baseAddress else {
       fatalError("Input was invalid.")
     }
@@ -224,7 +220,7 @@ public class Buffer {
   /// Never call this function if it will transition between two identical
   /// states. As of writing, it is assumed that client code will always be able
   /// to anticipate the resource state.
-  public func transition(
+  func transition(
     state: D3D12_RESOURCE_STATES
   ) -> D3D12_RESOURCE_BARRIER {
     // Inspect whether the before and after states are the same.

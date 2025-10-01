@@ -21,29 +21,25 @@ private func dxcompiler_compile(
 ) -> Int32
 #endif
 
-public struct ShaderDescriptor {
-  public var device: Device?
-  public var name: String?
-  public var source: String?
+struct ShaderDescriptor {
+  var device: Device?
+  var name: String?
+  var source: String?
   #if os(macOS)
-  public var threadsPerGroup: SIMD3<UInt16>?
+  var threadsPerGroup: SIMD3<UInt16>?
   #endif
-  
-  public init() {
-    
-  }
 }
 
-public class Shader {
+class Shader {
   #if os(macOS)
-  public let mtlComputePipelineState: MTLComputePipelineState
-  public let threadsPerGroup: MTLSize
+  let mtlComputePipelineState: MTLComputePipelineState
+  let threadsPerGroup: MTLSize
   #else
-  public let d3d12PipelineState: SwiftCOM.ID3D12PipelineState
-  public let d3d12RootSignature: SwiftCOM.ID3D12RootSignature
+  let d3d12PipelineState: SwiftCOM.ID3D12PipelineState
+  let d3d12RootSignature: SwiftCOM.ID3D12RootSignature
   #endif
   
-  public init(descriptor: ShaderDescriptor) {
+  init(descriptor: ShaderDescriptor) {
     guard let device = descriptor.device,
           let name = descriptor.name,
           let source = descriptor.source else {

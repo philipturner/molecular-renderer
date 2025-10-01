@@ -1,3 +1,3 @@
 public struct Image {
-  public internal(set) var scaleFactor: Float = .zero
+  var scaleFactor: Float = .zero
 }

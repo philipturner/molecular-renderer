@@ -1,23 +1,32 @@
-// Revisit every object declared as 'public' scoped in the MolecularRenderer
-// library, change most of them to 'internal'.
-//
 // Clean up all repositories:
+// - Sort out the correct order for the tasks below, after taking that first
+//   step to open 'nanotech-code-archive' and explain its purpose on its README.
 // - Make a good backup of the main branch for reference
 // - Migrate archives of experiments to 'nanotech-code-archive' repo
+//   - Include the MM4 OpenMM energy minimizer. Add code one repository at a
+//     time, as the repositories are visited in sequence:
+//     - (1) molecular-renderer
+//     - (2) MM4
+//     - (3) swift-xtb
 // - Push the windows-port branch to main
 //   - Last commit of windows-port will be to correct the 'git clone' command
 //     on the README. Remove the '--branch' commands and just download the
 //     main branch. Find the Git settings that result in the smallest possible
 //     download size.
-//   - Remove this TODO list from the top of 'main.swift'.
+//   - It is okay to keep this TODO list in 'main.swift', given how quickly the
+//     next PR will be implemented.
 // - Integrate simulators into main as a separate branch / PR
 //   - During this task, the pending minor maintenance to the simulator code
 //     bases will be performed.
 //   - Delete the built-in minimizer before the test.
 //   - Test simple molecular dynamics of adamantane with MM4.
 //   - Run the exact same test with GFN2-xTB and GFN-FF.
-// - Implement the planned demo
-// - Begin the 'million-atom-scale' branch
+// - Implement the planned demo, perhaps documenting the MolecularRenderer API
+//   a bit more thoroughly.
+//   - Perhaps host the demo on both a GitHub gist, and the 'main.swift' of
+//     this repo for the time being.
+// - Begin the 'million-atom-scale' branch. Estimated to begin 5 days from now,
+//   on Oct 6 2025.
 
 import HDL
 import MolecularRenderer

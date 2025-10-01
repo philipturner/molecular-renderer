@@ -14,16 +14,16 @@ struct CommandListDescriptor {
   #endif
 }
 
-public class CommandList {
+class CommandList {
   #if os(macOS)
-  internal let mtlCommandBuffer: MTLCommandBuffer
+  let mtlCommandBuffer: MTLCommandBuffer
   
-  public internal(set) var mtlCommandEncoder: MTLComputeCommandEncoder
+  var mtlCommandEncoder: MTLComputeCommandEncoder
   #else
-  public let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
+  let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   
   // The fence value in the command queue that created this.
-  internal let fenceValue: UInt64
+  let fenceValue: UInt64
   #endif
   
   // Internally tracked pipeline state, necessary for dispatching threads.
@@ -31,7 +31,7 @@ public class CommandList {
   
   #if os(Windows)
   // Internally tracked descriptor heap.
-  internal var descriptorHeap: DescriptorHeap?
+  var descriptorHeap: DescriptorHeap?
   #endif
   
   init(descriptor: CommandListDescriptor) {
@@ -59,7 +59,7 @@ public class CommandList {
 // MARK: - Compute Commands
 
 extension CommandList {
-  public func withPipelineState(
+  func withPipelineState(
     _ shader: Shader,
     _ closure: () -> Void
   ) {
@@ -83,7 +83,7 @@ extension CommandList {
     self.shader = nil
   }
   
-  public func set32BitConstants<T>(
+  func set32BitConstants<T>(
     _ constants: T,
     index: Int
   ) {
@@ -110,7 +110,7 @@ extension CommandList {
   }
   
   /// Bind a CBV/UAV buffer to the buffer table.
-  public func setBuffer(
+  func setBuffer(
     _ buffer: Buffer,
     index: Int,
     offset: Int = 0
@@ -142,7 +142,7 @@ extension CommandList {
   }
   
   /// Launch a kernel with the specified number of groups.
-  public func dispatch(groups: SIMD3<UInt32>) {
+  func dispatch(groups: SIMD3<UInt32>) {
     #if os(macOS)
     guard let shader else {
       fatalError("Pipeline state was not set.")
@@ -173,9 +173,9 @@ extension CommandList {
 
 // MARK: - Copy Commands
 
+#if os(Windows)
 extension CommandList {
-  #if os(Windows)
-  public func upload(
+  func upload(
     inputBuffer: Buffer,
     nativeBuffer: Buffer
   ) {
@@ -202,7 +202,7 @@ extension CommandList {
       inputBuffer.d3d12Resource) // pSrcResource
   }
   
-  public func download(
+  func download(
     nativeBuffer: Buffer,
     outputBuffer: Buffer
   ) {
@@ -228,5 +228,5 @@ extension CommandList {
       outputBuffer.d3d12Resource, // pDstResource
       nativeBuffer.d3d12Resource) // pSrcResource
   }
-  #endif
 }
+#endif

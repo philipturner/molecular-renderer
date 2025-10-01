@@ -5,7 +5,7 @@ import SwiftCOM
 import WinSDK
 #endif
 
-public class CommandQueue {
+class CommandQueue {
   unowned let device: Device
   
   #if os(macOS)
@@ -75,7 +75,7 @@ extension CommandQueue {
   }
   #endif
   
-  public func withCommandList(
+  func withCommandList(
     _ closure: (CommandList) -> Void
   ) {
     var commandListDesc = CommandListDescriptor()
@@ -145,7 +145,7 @@ extension CommandQueue {
   
   /// Stall until all GPU commands have completed, and the contents of GPU
   /// buffers are safe to read from the CPU.
-  public func flush() {
+  func flush() {
     guard let previousCommandList else {
       return
     }

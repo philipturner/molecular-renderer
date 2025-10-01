@@ -2,6 +2,8 @@
 
 # Molecular Renderer
 
+> The current code base is limited to handling a few hundred atoms. This is an interim commit until _CAD at the million atom scale_ is implemented by mid October 2025.
+
 Molecular Renderer employs a GUI-free, IDE-like workflow. You download the Swift package, open the source code in an IDE, and edit Swift files in the `Workspace` directory. These files compile on every program startup.
 
 You open a renderer window through an API. You can also perform other operations, like running simulations, accessing files on disk, and saving rendered frames into a video file. You incorporate external Swift modules through `Package.swift`. `run.sh` can be edited to link external C libraries and set environment variables.
@@ -101,7 +103,7 @@ These combinations of settings are known to run smoothly (or predicted to).
 | Atom count            | 12        | 12        | 12        |
 | AO sample count       | 7         | 7         | 7         |
 
-### Massive Program Startup Latency
+### MetalFX Latency Issues
 
 On macOS, there is a problem with the MetalFX framework that may lead to massive program startup times. These appear as if Swift switched from `-Xswiftc -Ounchecked` to true release mode, making the user wait up to 10 seconds to compile after the tiniest change to the code.
 

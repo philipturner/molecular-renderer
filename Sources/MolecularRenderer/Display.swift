@@ -21,7 +21,7 @@ public struct DisplayDescriptor {
 }
 
 public class Display {
-  // The resolution of the rendering region, in pixels.
+  /// The resolution of the rendering region, in pixels.
   public let frameBufferSize: SIMD2<Int>
   
   #if os(macOS)
