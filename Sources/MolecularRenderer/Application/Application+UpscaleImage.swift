@@ -252,6 +252,7 @@ extension Application {
       dispatch.value.renderSize = createFFXDimensions(renderSize)
       dispatch.value.upscaleSize = createFFXDimensions(upscaleSize)
       
+      // Could not detect a major quality improvement with sharpening enabled.
       dispatch.value.enableSharpening = false
       dispatch.value.sharpness = 0
       dispatch.value.frameTimeDelta = 2 // this doesn't do anything
@@ -264,7 +265,7 @@ extension Application {
       }
       
       dispatch.value.cameraNear = Float.greatestFiniteMagnitude
-      dispatch.value.cameraFar = 0.075
+      dispatch.value.cameraFar = 0.075 // 75 pm, circumvents debug warning
       dispatch.value.cameraFovAngleVertical = camera.fovAngleVertical
       dispatch.value.viewSpaceToMetersFactor = 1
       dispatch.value.flags = 0

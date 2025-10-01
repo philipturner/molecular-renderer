@@ -137,6 +137,8 @@ struct RenderShader {
         float rayDirectionComponent = dot(rayDirection, cameraDirection);
         float depth = rayDirectionComponent * intersect.distance;
         if (!intersect.accept) {
+          // Fits within the depth range dictated by the camera near plane
+          // on Windows + FidelityFX.
           depth = -1e34;
         }
         
@@ -266,7 +268,7 @@ struct RenderShader {
         ambientOcclusion.specularAccumulator = 0;
         
         // Pick the number of AO samples.
-        uint sampleCount = 7;
+        uint sampleCount = 15;
         
         // Create a generation context.
         GenerationContext generationContext;

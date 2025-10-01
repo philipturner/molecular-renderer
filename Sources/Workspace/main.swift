@@ -1,9 +1,5 @@
 // Implementation of upscaling:
 // - Implement full upscaling.
-//   - First implement macOS, which is easy (lots of reference code).
-//   - Then implement Windows.
-//     - Test the effect of moving objects and motion vectors.
-//     - Try the older FSR 2, if it supports 3x upscaling.
 //   - Test for correct handling of motion from a *moving camera* on both
 //     platforms, not just a moving object.
 // - Delete the placeholder code without archiving it.
@@ -52,11 +48,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  #if os(macOS)
-  displayDesc.frameBufferSize = SIMD2<Int>(1620, 1620)
-  #else
   displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
-  #endif
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -118,12 +110,12 @@ func createTime() -> Float {
 func modifyAtoms() {
   // 0.5 Hz rotation rate
   let time = createTime()
-  let angleDegrees = 0.0 * time * 360
+  let angleDegrees = 0.5 * time * 360
   let rotation = Quaternion<Float>(
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
   
-  let roundedDownTime = Int((time / 10).rounded(.down))
+  let roundedDownTime = Int((time / 1).rounded(.down))
   if roundedDownTime % 2 == 0 {
     let isopropanol = createIsopropanol()
     if animationState == .silane {
