@@ -15,7 +15,7 @@ You open a renderer window through an API. You can also perform other operations
 Open a terminal in a location convenient for accessing in the File Explorer. Download the source code:
 
 ```
-git clone --single-branch --branch windows-port https://github.com/philipturner/molecular-renderer
+git clone https://github.com/philipturner/molecular-renderer
 ```
 
 ### macOS Instructions

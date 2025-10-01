@@ -1,14 +1,6 @@
 // Clean up all repositories:
-// - Sort out the correct order for the tasks below, after taking that first
-//   step to open 'nanotech-code-archive' and explain its purpose on its README.
 // - Push the windows-port branch to main
-//   - Last commit of windows-port will be to correct the 'git clone' command
-//     on the README. Remove the '--branch' commands and just download the
-//     main branch. Find the Git settings that result in the smallest possible
-//     download size.
-//   - It is okay to keep this TODO list in 'main.swift', given how quickly the
-//     next PR will be implemented.
-// - Integrate simulators into main as a separate branch / PR
+// - Integrate simulators into main as an 'add-simulators' branch.
 //   - During this task, the pending minor maintenance to the simulator code
 //     bases will be performed.
 //   - Delete the built-in minimizer before the test.
@@ -33,6 +25,12 @@
 //   headaches from C dylibs/DLLs are figured out.
 // - Test integration with molecular-renderer, with the package's
 //   'add-simulators' branch downloading the branch of MM4 for the time being.
+//   - Open the 'add-simulators' branch exactly at this point. You'll be
+//     working solely inside the MM4 repo for quite a while.
+// - Link the OpenMM issue explaining the exact bottlenecks, to the README
+//   note about performance.
+// - Remove the part of the README discussing DLLs on Windows
+// - Migrate this entire bullet list to the MM4 branch and check it off there
 // - Push an updated version of DocC that lacks the minimizer
 
 import HDL
