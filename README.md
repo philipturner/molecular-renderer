@@ -69,7 +69,9 @@ The window does not register keyboard/mouse events or forward them to the progra
 
 The most computationally intensive part of rendering is estimating the degree of self-shadowing, or how "occluded" / crowded a location is. A place wedged between two atoms should appear darker than an unobstructed surface exposed directly to open space. In practice, this is achieved by randomly choosing a set of ray directions, then following the rays until they hit a nearby surface.
 
-A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence. There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway.
+A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence.
+
+There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway. This heuristic will be implemented in the next major PR, alongside the acceleration structure.
 
 ### Atom Count Limitation
 
@@ -115,8 +117,8 @@ Previous framework development was done on MetalFX, an ML-based upscaler. AMD FS
 
 The next major difference is the need for higher AO sample count. This may be coupled with the fact that the macOS setup runs at 120 Hz, while the Windows setup runs at 60 Hz. With no upscaling, the higher fresh rate created more temporal averaging from perception of the human viewer. 120 Hz @ 7 AO samples could "average" as well as 60 Hz @ 15 AO samples. The shaders should be exactly the same on both platforms; this is the best explanation for the quality drop on 60 Hz @ 7 AO samples.
 
-With upscaling turned on, FidelityFX struggled to produce reasonable shading patterns from AO. It was very pixelated or grainy when atoms moved fast. Switching from 7 to 15 samples massively improved this graininess. While it is still present, the degree of artifacts are now tolerable. It appears that 15 samples are needed, regardless of whether the upscale factor is 2x or 3x.
+With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It was very pixelated or grainy when atoms moved fast. Switching from 7 to 15 samples massively improved this graininess. While graininess is still present, the degree of severity is now tolerable. 15 samples are needed, regardless of whether the upscale factor is 2x or 3x.
 
 > The default AO sample count has risen to 15 on all platforms, for fairness/equality between platforms. For members of the macOS target audience (base M1 chip), you probably want to reduce this to 7. AO sample count is specified in `RenderShader.swift`.
 
-There are also some other artifacts near the borders that change color abruptly between two atoms of a different element. In addition, the border between atoms can be a bit jumpy when atoms move quickly.
+There are also some other artifacts. For example, along the border between a silicon and hydrogen atom, white pixels appeared sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy.
