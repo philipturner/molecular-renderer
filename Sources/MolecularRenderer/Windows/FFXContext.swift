@@ -30,7 +30,7 @@ public class FFXContext {
     createContext.value.flags = UInt32(
       FFX_UPSCALE_ENABLE_DEPTH_INVERTED.rawValue)
     createContext.value.flags |= UInt32(
-      FFX_UPSCALE_ENABLE_DEBUG_CHECKING.rawValue)
+     FFX_UPSCALE_ENABLE_DEBUG_CHECKING.rawValue)
     
     // Set the texture dimensions.
     func createFFXDimensions(

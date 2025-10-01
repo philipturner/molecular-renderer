@@ -25,6 +25,13 @@
 // - Implement the planned demo
 // - Begin the 'million-atom-scale' branch
 
+// Ideas for solving the FidelityFX crash:
+// - Set frameTimeDelta to 16.666 ms
+// - Don't set the ENABLE_DEBUG_CHECKING flag
+// - Pass a valid ID3D12Resource for every texture
+//   - Fill the unused resources with valid memory instead of undefined
+//     bits
+
 import HDL
 import MolecularRenderer
 import QuaternionModule
