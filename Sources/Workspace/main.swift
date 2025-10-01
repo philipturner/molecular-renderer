@@ -115,7 +115,7 @@ func modifyAtoms() {
     angle: Float.pi / 180 * angleDegrees,
     axis: SIMD3(0, 1, 0))
   
-  let roundedDownTime = Int((time / 1).rounded(.down))
+  let roundedDownTime = Int((time / 3).rounded(.down))
   if roundedDownTime % 2 == 0 {
     let isopropanol = createIsopropanol()
     if animationState == .silane {
@@ -151,12 +151,19 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  // Place the camera 1.0 nm away from the origin.
-  application.camera.position = SIMD3(0, 0, 1.00)
+  // 0.1 Hz rotation rate
+  let time = createTime()
+  let angleDegrees = 0.1 * time * 360
+  let rotation = Quaternion<Float>(
+    angle: Float.pi / 180 * angleDegrees,
+    axis: SIMD3(-1, 0, 0))
   
-  application.camera.basis.0 = SIMD3(1, 0, 0)
-  application.camera.basis.1 = SIMD3(0, 1, 0)
-  application.camera.basis.2 = SIMD3(0, 0, 1)
+  // Place the camera 1.0 nm away from the origin.
+  application.camera.position = rotation.act(on: SIMD3(0, 0, 1.00))
+  
+  application.camera.basis.0 = rotation.act(on: SIMD3(1, 0, 0))
+  application.camera.basis.1 = rotation.act(on: SIMD3(0, 1, 0))
+  application.camera.basis.2 = rotation.act(on: SIMD3(0, 0, 1))
   application.camera.fovAngleVertical = Float.pi / 180 * 40
 }
 
