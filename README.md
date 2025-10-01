@@ -121,4 +121,6 @@ With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It 
 
 > The default AO sample count has risen to 15 on all platforms, for fairness/equality between platforms. For members of the macOS target audience (base M1 chip), you probably want to reduce this to 7. AO sample count is specified in `RenderShader.swift`.
 
-There are a few other, minor artifacts. For example, along the border between a silicon and hydrogen atom, white pixels appeared sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy.
+There are a few other, minor artifacts. For example, along the border between a silicon and a hydrogen atom, white pixels can appear sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy.
+
+> TODO: Provide a reference video for users to compare their upscaling quality, and check for regressions.

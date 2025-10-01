@@ -241,6 +241,8 @@ extension Application {
       dispatch.value.transparencyAndComposition = createEmptyFFXResource()
       dispatch.value.output = createFFXResource(upscaledTexture)
       
+      // It takes some effort to investigate, but we are indeed getting better
+      // results from jitterOffset * -1 than jitterOffset.
       let jitterOffset = createJitterOffset()
       let motionVectorScale = SIMD2<Float>(1, 1)
       dispatch.value.jitterOffset = createFFXFloatCoords(jitterOffset * -1)
