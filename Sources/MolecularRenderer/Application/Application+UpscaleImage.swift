@@ -254,7 +254,7 @@ extension Application {
       
       dispatch.value.enableSharpening = false
       dispatch.value.sharpness = 0
-      dispatch.value.frameTimeDelta = 16.666
+      dispatch.value.frameTimeDelta = 2 // this doesn't do anything
       dispatch.value.preExposure = 1
       
       if frameID == 0 {
