@@ -1,4 +1,5 @@
-// Placeholder until each platform has the actual upscaler implemented.
+// Fallback for debugging if the upscaler goes wrong, or for easily
+// visualizing the 3 inputs to the upscaler.
 struct UpscaleShader {
   static func createSource(upscaleFactor: Float) -> String {
     func importStandardLibrary() -> String {

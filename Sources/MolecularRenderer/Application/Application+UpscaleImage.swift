@@ -124,6 +124,8 @@ private func createFFXDimensions(
 #endif
 
 extension Application {
+  // Fallback for debugging if the upscaler goes wrong, or for easily
+  // visualizing the 3 inputs to the upscaler.
   private func fallbackUpscale() {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.

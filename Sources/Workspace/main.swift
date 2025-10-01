@@ -1,9 +1,3 @@
-// Implementation of upscaling:
-// - Implement full upscaling.
-//   - Test for correct handling of motion from a *moving camera* on both
-//     platforms, not just a moving object.
-// - Delete the placeholder code without archiving it.
-//
 // Revisit every object declared as 'public' scoped in the MolecularRenderer
 // library, change most of them to 'internal'.
 //
@@ -21,13 +15,6 @@
 //   - Test simple molecular dynamics of adamantane with MM4.
 // - Implement the planned demo
 // - Begin the 'million-atom-scale' branch
-
-// Ideas for solving the FidelityFX crash:
-// - Set frameTimeDelta to 16.666 ms
-// - Don't set the ENABLE_DEBUG_CHECKING flag
-// - Pass a valid ID3D12Resource for every texture
-//   - Fill the unused resources with valid memory instead of undefined
-//     bits
 
 import HDL
 import MolecularRenderer
