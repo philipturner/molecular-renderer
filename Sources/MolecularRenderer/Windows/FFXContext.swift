@@ -58,7 +58,6 @@ public class FFXContext {
       } else {
         print("[FidelityFX] Message was a null pointer.")
       }
-      fatalError()
     }
     
     // Allocate the CreateBackendDX12Desc.

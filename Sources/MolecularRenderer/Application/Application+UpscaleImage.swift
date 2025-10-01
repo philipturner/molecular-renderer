@@ -250,6 +250,9 @@ extension Application {
       dispatch.value.cameraFovAngleVertical = camera.fovAngleVertical
       dispatch.value.viewSpaceToMetersFactor = 1
       dispatch.value.flags = 0
+      
+      // Encode the GPU commands for upscaling.
+      upscaler.ffxContext.dispatch(descriptor: dispatch)
     }
     #endif
     
