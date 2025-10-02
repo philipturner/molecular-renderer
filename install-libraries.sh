@@ -2,6 +2,15 @@ mkdir .build
 cd .build
 
 curl -L -o "openmm-macos.zip" "https://drive.google.com/uc?export=download&id=1GkOZm8CR8ezRtOgvrittQMbny_fT3HXd"
-unzip openmm-macos.zip
+unzip -o openmm-macos.zip
 
-cp openmm-macos/libOpenMM.dylib ../libOpenMM.dylib
+cd ../ # balance 'cd .build'
+
+cp ".build/openmm-macos/libOpenMM.dylib" ../libOpenMM.dylib
+
+install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
+
+codesign -fs - libOpenMM.dylib
+
+echo "These code-signs should report success:"
+codesign --verify --verbose libOpenMM.dylib
