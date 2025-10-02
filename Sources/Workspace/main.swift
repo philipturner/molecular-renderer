@@ -64,8 +64,12 @@ func passivate(topology: inout Topology) {
   topology.bonds += insertedBonds
 }
 passivate(topology: &topology)
-print(topology.atoms.count)
-print(topology.bonds.count)
+guard topology.atoms.count == 26,
+      topology.bonds.count == 28 else {
+  fatalError("Failed to compile adamantane.")
+}
+
+// MARK: - Run Simulation Analysis
 
 // Make sure the MM4Parameters can be set up successfully.
 var parametersDesc = MM4ParametersDescriptor()
@@ -77,7 +81,10 @@ let parameters = try! MM4Parameters(descriptor: parametersDesc)
 var forceFieldDesc = MM4ForceFieldDescriptor()
 forceFieldDesc.parameters = parameters
 let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+forceField.positions = topology.atoms.map(\.position)
 print("Successfully created force field:", forceField)
+print("Kinetic energy:", forceField.energy.kinetic)
+print("Potential energy:", forceField.energy.potential)
 
 // MARK: - Launch Application
 
