@@ -95,7 +95,7 @@ func temperature(kineticEnergy: Double) -> Float {
 }
 
 // Analyze the energy over a few timesteps.
-let timeStepSize: Float = 0.010
+let timeStepSize: Float = 0.002
 for frameID in 0...10 {
   // report statistics
   print()
@@ -208,7 +208,7 @@ func interpolate(time: Float) -> [Atom] {
 
 // MARK: - Launch Application
 
-#if false
+#if true
 
 @MainActor
 func createApplication() -> Application {
@@ -237,8 +237,18 @@ func createApplication() -> Application {
 let application = createApplication()
 
 @MainActor
+func createTime() -> Float {
+  let elapsedFrames = application.clock.frames
+  let frameRate = application.display.frameRate
+  let seconds = Float(elapsedFrames) / Float(frameRate)
+  return seconds
+}
+
+
+@MainActor
 func modifyAtoms() {
-  let atoms = topology.atoms
+  let time = createTime()
+  let atoms = interpolate(time: time)
   for atomID in atoms.indices {
     let atom = atoms[atomID]
     application.atoms[atomID] = atom
