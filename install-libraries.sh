@@ -6,7 +6,7 @@ unzip -o openmm-macos.zip
 
 cd ../ # balance 'cd .build'
 
-cp ".build/openmm-macos/libOpenMM.dylib" ../libOpenMM.dylib
+cp ".build/openmm-macos/libOpenMM.dylib" libOpenMM.dylib
 
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 

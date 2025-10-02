@@ -1,8 +1,7 @@
 // swift-tools-version: 6.1
 
 import PackageDescription
-import class Foundation.ProcessInfo
- 
+
 // MARK: - Inter-Module Dependencies
 
 // These dependencies are likely platform-specific.
@@ -21,27 +20,13 @@ workspaceDependencies += [
   "MolecularRenderer",
   .product(name: "OpenMM", package: "swift-openmm"),
 ]
-//workspaceLinkerSettings += [
-//  .linkedLibrary("OpenMM"),
-//]
+workspaceLinkerSettings += [
+  .linkedLibrary("OpenMM"),
+]
 #if os(macOS)
-//let repoDirectory = Context.packageDirectory
-//workspaceLinkerSettings += [
-//  .unsafeFlags(["-L\(repoDirectory)"])
-//]
-
-//if let path = ProcessInfo.processInfo.environment["REPO_DIRECTORY"] {
-//  workspaceLinkerSettings += [
-//    .unsafeFlags(["-L\(path)"]),
-//  ]
-//}
+workspaceLinkerSettings.append(
+  .unsafeFlags(["-L\(Context.packageDirectory)"]))
 #endif
-if let path = ProcessInfo.processInfo.environment["OPENMM_LIBRARY_PATH"] {
-  workspaceLinkerSettings += [
-    .unsafeFlags(["-L\(path)"]),
-    .linkedLibrary("OpenMM"),
-  ]
-}
 
 // Windows dependencies.
 #if os(Windows)
