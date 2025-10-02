@@ -93,9 +93,8 @@ func temperature(kineticEnergy: Double) -> Float {
 }
 
 // Analyze the energy over a few timesteps.
-let frameCount: Int = 10
 let timeStepSize: Float = 0.010
-for frameID in 0...frameCount {
+for frameID in 0...10 {
   // report statistics
   print()
   print("frame ID = \(frameID)")
@@ -120,8 +119,47 @@ for frameID in 0...frameCount {
   let temperatureRepr = String(format: "%.1f", temperature)
   print("temperature = \(temperatureRepr) K")
   
-  if frameID < frameCount {
+  if frameID < 10 {
     // perform time evolution
+    forceField.simulate(time: Double(timeStepSize))
+  }
+}
+
+// Gather frames for a basic test animation.
+// 201 frames, 50 Hz frame displaying, will interpolate the time
+forceField.positions = topology.atoms.map(\.position)
+//forceField.velocities = [SIMD3<Float>](
+//  repeating: .zero, count: topology.atoms.count)
+for atomID in topology.atoms.indices {
+  forceField.velocities[atomID] = .zero
+}
+forceField.simulate(time: 0)
+print(forceField.energy.kinetic)
+forceField.velocities = [SIMD3<Float>](
+  repeating: .zero, count: topology.atoms.count)
+print(forceField.energy.kinetic)
+
+var frames: [[Atom]] = []
+for frameID in 0...200 {
+  var atoms: [Atom] = []
+  for atomID in topology.atoms.indices {
+    let position = forceField.positions[atomID]
+    let element = topology.atoms[atomID].element
+    let atom = Atom(position: position, element: element)
+    atoms.append(atom)
+  }
+  frames.append(atoms)
+  
+  let time = Float(frameID) * timeStepSize
+  let timeRepr = String(format: "%.3f", time)
+  
+  let kinetic = forceField.energy.kinetic
+  let potential = forceField.energy.potential
+  let totalEnergy = kinetic
+  let totalEnergyRepr = String(format: "%.1f", totalEnergy)
+  print("t = \(timeRepr) ps, energy = \(totalEnergyRepr) zJ")
+  
+  if frameID < 200 {
     forceField.simulate(time: Double(timeStepSize))
   }
 }
