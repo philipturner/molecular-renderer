@@ -16,6 +16,11 @@ install_name_tool -id "libOpenCL.1.dylib" libOpenCL.1.dylib
 install_name_tool -id "libOpenMM.dylib" libOpenMM.dylib
 install_name_tool -id "libOpenMMOpenCL.dylib" libOpenMMOpenCL.dylib
 
+install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMM.dylib
+install_name_tool -change "@rpath/libc++.1.dylib" "$(pwd)/libc++.1.dylib" libOpenMMOpenCL.dylib
+install_name_tool -change "@rpath/libOpenCL.1.dylib" "$(pwd)/libOpenCL.1.dylib" libOpenMMOpenCL.dylib
+install_name_tool -change "@rpath/libOpenMM.dylib" "$(pwd)/libOpenMM.dylib" libOpenMMOpenCL.dylib
+
 codesign -fs - libc++.1.dylib
 codesign -fs - libOpenCL.1.dylib
 codesign -fs - libOpenMM.dylib
