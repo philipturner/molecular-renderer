@@ -71,7 +71,7 @@ guard topology.atoms.count == 26,
 
 // MARK: - Run Simulation Analysis
 
-#if false
+#if true
 
 // Make sure the MM4Parameters can be set up successfully.
 var parametersDesc = MM4ParametersDescriptor()
@@ -195,12 +195,25 @@ func doSomething(time: Float) {
   print("low interpolation factor:", lowInterpolationFactor)
   print("high interpolation factor:", highInterpolationFactor)
 }
+doSomething(time: 0.000)
+doSomething(time: 0.008)
+doSomething(time: 0.016)
+doSomething(time: 0.024)
+doSomething(time: 3.990)
+doSomething(time: 3.995)
+doSomething(time: 3.999)
+doSomething(time: 4.000)
+doSomething(time: 4.001)
+doSomething(time: 4.010)
+doSomething(time: 4.020)
+doSomething(time: 4.030)
+doSomething(time: 4.500)
 
 #endif
 
 // MARK: - Launch Application
 
-#if true
+#if false
 
 @MainActor
 func createApplication() -> Application {
@@ -212,7 +225,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
+  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1440)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
