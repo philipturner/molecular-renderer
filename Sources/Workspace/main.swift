@@ -73,6 +73,12 @@ parametersDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
 parametersDesc.bonds = topology.bonds
 let parameters = try! MM4Parameters(descriptor: parametersDesc)
 
+// Set up the MM4ForceField.
+var forceFieldDesc = MM4ForceFieldDescriptor()
+forceFieldDesc.parameters = parameters
+let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
+print("Successfully created force field:", forceField)
+
 // MARK: - Launch Application
 
 #if false
