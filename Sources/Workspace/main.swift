@@ -20,6 +20,7 @@ import SwiftCOM
 import WinSDK
 #endif
 
+/*
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
@@ -158,3 +159,6 @@ application.run {
   image = application.upscale(image: image)
   application.present(image: image)
 }
+*/
+
+print("Hello, world.")
