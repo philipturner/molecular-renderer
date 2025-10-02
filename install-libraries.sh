@@ -1,6 +1,6 @@
 # This is the only part of OpenMM that I couldn't isolate from Miniforge.
 # Luckily, configuring it requires no file URLs to the Miniforge directory.
-conda install -c conda-forge ocl_icd_wrapper_apple
+conda install -c conda-forge ocl_icd_wrapper_apple --yes
 
 mkdir .build
 cd .build
