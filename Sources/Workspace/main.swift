@@ -82,6 +82,7 @@ var forceFieldDesc = MM4ForceFieldDescriptor()
 forceFieldDesc.parameters = parameters
 let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
 forceField.positions = topology.atoms.map(\.position)
+forceField.timeStep = 0.001
 
 // Utility function for calculating temperature.
 @MainActor
@@ -121,6 +122,7 @@ for frameID in 0...frameCount {
   
   if frameID < frameCount {
     // perform time evolution
+    forceField.simulate(time: Double(timeStepSize))
   }
 }
 
