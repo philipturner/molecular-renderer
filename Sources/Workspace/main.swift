@@ -82,22 +82,15 @@ var forceFieldDesc = MM4ForceFieldDescriptor()
 forceFieldDesc.parameters = parameters
 let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
 
-// Search for the most appropriate structure size.
-let candidateSizes: [Float] = [
-  0.95, 0.96, 0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03, 1.04, 1.05
-]
-for candidateSize in candidateSizes {
-  var positions: [SIMD3<Float>] = []
-  for atom in topology.atoms {
-    var position = atom.position
-    position *= candidateSize
-    positions.append(position)
-  }
-  forceField.positions = positions
-  
-  let energy = forceField.energy.potential
-  print("size = \(candidateSize), energy = \(energy)")
+// Create a utility function for calculating temperature.
+@MainActor
+func temperature(kineticEnergy: Double) -> Float {
+  let energyInJ = kineticEnergy * 1e-21
+  let energyPerAtom = Float(energyInJ / Double(topology.atoms.count))
+  return energyPerAtom * 2 / (3 * 1.380649e-23)
 }
+print(temperature(kineticEnergy: 27.1), "K")
+print(temperature(kineticEnergy: 13.55), "K")
 
 // MARK: - Launch Application
 
