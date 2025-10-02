@@ -17,6 +17,7 @@ workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
   .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
+  .product(name: "MM4", package: "MM4"),
   "MolecularRenderer",
   .product(name: "OpenMM", package: "swift-openmm"),
 ]
@@ -72,6 +73,10 @@ packageDependencies.append(.package(
 packageDependencies.append(.package(
   url: "https://github.com/philipturner/swift-openmm",
   branch: "main"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/MM4",
+  branch: "2025-cleanups"))
 
 // MARK: - Windows Targets
 

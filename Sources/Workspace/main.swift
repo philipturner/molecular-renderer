@@ -12,14 +12,9 @@
 //   on Oct 6 2025.
 
 import HDL
+import MM4
 import MolecularRenderer
-import OpenMM
 import QuaternionModule
-
-#if os(Windows)
-import SwiftCOM
-import WinSDK
-#endif
 
 // MARK: - Compile Structure
 
@@ -31,10 +26,6 @@ var reconstruction = Reconstruction()
 reconstruction.atoms = lattice.atoms
 reconstruction.material = .elemental(.carbon)
 var topology = reconstruction.compile()
-print()
-print(topology.atoms.count)
-print(topology.atoms.filter { $0.element == .carbon }.count)
-print(topology.atoms.filter { $0.element == .hydrogen }.count)
 
 func passivate(topology: inout Topology) {
   func createHydrogen(
@@ -73,12 +64,18 @@ func passivate(topology: inout Topology) {
   topology.bonds += insertedBonds
 }
 passivate(topology: &topology)
-print()
 print(topology.atoms.count)
-print(topology.atoms.filter { $0.element == .carbon }.count)
-print(topology.atoms.filter { $0.element == .hydrogen }.count)
+print(topology.bonds.count)
+
+// Make sure the MM4Parameters can be set up successfully.
+var parametersDesc = MM4ParametersDescriptor()
+parametersDesc.atomicNumbers = topology.atoms.map(\.atomicNumber)
+parametersDesc.bonds = topology.bonds
+let parameters = try! MM4Parameters(descriptor: parametersDesc)
 
 // MARK: - Launch Application
+
+#if false
 
 @MainActor
 func createApplication() -> Application {
@@ -134,3 +131,5 @@ application.run {
   image = application.upscale(image: image)
   application.present(image: image)
 }
+
+#endif
