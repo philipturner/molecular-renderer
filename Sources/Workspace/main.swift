@@ -38,7 +38,7 @@ func createApplication() -> Application {
   
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
-  applicationDesc.allocationSize = 1_000_000
+  applicationDesc.allocationSize = 10_000
   applicationDesc.device = device
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
@@ -161,17 +161,3 @@ application.run {
   application.present(image: image)
 }
 */
-
-let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory
-guard let pluginsDirectory else {
-  fatalError("Could not find plugins directory.")
-}
-print("Plugins directory:", pluginsDirectory)
-
-let pluginFile = pluginsDirectory + "/" + "libOpenMMOpenCL.dylib"
-OpenMM_Platform.loadPluginLibrary(file: pluginFile)
-
-print(OpenMM_Platform.platforms.count)
-for platform in OpenMM_Platform.platforms {
-  print(platform.name)
-}
