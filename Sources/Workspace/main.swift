@@ -162,9 +162,22 @@ application.run {
 }
 */
 
-print(OpenMM_Platform.defaultPluginsDirectory)
-print(OpenMM_Platform.platforms.count)
+let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory
+guard let pluginsDirectory else {
+  fatalError("Could not find plugins directory.")
+}
 
+let loadedPlugins = OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
+if let loadedPlugins {
+  print("Loaded plugins.")
+  for i in 0..<loadedPlugins.size {
+    print(loadedPlugins[i])
+  }
+} else {
+  print("Could not load any plugins.")
+}
+
+print(OpenMM_Platform.platforms.count)
 for platform in OpenMM_Platform.platforms {
   print(platform.name)
 }
