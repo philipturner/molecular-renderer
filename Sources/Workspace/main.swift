@@ -81,10 +81,23 @@ let parameters = try! MM4Parameters(descriptor: parametersDesc)
 var forceFieldDesc = MM4ForceFieldDescriptor()
 forceFieldDesc.parameters = parameters
 let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
-forceField.positions = topology.atoms.map(\.position)
-print("Successfully created force field:", forceField)
-print("Kinetic energy:", forceField.energy.kinetic)
-print("Potential energy:", forceField.energy.potential)
+
+// Search for the most appropriate structure size.
+let candidateSizes: [Float] = [
+  0.95, 0.96, 0.97, 0.98, 0.99, 1.00, 1.01, 1.02, 1.03, 1.04, 1.05
+]
+for candidateSize in candidateSizes {
+  var positions: [SIMD3<Float>] = []
+  for atom in topology.atoms {
+    var position = atom.position
+    position *= candidateSize
+    positions.append(position)
+  }
+  forceField.positions = positions
+  
+  let energy = forceField.energy.potential
+  print("size = \(candidateSize), energy = \(energy)")
+}
 
 // MARK: - Launch Application
 
