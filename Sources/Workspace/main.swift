@@ -166,6 +166,7 @@ let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory
 guard let pluginsDirectory else {
   fatalError("Could not find plugins directory.")
 }
+print("Plugins directory:", pluginsDirectory)
 
 let loadedPlugins = OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
 if let loadedPlugins {

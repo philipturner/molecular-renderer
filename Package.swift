@@ -25,7 +25,7 @@ workspaceLinkerSettings += [
 ]
 #if os(macOS)
 workspaceLinkerSettings.append(
-  .unsafeFlags(["-L\(Context.packageDirectory)"]))
+  .unsafeFlags(["-L/Users/philipturner/miniforge3/lib"]))
 #endif
 
 // Windows dependencies.
