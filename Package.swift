@@ -36,6 +36,12 @@ workspaceDependencies += [
 //  ]
 //}
 #endif
+if let path = ProcessInfo.processInfo.environment["OPENMM_LIBRARY_PATH"] {
+  workspaceLinkerSettings += [
+    .unsafeFlags(["-L\(path)"]),
+    .linkedLibrary("OpenMM"),
+  ]
+}
 
 // Windows dependencies.
 #if os(Windows)
