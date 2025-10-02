@@ -13,6 +13,7 @@
 
 import HDL
 import MolecularRenderer
+import OpenMM
 import QuaternionModule
 
 #if os(Windows)
