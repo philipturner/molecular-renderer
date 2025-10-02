@@ -20,11 +20,11 @@ import QuaternionModule
 
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 1 * (h + k + l) }
-  Material { .elemental(.carbon) }
+  Material { .checkerboard(.carbon, .silicon) }
 }
 var reconstruction = Reconstruction()
 reconstruction.atoms = lattice.atoms
-reconstruction.material = .elemental(.carbon)
+reconstruction.material = .checkerboard(.silicon, .carbon)
 var topology = reconstruction.compile()
 
 func passivate(topology: inout Topology) {
@@ -70,6 +70,8 @@ guard topology.atoms.count == 26,
 }
 
 // MARK: - Run Simulation Analysis
+
+#if false
 
 // Make sure the MM4Parameters can be set up successfully.
 var parametersDesc = MM4ParametersDescriptor()
@@ -194,9 +196,11 @@ func doSomething(time: Float) {
   print("high interpolation factor:", highInterpolationFactor)
 }
 
+#endif
+
 // MARK: - Launch Application
 
-#if false
+#if true
 
 @MainActor
 func createApplication() -> Application {
@@ -235,7 +239,7 @@ func modifyAtoms() {
 
 @MainActor
 func modifyCamera() {
-  application.camera.position = SIMD3(0, 0, 2.00)
+  application.camera.position = SIMD3(0.20, 0.20, 1.40)
   
   application.camera.basis.0 = SIMD3(1, 0, 0)
   application.camera.basis.1 = SIMD3(0, 1, 0)
