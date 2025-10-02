@@ -170,44 +170,39 @@ for frameID in 0...200 {
 
 // Input: time in seconds
 // Output: atoms
-func doSomething(time: Float) {
+@MainActor
+func interpolate(time: Float) -> [Atom] {
   let multiple50Hz = time * 50
-  var lowFrame = multiple50Hz.rounded(.down)
+  var lowFrame = Int(multiple50Hz.rounded(.down))
   var highFrame = lowFrame + 1
-  var lowInterpolationFactor = highFrame - multiple50Hz
-  var highInterpolationFactor = multiple50Hz - lowFrame
+  var lowInterpolationFactor = Float(highFrame) - multiple50Hz
+  var highInterpolationFactor = multiple50Hz - Float(lowFrame)
   
   if lowFrame < -1 {
     fatalError("This should never happen.")
   }
   if lowFrame >= 200 {
-    print("Exceeded time span.")
     lowFrame = 200
     highFrame = 200
     lowInterpolationFactor = 1
     highInterpolationFactor = 0
   }
   
-  print()
-  print("time:", time)
-  print("low frame:", lowFrame)
-  print("high frame:", highFrame)
-  print("low interpolation factor:", lowInterpolationFactor)
-  print("high interpolation factor:", highInterpolationFactor)
+  var output: [Atom] = []
+  for atomID in topology.atoms.indices {
+    let lowAtom = frames[lowFrame][atomID]
+    let highAtom = frames[highFrame][atomID]
+    
+    var position: SIMD3<Float> = .zero
+    position += lowAtom.position * lowInterpolationFactor
+    position += highAtom.position * highInterpolationFactor
+    
+    let element = topology.atoms[atomID].element
+    let atom = Atom(position: position, element: element)
+    output.append(atom)
+  }
+  return output
 }
-doSomething(time: 0.000)
-doSomething(time: 0.008)
-doSomething(time: 0.016)
-doSomething(time: 0.024)
-doSomething(time: 3.990)
-doSomething(time: 3.995)
-doSomething(time: 3.999)
-doSomething(time: 4.000)
-doSomething(time: 4.001)
-doSomething(time: 4.010)
-doSomething(time: 4.020)
-doSomething(time: 4.030)
-doSomething(time: 4.500)
 
 #endif
 
