@@ -168,12 +168,8 @@ guard let pluginsDirectory else {
 }
 print("Plugins directory:", pluginsDirectory)
 
-let loadedPlugins = OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
-if let loadedPlugins {
-  for i in 0..<loadedPlugins.size {
-    print("Loaded plugin:", loadedPlugins[i])
-  }
-}
+let pluginFile = pluginsDirectory + "/" + "libOpenMMOpenCL.dylib"
+OpenMM_Platform.loadPluginLibrary(file: pluginFile)
 
 print(OpenMM_Platform.platforms.count)
 for platform in OpenMM_Platform.platforms {
