@@ -82,15 +82,23 @@ var forceFieldDesc = MM4ForceFieldDescriptor()
 forceFieldDesc.parameters = parameters
 let forceField = try! MM4ForceField(descriptor: forceFieldDesc)
 
-// Create a utility function for calculating temperature.
+// Utility function for calculating temperature.
 @MainActor
 func temperature(kineticEnergy: Double) -> Float {
   let energyInJ = kineticEnergy * 1e-21
   let energyPerAtom = Float(energyInJ / Double(topology.atoms.count))
   return energyPerAtom * 2 / (3 * 1.380649e-23)
 }
-print(temperature(kineticEnergy: 27.1), "K")
-print(temperature(kineticEnergy: 13.55), "K")
+
+// Analyze the energy over a few timesteps.
+let frameCount: Int = 10
+for frameID in 0...frameCount {
+  // report statistics
+  
+  if frameID < frameCount {
+    // perform time evolution
+  }
+}
 
 // MARK: - Launch Application
 
