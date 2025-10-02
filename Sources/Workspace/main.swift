@@ -248,10 +248,18 @@ func createTime() -> Float {
 @MainActor
 func modifyAtoms() {
   let time = createTime()
-  let atoms = interpolate(time: time)
-  for atomID in atoms.indices {
-    let atom = atoms[atomID]
-    application.atoms[atomID] = atom
+  if time < 5 {
+    let atoms = topology.atoms
+    for atomID in atoms.indices {
+      let atom = atoms[atomID]
+      application.atoms[atomID] = atom
+    }
+  } else {
+    let atoms = interpolate(time: time - 5)
+    for atomID in atoms.indices {
+      let atom = atoms[atomID]
+      application.atoms[atomID] = atom
+    }
   }
 }
 
