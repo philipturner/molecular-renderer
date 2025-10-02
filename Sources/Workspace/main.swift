@@ -103,6 +103,22 @@ for frameID in 0...frameCount {
   let timeRepr = String(format: "%.3f", time)
   print("time = \(timeRepr) ps")
   
+  let kinetic = forceField.energy.kinetic
+  let kineticRepr = String(format: "%.1f", kinetic)
+  print("kinetic energy = \(kineticRepr) zJ")
+  
+  let potential = forceField.energy.potential
+  let potentialRepr = String(format: "%.1f", potential)
+  print("potential energy = \(potentialRepr) zJ")
+  
+  let totalEnergy = kinetic + potential
+  let totalEnergyRepr = String(format: "%.1f", totalEnergy)
+  print("total energy = \(totalEnergyRepr) zJ")
+  
+  let temperature = temperature(kineticEnergy: kinetic)
+  let temperatureRepr = String(format: "%.1f", temperature)
+  print("temperature = \(temperatureRepr) K")
+  
   if frameID < frameCount {
     // perform time evolution
   }
