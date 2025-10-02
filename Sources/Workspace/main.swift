@@ -162,4 +162,9 @@ application.run {
 }
 */
 
-print("Hello, world.")
+print(OpenMM_Platform.defaultPluginsDirectory)
+print(OpenMM_Platform.platforms.count)
+
+for platform in OpenMM_Platform.platforms {
+  print(platform.name)
+}
