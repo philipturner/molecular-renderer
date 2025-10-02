@@ -166,6 +166,34 @@ for frameID in 0...200 {
   }
 }
 
+// Input: time in seconds
+// Output: atoms
+func doSomething(time: Float) {
+  let multiple50Hz = time * 50
+  var lowFrame = multiple50Hz.rounded(.down)
+  var highFrame = lowFrame + 1
+  var lowInterpolationFactor = highFrame - multiple50Hz
+  var highInterpolationFactor = multiple50Hz - lowFrame
+  
+  if lowFrame < -1 {
+    fatalError("This should never happen.")
+  }
+  if lowFrame >= 200 {
+    print("Exceeded time span.")
+    lowFrame = 200
+    highFrame = 200
+    lowInterpolationFactor = 1
+    highInterpolationFactor = 0
+  }
+  
+  print()
+  print("time:", time)
+  print("low frame:", lowFrame)
+  print("high frame:", highFrame)
+  print("low interpolation factor:", lowInterpolationFactor)
+  print("high interpolation factor:", highInterpolationFactor)
+}
+
 // MARK: - Launch Application
 
 #if false
