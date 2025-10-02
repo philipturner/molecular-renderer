@@ -94,7 +94,7 @@ func temperature(kineticEnergy: Double) -> Float {
 
 // Analyze the energy over a few timesteps.
 let timeStepSize: Float = 0.010
-for frameID in 0...10 {
+for frameID in 0...8 {
   // report statistics
   print()
   print("frame ID = \(frameID)")
@@ -119,11 +119,14 @@ for frameID in 0...10 {
   let temperatureRepr = String(format: "%.1f", temperature)
   print("temperature = \(temperatureRepr) K")
   
-  if frameID < 10 {
+  if frameID < 8 {
     // perform time evolution
     forceField.simulate(time: Double(timeStepSize))
   }
 }
+
+print(forceField.energy.kinetic)
+print("space")
 
 // Gather frames for a basic test animation.
 // 201 frames, 50 Hz frame displaying, will interpolate the time
