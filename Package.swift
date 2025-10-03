@@ -17,7 +17,7 @@ workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
   .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
-  //.product(name: "MM4", package: "MM4"),
+  .product(name: "MM4", package: "MM4"),
   "MolecularRenderer",
   .product(name: "OpenMM", package: "swift-openmm"),
 ]

@@ -11,15 +11,15 @@
 // - Begin the 'million-atom-scale' branch. Estimated to begin 5 days from now,
 //   on Oct 6 2025.
 
-//import HDL
-//import MM4
-//import MolecularRenderer
+import HDL
+import MM4
+import MolecularRenderer
 import OpenMM
-//import QuaternionModule
+import QuaternionModule
 
 // MARK: - Compile Structure
 
-#if false
+#if true
 
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 1 * (h + k + l) }
@@ -76,7 +76,7 @@ guard topology.atoms.count == 26,
 
 // MARK: - Run Simulation Analysis
 
-#if false
+#if true
 
 // Make sure the MM4Parameters can be set up successfully.
 var parametersDesc = MM4ParametersDescriptor()
@@ -91,6 +91,10 @@ var forceField = try! MM4ForceField(descriptor: forceFieldDesc)
 forceField.positions = topology.atoms.map(\.position)
 forceField.timeStep = 0.001
 
+guard forceField.energy.kinetic == 0 else {
+  fatalError("Force field kinetic energy was not exactly zero.")
+}
+
 // Utility function for calculating temperature.
 @MainActor
 func temperature(kineticEnergy: Double) -> Float {
@@ -100,13 +104,13 @@ func temperature(kineticEnergy: Double) -> Float {
 }
 
 // Analyze the energy over a few timesteps.
-let timeStepSize: Float = 0.002
+let frameTimeInterval: Float = 0.002
 for frameID in 0...10 {
   // report statistics
   print()
   print("frame ID = \(frameID)")
   
-  let time = Float(frameID) * timeStepSize
+  let time = Float(frameID) * frameTimeInterval
   let timeRepr = String(format: "%.3f", time)
   print("time = \(timeRepr) ps")
   
@@ -126,11 +130,22 @@ for frameID in 0...10 {
   let temperatureRepr = String(format: "%.1f", temperature)
   print("temperature = \(temperatureRepr) K")
   
+  guard temperature < 1000 else {
+    fatalError("Temperature exceeded 1000 K or was NaN.")
+  }
+  
   if frameID < 10 {
     // perform time evolution
-    forceField.simulate(time: Double(timeStepSize))
+    forceField.simulate(time: Double(frameTimeInterval))
   }
 }
+
+guard forceField.energy.kinetic > 0 else {
+  fatalError("Force field kinetic energy was zero.")
+}
+
+// Separate the console diagnostics from the two simulation runs.
+print()
 
 // Need to create a completely new force field to reset the OpenMM internal
 // state. Confirmed that this previous-state dependence bug is a fault of
@@ -159,18 +174,29 @@ for frameID in 0...200 {
   }
   frames.append(atoms)
   
-  let time = Float(frameID) * timeStepSize
+  let time = Float(frameID) * frameTimeInterval
   let timeRepr = String(format: "%.3f", time)
   
   let kinetic = forceField.energy.kinetic
   let potential = forceField.energy.potential
   let totalEnergy = kinetic + potential
   let totalEnergyRepr = String(format: "%.1f", totalEnergy)
-  print("t = \(timeRepr) ps, energy = \(totalEnergyRepr) zJ")
+  
+  let temperature = temperature(kineticEnergy: kinetic)
+  let temperatureRepr = String(format: "%.1f", temperature)
+  print("t = \(timeRepr) ps, energy = \(totalEnergyRepr) zJ, temp = \(temperatureRepr) K")
+  
+  guard temperature < 1000 else {
+    fatalError("Temperature exceeded 1000 K or was NaN.")
+  }
   
   if frameID < 200 {
-    forceField.simulate(time: Double(timeStepSize))
+    forceField.simulate(time: Double(frameTimeInterval))
   }
+}
+
+guard forceField.energy.kinetic > 0 else {
+  fatalError("Force field kinetic energy was zero.")
 }
 
 // Input: time in seconds
@@ -292,6 +318,8 @@ application.run {
 
 // MARK: - Basic OpenMM Test
 
+#if false
+
 let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory
 guard let pluginsDirectory else {
   fatalError("Could not find the OpenMM plugins directory.")
@@ -305,3 +333,5 @@ print(platforms.count)
 for platform in platforms {
   print(platform.name)
 }
+
+#endif
