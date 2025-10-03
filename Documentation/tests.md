@@ -1,5 +1,7 @@
 # Tests
 
+To run each test, copy the source code from the relevant file in [Tests](./Tests). Paste the code into `main.swift`, overwriting the Hello World template. Then follow the program startup instructions for your operating system.
+
 ## Upscaling
 
 Animation where both the molecule and camera are rotating. Alternates between isopropanol and silane every 3 seconds. Checks that the upscaler can correctly keep track of motion vectors, while upscaling the resolution by 3x.
