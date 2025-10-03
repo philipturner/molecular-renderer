@@ -4,11 +4,13 @@ Prerequisites: [Swift (Manual Installation)](https://www.swift.org/install/windo
 
 Minimum OS version: Windows 10
 
----
+## Downloading Binaries
 
 TODO: Separate Google Drive links and install scripts for OpenMM and xTB. ZIP files should be placed in the top-level folder and gracefully handled by the install script, which copies them into `.build`. List the expected binary size of each.
 
 Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
+
+## Program Startup
 
 Open the source code in VS Code by double-clicking `Package.swift`. Navigate to the file tree and open the package's parent directory.
 

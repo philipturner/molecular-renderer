@@ -4,7 +4,11 @@ Prerequisites: [Xcode](https://developer.apple.com/xcode)
 
 Minimum OS version: macOS 15
 
----
+## Downloading Binaries
+
+Run `bash install-openmm.sh` in Terminal, at the repo directory. Only run once, the first time the repo is downloaded.
+
+## Program Startup
 
 Open the source code in Xcode by double-clicking `Package.swift`. Do not run the code from within the Xcode UI.
 

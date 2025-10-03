@@ -4,9 +4,9 @@
 
 Link reference video for users to compare their upscaling quality, and check for regressions.
 
-## HDL Tutorial
+## Basic OpenMM Test
 
-TODO: Make accompanying Swift code to position the camera, and properly render this structure.
+Import the OpenMM module into the Swift file and validate that the OpenCL plugin can be loaded.
 
 ## MM4
 
@@ -17,3 +17,7 @@ Link reference video for what the animation should look like.
 ## xTB
 
 Attempt to make the MSYS2 binary work on Windows, through runtime linking like from PythonKit. Start with a basic test in a fresh test package. Access LoadLibraryA of a DLL from a different library that's known to work well.
+
+## HDL Tutorial
+
+TODO: Make accompanying Swift code to position the camera, and properly render this structure.
