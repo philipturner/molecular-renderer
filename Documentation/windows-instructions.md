@@ -6,11 +6,13 @@ Minimum OS version: Windows 10
 
 ## Downloading Binaries
 
-Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
+Run `./install-libraries.bat` in Git Bash, at the repo directory.
 
 Go to the [Google Drive](https://drive.google.com/drive/folders/1zLNHuiN0CINJoaOwDX03eWMMOwJ3ljzW?usp=drive_link) folder in your browser. Download `openmm-windows.zip` and `xtb-windows.zip`. Move these ZIP files into the repo directory.
 
-Run `./install-openmm.bat` and `./install-xtb.bat` in Git Bash, at the repo directory.
+Run `./install-openmm.bat` in Git Bash, at the repo directory.
+
+Run `./install-xtb.bat` in Git Bash, at the repo directory.
 
 If have trouble installing the simulators, comment out the following lines of `Package.swift`:
 
