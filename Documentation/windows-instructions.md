@@ -34,4 +34,4 @@ Open the source code in VS Code by double-clicking `Package.swift`. Navigate to 
 
 Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINAL</b> in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
 
-> The very first time the code is compiled and executed, the renderer window is hidden by the VS Code window. Check for something new appearing in the task bar at the bottom of your screen.
+The very first time the code is compiled and executed, the renderer window is hidden by the VS Code window. Check for something new appearing in the task bar at the bottom of your screen.
