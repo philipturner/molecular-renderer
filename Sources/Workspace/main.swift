@@ -239,7 +239,7 @@ func interpolate(time: Float) -> [Atom] {
 
 // MARK: - Launch Application
 
-#if false
+#if true
 
 @MainActor
 func createApplication() -> Application {
@@ -278,15 +278,14 @@ func createTime() -> Float {
 @MainActor
 func modifyAtoms() {
   let time = createTime()
-  if time < 5 {
+  if time < 2 {
     let atoms = topology.atoms
     for atomID in atoms.indices {
-      var atom = atoms[atomID]
-      atom.position += SIMD3(-1, -1, -1) * time * 0.1
+      let atom = atoms[atomID]
       application.atoms[atomID] = atom
     }
   } else {
-    let atoms = interpolate(time: time - 5)
+    let atoms = interpolate(time: time - 2)
     for atomID in atoms.indices {
       let atom = atoms[atomID]
       application.atoms[atomID] = atom
