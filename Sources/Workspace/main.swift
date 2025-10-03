@@ -298,7 +298,8 @@ guard let pluginsDirectory else {
 }
 print("default plugins directory:", pluginsDirectory)
 
-OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
+let pluginFile = pluginsDirectory + "/" + "OpenMMOpenCL.dll"
+OpenMM_Platform.loadPluginLibrary(file: pluginFile)
 
 let platforms = OpenMM_Platform.platforms
 print(platforms.count)
