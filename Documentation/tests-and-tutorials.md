@@ -21,7 +21,3 @@ Link reference video for what the animation should look like.
 ## xTB
 
 Attempt to make the MSYS2 binary work on Windows, through runtime linking like from PythonKit. Start with a basic test in a fresh test package. Access LoadLibraryA of a DLL from a different library that's known to work well.
-
-## HDL Tutorial
-
-TODO: Make accompanying Swift code to position the camera, and properly render this structure. The user can choose from a few different camera angles, which may be documented in a GitHub gist comment with images.
