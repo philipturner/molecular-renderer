@@ -6,7 +6,7 @@ Minimum OS version: macOS 15
 
 ## Downloading Binaries
 
-Run `bash install-openmm.sh` in Terminal, at the repo directory. Only run once, the first time the repo is downloaded.
+Run `bash install-openmm.sh` and `bash install-xtb.sh` in Terminal, at the repo directory.
 
 ## Program Startup
 

@@ -14,7 +14,7 @@ Import the OpenMM module and validate that the OpenCL plugin can be loaded. Shou
 
 Simulate the time evolution of a compiled structure with ~80 zJ of strain energy. Captures 200 very short frames (2 fs each) and renders the trajectory after 2 seconds of delay.
 
-Temperature (calculated from $\frac{1}{2}kT$ per atom for kinetic energy) should not exceed ~150 K. With 1.0 fs time steps, energy stays between -42 zJ and -44 zJ.
+Temperature (calculated from $\frac{1}{2}kT$ per atom for kinetic energy) should not exceed ~150 K. With 1.0 fs time steps, energy stays between -42 zJ and -43 zJ.
 
 With 2.0 fs time steps and 10 fs frames, the energy rises to -29 zJ after only 3 frames. It randomly fluctuates between -29 zJ and -41 zJ for the rest of the simulation. The MM4 default of 2.5 fs changes this envelope to -19 zJ and -36 zJ.
 
