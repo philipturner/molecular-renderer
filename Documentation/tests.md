@@ -8,7 +8,9 @@ Reference video for users to compare their upscaling quality: [YouTube](https://
 
 ## OpenMM Plugin Test
 
-Import the OpenMM module and validate that the OpenCL plugin can be loaded. Should report that 2 platforms exist: Reference, OpenCL
+Import the OpenMM module and validate that the OpenCL plugin can be loaded.
+
+Should report that 2 platforms exist: Reference, OpenCL
 
 ## MM4
 
