@@ -14,7 +14,7 @@ Run `./install-openmm.bat` in Git Bash, at the repo directory.
 
 Run `./install-xtb.bat` in Git Bash, at the repo directory.
 
-If have trouble installing the simulators, comment out the following lines of `Package.swift`:
+If you have trouble installing the simulators, comment out the following lines of `Package.swift`:
 
 ```swift
 workspaceDependencies += [
