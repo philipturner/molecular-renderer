@@ -1,5 +1,9 @@
 # Tests and Tutorials
 
+Game plan:
+- Host the tutorial Swift files and images in this repo while developing them.
+- Once completed, migrate them to GitHub gists
+
 ## Upscaling
 
 Link reference video for users to compare their upscaling quality, and check for regressions.
@@ -20,4 +24,4 @@ Attempt to make the MSYS2 binary work on Windows, through runtime linking like f
 
 ## HDL Tutorial
 
-TODO: Make accompanying Swift code to position the camera, and properly render this structure.
+TODO: Make accompanying Swift code to position the camera, and properly render this structure. The user can choose from a few different camera angles, which may be documented in a GitHub gist comment with images.
