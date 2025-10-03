@@ -12,11 +12,13 @@
 //   on Oct 6 2025.
 
 import HDL
-import MM4
+//import MM4
 import MolecularRenderer
 import QuaternionModule
 
 // MARK: - Compile Structure
+
+#if true
 
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 1 * (h + k + l) }
@@ -69,9 +71,11 @@ guard topology.atoms.count == 26,
   fatalError("Failed to compile adamantane.")
 }
 
+#endif
+
 // MARK: - Run Simulation Analysis
 
-#if true
+#if false
 
 // Make sure the MM4Parameters can be set up successfully.
 var parametersDesc = MM4ParametersDescriptor()
@@ -244,23 +248,27 @@ func createTime() -> Float {
   return seconds
 }
 
-
 @MainActor
 func modifyAtoms() {
   let time = createTime()
-  if time < 5 {
+  // if time < 5 {
     let atoms = topology.atoms
     for atomID in atoms.indices {
-      let atom = atoms[atomID]
+      var atom = atoms[atomID]
+      atom.position += SIMD3(-1, -1, -1) * time * 0.1
       application.atoms[atomID] = atom
     }
-  } else {
-    let atoms = interpolate(time: time - 5)
-    for atomID in atoms.indices {
-      let atom = atoms[atomID]
-      application.atoms[atomID] = atom
-    }
-  }
+    
+    // Check that this has enough framerate by animating the
+    // structure.
+    
+  // } else {
+  //   let atoms = interpolate(time: time - 5)
+  //   for atomID in atoms.indices {
+  //     let atom = atoms[atomID]
+  //     application.atoms[atomID] = atom
+  //   }
+  // }
 }
 
 @MainActor
