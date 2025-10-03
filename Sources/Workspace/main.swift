@@ -1,16 +1,3 @@
-// Clean up all repositories:
-// - Integrate simulators into main as an 'add-simulators' branch.
-//   - During this task, the pending minor maintenance to the simulator code
-//     bases will be performed.
-//   - Delete the built-in minimizer before the test.
-//   - Test simple molecular dynamics of adamantane with MM4.
-//   - Run the exact same test with GFN2-xTB and GFN-FF.
-// - Implement the planned demo.
-//   - Perhaps host the demo on both a GitHub gist, and the 'main.swift' of
-//     this repo for the time being.
-// - Begin the 'million-atom-scale' branch. Estimated to begin 5 days from now,
-//   on Oct 6 2025.
-
 import HDL
 import MM4
 import MolecularRenderer
