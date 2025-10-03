@@ -85,4 +85,4 @@ With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It 
 
 There are a few other, minor artifacts. Along the border between a silicon and hydrogen atom, white pixels can appear sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy. In the MM4 carbosilane test, FSR shows noticeable artifacts at the borders between slowly moving atoms, while MetalFX does not.
 
-Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to the Windows target audience (GTX 970 and later, RDNA 1 and later). Older hardware is supported precisely because FSR 3 does not rely on computationally intensive neural networks, and it does not require FP16 support.
+Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to the Windows target audience (GTX 970 and later, RDNA 1 and later). Older hardware works precisely because FSR 3 does not rely on computationally intensive neural networks, and it does not require FP16 support.
