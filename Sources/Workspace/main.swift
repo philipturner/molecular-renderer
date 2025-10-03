@@ -14,11 +14,12 @@
 import HDL
 //import MM4
 import MolecularRenderer
+import OpenMM
 import QuaternionModule
 
 // MARK: - Compile Structure
 
-#if true
+#if false
 
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 1 * (h + k + l) }
@@ -212,7 +213,7 @@ func interpolate(time: Float) -> [Atom] {
 
 // MARK: - Launch Application
 
-#if true
+#if false
 
 @MainActor
 func createApplication() -> Application {
@@ -251,24 +252,20 @@ func createTime() -> Float {
 @MainActor
 func modifyAtoms() {
   let time = createTime()
-  // if time < 5 {
+  if time < 5 {
     let atoms = topology.atoms
     for atomID in atoms.indices {
       var atom = atoms[atomID]
       atom.position += SIMD3(-1, -1, -1) * time * 0.1
       application.atoms[atomID] = atom
     }
-    
-    // Check that this has enough framerate by animating the
-    // structure.
-    
-  // } else {
-  //   let atoms = interpolate(time: time - 5)
-  //   for atomID in atoms.indices {
-  //     let atom = atoms[atomID]
-  //     application.atoms[atomID] = atom
-  //   }
-  // }
+  } else {
+    let atoms = interpolate(time: time - 5)
+    for atomID in atoms.indices {
+      let atom = atoms[atomID]
+      application.atoms[atomID] = atom
+    }
+  }
 }
 
 @MainActor
@@ -292,3 +289,19 @@ application.run {
 }
 
 #endif
+
+// MARK: - Basic OpenMM Test
+
+let pluginsDirectory = OpenMM_Platform.defaultPluginsDirectory
+guard let pluginsDirectory else {
+  fatalError("Could not find the OpenMM plugins directory.")
+}
+print("default plugins directory:", pluginsDirectory)
+
+OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
+
+let platforms = OpenMM_Platform.platforms
+print(platforms.count)
+for platform in platforms {
+  print(platform.name)
+}

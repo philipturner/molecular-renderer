@@ -19,12 +19,12 @@ workspaceDependencies += [
   .product(name: "Numerics", package: "swift-numerics"),
   //.product(name: "MM4", package: "MM4"),
   "MolecularRenderer",
-  //.product(name: "OpenMM", package: "swift-openmm"),
+  .product(name: "OpenMM", package: "swift-openmm"),
 ]
-#if os(macOS)
 workspaceLinkerSettings += [
   .linkedLibrary("OpenMM"),
 ]
+#if os(macOS)
 workspaceLinkerSettings.append(
   .unsafeFlags(["-L\(Context.packageDirectory)"]))
 #endif
