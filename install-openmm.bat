@@ -15,7 +15,7 @@ cd .build
 ::
 :: No!
 ::powershell -c "Invoke-WebRequest -Uri 'https://drive.google.com/uc?id=178baamEi-Dy85nLUkjCAK0HgtIHtIsfG&authuser=0&export=download' -OutFile 'openmm-windows.zip'"
-copy /Y "../openmm-windows.zip" "openmm-windows.zip"
+copy /Y ..\openmm-windows.zip "./openmm-windows.zip"
 
 :: Decompress each ZIP file into a hierarchy of folders.
 powershell -c "Import-Module Microsoft.Powershell.Archive"
