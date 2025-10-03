@@ -76,7 +76,7 @@ packageDependencies.append(.package(
 
 packageDependencies.append(.package(
   url: "https://github.com/philipturner/MM4",
-  branch: "2025-cleanups"))
+  branch: "main"))
 
 // MARK: - Windows Targets
 
