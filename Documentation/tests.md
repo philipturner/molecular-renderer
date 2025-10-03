@@ -1,14 +1,10 @@
-# Tests and Tutorials
-
-Game plan:
-- Host the tutorial Swift files and images in this repo while developing them.
-- Once completed, migrate them to GitHub gists
+# Tests
 
 ## Upscaling
 
 Link reference video for users to compare their upscaling quality, and check for regressions.
 
-## Basic OpenMM Test
+## OpenMM Plugin Test
 
 Import the OpenMM module into the Swift file and validate that the OpenCL plugin can be loaded.
 
@@ -19,5 +15,7 @@ Describe the expected properties of the energy through time evolution. Add a few
 Link reference video for what the animation should look like.
 
 ## xTB
+
+Test the potential energy curve of an N2 molecule.
 
 Attempt to make the MSYS2 binary work on Windows, through runtime linking like from PythonKit. Start with a basic test in a fresh test package. Access LoadLibraryA of a DLL from a different library that's known to work well.

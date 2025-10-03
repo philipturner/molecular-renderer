@@ -26,6 +26,6 @@ git clone https://github.com/philipturner/molecular-renderer
 
 [User Interface](./Documentation/user-interface.md)
 
-[Tests and Tutorials](./Documentation/tests-and-tutorials.md)
+[Tests](./Documentation/tests.md)
 
 [Other Documentation](./Documentation/other-documentation.md)
