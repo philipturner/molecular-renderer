@@ -8,8 +8,6 @@ Minimum OS version: macOS 15
 
 Run `bash install-openmm.sh` in Terminal, at the repo directory. Only run once, the first time the repo is downloaded.
 
-If you are having trouble installing the simulators, you can comment out the following lines of `Package.swift`: TODO
-
 ## Program Startup
 
 Open the source code in Xcode by double-clicking `Package.swift`. Do not run the code from within the Xcode UI.
