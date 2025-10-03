@@ -20,6 +20,8 @@ git clone https://github.com/philipturner/molecular-renderer
 
 [Windows Instructions](./Documentation/windows-instructions.md)
 
+[Google Drive folder](https://drive.google.com/drive/folders/1zLNHuiN0CINJoaOwDX03eWMMOwJ3ljzW?usp=drive_link) for simulator binaries
+
 ## Documentation
 
 [User Interface](./Documentation/user-interface.md)
