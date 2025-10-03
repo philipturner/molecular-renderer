@@ -2,7 +2,7 @@
 
 ## Render Process Diagram
 
-![Render Process Diagram](./Documentation/RenderProcessDiagram.png)
+![Render Process Diagram](./RenderProcessDiagram.png)
 
 <details>
 <summary>Personal notes about the async raw pixel buffer, which was out of scope for the latest PR</summary>
@@ -69,7 +69,7 @@ On macOS, there is a problem with the MetalFX framework that may lead to massive
 
 The source of this problem was narrowed down to ANECompilerService, which is invoked when creating `MTLFXTemporalUpscaler` for the first time after the Swift program has been recompiled with changes. The first-time latency is dictated by the graph below, where the intermediate size is the texture size prior to upscaling. The second-time latency is 0.2&ndash;0.3 seconds.
 
-![ANECompilerService Latency](./Documentation/ANECompilerServiceLatency.png)
+![ANECompilerService Latency](./ANECompilerServiceLatency.png)
 
 In a typical use case, the upscaled size is 1920x1920 and the intermediate size is 640x640. The user faces a 2-second delay on every program startup, which would typically be hard to notice. The upscale factor is then switched from 3x to 2x, making the intermediate size 960x960. The delay skyrockets to 10 seconds. This is the exact scenario that led to discovery of the problem. It may have been around since 2023, as the earliest upscaling went from 640x640 -> 1280x1280.
 
