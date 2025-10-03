@@ -8,7 +8,7 @@ Minimum OS version: Windows 10
 
 Run `./install-libraries.bat` in Git Bash, at the repo directory.
 
-Go to the [Google Drive](https://drive.google.com/drive/folders/1zLNHuiN0CINJoaOwDX03eWMMOwJ3ljzW?usp=drive_link) folder in your browser. Download `openmm-windows.zip` and `xtb-windows.zip`. Move these ZIP files into the repo directory.
+Go to the [Google Drive](https://drive.google.com/drive/folders/1zLNHuiN0CINJoaOwDX03eWMMOwJ3ljzW?usp=drive_link) folder in your browser. Download `openmm-windows.zip` and `xtb-windows.zip`. Move these ZIP files into the repo directory. Be careful to not drag and drop them directly over a script file, as that will trigger a command prompt window that executes the script.
 
 Run `./install-openmm.bat` in Git Bash, at the repo directory.
 
