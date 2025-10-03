@@ -10,8 +10,6 @@ You open a renderer window through an API. You can also perform other operations
 
 ## Usage
 
-> TODO: Document the prerequisite of installing Swift, Xcode, VS Code, Git Bash.
-
 Open a terminal in a location convenient for accessing in the File Explorer. Download the source code:
 
 ```
@@ -20,11 +18,25 @@ git clone https://github.com/philipturner/molecular-renderer
 
 ### macOS Instructions
 
+Prerequisites: [Xcode](https://developer.apple.com/xcode)
+
+Minimum OS version: macOS 15
+
+---
+
 Open the source code in Xcode by double-clicking `Package.swift`. Do not run the code from within the Xcode UI.
 
 Instead, open a Terminal window at the package directory. Run `bash run.sh` on every program startup.
 
 ### Windows Instructions
+
+Prerequisites: [Swift (Manual Installation)](https://www.swift.org/install/windows/#alternative-install-options), [VS Code](https://code.visualstudio.com/download), [Git Bash](https://gitforwindows.org)
+
+Minimum OS version: Windows 10
+
+---
+
+TODO: Separate Google Drive links and install scripts for OpenMM and xTB. ZIP files should be placed in the top-level folder and gracefully handled by the install script, which copies them into `.build`. List the expected binary size of each.
 
 Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
 
@@ -128,3 +140,23 @@ With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It 
 There are a few other, minor artifacts. Along the border between a silicon and hydrogen atom, white pixels can appear sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy.
 
 > TODO: Provide a reference video for users to compare their upscaling quality, and check for regressions.
+
+## Tests
+
+### Upscaling
+
+Link reference video for users to compare their upscaling quality, and check for regressions.
+
+### HDL Tutorial
+
+TODO: Make accompanying Swift code to position the camera, and properly render this structure.
+
+### MM4
+
+Describe the expected properties of the energy through time evolution. Add a few more assertions to the code, such as that kinetic energy is nonzero after time evolution.
+
+Link reference video for what the animation should look like.
+
+### xTB
+
+Attempt to make the MSYS2 binary work on Windows, through runtime linking like from PythonKit. Start with a basic test in a fresh test package. Access LoadLibraryA of a DLL from a different library that's known to work well.
