@@ -16,7 +16,7 @@ Open a terminal in a location convenient for accessing in the File Explorer. Dow
 git clone https://github.com/philipturner/molecular-renderer
 ```
 
-### macOS Instructions
+## macOS Instructions
 
 Prerequisites: [Xcode](https://developer.apple.com/xcode)
 
@@ -28,7 +28,7 @@ Open the source code in Xcode by double-clicking `Package.swift`. Do not run the
 
 Instead, open a Terminal window at the package directory. Run `bash run.sh` on every program startup.
 
-### Windows Instructions
+## Windows Instructions
 
 Prerequisites: [Swift (Manual Installation)](https://www.swift.org/install/windows/#alternative-install-options), [VS Code](https://code.visualstudio.com/download), [Git Bash](https://gitforwindows.org)
 
@@ -45,6 +45,8 @@ Open the source code in VS Code by double-clicking `Package.swift`. Navigate to 
 Go to <b>Terminal</b> > <b>New Terminal</b> in the top menu bar, then <b>TERMINAL</b> in the sub-window that appears at the bottom of the IDE. Run `./run.bat` in the interactive terminal. Run on every program startup.
 
 > The very first time the code is compiled and executed, the renderer window is hidden by the VS Code window. Check for something new appearing in the task bar at the bottom of your screen.
+
+## Other Documentation
 
 ### Renderer Window
 
@@ -141,7 +143,7 @@ There are a few other, minor artifacts. Along the border between a silicon and h
 
 > TODO: Provide a reference video for users to compare their upscaling quality, and check for regressions.
 
-## Tests
+## Tests and Tutorials
 
 ### Upscaling
 
