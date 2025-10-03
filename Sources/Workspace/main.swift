@@ -11,11 +11,11 @@
 // - Begin the 'million-atom-scale' branch. Estimated to begin 5 days from now,
 //   on Oct 6 2025.
 
-import HDL
+//import HDL
 //import MM4
-import MolecularRenderer
+//import MolecularRenderer
 import OpenMM
-import QuaternionModule
+//import QuaternionModule
 
 // MARK: - Compile Structure
 
@@ -298,8 +298,7 @@ guard let pluginsDirectory else {
 }
 print("default plugins directory:", pluginsDirectory)
 
-let pluginFile = pluginsDirectory + "/" + "OpenMMOpenCL.dll"
-OpenMM_Platform.loadPluginLibrary(file: pluginFile)
+OpenMM_Platform.loadPlugins(directory: pluginsDirectory)
 
 let platforms = OpenMM_Platform.platforms
 print(platforms.count)
