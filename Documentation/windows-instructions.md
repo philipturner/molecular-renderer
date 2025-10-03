@@ -6,9 +6,11 @@ Minimum OS version: Windows 10
 
 ## Downloading Binaries
 
+Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
+
 TODO: Separate Google Drive links and install scripts for OpenMM and xTB. ZIP files should be placed in the top-level folder and gracefully handled by the install script, which copies them into `.build`. List the expected binary size of each.
 
-Run `./install-libraries.bat` in Git Bash, at the repo directory. Only run once, the first time the repo is downloaded.
+If you are having trouble installing the simulators, you can comment out the following lines of `Package.swift`: TODO
 
 ## Program Startup
 
