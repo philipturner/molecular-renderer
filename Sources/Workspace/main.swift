@@ -35,6 +35,9 @@ let candidateBondLengths: [Float] = [
   0.110, // 2.08 Bohr
   0.120, // 2.27 Bohr
   0.130, // 2.46 Bohr
+  0.140, // 2.65 Bohr
+  0.150, // 2.83 Bohr
+  0.160, // 3.02 Bohr
 ]
 var candidateEnergies: [Double] = []
 for bondLength in candidateBondLengths {
@@ -49,9 +52,8 @@ for i in candidateBondLengths.indices {
   let bondLengthRepr = String(format: "%.3f", bondLength)
   
   let energy = candidateEnergies[i]
-  let energyRepr = String(format: "%.1f", energy)
-  
-  print(bondLength, "nm", "-", energyRepr, "zJ")
+  let energyRepr = String(format: "%.3f", energy)
+  print("\(bondLengthRepr) nm - \(energyRepr) zJ")
 }
 
 // TODO: Numerically calculate the force, compare to analytical force.
