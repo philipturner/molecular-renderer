@@ -20,11 +20,9 @@ If you have trouble installing the simulators, comment out the following lines o
 workspaceDependencies += [
   .product(name: "MM4", package: "MM4"),
   .product(name: "OpenMM", package: "swift-openmm"),
-  .product(name: "xTB", package: "swift-xtb"),
 ]
 workspaceLinkerSettings += [
   .linkedLibrary("OpenMM"),
-  .linkedLibrary("xtb"),
 ]
 ```
 

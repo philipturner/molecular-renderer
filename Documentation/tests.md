@@ -28,6 +28,11 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 
 Test the potential energy curve of an N2 molecule.
 
-> Personal note: keep the diamond systems tests in the xTB repo, create Swift test suite where the xTB library must be loaded. Both GFN2-xTB and GFN-FF must produce expected atomization energies for the tests to pass.
+TODO List: While implementing this test:
+- Link the swift-xtb repo (at 2025-cleanups) into `Package.swift`
+- Update the documentation for macOS regarding installing xTB binaries.
+- Add install-xtb scripts for both platforms. The macOS one will automatically access the Google Drive link.
 
-TODO: Attempt to make the MSYS2 binary work on Windows, through runtime linking like from PythonKit. Start with a basic test in a fresh test package. Access LoadLibraryA of a DLL from a different library that's known to work well.
+TODO List: After this test is implemented:
+- Remove public API access to the internal C function, `xtb_getAPIVersion`
+- Push the 2025-cleanups branch of xTB and build DocC documentation

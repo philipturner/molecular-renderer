@@ -20,6 +20,7 @@ workspaceDependencies += [
   .product(name: "MM4", package: "MM4"),
   "MolecularRenderer",
   .product(name: "OpenMM", package: "swift-openmm"),
+  .product(name: "xTB", package: "swift-xtb"),
 ]
 workspaceLinkerSettings += [
   .linkedLibrary("OpenMM"),
@@ -71,12 +72,16 @@ packageDependencies.append(.package(
 // Simulator dependencies
 
 packageDependencies.append(.package(
+  url: "https://github.com/philipturner/MM4",
+  branch: "main"))
+
+packageDependencies.append(.package(
   url: "https://github.com/philipturner/swift-openmm",
   branch: "main"))
 
 packageDependencies.append(.package(
-  url: "https://github.com/philipturner/MM4",
-  branch: "main"))
+  url: "https://github.com/philipturner/swift-xtb",
+  branch: "2025-cleanups"))
 
 // MARK: - Windows Targets
 
