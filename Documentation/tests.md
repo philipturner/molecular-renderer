@@ -16,7 +16,7 @@ Should report that two platforms exist: Reference, OpenCL
 
 ## MM4
 
-Simulate the time evolution of a compiled structure with ~80 zJ of strain energy. Captures 200 very short frames (2 fs each) and renders the trajectory after 2 seconds of delay.
+Simulate the time evolution of a compiled structure with ~80 zJ of strain energy. Capture 200 very short frames (2 fs each) and render the trajectory after 2 seconds of delay.
 
 Temperature, calculated from $\frac{3}{2}$ kT of kinetic energy per atom, should not exceed ~150 K. With 1 fs time steps, energy stays between -42 zJ and -43 zJ.
 
@@ -26,7 +26,7 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 
 ## xTB
 
-Test the potential energy curve of an N2 molecule. Starts by running singlepoint energy calculations at 8 discrete points of the 1D potential energy surface. Then takes efficient analytical gradients available with the GFN2-xTB method.
+Test the potential energy curve of an N2 molecule. Start by running singlepoint energy calculations at 8 discrete points of the 1D potential energy surface. Then take efficient analytical gradients available with the GFN2-xTB method.
 
 The potential energy minimum is at 0.110 nm. At 0.090 and 0.150 nm, the energy rises ~820 zJ above the minimum. Although the energies are the same at these points, the forces are very different. Force should be about -66000 pN at 0.090 nm and about 24000 pN at 0.150 nm.
 

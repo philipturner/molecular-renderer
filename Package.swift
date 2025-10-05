@@ -81,7 +81,7 @@ packageDependencies.append(.package(
 
 packageDependencies.append(.package(
   url: "https://github.com/philipturner/swift-xtb",
-  branch: "2025-cleanups"))
+  branch: "2025-cleanups")) // TODO: Change to main
 
 // MARK: - Windows Targets
 
