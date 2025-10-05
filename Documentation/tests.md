@@ -28,8 +28,11 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 
 Test the potential energy curve of an N2 molecule.
 
-TODO List: While implementing this test:
-- Implement the install-xtb script for each platform. The macOS one will automatically access the Google Drive link.
+The Swift bindings do not alter xTB's default settings for verbosity. After each singlepoint energy calculation, several lines of text appear in the console. Try suppressing this output by adding the following to the top of `main.swift`:
+
+```swift
+TODO
+```
 
 TODO List: After this test is implemented:
 - Remove public API access to the internal C function, `xtb_getAPIVersion`
