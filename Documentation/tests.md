@@ -28,12 +28,6 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 
 Test the potential energy curve of an N2 molecule.
 
-The Swift bindings do not alter xTB's default settings for verbosity. After each singlepoint energy calculation, several lines of text appear in the console. Try suppressing this output by adding the following to the top of `main.swift`:
-
-```swift
-xTB_Environment.verbosity = .muted
-```
-
 TODO List: After this test is implemented:
 - Remove public API access to the internal C function, `xtb_getAPIVersion`
 - Push the 2025-cleanups branch of xTB and build DocC documentation

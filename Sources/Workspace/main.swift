@@ -105,5 +105,21 @@ for i in 1..<candidateBondLengths.count {
   let distanceChange = rightBondLength - leftBondLength
   let energyGradient = energyDifference / distanceChange
   
-  print(midPoint, energyGradient, force0.x, force1.x)
+  func format(force: Float) -> String {
+    var output = String(format: "%.0f", force)
+    while output.count < 7 {
+      output = " " + output
+    }
+    return output
+  }
+  
+  let midPointRepr = String(format: "%.3f", midPoint)
+  let energyGradientRepr = format(force: energyGradient)
+  let force0Repr = format(force: force0.x)
+  let force1Repr = format(force: force1.x)
+  
+  print(
+    "\(midPointRepr) nm -",
+    "\(energyGradientRepr) pN",
+    "(\(force0Repr) pN, \(force1Repr) pN)")
 }
