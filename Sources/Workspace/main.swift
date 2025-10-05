@@ -47,13 +47,21 @@ for bondLength in candidateBondLengths {
   let energy = calculator.energy
   candidateEnergies.append(energy)
 }
+
+// Display the relative energies in the console.
+let energyMinimum: Double = -25129.268
 for i in candidateBondLengths.indices {
   let bondLength = candidateBondLengths[i]
   let bondLengthRepr = String(format: "%.3f", bondLength)
   
   let energy = candidateEnergies[i]
-  let energyRepr = String(format: "%.3f", energy)
-  print("\(bondLengthRepr) nm - \(energyRepr) zJ")
+  let relativeEnergy = energy - energyMinimum
+  var relativeEnergyRepr = String(format: "%.1f", relativeEnergy)
+  while relativeEnergyRepr.count < 6 {
+    relativeEnergyRepr = " " + relativeEnergyRepr
+  }
+  
+  print("\(bondLengthRepr) nm - \(relativeEnergyRepr) zJ")
 }
 
 // TODO: Numerically calculate the force, compare to analytical force.
