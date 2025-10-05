@@ -20,4 +20,10 @@ let calculator = xTB_Calculator(descriptor: calculatorDesc)
 calculator.molecule.positions = system.map(\.position)
 
 // Query the energy.
-print(calculator.energy)
+do {
+  let expectedEnergy: Double = -22755.932
+  let actualEnergy: Double = calculator.energy
+  guard (expectedEnergy - actualEnergy).magnitude < 0.001 else {
+    fatalError("Calculator returned unexpected energy: \(actualEnergy) zJ")
+  }
+}
