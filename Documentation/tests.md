@@ -29,9 +29,7 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 Test the potential energy curve of an N2 molecule.
 
 TODO List: While implementing this test:
-- Link the swift-xtb repo (at 2025-cleanups) into `Package.swift`
-- Update the documentation for macOS regarding installing xTB binaries.
-- Add install-xtb scripts for both platforms. The macOS one will automatically access the Google Drive link.
+- Implement the install-xtb script for each platform. The macOS one will automatically access the Google Drive link.
 
 TODO List: After this test is implemented:
 - Remove public API access to the internal C function, `xtb_getAPIVersion`
