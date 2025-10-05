@@ -12,7 +12,7 @@ Reference video for users to compare their upscaling quality: [YouTube](https://
 
 Import the OpenMM module and validate that the OpenCL plugin can be loaded.
 
-Should report that 2 platforms exist: Reference, OpenCL
+Should report that two platforms exist: Reference, OpenCL
 
 ## MM4
 
@@ -28,6 +28,16 @@ Reference video: [YouTube](https://www.youtube.com/shorts/JQeyLJWGyVU)
 
 Test the potential energy curve of an N2 molecule.
 
+TODO: Explain the results a little more.
+
 TODO List: After this test is implemented:
-- Remove public API access to the internal C function, `xtb_getAPIVersion`
+- Test it on macOS, migrate to the Tests folder.
 - Push the 2025-cleanups branch of xTB and build DocC documentation
+
+## Propargyl Alcohol Tripod
+
+Copy the three Swift files from this [GitHub Gist]() into the Workspace folder.
+
+TODO: Explain the results a little more.
+
+TODO: Hyperlink a YouTube video after pushing the PR to the main branch.
