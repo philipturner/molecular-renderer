@@ -107,3 +107,6 @@ Package.resolved
 # Issue with xTB C API writing files I don't want.
 gfnff_topo
 gfnff_charges
+
+# ZIP file workaround for Google Drive downloads being weird on Windows.
+/*.zip

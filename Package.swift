@@ -1,7 +1,7 @@
 // swift-tools-version: 6.1
 
 import PackageDescription
- 
+
 // MARK: - Inter-Module Dependencies
 
 // These dependencies are likely platform-specific.
@@ -17,8 +17,18 @@ workspaceDependencies += [
   .product(name: "Atomics", package: "swift-atomics"),
   .product(name: "HDL", package: "HDL"),
   .product(name: "Numerics", package: "swift-numerics"),
+  .product(name: "MM4", package: "MM4"),
   "MolecularRenderer",
+  .product(name: "OpenMM", package: "swift-openmm"),
+  .product(name: "xTB", package: "swift-xtb"),
 ]
+workspaceLinkerSettings += [
+  .linkedLibrary("OpenMM"),
+]
+#if os(macOS)
+workspaceLinkerSettings.append(
+  .unsafeFlags(["-L\(Context.packageDirectory)"]))
+#endif
 
 // Windows dependencies.
 #if os(Windows)
@@ -32,21 +42,7 @@ rendererLinkerSettings.append(
 
 // MARK: - Common Targets
 
-var dependencies: [Package.Dependency] = []
 var targets: [Target] = []
-
-dependencies.append(.package(
-  url: "https://github.com/apple/swift-atomics",
-  .upToNextMajor(from: "1.3.0")))
-
-dependencies.append(.package(
-  url: "https://github.com/philipturner/HDL",
-  branch: "main"))
-
-dependencies.append(.package(
-  url: "https://github.com/philipturner/swift-numerics",
-  branch: "Quaternions"))
-
 targets.append(.target(
   name: "MolecularRenderer",
   dependencies: rendererDependencies,
@@ -56,6 +52,36 @@ targets.append(.executableTarget(
   name: "Workspace",
   dependencies: workspaceDependencies,
   linkerSettings: workspaceLinkerSettings))
+
+var packageDependencies: [Package.Dependency] = []
+
+// Non-simulator dependencies
+
+packageDependencies.append(.package(
+  url: "https://github.com/apple/swift-atomics",
+  .upToNextMajor(from: "1.3.0")))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/HDL",
+  branch: "main"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/swift-numerics",
+  branch: "Quaternions"))
+
+// Simulator dependencies
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/MM4",
+  branch: "main"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/swift-openmm",
+  branch: "main"))
+
+packageDependencies.append(.package(
+  url: "https://github.com/philipturner/swift-xtb",
+  branch: "main"))
 
 // MARK: - Windows Targets
 
@@ -72,7 +98,7 @@ targets.append(.executableTarget(
 // sticking with the guidance above.
 
 #if os(Windows)
-dependencies.append(.package(
+packageDependencies.append(.package(
   url: "https://github.com/philipturner/swift-com",
   branch: "main"))
 
@@ -89,5 +115,5 @@ targets.append(.target(
 let package = Package(
   name: "molecular-renderer",
   platforms: [.macOS(.v15)],
-  dependencies: dependencies,
+  dependencies: packageDependencies,
   targets: targets)
