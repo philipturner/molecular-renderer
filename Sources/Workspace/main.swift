@@ -55,13 +55,33 @@ for i in candidateBondLengths.indices {
   let bondLengthRepr = String(format: "%.3f", bondLength)
   
   let energy = candidateEnergies[i]
-  let relativeEnergy = energy - energyMinimum
+  let relativeEnergy = Float(energy - energyMinimum)
   var relativeEnergyRepr = String(format: "%.1f", relativeEnergy)
   while relativeEnergyRepr.count < 6 {
     relativeEnergyRepr = " " + relativeEnergyRepr
   }
-  
   print("\(bondLengthRepr) nm - \(relativeEnergyRepr) zJ")
+}
+
+// Check that the energies match expectations.
+let expectedRelativeEnergies: [Float] = [
+  Float( 821.2),
+  Float( 152.6),
+  Float(   0.0),
+  Float(  99.2),
+  Float( 311.2),
+  Float( 563.4),
+  Float( 818.5),
+  Float(1057.6),
+]
+for i in candidateBondLengths.indices {
+  let expectedEnergy = expectedRelativeEnergies[i]
+  
+  let absoluteEnergy = candidateEnergies[i]
+  let actualEnergy = Float(absoluteEnergy - energyMinimum)
+  guard (expectedEnergy - actualEnergy).magnitude < 0.1 else {
+    fatalError("Got unexpected relative energy: \(actualEnergy) zJ")
+  }
 }
 
 // TODO: Numerically calculate the force, compare to analytical force.
