@@ -5,3 +5,4 @@ import QuaternionModule
 import xTB
 
 print("Hello, world.")
+print(xtb_getAPIVersion())
