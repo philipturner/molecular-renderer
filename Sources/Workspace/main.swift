@@ -84,4 +84,26 @@ for i in candidateBondLengths.indices {
   }
 }
 
-// TODO: Numerically calculate the force, compare to analytical force.
+// Numerically calculate the force, compare to analytical force.
+xTB_Environment.verbosity = .muted
+print()
+for i in 1..<candidateBondLengths.count {
+  let leftBondLength = candidateBondLengths[i - 1]
+  let rightBondLength = candidateBondLengths[i]
+  let midPoint = (leftBondLength + rightBondLength) / 2
+  
+  // Evaluate the force analytically.
+  let position = SIMD3<Float>(midPoint, 0, 0)
+  calculator.molecule.positions[1] = position
+  let force0 = calculator.molecule.forces[0]
+  let force1 = calculator.molecule.forces[1]
+  
+  // Evaluate the force numerically.
+  let leftEnergy = candidateEnergies[i - 1]
+  let rightEnergy = candidateEnergies[i]
+  let energyDifference = Float(rightEnergy - leftEnergy)
+  let distanceChange = rightBondLength - leftBondLength
+  let energyGradient = energyDifference / distanceChange
+  
+  print(midPoint, energyGradient, force0.x, force1.x)
+}
