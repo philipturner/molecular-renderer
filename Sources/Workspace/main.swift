@@ -65,14 +65,14 @@ for i in candidateBondLengths.indices {
 
 // Check that the energies match expectations.
 let expectedRelativeEnergies: [Float] = [
-  Float( 821.2),
-  Float( 152.6),
-  Float(   0.0),
-  Float(  99.2),
-  Float( 311.2),
-  Float( 563.4),
-  Float( 818.5),
-  Float(1057.6),
+  Float( 821.2), // 0.18 Ha
+  Float( 152.6), // 0.04 Ha
+  Float(   0.0), // 0.00 Ha
+  Float(  99.2), // 0.02 Ha
+  Float( 311.2), // 0.07 Ha
+  Float( 563.4), // 0.13 Ha
+  Float( 818.5), // 0.19 Ha
+  Float(1057.6), // 0.24 Ha
 ]
 for i in candidateBondLengths.indices {
   let expectedEnergy = expectedRelativeEnergies[i]
