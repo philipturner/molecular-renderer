@@ -20,18 +20,21 @@ let calculator = xTB_Calculator(descriptor: calculatorDesc)
 calculator.molecule.positions = system.map(\.position)
 
 // Query the energy.
-// do {
-//   let expectedEnergy: Double = -22755.932
-//   let actualEnergy: Double = calculator.energy
-//   guard (expectedEnergy - actualEnergy).magnitude < 0.001 else {
-//     fatalError("Calculator returned unexpected energy: \(actualEnergy) zJ")
-//   }
-// }
-print(calculator.energy)
+do {
+  let expectedEnergy: Double = -25128.461
+  let actualEnergy: Double = calculator.energy
+  guard (expectedEnergy - actualEnergy).magnitude < 0.001 else {
+    fatalError("Calculator returned unexpected energy: \(actualEnergy) zJ")
+  }
+}
 
 // Survey the potential energy curve.
 let candidateBondLengths: [Float] = [
-  0.90, 1.00, 1.10, 1.20, 1.30
+  0.090, // 1.70 Bohr
+  0.100, // 1.89 Bohr
+  0.110, // 2.08 Bohr
+  0.120, // 2.27 Bohr
+  0.130, // 2.46 Bohr
 ]
 var candidateEnergies: [Double] = []
 for bondLength in candidateBondLengths {
