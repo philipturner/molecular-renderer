@@ -9,15 +9,21 @@ import QuaternionModule
 // - GPU receives compact list of atoms and motion vectors from CPU,
 //   address space O(100,000)
 // - No optimizations to memory layout or ray tracing
+// - No compaction of the static large voxels into dynamic large voxels
 //
 // Specification of end state for this PR:
 // - Skipping past unoccupied large voxels in primary ray intersector, using
 //   almost identical code to main-branch-backup
 // - Use the simplest "early stages" memory design, except that 8x duplicated
-//   per-atom offsets of global -> 2 nm will use 16-bit integers.
+//   per-atom offsets of global -> 2 nm will use 16-bit integers. By not
+//   over-optimizing the ray-sphere intersections or small cells building
+//   kernel, I reduce the need to inspect Metal or DirectX profilers.
 // - Include incremental acceleration structure updates
 // - Include the "idle" vs "active" paradigm for handling motion vectors
 // - Fix any possible CPU-side bottlenecks when uploading many atoms per frame
+// - Include the critical distance heuristic to avoid the crazy cost of 15 AO
+//   samples per atom. Make it tunable, with a default setting. Also make it
+//   possible to disable (set something in a descriptor to 'nil').
 //
 // First steps:
 // - Get this branch compiling and not crashing on both platforms.
