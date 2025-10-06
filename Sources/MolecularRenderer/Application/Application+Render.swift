@@ -84,7 +84,7 @@ extension Application {
       resources.cameraArgsBuffer.copy(
         commandList: commandList,
         inFlightFrameID: frameID % 3)
-      resources.atomBuffer.copy(
+      resources.atomsBuffer.copy(
         commandList: commandList,
         inFlightFrameID: frameID % 3)
       resources.motionVectorsBuffer.copy(
