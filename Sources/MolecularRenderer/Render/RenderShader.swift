@@ -283,22 +283,8 @@ struct RenderShader {
           float3 secondaryRayDirection = generationContext
             .secondaryRayDirection(i, sampleCount, hitPoint, hitNormal);
           
-          // Intersect the secondary ray.
-          IntersectionQuery query;
-          query.rayOrigin = secondaryRayOrigin;
-          query.rayDirection = secondaryRayDirection;
-          IntersectionResult intersect = rayIntersector.intersect(query);
-          
-          // Add the secondary ray's AO contributions.
-          uint atomicNumber;
-          if (intersect.accept) {
-            float4 atom = atoms[intersect.atomID];
-            atomicNumber = uint(atom[3]);
-          } else {
-            atomicNumber = 0;
-          }
-          ambientOcclusion.addAmbientContribution(
-            atomicNumber, intersect.distance);
+          // Deactivate ray tracing for AO.
+          ambientOcclusion.addAmbientContribution(0, 1e38);
         }
         
         // Tell the context how many AO samples were taken.

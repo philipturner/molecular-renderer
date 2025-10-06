@@ -20,10 +20,9 @@ import QuaternionModule
 // - Fix any possible CPU-side bottlenecks when uploading many atoms per frame
 //
 // First steps:
-// - Deactivate AO rays. You can always refer back to the main branch to restore
-//   the code.
+// - Get this branch compiling and not crashing on both platforms.
+// - Deactivate rendering, sending zero atoms to the GPU shader.
 // - Draft the first stage of acceleration structure building ("add" process).
-//   Get the code compiling and not crashing on both platforms.
 // - Inspect/debug the first stage, sending statistics from GPU to CPU.
 
 @MainActor

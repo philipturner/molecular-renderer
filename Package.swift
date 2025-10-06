@@ -71,17 +71,17 @@ packageDependencies.append(.package(
 
 // Simulator dependencies
 
-packageDependencies.append(.package(
-  url: "https://github.com/philipturner/MM4",
-  branch: "main"))
-
-packageDependencies.append(.package(
-  url: "https://github.com/philipturner/swift-openmm",
-  branch: "main"))
-
-packageDependencies.append(.package(
-  url: "https://github.com/philipturner/swift-xtb",
-  branch: "main"))
+//packageDependencies.append(.package(
+//  url: "https://github.com/philipturner/MM4",
+//  branch: "main"))
+//
+//packageDependencies.append(.package(
+//  url: "https://github.com/philipturner/swift-openmm",
+//  branch: "main"))
+//
+//packageDependencies.append(.package(
+//  url: "https://github.com/philipturner/swift-xtb",
+//  branch: "main"))
 
 // MARK: - Windows Targets
 
