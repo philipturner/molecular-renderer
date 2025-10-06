@@ -21,9 +21,6 @@ import QuaternionModule
 // - Include incremental acceleration structure updates
 // - Include the "idle" vs "active" paradigm for handling motion vectors
 // - Fix any possible CPU-side bottlenecks when uploading many atoms per frame
-// - Include the critical distance heuristic to avoid the crazy cost of 15 AO
-//   samples per atom. Make it tunable, with a default setting. Also make it
-//   possible to disable (set something in a descriptor to 'nil').
 //
 // First steps:
 // - Get this branch compiling and not crashing on both platforms.
