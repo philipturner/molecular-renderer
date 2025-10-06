@@ -4,6 +4,7 @@ import WinSDK
 #endif
 
 struct ResourcesDescriptor {
+  var addressSpaceSize: Int?
   var device: Device?
   var renderTarget: RenderTarget?
 }
@@ -14,7 +15,7 @@ class Resources {
   let renderShader: Shader
   let upscaleShader: Shader
   
-  var atomBuffer: RingBuffer
+  var atomsBuffer: RingBuffer
   var motionVectorsBuffer: RingBuffer
   var transactionTracker: TransactionTracker
   
@@ -27,7 +28,8 @@ class Resources {
   #endif
   
   init(descriptor: ResourcesDescriptor) {
-    guard let device = descriptor.device,
+    guard let addressSpaceSize = descriptor.addressSpaceSize,
+          let device = descriptor.device,
           let renderTarget = descriptor.renderTarget else {
       fatalError("Descriptor was incomplete.")
     }
@@ -49,9 +51,14 @@ class Resources {
     shaderDesc.name = "upscale"
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
-    self.atomBuffer = Self.createAtomBuffer(device: device)
-    self.motionVectorsBuffer = Self.createMotionVectorsBuffer(device: device)
-    self.transactionTracker = TransactionTracker(atomCount: 1000)
+    self.atomsBuffer = Self.createAtomsBuffer(
+      device: device,
+      addressSpaceSize: addressSpaceSize)
+    self.motionVectorsBuffer = Self.createMotionVectorsBuffer(
+      device: device,
+      addressSpaceSize: addressSpaceSize)
+    self.transactionTracker = TransactionTracker(
+      atomCount: addressSpaceSize)
     
     self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
     self.previousCameraArgs = nil
@@ -69,33 +76,37 @@ class Resources {
     
     // Encode the render target.
     renderTarget.encode(
-      descriptorHeap: descriptorHeap, offset: 0)
+      descriptorHeap: descriptorHeap,
+      offset: 0)
     
     // Encode the motion vectors.
     Self.encode(
       motionVectorsBuffer: motionVectorsBuffer,
+      addressSpaceSize: addressSpaceSize,
       descriptorHeap: descriptorHeap,
       offset: motionVectorsBaseHandleID)
     #endif
   }
   
-  private static func createAtomBuffer(
-    device: Device
+  private static func createAtomsBuffer(
+    device: Device,
+    addressSpaceSize: Int
   ) -> RingBuffer {
     var ringBufferDesc = RingBufferDescriptor()
     ringBufferDesc.accessLevel = .device
     ringBufferDesc.device = device
-    ringBufferDesc.size = 1000 * 16
+    ringBufferDesc.size = addressSpaceSize * 16
     return RingBuffer(descriptor: ringBufferDesc)
   }
   
   private static func createMotionVectorsBuffer(
-    device: Device
+    device: Device,
+    addressSpaceSize: Int
   ) -> RingBuffer {
     var ringBufferDesc = RingBufferDescriptor()
     ringBufferDesc.accessLevel = .device
     ringBufferDesc.device = device
-    ringBufferDesc.size = 1000 * 8
+    ringBufferDesc.size = addressSpaceSize * 8
     return RingBuffer(descriptor: ringBufferDesc)
   }
   
@@ -112,6 +123,7 @@ class Resources {
   #if os(Windows)
   private static func encode(
     motionVectorsBuffer: RingBuffer,
+    addressSpaceSize: Int,
     descriptorHeap: DescriptorHeap,
     offset: Int
   ) {
@@ -119,7 +131,7 @@ class Resources {
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
     uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = 1000 // WARNING: Manually sync with actual size.
+    uavDesc.Buffer.NumElements = UInt32(addressSpaceSize)
     uavDesc.Buffer.StructureByteStride = 0
     uavDesc.Buffer.CounterOffsetInBytes = 0
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE

@@ -81,6 +81,7 @@ public class Application {
     
     // Create the resources container.
     var resourcesDesc = ResourcesDescriptor()
+    resourcesDesc.addressSpaceSize = atoms.addressSpaceSize
     resourcesDesc.device = device
     resourcesDesc.renderTarget = renderTarget
     self.resources = Resources(descriptor: resourcesDesc)

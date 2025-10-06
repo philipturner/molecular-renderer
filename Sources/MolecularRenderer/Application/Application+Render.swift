@@ -51,7 +51,7 @@ extension Application {
     
     let atoms = resources.transactionTracker
       .compactedAtoms()
-    resources.atomBuffer.write(
+    resources.atomsBuffer.write(
       data: atoms,
       inFlightFrameID: frameID % 3)
     
@@ -114,7 +114,7 @@ extension Application {
           cameraArgsBuffer, index: RenderShader.cameraArgs)
         
         // Bind the atom buffer.
-        let atomBuffer = resources.atomBuffer
+        let atomBuffer = resources.atomsBuffer
           .nativeBuffers[frameID % 3]
         commandList.setBuffer(
           atomBuffer, index: RenderShader.atoms)

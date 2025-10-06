@@ -19,8 +19,8 @@ func createApplication() -> Application {
   // Set up the application.
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.addressSpaceSize = 200_000
-  applicationDesc.worldDimension = 32
   applicationDesc.voxelAllocationSize = 200_000_000
+  applicationDesc.worldDimension = 32
   
   applicationDesc.device = device
   applicationDesc.display = display
