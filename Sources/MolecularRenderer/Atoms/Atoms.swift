@@ -8,25 +8,27 @@ public class Atoms {
   private let positionsModified: UnsafeMutablePointer<Bool>
   private let blocksModified: UnsafeMutablePointer<Bool>
   
-  init(allocationSize: Int) {
-    let allocationAtomCount = allocationSize / 16
-    let allocationBlockCount = allocationAtomCount / Self.blockSize
-    guard allocationBlockCount > 0 else {
-      fatalError("Allocation could not hold any atoms.")
+  init(addressSpaceSize originalAddressSpaceSize: Int) {
+    addressSpaceSize = Self.createReducedAddressSpaceSize(
+      original: originalAddressSpaceSize)
+    guard addressSpaceSize % Self.blockSize == 0 else {
+      fatalError("Address space size was not divisible by block size.")
     }
-    self.addressSpaceSize = allocationBlockCount * Self.blockSize
+    guard addressSpaceSize > 0 else {
+      fatalError("Address space size was zero.")
+    }
     
     self.positions = .allocate(capacity: addressSpaceSize)
     self.previousOccupied = .allocate(capacity: addressSpaceSize)
     self.occupied = .allocate(capacity: addressSpaceSize)
     self.positionsModified = .allocate(capacity: addressSpaceSize)
-    self.blocksModified = .allocate(capacity: allocationBlockCount)
+    self.blocksModified = .allocate(capacity: addressSpaceSize / Self.blockSize)
     
     // Clear the initial values of all buffers.
     previousOccupied.initialize(repeating: false, count: addressSpaceSize)
     occupied.initialize(repeating: false, count: addressSpaceSize)
     positionsModified.initialize(repeating: false, count: addressSpaceSize)
-    blocksModified.initialize(repeating: false, count: allocationBlockCount)
+    blocksModified.initialize(repeating: false, count: addressSpaceSize / Self.blockSize)
   }
   
   deinit {
@@ -35,6 +37,12 @@ public class Atoms {
     occupied.deallocate()
     positionsModified.deallocate()
     blocksModified.deallocate()
+  }
+  
+  static func createReducedAddressSpaceSize(original: Int) -> Int {
+    var output = original / Self.blockSize
+    output *= Self.blockSize
+    return output
   }
   
   // This is probably a bottleneck in CPU-side code (1 function call for

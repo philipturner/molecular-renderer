@@ -4,9 +4,9 @@ import WinSDK
 #endif
 
 public struct ApplicationDescriptor {
-  /// Size (in bytes) of the giant memory allocation that stores both atoms and
-  /// voxel data on the GPU.
-  public var allocationSize: Int?
+  public var addressSpaceSize: Int?
+  public var voxelAllocationSize: Int?
+  public var worldDimension: Int?
   
   public var device: Device?
   public var display: Display?
@@ -41,7 +41,10 @@ public class Application {
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
-    guard let allocationSize = descriptor.allocationSize,
+    guard let addressSpaceSize = descriptor.addressSpaceSize,
+          let voxelAllocationSize = descriptor.voxelAllocationSize,
+          let worldDimension = descriptor.worldDimension,
+          
           let device = descriptor.device,
           let display = descriptor.display,
           let upscaleFactor = descriptor.upscaleFactor else {
@@ -50,7 +53,7 @@ public class Application {
     self.device = device
     self.display = display
     
-    self.atoms = Atoms(allocationSize: allocationSize)
+    self.atoms = Atoms(addressSpaceSize: addressSpaceSize)
     self.camera = Camera()
     self.clock = Clock(display: display)
     self.window = Window(display: display)
