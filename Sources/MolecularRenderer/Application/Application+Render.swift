@@ -101,7 +101,7 @@ extension Application {
       commandList.withPipelineState(resources.renderShader) {
         // Bind the constant arguments.
         var constantArgs = ConstantArgs()
-        constantArgs.atomCount = UInt32(atomCount)
+        constantArgs.atomCount = 0 // Deactivate rendering.
         constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
         constantArgs.jitterOffset = createJitterOffset()
         commandList.set32BitConstants(

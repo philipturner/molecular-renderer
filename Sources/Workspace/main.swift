@@ -21,10 +21,15 @@ import QuaternionModule
 // - Include incremental acceleration structure updates
 // - Include the "idle" vs "active" paradigm for handling motion vectors
 // - Fix any possible CPU-side bottlenecks when uploading many atoms per frame
+// - No scanning over 8 nm "cell groups" to minimize compute cost of primary
+//   rays that go all the way to the world border. This may complicate the
+//   tracking as large voxels are added incrementally. Defer to a future PR.
 //
 // First steps:
-// - Get this branch compiling and not crashing on both platforms.
 // - Deactivate rendering, sending zero atoms to the GPU shader.
+// - Find a way to halt the program after the very first render kernel,
+//   report some type of output from the GPU, then crash. To start off, this
+//   can be an extra buffer linked into the render kernel.
 // - Draft the first stage of acceleration structure building ("add" process).
 // - Inspect/debug the first stage, sending statistics from GPU to CPU.
 
