@@ -2,6 +2,30 @@ import HDL
 import MolecularRenderer
 import QuaternionModule
 
+// Specification of near-term goal:
+// - No use of Metal or DirectX profilers
+// - No tracing of AO rays
+// - No incremental updates
+// - GPU receives compact list of atoms and motion vectors from CPU,
+//   address space O(100,000)
+// - No optimizations to memory layout or ray tracing
+//
+// Specification of end state for this PR:
+// - Skipping past unoccupied large voxels in primary ray intersector, using
+//   almost identical code to main-branch-backup
+// - Use the simplest "early stages" memory design, except that 8x duplicated
+//   per-atom offsets of global -> 2 nm will use 16-bit integers.
+// - Include incremental acceleration structure updates
+// - Include the "idle" vs "active" paradigm for handling motion vectors
+// - Fix any possible CPU-side bottlenecks when uploading many atoms per frame
+//
+// First steps:
+// - Deactivate AO rays. You can always refer back to the main branch to restore
+//   the code.
+// - Draft the first stage of acceleration structure building ("add" process).
+//   Get the code compiling and not crashing on both platforms.
+// - Inspect/debug the first stage, sending statistics from GPU to CPU.
+
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
