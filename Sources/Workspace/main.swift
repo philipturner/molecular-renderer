@@ -26,10 +26,10 @@ import QuaternionModule
 //   tracking as large voxels are added incrementally. Defer to a future PR.
 //
 // First steps:
-// - Deactivate rendering, sending zero atoms to the GPU shader.
 // - Find a way to halt the program after the very first render kernel,
-//   report some type of output from the GPU, then crash. To start off, this
-//   can be an extra buffer linked into the render kernel.
+//   report some type of output from the GPU, then crash. It is probably best
+//   to just begin the next bullet point.
+// - Start figuring out how all the new code will be organized, practically.
 // - Draft the first stage of acceleration structure building ("add" process).
 // - Inspect/debug the first stage, sending statistics from GPU to CPU.
 
