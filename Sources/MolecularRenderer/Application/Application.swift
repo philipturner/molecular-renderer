@@ -3,6 +3,8 @@ import SwiftCOM
 import WinSDK
 #endif
 
+import func Foundation.exit // temporary, for development of BVH
+
 public struct ApplicationDescriptor {
   public var addressSpaceSize: Int?
   public var voxelAllocationSize: Int?
@@ -102,6 +104,9 @@ public class Application {
         "Can only create one instance of Application in a program run.")
     }
     Application.singleton = self
+    
+    print("Exiting the program.")
+    exit(0)
   }
   
   @MainActor
