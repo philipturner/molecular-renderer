@@ -65,6 +65,7 @@ class BVHBuilder {
       for buffer in buffers {
         let barrier = buffer
           .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+        barriers.append(barrier)
       }
       try! commandList.d3d12CommandList.ResourceBarrier(
         UInt32(barriers.count), barriers)
