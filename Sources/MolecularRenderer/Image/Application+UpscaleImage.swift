@@ -130,15 +130,17 @@ extension Application {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
-      commandList.setDescriptorHeap(resources.descriptorHeap)
+      commandList.setDescriptorHeap(imageResources.descriptorHeap)
       #endif
       
       // Encode the compute command.
-      commandList.withPipelineState(resources.upscaleShader) {
+      commandList.withPipelineState(imageResources.upscaleShader) {
         // Bind the textures.
         #if os(macOS)
-        let colorTexture = renderTarget.colorTextures[frameID % 2]
-        let upscaledTexture = renderTarget.upscaledTextures[frameID % 2]
+        let colorTexture = imageResources.renderTarget
+          .colorTextures[frameID % 2]
+        let upscaledTexture = imageResources.renderTarget
+          .upscaledTextures[frameID % 2]
         commandList.mtlCommandEncoder
           .setTexture(colorTexture, index: 0)
         commandList.mtlCommandEncoder
@@ -171,25 +173,29 @@ extension Application {
   private func createJitterOffset() -> SIMD2<Float> {
     var jitterOffsetDesc = JitterOffsetDescriptor()
     jitterOffsetDesc.index = frameID
-    jitterOffsetDesc.upscaleFactor = renderTarget.upscaleFactor
+    jitterOffsetDesc.upscaleFactor = imageResources.renderTarget.upscaleFactor
     
     return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
   
   public func upscale(image: Image) -> Image {
-    guard renderTarget.upscaleFactor > 1 else {
+    guard imageResources.renderTarget.upscaleFactor > 1 else {
       fatalError("Upscaling is not allowed.")
     }
     guard image.scaleFactor == 1 else {
       fatalError("Received image with incorrect scale factor.")
     }
-    guard let upscaler else {
+    guard let upscaler = imageResources.upscaler else {
       fatalError("Upscaler was not present.")
     }
-    let colorTexture = renderTarget.colorTextures[frameID % 2]
-    let depthTexture = renderTarget.depthTextures[frameID % 2]
-    let motionTexture = renderTarget.motionTextures[frameID % 2]
-    let upscaledTexture = renderTarget.upscaledTextures[frameID % 2]
+    let colorTexture = imageResources.renderTarget
+      .colorTextures[frameID % 2]
+    let depthTexture = imageResources.renderTarget
+      .depthTextures[frameID % 2]
+    let motionTexture = imageResources.renderTarget
+      .motionTextures[frameID % 2]
+    let upscaledTexture = imageResources.renderTarget
+      .upscaledTextures[frameID % 2]
     
     #if os(macOS)
     if frameID == 0 {
@@ -250,7 +256,7 @@ extension Application {
       dispatch.value.jitterOffset = createFFXFloatCoords(jitterOffset * -1)
       dispatch.value.motionVectorScale = createFFXFloatCoords(motionVectorScale)
       
-      let upscaleFactor = renderTarget.upscaleFactor
+      let upscaleFactor = imageResources.renderTarget.upscaleFactor
       let renderSize = display.frameBufferSize / Int(upscaleFactor)
       let upscaleSize = display.frameBufferSize
       dispatch.value.renderSize = createFFXDimensions(renderSize)
@@ -280,7 +286,7 @@ extension Application {
     #endif
     
     var output = Image()
-    output.scaleFactor = renderTarget.upscaleFactor
+    output.scaleFactor = imageResources.renderTarget.upscaleFactor
     return output
   }
 }
