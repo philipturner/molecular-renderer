@@ -9,14 +9,14 @@ class VoxelResources {
   let memorySlotCount: Int
   
   // Per dense voxel
-  let voxelGroupMarks: Buffer
-  let atomicCounters: Buffer
-  let memorySlotIDs: Buffer // TODO: initialize to UInt32.max once at startup
-  // use ClearUnorderedAccessViewUint
+  let voxelGroupMarks: Buffer // purge to 0 every frame
+  let atomicCounters: Buffer // initialize to 0 with shader
+                             // purge occupied voxels to 0 with idle/active
+  let memorySlotIDs: Buffer // initialize to UInt32.max with shader
   
   // Per sparse voxel
-  let assignedVoxelIDs: Buffer // TODO: initialize to UInt32.max
-  let vacantSlotIDs: Buffer
+  let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
+  let vacantSlotIDs: Buffer // purge to UInt32.max before every frame
   let memorySlots: Buffer
   
   init(descriptor: VoxelResourcesDescriptor) {

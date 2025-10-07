@@ -10,7 +10,7 @@ class BVHBuilder {
   let voxelResources: VoxelResources
   
   // Small counters and bookkeeping
-  let crashBuffer: CrashBuffer
+  let crashBuffer: CrashBuffer // initialize at startup (not implemented)
   
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -36,4 +36,6 @@ class BVHBuilder {
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
   }
+  
+  // TODO: Utility to move all UAV resources to the UAV state.
 }
