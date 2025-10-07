@@ -21,7 +21,7 @@ struct CrashBufferDescriptor {
   var size: Int?
 }
 
-struct CrashBuffer {
+class CrashBuffer {
   let inputBuffer: Buffer
   let nativeBuffer: Buffer
   var outputBuffers: [Buffer] = []
@@ -69,5 +69,31 @@ struct CrashBuffer {
     }
   }
   
-  // func initialize(data: [UInt32])
+  func initialize(
+    commandList: CommandList,
+    data: [UInt32]
+  ) {
+    data.withUnsafeBytes { bufferPointer in
+      let buffer = inputBuffer
+      buffer.write(input: bufferPointer)
+    }
+    
+    #if os(macOS)
+    fatalError("Not implemented.")
+    #else
+    let copyDestBarrier = nativeBuffer
+      .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
+    try! commandList.d3d12CommandList.ResourceBarrier(
+      1, [copyDestBarrier])
+    
+    commandList.upload(
+      inputBuffer: inputBuffer,
+      nativeBuffer: nativeBuffer)
+    
+    let unorderedAccessBarrier = nativeBuffer
+      .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+    try! commandList.d3d12CommandList.ResourceBarrier(
+      1, [unorderedAccessBarrier])
+    #endif
+  }
 }
