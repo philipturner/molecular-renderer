@@ -6,6 +6,7 @@ struct VoxelResourcesDescriptor {
 
 class VoxelResources {
   let worldDimension: Int
+  let memorySlotCount: Int
   
   // Per dense voxel
   let voxelGroupMarks: Buffer
@@ -45,8 +46,17 @@ class VoxelResources {
     self.atomicCounters = createBuffer(size: voxelCount * 32)
     self.memorySlotIDs = createBuffer(size: voxelCount * 4)
     
+    // Create the per sparse voxel resources.
+    self.memorySlotCount = Self.memorySlotCount(
+      voxelAllocationSize: voxelAllocationSize)
+    guard memorySlotCount > 0 else {
+      fatalError("Memory slot count was zero.")
+    }
+    
     print("voxel group count:", voxelGroupCount)
     print("voxel count:", voxelCount)
+    print("memory slot size:", Self.memorySlotSize)
+    print("memory slot count:", memorySlotCount)
   }
   
   static func voxelGroupCount(worldDimension: Int) -> Int {
@@ -62,6 +72,19 @@ class VoxelResources {
     output *= worldDimension / 2
     output *= worldDimension / 2
     output *= worldDimension / 2
+    return output
+  }
+  
+  static func memorySlotCount(voxelAllocationSize: Int) -> Int {
+    return voxelAllocationSize / memorySlotSize
+  }
+  
+  static var memorySlotSize: Int {
+    var output: Int = .zero
+    output += 16 // header
+    output += 512 * 8 // per 0.25 nm voxel header
+    output += 3072 * 4 // 2 nm -> global mapping, fused with 3-bit tag
+    output += 20480 * 4 // 0.25 nm -> global mapping
     return output
   }
 }
