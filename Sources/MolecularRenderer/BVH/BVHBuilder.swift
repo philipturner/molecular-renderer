@@ -6,27 +6,14 @@ struct BVHBuilderDescriptor {
 }
 
 class BVHBuilder {
-  let addressSpaceSize: Int
-  
-  // Per atom address
-  let atoms: Buffer
-  let motionVectors: Buffer
-  let relativeOffsets1: Buffer
-  let relativeOffsets2: Buffer
-  #if os(Windows)
-  var motionVectorsHandleID: Int = -1
-  var relativeOffsets1HandleID: Int = -1
-  var relativeOffsets2HandleID: Int = -1
-  #endif
-  
-  // Per atom in transaction
-  let transactionAtoms: RingBuffer
-  let transactionIDs: RingBuffer
+  let atomResources: AtomResources
   
   // Small counters and bookkeeping
   let crashBuffer: CrashBuffer
   
   // Per dense voxel
+  
+  // Per sparse voxel
   
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -35,31 +22,16 @@ class BVHBuilder {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
-    self.addressSpaceSize = addressSpaceSize
     
-    // Create a general purpose buffer that resides natively on the GPU.
-    func createBuffer(size: Int) -> Buffer {
-      var bufferDesc = BufferDescriptor()
-      bufferDesc.device = device
-      bufferDesc.size = size
-      bufferDesc.type = .native(.device)
-      return Buffer(descriptor: bufferDesc)
-    }
-    
-    self.atoms = createBuffer(size: addressSpaceSize * 16)
-    self.motionVectors = createBuffer(size: addressSpaceSize * 8)
-    self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
-    self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
-    
-    self.transactionAtoms = Self.createTransactionAtomsBuffer(
-      device: device, maxTransactionSize: 1_000_000)
-    self.transactionIDs = Self.createTransactionIDsBuffer(
-      device: device, maxTransactionSize: 2_000_000)
+    var atomResourcesDesc = AtomResourcesDescriptor()
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    
+    // check that world dimension is divisible by 8 * 4
+    // check that world dimension is greater than 0
     
     /*
      // Data buffers (per cell).
@@ -69,27 +41,5 @@ class BVHBuilder {
      largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
      largeCellOffsets = createBuffer(length: largeVoxelCount * 4)
      */
-  }
-    
-  private static func createTransactionAtomsBuffer(
-    device: Device,
-    maxTransactionSize: Int
-  ) -> RingBuffer {
-    var ringBufferDesc = RingBufferDescriptor()
-    ringBufferDesc.accessLevel = .device
-    ringBufferDesc.device = device
-    ringBufferDesc.size = maxTransactionSize * 16
-    return RingBuffer(descriptor: ringBufferDesc)
-  }
-  
-  private static func createTransactionIDsBuffer(
-    device: Device,
-    maxTransactionSize: Int
-  ) -> RingBuffer {
-    var ringBufferDesc = RingBufferDescriptor()
-    ringBufferDesc.accessLevel = .device
-    ringBufferDesc.device = device
-    ringBufferDesc.size = maxTransactionSize * 4
-    return RingBuffer(descriptor: ringBufferDesc)
   }
 }
