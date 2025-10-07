@@ -24,14 +24,15 @@ import QuaternionModule
 // - No scanning over 8 nm "cell groups" to minimize compute cost of primary
 //   rays that go all the way to the world border. This may complicate the
 //   tracking as large voxels are added incrementally. Defer to a future PR.
+// - However, it is okay to use 8 nm voxels to reduce the cost of scanning
+//   32 B per static 2 nm voxel atomic counters, while constructing the
+//   acceleration structure every frame.
 //
 // First steps:
-// - Find a way to halt the program after the very first render kernel,
-//   report some type of output from the GPU, then crash. It is probably best
-//   to just begin the next bullet point.
-// - Start figuring out how all the new code will be organized, practically.
-// - Draft the first stage of acceleration structure building ("add" process).
-// - Inspect/debug the first stage, sending statistics from GPU to CPU.
+// - Draft all the implementation code, and its organization, for the "end
+//   state" of the PR
+// - Take a subset of that code, and implement the "near-term goal"
+// - Effortlessly move on to testing the remaining code
 
 @MainActor
 func createApplication() -> Application {
