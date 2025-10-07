@@ -5,7 +5,11 @@ import WinSDK
 
 struct ResourcesDescriptor {
   var device: Device?
-  var renderTarget: RenderTarget?
+  #if os(Windows)
+  var descriptorHeap: DescriptorHeap?
+  #endif
+  var display: Display?
+  var upscaleFactor: Float?
 }
 
 // Generic resources container for resources used during rendering.
@@ -17,12 +21,19 @@ class Resources {
     
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
+  var renderTarget: RenderTarget?
   
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
-          let renderTarget = descriptor.renderTarget else {
+          let display = descriptor.display,
+          let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
+    #if os(Windows)
+    guard let descriptorHeap = descriptor.descriptorHeap else {
+      fatalError("Descriptor was incomplete.")
+    }
+    #endif
     
     // Create the shaders.
     var shaderDesc = ShaderDescriptor()
@@ -31,13 +42,11 @@ class Resources {
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
     
-    shaderDesc.source = RenderShader.createSource(
-      upscaleFactor: renderTarget.upscaleFactor)
+    shaderDesc.source = RenderShader.createSource(upscaleFactor: upscaleFactor)
     shaderDesc.name = "render"
     self.renderShader = Shader(descriptor: shaderDesc)
     
-    shaderDesc.source = UpscaleShader.createSource(
-      upscaleFactor: renderTarget.upscaleFactor)
+    shaderDesc.source = UpscaleShader.createSource(upscaleFactor: upscaleFactor)
     shaderDesc.name = "upscale"
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
@@ -45,10 +54,14 @@ class Resources {
     self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
     self.previousCameraArgs = nil
     
-    // TODO: Create the render target here.
+    var renderTargetDesc = RenderTargetDescriptor()
+    renderTargetDesc.device = device
+    renderTargetDesc.display = display
+    renderTargetDesc.upscaleFactor = upscaleFactor
+    self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
     
     #if os(Windows)
-    // Encode the render target in the descriptor heap.
+    // Bind the render target to the descriptor heap.
     renderTarget.encode(
       descriptorHeap: descriptorHeap,
       offset: 0)

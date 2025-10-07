@@ -90,13 +90,6 @@ public class Application {
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     #endif
     
-    // Create the render target.
-    var renderTargetDesc = RenderTargetDescriptor()
-    renderTargetDesc.device = device
-    renderTargetDesc.display = display
-    renderTargetDesc.upscaleFactor = upscaleFactor
-    self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
-    
     // Create the resources container.
     var resourcesDesc = ResourcesDescriptor()
     resourcesDesc.device = device
