@@ -123,8 +123,8 @@ public class Application {
       descriptorHeap: descriptorHeap,
       offset: 0)
     
-    bvhBuilder.encodeMotionVectors(descriptorHeap: descriptorHeap)
-    bvhBuilder.encodeRelativeOffsets(descriptorHeap: descriptorHeap)
+    bvhBuilder.atomResources.encodeMotionVectors(descriptorHeap: descriptorHeap)
+    bvhBuilder.atomResources.encodeRelativeOffsets(descriptorHeap: descriptorHeap)
   }
   #endif
   
