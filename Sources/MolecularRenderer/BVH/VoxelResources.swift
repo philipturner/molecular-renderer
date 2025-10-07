@@ -5,7 +5,12 @@ struct VoxelResourcesDescriptor {
 }
 
 class VoxelResources {
+  let worldDimension: Int
+  
   // Per dense voxel
+  let voxelGroupMarks: Buffer
+  let atomicCounters: Buffer
+  let memorySlotIDs: Buffer // TODO: initialize to UInt32.max once at startup
   
   // Per sparse voxel
   
@@ -16,6 +21,15 @@ class VoxelResources {
       fatalError("Descriptor was incomplete.")
     }
     
+    // Create a general purpose buffer that resides natively on the GPU.
+    func createBuffer(size: Int) -> Buffer {
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = size
+      bufferDesc.type = .native(.device)
+      return Buffer(descriptor: bufferDesc)
+    }
+    
     // Create the per dense voxel resources.
     guard worldDimension % (8 * 4) == 0 else {
       fatalError("World dimension was not divisible by 32.")
@@ -23,5 +37,26 @@ class VoxelResources {
     guard worldDimension > 0 else {
       fatalError("World dimension was zero.")
     }
+    self.worldDimension = worldDimension
+    
+    let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
+    let voxelCount = Self.voxelCount(worldDimension: worldDimension)
+    self.voxelG
+  }
+  
+  static func voxelGroupCount(worldDimension: Int) -> Int {
+    var output: Int = 1
+    output *= worldDimension / 8
+    output *= worldDimension / 8
+    output *= worldDimension / 8
+    return output
+  }
+  
+  static func voxelCount(worldDimension: Int) -> Int {
+    var output: Int = 1
+    output *= worldDimension / 2
+    output *= worldDimension / 2
+    output *= worldDimension / 2
+    return output
   }
 }
