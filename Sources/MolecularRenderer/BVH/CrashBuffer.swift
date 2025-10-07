@@ -18,6 +18,8 @@ import WinSDK
 // steps to test & debug BVH building.
 struct CrashBufferDescriptor {
   var device: Device?
+  
+  // Size in bytes, not number of UInt32 elements.
   var size: Int?
 }
 

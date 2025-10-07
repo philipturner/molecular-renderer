@@ -20,8 +20,11 @@ class BVHBuilder {
   #endif
   
   // Per atom in transaction
-  var transactionAtoms: RingBuffer
-  var transactionIDs: RingBuffer
+  let transactionAtoms: RingBuffer
+  let transactionIDs: RingBuffer
+  
+  // Small counters and bookkeeping
+  let crashBuffer: CrashBuffer
   
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -45,6 +48,11 @@ class BVHBuilder {
       device: device, maxTransactionSize: 1_000_000)
     self.transactionIDs = Self.createTransactionIDsBuffer(
       device: device, maxTransactionSize: 2_000_000)
+    
+    var crashBufferDesc = CrashBufferDescriptor()
+    crashBufferDesc.device = device
+    crashBufferDesc.size = 1024
+    self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
   }
   
   private static func createAtomsBuffer(
