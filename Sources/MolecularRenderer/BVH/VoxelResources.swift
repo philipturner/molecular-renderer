@@ -41,7 +41,12 @@ class VoxelResources {
     
     let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
     let voxelCount = Self.voxelCount(worldDimension: worldDimension)
-    self.voxelG
+    self.voxelGroupMarks = createBuffer(size: voxelGroupCount * 4)
+    self.atomicCounters = createBuffer(size: voxelCount * 32)
+    self.memorySlotIDs = createBuffer(size: voxelCount * 4)
+    
+    print("voxel group count:", voxelGroupCount)
+    print("voxel count:", voxelCount)
   }
   
   static func voxelGroupCount(worldDimension: Int) -> Int {
