@@ -22,19 +22,25 @@ public struct ApplicationDescriptor {
 public class Application {
   nonisolated(unsafe) static var singleton: Application?
   
+  // Public API.
   public let device: Device
   public let display: Display
-  
   public let atoms: Atoms
   public var camera: Camera
   public var clock: Clock
+  
+  // Low-level display interfacing.
   let window: Window
   #if os(macOS)
   let view: View
   #else
   let swapChain: SwapChain
   #endif
-  // TODO: Create DescriptorHeap here, only on Windows. Allocate 64 descriptors.
+  
+  // Single descriptor heap that encapsulates all weirdly formatted resources.
+  #if os(Windows)
+  let descriptorHeap: DescriptorHeap
+  #endif
   
   // TODO: Migrate RenderTarget into ImageResources
   let renderTarget: RenderTarget
@@ -59,24 +65,29 @@ public class Application {
     }
     self.device = device
     self.display = display
-    
     self.atoms = Atoms(addressSpaceSize: addressSpaceSize)
     self.camera = Camera()
     self.clock = Clock(display: display)
+    
+    // Set up the resources for low-level display interfacing.
     self.window = Window(display: display)
     #if os(macOS)
     self.view = View(display: display)
-    
-    // This assignment is the reason the code must be within a @MainActor
-    // scope on macOS.
     window.view = view
     #else
-    // Create the swap chain.
     var swapChainDesc = SwapChainDescriptor()
     swapChainDesc.device = device
     swapChainDesc.display = display
     swapChainDesc.window = window
     self.swapChain = SwapChain(descriptor: swapChainDesc)
+    #endif
+    
+    #if os(Windows)
+    // Create the descriptor heap.
+    var descriptorHeapDesc = DescriptorHeapDescriptor()
+    descriptorHeapDesc.device = device
+    descriptorHeapDesc.count = 64
+    self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     #endif
     
     // Create the render target.
