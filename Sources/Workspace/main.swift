@@ -35,8 +35,7 @@ import QuaternionModule
 // - Effortlessly move on to testing the remaining code
 //
 // Current task: write the memory allocation code
-// - Implement the APIs for CrashBuffer
-// - Test the APIs for CrashBuffer on both platforms
+// - Implement the buffers that scale with static voxel count
 
 @MainActor
 func createApplication() -> Application {
