@@ -12,8 +12,12 @@ class VoxelResources {
   let voxelGroupMarks: Buffer
   let atomicCounters: Buffer
   let memorySlotIDs: Buffer // TODO: initialize to UInt32.max once at startup
+  // use ClearUnorderedAccessViewUint
   
   // Per sparse voxel
+  let assignedVoxelIDs: Buffer // TODO: initialize to UInt32.max
+  let vacantSlotIDs: Buffer
+  let memorySlots: Buffer
   
   init(descriptor: VoxelResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -53,10 +57,15 @@ class VoxelResources {
       fatalError("Memory slot count was zero.")
     }
     
+    self.assignedVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
+    self.memorySlots = createBuffer(size: memorySlotCount * Self.memorySlotSize)
+    
     print("voxel group count:", voxelGroupCount)
     print("voxel count:", voxelCount)
     print("memory slot size:", Self.memorySlotSize)
     print("memory slot count:", memorySlotCount)
+    print("voxel allocation size:", memorySlots.size)
   }
   
   static func voxelGroupCount(worldDimension: Int) -> Int {
