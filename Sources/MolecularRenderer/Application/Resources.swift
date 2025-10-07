@@ -18,12 +18,6 @@ class Resources {
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
   
-  #if os(Windows)
-  // TODO: Move this into the top-level Application properties. Migrate the
-  // render target into Resources.
-  let descriptorHeap: DescriptorHeap
-  #endif
-  
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
           let renderTarget = descriptor.renderTarget else {
@@ -47,17 +41,14 @@ class Resources {
     shaderDesc.name = "upscale"
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
+    // Create the memory allocations.
     self.cameraArgsBuffer = Self.createCameraArgsBuffer(device: device)
     self.previousCameraArgs = nil
     
-    #if os(Windows)
-    // Create the descriptor heap.
-    var descriptorHeapDesc = DescriptorHeapDescriptor()
-    descriptorHeapDesc.device = device
-    descriptorHeapDesc.count = 64
-    self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
+    // TODO: Create the render target here.
     
-    // Encode the render target.
+    #if os(Windows)
+    // Encode the render target in the descriptor heap.
     renderTarget.encode(
       descriptorHeap: descriptorHeap,
       offset: 0)
