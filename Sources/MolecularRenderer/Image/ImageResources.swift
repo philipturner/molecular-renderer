@@ -1,8 +1,3 @@
-#if os(Windows)
-import SwiftCOM
-import WinSDK
-#endif
-
 struct ImageResourcesDescriptor {
   var device: Device?
   var display: Display?

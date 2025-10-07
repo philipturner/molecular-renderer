@@ -6,13 +6,13 @@ import WinSDK
 import func Foundation.exit // temporary, for development of BVH
 
 public struct ApplicationDescriptor {
-  public var addressSpaceSize: Int?
-  public var voxelAllocationSize: Int?
-  public var worldDimension: Int?
-  
   public var device: Device?
   public var display: Display?
   public var upscaleFactor: Float?
+  
+  public var addressSpaceSize: Int?
+  public var voxelAllocationSize: Int?
+  public var worldDimension: Int?
   
   public init() {
     
@@ -49,13 +49,13 @@ public class Application {
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
-    guard let addressSpaceSize = descriptor.addressSpaceSize,
-          let voxelAllocationSize = descriptor.voxelAllocationSize,
-          let worldDimension = descriptor.worldDimension,
-          
-          let device = descriptor.device,
+    guard let device = descriptor.device,
           let display = descriptor.display,
-          let upscaleFactor = descriptor.upscaleFactor else {
+          let upscaleFactor = descriptor.upscaleFactor,
+          
+          let addressSpaceSize = descriptor.addressSpaceSize,
+          let voxelAllocationSize = descriptor.voxelAllocationSize,
+          let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
     
