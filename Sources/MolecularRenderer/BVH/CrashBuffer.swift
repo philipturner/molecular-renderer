@@ -96,4 +96,31 @@ class CrashBuffer {
       1, [unorderedAccessBarrier])
     #endif
   }
+  
+  func download(
+    commandList: CommandList,
+    inFlightFrameID: Int
+  ) {
+    let outputBuffer = outputBuffers[inFlightFrameID]
+    
+    #if os(macOS)
+    fatalError("Not implemented.")
+    #else
+    let copySourceBarrier = nativeBuffer
+      .transition(state: D3D12_RESOURCE_STATE_COPY_SOURCE)
+    try! commandList.d3d12CommandList.ResourceBarrier(
+      1, [copySourceBarrier])
+    
+    commandList.download(
+      nativeBuffer: nativeBuffer,
+      outputBuffer: outputBuffer)
+    
+    let unorderedAccessBarrier = nativeBuffer
+      .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+    try! commandList.d3d12CommandList.ResourceBarrier(
+      1, [unorderedAccessBarrier])
+    #endif
+  }
+  
+  // func read
 }
