@@ -1,3 +1,8 @@
+#if os(Windows)
+import SwiftCOM
+import WinSDK
+#endif
+
 struct BVHBuilderDescriptor {
   var addressSpaceSize: Int?
   var device: Device?
@@ -35,7 +40,35 @@ class BVHBuilder {
     crashBufferDesc.device = device
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    
+    // Move all UAV resources to the UAV state.
+    setUAVState(device: device)
   }
   
-  // TODO: Utility to move all UAV resources to the UAV state.
+  #if os(Windows)
+  func setUAVState(device: Device) {
+    device.commandQueue.withCommandList { commandList in
+      let buffers: [Buffer] = [
+        atomResources.atoms,
+        atomResources.motionVectors,
+        atomResources.relativeOffsets1,
+        atomResources.relativeOffsets2,
+        voxelResources.voxelGroupMarks,
+        voxelResources.atomicCounters,
+        voxelResources.memorySlotIDs,
+        voxelResources.assignedVoxelIDs,
+        voxelResources.vacantSlotIDs,
+        voxelResources.memorySlots
+      ]
+      
+      var barriers: [D3D12_RESOURCE_BARRIER] = []
+      for buffer in buffers {
+        let barrier = buffer
+          .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
+      }
+      try! commandList.d3d12CommandList.ResourceBarrier(
+        UInt32(barriers.count), barriers)
+    }
+  }
+  #endif
 }

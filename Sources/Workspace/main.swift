@@ -35,8 +35,7 @@ import QuaternionModule
 // - Effortlessly move on to testing the remaining code
 //
 // Current task: write the memory allocation code
-// - Implement the ClearUnorderedAccessViewUint at program startup. Do not
-//   actually check the buffer contents yet, because we don't have shaders.
+//
 
 @MainActor
 func createApplication() -> Application {

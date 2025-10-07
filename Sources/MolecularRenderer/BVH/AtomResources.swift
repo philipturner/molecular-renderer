@@ -13,7 +13,7 @@ class AtomResources {
   
   // Per atom address
   let atoms: Buffer
-  let motionVectors: Buffer
+  let motionVectors: Buffer // purge to 0 with transaction tracking, idle/active
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
   #if os(Windows)
