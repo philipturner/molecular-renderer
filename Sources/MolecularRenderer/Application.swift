@@ -46,6 +46,7 @@ public class Application {
   
   // Other resources
   let imageResources: ImageResources
+  let bvhBuilder: BVHBuilder
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
@@ -94,11 +95,16 @@ public class Application {
     imageResourcesDesc.upscaleFactor = upscaleFactor
     self.imageResources = ImageResources(descriptor: imageResourcesDesc)
     
+    var bvhBuilderDesc = BVHBuilderDescriptor()
+    bvhBuilderDesc.addressSpaceSize = atoms.addressSpaceSize
+    bvhBuilderDesc.device = device
+    bvhBuilderDesc.voxelAllocationSize = voxelAllocationSize
+    bvhBuilderDesc.worldDimension = worldDimension
+    self.bvhBuilder = BVHBuilder(descriptor: bvhBuilderDesc)
+    
     #if os(Windows)
     // Bind resources to the descriptor heap.
-    imageResources.renderTarget.encode(
-      descriptorHeap: descriptorHeap,
-      offset: 0)
+    encodeDescriptorHeap()
     #endif
     
     guard Application.singleton == nil else {
@@ -110,6 +116,14 @@ public class Application {
     print("Exiting the program.")
     exit(0)
   }
+  
+  #if os(Windows)
+  private func encodeDescriptorHeap() {
+    imageResources.renderTarget.encode(
+      descriptorHeap: descriptorHeap,
+      offset: 0)
+  }
+  #endif
   
   @MainActor
   public func run(
