@@ -8,7 +8,7 @@ class ImageResources {
   // Shaders
   let renderShader: Shader
   let upscaleShader: Shader
-    
+  
   // Memory allocations
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?

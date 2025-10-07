@@ -35,10 +35,7 @@ import QuaternionModule
 // - Effortlessly move on to testing the remaining code
 //
 // Current task: write the memory allocation code
-// - Forward the arguments to the BVH descriptor
-// - Allocate the per-atom-address buffers. Implement the encoding of the FP16
-//   format into a descriptor heap on Windows. Same with the 8xUInt16 buffer.
-// - Allocate the per-transaction buffers (fixed at 1_000_000 in library code).
+// - What comes next after the per-atom buffers?
 
 @MainActor
 func createApplication() -> Application {

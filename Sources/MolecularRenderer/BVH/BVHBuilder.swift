@@ -19,6 +19,10 @@ class BVHBuilder {
   var relativeOffsets2HandleID: Int = -1
   #endif
   
+  // Per atom in transaction
+  var transactionAtoms: RingBuffer
+  var transactionIDs: RingBuffer
+  
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
           let device = descriptor.device,
@@ -36,6 +40,11 @@ class BVHBuilder {
       device: device, addressSpaceSize: addressSpaceSize)
     self.relativeOffsets2 = Self.createRelativeOffsetsBuffer(
       device: device, addressSpaceSize: addressSpaceSize)
+    
+    self.transactionAtoms = Self.createTransactionAtomsBuffer(
+      device: device, maxTransactionSize: 1_000_000)
+    self.transactionIDs = Self.createTransactionIDsBuffer(
+      device: device, maxTransactionSize: 2_000_000)
   }
   
   private static func createAtomsBuffer(
@@ -69,5 +78,27 @@ class BVHBuilder {
     bufferDesc.size = addressSpaceSize * 8
     bufferDesc.type = .native(.device)
     return Buffer(descriptor: bufferDesc)
+  }
+  
+  private static func createTransactionAtomsBuffer(
+    device: Device,
+    maxTransactionSize: Int
+  ) -> RingBuffer {
+    var ringBufferDesc = RingBufferDescriptor()
+    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.device = device
+    ringBufferDesc.size = maxTransactionSize * 16
+    return RingBuffer(descriptor: ringBufferDesc)
+  }
+  
+  private static func createTransactionIDsBuffer(
+    device: Device,
+    maxTransactionSize: Int
+  ) -> RingBuffer {
+    var ringBufferDesc = RingBufferDescriptor()
+    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.device = device
+    ringBufferDesc.size = maxTransactionSize * 4
+    return RingBuffer(descriptor: ringBufferDesc)
   }
 }
