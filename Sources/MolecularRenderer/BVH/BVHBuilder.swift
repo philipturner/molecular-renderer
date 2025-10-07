@@ -7,13 +7,10 @@ struct BVHBuilderDescriptor {
 
 class BVHBuilder {
   let atomResources: AtomResources
+  let voxelResources: VoxelResources
   
   // Small counters and bookkeeping
   let crashBuffer: CrashBuffer
-  
-  // Per dense voxel
-  
-  // Per sparse voxel
   
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -24,22 +21,19 @@ class BVHBuilder {
     }
     
     var atomResourcesDesc = AtomResourcesDescriptor()
+    atomResourcesDesc.addressSpaceSize = addressSpaceSize
+    atomResourcesDesc.device = device
+    self.atomResources = AtomResources(descriptor: atomResourcesDesc)
+    
+    var voxelResourcesDesc = VoxelResourcesDescriptor()
+    voxelResourcesDesc.device = device
+    voxelResourcesDesc.voxelAllocationSize = voxelAllocationSize
+    voxelResourcesDesc.worldDimension = worldDimension
+    self.voxelResources = VoxelResources(descriptor: voxelResourcesDesc)
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
-    
-    // check that world dimension is divisible by 8 * 4
-    // check that world dimension is greater than 0
-    
-    /*
-     // Data buffers (per cell).
-     let largeVoxelCount = 128 * 128 * 128
-     let cellGroupCount = largeVoxelCount / (4 * 4 * 4)
-     cellGroupMarks = createBuffer(length: cellGroupCount)
-     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
-     largeCellOffsets = createBuffer(length: largeVoxelCount * 4)
-     */
   }
 }
