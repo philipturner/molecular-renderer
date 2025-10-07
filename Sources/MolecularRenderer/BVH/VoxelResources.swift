@@ -60,12 +60,6 @@ class VoxelResources {
     self.assignedVoxelIDs = createBuffer(size: memorySlotCount * 4)
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
     self.memorySlots = createBuffer(size: memorySlotCount * Self.memorySlotSize)
-    
-    print("voxel group count:", voxelGroupCount)
-    print("voxel count:", voxelCount)
-    print("memory slot size:", Self.memorySlotSize)
-    print("memory slot count:", memorySlotCount)
-    print("voxel allocation size:", memorySlots.size)
   }
   
   static func voxelGroupCount(worldDimension: Int) -> Int {
