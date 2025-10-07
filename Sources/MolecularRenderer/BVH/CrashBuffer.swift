@@ -1,4 +1,6 @@
-#if os(Windows)
+#if os(macOS)
+import Metal
+#else
 import SwiftCOM
 import WinSDK
 #endif
@@ -9,10 +11,10 @@ import WinSDK
 // - 1 native buffer
 // GPU data downloaded to CPU
 // - 3 download buffers
-// - do NOT read their data during the first 3 frames!
-// - make one exception for the early stages of code testing, where the
-//   download command is invoked in a unique place, and the command queue
-//   is flushed
+// - Do NOT read their data during the first 3 frames!
+// - Zero indicates an error, since it's the default value that would be
+//   read incorrectly during the first 3 frames. Instead, 1 means nothing
+//   went wrong.
 //
 // This could be used to easily gather diagnostic data while taking the first
 // steps to test & debug BVH building.
@@ -81,7 +83,18 @@ class CrashBuffer {
     }
     
     #if os(macOS)
-    fatalError("Not implemented.")
+    commandList.mtlCommandEncoder.endEncoding()
+    
+    let commandEncoder: MTLBlitCommandEncoder =
+    commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
+    commandEncoder.copy(
+      from: inputBuffer.mtlBuffer, sourceOffset: 0,
+      to: nativeBuffer.mtlBuffer, destinationOffset: 0,
+      size: inputBuffer.size)
+    commandEncoder.endEncoding()
+    
+    commandList.mtlCommandEncoder =
+    commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     #else
     let copyDestBarrier = nativeBuffer
       .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
@@ -106,7 +119,18 @@ class CrashBuffer {
     let outputBuffer = outputBuffers[inFlightFrameID]
     
     #if os(macOS)
-    fatalError("Not implemented.")
+    commandList.mtlCommandEncoder.endEncoding()
+    
+    let commandEncoder: MTLBlitCommandEncoder =
+    commandList.mtlCommandBuffer.makeBlitCommandEncoder()!
+    commandEncoder.copy(
+      from: nativeBuffer.mtlBuffer, sourceOffset: 0,
+      to: outputBuffer.mtlBuffer, destinationOffset: 0,
+      size: nativeBuffer.size)
+    commandEncoder.endEncoding()
+    
+    commandList.mtlCommandEncoder =
+    commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     #else
     let copySourceBarrier = nativeBuffer
       .transition(state: D3D12_RESOURCE_STATE_COPY_SOURCE)
