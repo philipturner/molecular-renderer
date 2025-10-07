@@ -22,9 +22,7 @@ struct CrashBufferDescriptor {
 }
 
 struct CrashBuffer {
-  #if os(Windows)
   let inputBuffer: Buffer
-  #endif
   let nativeBuffer: Buffer
   var outputBuffers: [Buffer] = []
   
@@ -34,17 +32,19 @@ struct CrashBuffer {
       fatalError("Descriptor was incomplete.")
     }
     
-    #if os(Windows)
     // Create the input buffer.
     do {
       var bufferDesc = BufferDescriptor()
       bufferDesc.device = device
       bufferDesc.size = size
+      #if os(macOS)
+      bufferDesc.type = .native(.device)
+      #else
       bufferDesc.type = .input
+      #endif
       self.inputBuffer = Buffer(descriptor: bufferDesc)
     }
-    #endif
-    
+        
     // Create the native buffer.
     do {
       var bufferDesc = BufferDescriptor()
@@ -56,7 +56,16 @@ struct CrashBuffer {
     
     // Create the output buffers.
     for _ in 0..<3 {
-      
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = size
+      #if os(macOS)
+      bufferDesc.type = .native(.device)
+      #else
+      bufferDesc.type = .output
+      #endif
+      let outputBuffer = Buffer(descriptor: bufferDesc)
+      outputBuffers.append(outputBuffer)
     }
   }
   
