@@ -35,7 +35,8 @@ import QuaternionModule
 // - Effortlessly move on to testing the remaining code
 //
 // Current task: write the memory allocation code
-// - What comes next after the per-atom buffers?
+// - Implement the APIs for CrashBuffer
+// - Test the APIs for CrashBuffer on both platforms
 
 @MainActor
 func createApplication() -> Application {
