@@ -130,7 +130,7 @@ extension Application {
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
-      commandList.setDescriptorHeap(imageResources.descriptorHeap)
+      commandList.setDescriptorHeap(descriptorHeap)
       #endif
       
       // Encode the compute command.
