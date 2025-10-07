@@ -34,8 +34,15 @@ import QuaternionModule
 // - Take a subset of that code, and implement the "near-term goal"
 // - Effortlessly move on to testing the remaining code
 //
-// Current task: write the memory allocation code
-//
+// Current task:
+// - Make utilities to facilitate prototyping new shaders, organizing them
+//   in a container data type.
+// - Implement the shaders that clear specific resources upon startup.
+//   - This uses a general purpose blit kernel
+// - Check that it was actually cleared by reading a specific point in each
+//   buffer in a GPU shader. Read out the results via the crash buffer.
+//   - This uses a different kernel, quickly prototyped for the test and then
+//     removed from the code base.
 
 @MainActor
 func createApplication() -> Application {
