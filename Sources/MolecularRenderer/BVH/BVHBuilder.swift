@@ -26,6 +26,8 @@ class BVHBuilder {
   // Small counters and bookkeeping
   let crashBuffer: CrashBuffer
   
+  // Per dense voxel
+  
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
           let device = descriptor.device,
@@ -35,14 +37,19 @@ class BVHBuilder {
     }
     self.addressSpaceSize = addressSpaceSize
     
-    self.atoms = Self.createAtomsBuffer(
-      device: device, addressSpaceSize: addressSpaceSize)
-    self.motionVectors = Self.createMotionVectorsBuffer(
-      device: device, addressSpaceSize: addressSpaceSize)
-    self.relativeOffsets1 = Self.createRelativeOffsetsBuffer(
-      device: device, addressSpaceSize: addressSpaceSize)
-    self.relativeOffsets2 = Self.createRelativeOffsetsBuffer(
-      device: device, addressSpaceSize: addressSpaceSize)
+    // Create a general purpose buffer that resides natively on the GPU.
+    func createBuffer(size: Int) -> Buffer {
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = size
+      bufferDesc.type = .native(.device)
+      return Buffer(descriptor: bufferDesc)
+    }
+    
+    self.atoms = createBuffer(size: addressSpaceSize * 16)
+    self.motionVectors = createBuffer(size: addressSpaceSize * 8)
+    self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
+    self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
     
     self.transactionAtoms = Self.createTransactionAtomsBuffer(
       device: device, maxTransactionSize: 1_000_000)
@@ -53,41 +60,17 @@ class BVHBuilder {
     crashBufferDesc.device = device
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    
+    /*
+     // Data buffers (per cell).
+     let largeVoxelCount = 128 * 128 * 128
+     let cellGroupCount = largeVoxelCount / (4 * 4 * 4)
+     cellGroupMarks = createBuffer(length: cellGroupCount)
+     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
+     largeCellOffsets = createBuffer(length: largeVoxelCount * 4)
+     */
   }
-  
-  private static func createAtomsBuffer(
-    device: Device,
-    addressSpaceSize: Int
-  ) -> Buffer {
-    var bufferDesc = BufferDescriptor()
-    bufferDesc.device = device
-    bufferDesc.size = addressSpaceSize * 16
-    bufferDesc.type = .native(.device)
-    return Buffer(descriptor: bufferDesc)
-  }
-  
-  private static func createMotionVectorsBuffer(
-    device: Device,
-    addressSpaceSize: Int
-  ) -> Buffer {
-    var bufferDesc = BufferDescriptor()
-    bufferDesc.device = device
-    bufferDesc.size = addressSpaceSize * 8
-    bufferDesc.type = .native(.device)
-    return Buffer(descriptor: bufferDesc)
-  }
-  
-  private static func createRelativeOffsetsBuffer(
-    device: Device,
-    addressSpaceSize: Int
-  ) -> Buffer {
-    var bufferDesc = BufferDescriptor()
-    bufferDesc.device = device
-    bufferDesc.size = addressSpaceSize * 8
-    bufferDesc.type = .native(.device)
-    return Buffer(descriptor: bufferDesc)
-  }
-  
+    
   private static func createTransactionAtomsBuffer(
     device: Device,
     maxTransactionSize: Int
