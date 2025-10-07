@@ -41,8 +41,10 @@ class BVHBuilder {
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
+    #if os(Windows)
     // Move all UAV resources to the UAV state.
     setUAVState(device: device)
+    #endif
   }
   
   #if os(Windows)
