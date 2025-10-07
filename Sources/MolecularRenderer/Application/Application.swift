@@ -22,14 +22,14 @@ public struct ApplicationDescriptor {
 public class Application {
   nonisolated(unsafe) static var singleton: Application?
   
-  // Public API.
+  // Public API
   public let device: Device
   public let display: Display
   public let atoms: Atoms
   public var camera: Camera
   public var clock: Clock
   
-  // Low-level display interfacing.
+  // Low-level display interfacing
   let window: Window
   #if os(macOS)
   let view: View
@@ -42,12 +42,7 @@ public class Application {
   let descriptorHeap: DescriptorHeap
   #endif
   
-  // TODO: Migrate RenderTarget into ImageResources
-  let renderTarget: RenderTarget
   let resources: Resources
-  
-  // TODO: Migrate upscaler into ImageResources
-  let upscaler: Upscaler?
   
   var runLoop: RunLoop?
   public internal(set) var frameID: Int = -1
@@ -95,17 +90,6 @@ public class Application {
     resourcesDesc.device = device
     resourcesDesc.renderTarget = renderTarget
     self.resources = Resources(descriptor: resourcesDesc)
-    
-    // Create the upscaler.
-    if upscaleFactor > 1 {
-      var upscalerDesc = UpscalerDescriptor()
-      upscalerDesc.device = device
-      upscalerDesc.display = display
-      upscalerDesc.upscaleFactor = upscaleFactor
-      self.upscaler = Upscaler(descriptor: upscalerDesc)
-    } else {
-      self.upscaler = nil
-    }
     
     guard Application.singleton == nil else {
       fatalError(

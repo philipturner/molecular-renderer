@@ -16,12 +16,15 @@ struct ResourcesDescriptor {
 //
 // TODO: Rename this to ImageResources and migrate to the Image folder.
 class Resources {
+  // Shaders
   let renderShader: Shader
   let upscaleShader: Shader
     
+  // Memory allocations
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
   var renderTarget: RenderTarget?
+  var upscaler: Upscaler?
   
   init(descriptor: ResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -59,6 +62,16 @@ class Resources {
     renderTargetDesc.display = display
     renderTargetDesc.upscaleFactor = upscaleFactor
     self.renderTarget = RenderTarget(descriptor: renderTargetDesc)
+    
+    if upscaleFactor > 1 {
+      var upscalerDesc = UpscalerDescriptor()
+      upscalerDesc.device = device
+      upscalerDesc.display = display
+      upscalerDesc.upscaleFactor = upscaleFactor
+      self.upscaler = Upscaler(descriptor: upscalerDesc)
+    } else {
+      self.upscaler = nil
+    }
     
     #if os(Windows)
     // Bind the render target to the descriptor heap.
