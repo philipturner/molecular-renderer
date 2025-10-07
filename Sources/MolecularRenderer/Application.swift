@@ -122,6 +122,9 @@ public class Application {
     imageResources.renderTarget.encode(
       descriptorHeap: descriptorHeap,
       offset: 0)
+    
+    bvhBuilder.encodeMotionVectors(descriptorHeap: descriptorHeap)
+    bvhBuilder.encodeRelativeOffsets(descriptorHeap: descriptorHeap)
   }
   #endif
   
