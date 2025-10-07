@@ -3,19 +3,13 @@ import SwiftCOM
 import WinSDK
 #endif
 
-struct ResourcesDescriptor {
+struct ImageResourcesDescriptor {
   var device: Device?
-  #if os(Windows)
-  var descriptorHeap: DescriptorHeap?
-  #endif
   var display: Display?
   var upscaleFactor: Float?
 }
 
-// Generic resources container for resources used during rendering.
-//
-// TODO: Rename this to ImageResources and migrate to the Image folder.
-class Resources {
+class ImageResources {
   // Shaders
   let renderShader: Shader
   let upscaleShader: Shader
@@ -23,20 +17,15 @@ class Resources {
   // Memory allocations
   var cameraArgsBuffer: RingBuffer
   var previousCameraArgs: CameraArgs?
-  var renderTarget: RenderTarget?
+  var renderTarget: RenderTarget
   var upscaler: Upscaler?
   
-  init(descriptor: ResourcesDescriptor) {
+  init(descriptor: ImageResourcesDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display,
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
-    #if os(Windows)
-    guard let descriptorHeap = descriptor.descriptorHeap else {
-      fatalError("Descriptor was incomplete.")
-    }
-    #endif
     
     // Create the shaders.
     var shaderDesc = ShaderDescriptor()
@@ -44,7 +33,6 @@ class Resources {
     #if os(macOS)
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
-    
     shaderDesc.source = RenderShader.createSource(upscaleFactor: upscaleFactor)
     shaderDesc.name = "render"
     self.renderShader = Shader(descriptor: shaderDesc)
@@ -72,11 +60,6 @@ class Resources {
     } else {
       self.upscaler = nil
     }
-    
-    #if os(Windows)
-    // Bind the render target to the descriptor heap.
-    
-    #endif
   }
   
   private static func createCameraArgsBuffer(

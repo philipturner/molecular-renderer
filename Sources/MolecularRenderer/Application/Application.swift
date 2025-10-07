@@ -28,6 +28,8 @@ public class Application {
   public let atoms: Atoms
   public var camera: Camera
   public var clock: Clock
+  var runLoop: RunLoop?
+  public internal(set) var frameID: Int = -1
   
   // Low-level display interfacing
   let window: Window
@@ -42,10 +44,8 @@ public class Application {
   let descriptorHeap: DescriptorHeap
   #endif
   
-  let resources: Resources
-  
-  var runLoop: RunLoop?
-  public internal(set) var frameID: Int = -1
+  // Other resources
+  let imageResources: ImageResources
   
   @MainActor
   public init(descriptor: ApplicationDescriptor) {
@@ -58,6 +58,8 @@ public class Application {
           let upscaleFactor = descriptor.upscaleFactor else {
       fatalError("Descriptor was incomplete.")
     }
+    
+    // Set up the public API.
     self.device = device
     self.display = display
     self.atoms = Atoms(addressSpaceSize: addressSpaceSize)
@@ -85,17 +87,16 @@ public class Application {
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     #endif
     
-    // Create the image resources.
-    var resourcesDesc = ResourcesDescriptor()
-    resourcesDesc.device = device
-    resourcesDesc.renderTarget = renderTarget
-    self.resources = Resources(descriptor: resourcesDesc)
-    
-    // Create the BVH builder.
+    // Create the other resources.
+    var imageResourcesDesc = ImageResourcesDescriptor()
+    imageResourcesDesc.device = device
+    imageResourcesDesc.display = display
+    imageResourcesDesc.upscaleFactor = upscaleFactor
+    self.imageResources = ImageResources(descriptor: imageResourcesDesc)
     
     #if os(Windows)
     // Bind resources to the descriptor heap.
-    renderTarget.encode(
+    imageResources.renderTarget.encode(
       descriptorHeap: descriptorHeap,
       offset: 0)
     #endif
