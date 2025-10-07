@@ -53,6 +53,24 @@ class BVHBuilder {
     crashBufferDesc.device = device
     crashBufferDesc.size = 1024
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    
+    var inputData: [UInt32] = [32, 64, 81]
+    var outputData: [UInt32] = [5, 5, 5]
+    device.commandQueue.withCommandList { commandList in
+      crashBuffer.initialize(
+        commandList: commandList,
+        data: inputData)
+      crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: 1)
+    }
+    device.commandQueue.flush()
+    crashBuffer.read(
+      data: &outputData,
+      inFlightFrameID: 1)
+    
+    print(inputData)
+    print(outputData)
   }
   
   private static func createAtomsBuffer(
