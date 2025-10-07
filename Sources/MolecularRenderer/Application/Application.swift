@@ -34,8 +34,13 @@ public class Application {
   #else
   let swapChain: SwapChain
   #endif
+  // TODO: Create DescriptorHeap here, only on Windows. Allocate 64 descriptors.
+  
+  // TODO: Migrate RenderTarget into ImageResources
   let renderTarget: RenderTarget
   let resources: Resources
+  
+  // TODO: Migrate upscaler into ImageResources
   let upscaler: Upscaler?
   
   var runLoop: RunLoop?

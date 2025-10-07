@@ -54,7 +54,7 @@ class Resources {
     // Create the descriptor heap.
     var descriptorHeapDesc = DescriptorHeapDescriptor()
     descriptorHeapDesc.device = device
-    descriptorHeapDesc.count = renderTarget.descriptorCount
+    descriptorHeapDesc.count = 64
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     
     // Encode the render target.
