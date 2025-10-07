@@ -16,16 +16,12 @@ class VoxelResources {
       fatalError("Descriptor was incomplete.")
     }
     
-    // check that world dimension is divisible by 8 * 4
-    // check that world dimension is greater than 0
-    
-    /*
-     // Data buffers (per cell).
-     let largeVoxelCount = 128 * 128 * 128
-     let cellGroupCount = largeVoxelCount / (4 * 4 * 4)
-     cellGroupMarks = createBuffer(length: cellGroupCount)
-     largeCounterMetadata = createBuffer(length: largeVoxelCount * 8 * 4)
-     largeCellOffsets = createBuffer(length: largeVoxelCount * 4)
-     */
+    // Create the per dense voxel resources.
+    guard worldDimension % (8 * 4) == 0 else {
+      fatalError("World dimension was not divisible by 32.")
+    }
+    guard worldDimension > 0 else {
+      fatalError("World dimension was zero.")
+    }
   }
 }
