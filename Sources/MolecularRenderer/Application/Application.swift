@@ -85,11 +85,20 @@ public class Application {
     self.descriptorHeap = DescriptorHeap(descriptor: descriptorHeapDesc)
     #endif
     
-    // Create the resources container.
+    // Create the image resources.
     var resourcesDesc = ResourcesDescriptor()
     resourcesDesc.device = device
     resourcesDesc.renderTarget = renderTarget
     self.resources = Resources(descriptor: resourcesDesc)
+    
+    // Create the BVH builder.
+    
+    #if os(Windows)
+    // Bind resources to the descriptor heap.
+    renderTarget.encode(
+      descriptorHeap: descriptorHeap,
+      offset: 0)
+    #endif
     
     guard Application.singleton == nil else {
       fatalError(

@@ -75,9 +75,7 @@ class Resources {
     
     #if os(Windows)
     // Bind the render target to the descriptor heap.
-    renderTarget.encode(
-      descriptorHeap: descriptorHeap,
-      offset: 0)
+    
     #endif
   }
   
