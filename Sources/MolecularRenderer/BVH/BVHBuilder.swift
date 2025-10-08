@@ -15,7 +15,7 @@ class BVHBuilder {
   let voxelResources: VoxelResources
   
   // Small counters and bookkeeping
-  let crashBuffer: CrashBuffer // initialize at startup (not implemented)
+  let crashBuffer: CrashBuffer // initialize at startup
   
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -46,28 +46,8 @@ class BVHBuilder {
     setUAVState(device: device)
     #endif
     
-    // Initialize the crash buffer to 1.
-    device.commandQueue.withCommandList { commandList in
-      let elementCount = crashBuffer.inputBuffer.size / 4
-      let data = [UInt32](repeating: 1, count: elementCount)
-      crashBuffer.initialize(
-        commandList: commandList,
-        data: data)
-    }
-    
-    // Temporary validation code to check behavior of crash buffer.
-    device.commandQueue.withCommandList { commandList in
-      crashBuffer.download(
-        commandList: commandList,
-        inFlightFrameID: 2)
-    }
-    device.commandQueue.flush()
-    
-    var results = [UInt32](repeating: 0, count: 5)
-    crashBuffer.read(
-      data: &results,
-      inFlightFrameID: 2)
-    print(results)
+    // Remaining setup processes at program startup.
+    initializeResources(device: device)
   }
   
   #if os(Windows)
@@ -97,4 +77,15 @@ class BVHBuilder {
     }
   }
   #endif
+  
+  func initializeResources(device: Device) {
+    // Initialize the crash buffer to 1.
+    device.commandQueue.withCommandList { commandList in
+      let elementCount = crashBuffer.inputBuffer.size / 4
+      let data = [UInt32](repeating: 1, count: elementCount)
+      crashBuffer.initialize(
+        commandList: commandList,
+        data: data)
+    }
+  }
 }
