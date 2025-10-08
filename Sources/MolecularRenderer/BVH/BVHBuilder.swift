@@ -243,6 +243,13 @@ class BVHBuilder {
       
       try! commandList.d3d12CommandList.EndQuery(
         counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 1)
+      try! commandList.d3d12CommandList.ResolveQueryData(
+        counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        UInt32(0),
+        UInt32(2),
+        counters.queryDestinationBuffer.d3d12Resource,
+        UInt64(0))
     }
     device.commandQueue.flush()
     #endif
