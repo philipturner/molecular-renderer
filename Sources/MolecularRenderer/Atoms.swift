@@ -1,12 +1,12 @@
 public class Atoms {
   public let addressSpaceSize: Int
-  @usableFromInline static let blockSize: Int = 512
+  private static let blockSize: Int = 512
   
-  @usableFromInline let positions: UnsafeMutablePointer<SIMD4<Float>>
-  @usableFromInline let previousOccupied: UnsafeMutablePointer<Bool>
-  @usableFromInline let occupied: UnsafeMutablePointer<Bool>
-  @usableFromInline let positionsModified: UnsafeMutablePointer<Bool>
-  @usableFromInline let blocksModified: UnsafeMutablePointer<Bool>
+  private let positions: UnsafeMutablePointer<SIMD4<Float>>
+  private let previousOccupied: UnsafeMutablePointer<Bool>
+  private let occupied: UnsafeMutablePointer<Bool>
+  private let positionsModified: UnsafeMutablePointer<Bool>
+  private let blocksModified: UnsafeMutablePointer<Bool>
   
   init(addressSpaceSize originalAddressSpaceSize: Int) {
     addressSpaceSize = Self.createReducedAddressSpaceSize(
@@ -48,9 +48,7 @@ public class Atoms {
   // This is probably a bottleneck in CPU-side code (1 function call for
   // each access in -Xswiftc -Ounchecked). We can work around this by
   // introducing an API for modifying subranges at a time.
-//  @inlinable @inline(__always)
   public subscript(index: Int) -> SIMD4<Float>? {
-//    @inlinable @inline(__always)
     get {
       if occupied[index] {
         return positions[index]
@@ -58,7 +56,6 @@ public class Atoms {
         return nil
       }
     }
-//    @inlinable @inline(__always)
     set {
       blocksModified[index / Self.blockSize] = true
       positionsModified[index] = true

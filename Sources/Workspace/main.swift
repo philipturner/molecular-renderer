@@ -65,7 +65,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 20_000_000
+  applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
   applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
@@ -84,7 +84,7 @@ for i in 0..<10 {
     
     // 0 to test (add, move, move, move...)
     // 1 to test (add, add, add, ... eventually reaching the limit)
-    let blockStart = i * atomBlockSize
+    let blockStart = 0 * atomBlockSize
     let blockEnd = blockStart + atomBlockSize
     for atomID in blockStart..<blockEnd {
       application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
