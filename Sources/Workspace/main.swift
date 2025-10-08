@@ -76,7 +76,7 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 5000
+let atomBlockSize: Int = 1_000_000
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
@@ -84,7 +84,7 @@ for i in 0..<10 {
     
     // 0 to test (add, move, move, move...)
     // 1 to test (add, add, add, ... eventually reaching the limit)
-    let blockStart = 0 * atomBlockSize
+    let blockStart = i * atomBlockSize
     let blockEnd = blockStart + atomBlockSize
     for atomID in blockStart..<blockEnd {
       application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
