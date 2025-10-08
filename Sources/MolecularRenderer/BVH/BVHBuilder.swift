@@ -232,47 +232,44 @@ class BVHBuilder {
     
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
-    let start = Date()
     device.commandQueue.withCommandList { commandList in
-      // try! commandList.d3d12CommandList.EndQuery(
-      //   counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0)
+      try! commandList.d3d12CommandList.EndQuery(
+        counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0)
       
-      // let idsCount = removedCount + movedCount + addedCount
-      // atomResources.transactionIDs.copy(
-      //   commandList: commandList,
-      //   inFlightFrameID: inFlightFrameID,
-      //   range: 0..<(idsCount * 4))
+      let idsCount = removedCount + movedCount + addedCount
+      atomResources.transactionIDs.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID,
+        range: 0..<(idsCount * 4))
       
-      // let atomsCount = movedCount + addedCount
-      // atomResources.transactionAtoms.copy(
-      //   commandList: commandList,
-      //   inFlightFrameID: inFlightFrameID,
-      //   range: 0..<(atomsCount * 16))
+      let atomsCount = movedCount + addedCount
+      atomResources.transactionAtoms.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID,
+        range: 0..<(atomsCount * 16))
       
-      // try! commandList.d3d12CommandList.EndQuery(
-      //   counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 1)
-      // try! commandList.d3d12CommandList.ResolveQueryData(
-      //   counters.queryHeap,
-      //   D3D12_QUERY_TYPE_TIMESTAMP,
-      //   UInt32(0),
-      //   UInt32(2),
-      //   counters.queryDestinationBuffer.d3d12Resource,
-      //   UInt64(0))
+      try! commandList.d3d12CommandList.EndQuery(
+        counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 1)
+      try! commandList.d3d12CommandList.ResolveQueryData(
+        counters.queryHeap,
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        UInt32(0),
+        UInt32(2),
+        counters.queryDestinationBuffer.d3d12Resource,
+        UInt64(0))
     }
     device.commandQueue.flush()
-    let end = Date()
-    let latency = end.timeIntervalSince(start)
-    print(latency / 1e-6)
     
-    // var output = [UInt64](repeating: 0, count: 2)
-    // output.withUnsafeMutableBytes { bufferPointer in
-    //   counters.queryDestinationBuffer.read(output: bufferPointer)
-    // }
+    var output = [UInt64](repeating: 0, count: 2)
+    output.withUnsafeMutableBytes { bufferPointer in
+      counters.queryDestinationBuffer.read(output: bufferPointer)
+    }
     
-    // let frequency = try! device.commandQueue.d3d12CommandQueue
-    //   .GetTimestampFrequency()
-    // let latency = Double(output[1] - output[0]) / Double(frequency)
-    // print(latency)
+    let frequency = try! device.commandQueue.d3d12CommandQueue
+      .GetTimestampFrequency()
+    let latency = Double(output[1] - output[0]) / Double(frequency)
+    let latencyPerAtom = latency / Double(movedCount + addedCount)
+    print(latencyPerAtom)
     #endif
   }
 }
