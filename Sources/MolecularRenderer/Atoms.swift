@@ -81,7 +81,6 @@ public class Atoms {
   
   public func registerChanges() -> Transaction {
     var modifiedBlockIDs: [UInt32] = []
-    modifiedBlockIDs.reserveCapacity(addressSpaceSize / Self.blockSize)
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
       // Reset blocksModified
       guard blocksModified[blockID] else {
