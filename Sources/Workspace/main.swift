@@ -85,5 +85,6 @@ for i in 0..<10 {
     }
   }
   
-  // invoke the uploading process here with frame ID (i % 3)
+  application.updateBVH(
+    inFlightFrameID: i % 3)
 }
