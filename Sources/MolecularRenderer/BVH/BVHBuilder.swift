@@ -234,9 +234,12 @@ class BVHBuilder {
       try! commandList.d3d12CommandList.EndQuery(
         counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0)
       
-      atomResources.transactionIDs.copy(
-        commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
+      // atomResources.transactionIDs.copy(
+      //   commandList: commandList,
+      //   inFlightFrameID: inFlightFrameID)
+      
+      
+      
       atomResources.transactionAtoms.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
@@ -252,6 +255,16 @@ class BVHBuilder {
         UInt64(0))
     }
     device.commandQueue.flush()
+    
+    var output = [UInt64](repeating: 0, count: 2)
+    output.withUnsafeMutableBytes { bufferPointer in
+      counters.queryDestinationBuffer.read(output: bufferPointer)
+    }
+    
+    let frequency = try! device.commandQueue.d3d12CommandQueue
+      .GetTimestampFrequency()
+    let latency = Double(output[1] - output[0]) / Double(frequency)
+    print(latency)
     #endif
   }
 }
