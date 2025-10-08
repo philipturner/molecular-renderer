@@ -25,15 +25,21 @@ class ImageResources {
     // Create the shaders.
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
+    
+    shaderDesc.name = "render"
     #if os(macOS)
+    shaderDesc.maxTotalThreadsPerThreadgroup = 1024
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
     shaderDesc.source = RenderShader.createSource(upscaleFactor: upscaleFactor)
-    shaderDesc.name = "render"
     self.renderShader = Shader(descriptor: shaderDesc)
     
-    shaderDesc.source = UpscaleShader.createSource(upscaleFactor: upscaleFactor)
     shaderDesc.name = "upscale"
+    #if os(macOS)
+    shaderDesc.maxTotalThreadsPerThreadgroup = nil
+    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
+    #endif
+    shaderDesc.source = UpscaleShader.createSource(upscaleFactor: upscaleFactor)
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
     // Create the memory allocations.

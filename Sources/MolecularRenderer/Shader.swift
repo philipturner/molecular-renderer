@@ -23,6 +23,9 @@ private func dxcompiler_compile(
 
 struct ShaderDescriptor {
   var device: Device?
+  #if os(macOS)
+  var maxTotalThreadsPerThreadgroup: Int?
+  #endif
   var name: String?
   var source: String?
   #if os(macOS)
@@ -63,8 +66,22 @@ class Shader {
     }
     
     // Create the pipeline state.
-    self.mtlComputePipelineState = try! device.mtlDevice
-      .makeComputePipelineState(function: function)
+    func createPipelineState() -> MTLComputePipelineState {
+      if let maxGroupSize = descriptor.maxTotalThreadsPerThreadgroup {
+        let computePipelineDesc = MTLComputePipelineDescriptor()
+        computePipelineDesc.computeFunction = function
+        computePipelineDesc.maxTotalThreadsPerThreadgroup = maxGroupSize
+        
+        return try! device.mtlDevice.makeComputePipelineState(
+          descriptor: computePipelineDesc,
+          options: [],
+          reflection: nil)
+      } else {
+        return try! device.mtlDevice.makeComputePipelineState(
+          function: function)
+      }
+    }
+    self.mtlComputePipelineState = createPipelineState()
     
     // Store the number of threads per threadgroup.
     do {
