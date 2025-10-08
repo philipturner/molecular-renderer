@@ -169,6 +169,18 @@ class BVHBuilder {
     transaction: Atoms.Transaction,
     inFlightFrameID: Int
   ) {
-    
+    // Validate the sizes of the transaction components.
+    guard transaction.removedIDs.count <= 1_000_000 else {
+      fatalError("Removed atom count must not exceed 1 million.")
+    }
+    let movedCount = transaction.movedPositions.count
+    let addedCount = transaction.addedPositions.count
+    guard movedCount + addedCount <= 1_000_000 else {
+      fatalError("Moved and added atom count must not exceed 1 million.")
+    }
+    guard transaction.movedIDs.count == movedCount,
+          transaction.addedIDs.count == addedCount else {
+      fatalError("This should never happen.")
+    }
   }
 }
