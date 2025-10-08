@@ -38,16 +38,7 @@ import QuaternionModule
 // - Effortlessly move on to testing the remaining code
 //
 // Current task:
-// - Make utilities to facilitate prototyping new shaders, organizing them
-//   in a container data type.
-// - Implement the shaders that clear specific resources upon startup.
-//   - This uses a general purpose blit kernel
-// - Check that it was actually cleared by reading a specific point in each
-//   buffer in a GPU shader. Read out the results via the crash buffer.
-//   - This uses a different kernel, quickly prototyped for the test and then
-//     removed from the code base.
-// - Go to the function for per-frame clearing, finish it, and repeat the
-//   inspection process.
+//
 
 @MainActor
 func createApplication() -> Application {
