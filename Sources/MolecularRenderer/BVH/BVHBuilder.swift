@@ -38,13 +38,36 @@ class BVHBuilder {
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
-    crashBufferDesc.size = 1024
+    crashBufferDesc.size = 4096
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
     #if os(Windows)
     // Move all UAV resources to the UAV state.
     setUAVState(device: device)
     #endif
+    
+    // Initialize the crash buffer to 1.
+    device.commandQueue.withCommandList { commandList in
+      let elementCount = crashBuffer.inputBuffer.size / 4
+      let data = [UInt32](repeating: 1, count: elementCount)
+      crashBuffer.initialize(
+        commandList: commandList,
+        data: data)
+    }
+    
+    // Temporary validation code to check behavior of crash buffer.
+    device.commandQueue.withCommandList { commandList in
+      crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: 2)
+    }
+    device.commandQueue.flush()
+    
+    var results = [UInt32](repeating: 0, count: 5)
+    crashBuffer.read(
+      data: &results,
+      inFlightFrameID: 2)
+    print(results)
   }
   
   #if os(Windows)
