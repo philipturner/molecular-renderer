@@ -186,10 +186,10 @@ class Buffer {
     default:
       fatalError("Can only write to input buffers.")
     }
-    #endif
     guard let mappedPointer else {
       fatalError("Could not retrieve mapped pointer.")
     }
+    #endif
     
     memcpy(mappedPointer + offset, baseAddress, input.count)
   }
@@ -217,10 +217,10 @@ class Buffer {
     default:
       fatalError("Can only read from output buffers.")
     }
-    #endif
     guard let mappedPointer else {
       fatalError("Could not retrieve mapped pointer.")
     }
+    #endif
     
     memcpy(baseAddress, mappedPointer + offset, output.count)
   }
