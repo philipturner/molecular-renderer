@@ -78,7 +78,7 @@ for i in 0..<10 {
   do {
     // 0 to test (add, move, move, move...)
     // i to test (add, add, add, ... eventually reaching the limit)
-    let blockStart = i * atomBlockSize
+    let blockStart = 0 * atomBlockSize
     let blockEnd = blockStart + atomBlockSize
     for atomID in blockStart..<blockEnd {
       application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
