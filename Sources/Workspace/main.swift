@@ -65,7 +65,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 100_000_000
+  applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
   applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
@@ -76,11 +76,11 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 5
+let atomBlockSize: Int = 100_000
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
-    //let start = Date()
+    let start = Date()
     
     // 0 to test (add, move, move, move...)
     // 1 to test (add, add, add, ... eventually reaching the limit)
@@ -90,10 +90,10 @@ for i in 0..<10 {
       application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
     }
     
-    //let end = Date()
-    //let latency = end.timeIntervalSince(start)
-    //let latencyPerAtom = Double(latency) / Double(atomBlockSize)
-    //print(latencyPerAtom)
+    let end = Date()
+    let latency = end.timeIntervalSince(start)
+    let latencyPerAtom = Double(latency) / Double(atomBlockSize)
+    print(latencyPerAtom)
   }
   
   do {
@@ -102,9 +102,8 @@ for i in 0..<10 {
     let end = Date()
     let latency = end.timeIntervalSince(start)
     
-    let addressSpaceSize = application.atoms.addressSpaceSize
-    let latencyPerAtom = Double(latency) / Double(addressSpaceSize)
-    print(latencyPerAtom)
+    let latencyPerAtom = Double(latency) / Double(atomBlockSize)
+//    print(latencyPerAtom)
   }
   
 //  print()
