@@ -198,9 +198,18 @@ extension CommandList {
     }
     
     // Encode the copy command.
-    try! d3d12CommandList.CopyResource(
-      nativeBuffer.d3d12Resource, // pDstResource
-      inputBuffer.d3d12Resource) // pSrcResource
+    if let range {
+      try! d3d12CommandList.CopyBufferRegion(
+        nativeBuffer.d3d12Resource, // pDstBuffer
+        UInt64(range.startIndex), // DstOffset
+        inputBuffer.d3d12Resource, // pSrcBuffer
+        UInt64(range.startIndex), // SrcOffset
+        UInt64(range.count))
+    } else {
+      try! d3d12CommandList.CopyResource(
+        nativeBuffer.d3d12Resource, // pDstResource
+        inputBuffer.d3d12Resource) // pSrcResource
+    }
   }
   
   func download(
@@ -226,9 +235,18 @@ extension CommandList {
     }
     
     // Encode the copy command.
-    try! d3d12CommandList.CopyResource(
-      outputBuffer.d3d12Resource, // pDstResource
-      nativeBuffer.d3d12Resource) // pSrcResource
+    if let range {
+      try! d3d12CommandList.CopyBufferRegion(
+        outputBuffer.d3d12Resource, // pDstBuffer
+        UInt64(range.startIndex), // DstOffset
+        nativeBuffer.d3d12Resource, // pSrcBuffer
+        UInt64(range.startIndex), // SrcOffset
+        UInt64(range.count))
+    } else {
+      try! d3d12CommandList.CopyResource(
+        outputBuffer.d3d12Resource, // pDstResource
+        nativeBuffer.d3d12Resource) // pSrcResource
+    }
   }
 }
 #endif

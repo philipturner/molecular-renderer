@@ -234,12 +234,17 @@ class BVHBuilder {
       try! commandList.d3d12CommandList.EndQuery(
         counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0)
       
+      let idsCount = removedCount + movedCount + addedCount
       atomResources.transactionIDs.copy(
         commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
+        inFlightFrameID: inFlightFrameID,
+        range: 0..<(idsCount * 4))
+      
+      let atomsCount = movedCount + addedCount
       atomResources.transactionAtoms.copy(
         commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
+        inFlightFrameID: inFlightFrameID,
+        range: 0..<(atomsCount * 16))
       
       try! commandList.d3d12CommandList.EndQuery(
         counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 1)
