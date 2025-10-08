@@ -167,6 +167,7 @@ class BVHBuilder {
   // Upload the acceleration structure changes for every frame.
   func upload(
     transaction: Atoms.Transaction,
+    device: Device,
     inFlightFrameID: Int
   ) {
     let removedCount = transaction.removedIDs.count
@@ -229,5 +230,17 @@ class BVHBuilder {
           offset: movedCount * 16)
       }
     }
+    
+    #if os(Windows)
+    // Dispatch the GPU commands to copy the PCIe data.
+    device.commandQueue.withCommandList { commandList in
+      atomResources.transactionIDs.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+      atomResources.transactionAtoms.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+    }
+    #endif
   }
 }
