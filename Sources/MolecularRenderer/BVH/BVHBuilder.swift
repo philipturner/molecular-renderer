@@ -138,12 +138,17 @@ class BVHBuilder {
       #endif
     }
     
-    #if false
+    // Debugging at the moment.
+    device.commandQueue.withCommandList { commandList in
+      purgeResources(commandList: commandList)
+    }
+    
+    #if true
     // Debugging at the moment.
     device.commandQueue.withCommandList { commandList in
       debugDiagnostic(
         commandList: commandList,
-        dataBuffer: voxelResources.atomicCounters)
+        dataBuffer: voxelResources.vacantSlotIDs)
       crashBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)
@@ -177,5 +182,9 @@ class BVHBuilder {
       elementCount: voxelResources.memorySlotCount,
       clearValue: UInt32.max,
       clearedBuffer: voxelResources.vacantSlotIDs)
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
   }
 }
