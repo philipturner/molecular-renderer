@@ -59,7 +59,7 @@ extension BVHBuilder {
       
       // Bind the crash buffer.
       commandList.setBuffer(
-        crashBuffer.nativeBuffer, index: 1)
+        counters.crashBuffer.nativeBuffer, index: 1)
       
       commandList.dispatch(groups: SIMD3(1, 1, 1))
     }

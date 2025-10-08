@@ -3,8 +3,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-import Foundation // temporary, for profiling
-
 struct BVHBuilderDescriptor {
   var addressSpaceSize: Int?
   var device: Device?
@@ -16,9 +14,7 @@ class BVHBuilder {
   let shaders: BVHShaders
   let atomResources: AtomResources
   let voxelResources: VoxelResources
-  
-  // Small counters and bookkeeping
-  let crashBuffer: CrashBuffer // initialize at startup
+  let counters: BVHCounters
   
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -43,10 +39,9 @@ class BVHBuilder {
     voxelResourcesDesc.worldDimension = worldDimension
     self.voxelResources = VoxelResources(descriptor: voxelResourcesDesc)
     
-    var crashBufferDesc = CrashBufferDescriptor()
-    crashBufferDesc.device = device
-    crashBufferDesc.size = 4096
-    self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    var bvhCountersDesc = BVHCountersDescriptor()
+    bvhCountersDesc.device = device
+    self.counters = BVHCounters(descriptor: bvhCountersDesc)
     
     #if os(Windows)
     // Move all UAV resources to the UAV state.
@@ -104,9 +99,9 @@ class BVHBuilder {
     device.commandQueue.withCommandList { commandList in
       // Initialize the crash buffer to 1.
       do {
-        let elementCount = crashBuffer.inputBuffer.size / 4
+        let elementCount = counters.crashBuffer.inputBuffer.size / 4
         let data = [UInt32](repeating: 1, count: elementCount)
-        crashBuffer.initialize(
+        counters.crashBuffer.initialize(
           commandList: commandList,
           data: data)
       }
@@ -234,8 +229,6 @@ class BVHBuilder {
     }
     
     #if os(Windows)
-    let start = Date()
-    
     // Dispatch the GPU commands to copy the PCIe data.
     device.commandQueue.withCommandList { commandList in
       atomResources.transactionIDs.copy(
@@ -246,11 +239,6 @@ class BVHBuilder {
         inFlightFrameID: inFlightFrameID)
     }
     device.commandQueue.flush()
-    
-    let end = Date()
-    let latency = end.timeIntervalSince(start)
-    let latencyPerAtom = Double(latency) / Double(movedCount + addedCount)
-    print(latencyPerAtom)
     #endif
   }
 }
