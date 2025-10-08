@@ -137,6 +137,23 @@ class BVHBuilder {
       computeUAVBarrier(commandList: commandList)
       #endif
     }
+    
+    // Debugging at the moment.
+    device.commandQueue.withCommandList { commandList in
+      debugDiagnostic(
+        commandList: commandList,
+        dataBuffer: voxelResources.atomicCounters)
+      crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: 0)
+    }
+    device.commandQueue.flush()
+    
+    var data = [UInt32](repeating: 0, count: 1)
+    crashBuffer.read(
+      data: &data,
+      inFlightFrameID: 0)
+    print(data)
   }
   
   // Also work on another function that purges resources which should be

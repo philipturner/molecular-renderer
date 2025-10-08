@@ -41,7 +41,7 @@ struct DebugDiagnostic {
     
     \(functionSignature())
     {
-      
+      crashBuffer[0] = dataBuffer[0];
     }
     """
   }
