@@ -15,7 +15,7 @@ struct ClearBuffer {
     func constantArgs() -> String {
       """
       struct ConstantArgs {
-        uint elementCount; // TODO: Return early if out of bounds.
+        uint elementCount;
         uint clearValue;
       };
       """
