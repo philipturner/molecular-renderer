@@ -70,15 +70,16 @@ public class Atoms {
   }
   
   // Changes to the acceleration structure in a single frame.
-  struct Transaction {
-    var removedIDs: [UInt32] = []
-    var movedIDs: [UInt32] = []
-    var movedPositions: [SIMD4<Float>] = []
-    var addedIDs: [UInt32] = []
-    var addedPositions: [SIMD4<Float>] = []
+  // TODO: Remove public modifier when done debugging.
+  public struct Transaction {
+    public var removedIDs: [UInt32] = []
+    public var movedIDs: [UInt32] = []
+    public var movedPositions: [SIMD4<Float>] = []
+    public var addedIDs: [UInt32] = []
+    public var addedPositions: [SIMD4<Float>] = []
   }
   
-  func registerChanges() -> Transaction {
+  public func registerChanges() -> Transaction {
     var output = Transaction()
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {
       // Reset blocksModified
