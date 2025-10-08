@@ -169,7 +169,7 @@ class BVHBuilder {
   // Upload the acceleration structure changes for every frame.
   func upload(
     transaction: Atoms.Transaction,
-    commandList: CommandList,
+    device: Device,
     inFlightFrameID: Int
   ) {
     let removedCount = transaction.removedIDs.count
@@ -187,8 +187,6 @@ class BVHBuilder {
           transaction.addedPositions.count == addedCount else {
       fatalError("This should never happen.")
     }
-    
-    let start = Date()
     
     // Write to the IDs buffer.
     do {
@@ -235,19 +233,23 @@ class BVHBuilder {
       }
     }
     
+    #if os(Windows)
+    let start = Date()
+    
+    // Dispatch the GPU commands to copy the PCIe data.
+    device.commandQueue.withCommandList { commandList in
+      atomResources.transactionIDs.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+      atomResources.transactionAtoms.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+    }
+    device.commandQueue.flush()
+    
     let end = Date()
     let latency = end.timeIntervalSince(start)
-    let latencyPerAtom = Double(latency) / Double(movedCount + addedCount)
-    print(latencyPerAtom)
-    
-    #if os(Windows)
-    // Dispatch the GPU commands to copy the PCIe data.
-    atomResources.transactionIDs.copy(
-      commandList: commandList,
-      inFlightFrameID: inFlightFrameID)
-    atomResources.transactionAtoms.copy(
-      commandList: commandList,
-      inFlightFrameID: inFlightFrameID)
+    print(latency)
     #endif
   }
 }
