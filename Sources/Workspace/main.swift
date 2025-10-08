@@ -72,7 +72,7 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 5_000
+let atomBlockSize: Int = 5
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
