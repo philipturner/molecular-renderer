@@ -36,6 +36,9 @@ import MolecularRenderer
 //   and Windows. Embed these profiling results into the source code.
 //   - Attempt a subrange version for entering atoms. If it proves a measurable
 //     reduction in ns/atom, include it.
+//   - Test how the address space size affects the cost of registering a
+//     transaction. Record this as a separate metric on macOS and Windows. The
+//     cost depends on block size.
 // - Get better organized pseudocode of the entire BVH building process for
 //   the "end state". This omits the bullet points about rendering in the
 //   render kernel. We can probably debug the entire end-state BVH construction
