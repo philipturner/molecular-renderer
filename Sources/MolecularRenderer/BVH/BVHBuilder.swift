@@ -166,7 +166,7 @@ class BVHBuilder {
   // Upload the acceleration structure changes for every frame.
   func upload(
     transaction: Atoms.Transaction,
-    device: Device,
+    commandList: CommandList,
     inFlightFrameID: Int
   ) {
     let removedCount = transaction.removedIDs.count
@@ -232,10 +232,7 @@ class BVHBuilder {
     
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
-    device.commandQueue.withCommandList { commandList in
-      try! commandList.d3d12CommandList.EndQuery(
-        counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0)
-      
+    do {
       let idsCount = removedCount + movedCount + addedCount
       atomResources.transactionIDs.copy(
         commandList: commandList,
@@ -247,29 +244,7 @@ class BVHBuilder {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         range: 0..<(atomsCount * 16))
-      
-      try! commandList.d3d12CommandList.EndQuery(
-        counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 1)
-      try! commandList.d3d12CommandList.ResolveQueryData(
-        counters.queryHeap,
-        D3D12_QUERY_TYPE_TIMESTAMP,
-        UInt32(0),
-        UInt32(2),
-        counters.queryDestinationBuffer.d3d12Resource,
-        UInt64(0))
     }
-    device.commandQueue.flush()
-    
-    var output = [UInt64](repeating: 0, count: 2)
-    output.withUnsafeMutableBytes { bufferPointer in
-      counters.queryDestinationBuffer.read(output: bufferPointer)
-    }
-    
-    let frequency = try! device.commandQueue.d3d12CommandQueue
-      .GetTimestampFrequency()
-    let latency = Double(output[1] - output[0]) / Double(frequency)
-    let latencyPerAtom = latency / Double(movedCount + addedCount)
-    print(latencyPerAtom)
     #endif
   }
 }
