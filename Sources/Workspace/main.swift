@@ -73,7 +73,32 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let startDate = Date()
-let endDate = Date()
-let duration = endDate.timeIntervalSince(startDate) as Double
-print(duration)
+let atomBlockSize: Int = 5000
+for i in 0..<10 {
+  // Remove atoms from the previous frame.
+  if i >= 2 {
+    let blockStart = (i - 2) * atomBlockSize
+    let blockEnd = blockStart + atomBlockSize
+    for atomID in blockStart..<blockEnd {
+      application.atoms[atomID] = nil
+    }
+  }
+  
+  // Move atoms from the previous frame.
+  if i >= 1 {
+    let blockStart = (i - 1) * atomBlockSize
+    let blockEnd = blockStart + atomBlockSize
+    for atomID in blockStart..<blockEnd {
+      application.atoms[atomID] = SIMD4(1.0, 1.0, 1.0, 1)
+    }
+  }
+  
+  // Add the new atoms for this frame.
+  do {
+    let blockStart = i * atomBlockSize
+    let blockEnd = blockStart + atomBlockSize
+    for atomID in blockStart..<blockEnd {
+      application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
+    }
+  }
+}
