@@ -61,7 +61,7 @@ extension BVHBuilder {
       commandList.setBuffer(
         crashBuffer.nativeBuffer, index: 1)
       
-      
+      commandList.dispatch(groups: SIMD3(1, 1, 1))
     }
   }
 }
