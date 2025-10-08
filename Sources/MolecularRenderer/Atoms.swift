@@ -98,7 +98,7 @@ public class Atoms {
     output.movedIDs.reserveCapacity(maxAtomCount)
     output.movedPositions.reserveCapacity(maxAtomCount)
     output.addedIDs.reserveCapacity(maxAtomCount)
-    output.addedIDs.reserveCapacity(maxAtomCount)
+    output.addedPositions.reserveCapacity(maxAtomCount)
     
     for blockID in modifiedBlockIDs {
       let startAtomID = blockID * UInt32(Self.blockSize)
