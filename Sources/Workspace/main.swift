@@ -101,4 +101,25 @@ for i in 0..<10 {
       application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
     }
   }
+  
+  let transaction = application.atoms.registerChanges()
+  print()
+  print("i = \(i)")
+  if transaction.removedIDs.count > 0 {
+    let first = transaction.removedIDs.first!
+    let last = transaction.removedIDs.last!
+    print("removedIDs: \(first)...\(last)")
+  }
+  if transaction.movedIDs.count > 0 {
+    let first = transaction.movedIDs.first!
+    let last = transaction.movedIDs.last!
+    print("movedIDs: \(first)...\(last)")
+    print("movedPositions: \(transaction.movedPositions.count) total")
+  }
+  if transaction.addedIDs.count > 0 {
+    let first = transaction.addedIDs.first!
+    let last = transaction.addedIDs.last!
+    print("addedIDs: \(first)...\(last)")
+    print("addedPositions: \(transaction.addedPositions.count) total")
+  }
 }
