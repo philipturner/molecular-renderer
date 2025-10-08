@@ -182,5 +182,7 @@ class BVHBuilder {
           transaction.addedIDs.count == addedCount else {
       fatalError("This should never happen.")
     }
+    
+    
   }
 }

@@ -166,11 +166,14 @@ class Buffer {
   /// Write data to the buffer.
   ///
   /// The data must be the input to a future GPU copy command.
-  func write(input: UnsafeRawBufferPointer) {
+  func write(
+    input: UnsafeRawBufferPointer,
+    offset: Int = 0
+  ) {
     guard let baseAddress = input.baseAddress else {
       fatalError("Input was invalid.")
     }
-    guard input.count <= size else {
+    guard offset + input.count <= size else {
       fatalError("Input exceeded buffer allocation size.")
     }
     
@@ -184,18 +187,24 @@ class Buffer {
       fatalError("Can only write to input buffers.")
     }
     #endif
+    guard let mappedPointer else {
+      fatalError("Could not retrieve mapped pointer.")
+    }
     
-    memcpy(mappedPointer, baseAddress, input.count)
+    memcpy(mappedPointer + offset, baseAddress, input.count)
   }
   
   /// Read data from the buffer.
   ///
   /// The data must be the output of a previous GPU copy command.
-  func read(output: UnsafeMutableRawBufferPointer) {
+  func read(
+    output: UnsafeMutableRawBufferPointer,
+    offset: Int = 0
+  ) {
     guard let baseAddress = output.baseAddress else {
       fatalError("Input was invalid.")
     }
-    guard output.count <= size else {
+    guard offset + output.count <= size else {
       fatalError("Input exceeded buffer allocation size.")
     }
     
@@ -209,8 +218,11 @@ class Buffer {
       fatalError("Can only read from output buffers.")
     }
     #endif
+    guard let mappedPointer else {
+      fatalError("Could not retrieve mapped pointer.")
+    }
     
-    memcpy(baseAddress, mappedPointer, output.count)
+    memcpy(baseAddress, mappedPointer + offset, output.count)
   }
   
   #if os(Windows)
