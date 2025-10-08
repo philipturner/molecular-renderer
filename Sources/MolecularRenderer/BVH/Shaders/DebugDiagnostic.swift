@@ -46,3 +46,22 @@ struct DebugDiagnostic {
     """
   }
 }
+
+extension BVHBuilder {
+  func debugDiagnostic(
+    commandList: CommandList,
+    dataBuffer: Buffer
+  ) {
+    commandList.withPipelineState(shaders.debugDiagnostic) {
+      // Bind the data buffer.
+      commandList.setBuffer(
+        dataBuffer, index: 0)
+      
+      // Bind the crash buffer.
+      commandList.setBuffer(
+        crashBuffer.nativeBuffer, index: 1)
+      
+      
+    }
+  }
+}

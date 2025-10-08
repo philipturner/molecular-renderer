@@ -6,15 +6,16 @@ import WinSDK
 #endif
 
 #if os(Windows)
-// TODO: Generic UAV barrier after every single kernel while building the
-// acceleration structure.
-private func renderUAVBarrier() -> D3D12_RESOURCE_BARRIER {
+private func renderUAVBarrier(commandList: CommandList) {
   // Specify the type of barrier.
   var barrier = D3D12_RESOURCE_BARRIER()
   barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV
   barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
   barrier.UAV.pResource = nil
-  return barrier
+  
+  let barriers = [barrier]
+  try! commandList.d3d12CommandList.ResourceBarrier(
+    UInt32(barriers.count), barriers)
 }
 #endif
 
@@ -171,11 +172,7 @@ extension Application {
       }
       
       #if os(Windows)
-      do {
-        let barriers = [renderUAVBarrier()]
-        try! commandList.d3d12CommandList.ResourceBarrier(
-          UInt32(barriers.count), barriers)
-      }
+      renderUAVBarrier(commandList: commandList)
       #endif
     }
      */

@@ -81,6 +81,21 @@ class BVHBuilder {
         UInt32(barriers.count), barriers)
     }
   }
+  
+  // Generic UAV barrier after every single kernel while building the
+  // acceleration structure. Unless there is a clear reason to omit it, such
+  // as clear buffer kernels writing to obviously distinct buffers.
+  func computeUAVBarrier(commandList: CommandList) {
+    // Specify the type of barrier.
+    var barrier = D3D12_RESOURCE_BARRIER()
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV
+    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
+    barrier.UAV.pResource = nil
+    
+    let barriers = [barrier]
+    try! commandList.d3d12CommandList.ResourceBarrier(
+      UInt32(barriers.count), barriers)
+  }
   #endif
   
   func initializeResources(device: Device) {
@@ -117,6 +132,10 @@ class BVHBuilder {
         elementCount: voxelResources.memorySlotCount,
         clearValue: UInt32.max,
         clearedBuffer: voxelResources.assignedVoxelIDs)
+      
+      #if os(Windows)
+      computeUAVBarrier(commandList: commandList)
+      #endif
     }
   }
   
