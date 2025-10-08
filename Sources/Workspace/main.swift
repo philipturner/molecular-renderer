@@ -76,10 +76,12 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 5
+let atomBlockSize: Int = 5000
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
+    let start = Date()
+    
     // 0 to test (add, move, move, move...)
     // 1 to test (add, add, add, ... eventually reaching the limit)
     let blockStart = 0 * atomBlockSize
@@ -87,16 +89,23 @@ for i in 0..<10 {
     for atomID in blockStart..<blockEnd {
       application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
     }
+    
+    let end = Date()
+    let latency = end.timeIntervalSince(start)
+    let latencyPerAtom = Double(latency) / Double(atomBlockSize)
+    print(latencyPerAtom)
   }
   
-  let start = Date()
-  let transaction = application.atoms.registerChanges()
-  let end = Date()
-  let latency = end.timeIntervalSince(start)
-  
-  let addressSpaceSize = application.atoms.addressSpaceSize
-  let latencyPerAtom = Double(latency) / Double(addressSpaceSize)
-  print(latencyPerAtom)
+  do {
+    let start = Date()
+    let transaction = application.atoms.registerChanges()
+    let end = Date()
+    let latency = end.timeIntervalSince(start)
+    
+    let addressSpaceSize = application.atoms.addressSpaceSize
+    let latencyPerAtom = Double(latency) / Double(addressSpaceSize)
+//    print(latencyPerAtom)
+  }
   
 //  print()
 //  print("i = \(i)")
