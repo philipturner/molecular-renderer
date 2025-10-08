@@ -249,7 +249,8 @@ class BVHBuilder {
     
     let end = Date()
     let latency = end.timeIntervalSince(start)
-    print(latency)
+    let latencyPerAtom = Double(latency) / Double(movedCount + addedCount)
+    print(latencyPerAtom)
     #endif
   }
 }
