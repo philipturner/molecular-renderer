@@ -177,7 +177,8 @@ extension CommandList {
 extension CommandList {
   func upload(
     inputBuffer: Buffer,
-    nativeBuffer: Buffer
+    nativeBuffer: Buffer,
+    range: Range<Int>? = nil
   ) {
     guard shader == nil else {
       fatalError(
@@ -204,7 +205,8 @@ extension CommandList {
   
   func download(
     nativeBuffer: Buffer,
-    outputBuffer: Buffer
+    outputBuffer: Buffer,
+    range: Range<Int>? = nil
   ) {
     guard shader == nil else {
       fatalError(

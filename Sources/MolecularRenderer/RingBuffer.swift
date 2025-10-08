@@ -56,7 +56,8 @@ struct RingBuffer {
   #if os(Windows)
   func copy(
     commandList: CommandList,
-    inFlightFrameID: Int
+    inFlightFrameID: Int,
+    range: Range<Int>? = nil
   ) {
     let inputBuffer = inputBuffers[inFlightFrameID]
     let nativeBuffer = nativeBuffers[inFlightFrameID]
@@ -68,7 +69,8 @@ struct RingBuffer {
     
     commandList.upload(
       inputBuffer: inputBuffer,
-      nativeBuffer: nativeBuffer)
+      nativeBuffer: nativeBuffer,
+      range: range)
     
     func createState() -> D3D12_RESOURCE_STATES {
       switch nativeBuffer.type {

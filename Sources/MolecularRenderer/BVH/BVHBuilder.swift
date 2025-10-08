@@ -234,12 +234,9 @@ class BVHBuilder {
       try! commandList.d3d12CommandList.EndQuery(
         counters.queryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0)
       
-      // atomResources.transactionIDs.copy(
-      //   commandList: commandList,
-      //   inFlightFrameID: inFlightFrameID)
-      
-      
-      
+      atomResources.transactionIDs.copy(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
       atomResources.transactionAtoms.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
