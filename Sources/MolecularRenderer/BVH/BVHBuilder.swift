@@ -3,6 +3,8 @@ import SwiftCOM
 import WinSDK
 #endif
 
+import Foundation // temporary, for profiling
+
 struct BVHBuilderDescriptor {
   var addressSpaceSize: Int?
   var device: Device?
@@ -186,6 +188,8 @@ class BVHBuilder {
       fatalError("This should never happen.")
     }
     
+    let start = Date()
+    
     // Write to the IDs buffer.
     do {
       #if os(macOS)
@@ -230,6 +234,11 @@ class BVHBuilder {
           offset: movedCount * 16)
       }
     }
+    
+    let end = Date()
+    let latency = end.timeIntervalSince(start)
+    let latencyPerAtom = Double(latency) / Double(movedCount + addedCount)
+    print(latencyPerAtom)
     
     #if os(Windows)
     // Dispatch the GPU commands to copy the PCIe data.
