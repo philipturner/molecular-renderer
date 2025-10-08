@@ -45,9 +45,7 @@ public class Atoms {
     return output
   }
   
-  // This is probably a bottleneck in CPU-side code (1 function call for
-  // each access in -Xswiftc -Ounchecked). We can work around this by
-  // introducing an API for modifying subranges at a time.
+  // This ergonomic Swift API is not the CPU-side bottleneck! Very well done.
   public subscript(index: Int) -> SIMD4<Float>? {
     get {
       if occupied[index] {
@@ -78,6 +76,56 @@ public class Atoms {
     var addedPositions: [SIMD4<Float>] = []
   }
   
+  // TODO: Attempt to optimize this with multithreading + merging the memory
+  // allocations for movedAtoms and addedAtoms + writing positions directly to
+  // the GPU buffer. It consumes up to 57% of the CPU-side latency per atom per
+  // frame.
+  //
+  // We don't expect 1M atoms/frame to be a reasonable target for GPU-side
+  // performance, so this optimization isn't critical. It will be deferred to a
+  // future PR.
+  
+  // 0.1M atoms/frame
+  //
+  // | CPU-side contributor | macOS    | Windows  |
+  // | -------------------- | -------- | -------- |
+  // |                      | ns/atom  | ns/atom  |
+  // | API usage            | 2.44E-09 | 5.41E-09 |
+  // | register transaction | 2.93E-09 | 8.98E-09 |
+  // | memcpy to GPU buffer | 3.30E-10 | 2.57E-09 |
+  // | total                | 5.70E-09 | 1.70E-08 |
+  // | latency (ms)         | 0.570    | 1.696    |
+  
+  // 1M atoms/frame
+  //
+  // | CPU-side contributor | macOS    | Windows  |
+  // | -------------------- | -------- | -------- |
+  // |                      | ns/atom  | ns/atom  |
+  // | API usage            | 2.32E-09 | 5.28E-09 |
+  // | register transaction | 3.90E-09 | 7.74E-09 |
+  // | memcpy to GPU buffer | 5.44E-10 | 2.02E-09 |
+  // | total                | 6.76E-09 | 1.50E-08 |
+  // | latency (ms)         | 6.764    | 15.040   |
+  
+  // 100M address space size
+  //
+  // | Block Size | macOS     | Windows   |
+  // | ---------- | --------- | --------- |
+  // |            | s/address | s/address |
+  // | 256        | 1.30E-12  | 1.86E-12  |
+  // | 512        | 6.50E-13  | 9.90E-13  |
+  // | 1024       | 3.30E-13  | 5.50E-13  |
+  //
+  // | Block Size | macOS | Windows |
+  // | ---------- | ----- | ------- |
+  // |            | ms    | ms      |
+  // | 256        | 0.130 | 0.186   |
+  // | 512        | 0.065 | 0.099   |
+  // | 1024       | 0.033 | 0.055   |
+  
+  // GPU is reaching 78-80% PCIe utilization, with PCIe 3 x16 = 15.76 GB/s.
+  // That means 1.61 ns/atom (0.1M atoms), 1.59 ns/atom (1M atoms) on the GPU
+  // timeline.
   func registerChanges() -> Transaction {
     var modifiedBlockIDs: [UInt32] = []
     for blockID in 0..<(addressSpaceSize / Self.blockSize) {

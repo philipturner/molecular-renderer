@@ -1,6 +1,6 @@
 import MolecularRenderer
 
-// Specification of near-term goal:
+// Original near-term goal:
 // - No use of Metal or DirectX profilers
 // - No tracing of AO rays
 // - No incremental updates
@@ -9,37 +9,32 @@ import MolecularRenderer
 // - No optimizations to memory layout or ray tracing
 // - No compaction of the static large voxels into dynamic large voxels
 //
-// Specification of end state for this PR:
-// - Skipping past unoccupied large voxels in primary ray intersector, using
-//   almost identical code to main-branch-backup
-// - Use the simplest "early stages" memory design, except that 8x duplicated
-//   per-atom offsets of global -> 2 nm will use 16-bit integers. By not
-//   over-optimizing the ray-sphere intersections or small cells building
-//   kernel, I reduce the need to inspect Metal or DirectX profilers.
+// End state for this PR:
 // - Include incremental acceleration structure updates
 // - Include the "idle" vs "active" paradigm for handling motion vectors
-// - Fix any possible CPU-side bottlenecks when uploading many atoms per frame
-// - No scanning over 8 nm "cell groups" to minimize compute cost of primary
-//   rays that go all the way to the world border. This may complicate the
-//   tracking as large voxels are added incrementally. Defer to a future PR.
-// - However, it is okay to use 8 nm voxels to reduce the cost of scanning
+// - Only permitted usage of 8 nm scoping is to reduce the cost of scanning
 //   32 B per static 2 nm voxel atomic counters, while constructing the
 //   acceleration structure every frame.
-// - Critical distance heuristic is mandatory; warped data distribution where
-//   atoms far from the user suffer two-fold: more cost for the primary ray,
-//   more divergence for the secondary rays.
+// - Skipping past unoccupied large voxels in primary ray intersector, using
+//   almost identical code to main-branch-backup
+// - Critical distance heuristic is mandatory. Unacceptable to have a warped
+//   data distribution where atoms far from the user suffer two-fold: more cost
+//   for the primary ray, more divergence for the secondary rays. Another
+//   factor that degrades the viability of predicting & controlling performance.
+//
+// The next goal on the priority list would be using 16-bit data types in the
+// acceleration structure, to reduce the cost of building small cells by up to
+// 2x. This will be a completely separate PR, as I have more pressing problems
+// to devote development resources toward. May document this optimization in
+// "other documentation".
 //
 // Current task:
-// - Tackle the CPU-side bottleneck of entering many atoms into Atoms.
-//   Profile how long it takes (in ns/atom) to register transactions on macOS
-//   and Windows. Embed these profiling results into the source code.
-//   - Last task is to profile the cost of copying into a GPU-visible buffer,
-//     measuring PCIe transfer time on Windows.
+// - Document the 16-bit data types optimization in "other-documentation.md".
 // - Get better organized pseudocode of the entire BVH building process for
-//   the "end state". This omits the bullet points about rendering in the
-//   render kernel. We can probably debug the entire end-state BVH construction
-//   process without a single instance of image rendering. Probably a smart
-//   move, given the terrible failure modes of a corrupted BVH.
+//   the "end state".
+// - How exactly would I inspect the acceleration structure without seeing the
+//   rendered results? Walk through an example with a small diamond lattice. I
+//   want to know how tests would be conducted at each stage of development.
 
 @MainActor
 func createApplication() -> Application {
@@ -61,7 +56,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 100_000_000
+  applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
   applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
@@ -72,7 +67,7 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 1_000_000
+let atomBlockSize: Int = 5_000
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {

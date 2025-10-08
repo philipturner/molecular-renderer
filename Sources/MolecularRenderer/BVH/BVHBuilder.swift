@@ -3,8 +3,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-import Foundation // profiling
-
 struct BVHBuilderDescriptor {
   var addressSpaceSize: Int?
   var device: Device?
