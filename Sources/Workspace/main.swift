@@ -33,11 +33,8 @@ import MolecularRenderer
 // - Tackle the CPU-side bottleneck of entering many atoms into Atoms.
 //   Profile how long it takes (in ns/atom) to register transactions on macOS
 //   and Windows. Embed these profiling results into the source code.
-//   - Attempt a subrange version for entering atoms. If it proves a measurable
-//     reduction in ns/atom, include it.
-//   - Test how the address space size affects the cost of registering a
-//     transaction. Record this as a separate metric on macOS and Windows. The
-//     cost depends on block size.
+//   - Last task is to profile the cost of copying into a GPU-visible buffer,
+//     measuring PCIe transfer time on Windows.
 // - Get better organized pseudocode of the entire BVH building process for
 //   the "end state". This omits the bullet points about rendering in the
 //   render kernel. We can probably debug the entire end-state BVH construction
@@ -76,11 +73,11 @@ let application = createApplication()
 // MARK: - Test Overhead of Atoms API
 
 let atomBlockSize: Int = 5_000
-for i in 0..<5 {
+for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
     // 0 to test (add, move, move, move...)
-    // 1 to test (add, add, add, ... eventually reaching the limit)
+    // i to test (add, add, add, ... eventually reaching the limit)
     let blockStart = i * atomBlockSize
     let blockEnd = blockStart + atomBlockSize
     for atomID in blockStart..<blockEnd {

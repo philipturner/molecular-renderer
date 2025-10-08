@@ -163,4 +163,12 @@ class BVHBuilder {
     computeUAVBarrier(commandList: commandList)
     #endif
   }
+  
+  // Upload the acceleration structure changes for every frame.
+  func upload(
+    transaction: Atoms.Transaction,
+    inFlightFrameID: Int
+  ) {
+    
+  }
 }
