@@ -61,3 +61,44 @@ struct ClearBuffer {
     """
   }
 }
+
+extension BVHBuilder {
+  func clearBuffer(
+    commandList: CommandList,
+    elementCount: Int,
+    clearValue: UInt32,
+    clearedBuffer: Buffer
+  ) {
+    commandList.withPipelineState(shaders.clearBuffer) {
+      // Bind the constant arguments.
+      struct ConstantArgs {
+        var elementCount: UInt32 = .zero
+        var clearValue: UInt32 = .zero
+      }
+      var constantArgs = ConstantArgs()
+      constantArgs.elementCount = UInt32(elementCount)
+      constantArgs.clearValue = clearValue
+      commandList.set32BitConstants(
+        constantArgs, index: 0)
+      
+      // Bind the cleared buffer.
+      commandList.setBuffer(
+        clearedBuffer, index: 1)
+      
+      // Determine the dispatch grid size.
+      func createGroupCount32() -> SIMD3<UInt32> {
+        let groupSize: Int = 128
+        
+        var groupCount: Int = elementCount
+        groupCount += groupSize - 1
+        groupCount /= groupSize
+        
+        return SIMD3<UInt32>(
+          UInt32(groupCount),
+          UInt32(1),
+          UInt32(1))
+      }
+      commandList.dispatch(groups: createGroupCount32())
+    }
+  }
+}
