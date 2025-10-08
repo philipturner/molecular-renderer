@@ -31,14 +31,17 @@ import QuaternionModule
 //   atoms far from the user suffer two-fold: more cost for the primary ray,
 //   more divergence for the secondary rays.
 //
-// First steps:
-// - Draft all the implementation code, and its organization, for the "end
-//   state" of the PR
-// - Take a subset of that code, and implement the "near-term goal"
-// - Effortlessly move on to testing the remaining code
-//
 // Current task:
-//
+// - Tackle the CPU-side bottleneck of entering many atoms into Atoms.
+//   Profile how long it takes (in ns/atom) to register transactions on macOS
+//   and Windows. Embed these profiling results into the source code.
+//   - Attempt a subrange version for entering atoms. If it proves a measurable
+//     reduction in ns/atom, include it.
+// - Get better organized pseudocode of the entire BVH building process for
+//   the "end state". This omits the bullet points about rendering in the
+//   render kernel. We can probably debug the entire end-state BVH construction
+//   process without a single instance of image rendering. Probably a smart
+//   move, given the terrible failure modes of a corrupted BVH.
 
 @MainActor
 func createApplication() -> Application {
