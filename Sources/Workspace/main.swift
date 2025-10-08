@@ -43,6 +43,8 @@ import QuaternionModule
 //   buffer in a GPU shader. Read out the results via the crash buffer.
 //   - This uses a different kernel, quickly prototyped for the test and then
 //     removed from the code base.
+// - Go to the function for per-frame clearing, finish it, and repeat the
+//   inspection process.
 
 @MainActor
 func createApplication() -> Application {

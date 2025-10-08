@@ -95,10 +95,32 @@ class BVHBuilder {
       }
       
       // Initialize the atomic counters to 0.
+      let worldDimension = voxelResources.worldDimension
+      let voxelCount = VoxelResources.voxelCount(
+        worldDimension: worldDimension)
+      clearBuffer(
+        commandList: commandList,
+        elementCount: voxelCount * (32 / 4),
+        clearValue: 0,
+        clearedBuffer: voxelResources.atomicCounters)
       
       // Initialize the memory slot IDs to UInt32.max.
+      clearBuffer(
+        commandList: commandList,
+        elementCount: voxelCount,
+        clearValue: UInt32.max,
+        clearedBuffer: voxelResources.memorySlotIDs)
       
       // Initialize the assigned voxel IDs to UInt32.max.
+      clearBuffer(
+        commandList: commandList,
+        elementCount: voxelResources.memorySlotCount,
+        clearValue: UInt32.max,
+        clearedBuffer: voxelResources.assignedVoxelIDs)
     }
   }
+  
+  // Also work on another function that purges resources which should be
+  // reset every frame with ClearBuffer. Inspect every single buffer with the
+  // DebugDiagnostic utility.
 }
