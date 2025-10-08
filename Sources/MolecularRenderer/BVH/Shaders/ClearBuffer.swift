@@ -1,5 +1,5 @@
-// Send data back to CPU through the crash buffer.
-struct ClearBufferShader {
+// Clear a buffer of UInt32 to a repeating scalar value.
+struct ClearBuffer {
   static func createSource() -> String {
     func importStandardLibrary() -> String {
       #if os(macOS)
