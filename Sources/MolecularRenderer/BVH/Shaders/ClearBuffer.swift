@@ -27,7 +27,7 @@ struct ClearBuffer {
       kernel void clearBuffer(
         constant ConstantArgs &constantArgs [[buffer(0)]],
         device uint *clearedBuffer [[buffer(1)]],
-        uint threadID [[thread_position_in_grid]])
+        uint globalID [[thread_position_in_grid]])
       """
       #else
       """
@@ -40,7 +40,7 @@ struct ClearBuffer {
         "UAV(u1),"
       )]
       void clearBuffer(
-        uint threadID : SV_DispatchThreadID)
+        uint globalID : SV_DispatchThreadID)
       """
       #endif
     }
@@ -52,11 +52,11 @@ struct ClearBuffer {
     
     \(functionSignature())
     {
-      if (tid >= constantArgs.elementCount) {
+      if (globalID >= constantArgs.elementCount) {
         return;
       }
       
-      clearedBuffer[tid] = constantArgs.clearValue;
+      clearedBuffer[globalID] = constantArgs.clearValue;
     }
     """
   }

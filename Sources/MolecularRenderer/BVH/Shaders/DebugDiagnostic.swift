@@ -18,7 +18,7 @@ struct DebugDiagnostic {
       kernel void debugDiagnostic(
         device uint *dataBuffer [[buffer(0)]],
         device uint *crashBuffer [[buffer(1)]],
-        uint threadID [[thread_position_in_grid]])
+        uint globalID [[thread_position_in_grid]])
       """
       #else
       """
@@ -31,7 +31,7 @@ struct DebugDiagnostic {
         "UAV(u1),"
       )]
       void debugDiagnostic(
-        uint threadID : SV_DispatchThreadID)
+        uint globalID : SV_DispatchThreadID)
       """
       #endif
     }

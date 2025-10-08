@@ -12,6 +12,20 @@ class BVHShaders {
     }
     
     var shaderDesc = ShaderDescriptor()
-    fatalError("Not implemented.")
+    shaderDesc.device = device
+    
+    shaderDesc.name = "clearBuffer"
+    #if os(macOS)
+    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+    #endif
+    shaderDesc.source = ClearBuffer.createSource()
+    self.clearBuffer = Shader(descriptor: shaderDesc)
+    
+    shaderDesc.name = "debugDiagnostic"
+    #if os(macOS)
+    shaderDesc.threadsPerGroup = SIMD3(1, 1, 1)
+    #endif
+    shaderDesc.source = DebugDiagnostic.createSource()
+    self.debugDiagnostic = Shader(descriptor: shaderDesc)
   }
 }

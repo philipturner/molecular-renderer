@@ -11,6 +11,7 @@ struct BVHBuilderDescriptor {
 }
 
 class BVHBuilder {
+  let shaders: BVHShaders
   let atomResources: AtomResources
   let voxelResources: VoxelResources
   
@@ -24,6 +25,10 @@ class BVHBuilder {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
+    
+    var bvhShadersDesc = BVHShadersDescriptor()
+    bvhShadersDesc.device = device
+    self.shaders = BVHShaders(descriptor: bvhShadersDesc)
     
     var atomResourcesDesc = AtomResourcesDescriptor()
     atomResourcesDesc.addressSpaceSize = addressSpaceSize
