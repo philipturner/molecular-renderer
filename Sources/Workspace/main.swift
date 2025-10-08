@@ -76,7 +76,7 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 1_000_000
+let atomBlockSize: Int = 100_000
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
@@ -102,8 +102,7 @@ for i in 0..<10 {
     let end = Date()
     let latency = end.timeIntervalSince(start)
     
-    let addressSpaceSize = application.atoms.addressSpaceSize
-    let latencyPerAtom = Double(latency) / Double(addressSpaceSize)
+    let latencyPerAtom = Double(latency) / Double(atomBlockSize)
 //    print(latencyPerAtom)
   }
   
