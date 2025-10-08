@@ -185,6 +185,49 @@ class BVHBuilder {
       fatalError("This should never happen.")
     }
     
+    // Write to the IDs buffer.
+    do {
+      #if os(macOS)
+      let buffer = atomResources.transactionIDs.nativeBuffers[inFlightFrameID]
+      #else
+      let buffer = atomResources.transactionIDs.inputBuffers[inFlightFrameID]
+      #endif
+      
+      transaction.removedIDs.withUnsafeBytes { bufferPointer in
+        buffer.write(
+          input: bufferPointer,
+          offset: 0)
+      }
+      transaction.movedIDs.withUnsafeBytes { bufferPointer in
+        buffer.write(
+          input: bufferPointer,
+          offset: removedCount * 4)
+      }
+      transaction.addedIDs.withUnsafeBytes { bufferPointer in
+        buffer.write(
+          input: bufferPointer,
+          offset: (removedCount + movedCount) * 4)
+      }
+    }
     
+    // Write to the atoms buffer.
+    do {
+      #if os(macOS)
+      let buffer = atomResources.transactionAtoms.nativeBuffers[inFlightFrameID]
+      #else
+      let buffer = atomResources.transactionAtoms.inputBuffers[inFlightFrameID]
+      #endif
+      
+      transaction.movedPositions.withUnsafeBytes { bufferPointer in
+        buffer.write(
+          input: bufferPointer,
+          offset: 0)
+      }
+      transaction.addedPositions.withUnsafeBytes { bufferPointer in
+        buffer.write(
+          input: bufferPointer,
+          offset: movedCount * 16)
+      }
+    }
   }
 }

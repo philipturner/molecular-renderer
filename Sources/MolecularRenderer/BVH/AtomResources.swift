@@ -23,8 +23,8 @@ class AtomResources {
   #endif
   
   // Per atom in transaction
-  let transactionAtoms: RingBuffer
   let transactionIDs: RingBuffer
+  let transactionAtoms: RingBuffer
   
   init(descriptor: AtomResourcesDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
@@ -47,21 +47,10 @@ class AtomResources {
     self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
     self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
     
-    self.transactionAtoms = Self.createTransactionAtomsBuffer(
-      device: device, maxTransactionSize: 1_000_000)
     self.transactionIDs = Self.createTransactionIDsBuffer(
       device: device, maxTransactionSize: 2_000_000)
-  }
-  
-  private static func createTransactionAtomsBuffer(
-    device: Device,
-    maxTransactionSize: Int
-  ) -> RingBuffer {
-    var ringBufferDesc = RingBufferDescriptor()
-    ringBufferDesc.accessLevel = .device
-    ringBufferDesc.device = device
-    ringBufferDesc.size = maxTransactionSize * 16
-    return RingBuffer(descriptor: ringBufferDesc)
+    self.transactionAtoms = Self.createTransactionAtomsBuffer(
+      device: device, maxTransactionSize: 1_000_000)
   }
   
   private static func createTransactionIDsBuffer(
@@ -72,6 +61,17 @@ class AtomResources {
     ringBufferDesc.accessLevel = .device
     ringBufferDesc.device = device
     ringBufferDesc.size = maxTransactionSize * 4
+    return RingBuffer(descriptor: ringBufferDesc)
+  }
+  
+  private static func createTransactionAtomsBuffer(
+    device: Device,
+    maxTransactionSize: Int
+  ) -> RingBuffer {
+    var ringBufferDesc = RingBufferDescriptor()
+    ringBufferDesc.accessLevel = .device
+    ringBufferDesc.device = device
+    ringBufferDesc.size = maxTransactionSize * 16
     return RingBuffer(descriptor: ringBufferDesc)
   }
 }
