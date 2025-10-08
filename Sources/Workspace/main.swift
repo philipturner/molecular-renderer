@@ -1,6 +1,5 @@
-import HDL
+import Foundation
 import MolecularRenderer
-import QuaternionModule
 
 // Specification of near-term goal:
 // - No use of Metal or DirectX profilers
@@ -72,3 +71,10 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
+// MARK: - Test Overhead of Atoms API
+
+let startDate = Date()
+usleep(1)
+let endDate = Date()
+let duration = endDate.timeIntervalSince(startDate) as Double
+print(duration)
