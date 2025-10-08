@@ -74,7 +74,6 @@ let application = createApplication()
 // MARK: - Test Overhead of Atoms API
 
 let startDate = Date()
-usleep(1)
 let endDate = Date()
 let duration = endDate.timeIntervalSince(startDate) as Double
 print(duration)
