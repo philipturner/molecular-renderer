@@ -61,7 +61,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 2_000_000
+  applicationDesc.addressSpaceSize = 100_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
   applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
@@ -72,7 +72,7 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 100_000
+let atomBlockSize: Int = 1_000_000
 for i in 0..<10 {
   // Add the new atoms for this frame.
   do {
