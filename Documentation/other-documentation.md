@@ -33,7 +33,7 @@ The most computationally intensive part of rendering is estimating the degree of
 
 A default of 7 secondary rays results in sufficient quality for any general use case. However, in cases prone to high divergence (non-uniform control flow, disorder or random memory access patterns), GPU performance may degrade so much that the FPS target cannot be reached. Divergence happens more often in regions far away from the camera. At large distances, each atom appears smaller, which (long story short) means higher divergence.
 
-There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway. This heuristic will be implemented after the acceleration structure PR, although it is high on the priority list.
+There is a highly tuned heuristic that reduces the sample count to 3, at a certain distance from the user. This particular case can afford lower rendering quality anyway. This heuristic will be implemented in the acceleration structure PR.
 
 ## Atom Count Limitation
 

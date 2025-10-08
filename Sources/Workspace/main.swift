@@ -27,6 +27,9 @@ import QuaternionModule
 // - However, it is okay to use 8 nm voxels to reduce the cost of scanning
 //   32 B per static 2 nm voxel atomic counters, while constructing the
 //   acceleration structure every frame.
+// - Critical distance heuristic is mandatory; warped data distribution where
+//   atoms far from the user suffer two-fold: more cost for the primary ray,
+//   more divergence for the secondary rays.
 //
 // First steps:
 // - Draft all the implementation code, and its organization, for the "end
