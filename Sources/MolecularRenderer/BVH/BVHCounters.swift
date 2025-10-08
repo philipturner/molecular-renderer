@@ -10,7 +10,7 @@ struct BVHCountersDescriptor {
 class BVHCounters {
   let crashBuffer: CrashBuffer // initialize at startup
   #if os(Windows)
-  //let queryHeap: SwiftCOM.ID3D12QueryHeap
+  let queryHeap: SwiftCOM.ID3D12QueryHeap
   //let queryDestinationBuffer: Buffer
   #endif
   
@@ -23,5 +23,28 @@ class BVHCounters {
     crashBufferDesc.device = device
     crashBufferDesc.size = 4096
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    
+    #if os(Windows)
+    self.queryHeap = Self.createQueryHeap(device: device)
+    #endif
   }
+  
+  #if os(Windows)
+  static func createQueryHeap(
+    device: Device
+  ) -> SwiftCOM.ID3D12QueryHeap {
+    var queryHeapDesc = D3D12_QUERY_HEAP_DESC()
+    queryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP
+    queryHeapDesc.Count = 64
+    queryHeapDesc.NodeMask = 0
+    
+    var iid: IID = SwiftCOM.ID3D12QueryHeap.IID
+    let pvHeap = try! device.d3d12Device.CreateQueryHeap(
+      &queryHeapDesc, &iid)
+    guard let pvHeap else {
+      fatalError("Could not create query heap.")
+    }
+    return SwiftCOM.ID3D12QueryHeap(pUnk: pvHeap)
+  }
+  #endif
 }
