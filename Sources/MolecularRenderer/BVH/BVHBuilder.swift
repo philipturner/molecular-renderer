@@ -138,6 +138,7 @@ class BVHBuilder {
       #endif
     }
     
+    #if false
     // Debugging at the moment.
     device.commandQueue.withCommandList { commandList in
       debugDiagnostic(
@@ -154,9 +155,27 @@ class BVHBuilder {
       data: &data,
       inFlightFrameID: 0)
     print(data)
+    #endif
   }
   
-  // Also work on another function that purges resources which should be
-  // reset every frame with ClearBuffer. Inspect every single buffer with the
-  // DebugDiagnostic utility.
+  // Clear resources that should be reset every frame with ClearBuffer. When
+  // new counters and bookkeeping buffers are added, include them here.
+  func purgeResources(commandList: CommandList) {
+    // Purge the voxel group marks to 0.
+    let worldDimension = voxelResources.worldDimension
+    let voxelGroupCount = VoxelResources.voxelGroupCount(
+      worldDimension: worldDimension)
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelGroupCount,
+      clearValue: 0,
+      clearedBuffer: voxelResources.voxelGroupMarks)
+    
+    // Purge the vacant slot IDs to UInt32.max.
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelResources.memorySlotCount,
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.vacantSlotIDs)
+  }
 }
