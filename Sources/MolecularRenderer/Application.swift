@@ -112,9 +112,6 @@ public class Application {
         "Can only create one instance of Application in a program run.")
     }
     Application.singleton = self
-    
-    print("Exiting the program.")
-    exit(0)
   }
   
   #if os(Windows)
