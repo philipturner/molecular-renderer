@@ -84,13 +84,21 @@ class BVHBuilder {
   #endif
   
   func initializeResources(device: Device) {
-    // Initialize the crash buffer to 1.
     device.commandQueue.withCommandList { commandList in
-      let elementCount = crashBuffer.inputBuffer.size / 4
-      let data = [UInt32](repeating: 1, count: elementCount)
-      crashBuffer.initialize(
-        commandList: commandList,
-        data: data)
+      // Initialize the crash buffer to 1.
+      do {
+        let elementCount = crashBuffer.inputBuffer.size / 4
+        let data = [UInt32](repeating: 1, count: elementCount)
+        crashBuffer.initialize(
+          commandList: commandList,
+          data: data)
+      }
+      
+      // Initialize the atomic counters to 0.
+      
+      // Initialize the memory slot IDs to UInt32.max.
+      
+      // Initialize the assigned voxel IDs to UInt32.max.
     }
   }
 }
