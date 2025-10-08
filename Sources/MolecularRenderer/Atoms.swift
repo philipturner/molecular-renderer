@@ -91,7 +91,15 @@ public class Atoms {
       modifiedBlockIDs.append(UInt32(blockID))
     }
     
+    // Reserve array capacity to defeat overhead of array re-allocation.
+    let maxAtomCount = modifiedBlockIDs.count * Self.blockSize
     var output = Transaction()
+    output.removedIDs.reserveCapacity(maxAtomCount)
+    output.movedIDs.reserveCapacity(maxAtomCount)
+    output.movedPositions.reserveCapacity(maxAtomCount)
+    output.addedIDs.reserveCapacity(maxAtomCount)
+    output.addedIDs.reserveCapacity(maxAtomCount)
+    
     for blockID in modifiedBlockIDs {
       let startAtomID = blockID * UInt32(Self.blockSize)
       let endAtomID = startAtomID + UInt32(Self.blockSize)

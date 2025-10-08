@@ -65,7 +65,7 @@ func createApplication() -> Application {
   applicationDesc.display = display
   applicationDesc.upscaleFactor = 3
   
-  applicationDesc.addressSpaceSize = 100_000_000
+  applicationDesc.addressSpaceSize = 20_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
   applicationDesc.worldDimension = 32
   let application = Application(descriptor: applicationDesc)
@@ -76,7 +76,7 @@ let application = createApplication()
 
 // MARK: - Test Overhead of Atoms API
 
-let atomBlockSize: Int = 5
+let atomBlockSize: Int = 5000
 for i in 0..<5 {
   // Add the new atoms for this frame.
   do {
@@ -96,34 +96,34 @@ for i in 0..<5 {
     //print(latencyPerAtom)
   }
   
-  do {
-    let start = Date()
+//  do {
+//    let start = Date()
     let transaction = application.atoms.registerChanges()
-    let end = Date()
-    let latency = end.timeIntervalSince(start)
-    
-    let addressSpaceSize = application.atoms.addressSpaceSize
-    let latencyPerAtom = Double(latency) / Double(addressSpaceSize)
-    print(latencyPerAtom)
-  }
+//    let end = Date()
+//    let latency = end.timeIntervalSince(start)
+//    
+//    let addressSpaceSize = application.atoms.addressSpaceSize
+//    let latencyPerAtom = Double(latency) / Double(addressSpaceSize)
+//    print(latencyPerAtom)
+//  }
   
-//  print()
-//  print("i = \(i)")
-//  if transaction.removedIDs.count > 0 {
-//    let first = transaction.removedIDs.first!
-//    let last = transaction.removedIDs.last!
-//    print("removedIDs: \(first)...\(last)")
-//  }
-//  if transaction.movedIDs.count > 0 {
-//    let first = transaction.movedIDs.first!
-//    let last = transaction.movedIDs.last!
-//    print("movedIDs: \(first)...\(last)")
-//    print("movedPositions: \(transaction.movedPositions.count) total")
-//  }
-//  if transaction.addedIDs.count > 0 {
-//    let first = transaction.addedIDs.first!
-//    let last = transaction.addedIDs.last!
-//    print("addedIDs: \(first)...\(last)")
-//    print("addedPositions: \(transaction.addedPositions.count) total")
-//  }
+  print()
+  print("i = \(i)")
+  if transaction.removedIDs.count > 0 {
+    let first = transaction.removedIDs.first!
+    let last = transaction.removedIDs.last!
+    print("removedIDs: \(first)...\(last)")
+  }
+  if transaction.movedIDs.count > 0 {
+    let first = transaction.movedIDs.first!
+    let last = transaction.movedIDs.last!
+    print("movedIDs: \(first)...\(last)")
+    print("movedPositions: \(transaction.movedPositions.count) total")
+  }
+  if transaction.addedIDs.count > 0 {
+    let first = transaction.addedIDs.first!
+    let last = transaction.addedIDs.last!
+    print("addedIDs: \(first)...\(last)")
+    print("addedPositions: \(transaction.addedPositions.count) total")
+  }
 }
