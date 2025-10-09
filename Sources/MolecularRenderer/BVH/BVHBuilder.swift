@@ -16,6 +16,8 @@ class BVHBuilder {
   let voxelResources: VoxelResources
   let counters: BVHCounters
   
+  var transactionArgs: TransactionArgs?
+  
   init(descriptor: BVHBuilderDescriptor) {
     guard let addressSpaceSize = descriptor.addressSpaceSize,
           let device = descriptor.device,
@@ -245,5 +247,14 @@ class BVHBuilder {
         range: 0..<(atomsCount * 16))
     }
     #endif
+    
+    // Set the transactionArgs.
+    do {
+      var transactionArgs = TransactionArgs()
+      transactionArgs.removedCount = UInt32(removedCount)
+      transactionArgs.movedCount = UInt32(movedCount)
+      transactionArgs.addedCount = UInt32(addedCount)
+      self.transactionArgs = transactionArgs
+    }
   }
 }

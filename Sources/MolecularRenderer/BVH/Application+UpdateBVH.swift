@@ -18,5 +18,6 @@ extension Application {
     // Encode the command to purge the motion vectors.
     
     // Delete the transactionArgs state variable.
+    bvhBuilder.transactionArgs = nil
   }
 }
