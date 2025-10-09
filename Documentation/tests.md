@@ -41,3 +41,9 @@ Compile a Ge-substituted adamantane cage, and use this base to procedurally grow
 At the time of writing, the Windows xTB executable is compiled with OpenBLAS to "work at all". The macOS executable uses Accelerate, which exploits Apple-specific AMX hardware to speed up operations on very small matrices. The region of ~70 atoms or ~200 orbitals (200x200 Hamiltonian matrix) is where the AMX shines the most. The minimization completed in 5.5 s on macOS and 29 s on Windows.
 
 Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
+
+## MM4 Energy Minimization
+
+Prove that FIRE can replace the energy minimizer built into OpenMM. Compare execution times from this test to offline benchmarks of the OpenMM minimizer. Use a reasonably sized (10k to 100k atoms) part with a non-negligible amount of warping from {100} surface strain. Only benchmark on macOS to minimize the number of variables involved in performance analysis.
+
+This test cannot be performed until a minimal BVH is implemented. Reference video or reference image is not needed, as absolute energy determines whether the results are being reproduced.

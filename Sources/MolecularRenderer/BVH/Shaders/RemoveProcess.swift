@@ -36,6 +36,8 @@ struct RemoveProcess {
         "UAV(u2),"
         "DescriptorTable(UAV(u3, numDescriptors = 1)),"
       )]
+      void removeProcess1(
+        uint globalID)
       """
       #endif
     }
