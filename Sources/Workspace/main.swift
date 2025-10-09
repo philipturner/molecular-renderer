@@ -54,6 +54,7 @@ let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 10 * (h + k + l) }
   Material { .checkerboard(.silicon, .carbon) }
 }
+print(lattice.atoms.count)
 
 for atomID in lattice.atoms.indices {
   let atom = lattice.atoms[atomID]
@@ -61,5 +62,5 @@ for atomID in lattice.atoms.indices {
 }
 
 application.updateBVH(inFlightFrameID: 0)
-//application.forgetIdleState(inFlightFrameID: 0)
+application.forgetIdleState(inFlightFrameID: 0)
 application.runDiagnostic()
