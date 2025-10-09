@@ -148,8 +148,8 @@ class CrashBuffer {
     #endif
   }
   
-  func read(
-    data: inout [UInt32],
+  func read<T>(
+    data: inout [T],
     inFlightFrameID: Int
   ) {
     data.withUnsafeMutableBytes { bufferPointer in

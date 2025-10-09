@@ -41,4 +41,25 @@ extension Application {
     // Delete the transactionArgs state variable.
     bvhBuilder.transactionArgs = nil
   }
+  
+  public func runDiagnostic() {
+    device.commandQueue.withCommandList { commandList in
+      bvhBuilder.debugDiagnostic(
+        commandList: commandList,
+        dataBuffer: bvhBuilder.atomResources.atoms)
+      bvhBuilder.counters.crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: 0)
+    }
+    device.commandQueue.flush()
+    
+    var output = [SIMD4<Float>](repeating: .zero, count: 50000)
+    bvhBuilder.counters.crashBuffer.read(
+      data: &output,
+      inFlightFrameID: 0)
+    
+    print(output[0])
+    print(output[8000])
+    print(output[9000])
+  }
 }
