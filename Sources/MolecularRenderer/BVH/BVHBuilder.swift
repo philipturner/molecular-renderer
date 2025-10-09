@@ -56,6 +56,7 @@ class BVHBuilder {
   
   #if os(Windows)
   func setUAVState(device: Device) {
+    print("Set occupied to UAV state")
     device.commandQueue.withCommandList { commandList in
       let buffers: [Buffer] = [
         atomResources.atoms,
@@ -98,6 +99,7 @@ class BVHBuilder {
   #endif
   
   func initializeResources(device: Device) {
+    print("Purge occupied to zero, elementCount = addressSpaceSize / 4")
     device.commandQueue.withCommandList { commandList in
       // Initialize the crash buffer to 1.
       do {

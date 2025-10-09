@@ -16,6 +16,7 @@ class AtomResources {
   let motionVectors: Buffer // purge to 0 with transaction tracking, idle/active
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
+  let occupied: Buffer
   #if os(Windows)
   var motionVectorsHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
@@ -46,6 +47,7 @@ class AtomResources {
     self.motionVectors = createBuffer(size: addressSpaceSize * 8)
     self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
     self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
+    self.occupied = createBuffer(size: addressSpaceSize)
     
     self.transactionIDs = Self.createTransactionIDsBuffer(
       device: device, maxTransactionSize: 2_000_000)
@@ -113,6 +115,10 @@ extension AtomResources {
       resource: relativeOffsets2.d3d12Resource,
       uavDesc: uavDesc)
     self.relativeOffsets2HandleID = handleID2
+  }
+  
+  func encodeOccupied(descriptorHeap: DescriptorHeap) {
+    print("Encode occupied")
   }
 }
 #endif
