@@ -22,8 +22,6 @@ struct RemoveProcess {
       #endif
     }
     
-    // Check that the global ID falls within the removedIDs and not also
-    // movedIDs, because this kernel will dispatch over moved as well.
     return """
     \(Shader.importStandardLibrary)
     

@@ -19,6 +19,9 @@ extension Application {
       bvhBuilder.removeProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.addProcess1(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
     }
   }
   

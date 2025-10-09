@@ -6,6 +6,7 @@ class BVHShaders {
   let clearBuffer: Shader
   let debugDiagnostic: Shader
   let removeProcess1: Shader
+  let addProcess1: Shader
   
   init(descriptor: BVHShadersDescriptor) {
     guard let device = descriptor.device else {
@@ -30,6 +31,9 @@ class BVHShaders {
     shaderDesc.source = RemoveProcess.createSource1()
     self.removeProcess1 = Shader(descriptor: shaderDesc)
     
-    
+    shaderDesc.name = "addProcess1"
+    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+    shaderDesc.source = AddProcess.createSource1()
+    self.addProcess1 = Shader(descriptor: shaderDesc)
   }
 }
