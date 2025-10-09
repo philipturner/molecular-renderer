@@ -5,25 +5,16 @@ struct RemoveProcess {
       #if os(macOS)
       """
       kernel void removeProcess1(
-        constant TransactionArgs &transactionArgs [[buffer(0)]],
-        device uint *transactionIDs [[buffer(1)]],
-        device float4 *transactionAtoms [[buffer(2)]],
-        device uchar *occupied [[buffer(3)]],
+        \(AtomResources.functionArguments),
         uint globalID [[thread_position_in_grid]])
       """
       #else
       """
-      ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
-      RWStructuredBuffer<uint> transactionIDs : register(u1);
-      RWStructuredBuffer<float4> transactionAtoms : register(u2);
-      RWBuffer<uint> occupied : register(u3);
+      \(AtomResources.functionArguments)
       
       [numthreads(128, 1, 1)]
       [RootSignature(
-        "RootConstants(b0, num32BitConstants = 3),"
-        "UAV(u1),"
-        "UAV(u2),"
-        "DescriptorTable(UAV(u3, numDescriptors = 1)),"
+        \(AtomResources.rootSignatureArguments)
       )]
       void removeProcess1(
         uint globalID : SV_DispatchThreadID)
