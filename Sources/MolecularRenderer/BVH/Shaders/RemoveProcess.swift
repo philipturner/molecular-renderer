@@ -66,3 +66,30 @@ struct RemoveProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func removeProcess1(
+    commandList: CommandList,
+    inFlightFrameID: Int
+  ) {
+    guard let transactionArgs else {
+      fatalError("Transaction arguments were not set.")
+    }
+      
+    commandList.withPipelineState(shaders.removeProcess1) {
+      // Bind the transaction arguments.
+      commandList.set32BitConstants(
+        transactionArgs, index: 0)
+      
+      // Bind the transaction buffers.
+      let idsBuffer = atomResources.transactionIDs
+        .nativeBuffers[inFlightFrameID]
+      let atomsBuffer = atomResources.transactionAtoms
+        .nativeBuffers[inFlightFrameID]
+    }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
+  }
+}
