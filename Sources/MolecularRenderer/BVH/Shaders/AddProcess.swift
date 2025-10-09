@@ -31,6 +31,14 @@ struct AddProcess {
       #endif
     }
     
+    func writeMotionVector() -> String {
+      #if os(macOS)
+      "motionVectors[atomID] = half4(motionVector);"
+      #else
+      "motionVectors[atomID] = motionVector;"
+      #endif
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -47,7 +55,16 @@ struct AddProcess {
       }
       
       uint atomID = transactionIDs[removedCount + globalID];
+      float4 atom = transactionAtoms[removedCount + globalID];
       occupied[atomID] = 1;
+      
+      float4 motionVector = 0;
+      if (globalID < movedCount) {
+        float4 previousAtom = atoms[atomID];
+        motionVector = previousAtom - atom;
+      }
+      atoms[atomID] = atom;
+      \(writeMotionVector())
     }
     """
   }
