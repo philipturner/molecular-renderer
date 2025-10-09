@@ -14,9 +14,9 @@ class AtomResources {
   // Per atom address
   let atoms: Buffer
   let motionVectors: Buffer // purge to 0 with transaction tracking, idle/active
+  let occupied: Buffer // initialize to 0 with shader
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
-  let occupied: Buffer // initialize to 0 with shader
   #if os(Windows)
   var motionVectorsHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
@@ -46,9 +46,9 @@ class AtomResources {
     
     self.atoms = createBuffer(size: addressSpaceSize * 16)
     self.motionVectors = createBuffer(size: addressSpaceSize * 8)
+    self.occupied = createBuffer(size: addressSpaceSize)
     self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
     self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
-    self.occupied = createBuffer(size: addressSpaceSize)
     
     self.transactionIDs = Self.createTransactionIDsBuffer(
       device: device, maxTransactionSize: 2_000_000)
