@@ -50,6 +50,7 @@ struct AddProcess {
       uint removedCount = transactionArgs.removedCount;
       uint movedCount = transactionArgs.movedCount;
       uint addedCount = transactionArgs.addedCount;
+      atoms[globalID] = float4(7, 7, 7, 7);
       if (globalID >= movedCount + addedCount) {
         return;
       }
