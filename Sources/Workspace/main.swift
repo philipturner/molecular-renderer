@@ -10,6 +10,8 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
+// - Tomorrow: do the first bullet point, using runDiagnostic to "see" the
+//   contents of voxelGroupMarks and atomicCounters.
 // - Walk through implementing and testing the first step, "add process",
 //   without seeing the rendered results. Use a small diamond lattice and
 //   predict how many atoms should reside in each 2 nm voxel.
@@ -63,16 +65,3 @@ for atomID in lattice.atoms.indices {
 
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
-print()
-application.runDiagnostic()
-
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = nil
-  application.atoms[8631 + atomID] = atom
-}
-
-application.updateBVH(inFlightFrameID: 1)
-application.forgetIdleState(inFlightFrameID: 1)
-print()
-application.runDiagnostic()

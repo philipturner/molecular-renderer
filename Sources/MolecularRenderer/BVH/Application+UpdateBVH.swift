@@ -52,16 +52,5 @@ extension Application {
         inFlightFrameID: 0)
     }
     device.commandQueue.flush()
-    
-    var output = [UInt8](repeating: .zero, count: 50000)
-    bvhBuilder.counters.crashBuffer.read(
-      data: &output,
-      inFlightFrameID: 0)
-    
-    print(output[0])
-    print(output[8000])
-    print(output[8631])
-    print(output[8631 + 8000])
-    print(output[8631 + 9000])
   }
 }
