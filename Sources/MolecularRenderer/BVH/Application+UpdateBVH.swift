@@ -46,14 +46,14 @@ extension Application {
     device.commandQueue.withCommandList { commandList in
       bvhBuilder.debugDiagnostic(
         commandList: commandList,
-        dataBuffer: bvhBuilder.atomResources.atoms)
+        dataBuffer: bvhBuilder.atomResources.motionVectors)
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)
     }
     device.commandQueue.flush()
     
-    var output = [SIMD4<Float>](repeating: .zero, count: 50000)
+    var output = [SIMD4<Float16>](repeating: .zero, count: 50000)
     bvhBuilder.counters.crashBuffer.read(
       data: &output,
       inFlightFrameID: 0)

@@ -62,14 +62,21 @@ for atomID in lattice.atoms.indices {
 }
 
 application.updateBVH(inFlightFrameID: 0)
+
+
+print()
+application.runDiagnostic()
 application.forgetIdleState(inFlightFrameID: 0)
 
 for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[8631 + atomID] = atom
+  var atom = lattice.atoms[atomID]
+  atom.position += SIMD3(20, 20, 20)
+  application.atoms[atomID] = atom
 }
 
 application.updateBVH(inFlightFrameID: 1)
-application.forgetIdleState(inFlightFrameID: 1)
 
+
+print()
 application.runDiagnostic()
+application.forgetIdleState(inFlightFrameID: 1)
