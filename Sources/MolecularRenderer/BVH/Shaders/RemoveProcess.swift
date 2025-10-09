@@ -98,6 +98,6 @@ extension BVHBuilder {
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
     #endif
+    #endif
   }
-  #endif
 }
