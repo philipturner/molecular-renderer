@@ -77,6 +77,47 @@ class AtomResources {
     ringBufferDesc.size = maxTransactionSize * 16
     return RingBuffer(descriptor: ringBufferDesc)
   }
+  
+  static var functionArguments: String {
+    #if os(macOS)
+    """
+    constant TransactionArgs &transactionArgs [[buffer(0)]],
+    device uint *transactionIDs [[buffer(1)]],
+    device float4 *transactionAtoms [[buffer(2)]],
+    device float4 *atoms [[buffer(3)]],
+    device half4 *motionVectors [[buffer(4)]],
+    device uchar *occupied [[buffer(5)]],
+    device ushort4 *relativeOffsets1 [[buffer(6)]],
+    device ushort4 *relativeOffsets2 [[buffer(7)]]
+    """
+    #else
+    """
+    ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
+    RWStructuredBuffer<uint> transactionIDs : register(u1);
+    RWStructuredBuffer<float4> transactionAtoms : register(u2);
+    RWStructuredBuffer<float4> atoms : register(u3);
+    RWBuffer<float4> motionVectors : register(u4);
+    RWBuffer<uint> occupied : register(u5);
+    RWBuffer<uint4> relativeOffsets1 : register(u6);
+    RWBuffer<uint4> relativeOffsets2 : register(u7);
+    """
+    #endif
+  }
+  
+  #if os(Windows)
+  static var rootSignatureArguments: String {
+    """
+    "RootConstants(b0, num32BitConstants = 3),"
+    "UAV(u1),"
+    "UAV(u2),"
+    "UAV(u3),"
+    "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u6, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u7, numDescriptors = 1)),"
+    """
+  }
+  #endif
 }
 
 #if os(Windows)
@@ -133,46 +174,5 @@ extension AtomResources {
       uavDesc: uavDesc)
     self.relativeOffsets2HandleID = handleID2
   }
-  
-  static var functionArguments: String {
-    #if os(macOS)
-    """
-    constant TransactionArgs &transactionArgs [[buffer(0)]],
-    device uint *transactionIDs [[buffer(1)]],
-    device float4 *transactionAtoms [[buffer(2)]],
-    device float4 *atoms [[buffer(3)]],
-    device half4 *motionVectors [[buffer(4)]],
-    device uchar *occupied [[buffer(5)]],
-    device ushort4 *relativeOffsets1 [[buffer(6)]],
-    device ushort4 *relativeOffsets2 [[buffer(7)]]
-    """
-    #else
-    """
-    ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
-    RWStructuredBuffer<uint> transactionIDs : register(u1);
-    RWStructuredBuffer<float4> transactionAtoms : register(u2);
-    RWStructuredBuffer<float4> atoms : register(u3);
-    RWBuffer<float4> motionVectors : register(u4);
-    RWBuffer<uint> occupied : register(u5);
-    RWBuffer<uint4> relativeOffsets1 : register(u6);
-    RWBuffer<uint4> relativeOffsets2 : register(u7);
-    """
-    #endif
-  }
-  
-  #if os(Windows)
-  static var rootSignatureArguments: String {
-    """
-    "RootConstants(b0, num32BitConstants = 3),"
-    "UAV(u1),"
-    "UAV(u2),"
-    "UAV(u3),"
-    "DescriptorTable(UAV(u4, numDescriptors = 1)),"
-    "DescriptorTable(UAV(u5, numDescriptors = 1)),"
-    "DescriptorTable(UAV(u6, numDescriptors = 1)),"
-    "DescriptorTable(UAV(u7, numDescriptors = 1)),"
-    """
-  }
-  #endif
 }
 #endif
