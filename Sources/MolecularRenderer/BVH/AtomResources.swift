@@ -97,6 +97,22 @@ extension AtomResources {
     self.motionVectorsHandleID = handleID
   }
   
+  func encodeOccupied(descriptorHeap: DescriptorHeap) {
+    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+    uavDesc.Format = DXGI_FORMAT_R8_UINT
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+    uavDesc.Buffer.FirstElement = 0
+    uavDesc.Buffer.NumElements = UInt32(addressSpaceSize)
+    uavDesc.Buffer.StructureByteStride = 0
+    uavDesc.Buffer.CounterOffsetInBytes = 0
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+    
+    let handleID = descriptorHeap.createUAV(
+      resource: occupied.d3d12Resource,
+      uavDesc: uavDesc)
+    self.occupiedHandleID = handleID
+  }
+  
   func encodeRelativeOffsets(descriptorHeap: DescriptorHeap) {
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16G16B16A16_UINT
@@ -116,22 +132,6 @@ extension AtomResources {
       resource: relativeOffsets2.d3d12Resource,
       uavDesc: uavDesc)
     self.relativeOffsets2HandleID = handleID2
-  }
-  
-  func encodeOccupied(descriptorHeap: DescriptorHeap) {
-    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
-    uavDesc.Format = DXGI_FORMAT_R8_UINT
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
-    uavDesc.Buffer.FirstElement = 0
-    uavDesc.Buffer.NumElements = UInt32(addressSpaceSize)
-    uavDesc.Buffer.StructureByteStride = 0
-    uavDesc.Buffer.CounterOffsetInBytes = 0
-    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-    
-    let handleID = descriptorHeap.createUAV(
-      resource: occupied.d3d12Resource,
-      uavDesc: uavDesc)
-    self.occupiedHandleID = handleID
   }
 }
 #endif
