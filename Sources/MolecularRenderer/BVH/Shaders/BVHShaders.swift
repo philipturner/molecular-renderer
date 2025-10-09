@@ -23,7 +23,7 @@ class BVHShaders {
     self.clearBuffer = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "debugDiagnostic"
-    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+    shaderDesc.threadsPerGroup = SIMD3(1, 1, 1)
     shaderDesc.source = DebugDiagnostic.createSource()
     self.debugDiagnostic = Shader(descriptor: shaderDesc)
     

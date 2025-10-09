@@ -61,5 +61,5 @@ for atomID in lattice.atoms.indices {
 }
 
 application.updateBVH(inFlightFrameID: 0)
-application.forgetIdleState(inFlightFrameID: 0)
+//application.forgetIdleState(inFlightFrameID: 0)
 application.runDiagnostic()

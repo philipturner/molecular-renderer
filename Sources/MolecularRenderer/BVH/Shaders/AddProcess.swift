@@ -64,7 +64,7 @@ struct AddProcess {
         float4 previousAtom = atoms[atomID];
         motionVector = previousAtom - atom;
       }
-      atoms[atomID] = atom;
+      //atoms[atomID] = atom;
       \(writeMotionVector())
     }
     """
