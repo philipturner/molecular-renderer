@@ -40,7 +40,7 @@ struct RenderShader {
       #if os(macOS)
       return """
       kernel void render(
-        constant RenderArgs &constantArgs [[buffer(\(Self.constantArgs))]],
+        constant RenderArgs &renderArgs [[buffer(\(Self.renderArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
         device half4 *motionVectors [[buffer(\(Self.motionVectors))]],
@@ -49,10 +49,10 @@ struct RenderShader {
         uint2 pixelCoords [[thread_position_in_grid]])
       """
       #else
-      let byteCount = MemoryLayout<ConstantArgs>.size
+      let byteCount = MemoryLayout<RenderArgs>.size
       
       return """
-      ConstantBuffer<ConstantArgs> constantArgs : register(b\(Self.constantArgs));
+      ConstantBuffer<RenderArgs> renderArgs : register(b\(Self.renderArgs));
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
       RWBuffer<float4> motionVectors : register(u\(Self.motionVectors));
@@ -61,7 +61,7 @@ struct RenderShader {
       
       [numthreads(8, 8, 1)]
       [RootSignature(
-        "RootConstants(b\(Self.constantArgs), num32BitConstants = \(byteCount / 4)),"
+        "RootConstants(b\(Self.renderArgs), num32BitConstants = \(byteCount / 4)),"
         "CBV(b\(Self.cameraArgs)),"
         "UAV(u\(Self.atoms)),"
         "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1)),"
@@ -176,7 +176,7 @@ struct RenderShader {
         
         // Compare against current coordinates.
         float2 currentPixelCoords = float2(pixelCoords) + 0.5;
-        currentPixelCoords += constantArgs.jitterOffset;
+        currentPixelCoords += renderArgs.jitterOffset;
         
         // FidelityFX docs: encode motion from current frame to previous frame
         float2 motionVector = previousPixelCoords - currentPixelCoords;
@@ -201,7 +201,7 @@ struct RenderShader {
     \(createRayGeneration())
     \(createRayIntersector())
     
-    \(ConstantArgs.shaderDeclaration)
+    \(RenderArgs.shaderDeclaration)
     \(CameraArgs.shaderDeclaration)
     struct CameraArgsList {
       CameraArgs data[2];
@@ -219,13 +219,13 @@ struct RenderShader {
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
-      rayIntersector.atomCount = constantArgs.atomCount;
+      rayIntersector.atomCount = renderArgs.atomCount;
       
       // Prepare the ray direction.
       float3 primaryRayDirection =
       RayGeneration::primaryRayDirection(pixelCoords,
                                          screenDimensions,
-                                         constantArgs.jitterOffset,
+                                         renderArgs.jitterOffset,
                                          cameraArgs.data[0].tangentFactor,
                                          cameraArgs.data[0].basis);
       
@@ -262,7 +262,7 @@ struct RenderShader {
         // Create a generation context.
         GenerationContext generationContext;
         generationContext.seed = RayGeneration::createSeed(
-          pixelCoords, constantArgs.frameSeed);
+          pixelCoords, renderArgs.frameSeed);
         
         // Iterate over the AO samples.
         for (uint i = 0; i < sampleCount; ++i) {

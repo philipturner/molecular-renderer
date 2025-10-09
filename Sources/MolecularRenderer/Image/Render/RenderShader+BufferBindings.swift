@@ -1,5 +1,5 @@
 extension RenderShader {
-  static let constantArgs: Int = 0
+  static let renderArgs: Int = 0
   static let cameraArgs: Int = 1
   static let atoms: Int = 2
   static let motionVectors: Int = 3
