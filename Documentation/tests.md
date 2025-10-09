@@ -44,6 +44,6 @@ Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
 
 ## MM4 Energy Minimization
 
-Prove that FIRE can replace the energy minimizer built into OpenMM. Compare execution times from this test to offline benchmarks of the OpenMM minimizer. Use a reasonably sized (10k to 100k atoms) part with a non-negligible amount of warping from {100} surface strain. Only benchmark on macOS to minimize the number of variables involved in performance analysis.
+Prove that FIRE can replace the energy minimizer built into OpenMM. Compare execution times from this test to offline benchmarks of the OpenMM minimizer. Use a reasonably sized (10k to 100k atoms) part with a non-negligible amount of warping from {100} surface strain. Benchmark on both platforms for fairness.
 
 This test cannot be performed until a minimal BVH is implemented. Reference video or reference image is not needed, as absolute energy determines whether the results are being reproduced.
