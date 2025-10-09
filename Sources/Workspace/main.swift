@@ -2,9 +2,7 @@ import MolecularRenderer
 
 // Components of this PR:
 // - Tasks on "BVH Update Process". Estimated completion: Oct 16 2025
-// - Skipping past unoccupied large voxels in primary ray intersector, using
-//   identical code to main-branch-backup. Perhaps once you reach this point,
-//   create documentation for the DDA traversal scheme.
+// - Implement fully optimized primary ray intersector from main-branch-backup.
 // - Critical distance heuristic is mandatory. Unacceptable to have a warped
 //   data distribution where atoms far from the user suffer two-fold: more cost
 //   for the primary ray, more divergence for the secondary rays. Another
