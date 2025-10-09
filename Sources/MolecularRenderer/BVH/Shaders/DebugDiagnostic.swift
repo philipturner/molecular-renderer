@@ -30,11 +30,11 @@ struct DebugDiagnostic {
     
     \(functionSignature())
     {
-      // if (globalID >= 50000 * 16) {
-      //   return;
-      // }
+      if (globalID >= 50000 * 4) {
+        return;
+      }
       
-      crashBuffer[globalID] = asuint(float(7));//dataBuffer[0];
+      crashBuffer[globalID] = dataBuffer[globalID];
     }
     """
   }
@@ -56,7 +56,7 @@ extension BVHBuilder {
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
-        var groupCount: Int = 40000 * 4
+        var groupCount: Int = 50000 * 4
         
         let groupSize: Int = 128
         groupCount += groupSize - 1
@@ -67,7 +67,6 @@ extension BVHBuilder {
           UInt32(1),
           UInt32(1))
       }
-      print(createGroupCount32())
       commandList.dispatch(groups: createGroupCount32())
     }
   }
