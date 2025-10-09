@@ -15,6 +15,9 @@ import MolecularRenderer
 //   - Implement the 8x duplicated atomic counters from day one.
 //   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
 //   - Memory slot list is effectively contiguous and 100% vacant.
+// - If you can save time by not inspecting the results, just don't test for
+//   correctness of the GPU results at the moment. You can always go back and
+//   validate on a different day, when you are more motivated.
 
 @MainActor
 func createApplication() -> Application {
