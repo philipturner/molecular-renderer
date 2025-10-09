@@ -58,6 +58,8 @@ extension BVHBuilder {
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
+    // TODO: Enable encoding again once arguments are fixed
+    #if false
     guard let transactionArgs else {
       fatalError("Transaction arguments were not set.")
     }
@@ -106,4 +108,5 @@ extension BVHBuilder {
     computeUAVBarrier(commandList: commandList)
     #endif
   }
+  #endif
 }
