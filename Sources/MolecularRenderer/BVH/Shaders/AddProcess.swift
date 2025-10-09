@@ -30,7 +30,25 @@ struct AddProcess {
         uint globalID [[thread_position_in_grid]])
       """
       #else
+      """
+      ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
+      RWStructuredBuffer<uint> transactionIDs : register(u1);
+      RWStructuredBuffer<float4> transactionAtoms : register(u2);
+      RWStructuredBuffer<float4> atoms : register(u3);
+      RWBuffer<float4> motionVectors : register(u4);
+      RWBuffer<uint> occupied : register(u5);
+      RWBuffer<uint4> relativeOffsets1 : register(u6);
+      RWBuffer<uint4> relativeOffsets2 : register(u7);
+      RWStructuredBuffer<uint> voxelGroupMarks : register(u8);
+      RWStructuredBuffer<uint> atomicCounters : register(u9);
       
+      [numthreads(128, 1, 1)]
+      [RootSignature(
+        "RootConstants(b0, num32BitConstants = 3),"
+        "UAV(u1),"
+        "UAV(u2),"
+      )]
+      """
       #endif
     }
     
