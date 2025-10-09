@@ -96,13 +96,13 @@ extension Application {
       
       // Encode the compute command.
       commandList.withPipelineState(resources.renderShader) {
-        // Bind the constant arguments.
-        var constantArgs = ConstantArgs()
-        constantArgs.atomCount = 0 // Deactivate rendering.
-        constantArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
-        constantArgs.jitterOffset = createJitterOffset()
+        // Bind the render arguments.
+        var renderArgs = RenderArgs()
+        renderArgs.atomCount = 0 // Deactivate rendering.
+        renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
+        renderArgs.jitterOffset = createJitterOffset()
         commandList.set32BitConstants(
-          constantArgs, index: RenderShader.constantArgs)
+          renderArgs, index: RenderShader.renderArgs)
         
         // Bind the camera args buffer.
         let cameraArgsBuffer = resources.cameraArgsBuffer

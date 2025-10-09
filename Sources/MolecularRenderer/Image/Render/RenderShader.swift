@@ -5,17 +5,6 @@
 
 struct RenderShader {
   static func createSource(upscaleFactor: Float) -> String {
-    func importStandardLibrary() -> String {
-      #if os(macOS)
-      """
-      #include <metal_stdlib>
-      using namespace metal;
-      """
-      #else
-      ""
-      #endif
-    }
-    
     func functionSignature() -> String {
       func optionalFunctionArguments() -> String {
         guard upscaleFactor > 1 else {
@@ -51,7 +40,7 @@ struct RenderShader {
       #if os(macOS)
       return """
       kernel void render(
-        constant ConstantArgs &constantArgs [[buffer(\(Self.constantArgs))]],
+        constant RenderArgs &constantArgs [[buffer(\(Self.constantArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
         device half4 *motionVectors [[buffer(\(Self.motionVectors))]],

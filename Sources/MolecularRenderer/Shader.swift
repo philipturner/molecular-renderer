@@ -147,4 +147,15 @@ class Shader {
       .CreateComputePipelineState(pipelineStateDesc)
     #endif
   }
+  
+  static func importStandardLibrary() -> String {
+    #if os(macOS)
+    """
+    #include <metal_stdlib>
+    using namespace metal;
+    """
+    #else
+    ""
+    #endif
+  }
 }
