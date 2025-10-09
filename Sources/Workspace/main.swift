@@ -1,3 +1,4 @@
+import HDL
 import MolecularRenderer
 
 // Components of this PR:
@@ -29,7 +30,7 @@ func createApplication() -> Application {
   // Set up the display.
   var displayDesc = DisplayDescriptor()
   displayDesc.device = device
-  displayDesc.frameBufferSize = SIMD2<Int>(1440, 1080)
+  displayDesc.frameBufferSize = SIMD2<Int>(1080, 1080)
   displayDesc.monitorID = device.fastestMonitorID
   let display = Display(descriptor: displayDesc)
   
@@ -37,7 +38,7 @@ func createApplication() -> Application {
   var applicationDesc = ApplicationDescriptor()
   applicationDesc.device = device
   applicationDesc.display = display
-  applicationDesc.upscaleFactor = 3
+  applicationDesc.upscaleFactor = 1
   
   applicationDesc.addressSpaceSize = 2_000_000
   applicationDesc.voxelAllocationSize = 200_000_000
@@ -47,3 +48,16 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
+
+let lattice = Lattice<Cubic> { h, k, l in
+  Bounds { 10 * (h + k + l) }
+  Material { .checkerboard(.silicon, .carbon) }
+}
+
+for atomID in lattice.atoms.indices {
+  let atom = lattice.atoms[atomID]
+  application.atoms[atomID] = atom
+}
+
+application.updateBVH(inFlightFrameID: 0)
+application.forgetIdleState(inFlightFrameID: 0)
