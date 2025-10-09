@@ -16,11 +16,12 @@ class AtomResources {
   let motionVectors: Buffer // purge to 0 with transaction tracking, idle/active
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
-  let occupied: Buffer
+  let occupied: Buffer // initialize to 0 with shader
   #if os(Windows)
   var motionVectorsHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
   var relativeOffsets2HandleID: Int = -1
+  var occupiedHandleID: Int = -1
   #endif
   
   // Per atom in transaction
@@ -118,7 +119,19 @@ extension AtomResources {
   }
   
   func encodeOccupied(descriptorHeap: DescriptorHeap) {
-    print("Encode occupied")
+    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+    uavDesc.Format = DXGI_FORMAT_R8_UINT
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+    uavDesc.Buffer.FirstElement = 0
+    uavDesc.Buffer.NumElements = UInt32(addressSpaceSize)
+    uavDesc.Buffer.StructureByteStride = 0
+    uavDesc.Buffer.CounterOffsetInBytes = 0
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+    
+    let handleID = descriptorHeap.createUAV(
+      resource: occupied.d3d12Resource,
+      uavDesc: uavDesc)
+    self.occupiedHandleID = handleID
   }
 }
 #endif

@@ -56,13 +56,13 @@ class BVHBuilder {
   
   #if os(Windows)
   func setUAVState(device: Device) {
-    print("Set occupied to UAV state")
     device.commandQueue.withCommandList { commandList in
       let buffers: [Buffer] = [
         atomResources.atoms,
         atomResources.motionVectors,
         atomResources.relativeOffsets1,
         atomResources.relativeOffsets2,
+        atomResources.occupied,
         voxelResources.voxelGroupMarks,
         voxelResources.atomicCounters,
         voxelResources.memorySlotIDs,
@@ -99,16 +99,13 @@ class BVHBuilder {
   #endif
   
   func initializeResources(device: Device) {
-    print("Purge occupied to zero, elementCount = addressSpaceSize / 4")
     device.commandQueue.withCommandList { commandList in
-      // Initialize the crash buffer to 1.
-      do {
-        let elementCount = counters.crashBuffer.inputBuffer.size / 4
-        let data = [UInt32](repeating: 1, count: elementCount)
-        counters.crashBuffer.initialize(
-          commandList: commandList,
-          data: data)
-      }
+      // Initialize the occupied marks to 0.
+      clearBuffer(
+        commandList: commandList,
+        elementCount: atomResources.addressSpaceSize / 4,
+        clearValue: 0,
+        clearedBuffer: atomResources.occupied)
       
       // Initialize the atomic counters to 0.
       let worldDimension = voxelResources.worldDimension
@@ -133,6 +130,15 @@ class BVHBuilder {
         elementCount: voxelResources.memorySlotCount,
         clearValue: UInt32.max,
         clearedBuffer: voxelResources.assignedVoxelIDs)
+      
+      // Initialize the crash buffer to 1.
+      do {
+        let elementCount = counters.crashBuffer.inputBuffer.size / 4
+        let data = [UInt32](repeating: 1, count: elementCount)
+        counters.crashBuffer.initialize(
+          commandList: commandList,
+          data: data)
+      }
       
       #if os(Windows)
       computeUAVBarrier(commandList: commandList)
