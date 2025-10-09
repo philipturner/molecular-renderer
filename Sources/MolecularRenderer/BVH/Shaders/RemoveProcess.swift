@@ -78,14 +78,42 @@ extension BVHBuilder {
       
     commandList.withPipelineState(shaders.removeProcess1) {
       // Bind the transaction arguments.
-      commandList.set32BitConstants(
-        transactionArgs, index: 0)
+      commandList.set32BitConstants(transactionArgs, index: 0)
       
       // Bind the transaction buffers.
       let idsBuffer = atomResources.transactionIDs
         .nativeBuffers[inFlightFrameID]
       let atomsBuffer = atomResources.transactionAtoms
         .nativeBuffers[inFlightFrameID]
+      commandList.setBuffer(idsBuffer, index: 1)
+      commandList.setBuffer(atomsBuffer, index: 2)
+      
+      // Bind the occupied marks.
+      #if os(macOS)
+      commandList.setBuffer(
+        atomResources.occupied, index: 3)
+      #else
+      commandList.setDescriptor(
+        handleID: atomResources.occupiedHandleID,
+        index: 3)
+      #endif
+      
+      // Determine the dispatch grid size.
+      func createGroupCount32() -> SIMD3<UInt32> {
+        var groupCount: Int = .zero
+        groupCount += Int(transactionArgs.removedCount)
+        groupCount += Int(transactionArgs.movedCount)
+        
+        let groupSize: Int = 128
+        groupCount += groupSize - 1
+        groupCount /= groupSize
+        
+        return SIMD3<UInt32>(
+          UInt32(groupCount),
+          UInt32(1),
+          UInt32(1))
+      }
+      commandList.dispatch(groups: createGroupCount32())
     }
     
     #if os(Windows)

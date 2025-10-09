@@ -157,9 +157,9 @@ extension Application {
         
         // Determine the dispatch grid size.
         func createGroupCount32() -> SIMD3<UInt32> {
-          let groupSize = SIMD2<Int>(8, 8)
-          
           var groupCount = renderTarget.intermediateSize(display: display)
+          
+          let groupSize = SIMD2<Int>(8, 8)
           groupCount &+= groupSize &- 1
           groupCount /= groupSize
           
