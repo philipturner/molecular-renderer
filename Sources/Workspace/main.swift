@@ -22,19 +22,12 @@ import MolecularRenderer
 //   for the primary ray, more divergence for the secondary rays. Another
 //   factor that degrades the viability of predicting & controlling performance.
 //
-// The next goal on the priority list would be using 16-bit data types in the
-// acceleration structure, to reduce the cost of building small cells by up to
-// 2x. This will be a completely separate PR, as I have more pressing problems
-// to devote development resources toward. May document this optimization in
-// "other documentation".
-//
 // Current task:
-// - Document the 16-bit data types optimization in "other-documentation.md".
 // - Get better organized pseudocode of the entire BVH building process for
 //   the "end state".
-// - How exactly would I inspect the acceleration structure without seeing the
-//   rendered results? Walk through an example with a small diamond lattice. I
-//   want to know how tests would be conducted at each stage of development.
+// - Walk through implementing and testing the first step, "add process",
+//   without seeing the rendered results. Use a small diamond lattice and
+//   predict how many atoms should reside in each voxel.
 
 @MainActor
 func createApplication() -> Application {

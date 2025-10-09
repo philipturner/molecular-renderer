@@ -86,3 +86,9 @@ With upscaling turned on, FidelityFX struggled to accurately denoise the AO. It 
 There are a few other, minor artifacts. Along the border between a silicon and hydrogen atom, white pixels can appear sporadically on the silicon side. Also, when atoms move quickly (isopropanol rotating at 0.5 Hz), the border between atoms can be a bit jumpy. In the MM4 carbosilane test, FSR shows noticeable artifacts at the borders between slowly moving atoms, while MetalFX does not.
 
 Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to the Windows target audience (GTX 970 and later, RDNA 1 and later). Older hardware works precisely because FSR 3 does not rely on computationally intensive neural networks, and it does not require hardware FP16 arithmetic.
+
+## 16-Bit Data Types Optimization
+
+It is possible to reduce the memory costs of the acceleration structure, by taking advantage of the small number of atoms per 2 nm voxel (less than 2<sup>16</sup>) and compressing atom positions to FP16. While implementing this optimization, we also replace the 4th component of the atom vector with its atomic radius. The result slightly speeds up the BVH update process and ray-sphere intersection tests.
+
+This optimization has been deferred to a future PR. It adds more complexity to the BVH construction process and may require OS-specific profilers to confirm performance improvements.
