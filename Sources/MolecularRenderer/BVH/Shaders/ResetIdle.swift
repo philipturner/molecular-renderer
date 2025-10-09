@@ -50,3 +50,41 @@ struct ResetIdle {
     """
   }
 }
+
+extension BVHBuilder {
+  func resetMotionVectors(
+    commandList: CommandList,
+    inFlightFrameID: Int
+  ) {
+    guard let transactionArgs else {
+      fatalError("Transaction arguments were not set.")
+    }
+    
+    commandList.withPipelineState(shaders.resetMotionVectors) {
+      atomResources.setBufferBindings(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID,
+        transactionArgs: transactionArgs)
+      
+      // Determine the dispatch grid size.
+      func createGroupCount32() -> SIMD3<UInt32> {
+        var groupCount: Int = .zero
+        groupCount += Int(transactionArgs.movedCount)
+        
+        let groupSize: Int = 128
+        groupCount += groupSize - 1
+        groupCount /= groupSize
+        
+        return SIMD3<UInt32>(
+          UInt32(groupCount),
+          UInt32(1),
+          UInt32(1))
+      }
+      commandList.dispatch(groups: createGroupCount32())
+    }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
+  }
+}

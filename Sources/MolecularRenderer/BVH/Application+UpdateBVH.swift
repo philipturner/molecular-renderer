@@ -27,7 +27,16 @@ extension Application {
   
   // Invoke this during 'application.render()', at the very end.
   public func forgetIdleState(inFlightFrameID: Int) {
-    // Encode the command to purge the motion vectors.
+    device.commandQueue.withCommandList { commandList in
+      // Bind the descriptor heap.
+      #if os(Windows)
+      commandList.setDescriptorHeap(descriptorHeap)
+      #endif
+      
+      bvhBuilder.resetMotionVectors(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+    }
     
     // Delete the transactionArgs state variable.
     bvhBuilder.transactionArgs = nil
