@@ -54,7 +54,7 @@ struct RenderShader {
         constant ConstantArgs &constantArgs [[buffer(\(Self.constantArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
-        device half3 *motionVectors [[buffer(\(Self.motionVectors))]],
+        device half4 *motionVectors [[buffer(\(Self.motionVectors))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
@@ -162,8 +162,7 @@ struct RenderShader {
         float3 currentHitPoint = query.rayOrigin;
         currentHitPoint += intersect.distance * query.rayDirection;
         
-        // Not yet implemented atom motion vector tracking.
-        float3 atomMotionVector = float3(motionVectors[intersect.atomID].xyz);
+        float3 atomMotionVector = float4(motionVectors[intersect.atomID]).xyz;
         float3 previousHitPoint = currentHitPoint + atomMotionVector;
         
         // Invert mapping: ray intersection -> primary ray direction

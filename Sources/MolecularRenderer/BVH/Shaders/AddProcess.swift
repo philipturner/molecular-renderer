@@ -19,7 +19,9 @@ struct AddProcess {
       kernel void addProcess1(
         constant TransactionArgs &transactionArgs [[buffer(0)]],
         device uint *transactionIDs [[buffer(1)]],
-        device float4 *transactionAtoms [[buffer(2)]])
+        device float4 *transactionAtoms [[buffer(2)]],
+        device float4 *atoms [[buffer(3)]],
+        )
       """
       #else
       
