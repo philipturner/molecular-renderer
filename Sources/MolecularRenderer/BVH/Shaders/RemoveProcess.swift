@@ -37,12 +37,32 @@ struct RemoveProcess {
         "DescriptorTable(UAV(u3, numDescriptors = 1)),"
       )]
       void removeProcess1(
-        uint globalID)
+        uint globalID : SV_DispatchThreadID)
       """
       #endif
     }
     
     // Check that the global ID falls within the removedIDs and not also
     // movedIDs, because this kernel will dispatch over moved as well.
+    return """
+    \(importStandardLibrary())
+    
+    \(TransactionArgs.shaderDeclaration)
+    
+    \(functionSignature())
+    {
+      uint removedCount = transactionArgs.removedCount;
+      uint movedCount = transactionArgs.movedCount;
+      if (globalID >= removedCount + movedCount) {
+        return;
+      }
+      
+      uint atomID = transactionIDs[globalID];
+      
+      if (globalID < removedCount) {
+        occupied[atomID] = 0;
+      }
+    }
+    """
   }
 }
