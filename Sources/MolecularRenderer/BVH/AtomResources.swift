@@ -19,9 +19,9 @@ class AtomResources {
   let relativeOffsets2: Buffer
   #if os(Windows)
   var motionVectorsHandleID: Int = -1
+  var occupiedHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
   var relativeOffsets2HandleID: Int = -1
-  var occupiedHandleID: Int = -1
   #endif
   
   // Per atom in transaction
@@ -77,47 +77,6 @@ class AtomResources {
     ringBufferDesc.size = maxTransactionSize * 16
     return RingBuffer(descriptor: ringBufferDesc)
   }
-  
-  static var functionArguments: String {
-    #if os(macOS)
-    """
-    constant TransactionArgs &transactionArgs [[buffer(0)]],
-    device uint *transactionIDs [[buffer(1)]],
-    device float4 *transactionAtoms [[buffer(2)]],
-    device float4 *atoms [[buffer(3)]],
-    device half4 *motionVectors [[buffer(4)]],
-    device uchar *occupied [[buffer(5)]],
-    device ushort4 *relativeOffsets1 [[buffer(6)]],
-    device ushort4 *relativeOffsets2 [[buffer(7)]]
-    """
-    #else
-    """
-    ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
-    RWStructuredBuffer<uint> transactionIDs : register(u1);
-    RWStructuredBuffer<float4> transactionAtoms : register(u2);
-    RWStructuredBuffer<float4> atoms : register(u3);
-    RWBuffer<float4> motionVectors : register(u4);
-    RWBuffer<uint> occupied : register(u5);
-    RWBuffer<uint4> relativeOffsets1 : register(u6);
-    RWBuffer<uint4> relativeOffsets2 : register(u7);
-    """
-    #endif
-  }
-  
-  #if os(Windows)
-  static var rootSignatureArguments: String {
-    """
-    "RootConstants(b0, num32BitConstants = 3),"
-    "UAV(u1),"
-    "UAV(u2),"
-    "UAV(u3),"
-    "DescriptorTable(UAV(u4, numDescriptors = 1)),"
-    "DescriptorTable(UAV(u5, numDescriptors = 1)),"
-    "DescriptorTable(UAV(u6, numDescriptors = 1)),"
-    "DescriptorTable(UAV(u7, numDescriptors = 1)),"
-    """
-  }
-  #endif
 }
 
 #if os(Windows)
@@ -176,3 +135,79 @@ extension AtomResources {
   }
 }
 #endif
+
+extension AtomResources {
+  static var functionArguments: String {
+    #if os(macOS)
+    """
+    constant TransactionArgs &transactionArgs [[buffer(0)]],
+    device uint *transactionIDs [[buffer(1)]],
+    device float4 *transactionAtoms [[buffer(2)]],
+    device float4 *atoms [[buffer(3)]],
+    device half4 *motionVectors [[buffer(4)]],
+    device uchar *occupied [[buffer(5)]],
+    device ushort4 *relativeOffsets1 [[buffer(6)]],
+    device ushort4 *relativeOffsets2 [[buffer(7)]]
+    """
+    #else
+    """
+    ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
+    RWStructuredBuffer<uint> transactionIDs : register(u1);
+    RWStructuredBuffer<float4> transactionAtoms : register(u2);
+    RWStructuredBuffer<float4> atoms : register(u3);
+    RWBuffer<float4> motionVectors : register(u4);
+    RWBuffer<uint> occupied : register(u5);
+    RWBuffer<uint4> relativeOffsets1 : register(u6);
+    RWBuffer<uint4> relativeOffsets2 : register(u7);
+    """
+    #endif
+  }
+  
+  #if os(Windows)
+  static var rootSignatureArguments: String {
+    """
+    "RootConstants(b0, num32BitConstants = 3),"
+    "UAV(u1),"
+    "UAV(u2),"
+    "UAV(u3),"
+    "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u6, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u7, numDescriptors = 1)),"
+    """
+  }
+  #endif
+  
+  func setBufferBindings(
+    commandList: CommandList,
+    inFlightFrameID: Int,
+    transactionArgs: TransactionArgs
+  ) {
+    // Bind the transaction arguments.
+    commandList.set32BitConstants(transactionArgs, index: 0)
+    
+    // Bind the transaction buffers.
+    let idsBuffer = transactionIDs.nativeBuffers[inFlightFrameID]
+    let atomsBuffer = transactionAtoms.nativeBuffers[inFlightFrameID]
+    commandList.setBuffer(idsBuffer, index: 1)
+    commandList.setBuffer(atomsBuffer, index: 2)
+    
+    // Bind the per-address buffers.
+    commandList.setBuffer(atoms, index: 3)
+    #if os(macOS)
+    commandList.setBuffer(motionVectors, index: 4)
+    commandList.setBuffer(occupied, index: 5)
+    commandList.setBuffer(relativeOffsets1, index: 6)
+    commandList.setBuffer(relativeOffsets2, index: 7)
+    #else
+    commandList.setDescriptor(
+      handleID: motionVectorsHandleID, index: 4)
+    commandList.setDescriptor(
+      handleID: occupiedHandleID, index: 5)
+    commandList.setDescriptor(
+      handleID: relativeOffsets1HandleID, index: 6)
+    commandList.setDescriptor(
+      handleID: relativeOffsets2HandleID, index: 7)
+    #endif
+  }
+}

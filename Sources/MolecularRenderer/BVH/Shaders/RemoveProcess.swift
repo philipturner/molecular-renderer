@@ -49,33 +49,15 @@ extension BVHBuilder {
     commandList: CommandList,
     inFlightFrameID: Int
   ) {
-    // TODO: Enable encoding again once arguments are fixed
-    #if false
     guard let transactionArgs else {
       fatalError("Transaction arguments were not set.")
     }
-      
+    
     commandList.withPipelineState(shaders.removeProcess1) {
-      // Bind the transaction arguments.
-      commandList.set32BitConstants(transactionArgs, index: 0)
-      
-      // Bind the transaction buffers.
-      let idsBuffer = atomResources.transactionIDs
-        .nativeBuffers[inFlightFrameID]
-      let atomsBuffer = atomResources.transactionAtoms
-        .nativeBuffers[inFlightFrameID]
-      commandList.setBuffer(idsBuffer, index: 1)
-      commandList.setBuffer(atomsBuffer, index: 2)
-      
-      // Bind the occupied marks.
-      #if os(macOS)
-      commandList.setBuffer(
-        atomResources.occupied, index: 3)
-      #else
-      commandList.setDescriptor(
-        handleID: atomResources.occupiedHandleID,
-        index: 3)
-      #endif
+      atomResources.setBufferBindings(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID,
+        transactionArgs: transactionArgs)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
@@ -97,7 +79,6 @@ extension BVHBuilder {
     
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
-    #endif
     #endif
   }
 }
