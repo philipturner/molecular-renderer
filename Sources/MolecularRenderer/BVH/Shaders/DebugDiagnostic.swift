@@ -14,7 +14,7 @@ struct DebugDiagnostic {
       RWStructuredBuffer<uint> dataBuffer : register(u0);
       RWStructuredBuffer<uint> crashBuffer : register(u1);
       
-      [numthreads(1, 1, 1)]
+      [numthreads(128, 1, 1)]
       [RootSignature(
         "UAV(u0),"
         "UAV(u1),"
@@ -30,7 +30,11 @@ struct DebugDiagnostic {
     
     \(functionSignature())
     {
+      if (globalID >= 50000 * 16) {
+        return;
+      }
       
+      crashBuffer[globalID] = dataBuffer[globalID];
     }
     """
   }
@@ -50,7 +54,20 @@ extension BVHBuilder {
       commandList.setBuffer(
         counters.crashBuffer.nativeBuffer, index: 1)
       
-      commandList.dispatch(groups: SIMD3(1, 1, 1))
+      // Determine the dispatch grid size.
+      func createGroupCount32() -> SIMD3<UInt32> {
+        var groupCount: Int = 50000 * 16
+        
+        let groupSize: Int = 128
+        groupCount += groupSize - 1
+        groupCount /= groupSize
+        
+        return SIMD3<UInt32>(
+          UInt32(groupCount),
+          UInt32(1),
+          UInt32(1))
+      }
+      commandList.dispatch(groups: createGroupCount32())
     }
   }
 }
