@@ -50,11 +50,11 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
+// 8631 atoms
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 10 * (h + k + l) }
   Material { .checkerboard(.silicon, .carbon) }
 }
-print(lattice.atoms.count)
 
 for atomID in lattice.atoms.indices {
   let atom = lattice.atoms[atomID]
@@ -63,4 +63,13 @@ for atomID in lattice.atoms.indices {
 
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
+
+for atomID in lattice.atoms.indices {
+  let atom = lattice.atoms[atomID]
+  application.atoms[8631 + atomID] = atom
+}
+
+application.updateBVH(inFlightFrameID: 1)
+application.forgetIdleState(inFlightFrameID: 1)
+
 application.runDiagnostic()
