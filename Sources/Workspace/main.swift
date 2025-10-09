@@ -14,6 +14,7 @@ import MolecularRenderer
 //   without seeing the rendered results. Use a small diamond lattice and
 //   predict how many atoms should reside in each 2 nm voxel.
 //   - Implement the 8x duplicated atomic counters from day one.
+//   - Write to the 8 nm scoped marks, just don't use them.
 //   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
 //   - Memory slot list is effectively contiguous and 100% vacant.
 // - If you can save time by not inspecting the results, just don't test for
