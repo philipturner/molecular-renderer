@@ -14,7 +14,7 @@ struct DebugDiagnostic {
       RWStructuredBuffer<uint> dataBuffer : register(u0);
       RWStructuredBuffer<uint> crashBuffer : register(u1);
       
-      [numthreads(1, 1, 1)]
+      [numthreads(128, 1, 1)]
       [RootSignature(
         "UAV(u0),"
         "UAV(u1),"
@@ -34,8 +34,7 @@ struct DebugDiagnostic {
       //   return;
       // }
       
-      // crashBuffer[globalID] = dataBuffer[globalID];
-      crashBuffer[0] = dataBuffer[0];
+      crashBuffer[globalID] = asuint(float(7));//dataBuffer[0];
     }
     """
   }
@@ -57,7 +56,7 @@ extension BVHBuilder {
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
-        var groupCount: Int = 50000 * 16
+        var groupCount: Int = 40000 * 4
         
         let groupSize: Int = 128
         groupCount += groupSize - 1
@@ -68,7 +67,8 @@ extension BVHBuilder {
           UInt32(1),
           UInt32(1))
       }
-      commandList.dispatch(groups: SIMD3(1, 1, 1))//createGroupCount32())
+      print(createGroupCount32())
+      commandList.dispatch(groups: createGroupCount32())
     }
   }
 }
