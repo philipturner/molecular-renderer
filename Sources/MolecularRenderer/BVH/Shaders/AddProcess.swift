@@ -9,7 +9,8 @@ struct AddProcess {
         \(AtomResources.functionArguments),
         device uint *voxelGroupMarks [[buffer(8)]],
         device atomic_uint *atomicCounters [[buffer(9)]],
-        uint globalID [[thread_position_in_grid]])
+        uint globalID [[thread_position_in_grid]],
+        uint localID [[thread_position_in_threadgroup]])
       """
       #else
       """
@@ -20,7 +21,12 @@ struct AddProcess {
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(AtomResources.rootSignatureArguments)
+        "UAV(u8),"
+        "UAV(u9),"
       )]
+      void addProcess1(
+        uint globalID : SV_DispatchThreadID,
+        uint localID : SV_GroupThreadID)
       """
       #endif
     }
@@ -33,7 +39,15 @@ struct AddProcess {
     
     \(functionSignature())
     {
+      uint removedCount = transactionArgs.removedCount;
+      uint movedCount = transactionArgs.movedCount;
+      uint addedCount = transactionArgs.addedCount;
+      if (globalID >= movedCount + addedCount) {
+        return;
+      }
       
+      uint atomID = transactionIDs[removedCount + globalID];
+      occupied[atomID] = 1;
     }
     """
   }
