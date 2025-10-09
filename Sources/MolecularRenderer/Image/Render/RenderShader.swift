@@ -207,8 +207,8 @@ struct RenderShader {
     return """
     \(importStandardLibrary())
     
-    \(createAtomColors(AtomStyles.colors))
-    \(createAtomRadii(AtomStyles.radii))
+    \(AtomStyles.createAtomColors(AtomStyles.colors))
+    \(AtomStyles.createAtomRadii(AtomStyles.radii))
     \(createLightingUtility())
     \(createRayGeneration())
     \(createRayIntersector())
@@ -307,63 +307,4 @@ struct RenderShader {
     }
     """
   }
-}
-
-// Generate the shader code for the atom colors.
-private func createAtomColors(_ colors: [SIMD3<Float>]) -> String {
-  func createList() -> String {
-    func repr(color: SIMD3<Float>) -> String {
-      let r = String(format: "%.3f", color[0])
-      let g = String(format: "%.3f", color[1])
-      let b = String(format: "%.3f", color[2])
-      return "float3(\(r), \(g), \(b))"
-    }
-    
-    var output: String = ""
-    for color in colors {
-      output += repr(color: color)
-      output += ",\n"
-    }
-    return output
-  }
-  
-  #if os(macOS)
-  return """
-  constant float3 atomColors[\(colors.count)] = {
-    \(createList())
-  };
-  """
-  #else
-  return """
-  static const float3 atomColors[\(colors.count)] = {
-    \(createList())
-  };
-  """
-  #endif
-}
-
-// Generate the shader code for the atom radii.
-private func createAtomRadii(_ radii: [Float]) -> String {
-  func createList() -> String {
-    var output: String = ""
-    for radius in radii {
-      output += String(format: "%.3f", radius)
-      output += ",\n"
-    }
-    return output
-  }
-  
-  #if os(macOS)
-  return """
-  constant float atomRadii[\(radii.count)] = {
-    \(createList())
-  };
-  """
-  #else
-  return """
-  static const float atomRadii[\(radii.count)] = {
-    \(createList())
-  };
-  """
-  #endif
 }
