@@ -5,9 +5,18 @@ extension Application {
     let transaction = atoms.registerChanges()
     
     device.commandQueue.withCommandList { commandList in
+      // Bind the descriptor heap.
+      #if os(Windows)
+      commandList.setDescriptorHeap(descriptorHeap)
+      #endif
+      
       bvhBuilder.purgeResources(commandList: commandList)
       bvhBuilder.upload(
         transaction: transaction,
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+      
+      bvhBuilder.removeProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
     }
