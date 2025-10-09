@@ -21,7 +21,13 @@ struct AddProcess {
         device uint *transactionIDs [[buffer(1)]],
         device float4 *transactionAtoms [[buffer(2)]],
         device float4 *atoms [[buffer(3)]],
-        )
+        device half4 *motionVectors [[buffer(4)]],
+        device uchar *occupied [[buffer(5)]],
+        device ushort4 *relativeOffsets1 [[buffer(6)]],
+        device ushort4 *relativeOffsets2 [[buffer(7)]],
+        device uint *voxelGroupMarks [[buffer(8)]],
+        device atomic_uint *atomicCounters [[buffer(9)]],
+        uint globalID [[thread_position_in_grid]])
       """
       #else
       
