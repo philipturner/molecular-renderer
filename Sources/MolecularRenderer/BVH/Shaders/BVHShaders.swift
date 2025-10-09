@@ -7,6 +7,7 @@ class BVHShaders {
   let debugDiagnostic: Shader
   let removeProcess1: Shader
   let addProcess1: Shader
+  let resetMotionVectors: Shader
   
   init(descriptor: BVHShadersDescriptor) {
     guard let device = descriptor.device else {
@@ -35,5 +36,10 @@ class BVHShaders {
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = AddProcess.createSource1()
     self.addProcess1 = Shader(descriptor: shaderDesc)
+    
+    shaderDesc.name = "resetMotionVectors"
+    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+    shaderDesc.source = ResetIdle.resetMotionVectors()
+    self.resetMotionVectors = Shader(descriptor: shaderDesc)
   }
 }
