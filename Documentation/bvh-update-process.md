@@ -24,6 +24,10 @@ Affected allocations:
 - motion vectors
 - 8x duplicated atomic counters for every 2 nm voxel
 
+Motion vectors are held in the active state by referring to the transaction sent to the GPU during the current frame. After the image is rendered, the motion vectors return to the idle state. Finally, the transaction is forgotten.
+
+Bandwidth-intensive atomic counters are optimized by tagging 8 nm "cell groups". Only if a cell in a group is tagged, will future kernels inspect it for modifications. Kernels scoped at the 2 nm level still dispatch one thread per 2 nm voxel in the world volume. However, they use 4x4x4 threadgroups and thus are naturally scoped at 8 nm. The kernels return early when they don't need to perform bandwidth-intensive operations.
+
 ## Stages
 
 Remove Process

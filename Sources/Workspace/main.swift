@@ -1,33 +1,22 @@
 import MolecularRenderer
 
-// Original near-term goal:
-// - No use of Metal or DirectX profilers
-// - No tracing of AO rays
-// - No incremental updates
-// - GPU receives compact list of atoms and motion vectors from CPU,
-//   address space O(100,000)
-// - No optimizations to memory layout or ray tracing
-// - No compaction of the static large voxels into dynamic large voxels
-//
-// End state for this PR:
-// - Include incremental acceleration structure updates
-// - Include the "idle" vs "active" paradigm for handling motion vectors
-// - Only permitted usage of 8 nm scoping is to reduce the cost of scanning
-//   32 B per static 2 nm voxel atomic counters, while constructing the
-//   acceleration structure every frame.
+// Components of this PR:
+// - Tasks on "BVH Update Process". Estimated completion: Oct 16 2025
 // - Skipping past unoccupied large voxels in primary ray intersector, using
-//   almost identical code to main-branch-backup
+//   identical code to main-branch-backup. Perhaps once you reach this point,
+//   create documentation for the DDA traversal scheme.
 // - Critical distance heuristic is mandatory. Unacceptable to have a warped
 //   data distribution where atoms far from the user suffer two-fold: more cost
 //   for the primary ray, more divergence for the secondary rays. Another
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Get better organized pseudocode of the entire BVH building process for
-//   the "end state".
 // - Walk through implementing and testing the first step, "add process",
 //   without seeing the rendered results. Use a small diamond lattice and
-//   predict how many atoms should reside in each voxel.
+//   predict how many atoms should reside in each 2 nm voxel.
+//   - Implement the 8x duplicated atomic counters from day one.
+//   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
+//   - Memory slot list is effectively contiguous and 100% vacant.
 
 @MainActor
 func createApplication() -> Application {
