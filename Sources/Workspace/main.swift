@@ -44,22 +44,3 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
-
-// MARK: - Test Overhead of Atoms API
-
-let atomBlockSize: Int = 5_000
-for i in 0..<10 {
-  // Add the new atoms for this frame.
-  do {
-    // 0 to test (add, move, move, move...)
-    // i to test (add, add, add, ... eventually reaching the limit)
-    let blockStart = 0 * atomBlockSize
-    let blockEnd = blockStart + atomBlockSize
-    for atomID in blockStart..<blockEnd {
-      application.atoms[atomID] = SIMD4(0.0, 0.0, 0.0, 1)
-    }
-  }
-  
-  application.updateBVH(
-    inFlightFrameID: i % 3)
-}
