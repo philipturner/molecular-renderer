@@ -161,7 +161,8 @@ class BVHBuilder {
     #endif
   }
   
-  // Upload the acceleration structure changes for every frame.
+  // Upload the acceleration structure changes for every frame. Set the
+  // transactionArgs state variable for this class.
   func upload(
     transaction: Atoms.Transaction,
     commandList: CommandList,

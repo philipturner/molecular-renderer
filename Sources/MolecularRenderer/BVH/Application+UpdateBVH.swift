@@ -12,4 +12,11 @@ extension Application {
         inFlightFrameID: inFlightFrameID)
     }
   }
+  
+  // Invoke this during 'application.render()', at the very end.
+  public func forgetIdleState(inFlightFrameID: Int) {
+    // Encode the command to purge the motion vectors.
+    
+    // Delete the transactionArgs state variable.
+  }
 }
