@@ -148,7 +148,7 @@ class Shader {
     #endif
   }
   
-  static func importStandardLibrary() -> String {
+  static var importStandardLibrary: String {
     #if os(macOS)
     """
     #include <metal_stdlib>

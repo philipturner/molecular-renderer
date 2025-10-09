@@ -1,17 +1,6 @@
 // Clear a buffer of UInt32 to a repeating scalar value.
 struct ClearBuffer {
   static func createSource() -> String {
-    func importStandardLibrary() -> String {
-      #if os(macOS)
-      """
-      #include <metal_stdlib>
-      using namespace metal;
-      """
-      #else
-      ""
-      #endif
-    }
-    
     func constantArgs() -> String {
       """
       struct ConstantArgs {
@@ -46,7 +35,7 @@ struct ClearBuffer {
     }
     
     return """
-    \(importStandardLibrary())
+    \(Shader.importStandardLibrary)
     
     \(constantArgs())
     

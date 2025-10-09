@@ -193,7 +193,7 @@ struct RenderShader {
     }
     
     return """
-    \(importStandardLibrary())
+    \(Shader.importStandardLibrary)
     
     \(AtomStyles.createAtomColors(AtomStyles.colors))
     \(AtomStyles.createAtomRadii(AtomStyles.radii))

@@ -1,17 +1,6 @@
 // Send data back to CPU through the crash buffer.
 struct DebugDiagnostic {
   static func createSource() -> String {
-    func importStandardLibrary() -> String {
-      #if os(macOS)
-      """
-      #include <metal_stdlib>
-      using namespace metal;
-      """
-      #else
-      ""
-      #endif
-    }
-    
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -37,7 +26,7 @@ struct DebugDiagnostic {
     }
     
     return """
-    \(importStandardLibrary())
+    \(Shader.importStandardLibrary)
     
     \(functionSignature())
     {

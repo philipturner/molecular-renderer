@@ -2,17 +2,6 @@
 // in the first kernel
 struct AddProcess {
   static func createSource1() -> String {
-    func importStandardLibrary() -> String {
-      #if os(macOS)
-      """
-      #include <metal_stdlib>
-      using namespace metal;
-      """
-      #else
-      ""
-      #endif
-    }
-    
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -53,7 +42,7 @@ struct AddProcess {
     }
     
     return """
-    \(importStandardLibrary())
+    \(Shader.importStandardLibrary)
     
     \(AtomStyles.createAtomRadii(AtomStyles.radii))
     \(TransactionArgs.shaderDeclaration)

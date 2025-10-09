@@ -2,17 +2,6 @@
 // visualizing the 3 inputs to the upscaler.
 struct UpscaleShader {
   static func createSource(upscaleFactor: Float) -> String {
-    func importStandardLibrary() -> String {
-      #if os(macOS)
-      """
-      #include <metal_stdlib>
-      using namespace metal;
-      """
-      #else
-      ""
-      #endif
-    }
-    
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -54,7 +43,7 @@ struct UpscaleShader {
     }
     
     return """
-    \(importStandardLibrary())
+    \(Shader.importStandardLibrary)
     
     \(functionSignature())
     {

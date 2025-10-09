@@ -1,17 +1,6 @@
 // First step: simply reset occupied marks to zero for all relevant atoms.
 struct RemoveProcess {
   static func createSource1() -> String {
-    func importStandardLibrary() -> String {
-      #if os(macOS)
-      """
-      #include <metal_stdlib>
-      using namespace metal;
-      """
-      #else
-      ""
-      #endif
-    }
-    
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -45,7 +34,7 @@ struct RemoveProcess {
     // Check that the global ID falls within the removedIDs and not also
     // movedIDs, because this kernel will dispatch over moved as well.
     return """
-    \(importStandardLibrary())
+    \(Shader.importStandardLibrary)
     
     \(TransactionArgs.shaderDeclaration)
     
