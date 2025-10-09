@@ -93,8 +93,8 @@ extension BVHBuilder {
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
         var groupCount: Int = .zero
-        groupCount += Int(transactionArgs.removedCount)
         groupCount += Int(transactionArgs.movedCount)
+        groupCount += Int(transactionArgs.addedCount)
         
         let groupSize: Int = 128
         groupCount += groupSize - 1
