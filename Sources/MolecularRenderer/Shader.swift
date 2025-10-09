@@ -28,9 +28,7 @@ struct ShaderDescriptor {
   #endif
   var name: String?
   var source: String?
-  #if os(macOS)
   var threadsPerGroup: SIMD3<UInt16>?
-  #endif
 }
 
 class Shader {
@@ -45,14 +43,10 @@ class Shader {
   init(descriptor: ShaderDescriptor) {
     guard let device = descriptor.device,
           let name = descriptor.name,
-          let source = descriptor.source else {
+          let source = descriptor.source,
+          let threadsPerGroup = descriptor.threadsPerGroup else {
       fatalError("Descriptor was incomplete.")
     }
-    #if os(macOS)
-    guard let threadsPerGroup = descriptor.threadsPerGroup else {
-      fatalError("Descriptor was incomplete.")
-    }
-    #endif
     
     #if os(macOS)
     // Create the library.

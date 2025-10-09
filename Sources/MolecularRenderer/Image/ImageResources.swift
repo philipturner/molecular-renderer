@@ -29,16 +29,16 @@ class ImageResources {
     shaderDesc.name = "render"
     #if os(macOS)
     shaderDesc.maxTotalThreadsPerThreadgroup = 1024
-    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
+    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     shaderDesc.source = RenderShader.createSource(upscaleFactor: upscaleFactor)
     self.renderShader = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "upscale"
     #if os(macOS)
     shaderDesc.maxTotalThreadsPerThreadgroup = nil
-    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     #endif
+    shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
     shaderDesc.source = UpscaleShader.createSource(upscaleFactor: upscaleFactor)
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
