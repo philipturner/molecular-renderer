@@ -49,6 +49,62 @@ struct ResetIdle {
     }
     """
   }
+  
+  static func resetAtomicCounters(worldDimension: Float) -> String {
+    func functionSignature() -> String {
+      #if os(macOS)
+      """
+      kernel void resetAtomicCounters(
+        device uint *voxelGroupMarks [[buffer(0)]],
+        device uint4 *atomicCounters [[buffer(1)]],
+        uint3 globalID [[thread_position_in_grid]],
+        uint3 groupID [[threadgroup_position_in_grid]])
+      """
+      #else
+      """
+      RWStructuredBuffer<uint> voxelGroupMarks : register(u0);
+      RWStructuredBuffer<uint4> atomicCounters : register(u1);
+      
+      [numthreads(4, 4, 4)]
+      [RootSignature(
+        "UAV(u0),"
+        "UAV(u1),"
+      )]
+      void resetAtomicCounters(
+        uint3 globalID : SV_DispatchThreadID,
+        uint3 groupID : SV_GroupThreadID)
+      """
+      #endif
+    }
+    
+    return """
+    \(Shader.importStandardLibrary)
+    
+    \(functionSignature())
+    {
+      // Read the voxel group mark.
+      uint mark;
+      {
+        uint address =
+        \(VoxelResources.generate("groupID", worldDimension / 8));
+        mark = voxelGroupMarks[address];
+      }
+      
+      // Return early if the voxel is empty.
+      if (mark == 0) {
+        return;
+      }
+      
+      // Reset the atomic counter.
+      {
+        uint address =
+        \(VoxelResources.generate("globalID", worldDimension / 2));
+        atomicCounters[2 * address + 0] = 0;
+        atomicCounters[2 * address + 1] = 1;
+      }
+    }
+    """
+  }
 }
 
 extension BVHBuilder {
