@@ -60,10 +60,6 @@ extension Application {
       data: &output,
       inFlightFrameID: 0)
     
-    // example addresses to mess up:
-    // 2473 (occupied)
-    // 2475 (unoccupied)
-    
     var xorHash: SIMD4<UInt32> = .zero
     var rotateHash: SIMD4<UInt32> = .zero
     var addressRotateHash: UInt32 = .zero
@@ -106,5 +102,14 @@ extension Application {
     print(addressRotateHash)
     print(referenceSum)
     print(voxelSum)
+    
+    let expectedXorHash = SIMD4<UInt32>(
+      66447249, 3273538316, 1173786066, 933301158)
+    let expectedRotateHash = SIMD4<UInt32>(
+      2682827453, 1944504064, 3826119466, 1921755015)
+    let expectedAddressRotateHash: UInt32 = 396663315
+    let expectedReferenceSum: UInt32 = 13897
+    let expectedVoxelSum: UInt32 = 64
+    
   }
 }
