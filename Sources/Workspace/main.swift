@@ -15,7 +15,11 @@ import MolecularRenderer
 //   (reproduce the checksum code) during the active state, otherwise 100% zero
 //   during idle. Debug 4 key points during a series of 2 BVH updates.
 // - Move on to the second stage of the "add process".
-//   - Memory slot list is effectively contiguous and 100% vacant.
+//   - Start by actually implementing the kernel that will scan for available
+//     slots and return the available memory. Don't worry about out-of-memory
+//     crashes until the distant future.
+//   - Use some dummy variables for input, ideally a non-contiguous
+//     distribution of already occupied slots. Validate the GPU results.
 
 @MainActor
 func createApplication() -> Application {
