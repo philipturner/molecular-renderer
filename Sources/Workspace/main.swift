@@ -21,6 +21,7 @@ import MolecularRenderer
 //   - Memory slot list is effectively contiguous and 100% vacant.
 // - Implement the reordering optimization now. Check for strange behavior with
 //   the checksum.
+// - Archive the checksum code and now inspect voxelGroupMarks.
 // - Reset the idle state of the atomic counters after the kernel is finished,
 //   during 'forgetIdleState'.
 // - Inspect the results thoroughly with CrashBuffer and DebugDiagnostic
