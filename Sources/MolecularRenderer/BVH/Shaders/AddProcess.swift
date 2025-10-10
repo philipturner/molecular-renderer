@@ -54,17 +54,23 @@ struct AddProcess {
         return;
       }
       
+      // Retrieve the atom.
       uint atomID = transactionIDs[removedCount + globalID];
       float4 atom = transactionAtoms[removedCount + globalID];
-      occupied[atomID] = 1;
       
+      // Compute the motion vector.
       float4 motionVector = 0;
       if (globalID < movedCount) {
         float4 previousAtom = atoms[atomID];
         motionVector = previousAtom - atom;
       }
+      
+      // Write the state to the address space.
       atoms[atomID] = atom;
       \(writeMotionVector())
+      occupied[atomID] = 1;
+      
+      
     }
     """
   }
