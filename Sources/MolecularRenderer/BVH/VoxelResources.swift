@@ -36,8 +36,8 @@ class VoxelResources {
     }
     
     // Create the per dense voxel resources.
-    guard worldDimension.remainder(dividingBy: 32) == 0 else {
-      fatalError("World dimension was not divisible by 32.")
+    guard worldDimension.remainder(dividingBy: 8) == 0 else {
+      fatalError("World dimension was not divisible by 8.")
     }
     guard worldDimension > 0 else {
       fatalError("World dimension was zero.")
