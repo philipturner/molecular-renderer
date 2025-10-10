@@ -62,7 +62,7 @@ struct AddProcess {
       offset = atomic_fetch_add_explicit(
         atomicCounters + address, // object
         1, // operand
-        memory_order_relaxed) // order
+        memory_order_relaxed); // order
       """
       #else
       """
