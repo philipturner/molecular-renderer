@@ -136,7 +136,25 @@ struct AddProcess {
       for (uint i = 0; i < 8; ++i) {
         uint address = i;
         address = address * 128 + localID;
-        cachedRelativeOffsets[address] = \(UInt16.max - 5);
+        cachedRelativeOffsets[address] = \(UInt16.max);
+      }
+      
+      // Iterate over the footprint on the 3D grid.
+      for (uint z = 0; z < loopEnd[2]; ++z) {
+        for (uint y = 0; y < loopEnd[1]; ++y) {
+          for (uint x = 0; x < loopEnd[0]; ++x) {
+            uint3 actualXYZ = uint3(x, y, z);
+            
+            // Perform the atomic fetch-add.
+            uint offset;
+            {
+              uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
+              uint address =
+              \(VoxelResources.generate("voxelCoordinates", worldDimension / 2));
+              address = (address * 8) + (atomID % 8);
+            }
+          }
+        }
       }
       
       {

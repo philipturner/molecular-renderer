@@ -52,14 +52,5 @@ extension Application {
         inFlightFrameID: 0)
     }
     device.commandQueue.flush()
-    
-    var output = [SIMD4<UInt16>](repeating: .zero, count: 50000)
-    bvhBuilder.counters.crashBuffer.read(
-      data: &output,
-      inFlightFrameID: 0)
-    
-    print(output[0])
-    print(output[8000])
-    print(output[9000])
   }
 }
