@@ -152,4 +152,22 @@ class Shader {
     ""
     #endif
   }
+  
+  // Logical AND operation on vectors.
+  static func and(_ lhs: String, _ rhs: String) -> String {
+    #if os(macOS)
+    "(\(lhs)) && (\(rhs))"
+    #else
+    "and(\(lhs), \(rhs))"
+    #endif
+  }
+  
+  // Logical OR operation on vectors.
+  static func or(_ lhs: String, _ rhs: String) -> String {
+    #if os(macOS)
+    "(\(lhs)) || (\(rhs))"
+    #else
+    "or(\(lhs), \(rhs))"
+    #endif
+  }
 }
