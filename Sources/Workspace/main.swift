@@ -17,6 +17,10 @@ import MolecularRenderer
 //   - Use some dummy variables for input, ideally a non-contiguous
 //     distribution of already occupied slots. Validate the GPU results.
 //   - Practice working with the user-specified quantity of memory slots.
+// - After the "add process" is fully completed, move on to "remove process".
+//   Debug all the steps of in-place BVH modification without actually
+//   constructing the 0.25 nm data. Implement the rotating rod test at this
+//   point.
 
 @MainActor
 func createApplication() -> Application {

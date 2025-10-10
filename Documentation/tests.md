@@ -42,12 +42,12 @@ At the time of writing, the Windows xTB executable is compiled with OpenBLAS to 
 
 Reference video: [YouTube](https://www.youtube.com/shorts/rV1UGau20xQ)
 
+## Rotating Rod
+
+Test at least one case of a skinny, rotating rod where the total number of cells swept vastly exceeds the number of memory slots. The rod's atom count is less than 1 million, and every atom moves every frame. Use this as a benchmark for the true maximum atoms/frame in a practical setting.
+
+Also include some stationary atoms nearby, which you can guarantee fall into some of the same cells. The test is scaleable, just like the long distances test.
+
 ## Long Distances
 
 Run a test that hits the pain points of ray tracing. Long primary ray traversal times in the DDA, high divergence for AO rays. Not exactly stressing the BVH update process. Rather, a single unchanging BVH and a rotating camera to detect stuttering. Make the test scaleable to different distances and window sizes.
-
-## MM4 Energy Minimization
-
-Prove that FIRE can replace the energy minimizer built into OpenMM. Compare execution times from this test to offline benchmarks of the OpenMM minimizer. Use a reasonably sized (10k to 100k atoms) part with a non-negligible amount of warping from {100} surface strain. Benchmark on both platforms for fairness.
-
-This test cannot be performed until a minimal BVH is implemented. Reference video or reference image is not needed, as absolute energy determines whether the results are being reproduced.
