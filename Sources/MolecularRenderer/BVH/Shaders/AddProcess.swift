@@ -40,11 +40,11 @@ struct AddProcess {
       #endif
     }
     
-    func writeMotionVector() -> String {
+    func castHalf4(_ input: String) -> String {
       #if os(macOS)
-      "motionVectors[atomID] = half4(motionVector);"
+      "half4(\(input))"
       #else
-      "motionVectors[atomID] = motionVector;"
+      input
       #endif
     }
     
@@ -80,7 +80,7 @@ struct AddProcess {
       
       // Write the state to the address space.
       atoms[atomID] = atom;
-      \(writeMotionVector())
+      motionVectors[atomID] = \(castHalf4("motionVector"));
       occupied[atomID] = 1;
       
       // Place the atom in the grid of 0.25 nm voxels.

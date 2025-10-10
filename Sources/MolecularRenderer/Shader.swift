@@ -170,4 +170,13 @@ class Shader {
     "or(\(lhs), \(rhs))"
     #endif
   }
+  
+  // Force a loop to unroll.
+  static var unroll: String {
+    #if os(macOS)
+    "#pragma clang loop unroll(full)"
+    #else
+    "[unroll]"
+    #endif
+  }
 }
