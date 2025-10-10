@@ -63,15 +63,15 @@ application.updateBVH(inFlightFrameID: 0)
 // application.runDiagnostic()
 application.forgetIdleState(inFlightFrameID: 0)
 application.runDiagnostic()
-// application.runDiagnostic()
+application.runDiagnostic()
 // application.runDiagnostic()
 
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
+// for atomID in lattice.atoms.indices {
+//   let atom = lattice.atoms[atomID]
+//   application.atoms[atomID] = atom
+// }
 
-application.updateBVH(inFlightFrameID: 1)
-application.runDiagnostic()
-application.runDiagnostic()
-application.runDiagnostic()
+// application.updateBVH(inFlightFrameID: 1)
+// application.runDiagnostic()
+// application.runDiagnostic()
+// application.runDiagnostic()
