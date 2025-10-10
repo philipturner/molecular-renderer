@@ -179,6 +179,11 @@ struct AddProcess {
               address = (address * 8) + (atomID % 8);
               \(atomicAdd())
             }
+            
+            // Store to the cache.
+            {
+            
+            }
           }
         }
       }

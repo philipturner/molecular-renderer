@@ -23,8 +23,8 @@ import MolecularRenderer
 //   voxelGroupMarks with a much simpler inspection method.
 // - Reset the idle state of the atomic counters after the kernel is finished,
 //   during 'forgetIdleState'. Check for the presence of nonzero counters
-//   during the active state, 100% zero during idle. Debug 4 key points during
-//   a series of 2 BVH updates.
+//   (reproduce the checksum code) during the active state, otherwise 100% zero
+//   during idle. Debug 4 key points during a series of 2 BVH updates.
 
 @MainActor
 func createApplication() -> Application {
