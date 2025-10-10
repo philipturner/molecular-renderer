@@ -48,6 +48,14 @@ struct AddProcess {
       #endif
     }
     
+    func barrier() -> String {
+      #if os(macOS)
+      "simdgroup_barrier(mem_flags::mem_threadgroup);"
+      #else
+      "GroupMemoryBarrierWithGroupSync();"
+      #endif
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
