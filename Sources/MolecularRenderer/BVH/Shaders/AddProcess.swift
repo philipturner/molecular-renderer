@@ -196,6 +196,56 @@ struct AddProcess {
   }
 }
 
+extension AddProcess {
+  private static func pickPermutation() -> String {
+    """
+    uint pickPermutation(int3 footprintHigh) {
+      uint output;
+      if (footprintHigh[0] == 0) {
+        output = 0;
+      } else if (footprintHigh[1] == 0) {
+        output = 1;
+      } else {
+        output = 2;
+      }
+      return output;
+    }
+    """
+  }
+  
+  private static func reorderForward() -> String {
+    """
+    uint3 reorderForward(uint3 loopBound, uint permutationID) {
+      uint3 output;
+      if (permutationID == 0) {
+        output = uint3(loopBound[1], loopBound[2], loopBound[0]);
+      } else if (permutationID == 1) {
+        output = uint3(loopBound[0], loopBound[2], loopBound[1]);
+      } else {
+        output = uint3(loopBound[0], loopBound[1], loopBound[2]);
+      }
+      return output;
+    }
+    """
+  }
+  
+  private static func reorderBackward() -> String {
+    """
+    uint3 reorderBackward(uint3 loopBound, uint permutationID) {
+      uint3 output;
+      if (permutationID == 0) {
+        output = uint3(loopBound[2], loopBound[0], loopBound[1]);
+      } else if (permutationID == 1) {
+        output = uint3(loopBound[0], loopBound[2], loopBound[1]);
+      } else {
+        output = uint3(loopBound[0], loopBound[1], loopBound[2]);
+      }
+      return output;
+    }
+    """
+  }
+}
+
 extension BVHBuilder {
   func addProcess1(
     commandList: CommandList,
