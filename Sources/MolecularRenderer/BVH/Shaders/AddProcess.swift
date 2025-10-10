@@ -182,7 +182,18 @@ struct AddProcess {
             
             // Store to the cache.
             {
+              uint address = z * 4 + y * 2 + x;
+              address = address * 128 + localID;
+              cachedRelativeOffsets[address] = offset;
+            }
             
+            // Write the voxel group mark.
+            {
+              uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
+              voxelCoordinates /= 4;
+              uint address =
+              \(VoxelResources.generate("voxelCoordinates", worldDimension / 8));
+              voxelGroupMarks[address] = 1;
             }
           }
         }
