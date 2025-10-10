@@ -132,10 +132,12 @@ struct AddProcess {
                              uint3(2, 2, 2),
                              footprintHigh > 0);
       
-      uint uintAddress =
-      \(VoxelResources.generate("loopEnd", worldDimension / 0.25));
-      float floatAddress =
-      \(VoxelResources.generate("loopEnd", worldDimension / 8));
+      // Initialize the cached offsets for debugging purposes.
+      for (uint i = 0; i < 8; ++i) {
+        uint address = i;
+        address = address * 128 + localID;
+        cachedRelativeOffsets[address] = \(UInt32.max);
+      }
       
       {
         // Retrieve the cached offsets.
