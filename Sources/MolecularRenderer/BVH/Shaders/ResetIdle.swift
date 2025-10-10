@@ -100,7 +100,7 @@ struct ResetIdle {
         uint address =
         \(VoxelResources.generate("globalID", worldDimension / 2));
         atomicCounters[2 * address + 0] = 0;
-        atomicCounters[2 * address + 1] = 1;
+        atomicCounters[2 * address + 1] = 0;
       }
     }
     """
