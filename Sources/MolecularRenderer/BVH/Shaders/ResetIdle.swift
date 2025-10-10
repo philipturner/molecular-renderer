@@ -138,9 +138,22 @@ extension BVHBuilder {
       }
       commandList.dispatch(groups: createGroupCount32())
     }
-    
-    #if os(Windows)
-    computeUAVBarrier(commandList: commandList)
-    #endif
+  }
+  
+  func resetAtomicCounters(
+    commandList: CommandList
+  ) {
+    commandList.withPipelineState(shaders.resetAtomicCounters) {
+      commandList.setBuffer(
+        voxelResources.voxelGroupMarks, index: 0)
+      commandList.setBuffer(
+        voxelResources.atomicCounters, index: 1)
+      
+      let worldDimension = voxelResources.worldDimension
+      let voxelGroupCount = VoxelResources.voxelGroupCount(
+        worldDimension: worldDimension)
+      let groups = SIMD3<UInt32>(repeating: UInt32(voxelGroupCount))
+      commandList.dispatch(groups: groups)
+    }
   }
 }

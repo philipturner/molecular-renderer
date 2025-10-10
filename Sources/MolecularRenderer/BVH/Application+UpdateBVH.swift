@@ -36,6 +36,12 @@ extension Application {
       bvhBuilder.resetMotionVectors(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.resetAtomicCounters(
+        commandList: commandList)
+      
+      #if os(Windows)
+      bvhBuilder.computeUAVBarrier(commandList: commandList)
+      #endif
     }
     
     // Delete the transactionArgs state variable.

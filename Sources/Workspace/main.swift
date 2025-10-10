@@ -55,6 +55,8 @@ let lattice = Lattice<Cubic> { h, k, l in
 for atomID in lattice.atoms.indices {
   let atom = lattice.atoms[atomID]
   application.atoms[atomID] = atom
+  application.atoms[atomID] = atom
+  application.atoms[atomID] = atom
 }
 
 application.updateBVH(inFlightFrameID: 0)
