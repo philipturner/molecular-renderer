@@ -3,8 +3,6 @@ import SwiftCOM
 import WinSDK
 #endif
 
-import func Foundation.exit // temporary, for development of BVH
-
 public struct ApplicationDescriptor {
   public var device: Device?
   public var display: Display?
