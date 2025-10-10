@@ -57,6 +57,8 @@ struct AddProcess {
       // Retrieve the atom.
       uint atomID = transactionIDs[removedCount + globalID];
       float4 atom = transactionAtoms[removedCount + globalID];
+      uint atomicNumber = uint(atom[3]);
+      float radius = atomRadii[atomicNumber];
       
       // Compute the motion vector.
       float4 motionVector = 0;
@@ -70,7 +72,37 @@ struct AddProcess {
       \(writeMotionVector())
       occupied[atomID] = 1;
       
+      // Place the atom in the grid of 0.25 nm voxels.
+      float3 scaledPosition = atom.xyz + float(\(worldDimension / 2));
+      scaledPosition /= 0.25;
+      float scaledRadius = radius / 0.25;
       
+      // Generate the bounding box.
+      float3 boxMin = floor(scaledPosition - scaledRadius);
+      float3 boxMax = ceil(scaledPosition + scaledRadius);
+      
+      // Return early if out of bounds.
+      if (any(boxMin < 0 ||
+              boxMax > float(\(worldDimension * 4)))) {
+        return;
+      }
+      
+      // Generate the voxel coordinates.
+      uint3 smallVoxelMin = uint3(boxMin);
+      uint3 smallVoxelMax = uint3(boxMax);
+      uint3 largeVoxelMin = smallVoxelMin / 8;
+      
+      // Pre-compute the footprint.
+      uint3 dividingLine = (largeVoxelMin + 1) * 8;
+      dividingLine = min(dividingLine, smallVoxelMax);
+      dividingLine = max(dividingLine, smallVoxelMin);
+      int3 footprintLow = int3(dividingLine - smallVoxelMin);
+      int3 footprintHigh = int3(smallVoxelMax - dividingLine);
+      
+      // Determine the loop bounds.
+      uint3 loopEnd = select(uint3(1),
+                             uint3(2),
+                             footprintHigh > 0);
     }
     """
   }
