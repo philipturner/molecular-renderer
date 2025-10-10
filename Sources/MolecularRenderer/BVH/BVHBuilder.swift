@@ -7,7 +7,7 @@ struct BVHBuilderDescriptor {
   var addressSpaceSize: Int?
   var device: Device?
   var voxelAllocationSize: Int?
-  var worldDimension: Int?
+  var worldDimension: Float?
 }
 
 class BVHBuilder {

@@ -1,7 +1,7 @@
 // First step: update the positions and motion vectors in the address space
 // in the first kernel
 struct AddProcess {
-  static func createSource1(worldDimension: Int) -> String {
+  static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -90,7 +90,7 @@ struct AddProcess {
       float3 boxMax = ceil(scaledPosition + scaledRadius);
       
       // Return early if out of bounds.
-      bool3 returnEarly = boxMax > float(\(worldDimension * 4));
+      bool3 returnEarly = boxMax > float(\(worldDimension / 0.25));
       returnEarly = \(or("returnEarly", "boxMin < 0"));
       if (any(returnEarly)) {
         return;

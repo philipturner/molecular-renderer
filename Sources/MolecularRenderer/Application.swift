@@ -10,7 +10,7 @@ public struct ApplicationDescriptor {
   
   public var addressSpaceSize: Int?
   public var voxelAllocationSize: Int?
-  public var worldDimension: Int?
+  public var worldDimension: Float?
   
   public init() {
     

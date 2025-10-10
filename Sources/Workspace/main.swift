@@ -22,7 +22,6 @@ import MolecularRenderer
 // - Reset the idle state of the atomic counters after the kernel is finished,
 //   during 'forgetIdleState'.
 // - Inspect the results thoroughly with CrashBuffer and DebugDiagnostic
-// - Change worldDimension to floating point.
 
 @MainActor
 func createApplication() -> Application {

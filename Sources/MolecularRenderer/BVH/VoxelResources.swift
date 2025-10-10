@@ -1,11 +1,11 @@
 struct VoxelResourcesDescriptor {
   var device: Device?
   var voxelAllocationSize: Int?
-  var worldDimension: Int?
+  var worldDimension: Float?
 }
 
 class VoxelResources {
-  let worldDimension: Int
+  let worldDimension: Float
   let memorySlotCount: Int
   
   // Per dense voxel
@@ -36,7 +36,7 @@ class VoxelResources {
     }
     
     // Create the per dense voxel resources.
-    guard worldDimension % (8 * 4) == 0 else {
+    guard worldDimension.remainder(dividingBy: 32) == 0 else {
       fatalError("World dimension was not divisible by 32.")
     }
     guard worldDimension > 0 else {
@@ -62,19 +62,19 @@ class VoxelResources {
     self.memorySlots = createBuffer(size: memorySlotCount * Self.memorySlotSize)
   }
   
-  static func voxelGroupCount(worldDimension: Int) -> Int {
+  static func voxelGroupCount(worldDimension: Float) -> Int {
     var output: Int = 1
-    output *= worldDimension / 8
-    output *= worldDimension / 8
-    output *= worldDimension / 8
+    for _ in 0..<3 {
+      output *= Int(worldDimension / 8)
+    }
     return output
   }
   
-  static func voxelCount(worldDimension: Int) -> Int {
+  static func voxelCount(worldDimension: Float) -> Int {
     var output: Int = 1
-    output *= worldDimension / 2
-    output *= worldDimension / 2
-    output *= worldDimension / 2
+    for _ in 0..<3 {
+      output *= Int(worldDimension / 2)
+    }
     return output
   }
   

@@ -1,6 +1,6 @@
 struct BVHShadersDescriptor {
   var device: Device?
-  var worldDimension: Int?
+  var worldDimension: Float?
 }
 
 class BVHShaders {
