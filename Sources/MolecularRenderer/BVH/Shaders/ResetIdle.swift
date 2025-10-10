@@ -72,7 +72,7 @@ struct ResetIdle {
       )]
       void resetAtomicCounters(
         uint3 globalID : SV_DispatchThreadID,
-        uint3 groupID : SV_GroupThreadID)
+        uint3 groupID : SV_GroupID)
       """
       #endif
     }
@@ -150,12 +150,11 @@ extension BVHBuilder {
         voxelResources.atomicCounters, index: 1)
       
       let worldDimension = voxelResources.worldDimension
-      let voxelGroupCount = VoxelResources.voxelGroupCount(
-        worldDimension: worldDimension)
+      let gridSize = Int(worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
-        UInt32(voxelGroupCount),
-        UInt32(1),
-        UInt32(1))
+        UInt32(gridSize),
+        UInt32(gridSize),
+        UInt32(gridSize))
       commandList.dispatch(groups: threadgroupCount)
     }
   }

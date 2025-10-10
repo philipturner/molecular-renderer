@@ -50,23 +50,21 @@ extension Application {
   
   public func runDiagnostic() {
     device.commandQueue.withCommandList { commandList in
-      // bvhBuilder.debugDiagnostic(
-      //   commandList: commandList,
-      //   dataBuffer: bvhBuilder.voxelResources.atomicCounters)
-      // bvhBuilder.counters.crashBuffer.download(
-      //   commandList: commandList,
-      //   inFlightFrameID: 0)
+      bvhBuilder.debugDiagnostic(
+        commandList: commandList,
+        dataBuffer: bvhBuilder.voxelResources.atomicCounters)
+      bvhBuilder.counters.crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: 0)
     }
     
     device.commandQueue.flush()
     
-    // var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
-    // bvhBuilder.counters.crashBuffer.read(
-    //   data: &output,
-    //   inFlightFrameID: 0)
-    print("Hello world")
+    var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
+    bvhBuilder.counters.crashBuffer.read(
+      data: &output,
+      inFlightFrameID: 0)
     
-    #if false
     var xorHash: SIMD4<UInt32> = .zero
     var rotateHash: SIMD4<UInt32> = .zero
     var addressRotateHash: UInt32 = .zero
@@ -109,6 +107,5 @@ extension Application {
     print(addressRotateHash)
     print(referenceSum)
     print(voxelSum)
-    #endif
   }
 }
