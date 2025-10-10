@@ -21,7 +21,7 @@ class BVHCounters {
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
-    crashBufferDesc.size = 50000 * 8
+    crashBufferDesc.size = 64 * 4
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
     #if os(Windows)

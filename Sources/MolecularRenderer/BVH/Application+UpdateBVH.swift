@@ -46,57 +46,28 @@ extension Application {
     device.commandQueue.withCommandList { commandList in
       bvhBuilder.debugDiagnostic(
         commandList: commandList,
-        dataBuffer: bvhBuilder.atomResources.relativeOffsets1)
+        dataBuffer: bvhBuilder.voxelResources.voxelGroupMarks)
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)
     }
     device.commandQueue.flush()
     
-    var output = [SIMD4<UInt16>](repeating: .zero, count: 50000)
+    var output = [UInt32](repeating: 5, count: 64)
     bvhBuilder.counters.crashBuffer.read(
       data: &output,
       inFlightFrameID: 0)
     
-    // TODO: Archive this code in the checksum GitHub gist.
-    
-    // Gather the number of atoms with 1, 2, 4, 8 references.
-    var count0: Int = .zero
-    var count1: Int = .zero
-    var count2: Int = .zero
-    var count4: Int = .zero
-    for atomID in 0..<8631 {
-      let counters = output[atomID]
-      let existsMask = counters .!= SIMD4<UInt16>(repeating: UInt16.max)
-      var popcountMask: SIMD4<UInt16> = .zero
-      popcountMask.replace(
-        with: SIMD4<UInt16>(repeating: 1),
-        where: existsMask)
-      
-      let count = popcountMask.wrappedSum()
-      switch count {
-      case 0:
-        count0 += 1
-      case 1:
-        count1 += 1
-      case 2:
-        count2 += 1
-      case 4:
-        count4 += 1
-      default:
-        fatalError("Unexpected count: \(count)")
+    for z in 0..<4 {
+      for y in 0..<4 {
+        for x in 0..<4 {
+          let address = z * 4 * 4 + y * 4 + x
+          let mark = output[address]
+          if mark > 0 {
+            print("(\(x), \(y), \(z)) = \(mark)")
+          }
+        }
       }
     }
-    
-    print(output[0])
-    print(output[1])
-    print(output[8000])
-    print(output[9000])
-    
-    print()
-    print(count0)
-    print(count1)
-    print(count2)
-    print(count4)
   }
 }

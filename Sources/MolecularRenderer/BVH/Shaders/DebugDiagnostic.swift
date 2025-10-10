@@ -30,7 +30,7 @@ struct DebugDiagnostic {
     
     \(functionSignature())
     {
-      if (globalID >= 50000 * 2) {
+      if (globalID >= 64) {
         return;
       }
       
@@ -56,7 +56,7 @@ extension BVHBuilder {
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
-        var groupCount: Int = 50000 * 2
+        var groupCount: Int = 64
         
         let groupSize: Int = 128
         groupCount += groupSize - 1
