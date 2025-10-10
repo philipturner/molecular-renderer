@@ -48,19 +48,32 @@ struct AddProcess {
       #endif
     }
     
-    func castUShort4(_ input: String) -> String {
-      #if os(macOS)
-      "ushort4(\(input))"
-      #else
-      input
-      #endif
-    }
-    
     func barrier() -> String {
       #if os(macOS)
       "simdgroup_barrier(mem_flags::mem_threadgroup);"
       #else
       "GroupMemoryBarrierWithGroupSync();"
+      #endif
+    }
+    
+    func atomicAdd() -> String {
+      #if os(macOS)
+      
+      #else
+      """
+      InterlockedAdd(
+        atomicCounters[address], // dest
+        1, // value
+        offset); // original_value
+      """
+      #endif
+    }
+    
+    func castUShort4(_ input: String) -> String {
+      #if os(macOS)
+      "ushort4(\(input))"
+      #else
+      input
       #endif
     }
     
@@ -152,6 +165,7 @@ struct AddProcess {
               uint address =
               \(VoxelResources.generate("voxelCoordinates", worldDimension / 2));
               address = (address * 8) + (atomID % 8);
+              \(atomicAdd())
             }
           }
         }
