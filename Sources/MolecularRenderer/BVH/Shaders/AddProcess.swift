@@ -146,9 +146,8 @@ struct AddProcess {
       int3 footprintHigh = int3(smallVoxelMax - dividingLine);
       
       // Determine the loop bounds.
-      uint3 loopEnd = select(uint3(1, 1, 1),
-                             uint3(2, 2, 2),
-                             footprintHigh > 0);
+      uint3 loopEnd =
+      \(Shader.select("uint3(1, 1, 1)", "uint3(2, 2, 2)", "footprintHigh > 0"));
       
       // Initialize the cached offsets for debugging purposes.
       for (uint i = 0; i < 8; ++i) {

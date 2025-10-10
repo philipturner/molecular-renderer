@@ -171,6 +171,19 @@ class Shader {
     #endif
   }
   
+  // Select operation with correct argument order.
+  static func select(
+    _ falseValue: String,
+    _ trueValue: String,
+    _ condition: String
+  ) -> String {
+    #if os(macOS)
+    "select(\(falseValue), \(trueValue), \(condition))"
+    #else
+    "select(\(condition), \(trueValue), \(falseValue))"
+    #endif
+  }
+  
   // Force a loop to unroll.
   static var unroll: String {
     #if os(macOS)
