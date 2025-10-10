@@ -19,6 +19,8 @@ import MolecularRenderer
 //   - Write to the 8 nm scoped marks, just don't use them.
 //   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
 //   - Memory slot list is effectively contiguous and 100% vacant.
+// - Implement the reordering optimization now. Check for strange behavior with
+//   the checksum.
 // - Reset the idle state of the atomic counters after the kernel is finished,
 //   during 'forgetIdleState'.
 // - Inspect the results thoroughly with CrashBuffer and DebugDiagnostic

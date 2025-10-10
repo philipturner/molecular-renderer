@@ -53,8 +53,6 @@ extension Application {
     }
     device.commandQueue.flush()
     
-    // Implement a robust checksum of the atomic counters. Then, implement the
-    // reordering optimization.
     var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
     bvhBuilder.counters.crashBuffer.read(
       data: &output,
