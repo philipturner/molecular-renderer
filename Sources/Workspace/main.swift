@@ -19,8 +19,6 @@ import MolecularRenderer
 //   - Write to the 8 nm scoped marks, just don't use them.
 //   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
 //   - Memory slot list is effectively contiguous and 100% vacant.
-// - Implement the reordering optimization now. Check for strange behavior with
-//   the checksum.
 // - Archive the checksum code and now inspect cachedRelativeOffsets,
 //   voxelGroupMarks with a much simpler inspection method.
 // - Reset the idle state of the atomic counters after the kernel is finished,
