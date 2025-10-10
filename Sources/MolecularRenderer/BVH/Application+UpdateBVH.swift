@@ -109,5 +109,12 @@ extension Application {
     let expectedReferenceSum: UInt32 = 13897
     let expectedVoxelSum: UInt32 = 64
     
+    guard all(xorHash .== expectedXorHash),
+          all(rotateHash .== expectedRotateHash),
+          addressRotateHash == expectedAddressRotateHash,
+          referenceSum == expectedReferenceSum,
+          voxelSum == expectedVoxelSum else {
+      fatalError("Did not get expected results.")
+    }
   }
 }
