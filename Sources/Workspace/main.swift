@@ -16,6 +16,7 @@ import MolecularRenderer
 //     crashes until the distant future.
 //   - Use some dummy variables for input, ideally a non-contiguous
 //     distribution of already occupied slots. Validate the GPU results.
+//   - Practice working with the user-specified quantity of memory slots.
 
 @MainActor
 func createApplication() -> Application {
