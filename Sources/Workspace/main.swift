@@ -19,9 +19,10 @@ import MolecularRenderer
 //   - Write to the 8 nm scoped marks, just don't use them.
 //   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
 //   - Memory slot list is effectively contiguous and 100% vacant.
-// - If you can save time by not inspecting the results, just don't test for
-//   correctness of the GPU results at the moment. You can always go back and
-//   validate on a different day, when you are more motivated.
+// - Reset the idle state of the atomic counters after the kernel is finished,
+//   during 'forgetIdleState'.
+// - Inspect the results thoroughly with CrashBuffer and DebugDiagnostic
+// - Embed 'worldDimension' into the relevant shader sources.
 
 @MainActor
 func createApplication() -> Application {
