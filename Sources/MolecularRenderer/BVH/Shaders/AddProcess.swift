@@ -17,6 +17,7 @@ struct AddProcess {
       \(AtomResources.functionArguments)
       RWStructuredBuffer<uint> voxelGroupMarks : register(u8);
       RWStructuredBuffer<uint> atomicCounters : register(u9);
+      groupshared uint cachedRelativeOffsets[8 * 128];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -28,6 +29,14 @@ struct AddProcess {
         uint globalID : SV_DispatchThreadID,
         uint localID : SV_GroupThreadID)
       """
+      #endif
+    }
+    
+    func allocateThreadgroupMemory() -> String {
+      #if os(macOS)
+      "threadgroup uint cachedRelativeOffsets[8 * 128];"
+      #else
+      ""
       #endif
     }
     
@@ -47,6 +56,8 @@ struct AddProcess {
     
     \(functionSignature())
     {
+      \(allocateThreadgroupMemory())
+      
       uint removedCount = transactionArgs.removedCount;
       uint movedCount = transactionArgs.movedCount;
       uint addedCount = transactionArgs.addedCount;
