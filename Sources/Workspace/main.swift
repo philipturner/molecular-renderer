@@ -21,10 +21,12 @@ import MolecularRenderer
 //   - Memory slot list is effectively contiguous and 100% vacant.
 // - Implement the reordering optimization now. Check for strange behavior with
 //   the checksum.
-// - Archive the checksum code and now inspect voxelGroupMarks.
+// - Archive the checksum code and now inspect cachedRelativeOffsets,
+//   voxelGroupMarks with a much simpler inspection method.
 // - Reset the idle state of the atomic counters after the kernel is finished,
-//   during 'forgetIdleState'.
-// - Inspect the results thoroughly with CrashBuffer and DebugDiagnostic
+//   during 'forgetIdleState'. Check for the presence of nonzero counters
+//   during the active state, 100% zero during idle. Debug 4 key points during
+//   a series of 2 BVH updates.
 
 @MainActor
 func createApplication() -> Application {
