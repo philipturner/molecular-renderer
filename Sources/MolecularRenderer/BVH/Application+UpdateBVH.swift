@@ -52,22 +52,5 @@ extension Application {
         inFlightFrameID: 0)
     }
     device.commandQueue.flush()
-    
-    var output = [UInt32](repeating: 5, count: 64)
-    bvhBuilder.counters.crashBuffer.read(
-      data: &output,
-      inFlightFrameID: 0)
-    
-    for z in 0..<4 {
-      for y in 0..<4 {
-        for x in 0..<4 {
-          let address = z * 4 * 4 + y * 4 + x
-          let mark = output[address]
-          if mark > 0 {
-            print("(\(x), \(y), \(z)) = \(mark)")
-          }
-        }
-      }
-    }
   }
 }

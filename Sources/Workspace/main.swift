@@ -10,21 +10,12 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Tomorrow: do the first bullet point, using runDiagnostic to "see" the
-//   contents of voxelGroupMarks and atomicCounters.
-// - Walk through implementing and testing the first step, "add process",
-//   without seeing the rendered results. Use a small diamond lattice and
-//   predict how many atoms should reside in each 2 nm voxel.
-//   - Implement the 8x duplicated atomic counters from day one.
-//   - Write to the 8 nm scoped marks, just don't use them.
-//   - Start by compiling an MSL/HLSL shader for the 3 steps of this process.
-//   - Memory slot list is effectively contiguous and 100% vacant.
-// - Archive the checksum code and now inspect cachedRelativeOffsets,
-//   voxelGroupMarks with a much simpler inspection method.
 // - Reset the idle state of the atomic counters after the kernel is finished,
 //   during 'forgetIdleState'. Check for the presence of nonzero counters
 //   (reproduce the checksum code) during the active state, otherwise 100% zero
 //   during idle. Debug 4 key points during a series of 2 BVH updates.
+// - Move on to the second stage of the "add process".
+//   - Memory slot list is effectively contiguous and 100% vacant.
 
 @MainActor
 func createApplication() -> Application {
@@ -68,4 +59,3 @@ for atomID in lattice.atoms.indices {
 
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
-application.runDiagnostic()
