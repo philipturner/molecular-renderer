@@ -60,19 +60,29 @@ extension Application {
       data: &output,
       inFlightFrameID: 0)
     
-    var numOccupiedVoxels: Int = .zero
+    // example addresses to mess up:
+    // 2473 (occupied)
+    // 2475 (unoccupied)
+    
+    var xorHash: SIMD4<UInt32> = .zero
+    var rotateHash: SIMD4<UInt32> = .zero
+    var addressRotateHash: UInt32 = .zero
+    var referenceSum: UInt32 = .zero
+    var voxelSum: UInt32 = .zero
+    
     for z in 0..<16 {
       for y in 0..<16 {
         for x in 0..<16 {
           let address = z * 16 * 16 + y * 16 + x
           let counters = output[address]
-          if counters.wrappedSum() > 0 {
-            print("\(address): (\(x), \(y), \(z)) = \(counters)")
-            numOccupiedVoxels += 1
+          guard counters.wrappedSum() > 0 else {
+            continue
           }
+          
+          
         }
       }
     }
-    print(numOccupiedVoxels)
+    
   }
 }
