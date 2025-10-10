@@ -79,10 +79,32 @@ extension Application {
             continue
           }
           
+          let storage = SIMD8<UInt16>(truncatingIfNeeded: counters)
+          let storageCasted = unsafeBitCast(storage, to: SIMD4<UInt32>.self)
           
+          xorHash ^= storageCasted
+          xorHash = (xorHash &<< 3) | (xorHash &>> (32 - 3))
+          
+          rotateHash &*= storageCasted
+          rotateHash &+= 1
+          rotateHash = (rotateHash &<< 9) | (rotateHash &>> (32 - 9))
+          
+          addressRotateHash &*= UInt32(address)
+          addressRotateHash &+= 1
+          addressRotateHash =
+          (addressRotateHash &<< 9) | (addressRotateHash &>> (32 - 9))
+          
+          referenceSum += counters.wrappedSum()
+          voxelSum += 1
         }
       }
     }
     
+    // Inspect the checksum.
+    print(xorHash)
+    print(rotateHash)
+    print(addressRotateHash)
+    print(referenceSum)
+    print(voxelSum)
   }
 }
