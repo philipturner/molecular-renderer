@@ -78,6 +78,16 @@ class VoxelResources {
     return output
   }
   
+  // Shader code to generate a voxel address.
+  static func generate(
+    _ input: String,
+    _ gridDimension: Float
+  ) -> String {
+    let gridWidthSq = Int(gridDimension * gridDimension)
+    let gridWidth = Int(gridDimension)
+    return "\(input).z * \(gridWidthSq) + \(input).y * \(gridWidth) + \(input).x"
+  }
+  
   static func memorySlotCount(voxelAllocationSize: Int) -> Int {
     return voxelAllocationSize / memorySlotSize
   }
