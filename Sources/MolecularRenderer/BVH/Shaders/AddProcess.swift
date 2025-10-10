@@ -86,6 +86,9 @@ struct AddProcess {
     \(Shader.importStandardLibrary)
     
     \(AtomStyles.createAtomRadii(AtomStyles.radii))
+    \(pickPermutation())
+    \(reorderForward())
+    \(reorderBackward())
     \(TransactionArgs.shaderDeclaration)
     
     \(functionSignature())
@@ -149,6 +152,10 @@ struct AddProcess {
       uint3 loopEnd =
       \(Shader.select("uint3(1, 1, 1)", "uint3(2, 2, 2)", "footprintHigh > 0"));
       
+      // Reorder the loop traversal.
+      uint permutationID = pickPermutation(footprintHigh);
+      loopEnd = reorderForward(loopEnd, permutationID);
+      
       // Initialize the cached offsets for debugging purposes.
       for (uint i = 0; i < 8; ++i) {
         uint address = i;
@@ -161,6 +168,7 @@ struct AddProcess {
         for (uint y = 0; y < loopEnd[1]; ++y) {
           for (uint x = 0; x < loopEnd[0]; ++x) {
             uint3 actualXYZ = uint3(x, y, z);
+            actualXYZ = reorderBackward(actualXYZ, permutationID);
             
             // Perform the atomic fetch-add.
             uint offset;
@@ -189,7 +197,9 @@ struct AddProcess {
         
         // Write to device memory.
         relativeOffsets1[atomID] = \(castUShort4("output[0]"));
-        relativeOffsets2[atomID] = \(castUShort4("output[1]"));
+        if (loopEnd[2] == 2) {
+          relativeOffsets2[atomID] = \(castUShort4("output[1]"));
+        }
       }
     }
     """
