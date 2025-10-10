@@ -82,8 +82,9 @@ struct AddProcess {
       float3 boxMax = ceil(scaledPosition + scaledRadius);
       
       // Return early if out of bounds.
-      if (any(boxMin < 0 ||
-              boxMax > float(\(worldDimension * 4)))) {
+      bool3 returnEarly = (boxMin < 0);
+      returnEarly = or(returnEarly, boxMax > float(\(worldDimension * 4)));
+      if (any(returnEarly)) {
         return;
       }
       
@@ -100,8 +101,8 @@ struct AddProcess {
       int3 footprintHigh = int3(smallVoxelMax - dividingLine);
       
       // Determine the loop bounds.
-      uint3 loopEnd = select(uint3(1),
-                             uint3(2),
+      uint3 loopEnd = select(uint3(1, 1, 1),
+                             uint3(2, 2, 2),
                              footprintHigh > 0);
     }
     """
