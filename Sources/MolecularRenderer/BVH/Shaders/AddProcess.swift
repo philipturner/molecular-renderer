@@ -58,7 +58,12 @@ struct AddProcess {
     
     func atomicAdd() -> String {
       #if os(macOS)
-      
+      """
+      offset = atomic_fetch_add_explicit(
+        atomicCounters + address, // object
+        1, // operand
+        memory_order_relaxed) // order
+      """
       #else
       """
       InterlockedAdd(
