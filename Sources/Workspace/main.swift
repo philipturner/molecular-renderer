@@ -10,10 +10,6 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Reset the idle state of the atomic counters after the kernel is finished,
-//   during 'forgetIdleState'. Check for the presence of nonzero counters
-//   (reproduce the checksum code) during the active state, otherwise 100% zero
-//   during idle. Debug 4 key points during a series of 2 BVH updates.
 // - Move on to the second stage of the "add process".
 //   - Start by actually implementing the kernel that will scan for available
 //     slots and return the available memory. Don't worry about out-of-memory
@@ -49,29 +45,3 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
-
-// 8631 atoms
-let lattice = Lattice<Cubic> { h, k, l in
-  Bounds { 10 * (h + k + l) }
-  Material { .checkerboard(.silicon, .carbon) }
-}
-
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
-
-application.updateBVH(inFlightFrameID: 0)
-application.runDiagnostic()
-application.forgetIdleState(inFlightFrameID: 0)
-application.runDiagnostic()
-
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
-
-application.updateBVH(inFlightFrameID: 1)
-application.runDiagnostic()
-application.forgetIdleState(inFlightFrameID: 1)
-application.runDiagnostic()
