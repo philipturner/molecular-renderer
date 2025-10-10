@@ -136,7 +136,7 @@ struct AddProcess {
       for (uint i = 0; i < 8; ++i) {
         uint address = i;
         address = address * 128 + localID;
-        cachedRelativeOffsets[address] = \(UInt32.max);
+        cachedRelativeOffsets[address] = \(UInt16.max - 5);
       }
       
       {
