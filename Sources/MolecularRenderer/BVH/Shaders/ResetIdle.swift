@@ -152,8 +152,11 @@ extension BVHBuilder {
       let worldDimension = voxelResources.worldDimension
       let voxelGroupCount = VoxelResources.voxelGroupCount(
         worldDimension: worldDimension)
-      let groups = SIMD3<UInt32>(repeating: UInt32(voxelGroupCount))
-      commandList.dispatch(groups: groups)
+      let threadgroupCount = SIMD3<UInt32>(
+        UInt32(voxelGroupCount),
+        UInt32(1),
+        UInt32(1))
+      commandList.dispatch(groups: threadgroupCount)
     }
   }
 }

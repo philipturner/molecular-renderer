@@ -62,8 +62,9 @@ application.updateBVH(inFlightFrameID: 0)
 // application.runDiagnostic()
 // application.runDiagnostic()
 application.forgetIdleState(inFlightFrameID: 0)
-application.runDiagnostic()
-application.runDiagnostic()
+for _ in 0..<20 {
+  application.runDiagnostic()
+}
 // application.runDiagnostic()
 
 // for atomID in lattice.atoms.indices {
