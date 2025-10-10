@@ -39,6 +39,14 @@ struct AddProcess {
       #endif
     }
     
+    func or(_ lhs: String, _ rhs: String) -> String {
+      #if os(macOS)
+      "(\(lhs)) || (\(rhs))"
+      #else
+      "or(\(lhs), \(rhs))"
+      #endif
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -82,8 +90,8 @@ struct AddProcess {
       float3 boxMax = ceil(scaledPosition + scaledRadius);
       
       // Return early if out of bounds.
-      bool3 returnEarly = (boxMin < 0);
-      returnEarly = or(returnEarly, boxMax > float(\(worldDimension * 4)));
+      bool3 returnEarly = boxMax > float(\(worldDimension * 4));
+      returnEarly = \(or("returnEarly", "boxMin < 0"));
       if (any(returnEarly)) {
         return;
       }
