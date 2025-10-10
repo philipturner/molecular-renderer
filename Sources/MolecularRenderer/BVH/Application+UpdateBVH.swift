@@ -58,6 +58,24 @@ extension Application {
       data: &output,
       inFlightFrameID: 0)
     
+    // TODO: Archive this code in the checksum GitHub gist.
+    
+    // Gather the number of atoms with 1, 2, 4, 8 references.
+    var count0: Int = .zero
+    var count1: Int = .zero
+    var count2: Int = .zero
+    var count4: Int = .zero
+    for atomID in 0..<8631 {
+      let counters = output[atomID]
+      let existsMask = counters .!= SIMD4<UInt16>(repeating: UInt16.max)
+      var popcountMask: SIMD4<UInt16> = .zero
+      popcountMask.replace(
+        with: SIMD4<UInt16>(repeating: 1),
+        where: existsMask)
+      
+      let count = popcountMask.wrappedSum()
+    }
+    
     print(output[0])
     print(output[1])
     print(output[8000])
