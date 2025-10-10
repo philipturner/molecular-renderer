@@ -48,6 +48,14 @@ struct AddProcess {
       #endif
     }
     
+    func castUShort4(_ input: String) -> String {
+      #if os(macOS)
+      "ushort4(\(input))"
+      #else
+      input
+      #endif
+    }
+    
     func barrier() -> String {
       #if os(macOS)
       "simdgroup_barrier(mem_flags::mem_threadgroup);"
@@ -123,6 +131,23 @@ struct AddProcess {
       uint3 loopEnd = select(uint3(1, 1, 1),
                              uint3(2, 2, 2),
                              footprintHigh > 0);
+      
+      {
+        // Retrieve the cached offsets.
+        \(barrier())
+        uint4 output[2];
+        \(Shader.unroll)
+        for (uint i = 0; i < 8; ++i) {
+          uint address = i;
+          address = address * 128 + localID;
+          uint offset = cachedRelativeOffsets[address];
+          output[i / 4][i % 4] = offset;
+        }
+        
+        // Write to device memory.
+        relativeOffsets1[atomID] = \(castUShort4("output[0]"));
+        relativeOffsets2[atomID] = \(castUShort4("output[1]"));
+      }
     }
     """
   }
