@@ -1,7 +1,7 @@
 // First step: update the positions and motion vectors in the address space
 // in the first kernel
 struct AddProcess {
-  static func createSource1() -> String {
+  static func createSource1(worldDimension: Int) -> String {
     func functionSignature() -> String {
       #if os(macOS)
       """

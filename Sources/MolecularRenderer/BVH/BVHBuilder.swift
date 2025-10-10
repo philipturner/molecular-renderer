@@ -28,6 +28,7 @@ class BVHBuilder {
     
     var bvhShadersDesc = BVHShadersDescriptor()
     bvhShadersDesc.device = device
+    bvhShadersDesc.worldDimension = worldDimension
     self.shaders = BVHShaders(descriptor: bvhShadersDesc)
     
     var atomResourcesDesc = AtomResourcesDescriptor()

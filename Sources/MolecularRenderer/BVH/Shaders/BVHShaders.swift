@@ -1,5 +1,6 @@
 struct BVHShadersDescriptor {
   var device: Device?
+  var worldDimension: Int?
 }
 
 class BVHShaders {
@@ -10,7 +11,8 @@ class BVHShaders {
   let resetMotionVectors: Shader
   
   init(descriptor: BVHShadersDescriptor) {
-    guard let device = descriptor.device else {
+    guard let device = descriptor.device,
+          let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
     
@@ -34,7 +36,7 @@ class BVHShaders {
     
     shaderDesc.name = "addProcess1"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = AddProcess.createSource1()
+    shaderDesc.source = AddProcess.createSource1(worldDimension: worldDimension)
     self.addProcess1 = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "resetMotionVectors"
