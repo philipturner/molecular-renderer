@@ -1,4 +1,5 @@
 struct AddProcess {
+  // accumulate number of atoms added to each voxel
   static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -107,11 +108,7 @@ struct AddProcess {
         return;
       }
       
-      // Retrieve the atom.
-      uint atomID = transactionIDs[removedCount + globalID];
-      float4 atom = transactionAtoms[removedCount + globalID];
-      uint atomicNumber = uint(atom[3]);
-      float radius = atomRadii[atomicNumber];
+      \(retrieveAtom())
       
       // Compute the motion vector.
       float4 motionVector = 0;
@@ -125,41 +122,7 @@ struct AddProcess {
       motionVectors[atomID] = \(castHalf4("motionVector"));
       addressOccupiedMarks[atomID] = 1;
       
-      // Place the atom in the grid of 0.25 nm voxels.
-      float3 scaledPosition = atom.xyz + float(\(worldDimension / 2));
-      scaledPosition /= 0.25;
-      float scaledRadius = radius / 0.25;
-      
-      // Generate the bounding box.
-      float3 boxMin = floor(scaledPosition - scaledRadius);
-      float3 boxMax = ceil(scaledPosition + scaledRadius);
-      
-      // Return early if out of bounds.
-      bool3 returnEarly = boxMax > float(\(worldDimension / 0.25));
-      returnEarly = \(Shader.or("returnEarly", "boxMin < 0"));
-      if (any(returnEarly)) {
-        return;
-      }
-      
-      // Generate the voxel coordinates.
-      uint3 smallVoxelMin = uint3(boxMin);
-      uint3 smallVoxelMax = uint3(boxMax);
-      uint3 largeVoxelMin = smallVoxelMin / 8;
-      
-      // Pre-compute the footprint.
-      uint3 dividingLine = (largeVoxelMin + 1) * 8;
-      dividingLine = min(dividingLine, smallVoxelMax);
-      dividingLine = max(dividingLine, smallVoxelMin);
-      int3 footprintLow = int3(dividingLine - smallVoxelMin);
-      int3 footprintHigh = int3(smallVoxelMax - dividingLine);
-      
-      // Determine the loop bounds.
-      uint3 loopEnd =
-      \(Shader.select("uint3(1, 1, 1)", "uint3(2, 2, 2)", "footprintHigh > 0"));
-      
-      // Reorder the loop traversal.
-      uint permutationID = pickPermutation(footprintHigh);
-      loopEnd = reorderForward(loopEnd, permutationID);
+      \(computeLoopBounds(worldDimension: worldDimension))
       
       // Initialize the cached offsets for debugging purposes.
       for (uint i = 0; i < 8; ++i) {
@@ -204,23 +167,21 @@ struct AddProcess {
         }
       }
       
-      {
-        // Retrieve the cached offsets.
-        \(barrier())
-        uint4 output[2];
-        \(Shader.unroll)
-        for (uint i = 0; i < 8; ++i) {
-          uint address = i;
-          address = address * 128 + localID;
-          uint offset = cachedRelativeOffsets[address];
-          output[i / 4][i % 4] = offset;
-        }
-        
-        // Write to device memory.
-        relativeOffsets1[atomID] = \(castUShort4("output[0]"));
-        if (loopEnd[2] == 2) {
-          relativeOffsets2[atomID] = \(castUShort4("output[1]"));
-        }
+      // Retrieve the cached offsets.
+      \(barrier())
+      uint4 outputOffsets[2];
+      \(Shader.unroll)
+      for (uint i = 0; i < 8; ++i) {
+        uint address = i;
+        address = address * 128 + localID;
+        uint offset = cachedRelativeOffsets[address];
+        outputOffsets[i / 4][i % 4] = offset;
+      }
+      
+      // Write to device memory.
+      relativeOffsets1[atomID] = \(castUShort4("outputOffsets[0]"));
+      if (loopEnd[2] == 2) {
+        relativeOffsets2[atomID] = \(castUShort4("outputOffsets[1]"));
       }
     }
     """
@@ -273,6 +234,57 @@ extension AddProcess {
       }
       return output;
     }
+    """
+  }
+  
+  private static func retrieveAtom() -> String {
+    """
+    uint atomID = transactionIDs[removedCount + globalID];
+    float4 atom = transactionAtoms[removedCount + globalID];
+    uint atomicNumber = uint(atom[3]);
+    float radius = atomRadii[atomicNumber];
+    """
+  }
+  
+  private static func computeLoopBounds(
+    worldDimension: Float
+  ) -> String {
+    """
+    // Place the atom in the grid of 0.25 nm voxels.
+    float3 scaledPosition = atom.xyz + float(\(worldDimension / 2));
+    scaledPosition /= 0.25;
+    float scaledRadius = radius / 0.25;
+    
+    // Generate the bounding box.
+    float3 boxMin = floor(scaledPosition - scaledRadius);
+    float3 boxMax = ceil(scaledPosition + scaledRadius);
+    
+    // Return early if out of bounds.
+    bool3 returnEarly = boxMax > float(\(worldDimension / 0.25));
+    returnEarly = \(Shader.or("returnEarly", "boxMin < 0"));
+    if (any(returnEarly)) {
+      return;
+    }
+    
+    // Generate the voxel coordinates.
+    uint3 smallVoxelMin = uint3(boxMin);
+    uint3 smallVoxelMax = uint3(boxMax);
+    uint3 largeVoxelMin = smallVoxelMin / 8;
+    
+    // Pre-compute the footprint.
+    uint3 dividingLine = (largeVoxelMin + 1) * 8;
+    dividingLine = min(dividingLine, smallVoxelMax);
+    dividingLine = max(dividingLine, smallVoxelMin);
+    int3 footprintLow = int3(dividingLine - smallVoxelMin);
+    int3 footprintHigh = int3(smallVoxelMax - dividingLine);
+    
+    // Determine the loop bounds.
+    uint3 loopEnd =
+    \(Shader.select("uint3(1, 1, 1)", "uint3(2, 2, 2)", "footprintHigh > 0"));
+    
+    // Reorder the loop traversal.
+    uint permutationID = pickPermutation(footprintHigh);
+    loopEnd = reorderForward(loopEnd, permutationID);
     """
   }
 }
