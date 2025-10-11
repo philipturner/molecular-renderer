@@ -63,6 +63,7 @@ struct RemoveProcess {
   // write to group.rebuiltMarks
   // create compact list of these voxels (SIMD + global reduction)
   // prepare the indirect dispatch for the next kernel
+  // write to sparse.atomsRemovedVoxelIDs
   // createSource2
   
   // [numthreads(128, 1, 1)]
@@ -72,6 +73,7 @@ struct RemoveProcess {
   //   if either 0 or 2, remove from the list
   // prefix sum to compact the reference list (SIMD + group reduction)
   // update the global -> 2 nm offset of surviving atoms
+  // write to sparse.memorySlots in-place, sanitized to 128 atoms at a time
   //
   // if atoms remain, write to dense.rebuiltMarks
   // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
