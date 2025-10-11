@@ -6,7 +6,7 @@ struct AddProcess {
   // set the atom and motion vector
   // write to group.addedMarks
   // write to dense.atomicCounters with 8 partial sums
-  // save the cachedRelativeOffsets
+  // save the relativeOffsets
   static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -235,14 +235,11 @@ struct AddProcess {
   // dispatch threads SIMD3(movedCount + addedCount, 1, 1)
   //
   // read atom from address space
-  // restore the cachedRelativeOffsets
+  // restore the relativeOffsets
   // read from dense.atomicCounters
-  //   add to cachedRelativeOffset, generating the correct 'relativeOffset'
-  //   write the correct offset back to the threadgroup memory cache
+  //   add to relativeOffset, generating the correct offset
   // read from dense.assignedSlotIDs
   // write the atomID into the voxel's reference list
-  //   fuse a 3-bit tag for the reordered loop iteration
-  // set the relativeOffsets
   //
   // createSource3
 }

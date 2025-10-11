@@ -16,6 +16,8 @@ Simplest implementation:
 
 ![Acceleration Structure Layout (16-Bit)](./AccelerationStructureLayout_16Bit.png)
 
+Revision: the 16-bit offset is temporary and can be ignored after integrating the atom into the BVH. It will be inaccurate in future frames, as the 2 nm voxel's reference list rearranges to fill empty slots.
+
 ## Idle/Active Paradigm
 
 Certain allocations ought to be sanitized or reset back to 0, prior to the next frame. When these allocations are very large, scanning the entire buffer would incur an unreasonable bandwidth cost. Instead, one must keep track of which subregions of the buffer were modified. Then, revert the changes as soon as possible.
@@ -31,11 +33,10 @@ Bandwidth-intensive atomic counters are optimized by tagging 8 nm "voxel groups"
 ## Stages
 
 Remove Process
+- tag removed atoms as distinct from others in the address space
 - tag impacted 2 nm voxels
-- mark references in existing 2 nm voxels for removal
-- stages fused into a single GPU kernel
-  - prefix sum to compact the reference list, scrambling the order of references within each block of 128
-  - update the global → 2 nm offset of surviving atoms, exploiting a 3-bit tag to locate the correct place to write
+- within each 2 nm voxel, search the reference list for atoms to remove
+- prefix sum to compact the reference list, scrambling the order of references within each block of 128
 - free the memory slots for fully empty voxels
 
 Add Process
