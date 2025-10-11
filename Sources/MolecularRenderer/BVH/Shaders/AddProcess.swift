@@ -1,5 +1,12 @@
 struct AddProcess {
-  // accumulate number of atoms added to each voxel
+  // [numthreads(128, 1, 1)]
+  // dispatch threads SIMD3(movedCount + addedCount, 1, 1)
+  //
+  // set the occupiedMark to 1
+  // set the atom and motion vector
+  // write to group.addedMarks
+  // write to group.atomicCounters with 8 partial sums
+  // set the relativeOffsets
   static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)

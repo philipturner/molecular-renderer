@@ -2,7 +2,7 @@ struct RemoveProcess {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(removedCount + movedCount, 1, 1)
   //
-  // reset the occupiedMark of each atom
+  // reset the occupiedMark
   //   0 if removed
   //   2 if moved
   // write to group.atomsRemovedMarks
@@ -72,7 +72,8 @@ struct RemoveProcess {
   // check the occupiedMark of each atom in voxel
   //   if either 0 or 2, remove from the list
   // prefix sum to compact the reference list (SIMD + group reduction)
-  // update the global -> 2 nm offset of surviving atoms
+  // update the relativeOffsets of surviving atoms
+  //   3-bit tag indicates which offset to modify
   // write to sparse.memorySlots in-place, sanitized to 128 atoms at a time
   //
   // if atoms remain, write to dense.rebuiltMarks
