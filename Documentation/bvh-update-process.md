@@ -36,7 +36,7 @@ Remove Process
 - tag removed atoms as distinct from others in the address space
 - tag impacted 2 nm voxels
 - within each 2 nm voxel, search the reference list for atoms to remove
-- prefix sum to compact the reference list, scrambling the order of references within each block of 128
+- prefix sum to compact the reference list
 - free the memory slots for fully empty voxels
 
 Add Process
