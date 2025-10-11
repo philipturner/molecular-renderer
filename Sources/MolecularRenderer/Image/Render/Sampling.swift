@@ -1,12 +1,4 @@
 func createSamplingUtility() -> String {
-  func asFloat() -> String {
-    #if os(macOS)
-    "as_type<float>"
-    #else
-    "asfloat"
-    #endif
-  }
-  
   func reverseBits() -> String {
     #if os(macOS)
     "reverse_bits"
@@ -36,7 +28,7 @@ func createSamplingUtility() -> String {
     
     // Compute radical inverse of n to the base 2.
     float radinv2(uint n) {
-      return \(asFloat())(0x3F800000 | (\(reverseBits())(n) >> 9)) - 1;
+      return \(Shader.asfloat)(0x3F800000 | (\(reverseBits())(n) >> 9)) - 1;
     }
     
     // Faure-Lemieux scrambled radical inverse

@@ -184,6 +184,22 @@ class Shader {
     #endif
   }
   
+  static var asfloat: String {
+    #if os(macOS)
+    "as_type<float>"
+    #else
+    "asfloat"
+    #endif
+  }
+  
+  static var asuint: String {
+    #if os(macOS)
+    "as_type<uint>"
+    #else
+    "asuint"
+    #endif
+  }
+  
   // Force a loop to unroll.
   static var unroll: String {
     #if os(macOS)
