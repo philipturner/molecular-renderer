@@ -15,9 +15,6 @@ import WinSDK
 // - Zero indicates an error, since it's the default value that would be
 //   read incorrectly during the first 3 frames. Instead, 1 means nothing
 //   went wrong.
-//
-// This could be used to easily gather diagnostic data while taking the first
-// steps to test & debug BVH building.
 struct CrashBufferDescriptor {
   var device: Device?
   

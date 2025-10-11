@@ -4,6 +4,9 @@ import WinSDK
 #endif
 
 enum BVHCounterType {
+  // TODO: Fill with more accurate descriptions of the counters.
+  // Some of these will have lanes initialized to UInt32(1) to set up
+  // indirect dispatch arguments.
   case garbageCollect
   
   // Offset (in bytes) of the counter, relative to the start of the buffer.
@@ -21,6 +24,9 @@ struct BVHCountersDescriptor {
 
 class BVHCounters {
   let crashBuffer: CrashBuffer // initialize at startup
+  let diagnosticBuffer: CrashBuffer // use to download data when debugging
+  static var diagnosticBufferSize: Int { 4096 * 32 }
+  
   #if os(Windows)
   let queryHeap: SwiftCOM.ID3D12QueryHeap
   let queryDestinationBuffer: Buffer
@@ -36,8 +42,10 @@ class BVHCounters {
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
-    crashBufferDesc.size = 4096 * 32
+    crashBufferDesc.size = 64 * 4
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
+    
+    var diagnosticBufferDesc = CrashBufferDescriptor()
     
     #if os(Windows)
     self.queryHeap = Self.createQueryHeap(device: device)

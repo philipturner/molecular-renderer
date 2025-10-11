@@ -52,6 +52,7 @@ struct ClearBuffer {
 }
 
 extension BVHBuilder {
+  // TODO: Include offset, to clear specific lanes of counters to 1.
   func clearBuffer(
     commandList: CommandList,
     elementCount: Int,
