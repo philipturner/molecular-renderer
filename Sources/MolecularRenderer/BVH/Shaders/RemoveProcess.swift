@@ -5,6 +5,8 @@ struct RemoveProcess {
   // reset the occupiedMark of each atom
   //   0 if removed
   //   2 if moved
+  // write to group.atomsRemovedMarks
+  // write to dense.atomsRemovedMarks
   static func createSource1() -> String {
     func functionSignature() -> String {
       #if os(macOS)
