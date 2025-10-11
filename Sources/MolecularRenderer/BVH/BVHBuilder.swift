@@ -115,7 +115,6 @@ class BVHBuilder {
     let voxelCount = VoxelResources.voxelCount(
       worldDimension: voxelResources.worldDimension)
     
-    // TODO: Rework all of these to specify number of bytes, not elements.
     device.commandQueue.withCommandList { commandList in
       clearBuffer(
         commandList: commandList,
@@ -172,50 +171,6 @@ class BVHBuilder {
     let voxelGroupCount = VoxelResources.voxelGroupCount(
       worldDimension: voxelResources.worldDimension)
     
-    // TODO: Rework all of these to specify number of bytes, not elements.
-    
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelCount / 4,
-      clearValue: 0,
-      clearedBuffer: voxelResources.atomsRemovedMarks)
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelCount / 4,
-      clearValue: 0,
-      clearedBuffer: voxelResources.rebuiltMarks)
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelGroupCount,
-      clearValue: 0,
-      clearedBuffer: voxelResources.voxelGroupAddedMarks)
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelGroupCount,
-      clearValue: 0,
-      clearedBuffer: voxelResources.voxelGroupOccupiedMarks)
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelResources.memorySlotCount,
-      clearValue: UInt32.max,
-      clearedBuffer: voxelResources.atomsRemovedVoxelIDs)
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelResources.memorySlotCount,
-      clearValue: UInt32.max,
-      clearedBuffer: voxelResources.rebuiltVoxelIDs)
-    
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelResources.memorySlotCount,
-      clearValue: UInt32.max,
-      clearedBuffer: voxelResources.vacantSlotIDs)
     
     
     
