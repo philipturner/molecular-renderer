@@ -39,6 +39,8 @@ struct RemoveProcess {
     }
     """
   }
+  
+  // createSource3 finds the vacant voxel IDs
 }
 
 extension BVHBuilder {
