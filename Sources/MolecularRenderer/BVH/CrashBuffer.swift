@@ -45,7 +45,7 @@ class CrashBuffer {
       #endif
       self.inputBuffer = Buffer(descriptor: bufferDesc)
     }
-        
+    
     // Create the native buffer.
     do {
       var bufferDesc = BufferDescriptor()

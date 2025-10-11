@@ -4,6 +4,7 @@ struct AddProcess {
       #if os(macOS)
       """
       kernel void addProcess1(
+        \(CrashBuffer.functionArguments),
         \(AtomResources.functionArguments),
         device uint *voxelGroupAddedMarks [[buffer(8)]],
         device atomic_uint *atomicCounters [[buffer(9)]],
@@ -12,6 +13,7 @@ struct AddProcess {
       """
       #else
       """
+      \(CrashBuffer.functionArguments)
       \(AtomResources.functionArguments)
       RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u8);
       RWStructuredBuffer<uint> atomicCounters : register(u9);
@@ -19,6 +21,7 @@ struct AddProcess {
       
       [numthreads(128, 1, 1)]
       [RootSignature(
+        \(CrashBuffer.rootSignatureArguments)
         \(AtomResources.rootSignatureArguments)
         "UAV(u8),"
         "UAV(u9),"
@@ -92,6 +95,10 @@ struct AddProcess {
     \(functionSignature())
     {
       \(allocateThreadgroupMemory())
+      
+      if (crashBuffer[0] != 1) {
+        return;
+      }
       
       uint removedCount = transactionArgs.removedCount;
       uint movedCount = transactionArgs.movedCount;
@@ -280,15 +287,17 @@ extension BVHBuilder {
     }
     
     commandList.withPipelineState(shaders.addProcess1) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
       atomResources.setBufferBindings(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
       
       commandList.setBuffer(
-        voxelResources.voxelGroupAddedMarks, index: 8)
+        voxelResources.voxelGroupAddedMarks, index: 9)
       commandList.setBuffer(
-        voxelResources.atomicCounters, index: 9)
+        voxelResources.atomicCounters, index: 10)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
