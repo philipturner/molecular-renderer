@@ -128,19 +128,16 @@ class BVHBuilder {
         clearValue: UInt32.max,
         clearedBuffer: voxelResources.dense.assignedSlotIDs,
         size: voxelCount * 4)
-      
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
         clearedBuffer: voxelResources.dense.atomsRemovedMarks,
         size: voxelCount)
-      
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
         clearedBuffer: voxelResources.dense.rebuiltMarks,
         size: voxelCount)
-      
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
@@ -176,11 +173,7 @@ class BVHBuilder {
       worldDimension: voxelResources.worldDimension)
     
     // TODO: Rework all of these to specify number of bytes, not elements.
-    clearBuffer(
-      commandList: commandList,
-      elementCount: 256,
-      clearValue: 0,
-      clearedBuffer: counters.generalCounters)
+    
     
     clearBuffer(
       commandList: commandList,
@@ -223,6 +216,14 @@ class BVHBuilder {
       elementCount: voxelResources.memorySlotCount,
       clearValue: UInt32.max,
       clearedBuffer: voxelResources.vacantSlotIDs)
+    
+    
+    
+    clearBuffer(
+      commandList: commandList,
+      clearValue: 0,
+      clearedBuffer: counters.generalCounters,
+      size: 256 * 4)
     
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
