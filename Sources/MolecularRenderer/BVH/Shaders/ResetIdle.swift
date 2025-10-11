@@ -112,6 +112,14 @@ struct ResetIdle {
       uint voxelID =
       \(VoxelResources.generate("globalID", worldDimension / 2));
       
+      if (voxelGroupAtomsRemovedMarks[voxelGroupID]) {
+        atomsRemovedMarks[voxelID] = 0;
+      }
+      
+      if (voxelGroupRebuiltMarks[voxelGroupID]) {
+        rebuiltMarks[voxelID] = 0;
+      }
+      
       if (voxelGroupAddedMarks[voxelGroupID]) {
         atomicCounters[2 * voxelID + 0] = 0;
         atomicCounters[2 * voxelID + 1] = 0;
@@ -162,13 +170,31 @@ extension BVHBuilder {
     commandList.withPipelineState(shaders.resetVoxelMarks) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
+        
+      // Bind the group buffers.
       commandList.setBuffer(
-        voxelResources.group.addedMarks, index: 1)
+        voxelResources.group.atomsRemovedMarks, index: 1)
       commandList.setBuffer(
-        voxelResources.dense.atomicCounters, index: 2)
+        voxelResources.group.rebuiltMarks, index: 2)
+      commandList.setBuffer(
+        voxelResources.group.addedMarks, index: 3)
       
-      let worldDimension = voxelResources.worldDimension
-      let gridSize = Int(worldDimension / 8)
+      // Bind the dense buffers.
+      #if os(macOS)
+      commandList.setBuffer(
+        voxelResources.dense.atomsRemovedMarks, index: 4)
+      commandList.setBuffer(
+        voxelResources.dense.rebuiltMarks, index: 5)
+      #else
+      commandList.setDescriptor(
+        handleID: voxelResources.dense.atomsRemovedMarksHandleID, index: 4)
+      commandList.setDescriptor(
+        handleID: voxelResources.dense.rebuiltMarksHandleID, index: 5)
+      #endif
+      commandList.setBuffer(
+        voxelResources.dense.atomicCounters, index: 6)
+      
+      let gridSize = Int(voxelResources.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
         UInt32(gridSize),
         UInt32(gridSize),
