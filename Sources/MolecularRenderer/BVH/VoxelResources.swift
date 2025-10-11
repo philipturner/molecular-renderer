@@ -19,6 +19,8 @@ class VoxelResources {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
+    
+    // Initialize the world dimension.
     guard worldDimension.remainder(dividingBy: 8) == 0 else {
       fatalError("World dimension was not divisible by 8.")
     }
@@ -27,27 +29,13 @@ class VoxelResources {
     }
     self.worldDimension = worldDimension
     
-    let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
-    let voxelCount = Self.voxelCount(worldDimension: worldDimension)
-    self.assignedSlotIDs = createBuffer(size: voxelCount * 4)
-    self.atomsRemovedMarks = createBuffer(size: voxelCount)
-    self.rebuiltMarks = createBuffer(size: voxelCount)
-    self.voxelGroupAddedMarks = createBuffer(size: voxelGroupCount * 4)
-    self.voxelGroupOccupiedMarks = createBuffer(size: voxelGroupCount * 4)
-    self.atomicCounters = createBuffer(size: voxelCount * 32)
-    
-    // Create the per sparse voxel resources.
-    self.memorySlotCount = Self.memorySlotCount(
+    // Initialize the memory slot count.
+    let memorySlotCount = Self.memorySlotCount(
       voxelAllocationSize: voxelAllocationSize)
     guard memorySlotCount > 0 else {
       fatalError("Memory slot count was zero.")
     }
-    
-    self.assignedVoxelIDs = createBuffer(size: memorySlotCount * 4)
-    self.atomsRemovedVoxelIDs = createBuffer(size: memorySlotCount * 4)
-    self.rebuiltVoxelIDs = createBuffer(size: memorySlotCount * 4)
-    self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
-    self.memorySlots = createBuffer(size: memorySlotCount * Self.memorySlotSize)
+    self.memorySlotCount = memorySlotCount
   }
   
   static func voxelGroupCount(worldDimension: Float) -> Int {
@@ -105,6 +93,11 @@ struct GroupVoxelResources {
       bufferDesc.type = .native(.device)
       return Buffer(descriptor: bufferDesc)
     }
+    
+    self.atomsRemovedMarks = createBuffer(size: voxelGroupCount * 4)
+    self.rebuiltMarks = createBuffer(size: voxelGroupCount * 4)
+    self.addedMarks = createBuffer(size: voxelGroupCount * 4)
+    self.occupiedMarks = createBuffer(size: voxelGroupCount * 4)
   }
 }
 
@@ -131,6 +124,11 @@ struct DenseVoxelResources {
       bufferDesc.type = .native(.device)
       return Buffer(descriptor: bufferDesc)
     }
+    
+    self.assignedSlotIDs = createBuffer(size: voxelCount * 4)
+    self.atomsRemovedMarks = createBuffer(size: voxelCount)
+    self.rebuiltMarks = createBuffer(size: voxelCount)
+    self.atomicCounters = createBuffer(size: voxelCount * 32)
   }
 }
 
@@ -153,6 +151,13 @@ struct SparseVoxelResources {
       bufferDesc.type = .native(.device)
       return Buffer(descriptor: bufferDesc)
     }
+    
+    self.assignedVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.atomsRemovedVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.rebuiltVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
+    self.memorySlots = createBuffer(
+      size: memorySlotCount * VoxelResources.memorySlotSize)
   }
 }
 
