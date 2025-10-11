@@ -24,6 +24,7 @@ struct BVHCountersDescriptor {
 
 class BVHCounters {
   let crashBuffer: CrashBuffer // initialize at startup
+  static var crashBufferSize: Int { 64 * 4 }
   let diagnosticBuffer: CrashBuffer // use to download data when debugging
   static var diagnosticBufferSize: Int { 4096 * 32 }
   
@@ -42,10 +43,11 @@ class BVHCounters {
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
-    crashBufferDesc.size = 64 * 4
+    crashBufferDesc.size = BVHCounters.crashBufferSize
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
-    var diagnosticBufferDesc = CrashBufferDescriptor()
+    crashBufferDesc.size = BVHCounters.diagnosticBufferSize
+    self.diagnosticBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
     #if os(Windows)
     self.queryHeap = Self.createQueryHeap(device: device)
