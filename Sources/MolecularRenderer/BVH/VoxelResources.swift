@@ -13,6 +13,10 @@ class VoxelResources {
   let worldDimension: Float
   let memorySlotCount: Int
   
+  var group: GroupVoxelResources
+  var dense: DenseVoxelResources
+  var sparse: SparseVoxelResources
+  
   init(descriptor: VoxelResourcesDescriptor) {
     guard let device = descriptor.device,
           let voxelAllocationSize = descriptor.voxelAllocationSize,
@@ -36,6 +40,16 @@ class VoxelResources {
       fatalError("Memory slot count was zero.")
     }
     self.memorySlotCount = memorySlotCount
+    
+    // Initialize the resources.
+    let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
+    let voxelCount = Self.voxelCount(worldDimension: worldDimension)
+    self.group = GroupVoxelResources(
+      device: device, voxelGroupCount: voxelGroupCount)
+    self.dense = DenseVoxelResources(
+      device: device, voxelCount: voxelCount)
+    self.sparse = SparseVoxelResources(
+      device: device, memorySlotCount: memorySlotCount)
   }
   
   static func voxelGroupCount(worldDimension: Float) -> Int {
@@ -54,16 +68,6 @@ class VoxelResources {
     return output
   }
   
-  // Shader code to generate a voxel address.
-  static func generate(
-    _ input: String,
-    _ gridDimension: Float
-  ) -> String {
-    let gridWidthSq = Int(gridDimension * gridDimension)
-    let gridWidth = Int(gridDimension)
-    return "\(input).z * \(gridWidthSq) + \(input).y * \(gridWidth) + \(input).x"
-  }
-  
   static func memorySlotCount(voxelAllocationSize: Int) -> Int {
     return voxelAllocationSize / memorySlotSize
   }
@@ -75,6 +79,16 @@ class VoxelResources {
     output += 3072 * 4 // 2 nm -> global mapping, fused with 3-bit tag
     output += 20480 * 4 // 0.25 nm -> global mapping
     return output
+  }
+  
+  // Shader code to generate a voxel address.
+  static func generate(
+    _ input: String,
+    _ gridDimension: Float
+  ) -> String {
+    let gridWidthSq = Int(gridDimension * gridDimension)
+    let gridWidth = Int(gridDimension)
+    return "\(input).z * \(gridWidthSq) + \(input).y * \(gridWidth) + \(input).x"
   }
 }
 
