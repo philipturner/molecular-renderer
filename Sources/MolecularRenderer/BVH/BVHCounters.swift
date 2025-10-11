@@ -4,15 +4,9 @@ import WinSDK
 #endif
 
 enum BVHCounterType {
-  // TODO: Fill with more accurate descriptions of the counters.
-  case garbageCollect
-  
   // Offset (in bytes) of the counter, relative to the start of the buffer.
   var offset: Int {
-    switch self {
-    case .garbageCollect:
-      return 0
-    }
+    fatalError("Not implemented")
   }
 }
 
