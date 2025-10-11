@@ -61,20 +61,23 @@ struct ResetIdle {
       #if os(macOS)
       """
       kernel void resetAtomicCounters(
-        device uint *voxelGroupAddedMarks [[buffer(0)]],
-        device uint4 *atomicCounters [[buffer(1)]],
+        \(CrashBuffer.functionArguments),
+        device uint *voxelGroupAddedMarks [[buffer(1)]],
+        device uint4 *atomicCounters [[buffer(2)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
       #else
       """
-      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u0);
-      RWStructuredBuffer<uint4> atomicCounters : register(u1);
+      \(CrashBuffer.functionArguments)
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u1);
+      RWStructuredBuffer<uint4> atomicCounters : register(u2);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
-        "UAV(u0),"
+        \(CrashBuffer.rootSignatureArguments)
         "UAV(u1),"
+        "UAV(u2),"
       )]
       void resetAtomicCounters(
         uint3 globalID : SV_DispatchThreadID,
@@ -88,6 +91,10 @@ struct ResetIdle {
     
     \(functionSignature())
     {
+      if (crashBuffer[0] != 1) {
+        return;
+      }
+      
       // Read the voxel group added mark.
       uint mark;
       {
@@ -152,10 +159,12 @@ extension BVHBuilder {
     commandList: CommandList
   ) {
     commandList.withPipelineState(shaders.resetAtomicCounters) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
       commandList.setBuffer(
-        voxelResources.voxelGroupAddedMarks, index: 0)
+        voxelResources.voxelGroupAddedMarks, index: 1)
       commandList.setBuffer(
-        voxelResources.atomicCounters, index: 1)
+        voxelResources.atomicCounters, index: 2)
       
       let worldDimension = voxelResources.worldDimension
       let gridSize = Int(worldDimension / 8)
