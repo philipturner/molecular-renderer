@@ -64,6 +64,7 @@ struct RemoveProcess {
   // create compact list of these voxels (SIMD + global reduction)
   // prepare the indirect dispatch for the next kernel
   // write to sparse.atomsRemovedVoxelIDs
+  //
   // createSource2
   
   // [numthreads(128, 1, 1)]
@@ -78,6 +79,7 @@ struct RemoveProcess {
   //
   // if atoms remain, write to dense.rebuiltMarks
   // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
+  //
   // createSource3
   
   // [numthreads(128, 1, 1)]
@@ -86,6 +88,7 @@ struct RemoveProcess {
   // scan for slots with no assigned voxel
   // create compact list of these slots (SIMD + group + global reduction)
   // write to sparse.vacantSlotIDs
+  //
   // createSource4
 }
 

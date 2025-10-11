@@ -209,9 +209,23 @@ struct AddProcess {
     """
   }
   
-  // prefix sum over the 8 counters per voxel, to find whether atoms were added
-  // mark rebuilt voxels
+  // [numthreads(4, 4, 4)]
+  // dispatch threads SIMD3(repeating: worldDimension / 2)
+  // dispatch groups  SIMD3(repeating: worldDimension / 8)
   //
+  // scan for voxels with atoms added
+  // write to group.rebuiltMarks
+  // prefix sum over the 8 counters within the voxel
+  // if atoms were added, write to dense.rebuiltMarks
+  // otherwise, mask out future operations for this SIMD lane
+  //
+  // read from dense.assignedSlotIDs
+  // if a slot hasn't been assigned yet
+  //   allocate new voxels (SIMD + global reduction)
+  //   if exceeded memory slot limit, crash w/ diagnostic info
+  //
+  
+  
   // if voxel already exists, read its data
   // otherwise, allocate new data (SIMD reduction, then global atomic)
   // if out of memory slots, crash w/ distinctive error code
