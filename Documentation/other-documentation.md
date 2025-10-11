@@ -91,4 +91,4 @@ Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to th
 
 It is possible to reduce the memory costs of the acceleration structure, by taking advantage of the small number of atoms per 2 nm voxel (less than 2<sup>16</sup>) and compressing atom positions to FP16. This optimization slightly speeds up the BVH update process and ray-sphere intersection tests.
 
-This optimization has been deferred to a future PR. It adds more complexity to the BVH construction process and may require OS-specific profilers to confirm performance improvements.
+This optimization has been deferred to a future PR. It adds more complexity to the BVH construction process.
