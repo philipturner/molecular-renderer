@@ -1,6 +1,6 @@
 struct RemoveProcess {
   // [numthreads(128, 1, 1)]
-  // dispatch SIMD3(removedCount + movedCount, 1, 1)
+  // dispatch threads SIMD3(removedCount + movedCount, 1, 1)
   //
   // reset the occupiedMark of each atom
   //   0 if removed
@@ -56,7 +56,8 @@ struct RemoveProcess {
   }
   
   // [numthreads(4, 4, 4)]
-  // dispatch SIMD3(repeating: worldDimension / 2)
+  // dispatch threads SIMD3(repeating: worldDimension / 2)
+  // dispatch groups  SIMD3(repeating: worldDimension / 8)
   //
   // scan for voxels with atoms removed
   // write to group.rebuiltMarks
@@ -65,7 +66,7 @@ struct RemoveProcess {
   // createSource2
   
   // [numthreads(128, 1, 1)]
-  // dispatch indirect
+  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   //
   // check the occupiedMark of each atom in voxel
   //   if either 0 or 2, remove from the list
@@ -75,6 +76,8 @@ struct RemoveProcess {
   // if atoms remain, write to dense.rebuiltMarks
   // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
   // createSource3
+  
+  // [numthreads(128, 1, 1)]
   
   // scan for slots with no assigned voxel
   // create compact list of these slots
