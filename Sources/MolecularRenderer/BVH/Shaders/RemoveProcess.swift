@@ -35,7 +35,7 @@ struct RemoveProcess {
       }
       
       uint atomID = transactionIDs[globalID];
-      occupied[atomID] = 0;
+      addressOccupiedMarks[atomID] = 0;
     }
     """
   }

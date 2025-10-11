@@ -116,7 +116,7 @@ struct AddProcess {
       // Write the state to the address space.
       atoms[atomID] = atom;
       motionVectors[atomID] = \(castHalf4("motionVector"));
-      occupied[atomID] = 1;
+      addressOccupiedMarks[atomID] = 1;
       
       // Place the atom in the grid of 0.25 nm voxels.
       float3 scaledPosition = atom.xyz + float(\(worldDimension / 2));

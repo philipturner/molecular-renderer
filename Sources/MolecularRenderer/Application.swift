@@ -118,10 +118,14 @@ public class Application {
       descriptorHeap: descriptorHeap,
       offset: 0)
     
-    bvhBuilder.atomResources.encodeMotionVectors(descriptorHeap: descriptorHeap)
-    bvhBuilder.atomResources.encodeOccupiedMarks(descriptorHeap: descriptorHeap)
-    bvhBuilder.atomResources.encodeRelativeOffsets(descriptorHeap: descriptorHeap)
-    bvhBuilder.voxelResources.encodeMarks(descriptorHeap: descriptorHeap)
+    bvhBuilder.atomResources.encodeMotionVectors(
+      descriptorHeap: descriptorHeap)
+    bvhBuilder.atomResources.encodeAddressOccupiedMarks(
+      descriptorHeap: descriptorHeap)
+    bvhBuilder.atomResources.encodeRelativeOffsets(
+      descriptorHeap: descriptorHeap)
+    bvhBuilder.voxelResources.encodeMarks(
+      descriptorHeap: descriptorHeap)
   }
   #endif
   

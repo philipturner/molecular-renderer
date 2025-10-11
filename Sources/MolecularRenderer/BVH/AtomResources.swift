@@ -14,12 +14,12 @@ class AtomResources {
   // Per atom address
   let atoms: Buffer
   let motionVectors: Buffer // purge to 0 with transaction tracking, idle/active
-  let occupiedMarks: Buffer // initialize to 0 with shader
+  let addressOccupiedMarks: Buffer // initialize to 0 with shader
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
   #if os(Windows)
   var motionVectorsHandleID: Int = -1
-  var occupiedMarksHandleID: Int = -1
+  var addressOccupiedMarksHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
   var relativeOffsets2HandleID: Int = -1
   #endif
@@ -46,7 +46,7 @@ class AtomResources {
     
     self.atoms = createBuffer(size: addressSpaceSize * 16)
     self.motionVectors = createBuffer(size: addressSpaceSize * 8)
-    self.occupiedMarks = createBuffer(size: addressSpaceSize)
+    self.addressOccupiedMarks = createBuffer(size: addressSpaceSize)
     self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
     self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
     
@@ -97,7 +97,7 @@ extension AtomResources {
     self.motionVectorsHandleID = handleID
   }
   
-  func encodeOccupiedMarks(descriptorHeap: DescriptorHeap) {
+  func encodeAddressOccupiedMarks(descriptorHeap: DescriptorHeap) {
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R8_UINT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
@@ -108,9 +108,9 @@ extension AtomResources {
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
     let handleID = descriptorHeap.createUAV(
-      resource: occupiedMarks.d3d12Resource,
+      resource: addressOccupiedMarks.d3d12Resource,
       uavDesc: uavDesc)
-    self.occupiedMarksHandleID = handleID
+    self.addressOccupiedMarksHandleID = handleID
   }
   
   func encodeRelativeOffsets(descriptorHeap: DescriptorHeap) {
@@ -145,7 +145,7 @@ extension AtomResources {
     device float4 *transactionAtoms [[buffer(2)]],
     device float4 *atoms [[buffer(3)]],
     device half4 *motionVectors [[buffer(4)]],
-    device uchar *occupiedMarks [[buffer(5)]],
+    device uchar *addressOccupiedMarks [[buffer(5)]],
     device ushort4 *relativeOffsets1 [[buffer(6)]],
     device ushort4 *relativeOffsets2 [[buffer(7)]]
     """
@@ -156,7 +156,7 @@ extension AtomResources {
     RWStructuredBuffer<float4> transactionAtoms : register(u2);
     RWStructuredBuffer<float4> atoms : register(u3);
     RWBuffer<float4> motionVectors : register(u4);
-    RWBuffer<uint> occupiedMarks : register(u5);
+    RWBuffer<uint> addressOccupiedMarks : register(u5);
     RWBuffer<uint4> relativeOffsets1 : register(u6);
     RWBuffer<uint4> relativeOffsets2 : register(u7);
     """
@@ -196,14 +196,14 @@ extension AtomResources {
     commandList.setBuffer(atoms, index: 3)
     #if os(macOS)
     commandList.setBuffer(motionVectors, index: 4)
-    commandList.setBuffer(occupied, index: 5)
+    commandList.setBuffer(addressOccupiedMarks, index: 5)
     commandList.setBuffer(relativeOffsets1, index: 6)
     commandList.setBuffer(relativeOffsets2, index: 7)
     #else
     commandList.setDescriptor(
       handleID: motionVectorsHandleID, index: 4)
     commandList.setDescriptor(
-      handleID: occupiedHandleID, index: 5)
+      handleID: addressOccupiedMarksHandleID, index: 5)
     commandList.setDescriptor(
       handleID: relativeOffsets1HandleID, index: 6)
     commandList.setDescriptor(
