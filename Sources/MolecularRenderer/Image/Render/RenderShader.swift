@@ -199,7 +199,6 @@ struct RenderShader {
     \(Shader.importStandardLibrary)
     
     \(AtomStyles.createAtomColors(AtomStyles.colors))
-    \(AtomStyles.createAtomRadii(AtomStyles.radii))
     \(createLightingUtility())
     \(createRayGeneration())
     \(createRayIntersector())

@@ -34,10 +34,7 @@ func createRayIntersector() -> String {
   {
     float3 oc = query.rayOrigin - atom.xyz;
     float b2 = dot(float3(oc), query.rayDirection);
-    
-    uint atomicNumber = uint(atom[3]);
-    float radius = atomRadii[atomicNumber];
-    float c = dot(oc, oc) - radius * radius;
+    float c = dot(oc, oc) - atom.w;
     
     float disc4 = b2 * b2 - c;
     if (disc4 > 0) {
