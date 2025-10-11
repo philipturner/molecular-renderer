@@ -91,4 +91,8 @@ Despite its downsides, FSR 3 makes it possible to bring Molecular Renderer to th
 
 It is possible to reduce the memory costs of the acceleration structure, by taking advantage of the small number of atoms per 2 nm voxel (less than 2<sup>16</sup>) and compressing atom positions to FP16. While implementing this optimization, we also replace the 4th component of the atom vector with its atomic radius. This optimization slightly speeds up the BVH update process and ray-sphere intersection tests.
 
+> Low effort optimization: in the address space, store atoms with the 4th component storing both atomic number and radius. Store atomic number in the lower 8 bits of the FP32 mantissa, making the radius inaccurate by a fraction of 1%.
+>
+> Use this strange
+
 This optimization has been deferred to a future PR. It adds more complexity to the BVH construction process and may require OS-specific profilers to confirm performance improvements.
