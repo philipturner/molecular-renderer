@@ -122,7 +122,7 @@ struct AddProcess {
         uint bitPattern = \(Shader.asuint)(rawRadius);
         bitPattern &= 0xFFFFFF00;
         bitPattern |= atomicNumber & 0xFF;
-        atom.w = asfloat(bitPattern);
+        atom.w = \(Shader.asfloat)(bitPattern);
       }
       
       // Compute the motion vector.
