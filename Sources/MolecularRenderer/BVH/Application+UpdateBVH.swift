@@ -53,7 +53,7 @@ extension Application {
       bvhBuilder.debugDiagnostic(
         commandList: commandList,
         dataBuffer: bvhBuilder.voxelResources.atomicCounters)
-      bvhBuilder.counters.crashBuffer.download(
+      bvhBuilder.counters.diagnosticBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)
     }

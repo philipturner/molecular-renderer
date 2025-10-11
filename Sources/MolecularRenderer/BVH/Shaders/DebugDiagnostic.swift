@@ -6,13 +6,13 @@ struct DebugDiagnostic {
       """
       kernel void debugDiagnostic(
         device uint *dataBuffer [[buffer(0)]],
-        device uint *crashBuffer [[buffer(1)]],
+        device uint *diagnosticBuffer [[buffer(1)]],
         uint globalID [[thread_position_in_grid]])
       """
       #else
       """
       RWStructuredBuffer<uint> dataBuffer : register(u0);
-      RWStructuredBuffer<uint> crashBuffer : register(u1);
+      RWStructuredBuffer<uint> diagnosticBuffer : register(u1);
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -34,7 +34,7 @@ struct DebugDiagnostic {
         return;
       }
       
-      crashBuffer[globalID] = dataBuffer[globalID];
+      diagnosticBuffer[globalID] = dataBuffer[globalID];
     }
     """
   }
@@ -50,9 +50,9 @@ extension BVHBuilder {
       commandList.setBuffer(
         dataBuffer, index: 0)
       
-      // Bind the crash buffer.
+      // Bind the diagnostic buffer.
       commandList.setBuffer(
-        counters.crashBuffer.nativeBuffer, index: 1)
+        counters.diagnosticBuffer.nativeBuffer, index: 1)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
