@@ -4,15 +4,18 @@ struct RemoveProcess {
       #if os(macOS)
       """
       kernel void removeProcess1(
+        \(CrashBuffer.functionArguments),
         \(AtomResources.functionArguments),
         uint globalID [[thread_position_in_grid]])
       """
       #else
       """
+      \(CrashBuffer.functionArguments)
       \(AtomResources.functionArguments)
       
       [numthreads(128, 1, 1)]
       [RootSignature(
+        \(CrashBuffer.rootSignatureArguments)
         \(AtomResources.rootSignatureArguments)
       )]
       void removeProcess1(
@@ -28,6 +31,10 @@ struct RemoveProcess {
     
     \(functionSignature())
     {
+      if (crashBuffer[0] != 1) {
+        return;
+      }
+      
       uint removedCount = transactionArgs.removedCount;
       uint movedCount = transactionArgs.movedCount;
       if (globalID >= removedCount + movedCount) {
@@ -53,6 +60,8 @@ extension BVHBuilder {
     }
     
     commandList.withPipelineState(shaders.removeProcess1) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
       atomResources.setBufferBindings(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
