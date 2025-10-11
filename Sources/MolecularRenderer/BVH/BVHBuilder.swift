@@ -131,21 +131,27 @@ class BVHBuilder {
       
       clearBuffer(
         commandList: commandList,
+        clearValue: 0,
+        clearedBuffer: voxelResources.dense.atomsRemovedMarks,
+        size: voxelCount)
+      
+      clearBuffer(
+        commandList: commandList,
+        clearValue: 0,
+        clearedBuffer: voxelResources.dense.rebuiltMarks,
+        size: voxelCount)
+      
+      clearBuffer(
+        commandList: commandList,
+        clearValue: 0,
+        clearedBuffer: voxelResources.dense.atomicCounters,
+        size: voxelCount * 32)
+      
+      clearBuffer(
+        commandList: commandList,
         clearValue: UInt32.max,
         clearedBuffer: voxelResources.sparse.assignedVoxelIDs,
         size: voxelResources.memorySlotCount * 4)
-      
-      clearBuffer(
-        commandList: commandList,
-        elementCount: voxelCount * 8,
-        clearValue: 0,
-        clearedBuffer: voxelResources.atomicCounters)
-      
-      clearBuffer(
-        commandList: commandList,
-        elementCount: voxelResources.memorySlotCount,
-        clearValue: UInt32.max,
-        clearedBuffer: voxelResources.assignedVoxelIDs)
       
       // Initialize the crash buffer to 1.
       do {

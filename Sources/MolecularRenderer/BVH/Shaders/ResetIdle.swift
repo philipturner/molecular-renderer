@@ -56,6 +56,7 @@ struct ResetIdle {
     """
   }
   
+  // TODO: Reset buffers besides atomicCounters
   static func resetVoxelMarks(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
