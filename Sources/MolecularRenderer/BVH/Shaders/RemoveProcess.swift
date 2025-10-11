@@ -1,4 +1,6 @@
 struct RemoveProcess {
+  // tag impacted 2 nm voxels
+  // mark references in existing 2 nm voxels for removal
   static func createSource1() -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -47,7 +49,17 @@ struct RemoveProcess {
     """
   }
   
-  // createSource3 finds the vacant voxel IDs
+  // scan for voxels with atoms removed
+  // create compact list of these voxels
+  // prepare the indirect dispatch for the next kernel
+  
+  // prefix sum to compact the reference list
+  // update the global -> 2 nm offset of surviving atoms
+  // createSource3
+  
+  // scan for slots with no assigned voxel
+  // create compact list of these slots
+  // createSource4
 }
 
 extension BVHBuilder {
