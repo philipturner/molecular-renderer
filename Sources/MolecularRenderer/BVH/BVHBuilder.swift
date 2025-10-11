@@ -64,17 +64,23 @@ class BVHBuilder {
         atomResources.addressOccupiedMarks,
         atomResources.relativeOffsets1,
         atomResources.relativeOffsets2,
-        voxelResources.assignedSlotIDs,
-        voxelResources.atomsRemovedMarks,
-        voxelResources.rebuiltMarks,
-        voxelResources.voxelGroupAddedMarks,
-        voxelResources.voxelGroupOccupiedMarks,
-        voxelResources.atomicCounters,
-        voxelResources.assignedVoxelIDs,
-        voxelResources.atomsRemovedVoxelIDs,
-        voxelResources.rebuiltVoxelIDs,
-        voxelResources.vacantSlotIDs,
-        voxelResources.memorySlots,
+        
+        voxelResources.group.atomsRemovedMarks,
+        voxelResources.group.rebuiltMarks,
+        voxelResources.group.addedMarks,
+        voxelResources.group.occupiedMarks,
+        
+        voxelResources.dense.assignedSlotIDs,
+        voxelResources.dense.atomsRemovedMarks,
+        voxelResources.dense.rebuiltMarks,
+        voxelResources.dense.atomicCounters,
+        
+        voxelResources.sparse.assignedVoxelIDs,
+        voxelResources.sparse.atomsRemovedVoxelIDs,
+        voxelResources.sparse.rebuiltVoxelIDs,
+        voxelResources.sparse.vacantSlotIDs,
+        voxelResources.sparse.memorySlots,
+        
         counters.generalCounters,
       ]
       
