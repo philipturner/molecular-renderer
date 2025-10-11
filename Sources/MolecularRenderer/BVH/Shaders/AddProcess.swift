@@ -186,6 +186,13 @@ struct AddProcess {
     }
     """
   }
+  
+  // prefix sum over the 8 counters per voxel, to find whether atoms were added
+  //
+  // if voxel already exists, read its data
+  // otherwise, allocate new data (SIMD reduction, then global atomic)
+  // if out of memory slots, crash w/ distinctive error code
+  // if atom count is too large, crash w/ distinctive error code
 }
 
 extension AddProcess {
