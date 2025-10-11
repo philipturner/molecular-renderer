@@ -101,7 +101,7 @@ class BVHBuilder {
   
   func initializeResources(device: Device) {
     device.commandQueue.withCommandList { commandList in
-      // Initialize the occupied marks to 0.
+      // Initialize the occupied to 0.
       clearBuffer(
         commandList: commandList,
         elementCount: atomResources.addressSpaceSize / 4,

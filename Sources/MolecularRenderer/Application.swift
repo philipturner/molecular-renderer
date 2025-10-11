@@ -119,7 +119,7 @@ public class Application {
       offset: 0)
     
     bvhBuilder.atomResources.encodeMotionVectors(descriptorHeap: descriptorHeap)
-    bvhBuilder.atomResources.encodeOccupied(descriptorHeap: descriptorHeap)
+    bvhBuilder.atomResources.encodeOccupiedMarks(descriptorHeap: descriptorHeap)
     bvhBuilder.atomResources.encodeRelativeOffsets(descriptorHeap: descriptorHeap)
     bvhBuilder.voxelResources.encodeMarks(descriptorHeap: descriptorHeap)
   }

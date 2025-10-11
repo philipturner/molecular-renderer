@@ -14,12 +14,12 @@ class AtomResources {
   // Per atom address
   let atoms: Buffer
   let motionVectors: Buffer // purge to 0 with transaction tracking, idle/active
-  let occupied: Buffer // initialize to 0 with shader
+  let occupiedMarks: Buffer // initialize to 0 with shader
   let relativeOffsets1: Buffer
   let relativeOffsets2: Buffer
   #if os(Windows)
   var motionVectorsHandleID: Int = -1
-  var occupiedHandleID: Int = -1
+  var occupiedMarksHandleID: Int = -1
   var relativeOffsets1HandleID: Int = -1
   var relativeOffsets2HandleID: Int = -1
   #endif
@@ -46,7 +46,7 @@ class AtomResources {
     
     self.atoms = createBuffer(size: addressSpaceSize * 16)
     self.motionVectors = createBuffer(size: addressSpaceSize * 8)
-    self.occupied = createBuffer(size: addressSpaceSize)
+    self.occupiedMarks = createBuffer(size: addressSpaceSize)
     self.relativeOffsets1 = createBuffer(size: addressSpaceSize * 8)
     self.relativeOffsets2 = createBuffer(size: addressSpaceSize * 8)
     
@@ -97,7 +97,7 @@ extension AtomResources {
     self.motionVectorsHandleID = handleID
   }
   
-  func encodeOccupied(descriptorHeap: DescriptorHeap) {
+  func encodeOccupiedMarks(descriptorHeap: DescriptorHeap) {
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R8_UINT
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
@@ -108,9 +108,9 @@ extension AtomResources {
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
     let handleID = descriptorHeap.createUAV(
-      resource: occupied.d3d12Resource,
+      resource: occupiedMarks.d3d12Resource,
       uavDesc: uavDesc)
-    self.occupiedHandleID = handleID
+    self.occupiedMarksHandleID = handleID
   }
   
   func encodeRelativeOffsets(descriptorHeap: DescriptorHeap) {
@@ -145,7 +145,7 @@ extension AtomResources {
     device float4 *transactionAtoms [[buffer(2)]],
     device float4 *atoms [[buffer(3)]],
     device half4 *motionVectors [[buffer(4)]],
-    device uchar *occupied [[buffer(5)]],
+    device uchar *occupiedMarks [[buffer(5)]],
     device ushort4 *relativeOffsets1 [[buffer(6)]],
     device ushort4 *relativeOffsets2 [[buffer(7)]]
     """
@@ -156,7 +156,7 @@ extension AtomResources {
     RWStructuredBuffer<float4> transactionAtoms : register(u2);
     RWStructuredBuffer<float4> atoms : register(u3);
     RWBuffer<float4> motionVectors : register(u4);
-    RWBuffer<uint> occupied : register(u5);
+    RWBuffer<uint> occupiedMarks : register(u5);
     RWBuffer<uint4> relativeOffsets1 : register(u6);
     RWBuffer<uint4> relativeOffsets2 : register(u7);
     """
