@@ -64,13 +64,17 @@ class BVHBuilder {
         atomResources.addressOccupiedMarks,
         atomResources.relativeOffsets1,
         atomResources.relativeOffsets2,
-    
+        voxelResources.assignedSlotIDs,
+        voxelResources.atomsRemovedMarks,
+        voxelResources.rebuiltMarks,
         voxelResources.voxelGroupAddedMarks,
+        voxelResources.voxelGroupOccupiedMarks,
         voxelResources.atomicCounters,
-        voxelResources.memorySlotIDs,
         voxelResources.assignedVoxelIDs,
+        voxelResources.atomsRemovedVoxelIDs,
+        voxelResources.rebuiltVoxelIDs,
         voxelResources.vacantSlotIDs,
-        voxelResources.memorySlots
+        voxelResources.memorySlots,
         counters.generalCounters,
       ]
       
@@ -102,37 +106,16 @@ class BVHBuilder {
   #endif
   
   func initializeResources(device: Device) {
+    let worldDimension = voxelResources.worldDimension
+    let voxelCount = VoxelResources.voxelCount(
+      worldDimension: worldDimension)
+    
     device.commandQueue.withCommandList { commandList in
-      // Initialize the address occupied marks to 0.
       clearBuffer(
         commandList: commandList,
         elementCount: atomResources.addressSpaceSize / 4,
         clearValue: 0,
-        clearedBuffer: atomResources.occupied)
-      
-      // Initialize the atomic counters to 0.
-      let worldDimension = voxelResources.worldDimension
-      let voxelCount = VoxelResources.voxelCount(
-        worldDimension: worldDimension)
-      clearBuffer(
-        commandList: commandList,
-        elementCount: voxelCount * (32 / 4),
-        clearValue: 0,
-        clearedBuffer: voxelResources.atomicCounters)
-      
-      // Initialize the memory slot IDs to UInt32.max.
-      clearBuffer(
-        commandList: commandList,
-        elementCount: voxelCount,
-        clearValue: UInt32.max,
-        clearedBuffer: voxelResources.memorySlotIDs)
-      
-      // Initialize the assigned voxel IDs to UInt32.max.
-      clearBuffer(
-        commandList: commandList,
-        elementCount: voxelResources.memorySlotCount,
-        clearValue: UInt32.max,
-        clearedBuffer: voxelResources.assignedVoxelIDs)
+        clearedBuffer: atomResources.addressOccupiedMarks)
       
       // Initialize the crash buffer to 1.
       do {
@@ -149,27 +132,14 @@ class BVHBuilder {
     }
   }
   
-  // Clear resources that should be reset every frame with ClearBuffer. When
-  // new counters and bookkeeping buffers are added, include them here.
+  // Clear resources that should be reset every frame with ClearBuffer.
   func purgeResources(commandList: CommandList) {
-    // Purge the voxel group added marks to 0.
     let worldDimension = voxelResources.worldDimension
+    let voxelCount = VoxelResources.voxelCount(
+        worldDimension: worldDimension)
     let voxelGroupCount = VoxelResources.voxelGroupCount(
       worldDimension: worldDimension)
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelGroupCount,
-      clearValue: 0,
-      clearedBuffer: voxelResources.voxelGroupAddedMarks)
     
-    // Purge the vacant slot IDs to UInt32.max.
-    clearBuffer(
-      commandList: commandList,
-      elementCount: voxelResources.memorySlotCount,
-      clearValue: UInt32.max,
-      clearedBuffer: voxelResources.vacantSlotIDs)
-    
-    // Purge the general counters to 0.
     clearBuffer(
       commandList: commandList,
       elementCount: 256,
