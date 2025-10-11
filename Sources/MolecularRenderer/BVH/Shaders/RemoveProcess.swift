@@ -1,4 +1,3 @@
-// First step: simply reset occupied marks to zero for all relevant atoms.
 struct RemoveProcess {
   static func createSource1() -> String {
     func functionSignature() -> String {

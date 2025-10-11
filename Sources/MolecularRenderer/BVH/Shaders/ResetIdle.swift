@@ -1,4 +1,3 @@
-// First step: implement the motion vectors resetting kernel
 struct ResetIdle {
   static func resetMotionVectors() -> String {
     func functionSignature() -> String {

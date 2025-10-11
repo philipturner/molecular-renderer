@@ -1,5 +1,3 @@
-// First step: update the positions and motion vectors in the address space
-// in the first kernel
 struct AddProcess {
   static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
