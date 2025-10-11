@@ -314,9 +314,9 @@ extension BVHBuilder {
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
       commandList.setBuffer(
-        voxelResources.voxelGroupAddedMarks, index: 9)
+        voxelResources.group.addedMarks, index: 9)
       commandList.setBuffer(
-        voxelResources.atomicCounters, index: 10)
+        voxelResources.dense.atomicCounters, index: 10)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {

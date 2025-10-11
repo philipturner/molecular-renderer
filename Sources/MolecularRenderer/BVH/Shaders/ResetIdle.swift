@@ -99,6 +99,7 @@ struct ResetIdle {
       // Read the voxel group added mark.
       uint mark;
       {
+        // change address to voxelGroupID
         uint address =
         \(VoxelResources.generate("groupID", worldDimension / 8));
         mark = voxelGroupAddedMarks[address];
@@ -111,6 +112,7 @@ struct ResetIdle {
       
       // Reset the atomic counter.
       {
+        // change address to voxelID
         uint address =
         \(VoxelResources.generate("globalID", worldDimension / 2));
         atomicCounters[2 * address + 0] = 0;
@@ -159,13 +161,13 @@ extension BVHBuilder {
   func resetAtomicCounters(
     commandList: CommandList
   ) {
-    commandList.withPipelineState(shaders.resetAtomicCounters) {
+    commandList.withPipelineState(shaders.resetVoxelMarks) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
       commandList.setBuffer(
-        voxelResources.voxelGroupAddedMarks, index: 1)
+        voxelResources.group.addedMarks, index: 1)
       commandList.setBuffer(
-        voxelResources.atomicCounters, index: 2)
+        voxelResources.dense.atomicCounters, index: 2)
       
       let worldDimension = voxelResources.worldDimension
       let gridSize = Int(worldDimension / 8)
