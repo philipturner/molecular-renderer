@@ -61,15 +61,17 @@ class BVHBuilder {
       let buffers: [Buffer] = [
         atomResources.atoms,
         atomResources.motionVectors,
+        atomResources.addressOccupiedMarks,
         atomResources.relativeOffsets1,
         atomResources.relativeOffsets2,
-        atomResources.occupied,
+    
         voxelResources.voxelGroupAddedMarks,
         voxelResources.atomicCounters,
         voxelResources.memorySlotIDs,
         voxelResources.assignedVoxelIDs,
         voxelResources.vacantSlotIDs,
         voxelResources.memorySlots
+        counters.generalCounters,
       ]
       
       var barriers: [D3D12_RESOURCE_BARRIER] = []

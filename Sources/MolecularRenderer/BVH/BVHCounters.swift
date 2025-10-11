@@ -25,6 +25,8 @@ class BVHCounters {
   let queryHeap: SwiftCOM.ID3D12QueryHeap
   let queryDestinationBuffer: Buffer
   #endif
+  
+  // A play on "General Nanomedics" from the Nanofactory Corporation LOL.
   let generalCounters: Buffer // purge to 0 before every frame
   
   init(descriptor: BVHCountersDescriptor) {
