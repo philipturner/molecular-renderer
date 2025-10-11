@@ -111,16 +111,15 @@ struct AddProcess {
       // Retrieve the atom.
       //
       // WARNING: Never read from transactionAtoms again. Always read from
-      // the address space, which has the correct radius^2.
+      // the address space, which has the correct radius.
       uint atomID = transactionIDs[removedCount + globalID];
       float4 atom = transactionAtoms[removedCount + globalID];
       
-      // Compute the correct radius.
+      // Pack the atomic number and radius^2 into the 4th component.
       {
         uint atomicNumber = uint(atom[3]);
-        float rawRadius = atomRadii[atomicNumber];
-        rawRadius *= rawRadius;
-        uint bitPattern = \(Shader.asuint)(rawRadius);
+        float radius = atomRadii[atomicNumber];
+        uint bitPattern = \(Shader.asuint)(radius * radius);
         bitPattern &= 0xFFFFFF00;
         bitPattern |= atomicNumber & 0xFF;
         atom.w = \(Shader.asfloat)(bitPattern);
@@ -268,7 +267,7 @@ extension AddProcess {
     // Place the atom in the grid of 0.25 nm voxels.
     float3 scaledPosition = atom.xyz + float(\(worldDimension / 2));
     scaledPosition /= 0.25;
-    float scaledRadius = atom.w / 0.25;
+    float scaledRadius = sqrt(atom.w) / 0.25;
     
     // Generate the bounding box.
     float3 boxMin = floor(scaledPosition - scaledRadius);
