@@ -42,6 +42,8 @@ struct AddProcess {
       #endif
     }
     
+    func asFloat(_ input: String) -> String
+    
     func castHalf4(_ input: String) -> String {
       #if os(macOS)
       "half4(\(input))"
@@ -108,6 +110,10 @@ struct AddProcess {
         return;
       }
       
+      // Retrieve the atom.
+      uint atomID = transactionIDs[removedCount + globalID];
+      float4 atom = transactionAtoms[removedCount + globalID];
+      uint atomicNumber = uint(atom[3]);
       \(retrieveAtom())
       
       // Compute the motion vector.
@@ -250,7 +256,7 @@ extension AddProcess {
     uint atomID = transactionIDs[removedCount + globalID];
     float4 atom = transactionAtoms[removedCount + globalID];
     uint atomicNumber = uint(atom[3]);
-    float radius = atomRadii[atomicNumber];
+    float radius = atomRadii[atomicNumber] * 1.05;
     """
   }
   
