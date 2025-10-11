@@ -167,6 +167,13 @@ class BVHBuilder {
       clearValue: UInt32.max,
       clearedBuffer: voxelResources.vacantSlotIDs)
     
+    // Purge the general counters to 0.
+    clearBuffer(
+      commandList: commandList,
+      elementCount: 256,
+      clearValue: 0,
+      clearedBuffer: counters.generalCounters)
+    
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
     #endif

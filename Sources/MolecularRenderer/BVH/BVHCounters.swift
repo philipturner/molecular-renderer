@@ -13,6 +13,7 @@ class BVHCounters {
   let queryHeap: SwiftCOM.ID3D12QueryHeap
   let queryDestinationBuffer: Buffer
   #endif
+  let generalCounters: Buffer // purge to 0 before every frame
   
   init(descriptor: BVHCountersDescriptor) {
     guard let device = descriptor.device else {
@@ -29,6 +30,12 @@ class BVHCounters {
     self.queryDestinationBuffer = Self
       .createQueryDestinationBuffer(device: device)
     #endif
+    
+    var generalCountersDesc = BufferDescriptor()
+    generalCountersDesc.device = device
+    generalCountersDesc.size = 256 * 4
+    generalCountersDesc.type = .native(.device)
+    self.generalCounters = Buffer(descriptor: generalCountersDesc)
   }
   
   #if os(Windows)
