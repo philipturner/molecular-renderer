@@ -1,5 +1,10 @@
 struct RemoveProcess {
-  // mark impacted 2 nm voxels
+  // [numthreads(128, 1, 1)]
+  // dispatch SIMD3(removedCount + movedCount, 1, 1)
+  //
+  // reset the occupiedMark of each atom
+  //   0 if removed
+  //   2 if moved
   static func createSource1() -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -48,17 +53,25 @@ struct RemoveProcess {
     """
   }
   
+  // [numthreads(4, 4, 4)]
+  // dispatch SIMD3(repeating: worldDimension / 2)
+  //
   // scan for voxels with atoms removed
-  // create compact list of these voxels
+  // write to group.rebuiltMarks
+  // create compact list of these voxels (SIMD reduction, then global atomic)
   // prepare the indirect dispatch for the next kernel
   // createSource2
   
-  // check whether each atom in voxel is occupied
-  // prefix sum to compact the reference list
+  // [numthreads(128, 1, 1)]
+  // dispatch indirect
+  //
+  // check the occupiedMark of each atom in voxel
+  //   if either 0 or 2, remove from the list
+  // prefix sum to compact the reference list (threadgroup-wide reduction)
   // update the global -> 2 nm offset of surviving atoms
   //
-  // if atoms remain, mark rebuilt voxels
-  // otherwise, reset entry in assignedVoxelIDs and assignedSlotIDs
+  // if atoms remain, write to dense.rebuiltMarks
+  // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
   // createSource3
   
   // scan for slots with no assigned voxel
