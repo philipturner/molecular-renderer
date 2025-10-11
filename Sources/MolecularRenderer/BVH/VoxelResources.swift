@@ -14,12 +14,12 @@ class VoxelResources {
   let memorySlotCount: Int
   
   // Per dense voxel
+  let assignedSlotIDs: Buffer // initialize to UInt32.max with shader
   let resetMarks: Buffer // purge to 0 every frame
   let rebuiltMarks: Buffer // purge to 0 every frame
   let voxelGroupAddedMarks: Buffer // purge to 0 every frame
   let atomicCounters: Buffer // initialize to 0 with shader
                              // purge occupied voxels to 0 with idle/active
-  let memorySlotIDs: Buffer // initialize to UInt32.max with shader
   let voxelGroupOccupiedMarks: Buffer // purge to 0 every frame
   #if os(Windows)
   var resetMarksHandleID: Int = -1
@@ -27,9 +27,9 @@ class VoxelResources {
   #endif
   
   // Per sparse voxel
+  let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
   // resetVoxelIDs // purge to UInt32.max before every frame
   // rebuiltVoxelIDs // purge to UInt32.max before every frame
-  let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
   let vacantSlotIDs: Buffer // purge to UInt32.max before every frame
   let memorySlots: Buffer
   
