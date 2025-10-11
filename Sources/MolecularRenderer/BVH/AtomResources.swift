@@ -140,25 +140,25 @@ extension AtomResources {
   static var functionArguments: String {
     #if os(macOS)
     """
-    constant TransactionArgs &transactionArgs [[buffer(0)]],
-    device uint *transactionIDs [[buffer(1)]],
-    device float4 *transactionAtoms [[buffer(2)]],
-    device float4 *atoms [[buffer(3)]],
-    device half4 *motionVectors [[buffer(4)]],
-    device uchar *addressOccupiedMarks [[buffer(5)]],
-    device ushort4 *relativeOffsets1 [[buffer(6)]],
-    device ushort4 *relativeOffsets2 [[buffer(7)]]
+    constant TransactionArgs &transactionArgs [[buffer(1)]],
+    device uint *transactionIDs [[buffer(2)]],
+    device float4 *transactionAtoms [[buffer(3)]],
+    device float4 *atoms [[buffer(4)]],
+    device half4 *motionVectors [[buffer(5)]],
+    device uchar *addressOccupiedMarks [[buffer(6)]],
+    device ushort4 *relativeOffsets1 [[buffer(7)]],
+    device ushort4 *relativeOffsets2 [[buffer(8)]]
     """
     #else
     """
-    ConstantBuffer<TransactionArgs> transactionArgs : register(b0);
-    RWStructuredBuffer<uint> transactionIDs : register(u1);
-    RWStructuredBuffer<float4> transactionAtoms : register(u2);
-    RWStructuredBuffer<float4> atoms : register(u3);
-    RWBuffer<float4> motionVectors : register(u4);
-    RWBuffer<uint> addressOccupiedMarks : register(u5);
-    RWBuffer<uint4> relativeOffsets1 : register(u6);
-    RWBuffer<uint4> relativeOffsets2 : register(u7);
+    ConstantBuffer<TransactionArgs> transactionArgs : register(b1);
+    RWStructuredBuffer<uint> transactionIDs : register(u2);
+    RWStructuredBuffer<float4> transactionAtoms : register(u3);
+    RWStructuredBuffer<float4> atoms : register(u4);
+    RWBuffer<float4> motionVectors : register(u5);
+    RWBuffer<uint> addressOccupiedMarks : register(u6);
+    RWBuffer<uint4> relativeOffsets1 : register(u7);
+    RWBuffer<uint4> relativeOffsets2 : register(u8);
     """
     #endif
   }
@@ -166,14 +166,14 @@ extension AtomResources {
   #if os(Windows)
   static var rootSignatureArguments: String {
     """
-    "RootConstants(b0, num32BitConstants = 3),"
-    "UAV(u1),"
+    "RootConstants(b1, num32BitConstants = 3),"
     "UAV(u2),"
     "UAV(u3),"
-    "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+    "UAV(u4),"
     "DescriptorTable(UAV(u5, numDescriptors = 1)),"
     "DescriptorTable(UAV(u6, numDescriptors = 1)),"
     "DescriptorTable(UAV(u7, numDescriptors = 1)),"
+    "DescriptorTable(UAV(u8, numDescriptors = 1)),"
     """
   }
   #endif
@@ -184,30 +184,30 @@ extension AtomResources {
     transactionArgs: TransactionArgs
   ) {
     // Bind the transaction arguments.
-    commandList.set32BitConstants(transactionArgs, index: 0)
+    commandList.set32BitConstants(transactionArgs, index: 1)
     
     // Bind the transaction buffers.
     let idsBuffer = transactionIDs.nativeBuffers[inFlightFrameID]
     let atomsBuffer = transactionAtoms.nativeBuffers[inFlightFrameID]
-    commandList.setBuffer(idsBuffer, index: 1)
-    commandList.setBuffer(atomsBuffer, index: 2)
+    commandList.setBuffer(idsBuffer, index: 2)
+    commandList.setBuffer(atomsBuffer, index: 3)
     
     // Bind the per-address buffers.
-    commandList.setBuffer(atoms, index: 3)
+    commandList.setBuffer(atoms, index: 4)
     #if os(macOS)
-    commandList.setBuffer(motionVectors, index: 4)
-    commandList.setBuffer(addressOccupiedMarks, index: 5)
-    commandList.setBuffer(relativeOffsets1, index: 6)
-    commandList.setBuffer(relativeOffsets2, index: 7)
+    commandList.setBuffer(motionVectors, index: 5)
+    commandList.setBuffer(addressOccupiedMarks, index: 6)
+    commandList.setBuffer(relativeOffsets1, index: 7)
+    commandList.setBuffer(relativeOffsets2, index: 8)
     #else
     commandList.setDescriptor(
-      handleID: motionVectorsHandleID, index: 4)
+      handleID: motionVectorsHandleID, index: 5)
     commandList.setDescriptor(
-      handleID: addressOccupiedMarksHandleID, index: 5)
+      handleID: addressOccupiedMarksHandleID, index: 6)
     commandList.setDescriptor(
-      handleID: relativeOffsets1HandleID, index: 6)
+      handleID: relativeOffsets1HandleID, index: 7)
     commandList.setDescriptor(
-      handleID: relativeOffsets2HandleID, index: 7)
+      handleID: relativeOffsets2HandleID, index: 8)
     #endif
   }
 }
