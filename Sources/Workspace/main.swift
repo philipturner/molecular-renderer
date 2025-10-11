@@ -10,10 +10,10 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Draft and smoke test the code for "add process" and "remove process".
-// - Debug all the steps of in-place BVH modification without actually
-//   constructing the 0.25 nm data. Implement the rotating rod test at this
-//   point.
+// - Draft the pseudocode for all sub-stages of the 3 major stages.
+// - Debug all the steps of in-place BVH modification, one at a time. The
+//   rotating rod test might be a helpful tool to facilitate debugging, but is
+//   not mandatory at the moment.
 
 @MainActor
 func createApplication() -> Application {

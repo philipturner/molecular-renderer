@@ -224,12 +224,10 @@ struct AddProcess {
   //   allocate new voxels (SIMD + global reduction)
   //   if exceeded memory slot limit, crash w/ diagnostic info
   //
-  
-  
-  // if voxel already exists, read its data
-  // otherwise, allocate new data (SIMD reduction, then global atomic)
-  // if out of memory slots, crash w/ distinctive error code
-  // if atom count is too large, crash w/ distinctive error code
+  // add existing atom count to prefix-summed 8 counters
+  // write to dense.atomicCounters
+  // if new atom count is too large, crash w/ diagnostic info
+  // write new atom count into memory slot header
 }
 
 extension AddProcess {
