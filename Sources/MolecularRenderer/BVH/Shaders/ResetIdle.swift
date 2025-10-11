@@ -96,27 +96,14 @@ struct ResetIdle {
         return;
       }
       
-      // Read the voxel group added mark.
-      uint mark;
-      {
-        // change address to voxelGroupID
-        uint address =
-        \(VoxelResources.generate("groupID", worldDimension / 8));
-        mark = voxelGroupAddedMarks[address];
-      }
+      uint voxelGroupID =
+      \(VoxelResources.generate("groupID", worldDimension / 8));
+      uint voxelID =
+      \(VoxelResources.generate("globalID", worldDimension / 2));
       
-      // Return early if the voxel is empty.
-      if (mark == 0) {
-        return;
-      }
-      
-      // Reset the atomic counter.
-      {
-        // change address to voxelID
-        uint address =
-        \(VoxelResources.generate("globalID", worldDimension / 2));
-        atomicCounters[2 * address + 0] = 0;
-        atomicCounters[2 * address + 1] = 0;
+      if (voxelGroupAddedMarks[voxelGroupID]) {
+        atomicCounters[2 * voxelID + 0] = 0;
+        atomicCounters[2 * voxelID + 1] = 0;
       }
     }
     """
