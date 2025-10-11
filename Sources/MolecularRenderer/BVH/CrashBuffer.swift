@@ -155,3 +155,27 @@ class CrashBuffer {
     }
   }
 }
+
+extension CrashBuffer {
+  static var functionArguments: String {
+    #if os(macOS)
+    "device uint *crashBuffer [[buffer(0)]]"
+    #else
+    "RWStructuredBuffer<uint> crashBuffer : register(u0);"
+    #endif
+  }
+  
+  #if os(Windows)
+  static var rootSignatureArguments: String {
+    """
+    "UAV(u0),"
+    """
+  }
+  #endif
+  
+  func setBufferBindings(
+    commandList: CommandList
+  ) {
+    commandList.setBuffer(nativeBuffer, index: 0)
+  }
+}

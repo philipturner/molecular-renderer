@@ -1,5 +1,4 @@
 extension RenderShader {
-  static let crashBuffer: Int = 0
   static let renderArgs: Int = 1
   static let cameraArgs: Int = 2
   static let atoms: Int = 3

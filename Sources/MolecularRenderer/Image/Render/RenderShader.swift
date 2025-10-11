@@ -40,7 +40,7 @@ struct RenderShader {
       #if os(macOS)
       return """
       kernel void render(
-        device uint *crashBuffer [[buffer(\(Self.crashBuffer))]],
+        \(CrashBuffer.functionArguments),
         constant RenderArgs &renderArgs [[buffer(\(Self.renderArgs))]],
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
@@ -53,7 +53,7 @@ struct RenderShader {
       let byteCount = MemoryLayout<RenderArgs>.size
       
       return """
-      RWStructuredBuffer<uint> crashBuffer : register(u\(Self.crashBuffer));
+      \(CrashBuffer.functionArguments)
       ConstantBuffer<RenderArgs> renderArgs : register(b\(Self.renderArgs));
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
@@ -63,7 +63,7 @@ struct RenderShader {
       
       [numthreads(8, 8, 1)]
       [RootSignature(
-        "UAV(u\(Self.crashBuffer)),"
+        \(CrashBuffer.rootSignatureArguments)
         "RootConstants(b\(Self.renderArgs), num32BitConstants = \(byteCount / 4)),"
         "CBV(b\(Self.cameraArgs)),"
         "UAV(u\(Self.atoms)),"
