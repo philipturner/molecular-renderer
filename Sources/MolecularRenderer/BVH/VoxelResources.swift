@@ -13,27 +13,6 @@ class VoxelResources {
   let worldDimension: Float
   let memorySlotCount: Int
   
-  // TODO: Reorganize to "group", "dense", and "sparse" sub-containers
-  
-  // Per dense voxel
-  let assignedSlotIDs: Buffer // initialize to UInt32.max with shader
-  
-  // purge to 0 before every frame
-  let voxelGroupAtomsRemovedMarks: Buffer
-  let voxelGroupRebuiltMarks: Buffer
-  let voxelGroupAddedMarks: Buffer
-  let voxelGroupOccupiedMarks: Buffer
-  
-  // initialize to 0 with shader
-  // purge to 0 with idle/active
-  let atomsRemovedMarks: Buffer
-  let rebuiltMarks: Buffer
-  let atomicCounters: Buffer
-  #if os(Windows)
-  var atomsRemovedMarksHandleID: Int = -1
-  var rebuiltMarksHandleID: Int = -1
-  #endif
-  
   // Per sparse voxel
   let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
   
@@ -50,17 +29,6 @@ class VoxelResources {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
-    
-    // Create a general purpose buffer that resides natively on the GPU.
-    func createBuffer(size: Int) -> Buffer {
-      var bufferDesc = BufferDescriptor()
-      bufferDesc.device = device
-      bufferDesc.size = size
-      bufferDesc.type = .native(.device)
-      return Buffer(descriptor: bufferDesc)
-    }
-    
-    // Create the per dense voxel resources.
     guard worldDimension.remainder(dividingBy: 8) == 0 else {
       fatalError("World dimension was not divisible by 8.")
     }
@@ -129,6 +97,49 @@ class VoxelResources {
     output += 3072 * 4 // 2 nm -> global mapping, fused with 3-bit tag
     output += 20480 * 4 // 0.25 nm -> global mapping
     return output
+  }
+}
+
+struct GroupVoxelResources {
+  // purge to 0 before every frame
+  let atomsRemovedMarks: Buffer
+  let rebuiltMarks: Buffer
+  let addedMarks: Buffer
+  let occupiedMarks: Buffer
+  
+  init(device: Device, voxelGroupCount: Int) {
+    func createBuffer(size: Int) -> Buffer {
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = size
+      bufferDesc.type = .native(.device)
+      return Buffer(descriptor: bufferDesc)
+    }
+  }
+}
+
+struct DenseVoxelResources {
+  // initialize to UInt32.max with shader
+  let assignedSlotIDs: Buffer
+  
+  // initialize to 0 with shader
+  // purge to 0 with idle/active
+  let atomsRemovedMarks: Buffer
+  let rebuiltMarks: Buffer
+  let atomicCounters: Buffer
+  #if os(Windows)
+  var atomsRemovedMarksHandleID: Int = -1
+  var rebuiltMarksHandleID: Int = -1
+  #endif
+  
+  init(device: Device, voxelCount: Int) {
+    func createBuffer(size: Int) -> Buffer {
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = size
+      bufferDesc.type = .native(.device)
+      return Buffer(descriptor: bufferDesc)
+    }
   }
 }
 
