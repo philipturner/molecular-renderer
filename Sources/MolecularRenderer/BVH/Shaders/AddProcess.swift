@@ -5,8 +5,8 @@ struct AddProcess {
   // set the occupiedMark to 1
   // set the atom and motion vector
   // write to group.addedMarks
-  // write to group.atomicCounters with 8 partial sums
-  // set the relativeOffsets
+  // write to dense.atomicCounters with 8 partial sums
+  // save the cachedRelativeOffsets
   static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -228,6 +228,15 @@ struct AddProcess {
   // write to dense.atomicCounters
   // if new atom count is too large, crash w/ diagnostic info
   // write new atom count into memory slot header
+  //
+  // createSource2
+  
+  // [numthreads(128, 1, 1)]
+  // dispatch threads SIMD3(movedCount + addedCount, 1, 1)
+  //
+  // read atom from address space
+  // restore the cachedRelativeOffsets
+  //
 }
 
 extension AddProcess {

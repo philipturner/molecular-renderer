@@ -2,6 +2,7 @@ struct RemoveProcess {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(removedCount + movedCount, 1, 1)
   //
+  // read atom from address space
   // reset the occupiedMark
   //   0 if removed
   //   2 if moved
