@@ -52,14 +52,17 @@ struct ClearBuffer {
 }
 
 extension BVHBuilder {
-  // TODO: Include offset, to clear specific lanes of counters to 1.
   func clearBuffer(
     commandList: CommandList,
-    elementCount: Int,
     clearValue: UInt32,
     clearedBuffer: Buffer,
+    size: Int,
     offset: Int = 0
   ) {
+    guard size % 4 == 0 else {
+      fatalError("Size must be divisible by 4.")
+    }
+    
     commandList.withPipelineState(shaders.clearBuffer) {
       // Bind the constant arguments.
       struct ConstantArgs {
@@ -67,7 +70,7 @@ extension BVHBuilder {
         var clearValue: UInt32 = .zero
       }
       var constantArgs = ConstantArgs()
-      constantArgs.elementCount = UInt32(elementCount)
+      constantArgs.elementCount = UInt32(size / 4)
       constantArgs.clearValue = clearValue
       commandList.set32BitConstants(
         constantArgs, index: 0)
@@ -80,7 +83,7 @@ extension BVHBuilder {
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
-        var groupCount: Int = elementCount
+        var groupCount: Int = size / 4
         
         let groupSize: Int = 128
         groupCount += groupSize - 1

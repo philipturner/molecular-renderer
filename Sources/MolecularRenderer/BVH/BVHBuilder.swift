@@ -110,6 +110,7 @@ class BVHBuilder {
     let voxelCount = VoxelResources.voxelCount(
       worldDimension: worldDimension)
     
+    // TODO: Rework all of these to specify number of bytes, not elements.
     device.commandQueue.withCommandList { commandList in
       clearBuffer(
         commandList: commandList,
@@ -158,6 +159,7 @@ class BVHBuilder {
     let voxelGroupCount = VoxelResources.voxelGroupCount(
       worldDimension: worldDimension)
     
+    // TODO: Rework all of these to specify number of bytes, not elements.
     clearBuffer(
       commandList: commandList,
       elementCount: 256,
