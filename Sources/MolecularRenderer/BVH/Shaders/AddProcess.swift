@@ -6,8 +6,8 @@ struct AddProcess {
       kernel void addProcess1(
         \(CrashBuffer.functionArguments),
         \(AtomResources.functionArguments),
-        device uint *voxelGroupAddedMarks [[buffer(8)]],
-        device atomic_uint *atomicCounters [[buffer(9)]],
+        device uint *voxelGroupAddedMarks [[buffer(9)]],
+        device atomic_uint *atomicCounters [[buffer(10)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
@@ -15,16 +15,16 @@ struct AddProcess {
       """
       \(CrashBuffer.functionArguments)
       \(AtomResources.functionArguments)
-      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u8);
-      RWStructuredBuffer<uint> atomicCounters : register(u9);
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u9);
+      RWStructuredBuffer<uint> atomicCounters : register(u10);
       groupshared uint cachedRelativeOffsets[8 * 128];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         \(AtomResources.rootSignatureArguments)
-        "UAV(u8),"
         "UAV(u9),"
+        "UAV(u10),"
       )]
       void addProcess1(
         uint globalID : SV_DispatchThreadID,
