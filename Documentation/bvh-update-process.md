@@ -2,10 +2,6 @@
 
 This is an effort to organize the numerous sub-tasks of the acceleration structure PR, and provide a high-level understanding for those seeking to debug/modify the finished code.
 
-> Defer all non-critical components (optimizations) until after we have a functioning ray intersector again. Then, halt progress on the ray intersector until the BVH is completely finished.
->
-> Remember that you can always deactivate upscaling to avoid coupling from invalid motion vectors.
-
 ## Acceleration Structure Layout
 
 Simplest implementation:
