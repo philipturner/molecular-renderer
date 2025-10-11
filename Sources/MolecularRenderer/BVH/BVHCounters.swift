@@ -3,6 +3,18 @@ import SwiftCOM
 import WinSDK
 #endif
 
+enum BVHCounterType {
+  case garbageCollect
+  
+  // Offset (in bytes) of the counter, relative to the start of the buffer.
+  var offset: Int {
+    switch self {
+    case .garbageCollect:
+      return 0
+    }
+  }
+}
+
 struct BVHCountersDescriptor {
   var device: Device?
 }
