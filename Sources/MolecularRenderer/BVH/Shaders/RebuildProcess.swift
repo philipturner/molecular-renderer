@@ -14,6 +14,17 @@ struct RebuildProcess {
   //
   // createSource1
   
-  // For the massive fused GPU kernel, write out what happens during each of
-  // the 4 stages, just like you do for RemoveProcess and AddProcess.
+  // [numthreads(128, 1, 1)]
+  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
+  //
+  // # Phase I
+  //
+  // # Phase II
+  //
+  // # Phase III
+  //
+  // # Phase IV
+  func createSource2() -> String {
+    fatalError("Not implemented.")
+  }
 }
