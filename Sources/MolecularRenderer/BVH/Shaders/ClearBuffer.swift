@@ -57,7 +57,8 @@ extension BVHBuilder {
     commandList: CommandList,
     elementCount: Int,
     clearValue: UInt32,
-    clearedBuffer: Buffer
+    clearedBuffer: Buffer,
+    offset: Int = 0
   ) {
     commandList.withPipelineState(shaders.clearBuffer) {
       // Bind the constant arguments.
@@ -73,7 +74,9 @@ extension BVHBuilder {
       
       // Bind the cleared buffer.
       commandList.setBuffer(
-        clearedBuffer, index: 1)
+        clearedBuffer,
+        index: 1,
+        offset: offset)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {

@@ -5,8 +5,6 @@ import WinSDK
 
 enum BVHCounterType {
   // TODO: Fill with more accurate descriptions of the counters.
-  // Some of these will have lanes initialized to UInt32(1) to set up
-  // indirect dispatch arguments.
   case garbageCollect
   
   // Offset (in bytes) of the counter, relative to the start of the buffer.
@@ -90,4 +88,10 @@ class BVHCounters {
     return Buffer(descriptor: bufferDesc)
   }
   #endif
+  
+  // Clear certain lanes of indirect dispatch arguments to 1. This must happen
+  // after the UAV barrier for the command that sets the entire buffer to 0.
+  func setupGeneralCounters(commandList: CommandList) {
+    
+  }
 }
