@@ -61,7 +61,7 @@ struct RemoveProcess {
   //
   // scan for voxels with atoms removed
   // write to group.rebuiltMarks
-  // create compact list of these voxels (SIMD reduction, then global atomic)
+  // create compact list of these voxels (SIMD + global reduction)
   // prepare the indirect dispatch for the next kernel
   // createSource2
   
@@ -70,7 +70,7 @@ struct RemoveProcess {
   //
   // check the occupiedMark of each atom in voxel
   //   if either 0 or 2, remove from the list
-  // prefix sum to compact the reference list (threadgroup-wide reduction)
+  // prefix sum to compact the reference list (SIMD + group reduction)
   // update the global -> 2 nm offset of surviving atoms
   //
   // if atoms remain, write to dense.rebuiltMarks
@@ -78,9 +78,11 @@ struct RemoveProcess {
   // createSource3
   
   // [numthreads(128, 1, 1)]
-  
+  // dispatch threads SIMD3(memorySlotCount, 1, 1)
+  //
   // scan for slots with no assigned voxel
-  // create compact list of these slots
+  // create compact list of these slots (SIMD + group + global reduction)
+  // write to sparse.vacantSlotIDs
   // createSource4
 }
 
