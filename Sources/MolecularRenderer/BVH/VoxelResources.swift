@@ -190,14 +190,14 @@ extension VoxelResources {
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
     let handleID1 = descriptorHeap.createUAV(
-      resource: atomsRemovedMarks.d3d12Resource,
+      resource: dense.atomsRemovedMarks.d3d12Resource,
       uavDesc: uavDesc)
-    self.atomsRemovedMarksHandleID = handleID1
+    dense.atomsRemovedMarksHandleID = handleID1
     
     let handleID2 = descriptorHeap.createUAV(
-      resource: rebuiltMarks.d3d12Resource,
+      resource: dense.rebuiltMarks.d3d12Resource,
       uavDesc: uavDesc)
-    self.rebuiltMarksHandleID = handleID2
+    dense.rebuiltMarksHandleID = handleID2
   }
 }
 #endif
