@@ -112,23 +112,28 @@ class BVHBuilder {
   #endif
   
   func initializeResources(device: Device) {
-    let worldDimension = voxelResources.worldDimension
     let voxelCount = VoxelResources.voxelCount(
-      worldDimension: worldDimension)
+      worldDimension: voxelResources.worldDimension)
     
     // TODO: Rework all of these to specify number of bytes, not elements.
     device.commandQueue.withCommandList { commandList in
       clearBuffer(
         commandList: commandList,
-        elementCount: atomResources.addressSpaceSize / 4,
         clearValue: 0,
-        clearedBuffer: atomResources.addressOccupiedMarks)
+        clearedBuffer: atomResources.addressOccupiedMarks,
+        size: atomResources.addressSpaceSize)
       
       clearBuffer(
         commandList: commandList,
-        elementCount: voxelCount,
         clearValue: UInt32.max,
-        clearedBuffer: voxelResources.assignedSlotIDs)
+        clearedBuffer: voxelResources.dense.assignedSlotIDs,
+        size: voxelCount * 4)
+      
+      clearBuffer(
+        commandList: commandList,
+        clearValue: UInt32.max,
+        clearedBuffer: voxelResources.sparse.assignedVoxelIDs,
+        size: voxelResources.memorySlotCount * 4)
       
       clearBuffer(
         commandList: commandList,
@@ -159,11 +164,10 @@ class BVHBuilder {
   
   // Clear resources that should be reset every frame with ClearBuffer.
   func purgeResources(commandList: CommandList) {
-    let worldDimension = voxelResources.worldDimension
     let voxelCount = VoxelResources.voxelCount(
-        worldDimension: worldDimension)
+        worldDimension: voxelResources.worldDimension)
     let voxelGroupCount = VoxelResources.voxelGroupCount(
-      worldDimension: worldDimension)
+      worldDimension: voxelResources.worldDimension)
     
     // TODO: Rework all of these to specify number of bytes, not elements.
     clearBuffer(
