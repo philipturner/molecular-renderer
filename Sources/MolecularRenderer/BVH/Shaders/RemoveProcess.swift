@@ -52,9 +52,13 @@ struct RemoveProcess {
   // scan for voxels with atoms removed
   // create compact list of these voxels
   // prepare the indirect dispatch for the next kernel
+  // createSource2
   
   // prefix sum to compact the reference list
   // update the global -> 2 nm offset of surviving atoms
+  //
+  // if atoms remain, mark rebuilt voxels
+  // otherwise, reset entry in assignedVoxelIDs and assignedSlotIDs
   // createSource3
   
   // scan for slots with no assigned voxel

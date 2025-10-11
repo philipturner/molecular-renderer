@@ -188,6 +188,7 @@ struct AddProcess {
   }
   
   // prefix sum over the 8 counters per voxel, to find whether atoms were added
+  // mark rebuilt voxels
   //
   // if voxel already exists, read its data
   // otherwise, allocate new data (SIMD reduction, then global atomic)
