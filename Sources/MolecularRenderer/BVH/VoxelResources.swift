@@ -1,3 +1,8 @@
+#if os(Windows)
+import SwiftCOM
+import WinSDK
+#endif
+
 struct VoxelResourcesDescriptor {
   var device: Device?
   var voxelAllocationSize: Int?
@@ -9,12 +14,21 @@ class VoxelResources {
   let memorySlotCount: Int
   
   // Per dense voxel
+  let resetMarks: Buffer // purge to 0 every frame
+  let rebuiltMarks: Buffer // purge to 0 every frame
   let voxelGroupAddedMarks: Buffer // purge to 0 every frame
   let atomicCounters: Buffer // initialize to 0 with shader
                              // purge occupied voxels to 0 with idle/active
   let memorySlotIDs: Buffer // initialize to UInt32.max with shader
+  let voxelGroupOccupiedMarks: Buffer // purge to 0 every frame
+  #if os(Windows)
+  var resetMarksHandleID: Int = -1
+  var rebuiltMarksHandleID: Int = -1
+  #endif
   
   // Per sparse voxel
+  // resetVoxelIDs // purge to UInt32.max before every frame
+  // rebuiltVoxelIDs // purge to UInt32.max before every frame
   let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
   let vacantSlotIDs: Buffer // purge to UInt32.max before every frame
   let memorySlots: Buffer
@@ -46,6 +60,7 @@ class VoxelResources {
     
     let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
     let voxelCount = Self.voxelCount(worldDimension: worldDimension)
+    self.voxelModifiedMarks = createBuffer(size: voxelCount)
     self.voxelGroupAddedMarks = createBuffer(size: voxelGroupCount * 4)
     self.atomicCounters = createBuffer(size: voxelCount * 32)
     self.memorySlotIDs = createBuffer(size: voxelCount * 4)
@@ -101,3 +116,25 @@ class VoxelResources {
     return output
   }
 }
+
+#if os(Windows)
+extension VoxelResources {
+  func encodeVoxelModifiedMarks(descriptorHeap: DescriptorHeap) {
+    let voxelCount = Self.voxelCount(worldDimension: worldDimension)
+    
+    var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
+    uavDesc.Format = DXGI_FORMAT_R8_UINT
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER
+    uavDesc.Buffer.FirstElement = 0
+    uavDesc.Buffer.NumElements = UInt32(voxelCount)
+    uavDesc.Buffer.StructureByteStride = 0
+    uavDesc.Buffer.CounterOffsetInBytes = 0
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
+    
+    let handleID = descriptorHeap.createUAV(
+      resource: voxelGroupAddedMarks.d3d12Resource,
+      uavDesc: uavDesc)
+    self.occupiedHandleID = handleID
+  }
+}
+#endif
