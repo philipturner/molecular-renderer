@@ -111,7 +111,7 @@ struct AddProcess {
       // Retrieve the atom.
       //
       // WARNING: Never read from transactionAtoms again. Always read from
-      // the address space, which has the correct radius.
+      // the address space, which has the correct radius^2.
       uint atomID = transactionIDs[removedCount + globalID];
       float4 atom = transactionAtoms[removedCount + globalID];
       
@@ -119,6 +119,7 @@ struct AddProcess {
       {
         uint atomicNumber = uint(atom[3]);
         float rawRadius = atomRadii[atomicNumber];
+        rawRadius *= rawRadius;
         uint bitPattern = \(Shader.asuint)(rawRadius);
         bitPattern &= 0xFFFFFF00;
         bitPattern |= atomicNumber & 0xFF;

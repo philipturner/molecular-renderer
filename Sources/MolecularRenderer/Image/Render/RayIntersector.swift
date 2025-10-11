@@ -27,8 +27,6 @@ func createRayIntersector() -> String {
     float3 rayDirection;
   };
   
-  // For now, the 'atom' vector contains its atomic number in the 4th lane. In
-  // the future, this will become the radius.
   void intersectAtom(\(resultArgument()),
                      IntersectionQuery query,
                      float4 atom,
