@@ -13,16 +13,6 @@ class VoxelResources {
   let worldDimension: Float
   let memorySlotCount: Int
   
-  // Per sparse voxel
-  let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
-  
-  // purge to UInt32.max before every frame
-  let atomsRemovedVoxelIDs: Buffer
-  let rebuiltVoxelIDs: Buffer
-  let vacantSlotIDs: Buffer
-  
-  let memorySlots: Buffer
-  
   init(descriptor: VoxelResourcesDescriptor) {
     guard let device = descriptor.device,
           let voxelAllocationSize = descriptor.voxelAllocationSize,
@@ -127,12 +117,35 @@ struct DenseVoxelResources {
   let atomsRemovedMarks: Buffer
   let rebuiltMarks: Buffer
   let atomicCounters: Buffer
+  
   #if os(Windows)
   var atomsRemovedMarksHandleID: Int = -1
   var rebuiltMarksHandleID: Int = -1
   #endif
   
   init(device: Device, voxelCount: Int) {
+    func createBuffer(size: Int) -> Buffer {
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = size
+      bufferDesc.type = .native(.device)
+      return Buffer(descriptor: bufferDesc)
+    }
+  }
+}
+
+struct SparseVoxelResources {
+  // initialize to UInt32.max with shader
+  let assignedVoxelIDs: Buffer
+  
+  // purge to UInt32.max before every frame
+  let atomsRemovedVoxelIDs: Buffer
+  let rebuiltVoxelIDs: Buffer
+  let vacantSlotIDs: Buffer
+  
+  let memorySlots: Buffer
+  
+  init(device: Device, memorySlotCount: Int) {
     func createBuffer(size: Int) -> Buffer {
       var bufferDesc = BufferDescriptor()
       bufferDesc.device = device
