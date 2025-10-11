@@ -56,29 +56,40 @@ struct ResetIdle {
     """
   }
   
-  // TODO: Reset buffers besides atomicCounters
   static func resetVoxelMarks(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
       """
       kernel void resetVoxelMarks(
         \(CrashBuffer.functionArguments),
-        device uint *voxelGroupAddedMarks [[buffer(1)]],
-        device uint4 *atomicCounters [[buffer(2)]],
+        device uint *voxelGroupAtomsRemovedMarks [[buffer(1)]],
+        device uint *voxelGroupRebuiltMarks [[buffer(2)]],
+        device uint *voxelGroupAddedMarks [[buffer(3)]],
+        device uchar *atomsRemovedMarks [[buffer(4)]],
+        device uchar *rebuiltMarks [[buffer(5)]],
+        device uint4 *atomicCounters [[buffer(6)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
-      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u1);
-      RWStructuredBuffer<uint4> atomicCounters : register(u2);
+      RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u1);
+      RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u3);
+      RWBuffer<uint> atomsRemovedMarks : register(u4);
+      RWBuffer<uint> rebuiltMarks : register(u5);
+      RWStructuredBuffer<uint4> atomicCounters : register(u6);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         "UAV(u1),"
         "UAV(u2),"
+        "UAV(u3),"
+        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
+        "UAV(u6),"
       )]
       void resetVoxelMarks(
         uint3 globalID : SV_DispatchThreadID,
