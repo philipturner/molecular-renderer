@@ -168,45 +168,43 @@ class BVHBuilder {
   func purgeResources(commandList: CommandList) {
     let voxelGroupCount = VoxelResources.voxelGroupCount(
       worldDimension: voxelResources.worldDimension)
-    let voxelCount = VoxelResources.voxelCount(
-      worldDimension: voxelResources.worldDimension)
     
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: 0,
+      clearedBuffer: voxelResources.group.atomsRemovedMarks,
+      size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: 0,
+      clearedBuffer: voxelResources.group.rebuiltMarks,
+      size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: 0,
+      clearedBuffer: voxelResources.group.addedMarks,
+      size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: 0,
+      clearedBuffer: voxelResources.group.occupiedMarks,
+      size: voxelGroupCount * 4)
     
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.sparse.atomsRemovedVoxelIDs,
+      size: voxelResources.memorySlotCount * 4)
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.sparse.rebuiltVoxelIDs,
+      size: voxelResources.memorySlotCount * 4)
     clearBuffer(
       commandList: commandList,
-      clearValue: ,
-      clearedBuffer: ,
-      size: )
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.sparse.vacantSlotIDs,
+      size: voxelResources.memorySlotCount * 4)
     
     clearBuffer(
       commandList: commandList,
