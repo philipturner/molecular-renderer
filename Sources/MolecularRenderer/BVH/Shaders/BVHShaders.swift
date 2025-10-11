@@ -11,7 +11,7 @@ class BVHShaders {
   let addProcess1: Shader
   
   let resetMotionVectors: Shader
-  let resetAtomicCounters: Shader
+  let resetVoxelMarks: Shader
   
   init(descriptor: BVHShadersDescriptor) {
     guard let device = descriptor.device,
@@ -48,10 +48,10 @@ class BVHShaders {
     shaderDesc.source = ResetIdle.resetMotionVectors()
     self.resetMotionVectors = Shader(descriptor: shaderDesc)
     
-    shaderDesc.name = "resetAtomicCounters"
+    shaderDesc.name = "resetVoxelMarks"
     shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
-    shaderDesc.source = ResetIdle.resetAtomicCounters(
+    shaderDesc.source = ResetIdle.resetVoxelMarks(
       worldDimension: worldDimension)
-    self.resetAtomicCounters = Shader(descriptor: shaderDesc)
+    self.resetVoxelMarks = Shader(descriptor: shaderDesc)
   }
 }

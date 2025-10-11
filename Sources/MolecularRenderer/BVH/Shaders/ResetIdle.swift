@@ -56,11 +56,11 @@ struct ResetIdle {
     """
   }
   
-  static func resetAtomicCounters(worldDimension: Float) -> String {
+  static func resetVoxelMarks(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
       """
-      kernel void resetAtomicCounters(
+      kernel void resetVoxelMarks(
         \(CrashBuffer.functionArguments),
         device uint *voxelGroupAddedMarks [[buffer(1)]],
         device uint4 *atomicCounters [[buffer(2)]],
