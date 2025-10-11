@@ -60,10 +60,10 @@ struct RemoveProcess {
   // dispatch threads SIMD3(repeating: worldDimension / 2)
   // dispatch groups  SIMD3(repeating: worldDimension / 8)
   //
-  // scan for voxels with atoms removed
   // write to group.rebuiltMarks
+  // scan for voxels with atoms removed
   // create compact list of these voxels (SIMD + global reduction)
-  // prepare the indirect dispatch for the next kernel
+  // global counter is the indirect dispatch argument
   // write to sparse.atomsRemovedVoxelIDs
   //
   // createSource2

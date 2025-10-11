@@ -213,8 +213,8 @@ struct AddProcess {
   // dispatch threads SIMD3(repeating: worldDimension / 2)
   // dispatch groups  SIMD3(repeating: worldDimension / 8)
   //
-  // scan for voxels with atoms added
   // write to group.rebuiltMarks
+  // scan for voxels with atoms added
   // prefix sum over the 8 counters within the voxel
   // if atoms were added, write to dense.rebuiltMarks
   // otherwise, mask out future operations for this SIMD lane
