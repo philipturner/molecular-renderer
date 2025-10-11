@@ -124,16 +124,16 @@ class BVHBuilder {
         clearedBuffer: voxelResources.assignedSlotIDs)
       
       clearBuffer(
-        commandList: ,
-        elementCount: ,
-        clearValue: ,
-        clearedBuffer: )
+        commandList: commandList,
+        elementCount: voxelCount * 8,
+        clearValue: 0,
+        clearedBuffer: voxelResources.atomicCounters)
       
       clearBuffer(
-        commandList: ,
-        elementCount: ,
-        clearValue: ,
-        clearedBuffer: )
+        commandList: commandList,
+        elementCount: voxelResources.memorySlotCount,
+        clearValue: UInt32.max,
+        clearedBuffer: voxelResources.assignedVoxelIDs)
       
       // Initialize the crash buffer to 1.
       do {
@@ -165,18 +165,53 @@ class BVHBuilder {
       clearedBuffer: counters.generalCounters)
     
     clearBuffer(
-      commandList: ,
-      elementCount: ,
-      clearValue: ,
-      clearedBuffer: )
+      commandList: commandList,
+      elementCount: voxelCount / 4,
+      clearValue: 0,
+      clearedBuffer: voxelResources.atomsRemovedMarks)
+    
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelCount / 4,
+      clearValue: 0,
+      clearedBuffer: voxelResources.rebuiltMarks)
+    
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelGroupCount,
+      clearValue: 0,
+      clearedBuffer: voxelResources.voxelGroupAddedMarks)
+    
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelGroupCount,
+      clearValue: 0,
+      clearedBuffer: voxelResources.voxelGroupOccupiedMarks)
+    
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelResources.memorySlotCount,
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.atomsRemovedVoxelIDs)
+    
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelResources.memorySlotCount,
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.rebuiltVoxelIDs)
+    
+    clearBuffer(
+      commandList: commandList,
+      elementCount: voxelResources.memorySlotCount,
+      clearValue: UInt32.max,
+      clearedBuffer: voxelResources.vacantSlotIDs)
     
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
     #endif
   }
   
-  // Upload the acceleration structure changes for every frame. Set the
-  // transactionArgs state variable for this class.
+  // Upload the acceleration structure changes for every frame.
   func upload(
     transaction: Atoms.Transaction,
     commandList: CommandList,
