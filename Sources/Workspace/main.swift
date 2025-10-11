@@ -43,31 +43,3 @@ func createApplication() -> Application {
   return application
 }
 let application = createApplication()
-
-// TODO: Test that the crash buffer is working.
-
-// 8631 atoms
-let lattice = Lattice<Cubic> { h, k, l in
-  Bounds { 10 * (h + k + l) }
-  Material { .checkerboard(.silicon, .carbon) }
-}
-
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
-
-application.updateBVH(inFlightFrameID: 0)
-application.runDiagnostic()
-application.forgetIdleState(inFlightFrameID: 0)
-application.runDiagnostic()
-
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
-}
-
-application.updateBVH(inFlightFrameID: 1)
-application.runDiagnostic()
-application.forgetIdleState(inFlightFrameID: 1)
-application.runDiagnostic()
