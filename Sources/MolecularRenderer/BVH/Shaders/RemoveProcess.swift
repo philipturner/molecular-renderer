@@ -1,6 +1,5 @@
 struct RemoveProcess {
-  // tag impacted 2 nm voxels
-  // mark references in existing 2 nm voxels for removal
+  // mark impacted 2 nm voxels
   static func createSource1() -> String {
     func functionSignature() -> String {
       #if os(macOS)
@@ -54,6 +53,7 @@ struct RemoveProcess {
   // prepare the indirect dispatch for the next kernel
   // createSource2
   
+  // check whether each atom in voxel is occupied
   // prefix sum to compact the reference list
   // update the global -> 2 nm offset of surviving atoms
   //
