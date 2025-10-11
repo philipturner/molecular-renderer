@@ -236,7 +236,15 @@ struct AddProcess {
   //
   // read atom from address space
   // restore the cachedRelativeOffsets
+  // read from dense.atomicCounters
+  //   add to cachedRelativeOffset, generating the correct 'relativeOffset'
+  //   write the correct offset back to the threadgroup memory cache
+  // read from dense.assignedSlotIDs
+  // write the atomID into the voxel's reference list
+  //   fuse a 3-bit tag for the reordered loop iteration
+  // set the relativeOffsets
   //
+  // createSource3
 }
 
 extension AddProcess {
