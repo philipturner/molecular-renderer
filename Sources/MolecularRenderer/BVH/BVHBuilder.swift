@@ -166,13 +166,47 @@ class BVHBuilder {
   
   // Clear resources that should be reset every frame with ClearBuffer.
   func purgeResources(commandList: CommandList) {
-    let voxelCount = VoxelResources.voxelCount(
-        worldDimension: voxelResources.worldDimension)
     let voxelGroupCount = VoxelResources.voxelGroupCount(
       worldDimension: voxelResources.worldDimension)
+    let voxelCount = VoxelResources.voxelCount(
+      worldDimension: voxelResources.worldDimension)
     
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
     
-    
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
+    clearBuffer(
+      commandList: commandList,
+      clearValue: ,
+      clearedBuffer: ,
+      size: )
     
     clearBuffer(
       commandList: commandList,
