@@ -18,9 +18,9 @@ class VoxelResources {
   let atomsRemovedMarks: Buffer // purge to 0 every frame
   let rebuiltMarks: Buffer // purge to 0 every frame
   let voxelGroupAddedMarks: Buffer // purge to 0 every frame
+  let voxelGroupOccupiedMarks: Buffer // purge to 0 every frame
   let atomicCounters: Buffer // initialize to 0 with shader
                              // purge occupied voxels to 0 with idle/active
-  let voxelGroupOccupiedMarks: Buffer // purge to 0 every frame
   #if os(Windows)
   var atomsRemovedMarksHandleID: Int = -1
   var rebuiltMarksHandleID: Int = -1
@@ -28,7 +28,7 @@ class VoxelResources {
   
   // Per sparse voxel
   let assignedVoxelIDs: Buffer // initialize to UInt32.max with shader
-  let resetVoxelIDs: Buffer // purge to UInt32.max before every frame
+  let atomsRemovedVoxelIDs: Buffer // purge to UInt32.max before every frame
   let rebuiltVoxelIDs: Buffer // purge to UInt32.max before every frame
   let vacantSlotIDs: Buffer // purge to UInt32.max before every frame
   let memorySlots: Buffer
@@ -61,9 +61,10 @@ class VoxelResources {
     let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
     let voxelCount = Self.voxelCount(worldDimension: worldDimension)
     self.assignedSlotIDs = createBuffer(size: voxelCount * 4)
-    self.resetMarks = createBuffer(size: voxelCount)
+    self.atomsRemovedMarks = createBuffer(size: voxelCount)
     self.rebuiltMarks = createBuffer(size: voxelCount)
     self.voxelGroupAddedMarks = createBuffer(size: voxelGroupCount * 4)
+    self.voxelGroupOccupiedMarks = createBuffer(size: voxelGroupCount * 4)
     self.atomicCounters = createBuffer(size: voxelCount * 32)
     
     // Create the per sparse voxel resources.
@@ -74,6 +75,8 @@ class VoxelResources {
     }
     
     self.assignedVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.atomsRemovedVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.rebuiltVoxelIDs = createBuffer(size: memorySlotCount * 4)
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
     self.memorySlots = createBuffer(size: memorySlotCount * Self.memorySlotSize)
   }
@@ -120,7 +123,7 @@ class VoxelResources {
 
 #if os(Windows)
 extension VoxelResources {
-  func encodeVoxelModifiedMarks(descriptorHeap: DescriptorHeap) {
+  func encodeMarks(descriptorHeap: DescriptorHeap) {
     let voxelCount = Self.voxelCount(worldDimension: worldDimension)
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
@@ -132,10 +135,15 @@ extension VoxelResources {
     uavDesc.Buffer.CounterOffsetInBytes = 0
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
     
-    let handleID = descriptorHeap.createUAV(
-      resource: voxelGroupAddedMarks.d3d12Resource,
+    let handleID1 = descriptorHeap.createUAV(
+      resource: atomsRemovedMarks.d3d12Resource,
       uavDesc: uavDesc)
-    self.occupiedHandleID = handleID
+    self.atomsRemovedMarksHandleID = handleID1
+    
+    let handleID2 = descriptorHeap.createUAV(
+      resource: rebuiltMarks.d3d12Resource,
+      uavDesc: uavDesc)
+    self.rebuiltMarksHandleID = handleID2
   }
 }
 #endif

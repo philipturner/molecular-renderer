@@ -121,6 +121,7 @@ public class Application {
     bvhBuilder.atomResources.encodeMotionVectors(descriptorHeap: descriptorHeap)
     bvhBuilder.atomResources.encodeOccupied(descriptorHeap: descriptorHeap)
     bvhBuilder.atomResources.encodeRelativeOffsets(descriptorHeap: descriptorHeap)
+    bvhBuilder.voxelResources.encodeMarks(descriptorHeap: descriptorHeap)
   }
   #endif
   
