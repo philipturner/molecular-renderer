@@ -64,7 +64,7 @@ class BVHBuilder {
         atomResources.relativeOffsets1,
         atomResources.relativeOffsets2,
         atomResources.occupied,
-        voxelResources.voxelGroupMarks,
+        voxelResources.voxelGroupAddedMarks,
         voxelResources.atomicCounters,
         voxelResources.memorySlotIDs,
         voxelResources.assignedVoxelIDs,
@@ -150,7 +150,7 @@ class BVHBuilder {
   // Clear resources that should be reset every frame with ClearBuffer. When
   // new counters and bookkeeping buffers are added, include them here.
   func purgeResources(commandList: CommandList) {
-    // Purge the voxel group marks to 0.
+    // Purge the voxel group added marks to 0.
     let worldDimension = voxelResources.worldDimension
     let voxelGroupCount = VoxelResources.voxelGroupCount(
       worldDimension: worldDimension)
@@ -158,7 +158,7 @@ class BVHBuilder {
       commandList: commandList,
       elementCount: voxelGroupCount,
       clearValue: 0,
-      clearedBuffer: voxelResources.voxelGroupMarks)
+      clearedBuffer: voxelResources.voxelGroupAddedMarks)
     
     // Purge the vacant slot IDs to UInt32.max.
     clearBuffer(

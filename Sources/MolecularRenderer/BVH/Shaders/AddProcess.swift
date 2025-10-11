@@ -5,7 +5,7 @@ struct AddProcess {
       """
       kernel void addProcess1(
         \(AtomResources.functionArguments),
-        device uint *voxelGroupMarks [[buffer(8)]],
+        device uint *voxelGroupAddedMarks [[buffer(8)]],
         device atomic_uint *atomicCounters [[buffer(9)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
@@ -13,7 +13,7 @@ struct AddProcess {
       #else
       """
       \(AtomResources.functionArguments)
-      RWStructuredBuffer<uint> voxelGroupMarks : register(u8);
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u8);
       RWStructuredBuffer<uint> atomicCounters : register(u9);
       groupshared uint cachedRelativeOffsets[8 * 128];
       
@@ -185,13 +185,13 @@ struct AddProcess {
               cachedRelativeOffsets[address] = offset;
             }
             
-            // Write the voxel group mark.
+            // Write the voxel group added mark.
             {
               uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
               voxelCoordinates /= 4;
               uint address =
               \(VoxelResources.generate("voxelCoordinates", worldDimension / 8));
-              voxelGroupMarks[address] = 1;
+              voxelGroupAddedMarks[address] = 1;
             }
           }
         }
@@ -286,7 +286,7 @@ extension BVHBuilder {
         transactionArgs: transactionArgs)
       
       commandList.setBuffer(
-        voxelResources.voxelGroupMarks, index: 8)
+        voxelResources.voxelGroupAddedMarks, index: 8)
       commandList.setBuffer(
         voxelResources.atomicCounters, index: 9)
       

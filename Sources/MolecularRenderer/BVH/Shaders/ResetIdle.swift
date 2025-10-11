@@ -54,14 +54,14 @@ struct ResetIdle {
       #if os(macOS)
       """
       kernel void resetAtomicCounters(
-        device uint *voxelGroupMarks [[buffer(0)]],
+        device uint *voxelGroupAddedMarks [[buffer(0)]],
         device uint4 *atomicCounters [[buffer(1)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
       #else
       """
-      RWStructuredBuffer<uint> voxelGroupMarks : register(u0);
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u0);
       RWStructuredBuffer<uint4> atomicCounters : register(u1);
       
       [numthreads(4, 4, 4)]
@@ -81,12 +81,12 @@ struct ResetIdle {
     
     \(functionSignature())
     {
-      // Read the voxel group mark.
+      // Read the voxel group added mark.
       uint mark;
       {
         uint address =
         \(VoxelResources.generate("groupID", worldDimension / 8));
-        mark = voxelGroupMarks[address];
+        mark = voxelGroupAddedMarks[address];
       }
       
       // Return early if the voxel is empty.
@@ -144,7 +144,7 @@ extension BVHBuilder {
   ) {
     commandList.withPipelineState(shaders.resetAtomicCounters) {
       commandList.setBuffer(
-        voxelResources.voxelGroupMarks, index: 0)
+        voxelResources.voxelGroupAddedMarks, index: 0)
       commandList.setBuffer(
         voxelResources.atomicCounters, index: 1)
       

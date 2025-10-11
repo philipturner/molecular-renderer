@@ -9,7 +9,7 @@ class VoxelResources {
   let memorySlotCount: Int
   
   // Per dense voxel
-  let voxelGroupMarks: Buffer // purge to 0 every frame
+  let voxelGroupAddedMarks: Buffer // purge to 0 every frame
   let atomicCounters: Buffer // initialize to 0 with shader
                              // purge occupied voxels to 0 with idle/active
   let memorySlotIDs: Buffer // initialize to UInt32.max with shader
@@ -46,7 +46,7 @@ class VoxelResources {
     
     let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
     let voxelCount = Self.voxelCount(worldDimension: worldDimension)
-    self.voxelGroupMarks = createBuffer(size: voxelGroupCount * 4)
+    self.voxelGroupAddedMarks = createBuffer(size: voxelGroupCount * 4)
     self.atomicCounters = createBuffer(size: voxelCount * 32)
     self.memorySlotIDs = createBuffer(size: voxelCount * 4)
     
