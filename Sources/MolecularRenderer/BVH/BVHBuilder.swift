@@ -117,6 +117,24 @@ class BVHBuilder {
         clearValue: 0,
         clearedBuffer: atomResources.addressOccupiedMarks)
       
+      clearBuffer(
+        commandList: commandList,
+        elementCount: voxelCount,
+        clearValue: UInt32.max,
+        clearedBuffer: voxelResources.assignedSlotIDs)
+      
+      clearBuffer(
+        commandList: ,
+        elementCount: ,
+        clearValue: ,
+        clearedBuffer: )
+      
+      clearBuffer(
+        commandList: ,
+        elementCount: ,
+        clearValue: ,
+        clearedBuffer: )
+      
       // Initialize the crash buffer to 1.
       do {
         let elementCount = counters.crashBuffer.inputBuffer.size / 4
@@ -145,6 +163,12 @@ class BVHBuilder {
       elementCount: 256,
       clearValue: 0,
       clearedBuffer: counters.generalCounters)
+    
+    clearBuffer(
+      commandList: ,
+      elementCount: ,
+      clearValue: ,
+      clearedBuffer: )
     
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
