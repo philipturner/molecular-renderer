@@ -50,10 +50,9 @@ extension Application {
   
   public func runDiagnostic() {
     device.commandQueue.withCommandList { commandList in
-      // TODO: Update this reference to atomicCounters
       bvhBuilder.debugDiagnostic(
         commandList: commandList,
-        dataBuffer: bvhBuilder.voxelResources.atomicCounters)
+        dataBuffer: bvhBuilder.voxelResources.dense.atomicCounters)
       bvhBuilder.counters.diagnosticBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)

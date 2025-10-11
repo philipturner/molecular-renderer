@@ -80,7 +80,7 @@ struct ResetIdle {
         "UAV(u1),"
         "UAV(u2),"
       )]
-      void resetAtomicCounters(
+      void resetVoxelMarks(
         uint3 globalID : SV_DispatchThreadID,
         uint3 groupID : SV_GroupID)
       """
