@@ -89,10 +89,38 @@ extension Application {
           cameraArgsBuffer, index: RenderShader.cameraArgs)
         commandList.setBuffer(
           bvhBuilder.atomResources.atoms, index: RenderShader.atoms)
+        
+        // Bind the motion vectors.
+        #if os(macOS)
         commandList.setBuffer(
           bvhBuilder.atomResources.motionVectors,
           index: RenderShader.motionVectors)
+        #else
+        commandList.setDescriptor(
+          handleID: bvhBuilder.atomResources.motionVectorsHandleID,
+          index: RenderShader.motionVectors)
+        #endif
         
+        commandList.setBuffer(
+          bvhBuilder.voxelResources.group.occupiedMarks,
+          index: RenderShader.voxelGroupOccupiedMarks)
+        commandList.setBuffer(
+          bvhBuilder.voxelResources.dense.assignedSlotIDs,
+          index: RenderShader.assignedSlotIDs)
+        commandList.setBuffer(
+          bvhBuilder.voxelResources.sparse.memorySlots,
+          index: RenderShader.memorySlots32)
+        #if os(macOS)
+        commandList.setBuffer(
+          bvhBuilder.voxelResources.sparse.memorySlots,
+          index: RenderShader.memorySlots16)
+        #else
+        commandList.setDescriptor(
+          handleID: bvhBuilder.voxelResources.sparse.memorySlotsHandleID,
+          index: RenderShader.memorySlots16)
+        #endif
+        
+        // Bind the color texture.
         #if os(macOS)
         let colorTexture = imageResources.renderTarget
           .colorTextures[frameID % 2]
@@ -104,6 +132,7 @@ extension Application {
           index: RenderShader.colorTexture)
         #endif
         
+        // Bind the depth and motion textures.
         if imageResources.renderTarget.upscaleFactor > 1 {
           #if os(macOS)
           let depthTexture = imageResources.renderTarget
