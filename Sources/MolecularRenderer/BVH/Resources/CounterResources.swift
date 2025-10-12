@@ -74,14 +74,44 @@ class CounterResources {
     return Buffer(descriptor: bufferDesc)
   }
   #endif
-  
+}
+
+extension BVHBuilder {
   func setupGeneralCounters(commandList: CommandList) {
-    // Purge entire resource to 0
+    clearBuffer(
+      commandList: commandList,
+      clearValue: 0,
+      clearedBuffer: counters.generalCounters,
+      size: GeneralCounters.totalSize)
     
-    // UAV barrier
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
     
-    // Reset some sub-sections to 1
+    do {
+      var offset = GeneralCounters.offset(.atomsRemovedVoxelCount)
+      offset += 4
+      clearBuffer(
+        commandList: commandList,
+        clearValue: UInt32(1),
+        clearedBuffer: counters.generalCounters,
+        size: 2 * 4,
+        offset: offset)
+    }
     
-    // UAV barrier
+    do {
+      var offset = GeneralCounters.offset(.rebuiltVoxelCount)
+      offset += 4
+      clearBuffer(
+        commandList: commandList,
+        clearValue: UInt32(1),
+        clearedBuffer: counters.generalCounters,
+        size: 2 * 4,
+        offset: offset)
+    }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
   }
 }

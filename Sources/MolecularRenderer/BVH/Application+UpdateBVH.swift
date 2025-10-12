@@ -11,6 +11,7 @@ extension Application {
       #endif
       
       bvhBuilder.purgeResources(commandList: commandList)
+      bvhBuilder.setupGeneralCounters(commandList: commandList)
       bvhBuilder.upload(
         transaction: transaction,
         commandList: commandList,
