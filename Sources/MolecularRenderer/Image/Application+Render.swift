@@ -78,6 +78,18 @@ extension Application {
       
       // Encode the compute command.
       commandList.withPipelineState(imageResources.renderShader) {
+        bvhBuilder.counters.crashBuffer.setBufferBindings(
+          commandList: commandList)
+        
+        let cameraArgsBuffer = imageResources.cameraArgsBuffer
+          .nativeBuffers[frameID % 3]
+        commandList.set32BitConstants(
+          renderArgs, index: RenderShader.renderArgs)
+        commandList.setBuffer(
+          cameraArgsBuffer, index: RenderShader.cameraArgs)
+        commandList.setBuffer(
+          bvhBuilder.atomResources.atoms, index: RenderShader.atoms)
+        
         #if os(macOS)
         let colorTexture = imageResources.renderTarget
           .colorTextures[frameID % 2]
