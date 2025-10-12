@@ -296,7 +296,11 @@ extension AddProcess {
   private static func computeLoopBounds(
     worldDimension: Float
   ) -> String {
-    """
+    func uint3(_ repeatedValue: Int) -> String {
+      "uint3(\(repeatedValue), \(repeatedValue), \(repeatedValue))"
+    }
+    
+    return """
     // Place the atom in the grid of 0.25 nm voxels.
     float3 scaledPosition = atom.xyz + float(\(worldDimension / 2));
     scaledPosition /= 0.25;
@@ -327,7 +331,7 @@ extension AddProcess {
     
     // Determine the loop bounds.
     uint3 loopEnd =
-    \(Shader.select("uint(1)", "uint(2)", "footprintHigh > 0"));
+    \(Shader.select(uint3(1), uint3(2), "footprintHigh > 0"));
     
     // Reorder the loop traversal.
     uint permutationID = pickPermutation(footprintHigh);
