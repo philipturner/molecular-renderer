@@ -22,6 +22,10 @@ extension Application {
       bvhBuilder.addProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      
+      bvhBuilder.counters.crashBuffer.download(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
     }
   }
   

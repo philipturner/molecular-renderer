@@ -5,22 +5,21 @@ import SwiftCOM
 import WinSDK
 #endif
 
-#if os(Windows)
-private func renderUAVBarrier(commandList: CommandList) {
-  // Specify the type of barrier.
-  var barrier = D3D12_RESOURCE_BARRIER()
-  barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV
-  barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE
-  barrier.UAV.pResource = nil
-  
-  let barriers = [barrier]
-  try! commandList.d3d12CommandList.ResourceBarrier(
-    UInt32(barriers.count), barriers)
-}
-#endif
-
 extension Application {
-  /*
+  private func readCrashBuffer() {
+    if frameID >= 0 {
+      let elementCount = BVHCounters.crashBufferSize / 4
+      var output = [UInt32](repeating: .zero, count: elementCount)
+      bvhBuilder.counters.crashBuffer.read(
+        data: &output,
+        inFlightFrameID: frameID % 3)
+      
+      // Current substitute for a proper crash decoding mechanism.
+      // Should gate this under whether output[0] != 1.
+      print("frame \(frameID):", output[0], output[1], output[2], output[3])
+    }
+  }
+  
   private func writeCameraArgs() {
     var currentCameraArgs = CameraArgs()
     currentCameraArgs.position = (
@@ -30,77 +29,57 @@ extension Application {
     currentCameraArgs.tangentFactor = tan(camera.fovAngleVertical / 2)
     currentCameraArgs.basis = camera.basis
     
-    let previousCameraArgs = resources.previousCameraArgs ?? currentCameraArgs
+    let previousCameraArgs =
+    imageResources.previousCameraArgs ?? currentCameraArgs
     let cameraArgsList = [currentCameraArgs, previousCameraArgs]
-    resources.cameraArgsBuffer.write(
+    imageResources.cameraArgsBuffer.write(
       data: cameraArgsList,
       inFlightFrameID: frameID % 3)
     
-    resources.previousCameraArgs = currentCameraArgs
-  }
-  
-  // Returns the atom count for binding the constant arguments.
-  private func writeAtoms() -> Int {
-    let transaction = atoms.registerChanges()
-    resources.transactionTracker.register(transaction: transaction)
-    
-    let atoms = resources.transactionTracker
-      .compactedAtoms()
-    resources.atomsBuffer.write(
-      data: atoms,
-      inFlightFrameID: frameID % 3)
-    
-    let motionVectors = resources.transactionTracker
-      .compactedMotionVectors()
-    resources.motionVectorsBuffer.write(
-      data: motionVectors,
-      inFlightFrameID: frameID % 3)
-    return atoms.count
+    imageResources.previousCameraArgs = currentCameraArgs
   }
   
   private func createJitterOffset() -> SIMD2<Float> {
-    guard renderTarget.upscaleFactor > 1 else {
+    guard imageResources.renderTarget.upscaleFactor > 1 else {
       return SIMD2<Float>.zero
     }
     
     var jitterOffsetDesc = JitterOffsetDescriptor()
     jitterOffsetDesc.index = frameID
-    jitterOffsetDesc.upscaleFactor = renderTarget.upscaleFactor
+    jitterOffsetDesc.upscaleFactor = imageResources.renderTarget.upscaleFactor
     
     return JitterOffset.create(descriptor: jitterOffsetDesc)
   }
-   */
   
   public func render() -> Image {
-    /*
+    readCrashBuffer()
     writeCameraArgs()
-    let atomCount = writeAtoms()
+    
+    // Create the render arguments.
+    var renderArgs = RenderArgs()
+    renderArgs.jitterOffset = createJitterOffset()
+    renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
     
     device.commandQueue.withCommandList { commandList in
       #if os(Windows)
-      resources.cameraArgsBuffer.copy(
-        commandList: commandList,
-        inFlightFrameID: frameID % 3)
-      resources.atomsBuffer.copy(
-        commandList: commandList,
-        inFlightFrameID: frameID % 3)
-      resources.motionVectorsBuffer.copy(
-        commandList: commandList,
-        inFlightFrameID: frameID % 3)
-      #endif
-      
       // Bind the descriptor heap.
-      #if os(Windows)
-      commandList.setDescriptorHeap(resources.descriptorHeap)
+      commandList.setDescriptorHeap(descriptorHeap)
+      
+      // Dispatch the GPU commands to copy the PCIe data.
+      imageResources.cameraArgsBuffer.copy(
+        commandList: commandList,
+        inFlightFrameID: frameID % 3)
       #endif
       
+      #if os(Windows)
+      bvhBuilder.computeUAVBarrier(commandList: commandList)
+      #endif
+    }
+    
+    /*
+    device.commandQueue.withCommandList { commandList in
       // Encode the compute command.
       commandList.withPipelineState(resources.renderShader) {
-        // Bind the render arguments.
-        var renderArgs = RenderArgs()
-        renderArgs.atomCount = 0 // Deactivate rendering.
-        renderArgs.frameSeed = UInt32.random(in: 0..<UInt32.max)
-        renderArgs.jitterOffset = createJitterOffset()
         commandList.set32BitConstants(
           renderArgs, index: RenderShader.renderArgs)
         
@@ -170,10 +149,6 @@ extension Application {
         }
         commandList.dispatch(groups: createGroupCount32())
       }
-      
-      #if os(Windows)
-      renderUAVBarrier(commandList: commandList)
-      #endif
     }
      */
     
