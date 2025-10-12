@@ -327,7 +327,7 @@ extension AddProcess {
     
     // Determine the loop bounds.
     uint3 loopEnd =
-    \(Shader.select("uint3(1, 1, 1)", "uint3(2, 2, 2)", "footprintHigh > 0"));
+    \(Shader.select("uint(1)", "uint(2)", "footprintHigh > 0"));
     
     // Reorder the loop traversal.
     uint permutationID = pickPermutation(footprintHigh);
