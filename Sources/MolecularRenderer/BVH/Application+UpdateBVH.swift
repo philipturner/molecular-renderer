@@ -13,6 +13,9 @@ extension Application {
         inFlightFrameID: inFlightFrameID)
     }
     
+    // TODO: Time how long it takes to encode this command list on macOS.
+    // Perhaps we should also split up the commands for purging buffers, but
+    // that ought to be justified by profiling data before taking any action.
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)

@@ -57,3 +57,12 @@ extension RemoveProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func removeProcess3(commandList: CommandList) {
+    commandList.withPipelineState(shaders.remove.process3) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
+    }
+  }
+}
