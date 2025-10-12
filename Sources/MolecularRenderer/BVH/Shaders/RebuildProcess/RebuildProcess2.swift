@@ -9,8 +9,9 @@ extension RebuildProcess {
   //
   // # Phase II
   //
+  // read 4 voxels in a single instruction, on 128 threads in parallel
+  //   save the result to recycle threadgroup memory for group reduction
   // prefix sum over 512 small voxels (SIMD + group reduction)
-  //   read 4 voxels in a single instruction, on 128 threads in parallel
   //   save the prefix sum result for Phase IV
   // if reference count is too large, crash w/ diagnostic info
   // write reference count into memory slot header
