@@ -13,6 +13,7 @@ enum MemorySlotRegion: CaseIterable {
 }
 
 struct MemorySlot {
+  // Offset (in bytes) of the region's start.
   static func offset(_ region: MemorySlotRegion) -> Int {
     switch region {
     case .headerLarge:
