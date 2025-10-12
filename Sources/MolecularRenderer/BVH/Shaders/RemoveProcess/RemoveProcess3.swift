@@ -34,5 +34,26 @@ extension RemoveProcess {
       """
       #endif
     }
+    
+    func allocateThreadgroupMemory() -> String {
+      #if os(macOS)
+      "threadgroup uint threadgroupMemory[4];"
+      #else
+      ""
+      #endif
+    }
+    
+    return """
+    \(Shader.importStandardLibrary)
+    
+    \(functionSignature())
+    {
+      \(allocateThreadgroupMemory())
+      
+      if (crashBuffer[0] != 1) {
+        return;
+      }
+    }
+    """
   }
 }

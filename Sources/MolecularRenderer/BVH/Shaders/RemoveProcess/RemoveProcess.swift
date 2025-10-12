@@ -1,6 +1,7 @@
 class RemoveProcess {
   let process1: Shader
   let process2: Shader
+  let process3: Shader
   
   init(device: Device, worldDimension: Float) {
     var shaderDesc = ShaderDescriptor()
@@ -17,5 +18,11 @@ class RemoveProcess {
     shaderDesc.source = Self.createSource2(
       worldDimension: worldDimension)
     self.process2 = Shader(descriptor: shaderDesc)
+    
+    shaderDesc.name = "removeProcess3"
+    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+    shaderDesc.source = Self.createSource3(
+      worldDimension: worldDimension)
+    self.process3 = Shader(descriptor: shaderDesc)
   }
 }
