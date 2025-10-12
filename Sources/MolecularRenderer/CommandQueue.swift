@@ -124,6 +124,9 @@ extension CommandQueue {
     #endif
     
     #if os(Windows)
+    // Bind the command signature.
+    commandListDesc.commandSignature = commandSignature
+    
     // Create the command allocator.
     var d3d12CommandAllocator: SwiftCOM.ID3D12CommandAllocator
     d3d12CommandAllocator = try! device.d3d12Device

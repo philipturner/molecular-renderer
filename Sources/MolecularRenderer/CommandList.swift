@@ -9,6 +9,7 @@ struct CommandListDescriptor {
   #if os(macOS)
   var mtlCommandBuffer: MTLCommandBuffer?
   #else
+  var commandSignature: SwiftCOM.ID3D12CommandSignature?
   var d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList?
   var fenceValue: UInt64?
   #endif
@@ -20,6 +21,7 @@ class CommandList {
   
   var mtlCommandEncoder: MTLComputeCommandEncoder
   #else
+  let commandSignature: SwiftCOM.ID3D12CommandSignature
   let d3d12CommandList: SwiftCOM.ID3D12GraphicsCommandList
   
   // The fence value in the command queue that created this.
@@ -40,7 +42,8 @@ class CommandList {
       fatalError("Descriptor was incomplete.")
     }
     #else
-    guard let d3d12CommandList = descriptor.d3d12CommandList,
+    guard let commandSignature = descriptor.commandSignature,
+          let d3d12CommandList = descriptor.d3d12CommandList,
           let fenceValue = descriptor.fenceValue else {
       fatalError("Descriptor was incomplete.")
     }
@@ -50,6 +53,7 @@ class CommandList {
     self.mtlCommandBuffer = mtlCommandBuffer
     self.mtlCommandEncoder = mtlCommandBuffer.makeComputeCommandEncoder()!
     #else
+    self.commandSignature = commandSignature
     self.d3d12CommandList = d3d12CommandList
     self.fenceValue = fenceValue
     #endif
