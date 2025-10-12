@@ -10,8 +10,6 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Draft the DDA and ray intersector for primary ray traversal, get it to
-//   compile on macOS and Windows.
 // - Prepare BVHCounterType and the initialization process for 1 entries.
 // - Bind all buffers needed for all BVH update stages, draft the root
 //   signatures, and smoke test the CPU-side command encoding.
