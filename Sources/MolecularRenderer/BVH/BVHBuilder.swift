@@ -206,12 +206,6 @@ class BVHBuilder {
       clearedBuffer: voxelResources.sparse.vacantSlotIDs,
       size: voxelResources.memorySlotCount * 4)
     
-    clearBuffer(
-      commandList: commandList,
-      clearValue: 0,
-      clearedBuffer: counters.generalCounters,
-      size: BVHCounters.generalCountersSize)
-    
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
     #endif

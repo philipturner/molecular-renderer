@@ -8,7 +8,7 @@ struct CounterResourcesDescriptor {
 }
 
 class CounterResources {
-  let generalCounters: Buffer // purge to 0 before every frame
+  let generalCounters: Buffer // purge in isolation from other resources
   
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
@@ -75,9 +75,13 @@ class CounterResources {
   }
   #endif
   
-  // Clear certain lanes of indirect dispatch arguments to 1. This must happen
-  // after the UAV barrier for the command that sets the entire buffer to 0.
   func setupGeneralCounters(commandList: CommandList) {
-    // Include UAV barrier at the end of this function.
+    // Purge entire resource to 0
+    
+    // UAV barrier
+    
+    // Reset some sub-sections to 1
+    
+    // UAV barrier
   }
 }
