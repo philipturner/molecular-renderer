@@ -198,6 +198,13 @@ extension CommandList {
       indirectBufferOffset: offset,
       threadsPerThreadgroup: shader.threadsPerGroup)
     #else
+    let desiredState = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT
+    let originalState = buffer.state
+    if originalState != desiredState {
+      let barrier = buffer.transition(state: desiredState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
+    
     try! d3d12CommandList.ExecuteIndirect(
       commandSignature, // pCommandSignature
       UInt32(1), // MaxCommandCount
@@ -205,6 +212,11 @@ extension CommandList {
       UInt64(offset), // ArgumentBufferOffset
       nil, // pCountBuffer
       UInt64(0)) // CountBufferOffset
+    
+    if originalState != desiredState {
+      let barrier = buffer.transition(state: originalState)
+      try! d3d12CommandList.ResourceBarrier(1, [barrier])
+    }
     #endif
   }
 }

@@ -31,6 +31,8 @@ extension Application {
         inFlightFrameID: inFlightFrameID)
       bvhBuilder.removeProcess2(
         commandList: commandList)
+      bvhBuilder.removeProcess3(
+        commandList: commandList)
       bvhBuilder.removeProcess4(
         commandList: commandList)
       

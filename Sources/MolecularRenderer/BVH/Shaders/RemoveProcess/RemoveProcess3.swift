@@ -63,6 +63,11 @@ extension BVHBuilder {
     commandList.withPipelineState(shaders.remove.process3) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
+      
+      let offset = GeneralCounters.offset(.atomsRemovedVoxelCount)
+      commandList.dispatchIndirect(
+        buffer: counters.generalCounters,
+        offset: offset)
     }
   }
 }
