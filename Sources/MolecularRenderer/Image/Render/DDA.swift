@@ -7,6 +7,10 @@ func createDDAUtility(worldDimension: Float) -> String {
     #endif
   }
   
+  func float3(_ repeatedValue: Float) -> String {
+    "float3(\(repeatedValue), \(repeatedValue), \(repeatedValue))"
+  }
+  
   return """
   // Source:
   // - https://tavianator.com/2022/ray_box_boundary.html
@@ -23,15 +27,14 @@ func createDDAUtility(worldDimension: Float) -> String {
                     float3 rayOrigin,
                     float3 rayDirection)
     {
-      // dtdx = 1 / rayDirection;
-      // dx =
-      // \(Shader.select("float3(-0.25, -0.25, -0.25)", "float3(0.25, 0.25, 0.25)", "dtdx >= 0"))
-      // dx = select(half3(-0.25), half3(0.25), dtdx >= 0);
+      dtdx = 1 / rayDirection;
+      dx = \(Shader.select(float3(-0.25), float3(0.25), "dtdx >= 0"));
       
-      // *cellBorder = rayOrigin;
-      // *cellBorder /= 0.25;
-      // *cellBorder = select(ceil(*cellBorder), floor(*cellBorder), dtdx >= 0);
-      // *cellBorder *= 0.25;
+      cellBorder = rayOrigin;
+      cellBorder /= 0.25;
+      cellBorder =
+      \(Shader.select("ceil(cellBorder)", "floor(cellBorder)", "dtdx >= 0"));
+      cellBorder *= 0.25;
     }
   };
   """
