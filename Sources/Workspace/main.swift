@@ -10,7 +10,6 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Prepare BVHCounterType and the initialization process for 1 entries.
 // - Bind all buffers needed for all BVH update stages, draft the root
 //   signatures, and smoke test the CPU-side command encoding.
 // - Debug all the steps toward the minimum viable product of rendering, one at
@@ -58,4 +57,4 @@ for atomID in lattice.atoms.indices {
 }
 
 application.updateBVH(inFlightFrameID: 0)
-application.runDiagnostic()
+application.forgetIdleState(inFlightFrameID: 0)
