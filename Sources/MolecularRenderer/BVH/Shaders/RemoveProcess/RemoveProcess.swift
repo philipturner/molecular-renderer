@@ -8,13 +8,13 @@ class RemoveProcess {
     
     shaderDesc.name = "removeProcess1"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = RemoveProcess.createSource1(
+    shaderDesc.source = Self.createSource1(
       worldDimension: worldDimension)
     self.process1 = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "removeProcess2"
     shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
-    shaderDesc.source = RemoveProcess.createSource2(
+    shaderDesc.source = Self.createSource2(
       worldDimension: worldDimension)
     self.process2 = Shader(descriptor: shaderDesc)
   }

@@ -4,12 +4,12 @@ struct BVHShadersDescriptor {
 }
 
 class BVHShaders {
+  let remove: RemoveProcess
+  let add: AddProcess
+  let rebuild: RebuildProcess
+  
   let clearBuffer: Shader
   let debugDiagnostic: Shader
-  
-  let remove: RemoveProcess
-  let addProcess1: Shader
-  
   let resetMotionVectors: Shader
   let resetVoxelMarks: Shader
   
@@ -18,6 +18,13 @@ class BVHShaders {
           let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
+    
+    self.remove = RemoveProcess(
+      device: device, worldDimension: worldDimension)
+    self.add = AddProcess(
+      device: device, worldDiension: worldDimension)
+    self.rebuild = RebuildProcess(
+      device: device, worldDiension: worldDimension)
     
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
@@ -31,12 +38,6 @@ class BVHShaders {
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = DebugDiagnostic.createSource()
     self.debugDiagnostic = Shader(descriptor: shaderDesc)
-    
-    shaderDesc.name = "addProcess1"
-    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = AddProcess.createSource1(
-      worldDimension: worldDimension)
-    self.addProcess1 = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "resetMotionVectors"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)

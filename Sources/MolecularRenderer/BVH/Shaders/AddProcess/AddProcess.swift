@@ -1,4 +1,17 @@
-struct AddProcess {
+class AddProcess {
+  let process1: Shader
+  
+  init(device: Device, worldDimension: Float) {
+    var shaderDesc = ShaderDescriptor()
+    shaderDesc.device = device
+    
+    shaderDesc.name = "addProcess1"
+    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
+    shaderDesc.source = Self.createSource1(
+      worldDimension: worldDimension)
+    self.process1 = Shader(descriptor: shaderDesc)
+  }
+  
   static func pickPermutation() -> String {
     """
     uint pickPermutation(int3 footprintHigh) {

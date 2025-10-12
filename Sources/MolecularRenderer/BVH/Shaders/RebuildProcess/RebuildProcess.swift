@@ -1,3 +1,5 @@
-struct RebuildProcess {
-  
+class RebuildProcess {
+  init(device: Device, worldDimension: Float) {
+    
+  }
 }
