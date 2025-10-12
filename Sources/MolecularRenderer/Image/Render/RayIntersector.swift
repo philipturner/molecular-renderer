@@ -1,4 +1,4 @@
-func createRayIntersector() -> String {
+func createRayIntersector(worldDimension: Float) -> String {
   func resultArgument() -> String {
     #if os(macOS)
     "thread IntersectionResult &result"
@@ -16,6 +16,8 @@ func createRayIntersector() -> String {
   }
   
   return """
+  \(createDDAUtility(worldDimension: worldDimension))
+  
   struct IntersectionResult {
     bool accept;
     uint atomID;

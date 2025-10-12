@@ -197,9 +197,10 @@ struct RenderShader {
     \(Shader.importStandardLibrary)
     
     \(AtomStyles.createAtomColors(AtomStyles.colors))
-    \(createLightingUtility())
+    \(createMatrixUtility())
     \(createRayGeneration())
-    \(createRayIntersector())
+    \(createRayIntersector(worldDimension: worldDimension))
+    \(createLightingUtility())
     
     \(RenderArgs.shaderDeclaration)
     \(CameraArgs.shaderDeclaration)
