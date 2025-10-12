@@ -66,7 +66,7 @@ extension BVHBuilder {
       fatalError("Transaction arguments were not set.")
     }
     
-    commandList.withPipelineState(shaders.removeProcess1) {
+    commandList.withPipelineState(shaders.remove.process1) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
       atoms.setBufferBindings(
