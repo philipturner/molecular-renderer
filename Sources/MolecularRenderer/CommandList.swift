@@ -174,7 +174,30 @@ extension CommandList {
     #endif
   }
   
-  // TODO: Add dispatchIndirect utility
+  /// Launch a kernel via indirect dispatch.
+  func dispatchIndirect(
+    buffer: Buffer,
+    offset: Int = 0
+  ) {
+    #if os(macOS)
+    guard let shader else {
+      fatalError("Pipeline state was not set.")
+    }
+    #else
+    guard shader != nil else {
+      fatalError("Pipeline state was not set.")
+    }
+    #endif
+    
+    #if os(macOS)
+    mtlCommandEncoder.dispatchThreadgroups(
+      indirectBuffer: buffer.mtlBuffer,
+      indirectBufferOffset: offset,
+      threadsPerThreadgroup: shader.threadsPerGroup)
+    #else
+    
+    #endif
+  }
 }
 
 // MARK: - Copy Commands
