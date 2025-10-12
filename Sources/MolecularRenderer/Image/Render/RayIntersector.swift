@@ -7,7 +7,12 @@ func createRayIntersector(worldDimension: Float) -> String {
     #endif
   }
   
-  func atomsBuffer() -> String {
+  // atoms
+  // group.occupiedMarks
+  // dense.assignedSlotIDs
+  // sparse.memorySlots
+  // memoryTape
+  func bvhBuffers() -> String {
     #if os(macOS)
     "device float4 *atoms"
     #else
@@ -61,8 +66,7 @@ func createRayIntersector(worldDimension: Float) -> String {
   }
   
   struct RayIntersector {
-    \(atomsBuffer());
-    uint atomCount;
+    \(bvhBuffers());
     
     IntersectionResult intersect(IntersectionQuery query) {
       // Prepare the intersection result.
@@ -70,15 +74,7 @@ func createRayIntersector(worldDimension: Float) -> String {
       intersect.accept = false;
       intersect.distance = 1e38;
       
-      // Test every atom.
-      for (uint atomID = 0; atomID < atomCount; ++atomID)
-      {
-        float4 atom = atoms[atomID];
-        intersectAtom(intersect,
-                      query,
-                      atom,
-                      atomID);
-      }
+      
       
       // Check whether we found a hit.
       if (intersect.distance < 1e38) {

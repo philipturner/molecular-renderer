@@ -210,6 +210,8 @@ struct RenderShader {
     
     \(functionSignature())
     {
+      // TODO: Declare threadgroup memory allocation 'memoryTape'
+      
       // Query the screen's dimensions.
       \(queryScreenDimensions())
       if ((pixelCoords.x >= screenDimensions.x) ||
@@ -225,7 +227,6 @@ struct RenderShader {
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
-      rayIntersector.atomCount = renderArgs.atomCount;
       
       // Prepare the ray direction.
       float3 primaryRayDirection =
