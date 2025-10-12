@@ -1,8 +1,3 @@
-// Swift 6.1.3: compiler error on Windows platform, when encountering
-// 'String.init(format:_:)' in this file. Resolved by importing Foundation.
-//
-// Swift 6.2.0: problem appears to be fixed, removed the import.
-
 struct RenderShader {
   static func createSource(upscaleFactor: Float) -> String {
     func functionSignature() -> String {
