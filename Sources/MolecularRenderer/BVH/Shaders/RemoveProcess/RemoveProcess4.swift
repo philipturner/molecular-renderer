@@ -7,23 +7,33 @@ extension RemoveProcess {
   // create compact list of these slots (SIMD + group + global reduction)
   // write to sparse.vacantSlotIDs
   static func createSource4() -> String {
+    func constantArgs() -> String {
+      """
+      struct ConstantArgs {
+        uint memorySlotCount;
+      };
+      """
+    }
+    
     func functionSignature() -> String {
-      // TODO: Include memory slot count as a root 32-bit constant.
       #if os(macOS)
       """
       kernel void removeProcess4(
         \(CrashBuffer.functionArguments),
+        constant ConstantArgs &constantArgs [[buffer(1)]]
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
+      ConstantBuffer<ConstantArgs> constantArgs : register(b1);
       groupshared uint threadgroupMemory[4];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
+        "RootConstants(b1, num32BitConstants = 1),"
       )]
       void removeProcess4(
         uint globalID : SV_DispatchThreadID,
@@ -43,12 +53,18 @@ extension RemoveProcess {
     return """
     \(Shader.importStandardLibrary)
     
+    \(constantArgs())
+    
     \(functionSignature())
     {
       \(allocateThreadgroupMemory())
       
       if (crashBuffer[0] != 1) {
         return;
+      }
+      
+      if (globalID < constantArgs.memorySlotCount) {
+        // Read something from memory.
       }
     }
     """
