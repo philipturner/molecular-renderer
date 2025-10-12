@@ -35,7 +35,7 @@ struct RebuildProcess {
   // loop over a 3x3x3 grid of small voxels for each atom
   // run the cube-sphere test and mask out voxels outside the 2 nm bound
   // atomically accumulate into threadgroupCounters
-  //
+  // write a reference to sparse.memorySlots
   //
   // # Phase IV
   //
