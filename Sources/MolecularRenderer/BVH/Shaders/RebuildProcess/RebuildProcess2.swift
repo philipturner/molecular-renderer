@@ -5,6 +5,7 @@ extension RebuildProcess {
   //
   // # Phase I
   //
+  // decode large voxel position from ID
   // loop over the cuboid bounding box of each atom
   // atomically accumulate into threadgroupCounters
   //
@@ -31,7 +32,50 @@ extension RebuildProcess {
   // otherwise
   //   store two offsets relative to the slot's region for 16-bit references
   //   compress these two 16-bit offsets into a 32-bit word
-  func createSource2() -> String {
-    fatalError("Not implemented.")
+  func createSource2(worldDimension: Float) -> String {
+    func functionSignature() -> String {
+      #if os(macOS)
+      """
+      kernel void rebuildProcess2(
+        \(CrashBuffer.functionArguments),
+        uint groupID [[threadgroup_position_in_grid]],
+        uint localID [[thread_position_in_threadgroup]])
+      """
+      #else
+      """
+      \(CrashBuffer.functionArguments)
+      groupshared uint threadgroupMemory[4];
+      
+      [numthreads(128, 1, 1)]
+      [RootSignature(
+        \(CrashBuffer.rootSignatureArguments)
+      )]
+      void rebuildProcess2(
+        uint groupID : SV_GroupID,
+        uint localID : SV_GroupThreadID)
+      """
+      #endif
+    }
+    
+    func allocateThreadgroupMemory() -> String {
+      #if os(macOS)
+      "threadgroup uint threadgroupMemory[4];"
+      #else
+      ""
+      #endif
+    }
+    
+    return """
+    \(Shader.importStandardLibrary)
+    
+    \(functionSignature())
+    {
+      \(allocateThreadgroupMemory())
+      
+      if (crashBuffer[0] != 1) {
+        return;
+      }
+    }
+    """
   }
 }

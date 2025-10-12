@@ -30,7 +30,7 @@ extension RemoveProcess {
       )]
       void removeProcess3(
         uint groupID : SV_GroupID,
-        uint localID : SV_DispatchThreadID)
+        uint localID : SV_GroupThreadID)
       """
       #endif
     }

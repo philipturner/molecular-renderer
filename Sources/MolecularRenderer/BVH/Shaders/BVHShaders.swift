@@ -20,11 +20,14 @@ class BVHShaders {
     }
     
     self.remove = RemoveProcess(
-      device: device, worldDimension: worldDimension)
+      device: device,
+      worldDimension: worldDimension)
     self.add = AddProcess(
-      device: device, worldDimension: worldDimension)
+      device: device,
+      worldDimension: worldDimension)
     self.rebuild = RebuildProcess(
-      device: device, worldDimension: worldDimension)
+      device: device,
+      worldDimension: worldDimension)
     
     var shaderDesc = ShaderDescriptor()
     shaderDesc.device = device
