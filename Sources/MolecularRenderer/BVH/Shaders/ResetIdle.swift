@@ -141,7 +141,7 @@ extension BVHBuilder {
     commandList.withPipelineState(shaders.resetMotionVectors) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
-      atomResources.setBufferBindings(
+      atoms.setBufferBindings(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
@@ -173,28 +173,28 @@ extension BVHBuilder {
         
       // Bind the group buffers.
       commandList.setBuffer(
-        voxelResources.group.atomsRemovedMarks, index: 1)
+        voxels.group.atomsRemovedMarks, index: 1)
       commandList.setBuffer(
-        voxelResources.group.rebuiltMarks, index: 2)
+        voxels.group.rebuiltMarks, index: 2)
       commandList.setBuffer(
-        voxelResources.group.addedMarks, index: 3)
+        voxels.group.addedMarks, index: 3)
       
       // Bind the dense buffers.
       #if os(macOS)
       commandList.setBuffer(
-        voxelResources.dense.atomsRemovedMarks, index: 4)
+        voxels.dense.atomsRemovedMarks, index: 4)
       commandList.setBuffer(
-        voxelResources.dense.rebuiltMarks, index: 5)
+        voxels.dense.rebuiltMarks, index: 5)
       #else
       commandList.setDescriptor(
-        handleID: voxelResources.dense.atomsRemovedMarksHandleID, index: 4)
+        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 4)
       commandList.setDescriptor(
-        handleID: voxelResources.dense.rebuiltMarksHandleID, index: 5)
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 5)
       #endif
       commandList.setBuffer(
-        voxelResources.dense.atomicCounters, index: 6)
+        voxels.dense.atomicCounters, index: 6)
       
-      let gridSize = Int(voxelResources.worldDimension / 8)
+      let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
         UInt32(gridSize),
         UInt32(gridSize),

@@ -222,14 +222,14 @@ extension BVHBuilder {
     commandList.withPipelineState(shaders.addProcess1) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
-      atomResources.setBufferBindings(
+      atoms.setBufferBindings(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
       commandList.setBuffer(
-        voxelResources.group.addedMarks, index: 9)
+        voxels.group.addedMarks, index: 9)
       commandList.setBuffer(
-        voxelResources.dense.atomicCounters, index: 10)
+        voxels.dense.atomicCounters, index: 10)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {

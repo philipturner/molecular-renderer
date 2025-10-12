@@ -88,35 +88,35 @@ extension Application {
         commandList.setBuffer(
           cameraArgsBuffer, index: RenderShader.cameraArgs)
         commandList.setBuffer(
-          bvhBuilder.atomResources.atoms, index: RenderShader.atoms)
+          bvhBuilder.atoms.atoms, index: RenderShader.atoms)
         
         // Bind the motion vectors.
         #if os(macOS)
         commandList.setBuffer(
-          bvhBuilder.atomResources.motionVectors,
+          bvhBuilder.atoms.motionVectors,
           index: RenderShader.motionVectors)
         #else
         commandList.setDescriptor(
-          handleID: bvhBuilder.atomResources.motionVectorsHandleID,
+          handleID: bvhBuilder.atoms.motionVectorsHandleID,
           index: RenderShader.motionVectors)
         #endif
         
         commandList.setBuffer(
-          bvhBuilder.voxelResources.group.occupiedMarks,
+          bvhBuilder.voxels.group.occupiedMarks,
           index: RenderShader.voxelGroupOccupiedMarks)
         commandList.setBuffer(
-          bvhBuilder.voxelResources.dense.assignedSlotIDs,
+          bvhBuilder.voxels.dense.assignedSlotIDs,
           index: RenderShader.assignedSlotIDs)
         commandList.setBuffer(
-          bvhBuilder.voxelResources.sparse.memorySlots,
+          bvhBuilder.voxels.sparse.memorySlots,
           index: RenderShader.memorySlots32)
         #if os(macOS)
         commandList.setBuffer(
-          bvhBuilder.voxelResources.sparse.memorySlots,
+          bvhBuilder.voxels.sparse.memorySlots,
           index: RenderShader.memorySlots16)
         #else
         commandList.setDescriptor(
-          handleID: bvhBuilder.voxelResources.sparse.memorySlotsHandleID,
+          handleID: bvhBuilder.voxels.sparse.memorySlotsHandleID,
           index: RenderShader.memorySlots16)
         #endif
         

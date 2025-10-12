@@ -69,7 +69,7 @@ extension BVHBuilder {
     commandList.withPipelineState(shaders.removeProcess1) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
-      atomResources.setBufferBindings(
+      atoms.setBufferBindings(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
