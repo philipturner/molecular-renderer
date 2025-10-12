@@ -1,6 +1,6 @@
 struct RenderShader {
   // [numthreads(8, 8, 1)]
-  // dispatch threads SIMD3(screenDimensions.x, screenDimensions.y, 1)
+  // dispatch threads SIMD3(colorTexture.width, colorTexture.height, 1)
   // threadgroup memory 4096 B
   static func createSource(
     upscaleFactor: Float,

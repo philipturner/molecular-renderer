@@ -1,6 +1,8 @@
 // Fallback for debugging if the upscaler goes wrong, or for easily
 // visualizing the 3 inputs to the upscaler.
 struct UpscaleShader {
+  // [numthreads(8, 8, 1)]
+  // dispatch threads SIMD3(upscaledTexture.width, upscaledTexture.height, 1)
   static func createSource(upscaleFactor: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
