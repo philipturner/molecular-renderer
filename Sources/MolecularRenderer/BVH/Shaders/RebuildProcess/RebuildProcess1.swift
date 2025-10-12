@@ -49,3 +49,25 @@ extension RebuildProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func rebuildProcess1(
+    commandList: CommandList
+  ) {
+    commandList.withPipelineState(shaders.rebuild.process1) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
+      
+      let gridSize = Int(voxels.worldDimension / 8)
+      let threadgroupCount = SIMD3<UInt32>(
+        UInt32(gridSize),
+        UInt32(gridSize),
+        UInt32(gridSize))
+      commandList.dispatch(groups: threadgroupCount)
+    }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
+  }
+}

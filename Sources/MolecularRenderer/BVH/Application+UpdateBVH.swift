@@ -4,6 +4,15 @@ extension Application {
   public func updateBVH(inFlightFrameID: Int) {
     let transaction = atoms.registerChanges()
     
+    // Dispatch this in a separate command list, increasing the chance the
+    // GPU gets occupied with work earlier in the frame.
+    device.commandQueue.withCommandList { commandList in
+      bvhBuilder.upload(
+        transaction: transaction,
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+    }
+    
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
@@ -12,23 +21,27 @@ extension Application {
       
       bvhBuilder.purgeResources(commandList: commandList)
       bvhBuilder.setupGeneralCounters(commandList: commandList)
-      bvhBuilder.upload(
-        transaction: transaction,
-        commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
       
+      // Encode the remove process.
       bvhBuilder.removeProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
       bvhBuilder.removeProcess2(
         commandList: commandList)
       
+      // Encode the add process.
       bvhBuilder.addProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.addProcess2(
+        commandList: commandList)
       bvhBuilder.addProcess3(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      
+      // Encode the rebuild process.
+      bvhBuilder.rebuildProcess1(
+        commandList: commandList)
       
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,

@@ -60,5 +60,9 @@ extension BVHBuilder {
         UInt32(gridSize))
       commandList.dispatch(groups: threadgroupCount)
     }
+    
+    #if os(Windows)
+    computeUAVBarrier(commandList: commandList)
+    #endif
   }
 }
