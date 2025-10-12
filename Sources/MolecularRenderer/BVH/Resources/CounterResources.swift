@@ -13,7 +13,7 @@ class CounterResources {
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
   let diagnosticBuffer: CrashBuffer // use to download data when debugging
-  static var diagnosticBufferSize: Int { 256 * 4 }
+  static var diagnosticBufferSize: Int { GeneralCounters.totalSize }
   
   #if os(Windows)
   let queryHeap: SwiftCOM.ID3D12QueryHeap

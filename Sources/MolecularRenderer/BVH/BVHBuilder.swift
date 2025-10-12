@@ -151,7 +151,7 @@ class BVHBuilder {
       
       // Initialize the crash buffer to 1.
       do {
-        let elementCount = BVHCounters.crashBufferSize / 4
+        let elementCount = CounterResources.crashBufferSize / 4
         let data = [UInt32](repeating: 1, count: elementCount)
         counters.crashBuffer.initialize(
           commandList: commandList,

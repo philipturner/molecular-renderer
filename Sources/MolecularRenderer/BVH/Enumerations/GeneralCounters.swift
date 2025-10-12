@@ -12,7 +12,7 @@ enum GeneralCountersRegion {
   case rebuiltVoxelCount
 }
 
-// A play on "General Nanomedics" from the Nanofactory Corporation LOL.
+// Container for several small counters involved in global reductions.
 struct GeneralCounters {
   // Offset (in bytes) of the region's start.
   static func offset(_ region: GeneralCountersRegion) -> Int {
