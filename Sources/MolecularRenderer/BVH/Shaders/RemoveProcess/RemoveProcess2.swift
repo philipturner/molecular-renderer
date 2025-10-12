@@ -10,6 +10,10 @@ extension RemoveProcess {
   // write to sparse.atomsRemovedVoxelIDs
   static func createSource2(worldDimension: Float) -> String {
     // counters.general.atomsRemovedVoxelCount
+    // voxels.group.atomsRemovedMarks
+    // voxels.group.rebuiltMarks
+    // voxels.dense.atomsRemovedMarks
+    // voxels.sparse.atomsRemovedVoxelIDs
     func functionSignature() -> String {
       #if os(macOS)
       """

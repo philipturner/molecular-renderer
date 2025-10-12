@@ -8,9 +8,9 @@ func createRayIntersector(worldDimension: Float) -> String {
   }
   
   // atoms.atoms
-  // group.occupiedMarks
-  // dense.assignedSlotIDs
-  // sparse.memorySlots [32, 16]
+  // voxels.group.occupiedMarks
+  // voxels.dense.assignedSlotIDs
+  // voxels.sparse.memorySlots [32, 16]
   func bvhBuffers() -> String {
     #if os(macOS)
     """

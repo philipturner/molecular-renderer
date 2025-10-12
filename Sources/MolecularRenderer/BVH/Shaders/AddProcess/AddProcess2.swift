@@ -23,6 +23,8 @@ extension AddProcess {
   static func createSource2(worldDimension: Float) -> String {
     // counters.general.vacantSlotCount
     // counters.general.allocatedSlotCount
+    // voxels.group.addedMarks
+    // voxels.group.rebuiltMarks
     func functionSignature() -> String {
       #if os(macOS)
       """

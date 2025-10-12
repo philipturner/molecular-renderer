@@ -16,6 +16,8 @@ extension RemoveProcess {
     }
     
     // counters.general.vacantSlotCount
+    // voxels.sparse.assignedVoxelIDs
+    // voxels.sparse.vacantSlotIDs
     func functionSignature() -> String {
       #if os(macOS)
       """

@@ -10,6 +10,8 @@ extension AddProcess {
   // save the relativeOffsets
   static func createSource1(worldDimension: Float) -> String {
     // atoms.*
+    // voxels.group.addedMarks
+    // voxels.dense.atomicCounters
     func functionSignature() -> String {
       #if os(macOS)
       """

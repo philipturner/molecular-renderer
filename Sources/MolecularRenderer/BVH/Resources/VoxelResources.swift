@@ -89,8 +89,8 @@ class VoxelResources {
 class GroupVoxelResources {
   // purge to 0 before every frame
   let atomsRemovedMarks: Buffer
-  let rebuiltMarks: Buffer
   let addedMarks: Buffer
+  let rebuiltMarks: Buffer
   let occupiedMarks: Buffer
   
   init(device: Device, voxelGroupCount: Int) {
@@ -103,8 +103,8 @@ class GroupVoxelResources {
     }
     
     self.atomsRemovedMarks = createBuffer(size: voxelGroupCount * 4)
-    self.rebuiltMarks = createBuffer(size: voxelGroupCount * 4)
     self.addedMarks = createBuffer(size: voxelGroupCount * 4)
+    self.rebuiltMarks = createBuffer(size: voxelGroupCount * 4)
     self.occupiedMarks = createBuffer(size: voxelGroupCount * 4)
   }
 }

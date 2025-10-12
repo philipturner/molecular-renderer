@@ -10,6 +10,8 @@ extension RemoveProcess {
   // write to dense.atomsRemovedMarks
   static func createSource1(worldDimension: Float) -> String {
     // atoms.*
+    // voxels.group.atomsRemovedMarks
+    // voxels.dense.atomsRemovedMarks
     func functionSignature() -> String {
       #if os(macOS)
       """

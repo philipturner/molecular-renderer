@@ -68,8 +68,8 @@ class BVHBuilder {
         counters.general,
         
         voxels.group.atomsRemovedMarks,
-        voxels.group.rebuiltMarks,
         voxels.group.addedMarks,
+        voxels.group.rebuiltMarks,
         voxels.group.occupiedMarks,
         
         voxels.dense.assignedSlotIDs,
@@ -177,12 +177,12 @@ class BVHBuilder {
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxels.group.rebuiltMarks,
+      clearedBuffer: voxels.group.addedMarks,
       size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxels.group.addedMarks,
+      clearedBuffer: voxels.group.rebuiltMarks,
       size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,

@@ -12,6 +12,11 @@ extension RemoveProcess {
   // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
   static func createSource3(worldDimension: Float) -> String {
     // atoms.addressOccupiedMarks
+    // voxels.dense.rebuiltMarks
+    // voxels.dense.assignedSlotIDs
+    // voxels.sparse.assignedVoxelIDs
+    // voxels.sparse.atomsRemovedVoxelIDs
+    // voxels.sparse.memorySlots
     func functionSignature() -> String {
       #if os(macOS)
       """
