@@ -119,15 +119,15 @@ public class Application {
       descriptorHeap: descriptorHeap,
       offset: 0)
     
-    bvhBuilder.atomResources.encodeMotionVectors(
+    bvhBuilder.atoms.encodeMotionVectors(
       descriptorHeap: descriptorHeap)
-    bvhBuilder.atomResources.encodeAddressOccupiedMarks(
+    bvhBuilder.atoms.encodeAddressOccupiedMarks(
       descriptorHeap: descriptorHeap)
-    bvhBuilder.atomResources.encodeRelativeOffsets(
+    bvhBuilder.atoms.encodeRelativeOffsets(
       descriptorHeap: descriptorHeap)
-    bvhBuilder.voxelResources.encodeMarks(
+    bvhBuilder.voxels.encodeMarks(
       descriptorHeap: descriptorHeap)
-    bvhBuilder.voxelResources.encodeMemorySlots(
+    bvhBuilder.voxels.encodeMemorySlots(
       descriptorHeap: descriptorHeap)
   }
   #endif
