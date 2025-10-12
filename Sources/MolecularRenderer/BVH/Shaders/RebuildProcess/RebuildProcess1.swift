@@ -15,6 +15,9 @@ extension RebuildProcess {
   // createSource1
   static func createSource1(worldDimension: Float) -> String {
     // counters.general.rebuiltVoxelCount
+    // voxels.group.rebuiltMarks
+    // voxels.group.occupiedMarks
+    // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelIDs
     func functionSignature() -> String {
       #if os(macOS)

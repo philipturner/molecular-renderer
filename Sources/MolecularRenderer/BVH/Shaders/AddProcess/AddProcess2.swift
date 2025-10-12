@@ -13,6 +13,7 @@ extension AddProcess {
   // if a slot hasn't been assigned yet
   //   allocate new voxels (SIMD + global reduction)
   //   if exceeded memory slot limit, crash w/ diagnostic info
+  //   write new entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
   //
   // add existing atom count to prefix-summed 8 counters
   // write to dense.atomicCounters
@@ -25,6 +26,11 @@ extension AddProcess {
     // counters.general.allocatedSlotCount
     // voxels.group.addedMarks
     // voxels.group.rebuiltMarks
+    // voxels.dense.assignedSlotIDs
+    // voxels.dense.atomicCounters
+    // voxels.sparse.assignedVoxelIDs
+    // voxels.sparse.vacantSlotIDs
+    // voxels.sparse.memorySlots
     func functionSignature() -> String {
       #if os(macOS)
       """

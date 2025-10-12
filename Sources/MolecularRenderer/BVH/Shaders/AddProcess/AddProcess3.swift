@@ -13,6 +13,9 @@ extension AddProcess {
   // createSource3
   static func createSource3(worldDimension: Float) -> String {
     // atoms.*
+    // voxels.dense.assignedSlotIDs
+    // voxels.dense.atomicCounters
+    // voxels.sparse.memorySlots
     func functionSignature() -> String {
       #if os(macOS)
       """
