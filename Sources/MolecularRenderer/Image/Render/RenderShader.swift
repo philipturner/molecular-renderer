@@ -110,6 +110,14 @@ struct RenderShader {
       #endif
     }
     
+    func bindMemoryTape() -> String {
+      #if os(macOS)
+      "rayIntersector.memoryTape = memoryTape;"
+      #else
+      ""
+      #endif
+    }
+    
     func computeDepth() -> String {
       guard upscaleFactor > 1 else {
         return ""
@@ -236,6 +244,7 @@ struct RenderShader {
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
+      \(bindMemoryTape())
       
       // Prepare the ray direction.
       float3 primaryRayDirection =

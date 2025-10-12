@@ -11,12 +11,19 @@ func createRayIntersector(worldDimension: Float) -> String {
   // group.occupiedMarks
   // dense.assignedSlotIDs
   // sparse.memorySlots
-  // memoryTape
   func bvhBuffers() -> String {
     #if os(macOS)
-    "device float4 *atoms"
+    "device float4 *atoms;"
     #else
-    "RWStructuredBuffer<float4> atoms"
+    "RWStructuredBuffer<float4> atoms;"
+    #endif
+  }
+  
+  func memoryTapeArgument() -> String {
+    #if os(macOS)
+    "threadgroup uint2 *memoryTape;"
+    #else
+    ""
     #endif
   }
   
@@ -66,7 +73,8 @@ func createRayIntersector(worldDimension: Float) -> String {
   }
   
   struct RayIntersector {
-    \(bvhBuffers());
+    \(bvhBuffers())
+    \(memoryTapeArgument())
     
     IntersectionResult intersect(IntersectionQuery query) {
       // Prepare the intersection result.
