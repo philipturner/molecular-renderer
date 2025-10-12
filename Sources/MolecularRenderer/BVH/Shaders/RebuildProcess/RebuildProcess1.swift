@@ -13,4 +13,39 @@ extension RebuildProcess {
   // write to group.occupiedMarks
   //
   // createSource1
+  static func createSource1(worldDimension: Float) -> String {
+    func functionSignature() -> String {
+      #if os(macOS)
+      """
+      kernel void rebuildProcess1(
+        \(CrashBuffer.functionArguments),
+        uint3 globalID [[thread_position_in_grid]],
+        uint3 groupID [[threadgroup_position_in_grid]])
+      """
+      #else
+      """
+      \(CrashBuffer.functionArguments)
+      
+      [numthreads(4, 4, 4)]
+      [RootSignature(
+        \(CrashBuffer.rootSignatureArguments)
+      )]
+      void rebuildProcess1(
+        uint3 globalID : SV_DispatchThreadID,
+        uint3 groupID : SV_GroupID)
+      """
+      #endif
+    }
+    
+    return """
+    \(Shader.importStandardLibrary)
+    
+    \(functionSignature())
+    {
+      if (crashBuffer[0] != 1) {
+        return;
+      }
+    }
+    """
+  }
 }

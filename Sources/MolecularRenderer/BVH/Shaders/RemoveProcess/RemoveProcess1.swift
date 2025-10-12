@@ -36,6 +36,9 @@ extension RemoveProcess {
     return """
     \(Shader.importStandardLibrary)
     
+    \(AddProcess.pickPermutation())
+    \(AddProcess.reorderForward())
+    \(AddProcess.reorderBackward())
     \(TransactionArgs.shaderDeclaration)
     
     \(functionSignature())

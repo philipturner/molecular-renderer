@@ -30,8 +30,6 @@ extension AddProcess {
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         \(AtomResources.rootSignatureArguments)
-        "UAV(u9),"
-        "UAV(u10),"
       )]
       void addProcess3(
         uint globalID : SV_DispatchThreadID,
@@ -50,6 +48,11 @@ extension AddProcess {
     
     return """
     \(Shader.importStandardLibrary)
+    
+    \(pickPermutation())
+    \(reorderForward())
+    \(reorderBackward())
+    \(TransactionArgs.shaderDeclaration)
     
     \(functionSignature())
     {
