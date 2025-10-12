@@ -1,4 +1,4 @@
-struct RemoveProcess {
+extension RemoveProcess {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(removedCount + movedCount, 1, 1)
   //
@@ -55,40 +55,6 @@ struct RemoveProcess {
     }
     """
   }
-  
-  // [numthreads(4, 4, 4)]
-  // dispatch threads SIMD3(repeating: worldDimension / 2)
-  // dispatch groups  SIMD3(repeating: worldDimension / 8)
-  //
-  // write to group.rebuiltMarks
-  // scan for voxels with atoms removed
-  // create compact list of these voxels (SIMD + global reduction)
-  // global counter is the indirect dispatch argument
-  // write to sparse.atomsRemovedVoxelIDs
-  //
-  // createSource2
-  
-  // [numthreads(128, 1, 1)]
-  // dispatch indirect groups SIMD3(atomic counter, 1, 1)
-  //
-  // check the occupiedMark of each atom in voxel
-  //   if either 0 or 2, remove from the list
-  // prefix sum to compact the reference list (SIMD + group reduction)
-  // write to sparse.memorySlots in-place, sanitized to 128 atoms at a time
-  //
-  // if atoms remain, write to dense.rebuiltMarks
-  // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
-  //
-  // createSource3
-  
-  // [numthreads(128, 1, 1)]
-  // dispatch threads SIMD3(memorySlotCount, 1, 1)
-  //
-  // scan for slots with no assigned voxel
-  // create compact list of these slots (SIMD + group + global reduction)
-  // write to sparse.vacantSlotIDs
-  //
-  // createSource4
 }
 
 extension BVHBuilder {
