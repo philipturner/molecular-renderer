@@ -8,6 +8,8 @@ struct CounterResourcesDescriptor {
 }
 
 class CounterResources {
+  let generalCounters: Buffer // purge to 0 before every frame
+  
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
   let diagnosticBuffer: CrashBuffer // use to download data when debugging
@@ -18,21 +20,23 @@ class CounterResources {
   let queryDestinationBuffer: Buffer
   #endif
   
-  
-  let generalCounters: Buffer // purge to 0 before every frame
-  static var generalCountersSize: Int { 256 * 4 }
-  
-  init(descriptor: BVHCountersDescriptor) {
+  init(descriptor: CounterResourcesDescriptor) {
     guard let device = descriptor.device else {
       fatalError("Descriptor was incomplete.")
     }
     
+    var bufferDesc = BufferDescriptor()
+    bufferDesc.device = device
+    bufferDesc.size = GeneralCounters.totalSize
+    bufferDesc.type = .native(.device)
+    self.generalCounters = Buffer(descriptor: bufferDesc)
+    
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
-    crashBufferDesc.size = BVHCounters.crashBufferSize
+    crashBufferDesc.size = Self.crashBufferSize
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
-    crashBufferDesc.size = BVHCounters.diagnosticBufferSize
+    crashBufferDesc.size = Self.diagnosticBufferSize
     self.diagnosticBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
     #if os(Windows)
@@ -40,12 +44,6 @@ class CounterResources {
     self.queryDestinationBuffer = Self
       .createQueryDestinationBuffer(device: device)
     #endif
-    
-    var generalCountersDesc = BufferDescriptor()
-    generalCountersDesc.device = device
-    generalCountersDesc.size = BVHCounters.generalCountersSize
-    generalCountersDesc.type = .native(.device)
-    self.generalCounters = Buffer(descriptor: generalCountersDesc)
   }
   
   #if os(Windows)

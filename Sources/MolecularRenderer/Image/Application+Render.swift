@@ -8,7 +8,7 @@ import WinSDK
 extension Application {
   private func readCrashBuffer() {
     if frameID >= 3 {
-      let elementCount = BVHCounters.crashBufferSize / 4
+      let elementCount = CounterResources.crashBufferSize / 4
       var output = [UInt32](repeating: .zero, count: elementCount)
       bvhBuilder.counters.crashBuffer.read(
         data: &output,

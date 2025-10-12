@@ -30,7 +30,7 @@ struct DebugDiagnostic {
     
     \(functionSignature())
     {
-      if (globalID >= \(BVHCounters.diagnosticBufferSize / 4)) {
+      if (globalID >= \(CounterResources.diagnosticBufferSize / 4)) {
         return;
       }
       

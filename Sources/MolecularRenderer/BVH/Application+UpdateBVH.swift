@@ -63,12 +63,12 @@ extension Application {
     }
     device.commandQueue.flush()
     
-    var output = [UInt32](repeating: .zero, count: 256)
+    var output = [UInt32](repeating: .zero, count: 10)
     bvhBuilder.counters.diagnosticBuffer.read(
       data: &output,
       inFlightFrameID: 0)
     
-    for i in 0..<16 {
+    for i in 0..<10 {
       print(output[i])
     }
   }

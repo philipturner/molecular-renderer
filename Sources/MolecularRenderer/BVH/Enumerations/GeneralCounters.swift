@@ -10,14 +10,30 @@ enum GeneralCountersRegion {
   
   // removeProcess1 + removeProcess2
   case rebuiltVoxelCount
-  
-  // Offset (in bytes) of the region's start.
-  var offset: Int {
-    fatalError("Not implemented")
-  }
 }
 
 // A play on "General Nanomedics" from the Nanofactory Corporation LOL.
 struct GeneralCounters {
-  static var totalSize: Int { 256 * 4 }
+  // Offset (in bytes) of the region's start.
+  static func offset(_ region: GeneralCountersRegion) -> Int {
+    switch region {
+    case .atomsRemovedVoxelCount:
+      return 0
+    case .vacantSlotCount:
+      return 16
+    case .allocatedSlotCount:
+      return 16 + 4
+    case .rebuiltVoxelCount:
+      return 16 + 4 + 4
+    }
+  }
+  
+  static var totalSize: Int {
+    var output: Int = .zero
+    output += 16
+    output += 4
+    output += 4
+    output += 16
+    return output
+  }
 }

@@ -1,4 +1,4 @@
-enum MemorySlotRegion: CaseIterable {
+enum MemorySlotRegion {
   // per 2 nm voxel header
   case headerLarge
   
