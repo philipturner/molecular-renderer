@@ -21,6 +21,8 @@ extension AddProcess {
   //
   // createSource2
   static func createSource2(worldDimension: Float) -> String {
+    // counters.general.vacantSlotCount
+    // counters.general.allocatedSlotCount
     func functionSignature() -> String {
       #if os(macOS)
       """

@@ -9,6 +9,7 @@ extension RemoveProcess {
   // global counter is the indirect dispatch argument
   // write to sparse.atomsRemovedVoxelIDs
   static func createSource2(worldDimension: Float) -> String {
+    // counters.general.atomsRemovedVoxelCount
     func functionSignature() -> String {
       #if os(macOS)
       """

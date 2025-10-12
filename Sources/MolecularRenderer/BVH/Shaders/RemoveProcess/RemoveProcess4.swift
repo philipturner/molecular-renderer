@@ -15,6 +15,7 @@ extension RemoveProcess {
       """
     }
     
+    // counters.general.vacantSlotCount
     func functionSignature() -> String {
       #if os(macOS)
       """
