@@ -127,6 +127,8 @@ public class Application {
       descriptorHeap: descriptorHeap)
     bvhBuilder.voxelResources.encodeMarks(
       descriptorHeap: descriptorHeap)
+    bvhBuilder.voxelResources.encodeMemorySlots(
+      descriptorHeap: descriptorHeap)
   }
   #endif
   
