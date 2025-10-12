@@ -76,45 +76,11 @@ extension Application {
         inFlightFrameID: frameID % 3)
       #endif
       
-      #if os(Windows)
-      bvhBuilder.computeUAVBarrier(commandList: commandList)
-      #endif
-    }
-    
-    /*
-    device.commandQueue.withCommandList { commandList in
       // Encode the compute command.
-      commandList.withPipelineState(resources.renderShader) {
-        commandList.set32BitConstants(
-          renderArgs, index: RenderShader.renderArgs)
-        
-        // Bind the camera args buffer.
-        let cameraArgsBuffer = resources.cameraArgsBuffer
-          .nativeBuffers[frameID % 3]
-        commandList.setBuffer(
-          cameraArgsBuffer, index: RenderShader.cameraArgs)
-        
-        // Bind the atom buffer.
-        let atomBuffer = resources.atomsBuffer
-          .nativeBuffers[frameID % 3]
-        commandList.setBuffer(
-          atomBuffer, index: RenderShader.atoms)
-        
-        // Bind the motion vectors buffer.
+      commandList.withPipelineState(imageResources.renderShader) {
         #if os(macOS)
-        let motionVectorsBuffer = resources.motionVectorsBuffer
-          .nativeBuffers[frameID % 3]
-        commandList.setBuffer(
-          motionVectorsBuffer, index: RenderShader.motionVectors)
-        #else
-        commandList.setDescriptor(
-          handleID: resources.motionVectorsBaseHandleID + frameID % 3,
-          index: RenderShader.motionVectors)
-        #endif
-        
-        // Bind the color texture.
-        #if os(macOS)
-        let colorTexture = renderTarget.colorTextures[frameID % 2]
+        let colorTexture = imageResources.renderTarget
+          .colorTextures[frameID % 2]
         commandList.mtlCommandEncoder.setTexture(
           colorTexture, index: RenderShader.colorTexture)
         #else
@@ -122,11 +88,12 @@ extension Application {
           handleID: frameID % 2, index: RenderShader.colorTexture)
         #endif
         
-        // Bind the depth and motion textures.
-        if renderTarget.upscaleFactor > 1 {
+        if imageResources.renderTarget.upscaleFactor > 1 {
           #if os(macOS)
-          let depthTexture = renderTarget.depthTextures[frameID % 2]
-          let motionTexture = renderTarget.motionTextures[frameID % 2]
+          let depthTexture = imageResources.renderTarget
+            .depthTextures[frameID % 2]
+          let motionTexture = imageResources.renderTarget
+            .motionTextures[frameID % 2]
           commandList.mtlCommandEncoder.setTexture(
             depthTexture, index: RenderShader.depthTexture)
           commandList.mtlCommandEncoder.setTexture(
@@ -139,9 +106,9 @@ extension Application {
           #endif
         }
         
-        // Determine the dispatch grid size.
         func createGroupCount32() -> SIMD3<UInt32> {
-          var groupCount = renderTarget.intermediateSize(display: display)
+          var groupCount = imageResources.renderTarget
+            .intermediateSize(display: display)
           
           let groupSize = SIMD2<Int>(8, 8)
           groupCount &+= groupSize &- 1
@@ -152,10 +119,13 @@ extension Application {
             UInt32(groupCount[1]),
             UInt32(1))
         }
-        commandList.dispatch(groups: createGroupCount32())
+        //commandList.dispatch(groups: createGroupCount32())
       }
+      
+      #if os(Windows)
+      bvhBuilder.computeUAVBarrier(commandList: commandList)
+      #endif
     }
-     */
     
     var output = Image()
     output.scaleFactor = 1
