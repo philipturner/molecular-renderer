@@ -32,7 +32,7 @@ extension RebuildProcess {
   // otherwise
   //   store two offsets relative to the slot's region for 16-bit references
   //   compress these two 16-bit offsets into a 32-bit word
-  func createSource2(worldDimension: Float) -> String {
+  static func createSource2(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -44,7 +44,7 @@ extension RebuildProcess {
       #else
       """
       \(CrashBuffer.functionArguments)
-      groupshared uint threadgroupMemory[4];
+      groupshared uint threadgroupMemory[516];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -59,7 +59,7 @@ extension RebuildProcess {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      "threadgroup uint threadgroupMemory[4];"
+      "threadgroup uint threadgroupMemory[516];"
       #else
       ""
       #endif

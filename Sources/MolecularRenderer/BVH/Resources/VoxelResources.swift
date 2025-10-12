@@ -45,11 +45,14 @@ class VoxelResources {
     let voxelGroupCount = Self.voxelGroupCount(worldDimension: worldDimension)
     let voxelCount = Self.voxelCount(worldDimension: worldDimension)
     self.group = GroupVoxelResources(
-      device: device, voxelGroupCount: voxelGroupCount)
+      device: device,
+      voxelGroupCount: voxelGroupCount)
     self.dense = DenseVoxelResources(
-      device: device, voxelCount: voxelCount)
+      device: device,
+      voxelCount: voxelCount)
     self.sparse = SparseVoxelResources(
-      device: device, memorySlotCount: memorySlotCount)
+      device: device,
+      memorySlotCount: memorySlotCount)
   }
   
   static func voxelGroupCount(worldDimension: Float) -> Int {
