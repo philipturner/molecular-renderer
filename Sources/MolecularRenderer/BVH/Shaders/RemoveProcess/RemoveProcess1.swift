@@ -8,7 +8,7 @@ extension RemoveProcess {
   //   2 if moved
   // write to group.atomsRemovedMarks
   // write to dense.atomsRemovedMarks
-  static func createSource1() -> String {
+  static func createSource1(worldDimension: Float) -> String {
     func functionSignature() -> String {
       #if os(macOS)
       """
