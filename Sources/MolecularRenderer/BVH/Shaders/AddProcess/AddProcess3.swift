@@ -1,6 +1,7 @@
 extension AddProcess {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(movedCount + addedCount, 1, 1)
+  // threadgroup memory 4096 B
   //
   // read atom from address space
   // restore the relativeOffsets

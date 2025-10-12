@@ -1,6 +1,7 @@
 extension AddProcess {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(movedCount + addedCount, 1, 1)
+  // threadgroup memory 4096 B
   //
   // set the occupiedMark to 1
   // set the atom and motion vector

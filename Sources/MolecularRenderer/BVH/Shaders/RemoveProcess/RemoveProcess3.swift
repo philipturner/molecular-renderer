@@ -1,6 +1,7 @@
 extension RemoveProcess {
   // [numthreads(128, 1, 1)]
   // dispatch indirect groups SIMD3(atomic counter, 1, 1)
+  // threadgroup memory 16 B
   //
   // check the occupiedMark of each atom in voxel
   //   if either 0 or 2, remove from the list

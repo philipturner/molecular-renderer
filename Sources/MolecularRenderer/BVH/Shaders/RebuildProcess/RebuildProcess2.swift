@@ -1,6 +1,7 @@
 extension RebuildProcess {
   // [numthreads(128, 1, 1)]
   // dispatch indirect groups SIMD3(atomic counter, 1, 1)
+  // threadgroup memory 2064 B
   //
   // # Phase I
   //
@@ -10,7 +11,6 @@ extension RebuildProcess {
   // # Phase II
   //
   // read 4 voxels in a single instruction, on 128 threads in parallel
-  //   save the result to recycle threadgroup memory for group reduction
   // prefix sum over 512 small voxels (SIMD + group reduction)
   //   save the prefix sum result for Phase IV
   // if reference count is too large, crash w/ diagnostic info
