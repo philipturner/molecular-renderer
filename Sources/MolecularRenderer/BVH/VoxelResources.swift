@@ -75,10 +75,10 @@ class VoxelResources {
   // TODO: Use enumeration to define offsets within the memory slot.
   static var memorySlotSize: Int {
     var output: Int = .zero
-    output += 16 // header
+    output += 16 // per 2 nm voxel header
     output += 512 * 4 // per 0.25 nm voxel header
-    output += 3072 * 4 // 2 nm -> global mapping, fused with 3-bit tag
-    output += 20480 * 2 // 0.25 nm -> global mapping
+    output += 3072 * 4 // 2 nm -> global references
+    output += 20480 * 2 // 0.25 nm -> 2 nm references
     return output
   }
   
