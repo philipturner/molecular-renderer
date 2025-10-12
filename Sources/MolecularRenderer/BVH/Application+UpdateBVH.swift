@@ -49,6 +49,8 @@ extension Application {
       // Encode the rebuild process.
       bvhBuilder.rebuildProcess1(
         commandList: commandList)
+      bvhBuilder.rebuildProcess2(
+        commandList: commandList)
       
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,

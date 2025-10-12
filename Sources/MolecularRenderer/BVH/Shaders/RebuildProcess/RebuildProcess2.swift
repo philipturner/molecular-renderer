@@ -79,3 +79,17 @@ extension RebuildProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func rebuildProcess2(commandList: CommandList) {
+    commandList.withPipelineState(shaders.rebuild.process2) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
+      
+      let offset = GeneralCounters.offset(.rebuiltVoxelCount)
+      commandList.dispatchIndirect(
+        buffer: counters.generalCounters,
+        offset: offset)
+    }
+  }
+}
