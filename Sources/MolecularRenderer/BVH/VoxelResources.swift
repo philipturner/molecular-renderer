@@ -76,9 +76,9 @@ class VoxelResources {
   static var memorySlotSize: Int {
     var output: Int = .zero
     output += 16 // header
-    output += 512 * 8 // per 0.25 nm voxel header
+    output += 512 * 4 // per 0.25 nm voxel header
     output += 3072 * 4 // 2 nm -> global mapping, fused with 3-bit tag
-    output += 20480 * 4 // 0.25 nm -> global mapping
+    output += 20480 * 2 // 0.25 nm -> global mapping
     return output
   }
   

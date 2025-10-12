@@ -27,6 +27,18 @@ func createRayIntersector() -> String {
     float3 rayDirection;
   };
   
+  // Transform a 16-bit reference into a 32-bit reference prior to calling this
+  // function, by fetching from the small voxel's list of ~3072 atom references.
+  //
+  // Will need to encode the memory slots as both an RWStructuredBuffer<uint>
+  // and RWBuffer<uint> with DXGI_FORMAT_R16_UINT. Per small cell metadata can
+  // be read as UInt32, then decoded into two UInt16 numbers with bitwise
+  // operations. This decoding only happens once, not on every loop
+  // iteration.
+  //
+  // reference16 = RWBuffer[loop iterator]
+  // reference32 = RWStructuredBuffer[precomputed offset + reference16]
+  // atom = addressSpace[reference32]
   void intersectAtom(\(resultArgument()),
                      IntersectionQuery query,
                      float4 atom,
