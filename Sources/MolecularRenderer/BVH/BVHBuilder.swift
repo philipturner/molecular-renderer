@@ -12,9 +12,9 @@ struct BVHBuilderDescriptor {
 
 class BVHBuilder {
   let shaders: BVHShaders
-  let atomResources: AtomResources // -> atoms
-  let voxelResources: VoxelResources // -> voxels
-  let counters: BVHCounters
+  let atoms: AtomResources
+  let counters: CounterResources
+  let voxels: VoxelResources
   
   var transactionArgs: TransactionArgs?
   
@@ -34,17 +34,17 @@ class BVHBuilder {
     var atomResourcesDesc = AtomResourcesDescriptor()
     atomResourcesDesc.addressSpaceSize = addressSpaceSize
     atomResourcesDesc.device = device
-    self.atomResources = AtomResources(descriptor: atomResourcesDesc)
+    self.atoms = AtomResources(descriptor: atomResourcesDesc)
+    
+    var counterResourcesDesc = CounterResourcesDescriptor()
+    counterResourcesDesc.device = device
+    self.counters = CounterResources(descriptor: counterResourcesDesc)
     
     var voxelResourcesDesc = VoxelResourcesDescriptor()
     voxelResourcesDesc.device = device
     voxelResourcesDesc.voxelAllocationSize = voxelAllocationSize
     voxelResourcesDesc.worldDimension = worldDimension
-    self.voxelResources = VoxelResources(descriptor: voxelResourcesDesc)
-    
-    var bvhCountersDesc = BVHCountersDescriptor()
-    bvhCountersDesc.device = device
-    self.counters = BVHCounters(descriptor: bvhCountersDesc)
+    self.voxels = VoxelResources(descriptor: voxelResourcesDesc)
     
     #if os(Windows)
     // Move all UAV resources to the UAV state.
@@ -59,29 +59,29 @@ class BVHBuilder {
   func setUAVState(device: Device) {
     device.commandQueue.withCommandList { commandList in
       let buffers: [Buffer] = [
-        atomResources.atoms,
-        atomResources.motionVectors,
-        atomResources.addressOccupiedMarks,
-        atomResources.relativeOffsets1,
-        atomResources.relativeOffsets2,
-        
-        voxelResources.group.atomsRemovedMarks,
-        voxelResources.group.rebuiltMarks,
-        voxelResources.group.addedMarks,
-        voxelResources.group.occupiedMarks,
-        
-        voxelResources.dense.assignedSlotIDs,
-        voxelResources.dense.atomsRemovedMarks,
-        voxelResources.dense.rebuiltMarks,
-        voxelResources.dense.atomicCounters,
-        
-        voxelResources.sparse.assignedVoxelIDs,
-        voxelResources.sparse.atomsRemovedVoxelIDs,
-        voxelResources.sparse.rebuiltVoxelIDs,
-        voxelResources.sparse.vacantSlotIDs,
-        voxelResources.sparse.memorySlots,
+        atoms.atoms,
+        atoms.motionVectors,
+        atoms.addressOccupiedMarks,
+        atoms.relativeOffsets1,
+        atoms.relativeOffsets2,
         
         counters.generalCounters,
+        
+        voxels.group.atomsRemovedMarks,
+        voxels.group.rebuiltMarks,
+        voxels.group.addedMarks,
+        voxels.group.occupiedMarks,
+        
+        voxels.dense.assignedSlotIDs,
+        voxels.dense.atomsRemovedMarks,
+        voxels.dense.rebuiltMarks,
+        voxels.dense.atomicCounters,
+        
+        voxels.sparse.assignedVoxelIDs,
+        voxels.sparse.atomsRemovedVoxelIDs,
+        voxels.sparse.rebuiltVoxelIDs,
+        voxels.sparse.vacantSlotIDs,
+        voxels.sparse.memorySlots,
       ]
       
       var barriers: [D3D12_RESOURCE_BARRIER] = []
@@ -113,41 +113,41 @@ class BVHBuilder {
   
   func initializeResources(device: Device) {
     let voxelCount = VoxelResources.voxelCount(
-      worldDimension: voxelResources.worldDimension)
+      worldDimension: voxels.worldDimension)
     
     device.commandQueue.withCommandList { commandList in
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
-        clearedBuffer: atomResources.addressOccupiedMarks,
-        size: atomResources.addressSpaceSize)
+        clearedBuffer: atoms.addressOccupiedMarks,
+        size: atoms.addressSpaceSize)
       
       clearBuffer(
         commandList: commandList,
         clearValue: UInt32.max,
-        clearedBuffer: voxelResources.dense.assignedSlotIDs,
+        clearedBuffer: voxels.dense.assignedSlotIDs,
         size: voxelCount * 4)
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
-        clearedBuffer: voxelResources.dense.atomsRemovedMarks,
+        clearedBuffer: voxels.dense.atomsRemovedMarks,
         size: voxelCount)
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
-        clearedBuffer: voxelResources.dense.rebuiltMarks,
+        clearedBuffer: voxels.dense.rebuiltMarks,
         size: voxelCount)
       clearBuffer(
         commandList: commandList,
         clearValue: 0,
-        clearedBuffer: voxelResources.dense.atomicCounters,
+        clearedBuffer: voxels.dense.atomicCounters,
         size: voxelCount * 32)
       
       clearBuffer(
         commandList: commandList,
         clearValue: UInt32.max,
-        clearedBuffer: voxelResources.sparse.assignedVoxelIDs,
-        size: voxelResources.memorySlotCount * 4)
+        clearedBuffer: voxels.sparse.assignedVoxelIDs,
+        size: voxels.memorySlotCount * 4)
       
       // Initialize the crash buffer to 1.
       do {
@@ -167,44 +167,44 @@ class BVHBuilder {
   // Clear resources that should be reset every frame with ClearBuffer.
   func purgeResources(commandList: CommandList) {
     let voxelGroupCount = VoxelResources.voxelGroupCount(
-      worldDimension: voxelResources.worldDimension)
+      worldDimension: voxels.worldDimension)
     
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxelResources.group.atomsRemovedMarks,
+      clearedBuffer: voxels.group.atomsRemovedMarks,
       size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxelResources.group.rebuiltMarks,
+      clearedBuffer: voxels.group.rebuiltMarks,
       size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxelResources.group.addedMarks,
+      clearedBuffer: voxels.group.addedMarks,
       size: voxelGroupCount * 4)
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: voxelResources.group.occupiedMarks,
+      clearedBuffer: voxels.group.occupiedMarks,
       size: voxelGroupCount * 4)
     
     clearBuffer(
       commandList: commandList,
       clearValue: UInt32.max,
-      clearedBuffer: voxelResources.sparse.atomsRemovedVoxelIDs,
-      size: voxelResources.memorySlotCount * 4)
+      clearedBuffer: voxels.sparse.atomsRemovedVoxelIDs,
+      size: voxels.memorySlotCount * 4)
     clearBuffer(
       commandList: commandList,
       clearValue: UInt32.max,
-      clearedBuffer: voxelResources.sparse.rebuiltVoxelIDs,
-      size: voxelResources.memorySlotCount * 4)
+      clearedBuffer: voxels.sparse.rebuiltVoxelIDs,
+      size: voxels.memorySlotCount * 4)
     clearBuffer(
       commandList: commandList,
       clearValue: UInt32.max,
-      clearedBuffer: voxelResources.sparse.vacantSlotIDs,
-      size: voxelResources.memorySlotCount * 4)
+      clearedBuffer: voxels.sparse.vacantSlotIDs,
+      size: voxels.memorySlotCount * 4)
     
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)
@@ -236,9 +236,9 @@ class BVHBuilder {
     // Write to the IDs buffer.
     do {
       #if os(macOS)
-      let buffer = atomResources.transactionIDs.nativeBuffers[inFlightFrameID]
+      let buffer = atoms.transactionIDs.nativeBuffers[inFlightFrameID]
       #else
-      let buffer = atomResources.transactionIDs.inputBuffers[inFlightFrameID]
+      let buffer = atoms.transactionIDs.inputBuffers[inFlightFrameID]
       #endif
       
       transaction.removedIDs.withUnsafeBytes { bufferPointer in
@@ -261,9 +261,9 @@ class BVHBuilder {
     // Write to the atoms buffer.
     do {
       #if os(macOS)
-      let buffer = atomResources.transactionAtoms.nativeBuffers[inFlightFrameID]
+      let buffer = atoms.transactionAtoms.nativeBuffers[inFlightFrameID]
       #else
-      let buffer = atomResources.transactionAtoms.inputBuffers[inFlightFrameID]
+      let buffer = atoms.transactionAtoms.inputBuffers[inFlightFrameID]
       #endif
       
       transaction.movedPositions.withUnsafeBytes { bufferPointer in
@@ -282,13 +282,13 @@ class BVHBuilder {
     // Dispatch the GPU commands to copy the PCIe data.
     do {
       let idsCount = removedCount + movedCount + addedCount
-      atomResources.transactionIDs.copy(
+      atoms.transactionIDs.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         range: 0..<(idsCount * 4))
       
       let atomsCount = movedCount + addedCount
-      atomResources.transactionAtoms.copy(
+      atoms.transactionAtoms.copy(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         range: 0..<(atomsCount * 16))
