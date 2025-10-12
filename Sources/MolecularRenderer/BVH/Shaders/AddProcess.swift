@@ -239,7 +239,7 @@ struct AddProcess {
   // read from dense.atomicCounters
   //   add to relativeOffset, generating the correct offset
   // read from dense.assignedSlotIDs
-  // write the atomID into the voxel's reference list
+  // write a 32-bit reference into sparse.memorySlots
   //
   // createSource3
 }

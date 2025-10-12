@@ -35,11 +35,16 @@ struct RebuildProcess {
   // loop over a 3x3x3 grid of small voxels for each atom
   // run the cube-sphere test and mask out voxels outside the 2 nm bound
   // atomically accumulate into threadgroupCounters
-  // write a reference to sparse.memorySlots
+  // write a 16-bit reference to sparse.memorySlots
   //
   // # Phase IV
   //
   // restore the prefix sum result
+  // read end of reference list from threadgroupCounters
+  // if atom count is zero, output UInt32(0)
+  // otherwise
+  //   store two offsets relative to the slot's region for 16-bit references
+  //   compress these two 16-bit offsets into a 32-bit word
   func createSource2() -> String {
     fatalError("Not implemented.")
   }
