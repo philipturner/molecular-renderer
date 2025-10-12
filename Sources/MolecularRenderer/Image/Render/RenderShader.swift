@@ -58,6 +58,7 @@ struct RenderShader {
       RWBuffer<float4> motionVectors : register(u\(Self.motionVectors));
       RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
+      groupshared uint2 memoryTape[8 * 64];
       
       [numthreads(8, 8, 1)]
       [RootSignature(
@@ -72,6 +73,19 @@ struct RenderShader {
       void render(
         uint2 pixelCoords : SV_DispatchThreadID)
       """
+      #endif
+    }
+    
+    func allocateThreadgroupMemory() -> String {
+      #if os(macOS)
+      """
+      // Temporarily testing to avoid dead code elimination.
+      threadgroup uint2 memoryTape[8 * 64];
+      memoryTape[0] = uint2(5);
+      memoryTape[511] = uint2(5);
+      """
+      #else
+      ""
       #endif
     }
     
@@ -210,7 +224,7 @@ struct RenderShader {
     
     \(functionSignature())
     {
-      // TODO: Declare threadgroup memory allocation 'memoryTape'
+      \(allocateThreadgroupMemory())
       
       // Query the screen's dimensions.
       \(queryScreenDimensions())
