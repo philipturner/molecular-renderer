@@ -51,9 +51,7 @@ extension RebuildProcess {
 }
 
 extension BVHBuilder {
-  func rebuildProcess1(
-    commandList: CommandList
-  ) {
+  func rebuildProcess1(commandList: CommandList) {
     commandList.withPipelineState(shaders.rebuild.process1) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)

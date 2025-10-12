@@ -70,3 +70,36 @@ extension RemoveProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func removeProcess4(commandList: CommandList) {
+    commandList.withPipelineState(shaders.remove.process4) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
+      
+      // Bind the constant arguments.
+      struct ConstantArgs {
+        var memorySlotCount: UInt32 = .zero
+      }
+      var constantArgs = ConstantArgs()
+      constantArgs.memorySlotCount = UInt32(voxels.memorySlotCount)
+      commandList.set32BitConstants(
+        constantArgs, index: 1)
+      
+      // Determine the dispatch grid size.
+      func createGroupCount32() -> SIMD3<UInt32> {
+        var groupCount: Int = voxels.memorySlotCount
+        
+        let groupSize: Int = 128
+        groupCount += groupSize - 1
+        groupCount /= groupSize
+        
+        return SIMD3<UInt32>(
+          UInt32(groupCount),
+          UInt32(1),
+          UInt32(1))
+      }
+      commandList.dispatch(groups: createGroupCount32())
+    }
+  }
+}

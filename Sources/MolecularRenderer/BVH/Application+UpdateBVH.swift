@@ -28,6 +28,8 @@ extension Application {
         inFlightFrameID: inFlightFrameID)
       bvhBuilder.removeProcess2(
         commandList: commandList)
+      bvhBuilder.removeProcess4(
+        commandList: commandList)
       
       // Encode the add process.
       bvhBuilder.addProcess1(

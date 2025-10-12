@@ -58,9 +58,7 @@ extension AddProcess {
 }
 
 extension BVHBuilder {
-  func addProcess2(
-    commandList: CommandList
-  ) {
+  func addProcess2(commandList: CommandList) {
     commandList.withPipelineState(shaders.add.process2) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)

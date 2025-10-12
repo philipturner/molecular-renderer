@@ -46,9 +46,7 @@ extension RemoveProcess {
 }
 
 extension BVHBuilder {
-  func removeProcess2(
-    commandList: CommandList
-  ) {
+  func removeProcess2(commandList: CommandList) {
     commandList.withPipelineState(shaders.remove.process2) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
