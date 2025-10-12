@@ -166,7 +166,7 @@ extension Application {
             UInt32(groupCount[1]),
             UInt32(1))
         }
-        //commandList.dispatch(groups: createGroupCount32())
+        commandList.dispatch(groups: createGroupCount32())
       }
       
       #if os(Windows)
