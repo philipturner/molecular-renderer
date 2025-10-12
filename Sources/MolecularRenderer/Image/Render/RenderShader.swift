@@ -78,12 +78,7 @@ struct RenderShader {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      """
-      // Temporarily testing to avoid dead code elimination.
-      threadgroup uint2 memoryTape[8 * 64];
-      memoryTape[0] = uint2(5);
-      memoryTape[511] = uint2(5);
-      """
+      "threadgroup uint2 memoryTape[8 * 64];"
       #else
       ""
       #endif
