@@ -11,6 +11,7 @@ class CommandQueue {
   #if os(macOS)
   let mtlCommandQueue: MTLCommandQueue
   #else
+  let commandSignature: SwiftCOM.ID3D12CommandSignature
   let d3d12CommandQueue: SwiftCOM.ID3D12CommandQueue
   let d3d12Fence: SwiftCOM.ID3D12Fence
   let eventHandle: UnsafeMutableRawPointer
@@ -31,6 +32,11 @@ class CommandQueue {
     commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL.rawValue
     commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE
     commandQueueDesc.NodeMask = 0
+    #endif
+    
+    // Create the command signature.
+    #if os(Windows)
+    self.commandSignature = Self.createCommandSignature(device: device)
     #endif
     
     // Create the command queue.
@@ -58,6 +64,28 @@ class CommandQueue {
 
 extension CommandQueue {
   #if os(Windows)
+  static func createCommandSignature(
+    device: Device
+  ) -> SwiftCOM.ID3D12CommandSignature {
+    return withUnsafeTemporaryAllocation(
+      of: D3D12_INDIRECT_ARGUMENT_DESC.self,
+      capacity: 1
+    ) { bufferPointer in
+      var commandSignatureDesc = D3D12_COMMAND_SIGNATURE_DESC()
+      
+      var iid: IID = SwiftCOM.ID3D12CommandSignature.IID
+      let pvCommandSignature =
+      try! device.d3d12Device.CreateCommandSignature(
+        nil, // pDesc
+        nil, // pRootSignature
+        &iid) // riid
+      guard let pvCommandSignature else {
+        fatalError("Could not create command signature.")
+      }
+      return SwiftCOM.ID3D12CommandSignature(pUnk: pvCommandSignature)
+    }
+  }
+  
   // Remove references to command lists that finished executing.
   private func newUncompletedCommandLists() -> [CommandList] {
     let currentFenceValue = try! d3d12Fence.GetCompletedValue()

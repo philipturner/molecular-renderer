@@ -57,7 +57,8 @@ class CounterResources {
     
     var iid: IID = SwiftCOM.ID3D12QueryHeap.IID
     let pvHeap = try! device.d3d12Device.CreateQueryHeap(
-      &queryHeapDesc, &iid)
+      &queryHeapDesc, // pDesc
+      &iid) // riid
     guard let pvHeap else {
       fatalError("Could not create query heap.")
     }
