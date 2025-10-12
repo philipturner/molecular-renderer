@@ -10,12 +10,24 @@ func createRayIntersector(worldDimension: Float) -> String {
   // atoms
   // group.occupiedMarks
   // dense.assignedSlotIDs
-  // sparse.memorySlots
+  // sparse.memorySlots [32, 16]
   func bvhBuffers() -> String {
     #if os(macOS)
-    "device float4 *atoms;"
+    """
+    device float4 *atoms;
+    device uint *voxelGroupOccupiedMarks;
+    device uint *assignedSlotIDs;
+    device uint *memorySlots32;
+    device ushort *memorySlots16;
+    """
     #else
-    "RWStructuredBuffer<float4> atoms;"
+    """
+    RWStructuredBuffer<float4> atoms;
+    RWStructuredBuffer<uint> voxelGroupOccupiedMarks;
+    RWStructuredBuffer<uint> assignedSlotIDs;
+    RWStructuredBuffer<uint> memorySlots32;
+    RWBuffer<uint> memorySlots16;
+    """
     #endif
   }
   

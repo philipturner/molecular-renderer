@@ -43,6 +43,10 @@ struct RenderShader {
         constant CameraArgsList &cameraArgs [[buffer(\(Self.cameraArgs))]],
         device float4 *atoms [[buffer(\(Self.atoms))]],
         device half4 *motionVectors [[buffer(\(Self.motionVectors))]],
+        device uint *voxelGroupOccupiedMarks [[buffer(\(Self.voxelGroupOccupiedMarks))]],
+        device uint *assignedSlotIDs [[buffer(\(Self.assignedSlotIDs))]],
+        device uint *memorySlots32 [[buffer(\(Self.memorySlots32))]],
+        device ushort *memorySlots16 [[buffer(\(Self.memorySlots16))]],
         texture2d<float, access::write> colorTexture [[texture(\(Self.colorTexture))]],
         \(optionalFunctionArguments())
         uint2 pixelCoords [[thread_position_in_grid]])
@@ -56,6 +60,10 @@ struct RenderShader {
       ConstantBuffer<CameraArgsList> cameraArgs : register(b\(Self.cameraArgs));
       RWStructuredBuffer<float4> atoms : register(u\(Self.atoms));
       RWBuffer<float4> motionVectors : register(u\(Self.motionVectors));
+      RWStructuredBuffer<uint> voxelGroupOccupiedMarks : register(u\(Self.voxelGroupOccupiedMarks));
+      RWStructuredBuffer<uint> assignedSlotIDs : register(u\(Self.assignedSlotIDs));
+      RWStructuredBuffer<uint> memorySlots32 : register(u\(Self.memorySlots32));
+      RWBuffer<uint> memorySlots16 : register(u\(Self.memorySlots16));
       RWTexture2D<float4> colorTexture : register(u\(Self.colorTexture));
       \(optionalFunctionArguments())
       groupshared uint2 memoryTape[8 * 64];
@@ -67,6 +75,10 @@ struct RenderShader {
         "CBV(b\(Self.cameraArgs)),"
         "UAV(u\(Self.atoms)),"
         "DescriptorTable(UAV(u\(Self.motionVectors), numDescriptors = 1)),"
+        "UAV(u\(Self.voxelGroupOccupiedMarks)),"
+        "UAV(u\(Self.assignedSlotIDs)),"
+        "UAV(u\(Self.memorySlots32)),"
+        "DescriptorTable(UAV(u\(Self.memorySlots16), numDescriptors = 1)),"
         "DescriptorTable(UAV(u\(Self.colorTexture), numDescriptors = 1)),"
         \(optionalRootSignatureArguments())
       )]
@@ -244,6 +256,10 @@ struct RenderShader {
       // Prepare the ray intersector.
       RayIntersector rayIntersector;
       rayIntersector.atoms = atoms;
+      rayIntersector.voxelGroupOccupiedMarks = voxelGroupOccupiedMarks;
+      rayIntersector.assignedSlotIDs = assignedSlotIDs;
+      rayIntersector.memorySlots32 = memorySlots32;
+      rayIntersector.memorySlots16 = memorySlots16;
       \(bindMemoryTape())
       
       // Prepare the ray direction.
