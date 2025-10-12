@@ -7,16 +7,21 @@ import WinSDK
 
 extension Application {
   private func readCrashBuffer() {
-    if frameID >= 0 {
+    if frameID >= 3 {
       let elementCount = BVHCounters.crashBufferSize / 4
       var output = [UInt32](repeating: .zero, count: elementCount)
       bvhBuilder.counters.crashBuffer.read(
         data: &output,
         inFlightFrameID: frameID % 3)
       
-      // Current substitute for a proper crash decoding mechanism.
-      // Should gate this under whether output[0] != 1.
-      print("frame \(frameID):", output[0], output[1], output[2], output[3])
+      if output[0] != 1 {
+        // Current substitute for a proper crash decoding mechanism.
+        fatalError("""
+          Error thrown in shader code.
+          frame ID: \(frameID)
+          crash buffer contents: \(output)
+          """)
+      }
     }
   }
   
