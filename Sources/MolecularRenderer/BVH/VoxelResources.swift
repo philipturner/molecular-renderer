@@ -69,17 +69,7 @@ class VoxelResources {
   }
   
   static func memorySlotCount(voxelAllocationSize: Int) -> Int {
-    return voxelAllocationSize / memorySlotSize
-  }
-  
-  // TODO: Use enumeration to define offsets within the memory slot.
-  static var memorySlotSize: Int {
-    var output: Int = .zero
-    output += 8 // per 2 nm voxel header
-    output += 512 * 4 // per 0.25 nm voxel header
-    output += 3072 * 4 // 2 nm -> global references
-    output += 20480 * 2 // 0.25 nm -> 2 nm references
-    return output
+    return voxelAllocationSize / MemorySlot.totalSize
   }
   
   // Shader code to generate a voxel address.
@@ -175,7 +165,7 @@ struct SparseVoxelResources {
     self.rebuiltVoxelIDs = createBuffer(size: memorySlotCount * 4)
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
     self.memorySlots = createBuffer(
-      size: memorySlotCount * VoxelResources.memorySlotSize)
+      size: memorySlotCount * MemorySlot.totalSize)
   }
 }
 
@@ -205,7 +195,7 @@ extension VoxelResources {
   }
   
   func encodeMemorySlots(descriptorHeap: DescriptorHeap) {
-    let bufferByteCount = memorySlotCount * VoxelResources.memorySlotSize
+    let bufferByteCount = memorySlotCount * MemorySlot.totalSize
     
     var uavDesc = D3D12_UNORDERED_ACCESS_VIEW_DESC()
     uavDesc.Format = DXGI_FORMAT_R16_UINT
@@ -215,7 +205,6 @@ extension VoxelResources {
     uavDesc.Buffer.StructureByteStride = 0
     uavDesc.Buffer.CounterOffsetInBytes = 0
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE
-    print("Number of UInt16 elements: \(uavDesc.Buffer.NumElements)")
     
     let handleID = descriptorHeap.createUAV(
       resource: sparse.memorySlots.d3d12Resource,
