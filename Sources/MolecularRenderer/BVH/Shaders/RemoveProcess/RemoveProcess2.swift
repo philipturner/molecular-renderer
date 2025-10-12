@@ -44,3 +44,21 @@ extension RemoveProcess {
     """
   }
 }
+
+extension BVHBuilder {
+  func removeProcess2(
+    commandList: CommandList
+  ) {
+    commandList.withPipelineState(shaders.remove.process2) {
+      counters.crashBuffer.setBufferBindings(
+        commandList: commandList)
+      
+      let gridSize = Int(voxels.worldDimension / 8)
+      let threadgroupCount = SIMD3<UInt32>(
+        UInt32(gridSize),
+        UInt32(gridSize),
+        UInt32(gridSize))
+      commandList.dispatch(groups: threadgroupCount)
+    }
+  }
+}

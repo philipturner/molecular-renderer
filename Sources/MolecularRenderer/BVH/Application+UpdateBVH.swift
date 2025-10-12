@@ -20,7 +20,13 @@ extension Application {
       bvhBuilder.removeProcess1(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
+      bvhBuilder.removeProcess2(
+        commandList: commandList)
+      
       bvhBuilder.addProcess1(
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+      bvhBuilder.addProcess3(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
       
@@ -41,7 +47,7 @@ extension Application {
       bvhBuilder.resetMotionVectors(
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
-      bvhBuilder.resetAtomicCounters(
+      bvhBuilder.resetVoxelMarks(
         commandList: commandList)
       
       #if os(Windows)

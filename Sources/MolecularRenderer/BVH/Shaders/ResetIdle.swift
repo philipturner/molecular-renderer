@@ -164,7 +164,7 @@ extension BVHBuilder {
     }
   }
   
-  func resetAtomicCounters(
+  func resetVoxelMarks(
     commandList: CommandList
   ) {
     commandList.withPipelineState(shaders.resetVoxelMarks) {
