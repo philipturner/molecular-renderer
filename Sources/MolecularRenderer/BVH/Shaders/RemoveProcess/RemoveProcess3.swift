@@ -16,7 +16,8 @@ extension RemoveProcess {
     // voxels.dense.assignedSlotIDs
     // voxels.sparse.assignedVoxelIDs
     // voxels.sparse.atomsRemovedVoxelIDs
-    // voxels.sparse.memorySlots
+    // voxels.sparse.memorySlots.headerLarge
+    // voxels.sparse.memorySlots.referenceLarge
     func functionSignature() -> String {
       #if os(macOS)
       """

@@ -30,7 +30,8 @@ extension AddProcess {
     // voxels.dense.atomicCounters
     // voxels.sparse.assignedVoxelIDs
     // voxels.sparse.vacantSlotIDs
-    // voxels.sparse.memorySlots
+    // voxels.sparse.memorySlots.headerLarge
+    // voxels.sparse.memorySlots.referenceLarge
     func functionSignature() -> String {
       #if os(macOS)
       """

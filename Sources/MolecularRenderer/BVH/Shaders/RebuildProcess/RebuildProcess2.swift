@@ -37,7 +37,7 @@ extension RebuildProcess {
   //   compress these two 16-bit offsets into a 32-bit word
   static func createSource2(worldDimension: Float) -> String {
     // atoms.atoms
-    // voxels
+    // voxels.dense.assignedSlotIDs
     // voxels.sparse.rebuiltVoxelIDs
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
