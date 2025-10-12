@@ -13,9 +13,9 @@ class VoxelResources {
   let worldDimension: Float
   let memorySlotCount: Int
   
-  var group: GroupVoxelResources
-  var dense: DenseVoxelResources
-  var sparse: SparseVoxelResources
+  let group: GroupVoxelResources
+  let dense: DenseVoxelResources
+  let sparse: SparseVoxelResources
   
   init(descriptor: VoxelResourcesDescriptor) {
     guard let device = descriptor.device,
@@ -83,7 +83,7 @@ class VoxelResources {
   }
 }
 
-struct GroupVoxelResources {
+class GroupVoxelResources {
   // purge to 0 before every frame
   let atomsRemovedMarks: Buffer
   let rebuiltMarks: Buffer
@@ -106,7 +106,7 @@ struct GroupVoxelResources {
   }
 }
 
-struct DenseVoxelResources {
+class DenseVoxelResources {
   // initialize to UInt32.max with shader
   let assignedSlotIDs: Buffer
   
@@ -137,7 +137,7 @@ struct DenseVoxelResources {
   }
 }
 
-struct SparseVoxelResources {
+class SparseVoxelResources {
   // initialize to UInt32.max with shader
   let assignedVoxelIDs: Buffer
   

@@ -7,8 +7,7 @@ class BVHShaders {
   let clearBuffer: Shader
   let debugDiagnostic: Shader
   
-  let removeProcess1: Shader
-  let removeProcess2: Shader
+  let remove: RemoveProcess
   let addProcess1: Shader
   
   let resetMotionVectors: Shader
@@ -32,18 +31,6 @@ class BVHShaders {
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = DebugDiagnostic.createSource()
     self.debugDiagnostic = Shader(descriptor: shaderDesc)
-    
-    shaderDesc.name = "removeProcess1"
-    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = RemoveProcess.createSource1(
-      worldDimension: worldDimension)
-    self.removeProcess1 = Shader(descriptor: shaderDesc)
-    
-    shaderDesc.name = "removeProcess2"
-    shaderDesc.threadsPerGroup = SIMD3(4, 4, 4)
-    shaderDesc.source = RemoveProcess.createSource2(
-      worldDimension: worldDimension)
-    self.removeProcess2 = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "addProcess1"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
