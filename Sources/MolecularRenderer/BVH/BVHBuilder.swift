@@ -12,8 +12,8 @@ struct BVHBuilderDescriptor {
 
 class BVHBuilder {
   let shaders: BVHShaders
-  let atomResources: AtomResources
-  let voxelResources: VoxelResources
+  let atomResources: AtomResources // -> atoms
+  let voxelResources: VoxelResources // -> voxels
   let counters: BVHCounters
   
   var transactionArgs: TransactionArgs?

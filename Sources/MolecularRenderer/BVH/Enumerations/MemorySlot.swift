@@ -12,6 +12,7 @@ enum MemorySlotRegion: CaseIterable {
   case referenceSmall
 }
 
+// Fixed chunk of memory for each voxel to store its data.
 struct MemorySlot {
   // Offset (in bytes) of the region's start.
   static func offset(_ region: MemorySlotRegion) -> Int {

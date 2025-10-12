@@ -3,30 +3,11 @@ import SwiftCOM
 import WinSDK
 #endif
 
-enum BVHCounterType {
-  // removeProcess2 + removeProcess3
-  case atomsRemovedVoxelCount
-  
-  // removeProcess4
-  case vacantSlotCount
-  
-  // addProcess2
-  case allocatedSlotCount
-  
-  // removeProcess1 + removeProcess2
-  case rebuiltVoxelCount
-  
-  // Offset (in bytes) of the counter, relative to the start of the buffer.
-  var offset: Int {
-    fatalError("Not implemented")
-  }
-}
-
-struct BVHCountersDescriptor {
+struct CounterResourcesDescriptor {
   var device: Device?
 }
 
-class BVHCounters {
+class CounterResources {
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
   let diagnosticBuffer: CrashBuffer // use to download data when debugging
@@ -37,7 +18,7 @@ class BVHCounters {
   let queryDestinationBuffer: Buffer
   #endif
   
-  // A play on "General Nanomedics" from the Nanofactory Corporation LOL.
+  
   let generalCounters: Buffer // purge to 0 before every frame
   static var generalCountersSize: Int { 256 * 4 }
   
