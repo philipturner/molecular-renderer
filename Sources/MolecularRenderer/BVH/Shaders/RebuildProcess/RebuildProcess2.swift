@@ -3,9 +3,12 @@ extension RebuildProcess {
   // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   // threadgroup memory 2064 B
   //
+  // read voxel ID from sparse.rebuiltVoxelIDs
+  // decode voxel lower corner from ID
+  // read atom count from sparse.memorySlots.headerLarge
+  //
   // # Phase I
   //
-  // decode large voxel position from ID
   // loop over the cuboid bounding box of each atom
   // atomically accumulate into threadgroupCounters
   //
@@ -34,6 +37,7 @@ extension RebuildProcess {
   //   compress these two 16-bit offsets into a 32-bit word
   static func createSource2(worldDimension: Float) -> String {
     // atoms.atoms
+    // voxels
     // voxels.sparse.rebuiltVoxelIDs
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
