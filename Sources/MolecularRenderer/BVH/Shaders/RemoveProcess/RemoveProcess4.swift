@@ -20,7 +20,7 @@ extension RemoveProcess {
       """
       kernel void removeProcess4(
         \(CrashBuffer.functionArguments),
-        constant ConstantArgs &constantArgs [[buffer(1)]]
+        constant ConstantArgs &constantArgs [[buffer(1)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
