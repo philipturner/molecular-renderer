@@ -20,4 +20,39 @@ extension AddProcess {
   // write new atom count into memory slot header
   //
   // createSource2
+  static func createSource2(worldDimension: Float) -> String {
+    func functionSignature() -> String {
+      #if os(macOS)
+      """
+      kernel void addProcess2(
+        \(CrashBuffer.functionArguments),
+        uint3 globalID [[thread_position_in_grid]],
+        uint3 groupID [[threadgroup_position_in_grid]])
+      """
+      #else
+      """
+      \(CrashBuffer.functionArguments)
+      
+      [numthreads(4, 4, 4)]
+      [RootSignature(
+        \(CrashBuffer.rootSignatureArguments)
+      )]
+      void addProcess2(
+        uint3 globalID : SV_DispatchThreadID,
+        uint3 groupID : SV_GroupID)
+      """
+      #endif
+    }
+    
+    return """
+    \(Shader.importStandardLibrary)
+    
+    \(functionSignature())
+    {
+      if (crashBuffer[0] != 1) {
+        return;
+      }
+    }
+    """
+  }
 }
