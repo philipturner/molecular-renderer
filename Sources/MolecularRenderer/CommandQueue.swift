@@ -72,11 +72,20 @@ extension CommandQueue {
       capacity: 1
     ) { bufferPointer in
       var commandSignatureDesc = D3D12_COMMAND_SIGNATURE_DESC()
+      commandSignatureDesc.ByteStride = 12
+      commandSignatureDesc.NumArgumentDescs = 1
+      commandSignatureDesc.pArgumentDescs = UnsafePointer(
+        bufferPointer.baseAddress!)
+      commandSignatureDesc.NodeMask = 0
+      
+      var indirectArgumentDesc = D3D12_INDIRECT_ARGUMENT_DESC()
+      indirectArgumentDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH
+      bufferPointer[0] = indirectArgumentDesc
       
       var iid: IID = SwiftCOM.ID3D12CommandSignature.IID
       let pvCommandSignature =
       try! device.d3d12Device.CreateCommandSignature(
-        nil, // pDesc
+        &commandSignatureDesc, // pDesc
         nil, // pRootSignature
         &iid) // riid
       guard let pvCommandSignature else {
