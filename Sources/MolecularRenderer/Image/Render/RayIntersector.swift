@@ -94,7 +94,7 @@ func createRayIntersector(worldDimension: Float) -> String {
       intersect.accept = false;
       intersect.distance = 1e38;
       
-      
+      // Deactivate ray tracing for primary ray.
       
       // Check whether we found a hit.
       if (intersect.distance < 1e38) {
