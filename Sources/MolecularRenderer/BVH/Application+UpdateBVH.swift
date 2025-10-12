@@ -85,7 +85,7 @@ extension Application {
     device.commandQueue.withCommandList { commandList in
       bvhBuilder.debugDiagnostic(
         commandList: commandList,
-        dataBuffer: bvhBuilder.counters.generalCounters)
+        dataBuffer: bvhBuilder.counters.general)
       bvhBuilder.counters.diagnosticBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)

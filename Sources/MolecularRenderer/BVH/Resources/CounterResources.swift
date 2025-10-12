@@ -8,7 +8,7 @@ struct CounterResourcesDescriptor {
 }
 
 class CounterResources {
-  let generalCounters: Buffer // purge in isolation from other resources
+  let general: Buffer // purge in isolation from other resources
   
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
@@ -29,7 +29,7 @@ class CounterResources {
     bufferDesc.device = device
     bufferDesc.size = GeneralCounters.totalSize
     bufferDesc.type = .native(.device)
-    self.generalCounters = Buffer(descriptor: bufferDesc)
+    self.general = Buffer(descriptor: bufferDesc)
     
     var crashBufferDesc = CrashBufferDescriptor()
     crashBufferDesc.device = device
@@ -82,7 +82,7 @@ extension BVHBuilder {
     clearBuffer(
       commandList: commandList,
       clearValue: 0,
-      clearedBuffer: counters.generalCounters,
+      clearedBuffer: counters.general,
       size: GeneralCounters.totalSize)
     
     #if os(Windows)
@@ -95,7 +95,7 @@ extension BVHBuilder {
       clearBuffer(
         commandList: commandList,
         clearValue: UInt32(1),
-        clearedBuffer: counters.generalCounters,
+        clearedBuffer: counters.general,
         size: 2 * 4,
         offset: offset)
     }
@@ -106,7 +106,7 @@ extension BVHBuilder {
       clearBuffer(
         commandList: commandList,
         clearValue: UInt32(1),
-        clearedBuffer: counters.generalCounters,
+        clearedBuffer: counters.general,
         size: 2 * 4,
         offset: offset)
     }

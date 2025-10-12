@@ -90,7 +90,7 @@ extension BVHBuilder {
       
       let offset = GeneralCounters.offset(.rebuiltVoxelCount)
       commandList.dispatchIndirect(
-        buffer: counters.generalCounters,
+        buffer: counters.general,
         offset: offset)
     }
   }

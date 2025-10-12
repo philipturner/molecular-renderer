@@ -67,7 +67,7 @@ extension BVHBuilder {
       
       let offset = GeneralCounters.offset(.atomsRemovedVoxelCount)
       commandList.dispatchIndirect(
-        buffer: counters.generalCounters,
+        buffer: counters.general,
         offset: offset)
     }
   }

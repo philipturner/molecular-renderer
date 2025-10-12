@@ -65,7 +65,7 @@ class BVHBuilder {
         atoms.relativeOffsets1,
         atoms.relativeOffsets2,
         
-        counters.generalCounters,
+        counters.general,
         
         voxels.group.atomsRemovedMarks,
         voxels.group.rebuiltMarks,
