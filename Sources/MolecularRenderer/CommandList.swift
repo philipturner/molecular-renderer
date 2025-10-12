@@ -175,6 +175,9 @@ extension CommandList {
   }
   
   /// Launch a kernel via indirect dispatch.
+  ///
+  /// WARNING: The buffer used for indirect arguments must not be bound to
+  /// the buffer table.
   func dispatchIndirect(
     buffer: Buffer,
     offset: Int = 0
@@ -195,7 +198,13 @@ extension CommandList {
       indirectBufferOffset: offset,
       threadsPerThreadgroup: shader.threadsPerGroup)
     #else
-    
+    try! d3d12CommandList.ExecuteIndirect(
+      commandSignature, // pCommandSignature
+      UInt32(1), // MaxCommandCount
+      buffer.d3d12Resource, // pArgumentBuffer
+      UInt64(offset), // ArgumentBufferOffset
+      nil, // pCountBuffer
+      UInt64(0)) // CountBufferOffset
     #endif
   }
 }
