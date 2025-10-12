@@ -21,6 +21,8 @@ struct RebuildProcess {
   //
   // # Phase II
   //
+  // if reference count is too large, crash w/ diagnostic info
+  //
   // # Phase III
   //
   // # Phase IV
