@@ -12,6 +12,7 @@ extension AddProcess {
   //
   // createSource3
   static func createSource3(worldDimension: Float) -> String {
+    // atoms.*
     func functionSignature() -> String {
       #if os(macOS)
       """

@@ -3,7 +3,7 @@ extension RemoveProcess {
   // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   // threadgroup memory 16 B
   //
-  // check the occupiedMark of each atom in voxel
+  // check the addressOccupiedMark of each atom in voxel
   //   if either 0 or 2, remove from the list
   // prefix sum to compact the reference list (SIMD + group reduction)
   // write to sparse.memorySlots in-place, sanitized to 128 atoms at a time
@@ -11,6 +11,7 @@ extension RemoveProcess {
   // if atoms remain, write to dense.rebuiltMarks
   // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
   static func createSource3(worldDimension: Float) -> String {
+    // atoms.addressOccupiedMarks
     func functionSignature() -> String {
       #if os(macOS)
       """

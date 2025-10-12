@@ -7,7 +7,7 @@ func createRayIntersector(worldDimension: Float) -> String {
     #endif
   }
   
-  // atoms
+  // atoms.atoms
   // group.occupiedMarks
   // dense.assignedSlotIDs
   // sparse.memorySlots [32, 16]

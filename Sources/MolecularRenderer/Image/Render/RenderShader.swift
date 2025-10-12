@@ -6,6 +6,11 @@ struct RenderShader {
     upscaleFactor: Float,
     worldDimension: Float
   ) -> String {
+    // atoms.atoms
+    // atoms.motionVectors
+    // group.occupiedMarks
+    // dense.assignedSlotIDs
+    // sparse.memorySlots [32, 16]
     func functionSignature() -> String {
       func optionalFunctionArguments() -> String {
         guard upscaleFactor > 1 else {

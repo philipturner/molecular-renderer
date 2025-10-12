@@ -3,12 +3,13 @@ extension RemoveProcess {
   // dispatch threads SIMD3(removedCount + movedCount, 1, 1)
   //
   // read atom from address space
-  // reset the occupiedMark
+  // reset the addressOccupiedMark
   //   0 if removed
   //   2 if moved
   // write to group.atomsRemovedMarks
   // write to dense.atomsRemovedMarks
   static func createSource1(worldDimension: Float) -> String {
+    // atoms.*
     func functionSignature() -> String {
       #if os(macOS)
       """
