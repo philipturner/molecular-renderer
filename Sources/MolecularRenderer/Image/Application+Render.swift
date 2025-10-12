@@ -89,6 +89,9 @@ extension Application {
           cameraArgsBuffer, index: RenderShader.cameraArgs)
         commandList.setBuffer(
           bvhBuilder.atomResources.atoms, index: RenderShader.atoms)
+        commandList.setBuffer(
+          bvhBuilder.atomResources.motionVectors,
+          index: RenderShader.motionVectors)
         
         #if os(macOS)
         let colorTexture = imageResources.renderTarget
@@ -97,7 +100,8 @@ extension Application {
           colorTexture, index: RenderShader.colorTexture)
         #else
         commandList.setDescriptor(
-          handleID: frameID % 2, index: RenderShader.colorTexture)
+          handleID: frameID % 2,
+          index: RenderShader.colorTexture)
         #endif
         
         if imageResources.renderTarget.upscaleFactor > 1 {
@@ -112,9 +116,11 @@ extension Application {
             motionTexture, index: RenderShader.motionTexture)
           #else
           commandList.setDescriptor(
-            handleID: 2 + frameID % 2, index: RenderShader.depthTexture)
+            handleID: 2 + frameID % 2,
+            index: RenderShader.depthTexture)
           commandList.setDescriptor(
-            handleID: 4 + frameID % 2, index: RenderShader.motionTexture)
+            handleID: 4 + frameID % 2,
+            index: RenderShader.motionTexture)
           #endif
         }
         
