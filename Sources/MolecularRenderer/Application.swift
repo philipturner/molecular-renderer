@@ -91,6 +91,7 @@ public class Application {
     imageResourcesDesc.device = device
     imageResourcesDesc.display = display
     imageResourcesDesc.upscaleFactor = upscaleFactor
+    imageResourcesDesc.worldDimension = worldDimension
     self.imageResources = ImageResources(descriptor: imageResourcesDesc)
     
     var bvhBuilderDesc = BVHBuilderDescriptor()

@@ -2,6 +2,7 @@ struct ImageResourcesDescriptor {
   var device: Device?
   var display: Display?
   var upscaleFactor: Float?
+  var worldDimension: Float?
 }
 
 class ImageResources {
@@ -18,7 +19,8 @@ class ImageResources {
   init(descriptor: ImageResourcesDescriptor) {
     guard let device = descriptor.device,
           let display = descriptor.display,
-          let upscaleFactor = descriptor.upscaleFactor else {
+          let upscaleFactor = descriptor.upscaleFactor,
+          let worldDimension = descriptor.worldDimension else {
       fatalError("Descriptor was incomplete.")
     }
     
@@ -31,7 +33,9 @@ class ImageResources {
     shaderDesc.maxTotalThreadsPerThreadgroup = 1024
     #endif
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-    shaderDesc.source = RenderShader.createSource(upscaleFactor: upscaleFactor)
+    shaderDesc.source = RenderShader.createSource(
+      upscaleFactor: upscaleFactor,
+      worldDimension: worldDimension)
     self.renderShader = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "upscale"
@@ -39,7 +43,8 @@ class ImageResources {
     shaderDesc.maxTotalThreadsPerThreadgroup = nil
     #endif
     shaderDesc.threadsPerGroup = SIMD3(8, 8, 1)
-    shaderDesc.source = UpscaleShader.createSource(upscaleFactor: upscaleFactor)
+    shaderDesc.source = UpscaleShader.createSource(
+      upscaleFactor: upscaleFactor)
     self.upscaleShader = Shader(descriptor: shaderDesc)
     
     // Create the memory allocations.

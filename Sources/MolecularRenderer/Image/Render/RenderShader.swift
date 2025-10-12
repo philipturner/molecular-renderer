@@ -1,5 +1,8 @@
 struct RenderShader {
-  static func createSource(upscaleFactor: Float) -> String {
+  static func createSource(
+    upscaleFactor: Float,
+    worldDimension: Float
+  ) -> String {
     func functionSignature() -> String {
       func optionalFunctionArguments() -> String {
         guard upscaleFactor > 1 else {
