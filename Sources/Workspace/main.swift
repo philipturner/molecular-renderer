@@ -11,9 +11,13 @@ import MolecularRenderer
 //
 // Current task:
 // - Draft the pseudocode for all sub-stages of the 3 major stages.
-// - Debug all the steps of in-place BVH modification, one at a time. The
-//   rotating rod test might be a helpful tool to facilitate debugging, but is
-//   not mandatory at the moment.
+// - Draft the shader for the simplest primary ray DDA traversal & etc.
+// - Prepare BVHCounterType and the initialization process for 1 entries.
+// - Bind all buffers needed for all BVH update stages, draft the root
+//   signatures, and smoke test the CPU-side command encoding.
+// - Debug all the steps toward the minimum viable product of rendering, one at
+//   a time. The rotating rod test might be a helpful tool to facilitate
+//   debugging, but is not mandatory at the moment.
 
 @MainActor
 func createApplication() -> Application {

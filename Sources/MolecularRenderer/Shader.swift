@@ -208,4 +208,13 @@ class Shader {
     "[unroll]"
     #endif
   }
+  
+  // Disable unrolling for a loop
+  static var loop: String {
+    #if os(macOS)
+    "#pragma clang loop unroll(disable)"
+    #else
+    "[loop]"
+    #endif
+  }
 }

@@ -50,7 +50,7 @@ Rebuild Process
   - Perform reductions over the 512 small voxels in the larger voxel, exploiting a conveniently sized threadgroup memory allocation.
   - Generate lists of true number of atoms that intersect a 0.25 nm voxel. Write 16-bit or 32-bit atom references to RAM, incurring the majority of this kernel's bandwidth cost.
   - Read the true size of the per 0.25 nm voxel list from threadgroup memory, store to RAM as bookkeeping data for BVH traversal.
-  
+
 ## Memory Allocation
 
 Currently using a simple design where every _occupied_ 2 nm voxel gets a fixed chunk of memory to store its data. This wastes a lot of memory. Future implementations could allocate smaller chunks for certain voxels.
