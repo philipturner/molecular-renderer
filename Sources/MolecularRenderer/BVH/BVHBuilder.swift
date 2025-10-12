@@ -210,7 +210,7 @@ class BVHBuilder {
       commandList: commandList,
       clearValue: 0,
       clearedBuffer: counters.generalCounters,
-      size: 256 * 4)
+      size: BVHCounters.generalCountersSize)
     
     #if os(Windows)
     computeUAVBarrier(commandList: commandList)

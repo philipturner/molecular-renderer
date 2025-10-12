@@ -4,8 +4,17 @@ import WinSDK
 #endif
 
 enum BVHCounterType {
-  // TODO: Fill in the counters agreed upon after specifying the pseudocode
-  // for all kernels.
+  // removeProcess2 + removeProcess3
+  case atomsRemovedVoxelCount
+  
+  // removeProcess4
+  case vacantSlotCount
+  
+  // addProcess2
+  case allocatedSlotCount
+  
+  // removeProcess1 + removeProcess2
+  case rebuiltVoxelCount
   
   // Offset (in bytes) of the counter, relative to the start of the buffer.
   var offset: Int {
@@ -21,7 +30,7 @@ class BVHCounters {
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
   let diagnosticBuffer: CrashBuffer // use to download data when debugging
-  static var diagnosticBufferSize: Int { 4096 * 32 }
+  static var diagnosticBufferSize: Int { 256 * 4 }
   
   #if os(Windows)
   let queryHeap: SwiftCOM.ID3D12QueryHeap
@@ -30,6 +39,7 @@ class BVHCounters {
   
   // A play on "General Nanomedics" from the Nanofactory Corporation LOL.
   let generalCounters: Buffer // purge to 0 before every frame
+  static var generalCountersSize: Int { 256 * 4 }
   
   init(descriptor: BVHCountersDescriptor) {
     guard let device = descriptor.device else {
@@ -52,7 +62,7 @@ class BVHCounters {
     
     var generalCountersDesc = BufferDescriptor()
     generalCountersDesc.device = device
-    generalCountersDesc.size = 256 * 4
+    generalCountersDesc.size = BVHCounters.generalCountersSize
     generalCountersDesc.type = .native(.device)
     self.generalCounters = Buffer(descriptor: generalCountersDesc)
   }
