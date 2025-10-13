@@ -123,6 +123,21 @@ extension AddProcess {
       if (addedAtomCount > 0) {
         rebuiltMarks[voxelID] = 1;
       }
+      
+      uint assignedSlotID = assignedSlotIDs[voxelID];
+      {
+        bool needsNewSlot =
+        (assignedSlotID == \(UInt32.max)) &&
+        (addedAtomCount > 0);
+        
+        uint countBitsResult = \(Reduction.waveActiveCountBits("needsNewSlot"));
+        if (countBitsResult > 0) {
+          uint offsetInVacantSlots = \(UInt32.max);
+          if (localID % 32 == 0) {
+            // atomic operation here.
+          }
+        }
+      }
     }
     """
   }
