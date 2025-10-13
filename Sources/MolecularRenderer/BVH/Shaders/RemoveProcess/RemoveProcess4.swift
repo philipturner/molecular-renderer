@@ -62,6 +62,16 @@ extension RemoveProcess {
       #endif
     }
     
+    func waveActiveCountBits() -> String {
+      #if os(macOS)
+      """
+      
+      """
+      #else
+      "uint countBitsResult = WaveActiveCountBits(isVacant);"
+      #endif
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -75,9 +85,12 @@ extension RemoveProcess {
         return;
       }
       
+      bool isVacant = false;
       if (globalID < constantArgs.memorySlotCount) {
-        // Read something from memory.
+        uint voxelCoords = assignedVoxelCoords[globalID];
+        isVacant = (voxelCoords != \(UInt32.max));
       }
+      \(waveActiveCountBits())
     }
     """
   }
