@@ -119,7 +119,7 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-//print("checkpoint 0")
+print("checkpoint 0")
 uploadDebugInput()
 //print("checkpoint 1")
 application.updateBVH(inFlightFrameID: 0)
