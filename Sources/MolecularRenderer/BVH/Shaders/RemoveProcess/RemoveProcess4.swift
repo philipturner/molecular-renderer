@@ -103,8 +103,11 @@ extension RemoveProcess {
       \(Reduction.barrier())
       
       uint address = \(Reduction.wavePrefixSum("uint(isVacant)"));
-      
-      // Mask out the memory writes to only vacant ones.
+      address += threadgroupMemory[localID / 32];
+      address += threadgroupMemory[5];
+      if (isVacant) {
+        vacantSlotIDs[address] = globalID;
+      }
     }
     """
   }
