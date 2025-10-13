@@ -68,7 +68,7 @@ func uploadDebugInput() {
 }
 uploadDebugInput()
 
-#if true
+#if false
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -119,17 +119,19 @@ func analyzeDebugOutput() {
   // }
 }
 
-for atomID in lattice.atoms.indices {
-  let atom = lattice.atoms[atomID]
-  application.atoms[atomID] = atom
+for frameID in 0...1 {
+  for atomID in lattice.atoms.indices {
+    let atom = lattice.atoms[atomID]
+    application.atoms[atomID] = atom
+  }
+
+  application.updateBVH(inFlightFrameID: frameID)
+  application.forgetIdleState(inFlightFrameID: frameID)
+
+  print()
+  analyzeDebugOutput2()
+  print()
+  analyzeDebugOutput()
 }
-
-application.updateBVH(inFlightFrameID: 0)
-application.forgetIdleState(inFlightFrameID: 0)
-
-print()
-analyzeDebugOutput2()
-print()
-analyzeDebugOutput()
 
 #endif
