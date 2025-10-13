@@ -34,6 +34,14 @@ struct Reduction {
     #endif
   }
   
+  static func waveIsFirstLane() -> String {
+    #if os(macOS)
+    "simd_is_first()"
+    #else
+    "WaveIsFirstLane()"
+    #endif
+  }
+  
   static func threadgroupSumPrimitive(offset: Int) -> String {
     """
     {

@@ -96,6 +96,13 @@ extension AddProcess {
       """
     }
     
+    func atomicFetchAdd() -> String {
+      Reduction.atomicFetchAdd(
+        buffer: "allocatedSlotCount",
+        
+      )
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -133,7 +140,7 @@ extension AddProcess {
         uint countBitsResult = \(Reduction.waveActiveCountBits("needsNewSlot"));
         if (countBitsResult > 0) {
           uint offsetInVacantSlots = \(UInt32.max);
-          if (localID % 32 == 0) {
+          if (\(Reduction.waveIsFirstLane())) {
             // atomic operation here.
           }
         }

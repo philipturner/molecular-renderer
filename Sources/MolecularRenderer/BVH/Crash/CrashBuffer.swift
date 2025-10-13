@@ -160,6 +160,7 @@ extension CrashBuffer {
   }
   
   // Declare 'bool acquiredLock = false;' prior to invoking this.
+  // Encouraged to only run this code on the first thread of the SIMD.
   static func acquireLock(errorCode: Int) -> String {
     #if os(macOS)
     """
