@@ -14,6 +14,7 @@ extension AddProcess {
   //   allocate new voxels (SIMD + global reduction)
   //   if exceeded memory slot limit, crash w/ diagnostic info
   //   write new entry in dense.assignedSlotIDs and sparse.assignedVoxelCoords
+  //   initialize atom count to 0 in memory slot header
   //
   // add existing atom count to prefix-summed 8 counters
   // write to dense.atomicCounters
