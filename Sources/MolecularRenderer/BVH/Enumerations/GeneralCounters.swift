@@ -8,7 +8,7 @@ enum GeneralCountersRegion {
   // addProcess2
   case allocatedSlotCount
   
-  // removeProcess1 + removeProcess2
+  // rebuildProcess1 + rebuildProcess2
   case rebuiltVoxelCount
 }
 
