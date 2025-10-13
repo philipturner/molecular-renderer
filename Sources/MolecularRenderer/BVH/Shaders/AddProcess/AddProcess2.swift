@@ -124,11 +124,10 @@ extension AddProcess {
         rebuiltMarks[voxelID] = 1;
       }
       
-      // Next step: debug compare_exchange_explicit accesses to the global
-      // crash buffer.
+      // Implementing the crash decoding mechanism on the CPU.
       if (addedAtomCount > 0) {
         bool acquiredLock = false;
-        \(CrashBuffer.acquireLock(errorCode: 2))
+        \(CrashBuffer.acquireLock(errorCode: 3))
         if (acquiredLock) {
           crashBuffer[1] = voxelID;
           crashBuffer[2] = globalID.x;
