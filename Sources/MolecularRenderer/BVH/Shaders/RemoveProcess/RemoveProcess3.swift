@@ -1,7 +1,7 @@
 extension RemoveProcess {
   // [numthreads(128, 1, 1)]
   // dispatch indirect groups SIMD3(atomic counter, 1, 1)
-  // threadgroup memory 16 B
+  // threadgroup memory 20 B
   //
   // check the addressOccupiedMark of each atom in voxel
   //   if either 0 or 2, remove from the list
@@ -43,7 +43,7 @@ extension RemoveProcess {
       RWStructuredBuffer<uint> assignedVoxelCoords : register(u4);
       RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u5);
       RWStructuredBuffer<uint> memorySlots : register(u6);
-      groupshared uint threadgroupMemory[4];
+      groupshared uint threadgroupMemory[5];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -64,7 +64,7 @@ extension RemoveProcess {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      "threadgroup uint threadgroupMemory[4];"
+      "threadgroup uint threadgroupMemory[5];"
       #else
       ""
       #endif
