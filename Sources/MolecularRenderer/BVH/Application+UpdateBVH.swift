@@ -102,6 +102,7 @@ extension Application {
     let inputBuffer = Buffer(descriptor: bufferDesc)
     #endif
     
+    device.commandQueue.flush()
     inputData.withUnsafeBytes { bufferPointer in
       inputBuffer.write(input: bufferPointer)
     }
