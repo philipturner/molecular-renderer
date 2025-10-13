@@ -85,6 +85,7 @@ extension BVHBuilder {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
+      
       commandList.setBuffer(
         voxels.group.atomsRemovedMarks, index: 9)
       #if os(macOS)

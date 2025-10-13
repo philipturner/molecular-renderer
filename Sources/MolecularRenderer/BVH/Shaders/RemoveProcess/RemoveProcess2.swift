@@ -19,16 +19,31 @@ extension RemoveProcess {
       """
       kernel void removeProcess2(
         \(CrashBuffer.functionArguments),
+        device atomic_uint *atomsRemovedVoxelCount [[buffer(1)]],
+        device uint *voxelGroupAtomsRemovedMarks [[buffer(2)]],
+        device uint *voxelGroupRebuiltMarks [[buffer(3)]],
+        device uchar *atomsRemovedMarks [[buffer(4)]],
+        device uint *atomsRemovedVoxelIDs [[buffer(5)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
+      RWStructuredBuffer<uint> atomsRemovedVoxelCount : register(u1);
+      RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u2);
+      RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u3);
+      RWBuffer<uint> atomsRemovedMarks : register(u4);
+      RWStructuredBuffer<uint> atomsRemovedVoxelIDs : register(u5);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
+        "UAV(u1),"
+        "UAV(u2),"
+        "UAV(u3),"
+        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+        "UAV(u5),"
       )]
       void removeProcess2(
         uint3 globalID : SV_DispatchThreadID,
@@ -55,6 +70,25 @@ extension BVHBuilder {
     commandList.withPipelineState(shaders.remove.process2) {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
+      
+      commandList.setBuffer(
+        counters.general,
+        index: 1,
+        offset: GeneralCounters.offset(.atomsRemovedVoxelCount))
+      commandList.setBuffer(
+        voxels.group.atomsRemovedMarks, index: 2)
+      commandList.setBuffer(
+        voxels.group.rebuiltMarks, index: 3)
+      
+      #if os(macOS)
+      commandList.setBuffer(
+        voxels.dense.atomsRemovedMarks, index: 4)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 4)
+      #endif
+      commandList.setBuffer(
+        voxels.sparse.atomsRemovedVoxelIDs, index: 5)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
