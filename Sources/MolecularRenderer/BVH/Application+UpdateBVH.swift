@@ -16,14 +16,7 @@ extension Application {
       commandList.setDescriptorHeap(descriptorHeap)
       #endif
       
-      bvhBuilder.upload(
-        transaction: transaction,
-        commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
-      bvhBuilder.purgeResources(
-        commandList: commandList)
-      bvhBuilder.setupGeneralCounters(
-        commandList: commandList)
+      
     }
     
     // TODO: Time how long it takes to encode this command list on macOS.
@@ -36,6 +29,15 @@ extension Application {
       #if os(Windows)
       commandList.setDescriptorHeap(descriptorHeap)
       #endif
+      
+      bvhBuilder.upload(
+        transaction: transaction,
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+      bvhBuilder.purgeResources(
+        commandList: commandList)
+      bvhBuilder.setupGeneralCounters(
+        commandList: commandList)
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(
