@@ -105,8 +105,13 @@ func analyzeDebugOutput() {
   var output = [UInt32](repeating: .zero, count: 3616)
   application.downloadDebugOutput(&output)
   
+  output.sort()
+  
   let readSlotIDs: [Int] = [
     0, 1, 2, 3, 4, 5, 6, 7,
+    117, 118, 120, 121, 122, 123,
+    179, 180, 181, 182, 183, 184,
+    3610, 3611, 3612, 3613, 3614, 3615,
   ]
   
   for slotID in readSlotIDs {
