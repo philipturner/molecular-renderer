@@ -29,6 +29,14 @@ extension Application {
       
       bvhBuilder.purgeResources(commandList: commandList)
       bvhBuilder.setupGeneralCounters(commandList: commandList)
+    }
+    
+    let checkpoint3 = Date()
+    device.commandQueue.withCommandList { commandList in
+      // Bind the descriptor heap.
+      #if os(Windows)
+      commandList.setDescriptorHeap(descriptorHeap)
+      #endif
       
       // Encode the remove process.
       bvhBuilder.removeProcess1(
@@ -61,12 +69,13 @@ extension Application {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
     }
-    let checkpoint3 = Date()
+    let checkpoint4 = Date()
     
     print()
     print(Int(checkpoint1.timeIntervalSince(checkpoint0) * 1e6))
     print(Int(checkpoint2.timeIntervalSince(checkpoint1) * 1e6))
     print(Int(checkpoint3.timeIntervalSince(checkpoint2) * 1e6))
+    print(Int(checkpoint4.timeIntervalSince(checkpoint3) * 1e6))
   }
   
   // Invoke this during 'application.render()', at the very end.
