@@ -219,6 +219,8 @@ extension AddProcess {
           crashBuffer[2] = globalID.y;
           crashBuffer[3] = globalID.z;
           crashBuffer[4] = newAtomCount;
+          crashBuffer[5] = existingAtomCount;
+          crashBuffer[6] = addedAtomCount;
         }
         return;
       }

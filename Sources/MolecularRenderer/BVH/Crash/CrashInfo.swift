@@ -1,6 +1,6 @@
 enum CrashType {
   case outOfMemory(Int, Int, Int)
-  case tooManyAtoms(Int)
+  case tooManyAtoms(Int, Int, Int)
   case tooManyReferences(Int)
   case unknown(Int)
 }
@@ -52,8 +52,11 @@ class CrashInfo {
       self.crashType = .outOfMemory(
         requestedSlotID, vacantSlotCount, memorySlotCount)
     case 3:
-      let totalAtomCount = Int(bufferContents[4])
-      self.crashType = .tooManyAtoms(totalAtomCount)
+      let newAtomCount = Int(bufferContents[4])
+      let existingAtomCount = Int(bufferContents[5])
+      let addedAtomCount = Int(bufferContents[6])
+      self.crashType = .tooManyAtoms(
+        newAtomCount, existingAtomCount, addedAtomCount)
     case 4:
       let smallReferenceCount = Int(bufferContents[4])
       self.crashType = .tooManyReferences(smallReferenceCount)
@@ -75,9 +78,10 @@ class CrashInfo {
         Requested vacant slot #\(requestedSlotID)
         Vacant slots: \(vacantSlotCount) / \(memorySlotCount)
         """
-      case .tooManyAtoms(let totalAtomCount):
+      case .tooManyAtoms(let newAtomCount, let existingAtomCount, let addedAtomCount):
         return """
-        Voxel had \(totalAtomCount) atoms.
+        Voxel had \(newAtomCount) atoms.
+        \(existingAtomCount) existed before this frame, \(addedAtomCount) were added.
         Maximum allowed: 3072
         """
       case .tooManyReferences(let smallReferenceCount):
