@@ -92,7 +92,7 @@ class VoxelResources {
   
   // Shader code to read voxel coords from RAM.
   static func decode(_ input: String) -> String {
-    "uint3(\(input) >> 20, (\(input) >> 10) & 1023, \(input) & 1023)"
+    "uint3(\(input) & 1023, (\(input) >> 10) & 1023, \(input) >> 20)"
   }
 }
 

@@ -140,6 +140,11 @@ extension AddProcess {
           uint encoded = \(VoxelResources.encode("globalID"));
           crashBuffer[6] = encoded;
           
+          uint3 decoded = \(VoxelResources.decode("encoded"));
+          crashBuffer[7] = decoded.x;
+          crashBuffer[8] = decoded.y;
+          crashBuffer[9] = decoded.z;
+          crashBuffer[10] = \(VoxelResources.encode("decoded"));
         }
       }
     }
