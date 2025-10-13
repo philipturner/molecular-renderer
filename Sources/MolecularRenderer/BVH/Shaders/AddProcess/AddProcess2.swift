@@ -80,6 +80,12 @@ extension AddProcess {
       #endif
     }
     
+    func process(counters: String) -> String {
+      """
+      \(Shader.unroll)
+      """
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -88,6 +94,20 @@ extension AddProcess {
       if (crashBuffer[0] != 1) {
         return;
       }
+      
+      uint voxelGroupID =
+      \(VoxelResources.generate("groupID", worldDimension / 8));
+      uint voxelID =
+      \(VoxelResources.generate("globalID", worldDimension / 2));
+      
+      if (voxelGroupAddedMarks[voxelGroupID] == 0) {
+        return;
+      }
+      
+      uint4 counters1 = atomicCounters[2 * voxelID + 0];
+      uint4 counters2 = atomicCounters[2 * voxelID + 1];
+      uint addedAtomCount = 0;
+      
     }
     """
   }

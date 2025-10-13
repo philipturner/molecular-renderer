@@ -35,7 +35,7 @@ struct Reduction {
   }
   
   static func threadgroupSumPrimitive(offset: Int) -> String {
-    return """
+    """
     {
       uint input = 0;
       if (localID < 4) {
@@ -66,19 +66,19 @@ struct Reduction {
     output: String
   ) -> String {
     #if os(macOS)
-      """
-      \(output) = atomic_fetch_add_explicit(
-        \(buffer) + \(address), // object
-        \(operand), // operand
-        memory_order_relaxed); // order
-      """
-      #else
-      """
-      InterlockedAdd(
-        \(buffer)[\(address)], // dest
-        \(operand), // value
-        \(output)); // original_value
-      """
-      #endif
+    """
+    \(output) = atomic_fetch_add_explicit(
+      \(buffer) + \(address), // object
+      \(operand), // operand
+      memory_order_relaxed); // order
+    """
+    #else
+    """
+    InterlockedAdd(
+      \(buffer)[\(address)], // dest
+      \(operand), // value
+      \(output)); // original_value
+    """
+    #endif
   }
 }
