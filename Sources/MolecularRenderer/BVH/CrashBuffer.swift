@@ -164,7 +164,13 @@ extension CrashBuffer {
     #if os(macOS)
     """
     {
-      
+      uint expected = 1;
+      acquiredLock = atomic_compare_exchange_weak_explicit(
+        (device atomic_uint*)crashBuffer, // object
+        &expected, // expected
+        \(errorCode), // desired
+        memory_order_relaxed, // success
+        memory_order_relaxed); // failure
     }
     """
     #else
@@ -172,10 +178,10 @@ extension CrashBuffer {
     {
       uint output;
       InterlockedCompareExchange(
-        crashBuffer[0],
-        1,
-        \(errorCode),
-        output);
+        crashBuffer[0], // dest
+        1, // compare_value
+        \(errorCode), // value
+        output); // original_value
       if (output == 1) {
         acquiredLock = true;
       }
