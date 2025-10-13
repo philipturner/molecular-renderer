@@ -211,14 +211,14 @@ extension AddProcess {
       atomicCounters[2 * voxelID + 1] = counters2;
       
       uint newAtomCount = existingAtomCount + addedAtomCount;
-      if (existingAtomCount > addedAtomCount) {
+      if (newAtomCount > 3072) {
         bool acquiredLock = false;
         \(CrashBuffer.acquireLock(errorCode: 3))
         if (acquiredLock) {
           crashBuffer[1] = globalID.x;
           crashBuffer[2] = globalID.y;
           crashBuffer[3] = globalID.z;
-          crashBuffer[4] = existingAtomCount * 10000 + addedAtomCount;
+          crashBuffer[4] = newAtomCount;
         }
         return;
       }
