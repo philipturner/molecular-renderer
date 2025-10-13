@@ -1,7 +1,8 @@
 enum CrashType {
-  case outOfMemory
-  case tooManyAtoms
-  case tooManyReferences
+  case outOfMemory(Int, Int, Int)
+  case tooManyAtoms(Int)
+  case tooManyReferences(Int)
+  case unknown(Int)
 }
 
 struct CrashInfoDescriptor {
@@ -20,6 +21,7 @@ class CrashInfo {
   let thrownClockTime: Double // approximate
   
   let lowerCorner: SIMD3<Float>
+  let crashType: CrashType
   
   init(descriptor: CrashInfoDescriptor) {
     guard let bufferContents = descriptor.bufferContents,
@@ -42,6 +44,23 @@ class CrashInfo {
       bufferContents[2],
       bufferContents[3])
     self.lowerCorner = SIMD3<Float>(voxelCoords) * 2 - (worldDimension / 2)
+    
+    switch bufferContents[0] {
+    case 2:
+      let requestedSlotID = Int(bufferContents[4])
+      let vacantSlotCount = Int(bufferContents[5])
+      self.crashType = .outOfMemory(
+        requestedSlotID, vacantSlotCount, memorySlotCount)
+    case 3:
+      let totalAtomCount = Int(bufferContents[4])
+      self.crashType = .tooManyAtoms(totalAtomCount)
+    case 4:
+      let smallReferenceCount = Int(bufferContents[4])
+      self.crashType = .tooManyReferences(smallReferenceCount)
+    default:
+      let errorCode = Int(bufferContents[0])
+      self.crashType = .unknown(errorCode)
+    }
     
     // Error message 2:
     // requested vacant slot #X
