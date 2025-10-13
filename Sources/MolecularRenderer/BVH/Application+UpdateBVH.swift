@@ -19,6 +19,7 @@ extension Application {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
       
+      if frameID <= 3 {
       // Encode the remove process.
       bvhBuilder.removeProcess1(
         commandList: commandList,
@@ -45,6 +46,7 @@ extension Application {
         commandList: commandList)
       bvhBuilder.rebuildProcess2(
         commandList: commandList)
+      }
       
       bvhBuilder.counters.crashBuffer.download(
         commandList: commandList,
