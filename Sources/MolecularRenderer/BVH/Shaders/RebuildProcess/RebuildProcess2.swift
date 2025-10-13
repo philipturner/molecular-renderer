@@ -93,6 +93,9 @@ extension RebuildProcess {
       if (crashBuffer[0] != 1) {
         return;
       }
+      
+      // Use arithmetic utility function to encode/decode RGB10 instead of
+      // relying on hardware data unpacking.
     }
     """
   }
