@@ -49,8 +49,10 @@ enum BufferType {
     switch self {
     case .input:
       return D3D12_RESOURCE_STATE_GENERIC_READ
-    case .native:
-      return D3D12_RESOURCE_STATE_COMMON
+    case .native(.constant):
+      return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+    case .native(.device):
+      return D3D12_RESOURCE_STATE_UNORDERED_ACCESS
     case .output:
       return D3D12_RESOURCE_STATE_COPY_DEST
     }
@@ -230,8 +232,7 @@ class Buffer {
   /// barrier representing the transition.
   ///
   /// Never call this function if it will transition between two identical
-  /// states. As of writing, it is assumed that client code will always be able
-  /// to anticipate the resource state.
+  /// states.
   func transition(
     state: D3D12_RESOURCE_STATES
   ) -> D3D12_RESOURCE_BARRIER {

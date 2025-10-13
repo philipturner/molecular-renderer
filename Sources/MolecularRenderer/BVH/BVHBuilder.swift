@@ -46,55 +46,11 @@ class BVHBuilder {
     voxelResourcesDesc.worldDimension = worldDimension
     self.voxels = VoxelResources(descriptor: voxelResourcesDesc)
     
-    #if os(Windows)
-    // Move all UAV resources to the UAV state.
-    setUAVState(device: device)
-    #endif
-    
     // Remaining setup processes at program startup.
     initializeResources(device: device)
   }
   
   #if os(Windows)
-  func setUAVState(device: Device) {
-    device.commandQueue.withCommandList { commandList in
-      let buffers: [Buffer] = [
-        atoms.atoms,
-        atoms.motionVectors,
-        atoms.addressOccupiedMarks,
-        atoms.relativeOffsets1,
-        atoms.relativeOffsets2,
-        
-        counters.general,
-        
-        voxels.group.atomsRemovedMarks,
-        voxels.group.addedMarks,
-        voxels.group.rebuiltMarks,
-        voxels.group.occupiedMarks,
-        
-        voxels.dense.assignedSlotIDs,
-        voxels.dense.atomsRemovedMarks,
-        voxels.dense.rebuiltMarks,
-        voxels.dense.atomicCounters,
-        
-        voxels.sparse.assignedVoxelCoords,
-        voxels.sparse.atomsRemovedVoxelCoords,
-        voxels.sparse.rebuiltVoxelCoords,
-        voxels.sparse.vacantSlotIDs,
-        voxels.sparse.memorySlots,
-      ]
-      
-      var barriers: [D3D12_RESOURCE_BARRIER] = []
-      for buffer in buffers {
-        let barrier = buffer
-          .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-        barriers.append(barrier)
-      }
-      try! commandList.d3d12CommandList.ResourceBarrier(
-        UInt32(barriers.count), barriers)
-    }
-  }
-  
   // Generic UAV barrier after every single kernel while building the
   // acceleration structure. Unless there is a clear reason to omit it, such
   // as clear buffer kernels writing to obviously distinct buffers.
