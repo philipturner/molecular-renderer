@@ -41,18 +41,29 @@ extension RebuildProcess {
       """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
-        
+        device uint *assignedSlotIDs [[buffer(2)]],
+        device uint *rebuiltVoxelCoords [[buffer(3)]],
+        device uint *memorySlots32 [[buffer(4)]],
+        device ushort *memorySlots16 [[buffer(5)]],
         uint groupID [[threadgroup_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
+      RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
+      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
+      RWStructuredBuffer<uint> memorySlots32 : register(u4);
+      RWBuffer<uint> memorySlots16 : register(u5);
       groupshared uint threadgroupMemory[516];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
+        "UAV(u1),"
+        "UAV(u2),"
+        "UAV(u3),"
+        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,

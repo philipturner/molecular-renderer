@@ -13,7 +13,7 @@ extension RemoveProcess {
   // otherwise
   //   reset entry in dense.assignedSlotIDs and sparse.assignedVoxelCoords
   static func createSource3(worldDimension: Float) -> String {
-    // atoms.addressOccupiedMarks
+    // atoms.addressOccupiedMarks // TODO
     // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
     // voxels.sparse.assignedVoxelCoords
