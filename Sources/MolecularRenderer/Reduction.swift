@@ -42,6 +42,19 @@ struct Reduction {
         input = threadgroupMemory[\(offset) + localID];
       }
       \(Reduction.barrier())
+      
+      if (localID < 32) {
+        uint prefixSummed = \(Reduction.wavePrefixSum("input"));
+        uint inclusiveSummed = prefixSummed + input;
+        uint totalSum =
+        \(Reduction.waveReadLaneAt("inclusiveSummed", laneID: 3));
+        
+        if (localID < 4) {
+          threadgroupMemory[\(offset) + localID] = prefixSummed;
+        }
+        threadgroupMemory[\(offset) + 4] = totalSum;
+      }
+      \(Reduction.barrier())
     }
     """
   }

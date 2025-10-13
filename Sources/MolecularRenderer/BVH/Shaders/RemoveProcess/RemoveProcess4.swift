@@ -78,16 +78,12 @@ extension RemoveProcess {
       bool isVacant = false;
       if (globalID < constantArgs.memorySlotCount) {
         uint voxelCoords = assignedVoxelCoords[globalID];
-        isVacant = (voxelCoords != \(UInt32.max));
+        isVacant = (voxelCoords == \(UInt32.max));
       }
       uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
       threadgroupMemory[localID / 32] = countBitsResult;
       \(Reduction.barrier())
       
-      // TODO: New primitive that operates on 5 slots of memory, returns a full
-      // prefix sum of 4 components and writes them back into TG memory.
-      // - Takes the offset into the threadgroup allocation as an argument.
-      // - Assumes the allocation is called 'threadgroupMemory'.
       \(Reduction.threadgroupSumPrimitive(offset: 0))
     }
     """
