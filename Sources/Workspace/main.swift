@@ -55,6 +55,17 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.silicon, .carbon) }
 }
 
+@MainActor
+func uploadDebugInput() {
+  var input = [UInt32](repeating: UInt32.max, count: 3616)
+  input[5] = 0
+  input[120] = 1
+  input[121] = 2
+  input[184] = 3
+  application.uploadDebugInput(input)
+}
+uploadDebugInput()
+
 #if true
 application.run {
   for atomID in lattice.atoms.indices {
@@ -70,16 +81,6 @@ application.run {
   application.present(image: image)
 }
 #else
-
-@MainActor
-func uploadDebugInput() {
-  var input = [UInt32](repeating: UInt32.max, count: 3616)
-  input[5] = 0
-  input[120] = 1
-  input[121] = 2
-  input[184] = 3
-  application.uploadDebugInput(input)
-}
 
 @MainActor
 func analyzeDebugOutput2() {
@@ -125,7 +126,6 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
-uploadDebugInput()
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
 
