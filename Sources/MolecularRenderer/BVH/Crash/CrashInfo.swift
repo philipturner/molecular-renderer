@@ -1,3 +1,9 @@
+enum CrashType {
+  case outOfMemory
+  case tooManyAtoms
+  case tooManyReferences
+}
+
 struct CrashInfoDescriptor {
   var bufferContents: [UInt32]?
   var clockFrames: Int?
@@ -12,6 +18,8 @@ class CrashInfo {
   let thrownFrameID: Int
   let registeredClockTime: Double
   let thrownClockTime: Double // approximate
+  
+  let lowerCorner: SIMD3<Float>
   
   init(descriptor: CrashInfoDescriptor) {
     guard let bufferContents = descriptor.bufferContents,
@@ -29,6 +37,11 @@ class CrashInfo {
     self.thrownClockTime = Double(clockFrames - 3) / Double(displayFrameRate)
     
     // Diagnose the position of the lower corner.
+    let voxelCoords = SIMD3<UInt32>(
+      bufferContents[1],
+      bufferContents[2],
+      bufferContents[3])
+    self.lowerCorner = SIMD3<Float>(voxelCoords) * 2 - (worldDimension / 2)
     
     // Error message 2:
     // requested vacant slot #X
@@ -39,7 +52,7 @@ class CrashInfo {
     // maximum allowed is 3072
     
     // Error message 4:
-    // small reference count
+    // 16-bit reference count
     // maximum allowed is 20480
   }
   
@@ -56,7 +69,9 @@ class CrashInfo {
     Registered \(format(registeredClockTime)) s after application launch.
     Thrown approximately \(format(thrownClockTime)) s after application launch.
     
-    TODO
+    Voxel lower corner: \(lowerCorner)
+    Voxel upper corner: \(lowerCorner + Float(2))
+    
     TODO
     TODO
     """

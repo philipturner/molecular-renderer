@@ -129,11 +129,10 @@ extension AddProcess {
         bool acquiredLock = false;
         \(CrashBuffer.acquireLock(errorCode: 3))
         if (acquiredLock) {
-          crashBuffer[1] = voxelID;
-          crashBuffer[2] = globalID.x;
-          crashBuffer[3] = globalID.y;
-          crashBuffer[4] = globalID.z;
-          crashBuffer[5] = addedAtomCount;
+          crashBuffer[1] = globalID.x;
+          crashBuffer[2] = globalID.y;
+          crashBuffer[3] = globalID.z;
+          crashBuffer[4] = addedAtomCount;
         }
       }
     }
