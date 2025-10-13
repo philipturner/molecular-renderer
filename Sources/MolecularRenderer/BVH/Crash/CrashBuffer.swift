@@ -28,6 +28,9 @@ class CrashBuffer {
   var outputBuffers: [Buffer] = []
   
   // Stop a strange issue where the crash buffer appears filled with 0's.
+  #if os(macOS)
+  var commandBufferList: [MTLCommandBuffer?] = [nil, nil, nil]
+  #endif
   
   init(descriptor: CrashBufferDescriptor) {
     guard let device = descriptor.device,
@@ -120,6 +123,8 @@ class CrashBuffer {
     
     commandList.mtlCommandEncoder =
     commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+    
+    commandBufferList[inFlightFrameID] = commandList.mtlCommandBuffer
     #else
     commandList.download(
       nativeBuffer: nativeBuffer,
@@ -131,6 +136,12 @@ class CrashBuffer {
     data: inout [T],
     inFlightFrameID: Int
   ) {
+    #if os(macOS)
+    if let commandBuffer = commandBufferList[inFlightFrameID] {
+      commandBuffer.waitUntilCompleted()
+    }
+    #endif
+    
     data.withUnsafeMutableBytes { bufferPointer in
       let buffer = outputBuffers[inFlightFrameID]
       buffer.read(output: bufferPointer)
