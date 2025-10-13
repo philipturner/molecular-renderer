@@ -43,7 +43,7 @@ extension RemoveProcess {
       RWStructuredBuffer<uint> assignedVoxelCoords : register(u4);
       RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u5);
       RWStructuredBuffer<uint> memorySlots : register(u6);
-      groupshared uint threadgroupMemory[4];
+      groupshared uint threadgroupMemory[5];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -64,7 +64,7 @@ extension RemoveProcess {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      "threadgroup uint threadgroupMemory[4];"
+      "threadgroup uint threadgroupMemory[5];"
       #else
       ""
       #endif

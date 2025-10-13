@@ -57,7 +57,7 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> memorySlots32 : register(u4);
       RWBuffer<uint> memorySlots16 : register(u5);
-      groupshared uint threadgroupMemory[516];
+      groupshared uint threadgroupMemory[517];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -77,7 +77,7 @@ extension RebuildProcess {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      "threadgroup uint threadgroupMemory[516];"
+      "threadgroup uint threadgroupMemory[517];"
       #else
       ""
       #endif
