@@ -12,6 +12,8 @@ import MolecularRenderer
 // Current task:
 // - Bind all buffers needed for all BVH update stages, draft the root
 //   signatures, and smoke test the CPU-side command encoding.
+// - Try using R10G10B10A2_UNORM format in Metal to natively compress and
+//   de-compress voxel coordinates.
 // - Create an upload (copy) buffer to sparse.assignedVoxels for testing
 //   memory allocation. Verify the contents with a debug diagnostic, sized at
 //   the previously queried exact memory slot count.
