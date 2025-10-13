@@ -25,6 +25,7 @@ extension AddProcess {
     // voxels.group.addedMarks
     // voxels.group.rebuiltMarks
     // voxels.dense.assignedSlotIDs
+    // voxels.dense.rebuiltMarks
     // voxels.dense.atomicCounters
     // voxels.sparse.assignedVoxelCoords
     // voxels.sparse.vacantSlotIDs
@@ -40,10 +41,11 @@ extension AddProcess {
         device uint *voxelGroupAddedMarks [[buffer(3)]],
         device uint *voxelGroupRebuiltMarks [[buffer(4)]],
         device uint *assignedSlotIDs [[buffer(5)]],
-        device uint4 *atomicCounters [[buffer(6)]],
-        device uint *assignedVoxelCoords [[buffer(7)]],
-        device uint *vacantSlotIDs [[buffer(8)]],
-        device uint *memorySlots [[buffer(9)]],
+        device uchar *rebuiltMarks [[buffer(6)]],
+        device uint4 *atomicCounters [[buffer(7)]],
+        device uint *assignedVoxelCoords [[buffer(8)]],
+        device uint *vacantSlotIDs [[buffer(9)]],
+        device uint *memorySlots [[buffer(10)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -55,10 +57,11 @@ extension AddProcess {
       RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u3);
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u4);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u5);
-      RWStructuredBuffer<uint4> atomicCounters : register(u6);
-      RWStructuredBuffer<uint> assignedVoxelCoords : register(u7);
-      RWStructuredBuffer<uint> vacantSlotIDs : register(u8);
-      RWStructuredBuffer<uint> memorySlots : register(u9);
+      RWBuffer<uint> rebuiltMarks : register(u6);
+      RWStructuredBuffer<uint4> atomicCounters : register(u7);
+      RWStructuredBuffer<uint> assignedVoxelCoords : register(u8);
+      RWStructuredBuffer<uint> vacantSlotIDs : register(u9);
+      RWStructuredBuffer<uint> memorySlots : register(u10);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -68,10 +71,11 @@ extension AddProcess {
         "UAV(u3),"
         "UAV(u4),"
         "UAV(u5),"
-        "UAV(u6),"
+        "DescriptorTable(UAV(u6, numDescriptors = 1)),"
         "UAV(u7),"
         "UAV(u8),"
         "UAV(u9),"
+        "UAV(u10),"
       )]
       void addProcess2(
         uint3 globalID : SV_DispatchThreadID,
@@ -144,15 +148,22 @@ extension BVHBuilder {
         voxels.group.rebuiltMarks, index: 4)
       commandList.setBuffer(
         voxels.dense.assignedSlotIDs, index: 5)
+      #if os(macOS)
       commandList.setBuffer(
-        voxels.dense.atomicCounters, index: 6)
+        voxels.dense.rebuiltMarks, index: 6)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 6)
+      #endif
       
       commandList.setBuffer(
-        voxels.sparse.assignedVoxelCoords, index: 7)
+        voxels.dense.atomicCounters, index: 7)
       commandList.setBuffer(
-        voxels.sparse.vacantSlotIDs, index: 8)
+        voxels.sparse.assignedVoxelCoords, index: 8)
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 9)
+        voxels.sparse.vacantSlotIDs, index: 9)
+      commandList.setBuffer(
+        voxels.sparse.memorySlots, index: 10)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
