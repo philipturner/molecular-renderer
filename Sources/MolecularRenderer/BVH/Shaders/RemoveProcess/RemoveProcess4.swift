@@ -62,22 +62,6 @@ extension RemoveProcess {
       #endif
     }
     
-    func waveActiveCountBits(_ input: String) -> String {
-      #if os(macOS)
-      "popcount(uint(uint64_t(simd_ballot(\(input)))))"
-      #else
-      "WaveActiveCountBits(\(input))"
-      #endif
-    }
-    
-    func barrier() -> String {
-      #if os(macOS)
-      "threadgroup_barrier(mem_flags::mem_threadgroup);"
-      #else
-      "GroupMemoryBarrierWithGroupSync();"
-      #endif
-    }
-    
     return """
     \(Shader.importStandardLibrary)
     
@@ -96,25 +80,30 @@ extension RemoveProcess {
         uint voxelCoords = assignedVoxelCoords[globalID];
         isVacant = (voxelCoords != \(UInt32.max));
       }
-      uint countBitsResult = \(waveActiveCountBits("isVacant"));
+      uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
       threadgroupMemory[localID / 32] = countBitsResult;
-      \(barrier())
+      \(Reduction.barrier())
       
       // Threadgroup-scoped reduction. Be careful with barriers in diverging
       // control flow; behavior is nominally undefined.
+      //
+      // TODO: New primitive that operates on 5 slots of memory, returns a full
+      // prefix sum of 4 components and writes them back into TG memory.
+      // - Takes the offset into the threadgroup allocation as an argument.
+      // - Assumes the allocation is called 'threadgroupMemory'.
       {
         uint input = 0;
         if (localID < 4) {
           input = threadgroupMemory[localID];
         }
-        \(barrier())
+        \(Reduction.barrier())
         
         if (localID < 32) {
           // WaveActiveSum to quickly get count for this threadgroup.
           
           // Write global offset + WavePrefixSum as output.
         }
-        \(barrier())
+        \(Reduction.barrier())
       }
     }
     """

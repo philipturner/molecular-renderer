@@ -61,14 +61,6 @@ extension AddProcess {
       #endif
     }
     
-    func barrier() -> String {
-      #if os(macOS)
-      "simdgroup_barrier(mem_flags::mem_threadgroup);"
-      #else
-      "GroupMemoryBarrierWithGroupSync();"
-      #endif
-    }
-    
     func atomicAdd() -> String {
       #if os(macOS)
       """
@@ -194,7 +186,7 @@ extension AddProcess {
       }
       
       // Retrieve the cached offsets.
-      \(barrier())
+      \(Reduction.barrier())
       uint4 outputOffsets[2];
       \(Shader.unroll)
       for (uint i = 0; i < 8; ++i) {
