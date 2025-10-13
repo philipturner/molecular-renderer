@@ -11,11 +11,6 @@ extension Application {
     // GPU gets occupied with work earlier in the frame.
     let checkpoint1 = Date()
     device.commandQueue.withCommandList { commandList in
-      // Bind the descriptor heap.
-      #if os(Windows)
-      commandList.setDescriptorHeap(descriptorHeap)
-      #endif
-      
       
     }
     
