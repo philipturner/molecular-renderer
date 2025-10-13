@@ -44,13 +44,13 @@ struct Reduction {
       \(Reduction.barrier())
       
       if (localID < 32) {
-        uint prefixSummed = \(Reduction.wavePrefixSum("input"));
-        uint inclusiveSummed = prefixSummed + input;
+        uint prefixSum = \(Reduction.wavePrefixSum("input"));
+        uint inclusiveSum = prefixSum + input;
         uint totalSum =
-        \(Reduction.waveReadLaneAt("inclusiveSummed", laneID: 3));
+        \(Reduction.waveReadLaneAt("inclusiveSum", laneID: 3));
         
         if (localID < 4) {
-          threadgroupMemory[\(offset) + localID] = prefixSummed;
+          threadgroupMemory[\(offset) + localID] = prefixSum;
         }
         threadgroupMemory[\(offset) + 4] = totalSum;
       }

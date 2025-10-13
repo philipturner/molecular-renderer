@@ -10,8 +10,7 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Implement removeProcess4 and then addProcess2. Along the way, develop
-//   utilities to improve code reuse for GPU reductions, when appropriate.
+// - Implement addProcess2 next.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
 //   debugging, but is not mandatory at the moment.
@@ -102,22 +101,22 @@ func analyzeDebugOutput2() {
 
 @MainActor
 func analyzeDebugOutput() {
-  var output = [UInt32](repeating: .zero, count: 3616)
-  application.downloadDebugOutput(&output)
+  // var output = [UInt32](repeating: .zero, count: 3616)
+  // application.downloadDebugOutput(&output)
   
-  output.sort()
+  // output.sort()
   
-  let readSlotIDs: [Int] = [
-    0, 1, 2, 3, 4, 5, 6, 7,
-    117, 118, 120, 121, 122, 123,
-    179, 180, 181, 182, 183, 184,
-    3610, 3611, 3612, 3613, 3614, 3615,
-  ]
+  // let readSlotIDs: [Int] = [
+  //   0, 1, 2, 3, 4, 5, 6, 7,
+  //   117, 118, 120, 121, 122, 123,
+  //   179, 180, 181, 182, 183, 184,
+  //   3610, 3611, 3612, 3613, 3614, 3615,
+  // ]
   
-  for slotID in readSlotIDs {
-    let outputValue = output[slotID]
-    print(slotID, outputValue)
-  }
+  // for slotID in readSlotIDs {
+  //   let outputValue = output[slotID]
+  //   print(slotID, outputValue)
+  // }
 }
 
 for atomID in lattice.atoms.indices {
