@@ -20,7 +20,9 @@ extension AddProcess {
       kernel void addProcess3(
         \(CrashBuffer.functionArguments),
         \(AtomResources.functionArguments),
-        
+        device uint *assignedSlotIDs [[buffer(9)]],
+        device uint *atomicCounters [[buffer(10)]],
+        device uint *memorySlots [[buffer(11)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
@@ -28,12 +30,18 @@ extension AddProcess {
       """
       \(CrashBuffer.functionArguments)
       \(AtomResources.functionArguments)
+      RWStructuredBuffer<uint> assignedSlotIDs : register(u9);
+      RWStructuredBuffer<uint> atomicCounters : register(u10);
+      RWStructuredBuffer<uint> memorySlots : register(u11);
       groupshared uint cachedRelativeOffsets[8 * 128];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         \(AtomResources.rootSignatureArguments)
+        "UAV(u9),"
+        "UAV(u10),"
+        "UAV(u11),"
       )]
       void addProcess3(
         uint globalID : SV_DispatchThreadID,
@@ -86,6 +94,13 @@ extension BVHBuilder {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
+      
+      commandList.setBuffer(
+        voxels.dense.assignedSlotIDs, index: 9)
+      commandList.setBuffer(
+        voxels.dense.atomicCounters, index: 10)
+      commandList.setBuffer(
+        voxels.sparse.memorySlots, index: 11)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
