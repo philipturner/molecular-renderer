@@ -135,16 +135,6 @@ extension AddProcess {
           crashBuffer[3] = globalID.y;
           crashBuffer[4] = globalID.z;
           crashBuffer[5] = addedAtomCount;
-          
-          // Mostly just for the purpose of testing encode/decode at the moment.
-          uint encoded = \(VoxelResources.encode("globalID"));
-          crashBuffer[6] = encoded;
-          
-          uint3 decoded = \(VoxelResources.decode("encoded"));
-          crashBuffer[7] = decoded.x;
-          crashBuffer[8] = decoded.y;
-          crashBuffer[9] = decoded.z;
-          crashBuffer[10] = \(VoxelResources.encode("decoded"));
         }
       }
     }
