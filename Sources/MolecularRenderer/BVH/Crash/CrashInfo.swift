@@ -80,6 +80,30 @@ class CrashInfo {
       String(format: "%.3f", seconds)
     }
     
+    func errorCodePortion() -> String {
+      switch crashType {
+      case .outOfMemory(let requestedSlotID, let vacantSlotCount, let memorySlotCount):
+        return """
+        Requested vacant slot #\(requestedSlotID)
+        Vacant slots: \(vacantSlotCount) / \(memorySlotCount)
+        """
+      case .tooManyAtoms(let totalAtomCount):
+        return """
+        Voxel had \(totalAtomCount) atoms.
+        Maximum allowed: 3072
+        """
+      case .tooManyReferences(let smallReferenceCount):
+        return """
+        Voxel had \(smallReferenceCount) 16-bit references.
+        Maximum allowed: 20480
+        """
+      case .unknown(let errorCode):
+        return """
+        Invalid error code: \(errorCode)
+        """
+      }
+    }
+    
     return """
     Error thrown in shader code.
     
@@ -90,9 +114,7 @@ class CrashInfo {
     
     Voxel lower corner: \(lowerCorner)
     Voxel upper corner: \(lowerCorner + Float(2))
-    
-    TODO
-    TODO
+    \(errorCodePortion())
     """
   }
 }
