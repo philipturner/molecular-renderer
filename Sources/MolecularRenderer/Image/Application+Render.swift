@@ -62,6 +62,7 @@ extension Application {
   
   public func render() -> Image {
     readCrashBuffer()
+    updateBVH(inFlightFrameID: frameID % 3)
     writeCameraArgs()
     
     // Create the render arguments.
@@ -177,6 +178,8 @@ extension Application {
       bvhBuilder.computeUAVBarrier(commandList: commandList)
       #endif
     }
+    
+    forgetIdleState(inFlightFrameID: frameID % 3)
     
     var output = Image()
     output.scaleFactor = 1

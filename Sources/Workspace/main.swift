@@ -75,11 +75,7 @@ application.run {
     application.atoms[atomID] = atom
   }
   
-  application.updateBVH(
-    inFlightFrameID: application.frameID % 3)
   let image = application.render()
-  application.forgetIdleState(
-    inFlightFrameID: application.frameID % 3)
   application.present(image: image)
 }
 #else
