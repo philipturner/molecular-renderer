@@ -191,7 +191,6 @@ extension AddProcess {
       if (assignedSlotID == \(UInt32.max)) {
         return;
       }
-      
       uint existingAtomCount;
       {
         uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
@@ -203,6 +202,25 @@ extension AddProcess {
       atomicCounters[2 * voxelID + 1] = counters2;
       
       uint newAtomCount = existingAtomCount + addedAtomCount;
+      if (newAtomCount > 3072) {
+        if (\(Reduction.waveIsFirstLane())) {
+          bool acquiredLock = false;
+          \(CrashBuffer.acquireLock(errorCode: 3))
+          if (acquiredLock) {
+            crashBuffer[1] = globalID.x;
+            crashBuffer[2] = globalID.y;
+            crashBuffer[3] = globalID.z;
+            crashBuffer[4] = newAtomCount;
+          }
+        }
+        return;
+      }
+      
+      {
+        uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
+        memorySlots[headerAddress] = newAtomCount;
+        memorySlots[headerAddress + 1] = 0;
+      }
     }
     """
   }
