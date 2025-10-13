@@ -84,29 +84,37 @@ extension Application {
       bvhBuilder.voxels.sparse.assignedVoxelCoords
     }
     
-    #if os(macOS)
-    let inputBuffer = copyDestinationBuffer()
-    #else
-    let nativeBuffer = copyDestinationBuffer()
-    
-    var bufferDesc = BufferDescriptor()
-    bufferDesc.device = device
-    bufferDesc.size = nativeBuffer.size
-    bufferDesc.type = .input
-    let inputBuffer = Buffer(descriptor: bufferDesc)
-    #endif
-    
-    device.commandQueue.flush()
-    inputData.withUnsafeBytes { bufferPointer in
-      inputBuffer.write(input: bufferPointer)
-    }
     
     #if os(Windows)
     device.commandQueue.withCommandList { commandList in
+      
+      #if os(macOS)
+      let inputBuffer = copyDestinationBuffer()
+      #else
+      let nativeBuffer = copyDestinationBuffer()
+      
+      var bufferDesc = BufferDescriptor()
+      bufferDesc.device = device
+      bufferDesc.size = nativeBuffer.size
+      bufferDesc.type = .input
+      let inputBuffer = Buffer(descriptor: bufferDesc)
+      #endif
+      
+      print("checkpoint 1")
+      device.commandQueue.flush()
+      print("checkpoint 2")
+      inputData.withUnsafeBytes { bufferPointer in
+        inputBuffer.write(input: bufferPointer)
+      }
+      print("checkpoint 3")
+      
+      print("checkpoint 4")
       commandList.upload(
         inputBuffer: inputBuffer,
         nativeBuffer: nativeBuffer)
+      print("checkpoint 5")
     }
+    print("checkpoint 6")
     #endif
   }
   
