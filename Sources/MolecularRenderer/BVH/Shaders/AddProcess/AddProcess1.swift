@@ -61,22 +61,12 @@ extension AddProcess {
       #endif
     }
     
-    func atomicAdd() -> String {
-      #if os(macOS)
-      """
-      offset = atomic_fetch_add_explicit(
-        atomicCounters + address, // object
-        1, // operand
-        memory_order_relaxed); // order
-      """
-      #else
-      """
-      InterlockedAdd(
-        atomicCounters[address], // dest
-        1, // value
-        offset); // original_value
-      """
-      #endif
+    func atomicFetchAdd() -> String {
+      Reduction.atomicFetchAdd(
+        buffer: "atomicCounters",
+        address: "address",
+        operand: "1",
+        output: "offset")
     }
     
     func castUShort4(_ input: String) -> String {
@@ -172,7 +162,7 @@ extension AddProcess {
               uint address =
               \(VoxelResources.generate("voxelCoordinates", worldDimension / 2));
               address = (address * 8) + (atomID % 8);
-              \(atomicAdd())
+              \(atomicFetchAdd())
             }
             
             // Store to the cache.

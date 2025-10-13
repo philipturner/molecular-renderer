@@ -58,4 +58,27 @@ struct Reduction {
     }
     """
   }
+  
+  static func atomicFetchAdd(
+    buffer: String,
+    address: String,
+    operand: String,
+    output: String
+  ) -> String {
+    #if os(macOS)
+      """
+      \(output) = atomic_fetch_add_explicit(
+        \(buffer) + \(address), // object
+        \(operand), // operand
+        memory_order_relaxed); // order
+      """
+      #else
+      """
+      InterlockedAdd(
+        \(buffer)[\(address)], // dest
+        \(operand), // value
+        \(output)); // original_value
+      """
+      #endif
+  }
 }
