@@ -37,7 +37,7 @@ extension RemoveProcess {
       RWStructuredBuffer<uint> vacantSlotCount : register(u2);
       RWStructuredBuffer<uint> assignedVoxelCoords : register(u3);
       RWStructuredBuffer<uint> vacantSlotIDs : register(u4);
-      groupshared uint threadgroupMemory[5];
+      groupshared uint threadgroupMemory[4];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -56,7 +56,7 @@ extension RemoveProcess {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      "threadgroup uint threadgroupMemory[5];"
+      "threadgroup uint threadgroupMemory[4];"
       #else
       ""
       #endif
@@ -75,14 +75,14 @@ extension RemoveProcess {
         return;
       }
       
-      bool isVacant = false;
-      if (globalID < constantArgs.memorySlotCount) {
-        uint voxelCoords = assignedVoxelCoords[globalID];
-        isVacant = (voxelCoords != \(UInt32.max));
-      }
-      uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
-      //threadgroupMemory[localID / 32] = countBitsResult;
-      \(Reduction.barrier())
+      // bool isVacant = false;
+      // if (globalID < constantArgs.memorySlotCount) {
+      //   uint voxelCoords = assignedVoxelCoords[globalID];
+      //   isVacant = (voxelCoords != \(UInt32.max));
+      // }
+      // uint countBitsResult = \(Reduction.waveActiveCountBits("isVacant"));
+      // threadgroupMemory[localID / 32] = countBitsResult;
+      // \(Reduction.barrier())
       
       // Threadgroup-scoped reduction. Be careful with barriers in diverging
       // control flow; behavior is nominally undefined.
