@@ -11,6 +11,7 @@ import MolecularRenderer
 //
 // Current task:
 // - Implement addProcess2 next.
+// - Inspect every buffer modified by addProcess2.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
 //   debugging, but is not mandatory at the moment.

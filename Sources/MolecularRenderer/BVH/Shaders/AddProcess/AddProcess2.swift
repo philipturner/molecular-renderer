@@ -123,6 +123,7 @@ extension AddProcess {
       }
       voxelGroupRebuiltMarks[voxelGroupID] = 1;
       
+      // scan for voxels with atoms added
       uint4 counters1 = atomicCounters[2 * voxelID + 0];
       uint4 counters2 = atomicCounters[2 * voxelID + 1];
       uint addedAtomCount = 0;
@@ -132,13 +133,17 @@ extension AddProcess {
         rebuiltMarks[voxelID] = 1;
       }
       
+      // read from dense.assignedSlotIDs
       uint assignedSlotID = assignedSlotIDs[voxelID];
       {
         bool needsNewSlot =
         (assignedSlotID == \(UInt32.max)) &&
         (addedAtomCount > 0);
         
-        uint countBitsResult = \(Reduction.waveActiveCountBits("needsNewSlot"));
+        uint countBitsResult =
+        \(Reduction.waveActiveCountBits("needsNewSlot"));
+        
+        // Allocate slots for any threads in the SIMD that need it.
         if (countBitsResult > 0) {
           uint allocatedOffset = \(UInt32.max);
           if (\(Reduction.waveIsFirstLane())) {
@@ -163,9 +168,26 @@ extension AddProcess {
             return;
           }
           
-          // continue doing stuff
+          allocatedOffset += \(Reduction.wavePrefixSum("uint(needsNewSlot)"));
+          if (needsNewSlot) {
+            assignedSlotID = vacantSlotIDs[allocatedOffset];
+          }
+        }
+        
+        // Register each added slot.
+        if (needsNewSlot) {
+          assignedSlotIDs[voxelID] = assignedSlotID;
+          
+          uint encoded = \(VoxelResources.encode("globalID"));
+          assignedVoxelCoords[assignedSlotID] = encoded;
+          
+          uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
+          memorySlots[headerAddress] = 0;
+          memorySlots[headerAddress + 1] = 0;
         }
       }
+      
+      // add existing atom count to prefix-summed 8 counters
     }
     """
   }
