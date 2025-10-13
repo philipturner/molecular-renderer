@@ -126,6 +126,15 @@ extension AddProcess {
       
       // Next step: debug compare_exchange_explicit accesses to the global
       // crash buffer.
+      if (addedAtomCount > 0) {
+        bool acquiredLock = false;
+        \(CrashBuffer.acquireLock(errorCode: 2))
+        if (acquiredLock) {
+          crashBuffer[1] = voxelID;
+          crashBuffer[2] = (globalID.z << 20) + (globalID.y << 10) + globalID.x;
+          crashBuffer[3] = addedAtomCount;
+        }
+      }
     }
     """
   }

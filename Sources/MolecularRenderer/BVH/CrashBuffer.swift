@@ -158,4 +158,29 @@ extension CrashBuffer {
   ) {
     commandList.setBuffer(nativeBuffer, index: 0)
   }
+  
+  // Declare 'bool acquiredLock = false;' prior to invoking this.
+  static func acquireLock(errorCode: Int) -> String {
+    #if os(macOS)
+    """
+    {
+      
+    }
+    """
+    #else
+    """
+    {
+      uint output;
+      InterlockedCompareExchange(
+        crashBuffer[0],
+        1,
+        \(errorCode),
+        output);
+      if (output == 1) {
+        acquiredLock = true;
+      }
+    }
+    """
+    #endif
+  }
 }
