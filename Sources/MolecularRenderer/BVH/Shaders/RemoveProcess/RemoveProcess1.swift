@@ -18,17 +18,23 @@ extension RemoveProcess {
       kernel void removeProcess1(
         \(CrashBuffer.functionArguments),
         \(AtomResources.functionArguments),
+        device uint *voxelGroupAtomsRemovedMarks [[buffer(9)]],
+        device uchar *atomsRemovedMarks [[buffer(10)]],
         uint globalID [[thread_position_in_grid]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
       \(AtomResources.functionArguments)
+      RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u9);
+      RWBuffer<uint> atomsRemovedMarks : register(u10);
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         \(AtomResources.rootSignatureArguments)
+        "UAV(u9),"
+        "DescriptorTable(UAV(u10, numDescriptors = 1)),"
       )]
       void removeProcess1(
         uint globalID : SV_DispatchThreadID)
@@ -79,6 +85,15 @@ extension BVHBuilder {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
+      commandList.setBuffer(
+        voxels.group.atomsRemovedMarks, index: 9)
+      #if os(macOS)
+      commandList.setBuffer(
+        voxels.dense.atomsRemovedMarks, index: 10)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.dense.atomsRemovedMarksHandleID, index: 10)
+      #endif
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
