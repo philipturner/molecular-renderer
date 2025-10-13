@@ -41,6 +41,7 @@ extension RebuildProcess {
       """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
+        device float4 *atoms [[buffer(1)]],
         device uint *assignedSlotIDs [[buffer(2)]],
         device uint *rebuiltVoxelCoords [[buffer(3)]],
         device uint *memorySlots32 [[buffer(4)]],
@@ -51,6 +52,7 @@ extension RebuildProcess {
       #else
       """
       \(CrashBuffer.functionArguments)
+      RWStructuredBuffer<float4> atoms : register(u1);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
       RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u3);
       RWStructuredBuffer<uint> memorySlots32 : register(u4);
@@ -63,7 +65,8 @@ extension RebuildProcess {
         "UAV(u1),"
         "UAV(u2),"
         "UAV(u3),"
-        "DescriptorTable(UAV(u4, numDescriptors = 1)),"
+        "UAV(u4),"
+        "DescriptorTable(UAV(u5, numDescriptors = 1)),"
       )]
       void rebuildProcess2(
         uint groupID : SV_GroupID,

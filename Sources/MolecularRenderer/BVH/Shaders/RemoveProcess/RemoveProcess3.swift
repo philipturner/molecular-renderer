@@ -25,32 +25,35 @@ extension RemoveProcess {
       """
       kernel void removeProcess3(
         \(CrashBuffer.functionArguments),
-        device uint *assignedSlotIDs [[buffer(1)]],
-        device uchar *rebuiltMarks [[buffer(2)]],
-        device uint *assignedVoxelCoords [[buffer(3)]],
-        device uint *atomsRemovedVoxelCoords [[buffer(4)]],
-        device uint *memorySlots [[buffer(5)]],
+        device uchar *addressOccupiedMarks [[buffer(1)]],
+        device uint *assignedSlotIDs [[buffer(2)]],
+        device uchar *rebuiltMarks [[buffer(3)]],
+        device uint *assignedVoxelCoords [[buffer(4)]],
+        device uint *atomsRemovedVoxelCoords [[buffer(5)]],
+        device uint *memorySlots [[buffer(6)]],
         uint groupID [[threadgroup_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
-      RWStructuredBuffer<uint> assignedSlotIDs : register(u1);
-      RWBuffer<uint> rebuiltMarks : register(u2);
-      RWStructuredBuffer<uint> assignedVoxelCoords : register(u3);
-      RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u4);
-      RWStructuredBuffer<uint> memorySlots : register(u5);
+      RWBuffer<uint> addressOccupiedMarks : register(u1);
+      RWStructuredBuffer<uint> assignedSlotIDs : register(u2);
+      RWBuffer<uint> rebuiltMarks : register(u3);
+      RWStructuredBuffer<uint> assignedVoxelCoords : register(u4);
+      RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u5);
+      RWStructuredBuffer<uint> memorySlots : register(u6);
       groupshared uint threadgroupMemory[4];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
-        "UAV(u1),"
-        "DescriptorTable(UAV(u2, numDescriptors = 1)),"
-        "UAV(u3),"
+        "DescriptorTable(UAV(u1, numDescriptors = 1)),"
+        "UAV(u2),"
+        "DescriptorTable(UAV(u3, numDescriptors = 1)),"
         "UAV(u4),"
         "UAV(u5),"
+        "UAV(u6),"
       )]
       void removeProcess3(
         uint groupID : SV_GroupID,
@@ -88,22 +91,30 @@ extension BVHBuilder {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
       
-      commandList.setBuffer(
-        voxels.dense.assignedSlotIDs, index: 1)
       #if os(macOS)
       commandList.setBuffer(
-        voxels.dense.rebuiltMarks, index: 2)
+        atoms.addressOccupiedMarks, index: 1)
       #else
       commandList.setDescriptor(
-        handleID: voxels.dense.rebuiltMarksHandleID, index: 2)
+        handleID: atoms.addressOccupiedMarksHandleID, index: 1)
       #endif
       
       commandList.setBuffer(
-        voxels.sparse.assignedVoxelCoords, index: 3)
+        voxels.dense.assignedSlotIDs, index: 2)
+      #if os(macOS)
       commandList.setBuffer(
-        voxels.sparse.atomsRemovedVoxelCoords, index: 4)
+        voxels.dense.rebuiltMarks, index: 3)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.dense.rebuiltMarksHandleID, index: 3)
+      #endif
+      
       commandList.setBuffer(
-        voxels.sparse.memorySlots, index: 5)
+        voxels.sparse.assignedVoxelCoords, index: 4)
+      commandList.setBuffer(
+        voxels.sparse.atomsRemovedVoxelCoords, index: 5)
+      commandList.setBuffer(
+        voxels.sparse.memorySlots, index: 6)
       
       let offset = GeneralCounters.offset(.atomsRemovedVoxelCount)
       commandList.dispatchIndirect(
