@@ -62,14 +62,19 @@ extension RemoveProcess {
       #endif
     }
     
-    func waveActiveCountBits() -> String {
+    func waveActiveCountBits(_ input: String) -> String {
       #if os(macOS)
-      """
-      simd_vote countBitsBallotVote = simd_ballot(isVacant);
-      uint countBitsResult = popcount(uint(uint64_t(countBitsBallotVote)));
-      """
+      "popcount(uint(uint64_t(simd_ballot(\(input)))))"
       #else
-      "uint countBitsResult = WaveActiveCountBits(isVacant);"
+      "WaveActiveCountBits(\(input))"
+      #endif
+    }
+    
+    func barrier() -> String {
+      #if os(macOS)
+      "threadgroup_barrier(mem_flags::mem_threadgroup);"
+      #else
+      "GroupMemoryBarrierWithGroupSync();"
       #endif
     }
     
@@ -91,7 +96,10 @@ extension RemoveProcess {
         uint voxelCoords = assignedVoxelCoords[globalID];
         isVacant = (voxelCoords != \(UInt32.max));
       }
-      \(waveActiveCountBits())
+      uint countBitsResult = \(waveActiveCountBits("isVacant"));
+      
+      threadgroupMemory[localID / 32] = countBitsResult;
+      \(barrier())
     }
     """
   }
