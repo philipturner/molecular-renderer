@@ -24,6 +24,9 @@ extension RemoveProcess {
       kernel void removeProcess4(
         \(CrashBuffer.functionArguments),
         constant ConstantArgs &constantArgs [[buffer(1)]],
+        device atomic_uint *vacantSlotCount [[buffer(2)]],
+        device uint *assignedVoxelIDs [[buffer(3)]],
+        device uint *vacantSlotIDs [[buffer(4)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
@@ -31,12 +34,18 @@ extension RemoveProcess {
       """
       \(CrashBuffer.functionArguments)
       ConstantBuffer<ConstantArgs> constantArgs : register(b1);
+      RWStructuredBuffer<uint> vacantSlotCount : register(u2);
+      RWStructuredBuffer<uint> assignedVoxelIDs : register(u3);
+      RWStructuredBuffer<uint> vacantSlotIDs : register(u4);
       groupshared uint threadgroupMemory[4];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
         "RootConstants(b1, num32BitConstants = 1),"
+        "UAV(u2),"
+        "UAV(u3),"
+        "UAV(u4),"
       )]
       void removeProcess4(
         uint globalID : SV_DispatchThreadID,
@@ -88,6 +97,15 @@ extension BVHBuilder {
       constantArgs.memorySlotCount = UInt32(voxels.memorySlotCount)
       commandList.set32BitConstants(
         constantArgs, index: 1)
+      
+      commandList.setBuffer(
+        counters.general,
+        index: 2,
+        offset: GeneralCounters.offset(.vacantSlotCount))
+      commandList.setBuffer(
+        voxels.sparse.assignedVoxelIDs, index: 3)
+      commandList.setBuffer(
+        voxels.sparse.vacantSlotIDs, index: 4)
       
       // Determine the dispatch grid size.
       func createGroupCount32() -> SIMD3<UInt32> {
