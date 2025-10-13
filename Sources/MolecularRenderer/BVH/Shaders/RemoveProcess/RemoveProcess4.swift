@@ -101,6 +101,10 @@ extension RemoveProcess {
         threadgroupMemory[5] = output;
       }
       \(Reduction.barrier())
+      
+      uint address = \(Reduction.wavePrefixSum("uint(isVacant)"));
+      
+      // Mask out the memory writes to only vacant ones.
     }
     """
   }
