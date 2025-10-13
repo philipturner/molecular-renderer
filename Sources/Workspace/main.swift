@@ -85,10 +85,12 @@ func analyzeDebugOutput() {
     0, 1, 2, 3, 4, 5, 6, 7,
   ]
   
+  #if false
   for slotID in readSlotIDs {
     let outputValue = output[slotID]
     print(slotID, outputValue)
   }
+  #endif
 }
 
 @MainActor
@@ -96,6 +98,7 @@ func analyzeDebugOutput2() {
   var output = [UInt32](repeating: .zero, count: 10)
   application.downloadDebugOutput2(&output)
   
+  #if false
   print("atoms removed voxel count:", output[0])
   guard output[1] == 1,
         output[2] == 1 else {
@@ -108,6 +111,7 @@ func analyzeDebugOutput2() {
         output[8] == 1 else {
     fatalError("Indirect dispatch arguments were malformatted.")
   }
+  #endif
 }
 
 for atomID in lattice.atoms.indices {
@@ -115,13 +119,19 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
+//print("checkpoint 0")
 uploadDebugInput()
+//print("checkpoint 1")
 application.updateBVH(inFlightFrameID: 0)
+//print("checkpoint 2")
 application.forgetIdleState(inFlightFrameID: 0)
 
-print()
-analyzeDebugOutput2()
-print()
-analyzeDebugOutput()
+//print("checkpoint 3")
+//print()
+//analyzeDebugOutput2()
+//print("checkpoint 4")
+//print()
+//analyzeDebugOutput()
+//print("checkpoint 5")
 
 #endif
