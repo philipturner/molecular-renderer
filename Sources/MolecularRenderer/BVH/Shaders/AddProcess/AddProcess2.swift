@@ -131,8 +131,15 @@ extension AddProcess {
         \(CrashBuffer.acquireLock(errorCode: 2))
         if (acquiredLock) {
           crashBuffer[1] = voxelID;
-          crashBuffer[2] = (globalID.z << 20) + (globalID.y << 10) + globalID.x;
-          crashBuffer[3] = addedAtomCount;
+          crashBuffer[2] = globalID.x;
+          crashBuffer[3] = globalID.y;
+          crashBuffer[4] = globalID.z;
+          crashBuffer[5] = addedAtomCount;
+          
+          // Mostly just for the purpose of testing encode/decode at the moment.
+          uint encoded = \(VoxelResources.encode("globalID"));
+          crashBuffer[6] = encoded;
+          
         }
       }
     }

@@ -84,6 +84,16 @@ class VoxelResources {
     let gridWidth = Int(gridDimension)
     return "\(input).z * \(gridWidthSq) + \(input).y * \(gridWidth) + \(input).x"
   }
+  
+  // Shader code to store voxel coords to RAM.
+  static func encode(_ input: String) -> String {
+    "(\(input).z << 20) + (\(input).y << 10) + \(input).x"
+  }
+  
+  // Shader code to read voxel coords from RAM.
+  static func decode(_ input: String) -> String {
+    "uint3(\(input) >> 20, (\(input) >> 10) & 1023, \(input) & 1023)"
+  }
 }
 
 class GroupVoxelResources {
