@@ -11,27 +11,26 @@ extension Application {
     // GPU gets occupied with work earlier in the frame.
     let checkpoint1 = Date()
     device.commandQueue.withCommandList { commandList in
-      bvhBuilder.upload(
-        transaction: transaction,
-        commandList: commandList,
-        inFlightFrameID: inFlightFrameID)
-    }
-    
-    // TODO: Time how long it takes to encode this command list on macOS.
-    // Perhaps we should also split up the commands for purging buffers, but
-    // that ought to be justified by profiling data before taking any action.
-    let checkpoint2 = Date()
-    device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
       commandList.setDescriptorHeap(descriptorHeap)
       #endif
       
-      bvhBuilder.purgeResources(commandList: commandList)
-      bvhBuilder.setupGeneralCounters(commandList: commandList)
+      bvhBuilder.upload(
+        transaction: transaction,
+        commandList: commandList,
+        inFlightFrameID: inFlightFrameID)
+      bvhBuilder.purgeResources(
+        commandList: commandList)
+      bvhBuilder.setupGeneralCounters(
+        commandList: commandList)
     }
     
-    let checkpoint3 = Date()
+    // TODO: Time how long it takes to encode this command list on macOS.
+    // Perhaps we should also split up the commands for purging buffers, but
+    // that ought to be justified by profiling data before taking any action.
+    
+    let checkpoint2 = Date()
     device.commandQueue.withCommandList { commandList in
       // Bind the descriptor heap.
       #if os(Windows)
@@ -69,13 +68,12 @@ extension Application {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID)
     }
-    let checkpoint4 = Date()
+    let checkpoint3 = Date()
     
     print()
     print(Int(checkpoint1.timeIntervalSince(checkpoint0) * 1e6))
     print(Int(checkpoint2.timeIntervalSince(checkpoint1) * 1e6))
     print(Int(checkpoint3.timeIntervalSince(checkpoint2) * 1e6))
-    print(Int(checkpoint4.timeIntervalSince(checkpoint3) * 1e6))
   }
   
   // Invoke this during 'application.render()', at the very end.
