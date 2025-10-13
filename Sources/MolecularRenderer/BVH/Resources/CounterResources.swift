@@ -9,11 +9,8 @@ struct CounterResourcesDescriptor {
 
 class CounterResources {
   let general: Buffer // purge in isolation from other resources
-  
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
-  // upload and download utilities would create transient buffers on
-  // Windows, no need to allocate upfront
   
   #if os(Windows)
   let queryHeap: SwiftCOM.ID3D12QueryHeap
@@ -35,9 +32,6 @@ class CounterResources {
     crashBufferDesc.device = device
     crashBufferDesc.size = Self.crashBufferSize
     self.crashBuffer = CrashBuffer(descriptor: crashBufferDesc)
-    
-    crashBufferDesc.size = Self.diagnosticBufferSize
-    self.diagnosticBuffer = CrashBuffer(descriptor: crashBufferDesc)
     
     #if os(Windows)
     self.queryHeap = Self.createQueryHeap(device: device)

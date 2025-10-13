@@ -93,19 +93,9 @@ class CrashBuffer {
     commandList.mtlCommandEncoder =
     commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     #else
-    let copyDestBarrier = nativeBuffer
-      .transition(state: D3D12_RESOURCE_STATE_COPY_DEST)
-    try! commandList.d3d12CommandList.ResourceBarrier(
-      1, [copyDestBarrier])
-    
     commandList.upload(
       inputBuffer: inputBuffer,
       nativeBuffer: nativeBuffer)
-    
-    let unorderedAccessBarrier = nativeBuffer
-      .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-    try! commandList.d3d12CommandList.ResourceBarrier(
-      1, [unorderedAccessBarrier])
     #endif
   }
   
@@ -129,19 +119,9 @@ class CrashBuffer {
     commandList.mtlCommandEncoder =
     commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
     #else
-    let copySourceBarrier = nativeBuffer
-      .transition(state: D3D12_RESOURCE_STATE_COPY_SOURCE)
-    try! commandList.d3d12CommandList.ResourceBarrier(
-      1, [copySourceBarrier])
-    
     commandList.download(
       nativeBuffer: nativeBuffer,
       outputBuffer: outputBuffer)
-    
-    let unorderedAccessBarrier = nativeBuffer
-      .transition(state: D3D12_RESOURCE_STATE_UNORDERED_ACCESS)
-    try! commandList.d3d12CommandList.ResourceBarrier(
-      1, [unorderedAccessBarrier])
     #endif
   }
   
