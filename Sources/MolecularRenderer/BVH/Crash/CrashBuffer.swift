@@ -1,4 +1,5 @@
 #if os(macOS)
+import Dispatch
 import Metal
 #else
 import SwiftCOM
@@ -26,6 +27,11 @@ class CrashBuffer {
   let inputBuffer: Buffer
   let nativeBuffer: Buffer
   var outputBuffers: [Buffer] = []
+  
+  // Stop a strange issue where the crash buffer appears filled with 0's.
+  #if os(macOS)
+  var semaphore: DispatchSemaphore
+  #endif
   
   init(descriptor: CrashBufferDescriptor) {
     guard let device = descriptor.device,
@@ -68,6 +74,10 @@ class CrashBuffer {
       let outputBuffer = Buffer(descriptor: bufferDesc)
       outputBuffers.append(outputBuffer)
     }
+    
+    #if os(macOS)
+    self.semaphore = DispatchSemaphore(value: 3)
+    #endif
   }
   
   func initialize(
@@ -118,6 +128,11 @@ class CrashBuffer {
     
     commandList.mtlCommandEncoder =
     commandList.mtlCommandBuffer.makeComputeCommandEncoder()!
+    
+    let semaphore = self.semaphore
+    commandList.mtlCommandBuffer.addCompletedHandler { _ in
+      semaphore.signal()
+    }
     #else
     commandList.download(
       nativeBuffer: nativeBuffer,
@@ -129,6 +144,18 @@ class CrashBuffer {
     data: inout [T],
     inFlightFrameID: Int
   ) {
+    #if os(macOS)
+    let interval = DispatchTimeInterval.seconds(1)
+    let future = DispatchTime.now().advanced(by: interval)
+    let result = semaphore.wait(timeout: future)
+    switch result {
+    case .success:
+      break
+    case .timedOut:
+      fatalError("Could not synchronize with semaphore.")
+    }
+    #endif
+    
     data.withUnsafeMutableBytes { bufferPointer in
       let buffer = outputBuffers[inFlightFrameID]
       buffer.read(output: bufferPointer)
