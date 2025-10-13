@@ -54,7 +54,7 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.silicon, .carbon) }
 }
 
-#if true
+#if false
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -68,20 +68,26 @@ application.run {
   application.present(image: image)
 }
 #else
+
+@MainActor
+func analyzeDebugOutput() {
+  var output = [UInt32](repeating: .zero, count: 3616)
+  application.downloadDebugOutput(&output)
+
+  let readSlotIDs: [Int] = [
+    0, 1, 2, 3, 4, 5, 6,
+    118, 119, 120, 121, 122, 123,
+    182, 183, 184, 185, 186,
+  ]
+
+  for slotID in readSlotIDs {
+    let outputValue = output[slotID]
+    print(slotID, outputValue)
+  }
+}
+
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
+analyzeDebugOutput()
 
-var output = [UInt32](repeating: .zero, count: 3616)
-application.downloadDebugOutput(&output)
-
-let readSlotIDs: [Int] = [
-  0, 1, 2, 3, 4, 5, 6,
-  118, 119, 120, 121, 122, 123,
-  182, 183, 184, 185, 186,
-]
-
-for slotID in readSlotIDs {
-  let outputValue = output[slotID]
-  print(slotID, outputValue)
-}
 #endif

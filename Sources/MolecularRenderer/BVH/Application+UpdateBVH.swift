@@ -126,9 +126,9 @@ extension Application {
     }
     
     #if os(macOS)
-    let outputBuffer = copyDestinationBuffer()
+    let outputBuffer = copySourceBuffer()
     #else
-    let nativeBuffer = copyDestinationBuffer()
+    let nativeBuffer = copySourceBuffer()
     
     var bufferDesc = BufferDescriptor()
     bufferDesc.device = device
