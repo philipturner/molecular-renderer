@@ -16,6 +16,12 @@ import MolecularRenderer
 //   a time. The rotating rod test might be a helpful tool to facilitate
 //   debugging, but is not mandatory at the moment.
 
+// Helpful facts about the test setup:
+// atom count: 8631
+// memory slot count: 3616
+// voxel group count: 64
+// voxel count: 4096
+
 @MainActor
 func createApplication() -> Application {
   // Set up the device.
@@ -45,7 +51,6 @@ func createApplication() -> Application {
 }
 let application = createApplication()
 
-// 8631 atoms
 let lattice = Lattice<Cubic> { h, k, l in
   Bounds { 10 * (h + k + l) }
   Material { .checkerboard(.silicon, .carbon) }
@@ -77,21 +82,6 @@ func uploadDebugInput() {
 }
 
 @MainActor
-func analyzeDebugOutput() {
-  var output = [UInt32](repeating: .zero, count: 3616)
-  application.downloadDebugOutput(&output)
-  
-  let readSlotIDs: [Int] = [
-    0, 1, 2, 3, 4, 5, 6, 7,
-  ]
-  
-  for slotID in readSlotIDs {
-    let outputValue = output[slotID]
-    print(slotID, outputValue)
-  }
-}
-
-@MainActor
 func analyzeDebugOutput2() {
   var output = [UInt32](repeating: .zero, count: 10)
   application.downloadDebugOutput2(&output)
@@ -110,6 +100,70 @@ func analyzeDebugOutput2() {
   }
 }
 
+//@MainActor
+//func analyzeDebugOutput() {
+//  var output = [UInt32](repeating: .zero, count: 3616)
+//  application.downloadDebugOutput(&output)
+//  
+//  let readSlotIDs: [Int] = [
+//    0, 1, 2, 3, 4, 5, 6, 7,
+//  ]
+//  
+//  for slotID in readSlotIDs {
+//    let outputValue = output[slotID]
+//    print(slotID, outputValue)
+//  }
+//}
+
+@MainActor
+func analyzeDebugOutput() {
+  var output = [SIMD8<UInt32>](repeating: .zero, count: 4096)
+  application.downloadDebugOutput(&output)
+  
+  var xorHash: SIMD4<UInt32> = .zero
+  var rotateHash: SIMD4<UInt32> = .zero
+  var addressRotateHash: UInt32 = .zero
+  var referenceSum: UInt32 = .zero
+  var voxelSum: UInt32 = .zero
+  
+  for z in 0..<16 {
+    for y in 0..<16 {
+      for x in 0..<16 {
+        let address = z * 16 * 16 + y * 16 + x
+        let counters = output[address]
+        guard counters.wrappedSum() > 0 else {
+          continue
+        }
+        
+        let storage = SIMD8<UInt16>(truncatingIfNeeded: counters)
+        let storageCasted = unsafeBitCast(storage, to: SIMD4<UInt32>.self)
+        
+        xorHash ^= storageCasted
+        xorHash = (xorHash &<< 3) | (xorHash &>> (32 - 3))
+        
+        rotateHash &*= storageCasted
+        rotateHash &+= 1
+        rotateHash = (rotateHash &<< 9) | (rotateHash &>> (32 - 9))
+        
+        addressRotateHash &*= UInt32(address)
+        addressRotateHash &+= 1
+        addressRotateHash =
+        (addressRotateHash &<< 9) | (addressRotateHash &>> (32 - 9))
+        
+        referenceSum += counters.wrappedSum()
+        voxelSum += 1
+      }
+    }
+  }
+  
+  // Inspect the checksum.
+  print(xorHash)
+  print(rotateHash)
+  print(addressRotateHash)
+  print(referenceSum)
+  print(voxelSum)
+}
+
 for atomID in lattice.atoms.indices {
   let atom = lattice.atoms[atomID]
   application.atoms[atomID] = atom
@@ -117,7 +171,7 @@ for atomID in lattice.atoms.indices {
 
 uploadDebugInput()
 application.updateBVH(inFlightFrameID: 0)
-application.forgetIdleState(inFlightFrameID: 0)
+//application.forgetIdleState(inFlightFrameID: 0)
 
 print()
 analyzeDebugOutput2()

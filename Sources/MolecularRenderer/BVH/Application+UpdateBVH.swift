@@ -122,10 +122,10 @@ extension Application {
   }
   
   public func downloadDebugOutput(
-    _ outputData: inout [UInt32]
+    _ outputData: inout [SIMD8<UInt32>]
   ) {
     func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.vacantSlotIDs
+      bvhBuilder.voxels.dense.atomicCounters
     }
     
     #if os(macOS)
