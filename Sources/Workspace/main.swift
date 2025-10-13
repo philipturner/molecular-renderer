@@ -70,6 +70,16 @@ application.run {
 #else
 
 @MainActor
+func uploadDebugInput() {
+  var input = [UInt32](repeating: UInt32.max, count: 3616)
+  input[5] = 0
+  input[120] = 1
+  input[121] = 2
+  input[184] = 3
+  application.uploadDebugInput(input)
+}
+
+@MainActor
 func analyzeDebugOutput() {
   var output = [UInt32](repeating: .zero, count: 3616)
   application.downloadDebugOutput(&output)
@@ -86,6 +96,7 @@ func analyzeDebugOutput() {
   }
 }
 
+uploadDebugInput()
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
 analyzeDebugOutput()
