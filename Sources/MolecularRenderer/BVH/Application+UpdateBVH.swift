@@ -76,7 +76,7 @@ extension Application {
       bvhBuilder.computeUAVBarrier(commandList: commandList)
       #endif
     }
-    print(bvhBuilder.voxels.memorySlotCount)
+    
     // Delete the transactionArgs state variable.
     bvhBuilder.transactionArgs = nil
   }
@@ -97,8 +97,15 @@ extension Application {
       data: &output,
       inFlightFrameID: 0)
     
-    for i in 0..<10 {
-      print(output[i])
+    let readSlotIDs: [Int] = [
+      0, 1, 2, 3, 4, 5, 6,
+      118, 119, 120, 121, 122, 123,
+      182, 183, 184, 185, 186,
+    ]
+    
+    for slotID in readSlotIDs {
+      let outputValue = output[slotID]
+      print(slotID, outputValue)
     }
   }
 }
