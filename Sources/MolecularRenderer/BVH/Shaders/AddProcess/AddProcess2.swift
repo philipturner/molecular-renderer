@@ -37,16 +37,43 @@ extension AddProcess {
       """
       kernel void addProcess2(
         \(CrashBuffer.functionArguments),
+        device uint *vacantSlotCount [[buffer(1)]],
+        device atomic_uint *allocatedSlotCount [[buffer(2)]],
+        device uint *voxelGroupAddedMarks [[buffer(3)]],
+        device uint *voxelGroupRebuiltMarks [[buffer(4)]],
+        device uint *assignedSlotIDs [[buffer(5)]],
+        device uint4 *atomicCounters [[buffer(6)]],
+        device uint *assignedVoxelIDs [[buffer(7)]],
+        device uint *vacantSlotIDs [[buffer(8)]],
+        device uint *memorySlots [[buffer(9)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
       #else
       """
       \(CrashBuffer.functionArguments)
+      RWStructuredBuffer<uint> vacantSlotCount : register(u1);
+      RWStructuredBuffer<uint> allocatedSlotCount : register(u2);
+      RWStructuredBuffer<uint> voxelGroupAddedMarks : register(u3);
+      RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u4);
+      RWStructuredBuffer<uint> assignedSlotIDs : register(u5);
+      RWStructuredBuffer<uint4> atomicCounters : register(u6);
+      RWStructuredBuffer<uint> assignedVoxelIDs : register(u7);
+      RWStructuredBuffer<uint> vacantSlotIDs : register(u8);
+      RWStructuredBuffer<uint> memorySlots : register(u9);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
         \(CrashBuffer.rootSignatureArguments)
+        "UAV(u1),"
+        "UAV(u2),"
+        "UAV(u3),"
+        "UAV(u4),"
+        "UAV(u5),"
+        "UAV(u6),"
+        "UAV(u7),"
+        "UAV(u8),"
+        "UAV(u9),"
       )]
       void addProcess2(
         uint3 globalID : SV_DispatchThreadID,

@@ -230,6 +230,7 @@ extension BVHBuilder {
         commandList: commandList,
         inFlightFrameID: inFlightFrameID,
         transactionArgs: transactionArgs)
+      
       commandList.setBuffer(
         voxels.group.addedMarks, index: 9)
       commandList.setBuffer(
