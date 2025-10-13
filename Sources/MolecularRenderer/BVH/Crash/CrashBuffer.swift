@@ -1,5 +1,4 @@
 #if os(macOS)
-import Dispatch
 import Metal
 #else
 import SwiftCOM
@@ -142,17 +141,20 @@ class CrashBuffer {
   
   func read<T>(
     data: inout [T],
-    inFlightFrameID: Int
+    inFlightFrameID: Int,
+    wait: Bool
   ) {
     #if os(macOS)
-    let interval = DispatchTimeInterval.seconds(1)
-    let future = DispatchTime.now().advanced(by: interval)
-    let result = semaphore.wait(timeout: future)
-    switch result {
-    case .success:
-      break
-    case .timedOut:
-      fatalError("Could not synchronize with semaphore.")
+    if wait {
+      let interval = DispatchTimeInterval.seconds(1)
+      let future = DispatchTime.now().advanced(by: interval)
+      let result = semaphore.wait(timeout: future)
+      switch result {
+      case .success:
+        break
+      case .timedOut:
+        fatalError("Could not synchronize with semaphore.")
+      }
     }
     #endif
     

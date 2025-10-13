@@ -191,6 +191,7 @@ extension AddProcess {
       if (assignedSlotID == \(UInt32.max)) {
         return;
       }
+      
       uint existingAtomCount;
       {
         uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
@@ -202,7 +203,6 @@ extension AddProcess {
       atomicCounters[2 * voxelID + 1] = counters2;
       
       uint newAtomCount = existingAtomCount + addedAtomCount;
-      
     }
     """
   }
