@@ -22,10 +22,14 @@ public class Device {
   let dxgiAdapter: SwiftCOM.IDXGIAdapter4
   let d3d12Device: SwiftCOM.ID3D12Device
   
+  // This option can double the CPU-side command encoding latency.
+  // TODO: Turn it off before merging the acceleration structure PR.
+  private static var enableDebug: Bool { true }
+  
   // Stored properties for the debug layer.
-  let d3d12Debug: SwiftCOM.ID3D12Debug
-  let d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue
-  let dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue
+  var d3d12Debug: SwiftCOM.ID3D12Debug?
+  var d3d12InfoQueue: SwiftCOM.ID3D12InfoQueue?
+  var dxgiInfoQueue: SwiftCOM.IDXGIInfoQueue?
   #endif
   
   // Stored properties for the command queue.
@@ -39,13 +43,13 @@ public class Device {
       fatalError("Descriptor was incomplete.")
     }
     
-    // Create the debug layer.
-    //
     // The debug layer must be turned on before any DirectX resources are
     // initialized.
     #if os(Windows)
-    self.d3d12Debug = try! D3D12GetDebugInterface()
-    try! d3d12Debug.EnableDebugLayer()
+    if Self.enableDebug {
+      self.d3d12Debug = try! D3D12GetDebugInterface()
+      try! d3d12Debug!.EnableDebugLayer()
+    }
     #endif
     
     // Create the device (macOS).
@@ -70,17 +74,17 @@ public class Device {
       dxgiAdapter, D3D_FEATURE_LEVEL_12_1)
     #endif
     
-    // Create the info queue.
-    #if os(Windows)
-    self.d3d12InfoQueue = Self
-      .createInfoQueue(device: d3d12Device)
-    try! d3d12InfoQueue.SetBreakOnSeverity(
-      D3D12_MESSAGE_SEVERITY_ERROR, true)
     
-    // Create the DXGI info queue.
-    self.dxgiInfoQueue = try! DXGIGetDebugInterface1(0)
-    try! dxgiInfoQueue.SetBreakOnSeverity(
-      DXGI_DEBUG_DXGI, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true)
+    #if os(Windows)
+    if Self.enableDebug {
+      self.d3d12InfoQueue = Self.createInfoQueue(device: d3d12Device)
+      try! d3d12InfoQueue!.SetBreakOnSeverity(
+        D3D12_MESSAGE_SEVERITY_ERROR, true)
+      
+      self.dxgiInfoQueue = try! DXGIGetDebugInterface1(0)
+      try! dxgiInfoQueue!.SetBreakOnSeverity(
+        DXGI_DEBUG_DXGI, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true)
+    }
     #endif
     
     // Create the command queue.
@@ -122,8 +126,15 @@ extension Device {
   // List the available adapters.
   static func createAdapters() -> [SwiftCOM.IDXGIAdapter4] {
     // Create the factory.
+    func factoryFlags() -> UInt32 {
+      if Device.enableDebug {
+        return UInt32(DXGI_CREATE_FACTORY_DEBUG)
+      } else {
+        return UInt32(0)
+      }
+    }
     let factory: SwiftCOM.IDXGIFactory4 =
-    try! CreateDXGIFactory2(UInt32(DXGI_CREATE_FACTORY_DEBUG))
+    try! CreateDXGIFactory2(factoryFlags())
     
     // Create the adapters.
     var adapters: [SwiftCOM.IDXGIAdapter4] = []
