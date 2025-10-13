@@ -54,7 +54,7 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.silicon, .carbon) }
 }
 
-#if false
+#if true
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -62,9 +62,13 @@ application.run {
   }
   
   let frameID = application.frameID
-  application.updateBVH(inFlightFrameID: frameID % 3)
+  if frameID < 10 {
+    application.updateBVH(inFlightFrameID: frameID % 3)
+  }
   let image = application.render()
-  application.forgetIdleState(inFlightFrameID: frameID % 3)
+  if frameID < 10 {
+    application.forgetIdleState(inFlightFrameID: frameID % 3)
+  }
   application.present(image: image)
 }
 #else
