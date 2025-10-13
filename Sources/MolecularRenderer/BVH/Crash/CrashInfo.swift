@@ -8,6 +8,11 @@ struct CrashInfoDescriptor {
 }
 
 class CrashInfo {
+  let registeredFrameID: Int
+  let thrownFrameID: Int
+  let registeredClockTime: Double
+  let thrownClockTime: Double // approximate
+  
   init(descriptor: CrashInfoDescriptor) {
     guard let bufferContents = descriptor.bufferContents,
           let clockFrames = descriptor.clockFrames,
@@ -18,10 +23,10 @@ class CrashInfo {
       fatalError("Descriptor was incomplete.")
     }
     
-    // Diagnose the wall clock time when the error was registered.
-    // Diagnose the frame when it was registered.
-    // Diagnose the frame when it was thrown.
-    // Approximate the wall time when the error was thrown.
+    self.registeredFrameID = frameID
+    self.thrownFrameID = frameID - 3
+    self.registeredClockTime = Double(clockFrames) / Double(displayFrameRate)
+    self.thrownClockTime = Double(clockFrames - 3) / Double(displayFrameRate)
     
     // Diagnose the position of the lower corner.
     
@@ -39,12 +44,17 @@ class CrashInfo {
   }
   
   var message: String {
+    func format(_ seconds: Double) -> String {
+      String(format: "%.3f", seconds)
+    }
+    
     return """
     Error thrown in shader code.
     
-    TODO
-    TODO
-    TODO
+    Registered while encoding frame \(registeredFrameID).
+    Thrown during frame \(thrownFrameID).
+    Registered \(format(registeredClockTime)) s after application launch.
+    Thrown approximately \(format(thrownClockTime)) s after application launch.
     
     TODO
     TODO
