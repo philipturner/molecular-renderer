@@ -94,6 +94,25 @@ func analyzeDebugOutput() {
   }
 }
 
+@MainActor
+func analyzeDebugOutput2() {
+  var output = [UInt32](repeating: .zero, count: 10)
+  application.downloadDebugOutput2(&output)
+  
+  print("atoms removed voxel count:", output[0])
+  guard output[1] == 1,
+        output[2] == 1 else {
+    fatalError("Indirect dispatch arguments were malformatted.")
+  }
+  print("vacant slot count:", output[4])
+  print("allocated slot count:", output[5])
+  print("rebuilt voxel count:", output[6])
+  guard output[7] == 1,
+        output[8] == 1 else {
+    fatalError("Indirect dispatch arguments were malformatted.")
+  }
+}
+
 for atomID in lattice.atoms.indices {
   let atom = lattice.atoms[atomID]
   application.atoms[atomID] = atom
@@ -102,6 +121,10 @@ for atomID in lattice.atoms.indices {
 uploadDebugInput()
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
+
+print()
+analyzeDebugOutput2()
+print()
 analyzeDebugOutput()
 
 #endif

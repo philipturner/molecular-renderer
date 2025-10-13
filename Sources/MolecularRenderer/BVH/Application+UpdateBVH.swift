@@ -142,4 +142,37 @@ extension Application {
       outputBuffer.read(output: bufferPointer)
     }
   }
+  
+  public func downloadDebugOutput2(
+    _ outputData: inout [UInt32]
+  ) {
+    func copySourceBuffer() -> Buffer {
+      bvhBuilder.counters.general
+    }
+    
+    #if os(macOS)
+    let outputBuffer = copySourceBuffer()
+    #else
+    let nativeBuffer = copySourceBuffer()
+    
+    var bufferDesc = BufferDescriptor()
+    bufferDesc.device = device
+    bufferDesc.size = nativeBuffer.size
+    bufferDesc.type = .output
+    let outputBuffer = Buffer(descriptor: bufferDesc)
+    #endif
+    
+    #if os(Windows)
+    device.commandQueue.withCommandList { commandList in
+      commandList.download(
+        nativeBuffer: nativeBuffer,
+        outputBuffer: outputBuffer)
+    }
+    #endif
+    device.commandQueue.flush()
+    
+    outputData.withUnsafeMutableBytes { bufferPointer in
+      outputBuffer.read(output: bufferPointer)
+    }
+  }
 }
