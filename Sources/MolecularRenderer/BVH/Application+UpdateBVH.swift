@@ -77,6 +77,11 @@ extension Application {
 }
 
 extension Application {
+  #if os(Windows)
+  nonisolated(unsafe)
+  private static var uploadBuffer: Buffer?
+  #endif
+  
   public func uploadDebugInput(
     _ inputData: [UInt32]
   ) {
@@ -107,6 +112,7 @@ extension Application {
         inputBuffer.write(input: bufferPointer)
       }
       print("checkpoint 3")
+      Self.uploadBuffer = inputBuffer
       
       print("checkpoint 4")
       commandList.upload(
