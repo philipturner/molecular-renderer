@@ -17,6 +17,8 @@ import MolecularRenderer
 //   - SIMD-scoped reductions
 //   - Shuffling data through 4 slots of threadgroup memory
 //   - Global atomic accessors
+//   - Start by writing it for a specific kernel, to see what these reductions
+//     look like. Then abstract it away into a global utility.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
 //   debugging, but is not mandatory at the moment.
