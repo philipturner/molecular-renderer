@@ -6,7 +6,7 @@ extension RebuildProcess {
   // scan for rebuilt voxels
   // create a compact list of these voxels (SIMD + global reduction)
   // global counter is the indirect dispatch argument
-  // write to sparse.rebuiltVoxelIDs
+  // write to sparse.rebuiltVoxelCoords
   //
   // read from dense.assignedSlotIDs
   //   do not use any optimizations to reduce the bandwidth cost
@@ -16,7 +16,7 @@ extension RebuildProcess {
     // voxels.group.rebuiltMarks
     // voxels.group.occupiedMarks
     // voxels.dense.assignedSlotIDs
-    // voxels.sparse.rebuiltVoxelIDs
+    // voxels.sparse.rebuiltVoxelCoords
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -26,7 +26,7 @@ extension RebuildProcess {
         device uint *voxelGroupRebuiltMarks [[buffer(2)]],
         device uint *voxelGroupOccupiedMarks [[buffer(3)]],
         device uint *assignedSlotIDs [[buffer(4)]],
-        device uint *rebuiltVoxelIDs [[buffer(5)]],
+        device uint *rebuiltVoxelCoords [[buffer(5)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -37,7 +37,7 @@ extension RebuildProcess {
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u2);
       RWStructuredBuffer<uint> voxelGroupOccupiedMarks : register(u3);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u4);
-      RWStructuredBuffer<uint> rebuiltVoxelIDs : register(u5);
+      RWStructuredBuffer<uint> rebuiltVoxelCoords : register(u5);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -85,7 +85,7 @@ extension BVHBuilder {
       commandList.setBuffer(
         voxels.dense.assignedSlotIDs, index: 4)
       commandList.setBuffer(
-        voxels.sparse.rebuiltVoxelIDs, index: 5)
+        voxels.sparse.rebuiltVoxelCoords, index: 5)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(

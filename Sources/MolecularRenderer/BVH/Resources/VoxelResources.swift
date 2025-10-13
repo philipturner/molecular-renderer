@@ -142,11 +142,11 @@ class DenseVoxelResources {
 
 class SparseVoxelResources {
   // initialize to UInt32.max with shader
-  let assignedVoxelIDs: Buffer
+  let assignedVoxelCoords: Buffer
   
   // purge to UInt32.max before every frame
-  let atomsRemovedVoxelIDs: Buffer
-  let rebuiltVoxelIDs: Buffer
+  let atomsRemovedVoxelCoords: Buffer
+  let rebuiltVoxelCoords: Buffer
   let vacantSlotIDs: Buffer
   
   let memorySlots: Buffer
@@ -163,9 +163,9 @@ class SparseVoxelResources {
       return Buffer(descriptor: bufferDesc)
     }
     
-    self.assignedVoxelIDs = createBuffer(size: memorySlotCount * 4)
-    self.atomsRemovedVoxelIDs = createBuffer(size: memorySlotCount * 4)
-    self.rebuiltVoxelIDs = createBuffer(size: memorySlotCount * 4)
+    self.assignedVoxelCoords = createBuffer(size: memorySlotCount * 4)
+    self.atomsRemovedVoxelCoords = createBuffer(size: memorySlotCount * 4)
+    self.rebuiltVoxelCoords = createBuffer(size: memorySlotCount * 4)
     self.vacantSlotIDs = createBuffer(size: memorySlotCount * 4)
     self.memorySlots = createBuffer(
       size: memorySlotCount * MemorySlot.totalSize)

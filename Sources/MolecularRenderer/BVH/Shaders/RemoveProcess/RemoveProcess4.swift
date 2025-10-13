@@ -16,7 +16,7 @@ extension RemoveProcess {
     }
     
     // counters.general.vacantSlotCount
-    // voxels.sparse.assignedVoxelIDs
+    // voxels.sparse.assignedVoxelCoords
     // voxels.sparse.vacantSlotIDs
     func functionSignature() -> String {
       #if os(macOS)
@@ -25,7 +25,7 @@ extension RemoveProcess {
         \(CrashBuffer.functionArguments),
         constant ConstantArgs &constantArgs [[buffer(1)]],
         device atomic_uint *vacantSlotCount [[buffer(2)]],
-        device uint *assignedVoxelIDs [[buffer(3)]],
+        device uint *assignedVoxelCoords [[buffer(3)]],
         device uint *vacantSlotIDs [[buffer(4)]],
         uint globalID [[thread_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
@@ -35,7 +35,7 @@ extension RemoveProcess {
       \(CrashBuffer.functionArguments)
       ConstantBuffer<ConstantArgs> constantArgs : register(b1);
       RWStructuredBuffer<uint> vacantSlotCount : register(u2);
-      RWStructuredBuffer<uint> assignedVoxelIDs : register(u3);
+      RWStructuredBuffer<uint> assignedVoxelCoords : register(u3);
       RWStructuredBuffer<uint> vacantSlotIDs : register(u4);
       groupshared uint threadgroupMemory[4];
       
@@ -103,7 +103,7 @@ extension BVHBuilder {
         index: 2,
         offset: GeneralCounters.offset(.vacantSlotCount))
       commandList.setBuffer(
-        voxels.sparse.assignedVoxelIDs, index: 3)
+        voxels.sparse.assignedVoxelCoords, index: 3)
       commandList.setBuffer(
         voxels.sparse.vacantSlotIDs, index: 4)
       

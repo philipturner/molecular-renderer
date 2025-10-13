@@ -10,13 +10,14 @@ extension RemoveProcess {
   // write new atom count into memory slot header
   //
   // if atoms remain, write to dense.rebuiltMarks
-  // otherwise, reset entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
+  // otherwise
+  //   reset entry in dense.assignedSlotIDs and sparse.assignedVoxelCoords
   static func createSource3(worldDimension: Float) -> String {
     // atoms.addressOccupiedMarks
     // voxels.dense.assignedSlotIDs
     // voxels.dense.rebuiltMarks
-    // voxels.sparse.assignedVoxelIDs
-    // voxels.sparse.atomsRemovedVoxelIDs
+    // voxels.sparse.assignedVoxelCoords
+    // voxels.sparse.atomsRemovedVoxelCoords
     // voxels.sparse.memorySlots.headerLarge
     // voxels.sparse.memorySlots.referenceLarge
     func functionSignature() -> String {
@@ -26,8 +27,8 @@ extension RemoveProcess {
         \(CrashBuffer.functionArguments),
         device uint *assignedSlotIDs [[buffer(1)]],
         device uchar *rebuiltMarks [[buffer(2)]],
-        device uint *assignedVoxelIDs [[buffer(3)]],
-        device uint *atomsRemovedVoxelIDs [[buffer(4)]],
+        device uint *assignedVoxelCoords [[buffer(3)]],
+        device uint *atomsRemovedVoxelCoords [[buffer(4)]],
         device uint *memorySlots [[buffer(5)]],
         uint groupID [[threadgroup_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
@@ -37,8 +38,8 @@ extension RemoveProcess {
       \(CrashBuffer.functionArguments)
       RWStructuredBuffer<uint> assignedSlotIDs : register(u1);
       RWBuffer<uint> rebuiltMarks : register(u2);
-      RWStructuredBuffer<uint> assignedVoxelIDs : register(u3);
-      RWStructuredBuffer<uint> atomsRemovedVoxelIDs : register(u4);
+      RWStructuredBuffer<uint> assignedVoxelCoords : register(u3);
+      RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u4);
       RWStructuredBuffer<uint> memorySlots : register(u5);
       groupshared uint threadgroupMemory[4];
       
@@ -98,9 +99,9 @@ extension BVHBuilder {
       #endif
       
       commandList.setBuffer(
-        voxels.sparse.assignedVoxelIDs, index: 3)
+        voxels.sparse.assignedVoxelCoords, index: 3)
       commandList.setBuffer(
-        voxels.sparse.atomsRemovedVoxelIDs, index: 4)
+        voxels.sparse.atomsRemovedVoxelCoords, index: 4)
       commandList.setBuffer(
         voxels.sparse.memorySlots, index: 5)
       

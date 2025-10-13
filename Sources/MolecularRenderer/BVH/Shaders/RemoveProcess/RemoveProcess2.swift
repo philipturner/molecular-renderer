@@ -7,13 +7,13 @@ extension RemoveProcess {
   // scan for voxels with atoms removed
   // create compact list of these voxels (SIMD + global reduction)
   // global counter is the indirect dispatch argument
-  // write to sparse.atomsRemovedVoxelIDs
+  // write to sparse.atomsRemovedVoxelCoords
   static func createSource2(worldDimension: Float) -> String {
     // counters.general.atomsRemovedVoxelCount
     // voxels.group.atomsRemovedMarks
     // voxels.group.rebuiltMarks
     // voxels.dense.atomsRemovedMarks
-    // voxels.sparse.atomsRemovedVoxelIDs
+    // voxels.sparse.atomsRemovedVoxelCoords
     func functionSignature() -> String {
       #if os(macOS)
       """
@@ -23,7 +23,7 @@ extension RemoveProcess {
         device uint *voxelGroupAtomsRemovedMarks [[buffer(2)]],
         device uint *voxelGroupRebuiltMarks [[buffer(3)]],
         device uchar *atomsRemovedMarks [[buffer(4)]],
-        device uint *atomsRemovedVoxelIDs [[buffer(5)]],
+        device uint *atomsRemovedVoxelCoords [[buffer(5)]],
         uint3 globalID [[thread_position_in_grid]],
         uint3 groupID [[threadgroup_position_in_grid]])
       """
@@ -34,7 +34,7 @@ extension RemoveProcess {
       RWStructuredBuffer<uint> voxelGroupAtomsRemovedMarks : register(u2);
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u3);
       RWBuffer<uint> atomsRemovedMarks : register(u4);
-      RWStructuredBuffer<uint> atomsRemovedVoxelIDs : register(u5);
+      RWStructuredBuffer<uint> atomsRemovedVoxelCoords : register(u5);
       
       [numthreads(4, 4, 4)]
       [RootSignature(
@@ -88,7 +88,7 @@ extension BVHBuilder {
         handleID: voxels.dense.atomsRemovedMarksHandleID, index: 4)
       #endif
       commandList.setBuffer(
-        voxels.sparse.atomsRemovedVoxelIDs, index: 5)
+        voxels.sparse.atomsRemovedVoxelCoords, index: 5)
       
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(

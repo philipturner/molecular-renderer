@@ -13,7 +13,7 @@ extension AddProcess {
   // if a slot hasn't been assigned yet
   //   allocate new voxels (SIMD + global reduction)
   //   if exceeded memory slot limit, crash w/ diagnostic info
-  //   write new entry in dense.assignedSlotIDs and sparse.assignedVoxelIDs
+  //   write new entry in dense.assignedSlotIDs and sparse.assignedVoxelCoords
   //
   // add existing atom count to prefix-summed 8 counters
   // write to dense.atomicCounters
@@ -26,7 +26,7 @@ extension AddProcess {
     // voxels.group.rebuiltMarks
     // voxels.dense.assignedSlotIDs
     // voxels.dense.atomicCounters
-    // voxels.sparse.assignedVoxelIDs
+    // voxels.sparse.assignedVoxelCoords
     // voxels.sparse.vacantSlotIDs
     // voxels.sparse.memorySlots.headerLarge
     // voxels.sparse.memorySlots.referenceLarge
@@ -41,7 +41,7 @@ extension AddProcess {
         device uint *voxelGroupRebuiltMarks [[buffer(4)]],
         device uint *assignedSlotIDs [[buffer(5)]],
         device uint4 *atomicCounters [[buffer(6)]],
-        device uint *assignedVoxelIDs [[buffer(7)]],
+        device uint *assignedVoxelCoords [[buffer(7)]],
         device uint *vacantSlotIDs [[buffer(8)]],
         device uint *memorySlots [[buffer(9)]],
         uint3 globalID [[thread_position_in_grid]],
@@ -56,7 +56,7 @@ extension AddProcess {
       RWStructuredBuffer<uint> voxelGroupRebuiltMarks : register(u4);
       RWStructuredBuffer<uint> assignedSlotIDs : register(u5);
       RWStructuredBuffer<uint4> atomicCounters : register(u6);
-      RWStructuredBuffer<uint> assignedVoxelIDs : register(u7);
+      RWStructuredBuffer<uint> assignedVoxelCoords : register(u7);
       RWStructuredBuffer<uint> vacantSlotIDs : register(u8);
       RWStructuredBuffer<uint> memorySlots : register(u9);
       
@@ -118,7 +118,7 @@ extension BVHBuilder {
         voxels.dense.atomicCounters, index: 6)
       
       commandList.setBuffer(
-        voxels.sparse.assignedVoxelIDs, index: 7)
+        voxels.sparse.assignedVoxelCoords, index: 7)
       commandList.setBuffer(
         voxels.sparse.vacantSlotIDs, index: 8)
       commandList.setBuffer(

@@ -3,10 +3,6 @@ extension RebuildProcess {
   // dispatch indirect groups SIMD3(atomic counter, 1, 1)
   // threadgroup memory 2064 B
   //
-  // read voxel ID from sparse.rebuiltVoxelIDs
-  // decode voxel lower corner from ID
-  // read atom count from sparse.memorySlots.headerLarge
-  //
   // # Phase I
   //
   // loop over the cuboid bounding box of each atom
@@ -38,13 +34,14 @@ extension RebuildProcess {
   static func createSource2(worldDimension: Float) -> String {
     // atoms.atoms
     // voxels.dense.assignedSlotIDs
-    // voxels.sparse.rebuiltVoxelIDs
+    // voxels.sparse.rebuiltVoxelCoords
     // voxels.sparse.memorySlots [32, 16]
     func functionSignature() -> String {
       #if os(macOS)
       """
       kernel void rebuildProcess2(
         \(CrashBuffer.functionArguments),
+        
         uint groupID [[threadgroup_position_in_grid]],
         uint localID [[thread_position_in_threadgroup]])
       """
