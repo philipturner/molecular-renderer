@@ -61,18 +61,6 @@ class CrashInfo {
       let errorCode = Int(bufferContents[0])
       self.crashType = .unknown(errorCode)
     }
-    
-    // Error message 2:
-    // requested vacant slot #X
-    // vacant slots: vacantSlotCount / memorySlotCount
-    
-    // Error message 3:
-    // total atom count
-    // maximum allowed is 3072
-    
-    // Error message 4:
-    // 16-bit reference count
-    // maximum allowed is 20480
   }
   
   var message: String {

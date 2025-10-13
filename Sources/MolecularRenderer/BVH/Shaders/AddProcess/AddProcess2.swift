@@ -123,19 +123,6 @@ extension AddProcess {
       if (addedAtomCount > 0) {
         rebuiltMarks[voxelID] = 1;
       }
-      
-      // Implementing the crash decoding mechanism on the CPU.
-      if (addedAtomCount > 0) {
-        bool acquiredLock = false;
-        \(CrashBuffer.acquireLock(errorCode: 2))
-        if (acquiredLock) {
-          crashBuffer[1] = globalID.x;
-          crashBuffer[2] = globalID.y;
-          crashBuffer[3] = globalID.z;
-          crashBuffer[4] = 37;
-          crashBuffer[5] = vacantSlotCount[0];
-        }
-      }
     }
     """
   }
