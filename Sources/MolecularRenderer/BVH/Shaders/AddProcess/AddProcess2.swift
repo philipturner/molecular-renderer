@@ -101,7 +101,7 @@ extension AddProcess {
         buffer: "allocatedSlotCount",
         address: "0",
         operand: "countBitsResult",
-        output: "offsetInVacantSlots")
+        output: "allocatedOffset")
     }
     
     return """
@@ -140,25 +140,30 @@ extension AddProcess {
         
         uint countBitsResult = \(Reduction.waveActiveCountBits("needsNewSlot"));
         if (countBitsResult > 0) {
-          uint offsetInVacantSlots = \(UInt32.max);
+          uint allocatedOffset = \(UInt32.max);
           if (\(Reduction.waveIsFirstLane())) {
             \(atomicFetchAdd())
           }
-          offsetInVacantSlots =
-          \(Reduction.waveReadLaneAt("offsetInVacantSlots", laneID: 0));
+          allocatedOffset =
+          \(Reduction.waveReadLaneAt("allocatedOffset", laneID: 0));
           
-          if (\(Reduction.waveIsFirstLane())) {
-            bool acquiredLock = false;
-            \(CrashBuffer.acquireLock(errorCode: 2))
-            if (acquiredLock) {
-              crashBuffer[1] = globalID.x;
-              crashBuffer[2] = globalID.y;
-              crashBuffer[3] = globalID.z;
-              crashBuffer[4] = offsetInVacantSlots + countBitsResult - 1;
-              crashBuffer[5] = vacantSlotCount[0];
+          uint nextOffset = allocatedOffset + countBitsResult;
+          if (nextOffset > vacantSlotCount[0]) {
+            if (\(Reduction.waveIsFirstLane())) {
+              bool acquiredLock = false;
+              \(CrashBuffer.acquireLock(errorCode: 2))
+              if (acquiredLock) {
+                crashBuffer[1] = globalID.x;
+                crashBuffer[2] = globalID.y;
+                crashBuffer[3] = globalID.z;
+                crashBuffer[4] = nextOffset - 1;
+                crashBuffer[5] = vacantSlotCount[0];
+              }
             }
+            return;
           }
-          return;
+          
+          // continue doing stuff
         }
       }
     }
