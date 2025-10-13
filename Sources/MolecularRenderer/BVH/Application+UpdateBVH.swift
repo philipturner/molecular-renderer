@@ -77,10 +77,15 @@ extension Application {
 }
 
 extension Application {
-  #if os(Windows)
+  // Circumvent a flaky crash by holding a reference to the buffer while the
+  // command list executes. Do not abuse this by calling any of the 'Debug'
+  // functions more than once in a single program execution.
   nonisolated(unsafe)
   private static var uploadBuffer: Buffer?
-  #endif
+  nonisolated(unsafe)
+  private static var downloadBuffer: Buffer?
+  nonisolated(unsafe)
+  private static var downloadBuffer2: Buffer?
   
   public func uploadDebugInput(
     _ inputData: [UInt32]
@@ -89,38 +94,30 @@ extension Application {
       bvhBuilder.voxels.sparse.assignedVoxelCoords
     }
     
+    #if os(macOS)
+    let inputBuffer = copyDestinationBuffer()
+    #else
+    let nativeBuffer = copyDestinationBuffer()
+    
+    var bufferDesc = BufferDescriptor()
+    bufferDesc.device = device
+    bufferDesc.size = nativeBuffer.size
+    bufferDesc.type = .input
+    let inputBuffer = Buffer(descriptor: bufferDesc)
+    #endif
+    Self.uploadBuffer = inputBuffer
+    
+    device.commandQueue.flush()
+    inputData.withUnsafeBytes { bufferPointer in
+      inputBuffer.write(input: bufferPointer)
+    }
     
     #if os(Windows)
     device.commandQueue.withCommandList { commandList in
-      
-      #if os(macOS)
-      let inputBuffer = copyDestinationBuffer()
-      #else
-      let nativeBuffer = copyDestinationBuffer()
-      
-      var bufferDesc = BufferDescriptor()
-      bufferDesc.device = device
-      bufferDesc.size = nativeBuffer.size
-      bufferDesc.type = .input
-      let inputBuffer = Buffer(descriptor: bufferDesc)
-      #endif
-      
-      print("checkpoint 1")
-      device.commandQueue.flush()
-      print("checkpoint 2")
-      inputData.withUnsafeBytes { bufferPointer in
-        inputBuffer.write(input: bufferPointer)
-      }
-      print("checkpoint 3")
-      Self.uploadBuffer = inputBuffer
-      
-      print("checkpoint 4")
       commandList.upload(
         inputBuffer: inputBuffer,
         nativeBuffer: nativeBuffer)
-      print("checkpoint 5")
     }
-    print("checkpoint 6")
     #endif
   }
   
@@ -142,6 +139,7 @@ extension Application {
     bufferDesc.type = .output
     let outputBuffer = Buffer(descriptor: bufferDesc)
     #endif
+    Self.downloadBuffer = outputBuffer
     
     #if os(Windows)
     device.commandQueue.withCommandList { commandList in
@@ -175,6 +173,7 @@ extension Application {
     bufferDesc.type = .output
     let outputBuffer = Buffer(descriptor: bufferDesc)
     #endif
+    Self.downloadBuffer2 = outputBuffer
     
     #if os(Windows)
     device.commandQueue.withCommandList { commandList in
