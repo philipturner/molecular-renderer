@@ -10,9 +10,6 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Create an upload (copy) buffer to sparse.assignedVoxels for testing
-//   memory allocation. Verify the contents with a debug diagnostic, sized at
-//   the previously queried exact memory slot count.
 // - Implement removeProcess4 and then addProcess2. Along the way, develop
 //   utilities to improve code reuse for GPU reductions, when appropriate.
 // - Debug all the steps toward the minimum viable product of rendering, one at
