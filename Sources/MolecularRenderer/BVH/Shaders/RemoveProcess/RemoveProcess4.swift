@@ -97,9 +97,25 @@ extension RemoveProcess {
         isVacant = (voxelCoords != \(UInt32.max));
       }
       uint countBitsResult = \(waveActiveCountBits("isVacant"));
-      
       threadgroupMemory[localID / 32] = countBitsResult;
       \(barrier())
+      
+      // Threadgroup-scoped reduction. Be careful with barriers in diverging
+      // control flow; behavior is nominally undefined.
+      {
+        uint input = 0;
+        if (localID < 4) {
+          input = threadgroupMemory[localID];
+        }
+        \(barrier())
+        
+        if (localID < 32) {
+          // WaveActiveSum to quickly get count for this threadgroup.
+          
+          // Write global offset + WavePrefixSum as output.
+        }
+        \(barrier())
+      }
     }
     """
   }
