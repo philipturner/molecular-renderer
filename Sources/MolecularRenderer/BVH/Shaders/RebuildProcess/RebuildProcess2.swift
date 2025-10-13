@@ -104,6 +104,22 @@ extension BVHBuilder {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
       
+      commandList.setBuffer(
+        atoms.atoms, index: 1)
+      commandList.setBuffer(
+        voxels.dense.assignedSlotIDs, index: 2)
+      commandList.setBuffer(
+        voxels.sparse.rebuiltVoxelCoords, index: 3)
+      commandList.setBuffer(
+        voxels.sparse.memorySlots, index: 4)
+      #if os(macOS)
+      commandList.setBuffer(
+        voxels.sparse.memorySlots, index: 5)
+      #else
+      commandList.setDescriptor(
+        handleID: voxels.sparse.memorySlotsHandleID, index: 5)
+      #endif
+      
       let offset = GeneralCounters.offset(.rebuiltVoxelCount)
       commandList.dispatchIndirect(
         buffer: counters.general,
