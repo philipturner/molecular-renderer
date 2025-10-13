@@ -164,6 +164,15 @@ extension AddProcess {
             uint3 actualXYZ = uint3(x, y, z);
             actualXYZ = reorderBackward(actualXYZ, permutationID);
             
+            // Write the voxel group added mark.
+            {
+              uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
+              voxelCoordinates /= 4;
+              uint address =
+              \(VoxelResources.generate("voxelCoordinates", worldDimension / 8));
+              voxelGroupAddedMarks[address] = 1;
+            }
+            
             // Perform the atomic fetch-add.
             uint offset;
             {
@@ -179,15 +188,6 @@ extension AddProcess {
               uint address = z * 4 + y * 2 + x;
               address = address * 128 + localID;
               cachedRelativeOffsets[address] = offset;
-            }
-            
-            // Write the voxel group added mark.
-            {
-              uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
-              voxelCoordinates /= 4;
-              uint address =
-              \(VoxelResources.generate("voxelCoordinates", worldDimension / 8));
-              voxelGroupAddedMarks[address] = 1;
             }
           }
         }
