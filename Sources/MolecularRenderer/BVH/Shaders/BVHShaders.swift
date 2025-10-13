@@ -9,7 +9,6 @@ class BVHShaders {
   let rebuild: RebuildProcess
   
   let clearBuffer: Shader
-  let debugDiagnostic: Shader
   let resetMotionVectors: Shader
   let resetVoxelMarks: Shader
   
@@ -36,11 +35,6 @@ class BVHShaders {
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
     shaderDesc.source = ClearBuffer.createSource()
     self.clearBuffer = Shader(descriptor: shaderDesc)
-    
-    shaderDesc.name = "debugDiagnostic"
-    shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)
-    shaderDesc.source = DebugDiagnostic.createSource()
-    self.debugDiagnostic = Shader(descriptor: shaderDesc)
     
     shaderDesc.name = "resetMotionVectors"
     shaderDesc.threadsPerGroup = SIMD3(128, 1, 1)

@@ -12,8 +12,8 @@ class CounterResources {
   
   let crashBuffer: CrashBuffer // initialize at startup
   static var crashBufferSize: Int { 64 * 4 }
-  let diagnosticBuffer: CrashBuffer // use to download data when debugging
-  static var diagnosticBufferSize: Int { 3616 * 4 }
+  // upload and download utilities would create transient buffers on
+  // Windows, no need to allocate upfront
   
   #if os(Windows)
   let queryHeap: SwiftCOM.ID3D12QueryHeap
