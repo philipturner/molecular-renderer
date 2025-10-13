@@ -11,8 +11,6 @@ extension RebuildProcess {
   // read from dense.assignedSlotIDs
   //   do not use any optimizations to reduce the bandwidth cost
   // write to group.occupiedMarks
-  //
-  // createSource1
   static func createSource1(worldDimension: Float) -> String {
     // counters.general.rebuiltVoxelCount
     // voxels.group.rebuiltMarks

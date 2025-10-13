@@ -19,8 +19,6 @@ extension AddProcess {
   // write to dense.atomicCounters
   // if new atom count is too large, crash w/ diagnostic info
   // write new atom count into memory slot header
-  //
-  // createSource2
   static func createSource2(worldDimension: Float) -> String {
     // counters.general.vacantSlotCount
     // counters.general.allocatedSlotCount

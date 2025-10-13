@@ -9,8 +9,6 @@ extension AddProcess {
   //   add to relativeOffset, generating the correct offset
   // read from dense.assignedSlotIDs
   // write a 32-bit reference into sparse.memorySlots
-  //
-  // createSource3
   static func createSource3(worldDimension: Float) -> String {
     // atoms.*
     // voxels.dense.assignedSlotIDs
