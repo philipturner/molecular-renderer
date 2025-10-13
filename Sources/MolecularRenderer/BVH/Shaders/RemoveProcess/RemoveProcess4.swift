@@ -62,6 +62,14 @@ extension RemoveProcess {
       #endif
     }
     
+    func atomicFetchAdd() -> String {
+      Reduction.atomicFetchAdd(
+        buffer: "vacantSlotCount",
+        address: "0",
+        operand: "input",
+        output: "output")
+    }
+    
     return """
     \(Shader.importStandardLibrary)
     
@@ -85,6 +93,14 @@ extension RemoveProcess {
       \(Reduction.barrier())
       
       \(Reduction.threadgroupSumPrimitive(offset: 0))
+      
+      if (localID == 0) {
+        uint input = threadgroupMemory[4];
+        uint output;
+        \(atomicFetchAdd())
+        threadgroupMemory[5] = output;
+      }
+      \(Reduction.barrier())
     }
     """
   }
