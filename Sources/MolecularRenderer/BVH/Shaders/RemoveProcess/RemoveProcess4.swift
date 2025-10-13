@@ -65,7 +65,8 @@ extension RemoveProcess {
     func waveActiveCountBits() -> String {
       #if os(macOS)
       """
-      
+      simd_vote countBitsBallotVote = simd_ballot(isVacant);
+      uint countBitsResult = popcount(uint(uint64_t(countBitsBallotVote)));
       """
       #else
       "uint countBitsResult = WaveActiveCountBits(isVacant);"
