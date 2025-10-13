@@ -12,13 +12,11 @@ import MolecularRenderer
 // Current task:
 // - Bind all buffers needed for all BVH update stages, draft the root
 //   signatures, and smoke test the CPU-side command encoding.
-// - Draft a bit of the setup portions of each kernel.
-// - Draft some common code for reductions that generalizes across kernels:
-//   - SIMD-scoped reductions
-//   - Shuffling data through 4 slots of threadgroup memory
-//   - Global atomic accessors
-//   - Start by writing it for a specific kernel, to see what these reductions
-//     look like. Then abstract it away into a global utility.
+// - Create an upload (copy) buffer to sparse.assignedVoxels for testing
+//   memory allocation. Verify the contents with a debug diagnostic, sized at
+//   the previously queried exact memory slot count.
+// - Implement removeProcess4 and then addProcess2. Along the way, develop
+//   utilities to improve code reuse for GPU reductions, when appropriate.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
 //   debugging, but is not mandatory at the moment.

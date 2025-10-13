@@ -101,6 +101,31 @@ extension BVHBuilder {
       counters.crashBuffer.setBufferBindings(
         commandList: commandList)
       
+      commandList.setBuffer(
+        counters.general,
+        index: 1,
+        offset: GeneralCounters.offset(.vacantSlotCount))
+      commandList.setBuffer(
+        counters.general,
+        index: 2,
+        offset: GeneralCounters.offset(.allocatedSlotCount))
+      
+      commandList.setBuffer(
+        voxels.group.addedMarks, index: 3)
+      commandList.setBuffer(
+        voxels.group.rebuiltMarks, index: 4)
+      commandList.setBuffer(
+        voxels.dense.assignedSlotIDs, index: 5)
+      commandList.setBuffer(
+        voxels.dense.atomicCounters, index: 6)
+      
+      commandList.setBuffer(
+        voxels.sparse.assignedVoxelIDs, index: 7)
+      commandList.setBuffer(
+        voxels.sparse.vacantSlotIDs, index: 8)
+      commandList.setBuffer(
+        voxels.sparse.memorySlots, index: 9)
+      
       let gridSize = Int(voxels.worldDimension / 8)
       let threadgroupCount = SIMD3<UInt32>(
         UInt32(gridSize),
