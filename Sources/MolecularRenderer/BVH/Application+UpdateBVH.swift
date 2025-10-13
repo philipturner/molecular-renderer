@@ -80,32 +80,74 @@ extension Application {
     // Delete the transactionArgs state variable.
     bvhBuilder.transactionArgs = nil
   }
-  
-  public func runDiagnostic() {
-    device.commandQueue.withCommandList { commandList in
-      bvhBuilder.debugDiagnostic(
-        commandList: commandList,
-        dataBuffer: bvhBuilder.voxels.sparse.assignedVoxelCoords)
-      bvhBuilder.counters.diagnosticBuffer.download(
-        commandList: commandList,
-        inFlightFrameID: 0)
+}
+
+extension Application {
+  public func uploadDebugInput(
+    _ inputData: [UInt32]
+  ) {
+    func copyDestinationBuffer() -> Buffer {
+      bvhBuilder.voxels.sparse.assignedVoxelCoords
     }
+    
+    #if os(macOS)
+    let inputBuffer = copyDestinationBuffer()
+    #else
+    let nativeBuffer = copyDestinationBuffer()
+    
+    var bufferDesc = BufferDescriptor()
+    bufferDesc.device = device
+    bufferDesc.size = nativeBuffer.size
+    bufferDesc.type = .input
+    let inputBuffer = Buffer(descriptor: bufferDesc)
+    #endif
+    
+    inputData.withUnsafeBytes { bufferPointer in
+      inputBuffer.write(input: bufferPointer)
+    }
+    
+    #if os(Windows)
+    device.commandQueue.withCommandList { commandList in
+      commandList.upload(
+        inputBuffer: inputBuffer,
+        nativeBuffer: nativeBuffer)
+    }
+    #endif
+  }
+  
+  public func downloadDebugOutput(
+    _ outputData: inout [UInt32]
+  ) {
+    func createOutputData() -> [UInt32] {
+      fatalError("Not implemented.")
+    }
+    func copySourceBuffer() -> Buffer {
+      bvhBuilder.voxels.sparse.assignedVoxelCoords
+    }
+    
+    #if os(macOS)
+    let outputBuffer = copyDestinationBuffer()
+    #else
+    let nativeBuffer = copyDestinationBuffer()
+    
+    var bufferDesc = BufferDescriptor()
+    bufferDesc.device = device
+    bufferDesc.size = nativeBuffer.size
+    bufferDesc.type = .output
+    let outputBuffer = Buffer(descriptor: bufferDesc)
+    #endif
+    
+    #if os(Windows)
+    device.commandQueue.withCommandList { commandList in
+      commandList.download(
+        nativeBuffer: nativeBuffer,
+        outputBuffer: outputBuffer)
+    }
+    #endif
     device.commandQueue.flush()
     
-    var output = [UInt32](repeating: .zero, count: 3616)
-    bvhBuilder.counters.diagnosticBuffer.read(
-      data: &output,
-      inFlightFrameID: 0)
-    
-    let readSlotIDs: [Int] = [
-      0, 1, 2, 3, 4, 5, 6,
-      118, 119, 120, 121, 122, 123,
-      182, 183, 184, 185, 186,
-    ]
-    
-    for slotID in readSlotIDs {
-      let outputValue = output[slotID]
-      print(slotID, outputValue)
+    outputData.withUnsafeMutableBytes { bufferPointer in
+      outputBuffer.read(output: bufferPointer)
     }
   }
 }

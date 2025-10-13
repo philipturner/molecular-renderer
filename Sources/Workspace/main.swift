@@ -70,5 +70,18 @@ application.run {
 #else
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
-application.runDiagnostic()
+
+var output = [UInt32](repeating: .zero, count: 3616)
+application.downloadDebugOutput(&output)
+
+let readSlotIDs: [Int] = [
+  0, 1, 2, 3, 4, 5, 6,
+  118, 119, 120, 121, 122, 123,
+  182, 183, 184, 185, 186,
+]
+
+for slotID in readSlotIDs {
+  let outputValue = output[slotID]
+  print(slotID, outputValue)
+}
 #endif
