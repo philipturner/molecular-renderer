@@ -188,6 +188,21 @@ extension AddProcess {
       }
       
       // add existing atom count to prefix-summed 8 counters
+      if (assignedSlotID == \(UInt32.max)) {
+        return;
+      }
+      uint existingAtomCount;
+      {
+        uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
+        existingAtomCount = memorySlots[headerAddress];
+      }
+      counters1 += existingAtomCount;
+      counters2 += existingAtomCount;
+      atomicCounters[2 * voxelID + 0] = counters1;
+      atomicCounters[2 * voxelID + 1] = counters2;
+      
+      uint newAtomCount = existingAtomCount + addedAtomCount;
+      
     }
     """
   }
