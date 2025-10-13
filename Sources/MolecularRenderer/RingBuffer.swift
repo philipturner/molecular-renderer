@@ -53,7 +53,6 @@ struct RingBuffer {
     }
   }
   
-  // TODO: Delete this utility entirely.
   #if os(Windows)
   func copy(
     commandList: CommandList,
