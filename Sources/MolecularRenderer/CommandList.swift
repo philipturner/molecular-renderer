@@ -243,6 +243,7 @@ extension CommandList {
     // Set the state of the native buffer.
     let desiredNativeState = D3D12_RESOURCE_STATE_COPY_DEST
     if nativeBuffer.state != desiredNativeState {
+      fatalError("Native buffer must be in COPY_DEST state")
       let barrier = nativeBuffer.transition(state: desiredNativeState)
       try! d3d12CommandList.ResourceBarrier(1, [barrier])
     }
@@ -280,6 +281,7 @@ extension CommandList {
     // Set the state of the native buffer.
     let desiredNativeState = D3D12_RESOURCE_STATE_COPY_SOURCE
     if nativeBuffer.state != desiredNativeState {
+      fatalError("Native buffer must be in COPY_SOURCE state")
       let barrier = nativeBuffer.transition(state: desiredNativeState)
       try! d3d12CommandList.ResourceBarrier(1, [barrier])
     }
