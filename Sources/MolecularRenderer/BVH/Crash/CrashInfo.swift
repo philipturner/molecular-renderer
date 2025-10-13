@@ -22,6 +22,20 @@ class CrashInfo {
     // Diagnose the frame when it was registered.
     // Diagnose the frame when it was thrown.
     // Approximate the wall time when the error was thrown.
+    
+    // Diagnose the position of the lower corner.
+    
+    // Error message 2:
+    // requested vacant slot #X
+    // vacant slots: vacantSlotCount / memorySlotCount
+    
+    // Error message 3:
+    // total atom count
+    // maximum allowed is 3072
+    
+    // Error message 4:
+    // small reference count
+    // maximum allowed is 20480
   }
   
   var message: String {
