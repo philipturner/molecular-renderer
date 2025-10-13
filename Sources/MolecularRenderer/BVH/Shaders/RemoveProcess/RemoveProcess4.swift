@@ -1,7 +1,7 @@
 extension RemoveProcess {
   // [numthreads(128, 1, 1)]
   // dispatch threads SIMD3(memorySlotCount, 1, 1)
-  // threadgroup memory 20 B
+  // threadgroup memory 24 B
   //
   // scan for slots with no assigned voxel
   // create compact list of these slots (SIMD + group + global reduction)
@@ -37,7 +37,7 @@ extension RemoveProcess {
       RWStructuredBuffer<uint> vacantSlotCount : register(u2);
       RWStructuredBuffer<uint> assignedVoxelCoords : register(u3);
       RWStructuredBuffer<uint> vacantSlotIDs : register(u4);
-      groupshared uint threadgroupMemory[5];
+      groupshared uint threadgroupMemory[6];
       
       [numthreads(128, 1, 1)]
       [RootSignature(
@@ -56,7 +56,7 @@ extension RemoveProcess {
     
     func allocateThreadgroupMemory() -> String {
       #if os(macOS)
-      "threadgroup uint threadgroupMemory[5];"
+      "threadgroup uint threadgroupMemory[6];"
       #else
       ""
       #endif
@@ -88,6 +88,7 @@ extension RemoveProcess {
       // prefix sum of 4 components and writes them back into TG memory.
       // - Takes the offset into the threadgroup allocation as an argument.
       // - Assumes the allocation is called 'threadgroupMemory'.
+      \(Reduction.threadgroupSumPrimitive(offset: 0))
     }
     """
   }

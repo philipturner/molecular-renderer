@@ -18,19 +18,31 @@ struct Reduction {
     #endif
   }
   
-  static func waveActiveSum(_ input: String) -> String {
-    #if os(macOS)
-    "simd_sum(\(input))"
-    #else
-    "WaveActiveSum(\(input))"
-    #endif
-  }
-  
   static func wavePrefixSum(_ input: String) -> String {
     #if os(macOS)
     "simd_prefix_exclusive_sum(\(input))"
     #else
     "WavePrefixSum(\(input))"
     #endif
+  }
+  
+  static func waveReadLaneAt(_ input: String, laneID: Int) -> String {
+    #if os(macOS)
+    "simd_broadcast(\(input), \(laneID))"
+    #else
+    "WaveReadLaneAt(\(input), \(laneID))"
+    #endif
+  }
+  
+  static func threadgroupSumPrimitive(offset: Int) -> String {
+    return """
+    {
+      uint input = 0;
+      if (localID < 4) {
+        input = threadgroupMemory[\(offset) + localID];
+      }
+      \(Reduction.barrier())
+    }
+    """
   }
 }
