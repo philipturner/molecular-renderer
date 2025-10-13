@@ -121,8 +121,11 @@ extension AddProcess {
       \(process(counters: "counters1"))
       \(process(counters: "counters2"))
       if (addedAtomCount > 0) {
-        
+        rebuiltMarks[voxelID] = 1;
       }
+      
+      // Next step: debug compare_exchange_explicit accesses to the global
+      // crash buffer.
     }
     """
   }
