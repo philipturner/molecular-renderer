@@ -10,8 +10,9 @@ import MolecularRenderer
 //   factor that degrades the viability of predicting & controlling performance.
 //
 // Current task:
-// - Implement addProcess2 next.
-// - Inspect every buffer modified by addProcess2.
+// - Implement addProcess3, then the remove process. At the end of this, we
+//   will no longer have the GPU crash from too many atoms/voxel.
+// - Inspect contents of buffers only when it feels appropriate.
 // - Debug all the steps toward the minimum viable product of rendering, one at
 //   a time. The rotating rod test might be a helpful tool to facilitate
 //   debugging, but is not mandatory at the moment.
