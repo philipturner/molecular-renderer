@@ -83,6 +83,11 @@ extension AddProcess {
     func process(counters: String) -> String {
       """
       \(Shader.unroll)
+      for (uint i = 0; i < 4; ++i) {
+        uint temp = \(counters)[i];
+        \(counters)[i] = addedAtomCount;
+        addedAtomCount += temp;
+      }
       """
     }
     
@@ -107,7 +112,8 @@ extension AddProcess {
       uint4 counters1 = atomicCounters[2 * voxelID + 0];
       uint4 counters2 = atomicCounters[2 * voxelID + 1];
       uint addedAtomCount = 0;
-      
+      \(process(counters: "counters1"))
+      \(process(counters: "counters2"))
     }
     """
   }
