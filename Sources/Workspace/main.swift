@@ -54,7 +54,7 @@ let lattice = Lattice<Cubic> { h, k, l in
   Material { .checkerboard(.silicon, .carbon) }
 }
 
-#if true
+#if false
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
@@ -62,13 +62,9 @@ application.run {
   }
   
   let frameID = application.frameID
-  if frameID < 10 {
-    application.updateBVH(inFlightFrameID: frameID % 3)
-  }
+  application.updateBVH(inFlightFrameID: frameID % 3)
   let image = application.render()
-  if frameID < 10 {
-    application.forgetIdleState(inFlightFrameID: frameID % 3)
-  }
+  application.forgetIdleState(inFlightFrameID: frameID % 3)
   application.present(image: image)
 }
 #else
@@ -89,9 +85,7 @@ func analyzeDebugOutput() {
   application.downloadDebugOutput(&output)
   
   let readSlotIDs: [Int] = [
-    0, 1, 2, 3, 4, 5, 6,
-    118, 119, 120, 121, 122, 123,
-    182, 183, 184, 185, 186,
+    0, 1, 2, 3, 4, 5, 6, 7,
   ]
   
   for slotID in readSlotIDs {
@@ -105,7 +99,9 @@ for atomID in lattice.atoms.indices {
   application.atoms[atomID] = atom
 }
 
+uploadDebugInput()
 application.updateBVH(inFlightFrameID: 0)
 application.forgetIdleState(inFlightFrameID: 0)
+analyzeDebugOutput()
 
 #endif

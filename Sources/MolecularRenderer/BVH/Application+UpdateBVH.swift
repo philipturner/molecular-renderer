@@ -113,11 +113,8 @@ extension Application {
   public func downloadDebugOutput(
     _ outputData: inout [UInt32]
   ) {
-    func createOutputData() -> [UInt32] {
-      fatalError("Not implemented.")
-    }
     func copySourceBuffer() -> Buffer {
-      bvhBuilder.voxels.sparse.assignedVoxelCoords
+      bvhBuilder.voxels.sparse.vacantSlotIDs
     }
     
     #if os(macOS)
