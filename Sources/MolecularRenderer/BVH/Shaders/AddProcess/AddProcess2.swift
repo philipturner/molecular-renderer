@@ -99,8 +99,9 @@ extension AddProcess {
     func atomicFetchAdd() -> String {
       Reduction.atomicFetchAdd(
         buffer: "allocatedSlotCount",
-        
-      )
+        address: "0",
+        operand: "countBitsResult",
+        output: "offsetInVacantSlots")
     }
     
     return """
@@ -141,7 +142,7 @@ extension AddProcess {
         if (countBitsResult > 0) {
           uint offsetInVacantSlots = \(UInt32.max);
           if (\(Reduction.waveIsFirstLane())) {
-            // atomic operation here.
+            \(atomicFetchAdd())
           }
         }
       }

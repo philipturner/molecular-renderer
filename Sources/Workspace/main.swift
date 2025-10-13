@@ -66,7 +66,7 @@ func uploadDebugInput() {
 }
 uploadDebugInput()
 
-#if true
+#if false
 application.run {
   for atomID in lattice.atoms.indices {
     let atom = lattice.atoms[atomID]
