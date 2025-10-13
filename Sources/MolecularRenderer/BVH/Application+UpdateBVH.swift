@@ -76,7 +76,7 @@ extension Application {
       bvhBuilder.computeUAVBarrier(commandList: commandList)
       #endif
     }
-    
+    print(bvhBuilder.voxels.memorySlotCount)
     // Delete the transactionArgs state variable.
     bvhBuilder.transactionArgs = nil
   }
@@ -85,14 +85,14 @@ extension Application {
     device.commandQueue.withCommandList { commandList in
       bvhBuilder.debugDiagnostic(
         commandList: commandList,
-        dataBuffer: bvhBuilder.counters.general)
+        dataBuffer: bvhBuilder.voxels.sparse.assignedVoxelCoords)
       bvhBuilder.counters.diagnosticBuffer.download(
         commandList: commandList,
         inFlightFrameID: 0)
     }
     device.commandQueue.flush()
     
-    var output = [UInt32](repeating: .zero, count: 10)
+    var output = [UInt32](repeating: .zero, count: 3616)
     bvhBuilder.counters.diagnosticBuffer.read(
       data: &output,
       inFlightFrameID: 0)
