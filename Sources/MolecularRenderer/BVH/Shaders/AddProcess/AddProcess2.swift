@@ -144,6 +144,21 @@ extension AddProcess {
           if (\(Reduction.waveIsFirstLane())) {
             \(atomicFetchAdd())
           }
+          offsetInVacantSlots =
+          \(Reduction.waveReadLaneAt("offsetInVacantSlots", laneID: 0));
+          
+          if (\(Reduction.waveIsFirstLane())) {
+            bool acquiredLock = false;
+            \(CrashBuffer.acquireLock(errorCode: 2))
+            if (acquiredLock) {
+              crashBuffer[1] = globalID.x;
+              crashBuffer[2] = globalID.y;
+              crashBuffer[3] = globalID.z;
+              crashBuffer[4] = offsetInVacantSlots + countBitsResult - 1;
+              crashBuffer[5] = vacantSlotCount[0];
+            }
+          }
+          return;
         }
       }
     }
