@@ -156,7 +156,7 @@ extension RebuildProcess {
       // ===                            Phase II                             ===
       // =======================================================================
       
-      if (atomCount > 1000) {
+      if (all(lowerCorner == 0)) {
         if (localID == 0) {
           uint referenceCount = 0;
           for (uint i = 0; i < 512; ++i) {
@@ -164,26 +164,23 @@ extension RebuildProcess {
             referenceCount += count;
           }
           
-          // if atomCount > 1000
-          // most often 8749, but sometimes 8650!!!!!
+          // lower corner: 0.0 0.0 0.0
+          // atom count: 1000
+          // reference count: 8630
           
-          // if atomCount == 1165
-          // always observed it being 8749
+          // lower corner: 0.0 0.0 2.0 (and permutations)
+          // atom count: 1050
+          // reference count: 8650
           
-          // 8749 always:
-          // lower corner 2.0 2.0 2.0
-          // upper corner 4.0 4.0 4.0
+          // lower corner: 0.0 2.0 2.0 (and permutations)
+          // atom count: 1105
+          // reference count: 8690
           
-          // 8650 first time:
-          // lower corner 2.0 2.0 2.0
-          // upper corner 4.0 4.0 4.0
+          // lower corner: 2.0 2.0 2.0
+          // atom count: 1165
+          // reference count: 8749
           
-          // 8650 second time:
-          // lower corner 0.0 2.0 2.0
-          // upper corner 2.0 4.0 4.0
-          
-          // Was not initializing this to false!
-          bool acquiredLock;
+          bool acquiredLock = false;
           \(CrashBuffer.acquireLock(errorCode: 3))
           if (acquiredLock) {
             crashBuffer[1] = voxelCoords.x;
