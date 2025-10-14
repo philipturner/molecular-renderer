@@ -75,7 +75,7 @@ Partial filling of 2 nm voxels will be major problem when working with large sta
 
 _Room for improvement if most voxels partially intersect a nanomachine._
 
-Multiple tiers of allocation size will add considerable complexity to the memory management scheme, requiring a careful design that avoids fragmentation. The frequent upgrading/downgrading between allocation tiers will slightly harm performance in dynamic scenes, so this will be an explicit opt-in mode. Perhaps we can auto-detect which voxels are moving and leave them at a large size, migrating to a smaller allocation after a small time delay. This migration will not incur the compute cost of rebuilding a voxel.
+Multiple tiers of allocation size will add considerable complexity to the memory management scheme, requiring a careful design that avoids fragmentation. Frequent upgrading/downgrading between allocation tiers would harm performance in dynamic scenes. Therefore, the backend will auto-detect which voxels are moving and leave them at a large size, migrating to a smaller allocation after a small time delay. This migration will not incur the compute cost of rebuilding a voxel.
 
 The delayed migration design also seems like the most sensible way to program the allocator. When allocations are acquired, only the atom count is known. The reference count is not known until the voxel gets rebuilt. It could be that the atom count for a specific tier is met, but the reference count is exceed. It would be overcomplicated to migrate to a new memory slot _during_ the kernel that rebuilds voxels. It would be much easier to migrate during a following frame.
 
