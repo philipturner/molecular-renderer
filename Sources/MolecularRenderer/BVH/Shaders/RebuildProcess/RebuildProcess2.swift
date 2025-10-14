@@ -98,6 +98,8 @@ extension RebuildProcess {
       uint3 voxelCoords = \(VoxelResources.decode("encodedVoxelCoords"));
       uint voxelID =
       \(VoxelResources.generate("voxelCoords", worldDimension / 2));
+      float3 lowerCorner = float3(voxelCoords) * 2;
+      lowerCorner -= float(\(worldDimension / 2));
       
       uint assignedSlotID = assignedSlotIDs[voxelID];
       uint headerAddress = assignedSlotID * \(MemorySlot.totalSize / 4);
@@ -105,11 +107,21 @@ extension RebuildProcess {
       listAddress += \(MemorySlot.offset(.referenceLarge) / 4);
       uint atomCount = memorySlots32[headerAddress];
       
-      float3 lowerCorner = float3(voxelCoords) * 2;
-      lowerCorner -= float(\(worldDimension / 2));
-      
       // TODO: Crash w/ atom count to indicate the 3 coordinates of the
       // lower corner.
+      if (localID == 0) {
+        bool acquiredLock = false;
+        \(CrashBuffer.acquireLock(errorCode: 3))
+        if (acquiredLock) {
+          crashBuffer[1] = voxelCoords.x;
+          crashBuffer[2] = voxelCoords.y;
+          crashBuffer[3] = voxelCoords.z;
+          crashBuffer[4] = uint(lowerCorner.x);
+          crashBuffer[5] = uint(lowerCorner.y);
+          crashBuffer[6] = uint(lowerCorner.z);
+        }
+      }
+      return;
       
       // TODO: Draft the cube-sphere test in tandem with materializing
       // the atom's relative offset.
