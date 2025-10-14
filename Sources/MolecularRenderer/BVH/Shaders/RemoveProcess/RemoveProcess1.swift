@@ -62,8 +62,43 @@ extension RemoveProcess {
         return;
       }
       
+      // Retrieve the atom.
       uint atomID = transactionIDs[globalID];
-      addressOccupiedMarks[atomID] = 0;
+      float4 atom = atoms[atomID];
+      if (globalID < removedCount) {
+        addressOccupiedMarks[atomID] = 0;
+      } else {
+        addressOccupiedMarks[atomID] = 2;
+      }
+      
+      \(AddProcess.computeLoopBounds(worldDimension: worldDimension))
+      
+      // Iterate over the footprint on the 3D grid.
+      for (uint z = 0; z < loopEnd[2]; ++z) {
+        for (uint y = 0; y < loopEnd[1]; ++y) {
+          for (uint x = 0; x < loopEnd[0]; ++x) {
+            uint3 actualXYZ = uint3(x, y, z);
+            actualXYZ = reorderBackward(actualXYZ, permutationID);
+            
+            // Write the voxel group atoms-removed mark.
+            {
+              uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
+              voxelCoordinates /= 4;
+              uint address =
+              \(VoxelResources.generate("voxelCoordinates", worldDimension / 8));
+              voxelGroupAtomsRemovedMarks[address] = 1;
+            }
+            
+            // Write the atoms-removed mark.
+            {
+              uint3 voxelCoordinates = largeVoxelMin + actualXYZ;
+              uint address =
+              \(VoxelResources.generate("voxelCoordinates", worldDimension / 2));
+              atomsRemovedMarks[address] = 1;
+            }
+          }
+        }
+      }
     }
     """
   }
